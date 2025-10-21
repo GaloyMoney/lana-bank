@@ -69,6 +69,46 @@ export type AccountingCsvDownloadLinkGeneratePayload = {
   link: AccountingCsvDownloadLink;
 };
 
+export type AccountingPeriod = {
+  __typename?: 'AccountingPeriod';
+  accountingPeriodId: Scalars['UUID']['output'];
+  id: Scalars['ID']['output'];
+  period: PeriodRange;
+};
+
+export type AccountingPeriodCloseInput = {
+  chartId: Scalars['UUID']['input'];
+  description?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type AccountingPeriodClosePayload = {
+  __typename?: 'AccountingPeriodClosePayload';
+  accountingPeriod: AccountingPeriod;
+};
+
+export type AccountingPeriodModuleConfig = {
+  __typename?: 'AccountingPeriodModuleConfig';
+  chartOfAccountsId?: Maybe<Scalars['UUID']['output']>;
+  costOfRevenueCode?: Maybe<Scalars['String']['output']>;
+  equityRetainedEarningsCode?: Maybe<Scalars['String']['output']>;
+  equityRetainedLossesCode?: Maybe<Scalars['String']['output']>;
+  expensesCode?: Maybe<Scalars['String']['output']>;
+  revenueCode?: Maybe<Scalars['String']['output']>;
+};
+
+export type AccountingPeriodModuleConfigureInput = {
+  costOfRevenueCode: Scalars['String']['input'];
+  equityRetainedEarningsCode: Scalars['String']['input'];
+  equityRetainedLossesCode: Scalars['String']['input'];
+  expensesCode: Scalars['String']['input'];
+  revenueCode: Scalars['String']['input'];
+};
+
+export type AccountingPeriodModuleConfigurePayload = {
+  __typename?: 'AccountingPeriodModuleConfigurePayload';
+  accountingPeriodConfig: AccountingPeriodModuleConfig;
+};
+
 export enum Activity {
   Active = 'ACTIVE',
   Inactive = 'INACTIVE',
@@ -270,8 +310,8 @@ export type ChartOfAccounts = {
   __typename?: 'ChartOfAccounts';
   chartId: Scalars['UUID']['output'];
   children: Array<ChartNode>;
+  closing: AccountingClosing;
   id: Scalars['ID']['output'];
-  monthlyClosing: AccountingClosing;
   name: Scalars['String']['output'];
 };
 
@@ -296,15 +336,6 @@ export type ChartOfAccountsAddRootNodeInput = {
 
 export type ChartOfAccountsAddRootNodePayload = {
   __typename?: 'ChartOfAccountsAddRootNodePayload';
-  chartOfAccounts: ChartOfAccounts;
-};
-
-export type ChartOfAccountsCloseMonthlyInput = {
-  chartId: Scalars['UUID']['input'];
-};
-
-export type ChartOfAccountsCloseMonthlyPayload = {
-  __typename?: 'ChartOfAccountsCloseMonthlyPayload';
   chartOfAccounts: ChartOfAccounts;
 };
 
@@ -1535,12 +1566,14 @@ export type Me = {
 export type Mutation = {
   __typename?: 'Mutation';
   accountingCsvDownloadLinkGenerate: AccountingCsvDownloadLinkGeneratePayload;
+  accountingPeriodCloseMonth: AccountingPeriodClosePayload;
+  accountingPeriodCloseYear: AccountingPeriodClosePayload;
+  accountingPeriodConfigure: AccountingPeriodModuleConfigurePayload;
   approvalProcessApprove: ApprovalProcessApprovePayload;
   approvalProcessDeny: ApprovalProcessDenyPayload;
   balanceSheetConfigure: BalanceSheetModuleConfigurePayload;
   chartOfAccountsAddChildNode: ChartOfAccountsAddChildNodePayload;
   chartOfAccountsAddRootNode: ChartOfAccountsAddRootNodePayload;
-  chartOfAccountsCloseMonthly: ChartOfAccountsCloseMonthlyPayload;
   chartOfAccountsCsvImport: ChartOfAccountsCsvImportPayload;
   committeeAddUser: CommitteeAddUserPayload;
   committeeCreate: CommitteeCreatePayload;
@@ -1595,6 +1628,21 @@ export type MutationAccountingCsvDownloadLinkGenerateArgs = {
 };
 
 
+export type MutationAccountingPeriodCloseMonthArgs = {
+  input: AccountingPeriodCloseInput;
+};
+
+
+export type MutationAccountingPeriodCloseYearArgs = {
+  input: AccountingPeriodCloseInput;
+};
+
+
+export type MutationAccountingPeriodConfigureArgs = {
+  input: AccountingPeriodModuleConfigureInput;
+};
+
+
 export type MutationApprovalProcessApproveArgs = {
   input: ApprovalProcessApproveInput;
 };
@@ -1618,11 +1666,6 @@ export type MutationChartOfAccountsAddChildNodeArgs = {
 
 export type MutationChartOfAccountsAddRootNodeArgs = {
   input: ChartOfAccountsAddRootNodeInput;
-};
-
-
-export type MutationChartOfAccountsCloseMonthlyArgs = {
-  input: ChartOfAccountsCloseMonthlyInput;
 };
 
 
@@ -1937,6 +1980,12 @@ export enum Period {
   Months = 'MONTHS'
 }
 
+export type PeriodRange = {
+  __typename?: 'PeriodRange';
+  periodEnd: Scalars['Date']['output'];
+  periodStart: Scalars['Date']['output'];
+};
+
 export type PermissionSet = {
   __typename?: 'PermissionSet';
   id: Scalars['ID']['output'];
@@ -2056,6 +2105,7 @@ export type PublicIdTarget = CreditFacility | CreditFacilityDisbursal | Customer
 export type Query = {
   __typename?: 'Query';
   accountEntryCsv?: Maybe<AccountingCsvDocument>;
+  accountingPeriodConfig?: Maybe<AccountingPeriodModuleConfig>;
   approvalProcess?: Maybe<ApprovalProcess>;
   approvalProcesses: ApprovalProcessConnection;
   audit: AuditEntryConnection;

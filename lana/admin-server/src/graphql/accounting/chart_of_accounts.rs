@@ -11,7 +11,7 @@ pub struct ChartOfAccounts {
     id: ID,
     chart_id: UUID,
     name: String,
-    monthly_closing: AccountingClosing,
+    closing: AccountingClosing,
 
     #[graphql(skip)]
     pub(crate) entity: Arc<DomainChart>,
@@ -23,7 +23,7 @@ impl From<DomainChart> for ChartOfAccounts {
             id: chart.id.to_global_id(),
             chart_id: UUID::from(chart.id),
             name: chart.name.to_string(),
-            monthly_closing: chart.monthly_closing.into(),
+            closing: chart.closing.into(),
 
             entity: Arc::new(chart),
         }
@@ -80,12 +80,6 @@ pub struct ChartOfAccountsCsvImportInput {
     pub file: Upload,
 }
 crate::mutation_payload! { ChartOfAccountsCsvImportPayload, chart_of_accounts: ChartOfAccounts }
-
-#[derive(InputObject)]
-pub struct ChartOfAccountsCloseMonthlyInput {
-    pub chart_id: UUID,
-}
-crate::mutation_payload! { ChartOfAccountsCloseMonthlyPayload, chart_of_accounts: ChartOfAccounts }
 
 #[derive(InputObject)]
 pub struct ChartOfAccountsAddRootNodeInput {

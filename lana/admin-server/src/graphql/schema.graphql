@@ -27,6 +27,42 @@ type AccountingCsvDownloadLinkGeneratePayload {
 	link: AccountingCsvDownloadLink!
 }
 
+type AccountingPeriod {
+	id: ID!
+	accountingPeriodId: UUID!
+	period: PeriodRange!
+}
+
+input AccountingPeriodCloseInput {
+	chartId: UUID!
+	description: String
+}
+
+type AccountingPeriodClosePayload {
+	accountingPeriod: AccountingPeriod!
+}
+
+type AccountingPeriodModuleConfig {
+	chartOfAccountsId: UUID
+	revenueCode: String
+	costOfRevenueCode: String
+	expensesCode: String
+	equityRetainedEarningsCode: String
+	equityRetainedLossesCode: String
+}
+
+input AccountingPeriodModuleConfigureInput {
+	revenueCode: String!
+	costOfRevenueCode: String!
+	expensesCode: String!
+	equityRetainedEarningsCode: String!
+	equityRetainedLossesCode: String!
+}
+
+type AccountingPeriodModuleConfigurePayload {
+	accountingPeriodConfig: AccountingPeriodModuleConfig!
+}
+
 enum Activity {
 	INACTIVE
 	ACTIVE
@@ -240,7 +276,7 @@ type ChartOfAccounts {
 	id: ID!
 	chartId: UUID!
 	name: String!
-	monthlyClosing: AccountingClosing!
+	closing: AccountingClosing!
 	children: [ChartNode!]!
 }
 
@@ -263,14 +299,6 @@ input ChartOfAccountsAddRootNodeInput {
 }
 
 type ChartOfAccountsAddRootNodePayload {
-	chartOfAccounts: ChartOfAccounts!
-}
-
-input ChartOfAccountsCloseMonthlyInput {
-	chartId: UUID!
-}
-
-type ChartOfAccountsCloseMonthlyPayload {
 	chartOfAccounts: ChartOfAccounts!
 }
 
@@ -1556,11 +1584,13 @@ type Mutation {
 	customerDocumentDelete(input: CustomerDocumentDeleteInput!): CustomerDocumentDeletePayload!
 	customerDocumentArchive(input: CustomerDocumentArchiveInput!): CustomerDocumentArchivePayload!
 	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
-	chartOfAccountsCloseMonthly(input: ChartOfAccountsCloseMonthlyInput!): ChartOfAccountsCloseMonthlyPayload!
+	accountingPeriodCloseMonth(input: AccountingPeriodCloseInput!): AccountingPeriodClosePayload!
+	accountingPeriodCloseYear(input: AccountingPeriodCloseInput!): AccountingPeriodClosePayload!
 	chartOfAccountsAddRootNode(input: ChartOfAccountsAddRootNodeInput!): ChartOfAccountsAddRootNodePayload!
 	chartOfAccountsAddChildNode(input: ChartOfAccountsAddChildNodeInput!): ChartOfAccountsAddChildNodePayload!
 	balanceSheetConfigure(input: BalanceSheetModuleConfigureInput!): BalanceSheetModuleConfigurePayload!
 	profitAndLossStatementConfigure(input: ProfitAndLossModuleConfigureInput!): ProfitAndLossStatementModuleConfigurePayload!
+	accountingPeriodConfigure(input: AccountingPeriodModuleConfigureInput!): AccountingPeriodModuleConfigurePayload!
 	ledgerAccountCsvCreate(input: LedgerAccountCsvCreateInput!): LedgerAccountCsvCreatePayload!
 	accountingCsvDownloadLinkGenerate(input: AccountingCsvDownloadLinkGenerateInput!): AccountingCsvDownloadLinkGeneratePayload!
 	loanAgreementGenerate(input: LoanAgreementGenerateInput!): LoanAgreementGeneratePayload!
@@ -1670,6 +1700,11 @@ enum PendingCreditFacilityStatus {
 enum Period {
 	MONTHS
 	DAYS
+}
+
+type PeriodRange {
+	periodStart: Date!
+	periodEnd: Date!
 }
 
 type PermissionSet {
@@ -1859,6 +1894,7 @@ type Query {
 	creditConfig: CreditModuleConfig
 	balanceSheetConfig: BalanceSheetModuleConfig
 	profitAndLossStatementConfig: ProfitAndLossStatementModuleConfig
+	accountingPeriodConfig: AccountingPeriodModuleConfig
 	publicIdTarget(id: PublicId!): PublicIdTarget
 	loanAgreement(id: UUID!): LoanAgreement
 	accountEntryCsv(ledgerAccountId: UUID!): AccountingCsvDocument

@@ -81,6 +81,23 @@ CREATE TABLE core_chart_node_events (
     UNIQUE(id, sequence)
 );
 
+CREATE TABLE core_accounting_periods (
+  id UUID PRIMARY KEY,
+  chart_id UUID NOT NULL REFERENCES core_charts(id),
+  closed_at TIMESTAMPTZ NULL,
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE core_accounting_period_events (
+  id UUID NOT NULL REFERENCES core_accounting_periods(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE core_public_ids (
   id VARCHAR PRIMARY KEY,
   target_id UUID NOT NULL,
@@ -529,6 +546,23 @@ CREATE TABLE reports (
 
 CREATE TABLE report_events (
   id UUID NOT NULL REFERENCES reports(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(id, sequence)
+);
+
+CREATE TABLE core_annual_closing_transactions (
+  id UUID PRIMARY KEY,
+  reference VARCHAR NOT NULL UNIQUE,
+  ledger_transaction_id UUID NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE core_annual_closing_transaction_events (
+  id UUID NOT NULL REFERENCES core_annual_closing_transactions(id),
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,

@@ -6,13 +6,13 @@ use serde::{Deserialize, Serialize};
 pub use lana_app::{
     accounting::LedgerAccountId,
     primitives::{
-        AccountSpec, ApprovalProcessId, ChartId, CollateralId, CommitteeId, CreditFacilityId,
-        CreditFacilityProposalId, CreditFacilityProposalStatus, CustodianId, CustomerDocumentId,
-        CustomerId, DepositAccountId, DepositId, DisbursalId, DisbursalStatus, DocumentId, EntryId,
-        LedgerTransactionId, ManualTransactionId, PaymentAllocationId, PaymentId,
-        PendingCreditFacilityId, PendingCreditFacilityStatus, PermissionSetId, PolicyId, ReportId,
-        RoleId, Satoshis, SignedSatoshis, SignedUsdCents, Subject, TermsTemplateId, UsdCents,
-        UserId, WalletId, WithdrawalId,
+        AccountSpec, AccountingPeriodId, ApprovalProcessId, ChartId, CollateralId, CommitteeId,
+        CreditFacilityId, CreditFacilityProposalId, CreditFacilityProposalStatus, CustodianId,
+        CustomerDocumentId, CustomerId, DepositAccountId, DepositId, DisbursalId, DisbursalStatus,
+        DocumentId, EntryId, LedgerTransactionId, ManualTransactionId, PaymentAllocationId,
+        PaymentId, PendingCreditFacilityId, PendingCreditFacilityStatus, PermissionSetId, PolicyId,
+        ReportId, RoleId, Satoshis, SignedSatoshis, SignedUsdCents, Subject, TermsTemplateId,
+        UsdCents, UserId, WalletId, WithdrawalId,
     },
     public_id::PublicId,
     report::ReportRunId,
@@ -130,5 +130,6 @@ impl_to_global_id! {
     PaymentAllocationId,
     PublicId,
     EntryId,
-    LedgerAccountId
+    LedgerAccountId,
+    AccountingPeriodId
 }
