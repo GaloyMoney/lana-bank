@@ -44,7 +44,6 @@ groups:
       - build-meltano-edge-image
       - await-release-binary
       - build-dagster-edge-image
-      - build-release-binary
 
 jobs:
   -  #@ build_edge_image()
@@ -395,6 +394,22 @@ jobs:
             DOCKERFILE: "repo/Dockerfile.release"
           run:
             path: build
+      - task: prepare-dagster-tags
+        config:
+          platform: linux
+          image_resource: #@ rust_task_image_config()
+          inputs:
+            - name: version
+            - name: repo
+          outputs:
+            - name: dagster-tags
+          run:
+            path: sh
+            args:
+              - -c
+              - |
+                mkdir -p dagster-tags
+                echo "$(cat version/version) $(cat repo/.git/short_ref)" > dagster-tags/tags
       - in_parallel:
           - put: latest-image
             params:
@@ -407,9 +422,7 @@ jobs:
           - put: dagster-latest-image
             params:
               image: dagster-edge-image/image.tar
-              additional_tags: 
-                - version/version
-                - repo/.git/short_ref
+              additional_tags: dagster-tags/tags
   - name: bump-image-in-chart
     plan:
       - in_parallel:
