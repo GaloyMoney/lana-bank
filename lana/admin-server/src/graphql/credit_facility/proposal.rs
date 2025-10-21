@@ -23,6 +23,7 @@ pub struct CreditFacilityProposal {
     id: ID,
     credit_facility_proposal_id: UUID,
     approval_process_id: UUID,
+    status: CreditFacilityProposalStatus,
     created_at: Timestamp,
     facility_amount: UsdCents,
     credit_facility_terms: TermValues,
@@ -33,19 +34,6 @@ pub struct CreditFacilityProposal {
 
 #[ComplexObject]
 impl CreditFacilityProposal {
-    async fn status(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<CreditFacilityProposalStatus> {
-        let (app, _) = crate::app_and_sub_from_ctx!(ctx);
-        Ok(app
-            .credit()
-            .ensure_up_to_date_proposal_status(&self.entity)
-            .await?
-            .map(|cf| cf.status())
-            .unwrap_or_else(|| self.entity.status()))
-    }
-
     async fn custodian(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<Custodian>> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         if let Some(custodian_id) = self.entity.custodian_id {
@@ -94,6 +82,7 @@ impl From<DomainCreditFacilityProposal> for CreditFacilityProposal {
             id: proposal.id.to_global_id(),
             credit_facility_proposal_id: UUID::from(proposal.id),
             approval_process_id: UUID::from(proposal.approval_process_id),
+            status: proposal.status(),
             created_at: created_at.into(),
             facility_amount: proposal.amount,
             credit_facility_terms: proposal.terms.into(),

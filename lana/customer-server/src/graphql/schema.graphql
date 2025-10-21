@@ -78,8 +78,8 @@ type CreditFacilityDisbursal {
 	id: ID!
 	disbursalId: UUID!
 	amount: UsdCents!
-	createdAt: Timestamp!
 	status: DisbursalStatus!
+	createdAt: Timestamp!
 }
 
 type CreditFacilityDisbursalExecuted {
@@ -376,9 +376,9 @@ type Withdrawal {
 	withdrawalId: UUID!
 	accountId: UUID!
 	amount: UsdCents!
+	status: WithdrawalStatus!
 	createdAt: Timestamp!
 	reference: String!
-	status: WithdrawalStatus!
 }
 
 type WithdrawalEntry {

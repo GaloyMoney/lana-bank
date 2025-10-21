@@ -712,20 +712,6 @@ where
         Ok(disbursal)
     }
 
-    pub async fn ensure_up_to_date_disbursal_status(
-        &self,
-        disbursal: &Disbursal,
-    ) -> Result<Option<Disbursal>, CoreCreditError> {
-        self.approve_disbursal.execute_from_svc(disbursal).await
-    }
-
-    pub async fn ensure_up_to_date_proposal_status(
-        &self,
-        proposal: &CreditFacilityProposal,
-    ) -> Result<Option<CreditFacilityProposal>, CoreCreditError> {
-        self.approve_proposal.execute_from_svc(proposal).await
-    }
-
     pub async fn subject_can_update_collateral(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

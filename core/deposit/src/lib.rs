@@ -757,14 +757,6 @@ where
             .await?)
     }
 
-    #[instrument(name = "deposit.ensure_up_to_date_status", skip(self, withdraw), err)]
-    pub async fn ensure_up_to_date_status(
-        &self,
-        withdraw: &Withdrawal,
-    ) -> Result<Option<Withdrawal>, CoreDepositError> {
-        Ok(self.approve_withdrawal.execute_from_svc(withdraw).await?)
-    }
-
     #[instrument(name = "deposit.list_deposits_for_account", skip(self), err)]
     pub async fn list_deposits_for_account(
         &self,

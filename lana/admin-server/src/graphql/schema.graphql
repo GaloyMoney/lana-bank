@@ -496,10 +496,10 @@ type CreditFacilityDisbursal {
 	id: ID!
 	disbursalId: UUID!
 	amount: UsdCents!
+	status: DisbursalStatus!
 	createdAt: Timestamp!
 	publicId: PublicId!
 	creditFacility: CreditFacility!
-	status: DisbursalStatus!
 	approvalProcess: ApprovalProcess!
 	ledgerTransactions: [LedgerTransaction!]!
 }
@@ -643,10 +643,10 @@ type CreditFacilityProposal {
 	id: ID!
 	creditFacilityProposalId: UUID!
 	approvalProcessId: UUID!
+	status: CreditFacilityProposalStatus!
 	createdAt: Timestamp!
 	facilityAmount: UsdCents!
 	creditFacilityTerms: TermValues!
-	status: CreditFacilityProposalStatus!
 	custodian: Custodian
 	customer: Customer!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
@@ -2235,10 +2235,10 @@ type Withdrawal {
 	accountId: UUID!
 	approvalProcessId: UUID!
 	amount: UsdCents!
+	status: WithdrawalStatus!
 	createdAt: Timestamp!
 	publicId: PublicId!
 	reference: String!
-	status: WithdrawalStatus!
 	approvalProcess: ApprovalProcess!
 	account: DepositAccount!
 	ledgerTransactions: [LedgerTransaction!]!

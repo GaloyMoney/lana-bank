@@ -1,10 +1,7 @@
 mod job;
 
 use authz::PermissionCheck;
-use governance::{
-    ApprovalProcess, ApprovalProcessStatus, ApprovalProcessType, GovernanceAction, GovernanceEvent,
-    GovernanceObject,
-};
+use governance::{ApprovalProcessType, GovernanceAction, GovernanceEvent, GovernanceObject};
 use tracing::instrument;
 
 use audit::AuditSvc;
@@ -17,8 +14,6 @@ use crate::{
     primitives::WithdrawalId,
     withdrawal::{Withdrawal, error::WithdrawalError, repo::WithdrawalRepo},
 };
-
-use super::error::ProcessError;
 
 pub use job::*;
 
@@ -66,29 +61,6 @@ where
             audit: audit.clone(),
             governance: governance.clone(),
         }
-    }
-
-    pub async fn execute_from_svc(
-        &self,
-        withdraw: &Withdrawal,
-    ) -> Result<Option<Withdrawal>, ProcessError> {
-        if withdraw.is_approved_or_denied().is_some() {
-            return Ok(None);
-        }
-
-        let process: ApprovalProcess = self
-            .governance
-            .find_all_approval_processes(&[withdraw.approval_process_id])
-            .await?
-            .remove(&withdraw.approval_process_id)
-            .expect("approval process not found");
-
-        let res = match process.status() {
-            ApprovalProcessStatus::Approved => Some(self.execute(withdraw.id, true).await?),
-            ApprovalProcessStatus::Denied => Some(self.execute(withdraw.id, false).await?),
-            _ => None,
-        };
-        Ok(res)
     }
 
     #[es_entity::retry_on_concurrent_modification]

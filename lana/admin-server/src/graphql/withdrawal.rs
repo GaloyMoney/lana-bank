@@ -20,6 +20,7 @@ pub struct Withdrawal {
     account_id: UUID,
     approval_process_id: UUID,
     amount: UsdCents,
+    status: WithdrawalStatus,
     created_at: Timestamp,
 
     #[graphql(skip)]
@@ -35,6 +36,7 @@ impl From<lana_app::deposit::Withdrawal> for Withdrawal {
             withdrawal_id: UUID::from(withdraw.id),
             approval_process_id: UUID::from(withdraw.approval_process_id),
             amount: withdraw.amount,
+            status: withdraw.status(),
             entity: Arc::new(withdraw),
         }
     }
@@ -48,16 +50,6 @@ impl Withdrawal {
 
     async fn reference(&self) -> &str {
         &self.entity.reference
-    }
-
-    async fn status(&self, ctx: &Context<'_>) -> async_graphql::Result<WithdrawalStatus> {
-        let (app, _) = crate::app_and_sub_from_ctx!(ctx);
-        Ok(app
-            .deposits()
-            .ensure_up_to_date_status(&self.entity)
-            .await?
-            .map(|w| w.status())
-            .unwrap_or_else(|| self.entity.status()))
     }
 
     async fn approval_process(&self, ctx: &Context<'_>) -> async_graphql::Result<ApprovalProcess> {

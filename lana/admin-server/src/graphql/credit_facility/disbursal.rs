@@ -16,6 +16,7 @@ pub struct CreditFacilityDisbursal {
     id: ID,
     disbursal_id: UUID,
     amount: UsdCents,
+    status: DisbursalStatus,
     created_at: Timestamp,
 
     #[graphql(skip)]
@@ -28,6 +29,7 @@ impl From<DomainDisbursal> for CreditFacilityDisbursal {
             id: disbursal.id.to_global_id(),
             disbursal_id: UUID::from(disbursal.id),
             amount: disbursal.amount,
+            status: disbursal.status(),
             created_at: disbursal.created_at().into(),
             entity: Arc::new(disbursal),
         }
@@ -47,16 +49,6 @@ impl CreditFacilityDisbursal {
             .await?
             .expect("committee not found");
         Ok(facility)
-    }
-
-    async fn status(&self, ctx: &Context<'_>) -> async_graphql::Result<DisbursalStatus> {
-        let (app, _) = crate::app_and_sub_from_ctx!(ctx);
-        Ok(app
-            .credit()
-            .ensure_up_to_date_disbursal_status(&self.entity)
-            .await?
-            .map(|d| d.status())
-            .unwrap_or_else(|| self.entity.status()))
     }
 
     async fn approval_process(&self, ctx: &Context<'_>) -> async_graphql::Result<ApprovalProcess> {

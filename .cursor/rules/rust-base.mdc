@@ -36,7 +36,7 @@ You can query the database to debug with `psql -U user -h localhost -p 5433 -d p
 
 You should know about those commands:
 
-- `make check-code-rust-cargo` to verify that the code compile
+- `make check-code-rust` to verify that the code compile
 - `make sdl` to regenerate the schema.graphql. do not attempt to update schema.graphql yourself
 - `make sqlx-prepare` to update the .sqlx files. do not attempt to update the .sqlx files yourself
 

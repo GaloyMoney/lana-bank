@@ -6,8 +6,7 @@ use ::job::Jobs;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use governance::{
-    ApprovalProcess, ApprovalProcessStatus, ApprovalProcessType, Governance, GovernanceAction,
-    GovernanceEvent, GovernanceObject,
+    ApprovalProcessType, Governance, GovernanceAction, GovernanceEvent, GovernanceObject,
 };
 use tracing::instrument;
 
@@ -80,29 +79,6 @@ where
             governance,
             ledger,
         }
-    }
-
-    pub async fn execute_from_svc(
-        &self,
-        disbursal: &Disbursal,
-    ) -> Result<Option<Disbursal>, CoreCreditError> {
-        if disbursal.is_approval_process_concluded() {
-            return Ok(None);
-        }
-
-        let process: ApprovalProcess = self
-            .governance
-            .find_all_approval_processes(&[disbursal.approval_process_id])
-            .await?
-            .remove(&disbursal.approval_process_id)
-            .expect("approval process not found");
-
-        let res = match process.status() {
-            ApprovalProcessStatus::Approved => Some(self.execute(disbursal.id, true).await?),
-            ApprovalProcessStatus::Denied => Some(self.execute(disbursal.id, false).await?),
-            _ => None,
-        };
-        Ok(res)
     }
 
     #[es_entity::retry_on_concurrent_modification(any_error = true)]

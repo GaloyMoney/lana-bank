@@ -7,8 +7,7 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use governance::{
-    ApprovalProcess, ApprovalProcessStatus, ApprovalProcessType, Governance, GovernanceAction,
-    GovernanceEvent, GovernanceObject,
+    ApprovalProcessType, Governance, GovernanceAction, GovernanceEvent, GovernanceObject,
 };
 use outbox::OutboxEventMarker;
 
@@ -77,34 +76,6 @@ where
             audit,
             governance,
         }
-    }
-
-    pub async fn execute_from_svc(
-        &self,
-        credit_facility_proposal: &CreditFacilityProposal,
-    ) -> Result<Option<CreditFacilityProposal>, CoreCreditError> {
-        if credit_facility_proposal.is_approval_process_concluded() {
-            return Ok(None);
-        }
-
-        let process: ApprovalProcess = self
-            .governance
-            .find_all_approval_processes(&[credit_facility_proposal.approval_process_id])
-            .await?
-            .remove(&credit_facility_proposal.approval_process_id)
-            .expect("approval process not found");
-
-        let res = match process.status() {
-            ApprovalProcessStatus::Approved => {
-                self.execute(credit_facility_proposal.id, true).await?
-            }
-            ApprovalProcessStatus::Denied => {
-                self.execute(credit_facility_proposal.id, false).await?
-            }
-            _ => None,
-        };
-
-        Ok(res)
     }
 
     #[es_entity::retry_on_concurrent_modification(any_error = true)]
