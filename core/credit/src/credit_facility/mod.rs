@@ -151,25 +151,19 @@ where
             )
             .await?;
 
-        let (mut new_credit_facility_builder, structuring_fee_disbursal, single_disbursal) =
-            match self
-                .pending_credit_facilities
-                .complete_in_op(&mut db, id.into())
-                .await?
-            {
-                PendingCreditFacilityCompletionOutcome::Completed {
-                    new_credit_facility,
-                    structuring_fee_disbursal,
-                    single_disbursal,
-                } => (
-                    new_credit_facility,
-                    structuring_fee_disbursal,
-                    single_disbursal,
-                ),
-                PendingCreditFacilityCompletionOutcome::Ignored => {
-                    return Ok(());
-                }
-            };
+        let (mut new_credit_facility_builder, single_disbursal) = match self
+            .pending_credit_facilities
+            .complete_in_op(&mut db, id.into())
+            .await?
+        {
+            PendingCreditFacilityCompletionOutcome::Completed {
+                new_credit_facility,
+                single_disbursal,
+            } => (new_credit_facility, single_disbursal),
+            PendingCreditFacilityCompletionOutcome::Ignored => {
+                return Ok(());
+            }
+        };
 
         let public_id = self
             .public_ids
@@ -222,10 +216,6 @@ where
             )
             .await?;
 
-        let mut single_disbursal_id = None;
-        let mut single_disbursal_obligation = None;
-        let mut structuring_fee_disbursal_id = None;
-
         if let Some(mut new_disbursal_builder) = single_disbursal {
             let public_id = self
                 .public_ids
@@ -243,39 +233,20 @@ where
                 .disbursals
                 .create_pre_approved_disbursal_in_op(&mut db, new_disbursal)
                 .await?;
-            single_disbursal_id = Some(result.0);
-            single_disbursal_obligation = Some(result.1);
-        }
 
-        if let Some(mut new_disbursal_builder) = structuring_fee_disbursal {
-            let public_id = self
-                .public_ids
-                .create_in_op(
-                    &mut db,
-                    DISBURSAL_REF_TARGET,
-                    new_disbursal_builder.unwrap_id(),
+            self.ledger
+                .handle_activation_with_single_disbursal(
+                    db,
+                    result.0,
+                    credit_facility.activation_data(),
                 )
                 .await?;
-            let new_disbursal = new_disbursal_builder
-                .public_id(public_id.id)
-                .build()
-                .expect("could not build new disbursal");
-            structuring_fee_disbursal_id = Some(
-                self.disbursals
-                    .create_pre_approved_disbursal_in_op(&mut db, new_disbursal)
-                    .await?
-                    .0,
-            );
+
+            return Ok(());
         }
 
         self.ledger
-            .handle_activation_with_structuring_fee_and_single_disbursal(
-                db,
-                credit_facility.activation_data(),
-                single_disbursal_id,
-                single_disbursal_obligation,
-                structuring_fee_disbursal_id,
-            )
+            .handle_activation(db, credit_facility.activation_data())
             .await?;
 
         Ok(())

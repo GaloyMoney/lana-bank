@@ -35,7 +35,6 @@ pub enum PendingCreditFacilityCompletionOutcome {
     Ignored,
     Completed {
         new_credit_facility: NewCreditFacilityBuilder,
-        structuring_fee_disbursal: Option<NewDisbursalBuilder>,
         single_disbursal: Option<NewDisbursalBuilder>,
     },
 }
@@ -210,14 +209,12 @@ where
         match pending_facility.complete(balances, price, crate::time::now()) {
             Ok(es_entity::Idempotent::Executed(NewCreditFacilityWithDisbursals {
                 new_credit_facility,
-                structuring_fee_disbursal,
                 single_disbursal,
             })) => {
                 self.repo.update_in_op(db, &mut pending_facility).await?;
 
                 Ok(PendingCreditFacilityCompletionOutcome::Completed {
                     new_credit_facility,
-                    structuring_fee_disbursal,
                     single_disbursal,
                 })
             }
