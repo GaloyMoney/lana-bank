@@ -18,4 +18,6 @@ pub enum CoreAccountingError {
     AccountingCsvExportError(#[from] super::csv::error::AccountingCsvExportError),
     #[error("CoreAccountingError - TrialBalanceError: {0}")]
     TrialBalance(#[from] super::trial_balance::error::TrialBalanceError),
+    #[error("CoreAccountingError - AccountingPeriodError: {0}")]
+    AccountingPeriodError(#[from] super::accounting_period::error::AccountingPeriodError),
 }

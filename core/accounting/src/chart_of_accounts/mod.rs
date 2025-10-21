@@ -7,17 +7,18 @@ pub mod ledger;
 mod repo;
 pub mod tree;
 
+use chrono::{Duration, NaiveDate};
 use es_entity::Idempotent;
 use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
 
-use cala_ledger::{CalaLedger, account::Account};
+use cala_ledger::{AccountSetId, CalaLedger, account::Account};
 
 use crate::primitives::{
     AccountCode, AccountIdOrCode, AccountName, AccountSpec, CalaAccountSetId, CalaJournalId,
-    ChartId, CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
+    ChartId, ClosingAccountBalances, CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
 };
 
 #[cfg(feature = "json-schema")]
@@ -211,6 +212,83 @@ where
 
         Ok(chart)
     }
+
+    pub async fn find_account_set_id_by_code(
+        &self,
+        id: impl Into<ChartId> + std::fmt::Debug,
+        parent_code: AccountCode,
+    ) -> Result<AccountSetId, ChartOfAccountsError> {
+        let id = id.into();
+        let chart = self.repo.find_by_id(id).await?;
+        Ok(chart.account_set_id_from_code(&parent_code)?)
+    }
+
+    /// Collects `BalanceRange` for all underlying accounts and nested underlying accounts.
+    /// using `period_end` from the `AccountingPeriod` entity is used to get the effective
+    /// balance from cala at that time. 
+    /// 
+    /// This amount is used to create the offset/closing  entry for the 
+    /// `ProfitAndLossStatement` account that is valid at any time during
+    /// the closing grace period. 
+    pub async fn get_profit_and_loss_statement_closing_balances(
+        &self,
+        id: impl Into<ChartId> + std::fmt::Debug,
+        period_end: NaiveDate,
+        revenue_parent_code: AccountCode,
+        cost_of_revenue_parent_code: AccountCode,
+        expenses_parent_code: AccountCode,
+    ) -> Result<ClosingAccountBalances, ChartOfAccountsError> {
+        let id = id.into();
+        let chart = self.repo.find_by_id(id).await?;
+
+        let revenue_set_id = chart.account_set_id_from_code(&revenue_parent_code)?;
+        let cost_of_revenue_set_id =
+            chart.account_set_id_from_code(&cost_of_revenue_parent_code)?;
+        let expenses_set_id = chart.account_set_id_from_code(&expenses_parent_code)?;
+
+        let revenue_accounts = self
+            .chart_ledger
+            .find_all_accounts_by_parent_set_id(self.journal_id, revenue_set_id)
+            .await?;
+
+        let expense_accounts = self
+            .chart_ledger
+            .find_all_accounts_by_parent_set_id(self.journal_id, expenses_set_id)
+            .await?;
+
+        let cost_of_revenue_accounts = self
+            .chart_ledger
+            .find_all_accounts_by_parent_set_id(self.journal_id, cost_of_revenue_set_id)
+            .await?;
+
+        let from_date = period_end - Duration::days(1);
+        let end_of_period_revenue_account_balances = self
+            .cala
+            .balances()
+            .effective()
+            .find_all_in_range(&revenue_accounts, from_date, Some(period_end))
+            .await?;
+
+        let end_of_period_cost_of_revenue_account_balances = self
+            .cala
+            .balances()
+            .effective()
+            .find_all_in_range(&cost_of_revenue_accounts, from_date, Some(period_end))
+            .await?;
+        let end_of_period_expenses_account_balances = self
+            .cala
+            .balances()
+            .effective()
+            .find_all_in_range(&expense_accounts, from_date, Some(period_end))
+            .await?;
+
+        Ok(ClosingAccountBalances {
+            revenue: end_of_period_revenue_account_balances,
+            cost_of_revenue: end_of_period_cost_of_revenue_account_balances,
+            expenses: end_of_period_expenses_account_balances,
+        })
+    }
+
 
     #[instrument(
         name = "core_accounting.chart_of_accounts.add_root_node",
