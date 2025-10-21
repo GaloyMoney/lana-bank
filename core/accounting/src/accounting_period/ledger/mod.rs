@@ -2,7 +2,7 @@ mod closing;
 mod template;
 
 use audit::AuditInfo;
-use chrono::{NaiveDate};
+use chrono::NaiveDate;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -15,13 +15,11 @@ use super::{
     primitives::ProfitAndLossClosingDetails,
 };
 use crate::primitives::{
-    CHART_OF_ACCOUNTS_ENTITY_TYPE, CalaTxId, EntityRef, LedgerAccountId,
-    TransactionEntrySpec,
+    CHART_OF_ACCOUNTS_ENTITY_TYPE, CalaTxId, EntityRef, LedgerAccountId, TransactionEntrySpec,
 };
 use cala_ledger::{
     AccountId, AccountSetId, CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation,
-    account::NewAccount, account_set::AccountSetUpdate,
-    balance::BalanceRange,
+    account::NewAccount, account_set::AccountSetUpdate, balance::BalanceRange,
 };
 use closing::*;
 
@@ -32,9 +30,7 @@ pub struct AccountingPeriodLedger {
 
 impl AccountingPeriodLedger {
     pub fn new(cala: &CalaLedger) -> Self {
-        Self {
-            cala: cala.clone(),
-        }
+        Self { cala: cala.clone() }
     }
 }
 
@@ -43,9 +39,8 @@ impl AccountingPeriodLedger {
 
     pub async fn get_chart_of_accounts_integration_config(
         &self,
-        root_chart_account_set_id: impl Into<AccountSetId>,
+        root_chart_account_set_id: AccountSetId,
     ) -> Result<Option<ChartOfAccountsIntegrationConfig>, AccountingPeriodError> {
-        let root_chart_account_set_id = root_chart_account_set_id.into();
         let account_set = self
             .cala
             .account_sets()
@@ -226,8 +221,8 @@ impl AccountingPeriodLedger {
 
     /// Creates a new equity account set member based on the +/- of net income (under configured account set A if loss; under configured account set B if profit).
     /// This account is used to create the final entry of the closing transaction, which will transfer
-    /// net income to a `BalanceSheet` account set member. 
-    /// 
+    /// net income to a `BalanceSheet` account set member.
+    ///
     /// The result will be added to a Vec with existing `EntryParams` for
     /// all `ProfitAndLossStatement` accounts involved in the closing process.
     async fn create_closing_equity_account_in_op(

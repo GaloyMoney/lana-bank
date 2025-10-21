@@ -3,6 +3,7 @@ mod helpers;
 use std::collections::HashMap;
 
 use authz::dummy::{DummyPerms, DummySubject};
+use chrono::Duration;
 use cloud_storage::{Storage, config::StorageConfig};
 use document_storage::DocumentStorage;
 use job::{JobSvcConfig, Jobs};
@@ -13,7 +14,10 @@ use cala_ledger::{
     account_set::{AccountSetMemberId, error::AccountSetError},
     balance::error::BalanceError,
 };
-use core_accounting::{AccountCode, AccountIdOrCode, Chart, CoreAccounting, ManualEntryInput};
+use core_accounting::{
+    AccountCode, AccountIdOrCode, Chart, CoreAccounting, ManualEntryInput,
+    accounting_period::{ChartOfAccountsIntegrationConfig, Period},
+};
 use helpers::{action, object};
 use rust_decimal::Decimal;
 
@@ -186,6 +190,35 @@ async fn prepare_test() -> anyhow::Result<Test> {
     let (chart, _) = accounting
         .chart_of_accounts()
         .import_from_csv(&DummySubject, chart_id, import)
+        .await?;
+
+    accounting
+        .accounting_periods()
+        .set_chart_of_accounts_integration_config(
+            &DummySubject,
+            &chart,
+            ChartOfAccountsIntegrationConfig {
+                chart_of_accounts_id: chart_id,
+                revenue_code: "4".parse().unwrap(),
+                cost_of_revenue_code: "5".parse().unwrap(),
+                expenses_code: "6".parse().unwrap(),
+                equity_retained_earnings_code: "32.01".parse().unwrap(),
+                equity_retained_losses_code: "32.02".parse().unwrap(),
+                accounting_periods: vec![],
+            },
+        )
+        .await?;
+
+    accounting
+        .accounting_periods()
+        .open_initial_periods(
+            chart_id,
+            chart.account_set_id,
+            vec![
+                Period::annually_by_calendar("2021-01-01".parse().unwrap(), Duration::days(10))
+                    .unwrap(),
+            ],
+        )
         .await?;
 
     let source = AccountId::new();
