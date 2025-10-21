@@ -9,7 +9,7 @@ mod repo;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use cala_ledger::{CalaLedger, AccountSetId};
+use cala_ledger::{AccountSetId, CalaLedger};
 use es_entity::Idempotent;
 use rust_decimal::Decimal;
 use tracing::instrument;
@@ -107,12 +107,12 @@ where
         chart_id: ChartId,
     ) -> Result<AccountingPeriod, AccountingPeriodError> {
         self.authz
-        .enforce_permission(
-            sub,
-            CoreAccountingObject::all_accounting_period(),
-            CoreAccountingAction::ACCOUNTING_PERIOD_CLOSE,
-        )
-        .await?;
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_accounting_period(),
+                CoreAccountingAction::ACCOUNTING_PERIOD_CLOSE,
+            )
+            .await?;
         let mut open_periods = self.repo.find_open_accounting_periods(chart_id).await?;
 
         let open_period = open_periods
@@ -153,56 +153,49 @@ where
         description: Option<String>,
     ) -> Result<AccountingPeriod, AccountingPeriodError> {
         self.authz
-        .enforce_permission(
-            sub,
-            CoreAccountingObject::all_accounting_period(),
-            CoreAccountingAction::ACCOUNTING_PERIOD_CLOSE,
-        )
-        .await?;
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_accounting_period(),
+                CoreAccountingAction::ACCOUNTING_PERIOD_CLOSE,
+            )
+            .await?;
         let mut open_periods = self.repo.find_open_accounting_periods(chart_id).await?;
+
         let open_annual_period = open_periods
             .iter_mut()
             .find(|p| p.is_annual())
             .ok_or(AccountingPeriodError::NoOpenAccountingPeriodFound)?;
         let chart_config = self
             .ledger
-            .get_chart_of_accounts_integration_config(chart_id)
+            .get_chart_of_accounts_integration_config(open_annual_period.tracking_account_set)
             .await?
             .ok_or(AccountingPeriodError::AccountingPeriodIntegrationConfigNotFound)?;
 
         let effective = crate::time::now();
         let parent_profit_account_set_id = self
             .chart_of_accounts
-            .find_account_set_id_by_code(
-                chart_id,
-                chart_config.chart_of_accounts_equity_retained_earnings_code,
-            )
+            .find_account_set_id_by_code(chart_id, chart_config.equity_retained_earnings_code)
             .await?;
         let parent_losses_account_set_id = self
             .chart_of_accounts
-            .find_account_set_id_by_code(
-                chart_id,
-                chart_config.chart_of_accounts_equity_retained_losses_code,
-            )
+            .find_account_set_id_by_code(chart_id, chart_config.equity_retained_losses_code)
             .await?;
         let period_end_balances = self
             .chart_of_accounts
             .get_profit_and_loss_statement_closing_balances(
                 chart_id,
                 open_annual_period.period_end(),
-                chart_config.chart_of_accounts_revenue_code,
-                chart_config.chart_of_accounts_cost_of_revenue_code,
-                chart_config.chart_of_accounts_expenses_code,
+                chart_config.revenue_code,
+                chart_config.cost_of_revenue_code,
+                chart_config.expenses_code,
             )
             .await?;
-        let revenue_closing_details = self.ledger.create_closing_offset_entries(
-            description.clone(),
-            period_end_balances.revenue,
-        );
-        let expense_closing_details = self.ledger.create_closing_offset_entries(
-            description.clone(),
-            period_end_balances.expenses,
-        );
+        let revenue_closing_details = self
+            .ledger
+            .create_closing_offset_entries(description.clone(), period_end_balances.revenue);
+        let expense_closing_details = self
+            .ledger
+            .create_closing_offset_entries(description.clone(), period_end_balances.expenses);
         let cost_of_revenue_closing_details = self.ledger.create_closing_offset_entries(
             description.clone(),
             period_end_balances.cost_of_revenue,
@@ -258,20 +251,11 @@ where
 
     pub async fn get_chart_of_accounts_integration_config(
         &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart: &Chart,
     ) -> Result<Option<ChartOfAccountsIntegrationConfig>, AccountingPeriodError> {
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreAccountingObject::all_accounting_period_configuration(),
-                CoreAccountingAction::ACCOUNTING_PERIOD_CONFIGURATION_READ,
-            )
-            .await?;
-
         Ok(self
             .ledger
-            .get_chart_of_accounts_integration_config(chart.id)
+            .get_chart_of_accounts_integration_config(chart.account_set_id)
             .await?)
     }
 
@@ -295,8 +279,7 @@ where
             .await?;
 
         if self
-            .ledger
-            .get_chart_of_accounts_integration_config(chart.id)
+            .get_chart_of_accounts_integration_config(chart)
             .await?
             .is_some()
         {
@@ -304,15 +287,15 @@ where
         }
 
         let revenue_child_account_set_id_from_chart =
-            chart.account_set_id_from_code(&config.chart_of_accounts_revenue_code)?;
+            chart.account_set_id_from_code(&config.revenue_code)?;
         let cost_of_revenue_child_account_set_id_from_chart =
-            chart.account_set_id_from_code(&config.chart_of_accounts_cost_of_revenue_code)?;
+            chart.account_set_id_from_code(&config.cost_of_revenue_code)?;
         let expenses_child_account_set_id_from_chart =
-            chart.account_set_id_from_code(&config.chart_of_accounts_expenses_code)?;
-        let equity_retained_earnings_child_account_set_id_from_chart = chart
-            .account_set_id_from_code(&config.chart_of_accounts_equity_retained_earnings_code)?;
-        let equity_retained_losses_child_account_set_id_from_chart = chart
-            .account_set_id_from_code(&config.chart_of_accounts_equity_retained_losses_code)?;
+            chart.account_set_id_from_code(&config.expenses_code)?;
+        let equity_retained_earnings_child_account_set_id_from_chart =
+            chart.account_set_id_from_code(&config.equity_retained_earnings_code)?;
+        let equity_retained_losses_child_account_set_id_from_chart =
+            chart.account_set_id_from_code(&config.equity_retained_losses_code)?;
 
         let charts_integration_meta = ChartOfAccountsIntegrationMeta {
             audit_info,

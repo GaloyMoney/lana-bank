@@ -1,5 +1,6 @@
 use chrono::{Datelike as _, Days, Duration, Months, NaiveDate};
 use serde::{Deserialize, Serialize};
+
 /// Recurring time interval (i. e. a portion of time between two
 /// dates) with a _grace period_ after the period's end.
 ///

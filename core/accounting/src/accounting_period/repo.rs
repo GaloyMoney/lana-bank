@@ -35,7 +35,7 @@ impl AccountingPeriodRepo {
             tbl_prefix = "core",
             r#"
                SELECT ap.id FROM core_accounting_periods ap
-               WHERE ap.chart_id = $1 AND ap.created_at IS NULL"#,
+               WHERE ap.chart_id = $1 AND ap.closed_at IS NULL"#,
             chart_id as ChartId
         )
         .fetch_n(&mut self.pool.begin().await?, 100)
