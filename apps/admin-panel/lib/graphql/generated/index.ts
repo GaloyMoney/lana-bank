@@ -69,6 +69,24 @@ export type AccountingCsvDownloadLinkGeneratePayload = {
   link: AccountingCsvDownloadLink;
 };
 
+export type AccountingPeriod = {
+  __typename?: 'AccountingPeriod';
+  accountingPeriodId: Scalars['UUID']['output'];
+  id: Scalars['ID']['output'];
+  period: PeriodRange;
+  trackingAccountSetId: Scalars['UUID']['output'];
+};
+
+export type AccountingPeriodCloseInput = {
+  chartId: Scalars['UUID']['input'];
+  description?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type AccountingPeriodClosePayload = {
+  __typename?: 'AccountingPeriodClosePayload';
+  accountingPeriod: AccountingPeriod;
+};
+
 export enum Activity {
   Active = 'ACTIVE',
   Inactive = 'INACTIVE',
@@ -296,15 +314,6 @@ export type ChartOfAccountsAddRootNodeInput = {
 
 export type ChartOfAccountsAddRootNodePayload = {
   __typename?: 'ChartOfAccountsAddRootNodePayload';
-  chartOfAccounts: ChartOfAccounts;
-};
-
-export type ChartOfAccountsCloseMonthlyInput = {
-  chartId: Scalars['UUID']['input'];
-};
-
-export type ChartOfAccountsCloseMonthlyPayload = {
-  __typename?: 'ChartOfAccountsCloseMonthlyPayload';
   chartOfAccounts: ChartOfAccounts;
 };
 
@@ -1523,12 +1532,13 @@ export type Me = {
 export type Mutation = {
   __typename?: 'Mutation';
   accountingCsvDownloadLinkGenerate: AccountingCsvDownloadLinkGeneratePayload;
+  accountingPeriodCloseMonth: AccountingPeriodClosePayload;
+  accountingPeriodCloseYear: AccountingPeriodClosePayload;
   approvalProcessApprove: ApprovalProcessApprovePayload;
   approvalProcessDeny: ApprovalProcessDenyPayload;
   balanceSheetConfigure: BalanceSheetModuleConfigurePayload;
   chartOfAccountsAddChildNode: ChartOfAccountsAddChildNodePayload;
   chartOfAccountsAddRootNode: ChartOfAccountsAddRootNodePayload;
-  chartOfAccountsCloseMonthly: ChartOfAccountsCloseMonthlyPayload;
   chartOfAccountsCsvImport: ChartOfAccountsCsvImportPayload;
   committeeAddUser: CommitteeAddUserPayload;
   committeeCreate: CommitteeCreatePayload;
@@ -1582,6 +1592,16 @@ export type MutationAccountingCsvDownloadLinkGenerateArgs = {
 };
 
 
+export type MutationAccountingPeriodCloseMonthArgs = {
+  input: AccountingPeriodCloseInput;
+};
+
+
+export type MutationAccountingPeriodCloseYearArgs = {
+  input: AccountingPeriodCloseInput;
+};
+
+
 export type MutationApprovalProcessApproveArgs = {
   input: ApprovalProcessApproveInput;
 };
@@ -1605,11 +1625,6 @@ export type MutationChartOfAccountsAddChildNodeArgs = {
 
 export type MutationChartOfAccountsAddRootNodeArgs = {
   input: ChartOfAccountsAddRootNodeInput;
-};
-
-
-export type MutationChartOfAccountsCloseMonthlyArgs = {
-  input: ChartOfAccountsCloseMonthlyInput;
 };
 
 
@@ -1918,6 +1933,12 @@ export enum Period {
   Days = 'DAYS',
   Months = 'MONTHS'
 }
+
+export type PeriodRange = {
+  __typename?: 'PeriodRange';
+  periodEnd: Scalars['Date']['output'];
+  periodStart: Scalars['Date']['output'];
+};
 
 export type PermissionSet = {
   __typename?: 'PermissionSet';

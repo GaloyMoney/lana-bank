@@ -1,5 +1,6 @@
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::{borrow::Cow, fmt::Display, str::FromStr};
 use thiserror::Error;
 
@@ -24,7 +25,8 @@ es_entity::entity_id! {
     ChartNodeId,
     ManualTransactionId,
     LedgerAccountId,
-    AccountingCsvId;
+    AccountingCsvId,
+    AccountingPeriodId;
 
     ChartId => CalaAccountSetId,
     LedgerAccountId => CalaAccountId,
@@ -64,6 +66,9 @@ impl EntityRef {
         }
     }
 }
+
+// TODO: Using Chart entity (to access root of account sets)
+pub const CHART_OF_ACCOUNTS_ENTITY_TYPE: EntityType = EntityType::new("Chart");
 
 pub type LedgerTransactionId = CalaTxId;
 pub type TransactionTemplateId = CalaTxTemplateId;
@@ -373,6 +378,8 @@ pub type BalanceSheetAllOrOne = AllOrOne<LedgerAccountId>;
 pub type BalanceSheetConfigurationAllOrOne = AllOrOne<LedgerAccountId>;
 pub type AccountingCsvAllOrOne = AllOrOne<AccountingCsvId>;
 pub type TrialBalanceAllOrOne = AllOrOne<LedgerAccountId>; // what to do if there is only All
+pub type AccountingPeriodAllOrOne = AllOrOne<AccountingPeriodId>;
+pub type AccountingPeriodConfigurationAllOrOne = AllOrOne<LedgerAccountId>;
 // option
 
 pub const PERMISSION_SET_ACCOUNTING_VIEWER: &str = "accounting_viewer";
@@ -394,6 +401,8 @@ pub enum CoreAccountingAction {
     BalanceSheetConfiguration(BalanceSheetConfigurationAction),
     AccountingCsv(AccountingCsvAction),
     TrialBalance(TrialBalanceAction),
+    AccountingPeriod(AccountingPeriodAction),
+    AccountingPeriodConfiguration(AccountingPeriodConfigurationAction),
 }
 
 impl CoreAccountingAction {
@@ -440,6 +449,14 @@ impl CoreAccountingAction {
                 TrialBalance => {
                     map_action!(accounting, TrialBalance, TrialBalanceAction)
                 }
+                AccountingPeriod => {
+                    map_action!(accounting, AccountingPeriod, AccountingPeriodAction)
+                }
+                AccountingPeriodConfiguration => map_action!(
+                    accounting,
+                    AccountingPeriodConfiguration,
+                    AccountingPeriodConfigurationAction
+                ),
             })
             .collect()
     }
@@ -461,6 +478,8 @@ pub enum CoreAccountingObject {
     BalanceSheetConfiguration(BalanceSheetConfigurationAllOrOne),
     AccountingCsv(AccountingCsvAllOrOne),
     TrialBalance(TrialBalanceAllOrOne),
+    AccountingPeriod(AccountingPeriodAllOrOne),
+    AccountingPeriodConfiguration(AccountingPeriodConfigurationAllOrOne),
 }
 
 impl CoreAccountingObject {
@@ -542,6 +561,14 @@ impl CoreAccountingObject {
     pub fn all_trial_balance() -> Self {
         CoreAccountingObject::TrialBalance(AllOrOne::All)
     }
+
+    pub fn all_accounting_period() -> Self {
+        CoreAccountingObject::AccountingPeriod(AllOrOne::All)
+    }
+
+    pub fn all_accounting_period_configuration() -> Self {
+        CoreAccountingObject::AccountingPeriodConfiguration(AllOrOne::All)
+    }
 }
 
 impl Display for CoreAccountingObject {
@@ -561,6 +588,8 @@ impl Display for CoreAccountingObject {
             BalanceSheetConfiguration(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             AccountingCsv(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             TrialBalance(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            AccountingPeriod(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            AccountingPeriodConfiguration(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
         }
     }
 }
@@ -629,6 +658,16 @@ impl FromStr for CoreAccountingObject {
             TrialBalance => {
                 let obj_ref = id.parse().map_err(|_| "could not parse TrialBalance")?;
                 CoreAccountingObject::TrialBalance(obj_ref)
+            }
+            AccountingPeriod => {
+                let obj_ref = id.parse().map_err(|_| "could not parse AccountingPeriod")?;
+                CoreAccountingObject::AccountingPeriod(obj_ref)
+            }
+            AccountingPeriodConfiguration => {
+                let obj_ref = id
+                    .parse()
+                    .map_err(|_| "could not parse AccountingPeriodConfiguration")?;
+                CoreAccountingObject::AccountingPeriodConfiguration(obj_ref)
             }
         };
         Ok(res)
@@ -703,6 +742,19 @@ impl CoreAccountingAction {
         CoreAccountingAction::TrialBalance(TrialBalanceAction::Create);
     pub const TRIAL_BALANCE_UPDATE: Self =
         CoreAccountingAction::TrialBalance(TrialBalanceAction::Update);
+
+    pub const ACCOUNTING_PERIOD_READ: Self =
+        CoreAccountingAction::AccountingPeriod(AccountingPeriodAction::Read);
+    pub const ACCOUNTING_PERIOD_CLOSE: Self =
+        CoreAccountingAction::AccountingPeriod(AccountingPeriodAction::Close);
+    pub const ACCOUNTING_PERIOD_CONFIGURATION_READ: Self =
+        CoreAccountingAction::AccountingPeriodConfiguration(
+            AccountingPeriodConfigurationAction::Read,
+        );
+    pub const ACCOUNTING_PERIOD_CONFIGURATION_UPDATE: Self =
+        CoreAccountingAction::AccountingPeriodConfiguration(
+            AccountingPeriodConfigurationAction::Update,
+        );
 }
 
 impl Display for CoreAccountingAction {
@@ -722,6 +774,8 @@ impl Display for CoreAccountingAction {
             BalanceSheetConfiguration(action) => action.fmt(f),
             AccountingCsv(action) => action.fmt(f),
             TrialBalance(action) => action.fmt(f),
+            AccountingPeriod(action) => action.fmt(f),
+            AccountingPeriodConfiguration(action) => action.fmt(f),
         }
     }
 }
@@ -767,6 +821,12 @@ impl FromStr for CoreAccountingAction {
             }
             CoreAccountingActionDiscriminants::TrialBalance => {
                 CoreAccountingAction::from(action.parse::<TrialBalanceAction>()?)
+            }
+            CoreAccountingActionDiscriminants::AccountingPeriod => {
+                CoreAccountingAction::from(action.parse::<AccountingPeriodAction>()?)
+            }
+            CoreAccountingActionDiscriminants::AccountingPeriodConfiguration => {
+                CoreAccountingAction::from(action.parse::<AccountingPeriodConfigurationAction>()?)
             }
         };
         Ok(res)
@@ -954,6 +1014,50 @@ impl From<ProfitAndLossConfigurationAction> for CoreAccountingAction {
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
+pub enum AccountingPeriodAction {
+    Read,
+    Close,
+}
+
+impl ActionPermission for AccountingPeriodAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Read => PERMISSION_SET_ACCOUNTING_VIEWER,
+            Self::Close => PERMISSION_SET_ACCOUNTING_WRITER,
+        }
+    }
+}
+
+impl From<AccountingPeriodAction> for CoreAccountingAction {
+    fn from(action: AccountingPeriodAction) -> Self {
+        CoreAccountingAction::AccountingPeriod(action)
+    }
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
+#[strum(serialize_all = "kebab-case")]
+pub enum AccountingPeriodConfigurationAction {
+    Read,
+    Update,
+}
+
+impl ActionPermission for AccountingPeriodConfigurationAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Read => PERMISSION_SET_ACCOUNTING_VIEWER,
+            Self::Update => PERMISSION_SET_ACCOUNTING_WRITER,
+        }
+    }
+}
+
+impl From<AccountingPeriodConfigurationAction> for CoreAccountingAction {
+    fn from(action: AccountingPeriodConfigurationAction) -> Self {
+        CoreAccountingAction::AccountingPeriodConfiguration(action)
+    }
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
+#[strum(serialize_all = "kebab-case")]
 pub enum BalanceSheetAction {
     Read,
     Create,
@@ -1064,6 +1168,26 @@ impl BalanceRange {
             false
         }
     }
+}
+
+#[derive(Debug, Clone)]
+pub struct TransactionEntrySpec {
+    pub account_id: LedgerAccountId,
+    pub amount: Decimal,
+    pub currency: CalaCurrency,
+    pub description: String,
+    pub direction: DebitOrCredit,
+}
+
+// TODO: Revisit to tidy.
+#[derive(Debug, Clone)]
+pub struct ClosingAccountBalances {
+    pub revenue:
+        HashMap<(CalaJournalId, CalaAccountId, CalaCurrency), CalaBalanceRange>,
+    pub cost_of_revenue:
+        HashMap<(CalaJournalId, CalaAccountId, CalaCurrency), CalaBalanceRange>,
+    pub expenses:
+        HashMap<(CalaJournalId, CalaAccountId, CalaCurrency), CalaBalanceRange>,
 }
 
 #[cfg(test)]

@@ -5,7 +5,8 @@ use std::collections::HashMap;
 use lana_app::{
     access::{error::CoreAccessError, user::error::UserError},
     accounting::{
-        Chart, LedgerAccountId, TransactionTemplateId,
+        AccountingPeriodId, Chart, LedgerAccountId, TransactionTemplateId,
+        accounting_period::error::AccountingPeriodError,
         chart_of_accounts::error::ChartOfAccountsError,
         csv::{AccountingCsvDocumentId, error::AccountingCsvExportError},
         ledger_transaction::error::LedgerTransactionError,
@@ -207,6 +208,23 @@ impl Loader<ChartId> for LanaLoader {
         self.app
             .accounting()
             .chart_of_accounts()
+            .find_all(keys)
+            .await
+            .map_err(Arc::new)
+    }
+}
+
+impl Loader<AccountingPeriodId> for LanaLoader {
+    type Value = AccountingPeriod;
+    type Error = Arc<AccountingPeriodError>;
+
+    async fn load(
+        &self,
+        keys: &[AccountingPeriodId],
+    ) -> Result<HashMap<AccountingPeriodId, AccountingPeriod>, Self::Error> {
+        self.app
+            .accounting()
+            .accounting_periods()
             .find_all(keys)
             .await
             .map_err(Arc::new)

@@ -1,6 +1,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+pub mod accounting_period;
 pub mod balance_sheet;
 pub mod chart_of_accounts;
 pub mod csv;
@@ -15,28 +16,28 @@ mod time;
 pub mod transaction_templates;
 pub mod trial_balance;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
+pub use accounting_period::AccountingPeriods;
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use cala_ledger::CalaLedger;
-use document_storage::DocumentStorage;
-use job::Jobs;
-use manual_transaction::ManualTransactions;
-use tracing::instrument;
-
 pub use balance_sheet::{BalanceSheet, BalanceSheets};
+use cala_ledger::CalaLedger;
 pub use chart_of_accounts::{
     Chart, ChartOfAccounts, PeriodClosing, error as chart_of_accounts_error, tree,
 };
 pub use csv::AccountingCsvExports;
+use document_storage::DocumentStorage;
 use error::CoreAccountingError;
+use job::Jobs;
 pub use journal::{Journal, error as journal_error};
 pub use ledger_account::{LedgerAccount, LedgerAccountChildrenCursor, LedgerAccounts};
 pub use ledger_transaction::{LedgerTransaction, LedgerTransactions};
 pub use manual_transaction::ManualEntryInput;
+use manual_transaction::ManualTransactions;
 pub use primitives::*;
 pub use profit_and_loss::{ProfitAndLossStatement, ProfitAndLossStatements};
+use tracing::instrument;
 pub use transaction_templates::TransactionTemplates;
 pub use trial_balance::{TrialBalanceRoot, TrialBalances};
 
@@ -51,17 +52,18 @@ pub struct CoreAccounting<Perms>
 where
     Perms: PermissionCheck,
 {
-    authz: Perms,
-    chart_of_accounts: ChartOfAccounts<Perms>,
-    journal: Journal<Perms>,
-    ledger_accounts: LedgerAccounts<Perms>,
-    ledger_transactions: LedgerTransactions<Perms>,
-    manual_transactions: ManualTransactions<Perms>,
-    profit_and_loss: ProfitAndLossStatements<Perms>,
-    transaction_templates: TransactionTemplates<Perms>,
-    balance_sheets: BalanceSheets<Perms>,
-    csvs: AccountingCsvExports<Perms>,
-    trial_balances: TrialBalances<Perms>,
+    authz: Arc<Perms>,
+    chart_of_accounts: Arc<ChartOfAccounts<Perms>>,
+    journal: Arc<Journal<Perms>>,
+    ledger_accounts: Arc<LedgerAccounts<Perms>>,
+    ledger_transactions: Arc<LedgerTransactions<Perms>>,
+    manual_transactions: Arc<ManualTransactions<Perms>>,
+    profit_and_loss: Arc<ProfitAndLossStatements<Perms>>,
+    transaction_templates: Arc<TransactionTemplates<Perms>>,
+    balance_sheets: Arc<BalanceSheets<Perms>>,
+    csvs: Arc<AccountingCsvExports<Perms>>,
+    trial_balances: Arc<TrialBalances<Perms>>,
+    accounting_periods: Arc<AccountingPeriods<Perms>>,
 }
 
 impl<Perms> Clone for CoreAccounting<Perms>
@@ -70,17 +72,18 @@ where
 {
     fn clone(&self) -> Self {
         Self {
-            authz: self.authz.clone(),
-            chart_of_accounts: self.chart_of_accounts.clone(),
-            journal: self.journal.clone(),
-            ledger_accounts: self.ledger_accounts.clone(),
-            manual_transactions: self.manual_transactions.clone(),
-            ledger_transactions: self.ledger_transactions.clone(),
-            profit_and_loss: self.profit_and_loss.clone(),
-            transaction_templates: self.transaction_templates.clone(),
-            balance_sheets: self.balance_sheets.clone(),
-            csvs: self.csvs.clone(),
-            trial_balances: self.trial_balances.clone(),
+            authz: Arc::clone(&self.authz),
+            chart_of_accounts: Arc::clone(&self.chart_of_accounts),
+            journal: Arc::clone(&self.journal),
+            ledger_accounts: Arc::clone(&self.ledger_accounts),
+            manual_transactions: Arc::clone(&self.manual_transactions),
+            ledger_transactions: Arc::clone(&self.ledger_transactions),
+            profit_and_loss: Arc::clone(&self.profit_and_loss),
+            transaction_templates: Arc::clone(&self.transaction_templates),
+            balance_sheets: Arc::clone(&self.balance_sheets),
+            csvs: Arc::clone(&self.csvs),
+            trial_balances: Arc::clone(&self.trial_balances),
+            accounting_periods: Arc::clone(&self.accounting_periods),
         }
     }
 }
@@ -110,59 +113,66 @@ where
         let balance_sheets = BalanceSheets::new(pool, authz, cala, journal_id);
         let csvs = AccountingCsvExports::new(authz, jobs, document_storage, &ledger_accounts);
         let trial_balances = TrialBalances::new(pool, authz, cala, journal_id);
+        let accounting_periods =
+            AccountingPeriods::new(authz, pool, cala, journal_id, &chart_of_accounts);
         Self {
-            authz: authz.clone(),
-            chart_of_accounts,
-            journal,
-            ledger_accounts,
-            ledger_transactions,
-            manual_transactions,
-            profit_and_loss,
-            transaction_templates,
-            balance_sheets,
-            csvs,
-            trial_balances,
+            authz: Arc::new(authz.clone()),
+            chart_of_accounts: Arc::new(chart_of_accounts),
+            journal: Arc::new(journal),
+            ledger_accounts: Arc::new(ledger_accounts),
+            ledger_transactions: Arc::new(ledger_transactions),
+            manual_transactions: Arc::new(manual_transactions),
+            profit_and_loss: Arc::new(profit_and_loss),
+            transaction_templates: Arc::new(transaction_templates),
+            balance_sheets: Arc::new(balance_sheets),
+            csvs: Arc::new(csvs),
+            trial_balances: Arc::new(trial_balances),
+            accounting_periods: Arc::new(accounting_periods),
         }
     }
 
     pub fn chart_of_accounts(&self) -> &ChartOfAccounts<Perms> {
-        &self.chart_of_accounts
+        &*self.chart_of_accounts
     }
 
     pub fn journal(&self) -> &Journal<Perms> {
-        &self.journal
+        &*self.journal
     }
 
     pub fn ledger_accounts(&self) -> &LedgerAccounts<Perms> {
-        &self.ledger_accounts
+        &*self.ledger_accounts
     }
 
     pub fn ledger_transactions(&self) -> &LedgerTransactions<Perms> {
-        &self.ledger_transactions
+        &*self.ledger_transactions
     }
 
     pub fn manual_transactions(&self) -> &ManualTransactions<Perms> {
-        &self.manual_transactions
+        &*self.manual_transactions
     }
 
     pub fn profit_and_loss(&self) -> &ProfitAndLossStatements<Perms> {
-        &self.profit_and_loss
+        &*self.profit_and_loss
     }
 
     pub fn csvs(&self) -> &AccountingCsvExports<Perms> {
-        &self.csvs
+        &*self.csvs
     }
 
     pub fn transaction_templates(&self) -> &TransactionTemplates<Perms> {
-        &self.transaction_templates
+        &*self.transaction_templates
     }
 
     pub fn balance_sheets(&self) -> &BalanceSheets<Perms> {
-        &self.balance_sheets
+        &*self.balance_sheets
     }
 
     pub fn trial_balances(&self) -> &TrialBalances<Perms> {
-        &self.trial_balances
+        &*self.trial_balances
+    }
+
+    pub fn accounting_periods(&self) -> &AccountingPeriods<Perms> {
+        &self.accounting_periods
     }
 
     #[instrument(name = "core_accounting.find_ledger_account_by_id", skip(self), err)]
@@ -295,17 +305,50 @@ where
         Ok(chart)
     }
 
-    #[instrument(name = "core_accounting.close_monthly", skip(self), err)]
-    pub async fn close_monthly(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart_id: ChartId,
-    ) -> Result<Chart, CoreAccountingError> {
-        Ok(self
-            .chart_of_accounts()
-            .close_monthly(sub, chart_id)
-            .await?)
-    }
+    // #[instrument(name = "core_accounting.close_monthly", skip(self), err)]
+    // pub async fn close_monthly(
+    //     &self,
+    //     sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+    //     chart_id: ChartId,
+    // ) -> Result<Chart, CoreAccountingError> {
+    //     Ok(self
+    //         .accounting_periods()
+    //         .close_month(sub, chart_id)
+    //         .await?)
+    // }
+
+    // #[instrument(
+    //     name = "core_accounting.execute_annual_closing_transaction",
+    //     skip(self),
+    //     err
+    // )]
+    // pub async fn execute_annual_closing_transaction(
+    //     &self,
+    //     sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+    //     // TODO: Need both? Can lookup one from the other?
+    //     chart_id: ChartId,
+    // ) -> Result<LedgerTransaction, CoreAccountingError> {
+    //     let annual_closing_tx = self
+    //         .annual_closing_transactions()
+    //         .execute(
+    //             sub,
+    //             chart_id,
+    //             // TODO: Where to source `reference`?
+    //             None,
+    //             // TODO: Add optional description to API?
+    //             "Annual Closing".to_string(),
+    //         )
+    //         .await?;
+
+    //     let ledger_tx_id = annual_closing_tx.ledger_transaction_id;
+    //     Ok(self
+    //         .ledger_transactions
+    //         .find_by_id(sub, ledger_tx_id)
+    //         .await?
+    //         .ok_or_else(move || {
+    //             CoreAccountingError::AnnualClosingTransactionNotFoundById(ledger_tx_id.to_string())
+    //         })?)
+    // }
 
     #[instrument(name = "core_accounting.add_root_node", skip(self), err)]
     pub async fn add_root_node(
