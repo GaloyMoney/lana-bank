@@ -16,10 +16,6 @@ use crate::{
 };
 
 use cala_ledger::CalaLedger;
-use chrono::{Datelike, Duration};
-use core_accounting::accounting_period::{
-    Period, chart_of_accounts_integration::AccountingPeriodBasis,
-};
 use error::*;
 
 #[derive(Clone)]
@@ -85,28 +81,9 @@ impl AccountingPeriodsInit {
             .await?
             .unwrap();
 
-        let mut periods = vec![];
-
-        for period_config in config.accounting_periods {
-            let period = match period_config.basis {
-                AccountingPeriodBasis::Month => Period::monthly_by_day_in_month(
-                    period_config.first_period_start.day() as u8,
-                    period_config.first_period_start,
-                    Duration::days(period_config.grace_period_days.into()),
-                ),
-                AccountingPeriodBasis::Year => Period::annually_by_date(
-                    period_config.first_period_start.day() as u8,
-                    period_config.first_period_start.month() as u8,
-                    period_config.first_period_start,
-                    Duration::days(period_config.grace_period_days.into()),
-                ),
-            };
-            periods.push(period.unwrap());
-        }
-
         Ok(accounting
             .accounting_periods()
-            .open_initial_periods(chart.id, chart.account_set_id, periods)
+            .open_initial_periods(chart.id, chart.account_set_id, config.accounting_periods)
             .await?)
     }
 }

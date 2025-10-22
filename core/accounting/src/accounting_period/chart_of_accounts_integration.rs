@@ -1,4 +1,3 @@
-use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 
 use crate::primitives::{AccountCode, ChartId};
@@ -16,14 +15,14 @@ pub struct ChartOfAccountsIntegrationConfig {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AccountingPeriodConfig {
-    pub basis: AccountingPeriodBasis,
+    #[serde(flatten)]
+    pub basis: Basis,
     pub grace_period_days: u8,
-    pub first_period_start: NaiveDate,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "lowercase")]
-pub enum AccountingPeriodBasis {
-    Month,
-    Year,
+#[serde(tag = "basis", rename_all = "lowercase")]
+pub enum Basis {
+    Monthly { on_day: u8 },
+    Annual { on_month: u8, on_day: u8 },
 }

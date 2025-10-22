@@ -1,4 +1,4 @@
-use chrono::{Datelike as _, Days, Duration, Months, NaiveDate};
+use chrono::{DateTime, Datelike as _, Days, Duration, Months, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
 
 /// Recurring time interval (i. e. a portion of time between two
@@ -16,116 +16,79 @@ use serde::{Deserialize, Serialize};
 ///                   S—————————————————E······G
 ///                                     S—————————————————E······G
 /// ```
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Period {
+    #[serde(flatten)]
     frequency: Frequency,
-    pub period_start: NaiveDate,
-    pub period_end: NaiveDate,
-    grace_period_duration: Duration,
+    period_start: NaiveDate,
+    period_end: NaiveDate,
+    grace_period_days: u8,
 }
 
 impl Period {
     /// Constructs new `Period` with monthly frequency and with
-    /// periods starting on the first day of a month and ending on the
-    /// last day of that month. Returns `None` if `period_start` is
-    /// not on the first day of a month.
-    pub fn monthly_by_calendar(
-        period_start: NaiveDate,
-        grace_period_duration: Duration,
-    ) -> Option<Self> {
-        if period_start.day() == 1 {
-            let frequency = Frequency::monthly_by_calendar();
-            let period_end = frequency.period_end(&period_start);
+    /// periods starting on `period_start`.
+    pub fn monthly(period_start: NaiveDate, grace_period_days: u8) -> Option<Self> {
+        let frequency = Frequency::monthly(period_start.day())?;
+        let period_end = frequency.period_end(&period_start);
 
-            Some(Self {
-                frequency,
-                period_start,
-                period_end,
-                grace_period_duration,
-            })
-        } else {
-            None
-        }
+        Some(Self {
+            frequency,
+            period_start,
+            period_end,
+            grace_period_days,
+        })
     }
 
-    /// Constructs new `Period` with monthly frequency and with
-    /// periods starting on `day_in_month` every month and ending the
-    /// next month one day before `day_in_month`. Returns `None` if
-    /// `period_start` is not on `day_in_month`, if `day_in_month`
-    /// equals to 1 (use [[monthly_by_calendar]] in such case) or if
-    /// `day_in_month` is 28 or greater.
-    pub fn monthly_by_day_in_month(
-        day_in_month: u8,
-        period_start: NaiveDate,
-        grace_period_duration: Duration,
-    ) -> Option<Self> {
-        if period_start.day() == u32::from(day_in_month) {
-            let frequency = Frequency::monthly_by_day_in_month(day_in_month)?;
-            let period_end = frequency.period_end(&period_start);
+    /// Constructs new `Period` with monthly frequency, with periods
+    /// starting on `day` and which is open around `date`
+    /// (i. e. period starts before `date` and ends after `date`).
+    pub fn monthly_around_date(day: u8, date: NaiveDate, grace_period_days: u8) -> Option<Self> {
+        let period_start = date.with_day(day.into())?;
 
-            Some(Self {
-                frequency,
-                period_start,
-                period_end,
-                grace_period_duration,
-            })
+        let period_start = if period_start <= date {
+            period_start
         } else {
-            None
-        }
+            period_start
+                .checked_sub_months(Months::new(1))
+                .expect("always in valid range")
+        };
+
+        Period::monthly(period_start, grace_period_days)
     }
 
     /// Constructs new `Period` with annual frequency and with periods
-    /// starting on the first day of a year and ending on the last day
-    /// of that year. Returns `None` if `period_start` is not the
-    /// first day of a year.
-    pub fn annually_by_calendar(
-        period_start: NaiveDate,
-        grace_period_duration: Duration,
-    ) -> Option<Self> {
-        if period_start.ordinal() == 1 {
-            let frequency = Frequency::annually_by_calendar();
-            let period_end = frequency.period_end(&period_start);
+    /// starting on `period_start`
+    pub fn annually(period_start: NaiveDate, grace_period_days: u8) -> Option<Self> {
+        let frequency = Frequency::annually(period_start.day(), period_start.month())?;
+        let period_end = frequency.period_end(&period_start);
 
-            Some(Self {
-                frequency,
-                period_start,
-                period_end,
-                grace_period_duration,
-            })
-        } else {
-            None
-        }
+        Some(Self {
+            frequency,
+            period_start,
+            period_end,
+            grace_period_days,
+        })
     }
 
-    /// Constructs new `Period` with annual frequency and with periods
-    /// starting on `day` and `month` each year and ending the next
-    /// year, one day before `day` and `month`. Returns `None` if
-    /// `period_start` is on a first day of a year (use
-    /// [[annually_by_calendar]] in such case), if `period_start` is
-    /// not on `day` and `month`, if `day` is 28 or greated or if
-    /// `month` is 13 or greater.
-    pub fn annually_by_date(
+    /// Constructs new `Period` with anual frequency, with periods
+    /// starting on `day` and `month` and which is open around `date`
+    /// (i. e. period starts before `date` and ends after `date`).
+    pub fn annually_around_date(
         day: u8,
         month: u8,
-        period_start: NaiveDate,
-        grace_period_duration: Duration,
+        date: NaiveDate,
+        grace_period_days: u8,
     ) -> Option<Self> {
-        if period_start.ordinal() > 1
-            && period_start.day() == u32::from(day)
-            && period_start.month() == u32::from(month)
-        {
-            let frequency = Frequency::annually_by_date(day, month)?;
-            let period_end = frequency.period_end(&period_start);
+        let period_start = date.with_day(day.into())?.with_month(month.into())?;
 
-            Some(Self {
-                frequency,
-                period_start,
-                period_end,
-                grace_period_duration,
-            })
+        let period_start = if period_start <= date {
+            period_start
         } else {
-            None
-        }
+            period_start.with_year(period_start.year() - 1)?
+        };
+
+        Period::annually(period_start, grace_period_days)
     }
 
     pub const fn is_monthly(&self) -> bool {
@@ -148,7 +111,7 @@ impl Period {
             period_start: new_period_start,
             period_end: new_period_end,
             frequency: self.frequency.clone(),
-            grace_period_duration: self.grace_period_duration.clone(),
+            grace_period_days: self.grace_period_days,
         }
     }
 
@@ -161,91 +124,65 @@ impl Period {
     }
 
     pub fn grace_period_end(&self) -> NaiveDate {
-        self.period_end + self.grace_period_duration
+        self.period_end + Duration::days(self.grace_period_days.into())
     }
 
     pub const fn period_end(&self) -> NaiveDate {
         self.period_end
     }
+
+    pub const fn period_start(&self) -> NaiveDate {
+        self.period_start
+    }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
-enum Year {
-    Calendar,
-    Fiscal { day: u32, month: u32 },
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
-enum Month {
-    Calendar,
-    OnDay(u8),
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 enum Frequency {
-    Year(Year),
-    Month(Month),
+    Year { day: u32, month: u32 },
+    Month { day: u32 },
 }
 
 impl Frequency {
-    pub const fn monthly_by_calendar() -> Self {
-        Self::Month(Month::Calendar)
-    }
-
-    pub const fn monthly_by_day_in_month(day_in_month: u8) -> Option<Self> {
-        if day_in_month > 1 && day_in_month < 29 {
-            Some(Self::Month(Month::OnDay(day_in_month)))
+    pub const fn monthly(day_in_month: u32) -> Option<Self> {
+        if day_in_month < 28 {
+            Some(Self::Month { day: day_in_month })
         } else {
             None
         }
     }
 
-    pub const fn annually_by_calendar() -> Self {
-        Self::Year(Year::Calendar)
-    }
-
-    pub fn annually_by_date(day: u8, month: u8) -> Option<Self> {
-        if !(day == 1 && month == 1) && day > 0 && day < 28 && month > 0 && month < 13 {
-            Some(Self::Year(Year::Fiscal {
-                day: u32::from(day),
-                month: u32::from(month),
-            }))
+    pub const fn annually(day: u32, month: u32) -> Option<Self> {
+        if day > 0 && day < 28 && month > 0 && month < 13 {
+            Some(Self::Year { day, month })
         } else {
             None
         }
     }
 
     pub const fn is_monthly(&self) -> bool {
-        matches!(self, Frequency::Month(..))
+        matches!(self, Frequency::Month { .. })
     }
 
     pub const fn is_annual(&self) -> bool {
-        matches!(self, Frequency::Year(..))
+        matches!(self, Frequency::Year { .. })
     }
 
     /// Returns end date of a period with this frequency and for given
     /// `period_start`
     pub fn period_end(&self, period_start: &NaiveDate) -> NaiveDate {
         match self {
-            Frequency::Year(Year::Calendar) => period_start
-                .with_year(period_start.year() + 1)
-                .expect("January 1st is valid every year")
-                .checked_sub_days(Days::new(1))
-                .expect("always in valid date range"),
-            Frequency::Year(Year::Fiscal { day, month }) => {
+            Frequency::Year { day, month } => {
                 NaiveDate::from_ymd_opt(period_start.year() + 1, *month, *day)
                     .expect("valid date")
                     .checked_sub_days(Days::new(1))
                     .expect("always in valid date range")
             }
-            Frequency::Month(Month::Calendar) => period_start
-                .with_day(period_start.num_days_in_month().into())
-                .expect("always in valid date range"),
-            Frequency::Month(Month::OnDay(d)) => period_start
-                .with_day((*d).into())
+            Frequency::Month { day } => period_start
+                .with_day(*day)
                 .expect("valid date")
                 .checked_add_months(Months::new(1))
-                .expect("always in valid date range (avoiding date >28)")
+                .expect("always in valid date range (avoiding date >27)")
                 .checked_sub_days(Days::new(1))
                 .expect("always in valid date range"),
         }
@@ -254,9 +191,9 @@ impl Frequency {
 
 #[cfg(test)]
 mod tests {
-    use chrono::NaiveDate;
+    use chrono::{Duration, NaiveDate};
 
-    use super::{Frequency, Month, Year};
+    use super::{Frequency, Period};
 
     fn dt(s: &str) -> NaiveDate {
         s.parse().unwrap()
@@ -268,7 +205,7 @@ mod tests {
 
     #[test]
     fn frequency_calendar_month() {
-        let freq = Frequency::monthly_by_calendar();
+        let freq = Frequency::monthly(1).unwrap();
 
         test(&freq, "2025-05-01", "2025-05-31");
         test(&freq, "2025-04-01", "2025-04-30");
@@ -279,25 +216,25 @@ mod tests {
 
     #[test]
     fn frequency_month_onday() {
-        let freq = Frequency::monthly_by_day_in_month(28).unwrap();
+        let freq = Frequency::monthly(12).unwrap();
 
-        test(&freq, "2025-05-28", "2025-06-27");
-        test(&freq, "2025-04-28", "2025-05-27");
-        test(&freq, "2025-02-28", "2025-03-27");
-        test(&freq, "2025-12-28", "2026-01-27");
-        test(&freq, "2025-01-28", "2025-02-27");
+        test(&freq, "2025-05-12", "2025-06-11");
+        test(&freq, "2025-04-12", "2025-05-11");
+        test(&freq, "2025-03-12", "2025-04-11");
+        test(&freq, "2025-12-12", "2026-01-11");
+        test(&freq, "2025-01-12", "2025-02-11");
 
-        fn freq2(day: u8) -> Option<Frequency> {
-            Frequency::monthly_by_day_in_month(day)
+        fn freq2(day: u32) -> Option<Frequency> {
+            Frequency::monthly(day)
         }
 
         assert!(freq2(0).is_none());
-        assert!(freq2(29).is_none());
+        assert!(freq2(28).is_none());
     }
 
     #[test]
     fn frequency_calendar_year() {
-        let freq = Frequency::annually_by_calendar();
+        let freq = Frequency::annually(1, 1).unwrap();
 
         test(&freq, "2025-01-01", "2025-12-31");
         test(&freq, "2023-01-01", "2023-12-31");
@@ -305,8 +242,8 @@ mod tests {
 
     #[test]
     fn frequency_fiscal_calendar() {
-        fn freq(day: u8, month: u8) -> Frequency {
-            Frequency::annually_by_date(day, month).unwrap()
+        fn freq(day: u32, month: u32) -> Frequency {
+            Frequency::annually(day, month).unwrap()
         }
 
         test(&freq(1, 5), "2025-05-01", "2026-04-30");
@@ -314,8 +251,8 @@ mod tests {
         test(&freq(1, 3), "2025-03-01", "2026-02-28");
         test(&freq(1, 12), "2025-12-01", "2026-11-30");
 
-        fn freq2(day: u8, month: u8) -> Option<Frequency> {
-            Frequency::annually_by_date(day, month)
+        fn freq2(day: u32, month: u32) -> Option<Frequency> {
+            Frequency::annually(day, month)
         }
 
         assert!(freq2(1, 1).is_none());
@@ -323,5 +260,32 @@ mod tests {
         assert!(freq2(4, 0).is_none());
         assert!(freq2(28, 10).is_none());
         assert!(freq2(10, 13).is_none());
+    }
+
+    #[test]
+    fn around_dates() {
+        let today = dt("2025-10-10");
+
+        let test_month = |day: u8| {
+            let x = Period::monthly_around_date(day, today, 5).unwrap();
+            assert!(x.period_start() <= today);
+            assert!(x.period_end() > today);
+        };
+
+        let test_year = |day: u8, month: u8| {
+            let x = Period::annually_around_date(day, month, today, 5).unwrap();
+            assert!(x.period_start() <= today);
+            assert!(x.period_end() > today);
+        };
+
+        test_month(5);
+        test_month(10);
+        test_month(15);
+
+        test_year(5, 10);
+        test_year(10, 10);
+        test_year(15, 10);
+        test_year(10, 9);
+        test_year(10, 11);
     }
 }
