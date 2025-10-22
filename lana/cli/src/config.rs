@@ -103,8 +103,8 @@ impl Config {
             ));
         }
 
-        config.app.custody.encryption.key =
-            chacha20poly1305::Key::clone_from_slice(key_bytes.as_ref());
+        let key_array: [u8; 32] = key_bytes.as_slice().try_into().expect("key is 32 bytes");
+        config.app.custody.encryption.key = key_array.into();
 
         Ok(config)
     }

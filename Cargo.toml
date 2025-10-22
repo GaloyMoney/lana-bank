@@ -77,6 +77,7 @@ async-graphql = { version = "7.0.17", default-features = false, features = [
   "chrono",
   "playground",
   "tempfile",
+  "tracing",
 ] }
 async-graphql-axum = "7.0.17"
 async-trait = "0.1.89"

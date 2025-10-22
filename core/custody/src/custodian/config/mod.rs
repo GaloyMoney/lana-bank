@@ -112,10 +112,7 @@ impl CustodianConfig {
     ) -> Self {
         let cipher = ChaCha20Poly1305::new(key);
         let decrypted_config = cipher
-            .decrypt(
-                chacha20poly1305::Nonce::from_slice(nonce.0.as_slice()),
-                encrypted_config.0.as_slice(),
-            )
+            .decrypt(nonce.0.as_slice().into(), encrypted_config.0.as_slice())
             .expect("should always decrypt");
         let config: CustodianConfig = serde_json::from_slice(decrypted_config.as_slice())
             .expect("should be able to deserialize config");
@@ -130,13 +127,17 @@ impl CustodianConfig {
         let cipher = ChaCha20Poly1305::new(encryption_key);
         let nonce_bytes =
             hex::decode(&deprecated_encryption_key.nonce).expect("should be able to decode nonce");
-        let nonce = chacha20poly1305::Nonce::from_slice(nonce_bytes.as_slice());
+        let nonce = nonce_bytes.as_slice().into();
         let deprecated_encrypted_key_bytes =
             hex::decode(&deprecated_encryption_key.key).expect("should be able to decode key");
         let deprecated_key_bytes = cipher
             .decrypt(nonce, deprecated_encrypted_key_bytes.as_slice())
             .expect("should be able to decrypt deprecated key");
-        let deprecated_key = EncryptionKey::clone_from_slice(deprecated_key_bytes.as_ref());
+        let key_array: [u8; 32] = deprecated_key_bytes
+            .as_slice()
+            .try_into()
+            .expect("key is 32 bytes");
+        let deprecated_key: EncryptionKey = key_array.into();
 
         let new_config = Self::decrypt(&deprecated_key, &encrypted_config.0, &encrypted_config.1);
 
@@ -161,9 +162,12 @@ impl TryFrom<RawEncryptionConfig> for EncryptionConfig {
 
     fn try_from(raw: RawEncryptionConfig) -> Result<Self, Self::Error> {
         let key_vec = hex::decode(raw.key)?;
-        let key_bytes = key_vec.as_slice();
+        let key_array: [u8; 32] = key_vec
+            .as_slice()
+            .try_into()
+            .map_err(|_| CustodianError::InvalidEncryptionKey)?;
         Ok(Self {
-            key: EncryptionKey::clone_from_slice(key_bytes),
+            key: key_array.into(),
         })
     }
 }
