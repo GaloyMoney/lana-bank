@@ -4,14 +4,13 @@ pub mod error;
 
 mod ledger;
 mod period;
-mod primitives;
+mod closing;
 mod repo;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::{AccountSetId, CalaLedger};
 use es_entity::Idempotent;
-use rust_decimal::Decimal;
 use tracing::instrument;
 
 use crate::{
@@ -30,10 +29,9 @@ pub use entity::AccountingPeriodEvent;
 pub(super) use entity::*;
 use error::AccountingPeriodError;
 use ledger::{
-    AccountingPeriodLedger, ChartOfAccountsIntegrationMeta, ClosingTransactionParams, EntryParams,
+    AccountingPeriodLedger, ChartOfAccountsIntegrationMeta,
 };
 pub use period::Period;
-use primitives::ProfitAndLossClosingDetails;
 use repo::AccountingPeriodRepo;
 
 pub struct AccountingPeriods<Perms>
@@ -61,7 +59,7 @@ where
         chart_of_accounts: &ChartOfAccounts<Perms>,
     ) -> Self {
         let repo = AccountingPeriodRepo::new(pool);
-        let ledger = AccountingPeriodLedger::new(cala);
+        let ledger = AccountingPeriodLedger::new(cala, journal_id);
         Self {
             authz: authz.clone(),
             repo: repo.clone(),
@@ -159,6 +157,9 @@ where
                 CoreAccountingAction::ACCOUNTING_PERIOD_CLOSE,
             )
             .await?;
+        
+        // TODO: Also need to verify that the related monthly period is still open 
+        // (the one with the same `period_end`)?
         let mut open_periods = self.repo.find_open_accounting_periods(chart_id).await?;
 
         let open_annual_period = open_periods
@@ -172,17 +173,19 @@ where
             .ok_or(AccountingPeriodError::AccountingPeriodIntegrationConfigNotFound)?;
 
         let effective = crate::time::now();
-        let parent_profit_account_set_id = self
+        let retained_earnings_account_set_ids = self
             .chart_of_accounts
-            .find_account_set_id_by_code(chart_id, chart_config.equity_retained_earnings_code)
+            .find_retained_earnings_account_sets_by_codes(
+                chart_id,
+                chart_config.chart_of_accounts_equity_retained_earnings_code,
+                chart_config.chart_of_accounts_equity_retained_losses_code,
+            )
             .await?;
-        let parent_losses_account_set_id = self
-            .chart_of_accounts
-            .find_account_set_id_by_code(chart_id, chart_config.equity_retained_losses_code)
-            .await?;
+        
+        // TODO: Is there an existing primitive that can be used for this?
         let period_end_balances = self
             .chart_of_accounts
-            .get_profit_and_loss_statement_closing_balances(
+            .get_profit_and_loss_statement_period_end_balances(
                 chart_id,
                 open_annual_period.period_end(),
                 chart_config.revenue_code,
@@ -190,26 +193,6 @@ where
                 chart_config.expenses_code,
             )
             .await?;
-        let revenue_closing_details = self
-            .ledger
-            .create_closing_offset_entries(description.clone(), period_end_balances.revenue);
-        let expense_closing_details = self
-            .ledger
-            .create_closing_offset_entries(description.clone(), period_end_balances.expenses);
-        let cost_of_revenue_closing_details = self.ledger.create_closing_offset_entries(
-            description.clone(),
-            period_end_balances.cost_of_revenue,
-        );
-        let net_income = self.calculate_net_income(
-            &revenue_closing_details,
-            &expense_closing_details,
-            &cost_of_revenue_closing_details,
-        );
-        let mut tx_entries = Vec::new();
-        tx_entries.extend(revenue_closing_details.closing_entries);
-        tx_entries.extend(expense_closing_details.closing_entries);
-        tx_entries.extend(cost_of_revenue_closing_details.closing_entries);
-        let entry_params = tx_entries.into_iter().map(EntryParams::from).collect();
 
         let ledger_tx_id = CalaTxId::new();
         match open_annual_period.close(effective, Some(ledger_tx_id))? {
@@ -220,33 +203,17 @@ where
                 self.ledger
                     .execute_closing(
                         db,
-                        net_income,
-                        parent_profit_account_set_id,
-                        parent_losses_account_set_id,
                         ledger_tx_id,
-                        ClosingTransactionParams {
-                            journal_id: self.journal_id,
-                            description: description.unwrap_or("Closing Entry".to_string()),
-                            effective: effective.date_naive(),
-                            entry_params,
-                        },
+                        description,
+                        effective.date_naive(),
+                        period_end_balances,
+                        retained_earnings_account_set_ids,
                     )
                     .await?;
                 Ok(new_period)
             }
             Idempotent::Ignored => Err(AccountingPeriodError::PeriodAlreadyClosed),
         }
-    }
-
-    fn calculate_net_income(
-        &self,
-        revenue_details: &ProfitAndLossClosingDetails,
-        expense_details: &ProfitAndLossClosingDetails,
-        cost_of_revenue_details: &ProfitAndLossClosingDetails,
-    ) -> Decimal {
-        revenue_details.net_category_balance
-            - expense_details.net_category_balance
-            - cost_of_revenue_details.net_category_balance
     }
 
     pub async fn get_chart_of_accounts_integration_config(

@@ -1,10 +1,9 @@
 mod closing;
 pub mod error;
 
-
 use cala_ledger::{
-    AccountSetId, BalanceId, CalaLedger, Currency, JournalId, DebitOrCredit,
-    LedgerOperation, VelocityControlId, VelocityLimitId,
+    AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation,
+    VelocityControlId, VelocityLimitId,
     account_set::{AccountSetMemberId, AccountSetUpdate, NewAccountSet},
     velocity::{
         NewBalanceLimit, NewLimit, NewVelocityControl, NewVelocityLimit, Params, VelocityLimit,
@@ -14,7 +13,7 @@ use cala_ledger::{
 use closing::*;
 use error::*;
 
-use crate::{Chart};
+use crate::Chart;
 
 #[derive(Clone)]
 pub struct ChartLedger {
