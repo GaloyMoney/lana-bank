@@ -149,9 +149,8 @@ wait_for_approval() {
   withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
   echo $(graphql_output) 
   [[ "$withdrawal_id" != "null" ]] || exit 1
-  status=$(graphql_output '.data.withdrawalInitiate.withdrawal.status')
-  # PENDING_APPROVAL is skipped due to status being updated on read
-  [[ "$status" == "PENDING_CONFIRMATION" ]] || exit 1
+  
+  retry 5 1 wait_for_approval $withdrawal_id
   # settled_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.customer.balance.checking.settled')
   # [[ "$settled_usd_balance" == "0" ]] || exit 1
   # pending_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.customer.balance.checking.pending')
