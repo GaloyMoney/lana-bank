@@ -19,7 +19,7 @@ server_cmd() {
     export LANA_CONFIG="${REPO_ROOT}/bats/lana.yml"
     "${LANA_BIN}"
   else
-    make run-server
+    SQLX_OFFLINE=true make run-server
   fi
 }
 wait_for_keycloak_user_ready() {
