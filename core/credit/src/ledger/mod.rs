@@ -185,7 +185,6 @@ impl CreditLedger {
     pub async fn init(cala: &CalaLedger, journal_id: JournalId) -> Result<Self, CreditLedgerError> {
         templates::AddCollateral::init(cala).await?;
         templates::AddStructuringFee::init(cala).await?;
-        templates::AddStructuringFeeAfterSingleDisbursal::init(cala).await?;
         templates::ActivateCreditFacility::init(cala).await?;
         templates::RemoveCollateral::init(cala).await?;
         templates::RecordPaymentAllocation::init(cala).await?;
@@ -199,7 +198,7 @@ impl CreditLedger {
         templates::ConfirmDisbursal::init(cala).await?;
         templates::ReserveForLiquidation::init(cala).await?;
         templates::CreateCreditFacilityProposal::init(cala).await?;
-        templates::SingleDisbursal::init(cala).await?;
+        templates::InitialDisbursal::init(cala).await?;
 
         let collateral_omnibus_normal_balance_type = DebitOrCredit::Debit;
         let collateral_omnibus_account_ids = Self::find_or_create_omnibus_account(
@@ -1551,10 +1550,11 @@ impl CreditLedger {
         Ok(())
     }
 
-    pub async fn handle_activation_with_single_disbursal(
+    pub async fn handle_activation_with_initial_disbursal(
         &self,
         op: es_entity::DbOpWithTime<'_>,
         single_disbursal_id: DisbursalId,
+        disbursal_amount: UsdCents,
         CreditFacilityActivation {
             credit_facility_id,
             tx_id,
@@ -1582,22 +1582,20 @@ impl CreditLedger {
         self.activate_credit_facility(&mut op, tx_id, account_ids, facility_amount, tx_ref)
             .await?;
 
-        // ledger transaction should account for total money given to customer
-        // then when the money is given to customer , we need to take the money back from customer which is the structuring fee
-        // so the total money given to customer is the facility amount
-        self.single_disbursal(
+        // If there is single disbursal its a disbursal with all_funds in credit_facility
+        // otherwise its structuring_fee disbursal
+        self.initial_disbursal(
             &mut op,
             single_disbursal_id,
             account_ids,
-            facility_amount,
+            disbursal_amount,
             debit_account_id,
         )
         .await?;
 
         if !structuring_fee_amount.is_zero() {
-            self.add_structuring_fee_after_single_disbursal(
+            self.add_structuring_fee(
                 &mut op,
-                single_disbursal_id,
                 account_ids,
                 debit_account_id,
                 structuring_fee_amount,
@@ -1609,55 +1607,12 @@ impl CreditLedger {
         Ok(())
     }
 
-    pub async fn handle_activation_with_only_structuring_fee(
-        &self,
-        op: es_entity::DbOpWithTime<'_>,
-        single_disbursal_id: DisbursalId,
-        CreditFacilityActivation {
-            credit_facility_id,
-            tx_id,
-            tx_ref,
-            account_ids,
-            facility_amount,
-            debit_account_id,
-            structuring_fee_amount,
-            customer_type,
-            duration_type,
-            ..
-        }: CreditFacilityActivation,
-    ) -> Result<(), CreditLedgerError> {
-        let mut op = self.cala.ledger_operation_from_db_op(op);
-
-        self.create_accounts_for_credit_facility(
-            &mut op,
-            credit_facility_id,
-            account_ids,
-            customer_type,
-            duration_type,
-        )
-        .await?;
-
-        self.activate_credit_facility(&mut op, tx_id, account_ids, facility_amount, tx_ref)
-            .await?;
-        self.add_structuring_fee(
-            &mut op,
-            single_disbursal_id,
-            account_ids,
-            debit_account_id,
-            structuring_fee_amount,
-        )
-        .await?;
-
-        op.commit().await?;
-        Ok(())
-    }
-
-    async fn single_disbursal(
+    async fn initial_disbursal(
         &self,
         op: &mut cala_ledger::LedgerOperation<'_>,
         disbursal_id: DisbursalId,
         account_ids: CreditFacilityLedgerAccountIds,
-        facility_amount: UsdCents,
+        disbursal_amount: UsdCents,
         debit_account_id: CalaAccountId,
     ) -> Result<(), CreditLedgerError> {
         let tx_id = disbursal_id.into();
@@ -1665,17 +1620,17 @@ impl CreditLedger {
             .post_transaction_in_op(
                 op,
                 tx_id,
-                templates::SINGLE_DISBURSAL_CODE,
-                templates::SingleDisbursalParams {
+                templates::INITIAL_DISBURSAL_CODE,
+                templates::InitialDisbursalParams {
                     journal_id: self.journal_id,
                     credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
                     credit_facility_account: account_ids.facility_account_id,
                     facility_disbursed_receivable_account: account_ids
                         .disbursed_receivable_not_yet_due_account_id,
                     debit_account_id,
-                    disbursed_amount: facility_amount.to_usd(),
+                    disbursed_amount: disbursal_amount.to_usd(),
                     currency: self.usd,
-                    external_id: format!("{}-single-disbursal", disbursal_id),
+                    external_id: format!("{}-initial-disbursal", disbursal_id),
                 },
             )
             .await?;
@@ -1708,42 +1663,14 @@ impl CreditLedger {
         Ok(())
     }
 
-    async fn add_structuring_fee_after_single_disbursal(
-        &self,
-        op: &mut cala_ledger::LedgerOperation<'_>,
-        disbursal_id: DisbursalId,
-        account_ids: CreditFacilityLedgerAccountIds,
-        debit_account_id: CalaAccountId,
-        structuring_fee_amount: UsdCents,
-    ) -> Result<(), CreditLedgerError> {
-        let tx_id = disbursal_id.into();
-        self.cala
-            .post_transaction_in_op(
-                op,
-                tx_id,
-                templates::ADD_STRUCTURING_FEE_AFTER_SINGLE_DISBURSAL_CODE,
-                templates::AddStructuringFeeAfterSingleDisbursalParams {
-                    journal_id: self.journal_id,
-                    facility_fee_income_account: account_ids.fee_income_account_id,
-                    debit_account_id,
-                    structuring_fee_amount: structuring_fee_amount.to_usd(),
-                    currency: self.usd,
-                    external_id: format!("{}-structuring-fee", disbursal_id),
-                },
-            )
-            .await?;
-        Ok(())
-    }
-
     async fn add_structuring_fee(
         &self,
         op: &mut cala_ledger::LedgerOperation<'_>,
-        disbursal_id: DisbursalId,
         account_ids: CreditFacilityLedgerAccountIds,
         debit_account_id: CalaAccountId,
         structuring_fee_amount: UsdCents,
     ) -> Result<(), CreditLedgerError> {
-        let tx_id = disbursal_id.into();
+        let tx_id = LedgerTxId::new(); // fallback for now , disbursal_id is used, maybe tie it to credit_facility_id ?
         self.cala
             .post_transaction_in_op(
                 op,
@@ -1751,15 +1678,11 @@ impl CreditLedger {
                 templates::ADD_STRUCTURING_FEE_CODE,
                 templates::AddStructuringFeeParams {
                     journal_id: self.journal_id,
-                    credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
-                    credit_facility_account: account_ids.facility_account_id,
-                    facility_disbursed_receivable_account: account_ids
-                        .disbursed_receivable_not_yet_due_account_id,
                     facility_fee_income_account: account_ids.fee_income_account_id,
                     debit_account_id,
                     structuring_fee_amount: structuring_fee_amount.to_usd(),
                     currency: self.usd,
-                    external_id: format!("{}-structuring-fee", disbursal_id),
+                    external_id: format!("{}-structuring-fee", tx_id),
                 },
             )
             .await?;

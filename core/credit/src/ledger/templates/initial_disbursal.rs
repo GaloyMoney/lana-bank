@@ -8,10 +8,10 @@ use cala_ledger::{
 
 use crate::{ledger::error::*, primitives::CalaAccountId};
 
-pub const SINGLE_DISBURSAL_CODE: &str = "SINGLE_DISBURSAL";
+pub const INITIAL_DISBURSAL_CODE: &str = "INITIAL_DISBURSAL";
 
 #[derive(Debug)]
-pub struct SingleDisbursalParams {
+pub struct InitialDisbursalParams {
     pub journal_id: JournalId,
     pub credit_omnibus_account: CalaAccountId,
     pub credit_facility_account: CalaAccountId,
@@ -22,7 +22,7 @@ pub struct SingleDisbursalParams {
     pub external_id: String,
 }
 
-impl SingleDisbursalParams {
+impl InitialDisbursalParams {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -74,9 +74,9 @@ impl SingleDisbursalParams {
     }
 }
 
-impl From<SingleDisbursalParams> for Params {
+impl From<InitialDisbursalParams> for Params {
     fn from(
-        SingleDisbursalParams {
+        InitialDisbursalParams {
             journal_id,
             credit_omnibus_account,
             credit_facility_account,
@@ -85,7 +85,7 @@ impl From<SingleDisbursalParams> for Params {
             disbursed_amount,
             currency,
             external_id,
-        }: SingleDisbursalParams,
+        }: InitialDisbursalParams,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
@@ -104,16 +104,16 @@ impl From<SingleDisbursalParams> for Params {
     }
 }
 
-pub struct SingleDisbursal;
+pub struct InitialDisbursal;
 
-impl SingleDisbursal {
-    #[instrument(name = "ledger.single_disbursal.init", skip_all)]
+impl InitialDisbursal {
+    #[instrument(name = "ledger.initial_disbursal.init", skip_all)]
     pub async fn init(ledger: &CalaLedger) -> Result<(), CreditLedgerError> {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")
             .external_id("params.external_id")
-            .description("'Single disbursal'")
+            .description("'Initial disbursal'")
             .build()
             .expect("Couldn't build TxInput");
 
@@ -155,10 +155,10 @@ impl SingleDisbursal {
                 .build()
                 .expect("Couldn't build entry"),
         ];
-        let params = SingleDisbursalParams::defs();
+        let params = InitialDisbursalParams::defs();
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
-            .code(SINGLE_DISBURSAL_CODE)
+            .code(INITIAL_DISBURSAL_CODE)
             .transaction(tx_input)
             .entries(entries)
             .params(params)

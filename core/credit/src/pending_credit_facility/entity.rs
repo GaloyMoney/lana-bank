@@ -211,39 +211,22 @@ impl PendingCreditFacility {
             .activated_at(crate::time::now())
             .maturity_date(maturity_date);
 
-        let single_disbursal = if self.is_single_disbursal() {
+        let initial_disbursal = if self.is_single_disbursal() || !self.structuring_fee().is_zero() {
             let due_date = maturity_date;
             let overdue_date = self.terms.get_overdue_date_from_due_date(due_date);
             let liquidation_date = self.terms.get_liquidation_date_from_due_date(due_date);
+            let disbursal_amount = if self.is_single_disbursal() {
+                self.amount
+            } else {
+                self.structuring_fee()
+            };
 
             let mut new_disbursal_builder = NewDisbursalBuilder::default();
             new_disbursal_builder
                 .id(DisbursalId::new())
                 .credit_facility_id(self.id)
                 .approval_process_id(self.approval_process_id)
-                .amount(self.amount) // full amount here (principal + structuring_fee )
-                .account_ids(account_ids)
-                .disbursal_credit_account_id(self.disbursal_credit_account_id)
-                .due_date(due_date)
-                .overdue_date(overdue_date)
-                .liquidation_date(liquidation_date);
-
-            Some(new_disbursal_builder)
-        } else {
-            None
-        };
-
-        let fee_disbursal = if !self.is_single_disbursal() && !self.structuring_fee().is_zero() {
-            let due_date = maturity_date;
-            let overdue_date = self.terms.get_overdue_date_from_due_date(due_date);
-            let liquidation_date = self.terms.get_liquidation_date_from_due_date(due_date);
-
-            let mut new_disbursal_builder = NewDisbursalBuilder::default();
-            new_disbursal_builder
-                .id(DisbursalId::new())
-                .credit_facility_id(self.id)
-                .approval_process_id(self.approval_process_id)
-                .amount(self.structuring_fee())
+                .amount(disbursal_amount)
                 .account_ids(account_ids)
                 .disbursal_credit_account_id(self.disbursal_credit_account_id)
                 .due_date(due_date)
@@ -257,8 +240,7 @@ impl PendingCreditFacility {
 
         Ok(Idempotent::Executed(NewCreditFacilityWithDisbursals {
             new_credit_facility,
-            single_disbursal,
-            fee_disbursal,
+            initial_disbursal,
         }))
     }
 
@@ -370,8 +352,7 @@ impl IntoEvents<PendingCreditFacilityEvent> for NewPendingCreditFacility {
 
 pub struct NewCreditFacilityWithDisbursals {
     pub new_credit_facility: NewCreditFacilityBuilder,
-    pub single_disbursal: Option<NewDisbursalBuilder>,
-    pub fee_disbursal: Option<NewDisbursalBuilder>,
+    pub initial_disbursal: Option<NewDisbursalBuilder>,
 }
 
 #[cfg(test)]
