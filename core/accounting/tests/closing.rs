@@ -16,7 +16,10 @@ use cala_ledger::{
 };
 use core_accounting::{
     AccountCode, AccountIdOrCode, Chart, CoreAccounting, ManualEntryInput,
-    accounting_period::{ChartOfAccountsIntegrationConfig, Period},
+    accounting_period::{
+        ChartOfAccountsIntegrationConfig, Period,
+        chart_of_accounts_integration::{AccountingPeriodConfig, Basis},
+    },
 };
 use helpers::{action, object};
 use rust_decimal::Decimal;
@@ -215,8 +218,17 @@ async fn prepare_test() -> anyhow::Result<Test> {
             chart_id,
             chart.account_set_id,
             vec![
-                Period::annually_by_calendar("2021-01-01".parse().unwrap(), Duration::days(10))
-                    .unwrap(),
+                AccountingPeriodConfig {
+                    basis: Basis::Monthly { on_day: 5 },
+                    grace_period_days: 10,
+                },
+                AccountingPeriodConfig {
+                    basis: Basis::Annual {
+                        on_month: 10,
+                        on_day: 5,
+                    },
+                    grace_period_days: 10,
+                },
             ],
         )
         .await?;

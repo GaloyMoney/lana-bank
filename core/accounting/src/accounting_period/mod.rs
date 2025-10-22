@@ -10,6 +10,8 @@ mod repo;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::{AccountSetId, CalaLedger};
+use chart_of_accounts_integration::{AccountingPeriodConfig, Basis};
+use chrono::NaiveDate;
 use es_entity::Idempotent;
 use tracing::instrument;
 
@@ -73,12 +75,28 @@ where
         &self,
         chart_id: ChartId,
         tracking_account_set: AccountSetId,
-        periods: Vec<Period>,
+        periods: Vec<AccountingPeriodConfig>,
     ) -> Result<(), AccountingPeriodError> {
         let open_periods = self.repo.find_open_accounting_periods(chart_id).await?;
 
+        let today = crate::time::now().date_naive();
+
         if open_periods.is_empty() {
             for period in periods {
+                let period = match period.basis {
+                    Basis::Monthly { on_day } => {
+                        Period::monthly_around_date(on_day, today, period.grace_period_days)
+                            .unwrap()
+                    }
+                    Basis::Annual { on_month, on_day } => Period::annually_around_date(
+                        on_day,
+                        on_month,
+                        today,
+                        period.grace_period_days,
+                    )
+                    .unwrap(),
+                };
+
                 self.repo
                     .create(NewAccountingPeriod {
                         id: AccountingPeriodId::new(),

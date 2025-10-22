@@ -24,7 +24,7 @@ impl From<DomainAccountingPeriod> for AccountingPeriod {
             id: accounting_period.id.to_global_id(),
             accounting_period_id: UUID::from(accounting_period.id),
             tracking_account_set_id: UUID::from(accounting_period.tracking_account_set),
-            period: accounting_period.period.into(),
+            period: accounting_period.period.clone().into(),
 
             entity: Arc::new(accounting_period),
         }
@@ -40,8 +40,8 @@ pub struct PeriodRange {
 impl From<DomainPeriod> for PeriodRange {
     fn from(period: DomainPeriod) -> Self {
         Self {
-            period_start: period.period_start.into(),
-            period_end: period.period_end.into(),
+            period_start: period.period_start().into(),
+            period_end: period.period_end().into(),
         }
     }
 }
