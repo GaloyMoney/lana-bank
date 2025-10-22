@@ -11,11 +11,13 @@ use template::*;
 pub use template::{ClosingTransactionParams, EntryParams};
 
 use super::{
-    chart_of_accounts_integration::ChartOfAccountsIntegrationConfig, error::AccountingPeriodError,
-    closing::ProfitAndLossClosingCategory,
+    chart_of_accounts_integration::ChartOfAccountsIntegrationConfig, 
+    error::AccountingPeriodError,
+    closing::{ProfitAndLossClosingCategory, ProfitAndLossClosingSpec},
 };
 use crate::primitives::{
-    CHART_OF_ACCOUNTS_ENTITY_TYPE, CalaTxId, EntityRef, LedgerAccountId, TransactionEntrySpec,
+    CHART_OF_ACCOUNTS_ENTITY_TYPE, CalaTxId, EntityRef, LedgerAccountId, ClosingTxEntrySpec,
+    ClosingAccountBalances, RetainedEarningsAccountSetIds,
 };
 use cala_ledger::{
     AccountId, AccountSetId, CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation,

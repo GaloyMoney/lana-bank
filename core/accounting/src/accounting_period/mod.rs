@@ -41,7 +41,6 @@ where
     authz: Perms,
     repo: AccountingPeriodRepo,
     ledger: AccountingPeriodLedger,
-    journal_id: CalaJournalId,
     chart_of_accounts: ChartOfAccounts<Perms>,
 }
 
@@ -65,7 +64,6 @@ where
             repo: repo.clone(),
             ledger: ledger.clone(),
             chart_of_accounts: chart_of_accounts.clone(),
-            journal_id,
         }
     }
 
@@ -177,8 +175,8 @@ where
             .chart_of_accounts
             .find_retained_earnings_account_sets_by_codes(
                 chart_id,
-                chart_config.chart_of_accounts_equity_retained_earnings_code,
-                chart_config.chart_of_accounts_equity_retained_losses_code,
+                chart_config.equity_retained_earnings_code,
+                chart_config.equity_retained_losses_code,
             )
             .await?;
         
