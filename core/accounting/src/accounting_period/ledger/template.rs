@@ -1,5 +1,6 @@
 use derive_builder::Builder;
 use rust_decimal::Decimal;
+use chrono::NaiveDate;
 
 use cala_ledger::{
     AccountId as CalaAccountId,
@@ -8,7 +9,7 @@ use cala_ledger::{
     *,
 };
 
-use crate::primitives::TransactionEntrySpec;
+use crate::primitives::ClosingTxEntrySpec;
 
 #[derive(Debug, Builder)]
 pub struct EntryParams {
@@ -19,8 +20,8 @@ pub struct EntryParams {
     pub direction: DebitOrCredit,
 }
 
-impl From<TransactionEntrySpec> for EntryParams {
-    fn from(spec: TransactionEntrySpec) -> Self {
+impl From<ClosingTxEntrySpec> for EntryParams {
+    fn from(spec: ClosingTxEntrySpec) -> Self {
         EntryParams::builder()
             .account_id(spec.account_id.into())
             .amount(spec.amount)
@@ -28,7 +29,7 @@ impl From<TransactionEntrySpec> for EntryParams {
             .direction(spec.direction)
             .description(spec.description)
             .build()
-            .expect("Failed to build EntryParams from TransactionEntrySpec")
+            .expect("Failed to build EntryParams from ClosingTxEntrySpec")
     }
 }
 
@@ -130,6 +131,23 @@ impl From<ClosingTransactionParams> for Params {
 }
 
 impl ClosingTransactionParams {
+    pub fn new(
+        journal_id: JournalId,
+        description: Option<String>,
+        effective: NaiveDate,
+        profit_and_loss_closing_entries: Vec<EntryParams>,
+    ) -> ClosingTransactionParams {
+        Self {
+            journal_id,
+            description: description.unwrap_or("Closing Entry".to_string()),
+            effective,
+            entry_params: profit_and_loss_closing_entries,
+        }
+    }
+
+    pub fn add_equity_entry(&mut self, equity_entry: EntryParams) {
+        self.entry_params.push(equity_entry);
+    }
     pub fn defs(n: usize) -> Vec<NewParamDefinition> {
         let mut params = vec![
             NewParamDefinition::builder()

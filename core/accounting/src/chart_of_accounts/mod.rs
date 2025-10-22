@@ -14,11 +14,12 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 
-use cala_ledger::{AccountSetId, CalaLedger, account::Account};
+use cala_ledger::{CalaLedger, account::Account};
 
 use crate::primitives::{
     AccountCode, AccountIdOrCode, AccountName, AccountSpec, CalaAccountSetId, CalaJournalId,
     ChartId, ClosingAccountBalances, CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
+    RetainedEarningsAccountSetIds,
 };
 
 #[cfg(feature = "json-schema")]
@@ -213,24 +214,33 @@ where
         Ok(chart)
     }
 
-    pub async fn find_account_set_id_by_code(
+    /// Retained earnings represents the `BalanceSheet` transferring the prior
+    /// `AccountingPeriod`'s into Equity. There is a configured account set to use
+    /// for net losses and a configured account set to use for net profits.
+    pub async fn find_retained_earnings_account_sets_by_codes(
         &self,
         id: impl Into<ChartId> + std::fmt::Debug,
-        parent_code: AccountCode,
-    ) -> Result<AccountSetId, ChartOfAccountsError> {
+        profit_code: AccountCode,
+        loss_code: AccountCode,
+    ) -> Result<RetainedEarningsAccountSetIds, ChartOfAccountsError> {
         let id = id.into();
         let chart = self.repo.find_by_id(id).await?;
-        Ok(chart.account_set_id_from_code(&parent_code)?)
+        let profit_id = chart.account_set_id_from_code(&profit_code)?;
+        let loss_id = chart.account_set_id_from_code(&loss_code)?;
+        Ok(RetainedEarningsAccountSetIds {
+            profit: profit_id,
+            loss: loss_id,
+        })
     }
 
     /// Collects `BalanceRange` for all underlying accounts and nested underlying accounts.
     /// using `period_end` from the `AccountingPeriod` entity is used to get the effective
-    /// balance from cala at that time. 
-    /// 
-    /// This amount is used to create the offset/closing  entry for the 
+    /// balance from cala at that time.
+    ///
+    /// This amount is used to create the offset/closing  entry for the
     /// `ProfitAndLossStatement` account that is valid at any time during
-    /// the closing grace period. 
-    pub async fn get_profit_and_loss_statement_closing_balances(
+    /// the closing grace period.
+    pub async fn get_profit_and_loss_statement_period_end_balances(
         &self,
         id: impl Into<ChartId> + std::fmt::Debug,
         period_end: NaiveDate,
@@ -288,7 +298,6 @@ where
             expenses: end_of_period_expenses_account_balances,
         })
     }
-
 
     #[instrument(
         name = "core_accounting.chart_of_accounts.add_root_node",

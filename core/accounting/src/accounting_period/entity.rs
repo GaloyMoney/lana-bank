@@ -33,9 +33,9 @@ pub enum AccountingPeriodEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct AccountingPeriod {
     pub id: AccountingPeriodId,
-    pub chart_id: ChartId,
+    pub(super) chart_id: ChartId,
     #[builder(default)]
-    pub closed_at: Option<DateTime<Utc>>,
+    pub(super) closed_at: Option<DateTime<Utc>>,
     pub tracking_account_set: LedgerAccountSetId,
     pub period: Period,
 
