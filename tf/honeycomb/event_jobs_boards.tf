@@ -93,7 +93,7 @@ resource "honeycombio_query_annotation" "handled" {
 
 # Event Jobs dashboard
 resource "honeycombio_flexible_board" "event_jobs" {
-  name        = "${local.name_prefix}-event_jobs"
+  name        = "${local.name_prefix}-event-jobs"
   description = "Job execution metrics for ${local.name_prefix}"
 
   panel {

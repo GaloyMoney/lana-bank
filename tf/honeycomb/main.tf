@@ -8,12 +8,6 @@ terraform {
   }
 }
 
-variable "honeycomb_api_key" {
-  type        = string
-  description = "Honeycomb API key (set via TF_VAR_honeycomb_api_key)"
-  sensitive   = true
-}
-
 variable "honeycomb_dataset" {
   type        = string
   description = "Honeycomb dataset name"
@@ -24,10 +18,6 @@ variable "name_prefix" {
   type        = string
   description = "Prefix for dashboard names"
   default     = "lana"
-}
-
-provider "honeycombio" {
-  api_key = var.honeycomb_api_key
 }
 
 locals {
