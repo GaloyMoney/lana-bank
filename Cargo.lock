@@ -1810,16 +1810,6 @@ dependencies = [
 
 [[package]]
 name = "deranged"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9c9e6a11ca8224451684bc0d7d5a7adbf8f2fd6887261a1cfc3c0432f9d4068e"
-dependencies = [
- "powerfmt",
- "serde",
-]
-
-[[package]]
-name = "deranged"
 version = "0.5.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a41953f86f8a05768a6cda24def994fd2f424b04ec5c719cf89989779f199071"
@@ -6214,7 +6204,7 @@ version = "0.3.44"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "91e7d9e3bb61134e77bde20dd4825b97c010155709965fedf0f49bb138e52a9d"
 dependencies = [
- "deranged 0.5.4",
+ "deranged",
  "itoa 1.0.15",
  "num-conv",
  "powerfmt",
@@ -7486,7 +7476,7 @@ dependencies = [
  "clap_builder",
  "crypto-common",
  "der",
- "deranged 0.4.0",
+ "deranged",
  "digest",
  "ecdsa",
  "either",
@@ -7499,6 +7489,7 @@ dependencies = [
  "futures",
  "futures-channel",
  "futures-core",
+ "futures-executor",
  "futures-io",
  "futures-sink",
  "futures-task",
@@ -7507,7 +7498,6 @@ dependencies = [
  "getrandom 0.2.16",
  "group",
  "hashbrown 0.14.5",
- "hashbrown 0.15.5",
  "hmac",
  "hyper",
  "hyper-util",
@@ -7542,6 +7532,7 @@ dependencies = [
  "sha2",
  "signature",
  "smallvec",
+ "socket2 0.6.1",
  "spki",
  "sqlx-core",
  "sqlx-postgres",
@@ -7555,15 +7546,12 @@ dependencies = [
  "tokio",
  "tokio-stream",
  "tokio-util",
- "toml_datetime 0.6.11",
- "toml_edit 0.22.27",
  "tonic",
  "tower",
  "tracing",
  "tracing-core",
  "tracing-opentelemetry",
  "tracing-subscriber",
- "url",
  "uuid",
  "zeroize",
 ]
