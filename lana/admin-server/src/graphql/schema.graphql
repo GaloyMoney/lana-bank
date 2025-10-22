@@ -43,6 +43,27 @@ type AccountingPeriodClosePayload {
 	accountingPeriod: AccountingPeriod!
 }
 
+type AccountingPeriodModuleConfig {
+	chartOfAccountsId: UUID
+	revenueCode: String
+	costOfRevenueCode: String
+	expensesCode: String
+	equityRetainedEarningsCode: String
+	equityRetainedLossesCode: String
+}
+
+input AccountingPeriodModuleConfigureInput {
+	revenueCode: String!
+	costOfRevenueCode: String!
+	expensesCode: String!
+	equityRetainedEarningsCode: String!
+	equityRetainedLossesCode: String!
+}
+
+type AccountingPeriodModuleConfigurePayload {
+	accountingPeriodConfig: AccountingPeriodModuleConfig!
+}
+
 enum Activity {
 	INACTIVE
 	ACTIVE
@@ -1558,6 +1579,7 @@ type Mutation {
 	chartOfAccountsAddChildNode(input: ChartOfAccountsAddChildNodeInput!): ChartOfAccountsAddChildNodePayload!
 	balanceSheetConfigure(input: BalanceSheetModuleConfigureInput!): BalanceSheetModuleConfigurePayload!
 	profitAndLossStatementConfigure(input: ProfitAndLossModuleConfigureInput!): ProfitAndLossStatementModuleConfigurePayload!
+	accountingPeriodConfigure(input: AccountingPeriodModuleConfigureInput!): AccountingPeriodModuleConfigurePayload!
 	ledgerAccountCsvCreate(input: LedgerAccountCsvCreateInput!): LedgerAccountCsvCreatePayload!
 	accountingCsvDownloadLinkGenerate(input: AccountingCsvDownloadLinkGenerateInput!): AccountingCsvDownloadLinkGeneratePayload!
 	loanAgreementGenerate(input: LoanAgreementGenerateInput!): LoanAgreementGeneratePayload!
@@ -1861,6 +1883,7 @@ type Query {
 	creditConfig: CreditModuleConfig
 	balanceSheetConfig: BalanceSheetModuleConfig
 	profitAndLossStatementConfig: ProfitAndLossStatementModuleConfig
+	accountingPeriodConfig: AccountingPeriodModuleConfig
 	publicIdTarget(id: PublicId!): PublicIdTarget
 	loanAgreement(id: UUID!): LoanAgreement
 	accountEntryCsv(ledgerAccountId: UUID!): AccountingCsvDocument
