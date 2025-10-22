@@ -785,10 +785,28 @@ checksum = "b0839c297f8783316fcca9d90344424e968395413f0662a5481f79c6648bbc14"
 dependencies = [
  "ahash 0.8.12",
  "async-trait",
- "cached_proc_macro",
+ "cached_proc_macro 0.24.0",
  "cached_proc_macro_types",
  "futures",
  "hashbrown 0.14.5",
+ "once_cell",
+ "thiserror 2.0.17",
+ "tokio",
+ "web-time",
+]
+
+[[package]]
+name = "cached"
+version = "0.56.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "801927ee168e17809ab8901d9f01f700cd7d8d6a6527997fee44e4b0327a253c"
+dependencies = [
+ "ahash 0.8.12",
+ "async-trait",
+ "cached_proc_macro 0.25.0",
+ "cached_proc_macro_types",
+ "futures",
+ "hashbrown 0.15.5",
  "once_cell",
  "thiserror 2.0.17",
  "tokio",
@@ -800,6 +818,18 @@ name = "cached_proc_macro"
 version = "0.24.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "673992d934f0711b68ebb3e1b79cdc4be31634b37c98f26867ced0438ca5c603"
+dependencies = [
+ "darling 0.20.11",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.107",
+]
+
+[[package]]
+name = "cached_proc_macro"
+version = "0.25.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9225bdcf4e4a9a4c08bf16607908eb2fbf746828d5e0b5e019726dbf6571f201"
 dependencies = [
  "darling 0.20.11",
  "proc-macro2",
@@ -847,7 +877,7 @@ checksum = "f028f9c909469fefe392002b40a37ccb9da9150f4bd4537ef19e446f96396721"
 dependencies = [
  "async-graphql",
  "base64 0.22.1",
- "cached",
+ "cached 0.55.1",
  "cala-cel-interpreter",
  "cala-ledger-core-types",
  "cala-tracing",
@@ -929,25 +959,25 @@ dependencies = [
 
 [[package]]
 name = "cargo-platform"
-version = "0.1.9"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e35af189006b9c0f00a064685c727031e3ed2d8020f7ba284d78cc2671bd36ea"
+checksum = "122ec45a44b270afd1402f351b782c676b173e3c3fb28d86ff7ebfb4d86a4ee4"
 dependencies = [
  "serde",
 ]
 
 [[package]]
 name = "cargo_metadata"
-version = "0.18.1"
+version = "0.23.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2d886547e41f740c616ae73108f6eb70afe6d940c7bc697cb30f13daec073037"
+checksum = "981a6f317983eec002839b90fae7411a85621410ae591a9cab2ecf5cb5744873"
 dependencies = [
  "camino",
  "cargo-platform",
  "semver 1.0.27",
  "serde",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -1483,7 +1513,7 @@ name = "core-price"
 version = "0.0.0"
 dependencies = [
  "anyhow",
- "cached",
+ "cached 0.56.0",
  "core-money",
  "reqwest",
  "rust_decimal",
