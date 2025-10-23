@@ -218,6 +218,7 @@ ignored = [
     "memchr",
     "num-traits",
     "once_cell",
+    "opentelemetry",
     "opentelemetry-http",
     "opentelemetry-otlp",
     "percent-encoding",
