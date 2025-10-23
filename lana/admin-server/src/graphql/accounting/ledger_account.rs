@@ -106,6 +106,10 @@ impl LedgerAccount {
         }
     }
 
+    async fn is_root_account(&self) -> bool {
+        self.entity.ancestor_ids.is_empty()
+    }
+
     async fn ancestors(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<LedgerAccount>> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let mut ancestors = loader.load_many(self.entity.ancestor_ids.clone()).await?;
@@ -143,27 +147,6 @@ impl LedgerAccount {
 
         for id in self.entity.children_ids.iter() {
             if let Some(account) = children.remove(id) {
-                result.push(account);
-            }
-        }
-
-        Ok(result)
-    }
-
-    async fn children_with_code_and_activity(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<Vec<LedgerAccount>> {
-        let loader = ctx.data_unchecked::<LanaDataLoader>();
-        let mut children = loader.load_many(self.entity.children_ids.clone()).await?;
-
-        let mut result = Vec::with_capacity(self.entity.children_ids.len());
-
-        for id in self.entity.children_ids.iter() {
-            if let Some(account) = children.remove(id)
-                && account.code.is_some()
-                && account.entity.has_non_zero_activity()
-            {
                 result.push(account);
             }
         }
