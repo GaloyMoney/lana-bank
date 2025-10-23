@@ -60,7 +60,7 @@ idna = { version = "1" }
 indexmap = { version = "2", features = ["serde"] }
 inout = { version = "0.1", default-features = false, features = ["block-padding"] }
 job = { version = "0.2", default-features = false, features = ["json-schema", "sim-time"] }
-lalrpop-util = { version = "0.20", features = ["lexer"] }
+lalrpop-util = { version = "0.22", features = ["lexer"] }
 log = { version = "0.4", default-features = false, features = ["std"] }
 memchr = { version = "2" }
 num-traits = { version = "0.2", features = ["i128"] }
@@ -129,7 +129,7 @@ getrandom = { version = "0.2", default-features = false, features = ["std"] }
 hmac = { version = "0.12", default-features = false, features = ["reset"] }
 idna = { version = "1" }
 indexmap = { version = "2", features = ["serde"] }
-lalrpop-util = { version = "0.20", features = ["lexer"] }
+lalrpop-util = { version = "0.22", features = ["lexer"] }
 log = { version = "0.4", default-features = false, features = ["std"] }
 memchr = { version = "2" }
 num-traits = { version = "0.2", features = ["i128"] }
