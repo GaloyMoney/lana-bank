@@ -217,6 +217,98 @@
         echo -e "\nError: Maximum attempts reached. Some paths are still not available in the cache."
         exit 1
       '';
+
+      rebuild-nix-cache = let
+        fly = pkgs.stdenv.mkDerivation rec {
+          pname = "fly";
+          version = "7.11.2";
+
+          src =
+            if pkgs.stdenv.isDarwin
+            then
+              pkgs.fetchurl {
+                url = "https://github.com/concourse/concourse/releases/download/v${version}/fly-${version}-darwin-amd64.tgz";
+                sha256 = "sha256-7P5KefC2ZEHWkui0SdwFS4nO7phXKpgae76ti4PTTEM="; # Corrected hash
+              }
+            else
+              pkgs.fetchurl {
+                url = "https://github.com/concourse/concourse/releases/download/v${version}/fly-${version}-linux-amd64.tgz";
+                sha256 = "sha256-xFPyT+e1PF3QNGmLrIQdRnfh1gvn2V2PjeRpqGGLHGI=";
+              };
+
+          phases = ["unpackPhase" "installPhase"];
+
+          unpackPhase = ''
+            tar -xzf $src
+          '';
+
+          installPhase = ''
+            mkdir -p $out/bin
+            cp fly $out/bin/
+            chmod +x $out/bin/fly
+          '';
+        };
+      in
+        pkgs.writeShellScriptBin "rebuild-nix-cache" ''
+          set -euo pipefail
+
+          echo "=== Nix Cache Rebuild Script ==="
+
+          CONCOURSE_URL="''${CONCOURSE_URL:-https://ci.galoy.io}"
+          # Check required environment variables
+          if [ -z "''${CONCOURSE_URL:-}" ]; then
+            echo "Error: CONCOURSE_URL environment variable is not set"
+            echo "Example: export CONCOURSE_URL=https://ci.galoy.io"
+            exit 1
+          fi
+
+          if [ -z "''${CONCOURSE_USERNAME:-}" ] || [ -z "''${CONCOURSE_PASSWORD:-}" ]; then
+            echo "Error: CONCOURSE_USERNAME and CONCOURSE_PASSWORD environment variables must be set"
+            echo "Example: export CONCOURSE_USERNAME=galoybot"
+            echo "Example: export CONCOURSE_PASSWORD=your-password"
+            exit 1
+          fi
+
+          CONCOURSE_TEAM="''${CONCOURSE_TEAM:-nix-cache}"
+          TARGET="cache-bot-$$"  # Unique target name using process ID
+
+          # Cleanup on exit
+          trap "rm -f ~/.flyrc.$TARGET" EXIT
+
+          echo "Logging into Concourse..."
+          echo "URL: $CONCOURSE_URL"
+          echo "Team: $CONCOURSE_TEAM"
+          echo "Username: $CONCOURSE_USERNAME"
+
+          # Login to Concourse
+          ${fly}/bin/fly -t "$TARGET" login \
+            -c "$CONCOURSE_URL" \
+            -u "$CONCOURSE_USERNAME" \
+            -p "$CONCOURSE_PASSWORD" \
+            -n "$CONCOURSE_TEAM" > /dev/null 2>&1
+
+          if [ $? -eq 0 ]; then
+            echo "✓ Successfully logged into Concourse"
+
+            # Verify login by checking status
+            if ${fly}/bin/fly -t "$TARGET" status > /dev/null 2>&1; then
+              echo "✓ Login verified"
+              echo ""
+              echo "Hello World! Ready to rebuild nix cache."
+              echo ""
+
+              # Show available pipelines
+              echo "Available pipelines in $CONCOURSE_TEAM team:"
+              ${fly}/bin/fly -t "$TARGET" pipelines
+            else
+              echo "❌ Login verification failed"
+              exit 1
+            fi
+          else
+            echo "❌ Failed to login to Concourse"
+            exit 1
+          fi
+        '';
     in {
       apps.check-latest-commit = {
         type = "app";
@@ -230,12 +322,17 @@
         type = "app";
         program = "${wait-cachix-paths}/bin/wait-cachix-paths";
       };
+      apps.rebuild-nix-cache = {
+        type = "app";
+        program = "${rebuild-nix-cache}/bin/rebuild-nix-cache";
+      };
       # Also expose as default app
       apps.default = self.apps.${system}.check-latest-commit;
       # For convenience, also provide as packages
       packages.check-latest-commit = check-latest-commit;
       packages.next-version = next-version;
       packages.wait-cachix-paths = wait-cachix-paths;
+      packages.rebuild-nix-cache = rebuild-nix-cache;
       formatter = pkgs.alejandra;
     });
 }

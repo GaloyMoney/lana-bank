@@ -16,6 +16,7 @@ groups:
       - build-release-main
       - cache-dev-profile
       - populate-nix-cache-pr
+      - rebuild-nix-cache
   - name: main
     jobs:
       - build-release-main
@@ -23,6 +24,7 @@ groups:
     jobs:
       - cache-dev-profile
       - populate-nix-cache-pr
+      - rebuild-nix-cache
 
 jobs:
   - name: build-release-main
@@ -85,6 +87,37 @@ jobs:
                 cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build ./ci#check-latest-commit
                 cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build ./ci#next-version
                 cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build ./ci#wait-cachix-paths
+
+  - name: rebuild-nix-cache
+    plan:
+    - in_parallel:
+      - get: repo
+        trigger: true
+      - get: version
+        trigger: true
+
+    - task: rebuild-nix-cache
+      config:
+        platform: linux
+        image_resource: #@ nix_flake_cachix_image_config()
+        inputs:
+        - name: prs
+          path: repo
+        params:
+          GITHUB_TOKEN: #@ data.values.github_token
+          GITHUB_ORG: #@ data.values.gh_org
+          GITHUB_REPO: #@ data.values.gh_repository
+          CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+          CACHIX_CACHE_NAME: #@ data.values.cachix_cache_name
+        run:
+          path: sh
+          args:
+            - -exc
+            - |
+              set -euo pipefail
+              cd repo
+              cachix use $CACHIX_CACHE_NAME
+              nix run ./ci#rebuild-nix-cache
 
   - name: populate-nix-cache-pr
     max_in_flight: 3
