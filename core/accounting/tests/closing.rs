@@ -3,7 +3,7 @@ mod helpers;
 use std::collections::HashMap;
 
 use authz::dummy::{DummyPerms, DummySubject};
-use chrono::Duration;
+use chrono::{Datelike, Days};
 use cloud_storage::{Storage, config::StorageConfig};
 use document_storage::DocumentStorage;
 use job::{JobSvcConfig, Jobs};
@@ -17,7 +17,7 @@ use cala_ledger::{
 use core_accounting::{
     AccountCode, AccountIdOrCode, Chart, CoreAccounting, ManualEntryInput,
     accounting_period::{
-        ChartOfAccountsIntegrationConfig, Period,
+        ChartOfAccountsIntegrationConfig,
         chart_of_accounts_integration::{AccountingPeriodConfig, Basis},
     },
 };
@@ -215,20 +215,29 @@ async fn prepare_test() -> anyhow::Result<Test> {
         )
         .await?;
 
+    // Calculate period start and end so that we are now in the middle of grace period.
+
+    let today = es_entity::prelude::sim_time::now().date_naive();
+    let period_end = today.checked_sub_days(Days::new(2)).unwrap();
+    let central_date = period_end.checked_sub_days(Days::new(1)).unwrap();
+
     accounting
         .accounting_periods()
         .open_initial_periods(
             chart_id,
             chart.account_set_id,
+            central_date,
             vec![
                 AccountingPeriodConfig {
-                    basis: Basis::Monthly { on_day: 5 },
-                    grace_period_days: 10,
+                    basis: Basis::Monthly {
+                        day: period_end.day(),
+                    },
+                    grace_period_days: 5,
                 },
                 AccountingPeriodConfig {
                     basis: Basis::Annual {
-                        on_month: 10,
-                        on_day: 5,
+                        day: period_end.day(),
+                        month: period_end.month(),
                     },
                     grace_period_days: 10,
                 },

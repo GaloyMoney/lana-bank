@@ -57,12 +57,10 @@ where
         journal_id: CalaJournalId,
         chart_of_accounts: &ChartOfAccounts<Perms>,
     ) -> Self {
-        let repo = AccountingPeriodRepo::new(pool);
-        let ledger = AccountingPeriodLedger::new(cala, journal_id);
         Self {
             authz: authz.clone(),
-            repo: repo.clone(),
-            ledger: ledger.clone(),
+            repo: AccountingPeriodRepo::new(pool),
+            ledger: AccountingPeriodLedger::new(cala, journal_id),
             chart_of_accounts: chart_of_accounts.clone(),
         }
     }
@@ -73,26 +71,21 @@ where
         &self,
         chart_id: ChartId,
         tracking_account_set: AccountSetId,
+        date: NaiveDate,
         periods: Vec<AccountingPeriodConfig>,
     ) -> Result<(), AccountingPeriodError> {
         let open_periods = self.repo.find_open_accounting_periods(chart_id).await?;
 
-        let today = crate::time::now().date_naive();
-
         if open_periods.is_empty() {
             for period in periods {
                 let period = match period.basis {
-                    Basis::Monthly { on_day } => {
-                        Period::monthly_around_date(on_day, today, period.grace_period_days)
+                    Basis::Monthly { day } => {
+                        Period::monthly_around_date(day, date, period.grace_period_days).unwrap()
+                    }
+                    Basis::Annual { day, month } => {
+                        Period::annually_around_date(day, month, date, period.grace_period_days)
                             .unwrap()
                     }
-                    Basis::Annual { on_month, on_day } => Period::annually_around_date(
-                        on_day,
-                        on_month,
-                        today,
-                        period.grace_period_days,
-                    )
-                    .unwrap(),
                 };
 
                 self.repo

@@ -8,13 +8,13 @@
         {
            "basis": "monthly",
            "grace_period_days": 5,
-           "on_day": 10
+           "day": 10
         },
         {
           "basis": "annual",
           "grace_period_days": 10,
-          "on_day": 10,
-          "on_month": 10
+          "day": 10,
+          "month": 10
         }
     ]
 }
