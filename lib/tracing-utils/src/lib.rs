@@ -119,7 +119,7 @@ pub mod http {
         let extractor = HeaderExtractor(headers);
         let propagator = TraceContextPropagator::new();
         let ctx = propagator.extract(&extractor);
-        tracing::Span::current().set_parent(ctx)
+        let _ = tracing::Span::current().set_parent(ctx);
     }
 
     pub fn inject_trace() -> axum_extra::headers::HeaderMap {
@@ -196,6 +196,6 @@ pub mod persistence {
 
         let propagator = TraceContextPropagator::new();
         let extracted_context = propagator.extract(&carrier);
-        tracing::Span::current().set_parent(extracted_context);
+        let _ = tracing::Span::current().set_parent(extracted_context);
     }
 }
