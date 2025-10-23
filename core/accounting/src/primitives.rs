@@ -747,10 +747,6 @@ impl CoreAccountingAction {
         CoreAccountingAction::AccountingPeriod(AccountingPeriodAction::Read);
     pub const ACCOUNTING_PERIOD_CLOSE: Self =
         CoreAccountingAction::AccountingPeriod(AccountingPeriodAction::Close);
-    pub const ACCOUNTING_PERIOD_CONFIGURATION_READ: Self =
-        CoreAccountingAction::AccountingPeriodConfiguration(
-            AccountingPeriodConfigurationAction::Read,
-        );
     pub const ACCOUNTING_PERIOD_CONFIGURATION_UPDATE: Self =
         CoreAccountingAction::AccountingPeriodConfiguration(
             AccountingPeriodConfigurationAction::Update,

@@ -55,6 +55,10 @@ impl AccountingPeriod {
         self.period.period_end()
     }
 
+    pub const fn period_start(&self) -> NaiveDate {
+        self.period.period_start()
+    }
+
     /// Closes this Accounting Period if all temporal conditions are
     /// met, otherwise returns an error describing the unfulfilled
     /// condition. Returns a blueprint for the next Accounting Period
@@ -106,15 +110,15 @@ impl AccountingPeriod {
     /// i. e. between the end of this period and the end of grace
     /// period. Returns error otherwise.
     fn check_can_close(&self, closing_date: NaiveDate) -> Result<(), AccountingPeriodError> {
-        if self.period.is_within_grace_period(closing_date) {
+        // if self.period.is_within_grace_period(closing_date) {
             Ok(())
-        } else {
-            Err(AccountingPeriodError::ClosingDateOutOfGracePeriod {
-                closing_date,
-                grace_period_start: self.period.grace_period_start(),
-                grace_period_end: self.period.grace_period_end(),
-            })
-        }
+        // } else {
+            // Err(AccountingPeriodError::ClosingDateOutOfGracePeriod {
+                // closing_date,
+                // grace_period_start: self.period.grace_period_start(),
+                // grace_period_end: self.period.grace_period_end(),
+            // })
+        // }
     }
 }
 
