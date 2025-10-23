@@ -23,6 +23,6 @@ pub struct AccountingPeriodConfig {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(tag = "basis", rename_all = "lowercase")]
 pub enum Basis {
-    Monthly { on_day: u8 },
-    Annual { on_month: u8, on_day: u8 },
+    Monthly { day: u32 },
+    Annual { day: u32, month: u32 },
 }

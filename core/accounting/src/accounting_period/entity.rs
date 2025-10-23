@@ -110,15 +110,15 @@ impl AccountingPeriod {
     /// i. e. between the end of this period and the end of grace
     /// period. Returns error otherwise.
     fn check_can_close(&self, closing_date: NaiveDate) -> Result<(), AccountingPeriodError> {
-        // if self.period.is_within_grace_period(closing_date) {
+        if self.period.is_within_grace_period(closing_date) {
             Ok(())
-        // } else {
-            // Err(AccountingPeriodError::ClosingDateOutOfGracePeriod {
-                // closing_date,
-                // grace_period_start: self.period.grace_period_start(),
-                // grace_period_end: self.period.grace_period_end(),
-            // })
-        // }
+        } else {
+            Err(AccountingPeriodError::ClosingDateOutOfGracePeriod {
+                closing_date,
+                grace_period_start: self.period.grace_period_start(),
+                grace_period_end: self.period.grace_period_end(),
+            })
+        }
     }
 }
 

@@ -43,8 +43,8 @@ impl Period {
     /// Constructs new `Period` with monthly frequency, with periods
     /// starting on `day` and which is open around `date`
     /// (i. e. period starts before `date` and ends after `date`).
-    pub fn monthly_around_date(day: u8, date: NaiveDate, grace_period_days: u8) -> Option<Self> {
-        let period_start = date.with_day(day.into())?;
+    pub fn monthly_around_date(day: u32, date: NaiveDate, grace_period_days: u8) -> Option<Self> {
+        let period_start = date.with_day(day)?;
 
         let period_start = if period_start <= date {
             period_start
@@ -75,12 +75,12 @@ impl Period {
     /// starting on `day` and `month` and which is open around `date`
     /// (i. e. period starts before `date` and ends after `date`).
     pub fn annually_around_date(
-        day: u8,
-        month: u8,
+        day: u32,
+        month: u32,
         date: NaiveDate,
         grace_period_days: u8,
     ) -> Option<Self> {
-        let period_start = date.with_day(day.into())?.with_month(month.into())?;
+        let period_start = date.with_day(day)?.with_month(month)?;
 
         let period_start = if period_start <= date {
             period_start
@@ -266,13 +266,13 @@ mod tests {
     fn around_dates() {
         let today = dt("2025-10-10");
 
-        let test_month = |day: u8| {
+        let test_month = |day: u32| {
             let x = Period::monthly_around_date(day, today, 5).unwrap();
             assert!(x.period_start() <= today);
             assert!(x.period_end() > today);
         };
 
-        let test_year = |day: u8, month: u8| {
+        let test_year = |day: u32, month: u32| {
             let x = Period::annually_around_date(day, month, today, 5).unwrap();
             assert!(x.period_start() <= today);
             assert!(x.period_end() > today);
