@@ -1175,11 +1175,43 @@ pub struct ClosingTxEntrySpec {
     pub direction: DebitOrCredit,
 }
 
+impl ClosingTxEntrySpec {
+    pub fn new(
+        account_id: LedgerAccountId,
+        amount: Decimal,
+        currency: CalaCurrency,
+        description: String,
+        direction: DebitOrCredit,
+    ) -> Self {
+        Self {
+            account_id,
+            amount,
+            currency,
+            description,
+            direction,
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct ClosingAccountBalances {
     pub revenue: HashMap<(CalaJournalId, CalaAccountId, CalaCurrency), CalaBalanceRange>,
     pub cost_of_revenue: HashMap<(CalaJournalId, CalaAccountId, CalaCurrency), CalaBalanceRange>,
     pub expenses: HashMap<(CalaJournalId, CalaAccountId, CalaCurrency), CalaBalanceRange>,
+}
+
+impl ClosingAccountBalances {
+    pub fn new(
+        revenue: HashMap<(CalaJournalId, CalaAccountId, CalaCurrency), CalaBalanceRange>,
+        cost_of_revenue: HashMap<(CalaJournalId, CalaAccountId, CalaCurrency), CalaBalanceRange>,
+        expenses: HashMap<(CalaJournalId, CalaAccountId, CalaCurrency), CalaBalanceRange>,
+    ) -> Self {
+        Self {
+            revenue,
+            cost_of_revenue,
+            expenses,
+        }
+    }
 }
 
 /// TODO: Discuss - This feels like it could be over-optimized to matching what we saw Luis do in Oracle BankWorks. However,
