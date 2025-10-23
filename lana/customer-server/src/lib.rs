@@ -55,7 +55,7 @@ pub async fn run(config: CustomerServerConfig, app: LanaApp) -> anyhow::Result<(
     Ok(())
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CustomerJwtClaims {
     pub subject: String,
 }

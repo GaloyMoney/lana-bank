@@ -30,7 +30,7 @@ impl<S, T> axum::extract::FromRequestParts<S> for Claims<T>
 where
     JwtDecoderState: FromRef<S>,
     S: Send + Sync,
-    T: DeserializeOwned,
+    T: DeserializeOwned + Clone,
 {
     type Rejection = AuthError;
 
@@ -64,7 +64,7 @@ where
 /// A trait for decoding JWT tokens.
 pub trait JwtDecoder<T>
 where
-    T: for<'de> DeserializeOwned,
+    T: for<'de> DeserializeOwned + Clone,
 {
     fn decode(&self, token: &str) -> Result<TokenData<T>, JwksError>;
 }
@@ -173,7 +173,7 @@ impl RemoteJwksDecoder {
 
 impl<T> JwtDecoder<T> for RemoteJwksDecoder
 where
-    T: for<'de> DeserializeOwned,
+    T: for<'de> DeserializeOwned + Clone,
 {
     fn decode(&self, token: &str) -> Result<TokenData<T>, JwksError> {
         let header = jsonwebtoken::decode_header(token)?;
