@@ -553,6 +553,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                     disbursal_credit_account_id,
                     terms: t,
                     public_id,
+                    structuring_fee_tx_id,
                     maturity_date,
                     activated_at,
                     ..
@@ -566,6 +567,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                         .terms(*t)
                         .account_ids(*account_ids)
                         .disbursal_credit_account_id(*disbursal_credit_account_id)
+                        .structuring_fee_tx_id(*structuring_fee_tx_id)
                         .public_id(public_id.clone())
                         .activated_at(*activated_at)
                         .maturity_date(*maturity_date);
@@ -721,7 +723,7 @@ mod test {
             id,
             pending_credit_facility_id: PendingCreditFacilityId::from(id),
             ledger_tx_id: LedgerTxId::new(),
-            structuring_fee_tx_id: None,
+            structuring_fee_tx_id: Some(LedgerTxId::new()),
             customer_id: CustomerId::new(),
             customer_type: CustomerType::Individual,
             collateral_id: CollateralId::new(),
