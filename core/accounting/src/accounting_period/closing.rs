@@ -4,12 +4,23 @@ use crate::primitives::ClosingTxEntrySpec;
 
 #[derive(Debug, Clone)]
 pub struct ProfitAndLossClosingSpec {
-    pub revenue: ProfitAndLossClosingCategory,
-    pub cost_of_revenue: ProfitAndLossClosingCategory,
-    pub expenses: ProfitAndLossClosingCategory,
+    revenue: ProfitAndLossClosingCategory,
+    cost_of_revenue: ProfitAndLossClosingCategory,
+    expenses: ProfitAndLossClosingCategory,
 }
 
 impl ProfitAndLossClosingSpec {
+    pub fn new(
+        revenue: ProfitAndLossClosingCategory,
+        cost_of_revenue: ProfitAndLossClosingCategory,
+        expenses: ProfitAndLossClosingCategory,
+    ) -> Self {
+        Self {
+            revenue,
+            cost_of_revenue,
+            expenses,
+        }
+    }
     pub(super) fn net_income(&self) -> Decimal {
         self.revenue.net_category_balance
             - self.cost_of_revenue.net_category_balance

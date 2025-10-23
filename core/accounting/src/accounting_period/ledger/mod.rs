@@ -11,13 +11,13 @@ use template::*;
 pub use template::{ClosingTransactionParams, EntryParams};
 
 use super::{
-    chart_of_accounts_integration::ChartOfAccountsIntegrationConfig, 
-    error::AccountingPeriodError,
+    chart_of_accounts_integration::ChartOfAccountsIntegrationConfig,
     closing::{ProfitAndLossClosingCategory, ProfitAndLossClosingSpec},
+    error::AccountingPeriodError,
 };
 use crate::primitives::{
-    CHART_OF_ACCOUNTS_ENTITY_TYPE, CalaTxId, EntityRef, LedgerAccountId, ClosingTxEntrySpec,
-    ClosingAccountBalances, RetainedEarningsAccountSetIds,
+    CHART_OF_ACCOUNTS_ENTITY_TYPE, CalaTxId, ClosingAccountBalances, ClosingTxEntrySpec, EntityRef,
+    LedgerAccountId, RetainedEarningsAccountSetIds,
 };
 use cala_ledger::{
     AccountId, AccountSetId, CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation,
@@ -223,11 +223,7 @@ impl AccountingPeriodLedger {
             description.clone(),
             period_end_balances.expenses,
         );
-        ProfitAndLossClosingSpec {
-            revenue: revenue,
-            cost_of_revenue: cost_of_revenue,
-            expenses: expenses,
-        }
+        ProfitAndLossClosingSpec::new(revenue, cost_of_revenue, expenses)
     }
 
     fn create_closing_entries_for_profit_and_loss_category(
@@ -246,16 +242,15 @@ impl AccountingPeriodLedger {
                 DebitOrCredit::Debit
             };
             let ledger_account_id = LedgerAccountId::from(*account_id);
-            let entry: ClosingTxEntrySpec = ClosingTxEntrySpec {
-                account_id: ledger_account_id,
-                currency: currency.clone(),
-                amount: amt,
-                // TODO: User input or constant for entry descriptions?
-                description: description
+            let entry = ClosingTxEntrySpec::new(
+                ledger_account_id,
+                amt,
+                currency.clone(),
+                description
                     .clone()
                     .unwrap_or("Annual Close Offset".to_string()),
-                direction: direction,
-            };
+                direction,
+            );
             entries.push(entry);
         }
         ProfitAndLossClosingCategory {
