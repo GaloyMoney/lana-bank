@@ -1553,8 +1553,6 @@ impl CreditLedger {
     pub async fn handle_activation_with_initial_disbursal(
         &self,
         op: es_entity::DbOpWithTime<'_>,
-        single_disbursal_id: DisbursalId,
-        disbursal_amount: UsdCents,
         CreditFacilityActivation {
             credit_facility_id,
             tx_id,
@@ -1564,7 +1562,8 @@ impl CreditLedger {
             duration_type,
             facility_amount,
             debit_account_id,
-            structuring_fee_amount,
+            initial_disbursal,
+            structuring_fee,
             ..
         }: CreditFacilityActivation,
     ) -> Result<(), CreditLedgerError> {
@@ -1582,25 +1581,14 @@ impl CreditLedger {
         self.activate_credit_facility(&mut op, tx_id, account_ids, facility_amount, tx_ref)
             .await?;
 
-        // If there is single disbursal its a disbursal with all_funds in credit_facility
-        // otherwise its structuring_fee disbursal
-        self.initial_disbursal(
-            &mut op,
-            single_disbursal_id,
-            account_ids,
-            disbursal_amount,
-            debit_account_id,
-        )
-        .await?;
+        if let Some(initial_disbursal) = initial_disbursal {
+            self.initial_disbursal(&mut op, initial_disbursal, account_ids, debit_account_id)
+                .await?;
+        }
 
-        if !structuring_fee_amount.is_zero() {
-            self.add_structuring_fee(
-                &mut op,
-                account_ids,
-                debit_account_id,
-                structuring_fee_amount,
-            )
-            .await?;
+        if let Some(structuring_fee) = structuring_fee {
+            self.add_structuring_fee(&mut op, structuring_fee, account_ids, debit_account_id)
+                .await?;
         }
 
         op.commit().await?;
@@ -1610,9 +1598,11 @@ impl CreditLedger {
     async fn initial_disbursal(
         &self,
         op: &mut cala_ledger::LedgerOperation<'_>,
-        disbursal_id: DisbursalId,
+        InitialDisbursalOnActivation {
+            id: disbursal_id,
+            amount,
+        }: InitialDisbursalOnActivation,
         account_ids: CreditFacilityLedgerAccountIds,
-        disbursal_amount: UsdCents,
         debit_account_id: CalaAccountId,
     ) -> Result<(), CreditLedgerError> {
         let tx_id = disbursal_id.into();
@@ -1628,7 +1618,7 @@ impl CreditLedger {
                     facility_disbursed_receivable_account: account_ids
                         .disbursed_receivable_not_yet_due_account_id,
                     debit_account_id,
-                    disbursed_amount: disbursal_amount.to_usd(),
+                    disbursed_amount: amount.to_usd(),
                     currency: self.usd,
                     external_id: format!("{}-initial-disbursal", disbursal_id),
                 },
@@ -1666,11 +1656,10 @@ impl CreditLedger {
     async fn add_structuring_fee(
         &self,
         op: &mut cala_ledger::LedgerOperation<'_>,
+        StructuringFeeOnActivation { tx_id, amount }: StructuringFeeOnActivation,
         account_ids: CreditFacilityLedgerAccountIds,
         debit_account_id: CalaAccountId,
-        structuring_fee_amount: UsdCents,
     ) -> Result<(), CreditLedgerError> {
-        let tx_id = LedgerTxId::new(); // fallback for now , disbursal_id is used, maybe tie it to credit_facility_id ?
         self.cala
             .post_transaction_in_op(
                 op,
@@ -1680,7 +1669,7 @@ impl CreditLedger {
                     journal_id: self.journal_id,
                     facility_fee_income_account: account_ids.fee_income_account_id,
                     debit_account_id,
-                    structuring_fee_amount: structuring_fee_amount.to_usd(),
+                    structuring_fee_amount: amount.to_usd(),
                     currency: self.usd,
                     external_id: format!("{}-structuring-fee", tx_id),
                 },

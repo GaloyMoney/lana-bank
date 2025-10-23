@@ -169,33 +169,39 @@ pub struct CreditFacility {
 }
 
 impl CreditFacility {
-    pub(crate) fn activation_data(&self) -> CreditFacilityActivation {
-        self.events
+    pub(crate) fn activation_data(
+        &self,
+        initial_disbursal: Option<InitialDisbursalOnActivation>,
+    ) -> CreditFacilityActivation {
+        if let Some(CreditFacilityEvent::Initialized {
+            id,
+            ledger_tx_id,
+            account_ids,
+            amount,
+            disbursal_credit_account_id,
+            customer_type,
+            terms,
+            ..
+        }) = self
+            .events
             .iter_all()
-            .find_map(|event| match event {
-                CreditFacilityEvent::Initialized {
-                    id,
-                    ledger_tx_id,
-                    account_ids,
-                    amount,
-                    disbursal_credit_account_id,
-                    customer_type,
-                    terms,
-                    ..
-                } => Some(CreditFacilityActivation {
-                    credit_facility_id: *id,
-                    tx_id: *ledger_tx_id,
-                    tx_ref: format!("{}-activate", *id),
-                    account_ids: *account_ids,
-                    debit_account_id: *disbursal_credit_account_id,
-                    facility_amount: *amount,
-                    structuring_fee_amount: self.structuring_fee(),
-                    customer_type: *customer_type,
-                    duration_type: terms.duration.duration_type(),
-                }),
-                _ => None,
-            })
-            .expect("Initialized event should exist")
+            .find(|event| matches!(event, CreditFacilityEvent::Initialized { .. }))
+        {
+            CreditFacilityActivation {
+                credit_facility_id: *id,
+                tx_id: *ledger_tx_id,
+                tx_ref: format!("{}-activate", *id),
+                account_ids: *account_ids,
+                debit_account_id: *disbursal_credit_account_id,
+                facility_amount: *amount,
+                customer_type: *customer_type,
+                duration_type: terms.duration.duration_type(),
+                structuring_fee: self.structuring_fee_on_activation(),
+                initial_disbursal,
+            }
+        } else {
+            unreachable!("There is always an Initialized event")
+        }
     }
 
     pub fn created_at(&self) -> DateTime<Utc> {
@@ -208,8 +214,16 @@ impl CreditFacility {
         self.maturity_date.start_of_day()
     }
 
-    pub(crate) fn structuring_fee(&self) -> UsdCents {
-        self.terms.one_time_fee_rate.apply(self.amount)
+    fn structuring_fee_on_activation(&self) -> Option<StructuringFeeOnActivation> {
+        let fee = self.terms.one_time_fee_rate.apply(self.amount);
+        if fee > UsdCents::ZERO {
+            Some(StructuringFeeOnActivation {
+                tx_id: LedgerTxId::new(),
+                amount: fee,
+            })
+        } else {
+            None
+        }
     }
 
     pub fn is_single_disbursal(&self) -> bool {
@@ -888,7 +902,13 @@ mod test {
     fn structuring_fee() {
         let credit_facility = facility_from(initial_events());
         let expected_fee = default_terms().one_time_fee_rate.apply(default_facility());
-        assert_eq!(credit_facility.structuring_fee(), expected_fee);
+        assert_eq!(
+            credit_facility
+                .structuring_fee_on_activation()
+                .unwrap()
+                .amount,
+            expected_fee
+        );
     }
 
     mod completion {

@@ -237,18 +237,17 @@ where
             self.ledger
                 .handle_activation_with_initial_disbursal(
                     db,
-                    disbursal.id,
-                    disbursal.amount,
-                    credit_facility.activation_data(),
+                    credit_facility.activation_data(Some(crate::InitialDisbursalOnActivation {
+                        id: disbursal.id,
+                        amount: disbursal.amount,
+                    })),
                 )
                 .await?;
-
-            return Ok(());
+        } else {
+            self.ledger
+                .handle_activation(db, credit_facility.activation_data(None))
+                .await?;
         }
-
-        self.ledger
-            .handle_activation(db, credit_facility.activation_data())
-            .await?;
 
         Ok(())
     }
