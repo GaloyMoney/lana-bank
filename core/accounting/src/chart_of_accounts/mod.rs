@@ -16,11 +16,11 @@ use authz::PermissionCheck;
 
 use cala_ledger::{CalaLedger, account::Account};
 
-use crate::primitives::{
+use crate::{accounting_period::AccountingPeriod, primitives::{
     AccountCode, AccountIdOrCode, AccountName, AccountSpec, CalaAccountSetId, CalaJournalId,
     ChartId, ClosingAccountBalances, CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
     RetainedEarningsAccountSetIds,
-};
+}};
 
 #[cfg(feature = "json-schema")]
 pub use chart_node::ChartNodeEvent;
@@ -243,7 +243,7 @@ where
     pub async fn get_profit_and_loss_statement_period_end_balances(
         &self,
         id: impl Into<ChartId> + std::fmt::Debug,
-        period_end: NaiveDate,
+        period: &AccountingPeriod,
         revenue_parent_code: AccountCode,
         cost_of_revenue_parent_code: AccountCode,
         expenses_parent_code: AccountCode,
@@ -271,7 +271,9 @@ where
             .find_all_accounts_by_parent_set_id(self.journal_id, cost_of_revenue_set_id)
             .await?;
 
-        let from_date = period_end - Duration::days(1);
+        let period_end = period.period_end();
+        let from_date = period.period_start();
+
         let end_of_period_revenue_account_balances = self
             .cala
             .balances()

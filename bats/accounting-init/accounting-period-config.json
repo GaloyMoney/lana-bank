@@ -2,18 +2,19 @@
     "revenue_code": "4",
     "cost_of_revenue_code": "5",
     "expenses_code": "6",
-    "equity_retained_earnings_code": "3140.01.0101",
-    "equity_retained_losses_code": "3140.01.0201",
+    "equity_retained_earnings_code": "32.02",
+    "equity_retained_losses_code": "32.01",
     "accounting_periods": [
         {
-           "basis": "month",
+           "basis": "monthly",
            "grace_period_days": 5,
-           "first_period_start": "2021-01-01"
+           "on_day": 10
         },
         {
-          "basis": "year",
+          "basis": "annual",
           "grace_period_days": 10,
-          "first_period_start": "2021-01-01"
+          "on_day": 10,
+          "on_month": 10
         }
     ]
 }

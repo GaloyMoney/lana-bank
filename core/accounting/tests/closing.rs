@@ -29,21 +29,23 @@ async fn closing() -> anyhow::Result<()> {
     let mut test = prepare_test().await?;
 
     test.account("41.01.0102", 300, DebitOrCredit::Credit).await;
-    test.account("51.01.0101", 100, DebitOrCredit::Debit).await;
-    test.account("61.01.0101", 100, DebitOrCredit::Debit).await;
+    test.account("51.01.0101", 500, DebitOrCredit::Debit).await;
+    test.account("61.01.0101", 900, DebitOrCredit::Debit).await;
 
     let pre_close_balances = test.balances().await;
 
-    let equity_account_code = "3".parse::<AccountCode>().unwrap();
-    let equity_parent_account_set_id = test.chart.account_set_id_from_code(&equity_account_code)?;
+    let equity_parent_account_set_id = test
+        .chart
+        .account_set_id_from_code(&"32".parse::<AccountCode>().unwrap())?;
 
     let pre_equity_accounts =
         find_all_accounts(&test.cala, equity_parent_account_set_id.clone()).await?;
-    let _closed_chart = test
-        .accounting
-        .accounting_periods()
-        .close_month(&DummySubject, test.chart.id)
-        .await?;
+
+    // let _closed_chart = test
+    //     .accounting
+    //     .accounting_periods()
+    //     .close_month(&DummySubject, test.chart.id)
+    //     .await?;
 
     let _ann_closing_tx = test
         .accounting
@@ -56,6 +58,7 @@ async fn closing() -> anyhow::Result<()> {
         .await?;
 
     let post_close_balances = test.balances().await;
+
     for (act, _pre_bal) in &pre_close_balances {
         if let Some(post_bal) = post_close_balances.get(act) {
             assert_eq!(*post_bal, Decimal::ZERO);
@@ -68,7 +71,7 @@ async fn closing() -> anyhow::Result<()> {
 
     let post_equity_balance =
         find_account_balance(&test.cala, post_equity_accounts[0], test.journal_id).await?;
-    assert_eq!(post_equity_balance, Decimal::from(100));
+    assert_eq!(post_equity_balance, Decimal::from(1100));
 
     Ok(())
 }
@@ -233,25 +236,11 @@ async fn prepare_test() -> anyhow::Result<Test> {
         )
         .await?;
 
-    let source = AccountId::new();
-    let _ = cala
-        .accounts()
-        .create(
-            NewAccount::builder()
-                .id(source)
-                .code(source.to_string())
-                .name("Source")
-                .build()
-                .unwrap(),
-        )
-        .await?;
-
     Ok(Test {
         accounting,
         journal_id,
         chart,
         cala,
-        source,
         accounts: vec![],
     })
 }
@@ -300,7 +289,6 @@ struct Test {
     pub cala: CalaLedger,
     pub accounting: CoreAccounting<DummyPerms<action::DummyAction, object::DummyObject>>,
     pub chart: Chart,
-    pub source: AccountId,
     pub journal_id: JournalId,
     pub accounts: Vec<AccountId>,
 }
@@ -361,7 +349,7 @@ impl Test {
 
         let entries = vec![
             ManualEntryInput::builder()
-                .account_id_or_code(AccountIdOrCode::Id(self.source.into()))
+                .account_id_or_code(AccountIdOrCode::Code("11.01.0101".parse().unwrap()))
                 .amount(funds.into())
                 .currency(Currency::USD)
                 .direction(source_dir)

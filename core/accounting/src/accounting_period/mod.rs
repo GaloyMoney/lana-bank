@@ -2,9 +2,9 @@ pub mod chart_of_accounts_integration;
 pub mod entity;
 pub mod error;
 
+mod closing;
 mod ledger;
 mod period;
-mod closing;
 mod repo;
 
 use audit::AuditSvc;
@@ -30,9 +30,7 @@ pub use entity::AccountingPeriod;
 pub use entity::AccountingPeriodEvent;
 pub(super) use entity::*;
 use error::AccountingPeriodError;
-use ledger::{
-    AccountingPeriodLedger, ChartOfAccountsIntegrationMeta,
-};
+use ledger::{AccountingPeriodLedger, ChartOfAccountsIntegrationMeta};
 pub use period::Period;
 use repo::AccountingPeriodRepo;
 
@@ -173,8 +171,8 @@ where
                 CoreAccountingAction::ACCOUNTING_PERIOD_CLOSE,
             )
             .await?;
-        
-        // TODO: Also need to verify that the related monthly period is still open 
+
+        // TODO: Also need to verify that the related monthly period is still open
         // (the one with the same `period_end`)?
         let mut open_periods = self.repo.find_open_accounting_periods(chart_id).await?;
 
@@ -188,7 +186,6 @@ where
             .await?
             .ok_or(AccountingPeriodError::AccountingPeriodIntegrationConfigNotFound)?;
 
-        let effective = crate::time::now();
         let retained_earnings_account_set_ids = self
             .chart_of_accounts
             .find_retained_earnings_account_sets_by_codes(
@@ -197,19 +194,20 @@ where
                 chart_config.equity_retained_losses_code,
             )
             .await?;
-        
+
         // TODO: Is there an existing primitive that can be used for this?
         let period_end_balances = self
             .chart_of_accounts
             .get_profit_and_loss_statement_period_end_balances(
                 chart_id,
-                open_annual_period.period_end(),
+                &open_annual_period,
                 chart_config.revenue_code,
                 chart_config.cost_of_revenue_code,
                 chart_config.expenses_code,
             )
             .await?;
 
+        let effective = crate::time::now();
         let ledger_tx_id = CalaTxId::new();
         match open_annual_period.close(effective, Some(ledger_tx_id))? {
             Idempotent::Executed(new) => {
