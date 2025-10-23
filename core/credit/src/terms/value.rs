@@ -48,7 +48,7 @@ impl From<Decimal> for AnnualRatePct {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(transparent)]
 pub struct OneTimeFeeRatePct(Decimal);
@@ -263,6 +263,10 @@ pub struct TermValues {
 impl TermValues {
     pub fn is_single_disbursal(&self) -> bool {
         matches!(self.disbursal_policy, DisbursalPolicy::SingleDisbursal)
+    }
+
+    pub fn has_one_time_fee(&self) -> bool {
+        self.one_time_fee_rate > OneTimeFeeRatePct::ZERO
     }
 
     pub fn maturity_date(&self, start_date: DateTime<Utc>) -> EffectiveDate {

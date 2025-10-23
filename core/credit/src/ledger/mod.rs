@@ -1529,35 +1529,6 @@ impl CreditLedger {
             tx_id,
             tx_ref,
             account_ids,
-            facility_amount,
-            customer_type,
-            duration_type,
-            ..
-        }: CreditFacilityActivation,
-    ) -> Result<(), CreditLedgerError> {
-        let mut op = self.cala.ledger_operation_from_db_op(op);
-        self.create_accounts_for_credit_facility(
-            &mut op,
-            credit_facility_id,
-            account_ids,
-            customer_type,
-            duration_type,
-        )
-        .await?;
-        self.activate_credit_facility(&mut op, tx_id, account_ids, facility_amount, tx_ref)
-            .await?;
-        op.commit().await?;
-        Ok(())
-    }
-
-    pub async fn handle_activation_with_initial_disbursal(
-        &self,
-        op: es_entity::DbOpWithTime<'_>,
-        CreditFacilityActivation {
-            credit_facility_id,
-            tx_id,
-            tx_ref,
-            account_ids,
             customer_type,
             duration_type,
             facility_amount,

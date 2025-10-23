@@ -27,6 +27,7 @@ pub enum CreditFacilityEvent {
         customer_type: CustomerType,
         collateral_id: CollateralId,
         ledger_tx_id: LedgerTxId,
+        structuring_fee_tx_id: Option<LedgerTxId>,
         terms: TermValues,
         amount: UsdCents,
         account_ids: CreditFacilityLedgerAccountIds,
@@ -162,6 +163,8 @@ pub struct CreditFacility {
     pub activated_at: DateTime<Utc>,
     pub maturity_date: EffectiveDate,
 
+    structuring_fee_tx_id: Option<LedgerTxId>,
+
     #[es_entity(nested)]
     #[builder(default)]
     interest_accruals: Nested<InterestAccrualCycle>,
@@ -215,15 +218,12 @@ impl CreditFacility {
     }
 
     fn structuring_fee_on_activation(&self) -> Option<StructuringFeeOnActivation> {
-        let fee = self.terms.one_time_fee_rate.apply(self.amount);
-        if fee > UsdCents::ZERO {
-            Some(StructuringFeeOnActivation {
-                tx_id: LedgerTxId::new(),
-                amount: fee,
-            })
-        } else {
-            None
-        }
+        let tx_id = self.structuring_fee_tx_id?;
+
+        Some(StructuringFeeOnActivation {
+            tx_id,
+            amount: self.terms.one_time_fee_rate.apply(self.amount),
+        })
     }
 
     pub fn is_single_disbursal(&self) -> bool {
@@ -623,6 +623,11 @@ impl IntoEvents<CreditFacilityEvent> for NewCreditFacility {
                 id: self.id,
                 pending_credit_facility_id: self.pending_credit_facility_id,
                 ledger_tx_id: self.ledger_tx_id,
+                structuring_fee_tx_id: if self.terms.has_one_time_fee() {
+                    Some(LedgerTxId::new())
+                } else {
+                    None
+                },
                 customer_id: self.customer_id,
                 customer_type: self.customer_type,
                 collateral_id: self.collateral_id,
@@ -716,6 +721,7 @@ mod test {
             id,
             pending_credit_facility_id: PendingCreditFacilityId::from(id),
             ledger_tx_id: LedgerTxId::new(),
+            structuring_fee_tx_id: None,
             customer_id: CustomerId::new(),
             customer_type: CustomerType::Individual,
             collateral_id: CollateralId::new(),

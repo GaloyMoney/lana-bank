@@ -216,7 +216,7 @@ where
             )
             .await?;
 
-        if let Some(mut new_disbursal_builder) = initial_disbursal {
+        let activation_data = if let Some(mut new_disbursal_builder) = initial_disbursal {
             let public_id = self
                 .public_ids
                 .create_in_op(
@@ -234,20 +234,15 @@ where
                 .create_pre_approved_disbursal_in_op(&mut db, new_disbursal)
                 .await?;
 
-            self.ledger
-                .handle_activation_with_initial_disbursal(
-                    db,
-                    credit_facility.activation_data(Some(crate::InitialDisbursalOnActivation {
-                        id: disbursal.id,
-                        amount: disbursal.amount,
-                    })),
-                )
-                .await?;
+            credit_facility.activation_data(Some(crate::InitialDisbursalOnActivation {
+                id: disbursal.id,
+                amount: disbursal.amount,
+            }))
         } else {
-            self.ledger
-                .handle_activation(db, credit_facility.activation_data(None))
-                .await?;
-        }
+            credit_facility.activation_data(None)
+        };
+
+        self.ledger.handle_activation(db, activation_data).await?;
 
         Ok(())
     }
