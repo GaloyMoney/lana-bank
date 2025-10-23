@@ -3,7 +3,7 @@ mod helpers;
 use std::collections::HashMap;
 
 use authz::dummy::{DummyPerms, DummySubject};
-use chrono::{Datelike, Days};
+use chrono::{Datelike, Days, NaiveDate};
 use cloud_storage::{Storage, config::StorageConfig};
 use document_storage::DocumentStorage;
 use job::{JobSvcConfig, Jobs};
@@ -250,6 +250,7 @@ async fn prepare_test() -> anyhow::Result<Test> {
         journal_id,
         chart,
         cala,
+        inner_date: central_date,
         accounts: vec![],
     })
 }
@@ -300,6 +301,7 @@ struct Test {
     pub chart: Chart,
     pub journal_id: JournalId,
     pub accounts: Vec<AccountId>,
+    pub inner_date: NaiveDate,
 }
 
 impl Test {
@@ -350,18 +352,18 @@ impl Test {
             .await
             .unwrap();
 
-        let (source_dir, dest_dir) = if balance_type == DebitOrCredit::Debit {
-            (DebitOrCredit::Credit, DebitOrCredit::Debit)
-        } else {
-            (DebitOrCredit::Debit, DebitOrCredit::Credit)
-        };
+        // let (source_dir, dest_dir) = if balance_type == DebitOrCredit::Debit {
+        // (DebitOrCredit::Credit, DebitOrCredit::Debit)
+        // } else {
+        // (DebitOrCredit::Debit, DebitOrCredit::Credit)
+        // };
 
         let entries = vec![
             ManualEntryInput::builder()
                 .account_id_or_code(AccountIdOrCode::Code("11.01.0101".parse().unwrap()))
                 .amount(funds.into())
                 .currency(Currency::USD)
-                .direction(source_dir)
+                .direction(DebitOrCredit::Debit)
                 .description(format!("Debit {}", self.accounts.len()))
                 .build()
                 .unwrap(),
@@ -369,7 +371,7 @@ impl Test {
                 .account_id_or_code(AccountIdOrCode::Id(account_id.into()))
                 .amount(funds.into())
                 .currency(Currency::USD)
-                .direction(dest_dir)
+                .direction(DebitOrCredit::Credit)
                 .description(format!("Credit {}", self.accounts.len()))
                 .build()
                 .unwrap(),
@@ -380,7 +382,7 @@ impl Test {
                 &self.chart.reference,
                 None,
                 format!("Transaction {}", self.accounts.len()),
-                None,
+                Some(self.inner_date),
                 entries,
             )
             .await

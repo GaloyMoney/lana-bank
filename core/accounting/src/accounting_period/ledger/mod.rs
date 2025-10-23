@@ -234,7 +234,7 @@ impl AccountingPeriodLedger {
         let mut net: Decimal = Decimal::from(0);
         let mut entries = Vec::new();
         for ((_journal_id, account_id, currency), bal_details) in period_end_balances.iter() {
-            let amt = bal_details.close.settled();
+            let amt = bal_details.close.settled().abs();
             net += amt;
             let direction = if bal_details.close.balance_type == DebitOrCredit::Debit {
                 DebitOrCredit::Credit
