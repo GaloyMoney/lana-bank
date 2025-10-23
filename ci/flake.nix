@@ -23,9 +23,20 @@
           echo "Example: GITHUB_ORG=myorg GITHUB_REPO=myrepo"
           exit 1
         fi
+
         # Get current commit SHA
         HEAD_SHA=$(cat .git/resource/head_sha)
         echo "Head sha of the PR: $HEAD_SHA"
+
+        # Get base SHA
+        if [ -f .git/resource/base_sha ]; then
+          BASE_SHA=$(cat .git/resource/base_sha)
+          echo "Base sha of the PR: $BASE_SHA"
+        else
+          echo "Warning: .git/resource/base_sha file not found, skipping base check"
+          BASE_SHA=""
+        fi
+
         # Extract PR number from .git/resource/pr
         if [ ! -f .git/resource/pr ]; then
           echo "Error: .git/resource/pr file not found"
@@ -33,20 +44,58 @@
         fi
         PR_NUMBER=$(cat .git/resource/pr)
         echo "PR number: $PR_NUMBER"
-        # Get the latest SHA from GitHub API
-        LATEST_SHA=$(${pkgs.curl}/bin/curl -s -H "Authorization: token $GITHUB_TOKEN" \
-          "https://api.github.com/repos/$GITHUB_ORG/$GITHUB_REPO/pulls/$PR_NUMBER" \
-          | ${pkgs.jq}/bin/jq -r '.head.sha')
+
+        # Get the PR information from GitHub API
+        PR_INFO=$(${pkgs.curl}/bin/curl -s -H "Authorization: token $GITHUB_TOKEN" \
+          "https://api.github.com/repos/$GITHUB_ORG/$GITHUB_REPO/pulls/$PR_NUMBER")
+
+        # Extract latest SHA and base branch from PR info
+        LATEST_SHA=$(echo "$PR_INFO" | ${pkgs.jq}/bin/jq -r '.head.sha')
+        BASE_BRANCH=$(echo "$PR_INFO" | ${pkgs.jq}/bin/jq -r '.base.ref')
+
         if [ "$LATEST_SHA" = "null" ] || [ -z "$LATEST_SHA" ]; then
           echo "Error: Failed to fetch PR information from GitHub"
           exit 1
         fi
+
         echo "Latest PR upstream SHA: $LATEST_SHA"
+        echo "PR base branch: $BASE_BRANCH"
+
+        # Check if this is the latest commit in the PR
         if [ "$HEAD_SHA" != "$LATEST_SHA" ]; then
-          echo "This is not the latest commit. Aborting."
+          echo "❌ This is not the latest commit in the PR. Aborting."
           exit 1
         fi
-        echo "Latest commit - confirmed"
+        echo "✓ Latest commit in PR confirmed"
+
+        # Check if base SHA is up-to-date with main branch (if base_sha exists)
+        if [ -n "$BASE_SHA" ] && [ -n "$BASE_BRANCH" ]; then
+          echo ""
+          echo "Checking if PR base is up-to-date with $BASE_BRANCH..."
+
+          # Get the current HEAD of the base branch
+          MAIN_HEAD=$(${pkgs.curl}/bin/curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/$GITHUB_ORG/$GITHUB_REPO/git/refs/heads/$BASE_BRANCH" \
+            | ${pkgs.jq}/bin/jq -r '.object.sha')
+
+          if [ "$MAIN_HEAD" = "null" ] || [ -z "$MAIN_HEAD" ]; then
+            echo "Error: Failed to fetch $BASE_BRANCH branch information from GitHub"
+            exit 1
+          fi
+
+          echo "Current $BASE_BRANCH HEAD: $MAIN_HEAD"
+          echo "PR base SHA: $BASE_SHA"
+
+          if [ "$BASE_SHA" != "$MAIN_HEAD" ]; then
+            echo "❌ PR base is outdated! The $BASE_BRANCH branch has moved forward."
+            echo "   This PR needs to be rebased or the cache needs to be rebuilt."
+            exit 1
+          fi
+          echo "✓ PR base is up-to-date with $BASE_BRANCH"
+        fi
+
+        echo ""
+        echo "✅ All checks passed!"
         exit 0
       '';
 
