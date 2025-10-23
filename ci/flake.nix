@@ -49,14 +49,24 @@
         PR_INFO=$(${pkgs.curl}/bin/curl -s -H "Authorization: token $GITHUB_TOKEN" \
           "https://api.github.com/repos/$GITHUB_ORG/$GITHUB_REPO/pulls/$PR_NUMBER")
 
-        # Extract latest SHA and base branch from PR info
+        # Extract PR state, latest SHA and base branch from PR info
+        PR_STATE=$(echo "$PR_INFO" | ${pkgs.jq}/bin/jq -r '.state')
         LATEST_SHA=$(echo "$PR_INFO" | ${pkgs.jq}/bin/jq -r '.head.sha')
         BASE_BRANCH=$(echo "$PR_INFO" | ${pkgs.jq}/bin/jq -r '.base.ref')
 
-        if [ "$LATEST_SHA" = "null" ] || [ -z "$LATEST_SHA" ]; then
+        if [ "$PR_STATE" = "null" ] || [ -z "$PR_STATE" ]; then
           echo "Error: Failed to fetch PR information from GitHub"
           exit 1
         fi
+
+        echo "PR state: $PR_STATE"
+
+        # Check if PR is still open
+        if [ "$PR_STATE" != "open" ]; then
+          echo "❌ PR #$PR_NUMBER is $PR_STATE. Skipping build for closed/merged PRs."
+          exit 1
+        fi
+        echo "✓ PR is open"
 
         echo "Latest PR upstream SHA: $LATEST_SHA"
         echo "PR base branch: $BASE_BRANCH"
