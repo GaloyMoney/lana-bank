@@ -28,6 +28,8 @@
     },
     "CreditFacilityProposalStatus": {
       "enum": [
+        "PendingCustomerApproval",
+        "CustomerDenied",
         "PendingApproval",
         "Approved",
         "Denied"
@@ -259,6 +261,22 @@
         "disbursal_credit_account_id",
         "terms",
         "amount",
+        "status"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/CreditFacilityProposalStatus"
+        },
+        "type": {
+          "const": "customer_approval_concluded",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
         "status"
       ],
       "type": "object"
