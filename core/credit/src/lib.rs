@@ -579,6 +579,25 @@ where
         Ok(credit_facility_proposal)
     }
 
+    #[instrument(name = "credit.conclude_customer_approval", skip(self), err)]
+    pub async fn conclude_customer_approval(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        proposal_id: impl Into<CreditFacilityProposalId> + std::fmt::Debug,
+        approved: bool,
+    ) -> Result<CreditFacilityProposal, CoreCreditError> {
+        self.subject_can_create(sub, true).await?;
+
+        let mut db = self.pending_credit_facilities.begin_op().await?;
+        let proposal = self
+            .credit_facility_proposals
+            .conclude_customer_approval_in_op(&mut db, proposal_id, approved)
+            .await?;
+        db.commit().await?;
+
+        Ok(proposal)
+    }
+
     #[instrument(name = "credit.history", skip(self), err)]
     pub async fn history<T: From<CreditFacilityHistoryEntry>>(
         &self,

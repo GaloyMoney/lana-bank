@@ -530,6 +530,8 @@ pub enum CreditFacilityStatus {
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub enum CreditFacilityProposalStatus {
     #[default]
+    PendingCustomerApproval,
+    CustomerDenied,
     PendingApproval,
     Approved,
     Denied,

@@ -101,15 +101,39 @@ where
         db: &mut es_entity::DbOp<'_>,
         new_proposal: NewCreditFacilityProposal,
     ) -> Result<CreditFacilityProposal, CreditFacilityProposalError> {
-        self.governance
-            .start_process(
-                db,
-                new_proposal.id,
-                new_proposal.id.to_string(),
-                crate::APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS,
-            )
-            .await?;
         self.repo.create_in_op(db, new_proposal).await
+    }
+
+    #[instrument(
+        name = "credit.credit_facility_proposals.conclude_customer_approval_in_op",
+        skip(self, db)
+    )]
+    pub(super) async fn conclude_customer_approval_in_op(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        id: impl Into<CreditFacilityProposalId> + std::fmt::Debug,
+        approved: bool,
+    ) -> Result<CreditFacilityProposal, CreditFacilityProposalError> {
+        let id = id.into();
+        let mut proposal = self.repo.find_by_id(id).await?;
+
+        match proposal.conclude_customer_approval(approved) {
+            es_entity::Idempotent::Executed(_) => {
+                self.repo.update_in_op(db, &mut proposal).await?;
+                if approved {
+                    self.governance
+                        .start_process(
+                            db,
+                            id,
+                            id.to_string(),
+                            crate::APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS,
+                        )
+                        .await?;
+                }
+                Ok(proposal)
+            }
+            es_entity::Idempotent::Ignored => Ok(proposal),
+        }
     }
 
     #[instrument(

@@ -707,6 +707,16 @@ export type CreditFacilityProposalCreatePayload = {
   creditFacilityProposal: CreditFacilityProposal;
 };
 
+export type CreditFacilityProposalCustomerApprovalConcludeInput = {
+  approved: Scalars['Boolean']['input'];
+  proposalId: Scalars['UUID']['input'];
+};
+
+export type CreditFacilityProposalCustomerApprovalConcludePayload = {
+  __typename?: 'CreditFacilityProposalCustomerApprovalConcludePayload';
+  creditFacilityProposal: CreditFacilityProposal;
+};
+
 /** An edge in a connection. */
 export type CreditFacilityProposalEdge = {
   __typename?: 'CreditFacilityProposalEdge';
@@ -718,8 +728,10 @@ export type CreditFacilityProposalEdge = {
 
 export enum CreditFacilityProposalStatus {
   Approved = 'APPROVED',
+  CustomerDenied = 'CUSTOMER_DENIED',
   Denied = 'DENIED',
-  PendingApproval = 'PENDING_APPROVAL'
+  PendingApproval = 'PENDING_APPROVAL',
+  PendingCustomerApproval = 'PENDING_CUSTOMER_APPROVAL'
 }
 
 export type CreditFacilityRepaymentPlanEntry = {
@@ -1539,6 +1551,7 @@ export type Mutation = {
   creditFacilityPartialPaymentRecord: CreditFacilityPartialPaymentRecordPayload;
   creditFacilityPartialPaymentWithDateRecord: CreditFacilityPartialPaymentRecordPayload;
   creditFacilityProposalCreate: CreditFacilityProposalCreatePayload;
+  creditFacilityProposalCustomerApprovalConclude: CreditFacilityProposalCustomerApprovalConcludePayload;
   creditModuleConfigure: CreditModuleConfigurePayload;
   custodianConfigUpdate: CustodianConfigUpdatePayload;
   custodianCreate: CustodianCreatePayload;
@@ -1660,6 +1673,11 @@ export type MutationCreditFacilityPartialPaymentWithDateRecordArgs = {
 
 export type MutationCreditFacilityProposalCreateArgs = {
   input: CreditFacilityProposalCreateInput;
+};
+
+
+export type MutationCreditFacilityProposalCustomerApprovalConcludeArgs = {
+  input: CreditFacilityProposalCustomerApprovalConcludeInput;
 };
 
 

@@ -29,6 +29,9 @@ pub enum CreditFacilityProposalEvent {
         amount: UsdCents,
         status: CreditFacilityProposalStatus,
     },
+    CustomerApprovalConcluded {
+        status: CreditFacilityProposalStatus,
+    },
     ApprovalProcessConcluded {
         approval_process_id: ApprovalProcessId,
         status: CreditFacilityProposalStatus,
@@ -64,6 +67,24 @@ impl CreditFacilityProposal {
                 CreditFacilityProposalEvent::ApprovalProcessConcluded { .. }
             )
         })
+    }
+
+    pub(super) fn conclude_customer_approval(&mut self, approved: bool) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            CreditFacilityProposalEvent::CustomerApprovalConcluded { .. }
+        );
+
+        let status = if approved {
+            CreditFacilityProposalStatus::PendingApproval
+        } else {
+            CreditFacilityProposalStatus::CustomerDenied
+        };
+
+        self.events
+            .push(CreditFacilityProposalEvent::CustomerApprovalConcluded { status });
+
+        Idempotent::Executed(())
     }
 
     pub(super) fn conclude_approval_process(
@@ -115,6 +136,7 @@ impl CreditFacilityProposal {
             .rev()
             .map(|event| match event {
                 CreditFacilityProposalEvent::ApprovalProcessConcluded { status, .. } => *status,
+                CreditFacilityProposalEvent::CustomerApprovalConcluded { status, .. } => *status,
                 CreditFacilityProposalEvent::Initialized { status, .. } => *status,
             })
             .next()
@@ -150,6 +172,7 @@ impl TryFromEvents<CreditFacilityProposalEvent> for CreditFacilityProposal {
                         .terms(*terms)
                         .amount(*amount);
                 }
+                CreditFacilityProposalEvent::CustomerApprovalConcluded { .. } => {}
                 CreditFacilityProposalEvent::ApprovalProcessConcluded { .. } => {}
             }
         }
@@ -193,7 +216,7 @@ impl IntoEvents<CreditFacilityProposalEvent> for NewCreditFacilityProposal {
                 disbursal_credit_account_id: self.disbursal_credit_account_id,
                 terms: self.terms,
                 amount: self.amount,
-                status: CreditFacilityProposalStatus::PendingApproval,
+                status: CreditFacilityProposalStatus::PendingCustomerApproval,
             }],
         )
     }
