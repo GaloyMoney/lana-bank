@@ -32,6 +32,7 @@ impl PublicIdRepo {
         Self { pool: pool.clone() }
     }
 
+    #[tracing::instrument(name = "public_id.next_counter", skip_all, err(level = "warn"))]
     pub async fn next_counter(&self) -> Result<PublicId, PublicIdError> {
         let result = sqlx::query!("SELECT nextval('core_public_id_counter') as counter")
             .fetch_one(&self.pool)
