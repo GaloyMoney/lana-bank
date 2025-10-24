@@ -1051,14 +1051,11 @@
     "table": {
       "headers": {
         "name": "Nombre",
-        "createdAt": "Fecha de registro",
         "duration": "Duración",
         "annualRate": "Tasa Anual",
         "initialCvl": "CVL Inicial (%)",
         "marginCallCvl": "CVL de Llamada de Margen (%)",
-        "liquidationCvl": "CVL de Liquidación (%)",
-        "oneTimeFeeRate": "Tasa de Comisión de Estructuración (%)",
-        "disbursalPolicy": "Política de Desembolso"
+        "liquidationCvl": "CVL de Liquidación (%)"
       }
     },
     "errors": {
@@ -1076,9 +1073,7 @@
           "marginCallCvl": "CVL de Llamada de Margen (%)",
           "liquidationCvl": "CVL de Liquidación (%)",
           "oneTimeFeeRate": "Tasa de Comisión de Estructuración (%)",
-          "disbursalPolicy": "Política de Desembolso",
-          "singleDisbursal": "Desembolso Único",
-          "multipleDisbursal": "Desembolsos Múltiples"
+          "disbursalPolicy": "Política de Desembolso"
         },
         "buttons": {
           "update": "Actualizar",
