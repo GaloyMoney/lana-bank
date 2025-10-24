@@ -1,4 +1,4 @@
-use chrono::{DateTime, Datelike as _, Days, Duration, Months, NaiveDate, Utc};
+use chrono::{Datelike as _, Days, Duration, Months, NaiveDate};
 use serde::{Deserialize, Serialize};
 
 /// Recurring time interval (i. e. a portion of time between two
@@ -71,7 +71,7 @@ impl Period {
         })
     }
 
-    /// Constructs new `Period` with anual frequency, with periods
+    /// Constructs new `Period` with annual frequency, with periods
     /// starting on `day` and `month` and which is open around `date`
     /// (i. e. period starts before `date` and ends after `date`).
     pub fn annually_around_date(

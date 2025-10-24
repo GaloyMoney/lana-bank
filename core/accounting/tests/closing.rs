@@ -352,18 +352,18 @@ impl Test {
             .await
             .unwrap();
 
-        // let (source_dir, dest_dir) = if balance_type == DebitOrCredit::Debit {
-        // (DebitOrCredit::Credit, DebitOrCredit::Debit)
-        // } else {
-        // (DebitOrCredit::Debit, DebitOrCredit::Credit)
-        // };
+        let (source_dir, dest_dir) = if balance_type == DebitOrCredit::Debit {
+            (DebitOrCredit::Credit, DebitOrCredit::Debit)
+        } else {
+            (DebitOrCredit::Debit, DebitOrCredit::Credit)
+        };
 
         let entries = vec![
             ManualEntryInput::builder()
                 .account_id_or_code(AccountIdOrCode::Code("11.01.0101".parse().unwrap()))
                 .amount(funds.into())
                 .currency(Currency::USD)
-                .direction(DebitOrCredit::Debit)
+                .direction(source_dir)
                 .description(format!("Debit {}", self.accounts.len()))
                 .build()
                 .unwrap(),
@@ -371,7 +371,7 @@ impl Test {
                 .account_id_or_code(AccountIdOrCode::Id(account_id.into()))
                 .amount(funds.into())
                 .currency(Currency::USD)
-                .direction(DebitOrCredit::Credit)
+                .direction(dest_dir)
                 .description(format!("Credit {}", self.accounts.len()))
                 .build()
                 .unwrap(),
