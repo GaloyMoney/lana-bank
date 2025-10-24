@@ -890,9 +890,9 @@ checksum = "ade8366b8bd5ba243f0a58f036cc0ca8a2f069cff1a2351ef1cac6b083e16fc0"
 
 [[package]]
 name = "cala-cel-interpreter"
-version = "0.12.3"
+version = "0.12.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3af9c797f2f9ccecf1f847d5ce06caff0d4d5a37ed301d0f75f19f5ebfbfc28f"
+checksum = "7e1616d03fddc05aaa72ef3b069fcfa36399e2927ccdba44b532c2a9a763e78c"
 dependencies = [
  "cala-cel-parser",
  "chrono",
@@ -906,9 +906,9 @@ dependencies = [
 
 [[package]]
 name = "cala-cel-parser"
-version = "0.12.3"
+version = "0.12.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9b6def07d0bbdf2ffa1cc487e1019f387808abf545c2422a181837801d6ecf00"
+checksum = "68fc303e2ad1e5581bf7c62e5cd2be1b09de6da2325bbf3c6376d565b43885f6"
 dependencies = [
  "lalrpop",
  "lalrpop-util",
@@ -916,9 +916,9 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger"
-version = "0.12.3"
+version = "0.12.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "57e70ed7e86d9db576e1deb79ed2a004b3142fb6a5ccf50a59b2604f06d95407"
+checksum = "0e8d0b742e30fedff4ec346cbe4afd1c5ba9ab8303107e8ccd02fd1298ac34c0"
 dependencies = [
  "async-graphql",
  "base64 0.22.1",
@@ -953,9 +953,9 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger-core-types"
-version = "0.12.3"
+version = "0.12.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ece19bbc213c07132b784a2a094dde043d9fe5c8b8bbb7d368c6533666bd468a"
+checksum = "d1e9736376cabad4b0c97bf68055af3c9169280203478bc002b31671e02968a7"
 dependencies = [
  "async-graphql",
  "cala-cel-interpreter",
@@ -975,9 +975,9 @@ dependencies = [
 
 [[package]]
 name = "cala-tracing"
-version = "0.12.3"
+version = "0.12.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b228f26a6e362ef6457d12832b10624ec6437f33030846be55acc7e18744c266"
+checksum = "68a910e73b47f7e12d0d198ff1280840d959f841ae5f25272c696cec88ab5ba3"
 dependencies = [
  "anyhow",
  "axum-extra 0.9.6",
@@ -2267,7 +2267,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -3930,7 +3930,7 @@ version = "0.50.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7957b9740744892f114936ab4a57b3f487491bbeafaf8083688b16841a4240e5"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -4727,7 +4727,7 @@ dependencies = [
  "once_cell",
  "socket2 0.6.1",
  "tracing",
- "windows-sys 0.60.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -5205,7 +5205,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -6310,7 +6310,7 @@ dependencies = [
  "getrandom 0.3.4",
  "once_cell",
  "rustix",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -7350,7 +7350,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
