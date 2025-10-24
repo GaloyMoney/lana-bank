@@ -233,7 +233,7 @@
             else
               pkgs.fetchurl {
                 url = "https://github.com/concourse/concourse/releases/download/v${version}/fly-${version}-linux-amd64.tgz";
-                sha256 = "sha256-xFPyT+e1PF3QNGmLrIQdRnfh1gvn2V2PjeRpqGGLHGI=";
+                sha256 = "sha256-CjGP6d9W2Cmair2GOutOHpYy5skdqSq+8ZmEvRkQ2OI=";
               };
 
           phases = ["unpackPhase" "installPhase"];
