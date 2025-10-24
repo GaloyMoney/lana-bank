@@ -1382,7 +1382,7 @@ dependencies = [
  "schemars 1.0.4",
  "serde",
  "serde_json",
- "sim-time 0.9.5",
+ "sim-time",
  "sqlx",
  "strum 0.27.2",
  "thiserror 2.0.17",
@@ -1449,7 +1449,7 @@ dependencies = [
  "serde_json",
  "serde_with",
  "serde_yaml",
- "sim-time 0.9.5",
+ "sim-time",
  "sqlx",
  "strum 0.27.2",
  "thiserror 2.0.17",
@@ -1544,7 +1544,7 @@ dependencies = [
  "schemars 1.0.4",
  "serde",
  "serde_json",
- "sim-time 0.9.5",
+ "sim-time",
  "sqlx",
  "strum 0.27.2",
  "thiserror 2.0.17",
@@ -1772,7 +1772,7 @@ dependencies = [
  "outbox",
  "serde",
  "serde_with",
- "sim-time 0.9.5",
+ "sim-time",
  "thiserror 2.0.17",
  "tracing",
  "workspace-hack",
@@ -2287,7 +2287,7 @@ dependencies = [
  "schemars 1.0.4",
  "serde",
  "serde_json",
- "sim-time 0.10.1",
+ "sim-time",
  "sqlx",
  "thiserror 2.0.17",
  "tracing",
@@ -3272,7 +3272,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_with",
- "sim-time 0.10.1",
+ "sim-time",
  "sqlx",
  "thiserror 2.0.17",
  "tokio",
@@ -3480,7 +3480,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serial_test",
- "sim-time 0.9.5",
+ "sim-time",
  "sqlx",
  "thiserror 2.0.17",
  "tokio",
@@ -3506,7 +3506,7 @@ dependencies = [
  "serde",
  "serde_yaml",
  "sim-bootstrap",
- "sim-time 0.9.5",
+ "sim-time",
  "sqlx",
  "tokio",
  "tracing-utils",
@@ -5667,22 +5667,10 @@ dependencies = [
  "rust_decimal",
  "rust_decimal_macros",
  "serde",
- "sim-time 0.9.5",
+ "sim-time",
  "tokio",
  "tracing",
  "workspace-hack",
-]
-
-[[package]]
-name = "sim-time"
-version = "0.9.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "94e70a111be0faeb410f2cbdd35822bc6008f421e9701cd3cc6d93909a490dab"
-dependencies = [
- "chrono",
- "serde",
- "serde_with",
- "tokio",
 ]
 
 [[package]]
