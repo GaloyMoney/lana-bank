@@ -29,7 +29,10 @@ async fn closing() -> anyhow::Result<()> {
     let mut test = prepare_test().await?;
 
     test.account("41.01.0102", 300, DebitOrCredit::Credit).await;
+    test.account("41.01.0102", 2400, DebitOrCredit::Credit)
+        .await;
     test.account("51.01.0101", 500, DebitOrCredit::Debit).await;
+    test.account("51.01.0101", 3000, DebitOrCredit::Debit).await;
     test.account("61.01.0101", 900, DebitOrCredit::Debit).await;
 
     let pre_close_balances = test.balances().await;
@@ -71,7 +74,10 @@ async fn closing() -> anyhow::Result<()> {
 
     let post_equity_balance =
         find_account_balance(&test.cala, post_equity_accounts[0], test.journal_id).await?;
-    assert_eq!(post_equity_balance, Decimal::from(1100));
+    assert_eq!(
+        post_equity_balance,
+        Decimal::from(500 + 3000 + 900 - 300 - 2400)
+    );
 
     Ok(())
 }
