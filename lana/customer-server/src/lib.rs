@@ -60,7 +60,7 @@ pub struct CustomerJwtClaims {
     pub subject: String,
 }
 
-#[instrument(name = "customer_server.graphql", skip_all, fields(error, error.level, error.message))]
+#[instrument(name = "customer_server.graphql", skip_all, fields(operation_name, operation_type, query, error, error.level, error.message))]
 #[es_entity::es_event_context]
 pub async fn graphql_handler(
     headers: HeaderMap,
@@ -70,6 +70,16 @@ pub async fn graphql_handler(
 ) -> GraphQLResponse {
     tracing_utils::http::extract_tracing(&headers);
     let mut req = req.into_inner();
+
+    if let Some(op_name) = req.operation_name.as_ref() {
+        tracing::Span::current().record("operation_name", op_name);
+    }
+
+    tracing::Span::current().record("query", &req.query);
+
+    if let Some(query_type) = req.query.split_whitespace().next() {
+        tracing::Span::current().record("operation_type", query_type);
+    }
 
     match uuid::Uuid::parse_str(&jwt_claims.subject) {
         Ok(id) => {
