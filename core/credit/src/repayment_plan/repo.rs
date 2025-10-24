@@ -21,6 +21,7 @@ impl RepaymentPlanRepo {
         Ok(self.pool.begin().await?)
     }
 
+    #[tracing::instrument(name = "repayment_plan.persist_in_tx", skip_all, err(level = "warn"))]
     pub async fn persist_in_tx(
         &self,
         tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
@@ -43,6 +44,7 @@ impl RepaymentPlanRepo {
         Ok(())
     }
 
+    #[tracing::instrument(name = "repayment_plan.load", skip_all, err(level = "warn"))]
     pub async fn load(
         &self,
         credit_facility_id: CreditFacilityId,

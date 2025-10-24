@@ -13,6 +13,11 @@ impl CustomerActivityRepo {
         Self { pool }
     }
 
+    #[tracing::instrument(
+        name = "customer_activity.upsert_activity",
+        skip_all,
+        err(level = "warn")
+    )]
     pub async fn upsert_activity(
         &self,
         customer_id: CustomerId,
@@ -37,6 +42,11 @@ impl CustomerActivityRepo {
         Ok(())
     }
 
+    #[tracing::instrument(
+        name = "customer_activity.find_customers_in_range_with_non_matching_activity",
+        skip_all,
+        err(level = "warn")
+    )]
     pub async fn find_customers_in_range_with_non_matching_activity(
         &self,
         start_threshold: chrono::DateTime<chrono::Utc>,

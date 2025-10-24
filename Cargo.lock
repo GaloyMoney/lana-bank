@@ -361,6 +361,7 @@ dependencies = [
  "serde",
  "sqlx",
  "thiserror 2.0.17",
+ "tracing",
  "workspace-hack",
 ]
 
@@ -4134,6 +4135,7 @@ dependencies = [
  "sqlx",
  "tokio",
  "tokio-stream",
+ "tracing",
  "tracing-utils",
  "workspace-hack",
 ]
