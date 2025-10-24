@@ -121,11 +121,16 @@ jobs:
   - name: populate-nix-cache-pr
     max_in_flight: 3
     plan:
-    - get: prs
-      trigger: true
-      version: every
-      params:
-        fetch_tags: true
+    - in_parallel:
+      - get: prs
+        trigger: true
+        version: every
+        params:
+          fetch_tags: true
+      - get: repo
+        trigger: true
+      - get: version
+        trigger: true
     - #@ exec_phase(["lana-deps"])
     - in_parallel:
       - #@ exec_phase(["nextest"])
