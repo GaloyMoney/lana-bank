@@ -18,6 +18,7 @@ impl DashboardRepo {
         Ok(self.pool.begin().await?)
     }
 
+    #[tracing::instrument(name = "dashboard.persist_in_tx", skip_all, err(level = "warn"))]
     pub async fn persist_in_tx(
         &self,
         tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
@@ -39,6 +40,7 @@ impl DashboardRepo {
         Ok(())
     }
 
+    #[tracing::instrument(name = "dashboard.load", skip_all, err(level = "warn"))]
     pub async fn load(&self) -> Result<DashboardValues, DashboardError> {
         let row = sqlx::query!(
             r#" 
