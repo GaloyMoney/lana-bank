@@ -87,6 +87,7 @@ jobs:
                 cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build ./ci#check-latest-commit
                 cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build ./ci#next-version
                 cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build ./ci#wait-cachix-paths
+                cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build ./ci#rebuild-nix-cache
 
   - name: rebuild-nix-cache
     plan:
@@ -95,20 +96,18 @@ jobs:
         trigger: true
       - get: version
         trigger: true
-
     - task: rebuild-nix-cache
       config:
         platform: linux
         image_resource: #@ nix_flake_cachix_image_config()
         inputs:
-        - name: prs
-          path: repo
+          - name: repo
         params:
           GITHUB_TOKEN: #@ data.values.github_token
-          GITHUB_ORG: #@ data.values.gh_org
-          GITHUB_REPO: #@ data.values.gh_repository
           CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
           CACHIX_CACHE_NAME: #@ data.values.cachix_cache_name
+          CONCOURSE_USERNAME: #@ data.values.concourse_username
+          CONCOURSE_PASSWORD: #@ data.values.concourse_password
         run:
           path: sh
           args:

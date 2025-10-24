@@ -228,7 +228,7 @@
             then
               pkgs.fetchurl {
                 url = "https://github.com/concourse/concourse/releases/download/v${version}/fly-${version}-darwin-amd64.tgz";
-                sha256 = "sha256-7P5KefC2ZEHWkui0SdwFS4nO7phXKpgae76ti4PTTEM="; # Corrected hash
+                sha256 = "sha256-7P5KefC2ZEHWkui0SdwFS4nO7phXKpgae76ti4PTTEM=";
               }
             else
               pkgs.fetchurl {
@@ -254,14 +254,16 @@
 
           echo "=== Nix Cache Rebuild Script ==="
 
+          # Set defaults
           CONCOURSE_URL="''${CONCOURSE_URL:-https://ci.galoy.io}"
-          # Check required environment variables
-          if [ -z "''${CONCOURSE_URL:-}" ]; then
-            echo "Error: CONCOURSE_URL environment variable is not set"
-            echo "Example: export CONCOURSE_URL=https://ci.galoy.io"
-            exit 1
-          fi
+          CONCOURSE_TEAM="''${CONCOURSE_TEAM:-nix-cache}"
+          PIPELINE="''${PIPELINE:-lana-bank-cache}"
+          JOB="''${JOB:-populate-nix-cache-pr}"
+          GITHUB_ORG="''${GITHUB_ORG:-GaloyMoney}"
+          GITHUB_REPO="''${GITHUB_REPO:-lana-bank}"
+          BUILD_LIMIT="''${BUILD_LIMIT:-50}"
 
+          # Check required environment variables
           if [ -z "''${CONCOURSE_USERNAME:-}" ] || [ -z "''${CONCOURSE_PASSWORD:-}" ]; then
             echo "Error: CONCOURSE_USERNAME and CONCOURSE_PASSWORD environment variables must be set"
             echo "Example: export CONCOURSE_USERNAME=galoybot"
@@ -269,7 +271,12 @@
             exit 1
           fi
 
-          CONCOURSE_TEAM="''${CONCOURSE_TEAM:-nix-cache}"
+          if [ -z "''${GITHUB_TOKEN:-}" ]; then
+            echo "Error: GITHUB_TOKEN environment variable is not set"
+            echo "This is required to query GitHub API for PR information"
+            exit 1
+          fi
+
           TARGET="cache-bot-$$"  # Unique target name using process ID
 
           # Cleanup on exit
@@ -287,27 +294,197 @@
             -p "$CONCOURSE_PASSWORD" \
             -n "$CONCOURSE_TEAM" > /dev/null 2>&1
 
-          if [ $? -eq 0 ]; then
-            echo "✓ Successfully logged into Concourse"
-
-            # Verify login by checking status
-            if ${fly}/bin/fly -t "$TARGET" status > /dev/null 2>&1; then
-              echo "✓ Login verified"
-              echo ""
-              echo "Hello World! Ready to rebuild nix cache."
-              echo ""
-
-              # Show available pipelines
-              echo "Available pipelines in $CONCOURSE_TEAM team:"
-              ${fly}/bin/fly -t "$TARGET" pipelines
-            else
-              echo "❌ Login verification failed"
-              exit 1
-            fi
-          else
+          if [ $? -ne 0 ]; then
             echo "❌ Failed to login to Concourse"
             exit 1
           fi
+
+          echo "✓ Successfully logged into Concourse"
+
+          # Get latest main branch commit
+          echo ""
+          echo "Getting latest main branch commit..."
+          latest_main=$(${fly}/bin/fly -t "$TARGET" resource-versions -r $PIPELINE/repo -c 1 --json 2>/dev/null | ${pkgs.jq}/bin/jq -r '.[0].version.ref' 2>/dev/null || echo "")
+
+          if [ -z "$latest_main" ] || [ "$latest_main" = "null" ]; then
+            echo "⚠️  Could not get latest main branch commit"
+            latest_main="unknown"
+          else
+            echo "Latest main commit: ''${latest_main:0:7}"
+          fi
+
+          # Get all open PRs from GitHub
+          echo ""
+          echo "Fetching open PRs from GitHub..."
+
+          # GitHub API pagination - get all pages
+          page=1
+          all_prs=""
+
+          while true; do
+            echo "  Fetching page $page..."
+            response=$(${pkgs.curl}/bin/curl -s -H "Authorization: token $GITHUB_TOKEN" \
+              "https://api.github.com/repos/$GITHUB_ORG/$GITHUB_REPO/pulls?state=open&per_page=100&page=$page")
+
+            # Check if response is valid JSON array
+            if ! echo "$response" | ${pkgs.jq}/bin/jq -e '.' >/dev/null 2>&1; then
+              echo "❌ Failed to fetch PRs from GitHub"
+              exit 1
+            fi
+
+            # Check if we got any results
+            pr_count=$(echo "$response" | ${pkgs.jq}/bin/jq 'length')
+            if [ "$pr_count" -eq 0 ]; then
+              break
+            fi
+
+            # Append to our collection
+            if [ -z "$all_prs" ]; then
+              all_prs="$response"
+            else
+              all_prs=$(echo "$all_prs" "$response" | ${pkgs.jq}/bin/jq -s 'add')
+            fi
+
+            ((page++))
+          done
+
+          # Filter out draft PRs and extract PR numbers
+          echo ""
+          echo "Processing PRs..."
+
+          # Create a list of PR numbers that are open and not draft
+          pr_numbers=$(echo "$all_prs" | ${pkgs.jq}/bin/jq -r '
+            .[] |
+            select(.draft == false) |
+            .number
+          ')
+
+          # Count non-draft PRs
+          pr_count=$(echo "$pr_numbers" | wc -l | tr -d ' ')
+          echo "Found $pr_count open non-draft PRs"
+
+          if [ "$pr_count" -eq 0 ] || [ -z "$pr_numbers" ]; then
+            echo "No open PRs to process"
+            exit 0
+          fi
+
+          # Display PR numbers
+          echo "PR numbers to check: $(echo $pr_numbers | tr '\n' ' ')"
+
+          # Convert to a set we can check against and remove from
+          # Using associative array in bash
+          declare -A open_prs
+          for pr in $pr_numbers; do
+            open_prs[$pr]=1
+          done
+
+          # Get recent builds
+          echo ""
+          echo "Fetching last $BUILD_LIMIT builds from $JOB..."
+
+          builds_json=$(${fly}/bin/fly -t "$TARGET" curl "/api/v1/teams/$CONCOURSE_TEAM/pipelines/$PIPELINE/jobs/$JOB/builds?limit=$BUILD_LIMIT" 2>/dev/null)
+
+          if [ -z "$builds_json" ]; then
+            echo "❌ Failed to get builds"
+            exit 1
+          fi
+
+          # Process each build
+          echo ""
+          echo "Processing builds..."
+          retriggered_count=0
+
+          # Temporarily disable exit on error for the build processing loop
+          set +e
+
+          # Use process substitution instead of pipe to avoid subshell
+          while read -r build_data; do
+            # Decode the build data
+            build=$(echo "$build_data" | ${pkgs.coreutils}/bin/base64 -d)
+
+            build_id=$(echo "$build" | ${pkgs.jq}/bin/jq -r '.id')
+            build_name=$(echo "$build" | ${pkgs.jq}/bin/jq -r '.name')
+            status=$(echo "$build" | ${pkgs.jq}/bin/jq -r '.status')
+
+            # Skip non-succeeded builds
+            if [ "$status" != "succeeded" ]; then
+              echo "  Build #$build_name (ID: $build_id) - Status: $status - Skipping"
+              continue
+            fi
+
+            # Get build resources to find PR number
+            resources=$(${fly}/bin/fly -t "$TARGET" curl "/api/v1/builds/$build_id/resources" 2>/dev/null || echo "{}")
+
+            if [ -n "$resources" ] && [ "$resources" != "null" ] && [ "$resources" != "{}" ]; then
+              pr_num=$(echo "$resources" | ${pkgs.jq}/bin/jq -r '.inputs[]? | select(.name == "prs") | .version.pr' 2>/dev/null || echo "")
+
+              if [ -n "$pr_num" ] && [ "''${open_prs[$pr_num]:-0}" = "1" ]; then
+                echo ""
+                echo "  Build #$build_name (ID: $build_id) is for open PR #$pr_num"
+
+                # Retrigger the build using the correct API endpoint
+                echo "  Retriggering build..."
+
+                result=$(${fly}/bin/fly -t "$TARGET" curl "/api/v1/teams/$CONCOURSE_TEAM/pipelines/$PIPELINE/jobs/$JOB/builds/$build_name" -- -X POST 2>/dev/null || echo "")
+
+                if [ -n "$result" ]; then
+                  # Check if we got a valid JSON response with an ID
+                  new_build_id=$(echo "$result" | ${pkgs.jq}/bin/jq -r '.id' 2>/dev/null || echo "")
+                  new_build_name=$(echo "$result" | ${pkgs.jq}/bin/jq -r '.name' 2>/dev/null || echo "")
+
+                  if [ -n "$new_build_id" ] && [ "$new_build_id" != "null" ]; then
+                    echo "  ✓ Retriggered as build #$new_build_name (ID: $new_build_id)"
+
+                    # Add comment to the new build with JSON format including main hash
+                    comment_text="Auto-retriggered: Ensuring cache is fresh for open PR #$pr_num (main: ''${latest_main:0:7})"
+                    comment_json=$(${pkgs.jq}/bin/jq -n --arg comment "$comment_text" '{"comment": $comment}')
+                    ${fly}/bin/fly -t "$TARGET" curl "/api/v1/builds/$new_build_id/comment" -- \
+                      -X PUT \
+                      -H "Content-Type: application/json" \
+                      -d "$comment_json" >/dev/null 2>&1 || true
+
+                    # Increment counter
+                    retriggered_count=$((retriggered_count + 1))
+
+                    # Remove this PR from our list so we don't retrigger it again
+                    unset open_prs[$pr_num]
+                  else
+                    echo "  ❌ Failed to get new build ID from retrigger response"
+                    echo "  Response: $result"
+                  fi
+                else
+                  echo "  ❌ Failed to retrigger build"
+                fi
+              fi
+            fi
+          done < <(echo "$builds_json" | ${pkgs.jq}/bin/jq -r '.[] | @base64')
+
+          # Re-enable exit on error
+          set -e
+
+          # Report any PRs we didn't find builds for
+          remaining_prs=""
+          for pr in "''${!open_prs[@]}"; do
+            if [ "''${open_prs[$pr]}" = "1" ]; then
+              remaining_prs="$remaining_prs $pr"
+            fi
+          done
+
+          if [ -n "$remaining_prs" ]; then
+            echo ""
+            echo "PRs without recent successful builds:$remaining_prs"
+          fi
+
+          echo ""
+          echo "=== Summary ==="
+          echo "✓ Found $pr_count open non-draft PRs"
+          echo "✓ Checked $BUILD_LIMIT most recent builds"
+          echo "✓ Retriggered $retriggered_count builds"
+          if [ -n "$remaining_prs" ]; then
+            echo "⚠ Some PRs had no recent successful builds to retrigger"
+          fi
+          echo ""
+          echo "Done!"
         '';
     in {
       apps.check-latest-commit = {

@@ -8,6 +8,9 @@ github_token: ((github.api_token))
 cachix_auth_token: ((write-cachix-token.token))
 cachix_cache_name: galoymoney
 
+concourse_username: ((galoybot-concourse-creds.username))
+concourse_password: ((galoybot-concourse-creds.password))
+
 git_version_branch: version
 gh_org: GaloyMoney
 gh_repository: lana-bank
