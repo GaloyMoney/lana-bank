@@ -26,6 +26,7 @@ pub enum ChartNodeEvent {
     ChildNodeAdded {
         child_node_id: ChartNodeId,
     },
+    // TODO: Discuss if we need a variant for annual closing transaction executed (it has its own entity so probably not)
 }
 
 #[derive(EsEntity, Builder)]

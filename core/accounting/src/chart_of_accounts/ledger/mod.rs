@@ -2,9 +2,9 @@ mod closing;
 pub mod error;
 
 use cala_ledger::{
-    AccountSetId, CalaLedger, DebitOrCredit, JournalId, LedgerOperation, VelocityControlId,
-    VelocityLimitId,
-    account_set::{AccountSetUpdate, NewAccountSet},
+    AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation,
+    VelocityControlId, VelocityLimitId,
+    account_set::{AccountSetMemberId, AccountSetUpdate, NewAccountSet},
     velocity::{
         NewBalanceLimit, NewLimit, NewVelocityControl, NewVelocityLimit, Params, VelocityLimit,
     },
@@ -125,7 +125,6 @@ impl ChartLedger {
         op.commit().await?;
         Ok(())
     }
-
     async fn create_monthly_close_control_with_limits_in_op(
         &self,
         op: &mut LedgerOperation<'_>,
@@ -286,6 +285,36 @@ impl ChartLedger {
             credit_settled: credit_settled_limit,
             credit_pending: credit_pending_limit,
         })
+    }
+
+    pub async fn find_all_accounts_by_parent_set_id(
+        &self,
+        journal_id: JournalId,
+        parent_set_id: AccountSetId,
+    ) -> Result<Vec<BalanceId>, ChartLedgerError> {
+        let mut accounts: Vec<BalanceId> = Vec::new();
+        // TODO: Doesn't seem like pagination is used anywhere else... confirm default behavior
+        // will provide all.
+        let members = self
+            .cala
+            .account_sets()
+            .list_members_by_created_at(parent_set_id, Default::default())
+            .await?;
+        for member in members.entities {
+            match member.id {
+                AccountSetMemberId::Account(account_id) => {
+                    accounts.push((journal_id, account_id, Currency::USD));
+                }
+                AccountSetMemberId::AccountSet(account_set_id) => {
+                    let nested_accounts = Box::pin(
+                        self.find_all_accounts_by_parent_set_id(journal_id, account_set_id),
+                    )
+                    .await?;
+                    accounts.extend(nested_accounts);
+                }
+            }
+        }
+        Ok(accounts)
     }
 }
 
