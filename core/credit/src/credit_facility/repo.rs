@@ -85,6 +85,11 @@ where
             .await
     }
 
+    #[tracing::instrument(
+        name = "credit_facility.find_by_custody_wallet",
+        skip_all,
+        err(level = "warn")
+    )]
     pub async fn find_by_custody_wallet(
         &self,
         wallet_id: CustodyWalletId,
