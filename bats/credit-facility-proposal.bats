@@ -149,6 +149,7 @@ ymd() {
           annualRate: "12",
           accrualCycleInterval: "END_OF_MONTH",
           accrualInterval: "END_OF_DAY",
+          disbursalPolicy: "MULTIPLE_DISBURSAL",
           oneTimeFeeRate: "5",
           duration: { period: "MONTHS", units: 3 },
           interestDueDurationFromAccrual: { period: "DAYS", units: 0 },

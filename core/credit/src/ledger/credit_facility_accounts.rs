@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use cala_ledger::AccountId as CalaAccountId;
 
 use crate::{
-    primitives::{CreditFacilityId, CustomerType, LedgerTxId, Satoshis, UsdCents},
+    primitives::{CreditFacilityId, CustomerType, DisbursalId, LedgerTxId, Satoshis, UsdCents},
     terms::{FacilityDurationType, InterestPeriod},
 };
 
@@ -101,6 +101,16 @@ pub struct PendingCreditFacilityCreation {
     pub facility_amount: UsdCents,
 }
 
+pub struct InitialDisbursalOnActivation {
+    pub id: DisbursalId,
+    pub amount: UsdCents,
+}
+
+pub struct StructuringFeeOnActivation {
+    pub tx_id: LedgerTxId,
+    pub amount: UsdCents,
+}
+
 pub struct CreditFacilityActivation {
     pub credit_facility_id: CreditFacilityId,
     pub tx_id: LedgerTxId,
@@ -110,7 +120,8 @@ pub struct CreditFacilityActivation {
     pub duration_type: FacilityDurationType,
     pub facility_amount: UsdCents,
     pub debit_account_id: CalaAccountId,
-    pub structuring_fee_amount: UsdCents,
+    pub initial_disbursal: Option<InitialDisbursalOnActivation>,
+    pub structuring_fee: Option<StructuringFeeOnActivation>,
 }
 
 #[derive(Debug, Clone)]

@@ -31,6 +31,7 @@ import {
   useGetRealtimePriceUpdatesQuery,
   useTermsTemplatesQuery,
   useCustodiansQuery,
+  DisbursalPolicy,
 } from "@/lib/graphql/generated"
 import {
   currencyConverter,
@@ -79,6 +80,7 @@ const initialFormValues = {
   initialCvl: "",
   durationUnits: "",
   oneTimeFeeRate: "",
+  disbursalPolicy: DisbursalPolicy.MultipleDisbursal,
 }
 
 export const CreateCreditFacilityProposalDialog: React.FC<
@@ -137,6 +139,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
         initialCvl: getCvlValue(latestTemplate.values.initialCvl).toString(),
         durationUnits: latestTemplate.values.duration.units.toString(),
         oneTimeFeeRate: latestTemplate.values.oneTimeFeeRate.toString(),
+        disbursalPolicy: latestTemplate.values.disbursalPolicy,
       }))
     }
   }, [termsTemplatesData])
@@ -165,6 +168,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
         initialCvl: getCvlValue(selectedTemplate.values.initialCvl).toString(),
         durationUnits: selectedTemplate.values.duration.units.toString(),
         oneTimeFeeRate: selectedTemplate.values.oneTimeFeeRate.toString(),
+        disbursalPolicy: selectedTemplate.values.disbursalPolicy,
       }))
     }
   }
@@ -180,6 +184,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
       initialCvl,
       durationUnits,
       oneTimeFeeRate,
+      disbursalPolicy,
     } = formValues
 
     if (
@@ -189,7 +194,8 @@ export const CreateCreditFacilityProposalDialog: React.FC<
       !marginCallCvl ||
       !initialCvl ||
       !durationUnits ||
-      !oneTimeFeeRate
+      !oneTimeFeeRate ||
+      !disbursalPolicy
     ) {
       toast.error(t("form.messages.fillAllFields"))
       return
@@ -211,6 +217,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
               marginCallCvl: parseFloat(marginCallCvl),
               initialCvl: parseFloat(initialCvl),
               oneTimeFeeRate: parseFloat(oneTimeFeeRate),
+              disbursalPolicy: disbursalPolicy,
               duration: {
                 units: parseInt(durationUnits),
                 period: DEFAULT_TERMS.DURATION_PERIOD,
@@ -261,6 +268,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
         initialCvl: getCvlValue(latestTemplate.values.initialCvl).toString(),
         durationUnits: latestTemplate.values.duration.units.toString(),
         oneTimeFeeRate: latestTemplate.values.oneTimeFeeRate?.toString(),
+        disbursalPolicy: latestTemplate.values.disbursalPolicy,
       })
     } else {
       setFormValues(initialFormValues)
@@ -413,6 +421,14 @@ export const CreateCreditFacilityProposalDialog: React.FC<
                   value={formValues.oneTimeFeeRate}
                 />
                 <DetailItem
+                  label={t("form.labels.disbursalPolicy")}
+                  value={
+                    formValues.disbursalPolicy === DisbursalPolicy.MultipleDisbursal
+                      ? t("form.labels.multipleDisbursal")
+                      : t("form.labels.singleDisbursal")
+                  }
+                />
+                <DetailItem
                   label={t("form.labels.liquidationCvl")}
                   value={formValues.liquidationCvl}
                 />
@@ -482,6 +498,31 @@ export const CreateCreditFacilityProposalDialog: React.FC<
                     min={0}
                     required
                   />
+                </div>
+                <div>
+                  <Label>{t("form.labels.disbursalPolicy")}</Label>
+                  <Select
+                    value={formValues.disbursalPolicy}
+                    onValueChange={(value) =>
+                      setFormValues((prev) => ({
+                        ...prev,
+                        disbursalPolicy: value as DisbursalPolicy,
+                      }))
+                    }
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={t("form.placeholders.disbursalPolicy")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={DisbursalPolicy.SingleDisbursal}>
+                        {t("form.labels.singleDisbursal")}
+                      </SelectItem>
+                      <SelectItem value={DisbursalPolicy.MultipleDisbursal}>
+                        {t("form.labels.multipleDisbursal")}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label>{t("form.labels.liquidationCvl")}</Label>

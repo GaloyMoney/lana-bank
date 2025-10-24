@@ -120,7 +120,7 @@ where
         &self,
         db: &mut es_entity::DbOpWithTime<'_>,
         new_disbursal: NewDisbursal,
-    ) -> Result<DisbursalId, DisbursalError> {
+    ) -> Result<Disbursal, DisbursalError> {
         let mut disbursal = self.repo.create_in_op(db, new_disbursal).await?;
 
         let new_obligation = disbursal
@@ -134,7 +134,7 @@ where
 
         self.repo.update_in_op(db, &mut disbursal).await?;
 
-        Ok(disbursal.id)
+        Ok(disbursal)
     }
 
     #[instrument(name = "core_credit.disbursals.find_by_id", skip(self), err)]

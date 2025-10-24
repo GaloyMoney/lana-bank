@@ -2,7 +2,8 @@ import {
   InterestInterval,
   Period,
   CreateCommitteeMutationResult,
-} from "../../lib/graphql/generated/index"
+  DisbursalPolicy,
+} from "../../lib/graphql/generated"
 import { DEFAULT_TERMS } from "../../lib/constants/terms"
 
 import { t } from "../support/translation"
@@ -33,6 +34,7 @@ describe("credit facility", () => {
       liquidationCvl: "110",
       marginCallCvl: "120",
       initialCvl: "140",
+      disbursalPolicy: DisbursalPolicy.MultipleDisbursal,
       duration: {
         units: 12 * 100,
         period: Period.Months,

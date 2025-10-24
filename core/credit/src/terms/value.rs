@@ -48,7 +48,7 @@ impl From<Decimal> for AnnualRatePct {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(transparent)]
 pub struct OneTimeFeeRatePct(Decimal);
@@ -222,6 +222,14 @@ impl InterestInterval {
     }
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+pub enum DisbursalPolicy {
+    SingleDisbursal,
+    MultipleDisbursal,
+}
+
 #[derive(Builder, Debug, Serialize, Deserialize, Clone, Copy)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[builder(build_fn(validate = "Self::validate", error = "TermsError"))]
@@ -248,9 +256,19 @@ pub struct TermValues {
     pub margin_call_cvl: CVLPct,
     #[builder(setter(into))]
     pub initial_cvl: CVLPct,
+    #[builder(setter(into))]
+    pub disbursal_policy: DisbursalPolicy,
 }
 
 impl TermValues {
+    pub fn is_single_disbursal(&self) -> bool {
+        matches!(self.disbursal_policy, DisbursalPolicy::SingleDisbursal)
+    }
+
+    pub fn has_one_time_fee(&self) -> bool {
+        self.one_time_fee_rate > OneTimeFeeRatePct::ZERO
+    }
+
     pub fn maturity_date(&self, start_date: DateTime<Utc>) -> EffectiveDate {
         self.duration.maturity_date(start_date)
     }
@@ -432,6 +450,7 @@ mod test {
             .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .accrual_interval(InterestInterval::EndOfDay)
             .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
+            .disbursal_policy(DisbursalPolicy::SingleDisbursal)
             .liquidation_cvl(dec!(105))
             .margin_call_cvl(dec!(125))
             .initial_cvl(dec!(140))
@@ -446,6 +465,7 @@ mod test {
             .duration(FacilityDuration::Months(3))
             .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
+            .disbursal_policy(DisbursalPolicy::SingleDisbursal)
             .liquidation_cvl(dec!(105))
             .margin_call_cvl(dec!(150))
             .initial_cvl(dec!(140))
@@ -467,6 +487,7 @@ mod test {
             .duration(FacilityDuration::Months(3))
             .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
+            .disbursal_policy(DisbursalPolicy::SingleDisbursal)
             .liquidation_cvl(dec!(130))
             .margin_call_cvl(dec!(125))
             .initial_cvl(dec!(140))
@@ -488,6 +509,7 @@ mod test {
             .duration(FacilityDuration::Months(3))
             .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
+            .disbursal_policy(DisbursalPolicy::SingleDisbursal)
             .liquidation_cvl(dec!(125))
             .margin_call_cvl(dec!(125))
             .initial_cvl(dec!(140))
@@ -659,6 +681,7 @@ mod test {
             .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .accrual_interval(InterestInterval::EndOfDay)
             .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
+            .disbursal_policy(DisbursalPolicy::SingleDisbursal)
             .liquidation_cvl(dec!(105))
             .margin_call_cvl(dec!(125))
             .initial_cvl(dec!(140))

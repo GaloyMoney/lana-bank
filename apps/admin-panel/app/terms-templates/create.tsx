@@ -17,10 +17,18 @@ import {
 import { Input } from "@lana/web/ui/input"
 import { Button } from "@lana/web/ui/button"
 import { Label } from "@lana/web/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@lana/web/ui/select"
 
 import {
   useCreateTermsTemplateMutation,
   TermsTemplateFieldsFragment,
+  DisbursalPolicy,
 } from "@/lib/graphql/generated"
 import { DEFAULT_TERMS } from "@/lib/constants/terms"
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
@@ -77,6 +85,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
     initialCvl: "",
     durationUnits: "",
     oneTimeFeeRate: "",
+    disbursalPolicy: DisbursalPolicy.MultipleDisbursal,
   })
   const [error, setError] = useState<string | null>(null)
 
@@ -90,6 +99,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
         initialCvl: getCvlValue(templateToDuplicate.values.initialCvl).toString(),
         durationUnits: templateToDuplicate.values.duration.units.toString(),
         oneTimeFeeRate: templateToDuplicate.values.oneTimeFeeRate.toString(),
+        disbursalPolicy: templateToDuplicate.values.disbursalPolicy,
       })
     }
   }, [templateToDuplicate, openCreateTermsTemplateDialog])
@@ -98,7 +108,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
     const { name, value } = e.target
     setFormValues((prevValues) => ({
       ...prevValues,
-      [name]: value,
+      [name]: name === "disbursalPolicy" ? (value as unknown as DisbursalPolicy) : value,
     }))
   }
 
@@ -134,6 +144,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
             marginCallCvl: formValues.marginCallCvl,
             initialCvl: formValues.initialCvl,
             oneTimeFeeRate: formValues.oneTimeFeeRate,
+            disbursalPolicy: formValues.disbursalPolicy,
           },
         },
         onCompleted: (data) => {
@@ -163,6 +174,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
       initialCvl: "",
       durationUnits: "",
       oneTimeFeeRate: "",
+      disbursalPolicy: DisbursalPolicy.MultipleDisbursal,
     })
     setError(null)
   }
@@ -251,6 +263,31 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                   disabled={isLoading}
                   data-testid="terms-template-one-time-fee-rate-input"
                 />
+              </div>
+              <div>
+                <Label htmlFor="disbursalPolicy">{t("fields.disbursalPolicy")}</Label>
+                <Select
+                  value={formValues.disbursalPolicy}
+                  onValueChange={(value) =>
+                    setFormValues((prev) => ({
+                      ...prev,
+                      disbursalPolicy: value as DisbursalPolicy,
+                    }))
+                  }
+                  disabled={isLoading}
+                >
+                  <SelectTrigger data-testid="terms-template-disbursal-policy-select">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={DisbursalPolicy.SingleDisbursal}>
+                      {t("fields.singleDisbursal")}
+                    </SelectItem>
+                    <SelectItem value={DisbursalPolicy.MultipleDisbursal}>
+                      {t("fields.multipleDisbursal")}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <div className="space-y-4">

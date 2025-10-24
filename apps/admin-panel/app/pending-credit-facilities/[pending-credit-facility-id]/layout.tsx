@@ -37,6 +37,7 @@ gql`
       accrualInterval
       accrualCycleInterval
       oneTimeFeeRate
+      disbursalPolicy
       duration {
         period
         units

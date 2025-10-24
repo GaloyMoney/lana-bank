@@ -60,6 +60,7 @@ gql`
         }
       }
       oneTimeFeeRate
+      disbursalPolicy
       duration {
         period
         units
