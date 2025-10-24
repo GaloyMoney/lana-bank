@@ -252,6 +252,8 @@
         pkgs.writeShellScriptBin "rebuild-nix-cache" ''
           set -euo pipefail
 
+          export PATH="${pkgs.curl}/bin:$PATH"
+
           echo "=== Nix Cache Rebuild Script ==="
 
           # Set defaults
