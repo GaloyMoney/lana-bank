@@ -36,6 +36,7 @@ impl CustodianRepo {
         Ok(custodians)
     }
 
+    #[tracing::instrument(name = "custodian.update_config_in_op", skip_all, err(level = "warn"))]
     pub async fn update_config_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
