@@ -101,3 +101,11 @@ pub struct CreditFacilityProposalCreateInput {
     pub custodian_id: Option<UUID>,
 }
 crate::mutation_payload! { CreditFacilityProposalCreatePayload, credit_facility_proposal: CreditFacilityProposal }
+
+#[derive(InputObject)]
+pub struct CreditFacilityProposalCustomerApprovalConcludeInput {
+    pub proposal_id: UUID,
+    pub approved: bool,
+}
+
+crate::mutation_payload! { CreditFacilityProposalCustomerApprovalConcludePayload, credit_facility_proposal: CreditFacilityProposal }
