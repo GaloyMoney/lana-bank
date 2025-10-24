@@ -37,7 +37,7 @@ digest = { version = "0.10", features = ["mac", "oid", "std"] }
 ecdsa = { version = "0.16", default-features = false, features = ["pem", "signing", "std", "verifying"] }
 either = { version = "1", features = ["serde", "use_std"] }
 elliptic-curve = { version = "0.13", default-features = false, features = ["digest", "hazmat", "pem", "std"] }
-es-entity = { version = "0.9", default-features = false, features = ["event-context", "graphql", "json-schema", "sim-time", "tracing-context"] }
+es-entity = { version = "0.10", default-features = false, features = ["event-context", "graphql", "instrument", "json-schema", "sim-time", "tracing-context"] }
 ff = { version = "0.13", default-features = false, features = ["alloc"] }
 fixedbitset = { version = "0.4" }
 form_urlencoded = { version = "1" }
@@ -116,7 +116,7 @@ chrono = { version = "0.4", features = ["serde"] }
 crypto-common = { version = "0.1", default-features = false, features = ["getrandom", "std"] }
 digest = { version = "0.10", features = ["mac", "oid", "std"] }
 either = { version = "1", features = ["serde", "use_std"] }
-es-entity-macros = { version = "0.9", default-features = false, features = ["event-context", "graphql"] }
+es-entity-macros = { version = "0.10", default-features = false, features = ["event-context", "graphql", "instrument"] }
 fixedbitset = { version = "0.4" }
 form_urlencoded = { version = "1" }
 futures-channel = { version = "0.3", features = ["sink"] }
