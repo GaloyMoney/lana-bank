@@ -35,6 +35,7 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
         self.record_entry(&subject, object, action, true).await
     }
 
+    #[tracing::instrument(name = "audit.record_entry", skip_all, err(level = "warn"))]
     async fn record_entry(
         &self,
         subject: &Self::Subject,
@@ -83,6 +84,7 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
             .await
     }
 
+    #[tracing::instrument(name = "audit.record_entry_in_tx", skip_all, err(level = "warn"))]
     async fn record_entry_in_tx(
         &self,
         op: &mut impl es_entity::AtomicOperation,
@@ -118,6 +120,7 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
         Ok(ret)
     }
 
+    #[tracing::instrument(name = "audit.list", skip_all, err(level = "warn"))]
     async fn list(
         &self,
         query: es_entity::PaginatedQueryArgs<AuditCursor>,
@@ -184,6 +187,7 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
         })
     }
 
+    #[tracing::instrument(name = "audit.find_all", skip_all, err(level = "warn"))]
     async fn find_all<T: From<AuditEntry<Self::Subject, Self::Object, Self::Action>>>(
         &self,
         ids: &[AuditEntryId],
