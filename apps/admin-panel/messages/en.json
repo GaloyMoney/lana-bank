@@ -541,7 +541,10 @@
           "months": "months",
           "marginCallCvl": "Margin Call CVL (%)",
           "liquidationCvl": "Liquidation CVL (%)",
-          "structuringFeeRate": "Structuring Fee Rate (%)"
+          "structuringFeeRate": "Structuring Fee Rate (%)",
+          "disbursalPolicy": "Disbursal Policy",
+          "singleDisbursal": "Single Disbursal",
+          "multipleDisbursal": "Multiple Disbursal"
         },
         "placeholders": {
           "facilityAmount": "Enter the facility amount",
@@ -552,7 +555,8 @@
           "duration": "Enter duration in months",
           "marginCallCvl": "Enter the margin call CVL",
           "liquidationCvl": "Enter the liquidation CVL",
-          "structuringFeeRate": "Enter the Structuring Fee Rate"
+          "structuringFeeRate": "Enter the Structuring Fee Rate",
+          "disbursalPolicy": "Select disbursal policy"
         },
         "buttons": {
           "create": "Create Credit Facility Proposal"
@@ -756,7 +760,10 @@
           "liquidationCvl": "Liquidation CVL %",
           "dateCreated": "Date created",
           "structuringFeeRate": "Structuring Fee Rate",
-          "effectiveRate": "Effective Rate"
+          "effectiveRate": "Effective Rate",
+          "disbursalPolicy": "Disbursal Policy",
+          "singleDisbursal": "Single Disbursal",
+          "multipleDisbursal": "Multiple Disbursal"
         }
       },
       "CollateralCard": {
@@ -1065,7 +1072,8 @@
           "initialCvl": "Initial CVL (%)",
           "marginCallCvl": "Margin Call CVL (%)",
           "liquidationCvl": "Liquidation CVL (%)",
-          "oneTimeFeeRate": "Structuring Fee Rate (%)"
+          "oneTimeFeeRate": "Structuring Fee Rate (%)",
+          "disbursalPolicy": "Disbursal Policy"
         },
         "buttons": {
           "update": "Update",
@@ -1082,7 +1090,10 @@
           "initialCvl": "Initial CVL (%)",
           "marginCallCvl": "Margin Call CVL (%)",
           "liquidationCvl": "Liquidation CVL (%)",
-          "oneTimeFeeRate": "Structuring Fee Rate (%)"
+          "oneTimeFeeRate": "Structuring Fee Rate (%)",
+          "disbursalPolicy": "Disbursal Policy",
+          "singleDisbursal": "Single Disbursal",
+          "multipleDisbursal": "Multiple Disbursal"
         },
         "placeholders": {
           "annualRate": "Enter the annual rate",
@@ -1090,7 +1101,8 @@
           "initialCvl": "Enter the initial CVL",
           "marginCallCvl": "Enter the margin call CVL",
           "liquidationCvl": "Enter the liquidation CVL",
-          "oneTimeFeeRate": "Enter the Structuring Fee Rate"
+          "oneTimeFeeRate": "Enter the Structuring Fee Rate",
+          "disbursalPolicy": "Select the disbursal policy"
         },
         "buttons": {
           "submit": "Update Terms Template"
@@ -1116,7 +1128,10 @@
           "initialCvl": "Initial CVL (%)",
           "marginCallCvl": "Margin Call CVL (%)",
           "liquidationCvl": "Liquidation CVL (%)",
-          "oneTimeFeeRate": "Structuring Fee Rate (%)"
+          "oneTimeFeeRate": "Structuring Fee Rate (%)",
+          "disbursalPolicy": "Disbursal Policy",
+          "singleDisbursal": "Single Disbursal",
+          "multipleDisbursal": "Multiple Disbursal"
         },
         "placeholders": {
           "name": "Enter the template name",
@@ -1125,7 +1140,8 @@
           "initialCvl": "Enter the initial CVL",
           "marginCallCvl": "Enter the margin call CVL",
           "liquidationCvl": "Enter the liquidation CVL",
-          "oneTimeFeeRate": "Enter the Structuring Fee Rate"
+          "oneTimeFeeRate": "Enter the Structuring Fee Rate",
+          "disbursalPolicy": "Select the disbursal policy"
         },
         "buttons": {
           "submit": "Create Terms Template"

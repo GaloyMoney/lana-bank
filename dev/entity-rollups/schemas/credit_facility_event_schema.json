@@ -401,6 +401,13 @@
         "public_id": {
           "type": "string"
         },
+        "structuring_fee_tx_id": {
+          "format": "uuid",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "terms": {
           "$ref": "#/$defs/TermValues"
         },

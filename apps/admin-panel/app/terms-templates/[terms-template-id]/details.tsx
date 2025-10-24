@@ -28,6 +28,11 @@ const TermsTemplateDetailsCard: React.FC<TermsTemplateDetailsProps> = ({
   const [openCreateTermsTemplateDialog, setOpenCreateTermsTemplateDialog] =
     useState(false)
 
+  const disbursalPolicyLabel =
+    termsTemplate.values.disbursalPolicy === "SINGLE_DISBURSAL"
+      ? t("fields.singleDisbursal")
+      : t("fields.multipleDisbursal")
+
   const details: DetailItemProps[] = [
     { label: t("fields.name"), value: termsTemplate.name },
     { label: t("fields.createdAt"), value: formatDate(termsTemplate.createdAt) },
@@ -59,6 +64,10 @@ const TermsTemplateDetailsCard: React.FC<TermsTemplateDetailsProps> = ({
     {
       label: t("fields.oneTimeFeeRate"),
       value: `${termsTemplate.values.oneTimeFeeRate}%`,
+    },
+    {
+      label: t("fields.disbursalPolicy"),
+      value: disbursalPolicyLabel,
     },
   ]
 
