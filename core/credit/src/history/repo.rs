@@ -20,6 +20,11 @@ impl HistoryRepo {
         Ok(self.pool.begin().await?)
     }
 
+    #[tracing::instrument(
+        name = "credit_facility_history.persist_in_tx",
+        skip_all,
+        err(level = "warn")
+    )]
     pub async fn persist_in_tx(
         &self,
         tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
@@ -42,6 +47,7 @@ impl HistoryRepo {
         Ok(())
     }
 
+    #[tracing::instrument(name = "credit_facility_history.load", skip_all, err(level = "warn"))]
     pub async fn load(
         &self,
         credit_facility_proposal_id: impl Into<CreditFacilityId>,
