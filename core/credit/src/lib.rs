@@ -561,7 +561,6 @@ where
             .id(proposal_id)
             .customer_id(customer_id)
             .customer_type(customer.customer_type)
-            .approval_process_id(proposal_id)
             .custodian_id(custodian_id.map(|id| id.into()))
             .disbursal_credit_account_id(disbursal_credit_account_id.into())
             .terms(terms)

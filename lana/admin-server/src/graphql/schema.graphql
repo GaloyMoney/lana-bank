@@ -642,7 +642,7 @@ type CreditFacilityPaymentAllocation {
 type CreditFacilityProposal {
 	id: ID!
 	creditFacilityProposalId: UUID!
-	approvalProcessId: UUID!
+	approvalProcessId: UUID
 	status: CreditFacilityProposalStatus!
 	createdAt: Timestamp!
 	facilityAmount: UsdCents!
@@ -650,7 +650,7 @@ type CreditFacilityProposal {
 	custodian: Custodian
 	customer: Customer!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
-	approvalProcess: ApprovalProcess!
+	approvalProcess: ApprovalProcess
 }
 
 type CreditFacilityProposalConnection {

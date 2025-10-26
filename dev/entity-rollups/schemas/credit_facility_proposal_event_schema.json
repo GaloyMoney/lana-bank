@@ -215,10 +215,6 @@
         "amount": {
           "$ref": "#/$defs/UsdCents"
         },
-        "approval_process_id": {
-          "format": "uuid",
-          "type": "string"
-        },
         "custodian_id": {
           "format": "uuid",
           "type": [
@@ -257,7 +253,6 @@
         "id",
         "customer_id",
         "customer_type",
-        "approval_process_id",
         "disbursal_credit_account_id",
         "terms",
         "amount",

@@ -23,7 +23,6 @@ pub enum CreditFacilityProposalEvent {
         customer_id: CustomerId,
         customer_type: CustomerType,
         custodian_id: Option<CustodianId>,
-        approval_process_id: ApprovalProcessId,
         disbursal_credit_account_id: CalaAccountId,
         terms: TermValues,
         amount: UsdCents,
@@ -45,7 +44,8 @@ pub struct CreditFacilityProposal {
     pub customer_id: CustomerId,
     pub customer_type: CustomerType,
     pub custodian_id: Option<CustodianId>,
-    pub approval_process_id: ApprovalProcessId,
+    #[builder(setter(strip_option), default)]
+    pub approval_process_id: Option<ApprovalProcessId>,
     pub disbursal_credit_account_id: CalaAccountId,
     pub amount: UsdCents,
     pub terms: TermValues,
@@ -107,6 +107,7 @@ impl CreditFacilityProposal {
                 approval_process_id: self.id.into(),
                 status,
             });
+        self.approval_process_id = Some(self.id.into());
 
         if approved {
             let new_pending_facility = NewPendingCreditFacilityBuilder::default()
@@ -114,7 +115,10 @@ impl CreditFacilityProposal {
                 .credit_facility_proposal_id(self.id)
                 .customer_id(self.customer_id)
                 .customer_type(self.customer_type)
-                .approval_process_id(self.approval_process_id)
+                .approval_process_id(
+                    self.approval_process_id
+                        .expect("approval process id not set"),
+                )
                 .ledger_tx_id(LedgerTxId::new())
                 .account_ids(crate::PendingCreditFacilityAccountIds::new())
                 .disbursal_credit_account_id(self.disbursal_credit_account_id)
@@ -156,7 +160,6 @@ impl TryFromEvents<CreditFacilityProposalEvent> for CreditFacilityProposal {
                     customer_id,
                     customer_type,
                     custodian_id,
-                    approval_process_id,
                     disbursal_credit_account_id,
                     terms,
                     amount,
@@ -167,13 +170,15 @@ impl TryFromEvents<CreditFacilityProposalEvent> for CreditFacilityProposal {
                         .customer_id(*customer_id)
                         .customer_type(*customer_type)
                         .custodian_id(*custodian_id)
-                        .approval_process_id(*approval_process_id)
                         .disbursal_credit_account_id(*disbursal_credit_account_id)
                         .terms(*terms)
                         .amount(*amount);
                 }
                 CreditFacilityProposalEvent::CustomerApprovalConcluded { .. } => {}
-                CreditFacilityProposalEvent::ApprovalProcessConcluded { .. } => {}
+                CreditFacilityProposalEvent::ApprovalProcessConcluded {
+                    approval_process_id,
+                    ..
+                } => builder = builder.approval_process_id(*approval_process_id),
             }
         }
         builder.events(events).build()
@@ -189,8 +194,6 @@ pub struct NewCreditFacilityProposal {
     pub(super) customer_type: CustomerType,
     #[builder(setter(into), default)]
     pub(super) custodian_id: Option<CustodianId>,
-    #[builder(setter(into))]
-    pub(super) approval_process_id: ApprovalProcessId,
     #[builder(setter(into))]
     pub(super) disbursal_credit_account_id: CalaAccountId,
     terms: TermValues,
@@ -212,7 +215,6 @@ impl IntoEvents<CreditFacilityProposalEvent> for NewCreditFacilityProposal {
                 customer_id: self.customer_id,
                 customer_type: self.customer_type,
                 custodian_id: self.custodian_id,
-                approval_process_id: self.approval_process_id,
                 disbursal_credit_account_id: self.disbursal_credit_account_id,
                 terms: self.terms,
                 amount: self.amount,
