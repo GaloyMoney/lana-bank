@@ -83,6 +83,7 @@ BEGIN
       new_row.status := (NEW.event ->> 'status');
       new_row.terms := (NEW.event -> 'terms');
     WHEN 'customer_approval_concluded' THEN
+      new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
       new_row.status := (NEW.event ->> 'status');
     WHEN 'approval_process_concluded' THEN
       new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;

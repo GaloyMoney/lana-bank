@@ -30,6 +30,7 @@ pub enum CreditFacilityProposalEvent {
     },
     CustomerApprovalConcluded {
         status: CreditFacilityProposalStatus,
+        approval_process_id: Option<ApprovalProcessId>,
     },
     ApprovalProcessConcluded {
         approval_process_id: ApprovalProcessId,
@@ -44,7 +45,6 @@ pub struct CreditFacilityProposal {
     pub customer_id: CustomerId,
     pub customer_type: CustomerType,
     pub custodian_id: Option<CustodianId>,
-    #[builder(setter(strip_option), default)]
     pub approval_process_id: Option<ApprovalProcessId>,
     pub disbursal_credit_account_id: CalaAccountId,
     pub amount: UsdCents,
@@ -81,8 +81,15 @@ impl CreditFacilityProposal {
             CreditFacilityProposalStatus::CustomerDenied
         };
 
+        let approval_process_id = if approved { Some(self.id.into()) } else { None };
+
         self.events
-            .push(CreditFacilityProposalEvent::CustomerApprovalConcluded { status });
+            .push(CreditFacilityProposalEvent::CustomerApprovalConcluded {
+                status,
+                approval_process_id,
+            });
+
+        self.approval_process_id = approval_process_id;
 
         Idempotent::Executed(())
     }
@@ -96,6 +103,10 @@ impl CreditFacilityProposal {
             CreditFacilityProposalEvent::ApprovalProcessConcluded { .. }
         );
 
+        let approval_process_id = self
+            .approval_process_id
+            .expect("approval process id not set");
+
         let status = if approved {
             CreditFacilityProposalStatus::Approved
         } else {
@@ -104,21 +115,16 @@ impl CreditFacilityProposal {
 
         self.events
             .push(CreditFacilityProposalEvent::ApprovalProcessConcluded {
-                approval_process_id: self.id.into(),
+                approval_process_id: approval_process_id,
                 status,
             });
-        self.approval_process_id = Some(self.id.into());
-
         if approved {
             let new_pending_facility = NewPendingCreditFacilityBuilder::default()
                 .id(self.id)
                 .credit_facility_proposal_id(self.id)
                 .customer_id(self.customer_id)
                 .customer_type(self.customer_type)
-                .approval_process_id(
-                    self.approval_process_id
-                        .expect("approval process id not set"),
-                )
+                .approval_process_id(approval_process_id)
                 .ledger_tx_id(LedgerTxId::new())
                 .account_ids(crate::PendingCreditFacilityAccountIds::new())
                 .disbursal_credit_account_id(self.disbursal_credit_account_id)
@@ -174,11 +180,11 @@ impl TryFromEvents<CreditFacilityProposalEvent> for CreditFacilityProposal {
                         .terms(*terms)
                         .amount(*amount);
                 }
-                CreditFacilityProposalEvent::CustomerApprovalConcluded { .. } => {}
-                CreditFacilityProposalEvent::ApprovalProcessConcluded {
+                CreditFacilityProposalEvent::CustomerApprovalConcluded {
                     approval_process_id,
                     ..
                 } => builder = builder.approval_process_id(*approval_process_id),
+                CreditFacilityProposalEvent::ApprovalProcessConcluded { .. } => {}
             }
         }
         builder.events(events).build()

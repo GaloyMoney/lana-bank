@@ -262,6 +262,13 @@
     },
     {
       "properties": {
+        "approval_process_id": {
+          "format": "uuid",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "status": {
           "$ref": "#/$defs/CreditFacilityProposalStatus"
         },
