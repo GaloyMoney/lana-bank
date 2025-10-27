@@ -169,6 +169,19 @@ ymd() {
   [[ "$credit_facility_proposal_id" != "null" ]] || exit 1
 
   cache_value 'credit_facility_proposal_id' "$credit_facility_proposal_id"
+
+    variables=$(
+     jq -n \
+      --arg creditFacilityProposalId "$credit_facility_proposal_id" \
+    '{
+      input: {
+        creditFacilityProposalId: $creditFacilityProposalId,
+        approved: true
+      }
+    }'
+  )
+
+  exec_admin_graphql 'credit-facility-proposal-customer-approval-conclude' "$variables"
 }
 
 @test "pending-credit-facility: can update collateral" {

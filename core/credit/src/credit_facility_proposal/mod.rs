@@ -130,7 +130,6 @@ where
 
         let result = match proposal.conclude_customer_approval(approved) {
             es_entity::Idempotent::Executed(_) => {
-                self.repo.update_in_op(&mut db, &mut proposal).await?;
                 if approved {
                     self.governance
                         .start_process(
@@ -141,6 +140,7 @@ where
                         )
                         .await?;
                 }
+                self.repo.update_in_op(&mut db, &mut proposal).await?;
                 Ok(proposal)
             }
             es_entity::Idempotent::Ignored => Ok(proposal),

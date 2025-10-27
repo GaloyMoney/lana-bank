@@ -1700,7 +1700,7 @@ impl Mutation {
     ) -> async_graphql::Result<CreditFacilityProposalCustomerApprovalConcludePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let CreditFacilityProposalCustomerApprovalConcludeInput {
-            proposal_id,
+            credit_facility_proposal_id,
             approved,
         } = input;
 
@@ -1708,11 +1708,14 @@ impl Mutation {
             CreditFacilityProposalCustomerApprovalConcludePayload,
             CreditFacilityProposal,
             ctx,
-            app.credit()
-                .proposals()
-                .conclude_customer_approval(sub, proposal_id, approved)
+            app.credit().proposals().conclude_customer_approval(
+                sub,
+                credit_facility_proposal_id,
+                approved
+            )
         )
     }
+
     pub async fn credit_facility_collateral_update(
         &self,
         ctx: &Context<'_>,

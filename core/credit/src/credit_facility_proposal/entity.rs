@@ -116,7 +116,7 @@ impl CreditFacilityProposal {
 
         self.events
             .push(CreditFacilityProposalEvent::ApprovalProcessConcluded {
-                approval_process_id: approval_process_id,
+                approval_process_id,
                 status,
             });
         if approved {

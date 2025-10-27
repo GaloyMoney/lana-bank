@@ -968,7 +968,7 @@ export const mockCreditFacilityProposalCustomerApprovalConcludeInput = (override
     relationshipsToOmit.add('CreditFacilityProposalCustomerApprovalConcludeInput');
     return {
         approved: overrides && overrides.hasOwnProperty('approved') ? overrides.approved! : faker.datatype.boolean(),
-        proposalId: overrides && overrides.hasOwnProperty('proposalId') ? overrides.proposalId! : generateMockValue.uuid(),
+        creditFacilityProposalId: overrides && overrides.hasOwnProperty('creditFacilityProposalId') ? overrides.creditFacilityProposalId! : generateMockValue.uuid(),
     };
 };
 

@@ -1,0 +1,9 @@
+mutation CreditFacilityProposalCustomerApprovalConclude(
+  $input: CreditFacilityProposalCustomerApprovalConcludeInput!
+) {
+  creditFacilityProposalCustomerApprovalConclude(input: $input) {
+    creditFacilityProposal {
+      creditFacilityProposalId
+    }
+  }
+}

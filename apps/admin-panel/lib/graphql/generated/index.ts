@@ -709,7 +709,7 @@ export type CreditFacilityProposalCreatePayload = {
 
 export type CreditFacilityProposalCustomerApprovalConcludeInput = {
   approved: Scalars['Boolean']['input'];
-  proposalId: Scalars['UUID']['input'];
+  creditFacilityProposalId: Scalars['UUID']['input'];
 };
 
 export type CreditFacilityProposalCustomerApprovalConcludePayload = {

@@ -110,7 +110,7 @@ crate::mutation_payload! { CreditFacilityProposalCreatePayload, credit_facility_
 
 #[derive(InputObject)]
 pub struct CreditFacilityProposalCustomerApprovalConcludeInput {
-    pub proposal_id: UUID,
+    pub credit_facility_proposal_id: UUID,
     pub approved: bool,
 }
 

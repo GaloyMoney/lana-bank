@@ -681,7 +681,7 @@ type CreditFacilityProposalCreatePayload {
 }
 
 input CreditFacilityProposalCustomerApprovalConcludeInput {
-	proposalId: UUID!
+	creditFacilityProposalId: UUID!
 	approved: Boolean!
 }
 
