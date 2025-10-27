@@ -8,7 +8,7 @@ use cala_ledger::{
 
 use crate::{ledger::error::*, primitives::CalaAccountId};
 
-pub const ADD_STRUCTURING_FEE_CODE: &str = "ADD_STRUCTURING_FEE_CODE";
+pub const ADD_STRUCTURING_FEE_CODE: &str = "ADD_STRUCTURING_FEE";
 
 #[derive(Debug)]
 pub struct AddStructuringFeeParams {
