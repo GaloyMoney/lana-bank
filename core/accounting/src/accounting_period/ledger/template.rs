@@ -9,7 +9,7 @@ use cala_ledger::{
     *,
 };
 
-use crate::accounting_period::closing::AccountClosingEntry;
+use crate::accounting_period::closing::ClosingAccountEntry;
 
 #[derive(Debug, Builder)]
 pub struct EntryParams {
@@ -20,8 +20,8 @@ pub struct EntryParams {
     pub direction: DebitOrCredit,
 }
 
-impl From<AccountClosingEntry> for EntryParams {
-    fn from(spec: AccountClosingEntry) -> Self {
+impl From<ClosingAccountEntry> for EntryParams {
+    fn from(spec: ClosingAccountEntry) -> Self {
         EntryParams::builder()
             .account_id(spec.account_id.into())
             .amount(spec.amount)
@@ -112,7 +112,7 @@ pub struct ClosingTransactionParams {
     pub journal_id: JournalId,
     pub description: String,
     pub effective: chrono::NaiveDate,
-    pub closing_entries: Vec<AccountClosingEntry>,
+    pub closing_entries: Vec<ClosingAccountEntry>,
 }
 
 impl From<ClosingTransactionParams> for Params {
@@ -135,7 +135,7 @@ impl ClosingTransactionParams {
         journal_id: JournalId,
         description: Option<String>,
         effective: NaiveDate,
-        closing_entries: Vec<AccountClosingEntry>,
+        closing_entries: Vec<ClosingAccountEntry>,
     ) -> ClosingTransactionParams {
         Self {
             journal_id,

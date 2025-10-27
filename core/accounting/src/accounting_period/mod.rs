@@ -219,13 +219,7 @@ where
                 }
 
                 self.ledger
-                    .close_year_in_op(
-                        db,
-                        ledger_tx_id,
-                        description,
-                        closed_at.date_naive(),
-                        open_annual_period,
-                    )
+                    .close_year_in_op(db, ledger_tx_id, description, open_annual_period)
                     .await?;
                 Ok(new_period)
             }

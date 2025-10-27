@@ -12,7 +12,7 @@ use template::*;
 use super::{
     AccountingPeriod,
     chart_of_accounts_integration::ChartOfAccountsIntegrationConfig,
-    closing::{AccountClosingEntry, ClosingAccountBalances},
+    closing::{ClosingAccountBalances, ClosingAccountEntry},
     error::AccountingPeriodError,
 };
 use crate::primitives::{CHART_OF_ACCOUNTS_ENTITY_TYPE, CalaTxId, EntityRef, LedgerAccountId};
@@ -23,6 +23,17 @@ use cala_ledger::{
     account_set::{AccountSetMemberId, AccountSetUpdate},
 };
 use closing::*;
+
+/// Collection of account set ID's relevant for an accounting period.
+#[derive(Serialize, Deserialize, Clone, Debug, Copy)]
+pub struct AccountingPeriodAccountSetIds {
+    pub tracking_account_set_id: AccountSetId,
+    pub revenue_account_set_id: AccountSetId,
+    pub cost_of_revenue_account_set_id: AccountSetId,
+    pub expenses_account_set_id: AccountSetId,
+    pub equity_retained_earnings_account_set_id: AccountSetId,
+    pub equity_retained_losses_account_set_id: AccountSetId,
+}
 
 #[derive(Clone)]
 pub struct AccountingPeriodLedger {
@@ -45,21 +56,14 @@ impl AccountingPeriodLedger {
         db: es_entity::DbOp<'_>,
         ledger_tx_id: CalaTxId,
         description: Option<String>,
-        effective: NaiveDate,
         accounting_period: AccountingPeriod,
     ) -> Result<(), AccountingPeriodError> {
         let mut db = self
             .cala
             .ledger_operation_from_db_op(db.with_db_time().await?);
 
-        self.post_closing_transaction_in_op(
-            &mut db,
-            ledger_tx_id,
-            description,
-            effective,
-            &accounting_period,
-        )
-        .await?;
+        self.post_closing_transaction_in_op(&mut db, ledger_tx_id, description, &accounting_period)
+            .await?;
 
         self.update_close_metadata_in_ledger_op(
             &mut db,
@@ -78,7 +82,6 @@ impl AccountingPeriodLedger {
         db: &mut LedgerOperation<'_>,
         ledger_tx_id: CalaTxId,
         description: Option<String>,
-        effective: NaiveDate,
         accounting_period: &AccountingPeriod,
     ) -> Result<(), AccountingPeriodError> {
         let (net_income, mut closing_entries) = self
@@ -94,7 +97,7 @@ impl AccountingPeriodLedger {
         let closing_transaction_params = ClosingTransactionParams::new(
             self.journal_id,
             description.clone(),
-            effective,
+            accounting_period.period_end(),
             closing_entries,
         );
 
@@ -257,7 +260,7 @@ impl AccountingPeriodLedger {
         op: &mut LedgerOperation<'_>,
         net_earnings: Decimal,
         account_set_ids: AccountingPeriodAccountSetIds,
-    ) -> Result<AccountClosingEntry, AccountingPeriodError> {
+    ) -> Result<ClosingAccountEntry, AccountingPeriodError> {
         // TODO: Where to source the `reference`, `name` and/or (account) `description` params from?
         let (direction, parent_account_set, reference) = if net_earnings >= Decimal::ZERO {
             (
@@ -287,7 +290,7 @@ impl AccountingPeriodLedger {
             )
             .await?;
         let ledger_account_id = LedgerAccountId::from(account_id);
-        Ok(AccountClosingEntry {
+        Ok(ClosingAccountEntry {
             account_id: ledger_account_id,
             currency: Currency::USD,
             amount: net_earnings.abs(),
@@ -417,14 +420,4 @@ pub struct ChartOfAccountsIntegrationMeta {
     pub expenses_child_account_set_id_from_chart: AccountSetId,
     pub equity_retained_earnings_child_account_set_id_from_chart: AccountSetId,
     pub equity_retained_losses_child_account_set_id_from_chart: AccountSetId,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, Copy)]
-pub struct AccountingPeriodAccountSetIds {
-    pub tracking_account_set_id: AccountSetId,
-    pub revenue_account_set_id: AccountSetId,
-    pub cost_of_revenue_account_set_id: AccountSetId,
-    pub expenses_account_set_id: AccountSetId,
-    pub equity_retained_earnings_account_set_id: AccountSetId,
-    pub equity_retained_losses_account_set_id: AccountSetId,
 }

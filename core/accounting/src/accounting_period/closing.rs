@@ -8,7 +8,7 @@ use rust_decimal::Decimal;
 use crate::LedgerAccountId;
 
 #[derive(Debug, Clone)]
-pub struct AccountClosingEntry {
+pub struct ClosingAccountEntry {
     pub account_id: LedgerAccountId,
     pub amount: Decimal,
     pub currency: CalaCurrency,
@@ -16,7 +16,7 @@ pub struct AccountClosingEntry {
     pub direction: DebitOrCredit,
 }
 
-impl AccountClosingEntry {
+impl ClosingAccountEntry {
     pub fn new(
         account_id: LedgerAccountId,
         amount: Decimal,
@@ -46,11 +46,11 @@ impl ClosingAccountBalances {
     /// underlying accounts that is valid at any time during the
     /// closing grace period. Notably, this does not create the equity
     /// closing entry.
-    pub fn into_closing_entries(&self) -> (Decimal, Vec<AccountClosingEntry>) {
-        let (revenue_balance, mut revenue) = Self::create_account_closing_summary(&self.revenue);
+    pub fn into_closing_entries(&self) -> (Decimal, Vec<ClosingAccountEntry>) {
+        let (revenue_balance, mut revenue) = Self::create_closing_account_entries(&self.revenue);
         let (cost_of_revenue_balance, mut cost_of_revenue) =
-            Self::create_account_closing_summary(&self.cost_of_revenue);
-        let (expenses_balance, mut expenses) = Self::create_account_closing_summary(&self.expenses);
+            Self::create_closing_account_entries(&self.cost_of_revenue);
+        let (expenses_balance, mut expenses) = Self::create_closing_account_entries(&self.expenses);
 
         let net_income = revenue_balance - cost_of_revenue_balance - expenses_balance;
 
@@ -62,11 +62,12 @@ impl ClosingAccountBalances {
         (net_income, entries)
     }
 
-    fn create_account_closing_summary(
+    fn create_closing_account_entries(
         balances: &HashMap<BalanceId, CalaBalanceRange>,
-    ) -> (Decimal, Vec<AccountClosingEntry>) {
-        let mut net_balance: Decimal = Decimal::from(0);
+    ) -> (Decimal, Vec<ClosingAccountEntry>) {
+        let mut net_balance: Decimal = Decimal::ZERO;
         let mut closing_entries = Vec::new();
+
         for ((_, account_id, currency), balance) in balances {
             let amount = balance.close.settled().abs();
             net_balance += amount;
@@ -76,7 +77,7 @@ impl ClosingAccountBalances {
                 DebitOrCredit::Debit
             };
 
-            closing_entries.push(AccountClosingEntry::new(
+            closing_entries.push(ClosingAccountEntry::new(
                 (*account_id).into(),
                 amount,
                 *currency,
