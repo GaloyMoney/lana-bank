@@ -1,56 +1,14 @@
 use std::collections::HashMap;
 
 use cala_ledger::{
-    AccountId as CalaAccountId, Currency as CalaCurrency, DebitOrCredit,
-    JournalId as CalaJournalId, balance::BalanceRange as CalaBalanceRange,
+    BalanceId, Currency as CalaCurrency, DebitOrCredit, balance::BalanceRange as CalaBalanceRange,
 };
 use rust_decimal::Decimal;
 
 use crate::LedgerAccountId;
 
 #[derive(Debug, Clone)]
-pub struct ProfitAndLossClosingSpec {
-    revenue: ProfitAndLossClosingCategory,
-    cost_of_revenue: ProfitAndLossClosingCategory,
-    expenses: ProfitAndLossClosingCategory,
-}
-
-impl ProfitAndLossClosingSpec {
-    pub fn new(
-        revenue: ProfitAndLossClosingCategory,
-        cost_of_revenue: ProfitAndLossClosingCategory,
-        expenses: ProfitAndLossClosingCategory,
-    ) -> Self {
-        Self {
-            revenue,
-            cost_of_revenue,
-            expenses,
-        }
-    }
-    pub(super) fn net_income(&self) -> Decimal {
-        self.revenue.net_category_balance
-            - self.cost_of_revenue.net_category_balance
-            - self.expenses.net_category_balance
-    }
-
-    pub(super) fn take_profit_and_loss_entries(&mut self) -> Vec<ClosingTxEntrySpec> {
-        let mut tx_entries = Vec::new();
-        tx_entries.append(&mut self.revenue.closing_entries);
-        tx_entries.append(&mut self.expenses.closing_entries);
-        tx_entries.append(&mut self.cost_of_revenue.closing_entries);
-
-        tx_entries
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct ProfitAndLossClosingCategory {
-    pub net_category_balance: Decimal,
-    pub closing_entries: Vec<ClosingTxEntrySpec>,
-}
-
-#[derive(Debug, Clone)]
-pub struct ClosingTxEntrySpec {
+pub struct AccountClosingEntry {
     pub account_id: LedgerAccountId,
     pub amount: Decimal,
     pub currency: CalaCurrency,
@@ -58,7 +16,7 @@ pub struct ClosingTxEntrySpec {
     pub direction: DebitOrCredit,
 }
 
-impl ClosingTxEntrySpec {
+impl AccountClosingEntry {
     pub fn new(
         account_id: LedgerAccountId,
         amount: Decimal,
@@ -78,7 +36,55 @@ impl ClosingTxEntrySpec {
 
 #[derive(Debug, Clone)]
 pub struct ClosingAccountBalances {
-    pub revenue: HashMap<(CalaJournalId, CalaAccountId, CalaCurrency), CalaBalanceRange>,
-    pub cost_of_revenue: HashMap<(CalaJournalId, CalaAccountId, CalaCurrency), CalaBalanceRange>,
-    pub expenses: HashMap<(CalaJournalId, CalaAccountId, CalaCurrency), CalaBalanceRange>,
+    pub revenue: HashMap<BalanceId, CalaBalanceRange>,
+    pub cost_of_revenue: HashMap<BalanceId, CalaBalanceRange>,
+    pub expenses: HashMap<BalanceId, CalaBalanceRange>,
+}
+
+impl ClosingAccountBalances {
+    /// Creates closing entries for the `ProfitAndLossStatement`
+    /// underlying accounts that is valid at any time during the
+    /// closing grace period. Notably, this does not create the equity
+    /// closing entry.
+    pub fn into_closing_entries(&self) -> (Decimal, Vec<AccountClosingEntry>) {
+        let (revenue_balance, mut revenue) = Self::create_account_closing_summary(&self.revenue);
+        let (cost_of_revenue_balance, mut cost_of_revenue) =
+            Self::create_account_closing_summary(&self.cost_of_revenue);
+        let (expenses_balance, mut expenses) = Self::create_account_closing_summary(&self.expenses);
+
+        let net_income = revenue_balance - cost_of_revenue_balance - expenses_balance;
+
+        let mut entries = Vec::new();
+        entries.append(&mut revenue);
+        entries.append(&mut expenses);
+        entries.append(&mut cost_of_revenue);
+
+        (net_income, entries)
+    }
+
+    fn create_account_closing_summary(
+        balances: &HashMap<BalanceId, CalaBalanceRange>,
+    ) -> (Decimal, Vec<AccountClosingEntry>) {
+        let mut net_balance: Decimal = Decimal::from(0);
+        let mut closing_entries = Vec::new();
+        for ((_, account_id, currency), balance) in balances {
+            let amount = balance.close.settled().abs();
+            net_balance += amount;
+            let direction = if balance.close.balance_type == DebitOrCredit::Debit {
+                DebitOrCredit::Credit
+            } else {
+                DebitOrCredit::Debit
+            };
+
+            closing_entries.push(AccountClosingEntry::new(
+                (*account_id).into(),
+                amount,
+                *currency,
+                "Annual Close Offset".to_string(),
+                direction,
+            ));
+        }
+
+        (net_balance, closing_entries)
+    }
 }

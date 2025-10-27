@@ -9,7 +9,7 @@ use cala_ledger::{
     *,
 };
 
-use crate::accounting_period::closing::ClosingTxEntrySpec;
+use crate::accounting_period::closing::AccountClosingEntry;
 
 #[derive(Debug, Builder)]
 pub struct EntryParams {
@@ -20,8 +20,8 @@ pub struct EntryParams {
     pub direction: DebitOrCredit,
 }
 
-impl From<ClosingTxEntrySpec> for EntryParams {
-    fn from(spec: ClosingTxEntrySpec) -> Self {
+impl From<AccountClosingEntry> for EntryParams {
+    fn from(spec: AccountClosingEntry) -> Self {
         EntryParams::builder()
             .account_id(spec.account_id.into())
             .amount(spec.amount)
@@ -112,7 +112,7 @@ pub struct ClosingTransactionParams {
     pub journal_id: JournalId,
     pub description: String,
     pub effective: chrono::NaiveDate,
-    pub entry_params: Vec<EntryParams>,
+    pub closing_entries: Vec<AccountClosingEntry>,
 }
 
 impl From<ClosingTransactionParams> for Params {
@@ -122,8 +122,8 @@ impl From<ClosingTransactionParams> for Params {
         params.insert("description", input_params.description);
         params.insert("effective", input_params.effective);
 
-        for (n, entry) in input_params.entry_params.iter().enumerate() {
-            entry.populate_params(&mut params, n);
+        for (n, entry) in input_params.closing_entries.into_iter().enumerate() {
+            EntryParams::from(entry).populate_params(&mut params, n);
         }
 
         params
@@ -135,19 +135,16 @@ impl ClosingTransactionParams {
         journal_id: JournalId,
         description: Option<String>,
         effective: NaiveDate,
-        profit_and_loss_closing_entries: Vec<EntryParams>,
+        closing_entries: Vec<AccountClosingEntry>,
     ) -> ClosingTransactionParams {
         Self {
             journal_id,
             description: description.unwrap_or("Closing Entry".to_string()),
             effective,
-            entry_params: profit_and_loss_closing_entries,
+            closing_entries,
         }
     }
 
-    pub fn add_equity_entry(&mut self, equity_entry: EntryParams) {
-        self.entry_params.push(equity_entry);
-    }
     pub fn defs(n: usize) -> Vec<NewParamDefinition> {
         let mut params = vec![
             NewParamDefinition::builder()

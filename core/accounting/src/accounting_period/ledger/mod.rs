@@ -5,18 +5,14 @@ use audit::AuditInfo;
 use chrono::NaiveDate;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
+pub use template::ClosingTransactionParams;
 use template::*;
-pub use template::{ClosingTransactionParams, EntryParams};
 
 use super::{
     AccountingPeriod,
     chart_of_accounts_integration::ChartOfAccountsIntegrationConfig,
-    closing::{
-        ClosingAccountBalances, ClosingTxEntrySpec, ProfitAndLossClosingCategory,
-        ProfitAndLossClosingSpec,
-    },
+    closing::{AccountClosingEntry, ClosingAccountBalances},
     error::AccountingPeriodError,
 };
 use crate::primitives::{CHART_OF_ACCOUNTS_ENTITY_TYPE, CalaTxId, EntityRef, LedgerAccountId};
@@ -25,7 +21,6 @@ use cala_ledger::{
     LedgerOperation,
     account::NewAccount,
     account_set::{AccountSetMemberId, AccountSetUpdate},
-    balance::BalanceRange,
 };
 use closing::*;
 
@@ -53,10 +48,6 @@ impl AccountingPeriodLedger {
         effective: NaiveDate,
         accounting_period: AccountingPeriod,
     ) -> Result<(), AccountingPeriodError> {
-        let period_end_balances = self
-            .get_profit_and_loss_statement_period_end_balances(&accounting_period)
-            .await?;
-
         let mut db = self
             .cala
             .ledger_operation_from_db_op(db.with_db_time().await?);
@@ -66,8 +57,7 @@ impl AccountingPeriodLedger {
             ledger_tx_id,
             description,
             effective,
-            period_end_balances,
-            accounting_period.account_set_ids,
+            &accounting_period,
         )
         .await?;
 
@@ -83,47 +73,47 @@ impl AccountingPeriodLedger {
         Ok(())
     }
 
-    pub async fn post_closing_transaction_in_op(
+    async fn post_closing_transaction_in_op(
         &self,
         db: &mut LedgerOperation<'_>,
         ledger_tx_id: CalaTxId,
         description: Option<String>,
         effective: NaiveDate,
-        period_end_balances: ClosingAccountBalances,
-        account_set_ids: AccountingPeriodAccountSetIds,
-    ) -> Result<LedgerAccountId, AccountingPeriodError> {
-        let mut profit_and_loss_closing_spec =
-            self.create_profit_and_loss_closing_entries(description.clone(), period_end_balances);
+        accounting_period: &AccountingPeriod,
+    ) -> Result<(), AccountingPeriodError> {
+        let (net_income, mut closing_entries) = self
+            .get_closing_account_entry_params(accounting_period)
+            .await?
+            .into_closing_entries();
 
-        let net_income = profit_and_loss_closing_spec.net_income();
-        let profit_and_loss_entries = profit_and_loss_closing_spec.take_profit_and_loss_entries();
-        let profit_and_loss_params = profit_and_loss_entries
-            .into_iter()
-            .map(EntryParams::from)
-            .collect();
+        let equity_entry = self
+            .create_closing_equity_account_in_op(db, net_income, accounting_period.account_set_ids)
+            .await?;
+        closing_entries.push(equity_entry);
 
-        let mut closing_tx_params = ClosingTransactionParams::new(
+        let closing_transaction_params = ClosingTransactionParams::new(
             self.journal_id,
             description.clone(),
             effective,
-            profit_and_loss_params,
+            closing_entries,
         );
 
-        let equity_entry = self
-            .create_closing_equity_account_in_op(db, net_income, account_set_ids)
-            .await?;
-        let account_id = equity_entry.account_id;
-        closing_tx_params.add_equity_entry(equity_entry.into());
-
-        let template =
-            ClosingTransactionTemplate::init(&self.cala, closing_tx_params.entry_params.len())
-                .await?;
+        let template = ClosingTransactionTemplate::init(
+            &self.cala,
+            closing_transaction_params.closing_entries.len(),
+        )
+        .await?;
 
         self.cala
-            .post_transaction_in_op(db, ledger_tx_id, &template.code(), closing_tx_params)
+            .post_transaction_in_op(
+                db,
+                ledger_tx_id,
+                &template.code(),
+                closing_transaction_params,
+            )
             .await?;
 
-        Ok(account_id)
+        Ok(())
     }
 
     pub async fn update_close_metadata_in_op(
@@ -184,59 +174,53 @@ impl AccountingPeriodLedger {
     /// This amount is used to create the offset/closing  entry for the
     /// `ProfitAndLossStatement` account that is valid at any time during
     /// the closing grace period.
-    pub async fn get_profit_and_loss_statement_period_end_balances(
+    pub async fn get_closing_account_entry_params(
         &self,
         period: &AccountingPeriod,
     ) -> Result<ClosingAccountBalances, AccountingPeriodError> {
-        let revenue_set_id = period.account_set_ids.revenue_account_set_id;
-        let cost_of_revenue_set_id = period.account_set_ids.cost_of_revenue_account_set_id;
-        let expenses_set_id = period.account_set_ids.expenses_account_set_id;
-
         let revenue_accounts = self
-            .find_all_accounts_by_parent_set_id(self.journal_id, revenue_set_id)
+            .find_all_accounts_by_parent_set_id(period.account_set_ids.revenue_account_set_id)
             .await?;
-
         let expense_accounts = self
-            .find_all_accounts_by_parent_set_id(self.journal_id, expenses_set_id)
+            .find_all_accounts_by_parent_set_id(period.account_set_ids.expenses_account_set_id)
             .await?;
-
         let cost_of_revenue_accounts = self
-            .find_all_accounts_by_parent_set_id(self.journal_id, cost_of_revenue_set_id)
+            .find_all_accounts_by_parent_set_id(
+                period.account_set_ids.cost_of_revenue_account_set_id,
+            )
             .await?;
 
-        let period_end = period.period_end();
-        let from_date = period.period_start();
+        let from = period.period_start();
+        let until = period.period_end();
 
-        let end_of_period_revenue_account_balances = self
+        let revenue_account_balances = self
             .cala
             .balances()
             .effective()
-            .find_all_in_range(&revenue_accounts, from_date, Some(period_end))
+            .find_all_in_range(&revenue_accounts, from, Some(until))
             .await?;
-
-        let end_of_period_cost_of_revenue_account_balances = self
+        let cost_of_revenue_account_balances = self
             .cala
             .balances()
             .effective()
-            .find_all_in_range(&cost_of_revenue_accounts, from_date, Some(period_end))
+            .find_all_in_range(&cost_of_revenue_accounts, from, Some(until))
             .await?;
-        let end_of_period_expenses_account_balances = self
+        let expenses_account_balances = self
             .cala
             .balances()
             .effective()
-            .find_all_in_range(&expense_accounts, from_date, Some(period_end))
+            .find_all_in_range(&expense_accounts, from, Some(until))
             .await?;
 
         Ok(ClosingAccountBalances {
-            revenue: end_of_period_revenue_account_balances,
-            cost_of_revenue: end_of_period_cost_of_revenue_account_balances,
-            expenses: end_of_period_expenses_account_balances,
+            revenue: revenue_account_balances,
+            cost_of_revenue: cost_of_revenue_account_balances,
+            expenses: expenses_account_balances,
         })
     }
 
-    pub async fn find_all_accounts_by_parent_set_id(
+    async fn find_all_accounts_by_parent_set_id(
         &self,
-        journal_id: JournalId,
         parent_set_id: AccountSetId,
     ) -> Result<Vec<BalanceId>, AccountingPeriodError> {
         let mut accounts: Vec<BalanceId> = Vec::new();
@@ -250,74 +234,16 @@ impl AccountingPeriodLedger {
         for member in members.entities {
             match member.id {
                 AccountSetMemberId::Account(account_id) => {
-                    accounts.push((journal_id, account_id, Currency::USD));
+                    accounts.push((self.journal_id, account_id, Currency::USD));
                 }
                 AccountSetMemberId::AccountSet(account_set_id) => {
-                    let nested_accounts = Box::pin(
-                        self.find_all_accounts_by_parent_set_id(journal_id, account_set_id),
-                    )
-                    .await?;
+                    let nested_accounts =
+                        Box::pin(self.find_all_accounts_by_parent_set_id(account_set_id)).await?;
                     accounts.extend(nested_accounts);
                 }
             }
         }
         Ok(accounts)
-    }
-
-    /// Creates closing entries for the `ProfitAndLossStatement`
-    /// underlying accounts that is valid at any time during the
-    /// closing grace period. Notably, this does not create the equity
-    /// closing entry.
-    fn create_profit_and_loss_closing_entries(
-        &self,
-        description: Option<String>,
-        period_end_balances: ClosingAccountBalances,
-    ) -> ProfitAndLossClosingSpec {
-        let revenue = Self::create_closing_entries_for_profit_and_loss_category(
-            description.clone(),
-            period_end_balances.revenue,
-        );
-        let cost_of_revenue = Self::create_closing_entries_for_profit_and_loss_category(
-            description.clone(),
-            period_end_balances.cost_of_revenue,
-        );
-        let expenses = Self::create_closing_entries_for_profit_and_loss_category(
-            description.clone(),
-            period_end_balances.expenses,
-        );
-        ProfitAndLossClosingSpec::new(revenue, cost_of_revenue, expenses)
-    }
-
-    fn create_closing_entries_for_profit_and_loss_category(
-        description: Option<String>,
-        period_end_balances: HashMap<(JournalId, AccountId, Currency), BalanceRange>,
-    ) -> ProfitAndLossClosingCategory {
-        let mut net: Decimal = Decimal::from(0);
-        let mut entries = Vec::new();
-        for ((_journal_id, account_id, currency), bal_details) in period_end_balances.iter() {
-            let amt = bal_details.close.settled().abs();
-            net += amt;
-            let direction = if bal_details.close.balance_type == DebitOrCredit::Debit {
-                DebitOrCredit::Credit
-            } else {
-                DebitOrCredit::Debit
-            };
-            let ledger_account_id = LedgerAccountId::from(*account_id);
-            let entry = ClosingTxEntrySpec::new(
-                ledger_account_id,
-                amt,
-                currency.clone(),
-                description
-                    .clone()
-                    .unwrap_or("Annual Close Offset".to_string()),
-                direction,
-            );
-            entries.push(entry);
-        }
-        ProfitAndLossClosingCategory {
-            net_category_balance: net,
-            closing_entries: entries,
-        }
     }
 
     /// Creates a new equity account set member based on the +/- of net income (under configured account set A if loss; under configured account set B if profit).
@@ -331,7 +257,7 @@ impl AccountingPeriodLedger {
         op: &mut LedgerOperation<'_>,
         net_earnings: Decimal,
         account_set_ids: AccountingPeriodAccountSetIds,
-    ) -> Result<ClosingTxEntrySpec, AccountingPeriodError> {
+    ) -> Result<AccountClosingEntry, AccountingPeriodError> {
         // TODO: Where to source the `reference`, `name` and/or (account) `description` params from?
         let (direction, parent_account_set, reference) = if net_earnings >= Decimal::ZERO {
             (
@@ -361,7 +287,7 @@ impl AccountingPeriodLedger {
             )
             .await?;
         let ledger_account_id = LedgerAccountId::from(account_id);
-        Ok(ClosingTxEntrySpec {
+        Ok(AccountClosingEntry {
             account_id: ledger_account_id,
             currency: Currency::USD,
             amount: net_earnings.abs(),
