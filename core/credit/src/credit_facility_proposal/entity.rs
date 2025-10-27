@@ -45,6 +45,7 @@ pub struct CreditFacilityProposal {
     pub customer_id: CustomerId,
     pub customer_type: CustomerType,
     pub custodian_id: Option<CustodianId>,
+    #[builder(default)]
     pub approval_process_id: Option<ApprovalProcessId>,
     pub disbursal_credit_account_id: CalaAccountId,
     pub amount: UsdCents,

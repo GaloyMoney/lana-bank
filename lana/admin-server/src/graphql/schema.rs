@@ -1709,6 +1709,7 @@ impl Mutation {
             CreditFacilityProposal,
             ctx,
             app.credit()
+                .proposals()
                 .conclude_customer_approval(sub, proposal_id, approved)
         )
     }

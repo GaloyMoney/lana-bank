@@ -280,7 +280,7 @@ CREATE TABLE core_collateral_events (
 CREATE TABLE core_credit_facility_proposals (
   id UUID PRIMARY KEY,
   customer_id UUID NOT NULL REFERENCES core_customers(id),
-  approval_process_id UUID REFERENCES core_approval_processes(id),
+  approval_process_id UUID DEFAULT NULL REFERENCES core_approval_processes(id),
   created_at TIMESTAMPTZ NOT NULL
 );
 
