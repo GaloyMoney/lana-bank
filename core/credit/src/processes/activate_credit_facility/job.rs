@@ -150,7 +150,9 @@ where
             Span::current().record("handled", true);
             Span::current().record("event_type", event.as_ref());
 
-            self.process.execute_activate_credit_facility(*credit_facility_id).await?;
+            self.process
+                .execute_activate_credit_facility(*credit_facility_id)
+                .await?;
         }
         Ok(())
     }

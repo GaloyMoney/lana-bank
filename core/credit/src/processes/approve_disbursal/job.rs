@@ -158,7 +158,9 @@ where
                 Span::current().record("event_type", event.as_ref());
                 Span::current().record("process_type", process_type.to_string());
 
-                self.process.execute_approve_disbursal(*id, *approved).await?;
+                self.process
+                    .execute_approve_disbursal(*id, *approved)
+                    .await?;
             }
             _ => {}
         }
