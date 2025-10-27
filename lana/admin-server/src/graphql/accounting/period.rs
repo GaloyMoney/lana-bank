@@ -12,7 +12,6 @@ use lana_app::accounting::accounting_period::{
 pub struct AccountingPeriod {
     id: ID,
     accounting_period_id: UUID,
-    tracking_account_set_id: UUID,
     period: PeriodRange,
     #[graphql(skip)]
     pub(crate) entity: Arc<DomainAccountingPeriod>,
@@ -23,7 +22,6 @@ impl From<DomainAccountingPeriod> for AccountingPeriod {
         Self {
             id: accounting_period.id.to_global_id(),
             accounting_period_id: UUID::from(accounting_period.id),
-            tracking_account_set_id: UUID::from(accounting_period.tracking_account_set),
             period: accounting_period.period.clone().into(),
 
             entity: Arc::new(accounting_period),

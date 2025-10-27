@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use cala_ledger::{
-    AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, Currency as CalaCurrency,
-    DebitOrCredit, JournalId as CalaJournalId, balance::BalanceRange as CalaBalanceRange,
+    AccountId as CalaAccountId, Currency as CalaCurrency, DebitOrCredit,
+    JournalId as CalaJournalId, balance::BalanceRange as CalaBalanceRange,
 };
 use rust_decimal::Decimal;
 
@@ -81,14 +81,4 @@ pub struct ClosingAccountBalances {
     pub revenue: HashMap<(CalaJournalId, CalaAccountId, CalaCurrency), CalaBalanceRange>,
     pub cost_of_revenue: HashMap<(CalaJournalId, CalaAccountId, CalaCurrency), CalaBalanceRange>,
     pub expenses: HashMap<(CalaJournalId, CalaAccountId, CalaCurrency), CalaBalanceRange>,
-}
-
-/// TODO: Discuss - This feels like it could be over-optimized to matching what we saw Luis do in Oracle BankWorks. However,
-/// I don't believe there is anything wrong - and possibly many simplications - by using other levers to depict +/- for a given `AccountingPeriod`.
-/// The created account's `reference` is one example. A single Retained earnings account set, where all member accounts have a credit normal_balance_type
-/// and the closing tx entry applied to it is a debit/credit depending on +/- of net income.
-#[derive(Debug, Clone)]
-pub struct RetainedEarningsAccountSetIds {
-    pub profit: CalaAccountSetId,
-    pub loss: CalaAccountSetId,
 }

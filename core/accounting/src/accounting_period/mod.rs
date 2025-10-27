@@ -12,7 +12,6 @@ use authz::PermissionCheck;
 use cala_ledger::{AccountSetId, CalaLedger};
 use chart_of_accounts_integration::{AccountingPeriodConfig, Basis};
 use chrono::NaiveDate;
-use closing::RetainedEarningsAccountSetIds;
 use es_entity::Idempotent;
 use tracing::instrument;
 
@@ -31,7 +30,9 @@ pub use entity::AccountingPeriod;
 pub use entity::AccountingPeriodEvent;
 pub(super) use entity::*;
 use error::AccountingPeriodError;
-use ledger::{AccountingPeriodLedger, ChartOfAccountsIntegrationMeta};
+use ledger::{
+    AccountingPeriodAccountSetIds, AccountingPeriodLedger, ChartOfAccountsIntegrationMeta,
+};
 pub use period::Period;
 use repo::AccountingPeriodRepo;
 
@@ -72,17 +73,32 @@ where
     /// exist, no new periods are added.
     pub async fn open_initial_periods(
         &self,
-        chart: &Chart,
-        tracking_account_set: AccountSetId,
+        chart_id: ChartId,
+        tracking_account_set_id: AccountSetId,
         date: NaiveDate,
         periods: Vec<AccountingPeriodConfig>,
     ) -> Result<(), AccountingPeriodError> {
-        // let config = self
-        //     .get_chart_of_accounts_integration_config(chart)
-        //     .await?
-        //     .ok_or(AccountingPeriodError::AccountingPeriodIntegrationConfigNotFound)?;
+        let open_periods = self.repo.find_open_accounting_periods(chart_id).await?;
 
-        let open_periods = self.repo.find_open_accounting_periods(chart.id).await?;
+        let chart = self.chart_of_accounts.find_by_id(chart_id).await?;
+
+        let chart_config = self
+            .ledger
+            .get_chart_of_accounts_integration_config(tracking_account_set_id)
+            .await?
+            .ok_or(AccountingPeriodError::AccountingPeriodIntegrationConfigNotFound)?;
+
+        let account_set_ids = AccountingPeriodAccountSetIds {
+            tracking_account_set_id,
+            revenue_account_set_id: chart.account_set_id_from_code(&chart_config.revenue_code)?,
+            cost_of_revenue_account_set_id: chart
+                .account_set_id_from_code(&chart_config.cost_of_revenue_code)?,
+            expenses_account_set_id: chart.account_set_id_from_code(&chart_config.expenses_code)?,
+            equity_retained_earnings_account_set_id: chart
+                .account_set_id_from_code(&chart_config.equity_retained_earnings_code)?,
+            equity_retained_losses_account_set_id: chart
+                .account_set_id_from_code(&chart_config.equity_retained_losses_code)?,
+        };
 
         if open_periods.is_empty() {
             for period in periods {
@@ -99,9 +115,9 @@ where
                 self.repo
                     .create(NewAccountingPeriod {
                         id: AccountingPeriodId::new(),
-                        chart_id: chart.id,
-                        tracking_account_set,
+                        chart_id,
                         period,
+                        account_set_ids: account_set_ids.clone(),
                         closed_at: None,
                     })
                     .await?;
@@ -142,7 +158,7 @@ where
                 self.ledger
                     .update_close_metadata_in_op(
                         db,
-                        open_period.tracking_account_set,
+                        open_period.account_set_ids.tracking_account_set_id,
                         open_period.period_end(),
                     )
                     .await?;
@@ -173,43 +189,21 @@ where
             )
             .await?;
 
-        let chart = self.chart_of_accounts.find_by_id(chart_id).await?;
+        let (mut open_annual_period, remaining_open_periods) = {
+            let mut open_periods = self.repo.find_open_accounting_periods(chart_id).await?;
 
-        let mut open_periods = self.repo.find_open_accounting_periods(chart_id).await?;
+            let open_annual_period_index = open_periods
+                .iter()
+                .position(|p| p.is_annual())
+                .ok_or(AccountingPeriodError::NoOpenAccountingPeriodFound)?;
 
-        let open_annual_period_index = open_periods
-            .iter()
-            .position(|p| p.is_annual())
-            .ok_or(AccountingPeriodError::NoOpenAccountingPeriodFound)?;
-
-        let mut open_annual_period = open_periods.remove(open_annual_period_index);
-        let remaining_open_periods = open_periods;
-
-        let chart_config = self
-            .ledger
-            .get_chart_of_accounts_integration_config(open_annual_period.tracking_account_set)
-            .await?
-            .ok_or(AccountingPeriodError::AccountingPeriodIntegrationConfigNotFound)?;
-
-        let retained_earnings_account_set_ids = RetainedEarningsAccountSetIds {
-            profit: chart.account_set_id_from_code(&chart_config.equity_retained_earnings_code)?,
-            loss: chart.account_set_id_from_code(&chart_config.equity_retained_losses_code)?,
+            let open_annual_period = open_periods.remove(open_annual_period_index);
+            (open_annual_period, open_periods)
         };
 
-        let period_end_balances = self
-            .ledger
-            .get_profit_and_loss_statement_period_end_balances(
-                &chart,
-                &open_annual_period,
-                chart_config.revenue_code,
-                chart_config.cost_of_revenue_code,
-                chart_config.expenses_code,
-            )
-            .await?;
-
-        let effective = crate::time::now();
+        let closed_at = crate::time::now();
         let ledger_tx_id = CalaTxId::new();
-        match open_annual_period.close(effective, Some(ledger_tx_id))? {
+        match open_annual_period.close(closed_at, Some(ledger_tx_id))? {
             Idempotent::Executed(new) => {
                 let mut db = self.repo.begin_op().await?;
 
@@ -219,7 +213,7 @@ where
                 let new_period = self.repo.create_in_op(&mut db, new).await?;
 
                 for mut period in remaining_open_periods {
-                    if period.close(effective, None)?.did_execute() {
+                    if period.close(closed_at, None)?.did_execute() {
                         self.repo.update_in_op(&mut db, &mut period).await?;
                     }
                 }
@@ -229,11 +223,8 @@ where
                         db,
                         ledger_tx_id,
                         description,
-                        effective.date_naive(),
-                        period_end_balances,
-                        retained_earnings_account_set_ids,
-                        open_annual_period.tracking_account_set,
-                        open_annual_period.period_end(),
+                        closed_at.date_naive(),
+                        open_annual_period,
                     )
                     .await?;
                 Ok(new_period)

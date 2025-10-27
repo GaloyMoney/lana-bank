@@ -4,12 +4,13 @@ use derive_builder::Builder;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use cala_ledger::{AccountSetId as LedgerAccountSetId, TransactionId as LedgerTransactionId};
+use cala_ledger::TransactionId as LedgerTransactionId;
 use es_entity::*;
 
 use crate::primitives::{AccountingPeriodId, ChartId};
 
 use super::error::AccountingPeriodError;
+use super::ledger::AccountingPeriodAccountSetIds;
 use super::period::Period;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -20,8 +21,8 @@ pub enum AccountingPeriodEvent {
     Initialized {
         id: AccountingPeriodId,
         chart_id: ChartId,
-        tracking_account_set: LedgerAccountSetId,
         period: Period,
+        account_set_ids: AccountingPeriodAccountSetIds,
     },
     Closed {
         closed_at: DateTime<Utc>,
@@ -36,8 +37,8 @@ pub struct AccountingPeriod {
     pub(super) chart_id: ChartId,
     #[builder(default)]
     pub(super) closed_at: Option<DateTime<Utc>>,
-    pub tracking_account_set: LedgerAccountSetId,
     pub period: Period,
+    pub(super) account_set_ids: AccountingPeriodAccountSetIds,
 
     events: EntityEvents<AccountingPeriodEvent>,
 }
@@ -91,8 +92,8 @@ impl AccountingPeriod {
         let new_accounting_period = NewAccountingPeriod {
             id: AccountingPeriodId::new(),
             chart_id: self.chart_id,
-            tracking_account_set: self.tracking_account_set,
             period: self.period.next(),
+            account_set_ids: self.account_set_ids.clone(),
             closed_at: None,
         };
 
@@ -131,14 +132,14 @@ impl TryFromEvents<AccountingPeriodEvent> for AccountingPeriod {
                 AccountingPeriodEvent::Initialized {
                     id,
                     chart_id,
-                    tracking_account_set,
                     period,
+                    account_set_ids,
                 } => {
                     builder = builder
                         .id(*id)
                         .chart_id(*chart_id)
-                        .tracking_account_set(*tracking_account_set)
                         .period(period.clone())
+                        .account_set_ids(account_set_ids.to_owned())
                 }
                 AccountingPeriodEvent::Closed { .. } => {}
             }
@@ -151,8 +152,8 @@ impl TryFromEvents<AccountingPeriodEvent> for AccountingPeriod {
 pub struct NewAccountingPeriod {
     pub id: AccountingPeriodId,
     pub chart_id: ChartId,
-    pub tracking_account_set: LedgerAccountSetId,
     pub period: Period,
+    pub account_set_ids: AccountingPeriodAccountSetIds,
     pub closed_at: Option<DateTime<Utc>>,
 }
 
@@ -161,8 +162,8 @@ impl IntoEvents<AccountingPeriodEvent> for NewAccountingPeriod {
         let events = vec![AccountingPeriodEvent::Initialized {
             id: self.id,
             chart_id: self.chart_id,
-            tracking_account_set: self.tracking_account_set,
             period: self.period,
+            account_set_ids: self.account_set_ids,
         }];
 
         EntityEvents::init(self.id, events)

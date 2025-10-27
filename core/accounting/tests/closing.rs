@@ -230,7 +230,7 @@ async fn prepare_test() -> anyhow::Result<Test> {
     accounting
         .accounting_periods()
         .open_initial_periods(
-            &chart,
+            chart.id,
             chart.account_set_id,
             central_date,
             vec![

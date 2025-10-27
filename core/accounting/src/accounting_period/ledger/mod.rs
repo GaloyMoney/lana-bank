@@ -15,14 +15,11 @@ use super::{
     chart_of_accounts_integration::ChartOfAccountsIntegrationConfig,
     closing::{
         ClosingAccountBalances, ClosingTxEntrySpec, ProfitAndLossClosingCategory,
-        ProfitAndLossClosingSpec, RetainedEarningsAccountSetIds,
+        ProfitAndLossClosingSpec,
     },
     error::AccountingPeriodError,
 };
-use crate::{
-    AccountCode, Chart,
-    primitives::{CHART_OF_ACCOUNTS_ENTITY_TYPE, CalaTxId, EntityRef, LedgerAccountId},
-};
+use crate::primitives::{CHART_OF_ACCOUNTS_ENTITY_TYPE, CalaTxId, EntityRef, LedgerAccountId};
 use cala_ledger::{
     AccountId, AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId,
     LedgerOperation,
@@ -54,11 +51,12 @@ impl AccountingPeriodLedger {
         ledger_tx_id: CalaTxId,
         description: Option<String>,
         effective: NaiveDate,
-        period_end_balances: ClosingAccountBalances,
-        retained_earnings_account_sets: RetainedEarningsAccountSetIds,
-        tracking_account_set_id: AccountSetId,
-        closed_as_of: NaiveDate,
+        accounting_period: AccountingPeriod,
     ) -> Result<(), AccountingPeriodError> {
+        let period_end_balances = self
+            .get_profit_and_loss_statement_period_end_balances(&accounting_period)
+            .await?;
+
         let mut db = self
             .cala
             .ledger_operation_from_db_op(db.with_db_time().await?);
@@ -69,12 +67,16 @@ impl AccountingPeriodLedger {
             description,
             effective,
             period_end_balances,
-            retained_earnings_account_sets,
+            accounting_period.account_set_ids,
         )
         .await?;
 
-        self.update_close_metadata_in_ledger_op(&mut db, tracking_account_set_id, closed_as_of)
-            .await?;
+        self.update_close_metadata_in_ledger_op(
+            &mut db,
+            accounting_period.account_set_ids.tracking_account_set_id,
+            accounting_period.period_end(),
+        )
+        .await?;
 
         db.commit().await?;
 
@@ -88,7 +90,7 @@ impl AccountingPeriodLedger {
         description: Option<String>,
         effective: NaiveDate,
         period_end_balances: ClosingAccountBalances,
-        retained_earnings_account_sets: RetainedEarningsAccountSetIds,
+        account_set_ids: AccountingPeriodAccountSetIds,
     ) -> Result<LedgerAccountId, AccountingPeriodError> {
         let mut profit_and_loss_closing_spec =
             self.create_profit_and_loss_closing_entries(description.clone(), period_end_balances);
@@ -108,12 +110,7 @@ impl AccountingPeriodLedger {
         );
 
         let equity_entry = self
-            .create_closing_equity_account_in_op(
-                db,
-                net_income,
-                retained_earnings_account_sets.profit,
-                retained_earnings_account_sets.loss,
-            )
+            .create_closing_equity_account_in_op(db, net_income, account_set_ids)
             .await?;
         let account_id = equity_entry.account_id;
         closing_tx_params.add_equity_entry(equity_entry.into());
@@ -189,16 +186,11 @@ impl AccountingPeriodLedger {
     /// the closing grace period.
     pub async fn get_profit_and_loss_statement_period_end_balances(
         &self,
-        chart: &Chart,
         period: &AccountingPeriod,
-        revenue_parent_code: AccountCode,
-        cost_of_revenue_parent_code: AccountCode,
-        expenses_parent_code: AccountCode,
     ) -> Result<ClosingAccountBalances, AccountingPeriodError> {
-        let revenue_set_id = chart.account_set_id_from_code(&revenue_parent_code)?;
-        let cost_of_revenue_set_id =
-            chart.account_set_id_from_code(&cost_of_revenue_parent_code)?;
-        let expenses_set_id = chart.account_set_id_from_code(&expenses_parent_code)?;
+        let revenue_set_id = period.account_set_ids.revenue_account_set_id;
+        let cost_of_revenue_set_id = period.account_set_ids.cost_of_revenue_account_set_id;
+        let expenses_set_id = period.account_set_ids.expenses_account_set_id;
 
         let revenue_accounts = self
             .find_all_accounts_by_parent_set_id(self.journal_id, revenue_set_id)
@@ -338,20 +330,19 @@ impl AccountingPeriodLedger {
         &self,
         op: &mut LedgerOperation<'_>,
         net_earnings: Decimal,
-        retained_earnings_account_set: AccountSetId,
-        retained_losses_account_set: AccountSetId,
+        account_set_ids: AccountingPeriodAccountSetIds,
     ) -> Result<ClosingTxEntrySpec, AccountingPeriodError> {
-        // TODO: Where to source ther `reference`, `name` and/or (account) `description` params from?
+        // TODO: Where to source the `reference`, `name` and/or (account) `description` params from?
         let (direction, parent_account_set, reference) = if net_earnings >= Decimal::ZERO {
             (
                 DebitOrCredit::Credit,
-                retained_earnings_account_set,
+                account_set_ids.equity_retained_earnings_account_set_id,
                 "retained_earnings",
             )
         } else {
             (
                 DebitOrCredit::Debit,
-                retained_losses_account_set,
+                account_set_ids.equity_retained_losses_account_set_id,
                 "retained_losses",
             )
         };
@@ -372,7 +363,6 @@ impl AccountingPeriodLedger {
         let ledger_account_id = LedgerAccountId::from(account_id);
         Ok(ClosingTxEntrySpec {
             account_id: ledger_account_id,
-            // TODO: Make currency a param? Need both account and entry description addressed in this scope.
             currency: Currency::USD,
             amount: net_earnings.abs(),
             description: "Annual Close Net Income to Equity".to_string(),
@@ -501,4 +491,14 @@ pub struct ChartOfAccountsIntegrationMeta {
     pub expenses_child_account_set_id_from_chart: AccountSetId,
     pub equity_retained_earnings_child_account_set_id_from_chart: AccountSetId,
     pub equity_retained_losses_child_account_set_id_from_chart: AccountSetId,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Copy)]
+pub struct AccountingPeriodAccountSetIds {
+    pub tracking_account_set_id: AccountSetId,
+    pub revenue_account_set_id: AccountSetId,
+    pub cost_of_revenue_account_set_id: AccountSetId,
+    pub expenses_account_set_id: AccountSetId,
+    pub equity_retained_earnings_account_set_id: AccountSetId,
+    pub equity_retained_losses_account_set_id: AccountSetId,
 }

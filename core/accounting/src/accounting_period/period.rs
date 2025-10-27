@@ -191,7 +191,7 @@ impl Frequency {
 
 #[cfg(test)]
 mod tests {
-    use chrono::{Duration, NaiveDate};
+    use chrono::NaiveDate;
 
     use super::{Frequency, Period};
 
