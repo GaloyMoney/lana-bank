@@ -21,6 +21,8 @@ import {
   useCreditFacilityProposalCustomerApprovalConcludeMutation,
 } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
+import Balance from "@/components/balance/balance"
+import { UsdCents } from "@/types/scalars"
 
 gql`
   mutation CreditFacilityProposalCustomerApprovalConclude(
@@ -39,7 +41,7 @@ type CustomerApprovalDialogProps = {
   onOpenChange: (open: boolean) => void
   creditFacilityProposalId: string
   approved: boolean
-  facilityAmount: string
+  facilityAmount: UsdCents
   customerEmail: string
   createdAt: string
 }
@@ -105,7 +107,10 @@ export const CustomerApprovalDialog: React.FC<CustomerApprovalDialogProps> = ({
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <DetailsGroup layout="horizontal">
             <DetailItem label={t("fields.customer")} value={customerEmail} />
-            <DetailItem label={t("fields.facilityAmount")} value={facilityAmount} />
+            <DetailItem
+              label={t("fields.facilityAmount")}
+              value={<Balance amount={facilityAmount} currency="usd" />}
+            />
             <DetailItem label={t("fields.createdAt")} value={formatDate(createdAt)} />
           </DetailsGroup>
           {error && <p className="text-destructive">{error}</p>}
