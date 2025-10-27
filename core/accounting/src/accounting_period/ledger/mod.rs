@@ -114,9 +114,60 @@ impl AccountingPeriodLedger {
         Ok(())
     }
 
+    pub async fn close_year_in_op(
+        &self,
+        db: es_entity::DbOp<'_>,
+        ledger_tx_id: CalaTxId,
+        description: Option<String>,
+        effective: NaiveDate,
+        period_end_balances: ClosingAccountBalances,
+        retained_earnings_account_sets: RetainedEarningsAccountSetIds,
+        tracking_account_set_id: AccountSetId,
+        closed_as_of: NaiveDate,
+    ) -> Result<(), AccountingPeriodError> {
+        let mut db = self
+            .cala
+            .ledger_operation_from_db_op(db.with_db_time().await?);
+
+        self.execute_closing_in_op(
+            &mut db,
+            ledger_tx_id,
+            description,
+            effective,
+            period_end_balances,
+            retained_earnings_account_sets,
+        )
+        .await?;
+
+        self.update_close_metadata_in_ledger_op(&mut db, tracking_account_set_id, closed_as_of)
+            .await?;
+
+        db.commit().await?;
+
+        Ok(())
+    }
+
     pub async fn update_close_metadata_in_op(
         &self,
-        op: es_entity::DbOp<'_>,
+        db: es_entity::DbOp<'_>,
+        tracking_account_set_id: AccountSetId,
+        closed_as_of: NaiveDate,
+    ) -> Result<(), AccountingPeriodError> {
+        let mut op = self
+            .cala
+            .ledger_operation_from_db_op(db.with_db_time().await?);
+
+        self.update_close_metadata_in_ledger_op(&mut op, tracking_account_set_id, closed_as_of)
+            .await?;
+
+        op.commit().await?;
+
+        Ok(())
+    }
+
+    async fn update_close_metadata_in_ledger_op(
+        &self,
+        db: &mut LedgerOperation<'_>,
         tracking_account_set_id: AccountSetId,
         closed_as_of: NaiveDate,
     ) -> Result<(), AccountingPeriodError> {
@@ -125,10 +176,6 @@ impl AccountingPeriodLedger {
             .account_sets()
             .find(tracking_account_set_id)
             .await?;
-
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
 
         let mut metadata = tracking_account_set
             .values()
@@ -145,10 +192,9 @@ impl AccountingPeriodLedger {
         tracking_account_set.update(update_values);
         self.cala
             .account_sets()
-            .persist_in_op(&mut op, &mut tracking_account_set)
+            .persist_in_op(db, &mut tracking_account_set)
             .await?;
 
-        op.commit().await?;
         Ok(())
     }
 
@@ -157,9 +203,9 @@ impl AccountingPeriodLedger {
     /// net income to a `BalanceSheet` account set member. The sole `BalanceSheet` entry in the closing
     /// transaction is then appended to `params.entry_params` (TODO: obvious review/cleanup area), prior
     /// to finally executing the closing transaction into Cala.
-    pub async fn execute_closing(
+    pub async fn execute_closing_in_op(
         &self,
-        op: es_entity::DbOp<'_>,
+        db: &mut LedgerOperation<'_>,
         ledger_tx_id: CalaTxId,
         description: Option<String>,
         effective: NaiveDate,
@@ -183,12 +229,9 @@ impl AccountingPeriodLedger {
             profit_and_loss_params,
         );
 
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
         let equity_entry = self
             .create_closing_equity_account_in_op(
-                &mut op,
+                db,
                 net_income,
                 retained_earnings_account_sets.profit,
                 retained_earnings_account_sets.loss,
@@ -197,9 +240,13 @@ impl AccountingPeriodLedger {
         let account_id = equity_entry.account_id;
         closing_tx_params.add_equity_entry(equity_entry.into());
 
-        self.execute_closing_transaction_in_op(&mut op, ledger_tx_id, closing_tx_params)
+        let template =
+            ClosingTransactionTemplate::init(&self.cala, closing_tx_params.entry_params.len())
+                .await?;
+
+        self.cala
+            .post_transaction_in_op(db, ledger_tx_id, &template.code(), closing_tx_params)
             .await?;
-        op.commit().await?;
 
         Ok(account_id)
     }
@@ -346,23 +393,6 @@ impl AccountingPeriodLedger {
             .await?;
 
         Ok(ledger_account.id)
-    }
-
-    /// Uses the `ClosingTransactionTemplate` to execute the closing transaction into Cala.
-    async fn execute_closing_transaction_in_op(
-        &self,
-        op: &mut LedgerOperation<'_>,
-        tx_id: CalaTxId,
-        params: ClosingTransactionParams,
-    ) -> Result<(), AccountingPeriodError> {
-        let template =
-            ClosingTransactionTemplate::init(&self.cala, params.entry_params.len()).await?;
-
-        self.cala
-            .post_transaction_in_op(op, tx_id, &template.code(), params)
-            .await?;
-
-        Ok(())
     }
 }
 

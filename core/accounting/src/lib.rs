@@ -305,51 +305,6 @@ where
         Ok(chart)
     }
 
-    // #[instrument(name = "core_accounting.close_monthly", skip(self), err)]
-    // pub async fn close_monthly(
-    //     &self,
-    //     sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-    //     chart_id: ChartId,
-    // ) -> Result<Chart, CoreAccountingError> {
-    //     Ok(self
-    //         .accounting_periods()
-    //         .close_month(sub, chart_id)
-    //         .await?)
-    // }
-
-    // #[instrument(
-    //     name = "core_accounting.execute_annual_closing_transaction",
-    //     skip(self),
-    //     err
-    // )]
-    // pub async fn execute_annual_closing_transaction(
-    //     &self,
-    //     sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-    //     // TODO: Need both? Can lookup one from the other?
-    //     chart_id: ChartId,
-    // ) -> Result<LedgerTransaction, CoreAccountingError> {
-    //     let annual_closing_tx = self
-    //         .annual_closing_transactions()
-    //         .execute(
-    //             sub,
-    //             chart_id,
-    //             // TODO: Where to source `reference`?
-    //             None,
-    //             // TODO: Add optional description to API?
-    //             "Annual Closing".to_string(),
-    //         )
-    //         .await?;
-
-    //     let ledger_tx_id = annual_closing_tx.ledger_transaction_id;
-    //     Ok(self
-    //         .ledger_transactions
-    //         .find_by_id(sub, ledger_tx_id)
-    //         .await?
-    //         .ok_or_else(move || {
-    //             CoreAccountingError::AnnualClosingTransactionNotFoundById(ledger_tx_id.to_string())
-    //         })?)
-    // }
-
     #[instrument(name = "core_accounting.add_root_node", skip(self), err)]
     pub async fn add_root_node(
         &self,

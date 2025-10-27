@@ -65,7 +65,8 @@ where
         }
     }
 
-    /// Generates Accounting Periods to initialize their cycle. If any
+    /// Generates first Accounting Periods according to their
+    /// configuraitons. The periods will be open on `date`. If any
     /// Accounting Periods already exist, no new periods are added.
     pub async fn open_initial_periods(
         &self,
@@ -149,8 +150,8 @@ where
     /// Chart of Accounts and returns next Accounting Period.
     /// Fails if no such Accounting Period is found.
     ///
-    /// This method does not automatically close any other underlying
-    /// Accounting Period.
+    /// This method closes all other Accounting Periods in an
+    /// unspecified order.
     pub async fn close_year(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -165,14 +166,16 @@ where
             )
             .await?;
 
-        // TODO: Also need to verify that the related monthly period is still open
-        // (the one with the same `period_end`)?
         let mut open_periods = self.repo.find_open_accounting_periods(chart_id).await?;
 
-        let open_annual_period = open_periods
-            .iter_mut()
-            .find(|p| p.is_annual())
+        let open_annual_period_index = open_periods
+            .iter()
+            .position(|p| p.is_annual())
             .ok_or(AccountingPeriodError::NoOpenAccountingPeriodFound)?;
+
+        let mut open_annual_period = open_periods.remove(open_annual_period_index);
+        let remaining_open_periods = open_periods;
+
         let chart_config = self
             .ledger
             .get_chart_of_accounts_integration_config(open_annual_period.tracking_account_set)
@@ -205,16 +208,28 @@ where
         match open_annual_period.close(effective, Some(ledger_tx_id))? {
             Idempotent::Executed(new) => {
                 let mut db = self.repo.begin_op().await?;
-                self.repo.update_in_op(&mut db, open_annual_period).await?;
+
+                self.repo
+                    .update_in_op(&mut db, &mut open_annual_period)
+                    .await?;
                 let new_period = self.repo.create_in_op(&mut db, new).await?;
+
+                for mut period in remaining_open_periods {
+                    if period.close(effective, None)?.did_execute() {
+                        self.repo.update_in_op(&mut db, &mut period).await?;
+                    }
+                }
+
                 self.ledger
-                    .execute_closing(
+                    .close_year_in_op(
                         db,
                         ledger_tx_id,
                         description,
                         effective.date_naive(),
                         period_end_balances,
                         retained_earnings_account_set_ids,
+                        open_annual_period.tracking_account_set,
+                        open_annual_period.period_end(),
                     )
                     .await?;
                 Ok(new_period)
