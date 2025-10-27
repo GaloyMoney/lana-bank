@@ -76,13 +76,14 @@ impl CreditFacilityProposal {
             CreditFacilityProposalEvent::CustomerApprovalConcluded { .. }
         );
 
-        let status = if approved {
-            CreditFacilityProposalStatus::PendingApproval
+        let (status, approval_process_id) = if approved {
+            (
+                CreditFacilityProposalStatus::PendingApproval,
+                Some(self.id.into()),
+            )
         } else {
-            CreditFacilityProposalStatus::CustomerDenied
+            (CreditFacilityProposalStatus::CustomerDenied, None)
         };
-
-        let approval_process_id = if approved { Some(self.id.into()) } else { None };
 
         self.events
             .push(CreditFacilityProposalEvent::CustomerApprovalConcluded {
