@@ -1381,12 +1381,12 @@ export type LedgerAccount = {
   ancestors: Array<LedgerAccount>;
   balanceRange: LedgerAccountBalanceRange;
   children: Array<LedgerAccount>;
-  childrenWithCodeAndActivity: Array<LedgerAccount>;
   closestAccountWithCode?: Maybe<LedgerAccount>;
   code?: Maybe<Scalars['AccountCode']['output']>;
   entity?: Maybe<LedgerAccountEntity>;
   history: JournalEntryConnection;
   id: Scalars['ID']['output'];
+  isRootAccount: Scalars['Boolean']['output'];
   ledgerAccountId: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
   normalBalanceType: DebitOrCredit;
@@ -3922,12 +3922,12 @@ export type GetTrialBalanceQueryVariables = Exact<{
 }>;
 
 
-export type GetTrialBalanceQuery = { __typename?: 'Query', trialBalance: { __typename?: 'TrialBalance', name: string, accounts: Array<{ __typename?: 'LedgerAccount', id: string, code?: any | null, name: string, balanceRange:
+export type GetTrialBalanceQuery = { __typename?: 'Query', trialBalance: { __typename?: 'TrialBalance', name: string, accounts: Array<{ __typename?: 'LedgerAccount', id: string, code?: any | null, name: string, isRootAccount: boolean, balanceRange:
         | { __typename: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
         | { __typename: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
        }> } };
 
-export type TrialBalanceAccountBaseFragment = { __typename?: 'LedgerAccount', id: string, code?: any | null, name: string, balanceRange:
+export type TrialBalanceAccountBaseFragment = { __typename?: 'LedgerAccount', id: string, code?: any | null, name: string, isRootAccount: boolean, balanceRange:
     | { __typename: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
     | { __typename: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
    };
@@ -4822,6 +4822,7 @@ export const TrialBalanceAccountBaseFragmentDoc = gql`
   id
   code
   name
+  isRootAccount
   balanceRange {
     __typename
     ...UsdLedgerBalanceRangeFragment
