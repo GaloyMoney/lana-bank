@@ -515,8 +515,10 @@
     },
     "status": {
       "pending_approval": "Aprobación Pendiente",
+      "pending_customer_approval": "Pendiente de Aprobación del Cliente",
       "approved": "Aprobado",
-      "denied": "Denegado"
+      "denied": "Denegado",
+      "customer_denied": "Denegado por el Cliente"
     },
     "collateralizationState": {
       "fullycollateralized": "Totalmente garantizado",
