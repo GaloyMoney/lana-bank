@@ -64,7 +64,7 @@ const CreditFacilityProposalDetailsCard: React.FC<
 
   const footerContent = (
     <>
-      {proposalDetails.approvalProcess.status === ApprovalProcessStatus.InProgress &&
+      {proposalDetails?.approvalProcess?.status === ApprovalProcessStatus.InProgress &&
         proposalDetails.approvalProcess.userCanSubmitDecision && (
           <>
             <Button
@@ -105,7 +105,7 @@ const CreditFacilityProposalDetailsCard: React.FC<
         details={details}
         columns={3}
         footerContent={footerContent}
-        errorMessage={proposalDetails.approvalProcess.deniedReason ?? undefined}
+        errorMessage={proposalDetails?.approvalProcess?.deniedReason ?? undefined}
       />
 
       {proposalDetails.approvalProcess && (

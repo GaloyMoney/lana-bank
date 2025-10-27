@@ -515,8 +515,10 @@
     },
     "status": {
       "pending_approval": "Pending Approval",
+      "pending_customer_approval": "Pending Customer Approval",
       "approved": "Approved",
-      "denied": "Denied"
+      "denied": "Denied",
+      "customer_denied": "Customer Denied"
     },
     "collateralizationState": {
       "fullycollateralized": "Fully Collateralized",
