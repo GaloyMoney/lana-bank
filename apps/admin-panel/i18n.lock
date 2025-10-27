@@ -638,6 +638,8 @@ checksums:
     TermsTemplates/TermsTemplateDetails/DetailsCard/fields/liquidationCvl: 9d30f40e2446a6678c2a50da22a662ba
     TermsTemplates/TermsTemplateDetails/DetailsCard/fields/oneTimeFeeRate: 7242ef1273e70c16c9cfa50a847e292f
     TermsTemplates/TermsTemplateDetails/DetailsCard/fields/disbursalPolicy: 0a2732088351c6daa088893ee206aa76
+    TermsTemplates/TermsTemplateDetails/DetailsCard/fields/singleDisbursal: cf6f20fb950f66f5efa9174de86af33d
+    TermsTemplates/TermsTemplateDetails/DetailsCard/fields/multipleDisbursal: ebba3910cc4060fe0566e02abee9a397
     TermsTemplates/TermsTemplateDetails/DetailsCard/buttons/update: 079fc039262fd31b10532929685c2d1b
     TermsTemplates/TermsTemplateDetails/DetailsCard/buttons/duplicate: 27756566785c2b8463e21582c4bb619b
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/title: 7692d1ff8036b0d574dfbf925935cfff
