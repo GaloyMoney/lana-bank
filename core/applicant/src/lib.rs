@@ -259,7 +259,7 @@ where
                 tracing::Span::current().record("callback_type", "ApplicantCreated");
                 tracing::Span::current().record("sandbox_mode", sandbox_mode.unwrap_or(false));
                 tracing::Span::current().record("applicant_id", applicant_id.as_str());
-                tracing::Span::current().record("level", level_name.as_str());
+                tracing::Span::current().record("kyc_level", level_name.as_str());
                 tracing::Span::current()
                     .record("customer_id", external_user_id.to_string().as_str());
                 let res = self
@@ -291,7 +291,7 @@ where
                 tracing::Span::current().record("callback_type", "ApplicantReviewed.Red");
                 tracing::Span::current().record("sandbox_mode", sandbox_mode.unwrap_or(false));
                 tracing::Span::current().record("applicant_id", applicant_id.as_str());
-                tracing::Span::current().record("level", level_name.as_str());
+                tracing::Span::current().record("kyc_level", level_name.as_str());
                 tracing::Span::current()
                     .record("customer_id", external_user_id.to_string().as_str());
                 let res = self
@@ -323,7 +323,7 @@ where
                 tracing::Span::current().record("callback_type", "ApplicantReviewed.Green");
                 tracing::Span::current().record("sandbox_mode", sandbox_mode.unwrap_or(false));
                 tracing::Span::current().record("applicant_id", applicant_id.as_str());
-                tracing::Span::current().record("level", level_name.as_str());
+                tracing::Span::current().record("kyc_level", level_name.as_str());
                 tracing::Span::current()
                     .record("customer_id", external_user_id.to_string().as_str());
                 // Try to parse the level name, will return error for unrecognized values
