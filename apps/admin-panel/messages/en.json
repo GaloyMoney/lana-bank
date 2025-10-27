@@ -1073,7 +1073,9 @@
           "marginCallCvl": "Margin Call CVL (%)",
           "liquidationCvl": "Liquidation CVL (%)",
           "oneTimeFeeRate": "Structuring Fee Rate (%)",
-          "disbursalPolicy": "Disbursal Policy"
+          "disbursalPolicy": "Disbursal Policy",
+          "singleDisbursal": "Single Disbursal",
+          "multipleDisbursal": "Multiple Disbursal"
         },
         "buttons": {
           "update": "Update",
