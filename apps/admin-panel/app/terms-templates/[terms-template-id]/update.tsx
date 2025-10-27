@@ -91,7 +91,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
     const { name, value } = e.target
     setFormValues((prevValues) => ({
       ...prevValues,
-      [name]: name === "disbursalPolicy" ? (value as unknown as DisbursalPolicy) : value,
+      [name]: value,
     }))
   }
 
