@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
-import { gql, useApolloClient } from "@apollo/client"
+import { gql } from "@apollo/client"
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
 
@@ -16,10 +16,7 @@ import {
 import { Button } from "@lana/web/ui/button"
 import { formatDate } from "@lana/web/utils"
 
-import {
-  GetCreditFacilityProposalLayoutDetailsDocument,
-  useCreditFacilityProposalCustomerApprovalConcludeMutation,
-} from "@/lib/graphql/generated"
+import { useCreditFacilityProposalCustomerApprovalConcludeMutation } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import Balance from "@/components/balance/balance"
 import { UsdCents } from "@/types/scalars"
@@ -61,7 +58,6 @@ export const CustomerApprovalDialog: React.FC<CustomerApprovalDialogProps> = ({
   const tCommon = useTranslations("Common")
 
   const [error, setError] = useState<string | null>(null)
-  const client = useApolloClient()
 
   const [concludeApproval, { loading }] =
     useCreditFacilityProposalCustomerApprovalConcludeMutation()
@@ -79,9 +75,6 @@ export const CustomerApprovalDialog: React.FC<CustomerApprovalDialogProps> = ({
           },
         },
         onCompleted: async () => {
-          await client.refetchQueries({
-            include: [GetCreditFacilityProposalLayoutDetailsDocument],
-          })
           toast.success(approved ? t("success.approved") : t("success.denied"))
         },
       })
