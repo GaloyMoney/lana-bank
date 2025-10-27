@@ -9,7 +9,7 @@ use cala_ledger::{
     *,
 };
 
-use crate::primitives::ClosingTxEntrySpec;
+use crate::accounting_period::closing::ClosingTxEntrySpec;
 
 #[derive(Debug, Builder)]
 pub struct EntryParams {

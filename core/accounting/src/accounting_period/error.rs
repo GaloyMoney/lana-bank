@@ -43,6 +43,8 @@ pub enum AccountingPeriodError {
     ChartOfAccountsError(#[from] crate::chart_of_accounts::error::ChartOfAccountsError),
     #[error("AccountingPeriodError - CalaAccountError: {0}")]
     CalaAccount(#[from] cala_ledger::account::error::AccountError),
+    #[error("AccountingPeriodError - CalaBalanceError: {0}")]
+    CalaBalance(#[from] cala_ledger::balance::error::BalanceError),
 }
 
 es_entity::from_es_entity_error!(AccountingPeriodError);

@@ -84,7 +84,7 @@ impl AccountingPeriodsInit {
         Ok(accounting
             .accounting_periods()
             .open_initial_periods(
-                chart.id,
+                chart,
                 chart.account_set_id,
                 es_entity::prelude::sim_time::now().date_naive(),
                 config.accounting_periods,

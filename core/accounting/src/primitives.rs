@@ -1,6 +1,5 @@
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::{borrow::Cow, fmt::Display, str::FromStr};
 use thiserror::Error;
 
@@ -1164,64 +1163,6 @@ impl BalanceRange {
             false
         }
     }
-}
-
-#[derive(Debug, Clone)]
-pub struct ClosingTxEntrySpec {
-    pub account_id: LedgerAccountId,
-    pub amount: Decimal,
-    pub currency: CalaCurrency,
-    pub description: String,
-    pub direction: DebitOrCredit,
-}
-
-impl ClosingTxEntrySpec {
-    pub fn new(
-        account_id: LedgerAccountId,
-        amount: Decimal,
-        currency: CalaCurrency,
-        description: String,
-        direction: DebitOrCredit,
-    ) -> Self {
-        Self {
-            account_id,
-            amount,
-            currency,
-            description,
-            direction,
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct ClosingAccountBalances {
-    pub revenue: HashMap<(CalaJournalId, CalaAccountId, CalaCurrency), CalaBalanceRange>,
-    pub cost_of_revenue: HashMap<(CalaJournalId, CalaAccountId, CalaCurrency), CalaBalanceRange>,
-    pub expenses: HashMap<(CalaJournalId, CalaAccountId, CalaCurrency), CalaBalanceRange>,
-}
-
-impl ClosingAccountBalances {
-    pub fn new(
-        revenue: HashMap<(CalaJournalId, CalaAccountId, CalaCurrency), CalaBalanceRange>,
-        cost_of_revenue: HashMap<(CalaJournalId, CalaAccountId, CalaCurrency), CalaBalanceRange>,
-        expenses: HashMap<(CalaJournalId, CalaAccountId, CalaCurrency), CalaBalanceRange>,
-    ) -> Self {
-        Self {
-            revenue,
-            cost_of_revenue,
-            expenses,
-        }
-    }
-}
-
-/// TODO: Discuss - This feels like it could be over-optimized to matching what we saw Luis do in Oracle BankWorks. However,
-/// I don't believe there is anything wrong - and possibly many simplications - by using other levers to depict +/- for a given `AccountingPeriod`.
-/// The created account's `reference` is one example. A single Retained earnings account set, where all member accounts have a credit normal_balance_type
-/// and the closing tx entry applied to it is a debit/credit depending on +/- of net income.
-#[derive(Debug, Clone)]
-pub struct RetainedEarningsAccountSetIds {
-    pub profit: CalaAccountSetId,
-    pub loss: CalaAccountSetId,
 }
 
 #[cfg(test)]

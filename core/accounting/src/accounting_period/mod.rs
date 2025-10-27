@@ -12,6 +12,7 @@ use authz::PermissionCheck;
 use cala_ledger::{AccountSetId, CalaLedger};
 use chart_of_accounts_integration::{AccountingPeriodConfig, Basis};
 use chrono::NaiveDate;
+use closing::RetainedEarningsAccountSetIds;
 use es_entity::Idempotent;
 use tracing::instrument;
 
@@ -66,16 +67,22 @@ where
     }
 
     /// Generates first Accounting Periods according to their
-    /// configuraitons. The periods will be open on `date`. If any
-    /// Accounting Periods already exist, no new periods are added.
+    /// configurations. The periods will be created in such a way that
+    /// they are open on `date`. If any Accounting Periods already
+    /// exist, no new periods are added.
     pub async fn open_initial_periods(
         &self,
-        chart_id: ChartId,
+        chart: &Chart,
         tracking_account_set: AccountSetId,
         date: NaiveDate,
         periods: Vec<AccountingPeriodConfig>,
     ) -> Result<(), AccountingPeriodError> {
-        let open_periods = self.repo.find_open_accounting_periods(chart_id).await?;
+        // let config = self
+        //     .get_chart_of_accounts_integration_config(chart)
+        //     .await?
+        //     .ok_or(AccountingPeriodError::AccountingPeriodIntegrationConfigNotFound)?;
+
+        let open_periods = self.repo.find_open_accounting_periods(chart.id).await?;
 
         if open_periods.is_empty() {
             for period in periods {
@@ -92,7 +99,7 @@ where
                 self.repo
                     .create(NewAccountingPeriod {
                         id: AccountingPeriodId::new(),
-                        chart_id,
+                        chart_id: chart.id,
                         tracking_account_set,
                         period,
                         closed_at: None,
@@ -166,6 +173,8 @@ where
             )
             .await?;
 
+        let chart = self.chart_of_accounts.find_by_id(chart_id).await?;
+
         let mut open_periods = self.repo.find_open_accounting_periods(chart_id).await?;
 
         let open_annual_period_index = open_periods
@@ -182,20 +191,15 @@ where
             .await?
             .ok_or(AccountingPeriodError::AccountingPeriodIntegrationConfigNotFound)?;
 
-        let retained_earnings_account_set_ids = self
-            .chart_of_accounts
-            .find_retained_earnings_account_sets_by_codes(
-                chart_id,
-                chart_config.equity_retained_earnings_code,
-                chart_config.equity_retained_losses_code,
-            )
-            .await?;
+        let retained_earnings_account_set_ids = RetainedEarningsAccountSetIds {
+            profit: chart.account_set_id_from_code(&chart_config.equity_retained_earnings_code)?,
+            loss: chart.account_set_id_from_code(&chart_config.equity_retained_losses_code)?,
+        };
 
-        // TODO: Is there an existing primitive that can be used for this?
         let period_end_balances = self
-            .chart_of_accounts
+            .ledger
             .get_profit_and_loss_statement_period_end_balances(
-                chart_id,
+                &chart,
                 &open_annual_period,
                 chart_config.revenue_code,
                 chart_config.cost_of_revenue_code,
