@@ -118,9 +118,7 @@ make e2e
 make dev-up # launch the full stack
 
 # In a different terminal with tilt running:
-cd apps/admin-panel && pnpm run cypress:run-local # or run-headless
-# or if you want to run the tests via browserstack - needs BROWSERSTACK_USERNAME and BROWSERSTACK_ACCESS_KEY in env
-cd apps/admin-panel && pnpm run cypress:run-browserstack
+cd apps/admin-panel && pnpm run cypress:run-ui # or run-headless
 ```
 
 ## BigQuery Setup

@@ -16,9 +16,8 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "lint:fix": "eslint --max-warnings 0 --fix --ext .ts,.tsx .",
-    "cypress:run-local": "cypress open",
+    "cypress:run-ui": "cypress open",
     "cypress:run-headless": "cypress run",
-    "cypress:run-browserstack": "browserstack-cypress run",
     "local:pdf": "cd cypress/manuals && ./local-pdf.sh"
   },
   "dependencies": {
