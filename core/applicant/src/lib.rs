@@ -240,7 +240,7 @@ where
     #[instrument(
         name = "applicant.process_payload",
         skip(self, db),
-        fields(ignore_for_sandbox = false, callback_type = tracing::field::Empty, sandbox_mode = tracing::field::Empty, applicant_id = tracing::field::Empty, level = tracing::field::Empty, customer_id = tracing::field::Empty),
+        fields(ignore_for_sandbox = false, callback_type = tracing::field::Empty, sandbox_mode = tracing::field::Empty, applicant_id = tracing::field::Empty, kyc_level = tracing::field::Empty, customer_id = tracing::field::Empty),
         err
     )]
     async fn process_payload(
