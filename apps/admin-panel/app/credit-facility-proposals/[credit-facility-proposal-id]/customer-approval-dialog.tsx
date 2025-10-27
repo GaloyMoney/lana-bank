@@ -37,7 +37,7 @@ gql`
 type CustomerApprovalDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  proposalId: string
+  creditFacilityProposalId: string
   approved: boolean
   facilityAmount: string
   customerEmail: string
@@ -47,7 +47,7 @@ type CustomerApprovalDialogProps = {
 export const CustomerApprovalDialog: React.FC<CustomerApprovalDialogProps> = ({
   open,
   onOpenChange,
-  proposalId,
+  creditFacilityProposalId,
   approved,
   facilityAmount,
   customerEmail,
@@ -72,7 +72,7 @@ export const CustomerApprovalDialog: React.FC<CustomerApprovalDialogProps> = ({
       await concludeApproval({
         variables: {
           input: {
-            proposalId,
+            creditFacilityProposalId,
             approved,
           },
         },

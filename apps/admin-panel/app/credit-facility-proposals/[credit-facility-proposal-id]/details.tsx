@@ -154,7 +154,7 @@ const CreditFacilityProposalDetailsCard: React.FC<
       <CustomerApprovalDialog
         open={openCustomerApprovalDialog}
         onOpenChange={setOpenCustomerApprovalDialog}
-        proposalId={proposalDetails.creditFacilityProposalId}
+        creditFacilityProposalId={proposalDetails.creditFacilityProposalId}
         approved={true}
         facilityAmount={proposalDetails.facilityAmount.toString()}
         customerEmail={proposalDetails.customer.email}
@@ -163,7 +163,7 @@ const CreditFacilityProposalDetailsCard: React.FC<
       <CustomerApprovalDialog
         open={openCustomerDenialDialog}
         onOpenChange={setOpenCustomerDenialDialog}
-        proposalId={proposalDetails.creditFacilityProposalId}
+        creditFacilityProposalId={proposalDetails.creditFacilityProposalId}
         approved={false}
         facilityAmount={proposalDetails.facilityAmount.toString()}
         customerEmail={proposalDetails.customer.email}
