@@ -3221,7 +3221,26 @@ export type CreditFacilityPartialPaymentWithDateRecordMutation = { __typename?: 
           | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
         , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: any, dueAt: any }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', id: string, walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', name: string } } | null } } };
 
-export type CreditFacilityProposalLayoutFragmentFragment = { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, approvalProcessId?: string | null, createdAt: any, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+export type CreditFacilityProposalCustomerApprovalConcludeMutationVariables = Exact<{
+  input: CreditFacilityProposalCustomerApprovalConcludeInput;
+}>;
+
+
+export type CreditFacilityProposalCustomerApprovalConcludeMutation = { __typename?: 'Mutation', creditFacilityProposalCustomerApprovalConclude: { __typename?: 'CreditFacilityProposalCustomerApprovalConcludePayload', creditFacilityProposal: { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, approvalProcessId?: string | null, createdAt: any, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, custodian?: { __typename?: 'Custodian', name: string } | null, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+          | { __typename: 'FiniteCVLPct', value: any }
+          | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
+        , marginCallCvl:
+          | { __typename: 'FiniteCVLPct', value: any }
+          | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
+        , initialCvl:
+          | { __typename: 'FiniteCVLPct', value: any }
+          | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
+         }, approvalProcess?: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+          | { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } }> } }
+          | { __typename?: 'SystemApproval', autoApprove: boolean }
+        , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } } }> } | null } } };
+
+export type CreditFacilityProposalLayoutFragmentFragment = { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, approvalProcessId?: string | null, createdAt: any, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, custodian?: { __typename?: 'Custodian', name: string } | null, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
       | { __typename: 'FiniteCVLPct', value: any }
       | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
     , marginCallCvl:
@@ -3240,7 +3259,7 @@ export type GetCreditFacilityProposalLayoutDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetCreditFacilityProposalLayoutDetailsQuery = { __typename?: 'Query', creditFacilityProposal?: { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, approvalProcessId?: string | null, createdAt: any, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+export type GetCreditFacilityProposalLayoutDetailsQuery = { __typename?: 'Query', creditFacilityProposal?: { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, approvalProcessId?: string | null, createdAt: any, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, custodian?: { __typename?: 'Custodian', name: string } | null, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
         | { __typename: 'FiniteCVLPct', value: any }
         | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
       , marginCallCvl:
@@ -4477,6 +4496,9 @@ export const CreditFacilityProposalLayoutFragmentFragmentDoc = gql`
     customerType
     publicId
     email
+  }
+  custodian {
+    name
   }
   creditFacilityTerms {
     annualRate
@@ -6044,6 +6066,41 @@ export function useCreditFacilityPartialPaymentWithDateRecordMutation(baseOption
 export type CreditFacilityPartialPaymentWithDateRecordMutationHookResult = ReturnType<typeof useCreditFacilityPartialPaymentWithDateRecordMutation>;
 export type CreditFacilityPartialPaymentWithDateRecordMutationResult = Apollo.MutationResult<CreditFacilityPartialPaymentWithDateRecordMutation>;
 export type CreditFacilityPartialPaymentWithDateRecordMutationOptions = Apollo.BaseMutationOptions<CreditFacilityPartialPaymentWithDateRecordMutation, CreditFacilityPartialPaymentWithDateRecordMutationVariables>;
+export const CreditFacilityProposalCustomerApprovalConcludeDocument = gql`
+    mutation CreditFacilityProposalCustomerApprovalConclude($input: CreditFacilityProposalCustomerApprovalConcludeInput!) {
+  creditFacilityProposalCustomerApprovalConclude(input: $input) {
+    creditFacilityProposal {
+      ...CreditFacilityProposalLayoutFragment
+    }
+  }
+}
+    ${CreditFacilityProposalLayoutFragmentFragmentDoc}`;
+export type CreditFacilityProposalCustomerApprovalConcludeMutationFn = Apollo.MutationFunction<CreditFacilityProposalCustomerApprovalConcludeMutation, CreditFacilityProposalCustomerApprovalConcludeMutationVariables>;
+
+/**
+ * __useCreditFacilityProposalCustomerApprovalConcludeMutation__
+ *
+ * To run a mutation, you first call `useCreditFacilityProposalCustomerApprovalConcludeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreditFacilityProposalCustomerApprovalConcludeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [creditFacilityProposalCustomerApprovalConcludeMutation, { data, loading, error }] = useCreditFacilityProposalCustomerApprovalConcludeMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreditFacilityProposalCustomerApprovalConcludeMutation(baseOptions?: Apollo.MutationHookOptions<CreditFacilityProposalCustomerApprovalConcludeMutation, CreditFacilityProposalCustomerApprovalConcludeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreditFacilityProposalCustomerApprovalConcludeMutation, CreditFacilityProposalCustomerApprovalConcludeMutationVariables>(CreditFacilityProposalCustomerApprovalConcludeDocument, options);
+      }
+export type CreditFacilityProposalCustomerApprovalConcludeMutationHookResult = ReturnType<typeof useCreditFacilityProposalCustomerApprovalConcludeMutation>;
+export type CreditFacilityProposalCustomerApprovalConcludeMutationResult = Apollo.MutationResult<CreditFacilityProposalCustomerApprovalConcludeMutation>;
+export type CreditFacilityProposalCustomerApprovalConcludeMutationOptions = Apollo.BaseMutationOptions<CreditFacilityProposalCustomerApprovalConcludeMutation, CreditFacilityProposalCustomerApprovalConcludeMutationVariables>;
 export const GetCreditFacilityProposalLayoutDetailsDocument = gql`
     query GetCreditFacilityProposalLayoutDetails($creditFacilityProposalId: UUID!) {
   creditFacilityProposal(id: $creditFacilityProposalId) {

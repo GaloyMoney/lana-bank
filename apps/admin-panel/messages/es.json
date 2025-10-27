@@ -632,6 +632,8 @@
           "updateCollateral": "Actualizar Garantía",
           "approve": "Aprobar",
           "deny": "Rechazar",
+          "customerApprove": "Cliente acepta",
+          "customerDeny": "Cliente rechaza",
           "viewFacility": "Ver Línea de Crédito",
           "viewPendingFacility": "Ver Línea de Crédito Pendiente"
         },
@@ -644,6 +646,32 @@
       "TermsCard": {
         "title": "Términos",
         "description": "Detalles sobre los términos de esta propuesta"
+      },
+      "CustomerApprovalDialog": {
+        "title": {
+          "approve": "Cliente acepta propuesta",
+          "deny": "Cliente rechaza propuesta"
+        },
+        "description": {
+          "approve": "Estás confirmando que el cliente ha aceptado esta propuesta de línea de crédito. Esto moverá la propuesta a la siguiente etapa.",
+          "deny": "Estás confirmando que el cliente ha rechazado esta propuesta de línea de crédito. Esta acción no se puede deshacer."
+        },
+        "fields": {
+          "customer": "Cliente",
+          "facilityAmount": "Monto de línea",
+          "createdAt": "Fecha de registro"
+        },
+        "buttons": {
+          "approve": "Cliente acepta",
+          "deny": "Cliente rechaza"
+        },
+        "success": {
+          "approved": "Propuesta aceptada por el cliente",
+          "denied": "Propuesta rechazada por el cliente"
+        },
+        "errors": {
+          "unknown": "Ocurrió un error al procesar la aprobación del cliente"
+        }
       }
     }
   },

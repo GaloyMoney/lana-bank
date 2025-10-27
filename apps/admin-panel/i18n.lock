@@ -394,6 +394,8 @@ checksums:
     CreditFacilityProposals/ProposalDetails/DetailsCard/buttons/updateCollateral: b515a49f68419c34c213866ac50fb4b5
     CreditFacilityProposals/ProposalDetails/DetailsCard/buttons/approve: df82197ab4899a770b4677fbea82abbb
     CreditFacilityProposals/ProposalDetails/DetailsCard/buttons/deny: 5e4572e4d0e5bce1f27f74f857be1c6a
+    CreditFacilityProposals/ProposalDetails/DetailsCard/buttons/customerApprove: 1d3dad0126b30653577bc8b631cf27c7
+    CreditFacilityProposals/ProposalDetails/DetailsCard/buttons/customerDeny: 71c1930738bdc44e7d6a15e73993d730
     CreditFacilityProposals/ProposalDetails/DetailsCard/buttons/viewFacility: f02e316eba6ca5ad813099ca29b5c8f1
     CreditFacilityProposals/ProposalDetails/DetailsCard/buttons/viewPendingFacility: 4fa11640fc3542f67be51e38526eaa5b
     CreditFacilityProposals/ProposalDetails/DetailsCard/alerts/completedTitle: e239fd93835f2dbe4df9c0fae5124c04
@@ -401,6 +403,18 @@ checksums:
     CreditFacilityProposals/ProposalDetails/DetailsCard/alerts/viewAssociatedFacility: 261a89b0014602e14f1bea3ac859fc96
     CreditFacilityProposals/ProposalDetails/TermsCard/title: c531b88ecfe7dd2337a34f4a9ed18a5f
     CreditFacilityProposals/ProposalDetails/TermsCard/description: 1d63f1d44618ada75e52f2a2161ed859
+    CreditFacilityProposals/ProposalDetails/CustomerApprovalDialog/title/approve: 1cb9ef792b6abf376ce0379fa064d3ba
+    CreditFacilityProposals/ProposalDetails/CustomerApprovalDialog/title/deny: 413c066290276734af8e1d5189e04eed
+    CreditFacilityProposals/ProposalDetails/CustomerApprovalDialog/description/approve: ad3574fe576447778487c3fda7966841
+    CreditFacilityProposals/ProposalDetails/CustomerApprovalDialog/description/deny: 3f906fde52097f5ebe26ebbc448d5aee
+    CreditFacilityProposals/ProposalDetails/CustomerApprovalDialog/fields/customer: 846b48bb14b3d62c75cde5031e6bbfd7
+    CreditFacilityProposals/ProposalDetails/CustomerApprovalDialog/fields/facilityAmount: 70e63659ee9f7ab8a38ec09c24f3c97c
+    CreditFacilityProposals/ProposalDetails/CustomerApprovalDialog/fields/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
+    CreditFacilityProposals/ProposalDetails/CustomerApprovalDialog/buttons/approve: 1d3dad0126b30653577bc8b631cf27c7
+    CreditFacilityProposals/ProposalDetails/CustomerApprovalDialog/buttons/deny: 71c1930738bdc44e7d6a15e73993d730
+    CreditFacilityProposals/ProposalDetails/CustomerApprovalDialog/success/approved: 89c93cbd48969b58dcc9f3394749d1b8
+    CreditFacilityProposals/ProposalDetails/CustomerApprovalDialog/success/denied: b1f0c37150ab481b80e4e7d85624e5b4
+    CreditFacilityProposals/ProposalDetails/CustomerApprovalDialog/errors/unknown: 78f7a44c71ebfde7c70e68ba68573709
     CreditFacilities/title: 4283868565aa25d5513636fc6e12d49c
     CreditFacilities/description: 18da4507529b9ddbd3762bce95c86b8f
     CreditFacilities/table/headers/customer: 846b48bb14b3d62c75cde5031e6bbfd7
