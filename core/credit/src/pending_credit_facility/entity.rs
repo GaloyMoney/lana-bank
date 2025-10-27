@@ -238,10 +238,12 @@ impl PendingCreditFacility {
             None
         };
 
-        Ok(Idempotent::Executed(NewCreditFacilityWithInitialDisbursal {
-            new_credit_facility,
-            initial_disbursal,
-        }))
+        Ok(Idempotent::Executed(
+            NewCreditFacilityWithInitialDisbursal {
+                new_credit_facility,
+                initial_disbursal,
+            },
+        ))
     }
 
     fn is_completed(&self) -> bool {

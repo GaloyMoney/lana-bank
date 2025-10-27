@@ -24,8 +24,8 @@ use crate::{
 };
 
 pub use entity::{
-    NewCreditFacilityWithInitialDisbursal, NewPendingCreditFacility, NewPendingCreditFacilityBuilder,
-    PendingCreditFacility, PendingCreditFacilityEvent,
+    NewCreditFacilityWithInitialDisbursal, NewPendingCreditFacility,
+    NewPendingCreditFacilityBuilder, PendingCreditFacility, PendingCreditFacilityEvent,
 };
 use error::*;
 use repo::PendingCreditFacilityRepo;
