@@ -81,13 +81,13 @@ where
         }
     }
 
-    #[es_entity::retry_on_concurrent_modification(any_error = true)]
     #[instrument(
         name = "credit_facility.approve_disbursal",
         skip(self),
         fields(already_applied, disbursal_executed)
     )]
-    pub async fn execute(
+    #[es_entity::retry_on_concurrent_modification(any_error = true)]
+    pub async fn execute_approve_disbursal(
         &self,
         id: impl es_entity::RetryableInto<DisbursalId>,
         approved: bool,

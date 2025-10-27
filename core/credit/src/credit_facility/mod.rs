@@ -491,6 +491,7 @@ where
         Ok(())
     }
 
+    #[instrument(name = "credit.credit_facility.update_collat_from_events", skip(self))]
     #[es_entity::retry_on_concurrent_modification]
     pub(super) async fn update_collateralization_from_events(
         &self,

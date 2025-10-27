@@ -63,9 +63,9 @@ where
         }
     }
 
-    #[es_entity::retry_on_concurrent_modification]
     #[instrument(name = "core_deposit.withdrawal_approval.execute", skip(self))]
-    pub async fn execute(
+    #[es_entity::retry_on_concurrent_modification]
+    pub async fn execute_withdrawal_approval(
         &self,
         id: impl es_entity::RetryableInto<WithdrawalId>,
         approved: bool,

@@ -347,6 +347,12 @@ where
         Ok(true)
     }
 
+    #[instrument(
+        name = "credit.obligation.facility_obligations",
+        skip(self),
+        fields(credit_facility_id = %credit_facility_id, n_obligations),
+        err
+    )]
     async fn facility_obligations(
         &self,
         credit_facility_id: CreditFacilityId,
@@ -371,6 +377,8 @@ where
                 break;
             };
         }
+
+        Span::current().record("n_obligations", obligations.len());
 
         Ok(obligations)
     }
