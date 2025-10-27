@@ -8,6 +8,7 @@ use cala_ledger::{
     account_set::{AccountSet, AccountSetId, AccountSetMemberId},
 };
 use chrono::NaiveDate;
+use tracing::instrument;
 
 use crate::{AccountCode, LedgerAccount, LedgerAccountId, journal_error::JournalError};
 
@@ -184,6 +185,7 @@ impl LedgerAccountLedger {
         })
     }
 
+    #[instrument(name = "ledger_account.load_by_external_id", skip(self), fields(external_id = %external_id))]
     pub async fn load_ledger_account_by_external_id(
         &self,
         external_id: String,

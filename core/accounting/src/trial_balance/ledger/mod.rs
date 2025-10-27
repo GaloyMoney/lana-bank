@@ -1,6 +1,7 @@
 pub mod error;
 
 use chrono::NaiveDate;
+use tracing::instrument;
 
 use cala_ledger::{
     AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation,
@@ -182,6 +183,7 @@ impl TrialBalanceLedger {
         Ok(statement_id)
     }
 
+    #[instrument(name = "trial_balance.get_id_from_reference", skip(self), fields(reference = %reference))]
     pub async fn get_id_from_reference(
         &self,
         reference: String,
