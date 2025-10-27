@@ -121,7 +121,7 @@ export const CustomerApprovalDialog: React.FC<CustomerApprovalDialogProps> = ({
             <Button
               type="submit"
               loading={loading}
-              data-testid={`customer-approval-${approved ? "approve" : "deny"}-button`}
+              data-testid={`customer-approval-dialog-${approved ? "approve" : "deny"}-button`}
             >
               {approved ? t("buttons.approve") : t("buttons.deny")}
             </Button>
