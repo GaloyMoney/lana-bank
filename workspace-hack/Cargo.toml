@@ -68,6 +68,7 @@ opentelemetry-http = { version = "0.31", features = ["reqwest-rustls-webpki-root
 opentelemetry-otlp = { version = "0.31", default-features = false, features = ["grpc-tonic", "http-proto", "reqwest-client", "reqwest-rustls-webpki-roots"] }
 percent-encoding = { version = "2" }
 pkcs8 = { version = "0.10", default-features = false, features = ["encryption", "pem", "std"] }
+prost = { version = "0.13", features = ["prost-derive"] }
 rand = { version = "0.9" }
 rand_core = { version = "0.6", default-features = false, features = ["std"] }
 regex-automata = { version = "0.4", default-features = false, features = ["dfa-build", "dfa-onepass", "hybrid", "meta", "nfa-backtrack", "perf", "std", "unicode"] }
@@ -95,7 +96,6 @@ time = { version = "0.3", features = ["formatting", "macros", "parsing", "serde"
 tokio = { version = "1", features = ["fs", "io-std", "io-util", "macros", "net", "parking_lot", "rt-multi-thread", "signal", "sync", "time"] }
 tokio-stream = { version = "0.1", features = ["fs", "net", "sync"] }
 tokio-util = { version = "0.7", features = ["codec", "compat", "io"] }
-tonic = { version = "0.14" }
 tower = { version = "0.5", default-features = false, features = ["balance", "buffer", "limit", "load-shed", "log"] }
 tracing = { version = "0.1", features = ["log"] }
 tracing-core = { version = "0.1" }
@@ -132,6 +132,7 @@ memchr = { version = "2" }
 num-traits = { version = "0.2", features = ["i128"] }
 once_cell = { version = "1", features = ["portable-atomic"] }
 percent-encoding = { version = "2" }
+prost = { version = "0.13", features = ["prost-derive"] }
 rand_core = { version = "0.6", default-features = false, features = ["std"] }
 regex-automata = { version = "0.4", default-features = false, features = ["dfa-build", "dfa-onepass", "hybrid", "meta", "nfa-backtrack", "perf", "std", "unicode"] }
 regex-syntax = { version = "0.8" }

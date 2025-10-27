@@ -209,7 +209,6 @@
 
       nativeBuildInputs = with pkgs;
         [
-          cmake
           wait4x
           rustToolchain
           opentofu
