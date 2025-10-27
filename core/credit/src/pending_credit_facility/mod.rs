@@ -24,7 +24,7 @@ use crate::{
 };
 
 pub use entity::{
-    NewCreditFacilityWithDisbursals, NewPendingCreditFacility, NewPendingCreditFacilityBuilder,
+    NewCreditFacilityWithInitialDisbursal, NewPendingCreditFacility, NewPendingCreditFacilityBuilder,
     PendingCreditFacility, PendingCreditFacilityEvent,
 };
 use error::*;
@@ -207,7 +207,7 @@ where
             .await?;
 
         match pending_facility.complete(balances, price, crate::time::now()) {
-            Ok(es_entity::Idempotent::Executed(NewCreditFacilityWithDisbursals {
+            Ok(es_entity::Idempotent::Executed(NewCreditFacilityWithInitialDisbursal {
                 new_credit_facility,
                 initial_disbursal,
             })) => {

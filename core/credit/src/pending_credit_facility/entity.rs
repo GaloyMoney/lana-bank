@@ -182,7 +182,7 @@ impl PendingCreditFacility {
         balances: PendingCreditFacilityBalanceSummary,
         price: PriceOfOneBTC,
         time: DateTime<Utc>,
-    ) -> Result<Idempotent<NewCreditFacilityWithDisbursals>, PendingCreditFacilityError> {
+    ) -> Result<Idempotent<NewCreditFacilityWithInitialDisbursal>, PendingCreditFacilityError> {
         idempotency_guard!(
             self.events.iter_all(),
             PendingCreditFacilityEvent::Completed { .. }
@@ -238,7 +238,7 @@ impl PendingCreditFacility {
             None
         };
 
-        Ok(Idempotent::Executed(NewCreditFacilityWithDisbursals {
+        Ok(Idempotent::Executed(NewCreditFacilityWithInitialDisbursal {
             new_credit_facility,
             initial_disbursal,
         }))
@@ -350,7 +350,7 @@ impl IntoEvents<PendingCreditFacilityEvent> for NewPendingCreditFacility {
     }
 }
 
-pub struct NewCreditFacilityWithDisbursals {
+pub struct NewCreditFacilityWithInitialDisbursal {
     pub new_credit_facility: NewCreditFacilityBuilder,
     pub initial_disbursal: Option<NewDisbursalBuilder>,
 }
