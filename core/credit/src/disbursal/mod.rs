@@ -124,7 +124,7 @@ where
         let mut disbursal = self.repo.create_in_op(db, new_disbursal).await?;
 
         let new_obligation = disbursal
-            .approval_process_concluded(true, db.now().date_naive())
+            .approval_process_concluded_for_initial_disbursal(db.now().date_naive())
             .expect("First instance of idempotent action ignored")
             .expect("First disbursal obligation was already created");
 
