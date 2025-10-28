@@ -34,7 +34,7 @@ where
         }
     }
 
-    #[tracing::instrument(name = "outbox.highest_known_sequence", skip_all, err(level = "warn"))]
+    #[tracing::instrument(name = "outbox_lana.highest_known_sequence", skip_all, err(level = "warn"))]
     pub async fn highest_known_sequence(&self) -> Result<EventSequence, sqlx::Error> {
         let row = sqlx::query!(
             r#"SELECT COALESCE(MAX(sequence), 0) AS "max!" FROM persistent_outbox_events"#
@@ -44,7 +44,7 @@ where
         Ok(EventSequence::from(row.max as u64))
     }
 
-    #[tracing::instrument(name = "outbox.persist_events", skip_all, err(level = "warn"))]
+    #[tracing::instrument(name = "outbox_lana.persist_events", skip_all, err(level = "warn"))]
     pub async fn persist_events(
         &self,
         op: &mut impl es_entity::AtomicOperation,
@@ -95,7 +95,7 @@ where
         Ok(events)
     }
 
-    #[tracing::instrument(name = "outbox.load_next_page", skip_all, err(level = "warn"))]
+    #[tracing::instrument(name = "outbox_lana.load_next_page", skip_all, err(level = "warn"))]
     pub async fn load_next_page(
         &self,
         from_sequence: EventSequence,
