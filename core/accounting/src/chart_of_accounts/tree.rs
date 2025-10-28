@@ -1,8 +1,4 @@
-use std::{
-    cell::RefCell,
-    collections::HashMap,
-    rc::{Rc, Weak},
-};
+use std::collections::HashMap;
 
 use super::chart_node::ChartNode;
 use crate::primitives::{AccountCode, AccountName, AccountSpec, CalaAccountSetId, ChartId};
@@ -39,34 +35,12 @@ impl TreeNode {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct TreeNodeWithRef {
+struct TempNode {
     id: CalaAccountSetId,
     code: AccountCode,
     name: AccountName,
     parent: Option<AccountCode>,
-    children: Vec<Rc<RefCell<TreeNodeWithRef>>>,
-}
-
-impl TreeNodeWithRef {
-    fn into_node(self) -> TreeNode {
-        TreeNode {
-            id: self.id,
-            code: self.code,
-            name: self.name,
-            parent: self.parent,
-            children: self
-                .children
-                .into_iter()
-                .map(|child_rc| {
-                    let child = Rc::try_unwrap(child_rc)
-                        .expect("Child has multiple owners")
-                        .into_inner();
-                    child.into_node()
-                })
-                .collect(),
-        }
-    }
+    children_indices: Vec<usize>,
 }
 
 #[derive(Debug, Clone)]
@@ -80,9 +54,9 @@ pub(super) fn project_from_nodes<'a>(
     chart_name: &str,
     nodes: impl Iterator<Item = &'a ChartNode>,
 ) -> ChartTree {
-    let mut chart_children: Vec<Rc<RefCell<TreeNodeWithRef>>> = vec![];
-    let mut tree_nodes_by_code: HashMap<AccountCode, Weak<RefCell<TreeNodeWithRef>>> =
-        HashMap::new();
+    let mut temp_nodes: Vec<TempNode> = Vec::new();
+    let mut code_to_index: HashMap<AccountCode, usize> = HashMap::new();
+    let mut root_indices: Vec<usize> = Vec::new();
 
     let mut entity_nodes: Vec<EntityNode> = nodes
         .map(|node| EntityNode {
@@ -94,42 +68,49 @@ pub(super) fn project_from_nodes<'a>(
     entity_nodes.sort_by_key(|node| node.spec.code.clone());
 
     for node in entity_nodes {
-        let node_rc = Rc::new(RefCell::new(TreeNodeWithRef {
+        let index = temp_nodes.len();
+        let temp_node = TempNode {
             id: node.id,
             code: node.spec.code.clone(),
             name: node.spec.name.clone(),
             parent: node.spec.parent.clone(),
-            children: vec![],
-        }));
-        if let Some(parent) = node.spec.parent {
-            tree_nodes_by_code
-                .get_mut(&parent)
-                .expect("Parent missing in tree_nodes_by_code for code")
-                .upgrade()
-                .expect("Parent node for code was dropped")
-                .borrow_mut()
-                .children
-                .push(Rc::clone(&node_rc));
+            children_indices: vec![],
+        };
+
+        if let Some(parent_code) = &node.spec.parent {
+            let parent_idx = code_to_index
+                .get(parent_code)
+                .expect("Parent missing in code_to_index");
+            temp_nodes[*parent_idx].children_indices.push(index);
         } else {
-            chart_children.push(Rc::clone(&node_rc));
+            root_indices.push(index);
         }
 
-        tree_nodes_by_code
-            .entry(node.spec.code)
-            .or_insert_with(|| Rc::downgrade(&node_rc));
+        code_to_index.insert(node.spec.code.clone(), index);
+        temp_nodes.push(temp_node);
+    }
+
+    fn build_tree_node(nodes: &[TempNode], index: usize) -> TreeNode {
+        let node = &nodes[index];
+        TreeNode {
+            id: node.id,
+            code: node.code.clone(),
+            name: node.name.clone(),
+            parent: node.parent.clone(),
+            children: node
+                .children_indices
+                .iter()
+                .map(|&child_idx| build_tree_node(nodes, child_idx))
+                .collect(),
+        }
     }
 
     ChartTree {
         id: chart_id,
         name: chart_name.to_string(),
-        children: chart_children
-            .into_iter()
-            .map(|child_rc| {
-                let child_refcell = Rc::try_unwrap(child_rc)
-                    .expect("Child has multiple owners")
-                    .into_inner();
-                child_refcell.into_node()
-            })
+        children: root_indices
+            .iter()
+            .map(|&idx| build_tree_node(&temp_nodes, idx))
             .collect(),
     }
 }
