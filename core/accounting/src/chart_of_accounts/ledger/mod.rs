@@ -1,16 +1,13 @@
-mod closing;
 pub mod error;
 
 use cala_ledger::{
-    AccountSetId, CalaLedger, DebitOrCredit, JournalId, LedgerOperation, VelocityControlId,
-    VelocityLimitId,
+    CalaLedger, DebitOrCredit, JournalId, LedgerOperation, VelocityControlId, VelocityLimitId,
     account_set::{AccountSetUpdate, NewAccountSet},
     velocity::{
         NewBalanceLimit, NewLimit, NewVelocityControl, NewVelocityLimit, Params, VelocityLimit,
     },
 };
 
-use closing::*;
 use error::*;
 
 use crate::Chart;
@@ -71,9 +68,9 @@ impl ChartLedger {
             .clone()
             .metadata
             .unwrap_or_else(|| serde_json::json!({}));
-        AccountingClosingMetadata::update_metadata(
+        crate::accounting_period::ClosingMetadata::update_metadata(
             &mut metadata,
-            chart.monthly_closing.closed_as_of,
+            chart.closing.closed_as_of,
         );
 
         let mut update_values = AccountSetUpdate::default();
@@ -91,45 +88,12 @@ impl ChartLedger {
         Ok(())
     }
 
-    pub async fn monthly_close_chart_as_of(
-        &self,
-        op: es_entity::DbOp<'_>,
-        chart_root_account_set_id: impl Into<AccountSetId>,
-        closed_as_of: chrono::NaiveDate,
-    ) -> Result<(), ChartLedgerError> {
-        let id = chart_root_account_set_id.into();
-        let mut chart_account_set = self.cala.account_sets().find(id).await?;
-
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
-
-        let mut metadata = chart_account_set
-            .values()
-            .clone()
-            .metadata
-            .unwrap_or_else(|| serde_json::json!({}));
-        AccountingClosingMetadata::update_metadata(&mut metadata, closed_as_of);
-
-        let mut update_values = AccountSetUpdate::default();
-        update_values
-            .metadata(Some(metadata))
-            .expect("Failed to serialize metadata");
-
-        chart_account_set.update(update_values);
-        self.cala
-            .account_sets()
-            .persist_in_op(&mut op, &mut chart_account_set)
-            .await?;
-
-        op.commit().await?;
-        Ok(())
-    }
     async fn create_monthly_close_control_with_limits_in_op(
         &self,
         op: &mut LedgerOperation<'_>,
     ) -> Result<VelocityControlId, ChartLedgerError> {
-        let monthly_cel_conditions = AccountingClosingMetadata::monthly_cel_conditions();
+        let monthly_cel_conditions =
+            crate::accounting_period::ClosingMetadata::monthly_cel_conditions();
 
         let new_control = NewVelocityControl::builder()
             .id(VelocityControlId::new())

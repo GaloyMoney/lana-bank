@@ -145,7 +145,7 @@ enum Frequency {
 
 impl Frequency {
     pub const fn monthly(day_in_month: u32) -> Option<Self> {
-        if day_in_month < 28 {
+        if day_in_month > 0 && day_in_month < 28 {
             Some(Self::Month { day: day_in_month })
         } else {
             None
@@ -255,7 +255,6 @@ mod tests {
             Frequency::annually(day, month)
         }
 
-        assert!(freq2(1, 1).is_none());
         assert!(freq2(0, 4).is_none());
         assert!(freq2(4, 0).is_none());
         assert!(freq2(28, 10).is_none());

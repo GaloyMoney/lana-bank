@@ -2,7 +2,7 @@ query ChartOfAccountsClosing {
   chartOfAccounts {
     chartId
     name
-    monthlyClosing {
+    closing {
       closedAsOf
     }
   }

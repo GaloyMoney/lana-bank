@@ -22,7 +22,7 @@ use cala_ledger::{
     account::NewAccount,
     account_set::{AccountSetMemberId, AccountSetUpdate},
 };
-use closing::*;
+pub(crate) use closing::ClosingMetadata;
 
 /// Collection of account set ID's relevant for an accounting period.
 #[derive(Serialize, Deserialize, Clone, Debug, Copy)]

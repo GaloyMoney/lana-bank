@@ -11,7 +11,7 @@ pub struct ChartOfAccounts {
     id: ID,
     chart_id: UUID,
     name: String,
-    monthly_closing: AccountingClosing,
+    closing: AccountingClosing,
 
     #[graphql(skip)]
     pub(crate) entity: Arc<DomainChart>,
@@ -23,7 +23,7 @@ impl From<DomainChart> for ChartOfAccounts {
             id: chart.id.to_global_id(),
             chart_id: UUID::from(chart.id),
             name: chart.name.to_string(),
-            monthly_closing: chart.monthly_closing.into(),
+            closing: chart.closing.into(),
 
             entity: Arc::new(chart),
         }

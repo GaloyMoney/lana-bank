@@ -30,6 +30,7 @@ pub use entity::AccountingPeriod;
 pub use entity::AccountingPeriodEvent;
 pub(super) use entity::*;
 use error::AccountingPeriodError;
+pub(crate) use ledger::ClosingMetadata;
 use ledger::{
     AccountingPeriodAccountSetIds, AccountingPeriodLedger, ChartOfAccountsIntegrationMeta,
 };

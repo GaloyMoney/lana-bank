@@ -2,14 +2,9 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub(super) struct PeriodClosing {
+pub(crate) struct ClosingMetadata {
     pub(super) closed_as_of: chrono::NaiveDate,
     pub(super) closed_at: DateTime<Utc>,
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub(super) struct ClosingMetadata {
-    pub(super) data: PeriodClosing,
 }
 
 impl ClosingMetadata {
@@ -17,29 +12,26 @@ impl ClosingMetadata {
     pub(super) const METADATA_PATH: &'static str = "context.vars.account.metadata";
     pub(super) const METADATA_KEY: &'static str = "closing";
 
-    pub(super) fn monthly_cel_conditions() -> String {
+    pub(crate) fn monthly_cel_conditions() -> String {
         format!(
             r#"
             !has({path}) ||
             !has({path}.{key}) ||
-            !has({path}.{key}.data) ||
-            !has({path}.{key}.data.closed_as_of) ||
-            date({path}.{key}.data.closed_as_of) >= context.vars.transaction.effective
+            !has({path}.{key}.closed_as_of) ||
+            date({path}.{key}.closed_as_of) >= context.vars.transaction.effective
         "#,
             path = Self::METADATA_PATH,
             key = Self::METADATA_KEY,
         )
     }
 
-    pub(super) fn update_metadata(
+    pub(crate) fn update_metadata(
         metadata: &mut serde_json::Value,
         closed_as_of: chrono::NaiveDate,
     ) {
         let closing_metadata = Self {
-            data: PeriodClosing {
-                closed_as_of,
-                closed_at: crate::time::now(),
-            },
+            closed_as_of,
+            closed_at: crate::time::now(),
         };
 
         metadata
@@ -103,10 +95,8 @@ mod tests {
             let account = json!({
                 "metadata": {
                     "closing": {
-                        "data": {
-                                "closed_as_of": CLOSING_DATE
-                            }
-                        }
+                        "closed_as_of": CLOSING_DATE
+                    }
                 }
             });
             let ctx = ctx(account, AFTER_CLOSING_DATE.parse::<NaiveDate>().unwrap());
@@ -157,9 +147,7 @@ mod tests {
             let account = json!({
                 "metadata": {
                     "closing": {
-                        "data": {
-                            "closed_as_of": CLOSING_DATE
-                        }
+                        "closed_as_of": CLOSING_DATE
                     }
                 }
             });
@@ -174,9 +162,7 @@ mod tests {
             let account = json!({
                 "metadata": {
                     "closing": {
-                        "data": {
-                            "closed_as_of": CLOSING_DATE
-                        }
+                        "closed_as_of": CLOSING_DATE
                     }
                 }
             });
@@ -203,7 +189,7 @@ mod tests {
 
             let closing_meta: ClosingMetadata =
                 serde_json::from_value(metadata["closing"].clone()).unwrap();
-            assert_eq!(closing_meta.data.closed_as_of, closed_as_of);
+            assert_eq!(closing_meta.closed_as_of, closed_as_of);
         }
 
         #[test]
@@ -212,10 +198,8 @@ mod tests {
             let existing_time = "2023-12-31T18:00:00Z".parse::<DateTime<Utc>>().unwrap();
             let mut metadata = json!({
                 "closing": {
-                    "data": {
-                        "closed_as_of": existing_date,
-                        "closed_at": existing_time
-                    }
+                    "closed_as_of": existing_date,
+                    "closed_at": existing_time
                 }
             });
 
@@ -224,8 +208,8 @@ mod tests {
 
             let closing_meta: ClosingMetadata =
                 serde_json::from_value(metadata["closing"].clone()).unwrap();
-            assert_eq!(closing_meta.data.closed_as_of, new_date);
-            assert!(closing_meta.data.closed_at != existing_time);
+            assert_eq!(closing_meta.closed_as_of, new_date);
+            assert!(closing_meta.closed_at != existing_time);
         }
 
         #[test]

@@ -38,7 +38,7 @@ pub struct Chart {
     pub account_set_id: CalaAccountSetId,
     pub reference: String,
     pub name: String,
-    pub monthly_closing: PeriodClosing,
+    pub closing: PeriodClosing,
 
     events: EntityEvents<ChartEvent>,
 
@@ -327,7 +327,7 @@ impl Chart {
             closed_as_of: new_monthly_closing_date,
             closed_at: now,
         });
-        self.monthly_closing = PeriodClosing::new(new_monthly_closing_date, now);
+        self.closing = PeriodClosing::new(new_monthly_closing_date, now);
 
         Ok(Idempotent::Executed(new_monthly_closing_date))
     }
@@ -412,15 +412,13 @@ impl TryFromEvents<ChartEvent> for Chart {
                         .id(*id)
                         .account_set_id(*account_set_id)
                         .reference(reference.to_string())
-                        .monthly_closing(monthly_closing)
+                        .closing(monthly_closing)
                         .name(name.to_string());
                 }
                 ChartEvent::AccountingPeriodClosed {
                     closed_as_of,
                     closed_at,
-                } => {
-                    builder = builder.monthly_closing(PeriodClosing::new(*closed_as_of, *closed_at))
-                }
+                } => builder = builder.closing(PeriodClosing::new(*closed_as_of, *closed_at)),
             }
         }
 
@@ -845,7 +843,7 @@ mod test {
             let expected_last_closed = "2024-01-14".parse::<NaiveDate>().unwrap();
 
             let chart = chart_from(initial_events_with_opened_date(starts_at));
-            assert_eq!(chart.monthly_closing.closed_as_of, expected_last_closed);
+            assert_eq!(chart.closing.closed_as_of, expected_last_closed);
         }
 
         #[test]
@@ -859,7 +857,7 @@ mod test {
                 .unwrap()
                 .unwrap();
             assert_eq!(closed_date, expected_closed_date);
-            assert_eq!(chart.monthly_closing.closed_as_of, expected_closed_date);
+            assert_eq!(chart.closing.closed_as_of, expected_closed_date);
 
             let closing_event_date = chart
                 .events
@@ -886,10 +884,7 @@ mod test {
                 .unwrap()
                 .unwrap();
             assert_eq!(second_closing_date, expected_second_closed_date);
-            assert_eq!(
-                chart.monthly_closing.closed_as_of,
-                expected_second_closed_date
-            );
+            assert_eq!(chart.closing.closed_as_of, expected_second_closed_date);
         }
 
         #[test]
