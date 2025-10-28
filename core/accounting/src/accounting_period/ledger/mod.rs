@@ -2,7 +2,7 @@ mod closing;
 mod error;
 mod template;
 
-use audit::AuditInfo;
+use audit::{AuditInfo, PaginatedQueryArgs, PaginatedQueryRet};
 use chrono::NaiveDate;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
@@ -233,34 +233,41 @@ impl AccountingPeriodLedger {
         parent_set_id: AccountSetId,
     ) -> Result<Vec<BalanceId>, AccountingPeriodLedgerError> {
         let mut accounts: Vec<BalanceId> = Vec::new();
-        // TODO: Doesn't seem like pagination is used anywhere else... confirm default behavior
-        // will provide all.
-        let members = self
-            .cala
-            .account_sets()
-            .list_members_by_created_at(parent_set_id, Default::default())
-            .await?;
-        for member in members.entities {
-            match member.id {
-                AccountSetMemberId::Account(account_id) => {
-                    accounts.push((self.journal_id, account_id, Currency::USD));
-                }
-                AccountSetMemberId::AccountSet(account_set_id) => {
-                    let nested_accounts =
-                        Box::pin(self.find_all_accounts_by_parent_set_id(account_set_id)).await?;
-                    accounts.extend(nested_accounts);
+
+        let mut has_next_page = true;
+        let mut after = None;
+
+        while has_next_page {
+            let PaginatedQueryRet {
+                entities,
+                has_next_page: next_page,
+                end_cursor,
+            } = self
+                .cala
+                .account_sets()
+                .list_members_by_created_at(parent_set_id, PaginatedQueryArgs { first: 100, after })
+                .await?;
+
+            after = end_cursor;
+            has_next_page = next_page;
+
+            for member in entities {
+                match member.id {
+                    AccountSetMemberId::Account(account_id) => {
+                        accounts.push((self.journal_id, account_id, Currency::USD));
+                    }
+                    AccountSetMemberId::AccountSet(account_set_id) => {
+                        let nested_accounts =
+                            Box::pin(self.find_all_accounts_by_parent_set_id(account_set_id))
+                                .await?;
+                        accounts.extend(nested_accounts);
+                    }
                 }
             }
         }
         Ok(accounts)
     }
 
-    /// Creates a new equity account set member based on the +/- of net income (under configured account set A if loss; under configured account set B if profit).
-    /// This account is used to create the final entry of the closing transaction, which will transfer
-    /// net income to a `BalanceSheet` account set member.
-    ///
-    /// The result will be added to a Vec with existing `EntryParams` for
-    /// all `ProfitAndLossStatement` accounts involved in the closing process.
     async fn create_equity_entry(
         &self,
         op: &mut LedgerOperation<'_>,
