@@ -1,4 +1,4 @@
-use chrono::{DateTime, NaiveDate, Utc};
+use chrono::{DateTime, Datelike, NaiveDate, Utc};
 use derive_builder::Builder;
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
@@ -58,6 +58,20 @@ impl AccountingPeriod {
 
     pub const fn period_start(&self) -> NaiveDate {
         self.period.period_start()
+    }
+
+    /// Returns human-readable representation of this Accounting
+    /// Period.
+    pub fn designation(&self) -> String {
+        if self.is_annual() {
+            self.period_start().year().to_string()
+        } else {
+            format!(
+                "{:02}/{}",
+                self.period_start().month(),
+                self.period_start().year()
+            )
+        }
     }
 
     /// Closes this Accounting Period if all temporal conditions are

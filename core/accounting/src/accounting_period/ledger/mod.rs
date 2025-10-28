@@ -16,11 +16,11 @@ use super::{
     chart_of_accounts_integration::ChartOfAccountsIntegrationConfig,
     closing::{ClosingAccountBalances, ClosingAccountEntry},
 };
-use crate::primitives::{CHART_OF_ACCOUNTS_ENTITY_TYPE, CalaTxId, EntityRef, LedgerAccountId};
+use crate::primitives::CalaTxId;
 use cala_ledger::{
     AccountId, AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId,
     LedgerOperation,
-    account::NewAccount,
+    account::{Account, NewAccount},
     account_set::{AccountSetMemberId, AccountSetUpdate},
 };
 pub(crate) use closing::ClosingMetadata;
@@ -92,13 +92,16 @@ impl AccountingPeriodLedger {
             .to_closing_entries();
 
         let equity_entry = self
-            .create_closing_equity_account_in_op(db, net_income, accounting_period.account_set_ids)
+            .create_equity_entry(db, accounting_period, net_income)
             .await?;
         closing_entries.push(equity_entry);
 
         let closing_transaction_params = ClosingTransactionParams::new(
             self.journal_id,
-            description.clone(),
+            description.unwrap_or(format!(
+                "Annual Closing {}",
+                accounting_period.designation()
+            )),
             accounting_period.period_end(),
             closing_entries,
         );
@@ -106,6 +109,7 @@ impl AccountingPeriodLedger {
         let template = ClosingTransactionTemplate::init(
             &self.cala,
             closing_transaction_params.closing_entries.len(),
+            accounting_period.designation(),
         )
         .await?;
 
@@ -257,72 +261,55 @@ impl AccountingPeriodLedger {
     ///
     /// The result will be added to a Vec with existing `EntryParams` for
     /// all `ProfitAndLossStatement` accounts involved in the closing process.
-    async fn create_closing_equity_account_in_op(
+    async fn create_equity_entry(
         &self,
         op: &mut LedgerOperation<'_>,
+        accounting_period: &AccountingPeriod,
         net_earnings: Decimal,
-        account_set_ids: AccountingPeriodAccountSetIds,
     ) -> Result<ClosingAccountEntry, AccountingPeriodLedgerError> {
-        // TODO: Where to source the `reference`, `name` and/or (account) `description` params from?
-        let (direction, parent_account_set, reference) = if net_earnings >= Decimal::ZERO {
-            (
-                DebitOrCredit::Credit,
-                account_set_ids.equity_retained_earnings_account_set_id,
-                "retained_earnings",
-            )
-        } else {
-            (
-                DebitOrCredit::Debit,
-                account_set_ids.equity_retained_losses_account_set_id,
-                "retained_losses",
-            )
-        };
-        let id = AccountId::new();
-        let entity_ref = EntityRef::new(CHART_OF_ACCOUNTS_ENTITY_TYPE, id);
-        let account_id = self
-            .create_account_in_op(
+        let account = if net_earnings >= Decimal::ZERO {
+            self.create_account_in_op(
                 op,
-                id,
-                reference,
-                "Annual Close Net Income",
-                "Annual Close Net Income",
-                entity_ref,
-                direction,
-                parent_account_set,
+                &format!("Retained Earnings {}", accounting_period.designation()),
+                DebitOrCredit::Credit,
+                accounting_period
+                    .account_set_ids
+                    .equity_retained_earnings_account_set_id,
             )
-            .await?;
-        let ledger_account_id = LedgerAccountId::from(account_id);
+            .await?
+        } else {
+            self.create_account_in_op(
+                op,
+                &format!("Retained Losses {}", accounting_period.designation()),
+                DebitOrCredit::Debit,
+                accounting_period
+                    .account_set_ids
+                    .equity_retained_losses_account_set_id,
+            )
+            .await?
+        };
+
         Ok(ClosingAccountEntry {
-            account_id: ledger_account_id,
+            account_id: account.id.into(),
             currency: Currency::USD,
             amount: net_earnings.abs(),
-            description: "Annual Close Net Income to Equity".to_string(),
-            direction,
+            direction: account.values().normal_balance_type,
         })
     }
 
     async fn create_account_in_op(
         &self,
         op: &mut LedgerOperation<'_>,
-        id: impl Into<AccountId>,
-        reference: &str,
         name: &str,
-        description: &str,
-        entity_ref: EntityRef,
         normal_balance_type: DebitOrCredit,
         parent_account_set: AccountSetId,
-    ) -> Result<AccountId, AccountingPeriodLedgerError> {
-        let id = id.into();
+    ) -> Result<Account, AccountingPeriodLedgerError> {
+        let id = AccountId::new();
         let new_ledger_account = NewAccount::builder()
             .id(id)
-            .external_id(reference)
             .name(name)
-            .description(description)
-            // TODO: Need another `code` parameter sourced?
             .code(id.to_string())
             .normal_balance_type(normal_balance_type)
-            .metadata(serde_json::json!({"entity_ref": entity_ref}))
-            .expect("Could not add metadata")
             .build()
             .expect("Could not build new account for annual close net income transfer entry");
         let ledger_account = self
@@ -335,7 +322,7 @@ impl AccountingPeriodLedger {
             .add_member_in_op(op, parent_account_set, ledger_account.id)
             .await?;
 
-        Ok(ledger_account.id)
+        Ok(ledger_account)
     }
 
     pub const CHART_OF_ACCOUNTS_INTEGRATION_KEY: &'static str = "chart_of_accounts_integration";

@@ -16,7 +16,6 @@ pub struct EntryParams {
     pub account_id: CalaAccountId,
     pub currency: Currency,
     pub amount: Decimal,
-    pub description: String,
     pub direction: DebitOrCredit,
 }
 
@@ -27,7 +26,6 @@ impl From<ClosingAccountEntry> for EntryParams {
             .amount(spec.amount)
             .currency(spec.currency)
             .direction(spec.direction)
-            .description(spec.description)
             .build()
             .expect("Failed to build EntryParams from ClosingTxEntrySpec")
     }
@@ -42,7 +40,6 @@ impl EntryParams {
         params.insert(Self::account_id_param_name(n), self.account_id);
         params.insert(Self::currency_param_name(n), self.currency);
         params.insert(Self::amount_param_name(n), self.amount);
-        params.insert(Self::description_param_name(n), self.description.clone());
         params.insert(Self::direction_param_name(n), self.direction);
     }
 
@@ -61,11 +58,6 @@ impl EntryParams {
             NewParamDefinition::builder()
                 .name(Self::amount_param_name(n))
                 .r#type(ParamDataType::Decimal)
-                .build()
-                .unwrap(),
-            NewParamDefinition::builder()
-                .name(Self::description_param_name(n))
-                .r#type(ParamDataType::String)
                 .build()
                 .unwrap(),
             NewParamDefinition::builder()
@@ -92,10 +84,6 @@ impl EntryParams {
 
     fn amount_param_name(n: usize) -> String {
         format!("entry_{n}_amount")
-    }
-
-    fn description_param_name(n: usize) -> String {
-        format!("entry_{n}_description")
     }
 
     fn direction_param_name(n: usize) -> String {
@@ -133,13 +121,13 @@ impl From<ClosingTransactionParams> for Params {
 impl ClosingTransactionParams {
     pub fn new(
         journal_id: JournalId,
-        description: Option<String>,
+        description: String,
         effective: NaiveDate,
         closing_entries: Vec<ClosingAccountEntry>,
     ) -> ClosingTransactionParams {
         Self {
             journal_id,
-            description: description.unwrap_or("Closing Entry".to_string()),
+            description,
             effective,
             closing_entries,
         }
@@ -171,16 +159,24 @@ impl ClosingTransactionParams {
 }
 
 pub(super) struct ClosingTransactionTemplate {
+    pub period_designation: String,
     pub n_entries: usize,
 }
 
 impl ClosingTransactionTemplate {
     pub fn code(&self) -> String {
-        format!("CLOSING_TRANSACTION_{}", self.n_entries)
+        format!("CLOSING_TRANSACTION_{}", self.period_designation)
     }
 
-    pub async fn init(ledger: &CalaLedger, n_entries: usize) -> Result<Self, TxTemplateError> {
-        let res = Self { n_entries };
+    pub async fn init(
+        ledger: &CalaLedger,
+        n_entries: usize,
+        period_designation: String,
+    ) -> Result<Self, TxTemplateError> {
+        let res = Self {
+            period_designation,
+            n_entries,
+        };
         res.find_or_create_template(ledger).await?;
         Ok(res)
     }
@@ -220,14 +216,13 @@ impl ClosingTransactionTemplate {
                 NewTxTemplateEntry::builder()
                     .entry_type(format!(
                         "'CLOSING_TRANSACTION_{}_ENTRY_{}'",
-                        self.n_entries, i
+                        self.period_designation, i
                     ))
                     .account_id(format!("params.{}", EntryParams::account_id_param_name(i)))
                     .units(format!("params.{}", EntryParams::amount_param_name(i)))
                     .currency(format!("params.{}", EntryParams::currency_param_name(i)))
                     .layer(format!("params.{}", EntryParams::layer_param_name(i)))
                     .direction(format!("params.{}", EntryParams::direction_param_name(i)))
-                    .description(format!("params.entry_{i}_description"))
                     .build()
                     .expect("Couldn't build ClosingTransaction TxTemplateEntry entry"),
             );

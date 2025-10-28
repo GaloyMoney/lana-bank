@@ -46,11 +46,7 @@ async fn closing() -> anyhow::Result<()> {
     let _ann_closing_tx = test
         .accounting
         .accounting_periods()
-        .close_year(
-            &DummySubject,
-            test.chart.id,
-            Some("Test Annual Closing".to_string()),
-        )
+        .close_year(&DummySubject, test.chart.id, None)
         .await?;
 
     let post_close_balances = test.balances().await;

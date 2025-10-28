@@ -12,7 +12,6 @@ pub struct ClosingAccountEntry {
     pub account_id: LedgerAccountId,
     pub amount: Decimal,
     pub currency: CalaCurrency,
-    pub description: String,
     pub direction: DebitOrCredit,
 }
 
@@ -21,14 +20,12 @@ impl ClosingAccountEntry {
         account_id: LedgerAccountId,
         amount: Decimal,
         currency: CalaCurrency,
-        description: String,
         direction: DebitOrCredit,
     ) -> Self {
         Self {
             account_id,
             amount,
             currency,
-            description,
             direction,
         }
     }
@@ -81,7 +78,6 @@ impl ClosingAccountBalances {
                 (*account_id).into(),
                 amount,
                 *currency,
-                "Annual Close Offset".to_string(),
                 direction,
             ));
         }
