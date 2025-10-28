@@ -384,11 +384,7 @@ where
             )
             .await?;
 
-        match self.repo.find_by_id(id).await {
-            Ok(credit_facility) => Ok(Some(credit_facility)),
-            Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e),
-        }
+        self.repo.maybe_find_by_id(id).await
     }
 
     pub async fn collateral(

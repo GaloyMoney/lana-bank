@@ -356,13 +356,7 @@ where
         reference: &str,
     ) -> Result<Option<Chart>, ChartOfAccountsError> {
         let reference = reference.to_string();
-        let chart = match self.repo.find_by_reference(reference).await {
-            Ok(chart) => Some(chart),
-            Err(e) if e.was_not_found() => None,
-            Err(e) => return Err(e),
-        };
-
-        Ok(chart)
+        self.repo.maybe_find_by_reference(reference).await
     }
 
     #[instrument(name = "core_accounting.chart_of_accounts.find_all", skip(self), err)]

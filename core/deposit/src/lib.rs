@@ -231,11 +231,7 @@ where
             )
             .await?;
 
-        match self.deposit_accounts.find_by_id(id).await {
-            Ok(accounts) => Ok(Some(accounts)),
-            Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e.into()),
-        }
+        Ok(self.deposit_accounts.maybe_find_by_id(id).await?)
     }
 
     #[instrument(name = "deposit.find_account_by_id_without_audit", skip(self), err)]
@@ -598,11 +594,7 @@ where
             )
             .await?;
 
-        match self.deposits.find_by_id(id).await {
-            Ok(deposit) => Ok(Some(deposit)),
-            Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e.into()),
-        }
+        Ok(self.deposits.maybe_find_by_id(id).await?)
     }
 
     #[instrument(name = "deposit.find_withdrawal_by_id", skip(self), err)]
@@ -620,11 +612,7 @@ where
             )
             .await?;
 
-        match self.withdrawals.find_by_id(id).await {
-            Ok(withdrawal) => Ok(Some(withdrawal)),
-            Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e.into()),
-        }
+        Ok(self.withdrawals.maybe_find_by_id(id).await?)
     }
 
     #[instrument(name = "deposit.find_deposit_by_public_id", skip(self), err)]
@@ -641,11 +629,10 @@ where
             )
             .await?;
 
-        match self.deposits.find_by_public_id(public_id.into()).await {
-            Ok(deposit) => Ok(Some(deposit)),
-            Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e.into()),
-        }
+        Ok(self
+            .deposits
+            .maybe_find_by_public_id(public_id.into())
+            .await?)
     }
 
     #[instrument(name = "deposit.find_withdrawal_by_public_id", skip(self), err)]
@@ -662,11 +649,10 @@ where
             )
             .await?;
 
-        match self.withdrawals.find_by_public_id(public_id.into()).await {
-            Ok(withdrawal) => Ok(Some(withdrawal)),
-            Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e.into()),
-        }
+        Ok(self
+            .withdrawals
+            .maybe_find_by_public_id(public_id.into())
+            .await?)
     }
 
     #[instrument(name = "deposit.find_withdrawal_by_cancelled_tx_id", skip(self), err)]

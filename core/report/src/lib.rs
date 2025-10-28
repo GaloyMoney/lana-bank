@@ -198,11 +198,7 @@ where
             )
             .await?;
 
-        match self.report_runs.find_by_id(id).await {
-            Ok(report_run) => Ok(Some(report_run)),
-            Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e.into()),
-        }
+        Ok(self.report_runs.maybe_find_by_id(id).await?)
     }
 
     pub async fn trigger_report_run(

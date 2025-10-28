@@ -133,17 +133,17 @@ where
             .collect::<Vec<_>>();
         self.ensure_permission_sets_exist(&permission_set_ids)
             .await?;
-        let existing = self.roles.find_by_name(&name).await;
-        let role = if matches!(existing, Err(ref e) if e.was_not_found()) {
-            let new_role = NewRole::builder()
-                .id(RoleId::new())
-                .name(name)
-                .initial_permission_sets(permission_set_ids.clone().into_iter().collect())
-                .build()
-                .expect("all fields for new role provided");
-            self.roles.create(new_role).await?
-        } else {
-            existing?
+        let role = match self.roles.maybe_find_by_name(&name).await? {
+            Some(existing) => existing,
+            None => {
+                let new_role = NewRole::builder()
+                    .id(RoleId::new())
+                    .name(name)
+                    .initial_permission_sets(permission_set_ids.clone().into_iter().collect())
+                    .build()
+                    .expect("all fields for new role provided");
+                self.roles.create(new_role).await?
+            }
         };
 
         for permission_set_id in permission_set_ids.into_iter() {
@@ -348,11 +348,7 @@ where
         self.authz
             .enforce_permission(sub, CoreAccessObject::role(id), CoreAccessAction::ROLE_READ)
             .await?;
-        match self.roles.find_by_id(id).await {
-            Ok(role) => Ok(Some(role)),
-            Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e.into()),
-        }
+        Ok(self.roles.maybe_find_by_id(id).await?)
     }
 
     #[instrument(name = "access.find_all_permission_sets", skip(self), err)]

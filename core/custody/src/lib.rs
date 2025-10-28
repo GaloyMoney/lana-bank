@@ -92,23 +92,18 @@ where
         &self,
         db: &mut DbOp<'_>,
     ) -> Result<(), CoreCustodyError> {
-        let mock_custodian = self
+        if self
             .custodians
-            .find_by_id(CustodianId::mock_custodian_id())
-            .await
-            .map_err(|e| e.into());
-
-        match mock_custodian {
-            Err(CoreCustodyError::Custodian(e)) if e.was_not_found() => {
-                let _ = self
-                    .create_mock_custodian_in_op(db, "Mock Custodian", CustodianConfig::Mock)
-                    .await?;
-
-                Ok(())
-            }
-            Err(e) => Err(e),
-            Ok(_) => Ok(()),
+            .maybe_find_by_id(CustodianId::mock_custodian_id())
+            .await?
+            .is_none()
+        {
+            let _ = self
+                .create_mock_custodian_in_op(db, "Mock Custodian", CustodianConfig::Mock)
+                .await?;
         }
+
+        Ok(())
     }
 
     #[cfg(feature = "mock-custodian")]

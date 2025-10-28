@@ -152,11 +152,7 @@ where
             )
             .await?;
 
-        match self.repo.find_by_id(id).await {
-            Ok(loan) => Ok(Some(loan)),
-            Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e),
-        }
+        self.repo.maybe_find_by_id(id).await
     }
 
     pub(super) async fn find_by_concluded_tx_id_without_audit(
@@ -204,11 +200,7 @@ where
             )
             .await?;
 
-        match self.repo.find_by_public_id(public_id.into()).await {
-            Ok(disbursal) => Ok(Some(disbursal)),
-            Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e),
-        }
+        self.repo.maybe_find_by_public_id(public_id.into()).await
     }
 
     pub(super) async fn conclude_approval_process_in_op(

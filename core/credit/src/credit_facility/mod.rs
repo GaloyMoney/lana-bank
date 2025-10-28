@@ -388,11 +388,7 @@ where
             )
             .await?;
 
-        match self.repo.find_by_id(id).await {
-            Ok(credit_facility) => Ok(Some(credit_facility)),
-            Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e),
-        }
+        self.repo.maybe_find_by_id(id).await
     }
 
     pub(super) async fn mark_facility_as_matured(
@@ -422,11 +418,7 @@ where
             )
             .await?;
 
-        match self.repo.find_by_public_id(public_id.into()).await {
-            Ok(credit_facility) => Ok(Some(credit_facility)),
-            Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e),
-        }
+        self.repo.maybe_find_by_public_id(public_id.into()).await
     }
 
     pub(super) async fn update_collateralization_from_price(
@@ -501,12 +493,8 @@ where
         let mut op = self.repo.begin_op().await?;
         // if the pending facility is not collateralized enough to be activated there will be no
         // credit facility to update the collateralization state for
-        let mut credit_facility = match self.repo.find_by_id(id).await {
-            Ok(cf) => cf,
-            Err(e) if e.was_not_found() => {
-                return Ok(());
-            }
-            Err(e) => return Err(e),
+        let Some(mut credit_facility) = self.repo.maybe_find_by_id(id).await? else {
+            return Ok(());
         };
 
         self.authz
