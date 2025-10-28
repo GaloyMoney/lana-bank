@@ -24,6 +24,38 @@ resource "honeycombio_query_annotation" "job_runs" {
   name     = "Job runs"
 }
 
+data "honeycombio_query_specification" "attempt" {
+  calculation {
+    op = "COUNT"
+  }
+
+  filter {
+    column = "attempt"
+    op     = "exists"
+  }
+
+  filter {
+    column = "attempt"
+    op     = ">"
+    value = "1"
+  }
+
+  breakdowns = ["attempt"]
+
+  time_range = 604800
+}
+
+resource "honeycombio_query" "attempt" {
+  dataset    = var.honeycomb_dataset
+  query_json = data.honeycombio_query_specification.attempt.json
+}
+
+resource "honeycombio_query_annotation" "attempt" {
+  dataset  = var.honeycomb_dataset
+  query_id = honeycombio_query.attempt.id
+  name     = "Multiple attempts"
+}
+
 # Jobs dashboard
 resource "honeycombio_flexible_board" "jobs" {
   name        = "${local.name_prefix}-jobs"
@@ -35,6 +67,16 @@ resource "honeycombio_flexible_board" "jobs" {
     query_panel {
       query_id            = honeycombio_query.job_runs.id
       query_annotation_id = honeycombio_query_annotation.job_runs.id
+      query_style         = "graph"
+    }
+  }
+
+  panel {
+    type = "query"
+
+    query_panel {
+      query_id            = honeycombio_query.attempt.id
+      query_annotation_id = honeycombio_query_annotation.attempt.id
       query_style         = "graph"
     }
   }
