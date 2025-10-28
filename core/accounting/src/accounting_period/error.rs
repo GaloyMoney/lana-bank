@@ -25,12 +25,6 @@ pub enum AccountingPeriodError {
     },
     #[error("AccountingPeriodError - ClosingMetadataNotFound")]
     ClosingMetadataNotFound { chart_id: ChartId },
-    #[error("ChartOfAccountsError - CalaAccountSetError: {0}")]
-    CalaAccountSet(#[from] cala_ledger::account_set::error::AccountSetError),
-    #[error("AccountingPeriodError - CalaError: {0}")]
-    CalaError(#[from] cala_ledger::error::LedgerError),
-    #[error("AccountingPeriodError - CalaTxTemplateError: {0}")]
-    TxTemplateError(#[from] cala_ledger::tx_template::error::TxTemplateError),
     #[error("AccountingPeriodError - AccountingPeriodIntegrationConfigAlreadyExists")]
     AccountingPeriodIntegrationConfigAlreadyExists,
     #[error("AccountingPeriodError - AccountingPeriodIntegrationConfigNotFound")]
@@ -41,10 +35,8 @@ pub enum AccountingPeriodError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("AccountingPeriodError - ChartOfAccounts: {0}")]
     ChartOfAccountsError(#[from] crate::chart_of_accounts::error::ChartOfAccountsError),
-    #[error("AccountingPeriodError - CalaAccountError: {0}")]
-    CalaAccount(#[from] cala_ledger::account::error::AccountError),
-    #[error("AccountingPeriodError - CalaBalanceError: {0}")]
-    CalaBalance(#[from] cala_ledger::balance::error::BalanceError),
+    #[error("AccountingPeriodError - LedgerError: {0}")]
+    Ledger(#[from] super::ledger::AccountingPeriodLedgerError),
 }
 
 es_entity::from_es_entity_error!(AccountingPeriodError);

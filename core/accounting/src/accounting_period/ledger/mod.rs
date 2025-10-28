@@ -1,4 +1,5 @@
 mod closing;
+mod error;
 mod template;
 
 use audit::AuditInfo;
@@ -6,6 +7,7 @@ use chrono::NaiveDate;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
+pub use error::AccountingPeriodLedgerError;
 pub use template::ClosingTransactionParams;
 use template::*;
 
@@ -13,7 +15,6 @@ use super::{
     AccountingPeriod,
     chart_of_accounts_integration::ChartOfAccountsIntegrationConfig,
     closing::{ClosingAccountBalances, ClosingAccountEntry},
-    error::AccountingPeriodError,
 };
 use crate::primitives::{CHART_OF_ACCOUNTS_ENTITY_TYPE, CalaTxId, EntityRef, LedgerAccountId};
 use cala_ledger::{
@@ -58,7 +59,7 @@ impl AccountingPeriodLedger {
         ledger_tx_id: CalaTxId,
         description: Option<String>,
         accounting_period: AccountingPeriod,
-    ) -> Result<(), AccountingPeriodError> {
+    ) -> Result<(), AccountingPeriodLedgerError> {
         let mut db = self
             .cala
             .ledger_operation_from_db_op(db.with_db_time().await?);
@@ -84,7 +85,7 @@ impl AccountingPeriodLedger {
         ledger_tx_id: CalaTxId,
         description: Option<String>,
         accounting_period: &AccountingPeriod,
-    ) -> Result<(), AccountingPeriodError> {
+    ) -> Result<(), AccountingPeriodLedgerError> {
         let (net_income, mut closing_entries) = self
             .get_closing_account_entry_params(accounting_period)
             .await?
@@ -125,7 +126,7 @@ impl AccountingPeriodLedger {
         db: es_entity::DbOp<'_>,
         tracking_account_set_id: AccountSetId,
         closed_as_of: NaiveDate,
-    ) -> Result<(), AccountingPeriodError> {
+    ) -> Result<(), AccountingPeriodLedgerError> {
         let mut op = self
             .cala
             .ledger_operation_from_db_op(db.with_db_time().await?);
@@ -143,7 +144,7 @@ impl AccountingPeriodLedger {
         db: &mut LedgerOperation<'_>,
         tracking_account_set_id: AccountSetId,
         closed_as_of: NaiveDate,
-    ) -> Result<(), AccountingPeriodError> {
+    ) -> Result<(), AccountingPeriodLedgerError> {
         let mut tracking_account_set = self
             .cala
             .account_sets()
@@ -181,7 +182,7 @@ impl AccountingPeriodLedger {
     pub async fn get_closing_account_entry_params(
         &self,
         period: &AccountingPeriod,
-    ) -> Result<ClosingAccountBalances, AccountingPeriodError> {
+    ) -> Result<ClosingAccountBalances, AccountingPeriodLedgerError> {
         let revenue_accounts = self
             .find_all_accounts_by_parent_set_id(period.account_set_ids.revenue_account_set_id)
             .await?;
@@ -226,7 +227,7 @@ impl AccountingPeriodLedger {
     async fn find_all_accounts_by_parent_set_id(
         &self,
         parent_set_id: AccountSetId,
-    ) -> Result<Vec<BalanceId>, AccountingPeriodError> {
+    ) -> Result<Vec<BalanceId>, AccountingPeriodLedgerError> {
         let mut accounts: Vec<BalanceId> = Vec::new();
         // TODO: Doesn't seem like pagination is used anywhere else... confirm default behavior
         // will provide all.
@@ -261,7 +262,7 @@ impl AccountingPeriodLedger {
         op: &mut LedgerOperation<'_>,
         net_earnings: Decimal,
         account_set_ids: AccountingPeriodAccountSetIds,
-    ) -> Result<ClosingAccountEntry, AccountingPeriodError> {
+    ) -> Result<ClosingAccountEntry, AccountingPeriodLedgerError> {
         // TODO: Where to source the `reference`, `name` and/or (account) `description` params from?
         let (direction, parent_account_set, reference) = if net_earnings >= Decimal::ZERO {
             (
@@ -310,7 +311,7 @@ impl AccountingPeriodLedger {
         entity_ref: EntityRef,
         normal_balance_type: DebitOrCredit,
         parent_account_set: AccountSetId,
-    ) -> Result<AccountId, AccountingPeriodError> {
+    ) -> Result<AccountId, AccountingPeriodLedgerError> {
         let id = id.into();
         let new_ledger_account = NewAccount::builder()
             .id(id)
@@ -342,7 +343,7 @@ impl AccountingPeriodLedger {
     pub async fn get_chart_of_accounts_integration_config(
         &self,
         root_chart_account_set_id: AccountSetId,
-    ) -> Result<Option<ChartOfAccountsIntegrationConfig>, AccountingPeriodError> {
+    ) -> Result<Option<ChartOfAccountsIntegrationConfig>, AccountingPeriodLedgerError> {
         let account_set = self
             .cala
             .account_sets()
@@ -369,7 +370,7 @@ impl AccountingPeriodLedger {
         op: es_entity::DbOp<'_>,
         root_chart_account_set_id: impl Into<AccountSetId>,
         config: ChartOfAccountsIntegrationMeta,
-    ) -> Result<(), AccountingPeriodError> {
+    ) -> Result<(), AccountingPeriodLedgerError> {
         let root_chart_account_set_id = root_chart_account_set_id.into();
         let mut account_set = self
             .cala

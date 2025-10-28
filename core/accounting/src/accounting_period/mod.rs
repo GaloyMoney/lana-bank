@@ -232,9 +232,10 @@ where
         &self,
         chart: &Chart,
     ) -> Result<Option<ChartOfAccountsIntegrationConfig>, AccountingPeriodError> {
-        self.ledger
+        Ok(self
+            .ledger
             .get_chart_of_accounts_integration_config(chart.account_set_id)
-            .await
+            .await?)
     }
 
     pub async fn set_chart_of_accounts_integration_config(
