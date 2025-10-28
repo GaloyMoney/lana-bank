@@ -301,6 +301,9 @@ importers:
       '@storybook/addon-onboarding':
         specifier: ^9.1.15
         version: 9.1.15(storybook@9.1.15(@testing-library/dom@10.4.0)(prettier@3.6.2))
+      '@storybook/addon-postcss':
+        specifier: ^2.0.0
+        version: 2.0.0(webpack@5.102.1)
       '@storybook/nextjs':
         specifier: ^9.1.15
         version: 9.1.15(next@16.0.0(@babel/core@7.28.5)(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(storybook@9.1.15(@testing-library/dom@10.4.0)(prettier@3.6.2))(type-fest@2.19.0)(typescript@5.9.3)(webpack-hot-middleware@2.26.1)(webpack@5.102.1)
@@ -318,28 +321,28 @@ importers:
         version: 19.2.2(@types/react@19.2.2)
       '@typescript-eslint/eslint-plugin':
         specifier: ^7.12.0
-        version: 7.18.0(@typescript-eslint/parser@8.46.2(eslint@8.57.1)(typescript@5.9.3))(eslint@8.57.1)(typescript@5.9.3)
+        version: 7.18.0(@typescript-eslint/parser@8.46.2(eslint@9.38.0(jiti@2.6.1))(typescript@5.9.3))(eslint@9.38.0(jiti@2.6.1))(typescript@5.9.3)
       cypress:
         specifier: ^15.5.0
         version: 15.5.0
       eslint:
-        specifier: ^8.57.0
-        version: 8.57.1
+        specifier: ^9.38.0
+        version: 9.38.0(jiti@2.6.1)
       eslint-config-next:
         specifier: 16.0.0
-        version: 16.0.0(@typescript-eslint/parser@8.46.2(eslint@8.57.1)(typescript@5.9.3))(eslint@8.57.1)(typescript@5.9.3)
+        version: 16.0.0(@typescript-eslint/parser@8.46.2(eslint@9.38.0(jiti@2.6.1))(typescript@5.9.3))(eslint@9.38.0(jiti@2.6.1))(typescript@5.9.3)
       eslint-config-prettier:
         specifier: ^10.1.8
-        version: 10.1.8(eslint@8.57.1)
+        version: 10.1.8(eslint@9.38.0(jiti@2.6.1))
       eslint-plugin-import:
         specifier: ^2.32.0
-        version: 2.32.0(@typescript-eslint/parser@8.46.2(eslint@8.57.1)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@8.57.1)
+        version: 2.32.0(@typescript-eslint/parser@8.46.2(eslint@9.38.0(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.38.0(jiti@2.6.1))
       eslint-plugin-prettier:
         specifier: ^5.5.4
-        version: 5.5.4(@types/eslint@9.6.1)(eslint-config-prettier@10.1.8(eslint@8.57.1))(eslint@8.57.1)(prettier@3.6.2)
+        version: 5.5.4(@types/eslint@9.6.1)(eslint-config-prettier@10.1.8(eslint@9.38.0(jiti@2.6.1)))(eslint@9.38.0(jiti@2.6.1))(prettier@3.6.2)
       eslint-plugin-storybook:
         specifier: ^9.1.15
-        version: 9.1.15(eslint@8.57.1)(storybook@9.1.15(@testing-library/dom@10.4.0)(prettier@3.6.2))(typescript@5.9.3)
+        version: 9.1.15(eslint@9.38.0(jiti@2.6.1))(storybook@9.1.15(@testing-library/dom@10.4.0)(prettier@3.6.2))(typescript@5.9.3)
       otplib:
         specifier: ^12.0.1
         version: 12.0.1
@@ -10815,6 +10818,11 @@ snapshots:
       eslint: 8.57.1
       eslint-visitor-keys: 3.4.3
 
+  '@eslint-community/eslint-utils@4.7.0(eslint@9.38.0(jiti@2.6.1))':
+    dependencies:
+      eslint: 9.38.0(jiti@2.6.1)
+      eslint-visitor-keys: 3.4.3
+
   '@eslint-community/eslint-utils@4.9.0(eslint@8.57.1)':
     dependencies:
       eslint: 8.57.1
@@ -12739,6 +12747,16 @@ snapshots:
     transitivePeerDependencies:
       - webpack
 
+  '@storybook/addon-postcss@2.0.0(webpack@5.102.1)':
+    dependencies:
+      '@storybook/node-logger': 6.5.16
+      css-loader: 3.6.0(webpack@5.102.1)
+      postcss: 7.0.39
+      postcss-loader: 4.3.0(postcss@7.0.39)(webpack@5.102.1)
+      style-loader: 1.3.0(webpack@5.102.1)
+    transitivePeerDependencies:
+      - webpack
+
   '@storybook/addon-toolbars@8.6.14(storybook@9.1.15(@testing-library/dom@10.4.0)(prettier@3.6.2))':
     dependencies:
       storybook: 9.1.15(@testing-library/dom@10.4.0)(prettier@3.6.2)
@@ -13506,6 +13524,24 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@typescript-eslint/eslint-plugin@7.18.0(@typescript-eslint/parser@8.46.2(eslint@9.38.0(jiti@2.6.1))(typescript@5.9.3))(eslint@9.38.0(jiti@2.6.1))(typescript@5.9.3)':
+    dependencies:
+      '@eslint-community/regexpp': 4.12.1
+      '@typescript-eslint/parser': 8.46.2(eslint@9.38.0(jiti@2.6.1))(typescript@5.9.3)
+      '@typescript-eslint/scope-manager': 7.18.0
+      '@typescript-eslint/type-utils': 7.18.0(eslint@9.38.0(jiti@2.6.1))(typescript@5.9.3)
+      '@typescript-eslint/utils': 7.18.0(eslint@9.38.0(jiti@2.6.1))(typescript@5.9.3)
+      '@typescript-eslint/visitor-keys': 7.18.0
+      eslint: 9.38.0(jiti@2.6.1)
+      graphemer: 1.4.0
+      ignore: 5.3.2
+      natural-compare: 1.4.0
+      ts-api-utils: 1.4.3(typescript@5.9.3)
+    optionalDependencies:
+      typescript: 5.9.3
+    transitivePeerDependencies:
+      - supports-color
+
   '@typescript-eslint/eslint-plugin@8.46.2(@typescript-eslint/parser@8.46.2(eslint@8.57.1)(typescript@5.9.3))(eslint@8.57.1)(typescript@5.9.3)':
     dependencies:
       '@eslint-community/regexpp': 4.12.2
@@ -13599,6 +13635,18 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@typescript-eslint/type-utils@7.18.0(eslint@9.38.0(jiti@2.6.1))(typescript@5.9.3)':
+    dependencies:
+      '@typescript-eslint/typescript-estree': 7.18.0(typescript@5.9.3)
+      '@typescript-eslint/utils': 7.18.0(eslint@9.38.0(jiti@2.6.1))(typescript@5.9.3)
+      debug: 4.4.3(supports-color@8.1.1)
+      eslint: 9.38.0(jiti@2.6.1)
+      ts-api-utils: 1.4.3(typescript@5.9.3)
+    optionalDependencies:
+      typescript: 5.9.3
+    transitivePeerDependencies:
+      - supports-color
+
   '@typescript-eslint/type-utils@8.46.2(eslint@8.57.1)(typescript@5.9.3)':
     dependencies:
       '@typescript-eslint/types': 8.46.2
@@ -13665,6 +13713,17 @@ snapshots:
       '@typescript-eslint/types': 7.18.0
       '@typescript-eslint/typescript-estree': 7.18.0(typescript@5.9.3)
       eslint: 8.57.1
+    transitivePeerDependencies:
+      - supports-color
+      - typescript
+
+  '@typescript-eslint/utils@7.18.0(eslint@9.38.0(jiti@2.6.1))(typescript@5.9.3)':
+    dependencies:
+      '@eslint-community/eslint-utils': 4.7.0(eslint@9.38.0(jiti@2.6.1))
+      '@typescript-eslint/scope-manager': 7.18.0
+      '@typescript-eslint/types': 7.18.0
+      '@typescript-eslint/typescript-estree': 7.18.0(typescript@5.9.3)
+      eslint: 9.38.0(jiti@2.6.1)
     transitivePeerDependencies:
       - supports-color
       - typescript
@@ -14961,6 +15020,23 @@ snapshots:
       semver: 6.3.1
       webpack: 5.102.1(esbuild@0.25.11)
 
+  css-loader@3.6.0(webpack@5.102.1):
+    dependencies:
+      camelcase: 5.3.1
+      cssesc: 3.0.0
+      icss-utils: 4.1.1
+      loader-utils: 1.4.2
+      normalize-path: 3.0.0
+      postcss: 7.0.39
+      postcss-modules-extract-imports: 2.0.0
+      postcss-modules-local-by-default: 3.0.3
+      postcss-modules-scope: 2.2.0
+      postcss-modules-values: 3.0.0
+      postcss-value-parser: 4.2.0
+      schema-utils: 2.7.1
+      semver: 6.3.1
+      webpack: 5.102.1
+
   css-loader@6.11.0(webpack@5.102.1(esbuild@0.25.11)):
     dependencies:
       icss-utils: 5.1.0(postcss@8.5.6)
@@ -15982,15 +16058,6 @@ snapshots:
       semver: 6.3.1
       string.prototype.matchall: 4.0.12
       string.prototype.repeat: 1.0.0
-
-  eslint-plugin-storybook@9.1.15(eslint@8.57.1)(storybook@9.1.15(@testing-library/dom@10.4.0)(prettier@3.6.2))(typescript@5.9.3):
-    dependencies:
-      '@typescript-eslint/utils': 8.46.2(eslint@8.57.1)(typescript@5.9.3)
-      eslint: 8.57.1
-      storybook: 9.1.15(@testing-library/dom@10.4.0)(prettier@3.6.2)
-    transitivePeerDependencies:
-      - supports-color
-      - typescript
 
   eslint-plugin-storybook@9.1.15(eslint@9.38.0(jiti@2.6.1))(storybook@9.1.15(@testing-library/dom@10.4.0)(prettier@3.6.2))(typescript@5.9.3):
     dependencies:
@@ -18112,6 +18179,16 @@ snapshots:
       semver: 7.7.3
       webpack: 5.102.1(esbuild@0.25.11)
 
+  postcss-loader@4.3.0(postcss@7.0.39)(webpack@5.102.1):
+    dependencies:
+      cosmiconfig: 7.1.0
+      klona: 2.0.6
+      loader-utils: 2.0.4
+      postcss: 7.0.39
+      schema-utils: 3.3.0
+      semver: 7.7.3
+      webpack: 5.102.1
+
   postcss-loader@8.2.0(postcss@8.5.6)(typescript@5.9.3)(webpack@5.102.1(esbuild@0.25.11)):
     dependencies:
       cosmiconfig: 9.0.0(typescript@5.9.3)
@@ -19156,6 +19233,12 @@ snapshots:
       loader-utils: 2.0.4
       schema-utils: 2.7.1
       webpack: 5.102.1(esbuild@0.25.11)
+
+  style-loader@1.3.0(webpack@5.102.1):
+    dependencies:
+      loader-utils: 2.0.4
+      schema-utils: 2.7.1
+      webpack: 5.102.1
 
   style-loader@3.3.4(webpack@5.102.1(esbuild@0.25.11)):
     dependencies:

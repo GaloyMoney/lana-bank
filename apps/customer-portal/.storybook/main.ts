@@ -24,6 +24,7 @@ const config: StorybookConfig = {
         return false
       }
       return test.test(".svg")
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     }) as { [key: string]: any }
     imageRule.exclude = /\.svg$/
     config.module?.rules?.push({

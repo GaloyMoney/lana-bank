@@ -1,7 +1,6 @@
 import type { Metadata } from "next"
 import { Inter_Tight } from "next/font/google"
 
-// eslint-disable-next-line import/no-unassigned-import
 import "./globals.css"
 import { PublicEnvScript } from "next-runtime-env"
 
