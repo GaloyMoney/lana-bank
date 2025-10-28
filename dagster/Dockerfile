@@ -25,5 +25,6 @@ RUN mkdir -p /iris_analysis/ && \
 
 WORKDIR /iris_analysis/
 
-# Expose the port that your Dagster instance will run on
-EXPOSE 3030
+EXPOSE 4000
+
+CMD ["dagster", "api", "grpc", "-h", "0.0.0.0", "-p", "4000", "-f", "/iris_analysis/definitions.py"]

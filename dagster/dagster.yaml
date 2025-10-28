@@ -20,18 +20,6 @@ run_launcher:
       - DAGSTER_POSTGRES_USER
       - DAGSTER_POSTGRES_PASSWORD
       - DAGSTER_POSTGRES_DB
-      - TF_VAR_sa_creds
-      - TARGET_BIGQUERY_DATASET
-      - DBT_BIGQUERY_AUTH_METHOD
-      - DBT_BIGQUERY_PROJECT
-      - DBT_BIGQUERY_DATASET
-      - DBT_BIGQUERY_REFRESH_TOKEN
-      - DBT_BIGQUERY_CLIENT_ID
-      - DBT_BIGQUERY_CLIENT_SECRET
-      - DBT_BIGQUERY_TOKEN_URI
-      - DBT_BIGQUERY_KEYFILE
-      - DOCS_BUCKET_NAME
-      - GOOGLE_APPLICATION_CREDENTIALS
     network: dagster_network
     container_kwargs:
       volumes: # Make docker client accessible to any launched containers as well
