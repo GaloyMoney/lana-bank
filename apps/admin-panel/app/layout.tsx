@@ -1,11 +1,10 @@
+import "./globals.css"
 import type { Metadata } from "next"
-import { NextIntlClientProvider } from "next-intl"
-import { getLocale, getMessages } from "next-intl/server"
-
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages } from "next-intl/server";
 import { Inter_Tight } from "next/font/google"
 
 import AppLoading from "./app-loading"
-
 import { Authenticated } from "./auth/session"
 
 export const metadata: Metadata = {
@@ -13,10 +12,6 @@ export const metadata: Metadata = {
   description:
     "Unlock the power of Bitcoin-backed lending with Lana Bank – fast, secure, and seamless",
 }
-
-// eslint-disable-next-line import/no-unassigned-import
-import "./globals.css"
-
 const inter = Inter_Tight({
   subsets: ["latin"],
   variable: "--font-inter",

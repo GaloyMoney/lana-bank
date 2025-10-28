@@ -1,19 +1,18 @@
 import React from "react"
 import type { Preview } from "@storybook/nextjs"
 import { MockedProvider } from "@apollo/client/testing"
+
 import "../app/globals.css"
-import { AppSidebar } from "../components/app-sidebar"
 import { SidebarInset, SidebarProvider } from "@lana/web/ui/sidebar"
+
+import { NextIntlClientProvider } from "next-intl"
+
+import { AppSidebar } from "../components/app-sidebar"
 import enMessages from "../messages/en.json"
-import {
-  AvatarDocument,
-  GetRealtimePriceUpdatesDocument,
-  Role,
-} from "../lib/graphql/generated"
+import { AvatarDocument, GetRealtimePriceUpdatesDocument } from "../lib/graphql/generated"
 import { mockRealtimePrice } from "../lib/graphql/generated/mocks"
 import { AppLayout } from "../app/app-layout"
 import { BreadcrumbProvider } from "../app/breadcrumb-provider"
-import { NextIntlClientProvider } from "next-intl"
 
 const defaultMocks = [
   {
