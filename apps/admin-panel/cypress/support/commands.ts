@@ -1,4 +1,4 @@
-// eslint-disable-next-line import/no-extraneous-dependencies, import/no-unassigned-import
+// eslint-disable-next-line import/no-unassigned-import
 import "cypress-file-upload"
 
 import { t } from "../support/translation"
@@ -314,9 +314,9 @@ Cypress.Commands.add("waitForKeycloak", () => {
       throw new Error(`Keycloak not ready after ${maxAttempts} attempts`)
     }
     cy.log(`Checking Keycloak readiness (attempt ${attempt}/${maxAttempts})`)
-    cy.task("checkUrl", `${root}/realms/master`).then((masterReady: any) => {
+    cy.task("checkUrl", `${root}/realms/master`).then((masterReady) => {
       if (masterReady) {
-        cy.task("checkUrl", `${root}/realms/internal`).then((adminReady: any) => {
+        cy.task("checkUrl", `${root}/realms/internal`).then((adminReady) => {
           if (adminReady) {
             cy.request({
               method: "POST",
