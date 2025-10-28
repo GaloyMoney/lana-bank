@@ -15,7 +15,7 @@ RUN \
     pip install \
         dagster==1.11.16 \
         dagster-postgres==0.27.16 \
-        dagster-k8s==1.11.16 \
+        dagster-k8s==0.27.16 \
         # add any other dependencies here
         pandas
 
