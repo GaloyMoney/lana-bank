@@ -24,6 +24,8 @@ pub enum CreditFacilityError {
     Denied,
     #[error("CreditFacilityError - DisbursalPastMaturityDate")]
     DisbursalPastMaturityDate,
+    #[error("CreditFacilityError - OnlyOneDisbursalAllowed")]
+    OnlyOneDisbursalAllowed,
     #[error("CreditFacilityError - NotActivatedYet")]
     NotActivatedYet,
     #[error("CreditFacilityError - InterestAccrualNotCompletedYet")]

@@ -161,6 +161,13 @@
       ],
       "type": "string"
     },
+    "DisbursalPolicy": {
+      "enum": [
+        "SingleDisbursal",
+        "MultipleDisbursal"
+      ],
+      "type": "string"
+    },
     "EffectiveDate": {
       "format": "date",
       "type": "string"
@@ -281,6 +288,9 @@
             "number"
           ]
         },
+        "disbursal_policy": {
+          "$ref": "#/$defs/DisbursalPolicy"
+        },
         "duration": {
           "$ref": "#/$defs/FacilityDuration"
         },
@@ -333,7 +343,8 @@
         "one_time_fee_rate",
         "liquidation_cvl",
         "margin_call_cvl",
-        "initial_cvl"
+        "initial_cvl",
+        "disbursal_policy"
       ],
       "type": "object"
     },
@@ -389,6 +400,13 @@
         },
         "public_id": {
           "type": "string"
+        },
+        "structuring_fee_tx_id": {
+          "format": "uuid",
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "terms": {
           "$ref": "#/$defs/TermValues"

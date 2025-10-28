@@ -24,8 +24,8 @@ use crate::{
 };
 
 pub use entity::{
-    NewPendingCreditFacility, NewPendingCreditFacilityBuilder, PendingCreditFacility,
-    PendingCreditFacilityEvent,
+    NewCreditFacilityWithInitialDisbursal, NewPendingCreditFacility,
+    NewPendingCreditFacilityBuilder, PendingCreditFacility, PendingCreditFacilityEvent,
 };
 use error::*;
 use repo::PendingCreditFacilityRepo;
@@ -34,7 +34,7 @@ pub use repo::pending_credit_facility_cursor::*;
 pub enum PendingCreditFacilityCompletionOutcome {
     Ignored,
     Completed {
-        new_facility: NewCreditFacilityBuilder,
+        new_credit_facility: NewCreditFacilityBuilder,
         initial_disbursal: Option<NewDisbursalBuilder>,
     },
 }
@@ -207,11 +207,14 @@ where
             .await?;
 
         match pending_facility.complete(balances, price, crate::time::now()) {
-            Ok(es_entity::Idempotent::Executed((new_facility, initial_disbursal))) => {
+            Ok(es_entity::Idempotent::Executed(NewCreditFacilityWithInitialDisbursal {
+                new_credit_facility,
+                initial_disbursal,
+            })) => {
                 self.repo.update_in_op(db, &mut pending_facility).await?;
 
                 Ok(PendingCreditFacilityCompletionOutcome::Completed {
-                    new_facility,
+                    new_credit_facility,
                     initial_disbursal,
                 })
             }

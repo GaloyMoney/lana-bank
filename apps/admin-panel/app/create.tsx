@@ -264,6 +264,17 @@ const CreateButton = () => {
         )
       }
 
+      // Hide disbursal option if facility is single disbursal and already has disbursals
+      if (item.label === t("menuItems.disbursal")) {
+        if (
+          facility?.creditFacilityTerms?.disbursalPolicy === "SINGLE_DISBURSAL" &&
+          facility?.disbursals &&
+          facility.disbursals.length > 0
+        ) {
+          return false
+        }
+      }
+
       return isPathAllowed
     })
   }

@@ -27,6 +27,7 @@ pub enum CreditFacilityEvent {
         customer_type: CustomerType,
         collateral_id: CollateralId,
         ledger_tx_id: LedgerTxId,
+        structuring_fee_tx_id: Option<LedgerTxId>,
         terms: TermValues,
         amount: UsdCents,
         account_ids: CreditFacilityLedgerAccountIds,
@@ -162,6 +163,8 @@ pub struct CreditFacility {
     pub activated_at: DateTime<Utc>,
     pub maturity_date: EffectiveDate,
 
+    structuring_fee_tx_id: Option<LedgerTxId>,
+
     #[es_entity(nested)]
     #[builder(default)]
     interest_accruals: Nested<InterestAccrualCycle>,
@@ -169,33 +172,39 @@ pub struct CreditFacility {
 }
 
 impl CreditFacility {
-    pub(crate) fn activation_data(&self) -> CreditFacilityActivation {
-        self.events
+    pub(crate) fn activation_data(
+        &self,
+        initial_disbursal: Option<InitialDisbursalOnActivation>,
+    ) -> CreditFacilityActivation {
+        if let Some(CreditFacilityEvent::Initialized {
+            id,
+            ledger_tx_id,
+            account_ids,
+            amount,
+            disbursal_credit_account_id,
+            customer_type,
+            terms,
+            ..
+        }) = self
+            .events
             .iter_all()
-            .find_map(|event| match event {
-                CreditFacilityEvent::Initialized {
-                    id,
-                    ledger_tx_id,
-                    account_ids,
-                    amount,
-                    disbursal_credit_account_id,
-                    customer_type,
-                    terms,
-                    ..
-                } => Some(CreditFacilityActivation {
-                    credit_facility_id: *id,
-                    tx_id: *ledger_tx_id,
-                    tx_ref: format!("{}-activate", *id),
-                    account_ids: *account_ids,
-                    debit_account_id: *disbursal_credit_account_id,
-                    facility_amount: *amount,
-                    structuring_fee_amount: self.structuring_fee(),
-                    customer_type: *customer_type,
-                    duration_type: terms.duration.duration_type(),
-                }),
-                _ => None,
-            })
-            .expect("Initialized event should exist")
+            .find(|event| matches!(event, CreditFacilityEvent::Initialized { .. }))
+        {
+            CreditFacilityActivation {
+                credit_facility_id: *id,
+                tx_id: *ledger_tx_id,
+                tx_ref: format!("{}-activate", *id),
+                account_ids: *account_ids,
+                debit_account_id: *disbursal_credit_account_id,
+                facility_amount: *amount,
+                customer_type: *customer_type,
+                duration_type: terms.duration.duration_type(),
+                structuring_fee: self.structuring_fee_on_activation(),
+                initial_disbursal,
+            }
+        } else {
+            unreachable!("There is always an Initialized event")
+        }
     }
 
     pub fn created_at(&self) -> DateTime<Utc> {
@@ -208,8 +217,17 @@ impl CreditFacility {
         self.maturity_date.start_of_day()
     }
 
-    pub(crate) fn structuring_fee(&self) -> UsdCents {
-        self.terms.one_time_fee_rate.apply(self.amount)
+    fn structuring_fee_on_activation(&self) -> Option<StructuringFeeOnActivation> {
+        let tx_id = self.structuring_fee_tx_id?;
+
+        Some(StructuringFeeOnActivation {
+            tx_id,
+            amount: self.terms.one_time_fee_rate.apply(self.amount),
+        })
+    }
+
+    pub fn is_single_disbursal(&self) -> bool {
+        self.terms.is_single_disbursal()
     }
 
     fn is_matured(&self) -> bool {
@@ -535,6 +553,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                     disbursal_credit_account_id,
                     terms: t,
                     public_id,
+                    structuring_fee_tx_id,
                     maturity_date,
                     activated_at,
                     ..
@@ -548,6 +567,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                         .terms(*t)
                         .account_ids(*account_ids)
                         .disbursal_credit_account_id(*disbursal_credit_account_id)
+                        .structuring_fee_tx_id(*structuring_fee_tx_id)
                         .public_id(public_id.clone())
                         .activated_at(*activated_at)
                         .maturity_date(*maturity_date);
@@ -605,6 +625,11 @@ impl IntoEvents<CreditFacilityEvent> for NewCreditFacility {
                 id: self.id,
                 pending_credit_facility_id: self.pending_credit_facility_id,
                 ledger_tx_id: self.ledger_tx_id,
+                structuring_fee_tx_id: if self.terms.has_one_time_fee() {
+                    Some(LedgerTxId::new())
+                } else {
+                    None
+                },
                 customer_id: self.customer_id,
                 customer_type: self.customer_type,
                 collateral_id: self.collateral_id,
@@ -625,7 +650,7 @@ mod test {
     use rust_decimal_macros::dec;
 
     use crate::{
-        terms::{FacilityDuration, InterestInterval, OneTimeFeeRatePct},
+        terms::{DisbursalPolicy, FacilityDuration, InterestInterval, OneTimeFeeRatePct},
         *,
     };
 
@@ -641,6 +666,7 @@ mod test {
             .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .accrual_interval(InterestInterval::EndOfDay)
             .one_time_fee_rate(OneTimeFeeRatePct::new(5))
+            .disbursal_policy(DisbursalPolicy::SingleDisbursal)
             .liquidation_cvl(dec!(105))
             .margin_call_cvl(dec!(125))
             .initial_cvl(dec!(140))
@@ -697,6 +723,7 @@ mod test {
             id,
             pending_credit_facility_id: PendingCreditFacilityId::from(id),
             ledger_tx_id: LedgerTxId::new(),
+            structuring_fee_tx_id: Some(LedgerTxId::new()),
             customer_id: CustomerId::new(),
             customer_type: CustomerType::Individual,
             collateral_id: CollateralId::new(),
@@ -883,7 +910,13 @@ mod test {
     fn structuring_fee() {
         let credit_facility = facility_from(initial_events());
         let expected_fee = default_terms().one_time_fee_rate.apply(default_facility());
-        assert_eq!(credit_facility.structuring_fee(), expected_fee);
+        assert_eq!(
+            credit_facility
+                .structuring_fee_on_activation()
+                .unwrap()
+                .amount,
+            expected_fee
+        );
     }
 
     mod completion {

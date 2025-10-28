@@ -282,7 +282,9 @@ mod tests {
 
     use rust_decimal_macros::dec;
 
-    use crate::terms::{FacilityDuration, InterestInterval, ObligationDuration, OneTimeFeeRatePct};
+    use crate::terms::{
+        DisbursalPolicy, FacilityDuration, InterestInterval, ObligationDuration, OneTimeFeeRatePct,
+    };
 
     use super::*;
 
@@ -307,6 +309,7 @@ mod tests {
             .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .accrual_interval(InterestInterval::EndOfDay)
             .one_time_fee_rate(one_time_fee_rate)
+            .disbursal_policy(DisbursalPolicy::SingleDisbursal)
             .liquidation_cvl(dec!(105))
             .margin_call_cvl(dec!(125))
             .initial_cvl(dec!(140))

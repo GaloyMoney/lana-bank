@@ -140,6 +140,33 @@ impl Disbursal {
         })
     }
 
+    pub(crate) fn approval_process_concluded_for_initial_disbursal(
+        &mut self,
+        effective: chrono::NaiveDate,
+    ) -> Idempotent<Option<NewObligation>> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            DisbursalEvent::ApprovalProcessConcluded { .. }
+        );
+        self.events.push(DisbursalEvent::ApprovalProcessConcluded {
+            approval_process_id: self.approval_process_id,
+            approved: true,
+        });
+        let tx_id = self.initiated_tx_id;
+        let tx_ref: &str = &format!("initial-disbursal-{}", self.id);
+        let new_obligation = if let Idempotent::Executed(new_obligation) =
+            self.settle_disbursal(tx_id, tx_ref, effective)
+        {
+            Some(new_obligation)
+        } else {
+            return Idempotent::Ignored;
+        };
+
+        self.concluded_tx_id = Some(tx_id);
+
+        Idempotent::Executed(new_obligation)
+    }
+
     pub(crate) fn approval_process_concluded(
         &mut self,
         approved: bool,

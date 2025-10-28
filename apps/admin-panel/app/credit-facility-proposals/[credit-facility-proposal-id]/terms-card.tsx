@@ -24,6 +24,11 @@ export const CreditFacilityTermsCard: React.FC<CreditFacilityTermsCardProps> = (
     Number(creditFacilityProposal.creditFacilityTerms.annualRate) +
     Number(creditFacilityProposal.creditFacilityTerms.oneTimeFeeRate)
 
+  const disbursalPolicyLabel =
+    creditFacilityProposal.creditFacilityTerms.disbursalPolicy === "SINGLE_DISBURSAL"
+      ? t("details.singleDisbursal")
+      : t("details.multipleDisbursal")
+
   const details: DetailItemProps[] = [
     {
       label: t("details.duration"),
@@ -57,6 +62,10 @@ export const CreditFacilityTermsCard: React.FC<CreditFacilityTermsCardProps> = (
       value: `${creditFacilityProposal.creditFacilityTerms.oneTimeFeeRate}%`,
     },
     { label: t("details.effectiveRate"), value: `${effectiveRate}%` },
+    {
+      label: t("details.disbursalPolicy"),
+      value: disbursalPolicyLabel,
+    },
   ]
 
   return (

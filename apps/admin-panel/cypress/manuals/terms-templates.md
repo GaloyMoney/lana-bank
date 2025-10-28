@@ -98,31 +98,41 @@ Introduce la tasa de comisión única para la plantilla.
 
 <!-- new-page -->
 
-### Paso 10: Enviar la Plantilla de Términos
+### Paso 10: Seleccionar Política de Desembolso
+
+Selecciona la política de desembolso para la plantilla.
+
+![Paso 10: Seleccionar Política de Desembolso](./screenshots/terms-templates.cy.ts/10_select_disbursal_policy.png)
+
+---
+
+<!-- new-page -->
+
+### Paso 11: Enviar la Plantilla de Términos
 
 Haz clic en el botón "Enviar" para crear la nueva plantilla de términos.
 
-![Paso 10: Enviar la Plantilla de Términos](./screenshots/terms-templates.cy.ts/10_submit_terms_template.png)
+![Paso 11: Enviar la Plantilla de Términos](./screenshots/terms-templates.cy.ts/11_submit_terms_template.png)
 
 ---
 
 <!-- new-page -->
 
-### Paso 11: Verificar la Creación de la Plantilla de Términos
+### Paso 12: Verificar la Creación de la Plantilla de Términos
 
 Confirma que la URL coincide con el formato de la página de detalle de la plantilla de términos y que el nombre de la plantilla es visible.
 
-![Paso 11: Verificar la Creación de la Plantilla de Términos](./screenshots/terms-templates.cy.ts/11_verify_terms_template_creation.png)
+![Paso 12: Verificar la Creación de la Plantilla de Términos](./screenshots/terms-templates.cy.ts/12_verify_terms_template_creation.png)
 
 ---
 
 <!-- new-page -->
 
-### Paso 12: Ver en la Lista de Plantillas
+### Paso 13: Ver en la Lista de Plantillas
 
 Navega a la página de lista de plantillas de términos para ver tu plantilla recién creada.
 
-![Paso 12: Lista de Plantillas](./screenshots/terms-templates.cy.ts/12_terms_template_in_list.png)
+![Paso 13: Lista de Plantillas](./screenshots/terms-templates.cy.ts/13_terms_template_in_list.png)
 
 ---
 
@@ -130,51 +140,51 @@ Navega a la página de lista de plantillas de términos para ver tu plantilla re
 
 ## Actualizar una Plantilla de Términos
 
-### Paso 13: Acceder a los Detalles de la Plantilla
+### Paso 14: Acceder a los Detalles de la Plantilla
 
 Navega a la plantilla de términos específica que deseas actualizar.
 
-![Paso 13: Detalles de la Plantilla](./screenshots/terms-templates.cy.ts/13_terms_template_details.png)
+![Paso 14: Detalles de la Plantilla](./screenshots/terms-templates.cy.ts/14_terms_template_details.png)
 
 ---
 
 <!-- new-page -->
 
-### Paso 14: Hacer Clic en el Botón Actualizar
+### Paso 15: Hacer Clic en el Botón Actualizar
 
 Haz clic en el botón "Actualizar" para modificar la plantilla de términos.
 
-![Paso 14: Hacer Clic en Actualizar](./screenshots/terms-templates.cy.ts/14_click_update_button.png)
+![Paso 15: Hacer Clic en Actualizar](./screenshots/terms-templates.cy.ts/15_click_update_button.png)
 
 ---
 
 <!-- new-page -->
 
-### Paso 15: Modificar Detalles de la Plantilla
+### Paso 16: Modificar Detalles de la Plantilla
 
 Actualiza los campos necesarios. En este ejemplo, estamos cambiando la tasa anual.
 
-![Paso 15: Actualizar Tasa Anual](./screenshots/terms-templates.cy.ts/15_update_annual_rate.png)
+![Paso 16: Actualizar Tasa Anual](./screenshots/terms-templates.cy.ts/16_update_annual_rate.png)
 
 ---
 
 <!-- new-page -->
 
-### Paso 16: Enviar Cambios
+### Paso 17: Enviar Cambios
 
 Haz clic en el botón "Enviar" para guardar tus cambios.
 
-![Paso 16: Enviar Actualización](./screenshots/terms-templates.cy.ts/16_submit_update.png)
+![Paso 17: Enviar Actualización](./screenshots/terms-templates.cy.ts/17_submit_update.png)
 
 ---
 
 <!-- new-page -->
 
-### Paso 17: Confirmar Actualización
+### Paso 18: Confirmar Actualización
 
 Verás un mensaje de éxito confirmando que la plantilla ha sido actualizada.
 
-![Paso 17: Éxito de Actualización](./screenshots/terms-templates.cy.ts/17_update_success.png)
+![Paso 18: Éxito de Actualización](./screenshots/terms-templates.cy.ts/18_update_success.png)
 
 ---
 

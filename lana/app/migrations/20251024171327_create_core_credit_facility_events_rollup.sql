@@ -22,6 +22,7 @@ CREATE TABLE core_credit_facility_events_rollup (
   pending_credit_facility_id UUID,
   price JSONB,
   public_id VARCHAR,
+  structuring_fee_tx_id UUID,
   terms JSONB,
 
   -- Collection rollups
@@ -103,6 +104,7 @@ BEGIN
     new_row.pending_credit_facility_id := (NEW.event ->> 'pending_credit_facility_id')::UUID;
     new_row.price := (NEW.event -> 'price');
     new_row.public_id := (NEW.event ->> 'public_id');
+    new_row.structuring_fee_tx_id := (NEW.event ->> 'structuring_fee_tx_id')::UUID;
     new_row.terms := (NEW.event -> 'terms');
   ELSE
     -- Default all fields to current values
@@ -128,6 +130,7 @@ BEGIN
     new_row.pending_credit_facility_id := current_row.pending_credit_facility_id;
     new_row.price := current_row.price;
     new_row.public_id := current_row.public_id;
+    new_row.structuring_fee_tx_id := current_row.structuring_fee_tx_id;
     new_row.terms := current_row.terms;
   END IF;
 
@@ -145,6 +148,7 @@ BEGIN
       new_row.maturity_date := (NEW.event ->> 'maturity_date');
       new_row.pending_credit_facility_id := (NEW.event ->> 'pending_credit_facility_id')::UUID;
       new_row.public_id := (NEW.event ->> 'public_id');
+      new_row.structuring_fee_tx_id := (NEW.event ->> 'structuring_fee_tx_id')::UUID;
       new_row.terms := (NEW.event -> 'terms');
     WHEN 'interest_accrual_cycle_started' THEN
       new_row.interest_accrual_cycle_idx := (NEW.event ->> 'interest_accrual_cycle_idx')::INTEGER;
@@ -196,6 +200,7 @@ BEGIN
     pending_credit_facility_id,
     price,
     public_id,
+    structuring_fee_tx_id,
     terms
   )
   VALUES (
@@ -225,6 +230,7 @@ BEGIN
     new_row.pending_credit_facility_id,
     new_row.price,
     new_row.public_id,
+    new_row.structuring_fee_tx_id,
     new_row.terms
   );
 

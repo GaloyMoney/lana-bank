@@ -541,7 +541,10 @@
           "months": "meses",
           "marginCallCvl": "CVL de llamada de margen (%)",
           "liquidationCvl": "CVL de liquidación (%)",
-          "structuringFeeRate": "Tasa de comisión de estructuración (%)"
+          "structuringFeeRate": "Tasa de comisión de estructuración (%)",
+          "disbursalPolicy": "Política de Desembolso",
+          "singleDisbursal": "Desembolso Único",
+          "multipleDisbursal": "Desembolsos Múltiples"
         },
         "placeholders": {
           "facilityAmount": "Ingrese el monto de la línea",
@@ -552,7 +555,8 @@
           "duration": "Introduzca la duración en meses",
           "marginCallCvl": "Ingrese el CVL de llamada de margen",
           "liquidationCvl": "Ingrese el CVL de liquidación",
-          "structuringFeeRate": "Ingrese la Tasa de Comisión de Estructuración"
+          "structuringFeeRate": "Ingrese la Tasa de Comisión de Estructuración",
+          "disbursalPolicy": "Seleccione la política de desembolso"
         },
         "buttons": {
           "create": "Crear Propuesta de Línea de Crédito"
@@ -756,7 +760,10 @@
           "liquidationCvl": "CVL de liquidación %",
           "dateCreated": "Fecha de creación",
           "structuringFeeRate": "Tasa de Comisión de Estructuración",
-          "effectiveRate": "Tasa efectiva"
+          "effectiveRate": "Tasa efectiva",
+          "disbursalPolicy": "Política de Desembolso",
+          "singleDisbursal": "Desembolso Único",
+          "multipleDisbursal": "Desembolsos Múltiples"
         }
       },
       "CollateralCard": {
@@ -1046,9 +1053,9 @@
         "name": "Nombre",
         "duration": "Duración",
         "annualRate": "Tasa Anual",
-        "initialCvl": "CVL Inicial",
-        "marginCallCvl": "CVL de Llamada de Margen",
-        "liquidationCvl": "CVL de Liquidación"
+        "initialCvl": "CVL Inicial (%)",
+        "marginCallCvl": "CVL de Llamada de Margen (%)",
+        "liquidationCvl": "CVL de Liquidación (%)"
       }
     },
     "errors": {
@@ -1065,7 +1072,10 @@
           "initialCvl": "CVL Inicial (%)",
           "marginCallCvl": "CVL de Llamada de Margen (%)",
           "liquidationCvl": "CVL de Liquidación (%)",
-          "oneTimeFeeRate": "Tasa de Comisión de Estructuración (%)"
+          "oneTimeFeeRate": "Tasa de Comisión de Estructuración (%)",
+          "disbursalPolicy": "Política de Desembolso",
+          "singleDisbursal": "Desembolso Único",
+          "multipleDisbursal": "Desembolsos Múltiples"
         },
         "buttons": {
           "update": "Actualizar",
@@ -1082,7 +1092,10 @@
           "initialCvl": "CVL Inicial (%)",
           "marginCallCvl": "CVL de Llamada de Margen (%)",
           "liquidationCvl": "CVL de Liquidación (%)",
-          "oneTimeFeeRate": "Tasa de Comisión de Estructuración (%)"
+          "oneTimeFeeRate": "Tasa de Comisión de Estructuración (%)",
+          "disbursalPolicy": "Política de Desembolso",
+          "singleDisbursal": "Desembolso Único",
+          "multipleDisbursal": "Desembolsos Múltiples"
         },
         "placeholders": {
           "annualRate": "Ingrese la tasa anual",
@@ -1090,7 +1103,8 @@
           "initialCvl": "Ingrese el CVL inicial",
           "marginCallCvl": "Ingrese el CVL de llamada de margen",
           "liquidationCvl": "Ingrese el CVL de liquidación",
-          "oneTimeFeeRate": "Ingrese la Tasa de Comisión de Estructuración"
+          "oneTimeFeeRate": "Ingrese la Tasa de Comisión de Estructuración",
+          "disbursalPolicy": "Seleccione la política de desembolso"
         },
         "buttons": {
           "submit": "Actualizar Plantilla de Términos"
@@ -1116,7 +1130,10 @@
           "initialCvl": "CVL Inicial (%)",
           "marginCallCvl": "CVL de Llamada de Margen (%)",
           "liquidationCvl": "CVL de Liquidación (%)",
-          "oneTimeFeeRate": "Tasa de Comisión de Estructuración (%)"
+          "oneTimeFeeRate": "Tasa de Comisión de Estructuración (%)",
+          "disbursalPolicy": "Política de Desembolso",
+          "singleDisbursal": "Desembolso Único",
+          "multipleDisbursal": "Desembolsos Múltiples"
         },
         "placeholders": {
           "name": "Ingrese el nombre de la plantilla",
@@ -1125,7 +1142,8 @@
           "initialCvl": "Ingrese el CVL inicial",
           "marginCallCvl": "Ingrese el CVL de llamada de margen",
           "liquidationCvl": "Ingrese el CVL de liquidación",
-          "oneTimeFeeRate": "Ingrese la Tasa de Comisión de Estructuración"
+          "oneTimeFeeRate": "Ingrese la Tasa de Comisión de Estructuración",
+          "disbursalPolicy": "Seleccione la política de desembolso"
         },
         "buttons": {
           "submit": "Crear Plantilla de Términos"

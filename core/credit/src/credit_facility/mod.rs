@@ -157,13 +157,14 @@ where
             .await?
         {
             PendingCreditFacilityCompletionOutcome::Completed {
-                new_facility: new_credit_facility_builder,
+                new_credit_facility,
                 initial_disbursal,
-            } => (new_credit_facility_builder, initial_disbursal),
+            } => (new_credit_facility, initial_disbursal),
             PendingCreditFacilityCompletionOutcome::Ignored => {
                 return Ok(());
             }
         };
+
         let public_id = self
             .public_ids
             .create_in_op(&mut db, CREDIT_FACILITY_REF_TARGET, id)
@@ -215,7 +216,7 @@ where
             )
             .await?;
 
-        if let Some(mut new_disbursal_builder) = initial_disbursal {
+        let activation_data = if let Some(mut new_disbursal_builder) = initial_disbursal {
             let public_id = self
                 .public_ids
                 .create_in_op(
@@ -228,24 +229,20 @@ where
                 .public_id(public_id.id)
                 .build()
                 .expect("could not build new disbursal");
-
-            let disbursal_id = self
+            let disbursal = self
                 .disbursals
                 .create_pre_approved_disbursal_in_op(&mut db, new_disbursal)
                 .await?;
-            self.ledger
-                .handle_activation_with_structuring_fee(
-                    db,
-                    credit_facility.activation_data(),
-                    disbursal_id,
-                )
-                .await?;
-            return Ok(());
-        }
 
-        self.ledger
-            .handle_facility_activation(db, credit_facility.activation_data())
-            .await?;
+            credit_facility.activation_data(Some(crate::InitialDisbursalOnActivation {
+                id: disbursal.id,
+                amount: disbursal.amount,
+            }))
+        } else {
+            credit_facility.activation_data(None)
+        };
+
+        self.ledger.handle_activation(db, activation_data).await?;
 
         Ok(())
     }

@@ -654,6 +654,9 @@ where
         }
 
         let now = crate::time::now();
+        if facility.is_single_disbursal() {
+            return Err(CreditFacilityError::OnlyOneDisbursalAllowed.into());
+        }
         if !facility.check_disbursal_date(now) {
             return Err(CreditFacilityError::DisbursalPastMaturityDate.into());
         }

@@ -340,6 +340,9 @@ checksums:
     CreditFacilityProposals/CreateCreditFacilityProposal/form/labels/marginCallCvl: c529157844f9007ce1170fd28729c5d8
     CreditFacilityProposals/CreateCreditFacilityProposal/form/labels/liquidationCvl: 9d30f40e2446a6678c2a50da22a662ba
     CreditFacilityProposals/CreateCreditFacilityProposal/form/labels/structuringFeeRate: 7242ef1273e70c16c9cfa50a847e292f
+    CreditFacilityProposals/CreateCreditFacilityProposal/form/labels/disbursalPolicy: 0a2732088351c6daa088893ee206aa76
+    CreditFacilityProposals/CreateCreditFacilityProposal/form/labels/singleDisbursal: cf6f20fb950f66f5efa9174de86af33d
+    CreditFacilityProposals/CreateCreditFacilityProposal/form/labels/multipleDisbursal: ebba3910cc4060fe0566e02abee9a397
     CreditFacilityProposals/CreateCreditFacilityProposal/form/placeholders/facilityAmount: 3f06a0124b2929e2ec4d3d7eff4a42a6
     CreditFacilityProposals/CreateCreditFacilityProposal/form/placeholders/custodian: 786b25d289df7fdd856a3510d4d54d9a
     CreditFacilityProposals/CreateCreditFacilityProposal/form/placeholders/termsTemplate: 287c659be5bb36ec26ba953e5fc6af0c
@@ -349,6 +352,7 @@ checksums:
     CreditFacilityProposals/CreateCreditFacilityProposal/form/placeholders/marginCallCvl: 952d084f0d620f22e86f7370c5224cbe
     CreditFacilityProposals/CreateCreditFacilityProposal/form/placeholders/liquidationCvl: 5f0f77c8829d191a16ae2dbe15f74162
     CreditFacilityProposals/CreateCreditFacilityProposal/form/placeholders/structuringFeeRate: cabace0fe5d4058e89d57b2770469c2b
+    CreditFacilityProposals/CreateCreditFacilityProposal/form/placeholders/disbursalPolicy: e8f72ba005a5462f4524817a2fc59ca1
     CreditFacilityProposals/CreateCreditFacilityProposal/form/buttons/create: 8449763934cb1988457098bccf0a9506
     CreditFacilityProposals/CreateCreditFacilityProposal/form/messages/collateralRequired: 3141ab41725148cf6fe94a4fec54ffee
     CreditFacilityProposals/CreateCreditFacilityProposal/form/messages/btcUsdRate: 3dde0043fd5f869e1a9e80ca6883c8fc
@@ -465,6 +469,9 @@ checksums:
     CreditFacilities/CreditFacilityDetails/TermsDialog/details/dateCreated: ee01a6e3f6a547bee9fe53f7ccdcb2cc
     CreditFacilities/CreditFacilityDetails/TermsDialog/details/structuringFeeRate: 6884eb8153e27f57dfff956ff8efa511
     CreditFacilities/CreditFacilityDetails/TermsDialog/details/effectiveRate: 7dd8de3c81e63d553bf906f47f584518
+    CreditFacilities/CreditFacilityDetails/TermsDialog/details/disbursalPolicy: 0a2732088351c6daa088893ee206aa76
+    CreditFacilities/CreditFacilityDetails/TermsDialog/details/singleDisbursal: cf6f20fb950f66f5efa9174de86af33d
+    CreditFacilities/CreditFacilityDetails/TermsDialog/details/multipleDisbursal: ebba3910cc4060fe0566e02abee9a397
     CreditFacilities/CreditFacilityDetails/CollateralCard/title: b0dcbdb652cb11f0d9eeb77666c8ca8d
     CreditFacilities/CreditFacilityDetails/CollateralCard/details/collateralBalance: c10ffee396cceecea1fab22fb04a37d9
     CreditFacilities/CreditFacilityDetails/CollateralCard/details/currentPrice: 2c254d00cfeeeabc166cb6ba41c2e771
@@ -630,6 +637,9 @@ checksums:
     TermsTemplates/TermsTemplateDetails/DetailsCard/fields/marginCallCvl: c529157844f9007ce1170fd28729c5d8
     TermsTemplates/TermsTemplateDetails/DetailsCard/fields/liquidationCvl: 9d30f40e2446a6678c2a50da22a662ba
     TermsTemplates/TermsTemplateDetails/DetailsCard/fields/oneTimeFeeRate: 7242ef1273e70c16c9cfa50a847e292f
+    TermsTemplates/TermsTemplateDetails/DetailsCard/fields/disbursalPolicy: 0a2732088351c6daa088893ee206aa76
+    TermsTemplates/TermsTemplateDetails/DetailsCard/fields/singleDisbursal: cf6f20fb950f66f5efa9174de86af33d
+    TermsTemplates/TermsTemplateDetails/DetailsCard/fields/multipleDisbursal: ebba3910cc4060fe0566e02abee9a397
     TermsTemplates/TermsTemplateDetails/DetailsCard/buttons/update: 079fc039262fd31b10532929685c2d1b
     TermsTemplates/TermsTemplateDetails/DetailsCard/buttons/duplicate: 27756566785c2b8463e21582c4bb619b
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/title: 7692d1ff8036b0d574dfbf925935cfff
@@ -641,12 +651,16 @@ checksums:
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/fields/marginCallCvl: c529157844f9007ce1170fd28729c5d8
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/fields/liquidationCvl: 9d30f40e2446a6678c2a50da22a662ba
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/fields/oneTimeFeeRate: 7242ef1273e70c16c9cfa50a847e292f
+    TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/fields/disbursalPolicy: 0a2732088351c6daa088893ee206aa76
+    TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/fields/singleDisbursal: cf6f20fb950f66f5efa9174de86af33d
+    TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/fields/multipleDisbursal: ebba3910cc4060fe0566e02abee9a397
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/placeholders/annualRate: b6b7d2eb8e45df6544d97bafff21b4ea
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/placeholders/durationUnits: 487a1e37328534b35c6e57746df6844a
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/placeholders/initialCvl: a998ba9d61091370aa7189476c74a7d9
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/placeholders/marginCallCvl: 952d084f0d620f22e86f7370c5224cbe
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/placeholders/liquidationCvl: 5f0f77c8829d191a16ae2dbe15f74162
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/placeholders/oneTimeFeeRate: cabace0fe5d4058e89d57b2770469c2b
+    TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/placeholders/disbursalPolicy: 40a6a2de848345abcce01b9006970be4
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/buttons/submit: e178deec50459ee7064705367dc1da1c
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/errors/general: dd9aef0a9c3638442bc8f6151feb33d6
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/errors/updateFailed: 5ad592f54534461c34d3902a08ae504a
@@ -663,6 +677,9 @@ checksums:
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/fields/marginCallCvl: c529157844f9007ce1170fd28729c5d8
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/fields/liquidationCvl: 9d30f40e2446a6678c2a50da22a662ba
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/fields/oneTimeFeeRate: 7242ef1273e70c16c9cfa50a847e292f
+    TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/fields/disbursalPolicy: 0a2732088351c6daa088893ee206aa76
+    TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/fields/singleDisbursal: cf6f20fb950f66f5efa9174de86af33d
+    TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/fields/multipleDisbursal: ebba3910cc4060fe0566e02abee9a397
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/placeholders/name: f26ad36fd05019aa62a24ca120309066
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/placeholders/annualRate: b6b7d2eb8e45df6544d97bafff21b4ea
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/placeholders/durationUnits: 487a1e37328534b35c6e57746df6844a
@@ -670,6 +687,7 @@ checksums:
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/placeholders/marginCallCvl: 952d084f0d620f22e86f7370c5224cbe
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/placeholders/liquidationCvl: 5f0f77c8829d191a16ae2dbe15f74162
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/placeholders/oneTimeFeeRate: cabace0fe5d4058e89d57b2770469c2b
+    TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/placeholders/disbursalPolicy: 40a6a2de848345abcce01b9006970be4
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/buttons/submit: 51fc4806b6fea86ef2d73e2e4ac897bc
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/errors/general: dd9aef0a9c3638442bc8f6151feb33d6
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/errors/creationFailed: c274d3a05f0f2c3a4b8d6165142e76d6

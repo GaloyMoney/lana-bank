@@ -177,9 +177,9 @@ pub mod credit {
 
 pub mod terms {
     pub use core_credit::{
-        AnnualRatePct, CVLPct, CollateralizationState, FacilityDuration, InterestInterval,
-        ObligationDuration, OneTimeFeeRatePct, PendingCreditFacilityCollateralizationState,
-        TermValues,
+        AnnualRatePct, CVLPct, CollateralizationState, DisbursalPolicy, FacilityDuration,
+        InterestInterval, ObligationDuration, OneTimeFeeRatePct,
+        PendingCreditFacilityCollateralizationState, TermValues,
     };
 }
 
