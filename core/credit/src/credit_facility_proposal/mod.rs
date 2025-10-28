@@ -106,7 +106,8 @@ where
 
     #[instrument(
         name = "credit.credit_facility_proposals.conclude_customer_approval",
-        skip(self)
+        skip(self),
+        err
     )]
     pub async fn conclude_customer_approval(
         &self,
@@ -131,14 +132,16 @@ where
         let result = match proposal.conclude_customer_approval(approved) {
             es_entity::Idempotent::Executed(_) => {
                 if approved {
-                    self.governance
-                        .start_process(
-                            &mut db,
-                            id,
-                            id.to_string(),
-                            crate::APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS,
-                        )
-                        .await?;
+                    if let es_entity::Idempotent::Executed(_) = proposal.start_approval_process()? {
+                        self.governance
+                            .start_process(
+                                &mut db,
+                                id,
+                                id.to_string(),
+                                crate::APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS,
+                            )
+                            .await?;
+                    }
                 }
                 self.repo.update_in_op(&mut db, &mut proposal).await?;
                 Ok(proposal)
@@ -162,7 +165,7 @@ where
     ) -> Result<ProposalApprovalOutcome, CreditFacilityProposalError> {
         let id = id.into();
         let mut proposal = self.repo.find_by_id(id).await?;
-        match proposal.conclude_approval_process(approved) {
+        match proposal.conclude_approval_process(approved)? {
             es_entity::Idempotent::Executed(res) => {
                 self.repo.update_in_op(db, &mut proposal).await?;
                 Ok(match res {

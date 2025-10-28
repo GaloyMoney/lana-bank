@@ -262,23 +262,53 @@
     },
     {
       "properties": {
-        "approval_process_id": {
-          "format": "uuid",
-          "type": [
-            "string",
-            "null"
-          ]
-        },
         "status": {
           "$ref": "#/$defs/CreditFacilityProposalStatus"
         },
         "type": {
-          "const": "customer_approval_concluded",
+          "const": "customer_approved",
           "type": "string"
         }
       },
       "required": [
         "type",
+        "status"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/CreditFacilityProposalStatus"
+        },
+        "type": {
+          "const": "customer_denied",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "status"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "approval_process_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/CreditFacilityProposalStatus"
+        },
+        "type": {
+          "const": "approval_process_started",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "approval_process_id",
         "status"
       ],
       "type": "object"

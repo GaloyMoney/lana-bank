@@ -38,7 +38,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'customer_approval_concluded', 'approval_process_concluded') THEN
+  IF event_type NOT IN ('initialized', 'customer_approved', 'customer_denied', 'approval_process_started', 'approval_process_concluded') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -82,7 +82,11 @@ BEGIN
       new_row.disbursal_credit_account_id := (NEW.event ->> 'disbursal_credit_account_id')::UUID;
       new_row.status := (NEW.event ->> 'status');
       new_row.terms := (NEW.event -> 'terms');
-    WHEN 'customer_approval_concluded' THEN
+    WHEN 'customer_approved' THEN
+      new_row.status := (NEW.event ->> 'status');
+    WHEN 'customer_denied' THEN
+      new_row.status := (NEW.event ->> 'status');
+    WHEN 'approval_process_started' THEN
       new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
       new_row.status := (NEW.event ->> 'status');
     WHEN 'approval_process_concluded' THEN

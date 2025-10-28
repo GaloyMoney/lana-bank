@@ -18,6 +18,10 @@ pub enum CreditFacilityProposalError {
     ApprovalInProgress,
     #[error("CreditFacilityProposalError - BelowMarginLimit")]
     BelowMarginLimit,
+    #[error("CreditFacilityProposalError - CustomerDenied")]
+    CustomerDenied,
+    #[error("CreditFacilityProposalError - ApprovalProcessNotStarted")]
+    ApprovalProcessNotStarted,
     #[error("CreditFacilityProposalError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
 }

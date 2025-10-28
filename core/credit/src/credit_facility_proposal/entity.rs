@@ -8,6 +8,7 @@ use core_custody::CustodianId;
 use es_entity::*;
 
 use crate::{
+    credit_facility_proposal::error::CreditFacilityProposalError,
     pending_credit_facility::{NewPendingCreditFacility, NewPendingCreditFacilityBuilder},
     primitives::*,
     terms::TermValues,
@@ -28,9 +29,15 @@ pub enum CreditFacilityProposalEvent {
         amount: UsdCents,
         status: CreditFacilityProposalStatus,
     },
-    CustomerApprovalConcluded {
+    CustomerApproved {
         status: CreditFacilityProposalStatus,
-        approval_process_id: Option<ApprovalProcessId>,
+    },
+    CustomerDenied {
+        status: CreditFacilityProposalStatus,
+    },
+    ApprovalProcessStarted {
+        approval_process_id: ApprovalProcessId,
+        status: CreditFacilityProposalStatus,
     },
     ApprovalProcessConcluded {
         approval_process_id: ApprovalProcessId,
@@ -45,7 +52,7 @@ pub struct CreditFacilityProposal {
     pub customer_id: CustomerId,
     pub customer_type: CustomerType,
     pub custodian_id: Option<CustodianId>,
-    #[builder(default)]
+    #[builder(default, setter(strip_option))]
     pub approval_process_id: Option<ApprovalProcessId>,
     pub disbursal_credit_account_id: CalaAccountId,
     pub amount: UsdCents,
@@ -73,37 +80,72 @@ impl CreditFacilityProposal {
     pub(super) fn conclude_customer_approval(&mut self, approved: bool) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all(),
-            CreditFacilityProposalEvent::CustomerApprovalConcluded { .. }
+            CreditFacilityProposalEvent::CustomerApproved { .. }
+                | CreditFacilityProposalEvent::CustomerDenied { .. }
         );
 
-        let (status, approval_process_id) = if approved {
-            (
-                CreditFacilityProposalStatus::PendingApproval,
-                Some(self.id.into()),
-            )
+        let event = if approved {
+            CreditFacilityProposalEvent::CustomerApproved {
+                status: CreditFacilityProposalStatus::PendingApproval,
+            }
         } else {
-            (CreditFacilityProposalStatus::CustomerDenied, None)
+            CreditFacilityProposalEvent::CustomerDenied {
+                status: CreditFacilityProposalStatus::CustomerDenied,
+            }
         };
-
-        self.events
-            .push(CreditFacilityProposalEvent::CustomerApprovalConcluded {
-                status,
-                approval_process_id,
-            });
-
-        self.approval_process_id = approval_process_id;
+        self.events.push(event);
 
         Idempotent::Executed(())
+    }
+
+    pub(super) fn start_approval_process(
+        &mut self,
+    ) -> Result<Idempotent<()>, CreditFacilityProposalError> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            CreditFacilityProposalEvent::ApprovalProcessStarted { .. }
+        );
+
+        if self
+            .events
+            .iter_all()
+            .rev()
+            .any(|event| matches!(event, CreditFacilityProposalEvent::CustomerDenied { .. }))
+        {
+            return Err(CreditFacilityProposalError::CustomerDenied);
+        }
+
+        self.events
+            .push(CreditFacilityProposalEvent::ApprovalProcessStarted {
+                approval_process_id: self.id.into(),
+                status: CreditFacilityProposalStatus::PendingApproval,
+            });
+
+        self.approval_process_id = Some(self.id.into());
+
+        Ok(Idempotent::Executed(()))
     }
 
     pub(super) fn conclude_approval_process(
         &mut self,
         approved: bool,
-    ) -> Idempotent<Option<(NewPendingCreditFacility, Option<CustodianId>)>> {
+    ) -> Result<
+        Idempotent<Option<(NewPendingCreditFacility, Option<CustodianId>)>>,
+        CreditFacilityProposalError,
+    > {
         idempotency_guard!(
             self.events.iter_all(),
             CreditFacilityProposalEvent::ApprovalProcessConcluded { .. }
         );
+
+        if !self.events.iter_all().rev().any(|event| {
+            matches!(
+                event,
+                CreditFacilityProposalEvent::ApprovalProcessStarted { .. }
+            )
+        }) {
+            return Err(CreditFacilityProposalError::ApprovalProcessNotStarted);
+        }
 
         let approval_process_id = self
             .approval_process_id
@@ -136,10 +178,13 @@ impl CreditFacilityProposal {
                 .build()
                 .expect("Could not build new pending credit facility");
 
-            return Idempotent::Executed(Some((new_pending_facility, self.custodian_id)));
+            return Ok(Idempotent::Executed(Some((
+                new_pending_facility,
+                self.custodian_id,
+            ))));
         }
 
-        Idempotent::Executed(None)
+        Ok(Idempotent::Executed(None))
     }
 
     pub fn status(&self) -> CreditFacilityProposalStatus {
@@ -148,7 +193,9 @@ impl CreditFacilityProposal {
             .rev()
             .map(|event| match event {
                 CreditFacilityProposalEvent::ApprovalProcessConcluded { status, .. } => *status,
-                CreditFacilityProposalEvent::CustomerApprovalConcluded { status, .. } => *status,
+                CreditFacilityProposalEvent::ApprovalProcessStarted { status, .. } => *status,
+                CreditFacilityProposalEvent::CustomerDenied { status, .. } => *status,
+                CreditFacilityProposalEvent::CustomerApproved { status, .. } => *status,
                 CreditFacilityProposalEvent::Initialized { status, .. } => *status,
             })
             .next()
@@ -182,10 +229,12 @@ impl TryFromEvents<CreditFacilityProposalEvent> for CreditFacilityProposal {
                         .terms(*terms)
                         .amount(*amount);
                 }
-                CreditFacilityProposalEvent::CustomerApprovalConcluded {
+                CreditFacilityProposalEvent::ApprovalProcessStarted {
                     approval_process_id,
                     ..
                 } => builder = builder.approval_process_id(*approval_process_id),
+                CreditFacilityProposalEvent::CustomerApproved { .. } => {}
+                CreditFacilityProposalEvent::CustomerDenied { .. } => {}
                 CreditFacilityProposalEvent::ApprovalProcessConcluded { .. } => {}
             }
         }
