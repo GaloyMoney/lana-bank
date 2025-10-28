@@ -8,11 +8,12 @@ use core_custody::CustodianId;
 use es_entity::*;
 
 use crate::{
-    credit_facility_proposal::error::CreditFacilityProposalError,
     pending_credit_facility::{NewPendingCreditFacility, NewPendingCreditFacilityBuilder},
     primitives::*,
     terms::TermValues,
 };
+
+use super::error::CreditFacilityProposalError;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -126,6 +127,7 @@ impl CreditFacilityProposal {
         Ok(Idempotent::Executed(()))
     }
 
+    #[allow(clippy::type_complexity)]
     pub(super) fn conclude_approval_process(
         &mut self,
         approved: bool,

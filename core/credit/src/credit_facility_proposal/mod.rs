@@ -131,17 +131,17 @@ where
 
         let result = match proposal.conclude_customer_approval(approved) {
             es_entity::Idempotent::Executed(_) => {
-                if approved {
-                    if let es_entity::Idempotent::Executed(_) = proposal.start_approval_process()? {
-                        self.governance
-                            .start_process(
-                                &mut db,
-                                id,
-                                id.to_string(),
-                                crate::APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS,
-                            )
-                            .await?;
-                    }
+                if approved
+                    && let es_entity::Idempotent::Executed(_) = proposal.start_approval_process()?
+                {
+                    self.governance
+                        .start_process(
+                            &mut db,
+                            id,
+                            id.to_string(),
+                            crate::APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS,
+                        )
+                        .await?;
                 }
                 self.repo.update_in_op(&mut db, &mut proposal).await?;
                 Ok(proposal)
