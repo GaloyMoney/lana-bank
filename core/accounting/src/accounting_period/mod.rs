@@ -214,7 +214,7 @@ where
                 let new_period = self.repo.create_in_op(&mut db, new).await?;
 
                 for mut period in remaining_open_periods {
-                    if period.close(closed_at, None)?.did_execute() {
+                    if period.close_unchecked(closed_at, None).did_execute() {
                         self.repo.update_in_op(&mut db, &mut period).await?;
                     }
                 }

@@ -24,11 +24,11 @@ use core_accounting::{
 
 use helpers::{action, object};
 
-const EARNINGS: &'static str = "32.01";
-const LOSSES: &'static str = "32.02";
-const REVENUES: &'static str = "4";
-const COSTS: &'static str = "5";
-const EXPENSES: &'static str = "6";
+const EARNINGS: &str = "32.01";
+const LOSSES: &str = "32.02";
+const REVENUES: &str = "4";
+const COSTS: &str = "5";
+const EXPENSES: &str = "6";
 
 #[tokio::test]
 async fn annual_closing_loss() -> Result<()> {
