@@ -1,0 +1,119 @@
+version: '3.7'
+
+services:
+  dagster-code-location-lana-dw:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    container_name: dagster-code-location-lana-dw
+    image: dagster-code-location-lana-dw
+    restart: always
+    
+    environment:
+      DAGSTER_POSTGRES_USER: 'postgres_user'
+      DAGSTER_POSTGRES_PASSWORD: 'postgres_password'
+      DAGSTER_POSTGRES_DB: 'postgres_db'
+      DAGSTER_CURRENT_IMAGE: 'dagster-code-location-lana-dw'
+      # Place here env vars that you want to access from the project code
+      DBT_BIGQUERY_AUTH_METHOD: ${DBT_BIGQUERY_AUTH_METHOD}
+
+    networks:
+      - dagster_network
+
+  # This service runs dagster-webserver, which loads your user code from the user code container.
+  # Since our instance uses the QueuedRunCoordinator, any runs submitted from the webserver will be put on
+  # a queue and later dequeued and launched by dagster-daemon.
+  dagster_webserver:
+    build:
+      context: .
+      dockerfile: ./Dockerfile_dagster
+    entrypoint:
+      - dagster-webserver
+      - -h
+      - '0.0.0.0'
+      - -p
+      - '3000'
+      - -w
+      - workspace.yaml
+    container_name: dagster_webserver
+    expose:
+      - '3000'
+    ports:
+      - '3000:3000'
+    environment:
+      DAGSTER_POSTGRES_USER: 'postgres_user'
+      DAGSTER_POSTGRES_PASSWORD: 'postgres_password'
+      DAGSTER_POSTGRES_DB: 'postgres_db'
+    volumes: # Make docker client accessible so we can terminate containers from the webserver
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp/io_manager_storage:/tmp/io_manager_storage
+    networks:
+      - dagster_network
+    depends_on:
+      dagster_postgres:
+        condition: service_healthy
+      lana_pipelines:
+        condition: service_started
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # This service runs the dagster-daemon process, which is responsible for taking runs
+  # off of the queue and launching them, as well as creating runs from schedules or sensors.
+  dagster_daemon:
+    build:
+      context: .
+      dockerfile: ./Dockerfile_dagster
+    entrypoint:
+      - dagster-daemon
+      - run
+    container_name: dagster_daemon
+    restart: on-failure
+    environment:
+      DAGSTER_POSTGRES_USER: 'postgres_user'
+      DAGSTER_POSTGRES_PASSWORD: 'postgres_password'
+      DAGSTER_POSTGRES_DB: 'postgres_db'
+      TF_VAR_sa_creds: ${TF_VAR_sa_creds}
+      TARGET_BIGQUERY_DATASET: ${TARGET_BIGQUERY_DATASET}
+      DBT_BIGQUERY_AUTH_METHOD: ${DBT_BIGQUERY_AUTH_METHOD}
+      DBT_BIGQUERY_PROJECT: ${DBT_BIGQUERY_PROJECT}
+      DBT_BIGQUERY_DATASET: ${DBT_BIGQUERY_DATASET}
+      DBT_BIGQUERY_REFRESH_TOKEN: ${DBT_BIGQUERY_REFRESH_TOKEN}
+      DBT_BIGQUERY_CLIENT_ID: ${DBT_BIGQUERY_CLIENT_ID}
+      DBT_BIGQUERY_CLIENT_SECRET: ${DBT_BIGQUERY_CLIENT_SECRET}
+      DBT_BIGQUERY_TOKEN_URI: ${DBT_BIGQUERY_TOKEN_URI}
+      DBT_BIGQUERY_KEYFILE: /opt/dagster/secrets/keyfile.json
+      GOOGLE_APPLICATION_CREDENTIALS: /opt/dagster/secrets/keyfile.json
+      DOCS_BUCKET_NAME: ${DOCS_BUCKET_NAME}
+
+    volumes: # Make docker client accessible so we can launch containers using host docker
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp/io_manager_storage:/tmp/io_manager_storage
+    networks:
+      - dagster_network
+    depends_on:
+      dagster_postgres:
+        condition: service_healthy
+      lana_pipelines:
+        condition: service_started
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  dagster_postgres:
+    image: postgres:15
+    container_name: dagster_postgres
+    environment:
+      POSTGRES_USER: 'postgres_user'
+      POSTGRES_PASSWORD: 'postgres_password'
+      POSTGRES_DB: 'postgres_db'
+    networks:
+      - dagster_network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres_user -d postgres_db']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+networks:
+  dagster_network:
+    driver: bridge
+    name: dagster_network
