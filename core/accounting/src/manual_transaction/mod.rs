@@ -81,11 +81,7 @@ where
             )
             .await?;
 
-        match self.repo.find_by_id(id).await {
-            Ok(tx) => Ok(Some(tx)),
-            Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e),
-        }
+        self.repo.maybe_find_by_id(id).await
     }
 
     #[instrument(name = "core_accounting.manual_transaction.list", skip(self), err)]

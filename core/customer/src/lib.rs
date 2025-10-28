@@ -180,11 +180,7 @@ where
             )
             .await?;
 
-        match self.repo.find_by_id(id).await {
-            Ok(customer) => Ok(Some(customer)),
-            Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e),
-        }
+        self.repo.maybe_find_by_id(id).await
     }
 
     #[instrument(name = "customer.find_by_id_without_audit", skip(self), err)]
@@ -209,11 +205,7 @@ where
             )
             .await?;
 
-        match self.repo.find_by_email(email).await {
-            Ok(customer) => Ok(Some(customer)),
-            Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e),
-        }
+        self.repo.maybe_find_by_email(email).await
     }
 
     #[instrument(name = "customer.find_by_public_id", skip(self), err)]
@@ -230,11 +222,7 @@ where
             )
             .await?;
 
-        match self.repo.find_by_public_id(public_id.into()).await {
-            Ok(customer) => Ok(Some(customer)),
-            Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e),
-        }
+        self.repo.maybe_find_by_public_id(public_id.into()).await
     }
 
     #[instrument(name = "customer.list", skip(self), err)]

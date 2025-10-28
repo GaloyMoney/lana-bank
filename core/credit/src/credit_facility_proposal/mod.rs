@@ -169,11 +169,7 @@ where
                 CoreCreditAction::CREDIT_FACILITY_READ,
             )
             .await?;
-        match self.repo.find_by_id(id).await {
-            Ok(credit_facility) => Ok(Some(credit_facility)),
-            Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e),
-        }
+        self.repo.maybe_find_by_id(id).await
     }
 
     #[instrument(name = "credit.pending_credit_facility.list", skip(self))]

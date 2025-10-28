@@ -63,11 +63,7 @@ impl PublicIds {
         &self,
         id: impl Into<PublicId> + std::fmt::Debug,
     ) -> Result<Option<PublicIdEntity>, PublicIdError> {
-        match self.repo.find_by_id(id.into()).await {
-            Ok(public_id) => Ok(Some(public_id)),
-            Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e),
-        }
+        self.repo.maybe_find_by_id(id.into()).await
     }
 
     #[instrument(name = "public_id_service.find_all", skip(self), err)]

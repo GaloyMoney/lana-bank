@@ -120,11 +120,10 @@ where
             )
             .await?;
 
-        match self.policy_repo.find_by_id(policy_id).await {
-            Ok(policy) => Ok(Some(policy)),
-            Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(GovernanceError::PolicyError(e)),
-        }
+        self.policy_repo
+            .maybe_find_by_id(policy_id)
+            .await
+            .map_err(GovernanceError::PolicyError)
     }
 
     #[instrument(name = "governance.list_policies", skip(self), err)]
@@ -429,11 +428,10 @@ where
             )
             .await?;
 
-        match self.committee_repo.find_by_id(committee_id).await {
-            Ok(committee) => Ok(Some(committee)),
-            Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(GovernanceError::CommitteeError(e)),
-        }
+        self.committee_repo
+            .maybe_find_by_id(committee_id)
+            .await
+            .map_err(GovernanceError::CommitteeError)
     }
 
     #[instrument(name = "governance.list_committees", skip(self), err)]
@@ -488,11 +486,10 @@ where
             )
             .await?;
 
-        match self.process_repo.find_by_id(process_id).await {
-            Ok(process) => Ok(Some(process)),
-            Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(GovernanceError::ApprovalProcessError(e)),
-        }
+        self.process_repo
+            .maybe_find_by_id(process_id)
+            .await
+            .map_err(GovernanceError::ApprovalProcessError)
     }
 
     #[instrument(name = "governance.list_approval_processes", skip(self), err)]

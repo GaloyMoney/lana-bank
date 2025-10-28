@@ -88,18 +88,17 @@ where
         name: String,
         permission_sets: HashSet<PermissionSetId>,
     ) -> Result<Role, RoleError> {
-        let existing = self.role_repo.find_by_name(&name).await;
-        let role = if matches!(existing, Err(ref e) if e.was_not_found()) {
-            let new_role = NewRole::builder()
-                .id(RoleId::new())
-                .name(name)
-                .initial_permission_sets(permission_sets.clone())
-                .build()
-                .expect("all fields for new role provided");
-
-            self.role_repo.create_in_op(db, new_role).await?
-        } else {
-            existing?
+        let role = match self.role_repo.maybe_find_by_name(&name).await? {
+            Some(existing) => existing,
+            None => {
+                let new_role = NewRole::builder()
+                    .id(RoleId::new())
+                    .name(name)
+                    .initial_permission_sets(permission_sets.clone())
+                    .build()
+                    .expect("all fields for new role provided");
+                self.role_repo.create_in_op(db, new_role).await?
+            }
         };
 
         for permission_set_id in permission_sets {

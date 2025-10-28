@@ -138,11 +138,7 @@ where
         self.authz
             .enforce_permission(sub, CoreAccessObject::user(id), CoreAccessAction::USER_READ)
             .await?;
-        match self.repo.find_by_id(id).await {
-            Ok(user) => Ok(Some(user)),
-            Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e),
-        }
+        self.repo.maybe_find_by_id(id).await
     }
 
     #[instrument(name = "core_access.find_by_email", skip(self))]
@@ -161,11 +157,7 @@ where
                 .await?;
         }
 
-        match self.repo.find_by_email(email.as_str()).await {
-            Ok(user) => Ok(Some(user)),
-            Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e),
-        }
+        self.repo.maybe_find_by_email(email.as_str()).await
     }
 
     #[instrument(name = "core_access.find_all", skip(self))]
@@ -263,8 +255,12 @@ where
             )
             .await?;
 
-        let user = match self.repo.find_by_email_in_op(&mut *op, &email).await {
-            Err(e) if e.was_not_found() => {
+        let user = match self
+            .repo
+            .maybe_find_by_email_in_op(&mut *op, &email)
+            .await?
+        {
+            None => {
                 let new_user = NewUser::builder()
                     .id(UserId::new())
                     .email(email)
@@ -274,8 +270,7 @@ where
 
                 self.repo.create_in_op(&mut *op, new_user).await?
             }
-            Err(e) => return Err(e),
-            Ok(mut user) => {
+            Some(mut user) => {
                 // Update existing user's role if needed
                 if user.update_role(role).did_execute() {
                     self.repo.update_in_op(op, &mut user).await?;
