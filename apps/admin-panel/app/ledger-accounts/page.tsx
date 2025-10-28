@@ -73,7 +73,7 @@ export default function LedgerAccount() {
       } else {
         setError(t("search.notFound"))
       }
-    } catch (error) {
+    } catch {
       setError(t("search.searchError"))
     } finally {
       setIsSearching(false)
