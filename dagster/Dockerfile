@@ -19,12 +19,10 @@ RUN \
         # add any other dependencies here
         pandas
 
-# Create the iris_analysis directory and download the definitions.py file
-RUN mkdir -p /iris_analysis/ && \
-    curl -o /iris_analysis/definitions.py https://raw.githubusercontent.com/dagster-io/dagster/refs/heads/master/examples/deploy_k8s/iris_analysis/definitions.py
-
-WORKDIR /iris_analysis/
+# Create the iris_analysis directory and copy the definitions.py file
+RUN mkdir -p /lana-dw/
+COPY src/definitions.py /lana-dw/definitions.py
 
 EXPOSE 4000
 
-CMD ["dagster", "api", "grpc", "-h", "0.0.0.0", "-p", "4000", "-f", "/iris_analysis/definitions.py"]
+CMD ["dagster", "api", "grpc", "-h", "0.0.0.0", "-p", "4000", "-f", "/lana-dw/definitions.py"]
