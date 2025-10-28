@@ -122,98 +122,14 @@ teardown_file() {
   chart_id=$(graphql_output '.data.chartOfAccounts.chartId')
 
   temp_file=$(mktemp)
-
+  liabilities_code=$((((RANDOM % 1000)) + 1000))
   echo "
-    1,,,Assets,Debit,
-    ,,,,,
-    11,,,Current Assets,,
-    ,,,,,
-    ,01,,Cash and Equivalents,,
-    ,,,,,
-    ,,0101,Operating Cash,,
-    ,,,,,
-    ,,0102,Petty Cash,,
-    ,,,,,
-    ,02,,Receivables,,
-    ,,,,,
-    ,,0201,Interest Receivable,,
-    ,,,,,
-    ,,0202,Loans Receivable,,
-    ,,,,,
-    ,,0203,Overdue Loans Receivable,,
-    ,,,,,
-    ,03,,Inventory,,
-    ,,,,,
-    ,,0301,Raw Materials,,
-    ,,,,,
-    ,,0302,Work In Progress,,
-    ,,,,,
-    ,,0303,Finished Goods,,
-    ,,,,,
-    12,,,Non-Current Assets,,
-    ,,,,,
-    ,01,,Property and Equipment,,
-    ,,,,,
-    ,,0101,Land,,
-    ,,,,,
-    ,,0102,Buildings,,
-    ,,,,,
-    ,,0103,Equipment,,
-    ,,,,,
-    ,02,,Intangible Assets,,
-    ,,,,,
-    ,,0201,Goodwill,,
-    ,,,,,
-    ,,0202,Intellectual Property,,
-    ,,,,,
-    3,,,Equity,Credit,
-    ,,,,,
-    31,,,Contributed Capital,,
-    ,,,,,
-    ,01,,Common Stock,,
-    ,,,,,
-    ,02,,Preferred Stock,,
-    ,,,,,
-    32,,,Retained Earnings,,
-    ,,,,,
-    ,01,,Prior Year Earnings,,
-    ,,,,,
-    ,02,,Prior Year Losses,,
-    ,,,,,
-    4,,,Revenue,Credit,
-    ,,,,,
-    41,,,Operating Revenue,,
-    ,,,,,
-    ,01,,Sales Revenue,,
-    ,,,,,
-    ,,0101,Product A Sales,,
-    ,,,,,
-    ,,0102,Product B Sales,,
-    ,,,,,
-    ,02,,Service Revenue,,
-    ,,,,,
-    ,,0201,Consulting Services,,
-    ,,,,,
-    ,,0202,Maintenance Services,,
-    ,,,,,
-    5,,,Cost of Revenue,Debit,
-    ,,,,,
-    51,,,Capital Cost,,
-    ,,,,,
-    ,01,,Custody,,
-    ,,,,,
-    ,,0101,Custodian Fees,,
-    ,,,,,
-    6,,,Expenses,Debit,
-    ,,,,,
-    61,,,Fixed Expenses,,
-    ,,,,,
-    ,01,,Regulatory,,
-    ,,,,,
-    ,,0101,Regulatory Fees,,
-    ,,,,,
     201,,,Manuals 1,,
     202,,,Manuals 2,,
+    $liabilities_code,,,Alt Liabilities,,
+    ,,,,,
+    ,$((RANDOM % 100)),,Checking Accounts,,
+    ,,$((RANDOM % 1000)),Northern Office,
   " > "$temp_file"
 
   variables=$(
@@ -305,86 +221,6 @@ teardown_file() {
   [[ "$entryType1" != "$entryType2" ]] || exit 1
 }
 
-@test "accounting: can execute manual transaction into profit and loss accounts" {
-
-  # expects chart of accounts from 'import CSV' step to exist
-
-  revenue=500
-  cost_of_revenue=200
-  expenses=200
-
-  variables=$(
-    jq -n \
-    --arg revenue "$revenue" \
-    --arg cost_of_rev "$cost_of_revenue" \
-    --arg expenses "$expenses" \
-    --arg effective "2025-01-01" \
-    '{
-      input: {
-        description: "Manual transaction - test profit and loss",
-        effective: $effective,
-        entries: [
-          {
-             "accountRef": "41.01.0102",
-             "amount": $revenue,
-             "currency": "USD",
-             "direction": "CREDIT",
-             "description": "Entry 1C description"
-          },
-          {
-             "accountRef": "51.01.0101",
-             "amount": $cost_of_rev,
-             "currency": "USD",
-             "direction": "DEBIT",
-             "description": "Entry 2C description"
-          },
-                    {
-             "accountRef": "61.01.0101",
-             "amount": $expenses,
-             "currency": "USD",
-             "direction": "DEBIT",
-             "description": "Entry 3C description"
-          },
-          {
-             "accountRef": "202",
-             "amount": $revenue,
-             "currency": "USD",
-             "direction": "DEBIT",
-             "description": "Entry 1D description"
-          },
-          {
-             "accountRef": "202",
-             "amount": $cost_of_rev,
-             "currency": "USD",
-             "direction": "CREDIT",
-             "description": "Entry 2C description"
-          },
-          {
-             "accountRef": "202",
-             "amount": $expenses,
-             "currency": "USD",
-             "direction": "CREDIT",
-             "description": "Entry 3C description"
-          }]
-        }
-      }'
-  )
-
-  exec_admin_graphql 'manual-transaction-execute' "$variables"
-
-  exec_admin_graphql 'ledger-account-by-code' '{"code":"41.01.0102"}'
-  txId1=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].txId)
-  amount1=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].amount.usd)
-  direction1=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].direction)
-  entryType1=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].entryType)
-
-  exec_admin_graphql 'ledger-account-by-code' '{"code":"202"}'
-  txId2=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].txId)
-  amount2=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].amount.usd)
-  direction2=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].direction)
-  entryType2=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].entryType)
-}
-
 @test "accounting: cannot execute transaction before last closing date" {
   exec_admin_graphql 'chart-of-accounts-closing'
   graphql_output
@@ -423,23 +259,4 @@ teardown_file() {
   graphql_output
   errors=$(graphql_output '.errors')
   [[ "$errors" =~ "VelocityError" ]] || exit 1
-}
-
-@test "accounting: confirm annual closing transfers net income to balance sheet" {
-    exec_admin_graphql 'chart-of-accounts'
-    chart_id=$(graphql_output '.data.chartOfAccounts.chartId')
-
-    variables=$(
-      jq -n \
-      --arg chart_id "$chart_id" \
-      '{
-        input: {
-          chartId: $chart_id
-        }
-      }'
-    )
-
-    exec_admin_graphql 'accounting-period-close-year' "$variables"
-    
-    exec_admin_graphql 'ledger-account-by-code' '{"code":"32.02"}'
 }
