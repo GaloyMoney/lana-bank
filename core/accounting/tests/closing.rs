@@ -1,76 +1,128 @@
 mod helpers;
 
-use std::collections::HashMap;
+use anyhow::Result;
+use chrono::{Datelike, Days, NaiveDate};
+use rust_decimal::Decimal;
 
 use authz::dummy::{DummyPerms, DummySubject};
-use chrono::{Datelike, Days, NaiveDate};
 use cloud_storage::{Storage, config::StorageConfig};
 use document_storage::DocumentStorage;
 use job::{JobSvcConfig, Jobs};
 
 use cala_ledger::{
-    AccountId, AccountSetId, CalaLedger, CalaLedgerConfig, Currency, DebitOrCredit, JournalId,
+    AccountId, CalaLedger, CalaLedgerConfig, Currency,
+    DebitOrCredit::{self, Credit, Debit},
     account::NewAccount,
-    account_set::{AccountSetMemberId, error::AccountSetError},
-    balance::error::BalanceError,
 };
 use core_accounting::{
-    AccountCode, AccountIdOrCode, Chart, CoreAccounting, ManualEntryInput,
+    AccountIdOrCode, Chart, CoreAccounting, LedgerAccountId, ManualEntryInput,
     accounting_period::{
         ChartOfAccountsIntegrationConfig,
         chart_of_accounts_integration::{AccountingPeriodConfig, Basis},
     },
 };
+
 use helpers::{action, object};
-use rust_decimal::Decimal;
+
+const EARNINGS: &'static str = "32.01";
+const LOSSES: &'static str = "32.02";
+const REVENUES: &'static str = "4";
+const COSTS: &'static str = "5";
+const EXPENSES: &'static str = "6";
 
 #[tokio::test]
-async fn closing() -> anyhow::Result<()> {
-    let mut test = prepare_test().await?;
+async fn annual_closing_loss() -> Result<()> {
+    let mut test = setup_test().await?;
 
-    test.account("41.01.0102", 300, DebitOrCredit::Credit).await;
-    test.account("41.01.0102", 2400, DebitOrCredit::Credit)
-        .await;
-    test.account("51.01.0101", 500, DebitOrCredit::Debit).await;
-    test.account("51.01.0101", 3000, DebitOrCredit::Debit).await;
-    test.account("61.01.0101", 900, DebitOrCredit::Debit).await;
+    // Revenues
+    test.add_account("41.01.0101", 300, Credit).await;
+    test.add_account("41.01.0102", 2400, Credit).await;
 
-    let pre_close_balances = test.balances().await;
+    // Costs
+    test.add_account("51.01.0101", 500, Debit).await;
+    test.add_account("51.01.0101", 3000, Debit).await;
 
-    let equity_parent_account_set_id = test
-        .chart
-        .account_set_id_from_code(&"32".parse::<AccountCode>().unwrap())?;
+    // Expenses
+    test.add_account("61.01.0101", 900, Debit).await;
 
-    let pre_equity_accounts = find_all_accounts(&test.cala, equity_parent_account_set_id).await?;
+    assert_eq!(test.balance(REVENUES).await?, Decimal::from(300 + 2400));
+    assert_eq!(test.balance(COSTS).await?, Decimal::from(500 + 3000));
+    assert_eq!(test.balance(EXPENSES).await?, Decimal::from(900));
 
-    let _ann_closing_tx = test
-        .accounting
+    assert!(test.children(EARNINGS).await?.is_empty());
+    assert_eq!(test.balance(EARNINGS).await?, Decimal::ZERO);
+
+    assert!(test.children(LOSSES).await?.is_empty());
+    assert_eq!(test.balance(LOSSES).await?, Decimal::ZERO);
+
+    test.accounting
         .accounting_periods()
         .close_year(&DummySubject, test.chart.id, None)
         .await?;
 
-    let post_close_balances = test.balances().await;
+    assert!(test.children(EARNINGS).await?.is_empty());
+    assert_eq!(test.balance(EARNINGS).await?, Decimal::ZERO);
 
-    for act in pre_close_balances.keys() {
-        if let Some(post_bal) = post_close_balances.get(act) {
-            assert_eq!(*post_bal, Decimal::ZERO);
-        }
-    }
-
-    let post_equity_accounts = find_all_accounts(&test.cala, equity_parent_account_set_id).await?;
-    assert_eq!(post_equity_accounts.len(), pre_equity_accounts.len() + 1);
-
-    let post_equity_balance =
-        find_account_balance(&test.cala, post_equity_accounts[0], test.journal_id).await?;
+    assert_eq!(test.children(LOSSES).await?.len(), 1);
     assert_eq!(
-        post_equity_balance,
-        Decimal::from(500 + 3000 + 900 - 300 - 2400)
+        test.balance(LOSSES).await?,
+        Decimal::from(300 + 2400 - 500 - 3000 - 900)
     );
+
+    assert_eq!(test.balance(REVENUES).await?, Decimal::ZERO);
+    assert_eq!(test.balance(COSTS).await?, Decimal::ZERO);
+    assert_eq!(test.balance(EXPENSES).await?, Decimal::ZERO);
 
     Ok(())
 }
 
-async fn prepare_test() -> anyhow::Result<Test> {
+#[tokio::test]
+async fn annual_closing_gain() -> Result<()> {
+    let mut test = setup_test().await?;
+
+    // Revenues
+    test.add_account("41.01.0101", 4392, Credit).await;
+    test.add_account("41.01.0102", 2058, Credit).await;
+
+    // Costs
+    test.add_account("51.01.0101", 295, Debit).await;
+    test.add_account("51.01.0101", 1195, Debit).await;
+
+    // Expenses
+    test.add_account("61.01.0101", 700, Debit).await;
+
+    assert_eq!(test.balance(REVENUES).await?, Decimal::from(4392 + 2058));
+    assert_eq!(test.balance(COSTS).await?, Decimal::from(295 + 1195));
+    assert_eq!(test.balance(EXPENSES).await?, Decimal::from(700));
+
+    assert!(test.children(EARNINGS).await?.is_empty());
+    assert_eq!(test.balance(EARNINGS).await?, Decimal::ZERO);
+
+    assert!(test.children(LOSSES).await?.is_empty());
+    assert_eq!(test.balance(LOSSES).await?, Decimal::ZERO);
+
+    test.accounting
+        .accounting_periods()
+        .close_year(&DummySubject, test.chart.id, None)
+        .await?;
+
+    assert_eq!(test.children(EARNINGS).await?.len(), 1);
+    assert_eq!(
+        test.balance(EARNINGS).await?,
+        Decimal::from(4392 + 2058 - 295 - 1195 - 700)
+    );
+
+    assert!(test.children(LOSSES).await?.is_empty());
+    assert_eq!(test.balance(LOSSES).await?, Decimal::ZERO);
+
+    assert_eq!(test.balance(REVENUES).await?, Decimal::ZERO);
+    assert_eq!(test.balance(COSTS).await?, Decimal::ZERO);
+    assert_eq!(test.balance(EXPENSES).await?, Decimal::ZERO);
+
+    Ok(())
+}
+
+async fn setup_test() -> anyhow::Result<Test> {
     use rand::Rng;
     let pool = helpers::init_pool().await?;
 
@@ -241,7 +293,6 @@ async fn prepare_test() -> anyhow::Result<Test> {
 
     Ok(Test {
         accounting,
-        journal_id,
         chart,
         cala,
         inner_date: central_date,
@@ -249,75 +300,16 @@ async fn prepare_test() -> anyhow::Result<Test> {
     })
 }
 
-pub async fn find_all_accounts(
-    cala: &CalaLedger,
-    id: AccountSetId,
-) -> Result<Vec<AccountId>, AccountSetError> {
-    let children = cala
-        .account_sets()
-        .list_members_by_external_id(id, Default::default())
-        .await?
-        .entities;
-
-    let mut results = Vec::new();
-
-    for child in children {
-        match child.id {
-            AccountSetMemberId::Account(id) => {
-                results.push(id);
-            }
-            AccountSetMemberId::AccountSet(id) => {
-                let nested_children = Box::pin(find_all_accounts(cala, id)).await?;
-                results.extend(nested_children);
-            }
-        }
-    }
-
-    Ok(results)
-}
-
-pub async fn find_account_balance(
-    cala: &CalaLedger,
-    id: impl Into<AccountId>,
-    journal_id: JournalId,
-) -> Result<Decimal, BalanceError> {
-    let balance = cala
-        .balances()
-        .find(journal_id, id.into(), Currency::USD)
-        .await?;
-
-    Ok(balance.settled())
-}
-
 struct Test {
     pub cala: CalaLedger,
     pub accounting: CoreAccounting<DummyPerms<action::DummyAction, object::DummyObject>>,
     pub chart: Chart,
-    pub journal_id: JournalId,
     pub accounts: Vec<AccountId>,
     pub inner_date: NaiveDate,
 }
 
 impl Test {
-    pub async fn balances(&self) -> HashMap<AccountId, Decimal> {
-        let ids = self
-            .accounts
-            .iter()
-            .copied()
-            .map(|id| (self.journal_id, id, Currency::USD))
-            .collect::<Vec<_>>();
-
-        self.cala
-            .balances()
-            .find_all(&ids)
-            .await
-            .unwrap()
-            .into_iter()
-            .map(|((_, id, _), b)| (id, b.settled()))
-            .collect()
-    }
-
-    pub async fn account(&mut self, parent: &str, funds: u32, balance_type: DebitOrCredit) {
+    pub async fn add_account(&mut self, parent: &str, funds: i32, balance_type: DebitOrCredit) {
         let account_id = AccountId::new();
         let _ = self
             .cala
@@ -346,30 +338,15 @@ impl Test {
             .await
             .unwrap();
 
-        let (source_dir, dest_dir) = if balance_type == DebitOrCredit::Debit {
-            (DebitOrCredit::Credit, DebitOrCredit::Debit)
-        } else {
-            (DebitOrCredit::Debit, DebitOrCredit::Credit)
+        // Fund the account
+
+        let (source_dir, dest_dir) = match balance_type {
+            DebitOrCredit::Debit if funds >= 0 => (DebitOrCredit::Credit, DebitOrCredit::Debit),
+            DebitOrCredit::Debit => (DebitOrCredit::Debit, DebitOrCredit::Credit),
+            DebitOrCredit::Credit if funds >= 0 => (DebitOrCredit::Debit, DebitOrCredit::Credit),
+            DebitOrCredit::Credit => (DebitOrCredit::Credit, DebitOrCredit::Debit),
         };
 
-        let entries = vec![
-            ManualEntryInput::builder()
-                .account_id_or_code(AccountIdOrCode::Code("11.01.0101".parse().unwrap()))
-                .amount(funds.into())
-                .currency(Currency::USD)
-                .direction(source_dir)
-                .description(format!("Debit {}", self.accounts.len()))
-                .build()
-                .unwrap(),
-            ManualEntryInput::builder()
-                .account_id_or_code(AccountIdOrCode::Id(account_id.into()))
-                .amount(funds.into())
-                .currency(Currency::USD)
-                .direction(dest_dir)
-                .description(format!("Credit {}", self.accounts.len()))
-                .build()
-                .unwrap(),
-        ];
         self.accounting
             .execute_manual_transaction(
                 &DummySubject,
@@ -377,11 +354,52 @@ impl Test {
                 None,
                 format!("Transaction {}", self.accounts.len()),
                 Some(self.inner_date),
-                entries,
+                vec![
+                    ManualEntryInput::builder()
+                        .account_id_or_code(AccountIdOrCode::Code("11.01.0101".parse().unwrap()))
+                        .amount(funds.abs().into())
+                        .currency(Currency::USD)
+                        .direction(source_dir)
+                        .description(format!("Source {}", self.accounts.len()))
+                        .build()
+                        .unwrap(),
+                    ManualEntryInput::builder()
+                        .account_id_or_code(AccountIdOrCode::Id(account_id.into()))
+                        .amount(funds.abs().into())
+                        .currency(Currency::USD)
+                        .direction(dest_dir)
+                        .description(format!("Destination {}", self.accounts.len()))
+                        .build()
+                        .unwrap(),
+                ],
             )
             .await
             .unwrap();
 
         self.accounts.push(account_id);
+    }
+
+    pub async fn balance(&self, code: &str) -> Result<Decimal> {
+        let account = self
+            .accounting
+            .find_ledger_account_by_code(&DummySubject, &self.chart.reference, code.to_string())
+            .await?
+            .unwrap();
+
+        Ok(account
+            .usd_balance_range
+            .and_then(|r| r.close)
+            .map(|b| b.settled())
+            .unwrap_or(Decimal::ZERO))
+    }
+
+    pub async fn children(&self, code: &str) -> Result<Vec<LedgerAccountId>> {
+        let account = self
+            .accounting
+            .find_ledger_account_by_code(&DummySubject, &self.chart.reference, code.to_string())
+            .await?
+            .unwrap();
+
+        Ok(account.children_ids)
     }
 }
