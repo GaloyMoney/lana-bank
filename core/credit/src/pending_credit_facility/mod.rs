@@ -223,6 +223,10 @@ where
         }
     }
 
+    #[instrument(
+        name = "credit.pending_credit_facility.update_collat_from_events",
+        skip(self)
+    )]
     #[es_entity::retry_on_concurrent_modification(any_error = true)]
     pub(super) async fn update_collateralization_from_events(
         &self,

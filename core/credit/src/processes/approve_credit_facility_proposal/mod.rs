@@ -78,9 +78,9 @@ where
         }
     }
 
-    #[es_entity::retry_on_concurrent_modification(any_error = true)]
     #[instrument(name = "credit_facility.approval.execute", skip(self))]
-    pub async fn execute(
+    #[es_entity::retry_on_concurrent_modification(any_error = true)]
+    pub async fn execute_approve_credit_facility_proposal(
         &self,
         id: impl es_entity::RetryableInto<CreditFacilityProposalId>,
         approved: bool,

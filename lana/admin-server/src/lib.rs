@@ -64,7 +64,7 @@ pub struct AdminJwtClaims {
     pub subject: String,
 }
 
-#[instrument(name = "admin_server.graphql", skip_all, fields(operation_name, operation_type, query, error, error.level, error.message))]
+#[instrument(name = "admin_server.graphql", skip_all, fields(operation_name, operation_type, query, variables, error, error.level, error.message))]
 #[es_entity::es_event_context]
 pub async fn graphql_handler(
     headers: HeaderMap,
@@ -85,18 +85,42 @@ pub async fn graphql_handler(
         tracing::Span::current().record("operation_type", query_type);
     }
 
-    match uuid::Uuid::parse_str(&jwt_claims.subject) {
-        Ok(id) => {
-            let auth_context = AdminAuthContext::new(id);
-            req = req.data(auth_context);
-            schema.execute(req).await.into()
+    // TODO: this should be behind a feature flag or env var
+    let variables_str = format!("{:?}", req.variables);
+    tracing::Span::current().record("variables", variables_str.as_str());
+
+    let id = match uuid::Uuid::parse_str(&jwt_claims.subject) {
+        Ok(id) => id,
+        Err(e) => {
+            tracing::error!(
+                error = %e,
+                subject = &jwt_claims.subject,
+                "Failed to parse UUID from JWT subject"
+            );
+            return async_graphql::Response::from_errors(vec![async_graphql::ServerError::new(
+                e.to_string(),
+                None,
+            )])
+            .into();
         }
-        Err(e) => async_graphql::Response::from_errors(vec![async_graphql::ServerError::new(
-            e.to_string(),
-            None,
-        )])
-        .into(),
+    };
+
+    let auth_context = AdminAuthContext::new(id);
+    req = req.data(auth_context);
+
+    let response = schema.execute(req).await;
+    if !response.errors.is_empty() {
+        for err in &response.errors {
+            tracing::error!(
+                message = %err.message,
+                path = ?err.path,
+                locations = ?err.locations,
+                extensions = ?err.extensions,
+                "GraphQL execution error"
+            );
+        }
     }
+    response.into()
 }
 
 async fn playground() -> impl axum::response::IntoResponse {

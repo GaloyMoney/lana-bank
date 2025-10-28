@@ -144,7 +144,9 @@ where
                     Span::current().record("handled", true);
                     Span::current().record("event_type", event.as_ref());
                     Span::current().record("process_type", process_type.to_string());
-                    self.process.execute(*id, *approved).await?;
+                    self.process
+                        .execute_withdrawal_approval(*id, *approved)
+                        .await?;
                 }
             }
             _ => {}

@@ -3,6 +3,7 @@ pub mod error;
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use tracing::instrument;
 
 use cala_ledger::{
     AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation,
@@ -389,6 +390,7 @@ impl ProfitAndLossStatementLedger {
         }
     }
 
+    #[instrument(name = "profit_and_loss.get_ids_from_reference", skip(self), fields(reference = %reference))]
     pub async fn get_ids_from_reference(
         &self,
         reference: String,

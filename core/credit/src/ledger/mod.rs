@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
+use tracing::instrument;
 
 use audit::AuditInfo;
 use core_accounting::EntityRef;
@@ -830,6 +831,7 @@ impl CreditLedger {
         })
     }
 
+    #[instrument(name = "credit_ledger.find_or_create_account_set", skip(cala), fields(journal_id = %journal_id, reference = %reference))]
     async fn find_or_create_account_set(
         cala: &CalaLedger,
         journal_id: JournalId,
@@ -870,6 +872,7 @@ impl CreditLedger {
         }
     }
 
+    #[instrument(name = "credit_ledger.find_or_create_omnibus_account", skip(cala), fields(journal_id = %journal_id, reference = %reference))]
     async fn find_or_create_omnibus_account(
         cala: &CalaLedger,
         journal_id: JournalId,
