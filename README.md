@@ -49,8 +49,6 @@ Set them in your `.env` file
 - `SUMSUB_KEY`: SumSub API key for identity verification
 - `SUMSUB_SECRET`: SumSub API secret for identity verification
 
-- `BROWSERSTACK_USERNAME`: BrowserStack username for e2e testing via Cypress
-- `BROWSERSTACK_ACCESS_KEY`: BrowserStack access key for e2e testing via Cypress
 - `HONEYCOMB_KEY`: Honeycomb Ingest API key for tracing
 - `TF_VAR_honeycomb_api_key`: Honeycomb Configuration API key for dashboards 
 
