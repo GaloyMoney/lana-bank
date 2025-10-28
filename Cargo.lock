@@ -5588,6 +5588,7 @@ dependencies = [
  "futures",
  "lana-app",
  "lana-events",
+ "outbox",
  "rust_decimal",
  "rust_decimal_macros",
  "serde",
