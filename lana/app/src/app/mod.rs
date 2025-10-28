@@ -2,7 +2,8 @@ mod config;
 mod error;
 
 use sqlx::PgPool;
-use tracing::{Instrument, instrument};
+use tracing::instrument;
+use tracing_utils;
 
 use authz::PermissionCheck;
 
@@ -307,6 +308,10 @@ impl LanaApp {
     #[instrument(name = "app.shutdown", skip(self), err)]
     pub async fn shutdown(&self) -> Result<(), ApplicationError> {
         self.jobs.shutdown().await?;
+
+        // Shutdown tracer to flush all pending spans
+        tracing_utils::shutdown_tracer()?;
+
         Ok(())
     }
 }
