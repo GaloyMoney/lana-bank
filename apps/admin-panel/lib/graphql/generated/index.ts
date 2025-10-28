@@ -74,7 +74,6 @@ export type AccountingPeriod = {
   accountingPeriodId: Scalars['UUID']['output'];
   id: Scalars['ID']['output'];
   period: PeriodRange;
-  trackingAccountSetId: Scalars['UUID']['output'];
 };
 
 export type AccountingPeriodCloseInput = {
@@ -85,6 +84,29 @@ export type AccountingPeriodCloseInput = {
 export type AccountingPeriodClosePayload = {
   __typename?: 'AccountingPeriodClosePayload';
   accountingPeriod: AccountingPeriod;
+};
+
+export type AccountingPeriodModuleConfig = {
+  __typename?: 'AccountingPeriodModuleConfig';
+  chartOfAccountsId?: Maybe<Scalars['UUID']['output']>;
+  costOfRevenueCode?: Maybe<Scalars['String']['output']>;
+  equityRetainedEarningsCode?: Maybe<Scalars['String']['output']>;
+  equityRetainedLossesCode?: Maybe<Scalars['String']['output']>;
+  expensesCode?: Maybe<Scalars['String']['output']>;
+  revenueCode?: Maybe<Scalars['String']['output']>;
+};
+
+export type AccountingPeriodModuleConfigureInput = {
+  costOfRevenueCode: Scalars['String']['input'];
+  equityRetainedEarningsCode: Scalars['String']['input'];
+  equityRetainedLossesCode: Scalars['String']['input'];
+  expensesCode: Scalars['String']['input'];
+  revenueCode: Scalars['String']['input'];
+};
+
+export type AccountingPeriodModuleConfigurePayload = {
+  __typename?: 'AccountingPeriodModuleConfigurePayload';
+  accountingPeriodConfig: AccountingPeriodModuleConfig;
 };
 
 export enum Activity {
@@ -288,8 +310,8 @@ export type ChartOfAccounts = {
   __typename?: 'ChartOfAccounts';
   chartId: Scalars['UUID']['output'];
   children: Array<ChartNode>;
+  closing: AccountingClosing;
   id: Scalars['ID']['output'];
-  monthlyClosing: AccountingClosing;
   name: Scalars['String']['output'];
 };
 
@@ -1534,6 +1556,7 @@ export type Mutation = {
   accountingCsvDownloadLinkGenerate: AccountingCsvDownloadLinkGeneratePayload;
   accountingPeriodCloseMonth: AccountingPeriodClosePayload;
   accountingPeriodCloseYear: AccountingPeriodClosePayload;
+  accountingPeriodConfigure: AccountingPeriodModuleConfigurePayload;
   approvalProcessApprove: ApprovalProcessApprovePayload;
   approvalProcessDeny: ApprovalProcessDenyPayload;
   balanceSheetConfigure: BalanceSheetModuleConfigurePayload;
@@ -1599,6 +1622,11 @@ export type MutationAccountingPeriodCloseMonthArgs = {
 
 export type MutationAccountingPeriodCloseYearArgs = {
   input: AccountingPeriodCloseInput;
+};
+
+
+export type MutationAccountingPeriodConfigureArgs = {
+  input: AccountingPeriodModuleConfigureInput;
 };
 
 
@@ -2059,6 +2087,7 @@ export type PublicIdTarget = CreditFacility | CreditFacilityDisbursal | Customer
 export type Query = {
   __typename?: 'Query';
   accountEntryCsv?: Maybe<AccountingCsvDocument>;
+  accountingPeriodConfig?: Maybe<AccountingPeriodModuleConfig>;
   approvalProcess?: Maybe<ApprovalProcess>;
   approvalProcesses: ApprovalProcessConnection;
   audit: AuditEntryConnection;

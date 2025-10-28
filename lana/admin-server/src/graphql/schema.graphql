@@ -30,7 +30,6 @@ type AccountingCsvDownloadLinkGeneratePayload {
 type AccountingPeriod {
 	id: ID!
 	accountingPeriodId: UUID!
-	trackingAccountSetId: UUID!
 	period: PeriodRange!
 }
 
@@ -277,7 +276,7 @@ type ChartOfAccounts {
 	id: ID!
 	chartId: UUID!
 	name: String!
-	monthlyClosing: AccountingClosing!
+	closing: AccountingClosing!
 	children: [ChartNode!]!
 }
 
