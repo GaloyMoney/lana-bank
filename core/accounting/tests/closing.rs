@@ -41,14 +41,7 @@ async fn closing() -> anyhow::Result<()> {
         .chart
         .account_set_id_from_code(&"32".parse::<AccountCode>().unwrap())?;
 
-    let pre_equity_accounts =
-        find_all_accounts(&test.cala, equity_parent_account_set_id.clone()).await?;
-
-    // let _closed_chart = test
-    //     .accounting
-    //     .accounting_periods()
-    //     .close_month(&DummySubject, test.chart.id)
-    //     .await?;
+    let pre_equity_accounts = find_all_accounts(&test.cala, equity_parent_account_set_id).await?;
 
     let _ann_closing_tx = test
         .accounting
@@ -62,14 +55,13 @@ async fn closing() -> anyhow::Result<()> {
 
     let post_close_balances = test.balances().await;
 
-    for (act, _pre_bal) in &pre_close_balances {
+    for act in pre_close_balances.keys() {
         if let Some(post_bal) = post_close_balances.get(act) {
             assert_eq!(*post_bal, Decimal::ZERO);
         }
     }
 
-    let post_equity_accounts =
-        find_all_accounts(&test.cala, equity_parent_account_set_id.clone()).await?;
+    let post_equity_accounts = find_all_accounts(&test.cala, equity_parent_account_set_id).await?;
     assert_eq!(post_equity_accounts.len(), pre_equity_accounts.len() + 1);
 
     let post_equity_balance =

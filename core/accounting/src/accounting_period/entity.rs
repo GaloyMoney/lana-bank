@@ -93,7 +93,7 @@ impl AccountingPeriod {
             id: AccountingPeriodId::new(),
             chart_id: self.chart_id,
             period: self.period.next(),
-            account_set_ids: self.account_set_ids.clone(),
+            account_set_ids: self.account_set_ids,
             closed_at: None,
         };
 

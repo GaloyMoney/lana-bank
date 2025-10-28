@@ -132,43 +132,43 @@ where
     }
 
     pub fn chart_of_accounts(&self) -> &ChartOfAccounts<Perms> {
-        &*self.chart_of_accounts
+        &self.chart_of_accounts
     }
 
     pub fn journal(&self) -> &Journal<Perms> {
-        &*self.journal
+        &self.journal
     }
 
     pub fn ledger_accounts(&self) -> &LedgerAccounts<Perms> {
-        &*self.ledger_accounts
+        &self.ledger_accounts
     }
 
     pub fn ledger_transactions(&self) -> &LedgerTransactions<Perms> {
-        &*self.ledger_transactions
+        &self.ledger_transactions
     }
 
     pub fn manual_transactions(&self) -> &ManualTransactions<Perms> {
-        &*self.manual_transactions
+        &self.manual_transactions
     }
 
     pub fn profit_and_loss(&self) -> &ProfitAndLossStatements<Perms> {
-        &*self.profit_and_loss
+        &self.profit_and_loss
     }
 
     pub fn csvs(&self) -> &AccountingCsvExports<Perms> {
-        &*self.csvs
+        &self.csvs
     }
 
     pub fn transaction_templates(&self) -> &TransactionTemplates<Perms> {
-        &*self.transaction_templates
+        &self.transaction_templates
     }
 
     pub fn balance_sheets(&self) -> &BalanceSheets<Perms> {
-        &*self.balance_sheets
+        &self.balance_sheets
     }
 
     pub fn trial_balances(&self) -> &TrialBalances<Perms> {
-        &*self.trial_balances
+        &self.trial_balances
     }
 
     pub fn accounting_periods(&self) -> &AccountingPeriods<Perms> {

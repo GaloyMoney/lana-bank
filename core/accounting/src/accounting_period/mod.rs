@@ -118,7 +118,7 @@ where
                         id: AccountingPeriodId::new(),
                         chart_id,
                         period,
-                        account_set_ids: account_set_ids.clone(),
+                        account_set_ids,
                         closed_at: None,
                     })
                     .await?;
@@ -232,10 +232,9 @@ where
         &self,
         chart: &Chart,
     ) -> Result<Option<ChartOfAccountsIntegrationConfig>, AccountingPeriodError> {
-        Ok(self
-            .ledger
+        self.ledger
             .get_chart_of_accounts_integration_config(chart.account_set_id)
-            .await?)
+            .await
     }
 
     pub async fn set_chart_of_accounts_integration_config(

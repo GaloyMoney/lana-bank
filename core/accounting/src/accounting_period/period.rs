@@ -17,6 +17,7 @@ use serde::{Deserialize, Serialize};
 ///                                     S—————————————————E······G
 /// ```
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub struct Period {
     #[serde(flatten)]
     frequency: Frequency,
@@ -137,6 +138,7 @@ impl Period {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "lowercase")]
 enum Frequency {
     Year { day: u32, month: u32 },

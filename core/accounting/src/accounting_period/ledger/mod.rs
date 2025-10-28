@@ -25,6 +25,7 @@ use cala_ledger::{
 pub(crate) use closing::ClosingMetadata;
 
 /// Collection of account set ID's relevant for an accounting period.
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[derive(Serialize, Deserialize, Clone, Debug, Copy)]
 pub struct AccountingPeriodAccountSetIds {
     pub tracking_account_set_id: AccountSetId,
@@ -87,7 +88,7 @@ impl AccountingPeriodLedger {
         let (net_income, mut closing_entries) = self
             .get_closing_account_entry_params(accounting_period)
             .await?
-            .into_closing_entries();
+            .to_closing_entries();
 
         let equity_entry = self
             .create_closing_equity_account_in_op(db, net_income, accounting_period.account_set_ids)

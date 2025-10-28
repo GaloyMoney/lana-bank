@@ -46,7 +46,7 @@ impl ClosingAccountBalances {
     /// underlying accounts that is valid at any time during the
     /// closing grace period. Notably, this does not create the equity
     /// closing entry.
-    pub fn into_closing_entries(&self) -> (Decimal, Vec<ClosingAccountEntry>) {
+    pub fn to_closing_entries(&self) -> (Decimal, Vec<ClosingAccountEntry>) {
         let (revenue_balance, mut revenue) = Self::create_closing_account_entries(&self.revenue);
         let (cost_of_revenue_balance, mut cost_of_revenue) =
             Self::create_closing_account_entries(&self.cost_of_revenue);
