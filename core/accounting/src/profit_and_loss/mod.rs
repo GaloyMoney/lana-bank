@@ -78,7 +78,7 @@ where
         }
     }
 
-    #[instrument(name = "core_accounting.profit_and_loss.create", skip(self), err)]
+    #[instrument(name = "core_accounting.profit_and_loss.create", skip(self, name), fields(pl_statement_name = %name), err)]
     pub async fn create_pl_statement(
         &self,
         name: String,

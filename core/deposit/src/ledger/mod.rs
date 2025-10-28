@@ -329,7 +329,7 @@ impl DepositLedger {
         })
     }
 
-    #[instrument(name = "deposit_ledger.find_or_create_account_set", skip(cala), fields(journal_id = %journal_id, reference = %reference))]
+    #[instrument(name = "deposit_ledger.find_or_create_account_set", skip(cala, name), fields(journal_id = %journal_id, reference = %reference, account_set_name = %name))]
     async fn find_or_create_account_set(
         cala: &CalaLedger,
         journal_id: JournalId,
@@ -370,7 +370,7 @@ impl DepositLedger {
         }
     }
 
-    #[instrument(name = "deposit_ledger.find_or_create_omnibus_account", skip(cala), fields(journal_id = %journal_id, reference = %reference))]
+    #[instrument(name = "deposit_ledger.find_or_create_omnibus_account", skip(cala, name), fields(journal_id = %journal_id, reference = %reference, account_set_name = %name))]
     async fn find_or_create_omnibus_account(
         cala: &CalaLedger,
         journal_id: JournalId,
