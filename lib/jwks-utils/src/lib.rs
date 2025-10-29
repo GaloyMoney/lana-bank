@@ -151,9 +151,7 @@ impl RemoteJwksDecoder {
     pub async fn refresh_keys_periodically(&self) {
         loop {
             match self.refresh_keys().await {
-                Ok(_) => {
-                    tokio::time::sleep(self.cache_duration).await;
-                }
+                Ok(_) => {}
                 Err(e) => {
                     tracing::error!(
                         retry_count = self.retry_count,
@@ -162,6 +160,7 @@ impl RemoteJwksDecoder {
                     );
                 }
             }
+            tokio::time::sleep(self.cache_duration).await;
         }
     }
 }
