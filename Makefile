@@ -125,6 +125,9 @@ test-cypress-in-ci:
 dagster-up:
 	docker compose -f docker-compose.dagster.yml up -d --build
 
+dagster-stop:
+	docker compose -f docker-compose.dagster.yml stop
+
 dagster-down:
 	docker compose -f docker-compose.dagster.yml down
 
