@@ -17,5 +17,6 @@ def iris_dataset_size(context: dg.AssetExecutionContext) -> None:
 
     context.log.info(f"Loaded {df.shape[0]} data points.")
 
+all_assets = [iris_dataset_size]
 
-defs = dg.Definitions(assets=[iris_dataset_size])
+defs = dg.Definitions(assets=all_assets)
