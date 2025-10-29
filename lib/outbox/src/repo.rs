@@ -153,17 +153,23 @@ where
         }
 
         if !empty_ids.is_empty() {
-            let rows = sqlx::query!(
-                r#"
-                INSERT INTO persistent_outbox_events (sequence)
-                SELECT unnest($1::bigint[]) AS sequence
-                ON CONFLICT (sequence) DO UPDATE
-                SET sequence = EXCLUDED.sequence
-                RETURNING id, sequence AS "sequence!: EventSequence", payload, tracing_context, recorded_at
-            "#,
-                &empty_ids as &[EventSequence]
-            )
-            .fetch_all(&self.pool)
+            use tracing::Instrument;
+            let span = tracing::info_span!("fill_gaps", gap_cnt = empty_ids.len());
+            let rows = async {
+                sqlx::query!(
+                    r#"
+                    INSERT INTO persistent_outbox_events (sequence)
+                    SELECT unnest($1::bigint[]) AS sequence
+                    ON CONFLICT (sequence) DO UPDATE
+                    SET sequence = EXCLUDED.sequence
+                    RETURNING id, sequence AS "sequence!: EventSequence", payload, tracing_context, recorded_at
+                "#,
+                    &empty_ids as &[EventSequence]
+                )
+                .fetch_all(&self.pool)
+                .await
+            }
+            .instrument(span)
             .await?;
             for row in rows {
                 events.push(PersistentOutboxEvent {

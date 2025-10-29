@@ -45,7 +45,11 @@ where
         }
     }
 
-    #[instrument(name = "core_accounting.trial_balance.create", skip(self), err)]
+    #[instrument(
+        name = "core_accounting.trial_balance.create_trial_balance_statement",
+        skip(self),
+        err
+    )]
     pub async fn create_trial_balance_statement(
         &self,
         reference: String,
@@ -68,7 +72,7 @@ where
         }
     }
 
-    #[instrument(name = "core_accounting.trial_balance.add_new_chart", skip(self), err)]
+    #[instrument(name = "core_accounting.trial_balance.add_new_chart_accounts_to_trial_balance", skip(self, name), fields(statement_name = %name), err)]
     pub async fn add_new_chart_accounts_to_trial_balance(
         &self,
         name: &str,
@@ -97,7 +101,7 @@ where
         Ok(())
     }
 
-    #[instrument(name = "core_accounting.trial_balance.trial_balance", skip(self), err)]
+    #[instrument(name = "core_accounting.trial_balance.trial_balance", skip(self, name), fields(statement_name = %name), err)]
     pub async fn trial_balance(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

@@ -150,21 +150,15 @@ impl RemoteJwksDecoder {
     /// succeeds or the universe ends, whichever comes first.
     pub async fn refresh_keys_periodically(&self) {
         loop {
-            let mut err = None;
             match self.refresh_keys().await {
-                Ok(_) => {
-                    err = None;
-                }
+                Ok(_) => {}
                 Err(e) => {
-                    eprintln!(
-                        "Failed to refresh JWKS after {} attempts: {:?}",
-                        self.retry_count, err
+                    tracing::error!(
+                        retry_count = self.retry_count,
+                        error = %e,
+                        "failed to refresh JWKS"
                     );
-                    err = Some(e);
                 }
-            }
-            if err.is_some() {
-                continue;
             }
             tokio::time::sleep(self.cache_duration).await;
         }

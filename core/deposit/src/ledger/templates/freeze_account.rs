@@ -1,4 +1,5 @@
 use rust_decimal::Decimal;
+use tracing::instrument;
 
 use cala_ledger::{
     AccountId as CalaAccountId, CalaLedger, Currency, JournalId, TxTemplateId,
@@ -82,6 +83,7 @@ impl From<FreezeAccountParams> for Params {
 pub struct FreezeAccount;
 
 impl FreezeAccount {
+    #[instrument(name = "ledger.freeze_account.init", skip_all)]
     pub async fn init(ledger: &CalaLedger) -> Result<(), DepositLedgerError> {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")

@@ -300,7 +300,7 @@ where
         Ok(process)
     }
 
-    #[instrument(name = "governance.create_committee", skip(self), err)]
+    #[instrument(name = "governance.create_committee", skip(self, name), fields(committee_name = %name), err)]
     pub async fn create_committee(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

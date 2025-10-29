@@ -2,7 +2,9 @@ use es_entity::prelude::chrono::Utc;
 use futures::StreamExt;
 use lana_app::{app::LanaApp, primitives::*};
 use lana_events::{CoreCreditEvent, LanaEvent};
+use outbox::PersistentOutboxEvent;
 use rust_decimal_macros::dec;
+use tracing::{Span, instrument};
 
 use crate::helpers;
 
@@ -37,31 +39,52 @@ pub async fn interest_under_payment_scenario(sub: Subject, app: &LanaApp) -> any
 
     let mut stream = app.outbox().listen_persisted(None).await?;
     while let Some(msg) = stream.next().await {
-        match &msg.payload {
-            Some(LanaEvent::Credit(CoreCreditEvent::FacilityProposalApproved { id, .. }))
-                if cf_proposal.id == *id =>
-            {
-                app.credit()
-                    .update_pending_facility_collateral(
-                        &sub,
-                        *id,
-                        Satoshis::try_from_btc(dec!(230))?,
-                        sim_time::now().date_naive(),
-                    )
-                    .await?;
-            }
-            Some(LanaEvent::Credit(CoreCreditEvent::FacilityActivated { id, .. }))
-                if *id == cf_proposal.id.into() =>
-            {
-                app.credit()
-                    .initiate_disbursal(&sub, *id, UsdCents::try_from_usd(dec!(1_000_000))?)
-                    .await?;
-
-                break;
-            }
-            _ => {}
+        if process_activation_message(&msg, &sub, app, &cf_proposal).await? {
+            break;
         }
     }
 
     Ok(())
+}
+
+#[instrument(name = "sim_bootstrap.interest_under_payment.process_activation_message", skip(message, sub, app, cf_proposal), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
+async fn process_activation_message(
+    message: &PersistentOutboxEvent<LanaEvent>,
+    sub: &Subject,
+    app: &LanaApp,
+    cf_proposal: &lana_app::credit::CreditFacilityProposal,
+) -> anyhow::Result<bool> {
+    match &message.payload {
+        Some(LanaEvent::Credit(event @ CoreCreditEvent::FacilityProposalApproved { id, .. }))
+            if cf_proposal.id == *id =>
+        {
+            message.inject_trace_parent();
+            Span::current().record("handled", true);
+            Span::current().record("event_type", event.as_ref());
+
+            app.credit()
+                .update_pending_facility_collateral(
+                    sub,
+                    *id,
+                    Satoshis::try_from_btc(dec!(230))?,
+                    sim_time::now().date_naive(),
+                )
+                .await?;
+        }
+        Some(LanaEvent::Credit(event @ CoreCreditEvent::FacilityActivated { id, .. }))
+            if *id == cf_proposal.id.into() =>
+        {
+            message.inject_trace_parent();
+            Span::current().record("handled", true);
+            Span::current().record("event_type", event.as_ref());
+
+            app.credit()
+                .initiate_disbursal(sub, *id, UsdCents::try_from_usd(dec!(1_000_000))?)
+                .await?;
+
+            return Ok(true);
+        }
+        _ => {}
+    }
+    Ok(false)
 }

@@ -78,7 +78,7 @@ where
         }
     }
 
-    #[instrument(name = "core_accounting.profit_and_loss.create", skip(self), err)]
+    #[instrument(name = "core_accounting.profit_and_loss.create_pl_statement", skip(self, name), fields(pl_statement_name = %name), err)]
     pub async fn create_pl_statement(
         &self,
         name: String,
@@ -102,7 +102,7 @@ where
     }
 
     #[instrument(
-        name = "core_accounting.profit_and_loss.get_integration_config",
+        name = "core_accounting.profit_and_loss.get_chart_of_accounts_integration_config",
         skip(self),
         err
     )]
@@ -125,7 +125,7 @@ where
     }
 
     #[instrument(
-        name = "core_accounting.profit_and_loss.set_integration_config",
+        name = "core_accounting.profit_and_loss.set_chart_of_accounts_integration_config",
         skip(self, chart),
         err
     )]

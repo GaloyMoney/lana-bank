@@ -97,7 +97,7 @@ where
         }
     }
 
-    #[instrument(name = "core_accounting.balance_sheet.create", skip(self), err)]
+    #[instrument(name = "core_accounting.balance_sheet.create", skip(self, name), fields(balance_sheet_name = %name), err)]
     pub async fn create_balance_sheet(&self, name: String) -> Result<(), BalanceSheetError> {
         let mut op = es_entity::DbOp::init(&self.pool).await?;
 

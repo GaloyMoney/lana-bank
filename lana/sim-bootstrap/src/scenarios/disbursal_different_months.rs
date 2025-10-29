@@ -1,8 +1,10 @@
 use futures::StreamExt;
 use lana_app::{app::LanaApp, primitives::*};
 use lana_events::{CoreCreditEvent, LanaEvent};
+use outbox::PersistentOutboxEvent;
 use rust_decimal_macros::dec;
 use tokio::sync::mpsc;
+use tracing::{Instrument, Span, instrument};
 
 use crate::helpers;
 
@@ -38,62 +40,35 @@ pub async fn disbursal_different_months_scenario(
 
     let mut stream = app.outbox().listen_persisted(None).await?;
     while let Some(msg) = stream.next().await {
-        match &msg.payload {
-            Some(LanaEvent::Credit(CoreCreditEvent::FacilityProposalApproved { id, .. }))
-                if cf_proposal.id == *id =>
-            {
-                app.credit()
-                    .update_pending_facility_collateral(
-                        &sub,
-                        cf_proposal.id,
-                        Satoshis::try_from_btc(dec!(230))?,
-                        sim_time::now().date_naive(),
-                    )
-                    .await?;
-            }
-            Some(LanaEvent::Credit(CoreCreditEvent::FacilityActivated { id, .. }))
-                if *id == cf_proposal.id.into() =>
-            {
-                app.credit()
-                    .initiate_disbursal(&sub, *id, UsdCents::try_from_usd(dec!(1_000_000))?)
-                    .await?;
-
-                break;
-            }
-            _ => {}
+        if process_activation_message(&msg, &sub, app, &cf_proposal).await? {
+            break;
         }
     }
 
     let sim_app = app.clone();
-    tokio::spawn(async move {
-        do_disbursal_in_different_months(sub, sim_app, cf_proposal.id.into())
-            .await
-            .expect("disbursal different months failed");
-    });
+    tokio::spawn(
+        async move {
+            do_disbursal_in_different_months(sub, sim_app, cf_proposal.id.into())
+                .await
+                .expect("disbursal different months failed");
+        }
+        .instrument(Span::current()),
+    );
 
     let (tx, rx) = mpsc::channel::<UsdCents>(32);
     let sim_app = app.clone();
-    tokio::spawn(async move {
-        do_timely_payments(sub, sim_app, cf_proposal.id.into(), rx)
-            .await
-            .expect("disbursal different months timely payments failed");
-    });
+    tokio::spawn(
+        async move {
+            do_timely_payments(sub, sim_app, cf_proposal.id.into(), rx)
+                .await
+                .expect("disbursal different months timely payments failed");
+        }
+        .instrument(Span::current()),
+    );
 
     while let Some(msg) = stream.next().await {
-        match &msg.payload {
-            Some(LanaEvent::Credit(CoreCreditEvent::ObligationDue {
-                credit_facility_id: id,
-                amount,
-                ..
-            })) if { *id == cf_proposal.id.into() && amount > &UsdCents::ZERO } => {
-                tx.send(*amount).await?;
-            }
-            Some(LanaEvent::Credit(CoreCreditEvent::FacilityCompleted { id, .. })) => {
-                if *id == cf_proposal.id.into() {
-                    break;
-                }
-            }
-            _ => {}
+        if process_obligation_message(&msg, &cf_proposal, &tx).await? {
+            break;
         }
     }
 
@@ -108,6 +83,87 @@ pub async fn disbursal_different_months_scenario(
     Ok(())
 }
 
+#[instrument(name = "sim_bootstrap.disbursal_different_months.process_activation_message", skip(message, sub, app, cf_proposal), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
+async fn process_activation_message(
+    message: &PersistentOutboxEvent<LanaEvent>,
+    sub: &Subject,
+    app: &LanaApp,
+    cf_proposal: &lana_app::credit::CreditFacilityProposal,
+) -> anyhow::Result<bool> {
+    match &message.payload {
+        Some(LanaEvent::Credit(event @ CoreCreditEvent::FacilityProposalApproved { id, .. }))
+            if cf_proposal.id == *id =>
+        {
+            message.inject_trace_parent();
+            Span::current().record("handled", true);
+            Span::current().record("event_type", event.as_ref());
+
+            app.credit()
+                .update_pending_facility_collateral(
+                    sub,
+                    cf_proposal.id,
+                    Satoshis::try_from_btc(dec!(230))?,
+                    sim_time::now().date_naive(),
+                )
+                .await?;
+        }
+        Some(LanaEvent::Credit(event @ CoreCreditEvent::FacilityActivated { id, .. }))
+            if *id == cf_proposal.id.into() =>
+        {
+            message.inject_trace_parent();
+            Span::current().record("handled", true);
+            Span::current().record("event_type", event.as_ref());
+
+            app.credit()
+                .initiate_disbursal(sub, *id, UsdCents::try_from_usd(dec!(1_000_000))?)
+                .await?;
+
+            return Ok(true);
+        }
+        _ => {}
+    }
+    Ok(false)
+}
+
+#[instrument(name = "sim_bootstrap.disbursal_different_months.process_obligation_message", skip(message, cf_proposal, tx), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
+async fn process_obligation_message(
+    message: &PersistentOutboxEvent<LanaEvent>,
+    cf_proposal: &lana_app::credit::CreditFacilityProposal,
+    tx: &mpsc::Sender<UsdCents>,
+) -> anyhow::Result<bool> {
+    match &message.payload {
+        Some(LanaEvent::Credit(
+            event @ CoreCreditEvent::ObligationDue {
+                credit_facility_id: id,
+                amount,
+                ..
+            },
+        )) if { *id == cf_proposal.id.into() && amount > &UsdCents::ZERO } => {
+            message.inject_trace_parent();
+            Span::current().record("handled", true);
+            Span::current().record("event_type", event.as_ref());
+
+            tx.send(*amount).await?;
+        }
+        Some(LanaEvent::Credit(event @ CoreCreditEvent::FacilityCompleted { id, .. })) => {
+            if *id == cf_proposal.id.into() {
+                message.inject_trace_parent();
+                Span::current().record("handled", true);
+                Span::current().record("event_type", event.as_ref());
+
+                return Ok(true);
+            }
+        }
+        _ => {}
+    }
+    Ok(false)
+}
+
+#[tracing::instrument(
+    name = "sim_bootstrap.do_disbursal_in_different_months",
+    skip(app),
+    err
+)]
 async fn do_disbursal_in_different_months(
     sub: Subject,
     app: LanaApp,
@@ -133,6 +189,11 @@ async fn do_disbursal_in_different_months(
     Ok(())
 }
 
+#[tracing::instrument(
+    name = "sim_bootstrap.disbursal_different_months.do_timely_payments",
+    skip(app, obligation_amount_rx),
+    err
+)]
 async fn do_timely_payments(
     sub: Subject,
     app: LanaApp,
