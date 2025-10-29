@@ -20,12 +20,12 @@ run_launcher:
       - DAGSTER_POSTGRES_USER
       - DAGSTER_POSTGRES_PASSWORD
       - DAGSTER_POSTGRES_DB
+      - DOCKER_HOST
     network: dagster_network
     image: dagster-code-location-lana-dw
     container_kwargs:
-      volumes: # Make docker client accessible to any launched containers as well
-        - /var/run/docker.sock:/var/run/docker.sock
-        - /tmp/io_manager_storage:/tmp/io_manager_storage
+      volumes_from:
+        - dagster_webserver
 
 run_storage:
   module: dagster_postgres.run_storage

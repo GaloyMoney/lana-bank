@@ -845,6 +845,13 @@
                 socket="$($(pwd)/dev/bin/podman-get-socket.sh 2>/dev/null || echo NO_SOCKET)"
                 [[ "$socket" != "NO_SOCKET" ]] && export DOCKER_HOST="$socket"
               fi
+
+              # Derive a bindable socket path from DOCKER_HOST for compose binds
+              if [[ -n "''${DOCKER_HOST:-}" && "$DOCKER_HOST" == unix://* ]]; then
+                export DOCKER_SOCKET_PATH="''${DOCKER_HOST#unix://}"
+              else
+                export DOCKER_SOCKET_PATH="/var/run/docker.sock"
+              fi
             '';
           });
 
