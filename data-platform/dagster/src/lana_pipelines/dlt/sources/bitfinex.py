@@ -10,7 +10,7 @@ from dlt.sources.helpers import requests
 BITFINEX_API_BASE = "https://api-pub.bitfinex.com"
 DEFAULT_SYMBOL = "tBTCUSD"
 DEFAULT_ORDER_BOOK_DEPTH = 100
-DEFAULT_TRADES_LIMIT = 1000
+DEFAULT_TRADES_LIMIT = 10000
 
 # https://docs.bitfinex.com/reference/rest-public-ticker
 FIELDS_TICKER = [
@@ -51,9 +51,14 @@ def ticker(symbol: str = DEFAULT_SYMBOL) -> Iterator[Dict[str, Any]]:
         "requested_at": _utc_now_iso(),
     }
 
+def today_midnight_utc_ms():
+    now = datetime.now(timezone.utc)
+    midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    return int(midnight.timestamp() * 1000)
+
 @dlt.resource(
     name="bitfinex_trades_dlt",
-    write_disposition="merge",
+    write_disposition="append",
     primary_key="ID",
 )
 def trades(
@@ -89,11 +94,6 @@ def trades(
         # If fewer than requested, we've reached the end
         if len(rows) < limit:
             break
-
-def today_midnight_utc_ms():
-    now = datetime.now(timezone.utc)
-    midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
-    return int(midnight.timestamp() * 1000)
 
 @dlt.resource(
     name="bitfinex_order_book_dlt",
