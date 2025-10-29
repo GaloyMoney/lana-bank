@@ -25,7 +25,8 @@
     "paths": {
       "@repo/ui/*": ["./src/*"],
       "@lana/web/*": ["../shared-web/src/*"]
-    }
+    },
+    "target": "ES2017"
   },
   "exclude": ["node_modules/"]
 }
