@@ -266,23 +266,7 @@
           "$ref": "#/$defs/CreditFacilityProposalStatus"
         },
         "type": {
-          "const": "customer_approved",
-          "type": "string"
-        }
-      },
-      "required": [
-        "type",
-        "status"
-      ],
-      "type": "object"
-    },
-    {
-      "properties": {
-        "status": {
-          "$ref": "#/$defs/CreditFacilityProposalStatus"
-        },
-        "type": {
-          "const": "customer_denied",
+          "const": "customer_approval_concluded",
           "type": "string"
         }
       },

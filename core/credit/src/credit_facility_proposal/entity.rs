@@ -30,10 +30,7 @@ pub enum CreditFacilityProposalEvent {
         amount: UsdCents,
         status: CreditFacilityProposalStatus,
     },
-    CustomerApproved {
-        status: CreditFacilityProposalStatus,
-    },
-    CustomerDenied {
+    CustomerApprovalConcluded {
         status: CreditFacilityProposalStatus,
     },
     ApprovalProcessStarted {
@@ -81,50 +78,27 @@ impl CreditFacilityProposal {
     pub(super) fn conclude_customer_approval(&mut self, approved: bool) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all(),
-            CreditFacilityProposalEvent::CustomerApproved { .. }
-                | CreditFacilityProposalEvent::CustomerDenied { .. }
+            CreditFacilityProposalEvent::CustomerApprovalConcluded { .. }
         );
 
-        let event = if approved {
-            CreditFacilityProposalEvent::CustomerApproved {
-                status: CreditFacilityProposalStatus::PendingApproval,
-            }
+        let status = if approved {
+            CreditFacilityProposalStatus::PendingApproval
         } else {
-            CreditFacilityProposalEvent::CustomerDenied {
-                status: CreditFacilityProposalStatus::CustomerDenied,
-            }
+            CreditFacilityProposalStatus::CustomerDenied
         };
-        self.events.push(event);
+        self.events
+            .push(CreditFacilityProposalEvent::CustomerApprovalConcluded { status });
 
-        Idempotent::Executed(())
-    }
-
-    pub(super) fn start_approval_process(
-        &mut self,
-    ) -> Result<Idempotent<()>, CreditFacilityProposalError> {
-        idempotency_guard!(
-            self.events.iter_all(),
-            CreditFacilityProposalEvent::ApprovalProcessStarted { .. }
-        );
-
-        if self
-            .events
-            .iter_all()
-            .rev()
-            .any(|event| matches!(event, CreditFacilityProposalEvent::CustomerDenied { .. }))
-        {
-            return Err(CreditFacilityProposalError::CustomerDenied);
+        if approved {
+            self.events
+                .push(CreditFacilityProposalEvent::ApprovalProcessStarted {
+                    approval_process_id: self.id.into(),
+                    status: CreditFacilityProposalStatus::PendingApproval,
+                });
+            self.approval_process_id = Some(self.id.into());
         }
 
-        self.events
-            .push(CreditFacilityProposalEvent::ApprovalProcessStarted {
-                approval_process_id: self.id.into(),
-                status: CreditFacilityProposalStatus::PendingApproval,
-            });
-
-        self.approval_process_id = Some(self.id.into());
-
-        Ok(Idempotent::Executed(()))
+        Idempotent::Executed(())
     }
 
     #[allow(clippy::type_complexity)]
@@ -196,8 +170,7 @@ impl CreditFacilityProposal {
             .map(|event| match event {
                 CreditFacilityProposalEvent::ApprovalProcessConcluded { status, .. } => *status,
                 CreditFacilityProposalEvent::ApprovalProcessStarted { status, .. } => *status,
-                CreditFacilityProposalEvent::CustomerDenied { status, .. } => *status,
-                CreditFacilityProposalEvent::CustomerApproved { status, .. } => *status,
+                CreditFacilityProposalEvent::CustomerApprovalConcluded { status, .. } => *status,
                 CreditFacilityProposalEvent::Initialized { status, .. } => *status,
             })
             .next()
@@ -235,8 +208,7 @@ impl TryFromEvents<CreditFacilityProposalEvent> for CreditFacilityProposal {
                     approval_process_id,
                     ..
                 } => builder = builder.approval_process_id(*approval_process_id),
-                CreditFacilityProposalEvent::CustomerApproved { .. } => {}
-                CreditFacilityProposalEvent::CustomerDenied { .. } => {}
+                CreditFacilityProposalEvent::CustomerApprovalConcluded { .. } => {}
                 CreditFacilityProposalEvent::ApprovalProcessConcluded { .. } => {}
             }
         }

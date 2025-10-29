@@ -131,9 +131,7 @@ where
 
         let result = match proposal.conclude_customer_approval(approved) {
             es_entity::Idempotent::Executed(_) => {
-                if approved
-                    && let es_entity::Idempotent::Executed(_) = proposal.start_approval_process()?
-                {
+                if approved {
                     self.governance
                         .start_process(
                             &mut db,
