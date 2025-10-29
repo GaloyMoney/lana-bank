@@ -11,7 +11,7 @@ use rbac_types::{AuditAction, AuditEntityAction, AuditObject};
 use crate::{
     access::Access,
     accounting::Accounting,
-    accounting_init::{ChartsInit, JournalInit, StatementsInit},
+    accounting_init::{AccountingPeriodsInit, ChartsInit, JournalInit, StatementsInit},
     applicant::Applicants,
     audit::{Audit, AuditCursor, AuditEntry},
     authorization::{Authorization, seed},
@@ -185,8 +185,12 @@ impl LanaApp {
             &customers,
         )
         .await?;
-        ChartsInit::charts_of_accounts(&accounting, &credit, &deposits, config.accounting_init)
-            .await?;
+
+        let chart =
+            ChartsInit::charts_of_accounts(&accounting, &credit, &deposits, config.accounting_init)
+                .await?;
+
+        AccountingPeriodsInit::open_initial_accounting_periods(&accounting, &chart).await?;
 
         jobs.start_poll().await?;
 
