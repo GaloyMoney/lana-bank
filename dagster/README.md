@@ -12,7 +12,7 @@ The webserver UI will be accessible at `localhost:3000`.
 
 ## Env vars
 
-Env vars are the prefered way to:
+Env vars are the preferred way to:
 - Make dagster change its behaviour depending on the env
 - Passing in secrets such as database credentials.
 
