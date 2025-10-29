@@ -1,8 +1,8 @@
 services:
   dagster-code-location-lana-dw:
     build:
-      context: ./dagster
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./Dockerfile
     image: dagster-code-location-lana-dw:latest
     container_name: dagster-code-location-lana-dw
     restart: always
@@ -22,8 +22,8 @@ services:
   # a queue and later dequeued and launched by dagster-daemon.
   dagster_webserver:
     build:
-      context: ./dagster
-      dockerfile: Dockerfile_dagster
+      context: .
+      dockerfile: ./Dockerfile_dagster
     entrypoint:
       - dagster-webserver
       - -h
@@ -58,8 +58,8 @@ services:
   # off of the queue and launching them, as well as creating runs from schedules or sensors.
   dagster_daemon:
     build:
-      context: ./dagster
-      dockerfile: Dockerfile_dagster
+      context: .
+      dockerfile: ./Dockerfile_dagster
     entrypoint:
       - dagster-daemon
       - run
