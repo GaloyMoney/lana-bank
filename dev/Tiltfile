@@ -1,6 +1,8 @@
 compose_files = ["../docker-compose.yml", "../docker-compose.docker.yml"]
 if os.getenv("DATA_PIPELINE", "false") == "true":
     compose_files.append("../docker-compose.data.yml")
+if os.getenv("DAGSTER", "false") == "true":
+    compose_files.append("../docker-compose.dagster.yml")
 
 docker_compose(compose_files, project_name = "lana-bank")
 
@@ -10,16 +12,44 @@ docker_groups = {
     "core": ["core-pg"],
 }
 
-if os.getenv("DAGSTER", "false") == "true":
-    docker_groups["dagster"] = ["dagster_webserver", "dagster_daemon", "dagster-code-location-lana-dw", "dagster_postgres"]
-    docker_compose("../docker-compose.dagster.yml", project_name = "lana-bank")
-
 if os.getenv("DATA_PIPELINE", "false") == "true":
     docker_groups["data-pipeline"] = ["airflow-scheduler", "airflow-webserver", "airflow-pg"]
 
 for service, deps in docker_groups.items():
     for dep in deps:
         dc_resource(dep, labels = [service])
+
+if os.getenv("DAGSTER", "false") == "true":
+    dagster_services = [
+        {
+            "service_name": "dagster_webserver",
+            "link": link("http://localhost:3000", "dagster-webserver")
+        },
+        {
+            "service_name": "dagster_daemon"
+        },
+        {
+            "service_name": "dagster_postgres"
+        },
+        {
+            "service_name": "dagster-code-location-lana-dw"
+        },
+    ]
+    for dagster_service in dagster_services:
+        if dagster_service.get("link", None):
+            dc_resource(
+                dagster_service["service_name"],
+                labels = ["dagster"],
+                links = [
+                    dagster_service.get("link", None)
+                ]
+            )
+        else:
+            dc_resource(
+                dagster_service["service_name"],
+                labels = ["dagster"]
+            )
+
 
 bfx_local_price = os.getenv("BFX_LOCAL_PRICE", "1")
 serve_env_core = {
@@ -91,14 +121,3 @@ local_resource(
         link("http://app.localhost:4455", "customer-portal"),
     ]
 )
-
-# Add Dagster webserver link when Dagster is enabled
-if os.getenv("DAGSTER", "false") == "true":
-    dc_resource(
-        "dagster_webserver",
-        labels = ["dagster"],
-        links = [
-            link("http://localhost:3000", "dagster-webserver"),
-        ]
-    )
-
