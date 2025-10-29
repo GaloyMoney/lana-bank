@@ -8,11 +8,7 @@ services:
     restart: always
     
     environment:
-      DAGSTER_POSTGRES_USER: 'postgres_user'
-      DAGSTER_POSTGRES_PASSWORD: 'postgres_password'
-      DAGSTER_POSTGRES_DB: 'postgres_db'
       DAGSTER_CURRENT_IMAGE: 'dagster-code-location-lana-dw'
-      DBT_BIGQUERY_AUTH_METHOD: ${DBT_BIGQUERY_AUTH_METHOD}
 
     networks:
       - dagster_network
