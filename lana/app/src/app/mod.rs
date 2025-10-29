@@ -2,7 +2,7 @@ mod config;
 mod error;
 
 use sqlx::PgPool;
-use tracing::instrument;
+use tracing::{Instrument, instrument};
 
 use authz::PermissionCheck;
 
@@ -65,8 +65,12 @@ pub struct LanaApp {
 }
 
 impl LanaApp {
+    #[instrument(name = "lana_app.run", skip_all, err)]
     pub async fn run(pool: PgPool, config: AppConfig) -> Result<Self, ApplicationError> {
-        sqlx::migrate!().run(&pool).await?;
+        sqlx::migrate!()
+            .run(&pool)
+            .instrument(tracing::info_span!("lana_app.migrations"))
+            .await?;
 
         let audit = Audit::new(&pool);
         let outbox = Outbox::init(&pool).await?;

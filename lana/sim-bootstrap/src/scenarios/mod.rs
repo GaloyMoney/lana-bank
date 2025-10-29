@@ -16,6 +16,7 @@ use tokio::task::JoinHandle;
 
 use super::helpers;
 
+#[instrument(name = "sim_bootstrap.scenarios.run", skip(app), err)]
 pub async fn run(
     sub: &Subject,
     app: &LanaApp,
@@ -97,7 +98,7 @@ pub async fn process_facility_lifecycle(
     Ok(())
 }
 
-#[instrument(name = "sim_bootstrap.process_facility_message", parent = None, skip(message, sub, app, cf_proposal), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
+#[instrument(name = "sim_bootstrap.process_facility_message", skip(message, sub, app, cf_proposal), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
 async fn process_facility_message(
     message: &PersistentOutboxEvent<LanaEvent>,
     sub: &Subject,
