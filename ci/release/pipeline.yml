@@ -604,7 +604,7 @@ jobs:
           run:
             path: /kaniko/executor
             args:
-              - --dockerfile=dagster/Dockerfile
+              - --dockerfile=Dockerfile
               - --context=repo/dagster
               - --use-new-run
               - --single-snapshot
