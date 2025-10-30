@@ -1,0 +1,10 @@
+mutation($executionParams: ExecutionParams!) {
+  launchPipelineExecution(executionParams: $executionParams) {
+    __typename
+    ... on LaunchPipelineRunSuccess { run { runId } }
+    ... on PythonError { message }
+    ... on RunConfigValidationInvalid { errors { message } }
+  }
+}
+
+
