@@ -1,7 +1,7 @@
 mutation($executionParams: ExecutionParams!) {
-  launchPipelineExecution(executionParams: $executionParams) {
+  launchRun(executionParams: $executionParams) {
     __typename
-    ... on LaunchPipelineRunSuccess { run { runId } }
+    ... on LaunchRunSuccess { run { runId } }
     ... on PythonError { message }
     ... on RunConfigValidationInvalid { errors { message } }
   }

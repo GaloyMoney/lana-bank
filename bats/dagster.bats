@@ -2,13 +2,13 @@
 
 load helpers
 
-@test "dagster graphql endpoint responds to POST" {
+@test "dagster: graphql endpoint responds to POST" {
   exec_dagster_graphql_status "introspection"
   [ "$status" -eq 0 ]
   [ "$output" = "200" ]
 }
 
-@test "list assets and verify iris_dataset_size exists" {
+@test "dagster: list assets and verify iris_dataset_size exists" {
   exec_dagster_graphql "assets"
   echo "$output" | jq . >/dev/null || skip "Dagster GraphQL did not return JSON"
 
@@ -16,8 +16,8 @@ load helpers
   [ "$found" -ge 1 ] || skip "iris_dataset_size asset not found"
 }
 
-@test "materialize iris_dataset_size and wait for success" {
-  # Launch materialization using the auto-generated asset job
+@test "dagster: materialize iris_dataset_size and wait for success" {
+  # Launch materialization targeting only iris_dataset_size asset
   variables=$(jq -n '{
     executionParams: {
       selector: {
@@ -25,14 +25,15 @@ load helpers
         repositoryName: "__repository__",
         jobName: "__ASSET_JOB"
       },
-      runConfigData: {}
+      runConfigData: {},
+      stepKeys: ["iris_dataset_size"]
     }
   }')
   
   exec_dagster_graphql "launch_run" "$variables"
   echo "$output" | jq . >/dev/null || skip "Dagster GraphQL did not return JSON"
   
-  run_id=$(echo "$output" | jq -r '.data.launchPipelineExecution.run.runId // empty')
+  run_id=$(echo "$output" | jq -r '.data.launchRun.run.runId // empty')
   [ -n "$run_id" ] || { echo "$output"; return 1; }
   
   # Poll run status until SUCCESS
@@ -57,5 +58,20 @@ load helpers
   done
   
   [ "$status" = "SUCCESS" ] || { echo "last status: $status"; return 1; }
+  
+  # Verify iris_dataset_size was materialized by checking that it has materializations
+  # and that the run ID matches our execution
+  asset_vars=$(jq -n '{
+    assetKey: { path: ["iris_dataset_size"] }
+  }')
+  exec_dagster_graphql "asset_materializations" "$asset_vars"
+  
+  # Check that the asset exists and has materializations
+  asset_type=$(echo "$output" | jq -r '.data.assetOrError.__typename // empty')
+  [ "$asset_type" = "Asset" ] || { echo "Asset not found: $output"; return 1; }
+  
+  # Check that the most recent materialization was from our run
+  recent_run_id=$(echo "$output" | jq -r '.data.assetOrError.assetMaterializations[0].runId // empty')
+  [ "$recent_run_id" = "$run_id" ] || { echo "Expected run ID $run_id, got $recent_run_id"; return 1; }
 }
 
