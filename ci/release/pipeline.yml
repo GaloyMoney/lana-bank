@@ -586,7 +586,7 @@ jobs:
   - name: build-dagster-edge-image
     serial: true
     plan:
-      - get: dagster-src
+      - get: repo
         trigger: true
       - task: build
         config:
@@ -597,8 +597,7 @@ jobs:
               repository: gcr.io/kaniko-project/executor
               tag: debug
           inputs:
-          - name: dagster-src
-            path: repo
+          - name: repo
           outputs:
           - name: image
           run:
