@@ -45,6 +45,7 @@ Set them in your `.env` file
 #### Optional
 
 - `DATA_PIPELINE=true`: Enable data pipeline features (Meltano, Airflow)
+- `DAGSTER=true`: Enables the local dagster deployment.
 - `TF_VAR_sa_creds`: Service account credentials into GCP (BigQuery & Documents access)
 - `SUMSUB_KEY`: SumSub API key for identity verification
 - `SUMSUB_SECRET`: SumSub API secret for identity verification
@@ -95,6 +96,10 @@ You might need to add these entries in your `/etc/hosts` file for authentication
 127.0.0.1 app.localhost
 ::1 app.localhost
 ```
+
+#### Steps to access Dagster web UI
+
+- Simply visit `http://localhost:3000`.
 
 ### Running Tests
 

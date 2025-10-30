@@ -121,6 +121,16 @@ test-cypress-in-ci:
 	cd apps/admin-panel && pnpm exec cypress install
 	cd apps/admin-panel && CI=true pnpm cypress:run-headless
 
+# Dagster
+dagster-up:
+	docker compose -f docker-compose.dagster.yml up -d --build
+
+dagster-stop:
+	docker compose -f docker-compose.dagster.yml stop
+
+dagster-down:
+	docker compose -f docker-compose.dagster.yml down
+
 # Meltano
 meltano-bitfinex-run:
 	meltano run tap-bitfinexapi target-bigquery
