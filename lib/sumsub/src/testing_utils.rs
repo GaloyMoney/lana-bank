@@ -57,9 +57,11 @@ pub fn load_config_from_env() -> Option<crate::SumsubConfig> {
     let sumsub_secret = std::env::var("SUMSUB_SECRET").ok()?;
 
     if sumsub_key.trim().is_empty() || sumsub_secret.trim().is_empty() {
-        tracing::warn!("SUMSUB_KEY and/or SUMSUB_SECRET are set environment variables but empty");
+        tracing::warn!(
+            "SUMSUB_KEY and/or SUMSUB_SECRET are set environment variables but have an empty value"
+        );
         return None;
-    }    
+    }
 
     Some(crate::SumsubConfig {
         sumsub_key,
