@@ -121,16 +121,17 @@ where
             .evaluate_permission(
                 sub,
                 CoreCreditObject::all_credit_facilities(),
-                CoreCreditAction::CREDIT_FACILITY_CREATE,
+                CoreCreditAction::CREDIT_FACILITY_CUSTOMER_APPROVE,
                 true,
             )
             .await?;
 
         let mut proposal = self.repo.find_by_id(id).await?;
-        let mut db = self.repo.begin_op().await?;
 
-        let result = match proposal.conclude_customer_approval(approved) {
+        match proposal.conclude_customer_approval(approved) {
             es_entity::Idempotent::Executed(_) => {
+                let mut db = self.repo.begin_op().await?;
+
                 if approved {
                     self.governance
                         .start_process(
@@ -142,13 +143,12 @@ where
                         .await?;
                 }
                 self.repo.update_in_op(&mut db, &mut proposal).await?;
+
+                db.commit().await?;
                 Ok(proposal)
             }
             es_entity::Idempotent::Ignored => Ok(proposal),
-        };
-
-        db.commit().await?;
-        result
+        }
     }
 
     #[instrument(
