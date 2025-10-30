@@ -28,6 +28,8 @@
     },
     "CreditFacilityProposalStatus": {
       "enum": [
+        "PendingCustomerApproval",
+        "CustomerDenied",
         "PendingApproval",
         "Approved",
         "Denied"
@@ -213,10 +215,6 @@
         "amount": {
           "$ref": "#/$defs/UsdCents"
         },
-        "approval_process_id": {
-          "format": "uuid",
-          "type": "string"
-        },
         "custodian_id": {
           "format": "uuid",
           "type": [
@@ -255,10 +253,46 @@
         "id",
         "customer_id",
         "customer_type",
-        "approval_process_id",
         "disbursal_credit_account_id",
         "terms",
         "amount",
+        "status"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/CreditFacilityProposalStatus"
+        },
+        "type": {
+          "const": "customer_approval_concluded",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "status"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "approval_process_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/CreditFacilityProposalStatus"
+        },
+        "type": {
+          "const": "approval_process_started",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "approval_process_id",
         "status"
       ],
       "type": "object"

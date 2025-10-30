@@ -1693,6 +1693,29 @@ impl Mutation {
         )
     }
 
+    pub async fn credit_facility_proposal_customer_approval_conclude(
+        &self,
+        ctx: &Context<'_>,
+        input: CreditFacilityProposalCustomerApprovalConcludeInput,
+    ) -> async_graphql::Result<CreditFacilityProposalCustomerApprovalConcludePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let CreditFacilityProposalCustomerApprovalConcludeInput {
+            credit_facility_proposal_id,
+            approved,
+        } = input;
+
+        exec_mutation!(
+            CreditFacilityProposalCustomerApprovalConcludePayload,
+            CreditFacilityProposal,
+            ctx,
+            app.credit().proposals().conclude_customer_approval(
+                sub,
+                credit_facility_proposal_id,
+                approved
+            )
+        )
+    }
+
     pub async fn credit_facility_collateral_update(
         &self,
         ctx: &Context<'_>,

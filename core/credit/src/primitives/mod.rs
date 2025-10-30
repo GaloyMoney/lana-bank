@@ -265,6 +265,8 @@ impl CoreCreditAction {
         CoreCreditAction::CreditFacility(CreditFacilityAction::List);
     pub const CREDIT_FACILITY_CONCLUDE_APPROVAL_PROCESS: Self =
         CoreCreditAction::CreditFacility(CreditFacilityAction::ConcludeApprovalProcess);
+    pub const CREDIT_FACILITY_CUSTOMER_APPROVE: Self =
+        CoreCreditAction::CreditFacility(CreditFacilityAction::CustomerApprove);
     pub const CREDIT_FACILITY_ACTIVATE: Self =
         CoreCreditAction::CreditFacility(CreditFacilityAction::Activate);
     pub const CREDIT_FACILITY_RECORD_INTEREST: Self =
@@ -375,6 +377,7 @@ pub enum CreditFacilityAction {
     RecordInterest,
     Complete,
     UpdateCollateralizationState,
+    CustomerApprove,
 }
 
 impl ActionPermission for CreditFacilityAction {
@@ -387,6 +390,7 @@ impl ActionPermission for CreditFacilityAction {
             | Self::UpdateCollateral
             | Self::RecordInterest
             | Self::Complete
+            | Self::CustomerApprove
             | Self::UpdateCollateralizationState => PERMISSION_SET_CREDIT_WRITER,
         }
     }
@@ -530,6 +534,8 @@ pub enum CreditFacilityStatus {
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub enum CreditFacilityProposalStatus {
     #[default]
+    PendingCustomerApproval,
+    CustomerDenied,
     PendingApproval,
     Approved,
     Denied,

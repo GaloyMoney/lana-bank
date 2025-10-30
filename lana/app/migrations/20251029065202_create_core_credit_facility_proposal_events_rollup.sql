@@ -38,7 +38,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'approval_process_concluded') THEN
+  IF event_type NOT IN ('initialized', 'customer_approval_concluded', 'approval_process_started', 'approval_process_concluded') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -76,13 +76,17 @@ BEGIN
   CASE event_type
     WHEN 'initialized' THEN
       new_row.amount := (NEW.event ->> 'amount')::BIGINT;
-      new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
       new_row.custodian_id := (NEW.event ->> 'custodian_id')::UUID;
       new_row.customer_id := (NEW.event ->> 'customer_id')::UUID;
       new_row.customer_type := (NEW.event ->> 'customer_type');
       new_row.disbursal_credit_account_id := (NEW.event ->> 'disbursal_credit_account_id')::UUID;
       new_row.status := (NEW.event ->> 'status');
       new_row.terms := (NEW.event -> 'terms');
+    WHEN 'customer_approval_concluded' THEN
+      new_row.status := (NEW.event ->> 'status');
+    WHEN 'approval_process_started' THEN
+      new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
+      new_row.status := (NEW.event ->> 'status');
     WHEN 'approval_process_concluded' THEN
       new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
       new_row.is_approval_process_concluded := true;

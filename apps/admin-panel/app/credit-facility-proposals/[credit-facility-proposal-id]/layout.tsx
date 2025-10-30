@@ -26,6 +26,9 @@ gql`
       publicId
       email
     }
+    custodian {
+      name
+    }
     creditFacilityTerms {
       annualRate
       accrualInterval

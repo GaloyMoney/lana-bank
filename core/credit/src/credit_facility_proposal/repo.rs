@@ -13,7 +13,7 @@ use super::{entity::*, error::CreditFacilityProposalError};
     err = "CreditFacilityProposalError",
     columns(
         customer_id(ty = "CustomerId", list_for, update(persist = false)),
-        approval_process_id(ty = "ApprovalProcessId", list_by, update(persist = "false")),
+        approval_process_id(ty = "Option<ApprovalProcessId>", list_by, create(persist = "false")),
     ),
     tbl_prefix = "core",
     post_persist_hook = "publish"

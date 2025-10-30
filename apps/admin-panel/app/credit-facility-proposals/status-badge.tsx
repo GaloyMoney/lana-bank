@@ -18,9 +18,13 @@ export const CreditFacilityProposalStatusBadge: React.FC<
     switch (status) {
       case CreditFacilityProposalStatus.PendingApproval:
         return "secondary"
+      case CreditFacilityProposalStatus.PendingCustomerApproval:
+        return "secondary"
       case CreditFacilityProposalStatus.Approved:
         return "success"
       case CreditFacilityProposalStatus.Denied:
+        return "destructive"
+      case CreditFacilityProposalStatus.CustomerDenied:
         return "destructive"
       default: {
         const exhaustiveCheck: never = status

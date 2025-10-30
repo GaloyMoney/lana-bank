@@ -9,6 +9,8 @@ import Link from "next/link"
 
 import { CreditFacilityProposalStatusBadge } from "../status-badge"
 
+import { CustomerApprovalDialog } from "./customer-approval-dialog"
+
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import Balance from "@/components/balance/balance"
 import {
@@ -36,6 +38,9 @@ const CreditFacilityProposalDetailsCard: React.FC<
 
   const [openApprovalDialog, setOpenApprovalDialog] = React.useState(false)
   const [openDenialDialog, setOpenDenialDialog] = React.useState(false)
+  const [openCustomerApprovalDialog, setOpenCustomerApprovalDialog] =
+    React.useState(false)
+  const [openCustomerDenialDialog, setOpenCustomerDenialDialog] = React.useState(false)
 
   const details: DetailItemProps[] = [
     {
@@ -57,6 +62,10 @@ const CreditFacilityProposalDetailsCard: React.FC<
       value: <Balance amount={proposalDetails.facilityAmount} currency="usd" />,
     },
     {
+      label: t("details.custodian"),
+      value: proposalDetails.custodian?.name ?? t("details.manual"),
+    },
+    {
       label: t("details.createdAt"),
       value: formatDate(proposalDetails.createdAt),
     },
@@ -64,7 +73,28 @@ const CreditFacilityProposalDetailsCard: React.FC<
 
   const footerContent = (
     <>
-      {proposalDetails.approvalProcess.status === ApprovalProcessStatus.InProgress &&
+      {proposalDetails.status ===
+        CreditFacilityProposalStatus.PendingCustomerApproval && (
+        <>
+          <Button
+            variant="outline"
+            onClick={() => setOpenCustomerApprovalDialog(true)}
+            data-testid="customer-approval-approve-button"
+          >
+            <Check className="h-4 w-4 mr-2" />
+            {t("buttons.customerApprove")}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setOpenCustomerDenialDialog(true)}
+            data-testid="customer-approval-deny-button"
+          >
+            <X className="h-4 w-4 mr-2" />
+            {t("buttons.customerDeny")}
+          </Button>
+        </>
+      )}
+      {proposalDetails?.approvalProcess?.status === ApprovalProcessStatus.InProgress &&
         proposalDetails.approvalProcess.userCanSubmitDecision && (
           <>
             <Button
@@ -105,7 +135,7 @@ const CreditFacilityProposalDetailsCard: React.FC<
         details={details}
         columns={3}
         footerContent={footerContent}
-        errorMessage={proposalDetails.approvalProcess.deniedReason ?? undefined}
+        errorMessage={proposalDetails?.approvalProcess?.deniedReason ?? undefined}
       />
 
       {proposalDetails.approvalProcess && (
@@ -120,6 +150,24 @@ const CreditFacilityProposalDetailsCard: React.FC<
         approvalProcess={proposalDetails.approvalProcess as ApprovalProcessFieldsFragment}
         openDenialDialog={openDenialDialog}
         setOpenDenialDialog={() => setOpenDenialDialog(false)}
+      />
+      <CustomerApprovalDialog
+        open={openCustomerApprovalDialog}
+        onOpenChange={setOpenCustomerApprovalDialog}
+        creditFacilityProposalId={proposalDetails.creditFacilityProposalId}
+        approved={true}
+        facilityAmount={proposalDetails.facilityAmount}
+        customerEmail={proposalDetails.customer.email}
+        createdAt={proposalDetails.createdAt}
+      />
+      <CustomerApprovalDialog
+        open={openCustomerDenialDialog}
+        onOpenChange={setOpenCustomerDenialDialog}
+        creditFacilityProposalId={proposalDetails.creditFacilityProposalId}
+        approved={false}
+        facilityAmount={proposalDetails.facilityAmount}
+        customerEmail={proposalDetails.customer.email}
+        createdAt={proposalDetails.createdAt}
       />
     </>
   )

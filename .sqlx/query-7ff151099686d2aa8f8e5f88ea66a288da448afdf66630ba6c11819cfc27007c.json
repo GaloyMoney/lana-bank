@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO core_credit_facility_proposals (id, customer_id, created_at) VALUES ($1, $2, COALESCE($3, NOW()))",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "7ff151099686d2aa8f8e5f88ea66a288da448afdf66630ba6c11819cfc27007c"
+}

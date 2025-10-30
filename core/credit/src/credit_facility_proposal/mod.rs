@@ -101,15 +101,54 @@ where
         db: &mut es_entity::DbOp<'_>,
         new_proposal: NewCreditFacilityProposal,
     ) -> Result<CreditFacilityProposal, CreditFacilityProposalError> {
-        self.governance
-            .start_process(
-                db,
-                new_proposal.id,
-                new_proposal.id.to_string(),
-                crate::APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS,
+        self.repo.create_in_op(db, new_proposal).await
+    }
+
+    #[instrument(
+        name = "credit.credit_facility_proposals.conclude_customer_approval",
+        skip(self),
+        err
+    )]
+    pub async fn conclude_customer_approval(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<CreditFacilityProposalId> + std::fmt::Debug,
+        approved: bool,
+    ) -> Result<CreditFacilityProposal, CreditFacilityProposalError> {
+        let id = id.into();
+
+        self.authz
+            .evaluate_permission(
+                sub,
+                CoreCreditObject::all_credit_facilities(),
+                CoreCreditAction::CREDIT_FACILITY_CUSTOMER_APPROVE,
+                true,
             )
             .await?;
-        self.repo.create_in_op(db, new_proposal).await
+
+        let mut proposal = self.repo.find_by_id(id).await?;
+
+        match proposal.conclude_customer_approval(approved) {
+            es_entity::Idempotent::Executed(_) => {
+                let mut db = self.repo.begin_op().await?;
+
+                if approved {
+                    self.governance
+                        .start_process(
+                            &mut db,
+                            id,
+                            id.to_string(),
+                            crate::APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS,
+                        )
+                        .await?;
+                }
+                self.repo.update_in_op(&mut db, &mut proposal).await?;
+
+                db.commit().await?;
+                Ok(proposal)
+            }
+            es_entity::Idempotent::Ignored => Ok(proposal),
+        }
     }
 
     #[instrument(
@@ -124,7 +163,7 @@ where
     ) -> Result<ProposalApprovalOutcome, CreditFacilityProposalError> {
         let id = id.into();
         let mut proposal = self.repo.find_by_id(id).await?;
-        match proposal.conclude_approval_process(approved) {
+        match proposal.conclude_approval_process(approved)? {
             es_entity::Idempotent::Executed(res) => {
                 self.repo.update_in_op(db, &mut proposal).await?;
                 Ok(match res {

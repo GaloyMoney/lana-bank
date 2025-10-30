@@ -515,8 +515,10 @@
     },
     "status": {
       "pending_approval": "Pending Approval",
+      "pending_customer_approval": "Pending Customer Approval",
       "approved": "Approved",
-      "denied": "Denied"
+      "denied": "Denied",
+      "customer_denied": "Customer Denied"
     },
     "collateralizationState": {
       "fullycollateralized": "Fully Collateralized",
@@ -630,6 +632,8 @@
           "updateCollateral": "Update Collateral",
           "approve": "Approve",
           "deny": "Deny",
+          "customerApprove": "Customer Accepts",
+          "customerDeny": "Customer Rejects",
           "viewFacility": "View Credit Facility",
           "viewPendingFacility": "View Pending Facility"
         },
@@ -642,6 +646,32 @@
       "TermsCard": {
         "title": "Terms",
         "description": "Details about the terms for this proposal"
+      },
+      "CustomerApprovalDialog": {
+        "title": {
+          "approve": "Customer Accepts Proposal",
+          "deny": "Customer Rejects Proposal"
+        },
+        "description": {
+          "approve": "You are confirming that the customer has accepted this credit facility proposal. This will move the proposal to the next stage.",
+          "deny": "You are confirming that the customer has rejected this credit facility proposal. This action cannot be undone."
+        },
+        "fields": {
+          "customer": "Customer",
+          "facilityAmount": "Facility Amount",
+          "createdAt": "Created At"
+        },
+        "buttons": {
+          "approve": "Customer Accepts",
+          "deny": "Customer Rejects"
+        },
+        "success": {
+          "approved": "Proposal accepted by customer",
+          "denied": "Proposal rejected by customer"
+        },
+        "errors": {
+          "unknown": "An error occurred while processing the customer approval"
+        }
       }
     }
   },

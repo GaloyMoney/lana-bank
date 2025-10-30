@@ -642,7 +642,7 @@ type CreditFacilityPaymentAllocation {
 type CreditFacilityProposal {
 	id: ID!
 	creditFacilityProposalId: UUID!
-	approvalProcessId: UUID!
+	approvalProcessId: UUID
 	status: CreditFacilityProposalStatus!
 	createdAt: Timestamp!
 	facilityAmount: UsdCents!
@@ -650,7 +650,7 @@ type CreditFacilityProposal {
 	custodian: Custodian
 	customer: Customer!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
-	approvalProcess: ApprovalProcess!
+	approvalProcess: ApprovalProcess
 }
 
 type CreditFacilityProposalConnection {
@@ -680,6 +680,15 @@ type CreditFacilityProposalCreatePayload {
 	creditFacilityProposal: CreditFacilityProposal!
 }
 
+input CreditFacilityProposalCustomerApprovalConcludeInput {
+	creditFacilityProposalId: UUID!
+	approved: Boolean!
+}
+
+type CreditFacilityProposalCustomerApprovalConcludePayload {
+	creditFacilityProposal: CreditFacilityProposal!
+}
+
 """
 An edge in a connection.
 """
@@ -695,6 +704,8 @@ type CreditFacilityProposalEdge {
 }
 
 enum CreditFacilityProposalStatus {
+	PENDING_CUSTOMER_APPROVAL
+	CUSTOMER_DENIED
 	PENDING_APPROVAL
 	APPROVED
 	DENIED
@@ -1526,6 +1537,7 @@ type Mutation {
 	termsTemplateUpdate(input: TermsTemplateUpdateInput!): TermsTemplateUpdatePayload!
 	creditModuleConfigure(input: CreditModuleConfigureInput!): CreditModuleConfigurePayload!
 	creditFacilityProposalCreate(input: CreditFacilityProposalCreateInput!): CreditFacilityProposalCreatePayload!
+	creditFacilityProposalCustomerApprovalConclude(input: CreditFacilityProposalCustomerApprovalConcludeInput!): CreditFacilityProposalCustomerApprovalConcludePayload!
 	creditFacilityCollateralUpdate(input: CreditFacilityCollateralUpdateInput!): CreditFacilityCollateralUpdatePayload!
 	pendingCreditFacilityCollateralUpdate(input: PendingCreditFacilityCollateralUpdateInput!): PendingCreditFacilityCollateralUpdatePayload!
 	creditFacilityPartialPaymentRecord(input: CreditFacilityPartialPaymentRecordInput!): CreditFacilityPartialPaymentRecordPayload!

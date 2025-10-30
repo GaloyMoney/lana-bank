@@ -98,6 +98,19 @@ wait_for_collateral() {
 
   cache_value 'credit_facility_proposal_id' "$credit_facility_proposal_id"
 
+  variables=$(
+     jq -n \
+      --arg creditFacilityProposalId "$credit_facility_proposal_id" \
+    '{
+      input: {
+        creditFacilityProposalId: $creditFacilityProposalId,
+        approved: true
+      }
+    }'
+  )
+
+  exec_admin_graphql 'credit-facility-proposal-customer-approval-conclude' "$variables"
+
   retry 10 1 wait_for_approval "$credit_facility_proposal_id"
 
   variables=$(

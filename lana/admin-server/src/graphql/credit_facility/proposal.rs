@@ -22,7 +22,7 @@ pub use lana_app::credit::{
 pub struct CreditFacilityProposal {
     id: ID,
     credit_facility_proposal_id: UUID,
-    approval_process_id: UUID,
+    approval_process_id: Option<UUID>,
     status: CreditFacilityProposalStatus,
     created_at: Timestamp,
     facility_amount: UsdCents,
@@ -64,13 +64,19 @@ impl CreditFacilityProposal {
         Ok(app.credit().repayment_plan(sub, self.entity.id).await?)
     }
 
-    async fn approval_process(&self, ctx: &Context<'_>) -> async_graphql::Result<ApprovalProcess> {
+    async fn approval_process(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<ApprovalProcess>> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
-        let process = loader
-            .load_one(self.entity.approval_process_id)
-            .await?
-            .expect("process not found");
-        Ok(process)
+        if let Some(approval_process_id) = self.approval_process_id {
+            let process = loader
+                .load_one(ApprovalProcessId::from(approval_process_id))
+                .await?
+                .expect("process not found");
+            return Ok(Some(process));
+        }
+        Ok(None)
     }
 }
 
@@ -81,7 +87,7 @@ impl From<DomainCreditFacilityProposal> for CreditFacilityProposal {
         Self {
             id: proposal.id.to_global_id(),
             credit_facility_proposal_id: UUID::from(proposal.id),
-            approval_process_id: UUID::from(proposal.approval_process_id),
+            approval_process_id: proposal.approval_process_id.map(|id| id.into()),
             status: proposal.status(),
             created_at: created_at.into(),
             facility_amount: proposal.amount,
@@ -101,3 +107,11 @@ pub struct CreditFacilityProposalCreateInput {
     pub custodian_id: Option<UUID>,
 }
 crate::mutation_payload! { CreditFacilityProposalCreatePayload, credit_facility_proposal: CreditFacilityProposal }
+
+#[derive(InputObject)]
+pub struct CreditFacilityProposalCustomerApprovalConcludeInput {
+    pub credit_facility_proposal_id: UUID,
+    pub approved: bool,
+}
+
+crate::mutation_payload! { CreditFacilityProposalCustomerApprovalConcludePayload, credit_facility_proposal: CreditFacilityProposal }
