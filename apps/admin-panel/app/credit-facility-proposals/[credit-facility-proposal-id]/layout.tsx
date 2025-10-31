@@ -1,7 +1,7 @@
 "use client"
 
 import { gql } from "@apollo/client"
-import { use } from "react"
+import { use, useEffect } from "react"
 import { useTranslations } from "next-intl"
 
 import CreditFacilityProposalDetailsCard from "./details"
@@ -10,7 +10,10 @@ import { CreditFacilityTermsCard } from "./terms-card"
 
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 
-import { useGetCreditFacilityProposalLayoutDetailsQuery } from "@/lib/graphql/generated"
+import {
+  useGetCreditFacilityProposalLayoutDetailsQuery,
+  CreditFacilityProposalStatus,
+} from "@/lib/graphql/generated"
 
 gql`
   fragment CreditFacilityProposalLayoutFragment on CreditFacilityProposal {
@@ -89,9 +92,26 @@ export default function CreditFacilityProposalLayout({
   const { "credit-facility-proposal-id": proposalId } = use(params)
   const commonT = useTranslations("Common")
 
-  const { data, loading, error } = useGetCreditFacilityProposalLayoutDetailsQuery({
-    variables: { creditFacilityProposalId: proposalId },
-  })
+  const { data, loading, error, startPolling, stopPolling } =
+    useGetCreditFacilityProposalLayoutDetailsQuery({
+      variables: { creditFacilityProposalId: proposalId },
+      notifyOnNetworkStatusChange: false,
+    })
+
+  useEffect(() => {
+    const proposal = data?.creditFacilityProposal
+    const isPendingApproval =
+      proposal?.status === CreditFacilityProposalStatus.PendingApproval
+    const isSystemApproval =
+      proposal?.approvalProcess?.rules?.__typename === "SystemApproval"
+    if (isPendingApproval && isSystemApproval) {
+      startPolling(1000)
+    } else {
+      stopPolling()
+    }
+
+    return () => stopPolling()
+  }, [data?.creditFacilityProposal, startPolling, stopPolling])
 
   if (loading && !data) return <DetailsPageSkeleton detailItems={4} tabs={2} />
   if (error) return <div className="text-destructive">{error.message}</div>
