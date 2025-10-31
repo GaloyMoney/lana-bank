@@ -29,7 +29,7 @@
     "clsx": "^2.1.1",
     "input-otp": "^1.2.4",
     "jose": "^6.1.0",
-    "lucide-react": "^0.548.0",
+    "lucide-react": "^0.552.0",
     "next": "16.0.1",
     "next-auth": "5.0.0-beta.30",
     "next-runtime-env": "^3.3.0",
