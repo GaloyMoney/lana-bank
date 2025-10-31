@@ -3,12 +3,20 @@
 load helpers
 
 @test "dagster: graphql endpoint responds to POST" {
+  if [[ "${DAGSTER}" != "TRUE" ]]; then
+    skip "Skipping dagster tests"
+  fi
+
   exec_dagster_graphql_status "introspection"
   [ "$status" -eq 0 ]
   [ "$output" = "200" ]
 }
 
 @test "dagster: list assets and verify iris_dataset_size exists" {
+  if [[ "${DAGSTER}" != "TRUE" ]]; then
+    skip "Skipping dagster tests"
+  fi
+
   exec_dagster_graphql "assets"
   echo "$output" | jq . >/dev/null || skip "Dagster GraphQL did not return JSON"
 
@@ -17,6 +25,10 @@ load helpers
 }
 
 @test "dagster: materialize iris_dataset_size and wait for success" {
+  if [[ "${DAGSTER}" != "TRUE" ]]; then
+    skip "Skipping dagster tests"
+  fi
+
   # Launch materialization targeting only iris_dataset_size asset
   variables=$(jq -n '{
     executionParams: {
