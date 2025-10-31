@@ -3,7 +3,7 @@
 load helpers
 
 @test "dagster: graphql endpoint responds to POST" {
-  if [[ "${DAGSTER}" != "TRUE" ]]; then
+  if [[ "${DAGSTER}" != "true" ]]; then
     skip "Skipping dagster tests"
   fi
 
@@ -13,7 +13,7 @@ load helpers
 }
 
 @test "dagster: list assets and verify iris_dataset_size exists" {
-  if [[ "${DAGSTER}" != "TRUE" ]]; then
+  if [[ "${DAGSTER}" != "true" ]]; then
     skip "Skipping dagster tests"
   fi
 
@@ -25,7 +25,7 @@ load helpers
 }
 
 @test "dagster: materialize iris_dataset_size and wait for success" {
-  if [[ "${DAGSTER}" != "TRUE" ]]; then
+  if [[ "${DAGSTER}" != "true" ]]; then
     skip "Skipping dagster tests"
   fi
 
