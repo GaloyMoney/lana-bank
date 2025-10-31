@@ -367,7 +367,7 @@
                 export PG_CON="${devEnvVars.PG_CON}"
                 export DATABASE_URL="${devEnvVars.DATABASE_URL}"
                 export ENCRYPTION_KEY="${devEnvVars.ENCRYPTION_KEY}"
-                export DAGSTER=true
+                export DAGSTER="''${DAGSTER:-true}"
 
                 # Function to cleanup on exit
                 cleanup() {
@@ -389,8 +389,10 @@
                 wait4x postgresql "${devEnvVars.PG_CON}" --timeout 120s
                 echo "Waiting for Keycloak..."
                 ${pkgs.wait4x}/bin/wait4x http http://localhost:8081 --timeout 180s
-                echo "Waiting for Dagster GraphQL endpoint to be ready..."
-                ${pkgs.wait4x}/bin/wait4x http http://localhost:3000/graphql --timeout 180s
+                if [[ "$DAGSTER" == "true" ]]; then
+                  echo "Waiting for Dagster GraphQL endpoint to be ready..."
+                  ${pkgs.wait4x}/bin/wait4x http http://localhost:3000/graphql --timeout 180s
+                fi
 
                 # Set TERM for CI environments
                 export TERM="''${TERM:-dumb}"

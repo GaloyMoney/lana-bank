@@ -18,6 +18,8 @@ jobs:
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
           skipPush: true
       - name: Run BATS tests
+        env:
+          DAGSTER: "false"
         run: nix run .#bats
           
       - name: Rename bats log
