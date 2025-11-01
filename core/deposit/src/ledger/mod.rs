@@ -123,6 +123,7 @@ pub struct DepositLedger {
 }
 
 impl DepositLedger {
+    #[instrument(name = "deposit_ledger.init", skip_all, err)]
     pub async fn init(
         cala: &CalaLedger,
         journal_id: JournalId,

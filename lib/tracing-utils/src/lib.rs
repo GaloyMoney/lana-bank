@@ -49,7 +49,7 @@ pub fn init_tracer(config: TracingConfig) -> anyhow::Result<()> {
     let tracer = provider.tracer("lana-tracer");
     let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
 
-    let fmt_layer = fmt::layer().json();
+    let fmt_layer = fmt::layer().compact();
     let filter_layer = EnvFilter::try_from_default_env()
         .or_else(|_| {
             EnvFilter::try_new(

@@ -9,6 +9,7 @@ use anyhow::Context;
 use chacha20poly1305::{ChaCha20Poly1305, KeyInit, aead::OsRng};
 use clap::{Parser, Subcommand};
 use std::{fs, path::PathBuf};
+use tracing_utils::{error, info};
 
 pub use self::build_info::BuildInfo;
 use self::config::{Config, EnvSecrets};
@@ -174,7 +175,9 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
         .clone()
         .expect("super user");
 
-    let app = lana_app::app::LanaApp::run(pool.clone(), config.app).await?;
+    let app = lana_app::app::LanaApp::init(pool.clone(), config.app)
+        .await
+        .context("Failed to initialize Lana app")?;
 
     #[cfg(feature = "sim-bootstrap")]
     {
@@ -209,15 +212,15 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
 
     let result = tokio::select! {
         reason = receive.recv() => {
-            eprintln!("Shutting down due to error...");
+            error!("Shutting down due to error...");
             reason.expect("Didn't receive msg")
         }
         _ = sigterm.recv() => {
-            eprintln!("Received SIGTERM, shutting down gracefully...");
+            info!("Received SIGTERM, shutting down gracefully...");
             Ok(())
         }
         _ = sigint.recv() => {
-            eprintln!("Received SIGINT (Ctrl-C), shutting down gracefully...");
+            info!("Received SIGINT (Ctrl-C), shutting down gracefully...");
             Ok(())
         }
     };
