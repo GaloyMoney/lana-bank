@@ -65,8 +65,8 @@ pub struct LanaApp {
 }
 
 impl LanaApp {
-    #[instrument(name = "lana_app.run", skip_all, err)]
-    pub async fn run(pool: PgPool, config: AppConfig) -> Result<Self, ApplicationError> {
+    #[instrument(name = "lana_app.init", skip_all, err)]
+    pub async fn init(pool: PgPool, config: AppConfig) -> Result<Self, ApplicationError> {
         sqlx::migrate!()
             .run(&pool)
             .instrument(tracing::info_span!("lana_app.migrations"))
@@ -304,8 +304,9 @@ impl LanaApp {
         crate::authorization::get_visible_navigation_items(&self.authz, sub).await
     }
 
-    #[instrument(name = "app.shutdown", skip(self), err)]
     pub async fn shutdown(&self) -> Result<(), ApplicationError> {
+        tracing::info!("app.shutdown");
+
         self.jobs.shutdown().await?;
         Ok(())
     }

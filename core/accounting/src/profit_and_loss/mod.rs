@@ -126,8 +126,7 @@ where
 
     #[instrument(
         name = "core_accounting.profit_and_loss.set_chart_of_accounts_integration_config",
-        skip(self, chart),
-        err
+        skip(self, chart)
     )]
     pub async fn set_chart_of_accounts_integration_config(
         &self,

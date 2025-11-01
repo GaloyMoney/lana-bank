@@ -183,6 +183,7 @@ pub struct CreditLedger {
 }
 
 impl CreditLedger {
+    #[instrument(name = "credit_ledger.init", skip_all, err)]
     pub async fn init(cala: &CalaLedger, journal_id: JournalId) -> Result<Self, CreditLedgerError> {
         templates::AddCollateral::init(cala).await?;
         templates::AddStructuringFee::init(cala).await?;

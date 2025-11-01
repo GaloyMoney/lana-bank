@@ -11,7 +11,7 @@ use axum::{Extension, Router, routing::get};
 use axum_extra::headers::HeaderMap;
 use serde::{Deserialize, Serialize};
 use tower_http::cors::CorsLayer;
-use tracing::instrument;
+use tracing::{info, instrument};
 
 use std::sync::Arc;
 
@@ -21,6 +21,7 @@ use lana_app::app::LanaApp;
 pub use config::*;
 use primitives::*;
 
+#[instrument(name = "customer_server.run", skip_all)]
 pub async fn run(config: CustomerServerConfig, app: LanaApp) -> anyhow::Result<()> {
     let port = config.port;
     let aud = config.aud.as_ref();
@@ -48,7 +49,7 @@ pub async fn run(config: CustomerServerConfig, app: LanaApp) -> anyhow::Result<(
         .layer(Extension(app))
         .layer(cors);
 
-    println!("Starting customer server on port {port}");
+    info!("Starting customer server on port {port}");
     let listener =
         tokio::net::TcpListener::bind(&std::net::SocketAddr::from(([0, 0, 0, 0], port))).await?;
     axum::serve(listener, app.into_make_service()).await?;
