@@ -4,6 +4,7 @@ set -euo pipefail
 BASE=docker-compose.yml
 DATA=docker-compose.data.yml
 OVERRIDE=docker-compose.docker.yml   # contains the extra_hosts entry
+DAGSTER_FILE=docker-compose.dagster.yml
 
 # ── Pick container engine ───────────────────────────────────────────────────────
 if [[ -n "${ENGINE_DEFAULT:-}" ]]; then
@@ -20,6 +21,7 @@ fi
 # ── Compose file set ────────────────────────────────────────────────────────────
 FILES=(-f "$BASE")
 FILES+=(-f "$DATA")
+FILES+=(-f "$DAGSTER_FILE")
 [[ "$ENGINE" == docker ]] && FILES+=(-f "$OVERRIDE")   # extra_hosts only on Docker
 
 # ── Down ────────────────────────────────────────────────────────────────────────

@@ -4,6 +4,7 @@ set -euo pipefail
 BASE=docker-compose.yml
 DATA=docker-compose.data.yml
 OVERRIDE=docker-compose.docker.yml   # contains the extra_hosts entry
+DAGSTER_FILE=docker-compose.dagster.yml
 
 # ── Pick container engine ───────────────────────────────────────────────────────
 if [[ -n "${ENGINE_DEFAULT:-}" ]]; then            # honour explicit choice
@@ -22,6 +23,9 @@ fi
 FILES=(-f "$BASE")
 if [[ "${DATA_PIPELINE:-false}" == "true" ]]; then
     FILES+=(-f "$DATA")
+fi
+if [[ "${DAGSTER:-false}" == "true" ]]; then
+    FILES+=(-f "$DAGSTER_FILE")
 fi
 [[ "$ENGINE" == docker ]] && FILES+=(-f "$OVERRIDE")   # extra_hosts only on Docker
 
@@ -52,3 +56,7 @@ wait4x postgresql ${PG_CON} --timeout 120s
 
 # wait for keycloak to be ready
 wait4x http http://localhost:8081/health/ready --timeout 120s
+
+if [[ "${DAGSTER:-false}" == "true" ]]; then
+  wait4x http http://localhost:3000/graphql --timeout 120s || true
+fi

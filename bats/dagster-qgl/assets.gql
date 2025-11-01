@@ -1,0 +1,12 @@
+query {
+  assetsOrError {
+    __typename
+    ... on AssetConnection {
+      nodes {
+        key { path }
+      }
+    }
+  }
+}
+
+

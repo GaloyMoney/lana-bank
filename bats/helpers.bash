@@ -109,6 +109,14 @@ gql_admin_file() {
   echo "${REPO_ROOT}/bats/admin-gql/$1.gql"
 }
 
+gql_dagster_query() {
+  cat "$(gql_dagster_file $1)" | tr '\n' ' ' | sed 's/"/\\"/g'
+}
+
+gql_dagster_file() {
+  echo "${REPO_ROOT}/bats/dagster-qgl/$1.gql"
+}
+
 graphql_output() {
   echo $output | jq -r "$@"
 }
@@ -211,6 +219,28 @@ exec_admin_graphql_upload() {
     -F "map={\"0\":[\"variables.$file_var_name\"]}" \
     -F "0=@$file_path" \
     "${GQL_ADMIN_ENDPOINT}"
+}
+
+exec_dagster_graphql() {
+  local query_name=$1
+  local variables=${2:-"{}"}
+  local run_cmd="${BATS_TEST_DIRNAME:+run}"
+
+  ${run_cmd} curl -s -X POST \
+    -H "Content-Type: application/json" \
+    -d "{\"query\": \"$(gql_dagster_query $query_name)\", \"variables\": $variables}" \
+    "${DAGSTER_URL:-http://localhost:3000/graphql}"
+}
+
+exec_dagster_graphql_status() {
+  local query_name=$1
+  local variables=${2:-"{}"}
+  local run_cmd="${BATS_TEST_DIRNAME:+run}"
+
+  ${run_cmd} curl -s -o /dev/null -w "%{http_code}" -X POST \
+    -H "Content-Type: application/json" \
+    -d "{\"query\": \"$(gql_dagster_query $query_name)\", \"variables\": $variables}" \
+    "${DAGSTER_URL:-http://localhost:3000/graphql}"
 }
 
 # Run the given command in the background. Useful for starting a

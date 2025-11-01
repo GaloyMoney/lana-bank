@@ -1,0 +1,11 @@
+query($assetKey: AssetKeyInput!) {
+  assetOrError(assetKey: $assetKey) {
+    __typename
+    ... on Asset {
+      assetMaterializations(limit: 1) {
+        timestamp
+        runId
+      }
+    }
+  }
+}

@@ -1,0 +1,10 @@
+mutation($executionParams: ExecutionParams!) {
+  launchRun(executionParams: $executionParams) {
+    __typename
+    ... on LaunchRunSuccess { run { runId } }
+    ... on PythonError { message }
+    ... on RunConfigValidationInvalid { errors { message } }
+  }
+}
+
+
