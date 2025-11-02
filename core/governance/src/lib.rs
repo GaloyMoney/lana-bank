@@ -79,6 +79,7 @@ where
         }
     }
 
+    #[tracing::instrument(name = "governance.init_policy", skip(self), fields(process_type = ?process_type, policy_id = tracing::field::Empty))]
     pub async fn init_policy(
         &self,
         process_type: ApprovalProcessType,

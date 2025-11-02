@@ -46,6 +46,7 @@ where
     Audit: AuditSvc,
     Role: fmt::Display + fmt::Debug + Clone + Send + Sync,
 {
+    #[tracing::instrument(name = "authz.init", skip_all, err)]
     pub async fn init(pool: &sqlx::PgPool, audit: &Audit) -> Result<Self, AuthorizationError> {
         let model = DefaultModel::from_str(MODEL).await?;
         let adapter = SqlxAdapter::new_with_pool(pool.clone()).await?;
@@ -60,18 +61,21 @@ where
         Ok(auth)
     }
 
+    #[tracing::instrument(name = "authz.add_role_hierarchy", skip(self), fields(parent_role = tracing::field::Empty, child_role = tracing::field::Empty), err)]
     pub async fn add_role_hierarchy<R1: Into<Role>, R2: Into<Role>>(
         &self,
         parent_role: R1,
         child_role: R2,
     ) -> Result<(), AuthorizationError> {
+        let parent = parent_role.into();
+        let child = child_role.into();
+        tracing::Span::current().record("parent_role", &parent.to_string());
+        tracing::Span::current().record("child_role", &child.to_string());
+
         let mut enforcer = self.enforcer.write().await;
 
         match enforcer
-            .add_grouping_policy(vec![
-                parent_role.into().to_string(),
-                child_role.into().to_string(),
-            ])
+            .add_grouping_policy(vec![parent.to_string(), child.to_string()])
             .await
         {
             Ok(_) => Ok(()),
@@ -82,18 +86,21 @@ where
         }
     }
 
+    #[tracing::instrument(name = "authz.remove_role_hierarchy", skip(self), fields(parent_role = tracing::field::Empty, child_role = tracing::field::Empty), err)]
     pub async fn remove_role_hierarchy<R1: Into<Role>, R2: Into<Role>>(
         &self,
         parent_role: R1,
         child_role: R2,
     ) -> Result<(), AuthorizationError> {
+        let parent = parent_role.into();
+        let child = child_role.into();
+        tracing::Span::current().record("parent_role", &parent.to_string());
+        tracing::Span::current().record("child_role", &child.to_string());
+
         let mut enforcer = self.enforcer.write().await;
 
         match enforcer
-            .remove_grouping_policy(vec![
-                parent_role.into().to_string(),
-                child_role.into().to_string(),
-            ])
+            .remove_grouping_policy(vec![parent.to_string(), child.to_string()])
             .await
         {
             Ok(_) => Ok(()),
@@ -104,6 +111,7 @@ where
         }
     }
 
+    #[tracing::instrument(name = "authz.add_permission_to_role", skip(self), fields(role = tracing::field::Empty, object = %object, action = %action), err)]
     pub async fn add_permission_to_role<R>(
         &self,
         role: &R,
@@ -113,10 +121,13 @@ where
     where
         for<'a> &'a R: Into<Role>,
     {
+        let role = role.into();
+        tracing::Span::current().record("role", &role.to_string());
+
         let mut enforcer = self.enforcer.write().await;
         match enforcer
             .add_policy(vec![
-                role.into().to_string(),
+                role.to_string(),
                 object.to_string(),
                 action.to_string(),
             ])
@@ -130,6 +141,7 @@ where
         }
     }
 
+    #[tracing::instrument(name = "authz.remove_permission_from_role", skip(self, role), fields(role = tracing::field::Empty, object = tracing::field::Empty, action = tracing::field::Empty), err)]
     pub async fn remove_permission_from_role<R>(
         &self,
         role: &R,
@@ -139,13 +151,18 @@ where
     where
         for<'a> &'a R: Into<Role>,
     {
+        let role = role.into();
         let object = object.into();
         let action = action.into();
+
+        tracing::Span::current().record("role", &role.to_string());
+        tracing::Span::current().record("object", &object.to_string());
+        tracing::Span::current().record("action", &action.to_string());
 
         let mut enforcer = self.enforcer.write().await;
         enforcer
             .remove_policy(vec![
-                role.into().to_string(),
+                role.to_string(),
                 object.to_string(),
                 action.to_string(),
             ])
@@ -154,6 +171,7 @@ where
         Ok(())
     }
 
+    #[tracing::instrument(name = "authz.assign_role_to_subject", skip(self, sub, role), fields(subject = tracing::field::Empty, role = tracing::field::Empty), err)]
     pub async fn assign_role_to_subject<R>(
         &self,
         sub: impl Into<Audit::Subject>,
@@ -163,10 +181,14 @@ where
         R: Into<Role>,
     {
         let sub = sub.into();
+        let role = role.into();
+        tracing::Span::current().record("subject", &sub.to_string());
+        tracing::Span::current().record("role", &role.to_string());
+
         let mut enforcer = self.enforcer.write().await;
 
         match enforcer
-            .add_grouping_policy(vec![sub.to_string(), role.into().to_string()])
+            .add_grouping_policy(vec![sub.to_string(), role.to_string()])
             .await
         {
             Ok(_) => Ok(()),
@@ -177,6 +199,7 @@ where
         }
     }
 
+    #[tracing::instrument(name = "authz.revoke_role_from_subject", skip(self, sub, role), fields(subject = tracing::field::Empty, role = tracing::field::Empty), err)]
     pub async fn revoke_role_from_subject<R>(
         &self,
         sub: impl Into<Audit::Subject>,
@@ -186,10 +209,14 @@ where
         R: Into<Role>,
     {
         let sub = sub.into();
+        let role = role.into();
+        tracing::Span::current().record("subject", &sub.to_string());
+        tracing::Span::current().record("role", &role.to_string());
+
         let mut enforcer = self.enforcer.write().await;
 
         match enforcer
-            .remove_grouping_policy(vec![sub.to_string(), role.into().to_string()])
+            .remove_grouping_policy(vec![sub.to_string(), role.to_string()])
             .await
         {
             Ok(_) => Ok(()),
@@ -197,6 +224,7 @@ where
         }
     }
 
+    #[tracing::instrument(name = "authz.roles_for_subject", skip(self, sub), fields(subject = tracing::field::Empty, roles_count = tracing::field::Empty), err)]
     pub async fn roles_for_subject(
         &self,
         sub: impl Into<Audit::Subject>,
@@ -205,6 +233,8 @@ where
         Role: std::str::FromStr,
     {
         let sub = sub.into();
+        tracing::Span::current().record("subject", &sub.to_string());
+
         let sub_uuid = sub.to_string();
         let enforcer = self.enforcer.read().await;
 
@@ -218,9 +248,11 @@ where
             })
             .collect::<Result<Vec<_>, _>>()?;
 
+        tracing::Span::current().record("roles_count", roles.len());
         Ok(roles)
     }
 
+    #[tracing::instrument(name = "authz.check_all_permissions", skip(self), fields(subject = %sub, object = tracing::field::Empty, actions_count = actions.len()), err)]
     pub async fn check_all_permissions(
         &self,
         sub: &Audit::Subject,
@@ -228,6 +260,8 @@ where
         actions: &[impl Into<Audit::Action> + std::fmt::Debug + Copy],
     ) -> Result<bool, AuthorizationError> {
         let object = object.into();
+        tracing::Span::current().record("object", &object.to_string());
+
         for action in actions {
             let action = Into::<Audit::Action>::into(*action);
             match self.enforce_permission(sub, object, action).await {
@@ -239,6 +273,7 @@ where
         Ok(true)
     }
 
+    #[tracing::instrument(name = "authz.check_permission", skip(self), fields(subject = %sub, object = tracing::field::Empty, action = tracing::field::Empty, authorized = tracing::field::Empty), err)]
     async fn check_permission(
         &self,
         sub: &Audit::Subject,
@@ -248,12 +283,21 @@ where
         let object = object.into();
         let action = action.into();
 
+        tracing::Span::current().record("object", &object.to_string());
+        tracing::Span::current().record("action", &action.to_string());
+
         let mut enforcer = self.enforcer.write().await;
         enforcer.load_policy().await?;
 
         match enforcer.enforce((sub.to_string(), object.to_string(), action.to_string())) {
-            Ok(true) => Ok(()),
-            Ok(false) => Err(AuthorizationError::NotAuthorized),
+            Ok(true) => {
+                tracing::Span::current().record("authorized", true);
+                Ok(())
+            }
+            Ok(false) => {
+                tracing::Span::current().record("authorized", false);
+                Err(AuthorizationError::NotAuthorized)
+            }
             Err(e) => Err(AuthorizationError::Casbin(e)),
         }
     }

@@ -35,6 +35,7 @@ impl ProfitAndLossStatementLedger {
         }
     }
 
+    #[instrument(name = "pl_ledger.create_unique_account_set", skip(self, op, parents), fields(reference = %reference, normal_balance_type = ?normal_balance_type, parents_count = parents.len()), err)]
     async fn create_unique_account_set(
         &self,
         op: &mut LedgerOperation<'_>,
@@ -67,6 +68,7 @@ impl ProfitAndLossStatementLedger {
         Ok(id)
     }
 
+    #[instrument(name = "pl_ledger.create_account_set", skip(self, op, parents), fields(reference = %reference, normal_balance_type = ?normal_balance_type, parents_count = parents.len()), err)]
     async fn create_account_set(
         &self,
         op: &mut LedgerOperation<'_>,
@@ -98,6 +100,7 @@ impl ProfitAndLossStatementLedger {
         Ok(id)
     }
 
+    #[instrument(name = "pl_ledger.get_member_account_set_ids_and_names", skip_all, err)]
     async fn get_member_account_set_ids_and_names(
         &self,
         id: impl Into<AccountSetId> + Copy,
@@ -126,6 +129,7 @@ impl ProfitAndLossStatementLedger {
         Ok(accounts)
     }
 
+    #[instrument(name = "pl_ledger.get_account_set_with_balances", skip(self, balances_by_id), fields(account_set_id = %account_set_id), err)]
     async fn get_account_set_with_balances(
         &self,
         account_set_id: AccountSetId,
@@ -147,6 +151,7 @@ impl ProfitAndLossStatementLedger {
         Ok((account_set, (usd_balance, btc_balance)))
     }
 
+    #[instrument(name = "pl_ledger.get_balances_by_id", skip(self, all_account_set_ids), fields(count = all_account_set_ids.len(), from = %from, until = ?until), err)]
     async fn get_balances_by_id(
         &self,
         all_account_set_ids: Vec<AccountSetId>,
@@ -172,6 +177,7 @@ impl ProfitAndLossStatementLedger {
         Ok(res)
     }
 
+    #[instrument(name = "pl_ledger.add_member", skip(self, op, node_account_set_id), fields(node_id = tracing::field::Empty, member_id = %member), err)]
     pub async fn add_member(
         &self,
         op: es_entity::DbOp<'_>,
@@ -179,6 +185,7 @@ impl ProfitAndLossStatementLedger {
         member: AccountSetId,
     ) -> Result<(), ProfitAndLossStatementLedgerError> {
         let node_account_set_id = node_account_set_id.into();
+        tracing::Span::current().record("node_id", &node_account_set_id.to_string());
 
         let mut op = self
             .cala
@@ -197,6 +204,7 @@ impl ProfitAndLossStatementLedger {
         Ok(())
     }
 
+    #[instrument(name = "pl_ledger.attach_chart_of_accounts_account_sets", skip(self, charts_integration_meta), fields(reference = %reference), err)]
     pub async fn attach_chart_of_accounts_account_sets(
         &self,
         reference: String,
@@ -253,6 +261,11 @@ impl ProfitAndLossStatementLedger {
         Ok(())
     }
 
+    #[instrument(
+        name = "profit_and_loss.attach_charts_account_set",
+        skip(self, op, account_sets, new_meta, old_parent_id_getter),
+        err
+    )]
     async fn attach_charts_account_set<F>(
         &self,
         op: &mut LedgerOperation<'_>,
@@ -302,6 +315,7 @@ impl ProfitAndLossStatementLedger {
         Ok(())
     }
 
+    #[instrument(name = "pl_ledger.create", skip(self, op), fields(reference = %reference), err)]
     pub async fn create(
         &self,
         op: es_entity::DbOp<'_>,
@@ -351,6 +365,7 @@ impl ProfitAndLossStatementLedger {
         })
     }
 
+    #[instrument(name = "pl_ledger.get_pl_statement", skip(self), fields(reference = %reference, from = %from, until = ?until), err)]
     pub async fn get_pl_statement(
         &self,
         reference: String,
@@ -371,6 +386,7 @@ impl ProfitAndLossStatementLedger {
         Ok(ProfitAndLossStatement::from((account, balances, ids)))
     }
 
+    #[instrument(name = "pl_ledger.get_chart_of_accounts_integration_config", skip(self), fields(reference = %reference), err)]
     pub async fn get_chart_of_accounts_integration_config(
         &self,
         reference: String,

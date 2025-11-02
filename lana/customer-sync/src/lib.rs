@@ -61,6 +61,7 @@ where
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
+    #[tracing::instrument(name = "customer_sync.init", skip_all, err)]
     pub async fn init(
         jobs: &::job::Jobs,
         outbox: &Outbox<E>,

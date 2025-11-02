@@ -168,6 +168,7 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
 {
+    #[instrument(name = "credit.init", skip_all, fields(journal_id = %journal_id), err)]
     pub async fn init(
         pool: &sqlx::PgPool,
         config: CreditConfig,

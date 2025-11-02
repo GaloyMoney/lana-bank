@@ -1,4 +1,5 @@
 use async_graphql::dataloader::{DataLoader, Loader};
+use tracing::instrument;
 
 use std::collections::HashMap;
 
@@ -47,6 +48,7 @@ impl Loader<UserId> for LanaLoader {
     type Value = User;
     type Error = Arc<UserError>;
 
+    #[instrument(name = "loader.users", skip(self), fields(count = keys.len()), err)]
     async fn load(&self, keys: &[UserId]) -> Result<HashMap<UserId, User>, Self::Error> {
         self.app
             .access()
@@ -60,6 +62,7 @@ impl Loader<PermissionSetId> for LanaLoader {
     type Value = PermissionSet;
     type Error = Arc<CoreAccessError>;
 
+    #[instrument(name = "loader.permission_sets", skip(self), fields(count = keys.len()), err)]
     async fn load(
         &self,
         keys: &[PermissionSetId],
@@ -76,6 +79,7 @@ impl Loader<RoleId> for LanaLoader {
     type Value = Role;
     type Error = Arc<CoreAccessError>;
 
+    #[instrument(name = "loader.roles", skip(self), fields(count = keys.len()), err)]
     async fn load(&self, keys: &[RoleId]) -> Result<HashMap<RoleId, Role>, Self::Error> {
         self.app
             .access()
@@ -89,6 +93,7 @@ impl Loader<CustodianId> for LanaLoader {
     type Value = Custodian;
     type Error = Arc<CoreCustodyError>;
 
+    #[instrument(name = "loader.custodians", skip(self), fields(count = keys.len()), err)]
     async fn load(
         &self,
         keys: &[CustodianId],
@@ -105,6 +110,7 @@ impl Loader<CommitteeId> for LanaLoader {
     type Value = Committee;
     type Error = Arc<GovernanceError>;
 
+    #[instrument(name = "loader.committees", skip(self), fields(count = keys.len()), err)]
     async fn load(
         &self,
         keys: &[CommitteeId],
@@ -121,6 +127,7 @@ impl Loader<PolicyId> for LanaLoader {
     type Value = Policy;
     type Error = Arc<GovernanceError>;
 
+    #[instrument(name = "loader.policies", skip(self), fields(count = keys.len()), err)]
     async fn load(&self, keys: &[PolicyId]) -> Result<HashMap<PolicyId, Policy>, Self::Error> {
         self.app
             .governance()
@@ -134,6 +141,7 @@ impl Loader<ApprovalProcessId> for LanaLoader {
     type Value = ApprovalProcess;
     type Error = Arc<GovernanceError>;
 
+    #[instrument(name = "loader.approval_processes", skip(self), fields(count = keys.len()), err)]
     async fn load(
         &self,
         keys: &[ApprovalProcessId],
@@ -150,6 +158,7 @@ impl Loader<CustomerDocumentId> for LanaLoader {
     type Value = CustomerDocument;
     type Error = Arc<lana_app::customer::error::CustomerError>;
 
+    #[instrument(name = "loader.customer_documents", skip(self), fields(count = keys.len()), err)]
     async fn load(
         &self,
         keys: &[CustomerDocumentId],
@@ -166,6 +175,7 @@ impl Loader<CustomerId> for LanaLoader {
     type Value = Customer;
     type Error = Arc<lana_app::customer::error::CustomerError>;
 
+    #[instrument(name = "loader.customers", skip(self), fields(count = keys.len()), err)]
     async fn load(
         &self,
         keys: &[CustomerId],
@@ -178,6 +188,7 @@ impl Loader<ChartRef> for LanaLoader {
     type Value = Arc<Chart>;
     type Error = Arc<ChartOfAccountsError>;
 
+    #[instrument(name = "loader.chart_refs", skip(self), fields(count = keys.len()), err)]
     async fn load(&self, keys: &[ChartRef]) -> Result<HashMap<ChartRef, Arc<Chart>>, Self::Error> {
         let mut res = HashMap::new();
         for key in keys {
@@ -200,6 +211,7 @@ impl Loader<ChartId> for LanaLoader {
     type Value = ChartOfAccounts;
     type Error = Arc<ChartOfAccountsError>;
 
+    #[instrument(name = "loader.charts", skip(self), fields(count = keys.len()), err)]
     async fn load(
         &self,
         keys: &[ChartId],
@@ -217,6 +229,7 @@ impl Loader<WithdrawalId> for LanaLoader {
     type Value = Withdrawal;
     type Error = Arc<CoreDepositError>;
 
+    #[instrument(name = "loader.withdrawals", skip(self), fields(count = keys.len()), err)]
     async fn load(
         &self,
         keys: &[WithdrawalId],
@@ -233,6 +246,7 @@ impl Loader<DepositId> for LanaLoader {
     type Value = Deposit;
     type Error = Arc<CoreDepositError>;
 
+    #[instrument(name = "loader.deposits", skip(self), fields(count = keys.len()), err)]
     async fn load(&self, keys: &[DepositId]) -> Result<HashMap<DepositId, Deposit>, Self::Error> {
         self.app
             .deposits()
@@ -246,6 +260,7 @@ impl Loader<DepositAccountId> for LanaLoader {
     type Value = DepositAccount;
     type Error = Arc<CoreDepositError>;
 
+    #[instrument(name = "loader.deposit_accounts", skip(self), fields(count = keys.len()), err)]
     async fn load(
         &self,
         keys: &[DepositAccountId],
@@ -262,6 +277,7 @@ impl Loader<LedgerTransactionId> for LanaLoader {
     type Value = LedgerTransaction;
     type Error = Arc<LedgerTransactionError>;
 
+    #[instrument(name = "loader.ledger_transactions", skip(self), fields(count = keys.len()), err)]
     async fn load(
         &self,
         keys: &[LedgerTransactionId],
@@ -279,6 +295,7 @@ impl Loader<TransactionTemplateId> for LanaLoader {
     type Value = TransactionTemplate;
     type Error = Arc<TransactionTemplateError>;
 
+    #[instrument(name = "loader.transaction_templates", skip(self), fields(count = keys.len()), err)]
     async fn load(
         &self,
         keys: &[TransactionTemplateId],
@@ -296,6 +313,7 @@ impl Loader<TermsTemplateId> for LanaLoader {
     type Value = TermsTemplate;
     type Error = Arc<lana_app::credit::terms_template_error::TermsTemplateError>;
 
+    #[instrument(name = "loader.terms_templates", skip(self), fields(count = keys.len()), err)]
     async fn load(
         &self,
         keys: &[TermsTemplateId],
@@ -313,6 +331,7 @@ impl Loader<PendingCreditFacilityId> for LanaLoader {
     type Value = PendingCreditFacility;
     type Error = Arc<lana_app::credit::error::CoreCreditError>;
 
+    #[instrument(name = "loader.pending_credit_facilities", skip(self), fields(count = keys.len()), err)]
     async fn load(
         &self,
         keys: &[PendingCreditFacilityId],
@@ -330,6 +349,7 @@ impl Loader<CreditFacilityId> for LanaLoader {
     type Value = CreditFacility;
     type Error = Arc<lana_app::credit::error::CoreCreditError>;
 
+    #[instrument(name = "loader.credit_facilities", skip(self), fields(count = keys.len()), err)]
     async fn load(
         &self,
         keys: &[CreditFacilityId],
@@ -347,6 +367,7 @@ impl Loader<CreditFacilityProposalId> for LanaLoader {
     type Value = CreditFacilityProposal;
     type Error = Arc<lana_app::credit::error::CoreCreditError>;
 
+    #[instrument(name = "loader.credit_facility_proposals", skip(self), fields(count = keys.len()), err)]
     async fn load(
         &self,
         keys: &[CreditFacilityProposalId],
@@ -364,6 +385,7 @@ impl Loader<CollateralId> for LanaLoader {
     type Value = Collateral;
     type Error = Arc<lana_app::credit::error::CoreCreditError>;
 
+    #[instrument(name = "loader.collaterals", skip(self), fields(count = keys.len()), err)]
     async fn load(
         &self,
         keys: &[CollateralId],
@@ -381,6 +403,7 @@ impl Loader<WalletId> for LanaLoader {
     type Value = Wallet;
     type Error = Arc<lana_app::custody::error::CoreCustodyError>;
 
+    #[instrument(name = "loader.wallets", skip(self), fields(count = keys.len()), err)]
     async fn load(&self, keys: &[WalletId]) -> Result<HashMap<WalletId, Wallet>, Self::Error> {
         self.app
             .custody()
@@ -394,6 +417,7 @@ impl Loader<DisbursalId> for LanaLoader {
     type Value = CreditFacilityDisbursal;
     type Error = Arc<lana_app::credit::error::CoreCreditError>;
 
+    #[instrument(name = "loader.disbursals", skip(self), fields(count = keys.len()), err)]
     async fn load(
         &self,
         keys: &[DisbursalId],
@@ -411,6 +435,7 @@ impl Loader<LedgerAccountId> for LanaLoader {
     type Value = LedgerAccount;
     type Error = Arc<lana_app::accounting::error::CoreAccountingError>;
 
+    #[instrument(name = "loader.ledger_accounts", skip(self), fields(count = keys.len()), err)]
     async fn load(
         &self,
         keys: &[LedgerAccountId],
@@ -427,6 +452,7 @@ impl Loader<AccountingCsvDocumentId> for LanaLoader {
     type Value = AccountingCsvDocument;
     type Error = Arc<AccountingCsvExportError>;
 
+    #[instrument(name = "loader.accounting_csv_documents", skip(self), fields(count = keys.len()), err)]
     async fn load(
         &self,
         keys: &[AccountingCsvDocumentId],
@@ -444,6 +470,7 @@ impl Loader<ReportId> for LanaLoader {
     type Value = Report;
     type Error = Arc<ReportError>;
 
+    #[instrument(name = "loader.reports", skip(self), fields(count = keys.len()), err)]
     async fn load(&self, keys: &[ReportId]) -> Result<HashMap<ReportId, Report>, Self::Error> {
         let reports = self
             .app
@@ -459,6 +486,7 @@ impl Loader<ReportRunId> for LanaLoader {
     type Value = ReportRun;
     type Error = Arc<ReportError>;
 
+    #[instrument(name = "loader.report_runs", skip(self), fields(count = keys.len()), err)]
     async fn load(
         &self,
         keys: &[ReportRunId],

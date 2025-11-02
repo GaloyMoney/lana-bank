@@ -50,12 +50,10 @@ pub fn init_tracer(config: TracingConfig) -> anyhow::Result<()> {
     let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
 
     let fmt_layer = fmt::layer().compact();
+
+    // set env to RUST_LOG=debug or RUST_LOG=info,sqlx=warn to change this value dynamically
     let filter_layer = EnvFilter::try_from_default_env()
-        .or_else(|_| {
-            EnvFilter::try_new(
-                "info,otel::tracing=trace,sqlx=warn,cala_ledger::balance::repo=trace",
-            )
-        })
+        .or_else(|_| EnvFilter::try_new("info"))
         .unwrap();
     tracing_subscriber::registry()
         .with(filter_layer)

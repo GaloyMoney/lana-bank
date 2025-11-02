@@ -14,7 +14,7 @@ use lana_app::{app::LanaApp, primitives::*};
 
 pub use config::*;
 
-#[instrument(name = "sim_bootstrap.run", skip(app, config), fields(superuser_email, num_customers = config.num_customers, num_facilities = config.num_facilities))]
+#[instrument(name = "sim_bootstrap.run", skip(app, config), fields(num_customers = config.num_customers, num_facilities = config.num_facilities), err)]
 pub async fn run(
     superuser_email: String,
     app: &LanaApp,

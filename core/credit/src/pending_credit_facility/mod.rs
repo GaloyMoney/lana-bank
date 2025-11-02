@@ -89,6 +89,7 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
+    #[instrument(name = "pending_credit_facility.init", skip_all, err)]
     pub async fn init(
         pool: &sqlx::PgPool,
         proposals: Arc<CreditFacilityProposals<Perms, E>>,

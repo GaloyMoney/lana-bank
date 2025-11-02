@@ -88,7 +88,7 @@ impl From<CreateCreditFacilityProposalParams> for Params {
 pub struct CreateCreditFacilityProposal;
 
 impl CreateCreditFacilityProposal {
-    #[instrument(name = "ledger.create_credit_facility.init", skip_all)]
+    #[instrument(name = "ledger.create_credit_facility_proposal.init", skip_all)]
     pub async fn init(ledger: &CalaLedger) -> Result<(), CreditLedgerError> {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")

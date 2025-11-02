@@ -52,6 +52,7 @@ where
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
         From<core_access::UserId>,
 {
+    #[tracing::instrument(name = "notification.init", skip_all, err)]
     pub async fn init(
         config: NotificationConfig,
         jobs: &Jobs,

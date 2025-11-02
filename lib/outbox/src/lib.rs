@@ -51,12 +51,17 @@ impl<P> Outbox<P>
 where
     P: Serialize + DeserializeOwned + Send + Sync + 'static + Unpin,
 {
+    #[tracing::instrument(name = "outbox.init", skip(pool), fields(highest_sequence = tracing::field::Empty), err)]
     pub async fn init(pool: &PgPool) -> Result<Self, sqlx::Error> {
         let buffer_size = DEFAULT_BUFFER_SIZE;
         let (sender, recv) = broadcast::channel(buffer_size);
         let repo = OutboxRepo::new(pool);
         let highest_known_sequence =
             Arc::new(AtomicU64::from(repo.highest_known_sequence().await?));
+
+        let seq = highest_known_sequence.load(Ordering::Relaxed);
+        tracing::Span::current().record("highest_sequence", seq);
+
         Self::spawn_pg_listener(pool, sender.clone(), Arc::clone(&highest_known_sequence)).await?;
         Ok(Self {
             event_sender: sender,
@@ -67,6 +72,7 @@ where
         })
     }
 
+    #[tracing::instrument(name = "outbox.publish_persisted", skip_all, err)]
     pub async fn publish_persisted(
         &self,
         op: &mut impl es_entity::AtomicOperation,
@@ -75,6 +81,7 @@ where
         self.publish_all_persisted(op, std::iter::once(event)).await
     }
 
+    #[tracing::instrument(name = "outbox.publish_all_persisted", skip_all, err)]
     pub async fn publish_all_persisted(
         &self,
         op: &mut impl es_entity::AtomicOperation,
@@ -87,12 +94,15 @@ where
         Ok(())
     }
 
+    #[tracing::instrument(name = "outbox.listen_all", skip(self), fields(start_after = ?start_after, latest_known = tracing::field::Empty), err)]
     pub async fn listen_all(
         &self,
         start_after: Option<EventSequence>,
     ) -> Result<OutboxListener<P>, sqlx::Error> {
         let sub = self.event_receiver.resubscribe();
         let latest_known = EventSequence::from(self.highest_known_sequence.load(Ordering::Relaxed));
+        tracing::Span::current().record("latest_known", u64::from(latest_known));
+
         let start = start_after.unwrap_or(latest_known);
         Ok(OutboxListener::new(
             self.repo.clone(),
@@ -103,6 +113,7 @@ where
         ))
     }
 
+    #[tracing::instrument(name = "outbox.listen_persisted", skip(self), fields(start_after = ?start_after), err)]
     pub async fn listen_persisted(
         &self,
         start_after: Option<EventSequence>,
@@ -115,6 +126,7 @@ where
         })))
     }
 
+    #[tracing::instrument(name = "outbox.spawn_pg_listener", skip_all, err)]
     async fn spawn_pg_listener(
         pool: &PgPool,
         sender: broadcast::Sender<OutboxEvent<P>>,

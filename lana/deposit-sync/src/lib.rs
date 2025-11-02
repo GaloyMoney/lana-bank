@@ -64,6 +64,7 @@ where
         + OutboxEventMarker<LanaEvent>
         + std::fmt::Debug,
 {
+    #[tracing::instrument(name = "deposit_sync.init", skip_all, err)]
     pub async fn init(
         jobs: &Jobs,
         outbox: &Outbox<E>,

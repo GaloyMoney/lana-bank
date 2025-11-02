@@ -1,6 +1,8 @@
 mod closing;
 pub mod error;
 
+use tracing::instrument;
+
 use cala_ledger::{
     AccountSetId, CalaLedger, DebitOrCredit, JournalId, LedgerOperation, VelocityControlId,
     VelocityLimitId,
@@ -29,6 +31,7 @@ impl ChartLedger {
         }
     }
 
+    #[instrument(name = "chart_ledger.create_chart_root_account_set_in_op", skip(self, op, chart), fields(chart_id = %chart.id, chart_name = %chart.name), err)]
     pub async fn create_chart_root_account_set_in_op(
         &self,
         op: es_entity::DbOp<'_>,
@@ -91,6 +94,7 @@ impl ChartLedger {
         Ok(())
     }
 
+    #[instrument(name = "chart_ledger.monthly_close_chart_as_of", skip(self, op, chart_root_account_set_id), fields(chart_id = tracing::field::Empty, closed_as_of = %closed_as_of), err)]
     pub async fn monthly_close_chart_as_of(
         &self,
         op: es_entity::DbOp<'_>,
@@ -98,6 +102,8 @@ impl ChartLedger {
         closed_as_of: chrono::NaiveDate,
     ) -> Result<(), ChartLedgerError> {
         let id = chart_root_account_set_id.into();
+        tracing::Span::current().record("chart_id", &id.to_string());
+
         let mut chart_account_set = self.cala.account_sets().find(id).await?;
 
         let mut op = self
@@ -126,6 +132,11 @@ impl ChartLedger {
         Ok(())
     }
 
+    #[instrument(
+        name = "chart_ledger.create_monthly_close_control_with_limits_in_op",
+        skip(self, op),
+        err
+    )]
     async fn create_monthly_close_control_with_limits_in_op(
         &self,
         op: &mut LedgerOperation<'_>,
@@ -172,6 +183,11 @@ impl ChartLedger {
         Ok(control.id())
     }
 
+    #[instrument(
+        name = "chart_ledger.create_account_closing_limits_in_op",
+        skip(self, op),
+        err
+    )]
     async fn create_account_closing_limits_in_op(
         &self,
         op: &mut LedgerOperation<'_>,

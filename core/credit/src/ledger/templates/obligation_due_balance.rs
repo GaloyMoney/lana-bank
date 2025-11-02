@@ -77,7 +77,7 @@ impl From<RecordObligationDueBalanceParams> for Params {
 pub struct RecordObligationDueBalance;
 
 impl RecordObligationDueBalance {
-    #[instrument(name = "ledger.record_obligation_overdue_balance.init", skip_all)]
+    #[instrument(name = "ledger.record_obligation_due_balance.init", skip_all)]
     pub async fn init(ledger: &CalaLedger) -> Result<(), CreditLedgerError> {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
