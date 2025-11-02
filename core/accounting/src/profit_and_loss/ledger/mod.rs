@@ -21,6 +21,11 @@ use super::{
 
 use error::*;
 
+type AccountSetWithBalances = (
+    AccountSet,
+    (Option<CalaBalanceRange>, Option<CalaBalanceRange>),
+);
+
 #[derive(Clone)]
 pub struct ProfitAndLossStatementLedger {
     cala: CalaLedger,
@@ -134,13 +139,7 @@ impl ProfitAndLossStatementLedger {
         &self,
         account_set_id: AccountSetId,
         balances_by_id: &mut HashMap<BalanceId, CalaBalanceRange>,
-    ) -> Result<
-        (
-            AccountSet,
-            (Option<CalaBalanceRange>, Option<CalaBalanceRange>),
-        ),
-        ProfitAndLossStatementLedgerError,
-    > {
+    ) -> Result<AccountSetWithBalances, ProfitAndLossStatementLedgerError> {
         let account_set = self.cala.account_sets().find(account_set_id).await?;
 
         let btc_balance =
