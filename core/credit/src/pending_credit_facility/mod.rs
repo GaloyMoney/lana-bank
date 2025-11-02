@@ -102,16 +102,6 @@ where
         governance: Arc<Governance<Perms, E>>,
     ) -> Result<Self, PendingCreditFacilityError> {
         let repo = PendingCreditFacilityRepo::new(pool, publisher);
-        match governance
-            .init_policy(crate::APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS)
-            .await
-        {
-            Err(governance::error::GovernanceError::PolicyError(
-                governance::policy_error::PolicyError::DuplicateApprovalProcessType,
-            )) => (),
-            Err(e) => return Err(e.into()),
-            _ => (),
-        }
 
         Ok(Self {
             repo: Arc::new(repo),
