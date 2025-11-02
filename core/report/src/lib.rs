@@ -196,7 +196,7 @@ where
         id: impl Into<ReportRunId> + std::fmt::Debug,
     ) -> Result<Option<ReportRun>, ReportError> {
         let id = id.into();
-        tracing::Span::current().record("run_id", &id.to_string());
+        tracing::Span::current().record("run_id", id.to_string());
 
         self.authz
             .enforce_permission(
@@ -235,7 +235,7 @@ where
                 TriggerReportRunJobConfig::<E>::new(),
             )
             .await?;
-        tracing::Span::current().record("job_id", &job.id.to_string());
+        tracing::Span::current().record("job_id", job.id.to_string());
 
         db.commit().await?;
 
@@ -250,7 +250,7 @@ where
         extension: String,
     ) -> Result<String, ReportError> {
         let report_id = report_id.into();
-        tracing::Span::current().record("report_id", &report_id.to_string());
+        tracing::Span::current().record("report_id", report_id.to_string());
 
         self.authz
             .enforce_permission(

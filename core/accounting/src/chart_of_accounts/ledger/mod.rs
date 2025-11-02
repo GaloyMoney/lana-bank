@@ -102,7 +102,7 @@ impl ChartLedger {
         closed_as_of: chrono::NaiveDate,
     ) -> Result<(), ChartLedgerError> {
         let id = chart_root_account_set_id.into();
-        tracing::Span::current().record("chart_id", &id.to_string());
+        tracing::Span::current().record("chart_id", id.to_string());
 
         let mut chart_account_set = self.cala.account_sets().find(id).await?;
 

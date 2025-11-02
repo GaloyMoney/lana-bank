@@ -167,7 +167,7 @@ where
         permission_set_ids: impl IntoIterator<Item = impl Into<PermissionSetId>>,
     ) -> Result<Role, CoreAccessError> {
         let role_id = role_id.into();
-        tracing::Span::current().record("role_id", &role_id.to_string());
+        tracing::Span::current().record("role_id", role_id.to_string());
 
         self.authz
             .enforce_permission(
@@ -213,7 +213,7 @@ where
         permission_set_ids: impl IntoIterator<Item = impl Into<PermissionSetId>>,
     ) -> Result<Role, CoreAccessError> {
         let role_id = role_id.into();
-        tracing::Span::current().record("role_id", &role_id.to_string());
+        tracing::Span::current().record("role_id", role_id.to_string());
 
         let permission_set_ids = permission_set_ids
             .into_iter()
@@ -361,7 +361,7 @@ where
         id: impl Into<RoleId>,
     ) -> Result<Option<Role>, CoreAccessError> {
         let id = id.into();
-        tracing::Span::current().record("role_id", &id.to_string());
+        tracing::Span::current().record("role_id", id.to_string());
 
         self.authz
             .enforce_permission(sub, CoreAccessObject::role(id), CoreAccessAction::ROLE_READ)

@@ -185,7 +185,7 @@ impl BalanceSheetLedger {
         member: AccountSetId,
     ) -> Result<(), BalanceSheetLedgerError> {
         let node_account_set_id = node_account_set_id.into();
-        tracing::Span::current().record("node_id", &node_account_set_id.to_string());
+        tracing::Span::current().record("node_id", node_account_set_id.to_string());
 
         let mut op = self
             .cala
