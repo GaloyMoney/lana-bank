@@ -819,9 +819,9 @@ checksum = "ade8366b8bd5ba243f0a58f036cc0ca8a2f069cff1a2351ef1cac6b083e16fc0"
 
 [[package]]
 name = "cala-cel-interpreter"
-version = "0.12.7"
+version = "0.12.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6d589e99722da76d93113efbd507f19a1a85aad43c27fdfa2126cd8542b5e523"
+checksum = "ad186fe5ac81772bc30a635d41fed2a84b949aa814db8ef00c5c9597273dae1b"
 dependencies = [
  "cala-cel-parser",
  "chrono",
@@ -830,24 +830,26 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror 2.0.17",
+ "tracing",
  "uuid",
 ]
 
 [[package]]
 name = "cala-cel-parser"
-version = "0.12.7"
+version = "0.12.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2b933a460899ae367e8a899a9c0cc05251d8038095ab538a388cc3af62811ea0"
+checksum = "85cb4a3e65ced4c274e26910ffb2b015ae66837e2678c7c6be74c420d42cb838"
 dependencies = [
  "lalrpop",
  "lalrpop-util",
+ "tracing",
 ]
 
 [[package]]
 name = "cala-ledger"
-version = "0.12.7"
+version = "0.12.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "64de59ac065ec48e130cdfebe84c7087f9f55ec756330ab612fa42cc977d617b"
+checksum = "1f387b5521186f0c916517b04ddcad27fd7245b661737ab5cac2a237828e4927"
 dependencies = [
  "async-graphql",
  "base64 0.22.1",
@@ -882,9 +884,9 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger-core-types"
-version = "0.12.7"
+version = "0.12.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3c2a5696054bba66941f7dd6c1b3132983a1e9646c12caa81411b04249aa53ee"
+checksum = "d1be43951d56d83b12d23886d0fa0d94d1d935ac537125fc11369df1e95eb144"
 dependencies = [
  "async-graphql",
  "cala-cel-interpreter",
@@ -904,9 +906,9 @@ dependencies = [
 
 [[package]]
 name = "cala-tracing"
-version = "0.12.7"
+version = "0.12.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "529029c5e9e7141968ae9a0056ec6e54a185f433420271631612a516ba0d48c6"
+checksum = "550f2eac50b53ce1616dc9bcc600281051e3806d77a18955bacc607a2ec7752e"
 dependencies = [
  "anyhow",
  "axum-extra",
@@ -2180,9 +2182,9 @@ dependencies = [
 
 [[package]]
 name = "es-entity"
-version = "0.10.3"
+version = "0.10.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1fa276b5458d25d4717030b274fba6157ab57d15d18c41cddec027579549c925"
+checksum = "39dbe0680ad641abdaeddb1c2e87576696118b4329139571e05d7de3dad1ac6a"
 dependencies = [
  "async-graphql",
  "base64 0.22.1",
@@ -2206,9 +2208,9 @@ dependencies = [
 
 [[package]]
 name = "es-entity-macros"
-version = "0.10.3"
+version = "0.10.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dba48d4d26c4254664853af1a1e353c9065b37ce08a18ffd11e7a09dafaa3d5d"
+checksum = "4690ea6523399069694973c889b2cfb36793238453c09c2298cc9422d89f8e2d"
 dependencies = [
  "convert_case",
  "darling 0.21.3",
@@ -5602,9 +5604,9 @@ dependencies = [
 
 [[package]]
 name = "sim-time"
-version = "0.10.3"
+version = "0.10.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dbec44a73f56d6bac3c5c986fc4daf8d4509a18eef9e5adda8bcb8c95e24d600"
+checksum = "2b55c08e971e1b912533aee6b77ae0f228eda573114d675388423a1d8fb10c16"
 dependencies = [
  "chrono",
  "serde",
