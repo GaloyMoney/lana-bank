@@ -259,7 +259,7 @@ where
     pub async fn find_role_by_name(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
-        name: impl AsRef<str> + std::fmt::Debug,
+        name: impl AsRef<str> + std::fmt::Debug + std::fmt::Display,
     ) -> Result<Role, RoleError> {
         let name = name.as_ref().to_owned();
         tracing::Span::current().record("role_name", &name);

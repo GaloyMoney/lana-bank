@@ -69,8 +69,8 @@ where
     ) -> Result<(), AuthorizationError> {
         let parent = parent_role.into();
         let child = child_role.into();
-        tracing::Span::current().record("parent_role", &parent.to_string());
-        tracing::Span::current().record("child_role", &child.to_string());
+        tracing::Span::current().record("parent_role", parent.to_string());
+        tracing::Span::current().record("child_role", child.to_string());
 
         let mut enforcer = self.enforcer.write().await;
 
@@ -94,8 +94,8 @@ where
     ) -> Result<(), AuthorizationError> {
         let parent = parent_role.into();
         let child = child_role.into();
-        tracing::Span::current().record("parent_role", &parent.to_string());
-        tracing::Span::current().record("child_role", &child.to_string());
+        tracing::Span::current().record("parent_role", parent.to_string());
+        tracing::Span::current().record("child_role", child.to_string());
 
         let mut enforcer = self.enforcer.write().await;
 
@@ -122,7 +122,7 @@ where
         for<'a> &'a R: Into<Role>,
     {
         let role = role.into();
-        tracing::Span::current().record("role", &role.to_string());
+        tracing::Span::current().record("role", role.to_string());
 
         let mut enforcer = self.enforcer.write().await;
         match enforcer
@@ -155,9 +155,9 @@ where
         let object = object.into();
         let action = action.into();
 
-        tracing::Span::current().record("role", &role.to_string());
-        tracing::Span::current().record("object", &object.to_string());
-        tracing::Span::current().record("action", &action.to_string());
+        tracing::Span::current().record("role", role.to_string());
+        tracing::Span::current().record("object", object.to_string());
+        tracing::Span::current().record("action", action.to_string());
 
         let mut enforcer = self.enforcer.write().await;
         enforcer
@@ -182,8 +182,8 @@ where
     {
         let sub = sub.into();
         let role = role.into();
-        tracing::Span::current().record("subject", &sub.to_string());
-        tracing::Span::current().record("role", &role.to_string());
+        tracing::Span::current().record("subject", sub.to_string());
+        tracing::Span::current().record("role", role.to_string());
 
         let mut enforcer = self.enforcer.write().await;
 
@@ -210,8 +210,8 @@ where
     {
         let sub = sub.into();
         let role = role.into();
-        tracing::Span::current().record("subject", &sub.to_string());
-        tracing::Span::current().record("role", &role.to_string());
+        tracing::Span::current().record("subject", sub.to_string());
+        tracing::Span::current().record("role", role.to_string());
 
         let mut enforcer = self.enforcer.write().await;
 
@@ -233,7 +233,7 @@ where
         Role: std::str::FromStr,
     {
         let sub = sub.into();
-        tracing::Span::current().record("subject", &sub.to_string());
+        tracing::Span::current().record("subject", sub.to_string());
 
         let sub_uuid = sub.to_string();
         let enforcer = self.enforcer.read().await;
@@ -260,7 +260,7 @@ where
         actions: &[impl Into<Audit::Action> + std::fmt::Debug + Copy],
     ) -> Result<bool, AuthorizationError> {
         let object = object.into();
-        tracing::Span::current().record("object", &object.to_string());
+        tracing::Span::current().record("object", object.to_string());
 
         for action in actions {
             let action = Into::<Audit::Action>::into(*action);
@@ -283,8 +283,8 @@ where
         let object = object.into();
         let action = action.into();
 
-        tracing::Span::current().record("object", &object.to_string());
-        tracing::Span::current().record("action", &action.to_string());
+        tracing::Span::current().record("object", object.to_string());
+        tracing::Span::current().record("action", action.to_string());
 
         let mut enforcer = self.enforcer.write().await;
         enforcer.load_policy().await?;
