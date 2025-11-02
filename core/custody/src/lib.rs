@@ -57,6 +57,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCustodyEvent>,
 {
+    #[tracing::instrument(name = "custody.init", skip_all, err)]
     pub async fn init(
         pool: &sqlx::PgPool,
         authz: &Perms,

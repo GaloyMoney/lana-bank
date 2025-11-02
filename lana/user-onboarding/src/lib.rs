@@ -36,6 +36,7 @@ impl<E> UserOnboarding<E>
 where
     E: OutboxEventMarker<CoreAccessEvent>,
 {
+    #[tracing::instrument(name = "user_onboarding.init", skip_all, err)]
     pub async fn init(
         jobs: &::job::Jobs,
         outbox: &Outbox<E>,

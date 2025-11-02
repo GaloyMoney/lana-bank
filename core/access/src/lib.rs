@@ -54,6 +54,7 @@ where
     <Audit as AuditSvc>::Object: From<CoreAccessObject>,
     E: OutboxEventMarker<CoreAccessEvent>,
 {
+    #[tracing::instrument(name = "core_access.init", skip_all, err)]
     pub async fn init(
         pool: &sqlx::PgPool,
         config: AccessConfig,
@@ -113,6 +114,7 @@ where
 
     /// Creates a new role with a given name and initial permission sets. The name
     /// must be unique, an error will be raised in case of conflict.
+    #[tracing::instrument(name = "core_access.create_role", skip(self, permission_sets, name), fields(subject = %sub, role_name = %name, permission_sets_count = tracing::field::Empty), err)]
     pub async fn create_role(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
@@ -131,6 +133,8 @@ where
             .into_iter()
             .map(|id| id.into())
             .collect::<Vec<_>>();
+        tracing::Span::current().record("permission_sets_count", permission_set_ids.len());
+
         self.ensure_permission_sets_exist(&permission_set_ids)
             .await?;
         let role = match self.roles.maybe_find_by_name(&name).await? {
@@ -155,6 +159,7 @@ where
         Ok(role)
     }
 
+    #[tracing::instrument(name = "core_access.add_permission_sets_to_role", skip(self, role_id, permission_set_ids), fields(subject = %sub, role_id = tracing::field::Empty, permission_sets_count = tracing::field::Empty), err)]
     pub async fn add_permission_sets_to_role(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
@@ -162,6 +167,8 @@ where
         permission_set_ids: impl IntoIterator<Item = impl Into<PermissionSetId>>,
     ) -> Result<Role, CoreAccessError> {
         let role_id = role_id.into();
+        tracing::Span::current().record("role_id", role_id.to_string());
+
         self.authz
             .enforce_permission(
                 sub,
@@ -174,6 +181,7 @@ where
             .into_iter()
             .map(|id| id.into())
             .collect::<Vec<_>>();
+        tracing::Span::current().record("permission_sets_count", permission_set_ids.len());
 
         let mut role = self.roles.find_by_id(role_id).await?;
         let mut changed = false;
@@ -197,6 +205,7 @@ where
         Ok(role)
     }
 
+    #[tracing::instrument(name = "core_access.remove_permission_sets_from_role", skip(self, role_id, permission_set_ids), fields(subject = %sub, role_id = tracing::field::Empty, permission_sets_count = tracing::field::Empty), err)]
     pub async fn remove_permission_sets_from_role(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
@@ -204,10 +213,13 @@ where
         permission_set_ids: impl IntoIterator<Item = impl Into<PermissionSetId>>,
     ) -> Result<Role, CoreAccessError> {
         let role_id = role_id.into();
+        tracing::Span::current().record("role_id", role_id.to_string());
+
         let permission_set_ids = permission_set_ids
             .into_iter()
             .map(|id| id.into())
             .collect::<Vec<_>>();
+        tracing::Span::current().record("permission_sets_count", permission_set_ids.len());
 
         self.authz
             .enforce_permission(
@@ -243,12 +255,15 @@ where
         Ok(role)
     }
 
-    #[instrument(name = "access.find_role_by_name", skip(self), err)]
+    #[instrument(name = "access.find_role_by_name", skip(self, name), fields(subject = %sub, role_name = %name), err)]
     pub async fn find_role_by_name(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
-        name: impl AsRef<str> + std::fmt::Debug,
+        name: impl AsRef<str> + std::fmt::Debug + std::fmt::Display,
     ) -> Result<Role, RoleError> {
+        let name = name.as_ref().to_owned();
+        tracing::Span::current().record("role_name", &name);
+
         self.authz
             .enforce_permission(
                 sub,
@@ -256,7 +271,7 @@ where
                 CoreAccessAction::ROLE_LIST,
             )
             .await?;
-        self.roles.find_by_name(name.as_ref().to_owned()).await
+        self.roles.find_by_name(name).await
     }
 
     #[instrument(name = "core_access.update_role_of_user", skip(self))]
@@ -339,12 +354,15 @@ where
             .await?)
     }
 
+    #[tracing::instrument(name = "core_access.find_role_by_id", skip(self, id), fields(subject = %sub, role_id = tracing::field::Empty), err)]
     pub async fn find_role_by_id(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
         id: impl Into<RoleId>,
     ) -> Result<Option<Role>, CoreAccessError> {
         let id = id.into();
+        tracing::Span::current().record("role_id", id.to_string());
+
         self.authz
             .enforce_permission(sub, CoreAccessObject::role(id), CoreAccessAction::ROLE_READ)
             .await?;
@@ -359,6 +377,7 @@ where
         Ok(self.permission_sets.find_all(ids).await?)
     }
 
+    #[tracing::instrument(name = "core_access.ensure_permission_sets_exist", skip(self), fields(count = permission_set_ids.len()), err)]
     async fn ensure_permission_sets_exist(
         &self,
         permission_set_ids: &[PermissionSetId],

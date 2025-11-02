@@ -83,7 +83,7 @@ impl From<RemoveCollateralParams> for Params {
 pub struct RemoveCollateral;
 
 impl RemoveCollateral {
-    #[instrument(name = "ledger.add_collateral.init", skip_all)]
+    #[instrument(name = "ledger.remove_collateral.init", skip_all)]
     pub async fn init(ledger: &CalaLedger) -> Result<(), CreditLedgerError> {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")

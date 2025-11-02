@@ -46,6 +46,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<DashboardModuleAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<DashboardModuleObject>,
 {
+    #[tracing::instrument(name = "dashboard.init", skip_all, err)]
     pub async fn init(
         pool: &PgPool,
         authz: &Perms,
@@ -65,6 +66,7 @@ where
         })
     }
 
+    #[tracing::instrument(name = "dashboard.load", skip(self), fields(subject = %sub), err)]
     pub async fn load(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

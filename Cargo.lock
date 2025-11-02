@@ -3423,6 +3423,7 @@ dependencies = [
  "customer-server",
  "hex",
  "lana-app",
+ "log",
  "serde",
  "serde_yaml",
  "sim-bootstrap",

@@ -114,6 +114,7 @@ where
         self.repo.find_all(ids).await
     }
 
+    #[instrument(name = "manual_transaction.execute", skip(self, entries), fields(subject = %sub, chart_ref = %chart_ref, effective = %effective, entries_count = entries.len()), err)]
     pub async fn execute(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

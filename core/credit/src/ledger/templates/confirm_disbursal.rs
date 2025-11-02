@@ -111,7 +111,7 @@ impl From<ConfirmDisbursalParams> for Params {
 pub struct ConfirmDisbursal;
 
 impl ConfirmDisbursal {
-    #[instrument(name = "ledger.settle_disbursal.init", skip_all)]
+    #[instrument(name = "ledger.confirm_disbursal.init", skip_all)]
     pub async fn init(ledger: &CalaLedger) -> Result<(), CreditLedgerError> {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")

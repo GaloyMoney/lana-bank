@@ -100,6 +100,7 @@ where
         From<CoreDepositObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreDepositEvent> + OutboxEventMarker<GovernanceEvent>,
 {
+    #[tracing::instrument(name = "deposit.init", skip_all, fields(journal_id = %journal_id), err)]
     pub async fn init(
         pool: &sqlx::PgPool,
         authz: &Perms,

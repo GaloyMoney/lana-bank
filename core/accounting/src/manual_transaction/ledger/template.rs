@@ -144,13 +144,17 @@ impl ManualTransactionTemplate {
         format!("MANUAL_TRANSACTION_{}", self.n_entries)
     }
 
+    #[instrument(name = "manual_transaction_template.init", skip(ledger), fields(n_entries = n_entries), err)]
     pub async fn init(ledger: &CalaLedger, n_entries: usize) -> Result<Self, TxTemplateError> {
         let res = Self { n_entries };
         res.find_or_create_template(ledger).await?;
         Ok(res)
     }
 
+    #[instrument(name = "manual_transaction_template.find_or_create", skip(self, ledger), fields(template_code = tracing::field::Empty), err)]
     async fn find_or_create_template(&self, ledger: &CalaLedger) -> Result<(), TxTemplateError> {
+        let code = self.code();
+        tracing::Span::current().record("template_code", &code);
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .description("params.description")

@@ -13,9 +13,16 @@ pub struct DbConfig {
 }
 
 pub async fn init_pool(config: &DbConfig) -> anyhow::Result<sqlx::PgPool> {
+    use log::LevelFilter;
+    use sqlx::ConnectOptions;
+    use std::str::FromStr;
+
     let pool = sqlx::postgres::PgPoolOptions::new()
         .max_connections(config.pool_size)
-        .connect(&config.pg_con)
+        .connect_with(
+            sqlx::postgres::PgConnectOptions::from_str(&config.pg_con)?
+                .log_slow_statements(LevelFilter::Warn, std::time::Duration::from_millis(100)),
+        )
         .await?;
 
     Ok(pool)
