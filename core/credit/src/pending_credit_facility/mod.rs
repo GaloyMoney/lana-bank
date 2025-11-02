@@ -333,6 +333,7 @@ where
     )]
     pub async fn list_for_customer_by_created_at(
         &self,
+        // FIXME: sub should be used.
         _sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         customer_id: impl Into<crate::primitives::CustomerId> + std::fmt::Debug,
     ) -> Result<Vec<PendingCreditFacility>, PendingCreditFacilityError> {
