@@ -13,8 +13,8 @@ on:
 jobs:
   hakari-generate:
     if: >
-      github.actor == 'dependabot[bot]' &&
-      (startsWith(github.head_ref, 'dependabot/cargo/'))
+      github.actor != 'dependabot[bot]' &&
+      (startsWith(github.head_ref, 'testabot/galoy/'))
     runs-on: ubuntu-latest
 
     permissions:
