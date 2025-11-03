@@ -25,6 +25,8 @@ RUN pip install \
 
 # Install lana specific packages
 RUN pip install \
+    dlt[bigquery]~=1.18.1 \
+    dagster-dlt~=0.28.0 \
     pandas
 
 # Add our project specific code
