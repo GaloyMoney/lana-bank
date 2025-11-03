@@ -127,14 +127,14 @@ where
 
     #[instrument(
         name = "core_accounting.chart_of_accounts.import_from_csv",
-        skip(self, data),
+        skip(self, import_data),
         err
     )]
     pub async fn import_from_csv(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         id: impl Into<ChartId> + std::fmt::Debug,
-        data: impl AsRef<str>,
+        import_data: impl AsRef<str>,
     ) -> Result<(Chart, Option<Vec<CalaAccountSetId>>), ChartOfAccountsError> {
         let id = id.into();
         self.authz
@@ -146,8 +146,8 @@ where
             .await?;
         let mut chart = self.repo.find_by_id(id).await?;
 
-        let data = data.as_ref().to_string();
-        let account_specs = CsvParser::new(data).account_specs()?;
+        let import_data = import_data.as_ref().to_string();
+        let account_specs = CsvParser::new(import_data).account_specs()?;
 
         let BulkImportResult {
             new_account_sets,

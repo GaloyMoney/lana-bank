@@ -15,11 +15,11 @@ pub enum CsvParseError {
 }
 
 pub struct CsvParser {
-    data: String,
+    import_data: String,
 }
 impl CsvParser {
-    pub fn new(data: String) -> Self {
-        Self { data }
+    pub fn new(import_data: String) -> Self {
+        Self { import_data }
     }
 
     pub fn account_specs(self) -> Result<Vec<AccountSpec>, CsvParseError> {
@@ -27,7 +27,7 @@ impl CsvParser {
             .flexible(true)
             .trim(Trim::All)
             .has_headers(false)
-            .from_reader(Cursor::new(self.data));
+            .from_reader(Cursor::new(self.import_data));
 
         let mut specs: Vec<AccountSpec> = vec![];
         for result in rdr.records() {

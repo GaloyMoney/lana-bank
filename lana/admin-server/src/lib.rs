@@ -113,11 +113,10 @@ pub async fn graphql_handler(
     if !response.errors.is_empty() {
         for err in &response.errors {
             tracing::error!(
-                message = %err.message,
                 path = ?err.path,
                 locations = ?err.locations,
                 extensions = ?err.extensions,
-                "GraphQL execution error"
+                "{}", err.message
             );
         }
     }
