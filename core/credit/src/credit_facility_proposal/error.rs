@@ -22,6 +22,8 @@ pub enum CreditFacilityProposalError {
     ApprovalProcessNotStarted,
     #[error("CreditFacilityProposalError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
+    #[error("CreditFacilityProposalError - AuditError: ${0}")]
+    AuditError(#[from] audit::error::AuditError),
 }
 
 es_entity::from_es_entity_error!(CreditFacilityProposalError);
