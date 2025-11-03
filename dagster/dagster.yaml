@@ -13,19 +13,8 @@ run_coordinator:
         limit: 5
 
 run_launcher:
-  module: dagster_docker
-  class: DockerRunLauncher
-  config:
-    env_vars:
-      - DAGSTER_POSTGRES_USER
-      - DAGSTER_POSTGRES_PASSWORD
-      - DAGSTER_POSTGRES_DB
-      - DOCKER_HOST
-    network: dagster_network
-    image: dagster-code-location-lana-dw
-    container_kwargs:
-      volumes_from:
-        - dagster_webserver
+  module: dagster.core.launcher
+  class: DefaultRunLauncher
 
 run_storage:
   module: dagster_postgres.run_storage
