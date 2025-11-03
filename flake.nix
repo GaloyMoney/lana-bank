@@ -369,6 +369,12 @@
                 export ENCRYPTION_KEY="${devEnvVars.ENCRYPTION_KEY}"
                 export DAGSTER=true
 
+                # Build compose file arguments
+                COMPOSE_FILES=(-f docker-compose.yml)
+                if [[ "''${DAGSTER:-false}" == "true" ]]; then
+                  COMPOSE_FILES+=(-f docker-compose.dagster.yml)
+                fi
+
                 # Function to cleanup on exit
                 cleanup() {
                   if [[ -n "''${KEEP_PODMAN_UP:-}" ]]; then
@@ -376,14 +382,14 @@
                     return 0
                   fi
                   echo "Stopping podman-compose..."
-                  podman-compose-runner down || true
+                  podman-compose-runner ''${COMPOSE_FILES[@]} down || true
                 }
 
                 # Register cleanup function
                 trap cleanup EXIT
 
                 echo "Starting podman-compose in detached mode..."
-                podman-compose-runner up -d
+                podman-compose-runner ''${COMPOSE_FILES[@]} up -d
 
                 echo "Waiting for PostgreSQL to be ready..."
                 wait4x postgresql "${devEnvVars.PG_CON}" --timeout 120s
