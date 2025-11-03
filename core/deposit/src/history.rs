@@ -86,7 +86,7 @@ impl From<cala_ledger::entry::Entry> for DepositAccountHistoryEntry {
                 entry_id: entry.id,
                 recorded_at: entry.created_at(),
             }),
-            
+
             IGNORE_CONFIRM_WITHDRAWAL_PENDING => DepositAccountHistoryEntry::Ignored,
             IGNORE_INITIATE_WITHDRAW_PENDING => DepositAccountHistoryEntry::Ignored,
             IGNORE_CANCEL_WITHDRAW_PENDING => DepositAccountHistoryEntry::Ignored,
