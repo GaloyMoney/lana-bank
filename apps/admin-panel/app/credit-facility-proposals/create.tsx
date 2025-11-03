@@ -80,7 +80,7 @@ const initialFormValues = {
   initialCvl: "",
   durationUnits: "",
   oneTimeFeeRate: "",
-  disbursalPolicy: DisbursalPolicy.MultipleDisbursal,
+  disbursalPolicy: DisbursalPolicy.SingleDisbursal,
 }
 
 export const CreateCreditFacilityProposalDialog: React.FC<
