@@ -28,6 +28,8 @@ pub enum PendingCreditFacilityError {
     CreditFacilityProposalError(
         #[from] crate::credit_facility_proposal::error::CreditFacilityProposalError,
     ),
+    #[error("PendingCreditFacilityError - AuditError: ${0}")]
+    AuditError(#[from] audit::error::AuditError),
 }
 
 es_entity::from_es_entity_error!(PendingCreditFacilityError);

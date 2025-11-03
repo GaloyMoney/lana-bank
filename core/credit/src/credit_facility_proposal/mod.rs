@@ -242,9 +242,19 @@ where
     )]
     pub async fn list_for_customer_by_created_at(
         &self,
-        _sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
     ) -> Result<Vec<CreditFacilityProposal>, CreditFacilityProposalError> {
+        self.authz
+            .audit()
+            .record_entry(
+                sub,
+                CoreCreditObject::all_credit_facilities(),
+                CoreCreditAction::CREDIT_FACILITY_LIST,
+                true,
+            )
+            .await?;
+
         Ok(self
             .repo
             .list_for_customer_id_by_created_at(
