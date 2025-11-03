@@ -51,16 +51,16 @@ load helpers
   # Poll run status until SUCCESS
   attempts=30
   sleep_between=2
-  status=""
+  run_status=""
   while [ $attempts -gt 0 ]; do
     poll_vars=$(jq -n --arg runId "$run_id" '{ runId: $runId }')
     exec_dagster_graphql "run_status" "$poll_vars"
-    status=$(echo "$output" | jq -r '.data.runOrError.status // empty')
+    run_status=$(echo "$output" | jq -r '.data.runOrError.status // empty')
     
-    if [ "$status" = "SUCCESS" ]; then
+    if [ "$run_status" = "SUCCESS" ]; then
       break
     fi
-    if [ "$status" = "FAILURE" ] || [ "$status" = "CANCELED" ]; then
+    if [ "$run_status" = "FAILURE" ] || [ "$run_status" = "CANCELED" ]; then
       echo "$output"
       return 1
     fi
@@ -69,7 +69,7 @@ load helpers
     sleep $sleep_between
   done
   
-  [ "$status" = "SUCCESS" ] || { echo "last status: $status"; return 1; }
+  [ "$run_status" = "SUCCESS" ] || { echo "last status: $run_status"; return 1; }
   
   # Verify iris_dataset_size was materialized by checking that it has materializations
   # and that the run ID matches our execution
