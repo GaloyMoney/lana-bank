@@ -11,7 +11,7 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::{AccountSetId, CalaLedger};
 use chart_of_accounts_integration::{AccountingPeriodConfig, Basis};
-use chrono::NaiveDate;
+use chrono::{DateTime, NaiveDate, Utc};
 use es_entity::Idempotent;
 use tracing::instrument;
 
@@ -128,13 +128,28 @@ where
         Ok(())
     }
 
-    /// Closes currently open monthly Accounting Period under the given
-    /// Chart of Accounts and returns next Accounting Period.
-    /// Fails if no such Accounting Period is found.
+    /// Closes currently open monthly Accounting Period under the
+    /// given Chart of Accounts, at current time, and returns next
+    /// Accounting Period. Fails if no such Accounting Period is
+    /// found.
     pub async fn close_month(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_id: ChartId,
+    ) -> Result<AccountingPeriod, AccountingPeriodError> {
+        self.close_month_at_time(sub, chart_id, crate::time::now())
+            .await
+    }
+
+    /// Closes currently open monthly Accounting Period under the
+    /// given Chart of Accounts, at `closed_at` time, and returns next
+    /// Accounting Period. Fails if no such Accounting Period is
+    /// found.
+    pub async fn close_month_at_time(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_id: ChartId,
+        closed_at: DateTime<Utc>,
     ) -> Result<AccountingPeriod, AccountingPeriodError> {
         self.authz
             .enforce_permission(
@@ -149,7 +164,6 @@ where
             .iter_mut()
             .find(|p| p.is_monthly())
             .ok_or(AccountingPeriodError::NoOpenAccountingPeriodFound)?;
-        let closed_at = crate::time::now();
         match open_period.close(closed_at, None)? {
             Idempotent::Executed(new) => {
                 let mut db = self.repo.begin_op().await?;
@@ -170,9 +184,11 @@ where
         }
     }
 
+
     /// Closes currently open annual Accounting Period under the given
-    /// Chart of Accounts and returns next Accounting Period.
-    /// Fails if no such Accounting Period is found.
+    /// Chart of Accounts, at current time, and returns next
+    /// Accounting Period. Fails if no such Accounting Period is
+    /// found.
     ///
     /// This method closes all other Accounting Periods in an
     /// unspecified order.
@@ -180,6 +196,24 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_id: ChartId,
+        description: Option<String>,
+    ) -> Result<AccountingPeriod, AccountingPeriodError> {
+        self.close_year_at_time(sub, chart_id, crate::time::now(), description)
+            .await
+    }
+
+    /// Closes currently open annual Accounting Period under the given
+    /// Chart of Accounts, at `closed_at` time, and returns next
+    /// Accounting Period. Fails if no such Accounting Period is
+    /// found.
+    ///
+    /// This method closes all other Accounting Periods in an
+    /// unspecified order.
+    pub async fn close_year_at_time(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_id: ChartId,
+        closed_at: DateTime<Utc>,
         description: Option<String>,
     ) -> Result<AccountingPeriod, AccountingPeriodError> {
         self.authz
@@ -202,7 +236,6 @@ where
             (open_annual_period, open_periods)
         };
 
-        let closed_at = crate::time::now();
         let ledger_tx_id = CalaTxId::new();
         match open_annual_period.close(closed_at, Some(ledger_tx_id))? {
             Idempotent::Executed(new) => {

@@ -1,7 +1,7 @@
 mod helpers;
 
 use anyhow::Result;
-use chrono::{Datelike, Days, NaiveDate};
+use chrono::{DateTime, Datelike, Days, NaiveDate, Utc};
 use rust_decimal::Decimal;
 
 use authz::dummy::{DummyPerms, DummySubject};
@@ -57,7 +57,7 @@ async fn annual_closing_loss() -> Result<()> {
 
     test.accounting
         .accounting_periods()
-        .close_year(&DummySubject, test.chart.id, None)
+        .close_year_at_time(&DummySubject, test.chart.id, test.current_time, None)
         .await?;
 
     assert!(test.children(EARNINGS).await?.is_empty());
@@ -103,7 +103,7 @@ async fn annual_closing_gain() -> Result<()> {
 
     test.accounting
         .accounting_periods()
-        .close_year(&DummySubject, test.chart.id, None)
+        .close_year_at_time(&DummySubject, test.chart.id, test.current_time, None)
         .await?;
 
     assert_eq!(test.children(EARNINGS).await?.len(), 1);
@@ -262,9 +262,12 @@ async fn setup_test() -> anyhow::Result<Test> {
         .await?;
 
     // Calculate period start and end so that we are now in the middle of grace period.
+    // Set today date to be safely far from the end of month (day < 28).
 
-    let today = es_entity::prelude::sim_time::now().date_naive();
-    let period_end = today.checked_sub_days(Days::new(2)).unwrap();
+    let today = DateTime::parse_from_rfc3339("2025-10-20T13:44:51Z")
+        .unwrap()
+        .to_utc();
+    let period_end = today.checked_sub_days(Days::new(2)).unwrap().date_naive();
     let central_date = period_end.checked_sub_days(Days::new(1)).unwrap();
 
     accounting
@@ -295,7 +298,8 @@ async fn setup_test() -> anyhow::Result<Test> {
         accounting,
         chart,
         cala,
-        inner_date: central_date,
+        current_time: today,
+        effective: central_date,
         accounts: vec![],
     })
 }
@@ -305,7 +309,8 @@ struct Test {
     pub accounting: CoreAccounting<DummyPerms<action::DummyAction, object::DummyObject>>,
     pub chart: Chart,
     pub accounts: Vec<AccountId>,
-    pub inner_date: NaiveDate,
+    pub effective: NaiveDate,
+    pub current_time: DateTime<Utc>,
 }
 
 impl Test {
@@ -353,7 +358,7 @@ impl Test {
                 &self.chart.reference,
                 None,
                 format!("Transaction {}", self.accounts.len()),
-                Some(self.inner_date),
+                Some(self.effective),
                 vec![
                     ManualEntryInput::builder()
                         .account_id_or_code(AccountIdOrCode::Code("11.01.0101".parse().unwrap()))
