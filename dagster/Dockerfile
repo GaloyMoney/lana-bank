@@ -7,12 +7,14 @@ RUN apk --no-cache add curl
 
 RUN pip install --upgrade pip
 
-# Install dagster and any other dependencies your project requires
+# Install dagster general dependencies
 RUN pip install \
     dagster~=1.11.16 \
     dagster-postgres~=0.27.16 \
-    dagster-k8s~=0.27.16 \
-    # add any other dependencies here
+    dagster-k8s~=0.27.16
+
+# Install lana specific packages
+RUN pip install \
     pandas
 
 # Create the iris_analysis directory and copy the definitions.py file
