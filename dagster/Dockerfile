@@ -17,7 +17,7 @@ RUN pip install \
 RUN pip install \
     pandas
 
-# Create the iris_analysis directory and copy the definitions.py file
+# Add our project specific code
 RUN mkdir -p /lana-dw/
 COPY src/definitions.py /lana-dw/definitions.py
 
