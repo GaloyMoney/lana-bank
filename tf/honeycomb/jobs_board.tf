@@ -37,7 +37,7 @@ data "honeycombio_query_specification" "attempt" {
   filter {
     column = "attempt"
     op     = ">"
-    value = "1"
+    value  = "1"
   }
 
   breakdowns = ["attempt"]

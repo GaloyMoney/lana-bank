@@ -5,13 +5,13 @@ data "honeycombio_query_specification" "error_warnings" {
 
   filter {
     column = "error"
-    op     = "equals"
-    value = "true"
+    op     = "="
+    value  = "true"
   }
 
   filter {
     column = "span.kind"
-    op     = "does-not-exists"
+    op     = "does-not-exist"
   }
 
   breakdowns = ["error", "level", "exception.message"]
