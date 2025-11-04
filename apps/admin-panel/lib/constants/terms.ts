@@ -16,5 +16,5 @@ export const DEFAULT_TERMS = {
   ACCRUAL_CYCLE_INTERVAL: InterestInterval.EndOfMonth,
   ACCRUAL_INTERVAL: InterestInterval.EndOfDay,
   DURATION_PERIOD: Period.Months,
-  DISBURSAL_POLICY: DisbursalPolicy.MultipleDisbursal,
+  DISBURSAL_POLICY: DisbursalPolicy.SingleDisbursal,
 }

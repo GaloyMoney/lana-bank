@@ -85,7 +85,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
     initialCvl: "",
     durationUnits: "",
     oneTimeFeeRate: "",
-    disbursalPolicy: DisbursalPolicy.MultipleDisbursal,
+    disbursalPolicy: DisbursalPolicy.SingleDisbursal,
   })
   const [error, setError] = useState<string | null>(null)
 
@@ -174,7 +174,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
       initialCvl: "",
       durationUnits: "",
       oneTimeFeeRate: "",
-      disbursalPolicy: DisbursalPolicy.MultipleDisbursal,
+      disbursalPolicy: DisbursalPolicy.SingleDisbursal,
     })
     setError(null)
   }

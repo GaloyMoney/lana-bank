@@ -87,7 +87,7 @@ where
         )
         .await?;
         let history = self.histories.load(id).await?;
-        Ok(history.entries.into_iter().rev().map(T::from).collect())
+        Ok(history.entries.into_iter().map(T::from).collect())
     }
 
     pub async fn repayment_plan<T: From<CreditFacilityRepaymentPlanEntry>>(
