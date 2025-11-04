@@ -10,6 +10,4 @@ pub enum ChartLedgerError {
     CalaAccountSet(#[from] cala_ledger::account_set::error::AccountSetError),
     #[error("ChartLedgerError - Velocity: {0}")]
     Velocity(#[from] cala_ledger::velocity::error::VelocityError),
-    #[error("ChartLedgerError - CalaAccount: {0}")]
-    Account(#[from] cala_ledger::account::error::AccountError),
 }
