@@ -184,7 +184,6 @@ where
         }
     }
 
-
     /// Closes currently open annual Accounting Period under the given
     /// Chart of Accounts, at current time, and returns next
     /// Accounting Period. Fails if no such Accounting Period is

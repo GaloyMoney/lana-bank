@@ -98,10 +98,7 @@ impl AccountingPeriodLedger {
 
         let closing_transaction_params = ClosingTransactionParams::new(
             self.journal_id,
-            description.unwrap_or(format!(
-                "Annual Closing {}",
-                accounting_period.designation()
-            )),
+            description.unwrap_or(format!("Annual Closing {accounting_period}",)),
             accounting_period.period_end(),
             closing_entries,
         );
@@ -109,7 +106,7 @@ impl AccountingPeriodLedger {
         let template = ClosingTransactionTemplate::init(
             &self.cala,
             closing_transaction_params.closing_entries.len(),
-            accounting_period.designation(),
+            accounting_period.to_string(),
         )
         .await?;
 
@@ -277,7 +274,7 @@ impl AccountingPeriodLedger {
         let account = if net_earnings >= Decimal::ZERO {
             self.create_account_in_op(
                 op,
-                &format!("Retained Earnings {}", accounting_period.designation()),
+                &format!("Retained Earnings {accounting_period}"),
                 DebitOrCredit::Credit,
                 accounting_period
                     .account_set_ids
@@ -287,7 +284,7 @@ impl AccountingPeriodLedger {
         } else {
             self.create_account_in_op(
                 op,
-                &format!("Retained Losses {}", accounting_period.designation()),
+                &format!("Retained Losses {accounting_period}"),
                 DebitOrCredit::Debit,
                 accounting_period
                     .account_set_ids

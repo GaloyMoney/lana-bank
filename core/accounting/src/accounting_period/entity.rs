@@ -60,20 +60,6 @@ impl AccountingPeriod {
         self.period.period_start()
     }
 
-    /// Returns human-readable representation of this Accounting
-    /// Period.
-    pub fn designation(&self) -> String {
-        if self.is_annual() {
-            self.period_start().year().to_string()
-        } else {
-            format!(
-                "{:02}/{}",
-                self.period_start().month(),
-                self.period_start().year()
-            )
-        }
-    }
-
     /// Closes this Accounting Period if all temporal conditions are
     /// met, otherwise returns an error describing the unfulfilled
     /// condition. Returns a blueprint for the next Accounting Period
@@ -133,6 +119,21 @@ impl AccountingPeriod {
                 grace_period_start: self.period.grace_period_start(),
                 grace_period_end: self.period.grace_period_end(),
             })
+        }
+    }
+}
+
+impl std::fmt::Display for AccountingPeriod {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.is_annual() {
+            write!(f, "{}", self.period_start().year())
+        } else {
+            write!(
+                f,
+                "{:02}/{}",
+                self.period_start().month(),
+                self.period_start().year()
+            )
         }
     }
 }
