@@ -231,9 +231,6 @@ checksums:
     Customers/CustomerDetails/depositAccount/labels/checkingSettled: 08322f64253c1bfbc8fe14cb3c1a2174
     Customers/CustomerDetails/depositAccount/labels/pendingWithdrawals: 790c83ce094081b2db9e0064dec0ad41
     Customers/CustomerDetails/depositAccount/labels/status: 4e1fcce15854d824919b4a582c697c90
-    Customers/CustomerDetails/depositAccount/status/active: 3e1ec025c4a50830bbb9ad57a176630a
-    Customers/CustomerDetails/depositAccount/status/frozen: 8bde74d6d5222cf63bb08a7f5044b86d
-    Customers/CustomerDetails/depositAccount/status/inactive: 239e3b722db75bbafc6c628a2685eed2
     Customers/CustomerDetails/depositAccount/buttons/viewDetails: f89b1a0b178c4e8448cdbee27998ed03
     Customers/CustomerDetails/depositAccount/noAccount: 3465bf6d32af0dac4183cb0b306f74d2
     Customers/CustomerDetails/updateTelegram/title: eae68442cc96d8e9715e82d49633eb65
