@@ -14,42 +14,51 @@ import {
 import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
 import Balance from "@/components/balance/balance"
-import DataTable, { Column } from "@/components/data-table"
-import { GetCustomerTransactionHistoryQuery } from "@/lib/graphql/generated"
+import PaginatedTable, { Column, PaginatedData } from "@/components/paginated-table"
+import { GetDepositAccountDetailsQuery } from "@/lib/graphql/generated"
 import { WithdrawalStatusBadge } from "@/app/withdrawals/status-badge"
 import { DepositStatusBadge } from "@/app/deposits/status-badge"
 import { DisbursalStatusBadge } from "@/app/disbursals/status-badge"
 
 type HistoryNode = NonNullable<
-  NonNullable<GetCustomerTransactionHistoryQuery["customerByPublicId"]>["depositAccount"]
->["history"]["edges"][number]["node"]
+  NonNullable<GetDepositAccountDetailsQuery["depositAccountByPublicId"]>["history"]
+>["edges"][number]["node"]
 
-type CustomerTransactionsTableProps = {
-  historyEntries: HistoryNode[]
+type HistoryConnection = NonNullable<
+  GetDepositAccountDetailsQuery["depositAccountByPublicId"]
+>["history"]
+
+type DepositAccountTransactionsTableProps = {
+  history: HistoryConnection
+  loading: boolean
+  fetchMore: (variables: { variables: { after: string } }) => Promise<unknown>
 }
 
-export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps> = ({
-  historyEntries,
-}) => {
-  const t = useTranslations("Customers.CustomerDetails.transactions")
+export const DepositAccountTransactionsTable: React.FC<
+  DepositAccountTransactionsTableProps
+> = ({ history, loading, fetchMore }) => {
+  const t = useTranslations("DepositAccounts.DepositAccountDetails.transactions")
 
-  // TEMP FIX: for unknown entries
-  const validEntries = historyEntries.filter(
-    (entry) =>
-      entry.__typename &&
-      [
-        "DepositEntry",
-        "WithdrawalEntry",
-        "CancelledWithdrawalEntry",
-        "DisbursalEntry",
-        "PaymentEntry",
-      ].includes(entry.__typename),
-  )
+  //  TEMP FIX: for unknown entries
+  const filteredHistory = {
+    ...history,
+    edges: history.edges.filter(
+      (edge) =>
+        edge.node.__typename &&
+        [
+          "DepositEntry",
+          "WithdrawalEntry",
+          "CancelledWithdrawalEntry",
+          "DisbursalEntry",
+          "PaymentEntry",
+        ].includes(edge.node.__typename),
+    ),
+  }
 
   const columns: Column<HistoryNode>[] = [
     {
       key: "__typename",
-      header: t("table.headers.date"),
+      label: t("table.headers.date"),
       render: (_: HistoryNode["__typename"], entry: { recordedAt: string }) => {
         if (!entry.recordedAt) return "-"
         return <DateWithTooltip value={entry.recordedAt} />
@@ -57,7 +66,7 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
     },
     {
       key: "__typename",
-      header: t("table.headers.type"),
+      label: t("table.headers.type"),
       render: (type: HistoryNode["__typename"]) => {
         switch (type) {
           case "DepositEntry":
@@ -76,7 +85,7 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
     },
     {
       key: "__typename",
-      header: t("table.headers.amount"),
+      label: t("table.headers.amount"),
       render: (_: HistoryNode["__typename"], entry: HistoryNode) => {
         switch (entry.__typename) {
           case "DepositEntry":
@@ -95,7 +104,7 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
     },
     {
       key: "__typename",
-      header: t("table.headers.status"),
+      label: t("table.headers.status"),
       render: (_: HistoryNode["__typename"], entry: HistoryNode) => {
         switch (entry.__typename) {
           case "DepositEntry":
@@ -112,18 +121,20 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
     },
   ]
 
-  const getNavigateUrl = (entry: HistoryNode): string | null => {
-    switch (entry.__typename) {
-      case "DepositEntry":
-        return `/deposits/${entry.deposit.publicId}`
-      case "WithdrawalEntry":
-      case "CancelledWithdrawalEntry":
-        return `/withdrawals/${entry.withdrawal.publicId}`
-      case "DisbursalEntry":
-        return `/disbursals/${entry.disbursal.publicId}`
-      default:
-        return null
+  const getNavigateUrl = (entry: HistoryNode): string => {
+    if (entry.__typename === "DepositEntry") {
+      return `/deposits/${entry.deposit.publicId}`
     }
+    if (
+      entry.__typename === "WithdrawalEntry" ||
+      entry.__typename === "CancelledWithdrawalEntry"
+    ) {
+      return `/withdrawals/${entry.withdrawal.publicId}`
+    }
+    if (entry.__typename === "DisbursalEntry") {
+      return `/disbursals/${entry.disbursal.publicId}`
+    }
+    return ""
   }
 
   return (
@@ -133,13 +144,13 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
         <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
-        <DataTable
-          data={validEntries}
+        <PaginatedTable<HistoryNode>
           columns={columns}
-          emptyMessage={t("table.empty")}
+          data={filteredHistory as PaginatedData<HistoryNode>}
+          loading={loading}
+          fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
+          pageSize={100}
           navigateTo={getNavigateUrl}
-          className="w-full table-fixed"
-          headerClassName="bg-secondary [&_tr:hover]:!bg-secondary"
         />
       </CardContent>
     </Card>

@@ -39,6 +39,8 @@ gql`
           customerId
           publicId
           depositAccount {
+            id
+            publicId
             balance {
               settled
               pending

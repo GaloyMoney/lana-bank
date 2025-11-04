@@ -156,6 +156,7 @@
       "termTemplates": "Plantillas de Términos",
       "customers": "Clientes",
       "policies": "Políticas",
+      "depositAccounts": "Cuentas de Depósito",
       "deposits": "Depósitos",
       "withdrawals": "Retiros",
       "auditLogs": "Registros de Auditoría",
@@ -354,9 +355,7 @@
           "inactive": "Inactivo"
         },
         "buttons": {
-          "viewLedgerAccount": "Ver Cuenta del Libro Mayor",
-          "freezeDepositAccount": "Congelar Cuenta de Depósito",
-          "unfreezeDepositAccount": "Descongelar Cuenta de Depósito"
+          "viewDetails": "Ver Detalles"
         },
         "noAccount": "No hay cuenta de depósito disponible"
       },
@@ -1072,6 +1071,7 @@
           "status": "Estado"
         },
         "buttons": {
+          "viewDepositAccount": "Ver Cuenta de Depósito",
           "approve": "Aprobar",
           "deny": "Rechazar",
           "viewCreditFacility": "Ver Línea de Crédito"
@@ -1399,6 +1399,78 @@
       }
     }
   },
+  "DepositAccounts": {
+    "title": "Cuentas de Depósito",
+    "description": "Cuentas de depósito de clientes para gestionar fondos y transacciones",
+    "table": {
+      "headers": {
+        "depositAccountId": "ID de Cuenta",
+        "customer": "Cliente",
+        "settledBalance": "Saldo Liquidado",
+        "pendingBalance": "Saldo Pendiente",
+        "status": "Estado"
+      },
+      "errors": {
+        "general": "Ocurrió un error al obtener las cuentas de depósito."
+      }
+    },
+    "status": {
+      "active": "Activa",
+      "frozen": "Congelada",
+      "inactive": "Inactiva"
+    },
+    "DepositAccountDetails": {
+      "DepositAccountDetailsCard": {
+        "title": "Cuenta de Depósito",
+        "fields": {
+          "customerEmail": "Correo del Cliente",
+          "settledBalance": "Saldo Liquidado",
+          "pendingBalance": "Saldo Pendiente",
+          "createdAt": "Fecha de Creación",
+          "status": "Estado"
+        },
+        "buttons": {
+          "viewLedgerAccount": "Ver Cuenta del Libro Mayor",
+          "freezeDepositAccount": "Congelar Cuenta de Depósito"
+        }
+      },
+      "freezeDepositAccount": {
+        "title": "Congelar Cuenta de Depósito",
+        "description": "¿Está seguro de que desea congelar esta cuenta de depósito? Esta acción evitará más depósitos y retiros.",
+        "fields": {
+          "settledBalance": "Saldo Liquidado",
+          "pendingBalance": "Saldo Pendiente"
+        },
+        "buttons": {
+          "freeze": "Congelar Cuenta"
+        },
+        "success": "Cuenta de depósito congelada exitosamente",
+        "errors": {
+          "noData": "No se recibieron datos del servidor",
+          "unknown": "Ocurrió un error inesperado"
+        }
+      },
+      "transactions": {
+        "title": "Historial de Transacciones",
+        "description": "Todos los depósitos, retiros, desembolsos y pagos de esta cuenta",
+        "table": {
+          "headers": {
+            "date": "Fecha",
+            "type": "Tipo",
+            "amount": "Monto",
+            "status": "Estado"
+          },
+          "types": {
+            "deposit": "Depósito",
+            "withdrawal": "Retiro",
+            "disbursal": "Desembolso",
+            "payment": "Pago"
+          },
+          "empty": "No se encontraron transacciones"
+        }
+      }
+    }
+  },
   "Deposits": {
     "title": "Depósitos",
     "description": "Sumas de dinero añadidas desde líneas de crédito a las cuentas del cliente",
@@ -1473,6 +1545,7 @@
           "na": "N/A"
         },
         "buttons": {
+          "viewDepositAccount": "Ver Cuenta de Depósito",
           "revert": "Revertir",
           "viewOnSumsub": "Ver en Sumsub"
         }
@@ -1577,6 +1650,7 @@
           "na": "N/A"
         },
         "buttons": {
+          "viewDepositAccount": "Ver Cuenta de Depósito",
           "confirm": "Confirmar",
           "cancel": "Cancelar",
           "approve": "Aprobar",

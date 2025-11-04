@@ -3,6 +3,7 @@
 import React, { useState } from "react"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
+import { ArrowRight } from "lucide-react"
 
 import { Button } from "@lana/web/ui/button"
 
@@ -51,6 +52,16 @@ export const DisbursalDetailsCard: React.FC<DisbursalDetailsProps> = ({ disbursa
 
   const footerContent = (
     <>
+      {disbursal.creditFacility.customer.depositAccount && (
+        <Button asChild variant="outline">
+          <Link
+            href={`/deposit-accounts/${disbursal.creditFacility.customer.depositAccount.publicId}`}
+          >
+            {t("buttons.viewDepositAccount")}
+            <ArrowRight />
+          </Link>
+        </Button>
+      )}
       {disbursal.approvalProcess?.status === ApprovalProcessStatus.InProgress &&
         disbursal.approvalProcess.userCanSubmitDecision && (
           <>

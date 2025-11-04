@@ -2,12 +2,21 @@
 
 import React, { useState } from "react"
 import { useTranslations } from "next-intl"
+import Link from "next/link"
 
 import { Button } from "@lana/web/ui/button"
 
 import { formatDate } from "@lana/web/utils"
 
-import { ExternalLinkIcon, Check, X, RotateCcw, CheckCircle, XCircle } from "lucide-react"
+import {
+  ArrowRight,
+  ExternalLinkIcon,
+  Check,
+  X,
+  RotateCcw,
+  CheckCircle,
+  XCircle,
+} from "lucide-react"
 
 import { WithdrawalStatusBadge } from "../status-badge"
 
@@ -74,6 +83,12 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({ withdrawal })
 
   const footerContent = (
     <>
+      <Button asChild variant="outline">
+        <Link href={`/deposit-accounts/${withdrawal.account.publicId}`}>
+          {t("buttons.viewDepositAccount")}
+          <ArrowRight />
+        </Link>
+      </Button>
       {withdrawal.status === WithdrawalStatus.PendingConfirmation && (
         <>
           <Button

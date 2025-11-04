@@ -56,6 +56,7 @@ export function useNavItems() {
   ]
 
   const navTransactionItems: NavItem[] = [
+    { title: t("depositAccounts"), url: "/deposit-accounts", icon: DollarSign },
     { title: t("deposits"), url: "/deposits", icon: ArrowDownCircle },
     { title: t("withdrawals"), url: "/withdrawals", icon: ArrowUpCircle },
   ]
