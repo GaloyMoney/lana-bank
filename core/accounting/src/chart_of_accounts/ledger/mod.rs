@@ -13,6 +13,7 @@ use cala_ledger::{
 use error::*;
 
 use crate::Chart;
+use crate::accounting_period::ClosingMetadata;
 
 #[derive(Clone)]
 pub struct ChartLedger {
@@ -71,10 +72,7 @@ impl ChartLedger {
             .clone()
             .metadata
             .unwrap_or_else(|| serde_json::json!({}));
-        crate::accounting_period::ClosingMetadata::update_metadata(
-            &mut metadata,
-            chart.closing.closed_as_of,
-        );
+        ClosingMetadata::update_metadata(&mut metadata, chart.closing.closed_as_of);
 
         let mut update_values = AccountSetUpdate::default();
         update_values
@@ -100,8 +98,7 @@ impl ChartLedger {
         &self,
         op: &mut LedgerOperation<'_>,
     ) -> Result<VelocityControlId, ChartLedgerError> {
-        let monthly_cel_conditions =
-            crate::accounting_period::ClosingMetadata::monthly_cel_conditions();
+        let monthly_cel_conditions = ClosingMetadata::monthly_cel_conditions();
 
         let new_control = NewVelocityControl::builder()
             .id(VelocityControlId::new())
