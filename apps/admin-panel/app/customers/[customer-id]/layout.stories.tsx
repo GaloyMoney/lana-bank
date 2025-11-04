@@ -1,11 +1,78 @@
 import type { Meta, StoryObj } from "@storybook/nextjs"
-import { MockedProvider } from "@apollo/client/testing"
+import type { MockedResponse } from "@apollo/client/testing"
 
 import CustomerLayout from "./layout"
 
-import { KycVerification, GetCustomerBasicDetailsDocument } from "@/lib/graphql/generated"
+import {
+  Activity,
+  CustomerType,
+  DepositAccountStatus,
+  GetCustomerBasicDetailsDocument,
+  KycVerification,
+} from "@/lib/graphql/generated"
 
-const meta = {
+const CUSTOMER_ID = "4178b451-c9cb-4841-b248-5cc20e7774a6"
+
+const buildParams = () => Promise.resolve({ "customer-id": CUSTOMER_ID })
+
+const baseMock = {
+  request: {
+    query: GetCustomerBasicDetailsDocument,
+    variables: {
+      id: CUSTOMER_ID,
+    },
+  },
+  result: {
+    data: {
+      customerByPublicId: {
+        __typename: "Customer",
+        id: "Customer:4178b451-c9cb-4841-b248-5cc20e7774a6",
+        customerId: CUSTOMER_ID,
+        email: "test@lana.com",
+        telegramId: "telegramUser",
+        kycVerification: KycVerification.Verified,
+        activity: Activity.Active,
+        level: "LEVEL_2",
+        customerType: CustomerType.Individual,
+        createdAt: "2024-11-25T06:23:56.549713Z",
+        publicId: "CUS-001",
+        depositAccount: {
+          __typename: "DepositAccount",
+          id: "DepositAccount:123",
+          status: DepositAccountStatus.Active,
+          publicId: "DEP-001",
+          depositAccountId: "dep-account-123",
+          balance: {
+            __typename: "DepositAccountBalance",
+            settled: 1500000,
+            pending: 250000,
+          },
+          ledgerAccounts: {
+            __typename: "DepositAccountLedgerAccounts",
+            depositAccountId: "ledger-acc-123",
+            frozenDepositAccountId: "ledger-acc-frozen-123",
+          },
+        },
+      },
+    },
+  },
+}
+
+const loadingMock = {
+  request: {
+    query: GetCustomerBasicDetailsDocument,
+    variables: {
+      id: CUSTOMER_ID,
+    },
+  },
+  delay: Infinity,
+}
+
+type StoryProps = React.ComponentProps<typeof CustomerLayout> & {
+  mocks?: MockedResponse[]
+}
+
+const meta: Meta<StoryProps> = {
   title: "Pages/Customers/Customer/Layout",
   component: CustomerLayout,
   parameters: {
@@ -14,81 +81,37 @@ const meta = {
       appDirectory: true,
     },
   },
-} satisfies Meta<typeof CustomerLayout>
+  argTypes: {
+    mocks: { control: false },
+  },
+}
 
 export default meta
-type Story = StoryObj<typeof meta>
 
-const mockParams = { "customer-id": "4178b451-c9cb-4841-b248-5cc20e7774a6" }
+type Story = StoryObj<StoryProps>
 
-const baseMocks = [
-  {
-    request: {
-      query: GetCustomerBasicDetailsDocument,
-      variables: {
-        id: "4178b451-c9cb-4841-b248-5cc20e7774a6",
-      },
-    },
-    result: {
-      data: {
-        customer: {
-          id: "Customer:4178b451-c9cb-4841-b248-5cc20e7774a6",
-          customerId: "4178b451-c9cb-4841-b248-5cc20e7774a6",
-          email: "test@lana.com",
-          telegramId: "test",
-          kycVerification: KycVerification.Rejected,
-          level: "NOT_KYCED",
-          createdAt: "2024-11-25T06:23:56.549713Z",
-        },
-      },
-    },
-  },
-]
-
-const LoadingStory = () => {
-  const mocks = [
-    {
-      request: {
-        query: GetCustomerBasicDetailsDocument,
-        variables: {
-          id: "4178b451-c9cb-4841-b248-5cc20e7774a6",
-        },
-      },
-      delay: Infinity,
-    },
-  ]
-
-  return (
-    <MockedProvider mocks={mocks} addTypename={false}>
-      <CustomerLayout params={Promise.resolve(mockParams)}>
-        <div className="border flex justify-center items-center p-12">TAB CONTENT</div>
-      </CustomerLayout>
-    </MockedProvider>
-  )
-}
+const tabPlaceholder = (
+  <div className="border flex justify-center items-center p-12">TAB CONTENT</div>
+)
 
 export const Default: Story = {
   args: {
-    params: Promise.resolve(mockParams),
-    children: (
-      <div className="border flex justify-center items-center p-12">TAB CONTENT</div>
-    ),
+    params: buildParams(),
+    children: tabPlaceholder,
+    mocks: [baseMock],
   },
-  decorators: [
-    (Story) => (
-      <MockedProvider mocks={baseMocks} addTypename={false}>
-        <Story />
-      </MockedProvider>
-    ),
-  ],
+  render: ({ params, children }) => (
+    <CustomerLayout params={params}>{children}</CustomerLayout>
+  ),
 }
 
 export const Loading: Story = {
   args: {
-    params: Promise.resolve(mockParams),
-    children: (
-      <div className="border flex justify-center items-center p-12">TAB CONTENT</div>
-    ),
+    params: buildParams(),
+    children: tabPlaceholder,
+    mocks: [loadingMock],
   },
-  render: LoadingStory,
+  render: ({ params, children }) => (
+    <CustomerLayout params={params}>{children}</CustomerLayout>
+  ),
 }

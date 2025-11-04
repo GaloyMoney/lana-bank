@@ -3466,12 +3466,12 @@ export type GetDepositAccountDetailsQueryVariables = Exact<{
 
 
 export type GetDepositAccountDetailsQuery = { __typename?: 'Query', depositAccountByPublicId?: { __typename?: 'DepositAccount', id: string, publicId: any, depositAccountId: string, createdAt: any, status: DepositAccountStatus, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string }, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string }, history: { __typename?: 'DepositAccountHistoryEntryConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null, hasPreviousPage: boolean, startCursor?: string | null }, edges: Array<{ __typename?: 'DepositAccountHistoryEntryEdge', cursor: string, node:
-          | { __typename: 'CancelledWithdrawalEntry', recordedAt: any, withdrawal: { __typename: 'Withdrawal', id: string, withdrawalId: string, publicId: any, accountId: string, amount: UsdCents, createdAt: any, reference: string, status: WithdrawalStatus } }
-          | { __typename: 'DepositEntry', recordedAt: any, deposit: { __typename: 'Deposit', id: string, depositId: string, publicId: any, accountId: string, amount: UsdCents, createdAt: any, reference: string, status: DepositStatus } }
-          | { __typename: 'DisbursalEntry', recordedAt: any, disbursal: { __typename: 'CreditFacilityDisbursal', id: string, disbursalId: string, publicId: any, amount: UsdCents, createdAt: any, status: DisbursalStatus } }
-          | { __typename: 'PaymentEntry', recordedAt: any, payment: { __typename: 'CreditFacilityPaymentAllocation', id: string, paymentAllocationId: string, amount: UsdCents, createdAt: any } }
-          | { __typename: 'UnknownEntry' }
-          | { __typename: 'WithdrawalEntry', recordedAt: any, withdrawal: { __typename: 'Withdrawal', id: string, withdrawalId: string, publicId: any, accountId: string, amount: UsdCents, createdAt: any, reference: string, status: WithdrawalStatus } }
+          | { __typename: 'CancelledWithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, publicId: any, accountId: string, amount: UsdCents, createdAt: any, reference: string, status: WithdrawalStatus } }
+          | { __typename: 'DepositEntry', recordedAt: any, deposit: { __typename?: 'Deposit', id: string, depositId: string, publicId: any, accountId: string, amount: UsdCents, createdAt: any, reference: string, status: DepositStatus } }
+          | { __typename: 'DisbursalEntry', recordedAt: any, disbursal: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, publicId: any, amount: UsdCents, createdAt: any, status: DisbursalStatus } }
+          | { __typename: 'PaymentEntry', recordedAt: any, payment: { __typename?: 'CreditFacilityPaymentAllocation', id: string, paymentAllocationId: string, amount: UsdCents, createdAt: any } }
+          | { __typename?: 'UnknownEntry' }
+          | { __typename: 'WithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, publicId: any, accountId: string, amount: UsdCents, createdAt: any, reference: string, status: WithdrawalStatus } }
          }> } } | null };
 
 export type DepositAccountFieldsFragment = { __typename?: 'DepositAccount', id: string, publicId: any, createdAt: any, status: DepositAccountStatus, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, customer: { __typename?: 'Customer', customerId: string, email: string, publicId: any } };
@@ -7182,11 +7182,10 @@ export const GetDepositAccountDetailsDocument = gql`
       edges {
         cursor
         node {
-          __typename
           ... on DepositEntry {
+            __typename
             recordedAt
             deposit {
-              __typename
               id
               depositId
               publicId
@@ -7198,9 +7197,9 @@ export const GetDepositAccountDetailsDocument = gql`
             }
           }
           ... on WithdrawalEntry {
+            __typename
             recordedAt
             withdrawal {
-              __typename
               id
               withdrawalId
               publicId
@@ -7212,9 +7211,9 @@ export const GetDepositAccountDetailsDocument = gql`
             }
           }
           ... on CancelledWithdrawalEntry {
+            __typename
             recordedAt
             withdrawal {
-              __typename
               id
               withdrawalId
               publicId
@@ -7226,9 +7225,9 @@ export const GetDepositAccountDetailsDocument = gql`
             }
           }
           ... on DisbursalEntry {
+            __typename
             recordedAt
             disbursal {
-              __typename
               id
               disbursalId
               publicId
@@ -7238,9 +7237,9 @@ export const GetDepositAccountDetailsDocument = gql`
             }
           }
           ... on PaymentEntry {
+            __typename
             recordedAt
             payment {
-              __typename
               id
               paymentAllocationId
               amount
