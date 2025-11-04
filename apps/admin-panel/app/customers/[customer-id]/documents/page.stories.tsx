@@ -1,18 +1,121 @@
 import type { Meta, StoryObj } from "@storybook/nextjs"
-import { MockedProvider } from "@apollo/client/testing"
+
+import type { MockedResponse } from "@apollo/client/testing"
 
 import CustomerLayout from "../layout"
 
 import CustomerDocumentsPage from "./page"
 
 import {
-  GetCustomerDocumentsDocument,
-  GetCustomerBasicDetailsDocument,
-  KycVerification,
   Activity,
+  CustomerType,
+  DepositAccountStatus,
+  GetCustomerBasicDetailsDocument,
+  GetCustomerDocumentsDocument,
+  KycVerification,
 } from "@/lib/graphql/generated"
 
-const meta = {
+const CUSTOMER_ID = "4178b451-c9cb-4841-b248-5cc20e7774a6"
+
+const buildParams = () => Promise.resolve({ "customer-id": CUSTOMER_ID })
+
+const customerDetailsMock: MockedResponse = {
+  request: {
+    query: GetCustomerBasicDetailsDocument,
+    variables: {
+      id: CUSTOMER_ID,
+    },
+  },
+  result: {
+    data: {
+      customerByPublicId: {
+        __typename: "Customer",
+        id: "Customer:4178b451-c9cb-4841-b248-5cc20e7774a6",
+        customerId: CUSTOMER_ID,
+        email: "test@lana.com",
+        telegramId: "telegramUser",
+        kycVerification: KycVerification.Verified,
+        activity: Activity.Active,
+        level: "LEVEL_2",
+        customerType: CustomerType.Individual,
+        createdAt: "2024-11-25T06:23:56.549713Z",
+        publicId: "CUS-001",
+        depositAccount: {
+          __typename: "DepositAccount",
+          id: "DepositAccount:123",
+          status: DepositAccountStatus.Active,
+          publicId: "DEP-001",
+          depositAccountId: "dep-account-123",
+          balance: {
+            __typename: "DepositAccountBalance",
+            settled: 1500000,
+            pending: 250000,
+          },
+          ledgerAccounts: {
+            __typename: "DepositAccountLedgerAccounts",
+            depositAccountId: "ledger-acc-123",
+            frozenDepositAccountId: "ledger-acc-frozen-123",
+          },
+        },
+      },
+    },
+  },
+}
+
+const documentsMock: MockedResponse = {
+  request: {
+    query: GetCustomerDocumentsDocument,
+    variables: {
+      id: CUSTOMER_ID,
+    },
+  },
+  result: {
+    data: {
+      customerByPublicId: {
+        __typename: "Customer",
+        id: "Customer:4178b451-c9cb-4841-b248-5cc20e7774a6",
+        documents: [
+          {
+            __typename: "Document",
+            id: "doc-001",
+            documentId: "doc-001",
+            filename: "passport.pdf",
+          },
+          {
+            __typename: "Document",
+            id: "doc-002",
+            documentId: "doc-002",
+            filename: "address-proof.pdf",
+          },
+        ],
+      },
+    },
+  },
+}
+
+const emptyDocumentsMock: MockedResponse = {
+  request: {
+    query: GetCustomerDocumentsDocument,
+    variables: {
+      id: CUSTOMER_ID,
+    },
+  },
+  result: {
+    data: {
+      customerByPublicId: {
+        __typename: "Customer",
+        id: "Customer:4178b451-c9cb-4841-b248-5cc20e7774a6",
+        documents: [],
+      },
+    },
+  },
+}
+
+type StoryProps = React.ComponentProps<typeof CustomerDocumentsPage> & {
+  mocks?: MockedResponse[]
+}
+
+const meta: Meta<StoryProps> = {
   title: "Pages/Customers/Customer/Documents",
   component: CustomerDocumentsPage,
   parameters: {
@@ -21,80 +124,33 @@ const meta = {
       appDirectory: true,
     },
   },
-} satisfies Meta<typeof CustomerDocumentsPage>
+  argTypes: {
+    mocks: { control: false },
+  },
+}
 
 export default meta
-type Story = StoryObj<typeof meta>
 
-const mockParams = { "customer-id": "4178b451-c9cb-4841-b248-5cc20e7774a6" }
+type Story = StoryObj<StoryProps>
 
-const layoutMocks = [
-  {
-    request: {
-      query: GetCustomerBasicDetailsDocument,
-      variables: {
-        id: "4178b451-c9cb-4841-b248-5cc20e7774a6",
-      },
-    },
-    result: {
-      data: {
-        customer: {
-          id: "Customer:4178b451-c9cb-4841-b248-5cc20e7774a6",
-          customerId: "4178b451-c9cb-4841-b248-5cc20e7774a6",
-          email: "test@lana.com",
-          telegramId: "test",
-          kycVerification: KycVerification.Rejected,
-          activity: Activity.Active,
-          level: "NOT_KYCED",
-          createdAt: "2024-11-25T06:23:56.549713Z",
-        },
-      },
-    },
-  },
-]
-
-const documentsMocks = [
-  {
-    request: {
-      query: GetCustomerDocumentsDocument,
-      variables: {
-        id: "4178b451-c9cb-4841-b248-5cc20e7774a6",
-      },
-    },
-    result: {
-      data: {
-        customer: {
-          id: "Customer:4178b451-c9cb-4841-b248-5cc20e7774a6",
-          customerId: "4178b451-c9cb-4841-b248-5cc20e7774a6",
-          documents: [
-            {
-              id: "1",
-              filename: "passport.pdf",
-            },
-            {
-              id: "2",
-              filename: "driver-license.pdf",
-            },
-          ],
-        },
-      },
-    },
-  },
-]
+const renderWithLayout = ({ params }: StoryProps) => (
+  <CustomerLayout params={params}>
+    <CustomerDocumentsPage params={params} />
+  </CustomerLayout>
+)
 
 export const Default: Story = {
   args: {
-    params: Promise.resolve(mockParams),
+    params: buildParams(),
+    mocks: [customerDetailsMock, documentsMock],
   },
-  decorators: [
-    (Story) => (
-      <MockedProvider mocks={layoutMocks} addTypename={false}>
-        <CustomerLayout params={Promise.resolve(mockParams)}>
-          <MockedProvider mocks={documentsMocks} addTypename={false}>
-            <Story />
-          </MockedProvider>
-        </CustomerLayout>
-      </MockedProvider>
-    ),
-  ],
+  render: renderWithLayout,
+}
+
+export const Empty: Story = {
+  args: {
+    params: buildParams(),
+    mocks: [customerDetailsMock, emptyDocumentsMock],
+  },
+  render: renderWithLayout,
 }

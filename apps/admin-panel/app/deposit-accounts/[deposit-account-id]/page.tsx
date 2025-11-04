@@ -46,6 +46,7 @@ gql`
           cursor
           node {
             ... on DepositEntry {
+              __typename
               recordedAt
               deposit {
                 id
@@ -59,6 +60,7 @@ gql`
               }
             }
             ... on WithdrawalEntry {
+              __typename
               recordedAt
               withdrawal {
                 id
@@ -72,6 +74,7 @@ gql`
               }
             }
             ... on CancelledWithdrawalEntry {
+              __typename
               recordedAt
               withdrawal {
                 id
@@ -85,6 +88,7 @@ gql`
               }
             }
             ... on DisbursalEntry {
+              __typename
               recordedAt
               disbursal {
                 id
@@ -96,6 +100,7 @@ gql`
               }
             }
             ... on PaymentEntry {
+              __typename
               recordedAt
               payment {
                 id
