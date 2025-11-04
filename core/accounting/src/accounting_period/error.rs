@@ -11,8 +11,10 @@ pub enum AccountingPeriodError {
     EsEntityError(es_entity::EsEntityError),
     #[error("AccountingPeriodError - CursorDestructureError: {0}")]
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
-    #[error("AccountingPeriodError - NoOpenAccountingPeriodFound")]
-    NoOpenAccountingPeriodFound,
+    #[error("AccountingPeriodError - NoOpenMonthlyAccountingPeriodFound")]
+    NoOpenMonthlyAccountingPeriodFound,
+    #[error("AccountingPeriodError - NoOpenAnnualAccountingPeriodFound")]
+    NoOpenAnnualAccountingPeriodFound,
     #[error("AccountingPeriodError - PeriodAlreadyClosed")]
     PeriodAlreadyClosed,
     #[error(

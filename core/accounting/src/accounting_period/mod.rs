@@ -158,17 +158,19 @@ where
                 CoreAccountingAction::ACCOUNTING_PERIOD_CLOSE,
             )
             .await?;
-        let mut open_periods = self.repo.find_open_accounting_periods(chart_id).await?;
 
-        let open_period = open_periods
-            .iter_mut()
+        let mut open_period = self
+            .repo
+            .find_open_accounting_periods(chart_id)
+            .await?
+            .into_iter()
             .find(|p| p.is_monthly())
-            .ok_or(AccountingPeriodError::NoOpenAccountingPeriodFound)?;
+            .ok_or(AccountingPeriodError::NoOpenMonthlyAccountingPeriodFound)?;
         match open_period.close(closed_at, None)? {
             Idempotent::Executed(new) => {
                 let mut db = self.repo.begin_op().await?;
 
-                self.repo.update_in_op(&mut db, open_period).await?;
+                self.repo.update_in_op(&mut db, &mut open_period).await?;
                 let new_period = self.repo.create_in_op(&mut db, new).await?;
                 self.ledger
                     .update_close_metadata_in_op(
@@ -229,7 +231,7 @@ where
             let open_annual_period_index = open_periods
                 .iter()
                 .position(|p| p.is_annual())
-                .ok_or(AccountingPeriodError::NoOpenAccountingPeriodFound)?;
+                .ok_or(AccountingPeriodError::NoOpenAnnualAccountingPeriodFound)?;
 
             let open_annual_period = open_periods.remove(open_annual_period_index);
             (open_annual_period, open_periods)
