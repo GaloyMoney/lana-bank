@@ -28,7 +28,7 @@ jobs:
       - tap-postgres target-bigquery
   - name: dbt-bigquery-run
     tasks:
-      - dbt-bigquery:seed dbt-bigquery:run
+      - dbt-bigquery:deps dbt-bigquery:seed dbt-bigquery:run
   - name: test-dbt
     tasks:
       - dbt-bigquery:test
