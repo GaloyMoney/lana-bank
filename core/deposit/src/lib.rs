@@ -17,7 +17,6 @@ mod publisher;
 mod time;
 mod withdrawal;
 
-use deposit_account_cursor::DepositAccountsByCreatedAtCursor;
 use tracing::instrument;
 
 use audit::AuditSvc;
@@ -30,7 +29,7 @@ use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
 use public_id::PublicIds;
 
-pub use account::DepositAccount;
+pub use account::{DepositAccount, DepositAccountsByCreatedAtCursor};
 use account::*;
 pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
 pub use config::DepositConfig;
@@ -255,6 +254,26 @@ where
             .await?;
 
         Ok(self.deposit_accounts.maybe_find_by_id(id).await?)
+    }
+
+    #[instrument(name = "deposit.find_deposit_account_by_public_id", skip(self), err)]
+    pub async fn find_deposit_account_by_public_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        public_id: impl Into<public_id::PublicId> + std::fmt::Debug,
+    ) -> Result<Option<DepositAccount>, CoreDepositError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::all_deposit_accounts(),
+                CoreDepositAction::DEPOSIT_ACCOUNT_READ,
+            )
+            .await?;
+
+        Ok(self
+            .deposit_accounts
+            .maybe_find_by_public_id(public_id.into())
+            .await?)
     }
 
     #[instrument(name = "deposit.find_account_by_id_without_audit", skip(self), err)]
@@ -792,6 +811,28 @@ where
             .await?;
         Ok(self
             .deposits
+            .list_by_created_at(query, es_entity::ListDirection::Descending)
+            .await?)
+    }
+
+    #[instrument(name = "deposit.list_deposit_accounts", skip(self), err)]
+    pub async fn list_deposit_accounts(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        query: es_entity::PaginatedQueryArgs<DepositAccountsByCreatedAtCursor>,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<DepositAccount, DepositAccountsByCreatedAtCursor>,
+        CoreDepositError,
+    > {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::all_deposit_accounts(),
+                CoreDepositAction::DEPOSIT_ACCOUNT_LIST,
+            )
+            .await?;
+        Ok(self
+            .deposit_accounts
             .list_by_created_at(query, es_entity::ListDirection::Descending)
             .await?)
     }
