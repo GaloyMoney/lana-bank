@@ -1096,6 +1096,35 @@ type DepositAccountBalance {
 	pending: UsdCents!
 }
 
+type DepositAccountConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [DepositAccountEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [DepositAccount!]!
+}
+
+"""
+An edge in a connection.
+"""
+type DepositAccountEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: DepositAccount!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
 input DepositAccountFreezeInput {
 	depositAccountId: UUID!
 }
@@ -1822,6 +1851,8 @@ type Query {
 	deposit(id: UUID!): Deposit
 	depositByPublicId(id: PublicId!): Deposit
 	depositAccount(id: UUID!): DepositAccount
+	depositAccountByPublicId(id: PublicId!): DepositAccount
+	depositAccounts(first: Int!, after: String): DepositAccountConnection!
 	deposits(first: Int!, after: String): DepositConnection!
 	termsTemplate(id: UUID!): TermsTemplate
 	termsTemplates: [TermsTemplate!]!
