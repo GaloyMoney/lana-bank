@@ -37,6 +37,12 @@ pub async fn interest_under_payment_scenario(sub: Subject, app: &LanaApp) -> any
         )
         .await?;
 
+    let cf_proposal = app
+        .credit()
+        .proposals()
+        .conclude_customer_approval(&sub, cf_proposal.id, true)
+        .await?;
+
     let mut stream = app.outbox().listen_persisted(None).await?;
     while let Some(msg) = stream.next().await {
         if process_activation_message(&msg, &sub, app, &cf_proposal).await? {
