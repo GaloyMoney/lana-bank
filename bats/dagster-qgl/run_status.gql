@@ -1,0 +1,10 @@
+query($runId: ID!) {
+  runOrError(runId: $runId) {
+    __typename
+    ... on Run { status }
+    ... on RunNotFoundError { __typename }
+    ... on PythonError { message }
+  }
+}
+
+

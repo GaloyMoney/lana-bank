@@ -8,7 +8,9 @@ services:
     restart: always
     
     environment:
-      DAGSTER_CURRENT_IMAGE: 'dagster-code-location-lana-dw'
+      DAGSTER_POSTGRES_USER: 'postgres_user'
+      DAGSTER_POSTGRES_PASSWORD: 'postgres_password'
+      DAGSTER_POSTGRES_DB: 'postgres_db'
 
     networks:
       - dagster_network
@@ -37,9 +39,7 @@ services:
       DAGSTER_POSTGRES_USER: 'postgres_user'
       DAGSTER_POSTGRES_PASSWORD: 'postgres_password'
       DAGSTER_POSTGRES_DB: 'postgres_db'
-      DOCKER_HOST: 'unix:///var/run/docker.sock'
-    volumes: # Make docker client accessible so we can terminate containers from the webserver
-      - ${DOCKER_SOCKET_PATH:-/var/run/docker.sock}:/var/run/docker.sock
+    volumes:
       - /tmp/io_manager_storage:/tmp/io_manager_storage
     networks:
       - dagster_network
@@ -48,8 +48,6 @@ services:
         condition: service_healthy
       dagster-code-location-lana-dw:
         condition: service_started
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
 
   # This service runs the dagster-daemon process, which is responsible for taking runs
   # off of the queue and launching them, as well as creating runs from schedules or sensors.
@@ -66,10 +64,7 @@ services:
       DAGSTER_POSTGRES_USER: 'postgres_user'
       DAGSTER_POSTGRES_PASSWORD: 'postgres_password'
       DAGSTER_POSTGRES_DB: 'postgres_db'
-      DOCKER_HOST: 'unix:///var/run/docker.sock'
-
-    volumes: # Make docker client accessible so we can launch containers using host docker
-      - ${DOCKER_SOCKET_PATH:-/var/run/docker.sock}:/var/run/docker.sock
+    volumes:
       - /tmp/io_manager_storage:/tmp/io_manager_storage
     networks:
       - dagster_network
@@ -78,8 +73,6 @@ services:
         condition: service_healthy
       dagster-code-location-lana-dw:
         condition: service_started
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
 
   dagster_postgres:
     image: postgres:15

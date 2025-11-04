@@ -367,6 +367,13 @@
                 export PG_CON="${devEnvVars.PG_CON}"
                 export DATABASE_URL="${devEnvVars.DATABASE_URL}"
                 export ENCRYPTION_KEY="${devEnvVars.ENCRYPTION_KEY}"
+                export DAGSTER=true
+
+                # Build compose file arguments
+                COMPOSE_FILES=(-f docker-compose.yml)
+                if [[ "''${DAGSTER:-false}" == "true" ]]; then
+                  COMPOSE_FILES+=(-f docker-compose.dagster.yml)
+                fi
 
                 # Function to cleanup on exit
                 cleanup() {
@@ -375,20 +382,21 @@
                     return 0
                   fi
                   echo "Stopping podman-compose..."
-                  podman-compose-runner down || true
+                  podman-compose-runner ''${COMPOSE_FILES[@]} down || true
                 }
 
                 # Register cleanup function
                 trap cleanup EXIT
 
                 echo "Starting podman-compose in detached mode..."
-                podman-compose-runner up -d
+                podman-compose-runner ''${COMPOSE_FILES[@]} up -d
 
-                # Wait for PostgreSQL to be ready
                 echo "Waiting for PostgreSQL to be ready..."
                 wait4x postgresql "${devEnvVars.PG_CON}" --timeout 120s
                 echo "Waiting for Keycloak..."
                 ${pkgs.wait4x}/bin/wait4x http http://localhost:8081 --timeout 180s
+                echo "Waiting for Dagster GraphQL endpoint to be ready..."
+                ${pkgs.wait4x}/bin/wait4x http http://localhost:3000/graphql --timeout 180s
 
                 # Set TERM for CI environments
                 export TERM="''${TERM:-dumb}"
@@ -844,13 +852,6 @@
                 # Set socket if available (for both CI and local)
                 socket="$($(pwd)/dev/bin/podman-get-socket.sh 2>/dev/null || echo NO_SOCKET)"
                 [[ "$socket" != "NO_SOCKET" ]] && export DOCKER_HOST="$socket"
-              fi
-
-              # Derive a bindable socket path from DOCKER_HOST for compose binds
-              if [[ -n "''${DOCKER_HOST:-}" && "$DOCKER_HOST" == unix://* ]]; then
-                export DOCKER_SOCKET_PATH="''${DOCKER_HOST#unix://}"
-              else
-                export DOCKER_SOCKET_PATH="/var/run/docker.sock"
               fi
             '';
           });
