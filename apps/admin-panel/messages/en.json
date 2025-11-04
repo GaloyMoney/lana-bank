@@ -277,7 +277,6 @@
     "CustomerDetails": {
       "layout": {
         "tabs": {
-          "transactions": "Transactions",
           "creditFacilities": "Credit Facilities",
           "pendingCreditFacilities": "Pending Credit Facilities",
           "creditFacilityProposals": "Credit Facility Proposals",
@@ -345,11 +344,6 @@
           "pendingWithdrawals": "Pending Withdrawals (USD)",
           "status": "Status"
         },
-        "status": {
-          "active": "Active",
-          "frozen": "Frozen",
-          "inactive": "Inactive"
-        },
         "buttons": {
           "viewDetails": "View Details"
         },
@@ -377,22 +371,6 @@
           "updating": "Updating..."
         }
       },
-      "freezeDepositAccount": {
-        "title": "Freeze Deposit Account",
-        "description": "Are you sure you want to freeze this deposit account? This action will prevent further deposits and withdrawals.",
-        "fields": {
-          "settledBalance": "Checking Settled Balance",
-          "pendingBalance": "Pending Withdrawals"
-        },
-        "buttons": {
-          "freeze": "Freeze Account"
-        },
-        "success": "Deposit account frozen successfully",
-        "errors": {
-          "noData": "No data returned from the server",
-          "unknown": "An unexpected error occurred"
-        }
-      },
       "updateEmail": {
         "title": "Update Email",
         "description": "Update the email address for this customer",
@@ -414,25 +392,6 @@
         "actions": {
           "update": "Update",
           "updating": "Updating..."
-        }
-      },
-      "transactions": {
-        "title": "Transactions",
-        "description": "Transactions for this Customer",
-        "table": {
-          "headers": {
-            "date": "Date",
-            "type": "Type",
-            "amount": "Amount",
-            "status": "Status"
-          },
-          "types": {
-            "deposit": "Deposit",
-            "withdrawal": "Withdrawal",
-            "disbursal": "Disbursal",
-            "payment": "Payment"
-          },
-          "empty": "No transactions found"
         }
       },
       "creditFacilities": {

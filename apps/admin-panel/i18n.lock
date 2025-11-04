@@ -189,7 +189,6 @@ checksums:
     Customers/create/errorMessage: d11cb6daa6d040d986c442e04c4f67cb
     Customers/create/unexpectedError: dd9aef0a9c3638442bc8f6151feb33d6
     Customers/create/failedToCreate: faff3a0924f0643480e4f0cbf9c50384
-    Customers/CustomerDetails/layout/tabs/transactions: 59973447457c6bd57c161d594f551651
     Customers/CustomerDetails/layout/tabs/creditFacilities: 4283868565aa25d5513636fc6e12d49c
     Customers/CustomerDetails/layout/tabs/pendingCreditFacilities: fadf95c8c9c8014ed31214fd803be427
     Customers/CustomerDetails/layout/tabs/creditFacilityProposals: 11a59748c3c3c261a3b99fd7afb4a023
@@ -247,14 +246,6 @@ checksums:
     Customers/CustomerDetails/updateTelegram/messages/updateSuccess: 3a58f8918e96f48cd20f72f96388674c
     Customers/CustomerDetails/updateTelegram/actions/update: 079fc039262fd31b10532929685c2d1b
     Customers/CustomerDetails/updateTelegram/actions/updating: 0d59644e851a6a76f1fb45de9353c447
-    Customers/CustomerDetails/freezeDepositAccount/title: f8e442ca95d1150995ae8e5a0e22b2b0
-    Customers/CustomerDetails/freezeDepositAccount/description: 50192d24f3a684f1c091df8a2c5f44c5
-    Customers/CustomerDetails/freezeDepositAccount/fields/settledBalance: b39b68260cbe38adb075c0b138b71620
-    Customers/CustomerDetails/freezeDepositAccount/fields/pendingBalance: 81789161c85185aaeb4b49a58cde8484
-    Customers/CustomerDetails/freezeDepositAccount/buttons/freeze: 21fbbd763d20c0e6833e6a314fd2431b
-    Customers/CustomerDetails/freezeDepositAccount/success: 21fa05fa431f934fe861788e526f1620
-    Customers/CustomerDetails/freezeDepositAccount/errors/noData: 6df07e609a0b9cd35e54346070fdd455
-    Customers/CustomerDetails/freezeDepositAccount/errors/unknown: fe07b9cdb1fc3f7397f6d89c102c60af
     Customers/CustomerDetails/updateEmail/title: b520b3755d6f79cc294c4d5e9590c90e
     Customers/CustomerDetails/updateEmail/description: afefc7aceff0486658ac9abdab2576ce
     Customers/CustomerDetails/updateEmail/labels/newEmail: 65396d478ca7d7356d913be84b3157b7
@@ -266,17 +257,6 @@ checksums:
     Customers/CustomerDetails/updateEmail/messages/updateSuccess: 4a89cd072477839bf0ed5a05046e1254
     Customers/CustomerDetails/updateEmail/actions/update: 079fc039262fd31b10532929685c2d1b
     Customers/CustomerDetails/updateEmail/actions/updating: 0d59644e851a6a76f1fb45de9353c447
-    Customers/CustomerDetails/transactions/title: 59973447457c6bd57c161d594f551651
-    Customers/CustomerDetails/transactions/description: 0a559b46d23f952b3d469234a67841de
-    Customers/CustomerDetails/transactions/table/headers/date: 56f41c5d30a76295bb087b20b7bee4c3
-    Customers/CustomerDetails/transactions/table/headers/type: f04471a7ddac844b9ad145eb9911ef75
-    Customers/CustomerDetails/transactions/table/headers/amount: a0ae9c6ff98b57475cdce56f66066aa4
-    Customers/CustomerDetails/transactions/table/headers/status: 4e1fcce15854d824919b4a582c697c90
-    Customers/CustomerDetails/transactions/table/types/deposit: e233d53e369427d12f87d610bcf56ccb
-    Customers/CustomerDetails/transactions/table/types/withdrawal: 90991ef39c923572c15cac977346ee77
-    Customers/CustomerDetails/transactions/table/types/disbursal: 2aa8ff038a96888966ede2b19fc8b8bb
-    Customers/CustomerDetails/transactions/table/types/payment: 95142d3fd8b6a6f551aba771842e9c11
-    Customers/CustomerDetails/transactions/table/empty: 15f5fee32cbd24775ccda66e8ca83132
     Customers/CustomerDetails/creditFacilities/title: 4283868565aa25d5513636fc6e12d49c
     Customers/CustomerDetails/creditFacilities/description: e722c59b11f65cb32dfb14287b4d67ae
     Customers/CustomerDetails/creditFacilities/table/headers/status: 4e1fcce15854d824919b4a582c697c90

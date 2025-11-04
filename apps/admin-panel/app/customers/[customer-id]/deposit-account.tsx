@@ -5,8 +5,9 @@ import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
 import { ArrowRight } from "lucide-react"
 
-import { Badge } from "@lana/web/ui/badge"
 import { Button } from "@lana/web/ui/button"
+
+import { DepositAccountStatusBadge } from "@/app/deposit-accounts/status-badge"
 
 import Balance from "@/components/balance/balance"
 import { DetailsCard, DetailItemProps } from "@/components/details"
@@ -65,27 +66,4 @@ export const DepositAccount: React.FC<DepositAccountProps> = ({
       }
     />
   )
-}
-
-export const DepositAccountStatusBadge: React.FC<{ status: DepositAccountStatus }> = ({
-  status,
-}) => {
-  const t = useTranslations("Customers.CustomerDetails.depositAccount.status")
-
-  const getVariant = (status: DepositAccountStatus) => {
-    switch (status) {
-      case DepositAccountStatus.Active:
-        return "success"
-      case DepositAccountStatus.Frozen:
-        return "destructive"
-      case DepositAccountStatus.Inactive:
-        return "secondary"
-      default: {
-        const exhaustiveCheck: never = status
-        return exhaustiveCheck
-      }
-    }
-  }
-
-  return <Badge variant={getVariant(status)}>{t(status.toLowerCase())}</Badge>
 }

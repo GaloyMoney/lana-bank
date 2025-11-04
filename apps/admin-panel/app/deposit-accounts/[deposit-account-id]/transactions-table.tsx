@@ -14,7 +14,11 @@ import {
 import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
 import Balance from "@/components/balance/balance"
-import PaginatedTable, { Column, PaginatedData } from "@/components/paginated-table"
+import PaginatedTable, {
+  Column,
+  DEFAULT_PAGESIZE,
+  PaginatedData,
+} from "@/components/paginated-table"
 import { GetDepositAccountDetailsQuery } from "@/lib/graphql/generated"
 import { WithdrawalStatusBadge } from "@/app/withdrawals/status-badge"
 import { DepositStatusBadge } from "@/app/deposits/status-badge"
@@ -28,34 +32,39 @@ type HistoryConnection = NonNullable<
   GetDepositAccountDetailsQuery["depositAccountByPublicId"]
 >["history"]
 
-type DepositAccountTransactionsTableProps = {
+// TEMP FIX: for unknown entries
+type SupportedHistoryNode = Extract<
+  HistoryNode,
+  | { __typename: "DepositEntry" }
+  | { __typename: "WithdrawalEntry" }
+  | { __typename: "CancelledWithdrawalEntry" }
+  | { __typename: "DisbursalEntry" }
+  | { __typename: "PaymentEntry" }
+>
+
+const isSupportedEntry = (node: HistoryNode): node is SupportedHistoryNode => {
+  return (
+    node.__typename === "DepositEntry" ||
+    node.__typename === "WithdrawalEntry" ||
+    node.__typename === "CancelledWithdrawalEntry" ||
+    node.__typename === "DisbursalEntry" ||
+    node.__typename === "PaymentEntry"
+  )
+}
+
+export const DepositAccountTransactionsTable: React.FC<{
   history: HistoryConnection
   loading: boolean
   fetchMore: (variables: { variables: { after: string } }) => Promise<unknown>
-}
-
-export const DepositAccountTransactionsTable: React.FC<
-  DepositAccountTransactionsTableProps
-> = ({ history, loading, fetchMore }) => {
+}> = ({ history, loading, fetchMore }) => {
   const t = useTranslations("DepositAccounts.DepositAccountDetails.transactions")
 
-  //  TEMP FIX: for unknown entries
   const filteredHistory = {
     ...history,
-    edges: history.edges.filter(
-      (edge) =>
-        edge.node.__typename &&
-        [
-          "DepositEntry",
-          "WithdrawalEntry",
-          "CancelledWithdrawalEntry",
-          "DisbursalEntry",
-          "PaymentEntry",
-        ].includes(edge.node.__typename),
-    ),
+    edges: history.edges.filter((edge) => isSupportedEntry(edge.node)),
   }
 
-  const columns: Column<HistoryNode>[] = [
+  const columns: Column<SupportedHistoryNode>[] = [
     {
       key: "__typename",
       label: t("table.headers.date"),
@@ -67,7 +76,7 @@ export const DepositAccountTransactionsTable: React.FC<
     {
       key: "__typename",
       label: t("table.headers.type"),
-      render: (type: HistoryNode["__typename"]) => {
+      render: (type: SupportedHistoryNode["__typename"]) => {
         switch (type) {
           case "DepositEntry":
             return t("table.types.deposit")
@@ -79,14 +88,14 @@ export const DepositAccountTransactionsTable: React.FC<
           case "PaymentEntry":
             return t("table.types.payment")
           default:
-            return "-"
+            exhaustiveCheck(type)
         }
       },
     },
     {
       key: "__typename",
       label: t("table.headers.amount"),
-      render: (_: HistoryNode["__typename"], entry: HistoryNode) => {
+      render: (_: SupportedHistoryNode["__typename"], entry: SupportedHistoryNode) => {
         switch (entry.__typename) {
           case "DepositEntry":
             return <Balance amount={entry.deposit.amount} currency="usd" />
@@ -98,14 +107,14 @@ export const DepositAccountTransactionsTable: React.FC<
           case "PaymentEntry":
             return <Balance amount={entry.payment.amount} currency="usd" />
           default:
-            return "-"
+            exhaustiveCheck(entry)
         }
       },
     },
     {
       key: "__typename",
       label: t("table.headers.status"),
-      render: (_: HistoryNode["__typename"], entry: HistoryNode) => {
+      render: (_: SupportedHistoryNode["__typename"], entry: SupportedHistoryNode) => {
         switch (entry.__typename) {
           case "DepositEntry":
             return <DepositStatusBadge status={entry.deposit.status} />
@@ -114,27 +123,29 @@ export const DepositAccountTransactionsTable: React.FC<
             return <WithdrawalStatusBadge status={entry.withdrawal.status} />
           case "DisbursalEntry":
             return <DisbursalStatusBadge status={entry.disbursal.status} />
-          default:
+          case "PaymentEntry":
             return "-"
+          default:
+            exhaustiveCheck(entry)
         }
       },
     },
   ]
 
-  const getNavigateUrl = (entry: HistoryNode): string => {
-    if (entry.__typename === "DepositEntry") {
-      return `/deposits/${entry.deposit.publicId}`
+  const getNavigateUrl = (entry: SupportedHistoryNode): string => {
+    switch (entry.__typename) {
+      case "DepositEntry":
+        return `/deposits/${entry.deposit.publicId}`
+      case "WithdrawalEntry":
+      case "CancelledWithdrawalEntry":
+        return `/withdrawals/${entry.withdrawal.publicId}`
+      case "DisbursalEntry":
+        return `/disbursals/${entry.disbursal.publicId}`
+      case "PaymentEntry":
+        return ""
+      default:
+        return exhaustiveCheck(entry)
     }
-    if (
-      entry.__typename === "WithdrawalEntry" ||
-      entry.__typename === "CancelledWithdrawalEntry"
-    ) {
-      return `/withdrawals/${entry.withdrawal.publicId}`
-    }
-    if (entry.__typename === "DisbursalEntry") {
-      return `/disbursals/${entry.disbursal.publicId}`
-    }
-    return ""
   }
 
   return (
@@ -144,15 +155,19 @@ export const DepositAccountTransactionsTable: React.FC<
         <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
-        <PaginatedTable<HistoryNode>
+        <PaginatedTable<SupportedHistoryNode>
           columns={columns}
-          data={filteredHistory as PaginatedData<HistoryNode>}
+          data={filteredHistory as PaginatedData<SupportedHistoryNode>}
           loading={loading}
           fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
-          pageSize={100}
+          pageSize={DEFAULT_PAGESIZE}
           navigateTo={getNavigateUrl}
         />
       </CardContent>
     </Card>
   )
+}
+
+const exhaustiveCheck = (value: never): never => {
+  throw new Error(`Unhandled case: ${value}`)
 }
