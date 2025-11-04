@@ -167,11 +167,14 @@ where
             .find(|p| p.is_monthly())
             .ok_or(AccountingPeriodError::NoOpenMonthlyAccountingPeriodFound)?;
         match open_period.close(closed_at, None)? {
-            Idempotent::Executed(new) => {
+            Idempotent::Executed(new_accounting_period) => {
                 let mut db = self.repo.begin_op().await?;
 
                 self.repo.update_in_op(&mut db, &mut open_period).await?;
-                let new_period = self.repo.create_in_op(&mut db, new).await?;
+                let next_period = self
+                    .repo
+                    .create_in_op(&mut db, new_accounting_period)
+                    .await?;
                 self.ledger
                     .update_close_metadata_in_op(
                         db,
@@ -180,7 +183,7 @@ where
                     )
                     .await?;
 
-                Ok(new_period)
+                Ok(next_period)
             }
             Idempotent::Ignored => Err(AccountingPeriodError::PeriodAlreadyClosed),
         }
@@ -239,13 +242,16 @@ where
 
         let ledger_tx_id = CalaTxId::new();
         match open_annual_period.close(closed_at, Some(ledger_tx_id))? {
-            Idempotent::Executed(new) => {
+            Idempotent::Executed(new_accounting_period) => {
                 let mut db = self.repo.begin_op().await?;
 
                 self.repo
                     .update_in_op(&mut db, &mut open_annual_period)
                     .await?;
-                let new_period = self.repo.create_in_op(&mut db, new).await?;
+                let next_period = self
+                    .repo
+                    .create_in_op(&mut db, new_accounting_period)
+                    .await?;
 
                 for mut period in remaining_open_periods {
                     if period.close_unchecked(closed_at, None).did_execute() {
@@ -256,7 +262,7 @@ where
                 self.ledger
                     .close_year_in_op(db, ledger_tx_id, description, open_annual_period)
                     .await?;
-                Ok(new_period)
+                Ok(next_period)
             }
             Idempotent::Ignored => Err(AccountingPeriodError::PeriodAlreadyClosed),
         }
