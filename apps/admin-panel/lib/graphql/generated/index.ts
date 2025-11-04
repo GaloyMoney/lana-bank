@@ -3344,13 +3344,6 @@ export type CustodiansQueryVariables = Exact<{
 
 export type CustodiansQuery = { __typename?: 'Query', custodians: { __typename?: 'CustodianConnection', edges: Array<{ __typename?: 'CustodianEdge', cursor: string, node: { __typename?: 'Custodian', id: string, custodianId: string, createdAt: any, name: string } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
-export type GetCustomerCreditFacilitiesQueryVariables = Exact<{
-  id: Scalars['PublicId']['input'];
-}>;
-
-
-export type GetCustomerCreditFacilitiesQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, creditFacilities: Array<{ __typename?: 'CreditFacility', id: string, creditFacilityId: string, publicId: any, collateralizationState: CollateralizationState, status: CreditFacilityStatus, activatedAt: any, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } } }> } | null };
-
 export type GetCustomerCreditFacilityProposalsQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
 }>;
@@ -3407,6 +3400,13 @@ export type GetCustomerBasicDetailsQueryVariables = Exact<{
 
 
 export type GetCustomerBasicDetailsQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, kycVerification: KycVerification, activity: Activity, level: KycLevel, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null } | null };
+
+export type GetCustomerCreditFacilitiesQueryVariables = Exact<{
+  id: Scalars['PublicId']['input'];
+}>;
+
+
+export type GetCustomerCreditFacilitiesQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, creditFacilities: Array<{ __typename?: 'CreditFacility', id: string, creditFacilityId: string, publicId: any, collateralizationState: CollateralizationState, status: CreditFacilityStatus, activatedAt: any, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } } }> } | null };
 
 export type GetCustomerPendingCreditFacilitiesQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
@@ -6440,62 +6440,6 @@ export type CustodiansQueryHookResult = ReturnType<typeof useCustodiansQuery>;
 export type CustodiansLazyQueryHookResult = ReturnType<typeof useCustodiansLazyQuery>;
 export type CustodiansSuspenseQueryHookResult = ReturnType<typeof useCustodiansSuspenseQuery>;
 export type CustodiansQueryResult = Apollo.QueryResult<CustodiansQuery, CustodiansQueryVariables>;
-export const GetCustomerCreditFacilitiesDocument = gql`
-    query GetCustomerCreditFacilities($id: PublicId!) {
-  customerByPublicId(id: $id) {
-    id
-    creditFacilities {
-      id
-      creditFacilityId
-      publicId
-      collateralizationState
-      status
-      activatedAt
-      balance {
-        collateral {
-          btcBalance
-        }
-        outstanding {
-          usdBalance
-        }
-      }
-    }
-  }
-}
-    `;
-
-/**
- * __useGetCustomerCreditFacilitiesQuery__
- *
- * To run a query within a React component, call `useGetCustomerCreditFacilitiesQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetCustomerCreditFacilitiesQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetCustomerCreditFacilitiesQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetCustomerCreditFacilitiesQuery(baseOptions: Apollo.QueryHookOptions<GetCustomerCreditFacilitiesQuery, GetCustomerCreditFacilitiesQueryVariables> & ({ variables: GetCustomerCreditFacilitiesQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetCustomerCreditFacilitiesQuery, GetCustomerCreditFacilitiesQueryVariables>(GetCustomerCreditFacilitiesDocument, options);
-      }
-export function useGetCustomerCreditFacilitiesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCustomerCreditFacilitiesQuery, GetCustomerCreditFacilitiesQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetCustomerCreditFacilitiesQuery, GetCustomerCreditFacilitiesQueryVariables>(GetCustomerCreditFacilitiesDocument, options);
-        }
-export function useGetCustomerCreditFacilitiesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetCustomerCreditFacilitiesQuery, GetCustomerCreditFacilitiesQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<GetCustomerCreditFacilitiesQuery, GetCustomerCreditFacilitiesQueryVariables>(GetCustomerCreditFacilitiesDocument, options);
-        }
-export type GetCustomerCreditFacilitiesQueryHookResult = ReturnType<typeof useGetCustomerCreditFacilitiesQuery>;
-export type GetCustomerCreditFacilitiesLazyQueryHookResult = ReturnType<typeof useGetCustomerCreditFacilitiesLazyQuery>;
-export type GetCustomerCreditFacilitiesSuspenseQueryHookResult = ReturnType<typeof useGetCustomerCreditFacilitiesSuspenseQuery>;
-export type GetCustomerCreditFacilitiesQueryResult = Apollo.QueryResult<GetCustomerCreditFacilitiesQuery, GetCustomerCreditFacilitiesQueryVariables>;
 export const GetCustomerCreditFacilityProposalsDocument = gql`
     query GetCustomerCreditFacilityProposals($id: PublicId!) {
   customerByPublicId(id: $id) {
@@ -6836,6 +6780,62 @@ export type GetCustomerBasicDetailsQueryHookResult = ReturnType<typeof useGetCus
 export type GetCustomerBasicDetailsLazyQueryHookResult = ReturnType<typeof useGetCustomerBasicDetailsLazyQuery>;
 export type GetCustomerBasicDetailsSuspenseQueryHookResult = ReturnType<typeof useGetCustomerBasicDetailsSuspenseQuery>;
 export type GetCustomerBasicDetailsQueryResult = Apollo.QueryResult<GetCustomerBasicDetailsQuery, GetCustomerBasicDetailsQueryVariables>;
+export const GetCustomerCreditFacilitiesDocument = gql`
+    query GetCustomerCreditFacilities($id: PublicId!) {
+  customerByPublicId(id: $id) {
+    id
+    creditFacilities {
+      id
+      creditFacilityId
+      publicId
+      collateralizationState
+      status
+      activatedAt
+      balance {
+        collateral {
+          btcBalance
+        }
+        outstanding {
+          usdBalance
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetCustomerCreditFacilitiesQuery__
+ *
+ * To run a query within a React component, call `useGetCustomerCreditFacilitiesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCustomerCreditFacilitiesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCustomerCreditFacilitiesQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetCustomerCreditFacilitiesQuery(baseOptions: Apollo.QueryHookOptions<GetCustomerCreditFacilitiesQuery, GetCustomerCreditFacilitiesQueryVariables> & ({ variables: GetCustomerCreditFacilitiesQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetCustomerCreditFacilitiesQuery, GetCustomerCreditFacilitiesQueryVariables>(GetCustomerCreditFacilitiesDocument, options);
+      }
+export function useGetCustomerCreditFacilitiesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCustomerCreditFacilitiesQuery, GetCustomerCreditFacilitiesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetCustomerCreditFacilitiesQuery, GetCustomerCreditFacilitiesQueryVariables>(GetCustomerCreditFacilitiesDocument, options);
+        }
+export function useGetCustomerCreditFacilitiesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetCustomerCreditFacilitiesQuery, GetCustomerCreditFacilitiesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetCustomerCreditFacilitiesQuery, GetCustomerCreditFacilitiesQueryVariables>(GetCustomerCreditFacilitiesDocument, options);
+        }
+export type GetCustomerCreditFacilitiesQueryHookResult = ReturnType<typeof useGetCustomerCreditFacilitiesQuery>;
+export type GetCustomerCreditFacilitiesLazyQueryHookResult = ReturnType<typeof useGetCustomerCreditFacilitiesLazyQuery>;
+export type GetCustomerCreditFacilitiesSuspenseQueryHookResult = ReturnType<typeof useGetCustomerCreditFacilitiesSuspenseQuery>;
+export type GetCustomerCreditFacilitiesQueryResult = Apollo.QueryResult<GetCustomerCreditFacilitiesQuery, GetCustomerCreditFacilitiesQueryVariables>;
 export const GetCustomerPendingCreditFacilitiesDocument = gql`
     query GetCustomerPendingCreditFacilities($id: PublicId!) {
   customerByPublicId(id: $id) {
