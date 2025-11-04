@@ -281,7 +281,6 @@
     "CustomerDetails": {
       "layout": {
         "tabs": {
-          "transactions": "Transacciones",
           "creditFacilities": "Líneas de Crédito",
           "pendingCreditFacilities": "Líneas de Crédito Pendientes",
           "creditFacilityProposals": "Propuestas de Línea de Crédito",
@@ -349,11 +348,6 @@
           "pendingWithdrawals": "Retiros Pendientes (USD)",
           "status": "Estado"
         },
-        "status": {
-          "active": "Activo",
-          "frozen": "Congelado",
-          "inactive": "Inactivo"
-        },
         "buttons": {
           "viewDetails": "Ver Detalles"
         },
@@ -389,22 +383,6 @@
           "updating": "Actualizando..."
         }
       },
-      "freezeDepositAccount": {
-        "title": "Congelar Cuenta de Depósito",
-        "description": "¿Está seguro de que desea congelar esta cuenta de depósito? Esta acción impedirá futuros depósitos y retiros.",
-        "fields": {
-          "settledBalance": "Saldo liquidado de cuenta corriente",
-          "pendingBalance": "Retiros pendientes"
-        },
-        "buttons": {
-          "freeze": "Congelar Cuenta"
-        },
-        "success": "Cuenta de depósito congelada exitosamente",
-        "errors": {
-          "noData": "No se recibieron datos del servidor",
-          "unknown": "Ocurrió un error inesperado"
-        }
-      },
       "updateEmail": {
         "title": "Actualizar correo electrónico",
         "description": "Actualizar la dirección de correo electrónico para este cliente",
@@ -426,25 +404,6 @@
         "actions": {
           "update": "Actualizar",
           "updating": "Actualizando..."
-        }
-      },
-      "transactions": {
-        "title": "Transacciones",
-        "description": "Transacciones para este Cliente",
-        "table": {
-          "headers": {
-            "date": "Fecha",
-            "type": "Tipo",
-            "amount": "Monto",
-            "status": "Estado"
-          },
-          "types": {
-            "deposit": "Depósito",
-            "withdrawal": "Retiro",
-            "disbursal": "Desembolso",
-            "payment": "Pago"
-          },
-          "empty": "No se encontraron transacciones"
         }
       },
       "creditFacilities": {

@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from "@storybook/nextjs"
-
 import type { MockedResponse } from "@apollo/client/testing"
 
 import CustomerLayout from "../layout"
@@ -22,16 +21,15 @@ const buildParams = () => Promise.resolve({ "customer-id": CUSTOMER_ID })
 const customerDetailsMock: MockedResponse = {
   request: {
     query: GetCustomerBasicDetailsDocument,
-    variables: {
-      id: CUSTOMER_ID,
-    },
+    variables: { id: CUSTOMER_ID },
   },
   result: {
     data: {
       customerByPublicId: {
         __typename: "Customer",
-        id: "Customer:4178b451-c9cb-4841-b248-5cc20e7774a6",
+        id: "Customer:1",
         customerId: CUSTOMER_ID,
+        publicId: "CUS-001",
         email: "test@lana.com",
         telegramId: "telegramUser",
         kycVerification: KycVerification.Verified,
@@ -39,10 +37,9 @@ const customerDetailsMock: MockedResponse = {
         level: "LEVEL_2",
         customerType: CustomerType.Individual,
         createdAt: "2024-11-25T06:23:56.549713Z",
-        publicId: "CUS-001",
         depositAccount: {
           __typename: "DepositAccount",
-          id: "DepositAccount:123",
+          id: "DepositAccount:1",
           status: DepositAccountStatus.Active,
           publicId: "DEP-001",
           depositAccountId: "dep-account-123",
@@ -65,24 +62,23 @@ const customerDetailsMock: MockedResponse = {
 const documentsMock: MockedResponse = {
   request: {
     query: GetCustomerDocumentsDocument,
-    variables: {
-      id: CUSTOMER_ID,
-    },
+    variables: { id: CUSTOMER_ID },
   },
   result: {
     data: {
       customerByPublicId: {
         __typename: "Customer",
-        id: "Customer:4178b451-c9cb-4841-b248-5cc20e7774a6",
+        id: "Customer:1",
+        customerId: CUSTOMER_ID,
         documents: [
           {
-            __typename: "Document",
+            __typename: "CustomerDocument",
             id: "doc-001",
             documentId: "doc-001",
             filename: "passport.pdf",
           },
           {
-            __typename: "Document",
+            __typename: "CustomerDocument",
             id: "doc-002",
             documentId: "doc-002",
             filename: "address-proof.pdf",
@@ -96,15 +92,14 @@ const documentsMock: MockedResponse = {
 const emptyDocumentsMock: MockedResponse = {
   request: {
     query: GetCustomerDocumentsDocument,
-    variables: {
-      id: CUSTOMER_ID,
-    },
+    variables: { id: CUSTOMER_ID },
   },
   result: {
     data: {
       customerByPublicId: {
         __typename: "Customer",
-        id: "Customer:4178b451-c9cb-4841-b248-5cc20e7774a6",
+        id: "Customer:1",
+        customerId: CUSTOMER_ID,
         documents: [],
       },
     },

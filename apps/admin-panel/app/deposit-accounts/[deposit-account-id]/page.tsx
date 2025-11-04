@@ -11,7 +11,7 @@ import { useGetDepositAccountDetailsQuery } from "@/lib/graphql/generated"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 import { useBreadcrumb } from "@/app/breadcrumb-provider"
 import { PublicIdBadge } from "@/components/public-id-badge"
-
+import { DEFAULT_PAGESIZE } from "@/components/paginated-table"
 gql`
   query GetDepositAccountDetails($publicId: PublicId!, $first: Int!, $after: String) {
     depositAccountByPublicId(id: $publicId) {
@@ -130,7 +130,7 @@ function DepositAccountPage({
   const { data, loading, error, fetchMore } = useGetDepositAccountDetailsQuery({
     variables: {
       publicId,
-      first: 20,
+      first: DEFAULT_PAGESIZE,
       after: null,
     },
   })

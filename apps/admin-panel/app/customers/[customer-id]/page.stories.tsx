@@ -22,16 +22,15 @@ const buildParams = () => Promise.resolve({ "customer-id": CUSTOMER_ID })
 const customerDetailsMock = {
   request: {
     query: GetCustomerBasicDetailsDocument,
-    variables: {
-      id: CUSTOMER_ID,
-    },
+    variables: { id: CUSTOMER_ID },
   },
   result: {
     data: {
       customerByPublicId: {
         __typename: "Customer",
-        id: "Customer:4178b451-c9cb-4841-b248-5cc20e7774a6",
+        id: "Customer:1",
         customerId: CUSTOMER_ID,
+        publicId: "CUS-001",
         email: "test@lana.com",
         telegramId: "telegramUser",
         kycVerification: KycVerification.Verified,
@@ -39,10 +38,9 @@ const customerDetailsMock = {
         level: "LEVEL_2",
         customerType: CustomerType.Individual,
         createdAt: "2024-11-25T06:23:56.549713Z",
-        publicId: "CUS-001",
         depositAccount: {
           __typename: "DepositAccount",
-          id: "DepositAccount:123",
+          id: "DepositAccount:1",
           status: DepositAccountStatus.Active,
           publicId: "DEP-001",
           depositAccountId: "dep-account-123",
@@ -65,19 +63,17 @@ const customerDetailsMock = {
 const creditFacilitiesMock = {
   request: {
     query: GetCustomerCreditFacilitiesDocument,
-    variables: {
-      id: CUSTOMER_ID,
-    },
+    variables: { id: CUSTOMER_ID },
   },
   result: {
     data: {
       customerByPublicId: {
         __typename: "Customer",
-        id: "Customer:4178b451-c9cb-4841-b248-5cc20e7774a6",
+        id: "Customer:1",
         creditFacilities: [
           {
             __typename: "CreditFacility",
-            id: "CreditFacility:cf-001",
+            id: "CreditFacility:1",
             creditFacilityId: "cf-001",
             publicId: "CF-001",
             collateralizationState: CollateralizationState.NoCollateral,
@@ -104,15 +100,13 @@ const creditFacilitiesMock = {
 const emptyCreditFacilitiesMock = {
   request: {
     query: GetCustomerCreditFacilitiesDocument,
-    variables: {
-      id: CUSTOMER_ID,
-    },
+    variables: { id: CUSTOMER_ID },
   },
   result: {
     data: {
       customerByPublicId: {
         __typename: "Customer",
-        id: "Customer:4178b451-c9cb-4841-b248-5cc20e7774a6",
+        id: "Customer:1",
         creditFacilities: [],
       },
     },

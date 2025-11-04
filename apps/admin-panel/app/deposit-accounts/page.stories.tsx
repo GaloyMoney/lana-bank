@@ -1,68 +1,25 @@
 import type { Meta, StoryObj } from "@storybook/nextjs"
-
 import type { MockedResponse } from "@apollo/client/testing"
 import { ApolloError } from "@apollo/client"
 
 import DepositAccounts from "./page"
 
+import { DepositAccountsDocument, DepositAccountStatus } from "@/lib/graphql/generated"
 import {
-  DepositAccountStatus,
-  DepositAccountsDocument,
-} from "@/lib/graphql/generated"
-
-const connectionPageInfo = {
-  __typename: "PageInfo" as const,
-  endCursor: "cursor-2",
-  startCursor: "cursor-1",
-  hasNextPage: false,
-  hasPreviousPage: false,
-}
+  mockDepositAccount,
+  mockDepositAccountEdge,
+  mockPageInfo,
+} from "@/lib/graphql/generated/mocks"
 
 const depositAccountEdges = [
-  {
-    __typename: "DepositAccountEdge" as const,
+  mockDepositAccountEdge({
     cursor: "cursor-1",
-    node: {
-      __typename: "DepositAccount" as const,
-      id: "deposit-account-001",
-      publicId: "DA-001",
-      createdAt: "2024-01-01T12:00:00.000Z",
-      status: DepositAccountStatus.Active,
-      balance: {
-        __typename: "DepositAccountBalance" as const,
-        settled: 1_250_000,
-        pending: 50_000,
-      },
-      customer: {
-        __typename: "Customer" as const,
-        customerId: "customer-001",
-        email: "primary@example.com",
-        publicId: "CUS-001",
-      },
-    },
-  },
-  {
-    __typename: "DepositAccountEdge" as const,
+    node: mockDepositAccount({ publicId: "DA-001", status: DepositAccountStatus.Active }),
+  }),
+  mockDepositAccountEdge({
     cursor: "cursor-2",
-    node: {
-      __typename: "DepositAccount" as const,
-      id: "deposit-account-002",
-      publicId: "DA-002",
-      createdAt: "2024-01-05T12:30:00.000Z",
-      status: DepositAccountStatus.Frozen,
-      balance: {
-        __typename: "DepositAccountBalance" as const,
-        settled: 750_000,
-        pending: 120_000,
-      },
-      customer: {
-        __typename: "Customer" as const,
-        customerId: "customer-002",
-        email: "secondary@example.com",
-        publicId: "CUS-002",
-      },
-    },
-  },
+    node: mockDepositAccount({ publicId: "DA-002", status: DepositAccountStatus.Frozen }),
+  }),
 ]
 
 const baseMock: MockedResponse = {
@@ -75,9 +32,9 @@ const baseMock: MockedResponse = {
   result: {
     data: {
       depositAccounts: {
-        __typename: "DepositAccountConnection" as const,
+        __typename: "DepositAccountConnection",
         edges: depositAccountEdges,
-        pageInfo: connectionPageInfo,
+        pageInfo: mockPageInfo({ hasNextPage: false }),
       },
     },
   },
@@ -93,13 +50,9 @@ const emptyMock: MockedResponse = {
   result: {
     data: {
       depositAccounts: {
-        __typename: "DepositAccountConnection" as const,
+        __typename: "DepositAccountConnection",
         edges: [],
-        pageInfo: {
-          ...connectionPageInfo,
-          endCursor: null,
-          startCursor: null,
-        },
+        pageInfo: mockPageInfo({ hasNextPage: false, endCursor: null, startCursor: null }),
       },
     },
   },
