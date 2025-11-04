@@ -29,8 +29,8 @@ use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
 use public_id::PublicIds;
 
-pub use account::{DepositAccount, DepositAccountsByCreatedAtCursor};
 use account::*;
+pub use account::{DepositAccount, DepositAccountsByCreatedAtCursor};
 pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
 pub use config::DepositConfig;
 use deposit::*;
