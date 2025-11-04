@@ -64,19 +64,18 @@ export default function CustomerLayout({
   const tDepositAccount = useTranslations("Customers.CustomerDetails.depositAccount")
 
   const TABS = [
-    { id: "1", url: "/", tabLabel: t("tabs.transactions") },
-    { id: "2", url: "/credit-facilities", tabLabel: t("tabs.creditFacilities") },
+    { id: "1", url: "/", tabLabel: t("tabs.creditFacilities") },
     {
-      id: "3",
+      id: "2",
       url: "/pending-credit-facilities",
       tabLabel: t("tabs.pendingCreditFacilities"),
     },
     {
-      id: "4",
+      id: "3",
       url: "/credit-facility-proposals",
       tabLabel: t("tabs.creditFacilityProposals"),
     },
-    { id: "5", url: "/documents", tabLabel: t("tabs.documents") },
+    { id: "4", url: "/documents", tabLabel: t("tabs.documents") },
   ]
 
   const { "customer-id": customerId } = use(params)
@@ -128,8 +127,6 @@ export default function CustomerLayout({
             balance={data.customerByPublicId.depositAccount.balance}
             publicId={data.customerByPublicId.depositAccount.publicId}
             status={data.customerByPublicId.depositAccount.status}
-            depositAccountId={data.customerByPublicId.depositAccount.depositAccountId}
-            ledgerAccounts={data.customerByPublicId.depositAccount.ledgerAccounts}
           />
         ) : (
           <span className="rounded-md bg-muted px-2 py-1 text-sm font-medium text-muted-foreground md:w-full w-1/4 text-center flex items-center justify-center">

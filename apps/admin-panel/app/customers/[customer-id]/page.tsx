@@ -3,88 +3,27 @@
 import { gql } from "@apollo/client"
 import { use } from "react"
 
-import { CustomerTransactionsTable } from "./transactions"
+import { CustomerCreditFacilitiesTable } from "./credit-facilities/list"
 
-import { useGetCustomerTransactionHistoryQuery } from "@/lib/graphql/generated"
+import { useGetCustomerCreditFacilitiesQuery } from "@/lib/graphql/generated"
 
 gql`
-  query GetCustomerTransactionHistory($id: PublicId!, $first: Int!, $after: String) {
+  query GetCustomerCreditFacilities($id: PublicId!) {
     customerByPublicId(id: $id) {
       id
-      customerId
-      customerType
-      depositAccount {
-        depositAccountId
-        history(first: $first, after: $after) {
-          pageInfo {
-            hasNextPage
-            endCursor
-            hasPreviousPage
-            startCursor
+      creditFacilities {
+        id
+        creditFacilityId
+        publicId
+        collateralizationState
+        status
+        activatedAt
+        balance {
+          collateral {
+            btcBalance
           }
-          edges {
-            cursor
-            node {
-              ... on DepositEntry {
-                recordedAt
-                deposit {
-                  id
-                  depositId
-                  publicId
-                  accountId
-                  amount
-                  createdAt
-                  reference
-                  status
-                }
-              }
-              ... on WithdrawalEntry {
-                recordedAt
-                withdrawal {
-                  id
-                  withdrawalId
-                  publicId
-                  accountId
-                  amount
-                  createdAt
-                  reference
-                  status
-                }
-              }
-              ... on CancelledWithdrawalEntry {
-                recordedAt
-                withdrawal {
-                  id
-                  withdrawalId
-                  publicId
-                  accountId
-                  amount
-                  createdAt
-                  reference
-                  status
-                }
-              }
-              ... on DisbursalEntry {
-                recordedAt
-                disbursal {
-                  id
-                  disbursalId
-                  publicId
-                  amount
-                  createdAt
-                  status
-                }
-              }
-              ... on PaymentEntry {
-                recordedAt
-                payment {
-                  id
-                  paymentAllocationId
-                  amount
-                  createdAt
-                }
-              }
-            }
+          outstanding {
+            usdBalance
           }
         }
       }
@@ -92,27 +31,21 @@ gql`
   }
 `
 
-export default function CustomerTransactionsPage({
+export default function CustomerCreditFacilitiesPage({
   params,
 }: {
   params: Promise<{ "customer-id": string }>
 }) {
   const { "customer-id": customerId } = use(params)
-  const { data, error } = useGetCustomerTransactionHistoryQuery({
-    variables: {
-      id: customerId,
-      first: 100,
-      after: null,
-    },
+  const { data } = useGetCustomerCreditFacilitiesQuery({
+    variables: { id: customerId },
   })
-  if (error) return <div>{error.message}</div>
 
-  const historyEntries =
-    data?.customerByPublicId?.depositAccount?.history.edges.map((edge) => edge.node) || []
+  if (!data?.customerByPublicId) return null
 
   return (
-    <div className="space-y-6">
-      <CustomerTransactionsTable historyEntries={historyEntries} />
-    </div>
+    <CustomerCreditFacilitiesTable
+      creditFacilities={data.customerByPublicId.creditFacilities}
+    />
   )
 }
