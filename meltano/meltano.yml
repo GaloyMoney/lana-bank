@@ -23,21 +23,12 @@ environments:
   - name: staging
   - name: prod
 jobs:
-  - name: tap-postgres-to-target-bigquery
-    tasks:
-      - tap-postgres target-bigquery
-  - name: dbt-bigquery-run
-    tasks:
-      - dbt-bigquery:deps dbt-bigquery:seed dbt-bigquery:run
   - name: test-dbt
     tasks:
       - dbt-bigquery:test
   - name: poll-bitfinex
     tasks:
       - tap-bitfinexapi target-bigquery
-  - name: sync-sumsub
-    tasks:
-      - tap-sumsubapi target-bigquery
   - name: drop-old-relations
     tasks:
       - dbt-bigquery:drop-old-relations
@@ -46,20 +37,14 @@ jobs:
       - dbt-bigquery:drop-all-relations
   - name: generate-es-reports-job
     tasks:
+      - tap-sumsubapi target-bigquery
+      - tap-postgres target-bigquery
+      - dbt-bigquery:deps dbt-bigquery:seed dbt-bigquery:run
       - generate-es-reports:run
 schedules:
-  - name: postgres-to-bigquery
-    interval: "0,30 * * * *"
-    job: tap-postgres-to-target-bigquery
-  - name: dbt-on-bigquery
-    interval: "15,45 * * * *"
-    job: dbt-bigquery-run
   - name: poll-bitfinex-on-minute
     interval: "* * * * *"
     job: poll-bitfinex
-  - name: sync-sumsub-on-minute
-    interval: "*/10 * * * *"
-    job: sync-sumsub
   - name: test-dbt-daily
     interval: "@daily"
     job: test-dbt
