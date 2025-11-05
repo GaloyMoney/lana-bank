@@ -53,7 +53,7 @@ pub fn init_tracer(config: TracingConfig) -> anyhow::Result<()> {
 
     // set env to RUST_LOG=debug or RUST_LOG=info,sqlx=warn to change this value dynamically
     let filter_layer = EnvFilter::try_from_default_env()
-        .or_else(|_| EnvFilter::try_new("info"))
+        .or_else(|_| EnvFilter::try_new("info,sqlx=debug"))
         .unwrap();
     tracing_subscriber::registry()
         .with(filter_layer)
