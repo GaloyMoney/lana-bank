@@ -89,6 +89,12 @@ pub async fn process_facility_lifecycle(
 
     Span::current().record("proposal_id", tracing::field::display(cf_proposal.id));
 
+    let cf_proposal = app
+        .credit()
+        .proposals()
+        .conclude_customer_approval(&sub, cf_proposal.id, true)
+        .await?;
+
     while let Some(msg) = stream.next().await {
         if process_facility_message(&msg, &sub, &app, &cf_proposal).await? {
             break;
