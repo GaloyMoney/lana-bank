@@ -112,17 +112,14 @@ impl LedgerAccount {
 
     async fn ancestors(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<LedgerAccount>> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
-        let mut ancestors = loader.load_many(self.entity.ancestor_ids.clone()).await?;
+        let ancestors = loader.load_many(self.entity.ancestor_ids.clone()).await?;
 
-        let mut result = Vec::with_capacity(self.entity.ancestor_ids.len());
-
-        for id in self.entity.ancestor_ids.iter() {
-            if let Some(account) = ancestors.remove(id) {
-                result.push(account);
-            }
-        }
-
-        Ok(result)
+        Ok(self
+            .entity
+            .ancestor_ids
+            .iter()
+            .filter_map(|id| ancestors.get(id).cloned())
+            .collect())
     }
 
     async fn closest_account_with_code(
@@ -141,17 +138,14 @@ impl LedgerAccount {
 
     async fn children(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<LedgerAccount>> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
-        let mut children = loader.load_many(self.entity.children_ids.clone()).await?;
+        let children = loader.load_many(self.entity.children_ids.clone()).await?;
 
-        let mut result = Vec::with_capacity(self.entity.children_ids.len());
-
-        for id in self.entity.children_ids.iter() {
-            if let Some(account) = children.remove(id) {
-                result.push(account);
-            }
-        }
-
-        Ok(result)
+        Ok(self
+            .entity
+            .children_ids
+            .iter()
+            .filter_map(|id| children.get(id).cloned())
+            .collect())
     }
 
     async fn history(

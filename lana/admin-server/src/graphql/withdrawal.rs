@@ -76,14 +76,12 @@ impl Withdrawal {
     ) -> async_graphql::Result<Vec<LedgerTransaction>> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let tx_ids = self.entity.ledger_tx_ids();
-        let mut loaded_transactions = loader.load_many(tx_ids.iter().copied()).await?;
+        let loaded_transactions = loader.load_many(tx_ids.iter().copied()).await?;
 
-        let transactions = tx_ids
+        Ok(tx_ids
             .iter()
-            .filter_map(|id| loaded_transactions.remove(id))
-            .collect();
-
-        Ok(transactions)
+            .filter_map(|id| loaded_transactions.get(id).cloned())
+            .collect())
     }
 }
 
