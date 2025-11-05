@@ -65,7 +65,7 @@ pub struct AdminJwtClaims {
     pub subject: String,
 }
 
-#[instrument(name = "admin_server.graphql", skip_all, fields(operation_name, operation_type, query, variables, error, error.level, error.message))]
+#[instrument(name = "admin_server.graphql", skip_all, fields(graphql.operation_name, graphql.operation_type, graphql.query, graphql.variables, error, error.level, error.message))]
 #[es_entity::es_event_context]
 pub async fn graphql_handler(
     headers: HeaderMap,
@@ -77,18 +77,18 @@ pub async fn graphql_handler(
     let mut req = req.into_inner();
 
     if let Some(op_name) = req.operation_name.as_ref() {
-        tracing::Span::current().record("operation_name", op_name);
+        tracing::Span::current().record("graphql.operation_name", op_name);
     }
 
-    tracing::Span::current().record("query", &req.query);
+    tracing::Span::current().record("graphql.query", &req.query);
 
     if let Some(query_type) = req.query.split_whitespace().next() {
-        tracing::Span::current().record("operation_type", query_type);
+        tracing::Span::current().record("graphql.operation_type", query_type);
     }
 
     // TODO: this should be behind a feature flag or env var
     let variables_str = format!("{:?}", req.variables);
-    tracing::Span::current().record("variables", variables_str.as_str());
+    tracing::Span::current().record("graphql.variables", variables_str.as_str());
 
     let id = match uuid::Uuid::parse_str(&jwt_claims.subject) {
         Ok(id) => id,
