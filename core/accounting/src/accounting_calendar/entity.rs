@@ -33,6 +33,16 @@ pub struct AccountingCalendar {
 }
 
 impl AccountingCalendar {
+    pub fn monthly_closing(&self) -> Option<PeriodClosing> {
+        self.events.iter_all().rev().find_map(|event| match event {
+            AccountingCalendarEvent::MonthlyClosed {
+                closed_as_of,
+                closed_at,
+            } => Some(PeriodClosing::new(*closed_as_of, *closed_at)),
+            _ => None,
+        })
+    }
+
     pub fn close_last_monthly_period(
         &mut self,
         now: DateTime<Utc>,
@@ -124,5 +134,20 @@ impl IntoEvents<AccountingCalendarEvent> for NewAccountingCalendar {
                 opened_at: self.opened_at,
             }],
         )
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct PeriodClosing {
+    pub closed_as_of: chrono::NaiveDate,
+    pub closed_at: DateTime<Utc>,
+}
+
+impl PeriodClosing {
+    fn new(effective: NaiveDate, recorded_at: DateTime<Utc>) -> Self {
+        Self {
+            closed_as_of: effective,
+            closed_at: recorded_at,
+        }
     }
 }
