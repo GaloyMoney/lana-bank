@@ -2084,20 +2084,6 @@ impl Mutation {
         )
     }
 
-    async fn chart_of_accounts_close_monthly(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<ChartOfAccountsCloseMonthlyPayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        exec_mutation!(
-            ChartOfAccountsCloseMonthlyPayload,
-            ChartOfAccounts,
-            ChartId,
-            ctx,
-            app.accounting().close_monthly(sub, CHART_REF.0)
-        )
-    }
-
     async fn fiscal_year_close_month(
         &self,
         ctx: &Context<'_>,
