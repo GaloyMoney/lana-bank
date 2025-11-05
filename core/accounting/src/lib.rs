@@ -323,12 +323,11 @@ where
     pub async fn close_monthly(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        accounting_calendar_id: AccountingCalendarId,
         chart_id: ChartId,
     ) -> Result<AccountingCalendar, CoreAccountingError> {
         Ok(self
             .accounting_calendars()
-            .close_monthly(sub, accounting_calendar_id, chart_id)
+            .close_monthly(sub, chart_id)
             .await?)
     }
 

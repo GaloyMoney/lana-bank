@@ -10,6 +10,8 @@ pub enum AccountingCalendarError {
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("AccountingCalendarError - AccountingCalendarLedgerError: {0}")]
     AccountingCalendarLedgerError(#[from] super::ledger::error::AccountingCalendarLedgerError),
+    #[error("AccountingCalendarError - OpenAccountingCalendarNotFoundForChart: {0}")]
+    OpenAccountingCalendarNotFoundForChart(crate::primitives::ChartId),
     #[error("AccountingCalendarError - AccountPeriodStartNotFound")]
     AccountPeriodStartNotFound,
 }

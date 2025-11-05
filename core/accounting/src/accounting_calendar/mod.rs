@@ -12,9 +12,7 @@ use authz::PermissionCheck;
 
 use cala_ledger::CalaLedger;
 
-use crate::primitives::{
-    AccountingCalendarId, CalaAccountSetId, CoreAccountingAction, CoreAccountingObject,
-};
+use crate::primitives::{CalaAccountSetId, ChartId, CoreAccountingAction, CoreAccountingObject};
 
 pub use entity::AccountingCalendar;
 use error::*;
@@ -68,11 +66,10 @@ where
     pub async fn close_monthly(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: impl Into<AccountingCalendarId> + std::fmt::Debug,
+        chart_id: impl Into<ChartId> + std::fmt::Debug,
         tracking_account_set_id: impl Into<CalaAccountSetId> + std::fmt::Debug,
     ) -> Result<AccountingCalendar, AccountingCalendarError> {
-        let id = id.into();
-        let mut calendar = self.repo.find_by_id(id).await?;
+        let mut calendar = self.repo.find_is_open_by_chart_id(chart_id.into()).await?;
 
         let now = crate::time::now();
         let closed_as_of_date =

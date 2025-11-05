@@ -25,4 +25,24 @@ impl AccountingCalendarRepo {
     pub fn new(pool: &PgPool) -> Self {
         Self { pool: pool.clone() }
     }
+
+    pub async fn find_is_open_by_chart_id(
+        &self,
+        chart_id: ChartId,
+    ) -> Result<AccountingCalendar, AccountingCalendarError> {
+        match self
+            .list_for_chart_id_by_created_at(
+                chart_id,
+                Default::default(),
+                ListDirection::Descending,
+            )
+            .await?
+            .entities
+            .into_iter()
+            .find(|f| f.is_open)
+        {
+            Some(calendar) => Ok(calendar),
+            None => Err(AccountingCalendarError::OpenAccountingCalendarNotFoundForChart(chart_id)),
+        }
+    }
 }
