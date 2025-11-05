@@ -1,6 +1,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+pub mod accounting_calendar;
 pub mod balance_sheet;
 pub mod chart_of_accounts;
 pub mod csv;
