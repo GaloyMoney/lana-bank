@@ -15,6 +15,7 @@ use super::error::*;
 pub enum AccountingCalendarEvent {
     Initialized {
         id: AccountingCalendarId,
+        reference: String,
         opened_as_of: NaiveDate,
         opened_at: DateTime<Utc>,
     },
@@ -28,6 +29,7 @@ pub enum AccountingCalendarEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct AccountingCalendar {
     pub id: AccountingCalendarId,
+    pub reference: String,
 
     events: EntityEvents<AccountingCalendarEvent>,
 }
@@ -72,9 +74,7 @@ impl AccountingCalendar {
                 .events
                 .iter_all()
                 .find_map(|event| match event {
-                    AccountingCalendarEvent::Initialized { opened_as_of, .. } => {
-                        Some(*opened_as_of)
-                    }
+                    AccountingCalendarEvent::Initialized { opened_as_of, .. } => Some(opened_as_of),
                     _ => None,
                 })
                 .ok_or(AccountingCalendarError::AccountPeriodStartNotFound)?
@@ -101,7 +101,9 @@ impl TryFromEvents<AccountingCalendarEvent> for AccountingCalendar {
 
         for event in events.iter_all() {
             match event {
-                AccountingCalendarEvent::Initialized { id, .. } => builder = builder.id(*id),
+                AccountingCalendarEvent::Initialized { id, reference, .. } => {
+                    builder = builder.id(*id).reference(reference.to_string())
+                }
                 AccountingCalendarEvent::MonthlyClosed { .. } => (),
             }
         }
@@ -122,6 +124,10 @@ impl NewAccountingCalendar {
     pub fn builder() -> NewAccountingCalendarBuilder {
         NewAccountingCalendarBuilder::default()
     }
+
+    pub(super) fn reference(&self) -> String {
+        format!("AC{}", self.opened_as_of.year())
+    }
 }
 
 impl IntoEvents<AccountingCalendarEvent> for NewAccountingCalendar {
@@ -130,6 +136,7 @@ impl IntoEvents<AccountingCalendarEvent> for NewAccountingCalendar {
             self.id,
             [AccountingCalendarEvent::Initialized {
                 id: self.id,
+                reference: self.reference(),
                 opened_as_of: self.opened_as_of,
                 opened_at: self.opened_at,
             }],

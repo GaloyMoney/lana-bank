@@ -10,6 +10,7 @@ use super::{entity::*, error::AccountingCalendarError};
 #[es_repo(
     entity = "AccountingCalendar",
     err = "AccountingCalendarError",
+    columns(reference(ty = "String", create(accessor = "reference()"))),
     tbl_prefix = "core"
 )]
 pub struct AccountingCalendarRepo {
