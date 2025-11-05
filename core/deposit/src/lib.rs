@@ -234,8 +234,8 @@ where
         Ok(self.deposit_accounts.maybe_find_by_id(id).await?)
     }
 
-    #[instrument(name = "deposit.find_deposit_account_by_public_id", skip(self), err)]
-    pub async fn find_deposit_account_by_public_id(
+    #[instrument(name = "deposit.find_account_by_public_id", skip(self), err)]
+    pub async fn find_account_by_public_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         public_id: impl Into<public_id::PublicId> + std::fmt::Debug,
@@ -763,8 +763,8 @@ where
             .await?)
     }
 
-    #[instrument(name = "deposit.list_deposit_accounts", skip(self), err)]
-    pub async fn list_deposit_accounts(
+    #[instrument(name = "deposit.list_accounts", skip(self), err)]
+    pub async fn list_accounts(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         query: es_entity::PaginatedQueryArgs<DepositAccountsByCreatedAtCursor>,
