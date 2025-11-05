@@ -246,7 +246,7 @@ impl Query {
         maybe_fetch_one!(
             DepositAccount,
             ctx,
-            app.deposits().find_deposit_account_by_public_id(sub, id)
+            app.deposits().find_account_by_public_id(sub, id)
         )
     }
 
@@ -265,7 +265,7 @@ impl Query {
             ctx,
             after,
             first,
-            |query| app.deposits().list_deposit_accounts(sub, query)
+            |query| app.deposits().list_accounts(sub, query)
         )
     }
 
