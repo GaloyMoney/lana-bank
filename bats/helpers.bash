@@ -101,6 +101,11 @@ gql_file() {
   echo "${REPO_ROOT}/bats/customer-gql/$1.gql"
 }
 
+gql_operation_name() {
+  local file=$1
+  grep -E '^(query|mutation|subscription)' "$file" | head -n 1 | sed -E 's/.*(query|mutation|subscription) +([A-Za-z0-9_]+).*/\2/'
+}
+
 gql_admin_query() {
   cat "$(gql_admin_file $1)" | tr '\n' ' ' | sed 's/"/\\"/g'
 }
@@ -109,12 +114,24 @@ gql_admin_file() {
   echo "${REPO_ROOT}/bats/admin-gql/$1.gql"
 }
 
+gql_admin_operation_name() {
+  gql_operation_name "$(gql_admin_file $1)"
+}
+
+gql_customer_operation_name() {
+  gql_operation_name "$(gql_file $1)"
+}
+
 gql_dagster_query() {
   cat "$(gql_dagster_file $1)" | tr '\n' ' ' | sed 's/"/\\"/g'
 }
 
 gql_dagster_file() {
   echo "${REPO_ROOT}/bats/dagster-qgl/$1.gql"
+}
+
+gql_dagster_operation_name() {
+  gql_operation_name "$(gql_dagster_file $1)"
 }
 
 graphql_output() {
@@ -137,11 +154,12 @@ exec_customer_graphql() {
   local query_name=$2
   local variables=${3:-"{}"}
   local run_cmd="${BATS_TEST_DIRNAME:+run}"
+  local operation_name=$(gql_customer_operation_name "$query_name")
 
   ${run_cmd} curl -s -X POST \
     -H "Authorization: Bearer $(read_value "$token_name")" \
     -H "Content-Type: application/json" \
-    -d "{\"query\": \"$(gql_query $query_name)\", \"variables\": $variables}" \
+    -d "{\"query\": \"$(gql_query $query_name)\", \"variables\": $variables, \"operationName\": \"$operation_name\"}" \
     "${GQL_APP_ENDPOINT}"
 }
 
@@ -197,11 +215,12 @@ exec_admin_graphql() {
   local query_name=$1
   local variables=${2:-"{}"}
   local run_cmd="${BATS_TEST_DIRNAME:+run}"
+  local operation_name=$(gql_admin_operation_name "$query_name")
 
   ${run_cmd} curl -s -X POST \
     -H "Authorization: Bearer $(read_value "superadmin")" \
     -H "Content-Type: application/json" \
-    -d "{\"query\": \"$(gql_admin_query $query_name)\", \"variables\": $variables}" \
+    -d "{\"query\": \"$(gql_admin_query $query_name)\", \"variables\": $variables, \"operationName\": \"$operation_name\"}" \
     "${GQL_ADMIN_ENDPOINT}"
 }
 
@@ -211,11 +230,12 @@ exec_admin_graphql_upload() {
   local file_path=$3
   local file_var_name=${4:-"file"}
   local token=$(read_value "superadmin")
+  local operation_name=$(gql_admin_operation_name "$query_name")
 
   curl -s -X POST \
     -H "Authorization: Bearer ${token}" \
     -H "Content-Type: multipart/form-data" \
-    -F "operations={\"query\": \"$(gql_admin_query $query_name)\", \"variables\": $variables}" \
+    -F "operations={\"query\": \"$(gql_admin_query $query_name)\", \"variables\": $variables, \"operationName\": \"$operation_name\"}" \
     -F "map={\"0\":[\"variables.$file_var_name\"]}" \
     -F "0=@$file_path" \
     "${GQL_ADMIN_ENDPOINT}"
@@ -225,10 +245,11 @@ exec_dagster_graphql() {
   local query_name=$1
   local variables=${2:-"{}"}
   local run_cmd="${BATS_TEST_DIRNAME:+run}"
+  local operation_name=$(gql_dagster_operation_name "$query_name")
 
   ${run_cmd} curl -s -X POST \
     -H "Content-Type: application/json" \
-    -d "{\"query\": \"$(gql_dagster_query $query_name)\", \"variables\": $variables}" \
+    -d "{\"query\": \"$(gql_dagster_query $query_name)\", \"variables\": $variables, \"operationName\": \"$operation_name\"}" \
     "${DAGSTER_URL:-http://localhost:3000/graphql}"
 }
 
@@ -236,10 +257,11 @@ exec_dagster_graphql_status() {
   local query_name=$1
   local variables=${2:-"{}"}
   local run_cmd="${BATS_TEST_DIRNAME:+run}"
+  local operation_name=$(gql_dagster_operation_name "$query_name")
 
   ${run_cmd} curl -s -o /dev/null -w "%{http_code}" -X POST \
     -H "Content-Type: application/json" \
-    -d "{\"query\": \"$(gql_dagster_query $query_name)\", \"variables\": $variables}" \
+    -d "{\"query\": \"$(gql_dagster_query $query_name)\", \"variables\": $variables, \"operationName\": \"$operation_name\"}" \
     "${DAGSTER_URL:-http://localhost:3000/graphql}"
 }
 
