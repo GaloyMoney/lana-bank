@@ -122,9 +122,9 @@ pub mod deposit {
 pub mod accounting {
     pub use core_accounting::{
         AccountCode, AccountCodeSection, AccountingCsvId, CalaAccountBalance, CalaAccountId,
-        ChartId, LedgerAccountId, TransactionTemplateId, chart_of_accounts, csv, error, journal,
-        ledger_account, ledger_transaction, manual_transaction, transaction_templates,
-        {Chart, PeriodClosing, tree},
+        ChartId, FiscalYearId, LedgerAccountId, TransactionTemplateId, chart_of_accounts, csv,
+        error, fiscal_year, journal, ledger_account, ledger_transaction, manual_transaction,
+        transaction_templates, {Chart, PeriodClosing, tree},
     };
 
     pub type Accounting = core_accounting::CoreAccounting<crate::authorization::Authorization>;
@@ -146,6 +146,11 @@ pub mod balance_sheet {
 pub mod trial_balance {
     pub use core_accounting::trial_balance::*;
     pub type TrialBalances = core_accounting::TrialBalances<crate::authorization::Authorization>;
+}
+
+pub mod fiscal_year {
+    pub use core_accounting::fiscal_year::*;
+    pub type FiscalYears = core_accounting::FiscalYears<crate::authorization::Authorization>;
 }
 
 pub mod custody {

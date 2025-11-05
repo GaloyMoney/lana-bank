@@ -4,17 +4,19 @@ mod seed;
 pub mod error;
 
 use crate::{
-    accounting::{Accounting, ChartOfAccounts},
+    accounting::{Accounting, ChartId, ChartOfAccounts},
     app::AccountingInitConfig,
     balance_sheet::BalanceSheets,
     credit::Credit,
     deposit::Deposits,
+    fiscal_year::FiscalYears,
     primitives::CalaJournalId,
     profit_and_loss::ProfitAndLossStatements,
     trial_balance::TrialBalances,
 };
 
 use cala_ledger::CalaLedger;
+use chrono::{NaiveDate, Utc};
 use error::*;
 
 #[derive(Clone)]
@@ -55,7 +57,7 @@ impl ChartsInit {
         credit: &Credit,
         deposit: &Deposits,
         accounting_init_config: AccountingInitConfig,
-    ) -> Result<(), AccountingInitError> {
+    ) -> Result<ChartId, AccountingInitError> {
         seed::charts_of_accounts::init(
             accounting.chart_of_accounts(),
             accounting.trial_balances(),
@@ -63,8 +65,26 @@ impl ChartsInit {
             deposit,
             accounting.balance_sheets(),
             accounting.profit_and_loss(),
+            accounting.fiscal_year(),
             accounting_init_config,
         )
         .await
+    }
+}
+
+pub struct FiscalYearInit;
+
+impl FiscalYearInit {
+    pub async fn init_first_fiscal_year(
+        accounting: &Accounting,
+        chart_id: ChartId,
+        chart_opening_date: Option<NaiveDate>,
+    ) -> Result<(), AccountingInitError> {
+        // TODO: Can this config be optional?
+        let opened_as_of = chart_opening_date.unwrap_or_else(|| Utc::now().date_naive());
+        Ok(accounting
+            .fiscal_year()
+            .init_first_fiscal_year(opened_as_of, chart_id)
+            .await?)
     }
 }

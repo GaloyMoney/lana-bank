@@ -6,9 +6,10 @@ use std::collections::HashMap;
 use lana_app::{
     access::{error::CoreAccessError, user::error::UserError},
     accounting::{
-        Chart, LedgerAccountId, TransactionTemplateId,
+        Chart, FiscalYearId, LedgerAccountId, TransactionTemplateId,
         chart_of_accounts::error::ChartOfAccountsError,
         csv::{AccountingCsvDocumentId, error::AccountingCsvExportError},
+        fiscal_year::error::FiscalYearError,
         ledger_transaction::error::LedgerTransactionError,
         transaction_templates::error::TransactionTemplateError,
     },
@@ -16,6 +17,7 @@ use lana_app::{
     custody::error::CoreCustodyError,
     customer::CustomerDocumentId,
     deposit::error::CoreDepositError,
+    fiscal_year::FiscalYear,
     governance::error::GovernanceError,
     report::{ReportId, ReportRunId, error::ReportError},
 };
@@ -501,5 +503,22 @@ impl Loader<ReportRunId> for LanaLoader {
             .into_iter()
             .map(|(k, v)| (k, v.into()))
             .collect())
+    }
+}
+
+impl Loader<FiscalYearId> for LanaLoader {
+    type Value = FiscalYear;
+    type Error = Arc<FiscalYearError>;
+
+    async fn load(
+        &self,
+        keys: &[FiscalYearId],
+    ) -> Result<HashMap<FiscalYearId, FiscalYear>, Self::Error> {
+        self.app
+            .accounting()
+            .fiscal_year()
+            .find_all(keys)
+            .await
+            .map_err(Arc::new)
     }
 }

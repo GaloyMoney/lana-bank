@@ -16,4 +16,6 @@ pub enum CoreAccountingError {
     AccountingCsvExportError(#[from] super::csv::error::AccountingCsvExportError),
     #[error("CoreAccountingError - TrialBalanceError: {0}")]
     TrialBalance(#[from] super::trial_balance::error::TrialBalanceError),
+    #[error("CoreAccountingError - FiscalYearError: {0}")]
+    FiscalYearError(#[from] super::fiscal_year::error::FiscalYearError),
 }
