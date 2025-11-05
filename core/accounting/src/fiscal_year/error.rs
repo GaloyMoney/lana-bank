@@ -26,6 +26,8 @@ pub enum FiscalYearError {
     FiscalYearAlreadyInitialized,
     #[error("FiscalYearError - LedgerError: {0}")]
     Ledger(#[from] super::ledger::error::FiscalYearLedgerError),
+    #[error("FiscalYearError - FiscalYearMonthAlreadyClosed")]
+    FiscalYearMonthAlreadyClosed,
 }
 
 es_entity::from_es_entity_error!(FiscalYearError);

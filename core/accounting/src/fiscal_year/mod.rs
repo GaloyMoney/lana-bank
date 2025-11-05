@@ -114,7 +114,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_id: impl Into<ChartId> + std::fmt::Debug,
-    ) -> Result<(), FiscalYearError> {
+    ) -> Result<FiscalYear, FiscalYearError> {
         self.authz
             .enforce_permission(
                 sub,
@@ -146,7 +146,7 @@ where
             if let Idempotent::Executed(date) = latest_year.close_last_month(now)? {
                 date
             } else {
-                return Ok(());
+                return Err(FiscalYearError::FiscalYearMonthAlreadyClosed);
             };
 
         let mut op = self.repo.begin_op().await?;
@@ -155,7 +155,7 @@ where
             .close_month_as_of(op, closed_as_of_date, id)
             .await?;
 
-        Ok(())
+        Ok(latest_year)
     }
 
     #[instrument(name = "core_accounting.fiscal_year.find_all", skip(self), err)]

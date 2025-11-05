@@ -32,7 +32,7 @@ pub use chart_of_accounts::{
 };
 pub use csv::AccountingCsvExports;
 use error::CoreAccountingError;
-pub use fiscal_year::{FiscalYears, error as fiscal_year_error};
+pub use fiscal_year::{FiscalYears, FiscalYear, error as fiscal_year_error};
 pub use journal::{Journal, error as journal_error};
 pub use ledger_account::{LedgerAccount, LedgerAccountChildrenCursor, LedgerAccounts};
 pub use ledger_transaction::{LedgerTransaction, LedgerTransactions};
@@ -298,7 +298,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_id: ChartId,
-    ) -> Result<(), CoreAccountingError> {
+    ) -> Result<FiscalYear, CoreAccountingError> {
         Ok(self
             .fiscal_year()
             .close_month(sub, chart_id)

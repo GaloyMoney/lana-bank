@@ -4,7 +4,7 @@ mod seed;
 pub mod error;
 
 use crate::{
-    accounting::{Accounting, ChartId, ChartOfAccounts},
+    accounting::{Accounting, ChartOfAccounts},
     app::AccountingInitConfig,
     balance_sheet::BalanceSheets,
     credit::Credit,
@@ -57,7 +57,7 @@ impl ChartsInit {
         credit: &Credit,
         deposit: &Deposits,
         accounting_init_config: AccountingInitConfig,
-    ) -> Result<ChartId, AccountingInitError> {
+    ) -> Result<(), AccountingInitError> {
         seed::charts_of_accounts::init(
             accounting.chart_of_accounts(),
             accounting.trial_balances(),
@@ -65,7 +65,6 @@ impl ChartsInit {
             deposit,
             accounting.balance_sheets(),
             accounting.profit_and_loss(),
-            accounting.fiscal_year(),
             accounting_init_config,
         )
         .await
@@ -77,11 +76,16 @@ pub struct FiscalYearInit;
 impl FiscalYearInit {
     pub async fn init_first_fiscal_year(
         accounting: &Accounting,
-        chart_id: ChartId,
         chart_opening_date: Option<NaiveDate>,
     ) -> Result<(), AccountingInitError> {
         // TODO: Can this config be optional?
         let opened_as_of = chart_opening_date.unwrap_or_else(|| Utc::now().date_naive());
+
+        let chart_id = accounting
+            .chart_of_accounts()
+            .find_by_reference(crate::accounting_init::constants::CHART_REF)
+            .await?
+            .id;
         Ok(accounting
             .fiscal_year()
             .init_first_fiscal_year(opened_as_of, chart_id)
