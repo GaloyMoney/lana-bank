@@ -45,7 +45,7 @@ services:
       - dagster_network
     depends_on:
       dagster_postgres:
-        condition: service_healthy
+        condition: service_started
       dagster-code-location-lana-dw:
         condition: service_started
 
@@ -70,7 +70,7 @@ services:
       - dagster_network
     depends_on:
       dagster_postgres:
-        condition: service_healthy
+        condition: service_started
       dagster-code-location-lana-dw:
         condition: service_started
 
@@ -83,12 +83,6 @@ services:
       POSTGRES_DB: 'postgres_db'
     networks:
       - dagster_network
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U postgres_user -d postgres_db']
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
 
 networks:
   dagster_network:
