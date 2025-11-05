@@ -13,6 +13,7 @@ use super::{entity::*, error::AccountingCalendarError};
     columns(
         reference(ty = "String", create(accessor = "reference()")),
         chart_id(ty = "ChartId", list_for),
+        is_open(ty = "bool", create(persist = false)),
     ),
     tbl_prefix = "core"
 )]

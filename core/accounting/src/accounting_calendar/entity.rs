@@ -24,6 +24,7 @@ pub enum AccountingCalendarEvent {
         closed_as_of: NaiveDate,
         closed_at: DateTime<Utc>,
     },
+    CalendarClosed,
 }
 
 #[derive(EsEntity, Builder)]
@@ -32,6 +33,7 @@ pub struct AccountingCalendar {
     pub id: AccountingCalendarId,
     pub chart_id: ChartId,
     pub reference: String,
+    pub is_open: bool,
 
     events: EntityEvents<AccountingCalendarEvent>,
 }
@@ -113,8 +115,10 @@ impl TryFromEvents<AccountingCalendarEvent> for AccountingCalendar {
                         .id(*id)
                         .chart_id(*chart_id)
                         .reference(reference.to_string())
+                        .is_open(true)
                 }
                 AccountingCalendarEvent::MonthlyClosed { .. } => (),
+                AccountingCalendarEvent::CalendarClosed => builder = builder.is_open(false),
             }
         }
 

@@ -85,6 +85,7 @@ CREATE TABLE core_accounting_calendars (
   id UUID PRIMARY KEY,
   chart_id UUID NOT NULL REFERENCES core_charts(id),
   reference VARCHAR NOT NULL UNIQUE,
+  is_open BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMPTZ NOT NULL
 );
 
