@@ -4,11 +4,11 @@ data "honeycombio_query_specification" "graphql_operations" {
   }
 
   filter {
-    column = "operation_name"
+    column = "graphql.operation_name"
     op     = "exists"
   }
 
-  breakdowns = ["operation_name"]
+  breakdowns = ["graphql.operation_name"]
 
   order {
     op    = "COUNT"
