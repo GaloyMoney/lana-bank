@@ -65,7 +65,7 @@ pub struct AdminJwtClaims {
     pub subject: String,
 }
 
-#[instrument(name = "admin_server.graphql", skip_all, fields(graphql.operation_name, graphql.operation_type, graphql.query, graphql.variables, error, error.level, error.message))]
+#[instrument(name = "admin_server.graphql", skip_all, fields(graphql.operation_name, graphql.operation_type, graphql.query, graphql.variables, jwt.subject, user.id, error, error.level, error.message))]
 #[es_entity::es_event_context]
 pub async fn graphql_handler(
     headers: HeaderMap,
@@ -75,6 +75,9 @@ pub async fn graphql_handler(
 ) -> GraphQLResponse {
     tracing_utils::http::extract_tracing(&headers);
     let mut req = req.into_inner();
+
+    // Record JWT subject
+    tracing::Span::current().record("jwt.subject", &jwt_claims.subject);
 
     if let Some(op_name) = req.operation_name.as_ref() {
         tracing::Span::current().record("graphql.operation_name", op_name);
@@ -91,7 +94,10 @@ pub async fn graphql_handler(
     tracing::Span::current().record("graphql.variables", variables_str.as_str());
 
     let id = match uuid::Uuid::parse_str(&jwt_claims.subject) {
-        Ok(id) => id,
+        Ok(id) => {
+            tracing::Span::current().record("user.id", tracing::field::debug(&id));
+            id
+        }
         Err(e) => {
             tracing::error!(
                 error = %e,
