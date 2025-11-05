@@ -26,6 +26,9 @@ use job::Jobs;
 use manual_transaction::ManualTransactions;
 use tracing::instrument;
 
+pub use accounting_calendar::{
+    AccountingCalendar, AccountingCalendars, error as accounting_calendar_error,
+};
 pub use balance_sheet::{BalanceSheet, BalanceSheets};
 pub use chart_of_accounts::{
     Chart, ChartOfAccounts, PeriodClosing, error as chart_of_accounts_error, tree,
@@ -54,6 +57,7 @@ where
 {
     authz: Perms,
     chart_of_accounts: ChartOfAccounts<Perms>,
+    accounting_calendars: AccountingCalendars<Perms>,
     journal: Journal<Perms>,
     ledger_accounts: LedgerAccounts<Perms>,
     ledger_transactions: LedgerTransactions<Perms>,
@@ -73,6 +77,7 @@ where
         Self {
             authz: self.authz.clone(),
             chart_of_accounts: self.chart_of_accounts.clone(),
+            accounting_calendars: self.accounting_calendars.clone(),
             journal: self.journal.clone(),
             ledger_accounts: self.ledger_accounts.clone(),
             manual_transactions: self.manual_transactions.clone(),
@@ -101,6 +106,7 @@ where
         jobs: &Jobs,
     ) -> Self {
         let chart_of_accounts = ChartOfAccounts::new(pool, authz, cala, journal_id);
+        let accounting_calendars = AccountingCalendars::new(pool, authz, cala);
         let journal = Journal::new(authz, cala, journal_id);
         let ledger_accounts = LedgerAccounts::new(authz, cala, journal_id);
         let manual_transactions =
@@ -114,6 +120,7 @@ where
         Self {
             authz: authz.clone(),
             chart_of_accounts,
+            accounting_calendars,
             journal,
             ledger_accounts,
             ledger_transactions,
@@ -128,6 +135,10 @@ where
 
     pub fn chart_of_accounts(&self) -> &ChartOfAccounts<Perms> {
         &self.chart_of_accounts
+    }
+
+    pub fn accounting_calendars(&self) -> &AccountingCalendars<Perms> {
+        &self.accounting_calendars
     }
 
     pub fn journal(&self) -> &Journal<Perms> {
@@ -296,8 +307,8 @@ where
         Ok(chart)
     }
 
-    #[instrument(name = "core_accounting.close_monthly", skip(self), err)]
-    pub async fn close_monthly(
+    #[instrument(name = "core_accounting.old_close_monthly", skip(self), err)]
+    pub async fn old_close_monthly(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_id: ChartId,
@@ -305,6 +316,19 @@ where
         Ok(self
             .chart_of_accounts()
             .close_monthly(sub, chart_id)
+            .await?)
+    }
+
+    #[instrument(name = "core_accounting.close_monthly", skip(self), err)]
+    pub async fn close_monthly(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        accounting_calendar_id: AccountingCalendarId,
+        chart_id: ChartId,
+    ) -> Result<AccountingCalendar, CoreAccountingError> {
+        Ok(self
+            .accounting_calendars()
+            .close_monthly(sub, accounting_calendar_id, chart_id)
             .await?)
     }
 

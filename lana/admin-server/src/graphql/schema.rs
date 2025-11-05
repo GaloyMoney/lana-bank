@@ -2025,7 +2025,8 @@ impl Mutation {
             ChartOfAccounts,
             ChartId,
             ctx,
-            app.accounting().close_monthly(sub, input.chart_id.into())
+            app.accounting()
+                .old_close_monthly(sub, input.chart_id.into())
         )
     }
 

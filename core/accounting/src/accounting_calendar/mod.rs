@@ -16,7 +16,7 @@ use crate::primitives::{
     AccountingCalendarId, CalaAccountSetId, CoreAccountingAction, CoreAccountingObject,
 };
 
-pub(super) use entity::*;
+pub use entity::AccountingCalendar;
 use error::*;
 use ledger::*;
 pub(super) use repo::*;
