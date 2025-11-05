@@ -1,7 +1,7 @@
 use async_graphql::*;
 
 use crate::primitives::*;
-use lana_app::fiscal_year::{FiscalYear as DomainFiscalYear};
+use lana_app::fiscal_year::FiscalYear as DomainFiscalYear;
 
 #[derive(SimpleObject, Clone)]
 pub struct FiscalYear {

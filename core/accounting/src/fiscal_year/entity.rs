@@ -149,6 +149,8 @@ impl IntoEvents<FiscalYearEvent> for NewFiscalYear {
 
 #[cfg(test)]
 mod test {
+    use std::os::unix::fs::chroot;
+
     use super::*;
 
     fn fiscal_year_from(events: Vec<FiscalYearEvent>) -> FiscalYear {
@@ -187,5 +189,35 @@ mod test {
             })
             .unwrap();
         assert_eq!(closing_event_date, expected_closed_date);
+    }
+
+    #[test]
+    fn close_last_month_after_prior_closes() {
+        let period_start = "2024-01-01".parse::<NaiveDate>().unwrap();
+        let expected_second_closed_date = "2024-02-29".parse::<NaiveDate>().unwrap();
+        let mut fiscal_year = fiscal_year_from(initial_events_with_opened_date(period_start));
+
+        let _ = fiscal_year.close_last_month(Utc::now()).unwrap().unwrap();
+        let second_closing_ts = Utc::now();
+        let second_closing_date = fiscal_year
+            .close_last_month(second_closing_ts)
+            .unwrap()
+            .unwrap();
+        assert_eq!(second_closing_date, expected_second_closed_date);
+        assert_eq!(fiscal_year.last_month_closed_at, Some(second_closing_ts));
+    }
+
+    #[test]
+    fn close_last_month_ignored_for_current_month() {
+        let first_day_of_last_month = chrono::Utc::now()
+            .date_naive()
+            .checked_sub_months(chrono::Months::new(1))
+            .and_then(|d| d.with_day(1))
+            .unwrap();
+        let mut fiscal_year =
+            fiscal_year_from(initial_events_with_opened_date(first_day_of_last_month));
+        let _ = fiscal_year.close_last_month(Utc::now()).unwrap();
+        let second_closing_date = fiscal_year.close_last_month(Utc::now()).unwrap();
+        assert!(second_closing_date.was_ignored());
     }
 }
