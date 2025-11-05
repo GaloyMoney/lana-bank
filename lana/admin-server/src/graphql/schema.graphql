@@ -1337,6 +1337,22 @@ type FiniteCVLPct {
 	value: CVLPctValue!
 }
 
+type FiscalYear {
+	id: ID!
+	chartId: UUID!
+	firstPeriodOpenedAt: Timestamp!
+	firstPeriodOpenedAsOf: Date!
+	lastMonthClosedAt: Timestamp
+}
+
+input FiscalYearCloseMonthInput {
+	chartId: UUID!
+}
+
+type FiscalYearCloseMonthPayload {
+	fiscalYear: FiscalYear!
+}
+
 type GovernanceNavigationItems {
 	committee: Boolean!
 	policy: Boolean!
@@ -1606,6 +1622,7 @@ type Mutation {
 	customerDocumentArchive(input: CustomerDocumentArchiveInput!): CustomerDocumentArchivePayload!
 	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
 	chartOfAccountsCloseMonthly: ChartOfAccountsCloseMonthlyPayload!
+	fiscalYearCloseMonth(input: FiscalYearCloseMonthInput!): FiscalYearCloseMonthPayload!
 	chartOfAccountsAddRootNode(input: ChartOfAccountsAddRootNodeInput!): ChartOfAccountsAddRootNodePayload!
 	chartOfAccountsAddChildNode(input: ChartOfAccountsAddChildNodeInput!): ChartOfAccountsAddChildNodePayload!
 	balanceSheetConfigure(input: BalanceSheetModuleConfigureInput!): BalanceSheetModuleConfigurePayload!

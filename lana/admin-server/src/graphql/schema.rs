@@ -2098,6 +2098,21 @@ impl Mutation {
         )
     }
 
+    async fn fiscal_year_close_month(
+        &self,
+        ctx: &Context<'_>,
+        input: FiscalYearCloseMonthInput,
+    ) -> async_graphql::Result<FiscalYearCloseMonthPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            FiscalYearCloseMonthPayload,
+            FiscalYear,
+            FiscalYearId,
+            ctx,
+            app.accounting().close_month(sub, input.chart_id.into())
+        )
+    }
+
     async fn chart_of_accounts_add_root_node(
         &self,
         ctx: &Context<'_>,

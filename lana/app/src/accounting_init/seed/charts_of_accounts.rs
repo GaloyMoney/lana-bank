@@ -13,10 +13,8 @@ pub(crate) async fn init(
     deposit: &Deposits,
     balance_sheet: &BalanceSheets,
     profit_and_loss: &ProfitAndLossStatements,
-    // TODO: Seed config?
-    fiscal_year: &FiscalYears,
     accounting_init_config: AccountingInitConfig,
-) -> Result<ChartId, AccountingInitError> {
+) -> Result<(), AccountingInitError> {
     let AccountingInitConfig {
         chart_of_accounts_opening_date,
         chart_of_accounts_seed_path,
@@ -41,7 +39,7 @@ pub(crate) async fn init(
         )
         .await?;
     }
-    Ok(chart_id)
+    Ok(())
 }
 
 async fn create_chart_of_accounts(

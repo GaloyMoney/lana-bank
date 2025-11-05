@@ -1,6 +1,7 @@
 pub use core_access::{PermissionSetId, RoleId, UserId};
 pub use core_accounting::{
     AccountSpec, BalanceRange, Chart, ChartId, LedgerTransactionId, ManualTransactionId,
+    FiscalYearId,
 };
 pub use core_credit::{
     CollateralAction, CollateralId, CreditFacilityId, CreditFacilityProposalId,

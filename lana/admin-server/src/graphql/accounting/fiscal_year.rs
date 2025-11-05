@@ -1,0 +1,36 @@
+use async_graphql::*;
+
+use crate::primitives::*;
+use lana_app::fiscal_year::{FiscalYear as DomainFiscalYear};
+
+#[derive(SimpleObject, Clone)]
+pub struct FiscalYear {
+    id: ID,
+    chart_id: UUID,
+    first_period_opened_at: Timestamp,
+    first_period_opened_as_of: Date,
+    last_month_closed_at: Option<Timestamp>,
+
+    #[graphql(skip)]
+    pub(crate) entity: Arc<DomainFiscalYear>,
+}
+impl From<DomainFiscalYear> for FiscalYear {
+    fn from(fiscal_year: DomainFiscalYear) -> Self {
+        FiscalYear {
+            id: fiscal_year.id.to_global_id(),
+            chart_id: UUID::from(fiscal_year.chart_id),
+            first_period_opened_at: fiscal_year.first_period_opened_at.into(),
+            first_period_opened_as_of: fiscal_year.first_period_opened_as_of.into(),
+            last_month_closed_at: fiscal_year.last_month_closed_at.map(|d| d.into()),
+
+            entity: Arc::new(fiscal_year),
+        }
+    }
+}
+
+#[derive(InputObject)]
+pub struct FiscalYearCloseMonthInput {
+    pub chart_id: UUID,
+}
+
+crate::mutation_payload! { FiscalYearCloseMonthPayload, fiscal_year: FiscalYear }

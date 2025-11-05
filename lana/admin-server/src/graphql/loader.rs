@@ -17,7 +17,6 @@ use lana_app::{
     custody::error::CoreCustodyError,
     customer::CustomerDocumentId,
     deposit::error::CoreDepositError,
-    fiscal_year::FiscalYear,
     governance::error::GovernanceError,
     report::{ReportId, ReportRunId, error::ReportError},
 };

@@ -189,10 +189,9 @@ impl LanaApp {
         )
         .await?;
         let opening_date = config.accounting_init.chart_of_accounts_opening_date;
-        let chart_id =
-            ChartsInit::charts_of_accounts(&accounting, &credit, &deposits, config.accounting_init)
-                .await?;
-        FiscalYearInit::init_first_fiscal_year(&accounting, chart_id, opening_date).await?;
+        ChartsInit::charts_of_accounts(&accounting, &credit, &deposits, config.accounting_init)
+            .await?;
+        FiscalYearInit::init_first_fiscal_year(&accounting, opening_date).await?;
 
         jobs.start_poll().await?;
 
