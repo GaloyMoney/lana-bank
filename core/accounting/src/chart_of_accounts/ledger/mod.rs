@@ -4,8 +4,7 @@ pub mod error;
 use tracing::instrument;
 
 use cala_ledger::{
-    CalaLedger, DebitOrCredit, JournalId, LedgerOperation, VelocityControlId,
-    VelocityLimitId,
+    CalaLedger, DebitOrCredit, JournalId, LedgerOperation, VelocityControlId, VelocityLimitId,
     account_set::{AccountSetUpdate, NewAccountSet},
     velocity::{
         NewBalanceLimit, NewLimit, NewVelocityControl, NewVelocityLimit, Params, VelocityLimit,
