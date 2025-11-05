@@ -264,10 +264,6 @@ type ChartOfAccountsAddRootNodePayload {
 	chartOfAccounts: ChartOfAccounts!
 }
 
-type ChartOfAccountsCloseMonthlyPayload {
-	chartOfAccounts: ChartOfAccounts!
-}
-
 input ChartOfAccountsCsvImportInput {
 	file: Upload!
 }
@@ -1582,7 +1578,6 @@ type Mutation {
 	customerDocumentDelete(input: CustomerDocumentDeleteInput!): CustomerDocumentDeletePayload!
 	customerDocumentArchive(input: CustomerDocumentArchiveInput!): CustomerDocumentArchivePayload!
 	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
-	chartOfAccountsCloseMonthly: ChartOfAccountsCloseMonthlyPayload!
 	fiscalYearCloseMonth(input: FiscalYearCloseMonthInput!): FiscalYearCloseMonthPayload!
 	chartOfAccountsAddRootNode(input: ChartOfAccountsAddRootNodeInput!): ChartOfAccountsAddRootNodePayload!
 	chartOfAccountsAddChildNode(input: ChartOfAccountsAddChildNodeInput!): ChartOfAccountsAddChildNodePayload!

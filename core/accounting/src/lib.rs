@@ -32,7 +32,7 @@ pub use chart_of_accounts::{
 };
 pub use csv::AccountingCsvExports;
 use error::CoreAccountingError;
-pub use fiscal_year::{FiscalYears, FiscalYear, error as fiscal_year_error};
+pub use fiscal_year::{FiscalYear, FiscalYears, error as fiscal_year_error};
 pub use journal::{Journal, error as journal_error};
 pub use ledger_account::{LedgerAccount, LedgerAccountChildrenCursor, LedgerAccounts};
 pub use ledger_transaction::{LedgerTransaction, LedgerTransactions};
@@ -281,28 +281,13 @@ where
         Ok(chart)
     }
 
-    #[instrument(name = "core_accounting.close_monthly", skip(self), err)]
-    pub async fn close_monthly(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart_ref: &str,
-    ) -> Result<Chart, CoreAccountingError> {
-        Ok(self
-            .chart_of_accounts()
-            .close_monthly(sub, chart_ref)
-            .await?)
-    }
-
     #[instrument(name = "core_accounting.close_month", skip(self), err)]
     pub async fn close_month(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_id: ChartId,
     ) -> Result<FiscalYear, CoreAccountingError> {
-        Ok(self
-            .fiscal_year()
-            .close_month(sub, chart_id)
-            .await?)
+        Ok(self.fiscal_year().close_month(sub, chart_id).await?)
     }
 
     #[instrument(name = "core_accounting.add_root_node", skip(self), err)]

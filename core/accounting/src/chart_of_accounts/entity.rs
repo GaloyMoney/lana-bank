@@ -1,5 +1,5 @@
 use cala_ledger::{account::NewAccount, account_set::NewAccountSet};
-use chrono::{DateTime, Datelike, Months, NaiveDate, Utc};
+use chrono::{DateTime, NaiveDate, Utc};
 use derive_builder::Builder;
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
@@ -24,10 +24,6 @@ pub enum ChartEvent {
         reference: String,
         first_period_opened_as_of: chrono::NaiveDate,
         first_period_opened_at: DateTime<Utc>,
-    },
-    AccountingPeriodClosed {
-        closed_as_of: chrono::NaiveDate,
-        closed_at: DateTime<Utc>,
     },
 }
 
@@ -281,57 +277,6 @@ impl Chart {
         }
     }
 
-    pub fn close_last_monthly_period(
-        &mut self,
-        now: DateTime<Utc>,
-    ) -> Result<Idempotent<NaiveDate>, ChartOfAccountsError> {
-        let last_recorded_date = self.events.iter_all().rev().find_map(|event| match event {
-            ChartEvent::AccountingPeriodClosed { closed_as_of, .. } => Some(*closed_as_of),
-            _ => None,
-        });
-        let new_monthly_closing_date = match last_recorded_date {
-            Some(last_effective) => {
-                let last_day_of_previous_month = now
-                    .date_naive()
-                    .with_day(1)
-                    .and_then(|d| d.pred_opt())
-                    .expect("Failed to compute last day of previous month");
-                if last_effective == last_day_of_previous_month {
-                    return Ok(Idempotent::Ignored);
-                }
-
-                last_effective
-                    .checked_add_months(Months::new(2))
-                    .and_then(|d| d.with_day(1))
-                    .and_then(|d| d.pred_opt())
-                    .expect("Failed to compute new monthly closing date")
-            }
-            None => self
-                .events
-                .iter_all()
-                .find_map(|event| match event {
-                    ChartEvent::Initialized {
-                        first_period_opened_as_of,
-                        ..
-                    } => Some(*first_period_opened_as_of),
-                    _ => None,
-                })
-                .ok_or(ChartOfAccountsError::AccountPeriodStartNotFound)?
-                .checked_add_months(Months::new(1))
-                .and_then(|d| d.with_day(1))
-                .and_then(|d| d.pred_opt())
-                .expect("Failed to compute new monthly closing date"),
-        };
-
-        self.events.push(ChartEvent::AccountingPeriodClosed {
-            closed_as_of: new_monthly_closing_date,
-            closed_at: now,
-        });
-        self.monthly_closing = PeriodClosing::new(new_monthly_closing_date, now);
-
-        Ok(Idempotent::Executed(new_monthly_closing_date))
-    }
-
     pub fn chart(&self) -> tree::ChartTree {
         tree::project_from_nodes(self.id, &self.name, self.chart_nodes.iter_persisted())
     }
@@ -364,12 +309,6 @@ impl TryFromEvents<ChartEvent> for Chart {
                         .reference(reference.to_string())
                         .monthly_closing(monthly_closing)
                         .name(name.to_string());
-                }
-                ChartEvent::AccountingPeriodClosed {
-                    closed_as_of,
-                    closed_at,
-                } => {
-                    builder = builder.monthly_closing(PeriodClosing::new(*closed_as_of, *closed_at))
                 }
             }
         }

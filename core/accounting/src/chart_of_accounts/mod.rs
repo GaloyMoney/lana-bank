@@ -7,7 +7,6 @@ pub mod ledger;
 mod repo;
 pub mod tree;
 
-use es_entity::Idempotent;
 use tracing::instrument;
 
 use audit::AuditSvc;
@@ -178,44 +177,6 @@ where
             .collect::<Vec<_>>();
 
         Ok((chart, Some(new_account_set_ids.clone())))
-    }
-
-    #[instrument(
-        name = "core_accounting.chart_of_accounts.close_monthly",
-        skip(self,),
-        err
-    )]
-    pub async fn close_monthly(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart_ref: &str,
-    ) -> Result<Chart, ChartOfAccountsError> {
-        let now = crate::time::now();
-
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreAccountingObject::all_charts(),
-                CoreAccountingAction::CHART_CLOSE_MONTHLY,
-            )
-            .await?;
-
-        let mut chart = self.find_by_reference(chart_ref).await?;
-        let closed_as_of_date =
-            if let Idempotent::Executed(date) = chart.close_last_monthly_period(now)? {
-                date
-            } else {
-                return Ok(chart);
-            };
-
-        let mut op = self.repo.begin_op().await?;
-        self.repo.update_in_op(&mut op, &mut chart).await?;
-
-        self.chart_ledger
-            .monthly_close_chart_as_of(op, chart.id, closed_as_of_date)
-            .await?;
-
-        Ok(chart)
     }
 
     #[instrument(
