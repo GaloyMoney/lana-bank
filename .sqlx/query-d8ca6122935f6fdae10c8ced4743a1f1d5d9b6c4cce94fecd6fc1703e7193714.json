@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO core_accounting_calendars (id, created_at) VALUES ($1, COALESCE($2, NOW()))",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "d8ca6122935f6fdae10c8ced4743a1f1d5d9b6c4cce94fecd6fc1703e7193714"
+}
