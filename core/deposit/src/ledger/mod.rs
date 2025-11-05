@@ -78,7 +78,7 @@ pub const DEPOSIT_OMNIBUS_ACCOUNT_REF: &str = "deposit-omnibus-account";
 pub const DEPOSITS_VELOCITY_CONTROL_ID: uuid::Uuid =
     uuid::uuid!("00000000-0000-0000-0000-000000000001");
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct InternalAccountSetDetails {
     id: CalaAccountSetId,
     normal_balance_type: DebitOrCredit,
@@ -449,6 +449,7 @@ impl DepositLedger {
         })
     }
 
+    #[instrument(name = "deposit_ledger.account_history", skip_all, fields(account_id = tracing::field::Empty), err)]
     pub async fn account_history<T, U>(
         &self,
         id: impl Into<AccountId>,
@@ -460,6 +461,7 @@ impl DepositLedger {
         cala_ledger::entry::EntriesByCreatedAtCursor: From<U>,
     {
         let id = id.into();
+        tracing::Span::current().record("account_id", tracing::field::debug(&id));
 
         let cala_cursor = es_entity::PaginatedQueryArgs {
             after: cursor
@@ -481,6 +483,12 @@ impl DepositLedger {
         })
     }
 
+    #[instrument(
+        name = "deposit_ledger.record_deposit",
+        skip_all,
+        fields(entity_id = tracing::field::Empty, credit_account_id = tracing::field::Empty),
+        err
+    )]
     pub async fn record_deposit(
         &self,
         op: es_entity::DbOp<'_>,
@@ -489,6 +497,12 @@ impl DepositLedger {
         credit_account_id: impl Into<AccountId>,
     ) -> Result<(), DepositLedgerError> {
         let tx_id = entity_id.into();
+        tracing::Span::current().record("entity_id", tracing::field::debug(&entity_id));
+        let credit_account_id = credit_account_id.into();
+        tracing::Span::current().record(
+            "credit_account_id",
+            tracing::field::debug(&credit_account_id),
+        );
         let mut op = self
             .cala
             .ledger_operation_from_db_op(op.with_db_time().await?);
@@ -499,7 +513,7 @@ impl DepositLedger {
             currency: self.usd,
             amount: amount.to_usd(),
             deposit_omnibus_account_id: self.deposit_omnibus_account_ids.account_id,
-            credit_account_id: credit_account_id.into(),
+            credit_account_id,
         };
         self.cala
             .post_transaction_in_op(&mut op, tx_id, templates::RECORD_DEPOSIT_CODE, params)
@@ -509,6 +523,12 @@ impl DepositLedger {
         Ok(())
     }
 
+    #[instrument(
+        name = "deposit_ledger.initiate_withdrawal",
+        skip_all,
+        fields(entity_id = tracing::field::Empty, credit_account_id = tracing::field::Empty),
+        err
+    )]
     pub async fn initiate_withdrawal(
         &self,
         op: es_entity::DbOp<'_>,
@@ -517,6 +537,12 @@ impl DepositLedger {
         credit_account_id: impl Into<AccountId>,
     ) -> Result<(), DepositLedgerError> {
         let tx_id = entity_id.into();
+        tracing::Span::current().record("entity_id", tracing::field::debug(&entity_id));
+        let credit_account_id = credit_account_id.into();
+        tracing::Span::current().record(
+            "credit_account_id",
+            tracing::field::debug(&credit_account_id),
+        );
         let mut op = self
             .cala
             .ledger_operation_from_db_op(op.with_db_time().await?);
@@ -525,7 +551,7 @@ impl DepositLedger {
             entity_id: entity_id.into(),
             journal_id: self.journal_id,
             deposit_omnibus_account_id: self.deposit_omnibus_account_ids.account_id,
-            credit_account_id: credit_account_id.into(),
+            credit_account_id,
             amount: amount.to_usd(),
             currency: self.usd,
         };
@@ -538,6 +564,7 @@ impl DepositLedger {
         Ok(())
     }
 
+    #[instrument(name = "deposit_ledger.revert_withdrawal", skip(self, op), err)]
     pub async fn revert_withdrawal(
         &self,
         op: es_entity::DbOp<'_>,
@@ -571,6 +598,7 @@ impl DepositLedger {
         Ok(())
     }
 
+    #[instrument(name = "deposit_ledger.revert_deposit", skip_all, err)]
     pub async fn revert_deposit(
         &self,
         op: es_entity::DbOp<'_>,
@@ -703,6 +731,13 @@ impl DepositLedger {
         external_id: String,
     ) -> Result<(), DepositLedgerError> {
         let tx_id = tx_id.into();
+        tracing::Span::current().record("entity_id", tracing::field::debug(&entity_id));
+        tracing::Span::current().record("tx_id", tracing::field::debug(&tx_id));
+        let credit_account_id = credit_account_id.into();
+        tracing::Span::current().record(
+            "credit_account_id",
+            tracing::field::debug(&credit_account_id),
+        );
         let mut op = self
             .cala
             .ledger_operation_from_db_op(op.with_db_time().await?);
@@ -713,7 +748,7 @@ impl DepositLedger {
             currency: self.usd,
             amount: amount.to_usd(),
             deposit_omnibus_account_id: self.deposit_omnibus_account_ids.account_id,
-            credit_account_id: credit_account_id.into(),
+            credit_account_id,
             correlation_id,
             external_id,
         };
@@ -725,6 +760,12 @@ impl DepositLedger {
         Ok(())
     }
 
+    #[instrument(
+        name = "deposit_ledger.cancel_withdrawal",
+        skip_all,
+        fields(entity_id = tracing::field::Empty, tx_id = tracing::field::Empty, credit_account_id = tracing::field::Empty),
+        err
+    )]
     pub async fn cancel_withdrawal(
         &self,
         op: es_entity::DbOp<'_>,
@@ -734,6 +775,13 @@ impl DepositLedger {
         credit_account_id: impl Into<AccountId>,
     ) -> Result<(), DepositLedgerError> {
         let tx_id = tx_id.into();
+        tracing::Span::current().record("entity_id", tracing::field::debug(&entity_id));
+        tracing::Span::current().record("tx_id", tracing::field::debug(&tx_id));
+        let credit_account_id = credit_account_id.into();
+        tracing::Span::current().record(
+            "credit_account_id",
+            tracing::field::debug(&credit_account_id),
+        );
         let mut op = self
             .cala
             .ledger_operation_from_db_op(op.with_db_time().await?);
@@ -743,7 +791,7 @@ impl DepositLedger {
             journal_id: self.journal_id,
             currency: self.usd,
             amount: amount.to_usd(),
-            credit_account_id: credit_account_id.into(),
+            credit_account_id,
             deposit_omnibus_account_id: self.deposit_omnibus_account_ids.account_id,
         };
 
@@ -754,14 +802,17 @@ impl DepositLedger {
         Ok(())
     }
 
+    #[instrument(name = "deposit_ledger.balance", skip_all, fields(account_id = tracing::field::Empty), err)]
     pub async fn balance(
         &self,
         account_id: impl Into<AccountId>,
     ) -> Result<DepositAccountBalance, DepositLedgerError> {
+        let account_id = account_id.into();
+        tracing::Span::current().record("account_id", tracing::field::debug(&account_id));
         match self
             .cala
             .balances()
-            .find(self.journal_id, account_id.into(), self.usd)
+            .find(self.journal_id, account_id, self.usd)
             .await
         {
             Ok(balances) => Ok(DepositAccountBalance {
@@ -775,6 +826,7 @@ impl DepositLedger {
         }
     }
 
+    #[instrument(name = "deposit_ledger.create_deposit_accounts", skip_all, err)]
     pub async fn create_deposit_accounts(
         &self,
         op: es_entity::DbOp<'_>,
@@ -859,6 +911,12 @@ impl DepositLedger {
         }
     }
 
+    #[instrument(
+        name = "deposit_ledger.create_account_in_op",
+        skip_all,
+        fields(account_id = tracing::field::Empty),
+        err
+    )]
     async fn create_account_in_op(
         &self,
         op: &mut LedgerOperation<'_>,
@@ -870,6 +928,7 @@ impl DepositLedger {
         entity_ref: core_accounting::EntityRef,
     ) -> Result<(), DepositLedgerError> {
         let id = id.into();
+        tracing::Span::current().record("account_id", tracing::field::debug(&id));
 
         let new_ledger_account = NewAccount::builder()
             .id(id)
@@ -895,6 +954,7 @@ impl DepositLedger {
         Ok(())
     }
 
+    #[instrument(name = "deposit_ledger.create_deposit_control", skip(cala), err)]
     pub async fn create_deposit_control(
         cala: &CalaLedger,
     ) -> Result<VelocityControlId, DepositLedgerError> {
@@ -914,17 +974,25 @@ impl DepositLedger {
         }
     }
 
+    #[instrument(
+        name = "deposit_ledger.add_deposit_control_to_account",
+        skip_all,
+        fields(account_id = tracing::field::Empty),
+        err
+    )]
     pub async fn add_deposit_control_to_account(
         &self,
         op: &mut cala_ledger::LedgerOperation<'_>,
         account_id: impl Into<AccountId>,
     ) -> Result<(), DepositLedgerError> {
+        let account_id = account_id.into();
+        tracing::Span::current().record("account_id", tracing::field::debug(&account_id));
         self.cala
             .velocities()
             .attach_control_to_account_in_op(
                 op,
                 self.deposit_control_id,
-                account_id.into(),
+                account_id,
                 Params::default(),
             )
             .await?;
@@ -932,6 +1000,11 @@ impl DepositLedger {
         Ok(())
     }
 
+    #[instrument(
+        name = "deposit_ledger.get_chart_of_accounts_integration_config",
+        skip(self),
+        err
+    )]
     pub async fn get_chart_of_accounts_integration_config(
         &self,
     ) -> Result<Option<ChartOfAccountsIntegrationConfig>, DepositLedgerError> {
@@ -949,6 +1022,7 @@ impl DepositLedger {
         }
     }
 
+    #[instrument(name = "deposit_ledger.attach_charts_account_set", skip_all, err)]
     async fn attach_charts_account_set<F>(
         &self,
         op: &mut LedgerOperation<'_>,
@@ -994,6 +1068,11 @@ impl DepositLedger {
         Ok(())
     }
 
+    #[instrument(
+        name = "deposit_ledger.attach_chart_of_accounts_account_sets",
+        skip_all,
+        err
+    )]
     pub async fn attach_chart_of_accounts_account_sets(
         &self,
         charts_integration_meta: ChartOfAccountsIntegrationMeta,
