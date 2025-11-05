@@ -8,6 +8,8 @@ pub enum AccountingCalendarError {
     EsEntityError(es_entity::EsEntityError),
     #[error("AccountingCalendarError - CursorDestructureError: {0}")]
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
+    #[error("AccountingCalendarError - AccountingCalendarLedgerError: {0}")]
+    AccountingCalendarLedgerError(#[from] super::ledger::error::AccountingCalendarLedgerError),
     #[error("AccountingCalendarError - AccountPeriodStartNotFound")]
     AccountPeriodStartNotFound,
 }
