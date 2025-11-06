@@ -1,0 +1,258 @@
+version: 2
+
+sources:
+  - name: lana
+    dataset: "{{ env_var('TARGET_BIGQUERY_DATASET', '') }}"
+    tables:
+
+      - name: core_approval_process_events_rollup
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: core_chart_events_rollup
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: core_collateral_events_rollup
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: core_committee_events_rollup
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: core_credit_facility_events_rollup
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: core_credit_facility_proposal_events_rollup
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: core_custodian_events_rollup
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: core_customer_events_rollup
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: core_deposit_account_events_rollup
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: core_deposit_events_rollup
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: core_disbursal_events_rollup
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: core_document_events_rollup
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: core_interest_accrual_cycle_events_rollup
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: core_liquidation_process_events_rollup
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: core_manual_transaction_events_rollup
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: core_obligation_events_rollup
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: core_payment_allocation_events_rollup
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: core_payment_events_rollup
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: core_pending_credit_facility_events_rollup
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: core_permission_set_events_rollup
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: core_policy_events_rollup
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: core_role_events_rollup
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: core_terms_template_events_rollup
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: core_user_events_rollup
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: core_withdrawal_events_rollup
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: core_public_ids
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: core_chart_events
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: core_chart_node_events
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day

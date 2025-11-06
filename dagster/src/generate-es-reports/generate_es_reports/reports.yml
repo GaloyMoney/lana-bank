@@ -1,0 +1,6 @@
+report_jobs:
+  - norm: uif
+    id: "07_diario_otros_medios_electronicos"
+    friendly_name: "diario_otros_medios_electronicos"
+    outputs:
+      - type: csv
