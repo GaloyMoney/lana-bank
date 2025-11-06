@@ -100,7 +100,7 @@ where
             .build()
             .expect("Could not build new FiscalYear");
         self.repo.create(init_fiscal_year).await?;
-        
+
         Ok(())
     }
 
