@@ -22,6 +22,9 @@ use crate::{
     payment_allocation::{
         PaymentAllocation, PaymentAllocationEvent, error::PaymentAllocationError,
     },
+    pending_credit_facility::{
+        PendingCreditFacility, PendingCreditFacilityEvent, error::PendingCreditFacilityError,
+    },
     primitives::CreditFacilityProposalStatus,
 };
 
@@ -123,6 +126,34 @@ where
                 {
                     Some(CoreCreditEvent::FacilityProposalApproved { id: entity.id })
                 }
+                _ => None,
+            })
+            .collect::<Vec<_>>();
+
+        self.outbox
+            .publish_all_persisted(op, publish_events)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn publish_pending_credit_facility(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        entity: &PendingCreditFacility,
+        new_events: es_entity::LastPersisted<'_, PendingCreditFacilityEvent>,
+    ) -> Result<(), PendingCreditFacilityError> {
+        use PendingCreditFacilityEvent::*;
+        let publish_events = new_events
+            .filter_map(|event| match &event.event {
+                CollateralizationStateChanged {
+                    collateralization_state,
+                    ..
+                } => Some(
+                    CoreCreditEvent::PendingCreditFacilityCollateralizationChanged {
+                        id: entity.id,
+                        state: *collateralization_state,
+                    },
+                ),
                 _ => None,
             })
             .collect::<Vec<_>>();

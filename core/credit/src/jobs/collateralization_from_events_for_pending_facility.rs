@@ -44,7 +44,7 @@ where
         + OutboxEventMarker<CoreCustodyEvent>,
 {
     outbox: Outbox<E>,
-    credit_facility_proposals: PendingCreditFacilities<Perms, E>,
+    pending_credit_facilities: PendingCreditFacilities<Perms, E>,
 }
 
 impl<Perms, E> PendingCreditFacilityCollateralizationFromEventsInit<Perms, E>
@@ -60,11 +60,11 @@ where
 {
     pub fn new(
         outbox: &Outbox<E>,
-        credit_facility_proposals: &PendingCreditFacilities<Perms, E>,
+        pending_credit_facilities: &PendingCreditFacilities<Perms, E>,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
-            credit_facility_proposals: credit_facility_proposals.clone(),
+            pending_credit_facilities: pending_credit_facilities.clone(),
         }
     }
 }
@@ -93,7 +93,7 @@ where
         Ok(Box::new(
             PendingCreditFacilityCollateralizationFromEventsRunner::<Perms, E> {
                 outbox: self.outbox.clone(),
-                pending_credit_facility: self.credit_facility_proposals.clone(),
+                pending_credit_facility: self.pending_credit_facilities.clone(),
             },
         ))
     }
@@ -135,7 +135,7 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
-    #[instrument(name = "core_credit.proposal_collateralization_job.process_message", parent = None, skip(self, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty, credit_facility_proposal_id = tracing::field::Empty))]
+    #[instrument(name = "core_credit.pending_credit_facility_collateralization_job.process_message", parent = None, skip(self, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty, credit_facility_proposal_id = tracing::field::Empty))]
     #[allow(clippy::single_match)]
     async fn process_message(
         &self,
@@ -151,7 +151,7 @@ where
                 message.inject_trace_parent();
                 Span::current().record("handled", true);
                 Span::current().record("event_type", event.as_ref());
-                Span::current().record("credit_facility_proposal_id", tracing::field::display(id));
+                Span::current().record("pending_credit_facility_id", tracing::field::display(id));
 
                 self.pending_credit_facility
                     .update_collateralization_from_events(*id)
