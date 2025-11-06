@@ -1,0 +1,9 @@
+query LatestFiscalYear($chartId: UUID!) {
+    latestFiscalYear(chartId: $chartId) {
+        id
+        chartId
+        firstPeriodOpenedAt
+        firstPeriodOpenedAsOf
+        lastMonthClosedAt
+    }
+}

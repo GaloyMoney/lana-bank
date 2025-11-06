@@ -252,3 +252,21 @@ teardown_file() {
   errors=$(graphql_output '.errors')
   [[ "$errors" =~ "VelocityError" ]] || exit 1
 }
+
+@test "accounting: fiscal year was initialized" {
+  exec_admin_graphql 'chart-of-accounts-closing'
+  graphql_output
+  chart_id=$(graphql_output '.data.chartOfAccounts.chartId')
+  
+  variables=$(
+    jq -n \
+    --arg chart_id "$chart_id" \
+    '{
+        chartId: $chart_id
+    }'
+  )
+  exec_admin_graphql 'fiscal-year-latest' "$variables"
+  graphql_output
+  first_period_opened_at=$(graphql_output '.data.latestFiscalYear.firstPeriodOpenedAt')
+  [[ "$first_period_opened_at" != "null" ]] || exit 1
+}
