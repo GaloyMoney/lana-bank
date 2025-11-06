@@ -106,7 +106,7 @@ impl TryFromEvents<FiscalYearEvent> for FiscalYear {
                         .first_period_opened_as_of(*first_period_opened_as_of)
                         .first_period_opened_at(*first_period_opened_at);
                 }
-                FiscalYearEvent::MonthClosed { .. } => {},
+                FiscalYearEvent::MonthClosed { .. } => {}
             }
         }
         builder.events(events).build()
