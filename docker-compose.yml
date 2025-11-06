@@ -4,7 +4,7 @@ services:
     image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.133.0
     ports: [4317:4317]
     environment:
-      - HONEYCOMB_API_KEY=${HONEYCOMB_API_KEY}
+      - HONEYCOMB_API_KEY=${INJEST_HONEYCOMB_API_KEY}
     command: --config=/etc/otel-agent-config.yaml
     volumes: ["./dev/otel-agent-config.yaml:/etc/otel-agent-config.yaml"]
 
