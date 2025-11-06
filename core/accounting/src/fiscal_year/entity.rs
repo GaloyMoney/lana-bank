@@ -32,8 +32,6 @@ pub struct FiscalYear {
     pub chart_id: ChartId,
     pub first_period_opened_as_of: NaiveDate,
     pub first_period_opened_at: DateTime<Utc>,
-    #[builder(default)]
-    pub last_month_closed_at: Option<DateTime<Utc>>,
 
     events: EntityEvents<FiscalYearEvent>,
 }
@@ -74,7 +72,7 @@ impl FiscalYear {
                     } => Some(*first_period_opened_as_of),
                     _ => None,
                 })
-                .ok_or(FiscalYearError::InitFiscalYearNotFound)?
+                .expect("Entity was not initialized")
                 .checked_add_months(Months::new(1))
                 .and_then(|d| d.with_day(1))
                 .and_then(|d| d.pred_opt())
@@ -85,7 +83,6 @@ impl FiscalYear {
             closed_as_of: new_monthly_closing_date,
             closed_at: now,
         });
-        self.last_month_closed_at = Some(now);
         Ok(Idempotent::Executed(new_monthly_closing_date))
     }
 }
@@ -109,9 +106,7 @@ impl TryFromEvents<FiscalYearEvent> for FiscalYear {
                         .first_period_opened_as_of(*first_period_opened_as_of)
                         .first_period_opened_at(*first_period_opened_at);
                 }
-                FiscalYearEvent::MonthClosed { closed_at, .. } => {
-                    builder = builder.last_month_closed_at(Some(*closed_at));
-                }
+                FiscalYearEvent::MonthClosed { .. } => {},
             }
         }
         builder.events(events).build()
@@ -124,7 +119,7 @@ pub struct NewFiscalYear {
     pub id: FiscalYearId,
     #[builder(setter(into))]
     pub chart_id: ChartId,
-    pub first_period_opened_as_of: NaiveDate,
+    pub first_period_opened_at: DateTime<Utc>,
 }
 
 impl NewFiscalYear {
@@ -140,8 +135,8 @@ impl IntoEvents<FiscalYearEvent> for NewFiscalYear {
             [FiscalYearEvent::Initialized {
                 id: self.id,
                 chart_id: self.chart_id,
-                first_period_opened_as_of: self.first_period_opened_as_of,
-                first_period_opened_at: crate::time::now(),
+                first_period_opened_at: self.first_period_opened_at,
+                first_period_opened_as_of: self.first_period_opened_at.date_naive(),
             }],
         )
     }
@@ -176,7 +171,6 @@ mod test {
         let timestamp = Utc::now();
         let closed_date = fiscal_year.close_last_month(timestamp).unwrap().unwrap();
         assert_eq!(closed_date, expected_closed_date);
-        assert_eq!(fiscal_year.last_month_closed_at, Some(timestamp));
 
         let closing_event_date = fiscal_year
             .events
@@ -203,7 +197,6 @@ mod test {
             .unwrap()
             .unwrap();
         assert_eq!(second_closing_date, expected_second_closed_date);
-        assert_eq!(fiscal_year.last_month_closed_at, Some(second_closing_ts));
     }
 
     #[test]
