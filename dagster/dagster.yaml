@@ -13,31 +13,8 @@ run_coordinator:
         limit: 5
 
 run_launcher:
-  module: dagster_docker
-  class: DockerRunLauncher
-  config:
-    env_vars:
-      - DAGSTER_POSTGRES_USER
-      - DAGSTER_POSTGRES_PASSWORD
-      - DAGSTER_POSTGRES_DB
-      - DOCKER_HOST
-      - TF_VAR_sa_creds
-      - TARGET_BIGQUERY_DATASET
-      - DBT_BIGQUERY_AUTH_METHOD
-      - DBT_BIGQUERY_PROJECT
-      - DBT_BIGQUERY_DATASET
-      - DBT_BIGQUERY_REFRESH_TOKEN
-      - DBT_BIGQUERY_CLIENT_ID
-      - DBT_BIGQUERY_CLIENT_SECRET
-      - DBT_BIGQUERY_TOKEN_URI
-      - DBT_BIGQUERY_KEYFILE
-      - DOCS_BUCKET_NAME
-      - GOOGLE_APPLICATION_CREDENTIALS
-    network: dagster_network
-    image: dagster-code-location-lana-dw
-    container_kwargs:
-      volumes_from:
-        - dagster_webserver
+  module: dagster.core.launcher
+  class: DefaultRunLauncher
 
 run_storage:
   module: dagster_postgres.run_storage
@@ -80,3 +57,6 @@ event_log_storage:
       db_name:
         env: DAGSTER_POSTGRES_DB
       port: 5432
+
+telemetry:
+  enabled: false
