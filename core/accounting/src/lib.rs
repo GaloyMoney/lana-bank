@@ -290,6 +290,15 @@ where
         Ok(self.fiscal_year().close_month(sub, chart_id).await?)
     }
 
+    #[instrument(name = "core_accounting.find_latest_fiscal_year", skip(self), err)]
+    pub async fn find_latest_fiscal_year(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_id: impl Into<ChartId> + std::fmt::Debug,
+    ) -> Result<Option<FiscalYear>, CoreAccountingError> {
+        Ok(self.fiscal_year().find_latest_fiscal_year(sub, chart_id).await?)
+    }
+
     #[instrument(name = "core_accounting.add_root_node", skip(self), err)]
     pub async fn add_root_node(
         &self,

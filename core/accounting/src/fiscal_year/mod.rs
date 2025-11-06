@@ -158,6 +158,42 @@ where
         Ok(latest_year)
     }
 
+    #[instrument(
+        name = "core_accounting.fiscal_year.find_latest_fiscal_year",
+        skip(self),
+        err
+    )]
+    pub async fn find_latest_fiscal_year(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_id: impl Into<ChartId> + std::fmt::Debug,
+    ) -> Result<Option<FiscalYear>, FiscalYearError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_fiscal_years(),
+                CoreAccountingAction::FISCAL_YEAR_READ,
+            )
+            .await?;
+        self.find_latest_fiscal_year_for_chart_id(chart_id).await
+    }
+
+    async fn find_latest_fiscal_year_for_chart_id(
+        &self,
+        chart_id: impl Into<ChartId> + std::fmt::Debug,
+    ) -> Result<Option<FiscalYear>, FiscalYearError> {
+        let id = chart_id.into();
+        let fiscal_years = self
+            .repo
+            .list_for_chart_id_by_created_at(
+                id,
+                Default::default(),
+                es_entity::ListDirection::Descending,
+            )
+            .await?;
+        Ok(fiscal_years.entities.first().cloned())
+    }
+
     #[instrument(name = "core_accounting.fiscal_year.find_all", skip(self), err)]
     pub async fn find_all<T: From<FiscalYear>>(
         &self,
