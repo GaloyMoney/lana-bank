@@ -785,7 +785,7 @@ impl Query {
     }
 
     async fn latest_fiscal_year(
-        &self, 
+        &self,
         ctx: &Context<'_>,
         chart_id: UUID,
     ) -> async_graphql::Result<Option<FiscalYear>> {
