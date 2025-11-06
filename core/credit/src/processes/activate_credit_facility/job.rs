@@ -9,7 +9,10 @@ use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
 use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
-use crate::{CoreCreditAction, CoreCreditEvent, CoreCreditObject};
+use crate::{
+    CoreCreditAction, CoreCreditEvent, CoreCreditObject,
+    PendingCreditFacilityCollateralizationState,
+};
 
 use super::ActivateCreditFacility;
 
@@ -141,8 +144,9 @@ where
         use CoreCreditEvent::*;
 
         if let Some(
-            event @ FacilityCollateralUpdated {
-                credit_facility_id, ..
+            event @ PendingCreditFacilityCollateralizationChanged {
+                id,
+                state: PendingCreditFacilityCollateralizationState::FullyCollateralized,
             },
         ) = message.as_event()
         {
@@ -150,9 +154,7 @@ where
             Span::current().record("handled", true);
             Span::current().record("event_type", event.as_ref());
 
-            self.process
-                .execute_activate_credit_facility(*credit_facility_id)
-                .await?;
+            self.process.execute_activate_credit_facility(*id).await?;
         }
         Ok(())
     }

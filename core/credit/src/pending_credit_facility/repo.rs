@@ -28,7 +28,8 @@ use super::{entity::*, error::PendingCreditFacilityError};
             update(accessor = "last_collateralization_state()")
         ),
     ),
-    tbl_prefix = "core"
+    tbl_prefix = "core",
+    post_persist_hook = "publish"
 )]
 pub struct PendingCreditFacilityRepo<E>
 where
@@ -59,6 +60,22 @@ where
             pool: pool.clone(),
             publisher: publisher.clone(),
         }
+    }
+
+    #[tracing::instrument(
+        name = "pending_credit_facility.publish",
+        skip_all,
+        err(level = "warn")
+    )]
+    async fn publish(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        entity: &PendingCreditFacility,
+        new_events: es_entity::LastPersisted<'_, PendingCreditFacilityEvent>,
+    ) -> Result<(), PendingCreditFacilityError> {
+        self.publisher
+            .publish_pending_credit_facility(op, entity, new_events)
+            .await
     }
 }
 

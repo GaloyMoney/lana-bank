@@ -1,4 +1,5 @@
 use outbox::{Outbox, OutboxEventMarker};
+use tracing::instrument;
 
 use crate::{
     EffectiveDate,
@@ -21,6 +22,9 @@ use crate::{
     obligation::{Obligation, ObligationEvent, error::ObligationError},
     payment_allocation::{
         PaymentAllocation, PaymentAllocationEvent, error::PaymentAllocationError,
+    },
+    pending_credit_facility::{
+        PendingCreditFacility, PendingCreditFacilityEvent, error::PendingCreditFacilityError,
     },
     primitives::CreditFacilityProposalStatus,
 };
@@ -53,6 +57,11 @@ where
         }
     }
 
+    #[instrument(
+        name = "credit.publisher.publish_facility",
+        skip_all,
+        err(level = "warn")
+    )]
     pub async fn publish_facility(
         &self,
         op: &mut impl es_entity::AtomicOperation,
@@ -101,6 +110,11 @@ where
         Ok(())
     }
 
+    #[instrument(
+        name = "credit.publisher.publish_proposal",
+        skip_all,
+        err(level = "warn")
+    )]
     pub async fn publish_proposal(
         &self,
         op: &mut impl es_entity::AtomicOperation,
@@ -133,6 +147,44 @@ where
         Ok(())
     }
 
+    #[instrument(
+        name = "credit.publisher.publish_pending_credit_facility",
+        skip_all,
+        err(level = "warn")
+    )]
+    pub async fn publish_pending_credit_facility(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        entity: &PendingCreditFacility,
+        new_events: es_entity::LastPersisted<'_, PendingCreditFacilityEvent>,
+    ) -> Result<(), PendingCreditFacilityError> {
+        use PendingCreditFacilityEvent::*;
+        let publish_events = new_events
+            .filter_map(|event| match &event.event {
+                CollateralizationStateChanged {
+                    collateralization_state,
+                    ..
+                } => Some(
+                    CoreCreditEvent::PendingCreditFacilityCollateralizationChanged {
+                        id: entity.id,
+                        state: *collateralization_state,
+                    },
+                ),
+                _ => None,
+            })
+            .collect::<Vec<_>>();
+
+        self.outbox
+            .publish_all_persisted(op, publish_events)
+            .await?;
+        Ok(())
+    }
+
+    #[instrument(
+        name = "credit.publisher.publish_collateral",
+        skip_all,
+        err(level = "warn")
+    )]
     pub async fn publish_collateral(
         &self,
         op: &mut impl es_entity::AtomicOperation,
@@ -172,6 +224,11 @@ where
         Ok(())
     }
 
+    #[instrument(
+        name = "credit.publisher.publish_disbursal",
+        skip_all,
+        err(level = "warn")
+    )]
     pub async fn publish_disbursal(
         &self,
         op: &mut impl es_entity::AtomicOperation,
@@ -203,6 +260,11 @@ where
         Ok(())
     }
 
+    #[instrument(
+        name = "credit.publisher.publish_interest_accrual_cycle",
+        skip_all,
+        err(level = "warn")
+    )]
     pub async fn publish_interest_accrual_cycle(
         &self,
         op: &mut impl es_entity::AtomicOperation,
@@ -236,6 +298,11 @@ where
         Ok(())
     }
 
+    #[instrument(
+        name = "credit.publisher.publish_payment_allocation",
+        skip_all,
+        err(level = "warn")
+    )]
     pub async fn publish_payment_allocation(
         &self,
         op: &mut impl es_entity::AtomicOperation,
@@ -269,6 +336,11 @@ where
         Ok(())
     }
 
+    #[instrument(
+        name = "credit.publisher.publish_obligation",
+        skip_all,
+        err(level = "warn")
+    )]
     pub async fn publish_obligation(
         &self,
         op: &mut impl es_entity::AtomicOperation,
@@ -329,6 +401,11 @@ where
         Ok(())
     }
 
+    #[instrument(
+        name = "credit.publisher.publish_liquidation_process",
+        skip_all,
+        err(level = "warn")
+    )]
     pub async fn publish_liquidation_process(
         &self,
         op: &mut impl es_entity::AtomicOperation,

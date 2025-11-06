@@ -74,6 +74,7 @@ where
         }
     }
 
+    #[tracing::instrument(name = "credit_facility.publish", skip_all, err(level = "warn"))]
     async fn publish(
         &self,
         op: &mut impl es_entity::AtomicOperation,
@@ -149,6 +150,7 @@ where
         }
     }
 
+    #[tracing::instrument(name = "interest_accrual_cycle.publish", skip_all, err(level = "warn"))]
     async fn publish(
         &self,
         op: &mut impl es_entity::AtomicOperation,

@@ -144,6 +144,7 @@ impl CreditFacilityHistory {
             ObligationDefaulted { .. } => {}
             LiquidationProcessConcluded { .. } => {}
             ObligationCompleted { .. } => {}
+            PendingCreditFacilityCollateralizationChanged { .. } => {}
         }
     }
 }
