@@ -6,8 +6,6 @@ CREATE TABLE core_chart_events_rollup (
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
   account_set_id UUID,
-  closed_as_of VARCHAR,
-  closed_at TIMESTAMPTZ,
   first_period_opened_as_of VARCHAR,
   first_period_opened_at TIMESTAMPTZ,
   name VARCHAR,
@@ -34,7 +32,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'accounting_period_closed') THEN
+  IF event_type NOT IN ('initialized') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -47,8 +45,6 @@ BEGIN
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
     new_row.account_set_id := (NEW.event ->> 'account_set_id')::UUID;
-    new_row.closed_as_of := (NEW.event ->> 'closed_as_of');
-    new_row.closed_at := (NEW.event ->> 'closed_at')::TIMESTAMPTZ;
     new_row.first_period_opened_as_of := (NEW.event ->> 'first_period_opened_as_of');
     new_row.first_period_opened_at := (NEW.event ->> 'first_period_opened_at')::TIMESTAMPTZ;
     new_row.name := (NEW.event ->> 'name');
@@ -56,8 +52,6 @@ BEGIN
   ELSE
     -- Default all fields to current values
     new_row.account_set_id := current_row.account_set_id;
-    new_row.closed_as_of := current_row.closed_as_of;
-    new_row.closed_at := current_row.closed_at;
     new_row.first_period_opened_as_of := current_row.first_period_opened_as_of;
     new_row.first_period_opened_at := current_row.first_period_opened_at;
     new_row.name := current_row.name;
@@ -72,9 +66,6 @@ BEGIN
       new_row.first_period_opened_at := (NEW.event ->> 'first_period_opened_at')::TIMESTAMPTZ;
       new_row.name := (NEW.event ->> 'name');
       new_row.reference := (NEW.event ->> 'reference');
-    WHEN 'accounting_period_closed' THEN
-      new_row.closed_as_of := (NEW.event ->> 'closed_as_of');
-      new_row.closed_at := (NEW.event ->> 'closed_at')::TIMESTAMPTZ;
   END CASE;
 
   INSERT INTO core_chart_events_rollup (
@@ -83,8 +74,6 @@ BEGIN
     created_at,
     modified_at,
     account_set_id,
-    closed_as_of,
-    closed_at,
     first_period_opened_as_of,
     first_period_opened_at,
     name,
@@ -96,8 +85,6 @@ BEGIN
     new_row.created_at,
     new_row.modified_at,
     new_row.account_set_id,
-    new_row.closed_as_of,
-    new_row.closed_at,
     new_row.first_period_opened_as_of,
     new_row.first_period_opened_at,
     new_row.name,
