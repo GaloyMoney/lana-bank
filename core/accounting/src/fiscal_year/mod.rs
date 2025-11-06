@@ -65,7 +65,7 @@ where
         Self {
             repo: FiscalYearRepo::new(pool),
             authz: authz.clone(),
-            ledger: ledger,
+            ledger,
             journal_id,
         }
     }
@@ -89,23 +89,18 @@ where
                 es_entity::ListDirection::Descending,
             )
             .await?;
-        let latest_year = fiscal_years.entities.first();
-
-        match latest_year {
-            None => {
-                tracing::info!("Initializing first FiscalYear for chart ID: {}", id);
-                let init_fiscal_year = NewFiscalYear::builder()
-                    .id(FiscalYearId::new())
-                    .chart_id(id)
-                    .first_period_opened_as_of(opened_as_of)
-                    .build()
-                    .expect("Could not build new FiscalYear");
-                self.repo.create(init_fiscal_year).await?;
-            }
-            Some(_) => {
-                return Err(FiscalYearError::FiscalYearAlreadyInitialized);
-            }
+        if !fiscal_years.entities.is_empty() {
+            return Ok(());
         }
+        tracing::info!("Initializing first FiscalYear for chart ID: {}", id);
+        let init_fiscal_year = NewFiscalYear::builder()
+            .id(FiscalYearId::new())
+            .chart_id(id)
+            .first_period_opened_as_of(opened_as_of)
+            .build()
+            .expect("Could not build new FiscalYear");
+        self.repo.create(init_fiscal_year).await?;
+        
         Ok(())
     }
 

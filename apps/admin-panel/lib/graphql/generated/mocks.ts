@@ -411,15 +411,6 @@ export const mockChartOfAccountsAddRootNodePayload = (overrides?: Partial<ChartO
     };
 };
 
-export const mockChartOfAccountsCloseMonthlyPayload = (overrides?: Partial<ChartOfAccountsCloseMonthlyPayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'ChartOfAccountsCloseMonthlyPayload' } & ChartOfAccountsCloseMonthlyPayload => {
-    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
-    relationshipsToOmit.add('ChartOfAccountsCloseMonthlyPayload');
-    return {
-        __typename: 'ChartOfAccountsCloseMonthlyPayload',
-        chartOfAccounts: overrides && overrides.hasOwnProperty('chartOfAccounts') ? overrides.chartOfAccounts! : relationshipsToOmit.has('ChartOfAccounts') ? {} as ChartOfAccounts : mockChartOfAccounts({}, relationshipsToOmit),
-    };
-};
-
 export const mockChartOfAccountsCsvImportInput = (overrides?: Partial<ChartOfAccountsCsvImportInput>, _relationshipsToOmit: Set<string> = new Set()): ChartOfAccountsCsvImportInput => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('ChartOfAccountsCsvImportInput');
@@ -1741,6 +1732,36 @@ export const mockFiniteCvlPct = (overrides?: Partial<FiniteCvlPct>, _relationshi
     };
 };
 
+export const mockFiscalYear = (overrides?: Partial<FiscalYear>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'FiscalYear' } & FiscalYear => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('FiscalYear');
+    return {
+        __typename: 'FiscalYear',
+        chartId: overrides && overrides.hasOwnProperty('chartId') ? overrides.chartId! : generateMockValue.uuid(),
+        firstPeriodOpenedAsOf: overrides && overrides.hasOwnProperty('firstPeriodOpenedAsOf') ? overrides.firstPeriodOpenedAsOf! : faker.date.past({ years: 1, refDate: new Date(2022, 0) }).toISOString(),
+        firstPeriodOpenedAt: overrides && overrides.hasOwnProperty('firstPeriodOpenedAt') ? overrides.firstPeriodOpenedAt! : generateMockValue.timestamp(),
+        id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
+        lastMonthClosedAt: overrides && overrides.hasOwnProperty('lastMonthClosedAt') ? overrides.lastMonthClosedAt! : generateMockValue.timestamp(),
+    };
+};
+
+export const mockFiscalYearCloseMonthInput = (overrides?: Partial<FiscalYearCloseMonthInput>, _relationshipsToOmit: Set<string> = new Set()): FiscalYearCloseMonthInput => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('FiscalYearCloseMonthInput');
+    return {
+        chartId: overrides && overrides.hasOwnProperty('chartId') ? overrides.chartId! : generateMockValue.uuid(),
+    };
+};
+
+export const mockFiscalYearCloseMonthPayload = (overrides?: Partial<FiscalYearCloseMonthPayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'FiscalYearCloseMonthPayload' } & FiscalYearCloseMonthPayload => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('FiscalYearCloseMonthPayload');
+    return {
+        __typename: 'FiscalYearCloseMonthPayload',
+        fiscalYear: overrides && overrides.hasOwnProperty('fiscalYear') ? overrides.fiscalYear! : relationshipsToOmit.has('FiscalYear') ? {} as FiscalYear : mockFiscalYear({}, relationshipsToOmit),
+    };
+};
+
 export const mockGovernanceNavigationItems = (overrides?: Partial<GovernanceNavigationItems>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'GovernanceNavigationItems' } & GovernanceNavigationItems => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('GovernanceNavigationItems');
@@ -2019,7 +2040,6 @@ export const mockMutation = (overrides?: Partial<Mutation>, _relationshipsToOmit
         balanceSheetConfigure: overrides && overrides.hasOwnProperty('balanceSheetConfigure') ? overrides.balanceSheetConfigure! : relationshipsToOmit.has('BalanceSheetModuleConfigurePayload') ? {} as BalanceSheetModuleConfigurePayload : mockBalanceSheetModuleConfigurePayload({}, relationshipsToOmit),
         chartOfAccountsAddChildNode: overrides && overrides.hasOwnProperty('chartOfAccountsAddChildNode') ? overrides.chartOfAccountsAddChildNode! : relationshipsToOmit.has('ChartOfAccountsAddChildNodePayload') ? {} as ChartOfAccountsAddChildNodePayload : mockChartOfAccountsAddChildNodePayload({}, relationshipsToOmit),
         chartOfAccountsAddRootNode: overrides && overrides.hasOwnProperty('chartOfAccountsAddRootNode') ? overrides.chartOfAccountsAddRootNode! : relationshipsToOmit.has('ChartOfAccountsAddRootNodePayload') ? {} as ChartOfAccountsAddRootNodePayload : mockChartOfAccountsAddRootNodePayload({}, relationshipsToOmit),
-        chartOfAccountsCloseMonthly: overrides && overrides.hasOwnProperty('chartOfAccountsCloseMonthly') ? overrides.chartOfAccountsCloseMonthly! : relationshipsToOmit.has('ChartOfAccountsCloseMonthlyPayload') ? {} as ChartOfAccountsCloseMonthlyPayload : mockChartOfAccountsCloseMonthlyPayload({}, relationshipsToOmit),
         chartOfAccountsCsvImport: overrides && overrides.hasOwnProperty('chartOfAccountsCsvImport') ? overrides.chartOfAccountsCsvImport! : relationshipsToOmit.has('ChartOfAccountsCsvImportPayload') ? {} as ChartOfAccountsCsvImportPayload : mockChartOfAccountsCsvImportPayload({}, relationshipsToOmit),
         committeeAddUser: overrides && overrides.hasOwnProperty('committeeAddUser') ? overrides.committeeAddUser! : relationshipsToOmit.has('CommitteeAddUserPayload') ? {} as CommitteeAddUserPayload : mockCommitteeAddUserPayload({}, relationshipsToOmit),
         committeeCreate: overrides && overrides.hasOwnProperty('committeeCreate') ? overrides.committeeCreate! : relationshipsToOmit.has('CommitteeCreatePayload') ? {} as CommitteeCreatePayload : mockCommitteeCreatePayload({}, relationshipsToOmit),
@@ -2048,6 +2068,7 @@ export const mockMutation = (overrides?: Partial<Mutation>, _relationshipsToOmit
         depositModuleConfigure: overrides && overrides.hasOwnProperty('depositModuleConfigure') ? overrides.depositModuleConfigure! : relationshipsToOmit.has('DepositModuleConfigurePayload') ? {} as DepositModuleConfigurePayload : mockDepositModuleConfigurePayload({}, relationshipsToOmit),
         depositRecord: overrides && overrides.hasOwnProperty('depositRecord') ? overrides.depositRecord! : relationshipsToOmit.has('DepositRecordPayload') ? {} as DepositRecordPayload : mockDepositRecordPayload({}, relationshipsToOmit),
         depositRevert: overrides && overrides.hasOwnProperty('depositRevert') ? overrides.depositRevert! : relationshipsToOmit.has('DepositRevertPayload') ? {} as DepositRevertPayload : mockDepositRevertPayload({}, relationshipsToOmit),
+        fiscalYearCloseMonth: overrides && overrides.hasOwnProperty('fiscalYearCloseMonth') ? overrides.fiscalYearCloseMonth! : relationshipsToOmit.has('FiscalYearCloseMonthPayload') ? {} as FiscalYearCloseMonthPayload : mockFiscalYearCloseMonthPayload({}, relationshipsToOmit),
         ledgerAccountCsvCreate: overrides && overrides.hasOwnProperty('ledgerAccountCsvCreate') ? overrides.ledgerAccountCsvCreate! : relationshipsToOmit.has('LedgerAccountCsvCreatePayload') ? {} as LedgerAccountCsvCreatePayload : mockLedgerAccountCsvCreatePayload({}, relationshipsToOmit),
         loanAgreementDownloadLinkGenerate: overrides && overrides.hasOwnProperty('loanAgreementDownloadLinkGenerate') ? overrides.loanAgreementDownloadLinkGenerate! : relationshipsToOmit.has('LoanAgreementDownloadLinksGeneratePayload') ? {} as LoanAgreementDownloadLinksGeneratePayload : mockLoanAgreementDownloadLinksGeneratePayload({}, relationshipsToOmit),
         loanAgreementGenerate: overrides && overrides.hasOwnProperty('loanAgreementGenerate') ? overrides.loanAgreementGenerate! : relationshipsToOmit.has('LoanAgreementGeneratePayload') ? {} as LoanAgreementGeneratePayload : mockLoanAgreementGeneratePayload({}, relationshipsToOmit),
@@ -2342,6 +2363,7 @@ export const mockQuery = (overrides?: Partial<Query>, _relationshipsToOmit: Set<
         disbursalByPublicId: overrides && overrides.hasOwnProperty('disbursalByPublicId') ? overrides.disbursalByPublicId! : relationshipsToOmit.has('CreditFacilityDisbursal') ? {} as CreditFacilityDisbursal : mockCreditFacilityDisbursal({}, relationshipsToOmit),
         disbursals: overrides && overrides.hasOwnProperty('disbursals') ? overrides.disbursals! : relationshipsToOmit.has('CreditFacilityDisbursalConnection') ? {} as CreditFacilityDisbursalConnection : mockCreditFacilityDisbursalConnection({}, relationshipsToOmit),
         journalEntries: overrides && overrides.hasOwnProperty('journalEntries') ? overrides.journalEntries! : relationshipsToOmit.has('JournalEntryConnection') ? {} as JournalEntryConnection : mockJournalEntryConnection({}, relationshipsToOmit),
+        latestFiscalYear: overrides && overrides.hasOwnProperty('latestFiscalYear') ? overrides.latestFiscalYear! : relationshipsToOmit.has('FiscalYear') ? {} as FiscalYear : mockFiscalYear({}, relationshipsToOmit),
         ledgerAccount: overrides && overrides.hasOwnProperty('ledgerAccount') ? overrides.ledgerAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
         ledgerAccountByCode: overrides && overrides.hasOwnProperty('ledgerAccountByCode') ? overrides.ledgerAccountByCode! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
         ledgerTransaction: overrides && overrides.hasOwnProperty('ledgerTransaction') ? overrides.ledgerTransaction! : relationshipsToOmit.has('LedgerTransaction') ? {} as LedgerTransaction : mockLedgerTransaction({}, relationshipsToOmit),

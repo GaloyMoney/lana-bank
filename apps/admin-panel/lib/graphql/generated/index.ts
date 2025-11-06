@@ -297,11 +297,6 @@ export type ChartOfAccountsAddRootNodePayload = {
   chartOfAccounts: ChartOfAccounts;
 };
 
-export type ChartOfAccountsCloseMonthlyPayload = {
-  __typename?: 'ChartOfAccountsCloseMonthlyPayload';
-  chartOfAccounts: ChartOfAccounts;
-};
-
 export type ChartOfAccountsCsvImportInput = {
   file: Scalars['Upload']['input'];
 };
@@ -1345,6 +1340,24 @@ export type FiniteCvlPct = {
   value: Scalars['CVLPctValue']['output'];
 };
 
+export type FiscalYear = {
+  __typename?: 'FiscalYear';
+  chartId: Scalars['UUID']['output'];
+  firstPeriodOpenedAsOf: Scalars['Date']['output'];
+  firstPeriodOpenedAt: Scalars['Timestamp']['output'];
+  id: Scalars['ID']['output'];
+  lastMonthClosedAt?: Maybe<Scalars['Timestamp']['output']>;
+};
+
+export type FiscalYearCloseMonthInput = {
+  chartId: Scalars['UUID']['input'];
+};
+
+export type FiscalYearCloseMonthPayload = {
+  __typename?: 'FiscalYearCloseMonthPayload';
+  fiscalYear: FiscalYear;
+};
+
 export type GovernanceNavigationItems = {
   __typename?: 'GovernanceNavigationItems';
   approvalProcess: Scalars['Boolean']['output'];
@@ -1579,7 +1592,6 @@ export type Mutation = {
   balanceSheetConfigure: BalanceSheetModuleConfigurePayload;
   chartOfAccountsAddChildNode: ChartOfAccountsAddChildNodePayload;
   chartOfAccountsAddRootNode: ChartOfAccountsAddRootNodePayload;
-  chartOfAccountsCloseMonthly: ChartOfAccountsCloseMonthlyPayload;
   chartOfAccountsCsvImport: ChartOfAccountsCsvImportPayload;
   committeeAddUser: CommitteeAddUserPayload;
   committeeCreate: CommitteeCreatePayload;
@@ -1608,6 +1620,7 @@ export type Mutation = {
   depositModuleConfigure: DepositModuleConfigurePayload;
   depositRecord: DepositRecordPayload;
   depositRevert: DepositRevertPayload;
+  fiscalYearCloseMonth: FiscalYearCloseMonthPayload;
   ledgerAccountCsvCreate: LedgerAccountCsvCreatePayload;
   loanAgreementDownloadLinkGenerate: LoanAgreementDownloadLinksGeneratePayload;
   loanAgreementGenerate: LoanAgreementGeneratePayload;
@@ -1800,6 +1813,11 @@ export type MutationDepositRecordArgs = {
 
 export type MutationDepositRevertArgs = {
   input: DepositRevertInput;
+};
+
+
+export type MutationFiscalYearCloseMonthArgs = {
+  input: FiscalYearCloseMonthInput;
 };
 
 
@@ -2150,6 +2168,7 @@ export type Query = {
   disbursalByPublicId?: Maybe<CreditFacilityDisbursal>;
   disbursals: CreditFacilityDisbursalConnection;
   journalEntries: JournalEntryConnection;
+  latestFiscalYear?: Maybe<FiscalYear>;
   ledgerAccount?: Maybe<LedgerAccount>;
   ledgerAccountByCode?: Maybe<LedgerAccount>;
   ledgerTransaction?: Maybe<LedgerTransaction>;
@@ -2334,6 +2353,11 @@ export type QueryDisbursalsArgs = {
 export type QueryJournalEntriesArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
+};
+
+
+export type QueryLatestFiscalYearArgs = {
+  chartId: Scalars['UUID']['input'];
 };
 
 
