@@ -149,7 +149,6 @@ impl IntoEvents<FiscalYearEvent> for NewFiscalYear {
 
 #[cfg(test)]
 mod test {
-    use std::os::unix::fs::chroot;
 
     use super::*;
 
