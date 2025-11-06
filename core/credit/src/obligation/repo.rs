@@ -53,6 +53,7 @@ where
         }
     }
 
+    #[tracing::instrument(name = "obligation.publish", skip_all, err(level = "warn"))]
     async fn publish(
         &self,
         op: &mut impl es_entity::AtomicOperation,
