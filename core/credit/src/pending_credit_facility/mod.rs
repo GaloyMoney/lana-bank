@@ -89,7 +89,6 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
-    #[instrument(name = "pending_credit_facility.new", skip_all)]
     pub fn new(
         pool: &sqlx::PgPool,
         proposals: Arc<CreditFacilityProposals<Perms, E>>,
