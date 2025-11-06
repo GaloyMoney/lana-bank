@@ -48,35 +48,6 @@ groups:
       - build-dagster-edge-image
 
 jobs:
-  - name: set-next-version
-    serial: true
-    plan:
-      - get: repo
-        trigger: true
-      - get: version
-      - task: next-version
-        config:
-          platform: linux
-          image_resource: #@ nix_flake_cachix_image_config()
-          inputs:
-          - name: repo
-          outputs:
-          - name: version
-          params:
-            CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
-            CACHIX_CACHE_NAME: #@ data.values.cachix_cache_name
-          run:
-            path: sh
-            args:
-            - -exc
-            - |
-              set -euo pipefail
-              cachix use $CACHIX_CACHE_NAME
-              cd repo
-              nix run ./ci#next-version > ../version/version
-      - put: version
-        params:
-          file: version/version
   - name: auto-bump-patch
     serial: true
     plan:
@@ -117,7 +88,6 @@ jobs:
       - in_parallel:
           - get: repo
             trigger: true
-            passed: [ set-next-version ]
           - { get: pipeline-tasks }
       - task: run-nextest
         privileged: true
@@ -145,7 +115,6 @@ jobs:
       - in_parallel:
           - get: repo
             trigger: true
-            passed: [ set-next-version ]
           - { get: pipeline-tasks }
       - task: run-bats
         privileged: true
@@ -172,7 +141,6 @@ jobs:
     plan:
     - get: repo
       trigger: true
-      passed: [ set-next-version ]
 
     - task: nix-flake-check
       config:
@@ -194,8 +162,40 @@ jobs:
               
               nix flake check
 
+  - name: set-next-version
+    serial: true
+    serial_groups: [release]
+    plan:
+      - get: repo
+        trigger: true
+      - get: version
+      - task: next-version
+        config:
+          platform: linux
+          image_resource: #@ nix_flake_cachix_image_config()
+          inputs:
+          - name: repo
+          outputs:
+          - name: version
+          params:
+            CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+            CACHIX_CACHE_NAME: #@ data.values.cachix_cache_name
+          run:
+            path: sh
+            args:
+            - -exc
+            - |
+              set -euo pipefail
+              cachix use $CACHIX_CACHE_NAME
+              cd repo
+              nix run ./ci#next-version > ../version/version
+      - put: version
+        params:
+          file: version/version
+
   - name: await-release-binary
     serial: true
+    serial_groups: [release]
     plan:
     - in_parallel:
       - get: repo
@@ -238,6 +238,7 @@ jobs:
 
   - name: release
     serial: true
+    serial_groups: [release]
     plan:
       - in_parallel:
           - get: repo
@@ -539,7 +540,6 @@ jobs:
     plan:
       - get: repo
         trigger: true
-        passed: [ set-next-version ]
       - task: build
         config:
           platform: linux
