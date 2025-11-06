@@ -27,13 +27,13 @@ resource "honeycombio_query" "error_warnings" {
 resource "honeycombio_query_annotation" "error_warnings" {
   dataset  = var.honeycomb_dataset
   query_id = honeycombio_query.error_warnings.id
-  name     = "Retry attempts"
+  name     = "Errors and Warnings"
 }
 
-# Jobs dashboard
+# Errors and warnings board
 resource "honeycombio_flexible_board" "error_warnings" {
-  name        = "${local.name_prefix}-retry-macro"
-  description = "Retry attempts for for ${local.name_prefix}"
+  name        = "${local.name_prefix}-errors-warnings"
+  description = "Errors and warnings for ${local.name_prefix}"
 
   panel {
     type = "query"
