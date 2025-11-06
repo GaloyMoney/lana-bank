@@ -296,7 +296,10 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_id: impl Into<ChartId> + std::fmt::Debug,
     ) -> Result<Option<FiscalYear>, CoreAccountingError> {
-        Ok(self.fiscal_year().find_latest_fiscal_year(sub, chart_id).await?)
+        Ok(self
+            .fiscal_year()
+            .find_latest_fiscal_year(sub, chart_id)
+            .await?)
     }
 
     #[instrument(name = "core_accounting.add_root_node", skip(self), err)]
