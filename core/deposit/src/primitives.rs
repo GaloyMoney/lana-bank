@@ -51,6 +51,7 @@ pub type WithdrawalAllOrOne = AllOrOne<WithdrawalId>;
 pub const PERMISSION_SET_DEPOSIT_VIEWER: &str = "deposit_viewer";
 pub const PERMISSION_SET_DEPOSIT_WRITER: &str = "deposit_writer";
 pub const PERMISSION_SET_DEPOSIT_FREEZE: &str = "deposit_freeze";
+pub const PERMISSION_SET_DEPOSIT_UNFREEZE: &str = "deposit_unfreeze";
 
 pub const DEPOSIT_ACCOUNT_REF_TARGET: public_id::PublicIdTargetType =
     public_id::PublicIdTargetType::new("deposit_account");
@@ -277,7 +278,8 @@ impl ActionPermission for DepositAccountAction {
                 PERMISSION_SET_DEPOSIT_VIEWER
             }
             Self::Create | Self::UpdateStatus => PERMISSION_SET_DEPOSIT_WRITER,
-            Self::Freeze | Self::Unfreeze => PERMISSION_SET_DEPOSIT_FREEZE,
+            Self::Freeze => PERMISSION_SET_DEPOSIT_FREEZE,
+            Self::Unfreeze => PERMISSION_SET_DEPOSIT_UNFREEZE,
         }
     }
 }

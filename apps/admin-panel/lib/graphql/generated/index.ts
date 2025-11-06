@@ -1994,6 +1994,7 @@ export enum PermissionSetName {
   CustomerWriter = 'CUSTOMER_WRITER',
   DashboardViewer = 'DASHBOARD_VIEWER',
   DepositFreeze = 'DEPOSIT_FREEZE',
+  DepositUnfreeze = 'DEPOSIT_UNFREEZE',
   DepositViewer = 'DEPOSIT_VIEWER',
   DepositWriter = 'DEPOSIT_WRITER',
   GovernanceViewer = 'GOVERNANCE_VIEWER',

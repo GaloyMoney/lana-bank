@@ -100,6 +100,10 @@
       "label": "Deposit Freeze",
       "description": "Can freeze deposit accounts"
     },
+    "deposit_unfreeze": {
+      "label": "Deposit Unfreeze",
+      "description": "Can unfreeze deposit accounts"
+    },
     "governance_viewer": {
       "label": "Governance Viewer",
       "description": "Can view governance committees, policies, and approval processes"
