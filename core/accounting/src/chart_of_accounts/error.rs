@@ -28,8 +28,6 @@ pub enum ChartOfAccountsError {
     NonLeafAccount(String),
     #[error("ChartOfAccountsError - ParentAccountNotFound: {0}")]
     ParentAccountNotFound(String),
-    #[error("ChartOfAccountsError - AccountPeriodStartNotFound")]
-    AccountPeriodStartNotFound,
     #[error("ChartOfAccountsError - ChartOfAccountsNotFoundByReference: {0}")]
     ChartOfAccountsNotFoundByReference(String),
 }

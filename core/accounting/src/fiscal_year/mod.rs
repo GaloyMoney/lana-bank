@@ -93,10 +93,11 @@ where
             return Ok(());
         }
         tracing::info!("Initializing first FiscalYear for chart ID: {}", id);
+        let now = crate::time::now();
         let init_fiscal_year = NewFiscalYear::builder()
             .id(FiscalYearId::new())
             .chart_id(id)
-            .first_period_opened_as_of(opened_as_of)
+            .first_period_opened_at(now)
             .build()
             .expect("Could not build new FiscalYear");
         self.repo.create(init_fiscal_year).await?;

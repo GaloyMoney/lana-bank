@@ -1,4 +1,3 @@
-use chrono::{DateTime, Utc};
 use sqlx::PgPool;
 
 use es_entity::*;
@@ -15,7 +14,6 @@ use crate::primitives::{ChartId, FiscalYearId};
     err = "FiscalYearError",
     columns(
         chart_id(ty = "ChartId", update(persist = false), list_for, parent),
-        last_month_closed_at(ty = "Option<DateTime<Utc>>", create(persist = false)),
     ),
     tbl_prefix = "core"
 )]

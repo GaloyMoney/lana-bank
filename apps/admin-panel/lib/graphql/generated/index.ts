@@ -1346,7 +1346,6 @@ export type FiscalYear = {
   firstPeriodOpenedAsOf: Scalars['Date']['output'];
   firstPeriodOpenedAt: Scalars['Timestamp']['output'];
   id: Scalars['ID']['output'];
-  lastMonthClosedAt?: Maybe<Scalars['Timestamp']['output']>;
 };
 
 export type FiscalYearCloseMonthInput = {

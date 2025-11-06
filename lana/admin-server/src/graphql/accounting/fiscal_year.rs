@@ -9,7 +9,6 @@ pub struct FiscalYear {
     chart_id: UUID,
     first_period_opened_at: Timestamp,
     first_period_opened_as_of: Date,
-    last_month_closed_at: Option<Timestamp>,
 
     #[graphql(skip)]
     pub(crate) entity: Arc<DomainFiscalYear>,
@@ -21,7 +20,6 @@ impl From<DomainFiscalYear> for FiscalYear {
             chart_id: UUID::from(fiscal_year.chart_id),
             first_period_opened_at: fiscal_year.first_period_opened_at.into(),
             first_period_opened_as_of: fiscal_year.first_period_opened_as_of.into(),
-            last_month_closed_at: fiscal_year.last_month_closed_at.map(|d| d.into()),
 
             entity: Arc::new(fiscal_year),
         }

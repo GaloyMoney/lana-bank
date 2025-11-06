@@ -1741,7 +1741,6 @@ export const mockFiscalYear = (overrides?: Partial<FiscalYear>, _relationshipsTo
         firstPeriodOpenedAsOf: overrides && overrides.hasOwnProperty('firstPeriodOpenedAsOf') ? overrides.firstPeriodOpenedAsOf! : faker.date.past({ years: 1, refDate: new Date(2022, 0) }).toISOString(),
         firstPeriodOpenedAt: overrides && overrides.hasOwnProperty('firstPeriodOpenedAt') ? overrides.firstPeriodOpenedAt! : generateMockValue.timestamp(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
-        lastMonthClosedAt: overrides && overrides.hasOwnProperty('lastMonthClosedAt') ? overrides.lastMonthClosedAt! : generateMockValue.timestamp(),
     };
 };
 

@@ -18,8 +18,6 @@ pub enum FiscalYearError {
     ChartIdMismatch,
     #[error("FiscalYearError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
-    #[error("FiscalYearError - InitFiscalYearNotFound")]
-    InitFiscalYearNotFound,
     #[error("FiscalYearError - CurrentYearNotFound")]
     CurrentYearNotFound,
     #[error("FiscalYearError - FiscalYearAlreadyInitialized")]
