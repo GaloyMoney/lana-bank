@@ -8,7 +8,7 @@ data "honeycombio_query_specification" "graphql_operations" {
     op     = "exists"
   }
 
-  breakdowns = ["graphql.operation_name"]
+  breakdowns = ["graphql.operation_type", "graphql.operation_name", "graphql.query"]
 
   order {
     op    = "COUNT"

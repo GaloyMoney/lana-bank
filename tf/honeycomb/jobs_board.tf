@@ -40,7 +40,13 @@ data "honeycombio_query_specification" "attempt" {
     value  = "1"
   }
 
-  breakdowns = ["attempt"]
+  filter {
+    column = "name"
+    op     = "contains"
+    value  = "retry_wrapper"
+  }
+
+  breakdowns = ["attempt", "name"]
 
   time_range = 604800
 }

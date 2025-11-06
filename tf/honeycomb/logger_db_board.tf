@@ -22,6 +22,13 @@ data "honeycombio_query_specification" "logger_db_perf" {
     value  = ""
   }
 
+  having {
+    calculate_op = "MAX"
+    column       = "elapsed_secs"
+    op           = ">"
+    value        = 0.01
+  }
+
   breakdowns = ["db.statement"]
 
   order {
