@@ -89,8 +89,8 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
-    #[instrument(name = "pending_credit_facility.init", skip_all, err)]
-    pub async fn init(
+    #[instrument(name = "pending_credit_facility.new", skip_all)]
+    pub fn new(
         pool: &sqlx::PgPool,
         proposals: Arc<CreditFacilityProposals<Perms, E>>,
         custody: Arc<CoreCustody<Perms, E>>,
@@ -101,10 +101,10 @@ where
         price: Arc<Price>,
         publisher: &crate::CreditFacilityPublisher<E>,
         governance: Arc<Governance<Perms, E>>,
-    ) -> Result<Self, PendingCreditFacilityError> {
+    ) -> Self {
         let repo = PendingCreditFacilityRepo::new(pool, publisher);
 
-        Ok(Self {
+        Self {
             repo: Arc::new(repo),
             proposals,
             custody,
@@ -114,7 +114,7 @@ where
             price,
             ledger,
             governance,
-        })
+        }
     }
 
     pub(super) async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, PendingCreditFacilityError> {

@@ -174,7 +174,7 @@ where
     }
 
     #[instrument(
-        name = "core_accounting.ledger_account.list_all_account_children",
+        name = "core_accounting.ledger_account.list_all_account_flattened",
         skip(self, chart),
         err
     )]

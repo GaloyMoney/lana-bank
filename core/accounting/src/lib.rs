@@ -219,7 +219,7 @@ where
         Ok(self.ledger_accounts.find_all(&chart, ids).await?)
     }
 
-    #[instrument(name = "core_accounting.list_all_account_children", skip(self), err)]
+    #[instrument(name = "core_accounting.list_all_account_flattened", skip(self), err)]
     pub async fn list_all_account_flattened(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

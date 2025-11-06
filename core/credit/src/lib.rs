@@ -220,7 +220,7 @@ where
         let collaterals = Collaterals::new(pool, authz_arc.clone(), &publisher, ledger_arc.clone());
         let collaterals_arc = Arc::new(collaterals);
 
-        let pending_credit_facilities = PendingCreditFacilities::init(
+        let pending_credit_facilities = PendingCreditFacilities::new(
             pool,
             proposals_arc.clone(),
             custody_arc.clone(),
@@ -231,8 +231,7 @@ where
             price_arc.clone(),
             &publisher,
             governance_arc.clone(),
-        )
-        .await?;
+        );
         let pending_credit_facilities_arc = Arc::new(pending_credit_facilities);
 
         let disbursals = Disbursals::init(
