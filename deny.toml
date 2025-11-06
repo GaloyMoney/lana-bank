@@ -104,7 +104,7 @@ allow = [
     "Zlib",
     "CC0-1.0",
     "MPL-2.0",
-    "LicenseRef-FSL-1.1-ALv2",
+    "LicenseRef-BUSL-1.1",
     "CDLA-Permissive-2.0",
     "0BSD",
     "OpenSSL",
@@ -143,232 +143,232 @@ exceptions = [
 # Clarifications for internal lana-bank crates using FSL-1.1-ALv2
 [[licenses.clarify]]
 crate = "admin-server"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "airflow"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "audit"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "authz"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "bitgo"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "cloud-storage"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "core-access"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "core-custody"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "core-accounting"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "core-applicant"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "core-credit"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "core-customer"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "core-money"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "core-report"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "core-price"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "customer-server"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "customer-sync"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "dashboard"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "deposit-sync"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "entity-rollups"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "core-deposit"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "governance"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "job"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "jwks-utils"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "keycloak-client"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "komainu"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "lana-app"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "lana-cli"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "lana-events"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "lana-ids"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "outbox"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "rbac-types"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "rendering"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "sim-bootstrap"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "smtp-client"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "sumsub"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "tracing-utils"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "user-onboarding"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "notification"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "document-storage"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "public-id"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "contract-creation"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "customer-activity"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "workspace-hack"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "entity-rollups"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
 crate = "check-dependency-dag"
-expression = "LicenseRef-FSL-1.1-ALv2"
+expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [licenses.private]

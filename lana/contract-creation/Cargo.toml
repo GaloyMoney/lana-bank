@@ -1,6 +1,6 @@
 [package]
 name = "contract-creation"
-license = "FSL-1.1-ALv2"
+license = "BUSL-1.1"
 edition = "2024"
 
 [package.metadata.cargo-machete]
