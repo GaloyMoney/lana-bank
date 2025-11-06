@@ -135,6 +135,7 @@ impl DepositLedger {
         templates::RevertWithdraw::init(cala).await?;
         templates::RevertDeposit::init(cala).await?;
         templates::FreezeAccount::init(cala).await?;
+        templates::UnfreezeAccount::init(cala).await?;
 
         let deposits_normal_balance_type = DebitOrCredit::Credit;
 
@@ -627,6 +628,41 @@ impl DepositLedger {
                 &mut op,
                 TransactionId::new(),
                 templates::FREEZE_ACCOUNT_CODE,
+                params,
+            )
+            .await?;
+
+        op.commit().await?;
+
+        Ok(())
+    }
+
+    pub async fn unfreeze_account_in_op(
+        &self,
+        op: es_entity::DbOp<'_>,
+        account: &DepositAccount,
+    ) -> Result<(), DepositLedgerError> {
+        let frozen_balance = self
+            .balance(account.account_ids.frozen_deposit_account_id)
+            .await?;
+
+        let mut op = self
+            .cala
+            .ledger_operation_from_db_op(op.with_db_time().await?);
+
+        let params = templates::UnfreezeAccountParams {
+            journal_id: self.journal_id,
+            account_id: account.account_ids.deposit_account_id,
+            frozen_accounts_account_id: account.account_ids.frozen_deposit_account_id,
+            amount: frozen_balance.settled.to_usd(),
+            currency: self.usd,
+        };
+
+        self.cala
+            .post_transaction_in_op(
+                &mut op,
+                TransactionId::new(),
+                templates::UNFREEZE_ACCOUNT_CODE,
                 params,
             )
             .await?;

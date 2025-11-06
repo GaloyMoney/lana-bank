@@ -58,6 +58,10 @@ impl DepositAccount {
     pub fn freeze(&mut self) -> Idempotent<()> {
         self.update_status(DepositAccountStatus::Frozen)
     }
+
+    pub fn unfreeze(&mut self) -> Idempotent<()> {
+        self.update_status(DepositAccountStatus::Active)
+    }
 }
 
 impl TryFromEvents<DepositAccountEvent> for DepositAccount {

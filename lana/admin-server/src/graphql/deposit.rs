@@ -92,3 +92,9 @@ pub struct DepositAccountFreezeInput {
     pub deposit_account_id: UUID,
 }
 crate::mutation_payload! { DepositAccountFreezePayload, account: DepositAccount }
+
+#[derive(InputObject)]
+pub struct DepositAccountUnfreezeInput {
+    pub deposit_account_id: UUID,
+}
+crate::mutation_payload! { DepositAccountUnfreezePayload, account: DepositAccount }

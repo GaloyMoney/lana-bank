@@ -177,6 +177,8 @@ impl CoreDepositAction {
         CoreDepositAction::DepositAccount(DepositAccountAction::List);
     pub const DEPOSIT_ACCOUNT_FREEZE: Self =
         CoreDepositAction::DepositAccount(DepositAccountAction::Freeze);
+    pub const DEPOSIT_ACCOUNT_UNFREEZE: Self =
+        CoreDepositAction::DepositAccount(DepositAccountAction::Unfreeze);
 
     pub const DEPOSIT_CREATE: Self = CoreDepositAction::Deposit(DepositAction::Create);
     pub const DEPOSIT_READ: Self = CoreDepositAction::Deposit(DepositAction::Read);
@@ -265,6 +267,7 @@ pub enum DepositAccountAction {
     Read,
     List,
     Freeze,
+    Unfreeze,
 }
 
 impl ActionPermission for DepositAccountAction {
@@ -274,7 +277,7 @@ impl ActionPermission for DepositAccountAction {
                 PERMISSION_SET_DEPOSIT_VIEWER
             }
             Self::Create | Self::UpdateStatus => PERMISSION_SET_DEPOSIT_WRITER,
-            Self::Freeze => PERMISSION_SET_DEPOSIT_FREEZE,
+            Self::Freeze | Self::Unfreeze => PERMISSION_SET_DEPOSIT_FREEZE,
         }
     }
 }

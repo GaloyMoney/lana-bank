@@ -560,6 +560,36 @@ where
         Ok(account)
     }
 
+    #[instrument(name = "deposit.unfreeze_account", skip(self), err)]
+    pub async fn unfreeze_account(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        account_id: impl Into<DepositAccountId> + std::fmt::Debug,
+    ) -> Result<DepositAccount, CoreDepositError> {
+        let account_id = account_id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::deposit_account(account_id),
+                CoreDepositAction::DEPOSIT_ACCOUNT_UNFREEZE,
+            )
+            .await?;
+
+        let mut account = self.deposit_accounts.find_by_id(account_id).await?;
+
+        let mut op = self.deposit_accounts.begin_op().await?;
+
+        if account.unfreeze().did_execute() {
+            self.deposit_accounts
+                .update_in_op(&mut op, &mut account)
+                .await?;
+        }
+
+        self.ledger.unfreeze_account_in_op(op, &account).await?;
+
+        Ok(account)
+    }
+
     #[instrument(name = "deposit.account_balance", skip(self), err)]
     pub async fn account_balance(
         &self,

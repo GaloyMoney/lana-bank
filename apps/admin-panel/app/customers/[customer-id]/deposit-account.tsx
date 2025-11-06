@@ -3,12 +3,13 @@
 import React, { useState } from "react"
 import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
-import { Snowflake, ArrowRight } from "lucide-react"
+import { Snowflake, ArrowRight, Sun } from "lucide-react"
 
 import { Badge } from "@lana/web/ui/badge"
 import { Button } from "@lana/web/ui/button"
 
 import FreezeDepositAccountDialog from "./freeze-deposit-account"
+import UnfreezeDepositAccountDialog from "./unfreeze-deposit-account"
 
 import Balance from "@/components/balance/balance"
 import { DetailsCard, DetailItemProps } from "@/components/details"
@@ -39,6 +40,7 @@ export const DepositAccount: React.FC<DepositAccountProps> = ({
   const t = useTranslations("Customers.CustomerDetails.depositAccount")
   const router = useRouter()
   const [openFreezeDialog, setOpenFreezeDialog] = useState(false)
+  const [openUnfreezeDialog, setOpenUnfreezeDialog] = useState(false)
 
   const handleViewLedgerAccount = () => {
     const accountId =
@@ -53,6 +55,10 @@ export const DepositAccount: React.FC<DepositAccountProps> = ({
 
   const handleFreezeAccount = () => {
     setOpenFreezeDialog(true)
+  }
+
+  const handleUnfreezeAccount = () => {
+    setOpenUnfreezeDialog(true)
   }
 
   const details: DetailItemProps[] = [
@@ -84,7 +90,12 @@ export const DepositAccount: React.FC<DepositAccountProps> = ({
               {t("buttons.viewLedgerAccount")}
               <ArrowRight />
             </Button>
-            {status !== DepositAccountStatus.Frozen && (
+            {status === DepositAccountStatus.Frozen ? (
+              <Button variant="outline" onClick={handleUnfreezeAccount}>
+                <Sun />
+                {t("buttons.unfreezeDepositAccount")}
+              </Button>
+            ) : (
               <Button variant="outline" onClick={handleFreezeAccount}>
                 <Snowflake />
                 {t("buttons.freezeDepositAccount")}
@@ -98,6 +109,11 @@ export const DepositAccount: React.FC<DepositAccountProps> = ({
         balance={balance}
         openFreezeDialog={openFreezeDialog}
         setOpenFreezeDialog={setOpenFreezeDialog}
+      />
+      <UnfreezeDepositAccountDialog
+        depositAccountId={depositAccountId}
+        openUnfreezeDialog={openUnfreezeDialog}
+        setOpenUnfreezeDialog={setOpenUnfreezeDialog}
       />
     </>
   )
