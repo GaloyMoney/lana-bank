@@ -49,9 +49,8 @@ Set them in your `.env` file
 - `TF_VAR_sa_creds`: Service account credentials into GCP (BigQuery & Documents access)
 - `SUMSUB_KEY`: SumSub API key for identity verification
 - `SUMSUB_SECRET`: SumSub API secret for identity verification
-
-- `HONEYCOMB_KEY`: Honeycomb Ingest API key for tracing
-- `TF_VAR_honeycomb_api_key`: Honeycomb Configuration API key for dashboards 
+- `INGEST_HONEYCOMB_API_KEY`: Honeycomb Ingest API key for tracing
+- `HONEYCOMB_API_KEY`: Honeycomb Configuration API key for dashboards 
 
 ### Start & Stop the stack
 
