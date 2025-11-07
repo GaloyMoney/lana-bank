@@ -7,6 +7,7 @@ extend-exclude = [
 	"/meltano/transform/models/*/uif/*",
 	"/meltano/transform/macros/el-salvador-ssf/*",
 	"/meltano/transform/models/outputs/non-regulatory/*",
+	"/dagster/src/dbt_lana_dw/models/*/uif/*",
 	"dev/fake-service-account.json",
 	"**/pnpm-lock.yaml",
 	"/apps/admin-panel/lib/graphql/generated/mocks.ts",
