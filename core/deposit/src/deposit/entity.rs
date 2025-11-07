@@ -28,6 +28,7 @@ pub enum DepositEvent {
     },
 }
 
+#[derive(Debug)]
 pub struct DepositReversalData {
     pub entity_id: DepositId,
     pub ledger_tx_id: CalaTransactionId,

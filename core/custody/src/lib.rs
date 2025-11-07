@@ -134,7 +134,7 @@ where
         Ok(custodian)
     }
 
-    #[instrument(name = "core_custody.created_custodian_in_op", skip(self, db), err)]
+    #[instrument(name = "core_custody.create_custodian_in_op", skip(self, db), err)]
     pub async fn create_custodian_in_op(
         &self,
         db: &mut DbOp<'_>,

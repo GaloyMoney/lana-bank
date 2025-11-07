@@ -61,7 +61,7 @@ pub struct CustomerJwtClaims {
     pub subject: String,
 }
 
-#[instrument(name = "customer_server.graphql", skip_all, fields(operation_name, operation_type, query, variables, error, error.level, error.message))]
+#[instrument(name = "customer_server.graphql", skip_all, fields(graphql.operation_name, graphql.operation_type, graphql.query, graphql.variables, jwt.subject, user.id, error, error.level, error.message))]
 #[es_entity::es_event_context]
 pub async fn graphql_handler(
     headers: HeaderMap,
@@ -72,22 +72,27 @@ pub async fn graphql_handler(
     tracing_utils::http::extract_tracing(&headers);
     let mut req = req.into_inner();
 
+    tracing::Span::current().record("jwt.subject", &jwt_claims.subject);
+
     if let Some(op_name) = req.operation_name.as_ref() {
-        tracing::Span::current().record("operation_name", op_name);
+        tracing::Span::current().record("graphql.operation_name", op_name);
     }
 
-    tracing::Span::current().record("query", &req.query);
+    tracing::Span::current().record("graphql.query", &req.query);
 
     if let Some(query_type) = req.query.split_whitespace().next() {
-        tracing::Span::current().record("operation_type", query_type);
+        tracing::Span::current().record("graphql.operation_type", query_type);
     }
 
     // TODO: this should be behind a feature flag or env var
     let variables_str = format!("{:?}", req.variables);
-    tracing::Span::current().record("variables", variables_str.as_str());
+    tracing::Span::current().record("graphql.variables", variables_str.as_str());
 
     let id = match uuid::Uuid::parse_str(&jwt_claims.subject) {
-        Ok(id) => id,
+        Ok(id) => {
+            tracing::Span::current().record("user.id", tracing::field::debug(&id));
+            id
+        }
         Err(e) => {
             tracing::error!(
                 error = %e,
@@ -109,11 +114,10 @@ pub async fn graphql_handler(
     if !response.errors.is_empty() {
         for err in &response.errors {
             tracing::error!(
-                message = %err.message,
                 path = ?err.path,
                 locations = ?err.locations,
                 extensions = ?err.extensions,
-                "GraphQL execution error"
+                "{}", err.message
             );
         }
     }
