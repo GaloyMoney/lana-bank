@@ -265,8 +265,8 @@ teardown_file() {
         chartId: $chart_id
     }'
   )
-  exec_admin_graphql 'fiscal-year-latest' "$variables"
+  exec_admin_graphql 'fiscal-year-current' "$variables"
   graphql_output
-  first_period_opened_at=$(graphql_output '.data.latestFiscalYear.firstPeriodOpenedAt')
+  first_period_opened_at=$(graphql_output '.data.currentFiscalYear.firstPeriodOpenedAt')
   [[ "$first_period_opened_at" != "null" ]] || exit 1
 }
