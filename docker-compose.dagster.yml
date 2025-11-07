@@ -11,12 +11,7 @@ services:
       DAGSTER_POSTGRES_USER: 'postgres_user'
       DAGSTER_POSTGRES_PASSWORD: 'postgres_password'
       DAGSTER_POSTGRES_DB: 'postgres_db'
-      # OpenTelemetry configuration
-      # Use the otel-agent service name from the lana-bank_default network
-      OTEL_EXPORTER_OTLP_ENDPOINT: 'http://lana-bank-otel-agent-1:4317'
-      OTEL_SERVICE_NAME: 'dagster-lana-dw'
-      # Set to match your Honeycomb environment name
-      DEPLOYMENT_ENVIRONMENT: 'dev-pablo'
+      OTEL_EXPORTER_OTLP_ENDPOINT: 'http://otel-agent:4317'
 
     networks:
       - lana-bank_default
