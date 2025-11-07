@@ -103,7 +103,20 @@ gql_file() {
 
 gql_operation_name() {
   local file=$1
-  grep -E '^(query|mutation|subscription)' "$file" | head -n 1 | sed -E 's/.*(query|mutation|subscription) +([A-Za-z0-9_]+).*/\2/'
+  local operation_line
+
+  operation_line=$(grep -E '^(query|mutation|subscription)' "$file" | head -n 1 || true)
+
+  if [[ -z "$operation_line" ]]; then
+    echo ""
+    return 0
+  fi
+
+  if [[ "$operation_line" =~ ^(query|mutation|subscription)[[:space:]]+([A-Za-z0-9_]+) ]]; then
+    echo "${BASH_REMATCH[2]}"
+  else
+    echo ""
+  fi
 }
 
 gql_admin_query() {
@@ -138,6 +151,22 @@ graphql_output() {
   echo $output | jq -r "$@"
 }
 
+graphql_payload() {
+  local query=$1
+  local variables_json=$2
+  local operation_name=${3:-}
+
+  if [[ -z "$variables_json" ]]; then
+    variables_json="{}"
+  fi
+
+  if [[ -n "$operation_name" ]]; then
+    jq -n --arg query "$query" --argjson variables "$variables_json" --arg operationName "$operation_name" '{query: $query, variables: $variables, operationName: $operationName}'
+  else
+    jq -n --arg query "$query" --argjson variables "$variables_json" '{query: $query, variables: $variables}'
+  fi
+}
+
 login_customer() {
   local email=$1
   echo "--- Logging in customer: $email ---"
@@ -155,11 +184,14 @@ exec_customer_graphql() {
   local variables=${3:-"{}"}
   local run_cmd="${BATS_TEST_DIRNAME:+run}"
   local operation_name=$(gql_customer_operation_name "$query_name")
+  local payload
+
+  payload=$(graphql_payload "$(gql_query $query_name)" "$variables" "$operation_name")
 
   ${run_cmd} curl -s -X POST \
     -H "Authorization: Bearer $(read_value "$token_name")" \
     -H "Content-Type: application/json" \
-    -d "{\"query\": \"$(gql_query $query_name)\", \"variables\": $variables, \"operationName\": \"$operation_name\"}" \
+    -d "$payload" \
     "${GQL_APP_ENDPOINT}"
 }
 
@@ -216,11 +248,14 @@ exec_admin_graphql() {
   local variables=${2:-"{}"}
   local run_cmd="${BATS_TEST_DIRNAME:+run}"
   local operation_name=$(gql_admin_operation_name "$query_name")
+  local payload
+
+  payload=$(graphql_payload "$(gql_admin_query $query_name)" "$variables" "$operation_name")
 
   ${run_cmd} curl -s -X POST \
     -H "Authorization: Bearer $(read_value "superadmin")" \
     -H "Content-Type: application/json" \
-    -d "{\"query\": \"$(gql_admin_query $query_name)\", \"variables\": $variables, \"operationName\": \"$operation_name\"}" \
+    -d "$payload" \
     "${GQL_ADMIN_ENDPOINT}"
 }
 
@@ -231,11 +266,14 @@ exec_admin_graphql_upload() {
   local file_var_name=${4:-"file"}
   local token=$(read_value "superadmin")
   local operation_name=$(gql_admin_operation_name "$query_name")
+  local payload
+
+  payload=$(graphql_payload "$(gql_admin_query $query_name)" "$variables" "$operation_name")
 
   curl -s -X POST \
     -H "Authorization: Bearer ${token}" \
     -H "Content-Type: multipart/form-data" \
-    -F "operations={\"query\": \"$(gql_admin_query $query_name)\", \"variables\": $variables, \"operationName\": \"$operation_name\"}" \
+    -F "operations=${payload}" \
     -F "map={\"0\":[\"variables.$file_var_name\"]}" \
     -F "0=@$file_path" \
     "${GQL_ADMIN_ENDPOINT}"
@@ -246,10 +284,13 @@ exec_dagster_graphql() {
   local variables=${2:-"{}"}
   local run_cmd="${BATS_TEST_DIRNAME:+run}"
   local operation_name=$(gql_dagster_operation_name "$query_name")
+  local payload
+
+  payload=$(graphql_payload "$(gql_dagster_query $query_name)" "$variables" "$operation_name")
 
   ${run_cmd} curl -s -X POST \
     -H "Content-Type: application/json" \
-    -d "{\"query\": \"$(gql_dagster_query $query_name)\", \"variables\": $variables, \"operationName\": \"$operation_name\"}" \
+    -d "$payload" \
     "${DAGSTER_URL:-http://localhost:3000/graphql}"
 }
 
@@ -258,10 +299,13 @@ exec_dagster_graphql_status() {
   local variables=${2:-"{}"}
   local run_cmd="${BATS_TEST_DIRNAME:+run}"
   local operation_name=$(gql_dagster_operation_name "$query_name")
+  local payload
+
+  payload=$(graphql_payload "$(gql_dagster_query $query_name)" "$variables" "$operation_name")
 
   ${run_cmd} curl -s -o /dev/null -w "%{http_code}" -X POST \
     -H "Content-Type: application/json" \
-    -d "{\"query\": \"$(gql_dagster_query $query_name)\", \"variables\": $variables, \"operationName\": \"$operation_name\"}" \
+    -d "$payload" \
     "${DAGSTER_URL:-http://localhost:3000/graphql}"
 }
 
