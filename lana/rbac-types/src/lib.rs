@@ -40,6 +40,7 @@ pub enum PermissionSetName {
     DepositViewer,
     DepositWriter,
     DepositFreeze,
+    DepositUnfreeze,
     GovernanceViewer,
     GovernanceWriter,
     ReportViewer,
@@ -74,6 +75,7 @@ impl std::str::FromStr for PermissionSetName {
             core_deposit::PERMISSION_SET_DEPOSIT_VIEWER => Ok(DepositViewer),
             core_deposit::PERMISSION_SET_DEPOSIT_WRITER => Ok(DepositWriter),
             core_deposit::PERMISSION_SET_DEPOSIT_FREEZE => Ok(DepositFreeze),
+            core_deposit::PERMISSION_SET_DEPOSIT_UNFREEZE => Ok(DepositUnfreeze),
 
             governance::PERMISSION_SET_GOVERNANCE_VIEWER => Ok(GovernanceViewer),
             governance::PERMISSION_SET_GOVERNANCE_WRITER => Ok(GovernanceWriter),

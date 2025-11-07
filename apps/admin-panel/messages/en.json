@@ -100,6 +100,10 @@
       "label": "Deposit Freeze",
       "description": "Can freeze deposit accounts"
     },
+    "deposit_unfreeze": {
+      "label": "Deposit Unfreeze",
+      "description": "Can unfreeze deposit accounts"
+    },
     "governance_viewer": {
       "label": "Governance Viewer",
       "description": "Can view governance committees, policies, and approval processes"
@@ -351,7 +355,8 @@
         },
         "buttons": {
           "viewLedgerAccount": "View Ledger Account",
-          "freezeDepositAccount": "Freeze Deposit Account"
+          "freezeDepositAccount": "Freeze Deposit Account",
+          "unfreezeDepositAccount": "Unfreeze Deposit Account"
         },
         "noAccount": "No deposit account available"
       },
@@ -497,6 +502,14 @@
             "createdAt": "Created At"
           }
         }
+      },
+      "unfreezeDepositAccount": {
+        "title": "Unfreeze Deposit Account",
+        "description": "Are you sure you want to unfreeze this deposit account? This will allow new deposits and withdrawals.",
+        "buttons": {
+          "unfreeze": "Unfreeze Account"
+        },
+        "success": "Deposit account unfrozen successfully"
       }
     }
   },
@@ -2225,7 +2238,6 @@
       }
     }
   },
-
   "RolesAndPermissions": {
     "title": "Roles & Permissions",
     "description": "Manage roles and their associated permissions",

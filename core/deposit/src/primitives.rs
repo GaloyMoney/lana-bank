@@ -51,6 +51,7 @@ pub type WithdrawalAllOrOne = AllOrOne<WithdrawalId>;
 pub const PERMISSION_SET_DEPOSIT_VIEWER: &str = "deposit_viewer";
 pub const PERMISSION_SET_DEPOSIT_WRITER: &str = "deposit_writer";
 pub const PERMISSION_SET_DEPOSIT_FREEZE: &str = "deposit_freeze";
+pub const PERMISSION_SET_DEPOSIT_UNFREEZE: &str = "deposit_unfreeze";
 
 pub const DEPOSIT_ACCOUNT_REF_TARGET: public_id::PublicIdTargetType =
     public_id::PublicIdTargetType::new("deposit_account");
@@ -177,6 +178,8 @@ impl CoreDepositAction {
         CoreDepositAction::DepositAccount(DepositAccountAction::List);
     pub const DEPOSIT_ACCOUNT_FREEZE: Self =
         CoreDepositAction::DepositAccount(DepositAccountAction::Freeze);
+    pub const DEPOSIT_ACCOUNT_UNFREEZE: Self =
+        CoreDepositAction::DepositAccount(DepositAccountAction::Unfreeze);
 
     pub const DEPOSIT_CREATE: Self = CoreDepositAction::Deposit(DepositAction::Create);
     pub const DEPOSIT_READ: Self = CoreDepositAction::Deposit(DepositAction::Read);
@@ -265,6 +268,7 @@ pub enum DepositAccountAction {
     Read,
     List,
     Freeze,
+    Unfreeze,
 }
 
 impl ActionPermission for DepositAccountAction {
@@ -275,6 +279,7 @@ impl ActionPermission for DepositAccountAction {
             }
             Self::Create | Self::UpdateStatus => PERMISSION_SET_DEPOSIT_WRITER,
             Self::Freeze => PERMISSION_SET_DEPOSIT_FREEZE,
+            Self::Unfreeze => PERMISSION_SET_DEPOSIT_UNFREEZE,
         }
     }
 }

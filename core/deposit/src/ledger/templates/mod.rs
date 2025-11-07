@@ -5,6 +5,7 @@ mod initiate_withdraw;
 mod record_deposit;
 mod revert_deposit;
 mod revert_withdraw;
+mod unfreeze_account;
 
 pub use cancel_withdraw::*;
 pub use confirm_withdraw::*;
@@ -13,3 +14,4 @@ pub use initiate_withdraw::*;
 pub use record_deposit::*;
 pub use revert_deposit::*;
 pub use revert_withdraw::*;
+pub use unfreeze_account::*;

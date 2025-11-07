@@ -324,3 +324,59 @@ wait_for_approval() {
   errors=$(graphql_output '.errors')
   [[ "$errors" =~ "DepositAccountFrozen" ]] || exit 1
 }
+
+@test "customer: deposit account can be unfrozen" {
+  deposit_account_id=$(read_value 'deposit_account_id')
+
+  variables=$(
+    jq -n \
+      --arg depositAccountId "$deposit_account_id" \
+    '{
+      input: {
+        depositAccountId: $depositAccountId
+      }
+    }'
+  )
+  exec_admin_graphql 'deposit-account-unfreeze' "$variables"
+
+  status=$(graphql_output '.data.depositAccountUnfreeze.account.status')
+  [[ "$status" == "ACTIVE" ]] || exit 1
+}
+
+@test "customer: can deposit and withdraw after unfreeze" {
+  deposit_account_id=$(read_value 'deposit_account_id')
+
+  variables=$(
+    jq -n \
+      --arg depositAccountId "$deposit_account_id" \
+      --arg date "$(date +%s%N)" \
+    '{
+      input: {
+        depositAccountId: $depositAccountId,
+        amount: 250000,
+        reference: ("deposit-after-unfreeze-" + $date)
+      }
+    }'
+  )
+  exec_admin_graphql 'record-deposit' "$variables"
+
+  deposit_id=$(graphql_output '.data.depositRecord.deposit.depositId')
+  [[ "$deposit_id" != "null" ]] || exit 1
+
+  variables=$(
+    jq -n \
+      --arg depositAccountId "$deposit_account_id" \
+      --arg date "$(date +%s%N)" \
+    '{
+      input: {
+        depositAccountId: $depositAccountId,
+        amount: 125000,
+        reference: ("withdraw-after-unfreeze-" + $date)
+      }
+    }'
+  )
+  exec_admin_graphql 'initiate-withdrawal' "$variables"
+
+  withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
+  [[ "$withdrawal_id" != "null" ]] || exit 1
+}

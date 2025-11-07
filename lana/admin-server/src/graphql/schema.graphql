@@ -1148,6 +1148,14 @@ enum DepositAccountStatus {
 	FROZEN
 }
 
+input DepositAccountUnfreezeInput {
+	depositAccountId: UUID!
+}
+
+type DepositAccountUnfreezePayload {
+	account: DepositAccount!
+}
+
 type DepositConnection {
 	"""
 	Information to aid in pagination.
@@ -1533,6 +1541,7 @@ type Mutation {
 	withdrawalRevert(input: WithdrawalRevertInput!): WithdrawalRevertPayload!
 	depositRevert(input: DepositRevertInput!): DepositRevertPayload!
 	depositAccountFreeze(input: DepositAccountFreezeInput!): DepositAccountFreezePayload!
+	depositAccountUnfreeze(input: DepositAccountUnfreezeInput!): DepositAccountUnfreezePayload!
 	termsTemplateCreate(input: TermsTemplateCreateInput!): TermsTemplateCreatePayload!
 	termsTemplateUpdate(input: TermsTemplateUpdateInput!): TermsTemplateUpdatePayload!
 	creditModuleConfigure(input: CreditModuleConfigureInput!): CreditModuleConfigurePayload!
@@ -1724,6 +1733,7 @@ enum PermissionSetName {
 	DEPOSIT_VIEWER
 	DEPOSIT_WRITER
 	DEPOSIT_FREEZE
+	DEPOSIT_UNFREEZE
 	GOVERNANCE_VIEWER
 	GOVERNANCE_WRITER
 	REPORT_VIEWER

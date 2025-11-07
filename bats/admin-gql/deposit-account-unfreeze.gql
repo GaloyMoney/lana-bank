@@ -1,0 +1,11 @@
+mutation DepositAccountUnfreeze($input: DepositAccountUnfreezeInput!) {
+  depositAccountUnfreeze(input: $input) {
+    account {
+      depositAccountId
+      status
+      balance {
+        settled
+      }
+    }
+  }
+}

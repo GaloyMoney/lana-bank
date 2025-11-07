@@ -1,4 +1,4 @@
-mutation DepositAccountFreeze($input: DepositRecordInput!) {
+mutation DepositAccountFreeze($input: DepositAccountFreezeInput!) {
   depositAccountFreeze(input: $input) {
     account {
       depositAccountId

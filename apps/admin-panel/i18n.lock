@@ -61,6 +61,8 @@ checksums:
     Permissions/deposit_writer/description: e9b4b5687d534893818d107ed990ead8
     Permissions/deposit_freeze/label: 4ff01909328b86695318c75ea0b0bd03
     Permissions/deposit_freeze/description: 4b13716322f1d78b3ad976a5498c9f1d
+    Permissions/deposit_unfreeze/label: 73920e216b0740056752eed0d09a8022
+    Permissions/deposit_unfreeze/description: 66f2ed38234469d5aef3b536a62539c9
     Permissions/governance_viewer/label: bfcc6123d91209cf8ca012200b6cd556
     Permissions/governance_viewer/description: 84a7ff7991222611fe8a7d55bd61aacc
     Permissions/governance_writer/label: b9dd0624ee128d1ece7da289d0c28eb5
@@ -236,6 +238,7 @@ checksums:
     Customers/CustomerDetails/depositAccount/status/inactive: 239e3b722db75bbafc6c628a2685eed2
     Customers/CustomerDetails/depositAccount/buttons/viewLedgerAccount: bd9a15bb007af68c59fb173afbf20212
     Customers/CustomerDetails/depositAccount/buttons/freezeDepositAccount: f8e442ca95d1150995ae8e5a0e22b2b0
+    Customers/CustomerDetails/depositAccount/buttons/unfreezeDepositAccount: 2f5901e7dd64670b96e915461f63ba52
     Customers/CustomerDetails/depositAccount/noAccount: 3465bf6d32af0dac4183cb0b306f74d2
     Customers/CustomerDetails/updateTelegram/title: eae68442cc96d8e9715e82d49633eb65
     Customers/CustomerDetails/updateTelegram/description: 6a3e0dee99c56a34368e8fef03646670
@@ -312,6 +315,10 @@ checksums:
     Customers/CustomerDetails/pendingCreditFacilities/table/headers/collateral: b0dcbdb652cb11f0d9eeb77666c8ca8d
     Customers/CustomerDetails/pendingCreditFacilities/table/headers/collateralizationState: 7c33429a42e7cb133439b578ee6f1b78
     Customers/CustomerDetails/pendingCreditFacilities/table/headers/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
+    Customers/CustomerDetails/unfreezeDepositAccount/title: 2f5901e7dd64670b96e915461f63ba52
+    Customers/CustomerDetails/unfreezeDepositAccount/description: 4d99c9834801877ff8a66c8b8daffc3e
+    Customers/CustomerDetails/unfreezeDepositAccount/buttons/unfreeze: e6ac5996c0a69156d315b35d9438ed32
+    Customers/CustomerDetails/unfreezeDepositAccount/success: 21b2f5e2e622ab6260281a48b739dcb6
     CreditFacilityProposals/title: 11a59748c3c3c261a3b99fd7afb4a023
     CreditFacilityProposals/description: 2a883823caefdfda33d041e80dba79f9
     CreditFacilityProposals/table/headers/customer: 846b48bb14b3d62c75cde5031e6bbfd7

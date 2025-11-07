@@ -1163,6 +1163,15 @@ export enum DepositAccountStatus {
   Inactive = 'INACTIVE'
 }
 
+export type DepositAccountUnfreezeInput = {
+  depositAccountId: Scalars['UUID']['input'];
+};
+
+export type DepositAccountUnfreezePayload = {
+  __typename?: 'DepositAccountUnfreezePayload';
+  account: DepositAccount;
+};
+
 export type DepositConnection = {
   __typename?: 'DepositConnection';
   /** A list of edges. */
@@ -1563,6 +1572,7 @@ export type Mutation = {
   customerEmailUpdate: CustomerEmailUpdatePayload;
   customerTelegramIdUpdate: CustomerTelegramIdUpdatePayload;
   depositAccountFreeze: DepositAccountFreezePayload;
+  depositAccountUnfreeze: DepositAccountUnfreezePayload;
   depositModuleConfigure: DepositModuleConfigurePayload;
   depositRecord: DepositRecordPayload;
   depositRevert: DepositRevertPayload;
@@ -1733,6 +1743,11 @@ export type MutationCustomerTelegramIdUpdateArgs = {
 
 export type MutationDepositAccountFreezeArgs = {
   input: DepositAccountFreezeInput;
+};
+
+
+export type MutationDepositAccountUnfreezeArgs = {
+  input: DepositAccountUnfreezeInput;
 };
 
 
@@ -1979,6 +1994,7 @@ export enum PermissionSetName {
   CustomerWriter = 'CUSTOMER_WRITER',
   DashboardViewer = 'DASHBOARD_VIEWER',
   DepositFreeze = 'DEPOSIT_FREEZE',
+  DepositUnfreeze = 'DEPOSIT_UNFREEZE',
   DepositViewer = 'DEPOSIT_VIEWER',
   DepositWriter = 'DEPOSIT_WRITER',
   GovernanceViewer = 'GOVERNANCE_VIEWER',
@@ -3405,6 +3421,13 @@ export type GetCustomerPendingCreditFacilitiesQueryVariables = Exact<{
 
 
 export type GetCustomerPendingCreditFacilitiesQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, pendingCreditFacilities: Array<{ __typename?: 'PendingCreditFacility', id: string, pendingCreditFacilityId: string, createdAt: any, collateralizationState: PendingCreditFacilityCollateralizationState, facilityAmount: UsdCents, status: PendingCreditFacilityStatus, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, email: string } }> } | null };
+
+export type DepositAccountUnfreezeMutationVariables = Exact<{
+  input: DepositAccountUnfreezeInput;
+}>;
+
+
+export type DepositAccountUnfreezeMutation = { __typename?: 'Mutation', depositAccountUnfreeze: { __typename?: 'DepositAccountUnfreezePayload', account: { __typename?: 'DepositAccount', id: string } } };
 
 export type CustomerEmailUpdateMutationVariables = Exact<{
   input: CustomerEmailUpdateInput;
@@ -6981,6 +7004,41 @@ export type GetCustomerPendingCreditFacilitiesQueryHookResult = ReturnType<typeo
 export type GetCustomerPendingCreditFacilitiesLazyQueryHookResult = ReturnType<typeof useGetCustomerPendingCreditFacilitiesLazyQuery>;
 export type GetCustomerPendingCreditFacilitiesSuspenseQueryHookResult = ReturnType<typeof useGetCustomerPendingCreditFacilitiesSuspenseQuery>;
 export type GetCustomerPendingCreditFacilitiesQueryResult = Apollo.QueryResult<GetCustomerPendingCreditFacilitiesQuery, GetCustomerPendingCreditFacilitiesQueryVariables>;
+export const DepositAccountUnfreezeDocument = gql`
+    mutation DepositAccountUnfreeze($input: DepositAccountUnfreezeInput!) {
+  depositAccountUnfreeze(input: $input) {
+    account {
+      id
+    }
+  }
+}
+    `;
+export type DepositAccountUnfreezeMutationFn = Apollo.MutationFunction<DepositAccountUnfreezeMutation, DepositAccountUnfreezeMutationVariables>;
+
+/**
+ * __useDepositAccountUnfreezeMutation__
+ *
+ * To run a mutation, you first call `useDepositAccountUnfreezeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDepositAccountUnfreezeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [depositAccountUnfreezeMutation, { data, loading, error }] = useDepositAccountUnfreezeMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useDepositAccountUnfreezeMutation(baseOptions?: Apollo.MutationHookOptions<DepositAccountUnfreezeMutation, DepositAccountUnfreezeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DepositAccountUnfreezeMutation, DepositAccountUnfreezeMutationVariables>(DepositAccountUnfreezeDocument, options);
+      }
+export type DepositAccountUnfreezeMutationHookResult = ReturnType<typeof useDepositAccountUnfreezeMutation>;
+export type DepositAccountUnfreezeMutationResult = Apollo.MutationResult<DepositAccountUnfreezeMutation>;
+export type DepositAccountUnfreezeMutationOptions = Apollo.BaseMutationOptions<DepositAccountUnfreezeMutation, DepositAccountUnfreezeMutationVariables>;
 export const CustomerEmailUpdateDocument = gql`
     mutation CustomerEmailUpdate($input: CustomerEmailUpdateInput!) {
   customerEmailUpdate(input: $input) {
