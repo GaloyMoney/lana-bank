@@ -10,4 +10,8 @@ impl DepositAccountBalance {
         settled: UsdCents::ZERO,
         pending: UsdCents::ZERO,
     };
+
+    pub fn is_zero(&self) -> bool {
+        self.settled.is_zero() && self.pending.is_zero()
+    }
 }

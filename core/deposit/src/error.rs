@@ -38,6 +38,10 @@ pub enum CoreDepositError {
     DepositAccountInactive,
     #[error("CoreDepositError - DepositAccountFrozen")]
     DepositAccountFrozen,
+    #[error("CoreDepositError - DepositAccountClosed")]
+    DepositAccountClosed,
+    #[error("CoreDepositError - DepositAccountBalanceIsNotZero")]
+    DepositBalanceIsNotZero,
     #[error("CoreDepositError - WithdrawalBuilderError: {0}")]
     WithdrawalBuilderError(#[from] super::NewWithdrawalBuilderError),
     #[error("CoreDepositError - DepositBuilderError: {0}")]

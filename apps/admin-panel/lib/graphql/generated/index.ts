@@ -1119,6 +1119,15 @@ export type DepositAccountBalance = {
   settled: Scalars['UsdCents']['output'];
 };
 
+export type DepositAccountCloseInput = {
+  depositAccountId: Scalars['UUID']['input'];
+};
+
+export type DepositAccountClosePayload = {
+  __typename?: 'DepositAccountClosePayload';
+  account: DepositAccount;
+};
+
 export type DepositAccountConnection = {
   __typename?: 'DepositAccountConnection';
   /** A list of edges. */
@@ -1178,6 +1187,7 @@ export type DepositAccountLedgerAccounts = {
 
 export enum DepositAccountStatus {
   Active = 'ACTIVE',
+  Closed = 'CLOSED',
   Frozen = 'FROZEN',
   Inactive = 'INACTIVE'
 }
@@ -1581,6 +1591,7 @@ export type Mutation = {
   customerDocumentDownloadLinkGenerate: CustomerDocumentDownloadLinksGeneratePayload;
   customerEmailUpdate: CustomerEmailUpdatePayload;
   customerTelegramIdUpdate: CustomerTelegramIdUpdatePayload;
+  depositAccountClose: DepositAccountClosePayload;
   depositAccountFreeze: DepositAccountFreezePayload;
   depositModuleConfigure: DepositModuleConfigurePayload;
   depositRecord: DepositRecordPayload;
@@ -1747,6 +1758,11 @@ export type MutationCustomerEmailUpdateArgs = {
 
 export type MutationCustomerTelegramIdUpdateArgs = {
   input: CustomerTelegramIdUpdateInput;
+};
+
+
+export type MutationDepositAccountCloseArgs = {
+  input: DepositAccountCloseInput;
 };
 
 

@@ -21,7 +21,8 @@
       "enum": [
         "inactive",
         "active",
-        "frozen"
+        "frozen",
+        "closed"
       ],
       "type": "string"
     }
@@ -69,6 +70,22 @@
         },
         "type": {
           "const": "account_status_updated",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "status"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/DepositAccountStatus"
+        },
+        "type": {
+          "const": "closed",
           "type": "string"
         }
       },

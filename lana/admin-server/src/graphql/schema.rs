@@ -1416,6 +1416,20 @@ impl Mutation {
         )
     }
 
+    pub async fn deposit_account_close(
+        &self,
+        ctx: &Context<'_>,
+        input: DepositAccountCloseInput,
+    ) -> async_graphql::Result<DepositAccountClosePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            DepositAccountClosePayload,
+            DepositAccount,
+            ctx,
+            app.deposits().close_account(sub, input.deposit_account_id)
+        )
+    }
+
     async fn terms_template_create(
         &self,
         ctx: &Context<'_>,

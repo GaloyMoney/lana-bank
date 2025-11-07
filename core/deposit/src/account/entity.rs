@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-use crate::{ledger::*, primitives::*};
+use crate::{error::CoreDepositError, ledger::*, primitives::*};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -20,6 +20,9 @@ pub enum DepositAccountEvent {
         public_id: PublicId,
     },
     AccountStatusUpdated {
+        status: DepositAccountStatus,
+    },
+    Closed {
         status: DepositAccountStatus,
     },
 }
@@ -43,20 +46,44 @@ impl DepositAccount {
             .expect("Deposit Account has never been persisted")
     }
 
-    pub fn update_status(&mut self, status: DepositAccountStatus) -> Idempotent<()> {
+    pub fn update_status(
+        &mut self,
+        status: DepositAccountStatus,
+    ) -> Result<Idempotent<()>, CoreDepositError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             DepositAccountEvent::AccountStatusUpdated { status: existing_status, .. } if existing_status == &status,
             => DepositAccountEvent::AccountStatusUpdated { .. }
         );
+        if self.status == DepositAccountStatus::Closed {
+            return Err(CoreDepositError::DepositAccountClosed);
+        }
         self.events
             .push(DepositAccountEvent::AccountStatusUpdated { status });
         self.status = status;
-        Idempotent::Executed(())
+        Ok(Idempotent::Executed(()))
     }
 
-    pub fn freeze(&mut self) -> Idempotent<()> {
+    pub fn freeze(&mut self) -> Result<Idempotent<()>, CoreDepositError> {
         self.update_status(DepositAccountStatus::Frozen)
+    }
+
+    pub fn close(&mut self) -> Result<Idempotent<()>, CoreDepositError> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            DepositAccountEvent::AccountStatusUpdated {
+                status: DepositAccountStatus::Closed
+            }
+        );
+
+        if self.status == DepositAccountStatus::Frozen {
+            return Err(CoreDepositError::DepositAccountFrozen);
+        }
+
+        let status = DepositAccountStatus::Closed;
+        self.events.push(DepositAccountEvent::Closed { status });
+        self.status = status;
+        Ok(Idempotent::Executed(()))
     }
 }
 
@@ -81,6 +108,9 @@ impl TryFromEvents<DepositAccountEvent> for DepositAccount {
                         .public_id(public_id.clone())
                 }
                 DepositAccountEvent::AccountStatusUpdated { status, .. } => {
+                    builder = builder.status(*status);
+                }
+                DepositAccountEvent::Closed { status, .. } => {
                     builder = builder.status(*status);
                 }
             }
@@ -134,7 +164,9 @@ mod tests {
 
     use crate::{DepositAccountHolderId, DepositAccountId, DepositAccountStatus};
 
-    use super::{DepositAccount, DepositAccountEvent, DepositAccountLedgerAccountIds};
+    use super::{
+        CoreDepositError, DepositAccount, DepositAccountEvent, DepositAccountLedgerAccountIds,
+    };
 
     fn initial_events() -> Vec<DepositAccountEvent> {
         let id = DepositAccountId::new();
@@ -158,25 +190,41 @@ mod tests {
         assert!(
             account
                 .update_status(DepositAccountStatus::Active)
+                .unwrap()
                 .did_execute()
         );
 
         assert!(
             account
                 .update_status(DepositAccountStatus::Active)
+                .unwrap()
                 .was_ignored()
         );
 
         assert!(
             account
                 .update_status(DepositAccountStatus::Frozen)
+                .unwrap()
+                .did_execute()
+        );
+        // no checks on frozen account to be active? should we not only do it via unfreeze
+        assert!(
+            account
+                .update_status(DepositAccountStatus::Active)
+                .unwrap()
                 .did_execute()
         );
 
         assert!(
             account
-                .update_status(DepositAccountStatus::Active)
+                .update_status(DepositAccountStatus::Closed)
+                .unwrap()
                 .did_execute()
         );
+
+        assert!(matches!(
+            account.update_status(DepositAccountStatus::Active),
+            Err(CoreDepositError::DepositAccountClosed)
+        ));
     }
 }
