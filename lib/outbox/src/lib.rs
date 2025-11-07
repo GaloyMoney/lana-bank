@@ -94,6 +94,19 @@ where
         Ok(())
     }
 
+    #[tracing::instrument(name = "outbox.publish_ephemeral", skip_all, err)]
+    pub async fn publish_ephemeral(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        event_type: EphemeralEventType,
+        event: impl Into<P>,
+    ) -> Result<(), sqlx::Error> {
+        self.repo
+            .persist_ephemeral_event(op, event_type, event.into())
+            .await?;
+        Ok(())
+    }
+
     #[tracing::instrument(name = "outbox.listen_all", skip(self), fields(start_after = ?start_after, latest_known = tracing::field::Empty), err)]
     pub async fn listen_all(
         &self,
@@ -152,7 +165,7 @@ where
         });
 
         let mut listener = PgListener::connect_with(pool).await?;
-        listener.listen("ephermeral_outbox_events").await?;
+        listener.listen("ephemeral_outbox_events").await?;
         tokio::spawn(async move {
             loop {
                 if let Ok(notification) = listener.recv().await

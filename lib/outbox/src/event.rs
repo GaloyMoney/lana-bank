@@ -23,7 +23,7 @@ where
     P: Serialize + DeserializeOwned + Send,
 {
     Persistent(Arc<PersistentOutboxEvent<P>>),
-    Ephermeral(Arc<EphermeralOutboxEvent<P>>),
+    Ephemeral(Arc<EphemeralOutboxEvent<P>>),
 }
 impl<P> Clone for OutboxEvent<P>
 where
@@ -32,26 +32,30 @@ where
     fn clone(&self) -> Self {
         match self {
             Self::Persistent(event) => Self::Persistent(Arc::clone(event)),
-            Self::Ephermeral(event) => Self::Ephermeral(Arc::clone(event)),
+            Self::Ephemeral(event) => Self::Ephemeral(Arc::clone(event)),
         }
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct EphermeralEventType(Cow<'static, str>);
-impl EphermeralEventType {
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EphemeralEventType(Cow<'static, str>);
+impl EphemeralEventType {
     pub fn new(name: &'static str) -> Self {
         Self(Cow::Borrowed(name))
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
     }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(bound(deserialize = "T: DeserializeOwned"))]
-pub struct EphermeralOutboxEvent<T>
+pub struct EphemeralOutboxEvent<T>
 where
     T: Serialize + DeserializeOwned + Send,
 {
-    pub event_type: EphermeralEventType,
+    pub event_type: EphemeralEventType,
     pub payload: T,
     pub(crate) tracing_context: Option<tracing_utils::persistence::SerializableTraceContext>,
     pub recorded_at: chrono::DateTime<chrono::Utc>,
