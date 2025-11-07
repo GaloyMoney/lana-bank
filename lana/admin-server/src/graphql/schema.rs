@@ -784,7 +784,7 @@ impl Query {
         Ok(ChartOfAccounts::from(chart))
     }
 
-    async fn latest_fiscal_year(
+    async fn current_fiscal_year(
         &self,
         ctx: &Context<'_>,
         chart_id: UUID,
@@ -792,7 +792,7 @@ impl Query {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let fiscal_year = app
             .accounting()
-            .find_latest_fiscal_year(sub, chart_id)
+            .find_current_fiscal_year(sub, chart_id)
             .await?;
         Ok(fiscal_year.map(FiscalYear::from))
     }

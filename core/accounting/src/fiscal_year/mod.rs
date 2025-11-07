@@ -155,11 +155,11 @@ where
     }
 
     #[instrument(
-        name = "core_accounting.fiscal_year.find_latest_fiscal_year",
+        name = "core_accounting.fiscal_year.find_current_fiscal_year",
         skip(self),
         err
     )]
-    pub async fn find_latest_fiscal_year(
+    pub async fn find_current_fiscal_year(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_id: impl Into<ChartId> + std::fmt::Debug,
@@ -171,15 +171,7 @@ where
                 CoreAccountingAction::FISCAL_YEAR_READ,
             )
             .await?;
-        self.find_latest_fiscal_year_for_chart_id(chart_id).await
-    }
-
-    async fn find_latest_fiscal_year_for_chart_id(
-        &self,
-        chart_id: impl Into<ChartId> + std::fmt::Debug,
-    ) -> Result<Option<FiscalYear>, FiscalYearError> {
-        let id = chart_id.into();
-        self.repo.find_current_by_chart_id(id).await
+        self.repo.find_current_by_chart_id(chart_id.into()).await
     }
 
     #[instrument(name = "core_accounting.fiscal_year.find_all", skip(self), err)]

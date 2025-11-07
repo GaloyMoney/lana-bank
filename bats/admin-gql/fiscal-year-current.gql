@@ -1,5 +1,5 @@
-query LatestFiscalYear($chartId: UUID!) {
-    latestFiscalYear(chartId: $chartId) {
+query CurrentFiscalYear($chartId: UUID!) {
+    currentFiscalYear(chartId: $chartId) {
         id
         chartId
         firstPeriodOpenedAt

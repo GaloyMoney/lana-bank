@@ -2149,6 +2149,7 @@ export type Query = {
   creditFacilityByPublicId?: Maybe<CreditFacility>;
   creditFacilityProposal?: Maybe<CreditFacilityProposal>;
   creditFacilityProposals: CreditFacilityProposalConnection;
+  currentFiscalYear?: Maybe<FiscalYear>;
   custodians: CustodianConnection;
   customer?: Maybe<Customer>;
   customerByEmail?: Maybe<Customer>;
@@ -2167,7 +2168,6 @@ export type Query = {
   disbursalByPublicId?: Maybe<CreditFacilityDisbursal>;
   disbursals: CreditFacilityDisbursalConnection;
   journalEntries: JournalEntryConnection;
-  latestFiscalYear?: Maybe<FiscalYear>;
   ledgerAccount?: Maybe<LedgerAccount>;
   ledgerAccountByCode?: Maybe<LedgerAccount>;
   ledgerTransaction?: Maybe<LedgerTransaction>;
@@ -2267,6 +2267,11 @@ export type QueryCreditFacilityProposalsArgs = {
 };
 
 
+export type QueryCurrentFiscalYearArgs = {
+  chartId: Scalars['UUID']['input'];
+};
+
+
 export type QueryCustodiansArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
@@ -2352,11 +2357,6 @@ export type QueryDisbursalsArgs = {
 export type QueryJournalEntriesArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
-};
-
-
-export type QueryLatestFiscalYearArgs = {
-  chartId: Scalars['UUID']['input'];
 };
 
 
