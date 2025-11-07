@@ -58,6 +58,6 @@ def trace_callable(span_name: str, callable: Callable, span_attributes: Union[di
                 return result
             except Exception as e:
                 span.set_status(trace.Status(trace.StatusCode.ERROR, str(e)))
-                raise
+                raise e
     
     return traced_wrapper
