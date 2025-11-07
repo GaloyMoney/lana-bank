@@ -1336,7 +1336,6 @@ type FiniteCVLPct {
 type FiscalYear {
 	id: ID!
 	chartId: UUID!
-	firstPeriodOpenedAt: Timestamp!
 	firstPeriodOpenedAsOf: Date!
 }
 

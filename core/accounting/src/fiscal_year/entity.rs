@@ -18,7 +18,6 @@ pub enum FiscalYearEvent {
         chart_id: ChartId,
         tracking_account_set_id: CalaAccountSetId,
         first_period_opened_as_of: chrono::NaiveDate,
-        first_period_opened_at: chrono::DateTime<Utc>,
     },
     MonthClosed {
         closed_as_of: NaiveDate,
@@ -33,7 +32,6 @@ pub struct FiscalYear {
     pub chart_id: ChartId,
     pub tracking_account_set_id: CalaAccountSetId,
     pub first_period_opened_as_of: NaiveDate,
-    pub first_period_opened_at: DateTime<Utc>,
 
     events: EntityEvents<FiscalYearEvent>,
 }
@@ -100,7 +98,6 @@ impl TryFromEvents<FiscalYearEvent> for FiscalYear {
                     chart_id,
                     tracking_account_set_id,
                     first_period_opened_as_of,
-                    first_period_opened_at,
                     ..
                 } => {
                     builder = builder
@@ -108,7 +105,6 @@ impl TryFromEvents<FiscalYearEvent> for FiscalYear {
                         .chart_id(*chart_id)
                         .tracking_account_set_id(*tracking_account_set_id)
                         .first_period_opened_as_of(*first_period_opened_as_of)
-                        .first_period_opened_at(*first_period_opened_at);
                 }
                 FiscalYearEvent::MonthClosed { .. } => {}
             }
@@ -125,7 +121,7 @@ pub struct NewFiscalYear {
     pub chart_id: ChartId,
     #[builder(setter(into))]
     pub tracking_account_set_id: CalaAccountSetId,
-    pub first_period_opened_at: DateTime<Utc>,
+    pub first_period_opened_as_of: NaiveDate,
 }
 
 impl NewFiscalYear {
@@ -142,8 +138,7 @@ impl IntoEvents<FiscalYearEvent> for NewFiscalYear {
                 id: self.id,
                 chart_id: self.chart_id,
                 tracking_account_set_id: self.tracking_account_set_id,
-                first_period_opened_at: self.first_period_opened_at,
-                first_period_opened_as_of: self.first_period_opened_at.date_naive(),
+                first_period_opened_as_of: self.first_period_opened_as_of,
             }],
         )
     }
@@ -166,7 +161,6 @@ mod test {
             chart_id: ChartId::new(),
             tracking_account_set_id: CalaAccountSetId::new(),
             first_period_opened_as_of,
-            first_period_opened_at: crate::time::now(),
         }]
     }
 
