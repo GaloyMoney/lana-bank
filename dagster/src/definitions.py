@@ -4,7 +4,6 @@ from lana_pipelines.assets import (
     build_all_lana_source_assets,
     build_all_lana_to_dw_el_assets,
     build_dbt_assets,
-    build_generate_es_report_asset,
 )
 from lana_pipelines.resources import BigQueryResource, PostgresResource, dbt_resource
 from lana_pipelines.sensors import build_lana_el_sensor
@@ -114,34 +113,6 @@ class DefinitionBuilder:
             )
             self.schedule_definitions.append(build_seed_bank_address_job_schedule)
 
-    def build_generate_es_reports_layer(self):
-        generate_es_report_asset = [build_generate_es_report_asset()]
-        self.asset_definitions.extend(generate_es_report_asset)
-
-        build_generate_es_report_job = dg.define_asset_job(
-            name="generate_es_report_job",
-            selection=generate_es_report_asset,
-        )
-        self.job_definitions.append(build_generate_es_report_job)
-
-        if self.automation_style == "scheduled":
-            build_generate_es_report_job_schedule = dg.ScheduleDefinition(
-                name="build_generate_es_report_job_schedule",
-                cron_schedule="*/3 * * * *",
-                job=build_generate_es_report_job,
-                default_status=dg.DefaultScheduleStatus.RUNNING,
-            )
-            self.schedule_definitions.append(build_generate_es_report_job_schedule)
-
-        if self.automation_style == "mixed":
-            build_generate_es_report_job_schedule = dg.ScheduleDefinition(
-                name="build_generate_es_report_job_schedule",
-                cron_schedule="*/3 * * * *",
-                job=build_generate_es_report_job,
-                default_status=dg.DefaultScheduleStatus.RUNNING,
-            )
-            self.schedule_definitions.append(build_generate_es_report_job_schedule)
-
 def build_definitions():
 
     definition_builder = DefinitionBuilder()
@@ -150,7 +121,6 @@ def build_definitions():
     definition_builder.build_lana_source_layer()
     definition_builder.build_lana_to_dw_el_layer()
     definition_builder.build_dbt_layer()
-    definition_builder.build_generate_es_reports_layer()
 
     return dg.Definitions(
         resources=definition_builder.resource_definitions,

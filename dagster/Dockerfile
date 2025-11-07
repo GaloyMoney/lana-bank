@@ -31,9 +31,6 @@ COPY keyfile.json $SECRETS_FOLDER
 RUN mkdir -p /lana_dw/
 COPY src/ /lana_dw
 
-# Install `generate-es-reports`
-RUN pip install /lana_dw/generate-es-reports
-
 EXPOSE 4000
 
 CMD ["dagster", "api", "grpc", "-h", "0.0.0.0", "-p", "4000", "-d", "/lana_dw/", "-f", "/lana_dw/definitions.py"]
