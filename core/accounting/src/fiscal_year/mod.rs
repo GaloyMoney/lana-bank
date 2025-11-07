@@ -179,15 +179,7 @@ where
         chart_id: impl Into<ChartId> + std::fmt::Debug,
     ) -> Result<Option<FiscalYear>, FiscalYearError> {
         let id = chart_id.into();
-        let fiscal_years = self
-            .repo
-            .list_for_chart_id_by_created_at(
-                id,
-                Default::default(),
-                es_entity::ListDirection::Descending,
-            )
-            .await?;
-        Ok(fiscal_years.entities.first().cloned())
+        self.repo.find_current_by_chart_id(id).await
     }
 
     #[instrument(name = "core_accounting.fiscal_year.find_all", skip(self), err)]
