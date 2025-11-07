@@ -286,7 +286,11 @@ where
         for mut account in accounts.entities.into_iter() {
             match account.update_status(status) {
                 Ok(result) if result.did_execute() => {
-                    self.deposit_accounts.update(&mut account).await?;
+                    let mut op = self.deposit_accounts.begin_op().await?;
+                    self.deposit_accounts
+                        .update_in_op(&mut op, &mut account)
+                        .await?;
+                    op.commit().await?;
                 }
                 Err(DepositAccountError::CannotUpdateClosedDepositAccount) => {
                     tracing::warn!("Skipping closed account during status update");
@@ -607,16 +611,14 @@ where
         // comment: balance increased meanwhile?
         let mut account = self.deposit_accounts.find_by_id(account_id).await?;
 
-        let mut op = self.deposit_accounts.begin_op().await?;
-
         if account.close()?.did_execute() {
+            let mut op = self.deposit_accounts.begin_op().await?;
             self.deposit_accounts
                 .update_in_op(&mut op, &mut account)
                 .await?;
+            op.commit().await?;
         }
 
-        // comment: Something here to delete/unlink account entity and ledger accounts to holder_id?
-        op.commit().await?;
         Ok(account)
     }
 
@@ -877,11 +879,11 @@ where
     }
 
     #[instrument(
-        name = "deposit.list_accounts_by_created_at_for_account_holder",
+        name = "deposit.list_open_accounts_by_created_at_for_account_holder",
         skip(self),
         err
     )]
-    pub async fn list_accounts_by_created_at_for_account_holder(
+    pub async fn list_open_accounts_by_created_at_for_account_holder(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         account_holder_id: impl Into<DepositAccountHolderId> + std::fmt::Debug,
@@ -899,11 +901,14 @@ where
                 CoreDepositAction::DEPOSIT_ACCOUNT_LIST,
             )
             .await?;
-
-        Ok(self
+        let mut accounts = self
             .deposit_accounts
             .list_for_account_holder_id_by_created_at(account_holder_id, query, direction.into())
-            .await?)
+            .await?;
+        accounts
+            .entities
+            .retain(|account| account.status != DepositAccountStatus::Closed);
+        Ok(accounts)
     }
 
     pub async fn get_chart_of_accounts_integration_config(

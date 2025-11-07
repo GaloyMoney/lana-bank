@@ -28,7 +28,7 @@ pub async fn create_customer(
         Some(existing_customer) => {
             let deposit_account_id = app
                 .deposits()
-                .list_accounts_by_created_at_for_account_holder(
+                .list_open_accounts_by_created_at_for_account_holder(
                     sub,
                     existing_customer.id,
                     Default::default(),
@@ -72,7 +72,7 @@ pub async fn make_deposit(
 ) -> anyhow::Result<()> {
     let deposit_account_id = app
         .deposits()
-        .list_accounts_by_created_at_for_account_holder(
+        .list_open_accounts_by_created_at_for_account_holder(
             sub,
             *customer_id,
             Default::default(),
