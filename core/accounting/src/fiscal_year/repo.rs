@@ -26,14 +26,16 @@ impl FiscalYearRepo {
     pub async fn find_current_by_chart_id(
         &self,
         chart_id: ChartId,
-    ) -> Result<Option<FiscalYear>, FiscalYearError> {
-        let fiscal_years = self
-            .list_for_chart_id_by_created_at(
-                chart_id,
-                Default::default(),
-                es_entity::ListDirection::Descending,
-            )
-            .await?;
-        Ok(fiscal_years.entities.first().cloned())
+    ) -> Result<FiscalYear, FiscalYearError> {
+        self.list_for_chart_id_by_created_at(
+            chart_id,
+            Default::default(),
+            es_entity::ListDirection::Descending,
+        )
+        .await?
+        .entities
+        .first()
+        .cloned()
+        .ok_or(FiscalYearError::CurrentYearNotFound)
     }
 }

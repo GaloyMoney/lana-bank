@@ -295,7 +295,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_id: impl Into<ChartId> + std::fmt::Debug,
-    ) -> Result<Option<FiscalYear>, CoreAccountingError> {
+    ) -> Result<FiscalYear, CoreAccountingError> {
         Ok(self
             .fiscal_year()
             .find_current_fiscal_year(sub, chart_id)
