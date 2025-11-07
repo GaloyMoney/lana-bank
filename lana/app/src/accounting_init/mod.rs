@@ -65,33 +65,9 @@ impl ChartsInit {
             deposit,
             accounting.balance_sheets(),
             accounting.profit_and_loss(),
+            accounting.fiscal_year(),
             accounting_init_config,
         )
         .await
-    }
-}
-
-pub struct FiscalYearInit;
-
-impl FiscalYearInit {
-    pub async fn init_first_fiscal_year(
-        accounting: &Accounting,
-        chart_opening_date: Option<NaiveDate>,
-    ) -> Result<(), AccountingInitError> {
-        let chart = accounting.chart_of_accounts().find_by_id(chart_id).await?;
-
-        let opened_as_of = chart_of_accounts_opening_date.ok_or_else(|| {
-            AccountingInitError::MissingConfig("chart_of_accounts_opening_date".to_string())
-        })?;
-
-        let chart_id = accounting
-            .chart_of_accounts()
-            .find_by_reference(crate::accounting_init::constants::CHART_REF)
-            .await?
-            .id;
-        Ok(accounting
-            .fiscal_year()
-            .init_first_fiscal_year(opened_as_of, chart_id, chart.account_set_id)
-            .await?)
     }
 }

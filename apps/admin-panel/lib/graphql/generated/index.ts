@@ -1344,7 +1344,6 @@ export type FiscalYear = {
   __typename?: 'FiscalYear';
   chartId: Scalars['UUID']['output'];
   firstPeriodOpenedAsOf: Scalars['Date']['output'];
-  firstPeriodOpenedAt: Scalars['Timestamp']['output'];
   id: Scalars['ID']['output'];
 };
 
@@ -2149,7 +2148,7 @@ export type Query = {
   creditFacilityByPublicId?: Maybe<CreditFacility>;
   creditFacilityProposal?: Maybe<CreditFacilityProposal>;
   creditFacilityProposals: CreditFacilityProposalConnection;
-  currentFiscalYear?: Maybe<FiscalYear>;
+  currentFiscalYear: FiscalYear;
   custodians: CustodianConnection;
   customer?: Maybe<Customer>;
   customerByEmail?: Maybe<Customer>;
