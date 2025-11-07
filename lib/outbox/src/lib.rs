@@ -97,12 +97,11 @@ where
     #[tracing::instrument(name = "outbox.publish_ephemeral", skip_all, err)]
     pub async fn publish_ephemeral(
         &self,
-        op: &mut impl es_entity::AtomicOperation,
         event_type: EphemeralEventType,
         event: impl Into<P>,
     ) -> Result<(), sqlx::Error> {
         self.repo
-            .persist_ephemeral_event(op, event_type, event.into())
+            .persist_ephemeral_event(event_type, event.into())
             .await?;
         Ok(())
     }
@@ -117,12 +116,14 @@ where
         tracing::Span::current().record("latest_known", u64::from(latest_known));
 
         let start = start_after.unwrap_or(latest_known);
+        let current_ephemeral_events = self.repo.load_ephemeral_events().await?;
         Ok(OutboxListener::new(
             self.repo.clone(),
             sub,
             start,
             latest_known,
             self.buffer_size,
+            current_ephemeral_events,
         ))
     }
 
@@ -135,6 +136,19 @@ where
         Ok(Box::pin(listener.filter_map(|event| async move {
             match event {
                 OutboxEvent::Persistent(persistent_event) => Some(persistent_event),
+                _ => None,
+            }
+        })))
+    }
+
+    #[tracing::instrument(name = "outbox.listen_ephemeral", skip(self), err)]
+    pub async fn listen_ephemeral(
+        &self,
+    ) -> Result<BoxStream<'_, Arc<EphemeralOutboxEvent<P>>>, sqlx::Error> {
+        let listener = self.listen_all(None).await?;
+        Ok(Box::pin(listener.filter_map(|event| async move {
+            match event {
+                OutboxEvent::Ephemeral(event) => Some(event),
                 _ => None,
             }
         })))
@@ -170,7 +184,7 @@ where
             loop {
                 if let Ok(notification) = listener.recv().await
                     && let Ok(event) =
-                        serde_json::from_str::<PersistentOutboxEvent<P>>(notification.payload())
+                        serde_json::from_str::<EphemeralOutboxEvent<P>>(notification.payload())
                     && sender.send(event.into()).is_err()
                 {
                     break;

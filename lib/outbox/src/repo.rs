@@ -1,6 +1,8 @@
 use serde::{Serialize, de::DeserializeOwned};
 use sqlx::PgPool;
 
+use std::collections::VecDeque;
+
 use super::event::*;
 
 pub(super) struct OutboxRepo<P>
@@ -106,7 +108,6 @@ where
     )]
     pub async fn persist_ephemeral_event(
         &self,
-        op: &mut impl es_entity::AtomicOperation,
         event_type: EphemeralEventType,
         payload: P,
     ) -> Result<EphemeralOutboxEvent<P>, sqlx::Error> {
@@ -130,7 +131,7 @@ where
             serialized_payload,
             tracing_json
         )
-        .fetch_one(op.as_executor())
+        .fetch_one(&self.pool)
         .await?;
 
         Ok(EphemeralOutboxEvent {
@@ -139,6 +140,11 @@ where
             tracing_context: Some(tracing_context),
             recorded_at: row.recorded_at,
         })
+    }
+
+    pub async fn load_ephemeral_events(&self) -> Result<VecDeque<OutboxEvent<P>>, sqlx::Error> {
+        // @ Prakhar - implement this
+        Ok(VecDeque::new())
     }
 
     #[tracing::instrument(name = "outbox_lana.load_next_page", skip_all, err(level = "warn"))]

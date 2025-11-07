@@ -3,7 +3,11 @@ use serde::{Serialize, de::DeserializeOwned};
 use tokio::{sync::broadcast, task::JoinHandle};
 use tokio_stream::wrappers::{BroadcastStream, errors::BroadcastStreamRecvError};
 
-use std::{collections::BTreeMap, pin::Pin, task::Poll};
+use std::{
+    collections::{BTreeMap, VecDeque},
+    pin::Pin,
+    task::Poll,
+};
 
 use super::{event::*, repo::*};
 
@@ -16,7 +20,8 @@ where
     latest_known: EventSequence,
     event_receiver: Pin<Box<BroadcastStream<OutboxEvent<P>>>>,
     buffer_size: usize,
-    cache: BTreeMap<EventSequence, OutboxEvent<P>>,
+    sequenced_cache: BTreeMap<EventSequence, OutboxEvent<P>>,
+    return_queue: VecDeque<OutboxEvent<P>>,
     next_page_handle: Option<JoinHandle<Result<Vec<PersistentOutboxEvent<P>>, sqlx::Error>>>,
 }
 
@@ -30,13 +35,15 @@ where
         start_after: EventSequence,
         latest_known: EventSequence,
         buffer: usize,
+        current_ephemeral_events: VecDeque<OutboxEvent<P>>,
     ) -> Self {
         Self {
             repo,
             last_returned_sequence: start_after,
             latest_known,
             event_receiver: Box::pin(BroadcastStream::new(event_receiver)),
-            cache: BTreeMap::new(),
+            sequenced_cache: BTreeMap::new(),
+            return_queue: current_ephemeral_events,
             next_page_handle: None,
             buffer_size: buffer,
         }
@@ -44,17 +51,22 @@ where
 
     fn maybe_add_to_cache(&mut self, event: impl Into<OutboxEvent<P>>) {
         let event = event.into();
-        if let OutboxEvent::Persistent(ref persistent_event) = event {
-            self.latest_known = self.latest_known.max(persistent_event.sequence);
+        match event {
+            OutboxEvent::Persistent(ref persistent_event) => {
+                self.latest_known = self.latest_known.max(persistent_event.sequence);
 
-            if persistent_event.sequence > self.last_returned_sequence
-                && self
-                    .cache
-                    .insert(persistent_event.sequence, event)
-                    .is_none()
-                && self.cache.len() > self.buffer_size
-            {
-                self.cache.pop_last();
+                if persistent_event.sequence > self.last_returned_sequence
+                    && self
+                        .sequenced_cache
+                        .insert(persistent_event.sequence, event)
+                        .is_none()
+                    && self.sequenced_cache.len() > self.buffer_size
+                {
+                    self.sequenced_cache.pop_last();
+                }
+            }
+            event => {
+                self.return_queue.push_back(event);
             }
         }
     }
@@ -104,7 +116,7 @@ where
             }
         }
 
-        while let Some((seq, event)) = this.cache.pop_first() {
+        while let Some((seq, event)) = this.sequenced_cache.pop_first() {
             if seq <= this.last_returned_sequence {
                 continue;
             }
@@ -113,10 +125,15 @@ where
                 if let Some(handle) = this.next_page_handle.take() {
                     handle.abort();
                 }
-                return Poll::Ready(Some(event));
+                this.return_queue.push_back(event);
+                break;
             }
-            this.cache.insert(seq, event);
+            this.sequenced_cache.insert(seq, event);
             break;
+        }
+
+        if let Some(ret) = this.return_queue.pop_front() {
+            return Poll::Ready(Some(ret));
         }
 
         if this.next_page_handle.is_none() && this.last_returned_sequence < this.latest_known {

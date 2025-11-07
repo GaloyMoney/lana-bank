@@ -61,12 +61,12 @@ where
     pub recorded_at: chrono::DateTime<chrono::Utc>,
 }
 
-impl<P> From<PersistentOutboxEvent<P>> for OutboxEvent<P>
+impl<P> From<EphemeralOutboxEvent<P>> for OutboxEvent<P>
 where
     P: Serialize + DeserializeOwned + Send,
 {
-    fn from(event: PersistentOutboxEvent<P>) -> Self {
-        Self::Persistent(Arc::new(event))
+    fn from(event: EphemeralOutboxEvent<P>) -> Self {
+        Self::Ephemeral(Arc::new(event))
     }
 }
 
@@ -95,6 +95,15 @@ where
             tracing_context: self.tracing_context.clone(),
             recorded_at: self.recorded_at,
         }
+    }
+}
+
+impl<P> From<PersistentOutboxEvent<P>> for OutboxEvent<P>
+where
+    P: Serialize + DeserializeOwned + Send,
+{
+    fn from(event: PersistentOutboxEvent<P>) -> Self {
+        Self::Persistent(Arc::new(event))
     }
 }
 
