@@ -5,7 +5,8 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-use crate::{error::CoreDepositError, ledger::*, primitives::*};
+use super::error::DepositAccountError;
+use crate::{ledger::*, primitives::*};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -22,6 +23,7 @@ pub enum DepositAccountEvent {
     AccountStatusUpdated {
         status: DepositAccountStatus,
     },
+    // comment:dedicated event?
     Closed {
         status: DepositAccountStatus,
     },
@@ -49,14 +51,15 @@ impl DepositAccount {
     pub fn update_status(
         &mut self,
         status: DepositAccountStatus,
-    ) -> Result<Idempotent<()>, CoreDepositError> {
+    ) -> Result<Idempotent<()>, DepositAccountError> {
+        // so many conditionals after unfreeze?
         idempotency_guard!(
             self.events.iter_all().rev(),
             DepositAccountEvent::AccountStatusUpdated { status: existing_status, .. } if existing_status == &status,
             => DepositAccountEvent::AccountStatusUpdated { .. }
         );
         if self.status == DepositAccountStatus::Closed {
-            return Err(CoreDepositError::DepositAccountClosed);
+            return Err(DepositAccountError::CannotUpdateClosedDepositAccount);
         }
         self.events
             .push(DepositAccountEvent::AccountStatusUpdated { status });
@@ -64,11 +67,11 @@ impl DepositAccount {
         Ok(Idempotent::Executed(()))
     }
 
-    pub fn freeze(&mut self) -> Result<Idempotent<()>, CoreDepositError> {
+    pub fn freeze(&mut self) -> Result<Idempotent<()>, DepositAccountError> {
         self.update_status(DepositAccountStatus::Frozen)
     }
 
-    pub fn close(&mut self) -> Result<Idempotent<()>, CoreDepositError> {
+    pub fn close(&mut self) -> Result<Idempotent<()>, DepositAccountError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             DepositAccountEvent::AccountStatusUpdated {
@@ -77,7 +80,7 @@ impl DepositAccount {
         );
 
         if self.status == DepositAccountStatus::Frozen {
-            return Err(CoreDepositError::DepositAccountFrozen);
+            return Err(DepositAccountError::CannotCloseFrozenAccount);
         }
 
         let status = DepositAccountStatus::Closed;
@@ -165,7 +168,7 @@ mod tests {
     use crate::{DepositAccountHolderId, DepositAccountId, DepositAccountStatus};
 
     use super::{
-        CoreDepositError, DepositAccount, DepositAccountEvent, DepositAccountLedgerAccountIds,
+        DepositAccount, DepositAccountError, DepositAccountEvent, DepositAccountLedgerAccountIds,
     };
 
     fn initial_events() -> Vec<DepositAccountEvent> {
@@ -207,7 +210,7 @@ mod tests {
                 .unwrap()
                 .did_execute()
         );
-        // no checks on frozen account to be active? should we not only do it via unfreeze
+        // comment: no checks on frozen account to be active? should we not only do it via unfreeze
         assert!(
             account
                 .update_status(DepositAccountStatus::Active)
@@ -224,7 +227,7 @@ mod tests {
 
         assert!(matches!(
             account.update_status(DepositAccountStatus::Active),
-            Err(CoreDepositError::DepositAccountClosed)
+            Err(DepositAccountError::CannotUpdateClosedDepositAccount)
         ));
     }
 }

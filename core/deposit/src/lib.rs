@@ -28,7 +28,7 @@ use outbox::{Outbox, OutboxEventMarker};
 use public_id::PublicIds;
 
 use account::*;
-pub use account::{DepositAccount, DepositAccountsByCreatedAtCursor};
+pub use account::{DepositAccount, DepositAccountsByCreatedAtCursor, error::DepositAccountError};
 pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
 use deposit::*;
 pub use deposit::{Deposit, DepositsByCreatedAtCursor};
@@ -288,7 +288,8 @@ where
                 Ok(result) if result.did_execute() => {
                     self.deposit_accounts.update(&mut account).await?;
                 }
-                Err(CoreDepositError::DepositAccountClosed) => {
+                Err(DepositAccountError::CannotUpdateClosedDepositAccount) => {
+                    tracing::warn!("Skipping closed account during status update");
                     continue;
                 }
                 Err(e) => {
@@ -600,9 +601,10 @@ where
             .await?;
         let balance = self.ledger.balance(account_id).await?;
         if !balance.is_zero() {
-            return Err(CoreDepositError::DepositBalanceIsNotZero);
+            return Err(DepositAccountError::BalanceIsNotZero.into());
         }
 
+        // comment: balance increased meanwhile?
         let mut account = self.deposit_accounts.find_by_id(account_id).await?;
 
         let mut op = self.deposit_accounts.begin_op().await?;
@@ -613,7 +615,7 @@ where
                 .await?;
         }
 
-        // Something here to delete/unlink account entity and ledger accounts to holder_id?
+        // comment: Something here to delete/unlink account entity and ledger accounts to holder_id?
         op.commit().await?;
         Ok(account)
     }
