@@ -15,7 +15,9 @@ use cala_ledger::CalaLedger;
 use crate::{
     FiscalYearId,
     fiscal_year::ledger::FiscalYearLedger,
-    primitives::{CalaJournalId, ChartId, CoreAccountingAction, CoreAccountingObject},
+    primitives::{
+        CalaAccountSetId, CalaJournalId, ChartId, CoreAccountingAction, CoreAccountingObject,
+    },
 };
 
 pub use entity::FiscalYear;
@@ -110,6 +112,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_id: impl Into<ChartId> + std::fmt::Debug,
+        tracking_account_set_id: impl Into<CalaAccountSetId> + std::fmt::Debug,
     ) -> Result<FiscalYear, FiscalYearError> {
         self.authz
             .enforce_permission(
@@ -118,12 +121,11 @@ where
                 CoreAccountingAction::FISCAL_YEAR_CLOSE,
             )
             .await?;
-        let id = chart_id.into();
         let now = crate::time::now();
         let fiscal_years = self
             .repo
             .list_for_chart_id_by_created_at(
-                id,
+                chart_id.into(),
                 Default::default(),
                 es_entity::ListDirection::Descending,
             )
@@ -148,7 +150,7 @@ where
         let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut latest_year).await?;
         self.ledger
-            .close_month_as_of(op, closed_as_of_date, id)
+            .close_month_as_of(op, closed_as_of_date, tracking_account_set_id.into())
             .await?;
 
         Ok(latest_year)
