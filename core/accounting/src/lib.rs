@@ -281,11 +281,26 @@ where
         Ok(chart)
     }
 
+    #[instrument(name = "core_accounting.open_first_fiscal_year", skip(self), err)]
+    pub async fn open_first_fiscal_year(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_id: impl Into<ChartId> + std::fmt::Debug + Copy,
+        opened_as_of: impl Into<chrono::NaiveDate> + std::fmt::Debug,
+    ) -> Result<FiscalYear, CoreAccountingError> {
+        let chart = self.chart_of_accounts().find_by_id(chart_id).await?;
+
+        Ok(self
+            .fiscal_year()
+            .init_first_fiscal_year(sub, opened_as_of, chart_id, chart.account_set_id)
+            .await?)
+    }
+
     #[instrument(name = "core_accounting.close_month", skip(self), err)]
     pub async fn close_month(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart_id: ChartId,
+        chart_id: impl Into<ChartId> + std::fmt::Debug,
     ) -> Result<FiscalYear, CoreAccountingError> {
         Ok(self.fiscal_year().close_month(sub, chart_id).await?)
     }

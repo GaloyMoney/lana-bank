@@ -724,7 +724,8 @@ impl CoreAccountingAction {
     pub const TRIAL_BALANCE_UPDATE: Self =
         CoreAccountingAction::TrialBalance(TrialBalanceAction::Update);
     pub const FISCAL_YEAR_READ: Self = CoreAccountingAction::FiscalYear(FiscalYearAction::Read);
-    // TODO: Separate perms for soft and hard close?
+    pub const FISCAL_YEAR_OPEN_FIRST: Self =
+        CoreAccountingAction::FiscalYear(FiscalYearAction::OpenFirst);
     pub const FISCAL_YEAR_CLOSE: Self = CoreAccountingAction::FiscalYear(FiscalYearAction::Close);
 }
 
@@ -1078,6 +1079,7 @@ impl From<TrialBalanceAction> for CoreAccountingAction {
 #[strum(serialize_all = "kebab-case")]
 pub enum FiscalYearAction {
     Read,
+    OpenFirst,
     Close,
 }
 
@@ -1085,6 +1087,7 @@ impl ActionPermission for FiscalYearAction {
     fn permission_set(&self) -> &'static str {
         match self {
             Self::Read => PERMISSION_SET_ACCOUNTING_VIEWER,
+            Self::OpenFirst => PERMISSION_SET_ACCOUNTING_WRITER,
             Self::Close => PERMISSION_SET_ACCOUNTING_WRITER,
         }
     }

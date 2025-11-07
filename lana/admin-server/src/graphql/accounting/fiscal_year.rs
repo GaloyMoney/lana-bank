@@ -30,3 +30,11 @@ pub struct FiscalYearCloseMonthInput {
 }
 
 crate::mutation_payload! { FiscalYearCloseMonthPayload, fiscal_year: FiscalYear }
+
+#[derive(InputObject)]
+pub struct FiscalYearOpenFirstInput {
+    pub chart_id: UUID,
+    pub opened_as_of: Date,
+}
+
+crate::mutation_payload! { FiscalYearOpenFirstPayload, fiscal_year: FiscalYear }

@@ -2097,6 +2097,22 @@ impl Mutation {
         )
     }
 
+    async fn fiscal_year_open_first(
+        &self,
+        ctx: &Context<'_>,
+        input: FiscalYearOpenFirstInput,
+    ) -> async_graphql::Result<FiscalYearOpenFirstPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            FiscalYearOpenFirstPayload,
+            FiscalYear,
+            FiscalYearId,
+            ctx,
+            app.accounting()
+                .open_first_fiscal_year(sub, input.chart_id, input.opened_as_of)
+        )
+    }
+
     async fn fiscal_year_close_month(
         &self,
         ctx: &Context<'_>,
@@ -2108,7 +2124,7 @@ impl Mutation {
             FiscalYear,
             FiscalYearId,
             ctx,
-            app.accounting().close_month(sub, input.chart_id.into())
+            app.accounting().close_month(sub, input.chart_id)
         )
     }
 

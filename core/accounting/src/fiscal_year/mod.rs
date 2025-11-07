@@ -79,33 +79,37 @@ where
     )]
     pub async fn init_first_fiscal_year(
         &self,
-        opened_as_of: NaiveDate,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        opened_as_of: impl Into<NaiveDate> + std::fmt::Debug,
         chart_id: impl Into<ChartId> + std::fmt::Debug,
         tracking_account_set_id: impl Into<CalaAccountSetId> + std::fmt::Debug,
-    ) -> Result<(), FiscalYearError> {
-        let id = chart_id.into();
-        let fiscal_years = self
-            .repo
-            .list_for_chart_id_by_created_at(
-                id,
-                Default::default(),
-                es_entity::ListDirection::Descending,
+    ) -> Result<FiscalYear, FiscalYearError> {
+        let opened_as_of = opened_as_of.into();
+        let chart_id = chart_id.into();
+
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_fiscal_years(),
+                CoreAccountingAction::FISCAL_YEAR_CLOSE,
             )
             .await?;
-        if !fiscal_years.entities.is_empty() {
-            return Ok(());
+
+        if let Ok(fiscal_year) = self.repo.find_current_by_chart_id(chart_id).await {
+            return Ok(fiscal_year);
         }
-        tracing::info!("Initializing first FiscalYear for chart ID: {}", id);
-        let init_fiscal_year = NewFiscalYear::builder()
+
+        tracing::info!("Initializing first FiscalYear for chart ID: {}", chart_id);
+        let new_fiscal_year = NewFiscalYear::builder()
             .id(FiscalYearId::new())
-            .chart_id(id)
+            .chart_id(chart_id)
             .tracking_account_set_id(tracking_account_set_id.into())
             .first_period_opened_as_of(opened_as_of)
             .build()
             .expect("Could not build new FiscalYear");
-        self.repo.create(init_fiscal_year).await?;
+        let fiscal_year = self.repo.create(new_fiscal_year).await?;
 
-        Ok(())
+        Ok(fiscal_year)
     }
 
     #[instrument(name = "core_accounting.fiscal_year.close_month", skip(self), err)]

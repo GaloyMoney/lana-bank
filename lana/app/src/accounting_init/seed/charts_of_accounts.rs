@@ -146,11 +146,14 @@ pub async fn init_first_fiscal_year(
 ) -> Result<(), AccountingInitError> {
     let chart = chart_of_accounts.find_by_reference(CHART_REF).await?;
 
-    Ok(fiscal_year
+    fiscal_year
         .init_first_fiscal_year(
+            &Subject::System,
             chart_of_accounts_opening_date,
             chart.id,
             chart.account_set_id,
         )
-        .await?)
+        .await?;
+
+    Ok(())
 }
