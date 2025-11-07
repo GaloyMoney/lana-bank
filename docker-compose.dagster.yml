@@ -11,9 +11,10 @@ services:
       DAGSTER_POSTGRES_USER: 'postgres_user'
       DAGSTER_POSTGRES_PASSWORD: 'postgres_password'
       DAGSTER_POSTGRES_DB: 'postgres_db'
+      OTEL_EXPORTER_OTLP_ENDPOINT: 'http://otel-agent:4317'
 
     networks:
-      - dagster_network
+      - lana-bank_default
 
   # This service runs dagster-webserver, which loads your user code from the user code container.
   # Since our instance uses the QueuedRunCoordinator, any runs submitted from the webserver will be put on
@@ -42,7 +43,7 @@ services:
     volumes:
       - /tmp/io_manager_storage:/tmp/io_manager_storage
     networks:
-      - dagster_network
+      - lana-bank_default
     depends_on:
       dagster_postgres:
         condition: service_started
@@ -67,7 +68,7 @@ services:
     volumes:
       - /tmp/io_manager_storage:/tmp/io_manager_storage
     networks:
-      - dagster_network
+      - lana-bank_default
     depends_on:
       dagster_postgres:
         condition: service_started
@@ -82,9 +83,8 @@ services:
       POSTGRES_PASSWORD: 'postgres_password'
       POSTGRES_DB: 'postgres_db'
     networks:
-      - dagster_network
+      - lana-bank_default
 
 networks:
-  dagster_network:
-    driver: bridge
-    name: dagster_network
+  lana-bank_default:
+    external: true  # This network is created by the main docker-compose.yml

@@ -1,22 +1,31 @@
+"""Dagster definitions entry point - builds all Dagster objects."""
+
 import dagster as dg
-import pandas as pd
+from typing import Callable
+
+from src.core import lana_assetifier
+from src.assets import iris_dataset_size
+from src.otel import init_telemetry
+
+class DefinitionsBuilder:
+
+    def __init__(self):
+        self.assets = []
+    
+    def init_telemetry(self):
+        init_telemetry()
+
+    def add_callable_as_asset(self, callable: Callable):
+        asset = lana_assetifier(asset_key=callable.__name__, callable=callable)
+        self.assets.append(asset)
+
+    def build(self) -> dg.Definitions:
+        return dg.Definitions(assets=self.assets)
 
 
-@dg.asset
-def iris_dataset_size(context: dg.AssetExecutionContext) -> None:
-    df = pd.read_csv(
-        "https://docs.dagster.io/assets/iris.csv",
-        names=[
-            "sepal_length_cm",
-            "sepal_width_cm",
-            "petal_length_cm",
-            "petal_width_cm",
-            "species",
-        ],
-    )
+definition_builder = DefinitionsBuilder()
 
-    context.log.info(f"Loaded {df.shape[0]} data points.")
+definition_builder.init_telemetry()
+definition_builder.add_callable_as_asset(iris_dataset_size)
 
-all_assets = [iris_dataset_size]
-
-defs = dg.Definitions(assets=all_assets)
+defs = definition_builder.build()

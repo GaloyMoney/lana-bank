@@ -22,3 +22,9 @@ Follow these steps to use a new env var in dagster (assuming a mock `MY_ENV_VAR`
 - You will need to add `MY_ENV_VAR` to `dagster.yaml` under `run_launcher.config.env_vars`.
 - And then also in the `docker-compose.dagster.yml` under `services.dagster_daemon.environment`.
 - Additionally, if your var is used outside of dagster assets/sensors/etc (ie called on `.py` loading, not on dagster run runtime), you also need to add it under `services.dagster-code-location-lana-dw.environment`.
+
+## Opentelemetry
+
+The project is designed to send traces for every dagster run. You get this feature for free by properly using the method `add_callable_as_asset` of `DefinitionsBuilder` in `src/definitions.py`.
+
+Each asset materialization gets represented as a single span, and any exception happening during the materialization runtime will result in a span with `error=true`.
