@@ -78,6 +78,8 @@ impl FiscalYearInit {
         accounting: &Accounting,
         chart_opening_date: Option<NaiveDate>,
     ) -> Result<(), AccountingInitError> {
+        let chart = accounting.chart_of_accounts().find_by_id(chart_id).await?;
+
         // TODO: Can this config be optional?
         let opened_as_of = chart_opening_date.unwrap_or_else(|| Utc::now().date_naive());
 
@@ -88,7 +90,7 @@ impl FiscalYearInit {
             .id;
         Ok(accounting
             .fiscal_year()
-            .init_first_fiscal_year(opened_as_of, chart_id)
+            .init_first_fiscal_year(opened_as_of, chart_id, chart.account_set_id)
             .await?)
     }
 }
