@@ -163,11 +163,16 @@ where
             .filter_map(|event| match &event.event {
                 CollateralizationStateChanged {
                     collateralization_state,
-                    ..
+                    collateral,
+                    price,
                 } => Some(
                     CoreCreditEvent::PendingCreditFacilityCollateralizationChanged {
                         id: entity.id,
                         state: *collateralization_state,
+                        collateral: *collateral,
+                        price: *price,
+                        recorded_at: event.recorded_at,
+                        effective: event.recorded_at.date_naive(),
                     },
                 ),
                 _ => None,

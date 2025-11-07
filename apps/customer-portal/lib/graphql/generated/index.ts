@@ -123,7 +123,7 @@ export type CreditFacilityDisbursalExecuted = {
   txId: Scalars['UUID']['output'];
 };
 
-export type CreditFacilityHistoryEntry = CreditFacilityApproved | CreditFacilityCollateralUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityIncrementalPayment | CreditFacilityInterestAccrued | CreditFacilityLiquidationAmountReserved;
+export type CreditFacilityHistoryEntry = CreditFacilityApproved | CreditFacilityCollateralUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityIncrementalPayment | CreditFacilityInterestAccrued | CreditFacilityLiquidationAmountReserved | PendingCreditFacilityCollateralizationUpdated;
 
 export type CreditFacilityIncrementalPayment = {
   __typename?: 'CreditFacilityIncrementalPayment';
@@ -364,6 +364,20 @@ export type PaymentEntry = {
   recordedAt: Scalars['Timestamp']['output'];
 };
 
+export enum PendingCreditFacilityCollateralizationState {
+  FullyCollateralized = 'FULLY_COLLATERALIZED',
+  UnderCollateralized = 'UNDER_COLLATERALIZED'
+}
+
+export type PendingCreditFacilityCollateralizationUpdated = {
+  __typename?: 'PendingCreditFacilityCollateralizationUpdated';
+  collateral: Scalars['Satoshis']['output'];
+  effective: Scalars['Date']['output'];
+  price: Scalars['UsdCents']['output'];
+  recordedAt: Scalars['Timestamp']['output'];
+  state: PendingCreditFacilityCollateralizationState;
+};
+
 export enum Period {
   Months = 'MONTHS'
 }
@@ -447,6 +461,7 @@ export type GetCreditFacilityQuery = { __typename?: 'Query', creditFacility?: { 
       | { __typename?: 'CreditFacilityIncrementalPayment', cents: any, recordedAt: any, txId: any, effective: any }
       | { __typename?: 'CreditFacilityInterestAccrued', cents: any, recordedAt: any, txId: any, days: number, effective: any }
       | { __typename?: 'CreditFacilityLiquidationAmountReserved', cents: any, recordedAt: any, txId: any, effective: any }
+      | { __typename?: 'PendingCreditFacilityCollateralizationUpdated' }
     > } | null };
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;

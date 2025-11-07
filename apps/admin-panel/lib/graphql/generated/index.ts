@@ -586,7 +586,7 @@ export type CreditFacilityEdge = {
   node: CreditFacility;
 };
 
-export type CreditFacilityHistoryEntry = CreditFacilityApproved | CreditFacilityCollateralUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityIncrementalPayment | CreditFacilityInterestAccrued | CreditFacilityLiquidationAmountReserved;
+export type CreditFacilityHistoryEntry = CreditFacilityApproved | CreditFacilityCollateralUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityIncrementalPayment | CreditFacilityInterestAccrued | CreditFacilityLiquidationAmountReserved | PendingCreditFacilityCollateralizationUpdated;
 
 export type CreditFacilityIncrementalPayment = {
   __typename?: 'CreditFacilityIncrementalPayment';
@@ -1923,6 +1923,15 @@ export enum PendingCreditFacilityCollateralizationState {
   UnderCollateralized = 'UNDER_COLLATERALIZED'
 }
 
+export type PendingCreditFacilityCollateralizationUpdated = {
+  __typename?: 'PendingCreditFacilityCollateralizationUpdated';
+  collateral: Scalars['Satoshis']['output'];
+  effective: Scalars['Date']['output'];
+  price: Scalars['UsdCents']['output'];
+  recordedAt: Scalars['Timestamp']['output'];
+  state: PendingCreditFacilityCollateralizationState;
+};
+
 export type PendingCreditFacilityConnection = {
   __typename?: 'PendingCreditFacilityConnection';
   /** A list of edges. */
@@ -3108,6 +3117,7 @@ export type CreditFacilityHistoryFragmentFragment = { __typename?: 'CreditFacili
     | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string, effective: any }
     | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number, effective: any }
     | { __typename?: 'CreditFacilityLiquidationAmountReserved', cents: UsdCents, recordedAt: any, effective: any, txId: string }
+    | { __typename?: 'PendingCreditFacilityCollateralizationUpdated' }
   > };
 
 export type GetCreditFacilityHistoryQueryVariables = Exact<{
@@ -3123,6 +3133,7 @@ export type GetCreditFacilityHistoryQuery = { __typename?: 'Query', creditFacili
       | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string, effective: any }
       | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number, effective: any }
       | { __typename?: 'CreditFacilityLiquidationAmountReserved', cents: UsdCents, recordedAt: any, effective: any, txId: string }
+      | { __typename?: 'PendingCreditFacilityCollateralizationUpdated' }
     > } | null };
 
 export type RepaymentOnFacilityPageFragment = { __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: any, dueAt: any };
@@ -3147,6 +3158,7 @@ export type CreditFacilityCollateralUpdateMutation = { __typename?: 'Mutation', 
         | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string, effective: any }
         | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number, effective: any }
         | { __typename?: 'CreditFacilityLiquidationAmountReserved', cents: UsdCents, recordedAt: any, effective: any, txId: string }
+        | { __typename?: 'PendingCreditFacilityCollateralizationUpdated' }
       >, currentCvl:
         | { __typename: 'FiniteCVLPct', value: any }
         | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
@@ -3196,6 +3208,7 @@ export type CreditFacilityPartialPaymentRecordMutation = { __typename?: 'Mutatio
         | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string, effective: any }
         | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number, effective: any }
         | { __typename?: 'CreditFacilityLiquidationAmountReserved', cents: UsdCents, recordedAt: any, effective: any, txId: string }
+        | { __typename?: 'PendingCreditFacilityCollateralizationUpdated' }
       >, currentCvl:
         | { __typename: 'FiniteCVLPct', value: any }
         | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
@@ -3223,6 +3236,7 @@ export type CreditFacilityPartialPaymentWithDateRecordMutation = { __typename?: 
         | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string, effective: any }
         | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number, effective: any }
         | { __typename?: 'CreditFacilityLiquidationAmountReserved', cents: UsdCents, recordedAt: any, effective: any, txId: string }
+        | { __typename?: 'PendingCreditFacilityCollateralizationUpdated' }
       >, currentCvl:
         | { __typename: 'FiniteCVLPct', value: any }
         | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
@@ -3521,6 +3535,7 @@ export type CreditFacilityDisbursalInitiateMutation = { __typename?: 'Mutation',
           | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string, effective: any }
           | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number, effective: any }
           | { __typename?: 'CreditFacilityLiquidationAmountReserved', cents: UsdCents, recordedAt: any, effective: any, txId: string }
+          | { __typename?: 'PendingCreditFacilityCollateralizationUpdated' }
         >, currentCvl:
           | { __typename: 'FiniteCVLPct', value: any }
           | { __typename: 'InfiniteCVLPct', isInfinite: boolean }

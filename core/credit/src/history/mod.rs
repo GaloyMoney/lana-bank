@@ -137,6 +137,24 @@ impl CreditFacilityHistory {
                         },
                     ));
             }
+            PendingCreditFacilityCollateralizationChanged {
+                state,
+                collateral,
+                price,
+                recorded_at,
+                effective,
+                ..
+            } => self.entries.push(
+                CreditFacilityHistoryEntry::PendingCreditFacilityCollateralization(
+                    PendingCreditFacilityCollateralizationUpdated {
+                        state: *state,
+                        collateral: *collateral,
+                        recorded_at: *recorded_at,
+                        effective: *effective,
+                        price: *price,
+                    },
+                ),
+            ),
             FacilityCompleted { .. } => {}
             ObligationCreated { .. } => {}
             ObligationDue { .. } => {}
@@ -144,7 +162,6 @@ impl CreditFacilityHistory {
             ObligationDefaulted { .. } => {}
             LiquidationProcessConcluded { .. } => {}
             ObligationCompleted { .. } => {}
-            PendingCreditFacilityCollateralizationChanged { .. } => {}
         }
     }
 }

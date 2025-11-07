@@ -33,15 +33,10 @@ where
         match message.as_event() {
             Some(event @ FacilityProposalCreated { id, .. })
             | Some(event @ FacilityProposalApproved { id, .. }) => {
-                message.inject_trace_parent();
-                Span::current().record("handled", true);
-                Span::current().record("event_type", event.as_ref());
-
-                let facility_id: CreditFacilityId = (*id).into();
-
-                let mut history = self.repo.load(facility_id).await?;
-                history.process_event(event);
-                self.repo.persist_in_tx(db, facility_id, history).await?;
+                self.handle_event(db, message, event, *id).await?;
+            }
+            Some(event @ PendingCreditFacilityCollateralizationChanged { id, .. }) => {
+                self.handle_event(db, message, event, *id).await?;
             }
             Some(event @ FacilityActivated { id, .. })
             | Some(event @ FacilityCompleted { id, .. })
@@ -112,16 +107,27 @@ where
                     ..
                 },
             ) => {
-                message.inject_trace_parent();
-                Span::current().record("handled", true);
-                Span::current().record("event_type", event.as_ref());
-
-                let mut history = self.repo.load(*id).await?;
-                history.process_event(event);
-                self.repo.persist_in_tx(db, *id, history).await?;
+                self.handle_event(db, message, event, *id).await?;
             }
             _ => {}
         }
+        Ok(())
+    }
+
+    async fn handle_event(
+        &self,
+        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        message: &PersistentOutboxEvent<E>,
+        event: &CoreCreditEvent,
+        id: impl Into<CreditFacilityId>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let id = id.into();
+        message.inject_trace_parent();
+        Span::current().record("handled", true);
+        Span::current().record("event_type", event.as_ref());
+        let mut history = self.repo.load(id).await?;
+        history.process_event(event);
+        self.repo.persist_in_tx(db, id, history).await?;
         Ok(())
     }
 }

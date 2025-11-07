@@ -28,6 +28,15 @@ pub struct CollateralUpdated {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct PendingCreditFacilityCollateralizationUpdated {
+    pub state: PendingCreditFacilityCollateralizationState,
+    pub collateral: Satoshis,
+    pub recorded_at: DateTime<Utc>,
+    pub effective: chrono::NaiveDate,
+    pub price: PriceOfOneBTC,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct CollateralizationUpdated {
     pub state: CollateralizationState,
     pub collateral: Satoshis,
@@ -72,6 +81,7 @@ pub enum CreditFacilityHistoryEntry {
     Approved(CreditFacilityApproved),
     Collateral(CollateralUpdated),
     Collateralization(CollateralizationUpdated),
+    PendingCreditFacilityCollateralization(PendingCreditFacilityCollateralizationUpdated),
     Payment(IncrementalPayment),
     Disbursal(DisbursalExecuted),
     Interest(InterestAccrualsPosted),

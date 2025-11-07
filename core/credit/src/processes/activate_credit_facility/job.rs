@@ -147,6 +147,7 @@ where
             event @ PendingCreditFacilityCollateralizationChanged {
                 id,
                 state: PendingCreditFacilityCollateralizationState::FullyCollateralized,
+                ..
             },
         ) = message.as_event()
         {
