@@ -1309,6 +1309,15 @@ type FiscalYearCloseMonthPayload {
 	fiscalYear: FiscalYear!
 }
 
+input FiscalYearOpenFirstInput {
+	chartId: UUID!
+	openedAsOf: Date!
+}
+
+type FiscalYearOpenFirstPayload {
+	fiscalYear: FiscalYear!
+}
+
 type GovernanceNavigationItems {
 	committee: Boolean!
 	policy: Boolean!
@@ -1576,6 +1585,7 @@ type Mutation {
 	customerDocumentDelete(input: CustomerDocumentDeleteInput!): CustomerDocumentDeletePayload!
 	customerDocumentArchive(input: CustomerDocumentArchiveInput!): CustomerDocumentArchivePayload!
 	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
+	fiscalYearOpenFirst(input: FiscalYearOpenFirstInput!): FiscalYearOpenFirstPayload!
 	fiscalYearCloseMonth(input: FiscalYearCloseMonthInput!): FiscalYearCloseMonthPayload!
 	chartOfAccountsAddRootNode(input: ChartOfAccountsAddRootNodeInput!): ChartOfAccountsAddRootNodePayload!
 	chartOfAccountsAddChildNode(input: ChartOfAccountsAddChildNodeInput!): ChartOfAccountsAddChildNodePayload!
