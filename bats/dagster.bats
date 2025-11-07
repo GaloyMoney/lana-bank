@@ -18,10 +18,16 @@ load helpers
   fi
 
   exec_dagster_graphql "assets"
-  echo "$output" | jq . >/dev/null || skip "Dagster GraphQL did not return JSON"
-
-  found=$(echo "$output" | jq -r '.data.assetsOrError.nodes[]?.key.path | select(. == ["iris_dataset_size"]) | @sh' | wc -l)
-  [ "$found" -ge 1 ] || skip "iris_dataset_size asset not found"
+  if ! echo "$output" | jq -e '.data.assetsOrError.nodes[]?.key.path | select(. == ["iris_dataset_size"])' >/dev/null; then
+    status=$?
+    if [ "$status" -eq 4 ]; then
+      echo "Dagster GraphQL response was not valid JSON"
+    else
+      echo "iris_dataset_size asset not found in Dagster assets response"
+    fi
+    echo "$output"
+    return 1
+  fi
 }
 
 @test "dagster: materialize iris_dataset_size and wait for success" {
