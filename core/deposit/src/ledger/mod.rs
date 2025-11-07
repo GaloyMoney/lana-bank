@@ -604,6 +604,11 @@ impl DepositLedger {
         Ok(())
     }
 
+    #[instrument(
+        name = "deposit_ledger.freeze_account_in_op",
+        skip(self, op, account),
+        err
+    )]
     pub async fn freeze_account_in_op(
         &self,
         op: es_entity::DbOp<'_>,
@@ -637,6 +642,11 @@ impl DepositLedger {
         Ok(())
     }
 
+    #[instrument(
+        name = "deposit_ledger.unfreeze_account_in_op",
+        skip(self, op, account),
+        err
+    )]
     pub async fn unfreeze_account_in_op(
         &self,
         op: es_entity::DbOp<'_>,
