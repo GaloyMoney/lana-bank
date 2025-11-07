@@ -5,15 +5,6 @@ sources:
     dataset: "{{ env_var('TARGET_BIGQUERY_DATASET', '') }}"
     tables:
 
-      - name: core_approval_process_events_rollup
-        freshness:
-          warn_after:
-            count: 2
-            period: day
-          error_after:
-            count: 7
-            period: day
-
       - name: core_chart_events_rollup
         freshness:
           warn_after:
@@ -32,15 +23,6 @@ sources:
             count: 7
             period: day
 
-      - name: core_committee_events_rollup
-        freshness:
-          warn_after:
-            count: 2
-            period: day
-          error_after:
-            count: 7
-            period: day
-
       - name: core_credit_facility_events_rollup
         freshness:
           warn_after:
@@ -51,15 +33,6 @@ sources:
             period: day
 
       - name: core_credit_facility_proposal_events_rollup
-        freshness:
-          warn_after:
-            count: 2
-            period: day
-          error_after:
-            count: 7
-            period: day
-
-      - name: core_custodian_events_rollup
         freshness:
           warn_after:
             count: 2
@@ -104,15 +77,6 @@ sources:
             count: 7
             period: day
 
-      - name: core_document_events_rollup
-        freshness:
-          warn_after:
-            count: 2
-            period: day
-          error_after:
-            count: 7
-            period: day
-
       - name: core_interest_accrual_cycle_events_rollup
         freshness:
           warn_after:
@@ -123,15 +87,6 @@ sources:
             period: day
 
       - name: core_liquidation_process_events_rollup
-        freshness:
-          warn_after:
-            count: 2
-            period: day
-          error_after:
-            count: 7
-            period: day
-
-      - name: core_manual_transaction_events_rollup
         freshness:
           warn_after:
             count: 2
@@ -168,51 +123,6 @@ sources:
             period: day
 
       - name: core_pending_credit_facility_events_rollup
-        freshness:
-          warn_after:
-            count: 2
-            period: day
-          error_after:
-            count: 7
-            period: day
-
-      - name: core_permission_set_events_rollup
-        freshness:
-          warn_after:
-            count: 2
-            period: day
-          error_after:
-            count: 7
-            period: day
-
-      - name: core_policy_events_rollup
-        freshness:
-          warn_after:
-            count: 2
-            period: day
-          error_after:
-            count: 7
-            period: day
-
-      - name: core_role_events_rollup
-        freshness:
-          warn_after:
-            count: 2
-            period: day
-          error_after:
-            count: 7
-            period: day
-
-      - name: core_terms_template_events_rollup
-        freshness:
-          warn_after:
-            count: 2
-            period: day
-          error_after:
-            count: 7
-            period: day
-
-      - name: core_user_events_rollup
         freshness:
           warn_after:
             count: 2
