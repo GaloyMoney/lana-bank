@@ -19,7 +19,5 @@ def iris_dataset_size(context: dg.AssetExecutionContext) -> None:
     row_count = df.shape[0]
     col_count = df.shape[1]
 
-    #raise Exception("Oopsies")
-
     context.log.info(f"📊 Final result: Loaded {row_count} data points with {col_count} features")
 
