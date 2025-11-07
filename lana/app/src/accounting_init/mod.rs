@@ -16,7 +16,7 @@ use crate::{
 };
 
 use cala_ledger::CalaLedger;
-use chrono::{NaiveDate, Utc};
+use chrono::NaiveDate;
 use error::*;
 
 #[derive(Clone)]
@@ -80,8 +80,9 @@ impl FiscalYearInit {
     ) -> Result<(), AccountingInitError> {
         let chart = accounting.chart_of_accounts().find_by_id(chart_id).await?;
 
-        // TODO: Can this config be optional?
-        let opened_as_of = chart_opening_date.unwrap_or_else(|| Utc::now().date_naive());
+        let opened_as_of = chart_of_accounts_opening_date.ok_or_else(|| {
+            AccountingInitError::MissingConfig("chart_of_accounts_opening_date".to_string())
+        })?;
 
         let chart_id = accounting
             .chart_of_accounts()
