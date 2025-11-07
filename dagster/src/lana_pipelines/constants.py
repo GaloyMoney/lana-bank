@@ -25,4 +25,6 @@ LANA_EL_TABLE_NAMES = (
     "core_user_events_rollup",
     "core_withdrawal_events_rollup",
     "core_public_ids",
+    "core_chart_events",
+    "core_chart_node_events"
 )
