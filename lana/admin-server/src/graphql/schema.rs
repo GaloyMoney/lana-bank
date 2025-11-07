@@ -890,6 +890,26 @@ impl Query {
         Ok(config.map(ProfitAndLossStatementModuleConfig::from))
     }
 
+    async fn accounting_period_config(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<AccountingPeriodModuleConfig>> {
+        let (app, _sub) = app_and_sub_from_ctx!(ctx);
+
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let chart = loader
+            .load_one(CHART_REF)
+            .await?
+            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {CHART_REF:?}"));
+
+        let config = app
+            .accounting()
+            .accounting_periods()
+            .get_chart_of_accounts_integration_config(chart.as_ref())
+            .await?;
+        Ok(config.map(AccountingPeriodModuleConfig::from))
+    }
+
     async fn public_id_target(
         &self,
         ctx: &Context<'_>,
@@ -2014,18 +2034,39 @@ impl Mutation {
         )
     }
 
-    async fn chart_of_accounts_close_monthly(
+    async fn accounting_period_close_month(
         &self,
         ctx: &Context<'_>,
-        input: ChartOfAccountsCloseMonthlyInput,
-    ) -> async_graphql::Result<ChartOfAccountsCloseMonthlyPayload> {
+        input: AccountingPeriodCloseInput,
+    ) -> async_graphql::Result<AccountingPeriodClosePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         exec_mutation!(
-            ChartOfAccountsCloseMonthlyPayload,
-            ChartOfAccounts,
-            ChartId,
+            AccountingPeriodClosePayload,
+            AccountingPeriod,
+            AccountingPeriodId,
             ctx,
-            app.accounting().close_monthly(sub, input.chart_id.into())
+            app.accounting()
+                .accounting_periods()
+                .close_month(sub, input.chart_id.into(),)
+        )
+    }
+
+    async fn accounting_period_close_year(
+        &self,
+        ctx: &Context<'_>,
+        input: AccountingPeriodCloseInput,
+    ) -> async_graphql::Result<AccountingPeriodClosePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            AccountingPeriodClosePayload,
+            AccountingPeriod,
+            AccountingPeriodId,
+            ctx,
+            app.accounting().accounting_periods().close_year(
+                sub,
+                input.chart_id.into(),
+                input.description
+            )
         )
     }
 
@@ -2158,6 +2199,48 @@ impl Mutation {
             .await?;
         Ok(ProfitAndLossStatementModuleConfigurePayload::from(
             ProfitAndLossStatementModuleConfig::from(config),
+        ))
+    }
+
+    async fn accounting_period_configure(
+        &self,
+        ctx: &Context<'_>,
+        input: AccountingPeriodModuleConfigureInput,
+    ) -> async_graphql::Result<AccountingPeriodModuleConfigurePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let chart = loader
+            .load_one(CHART_REF)
+            .await?
+            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {CHART_REF:?}"));
+
+        let AccountingPeriodModuleConfigureInput {
+            revenue_code,
+            cost_of_revenue_code,
+            expenses_code,
+            equity_retained_earnings_code,
+            equity_retained_losses_code,
+        } = input;
+
+        let config_values =
+            lana_app::accounting::accounting_period::ChartOfAccountsIntegrationConfig {
+                chart_of_accounts_id: chart.id,
+                revenue_code: revenue_code.parse()?,
+                cost_of_revenue_code: cost_of_revenue_code.parse()?,
+                expenses_code: expenses_code.parse()?,
+                equity_retained_earnings_code: equity_retained_earnings_code.parse()?,
+                equity_retained_losses_code: equity_retained_losses_code.parse()?,
+                accounting_periods: vec![], // Empty for now, can be extended later
+            };
+
+        let config = app
+            .accounting()
+            .accounting_periods()
+            .set_chart_of_accounts_integration_config(sub, chart.as_ref(), config_values)
+            .await?;
+        Ok(AccountingPeriodModuleConfigurePayload::from(
+            AccountingPeriodModuleConfig::from(config),
         ))
     }
 

@@ -224,7 +224,7 @@ teardown_file() {
 @test "accounting: cannot execute transaction before last closing date" {
   exec_admin_graphql 'chart-of-accounts-closing'
   graphql_output
-  closing_date=$(graphql_output '.data.chartOfAccounts.monthlyClosing.closedAsOf')
+  closing_date=$(graphql_output '.data.chartOfAccounts.closing.closedAsOf')
   [[ "$closing_date" != "null" ]] || exit 1
 
   amount=$((RANDOM % 1000))

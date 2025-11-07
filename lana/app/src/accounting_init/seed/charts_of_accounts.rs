@@ -7,7 +7,9 @@ use crate::{
 
 use rbac_types::Subject;
 
-use super::module_config::{balance_sheet::*, credit::*, deposit::*, profit_and_loss::*};
+use super::module_config::{
+    balance_sheet::*, credit::*, deposit::*, period::*, profit_and_loss::*,
+};
 
 pub(crate) async fn init(
     chart_of_accounts: &ChartOfAccounts,
@@ -16,8 +18,9 @@ pub(crate) async fn init(
     deposit: &Deposits,
     balance_sheet: &BalanceSheets,
     profit_and_loss: &ProfitAndLossStatements,
+    accounting_periods: &AccountingPeriods,
     accounting_init_config: AccountingInitConfig,
-) -> Result<(), AccountingInitError> {
+) -> Result<Chart, AccountingInitError> {
     let AccountingInitConfig {
         chart_of_accounts_opening_date,
         chart_of_accounts_seed_path,
@@ -27,7 +30,7 @@ pub(crate) async fn init(
         AccountingInitError::MissingConfig("chart_of_accounts_opening_date".to_string())
     })?;
 
-    let chart_id = create_chart_of_accounts(chart_of_accounts, opening_date).await?;
+    let chart = create_chart_of_accounts(chart_of_accounts, opening_date).await?;
 
     if let Some(path) = chart_of_accounts_seed_path {
         seed_chart_of_accounts(
@@ -37,21 +40,22 @@ pub(crate) async fn init(
             deposit,
             balance_sheet,
             profit_and_loss,
-            chart_id,
+            accounting_periods,
+            chart.id,
             path,
             accounting_init_config,
         )
         .await?;
     }
-    Ok(())
+    Ok(chart)
 }
 
 async fn create_chart_of_accounts(
     chart_of_accounts: &ChartOfAccounts,
     opening_date: chrono::NaiveDate,
-) -> Result<ChartId, AccountingInitError> {
+) -> Result<Chart, AccountingInitError> {
     if let Some(chart) = chart_of_accounts.find_by_reference(CHART_REF).await? {
-        Ok(chart.id)
+        Ok(chart)
     } else {
         Ok(chart_of_accounts
             .create_chart(
@@ -60,8 +64,7 @@ async fn create_chart_of_accounts(
                 CHART_REF.to_string(),
                 opening_date,
             )
-            .await?
-            .id)
+            .await?)
     }
 }
 
@@ -72,6 +75,7 @@ async fn seed_chart_of_accounts(
     deposit: &Deposits,
     balance_sheet: &BalanceSheets,
     profit_and_loss: &ProfitAndLossStatements,
+    accounting_periods: &AccountingPeriods,
     chart_id: ChartId,
     chart_of_accounts_seed_path: PathBuf,
     accounting_init_config: AccountingInitConfig,
@@ -81,7 +85,7 @@ async fn seed_chart_of_accounts(
         deposit_config_path,
         balance_sheet_config_path,
         profit_and_loss_config_path,
-
+        accounting_period_config_path,
         chart_of_accounts_opening_date: _,
         chart_of_accounts_seed_path: _,
     } = accounting_init_config;
@@ -128,6 +132,14 @@ async fn seed_chart_of_accounts(
 
     if let Some(config_path) = profit_and_loss_config_path {
         profit_and_loss_module_configure(profit_and_loss, &chart, config_path)
+            .await
+            .unwrap_or_else(|e| {
+                dbg!(&e); // TODO: handle the un-returned error differently
+            });
+    }
+
+    if let Some(config_path) = accounting_period_config_path {
+        accounting_period_module_configure(accounting_periods, &chart, config_path)
             .await
             .unwrap_or_else(|e| {
                 dbg!(&e); // TODO: handle the un-returned error differently
