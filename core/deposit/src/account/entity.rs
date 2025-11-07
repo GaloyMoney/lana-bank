@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
+use super::error::DepositAccountError;
 use crate::{ledger::*, primitives::*};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -55,12 +56,18 @@ impl DepositAccount {
         Idempotent::Executed(())
     }
 
-    pub fn freeze(&mut self) -> Idempotent<()> {
-        self.update_status(DepositAccountStatus::Frozen)
+    pub fn freeze(&mut self) -> Result<Idempotent<()>, DepositAccountError> {
+        if self.status != DepositAccountStatus::Active {
+            return Err(DepositAccountError::CannotFreezeNonActiveAccount(self.id));
+        }
+        Ok(self.update_status(DepositAccountStatus::Frozen))
     }
 
-    pub fn unfreeze(&mut self) -> Idempotent<()> {
-        self.update_status(DepositAccountStatus::Active)
+    pub fn unfreeze(&mut self) -> Result<Idempotent<()>, DepositAccountError> {
+        if self.status != DepositAccountStatus::Frozen {
+            return Err(DepositAccountError::CannotUnfreezeNonFrozenAccount(self.id));
+        }
+        Ok(self.update_status(DepositAccountStatus::Active))
     }
 }
 
@@ -182,5 +189,56 @@ mod tests {
                 .update_status(DepositAccountStatus::Active)
                 .did_execute()
         );
+    }
+
+    #[test]
+    fn cannot_freeze_inactive_account() {
+        let mut account = DepositAccount::try_from_events(EntityEvents::init(
+            DepositAccountId::new(),
+            initial_events(),
+        ))
+        .unwrap();
+
+        assert_eq!(account.status, DepositAccountStatus::Inactive);
+        assert!(account.freeze().is_err());
+    }
+
+    #[test]
+    fn can_freeze_active_account() {
+        let mut account = DepositAccount::try_from_events(EntityEvents::init(
+            DepositAccountId::new(),
+            initial_events(),
+        ))
+        .unwrap();
+
+        let _ = account.update_status(DepositAccountStatus::Active);
+        assert!(account.freeze().unwrap().did_execute());
+        assert_eq!(account.status, DepositAccountStatus::Frozen);
+    }
+
+    #[test]
+    fn cannot_unfreeze_inactive_account() {
+        let mut account = DepositAccount::try_from_events(EntityEvents::init(
+            DepositAccountId::new(),
+            initial_events(),
+        ))
+        .unwrap();
+
+        assert_eq!(account.status, DepositAccountStatus::Inactive);
+        assert!(account.unfreeze().is_err());
+    }
+
+    #[test]
+    fn can_unfreeze_frozen_account() {
+        let mut account = DepositAccount::try_from_events(EntityEvents::init(
+            DepositAccountId::new(),
+            initial_events(),
+        ))
+        .unwrap();
+
+        let _ = account.update_status(DepositAccountStatus::Active);
+        let _ = account.freeze().unwrap();
+        assert!(account.unfreeze().unwrap().did_execute());
+        assert_eq!(account.status, DepositAccountStatus::Active);
     }
 }

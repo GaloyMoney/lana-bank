@@ -549,7 +549,7 @@ where
 
         let mut op = self.deposit_accounts.begin_op().await?;
 
-        if account.freeze().did_execute() {
+        if account.freeze()?.did_execute() {
             self.deposit_accounts
                 .update_in_op(&mut op, &mut account)
                 .await?;
@@ -579,7 +579,7 @@ where
 
         let mut op = self.deposit_accounts.begin_op().await?;
 
-        if account.unfreeze().did_execute() {
+        if account.unfreeze()?.did_execute() {
             self.deposit_accounts
                 .update_in_op(&mut op, &mut account)
                 .await?;

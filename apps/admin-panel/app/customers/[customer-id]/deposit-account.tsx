@@ -90,12 +90,13 @@ export const DepositAccount: React.FC<DepositAccountProps> = ({
               {t("buttons.viewLedgerAccount")}
               <ArrowRight />
             </Button>
-            {status === DepositAccountStatus.Frozen ? (
+            {status === DepositAccountStatus.Frozen && (
               <Button variant="outline" onClick={handleUnfreezeAccount}>
                 <Sun />
                 {t("buttons.unfreezeDepositAccount")}
               </Button>
-            ) : (
+            )}
+            {status === DepositAccountStatus.Active && (
               <Button variant="outline" onClick={handleFreezeAccount}>
                 <Snowflake />
                 {t("buttons.freezeDepositAccount")}
