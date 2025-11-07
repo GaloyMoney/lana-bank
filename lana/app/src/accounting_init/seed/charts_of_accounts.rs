@@ -13,6 +13,7 @@ pub(crate) async fn init(
     deposit: &Deposits,
     balance_sheet: &BalanceSheets,
     profit_and_loss: &ProfitAndLossStatements,
+    fiscal_year: &FiscalYears,
     accounting_init_config: AccountingInitConfig,
 ) -> Result<(), AccountingInitError> {
     let AccountingInitConfig {
@@ -20,11 +21,13 @@ pub(crate) async fn init(
         chart_of_accounts_seed_path,
         ..
     } = accounting_init_config.clone();
-    let opening_date = chart_of_accounts_opening_date.ok_or_else(|| {
-        AccountingInitError::MissingConfig("chart_of_accounts_opening_date".to_string())
-    })?;
 
-    create_chart_of_accounts(chart_of_accounts, opening_date).await?;
+    let dummy_opening_date = NaiveDate::default(); // TODO remove this param from 'create_chart_of_accounts'
+    create_chart_of_accounts(chart_of_accounts, dummy_opening_date).await?;
+
+    if let Some(opening_date) = chart_of_accounts_opening_date {
+        init_first_fiscal_year(chart_of_accounts, fiscal_year, opening_date).await?;
+    }
 
     if let Some(path) = chart_of_accounts_seed_path {
         seed_chart_of_accounts(
@@ -39,6 +42,7 @@ pub(crate) async fn init(
         )
         .await?;
     }
+
     Ok(())
 }
 
@@ -133,4 +137,20 @@ async fn seed_chart_of_accounts(
     }
 
     Ok(())
+}
+
+pub async fn init_first_fiscal_year(
+    chart_of_accounts: &ChartOfAccounts,
+    fiscal_year: &FiscalYears,
+    chart_of_accounts_opening_date: NaiveDate,
+) -> Result<(), AccountingInitError> {
+    let chart = chart_of_accounts.find_by_reference(CHART_REF).await?;
+
+    Ok(fiscal_year
+        .init_first_fiscal_year(
+            chart_of_accounts_opening_date,
+            chart.id,
+            chart.account_set_id,
+        )
+        .await?)
 }
