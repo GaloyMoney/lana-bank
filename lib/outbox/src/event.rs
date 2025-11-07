@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 
-use std::sync::Arc;
+use std::{borrow::Cow, sync::Arc};
 
 es_entity::entity_id! { OutboxEventId }
 
@@ -33,6 +33,21 @@ where
             Self::Persistent(event) => Self::Persistent(Arc::clone(event)),
         }
     }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct EphermeralEventType(Cow<'static, str>);
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(bound(deserialize = "T: DeserializeOwned"))]
+pub struct EphermeralOutboxEvent<T>
+where
+    T: Serialize + DeserializeOwned + Send,
+{
+    pub event_type: EphermeralEventType,
+    pub payload: T,
+    pub(crate) tracing_context: Option<tracing_utils::persistence::SerializableTraceContext>,
+    pub recorded_at: chrono::DateTime<chrono::Utc>,
 }
 
 impl<P> From<PersistentOutboxEvent<P>> for OutboxEvent<P>
