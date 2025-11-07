@@ -50,7 +50,7 @@ class PostgresResource(dg.ConfigurableResource):
 
 class BigQueryResource(dg.ConfigurableResource):
     base64_credentials: Any
-    target_dataset: str = "counterweight_dataset"
+    target_dataset: str = "set_your_dataset"
 
     def get_dlt_destination(self):
         dlt_destination = create_bigquery_destination(self.base64_credentials)

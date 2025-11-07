@@ -27,7 +27,8 @@ class DefinitionBuilder:
     def build_resources(self):
         self.resource_definitions["lana_core_pg"] = PostgresResource()
         self.resource_definitions["dw_bq"] = BigQueryResource(
-            base64_credentials=dg.EnvVar("TF_VAR_sa_creds").get_value()
+            base64_credentials=dg.EnvVar("TF_VAR_sa_creds").get_value(),
+            target_dataset=dg.EnvVar("TARGET_BIGQUERY_DATASET").get_value()
         )
         self.resource_definitions["dbt"] = dbt_resource
 
