@@ -23,7 +23,7 @@ def lana_assetifier(asset_key: str, callable: Callable):
     def wrapped_callable(context: dg.AssetExecutionContext) -> None:
         asset_key_str: str = context.asset_key.to_user_string()
 
-        span_name = f"asset_{asset_key_str}_run_{context.run_id}"
+        span_name = f"asset_{asset_key_str}_run"
         span_attributes = {
             "asset.name": asset_key_str,
             "run.id": context.run_id
