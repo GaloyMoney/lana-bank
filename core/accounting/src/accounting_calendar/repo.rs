@@ -2,7 +2,7 @@ use sqlx::PgPool;
 
 use es_entity::*;
 
-use crate::primitives::AccountingCalendarId;
+use crate::primitives::{AccountingCalendarId, ChartId};
 
 use super::{entity::*, error::AccountingCalendarError};
 
@@ -10,7 +10,10 @@ use super::{entity::*, error::AccountingCalendarError};
 #[es_repo(
     entity = "AccountingCalendar",
     err = "AccountingCalendarError",
-    columns(reference(ty = "String", create(accessor = "reference()"))),
+    columns(
+        reference(ty = "String", create(accessor = "reference()")),
+        chart_id(ty = "ChartId", list_for),
+    ),
     tbl_prefix = "core"
 )]
 pub struct AccountingCalendarRepo {

@@ -15,6 +15,7 @@ use super::error::*;
 pub enum AccountingCalendarEvent {
     Initialized {
         id: AccountingCalendarId,
+        chart_id: ChartId,
         reference: String,
         opened_as_of: NaiveDate,
         opened_at: DateTime<Utc>,
@@ -29,6 +30,7 @@ pub enum AccountingCalendarEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct AccountingCalendar {
     pub id: AccountingCalendarId,
+    pub chart_id: ChartId,
     pub reference: String,
 
     events: EntityEvents<AccountingCalendarEvent>,
@@ -101,8 +103,16 @@ impl TryFromEvents<AccountingCalendarEvent> for AccountingCalendar {
 
         for event in events.iter_all() {
             match event {
-                AccountingCalendarEvent::Initialized { id, reference, .. } => {
-                    builder = builder.id(*id).reference(reference.to_string())
+                AccountingCalendarEvent::Initialized {
+                    id,
+                    chart_id,
+                    reference,
+                    ..
+                } => {
+                    builder = builder
+                        .id(*id)
+                        .chart_id(*chart_id)
+                        .reference(reference.to_string())
                 }
                 AccountingCalendarEvent::MonthlyClosed { .. } => (),
             }
@@ -116,6 +126,8 @@ impl TryFromEvents<AccountingCalendarEvent> for AccountingCalendar {
 pub struct NewAccountingCalendar {
     #[builder(setter(into))]
     pub(super) id: AccountingCalendarId,
+    #[builder(setter(into))]
+    pub(super) chart_id: ChartId,
     pub(super) opened_as_of: NaiveDate,
     pub(super) opened_at: DateTime<Utc>,
 }
@@ -126,7 +138,7 @@ impl NewAccountingCalendar {
     }
 
     pub(super) fn reference(&self) -> String {
-        format!("AC{}", self.opened_as_of.year())
+        format!("{}:AC{}", self.chart_id, self.opened_as_of.year())
     }
 }
 
@@ -136,6 +148,7 @@ impl IntoEvents<AccountingCalendarEvent> for NewAccountingCalendar {
             self.id,
             [AccountingCalendarEvent::Initialized {
                 id: self.id,
+                chart_id: self.chart_id,
                 reference: self.reference(),
                 opened_as_of: self.opened_as_of,
                 opened_at: self.opened_at,
