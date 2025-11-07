@@ -287,11 +287,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_id: ChartId,
     ) -> Result<FiscalYear, CoreAccountingError> {
-        let chart = self.chart_of_accounts().find_by_id(chart_id).await?;
-        Ok(self
-            .fiscal_year()
-            .close_month(sub, chart_id, chart.account_set_id)
-            .await?)
+        Ok(self.fiscal_year().close_month(sub, chart_id).await?)
     }
 
     #[instrument(name = "core_accounting.find_current_fiscal_year", skip(self), err)]

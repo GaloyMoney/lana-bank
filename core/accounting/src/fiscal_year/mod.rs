@@ -81,6 +81,7 @@ where
         &self,
         opened_as_of: NaiveDate,
         chart_id: impl Into<ChartId> + std::fmt::Debug,
+        tracking_account_set_id: impl Into<CalaAccountSetId> + std::fmt::Debug,
     ) -> Result<(), FiscalYearError> {
         let id = chart_id.into();
         let fiscal_years = self
@@ -99,6 +100,7 @@ where
         let init_fiscal_year = NewFiscalYear::builder()
             .id(FiscalYearId::new())
             .chart_id(id)
+            .tracking_account_set_id(tracking_account_set_id.into())
             .first_period_opened_at(now)
             .build()
             .expect("Could not build new FiscalYear");
@@ -112,7 +114,6 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_id: impl Into<ChartId> + std::fmt::Debug,
-        tracking_account_set_id: impl Into<CalaAccountSetId> + std::fmt::Debug,
     ) -> Result<FiscalYear, FiscalYearError> {
         self.authz
             .enforce_permission(
@@ -150,7 +151,7 @@ where
         let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut latest_year).await?;
         self.ledger
-            .close_month_as_of(op, closed_as_of_date, tracking_account_set_id.into())
+            .close_month_as_of(op, closed_as_of_date, latest_year.tracking_account_set_id)
             .await?;
 
         Ok(latest_year)

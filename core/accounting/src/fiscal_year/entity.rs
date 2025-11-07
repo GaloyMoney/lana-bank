@@ -6,7 +6,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use super::error::FiscalYearError;
-use crate::primitives::{ChartId, FiscalYearId};
+use crate::primitives::{CalaAccountSetId, ChartId, FiscalYearId};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -16,6 +16,7 @@ pub enum FiscalYearEvent {
     Initialized {
         id: FiscalYearId,
         chart_id: ChartId,
+        tracking_account_set_id: CalaAccountSetId,
         first_period_opened_as_of: chrono::NaiveDate,
         first_period_opened_at: chrono::DateTime<Utc>,
     },
@@ -30,6 +31,7 @@ pub enum FiscalYearEvent {
 pub struct FiscalYear {
     pub id: FiscalYearId,
     pub chart_id: ChartId,
+    pub tracking_account_set_id: CalaAccountSetId,
     pub first_period_opened_as_of: NaiveDate,
     pub first_period_opened_at: DateTime<Utc>,
 
@@ -96,6 +98,7 @@ impl TryFromEvents<FiscalYearEvent> for FiscalYear {
                 FiscalYearEvent::Initialized {
                     id,
                     chart_id,
+                    tracking_account_set_id,
                     first_period_opened_as_of,
                     first_period_opened_at,
                     ..
@@ -103,6 +106,7 @@ impl TryFromEvents<FiscalYearEvent> for FiscalYear {
                     builder = builder
                         .id(*id)
                         .chart_id(*chart_id)
+                        .tracking_account_set_id(*tracking_account_set_id)
                         .first_period_opened_as_of(*first_period_opened_as_of)
                         .first_period_opened_at(*first_period_opened_at);
                 }
@@ -119,6 +123,8 @@ pub struct NewFiscalYear {
     pub id: FiscalYearId,
     #[builder(setter(into))]
     pub chart_id: ChartId,
+    #[builder(setter(into))]
+    pub tracking_account_set_id: CalaAccountSetId,
     pub first_period_opened_at: DateTime<Utc>,
 }
 
@@ -135,6 +141,7 @@ impl IntoEvents<FiscalYearEvent> for NewFiscalYear {
             [FiscalYearEvent::Initialized {
                 id: self.id,
                 chart_id: self.chart_id,
+                tracking_account_set_id: self.tracking_account_set_id,
                 first_period_opened_at: self.first_period_opened_at,
                 first_period_opened_as_of: self.first_period_opened_at.date_naive(),
             }],
@@ -157,6 +164,7 @@ mod test {
         vec![FiscalYearEvent::Initialized {
             id: FiscalYearId::new(),
             chart_id: ChartId::new(),
+            tracking_account_set_id: CalaAccountSetId::new(),
             first_period_opened_as_of,
             first_period_opened_at: crate::time::now(),
         }]
