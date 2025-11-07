@@ -4,6 +4,5 @@ query LatestFiscalYear($chartId: UUID!) {
         chartId
         firstPeriodOpenedAt
         firstPeriodOpenedAsOf
-        lastMonthClosedAt
     }
 }
