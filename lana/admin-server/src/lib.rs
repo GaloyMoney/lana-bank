@@ -76,7 +76,6 @@ pub async fn graphql_handler(
     tracing_utils::http::extract_tracing(&headers);
     let mut req = req.into_inner();
 
-    // Record JWT subject
     tracing::Span::current().record("jwt.subject", &jwt_claims.subject);
 
     if let Some(op_name) = req.operation_name.as_ref() {
