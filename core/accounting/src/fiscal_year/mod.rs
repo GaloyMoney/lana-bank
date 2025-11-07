@@ -114,6 +114,8 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_id: impl Into<ChartId> + std::fmt::Debug,
     ) -> Result<FiscalYear, FiscalYearError> {
+        let now = crate::time::now();
+
         self.authz
             .enforce_permission(
                 sub,
@@ -121,25 +123,11 @@ where
                 CoreAccountingAction::FISCAL_YEAR_CLOSE,
             )
             .await?;
-        let now = crate::time::now();
-        let fiscal_years = self
-            .repo
-            .list_for_chart_id_by_created_at(
-                chart_id.into(),
-                Default::default(),
-                es_entity::ListDirection::Descending,
-            )
-            .await?;
-        let mut latest_year = fiscal_years
-            .entities
-            .first()
-            .cloned()
-            .ok_or(FiscalYearError::CurrentYearNotFound)?;
 
+        let mut latest_year = self.repo.find_current_by_chart_id(chart_id.into()).await?;
         if latest_year.first_period_opened_as_of.year() != now.year() {
             return Err(FiscalYearError::CurrentYearNotFound);
         }
-
         let closed_as_of_date =
             if let Idempotent::Executed(date) = latest_year.close_last_month(now)? {
                 date
@@ -165,7 +153,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_id: impl Into<ChartId> + std::fmt::Debug,
-    ) -> Result<Option<FiscalYear>, FiscalYearError> {
+    ) -> Result<FiscalYear, FiscalYearError> {
         self.authz
             .enforce_permission(
                 sub,

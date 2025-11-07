@@ -788,13 +788,13 @@ impl Query {
         &self,
         ctx: &Context<'_>,
         chart_id: UUID,
-    ) -> async_graphql::Result<Option<FiscalYear>> {
+    ) -> async_graphql::Result<FiscalYear> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let fiscal_year = app
             .accounting()
             .find_current_fiscal_year(sub, chart_id)
             .await?;
-        Ok(fiscal_year.map(FiscalYear::from))
+        Ok(FiscalYear::from(fiscal_year))
     }
 
     async fn balance_sheet(
