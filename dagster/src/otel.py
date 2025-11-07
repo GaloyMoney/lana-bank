@@ -10,13 +10,11 @@ from opentelemetry.sdk.resources import Resource
 
 def init_telemetry():
     """Initialize OpenTelemetry tracer"""
-    env_name = os.getenv("DEPLOYMENT_ENVIRONMENT", "dev-pablo")
-    endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317")
+    endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
 
     resource = Resource.create({
         "service.name": "dagster-lana-dw",
-        "service.namespace": "lana",
-        "deployment.environment": env_name
+        "service.namespace": "lana"
     })
 
     provider = TracerProvider(resource=resource)
