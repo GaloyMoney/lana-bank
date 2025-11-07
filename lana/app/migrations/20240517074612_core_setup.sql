@@ -81,6 +81,24 @@ CREATE TABLE core_chart_node_events (
     UNIQUE(id, sequence)
 );
 
+CREATE TABLE core_accounting_calendars (
+  id UUID PRIMARY KEY,
+  chart_id UUID NOT NULL REFERENCES core_charts(id),
+  reference VARCHAR NOT NULL UNIQUE,
+  is_open BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE core_accounting_calendar_events (
+  id UUID NOT NULL REFERENCES core_accounting_calendars(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE core_public_ids (
   id VARCHAR PRIMARY KEY,
   target_id UUID NOT NULL,

@@ -6,6 +6,8 @@ pub enum CoreAccountingError {
     ChartOfAccountsNotFoundByReference(String),
     #[error("CoreAccountingError - ChartOfAccounts: {0}")]
     ChartOfAccountsError(#[from] super::chart_of_accounts_error::ChartOfAccountsError),
+    #[error("CoreAccountingError - AccountingCalendar: {0}")]
+    AccountingCalendarError(#[from] super::accounting_calendar_error::AccountingCalendarError),
     #[error("CoreAccountingError - LedgerAccount: {0}")]
     LedgerAccountError(#[from] super::ledger_account::error::LedgerAccountError),
     #[error("CoreAccountingError - ManualTransaction: {0}")]
