@@ -23,6 +23,7 @@ where
     P: Serialize + DeserializeOwned + Send,
 {
     Persistent(Arc<PersistentOutboxEvent<P>>),
+    Ephermeral(Arc<EphermeralOutboxEvent<P>>),
 }
 impl<P> Clone for OutboxEvent<P>
 where
@@ -31,12 +32,18 @@ where
     fn clone(&self) -> Self {
         match self {
             Self::Persistent(event) => Self::Persistent(Arc::clone(event)),
+            Self::Ephermeral(event) => Self::Ephermeral(Arc::clone(event)),
         }
     }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EphermeralEventType(Cow<'static, str>);
+impl EphermeralEventType {
+    pub fn new(name: &'static str) -> Self {
+        Self(Cow::Borrowed(name))
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(bound(deserialize = "T: DeserializeOwned"))]

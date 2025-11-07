@@ -44,19 +44,17 @@ where
 
     fn maybe_add_to_cache(&mut self, event: impl Into<OutboxEvent<P>>) {
         let event = event.into();
-        match event {
-            OutboxEvent::Persistent(ref persistent_event) => {
-                self.latest_known = self.latest_known.max(persistent_event.sequence);
+        if let OutboxEvent::Persistent(ref persistent_event) = event {
+            self.latest_known = self.latest_known.max(persistent_event.sequence);
 
-                if persistent_event.sequence > self.last_returned_sequence
-                    && self
-                        .cache
-                        .insert(persistent_event.sequence, event)
-                        .is_none()
-                    && self.cache.len() > self.buffer_size
-                {
-                    self.cache.pop_last();
-                }
+            if persistent_event.sequence > self.last_returned_sequence
+                && self
+                    .cache
+                    .insert(persistent_event.sequence, event)
+                    .is_none()
+                && self.cache.len() > self.buffer_size
+            {
+                self.cache.pop_last();
             }
         }
     }

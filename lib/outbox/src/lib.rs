@@ -62,7 +62,7 @@ where
         let seq = highest_known_sequence.load(Ordering::Relaxed);
         tracing::Span::current().record("highest_sequence", seq);
 
-        Self::spawn_pg_listener(pool, sender.clone(), Arc::clone(&highest_known_sequence)).await?;
+        Self::spawn_pg_listeners(pool, sender.clone(), Arc::clone(&highest_known_sequence)).await?;
         Ok(Self {
             event_sender: sender,
             event_receiver: Arc::new(recv),
@@ -122,18 +122,20 @@ where
         Ok(Box::pin(listener.filter_map(|event| async move {
             match event {
                 OutboxEvent::Persistent(persistent_event) => Some(persistent_event),
+                _ => None,
             }
         })))
     }
 
     #[tracing::instrument(name = "outbox.spawn_pg_listener", skip_all, err)]
-    async fn spawn_pg_listener(
+    async fn spawn_pg_listeners(
         pool: &PgPool,
         sender: broadcast::Sender<OutboxEvent<P>>,
         highest_known_sequence: Arc<AtomicU64>,
     ) -> Result<(), sqlx::Error> {
         let mut listener = PgListener::connect_with(pool).await?;
         listener.listen("persistent_outbox_events").await?;
+        let persistent_sender = sender.clone();
         tokio::spawn(async move {
             loop {
                 if let Ok(notification) = listener.recv().await
@@ -142,9 +144,23 @@ where
                 {
                     let new_highest_sequence = u64::from(event.sequence);
                     highest_known_sequence.fetch_max(new_highest_sequence, Ordering::AcqRel);
-                    if sender.send(event.into()).is_err() {
+                    if persistent_sender.send(event.into()).is_err() {
                         break;
                     }
+                }
+            }
+        });
+
+        let mut listener = PgListener::connect_with(pool).await?;
+        listener.listen("ephermeral_outbox_events").await?;
+        tokio::spawn(async move {
+            loop {
+                if let Ok(notification) = listener.recv().await
+                    && let Ok(event) =
+                        serde_json::from_str::<PersistentOutboxEvent<P>>(notification.payload())
+                    && sender.send(event.into()).is_err()
+                {
+                    break;
                 }
             }
         });
