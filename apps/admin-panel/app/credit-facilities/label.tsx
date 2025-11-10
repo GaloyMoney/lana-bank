@@ -53,7 +53,7 @@ export const CollateralizationStateLabel = ({
   return <Badge variant={variant()}>{getText()}</Badge>
 }
 
-export const PendingCollateralizationStateLabel = ({
+export const PendingFacilityCollateralizationStateLabel = ({
   state,
 }: {
   state: PendingCreditFacilityCollateralizationState

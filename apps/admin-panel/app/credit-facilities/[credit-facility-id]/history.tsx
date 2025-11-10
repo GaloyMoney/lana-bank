@@ -7,14 +7,11 @@ import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
 import {
   CollateralizationStateLabel,
-  PendingCollateralizationStateLabel,
+  PendingFacilityCollateralizationStateLabel,
 } from "@/app/credit-facilities/label"
 import CardWrapper from "@/components/card-wrapper"
 import Balance from "@/components/balance/balance"
-import {
-  GetCreditFacilityHistoryQuery,
-  CollateralAction,
-} from "@/lib/graphql/generated"
+import { GetCreditFacilityHistoryQuery, CollateralAction } from "@/lib/graphql/generated"
 import { formatCollateralAction, cn } from "@/lib/utils"
 import DataTable, { Column } from "@/components/data-table"
 
@@ -33,10 +30,7 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
     {
       key: "__typename",
       header: t("columns.entryType"),
-      render: (
-        _: HistoryEntry["__typename"],
-        entry: HistoryEntry,
-      ) => {
+      render: (_: HistoryEntry["__typename"], entry: HistoryEntry) => {
         if (!entry.__typename) return t("messages.unknownType")
 
         switch (entry.__typename) {
@@ -61,9 +55,11 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
           case "PendingCreditFacilityCollateralizationUpdated":
             return (
               <div className="flex flex-col gap-1">
-                <div>{t("entryTypes.pendingCollateralizationUpdated")}</div>
+                <div>{t("entryTypes.pendingFacilityCollateralization")}</div>
                 <div>
-                  <PendingCollateralizationStateLabel state={entry.pendingState} />
+                  <PendingFacilityCollateralizationStateLabel
+                    state={entry.pendingState}
+                  />
                 </div>
               </div>
             )
@@ -96,10 +92,7 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
     {
       key: "__typename",
       header: t("columns.amount"),
-      render: (
-        _: HistoryEntry["__typename"],
-        entry: HistoryEntry,
-      ) => {
+      render: (_: HistoryEntry["__typename"], entry: HistoryEntry) => {
         switch (entry.__typename) {
           case "CreditFacilityCollateralUpdated":
             return (

@@ -791,7 +791,7 @@
           "disbursalExecuted": "Desembolso",
           "interestAccrued": "Interés acumulado",
           "liquidationAmountReserved": "Importe de liquidación reservado",
-          "pendingCollateralizationUpdated": "Colateralización pendiente actualizada"
+          "pendingFacilityCollateralization": "Actualización de colateralización de línea de crédito pendiente"
         },
         "messages": {
           "unknownType": "Tipo de entrada desconocido",
@@ -951,7 +951,7 @@
       }
     },
     "status": {
-      "pending_collateralization": "Colateralización Pendiente",
+      "pending_collateralization": "Colateralización de Línea de Crédito Pendiente",
       "completed": "Completado"
     },
     "collateralizationState": {

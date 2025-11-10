@@ -67,10 +67,7 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
     {
       key: "__typename",
       header: "Entry Type",
-      render: (
-        _: HistoryEntry["__typename"],
-        entry: HistoryEntry,
-      ) => {
+      render: (_: HistoryEntry["__typename"], entry: HistoryEntry) => {
         if (!entry.__typename) return "Unknown Entry Type"
 
         switch (entry.__typename) {
@@ -116,10 +113,7 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
       key: "__typename",
       header: "Amount",
       align: "right",
-      render: (
-        _: HistoryEntry["__typename"],
-        entry: HistoryEntry,
-      ) => {
+      render: (_: HistoryEntry["__typename"], entry: HistoryEntry) => {
         switch (entry.__typename) {
           case "CreditFacilityCollateralUpdated":
             return (

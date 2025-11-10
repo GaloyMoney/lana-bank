@@ -791,7 +791,7 @@
           "disbursalExecuted": "Disbursal",
           "interestAccrued": "Interest Accrued",
           "liquidationAmountReserved": "Liquidation Amount Reserved",
-          "pendingCollateralizationUpdated": "Pending Collateralization Updated"
+          "pendingFacilityCollateralization": "Pending Facility Collateralization Updated"
         },
         "messages": {
           "unknownType": "Unknown Entry Type",
@@ -951,7 +951,7 @@
       }
     },
     "status": {
-      "pending_collateralization": "Pending Collateralization",
+      "pending_collateralization": "Pending Facility Collateralization",
       "completed": "Completed"
     },
     "collateralizationState": {

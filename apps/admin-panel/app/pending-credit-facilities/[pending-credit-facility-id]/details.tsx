@@ -12,7 +12,7 @@ import { Label } from "@lana/web/ui/label"
 import { toast } from "sonner"
 
 import { PendingCreditFacilityStatusBadge } from "../status-badge"
-import { PendingCreditFacilityCollateralizationStateLabel } from "../label"
+import { PendingFacilityCollateralizationStateLabel } from "../label"
 import { PendingCreditFacilityCollateralUpdateDialog } from "../collateral-update"
 
 import { DetailsCard, DetailItemProps } from "@/components/details"
@@ -61,7 +61,7 @@ const PendingCreditFacilityDetailsCard: React.FC<
     {
       label: t("details.collateralizationState"),
       value: (
-        <PendingCreditFacilityCollateralizationStateLabel
+        <PendingFacilityCollateralizationStateLabel
           state={pendingDetails.collateralizationState}
         />
       ),

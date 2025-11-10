@@ -3,12 +3,12 @@ import { Badge } from "@lana/web/ui/badge"
 
 import { PendingCreditFacilityCollateralizationState } from "@/lib/graphql/generated"
 
-interface PendingCreditFacilityCollateralizationStateLabelProps {
+interface PendingFacilityCollateralizationStateLabelProps {
   state: PendingCreditFacilityCollateralizationState
 }
 
-export const PendingCreditFacilityCollateralizationStateLabel: React.FC<
-  PendingCreditFacilityCollateralizationStateLabelProps
+export const PendingFacilityCollateralizationStateLabel: React.FC<
+  PendingFacilityCollateralizationStateLabelProps
 > = ({ state }) => {
   const t = useTranslations("PendingCreditFacilities.collateralizationState")
 
