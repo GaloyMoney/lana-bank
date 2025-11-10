@@ -438,6 +438,7 @@
                 export PG_CON="${devEnvVars.PG_CON}"
                 export DATABASE_URL="${devEnvVars.DATABASE_URL}"
                 export ENCRYPTION_KEY="${devEnvVars.ENCRYPTION_KEY}"
+                export RUST_LOG="error"
 
                 # Function to cleanup on exit
                 cleanup() {
@@ -463,8 +464,8 @@
 
                 wait4x http http://localhost:5253/health --timeout 30m
 
-                if grep -q "panicked" server.log; then
-                  echo "❌ Server panicked; dumping last 200 lines of logs:"
+                if grep -q -e "sim_bootstrap" -e "panicked" server.log; then
+                  echo "❌ Simulation failed; dumping last 200 lines of logs:"
                   tail -n 200 server.log
                   cat .server.pid | xargs kill || true
                   exit 1
