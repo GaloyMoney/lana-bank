@@ -8,4 +8,6 @@ pub enum FiscalYearLedgerError {
     CalaLedger(#[from] cala_ledger::error::LedgerError),
     #[error("FiscalYearLedgerError - CalaAccountSet: {0}")]
     CalaAccountSet(#[from] cala_ledger::account_set::error::AccountSetError),
+    #[error("ChartLedgerError - Velocity: {0}")]
+    Velocity(#[from] cala_ledger::velocity::error::VelocityError),
 }

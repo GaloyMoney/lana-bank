@@ -2,7 +2,6 @@ query CurrentFiscalYear($chartId: UUID!) {
     currentFiscalYear(chartId: $chartId) {
         id
         chartId
-        firstPeriodOpenedAt
         firstPeriodOpenedAsOf
     }
 }
