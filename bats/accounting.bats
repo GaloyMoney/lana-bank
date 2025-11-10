@@ -267,6 +267,6 @@ teardown_file() {
   )
   exec_admin_graphql 'fiscal-year-current' "$variables"
   graphql_output
-  first_period_opened_at=$(graphql_output '.data.currentFiscalYear.firstPeriodOpenedAt')
-  [[ "$first_period_opened_at" != "null" ]] || exit 1
+  first_period_opened_as_of=$(graphql_output '.data.currentFiscalYear.firstPeriodOpenedAsOf')
+  [[ "$first_period_opened_as_of" != "null" ]] || exit 1
 }

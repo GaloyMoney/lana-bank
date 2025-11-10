@@ -100,14 +100,25 @@ where
         }
 
         tracing::info!("Initializing first FiscalYear for chart ID: {}", chart_id);
+        let tracking_account_set_id = tracking_account_set_id.into();
         let new_fiscal_year = NewFiscalYear::builder()
             .id(FiscalYearId::new())
             .chart_id(chart_id)
-            .tracking_account_set_id(tracking_account_set_id.into())
+            .tracking_account_set_id(tracking_account_set_id)
             .first_period_opened_as_of(opened_as_of)
             .build()
             .expect("Could not build new FiscalYear");
-        let fiscal_year = self.repo.create(new_fiscal_year).await?;
+
+        let mut op = self.repo.begin_op().await?;
+        let fiscal_year = self.repo.create_in_op(&mut op, new_fiscal_year).await?;
+        let _control_id = self
+            .ledger
+            .create_monthly_close_control_with_limits_in_op(
+                op,
+                opened_as_of,
+                tracking_account_set_id,
+            )
+            .await?;
 
         Ok(fiscal_year)
     }

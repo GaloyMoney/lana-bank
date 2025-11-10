@@ -1356,6 +1356,16 @@ export type FiscalYearCloseMonthPayload = {
   fiscalYear: FiscalYear;
 };
 
+export type FiscalYearOpenFirstInput = {
+  chartId: Scalars['UUID']['input'];
+  openedAsOf: Scalars['Date']['input'];
+};
+
+export type FiscalYearOpenFirstPayload = {
+  __typename?: 'FiscalYearOpenFirstPayload';
+  fiscalYear: FiscalYear;
+};
+
 export type GovernanceNavigationItems = {
   __typename?: 'GovernanceNavigationItems';
   approvalProcess: Scalars['Boolean']['output'];
@@ -1619,6 +1629,7 @@ export type Mutation = {
   depositRecord: DepositRecordPayload;
   depositRevert: DepositRevertPayload;
   fiscalYearCloseMonth: FiscalYearCloseMonthPayload;
+  fiscalYearOpenFirst: FiscalYearOpenFirstPayload;
   ledgerAccountCsvCreate: LedgerAccountCsvCreatePayload;
   loanAgreementDownloadLinkGenerate: LoanAgreementDownloadLinksGeneratePayload;
   loanAgreementGenerate: LoanAgreementGeneratePayload;
@@ -1816,6 +1827,11 @@ export type MutationDepositRevertArgs = {
 
 export type MutationFiscalYearCloseMonthArgs = {
   input: FiscalYearCloseMonthInput;
+};
+
+
+export type MutationFiscalYearOpenFirstArgs = {
+  input: FiscalYearOpenFirstInput;
 };
 
 
