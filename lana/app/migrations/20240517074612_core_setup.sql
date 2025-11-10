@@ -554,6 +554,7 @@ CREATE TABLE casbin_rule (
 CREATE TABLE core_fiscal_years (
   id UUID PRIMARY KEY,
   chart_id UUID NOT NULL REFERENCES core_charts(id),
+  reference VARCHAR NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL
 );
 
