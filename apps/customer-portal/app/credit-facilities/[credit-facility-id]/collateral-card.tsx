@@ -3,13 +3,15 @@ import React from "react"
 
 import Balance, { CENTS_PER_USD, SATS_PER_BTC } from "@/components/balance"
 import {
-  CreditFacility,
+  GetCreditFacilityQuery,
   CreditFacilityStatus,
   DisbursalStatus,
 } from "@/lib/graphql/generated"
 import { priceQuery } from "@/lib/graphql/query/price"
 
-async function CollateralCard({ data }: { data: NonNullable<CreditFacility> }) {
+type CreditFacilityData = NonNullable<GetCreditFacilityQuery["creditFacility"]>
+
+async function CollateralCard({ data }: { data: CreditFacilityData }) {
   const priceData = await priceQuery()
   if (!priceData || priceData instanceof Error) return null
 

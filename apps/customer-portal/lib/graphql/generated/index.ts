@@ -461,7 +461,7 @@ export type GetCreditFacilityQuery = { __typename?: 'Query', creditFacility?: { 
       | { __typename?: 'CreditFacilityIncrementalPayment', cents: any, recordedAt: any, txId: any, effective: any }
       | { __typename?: 'CreditFacilityInterestAccrued', cents: any, recordedAt: any, txId: any, days: number, effective: any }
       | { __typename?: 'CreditFacilityLiquidationAmountReserved', cents: any, recordedAt: any, txId: any, effective: any }
-      | { __typename?: 'PendingCreditFacilityCollateralizationUpdated' }
+      | { __typename?: 'PendingCreditFacilityCollateralizationUpdated', collateral: any, price: any, recordedAt: any, effective: any, pendingState: PendingCreditFacilityCollateralizationState }
     > } | null };
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
@@ -611,6 +611,13 @@ export const GetCreditFacilityDocument = gql`
         cents
         recordedAt
         txId
+        effective
+      }
+      ... on PendingCreditFacilityCollateralizationUpdated {
+        pendingState: state
+        collateral
+        price
+        recordedAt
         effective
       }
     }

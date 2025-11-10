@@ -3,9 +3,11 @@ import { DetailsCard } from "@lana/web/components/details"
 import React from "react"
 
 import Balance from "@/components/balance"
-import { CreditFacility } from "@/lib/graphql/generated"
+import { GetCreditFacilityQuery } from "@/lib/graphql/generated"
 
-function FacilityCard({ data }: { data: NonNullable<CreditFacility> }) {
+type CreditFacilityData = NonNullable<GetCreditFacilityQuery["creditFacility"]>
+
+function FacilityCard({ data }: { data: CreditFacilityData }) {
   const facilityData = [
     {
       label: "Facility Amount",

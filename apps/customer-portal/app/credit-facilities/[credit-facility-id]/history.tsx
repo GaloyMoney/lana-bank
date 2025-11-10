@@ -7,9 +7,9 @@ import DataTable, { Column } from "@lana/web/components/data-table"
 import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
 import {
-  CreditFacilityHistoryEntry,
   CollateralAction,
   CollateralizationState,
+  PendingCreditFacilityCollateralizationState,
   GetCreditFacilityQuery,
 } from "@/lib/graphql/generated"
 
@@ -42,20 +42,34 @@ export const formatCollateralizationState = (
     .join(" ")
 }
 
-type CreditFacilityHistoryProps = {
-  creditFacility: NonNullable<GetCreditFacilityQuery["creditFacility"]>
+export const formatPendingCollateralizationState = (
+  pendingState: PendingCreditFacilityCollateralizationState,
+) => {
+  return pendingState
+    .toLowerCase()
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ")
 }
+
+type CreditFacilityData = NonNullable<GetCreditFacilityQuery["creditFacility"]>
+
+type CreditFacilityHistoryProps = {
+  creditFacility: CreditFacilityData
+}
+
+type HistoryEntry = CreditFacilityData["history"][number]
 
 export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
   creditFacility,
 }) => {
-  const columns: Column<CreditFacilityHistoryEntry>[] = [
+  const columns: Column<HistoryEntry>[] = [
     {
       key: "__typename",
       header: "Entry Type",
       render: (
-        _: CreditFacilityHistoryEntry["__typename"],
-        entry: CreditFacilityHistoryEntry,
+        _: HistoryEntry["__typename"],
+        entry: HistoryEntry,
       ) => {
         if (!entry.__typename) return "Unknown Entry Type"
 
@@ -78,6 +92,15 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
                 </div>
               </div>
             )
+          case "PendingCreditFacilityCollateralizationUpdated":
+            return (
+              <div className="flex flex-row gap-1">
+                <div>{formatEntryTypeWithoutPrefix(entry.__typename)}</div>
+                <div className="text-textColor-secondary text-sm">
+                  ({formatPendingCollateralizationState(entry.pendingState)})
+                </div>
+              </div>
+            )
           default:
             return formatEntryTypeWithoutPrefix(entry.__typename)
         }
@@ -94,8 +117,8 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
       header: "Amount",
       align: "right",
       render: (
-        _: CreditFacilityHistoryEntry["__typename"],
-        entry: CreditFacilityHistoryEntry,
+        _: HistoryEntry["__typename"],
+        entry: HistoryEntry,
       ) => {
         switch (entry.__typename) {
           case "CreditFacilityCollateralUpdated":
@@ -113,6 +136,7 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
               </div>
             )
           case "CreditFacilityCollateralizationUpdated":
+          case "PendingCreditFacilityCollateralizationUpdated":
             return (
               <div className="flex flex-col gap-1 justify-end">
                 <Balance amount={entry.collateral} currency="btc" align="end" />
