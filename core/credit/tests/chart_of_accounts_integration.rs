@@ -100,7 +100,6 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .chart_of_accounts()
         .find_by_reference(&chart_ref)
         .await
-        .unwrap()
         .unwrap();
 
     let code = "1".parse::<core_accounting::AccountCode>().unwrap();

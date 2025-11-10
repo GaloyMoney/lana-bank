@@ -50,7 +50,7 @@ async fn create_chart_of_accounts(
     chart_of_accounts: &ChartOfAccounts,
     opening_date: chrono::NaiveDate,
 ) -> Result<ChartId, AccountingInitError> {
-    if let Some(chart) = chart_of_accounts.find_by_reference(CHART_REF).await? {
+    if let Some(chart) = chart_of_accounts.maybe_find_by_reference(CHART_REF).await? {
         Ok(chart.id)
     } else {
         Ok(chart_of_accounts

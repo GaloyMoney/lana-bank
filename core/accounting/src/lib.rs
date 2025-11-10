@@ -172,13 +172,7 @@ where
         chart_ref: &str,
         id: impl Into<LedgerAccountId> + std::fmt::Debug,
     ) -> Result<Option<LedgerAccount>, CoreAccountingError> {
-        let chart = self
-            .chart_of_accounts
-            .find_by_reference(chart_ref)
-            .await?
-            .ok_or_else(move || {
-                CoreAccountingError::ChartOfAccountsNotFoundByReference(chart_ref.to_string())
-            })?;
+        let chart = self.chart_of_accounts.find_by_reference(chart_ref).await?;
 
         Ok(self.ledger_accounts.find_by_id(sub, &chart, id).await?)
     }
@@ -190,13 +184,7 @@ where
         chart_ref: &str,
         code: String,
     ) -> Result<Option<LedgerAccount>, CoreAccountingError> {
-        let chart = self
-            .chart_of_accounts
-            .find_by_reference(chart_ref)
-            .await?
-            .ok_or_else(move || {
-                CoreAccountingError::ChartOfAccountsNotFoundByReference(chart_ref.to_string())
-            })?;
+        let chart = self.chart_of_accounts.find_by_reference(chart_ref).await?;
         Ok(self
             .ledger_accounts
             .find_by_code(sub, &chart, code.parse()?)
@@ -209,13 +197,7 @@ where
         chart_ref: &str,
         ids: &[LedgerAccountId],
     ) -> Result<HashMap<LedgerAccountId, T>, CoreAccountingError> {
-        let chart = self
-            .chart_of_accounts
-            .find_by_reference(chart_ref)
-            .await?
-            .ok_or_else(move || {
-                CoreAccountingError::ChartOfAccountsNotFoundByReference(chart_ref.to_string())
-            })?;
+        let chart = self.chart_of_accounts.find_by_reference(chart_ref).await?;
         Ok(self.ledger_accounts.find_all(&chart, ids).await?)
     }
 
@@ -227,13 +209,7 @@ where
         from: chrono::NaiveDate,
         until: Option<chrono::NaiveDate>,
     ) -> Result<Vec<LedgerAccount>, CoreAccountingError> {
-        let chart = self
-            .chart_of_accounts
-            .find_by_reference(chart_ref)
-            .await?
-            .ok_or_else(move || {
-                CoreAccountingError::ChartOfAccountsNotFoundByReference(chart_ref.to_string())
-            })?;
+        let chart = self.chart_of_accounts.find_by_reference(chart_ref).await?;
 
         Ok(self
             .ledger_accounts()

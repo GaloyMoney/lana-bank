@@ -326,6 +326,19 @@ where
     }
 
     #[instrument(
+        name = "core_accounting.chart_of_accounts.maybe_find_by_reference",
+        skip(self),
+        err
+    )]
+    pub async fn maybe_find_by_reference(
+        &self,
+        reference: &str,
+    ) -> Result<Option<Chart>, ChartOfAccountsError> {
+        let reference = reference.to_string();
+        self.repo.maybe_find_by_reference(reference).await
+    }
+
+    #[instrument(
         name = "core_accounting.chart_of_accounts.find_by_reference_with_sub",
         skip(self),
         err
@@ -334,7 +347,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         reference: &str,
-    ) -> Result<Option<Chart>, ChartOfAccountsError> {
+    ) -> Result<Chart, ChartOfAccountsError> {
         self.authz
             .enforce_permission(
                 sub,
@@ -351,12 +364,12 @@ where
         skip(self),
         err
     )]
-    pub async fn find_by_reference(
-        &self,
-        reference: &str,
-    ) -> Result<Option<Chart>, ChartOfAccountsError> {
-        let reference = reference.to_string();
-        self.repo.maybe_find_by_reference(reference).await
+    pub async fn find_by_reference(&self, reference: &str) -> Result<Chart, ChartOfAccountsError> {
+        self.maybe_find_by_reference(reference)
+            .await?
+            .ok_or_else(move || {
+                ChartOfAccountsError::ChartOfAccountsNotFoundByReference(reference.to_string())
+            })
     }
 
     #[instrument(name = "core_accounting.chart_of_accounts.find_all", skip(self), err)]

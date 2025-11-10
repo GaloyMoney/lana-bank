@@ -747,8 +747,7 @@ impl Query {
             .accounting()
             .chart_of_accounts()
             .find_by_reference_with_sub(sub, CHART_REF.0)
-            .await?
-            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", CHART_REF.0));
+            .await?;
         Ok(ChartOfAccounts::from(chart))
     }
 
