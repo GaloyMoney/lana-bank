@@ -8,7 +8,16 @@ pub use repo::HistoryRepo;
 
 #[derive(Default, serde::Deserialize, serde::Serialize)]
 pub struct CreditFacilityHistory {
-    pub(super) entries: Vec<CreditFacilityHistoryEntry>,
+    entries: Vec<CreditFacilityHistoryEntry>,
+}
+
+impl IntoIterator for CreditFacilityHistory {
+    type Item = CreditFacilityHistoryEntry;
+    type IntoIter = std::iter::Rev<std::vec::IntoIter<CreditFacilityHistoryEntry>>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.entries.into_iter().rev()
+    }
 }
 
 impl CreditFacilityHistory {
