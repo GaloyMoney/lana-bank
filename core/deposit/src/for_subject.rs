@@ -59,7 +59,7 @@ where
         }
     }
 
-    pub async fn list_open_accounts_by_created_at(
+    pub async fn list_accounts_by_created_at(
         &self,
         query: es_entity::PaginatedQueryArgs<DepositAccountsByCreatedAtCursor>,
         direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
@@ -76,18 +76,14 @@ where
                 true,
             )
             .await?;
-        let mut accounts = self
+        Ok(self
             .accounts
             .list_for_account_holder_id_by_created_at(
                 self.account_holder_id,
                 query,
                 direction.into(),
             )
-            .await?;
-        accounts
-            .entities
-            .retain(|account| account.status != DepositAccountStatus::Closed);
-        Ok(accounts)
+            .await?)
     }
 
     #[instrument(name = "deposit.for_subject.account_balance", skip(self), err)]

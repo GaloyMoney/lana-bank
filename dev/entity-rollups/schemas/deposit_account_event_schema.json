@@ -78,22 +78,6 @@
         "status"
       ],
       "type": "object"
-    },
-    {
-      "properties": {
-        "status": {
-          "$ref": "#/$defs/DepositAccountStatus"
-        },
-        "type": {
-          "const": "closed",
-          "type": "string"
-        }
-      },
-      "required": [
-        "type",
-        "status"
-      ],
-      "type": "object"
     }
   ],
   "title": "DepositAccountEvent"

@@ -23,10 +23,6 @@ pub enum DepositAccountEvent {
     AccountStatusUpdated {
         status: DepositAccountStatus,
     },
-    // comment:dedicated event?
-    Closed {
-        status: DepositAccountStatus,
-    },
 }
 
 #[derive(EsEntity, Builder)]
@@ -84,7 +80,8 @@ impl DepositAccount {
         }
 
         let status = DepositAccountStatus::Closed;
-        self.events.push(DepositAccountEvent::Closed { status });
+        self.events
+            .push(DepositAccountEvent::AccountStatusUpdated { status });
         self.status = status;
         Ok(Idempotent::Executed(()))
     }
@@ -111,9 +108,6 @@ impl TryFromEvents<DepositAccountEvent> for DepositAccount {
                         .public_id(public_id.clone())
                 }
                 DepositAccountEvent::AccountStatusUpdated { status, .. } => {
-                    builder = builder.status(*status);
-                }
-                DepositAccountEvent::Closed { status, .. } => {
                     builder = builder.status(*status);
                 }
             }
@@ -210,7 +204,6 @@ mod tests {
                 .unwrap()
                 .did_execute()
         );
-        // comment: no checks on frozen account to be active? should we not only do it via unfreeze
         assert!(
             account
                 .update_status(DepositAccountStatus::Active)
