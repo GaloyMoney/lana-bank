@@ -713,6 +713,10 @@
       "underMarginCallThreshold": "Por debajo del umbral de llamada de margen",
       "noExposure": "Sin exposición"
     },
+    "pendingCollateralizationState": {
+      "fullyCollateralized": "Totalmente garantizado",
+      "underCollateralized": "Insuficientemente garantizado"
+    },
     "errors": {
       "general": "Ocurrió un error"
     },
@@ -786,7 +790,8 @@
           "incrementalPayment": "Pago",
           "disbursalExecuted": "Desembolso",
           "interestAccrued": "Interés acumulado",
-          "liquidationAmountReserved": "Importe de liquidación reservado"
+          "liquidationAmountReserved": "Importe de liquidación reservado",
+          "pendingCollateralizationUpdated": "Colateralización pendiente actualizada"
         },
         "messages": {
           "unknownType": "Tipo de entrada desconocido",

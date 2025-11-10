@@ -5,12 +5,14 @@ import { useTranslations } from "next-intl"
 
 import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
-import { CollateralizationStateLabel } from "@/app/credit-facilities/label"
+import {
+  CollateralizationStateLabel,
+  PendingCollateralizationStateLabel,
+} from "@/app/credit-facilities/label"
 import CardWrapper from "@/components/card-wrapper"
 import Balance from "@/components/balance/balance"
 import {
   GetCreditFacilityHistoryQuery,
-  CreditFacilityHistoryEntry,
   CollateralAction,
 } from "@/lib/graphql/generated"
 import { formatCollateralAction, cn } from "@/lib/utils"
@@ -20,18 +22,20 @@ type CreditFacilityHistoryProps = {
   creditFacility: NonNullable<GetCreditFacilityHistoryQuery["creditFacilityByPublicId"]>
 }
 
+type HistoryEntry = CreditFacilityHistoryProps["creditFacility"]["history"][number]
+
 export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
   creditFacility,
 }) => {
   const t = useTranslations("CreditFacilities.CreditFacilityDetails.History")
 
-  const columns: Column<CreditFacilityHistoryEntry>[] = [
+  const columns: Column<HistoryEntry>[] = [
     {
       key: "__typename",
       header: t("columns.entryType"),
       render: (
-        _: CreditFacilityHistoryEntry["__typename"],
-        entry: CreditFacilityHistoryEntry,
+        _: HistoryEntry["__typename"],
+        entry: HistoryEntry,
       ) => {
         if (!entry.__typename) return t("messages.unknownType")
 
@@ -51,6 +55,15 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
                 <div>{t("entryTypes.collateralizationUpdated")}</div>
                 <div>
                   <CollateralizationStateLabel state={entry.state} />
+                </div>
+              </div>
+            )
+          case "PendingCreditFacilityCollateralizationUpdated":
+            return (
+              <div className="flex flex-col gap-1">
+                <div>{t("entryTypes.pendingCollateralizationUpdated")}</div>
+                <div>
+                  <PendingCollateralizationStateLabel state={entry.pendingState} />
                 </div>
               </div>
             )
@@ -84,8 +97,8 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
       key: "__typename",
       header: t("columns.amount"),
       render: (
-        _: CreditFacilityHistoryEntry["__typename"],
-        entry: CreditFacilityHistoryEntry,
+        _: HistoryEntry["__typename"],
+        entry: HistoryEntry,
       ) => {
         switch (entry.__typename) {
           case "CreditFacilityCollateralUpdated":
@@ -103,6 +116,7 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
               </div>
             )
           case "CreditFacilityCollateralizationUpdated":
+          case "PendingCreditFacilityCollateralizationUpdated":
             return <Balance amount={entry.collateral} currency="btc" />
           case "CreditFacilityApproved":
           case "CreditFacilityIncrementalPayment":

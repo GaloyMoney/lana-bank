@@ -438,6 +438,8 @@ checksums:
     CreditFacilities/collateralizationState/underLiquidationThreshold: 9df678e2f798a4c7a056e783c686bce5
     CreditFacilities/collateralizationState/underMarginCallThreshold: 56f8da43160ce599d62c6530ed97c233
     CreditFacilities/collateralizationState/noExposure: 25de75d010cf97f834518f4bbacb9d75
+    CreditFacilities/pendingCollateralizationState/fullyCollateralized: ac0dd4d27277fd887b8a195d815af373
+    CreditFacilities/pendingCollateralizationState/underCollateralized: 08bc680351a0f5bb35acf0cc4f7859f8
     CreditFacilities/errors/general: 53a2b5f5e7d83c737c8e02fe18fb4bdb
     CreditFacilities/CreditFacilityDetails/RepaymentPlan/title: 416716dbfa4883b589c792610e827d74
     CreditFacilities/CreditFacilityDetails/RepaymentPlan/description: bd2b59bc9d5747e458cdd85fd63cecc0
@@ -481,6 +483,7 @@ checksums:
     CreditFacilities/CreditFacilityDetails/History/entryTypes/disbursalExecuted: 2aa8ff038a96888966ede2b19fc8b8bb
     CreditFacilities/CreditFacilityDetails/History/entryTypes/interestAccrued: 7a2a22eb72a60ee80626eef9988e35ff
     CreditFacilities/CreditFacilityDetails/History/entryTypes/liquidationAmountReserved: 0cd8af79a7b79801e5d943f115c836e1
+    CreditFacilities/CreditFacilityDetails/History/entryTypes/pendingCollateralizationUpdated: dc5376abfbdc87e06844e37f7aa161ff
     CreditFacilities/CreditFacilityDetails/History/messages/unknownType: 82d1742db9fd0f5ca6bd0b05b561c284
     CreditFacilities/CreditFacilityDetails/History/messages/emptyTable: 37a7aed7a4d616149ed640ce3d72d6f9
     CreditFacilities/CreditFacilityDetails/TermsDialog/title: c531b88ecfe7dd2337a34f4a9ed18a5f

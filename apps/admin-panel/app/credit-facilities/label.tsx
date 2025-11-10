@@ -1,7 +1,12 @@
 import { useTranslations } from "next-intl"
 import { Badge } from "@lana/web/ui/badge"
 
-import { CollateralizationState, InterestInterval, Period } from "@/lib/graphql/generated"
+import {
+  CollateralizationState,
+  InterestInterval,
+  Period,
+  PendingCreditFacilityCollateralizationState,
+} from "@/lib/graphql/generated"
 
 export const CollateralizationStateLabel = ({
   state,
@@ -40,6 +45,39 @@ export const CollateralizationStateLabel = ({
         return t("underLiquidationThreshold")
       case CollateralizationState.UnderMarginCallThreshold:
         return t("underMarginCallThreshold")
+    }
+    const exhaustiveCheck: never = state
+    return exhaustiveCheck
+  }
+
+  return <Badge variant={variant()}>{getText()}</Badge>
+}
+
+export const PendingCollateralizationStateLabel = ({
+  state,
+}: {
+  state: PendingCreditFacilityCollateralizationState
+}) => {
+  const t = useTranslations("CreditFacilities.pendingCollateralizationState")
+  if (!state) return null
+
+  const variant = () => {
+    switch (state) {
+      case PendingCreditFacilityCollateralizationState.FullyCollateralized:
+        return "success"
+      case PendingCreditFacilityCollateralizationState.UnderCollateralized:
+        return "destructive"
+      default:
+        return "outline"
+    }
+  }
+
+  const getText = (): string => {
+    switch (state) {
+      case PendingCreditFacilityCollateralizationState.FullyCollateralized:
+        return t("fullyCollateralized")
+      case PendingCreditFacilityCollateralizationState.UnderCollateralized:
+        return t("underCollateralized")
     }
     const exhaustiveCheck: never = state
     return exhaustiveCheck

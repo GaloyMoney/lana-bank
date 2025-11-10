@@ -713,6 +713,10 @@
       "underMarginCallThreshold": "Under Margin Call Threshold",
       "noExposure": "No Exposure"
     },
+    "pendingCollateralizationState": {
+      "fullyCollateralized": "Fully Collateralized",
+      "underCollateralized": "Under Collateralized"
+    },
     "errors": {
       "general": "An error occurred"
     },
@@ -786,7 +790,8 @@
           "incrementalPayment": "Payment",
           "disbursalExecuted": "Disbursal",
           "interestAccrued": "Interest Accrued",
-          "liquidationAmountReserved": "Liquidation Amount Reserved"
+          "liquidationAmountReserved": "Liquidation Amount Reserved",
+          "pendingCollateralizationUpdated": "Pending Collateralization Updated"
         },
         "messages": {
           "unknownType": "Unknown Entry Type",
