@@ -8,7 +8,7 @@
 - **Loan Origination & Management** – Automate loan creation, fee collection, and margin call management
 - **Seamless Banking Integration** – Works with existing core banking systems, custodians, and regulatory frameworks
 - **Security-First Design** – Adheres to industry security standards and best practices
-- **Source Code Auditable** – Under Fair Source License
+- **Source Code Auditable** – Under Business Source License 1.1
 
 For enterprise inquiries, contact **[biz@galoy.io](mailto:biz@galoy.io)**
 
