@@ -76,7 +76,6 @@ impl From<DomainPeriodClosing> for AccountingClosing {
 
 #[derive(InputObject)]
 pub struct ChartOfAccountsCsvImportInput {
-    pub chart_id: UUID,
     pub file: Upload,
 }
 crate::mutation_payload! { ChartOfAccountsCsvImportPayload, chart_of_accounts: ChartOfAccounts }

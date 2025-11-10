@@ -134,10 +134,8 @@ teardown_file() {
 
   variables=$(
     jq -n \
-    --arg chart_id "$chart_id" \
     '{
       input: {
-        chartId: $chart_id,
         file: null
       }
     }'

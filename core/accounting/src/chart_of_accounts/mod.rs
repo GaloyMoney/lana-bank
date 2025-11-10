@@ -133,18 +133,17 @@ where
     pub async fn import_from_csv(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: impl Into<ChartId> + std::fmt::Debug,
+        chart_ref: &str,
         import_data: impl AsRef<str>,
     ) -> Result<(Chart, Option<Vec<CalaAccountSetId>>), ChartOfAccountsError> {
-        let id = id.into();
         self.authz
             .enforce_permission(
                 sub,
-                CoreAccountingObject::chart(id),
+                CoreAccountingObject::all_charts(),
                 CoreAccountingAction::CHART_IMPORT_ACCOUNTS,
             )
             .await?;
-        let mut chart = self.repo.find_by_id(id).await?;
+        let mut chart = self.find_by_reference(chart_ref).await?;
 
         let import_data = import_data.as_ref().to_string();
         let account_specs = CsvParser::new(import_data).account_specs()?;

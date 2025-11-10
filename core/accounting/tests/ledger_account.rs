@@ -30,7 +30,7 @@ async fn ledger_account_ancestors() -> anyhow::Result<()> {
 
     let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, document_storage, &jobs);
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
-    let chart = accounting
+    accounting
         .chart_of_accounts()
         .create_chart(
             &DummySubject,
@@ -44,10 +44,9 @@ async fn ledger_account_ancestors() -> anyhow::Result<()> {
         11,,Child
         11,1,Grandchild
         "#;
-    let chart_id = chart.id;
     accounting
         .chart_of_accounts()
-        .import_from_csv(&DummySubject, chart_id, import)
+        .import_from_csv(&DummySubject, &chart_ref, import)
         .await?;
 
     let root = accounting
@@ -160,7 +159,7 @@ async fn ledger_account_children() -> anyhow::Result<()> {
 
     let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, document_storage, &jobs);
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
-    let chart = accounting
+    accounting
         .chart_of_accounts()
         .create_chart(
             &DummySubject,
@@ -174,10 +173,9 @@ async fn ledger_account_children() -> anyhow::Result<()> {
         11,,Child
         11,1,Grandchild
         "#;
-    let chart_id = chart.id;
     accounting
         .chart_of_accounts()
-        .import_from_csv(&DummySubject, chart_id, import)
+        .import_from_csv(&DummySubject, &chart_ref, import)
         .await?;
 
     let root = accounting
@@ -258,7 +256,7 @@ async fn internal_account_contains_coa_account() -> anyhow::Result<()> {
 
     let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, document_storage, &jobs);
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
-    let chart = accounting
+    accounting
         .chart_of_accounts()
         .create_chart(
             &DummySubject,
@@ -272,10 +270,9 @@ async fn internal_account_contains_coa_account() -> anyhow::Result<()> {
         11,,Child
         11,1,Grandchild
         "#;
-    let chart_id = chart.id;
     accounting
         .chart_of_accounts()
-        .import_from_csv(&DummySubject, chart_id, import)
+        .import_from_csv(&DummySubject, &chart_ref, import)
         .await?;
 
     let root = accounting

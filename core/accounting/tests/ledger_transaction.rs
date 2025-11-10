@@ -71,7 +71,7 @@ async fn prepare_test() -> anyhow::Result<(
 
     let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, document_storage, &jobs);
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
-    let chart = accounting
+    accounting
         .chart_of_accounts()
         .create_chart(
             &DummySubject,
@@ -84,10 +84,9 @@ async fn prepare_test() -> anyhow::Result<(
         1,,Assets
         2,,Liabilities
         "#;
-    let chart_id = chart.id;
-    let _ = accounting
+    accounting
         .chart_of_accounts()
-        .import_from_csv(&DummySubject, chart_id, import)
+        .import_from_csv(&DummySubject, &chart_ref, import)
         .await?;
 
     Ok((accounting, chart_ref))

@@ -1,9 +1,6 @@
 use std::path::PathBuf;
 
-use crate::{
-    accounting::ChartId,
-    accounting_init::{constants::*, *},
-};
+use crate::accounting_init::{constants::*, *};
 
 use rbac_types::Subject;
 
@@ -27,7 +24,7 @@ pub(crate) async fn init(
         AccountingInitError::MissingConfig("chart_of_accounts_opening_date".to_string())
     })?;
 
-    let chart_id = create_chart_of_accounts(chart_of_accounts, opening_date).await?;
+    create_chart_of_accounts(chart_of_accounts, opening_date).await?;
 
     if let Some(path) = chart_of_accounts_seed_path {
         seed_chart_of_accounts(
@@ -37,7 +34,6 @@ pub(crate) async fn init(
             deposit,
             balance_sheet,
             profit_and_loss,
-            chart_id,
             path,
             accounting_init_config,
         )
@@ -49,20 +45,23 @@ pub(crate) async fn init(
 async fn create_chart_of_accounts(
     chart_of_accounts: &ChartOfAccounts,
     opening_date: chrono::NaiveDate,
-) -> Result<ChartId, AccountingInitError> {
-    if let Some(chart) = chart_of_accounts.maybe_find_by_reference(CHART_REF).await? {
-        Ok(chart.id)
-    } else {
-        Ok(chart_of_accounts
+) -> Result<(), AccountingInitError> {
+    if chart_of_accounts
+        .maybe_find_by_reference(CHART_REF)
+        .await?
+        .is_none()
+    {
+        chart_of_accounts
             .create_chart(
                 &Subject::System,
                 CHART_NAME.to_string(),
                 CHART_REF.to_string(),
                 opening_date,
             )
-            .await?
-            .id)
+            .await?;
     }
+
+    Ok(())
 }
 
 async fn seed_chart_of_accounts(
@@ -72,7 +71,6 @@ async fn seed_chart_of_accounts(
     deposit: &Deposits,
     balance_sheet: &BalanceSheets,
     profit_and_loss: &ProfitAndLossStatements,
-    chart_id: ChartId,
     chart_of_accounts_seed_path: PathBuf,
     accounting_init_config: AccountingInitConfig,
 ) -> Result<(), AccountingInitError> {
@@ -88,7 +86,7 @@ async fn seed_chart_of_accounts(
 
     let data = std::fs::read_to_string(chart_of_accounts_seed_path)?;
     let chart = if let (chart, Some(new_account_set_ids)) = chart_of_accounts
-        .import_from_csv(&Subject::System, chart_id, data)
+        .import_from_csv(&Subject::System, CHART_REF, data)
         .await?
     {
         trial_balances

@@ -2019,12 +2019,8 @@ impl Mutation {
             ChartOfAccounts,
             ChartId,
             ctx,
-            app.accounting().import_csv(
-                sub,
-                input.chart_id.into(),
-                data,
-                TRIAL_BALANCE_STATEMENT_NAME
-            )
+            app.accounting()
+                .import_csv(sub, CHART_REF.0, data, TRIAL_BALANCE_STATEMENT_NAME)
         )
     }
 

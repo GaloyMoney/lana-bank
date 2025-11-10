@@ -254,13 +254,13 @@ where
     pub async fn import_csv(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart_id: ChartId,
+        chart_ref: &str,
         data: String,
         trial_balance_ref: &str,
     ) -> Result<Chart, CoreAccountingError> {
         let (chart, new_account_set_ids) = self
             .chart_of_accounts()
-            .import_from_csv(sub, chart_id, data)
+            .import_from_csv(sub, chart_ref, data)
             .await?;
         if let Some(new_account_set_ids) = new_account_set_ids {
             self.trial_balances()

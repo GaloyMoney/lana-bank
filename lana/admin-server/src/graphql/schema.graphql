@@ -275,7 +275,6 @@ type ChartOfAccountsCloseMonthlyPayload {
 }
 
 input ChartOfAccountsCsvImportInput {
-	chartId: UUID!
 	file: Upload!
 }
 
