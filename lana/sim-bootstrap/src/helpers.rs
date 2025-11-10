@@ -142,7 +142,7 @@ pub fn std_terms_12m() -> TermValues {
         .accrual_interval(InterestInterval::EndOfDay)
         .accrual_cycle_interval(InterestInterval::EndOfMonth)
         .one_time_fee_rate(dec!(0.01))
-        .disbursal_policy(DisbursalPolicy::SingleDisbursal)
+        .disbursal_policy(DisbursalPolicy::MultipleDisbursal)
         .build()
         .unwrap()
 }
