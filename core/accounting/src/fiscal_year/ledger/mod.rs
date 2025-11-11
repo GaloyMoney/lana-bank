@@ -65,16 +65,15 @@ impl FiscalYearLedger {
     }
 
     #[instrument(
-        name = "fiscal_year_ledger.attach_closing_controls_to_account_set",
-        skip(self,),
+        name = "fiscal_year_ledger.attach_closing_controls_to_account_set_in_op",
+        skip(self, op),
         err
     )]
-    pub async fn attach_closing_controls_to_account_set(
+    pub async fn attach_closing_controls_to_account_set_in_op(
         &self,
+        mut op: LedgerOperation<'_>,
         tracking_account_set_id: AccountSetId,
     ) -> Result<VelocityControlId, FiscalYearLedgerError> {
-        let mut op = self.cala.begin_operation().await?;
-
         let control_id = self.create_monthly_close_control_in_op(&mut op).await?;
 
         self.cala
@@ -88,6 +87,7 @@ impl FiscalYearLedger {
             .await?;
 
         op.commit().await?;
+
         Ok(control_id)
     }
 

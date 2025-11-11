@@ -52,9 +52,6 @@ async fn create_chart_of_accounts(
                 CHART_REF.to_string(),
             )
             .await?;
-        fiscal_year
-            .add_closing_control(&Subject::System, chart.account_set_id)
-            .await?;
 
         if let Some(opening_date) = accounting_init_config.chart_of_accounts_opening_date {
             fiscal_year
