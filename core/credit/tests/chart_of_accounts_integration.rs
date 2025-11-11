@@ -202,7 +202,11 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let chart_ref = format!("other-ref-{:08}", rand::rng().random_range(0..10000));
     let chart_id = accounting
         .chart_of_accounts()
-        .create_chart(&DummySubject, "Other Test chart".to_string(), chart_ref)
+        .create_chart(
+            &DummySubject,
+            "Other Test chart".to_string(),
+            chart_ref.to_string(),
+        )
         .await?
         .id;
 
