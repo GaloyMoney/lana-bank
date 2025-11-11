@@ -1299,6 +1299,7 @@ type FiscalYear {
 	id: ID!
 	chartId: UUID!
 	firstPeriodOpenedAsOf: Date!
+	lastMonthClosedAt: Timestamp
 }
 
 input FiscalYearCloseMonthInput {

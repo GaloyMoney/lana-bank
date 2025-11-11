@@ -213,17 +213,28 @@ teardown_file() {
   [[ "$entryType1" != "$entryType2" ]] || exit 1
 }
 
-@test "accounting: cannot execute transaction before last closing date" {
-  exec_admin_graphql 'chart-of-accounts-closing'
+@test "accounting: cannot execute transaction before system inception date" {
+  exec_admin_graphql 'chart-of-accounts'
   graphql_output
-  closing_date=$(graphql_output '.data.chartOfAccounts.monthlyClosing.closedAsOf')
-  [[ "$closing_date" != "null" ]] || exit 1
+  chart_id=$(graphql_output '.data.chartOfAccounts.chartId')
+  
+  variables=$(
+    jq -n \
+    --arg chart_id "$chart_id" \
+    '{
+        chartId: $chart_id
+    }'
+  )
+  exec_admin_graphql 'fiscal-year-current' "$variables"
+  graphql_output
+  inception_date=$(graphql_output '.data.currentFiscalYear.firstPeriodOpenedAsOf')
+  [[ "$inception_date" != "null" ]] || exit 1
 
   amount=$((RANDOM % 1000))
   variables=$(
     jq -n \
     --arg amount "$amount" \
-    --arg effective "$closing_date" \
+    --arg effective "$inception_date" \
     '{
       input: {
         description: "Manual transaction - test",
@@ -251,22 +262,4 @@ teardown_file() {
   graphql_output
   errors=$(graphql_output '.errors')
   [[ "$errors" =~ "VelocityError" ]] || exit 1
-}
-
-@test "accounting: fiscal year was initialized" {
-  exec_admin_graphql 'chart-of-accounts-closing'
-  graphql_output
-  chart_id=$(graphql_output '.data.chartOfAccounts.chartId')
-  
-  variables=$(
-    jq -n \
-    --arg chart_id "$chart_id" \
-    '{
-        chartId: $chart_id
-    }'
-  )
-  exec_admin_graphql 'fiscal-year-current' "$variables"
-  graphql_output
-  first_period_opened_as_of=$(graphql_output '.data.currentFiscalYear.firstPeriodOpenedAsOf')
-  [[ "$first_period_opened_as_of" != "null" ]] || exit 1
 }

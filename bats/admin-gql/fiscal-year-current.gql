@@ -3,5 +3,6 @@ query CurrentFiscalYear($chartId: UUID!) {
         id
         chartId
         firstPeriodOpenedAsOf
+        lastMonthClosedAt
     }
 }
