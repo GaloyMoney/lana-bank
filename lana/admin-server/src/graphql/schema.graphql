@@ -245,7 +245,6 @@ type ChartOfAccounts {
 }
 
 input ChartOfAccountsAddChildNodeInput {
-	chartId: UUID!
 	parent: AccountCode!
 	code: AccountCode!
 	name: String!
@@ -256,7 +255,6 @@ type ChartOfAccountsAddChildNodePayload {
 }
 
 input ChartOfAccountsAddRootNodeInput {
-	chartId: UUID!
 	code: AccountCode!
 	name: String!
 	normalBalanceType: DebitOrCredit!
@@ -266,16 +264,11 @@ type ChartOfAccountsAddRootNodePayload {
 	chartOfAccounts: ChartOfAccounts!
 }
 
-input ChartOfAccountsCloseMonthlyInput {
-	chartId: UUID!
-}
-
 type ChartOfAccountsCloseMonthlyPayload {
 	chartOfAccounts: ChartOfAccounts!
 }
 
 input ChartOfAccountsCsvImportInput {
-	chartId: UUID!
 	file: Upload!
 }
 
@@ -1565,7 +1558,7 @@ type Mutation {
 	customerDocumentDelete(input: CustomerDocumentDeleteInput!): CustomerDocumentDeletePayload!
 	customerDocumentArchive(input: CustomerDocumentArchiveInput!): CustomerDocumentArchivePayload!
 	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
-	chartOfAccountsCloseMonthly(input: ChartOfAccountsCloseMonthlyInput!): ChartOfAccountsCloseMonthlyPayload!
+	chartOfAccountsCloseMonthly: ChartOfAccountsCloseMonthlyPayload!
 	chartOfAccountsAddRootNode(input: ChartOfAccountsAddRootNodeInput!): ChartOfAccountsAddRootNodePayload!
 	chartOfAccountsAddChildNode(input: ChartOfAccountsAddChildNodeInput!): ChartOfAccountsAddChildNodePayload!
 	balanceSheetConfigure(input: BalanceSheetModuleConfigureInput!): BalanceSheetModuleConfigurePayload!

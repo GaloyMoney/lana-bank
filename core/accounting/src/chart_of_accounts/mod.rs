@@ -133,18 +133,17 @@ where
     pub async fn import_from_csv(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: impl Into<ChartId> + std::fmt::Debug,
+        chart_ref: &str,
         import_data: impl AsRef<str>,
     ) -> Result<(Chart, Option<Vec<CalaAccountSetId>>), ChartOfAccountsError> {
-        let id = id.into();
         self.authz
             .enforce_permission(
                 sub,
-                CoreAccountingObject::chart(id),
+                CoreAccountingObject::all_charts(),
                 CoreAccountingAction::CHART_IMPORT_ACCOUNTS,
             )
             .await?;
-        let mut chart = self.repo.find_by_id(id).await?;
+        let mut chart = self.find_by_reference(chart_ref).await?;
 
         let import_data = import_data.as_ref().to_string();
         let account_specs = CsvParser::new(import_data).account_specs()?;
@@ -189,12 +188,19 @@ where
     pub async fn close_monthly(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: impl Into<ChartId> + std::fmt::Debug,
+        chart_ref: &str,
     ) -> Result<Chart, ChartOfAccountsError> {
-        let id = id.into();
-        let mut chart = self.repo.find_by_id(id).await?;
-
         let now = crate::time::now();
+
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_charts(),
+                CoreAccountingAction::CHART_CLOSE_MONTHLY,
+            )
+            .await?;
+
+        let mut chart = self.find_by_reference(chart_ref).await?;
         let closed_as_of_date =
             if let Idempotent::Executed(date) = chart.close_last_monthly_period(now)? {
                 date
@@ -220,20 +226,20 @@ where
     pub async fn add_root_node(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: impl Into<ChartId> + std::fmt::Debug,
+        chart_ref: &str,
         spec: impl Into<AccountSpec> + std::fmt::Debug,
     ) -> Result<(Chart, Option<CalaAccountSetId>), ChartOfAccountsError> {
-        let id = id.into();
         let spec = spec.into();
+
         self.authz
             .enforce_permission(
                 sub,
-                CoreAccountingObject::chart(id),
+                CoreAccountingObject::all_charts(),
                 CoreAccountingAction::CHART_UPDATE,
             )
             .await?;
-        let mut chart = self.repo.find_by_id(id).await?;
 
+        let mut chart = self.find_by_reference(chart_ref).await?;
         let es_entity::Idempotent::Executed(NewChartAccountDetails {
             parent_account_set_id,
             new_account_set,
@@ -272,21 +278,20 @@ where
     pub async fn add_child_node(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: impl Into<ChartId> + std::fmt::Debug,
+        chart_ref: &str,
         parent_code: AccountCode,
         code: AccountCode,
         name: AccountName,
     ) -> Result<(Chart, Option<CalaAccountSetId>), ChartOfAccountsError> {
-        let id = id.into();
         self.authz
             .enforce_permission(
                 sub,
-                CoreAccountingObject::chart(id),
+                CoreAccountingObject::all_charts(),
                 CoreAccountingAction::CHART_UPDATE,
             )
             .await?;
-        let mut chart = self.repo.find_by_id(id).await?;
 
+        let mut chart = self.find_by_reference(chart_ref).await?;
         let es_entity::Idempotent::Executed(NewChartAccountDetails {
             parent_account_set_id,
             new_account_set,
@@ -326,6 +331,19 @@ where
     }
 
     #[instrument(
+        name = "core_accounting.chart_of_accounts.maybe_find_by_reference",
+        skip(self),
+        err
+    )]
+    pub async fn maybe_find_by_reference(
+        &self,
+        reference: &str,
+    ) -> Result<Option<Chart>, ChartOfAccountsError> {
+        let reference = reference.to_string();
+        self.repo.maybe_find_by_reference(reference).await
+    }
+
+    #[instrument(
         name = "core_accounting.chart_of_accounts.find_by_reference_with_sub",
         skip(self),
         err
@@ -334,7 +352,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         reference: &str,
-    ) -> Result<Option<Chart>, ChartOfAccountsError> {
+    ) -> Result<Chart, ChartOfAccountsError> {
         self.authz
             .enforce_permission(
                 sub,
@@ -351,12 +369,12 @@ where
         skip(self),
         err
     )]
-    pub async fn find_by_reference(
-        &self,
-        reference: &str,
-    ) -> Result<Option<Chart>, ChartOfAccountsError> {
-        let reference = reference.to_string();
-        self.repo.maybe_find_by_reference(reference).await
+    pub async fn find_by_reference(&self, reference: &str) -> Result<Chart, ChartOfAccountsError> {
+        self.maybe_find_by_reference(reference)
+            .await?
+            .ok_or_else(move || {
+                ChartOfAccountsError::ChartOfAccountsNotFoundByReference(reference.to_string())
+            })
     }
 
     #[instrument(name = "core_accounting.chart_of_accounts.find_all", skip(self), err)]
@@ -378,7 +396,7 @@ where
         chart_ref: &str,
         account_id_or_code: AccountIdOrCode,
     ) -> Result<LedgerAccountId, ChartOfAccountsError> {
-        let mut chart = self.repo.find_by_reference(chart_ref.to_string()).await?;
+        let mut chart = self.find_by_reference(chart_ref).await?;
 
         self.authz
             .enforce_permission(

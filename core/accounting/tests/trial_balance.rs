@@ -29,7 +29,7 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
 
     let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, document_storage, &jobs);
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
-    let chart = accounting
+    let chart_id = accounting
         .chart_of_accounts()
         .create_chart(
             &DummySubject,
@@ -37,7 +37,8 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
             chart_ref.clone(),
             "2025-01-01".parse::<chrono::NaiveDate>().unwrap(),
         )
-        .await?;
+        .await?
+        .id;
     let rand_ref = format!("{:05}", rand::rng().random_range(0..100000));
     let import = format!(
         r#"
@@ -49,15 +50,13 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
         ,,0101,Central Office,
         "#
     );
-    let chart_id = chart.id;
     let new_account_set_ids = accounting
         .chart_of_accounts()
-        .import_from_csv(&DummySubject, chart_id, import)
+        .import_from_csv(&DummySubject, &chart_ref, import)
         .await?
         .1
         .unwrap();
 
-    let chart = accounting.chart_of_accounts().find_by_id(chart_id).await?;
     let trial_balance_name = format!("Trial Balance #{:05}", rand::rng().random_range(0..100000));
     accounting
         .trial_balances()
@@ -79,6 +78,7 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
         .add_new_chart_accounts_to_trial_balance(&trial_balance_name, &new_account_set_ids)
         .await?;
 
+    let chart = accounting.chart_of_accounts().find_by_id(chart_id).await?;
     let accounts = accounting
         .ledger_accounts()
         .list_all_account_flattened(

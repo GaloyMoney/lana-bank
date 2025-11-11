@@ -27,19 +27,16 @@ teardown_file() {
 
 @test "accounting: add new root node into chart of accounts" {
   exec_admin_graphql 'chart-of-accounts'
-  chart_id=$(graphql_output '.data.chartOfAccounts.chartId')
   n_children_before=$(graphql_output '.data.chartOfAccounts.children | length')
   
   new_code="$(( RANDOM % 9000 + 1000 ))"
   name="Root Account #$new_code"
   variables=$(
     jq -n \
-    --arg id "$chart_id" \
     --arg code "$new_code" \
     --arg name "$name" \
     '{
       input: {
-        chartId: $id,
         code: $code,
         name: $name,
         normalBalanceType: "CREDIT"
@@ -53,7 +50,6 @@ teardown_file() {
 
 @test "accounting: add new child node into chart of accounts" {
   exec_admin_graphql 'chart-of-accounts'
-  chart_id=$(graphql_output '.data.chartOfAccounts.chartId')
   n_children_before=$(graphql_output '
     .data.chartOfAccounts.children[]
     | select(.accountCode == "1")
@@ -68,12 +64,10 @@ teardown_file() {
   name="Account #$new_code"
   variables=$(
     jq -n \
-    --arg id "$chart_id" \
     --arg code "$new_code" \
     --arg name "$name" \
     '{
       input: {
-        chartId: $id,
         parent: "11.01",
         code: $code,
         name: $name
@@ -134,10 +128,8 @@ teardown_file() {
 
   variables=$(
     jq -n \
-    --arg chart_id "$chart_id" \
     '{
       input: {
-        chartId: $chart_id,
         file: null
       }
     }'

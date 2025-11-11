@@ -747,8 +747,7 @@ impl Query {
             .accounting()
             .chart_of_accounts()
             .find_by_reference_with_sub(sub, CHART_REF.0)
-            .await?
-            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", CHART_REF.0));
+            .await?;
         Ok(ChartOfAccounts::from(chart))
     }
 
@@ -2020,19 +2019,14 @@ impl Mutation {
             ChartOfAccounts,
             ChartId,
             ctx,
-            app.accounting().import_csv(
-                sub,
-                input.chart_id.into(),
-                data,
-                TRIAL_BALANCE_STATEMENT_NAME
-            )
+            app.accounting()
+                .import_csv(sub, CHART_REF.0, data, TRIAL_BALANCE_STATEMENT_NAME)
         )
     }
 
     async fn chart_of_accounts_close_monthly(
         &self,
         ctx: &Context<'_>,
-        input: ChartOfAccountsCloseMonthlyInput,
     ) -> async_graphql::Result<ChartOfAccountsCloseMonthlyPayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         exec_mutation!(
@@ -2040,7 +2034,7 @@ impl Mutation {
             ChartOfAccounts,
             ChartId,
             ctx,
-            app.accounting().close_monthly(sub, input.chart_id.into())
+            app.accounting().close_monthly(sub, CHART_REF.0)
         )
     }
 
@@ -2057,7 +2051,7 @@ impl Mutation {
             ctx,
             app.accounting().add_root_node(
                 sub,
-                input.chart_id.into(),
+                CHART_REF.0,
                 input.try_into()?,
                 TRIAL_BALANCE_STATEMENT_NAME,
             )
@@ -2077,7 +2071,7 @@ impl Mutation {
             ctx,
             app.accounting().add_child_node(
                 sub,
-                input.chart_id.into(),
+                CHART_REF.0,
                 input.parent.try_into()?,
                 input.code.try_into()?,
                 input.name.parse()?,

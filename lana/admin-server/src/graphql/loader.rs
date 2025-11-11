@@ -196,7 +196,7 @@ impl Loader<ChartRef> for LanaLoader {
                 .app
                 .accounting()
                 .chart_of_accounts()
-                .find_by_reference(key.0)
+                .maybe_find_by_reference(key.0)
                 .await
                 .map_err(Arc::new)?
             {

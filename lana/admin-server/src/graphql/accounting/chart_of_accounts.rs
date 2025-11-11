@@ -76,20 +76,14 @@ impl From<DomainPeriodClosing> for AccountingClosing {
 
 #[derive(InputObject)]
 pub struct ChartOfAccountsCsvImportInput {
-    pub chart_id: UUID,
     pub file: Upload,
 }
 crate::mutation_payload! { ChartOfAccountsCsvImportPayload, chart_of_accounts: ChartOfAccounts }
 
-#[derive(InputObject)]
-pub struct ChartOfAccountsCloseMonthlyInput {
-    pub chart_id: UUID,
-}
 crate::mutation_payload! { ChartOfAccountsCloseMonthlyPayload, chart_of_accounts: ChartOfAccounts }
 
 #[derive(InputObject)]
 pub struct ChartOfAccountsAddRootNodeInput {
-    pub chart_id: UUID,
     pub code: AccountCode,
     pub name: String,
     pub normal_balance_type: DebitOrCredit,
@@ -98,7 +92,6 @@ crate::mutation_payload! { ChartOfAccountsAddRootNodePayload, chart_of_accounts:
 
 #[derive(InputObject)]
 pub struct ChartOfAccountsAddChildNodeInput {
-    pub chart_id: UUID,
     pub parent: AccountCode,
     pub code: AccountCode,
     pub name: String,

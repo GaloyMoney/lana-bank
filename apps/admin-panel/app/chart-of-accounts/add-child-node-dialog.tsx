@@ -118,7 +118,6 @@ export const AddChildNodeDialog: React.FC<AddChildNodeDialogProps> = ({
       await addChildNode({
         variables: {
           input: {
-            chartId: chartData.chartOfAccounts.chartId,
             parent: parentCode,
             code: `${parentCode}.${trimmedCode}`,
             name: trimmedName,

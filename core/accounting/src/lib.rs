@@ -172,13 +172,7 @@ where
         chart_ref: &str,
         id: impl Into<LedgerAccountId> + std::fmt::Debug,
     ) -> Result<Option<LedgerAccount>, CoreAccountingError> {
-        let chart = self
-            .chart_of_accounts
-            .find_by_reference(chart_ref)
-            .await?
-            .ok_or_else(move || {
-                CoreAccountingError::ChartOfAccountsNotFoundByReference(chart_ref.to_string())
-            })?;
+        let chart = self.chart_of_accounts.find_by_reference(chart_ref).await?;
 
         Ok(self.ledger_accounts.find_by_id(sub, &chart, id).await?)
     }
@@ -190,13 +184,7 @@ where
         chart_ref: &str,
         code: String,
     ) -> Result<Option<LedgerAccount>, CoreAccountingError> {
-        let chart = self
-            .chart_of_accounts
-            .find_by_reference(chart_ref)
-            .await?
-            .ok_or_else(move || {
-                CoreAccountingError::ChartOfAccountsNotFoundByReference(chart_ref.to_string())
-            })?;
+        let chart = self.chart_of_accounts.find_by_reference(chart_ref).await?;
         Ok(self
             .ledger_accounts
             .find_by_code(sub, &chart, code.parse()?)
@@ -209,13 +197,7 @@ where
         chart_ref: &str,
         ids: &[LedgerAccountId],
     ) -> Result<HashMap<LedgerAccountId, T>, CoreAccountingError> {
-        let chart = self
-            .chart_of_accounts
-            .find_by_reference(chart_ref)
-            .await?
-            .ok_or_else(move || {
-                CoreAccountingError::ChartOfAccountsNotFoundByReference(chart_ref.to_string())
-            })?;
+        let chart = self.chart_of_accounts.find_by_reference(chart_ref).await?;
         Ok(self.ledger_accounts.find_all(&chart, ids).await?)
     }
 
@@ -227,13 +209,7 @@ where
         from: chrono::NaiveDate,
         until: Option<chrono::NaiveDate>,
     ) -> Result<Vec<LedgerAccount>, CoreAccountingError> {
-        let chart = self
-            .chart_of_accounts
-            .find_by_reference(chart_ref)
-            .await?
-            .ok_or_else(move || {
-                CoreAccountingError::ChartOfAccountsNotFoundByReference(chart_ref.to_string())
-            })?;
+        let chart = self.chart_of_accounts.find_by_reference(chart_ref).await?;
 
         Ok(self
             .ledger_accounts()
@@ -278,13 +254,13 @@ where
     pub async fn import_csv(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart_id: ChartId,
+        chart_ref: &str,
         data: String,
         trial_balance_ref: &str,
     ) -> Result<Chart, CoreAccountingError> {
         let (chart, new_account_set_ids) = self
             .chart_of_accounts()
-            .import_from_csv(sub, chart_id, data)
+            .import_from_csv(sub, chart_ref, data)
             .await?;
         if let Some(new_account_set_ids) = new_account_set_ids {
             self.trial_balances()
@@ -299,11 +275,11 @@ where
     pub async fn close_monthly(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart_id: ChartId,
+        chart_ref: &str,
     ) -> Result<Chart, CoreAccountingError> {
         Ok(self
             .chart_of_accounts()
-            .close_monthly(sub, chart_id)
+            .close_monthly(sub, chart_ref)
             .await?)
     }
 
@@ -311,13 +287,13 @@ where
     pub async fn add_root_node(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart_id: ChartId,
+        chart_ref: &str,
         spec: AccountSpec,
         trial_balance_ref: &str,
     ) -> Result<Chart, CoreAccountingError> {
         let (chart, new_account_set_id) = self
             .chart_of_accounts()
-            .add_root_node(sub, chart_id, spec)
+            .add_root_node(sub, chart_ref, spec)
             .await?;
         if let Some(new_account_set_id) = new_account_set_id {
             self.trial_balances()
@@ -332,7 +308,7 @@ where
     pub async fn add_child_node(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart_id: ChartId,
+        chart_ref: &str,
         parent_code: AccountCode,
         code: AccountCode,
         name: AccountName,
@@ -340,7 +316,7 @@ where
     ) -> Result<Chart, CoreAccountingError> {
         let (chart, new_account_set_id) = self
             .chart_of_accounts()
-            .add_child_node(sub, chart_id, parent_code, code, name)
+            .add_child_node(sub, chart_ref, parent_code, code, name)
             .await?;
         if let Some(new_account_set_id) = new_account_set_id {
             self.trial_balances()

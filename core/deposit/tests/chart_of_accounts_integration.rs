@@ -50,7 +50,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let document_storage = DocumentStorage::new(&pool, &storage);
     let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, document_storage, &jobs);
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
-    let chart = accounting
+    let chart_id = accounting
         .chart_of_accounts()
         .create_chart(
             &DummySubject,
@@ -58,7 +58,8 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
             chart_ref.clone(),
             "2025-01-01".parse::<chrono::NaiveDate>().unwrap(),
         )
-        .await?;
+        .await?
+        .id;
     let import = r#"
         2,Omnibus Parent
         1,Individual Deposit Accounts
@@ -70,10 +71,9 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         8,Frozen Deposit Accounts
         "#
     .to_string();
-    let chart_id = chart.id;
     let (chart, _) = accounting
         .chart_of_accounts()
-        .import_from_csv(&DummySubject, chart_id, import)
+        .import_from_csv(&DummySubject, &chart_ref, import)
         .await?;
 
     let code = "1".parse::<core_accounting::AccountCode>().unwrap();
@@ -130,15 +130,16 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     assert_eq!(res.entities.len(), 1);
 
     let chart_ref = format!("other-ref-{:08}", rand::rng().random_range(0..10000));
-    let chart = accounting
+    let chart_id = accounting
         .chart_of_accounts()
         .create_chart(
             &DummySubject,
             "Other Test chart".to_string(),
-            chart_ref,
+            chart_ref.to_string(),
             "2025-01-01".parse::<chrono::NaiveDate>().unwrap(),
         )
-        .await?;
+        .await?
+        .id;
 
     let import = r#"
         2,Other Omnibus Parent
@@ -151,10 +152,9 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         8,Other Frozen Deposit Accounts
         "#
     .to_string();
-    let chart_id = chart.id;
-    accounting
+    let (chart, _) = accounting
         .chart_of_accounts()
-        .import_from_csv(&DummySubject, chart_id, import)
+        .import_from_csv(&DummySubject, &chart_ref, import)
         .await?;
 
     let res = deposit
