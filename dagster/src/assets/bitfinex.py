@@ -28,7 +28,6 @@ def bitfinex_ticker(context: dg.AssetExecutionContext) -> None:
     pipe = dlt.pipeline(pipeline_name="bitfinex_ticker", destination=dest, dataset_name=dataset)
     info = pipe.run(dlt_ticker(symbol=symbol))
     context.log.info(str(info))
-    context.add_output_metadata({"symbol": symbol})
 
 def bitfinex_trades(context: dg.AssetExecutionContext) -> None:
     symbol = DEFAULT_SYMBOL
@@ -39,7 +38,6 @@ def bitfinex_trades(context: dg.AssetExecutionContext) -> None:
     pipe = dlt.pipeline(pipeline_name="bitfinex_trades", destination=dest, dataset_name=dataset)
     info = pipe.run(dlt_trades(symbol=symbol, limit=trades_limit))
     context.log.info(str(info))
-    context.add_output_metadata({"symbol": symbol})
 
 def bitfinex_order_book(context: dg.AssetExecutionContext) -> None:
     symbol = DEFAULT_SYMBOL
@@ -50,4 +48,3 @@ def bitfinex_order_book(context: dg.AssetExecutionContext) -> None:
     pipe = dlt.pipeline(pipeline_name="bitfinex_order_book", destination=dest, dataset_name=dataset)
     info = pipe.run(dlt_order_book(symbol=symbol, depth=depth))
     context.log.info(str(info))
-    context.add_output_metadata({"symbol": symbol})
