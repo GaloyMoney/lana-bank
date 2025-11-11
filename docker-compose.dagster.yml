@@ -39,8 +39,6 @@ services:
       DAGSTER_POSTGRES_USER: 'postgres_user'
       DAGSTER_POSTGRES_PASSWORD: 'postgres_password'
       DAGSTER_POSTGRES_DB: 'postgres_db'
-      TF_VAR_sa_creds: ${TF_VAR_sa_creds:-}
-      TARGET_BIGQUERY_DATASET: ${TARGET_BIGQUERY_DATASET:-}
       OTEL_EXPORTER_OTLP_ENDPOINT: 'http://otel-agent:4317'
     volumes:
       - /tmp/io_manager_storage:/tmp/io_manager_storage
