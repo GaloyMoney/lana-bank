@@ -1,4 +1,3 @@
-use chrono::{DateTime, Utc};
 use es_entity::*;
 use sqlx::PgPool;
 
@@ -15,7 +14,6 @@ use crate::primitives::{ChartId, FiscalYearId};
     columns(
         chart_id(ty = "ChartId", update(persist = false), list_for, parent),
         reference(ty = "String", create(accessor = "reference()")),
-        last_month_closed_at(ty = "Option<DateTime<Utc>>", create(persist = false)),
     ),
     tbl_prefix = "core"
 )]

@@ -34,7 +34,6 @@ pub struct FiscalYear {
     pub reference: String,
     pub tracking_account_set_id: CalaAccountSetId,
     pub first_period_opened_as_of: NaiveDate,
-    pub last_month_closed_at: Option<DateTime<Utc>>,
 
     events: EntityEvents<FiscalYearEvent>,
 }
