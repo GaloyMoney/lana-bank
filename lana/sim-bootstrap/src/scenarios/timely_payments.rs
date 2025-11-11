@@ -120,10 +120,6 @@ async fn process_activation_message(
             Span::current().record("handled", true);
             Span::current().record("event_type", event.as_ref());
 
-            app.credit()
-                .initiate_disbursal(sub, *id, UsdCents::try_from_usd(dec!(1_000_000))?)
-                .await?;
-
             return Ok(true);
         }
         _ => {}
