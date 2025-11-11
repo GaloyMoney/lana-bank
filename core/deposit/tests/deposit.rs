@@ -63,7 +63,7 @@ async fn deposit() -> anyhow::Result<()> {
         .create(
             &DummySubject,
             format!("user{}@example.com", Uuid::new_v4()),
-            "telegram123",
+            format!("telegram{}", Uuid::new_v4()),
             CustomerType::Individual,
         )
         .await?;
@@ -143,7 +143,7 @@ async fn revert_deposit() -> anyhow::Result<()> {
         .create(
             &DummySubject,
             format!("user{}@example.com", Uuid::new_v4()),
-            "telegram123",
+            format!("telegram{}", Uuid::new_v4()),
             CustomerType::Individual,
         )
         .await?;

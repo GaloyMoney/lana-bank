@@ -22,32 +22,36 @@ import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 import { PublicIdBadge } from "@/components/public-id-badge"
 
 gql`
+  fragment CustomerDetailsFragment on Customer {
+    id
+    customerId
+    email
+    telegramId
+    kycVerification
+    activity
+    level
+    customerType
+    createdAt
+    publicId
+    depositAccount {
+      id
+      status
+      publicId
+      depositAccountId
+      balance {
+        settled
+        pending
+      }
+      ledgerAccounts {
+        depositAccountId
+        frozenDepositAccountId
+      }
+    }
+  }
+
   query GetCustomerBasicDetails($id: PublicId!) {
     customerByPublicId(id: $id) {
-      id
-      customerId
-      email
-      telegramId
-      kycVerification
-      activity
-      level
-      customerType
-      createdAt
-      publicId
-      depositAccount {
-        id
-        status
-        publicId
-        depositAccountId
-        balance {
-          settled
-          pending
-        }
-        ledgerAccounts {
-          depositAccountId
-          frozenDepositAccountId
-        }
-      }
+      ...CustomerDetailsFragment
     }
   }
 `

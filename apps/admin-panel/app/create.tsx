@@ -35,6 +35,7 @@ import { CreditFacilityDisbursalInitiateDialog } from "./disbursals/create"
 import { ExecuteManualTransactionDialog } from "./journal/execute-manual-transaction"
 import { CreateCustodianDialog } from "./custodians/create"
 import { AddRootNodeDialog } from "./chart-of-accounts/add-root-node-dialog"
+import { CreateDepositAccountDialog } from "./deposit-accounts/create"
 
 import {
   CreditFacility,
@@ -128,6 +129,8 @@ const CreateButton = () => {
   const [openCreateCustodianDialog, setOpenCreateCustodianDialog] = useState(false)
   const [openExecuteManualTransaction, setOpenExecuteManualTransaction] = useState(false)
   const [openAddAccountDialog, setOpenAddAccountDialog] = useState(false)
+  const [openCreateDepositAccountDialog, setOpenCreateDepositAccountDialog] =
+    useState(false)
   const [showMenu, setShowMenu] = useState(false)
 
   const { customer, facility, setCustomer } = useCreateContext()
@@ -160,6 +163,15 @@ const CreateButton = () => {
         setCreateDeposit(true)
       },
       dataTestId: "create-deposit-button",
+      allowedPaths: [PATH_CONFIGS.CUSTOMER_DETAILS],
+    },
+    {
+      label: t("menuItems.depositAccount"),
+      onClick: () => {
+        if (!customer) return
+        setOpenCreateDepositAccountDialog(true)
+      },
+      dataTestId: "create-deposit-account-button",
       allowedPaths: [PATH_CONFIGS.CUSTOMER_DETAILS],
     },
     {
@@ -262,6 +274,16 @@ const CreateButton = () => {
           isPathAllowed &&
           customer?.depositAccount?.status === DepositAccountStatus.Active
         )
+      }
+
+      // Hide deposit account creation if account already exists
+      if (item.label === t("menuItems.depositAccount")) {
+        return isPathAllowed && !customer?.depositAccount
+      }
+
+      // Show credit facility proposal only if customer has a deposit account
+      if (item.label === t("menuItems.creditFacility")) {
+        return isPathAllowed && Boolean(customer?.depositAccount)
       }
 
       // Hide disbursal option if facility is single disbursal and already has disbursals
@@ -380,6 +402,17 @@ const CreateButton = () => {
         open={openAddAccountDialog}
         onOpenChange={setOpenAddAccountDialog}
       />
+
+      {customer && !customer.depositAccount && (
+        <CreateDepositAccountDialog
+          openCreateDepositAccountDialog={openCreateDepositAccountDialog}
+          setOpenCreateDepositAccountDialog={() => {
+            setCustomerToNullIfNotInCustomerDetails()
+            setOpenCreateDepositAccountDialog(false)
+          }}
+          customerId={customer.customerId}
+        />
+      )}
 
       {customer && customer.depositAccount && (
         <>

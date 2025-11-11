@@ -360,6 +360,14 @@
         },
         "noAccount": "No hay cuenta de depósito disponible"
       },
+      "createDepositAccount": {
+        "title": "Crear cuenta de depósito",
+        "descriptionWithEmail": "¿Estás seguro de que quieres crear una nueva cuenta de depósito para <b>{email}</b>?",
+        "buttons": {
+          "submit": "Crear cuenta de depósito"
+        },
+        "success": "Cuenta de depósito creada exitosamente"
+      },
       "updateTelegram": {
         "title": "Actualizar ID de Telegram",
         "description": "Actualizar el ID de Telegram para este cliente",
@@ -1960,7 +1968,8 @@
       "custodian": "Agregar Custodio",
       "executeManualTransaction": "Registrar partida manual",
       "role": "Rol",
-      "account": "Cuenta"
+      "account": "Cuenta",
+      "depositAccount": "Cuenta de depósito"
     }
   },
   "DataTable": {

@@ -64,7 +64,7 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
         .create(
             &DummySubject,
             format!("user{}@example.com", Uuid::new_v4()),
-            "telegram123",
+            format!("telegram{}", Uuid::new_v4()),
             CustomerType::Individual,
         )
         .await?;
