@@ -43,16 +43,19 @@ impl FiscalYearLedger {
             .cala
             .ledger_operation_from_db_op(op.with_db_time().await?);
 
-        let mut metadata = tracking_account_set
+        let mut account_set_metadata = tracking_account_set
             .values()
             .clone()
             .metadata
             .unwrap_or_else(|| serde_json::json!({}));
-        AccountingClosingMetadata::update_metadata(&mut metadata, closed_as_of);
+        AccountingClosingMetadata::update_with_monthly_closing(
+            &mut account_set_metadata,
+            closed_as_of,
+        );
 
         let mut update_values = AccountSetUpdate::default();
         update_values
-            .metadata(Some(metadata))
+            .metadata(Some(account_set_metadata))
             .expect("Failed to serialize metadata");
 
         tracking_account_set.update(update_values);
