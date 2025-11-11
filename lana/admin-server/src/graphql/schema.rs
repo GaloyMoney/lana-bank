@@ -2052,7 +2052,7 @@ impl Mutation {
             ctx,
             app.accounting().add_root_node(
                 sub,
-                input.chart_id.into(),
+                CHART_REF.0,
                 input.try_into()?,
                 TRIAL_BALANCE_STATEMENT_NAME,
             )

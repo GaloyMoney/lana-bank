@@ -287,13 +287,13 @@ where
     pub async fn add_root_node(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart_id: ChartId,
+        chart_ref: &str,
         spec: AccountSpec,
         trial_balance_ref: &str,
     ) -> Result<Chart, CoreAccountingError> {
         let (chart, new_account_set_id) = self
             .chart_of_accounts()
-            .add_root_node(sub, chart_id, spec)
+            .add_root_node(sub, chart_ref, spec)
             .await?;
         if let Some(new_account_set_id) = new_account_set_id {
             self.trial_balances()

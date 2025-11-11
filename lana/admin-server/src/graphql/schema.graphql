@@ -256,7 +256,6 @@ type ChartOfAccountsAddChildNodePayload {
 }
 
 input ChartOfAccountsAddRootNodeInput {
-	chartId: UUID!
 	code: AccountCode!
 	name: String!
 	normalBalanceType: DebitOrCredit!

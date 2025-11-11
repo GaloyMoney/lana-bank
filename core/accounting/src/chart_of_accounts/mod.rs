@@ -219,20 +219,20 @@ where
     pub async fn add_root_node(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: impl Into<ChartId> + std::fmt::Debug,
+        chart_ref: &str,
         spec: impl Into<AccountSpec> + std::fmt::Debug,
     ) -> Result<(Chart, Option<CalaAccountSetId>), ChartOfAccountsError> {
-        let id = id.into();
         let spec = spec.into();
+
         self.authz
             .enforce_permission(
                 sub,
-                CoreAccountingObject::chart(id),
+                CoreAccountingObject::all_charts(),
                 CoreAccountingAction::CHART_UPDATE,
             )
             .await?;
-        let mut chart = self.repo.find_by_id(id).await?;
 
+        let mut chart = self.find_by_reference(chart_ref).await?;
         let es_entity::Idempotent::Executed(NewChartAccountDetails {
             parent_account_set_id,
             new_account_set,

@@ -27,19 +27,16 @@ teardown_file() {
 
 @test "accounting: add new root node into chart of accounts" {
   exec_admin_graphql 'chart-of-accounts'
-  chart_id=$(graphql_output '.data.chartOfAccounts.chartId')
   n_children_before=$(graphql_output '.data.chartOfAccounts.children | length')
   
   new_code="$(( RANDOM % 9000 + 1000 ))"
   name="Root Account #$new_code"
   variables=$(
     jq -n \
-    --arg id "$chart_id" \
     --arg code "$new_code" \
     --arg name "$name" \
     '{
       input: {
-        chartId: $id,
         code: $code,
         name: $name,
         normalBalanceType: "CREDIT"

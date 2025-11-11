@@ -88,7 +88,6 @@ crate::mutation_payload! { ChartOfAccountsCloseMonthlyPayload, chart_of_accounts
 
 #[derive(InputObject)]
 pub struct ChartOfAccountsAddRootNodeInput {
-    pub chart_id: UUID,
     pub code: AccountCode,
     pub name: String,
     pub normal_balance_type: DebitOrCredit,
