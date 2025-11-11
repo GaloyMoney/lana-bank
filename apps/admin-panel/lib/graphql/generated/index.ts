@@ -1112,6 +1112,15 @@ export type DepositAccountBalance = {
   settled: Scalars['UsdCents']['output'];
 };
 
+export type DepositAccountCreateInput = {
+  customerId: Scalars['UUID']['input'];
+};
+
+export type DepositAccountCreatePayload = {
+  __typename?: 'DepositAccountCreatePayload';
+  account: DepositAccount;
+};
+
 export type DepositAccountFreezeInput = {
   depositAccountId: Scalars['UUID']['input'];
 };
@@ -1564,6 +1573,7 @@ export type Mutation = {
   customerDocumentDownloadLinkGenerate: CustomerDocumentDownloadLinksGeneratePayload;
   customerEmailUpdate: CustomerEmailUpdatePayload;
   customerTelegramIdUpdate: CustomerTelegramIdUpdatePayload;
+  depositAccountCreate: DepositAccountCreatePayload;
   depositAccountFreeze: DepositAccountFreezePayload;
   depositAccountUnfreeze: DepositAccountUnfreezePayload;
   depositModuleConfigure: DepositModuleConfigurePayload;
@@ -1726,6 +1736,11 @@ export type MutationCustomerEmailUpdateArgs = {
 
 export type MutationCustomerTelegramIdUpdateArgs = {
   input: CustomerTelegramIdUpdateInput;
+};
+
+
+export type MutationDepositAccountCreateArgs = {
+  input: DepositAccountCreateInput;
 };
 
 
