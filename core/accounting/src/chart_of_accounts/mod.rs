@@ -188,19 +188,19 @@ where
     pub async fn close_monthly(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: impl Into<ChartId> + std::fmt::Debug,
+        chart_ref: &str,
     ) -> Result<Chart, ChartOfAccountsError> {
-        let id = id.into();
+        let now = crate::time::now();
+
         self.authz
             .enforce_permission(
                 sub,
-                CoreAccountingObject::chart(id),
+                CoreAccountingObject::all_charts(),
                 CoreAccountingAction::CHART_CLOSE_MONTHLY,
             )
             .await?;
-        let mut chart = self.repo.find_by_id(id).await?;
 
-        let now = crate::time::now();
+        let mut chart = self.find_by_reference(chart_ref).await?;
         let closed_as_of_date =
             if let Idempotent::Executed(date) = chart.close_last_monthly_period(now)? {
                 date

@@ -80,10 +80,6 @@ pub struct ChartOfAccountsCsvImportInput {
 }
 crate::mutation_payload! { ChartOfAccountsCsvImportPayload, chart_of_accounts: ChartOfAccounts }
 
-#[derive(InputObject)]
-pub struct ChartOfAccountsCloseMonthlyInput {
-    pub chart_id: UUID,
-}
 crate::mutation_payload! { ChartOfAccountsCloseMonthlyPayload, chart_of_accounts: ChartOfAccounts }
 
 #[derive(InputObject)]
