@@ -10,12 +10,12 @@ import { GetCreditFacilityQuery } from "@/lib/graphql/generated"
 
 import Balance from "@/components/balance"
 
-type RepaymentPlan = NonNullable<
-  NonNullable<GetCreditFacilityQuery["creditFacility"]>["repaymentPlan"][number]
->
+type CreditFacilityData = NonNullable<GetCreditFacilityQuery["creditFacility"]>
+
+type RepaymentPlan = NonNullable<CreditFacilityData["repaymentPlan"][number]>
 
 type CreditFacilityRepaymentPlanProps = {
-  creditFacility: NonNullable<GetCreditFacilityQuery["creditFacility"]>
+  creditFacility: CreditFacilityData
 }
 
 export const CreditFacilityRepaymentPlan: React.FC<CreditFacilityRepaymentPlanProps> = ({

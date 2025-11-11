@@ -59,6 +59,13 @@ gql`
         effective
         txId
       }
+      ... on PendingCreditFacilityCollateralizationUpdated {
+        pendingState: state
+        collateral
+        price
+        recordedAt
+        effective
+      }
     }
   }
 

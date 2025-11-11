@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl"
 import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
 import { PendingCreditFacilityStatusBadge } from "./status-badge"
-import { PendingCreditFacilityCollateralizationStateLabel } from "./label"
+import { PendingFacilityCollateralizationStateLabel } from "./label"
 
 import {
   PendingCreditFacility,
@@ -101,7 +101,7 @@ const columns = (t: (key: string) => string): Column<PendingCreditFacility>[] =>
   {
     key: "collateralizationState",
     label: t("table.headers.collateralizationState"),
-    render: (state) => <PendingCreditFacilityCollateralizationStateLabel state={state} />,
+    render: (state) => <PendingFacilityCollateralizationStateLabel state={state} />,
   },
   {
     key: "createdAt",

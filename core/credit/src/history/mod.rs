@@ -8,7 +8,16 @@ pub use repo::HistoryRepo;
 
 #[derive(Default, serde::Deserialize, serde::Serialize)]
 pub struct CreditFacilityHistory {
-    pub(super) entries: Vec<CreditFacilityHistoryEntry>,
+    entries: Vec<CreditFacilityHistoryEntry>,
+}
+
+impl IntoIterator for CreditFacilityHistory {
+    type Item = CreditFacilityHistoryEntry;
+    type IntoIter = std::iter::Rev<std::vec::IntoIter<CreditFacilityHistoryEntry>>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.entries.into_iter().rev()
+    }
 }
 
 impl CreditFacilityHistory {
@@ -137,6 +146,24 @@ impl CreditFacilityHistory {
                         },
                     ));
             }
+            PendingCreditFacilityCollateralizationChanged {
+                state,
+                collateral,
+                price,
+                recorded_at,
+                effective,
+                ..
+            } => self.entries.push(
+                CreditFacilityHistoryEntry::PendingCreditFacilityCollateralization(
+                    PendingCreditFacilityCollateralizationUpdated {
+                        state: *state,
+                        collateral: *collateral,
+                        recorded_at: *recorded_at,
+                        effective: *effective,
+                        price: *price,
+                    },
+                ),
+            ),
             FacilityCompleted { .. } => {}
             ObligationCreated { .. } => {}
             ObligationDue { .. } => {}
@@ -144,7 +171,6 @@ impl CreditFacilityHistory {
             ObligationDefaulted { .. } => {}
             LiquidationProcessConcluded { .. } => {}
             ObligationCompleted { .. } => {}
-            PendingCreditFacilityCollateralizationChanged { .. } => {}
         }
     }
 }

@@ -89,7 +89,7 @@ type CreditFacilityDisbursalExecuted {
 	txId: UUID!
 }
 
-union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityApproved | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityInterestAccrued | CreditFacilityLiquidationAmountReserved
+union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityApproved | PendingCreditFacilityCollateralizationUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityInterestAccrued | CreditFacilityLiquidationAmountReserved
 
 type CreditFacilityIncrementalPayment {
 	cents: UsdCents!
@@ -327,6 +327,19 @@ type PageInfo {
 type PaymentEntry {
 	recordedAt: Timestamp!
 	payment: CreditFacilityPaymentAllocation!
+}
+
+enum PendingCreditFacilityCollateralizationState {
+	FULLY_COLLATERALIZED
+	UNDER_COLLATERALIZED
+}
+
+type PendingCreditFacilityCollateralizationUpdated {
+	state: PendingCreditFacilityCollateralizationState!
+	collateral: Satoshis!
+	price: UsdCents!
+	recordedAt: Timestamp!
+	effective: Date!
 }
 
 enum Period {

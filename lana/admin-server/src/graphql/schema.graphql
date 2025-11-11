@@ -563,7 +563,7 @@ type CreditFacilityEdge {
 	cursor: String!
 }
 
-union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityApproved | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityInterestAccrued | CreditFacilityLiquidationAmountReserved
+union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityApproved | PendingCreditFacilityCollateralizationUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityInterestAccrued | CreditFacilityLiquidationAmountReserved
 
 type CreditFacilityIncrementalPayment {
 	cents: UsdCents!
@@ -1640,6 +1640,14 @@ type PendingCreditFacilityCollateralUpdatePayload {
 enum PendingCreditFacilityCollateralizationState {
 	FULLY_COLLATERALIZED
 	UNDER_COLLATERALIZED
+}
+
+type PendingCreditFacilityCollateralizationUpdated {
+	state: PendingCreditFacilityCollateralizationState!
+	collateral: Satoshis!
+	price: UsdCents!
+	recordedAt: Timestamp!
+	effective: Date!
 }
 
 type PendingCreditFacilityConnection {

@@ -2,10 +2,12 @@ import { DetailItemProps, DetailsCard } from "@lana/web/components/details"
 
 import React from "react"
 
-import { CreditFacility } from "@/lib/graphql/generated"
+import { GetCreditFacilityQuery } from "@/lib/graphql/generated"
 import { formatPeriod, removeUnderscore } from "@/lib/utils"
 
-function TermsCard({ data }: { data: NonNullable<CreditFacility> }) {
+type CreditFacilityData = NonNullable<GetCreditFacilityQuery["creditFacility"]>
+
+function TermsCard({ data }: { data: CreditFacilityData }) {
   const terms: DetailItemProps[] = [
     {
       label: "Duration",

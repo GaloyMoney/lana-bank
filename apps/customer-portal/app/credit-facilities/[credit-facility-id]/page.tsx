@@ -26,6 +26,7 @@ import { LoanAndCreditFacilityStatusBadge } from "@/app/credit-facility"
 
 import { getCreditFacility } from "@/lib/graphql/query/get-cf"
 import { removeUnderscore } from "@/lib/utils"
+import { GetCreditFacilityQuery } from "@/lib/graphql/generated"
 
 gql`
   query GetCreditFacility($id: UUID!) {
@@ -150,10 +151,19 @@ gql`
           txId
           effective
         }
+        ... on PendingCreditFacilityCollateralizationUpdated {
+          pendingState: state
+          collateral
+          price
+          recordedAt
+          effective
+        }
       }
     }
   }
 `
+
+type CreditFacilityData = NonNullable<GetCreditFacilityQuery["creditFacility"]>
 
 async function page({ params }: { params: Promise<{ "credit-facility-id": string }> }) {
   const { "credit-facility-id": id } = await params
@@ -165,19 +175,21 @@ async function page({ params }: { params: Promise<{ "credit-facility-id": string
     return <div>Not found</div>
   }
 
+  const creditFacility: CreditFacilityData = data.creditFacility
+
   const details: DetailItemProps[] = [
     {
       label: "Activated At",
-      value: formatDate(data.creditFacility.activatedAt),
+      value: formatDate(creditFacility.activatedAt),
     },
     {
       label: "Collateralization State",
-      value: removeUnderscore(data.creditFacility.collateralizationState),
+      value: removeUnderscore(creditFacility.collateralizationState),
     },
     {
       label: "Matures At",
-      value: data.creditFacility.maturesAt
-        ? formatDate(data.creditFacility.maturesAt)
+      value: creditFacility.maturesAt
+        ? formatDate(creditFacility.maturesAt)
         : "N/A",
     },
     {
@@ -185,7 +197,7 @@ async function page({ params }: { params: Promise<{ "credit-facility-id": string
       value: (
         <LoanAndCreditFacilityStatusBadge
           data-testid="credit-facility-status-badge"
-          status={data.creditFacility.status}
+          status={creditFacility.status}
         />
       ),
     },

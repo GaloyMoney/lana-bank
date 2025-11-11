@@ -9,7 +9,7 @@ import Balance from "@/components/balance/balance"
 import { GetCustomerPendingCreditFacilitiesQuery } from "@/lib/graphql/generated"
 
 import { PendingCreditFacilityStatusBadge } from "@/app/pending-credit-facilities/status-badge"
-import { PendingCreditFacilityCollateralizationStateLabel } from "@/app/pending-credit-facilities/label"
+import { PendingFacilityCollateralizationStateLabel } from "@/app/pending-credit-facilities/label"
 import DataTable, { Column } from "@/components/data-table"
 
 type PendingCreditFacility = NonNullable<
@@ -48,9 +48,7 @@ export const CustomerPendingCreditFacilitiesTable: React.FC<
     {
       key: "collateralizationState",
       header: t("table.headers.collateralizationState"),
-      render: (state) => (
-        <PendingCreditFacilityCollateralizationStateLabel state={state} />
-      ),
+      render: (state) => <PendingFacilityCollateralizationStateLabel state={state} />,
     },
     {
       key: "createdAt",

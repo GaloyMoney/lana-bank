@@ -8,6 +8,7 @@ pub enum CreditFacilityHistoryEntry {
     Payment(CreditFacilityIncrementalPayment),
     Collateral(CreditFacilityCollateralUpdated),
     Approved(CreditFacilityApproved),
+    PendingCreditFacilityCollateralization(PendingCreditFacilityCollateralizationUpdated),
     Collateralization(CreditFacilityCollateralizationUpdated),
     Disbursal(CreditFacilityDisbursalExecuted),
     Interest(CreditFacilityInterestAccrued),
@@ -37,6 +38,15 @@ pub struct CreditFacilityApproved {
     pub recorded_at: Timestamp,
     pub effective: Date,
     pub tx_id: UUID,
+}
+
+#[derive(SimpleObject)]
+pub struct PendingCreditFacilityCollateralizationUpdated {
+    pub state: PendingCreditFacilityCollateralizationState,
+    pub collateral: Satoshis,
+    pub price: UsdCents,
+    pub recorded_at: Timestamp,
+    pub effective: Date,
 }
 
 #[derive(SimpleObject)]
@@ -99,6 +109,11 @@ impl From<lana_app::credit::CreditFacilityHistoryEntry> for CreditFacilityHistor
             lana_app::credit::CreditFacilityHistoryEntry::ReservedForLiquidation(liquidation) => {
                 CreditFacilityHistoryEntry::ReservedForLiquidation(liquidation.into())
             }
+            lana_app::credit::CreditFacilityHistoryEntry::PendingCreditFacilityCollateralization(collateralization) => {
+                CreditFacilityHistoryEntry::PendingCreditFacilityCollateralization(
+                    collateralization.into()
+                )
+            }
         }
     }
 }
@@ -133,6 +148,22 @@ impl From<lana_app::credit::CreditFacilityApproved> for CreditFacilityApproved {
             recorded_at: origination.recorded_at.into(),
             effective: origination.effective.into(),
             tx_id: UUID::from(origination.tx_id),
+        }
+    }
+}
+
+impl From<lana_app::credit::PendingCreditFacilityCollateralizationUpdated>
+    for PendingCreditFacilityCollateralizationUpdated
+{
+    fn from(
+        collateralization: lana_app::credit::PendingCreditFacilityCollateralizationUpdated,
+    ) -> Self {
+        Self {
+            state: collateralization.state,
+            collateral: collateralization.collateral,
+            recorded_at: collateralization.recorded_at.into(),
+            effective: collateralization.effective.into(),
+            price: collateralization.price.into_inner(),
         }
     }
 }
