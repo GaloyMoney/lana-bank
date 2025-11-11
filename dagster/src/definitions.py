@@ -4,7 +4,7 @@ import dagster as dg
 from typing import Callable
 
 from src.core import lana_assetifier
-from src.assets import iris_dataset_size
+from src.assets import iris_dataset_size, bitfinex_ticker, bitfinex_trades, bitfinex_order_book
 from src.otel import init_telemetry
 
 class DefinitionsBuilder:
@@ -22,10 +22,12 @@ class DefinitionsBuilder:
     def build(self) -> dg.Definitions:
         return dg.Definitions(assets=self.assets)
 
-
 definition_builder = DefinitionsBuilder()
 
 definition_builder.init_telemetry()
 definition_builder.add_callable_as_asset(iris_dataset_size)
+definition_builder.add_callable_as_asset(bitfinex_ticker)
+definition_builder.add_callable_as_asset(bitfinex_trades)
+definition_builder.add_callable_as_asset(bitfinex_order_book)
 
 defs = definition_builder.build()
