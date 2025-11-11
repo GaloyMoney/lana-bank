@@ -27,9 +27,7 @@ use manual_transaction::ManualTransactions;
 use tracing::instrument;
 
 pub use balance_sheet::{BalanceSheet, BalanceSheets};
-pub use chart_of_accounts::{
-    Chart, ChartOfAccounts, PeriodClosing, error as chart_of_accounts_error, tree,
-};
+pub use chart_of_accounts::{Chart, ChartOfAccounts, error as chart_of_accounts_error, tree};
 pub use csv::AccountingCsvExports;
 use error::CoreAccountingError;
 pub use fiscal_year::{FiscalYear, FiscalYears, error as fiscal_year_error};

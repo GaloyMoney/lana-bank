@@ -32,12 +32,7 @@ async fn ledger_account_ancestors() -> anyhow::Result<()> {
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
     accounting
         .chart_of_accounts()
-        .create_chart(
-            &DummySubject,
-            "Test chart".to_string(),
-            chart_ref.clone(),
-            "2025-01-01".parse::<chrono::NaiveDate>().unwrap(),
-        )
+        .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())
         .await?;
     let import = r#"
         1,,Root
@@ -161,12 +156,7 @@ async fn ledger_account_children() -> anyhow::Result<()> {
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
     accounting
         .chart_of_accounts()
-        .create_chart(
-            &DummySubject,
-            "Test chart".to_string(),
-            chart_ref.clone(),
-            "2025-01-01".parse::<chrono::NaiveDate>().unwrap(),
-        )
+        .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())
         .await?;
     let import = r#"
         1,,Root
@@ -258,12 +248,7 @@ async fn internal_account_contains_coa_account() -> anyhow::Result<()> {
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
     accounting
         .chart_of_accounts()
-        .create_chart(
-            &DummySubject,
-            "Test chart".to_string(),
-            chart_ref.clone(),
-            "2025-01-01".parse::<chrono::NaiveDate>().unwrap(),
-        )
+        .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())
         .await?;
     let import = r#"
         1,,Root

@@ -1,5 +1,4 @@
 use cala_ledger::{account::NewAccount, account_set::NewAccountSet};
-use chrono::{DateTime, NaiveDate, Utc};
 use derive_builder::Builder;
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
@@ -22,8 +21,6 @@ pub enum ChartEvent {
         account_set_id: CalaAccountSetId,
         name: String,
         reference: String,
-        first_period_opened_as_of: chrono::NaiveDate,
-        first_period_opened_at: DateTime<Utc>,
     },
 }
 
@@ -34,7 +31,6 @@ pub struct Chart {
     pub account_set_id: CalaAccountSetId,
     pub reference: String,
     pub name: String,
-    pub monthly_closing: PeriodClosing,
 
     events: EntityEvents<ChartEvent>,
 
@@ -293,21 +289,12 @@ impl TryFromEvents<ChartEvent> for Chart {
                     account_set_id,
                     reference,
                     name,
-                    first_period_opened_as_of,
-                    first_period_opened_at,
                     ..
                 } => {
-                    let last_monthly_closed_as_of = first_period_opened_as_of
-                        .pred_opt()
-                        .expect("Failed to get day prior to opening date");
-                    let monthly_closing =
-                        PeriodClosing::new(last_monthly_closed_as_of, *first_period_opened_at);
-
                     builder = builder
                         .id(*id)
                         .account_set_id(*account_set_id)
                         .reference(reference.to_string())
-                        .monthly_closing(monthly_closing)
                         .name(name.to_string());
                 }
             }
@@ -325,7 +312,6 @@ pub struct NewChart {
     pub(super) account_set_id: CalaAccountSetId,
     pub(super) name: String,
     pub(super) reference: String,
-    pub(super) first_period_opened_as_of: chrono::NaiveDate,
 }
 
 impl NewChart {
@@ -343,8 +329,6 @@ impl IntoEvents<ChartEvent> for NewChart {
                 account_set_id: self.account_set_id,
                 name: self.name,
                 reference: self.reference,
-                first_period_opened_as_of: self.first_period_opened_as_of,
-                first_period_opened_at: crate::time::now(),
             }],
         )
     }
@@ -390,21 +374,6 @@ impl From<&NewChartNode> for ChartNodeDetails {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct PeriodClosing {
-    pub closed_as_of: chrono::NaiveDate,
-    pub closed_at: DateTime<Utc>,
-}
-
-impl PeriodClosing {
-    fn new(effective: NaiveDate, recorded_at: DateTime<Utc>) -> Self {
-        Self {
-            closed_as_of: effective,
-            closed_at: recorded_at,
-        }
-    }
-}
-
 #[cfg(test)]
 mod test {
 
@@ -414,19 +383,13 @@ mod test {
         Chart::try_from_events(EntityEvents::init(ChartId::new(), events)).unwrap()
     }
 
-    fn initial_events_with_opened_date(first_period_opened_as_of: NaiveDate) -> Vec<ChartEvent> {
+    fn initial_events() -> Vec<ChartEvent> {
         vec![ChartEvent::Initialized {
             id: ChartId::new(),
             account_set_id: CalaAccountSetId::new(),
             name: "Test Chart".to_string(),
             reference: "test-chart".to_string(),
-            first_period_opened_at: crate::time::now(),
-            first_period_opened_as_of,
         }]
-    }
-
-    fn initial_events() -> Vec<ChartEvent> {
-        initial_events_with_opened_date("2025-01-01".parse::<NaiveDate>().unwrap())
     }
 
     fn default_chart() -> (

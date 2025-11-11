@@ -38,12 +38,6 @@ export type Scalars = {
   UsdCents: { input: UsdCents; output: UsdCents; }
 };
 
-export type AccountingClosing = {
-  __typename?: 'AccountingClosing';
-  closedAsOf: Scalars['Date']['output'];
-  closedAt: Scalars['Timestamp']['output'];
-};
-
 export type AccountingCsvDocument = {
   __typename?: 'AccountingCsvDocument';
   createdAt: Scalars['Timestamp']['output'];
@@ -271,7 +265,6 @@ export type ChartOfAccounts = {
   chartId: Scalars['UUID']['output'];
   children: Array<ChartNode>;
   id: Scalars['ID']['output'];
-  monthlyClosing: AccountingClosing;
   name: Scalars['String']['output'];
 };
 

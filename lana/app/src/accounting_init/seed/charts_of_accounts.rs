@@ -22,8 +22,7 @@ pub(crate) async fn init(
         ..
     } = accounting_init_config.clone();
 
-    let dummy_opening_date = NaiveDate::default(); // TODO remove this param from 'create_chart_of_accounts'
-    create_chart_of_accounts(chart_of_accounts, dummy_opening_date).await?;
+    create_chart_of_accounts(chart_of_accounts).await?;
 
     if let Some(opening_date) = chart_of_accounts_opening_date {
         init_first_fiscal_year(chart_of_accounts, fiscal_year, opening_date).await?;
@@ -48,7 +47,6 @@ pub(crate) async fn init(
 
 async fn create_chart_of_accounts(
     chart_of_accounts: &ChartOfAccounts,
-    opening_date: chrono::NaiveDate,
 ) -> Result<(), AccountingInitError> {
     if chart_of_accounts
         .maybe_find_by_reference(CHART_REF)
@@ -60,7 +58,6 @@ async fn create_chart_of_accounts(
                 &Subject::System,
                 CHART_NAME.to_string(),
                 CHART_REF.to_string(),
-                opening_date,
             )
             .await?;
     }
@@ -142,7 +139,7 @@ async fn seed_chart_of_accounts(
 pub async fn init_first_fiscal_year(
     chart_of_accounts: &ChartOfAccounts,
     fiscal_year: &FiscalYears,
-    chart_of_accounts_opening_date: NaiveDate,
+    chart_of_accounts_opening_date: chrono::NaiveDate,
 ) -> Result<(), AccountingInitError> {
     let chart = chart_of_accounts.find_by_reference(CHART_REF).await?;
 

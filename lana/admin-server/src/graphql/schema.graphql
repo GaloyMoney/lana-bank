@@ -1,10 +1,5 @@
 scalar AccountCode
 
-type AccountingClosing {
-	closedAsOf: Date!
-	closedAt: Timestamp!
-}
-
 type AccountingCsvDocument {
 	id: ID!
 	documentId: UUID!
@@ -240,7 +235,6 @@ type ChartOfAccounts {
 	id: ID!
 	chartId: UUID!
 	name: String!
-	monthlyClosing: AccountingClosing!
 	children: [ChartNode!]!
 }
 
