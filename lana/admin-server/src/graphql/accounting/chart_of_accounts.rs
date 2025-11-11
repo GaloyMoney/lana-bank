@@ -96,7 +96,6 @@ crate::mutation_payload! { ChartOfAccountsAddRootNodePayload, chart_of_accounts:
 
 #[derive(InputObject)]
 pub struct ChartOfAccountsAddChildNodeInput {
-    pub chart_id: UUID,
     pub parent: AccountCode,
     pub code: AccountCode,
     pub name: String,

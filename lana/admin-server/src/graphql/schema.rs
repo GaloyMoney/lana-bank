@@ -2072,7 +2072,7 @@ impl Mutation {
             ctx,
             app.accounting().add_child_node(
                 sub,
-                input.chart_id.into(),
+                CHART_REF.0,
                 input.parent.try_into()?,
                 input.code.try_into()?,
                 input.name.parse()?,

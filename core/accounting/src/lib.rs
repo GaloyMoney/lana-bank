@@ -308,7 +308,7 @@ where
     pub async fn add_child_node(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart_id: ChartId,
+        chart_ref: &str,
         parent_code: AccountCode,
         code: AccountCode,
         name: AccountName,
@@ -316,7 +316,7 @@ where
     ) -> Result<Chart, CoreAccountingError> {
         let (chart, new_account_set_id) = self
             .chart_of_accounts()
-            .add_child_node(sub, chart_id, parent_code, code, name)
+            .add_child_node(sub, chart_ref, parent_code, code, name)
             .await?;
         if let Some(new_account_set_id) = new_account_set_id {
             self.trial_balances()

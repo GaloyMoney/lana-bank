@@ -245,7 +245,6 @@ type ChartOfAccounts {
 }
 
 input ChartOfAccountsAddChildNodeInput {
-	chartId: UUID!
 	parent: AccountCode!
 	code: AccountCode!
 	name: String!
