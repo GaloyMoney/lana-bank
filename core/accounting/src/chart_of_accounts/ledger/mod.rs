@@ -2,7 +2,9 @@ pub mod error;
 
 use tracing::instrument;
 
-use cala_ledger::{CalaLedger, DebitOrCredit, JournalId, account_set::NewAccountSet};
+use cala_ledger::{
+    CalaLedger, DebitOrCredit, JournalId, LedgerOperation, account_set::NewAccountSet,
+};
 
 use error::*;
 
@@ -25,13 +27,9 @@ impl ChartLedger {
     #[instrument(name = "chart_ledger.create_chart_root_account_set_in_op", skip(self, op, chart), fields(chart_id = %chart.id, chart_name = %chart.name), err)]
     pub async fn create_chart_root_account_set_in_op(
         &self,
-        op: es_entity::DbOp<'_>,
+        op: &mut LedgerOperation<'_>,
         chart: &Chart,
     ) -> Result<(), ChartLedgerError> {
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
-
         let new_account_set = NewAccountSet::builder()
             .id(chart.account_set_id)
             .journal_id(self.journal_id)
@@ -44,10 +42,9 @@ impl ChartLedger {
 
         self.cala
             .account_sets()
-            .create_in_op(&mut op, new_account_set)
+            .create_in_op(op, new_account_set)
             .await?;
 
-        op.commit().await?;
         Ok(())
     }
 }

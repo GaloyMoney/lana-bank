@@ -101,7 +101,8 @@ where
         document_storage: DocumentStorage,
         jobs: &Jobs,
     ) -> Self {
-        let chart_of_accounts = ChartOfAccounts::new(pool, authz, cala, journal_id);
+        let fiscal_year = FiscalYears::new(pool, authz, cala, journal_id);
+        let chart_of_accounts = ChartOfAccounts::new(pool, authz, cala, &fiscal_year, journal_id);
         let journal = Journal::new(authz, cala, journal_id);
         let ledger_accounts = LedgerAccounts::new(authz, cala, journal_id);
         let manual_transactions =
@@ -112,7 +113,6 @@ where
         let balance_sheets = BalanceSheets::new(pool, authz, cala, journal_id);
         let csvs = AccountingCsvExports::new(authz, jobs, document_storage, &ledger_accounts);
         let trial_balances = TrialBalances::new(pool, authz, cala, journal_id);
-        let fiscal_year = FiscalYears::new(pool, authz, cala, journal_id);
         Self {
             authz: authz.clone(),
             chart_of_accounts,

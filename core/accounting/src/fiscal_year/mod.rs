@@ -10,7 +10,7 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use chrono::Datelike;
 
-use cala_ledger::CalaLedger;
+use cala_ledger::{CalaLedger, LedgerOperation};
 
 use crate::{
     FiscalYearId,
@@ -74,26 +74,18 @@ where
 
     #[instrument(
         name = "core_accounting.fiscal_year.add_closing_control"
-        skip(self),
+        skip(self, op),
         err
     )]
-    pub async fn add_closing_control(
+    pub async fn add_closing_control_in_op(
         &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        op: LedgerOperation<'_>,
         tracking_account_set_id: impl Into<CalaAccountSetId> + std::fmt::Debug,
     ) -> Result<(), FiscalYearError> {
         let tracking_account_set_id = tracking_account_set_id.into();
 
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreAccountingObject::all_fiscal_years(),
-                CoreAccountingAction::FISCAL_YEAR_CLOSE,
-            )
-            .await?;
-
         self.ledger
-            .attach_closing_controls_to_account_set(tracking_account_set_id)
+            .attach_closing_controls_to_account_set_in_op(op, tracking_account_set_id)
             .await?;
 
         Ok(())

@@ -14,9 +14,12 @@ use authz::PermissionCheck;
 
 use cala_ledger::{CalaLedger, account::Account};
 
-use crate::primitives::{
-    AccountCode, AccountIdOrCode, AccountName, AccountSpec, CalaAccountSetId, CalaJournalId,
-    ChartId, CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
+use crate::{
+    fiscal_year::FiscalYears,
+    primitives::{
+        AccountCode, AccountIdOrCode, AccountName, AccountSpec, CalaAccountSetId, CalaJournalId,
+        ChartId, CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
+    },
 };
 
 #[cfg(feature = "json-schema")]
@@ -39,8 +42,9 @@ where
 {
     repo: ChartRepo,
     chart_ledger: ChartLedger,
-    cala: CalaLedger, // TODO: move calls into chart ledger
+    cala: CalaLedger,
     authz: Perms,
+    fiscal_year: FiscalYears<Perms>,
     journal_id: CalaJournalId,
 }
 
@@ -54,6 +58,7 @@ where
             chart_ledger: self.chart_ledger.clone(),
             cala: self.cala.clone(),
             authz: self.authz.clone(),
+            fiscal_year: self.fiscal_year.clone(),
             journal_id: self.journal_id,
         }
     }
@@ -69,6 +74,7 @@ where
         pool: &sqlx::PgPool,
         authz: &Perms,
         cala: &CalaLedger,
+        fiscal_year: &FiscalYears<Perms>,
         journal_id: CalaJournalId,
     ) -> Self {
         let chart_of_account = ChartRepo::new(pool);
@@ -79,6 +85,7 @@ where
             chart_ledger,
             cala: cala.clone(),
             authz: authz.clone(),
+            fiscal_year: fiscal_year.clone(),
             journal_id,
         }
     }
@@ -96,7 +103,7 @@ where
     ) -> Result<Chart, ChartOfAccountsError> {
         let id = ChartId::new();
 
-        let mut op = self.repo.begin_op().await?;
+        let mut db_op = self.repo.begin_op().await?;
         self.authz
             .enforce_permission(
                 sub,
@@ -113,10 +120,18 @@ where
             .build()
             .expect("Could not build new chart of accounts");
 
-        let chart = self.repo.create_in_op(&mut op, new_chart).await?;
+        let chart = self.repo.create_in_op(&mut db_op, new_chart).await?;
+
+        let mut ledger_op = self
+            .cala
+            .ledger_operation_from_db_op(db_op.with_db_time().await?);
 
         self.chart_ledger
-            .create_chart_root_account_set_in_op(op, &chart)
+            .create_chart_root_account_set_in_op(&mut ledger_op, &chart)
+            .await?;
+
+        self.fiscal_year
+            .add_closing_control_in_op(ledger_op, chart.account_set_id)
             .await?;
 
         Ok(chart)
