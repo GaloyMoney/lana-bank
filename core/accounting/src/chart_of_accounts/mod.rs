@@ -391,7 +391,7 @@ where
         chart_ref: &str,
         account_id_or_code: AccountIdOrCode,
     ) -> Result<LedgerAccountId, ChartOfAccountsError> {
-        let mut chart = self.repo.find_by_reference(chart_ref.to_string()).await?;
+        let mut chart = self.find_by_reference(chart_ref).await?;
 
         self.authz
             .enforce_permission(
