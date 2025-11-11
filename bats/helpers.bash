@@ -399,6 +399,25 @@ create_customer() {
   echo $customer_id
 }
 
+create_deposit_account_for_customer() {
+  customer_id=$1
+
+  variables=$(
+    jq -n \
+      --arg customerId "$customer_id" \
+    '{
+      input: {
+        customerId: $customerId
+      }
+    }'
+  )
+
+  exec_admin_graphql 'deposit-account-create' "$variables"
+  deposit_account_id=$(graphql_output '.data.depositAccountCreate.account.depositAccountId')
+  [[ "$deposit_account_id" != "null" ]] || exit 1
+  echo "$deposit_account_id"
+}
+
 assert_balance_sheet_balanced() {
   variables=$(
     jq -n \
@@ -465,20 +484,4 @@ from_utc() {
 
 naive_now() {
   date +"%Y-%m-%d"
-}
-
-wait_for_checking_account() {
-  customer_id=$1
-
-  variables=$(
-    jq -n \
-      --arg customerId "$customer_id" \
-    '{ id: $customerId }'
-  )
-  exec_admin_graphql 'customer' "$variables"
-
-  echo "checking | $i. $(graphql_output)" >> $RUN_LOG_FILE
-  deposit_account_id=$(graphql_output '.data.customer.depositAccount.depositAccountId')
-  [[ "$deposit_account_id" != "null" ]] || exit 1
-
 }

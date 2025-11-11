@@ -47,19 +47,7 @@ wait_for_collateral() {
   # Setup prerequisites
   customer_id=$(create_customer)
 
-  retry 80 1 wait_for_checking_account "$customer_id"
-
-  variables=$(
-    jq -n \
-      --arg customerId "$customer_id" \
-    '{
-      id: $customerId
-    }'
-  )
-  exec_admin_graphql 'customer' "$variables"
-
-  deposit_account_id=$(graphql_output '.data.customer.depositAccount.depositAccountId')
-  [[ "$deposit_account_id" != "null" ]] || exit 1
+  deposit_account_id=$(create_deposit_account_for_customer "$customer_id")
 
   facility=100000
   variables=$(

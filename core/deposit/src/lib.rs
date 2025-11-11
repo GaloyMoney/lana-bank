@@ -177,6 +177,9 @@ where
         active: bool,
         deposit_account_type: impl Into<DepositAccountType>,
     ) -> Result<DepositAccount, CoreDepositError> {
+        let holder_id = holder_id.into();
+        let deposit_account_type = deposit_account_type.into();
+
         self.authz
             .enforce_permission(
                 sub,

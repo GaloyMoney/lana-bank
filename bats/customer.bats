@@ -83,7 +83,7 @@ wait_for_approval() {
   customer_id=$(graphql_output .data.customerCreate.customer.customerId)
   [[ "$customer_id" != "null" ]] || exit 1
 
-  retry 80 1 wait_for_checking_account "$customer_id"
+  create_deposit_account_for_customer "$customer_id"
 
   login_customer $customer_email
   exec_customer_graphql $customer_email 'me'
@@ -98,17 +98,7 @@ wait_for_approval() {
   customer_id=$(create_customer)
   cache_value "customer_id" $customer_id
 
-  retry 80 1 wait_for_checking_account "$customer_id"
-
-  variables=$(
-    jq -n \
-      --arg id "$customer_id" \
-    '{ id: $id }'
-  )
-
-  exec_admin_graphql 'customer' "$variables"
-  echo "deposit | $i. $(graphql_output)" >> $RUN_LOG_FILE
-  deposit_account_id=$(graphql_output .data.customer.depositAccount.depositAccountId)
+  deposit_account_id=$(create_deposit_account_for_customer "$customer_id")
   cache_value "deposit_account_id" $deposit_account_id
 
   variables=$(

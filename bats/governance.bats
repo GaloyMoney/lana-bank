@@ -46,15 +46,7 @@ trigger_withdraw_approval_process() {
   customer_id=$(create_customer)
   cache_value "customer_id" $customer_id
 
-  retry 80 1 wait_for_checking_account "$customer_id"
-
-  variables=$(
-    jq -n \
-      --arg id "$customer_id" \
-    '{ id: $id }'
-  )
-  exec_admin_graphql 'customer' "$variables"
-  deposit_account_id=$(graphql_output .data.customer.depositAccount.depositAccountId)
+  deposit_account_id=$(create_deposit_account_for_customer "$customer_id")
   cache_value "deposit_account_id" $deposit_account_id
 
   process_id=$(trigger_withdraw_approval_process $deposit_account_id)

@@ -29,7 +29,6 @@ app:
       realm: internal
   customer_sync:
     customer_status_sync_active: true
-    create_deposit_account_on_customer_create: false
     keycloak:
       url: http://localhost:8081
       client_id: customer-service-account
@@ -74,4 +73,3 @@ time:
 bootstrap:
   num_facilities: 0
   num_customers: 0
-

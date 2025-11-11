@@ -1,7 +1,3 @@
-use futures::StreamExt;
-
-use lana_events::*;
-
 use lana_app::{
     app::LanaApp,
     customer::{CustomerId, CustomerType},
@@ -26,41 +22,60 @@ pub async fn create_customer(
         .await?
     {
         Some(existing_customer) => {
-            let deposit_account_id = app
-                .deposits()
-                .list_accounts_by_created_at_for_account_holder(
-                    sub,
-                    existing_customer.id,
-                    Default::default(),
-                    es_entity::ListDirection::Descending,
-                )
-                .await?
-                .entities
-                .into_iter()
-                .next()
-                .expect("Deposit account not found")
-                .id;
+            let deposit_account_id = ensure_deposit_account(
+                sub,
+                app,
+                existing_customer.id,
+                existing_customer.customer_type,
+            )
+            .await?;
             Ok((existing_customer.id, deposit_account_id))
         }
         None => {
-            let mut stream = app.outbox().listen_persisted(None).await?;
             let customer = app
                 .customers()
                 .create(sub, customer_email.clone(), telegram, customer_type)
                 .await?;
-            while let Some(msg) = stream.next().await {
-                if let Some(LanaEvent::Deposit(CoreDepositEvent::DepositAccountCreated {
-                    account_holder_id,
-                    id,
-                })) = &msg.payload
-                    && CustomerId::from(*account_holder_id) == customer.id
-                {
-                    return Ok((customer.id, *id));
-                }
-            }
-            unreachable!()
+            let deposit_account_id =
+                ensure_deposit_account(sub, app, customer.id, customer_type).await?;
+            Ok((customer.id, deposit_account_id))
         }
     }
+}
+
+#[tracing::instrument(
+    name = "sim_bootstrap.helpers.ensure_deposit_account",
+    skip(app),
+    err,
+    fields(customer_id = %customer_id)
+)]
+async fn ensure_deposit_account(
+    sub: &Subject,
+    app: &LanaApp,
+    customer_id: CustomerId,
+    customer_type: CustomerType,
+) -> anyhow::Result<DepositAccountId> {
+    if let Some(existing) = app
+        .deposits()
+        .list_accounts_by_created_at_for_account_holder(
+            sub,
+            customer_id,
+            Default::default(),
+            es_entity::ListDirection::Descending,
+        )
+        .await?
+        .entities
+        .into_iter()
+        .next()
+    {
+        return Ok(existing.id);
+    }
+
+    let account = app
+        .deposits()
+        .create_account(sub, customer_id, true, customer_type)
+        .await?;
+    Ok(account.id)
 }
 
 #[tracing::instrument(name = "sim_bootstrap.helpers.make_deposit", skip(app), err)]
