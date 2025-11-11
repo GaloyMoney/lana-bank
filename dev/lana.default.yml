@@ -19,6 +19,8 @@ app:
     customer_active_check_enabled: true
     collateralization_from_price_job_interval: 30
     pending_collateralization_from_price_job_interval: 30
+  deposit:
+    require_verified_customer_for_account: false
   storage:
     provider: local
     root_folder: ''
