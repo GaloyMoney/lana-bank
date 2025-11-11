@@ -276,7 +276,6 @@ export type ChartOfAccounts = {
 };
 
 export type ChartOfAccountsAddChildNodeInput = {
-  chartId: Scalars['UUID']['input'];
   code: Scalars['AccountCode']['input'];
   name: Scalars['String']['input'];
   parent: Scalars['AccountCode']['input'];

@@ -377,7 +377,6 @@ export const mockChartOfAccountsAddChildNodeInput = (overrides?: Partial<ChartOf
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('ChartOfAccountsAddChildNodeInput');
     return {
-        chartId: overrides && overrides.hasOwnProperty('chartId') ? overrides.chartId! : generateMockValue.uuid(),
         code: overrides && overrides.hasOwnProperty('code') ? overrides.code! : faker.lorem.word(),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
         parent: overrides && overrides.hasOwnProperty('parent') ? overrides.parent! : faker.lorem.word(),
