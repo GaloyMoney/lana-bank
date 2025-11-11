@@ -9,8 +9,7 @@ mod webhooks;
 
 use async_graphql::*;
 use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
-use axum::{Extension, Router, routing::get};
-use axum_extra::headers::HeaderMap;
+use axum::{Extension, Router, middleware, routing::get};
 use serde::{Deserialize, Serialize};
 use tower_http::cors::CorsLayer;
 use tracing::{info, instrument};
@@ -51,6 +50,9 @@ pub async fn run(config: AdminServerConfig, app: LanaApp) -> anyhow::Result<()> 
         .layer(Extension(schema))
         .layer(Extension(config))
         .layer(Extension(app))
+        .layer(middleware::from_fn(
+            tracing_utils::http::trace_context_middleware,
+        ))
         .layer(cors);
 
     info!("Starting admin server on port {port}");
@@ -68,12 +70,10 @@ pub struct AdminJwtClaims {
 #[instrument(name = "admin_server.graphql", skip_all, fields(graphql.operation_name, graphql.operation_type, graphql.query, graphql.variables, jwt.subject, user.id, error, error.level, error.message))]
 #[es_entity::es_event_context]
 pub async fn graphql_handler(
-    headers: HeaderMap,
     schema: Extension<Schema<graphql::Query, graphql::Mutation, EmptySubscription>>,
     Claims(jwt_claims): Claims<AdminJwtClaims>,
     req: GraphQLRequest,
 ) -> GraphQLResponse {
-    tracing_utils::http::extract_tracing(&headers);
     let mut req = req.into_inner();
 
     tracing::Span::current().record("jwt.subject", &jwt_claims.subject);

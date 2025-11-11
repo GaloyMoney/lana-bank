@@ -109,15 +109,31 @@ pub fn insert_error_fields(level: tracing::Level, error: impl std::fmt::Display)
 
 #[cfg(feature = "http")]
 pub mod http {
-    pub fn extract_tracing(headers: &axum_extra::headers::HeaderMap) {
-        use opentelemetry::propagation::text_map_propagator::TextMapPropagator;
-        use opentelemetry_http::HeaderExtractor;
-        use opentelemetry_sdk::propagation::TraceContextPropagator;
-        use tracing_opentelemetry::OpenTelemetrySpanExt;
-        let extractor = HeaderExtractor(headers);
+    use axum_extra::headers::HeaderMap;
+    use opentelemetry::propagation::text_map_propagator::TextMapPropagator;
+    use opentelemetry_http::HeaderExtractor;
+    use opentelemetry_sdk::propagation::TraceContextPropagator;
+    use tracing_opentelemetry::OpenTelemetrySpanExt;
+
+    /// Middleware layer that extracts trace context from incoming HTTP headers
+    /// and makes it the parent of all subsequent spans in the request.
+    pub async fn trace_context_middleware(
+        headers: HeaderMap,
+        request: axum::extract::Request,
+        next: axum::middleware::Next,
+    ) -> axum::response::Response {
+        use tracing::Instrument;
+
+        let extractor = HeaderExtractor(&headers);
         let propagator = TraceContextPropagator::new();
-        let ctx = propagator.extract(&extractor);
-        let _ = tracing::Span::current().set_parent(ctx);
+        let parent_ctx = propagator.extract(&extractor);
+
+        // Create a span that will be the parent for all handler spans
+        let span = tracing::info_span!("http_request");
+        let _ = span.set_parent(parent_ctx);
+
+        // Execute the rest of the request within this span
+        next.run(request).instrument(span).await
     }
 
     pub fn inject_trace() -> axum_extra::headers::HeaderMap {
