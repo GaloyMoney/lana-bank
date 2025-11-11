@@ -8,7 +8,7 @@ use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use chrono::{Datelike, NaiveDate};
+use chrono::Datelike;
 
 use cala_ledger::CalaLedger;
 
@@ -73,19 +73,16 @@ where
     }
 
     #[instrument(
-        name = "core_accounting.fiscal_year.init_first_fiscal_year"
+        name = "core_accounting.fiscal_year.add_closing_control"
         skip(self),
         err
     )]
-    pub async fn init_first_fiscal_year(
+    pub async fn add_closing_control(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        opened_as_of: impl Into<NaiveDate> + std::fmt::Debug,
-        chart_id: impl Into<ChartId> + std::fmt::Debug,
         tracking_account_set_id: impl Into<CalaAccountSetId> + std::fmt::Debug,
-    ) -> Result<FiscalYear, FiscalYearError> {
-        let opened_as_of = opened_as_of.into();
-        let chart_id = chart_id.into();
+    ) -> Result<(), FiscalYearError> {
+        let tracking_account_set_id = tracking_account_set_id.into();
 
         self.authz
             .enforce_permission(
@@ -95,12 +92,42 @@ where
             )
             .await?;
 
+        self.ledger
+            .attach_closing_controls_to_account_set(tracking_account_set_id)
+            .await?;
+
+        Ok(())
+    }
+
+    #[instrument(
+        name = "core_accounting.fiscal_year.open_first_fiscal_year"
+        skip(self),
+        err
+    )]
+    pub async fn open_first_fiscal_year(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        opened_as_of: impl Into<chrono::NaiveDate> + std::fmt::Debug,
+        chart_id: impl Into<ChartId> + std::fmt::Debug,
+        tracking_account_set_id: impl Into<CalaAccountSetId> + std::fmt::Debug,
+    ) -> Result<FiscalYear, FiscalYearError> {
+        let opened_as_of = opened_as_of.into();
+        let chart_id = chart_id.into();
+        let tracking_account_set_id = tracking_account_set_id.into();
+
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_fiscal_years(),
+                CoreAccountingAction::FISCAL_YEAR_OPEN_FIRST,
+            )
+            .await?;
+
         if let Ok(fiscal_year) = self.repo.find_current_by_chart_id(chart_id).await {
             return Ok(fiscal_year);
         }
 
         tracing::info!("Initializing first FiscalYear for chart ID: {}", chart_id);
-        let tracking_account_set_id = tracking_account_set_id.into();
         let new_fiscal_year = NewFiscalYear::builder()
             .id(FiscalYearId::new())
             .chart_id(chart_id)
@@ -111,12 +138,14 @@ where
 
         let mut op = self.repo.begin_op().await?;
         let fiscal_year = self.repo.create_in_op(&mut op, new_fiscal_year).await?;
-        let _control_id = self
-            .ledger
-            .create_monthly_close_control_with_limits_in_op(
+
+        self.ledger
+            .close_month_as_of(
                 op,
-                opened_as_of,
-                tracking_account_set_id,
+                opened_as_of
+                    .pred_opt()
+                    .expect("Date was first possible NaiveDate type value"),
+                fiscal_year.tracking_account_set_id,
             )
             .await?;
 

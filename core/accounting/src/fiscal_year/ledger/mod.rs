@@ -68,21 +68,19 @@ impl FiscalYearLedger {
         Ok(())
     }
 
-    pub async fn create_monthly_close_control_with_limits_in_op(
+    #[instrument(
+        name = "fiscal_year_ledger.attach_closing_controls_to_account_set",
+        skip(self,),
+        err
+    )]
+    pub async fn attach_closing_controls_to_account_set(
         &self,
-        op: es_entity::DbOp<'_>,
-        opened_as_of: chrono::NaiveDate,
         tracking_account_set_id: AccountSetId,
     ) -> Result<VelocityControlId, FiscalYearLedgerError> {
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
-        let mut tracking_account_set = self
-            .cala
-            .account_sets()
-            .find_in_op(&mut op, tracking_account_set_id)
-            .await?;
+        let mut op = self.cala.begin_operation().await?;
+
         let control_id = self.create_monthly_close_control_in_op(&mut op).await?;
+
         self.cala
             .velocities()
             .attach_control_to_account_set_in_op(
@@ -93,36 +91,10 @@ impl FiscalYearLedger {
             )
             .await?;
 
-        let mut metadata = tracking_account_set
-            .values()
-            .clone()
-            .metadata
-            .unwrap_or_else(|| serde_json::json!({}));
-
-        // TODO: need to get first date of opened year or
-        // something derived from the config value?
-        AccountingClosingMetadata::update_metadata(&mut metadata, opened_as_of);
-
-        let mut update_values = AccountSetUpdate::default();
-        update_values
-            .metadata(Some(metadata))
-            .expect("Failed to serialize metadata");
-
-        tracking_account_set.update(update_values);
-        self.cala
-            .account_sets()
-            .persist_in_op(&mut op, &mut tracking_account_set)
-            .await?;
-
         op.commit().await?;
         Ok(control_id)
     }
 
-    #[instrument(
-        name = "fiscal_year_ledger.create_monthly_close_control_with_limits_in_op",
-        skip(self, op),
-        err
-    )]
     async fn create_monthly_close_control_in_op(
         &self,
         op: &mut LedgerOperation<'_>,
