@@ -191,6 +191,13 @@ where
         id: impl Into<ChartId> + std::fmt::Debug,
     ) -> Result<Chart, ChartOfAccountsError> {
         let id = id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::chart(id),
+                CoreAccountingAction::CHART_CLOSE_MONTHLY,
+            )
+            .await?;
         let mut chart = self.repo.find_by_id(id).await?;
 
         let now = crate::time::now();

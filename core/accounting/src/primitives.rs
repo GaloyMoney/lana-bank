@@ -641,6 +641,7 @@ impl CoreAccountingAction {
     pub const CHART_UPDATE: Self = CoreAccountingAction::Chart(ChartAction::Update);
     pub const CHART_IMPORT_ACCOUNTS: Self =
         CoreAccountingAction::Chart(ChartAction::ImportAccounts);
+    pub const CHART_CLOSE_MONTHLY: Self = CoreAccountingAction::Chart(ChartAction::CloseMonthly);
 
     pub const JOURNAL_READ_ENTRIES: Self =
         CoreAccountingAction::Journal(JournalAction::ReadEntries);
@@ -780,6 +781,7 @@ pub enum ChartAction {
     List,
     Update,
     ImportAccounts,
+    CloseMonthly,
 }
 
 impl ActionPermission for ChartAction {
@@ -787,7 +789,9 @@ impl ActionPermission for ChartAction {
         match self {
             Self::List => PERMISSION_SET_ACCOUNTING_VIEWER,
 
-            Self::Create | Self::Update | Self::ImportAccounts => PERMISSION_SET_ACCOUNTING_WRITER,
+            Self::Create | Self::Update | Self::ImportAccounts | Self::CloseMonthly => {
+                PERMISSION_SET_ACCOUNTING_WRITER
+            }
         }
     }
 }
