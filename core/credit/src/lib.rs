@@ -582,9 +582,9 @@ where
     pub async fn history<T: From<CreditFacilityHistoryEntry>>(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: impl Into<CreditFacilityId> + std::fmt::Debug,
+        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug,
     ) -> Result<Vec<T>, CoreCreditError> {
-        let id = id.into();
+        let id = credit_facility_id.into();
         self.authz
             .enforce_permission(
                 sub,
@@ -600,9 +600,9 @@ where
     pub async fn repayment_plan<T: From<CreditFacilityRepaymentPlanEntry>>(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: impl Into<CreditFacilityId> + std::fmt::Debug,
+        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug,
     ) -> Result<Vec<T>, CoreCreditError> {
-        let id = id.into();
+        let id = credit_facility_id.into();
         self.authz
             .enforce_permission(
                 sub,
@@ -734,7 +734,7 @@ where
     pub async fn update_pending_facility_collateral(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: impl Into<PendingCreditFacilityId> + std::fmt::Debug + Copy,
+        pending_credit_facility_id: impl Into<PendingCreditFacilityId> + std::fmt::Debug + Copy,
         updated_collateral: Satoshis,
         effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
     ) -> Result<PendingCreditFacility, CoreCreditError> {
@@ -746,7 +746,7 @@ where
 
         let pending_facility = self
             .pending_credit_facilities()
-            .find_by_id_without_audit(id.into())
+            .find_by_id_without_audit(pending_credit_facility_id.into())
             .await?;
 
         let mut db = self.facilities.begin_op().await?;
