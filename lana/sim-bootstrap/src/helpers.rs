@@ -22,13 +22,7 @@ pub async fn create_customer(
         .await?
     {
         Some(existing_customer) => {
-            let deposit_account_id = ensure_deposit_account(
-                sub,
-                app,
-                existing_customer.id,
-                existing_customer.customer_type,
-            )
-            .await?;
+            let deposit_account_id = ensure_deposit_account(sub, app, existing_customer.id).await?;
             Ok((existing_customer.id, deposit_account_id))
         }
         None => {
@@ -36,8 +30,7 @@ pub async fn create_customer(
                 .customers()
                 .create(sub, customer_email.clone(), telegram, customer_type)
                 .await?;
-            let deposit_account_id =
-                ensure_deposit_account(sub, app, customer.id, customer_type).await?;
+            let deposit_account_id = ensure_deposit_account(sub, app, customer.id).await?;
             Ok((customer.id, deposit_account_id))
         }
     }
@@ -53,7 +46,6 @@ async fn ensure_deposit_account(
     sub: &Subject,
     app: &LanaApp,
     customer_id: CustomerId,
-    customer_type: CustomerType,
 ) -> anyhow::Result<DepositAccountId> {
     if let Some(existing) = app
         .deposits()
@@ -73,7 +65,7 @@ async fn ensure_deposit_account(
 
     let account = app
         .deposits()
-        .create_account(sub, customer_id, true, customer_type)
+        .create_account(sub, customer_id, true)
         .await?;
     Ok(account.id)
 }

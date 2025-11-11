@@ -1374,18 +1374,12 @@ impl Mutation {
         input: DepositAccountCreateInput,
     ) -> async_graphql::Result<DepositAccountCreatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let customer = app
-            .customers()
-            .find_by_id(sub, input.customer_id)
-            .await?
-            .ok_or_else(|| async_graphql::Error::new("Customer not found"))?;
 
         exec_mutation!(
             DepositAccountCreatePayload,
             DepositAccount,
             ctx,
-            app.deposits()
-                .create_account(sub, customer.id, true, customer.customer_type)
+            app.deposits().create_account(sub, input.customer_id, true)
         )
     }
 

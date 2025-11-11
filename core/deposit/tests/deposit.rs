@@ -1,10 +1,14 @@
 mod helpers;
 
 use rust_decimal_macros::dec;
+use uuid::Uuid;
 
 use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
+use cloud_storage::{Storage, config::StorageConfig};
+use core_customer::{CustomerType, Customers};
 use core_deposit::*;
+use document_storage::DocumentStorage;
 use helpers::{action, event, object};
 
 #[tokio::test]
@@ -28,8 +32,18 @@ async fn deposit() -> anyhow::Result<()> {
     )
     .await?;
 
+    let storage = Storage::new(&StorageConfig::default());
+    let document_storage = DocumentStorage::new(&pool, &storage);
     let journal_id = helpers::init_journal(&cala).await?;
     let public_ids = public_id::PublicIds::new(&pool);
+
+    let customers = Customers::new(
+        &pool,
+        &authz,
+        &outbox,
+        document_storage.clone(),
+        public_ids.clone(),
+    );
 
     let deposit = CoreDeposit::init(
         &pool,
@@ -40,17 +54,22 @@ async fn deposit() -> anyhow::Result<()> {
         &cala,
         journal_id,
         &public_ids,
+        &customers,
+        DepositConfig::default(),
     )
     .await?;
 
-    let account_holder_id = DepositAccountHolderId::new();
-    let account = deposit
-        .create_account(
+    let customer = customers
+        .create(
             &DummySubject,
-            account_holder_id,
-            true,
-            DepositAccountType::Individual,
+            format!("user{}@example.com", Uuid::new_v4()),
+            "telegram123",
+            CustomerType::Individual,
         )
+        .await?;
+
+    let account = deposit
+        .create_account(&DummySubject, customer.id, true)
         .await?;
 
     deposit
@@ -93,8 +112,18 @@ async fn revert_deposit() -> anyhow::Result<()> {
     )
     .await?;
 
+    let storage = Storage::new(&StorageConfig::default());
+    let document_storage = DocumentStorage::new(&pool, &storage);
     let journal_id = helpers::init_journal(&cala).await?;
     let public_ids = public_id::PublicIds::new(&pool);
+
+    let customers = Customers::new(
+        &pool,
+        &authz,
+        &outbox,
+        document_storage.clone(),
+        public_ids.clone(),
+    );
 
     let deposit = CoreDeposit::init(
         &pool,
@@ -105,17 +134,22 @@ async fn revert_deposit() -> anyhow::Result<()> {
         &cala,
         journal_id,
         &public_ids,
+        &customers,
+        DepositConfig::default(),
     )
     .await?;
 
-    let account_holder_id = DepositAccountHolderId::new();
-    let account = deposit
-        .create_account(
+    let customer = customers
+        .create(
             &DummySubject,
-            account_holder_id,
-            true,
-            DepositAccountType::Individual,
+            format!("user{}@example.com", Uuid::new_v4()),
+            "telegram123",
+            CustomerType::Individual,
         )
+        .await?;
+
+    let account = deposit
+        .create_account(&DummySubject, customer.id, true)
         .await?;
 
     let res = deposit
