@@ -7,12 +7,13 @@ edition = "2024"
 [features]
 
 fail-on-warnings = []
-http = ["dep:opentelemetry-http"]
+http = ["dep:opentelemetry-http", "dep:axum"]
 reqwest = ["dep:reqwest"]
 persistence = []
 
 [dependencies]
 anyhow = { workspace = true }
+axum = { workspace = true, optional = true }
 axum-extra = { workspace = true }
 serde = { workspace = true }
 tracing = { workspace = true }

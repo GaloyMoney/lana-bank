@@ -10,7 +10,7 @@ fail-on-warnings = []
 [dependencies]
 lana-app = { workspace = true }
 
-tracing-utils = { workspace = true }
+tracing-utils = { workspace = true, features = ["http"] }
 jwks-utils = { workspace = true }
 
 es-entity = { workspace = true, features = ["graphql"] }
@@ -20,7 +20,6 @@ async-graphql = { workspace = true }
 async-graphql-axum = { workspace = true }
 tracing = { workspace = true }
 axum = { workspace = true }
-axum-extra = { workspace = true }
 tower-http = { workspace = true }
 tokio = { workspace = true }
 anyhow = { workspace = true }
