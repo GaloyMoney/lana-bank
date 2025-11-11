@@ -193,6 +193,14 @@ where
         holder_id: impl Into<DepositAccountHolderId> + Copy + std::fmt::Debug,
         active: bool,
     ) -> Result<DepositAccount, CoreDepositError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::all_deposit_accounts(),
+                CoreDepositAction::DEPOSIT_ACCOUNT_CREATE,
+            )
+            .await?;
+
         let holder_id = holder_id.into();
         let customer_id = CustomerId::from(holder_id);
         let customer = self.customers.find_by_id_without_audit(customer_id).await?;
@@ -204,13 +212,6 @@ where
         }
 
         let deposit_account_type = DepositAccountType::from(customer.customer_type);
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreDepositObject::all_deposit_accounts(),
-                CoreDepositAction::DEPOSIT_ACCOUNT_CREATE,
-            )
-            .await?;
 
         let account_id = DepositAccountId::new();
 
