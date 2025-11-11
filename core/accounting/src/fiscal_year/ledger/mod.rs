@@ -4,7 +4,7 @@ pub mod error;
 use tracing::instrument;
 
 use cala_ledger::{
-    AccountSetId, CalaLedger, JournalId, LedgerOperation, VelocityControlId, VelocityLimitId,
+    AccountSetId, CalaLedger, LedgerOperation, VelocityControlId, VelocityLimitId,
     account_set::AccountSetUpdate,
     velocity::{NewBalanceLimit, NewLimit, NewVelocityControl, NewVelocityLimit, Params},
 };
@@ -15,15 +15,11 @@ use error::*;
 #[derive(Clone)]
 pub struct FiscalYearLedger {
     cala: CalaLedger,
-    _journal_id: JournalId,
 }
 
 impl FiscalYearLedger {
-    pub fn new(cala: &CalaLedger, journal_id: JournalId) -> Self {
-        Self {
-            cala: cala.clone(),
-            _journal_id: journal_id,
-        }
+    pub fn new(cala: &CalaLedger) -> Self {
+        Self { cala: cala.clone() }
     }
 
     #[instrument(name = "fiscal_year.close_month_as_of", skip(self, op), fields(chart_id = tracing::field::Empty, closed_as_of = %closed_as_of), err)]

@@ -63,7 +63,7 @@ where
         cala: &CalaLedger,
         journal_id: CalaJournalId,
     ) -> Self {
-        let ledger = FiscalYearLedger::new(cala, journal_id);
+        let ledger = FiscalYearLedger::new(cala);
         Self {
             repo: FiscalYearRepo::new(pool),
             authz: authz.clone(),
