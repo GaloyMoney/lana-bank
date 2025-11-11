@@ -48,14 +48,16 @@ impl DepositAccount {
         &mut self,
         status: DepositAccountStatus,
     ) -> Result<Idempotent<()>, DepositAccountError> {
-        // so many conditionals after unfreeze?
         idempotency_guard!(
             self.events.iter_all().rev(),
             DepositAccountEvent::AccountStatusUpdated { status: existing_status, .. } if existing_status == &status,
             => DepositAccountEvent::AccountStatusUpdated { .. }
         );
+        if status == DepositAccountStatus::Closed {
+            return Err(DepositAccountError::CannotCloseAccount);
+        }
         if self.status == DepositAccountStatus::Closed {
-            return Err(DepositAccountError::CannotUpdateClosedDepositAccount);
+            return Err(DepositAccountError::CannotUpdateClosedAccount);
         }
         self.events
             .push(DepositAccountEvent::AccountStatusUpdated { status });
@@ -74,6 +76,10 @@ impl DepositAccount {
                 status: DepositAccountStatus::Closed
             }
         );
+
+        if self.status == DepositAccountStatus::Closed {
+            return Err(DepositAccountError::CannotCloseAccount);
+        }
 
         if self.status == DepositAccountStatus::Frozen {
             return Err(DepositAccountError::CannotCloseFrozenAccount);
@@ -204,6 +210,12 @@ mod tests {
                 .unwrap()
                 .did_execute()
         );
+
+        assert!(matches!(
+            account.close(),
+            Err(DepositAccountError::CannotCloseFrozenAccount)
+        ));
+
         assert!(
             account
                 .update_status(DepositAccountStatus::Active)
@@ -220,7 +232,7 @@ mod tests {
 
         assert!(matches!(
             account.update_status(DepositAccountStatus::Active),
-            Err(DepositAccountError::CannotUpdateClosedDepositAccount)
+            Err(DepositAccountError::CannotUpdateClosedAccount)
         ));
     }
 }

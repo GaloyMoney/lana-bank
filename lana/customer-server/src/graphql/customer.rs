@@ -59,7 +59,7 @@ impl Customer {
         Ok(app
             .deposits()
             .for_subject(sub)?
-            .list_open_accounts_by_created_at(Default::default(), ListDirection::Descending)
+            .list_accounts_by_created_at(Default::default(), ListDirection::Descending)
             .await?
             .entities
             .into_iter()

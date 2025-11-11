@@ -292,8 +292,8 @@ where
                         .update_in_op(&mut op, &mut account)
                         .await?;
                 }
-                Err(DepositAccountError::CannotUpdateClosedDepositAccount) => {
-                    tracing::warn!("Skipping closed account during status update");
+                Err(DepositAccountError::CannotUpdateClosedAccount) => {
+                    tracing::warn!("Skipping update error if account already closed");
                     continue;
                 }
                 Err(e) => {
@@ -609,7 +609,6 @@ where
             return Err(DepositAccountError::BalanceIsNotZero.into());
         }
 
-        // comment: balance increased meanwhile?
         let mut account = self.deposit_accounts.find_by_id(account_id).await?;
 
         if account.close()?.did_execute() {

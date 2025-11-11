@@ -8,12 +8,14 @@ pub enum DepositAccountError {
     EsEntityError(es_entity::EsEntityError),
     #[error("DepositAccountError - CursorDestructureError: {0}")]
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
-    #[error("DepositAccountError - CannotUpdateClosedDepositAccount")]
-    CannotUpdateClosedDepositAccount,
+    #[error("DepositAccountError - CannotUpdateClosedAccount")]
+    CannotUpdateClosedAccount,
     #[error("DepositAccountError - CannotCloseFrozenAccount")]
     CannotCloseFrozenAccount,
     #[error("DepositAccountError - BalanceIsNotZero")]
     BalanceIsNotZero,
+    #[error("DepositAccountError - CannotCloseAccount")]
+    CannotCloseAccount,
 }
 
 es_entity::from_es_entity_error!(DepositAccountError);

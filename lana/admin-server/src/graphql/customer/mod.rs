@@ -73,7 +73,7 @@ impl Customer {
 
         Ok(app
             .deposits()
-            .list_open_accounts_by_created_at_for_account_holder(
+            .list_accounts_by_created_at_for_account_holder(
                 sub,
                 self.customer_id,
                 Default::default(),
