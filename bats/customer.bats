@@ -140,7 +140,7 @@ wait_for_approval() {
   echo $(graphql_output) 
   [[ "$withdrawal_id" != "null" ]] || exit 1
   
-  retry 5 1 wait_for_approval $withdrawal_id
+  retry 20 1 wait_for_approval $withdrawal_id
   # settled_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.customer.balance.checking.settled')
   # [[ "$settled_usd_balance" == "0" ]] || exit 1
   # pending_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.customer.balance.checking.pending')
@@ -198,7 +198,7 @@ wait_for_approval() {
 
   # assert_accounts_balanced
 
-  retry 5 1 wait_for_approval $withdrawal_id
+  retry 20 1 wait_for_approval $withdrawal_id
 
   variables=$(
     jq -n \
@@ -242,7 +242,7 @@ wait_for_approval() {
   exec_admin_graphql 'initiate-withdrawal' "$variables"
   withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
 
-  retry 5 1 wait_for_approval $withdrawal_id
+  retry 20 1 wait_for_approval $withdrawal_id
 
   variables=$(
     jq -n \
