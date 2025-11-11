@@ -288,7 +288,6 @@ export type ChartOfAccountsAddChildNodePayload = {
 };
 
 export type ChartOfAccountsAddRootNodeInput = {
-  chartId: Scalars['UUID']['input'];
   code: Scalars['AccountCode']['input'];
   name: Scalars['String']['input'];
   normalBalanceType: DebitOrCredit;

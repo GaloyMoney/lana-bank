@@ -95,7 +95,6 @@ export const AddRootNodeDialog: React.FC<AddRootNodeDialogProps> = ({
       await addRootNode({
         variables: {
           input: {
-            chartId: chartData.chartOfAccounts.chartId,
             code: trimmedCode,
             name: trimmedName,
             normalBalanceType: normalBalanceType as DebitOrCredit,

@@ -397,7 +397,6 @@ export const mockChartOfAccountsAddRootNodeInput = (overrides?: Partial<ChartOfA
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('ChartOfAccountsAddRootNodeInput');
     return {
-        chartId: overrides && overrides.hasOwnProperty('chartId') ? overrides.chartId! : generateMockValue.uuid(),
         code: overrides && overrides.hasOwnProperty('code') ? overrides.code! : faker.lorem.word(),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
         normalBalanceType: overrides && overrides.hasOwnProperty('normalBalanceType') ? overrides.normalBalanceType! : DebitOrCredit.Credit,
