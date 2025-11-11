@@ -26,7 +26,7 @@ gql`
   }
 `
 
-const ChartOfAccountsUpload = ({ chartId }: { chartId: string }) => {
+const ChartOfAccountsUpload = () => {
   const t = useTranslations("ChartOfAccounts.upload")
   const [file, setFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
@@ -62,7 +62,6 @@ const ChartOfAccountsUpload = ({ chartId }: { chartId: string }) => {
       const result = await uploadCsv({
         variables: {
           input: {
-            chartId: chartId,
             file: file,
           },
         },

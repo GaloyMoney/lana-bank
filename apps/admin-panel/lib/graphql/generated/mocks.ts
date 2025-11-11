@@ -434,7 +434,6 @@ export const mockChartOfAccountsCsvImportInput = (overrides?: Partial<ChartOfAcc
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('ChartOfAccountsCsvImportInput');
     return {
-        chartId: overrides && overrides.hasOwnProperty('chartId') ? overrides.chartId! : generateMockValue.uuid(),
         file: overrides && overrides.hasOwnProperty('file') ? overrides.file! : faker.lorem.word(),
     };
 };

@@ -309,7 +309,6 @@ export type ChartOfAccountsCloseMonthlyPayload = {
 };
 
 export type ChartOfAccountsCsvImportInput = {
-  chartId: Scalars['UUID']['input'];
   file: Scalars['Upload']['input'];
 };
 

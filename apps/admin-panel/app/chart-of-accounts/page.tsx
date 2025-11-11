@@ -148,9 +148,9 @@ const getTextClass = (accountCode: string): string => {
 const hasChildren = (account: ChartNode): boolean => {
   return Boolean(
     account &&
-      account.children &&
-      Array.isArray(account.children) &&
-      account.children.length > 0,
+    account.children &&
+    Array.isArray(account.children) &&
+    account.children.length > 0,
   )
 }
 
@@ -370,7 +370,7 @@ const ChartOfAccountsPage: React.FC = () => {
                   error={newChartError}
                 />
               ) : (
-                <ChartOfAccountsUpload chartId={newChartData.chartOfAccounts.chartId} />
+                <ChartOfAccountsUpload />
               )}
             </>
           )}
