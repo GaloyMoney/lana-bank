@@ -7,14 +7,6 @@
           "format": "uuid",
           "type": "string"
         },
-        "first_period_opened_as_of": {
-          "format": "date",
-          "type": "string"
-        },
-        "first_period_opened_at": {
-          "format": "date-time",
-          "type": "string"
-        },
         "id": {
           "format": "uuid",
           "type": "string"
@@ -35,9 +27,7 @@
         "id",
         "account_set_id",
         "name",
-        "reference",
-        "first_period_opened_as_of",
-        "first_period_opened_at"
+        "reference"
       ],
       "type": "object"
     }

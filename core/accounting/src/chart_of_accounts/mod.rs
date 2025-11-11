@@ -21,10 +21,10 @@ use crate::primitives::{
 
 #[cfg(feature = "json-schema")]
 pub use chart_node::ChartNodeEvent;
+pub use entity::Chart;
 #[cfg(feature = "json-schema")]
 pub use entity::ChartEvent;
 pub(super) use entity::*;
-pub use entity::{Chart, PeriodClosing};
 use error::*;
 use import::{
     BulkAccountImport, BulkImportResult,
@@ -93,7 +93,6 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         name: String,
         reference: String,
-        first_period_opened_as_of: chrono::NaiveDate,
     ) -> Result<Chart, ChartOfAccountsError> {
         let id = ChartId::new();
 
@@ -111,7 +110,6 @@ where
             .account_set_id(id)
             .name(name)
             .reference(reference)
-            .first_period_opened_as_of(first_period_opened_as_of)
             .build()
             .expect("Could not build new chart of accounts");
 

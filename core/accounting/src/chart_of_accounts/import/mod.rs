@@ -93,7 +93,6 @@ mod tests {
         chart_of_accounts::entity::ChartEvent,
         primitives::{ChartId, DebitOrCredit},
     };
-    use chrono::NaiveDate;
     use es_entity::{EntityEvents, TryFromEvents};
 
     fn chart_from(events: Vec<ChartEvent>) -> Chart {
@@ -106,8 +105,6 @@ mod tests {
             account_set_id: CalaAccountSetId::new(),
             name: "Test Chart".to_string(),
             reference: "test-chart".to_string(),
-            first_period_opened_at: crate::time::now(),
-            first_period_opened_as_of: "2025-01-01".parse::<NaiveDate>().unwrap(),
         }]
     }
 

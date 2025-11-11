@@ -6,8 +6,6 @@ CREATE TABLE core_chart_events_rollup (
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
   account_set_id UUID,
-  first_period_opened_as_of VARCHAR,
-  first_period_opened_at TIMESTAMPTZ,
   name VARCHAR,
   reference VARCHAR
 ,
@@ -45,15 +43,11 @@ BEGIN
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
     new_row.account_set_id := (NEW.event ->> 'account_set_id')::UUID;
-    new_row.first_period_opened_as_of := (NEW.event ->> 'first_period_opened_as_of');
-    new_row.first_period_opened_at := (NEW.event ->> 'first_period_opened_at')::TIMESTAMPTZ;
     new_row.name := (NEW.event ->> 'name');
     new_row.reference := (NEW.event ->> 'reference');
   ELSE
     -- Default all fields to current values
     new_row.account_set_id := current_row.account_set_id;
-    new_row.first_period_opened_as_of := current_row.first_period_opened_as_of;
-    new_row.first_period_opened_at := current_row.first_period_opened_at;
     new_row.name := current_row.name;
     new_row.reference := current_row.reference;
   END IF;
@@ -62,8 +56,6 @@ BEGIN
   CASE event_type
     WHEN 'initialized' THEN
       new_row.account_set_id := (NEW.event ->> 'account_set_id')::UUID;
-      new_row.first_period_opened_as_of := (NEW.event ->> 'first_period_opened_as_of');
-      new_row.first_period_opened_at := (NEW.event ->> 'first_period_opened_at')::TIMESTAMPTZ;
       new_row.name := (NEW.event ->> 'name');
       new_row.reference := (NEW.event ->> 'reference');
   END CASE;
@@ -74,8 +66,6 @@ BEGIN
     created_at,
     modified_at,
     account_set_id,
-    first_period_opened_as_of,
-    first_period_opened_at,
     name,
     reference
   )
@@ -85,8 +75,6 @@ BEGIN
     new_row.created_at,
     new_row.modified_at,
     new_row.account_set_id,
-    new_row.first_period_opened_as_of,
-    new_row.first_period_opened_at,
     new_row.name,
     new_row.reference
   );

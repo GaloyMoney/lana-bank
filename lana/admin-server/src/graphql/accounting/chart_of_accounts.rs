@@ -2,7 +2,7 @@ use async_graphql::*;
 
 use crate::{graphql::accounting::AccountCode, primitives::*};
 
-use lana_app::accounting::{Chart as DomainChart, PeriodClosing as DomainPeriodClosing};
+use lana_app::accounting::Chart as DomainChart;
 use lana_app::primitives::DebitOrCredit;
 
 #[derive(SimpleObject, Clone)]
@@ -11,7 +11,6 @@ pub struct ChartOfAccounts {
     id: ID,
     chart_id: UUID,
     name: String,
-    monthly_closing: AccountingClosing,
 
     #[graphql(skip)]
     pub(crate) entity: Arc<DomainChart>,
@@ -23,7 +22,6 @@ impl From<DomainChart> for ChartOfAccounts {
             id: chart.id.to_global_id(),
             chart_id: UUID::from(chart.id),
             name: chart.name.to_string(),
-            monthly_closing: chart.monthly_closing.into(),
 
             entity: Arc::new(chart),
         }
@@ -55,21 +53,6 @@ impl From<lana_app::accounting::tree::TreeNode> for ChartNode {
             name: node.name.to_string(),
             account_code: AccountCode::from(&node.code),
             children: node.children.into_iter().map(ChartNode::from).collect(),
-        }
-    }
-}
-
-#[derive(SimpleObject, Clone)]
-pub struct AccountingClosing {
-    closed_as_of: Date,
-    closed_at: Timestamp,
-}
-
-impl From<DomainPeriodClosing> for AccountingClosing {
-    fn from(period_closing: DomainPeriodClosing) -> Self {
-        Self {
-            closed_as_of: period_closing.closed_as_of.into(),
-            closed_at: period_closing.closed_at.into(),
         }
     }
 }

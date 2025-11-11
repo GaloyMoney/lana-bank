@@ -60,16 +60,6 @@ import { AccountingClosing, AccountingCsvDocument, AccountingCsvDownloadLink, Ac
 
 faker.seed(0);
 
-export const mockAccountingClosing = (overrides?: Partial<AccountingClosing>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'AccountingClosing' } & AccountingClosing => {
-    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
-    relationshipsToOmit.add('AccountingClosing');
-    return {
-        __typename: 'AccountingClosing',
-        closedAsOf: overrides && overrides.hasOwnProperty('closedAsOf') ? overrides.closedAsOf! : faker.date.past({ years: 1, refDate: new Date(2022, 0) }).toISOString(),
-        closedAt: overrides && overrides.hasOwnProperty('closedAt') ? overrides.closedAt! : generateMockValue.timestamp(),
-    };
-};
-
 export const mockAccountingCsvDocument = (overrides?: Partial<AccountingCsvDocument>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'AccountingCsvDocument' } & AccountingCsvDocument => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('AccountingCsvDocument');
@@ -368,7 +358,6 @@ export const mockChartOfAccounts = (overrides?: Partial<ChartOfAccounts>, _relat
         chartId: overrides && overrides.hasOwnProperty('chartId') ? overrides.chartId! : generateMockValue.uuid(),
         children: overrides && overrides.hasOwnProperty('children') ? overrides.children! : [relationshipsToOmit.has('ChartNode') ? {} as ChartNode : mockChartNode({}, relationshipsToOmit)],
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
-        monthlyClosing: overrides && overrides.hasOwnProperty('monthlyClosing') ? overrides.monthlyClosing! : relationshipsToOmit.has('AccountingClosing') ? {} as AccountingClosing : mockAccountingClosing({}, relationshipsToOmit),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
     };
 };

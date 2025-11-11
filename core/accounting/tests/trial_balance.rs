@@ -31,12 +31,7 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
     let chart_id = accounting
         .chart_of_accounts()
-        .create_chart(
-            &DummySubject,
-            "Test chart".to_string(),
-            chart_ref.clone(),
-            "2025-01-01".parse::<chrono::NaiveDate>().unwrap(),
-        )
+        .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())
         .await?
         .id;
     let rand_ref = format!("{:05}", rand::rng().random_range(0..100000));

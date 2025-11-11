@@ -16,7 +16,6 @@ use crate::{
 };
 
 use cala_ledger::CalaLedger;
-use chrono::NaiveDate;
 use error::*;
 
 #[derive(Clone)]
