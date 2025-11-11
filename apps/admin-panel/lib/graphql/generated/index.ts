@@ -297,10 +297,6 @@ export type ChartOfAccountsAddRootNodePayload = {
   chartOfAccounts: ChartOfAccounts;
 };
 
-export type ChartOfAccountsCloseMonthlyInput = {
-  chartId: Scalars['UUID']['input'];
-};
-
 export type ChartOfAccountsCloseMonthlyPayload = {
   __typename?: 'ChartOfAccountsCloseMonthlyPayload';
   chartOfAccounts: ChartOfAccounts;
@@ -1625,11 +1621,6 @@ export type MutationChartOfAccountsAddChildNodeArgs = {
 
 export type MutationChartOfAccountsAddRootNodeArgs = {
   input: ChartOfAccountsAddRootNodeInput;
-};
-
-
-export type MutationChartOfAccountsCloseMonthlyArgs = {
-  input: ChartOfAccountsCloseMonthlyInput;
 };
 
 
