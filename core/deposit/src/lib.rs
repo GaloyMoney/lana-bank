@@ -191,7 +191,6 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         holder_id: impl Into<DepositAccountHolderId> + Copy + std::fmt::Debug,
-        active: bool,
     ) -> Result<DepositAccount, CoreDepositError> {
         self.authz
             .enforce_permission(
@@ -201,8 +200,7 @@ where
             )
             .await?;
 
-        let holder_id = holder_id.into();
-        let customer_id = CustomerId::from(holder_id);
+        let customer_id = CustomerId::from(holder_id.into());
         let customer = self.customers.find_by_id_without_audit(customer_id).await?;
 
         if self.config.require_verified_customer_for_account
@@ -210,8 +208,6 @@ where
         {
             return Err(CoreDepositError::CustomerNotVerified);
         }
-
-        let deposit_account_type = DepositAccountType::from(customer.customer_type);
 
         let account_id = DepositAccountId::new();
 
@@ -223,12 +219,10 @@ where
             .await?;
 
         let account_ids = DepositAccountLedgerAccountIds::new(account_id);
-
         let new_account = NewDepositAccount::builder()
             .id(account_id)
             .account_holder_id(holder_id)
             .account_ids(account_ids)
-            .active(active)
             .public_id(public_id.id)
             .build()
             .expect("Could not build new account");
@@ -239,7 +233,7 @@ where
             .await?;
 
         self.ledger
-            .create_deposit_accounts(op, &account, deposit_account_type)
+            .create_deposit_accounts(op, &account, customer.customer_type)
             .await?;
 
         Ok(account)

@@ -68,9 +68,7 @@ async fn deposit() -> anyhow::Result<()> {
         )
         .await?;
 
-    let account = deposit
-        .create_account(&DummySubject, customer.id, true)
-        .await?;
+    let account = deposit.create_account(&DummySubject, customer.id).await?;
 
     deposit
         .record_deposit(
@@ -148,9 +146,7 @@ async fn revert_deposit() -> anyhow::Result<()> {
         )
         .await?;
 
-    let account = deposit
-        .create_account(&DummySubject, customer.id, true)
-        .await?;
+    let account = deposit.create_account(&DummySubject, customer.id).await?;
 
     let res = deposit
         .record_deposit(

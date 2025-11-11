@@ -1379,7 +1379,7 @@ impl Mutation {
             DepositAccountCreatePayload,
             DepositAccount,
             ctx,
-            app.deposits().create_account(sub, input.customer_id, true)
+            app.deposits().create_account(sub, input.customer_id)
         )
     }
 

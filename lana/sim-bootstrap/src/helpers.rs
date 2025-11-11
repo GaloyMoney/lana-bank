@@ -43,10 +43,7 @@ pub async fn create_customer(
                 .customers()
                 .create(sub, customer_email.clone(), telegram, customer_type)
                 .await?;
-            let deposit_account = app
-                .deposits()
-                .create_account(sub, customer.id, true)
-                .await?;
+            let deposit_account = app.deposits().create_account(sub, customer.id).await?;
             Ok((customer.id, deposit_account.id))
         }
     }
