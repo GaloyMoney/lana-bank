@@ -58,7 +58,7 @@ async fn create_chart_of_accounts(
                 .open_first_fiscal_year(
                     &Subject::System,
                     opening_date,
-                    chart.id,
+                    CHART_REF,
                     chart.account_set_id,
                 )
                 .await?;

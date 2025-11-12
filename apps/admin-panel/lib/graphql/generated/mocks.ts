@@ -359,6 +359,7 @@ export const mockChartOfAccounts = (overrides?: Partial<ChartOfAccounts>, _relat
         children: overrides && overrides.hasOwnProperty('children') ? overrides.children! : [relationshipsToOmit.has('ChartNode') ? {} as ChartNode : mockChartNode({}, relationshipsToOmit)],
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
+        reference: overrides && overrides.hasOwnProperty('reference') ? overrides.reference! : generateMockValue.reference(),
     };
 };
 
@@ -1726,17 +1727,9 @@ export const mockFiscalYear = (overrides?: Partial<FiscalYear>, _relationshipsTo
     relationshipsToOmit.add('FiscalYear');
     return {
         __typename: 'FiscalYear',
-        chartId: overrides && overrides.hasOwnProperty('chartId') ? overrides.chartId! : generateMockValue.uuid(),
+        chartReference: overrides && overrides.hasOwnProperty('chartReference') ? overrides.chartReference! : faker.lorem.word(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         openedAsOf: overrides && overrides.hasOwnProperty('openedAsOf') ? overrides.openedAsOf! : faker.date.past({ years: 1, refDate: new Date(2022, 0) }).toISOString(),
-    };
-};
-
-export const mockFiscalYearCloseMonthInput = (overrides?: Partial<FiscalYearCloseMonthInput>, _relationshipsToOmit: Set<string> = new Set()): FiscalYearCloseMonthInput => {
-    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
-    relationshipsToOmit.add('FiscalYearCloseMonthInput');
-    return {
-        chartId: overrides && overrides.hasOwnProperty('chartId') ? overrides.chartId! : generateMockValue.uuid(),
     };
 };
 
@@ -1753,7 +1746,6 @@ export const mockFiscalYearOpenFirstInput = (overrides?: Partial<FiscalYearOpenF
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('FiscalYearOpenFirstInput');
     return {
-        chartId: overrides && overrides.hasOwnProperty('chartId') ? overrides.chartId! : generateMockValue.uuid(),
         openedAsOf: overrides && overrides.hasOwnProperty('openedAsOf') ? overrides.openedAsOf! : faker.date.past({ years: 1, refDate: new Date(2022, 0) }).toISOString(),
     };
 };

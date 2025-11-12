@@ -266,6 +266,7 @@ export type ChartOfAccounts = {
   children: Array<ChartNode>;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
+  reference: Scalars['String']['output'];
 };
 
 export type ChartOfAccountsAddChildNodeInput = {
@@ -1335,13 +1336,9 @@ export type FiniteCvlPct = {
 
 export type FiscalYear = {
   __typename?: 'FiscalYear';
-  chartId: Scalars['UUID']['output'];
+  chartReference: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   openedAsOf: Scalars['Date']['output'];
-};
-
-export type FiscalYearCloseMonthInput = {
-  chartId: Scalars['UUID']['input'];
 };
 
 export type FiscalYearCloseMonthPayload = {
@@ -1350,7 +1347,6 @@ export type FiscalYearCloseMonthPayload = {
 };
 
 export type FiscalYearOpenFirstInput = {
-  chartId: Scalars['UUID']['input'];
   openedAsOf: Scalars['Date']['input'];
 };
 
@@ -1818,11 +1814,6 @@ export type MutationDepositRevertArgs = {
 };
 
 
-export type MutationFiscalYearCloseMonthArgs = {
-  input: FiscalYearCloseMonthInput;
-};
-
-
 export type MutationFiscalYearOpenFirstArgs = {
   input: FiscalYearOpenFirstInput;
 };
@@ -2272,11 +2263,6 @@ export type QueryCreditFacilityProposalArgs = {
 export type QueryCreditFacilityProposalsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
-};
-
-
-export type QueryCurrentFiscalYearArgs = {
-  chartId: Scalars['UUID']['input'];
 };
 
 

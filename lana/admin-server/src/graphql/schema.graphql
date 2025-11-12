@@ -235,6 +235,7 @@ type ChartOfAccounts {
 	id: ID!
 	chartId: UUID!
 	name: String!
+	reference: String!
 	children: [ChartNode!]!
 }
 
@@ -1329,12 +1330,8 @@ type FiniteCVLPct {
 
 type FiscalYear {
 	id: ID!
-	chartId: UUID!
+	chartReference: String!
 	openedAsOf: Date!
-}
-
-input FiscalYearCloseMonthInput {
-	chartId: UUID!
 }
 
 type FiscalYearCloseMonthPayload {
@@ -1342,7 +1339,6 @@ type FiscalYearCloseMonthPayload {
 }
 
 input FiscalYearOpenFirstInput {
-	chartId: UUID!
 	openedAsOf: Date!
 }
 
@@ -1619,7 +1615,7 @@ type Mutation {
 	customerDocumentArchive(input: CustomerDocumentArchiveInput!): CustomerDocumentArchivePayload!
 	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
 	fiscalYearOpenFirst(input: FiscalYearOpenFirstInput!): FiscalYearOpenFirstPayload!
-	fiscalYearCloseMonth(input: FiscalYearCloseMonthInput!): FiscalYearCloseMonthPayload!
+	fiscalYearCloseMonth: FiscalYearCloseMonthPayload!
 	chartOfAccountsAddRootNode(input: ChartOfAccountsAddRootNodeInput!): ChartOfAccountsAddRootNodePayload!
 	chartOfAccountsAddChildNode(input: ChartOfAccountsAddChildNodeInput!): ChartOfAccountsAddChildNodePayload!
 	balanceSheetConfigure(input: BalanceSheetModuleConfigureInput!): BalanceSheetModuleConfigurePayload!
@@ -1925,7 +1921,7 @@ type Query {
 	journalEntries(first: Int!, after: String): JournalEntryConnection!
 	trialBalance(from: Date!, until: Date!): TrialBalance!
 	chartOfAccounts: ChartOfAccounts!
-	currentFiscalYear(chartId: UUID!): FiscalYear!
+	currentFiscalYear: FiscalYear!
 	balanceSheet(from: Date!, until: Date): BalanceSheet!
 	profitAndLossStatement(from: Date!, until: Date): ProfitAndLossStatement!
 	realtimePrice: RealtimePrice!

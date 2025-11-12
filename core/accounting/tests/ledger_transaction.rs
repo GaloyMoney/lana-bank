@@ -71,7 +71,12 @@ async fn manual_transaction() -> anyhow::Result<()> {
     let opened_as_of = "2021-01-01".parse::<chrono::NaiveDate>().unwrap();
     accounting
         .fiscal_year()
-        .open_first_fiscal_year(&DummySubject, opened_as_of, chart.id, chart.account_set_id)
+        .open_first_fiscal_year(
+            &DummySubject,
+            opened_as_of,
+            chart.reference.as_str(),
+            chart.account_set_id,
+        )
         .await?;
 
     let to: AccountIdOrCode = "1".parse().unwrap();
@@ -130,7 +135,12 @@ async fn ledger_transactions_by_template_code() -> anyhow::Result<()> {
     let opened_as_of = "2021-01-01".parse::<chrono::NaiveDate>().unwrap();
     accounting
         .fiscal_year()
-        .open_first_fiscal_year(&DummySubject, opened_as_of, chart.id, chart.account_set_id)
+        .open_first_fiscal_year(
+            &DummySubject,
+            opened_as_of,
+            chart.reference.as_str(),
+            chart.account_set_id,
+        )
         .await?;
 
     let to: AccountIdOrCode = "1".parse().unwrap();

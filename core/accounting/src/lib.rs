@@ -283,14 +283,17 @@ where
     pub async fn open_first_fiscal_year(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart_id: impl Into<ChartId> + std::fmt::Debug + Copy,
+        chart_ref: &str,
         opened_as_of: impl Into<chrono::NaiveDate> + std::fmt::Debug,
     ) -> Result<FiscalYear, CoreAccountingError> {
-        let chart = self.chart_of_accounts().find_by_id(chart_id).await?;
+        let chart = self
+            .chart_of_accounts()
+            .find_by_reference(chart_ref)
+            .await?;
 
         Ok(self
             .fiscal_year()
-            .open_first_fiscal_year(sub, opened_as_of, chart_id, chart.account_set_id)
+            .open_first_fiscal_year(sub, opened_as_of, chart_ref, chart.account_set_id)
             .await?)
     }
 
@@ -298,20 +301,20 @@ where
     pub async fn close_month(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart_id: impl Into<ChartId> + std::fmt::Debug,
+        chart_ref: &str,
     ) -> Result<FiscalYear, CoreAccountingError> {
-        Ok(self.fiscal_year().close_month(sub, chart_id).await?)
+        Ok(self.fiscal_year().close_month(sub, chart_ref).await?)
     }
 
     #[instrument(name = "core_accounting.find_current_fiscal_year", skip(self), err)]
     pub async fn find_current_fiscal_year(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart_id: impl Into<ChartId> + std::fmt::Debug,
+        chart_ref: &str,
     ) -> Result<FiscalYear, CoreAccountingError> {
         Ok(self
             .fiscal_year()
-            .find_current_fiscal_year(sub, chart_id)
+            .find_current_fiscal_year(sub, chart_ref)
             .await?)
     }
 

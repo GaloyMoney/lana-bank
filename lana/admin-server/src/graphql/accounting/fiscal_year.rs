@@ -6,7 +6,7 @@ use lana_app::fiscal_year::FiscalYear as DomainFiscalYear;
 #[derive(SimpleObject, Clone)]
 pub struct FiscalYear {
     id: ID,
-    chart_id: UUID,
+    chart_reference: String,
     opened_as_of: Date,
 
     #[graphql(skip)]
@@ -16,23 +16,16 @@ impl From<DomainFiscalYear> for FiscalYear {
     fn from(fiscal_year: DomainFiscalYear) -> Self {
         FiscalYear {
             id: fiscal_year.id.to_global_id(),
-            chart_id: UUID::from(fiscal_year.chart_id),
+            chart_reference: fiscal_year.chart_reference.to_string(),
             opened_as_of: fiscal_year.opened_as_of.into(),
             entity: Arc::new(fiscal_year),
         }
     }
 }
-
-#[derive(InputObject)]
-pub struct FiscalYearCloseMonthInput {
-    pub chart_id: UUID,
-}
-
 crate::mutation_payload! { FiscalYearCloseMonthPayload, fiscal_year: FiscalYear }
 
 #[derive(InputObject)]
 pub struct FiscalYearOpenFirstInput {
-    pub chart_id: UUID,
     pub opened_as_of: Date,
 }
 

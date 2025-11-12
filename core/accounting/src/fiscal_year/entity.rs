@@ -6,7 +6,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use super::error::FiscalYearError;
-use crate::primitives::{CalaAccountSetId, ChartId, FiscalYearId};
+use crate::primitives::{CalaAccountSetId, FiscalYearId};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -15,7 +15,7 @@ use crate::primitives::{CalaAccountSetId, ChartId, FiscalYearId};
 pub enum FiscalYearEvent {
     Initialized {
         id: FiscalYearId,
-        chart_id: ChartId,
+        chart_reference: String,
         reference: String,
         tracking_account_set_id: CalaAccountSetId,
         opened_as_of: chrono::NaiveDate,
@@ -30,7 +30,7 @@ pub enum FiscalYearEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct FiscalYear {
     pub id: FiscalYearId,
-    pub chart_id: ChartId,
+    pub chart_reference: String,
     pub reference: String,
     pub tracking_account_set_id: CalaAccountSetId,
     pub opened_as_of: NaiveDate,
@@ -103,7 +103,7 @@ impl TryFromEvents<FiscalYearEvent> for FiscalYear {
             match event {
                 FiscalYearEvent::Initialized {
                     id,
-                    chart_id,
+                    chart_reference,
                     reference,
                     tracking_account_set_id,
                     opened_as_of,
@@ -111,7 +111,7 @@ impl TryFromEvents<FiscalYearEvent> for FiscalYear {
                 } => {
                     builder = builder
                         .id(*id)
-                        .chart_id(*chart_id)
+                        .chart_reference(chart_reference.to_string())
                         .reference(reference.to_string())
                         .tracking_account_set_id(*tracking_account_set_id)
                         .opened_as_of(*opened_as_of)
@@ -128,7 +128,7 @@ pub struct NewFiscalYear {
     #[builder(setter(into))]
     pub id: FiscalYearId,
     #[builder(setter(into))]
-    pub chart_id: ChartId,
+    pub chart_reference: String,
     #[builder(setter(into))]
     pub tracking_account_set_id: CalaAccountSetId,
     pub opened_as_of: NaiveDate,
@@ -140,7 +140,7 @@ impl NewFiscalYear {
     }
 
     pub(super) fn reference(&self) -> String {
-        format!("{}:AC{}", self.chart_id, self.opened_as_of.year())
+        format!("{}:AC{}", self.chart_reference, self.opened_as_of.year())
     }
 }
 
@@ -150,7 +150,7 @@ impl IntoEvents<FiscalYearEvent> for NewFiscalYear {
             self.id,
             [FiscalYearEvent::Initialized {
                 id: self.id,
-                chart_id: self.chart_id,
+                chart_reference: self.chart_reference.clone(),
                 reference: self.reference(),
                 tracking_account_set_id: self.tracking_account_set_id,
                 opened_as_of: self.opened_as_of,
@@ -171,7 +171,7 @@ mod test {
     fn initial_events_with_opened_date(opened_as_of: NaiveDate) -> Vec<FiscalYearEvent> {
         vec![FiscalYearEvent::Initialized {
             id: FiscalYearId::new(),
-            chart_id: ChartId::new(),
+            chart_reference: "Test Chart".to_string(),
             reference: "AC2025".to_string(),
             tracking_account_set_id: CalaAccountSetId::new(),
             opened_as_of,
