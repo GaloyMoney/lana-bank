@@ -1,7 +1,9 @@
 """Dagster definitions entry point - builds all Dagster objects."""
 
-import dagster as dg
+import os
 from typing import Callable, Tuple, Union
+
+import dagster as dg
 
 from src.core import lana_assetifier
 from src.assets import (
@@ -12,6 +14,11 @@ from src.assets import (
 )
 from src.otel import init_telemetry
 from src.utils.cron import CronExpression
+
+
+DAGSTER_AUTOMATIONS_ACTIVE = os.getenv(
+    "DAGSTER_AUTOMATIONS_ACTIVE", ""
+).strip().lower() in {"1", "true", "t", "yes", "y", "on"}
 
 
 class DefinitionsBuilder:
@@ -41,11 +48,16 @@ class DefinitionsBuilder:
     def add_job_schedule(
         self, job: dg.job, cron_expression: Union[CronExpression, None] = None
     ):
+        default_status = (
+            dg.DefaultScheduleStatus.RUNNING
+            if DAGSTER_AUTOMATIONS_ACTIVE
+            else dg.DefaultScheduleStatus.STOPPED
+        )
         new_job_schedule = dg.ScheduleDefinition(
             name=f"{job.name}_schedule",
             job=job,
             cron_schedule=str(cron_expression),
-            default_status=dg.DefaultScheduleStatus.RUNNING,
+            default_status=default_status,
         )
 
         self.schedules.append(new_job_schedule)
