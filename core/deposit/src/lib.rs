@@ -3,6 +3,7 @@
 
 mod account;
 mod chart_of_accounts_integration;
+mod config;
 mod deposit;
 mod deposit_account_balance;
 pub mod error;
@@ -23,6 +24,7 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use core_accounting::Chart;
+use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerObject, Customers};
 use governance::{Governance, GovernanceEvent};
 use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
@@ -31,6 +33,7 @@ use public_id::PublicIds;
 pub use account::DepositAccount;
 use account::*;
 pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
+pub use config::DepositConfig;
 use deposit::*;
 pub use deposit::{Deposit, DepositsByCreatedAtCursor};
 pub use deposit_account_balance::DepositAccountBalance;
@@ -56,7 +59,9 @@ pub mod event_schema {
 pub struct CoreDeposit<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreDepositEvent> + OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<CoreDepositEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustomerEvent>,
 {
     deposit_accounts: DepositAccountRepo<E>,
     deposits: DepositRepo<E>,
@@ -68,12 +73,16 @@ where
     governance: Governance<Perms, E>,
     outbox: Outbox<E>,
     public_ids: PublicIds,
+    customers: Customers<Perms, E>,
+    config: DepositConfig,
 }
 
 impl<Perms, E> Clone for CoreDeposit<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreDepositEvent> + OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<CoreDepositEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustomerEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -87,6 +96,8 @@ where
             approve_withdrawal: self.approve_withdrawal.clone(),
             outbox: self.outbox.clone(),
             public_ids: self.public_ids.clone(),
+            customers: self.customers.clone(),
+            config: self.config.clone(),
         }
     }
 }
@@ -95,10 +106,12 @@ impl<Perms, E> CoreDeposit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreDepositAction> + From<GovernanceAction>,
+        From<CoreDepositAction> + From<GovernanceAction> + From<CoreCustomerAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreDepositObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreDepositEvent> + OutboxEventMarker<GovernanceEvent>,
+        From<CoreDepositObject> + From<GovernanceObject> + From<CustomerObject>,
+    E: OutboxEventMarker<CoreDepositEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustomerEvent>,
 {
     #[tracing::instrument(name = "deposit.init", skip_all, fields(journal_id = %journal_id), err)]
     pub async fn init(
@@ -110,6 +123,8 @@ where
         cala: &CalaLedger,
         journal_id: CalaJournalId,
         public_ids: &PublicIds,
+        customers: &Customers<Perms, E>,
+        config: DepositConfig,
     ) -> Result<Self, CoreDepositError> {
         let publisher = DepositPublisher::new(outbox);
         let accounts = DepositAccountRepo::new(pool, &publisher);
@@ -144,6 +159,8 @@ where
             approve_withdrawal,
             ledger,
             public_ids: public_ids.clone(),
+            customers: customers.clone(),
+            config,
         };
         Ok(res)
     }
@@ -169,13 +186,11 @@ where
         ))
     }
 
-    #[instrument(name = "deposit.create_account", skip(self, deposit_account_type), err)]
+    #[instrument(name = "deposit.create_account", skip(self), err)]
     pub async fn create_account(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         holder_id: impl Into<DepositAccountHolderId> + Copy + std::fmt::Debug,
-        active: bool,
-        deposit_account_type: impl Into<DepositAccountType>,
     ) -> Result<DepositAccount, CoreDepositError> {
         self.authz
             .enforce_permission(
@@ -184,6 +199,15 @@ where
                 CoreDepositAction::DEPOSIT_ACCOUNT_CREATE,
             )
             .await?;
+
+        let customer_id = CustomerId::from(holder_id.into());
+        let customer = self.customers.find_by_id_without_audit(customer_id).await?;
+
+        if self.config.require_verified_customer_for_account
+            && !customer.kyc_verification.is_verified()
+        {
+            return Err(CoreDepositError::CustomerNotVerified);
+        }
 
         let account_id = DepositAccountId::new();
 
@@ -195,12 +219,10 @@ where
             .await?;
 
         let account_ids = DepositAccountLedgerAccountIds::new(account_id);
-
         let new_account = NewDepositAccount::builder()
             .id(account_id)
             .account_holder_id(holder_id)
             .account_ids(account_ids)
-            .active(active)
             .public_id(public_id.id)
             .build()
             .expect("Could not build new account");
@@ -211,7 +233,7 @@ where
             .await?;
 
         self.ledger
-            .create_deposit_accounts(op, &account, deposit_account_type)
+            .create_deposit_accounts(op, &account, customer.customer_type)
             .await?;
 
         Ok(account)

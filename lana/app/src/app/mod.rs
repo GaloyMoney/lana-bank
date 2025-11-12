@@ -139,6 +139,8 @@ impl LanaApp {
             &cala,
             journal_init.journal_id,
             &public_ids,
+            &customers,
+            config.deposit,
         )
         .await?;
         let customer_sync =

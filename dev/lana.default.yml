@@ -19,6 +19,8 @@ app:
     customer_active_check_enabled: true
     collateralization_from_price_job_interval: 30
     pending_collateralization_from_price_job_interval: 30
+  deposit:
+    require_verified_customer_for_account: false
   storage:
     provider: local
     root_folder: ''
@@ -29,7 +31,6 @@ app:
       realm: internal
   customer_sync:
     customer_status_sync_active: true
-    create_deposit_account_on_customer_create: false
     keycloak:
       url: http://localhost:8081
       client_id: customer-service-account
@@ -74,4 +75,3 @@ time:
 bootstrap:
   num_facilities: 0
   num_customers: 0
-

@@ -4,9 +4,9 @@ use std::path::PathBuf;
 
 use crate::{
     access::config::AccessConfig, applicant::SumsubConfig, credit::CreditConfig,
-    custody::CustodyConfig, customer_sync::CustomerSyncConfig, job::JobPollerConfig,
-    notification::NotificationConfig, report::ReportConfig, storage::config::StorageConfig,
-    user_onboarding::UserOnboardingConfig,
+    custody::CustodyConfig, customer_sync::CustomerSyncConfig, deposit::DepositConfig,
+    job::JobPollerConfig, notification::NotificationConfig, report::ReportConfig,
+    storage::config::StorageConfig, user_onboarding::UserOnboardingConfig,
 };
 
 #[derive(Clone, Default, Debug, Deserialize, Serialize)]
@@ -35,6 +35,8 @@ pub struct AppConfig {
     pub notification: NotificationConfig,
     #[serde(default)]
     pub report: ReportConfig,
+    #[serde(default)]
+    pub deposit: DepositConfig,
 }
 
 #[derive(Clone, Default, Debug, Deserialize, Serialize)]

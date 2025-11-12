@@ -1089,6 +1089,14 @@ type DepositAccountBalance {
 	pending: UsdCents!
 }
 
+input DepositAccountCreateInput {
+	customerId: UUID!
+}
+
+type DepositAccountCreatePayload {
+	account: DepositAccount!
+}
+
 input DepositAccountFreezeInput {
 	depositAccountId: UUID!
 }
@@ -1533,6 +1541,7 @@ type Mutation {
 	withdrawalCancel(input: WithdrawalCancelInput!): WithdrawalCancelPayload!
 	withdrawalRevert(input: WithdrawalRevertInput!): WithdrawalRevertPayload!
 	depositRevert(input: DepositRevertInput!): DepositRevertPayload!
+	depositAccountCreate(input: DepositAccountCreateInput!): DepositAccountCreatePayload!
 	depositAccountFreeze(input: DepositAccountFreezeInput!): DepositAccountFreezePayload!
 	depositAccountUnfreeze(input: DepositAccountUnfreezeInput!): DepositAccountUnfreezePayload!
 	termsTemplateCreate(input: TermsTemplateCreateInput!): TermsTemplateCreatePayload!

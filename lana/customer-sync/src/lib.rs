@@ -72,11 +72,6 @@ where
         let keycloak_client = keycloak_client::KeycloakClient::new(config.keycloak.clone());
 
         jobs.add_initializer_and_spawn_unique(
-            CreateDepositAccountInit::new(outbox, deposit, config.clone()),
-            CreateDepositAccountJobConfig::new(),
-        )
-        .await?;
-        jobs.add_initializer_and_spawn_unique(
             CreateKeycloakUserInit::new(outbox, keycloak_client.clone()),
             CreateKeycloakUserJobConfig::new(),
         )

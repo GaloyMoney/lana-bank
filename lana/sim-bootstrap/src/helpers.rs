@@ -1,7 +1,3 @@
-use futures::StreamExt;
-
-use lana_events::*;
-
 use lana_app::{
     app::LanaApp,
     customer::{CustomerId, CustomerType},
@@ -43,22 +39,12 @@ pub async fn create_customer(
             Ok((existing_customer.id, deposit_account_id))
         }
         None => {
-            let mut stream = app.outbox().listen_persisted(None).await?;
             let customer = app
                 .customers()
                 .create(sub, customer_email.clone(), telegram, customer_type)
                 .await?;
-            while let Some(msg) = stream.next().await {
-                if let Some(LanaEvent::Deposit(CoreDepositEvent::DepositAccountCreated {
-                    account_holder_id,
-                    id,
-                })) = &msg.payload
-                    && CustomerId::from(*account_holder_id) == customer.id
-                {
-                    return Ok((customer.id, *id));
-                }
-            }
-            unreachable!()
+            let deposit_account = app.deposits().create_account(sub, customer.id).await?;
+            Ok((customer.id, deposit_account.id))
         }
     }
 }

@@ -1112,6 +1112,15 @@ export type DepositAccountBalance = {
   settled: Scalars['UsdCents']['output'];
 };
 
+export type DepositAccountCreateInput = {
+  customerId: Scalars['UUID']['input'];
+};
+
+export type DepositAccountCreatePayload = {
+  __typename?: 'DepositAccountCreatePayload';
+  account: DepositAccount;
+};
+
 export type DepositAccountFreezeInput = {
   depositAccountId: Scalars['UUID']['input'];
 };
@@ -1564,6 +1573,7 @@ export type Mutation = {
   customerDocumentDownloadLinkGenerate: CustomerDocumentDownloadLinksGeneratePayload;
   customerEmailUpdate: CustomerEmailUpdatePayload;
   customerTelegramIdUpdate: CustomerTelegramIdUpdatePayload;
+  depositAccountCreate: DepositAccountCreatePayload;
   depositAccountFreeze: DepositAccountFreezePayload;
   depositAccountUnfreeze: DepositAccountUnfreezePayload;
   depositModuleConfigure: DepositModuleConfigurePayload;
@@ -1726,6 +1736,11 @@ export type MutationCustomerEmailUpdateArgs = {
 
 export type MutationCustomerTelegramIdUpdateArgs = {
   input: CustomerTelegramIdUpdateInput;
+};
+
+
+export type MutationDepositAccountCreateArgs = {
+  input: DepositAccountCreateInput;
 };
 
 
@@ -3394,6 +3409,8 @@ export type SumsubPermalinkCreateMutationVariables = Exact<{
 
 export type SumsubPermalinkCreateMutation = { __typename?: 'Mutation', sumsubPermalinkCreate: { __typename?: 'SumsubPermalinkCreatePayload', url: string } };
 
+export type CustomerDetailsFragmentFragment = { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, kycVerification: KycVerification, activity: Activity, level: KycLevel, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null };
+
 export type GetCustomerBasicDetailsQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
 }>;
@@ -3466,6 +3483,13 @@ export type DashboardQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type DashboardQuery = { __typename?: 'Query', dashboard: { __typename?: 'Dashboard', activeFacilities: number, pendingFacilities: number, totalDisbursed: UsdCents, totalCollateral: Satoshis } };
+
+export type DepositAccountCreateMutationVariables = Exact<{
+  input: DepositAccountCreateInput;
+}>;
+
+
+export type DepositAccountCreateMutation = { __typename?: 'Mutation', depositAccountCreate: { __typename?: 'DepositAccountCreatePayload', account: { __typename?: 'DepositAccount', id: string, customer: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, kycVerification: KycVerification, activity: Activity, level: KycLevel, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null } } } };
 
 export type DepositDetailsPageFragmentFragment = { __typename?: 'Deposit', id: string, depositId: string, publicId: any, amount: UsdCents, createdAt: any, reference: string, status: DepositStatus, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: any, effective: any, description?: string | null }>, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } };
 
@@ -4582,6 +4606,34 @@ export const CustodianFieldsFragmentDoc = gql`
   custodianId
   createdAt
   name
+}
+    `;
+export const CustomerDetailsFragmentFragmentDoc = gql`
+    fragment CustomerDetailsFragment on Customer {
+  id
+  customerId
+  email
+  telegramId
+  kycVerification
+  activity
+  level
+  customerType
+  createdAt
+  publicId
+  depositAccount {
+    id
+    status
+    publicId
+    depositAccountId
+    balance {
+      settled
+      pending
+    }
+    ledgerAccounts {
+      depositAccountId
+      frozenDepositAccountId
+    }
+  }
 }
     `;
 export const LedgerTransactionFieldsFragmentDoc = gql`
@@ -6780,33 +6832,10 @@ export type SumsubPermalinkCreateMutationOptions = Apollo.BaseMutationOptions<Su
 export const GetCustomerBasicDetailsDocument = gql`
     query GetCustomerBasicDetails($id: PublicId!) {
   customerByPublicId(id: $id) {
-    id
-    customerId
-    email
-    telegramId
-    kycVerification
-    activity
-    level
-    customerType
-    createdAt
-    publicId
-    depositAccount {
-      id
-      status
-      publicId
-      depositAccountId
-      balance {
-        settled
-        pending
-      }
-      ledgerAccounts {
-        depositAccountId
-        frozenDepositAccountId
-      }
-    }
+    ...CustomerDetailsFragment
   }
 }
-    `;
+    ${CustomerDetailsFragmentFragmentDoc}`;
 
 /**
  * __useGetCustomerBasicDetailsQuery__
@@ -7272,6 +7301,44 @@ export type DashboardQueryHookResult = ReturnType<typeof useDashboardQuery>;
 export type DashboardLazyQueryHookResult = ReturnType<typeof useDashboardLazyQuery>;
 export type DashboardSuspenseQueryHookResult = ReturnType<typeof useDashboardSuspenseQuery>;
 export type DashboardQueryResult = Apollo.QueryResult<DashboardQuery, DashboardQueryVariables>;
+export const DepositAccountCreateDocument = gql`
+    mutation DepositAccountCreate($input: DepositAccountCreateInput!) {
+  depositAccountCreate(input: $input) {
+    account {
+      id
+      customer {
+        ...CustomerDetailsFragment
+      }
+    }
+  }
+}
+    ${CustomerDetailsFragmentFragmentDoc}`;
+export type DepositAccountCreateMutationFn = Apollo.MutationFunction<DepositAccountCreateMutation, DepositAccountCreateMutationVariables>;
+
+/**
+ * __useDepositAccountCreateMutation__
+ *
+ * To run a mutation, you first call `useDepositAccountCreateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDepositAccountCreateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [depositAccountCreateMutation, { data, loading, error }] = useDepositAccountCreateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useDepositAccountCreateMutation(baseOptions?: Apollo.MutationHookOptions<DepositAccountCreateMutation, DepositAccountCreateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DepositAccountCreateMutation, DepositAccountCreateMutationVariables>(DepositAccountCreateDocument, options);
+      }
+export type DepositAccountCreateMutationHookResult = ReturnType<typeof useDepositAccountCreateMutation>;
+export type DepositAccountCreateMutationResult = Apollo.MutationResult<DepositAccountCreateMutation>;
+export type DepositAccountCreateMutationOptions = Apollo.BaseMutationOptions<DepositAccountCreateMutation, DepositAccountCreateMutationVariables>;
 export const GetDepositDetailsDocument = gql`
     query GetDepositDetails($publicId: PublicId!) {
   depositByPublicId(id: $publicId) {

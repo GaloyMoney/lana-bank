@@ -4,6 +4,7 @@ use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
 use cloud_storage::{Storage, config::StorageConfig};
 use core_accounting::CoreAccounting;
+use core_customer::Customers;
 use core_deposit::*;
 use document_storage::DocumentStorage;
 use helpers::{action, event, object};
@@ -31,8 +32,18 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     )
     .await?;
 
+    let storage = Storage::new(&StorageConfig::default());
+    let document_storage = DocumentStorage::new(&pool, &storage);
     let journal_id = helpers::init_journal(&cala).await?;
     let public_ids = public_id::PublicIds::new(&pool);
+
+    let customers = Customers::new(
+        &pool,
+        &authz,
+        &outbox,
+        document_storage.clone(),
+        public_ids.clone(),
+    );
 
     let deposit = CoreDeposit::init(
         &pool,
@@ -43,11 +54,13 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         &cala,
         journal_id,
         &public_ids,
+        &customers,
+        DepositConfig {
+            require_verified_customer_for_account: false,
+        },
     )
     .await?;
 
-    let storage = Storage::new(&StorageConfig::default());
-    let document_storage = DocumentStorage::new(&pool, &storage);
     let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, document_storage, &jobs);
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
     let chart_id = accounting

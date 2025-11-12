@@ -18,6 +18,8 @@ pub enum CoreDepositError {
     DepositLedgerError(#[from] crate::ledger::error::DepositLedgerError),
     #[error("CoreDepositError - GovernanceError: {0}")]
     GovernanceError(#[from] governance::error::GovernanceError),
+    #[error("CoreDepositError - CustomerError: {0}")]
+    CustomerError(#[from] core_customer::error::CustomerError),
     #[error("CoreDepositError - CoreChartOfAccountsError: {0}")]
     CoreChartOfAccountsError(
         #[from] core_accounting::chart_of_accounts::error::ChartOfAccountsError,
@@ -44,6 +46,8 @@ pub enum CoreDepositError {
     DepositBuilderError(#[from] super::NewDepositBuilderError),
     #[error("CoreDepositError - PublicIdError: {0}")]
     PublicIdError(#[from] public_id::PublicIdError),
+    #[error("CoreDepositError - CustomerNotVerified")]
+    CustomerNotVerified,
 }
 
 impl CoreDepositError {

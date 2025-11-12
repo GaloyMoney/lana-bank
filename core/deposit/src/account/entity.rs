@@ -108,7 +108,6 @@ pub struct NewDepositAccount {
     pub(super) account_holder_id: DepositAccountHolderId,
     #[builder(setter(into))]
     pub(super) account_ids: DepositAccountLedgerAccountIds,
-    pub(super) active: bool,
     #[builder(setter(into))]
     pub(super) public_id: PublicId,
 }
@@ -127,11 +126,7 @@ impl IntoEvents<DepositAccountEvent> for NewDepositAccount {
                 id: self.id,
                 account_holder_id: self.account_holder_id,
                 account_ids: self.account_ids,
-                status: if self.active {
-                    DepositAccountStatus::Active
-                } else {
-                    DepositAccountStatus::Inactive
-                },
+                status: DepositAccountStatus::Active,
                 public_id: self.public_id,
             }],
         )

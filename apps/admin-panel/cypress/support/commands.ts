@@ -24,6 +24,7 @@ declare global {
       getIdFromUrl(pathSegment: string): Chainable<string>
       createDeposit(amount: number, depositAccountId: string): Chainable<string> // Returns deposit public ID
       initiateWithdrawal(amount: number, depositAccountId: string): Chainable<string> // Returns withdrawal public ID
+      createDepositAccount(customerId: string): Chainable<string>
       uploadChartOfAccounts(): Chainable<void>
       waitForKeycloak(): Chainable<void>
       KcLogin(email: string): Chainable<void>
@@ -72,6 +73,36 @@ Cypress.Commands.add(
             return response.body
           })
       })
+  },
+)
+
+interface DepositAccountCreateResponse {
+  data: {
+    depositAccountCreate: {
+      account: {
+        depositAccountId: string
+      }
+    }
+  }
+}
+
+Cypress.Commands.add(
+  "createDepositAccount",
+  (customerId: string): Cypress.Chainable<string> => {
+    const mutation = `
+      mutation DepositAccountCreate($input: DepositAccountCreateInput!) {
+        depositAccountCreate(input: $input) {
+          account {
+            depositAccountId
+          }
+        }
+      }
+    `
+    return cy
+      .graphqlRequest<DepositAccountCreateResponse>(mutation, {
+        input: { customerId },
+      })
+      .then((response) => response.data.depositAccountCreate.account.depositAccountId)
   },
 )
 
@@ -133,10 +164,12 @@ Cypress.Commands.add(
       .then((response) => {
         const customerId = response.data.customerCreate.customer.customerId
         return cy
-          .wait(1000) // to make sure deposit account is created
-          .graphqlRequest<CustomerQueryResponse>(query, {
-            id: customerId,
-          })
+          .createDepositAccount(customerId)
+          .then(() =>
+            cy.graphqlRequest<CustomerQueryResponse>(query, {
+              id: customerId,
+            }),
+          )
           .then((resp) => resp.data.customer)
       })
   },

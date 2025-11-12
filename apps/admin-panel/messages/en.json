@@ -360,6 +360,14 @@
         },
         "noAccount": "No deposit account available"
       },
+      "createDepositAccount": {
+        "title": "Create Deposit Account",
+        "descriptionWithEmail": "Are you sure you want to create a new deposit account for <b>{email}</b>?",
+        "buttons": {
+          "submit": "Create Deposit Account"
+        },
+        "success": "Deposit account created successfully"
+      },
       "updateTelegram": {
         "title": "Update Telegram ID",
         "description": "Update the Telegram ID for this customer",
@@ -1960,7 +1968,8 @@
       "custodian": "Add Custodian",
       "executeManualTransaction": "Execute Manual Transaction",
       "role": "Role",
-      "account": "Account"
+      "account": "Account",
+      "depositAccount": "Deposit Account"
     }
   },
   "DataTable": {

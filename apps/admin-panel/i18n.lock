@@ -240,6 +240,10 @@ checksums:
     Customers/CustomerDetails/depositAccount/buttons/freezeDepositAccount: f8e442ca95d1150995ae8e5a0e22b2b0
     Customers/CustomerDetails/depositAccount/buttons/unfreezeDepositAccount: 2f5901e7dd64670b96e915461f63ba52
     Customers/CustomerDetails/depositAccount/noAccount: 3465bf6d32af0dac4183cb0b306f74d2
+    Customers/CustomerDetails/createDepositAccount/title: 89687f36e355fae00975f44da877d957
+    Customers/CustomerDetails/createDepositAccount/descriptionWithEmail: 02e111a8283e5a6da27d0e1971c3a7f4
+    Customers/CustomerDetails/createDepositAccount/buttons/submit: 89687f36e355fae00975f44da877d957
+    Customers/CustomerDetails/createDepositAccount/success: a58ca013b6330ebae5598833a85b1cb6
     Customers/CustomerDetails/updateTelegram/title: eae68442cc96d8e9715e82d49633eb65
     Customers/CustomerDetails/updateTelegram/description: 6a3e0dee99c56a34368e8fef03646670
     Customers/CustomerDetails/updateTelegram/labels/newTelegramId: aff61550ac71d9a4edcd78d5fe719ed9
@@ -1127,6 +1131,7 @@ checksums:
     CreateButton/menuItems/executeManualTransaction: 53bf9bf8b9aba6e1ec1b0dcb70ca0ad8
     CreateButton/menuItems/role: 53743bbb6ca938f5b893552e839d067f
     CreateButton/menuItems/account: 01215c12fb1cdb93bd0c84c1382bef56
+    CreateButton/menuItems/depositAccount: 23d240412c0bf14efcff84a2325587be
     DataTable/view: 36a9b5e3dc153c036d320460d72a03c3
     DataTable/noData: d30b546a626d903d1ec1b466b2b4b865
     PaginatedTable/view: 36a9b5e3dc153c036d320460d72a03c3

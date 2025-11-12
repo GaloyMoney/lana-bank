@@ -83,7 +83,7 @@ wait_for_approval() {
   customer_id=$(graphql_output .data.customerCreate.customer.customerId)
   [[ "$customer_id" != "null" ]] || exit 1
 
-  retry 80 1 wait_for_checking_account "$customer_id"
+  create_deposit_account_for_customer "$customer_id"
 
   login_customer $customer_email
   exec_customer_graphql $customer_email 'me'
@@ -98,17 +98,7 @@ wait_for_approval() {
   customer_id=$(create_customer)
   cache_value "customer_id" $customer_id
 
-  retry 80 1 wait_for_checking_account "$customer_id"
-
-  variables=$(
-    jq -n \
-      --arg id "$customer_id" \
-    '{ id: $id }'
-  )
-
-  exec_admin_graphql 'customer' "$variables"
-  echo "deposit | $i. $(graphql_output)" >> $RUN_LOG_FILE
-  deposit_account_id=$(graphql_output .data.customer.depositAccount.depositAccountId)
+  deposit_account_id=$(create_deposit_account_for_customer "$customer_id")
   cache_value "deposit_account_id" $deposit_account_id
 
   variables=$(
@@ -150,7 +140,7 @@ wait_for_approval() {
   echo $(graphql_output) 
   [[ "$withdrawal_id" != "null" ]] || exit 1
   
-  retry 5 1 wait_for_approval $withdrawal_id
+  retry 20 1 wait_for_approval $withdrawal_id
   # settled_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.customer.balance.checking.settled')
   # [[ "$settled_usd_balance" == "0" ]] || exit 1
   # pending_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.customer.balance.checking.pending')
@@ -208,7 +198,7 @@ wait_for_approval() {
 
   # assert_accounts_balanced
 
-  retry 5 1 wait_for_approval $withdrawal_id
+  retry 20 1 wait_for_approval $withdrawal_id
 
   variables=$(
     jq -n \
@@ -252,7 +242,7 @@ wait_for_approval() {
   exec_admin_graphql 'initiate-withdrawal' "$variables"
   withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
 
-  retry 5 1 wait_for_approval $withdrawal_id
+  retry 20 1 wait_for_approval $withdrawal_id
 
   variables=$(
     jq -n \

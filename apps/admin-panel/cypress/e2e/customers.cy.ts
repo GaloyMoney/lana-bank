@@ -73,6 +73,25 @@ describe("Customers", () => {
     cy.takeScreenshot("11_verify_customer_in_list")
   })
 
+  it("should create a deposit account for the new customer", () => {
+    cy.visit(`/customers/${testCustomerPublicId}`)
+    cy.contains(t("Customers.CustomerDetails.depositAccount.noAccount")).should(
+      "be.visible",
+    )
+    cy.takeScreenshot("customer_no_deposit_account_banner")
+
+    cy.get('[data-testid="global-create-button"]').click()
+    cy.contains(t("Customers.CustomerDetails.createDepositAccount.title")).should(
+      "be.visible",
+    )
+    cy.contains(testEmail).should("be.visible")
+    cy.takeScreenshot("customer_create_deposit_account_dialog")
+
+    cy.get('[data-testid="create-deposit-account-dialog-button"]').click()
+    cy.contains(t("Customers.CustomerDetails.depositAccount.title")).should("be.visible")
+    cy.takeScreenshot("customer_deposit_account_created")
+  })
+
   it("should upload a document", function () {
     if (!Cypress.env("GOOGLE_CLOUD_AVAILABLE")) {
       this.skip()

@@ -406,6 +406,7 @@ describe("credit facility", () => {
         .click()
 
       cy.wait(2000).then(() => {
+        cy.reload()
         cy.get('[data-testid="disbursal-status-badge"]')
           .should("be.visible")
           .invoke("text")
