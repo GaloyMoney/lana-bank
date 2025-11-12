@@ -418,6 +418,11 @@ where
         self.repo.maybe_find_by_public_id(public_id.into()).await
     }
 
+    #[instrument(
+        name = "credit.credit_facility.update_collateralization_from_price",
+        skip(self),
+        err
+    )]
     pub(super) async fn update_collateralization_from_price(
         &self,
         upgrade_buffer_cvl_pct: CVLPct,
@@ -455,6 +460,8 @@ where
             let mut at_least_one = false;
 
             for facility in credit_facilities.entities.iter_mut() {
+                tracing::Span::current().record("credit_facility_id", facility.id.to_string());
+
                 if facility.status() == CreditFacilityStatus::Closed {
                     continue;
                 }
@@ -480,7 +487,10 @@ where
         Ok(())
     }
 
-    #[instrument(name = "credit.credit_facility.update_collat_from_events", skip(self))]
+    #[instrument(
+        name = "credit.credit_facility.update_collateralization_from_events",
+        skip(self)
+    )]
     #[es_entity::retry_on_concurrent_modification]
     pub(super) async fn update_collateralization_from_events(
         &self,
@@ -502,6 +512,8 @@ where
                 CoreCreditAction::CREDIT_FACILITY_UPDATE_COLLATERALIZATION_STATE,
             )
             .await?;
+
+        tracing::Span::current().record("credit_facility_id", credit_facility.id.to_string());
 
         let balances = self
             .ledger
