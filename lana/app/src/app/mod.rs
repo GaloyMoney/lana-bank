@@ -166,6 +166,7 @@ impl LanaApp {
             &jobs,
             &authz,
             &customers,
+            &deposits,
             &custody,
             &price,
             &outbox,

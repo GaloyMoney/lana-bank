@@ -663,7 +663,6 @@ type CreditFacilityProposalConnection {
 
 input CreditFacilityProposalCreateInput {
 	customerId: UUID!
-	disbursalCreditAccountId: UUID!
 	facility: UsdCents!
 	terms: TermsInput!
 	custodianId: UUID

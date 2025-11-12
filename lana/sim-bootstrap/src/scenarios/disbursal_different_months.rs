@@ -18,7 +18,7 @@ pub async fn disbursal_different_months_scenario(
     sub: Subject,
     app: &LanaApp,
 ) -> anyhow::Result<()> {
-    let (customer_id, deposit_account_id) =
+    let (customer_id, _) =
         helpers::create_customer(&sub, app, "4-disbursal-different-months").await?;
 
     let deposit_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
@@ -28,14 +28,7 @@ pub async fn disbursal_different_months_scenario(
     let cf_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
     let cf_proposal = app
         .credit()
-        .create_facility_proposal(
-            &sub,
-            customer_id,
-            deposit_account_id,
-            cf_amount,
-            cf_terms,
-            None::<CustodianId>,
-        )
+        .create_facility_proposal(&sub, customer_id, cf_amount, cf_terms, None::<CustodianId>)
         .await?;
 
     let cf_proposal = app

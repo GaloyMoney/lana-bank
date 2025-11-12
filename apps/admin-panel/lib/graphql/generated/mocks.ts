@@ -937,7 +937,6 @@ export const mockCreditFacilityProposalCreateInput = (overrides?: Partial<Credit
     return {
         custodianId: overrides && overrides.hasOwnProperty('custodianId') ? overrides.custodianId! : generateMockValue.uuid(),
         customerId: overrides && overrides.hasOwnProperty('customerId') ? overrides.customerId! : generateMockValue.uuid(),
-        disbursalCreditAccountId: overrides && overrides.hasOwnProperty('disbursalCreditAccountId') ? overrides.disbursalCreditAccountId! : generateMockValue.uuid(),
         facility: overrides && overrides.hasOwnProperty('facility') ? overrides.facility! : generateMockValue.usdCents(),
         terms: overrides && overrides.hasOwnProperty('terms') ? overrides.terms! : relationshipsToOmit.has('TermsInput') ? {} as TermsInput : mockTermsInput({}, relationshipsToOmit),
     };

@@ -35,6 +35,7 @@ pub mod action {
     use core_credit::CoreCreditAction;
     use core_custody::CoreCustodyAction;
     use core_customer::CoreCustomerAction;
+    use core_deposit::CoreDepositAction;
     use governance::GovernanceAction;
 
     #[derive(Clone, Copy, Debug, PartialEq)]
@@ -70,6 +71,12 @@ pub mod action {
         }
     }
 
+    impl From<CoreDepositAction> for DummyAction {
+        fn from(_: CoreDepositAction) -> Self {
+            Self
+        }
+    }
+
     impl std::fmt::Display for DummyAction {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             write!(f, "dummy")?;
@@ -91,6 +98,7 @@ pub mod object {
     use core_credit::CoreCreditObject;
     use core_custody::CoreCustodyObject;
     use core_customer::CustomerObject;
+    use core_deposit::CoreDepositObject;
     use governance::GovernanceObject;
 
     #[derive(Clone, Copy, Debug, PartialEq)]
@@ -125,6 +133,12 @@ pub mod object {
         }
     }
 
+    impl From<CoreDepositObject> for DummyObject {
+        fn from(_: CoreDepositObject) -> Self {
+            Self
+        }
+    }
+
     impl std::fmt::Display for DummyObject {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             write!(f, "Dummy")?;
@@ -147,6 +161,7 @@ pub mod event {
     use core_credit::CoreCreditEvent;
     use core_custody::CoreCustodyEvent;
     use core_customer::CoreCustomerEvent;
+    use core_deposit::CoreDepositEvent;
     use governance::GovernanceEvent;
 
     #[derive(Debug, Serialize, Deserialize)]
@@ -155,6 +170,7 @@ pub mod event {
         CoreCredit(CoreCreditEvent),
         CoreCustody(CoreCustodyEvent),
         CoreCustomer(CoreCustomerEvent),
+        CoreDeposit(CoreDepositEvent),
         Governance(GovernanceEvent),
     }
 
@@ -180,4 +196,5 @@ pub mod event {
     impl_event_marker!(CoreCreditEvent, CoreCredit);
     impl_event_marker!(CoreCustodyEvent, CoreCustody);
     impl_event_marker!(CoreCustomerEvent, CoreCustomer);
+    impl_event_marker!(CoreDepositEvent, CoreDeposit);
 }

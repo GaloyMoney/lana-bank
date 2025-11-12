@@ -11,8 +11,7 @@ use crate::helpers;
 // Scenario 3: A credit facility with an principal payment >90 days late
 #[tracing::instrument(name = "sim_bootstrap.principal_late_scenario", skip(app), err)]
 pub async fn principal_late_scenario(sub: Subject, app: &LanaApp) -> anyhow::Result<()> {
-    let (customer_id, deposit_account_id) =
-        helpers::create_customer(&sub, app, "3-principal-late").await?;
+    let (customer_id, _) = helpers::create_customer(&sub, app, "3-principal-late").await?;
 
     let deposit_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
     helpers::make_deposit(&sub, app, &customer_id, deposit_amount).await?;
@@ -21,14 +20,7 @@ pub async fn principal_late_scenario(sub: Subject, app: &LanaApp) -> anyhow::Res
     let cf_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
     let cf_proposal = app
         .credit()
-        .create_facility_proposal(
-            &sub,
-            customer_id,
-            deposit_account_id,
-            cf_amount,
-            cf_terms,
-            None::<CustodianId>,
-        )
+        .create_facility_proposal(&sub, customer_id, cf_amount, cf_terms, None::<CustodianId>)
         .await?;
 
     let cf_proposal = app

@@ -45,6 +45,20 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let journal_id = helpers::init_journal(&cala).await?;
     let public_ids = PublicIds::new(&pool);
 
+    let deposits = core_deposit::CoreDeposit::init(
+        &pool,
+        &authz,
+        &outbox,
+        &governance,
+        &jobs,
+        &cala,
+        journal_id,
+        &public_ids,
+        &customers,
+        Default::default(),
+    )
+    .await?;
+
     let credit = CoreCredit::init(
         &pool,
         Default::default(),
@@ -52,6 +66,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         &jobs,
         &authz,
         &customers,
+        &deposits,
         &custody,
         &price,
         &outbox,

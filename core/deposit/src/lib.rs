@@ -876,6 +876,22 @@ where
             .await?)
     }
 
+    #[instrument(
+        name = "deposit.find_account_by_account_holder_without_audit",
+        skip(self),
+        err
+    )]
+    pub async fn find_account_by_account_holder_without_audit(
+        &self,
+        account_holder_id: impl Into<DepositAccountHolderId> + std::fmt::Debug,
+    ) -> Result<DepositAccount, CoreDepositError> {
+        let account_holder_id = account_holder_id.into();
+        Ok(self
+            .deposit_accounts
+            .find_by_account_holder_id(account_holder_id)
+            .await?)
+    }
+
     pub async fn get_chart_of_accounts_integration_config(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

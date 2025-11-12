@@ -1685,7 +1685,6 @@ impl Mutation {
         let CreditFacilityProposalCreateInput {
             facility,
             customer_id,
-            disbursal_credit_account_id,
             terms,
             custodian_id,
         } = input;
@@ -1714,7 +1713,6 @@ impl Mutation {
             app.credit().create_facility_proposal(
                 sub,
                 customer_id,
-                disbursal_credit_account_id,
                 facility,
                 credit_facility_term_values,
                 custodian_id

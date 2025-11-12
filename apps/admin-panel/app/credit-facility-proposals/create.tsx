@@ -68,7 +68,6 @@ type CreateCreditFacilityProposalDialogProps = {
   setOpenCreateCreditFacilityProposalDialog: (isOpen: boolean) => void
   openCreateCreditFacilityProposalDialog: boolean
   customerId: string
-  disbursalCreditAccountId: string
 }
 
 const initialFormValues = {
@@ -89,7 +88,6 @@ export const CreateCreditFacilityProposalDialog: React.FC<
   setOpenCreateCreditFacilityProposalDialog,
   openCreateCreditFacilityProposalDialog,
   customerId,
-  disbursalCreditAccountId,
 }) => {
   const t = useTranslations("CreditFacilityProposals.CreateCreditFacilityProposal")
   const commonT = useTranslations("Common")
@@ -205,7 +203,6 @@ export const CreateCreditFacilityProposalDialog: React.FC<
       await createCreditFacility({
         variables: {
           input: {
-            disbursalCreditAccountId,
             customerId,
             facility: currencyConverter.usdToCents(Number(facility)),
             custodianId: custodianId === DEFAULT_CUSTODIAN ? null : custodianId,
