@@ -142,9 +142,44 @@ where
         })
     }
 
+    #[tracing::instrument(
+        name = "outbox_lana.load_ephemeral_events",
+        skip_all,
+        err(level = "warn")
+    )]
     pub async fn load_ephemeral_events(&self) -> Result<VecDeque<OutboxEvent<P>>, sqlx::Error> {
-        // @ Prakhar - implement this
-        Ok(VecDeque::new())
+        let rows = sqlx::query!(
+            r#"
+            SELECT event_type, payload, tracing_context, recorded_at 
+            FROM ephemeral_outbox_events
+            "#
+        )
+        .fetch_all(&self.pool)
+        .await?;
+
+        let events = rows
+            .into_iter()
+            .filter_map(|row| {
+                let payload = match serde_json::from_value(row.payload?) {
+                    Ok(p) => p,
+                    Err(e) => {
+                        tracing::warn!("Failed to deserialize ephemeral payload: {}", e);
+                        return None;
+                    }
+                };
+                let tracing_context = row.tracing_context.map(|p| {
+                    serde_json::from_value(p).expect("Could not deserialize tracing context")
+                });
+                let event = EphemeralOutboxEvent {
+                    event_type: EphemeralEventType::from(row.event_type),
+                    payload,
+                    tracing_context,
+                    recorded_at: row.recorded_at,
+                };
+                Some(OutboxEvent::from(event))
+            })
+            .collect::<VecDeque<_>>();
+        Ok(events)
     }
 
     #[tracing::instrument(name = "outbox_lana.load_next_page", skip_all, err(level = "warn"))]

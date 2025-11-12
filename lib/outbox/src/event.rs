@@ -49,6 +49,12 @@ impl EphemeralEventType {
     }
 }
 
+impl From<String> for EphemeralEventType {
+    fn from(name: String) -> Self {
+        Self(Cow::Owned(name))
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(bound(deserialize = "T: DeserializeOwned"))]
 pub struct EphemeralOutboxEvent<T>
