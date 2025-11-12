@@ -46,7 +46,7 @@ class DefinitionsBuilder:
         return new_job
 
     def add_job_schedule(
-        self, job: dg.job, cron_expression: Union[CronExpression, None] = None
+        self, job: dg.job, cron_expression: CronExpression
     ):
         default_status = (
             dg.DefaultScheduleStatus.RUNNING
@@ -85,7 +85,7 @@ bitfinex_el_job = definition_builder.add_job_from_assets(
 )
 
 bitfinex_el_job_schedule = definition_builder.add_job_schedule(
-    job=bitfinex_el_job, cron_expression=CronExpression("* * * * *")
+    job=bitfinex_el_job, cron_expression=CronExpression.parse("* * * * *")
 )
 
 defs = definition_builder.build()
