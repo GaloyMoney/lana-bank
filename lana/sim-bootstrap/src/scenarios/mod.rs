@@ -80,7 +80,6 @@ pub async fn process_facility_lifecycle(
         .create_facility_proposal(
             &sub,
             customer_id,
-            deposit_account_id,
             UsdCents::try_from_usd(dec!(10_000_000))?,
             terms,
             None::<CustodianId>,

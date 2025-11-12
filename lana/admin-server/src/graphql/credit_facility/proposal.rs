@@ -101,7 +101,6 @@ impl From<DomainCreditFacilityProposal> for CreditFacilityProposal {
 #[derive(InputObject)]
 pub struct CreditFacilityProposalCreateInput {
     pub customer_id: UUID,
-    pub disbursal_credit_account_id: UUID,
     pub facility: UsdCents,
     pub terms: TermsInput,
     pub custodian_id: Option<UUID>,

@@ -690,7 +690,6 @@ export type CreditFacilityProposalConnection = {
 export type CreditFacilityProposalCreateInput = {
   custodianId?: InputMaybe<Scalars['UUID']['input']>;
   customerId: Scalars['UUID']['input'];
-  disbursalCreditAccountId: Scalars['UUID']['input'];
   facility: Scalars['UsdCents']['input'];
   terms: TermsInput;
 };

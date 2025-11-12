@@ -467,7 +467,6 @@ const CommandMenu = ({ open, onOpenChange }: CommandMenuProps) => {
             openCreateCreditFacilityProposalDialog={createFacility}
             setOpenCreateCreditFacilityProposalDialog={() => setCreateFacility(false)}
             customerId={customer.customerId}
-            disbursalCreditAccountId={customer.depositAccount.depositAccountId}
           />
         </>
       )}

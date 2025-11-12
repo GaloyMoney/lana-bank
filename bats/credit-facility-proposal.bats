@@ -125,13 +125,11 @@ ymd() {
   variables=$(
     jq -n \
     --arg customerId "$customer_id" \
-    --arg disbursal_credit_account_id "$deposit_account_id" \
     --argjson facility "$facility" \
     '{
       input: {
         customerId: $customerId,
         facility: $facility,
-        disbursalCreditAccountId: $disbursal_credit_account_id,
         terms: {
           annualRate: "12",
           accrualCycleInterval: "END_OF_MONTH",

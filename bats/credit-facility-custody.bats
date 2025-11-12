@@ -53,13 +53,11 @@ wait_for_collateral() {
   variables=$(
     jq -n \
     --arg customerId "$customer_id" \
-    --arg disbursal_credit_account_id "$deposit_account_id" \
     --argjson facility "$facility" \
     '{
       input: {
         customerId: $customerId,
         facility: $facility,
-        disbursalCreditAccountId: $disbursal_credit_account_id,
         custodianId: "00000000-0000-0000-0000-000000000000",
         terms: {
           annualRate: "12",

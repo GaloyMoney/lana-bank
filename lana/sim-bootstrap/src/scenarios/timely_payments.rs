@@ -11,8 +11,7 @@ use crate::helpers;
 // Scenario 1: A credit facility that made timely payments and was paid off all according to the initial payment plan
 #[tracing::instrument(name = "sim_bootstrap.timely_payments_scenario", skip(app), err)]
 pub async fn timely_payments_scenario(sub: Subject, app: &LanaApp) -> anyhow::Result<()> {
-    let (customer_id, deposit_account_id) =
-        helpers::create_customer(&sub, app, "1-timely-paid").await?;
+    let (customer_id, _) = helpers::create_customer(&sub, app, "1-timely-paid").await?;
 
     let deposit_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
     helpers::make_deposit(&sub, app, &customer_id, deposit_amount).await?;
@@ -21,14 +20,7 @@ pub async fn timely_payments_scenario(sub: Subject, app: &LanaApp) -> anyhow::Re
     let cf_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
     let cf_proposal = app
         .credit()
-        .create_facility_proposal(
-            &sub,
-            customer_id,
-            deposit_account_id,
-            cf_amount,
-            cf_terms,
-            None::<CustodianId>,
-        )
+        .create_facility_proposal(&sub, customer_id, cf_amount, cf_terms, None::<CustodianId>)
         .await?;
 
     let cf_proposal = app
