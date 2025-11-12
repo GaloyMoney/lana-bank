@@ -1,6 +1,7 @@
 query ChartOfAccounts {
   chartOfAccounts {
     chartId
+    reference
     name
     children {
       ...child

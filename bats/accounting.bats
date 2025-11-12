@@ -214,17 +214,7 @@ teardown_file() {
 }
 
 @test "accounting: cannot execute transaction before system inception date" {
-  exec_admin_graphql 'chart-of-accounts'
-  chart_id=$(graphql_output '.data.chartOfAccounts.chartId')
-  
-  variables=$(
-    jq -n \
-    --arg chart_id "$chart_id" \
-    '{
-        chartId: $chart_id
-    }'
-  )
-  exec_admin_graphql 'fiscal-year-current' "$variables"
+  exec_admin_graphql 'fiscal-year-current'
   graphql_output
   inception_date=$(graphql_output '.data.currentFiscalYear.openedAsOf')
   [[ "$inception_date" != "null" ]] || exit 1

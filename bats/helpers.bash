@@ -49,7 +49,7 @@ start_server() {
   # Start server if not already running
   local server_started=false
   background server_cmd > "$LOG_FILE" 2>&1
-  for i in {1..30}; do
+  for i in {1..120}; do
     echo "--- Checking server ${i} ---"
     if grep -q 'Starting' "$LOG_FILE"; then
       server_started=true

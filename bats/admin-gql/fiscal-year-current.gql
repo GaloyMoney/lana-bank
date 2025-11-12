@@ -1,7 +1,7 @@
-query CurrentFiscalYear($chartId: UUID!) {
-    currentFiscalYear(chartId: $chartId) {
+query CurrentFiscalYear {
+    currentFiscalYear {
         id
-        chartId
+        chartReference
         openedAsOf
     }
 }
