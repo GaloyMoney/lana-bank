@@ -71,9 +71,18 @@ async fn prepare_test() -> anyhow::Result<(
 
     let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, document_storage, &jobs);
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
-    accounting
+    let chart = accounting
         .chart_of_accounts()
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())
+        .await?;
+    accounting
+        .fiscal_year()
+        .open_first_fiscal_year(
+            &DummySubject,
+            "2021-01-01".parse::<chrono::NaiveDate>().unwrap(),
+            chart.id,
+            chart.account_set_id,
+        )
         .await?;
     let import = r#"
         1,,Assets
