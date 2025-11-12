@@ -565,7 +565,7 @@ where
 
         let deposit_account = self
             .deposit
-            .find_account_by_account_holder_without_audit(customer_id.into())
+            .find_account_by_account_holder_without_audit(customer.id)
             .await?;
 
         let proposal_id = CreditFacilityId::new();
@@ -574,7 +574,7 @@ where
 
         let new_facility_proposal = NewCreditFacilityProposal::builder()
             .id(proposal_id)
-            .customer_id(customer_id)
+            .customer_id(customer.id)
             .customer_type(customer.customer_type)
             .custodian_id(custodian_id.map(|id| id.into()))
             .disbursal_credit_account_id(deposit_account.id)
