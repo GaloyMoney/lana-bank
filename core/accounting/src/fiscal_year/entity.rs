@@ -134,7 +134,11 @@ impl NewFiscalYear {
     }
 
     pub(super) fn reference(&self) -> String {
-        format!("AC{}", self.first_period_opened_as_of.year())
+        format!(
+            "{}:AC{}",
+            self.chart_id,
+            self.first_period_opened_as_of.year()
+        )
     }
 }
 
