@@ -7,7 +7,7 @@ use lana_app::fiscal_year::FiscalYear as DomainFiscalYear;
 pub struct FiscalYear {
     id: ID,
     chart_id: UUID,
-    first_period_opened_as_of: Date,
+    opened_as_of: Date,
 
     #[graphql(skip)]
     pub(crate) entity: Arc<DomainFiscalYear>,
@@ -17,7 +17,7 @@ impl From<DomainFiscalYear> for FiscalYear {
         FiscalYear {
             id: fiscal_year.id.to_global_id(),
             chart_id: UUID::from(fiscal_year.chart_id),
-            first_period_opened_as_of: fiscal_year.first_period_opened_as_of.into(),
+            opened_as_of: fiscal_year.opened_as_of.into(),
             entity: Arc::new(fiscal_year),
         }
     }

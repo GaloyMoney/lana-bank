@@ -22,7 +22,12 @@ impl FiscalYearLedger {
         Self { cala: cala.clone() }
     }
 
-    #[instrument(name = "fiscal_year.close_month_as_of", skip(self, op), fields(chart_id = tracing::field::Empty, closed_as_of = %closed_as_of), err)]
+    #[instrument(
+        name = "fiscal_year.close_month_as_of", 
+        skip(self, op),
+        fields(chart_id = tracing::field::Empty, closed_as_of = %closed_as_of),
+        err,
+    )]
     pub async fn close_month_as_of(
         &self,
         op: es_entity::DbOp<'_>,
@@ -72,8 +77,9 @@ impl FiscalYearLedger {
     pub async fn attach_closing_controls_to_account_set_in_op(
         &self,
         mut op: LedgerOperation<'_>,
-        tracking_account_set_id: AccountSetId,
+        tracking_account_set_id: impl Into<AccountSetId> + std::fmt::Debug,
     ) -> Result<VelocityControlId, FiscalYearLedgerError> {
+        let tracking_account_set_id = tracking_account_set_id.into();
         let control_id = self.create_monthly_close_control_in_op(&mut op).await?;
 
         self.cala

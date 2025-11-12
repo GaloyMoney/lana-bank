@@ -82,8 +82,6 @@ where
         op: LedgerOperation<'_>,
         tracking_account_set_id: impl Into<CalaAccountSetId> + std::fmt::Debug,
     ) -> Result<(), FiscalYearError> {
-        let tracking_account_set_id = tracking_account_set_id.into();
-
         self.ledger
             .attach_closing_controls_to_account_set_in_op(op, tracking_account_set_id)
             .await?;
@@ -124,7 +122,7 @@ where
             .id(FiscalYearId::new())
             .chart_id(chart_id)
             .tracking_account_set_id(tracking_account_set_id)
-            .first_period_opened_as_of(opened_as_of)
+            .opened_as_of(opened_as_of)
             .build()
             .expect("Could not build new FiscalYear");
 
@@ -161,7 +159,7 @@ where
             .await?;
 
         let mut latest_year = self.repo.find_current_by_chart_id(chart_id.into()).await?;
-        if latest_year.first_period_opened_as_of.year() != now.year() {
+        if latest_year.opened_as_of.year() != now.year() {
             return Err(FiscalYearError::CurrentYearNotFound);
         }
         let closed_as_of_date =
