@@ -55,7 +55,9 @@ async fn deposit() -> anyhow::Result<()> {
         journal_id,
         &public_ids,
         &customers,
-        DepositConfig::default(),
+        DepositConfig {
+            require_verified_customer_for_account: false,
+        },
     )
     .await?;
 
@@ -133,7 +135,9 @@ async fn revert_deposit() -> anyhow::Result<()> {
         journal_id,
         &public_ids,
         &customers,
-        DepositConfig::default(),
+        DepositConfig {
+            require_verified_customer_for_account: false,
+        },
     )
     .await?;
 

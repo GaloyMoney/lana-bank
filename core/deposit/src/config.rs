@@ -19,5 +19,5 @@ impl Default for DepositConfig {
 }
 
 fn default_require_verified_customer_for_account() -> bool {
-    false
+    true
 }

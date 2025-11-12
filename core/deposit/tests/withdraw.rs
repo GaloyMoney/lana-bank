@@ -56,7 +56,9 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
         journal_id,
         &public_ids,
         &customers,
-        DepositConfig::default(),
+        DepositConfig {
+            require_verified_customer_for_account: false,
+        },
     )
     .await?;
 

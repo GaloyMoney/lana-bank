@@ -55,7 +55,9 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         journal_id,
         &public_ids,
         &customers,
-        DepositConfig::default(),
+        DepositConfig {
+            require_verified_customer_for_account: false,
+        },
     )
     .await?;
 
