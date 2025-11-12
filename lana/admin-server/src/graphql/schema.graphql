@@ -1330,7 +1330,7 @@ type FiniteCVLPct {
 type FiscalYear {
 	id: ID!
 	chartId: UUID!
-	firstPeriodOpenedAsOf: Date!
+	openedAsOf: Date!
 }
 
 input FiscalYearCloseMonthInput {

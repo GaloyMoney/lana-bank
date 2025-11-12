@@ -1336,8 +1336,8 @@ export type FiniteCvlPct = {
 export type FiscalYear = {
   __typename?: 'FiscalYear';
   chartId: Scalars['UUID']['output'];
-  firstPeriodOpenedAsOf: Scalars['Date']['output'];
   id: Scalars['ID']['output'];
+  openedAsOf: Scalars['Date']['output'];
 };
 
 export type FiscalYearCloseMonthInput = {

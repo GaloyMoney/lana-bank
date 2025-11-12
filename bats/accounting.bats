@@ -226,7 +226,7 @@ teardown_file() {
   )
   exec_admin_graphql 'fiscal-year-current' "$variables"
   graphql_output
-  inception_date=$(graphql_output '.data.currentFiscalYear.firstPeriodOpenedAsOf')
+  inception_date=$(graphql_output '.data.currentFiscalYear.openedAsOf')
   [[ "$inception_date" != "null" ]] || exit 1
   closed_as_of_date=$(date -d "$inception_date -1 day" +%Y-%m-%d)
 

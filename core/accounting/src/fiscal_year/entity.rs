@@ -18,7 +18,7 @@ pub enum FiscalYearEvent {
         chart_id: ChartId,
         reference: String,
         tracking_account_set_id: CalaAccountSetId,
-        first_period_opened_as_of: chrono::NaiveDate,
+        opened_as_of: chrono::NaiveDate,
     },
     MonthClosed {
         closed_as_of: NaiveDate,
@@ -33,7 +33,7 @@ pub struct FiscalYear {
     pub chart_id: ChartId,
     pub reference: String,
     pub tracking_account_set_id: CalaAccountSetId,
-    pub first_period_opened_as_of: NaiveDate,
+    pub opened_as_of: NaiveDate,
 
     events: EntityEvents<FiscalYearEvent>,
 }
@@ -68,10 +68,7 @@ impl FiscalYear {
                 .events
                 .iter_all()
                 .find_map(|event| match event {
-                    FiscalYearEvent::Initialized {
-                        first_period_opened_as_of,
-                        ..
-                    } => Some(first_period_opened_as_of),
+                    FiscalYearEvent::Initialized { opened_as_of, .. } => Some(opened_as_of),
                     _ => None,
                 })
                 .expect("Entity was not initialized")
@@ -100,7 +97,7 @@ impl TryFromEvents<FiscalYearEvent> for FiscalYear {
                     chart_id,
                     reference,
                     tracking_account_set_id,
-                    first_period_opened_as_of,
+                    opened_as_of,
                     ..
                 } => {
                     builder = builder
@@ -108,7 +105,7 @@ impl TryFromEvents<FiscalYearEvent> for FiscalYear {
                         .chart_id(*chart_id)
                         .reference(reference.to_string())
                         .tracking_account_set_id(*tracking_account_set_id)
-                        .first_period_opened_as_of(*first_period_opened_as_of)
+                        .opened_as_of(*opened_as_of)
                 }
                 FiscalYearEvent::MonthClosed { .. } => {}
             }
@@ -125,7 +122,7 @@ pub struct NewFiscalYear {
     pub chart_id: ChartId,
     #[builder(setter(into))]
     pub tracking_account_set_id: CalaAccountSetId,
-    pub first_period_opened_as_of: NaiveDate,
+    pub opened_as_of: NaiveDate,
 }
 
 impl NewFiscalYear {
@@ -134,11 +131,7 @@ impl NewFiscalYear {
     }
 
     pub(super) fn reference(&self) -> String {
-        format!(
-            "{}:AC{}",
-            self.chart_id,
-            self.first_period_opened_as_of.year()
-        )
+        format!("{}:AC{}", self.chart_id, self.opened_as_of.year())
     }
 }
 
@@ -151,7 +144,7 @@ impl IntoEvents<FiscalYearEvent> for NewFiscalYear {
                 chart_id: self.chart_id,
                 reference: self.reference(),
                 tracking_account_set_id: self.tracking_account_set_id,
-                first_period_opened_as_of: self.first_period_opened_as_of,
+                opened_as_of: self.opened_as_of,
             }],
         )
     }
@@ -166,15 +159,13 @@ mod test {
         FiscalYear::try_from_events(EntityEvents::init(FiscalYearId::new(), events)).unwrap()
     }
 
-    fn initial_events_with_opened_date(
-        first_period_opened_as_of: NaiveDate,
-    ) -> Vec<FiscalYearEvent> {
+    fn initial_events_with_opened_date(opened_as_of: NaiveDate) -> Vec<FiscalYearEvent> {
         vec![FiscalYearEvent::Initialized {
             id: FiscalYearId::new(),
             chart_id: ChartId::new(),
             reference: "AC2025".to_string(),
             tracking_account_set_id: CalaAccountSetId::new(),
-            first_period_opened_as_of,
+            opened_as_of,
         }]
     }
 
