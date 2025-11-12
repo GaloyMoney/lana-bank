@@ -122,12 +122,9 @@ where
 
         let chart = self.repo.create_in_op(&mut db_op, new_chart).await?;
 
-        let mut ledger_op = self
-            .cala
-            .ledger_operation_from_db_op(db_op.with_db_time().await?);
-
-        self.chart_ledger
-            .create_chart_root_account_set_in_op(&mut ledger_op, &chart)
+        let ledger_op = self
+            .chart_ledger
+            .create_chart_root_account_set_in_op(db_op, &chart)
             .await?;
 
         self.fiscal_year
