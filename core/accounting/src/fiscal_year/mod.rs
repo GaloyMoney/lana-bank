@@ -8,7 +8,6 @@ use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use chrono::Datelike;
 
 use cala_ledger::{CalaLedger, LedgerOperation};
 
@@ -159,9 +158,6 @@ where
             .await?;
 
         let mut latest_year = self.repo.find_current_by_chart_id(chart_id.into()).await?;
-        if latest_year.opened_as_of.year() != now.year() {
-            return Err(FiscalYearError::CurrentYearNotFound);
-        }
         let closed_as_of_date =
             if let Idempotent::Executed(date) = latest_year.close_last_month(now)? {
                 date
