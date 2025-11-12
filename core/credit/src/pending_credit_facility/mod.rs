@@ -217,7 +217,7 @@ where
     }
 
     #[instrument(
-        name = "credit.pending_credit_facility.update_collat_from_events",
+        name = "credit.pending_credit_facility.update_collateralization_from_events",
         skip(self)
     )]
     #[es_entity::retry_on_concurrent_modification(any_error = true)]
@@ -227,6 +227,11 @@ where
     ) -> Result<PendingCreditFacility, PendingCreditFacilityError> {
         let mut op = self.repo.begin_op().await?;
         let mut pending_facility = self.repo.find_by_id_in_op(&mut op, id).await?;
+
+        tracing::Span::current().record(
+            "pending_credit_facility_id",
+            pending_facility.id.to_string(),
+        );
 
         let balances = self
             .ledger
@@ -248,6 +253,11 @@ where
         Ok(pending_facility)
     }
 
+    #[instrument(
+        name = "credit.credit_facility.update_collateralization_from_price",
+        skip(self),
+        err
+    )]
     pub(super) async fn update_collateralization_from_price(
         &self,
     ) -> Result<(), PendingCreditFacilityError> {
@@ -276,6 +286,11 @@ where
             let mut at_least_one = false;
 
             for pending_facility in pending_credit_facilities.entities.iter_mut() {
+                tracing::Span::current().record(
+                    "pending_credit_facility_id",
+                    pending_facility.id.to_string(),
+                );
+
                 if pending_facility.status() == PendingCreditFacilityStatus::Completed {
                     continue;
                 }
