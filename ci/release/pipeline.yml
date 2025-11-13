@@ -164,11 +164,13 @@ jobs:
 
   - name: set-next-version
     serial: true
-    serial_groups: [release]
     plan:
-      - get: repo
-        trigger: true
-      - get: version
+      - put: release-lock
+        params: { claim: release }
+      - in_parallel:
+         - get: repo
+           trigger: true
+         - get: version
       - task: next-version
         config:
           platform: linux
@@ -197,6 +199,8 @@ jobs:
     serial: true
     serial_groups: [release]
     plan:
+    - get: release-lock
+      passed: [ set-next-version ]
     - in_parallel:
       - get: repo
         trigger: true
@@ -238,8 +242,9 @@ jobs:
 
   - name: release
     serial: true
-    serial_groups: [release]
     plan:
+      - get: release-lock
+        passed: [ await-release-binary ]
       - in_parallel:
           - get: repo
             passed: 
@@ -377,6 +382,7 @@ jobs:
           tag: artifacts/gh-release-tag
           only_tag: true
           repository: repo
+      - { put: release-lock, params: { release: release }}
       - task: github-release
         config:
           image_resource: #@ rust_task_image_config()
@@ -611,6 +617,15 @@ resources:
       branch: #@ data.values.git_branch
       private_key: #@ data.values.github_private_key
     webhook_token: ((webhook.secret))
+
+  - name: release-lock
+    type: pool
+    source:
+      uri: #@ data.values.concourse_locks_git_uri
+      branch: main
+      pool: lana-bank
+      private_key: #@ data.values.github_private_key
+
   - name: latest-image
     type: registry-image
     source:
