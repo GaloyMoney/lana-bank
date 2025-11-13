@@ -30,7 +30,7 @@ use outbox::{Outbox, OutboxEventMarker};
 use public_id::PublicIds;
 
 use account::*;
-pub use account::{DepositAccount, DepositAccountsByCreatedAtCursor};
+pub use account::{DepositAccount, DepositAccountsByCreatedAtCursor, error::DepositAccountError};
 pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
 pub use config::DepositConfig;
 use deposit::*;
@@ -306,11 +306,22 @@ where
             .list_for_account_holder_id_by_id(holder_id, Default::default(), Default::default())
             .await?;
         let mut op = self.deposit_accounts.begin_op().await?;
+
         for mut account in accounts.entities.into_iter() {
-            if account.update_status(status).did_execute() {
-                self.deposit_accounts
-                    .update_in_op(&mut op, &mut account)
-                    .await?;
+            match account.update_status(status) {
+                Ok(result) if result.did_execute() => {
+                    self.deposit_accounts
+                        .update_in_op(&mut op, &mut account)
+                        .await?;
+                }
+                Err(DepositAccountError::CannotUpdateClosedAccount) => {
+                    tracing::warn!("Skipping update error if account already closed");
+                    continue;
+                }
+                Err(e) => {
+                    return Err(e.into());
+                }
+                Ok(_) => continue,
             }
         }
         op.commit().await?;
@@ -627,6 +638,38 @@ where
         }
 
         self.ledger.unfreeze_account_in_op(op, &account).await?;
+
+        Ok(account)
+    }
+
+    #[instrument(name = "deposit.close_account", skip(self), err)]
+    pub async fn close_account(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        account_id: impl Into<DepositAccountId> + std::fmt::Debug,
+    ) -> Result<DepositAccount, CoreDepositError> {
+        let account_id = account_id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::deposit_account(account_id),
+                CoreDepositAction::DEPOSIT_ACCOUNT_CLOSE,
+            )
+            .await?;
+        let balance = self.ledger.balance(account_id).await?;
+        if !balance.is_zero() {
+            return Err(DepositAccountError::BalanceIsNotZero.into());
+        }
+
+        let mut account = self.deposit_accounts.find_by_id(account_id).await?;
+
+        if account.close()?.did_execute() {
+            let mut op = self.deposit_accounts.begin_op().await?;
+            self.deposit_accounts
+                .update_in_op(&mut op, &mut account)
+                .await?;
+            op.commit().await?;
+        }
 
         Ok(account)
     }
@@ -1065,6 +1108,7 @@ where
         match account.status {
             DepositAccountStatus::Inactive => Err(CoreDepositError::DepositAccountInactive),
             DepositAccountStatus::Frozen => Err(CoreDepositError::DepositAccountFrozen),
+            DepositAccountStatus::Closed => Err(CoreDepositError::DepositAccountClosed),
             DepositAccountStatus::Active => Ok(()),
         }
     }

@@ -111,8 +111,8 @@ pub mod deposit {
         DEPOSIT_TRANSACTION_ENTITY_TYPE, Deposit, DepositAccount, DepositAccountBalance,
         DepositAccountHistoryCursor, DepositAccountHistoryEntry, DepositAccountStatus,
         DepositAccountsByCreatedAtCursor, DepositConfig, DepositId, DepositStatus,
-        DepositsByCreatedAtCursor, WITHDRAWAL_TRANSACTION_ENTITY_TYPE,
-        Withdrawal, WithdrawalId, WithdrawalStatus, WithdrawalsByCreatedAtCursor, error,
+        DepositsByCreatedAtCursor, WITHDRAWAL_TRANSACTION_ENTITY_TYPE, Withdrawal, WithdrawalId,
+        WithdrawalStatus, WithdrawalsByCreatedAtCursor, error,
     };
 
     pub type Deposits =

@@ -1088,6 +1088,14 @@ type DepositAccountBalance {
 	pending: UsdCents!
 }
 
+input DepositAccountCloseInput {
+	depositAccountId: UUID!
+}
+
+type DepositAccountClosePayload {
+	account: DepositAccount!
+}
+
 type DepositAccountConnection {
 	"""
 	Information to aid in pagination.
@@ -1175,6 +1183,7 @@ enum DepositAccountStatus {
 	INACTIVE
 	ACTIVE
 	FROZEN
+	CLOSED
 }
 
 input DepositAccountUnfreezeInput {
@@ -1572,6 +1581,7 @@ type Mutation {
 	depositAccountCreate(input: DepositAccountCreateInput!): DepositAccountCreatePayload!
 	depositAccountFreeze(input: DepositAccountFreezeInput!): DepositAccountFreezePayload!
 	depositAccountUnfreeze(input: DepositAccountUnfreezeInput!): DepositAccountUnfreezePayload!
+	depositAccountClose(input: DepositAccountCloseInput!): DepositAccountClosePayload!
 	termsTemplateCreate(input: TermsTemplateCreateInput!): TermsTemplateCreatePayload!
 	termsTemplateUpdate(input: TermsTemplateUpdateInput!): TermsTemplateUpdatePayload!
 	creditModuleConfigure(input: CreditModuleConfigureInput!): CreditModuleConfigurePayload!
