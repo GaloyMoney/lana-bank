@@ -670,9 +670,7 @@ where
                 .update_in_op(&mut op, &mut account)
                 .await?;
 
-            self.ledger
-                .lock_account(op, account_id.into())
-                .await?;
+            self.ledger.lock_account(op, account_id.into()).await?;
         }
 
         Ok(account)
