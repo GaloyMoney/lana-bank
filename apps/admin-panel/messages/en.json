@@ -468,7 +468,7 @@
             "createdAt": "Created At"
           }
         }
-      },
+      }
     }
   },
   "CreditFacilityProposals": {
@@ -1368,7 +1368,8 @@
     "status": {
       "active": "Active",
       "frozen": "Frozen",
-      "inactive": "Inactive"
+      "inactive": "Inactive",
+      "closed": "Closed"
     },
     "DepositAccountDetails": {
       "DepositAccountDetailsCard": {
@@ -1383,7 +1384,8 @@
         "buttons": {
           "viewLedgerAccount": "View Ledger Account",
           "freezeDepositAccount": "Freeze Deposit Account",
-          "unfreezeDepositAccount": "Unfreeze Deposit Account"
+          "unfreezeDepositAccount": "Unfreeze Deposit Account",
+          "closeDepositAccount": "Close Deposit Account"
         }
       },
       "freezeDepositAccount": {
@@ -1396,11 +1398,7 @@
         "buttons": {
           "freeze": "Freeze Account"
         },
-        "success": "Deposit account frozen successfully",
-        "errors": {
-          "noData": "No data returned from the server",
-          "unknown": "An unexpected error occurred"
-        }
+        "success": "Deposit account frozen successfully"
       },
       "unfreezeDepositAccount": {
         "title": "Unfreeze Deposit Account",
@@ -1409,6 +1407,15 @@
           "unfreeze": "Unfreeze Account"
         },
         "success": "Deposit account unfrozen successfully"
+      },
+      "closeDepositAccount": {
+        "title": "Close Deposit Account",
+        "description": "Are you sure you want to close this deposit account? This action is permanent and cannot be undone.",
+        "buttons": {
+          "close": "Close Account"
+        },
+        "success": "Deposit account closed successfully",
+        "disabledTooltip": "Account balance must be zero to close"
       },
       "transactions": {
         "title": "Transaction History",

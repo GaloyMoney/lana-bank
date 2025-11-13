@@ -468,14 +468,6 @@
             "createdAt": "Fecha de registro"
           }
         }
-      },
-      "unfreezeDepositAccount": {
-        "title": "Descongelar Cuenta de Depósito",
-        "description": "¿Está seguro de que desea descongelar esta cuenta de depósito? Esto permitirá nuevos depósitos y retiros.",
-        "buttons": {
-          "unfreeze": "Descongelar Cuenta"
-        },
-        "success": "Cuenta de depósito descongelada exitosamente"
       }
     }
   },
@@ -1376,7 +1368,8 @@
     "status": {
       "active": "Activa",
       "frozen": "Congelada",
-      "inactive": "Inactiva"
+      "inactive": "Inactiva",
+      "closed": "Cerrada"
     },
     "DepositAccountDetails": {
       "DepositAccountDetailsCard": {
@@ -1390,7 +1383,9 @@
         },
         "buttons": {
           "viewLedgerAccount": "Ver Cuenta del Libro Mayor",
-          "freezeDepositAccount": "Congelar Cuenta de Depósito"
+          "freezeDepositAccount": "Congelar Cuenta de Depósito",
+          "unfreezeDepositAccount": "Descongelar cuenta de depósito",
+          "closeDepositAccount": "Cerrar cuenta de depósito"
         }
       },
       "freezeDepositAccount": {
@@ -1408,6 +1403,23 @@
           "noData": "No se recibieron datos del servidor",
           "unknown": "Ocurrió un error inesperado"
         }
+      },
+      "unfreezeDepositAccount": {
+        "title": "Descongelar cuenta de depósito",
+        "description": "¿Está seguro de que desea descongelar esta cuenta de depósito? Esto permitirá nuevos depósitos y retiros.",
+        "buttons": {
+          "unfreeze": "Descongelar cuenta"
+        },
+        "success": "Cuenta de depósito descongelada exitosamente"
+      },
+      "closeDepositAccount": {
+        "title": "Cerrar cuenta de depósito",
+        "description": "¿Está seguro de que desea cerrar esta cuenta de depósito? Esta acción es permanente y no se puede deshacer.",
+        "buttons": {
+          "close": "Cerrar cuenta"
+        },
+        "success": "Cuenta de depósito cerrada exitosamente",
+        "disabledTooltip": "El saldo de la cuenta debe ser cero para cerrarla"
       },
       "transactions": {
         "title": "Historial de Transacciones",

@@ -12,6 +12,7 @@ import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 import { useBreadcrumb } from "@/app/breadcrumb-provider"
 import { PublicIdBadge } from "@/components/public-id-badge"
 import { DEFAULT_PAGESIZE } from "@/components/paginated-table"
+import { useCreateContext } from "@/app/create"
 gql`
   query GetDepositAccountDetails($publicId: PublicId!, $first: Int!, $after: String) {
     depositAccountByPublicId(id: $publicId) {
@@ -126,6 +127,7 @@ function DepositAccountPage({
   const { "deposit-account-id": publicId } = use(params)
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
   const navTranslations = useTranslations("Sidebar.navItems")
+  const { setDepositAccount } = useCreateContext()
 
   const { data, loading, error, fetchMore } = useGetDepositAccountDetailsQuery({
     variables: {
@@ -144,9 +146,11 @@ function DepositAccountPage({
           isCurrentPage: true,
         },
       ])
+      setDepositAccount(data.depositAccountByPublicId)
     }
     return () => {
       resetToDefault()
+      setDepositAccount(null)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.depositAccountByPublicId])

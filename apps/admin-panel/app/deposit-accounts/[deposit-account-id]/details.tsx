@@ -1,17 +1,24 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useMemo } from "react"
 import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
-import { ArrowRight, Snowflake, Sun } from "lucide-react"
+import { ArrowRight, Snowflake, Sun, XCircle } from "lucide-react"
 
 import { Button } from "@lana/web/ui/button"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@lana/web/ui/tooltip"
 
 import { formatDate } from "@lana/web/utils"
 
 import { DepositAccountStatusBadge } from "../status-badge"
 
 import FreezeDepositAccountDialog from "./freeze-deposit-account"
+import CloseDepositAccountDialog from "./close-deposit-account"
 
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import Balance from "@/components/balance/balance"
@@ -32,9 +39,17 @@ const DepositAccountDetailsCard: React.FC<DepositAccountDetailsProps> = ({
   const t = useTranslations(
     "DepositAccounts.DepositAccountDetails.DepositAccountDetailsCard",
   )
+  const tClose = useTranslations(
+    "DepositAccounts.DepositAccountDetails.closeDepositAccount",
+  )
   const router = useRouter()
   const [openFreezeDialog, setOpenFreezeDialog] = useState(false)
   const [openUnfreezeDialog, setOpenUnfreezeDialog] = useState(false)
+  const [openCloseDialog, setOpenCloseDialog] = useState(false)
+
+  const isBalanceZero = useMemo(() => {
+    return depositAccount.balance.settled === 0 && depositAccount.balance.pending === 0
+  }, [depositAccount.balance])
 
   const handleViewLedgerAccount = () => {
     const accountId =
@@ -53,6 +68,10 @@ const DepositAccountDetailsCard: React.FC<DepositAccountDetailsProps> = ({
 
   const handleUnfreezeAccount = () => {
     setOpenUnfreezeDialog(true)
+  }
+
+  const handleCloseAccount = () => {
+    setOpenCloseDialog(true)
   }
 
   const details: DetailItemProps[] = [
@@ -86,7 +105,7 @@ const DepositAccountDetailsCard: React.FC<DepositAccountDetailsProps> = ({
         {t("buttons.viewLedgerAccount")}
         <ArrowRight />
       </Button>
-      {depositAccount.status !== DepositAccountStatus.Frozen && (
+      {depositAccount.status === DepositAccountStatus.Active && (
         <Button variant="outline" onClick={handleFreezeAccount}>
           <Snowflake />
           {t("buttons.freezeDepositAccount")}
@@ -97,6 +116,30 @@ const DepositAccountDetailsCard: React.FC<DepositAccountDetailsProps> = ({
           <Sun />
           {t("buttons.unfreezeDepositAccount")}
         </Button>
+      )}
+      {(depositAccount.status === DepositAccountStatus.Active ||
+        depositAccount.status === DepositAccountStatus.Inactive) && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span>
+                <Button
+                  variant="destructive"
+                  onClick={handleCloseAccount}
+                  disabled={!isBalanceZero}
+                >
+                  <XCircle />
+                  {t("buttons.closeDepositAccount")}
+                </Button>
+              </span>
+            </TooltipTrigger>
+            {!isBalanceZero && (
+              <TooltipContent>
+                <p>{tClose("disabledTooltip")}</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
       )}
     </>
   )
@@ -119,6 +162,11 @@ const DepositAccountDetailsCard: React.FC<DepositAccountDetailsProps> = ({
         depositAccountId={depositAccount.depositAccountId}
         openUnfreezeDialog={openUnfreezeDialog}
         setOpenUnfreezeDialog={setOpenUnfreezeDialog}
+      />
+      <CloseDepositAccountDialog
+        depositAccountId={depositAccount.depositAccountId}
+        openCloseDialog={openCloseDialog}
+        setOpenCloseDialog={setOpenCloseDialog}
       />
     </>
   )

@@ -3508,6 +3508,13 @@ export type DashboardQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type DashboardQuery = { __typename?: 'Query', dashboard: { __typename?: 'Dashboard', activeFacilities: number, pendingFacilities: number, totalDisbursed: UsdCents, totalCollateral: Satoshis } };
 
+export type DepositAccountCloseMutationVariables = Exact<{
+  input: DepositAccountCloseInput;
+}>;
+
+
+export type DepositAccountCloseMutation = { __typename?: 'Mutation', depositAccountClose: { __typename?: 'DepositAccountClosePayload', account: { __typename?: 'DepositAccount', id: string } } };
+
 export type DepositAccountFreezeMutationVariables = Exact<{
   input: DepositAccountFreezeInput;
 }>;
@@ -7226,6 +7233,41 @@ export type DashboardQueryHookResult = ReturnType<typeof useDashboardQuery>;
 export type DashboardLazyQueryHookResult = ReturnType<typeof useDashboardLazyQuery>;
 export type DashboardSuspenseQueryHookResult = ReturnType<typeof useDashboardSuspenseQuery>;
 export type DashboardQueryResult = Apollo.QueryResult<DashboardQuery, DashboardQueryVariables>;
+export const DepositAccountCloseDocument = gql`
+    mutation DepositAccountClose($input: DepositAccountCloseInput!) {
+  depositAccountClose(input: $input) {
+    account {
+      id
+    }
+  }
+}
+    `;
+export type DepositAccountCloseMutationFn = Apollo.MutationFunction<DepositAccountCloseMutation, DepositAccountCloseMutationVariables>;
+
+/**
+ * __useDepositAccountCloseMutation__
+ *
+ * To run a mutation, you first call `useDepositAccountCloseMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDepositAccountCloseMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [depositAccountCloseMutation, { data, loading, error }] = useDepositAccountCloseMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useDepositAccountCloseMutation(baseOptions?: Apollo.MutationHookOptions<DepositAccountCloseMutation, DepositAccountCloseMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DepositAccountCloseMutation, DepositAccountCloseMutationVariables>(DepositAccountCloseDocument, options);
+      }
+export type DepositAccountCloseMutationHookResult = ReturnType<typeof useDepositAccountCloseMutation>;
+export type DepositAccountCloseMutationResult = Apollo.MutationResult<DepositAccountCloseMutation>;
+export type DepositAccountCloseMutationOptions = Apollo.BaseMutationOptions<DepositAccountCloseMutation, DepositAccountCloseMutationVariables>;
 export const DepositAccountFreezeDocument = gql`
     mutation DepositAccountFreeze($input: DepositAccountFreezeInput!) {
   depositAccountFreeze(input: $input) {
