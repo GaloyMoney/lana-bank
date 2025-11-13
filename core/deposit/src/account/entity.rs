@@ -228,12 +228,7 @@ mod tests {
                 .did_execute()
         );
 
-        assert!(
-            account
-                .update_status(DepositAccountStatus::Closed)
-                .unwrap()
-                .did_execute()
-        );
+        assert!(account.close().unwrap().did_execute());
 
         assert!(matches!(
             account.update_status(DepositAccountStatus::Active),
