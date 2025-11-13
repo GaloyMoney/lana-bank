@@ -469,14 +469,6 @@
           }
         }
       },
-      "unfreezeDepositAccount": {
-        "title": "Unfreeze Deposit Account",
-        "description": "Are you sure you want to unfreeze this deposit account? This will allow new deposits and withdrawals.",
-        "buttons": {
-          "unfreeze": "Unfreeze Account"
-        },
-        "success": "Deposit account unfrozen successfully"
-      }
     }
   },
   "CreditFacilityProposals": {
@@ -1390,7 +1382,8 @@
         },
         "buttons": {
           "viewLedgerAccount": "View Ledger Account",
-          "freezeDepositAccount": "Freeze Deposit Account"
+          "freezeDepositAccount": "Freeze Deposit Account",
+          "unfreezeDepositAccount": "Unfreeze Deposit Account"
         }
       },
       "freezeDepositAccount": {
@@ -1408,6 +1401,14 @@
           "noData": "No data returned from the server",
           "unknown": "An unexpected error occurred"
         }
+      },
+      "unfreezeDepositAccount": {
+        "title": "Unfreeze Deposit Account",
+        "description": "Are you sure you want to unfreeze this deposit account? This will allow new deposits and withdrawals.",
+        "buttons": {
+          "unfreeze": "Unfreeze Account"
+        },
+        "success": "Deposit account unfrozen successfully"
       },
       "transactions": {
         "title": "Transaction History",

@@ -36,10 +36,6 @@ export const DepositAccount: React.FC<DepositAccountProps> = ({
     router.push(`/deposit-accounts/${publicId}`)
   }
 
-  const handleUnfreezeAccount = () => {
-    setOpenUnfreezeDialog(true)
-  }
-
   const details: DetailItemProps[] = [
     {
       label: t("labels.checkingSettled"),

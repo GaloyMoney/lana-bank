@@ -19,6 +19,8 @@ export const DepositAccountStatusBadge: React.FC<{ status: DepositAccountStatus 
         return "destructive"
       case DepositAccountStatus.Inactive:
         return "secondary"
+      case DepositAccountStatus.Closed:
+        return "destructive"
       default: {
         const exhaustiveCheck: never = status
         return exhaustiveCheck

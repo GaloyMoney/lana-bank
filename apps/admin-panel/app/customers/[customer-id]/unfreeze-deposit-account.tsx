@@ -17,7 +17,7 @@ import { Button } from "@lana/web/ui/button"
 
 import {
   useDepositAccountUnfreezeMutation,
-  GetCustomerBasicDetailsDocument,
+  GetDepositAccountDetailsDocument,
 } from "@/lib/graphql/generated"
 
 gql`
@@ -41,11 +41,11 @@ export const UnfreezeDepositAccountDialog: React.FC<UnfreezeDepositAccountDialog
   openUnfreezeDialog,
   depositAccountId,
 }) => {
-  const t = useTranslations("Customers.CustomerDetails.unfreezeDepositAccount")
+  const t = useTranslations("DepositAccounts.DepositAccountDetails.unfreezeDepositAccount")
   const commonT = useTranslations("Common")
 
   const [unfreezeDepositAccount, { loading, reset }] = useDepositAccountUnfreezeMutation({
-    refetchQueries: [GetCustomerBasicDetailsDocument],
+    refetchQueries: [GetDepositAccountDetailsDocument],
   })
   const [error, setError] = useState<string | null>(null)
 
