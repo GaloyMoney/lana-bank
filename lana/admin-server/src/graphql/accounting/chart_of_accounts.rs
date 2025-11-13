@@ -11,7 +11,6 @@ pub struct ChartOfAccounts {
     id: ID,
     chart_id: UUID,
     name: String,
-    reference: String,
 
     #[graphql(skip)]
     pub(crate) entity: Arc<DomainChart>,
@@ -23,7 +22,6 @@ impl From<DomainChart> for ChartOfAccounts {
             id: chart.id.to_global_id(),
             chart_id: UUID::from(chart.id),
             name: chart.name.to_string(),
-            reference: chart.reference.to_string(),
             entity: Arc::new(chart),
         }
     }

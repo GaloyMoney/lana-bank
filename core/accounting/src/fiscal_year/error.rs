@@ -10,24 +10,14 @@ pub enum FiscalYearError {
     EsEntityError(es_entity::EsEntityError),
     #[error("FiscalYearError - CursorDestructureError: {0}")]
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
-    #[error("FiscalYearError - PeriodAlreadyClosed")]
-    PeriodAlreadyClosed,
-    #[error("FiscalYearError - ClosingMetadataNotFound")]
-    ClosingMetadataNotFound { chart_id: ChartId },
-    #[error("FiscalYearError - ChartIdMismatch")]
-    ChartIdMismatch,
     #[error("FiscalYearError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
-    #[error("FiscalYearError - CurrentYearNotFound")]
-    CurrentYearNotFound,
-    #[error("FiscalYearError - FiscalYearAlreadyInitialized")]
-    FiscalYearAlreadyInitialized,
     #[error("FiscalYearError - LedgerError: {0}")]
     Ledger(#[from] super::ledger::error::FiscalYearLedgerError),
     #[error("FiscalYearError - FiscalYearMonthAlreadyClosed")]
     FiscalYearMonthAlreadyClosed,
-    #[error("FiscalYearError - CurrentYearNotFoundByChartReference: {0}")]
-    CurrentYearNotFoundByChartReference(String),
+    #[error("FiscalYearError - CurrentYearNotFoundByChartId: {0}")]
+    CurrentYearNotFoundByChartId(ChartId),
 }
 
 es_entity::from_es_entity_error!(FiscalYearError);

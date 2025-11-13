@@ -266,7 +266,6 @@ export type ChartOfAccounts = {
   children: Array<ChartNode>;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
-  reference: Scalars['String']['output'];
 };
 
 export type ChartOfAccountsAddChildNodeInput = {
