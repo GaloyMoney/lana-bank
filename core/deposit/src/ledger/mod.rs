@@ -732,7 +732,7 @@ impl DepositLedger {
 
         self.cala
             .accounts()
-            .lock_in_op(&mut op, account_id.into())
+            .lock_in_op(&mut op, account_id)
             .await?;
 
         op.commit().await?;
