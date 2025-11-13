@@ -50,7 +50,7 @@ futures-util = { version = "0.3", features = ["channel", "io", "sink"] }
 generic-array = { version = "0.14", default-features = false, features = ["more_lengths", "zeroize"] }
 getrandom = { version = "0.2", default-features = false, features = ["std"] }
 group = { version = "0.13", default-features = false, features = ["alloc"] }
-hashbrown = { version = "0.14", features = ["raw"] }
+hashbrown = { version = "0.14" }
 hmac = { version = "0.12", default-features = false, features = ["reset"] }
 hyper = { version = "1", features = ["client", "http1", "http2", "server"] }
 hyper-util = { version = "0.1", features = ["client-legacy", "server-auto", "service"] }
