@@ -8,7 +8,7 @@ use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_price::Price;
+use core_price_listener::PriceListener;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::{JobId, Jobs};
 use outbox::OutboxEventMarker;
@@ -52,7 +52,7 @@ where
     disbursals: Arc<Disbursals<Perms, E>>,
     authz: Arc<Perms>,
     ledger: Arc<CreditLedger>,
-    price: Arc<Price>,
+    price_listener: Arc<PriceListener>,
     jobs: Arc<Jobs>,
     governance: Arc<Governance<Perms, E>>,
     public_ids: Arc<PublicIds>,
@@ -73,7 +73,7 @@ where
             disbursals: self.disbursals.clone(),
             authz: self.authz.clone(),
             ledger: self.ledger.clone(),
-            price: self.price.clone(),
+            price_listener: self.price_listener.clone(),
             jobs: self.jobs.clone(),
             governance: self.governance.clone(),
             public_ids: self.public_ids.clone(),
@@ -112,7 +112,7 @@ where
         pending_credit_facilities: Arc<PendingCreditFacilities<Perms, E>>,
         disbursals: Arc<Disbursals<Perms, E>>,
         ledger: Arc<CreditLedger>,
-        price: Arc<Price>,
+        price_listener: Arc<PriceListener>,
         jobs: Arc<Jobs>,
         publisher: &crate::CreditFacilityPublisher<E>,
         governance: Arc<Governance<Perms, E>>,
@@ -127,7 +127,7 @@ where
             disbursals,
             authz,
             ledger,
-            price,
+            price_listener,
             jobs,
             governance,
             public_ids,
@@ -292,7 +292,7 @@ where
         id: CreditFacilityId,
         upgrade_buffer_cvl_pct: CVLPct,
     ) -> Result<CompletionOutcome, CreditFacilityError> {
-        let price = self.price.usd_cents_per_btc().await?;
+        let price = self.price_listener.usd_cents_per_btc().await?;
 
         let mut credit_facility = self.repo.find_by_id(id).await?;
 
@@ -427,7 +427,7 @@ where
         &self,
         upgrade_buffer_cvl_pct: CVLPct,
     ) -> Result<(), CreditFacilityError> {
-        let price = self.price.usd_cents_per_btc().await?;
+        let price = self.price_listener.usd_cents_per_btc().await?;
         let mut has_next_page = true;
         let mut after: Option<CreditFacilitiesByCollateralizationRatioCursor> = None;
         while has_next_page {
@@ -519,7 +519,7 @@ where
             .ledger
             .get_credit_facility_balance(credit_facility.account_ids)
             .await?;
-        let price = self.price.usd_cents_per_btc().await?;
+        let price = self.price_listener.usd_cents_per_btc().await?;
 
         if credit_facility
             .update_collateralization(price, upgrade_buffer_cvl_pct, balances)

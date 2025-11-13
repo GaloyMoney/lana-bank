@@ -39,6 +39,7 @@ core-custody = { workspace = true, features = ["graphql"] }
 core-credit = { workspace = true, features = ["graphql"] }
 core-customer = { workspace = true, features = ["graphql"] }
 core-price = { workspace = true }
+core-price-listener = { workspace = true }
 core-deposit = { workspace = true, features = ["graphql"] }
 core-accounting = { workspace = true, features = ["graphql"] }
 core-report = { workspace = true, features = ["graphql"] }

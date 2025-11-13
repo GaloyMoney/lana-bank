@@ -28,7 +28,8 @@ use crate::{
     job::Jobs,
     notification::Notification,
     outbox::Outbox,
-    price::Price,
+    price::{Price, PriceUpdated},
+    price_listener::PriceListener,
     primitives::Subject,
     public_id::PublicIds,
     report::Reports,
@@ -53,6 +54,7 @@ pub struct LanaApp {
     credit: Credit,
     custody: Custody,
     price: Price,
+    price_listener: PriceListener,
     outbox: Outbox,
     governance: Governance,
     dashboard: Dashboard,
@@ -99,7 +101,8 @@ impl LanaApp {
         let governance = Governance::new(&pool, &authz, &outbox);
         let storage = Storage::new(&config.storage);
         let reports = Reports::init(&pool, &authz, config.report, &outbox, &jobs, &storage).await?;
-        let price = Price::new();
+        let price = Price::init(&jobs, &outbox).await?;
+        let price_listener = PriceListener::init(&outbox);
         let documents = DocumentStorage::new(&pool, &storage);
         let public_ids = PublicIds::new(&pool);
 
@@ -168,7 +171,7 @@ impl LanaApp {
             &customers,
             &deposits,
             &custody,
-            &price,
+            &price_listener,
             &outbox,
             &cala,
             journal_init.journal_id,
@@ -204,6 +207,7 @@ impl LanaApp {
             applicants,
             access,
             price,
+            price_listener,
             credit,
             custody,
             outbox,

@@ -14,6 +14,7 @@ mock-custodian = ["core-custody/mock-custodian"]
 [dependencies]
 core-money = { workspace = true }
 core-price = { workspace = true }
+core-price-listener = { workspace = true }
 core-customer = { workspace = true }
 core-custody = { workspace = true }
 core-deposit = { workspace = true }

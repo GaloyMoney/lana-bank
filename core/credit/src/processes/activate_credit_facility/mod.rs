@@ -7,7 +7,7 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
-use core_price::Price;
+use core_price_listener::PriceListener;
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use outbox::OutboxEventMarker;
 use public_id::PublicIds;
@@ -34,7 +34,7 @@ where
     credit_facilities: Arc<CreditFacilities<Perms, E>>,
     disbursals: Arc<Disbursals<Perms, E>>,
     ledger: Arc<CreditLedger>,
-    price: Arc<Price>,
+    price_listener: Arc<PriceListener>,
     jobs: Arc<Jobs>,
     audit: Arc<Perms::Audit>,
     public_ids: Arc<PublicIds>,
@@ -52,7 +52,7 @@ where
             credit_facilities: self.credit_facilities.clone(),
             disbursals: self.disbursals.clone(),
             ledger: self.ledger.clone(),
-            price: self.price.clone(),
+            price_listener: self.price_listener.clone(),
             jobs: self.jobs.clone(),
             audit: self.audit.clone(),
             public_ids: self.public_ids.clone(),
@@ -74,7 +74,7 @@ where
         credit_facilities: Arc<CreditFacilities<Perms, E>>,
         disbursals: Arc<Disbursals<Perms, E>>,
         ledger: Arc<CreditLedger>,
-        price: Arc<Price>,
+        price_listener: Arc<PriceListener>,
         jobs: Arc<Jobs>,
         audit: Arc<Perms::Audit>,
         public_ids: Arc<PublicIds>,
@@ -83,7 +83,7 @@ where
             credit_facilities,
             disbursals,
             ledger,
-            price,
+            price_listener,
             jobs,
             audit,
             public_ids,

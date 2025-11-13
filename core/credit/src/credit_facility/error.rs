@@ -58,8 +58,8 @@ pub enum CreditFacilityError {
     AuditError(#[from] audit::error::AuditError),
     #[error("CreditFacilityError - LedgerError: {0}")]
     LedgerError(#[from] crate::ledger::error::CreditLedgerError),
-    #[error("CreditFacilityError - PriceError: {0}")]
-    PriceError(#[from] core_price::error::PriceError),
+    #[error("CreditFacilityError - PriceListenerError: {0}")]
+    PriceListenerError(#[from] core_price_listener::error::PriceListenerError),
     #[error("CreditFacilityError - ObligationError: {0}")]
     ObligationError(#[from] crate::obligation::error::ObligationError),
     #[error("CreditFacilityError - GovernanceError: {0}")]

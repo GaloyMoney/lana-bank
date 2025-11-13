@@ -42,6 +42,7 @@ core-customer = { path = "core/customer" }
 core-deposit = { path = "core/deposit" }
 core-money = { path = "core/money" }
 core-price = { path = "core/price" }
+core-price-listener = { path = "core/price-listener" }
 core-report = { path = "core/report" }
 document-storage = { path = "core/document-storage" }
 governance = { path = "core/governance" }

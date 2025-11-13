@@ -7,7 +7,7 @@ use std::sync::Arc;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_custody::{CoreCustody, CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
-use core_price::Price;
+use core_price_listener::PriceListener;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
 use outbox::OutboxEventMarker;
@@ -52,7 +52,7 @@ where
     collaterals: Arc<Collaterals<Perms, E>>,
     authz: Arc<Perms>,
     jobs: Arc<Jobs>,
-    price: Arc<Price>,
+    price_listener: Arc<PriceListener>,
     ledger: Arc<CreditLedger>,
     governance: Arc<Governance<Perms, E>>,
 }
@@ -71,7 +71,7 @@ where
             collaterals: self.collaterals.clone(),
             authz: self.authz.clone(),
             jobs: self.jobs.clone(),
-            price: self.price.clone(),
+            price_listener: self.price_listener.clone(),
             ledger: self.ledger.clone(),
             governance: self.governance.clone(),
         }
@@ -97,7 +97,7 @@ where
         authz: Arc<Perms>,
         jobs: Arc<Jobs>,
         ledger: Arc<CreditLedger>,
-        price: Arc<Price>,
+        price_listener: Arc<PriceListener>,
         publisher: &crate::CreditFacilityPublisher<E>,
         governance: Arc<Governance<Perms, E>>,
     ) -> Self {
@@ -110,7 +110,7 @@ where
             collaterals,
             authz,
             jobs,
-            price,
+            price_listener,
             ledger,
             governance,
         }
@@ -189,7 +189,7 @@ where
     ) -> Result<PendingCreditFacilityCompletionOutcome, PendingCreditFacilityError> {
         let mut pending_facility = self.repo.find_by_id(id).await?;
 
-        let price = self.price.usd_cents_per_btc().await?;
+        let price = self.price_listener.usd_cents_per_btc().await?;
 
         let balances = self
             .ledger
@@ -238,7 +238,7 @@ where
             .get_pending_credit_facility_balance(pending_facility.account_ids)
             .await?;
 
-        let price = self.price.usd_cents_per_btc().await?;
+        let price = self.price_listener.usd_cents_per_btc().await?;
 
         if pending_facility
             .update_collateralization(price, balances)
@@ -261,7 +261,7 @@ where
     pub(super) async fn update_collateralization_from_price(
         &self,
     ) -> Result<(), PendingCreditFacilityError> {
-        let price = self.price.usd_cents_per_btc().await?;
+        let price = self.price_listener.usd_cents_per_btc().await?;
         let mut has_next_page = true;
         let mut after: Option<PendingCreditFacilitiesByCollateralizationRatioCursor> = None;
         while has_next_page {
