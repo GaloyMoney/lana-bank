@@ -423,6 +423,7 @@ where
         skip(self),
         err
     )]
+    #[es_entity::retry_on_concurrent_modification]
     pub(super) async fn update_collateralization_from_price(
         &self,
         upgrade_buffer_cvl_pct: CVLPct,
