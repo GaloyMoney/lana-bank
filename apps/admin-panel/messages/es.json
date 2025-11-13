@@ -1398,11 +1398,7 @@
         "buttons": {
           "freeze": "Congelar Cuenta"
         },
-        "success": "Cuenta de depósito congelada exitosamente",
-        "errors": {
-          "noData": "No se recibieron datos del servidor",
-          "unknown": "Ocurrió un error inesperado"
-        }
+        "success": "Cuenta de depósito congelada exitosamente"
       },
       "unfreezeDepositAccount": {
         "title": "Descongelar cuenta de depósito",

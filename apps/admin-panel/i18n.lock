@@ -816,8 +816,6 @@ checksums:
     DepositAccounts/DepositAccountDetails/freezeDepositAccount/fields/pendingBalance: cec648baee62ec1c1fa0fa6ecf08467c
     DepositAccounts/DepositAccountDetails/freezeDepositAccount/buttons/freeze: 21fbbd763d20c0e6833e6a314fd2431b
     DepositAccounts/DepositAccountDetails/freezeDepositAccount/success: 21fa05fa431f934fe861788e526f1620
-    DepositAccounts/DepositAccountDetails/freezeDepositAccount/errors/noData: 6df07e609a0b9cd35e54346070fdd455
-    DepositAccounts/DepositAccountDetails/freezeDepositAccount/errors/unknown: fe07b9cdb1fc3f7397f6d89c102c60af
     DepositAccounts/DepositAccountDetails/unfreezeDepositAccount/title: 2f5901e7dd64670b96e915461f63ba52
     DepositAccounts/DepositAccountDetails/unfreezeDepositAccount/description: 4d99c9834801877ff8a66c8b8daffc3e
     DepositAccounts/DepositAccountDetails/unfreezeDepositAccount/buttons/unfreeze: e6ac5996c0a69156d315b35d9438ed32
