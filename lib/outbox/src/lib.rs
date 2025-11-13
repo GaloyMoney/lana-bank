@@ -62,7 +62,7 @@ where
         let seq = highest_known_sequence.load(Ordering::Relaxed);
         tracing::Span::current().record("highest_sequence", seq);
 
-        Self::spawn_pg_listener(pool, sender.clone(), Arc::clone(&highest_known_sequence)).await?;
+        Self::spawn_pg_listeners(pool, sender.clone(), Arc::clone(&highest_known_sequence)).await?;
         Ok(Self {
             event_sender: sender,
             event_receiver: Arc::new(recv),
@@ -94,6 +94,18 @@ where
         Ok(())
     }
 
+    #[tracing::instrument(name = "outbox.publish_ephemeral", skip_all, err)]
+    pub async fn publish_ephemeral(
+        &self,
+        event_type: EphemeralEventType,
+        event: impl Into<P>,
+    ) -> Result<(), sqlx::Error> {
+        self.repo
+            .persist_ephemeral_event(event_type, event.into())
+            .await?;
+        Ok(())
+    }
+
     #[tracing::instrument(name = "outbox.listen_all", skip(self), fields(start_after = ?start_after, latest_known = tracing::field::Empty), err)]
     pub async fn listen_all(
         &self,
@@ -104,12 +116,14 @@ where
         tracing::Span::current().record("latest_known", u64::from(latest_known));
 
         let start = start_after.unwrap_or(latest_known);
+        let current_ephemeral_events = self.repo.load_ephemeral_events().await?;
         Ok(OutboxListener::new(
             self.repo.clone(),
             sub,
             start,
             latest_known,
             self.buffer_size,
+            current_ephemeral_events,
         ))
     }
 
@@ -122,18 +136,33 @@ where
         Ok(Box::pin(listener.filter_map(|event| async move {
             match event {
                 OutboxEvent::Persistent(persistent_event) => Some(persistent_event),
+                _ => None,
+            }
+        })))
+    }
+
+    #[tracing::instrument(name = "outbox.listen_ephemeral", skip(self), err)]
+    pub async fn listen_ephemeral(
+        &self,
+    ) -> Result<BoxStream<'_, Arc<EphemeralOutboxEvent<P>>>, sqlx::Error> {
+        let listener = self.listen_all(None).await?;
+        Ok(Box::pin(listener.filter_map(|event| async move {
+            match event {
+                OutboxEvent::Ephemeral(event) => Some(event),
+                _ => None,
             }
         })))
     }
 
     #[tracing::instrument(name = "outbox.spawn_pg_listener", skip_all, err)]
-    async fn spawn_pg_listener(
+    async fn spawn_pg_listeners(
         pool: &PgPool,
         sender: broadcast::Sender<OutboxEvent<P>>,
         highest_known_sequence: Arc<AtomicU64>,
     ) -> Result<(), sqlx::Error> {
         let mut listener = PgListener::connect_with(pool).await?;
         listener.listen("persistent_outbox_events").await?;
+        let persistent_sender = sender.clone();
         tokio::spawn(async move {
             loop {
                 if let Ok(notification) = listener.recv().await
@@ -142,9 +171,23 @@ where
                 {
                     let new_highest_sequence = u64::from(event.sequence);
                     highest_known_sequence.fetch_max(new_highest_sequence, Ordering::AcqRel);
-                    if sender.send(event.into()).is_err() {
+                    if persistent_sender.send(event.into()).is_err() {
                         break;
                     }
+                }
+            }
+        });
+
+        let mut listener = PgListener::connect_with(pool).await?;
+        listener.listen("ephemeral_outbox_events").await?;
+        tokio::spawn(async move {
+            loop {
+                if let Ok(notification) = listener.recv().await
+                    && let Ok(event) =
+                        serde_json::from_str::<EphemeralOutboxEvent<P>>(notification.payload())
+                    && sender.send(event.into()).is_err()
+                {
+                    break;
                 }
             }
         });
