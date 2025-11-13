@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT event_type, payload, tracing_context, recorded_at \n            FROM ephemeral_outbox_events\n            ",
+  "query": "\n            SELECT event_type, payload, tracing_context, recorded_at \n            FROM ephemeral_outbox_events\n            ORDER BY recorded_at\n            ",
   "describe": {
     "columns": [
       {
@@ -29,10 +29,10 @@
     },
     "nullable": [
       false,
-      true,
+      false,
       true,
       false
     ]
   },
-  "hash": "d1cb41646eefda86391963b2bb8251821a1b10d409d6fc46dd591bdcca4d07cd"
+  "hash": "dd8813ee4480fa5b00b5e608fd4198b4dabc27911e2204f036ee964630aca9a1"
 }

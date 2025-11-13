@@ -152,6 +152,7 @@ where
             r#"
             SELECT event_type, payload, tracing_context, recorded_at 
             FROM ephemeral_outbox_events
+            ORDER BY recorded_at
             "#
         )
         .fetch_all(&self.pool)
@@ -159,14 +160,9 @@ where
 
         let events = rows
             .into_iter()
-            .filter_map(|row| {
-                let payload = match serde_json::from_value(row.payload?) {
-                    Ok(p) => p,
-                    Err(e) => {
-                        tracing::warn!("Failed to deserialize ephemeral payload: {}", e);
-                        return None;
-                    }
-                };
+            .map(|row| {
+                let payload =
+                    serde_json::from_value(row.payload).expect("Couldn't deserialize payload");
                 let tracing_context = row.tracing_context.map(|p| {
                     serde_json::from_value(p).expect("Could not deserialize tracing context")
                 });
@@ -176,7 +172,7 @@ where
                     tracing_context,
                     recorded_at: row.recorded_at,
                 };
-                Some(OutboxEvent::from(event))
+                OutboxEvent::from(event)
             })
             .collect::<VecDeque<_>>();
         Ok(events)

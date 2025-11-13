@@ -622,7 +622,7 @@ CREATE TRIGGER persistent_outbox_events AFTER INSERT ON persistent_outbox_events
 
 CREATE TABLE ephemeral_outbox_events (
   event_type VARCHAR NOT NULL UNIQUE,
-  payload JSONB,
+  payload JSONB NOT NULL,
   tracing_context JSONB,
   recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
