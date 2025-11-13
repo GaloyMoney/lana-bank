@@ -5,14 +5,14 @@ use super::{
     entity::{FiscalYear, FiscalYearEvent},
     error::FiscalYearError,
 };
-use crate::primitives::FiscalYearId;
+use crate::primitives::{ChartId, FiscalYearId};
 
 #[derive(EsRepo, Clone)]
 #[es_repo(
     entity = "FiscalYear",
     err = "FiscalYearError",
     columns(
-        chart_reference(ty = "String", list_for),
+        chart_id(ty = "ChartId", list_for, parent),
         reference(ty = "String", create(accessor = "reference()")),
     ),
     tbl_prefix = "core"

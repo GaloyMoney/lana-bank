@@ -293,7 +293,7 @@ where
 
         Ok(self
             .fiscal_year()
-            .open_first_fiscal_year(sub, opened_as_of, chart_ref, chart.account_set_id)
+            .open_first_fiscal_year(sub, opened_as_of, chart.id, chart.account_set_id)
             .await?)
     }
 
@@ -303,7 +303,11 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_ref: &str,
     ) -> Result<FiscalYear, CoreAccountingError> {
-        Ok(self.fiscal_year().close_month(sub, chart_ref).await?)
+        let chart = self
+            .chart_of_accounts()
+            .find_by_reference(chart_ref)
+            .await?;
+        Ok(self.fiscal_year().close_month(sub, chart.id).await?)
     }
 
     #[instrument(name = "core_accounting.find_current_fiscal_year", skip(self), err)]
@@ -312,9 +316,13 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_ref: &str,
     ) -> Result<FiscalYear, CoreAccountingError> {
+        let chart = self
+            .chart_of_accounts()
+            .find_by_reference(chart_ref)
+            .await?;
         Ok(self
             .fiscal_year()
-            .find_current_fiscal_year(sub, chart_ref)
+            .find_current_fiscal_year(sub, chart.id)
             .await?)
     }
 

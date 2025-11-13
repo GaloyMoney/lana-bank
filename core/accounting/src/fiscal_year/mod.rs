@@ -14,7 +14,9 @@ use cala_ledger::{CalaLedger, LedgerOperation};
 use crate::{
     FiscalYearId,
     fiscal_year::ledger::FiscalYearLedger,
-    primitives::{CalaAccountSetId, CalaJournalId, CoreAccountingAction, CoreAccountingObject},
+    primitives::{
+        CalaAccountSetId, CalaJournalId, ChartId, CoreAccountingAction, CoreAccountingObject,
+    },
 };
 
 pub use entity::FiscalYear;
@@ -95,7 +97,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         opened_as_of: impl Into<chrono::NaiveDate> + std::fmt::Debug,
-        chart_ref: &str,
+        chart_id: ChartId,
         tracking_account_set_id: impl Into<CalaAccountSetId> + std::fmt::Debug,
     ) -> Result<FiscalYear, FiscalYearError> {
         let opened_as_of = opened_as_of.into();
@@ -109,17 +111,14 @@ where
             )
             .await?;
 
-        if let Ok(fiscal_year) = self.find_current_by_chart_reference(chart_ref).await {
+        if let Ok(fiscal_year) = self.find_current_by_chart_id(chart_id).await {
             return Ok(fiscal_year);
         }
 
-        tracing::info!(
-            "Initializing first FiscalYear for chart reference: {}",
-            chart_ref
-        );
+        tracing::info!("Initializing first FiscalYear for chart ID: {}", chart_id);
         let new_fiscal_year = NewFiscalYear::builder()
             .id(FiscalYearId::new())
-            .chart_reference(chart_ref.to_string())
+            .chart_id(chart_id)
             .tracking_account_set_id(tracking_account_set_id)
             .opened_as_of(opened_as_of)
             .build()
@@ -145,7 +144,7 @@ where
     pub async fn close_month(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart_ref: &str,
+        chart_id: ChartId,
     ) -> Result<FiscalYear, FiscalYearError> {
         let now = crate::time::now();
 
@@ -157,7 +156,7 @@ where
             )
             .await?;
 
-        let mut latest_year = self.find_current_by_chart_reference(chart_ref).await?;
+        let mut latest_year = self.find_current_by_chart_id(chart_id).await?;
         let closed_as_of_date =
             if let Idempotent::Executed(date) = latest_year.close_last_month(now)? {
                 date
@@ -182,7 +181,7 @@ where
     pub async fn find_current_fiscal_year(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart_reference: &str,
+        chart_id: ChartId,
     ) -> Result<FiscalYear, FiscalYearError> {
         self.authz
             .enforce_permission(
@@ -191,7 +190,7 @@ where
                 CoreAccountingAction::FISCAL_YEAR_READ,
             )
             .await?;
-        self.find_current_by_chart_reference(chart_reference).await
+        self.find_current_by_chart_id(chart_id).await
     }
 
     #[instrument(
@@ -199,13 +198,13 @@ where
         skip(self),
         err
     )]
-    async fn find_current_by_chart_reference(
+    pub async fn find_current_by_chart_id(
         &self,
-        chart_reference: &str,
+        chart_id: ChartId,
     ) -> Result<FiscalYear, FiscalYearError> {
         self.repo
-            .list_for_chart_reference_by_created_at(
-                chart_reference.to_string(),
+            .list_for_chart_id_by_created_at(
+                chart_id,
                 Default::default(),
                 es_entity::ListDirection::Descending,
             )
@@ -213,9 +212,7 @@ where
             .entities
             .first()
             .cloned()
-            .ok_or_else(move || {
-                FiscalYearError::CurrentYearNotFoundByChartReference(chart_reference.to_string())
-            })
+            .ok_or(FiscalYearError::CurrentYearNotFound)
     }
 
     #[instrument(name = "core_accounting.fiscal_year.find_all", skip(self), err)]

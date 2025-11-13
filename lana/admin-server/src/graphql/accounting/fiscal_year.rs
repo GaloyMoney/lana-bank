@@ -6,7 +6,7 @@ use lana_app::fiscal_year::FiscalYear as DomainFiscalYear;
 #[derive(SimpleObject, Clone)]
 pub struct FiscalYear {
     id: ID,
-    chart_reference: String,
+    chart_id: UUID,
     opened_as_of: Date,
 
     #[graphql(skip)]
@@ -16,7 +16,7 @@ impl From<DomainFiscalYear> for FiscalYear {
     fn from(fiscal_year: DomainFiscalYear) -> Self {
         FiscalYear {
             id: fiscal_year.id.to_global_id(),
-            chart_reference: fiscal_year.chart_reference.to_string(),
+            chart_id: UUID::from(fiscal_year.chart_id),
             opened_as_of: fiscal_year.opened_as_of.into(),
             entity: Arc::new(fiscal_year),
         }
