@@ -1330,7 +1330,7 @@ type FiniteCVLPct {
 
 type FiscalYear {
 	id: ID!
-	chartReference: String!
+	chartId: UUID!
 	openedAsOf: Date!
 }
 

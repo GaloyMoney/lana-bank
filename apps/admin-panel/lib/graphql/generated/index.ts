@@ -1336,7 +1336,7 @@ export type FiniteCvlPct = {
 
 export type FiscalYear = {
   __typename?: 'FiscalYear';
-  chartReference: Scalars['String']['output'];
+  chartId: Scalars['UUID']['output'];
   id: Scalars['ID']['output'];
   openedAsOf: Scalars['Date']['output'];
 };

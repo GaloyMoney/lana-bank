@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT id FROM core_fiscal_years WHERE chart_reference = $1) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $2 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_fiscal_year_events e ON i.id = e.id ORDER BY i.id, e.sequence",
+  "query": "WITH entities AS (SELECT chart_id, created_at, id FROM core_fiscal_years WHERE ((chart_id = $1) AND (COALESCE((created_at, id) > ($4, $3), $3 IS NULL))) ORDER BY created_at ASC, id ASC LIMIT $2) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $5 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_fiscal_year_events e ON i.id = e.id ORDER BY i.created_at asc, i.id asc, i.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -31,7 +31,10 @@
     ],
     "parameters": {
       "Left": [
-        "Text",
+        "Uuid",
+        "Int8",
+        "Uuid",
+        "Timestamptz",
         "Bool"
       ]
     },
@@ -43,5 +46,5 @@
       false
     ]
   },
-  "hash": "267de707cdbeaf9dad9536a7afc79d032ed352385e14b944e2cc882aa4dd226e"
+  "hash": "686d9be601aebdb985fc13b07f14d42a4c3780c843b133576fc94bab2304b8ab"
 }
