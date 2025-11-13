@@ -752,31 +752,13 @@ dependencies = [
 
 [[package]]
 name = "cached"
-version = "0.55.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b0839c297f8783316fcca9d90344424e968395413f0662a5481f79c6648bbc14"
-dependencies = [
- "ahash 0.8.12",
- "async-trait",
- "cached_proc_macro 0.24.0",
- "cached_proc_macro_types",
- "futures",
- "hashbrown 0.14.5",
- "once_cell",
- "thiserror 2.0.17",
- "tokio",
- "web-time",
-]
-
-[[package]]
-name = "cached"
 version = "0.56.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "801927ee168e17809ab8901d9f01f700cd7d8d6a6527997fee44e4b0327a253c"
 dependencies = [
  "ahash 0.8.12",
  "async-trait",
- "cached_proc_macro 0.25.0",
+ "cached_proc_macro",
  "cached_proc_macro_types",
  "futures",
  "hashbrown 0.15.5",
@@ -784,18 +766,6 @@ dependencies = [
  "thiserror 2.0.17",
  "tokio",
  "web-time",
-]
-
-[[package]]
-name = "cached_proc_macro"
-version = "0.24.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "673992d934f0711b68ebb3e1b79cdc4be31634b37c98f26867ced0438ca5c603"
-dependencies = [
- "darling 0.20.11",
- "proc-macro2",
- "quote",
- "syn 2.0.108",
 ]
 
 [[package]]
@@ -818,9 +788,9 @@ checksum = "ade8366b8bd5ba243f0a58f036cc0ca8a2f069cff1a2351ef1cac6b083e16fc0"
 
 [[package]]
 name = "cala-cel-interpreter"
-version = "0.12.8"
+version = "0.12.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ad186fe5ac81772bc30a635d41fed2a84b949aa814db8ef00c5c9597273dae1b"
+checksum = "32a57e36ba3c0368983d6442f8306c88f4b45ed68cc0811950ce6acb70eb16ce"
 dependencies = [
  "cala-cel-parser",
  "chrono",
@@ -835,10 +805,11 @@ dependencies = [
 
 [[package]]
 name = "cala-cel-parser"
-version = "0.12.8"
+version = "0.12.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "85cb4a3e65ced4c274e26910ffb2b015ae66837e2678c7c6be74c420d42cb838"
+checksum = "296dd09223308b874f2716e8dc60673cb105f7436e61c102eb18e0372ce88f1d"
 dependencies = [
+ "cached",
  "lalrpop",
  "lalrpop-util",
  "tracing",
@@ -846,13 +817,13 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger"
-version = "0.12.8"
+version = "0.12.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1f387b5521186f0c916517b04ddcad27fd7245b661737ab5cac2a237828e4927"
+checksum = "4e096196e425c8286fd50824b0d9eece8d2dcb2fbdef54a756377edf4276983b"
 dependencies = [
  "async-graphql",
  "base64 0.22.1",
- "cached 0.55.1",
+ "cached",
  "cala-cel-interpreter",
  "cala-ledger-core-types",
  "cala-tracing",
@@ -883,9 +854,9 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger-core-types"
-version = "0.12.8"
+version = "0.12.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d1be43951d56d83b12d23886d0fa0d94d1d935ac537125fc11369df1e95eb144"
+checksum = "a351eda7d12fee70a45ee90aa873d5688b8beeb87599bdec6cedd4da41f38c46"
 dependencies = [
  "async-graphql",
  "cala-cel-interpreter",
@@ -905,9 +876,9 @@ dependencies = [
 
 [[package]]
 name = "cala-tracing"
-version = "0.12.8"
+version = "0.12.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "550f2eac50b53ce1616dc9bcc600281051e3806d77a18955bacc607a2ec7752e"
+checksum = "fcc898e88ad1fb5861f89082289a087add06b65440e9b98273a4504a13c8de60"
 dependencies = [
  "anyhow",
  "axum-extra",
@@ -1520,7 +1491,7 @@ name = "core-price"
 version = "0.0.0"
 dependencies = [
  "anyhow",
- "cached 0.56.0",
+ "cached",
  "core-money",
  "reqwest",
  "rust_decimal",

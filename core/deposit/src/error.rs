@@ -50,6 +50,8 @@ pub enum CoreDepositError {
     PublicIdError(#[from] public_id::PublicIdError),
     #[error("CoreDepositError - CustomerNotVerified")]
     CustomerNotVerified,
+    #[error("CoreDepositError - DepositAccountNotActive")]
+    DepositAccountNotActive,
 }
 
 impl CoreDepositError {

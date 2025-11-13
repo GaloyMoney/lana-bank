@@ -665,10 +665,14 @@ where
 
         if account.close()?.did_execute() {
             let mut op = self.deposit_accounts.begin_op().await?;
+
             self.deposit_accounts
                 .update_in_op(&mut op, &mut account)
                 .await?;
-            op.commit().await?;
+
+            self.ledger
+                .lock_account(op, account_id.into())
+                .await?;
         }
 
         Ok(account)

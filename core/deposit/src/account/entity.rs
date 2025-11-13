@@ -44,6 +44,10 @@ impl DepositAccount {
             .expect("Deposit Account has never been persisted")
     }
 
+    pub fn is_active(&self) -> bool {
+        self.status == DepositAccountStatus::Active
+    }
+
     pub fn update_status(
         &mut self,
         status: DepositAccountStatus,
