@@ -788,7 +788,7 @@ impl Query {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let fiscal_year = app
             .accounting()
-            .find_current_fiscal_year(sub, CHART_REF.0)
+            .get_current_fiscal_year(sub, CHART_REF.0)
             .await?;
         Ok(FiscalYear::from(fiscal_year))
     }

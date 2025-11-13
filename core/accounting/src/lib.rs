@@ -310,8 +310,8 @@ where
         Ok(self.fiscal_year().close_month(sub, chart.id).await?)
     }
 
-    #[instrument(name = "core_accounting.find_current_fiscal_year", skip(self), err)]
-    pub async fn find_current_fiscal_year(
+    #[instrument(name = "core_accounting.get_current_fiscal_year", skip(self), err)]
+    pub async fn get_current_fiscal_year(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_ref: &str,
@@ -322,7 +322,7 @@ where
             .await?;
         Ok(self
             .fiscal_year()
-            .find_current_fiscal_year(sub, chart.id)
+            .get_current_fiscal_year(sub, chart.id)
             .await?)
     }
 

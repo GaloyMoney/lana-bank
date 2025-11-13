@@ -111,7 +111,7 @@ where
             )
             .await?;
 
-        if let Ok(fiscal_year) = self.find_current_by_chart_id(chart_id).await {
+        if let Ok(fiscal_year) = self.get_current_by_chart_id(chart_id).await {
             return Ok(fiscal_year);
         }
 
@@ -156,7 +156,7 @@ where
             )
             .await?;
 
-        let mut latest_year = self.find_current_by_chart_id(chart_id).await?;
+        let mut latest_year = self.get_current_by_chart_id(chart_id).await?;
         let closed_as_of_date =
             if let Idempotent::Executed(date) = latest_year.close_last_month(now)? {
                 date
@@ -174,11 +174,11 @@ where
     }
 
     #[instrument(
-        name = "core_accounting.fiscal_year.find_current_fiscal_year",
+        name = "core_accounting.fiscal_year.get_current_fiscal_year",
         skip(self),
         err
     )]
-    pub async fn find_current_fiscal_year(
+    pub async fn get_current_fiscal_year(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_id: ChartId,
@@ -190,10 +190,10 @@ where
                 CoreAccountingAction::FISCAL_YEAR_READ,
             )
             .await?;
-        self.find_current_by_chart_id(chart_id).await
+        self.get_current_by_chart_id(chart_id).await
     }
 
-    async fn find_current_by_chart_id(
+    async fn get_current_by_chart_id(
         &self,
         chart_id: ChartId,
     ) -> Result<FiscalYear, FiscalYearError> {
