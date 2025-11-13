@@ -64,8 +64,8 @@ user-onboarding = { path = "lana/user-onboarding" }
 
 # External dependencies
 es-entity = { version = "0.10.4", features = ["event-context", "tracing-context", "instrument"] }
-cala-ledger = "0.12.8"
-job = "0.2.7"
+cala-ledger = "0.12.10"
+job = "0.2.8"
 sim-time = "0.10"
 cala-cel-interpreter = "0.12"
 
@@ -81,7 +81,7 @@ async-graphql = { version = "7.0.17", default-features = false, features = [
 async-graphql-axum = "7.0.17"
 async-trait = "0.1.89"
 axum = { version = "0.8.6", features = ["macros"] }
-axum-extra = { version = "0.10.3", default-features = false, features = [
+axum-extra = { version = "0.12.1", default-features = false, features = [
   "tracing",
   "typed-header",
 ] }
@@ -140,7 +140,7 @@ rust_decimal_macros = "1.39.0"
 rust_decimal = "1.38.0"
 rusty-money = { version = "0.4", features = ["iso", "crypto"] }
 base64 = { version = "0.22.1" }
-jsonwebtoken = { version = "10.1.0", default-features = false, features = ["aws_lc_rs"] }
+jsonwebtoken = { version = "10.2.0", default-features = false, features = ["aws_lc_rs"] }
 hex = "0.4.3"
 hmac = "0.12.1"
 sha2 = "0.10.8"
@@ -160,7 +160,7 @@ rand = "0.9"
 serial_test = { version = "3.2.0", features = ["file_locks"] }
 chacha20poly1305 = "0.10.1"
 handlebars = "6.3.2"
-schemars = { version = "1.0.4", features = ["derive", "chrono04", "rust_decimal1"] }
+schemars = { version = "1.1.0", features = ["derive", "chrono04", "rust_decimal1"] }
 tempfile = "3.23.0"
 p256 = "0.13.2"
 pbkdf2 = "0.12"
