@@ -359,7 +359,6 @@ export const mockChartOfAccounts = (overrides?: Partial<ChartOfAccounts>, _relat
         children: overrides && overrides.hasOwnProperty('children') ? overrides.children! : [relationshipsToOmit.has('ChartNode') ? {} as ChartNode : mockChartNode({}, relationshipsToOmit)],
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
-        reference: overrides && overrides.hasOwnProperty('reference') ? overrides.reference! : generateMockValue.reference(),
     };
 };
 

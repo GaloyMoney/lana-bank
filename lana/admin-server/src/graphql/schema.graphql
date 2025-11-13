@@ -235,7 +235,6 @@ type ChartOfAccounts {
 	id: ID!
 	chartId: UUID!
 	name: String!
-	reference: String!
 	children: [ChartNode!]!
 }
 

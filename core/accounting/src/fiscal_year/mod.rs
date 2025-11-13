@@ -193,12 +193,7 @@ where
         self.find_current_by_chart_id(chart_id).await
     }
 
-    #[instrument(
-        name = "core_accounting.fiscal_year.find_current_by_chart_reference",
-        skip(self),
-        err
-    )]
-    pub async fn find_current_by_chart_id(
+    async fn find_current_by_chart_id(
         &self,
         chart_id: ChartId,
     ) -> Result<FiscalYear, FiscalYearError> {
@@ -212,7 +207,7 @@ where
             .entities
             .first()
             .cloned()
-            .ok_or(FiscalYearError::CurrentYearNotFound)
+            .ok_or(FiscalYearError::CurrentYearNotFoundByChartId(chart_id))
     }
 
     #[instrument(name = "core_accounting.fiscal_year.find_all", skip(self), err)]
