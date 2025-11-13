@@ -24,7 +24,7 @@ pub use entity::FiscalYear;
 pub use entity::FiscalYearEvent;
 pub(super) use entity::*;
 use error::*;
-pub(super) use repo::*;
+pub(super) use repo::{fiscal_year_cursor::FiscalYearsByCreatedAtCursor, *};
 
 pub struct FiscalYears<Perms>
 where
@@ -200,7 +200,10 @@ where
         self.repo
             .list_for_chart_id_by_created_at(
                 chart_id,
-                Default::default(),
+                es_entity::PaginatedQueryArgs::<FiscalYearsByCreatedAtCursor> {
+                    first: 1,
+                    after: None,
+                },
                 es_entity::ListDirection::Descending,
             )
             .await?
