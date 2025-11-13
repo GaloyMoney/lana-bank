@@ -382,7 +382,8 @@ jobs:
           tag: artifacts/gh-release-tag
           only_tag: true
           repository: repo
-      - { put: release-lock, params: { release: release }}
+      - put: release-lock
+        params: { release: release-lock }
       - task: github-release
         config:
           image_resource: #@ rust_task_image_config()
