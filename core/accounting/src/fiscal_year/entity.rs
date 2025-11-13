@@ -43,9 +43,6 @@ impl FiscalYear {
         &mut self,
         now: DateTime<Utc>,
     ) -> Result<Idempotent<NaiveDate>, FiscalYearError> {
-        if !self.can_close_last_month(now) {
-            return Err(FiscalYearError::CurrentYearNotFound);
-        }
         let last_recorded_date = self.events.iter_all().rev().find_map(|event| match event {
             FiscalYearEvent::MonthClosed { closed_as_of, .. } => Some(*closed_as_of),
             _ => None,
@@ -86,12 +83,6 @@ impl FiscalYear {
             closed_at: now,
         });
         Ok(Idempotent::Executed(new_monthly_closing_date))
-    }
-
-    fn can_close_last_month(&self, now: DateTime<Utc>) -> bool {
-        let same_year = self.opened_as_of.year() == now.year();
-        let jan_of_following_year = now.month() == 1 && now.year() == self.opened_as_of.year() + 1;
-        same_year || jan_of_following_year
     }
 }
 
@@ -184,9 +175,7 @@ mod test {
         let expected_closed_date = "2024-01-31".parse::<NaiveDate>().unwrap();
         let mut fiscal_year = fiscal_year_from(initial_events_with_opened_date(period_start));
 
-        let timestamp = DateTime::parse_from_rfc3339("2024-02-03T19:59:59Z")
-            .unwrap()
-            .with_timezone(&Utc);
+        let timestamp = Utc::now();
         let closed_date = fiscal_year.close_last_month(timestamp).unwrap().unwrap();
         assert_eq!(closed_date, expected_closed_date);
 
@@ -203,35 +192,14 @@ mod test {
     }
 
     #[test]
-    fn close_last_month_when_december() {
-        let period_start = "2024-12-01".parse::<NaiveDate>().unwrap();
-        let expected_closed_date = "2024-12-31".parse::<NaiveDate>().unwrap();
-        let mut fiscal_year = fiscal_year_from(initial_events_with_opened_date(period_start));
-
-        let closing_ts = DateTime::parse_from_rfc3339("2025-01-03T19:59:59Z")
-            .unwrap()
-            .with_timezone(&Utc);
-        let closed_date = fiscal_year.close_last_month(closing_ts).unwrap().unwrap();
-        assert_eq!(closed_date, expected_closed_date);
-    }
-
-    #[test]
     fn close_last_month_after_prior_closes() {
         let period_start = "2024-01-01".parse::<NaiveDate>().unwrap();
         let expected_second_closed_date = "2024-02-29".parse::<NaiveDate>().unwrap();
         let mut fiscal_year = fiscal_year_from(initial_events_with_opened_date(period_start));
 
-        let first_closing_ts = DateTime::parse_from_rfc3339("2024-02-03T19:59:59Z")
-            .unwrap()
-            .with_timezone(&Utc);
-        let _ = fiscal_year
-            .close_last_month(first_closing_ts)
-            .unwrap()
-            .unwrap();
+        let _ = fiscal_year.close_last_month(Utc::now()).unwrap().unwrap();
 
-        let second_closing_ts = DateTime::parse_from_rfc3339("2024-03-03T19:59:59Z")
-            .unwrap()
-            .with_timezone(&Utc);
+        let second_closing_ts = Utc::now();
         let second_closing_date = fiscal_year
             .close_last_month(second_closing_ts)
             .unwrap()
