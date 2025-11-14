@@ -9,6 +9,7 @@ describe("Transactions Deposit and Withdraw", () => {
   let customerId: string
   let customerPublicId: string
   let depositAccountId: string
+  let depositAccountPublicId: string
   const depositAmount = faker.number.int({ min: 1000, max: 5000 })
   const withdrawAmount = faker.number.int({ min: 1000, max: depositAmount })
 
@@ -19,6 +20,7 @@ describe("Transactions Deposit and Withdraw", () => {
       customerId = customer.customerId
       customerPublicId = customer.publicId
       depositAccountId = customer.depositAccount.depositAccountId
+      depositAccountPublicId = customer.depositAccount.publicId
       cy.log(`Created customer with ID: ${customerId}`)
     })
   })
@@ -32,7 +34,7 @@ describe("Transactions Deposit and Withdraw", () => {
   })
 
   it("should create a Deposit", () => {
-    cy.visit(`/customers/${customerPublicId}`)
+    cy.visit(`/deposit-accounts/${depositAccountPublicId}`)
     cy.wait(1000)
 
     cy.get('[data-testid="global-create-button"]').click()
@@ -65,7 +67,7 @@ describe("Transactions Deposit and Withdraw", () => {
   })
 
   it("should create Withdraw", () => {
-    cy.visit(`/customers/${customerPublicId}`)
+    cy.visit(`/deposit-accounts/${depositAccountPublicId}`)
     cy.wait(1000)
 
     cy.get('[data-testid="global-create-button"]').click()

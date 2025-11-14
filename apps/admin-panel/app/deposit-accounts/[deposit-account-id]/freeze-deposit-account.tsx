@@ -17,8 +17,8 @@ import { Button } from "@lana/web/ui/button"
 
 import {
   useDepositAccountFreezeMutation,
-  GetCustomerBasicDetailsQuery,
-  GetCustomerBasicDetailsDocument,
+  GetDepositAccountDetailsQuery,
+  GetDepositAccountDetailsDocument,
 } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import Balance from "@/components/balance/balance"
@@ -38,7 +38,7 @@ type FreezeDepositAccountDialogProps = {
   openFreezeDialog: boolean
   depositAccountId: string
   balance: NonNullable<
-    NonNullable<GetCustomerBasicDetailsQuery["customerByPublicId"]>["depositAccount"]
+    GetDepositAccountDetailsQuery["depositAccountByPublicId"]
   >["balance"]
 }
 
@@ -48,10 +48,11 @@ export const FreezeDepositAccountDialog: React.FC<FreezeDepositAccountDialogProp
   depositAccountId,
   balance,
 }) => {
-  const t = useTranslations("Customers.CustomerDetails.freezeDepositAccount")
+  const t = useTranslations("DepositAccounts.DepositAccountDetails.freezeDepositAccount")
+  const commonT = useTranslations("Common")
 
   const [freezeDepositAccount, { loading, reset }] = useDepositAccountFreezeMutation({
-    refetchQueries: [GetCustomerBasicDetailsDocument],
+    refetchQueries: [GetDepositAccountDetailsDocument],
   })
   const [error, setError] = useState<string | null>(null)
 
@@ -70,12 +71,10 @@ export const FreezeDepositAccountDialog: React.FC<FreezeDepositAccountDialogProp
       if (result.data) {
         toast.success(t("success"))
         handleCloseDialog()
-      } else {
-        throw new Error(t("errors.noData"))
       }
     } catch (error) {
       console.error("Error freezing deposit account:", error)
-      setError(error instanceof Error ? error.message : t("errors.unknown"))
+      setError(error instanceof Error ? error.message : commonT("error"))
     }
   }
 

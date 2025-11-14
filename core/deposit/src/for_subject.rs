@@ -76,7 +76,6 @@ where
                 true,
             )
             .await?;
-
         Ok(self
             .accounts
             .list_for_account_holder_id_by_created_at(

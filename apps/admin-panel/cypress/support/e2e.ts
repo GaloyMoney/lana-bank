@@ -29,6 +29,15 @@ Cypress.on("window:before:load", (win) => {
   win.document.head.appendChild(style)
 })
 
+Cypress.on("uncaught:exception", (err) => {
+  if (
+    err?.message?.includes("Failed to execute 'measure' on 'Performance'") ||
+    err?.message?.includes("cannot have a negative time stamp")
+  ) {
+    return false
+  }
+})
+
 const testLanguage = Cypress.env("TEST_LANGUAGE")
 beforeEach(() => {
   cy.waitForKeycloak()

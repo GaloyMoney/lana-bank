@@ -40,6 +40,8 @@ pub enum CoreDepositError {
     DepositAccountInactive,
     #[error("CoreDepositError - DepositAccountFrozen")]
     DepositAccountFrozen,
+    #[error("CoreDepositError - DepositAccountClosed")]
+    DepositAccountClosed,
     #[error("CoreDepositError - WithdrawalBuilderError: {0}")]
     WithdrawalBuilderError(#[from] super::NewWithdrawalBuilderError),
     #[error("CoreDepositError - DepositBuilderError: {0}")]
@@ -48,6 +50,8 @@ pub enum CoreDepositError {
     PublicIdError(#[from] public_id::PublicIdError),
     #[error("CoreDepositError - CustomerNotVerified")]
     CustomerNotVerified,
+    #[error("CoreDepositError - DepositAccountNotActive")]
+    DepositAccountNotActive,
 }
 
 impl CoreDepositError {

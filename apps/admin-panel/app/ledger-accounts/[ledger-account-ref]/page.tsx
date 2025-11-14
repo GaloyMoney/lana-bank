@@ -56,6 +56,7 @@ gql`
       __typename
       ... on DepositAccount {
         depositAccountId
+        publicId
         customer {
           publicId
         }
@@ -446,7 +447,7 @@ const getEntityforAccount = (
   switch (entity.__typename) {
     case "DepositAccount":
       return {
-        url: `/customers/${entity.customer.publicId}`,
+        url: `/deposit-accounts/${entity.publicId}`,
         label: t("viewDepositAccount"),
       }
     case "CreditFacility":

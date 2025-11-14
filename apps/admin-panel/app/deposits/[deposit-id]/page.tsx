@@ -26,6 +26,8 @@ gql`
       ...LedgerTransactionFields
     }
     account {
+      id
+      publicId
       customer {
         id
         customerId

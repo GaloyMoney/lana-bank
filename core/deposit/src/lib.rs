@@ -17,7 +17,6 @@ mod publisher;
 mod time;
 mod withdrawal;
 
-use deposit_account_cursor::DepositAccountsByCreatedAtCursor;
 use tracing::instrument;
 
 use audit::AuditSvc;
@@ -30,8 +29,8 @@ use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
 use public_id::PublicIds;
 
-pub use account::DepositAccount;
 use account::*;
+pub use account::{DepositAccount, DepositAccountsByCreatedAtCursor, error::DepositAccountError};
 pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
 pub use config::DepositConfig;
 use deposit::*;
@@ -257,6 +256,26 @@ where
         Ok(self.deposit_accounts.maybe_find_by_id(id).await?)
     }
 
+    #[instrument(name = "deposit.find_account_by_public_id", skip(self), err)]
+    pub async fn find_account_by_public_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        public_id: impl Into<public_id::PublicId> + std::fmt::Debug,
+    ) -> Result<Option<DepositAccount>, CoreDepositError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::all_deposit_accounts(),
+                CoreDepositAction::DEPOSIT_ACCOUNT_READ,
+            )
+            .await?;
+
+        Ok(self
+            .deposit_accounts
+            .maybe_find_by_public_id(public_id.into())
+            .await?)
+    }
+
     #[instrument(name = "deposit.find_account_by_id_without_audit", skip(self), err)]
     pub async fn find_account_by_id_without_audit(
         &self,
@@ -287,11 +306,22 @@ where
             .list_for_account_holder_id_by_id(holder_id, Default::default(), Default::default())
             .await?;
         let mut op = self.deposit_accounts.begin_op().await?;
+
         for mut account in accounts.entities.into_iter() {
-            if account.update_status(status).did_execute() {
-                self.deposit_accounts
-                    .update_in_op(&mut op, &mut account)
-                    .await?;
+            match account.update_status(status) {
+                Ok(result) if result.did_execute() => {
+                    self.deposit_accounts
+                        .update_in_op(&mut op, &mut account)
+                        .await?;
+                }
+                Err(DepositAccountError::CannotUpdateClosedAccount) => {
+                    tracing::warn!("Skipping update error if account already closed");
+                    continue;
+                }
+                Err(e) => {
+                    return Err(e.into());
+                }
+                Ok(_) => continue,
             }
         }
         op.commit().await?;
@@ -612,6 +642,40 @@ where
         Ok(account)
     }
 
+    #[instrument(name = "deposit.close_account", skip(self), err)]
+    pub async fn close_account(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        account_id: impl Into<DepositAccountId> + std::fmt::Debug,
+    ) -> Result<DepositAccount, CoreDepositError> {
+        let account_id = account_id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::deposit_account(account_id),
+                CoreDepositAction::DEPOSIT_ACCOUNT_CLOSE,
+            )
+            .await?;
+        let balance = self.ledger.balance(account_id).await?;
+        if !balance.is_zero() {
+            return Err(DepositAccountError::BalanceIsNotZero.into());
+        }
+
+        let mut account = self.deposit_accounts.find_by_id(account_id).await?;
+
+        if account.close()?.did_execute() {
+            let mut op = self.deposit_accounts.begin_op().await?;
+
+            self.deposit_accounts
+                .update_in_op(&mut op, &mut account)
+                .await?;
+
+            self.ledger.lock_account(op, account_id.into()).await?;
+        }
+
+        Ok(account)
+    }
+
     #[instrument(name = "deposit.account_balance", skip(self), err)]
     pub async fn account_balance(
         &self,
@@ -792,6 +856,28 @@ where
             .await?;
         Ok(self
             .deposits
+            .list_by_created_at(query, es_entity::ListDirection::Descending)
+            .await?)
+    }
+
+    #[instrument(name = "deposit.list_accounts", skip(self), err)]
+    pub async fn list_accounts(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        query: es_entity::PaginatedQueryArgs<DepositAccountsByCreatedAtCursor>,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<DepositAccount, DepositAccountsByCreatedAtCursor>,
+        CoreDepositError,
+    > {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::all_deposit_accounts(),
+                CoreDepositAction::DEPOSIT_ACCOUNT_LIST,
+            )
+            .await?;
+        Ok(self
+            .deposit_accounts
             .list_by_created_at(query, es_entity::ListDirection::Descending)
             .await?)
     }
@@ -1024,6 +1110,7 @@ where
         match account.status {
             DepositAccountStatus::Inactive => Err(CoreDepositError::DepositAccountInactive),
             DepositAccountStatus::Frozen => Err(CoreDepositError::DepositAccountFrozen),
+            DepositAccountStatus::Closed => Err(CoreDepositError::DepositAccountClosed),
             DepositAccountStatus::Active => Ok(()),
         }
     }

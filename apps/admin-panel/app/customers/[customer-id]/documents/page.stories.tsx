@@ -1,18 +1,21 @@
 import type { Meta, StoryObj } from "@storybook/nextjs"
-import { MockedProvider } from "@apollo/client/testing"
+import type { MockedResponse } from "@apollo/client/testing"
 
 import CustomerLayout from "../layout"
+import {
+  buildParams,
+  customerDetailsMock,
+  customerDocumentsMock,
+  emptyCustomerDocumentsMock,
+} from "../storybook-mocks"
 
 import CustomerDocumentsPage from "./page"
 
-import {
-  GetCustomerDocumentsDocument,
-  GetCustomerBasicDetailsDocument,
-  KycVerification,
-  Activity,
-} from "@/lib/graphql/generated"
+type StoryProps = React.ComponentProps<typeof CustomerDocumentsPage> & {
+  mocks?: MockedResponse[]
+}
 
-const meta = {
+const meta: Meta<StoryProps> = {
   title: "Pages/Customers/Customer/Documents",
   component: CustomerDocumentsPage,
   parameters: {
@@ -21,80 +24,33 @@ const meta = {
       appDirectory: true,
     },
   },
-} satisfies Meta<typeof CustomerDocumentsPage>
+  argTypes: {
+    mocks: { control: false },
+  },
+}
 
 export default meta
-type Story = StoryObj<typeof meta>
 
-const mockParams = { "customer-id": "4178b451-c9cb-4841-b248-5cc20e7774a6" }
+type Story = StoryObj<StoryProps>
 
-const layoutMocks = [
-  {
-    request: {
-      query: GetCustomerBasicDetailsDocument,
-      variables: {
-        id: "4178b451-c9cb-4841-b248-5cc20e7774a6",
-      },
-    },
-    result: {
-      data: {
-        customer: {
-          id: "Customer:4178b451-c9cb-4841-b248-5cc20e7774a6",
-          customerId: "4178b451-c9cb-4841-b248-5cc20e7774a6",
-          email: "test@lana.com",
-          telegramId: "test",
-          kycVerification: KycVerification.Rejected,
-          activity: Activity.Active,
-          level: "NOT_KYCED",
-          createdAt: "2024-11-25T06:23:56.549713Z",
-        },
-      },
-    },
-  },
-]
-
-const documentsMocks = [
-  {
-    request: {
-      query: GetCustomerDocumentsDocument,
-      variables: {
-        id: "4178b451-c9cb-4841-b248-5cc20e7774a6",
-      },
-    },
-    result: {
-      data: {
-        customer: {
-          id: "Customer:4178b451-c9cb-4841-b248-5cc20e7774a6",
-          customerId: "4178b451-c9cb-4841-b248-5cc20e7774a6",
-          documents: [
-            {
-              id: "1",
-              filename: "passport.pdf",
-            },
-            {
-              id: "2",
-              filename: "driver-license.pdf",
-            },
-          ],
-        },
-      },
-    },
-  },
-]
+const renderWithLayout = ({ params }: StoryProps) => (
+  <CustomerLayout params={params}>
+    <CustomerDocumentsPage params={params} />
+  </CustomerLayout>
+)
 
 export const Default: Story = {
   args: {
-    params: Promise.resolve(mockParams),
+    params: buildParams(),
+    mocks: [customerDetailsMock, customerDocumentsMock],
   },
-  decorators: [
-    (Story) => (
-      <MockedProvider mocks={layoutMocks} addTypename={false}>
-        <CustomerLayout params={Promise.resolve(mockParams)}>
-          <MockedProvider mocks={documentsMocks} addTypename={false}>
-            <Story />
-          </MockedProvider>
-        </CustomerLayout>
-      </MockedProvider>
-    ),
-  ],
+  render: renderWithLayout,
+}
+
+export const Empty: Story = {
+  args: {
+    params: buildParams(),
+    mocks: [customerDetailsMock, emptyCustomerDocumentsMock],
+  },
+  render: renderWithLayout,
 }

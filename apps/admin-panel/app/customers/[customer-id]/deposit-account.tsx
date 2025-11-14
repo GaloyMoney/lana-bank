@@ -1,15 +1,13 @@
 "use client"
 
-import React, { useState } from "react"
+import React from "react"
 import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
-import { Snowflake, ArrowRight, Sun } from "lucide-react"
+import { ArrowRight } from "lucide-react"
 
-import { Badge } from "@lana/web/ui/badge"
 import { Button } from "@lana/web/ui/button"
 
-import FreezeDepositAccountDialog from "./freeze-deposit-account"
-import UnfreezeDepositAccountDialog from "./unfreeze-deposit-account"
+import { DepositAccountStatusBadge } from "@/app/deposit-accounts/status-badge"
 
 import Balance from "@/components/balance/balance"
 import { DetailsCard, DetailItemProps } from "@/components/details"
@@ -24,41 +22,18 @@ type DepositAccountProps = {
   >["balance"]
   publicId: string
   status: DepositAccountStatus
-  depositAccountId: string
-  ledgerAccounts: NonNullable<
-    NonNullable<GetCustomerBasicDetailsQuery["customerByPublicId"]>["depositAccount"]
-  >["ledgerAccounts"]
 }
 
 export const DepositAccount: React.FC<DepositAccountProps> = ({
   balance,
   publicId,
   status,
-  depositAccountId,
-  ledgerAccounts,
 }) => {
   const t = useTranslations("Customers.CustomerDetails.depositAccount")
   const router = useRouter()
-  const [openFreezeDialog, setOpenFreezeDialog] = useState(false)
-  const [openUnfreezeDialog, setOpenUnfreezeDialog] = useState(false)
 
-  const handleViewLedgerAccount = () => {
-    const accountId =
-      status === DepositAccountStatus.Frozen
-        ? ledgerAccounts?.frozenDepositAccountId
-        : ledgerAccounts?.depositAccountId
-
-    if (accountId) {
-      router.push(`/ledger-accounts/${accountId}`)
-    }
-  }
-
-  const handleFreezeAccount = () => {
-    setOpenFreezeDialog(true)
-  }
-
-  const handleUnfreezeAccount = () => {
-    setOpenUnfreezeDialog(true)
+  const handleViewDetails = () => {
+    router.push(`/deposit-accounts/${publicId}`)
   }
 
   const details: DetailItemProps[] = [
@@ -77,68 +52,18 @@ export const DepositAccount: React.FC<DepositAccountProps> = ({
   ]
 
   return (
-    <>
-      <DetailsCard
-        title={t("title")}
-        details={details}
-        columns={3}
-        className="w-full md:w-3/4"
-        publicId={publicId}
-        footerContent={
-          <>
-            <Button variant="outline" onClick={handleViewLedgerAccount}>
-              {t("buttons.viewLedgerAccount")}
-              <ArrowRight />
-            </Button>
-            {status === DepositAccountStatus.Frozen && (
-              <Button variant="outline" onClick={handleUnfreezeAccount}>
-                <Sun />
-                {t("buttons.unfreezeDepositAccount")}
-              </Button>
-            )}
-            {status === DepositAccountStatus.Active && (
-              <Button variant="outline" onClick={handleFreezeAccount}>
-                <Snowflake />
-                {t("buttons.freezeDepositAccount")}
-              </Button>
-            )}
-          </>
-        }
-      />
-      <FreezeDepositAccountDialog
-        depositAccountId={depositAccountId}
-        balance={balance}
-        openFreezeDialog={openFreezeDialog}
-        setOpenFreezeDialog={setOpenFreezeDialog}
-      />
-      <UnfreezeDepositAccountDialog
-        depositAccountId={depositAccountId}
-        openUnfreezeDialog={openUnfreezeDialog}
-        setOpenUnfreezeDialog={setOpenUnfreezeDialog}
-      />
-    </>
-  )
-}
-
-export const DepositAccountStatusBadge: React.FC<{ status: DepositAccountStatus }> = ({
-  status,
-}) => {
-  const t = useTranslations("Customers.CustomerDetails.depositAccount.status")
-
-  const getVariant = (status: DepositAccountStatus) => {
-    switch (status) {
-      case DepositAccountStatus.Active:
-        return "success"
-      case DepositAccountStatus.Frozen:
-        return "destructive"
-      case DepositAccountStatus.Inactive:
-        return "secondary"
-      default: {
-        const exhaustiveCheck: never = status
-        return exhaustiveCheck
+    <DetailsCard
+      title={t("title")}
+      details={details}
+      columns={3}
+      className="w-full md:w-3/4"
+      publicId={publicId}
+      footerContent={
+        <Button variant="outline" onClick={handleViewDetails}>
+          {t("buttons.viewDetails")}
+          <ArrowRight />
+        </Button>
       }
-    }
-  }
-
-  return <Badge variant={getVariant(status)}>{t(status.toLowerCase())}</Badge>
+    />
+  )
 }

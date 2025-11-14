@@ -720,6 +720,23 @@ impl DepositLedger {
         Ok(())
     }
 
+    #[instrument(name = "deposit_ledger.lock_account", skip(self, op), err)]
+    pub async fn lock_account(
+        &self,
+        op: es_entity::DbOp<'_>,
+        account_id: AccountId,
+    ) -> Result<(), DepositLedgerError> {
+        let mut op = self
+            .cala
+            .ledger_operation_from_db_op(op.with_db_time().await?);
+
+        self.cala.accounts().lock_in_op(&mut op, account_id).await?;
+
+        op.commit().await?;
+
+        Ok(())
+    }
+
     pub async fn confirm_withdrawal(
         &self,
         op: es_entity::DbOp<'_>,

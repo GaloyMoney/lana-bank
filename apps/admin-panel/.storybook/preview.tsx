@@ -1,12 +1,11 @@
 import React from "react"
 import type { Preview } from "@storybook/nextjs"
 import { MockedProvider } from "@apollo/client/testing"
+
 import "../app/globals.css"
 
-import { SidebarInset, SidebarProvider } from "@lana/web/ui/sidebar"
 import { NextIntlClientProvider } from "next-intl"
 
-import { AppSidebar } from "../components/app-sidebar"
 import enMessages from "../messages/en.json"
 import { AvatarDocument, GetRealtimePriceUpdatesDocument } from "../lib/graphql/generated"
 import { mockRealtimePrice } from "../lib/graphql/generated/mocks"
@@ -44,14 +43,9 @@ const StorybookWrapper = ({ children, mocks = [] }) => {
     <div className="antialiased select-none bg-background">
       <MockedProvider mocks={[...defaultMocks, ...mocks]} addTypename={false}>
         <NextIntlClientProvider locale="en" messages={enMessages}>
-          <SidebarProvider>
-            <BreadcrumbProvider>
-              <AppSidebar />
-              <SidebarInset className="min-h-screen md:peer-data-[variant=inset]:shadow-none border">
-                <AppLayout>{children}</AppLayout>
-              </SidebarInset>
-            </BreadcrumbProvider>
-          </SidebarProvider>
+          <BreadcrumbProvider>
+            <AppLayout>{children}</AppLayout>
+          </BreadcrumbProvider>
         </NextIntlClientProvider>
       </MockedProvider>
     </div>

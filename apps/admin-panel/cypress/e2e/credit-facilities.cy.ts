@@ -137,8 +137,6 @@ describe("credit facility", () => {
 
     cy.get('[data-testid="global-create-button"]').click()
     cy.takeScreenshot("01_click_create_proposal_button")
-
-    cy.get('[data-testid="create-credit-facility-button"]').should("be.visible").click()
     cy.takeScreenshot("02_open_proposal_form")
 
     cy.get('[data-testid="facility-amount-input"]').type("5000")

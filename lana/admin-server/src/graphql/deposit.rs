@@ -7,7 +7,10 @@ use super::loader::LanaDataLoader;
 pub use super::deposit_account::DepositAccount;
 
 pub use lana_app::{
-    deposit::{Deposit as DomainDeposit, DepositStatus, DepositsByCreatedAtCursor},
+    deposit::{
+        Deposit as DomainDeposit, DepositAccountsByCreatedAtCursor, DepositStatus,
+        DepositsByCreatedAtCursor,
+    },
     public_id::PublicId,
 };
 
@@ -104,3 +107,9 @@ pub struct DepositAccountUnfreezeInput {
     pub deposit_account_id: UUID,
 }
 crate::mutation_payload! { DepositAccountUnfreezePayload, account: DepositAccount }
+
+#[derive(InputObject)]
+pub struct DepositAccountCloseInput {
+    pub deposit_account_id: UUID,
+}
+crate::mutation_payload! { DepositAccountClosePayload, account: DepositAccount }

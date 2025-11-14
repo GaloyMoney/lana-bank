@@ -16,13 +16,13 @@ import {
 import { Button } from "@lana/web/ui/button"
 
 import {
-  useDepositAccountUnfreezeMutation,
-  GetCustomerBasicDetailsDocument,
+  useDepositAccountCloseMutation,
+  GetDepositAccountDetailsDocument,
 } from "@/lib/graphql/generated"
 
 gql`
-  mutation DepositAccountUnfreeze($input: DepositAccountUnfreezeInput!) {
-    depositAccountUnfreeze(input: $input) {
+  mutation DepositAccountClose($input: DepositAccountCloseInput!) {
+    depositAccountClose(input: $input) {
       account {
         id
       }
@@ -30,22 +30,22 @@ gql`
   }
 `
 
-type UnfreezeDepositAccountDialogProps = {
-  setOpenUnfreezeDialog: (isOpen: boolean) => void
-  openUnfreezeDialog: boolean
+type CloseDepositAccountDialogProps = {
+  setOpenCloseDialog: (isOpen: boolean) => void
+  openCloseDialog: boolean
   depositAccountId: string
 }
 
-export const UnfreezeDepositAccountDialog: React.FC<UnfreezeDepositAccountDialogProps> = ({
-  setOpenUnfreezeDialog,
-  openUnfreezeDialog,
+export const CloseDepositAccountDialog: React.FC<CloseDepositAccountDialogProps> = ({
+  setOpenCloseDialog,
+  openCloseDialog,
   depositAccountId,
 }) => {
-  const t = useTranslations("Customers.CustomerDetails.unfreezeDepositAccount")
+  const t = useTranslations("DepositAccounts.DepositAccountDetails.closeDepositAccount")
   const commonT = useTranslations("Common")
 
-  const [unfreezeDepositAccount, { loading, reset }] = useDepositAccountUnfreezeMutation({
-    refetchQueries: [GetCustomerBasicDetailsDocument],
+  const [closeDepositAccount, { loading, reset }] = useDepositAccountCloseMutation({
+    refetchQueries: [GetDepositAccountDetailsDocument],
   })
   const [error, setError] = useState<string | null>(null)
 
@@ -53,7 +53,7 @@ export const UnfreezeDepositAccountDialog: React.FC<UnfreezeDepositAccountDialog
     e.preventDefault()
     setError(null)
     try {
-      const result = await unfreezeDepositAccount({
+      const result = await closeDepositAccount({
         variables: {
           input: {
             depositAccountId,
@@ -61,26 +61,24 @@ export const UnfreezeDepositAccountDialog: React.FC<UnfreezeDepositAccountDialog
         },
       })
 
-      if (result.data?.depositAccountUnfreeze) {
+      if (result.data) {
         toast.success(t("success"))
         handleCloseDialog()
-      } else {
-        setError(commonT("error"))
       }
     } catch (error) {
-      console.error("Error unfreezing deposit account:", error)
-      setError(error instanceof Error && error.message ? error.message : commonT("error"))
+      console.error("Error closing deposit account:", error)
+      setError(error instanceof Error ? error.message : commonT("error"))
     }
   }
 
   const handleCloseDialog = () => {
-    setOpenUnfreezeDialog(false)
+    setOpenCloseDialog(false)
     setError(null)
     reset()
   }
 
   return (
-    <Dialog open={openUnfreezeDialog} onOpenChange={handleCloseDialog}>
+    <Dialog open={openCloseDialog} onOpenChange={handleCloseDialog}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>
@@ -91,11 +89,11 @@ export const UnfreezeDepositAccountDialog: React.FC<UnfreezeDepositAccountDialog
           <DialogFooter>
             <Button
               type="submit"
-              variant="default"
+              variant="destructive"
               disabled={loading}
-              data-testid="unfreeze-deposit-account-dialog-button"
+              data-testid="close-deposit-account-dialog-button"
             >
-              {t("buttons.unfreeze")}
+              {t("buttons.close")}
             </Button>
           </DialogFooter>
         </form>
@@ -104,4 +102,4 @@ export const UnfreezeDepositAccountDialog: React.FC<UnfreezeDepositAccountDialog
   )
 }
 
-export default UnfreezeDepositAccountDialog
+export default CloseDepositAccountDialog

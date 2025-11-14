@@ -94,6 +94,7 @@ checksums:
     Sidebar/navItems/termTemplates: 510fe24eb6689e49ff4ab151535c9715
     Sidebar/navItems/customers: c31a0dfd0d92496ba6f5673781db24ef
     Sidebar/navItems/policies: 212492478eb8dd9a506878148c9a4d7c
+    Sidebar/navItems/depositAccounts: 152a03fb9acdc8943bb3c0d0d8d93ae5
     Sidebar/navItems/deposits: 9518ad41e01682ba217001a93932bc1c
     Sidebar/navItems/withdrawals: 4f557c00affbc9ba31b380c6c9b39156
     Sidebar/navItems/auditLogs: c7efb33d09676938d07651774b067bf6
@@ -190,7 +191,6 @@ checksums:
     Customers/create/errorMessage: d11cb6daa6d040d986c442e04c4f67cb
     Customers/create/unexpectedError: dd9aef0a9c3638442bc8f6151feb33d6
     Customers/create/failedToCreate: faff3a0924f0643480e4f0cbf9c50384
-    Customers/CustomerDetails/layout/tabs/transactions: 59973447457c6bd57c161d594f551651
     Customers/CustomerDetails/layout/tabs/creditFacilities: 4283868565aa25d5513636fc6e12d49c
     Customers/CustomerDetails/layout/tabs/pendingCreditFacilities: fadf95c8c9c8014ed31214fd803be427
     Customers/CustomerDetails/layout/tabs/creditFacilityProposals: 11a59748c3c3c261a3b99fd7afb4a023
@@ -233,12 +233,7 @@ checksums:
     Customers/CustomerDetails/depositAccount/labels/checkingSettled: 08322f64253c1bfbc8fe14cb3c1a2174
     Customers/CustomerDetails/depositAccount/labels/pendingWithdrawals: 790c83ce094081b2db9e0064dec0ad41
     Customers/CustomerDetails/depositAccount/labels/status: 4e1fcce15854d824919b4a582c697c90
-    Customers/CustomerDetails/depositAccount/status/active: 3e1ec025c4a50830bbb9ad57a176630a
-    Customers/CustomerDetails/depositAccount/status/frozen: 8bde74d6d5222cf63bb08a7f5044b86d
-    Customers/CustomerDetails/depositAccount/status/inactive: 239e3b722db75bbafc6c628a2685eed2
-    Customers/CustomerDetails/depositAccount/buttons/viewLedgerAccount: bd9a15bb007af68c59fb173afbf20212
-    Customers/CustomerDetails/depositAccount/buttons/freezeDepositAccount: f8e442ca95d1150995ae8e5a0e22b2b0
-    Customers/CustomerDetails/depositAccount/buttons/unfreezeDepositAccount: 2f5901e7dd64670b96e915461f63ba52
+    Customers/CustomerDetails/depositAccount/buttons/viewDetails: f89b1a0b178c4e8448cdbee27998ed03
     Customers/CustomerDetails/depositAccount/noAccount: 3465bf6d32af0dac4183cb0b306f74d2
     Customers/CustomerDetails/createDepositAccount/title: 89687f36e355fae00975f44da877d957
     Customers/CustomerDetails/createDepositAccount/descriptionWithEmail: 02e111a8283e5a6da27d0e1971c3a7f4
@@ -254,14 +249,6 @@ checksums:
     Customers/CustomerDetails/updateTelegram/messages/updateSuccess: 3a58f8918e96f48cd20f72f96388674c
     Customers/CustomerDetails/updateTelegram/actions/update: 079fc039262fd31b10532929685c2d1b
     Customers/CustomerDetails/updateTelegram/actions/updating: 0d59644e851a6a76f1fb45de9353c447
-    Customers/CustomerDetails/freezeDepositAccount/title: f8e442ca95d1150995ae8e5a0e22b2b0
-    Customers/CustomerDetails/freezeDepositAccount/description: 50192d24f3a684f1c091df8a2c5f44c5
-    Customers/CustomerDetails/freezeDepositAccount/fields/settledBalance: b39b68260cbe38adb075c0b138b71620
-    Customers/CustomerDetails/freezeDepositAccount/fields/pendingBalance: 81789161c85185aaeb4b49a58cde8484
-    Customers/CustomerDetails/freezeDepositAccount/buttons/freeze: 21fbbd763d20c0e6833e6a314fd2431b
-    Customers/CustomerDetails/freezeDepositAccount/success: 21fa05fa431f934fe861788e526f1620
-    Customers/CustomerDetails/freezeDepositAccount/errors/noData: 6df07e609a0b9cd35e54346070fdd455
-    Customers/CustomerDetails/freezeDepositAccount/errors/unknown: fe07b9cdb1fc3f7397f6d89c102c60af
     Customers/CustomerDetails/updateEmail/title: b520b3755d6f79cc294c4d5e9590c90e
     Customers/CustomerDetails/updateEmail/description: afefc7aceff0486658ac9abdab2576ce
     Customers/CustomerDetails/updateEmail/labels/newEmail: 65396d478ca7d7356d913be84b3157b7
@@ -273,17 +260,6 @@ checksums:
     Customers/CustomerDetails/updateEmail/messages/updateSuccess: 4a89cd072477839bf0ed5a05046e1254
     Customers/CustomerDetails/updateEmail/actions/update: 079fc039262fd31b10532929685c2d1b
     Customers/CustomerDetails/updateEmail/actions/updating: 0d59644e851a6a76f1fb45de9353c447
-    Customers/CustomerDetails/transactions/title: 59973447457c6bd57c161d594f551651
-    Customers/CustomerDetails/transactions/description: 0a559b46d23f952b3d469234a67841de
-    Customers/CustomerDetails/transactions/table/headers/date: 56f41c5d30a76295bb087b20b7bee4c3
-    Customers/CustomerDetails/transactions/table/headers/type: f04471a7ddac844b9ad145eb9911ef75
-    Customers/CustomerDetails/transactions/table/headers/amount: a0ae9c6ff98b57475cdce56f66066aa4
-    Customers/CustomerDetails/transactions/table/headers/status: 4e1fcce15854d824919b4a582c697c90
-    Customers/CustomerDetails/transactions/table/types/deposit: e233d53e369427d12f87d610bcf56ccb
-    Customers/CustomerDetails/transactions/table/types/withdrawal: 90991ef39c923572c15cac977346ee77
-    Customers/CustomerDetails/transactions/table/types/disbursal: 2aa8ff038a96888966ede2b19fc8b8bb
-    Customers/CustomerDetails/transactions/table/types/payment: 95142d3fd8b6a6f551aba771842e9c11
-    Customers/CustomerDetails/transactions/table/empty: 15f5fee32cbd24775ccda66e8ca83132
     Customers/CustomerDetails/creditFacilities/title: 4283868565aa25d5513636fc6e12d49c
     Customers/CustomerDetails/creditFacilities/description: e722c59b11f65cb32dfb14287b4d67ae
     Customers/CustomerDetails/creditFacilities/table/headers/status: 4e1fcce15854d824919b4a582c697c90
@@ -319,10 +295,6 @@ checksums:
     Customers/CustomerDetails/pendingCreditFacilities/table/headers/collateral: b0dcbdb652cb11f0d9eeb77666c8ca8d
     Customers/CustomerDetails/pendingCreditFacilities/table/headers/collateralizationState: 7c33429a42e7cb133439b578ee6f1b78
     Customers/CustomerDetails/pendingCreditFacilities/table/headers/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
-    Customers/CustomerDetails/unfreezeDepositAccount/title: 2f5901e7dd64670b96e915461f63ba52
-    Customers/CustomerDetails/unfreezeDepositAccount/description: 4d99c9834801877ff8a66c8b8daffc3e
-    Customers/CustomerDetails/unfreezeDepositAccount/buttons/unfreeze: e6ac5996c0a69156d315b35d9438ed32
-    Customers/CustomerDetails/unfreezeDepositAccount/success: 21b2f5e2e622ab6260281a48b739dcb6
     CreditFacilityProposals/title: 11a59748c3c3c261a3b99fd7afb4a023
     CreditFacilityProposals/description: 2a883823caefdfda33d041e80dba79f9
     CreditFacilityProposals/table/headers/customer: 846b48bb14b3d62c75cde5031e6bbfd7
@@ -638,6 +610,7 @@ checksums:
     Disbursals/DisbursalDetails/DetailsCard/details/disbursalAmount: 78094a14a2d2c6df950514d92f0d044a
     Disbursals/DisbursalDetails/DetailsCard/details/facilityAmount: 70e63659ee9f7ab8a38ec09c24f3c97c
     Disbursals/DisbursalDetails/DetailsCard/details/status: 4e1fcce15854d824919b4a582c697c90
+    Disbursals/DisbursalDetails/DetailsCard/buttons/viewDepositAccount: ec760c8120ec2d099ad62eecadb15fa7
     Disbursals/DisbursalDetails/DetailsCard/buttons/approve: df82197ab4899a770b4677fbea82abbb
     Disbursals/DisbursalDetails/DetailsCard/buttons/deny: 5e4572e4d0e5bce1f27f74f857be1c6a
     Disbursals/DisbursalDetails/DetailsCard/buttons/viewCreditFacility: f02e316eba6ca5ad813099ca29b5c8f1
@@ -815,6 +788,54 @@ checksums:
     Custodians/create/buttons/create: a8e359b8fcfb691a7c1bf2eb7129938b
     Custodians/create/success: a6348d2405bc7dfa8597367278236a8b
     Custodians/create/errors/failed: 1765dc3618214436855b4af47c0af4a0
+    DepositAccounts/title: 152a03fb9acdc8943bb3c0d0d8d93ae5
+    DepositAccounts/description: 6c02daebe9aff13d8acaf0271a35950a
+    DepositAccounts/table/headers/depositAccountId: e795343893c6a1e18fba01dcabfcf920
+    DepositAccounts/table/headers/customer: 846b48bb14b3d62c75cde5031e6bbfd7
+    DepositAccounts/table/headers/settledBalance: 7dce43b59aa5aa8a13e33d429e7f1a1b
+    DepositAccounts/table/headers/pendingBalance: cec648baee62ec1c1fa0fa6ecf08467c
+    DepositAccounts/table/headers/status: 4e1fcce15854d824919b4a582c697c90
+    DepositAccounts/table/errors/general: b7c40c4ed6a172c29cfc88b4ccfccf71
+    DepositAccounts/status/active: 3e1ec025c4a50830bbb9ad57a176630a
+    DepositAccounts/status/frozen: 8bde74d6d5222cf63bb08a7f5044b86d
+    DepositAccounts/status/inactive: 239e3b722db75bbafc6c628a2685eed2
+    DepositAccounts/status/closed: 180560eb657a20f3d4edc44d5f7e7c2a
+    DepositAccounts/DepositAccountDetails/DepositAccountDetailsCard/title: 23d240412c0bf14efcff84a2325587be
+    DepositAccounts/DepositAccountDetails/DepositAccountDetailsCard/fields/customerEmail: ebca1f74384e364c0bbc0782c0b14d93
+    DepositAccounts/DepositAccountDetails/DepositAccountDetailsCard/fields/settledBalance: 7dce43b59aa5aa8a13e33d429e7f1a1b
+    DepositAccounts/DepositAccountDetails/DepositAccountDetailsCard/fields/pendingBalance: cec648baee62ec1c1fa0fa6ecf08467c
+    DepositAccounts/DepositAccountDetails/DepositAccountDetailsCard/fields/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
+    DepositAccounts/DepositAccountDetails/DepositAccountDetailsCard/fields/status: 4e1fcce15854d824919b4a582c697c90
+    DepositAccounts/DepositAccountDetails/DepositAccountDetailsCard/buttons/viewLedgerAccount: bd9a15bb007af68c59fb173afbf20212
+    DepositAccounts/DepositAccountDetails/DepositAccountDetailsCard/buttons/freezeDepositAccount: f8e442ca95d1150995ae8e5a0e22b2b0
+    DepositAccounts/DepositAccountDetails/DepositAccountDetailsCard/buttons/unfreezeDepositAccount: 2f5901e7dd64670b96e915461f63ba52
+    DepositAccounts/DepositAccountDetails/DepositAccountDetailsCard/buttons/closeDepositAccount: 32388d22748bbbc511e6de6c9486573b
+    DepositAccounts/DepositAccountDetails/freezeDepositAccount/title: f8e442ca95d1150995ae8e5a0e22b2b0
+    DepositAccounts/DepositAccountDetails/freezeDepositAccount/description: 50192d24f3a684f1c091df8a2c5f44c5
+    DepositAccounts/DepositAccountDetails/freezeDepositAccount/fields/settledBalance: 7dce43b59aa5aa8a13e33d429e7f1a1b
+    DepositAccounts/DepositAccountDetails/freezeDepositAccount/fields/pendingBalance: cec648baee62ec1c1fa0fa6ecf08467c
+    DepositAccounts/DepositAccountDetails/freezeDepositAccount/buttons/freeze: 21fbbd763d20c0e6833e6a314fd2431b
+    DepositAccounts/DepositAccountDetails/freezeDepositAccount/success: 21fa05fa431f934fe861788e526f1620
+    DepositAccounts/DepositAccountDetails/unfreezeDepositAccount/title: 2f5901e7dd64670b96e915461f63ba52
+    DepositAccounts/DepositAccountDetails/unfreezeDepositAccount/description: 4d99c9834801877ff8a66c8b8daffc3e
+    DepositAccounts/DepositAccountDetails/unfreezeDepositAccount/buttons/unfreeze: e6ac5996c0a69156d315b35d9438ed32
+    DepositAccounts/DepositAccountDetails/unfreezeDepositAccount/success: 21b2f5e2e622ab6260281a48b739dcb6
+    DepositAccounts/DepositAccountDetails/closeDepositAccount/title: 32388d22748bbbc511e6de6c9486573b
+    DepositAccounts/DepositAccountDetails/closeDepositAccount/description: 70dee570346a961764977777f6cf75df
+    DepositAccounts/DepositAccountDetails/closeDepositAccount/buttons/close: 9e2b4c1ed0018f0e253f9b1016582882
+    DepositAccounts/DepositAccountDetails/closeDepositAccount/success: 460c93de5a20825d6a8838ce5d44deb2
+    DepositAccounts/DepositAccountDetails/closeDepositAccount/disabledTooltip: 9932be231de2dff3b4bc23ac6db4c587
+    DepositAccounts/DepositAccountDetails/transactions/title: 7dc0729b2cd4d854f57348269d495010
+    DepositAccounts/DepositAccountDetails/transactions/description: 477e157badf809e81fb0cc2a1046965c
+    DepositAccounts/DepositAccountDetails/transactions/table/headers/date: 56f41c5d30a76295bb087b20b7bee4c3
+    DepositAccounts/DepositAccountDetails/transactions/table/headers/type: f04471a7ddac844b9ad145eb9911ef75
+    DepositAccounts/DepositAccountDetails/transactions/table/headers/amount: a0ae9c6ff98b57475cdce56f66066aa4
+    DepositAccounts/DepositAccountDetails/transactions/table/headers/status: 4e1fcce15854d824919b4a582c697c90
+    DepositAccounts/DepositAccountDetails/transactions/table/types/deposit: e233d53e369427d12f87d610bcf56ccb
+    DepositAccounts/DepositAccountDetails/transactions/table/types/withdrawal: 90991ef39c923572c15cac977346ee77
+    DepositAccounts/DepositAccountDetails/transactions/table/types/disbursal: 2aa8ff038a96888966ede2b19fc8b8bb
+    DepositAccounts/DepositAccountDetails/transactions/table/types/payment: 95142d3fd8b6a6f551aba771842e9c11
+    DepositAccounts/DepositAccountDetails/transactions/table/empty: 15f5fee32cbd24775ccda66e8ca83132
     Deposits/title: 9518ad41e01682ba217001a93932bc1c
     Deposits/description: 574e2918e4528209b7d3f987da3d5964
     Deposits/table/headers/customer: 846b48bb14b3d62c75cde5031e6bbfd7
@@ -853,6 +874,7 @@ checksums:
     Deposits/DepositDetails/DepositDetailsCard/fields/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
     Deposits/DepositDetails/DepositDetailsCard/fields/status: 4e1fcce15854d824919b4a582c697c90
     Deposits/DepositDetails/DepositDetailsCard/values/na: 0f9c9f00cd99d49b710b4e4cfd8fe85c
+    Deposits/DepositDetails/DepositDetailsCard/buttons/viewDepositAccount: ec760c8120ec2d099ad62eecadb15fa7
     Deposits/DepositDetails/DepositDetailsCard/buttons/revert: 9666b5975a819f9047570234a7c409f8
     Deposits/DepositDetails/DepositDetailsCard/buttons/viewOnSumsub: 6303e12bdc05ab7fc71048f6dedbd318
     Withdrawals/title: 4f557c00affbc9ba31b380c6c9b39156
@@ -907,6 +929,7 @@ checksums:
     Withdrawals/WithdrawDetails/WithdrawalDetailsCard/fields/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
     Withdrawals/WithdrawDetails/WithdrawalDetailsCard/fields/status: 4e1fcce15854d824919b4a582c697c90
     Withdrawals/WithdrawDetails/WithdrawalDetailsCard/values/na: 0f9c9f00cd99d49b710b4e4cfd8fe85c
+    Withdrawals/WithdrawDetails/WithdrawalDetailsCard/buttons/viewDepositAccount: ec760c8120ec2d099ad62eecadb15fa7
     Withdrawals/WithdrawDetails/WithdrawalDetailsCard/buttons/confirm: 90930b51154032f119fa75c1bd422d8b
     Withdrawals/WithdrawDetails/WithdrawalDetailsCard/buttons/cancel: 2e2a849c2223911717de8caa2c71bade
     Withdrawals/WithdrawDetails/WithdrawalDetailsCard/buttons/approve: df82197ab4899a770b4677fbea82abbb
@@ -1118,6 +1141,7 @@ checksums:
     dateTime/format/short: ab423691fde1389f9be644bd5f264d0e
     CreateButton/buttons/create: 757ccd28dd533ff3a933355273c1e32a
     CreateButton/disabledMessages/creditFacilityMustBeActive: 5efddd4fdff0f2bde5685825d2ba51e5
+    CreateButton/disabledMessages/depositAccountClosed: afb09c14f6c34fea6b93992fd2a54bbd
     CreateButton/menuItems/deposit: e233d53e369427d12f87d610bcf56ccb
     CreateButton/menuItems/withdrawal: 90991ef39c923572c15cac977346ee77
     CreateButton/menuItems/customer: 846b48bb14b3d62c75cde5031e6bbfd7

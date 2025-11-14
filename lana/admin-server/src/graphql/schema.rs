@@ -236,6 +236,39 @@ impl Query {
             app.deposits().find_account_by_id(sub, id)
         )
     }
+
+    async fn deposit_account_by_public_id(
+        &self,
+        ctx: &Context<'_>,
+        id: PublicId,
+    ) -> async_graphql::Result<Option<DepositAccount>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(
+            DepositAccount,
+            ctx,
+            app.deposits().find_account_by_public_id(sub, id)
+        )
+    }
+
+    async fn deposit_accounts(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<DepositAccountsByCreatedAtCursor, DepositAccount, EmptyFields, EmptyFields>,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor!(
+            DepositAccountsByCreatedAtCursor,
+            DepositAccount,
+            ctx,
+            after,
+            first,
+            |query| app.deposits().list_accounts(sub, query)
+        )
+    }
+
     async fn deposits(
         &self,
         ctx: &Context<'_>,
@@ -1409,6 +1442,20 @@ impl Mutation {
             ctx,
             app.deposits()
                 .unfreeze_account(sub, input.deposit_account_id)
+        )
+    }
+
+    pub async fn deposit_account_close(
+        &self,
+        ctx: &Context<'_>,
+        input: DepositAccountCloseInput,
+    ) -> async_graphql::Result<DepositAccountClosePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            DepositAccountClosePayload,
+            DepositAccount,
+            ctx,
+            app.deposits().close_account(sub, input.deposit_account_id)
         )
     }
 

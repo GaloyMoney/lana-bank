@@ -35,7 +35,9 @@ use core_custody::{
     CoreCustody, CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject, CustodianId,
 };
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
-use core_deposit::{CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject};
+use core_deposit::{
+    CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, error::CoreDepositError,
+};
 use core_price::Price;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
@@ -567,6 +569,10 @@ where
             .deposit
             .find_account_by_account_holder_without_audit(customer.id)
             .await?;
+
+        if !deposit_account.is_active() {
+            return Err(CoreDepositError::DepositAccountNotActive.into());
+        }
 
         let proposal_id = CreditFacilityId::new();
 

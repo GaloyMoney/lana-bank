@@ -156,6 +156,7 @@
       "termTemplates": "Term Templates",
       "customers": "Customers",
       "policies": "Policies",
+      "depositAccounts": "Deposit Accounts",
       "deposits": "Deposits",
       "withdrawals": "Withdrawals",
       "auditLogs": "Audit Logs",
@@ -280,7 +281,6 @@
     "CustomerDetails": {
       "layout": {
         "tabs": {
-          "transactions": "Transactions",
           "creditFacilities": "Credit Facilities",
           "pendingCreditFacilities": "Pending Credit Facilities",
           "creditFacilityProposals": "Credit Facility Proposals",
@@ -348,15 +348,8 @@
           "pendingWithdrawals": "Pending Withdrawals (USD)",
           "status": "Status"
         },
-        "status": {
-          "active": "Active",
-          "frozen": "Frozen",
-          "inactive": "Inactive"
-        },
         "buttons": {
-          "viewLedgerAccount": "View Ledger Account",
-          "freezeDepositAccount": "Freeze Deposit Account",
-          "unfreezeDepositAccount": "Unfreeze Deposit Account"
+          "viewDetails": "View Details"
         },
         "noAccount": "No deposit account available"
       },
@@ -390,22 +383,6 @@
           "updating": "Updating..."
         }
       },
-      "freezeDepositAccount": {
-        "title": "Freeze Deposit Account",
-        "description": "Are you sure you want to freeze this deposit account? This action will prevent further deposits and withdrawals.",
-        "fields": {
-          "settledBalance": "Checking Settled Balance",
-          "pendingBalance": "Pending Withdrawals"
-        },
-        "buttons": {
-          "freeze": "Freeze Account"
-        },
-        "success": "Deposit account frozen successfully",
-        "errors": {
-          "noData": "No data returned from the server",
-          "unknown": "An unexpected error occurred"
-        }
-      },
       "updateEmail": {
         "title": "Update Email",
         "description": "Update the email address for this customer",
@@ -427,25 +404,6 @@
         "actions": {
           "update": "Update",
           "updating": "Updating..."
-        }
-      },
-      "transactions": {
-        "title": "Transactions",
-        "description": "Transactions for this Customer",
-        "table": {
-          "headers": {
-            "date": "Date",
-            "type": "Type",
-            "amount": "Amount",
-            "status": "Status"
-          },
-          "types": {
-            "deposit": "Deposit",
-            "withdrawal": "Withdrawal",
-            "disbursal": "Disbursal",
-            "payment": "Payment"
-          },
-          "empty": "No transactions found"
         }
       },
       "creditFacilities": {
@@ -510,14 +468,6 @@
             "createdAt": "Created At"
           }
         }
-      },
-      "unfreezeDepositAccount": {
-        "title": "Unfreeze Deposit Account",
-        "description": "Are you sure you want to unfreeze this deposit account? This will allow new deposits and withdrawals.",
-        "buttons": {
-          "unfreeze": "Unfreeze Account"
-        },
-        "success": "Deposit account unfrozen successfully"
       }
     }
   },
@@ -1072,6 +1022,7 @@
           "status": "Status"
         },
         "buttons": {
+          "viewDepositAccount": "View Deposit Account",
           "approve": "Approve",
           "deny": "Deny",
           "viewCreditFacility": "View Credit Facility"
@@ -1399,6 +1350,94 @@
       }
     }
   },
+  "DepositAccounts": {
+    "title": "Deposit Accounts",
+    "description": "Customer deposit accounts for managing funds and transactions",
+    "table": {
+      "headers": {
+        "depositAccountId": "Account ID",
+        "customer": "Customer",
+        "settledBalance": "Settled Balance",
+        "pendingBalance": "Pending Balance",
+        "status": "Status"
+      },
+      "errors": {
+        "general": "An error occurred while fetching deposit accounts."
+      }
+    },
+    "status": {
+      "active": "Active",
+      "frozen": "Frozen",
+      "inactive": "Inactive",
+      "closed": "Closed"
+    },
+    "DepositAccountDetails": {
+      "DepositAccountDetailsCard": {
+        "title": "Deposit Account",
+        "fields": {
+          "customerEmail": "Customer Email",
+          "settledBalance": "Settled Balance",
+          "pendingBalance": "Pending Balance",
+          "createdAt": "Created At",
+          "status": "Status"
+        },
+        "buttons": {
+          "viewLedgerAccount": "View Ledger Account",
+          "freezeDepositAccount": "Freeze Deposit Account",
+          "unfreezeDepositAccount": "Unfreeze Deposit Account",
+          "closeDepositAccount": "Close Deposit Account"
+        }
+      },
+      "freezeDepositAccount": {
+        "title": "Freeze Deposit Account",
+        "description": "Are you sure you want to freeze this deposit account? This action will prevent further deposits and withdrawals.",
+        "fields": {
+          "settledBalance": "Settled Balance",
+          "pendingBalance": "Pending Balance"
+        },
+        "buttons": {
+          "freeze": "Freeze Account"
+        },
+        "success": "Deposit account frozen successfully"
+      },
+      "unfreezeDepositAccount": {
+        "title": "Unfreeze Deposit Account",
+        "description": "Are you sure you want to unfreeze this deposit account? This will allow new deposits and withdrawals.",
+        "buttons": {
+          "unfreeze": "Unfreeze Account"
+        },
+        "success": "Deposit account unfrozen successfully"
+      },
+      "closeDepositAccount": {
+        "title": "Close Deposit Account",
+        "description": "Are you sure you want to close this deposit account? This action is permanent and cannot be undone.",
+        "buttons": {
+          "close": "Close Account"
+        },
+        "success": "Deposit account closed successfully",
+        "disabledTooltip": "Account balance must be zero to close"
+      },
+      "transactions": {
+        "title": "Transaction History",
+        "description": "All deposits, withdrawals, disbursals and payments for this account",
+        "table": {
+          "headers": {
+            "date": "Date",
+            "type": "Type",
+            "amount": "Amount",
+            "status": "Status"
+          },
+          "types": {
+            "deposit": "Deposit",
+            "withdrawal": "Withdrawal",
+            "disbursal": "Disbursal",
+            "payment": "Payment"
+          },
+          "empty": "No transactions found"
+        }
+      }
+    }
+  },
   "Deposits": {
     "title": "Deposits",
     "description": "Sums of money added from credit facilities into customer's accounts",
@@ -1473,6 +1512,7 @@
           "na": "N/A"
         },
         "buttons": {
+          "viewDepositAccount": "View Deposit Account",
           "revert": "Revert",
           "viewOnSumsub": "View on Sumsub"
         }
@@ -1577,6 +1617,7 @@
           "na": "N/A"
         },
         "buttons": {
+          "viewDepositAccount": "View Deposit Account",
           "confirm": "Confirm",
           "cancel": "Cancel",
           "approve": "Approve",
@@ -1953,7 +1994,8 @@
       "create": "Create"
     },
     "disabledMessages": {
-      "creditFacilityMustBeActive": "Credit facility must be active to perform actions"
+      "creditFacilityMustBeActive": "Credit facility must be active to perform actions",
+      "depositAccountClosed": "Deposit account is closed, cannot create proposals"
     },
     "menuItems": {
       "deposit": "Deposit",

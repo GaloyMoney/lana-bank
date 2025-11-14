@@ -180,6 +180,8 @@ impl CoreDepositAction {
         CoreDepositAction::DepositAccount(DepositAccountAction::Freeze);
     pub const DEPOSIT_ACCOUNT_UNFREEZE: Self =
         CoreDepositAction::DepositAccount(DepositAccountAction::Unfreeze);
+    pub const DEPOSIT_ACCOUNT_CLOSE: Self =
+        CoreDepositAction::DepositAccount(DepositAccountAction::Close);
 
     pub const DEPOSIT_CREATE: Self = CoreDepositAction::Deposit(DepositAction::Create);
     pub const DEPOSIT_READ: Self = CoreDepositAction::Deposit(DepositAction::Read);
@@ -269,6 +271,7 @@ pub enum DepositAccountAction {
     List,
     Freeze,
     Unfreeze,
+    Close,
 }
 
 impl ActionPermission for DepositAccountAction {
@@ -277,7 +280,7 @@ impl ActionPermission for DepositAccountAction {
             Self::Read | Self::List | Self::ReadBalance | Self::ReadTxHistory => {
                 PERMISSION_SET_DEPOSIT_VIEWER
             }
-            Self::Create | Self::UpdateStatus => PERMISSION_SET_DEPOSIT_WRITER,
+            Self::Create | Self::UpdateStatus | Self::Close => PERMISSION_SET_DEPOSIT_WRITER,
             Self::Freeze => PERMISSION_SET_DEPOSIT_FREEZE,
             Self::Unfreeze => PERMISSION_SET_DEPOSIT_UNFREEZE,
         }
@@ -375,6 +378,7 @@ pub enum DepositAccountStatus {
     Inactive,
     Active,
     Frozen,
+    Closed,
 }
 
 #[derive(Clone, Copy)]

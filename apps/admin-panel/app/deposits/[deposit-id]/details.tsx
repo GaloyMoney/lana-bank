@@ -2,7 +2,8 @@
 
 import React, { useState } from "react"
 import { useTranslations } from "next-intl"
-import { ExternalLinkIcon, RotateCcw } from "lucide-react"
+import { ArrowRight, ExternalLinkIcon, RotateCcw } from "lucide-react"
+import Link from "next/link"
 
 import { Button } from "@lana/web/ui/button"
 
@@ -54,6 +55,12 @@ const DepositDetailsCard: React.FC<DepositDetailsProps> = ({ deposit }) => {
 
   const footerContent = (
     <>
+      <Button asChild variant="outline">
+        <Link href={`/deposit-accounts/${deposit.account.publicId}`}>
+          {t("buttons.viewDepositAccount")}
+          <ArrowRight />
+        </Link>
+      </Button>
       {deposit.status === DepositStatus.Confirmed && (
         <Button
           data-testid="deposit-revert-button"

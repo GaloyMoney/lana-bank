@@ -47,6 +47,7 @@ import {
   GetCommitteeDetailsQuery,
   TermsTemplateQuery,
   GetDisbursalDetailsQuery,
+  GetDepositAccountDetailsQuery,
 } from "@/lib/graphql/generated"
 
 export const PATH_CONFIGS = {
@@ -77,6 +78,8 @@ export const PATH_CONFIGS = {
 
   CHART_OF_ACCOUNTS: "/chart-of-accounts",
   LEDGER_ACCOUNTS: "/ledger-accounts",
+
+  DEPOSIT_ACCOUNT_DETAILS: /^\/deposit-accounts\/[^/]+/,
 }
 
 const showCreateButton = (currentPath: string) => {
@@ -133,17 +136,29 @@ const CreateButton = () => {
     useState(false)
   const [showMenu, setShowMenu] = useState(false)
 
-  const { customer, facility, setCustomer } = useCreateContext()
+  const { customer, facility, depositAccount, setCustomer, setDepositAccount } =
+    useCreateContext()
   const pathName = usePathname()
 
   const userIsInCustomerDetailsPage = Boolean(pathName.match(/^\/customers\/.+$/))
+  const userIsInDepositAccountDetailsPage = Boolean(
+    pathName.match(/^\/deposit-accounts\/.+$/),
+  )
+
   const setCustomerToNullIfNotInCustomerDetails = () => {
     if (!userIsInCustomerDetailsPage) setCustomer(null)
+  }
+
+  const setDepositAccountToNullIfNotInDepositAccountDetails = () => {
+    if (!userIsInDepositAccountDetailsPage) setDepositAccount(null)
   }
 
   const isButtonDisabled = () => {
     if (PATH_CONFIGS.CREDIT_FACILITY_DETAILS.test(pathName)) {
       return !facility || facility.status !== CreditFacilityStatus.Active
+    }
+    if (PATH_CONFIGS.CUSTOMER_DETAILS.test(pathName)) {
+      return customer?.depositAccount?.status === DepositAccountStatus.Closed
     }
     return false
   }
@@ -152,6 +167,9 @@ const CreateButton = () => {
     if (pathName.includes("credit-facilities") && isButtonDisabled()) {
       return t("disabledMessages.creditFacilityMustBeActive")
     }
+    if (PATH_CONFIGS.CUSTOMER_DETAILS.test(pathName) && isButtonDisabled()) {
+      return t("disabledMessages.depositAccountClosed")
+    }
     return ""
   }
 
@@ -159,11 +177,11 @@ const CreateButton = () => {
     {
       label: t("menuItems.deposit"),
       onClick: () => {
-        if (!customer) return
+        if (!depositAccount) return
         setCreateDeposit(true)
       },
       dataTestId: "create-deposit-button",
-      allowedPaths: [PATH_CONFIGS.CUSTOMER_DETAILS],
+      allowedPaths: [PATH_CONFIGS.DEPOSIT_ACCOUNT_DETAILS],
     },
     {
       label: t("menuItems.depositAccount"),
@@ -177,11 +195,11 @@ const CreateButton = () => {
     {
       label: t("menuItems.withdrawal"),
       onClick: () => {
-        if (!customer) return
+        if (!depositAccount) return
         setCreateWithdrawal(true)
       },
       dataTestId: "create-withdrawal-button",
-      allowedPaths: [PATH_CONFIGS.CUSTOMER_DETAILS],
+      allowedPaths: [PATH_CONFIGS.DEPOSIT_ACCOUNT_DETAILS],
     },
     {
       label: t("menuItems.customer"),
@@ -270,10 +288,8 @@ const CreateButton = () => {
         item.label === t("menuItems.deposit") ||
         item.label === t("menuItems.withdrawal")
       ) {
-        return (
-          isPathAllowed &&
-          customer?.depositAccount?.status === DepositAccountStatus.Active
-        )
+        // Only on deposit account details page, check depositAccount directly
+        return isPathAllowed && depositAccount?.status === DepositAccountStatus.Active
       }
 
       // Hide deposit account creation if account already exists
@@ -414,35 +430,37 @@ const CreateButton = () => {
         />
       )}
 
-      {customer && customer.depositAccount && (
+      {depositAccount && (
         <>
           <CreateDepositDialog
             openCreateDepositDialog={createDeposit}
             setOpenCreateDepositDialog={() => {
-              setCustomerToNullIfNotInCustomerDetails()
+              setDepositAccountToNullIfNotInDepositAccountDetails()
               setCreateDeposit(false)
             }}
-            depositAccountId={customer.depositAccount.depositAccountId}
+            depositAccountId={depositAccount.depositAccountId}
           />
 
           <WithdrawalInitiateDialog
             openWithdrawalInitiateDialog={createWithdrawal}
             setOpenWithdrawalInitiateDialog={() => {
-              setCustomerToNullIfNotInCustomerDetails()
+              setDepositAccountToNullIfNotInDepositAccountDetails()
               setCreateWithdrawal(false)
             }}
-            depositAccountId={customer.depositAccount.depositAccountId}
-          />
-
-          <CreateCreditFacilityProposalDialog
-            openCreateCreditFacilityProposalDialog={createFacility}
-            setOpenCreateCreditFacilityProposalDialog={() => {
-              setCustomerToNullIfNotInCustomerDetails()
-              setCreateFacility(false)
-            }}
-            customerId={customer.customerId}
+            depositAccountId={depositAccount.depositAccountId}
           />
         </>
+      )}
+
+      {customer && customer.depositAccount && (
+        <CreateCreditFacilityProposalDialog
+          openCreateCreditFacilityProposalDialog={createFacility}
+          setOpenCreateCreditFacilityProposalDialog={() => {
+            setCustomerToNullIfNotInCustomerDetails()
+            setCreateFacility(false)
+          }}
+          customerId={customer.customerId}
+        />
       )}
 
       {facility && (
@@ -476,6 +494,9 @@ type IWithdraw = GetWithdrawalDetailsQuery["withdrawalByPublicId"] | null
 type IPolicy = GetPolicyDetailsQuery["policy"] | null
 type ICommittee = GetCommitteeDetailsQuery["committee"] | null
 type IDisbursal = GetDisbursalDetailsQuery["disbursalByPublicId"] | null
+type IDepositAccount = NonNullable<
+  GetDepositAccountDetailsQuery["depositAccountByPublicId"]
+> | null
 
 type CreateContext = {
   customer: ICustomer
@@ -485,6 +506,7 @@ type CreateContext = {
   policy: IPolicy
   committee: ICommittee
   disbursal: IDisbursal
+  depositAccount: IDepositAccount
 
   setCustomer: React.Dispatch<React.SetStateAction<ICustomer>>
   setFacility: React.Dispatch<React.SetStateAction<IFacility>>
@@ -493,6 +515,7 @@ type CreateContext = {
   setPolicy: React.Dispatch<React.SetStateAction<IPolicy>>
   setCommittee: React.Dispatch<React.SetStateAction<ICommittee>>
   setDisbursal: React.Dispatch<React.SetStateAction<IDisbursal>>
+  setDepositAccount: React.Dispatch<React.SetStateAction<IDepositAccount>>
 }
 
 const CreateContext = createContext<CreateContext>({
@@ -503,6 +526,7 @@ const CreateContext = createContext<CreateContext>({
   policy: null,
   committee: null,
   disbursal: null,
+  depositAccount: null,
 
   setCustomer: () => {},
   setFacility: () => {},
@@ -511,6 +535,7 @@ const CreateContext = createContext<CreateContext>({
   setPolicy: () => {},
   setCommittee: () => {},
   setDisbursal: () => {},
+  setDepositAccount: () => {},
 })
 
 export const CreateContextProvider: React.FC<React.PropsWithChildren> = ({
@@ -523,6 +548,7 @@ export const CreateContextProvider: React.FC<React.PropsWithChildren> = ({
   const [policy, setPolicy] = useState<IPolicy>(null)
   const [committee, setCommittee] = useState<ICommittee>(null)
   const [disbursal, setDisbursal] = useState<IDisbursal>(null)
+  const [depositAccount, setDepositAccount] = useState<IDepositAccount>(null)
 
   return (
     <CreateContext.Provider
@@ -534,6 +560,7 @@ export const CreateContextProvider: React.FC<React.PropsWithChildren> = ({
         policy,
         committee,
         disbursal,
+        depositAccount,
 
         setCustomer,
         setFacility,
@@ -542,6 +569,7 @@ export const CreateContextProvider: React.FC<React.PropsWithChildren> = ({
         setPolicy,
         setCommittee,
         setDisbursal,
+        setDepositAccount,
       }}
     >
       {children}

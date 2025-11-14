@@ -1,0 +1,11 @@
+mutation DepositAccountClose($input: DepositAccountCloseInput!) {
+  depositAccountClose(input: $input) {
+    account {
+      depositAccountId
+      status
+      balance {
+        settled
+      }
+    }
+  }
+}
