@@ -281,6 +281,38 @@ where
         Ok((chart, new_account_set_id))
     }
 
+    #[instrument(
+        name = "core_accounting.chart_of_accounts.close_account_set_as_of_in_op",
+        skip(self, op),
+        err
+    )]
+    pub async fn close_account_set_as_of_in_op(
+        &self,
+        mut op: es_entity::DbOp<'_>,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_id: ChartId,
+        closed_as_of: chrono::NaiveDate,
+    ) -> Result<(), ChartOfAccountsError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_charts(),
+                CoreAccountingAction::CHART_CLOSE_MONTHLY,
+            )
+            .await?;
+
+        let mut chart = self.find_by_id(chart_id).await?;
+        // TODO: Add back closing event to Chart entity.
+        
+        self.repo.update_in_op(&mut op, &mut chart).await?;
+
+        self.chart_ledger
+            .close_as_of(op, closed_as_of, chart_id)
+            .await?;
+
+        Ok(())
+    }
+
     #[instrument(name = "core_accounting.chart_of_accounts.find_by_id", skip(self), err)]
     pub async fn find_by_id(
         &self,

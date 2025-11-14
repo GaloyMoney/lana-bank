@@ -6,7 +6,7 @@ use tracing::instrument;
 use cala_ledger::{
     AccountSetId, CalaLedger, DebitOrCredit, JournalId, LedgerOperation, VelocityControlId,
     VelocityLimitId,
-    account_set::NewAccountSet,
+    account_set::{AccountSetUpdate, NewAccountSet},
     velocity::{NewBalanceLimit, NewLimit, NewVelocityControl, NewVelocityLimit, Params},
 };
 
@@ -71,11 +71,58 @@ impl ChartLedger {
     }
 
     #[instrument(
+        name = "chart_ledger.close_as_of", 
+        skip(self, op),
+        fields(chart_id = tracing::field::Empty, closed_as_of = %closed_as_of),
+        err,
+    )]
+    pub async fn close_as_of(
+        &self,
+        op: es_entity::DbOp<'_>,
+        closed_as_of: chrono::NaiveDate,
+        tracking_account_set_id: impl Into<AccountSetId> + std::fmt::Debug,
+    ) -> Result<(), ChartLedgerError> {
+        let mut tracking_account_set = self
+            .cala
+            .account_sets()
+            .find(tracking_account_set_id.into())
+            .await?;
+
+        let mut op = self
+            .cala
+            .ledger_operation_from_db_op(op.with_db_time().await?);
+
+        let mut account_set_metadata = tracking_account_set
+            .values()
+            .clone()
+            .metadata
+            .unwrap_or_else(|| serde_json::json!({}));
+        AccountingClosingMetadata::update_with_monthly_closing(
+            &mut account_set_metadata,
+            closed_as_of,
+        );
+
+        let mut update_values = AccountSetUpdate::default();
+        update_values
+            .metadata(Some(account_set_metadata))
+            .expect("Failed to serialize metadata");
+
+        tracking_account_set.update(update_values);
+        self.cala
+            .account_sets()
+            .persist_in_op(&mut op, &mut tracking_account_set)
+            .await?;
+
+        op.commit().await?;
+        Ok(())
+    }
+
+    #[instrument(
         name = "chart_ledger.attach_closing_controls_to_account_set_in_op",
         skip(self, op),
         err
     )]
-    pub async fn attach_closing_controls_to_account_set_in_op(
+    async fn attach_closing_controls_to_account_set_in_op(
         &self,
         mut op: LedgerOperation<'_>,
         tracking_account_set_id: impl Into<AccountSetId> + std::fmt::Debug,
