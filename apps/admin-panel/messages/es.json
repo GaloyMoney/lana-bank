@@ -1994,7 +1994,8 @@
       "create": "Crear"
     },
     "disabledMessages": {
-      "creditFacilityMustBeActive": "La línea de crédito debe estar activa para realizar acciones"
+      "creditFacilityMustBeActive": "La línea de crédito debe estar activa para realizar acciones",
+      "depositAccountClosed": "La cuenta de depósito está cerrada, no se pueden crear propuestas"
     },
     "menuItems": {
       "deposit": "Depósito",
