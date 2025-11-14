@@ -303,7 +303,7 @@ where
 
         let mut chart = self.find_by_id(chart_id).await?;
         // TODO: Add back closing event to Chart entity.
-        
+
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
         self.chart_ledger

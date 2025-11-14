@@ -1,23 +1,16 @@
 mod entity;
 pub mod error;
-mod ledger;
 mod repo;
 
-use es_entity::Idempotent;
 use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
 
-use cala_ledger::CalaLedger;
-
 use crate::{
     FiscalYearId,
     chart_of_accounts::ChartOfAccounts,
-    fiscal_year::ledger::FiscalYearLedger,
-    primitives::{
-        CalaAccountSetId, CalaJournalId, ChartId, CoreAccountingAction, CoreAccountingObject,
-    },
+    primitives::{CalaAccountSetId, ChartId, CoreAccountingAction, CoreAccountingObject},
 };
 
 pub use entity::FiscalYear;
@@ -33,8 +26,6 @@ where
 {
     repo: FiscalYearRepo,
     authz: Perms,
-    ledger: FiscalYearLedger,
-    journal_id: CalaJournalId,
     chart_of_accounts: ChartOfAccounts<Perms>,
 }
 
@@ -46,8 +37,6 @@ where
         Self {
             repo: self.repo.clone(),
             authz: self.authz.clone(),
-            ledger: self.ledger.clone(),
-            journal_id: self.journal_id,
             chart_of_accounts: self.chart_of_accounts.clone(),
         }
     }
@@ -62,16 +51,11 @@ where
     pub fn new(
         pool: &sqlx::PgPool,
         authz: &Perms,
-        cala: &CalaLedger,
-        journal_id: CalaJournalId,
         chart_of_accounts: &ChartOfAccounts<Perms>,
     ) -> Self {
-        let ledger = FiscalYearLedger::new(cala);
         Self {
             repo: FiscalYearRepo::new(pool),
             authz: authz.clone(),
-            ledger,
-            journal_id,
             chart_of_accounts: chart_of_accounts.clone(),
         }
     }
@@ -130,8 +114,6 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_id: ChartId,
     ) -> Result<FiscalYear, FiscalYearError> {
-        let now = crate::time::now();
-
         self.authz
             .enforce_permission(
                 sub,
@@ -140,18 +122,12 @@ where
             )
             .await?;
 
-        let mut latest_year = self.get_current_by_chart_id(chart_id).await?;
-        let closed_as_of_date =
-            if let Idempotent::Executed(date) = latest_year.close_last_month(now)? {
-                date
-            } else {
-                return Err(FiscalYearError::FiscalYearMonthAlreadyClosed);
-            };
+        let closed_as_of = chrono::Utc::now().date_naive();
+        let latest_year = self.get_current_by_chart_id(chart_id).await?;
 
-        let mut op = self.repo.begin_op().await?;
-        self.repo.update_in_op(&mut op, &mut latest_year).await?;
-        self.ledger
-            .close_month_as_of(op, closed_as_of_date, latest_year.tracking_account_set_id)
+        let op = self.repo.begin_op().await?;
+        self.chart_of_accounts
+            .close_account_set_as_of_in_op(op, sub, chart_id, closed_as_of)
             .await?;
 
         Ok(latest_year)

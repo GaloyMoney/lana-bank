@@ -12,8 +12,6 @@ pub enum FiscalYearError {
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("FiscalYearError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
-    #[error("FiscalYearError - LedgerError: {0}")]
-    Ledger(#[from] super::ledger::error::FiscalYearLedgerError),
     #[error("FiscalYearError - FiscalYearMonthAlreadyClosed")]
     FiscalYearMonthAlreadyClosed,
     #[error("FiscalYearError - CurrentYearNotFoundByChartId: {0}")]
