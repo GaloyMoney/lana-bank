@@ -14,6 +14,7 @@ services:
       TF_VAR_sa_creds: ${TF_VAR_sa_creds:-}
       TARGET_BIGQUERY_DATASET: ${TARGET_BIGQUERY_DATASET:-}
       OTEL_EXPORTER_OTLP_ENDPOINT: 'http://otel-agent:4317'
+      DAGSTER_AUTOMATIONS_ACTIVE: ${DAGSTER_AUTOMATIONS_ACTIVE:-}
 
   # This service runs dagster-webserver, which loads your user code from the user code container.
   # Since our instance uses the QueuedRunCoordinator, any runs submitted from the webserver will be put on

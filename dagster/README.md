@@ -10,6 +10,14 @@ Dagster is our orchestrator and where we define and run the analytics and report
 
 The webserver UI will be accessible at `localhost:3000`.
 
+By default, no jobs will run automatically in the local env. If you want to activate automations so they run automatically after deployment, add this to your repo's `.env`.
+
+```
+DAGSTER_AUTOMATIONS_ACTIVE=true
+```
+
+You can also start with automations deactivated and then activate them yourself through the webserver UI or GraphQL.
+
 ## Env vars
 
 Env vars are the preferred way to:
