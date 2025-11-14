@@ -36,7 +36,7 @@ use core_custody::{
 };
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
 use core_deposit::{CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject};
-use core_price::Price;
+use core_price_listener::PriceListener;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
@@ -104,7 +104,7 @@ where
     customer: Arc<Customers<Perms, E>>,
     deposit: Arc<CoreDeposit<Perms, E>>,
     ledger: Arc<CreditLedger>,
-    price: Arc<Price>,
+    price_listener: Arc<PriceListener>,
     config: Arc<CreditConfig>,
     approve_disbursal: Arc<ApproveDisbursal<Perms, E>>,
     approve_proposal: Arc<ApproveCreditFacilityProposal<Perms, E>>,
@@ -144,7 +144,7 @@ where
             customer: self.customer.clone(),
             deposit: self.deposit.clone(),
             ledger: self.ledger.clone(),
-            price: self.price.clone(),
+            price_listener: self.price_listener.clone(),
             config: self.config.clone(),
             cala: self.cala.clone(),
             approve_disbursal: self.approve_disbursal.clone(),
@@ -186,7 +186,7 @@ where
         customer: &Customers<Perms, E>,
         deposit: &CoreDeposit<Perms, E>,
         custody: &CoreCustody<Perms, E>,
-        price: &Price,
+        price_listener: &PriceListener,
         outbox: &Outbox<E>,
         cala: &CalaLedger,
         journal_id: cala_ledger::JournalId,
@@ -196,7 +196,7 @@ where
         let authz_arc = Arc::new(authz.clone());
         let governance_arc = Arc::new(governance.clone());
         let jobs_arc = Arc::new(jobs.clone());
-        let price_arc = Arc::new(price.clone());
+        let price_listener_arc = Arc::new(price_listener.clone());
         let public_ids_arc = Arc::new(public_ids.clone());
         let customer_arc = Arc::new(customer.clone());
         let deposit_arc = Arc::new(deposit.clone());
@@ -238,7 +238,7 @@ where
             authz_arc.clone(),
             jobs_arc.clone(),
             ledger_arc.clone(),
-            price_arc.clone(),
+            price_listener_arc.clone(),
             &publisher,
             governance_arc.clone(),
         );
@@ -261,7 +261,7 @@ where
             pending_credit_facilities_arc.clone(),
             disbursals_arc.clone(),
             ledger_arc.clone(),
-            price_arc.clone(),
+            price_listener_arc.clone(),
             jobs_arc.clone(),
             &publisher,
             governance_arc.clone(),
@@ -301,7 +301,7 @@ where
             facilities_arc.clone(),
             disbursals_arc.clone(),
             ledger_arc.clone(),
-            price_arc.clone(),
+            price_listener_arc.clone(),
             jobs_arc.clone(),
             audit_arc.clone(),
             public_ids_arc.clone(),
@@ -459,7 +459,7 @@ where
             repayment_plan_repo: repayment_plan_repo_arc,
             governance: governance_arc,
             ledger: ledger_arc,
-            price: price_arc,
+            price_listener: price_listener_arc,
             config: config_arc,
             cala: cala_arc,
             approve_disbursal: approve_disbursal_arc,
@@ -679,7 +679,7 @@ where
             .get_credit_facility_balance(facility.account_ids)
             .await?;
 
-        let price = self.price.usd_cents_per_btc().await?;
+        let price = self.price_listener.usd_cents_per_btc().await?;
         if !facility.terms.is_disbursal_allowed(balance, amount, price) {
             return Err(CreditFacilityError::BelowMarginLimit.into());
         }
@@ -1008,7 +1008,7 @@ where
             .ledger
             .get_credit_facility_balance(entity.account_ids)
             .await?;
-        let price = self.price.usd_cents_per_btc().await?;
+        let price = self.price_listener.usd_cents_per_btc().await?;
         Ok(balances.current_cvl(price))
     }
 

@@ -48,8 +48,8 @@ pub enum CoreCreditError {
     InterestAccrualCycleError(
         #[from] super::interest_accrual_cycle::error::InterestAccrualCycleError,
     ),
-    #[error("CoreCreditError - PriceError: {0}")]
-    PriceError(#[from] core_price::error::PriceError),
+    #[error("CoreCreditError - PriceListenerError: {0}")]
+    PriceListenerError(#[from] core_price_listener::error::PriceListenerError),
     #[error("CoreCreditError - GovernanceError: {0}")]
     GovernanceError(#[from] governance::error::GovernanceError),
     #[error("CoreCreditError - JobError: {0}")]

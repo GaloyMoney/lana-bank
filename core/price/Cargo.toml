@@ -12,7 +12,12 @@ json-schema = ["dep:schemars", "core-money/json-schema"]
 core-money = { workspace = true }
 
 anyhow = { workspace = true }
+async-trait = { workspace = true }
 cached = { workspace = true }
+job = { workspace = true }
+outbox = { workspace = true }
+futures = { workspace = true }
+sqlx = { workspace = true }
 reqwest = { workspace = true }
 rust_decimal = { workspace = true }
 rust_decimal_macros = { workspace = true }
@@ -20,6 +25,7 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
+tracing = { workspace = true }
 schemars = { workspace = true, optional = true }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 

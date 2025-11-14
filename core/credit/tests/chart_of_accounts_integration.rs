@@ -8,6 +8,7 @@ use cloud_storage::{Storage, config::StorageConfig};
 
 use core_accounting::CoreAccounting;
 use core_credit::*;
+use core_price::{Price, PriceUpdated};
 use document_storage::DocumentStorage;
 use helpers::{action, event, object};
 use public_id::PublicIds;
@@ -27,7 +28,6 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         core_customer::Customers::new(&pool, &authz, &outbox, document_storage, public_ids);
     let custody =
         core_custody::CoreCustody::init(&pool, &authz, helpers::custody_config(), &outbox).await?;
-    let price = core_price::Price::new();
 
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
@@ -41,6 +41,9 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
             .unwrap(),
     )
     .await?;
+
+    let price_outbox = outbox::Outbox::<PriceUpdated>::init(&pool).await?;
+    let price = Price::init(&jobs, price_outbox).await?;
 
     let journal_id = helpers::init_journal(&cala).await?;
     let public_ids = PublicIds::new(&pool);

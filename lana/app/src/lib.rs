@@ -77,6 +77,10 @@ pub mod price {
     pub use core_price::*;
 }
 
+pub mod price_listener {
+    pub use core_price_listener::*;
+}
+
 pub mod job {
     pub use job::*;
 }

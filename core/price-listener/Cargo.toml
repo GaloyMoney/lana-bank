@@ -1,0 +1,12 @@
+[package]
+name = "core-price-listener"
+edition = "2024"
+version.workspace = true
+
+[dependencies]
+outbox = { workspace = true }
+core-price = { workspace = true }
+futures = { workspace = true }
+thiserror = { workspace = true }
+sqlx = { workspace = true }
+serde = { workspace = true }

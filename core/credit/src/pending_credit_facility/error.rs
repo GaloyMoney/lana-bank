@@ -12,8 +12,8 @@ pub enum PendingCreditFacilityError {
     GovernanceError(#[from] governance::error::GovernanceError),
     #[error("PendingCreditFacilityError - LedgerError: {0}")]
     LedgerError(#[from] crate::ledger::error::CreditLedgerError),
-    #[error("PendingCreditFacilityError - PriceError: {0}")]
-    PriceError(#[from] core_price::error::PriceError),
+    #[error("PendingCreditFacilityError - PriceListenerError: {0}")]
+    PriceListenerError(#[from] core_price_listener::error::PriceListenerError),
     #[error("PendingCreditFacilityError - ApprovalInProgress")]
     ApprovalInProgress,
     #[error("PendingCreditFacilityError - BelowMarginLimit")]
