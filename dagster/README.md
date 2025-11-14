@@ -22,8 +22,8 @@ You can also start with automations deactivated and then activate them yourself 
 From the repo root, rely on the shared Makefile + flake tooling:
 
 ```bash
-make dagster-fmt
-make dagster-fmt-check  # verify formatting only (used by CI)
+make dagster-fmt        # apply black and isort
+make dagster-fmt-check  # just verify
 ```
 
 
