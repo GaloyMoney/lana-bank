@@ -1,4 +1,3 @@
-use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use cala_ledger::velocity::VelocityLimit;
@@ -11,52 +10,57 @@ pub(super) struct AccountClosingLimits {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub(super) struct MonthlyClosing {
-    pub(super) closed_as_of: chrono::NaiveDate,
-    pub(super) closed_at: DateTime<Utc>,
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub(super) struct AccountingClosingMetadata {
-    pub(super) monthly: MonthlyClosing,
-}
+pub(super) struct AccountingClosingMetadata;
 
 impl AccountingClosingMetadata {
-    pub(super) const METADATA_PATH: &'static str = "context.vars.account.metadata";
-    pub(super) const METADATA_KEY: &'static str = "closing";
+    const METADATA_PATH: &'static str = "context.vars.account.metadata";
+    const METADATA_KEY: &'static str = "closing";
+    const CLOSING_DATE_KEY: &'static str = "closed_as_of";
+
+    const MONTHLY: &'static str = "monthly";
+
+    fn update_with_period_closing(
+        period: &str,
+        metadata: &mut serde_json::Value,
+        closed_as_of: chrono::NaiveDate,
+    ) {
+        let closing_metadata = serde_json::json!({
+            period: {
+                Self::CLOSING_DATE_KEY: closed_as_of,
+                "closed_at": crate::time::now(),
+            }
+        });
+
+        metadata
+            .as_object_mut()
+            .expect("metadata should be an object")
+            .insert(Self::METADATA_KEY.to_string(), closing_metadata);
+    }
+
+    fn period_cel_conditions(period: &str) -> String {
+        format!(
+            r#"
+            !has({path}) ||
+            !has({path}.{key}) ||
+            !has({path}.{key}.{period}) ||
+            !has({path}.{key}.{period}.{closing_date_key}) ||
+            date({path}.{key}.{period}.{closing_date_key}) >= context.vars.transaction.effective
+        "#,
+            path = Self::METADATA_PATH,
+            key = Self::METADATA_KEY,
+            closing_date_key = Self::CLOSING_DATE_KEY,
+        )
+    }
 
     pub(super) fn update_with_monthly_closing(
         metadata: &mut serde_json::Value,
         closed_as_of: chrono::NaiveDate,
     ) {
-        let closing_metadata = Self {
-            monthly: MonthlyClosing {
-                closed_as_of,
-                closed_at: crate::time::now(),
-            },
-        };
-
-        metadata
-            .as_object_mut()
-            .expect("metadata should be an object")
-            .insert(
-                Self::METADATA_KEY.to_string(),
-                serde_json::json!(closing_metadata),
-            );
+        Self::update_with_period_closing(Self::MONTHLY, metadata, closed_as_of)
     }
 
     pub(super) fn monthly_cel_conditions() -> String {
-        format!(
-            r#"
-            !has({path}) ||
-            !has({path}.{key}) ||
-            !has({path}.{key}.monthly) ||
-            !has({path}.{key}.monthly.closed_as_of) ||
-            date({path}.{key}.monthly.closed_as_of) >= context.vars.transaction.effective
-        "#,
-            path = Self::METADATA_PATH,
-            key = Self::METADATA_KEY,
-        )
+        Self::period_cel_conditions(Self::MONTHLY)
     }
 }
 
@@ -196,7 +200,7 @@ mod tests {
     }
 
     mod update_with_monthly_closing {
-        use chrono::NaiveDate;
+        use chrono::{DateTime, NaiveDate, Utc};
         use serde_json::json;
 
         use super::*;
@@ -208,9 +212,10 @@ mod tests {
 
             AccountingClosingMetadata::update_with_monthly_closing(&mut metadata, closed_as_of);
 
-            let closing_meta: AccountingClosingMetadata =
-                serde_json::from_value(metadata["closing"].clone()).unwrap();
-            assert_eq!(closing_meta.monthly.closed_as_of, closed_as_of);
+            assert_eq!(
+                metadata["closing"]["monthly"]["closed_as_of"],
+                serde_json::Value::String(closed_as_of.to_string())
+            );
         }
 
         #[test]
@@ -226,13 +231,18 @@ mod tests {
                 }
             });
 
+            assert_eq!(
+                metadata["closing"]["monthly"]["closed_as_of"],
+                serde_json::Value::String(existing_date.to_string())
+            );
+
             let new_date = "2024-01-31".parse::<NaiveDate>().unwrap();
             AccountingClosingMetadata::update_with_monthly_closing(&mut metadata, new_date);
 
-            let closing_meta: AccountingClosingMetadata =
-                serde_json::from_value(metadata["closing"].clone()).unwrap();
-            assert_eq!(closing_meta.monthly.closed_as_of, new_date);
-            assert!(closing_meta.monthly.closed_at != existing_time);
+            assert_eq!(
+                metadata["closing"]["monthly"]["closed_as_of"],
+                serde_json::Value::String(new_date.to_string())
+            );
         }
 
         #[test]
