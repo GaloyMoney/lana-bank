@@ -5,6 +5,7 @@ pub mod balance_sheet;
 pub mod chart_of_accounts;
 pub mod csv;
 pub mod error;
+pub mod fiscal_year;
 pub mod journal;
 pub mod ledger_account;
 pub mod ledger_transaction;
@@ -31,6 +32,7 @@ pub use chart_of_accounts::{
 };
 pub use csv::AccountingCsvExports;
 use error::CoreAccountingError;
+pub use fiscal_year::{FiscalYear, FiscalYears};
 pub use journal::{Journal, error as journal_error};
 pub use ledger_account::{LedgerAccount, LedgerAccountChildrenCursor, LedgerAccounts};
 pub use ledger_transaction::{LedgerTransaction, LedgerTransactions};
@@ -62,6 +64,7 @@ where
     balance_sheets: BalanceSheets<Perms>,
     csvs: AccountingCsvExports<Perms>,
     trial_balances: TrialBalances<Perms>,
+    fiscal_year: FiscalYears<Perms>,
 }
 
 impl<Perms> Clone for CoreAccounting<Perms>
@@ -81,6 +84,7 @@ where
             balance_sheets: self.balance_sheets.clone(),
             csvs: self.csvs.clone(),
             trial_balances: self.trial_balances.clone(),
+            fiscal_year: self.fiscal_year.clone(),
         }
     }
 }
@@ -110,6 +114,7 @@ where
         let balance_sheets = BalanceSheets::new(pool, authz, cala, journal_id);
         let csvs = AccountingCsvExports::new(authz, jobs, document_storage, &ledger_accounts);
         let trial_balances = TrialBalances::new(pool, authz, cala, journal_id);
+        let fiscal_year = FiscalYears::new(pool, authz);
         Self {
             authz: authz.clone(),
             chart_of_accounts,
@@ -122,6 +127,7 @@ where
             balance_sheets,
             csvs,
             trial_balances,
+            fiscal_year,
         }
     }
 
@@ -163,6 +169,10 @@ where
 
     pub fn trial_balances(&self) -> &TrialBalances<Perms> {
         &self.trial_balances
+    }
+
+    pub fn fiscal_year(&self) -> &FiscalYears<Perms> {
+        &self.fiscal_year
     }
 
     #[instrument(name = "core_accounting.find_ledger_account_by_id", skip(self), err)]
