@@ -97,6 +97,11 @@ impl FiscalYearLedger {
         Ok(control_id)
     }
 
+    #[instrument(
+        name = "fiscal_year_ledger.create_monthly_close_control_in_op",
+        skip(self, op),
+        err
+    )]
     async fn create_monthly_close_control_in_op(
         &self,
         op: &mut LedgerOperation<'_>,
