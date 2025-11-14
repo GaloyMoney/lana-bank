@@ -101,8 +101,8 @@ where
         document_storage: DocumentStorage,
         jobs: &Jobs,
     ) -> Self {
+        let chart_of_accounts = ChartOfAccounts::new(pool, authz, cala, journal_id);
         let fiscal_year = FiscalYears::new(pool, authz, cala, journal_id);
-        let chart_of_accounts = ChartOfAccounts::new(pool, authz, cala, &fiscal_year, journal_id);
         let journal = Journal::new(authz, cala, journal_id);
         let ledger_accounts = LedgerAccounts::new(authz, cala, journal_id);
         let manual_transactions =
