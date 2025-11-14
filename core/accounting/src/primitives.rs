@@ -724,8 +724,6 @@ impl CoreAccountingAction {
     pub const TRIAL_BALANCE_UPDATE: Self =
         CoreAccountingAction::TrialBalance(TrialBalanceAction::Update);
     pub const FISCAL_YEAR_READ: Self = CoreAccountingAction::FiscalYear(FiscalYearAction::Read);
-    pub const FISCAL_YEAR_OPEN_FIRST: Self =
-        CoreAccountingAction::FiscalYear(FiscalYearAction::OpenFirst);
     pub const FISCAL_YEAR_CLOSE: Self = CoreAccountingAction::FiscalYear(FiscalYearAction::Close);
 }
 
