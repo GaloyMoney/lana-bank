@@ -4,6 +4,7 @@ use es_entity::*;
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use tracing::instrument;
 
 use super::error::FiscalYearError;
 use crate::primitives::{CalaAccountSetId, ChartId, FiscalYearId};
@@ -39,7 +40,8 @@ pub struct FiscalYear {
 }
 
 impl FiscalYear {
-    pub fn close_last_month(
+    #[instrument(name = "fiscal_year.close_last_month", skip(self, now), err)]
+    pub(super) fn close_last_month(
         &mut self,
         now: DateTime<Utc>,
     ) -> Result<Idempotent<NaiveDate>, FiscalYearError> {
