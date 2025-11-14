@@ -25,7 +25,7 @@ Follow these steps to use a new env var in dagster (assuming a mock `MY_ENV_VAR`
 
 ## Bumping dagster versions
 
-Dagster releases simulatenously for their `core` and `library` python packages. You can check release numbers for each at https://github.com/dagster-io/dagster/releases.
+Dagster releases simultaneously for their `core` and `library` python packages. You can check release numbers for each at https://github.com/dagster-io/dagster/releases.
 
 To bump the dagster versions:
 - Modify `dagster/Dockerfile` to bump in our code location image.
