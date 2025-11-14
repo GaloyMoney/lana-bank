@@ -134,18 +134,18 @@ dagster-down:
 dagster-fmt:
 	@bash -c '\
 black_status=0; \
-nix develop .# -c bash -c "cd dagster && black src" || black_status=$$?; \
+black dagster/src || black_status=$$?; \
 isort_status=0; \
-nix develop .# -c bash -c "cd dagster && isort src" || isort_status=$$?; \
+isort dagster/src || isort_status=$$?; \
 if [[ $$black_status -ne 0 || $$isort_status -ne 0 ]]; then exit 1; fi \
 '
 
 dagster-fmt-check:
 	@bash -c '\
 black_status=0; \
-nix develop .# -c bash -c "cd dagster && black --check --diff src" || black_status=$$?; \
+black --check --diff dagster/src || black_status=$$?; \
 isort_status=0; \
-nix develop .# -c bash -c "cd dagster && isort --check-only src" || isort_status=$$?; \
+isort --check-only dagster/src || isort_status=$$?; \
 if [[ $$black_status -ne 0 || $$isort_status -ne 0 ]]; then exit 1; fi \
 '
 
