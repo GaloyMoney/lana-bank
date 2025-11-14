@@ -17,6 +17,15 @@ DAGSTER_AUTOMATIONS_ACTIVE=true
 ```
 
 You can also start with automations deactivated and then activate them yourself through the webserver UI or GraphQL.
+## Formatting
+
+From the repo root, rely on the shared Makefile + flake tooling:
+
+```bash
+make dagster-fmt
+make dagster-fmt-check  # verify formatting only (used by CI)
+```
+
 
 ## Env vars
 

@@ -236,6 +236,8 @@
           netlify-cli
           pandoc
           nano
+          python313Packages.black
+          python313Packages.isort
           podman
           podman-compose
           cachix
