@@ -1,50 +1,60 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+pub mod aggregator;
 mod bfx_client;
 pub mod error;
+pub mod event;
 mod primitives;
+pub mod publisher;
+pub mod sources;
 
-use cached::proc_macro::cached;
-use std::time::Duration;
+use futures::StreamExt;
+use outbox::{EphemeralEventType, Outbox, OutboxEventMarker};
 
-use core_money::UsdCents;
+use crate::error::PriceError;
+use crate::event::CorePriceEvent;
 
-use bfx_client::BfxClient;
-use error::PriceError;
-pub use primitives::*;
+pub use aggregator::PriceAggregator;
+pub use event::CorePriceEvent as PriceEvent;
+pub use primitives::PriceOfOneBTC;
+pub use publisher::PricePublisher;
+pub use sources::PriceClient;
+
+const BTC_USD_PRICE_UPDATED_EVENT_TYPE: &str = "btc_usd_price_updated";
 
 #[derive(Clone)]
-pub struct Price {
-    bfx: BfxClient,
+pub struct Price<E>
+where
+    E: OutboxEventMarker<CorePriceEvent>,
+{
+    outbox: Outbox<E>,
 }
 
-impl Price {
-    pub fn new() -> Self {
+impl<E> Price<E>
+where
+    E: OutboxEventMarker<CorePriceEvent>,
+{
+    pub fn new(outbox: &Outbox<E>) -> Self {
         Self {
-            bfx: BfxClient::new(),
+            outbox: outbox.clone(),
         }
     }
 
     pub async fn usd_cents_per_btc(&self) -> Result<PriceOfOneBTC, PriceError> {
-        usd_cents_per_btc_cached(&self.bfx).await
-    }
-}
+        let mut stream = self.outbox.listen_ephemeral().await?;
+        let event_type = EphemeralEventType::new(BTC_USD_PRICE_UPDATED_EVENT_TYPE);
 
-impl Default for Price {
-    fn default() -> Self {
-        Self::new()
-    }
-}
+        while let Some(event) = stream.next().await {
+            if event.event_type.as_str() == event_type.as_str() {
+                if let Some(CorePriceEvent::BtcUsdPriceUpdated { price, .. }) =
+                    event.payload.as_event()
+                {
+                    return Ok(*price);
+                }
+            }
+        }
 
-#[cached(time = 60, result = true, key = "()", convert = r#"{}"#)]
-async fn usd_cents_per_btc_cached(bfx: &BfxClient) -> Result<PriceOfOneBTC, PriceError> {
-    if std::env::var("BFX_LOCAL_PRICE").is_ok() {
-        return Ok(PriceOfOneBTC::new(UsdCents::try_from_usd(
-            rust_decimal_macros::dec!(100_000),
-        )?));
+        Err(PriceError::MissingPrice)
     }
-
-    let last_price = bfx.btc_usd_tick().await?.last_price;
-    Ok(PriceOfOneBTC::new(UsdCents::try_from_usd(last_price)?))
 }
