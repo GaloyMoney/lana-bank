@@ -563,6 +563,27 @@
             src = rustSource;
           };
 
+          dagster-format = pkgs.stdenv.mkDerivation {
+            name = "dagster-format-check";
+            src = ./.;
+
+            nativeBuildInputs = [
+              pkgs.python313Packages.black
+              pkgs.python313Packages.isort
+            ];
+
+            buildPhase = ''
+              cd dagster
+              black --check --diff src
+              isort --check-only src
+            '';
+
+            installPhase = ''
+              mkdir -p $out
+              echo "Dagster formatting clean" > $out/result.txt
+            '';
+          };
+
           workspace-deny = craneLib.cargoDeny {
             src = rustSource;
           };
