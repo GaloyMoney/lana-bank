@@ -11,7 +11,6 @@ const config: StorybookConfig = {
     "@storybook/addon-essentials",
     "@chromatic-com/storybook",
     "@storybook/addon-interactions",
-    "@storybook/addon-postcss",
   ],
   framework: {
     name: "@storybook/nextjs",
@@ -24,7 +23,7 @@ const config: StorybookConfig = {
         return false
       }
       return test.test(".svg")
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     }) as { [key: string]: any }
     imageRule.exclude = /\.svg$/
     config.module?.rules?.push({

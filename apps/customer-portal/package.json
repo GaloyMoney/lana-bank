@@ -55,7 +55,6 @@
     "@storybook/addon-interactions": "^8.6.14",
     "@storybook/addon-links": "^10.0.7",
     "@storybook/addon-onboarding": "^10.0.7",
-    "@storybook/addon-postcss": "^2.0.0",
     "@storybook/nextjs": "^10.0.7",
     "@svgr/webpack": "^8.1.0",
     "@types/node": "20",

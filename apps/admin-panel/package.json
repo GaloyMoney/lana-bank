@@ -56,7 +56,6 @@
     "@storybook/addon-docs": "^10.0.7",
     "@storybook/addon-links": "^10.0.7",
     "@storybook/addon-onboarding": "^10.0.7",
-    "@storybook/addon-postcss": "^2.0.0",
     "@storybook/nextjs": "^10.0.7",
     "@svgr/webpack": "^8.1.0",
     "@types/apollo-upload-client": "^18.0.0",
