@@ -10,6 +10,7 @@ type Customer = {
   depositAccount: {
     id: string
     depositAccountId: string
+    publicId: string
   }
 }
 
@@ -152,7 +153,9 @@ Cypress.Commands.add(
           level
           email
           depositAccount {
+            id
             depositAccountId
+            publicId
           }
         }
       }

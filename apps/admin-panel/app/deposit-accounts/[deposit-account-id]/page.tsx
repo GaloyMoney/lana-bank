@@ -128,7 +128,7 @@ function DepositAccountPage({
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
   const navTranslations = useTranslations("Sidebar.navItems")
   const { setDepositAccount } = useCreateContext()
-
+  const commonT = useTranslations("Common")
   const { data, loading, error, fetchMore } = useGetDepositAccountDetailsQuery({
     variables: {
       publicId,
@@ -155,11 +155,9 @@ function DepositAccountPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.depositAccountByPublicId])
 
-  if (loading && !data) {
-    return <DetailsPageSkeleton tabs={0} tabsCards={0} />
-  }
+  if (loading) return <DetailsPageSkeleton tabs={0} tabsCards={0} />
   if (error) return <div className="text-destructive">{error.message}</div>
-  if (!data?.depositAccountByPublicId) return <div>Not found</div>
+  if (!data?.depositAccountByPublicId) return <div>{commonT("notFound")}</div>
 
   return (
     <main className="max-w-7xl m-auto space-y-2">

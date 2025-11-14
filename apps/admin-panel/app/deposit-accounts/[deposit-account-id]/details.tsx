@@ -27,7 +27,7 @@ import {
   GetDepositAccountDetailsQuery,
   DepositAccountStatus,
 } from "@/lib/graphql/generated"
-import UnfreezeDepositAccountDialog from "@/app/customers/[customer-id]/unfreeze-deposit-account"
+import UnfreezeDepositAccountDialog from "@/app/deposit-accounts/[deposit-account-id]/unfreeze-deposit-account"
 
 type DepositAccountDetailsProps = {
   depositAccount: NonNullable<GetDepositAccountDetailsQuery["depositAccountByPublicId"]>
@@ -146,12 +146,7 @@ const DepositAccountDetailsCard: React.FC<DepositAccountDetailsProps> = ({
 
   return (
     <>
-      <DetailsCard
-        title={t("title")}
-        details={details}
-        footerContent={footerContent}
-        className="max-w-7xl m-auto"
-      />
+      <DetailsCard title={t("title")} details={details} footerContent={footerContent} />
       <FreezeDepositAccountDialog
         depositAccountId={depositAccount.depositAccountId}
         balance={depositAccount.balance}
