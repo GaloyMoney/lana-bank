@@ -157,12 +157,18 @@ const CreateButton = () => {
     if (PATH_CONFIGS.CREDIT_FACILITY_DETAILS.test(pathName)) {
       return !facility || facility.status !== CreditFacilityStatus.Active
     }
+    if (PATH_CONFIGS.CUSTOMER_DETAILS.test(pathName)) {
+      return customer?.depositAccount?.status === DepositAccountStatus.Closed
+    }
     return false
   }
 
   const getDisabledMessage = () => {
     if (pathName.includes("credit-facilities") && isButtonDisabled()) {
       return t("disabledMessages.creditFacilityMustBeActive")
+    }
+    if (PATH_CONFIGS.CUSTOMER_DETAILS.test(pathName) && isButtonDisabled()) {
+      return t("disabledMessages.depositAccountClosed")
     }
     return ""
   }

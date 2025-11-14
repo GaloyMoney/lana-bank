@@ -1994,7 +1994,8 @@
       "create": "Create"
     },
     "disabledMessages": {
-      "creditFacilityMustBeActive": "Credit facility must be active to perform actions"
+      "creditFacilityMustBeActive": "Credit facility must be active to perform actions",
+      "depositAccountClosed": "Deposit account is closed, cannot create proposals"
     },
     "menuItems": {
       "deposit": "Deposit",
