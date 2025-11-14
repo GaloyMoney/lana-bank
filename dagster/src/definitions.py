@@ -46,7 +46,7 @@ class DefinitionsBuilder:
         return new_job
 
     def add_job_schedule(
-        self, job: dg.job, cron_expression: CronExpression
+        self, job: dg.job, cron_expression: str
     ):
         default_status = (
             dg.DefaultScheduleStatus.RUNNING
@@ -56,7 +56,7 @@ class DefinitionsBuilder:
         new_job_schedule = dg.ScheduleDefinition(
             name=f"{job.name}_schedule",
             job=job,
-            cron_schedule=str(cron_expression),
+            cron_schedule=cron_expression,
             default_status=default_status,
         )
 
@@ -83,21 +83,21 @@ bitfinex_ticker_job = definition_builder.add_job_from_assets(
     job_name="bitfinex_ticker_el", assets=(bitfinex_ticker_asset,)
 )
 definition_builder.add_job_schedule(
-    job=bitfinex_ticker_job, cron_expression=CronExpression.parse("* * * * *")
+    job=bitfinex_ticker_job, cron_expression="* * * * *"
 )
 
 bitfinex_trades_job = definition_builder.add_job_from_assets(
     job_name="bitfinex_trades_el", assets=(bitfinex_trades_asset,)
 )
 definition_builder.add_job_schedule(
-    job=bitfinex_trades_job, cron_expression=CronExpression.parse("*/10 * * * *")
+    job=bitfinex_trades_job, cron_expression="*/10 * * * *"
 )
 
 bitfinex_order_book_job = definition_builder.add_job_from_assets(
     job_name="bitfinex_order_book_el", assets=(bitfinex_order_book_asset,)
 )
 definition_builder.add_job_schedule(
-    job=bitfinex_order_book_job, cron_expression=CronExpression.parse("*/10 * * * *")
+    job=bitfinex_order_book_job, cron_expression="*/10 * * * *"
 )
 
 defs = definition_builder.build()
