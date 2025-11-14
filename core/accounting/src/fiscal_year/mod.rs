@@ -107,7 +107,7 @@ where
             .enforce_permission(
                 sub,
                 CoreAccountingObject::all_fiscal_years(),
-                CoreAccountingAction::FISCAL_YEAR_OPEN_FIRST,
+                CoreAccountingAction::FISCAL_YEAR_CLOSE,
             )
             .await?;
 
