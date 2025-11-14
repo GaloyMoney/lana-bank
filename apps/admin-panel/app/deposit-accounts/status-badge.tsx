@@ -28,5 +28,9 @@ export const DepositAccountStatusBadge: React.FC<{ status: DepositAccountStatus 
     }
   }
 
-  return <Badge variant={getVariant(status)}>{t(status.toLowerCase())}</Badge>
+  return (
+    <Badge data-testid="deposit-account-status-badge" variant={getVariant(status)}>
+      {t(status.toLowerCase())}
+    </Badge>
+  )
 }

@@ -95,7 +95,6 @@ const DepositAccountDetailsCard: React.FC<DepositAccountDetailsProps> = ({
     {
       label: t("fields.status"),
       value: <DepositAccountStatusBadge status={depositAccount.status} />,
-      valueTestId: "deposit-account-status-badge",
     },
   ]
 

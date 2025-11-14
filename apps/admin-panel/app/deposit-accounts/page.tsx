@@ -15,17 +15,15 @@ const DepositAccounts: React.FC = () => {
   const t = useTranslations("DepositAccounts")
 
   return (
-    <>
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("title")}</CardTitle>
-          <CardDescription>{t("description")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <DepositAccountsList />
-        </CardContent>
-      </Card>
-    </>
+    <Card>
+      <CardHeader>
+        <CardTitle>{t("title")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <DepositAccountsList />
+      </CardContent>
+    </Card>
   )
 }
 

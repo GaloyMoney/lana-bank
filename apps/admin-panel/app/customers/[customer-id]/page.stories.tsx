@@ -5,113 +5,11 @@ import CustomerLayout from "./layout"
 import CustomerCreditFacilitiesLandingPage from "./page"
 
 import {
-  Activity,
-  CollateralizationState,
-  CreditFacilityStatus,
-  CustomerType,
-  DepositAccountStatus,
-  GetCustomerBasicDetailsDocument,
-  GetCustomerCreditFacilitiesDocument,
-  KycVerification,
-} from "@/lib/graphql/generated"
-
-const CUSTOMER_ID = "4178b451-c9cb-4841-b248-5cc20e7774a6"
-
-const buildParams = () => Promise.resolve({ "customer-id": CUSTOMER_ID })
-
-const customerDetailsMock = {
-  request: {
-    query: GetCustomerBasicDetailsDocument,
-    variables: { id: CUSTOMER_ID },
-  },
-  result: {
-    data: {
-      customerByPublicId: {
-        __typename: "Customer",
-        id: "Customer:1",
-        customerId: CUSTOMER_ID,
-        publicId: "CUS-001",
-        email: "test@lana.com",
-        telegramId: "telegramUser",
-        kycVerification: KycVerification.Verified,
-        activity: Activity.Active,
-        level: "LEVEL_2",
-        customerType: CustomerType.Individual,
-        createdAt: "2024-11-25T06:23:56.549713Z",
-        depositAccount: {
-          __typename: "DepositAccount",
-          id: "DepositAccount:1",
-          status: DepositAccountStatus.Active,
-          publicId: "DEP-001",
-          depositAccountId: "dep-account-123",
-          balance: {
-            __typename: "DepositAccountBalance",
-            settled: 1500000,
-            pending: 250000,
-          },
-          ledgerAccounts: {
-            __typename: "DepositAccountLedgerAccounts",
-            depositAccountId: "ledger-acc-123",
-            frozenDepositAccountId: "ledger-acc-frozen-123",
-          },
-        },
-      },
-    },
-  },
-}
-
-const creditFacilitiesMock = {
-  request: {
-    query: GetCustomerCreditFacilitiesDocument,
-    variables: { id: CUSTOMER_ID },
-  },
-  result: {
-    data: {
-      customerByPublicId: {
-        __typename: "Customer",
-        id: "Customer:1",
-        creditFacilities: [
-          {
-            __typename: "CreditFacility",
-            id: "CreditFacility:1",
-            creditFacilityId: "cf-001",
-            publicId: "CF-001",
-            collateralizationState: CollateralizationState.NoCollateral,
-            status: CreditFacilityStatus.Active,
-            activatedAt: "2024-02-10T09:00:00.000Z",
-            balance: {
-              __typename: "CreditFacilityBalance",
-              collateral: {
-                __typename: "CollateralBalance",
-                btcBalance: 150_000_000,
-              },
-              outstanding: {
-                __typename: "Outstanding",
-                usdBalance: 5_000_000,
-              },
-            },
-          },
-        ],
-      },
-    },
-  },
-}
-
-const emptyCreditFacilitiesMock = {
-  request: {
-    query: GetCustomerCreditFacilitiesDocument,
-    variables: { id: CUSTOMER_ID },
-  },
-  result: {
-    data: {
-      customerByPublicId: {
-        __typename: "Customer",
-        id: "Customer:1",
-        creditFacilities: [],
-      },
-    },
-  },
-}
+  buildParams,
+  creditFacilitiesMock,
+  customerDetailsMock,
+  emptyCreditFacilitiesMock,
+} from "./storybook-mocks"
 
 type StoryProps = React.ComponentProps<typeof CustomerCreditFacilitiesLandingPage> & {
   mocks?: MockedResponse[]

@@ -730,10 +730,7 @@ impl DepositLedger {
             .cala
             .ledger_operation_from_db_op(op.with_db_time().await?);
 
-        self.cala
-            .accounts()
-            .lock_in_op(&mut op, account_id)
-            .await?;
+        self.cala.accounts().lock_in_op(&mut op, account_id).await?;
 
         op.commit().await?;
 
