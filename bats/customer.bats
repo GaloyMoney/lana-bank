@@ -370,3 +370,34 @@ wait_for_approval() {
   withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
   [[ "$withdrawal_id" != "null" ]] || exit 1
 }
+
+@test "customer: can not close a deposit account with non-zero balance" {
+  deposit_account_id=$(read_value 'deposit_account_id')
+
+  variables=$(
+    jq -n \
+      --arg depositAccountId "$deposit_account_id" \
+      --arg date "$(date +%s%N)" \
+    '{
+      input: {
+        depositAccountId: $depositAccountId,
+        amount: 250000,
+        reference: ("deposit-before-close-" + $date)
+      }
+    }'
+  )
+  exec_admin_graphql 'record-deposit' "$variables"
+
+  variables=$(
+    jq -n \
+      --arg depositAccountId "$deposit_account_id" \
+    '{
+      input: {
+        depositAccountId: $depositAccountId
+      }
+    }'
+  )
+  exec_admin_graphql 'deposit-account-close' "$variables"
+  errors=$(graphql_output '.errors')
+  [[ "$errors" =~ "BalanceIsNotZero" ]] || exit 1
+}
