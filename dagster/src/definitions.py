@@ -75,17 +75,29 @@ definition_builder = DefinitionsBuilder()
 definition_builder.init_telemetry()
 definition_builder.add_callable_as_asset(iris_dataset_size)
 
-bitfinex_callables = (bitfinex_ticker, bitfinex_trades, bitfinex_order_book)
-bitfinex_assets = tuple(
-    definition_builder.add_callable_as_asset(bitfinex_callable)
-    for bitfinex_callable in bitfinex_callables
+bitfinex_ticker_asset = definition_builder.add_callable_as_asset(bitfinex_ticker)
+bitfinex_trades_asset = definition_builder.add_callable_as_asset(bitfinex_trades)
+bitfinex_order_book_asset = definition_builder.add_callable_as_asset(bitfinex_order_book)
+
+bitfinex_ticker_job = definition_builder.add_job_from_assets(
+    job_name="bitfinex_ticker_el", assets=(bitfinex_ticker_asset,)
 )
-bitfinex_el_job = definition_builder.add_job_from_assets(
-    job_name="bitfinex_el", assets=bitfinex_assets
+definition_builder.add_job_schedule(
+    job=bitfinex_ticker_job, cron_expression=CronExpression.parse("* * * * *")
 )
 
-bitfinex_el_job_schedule = definition_builder.add_job_schedule(
-    job=bitfinex_el_job, cron_expression=CronExpression.parse("* * * * *")
+bitfinex_trades_job = definition_builder.add_job_from_assets(
+    job_name="bitfinex_trades_el", assets=(bitfinex_trades_asset,)
+)
+definition_builder.add_job_schedule(
+    job=bitfinex_trades_job, cron_expression=CronExpression.parse("*/10 * * * *")
+)
+
+bitfinex_order_book_job = definition_builder.add_job_from_assets(
+    job_name="bitfinex_order_book_el", assets=(bitfinex_order_book_asset,)
+)
+definition_builder.add_job_schedule(
+    job=bitfinex_order_book_job, cron_expression=CronExpression.parse("*/10 * * * *")
 )
 
 defs = definition_builder.build()
