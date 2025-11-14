@@ -13,8 +13,6 @@ from src.assets import (
     bitfinex_order_book,
 )
 from src.otel import init_telemetry
-from src.utils.cron import CronExpression
-
 
 DAGSTER_AUTOMATIONS_ACTIVE = os.getenv(
     "DAGSTER_AUTOMATIONS_ACTIVE", ""
