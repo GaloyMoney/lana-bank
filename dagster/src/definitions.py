@@ -1,7 +1,7 @@
 """Dagster definitions entry point - builds all Dagster objects."""
 
 import os
-from typing import Callable, Tuple, Union
+from typing import Callable, Tuple
 
 import dagster as dg
 
@@ -11,6 +11,7 @@ from src.assets import (
     bitfinex_ticker,
     bitfinex_trades,
     bitfinex_order_book,
+    lana_el_callables
 )
 from src.otel import init_telemetry
 
@@ -71,6 +72,7 @@ class DefinitionsBuilder:
 definition_builder = DefinitionsBuilder()
 
 definition_builder.init_telemetry()
+
 definition_builder.add_callable_as_asset(iris_dataset_size)
 
 bitfinex_ticker_asset = definition_builder.add_callable_as_asset(bitfinex_ticker)
@@ -97,5 +99,9 @@ bitfinex_order_book_job = definition_builder.add_job_from_assets(
 definition_builder.add_job_schedule(
     job=bitfinex_order_book_job, cron_expression="*/10 * * * *"
 )
+
+lana_el_assets = [definition_builder.add_callable_as_asset(callable=lana_el_callabe) for lana_el_callabe in lana_el_callables]
+lana_el_job = definition_builder.add_job_from_assets(job_name="lana_el_job", assets=lana_el_assets)
+definition_builder.add_job_schedule(job=lana_el_job, cron_expression="*/10 * * * *")
 
 defs = definition_builder.build()
