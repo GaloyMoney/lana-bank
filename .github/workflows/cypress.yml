@@ -16,13 +16,22 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-podman
       - uses: DeterminateSystems/nix-installer-action@v16
+      - uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
       - uses: cachix/cachix-action@v15
         with:
           name: galoymoney
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
           skipPush: true
 
-      - uses: ./.github/actions/cache-pnpm 
+      - uses: ./.github/actions/cache-pnpm
       - name: Start services for Cypress tests
         run: nix develop -c make start-cypress-stack
         env:
