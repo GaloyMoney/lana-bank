@@ -4,14 +4,13 @@ import os
 from typing import Callable, Tuple, Union
 
 import dagster as dg
-
-from src.core import lana_assetifier
 from src.assets import (
-    iris_dataset_size,
+    bitfinex_order_book,
     bitfinex_ticker,
     bitfinex_trades,
-    bitfinex_order_book,
+    iris_dataset_size,
 )
+from src.core import lana_assetifier
 from src.otel import init_telemetry
 
 DAGSTER_AUTOMATIONS_ACTIVE = os.getenv(
@@ -43,9 +42,7 @@ class DefinitionsBuilder:
 
         return new_job
 
-    def add_job_schedule(
-        self, job: dg.job, cron_expression: str
-    ):
+    def add_job_schedule(self, job: dg.job, cron_expression: str):
         default_status = (
             dg.DefaultScheduleStatus.RUNNING
             if DAGSTER_AUTOMATIONS_ACTIVE
@@ -75,7 +72,9 @@ definition_builder.add_callable_as_asset(iris_dataset_size)
 
 bitfinex_ticker_asset = definition_builder.add_callable_as_asset(bitfinex_ticker)
 bitfinex_trades_asset = definition_builder.add_callable_as_asset(bitfinex_trades)
-bitfinex_order_book_asset = definition_builder.add_callable_as_asset(bitfinex_order_book)
+bitfinex_order_book_asset = definition_builder.add_callable_as_asset(
+    bitfinex_order_book
+)
 
 bitfinex_ticker_job = definition_builder.add_job_from_assets(
     job_name="bitfinex_ticker_el", assets=(bitfinex_ticker_asset,)

@@ -1,6 +1,7 @@
-from dlt.destinations import bigquery
 import base64
 import json
+
+from dlt.destinations import bigquery
 
 
 def create_bigquery_destination(base64_credentials):
