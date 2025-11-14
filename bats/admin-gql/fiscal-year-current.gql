@@ -1,0 +1,6 @@
+query CurrentFiscalYear {
+    currentFiscalYear {
+        id
+        openedAsOf
+    }
+}

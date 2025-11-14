@@ -7,7 +7,6 @@ pub mod ledger;
 mod repo;
 pub mod tree;
 
-use es_entity::Idempotent;
 use tracing::instrument;
 
 use audit::AuditSvc;
@@ -15,17 +14,20 @@ use authz::PermissionCheck;
 
 use cala_ledger::{CalaLedger, account::Account};
 
-use crate::primitives::{
-    AccountCode, AccountIdOrCode, AccountName, AccountSpec, CalaAccountSetId, CalaJournalId,
-    ChartId, CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
+use crate::{
+    fiscal_year::FiscalYears,
+    primitives::{
+        AccountCode, AccountIdOrCode, AccountName, AccountSpec, CalaAccountSetId, CalaJournalId,
+        ChartId, CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
+    },
 };
 
 #[cfg(feature = "json-schema")]
 pub use chart_node::ChartNodeEvent;
+pub use entity::Chart;
 #[cfg(feature = "json-schema")]
 pub use entity::ChartEvent;
 pub(super) use entity::*;
-pub use entity::{Chart, PeriodClosing};
 use error::*;
 use import::{
     BulkAccountImport, BulkImportResult,
@@ -40,8 +42,9 @@ where
 {
     repo: ChartRepo,
     chart_ledger: ChartLedger,
-    cala: CalaLedger, // TODO: move calls into chart ledger
+    cala: CalaLedger,
     authz: Perms,
+    fiscal_year: FiscalYears<Perms>,
     journal_id: CalaJournalId,
 }
 
@@ -55,6 +58,7 @@ where
             chart_ledger: self.chart_ledger.clone(),
             cala: self.cala.clone(),
             authz: self.authz.clone(),
+            fiscal_year: self.fiscal_year.clone(),
             journal_id: self.journal_id,
         }
     }
@@ -70,6 +74,7 @@ where
         pool: &sqlx::PgPool,
         authz: &Perms,
         cala: &CalaLedger,
+        fiscal_year: &FiscalYears<Perms>,
         journal_id: CalaJournalId,
     ) -> Self {
         let chart_of_account = ChartRepo::new(pool);
@@ -80,6 +85,7 @@ where
             chart_ledger,
             cala: cala.clone(),
             authz: authz.clone(),
+            fiscal_year: fiscal_year.clone(),
             journal_id,
         }
     }
@@ -94,11 +100,10 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         name: String,
         reference: String,
-        first_period_opened_as_of: chrono::NaiveDate,
     ) -> Result<Chart, ChartOfAccountsError> {
         let id = ChartId::new();
 
-        let mut op = self.repo.begin_op().await?;
+        let mut db_op = self.repo.begin_op().await?;
         self.authz
             .enforce_permission(
                 sub,
@@ -112,14 +117,18 @@ where
             .account_set_id(id)
             .name(name)
             .reference(reference)
-            .first_period_opened_as_of(first_period_opened_as_of)
             .build()
             .expect("Could not build new chart of accounts");
 
-        let chart = self.repo.create_in_op(&mut op, new_chart).await?;
+        let chart = self.repo.create_in_op(&mut db_op, new_chart).await?;
 
-        self.chart_ledger
-            .create_chart_root_account_set_in_op(op, &chart)
+        let ledger_op = self
+            .chart_ledger
+            .create_chart_root_account_set_in_op(db_op, &chart)
+            .await?;
+
+        self.fiscal_year
+            .add_closing_control_in_op(ledger_op, chart.account_set_id)
             .await?;
 
         Ok(chart)
@@ -178,44 +187,6 @@ where
             .collect::<Vec<_>>();
 
         Ok((chart, Some(new_account_set_ids.clone())))
-    }
-
-    #[instrument(
-        name = "core_accounting.chart_of_accounts.close_monthly",
-        skip(self,),
-        err
-    )]
-    pub async fn close_monthly(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart_ref: &str,
-    ) -> Result<Chart, ChartOfAccountsError> {
-        let now = crate::time::now();
-
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreAccountingObject::all_charts(),
-                CoreAccountingAction::CHART_CLOSE_MONTHLY,
-            )
-            .await?;
-
-        let mut chart = self.find_by_reference(chart_ref).await?;
-        let closed_as_of_date =
-            if let Idempotent::Executed(date) = chart.close_last_monthly_period(now)? {
-                date
-            } else {
-                return Ok(chart);
-            };
-
-        let mut op = self.repo.begin_op().await?;
-        self.repo.update_in_op(&mut op, &mut chart).await?;
-
-        self.chart_ledger
-            .monthly_close_chart_as_of(op, chart.id, closed_as_of_date)
-            .await?;
-
-        Ok(chart)
     }
 
     #[instrument(

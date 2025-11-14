@@ -9,7 +9,7 @@ pub use lana_app::{
         AccountSpec, ApprovalProcessId, ChartId, CollateralId, CommitteeId, CreditFacilityId,
         CreditFacilityProposalId, CreditFacilityProposalStatus, CustodianId, CustomerDocumentId,
         CustomerId, DepositAccountId, DepositId, DisbursalId, DisbursalStatus, DocumentId, EntryId,
-        LedgerTransactionId, ManualTransactionId, PaymentAllocationId, PaymentId,
+        FiscalYearId, LedgerTransactionId, ManualTransactionId, PaymentAllocationId, PaymentId,
         PendingCreditFacilityId, PendingCreditFacilityStatus, PermissionSetId, PolicyId, ReportId,
         RoleId, Satoshis, SignedSatoshis, SignedUsdCents, Subject, TermsTemplateId, UsdCents,
         UserId, WalletId, WithdrawalId,
@@ -130,5 +130,6 @@ impl_to_global_id! {
     PaymentAllocationId,
     PublicId,
     EntryId,
-    LedgerAccountId
+    LedgerAccountId,
+    FiscalYearId
 }

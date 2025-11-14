@@ -5,6 +5,7 @@ pub mod balance_sheet;
 pub mod chart_of_accounts;
 pub mod csv;
 pub mod error;
+pub mod fiscal_year;
 pub mod journal;
 pub mod ledger_account;
 pub mod ledger_transaction;
@@ -26,11 +27,10 @@ use manual_transaction::ManualTransactions;
 use tracing::instrument;
 
 pub use balance_sheet::{BalanceSheet, BalanceSheets};
-pub use chart_of_accounts::{
-    Chart, ChartOfAccounts, PeriodClosing, error as chart_of_accounts_error, tree,
-};
+pub use chart_of_accounts::{Chart, ChartOfAccounts, error as chart_of_accounts_error, tree};
 pub use csv::AccountingCsvExports;
 use error::CoreAccountingError;
+pub use fiscal_year::{FiscalYear, FiscalYears, error as fiscal_year_error};
 pub use journal::{Journal, error as journal_error};
 pub use ledger_account::{LedgerAccount, LedgerAccountChildrenCursor, LedgerAccounts};
 pub use ledger_transaction::{LedgerTransaction, LedgerTransactions};
@@ -62,6 +62,7 @@ where
     balance_sheets: BalanceSheets<Perms>,
     csvs: AccountingCsvExports<Perms>,
     trial_balances: TrialBalances<Perms>,
+    fiscal_year: FiscalYears<Perms>,
 }
 
 impl<Perms> Clone for CoreAccounting<Perms>
@@ -81,6 +82,7 @@ where
             balance_sheets: self.balance_sheets.clone(),
             csvs: self.csvs.clone(),
             trial_balances: self.trial_balances.clone(),
+            fiscal_year: self.fiscal_year.clone(),
         }
     }
 }
@@ -99,7 +101,8 @@ where
         document_storage: DocumentStorage,
         jobs: &Jobs,
     ) -> Self {
-        let chart_of_accounts = ChartOfAccounts::new(pool, authz, cala, journal_id);
+        let fiscal_year = FiscalYears::new(pool, authz, cala, journal_id);
+        let chart_of_accounts = ChartOfAccounts::new(pool, authz, cala, &fiscal_year, journal_id);
         let journal = Journal::new(authz, cala, journal_id);
         let ledger_accounts = LedgerAccounts::new(authz, cala, journal_id);
         let manual_transactions =
@@ -122,6 +125,7 @@ where
             balance_sheets,
             csvs,
             trial_balances,
+            fiscal_year,
         }
     }
 
@@ -163,6 +167,10 @@ where
 
     pub fn trial_balances(&self) -> &TrialBalances<Perms> {
         &self.trial_balances
+    }
+
+    pub fn fiscal_year(&self) -> &FiscalYears<Perms> {
+        &self.fiscal_year
     }
 
     #[instrument(name = "core_accounting.find_ledger_account_by_id", skip(self), err)]
@@ -271,15 +279,50 @@ where
         Ok(chart)
     }
 
-    #[instrument(name = "core_accounting.close_monthly", skip(self), err)]
-    pub async fn close_monthly(
+    #[instrument(name = "core_accounting.open_first_fiscal_year", skip(self), err)]
+    pub async fn open_first_fiscal_year(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_ref: &str,
-    ) -> Result<Chart, CoreAccountingError> {
-        Ok(self
+        opened_as_of: impl Into<chrono::NaiveDate> + std::fmt::Debug,
+    ) -> Result<FiscalYear, CoreAccountingError> {
+        let chart = self
             .chart_of_accounts()
-            .close_monthly(sub, chart_ref)
+            .find_by_reference(chart_ref)
+            .await?;
+
+        Ok(self
+            .fiscal_year()
+            .open_first_fiscal_year(sub, opened_as_of, chart.id, chart.account_set_id)
+            .await?)
+    }
+
+    #[instrument(name = "core_accounting.close_month", skip(self), err)]
+    pub async fn close_month(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_ref: &str,
+    ) -> Result<FiscalYear, CoreAccountingError> {
+        let chart = self
+            .chart_of_accounts()
+            .find_by_reference(chart_ref)
+            .await?;
+        Ok(self.fiscal_year().close_month(sub, chart.id).await?)
+    }
+
+    #[instrument(name = "core_accounting.get_current_fiscal_year", skip(self), err)]
+    pub async fn get_current_fiscal_year(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_ref: &str,
+    ) -> Result<FiscalYear, CoreAccountingError> {
+        let chart = self
+            .chart_of_accounts()
+            .find_by_reference(chart_ref)
+            .await?;
+        Ok(self
+            .fiscal_year()
+            .get_current_fiscal_year(sub, chart.id)
             .await?)
     }
 

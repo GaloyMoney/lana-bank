@@ -1,10 +1,5 @@
 scalar AccountCode
 
-type AccountingClosing {
-	closedAsOf: Date!
-	closedAt: Timestamp!
-}
-
 type AccountingCsvDocument {
 	id: ID!
 	documentId: UUID!
@@ -240,7 +235,6 @@ type ChartOfAccounts {
 	id: ID!
 	chartId: UUID!
 	name: String!
-	monthlyClosing: AccountingClosing!
 	children: [ChartNode!]!
 }
 
@@ -261,10 +255,6 @@ input ChartOfAccountsAddRootNodeInput {
 }
 
 type ChartOfAccountsAddRootNodePayload {
-	chartOfAccounts: ChartOfAccounts!
-}
-
-type ChartOfAccountsCloseMonthlyPayload {
 	chartOfAccounts: ChartOfAccounts!
 }
 
@@ -1299,6 +1289,24 @@ type FiniteCVLPct {
 	value: CVLPctValue!
 }
 
+type FiscalYear {
+	id: ID!
+	chartId: UUID!
+	openedAsOf: Date!
+}
+
+type FiscalYearCloseMonthPayload {
+	fiscalYear: FiscalYear!
+}
+
+input FiscalYearOpenFirstInput {
+	openedAsOf: Date!
+}
+
+type FiscalYearOpenFirstPayload {
+	fiscalYear: FiscalYear!
+}
+
 type GovernanceNavigationItems {
 	committee: Boolean!
 	policy: Boolean!
@@ -1566,7 +1574,8 @@ type Mutation {
 	customerDocumentDelete(input: CustomerDocumentDeleteInput!): CustomerDocumentDeletePayload!
 	customerDocumentArchive(input: CustomerDocumentArchiveInput!): CustomerDocumentArchivePayload!
 	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
-	chartOfAccountsCloseMonthly: ChartOfAccountsCloseMonthlyPayload!
+	fiscalYearOpenFirst(input: FiscalYearOpenFirstInput!): FiscalYearOpenFirstPayload!
+	fiscalYearCloseMonth: FiscalYearCloseMonthPayload!
 	chartOfAccountsAddRootNode(input: ChartOfAccountsAddRootNodeInput!): ChartOfAccountsAddRootNodePayload!
 	chartOfAccountsAddChildNode(input: ChartOfAccountsAddChildNodeInput!): ChartOfAccountsAddChildNodePayload!
 	balanceSheetConfigure(input: BalanceSheetModuleConfigureInput!): BalanceSheetModuleConfigurePayload!
@@ -1870,6 +1879,7 @@ type Query {
 	journalEntries(first: Int!, after: String): JournalEntryConnection!
 	trialBalance(from: Date!, until: Date!): TrialBalance!
 	chartOfAccounts: ChartOfAccounts!
+	currentFiscalYear: FiscalYear!
 	balanceSheet(from: Date!, until: Date): BalanceSheet!
 	profitAndLossStatement(from: Date!, until: Date): ProfitAndLossStatement!
 	realtimePrice: RealtimePrice!

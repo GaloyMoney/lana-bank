@@ -751,6 +751,15 @@ impl Query {
         Ok(ChartOfAccounts::from(chart))
     }
 
+    async fn current_fiscal_year(&self, ctx: &Context<'_>) -> async_graphql::Result<FiscalYear> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let fiscal_year = app
+            .accounting()
+            .get_current_fiscal_year(sub, CHART_REF.0)
+            .await?;
+        Ok(FiscalYear::from(fiscal_year))
+    }
+
     async fn balance_sheet(
         &self,
         ctx: &Context<'_>,
@@ -2037,17 +2046,33 @@ impl Mutation {
         )
     }
 
-    async fn chart_of_accounts_close_monthly(
+    async fn fiscal_year_open_first(
         &self,
         ctx: &Context<'_>,
-    ) -> async_graphql::Result<ChartOfAccountsCloseMonthlyPayload> {
+        input: FiscalYearOpenFirstInput,
+    ) -> async_graphql::Result<FiscalYearOpenFirstPayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         exec_mutation!(
-            ChartOfAccountsCloseMonthlyPayload,
-            ChartOfAccounts,
-            ChartId,
+            FiscalYearOpenFirstPayload,
+            FiscalYear,
+            FiscalYearId,
             ctx,
-            app.accounting().close_monthly(sub, CHART_REF.0)
+            app.accounting()
+                .open_first_fiscal_year(sub, CHART_REF.0, input.opened_as_of)
+        )
+    }
+
+    async fn fiscal_year_close_month(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<FiscalYearCloseMonthPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            FiscalYearCloseMonthPayload,
+            FiscalYear,
+            FiscalYearId,
+            ctx,
+            app.accounting().close_month(sub, CHART_REF.0)
         )
     }
 

@@ -12,6 +12,8 @@ pub enum ChartOfAccountsError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("ChartOfAccountsError - CodeNotFoundInChart: {0}")]
     CodeNotFoundInChart(crate::primitives::AccountCode),
+    #[error("ChartOfAccountsError - FiscalYearError: {0}")]
+    FiscalYearError(#[from] crate::fiscal_year::error::FiscalYearError),
     #[error("ChartOfAccountsError - CsvParseError: {0}")]
     CsvParse(#[from] super::CsvParseError),
     #[error("ChartOfAccountsError - CalaLedgerError: {0}")]
@@ -28,8 +30,6 @@ pub enum ChartOfAccountsError {
     NonLeafAccount(String),
     #[error("ChartOfAccountsError - ParentAccountNotFound: {0}")]
     ParentAccountNotFound(String),
-    #[error("ChartOfAccountsError - AccountPeriodStartNotFound")]
-    AccountPeriodStartNotFound,
     #[error("ChartOfAccountsError - ChartOfAccountsNotFoundByReference: {0}")]
     ChartOfAccountsNotFoundByReference(String),
 }
