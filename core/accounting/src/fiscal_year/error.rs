@@ -18,6 +18,8 @@ pub enum FiscalYearError {
     FiscalYearMonthAlreadyClosed,
     #[error("FiscalYearError - CurrentYearNotFoundByChartId: {0}")]
     CurrentYearNotFoundByChartId(ChartId),
+    #[error("FiscalYearError - ChartOfAccountsError: {0}")]
+    ChartOfAccountsError(#[from] crate::chart_of_accounts::error::ChartOfAccountsError),
 }
 
 es_entity::from_es_entity_error!(FiscalYearError);

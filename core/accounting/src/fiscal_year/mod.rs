@@ -13,6 +13,7 @@ use cala_ledger::CalaLedger;
 
 use crate::{
     FiscalYearId,
+    chart_of_accounts::ChartOfAccounts,
     fiscal_year::ledger::FiscalYearLedger,
     primitives::{
         CalaAccountSetId, CalaJournalId, ChartId, CoreAccountingAction, CoreAccountingObject,
@@ -34,6 +35,7 @@ where
     authz: Perms,
     ledger: FiscalYearLedger,
     journal_id: CalaJournalId,
+    chart_of_accounts: ChartOfAccounts<Perms>,
 }
 
 impl<Perms> Clone for FiscalYears<Perms>
@@ -46,6 +48,7 @@ where
             authz: self.authz.clone(),
             ledger: self.ledger.clone(),
             journal_id: self.journal_id,
+            chart_of_accounts: self.chart_of_accounts.clone(),
         }
     }
 }
@@ -61,6 +64,7 @@ where
         authz: &Perms,
         cala: &CalaLedger,
         journal_id: CalaJournalId,
+        chart_of_accounts: &ChartOfAccounts<Perms>,
     ) -> Self {
         let ledger = FiscalYearLedger::new(cala);
         Self {
@@ -68,6 +72,7 @@ where
             authz: authz.clone(),
             ledger,
             journal_id,
+            chart_of_accounts: chart_of_accounts.clone(),
         }
     }
 
@@ -109,15 +114,11 @@ where
 
         let mut op = self.repo.begin_op().await?;
         let fiscal_year = self.repo.create_in_op(&mut op, new_fiscal_year).await?;
-
-        self.ledger
-            .close_month_as_of(
-                op,
-                opened_as_of
-                    .pred_opt()
-                    .expect("Date was first possible NaiveDate type value"),
-                fiscal_year.tracking_account_set_id,
-            )
+        let close_ledger_as_of = opened_as_of
+            .pred_opt()
+            .expect("Date was first possible NaiveDate type value");
+        self.chart_of_accounts
+            .close_account_set_as_of_in_op(op, sub, chart_id, close_ledger_as_of)
             .await?;
 
         Ok(fiscal_year)
