@@ -23,6 +23,15 @@ Follow these steps to use a new env var in dagster (assuming a mock `MY_ENV_VAR`
 - And then also in the `docker-compose.dagster.yml` under `services.dagster_daemon.environment`.
 - Additionally, if your var is used outside of dagster assets/sensors/etc (ie called on `.py` loading, not on dagster run runtime), you also need to add it under `services.dagster-code-location-lana-dw.environment`.
 
+## Bumping dagster versions
+
+Dagster releases simulatenously for their `core` and `library` python packages. You can check release numbers for each at https://github.com/dagster-io/dagster/releases.
+
+To bump the dagster versions:
+- Modify `dagster/Dockerfile` to bump in our code location image.
+- Modify `dagster/Dockerfile_dagster` to bump in our local env dagster services.
+- If deploying with a helm chart, make sure that the helm chart version you use is in sync with the version number that the code location image is using. Dagster helm charts follow the same versioning schedule as the `core` packages.
+
 ## Opentelemetry
 
 The project is designed to send traces for every dagster run. You get this feature for free by properly using the method `add_callable_as_asset` of `DefinitionsBuilder` in `src/definitions.py`.
