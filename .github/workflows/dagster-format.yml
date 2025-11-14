@@ -1,0 +1,33 @@
+name: dagster-format
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'dagster/**'
+      - '.github/workflows/dagster-format.yml'
+  pull_request:
+    paths:
+      - 'dagster/**'
+      - '.github/workflows/dagster-format.yml'
+
+jobs:
+  formatting:
+    name: Ensure dagster formatting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v16
+
+      - name: Configure Cachix
+        uses: cachix/cachix-action@v15
+        with:
+          name: galoymoney
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          skipPush: true
+
+      - name: Run fmt-check
+        run: make dagster-fmt-check
