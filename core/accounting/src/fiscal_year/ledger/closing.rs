@@ -1,19 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use cala_ledger::velocity::VelocityLimit;
-
-pub(super) struct AccountClosingLimits {
-    pub(super) debit_settled: VelocityLimit,
-    pub(super) debit_pending: VelocityLimit,
-    pub(super) credit_settled: VelocityLimit,
-    pub(super) credit_pending: VelocityLimit,
-}
-
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub(super) struct AccountingClosingMetadata;
 
 impl AccountingClosingMetadata {
-    const METADATA_PATH: &'static str = "context.vars.account.metadata";
     const METADATA_KEY: &'static str = "closing";
     const CLOSING_DATE_KEY: &'static str = "closed_as_of";
 
@@ -37,30 +27,11 @@ impl AccountingClosingMetadata {
             .insert(Self::METADATA_KEY.to_string(), closing_metadata);
     }
 
-    fn period_cel_conditions(period: &str) -> String {
-        format!(
-            r#"
-            !has({path}) ||
-            !has({path}.{key}) ||
-            !has({path}.{key}.{period}) ||
-            !has({path}.{key}.{period}.{closing_date_key}) ||
-            date({path}.{key}.{period}.{closing_date_key}) >= context.vars.transaction.effective
-        "#,
-            path = Self::METADATA_PATH,
-            key = Self::METADATA_KEY,
-            closing_date_key = Self::CLOSING_DATE_KEY,
-        )
-    }
-
     pub(super) fn update_with_monthly_closing(
         metadata: &mut serde_json::Value,
         closed_as_of: chrono::NaiveDate,
     ) {
         Self::update_with_period_closing(Self::MONTHLY, metadata, closed_as_of)
-    }
-
-    pub(super) fn monthly_cel_conditions() -> String {
-        Self::period_cel_conditions(Self::MONTHLY)
     }
 }
 
@@ -68,136 +39,6 @@ impl AccountingClosingMetadata {
 mod tests {
 
     use super::*;
-
-    mod monthly_cel {
-
-        use cala_cel_interpreter::{CelContext, CelExpression, CelMap, CelValue};
-        use chrono::NaiveDate;
-        use serde_json::json;
-
-        use super::*;
-
-        const CLOSING_DATE: &str = "2024-12-31";
-        const BEFORE_CLOSING_DATE: &str = "2024-12-01";
-        const AFTER_CLOSING_DATE: &str = "2025-01-01";
-
-        fn expr() -> CelExpression {
-            let cel_conditions = AccountingClosingMetadata::monthly_cel_conditions();
-            CelExpression::try_from(cel_conditions.as_str()).unwrap()
-        }
-
-        fn ctx(account_json: serde_json::Value, tx_effective_date: NaiveDate) -> CelContext {
-            let mut transaction = CelMap::new();
-            transaction.insert("effective", CelValue::Date(tx_effective_date));
-
-            let mut vars = CelMap::new();
-            vars.insert("account", account_json);
-            vars.insert("transaction", transaction);
-
-            let mut context = CelMap::new();
-            context.insert("vars", vars);
-
-            let mut ctx = CelContext::new();
-            ctx.add_variable("context", context);
-
-            ctx
-        }
-
-        #[test]
-        fn monthly_cel_conditions_can_be_parsed() {
-            let cel_conditions = AccountingClosingMetadata::monthly_cel_conditions();
-            let res = CelExpression::try_from(cel_conditions.as_str());
-            assert!(res.is_ok())
-        }
-
-        #[test]
-        fn allows_tx_after_monthly_closing_date() {
-            let account = json!({
-                "metadata": {
-                    "closing": {
-                        "monthly": {
-                            "closed_as_of": CLOSING_DATE
-                        }
-                    }
-                }
-            });
-            let ctx = ctx(account, AFTER_CLOSING_DATE.parse::<NaiveDate>().unwrap());
-
-            let block_txn = expr().try_evaluate::<bool>(&ctx).unwrap();
-            assert!(!block_txn);
-        }
-
-        #[test]
-        fn blocks_tx_for_no_metadata() {
-            let account = json!({});
-            let ctx = ctx(account, AFTER_CLOSING_DATE.parse::<NaiveDate>().unwrap());
-
-            let block_txn = expr().try_evaluate::<bool>(&ctx).unwrap();
-            assert!(block_txn);
-        }
-
-        #[test]
-        fn blocks_tx_for_no_closing_metadata() {
-            let account = json!({
-                "metadata": {
-                    "other_field": "value"
-                }
-            });
-            let ctx = ctx(account, AFTER_CLOSING_DATE.parse::<NaiveDate>().unwrap());
-
-            let block_txn = expr().try_evaluate::<bool>(&ctx).unwrap();
-            assert!(block_txn);
-        }
-
-        #[test]
-        fn blocks_tx_for_no_monthly_closing_metadata() {
-            let account = json!({
-                "metadata": {
-                    "closing": {
-                        "other_field": "value"
-                    }
-                }
-            });
-            let ctx = ctx(account, AFTER_CLOSING_DATE.parse::<NaiveDate>().unwrap());
-
-            let block_txn = expr().try_evaluate::<bool>(&ctx).unwrap();
-            assert!(block_txn);
-        }
-
-        #[test]
-        fn blocks_tx_on_monthly_closing_date() {
-            let account = json!({
-                "metadata": {
-                    "closing": {
-                        "monthly": {
-                            "closed_as_of": CLOSING_DATE
-                        }
-                    }
-                }
-            });
-            let ctx = ctx(account, CLOSING_DATE.parse::<NaiveDate>().unwrap());
-
-            let block_txn = expr().try_evaluate::<bool>(&ctx).unwrap();
-            assert!(block_txn);
-        }
-
-        #[test]
-        fn blocks_tx_before_monthly_closing_date() {
-            let account = json!({
-                "metadata": {
-                    "closing": {
-                        "monthly": {
-                            "closed_as_of": CLOSING_DATE
-                        }
-                    }
-                }
-            });
-            let ctx = ctx(account, BEFORE_CLOSING_DATE.parse::<NaiveDate>().unwrap());
-
-            let block_txn = expr().try_evaluate::<bool>(&ctx).unwrap();
-            assert!(block_txn);
-        }
-    }
 
     mod update_with_monthly_closing {
         use chrono::{DateTime, NaiveDate, Utc};

@@ -9,7 +9,7 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 
-use cala_ledger::{CalaLedger, LedgerOperation};
+use cala_ledger::CalaLedger;
 
 use crate::{
     FiscalYearId,
@@ -69,23 +69,6 @@ where
             ledger,
             journal_id,
         }
-    }
-
-    #[instrument(
-        name = "core_accounting.fiscal_year.add_closing_control"
-        skip(self, op),
-        err
-    )]
-    pub async fn add_closing_control_in_op(
-        &self,
-        op: LedgerOperation<'_>,
-        tracking_account_set_id: impl Into<CalaAccountSetId> + std::fmt::Debug,
-    ) -> Result<(), FiscalYearError> {
-        self.ledger
-            .attach_closing_controls_to_account_set_in_op(op, tracking_account_set_id)
-            .await?;
-
-        Ok(())
     }
 
     #[instrument(
