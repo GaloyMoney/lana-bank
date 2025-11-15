@@ -22,6 +22,7 @@ wait_for_approval() {
   exec_admin_graphql 'find-withdraw' "$variables"
   echo "withdrawal | $i. $(graphql_output)" >> $RUN_LOG_FILE
   status=$(graphql_output '.data.withdrawal.status')
+  echo "$output"
   [[ "$status" == "PENDING_CONFIRMATION" ]] || return 1
 }
 
@@ -115,8 +116,11 @@ wait_for_approval() {
   deposit_id=$(graphql_output '.data.depositRecord.deposit.depositId')
   [[ "$deposit_id" != "null" ]] || exit 1
 
-  # usd_balance=$(graphql_output '.data.depositRecord.deposit.customer.depositAccount.balance.checking.settled')
-  # [[ "$usd_balance" == "150000" ]] || exit 1
+  usd_balance_settled=$(graphql_output '.data.depositRecord.deposit.account.balance.settled')
+  usd_balance_pending=$(graphql_output '.data.depositRecord.deposit.account.balance.pending')
+  [[ "$usd_balance_settled" == "150000" ]] || exit 1
+  [[ "$usd_balance_pending" == "0" ]] || exit 1
+  # graphql_output | jq '.'>&3
 }
 
 @test "customer: withdraw can be cancelled" {
@@ -140,13 +144,14 @@ wait_for_approval() {
   echo $(graphql_output) 
   [[ "$withdrawal_id" != "null" ]] || exit 1
   
-  retry 20 1 wait_for_approval $withdrawal_id
-  # settled_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.customer.balance.checking.settled')
-  # [[ "$settled_usd_balance" == "0" ]] || exit 1
-  # pending_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.customer.balance.checking.pending')
-  # [[ "$pending_usd_balance" == "150000" ]] || exit 1
+  settled_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.account.balance.settled')
+  [[ "$settled_usd_balance" == "0" ]] || exit 1
+  pending_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.account.balance.pending')
+  [[ "$pending_usd_balance" == "150000" ]] || exit 1
 
   # assert_accounts_balanced
+
+  retry 20 1 wait_for_approval $withdrawal_id
 
   variables=$(
     jq -n \
@@ -164,10 +169,10 @@ wait_for_approval() {
   [[ "$withdrawal_id" != "null" ]] || exit 1
   status=$(graphql_output '.data.withdrawalCancel.withdrawal.status')
   [[ "$status" == "CANCELLED" ]] || exit 1
-  # settled_usd_balance=$(graphql_output '.data.withdrawalCancel.withdrawal.customer.balance.checking.settled')
-  # [[ "$settled_usd_balance" == "150000" ]] || exit 1
-  # pending_usd_balance=$(graphql_output '.data.withdrawalCancel.withdrawal.customer.balance.checking.pending')
-  # [[ "$pending_usd_balance" == "0" ]] || exit 1
+  settled_usd_balance=$(graphql_output '.data.withdrawalCancel.withdrawal.account.balance.settled')
+  [[ "$settled_usd_balance" == "150000" ]] || exit 1
+  pending_usd_balance=$(graphql_output '.data.withdrawalCancel.withdrawal.account.balance.pending')
+  [[ "$pending_usd_balance" == "0" ]] || exit 1
 
   # assert_accounts_balanced
 }
@@ -191,10 +196,10 @@ wait_for_approval() {
 
   withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
   [[ "$withdrawal_id" != "null" ]] || exit 1
-  # settled_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.customer.balance.checking.settled')
-  # [[ "$settled_usd_balance" == "0" ]] || exit 1
-  # pending_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.customer.balance.checking.pending')
-  # [[ "$pending_usd_balance" == "120000" ]] || exit 1
+  settled_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.account.balance.settled')
+  [[ "$settled_usd_balance" == "30000" ]] || exit 1
+  pending_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.account.balance.pending')
+  [[ "$pending_usd_balance" == "120000" ]] || exit 1
 
   # assert_accounts_balanced
 
@@ -216,10 +221,10 @@ wait_for_approval() {
   [[ "$withdrawal_id" != "null" ]] || exit 1
   status=$(graphql_output '.data.withdrawalConfirm.withdrawal.status')
   [[ "$status" == "CONFIRMED" ]] || exit 1
-  # settled_usd_balance=$(graphql_output '.data.withdrawalConfirm.withdrawal.customer.balance.checking.settled')
-  # [[ "$settled_usd_balance" == "0" ]] || exit 1
-  # pending_usd_balance=$(graphql_output '.data.withdrawalConfirm.withdrawal.customer.balance.checking.pending')
-  # [[ "$pending_usd_balance" == "0" ]] || exit 1
+  settled_usd_balance=$(graphql_output '.data.withdrawalConfirm.withdrawal.account.balance.settled')
+  [[ "$settled_usd_balance" == "30000" ]] || exit 1
+  pending_usd_balance=$(graphql_output '.data.withdrawalConfirm.withdrawal.account.balance.pending')
+  [[ "$pending_usd_balance" == "0" ]] || exit 1
 
   # assert_accounts_balanced
 }
@@ -343,7 +348,7 @@ wait_for_approval() {
     '{
       input: {
         depositAccountId: $depositAccountId,
-        amount: 250000,
+        amount: 40000,
         reference: ("deposit-after-unfreeze-" + $date)
       }
     }'
@@ -360,7 +365,7 @@ wait_for_approval() {
     '{
       input: {
         depositAccountId: $depositAccountId,
-        amount: 125000,
+        amount: 20000,
         reference: ("withdraw-after-unfreeze-" + $date)
       }
     }'
@@ -369,25 +374,30 @@ wait_for_approval() {
 
   withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
   [[ "$withdrawal_id" != "null" ]] || exit 1
+
+  retry 20 1 wait_for_approval $withdrawal_id
+
+  variables=$(
+    jq -n \
+      --arg withdrawalId "$withdrawal_id" \
+    '{
+      input: {
+        withdrawalId: $withdrawalId
+      }
+    }'
+  )
+  exec_admin_graphql 'confirm-withdrawal' "$variables"
+
+  settled_usd_balance=$(graphql_output '.data.withdrawalConfirm.withdrawal.account.balance.settled')
+  [[ "$settled_usd_balance" == "50000" ]] || exit 1
+  pending_usd_balance=$(graphql_output '.data.withdrawalConfirm.withdrawal.account.balance.pending')
+  [[ "$pending_usd_balance" == "0" ]] || exit 1
 }
 
 @test "customer: can not close a deposit account with non-zero balance" {
   deposit_account_id=$(read_value 'deposit_account_id')
 
-  variables=$(
-    jq -n \
-      --arg depositAccountId "$deposit_account_id" \
-      --arg date "$(date +%s%N)" \
-    '{
-      input: {
-        depositAccountId: $depositAccountId,
-        amount: 250000,
-        reference: ("deposit-before-close-" + $date)
-      }
-    }'
-  )
-  exec_admin_graphql 'record-deposit' "$variables"
-
+  # close accont with settled balance 50000 (from previous test)
   variables=$(
     jq -n \
       --arg depositAccountId "$deposit_account_id" \
@@ -400,4 +410,108 @@ wait_for_approval() {
   exec_admin_graphql 'deposit-account-close' "$variables"
   errors=$(graphql_output '.errors')
   [[ "$errors" =~ "BalanceIsNotZero" ]] || exit 1
+}
+
+@test "customer: can not close a frozen account with zero balance" {
+  deposit_account_id=$(read_value 'deposit_account_id')
+
+  # withdraw the total balance (of 50000)
+  variables=$(
+    jq -n \
+      --arg depositAccountId "$deposit_account_id" \
+      --arg date "$(date +%s%N)" \
+    '{
+      input: {
+        depositAccountId: $depositAccountId,
+        amount: 50000,
+        reference: ("withdrawal-ref-" + $date)
+      }
+    }'
+  )
+  exec_admin_graphql 'initiate-withdrawal' "$variables"
+
+  withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
+  [[ "$withdrawal_id" != "null" ]] || exit 1
+
+  retry 20 1 wait_for_approval $withdrawal_id
+
+  variables=$(
+    jq -n \
+      --arg withdrawalId "$withdrawal_id" \
+    '{
+      input: {
+        withdrawalId: $withdrawalId
+      }
+    }'
+  )
+  exec_admin_graphql 'confirm-withdrawal' "$variables"
+
+  settled_usd_balance=$(graphql_output '.data.withdrawalConfirm.withdrawal.account.balance.settled')
+  [[ "$settled_usd_balance" == "0" ]] || exit 1
+  pending_usd_balance=$(graphql_output '.data.withdrawalConfirm.withdrawal.account.balance.pending')
+  [[ "$pending_usd_balance" == "0" ]] || exit 1
+
+  # freeze the empty account
+  variables=$(
+    jq -n \
+      --arg depositAccountId "$deposit_account_id" \
+    '{
+      input: {
+        depositAccountId: $depositAccountId
+      }
+    }'
+  )
+  exec_admin_graphql 'deposit-account-freeze' "$variables"
+
+  status=$(graphql_output '.data.depositAccountFreeze.account.status')
+  [[ "$status" == "FROZEN" ]] || exit 1
+
+  # close the frozen account
+  variables=$(
+    jq -n \
+      --arg depositAccountId "$deposit_account_id" \
+    '{
+      input: {
+        depositAccountId: $depositAccountId
+      }
+    }'
+  )
+  exec_admin_graphql 'deposit-account-close' "$variables"
+
+  errors=$(graphql_output '.errors')
+  [[ "$errors" =~ "CannotCloseFrozenAccount" ]] || exit 1
+}
+
+@test "customer: can close account" {
+  deposit_account_id=$(read_value 'deposit_account_id')
+
+  # unfreeze the frozen account
+  variables=$(
+    jq -n \
+      --arg depositAccountId "$deposit_account_id" \
+    '{
+      input: {
+        depositAccountId: $depositAccountId
+      }
+    }'
+  )
+  exec_admin_graphql 'deposit-account-unfreeze' "$variables"
+
+  status=$(graphql_output '.data.depositAccountUnfreeze.account.status')
+  [[ "$status" == "ACTIVE" ]] || exit 1
+
+  # close the unfrozen(active) account
+  variables=$(
+    jq -n \
+      --arg depositAccountId "$deposit_account_id" \
+    '{
+      input: {
+        depositAccountId: $depositAccountId
+      }
+    }'
+  )
+  exec_admin_graphql 'deposit-account-close' "$variables"
+
+  status=$(graphql_output '.data.depositAccountClose.account.status')
+  [[ "$status" == "CLOSED" ]] || exit 1
 }
