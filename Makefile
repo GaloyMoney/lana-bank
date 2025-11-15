@@ -131,6 +131,24 @@ dagster-stop:
 dagster-down:
 	docker compose -f docker-compose.dagster.yml down
 
+dagster-fmt:
+	@bash -c '\
+black_status=0; \
+black dagster/src || black_status=$$?; \
+isort_status=0; \
+isort dagster/src || isort_status=$$?; \
+if [[ $$black_status -ne 0 || $$isort_status -ne 0 ]]; then exit 1; fi \
+'
+
+dagster-fmt-check:
+	@bash -c '\
+black_status=0; \
+black --check --diff dagster/src || black_status=$$?; \
+isort_status=0; \
+isort --check-only dagster/src || isort_status=$$?; \
+if [[ $$black_status -ne 0 || $$isort_status -ne 0 ]]; then exit 1; fi \
+'
+
 # Meltano
 meltano-bitfinex-run:
 	meltano run tap-bitfinexapi target-bigquery

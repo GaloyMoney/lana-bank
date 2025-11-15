@@ -1,5 +1,6 @@
-import dagster as dg
 import pandas as pd
+
+import dagster as dg
 
 
 def iris_dataset_size(context: dg.AssetExecutionContext) -> None:
@@ -19,5 +20,6 @@ def iris_dataset_size(context: dg.AssetExecutionContext) -> None:
     row_count = df.shape[0]
     col_count = df.shape[1]
 
-    context.log.info(f"📊 Final result: Loaded {row_count} data points with {col_count} features")
-
+    context.log.info(
+        f"📊 Final result: Loaded {row_count} data points with {col_count} features"
+    )
