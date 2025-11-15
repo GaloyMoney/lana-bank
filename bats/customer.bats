@@ -397,7 +397,7 @@ wait_for_approval() {
 @test "customer: can not close a deposit account with non-zero balance" {
   deposit_account_id=$(read_value 'deposit_account_id')
 
-  # close accont with settled balance 50000 (from previous test)
+  # close account with settled balance 50000 (from previous test)
   variables=$(
     jq -n \
       --arg depositAccountId "$deposit_account_id" \
