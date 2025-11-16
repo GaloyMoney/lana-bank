@@ -594,6 +594,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5e764a1d40d510daf35e07be9eb06e75770908c27d411ee6c92109c9840eaaf7"
 
 [[package]]
+name = "bitfinex"
+version = "0.0.0"
+dependencies = [
+ "reqwest",
+ "rust_decimal",
+ "rust_decimal_macros",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.17",
+ "tracing",
+ "workspace-hack",
+]
+
+[[package]]
 name = "bitflags"
 version = "2.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1491,6 +1505,8 @@ name = "core-price"
 version = "0.0.0"
 dependencies = [
  "anyhow",
+ "async-trait",
+ "bitfinex",
  "cached",
  "core-money",
  "reqwest",

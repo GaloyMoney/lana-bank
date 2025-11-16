@@ -1,10 +1,13 @@
-pub mod error;
+#![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
+#![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
+
+mod error;
 mod response;
 
 use reqwest::Client as ReqwestClient;
 
-use error::BfxClientError;
-use response::{BfxErrorResponse, BtcUsdTick};
+pub use error::*;
+pub use response::*;
 
 const BASE_URL: &str = "https://api-pub.bitfinex.com/v2/";
 

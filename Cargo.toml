@@ -22,6 +22,7 @@ airflow = { path = "lib/airflow" }
 audit = { path = "lib/audit" }
 authz = { path = "lib/authz" }
 bitgo = { path = "lib/bitgo" }
+bitfinex = { path = "lib/bitfinex" }
 cloud-storage = { path = "lib/cloud-storage" }
 jwks-utils = { path = "lib/jwks-utils" }
 keycloak-client = { path = "lib/keycloak-client" }

@@ -2,7 +2,6 @@ use rust_decimal::Decimal;
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
-#[allow(dead_code)]
 pub struct BtcUsdTick {
     pub bid: Decimal,
     pub bid_size: Decimal,

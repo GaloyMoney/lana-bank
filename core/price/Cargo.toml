@@ -12,6 +12,8 @@ json-schema = ["dep:schemars", "core-money/json-schema"]
 core-money = { workspace = true }
 
 anyhow = { workspace = true }
+async-trait = { workspace = true }
+bitfinex = { workspace = true }
 cached = { workspace = true }
 reqwest = { workspace = true }
 rust_decimal = { workspace = true }
