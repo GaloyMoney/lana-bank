@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": " \n            SELECT dashboard_json\n            FROM dashboards\n            WHERE id = $1\n            ",
+  "query": " \n            SELECT dashboard_json\n            FROM core_dashboards\n            WHERE id = $1\n            ",
   "describe": {
     "columns": [
       {
@@ -18,5 +18,5 @@
       false
     ]
   },
-  "hash": "0d8570c822a08f48f7ce244fedc258858524d56c07da635cc4e42c6e81240c08"
+  "hash": "95b02b43ac67c2f1e137f060cb83c95d0e9c0cb2b9f05dcea53f3d92ba38560b"
 }

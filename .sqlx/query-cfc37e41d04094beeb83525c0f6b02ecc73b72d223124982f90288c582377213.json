@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO core_customer_activity (customer_id, last_activity_date)\n            VALUES ($1, $2)\n            ON CONFLICT (customer_id) \n            DO UPDATE SET \n                last_activity_date = GREATEST(COALESCE(core_customer_activity.last_activity_date, $2), $2)\n    \n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "cfc37e41d04094beeb83525c0f6b02ecc73b72d223124982f90288c582377213"
+}

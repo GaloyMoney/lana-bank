@@ -43,7 +43,7 @@ where
     )]
     pub async fn highest_known_sequence(&self) -> Result<EventSequence, sqlx::Error> {
         let row = sqlx::query!(
-            r#"SELECT COALESCE(MAX(sequence), 0) AS "max!" FROM persistent_outbox_events"#
+            r#"SELECT COALESCE(MAX(sequence), 0) AS "max!" FROM core_persistent_outbox_events"#
         )
         .fetch_one(&self.pool)
         .await?;
@@ -76,7 +76,7 @@ where
 
         let rows = sqlx::query!(
             r#"WITH new_events AS (
-                 INSERT INTO persistent_outbox_events (payload, tracing_context)
+                 INSERT INTO core_persistent_outbox_events (payload, tracing_context)
                  SELECT unnest($1::jsonb[]) AS payload, $2::jsonb AS tracing_context
                  RETURNING id AS "id: OutboxEventId", sequence AS "sequence: EventSequence", recorded_at
                 )
@@ -119,7 +119,7 @@ where
 
         let row = sqlx::query!(
             r#"
-            INSERT INTO ephemeral_outbox_events (event_type, payload, tracing_context)
+            INSERT INTO core_ephemeral_outbox_events (event_type, payload, tracing_context)
             VALUES ($1, $2, $3)
             ON CONFLICT (event_type) DO UPDATE
             SET payload = EXCLUDED.payload,
@@ -151,7 +151,7 @@ where
         let rows = sqlx::query!(
             r#"
             SELECT event_type, payload, tracing_context, recorded_at 
-            FROM ephemeral_outbox_events
+            FROM core_ephemeral_outbox_events
             ORDER BY recorded_at
             "#
         )
@@ -187,7 +187,7 @@ where
         let rows = sqlx::query!(
             r#"
             WITH max_sequence AS (
-                SELECT COALESCE(MAX(sequence), 0) AS max FROM persistent_outbox_events
+                SELECT COALESCE(MAX(sequence), 0) AS max FROM core_persistent_outbox_events
             )
             SELECT
               g.seq AS "sequence!: EventSequence",
@@ -200,7 +200,7 @@ where
                   LEAST($1 + $2, (SELECT max FROM max_sequence)))
                 AS g(seq)
             LEFT JOIN
-                persistent_outbox_events e ON g.seq = e.sequence
+                core_persistent_outbox_events e ON g.seq = e.sequence
             WHERE
                 g.seq > $1
             ORDER BY
@@ -237,7 +237,7 @@ where
             let rows = async {
                 sqlx::query!(
                     r#"
-                    INSERT INTO persistent_outbox_events (sequence)
+                    INSERT INTO core_persistent_outbox_events (sequence)
                     SELECT unnest($1::bigint[]) AS sequence
                     ON CONFLICT (sequence) DO UPDATE
                     SET sequence = EXCLUDED.sequence
