@@ -293,7 +293,7 @@ where
 
         Ok(self
             .fiscal_year()
-            .open_first_fiscal_year(sub, opened_as_of, chart.id, chart.account_set_id)
+            .open_first_fiscal_year(sub, opened_as_of, chart.id)
             .await?)
     }
 

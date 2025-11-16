@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
 use super::error::FiscalYearError;
-use crate::primitives::{CalaAccountSetId, ChartId, FiscalYearId};
+use crate::primitives::{ChartId, FiscalYearId};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -18,7 +18,6 @@ pub enum FiscalYearEvent {
         id: FiscalYearId,
         chart_id: ChartId,
         reference: String,
-        tracking_account_set_id: CalaAccountSetId,
         opened_as_of: chrono::NaiveDate,
     },
     MonthClosed {
@@ -33,7 +32,6 @@ pub struct FiscalYear {
     pub id: FiscalYearId,
     pub chart_id: ChartId,
     pub reference: String,
-    pub tracking_account_set_id: CalaAccountSetId,
     pub opened_as_of: NaiveDate,
 
     events: EntityEvents<FiscalYearEvent>,
@@ -98,7 +96,6 @@ impl TryFromEvents<FiscalYearEvent> for FiscalYear {
                     id,
                     chart_id,
                     reference,
-                    tracking_account_set_id,
                     opened_as_of,
                     ..
                 } => {
@@ -106,7 +103,6 @@ impl TryFromEvents<FiscalYearEvent> for FiscalYear {
                         .id(*id)
                         .chart_id(*chart_id)
                         .reference(reference.to_string())
-                        .tracking_account_set_id(*tracking_account_set_id)
                         .opened_as_of(*opened_as_of)
                 }
                 FiscalYearEvent::MonthClosed { .. } => {}
@@ -122,8 +118,6 @@ pub struct NewFiscalYear {
     pub id: FiscalYearId,
     #[builder(setter(into))]
     pub chart_id: ChartId,
-    #[builder(setter(into))]
-    pub tracking_account_set_id: CalaAccountSetId,
     pub opened_as_of: NaiveDate,
 }
 
@@ -145,7 +139,6 @@ impl IntoEvents<FiscalYearEvent> for NewFiscalYear {
                 id: self.id,
                 chart_id: self.chart_id,
                 reference: self.reference(),
-                tracking_account_set_id: self.tracking_account_set_id,
                 opened_as_of: self.opened_as_of,
             }],
         )
@@ -166,7 +159,6 @@ mod test {
             id: FiscalYearId::new(),
             chart_id: ChartId::new(),
             reference: "AC2025".to_string(),
-            tracking_account_set_id: CalaAccountSetId::new(),
             opened_as_of,
         }]
     }

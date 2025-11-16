@@ -11,7 +11,7 @@ use es_entity::Idempotent;
 use crate::{
     FiscalYearId,
     chart_of_accounts::ChartOfAccounts,
-    primitives::{CalaAccountSetId, ChartId, CoreAccountingAction, CoreAccountingObject},
+    primitives::{ChartId, CoreAccountingAction, CoreAccountingObject},
 };
 
 pub use entity::FiscalYear;
@@ -71,10 +71,8 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         opened_as_of: impl Into<chrono::NaiveDate> + std::fmt::Debug,
         chart_id: ChartId,
-        tracking_account_set_id: impl Into<CalaAccountSetId> + std::fmt::Debug,
     ) -> Result<FiscalYear, FiscalYearError> {
         let opened_as_of = opened_as_of.into();
-        let tracking_account_set_id = tracking_account_set_id.into();
 
         self.authz
             .enforce_permission(
@@ -92,7 +90,6 @@ where
         let new_fiscal_year = NewFiscalYear::builder()
             .id(FiscalYearId::new())
             .chart_id(chart_id)
-            .tracking_account_set_id(tracking_account_set_id)
             .opened_as_of(opened_as_of)
             .build()
             .expect("Could not build new FiscalYear");
