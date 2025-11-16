@@ -282,11 +282,11 @@ where
     }
 
     #[instrument(
-        name = "core_accounting.chart_of_accounts.close_account_set_as_of_in_op",
+        name = "core_accounting.chart_of_accounts.close_account_set_as_of",
         skip(self, op),
         err
     )]
-    pub async fn close_account_set_as_of_in_op(
+    pub async fn close_account_set_as_of(
         &self,
         mut op: es_entity::DbOp<'_>,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -302,8 +302,6 @@ where
             .await?;
 
         let mut chart = self.find_by_id(chart_id).await?;
-        // TODO: Add back closing event to Chart entity.
-
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
         self.chart_ledger

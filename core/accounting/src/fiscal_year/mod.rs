@@ -6,6 +6,7 @@ use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use es_entity::Idempotent;
 
 use crate::{
     FiscalYearId,
@@ -102,7 +103,7 @@ where
             .pred_opt()
             .expect("Date was first possible NaiveDate type value");
         self.chart_of_accounts
-            .close_account_set_as_of_in_op(op, sub, chart_id, close_ledger_as_of)
+            .close_account_set_as_of(op, sub, chart_id, close_ledger_as_of)
             .await?;
 
         Ok(fiscal_year)
@@ -121,13 +122,19 @@ where
                 CoreAccountingAction::FISCAL_YEAR_CLOSE,
             )
             .await?;
+        let now = chrono::Utc::now();
+        let mut latest_year = self.get_current_by_chart_id(chart_id).await?;
+        let closed_as_of_date =
+            if let Idempotent::Executed(date) = latest_year.close_last_month(now)? {
+                date
+            } else {
+                return Err(FiscalYearError::FiscalYearMonthAlreadyClosed);
+            };
 
-        let closed_as_of = chrono::Utc::now().date_naive();
-        let latest_year = self.get_current_by_chart_id(chart_id).await?;
-
-        let op = self.repo.begin_op().await?;
+        let mut op = self.repo.begin_op().await?;
+        self.repo.update_in_op(&mut op, &mut latest_year).await?;
         self.chart_of_accounts
-            .close_account_set_as_of_in_op(op, sub, chart_id, closed_as_of)
+            .close_account_set_as_of(op, sub, chart_id, closed_as_of_date)
             .await?;
 
         Ok(latest_year)
