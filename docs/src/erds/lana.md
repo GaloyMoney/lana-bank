@@ -294,7 +294,7 @@ erDiagram
         TIMESTAMPTZ modified_at
     }
 
-    sumsub_callbacks {
+    core_sumsub_callbacks {
         BIGSERIAL id PK
         UUID customer_id
         JSONB content
@@ -342,5 +342,5 @@ erDiagram
     documents ||--o{ document_events : "has"
     jobs ||--o{ job_events : "has"
     jobs ||--|| job_executions : "has"
-    customers ||--o{ sumsub_callbacks : "has"
+    customers ||--o{ core_sumsub_callbacks : "has"
 ```

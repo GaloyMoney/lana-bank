@@ -33,7 +33,7 @@ class PostgresClient:
             query = """
                 with customer_ids as (
                     select distinct customer_id
-                    from sumsub_callbacks
+                    from core_sumsub_callbacks
                     where recorded_at > %s
                     and content->>'type' in ('applicantReviewed', 'applicantPersonalInfoChanged')
                 )

@@ -581,13 +581,13 @@ CREATE TABLE core_dashboards (
   modified_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE sumsub_callbacks (
+CREATE TABLE core_sumsub_callbacks (
   id BIGSERIAL PRIMARY KEY,
   customer_id UUID NOT NULL, -- not enforced to get all callbacks
   content JSONB NOT NULL,
   recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-CREATE INDEX idx_sumsub_callbacks_customer_id ON sumsub_callbacks(customer_id);
+CREATE INDEX idx_core_sumsub_callbacks_customer_id ON core_sumsub_callbacks(customer_id);
 
 CREATE TABLE core_persistent_outbox_events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
