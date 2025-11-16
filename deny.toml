@@ -272,6 +272,11 @@ expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
+crate = "bitfinex"
+expression = "LicenseRef-BUSL-1.1"
+license-files = []
+
+[[licenses.clarify]]
 crate = "lana-app"
 expression = "LicenseRef-BUSL-1.1"
 license-files = []

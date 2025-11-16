@@ -5,6 +5,7 @@ mod error;
 mod response;
 
 use reqwest::Client as ReqwestClient;
+use tracing::instrument;
 
 pub use error::*;
 pub use response::*;
@@ -26,6 +27,7 @@ impl BfxClient {
         }
     }
 
+    #[instrument(name = "bitfinex.btc_usd_tick", skip(self), err)]
     pub async fn btc_usd_tick(&self) -> Result<BtcUsdTick, BfxClientError> {
         let url = format!("{BASE_URL}ticker/tBTCUSD");
         let response = self
@@ -39,6 +41,7 @@ impl BfxClient {
         Ok(tick)
     }
 
+    #[instrument(name = "bitfinex.extract_response_data", skip(response), err)]
     async fn extract_response_data<T: serde::de::DeserializeOwned>(
         response: reqwest::Response,
     ) -> Result<T, BfxClientError> {
