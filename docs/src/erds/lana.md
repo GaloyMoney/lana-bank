@@ -243,19 +243,6 @@ erDiagram
         TIMESTAMPTZ recorded_at
     }
 
-    reports {
-        UUID id PK
-        TIMESTAMPTZ created_at
-    }
-
-    report_events {
-        UUID id FK
-        INT sequence
-        VARCHAR event_type
-        JSONB event
-        TIMESTAMPTZ recorded_at
-    }
-
     jobs {
         UUID id PK
         BOOLEAN unique_per_type
@@ -353,7 +340,6 @@ erDiagram
     core_interest_accruals ||--o{ core_interest_accrual_events : "has"
     customers ||--o{ documents : "has"
     documents ||--o{ document_events : "has"
-    reports ||--o{ report_events : "has"
     jobs ||--o{ job_events : "has"
     jobs ||--|| job_executions : "has"
     customers ||--o{ sumsub_callbacks : "has"

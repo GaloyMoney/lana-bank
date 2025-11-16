@@ -522,21 +522,6 @@ CREATE TABLE core_report_run_events (
   UNIQUE(id, sequence)
 );
 
-CREATE TABLE reports (
-  id UUID PRIMARY KEY,
-  created_at TIMESTAMPTZ NOT NULL
-);
-
-CREATE TABLE report_events (
-  id UUID NOT NULL REFERENCES reports(id),
-  sequence INT NOT NULL,
-  event_type VARCHAR NOT NULL,
-  event JSONB NOT NULL,
-  context JSONB DEFAULT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL,
-  UNIQUE(id, sequence)
-);
-
 CREATE TABLE core_manual_transactions (
   id UUID PRIMARY KEY,
   reference VARCHAR NOT NULL UNIQUE,
