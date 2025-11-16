@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            INSERT INTO sumsub_callbacks (customer_id, content)\n            VALUES ($1, $2)\n            RETURNING id\n            ",
+  "query": "\n            INSERT INTO core_sumsub_callbacks (customer_id, content)\n            VALUES ($1, $2)\n            RETURNING id\n            ",
   "describe": {
     "columns": [
       {
@@ -19,5 +19,5 @@
       false
     ]
   },
-  "hash": "357d1ac1b74f72f5511ae80feaa213021fa65212557a182f90a360355c421452"
+  "hash": "a432bdfaa6b0ab9fdd47669f77437526ca35ba8d73053f78408c85c532a8e83c"
 }
