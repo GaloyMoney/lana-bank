@@ -10,7 +10,7 @@ use core_custody::CustodianId;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
 use outbox::OutboxEventMarker;
-use tracing::instrument;
+use tracing::{Span, instrument};
 
 use crate::{
     event::CoreCreditEvent, pending_credit_facility::NewPendingCreditFacility, primitives::*,
@@ -116,8 +116,7 @@ where
         approved: bool,
     ) -> Result<CreditFacilityProposal, CreditFacilityProposalError> {
         let id = credit_facility_proposal_id.into();
-        tracing::Span::current()
-            .record("credit_facility_proposal_id", tracing::field::display(&id));
+        Span::current().record("credit_facility_proposal_id", tracing::field::display(&id));
 
         self.authz
             .evaluate_permission(
@@ -164,8 +163,7 @@ where
         approved: bool,
     ) -> Result<ProposalApprovalOutcome, CreditFacilityProposalError> {
         let id = credit_facility_proposal_id.into();
-        tracing::Span::current()
-            .record("credit_facility_proposal_id", tracing::field::display(&id));
+        Span::current().record("credit_facility_proposal_id", tracing::field::display(&id));
 
         let mut proposal = self.repo.find_by_id(id).await?;
         match proposal.conclude_approval_process(approved)? {
@@ -197,7 +195,7 @@ where
 
     #[instrument(
         name = "credit.credit_facility_proposals.find_by_id",
-        skip(self, sub,),
+        skip(self, sub),
         err
     )]
     pub async fn find_by_id(
@@ -206,8 +204,7 @@ where
         credit_facility_proposal_id: impl Into<CreditFacilityProposalId> + std::fmt::Debug,
     ) -> Result<Option<CreditFacilityProposal>, CreditFacilityProposalError> {
         let id = credit_facility_proposal_id.into();
-        tracing::Span::current()
-            .record("credit_facility_proposal_id", tracing::field::display(&id));
+        Span::current().record("credit_facility_proposal_id", tracing::field::display(&id));
 
         self.authz
             .enforce_permission(
