@@ -43,12 +43,17 @@ where
             .daily
             .timezone
             .parse()
-            .map_err(|_| TimeEventsError::InvalidTimezone(self.config.daily.timezone.clone()))
+            .map_err(|_| TimeEventsError::InvalidTimezone {
+                timezone: self.config.daily.timezone.clone(),
+            })
     }
 
     fn parse_closing_time(&self) -> Result<NaiveTime, TimeEventsError> {
-        NaiveTime::parse_from_str(&self.config.daily.closing_time, "%H:%M:%S")
-            .map_err(|_| TimeEventsError::InvalidTimeFormat(self.config.daily.closing_time.clone()))
+        NaiveTime::parse_from_str(&self.config.daily.closing_time, "%H:%M:%S").map_err(|_| {
+            TimeEventsError::InvalidTimeFormat {
+                time_format: self.config.daily.closing_time.clone(),
+            }
+        })
     }
 
     fn calculate_next_closing(&self, now: DateTime<Utc>) -> Result<DateTime<Utc>, TimeEventsError> {
@@ -59,11 +64,8 @@ where
         let today_closing = tz
             .from_local_datetime(&now_in_tz.date_naive().and_time(closing_time))
             .single()
-            .ok_or_else(|| {
-                TimeEventsError::InvalidTimeFormat(format!(
-                    "Could not create datetime for closing time: {}",
-                    closing_time
-                ))
+            .ok_or_else(|| TimeEventsError::InvalidClosingDateTime {
+                closing_time: closing_time.to_string(),
             })?;
 
         let next_closing = if now_in_tz < today_closing {
@@ -72,11 +74,8 @@ where
             let tomorrow = now_in_tz.date_naive() + chrono::Duration::days(1);
             tz.from_local_datetime(&tomorrow.and_time(closing_time))
                 .single()
-                .ok_or_else(|| {
-                    TimeEventsError::InvalidTimeFormat(format!(
-                        "Could not create datetime for closing time: {}",
-                        closing_time
-                    ))
+                .ok_or_else(|| TimeEventsError::InvalidClosingDateTime {
+                    closing_time: closing_time.to_string(),
                 })?
         };
 
@@ -187,12 +186,16 @@ mod tests {
                 .daily
                 .timezone
                 .parse()
-                .map_err(|_| TimeEventsError::InvalidTimezone(self.config.daily.timezone.clone()))
+                .map_err(|_| TimeEventsError::InvalidTimezone {
+                    timezone: self.config.daily.timezone.clone(),
+                })
         }
 
         fn parse_closing_time(&self) -> Result<NaiveTime, TimeEventsError> {
             NaiveTime::parse_from_str(&self.config.daily.closing_time, "%H:%M:%S").map_err(|_| {
-                TimeEventsError::InvalidTimeFormat(self.config.daily.closing_time.clone())
+                TimeEventsError::InvalidTimeFormat {
+                    time_format: self.config.daily.closing_time.clone(),
+                }
             })
         }
 
@@ -207,11 +210,8 @@ mod tests {
             let today_closing = tz
                 .from_local_datetime(&now_in_tz.date_naive().and_time(closing_time))
                 .single()
-                .ok_or_else(|| {
-                    TimeEventsError::InvalidTimeFormat(format!(
-                        "Could not create datetime for closing time: {}",
-                        closing_time
-                    ))
+                .ok_or_else(|| TimeEventsError::InvalidClosingDateTime {
+                    closing_time: closing_time.to_string(),
                 })?;
 
             let next_closing = if now_in_tz < today_closing {
@@ -220,11 +220,8 @@ mod tests {
                 let tomorrow = now_in_tz.date_naive() + chrono::Duration::days(1);
                 tz.from_local_datetime(&tomorrow.and_time(closing_time))
                     .single()
-                    .ok_or_else(|| {
-                        TimeEventsError::InvalidTimeFormat(format!(
-                            "Could not create datetime for closing time: {}",
-                            closing_time
-                        ))
+                    .ok_or_else(|| TimeEventsError::InvalidClosingDateTime {
+                        closing_time: closing_time.to_string(),
                     })?
             };
 
@@ -395,7 +392,7 @@ mod tests {
         assert!(result.is_err());
         assert!(matches!(
             result.unwrap_err(),
-            TimeEventsError::InvalidTimezone(_)
+            TimeEventsError::InvalidTimezone { .. }
         ));
     }
 
@@ -409,7 +406,7 @@ mod tests {
         assert!(result.is_err());
         assert!(matches!(
             result.unwrap_err(),
-            TimeEventsError::InvalidTimeFormat(_)
+            TimeEventsError::InvalidTimeFormat { .. }
         ));
     }
 
@@ -423,7 +420,7 @@ mod tests {
         assert!(result.is_err());
         assert!(matches!(
             result.unwrap_err(),
-            TimeEventsError::InvalidTimeFormat(_)
+            TimeEventsError::InvalidTimeFormat { .. }
         ));
     }
 
