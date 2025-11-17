@@ -25,6 +25,19 @@ where
         }
     }
 
+    pub fn outbox(&self) -> &Outbox<E> {
+        &self.outbox
+    }
+
+    pub fn config(&self) -> &TimeEventsConfig {
+        &self.config
+    }
+}
+
+impl<E> DailyClosingBroadcaster<E>
+where
+    E: OutboxEventMarker<TimeEvent> + Send + Sync + 'static,
+{
     fn parse_timezone(&self) -> Result<Tz, TimeEventsError> {
         self.config
             .daily
