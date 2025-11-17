@@ -1,4 +1,5 @@
 use cala_ledger::{account::NewAccount, account_set::NewAccountSet};
+use chrono::NaiveDate;
 use derive_builder::Builder;
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
@@ -21,6 +22,10 @@ pub enum ChartEvent {
         account_set_id: CalaAccountSetId,
         name: String,
         reference: String,
+    },
+    AccountSetClosedAsOf {
+        closed_as_of: NaiveDate,
+        member_account_set_id: CalaAccountSetId,
     },
 }
 
@@ -276,6 +281,17 @@ impl Chart {
     pub fn chart(&self) -> tree::ChartTree {
         tree::project_from_nodes(self.id, &self.name, self.chart_nodes.iter_persisted())
     }
+
+    pub fn account_set_closed_as_of(
+        &mut self,
+        account_set_id: CalaAccountSetId,
+        closed_as_of: NaiveDate,
+    ) {
+        self.events.push(ChartEvent::AccountSetClosedAsOf {
+            member_account_set_id: account_set_id,
+            closed_as_of,
+        });
+    }
 }
 
 impl TryFromEvents<ChartEvent> for Chart {
@@ -297,6 +313,7 @@ impl TryFromEvents<ChartEvent> for Chart {
                         .reference(reference.to_string())
                         .name(name.to_string());
                 }
+                ChartEvent::AccountSetClosedAsOf { .. } => {}
             }
         }
 

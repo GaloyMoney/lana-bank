@@ -6,6 +6,8 @@ CREATE TABLE core_chart_events_rollup (
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
   account_set_id UUID,
+  closed_as_of VARCHAR,
+  member_account_set_id UUID,
   name VARCHAR,
   reference VARCHAR
 ,
@@ -30,7 +32,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized') THEN
+  IF event_type NOT IN ('initialized', 'account_set_closed_as_of') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -43,11 +45,15 @@ BEGIN
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
     new_row.account_set_id := (NEW.event ->> 'account_set_id')::UUID;
+    new_row.closed_as_of := (NEW.event ->> 'closed_as_of');
+    new_row.member_account_set_id := (NEW.event ->> 'member_account_set_id')::UUID;
     new_row.name := (NEW.event ->> 'name');
     new_row.reference := (NEW.event ->> 'reference');
   ELSE
     -- Default all fields to current values
     new_row.account_set_id := current_row.account_set_id;
+    new_row.closed_as_of := current_row.closed_as_of;
+    new_row.member_account_set_id := current_row.member_account_set_id;
     new_row.name := current_row.name;
     new_row.reference := current_row.reference;
   END IF;
@@ -58,6 +64,9 @@ BEGIN
       new_row.account_set_id := (NEW.event ->> 'account_set_id')::UUID;
       new_row.name := (NEW.event ->> 'name');
       new_row.reference := (NEW.event ->> 'reference');
+    WHEN 'account_set_closed_as_of' THEN
+      new_row.closed_as_of := (NEW.event ->> 'closed_as_of');
+      new_row.member_account_set_id := (NEW.event ->> 'member_account_set_id')::UUID;
   END CASE;
 
   INSERT INTO core_chart_events_rollup (
@@ -66,6 +75,8 @@ BEGIN
     created_at,
     modified_at,
     account_set_id,
+    closed_as_of,
+    member_account_set_id,
     name,
     reference
   )
@@ -75,6 +86,8 @@ BEGIN
     new_row.created_at,
     new_row.modified_at,
     new_row.account_set_id,
+    new_row.closed_as_of,
+    new_row.member_account_set_id,
     new_row.name,
     new_row.reference
   );

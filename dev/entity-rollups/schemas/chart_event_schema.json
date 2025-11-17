@@ -30,6 +30,28 @@
         "reference"
       ],
       "type": "object"
+    },
+    {
+      "properties": {
+        "closed_as_of": {
+          "format": "date",
+          "type": "string"
+        },
+        "member_account_set_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "const": "account_set_closed_as_of",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "closed_as_of",
+        "member_account_set_id"
+      ],
+      "type": "object"
     }
   ],
   "title": "ChartEvent"
