@@ -134,8 +134,17 @@ where
 
                         // Convert to configured timezone to get the correct date
                         let closing_date = next_closing.with_timezone(&tz).date_naive();
-                        if let Err(e) = self.publish_daily_closing(closing_date).await {
-                            error!(error = %e, "Failed to publish DailyClosing event");
+
+                        loop {
+                            match self.publish_daily_closing(closing_date).await {
+                                Ok(()) => {
+                                    break;
+                                }
+                                Err(e) => {
+                                    error!(error = %e, "Failed to publish DailyClosing event");
+                                    tokio::time::sleep(tokio::time::Duration::from_secs(30)).await;
+                                }
+                            }
                         }
                     } else {
                         error!("Duration calculation resulted in negative value, waiting 1 minute");
