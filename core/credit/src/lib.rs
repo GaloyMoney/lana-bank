@@ -570,8 +570,11 @@ where
             .find_account_by_account_holder_without_audit(customer.id)
             .await?;
 
-        if !deposit_account.is_active() {
-            return Err(CoreDepositError::DepositAccountNotActive.into());
+        if deposit_account.is_closed() {
+            return Err(CoreDepositError::DepositAccountClosed.into());
+        }
+        if deposit_account.is_frozen() {
+            return Err(CoreDepositError::DepositAccountFrozen.into());
         }
 
         let proposal_id = CreditFacilityId::new();
@@ -677,8 +680,11 @@ where
             .deposit
             .find_account_by_account_holder_without_audit(customer_id)
             .await?;
-        if !account.is_active() {
-            return Err(CoreDepositError::DepositAccountNotActive.into());
+        if account.is_closed() {
+            return Err(CoreDepositError::DepositAccountClosed.into());
+        }
+        if account.is_frozen() {
+            return Err(CoreDepositError::DepositAccountFrozen.into());
         }
 
         let now = crate::time::now();
@@ -891,8 +897,11 @@ where
             .deposit
             .find_account_by_account_holder_without_audit(credit_facility.customer_id)
             .await?;
-        if !account.is_active() {
-            return Err(CoreDepositError::DepositAccountNotActive.into());
+        if account.is_closed() {
+            return Err(CoreDepositError::DepositAccountClosed.into());
+        }
+        if account.is_frozen() {
+            return Err(CoreDepositError::DepositAccountFrozen.into());
         }
 
         let mut db = self.facilities.begin_op().await?;
@@ -955,8 +964,11 @@ where
             .deposit
             .find_account_by_account_holder_without_audit(credit_facility.customer_id)
             .await?;
-        if !account.is_active() {
-            return Err(CoreDepositError::DepositAccountNotActive.into());
+        if account.is_closed() {
+            return Err(CoreDepositError::DepositAccountClosed.into());
+        }
+        if account.is_frozen() {
+            return Err(CoreDepositError::DepositAccountFrozen.into());
         }
 
         let mut db = self.facilities.begin_op().await?;
