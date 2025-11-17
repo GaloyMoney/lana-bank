@@ -149,7 +149,7 @@ where
         name = "update_customer_activity_status.process_message",
         parent = None,
         skip(self, event),
-        fields(event_type = ?event.event_type, handled = false, date = tracing::field::Empty)
+        fields(event_type = ?event.event_type, handled = false, date = tracing::field::Empty, closing_timestamp = tracing::field::Empty)
     )]
     async fn process_message(
         &self,
@@ -159,9 +159,18 @@ where
             event.inject_trace_parent();
             Span::current().record("date", date.to_string());
             Span::current().record("handled", true);
-            let now = crate::time::now();
+
+            // Use the end of the closing day as the reference timestamp
+            // This ensures consistent threshold calculations even if the job is restarted
+            let closing_timestamp = date
+                .and_hms_opt(23, 59, 59)
+                .ok_or("Invalid date for closing timestamp")?
+                .and_utc();
+
+            Span::current().record("closing_timestamp", closing_timestamp.to_rfc3339());
+
             self.customers
-                .perform_customer_activity_status_update(now)
+                .perform_customer_activity_status_update(closing_timestamp)
                 .await?;
         }
         Ok(())
