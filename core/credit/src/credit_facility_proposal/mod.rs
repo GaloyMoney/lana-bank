@@ -106,7 +106,8 @@ where
 
     #[instrument(
         name = "credit.credit_facility_proposals.conclude_customer_approval",
-        skip(self),
+        skip(self, credit_facility_proposal_id),
+        fields(credit_facility_proposal_id = tracing::field::Empty),
         err
     )]
     pub async fn conclude_customer_approval(
@@ -154,7 +155,8 @@ where
 
     #[instrument(
         name = "credit.credit_facility_proposals.approve_in_op",
-        skip(self, db)
+        skip(self, db, credit_facility_proposal_id),
+        fields(credit_facility_proposal_id = tracing::field::Empty),
     )]
     pub(super) async fn approve_in_op(
         &self,
@@ -195,7 +197,8 @@ where
 
     #[instrument(
         name = "credit.credit_facility_proposals.find_by_id",
-        skip(self, sub),
+        skip(self, sub, credit_facility_proposal_id),
+        fields(credit_facility_proposal_id = tracing::field::Empty),
         err
     )]
     pub async fn find_by_id(
