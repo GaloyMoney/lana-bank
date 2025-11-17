@@ -7,8 +7,8 @@ mod response;
 use reqwest::Client as ReqwestClient;
 use tracing::instrument;
 
-pub use error::*;
-pub use response::*;
+pub use error::BfxClientError;
+use response::*;
 
 const BASE_URL: &str = "https://api-pub.bitfinex.com/v2/";
 
