@@ -1,16 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct TimeEventsConfig {
+    #[serde(default)]
     pub daily: DailyConfig,
-}
-
-impl Default for TimeEventsConfig {
-    fn default() -> Self {
-        Self {
-            daily: DailyConfig::default(),
-        }
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

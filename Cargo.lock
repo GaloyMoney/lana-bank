@@ -1663,22 +1663,15 @@ name = "core-time-events"
 version = "0.0.0"
 dependencies = [
  "anyhow",
- "async-graphql",
- "audit",
- "authz",
  "chrono",
  "chrono-tz",
- "derive_builder",
- "es-entity",
  "outbox",
- "schemars 1.1.0",
  "serde",
  "sqlx",
  "strum 0.27.2",
  "thiserror 2.0.17",
  "tokio",
  "tracing",
- "uuid",
  "workspace-hack",
 ]
 
@@ -1837,7 +1830,6 @@ dependencies = [
  "lana-events",
  "outbox",
  "serde",
- "serde_with",
  "sim-time",
  "thiserror 2.0.17",
  "tracing",

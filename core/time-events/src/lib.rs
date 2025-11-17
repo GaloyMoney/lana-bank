@@ -17,11 +17,6 @@ pub use error::TimeEventsError;
 pub use event::TimeEvent;
 pub use primitives::*;
 
-#[cfg(feature = "json-schema")]
-pub mod event_schema {
-    pub use crate::event::TimeEvent;
-}
-
 pub struct TimeEvents<E>
 where
     E: OutboxEventMarker<TimeEvent>,
