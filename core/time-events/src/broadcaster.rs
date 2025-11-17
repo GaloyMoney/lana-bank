@@ -2,6 +2,9 @@ use chrono::{DateTime, NaiveTime, TimeZone, Utc};
 use chrono_tz::Tz;
 use tracing::{error, info, instrument};
 
+#[cfg(test)]
+use chrono::{Datelike, Timelike};
+
 use outbox::{EphemeralEventType, Outbox, OutboxEventMarker};
 
 use crate::{config::TimeEventsConfig, error::TimeEventsError, event::TimeEvent};
@@ -61,22 +64,43 @@ where
         let closing_time = self.parse_closing_time()?;
 
         let now_in_tz = now.with_timezone(&tz);
-        let today_closing = tz
-            .from_local_datetime(&now_in_tz.date_naive().and_time(closing_time))
-            .single()
-            .ok_or_else(|| TimeEventsError::InvalidClosingDateTime {
-                closing_time: closing_time.to_string(),
-            })?;
+
+        // Handle DST transitions when resolving local datetime
+        let today_closing =
+            match tz.from_local_datetime(&now_in_tz.date_naive().and_time(closing_time)) {
+                chrono::LocalResult::Single(dt) => dt,
+                // During "spring forward" gap, use the time after the gap
+                chrono::LocalResult::None => {
+                    // The time doesn't exist, so we add the duration to find the next valid time
+                    let naive_dt = now_in_tz.date_naive().and_time(closing_time);
+                    tz.from_local_datetime(&(naive_dt + chrono::Duration::hours(1)))
+                        .earliest()
+                        .ok_or_else(|| TimeEventsError::InvalidClosingDateTime {
+                            closing_time: closing_time.to_string(),
+                        })?
+                }
+                // During "fall back" overlap, use the earlier occurrence (first pass)
+                chrono::LocalResult::Ambiguous(earlier, _later) => earlier,
+            };
 
         let next_closing = if now_in_tz < today_closing {
             today_closing
         } else {
             let tomorrow = now_in_tz.date_naive() + chrono::Duration::days(1);
-            tz.from_local_datetime(&tomorrow.and_time(closing_time))
-                .single()
-                .ok_or_else(|| TimeEventsError::InvalidClosingDateTime {
-                    closing_time: closing_time.to_string(),
-                })?
+            match tz.from_local_datetime(&tomorrow.and_time(closing_time)) {
+                chrono::LocalResult::Single(dt) => dt,
+                // During "spring forward" gap, use the time after the gap
+                chrono::LocalResult::None => {
+                    let naive_dt = tomorrow.and_time(closing_time);
+                    tz.from_local_datetime(&(naive_dt + chrono::Duration::hours(1)))
+                        .earliest()
+                        .ok_or_else(|| TimeEventsError::InvalidClosingDateTime {
+                            closing_time: closing_time.to_string(),
+                        })?
+                }
+                // During "fall back" overlap, use the earlier occurrence (first pass)
+                chrono::LocalResult::Ambiguous(earlier, _later) => earlier,
+            }
         };
 
         Ok(next_closing.with_timezone(&Utc))
@@ -207,22 +231,42 @@ mod tests {
             let closing_time = self.parse_closing_time()?;
 
             let now_in_tz = now.with_timezone(&tz);
-            let today_closing = tz
-                .from_local_datetime(&now_in_tz.date_naive().and_time(closing_time))
-                .single()
-                .ok_or_else(|| TimeEventsError::InvalidClosingDateTime {
-                    closing_time: closing_time.to_string(),
-                })?;
+
+            // Handle DST transitions when resolving local datetime
+            let today_closing =
+                match tz.from_local_datetime(&now_in_tz.date_naive().and_time(closing_time)) {
+                    chrono::LocalResult::Single(dt) => dt,
+                    // During "spring forward" gap, use the time after the gap
+                    chrono::LocalResult::None => {
+                        let naive_dt = now_in_tz.date_naive().and_time(closing_time);
+                        tz.from_local_datetime(&(naive_dt + chrono::Duration::hours(1)))
+                            .earliest()
+                            .ok_or_else(|| TimeEventsError::InvalidClosingDateTime {
+                                closing_time: closing_time.to_string(),
+                            })?
+                    }
+                    // During "fall back" overlap, use the earlier occurrence (first pass)
+                    chrono::LocalResult::Ambiguous(earlier, _later) => earlier,
+                };
 
             let next_closing = if now_in_tz < today_closing {
                 today_closing
             } else {
                 let tomorrow = now_in_tz.date_naive() + chrono::Duration::days(1);
-                tz.from_local_datetime(&tomorrow.and_time(closing_time))
-                    .single()
-                    .ok_or_else(|| TimeEventsError::InvalidClosingDateTime {
-                        closing_time: closing_time.to_string(),
-                    })?
+                match tz.from_local_datetime(&tomorrow.and_time(closing_time)) {
+                    chrono::LocalResult::Single(dt) => dt,
+                    // During "spring forward" gap, use the time after the gap
+                    chrono::LocalResult::None => {
+                        let naive_dt = tomorrow.and_time(closing_time);
+                        tz.from_local_datetime(&(naive_dt + chrono::Duration::hours(1)))
+                            .earliest()
+                            .ok_or_else(|| TimeEventsError::InvalidClosingDateTime {
+                                closing_time: closing_time.to_string(),
+                            })?
+                    }
+                    // During "fall back" overlap, use the earlier occurrence (first pass)
+                    chrono::LocalResult::Ambiguous(earlier, _later) => earlier,
+                }
             };
 
             Ok(next_closing.with_timezone(&Utc))
@@ -230,7 +274,7 @@ mod tests {
     }
 
     #[test]
-    fn test_next_closing_before_closing_time_utc() {
+    fn test_before_closing_time() {
         let broadcaster = TestBroadcaster::new("23:59:00", "UTC");
 
         // Current time: 2024-01-15 10:00:00 UTC (before closing)
@@ -251,7 +295,7 @@ mod tests {
     }
 
     #[test]
-    fn test_next_closing_after_closing_time_utc() {
+    fn test_after_closing_time() {
         let broadcaster = TestBroadcaster::new("23:59:00", "UTC");
 
         // Current time: 2024-01-15 23:59:01 UTC (after closing)
@@ -272,7 +316,7 @@ mod tests {
     }
 
     #[test]
-    fn test_next_closing_exactly_at_closing_time() {
+    fn test_exactly_at_closing_time() {
         let broadcaster = TestBroadcaster::new("23:59:00", "UTC");
 
         // Current time: 2024-01-15 23:59:00 UTC (exactly at closing)
@@ -293,7 +337,7 @@ mod tests {
     }
 
     #[test]
-    fn test_next_closing_different_timezone_america_new_york() {
+    fn test_timezone_america_new_york() {
         let broadcaster = TestBroadcaster::new("17:00:00", "America/New_York");
 
         // Current time: 2024-01-15 20:00:00 UTC (15:00 EST, before 17:00 EST closing)
@@ -314,7 +358,7 @@ mod tests {
     }
 
     #[test]
-    fn test_next_closing_different_timezone_asia_tokyo() {
+    fn test_timezone_asia_tokyo() {
         let broadcaster = TestBroadcaster::new("18:00:00", "Asia/Tokyo");
 
         // Current time: 2024-01-15 08:00:00 UTC (17:00 JST, before 18:00 JST closing)
@@ -329,57 +373,44 @@ mod tests {
     }
 
     #[test]
-    fn test_next_closing_midnight_closing() {
-        let broadcaster = TestBroadcaster::new("00:00:00", "UTC");
-
-        // Current time: 2024-01-15 23:00:00 UTC (before midnight)
+    fn test_edge_case_closing_times() {
+        // Test midnight closing (before)
         let now = Utc
             .with_ymd_and_hms(2024, 1, 15, 23, 0, 0)
             .single()
             .unwrap();
+        let next = TestBroadcaster::new("00:00:00", "UTC")
+            .calculate_next_closing(now)
+            .unwrap();
+        assert_eq!(
+            next,
+            Utc.with_ymd_and_hms(2024, 1, 16, 0, 0, 0).single().unwrap()
+        );
 
-        let next_closing = broadcaster.calculate_next_closing(now).unwrap();
-
-        // Expected: 2024-01-16 00:00:00 UTC (next midnight)
-        let expected = Utc.with_ymd_and_hms(2024, 1, 16, 0, 0, 0).single().unwrap();
-
-        assert_eq!(next_closing, expected);
-    }
-
-    #[test]
-    fn test_next_closing_after_midnight() {
-        let broadcaster = TestBroadcaster::new("00:00:00", "UTC");
-
-        // Current time: 2024-01-16 00:00:01 UTC (just after midnight)
+        // Test midnight closing (after)
         let now = Utc.with_ymd_and_hms(2024, 1, 16, 0, 0, 1).single().unwrap();
+        let next = TestBroadcaster::new("00:00:00", "UTC")
+            .calculate_next_closing(now)
+            .unwrap();
+        assert_eq!(
+            next,
+            Utc.with_ymd_and_hms(2024, 1, 17, 0, 0, 0).single().unwrap()
+        );
 
-        let next_closing = broadcaster.calculate_next_closing(now).unwrap();
-
-        // Expected: 2024-01-17 00:00:00 UTC (next midnight)
-        let expected = Utc.with_ymd_and_hms(2024, 1, 17, 0, 0, 0).single().unwrap();
-
-        assert_eq!(next_closing, expected);
-    }
-
-    #[test]
-    fn test_next_closing_noon() {
-        let broadcaster = TestBroadcaster::new("12:00:00", "UTC");
-
-        // Current time: 2024-01-15 11:30:00 UTC (before noon)
+        // Test noon closing
         let now = Utc
             .with_ymd_and_hms(2024, 1, 15, 11, 30, 0)
             .single()
             .unwrap();
-
-        let next_closing = broadcaster.calculate_next_closing(now).unwrap();
-
-        // Expected: 2024-01-15 12:00:00 UTC (today at noon)
-        let expected = Utc
-            .with_ymd_and_hms(2024, 1, 15, 12, 0, 0)
-            .single()
+        let next = TestBroadcaster::new("12:00:00", "UTC")
+            .calculate_next_closing(now)
             .unwrap();
-
-        assert_eq!(next_closing, expected);
+        assert_eq!(
+            next,
+            Utc.with_ymd_and_hms(2024, 1, 15, 12, 0, 0)
+                .single()
+                .unwrap()
+        );
     }
 
     #[test]
@@ -397,27 +428,18 @@ mod tests {
     }
 
     #[test]
-    fn test_invalid_time_format() {
-        let broadcaster = TestBroadcaster::new("25:00:00", "UTC");
-
+    fn test_invalid_time_formats() {
         let now = Utc::now();
-        let result = broadcaster.calculate_next_closing(now);
 
-        assert!(result.is_err());
+        // Test invalid hour
+        let result = TestBroadcaster::new("25:00:00", "UTC").calculate_next_closing(now);
         assert!(matches!(
             result.unwrap_err(),
             TimeEventsError::InvalidTimeFormat { .. }
         ));
-    }
 
-    #[test]
-    fn test_invalid_time_format_wrong_pattern() {
-        let broadcaster = TestBroadcaster::new("12:00", "UTC");
-
-        let now = Utc::now();
-        let result = broadcaster.calculate_next_closing(now);
-
-        assert!(result.is_err());
+        // Test wrong pattern
+        let result = TestBroadcaster::new("12:00", "UTC").calculate_next_closing(now);
         assert!(matches!(
             result.unwrap_err(),
             TimeEventsError::InvalidTimeFormat { .. }
@@ -499,5 +521,77 @@ mod tests {
 
         // Verify the timezone is "Asia/Tokyo"
         assert_eq!(&broadcaster.config.daily.timezone, "Asia/Tokyo");
+    }
+
+    #[test]
+    fn test_dst_spring_forward_gap() {
+        // In US/Eastern, on March 10, 2024 at 2:00 AM, clocks spring forward to 3:00 AM
+        // If closing time is set to 2:30 AM, that time doesn't exist
+        let broadcaster = TestBroadcaster::new("02:30:00", "America/New_York");
+
+        // Current time: March 10, 2024 at 1:00 AM EST (before DST transition)
+        // This is 06:00 UTC
+        let now = Utc.with_ymd_and_hms(2024, 3, 10, 6, 0, 0).single().unwrap();
+
+        let next_closing = broadcaster.calculate_next_closing(now).unwrap();
+
+        // The closing time 2:30 AM doesn't exist, so it should resolve to a time after 3:00 AM EDT
+        // We expect it to resolve to around 3:30 AM EDT which is 07:30 UTC
+        let next_closing_local = next_closing.with_timezone(
+            &broadcaster
+                .config
+                .daily
+                .timezone
+                .parse::<chrono_tz::Tz>()
+                .unwrap(),
+        );
+
+        // Should be on March 10
+        assert_eq!(next_closing_local.date_naive().day(), 10);
+        // Should be after 3:00 AM (the post-DST time)
+        assert!(next_closing_local.hour() >= 3);
+    }
+
+    #[test]
+    fn test_dst_fall_back_ambiguous() {
+        // In US/Eastern, on November 3, 2024 at 2:00 AM, clocks fall back to 1:00 AM
+        // If closing time is set to 1:30 AM, that time occurs twice
+        let broadcaster = TestBroadcaster::new("01:30:00", "America/New_York");
+
+        // Current time: November 3, 2024 at 12:00 AM EST (before DST transition)
+        // This is 04:00 UTC
+        let now = Utc.with_ymd_and_hms(2024, 11, 3, 4, 0, 0).single().unwrap();
+
+        let next_closing = broadcaster.calculate_next_closing(now).unwrap();
+
+        // The closing time 1:30 AM occurs twice (first in EDT, then in EST)
+        // We should use the earlier occurrence (first 1:30 AM in EDT)
+        // First 1:30 AM EDT is 05:30 UTC
+        let expected = Utc
+            .with_ymd_and_hms(2024, 11, 3, 5, 30, 0)
+            .single()
+            .unwrap();
+
+        assert_eq!(next_closing, expected);
+    }
+
+    #[test]
+    fn test_dst_transition_day_after() {
+        // Test that after a DST transition day, the next day works normally
+        let broadcaster = TestBroadcaster::new("02:30:00", "America/New_York");
+
+        // Current time: March 11, 2024 at 1:00 AM EDT (day after spring forward)
+        // This is 05:00 UTC
+        let now = Utc.with_ymd_and_hms(2024, 3, 11, 5, 0, 0).single().unwrap();
+
+        let next_closing = broadcaster.calculate_next_closing(now).unwrap();
+
+        // Should calculate normally for March 11, 2:30 AM EDT = 06:30 UTC
+        let expected = Utc
+            .with_ymd_and_hms(2024, 3, 11, 6, 30, 0)
+            .single()
+            .unwrap();
+
+        assert_eq!(next_closing, expected);
     }
 }
