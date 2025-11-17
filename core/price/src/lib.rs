@@ -1,50 +1,56 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
-mod bfx_client;
+pub mod bfx_client;
+mod cache;
 pub mod error;
+mod event;
+pub mod jobs;
 mod primitives;
 
-use cached::proc_macro::cached;
-use std::time::Duration;
-
-use core_money::UsdCents;
-
-use bfx_client::BfxClient;
 use error::PriceError;
+use job::Jobs;
+use outbox::{Outbox, OutboxEventMarker};
+
+pub use cache::PriceCache;
+pub use event::*;
 pub use primitives::*;
 
 #[derive(Clone)]
 pub struct Price {
-    bfx: BfxClient,
+    cache: PriceCache,
 }
 
 impl Price {
-    pub fn new() -> Self {
-        Self {
-            bfx: BfxClient::new(),
-        }
+    pub fn usd_cents_per_btc(&self) -> Result<PriceOfOneBTC, PriceError> {
+        Ok(self.cache.get_price())
     }
 
-    pub async fn usd_cents_per_btc(&self) -> Result<PriceOfOneBTC, PriceError> {
-        usd_cents_per_btc_cached(&self.bfx).await
-    }
-}
+    pub async fn init<E>(jobs: &Jobs, outbox: &Outbox<E>) -> Result<Self, PriceError>
+    where
+        E: OutboxEventMarker<CorePriceEvent>,
+    {
+        // this has to change , either give no price available error or source it from outbox on startup
+        let cache = PriceCache::new(PriceOfOneBTC::ZERO);
 
-impl Default for Price {
-    fn default() -> Self {
-        Self::new()
-    }
-}
+        jobs.add_initializer_and_spawn_unique(
+            jobs::get_price_from_bfx::GetPriceFromClientJobInit::<E>::new(outbox),
+            jobs::get_price_from_bfx::GetPriceFromClientJobConfig::<E> {
+                _phantom: std::marker::PhantomData,
+            },
+        )
+        .await
+        .map_err(PriceError::JobError)?;
 
-#[cached(time = 60, result = true, key = "()", convert = r#"{}"#)]
-async fn usd_cents_per_btc_cached(bfx: &BfxClient) -> Result<PriceOfOneBTC, PriceError> {
-    if std::env::var("BFX_LOCAL_PRICE").is_ok() {
-        return Ok(PriceOfOneBTC::new(UsdCents::try_from_usd(
-            rust_decimal_macros::dec!(100_000),
-        )?));
-    }
+        jobs.add_initializer_and_spawn_unique(
+            jobs::update_price_in_cache::UpdatePriceInCacheInit::<E>::new(outbox, &cache),
+            jobs::update_price_in_cache::UpdatePriceInCacheJobConfig::<E> {
+                _phantom: std::marker::PhantomData,
+            },
+        )
+        .await
+        .map_err(PriceError::JobError)?;
 
-    let last_price = bfx.btc_usd_tick().await?.last_price;
-    Ok(PriceOfOneBTC::new(UsdCents::try_from_usd(last_price)?))
+        Ok(Self { cache })
+    }
 }

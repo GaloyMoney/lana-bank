@@ -13,6 +13,11 @@ core-money = { workspace = true }
 
 anyhow = { workspace = true }
 cached = { workspace = true }
+job = { workspace = true }
+outbox = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
+parking_lot = { workspace = true }
 reqwest = { workspace = true }
 rust_decimal = { workspace = true }
 rust_decimal_macros = { workspace = true }

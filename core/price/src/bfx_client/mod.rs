@@ -3,6 +3,9 @@ mod response;
 
 use reqwest::Client as ReqwestClient;
 
+use core_money::UsdCents;
+
+use crate::PriceOfOneBTC;
 use error::BfxClientError;
 use response::{BfxErrorResponse, BtcUsdTick};
 
@@ -52,4 +55,11 @@ impl BfxClient {
             )))
         }
     }
+}
+
+pub async fn fetch_price(client: &BfxClient) -> Result<PriceOfOneBTC, BfxClientError> {
+    let tick = client.btc_usd_tick().await?;
+    let usd_cents =
+        UsdCents::try_from_usd(tick.last_price).map_err(BfxClientError::ConversionError)?;
+    Ok(PriceOfOneBTC::new(usd_cents))
 }

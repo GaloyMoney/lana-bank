@@ -1491,8 +1491,13 @@ name = "core-price"
 version = "0.0.0"
 dependencies = [
  "anyhow",
+ "async-trait",
  "cached",
  "core-money",
+ "futures",
+ "job",
+ "outbox",
+ "parking_lot",
  "reqwest",
  "rust_decimal",
  "rust_decimal_macros",
