@@ -19,8 +19,6 @@ app:
     customer_active_check_enabled: true
     collateralization_from_price_job_interval: 30
     pending_collateralization_from_price_job_interval: 30
-  deposit:
-    require_verified_customer_for_account: false
   storage:
     provider: local
     root_folder: ''
@@ -35,7 +33,6 @@ app:
       url: http://localhost:8081
       client_id: customer-service-account
       realm: customer
-    activity_update_job_interval: 86400
   accounting_init:
     chart_of_accounts_seed_path: null
     chart_of_accounts_opening_date: null
@@ -63,6 +60,12 @@ app:
     enabled: false
     airflow:
       uri: http://localhost:8080/
+  deposit:
+    require_verified_customer_for_account: true
+  time_events:
+    daily:
+      closing_time: 23:59:00
+      timezone: UTC
 tracing:
   service_name: lana-dev
 time:
@@ -75,3 +78,4 @@ time:
 bootstrap:
   num_facilities: 0
   num_customers: 0
+

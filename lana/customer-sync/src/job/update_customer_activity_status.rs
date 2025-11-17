@@ -1,5 +1,6 @@
 use async_trait::async_trait;
-use tracing::instrument;
+use futures::StreamExt;
+use tracing::{Span, instrument};
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -9,10 +10,9 @@ use core_deposit::{
 };
 
 use governance::GovernanceEvent;
-use lana_events::LanaEvent;
-use outbox::OutboxEventMarker;
+use lana_events::{LanaEvent, TimeEvent};
+use outbox::{Outbox, OutboxEventMarker};
 
-use crate::config::CustomerSyncConfig;
 use job::*;
 
 #[derive(serde::Serialize)]
@@ -44,7 +44,8 @@ where
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<TimeEvent>,
 {
     type Initializer = UpdateCustomerActivityStatusInit<Perms, E>;
 }
@@ -55,10 +56,11 @@ where
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<TimeEvent>,
 {
     customers: Customers<Perms, E>,
-    config: CustomerSyncConfig,
+    outbox: Outbox<E>,
 }
 
 impl<Perms, E> UpdateCustomerActivityStatusInit<Perms, E>
@@ -67,12 +69,13 @@ where
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<TimeEvent>,
 {
-    pub fn new(customers: &Customers<Perms, E>, config: CustomerSyncConfig) -> Self {
+    pub fn new(customers: &Customers<Perms, E>, outbox: &Outbox<E>) -> Self {
         Self {
             customers: customers.clone(),
-            config,
+            outbox: outbox.clone(),
         }
     }
 }
@@ -90,7 +93,8 @@ where
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<TimeEvent>,
 {
     fn job_type() -> JobType
     where
@@ -102,7 +106,7 @@ where
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(UpdateCustomerActivityStatusJobRunner {
             customers: self.customers.clone(),
-            config: self.config.clone(),
+            outbox: self.outbox.clone(),
         }))
     }
 
@@ -120,10 +124,47 @@ where
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<TimeEvent>,
 {
     customers: Customers<Perms, E>,
-    config: CustomerSyncConfig,
+    outbox: Outbox<E>,
+}
+
+impl<Perms, E> UpdateCustomerActivityStatusJobRunner<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCustomerAction> + From<CoreDepositAction> + From<GovernanceAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
+    E: OutboxEventMarker<LanaEvent>
+        + OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<CoreDepositEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<TimeEvent>,
+{
+    #[instrument(
+        name = "update_customer_activity_status.process_event",
+        parent = None,
+        skip(self, event),
+        fields(event_type = ?event.event_type, handled = false, date = tracing::field::Empty)
+    )]
+    async fn process_event(
+        &self,
+        event: &outbox::EphemeralOutboxEvent<E>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        if let Some(TimeEvent::DailyClosing { date }) = event.payload.as_event() {
+            event.inject_trace_parent();
+            Span::current().record("date", date.to_string());
+            Span::current().record("handled", true);
+            let now = crate::time::now();
+            self.customers
+                .perform_customer_activity_status_update(now)
+                .await?;
+        }
+        Ok(())
+    }
 }
 
 #[async_trait]
@@ -137,7 +178,8 @@ where
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<TimeEvent>,
 {
     #[instrument(
         name = "update_customer_activity_status.run",
@@ -148,12 +190,12 @@ where
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let now = crate::time::now();
-        self.customers
-            .perform_customer_activity_status_update(now)
-            .await?;
-        Ok(JobCompletion::RescheduleIn(
-            self.config.activity_update_job_interval,
-        ))
+        let mut stream = self.outbox.listen_ephemeral().await?;
+
+        while let Some(event) = stream.next().await {
+            self.process_event(&event).await?;
+        }
+
+        Ok(JobCompletion::RescheduleNow)
     }
 }
