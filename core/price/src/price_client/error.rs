@@ -11,9 +11,3 @@ impl PriceClientError {
         Self::ClientError(Box::new(error))
     }
 }
-
-impl From<bitfinex::BfxClientError> for PriceClientError {
-    fn from(error: bitfinex::BfxClientError) -> Self {
-        Self::ClientError(Box::new(error))
-    }
-}

@@ -22,7 +22,9 @@ pub fn default_client() -> impl PriceClient {
 #[async_trait]
 impl PriceClient for bitfinex::BfxClient {
     async fn btc_usd_tick(&self) -> Result<PriceTick, PriceClientError> {
-        let tick = <bitfinex::BfxClient>::btc_usd_tick(self).await?;
+        let tick = <bitfinex::BfxClient>::btc_usd_tick(self)
+            .await
+            .map_err(PriceClientError::client)?;
         Ok(PriceTick {
             last_price: tick.last_price,
         })
