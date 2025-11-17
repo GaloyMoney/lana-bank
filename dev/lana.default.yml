@@ -34,7 +34,6 @@ app:
       url: http://localhost:8081
       client_id: customer-service-account
       realm: customer
-    activity_update_job_interval: 86400
   accounting_init:
     chart_of_accounts_opening_date: null
     chart_of_accounts_seed_path: null
@@ -64,6 +63,10 @@ app:
       uri: http://localhost:8080/
   deposit:
     require_verified_customer_for_account: true
+  time_events:
+    daily:
+      closing_time: 23:59:00
+      timezone: UTC
 tracing:
   service_name: lana-dev
 time:

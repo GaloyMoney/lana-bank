@@ -1,7 +1,6 @@
 use keycloak_client::KeycloakConnectionConfig;
 use serde::{Deserialize, Serialize};
 
-#[serde_with::serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct CustomerSyncConfig {
@@ -9,9 +8,6 @@ pub struct CustomerSyncConfig {
     pub customer_status_sync_active: bool,
     #[serde(default = "default_keycloak")]
     pub keycloak: KeycloakConnectionConfig,
-    #[serde(default = "default_activity_update_job_interval_secs")]
-    #[serde_as(as = "serde_with::DurationSeconds<u64>")]
-    pub activity_update_job_interval: std::time::Duration,
 }
 
 impl Default for CustomerSyncConfig {
@@ -19,7 +15,6 @@ impl Default for CustomerSyncConfig {
         Self {
             customer_status_sync_active: default_customer_status_sync_active(),
             keycloak: default_keycloak(),
-            activity_update_job_interval: default_activity_update_job_interval_secs(),
         }
     }
 }
@@ -35,8 +30,4 @@ fn default_keycloak() -> KeycloakConnectionConfig {
 
 fn default_customer_status_sync_active() -> bool {
     true
-}
-
-fn default_activity_update_job_interval_secs() -> std::time::Duration {
-    std::time::Duration::from_secs(24 * 60 * 60) // 24 hours
 }

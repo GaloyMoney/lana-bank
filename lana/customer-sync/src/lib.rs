@@ -18,7 +18,7 @@ use core_deposit::{
     GovernanceObject,
 };
 use governance::GovernanceEvent;
-use lana_events::LanaEvent;
+use lana_events::{LanaEvent, TimeEvent};
 use outbox::{Outbox, OutboxEventMarker};
 use tracing_macros::record_error_severity;
 
@@ -28,7 +28,8 @@ where
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<TimeEvent>,
 {
     _phantom: std::marker::PhantomData<(Perms, E)>,
     _outbox: Outbox<E>,
@@ -40,7 +41,8 @@ where
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<TimeEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -60,7 +62,8 @@ where
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<TimeEvent>,
 {
     #[record_error_severity]
     #[tracing::instrument(name = "customer_sync.init", skip_all)]
@@ -95,7 +98,7 @@ where
         .await?;
 
         jobs.add_initializer_and_spawn_unique(
-            UpdateCustomerActivityStatusInit::new(customers, config),
+            UpdateCustomerActivityStatusInit::new(customers, outbox),
             UpdateCustomerActivityStatusJobConfig::new(),
         )
         .await?;
