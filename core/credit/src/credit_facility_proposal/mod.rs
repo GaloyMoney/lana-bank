@@ -112,10 +112,12 @@ where
     pub async fn conclude_customer_approval(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: impl Into<CreditFacilityProposalId> + std::fmt::Debug,
+        credit_facility_proposal_id: impl Into<CreditFacilityProposalId> + std::fmt::Debug,
         approved: bool,
     ) -> Result<CreditFacilityProposal, CreditFacilityProposalError> {
-        let id = id.into();
+        let id = credit_facility_proposal_id.into();
+        tracing::Span::current()
+            .record("credit_facility_proposal_id", tracing::field::display(&id));
 
         self.authz
             .evaluate_permission(
@@ -158,10 +160,13 @@ where
     pub(super) async fn approve_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
-        id: impl Into<CreditFacilityProposalId> + std::fmt::Debug,
+        credit_facility_proposal_id: impl Into<CreditFacilityProposalId> + std::fmt::Debug,
         approved: bool,
     ) -> Result<ProposalApprovalOutcome, CreditFacilityProposalError> {
-        let id = id.into();
+        let id = credit_facility_proposal_id.into();
+        tracing::Span::current()
+            .record("credit_facility_proposal_id", tracing::field::display(&id));
+
         let mut proposal = self.repo.find_by_id(id).await?;
         match proposal.conclude_approval_process(approved)? {
             es_entity::Idempotent::Executed(res) => {
@@ -192,15 +197,18 @@ where
 
     #[instrument(
         name = "credit.credit_facility_proposals.find_by_id",
-        skip(self, sub, id),
+        skip(self, sub,),
         err
     )]
     pub async fn find_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: impl Into<CreditFacilityProposalId> + std::fmt::Debug,
+        credit_facility_proposal_id: impl Into<CreditFacilityProposalId> + std::fmt::Debug,
     ) -> Result<Option<CreditFacilityProposal>, CreditFacilityProposalError> {
-        let id = id.into();
+        let id = credit_facility_proposal_id.into();
+        tracing::Span::current()
+            .record("credit_facility_proposal_id", tracing::field::display(&id));
+
         self.authz
             .enforce_permission(
                 sub,
