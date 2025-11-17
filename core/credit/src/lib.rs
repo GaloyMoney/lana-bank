@@ -547,7 +547,7 @@ where
         ))
     }
 
-    #[instrument(name = "credit.create_proposal", skip(self), err)]
+    #[instrument(name = "credit.create_proposal", skip(self),fields(credit_facility_proposal_id = tracing::field::Empty), err)]
     pub async fn create_facility_proposal(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -574,7 +574,11 @@ where
             return Err(CoreDepositError::DepositAccountNotActive.into());
         }
 
-        let proposal_id = CreditFacilityId::new();
+        let proposal_id = CreditFacilityProposalId::new();
+        tracing::Span::current().record(
+            "credit_facility_proposal_id",
+            tracing::field::display(proposal_id),
+        );
 
         let mut db = self.pending_credit_facilities.begin_op().await?;
 
