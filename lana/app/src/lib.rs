@@ -213,6 +213,9 @@ pub mod contract_creation {
 }
 
 pub mod time_events {
-    pub use core_time_events::{TimeEvent, TimeEventsConfig, error};
-    pub type TimeEvents = core_time_events::TimeEvents<lana_events::LanaEvent>;
+    pub use core_time_events::{
+        DailyClosingBroadcasterInit, DailyClosingBroadcasterJobConfig, TimeEvent, TimeEventsConfig,
+        error,
+    };
+    pub type TimeEvents = core_time_events::TimeEvents;
 }

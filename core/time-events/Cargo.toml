@@ -8,8 +8,10 @@ fail-on-warnings = []
 
 [dependencies]
 outbox = { workspace = true }
+job = { workspace = true }
 
 sqlx = { workspace = true }
+async-trait = { workspace = true }
 serde = { workspace = true }
 tracing = { workspace = true }
 thiserror = { workspace = true }

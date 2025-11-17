@@ -1663,8 +1663,10 @@ name = "core-time-events"
 version = "0.0.0"
 dependencies = [
  "anyhow",
+ "async-trait",
  "chrono",
  "chrono-tz",
+ "job",
  "outbox",
  "serde",
  "sqlx",

@@ -195,7 +195,12 @@ impl LanaApp {
         ChartsInit::charts_of_accounts(&accounting, &credit, &deposits, config.accounting_init)
             .await?;
 
-        let time_events = TimeEvents::init(&outbox, config.time_events);
+        let time_events = TimeEvents::new();
+        jobs.add_initializer_and_spawn_unique(
+            crate::time_events::DailyClosingBroadcasterInit::new(&outbox, config.time_events),
+            crate::time_events::DailyClosingBroadcasterJobConfig::new(),
+        )
+        .await?;
 
         jobs.start_poll().await?;
 

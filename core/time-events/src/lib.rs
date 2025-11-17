@@ -5,50 +5,27 @@ mod broadcaster;
 mod config;
 pub mod error;
 mod event;
+pub mod job;
 mod primitives;
-
-use tracing::instrument;
-
-use outbox::{Outbox, OutboxEventMarker};
 
 pub use broadcaster::DailyClosingBroadcaster;
 pub use config::TimeEventsConfig;
 pub use error::TimeEventsError;
 pub use event::TimeEvent;
+pub use job::{DailyClosingBroadcasterInit, DailyClosingBroadcasterJobConfig};
 pub use primitives::*;
 
-pub struct TimeEvents<E>
-where
-    E: OutboxEventMarker<TimeEvent>,
-{
-    _outbox: Outbox<E>,
-}
+#[derive(Debug, Clone, Copy)]
+pub struct TimeEvents;
 
-impl<E> Clone for TimeEvents<E>
-where
-    E: OutboxEventMarker<TimeEvent>,
-{
-    fn clone(&self) -> Self {
-        Self {
-            _outbox: self._outbox.clone(),
-        }
+impl TimeEvents {
+    pub fn new() -> Self {
+        Self
     }
 }
 
-impl<E> TimeEvents<E>
-where
-    E: OutboxEventMarker<TimeEvent> + Send + Sync + 'static,
-{
-    #[instrument(name = "time_events.init", skip(outbox))]
-    pub fn init(outbox: &Outbox<E>, config: TimeEventsConfig) -> Self {
-        let broadcaster = DailyClosingBroadcaster::new(outbox, config);
-
-        tokio::spawn(async move {
-            broadcaster.run().await;
-        });
-
-        Self {
-            _outbox: outbox.clone(),
-        }
+impl Default for TimeEvents {
+    fn default() -> Self {
+        Self::new()
     }
 }
