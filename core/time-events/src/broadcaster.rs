@@ -73,6 +73,7 @@ where
     #[instrument(
         name = "time_events.broadcaster.publish_daily_closing",
         skip(self),
+        fields(date = %date, timezone = %self.config.daily.timezone),
         err
     )]
     async fn publish_daily_closing(&self, date: chrono::NaiveDate) -> Result<(), TimeEventsError> {
@@ -82,7 +83,6 @@ where
                 TimeEvent::DailyClosing { date },
             )
             .await?;
-        info!(date = %date, "Published DailyClosing event");
         Ok(())
     }
 
@@ -93,6 +93,15 @@ where
             timezone = %self.config.daily.timezone,
             "Starting DailyClosing broadcaster"
         );
+
+        // Parse timezone once at startup - it won't change during runtime
+        let tz = match self.parse_timezone() {
+            Ok(tz) => tz,
+            Err(e) => {
+                error!(error = %e, "Failed to parse timezone, broadcaster cannot start");
+                return;
+            }
+        };
 
         loop {
             let now = Utc::now();
@@ -110,7 +119,8 @@ where
 
                         tokio::time::sleep(std_duration).await;
 
-                        let closing_date = next_closing.date_naive();
+                        // Convert to configured timezone to get the correct date
+                        let closing_date = next_closing.with_timezone(&tz).date_naive();
                         if let Err(e) = self.publish_daily_closing(closing_date).await {
                             error!(error = %e, "Failed to publish DailyClosing event");
                         }
@@ -435,5 +445,40 @@ mod tests {
             .unwrap();
 
         assert_eq!(next_closing, expected);
+    }
+
+    #[test]
+    fn test_closing_date_in_different_timezone() {
+        // This test verifies the fix for the timezone date extraction issue
+        let broadcaster = TestBroadcaster::new("01:00:00", "Asia/Tokyo");
+
+        // Simulate: It's 16:00 UTC on Jan 15, which is 01:00 JST on Jan 16
+        // The next closing should be calculated, and when we extract the date
+        // in the configured timezone, it should be Jan 16, not Jan 15
+        let now = Utc
+            .with_ymd_and_hms(2024, 1, 15, 15, 59, 0)
+            .single()
+            .unwrap();
+
+        let next_closing = broadcaster.calculate_next_closing(now).unwrap();
+
+        // Next closing should be 2024-01-15 16:00:00 UTC (which is 2024-01-16 01:00:00 JST)
+        let expected = Utc
+            .with_ymd_and_hms(2024, 1, 15, 16, 0, 0)
+            .single()
+            .unwrap();
+
+        assert_eq!(next_closing, expected);
+
+        // Now verify the date extraction in the configured timezone
+        let tz = broadcaster.parse_timezone().unwrap();
+        let closing_date = next_closing.with_timezone(&tz).date_naive();
+
+        // The date should be Jan 16 (in JST), not Jan 15 (UTC)
+        let expected_date = chrono::NaiveDate::from_ymd_opt(2024, 1, 16).unwrap();
+        assert_eq!(closing_date, expected_date);
+
+        // Verify the timezone is "Asia/Tokyo"
+        assert_eq!(&broadcaster.config.daily.timezone, "Asia/Tokyo");
     }
 }
