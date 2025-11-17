@@ -557,11 +557,7 @@ where
     ) -> Result<(), CustomerError> {
         let customer_ids = self
             .customer_activity_repo
-            .find_customers_in_range_with_non_matching_activity(
-                start_threshold,
-                end_threshold,
-                activity,
-            )
+            .find_customers_needing_activity_update(start_threshold, end_threshold, activity)
             .await?;
         // TODO: Add a batch update for the customers
         for customer_id in customer_ids {
@@ -583,28 +579,28 @@ where
         &self,
         now: DateTime<Utc>,
     ) -> Result<(), CustomerError> {
-        let ranges = vec![
-            (
-                EARLIEST_SEARCH_START,
-                self.config.get_escheatment_threshold_date(now),
-                Activity::Suspended,
-            ),
-            (
-                self.config.get_escheatment_threshold_date(now),
-                self.config.get_inactive_threshold_date(now),
-                Activity::Inactive,
-            ),
-            (
-                self.config.get_inactive_threshold_date(now),
-                now,
-                Activity::Active,
-            ),
-        ];
+        let escheatment_date = self.config.get_escheatment_threshold_date(now);
+        let inactive_date = self.config.get_inactive_threshold_date(now);
 
-        for (start, end, activity) in ranges {
-            self.update_customers_by_activity_and_date_range(start, end, activity)
-                .await?;
-        }
+        // Update customers with very old activity (10+ years) to Suspended
+        self.update_customers_by_activity_and_date_range(
+            EARLIEST_SEARCH_START,
+            escheatment_date,
+            Activity::Suspended,
+        )
+        .await?;
+
+        // Update customers with old activity (1-10 years) to Inactive
+        self.update_customers_by_activity_and_date_range(
+            escheatment_date,
+            inactive_date,
+            Activity::Inactive,
+        )
+        .await?;
+
+        // Update customers with recent activity (<1 year) to Active
+        self.update_customers_by_activity_and_date_range(inactive_date, now, Activity::Active)
+            .await?;
 
         Ok(())
     }
