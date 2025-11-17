@@ -62,11 +62,11 @@ where
     }
 
     #[instrument(
-        name = "core_accounting.fiscal_year.open_first_fiscal_year"
+        name = "core_accounting.fiscal_year.init_fiscal_year"
         skip(self),
         err
     )]
-    pub async fn open_first_fiscal_year(
+    pub async fn init_fiscal_year(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         opened_as_of: impl Into<chrono::NaiveDate> + std::fmt::Debug,
@@ -78,7 +78,7 @@ where
             .enforce_permission(
                 sub,
                 CoreAccountingObject::all_fiscal_years(),
-                CoreAccountingAction::FISCAL_YEAR_CLOSE,
+                CoreAccountingAction::FISCAL_YEAR_INIT,
             )
             .await?;
 

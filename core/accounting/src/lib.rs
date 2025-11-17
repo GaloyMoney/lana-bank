@@ -279,8 +279,8 @@ where
         Ok(chart)
     }
 
-    #[instrument(name = "core_accounting.open_first_fiscal_year", skip(self), err)]
-    pub async fn open_first_fiscal_year(
+    #[instrument(name = "core_accounting.init_fiscal_year", skip(self), err)]
+    pub async fn init_fiscal_year(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_ref: &str,
@@ -293,7 +293,7 @@ where
 
         Ok(self
             .fiscal_year()
-            .open_first_fiscal_year(sub, opened_as_of, chart.id)
+            .init_fiscal_year(sub, opened_as_of, chart.id)
             .await?)
     }
 

@@ -55,7 +55,7 @@ async fn create_chart_of_accounts(
 
         if let Some(opening_date) = accounting_init_config.chart_of_accounts_opening_date {
             fiscal_year
-                .open_first_fiscal_year(&Subject::System, opening_date, chart.id)
+                .init_fiscal_year(&Subject::System, opening_date, chart.id)
                 .await?;
         }
     }

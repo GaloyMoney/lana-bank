@@ -25,8 +25,8 @@ impl From<DomainFiscalYear> for FiscalYear {
 crate::mutation_payload! { FiscalYearCloseMonthPayload, fiscal_year: FiscalYear }
 
 #[derive(InputObject)]
-pub struct FiscalYearOpenFirstInput {
+pub struct FiscalYearInitInput {
     pub opened_as_of: Date,
 }
 
-crate::mutation_payload! { FiscalYearOpenFirstPayload, fiscal_year: FiscalYear }
+crate::mutation_payload! { FiscalYearInitPayload, fiscal_year: FiscalYear }

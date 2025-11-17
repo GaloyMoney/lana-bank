@@ -724,6 +724,7 @@ impl CoreAccountingAction {
     pub const TRIAL_BALANCE_UPDATE: Self =
         CoreAccountingAction::TrialBalance(TrialBalanceAction::Update);
     pub const FISCAL_YEAR_READ: Self = CoreAccountingAction::FiscalYear(FiscalYearAction::Read);
+    pub const FISCAL_YEAR_INIT: Self = CoreAccountingAction::FiscalYear(FiscalYearAction::Init);
     pub const FISCAL_YEAR_CLOSE: Self = CoreAccountingAction::FiscalYear(FiscalYearAction::Close);
 }
 
@@ -1076,8 +1077,8 @@ impl From<TrialBalanceAction> for CoreAccountingAction {
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum FiscalYearAction {
+    Init,
     Read,
-    OpenFirst,
     Close,
 }
 
@@ -1085,7 +1086,7 @@ impl ActionPermission for FiscalYearAction {
     fn permission_set(&self) -> &'static str {
         match self {
             Self::Read => PERMISSION_SET_ACCOUNTING_VIEWER,
-            Self::OpenFirst => PERMISSION_SET_ACCOUNTING_WRITER,
+            Self::Init => PERMISSION_SET_ACCOUNTING_WRITER,
             Self::Close => PERMISSION_SET_ACCOUNTING_WRITER,
         }
     }

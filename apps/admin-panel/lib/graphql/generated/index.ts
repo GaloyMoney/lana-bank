@@ -1345,12 +1345,12 @@ export type FiscalYearCloseMonthPayload = {
   fiscalYear: FiscalYear;
 };
 
-export type FiscalYearOpenFirstInput = {
+export type FiscalYearInitInput = {
   openedAsOf: Scalars['Date']['input'];
 };
 
-export type FiscalYearOpenFirstPayload = {
-  __typename?: 'FiscalYearOpenFirstPayload';
+export type FiscalYearInitPayload = {
+  __typename?: 'FiscalYearInitPayload';
   fiscalYear: FiscalYear;
 };
 
@@ -1617,7 +1617,7 @@ export type Mutation = {
   depositRecord: DepositRecordPayload;
   depositRevert: DepositRevertPayload;
   fiscalYearCloseMonth: FiscalYearCloseMonthPayload;
-  fiscalYearOpenFirst: FiscalYearOpenFirstPayload;
+  fiscalYearInit: FiscalYearInitPayload;
   ledgerAccountCsvCreate: LedgerAccountCsvCreatePayload;
   loanAgreementDownloadLinkGenerate: LoanAgreementDownloadLinksGeneratePayload;
   loanAgreementGenerate: LoanAgreementGeneratePayload;
@@ -1813,8 +1813,8 @@ export type MutationDepositRevertArgs = {
 };
 
 
-export type MutationFiscalYearOpenFirstArgs = {
-  input: FiscalYearOpenFirstInput;
+export type MutationFiscalYearInitArgs = {
+  input: FiscalYearInitInput;
 };
 
 
