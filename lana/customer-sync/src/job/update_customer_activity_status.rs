@@ -146,12 +146,12 @@ where
         + OutboxEventMarker<TimeEvent>,
 {
     #[instrument(
-        name = "update_customer_activity_status.process_event",
+        name = "update_customer_activity_status.process_message",
         parent = None,
         skip(self, event),
         fields(event_type = ?event.event_type, handled = false, date = tracing::field::Empty)
     )]
-    async fn process_event(
+    async fn process_message(
         &self,
         event: &outbox::EphemeralOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error>> {
@@ -191,7 +191,7 @@ where
         let mut stream = self.outbox.listen_ephemeral().await?;
 
         while let Some(event) = stream.next().await {
-            self.process_event(&event).await?;
+            self.process_message(&event).await?;
         }
 
         Ok(JobCompletion::RescheduleNow)
