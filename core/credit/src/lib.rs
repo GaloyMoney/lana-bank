@@ -673,6 +673,14 @@ where
             return Err(CoreCreditError::CustomerNotVerified);
         }
 
+        let account = self
+            .deposit
+            .find_account_by_account_holder_without_audit(customer_id)
+            .await?;
+        if !account.is_active() {
+            return Err(CoreDepositError::DepositAccountNotActive.into());
+        }
+
         let now = crate::time::now();
         if facility.is_single_disbursal() {
             return Err(CreditFacilityError::OnlyOneDisbursalAllowed.into());
@@ -879,6 +887,14 @@ where
             .find_by_id_without_audit(credit_facility_id)
             .await?;
 
+        let account = self
+            .deposit
+            .find_account_by_account_holder_without_audit(credit_facility.customer_id)
+            .await?;
+        if !account.is_active() {
+            return Err(CoreDepositError::DepositAccountNotActive.into());
+        }
+
         let mut db = self.facilities.begin_op().await?;
 
         let payment = self
@@ -934,6 +950,14 @@ where
             .facilities
             .find_by_id_without_audit(credit_facility_id)
             .await?;
+
+        let account = self
+            .deposit
+            .find_account_by_account_holder_without_audit(credit_facility.customer_id)
+            .await?;
+        if !account.is_active() {
+            return Err(CoreDepositError::DepositAccountNotActive.into());
+        }
 
         let mut db = self.facilities.begin_op().await?;
 
