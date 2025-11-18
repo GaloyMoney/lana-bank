@@ -7,6 +7,7 @@ pub mod error;
 mod event;
 pub mod job;
 mod primitives;
+mod time;
 
 pub use broadcaster::DailyClosingBroadcaster;
 pub use config::TimeEventsConfig;

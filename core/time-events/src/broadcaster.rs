@@ -145,7 +145,7 @@ where
         }
 
         loop {
-            let now = Utc::now();
+            let now = crate::time::now();
 
             match self.calculate_next_closing(now) {
                 Ok(next_closing) => {
