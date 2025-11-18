@@ -72,6 +72,7 @@ interface PaginatedTableProps<T> {
   style?: "compact" | "comfortable"
   noDataText?: string
   subRows?: (record: T) => T[]
+  getRowClassName?: (record: T, index: number) => string
 }
 
 const PaginatedTable = <T,>({
@@ -89,6 +90,7 @@ const PaginatedTable = <T,>({
   style = "comfortable",
   noDataText,
   subRows,
+  getRowClassName,
 }: PaginatedTableProps<T>): React.ReactElement => {
   const isMobile = useBreakpointDown("md")
   const t = useTranslations("PaginatedTable")
@@ -365,7 +367,11 @@ const PaginatedTable = <T,>({
 
         {displayData.map(({ node }, idx) => (
           <>
-            <Card key={idx} className="p-4 space-y-3" onClick={() => onClick?.(node)}>
+            <Card
+              key={idx}
+              className={`p-4 space-y-3 ${getRowClassName ? getRowClassName(node, idx) : ""}`}
+              onClick={() => onClick?.(node)}
+            >
               {columns.map((col, colIdx) => (
                 <div
                   key={`${col.key as string}-${colIdx}`}
@@ -552,7 +558,7 @@ const PaginatedTable = <T,>({
                   tabIndex={0}
                   className={`${onClick ? "cursor-pointer" : ""} ${
                     focusedRowIndex === idx ? "bg-muted" : ""
-                  } hover:bg-muted/50 transition-colors outline-none`}
+                  } ${getRowClassName ? getRowClassName(node, idx) : ""} hover:bg-muted/50 transition-colors outline-none`}
                   onFocus={() => setFocusedRowIndex(idx)}
                   role="row"
                   aria-selected={focusedRowIndex === idx}
