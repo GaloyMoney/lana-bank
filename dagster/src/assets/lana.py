@@ -1,6 +1,9 @@
+from typing import List
+
 import dlt
 
 import dagster as dg
+from src.core import Protoasset
 from src.dlt_sources.resources import (
     BigQueryResource,
     PostgresResource,
@@ -38,38 +41,32 @@ def lana_resources():
     return resources
 
 
-def lana_source_assets():
-    lana_source_assets = []
+def lana_source_protoassets() -> List[Protoasset]:
+    lana_source_protoassets = []
     for table_name in LANA_EL_TABLE_NAMES:
-        lana_source_assets.append(
-            dg.AssetSpec(
+        lana_source_protoassets.append(
+            Protoasset(
                 key=f"el_source_asset__lana__{table_name}",
                 tags={"asset_type": "el_source__asset", "system": "lana"},
             )
         )
-    return lana_source_assets
+    return lana_source_protoassets
 
 
-def lana_to_dw_el_assets():
-    lana_el_assets = []
+def lana_to_dw_el_protoassets() -> List[Protoasset]:
+    lana_el_protoassets = []
     for table_name in LANA_EL_TABLE_NAMES:
-        lana_el_assets.append(
-            build_lana_to_dw_el_asset(
+        lana_el_protoassets.append(
+            build_lana_to_dw_el_protoasset(
                 table_name=table_name,
             )
         )
 
-    return lana_el_assets
+    return lana_el_protoassets
 
 
-def build_lana_to_dw_el_asset(table_name):
+def build_lana_to_dw_el_protoasset(table_name) -> Protoasset:
 
-    @dg.asset(
-        key_prefix=["lana"],
-        name=table_name,
-        deps=[f"el_source_asset__lana__{table_name}"],
-        tags={"asset_type": "el_target__asset", "system": "lana"},
-    )
     def lana_to_dw_el_asset(
         context: dg.AssetExecutionContext,
         lana_core_pg: PostgresResource,
@@ -88,7 +85,14 @@ def build_lana_to_dw_el_asset(table_name):
         context.log.info(load_info)
         return load_info
 
-    return lana_to_dw_el_asset
+    lana_to_dw_protoasset = Protoasset(
+        key=["lana", table_name],
+        deps=[f"el_source_asset__lana__{table_name}"],
+        tags={"asset_type": "el_target__asset", "system": "lana"},
+        callable=lana_to_dw_el_asset,
+    )
+
+    return lana_to_dw_protoasset
 
 
 def prepare_lana_el_pipeline(lana_core_pg, dw_bq, table_name):

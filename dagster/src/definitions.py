@@ -1,7 +1,7 @@
 """Dagster definitions entry point - builds all Dagster objects."""
 
 import os
-from typing import Callable, List, Tuple, Union
+from typing import List, Tuple, Union
 
 import dagster as dg
 from src.assets import (
@@ -10,8 +10,8 @@ from src.assets import (
     bitfinex_trades,
     iris_dataset_size,
     lana_resources,
-    lana_source_assets,
-    lana_to_dw_el_assets,
+    lana_source_protoassets,
+    lana_to_dw_el_protoassets,
 )
 from src.core import Protoasset, lana_assetifier
 from src.otel import init_telemetry
@@ -117,7 +117,9 @@ definition_builder.add_job_schedule(
 )
 
 definition_builder.add_resources(lana_resources())
-# definition_builder.add_assets(lana_source_assets())
-# definition_builder.add_assets(lana_to_dw_el_assets())
+for lana_source_protoasset in lana_source_protoassets():
+    definition_builder.add_asset_from_protoasset(lana_source_protoasset)
+for lana_to_dw_el_protoasset in lana_to_dw_el_protoassets():
+    definition_builder.add_asset_from_protoasset(lana_to_dw_el_protoasset)
 
 defs = definition_builder.build()
