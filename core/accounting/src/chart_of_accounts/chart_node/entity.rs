@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-use crate::{chart_of_accounts::error::ChartOfAccountsError, primitives::*};
+use crate::primitives::*;
 
 use cala_ledger::{account::NewAccount, account_set::NewAccountSet};
 
@@ -44,17 +44,13 @@ pub struct ChartNode {
 }
 
 impl ChartNode {
-    pub fn assign_manual_transaction_account(
-        &mut self,
-    ) -> Result<Idempotent<NewAccount>, ChartOfAccountsError> {
+    pub fn assign_manual_transaction_account(&mut self) -> Idempotent<NewAccount> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             ChartNodeEvent::ManualTransactionAccountAssigned { .. }
         );
         if !self.can_have_manual_transactions() {
-            return Err(ChartOfAccountsError::NonLeafAccount(
-                self.spec.code.to_string(),
-            ));
+            return Idempotent::Ignored;
         }
 
         let ledger_account_id = LedgerAccountId::new();
@@ -70,7 +66,7 @@ impl ChartNode {
             .build()
             .expect("Could not build new account");
 
-        Ok(Idempotent::Executed(new_account))
+        Idempotent::Executed(new_account)
     }
 
     pub fn add_child_node(&mut self, child_node_id: ChartNodeId) -> Idempotent<()> {
@@ -211,7 +207,7 @@ mod tests {
         assert!(node.manual_transaction_account_id.is_some());
 
         let result = node.assign_manual_transaction_account();
-        matches!(result, Ok(Idempotent::Ignored));
+        matches!(result, Idempotent::Ignored);
     }
 
     #[test]

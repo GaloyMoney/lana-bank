@@ -407,33 +407,42 @@ where
             .await?;
 
         let manual_transaction_account_id = match chart
-            .manual_transaction_account(account_id_or_code)?
+            .manual_transaction_account(account_id_or_code.clone())
         {
-            ManualAccountFromChart::IdInChart(id) | ManualAccountFromChart::NonChartId(id) => id,
-            ManualAccountFromChart::NewAccount((account_set_id, new_account)) => {
-                let mut op = self.repo.begin_op().await?;
-                self.repo.update_in_op(&mut op, &mut chart).await?;
+            Idempotent::Executed(res) => match res {
+                ManualAccountFromChart::IdInChart(id) | ManualAccountFromChart::NonChartId(id) => {
+                    id
+                }
+                ManualAccountFromChart::NewAccount((account_set_id, new_account)) => {
+                    let mut op = self.repo.begin_op().await?;
+                    self.repo.update_in_op(&mut op, &mut chart).await?;
 
-                let mut op = self
-                    .cala
-                    .ledger_operation_from_db_op(op.with_db_time().await?);
-                let Account {
-                    id: manual_transaction_account_id,
-                    ..
-                } = self
-                    .cala
-                    .accounts()
-                    .create_in_op(&mut op, new_account)
-                    .await?;
+                    let mut op = self
+                        .cala
+                        .ledger_operation_from_db_op(op.with_db_time().await?);
+                    let Account {
+                        id: manual_transaction_account_id,
+                        ..
+                    } = self
+                        .cala
+                        .accounts()
+                        .create_in_op(&mut op, new_account)
+                        .await?;
 
-                self.cala
-                    .account_sets()
-                    .add_member_in_op(&mut op, account_set_id, manual_transaction_account_id)
-                    .await?;
+                    self.cala
+                        .account_sets()
+                        .add_member_in_op(&mut op, account_set_id, manual_transaction_account_id)
+                        .await?;
 
-                op.commit().await?;
+                    op.commit().await?;
 
-                manual_transaction_account_id.into()
+                    manual_transaction_account_id.into()
+                }
+            },
+            Idempotent::Ignored => {
+                return Err(ChartOfAccountsError::InvalidAccountIdOrCode(
+                    account_id_or_code,
+                ));
             }
         };
 

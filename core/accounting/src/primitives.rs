@@ -329,6 +329,15 @@ impl std::str::FromStr for AccountIdOrCode {
     }
 }
 
+impl std::fmt::Display for AccountIdOrCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Id(id) => write!(f, "{}", id),
+            Self::Code(code) => write!(f, "{}", code),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub struct AccountSpec {

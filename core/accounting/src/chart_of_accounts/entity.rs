@@ -238,7 +238,7 @@ impl Chart {
     pub fn manual_transaction_account(
         &mut self,
         account_id_or_code: AccountIdOrCode,
-    ) -> Result<ManualAccountFromChart, ChartOfAccountsError> {
+    ) -> Idempotent<ManualAccountFromChart> {
         match account_id_or_code {
             AccountIdOrCode::Id(id) => {
                 let res = match self
@@ -251,31 +251,31 @@ impl Chart {
                         if node.can_have_manual_transactions() {
                             ManualAccountFromChart::IdInChart(id)
                         } else {
-                            return Err(ChartOfAccountsError::NonLeafAccount(
-                                node.spec.code.to_string(),
-                            ));
+                            return Idempotent::Ignored;
                         }
                     }
                     None => ManualAccountFromChart::NonChartId(id),
                 };
 
-                Ok(res)
+                Idempotent::Executed(res)
             }
             AccountIdOrCode::Code(code) => {
-                let node = self
+                match self
                     .chart_nodes
                     .find_persisted_mut(|node| node.spec.code == code)
-                    .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))?;
-
-                match node.assign_manual_transaction_account()? {
-                    Idempotent::Executed(new_account) => Ok(ManualAccountFromChart::NewAccount((
-                        node.account_set_id,
-                        new_account,
-                    ))),
-                    Idempotent::Ignored => Ok(ManualAccountFromChart::IdInChart(
-                        node.manual_transaction_account_id
-                            .expect("Manual transaction account id should be set"),
-                    )),
+                {
+                    Some(node) => match node.assign_manual_transaction_account() {
+                        Idempotent::Executed(new_account) => Idempotent::Executed(
+                            ManualAccountFromChart::NewAccount((node.account_set_id, new_account)),
+                        ),
+                        Idempotent::Ignored => {
+                            Idempotent::Executed(ManualAccountFromChart::IdInChart(
+                                node.manual_transaction_account_id
+                                    .expect("Manual transaction account id should be set"),
+                            ))
+                        }
+                    },
+                    None => Idempotent::Ignored,
                 }
             }
         }
@@ -725,14 +725,9 @@ mod test {
         let mut chart = chart_from(initial_events());
         let bad_code = code("9.9.9");
 
-        let err = chart
-            .manual_transaction_account(AccountIdOrCode::Code(bad_code.clone()))
-            .unwrap_err();
+        let res = chart.manual_transaction_account(AccountIdOrCode::Code(bad_code.clone()));
 
-        match err {
-            ChartOfAccountsError::CodeNotFoundInChart(c) => assert_eq!(c, bad_code),
-            other => panic!("expected CodeNotFoundInChart, got {other:?}"),
-        }
+        assert!(matches!(res, Idempotent::Ignored));
     }
 
     #[test]
@@ -741,7 +736,7 @@ mod test {
         let acct_code = code("1.1");
 
         let res = chart.manual_transaction_account(AccountIdOrCode::Code(acct_code.clone()));
-        assert!(matches!(res, Err(ChartOfAccountsError::NonLeafAccount(_))));
+        assert!(matches!(res, Idempotent::Ignored));
     }
 
     #[test]
@@ -755,7 +750,7 @@ mod test {
             .manual_transaction_account_id = Some(random_id);
 
         let res = chart.manual_transaction_account(AccountIdOrCode::Id(random_id));
-        assert!(matches!(res, Err(ChartOfAccountsError::NonLeafAccount(_))));
+        assert!(matches!(res, Idempotent::Ignored));
     }
 
     #[test]
