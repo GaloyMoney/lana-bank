@@ -6,13 +6,15 @@ mod event;
 pub mod jobs;
 mod primitives;
 
-use error::PriceError;
 use futures::StreamExt;
 use job::Jobs;
-use outbox::{Outbox, OutboxEventMarker};
+use outbox::{EphemeralOutboxEvent, Outbox, OutboxEventMarker};
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use tokio::task::JoinHandle;
+use tracing::Span;
+
+use error::PriceError;
 
 pub use event::*;
 pub use primitives::*;
@@ -20,7 +22,7 @@ pub use primitives::*;
 #[derive(Clone)]
 pub struct Price {
     inner: Arc<RwLock<Option<PriceOfOneBTC>>>,
-    _handle: Arc<JoinHandle<()>>,
+    _handle: Arc<JoinHandle<Result<(), Box<dyn std::error::Error + Send + Sync>>>>,
 }
 
 impl Price {
@@ -56,42 +58,59 @@ impl Price {
     fn spawn_price_listener<E>(
         outbox: Outbox<E>,
         price: Arc<RwLock<Option<PriceOfOneBTC>>>,
-    ) -> JoinHandle<()>
+    ) -> JoinHandle<Result<(), Box<dyn std::error::Error + Send + Sync>>>
     where
         E: OutboxEventMarker<CorePriceEvent> + Send + Sync + 'static,
     {
         tokio::spawn(Self::listen_for_price_updates(outbox, price))
     }
 
-    #[tracing::instrument(name = "core.price.listen_for_updates", skip(outbox, price))]
+    #[tracing::instrument(name = "core.price.listen_for_updates", skip_all, err)]
     async fn listen_for_price_updates<E>(
         outbox: Outbox<E>,
         price: Arc<RwLock<Option<PriceOfOneBTC>>>,
-    ) where
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>>
+    where
         E: OutboxEventMarker<CorePriceEvent> + Send + Sync + 'static,
     {
-        let mut stream = match outbox.listen_ephemeral().await {
-            Ok(s) => s,
-            Err(error) => {
-                tracing::error!(?error, "failed to listen for price updates from outbox");
-                return;
-            }
-        };
+        let mut stream = outbox.listen_ephemeral().await?;
 
         while let Some(message) = stream.next().await {
-            match message.payload.as_event() {
-                Some(CorePriceEvent::PriceUpdated { price: new_price }) => {
-                    *price.write().await = Some(*new_price);
-                }
-                None => {
-                    tracing::warn!(
-                        event_type = %message.event_type.as_str(),
-                        "failed to deserialize CorePriceEvent from ephemeral outbox payload"
-                    );
-                }
-            }
+            Self::process_message(message.as_ref(), &price).await?;
         }
 
         tracing::info!("price outbox listener stream ended");
+        Ok(())
+    }
+
+    #[tracing::instrument(
+        name = "core.price.listen_for_updates.process_message",
+        parent = None,
+        skip(price, message),
+        fields(event_type = tracing::field::Empty),
+        err
+    )]
+    async fn process_message<E>(
+        message: &EphemeralOutboxEvent<E>,
+        price: &Arc<RwLock<Option<PriceOfOneBTC>>>,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>>
+    where
+        E: OutboxEventMarker<CorePriceEvent> + Send + Sync + 'static,
+    {
+        match message.payload.as_event() {
+            Some(CorePriceEvent::PriceUpdated { price: new_price }) => {
+                Span::current().record("event_type", "PriceUpdated");
+                *price.write().await = Some(*new_price);
+            }
+            None => {
+                Span::current().record("event_type", message.event_type.as_str());
+                tracing::warn!(
+                    event_type = %message.event_type.as_str(),
+                    "failed to deserialize CorePriceEvent from ephemeral outbox payload"
+                );
+            }
+        }
+
+        Ok(())
     }
 }
