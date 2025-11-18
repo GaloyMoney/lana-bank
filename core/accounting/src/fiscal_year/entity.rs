@@ -6,7 +6,6 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
-use super::error::FiscalYearError;
 use crate::primitives::{ChartId, FiscalYearId};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -38,11 +37,8 @@ pub struct FiscalYear {
 }
 
 impl FiscalYear {
-    #[instrument(name = "fiscal_year.close_last_month", skip(self, now), err)]
-    pub(super) fn close_last_month(
-        &mut self,
-        now: DateTime<Utc>,
-    ) -> Result<Idempotent<NaiveDate>, FiscalYearError> {
+    #[instrument(name = "fiscal_year.close_last_month", skip(self, now))]
+    pub(super) fn close_last_month(&mut self, now: DateTime<Utc>) -> Idempotent<NaiveDate> {
         let last_recorded_date = self.events.iter_all().rev().find_map(|event| match event {
             FiscalYearEvent::MonthClosed { closed_as_of, .. } => Some(*closed_as_of),
             _ => None,
@@ -55,7 +51,7 @@ impl FiscalYear {
                     .and_then(|d| d.pred_opt())
                     .expect("Failed to compute last day of previous month");
                 if last_effective == last_day_of_previous_month {
-                    return Ok(Idempotent::Ignored);
+                    return Idempotent::Ignored;
                 }
 
                 last_effective
@@ -82,7 +78,7 @@ impl FiscalYear {
             closed_as_of: new_monthly_closing_date,
             closed_at: now,
         });
-        Ok(Idempotent::Executed(new_monthly_closing_date))
+        Idempotent::Executed(new_monthly_closing_date)
     }
 }
 
@@ -170,7 +166,7 @@ mod test {
         let mut fiscal_year = fiscal_year_from(initial_events_with_opened_date(period_start));
 
         let timestamp = Utc::now();
-        let closed_date = fiscal_year.close_last_month(timestamp).unwrap().unwrap();
+        let closed_date = fiscal_year.close_last_month(timestamp).unwrap();
         assert_eq!(closed_date, expected_closed_date);
 
         let closing_event_date = fiscal_year
@@ -191,13 +187,10 @@ mod test {
         let expected_second_closed_date = "2024-02-29".parse::<NaiveDate>().unwrap();
         let mut fiscal_year = fiscal_year_from(initial_events_with_opened_date(period_start));
 
-        let _ = fiscal_year.close_last_month(Utc::now()).unwrap().unwrap();
+        let _ = fiscal_year.close_last_month(Utc::now()).unwrap();
 
         let second_closing_ts = Utc::now();
-        let second_closing_date = fiscal_year
-            .close_last_month(second_closing_ts)
-            .unwrap()
-            .unwrap();
+        let second_closing_date = fiscal_year.close_last_month(second_closing_ts).unwrap();
         assert_eq!(second_closing_date, expected_second_closed_date);
     }
 
@@ -211,7 +204,7 @@ mod test {
         let mut fiscal_year =
             fiscal_year_from(initial_events_with_opened_date(first_day_of_last_month));
         let _ = fiscal_year.close_last_month(Utc::now()).unwrap();
-        let second_closing_date = fiscal_year.close_last_month(Utc::now()).unwrap();
+        let second_closing_date = fiscal_year.close_last_month(Utc::now());
         assert!(second_closing_date.was_ignored());
     }
 }

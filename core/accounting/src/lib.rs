@@ -279,8 +279,8 @@ where
         Ok(chart)
     }
 
-    #[instrument(name = "core_accounting.init_fiscal_year", skip(self), err)]
-    pub async fn init_fiscal_year(
+    #[instrument(name = "core_accounting.init_fiscal_year_for_chart", skip(self), err)]
+    pub async fn init_fiscal_year_for_chart(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_ref: &str,
@@ -293,25 +293,16 @@ where
 
         Ok(self
             .fiscal_year()
-            .init_fiscal_year(sub, opened_as_of, chart.id)
+            .init_fiscal_year_for_chart(sub, opened_as_of, chart.id)
             .await?)
     }
 
-    #[instrument(name = "core_accounting.close_month", skip(self), err)]
-    pub async fn close_month(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart_ref: &str,
-    ) -> Result<FiscalYear, CoreAccountingError> {
-        let chart = self
-            .chart_of_accounts()
-            .find_by_reference(chart_ref)
-            .await?;
-        Ok(self.fiscal_year().close_month(sub, chart.id).await?)
-    }
-
-    #[instrument(name = "core_accounting.get_current_fiscal_year", skip(self), err)]
-    pub async fn get_current_fiscal_year(
+    #[instrument(
+        name = "core_accounting.close_month_on_open_fiscal_year_for_chart",
+        skip(self),
+        err
+    )]
+    pub async fn close_month_on_open_fiscal_year_for_chart(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_ref: &str,
@@ -322,7 +313,27 @@ where
             .await?;
         Ok(self
             .fiscal_year()
-            .get_current_fiscal_year(sub, chart.id)
+            .close_month_on_open_fiscal_year_for_chart(sub, chart.id)
+            .await?)
+    }
+
+    #[instrument(
+        name = "core_accounting.get_current_fiscal_year_by_chart",
+        skip(self),
+        err
+    )]
+    pub async fn get_current_fiscal_year_by_chart(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_ref: &str,
+    ) -> Result<FiscalYear, CoreAccountingError> {
+        let chart = self
+            .chart_of_accounts()
+            .find_by_reference(chart_ref)
+            .await?;
+        Ok(self
+            .fiscal_year()
+            .get_current_fiscal_year_by_chart(sub, chart.id)
             .await?)
     }
 

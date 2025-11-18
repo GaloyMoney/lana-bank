@@ -7,6 +7,7 @@ pub mod ledger;
 mod repo;
 pub mod tree;
 
+use es_entity::Idempotent;
 use tracing::instrument;
 
 use audit::AuditSvc;
@@ -96,7 +97,7 @@ where
     ) -> Result<Chart, ChartOfAccountsError> {
         let id = ChartId::new();
 
-        let mut db_op = self.repo.begin_op().await?;
+        let mut op = self.repo.begin_op().await?;
         self.authz
             .enforce_permission(
                 sub,
@@ -113,10 +114,10 @@ where
             .build()
             .expect("Could not build new chart of accounts");
 
-        let chart = self.repo.create_in_op(&mut db_op, new_chart).await?;
+        let chart = self.repo.create_in_op(&mut op, new_chart).await?;
 
         self.chart_ledger
-            .create_chart_root_account_set_in_op(db_op, &chart)
+            .create_chart_root_account_set_in_op(op, &chart)
             .await?;
 
         Ok(chart)
@@ -282,11 +283,11 @@ where
     }
 
     #[instrument(
-        name = "core_accounting.chart_of_accounts.close_account_set_as_of",
+        name = "core_accounting.chart_of_accounts.close_by_chart_id_as_of",
         skip(self, op),
         err
     )]
-    pub async fn close_account_set_as_of(
+    pub async fn close_by_chart_id_as_of(
         &self,
         mut op: es_entity::DbOp<'_>,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -302,13 +303,12 @@ where
             .await?;
 
         let mut chart = self.find_by_id(chart_id).await?;
-        chart.account_set_closed_as_of(chart.account_set_id, closed_as_of);
-        self.repo.update_in_op(&mut op, &mut chart).await?;
-
-        self.chart_ledger
-            .close_as_of(op, closed_as_of, chart.account_set_id)
-            .await?;
-
+        if let Idempotent::Executed(closing_date) = chart.close_chart_as_of(closed_as_of) {
+            self.repo.update_in_op(&mut op, &mut chart).await?;
+            self.chart_ledger
+                .close_by_chart_root_account_set_as_of(op, closing_date, chart.account_set_id)
+                .await?;
+        }
         Ok(())
     }
 

@@ -62,11 +62,11 @@ where
     }
 
     #[instrument(
-        name = "core_accounting.fiscal_year.init_fiscal_year"
+        name = "core_accounting.fiscal_year.init_fiscal_year_for_chart"
         skip(self),
         err
     )]
-    pub async fn init_fiscal_year(
+    pub async fn init_fiscal_year_for_chart(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         opened_as_of: impl Into<chrono::NaiveDate> + std::fmt::Debug,
@@ -100,14 +100,18 @@ where
             .pred_opt()
             .expect("Date was first possible NaiveDate type value");
         self.chart_of_accounts
-            .close_account_set_as_of(op, sub, chart_id, close_ledger_as_of)
+            .close_by_chart_id_as_of(op, sub, chart_id, close_ledger_as_of)
             .await?;
 
         Ok(fiscal_year)
     }
 
-    #[instrument(name = "core_accounting.fiscal_year.close_month", skip(self), err)]
-    pub async fn close_month(
+    #[instrument(
+        name = "core_accounting.fiscal_year.close_month_on_open_fiscal_year_for_chart",
+        skip(self),
+        err
+    )]
+    pub async fn close_month_on_open_fiscal_year_for_chart(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_id: ChartId,
@@ -122,7 +126,7 @@ where
         let now = crate::time::now();
         let mut latest_year = self.get_current_by_chart_id(chart_id).await?;
         let closed_as_of_date =
-            if let Idempotent::Executed(date) = latest_year.close_last_month(now)? {
+            if let Idempotent::Executed(date) = latest_year.close_last_month(now) {
                 date
             } else {
                 return Ok(latest_year);
@@ -131,18 +135,18 @@ where
         let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut latest_year).await?;
         self.chart_of_accounts
-            .close_account_set_as_of(op, sub, chart_id, closed_as_of_date)
+            .close_by_chart_id_as_of(op, sub, chart_id, closed_as_of_date)
             .await?;
 
         Ok(latest_year)
     }
 
     #[instrument(
-        name = "core_accounting.fiscal_year.get_current_fiscal_year",
+        name = "core_accounting.fiscal_year.get_current_fiscal_year_by_chart",
         skip(self),
         err
     )]
-    pub async fn get_current_fiscal_year(
+    pub async fn get_current_fiscal_year_by_chart(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_id: ChartId,

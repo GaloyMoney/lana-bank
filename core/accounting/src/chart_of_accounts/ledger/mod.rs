@@ -71,21 +71,21 @@ impl ChartLedger {
     }
 
     #[instrument(
-        name = "chart_ledger.close_as_of", 
+        name = "chart_ledger.close_by_chart_root_account_set_as_of", 
         skip(self, op),
         fields(chart_id = tracing::field::Empty, closed_as_of = %closed_as_of),
         err,
     )]
-    pub async fn close_as_of(
+    pub async fn close_by_chart_root_account_set_as_of(
         &self,
         op: es_entity::DbOp<'_>,
         closed_as_of: chrono::NaiveDate,
-        tracking_account_set_id: AccountSetId,
+        chart_root_account_set_id: AccountSetId,
     ) -> Result<(), ChartLedgerError> {
         let mut tracking_account_set = self
             .cala
             .account_sets()
-            .find(tracking_account_set_id)
+            .find(chart_root_account_set_id)
             .await?;
 
         let mut op = self

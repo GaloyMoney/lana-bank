@@ -788,7 +788,7 @@ impl Query {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let fiscal_year = app
             .accounting()
-            .get_current_fiscal_year(sub, CHART_REF.0)
+            .get_current_fiscal_year_by_chart(sub, CHART_REF.0)
             .await?;
         Ok(FiscalYear::from(fiscal_year))
     }
@@ -2105,7 +2105,7 @@ impl Mutation {
             FiscalYearId,
             ctx,
             app.accounting()
-                .init_fiscal_year(sub, CHART_REF.0, input.opened_as_of)
+                .init_fiscal_year_for_chart(sub, CHART_REF.0, input.opened_as_of)
         )
     }
 
@@ -2119,7 +2119,8 @@ impl Mutation {
             FiscalYear,
             FiscalYearId,
             ctx,
-            app.accounting().close_month(sub, CHART_REF.0)
+            app.accounting()
+                .close_month_on_open_fiscal_year_for_chart(sub, CHART_REF.0)
         )
     }
 

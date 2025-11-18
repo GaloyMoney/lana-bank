@@ -23,9 +23,8 @@ pub enum ChartEvent {
         name: String,
         reference: String,
     },
-    AccountSetClosedAsOf {
+    ClosedAsOf {
         closed_as_of: NaiveDate,
-        member_account_set_id: CalaAccountSetId,
     },
 }
 
@@ -282,15 +281,14 @@ impl Chart {
         tree::project_from_nodes(self.id, &self.name, self.chart_nodes.iter_persisted())
     }
 
-    pub fn account_set_closed_as_of(
-        &mut self,
-        account_set_id: CalaAccountSetId,
-        closed_as_of: NaiveDate,
-    ) {
-        self.events.push(ChartEvent::AccountSetClosedAsOf {
-            member_account_set_id: account_set_id,
-            closed_as_of,
-        });
+    pub fn close_chart_as_of(&mut self, closed_as_of: NaiveDate) -> Idempotent<NaiveDate> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            ChartEvent::ClosedAsOf { closed_as_of: prev_date, .. } if prev_date == &closed_as_of,
+            => ChartEvent::ClosedAsOf { .. }
+        );
+        self.events.push(ChartEvent::ClosedAsOf { closed_as_of });
+        Idempotent::Executed(closed_as_of)
     }
 }
 
@@ -313,7 +311,7 @@ impl TryFromEvents<ChartEvent> for Chart {
                         .reference(reference.to_string())
                         .name(name.to_string());
                 }
-                ChartEvent::AccountSetClosedAsOf { .. } => {}
+                ChartEvent::ClosedAsOf { .. } => {}
             }
         }
 
