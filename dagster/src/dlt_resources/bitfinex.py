@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-from typing import Iterator, Dict, Any, List
+from typing import Any, Dict, Iterator, List
 
 import dlt
 from dlt.sources.helpers import requests
@@ -26,8 +26,10 @@ FIELDS_TICKER = [
     "LOW",
 ]
 
+
 def _utc_now_iso() -> datetime:
     return datetime.now(timezone.utc)
+
 
 @dlt.resource(
     name="bitfinex_ticker_dlt",
@@ -51,10 +53,12 @@ def ticker(symbol: str = DEFAULT_SYMBOL) -> Iterator[Dict[str, Any]]:
         "requested_at": _utc_now_iso(),
     }
 
+
 def ten_minutes_ago_utc_ms():
     now = datetime.now(timezone.utc)
     ten_minutes_ago = now - timedelta(minutes=10)
     return int(ten_minutes_ago.timestamp() * 1000)
+
 
 @dlt.resource(
     name="bitfinex_trades_dlt",
@@ -95,12 +99,15 @@ def trades(
         if len(rows) < limit:
             break
 
+
 @dlt.resource(
     name="bitfinex_order_book_dlt",
     write_disposition="append",
     primary_key="requested_at",
 )
-def order_book(symbol: str = DEFAULT_SYMBOL, depth: int = DEFAULT_ORDER_BOOK_DEPTH) -> Iterator[Dict[str, Any]]:
+def order_book(
+    symbol: str = DEFAULT_SYMBOL, depth: int = DEFAULT_ORDER_BOOK_DEPTH
+) -> Iterator[Dict[str, Any]]:
     """
     Snapshot full order book for a given symbol.
 
@@ -112,12 +119,11 @@ def order_book(symbol: str = DEFAULT_SYMBOL, depth: int = DEFAULT_ORDER_BOOK_DEP
     resp.raise_for_status()
 
     orders = [
-        dict(zip(["PRICE", "COUNT", "AMOUNT"], o)) for o in resp.json(parse_float=Decimal)
+        dict(zip(["PRICE", "COUNT", "AMOUNT"], o))
+        for o in resp.json(parse_float=Decimal)
     ]
     yield {
         "symbol": symbol,
         "requested_at": _utc_now_iso(),
         "orders": orders,
     }
-
-

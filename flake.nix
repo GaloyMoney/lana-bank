@@ -236,6 +236,8 @@
           netlify-cli
           pandoc
           nano
+          python313Packages.black
+          python313Packages.isort
           podman
           podman-compose
           cachix
@@ -559,6 +561,27 @@
           workspace-audit = craneLib.cargoAudit {
             inherit advisory-db;
             src = rustSource;
+          };
+
+          dagster-format = pkgs.stdenv.mkDerivation {
+            name = "dagster-format-check";
+            src = ./.;
+
+            nativeBuildInputs = [
+              pkgs.python313Packages.black
+              pkgs.python313Packages.isort
+            ];
+
+            buildPhase = ''
+              cd dagster
+              black --check --diff src
+              isort --check-only src
+            '';
+
+            installPhase = ''
+              mkdir -p $out
+              echo "Dagster formatting clean" > $out/result.txt
+            '';
           };
 
           workspace-deny = craneLib.cargoDeny {
