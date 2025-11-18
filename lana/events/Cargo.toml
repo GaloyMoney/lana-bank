@@ -16,6 +16,7 @@ core-customer = { workspace = true }
 core-credit = { workspace = true }
 core-deposit = { workspace = true }
 core-report = { workspace = true }
+core-price = { workspace = true }
 outbox = { workspace = true }
 
 serde = { workspace = true }

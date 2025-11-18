@@ -25,14 +25,14 @@ pub struct Price {
 
 impl Price {
     #[tracing::instrument(name = "core.price.init", skip(jobs, outbox), err)]
-    pub async fn init<E>(jobs: &Jobs, outbox: Outbox<E>) -> Result<Self, PriceError>
+    pub async fn init<E>(jobs: &Jobs, outbox: &Outbox<E>) -> Result<Self, PriceError>
     where
         E: OutboxEventMarker<CorePriceEvent> + Send + Sync + 'static,
     {
         let price = Arc::new(RwLock::new(None));
 
         jobs.add_initializer_and_spawn_unique(
-            jobs::get_price_from_bfx::GetPriceFromClientJobInit::<E>::new(&outbox),
+            jobs::get_price_from_bfx::GetPriceFromClientJobInit::<E>::new(outbox),
             jobs::get_price_from_bfx::GetPriceFromClientJobConfig::<E> {
                 _phantom: std::marker::PhantomData,
             },
@@ -40,7 +40,7 @@ impl Price {
         .await
         .map_err(PriceError::JobError)?;
 
-        let handle = Self::spawn_price_listener(outbox, Arc::clone(&price));
+        let handle = Self::spawn_price_listener(outbox.clone(), Arc::clone(&price));
 
         Ok(Self {
             inner: price,
@@ -49,11 +49,8 @@ impl Price {
     }
 
     pub async fn usd_cents_per_btc(&self) -> Result<PriceOfOneBTC, PriceError> {
-        self.inner
-            .read()
-            .await
-            .copied()
-            .ok_or(PriceError::PriceUnavailable)
+        let guard = self.inner.read().await;
+        (*guard).ok_or(PriceError::PriceUnavailable)
     }
 
     fn spawn_price_listener<E>(
@@ -67,8 +64,10 @@ impl Price {
     }
 
     #[tracing::instrument(name = "core.price.listen_for_updates", skip(outbox, price))]
-    async fn listen_for_price_updates<E>(outbox: Outbox<E>, price: Arc<RwLock<Option<PriceOfOneBTC>>>) 
-    where
+    async fn listen_for_price_updates<E>(
+        outbox: Outbox<E>,
+        price: Arc<RwLock<Option<PriceOfOneBTC>>>,
+    ) where
         E: OutboxEventMarker<CorePriceEvent> + Send + Sync + 'static,
     {
         let mut stream = match outbox.listen_ephemeral().await {

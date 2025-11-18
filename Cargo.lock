@@ -3421,6 +3421,7 @@ dependencies = [
  "core-custody",
  "core-customer",
  "core-deposit",
+ "core-price",
  "core-report",
  "governance",
  "outbox",

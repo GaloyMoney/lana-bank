@@ -1,14 +1,12 @@
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
-use std::sync::Arc;
 use job::*;
 use outbox::{EphemeralEventType, Outbox, OutboxEventMarker};
+use std::sync::Arc;
 
 use crate::{
-    CorePriceEvent,
-    PriceOfOneBTC,
-    PRICE_UPDATED_EVENT_TYPE,
+    CorePriceEvent, PRICE_UPDATED_EVENT_TYPE, PriceOfOneBTC,
     bfx_client::{self, BfxClient},
 };
 
@@ -47,8 +45,7 @@ where
     }
 }
 
-const GET_PRICE_FROM_CLIENT_JOB_TYPE: JobType =
-    JobType::new("cron.core-price.get-price-from-bfx");
+const GET_PRICE_FROM_CLIENT_JOB_TYPE: JobType = JobType::new("cron.core-price.get-price-from-bfx");
 
 impl<E> JobInitializer for GetPriceFromClientJobInit<E>
 where
@@ -87,8 +84,7 @@ where
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let price: PriceOfOneBTC =
-            bfx_client::fetch_price(self.bfx_client.as_ref()).await?;
+        let price: PriceOfOneBTC = bfx_client::fetch_price(self.bfx_client.as_ref()).await?;
 
         self.outbox
             .publish_ephemeral(
@@ -102,4 +98,3 @@ where
         )))
     }
 }
-
