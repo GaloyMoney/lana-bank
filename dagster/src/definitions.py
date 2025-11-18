@@ -9,6 +9,10 @@ from src.assets import (
     bitfinex_ticker,
     bitfinex_trades,
     iris_dataset_size,
+    lana_resources,
+    lana_source_assets,
+    lana_to_dw_el_assets,
+
 )
 from src.core import lana_assetifier
 from src.otel import init_telemetry
@@ -24,9 +28,16 @@ class DefinitionsBuilder:
         self.assets = []
         self.jobs = []
         self.schedules = []
+        self.resources = {}
 
     def init_telemetry(self):
         init_telemetry()
+
+    def add_assets(self, assets: Union[dg.asset, Tuple[dg.asset, ...]]):
+        self.assets.extend(assets)
+
+    def add_resources(self, resources: Union[dg.ConfigurableResource, Tuple[dg.ConfigurableResource, ...]]):
+        self.resources.update(resources)
 
     def add_callable_as_asset(self, callable: Callable) -> dg.asset:
         asset = lana_assetifier(asset_key=callable.__name__, callable=callable)
@@ -61,7 +72,7 @@ class DefinitionsBuilder:
 
     def build(self) -> dg.Definitions:
         return dg.Definitions(
-            assets=self.assets, jobs=self.jobs, schedules=self.schedules
+            assets=self.assets, jobs=self.jobs, schedules=self.schedules, resources=self.resources
         )
 
 
@@ -96,5 +107,9 @@ bitfinex_order_book_job = definition_builder.add_job_from_assets(
 definition_builder.add_job_schedule(
     job=bitfinex_order_book_job, cron_expression="*/10 * * * *"
 )
+
+definition_builder.add_resources(lana_resources())
+definition_builder.add_assets(lana_source_assets())
+definition_builder.add_assets(lana_to_dw_el_assets())
 
 defs = definition_builder.build()

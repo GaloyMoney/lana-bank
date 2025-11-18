@@ -2,3 +2,4 @@
 
 from src.assets.bitfinex import bitfinex_order_book, bitfinex_ticker, bitfinex_trades
 from src.assets.iris import iris_dataset_size
+from src.assets.lana import lana_resources, lana_source_assets, lana_to_dw_el_assets
