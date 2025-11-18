@@ -1,7 +1,7 @@
 """Dagster definitions entry point - builds all Dagster objects."""
 
 import os
-from typing import Callable, Tuple, Union
+from typing import Callable, List, Tuple, Union
 
 import dagster as dg
 from src.assets import (
@@ -13,7 +13,7 @@ from src.assets import (
     lana_source_assets,
     lana_to_dw_el_assets,
 )
-from src.core import lana_assetifier
+from src.core import Protoasset, lana_assetifier
 from src.otel import init_telemetry
 
 DAGSTER_AUTOMATIONS_ACTIVE = os.getenv(
@@ -24,7 +24,7 @@ DAGSTER_AUTOMATIONS_ACTIVE = os.getenv(
 class DefinitionsBuilder:
 
     def __init__(self):
-        self.assets = []
+        self.assets: List[dg.asset] = []
         self.jobs = []
         self.schedules = []
         self.resources = {}
@@ -32,17 +32,14 @@ class DefinitionsBuilder:
     def init_telemetry(self):
         init_telemetry()
 
-    def add_assets(self, assets: Union[dg.asset, Tuple[dg.asset, ...]]):
-        self.assets.extend(assets)
-
     def add_resources(
         self,
         resources: Union[dg.ConfigurableResource, Tuple[dg.ConfigurableResource, ...]],
     ):
         self.resources.update(resources)
 
-    def add_callable_as_asset(self, callable: Callable) -> dg.asset:
-        asset = lana_assetifier(asset_key=callable.__name__, callable=callable)
+    def add_asset_from_protoasset(self, protoasset: Protoasset) -> dg.asset:
+        asset: dg.asset = lana_assetifier(protoasset=protoasset)
         self.assets.append(asset)
 
         return asset
@@ -84,12 +81,18 @@ class DefinitionsBuilder:
 definition_builder = DefinitionsBuilder()
 
 definition_builder.init_telemetry()
-definition_builder.add_callable_as_asset(iris_dataset_size)
+definition_builder.add_asset_from_protoasset(
+    Protoasset(key="iris_dataset_size", callable=iris_dataset_size)
+)
 
-bitfinex_ticker_asset = definition_builder.add_callable_as_asset(bitfinex_ticker)
-bitfinex_trades_asset = definition_builder.add_callable_as_asset(bitfinex_trades)
-bitfinex_order_book_asset = definition_builder.add_callable_as_asset(
-    bitfinex_order_book
+bitfinex_ticker_asset = definition_builder.add_asset_from_protoasset(
+    Protoasset(key="bitfinex_ticker", callable=bitfinex_ticker)
+)
+bitfinex_trades_asset = definition_builder.add_asset_from_protoasset(
+    Protoasset(key="bitfinex_trades", callable=bitfinex_trades)
+)
+bitfinex_order_book_asset = definition_builder.add_asset_from_protoasset(
+    Protoasset(key="bitfinex_order_book", callable=bitfinex_order_book)
 )
 
 bitfinex_ticker_job = definition_builder.add_job_from_assets(
@@ -114,7 +117,7 @@ definition_builder.add_job_schedule(
 )
 
 definition_builder.add_resources(lana_resources())
-definition_builder.add_assets(lana_source_assets())
-definition_builder.add_assets(lana_to_dw_el_assets())
+# definition_builder.add_assets(lana_source_assets())
+# definition_builder.add_assets(lana_to_dw_el_assets())
 
 defs = definition_builder.build()
