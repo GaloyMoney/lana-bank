@@ -80,12 +80,12 @@ impl ChartLedger {
         &self,
         op: es_entity::DbOp<'_>,
         closed_as_of: chrono::NaiveDate,
-        tracking_account_set_id: impl Into<AccountSetId> + std::fmt::Debug,
+        tracking_account_set_id: AccountSetId,
     ) -> Result<(), ChartLedgerError> {
         let mut tracking_account_set = self
             .cala
             .account_sets()
-            .find(tracking_account_set_id.into())
+            .find(tracking_account_set_id)
             .await?;
 
         let mut op = self

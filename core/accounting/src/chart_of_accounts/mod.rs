@@ -306,7 +306,7 @@ where
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
         self.chart_ledger
-            .close_as_of(op, closed_as_of, chart_id)
+            .close_as_of(op, closed_as_of, chart.account_set_id)
             .await?;
 
         Ok(())
