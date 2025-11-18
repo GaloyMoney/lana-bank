@@ -59,7 +59,7 @@ where
         })
     }
 
-    fn calculate_next_closing(&self, now: DateTime<Utc>) -> Result<DateTime<Utc>, TimeEventsError> {
+    fn calculate_next_closing(&self, now: DateTime<Utc>) -> Result<DateTime<Tz>, TimeEventsError> {
         let tz = self.parse_timezone()?;
         let closing_time = self.parse_closing_time()?;
 
@@ -103,20 +103,28 @@ where
             }
         };
 
-        Ok(next_closing.with_timezone(&Utc))
+        Ok(next_closing)
     }
 
     #[instrument(
         name = "time_events.broadcaster.publish_daily_closing",
         skip(self),
-        fields(date = %date, timezone = %self.config.daily.timezone),
+        fields(closing_time = %closing_time.to_rfc3339(), timezone = %closing_time.timezone()),
         err
     )]
-    async fn publish_daily_closing(&self, date: chrono::NaiveDate) -> Result<(), TimeEventsError> {
+    async fn publish_daily_closing(
+        &self,
+        closing_time: DateTime<Tz>,
+    ) -> Result<(), TimeEventsError> {
+        // Convert to UTC for the event - consumers only need the timestamp
+        let closing_time_utc = closing_time.with_timezone(&Utc);
+
         self.outbox
             .publish_ephemeral(
                 EphemeralEventType::new("time.daily-closing"),
-                TimeEvent::DailyClosing { date },
+                TimeEvent::DailyClosing {
+                    closing_time: closing_time_utc,
+                },
             )
             .await?;
         Ok(())
@@ -130,14 +138,11 @@ where
             "Starting DailyClosing broadcaster"
         );
 
-        // Parse timezone once at startup - it won't change during runtime
-        let tz = match self.parse_timezone() {
-            Ok(tz) => tz,
-            Err(e) => {
-                error!(error = %e, "Failed to parse timezone, broadcaster cannot start");
-                return;
-            }
-        };
+        // Validate timezone at startup - it won't change during runtime
+        if let Err(e) = self.parse_timezone() {
+            error!(error = %e, "Failed to parse timezone, broadcaster cannot start");
+            return;
+        }
 
         loop {
             let now = Utc::now();
@@ -155,11 +160,8 @@ where
 
                         tokio::time::sleep(std_duration).await;
 
-                        // Convert to configured timezone to get the correct date
-                        let closing_date = next_closing.with_timezone(&tz).date_naive();
-
                         loop {
-                            match self.publish_daily_closing(closing_date).await {
+                            match self.publish_daily_closing(next_closing).await {
                                 Ok(()) => {
                                     break;
                                 }
@@ -226,7 +228,7 @@ mod tests {
         fn calculate_next_closing(
             &self,
             now: DateTime<Utc>,
-        ) -> Result<DateTime<Utc>, TimeEventsError> {
+        ) -> Result<DateTime<Tz>, TimeEventsError> {
             let tz = self.parse_timezone()?;
             let closing_time = self.parse_closing_time()?;
 
@@ -269,7 +271,7 @@ mod tests {
                 }
             };
 
-            Ok(next_closing.with_timezone(&Utc))
+            Ok(next_closing)
         }
     }
 
@@ -291,7 +293,7 @@ mod tests {
             .single()
             .unwrap();
 
-        assert_eq!(next_closing, expected);
+        assert_eq!(next_closing.with_timezone(&Utc), expected);
     }
 
     #[test]
@@ -312,7 +314,7 @@ mod tests {
             .single()
             .unwrap();
 
-        assert_eq!(next_closing, expected);
+        assert_eq!(next_closing.with_timezone(&Utc), expected);
     }
 
     #[test]
@@ -333,7 +335,7 @@ mod tests {
             .single()
             .unwrap();
 
-        assert_eq!(next_closing, expected);
+        assert_eq!(next_closing.with_timezone(&Utc), expected);
     }
 
     #[test]
@@ -354,7 +356,7 @@ mod tests {
             .single()
             .unwrap();
 
-        assert_eq!(next_closing, expected);
+        assert_eq!(next_closing.with_timezone(&Utc), expected);
     }
 
     #[test]
@@ -369,7 +371,7 @@ mod tests {
         // Expected: 2024-01-15 09:00:00 UTC (18:00 JST = 09:00 UTC)
         let expected = Utc.with_ymd_and_hms(2024, 1, 15, 9, 0, 0).single().unwrap();
 
-        assert_eq!(next_closing, expected);
+        assert_eq!(next_closing.with_timezone(&Utc), expected);
     }
 
     #[test]
@@ -383,7 +385,7 @@ mod tests {
             .calculate_next_closing(now)
             .unwrap();
         assert_eq!(
-            next,
+            next.with_timezone(&Utc),
             Utc.with_ymd_and_hms(2024, 1, 16, 0, 0, 0).single().unwrap()
         );
 
@@ -393,7 +395,7 @@ mod tests {
             .calculate_next_closing(now)
             .unwrap();
         assert_eq!(
-            next,
+            next.with_timezone(&Utc),
             Utc.with_ymd_and_hms(2024, 1, 17, 0, 0, 0).single().unwrap()
         );
 
@@ -406,7 +408,7 @@ mod tests {
             .calculate_next_closing(now)
             .unwrap();
         assert_eq!(
-            next,
+            next.with_timezone(&Utc),
             Utc.with_ymd_and_hms(2024, 1, 15, 12, 0, 0)
                 .single()
                 .unwrap()
@@ -464,7 +466,7 @@ mod tests {
             .single()
             .unwrap();
 
-        assert_eq!(next_closing, expected);
+        assert_eq!(next_closing.with_timezone(&Utc), expected);
     }
 
     #[test]
@@ -485,7 +487,7 @@ mod tests {
             .single()
             .unwrap();
 
-        assert_eq!(next_closing, expected);
+        assert_eq!(next_closing.with_timezone(&Utc), expected);
     }
 
     #[test]
@@ -509,11 +511,10 @@ mod tests {
             .single()
             .unwrap();
 
-        assert_eq!(next_closing, expected);
+        assert_eq!(next_closing.with_timezone(&Utc), expected);
 
         // Now verify the date extraction in the configured timezone
-        let tz = broadcaster.parse_timezone().unwrap();
-        let closing_date = next_closing.with_timezone(&tz).date_naive();
+        let closing_date = next_closing.date_naive();
 
         // The date should be Jan 16 (in JST), not Jan 15 (UTC)
         let expected_date = chrono::NaiveDate::from_ymd_opt(2024, 1, 16).unwrap();
@@ -572,7 +573,7 @@ mod tests {
             .single()
             .unwrap();
 
-        assert_eq!(next_closing, expected);
+        assert_eq!(next_closing.with_timezone(&Utc), expected);
     }
 
     #[test]
@@ -592,6 +593,6 @@ mod tests {
             .single()
             .unwrap();
 
-        assert_eq!(next_closing, expected);
+        assert_eq!(next_closing.with_timezone(&Utc), expected);
     }
 }

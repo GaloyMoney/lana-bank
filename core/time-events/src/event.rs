@@ -1,8 +1,8 @@
-use chrono::NaiveDate;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, strum::AsRefStr)]
 #[serde(tag = "type")]
 pub enum TimeEvent {
-    DailyClosing { date: NaiveDate },
+    DailyClosing { closing_time: DateTime<Utc> },
 }
