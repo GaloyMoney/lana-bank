@@ -7628,7 +7628,6 @@ dependencies = [
  "es-entity-macros",
  "ff",
  "form_urlencoded",
- "futures",
  "futures-channel",
  "futures-core",
  "futures-executor",

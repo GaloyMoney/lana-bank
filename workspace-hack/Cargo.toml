@@ -39,7 +39,6 @@ elliptic-curve = { version = "0.13", default-features = false, features = ["dige
 es-entity = { version = "0.10", default-features = false, features = ["event-context", "graphql", "instrument", "json-schema", "sim-time", "tracing-context"] }
 ff = { version = "0.13", default-features = false, features = ["alloc"] }
 form_urlencoded = { version = "1" }
-futures = { version = "0.3" }
 futures-channel = { version = "0.3", features = ["sink"] }
 futures-core = { version = "0.3" }
 futures-executor = { version = "0.3" }
