@@ -13,7 +13,7 @@ class Protoasset:
         callable: Optional[Callable] = None,
         tags: Optional[dict[str, str]] = None,
         deps: Optional[list[str]] = None,
-        required_resource_keys: Optional[set[str]] = None
+        required_resource_keys: Optional[set[str]] = None,
     ):
         self.key = key
         self.callable = callable

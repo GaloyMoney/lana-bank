@@ -90,7 +90,7 @@ def build_lana_to_dw_el_protoasset(table_name) -> Protoasset:
         deps=[f"el_source_asset__lana__{table_name}"],
         tags={"asset_type": "el_target__asset", "system": "lana"},
         callable=lana_to_dw_el_asset,
-        required_resource_keys={"lana_core_pg", "dw_bq"}
+        required_resource_keys={"lana_core_pg", "dw_bq"},
     )
 
     return lana_to_dw_protoasset
