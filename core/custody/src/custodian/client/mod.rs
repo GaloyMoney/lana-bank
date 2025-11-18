@@ -184,7 +184,7 @@ pub mod mock {
                 Ok(Some(CustodianNotification::WalletBalanceChanged {
                     external_wallet_id: wallet,
                     new_balance: balance.into(),
-                    changed_at: Utc::now(),
+                    changed_at: crate::time::now(),
                 }))
             } else {
                 Ok(None)

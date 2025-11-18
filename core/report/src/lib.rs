@@ -11,6 +11,7 @@ pub mod event;
 mod jobs;
 mod primitives;
 mod publisher;
+mod time;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;

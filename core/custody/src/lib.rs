@@ -7,6 +7,7 @@ pub mod error;
 mod event;
 mod primitives;
 mod publisher;
+mod time;
 pub mod wallet;
 mod webhook_notification_repo;
 

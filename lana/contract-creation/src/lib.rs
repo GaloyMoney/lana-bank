@@ -15,6 +15,7 @@ use uuid::Uuid;
 mod error;
 pub mod job;
 mod templates;
+mod time;
 
 pub use error::*;
 pub use job::*;
@@ -226,7 +227,7 @@ impl LoanAgreementData {
         address: Option<String>,
         country: Option<String>,
     ) -> Self {
-        let date = chrono::Utc::now().format("%Y-%m-%d").to_string();
+        let date = crate::time::now().format("%Y-%m-%d").to_string();
 
         Self {
             email,
