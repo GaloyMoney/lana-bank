@@ -1,5 +1,6 @@
 use sqlx::PgPool;
 use sqlx::types::uuid;
+use tracing::{Span, field};
 
 use crate::{Activity, CustomerError, CustomerId};
 
@@ -15,7 +16,8 @@ impl CustomerActivityRepo {
 
     #[tracing::instrument(
         name = "customer_activity.upsert_activity",
-        skip_all,
+        skip(self, customer_id),
+        fields(customer_id = field::Empty),
         err(level = "warn")
     )]
     pub async fn upsert_activity(
@@ -24,6 +26,7 @@ impl CustomerActivityRepo {
         activity_date: chrono::DateTime<chrono::Utc>,
     ) -> Result<(), CustomerError> {
         let customer_uuid: uuid::Uuid = customer_id.into();
+        Span::current().record("customer_id", customer_uuid.to_string());
         sqlx::query!(
             r#"
             INSERT INTO customer_activity (customer_id, last_activity_date)
@@ -31,7 +34,7 @@ impl CustomerActivityRepo {
             ON CONFLICT (customer_id) 
             DO UPDATE SET 
                 last_activity_date = GREATEST(COALESCE(customer_activity.last_activity_date, $2), $2)
-    
+
             "#,
             customer_uuid,
             activity_date,
@@ -43,11 +46,12 @@ impl CustomerActivityRepo {
     }
 
     #[tracing::instrument(
-        name = "customer_activity.find_customers_in_range_with_non_matching_activity",
-        skip_all,
+        name = "customer_activity.find_customers_needing_activity_update",
+        skip(self),
+        fields(matched_count = field::Empty),
         err(level = "warn")
     )]
-    pub async fn find_customers_in_range_with_non_matching_activity(
+    pub async fn find_customers_needing_activity_update(
         &self,
         start_threshold: chrono::DateTime<chrono::Utc>,
         end_threshold: chrono::DateTime<chrono::Utc>,
@@ -62,7 +66,6 @@ impl CustomerActivityRepo {
             WHERE ca.last_activity_date >= $1 
               AND ca.last_activity_date < $2 
               AND c.activity != $3
-            ORDER BY ca.last_activity_date ASC
             "#,
             start_threshold,
             end_threshold,
@@ -71,9 +74,13 @@ impl CustomerActivityRepo {
         .fetch_all(&self.pool)
         .await?;
 
-        Ok(rows
+        let customer_ids: Vec<CustomerId> = rows
             .into_iter()
             .map(|row| CustomerId::from(row.customer_id))
-            .collect())
+            .collect();
+
+        Span::current().record("matched_count", customer_ids.len());
+
+        Ok(customer_ids)
     }
 }

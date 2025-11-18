@@ -1,0 +1,24 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT ca.customer_id\n            FROM customer_activity ca\n            JOIN core_customers c ON ca.customer_id = c.id\n            WHERE ca.last_activity_date >= $1 \n              AND ca.last_activity_date < $2 \n              AND c.activity != $3\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "customer_id",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Timestamptz",
+        "Timestamptz",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "d5cb35e993f7c38b1e3f5c9defbea01a6ea817bd618037efaab1bb255c80465b"
+}
