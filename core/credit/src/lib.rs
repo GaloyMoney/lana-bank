@@ -570,8 +570,11 @@ where
             .find_account_by_account_holder_without_audit(customer.id)
             .await?;
 
-        if !deposit_account.is_active() {
-            return Err(CoreDepositError::DepositAccountNotActive.into());
+        if deposit_account.is_closed() {
+            return Err(CoreDepositError::DepositAccountClosed.into());
+        }
+        if deposit_account.is_frozen() {
+            return Err(CoreDepositError::DepositAccountFrozen.into());
         }
 
         let proposal_id = CreditFacilityProposalId::new();
@@ -675,6 +678,17 @@ where
         let customer = self.customer.find_by_id_without_audit(customer_id).await?;
         if self.config.customer_active_check_enabled && !customer.kyc_verification.is_verified() {
             return Err(CoreCreditError::CustomerNotVerified);
+        }
+
+        let account = self
+            .deposit
+            .find_account_by_account_holder_without_audit(customer_id)
+            .await?;
+        if account.is_closed() {
+            return Err(CoreDepositError::DepositAccountClosed.into());
+        }
+        if account.is_frozen() {
+            return Err(CoreDepositError::DepositAccountFrozen.into());
         }
 
         let now = crate::time::now();
@@ -883,6 +897,17 @@ where
             .find_by_id_without_audit(credit_facility_id)
             .await?;
 
+        let account = self
+            .deposit
+            .find_account_by_account_holder_without_audit(credit_facility.customer_id)
+            .await?;
+        if account.is_closed() {
+            return Err(CoreDepositError::DepositAccountClosed.into());
+        }
+        if account.is_frozen() {
+            return Err(CoreDepositError::DepositAccountFrozen.into());
+        }
+
         let mut db = self.facilities.begin_op().await?;
 
         let payment = self
@@ -938,6 +963,17 @@ where
             .facilities
             .find_by_id_without_audit(credit_facility_id)
             .await?;
+
+        let account = self
+            .deposit
+            .find_account_by_account_holder_without_audit(credit_facility.customer_id)
+            .await?;
+        if account.is_closed() {
+            return Err(CoreDepositError::DepositAccountClosed.into());
+        }
+        if account.is_frozen() {
+            return Err(CoreDepositError::DepositAccountFrozen.into());
+        }
 
         let mut db = self.facilities.begin_op().await?;
 
