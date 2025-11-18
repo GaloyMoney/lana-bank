@@ -87,7 +87,7 @@ impl Price {
         name = "core.price.listen_for_updates.process_message",
         parent = None,
         skip(price, message),
-        fields(event_type = tracing::field::Empty, handled = false),
+        fields(event_type = tracing::field::Empty, handled = false, price = tracing::field::Empty),
         err
     )]
     async fn process_message<E>(
@@ -101,15 +101,10 @@ impl Price {
             Some(CorePriceEvent::PriceUpdated { price: new_price }) => {
                 Span::current().record("handled", true);
                 Span::current().record("event_type", "PriceUpdated");
+                Span::current().record("price", tracing::field::debug(new_price));
                 *price.write().await = Some(*new_price);
             }
-            None => {
-                Span::current().record("event_type", message.event_type.as_str());
-                tracing::warn!(
-                    event_type = %message.event_type.as_str(),
-                    "failed to deserialize CorePriceEvent from ephemeral outbox payload"
-                );
-            }
+            _ => {}
         }
 
         Ok(())
