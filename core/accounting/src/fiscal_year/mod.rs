@@ -125,7 +125,7 @@ where
             if let Idempotent::Executed(date) = latest_year.close_last_month(now)? {
                 date
             } else {
-                return Err(FiscalYearError::FiscalYearMonthAlreadyClosed);
+                return Ok(latest_year)
             };
 
         let mut op = self.repo.begin_op().await?;
