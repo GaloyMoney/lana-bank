@@ -149,28 +149,19 @@ where
         name = "update_customer_activity_status.process_message",
         parent = None,
         skip(self, event),
-        fields(event_type = ?event.event_type, handled = false, date = tracing::field::Empty, closing_timestamp = tracing::field::Empty)
+        fields(event_type = ?event.event_type, handled = false, closing_time = tracing::field::Empty)
     )]
     async fn process_message(
         &self,
         event: &outbox::EphemeralOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        if let Some(TimeEvent::DailyClosing { date }) = event.payload.as_event() {
+        if let Some(TimeEvent::DailyClosing { closing_time }) = event.payload.as_event() {
             event.inject_trace_parent();
-            Span::current().record("date", date.to_string());
+            Span::current().record("closing_time", closing_time.to_rfc3339());
             Span::current().record("handled", true);
 
-            // Use the end of the closing day as the reference timestamp
-            // This ensures consistent threshold calculations even if the job is restarted
-            let closing_timestamp = date
-                .and_hms_opt(23, 59, 59)
-                .ok_or("Invalid date for closing timestamp")?
-                .and_utc();
-
-            Span::current().record("closing_timestamp", closing_timestamp.to_rfc3339());
-
             self.customers
-                .perform_customer_activity_status_update(closing_timestamp)
+                .perform_customer_activity_status_update(*closing_time)
                 .await?;
         }
         Ok(())
