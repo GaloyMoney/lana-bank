@@ -8,4 +8,6 @@ pub enum PriceError {
     ConversionError(#[from] core_money::ConversionError),
     #[error("PriceError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
+    #[error("PriceError - price is not yet available")]
+    PriceUnavailable,
 }
