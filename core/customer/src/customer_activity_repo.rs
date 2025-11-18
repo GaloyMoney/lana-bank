@@ -17,7 +17,7 @@ impl CustomerActivityRepo {
     #[tracing::instrument(
         name = "customer_activity.upsert_activity",
         skip(self, customer_id),
-        fields(customer_id = field::Empty),
+        fields(customer_id = %customer_id),
         err(level = "warn")
     )]
     pub async fn upsert_activity(
@@ -26,7 +26,6 @@ impl CustomerActivityRepo {
         activity_date: chrono::DateTime<chrono::Utc>,
     ) -> Result<(), CustomerError> {
         let customer_uuid: uuid::Uuid = customer_id.into();
-        Span::current().record("customer_id", customer_uuid.to_string());
         sqlx::query!(
             r#"
             INSERT INTO customer_activity (customer_id, last_activity_date)
