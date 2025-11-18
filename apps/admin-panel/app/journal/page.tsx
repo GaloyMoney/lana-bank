@@ -175,6 +175,19 @@ const getColumns = (t: ReturnType<typeof useTranslations>) => [
   },
 ]
 
+const JournalPageCard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const t = useTranslations("Journal")
+  return (
+    <Card className="mt-2 shadow-none">
+      <CardHeader>
+        <CardTitle>{t("title")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
+      </CardHeader>
+      {children}
+    </Card>
+  )
+}
+
 const JournalPage: React.FC = () => {
   const t = useTranslations("Journal")
   const router = useRouter()
@@ -211,28 +224,35 @@ const JournalPage: React.FC = () => {
   }
 
   if (loading) {
-    return <TableLoadingSkeleton rows={PAGE_SIZE} columns={columns.length} />
+    return (
+      <JournalPageCard>
+        <TableLoadingSkeleton rows={PAGE_SIZE} columns={columns.length} />
+      </JournalPageCard>
+    )
   }
 
   if (error) {
-    return <p className="text-destructive text-sm">{error.message}</p>
+    return (
+      <JournalPageCard>
+        <div className="p-6">
+          <p className="text-destructive text-sm">{error.message}</p>
+        </div>
+      </JournalPageCard>
+    )
   }
 
   if (!data?.journalEntries?.edges || data.journalEntries.edges.length === 0) {
-    return <div className="text-sm">{t("noTableData")}</div>
+    return (
+      <JournalPageCard>
+        <div className="p-6">
+          <div className="text-sm">{t("noTableData")}</div>
+        </div>
+      </JournalPageCard>
+    )
   }
 
-  const canGoForward =
-    loading ||
-    displayData.length >= PAGE_SIZE ||
-    !!data?.journalEntries?.pageInfo.hasNextPage
-
   return (
-    <Card className="mt-2 shadow-none">
-      <CardHeader>
-        <CardTitle>{t("title")}</CardTitle>
-        <CardDescription>{t("description")}</CardDescription>
-      </CardHeader>
+    <JournalPageCard>
       <div className="overflow-x-auto rounded-md border">
         <Table className="table-fixed w-full">
           <TableHeader className="bg-secondary [&_tr:hover]:!bg-secondary">
@@ -303,13 +323,13 @@ const JournalPage: React.FC = () => {
             variant="outline"
             size="sm"
             onClick={handleNextPage}
-            disabled={!canGoForward}
+            disabled={!data?.journalEntries?.pageInfo.hasNextPage}
           >
             <HiChevronRight className="h-4 w-4" />
           </Button>
         </div>
       </div>
-    </Card>
+    </JournalPageCard>
   )
 }
 
