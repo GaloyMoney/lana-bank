@@ -119,12 +119,12 @@ CREATE TABLE core_customer_events (
   UNIQUE(id, sequence)
 );
 
-CREATE TABLE customer_activity (
+CREATE TABLE core_customer_activity (
   customer_id UUID PRIMARY KEY REFERENCES core_customers(id),
   last_activity_date TIMESTAMPTZ NOT NULL
 );
 
-CREATE INDEX idx_customer_activity_last_activity_date ON customer_activity(last_activity_date);
+CREATE INDEX idx_core_customer_activity_last_activity_date ON core_customer_activity(last_activity_date);
 
 CREATE TABLE core_deposit_accounts (
   id UUID PRIMARY KEY,
@@ -522,21 +522,6 @@ CREATE TABLE core_report_run_events (
   UNIQUE(id, sequence)
 );
 
-CREATE TABLE reports (
-  id UUID PRIMARY KEY,
-  created_at TIMESTAMPTZ NOT NULL
-);
-
-CREATE TABLE report_events (
-  id UUID NOT NULL REFERENCES reports(id),
-  sequence INT NOT NULL,
-  event_type VARCHAR NOT NULL,
-  event JSONB NOT NULL,
-  context JSONB DEFAULT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL,
-  UNIQUE(id, sequence)
-);
-
 CREATE TABLE core_manual_transactions (
   id UUID PRIMARY KEY,
   reference VARCHAR NOT NULL UNIQUE,
@@ -566,7 +551,7 @@ CREATE TABLE casbin_rule (
   CONSTRAINT unique_key_sqlx_adapter UNIQUE(ptype, v0, v1, v2, v3, v4, v5)
 );
 
-CREATE TABLE audit_entries (
+CREATE TABLE core_audit_entries (
   id BIGSERIAL PRIMARY KEY,
   subject VARCHAR NOT NULL,
   object VARCHAR NOT NULL,
@@ -589,22 +574,22 @@ CREATE TABLE core_credit_facility_repayment_plans (
   modified_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE dashboards (
+CREATE TABLE core_dashboards (
   id UUID PRIMARY KEY,
   dashboard_json JSONB NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   modified_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE sumsub_callbacks (
+CREATE TABLE core_sumsub_callbacks (
   id BIGSERIAL PRIMARY KEY,
   customer_id UUID NOT NULL, -- not enforced to get all callbacks
   content JSONB NOT NULL,
   recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-CREATE INDEX idx_sumsub_callbacks_customer_id ON sumsub_callbacks(customer_id);
+CREATE INDEX idx_core_sumsub_callbacks_customer_id ON core_sumsub_callbacks(customer_id);
 
-CREATE TABLE persistent_outbox_events (
+CREATE TABLE core_persistent_outbox_events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   sequence BIGSERIAL UNIQUE,
   payload JSONB,
@@ -613,7 +598,7 @@ CREATE TABLE persistent_outbox_events (
   seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE FUNCTION notify_persistent_outbox_events() RETURNS TRIGGER AS $$
+CREATE FUNCTION notify_core_persistent_outbox_events() RETURNS TRIGGER AS $$
 DECLARE
   payload TEXT;
   payload_size INTEGER;
@@ -621,7 +606,7 @@ BEGIN
   payload := row_to_json(NEW);
   payload_size := octet_length(payload);
   IF payload_size <= 8000 THEN
-    PERFORM pg_notify('persistent_outbox_events', payload);
+    PERFORM pg_notify('core_persistent_outbox_events', payload);
   ELSE
     RAISE NOTICE 'Lana: Payload too large for notification: % bytes. First 2000 chars: %', payload_size, left(payload, 2000);
   END IF;
@@ -629,17 +614,17 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER persistent_outbox_events AFTER INSERT ON persistent_outbox_events
-  FOR EACH ROW EXECUTE FUNCTION notify_persistent_outbox_events();
+CREATE TRIGGER core_persistent_outbox_events AFTER INSERT ON core_persistent_outbox_events
+  FOR EACH ROW EXECUTE FUNCTION notify_core_persistent_outbox_events();
 
-CREATE TABLE ephemeral_outbox_events (
+CREATE TABLE core_ephemeral_outbox_events (
   event_type VARCHAR NOT NULL UNIQUE,
   payload JSONB NOT NULL,
   tracing_context JSONB,
   recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE FUNCTION notify_ephemeral_outbox_events() RETURNS TRIGGER AS $$
+CREATE FUNCTION notify_core_ephemeral_outbox_events() RETURNS TRIGGER AS $$
 DECLARE
   payload TEXT;
   payload_size INTEGER;
@@ -647,7 +632,7 @@ BEGIN
   payload := row_to_json(NEW);
   payload_size := octet_length(payload);
   IF payload_size <= 8000 THEN
-    PERFORM pg_notify('ephemeral_outbox_events', payload);
+    PERFORM pg_notify('core_ephemeral_outbox_events', payload);
   ELSE
     RAISE NOTICE 'Lana: Payload too large for notification: % bytes. First 2000 chars: %', payload_size, left(payload, 2000);
   END IF;
@@ -655,6 +640,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER ephemeral_outbox_events_notify
-  AFTER INSERT OR UPDATE ON ephemeral_outbox_events
-  FOR EACH ROW EXECUTE FUNCTION notify_ephemeral_outbox_events();
+CREATE TRIGGER core_ephemeral_outbox_events_notify
+  AFTER INSERT OR UPDATE ON core_ephemeral_outbox_events
+  FOR EACH ROW EXECUTE FUNCTION notify_core_ephemeral_outbox_events();

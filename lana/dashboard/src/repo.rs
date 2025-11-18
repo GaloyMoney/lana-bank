@@ -27,7 +27,7 @@ impl DashboardRepo {
         let values = serde_json::to_value(values).expect("Could not serialize dashboard");
         sqlx::query!(
             r#"
-            INSERT INTO dashboards (id, dashboard_json)
+            INSERT INTO core_dashboards (id, dashboard_json)
             VALUES ($1, $2)
             ON CONFLICT (id) DO UPDATE
             SET dashboard_json = $2, modified_at = NOW()
@@ -45,7 +45,7 @@ impl DashboardRepo {
         let row = sqlx::query!(
             r#" 
             SELECT dashboard_json
-            FROM dashboards
+            FROM core_dashboards
             WHERE id = $1
             "#,
             DASHBOARD_ID

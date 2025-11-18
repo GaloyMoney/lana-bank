@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                SELECT id AS \"id: AuditEntryId\", subject, object, action, authorized, recorded_at\n                FROM audit_entries\n                WHERE id = ANY($1)\n                ",
+  "query": "\n                SELECT id AS \"id: AuditEntryId\", subject, object, action, authorized, recorded_at\n                FROM core_audit_entries\n                WHERE COALESCE(id < $1, true)\n                ORDER BY id DESC\n                LIMIT $2\n                ",
   "describe": {
     "columns": [
       {
@@ -36,7 +36,8 @@
     ],
     "parameters": {
       "Left": [
-        "Int8Array"
+        "Int8",
+        "Int8"
       ]
     },
     "nullable": [
@@ -48,5 +49,5 @@
       false
     ]
   },
-  "hash": "7b0d547dda8c4a6ce921025c2e8dd7c9d0b2bbbda1f62fe3c82e5ada575f1bb6"
+  "hash": "01cb3bf0b331aff3b02700507d0323be9690a3471abc5bc849301dcdf25ccbb8"
 }

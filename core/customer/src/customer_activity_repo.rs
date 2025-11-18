@@ -26,11 +26,11 @@ impl CustomerActivityRepo {
         let customer_uuid: uuid::Uuid = customer_id.into();
         sqlx::query!(
             r#"
-            INSERT INTO customer_activity (customer_id, last_activity_date)
+            INSERT INTO core_customer_activity (customer_id, last_activity_date)
             VALUES ($1, $2)
             ON CONFLICT (customer_id) 
             DO UPDATE SET 
-                last_activity_date = GREATEST(COALESCE(customer_activity.last_activity_date, $2), $2)
+                last_activity_date = GREATEST(COALESCE(core_customer_activity.last_activity_date, $2), $2)
     
             "#,
             customer_uuid,
@@ -57,7 +57,7 @@ impl CustomerActivityRepo {
         let rows = sqlx::query!(
             r#"
             SELECT ca.customer_id
-            FROM customer_activity ca
+            FROM core_customer_activity ca
             JOIN core_customers c ON ca.customer_id = c.id
             WHERE ca.last_activity_date >= $1 
               AND ca.last_activity_date < $2 

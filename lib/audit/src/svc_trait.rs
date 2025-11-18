@@ -50,7 +50,7 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
         let sub = subject.to_string();
         let record = sqlx::query!(
             r#"
-                INSERT INTO audit_entries (subject, object, action, authorized)
+                INSERT INTO core_audit_entries (subject, object, action, authorized)
                 VALUES ($1, $2, $3, $4)
                 RETURNING id, subject
                 "#,
@@ -100,7 +100,7 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
         let sub = subject.to_string();
         let record = sqlx::query!(
             r#"
-                INSERT INTO audit_entries (subject, object, action, authorized)
+                INSERT INTO core_audit_entries (subject, object, action, authorized)
                 VALUES ($1, $2, $3, $4)
                 RETURNING id, subject
                 "#,
@@ -137,7 +137,7 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
         let rows = sqlx::query!(
             r#"
                 SELECT id AS "id: AuditEntryId", subject, object, action, authorized, recorded_at
-                FROM audit_entries
+                FROM core_audit_entries
                 WHERE COALESCE(id < $1, true)
                 ORDER BY id DESC
                 LIMIT $2
@@ -195,7 +195,7 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
         let raw_entries = sqlx::query!(
             r#"
                 SELECT id AS "id: AuditEntryId", subject, object, action, authorized, recorded_at
-                FROM audit_entries
+                FROM core_audit_entries
                 WHERE id = ANY($1)
                 "#,
             &ids as &[AuditEntryId],

@@ -161,7 +161,7 @@ where
         highest_known_sequence: Arc<AtomicU64>,
     ) -> Result<(), sqlx::Error> {
         let mut listener = PgListener::connect_with(pool).await?;
-        listener.listen("persistent_outbox_events").await?;
+        listener.listen("core_persistent_outbox_events").await?;
         let persistent_sender = sender.clone();
         tokio::spawn(async move {
             loop {
@@ -179,7 +179,7 @@ where
         });
 
         let mut listener = PgListener::connect_with(pool).await?;
-        listener.listen("ephemeral_outbox_events").await?;
+        listener.listen("core_ephemeral_outbox_events").await?;
         tokio::spawn(async move {
             loop {
                 if let Ok(notification) = listener.recv().await

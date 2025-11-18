@@ -26,7 +26,7 @@ impl ApplicantRepo {
     ) -> Result<i64, ApplicantError> {
         let row = sqlx::query!(
             r#"
-            INSERT INTO sumsub_callbacks (customer_id, content)
+            INSERT INTO core_sumsub_callbacks (customer_id, content)
             VALUES ($1, $2)
             RETURNING id
             "#,
