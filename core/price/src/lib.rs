@@ -87,7 +87,7 @@ impl Price {
         name = "core.price.listen_for_updates.process_message",
         parent = None,
         skip(price, message),
-        fields(event_type = tracing::field::Empty),
+        fields(event_type = tracing::field::Empty, handled = false),
         err
     )]
     async fn process_message<E>(
@@ -99,6 +99,7 @@ impl Price {
     {
         match message.payload.as_event() {
             Some(CorePriceEvent::PriceUpdated { price: new_price }) => {
+                Span::current().record("handled", true);
                 Span::current().record("event_type", "PriceUpdated");
                 *price.write().await = Some(*new_price);
             }
