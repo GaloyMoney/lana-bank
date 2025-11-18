@@ -12,7 +12,6 @@ from src.assets import (
     lana_resources,
     lana_source_assets,
     lana_to_dw_el_assets,
-
 )
 from src.core import lana_assetifier
 from src.otel import init_telemetry
@@ -36,7 +35,10 @@ class DefinitionsBuilder:
     def add_assets(self, assets: Union[dg.asset, Tuple[dg.asset, ...]]):
         self.assets.extend(assets)
 
-    def add_resources(self, resources: Union[dg.ConfigurableResource, Tuple[dg.ConfigurableResource, ...]]):
+    def add_resources(
+        self,
+        resources: Union[dg.ConfigurableResource, Tuple[dg.ConfigurableResource, ...]],
+    ):
         self.resources.update(resources)
 
     def add_callable_as_asset(self, callable: Callable) -> dg.asset:
@@ -72,7 +74,10 @@ class DefinitionsBuilder:
 
     def build(self) -> dg.Definitions:
         return dg.Definitions(
-            assets=self.assets, jobs=self.jobs, schedules=self.schedules, resources=self.resources
+            assets=self.assets,
+            jobs=self.jobs,
+            schedules=self.schedules,
+            resources=self.resources,
         )
 
 

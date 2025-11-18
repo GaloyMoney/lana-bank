@@ -1,10 +1,9 @@
 from typing import Any
 
-import dagster as dg
-
-from dlt.sources.sql_database import sql_table
 from dlt.sources.credentials import ConnectionStringCredentials
+from dlt.sources.sql_database import sql_table
 
+import dagster as dg
 from src.dlt_destinations.bigquery import create_bigquery_destination
 
 

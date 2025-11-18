@@ -1,9 +1,9 @@
 import dlt
-import dagster as dg
 
+import dagster as dg
 from src.dlt_sources.resources import (
-    PostgresResource,
     BigQueryResource,
+    PostgresResource,
 )
 
 LANA_EL_TABLE_NAMES = (
@@ -24,17 +24,19 @@ LANA_EL_TABLE_NAMES = (
     "core_withdrawal_events_rollup",
     "core_public_ids",
     "core_chart_events",
-    "core_chart_node_events"
+    "core_chart_node_events",
 )
+
 
 def lana_resources():
     resources = {}
     resources["lana_core_pg"] = PostgresResource()
     resources["dw_bq"] = BigQueryResource(
         base64_credentials=dg.EnvVar("TF_VAR_sa_creds").get_value(),
-        target_dataset=dg.EnvVar("TARGET_BIGQUERY_DATASET").get_value()
+        target_dataset=dg.EnvVar("TARGET_BIGQUERY_DATASET").get_value(),
     )
     return resources
+
 
 def lana_source_assets():
     lana_source_assets = []
@@ -87,6 +89,7 @@ def build_lana_to_dw_el_asset(table_name):
         return load_info
 
     return lana_to_dw_el_asset
+
 
 def prepare_lana_el_pipeline(lana_core_pg, dw_bq, table_name):
     dlt_postgres_resource = lana_core_pg.create_dlt_postgres_resource(
