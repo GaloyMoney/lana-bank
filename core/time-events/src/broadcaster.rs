@@ -419,7 +419,10 @@ mod tests {
     fn test_invalid_timezone() {
         let broadcaster = TestBroadcaster::new("12:00:00", "Invalid/Timezone");
 
-        let now = Utc::now();
+        let now = Utc
+            .with_ymd_and_hms(2024, 1, 15, 12, 0, 0)
+            .single()
+            .unwrap();
         let result = broadcaster.calculate_next_closing(now);
 
         assert!(result.is_err());
@@ -431,7 +434,10 @@ mod tests {
 
     #[test]
     fn test_invalid_time_formats() {
-        let now = Utc::now();
+        let now = Utc
+            .with_ymd_and_hms(2024, 1, 15, 12, 0, 0)
+            .single()
+            .unwrap();
 
         // Test invalid hour
         let result = TestBroadcaster::new("25:00:00", "UTC").calculate_next_closing(now);
