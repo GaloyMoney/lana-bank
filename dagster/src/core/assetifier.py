@@ -6,7 +6,7 @@ import dagster as dg
 from src.otel import trace_callable
 
 if TYPE_CHECKING:
-    from .assetifier import Protoasset
+    from .protoasset import Protoasset
 
 
 def lana_assetifier(protoasset: "Protoasset") -> Union[dg.asset, dg.AssetSpec]:
@@ -25,7 +25,11 @@ def lana_assetifier(protoasset: "Protoasset") -> Union[dg.asset, dg.AssetSpec]:
         asset = dg.AssetSpec(key=protoasset.key, tags=protoasset.tags)
         return asset
 
-    @dg.asset(key=protoasset.key, tags=protoasset.tags, deps=protoasset.deps)
+    @dg.asset(
+            key=protoasset.key, 
+            tags=protoasset.tags, 
+            deps=protoasset.deps,
+            required_resource_keys=protoasset.required_resource_keys)
     def wrapped_callable(context: dg.AssetExecutionContext) -> None:
         asset_key_str: str = context.asset_key.to_user_string()
 
@@ -38,6 +42,12 @@ def lana_assetifier(protoasset: "Protoasset") -> Union[dg.asset, dg.AssetSpec]:
             span_attributes=span_attributes,
         )
 
-        traced_callable(context=context)
+        # Extract resources from context.resources and pass them to the callable
+        callable_kwargs = {"context": context}
+        if protoasset.required_resource_keys:
+            for resource_key in protoasset.required_resource_keys:
+                callable_kwargs[resource_key] = getattr(context.resources, resource_key)
+
+        traced_callable(**callable_kwargs)
 
     return wrapped_callable

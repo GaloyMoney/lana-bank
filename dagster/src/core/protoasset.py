@@ -12,12 +12,14 @@ class Protoasset:
         key: Union[str, list[str]],
         callable: Optional[Callable] = None,
         tags: Optional[dict[str, str]] = None,
-        deps: list[str] = None,
+        deps: Optional[list[str]] = None,
+        required_resource_keys: Optional[set[str]] = None
     ):
         self.key = key
         self.callable = callable
         self.tags = tags
         self.deps = deps
+        self.required_resource_keys = required_resource_keys
 
     @property
     def is_external(self) -> bool:
