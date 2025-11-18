@@ -97,14 +97,12 @@ impl Price {
     where
         E: OutboxEventMarker<CorePriceEvent> + Send + Sync + 'static,
     {
-        match message.payload.as_event() {
-            Some(CorePriceEvent::PriceUpdated { price: new_price }) => {
-                Span::current().record("handled", true);
-                Span::current().record("event_type", "PriceUpdated");
-                Span::current().record("price", tracing::field::debug(new_price));
-                *price.write().await = Some(*new_price);
-            }
-            _ => {}
+        if let Some(CorePriceEvent::PriceUpdated { price: new_price }) = message.payload.as_event()
+        {
+            Span::current().record("handled", true);
+            Span::current().record("event_type", "PriceUpdated");
+            Span::current().record("price", tracing::field::debug(new_price));
+            *price.write().await = Some(*new_price);
         }
 
         Ok(())
