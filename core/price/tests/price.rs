@@ -2,15 +2,6 @@ use core_money::{Satoshis, UsdCents};
 use core_price::PriceOfOneBTC;
 use rust_decimal_macros::dec;
 
-// #[tokio::test]
-// async fn get_price() -> anyhow::Result<()> {
-//     let price = Price::new();
-//     let res = price.usd_cents_per_btc().await;
-//     assert!(res.is_ok());
-
-//     Ok(())
-// }
-
 #[test]
 fn cents_to_sats_trivial() {
     let price = PriceOfOneBTC::new(UsdCents::try_from_usd(dec!(1000)).unwrap());
