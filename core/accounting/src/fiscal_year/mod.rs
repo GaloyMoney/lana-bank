@@ -116,16 +116,16 @@ where
             .enforce_permission(
                 sub,
                 CoreAccountingObject::all_fiscal_years(),
-                CoreAccountingAction::FISCAL_YEAR_CLOSE,
+                CoreAccountingAction::FISCAL_YEAR_CLOSE_MONTH,
             )
             .await?;
-        let now = chrono::Utc::now();
+        let now = crate::time::now();
         let mut latest_year = self.get_current_by_chart_id(chart_id).await?;
         let closed_as_of_date =
             if let Idempotent::Executed(date) = latest_year.close_last_month(now)? {
                 date
             } else {
-                return Ok(latest_year)
+                return Ok(latest_year);
             };
 
         let mut op = self.repo.begin_op().await?;
