@@ -16,7 +16,7 @@ impl CustomerActivityRepo {
 
     #[tracing::instrument(
         name = "customer_activity.upsert_activity",
-        skip(self, customer_id),
+        skip(self),
         fields(customer_id = %customer_id),
         err(level = "warn")
     )]
