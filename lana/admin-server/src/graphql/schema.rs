@@ -826,7 +826,7 @@ impl Query {
 
     async fn realtime_price(&self, ctx: &Context<'_>) -> async_graphql::Result<RealtimePrice> {
         let app = ctx.data_unchecked::<LanaApp>();
-        let usd_cents_per_btc = app.price().usd_cents_per_btc().await?;
+        let usd_cents_per_btc = app.price().usd_cents_per_btc().await;
         Ok(usd_cents_per_btc.into())
     }
 

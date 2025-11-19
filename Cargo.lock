@@ -1490,6 +1490,7 @@ dependencies = [
 name = "core-price"
 version = "0.0.0"
 dependencies = [
+ "anyhow",
  "async-trait",
  "core-money",
  "futures",
@@ -1501,6 +1502,7 @@ dependencies = [
  "schemars 1.0.4",
  "serde",
  "serde_json",
+ "sqlx",
  "thiserror 2.0.17",
  "tokio",
  "tracing",

@@ -689,7 +689,7 @@ where
             .get_credit_facility_balance(facility.account_ids)
             .await?;
 
-        let price = self.price.usd_cents_per_btc().await?;
+        let price = self.price.usd_cents_per_btc().await;
         if !facility.terms.is_disbursal_allowed(balance, amount, price) {
             return Err(CreditFacilityError::BelowMarginLimit.into());
         }
@@ -1018,7 +1018,7 @@ where
             .ledger
             .get_credit_facility_balance(entity.account_ids)
             .await?;
-        let price = self.price.usd_cents_per_btc().await?;
+        let price = self.price.usd_cents_per_btc().await;
         Ok(balances.current_cvl(price))
     }
 

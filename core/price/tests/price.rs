@@ -1,13 +1,49 @@
-use core_money::{Satoshis, UsdCents};
-use core_price::bfx_client::fetch_price;
-use core_price::{PriceOfOneBTC, bfx_client::BfxClient};
+mod helpers;
+
 use rust_decimal_macros::dec;
+
+use core_money::{Satoshis, UsdCents};
+use core_price::{Price, PriceOfOneBTC, bfx_client::BfxClient, bfx_client::fetch_price};
+use helpers::{DummyEvent, init_pool, publish_dummy_price_event, wait_for_price_to_be_updated};
+use outbox::Outbox;
 
 #[tokio::test]
 async fn get_price_from_client() {
     let client = BfxClient::new();
     let price = fetch_price(&client).await;
     assert!(price.is_ok());
+}
+
+#[tokio::test]
+async fn update_price() -> anyhow::Result<()> {
+    let pool = init_pool().await?;
+
+    let outbox = Outbox::<DummyEvent>::init(&pool).await?;
+    let jobs = job::Jobs::init(
+        job::JobSvcConfig::builder()
+            .pool(pool.clone())
+            .build()
+            .unwrap(),
+    )
+    .await?;
+
+    let price = Price::init(&jobs, &outbox).await?;
+
+    let initial_price = PriceOfOneBTC::new(UsdCents::from(5_000_000));
+    publish_dummy_price_event(&outbox, initial_price).await?;
+
+    wait_for_price_to_be_updated(&price, initial_price, 20).await?;
+    let first_observed_price = price.usd_cents_per_btc().await;
+    assert_eq!(first_observed_price, initial_price);
+
+    let updated_expected_price = PriceOfOneBTC::new(UsdCents::from(6_000_000));
+    publish_dummy_price_event(&outbox, updated_expected_price).await?;
+
+    wait_for_price_to_be_updated(&price, updated_expected_price, 20).await?;
+    let second_observed_price = price.usd_cents_per_btc().await;
+    assert_eq!(second_observed_price, updated_expected_price);
+
+    Ok(())
 }
 
 #[test]

@@ -54,7 +54,7 @@ impl Price {
                 return res;
             }
             let mut rec = self.receiver.clone();
-            rec.changed().await;
+            let _ = rec.changed().await;
         }
     }
 
