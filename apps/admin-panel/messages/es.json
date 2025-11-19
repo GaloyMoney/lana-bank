@@ -2149,7 +2149,7 @@
         "layer": "Capa",
         "debit": "Debe",
         "credit": "Haber",
-        "closestAccountWithCode": "Código de cuenta superior",
+        "closestAccountWithCode": "Cuenta superior con código",
         "transactionId": "ID de transacción"
       }
     },
@@ -2194,14 +2194,14 @@
       "createdAt": "Fecha de creación",
       "entryType": "Tipo de entrada",
       "name": "Nombre de cuenta",
-      "transaction": "Transacción",
+      "description": "Descripción",
       "layer": "Capa",
       "debit": "Débito",
       "credit": "Crédito",
       "amount": "Monto",
-      "description": "Descripción",
       "effective": "Fecha valor",
-      "closestAccountWithCode": "Código de cuenta superior"
+      "closestAccountWithCode": "Código",
+      "closestAccountWithCodeTooltip": "Cuenta más cercana con código"
     },
     "debitOrCredit": {
       "debit": "Debe",

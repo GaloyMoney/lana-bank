@@ -2194,14 +2194,14 @@
       "createdAt": "Created At",
       "entryType": "Entry Type",
       "name": "Account Name",
-      "transaction": "Transaction",
+      "description": "Description",
       "layer": "Layer",
       "debit": "Debit",
       "credit": "Credit",
       "amount": "Amount",
-      "description": "Description",
       "effective": "Effective Date",
-      "closestAccountWithCode": "Closest Account With Code"
+      "closestAccountWithCode": "Code",
+      "closestAccountWithCodeTooltip": "Closest account with code"
     },
     "debitOrCredit": {
       "debit": "Debit",

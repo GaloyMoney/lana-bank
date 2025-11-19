@@ -25,11 +25,17 @@ export const AppLayout = ({ children }: Readonly<{ children: React.ReactNode }>)
     <CreateContextProvider>
       <SidebarProvider>
         <AppSidebar appVersion={appVersion} />
-        <SidebarInset className="min-h-screen md:peer-data-[variant=inset]:shadow-none border">
+        <SidebarInset className="min-h-screen md:peer-data-[variant=inset]:shadow-none border min-w-0">
           <CommandMenu open={open} onOpenChange={setOpen} />
-          <div className={isJournalPage ? "mx-auto p-2" : "container mx-auto p-2"}>
+          <div
+            className={
+              isJournalPage ? "mx-auto p-2 w-full min-w-0" : "container mx-auto p-2"
+            }
+          >
             <div
-              className={isJournalPage ? "w-full mx-auto" : "max-w-7xl w-full mx-auto"}
+              className={
+                isJournalPage ? "w-full mx-auto min-w-0" : "max-w-7xl w-full mx-auto"
+              }
             >
               <header className="flex justify-between items-center mb-2 align-middle">
                 <div className="flex items-center gap-2">
