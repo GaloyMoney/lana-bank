@@ -49,11 +49,11 @@ impl Price {
     }
 
     pub async fn usd_cents_per_btc(&self) -> PriceOfOneBTC {
+        let mut rec = self.receiver.clone();
         loop {
-            if let Some(res) = *self.receiver.borrow() {
+            if let Some(res) = *rec.borrow() {
                 return res;
             }
-            let mut rec = self.receiver.clone();
             let _ = rec.changed().await;
         }
     }
