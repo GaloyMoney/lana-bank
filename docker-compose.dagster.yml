@@ -15,7 +15,7 @@ services:
       TARGET_BIGQUERY_DATASET: ${TARGET_BIGQUERY_DATASET:-}
       OTEL_EXPORTER_OTLP_ENDPOINT: 'http://otel-agent:4317'
       DAGSTER_AUTOMATIONS_ACTIVE: ${DAGSTER_AUTOMATIONS_ACTIVE:-}
-      PG_CON: ${PG_CON:-}
+      PG_CON: 'postgres://user:password@172.17.0.1:5433/pg?sslmode=disable'
 
   # This service runs dagster-webserver, which loads your user code from the user code container.
   # Since our instance uses the QueuedRunCoordinator, any runs submitted from the webserver will be put on
