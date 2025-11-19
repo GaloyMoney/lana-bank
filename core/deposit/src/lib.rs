@@ -314,12 +314,12 @@ where
                         .update_in_op(&mut op, &mut account)
                         .await?;
                 }
-                Err(DepositAccountError::CannotUpdateClosedAccount(account_id)) => {
+                Err(DepositAccountError::CannotUpdateClosedAccount(_)) => {
                     tracing::warn!("Skipping update error if account already closed");
                     continue;
                 }
-                Err(DepositAccountError::CannotUpdateFrozenAccount(account_id)) => {
-                    tracing::warn!("Skipping update error if account already frozen: {:?}", account_id);
+                Err(DepositAccountError::CannotUpdateFrozenAccount(_)) => {
+                    tracing::warn!("Skipping update error if account already frozen");
                     continue;
                 }
                 Err(e) => {

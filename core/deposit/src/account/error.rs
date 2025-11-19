@@ -18,8 +18,6 @@ pub enum DepositAccountError {
     CannotUpdateFrozenAccount(crate::DepositAccountId),
     #[error("DepositAccountError - BalanceIsNotZero")]
     BalanceIsNotZero,
-    #[error("DepositAccountError - CannotCloseAccount")]
-    CannotCloseAccount,
     #[error("DepositAccountError - CannotCloseOrFreezeAccount")]
     CannotCloseOrFreezeAccount,
 }

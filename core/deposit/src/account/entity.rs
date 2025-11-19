@@ -61,12 +61,10 @@ impl DepositAccount {
         self.status == DepositAccountStatus::Frozen
     }
 
-    // comment: update publisher.rs file
     pub fn update_holder_status(
         &mut self,
         status: DepositAccountStatus,
     ) -> Result<Idempotent<()>, DepositAccountError> {
-        // comment: test this well, before active/inactive->freeze/close/unfreeze->active/inactive
         if matches!(
             status,
             DepositAccountStatus::Frozen | DepositAccountStatus::Closed
@@ -76,11 +74,9 @@ impl DepositAccount {
         if self.status == status {
             return Ok(Idempotent::Ignored);
         }
-        // closed error
         if self.is_closed() {
             return Err(DepositAccountError::CannotUpdateClosedAccount(self.id));
         }
-        // frozen error
         if self.is_frozen() {
             return Err(DepositAccountError::CannotUpdateFrozenAccount(self.id));
         }
@@ -91,17 +87,14 @@ impl DepositAccount {
     }
 
     pub fn freeze(&mut self) -> Result<Idempotent<()>, DepositAccountError> {
-        // frozen idempotent
         idempotency_guard!(
             self.events.iter_all().rev(),
             DepositAccountEvent::Frozen { .. },
             => DepositAccountEvent::Unfrozen { .. }
         );
-        // closed error
         if self.is_closed() {
             return Err(DepositAccountError::CannotUpdateClosedAccount(self.id));
         }
-        // inactive error
         if self.status == DepositAccountStatus::Inactive {
             return Err(DepositAccountError::CannotFreezeInActiveAccount(self.id));
         }
@@ -112,17 +105,14 @@ impl DepositAccount {
     }
 
     pub fn unfreeze(&mut self) -> Result<Idempotent<()>, DepositAccountError> {
-        // idempotent check
         idempotency_guard!(
             self.events.iter_all().rev(),
             DepositAccountEvent::Unfrozen { .. },
             => DepositAccountEvent::Frozen { .. }
         );
-        // closed error
         if self.is_closed() {
             return Err(DepositAccountError::CannotUpdateClosedAccount(self.id));
         }
-        // not frozen error
         if !self.is_frozen() {
             return Err(DepositAccountError::CannotUnfreezeNonFrozenAccount(self.id));
         }
@@ -133,12 +123,10 @@ impl DepositAccount {
     }
 
     pub fn close(&mut self) -> Result<Idempotent<()>, DepositAccountError> {
-        // idempotent
         idempotency_guard!(
             self.events.iter_all().rev(),
             DepositAccountEvent::Closed { .. }
         );
-        // frozen error
         if self.is_frozen() {
             return Err(DepositAccountError::CannotUpdateFrozenAccount(self.id));
         }
@@ -244,7 +232,7 @@ mod tests {
     }
 
     #[test]
-    fn update_status_idempotency() {
+    fn update_holder_status_idempotency_and_guards() {
         let mut account = DepositAccount::try_from_events(EntityEvents::init(
             DepositAccountId::new(),
             initial_events(),
@@ -267,37 +255,26 @@ mod tests {
 
         assert!(matches!(
             account.update_holder_status(DepositAccountStatus::Frozen),
-            Err(DepositAccountError::CannotCloseFrozenAccount)
-        ));
-
-        assert!(matches!(
-            account.close(),
-            Err(DepositAccountError::CannotCloseFrozenAccount)
+            Err(DepositAccountError::CannotCloseOrFreezeAccount)
         ));
 
         assert!(
             account
-                .update_status(DepositAccountStatus::Active)
+                .update_holder_status(DepositAccountStatus::Active)
                 .unwrap()
                 .did_execute()
         );
-
-        assert!(account.close().unwrap().did_execute());
-
-        assert!(matches!(
-            account.update_status(DepositAccountStatus::Active),
-            Err(DepositAccountError::CannotUpdateClosedAccount)
-        ));
     }
 
     #[test]
-    fn cannot_freeze_inactive_account() {
+    fn cannot_freeze_non_active_account() {
         let mut account = DepositAccount::try_from_events(EntityEvents::init(
             DepositAccountId::new(),
             initial_events(),
         ))
         .unwrap();
 
+        let _ = account.update_holder_status(DepositAccountStatus::Inactive);
         assert_eq!(account.status, DepositAccountStatus::Inactive);
         assert!(account.freeze().is_err());
     }
@@ -310,21 +287,24 @@ mod tests {
         ))
         .unwrap();
 
-        let _ = account.update_status(DepositAccountStatus::Active);
+        assert_eq!(account.status, DepositAccountStatus::Active);
         assert!(account.freeze().unwrap().did_execute());
         assert_eq!(account.status, DepositAccountStatus::Frozen);
     }
 
     #[test]
-    fn cannot_unfreeze_inactive_account() {
+    fn cannot_unfreeze_non_frozen_account() {
         let mut account = DepositAccount::try_from_events(EntityEvents::init(
             DepositAccountId::new(),
             initial_events(),
         ))
         .unwrap();
 
-        assert_eq!(account.status, DepositAccountStatus::Inactive);
-        assert!(account.unfreeze().is_err());
+        assert_eq!(account.status, DepositAccountStatus::Active);
+        assert!(matches!(
+            account.unfreeze(),
+            Err(DepositAccountError::CannotUnfreezeNonFrozenAccount(_))
+        ));
     }
 
     #[test]
@@ -335,9 +315,100 @@ mod tests {
         ))
         .unwrap();
 
-        let _ = account.update_status(DepositAccountStatus::Active);
         let _ = account.freeze().unwrap();
+        assert_eq!(account.status, DepositAccountStatus::Frozen);
         assert!(account.unfreeze().unwrap().did_execute());
         assert_eq!(account.status, DepositAccountStatus::Active);
+    }
+
+    #[test]
+    fn can_close_active_or_inactive_account() {
+        let mut account_1 = DepositAccount::try_from_events(EntityEvents::init(
+            DepositAccountId::new(),
+            initial_events(),
+        ))
+        .unwrap();
+        assert_eq!(account_1.status, DepositAccountStatus::Active);
+
+        assert!(account_1.close().unwrap().did_execute());
+        assert_eq!(account_1.status, DepositAccountStatus::Closed);
+
+        let mut account_2 = DepositAccount::try_from_events(EntityEvents::init(
+            DepositAccountId::new(),
+            initial_events(),
+        ))
+        .unwrap();
+        let _ = account_2
+            .update_holder_status(DepositAccountStatus::Inactive)
+            .unwrap();
+        assert_eq!(account_2.status, DepositAccountStatus::Inactive);
+
+        assert!(account_2.close().unwrap().did_execute());
+        assert_eq!(account_2.status, DepositAccountStatus::Closed);
+    }
+
+    #[test]
+    fn can_not_close_frozen_account() {
+        let mut account = DepositAccount::try_from_events(EntityEvents::init(
+            DepositAccountId::new(),
+            initial_events(),
+        ))
+        .unwrap();
+        assert!(account.freeze().unwrap().did_execute());
+        assert_eq!(account.status, DepositAccountStatus::Frozen);
+
+        assert!(matches!(
+            account.close(),
+            Err(DepositAccountError::CannotUpdateFrozenAccount(_))
+        ));
+    }
+
+    #[test]
+    fn can_not_update_closed_account() {
+        let mut account = DepositAccount::try_from_events(EntityEvents::init(
+            DepositAccountId::new(),
+            initial_events(),
+        ))
+        .unwrap();
+        assert!(account.close().unwrap().did_execute());
+        assert_eq!(account.status, DepositAccountStatus::Closed);
+
+        assert!(matches!(
+            account.freeze(),
+            Err(DepositAccountError::CannotUpdateClosedAccount(_))
+        ));
+
+        assert!(matches!(
+            account.update_holder_status(DepositAccountStatus::Active),
+            Err(DepositAccountError::CannotUpdateClosedAccount(_))
+        ));
+        assert!(matches!(
+            account.update_holder_status(DepositAccountStatus::Inactive),
+            Err(DepositAccountError::CannotUpdateClosedAccount(_))
+        ));
+    }
+
+    #[test]
+    fn can_freeze_and_unfreeze_multiple_times() {
+        let mut account = DepositAccount::try_from_events(EntityEvents::init(
+            DepositAccountId::new(),
+            initial_events(),
+        ))
+        .unwrap();
+        assert!(account.freeze().unwrap().did_execute());
+        assert_eq!(account.status, DepositAccountStatus::Frozen);
+        assert!(
+            account
+                .update_holder_status(DepositAccountStatus::Active)
+                .is_err()
+        );
+        assert!(account.unfreeze().unwrap().did_execute());
+        assert_eq!(account.status, DepositAccountStatus::Active);
+        assert!(
+            account
+                .update_holder_status(DepositAccountStatus::Active)
+                .unwrap()
+                .was_ignored()
+        );
     }
 }
