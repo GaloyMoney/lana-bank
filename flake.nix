@@ -200,6 +200,12 @@
           '';
 
           nativeBuildInputs = [pkgs.cargo-nextest];
+
+          buildInputs = pkgs.lib.optionals pkgs.stdenv.isLinux [
+            pkgs.stdenv.cc.libc.dev
+          ];
+
+          BINDGEN_EXTRA_CLANG_ARGS = pkgs.lib.optionalString pkgs.stdenv.isLinux "-I${pkgs.stdenv.cc.libc.dev}/include";
         }
       );
 
