@@ -9,10 +9,10 @@ from src.assets import (
     bitfinex_ticker,
     bitfinex_trades,
     iris_dataset_size,
-    lana_resources,
     lana_source_protoassets,
     lana_to_dw_el_protoassets,
 )
+from src.resources import get_lana_resources
 from src.core import Protoasset, lana_assetifier
 from src.otel import init_telemetry
 
@@ -116,7 +116,7 @@ definition_builder.add_job_schedule(
     job=bitfinex_order_book_job, cron_expression="*/10 * * * *"
 )
 
-definition_builder.add_resources(lana_resources())
+definition_builder.add_resources(get_lana_resources())
 for lana_source_protoasset in lana_source_protoassets():
     definition_builder.add_asset_from_protoasset(lana_source_protoasset)
 for lana_to_dw_el_protoasset in lana_to_dw_el_protoassets():
