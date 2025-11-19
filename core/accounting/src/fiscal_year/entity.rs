@@ -80,6 +80,11 @@ impl FiscalYear {
         });
         Idempotent::Executed(new_monthly_closing_date)
     }
+
+    pub fn is_open(&self) -> bool {
+        // TODO: Manage `FiscalYear` entity lifecycle.
+        true
+    }
 }
 
 impl TryFromEvents<FiscalYearEvent> for FiscalYear {

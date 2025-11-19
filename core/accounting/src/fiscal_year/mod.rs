@@ -19,7 +19,7 @@ pub use entity::FiscalYear;
 pub use entity::FiscalYearEvent;
 pub(super) use entity::*;
 use error::*;
-pub(super) use repo::{fiscal_year_cursor::FiscalYearsByCreatedAtCursor, *};
+pub use repo::{fiscal_year_cursor::FiscalYearsByCreatedAtCursor, *};
 
 pub struct FiscalYears<Perms>
 where
@@ -82,8 +82,20 @@ where
             )
             .await?;
 
-        if let Ok(fiscal_year) = self.get_current_by_chart_id(chart_id).await {
-            return Ok(fiscal_year);
+        let result = self
+            .repo
+            .list_for_chart_id_by_id(
+                chart_id,
+                es_entity::PaginatedQueryArgs {
+                    first: 1,
+                    after: None,
+                },
+                es_entity::ListDirection::Descending,
+            )
+            .await?;
+
+        if let Some(existing) = result.entities.first().cloned() {
+            return Ok(existing);
         }
 
         tracing::info!("Initializing first FiscalYear for chart ID: {}", chart_id);
@@ -106,51 +118,54 @@ where
         Ok(fiscal_year)
     }
 
-    #[instrument(
-        name = "core_accounting.fiscal_year.close_month_on_open_fiscal_year_for_chart",
-        skip(self),
-        err
-    )]
-    pub async fn close_month_on_open_fiscal_year_for_chart(
+    #[instrument(name = "core_accounting.fiscal_year.close_month", skip(self), err)]
+    pub async fn close_month(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart_id: ChartId,
+        fiscal_year_id: impl Into<FiscalYearId> + std::fmt::Debug + Copy,
     ) -> Result<FiscalYear, FiscalYearError> {
+        let id = fiscal_year_id.into();
         self.authz
             .enforce_permission(
                 sub,
-                CoreAccountingObject::all_fiscal_years(),
+                CoreAccountingObject::fiscal_year(id),
                 CoreAccountingAction::FISCAL_YEAR_CLOSE_MONTH,
             )
             .await?;
         let now = crate::time::now();
-        let mut latest_year = self.get_current_by_chart_id(chart_id).await?;
+
+        let mut fiscal_year = self.repo.find_by_id(id).await?;
         let closed_as_of_date =
-            if let Idempotent::Executed(date) = latest_year.close_last_month(now) {
+            if let Idempotent::Executed(date) = fiscal_year.close_last_month(now) {
                 date
             } else {
-                return Ok(latest_year);
+                return Ok(fiscal_year);
             };
 
         let mut op = self.repo.begin_op().await?;
-        self.repo.update_in_op(&mut op, &mut latest_year).await?;
+        self.repo.update_in_op(&mut op, &mut fiscal_year).await?;
         self.chart_of_accounts
-            .close_by_chart_id_as_of(op, sub, chart_id, closed_as_of_date)
+            .close_by_chart_id_as_of(op, sub, fiscal_year.chart_id, closed_as_of_date)
             .await?;
 
-        Ok(latest_year)
+        Ok(fiscal_year)
     }
 
     #[instrument(
-        name = "core_accounting.fiscal_year.get_current_fiscal_year_by_chart",
+        name = "core_accounting.fiscal_years.list_for_chart_id",
         skip(self),
         err
     )]
-    pub async fn get_current_fiscal_year_by_chart(
+    pub async fn list_for_chart_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_id: ChartId,
-    ) -> Result<FiscalYear, FiscalYearError> {
+        query: es_entity::PaginatedQueryArgs<FiscalYearsByCreatedAtCursor>,
+        direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<FiscalYear, FiscalYearsByCreatedAtCursor>,
+        FiscalYearError,
+    > {
         self.authz
             .enforce_permission(
                 sub,
@@ -158,27 +173,10 @@ where
                 CoreAccountingAction::FISCAL_YEAR_READ,
             )
             .await?;
-        self.get_current_by_chart_id(chart_id).await
-    }
 
-    async fn get_current_by_chart_id(
-        &self,
-        chart_id: ChartId,
-    ) -> Result<FiscalYear, FiscalYearError> {
         self.repo
-            .list_for_chart_id_by_created_at(
-                chart_id,
-                es_entity::PaginatedQueryArgs::<FiscalYearsByCreatedAtCursor> {
-                    first: 1,
-                    after: None,
-                },
-                es_entity::ListDirection::Descending,
-            )
-            .await?
-            .entities
-            .first()
-            .cloned()
-            .ok_or(FiscalYearError::CurrentYearNotFoundByChartId(chart_id))
+            .list_for_chart_id_by_created_at(chart_id, query, direction.into())
+            .await
     }
 
     #[instrument(name = "core_accounting.fiscal_year.find_all", skip(self), err)]

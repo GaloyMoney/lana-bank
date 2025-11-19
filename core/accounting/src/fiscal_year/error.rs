@@ -1,5 +1,3 @@
-use crate::primitives::ChartId;
-
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -14,8 +12,6 @@ pub enum FiscalYearError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("FiscalYearError - FiscalYearMonthAlreadyClosed")]
     FiscalYearMonthAlreadyClosed,
-    #[error("FiscalYearError - CurrentYearNotFoundByChartId: {0}")]
-    CurrentYearNotFoundByChartId(ChartId),
     #[error("FiscalYearError - ChartOfAccountsError: {0}")]
     ChartOfAccountsError(#[from] crate::chart_of_accounts::error::ChartOfAccountsError),
 }
