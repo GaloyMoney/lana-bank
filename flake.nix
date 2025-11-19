@@ -97,6 +97,11 @@
         src = rustSource;
         strictDeps = true;
         SQLX_OFFLINE = true;
+        nativeBuildInputs = pkgs.lib.optionals pkgs.stdenv.isLinux [
+          pkgs.clang
+          pkgs.libclang.lib
+        ];
+        LIBCLANG_PATH = pkgs.lib.optionalString pkgs.stdenv.isLinux "${pkgs.libclang.lib}/lib";
       };
 
       cargoArtifacts = craneLib.buildDepsOnly (commonArgs
