@@ -281,7 +281,7 @@ impl Chart {
         tree::project_from_nodes(self.id, &self.name, self.chart_nodes.iter_persisted())
     }
 
-    pub fn close_chart_as_of(&mut self, closed_as_of: NaiveDate) -> Idempotent<NaiveDate> {
+    pub(super) fn close_chart_as_of(&mut self, closed_as_of: NaiveDate) -> Idempotent<NaiveDate> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             ChartEvent::ClosedAsOf { closed_as_of: prev_date, .. } if prev_date == &closed_as_of,
