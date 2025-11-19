@@ -77,9 +77,8 @@ where
 
     #[instrument(name = "time_events.daily_closing_broadcaster_job.init", skip(self))]
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(DailyClosingBroadcasterJobRunner {
-            broadcaster: DailyClosingBroadcaster::new(&self.outbox, self.config.clone()),
-        }))
+        let broadcaster = DailyClosingBroadcaster::try_new(&self.outbox, self.config.clone())?;
+        Ok(Box::new(DailyClosingBroadcasterJobRunner { broadcaster }))
     }
 }
 
