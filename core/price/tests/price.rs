@@ -1,6 +1,14 @@
 use core_money::{Satoshis, UsdCents};
-use core_price::PriceOfOneBTC;
+use core_price::bfx_client::fetch_price;
+use core_price::{PriceOfOneBTC, bfx_client::BfxClient};
 use rust_decimal_macros::dec;
+
+#[tokio::test]
+async fn get_price_from_client() {
+    let client = BfxClient::new();
+    let price = fetch_price(&client).await;
+    assert!(price.is_ok());
+}
 
 #[test]
 fn cents_to_sats_trivial() {
