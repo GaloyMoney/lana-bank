@@ -78,10 +78,7 @@ where
     #[instrument(name = "time_events.daily_closing_broadcaster_job.init", skip(self))]
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(DailyClosingBroadcasterJobRunner {
-            broadcaster: Some(DailyClosingBroadcaster::new(
-                &self.outbox,
-                self.config.clone(),
-            )),
+            broadcaster: DailyClosingBroadcaster::new(&self.outbox, self.config.clone()),
         }))
     }
 }
@@ -90,7 +87,7 @@ pub struct DailyClosingBroadcasterJobRunner<E>
 where
     E: OutboxEventMarker<TimeEvent>,
 {
-    broadcaster: Option<DailyClosingBroadcaster<E>>,
+    broadcaster: DailyClosingBroadcaster<E>,
 }
 
 #[async_trait]
@@ -103,19 +100,7 @@ where
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        // SAFETY: broadcaster is only None after we take it, and run() is only called once
-        let broadcaster = self
-            .broadcaster
-            .as_ref()
-            .expect("Broadcaster already consumed");
-
-        // Clone the config and outbox to create a new broadcaster
-        let broadcaster = DailyClosingBroadcaster::new(
-            &broadcaster.outbox().clone(),
-            broadcaster.config().clone(),
-        );
-
-        broadcaster.run().await;
+        self.broadcaster.run().await;
         // This should never return, but if it does, reschedule immediately
         Ok(JobCompletion::RescheduleNow)
     }
