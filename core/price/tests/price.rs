@@ -32,15 +32,15 @@ async fn update_price() -> anyhow::Result<()> {
     let initial_price = PriceOfOneBTC::new(UsdCents::from(5_000_000));
     publish_dummy_price_event(&outbox, initial_price).await?;
 
-    wait_for_price_to_be_updated(&price, initial_price, 20).await?;
-    let first_observed_price = price.usd_cents_per_btc().await;
+    let first_observed_price =
+        wait_for_price_to_be_updated(&price, initial_price, 20).await?;
     assert_eq!(first_observed_price, initial_price);
 
     let updated_expected_price = PriceOfOneBTC::new(UsdCents::from(6_000_000));
     publish_dummy_price_event(&outbox, updated_expected_price).await?;
 
-    wait_for_price_to_be_updated(&price, updated_expected_price, 20).await?;
-    let second_observed_price = price.usd_cents_per_btc().await;
+    let second_observed_price =
+        wait_for_price_to_be_updated(&price, updated_expected_price, 20).await?;
     assert_eq!(second_observed_price, updated_expected_price);
 
     Ok(())

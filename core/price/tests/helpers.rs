@@ -37,16 +37,11 @@ pub async fn wait_for_price_to_be_updated(
 
     for attempt in 0..attempts {
         if current_price == expected_price {
-            return Ok(current_price);
+            break;
         }
 
         if attempt + 1 == attempts {
-            anyhow::bail!(
-                "expected price {:?} not received after {} attempts, last seen {:?}",
-                expected_price,
-                attempts,
-                current_price
-            );
+            break;
         }
 
         sleep(Duration::from_millis(100)).await;
