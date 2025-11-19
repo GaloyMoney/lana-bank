@@ -69,7 +69,55 @@
           "$ref": "#/$defs/DepositAccountStatus"
         },
         "type": {
-          "const": "account_status_updated",
+          "const": "account_holder_status_updated",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "status"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/DepositAccountStatus"
+        },
+        "type": {
+          "const": "frozen",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "status"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/DepositAccountStatus"
+        },
+        "type": {
+          "const": "unfrozen",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "status"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/DepositAccountStatus"
+        },
+        "type": {
+          "const": "closed",
           "type": "string"
         }
       },

@@ -96,7 +96,7 @@ impl DepositAccount {
             return Err(DepositAccountError::CannotUpdateClosedAccount(self.id));
         }
         if self.status == DepositAccountStatus::Inactive {
-            return Err(DepositAccountError::CannotFreezeInActiveAccount(self.id));
+            return Err(DepositAccountError::CannotFreezeInactiveAccount(self.id));
         }
         let status = DepositAccountStatus::Frozen;
         self.events.push(DepositAccountEvent::Frozen { status });
@@ -397,11 +397,8 @@ mod tests {
         .unwrap();
         assert!(account.freeze().unwrap().did_execute());
         assert_eq!(account.status, DepositAccountStatus::Frozen);
-        assert!(
-            account
-                .update_holder_status(DepositAccountStatus::Active)
-                .is_err()
-        );
+        assert!(account.freeze().unwrap().was_ignored());
+
         assert!(account.unfreeze().unwrap().did_execute());
         assert_eq!(account.status, DepositAccountStatus::Active);
         assert!(
@@ -410,5 +407,7 @@ mod tests {
                 .unwrap()
                 .was_ignored()
         );
+
+        assert!(account.freeze().unwrap().did_execute());
     }
 }

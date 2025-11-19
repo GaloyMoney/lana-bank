@@ -407,7 +407,7 @@ wait_for_approval() {
   exec_admin_graphql 'deposit-account-close' "$variables"
 
   errors=$(graphql_output '.errors')
-  [[ "$errors" =~ "CannotCloseFrozenAccount" ]] || exit 1
+  [[ "$errors" =~ "CannotUpdateFrozenAccount" ]] || exit 1
 }
 
 @test "checking-account: can close account" {

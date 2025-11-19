@@ -57,7 +57,6 @@ where
                     account_holder_id: entity.account_holder_id,
                 }),
                 _ => None,
-                // add other events here?
             })
             .collect::<Vec<_>>();
         self.outbox
