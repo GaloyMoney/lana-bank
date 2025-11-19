@@ -163,11 +163,44 @@ where
         chart: &Chart,
         ids: &[LedgerAccountId],
     ) -> Result<HashMap<LedgerAccountId, T>, LedgerAccountError> {
-        let accounts = self.ledger.load_ledger_accounts(ids).await?;
+        let mut accounts = self.ledger.load_ledger_accounts(ids).await?;
+
+        // Collect accounts that need parent lookups (those without codes)
+        let member_ids_needing_parents: Vec<_> = accounts
+            .values()
+            .filter(|acc| acc.code.is_none())
+            .map(|acc| acc.account_set_member_id())
+            .collect();
+
+        // Collect accounts that need child lookups (those with empty chart children)
+        let ids_needing_children: Vec<_> = accounts
+            .iter()
+            .filter(|(_, acc)| {
+                acc.code
+                    .as_ref()
+                    .map(|code| chart.children(code).next().is_none())
+                    .unwrap_or(true)
+            })
+            .map(|(id, _)| *id)
+            .collect();
+
+        // Batch load parent and child relationships
+        let (parent_map, children_map) = tokio::join!(
+            self.ledger
+                .batch_find_parents_with_account_code(&member_ids_needing_parents),
+            self.ledger.batch_find_leaf_children(&ids_needing_children)
+        );
+
+        let parent_map = parent_map?;
+        let children_map = children_map?;
+
+        // Populate all accounts using the cached data
         let mut res = HashMap::new();
-        for (k, mut v) in accounts.into_iter() {
-            self.populate_ancestors(chart, &mut v).await?;
-            self.populate_children(chart, &mut v).await?;
+        for (k, mut v) in accounts.drain() {
+            self.populate_ancestors_with_cache(chart, &mut v, &parent_map)
+                .await?;
+            self.populate_children_with_cache(chart, &mut v, &children_map)
+                .await?;
             res.insert(k, v.into());
         }
         Ok(res)
@@ -241,6 +274,38 @@ where
         Ok(())
     }
 
+    /// Populate ancestors using pre-loaded cache (for batch operations).
+    #[instrument(
+        name = "core_accounting.ledger_account.populate_ancestors_with_cache",
+        skip(self, chart, account, parent_cache),
+        err
+    )]
+    async fn populate_ancestors_with_cache(
+        &self,
+        chart: &Chart,
+        account: &mut LedgerAccount,
+        parent_cache: &HashMap<uuid::Uuid, (cala_ledger::account_set::AccountSetId, AccountCode)>,
+    ) -> Result<(), LedgerAccountError> {
+        if let Some(code) = account.code.as_ref() {
+            account.ancestor_ids = chart.ancestors(code);
+        } else {
+            let member_uuid = match account.account_set_member_id() {
+                cala_ledger::account_set::AccountSetMemberId::Account(aid) => {
+                    uuid::Uuid::from(&aid)
+                }
+                cala_ledger::account_set::AccountSetMemberId::AccountSet(asid) => {
+                    uuid::Uuid::from(&asid)
+                }
+            };
+            if let Some((id, code)) = parent_cache.get(&member_uuid) {
+                let mut ancestors = chart.ancestors(code);
+                ancestors.insert(0, (*id).into());
+                account.ancestor_ids = ancestors;
+            }
+        }
+        Ok(())
+    }
+
     #[instrument(
         name = "core_accounting.ledger_account.populate_children",
         skip(self, chart, account),
@@ -259,6 +324,33 @@ where
 
         account.children_ids = if children.is_empty() {
             self.ledger.find_leaf_children(account.id, 1).await?
+        } else {
+            children.into_values().map(Into::into).collect()
+        };
+
+        Ok(())
+    }
+
+    /// Populate children using pre-loaded cache (for batch operations).
+    #[instrument(
+        name = "core_accounting.ledger_account.populate_children_with_cache",
+        skip(self, chart, account, children_cache),
+        err
+    )]
+    async fn populate_children_with_cache(
+        &self,
+        chart: &Chart,
+        account: &mut LedgerAccount,
+        children_cache: &HashMap<LedgerAccountId, Vec<LedgerAccountId>>,
+    ) -> Result<(), LedgerAccountError> {
+        let children: BTreeMap<_, _> = account
+            .code
+            .as_ref()
+            .map(|code| chart.children(code).collect())
+            .unwrap_or_default();
+
+        account.children_ids = if children.is_empty() {
+            children_cache.get(&account.id).cloned().unwrap_or_default()
         } else {
             children.into_values().map(Into::into).collect()
         };

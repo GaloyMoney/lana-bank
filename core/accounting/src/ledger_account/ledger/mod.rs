@@ -316,4 +316,165 @@ impl LedgerAccountLedger {
 
         Ok(rows)
     }
+
+    /// Batch load parent account information for multiple account set members.
+    /// Returns a map from member UUID to (AccountSetId, AccountCode) for parents with codes.
+    /// The key is the UUID representation of the member (either account_id or account_set_id).
+    #[instrument(name = "ledger_account.batch_find_parents", skip(self))]
+    pub async fn batch_find_parents_with_account_code(
+        &self,
+        member_ids: &[AccountSetMemberId],
+    ) -> Result<HashMap<uuid::Uuid, (AccountSetId, AccountCode)>, LedgerAccountLedgerError> {
+        let mut result = HashMap::new();
+        let mut to_process: Vec<(AccountSetMemberId, uuid::Uuid, usize)> = member_ids
+            .iter()
+            .map(|id| {
+                let uuid = match id {
+                    AccountSetMemberId::Account(aid) => uuid::Uuid::from(aid),
+                    AccountSetMemberId::AccountSet(asid) => uuid::Uuid::from(asid),
+                };
+                (*id, uuid, 0)
+            })
+            .collect();
+        let mut processed_uuids: Vec<uuid::Uuid> = Vec::new();
+
+        while !to_process.is_empty() {
+            let current_batch: Vec<_> = to_process.drain(..).collect();
+            let mut next_batch = Vec::new();
+
+            let futures: Vec<_> = current_batch
+                .iter()
+                .filter(|(_, uuid, _)| !processed_uuids.contains(uuid))
+                .map(|(id, uuid, depth)| async move {
+                    if *depth > MAX_DEPTH_BETWEEN_LEAF_AND_COA_EDGE {
+                        return Ok((*id, *uuid, Vec::new()));
+                    }
+                    let parents = self
+                        .cala
+                        .account_sets()
+                        .find_where_member(*id, Default::default())
+                        .await?
+                        .entities;
+                    Ok::<_, LedgerAccountLedgerError>((*id, *uuid, parents))
+                })
+                .collect();
+
+            let results = futures::future::join_all(futures).await;
+
+            for res in results {
+                let (_member_id, member_uuid, parents) = res?;
+                processed_uuids.push(member_uuid);
+
+                for parent in parents {
+                    if let Some(Ok(code)) = parent
+                        .values()
+                        .external_id
+                        .as_ref()
+                        .map(|id| id.parse::<AccountCode>())
+                    {
+                        result.insert(member_uuid, (parent.id, code));
+                        break;
+                    } else {
+                        let parent_member_id = parent.id.into();
+                        let parent_uuid = uuid::Uuid::from(&parent.id);
+                        if !processed_uuids.contains(&parent_uuid)
+                            && !result.contains_key(&member_uuid)
+                        {
+                            let depth = current_batch
+                                .iter()
+                                .find(|(_, u, _)| *u == member_uuid)
+                                .map(|(_, _, d)| *d)
+                                .unwrap_or(0);
+                            next_batch.push((parent_member_id, parent_uuid, depth + 1));
+                        }
+                    }
+                }
+            }
+
+            to_process = next_batch;
+        }
+
+        Ok(result)
+    }
+
+    /// Batch load child account information for multiple account sets.
+    /// Returns a map from LedgerAccountId to Vec<LedgerAccountId> of leaf children.
+    #[instrument(name = "ledger_account.batch_find_children", skip(self))]
+    pub async fn batch_find_leaf_children(
+        &self,
+        account_ids: &[LedgerAccountId],
+    ) -> Result<HashMap<LedgerAccountId, Vec<LedgerAccountId>>, LedgerAccountLedgerError> {
+        let mut result: HashMap<LedgerAccountId, Vec<LedgerAccountId>> = HashMap::new();
+        let mut to_process: Vec<(LedgerAccountId, usize)> =
+            account_ids.iter().map(|id| (*id, 0)).collect();
+
+        while !to_process.is_empty() {
+            let current_batch: Vec<_> = to_process.drain(..).collect();
+            let mut next_batch = Vec::new();
+
+            let futures: Vec<_> = current_batch
+                .iter()
+                .map(|(id, depth)| async move {
+                    if *depth > MAX_DEPTH_BETWEEN_LEAF_AND_COA_EDGE {
+                        return Ok((*id, Vec::new()));
+                    }
+                    let children = self
+                        .cala
+                        .account_sets()
+                        .list_members_by_external_id((*id).into(), Default::default())
+                        .await?
+                        .entities;
+                    Ok::<_, LedgerAccountLedgerError>((*id, children))
+                })
+                .collect();
+
+            let results = futures::future::join_all(futures).await;
+
+            for res in results {
+                let (parent_id, children) = res?;
+
+                // Collect leaf children and nested account sets separately to avoid borrow conflicts
+                let mut leaf_children: Vec<LedgerAccountId> = Vec::new();
+                let mut nested_sets: Vec<LedgerAccountId> = Vec::new();
+
+                for child in children {
+                    match (child.external_id, child.id) {
+                        (
+                            Some(external_id),
+                            cala_ledger::account_set::AccountSetMemberId::AccountSet(id),
+                        ) if external_id.parse::<AccountCode>().is_ok() => {
+                            leaf_children.push(id.into());
+                        }
+                        (_, cala_ledger::account_set::AccountSetMemberId::Account(id)) => {
+                            leaf_children.push(id.into());
+                        }
+                        (_, cala_ledger::account_set::AccountSetMemberId::AccountSet(id)) => {
+                            nested_sets.push(id.into());
+                        }
+                    }
+                }
+
+                // Now update the result map
+                let entry = result.entry(parent_id).or_default();
+                entry.extend(leaf_children);
+
+                // Process nested sets for next iteration
+                let depth = current_batch
+                    .iter()
+                    .find(|(pid, _)| *pid == parent_id)
+                    .map(|(_, d)| *d)
+                    .unwrap_or(0);
+
+                for child_id in nested_sets {
+                    if !result.contains_key(&child_id) {
+                        next_batch.push((child_id, depth + 1));
+                    }
+                }
+            }
+
+            to_process = next_batch;
+        }
+
+        Ok(result)
+    }
 }

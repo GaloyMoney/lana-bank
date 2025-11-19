@@ -37,6 +37,7 @@ sim-time = { workspace = true, optional = true }
 schemars = { workspace = true, optional = true }
 
 tokio = { workspace = true }
+futures = { workspace = true }
 anyhow = { workspace = true }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
