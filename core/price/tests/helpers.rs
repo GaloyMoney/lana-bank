@@ -1,3 +1,4 @@
+use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use tokio::time::{Duration, sleep};
 
@@ -59,7 +60,10 @@ pub async fn publish_dummy_price_event(
     outbox
         .publish_ephemeral(
             PRICE_UPDATED_EVENT_TYPE,
-            CorePriceEvent::PriceUpdated { price },
+            CorePriceEvent::PriceUpdated {
+                price,
+                timestamp: Utc::now(),
+            },
         )
         .await?;
 

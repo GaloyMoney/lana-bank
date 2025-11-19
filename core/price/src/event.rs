@@ -1,7 +1,7 @@
-use serde::{Deserialize, Serialize};
-
+use chrono::{DateTime, Utc};
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 
 use crate::primitives::PriceOfOneBTC;
 use outbox::EphemeralEventType;
@@ -12,5 +12,8 @@ pub const PRICE_UPDATED_EVENT_TYPE: EphemeralEventType =
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub enum CorePriceEvent {
-    PriceUpdated { price: PriceOfOneBTC },
+    PriceUpdated {
+        price: PriceOfOneBTC,
+        timestamp: DateTime<Utc>,
+    },
 }

@@ -90,7 +90,7 @@ impl Price {
         name = "core.price.listen_for_updates.process_message",
         parent = None,
         skip(tx, message),
-        fields(event_type = tracing::field::Empty, handled = false, price = tracing::field::Empty),
+        fields(event_type = tracing::field::Empty, handled = false, price = tracing::field::Empty, timestamp = tracing::field::Empty),
         err
     )]
     async fn process_message<E>(
@@ -100,11 +100,15 @@ impl Price {
     where
         E: OutboxEventMarker<CorePriceEvent> + Send + Sync + 'static,
     {
-        if let Some(CorePriceEvent::PriceUpdated { price: new_price }) = message.payload.as_event()
+        if let Some(CorePriceEvent::PriceUpdated {
+            price: new_price,
+            timestamp,
+        }) = message.payload.as_event()
         {
             Span::current().record("handled", true);
             Span::current().record("event_type", "PriceUpdated");
             Span::current().record("price", tracing::field::debug(new_price));
+            Span::current().record("timestamp", tracing::field::debug(timestamp));
             tx.send(Some(*new_price))?;
         }
 

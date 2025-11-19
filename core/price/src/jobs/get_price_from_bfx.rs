@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use chrono::Utc;
 use serde::{Deserialize, Serialize};
 
 use job::*;
@@ -89,7 +90,10 @@ where
         self.outbox
             .publish_ephemeral(
                 PRICE_UPDATED_EVENT_TYPE,
-                CorePriceEvent::PriceUpdated { price },
+                CorePriceEvent::PriceUpdated {
+                    price,
+                    timestamp: Utc::now(),
+                },
             )
             .await?;
 
