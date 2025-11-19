@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
 use job::*;
-use outbox::{EphemeralEventType, Outbox, OutboxEventMarker};
+use outbox::{Outbox, OutboxEventMarker};
 use std::sync::Arc;
 
 use crate::{
@@ -88,7 +88,7 @@ where
 
         self.outbox
             .publish_ephemeral(
-                EphemeralEventType::new(PRICE_UPDATED_EVENT_TYPE),
+                PRICE_UPDATED_EVENT_TYPE,
                 CorePriceEvent::PriceUpdated { price },
             )
             .await?;

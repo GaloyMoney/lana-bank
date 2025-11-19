@@ -1496,6 +1496,7 @@ dependencies = [
  "futures",
  "job",
  "outbox",
+ "rand 0.9.2",
  "reqwest",
  "rust_decimal",
  "rust_decimal_macros",

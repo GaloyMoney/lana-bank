@@ -1,7 +1,8 @@
-use core_price::{CorePriceEvent, PRICE_UPDATED_EVENT_TYPE, Price, PriceOfOneBTC};
-use outbox::{EphemeralEventType, Outbox};
 use serde::{Deserialize, Serialize};
 use tokio::time::{Duration, sleep};
+
+use core_price::{CorePriceEvent, PRICE_UPDATED_EVENT_TYPE, Price, PriceOfOneBTC};
+use outbox::Outbox;
 
 pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
     let pg_con = std::env::var("PG_CON").unwrap();
@@ -57,7 +58,7 @@ pub async fn publish_dummy_price_event(
 ) -> anyhow::Result<()> {
     outbox
         .publish_ephemeral(
-            EphemeralEventType::new(PRICE_UPDATED_EVENT_TYPE),
+            PRICE_UPDATED_EVENT_TYPE,
             CorePriceEvent::PriceUpdated { price },
         )
         .await?;

@@ -44,6 +44,10 @@ impl EphemeralEventType {
         Self(Cow::Borrowed(name))
     }
 
+    pub const fn from_static(name: &'static str) -> Self {
+        Self(Cow::Borrowed(name))
+    }
+
     pub fn as_str(&self) -> &str {
         &self.0
     }
