@@ -1,5 +1,6 @@
 "use client"
 
+import { usePathname } from "next/navigation"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@lana/web/ui/sidebar"
 
 import { CommandMenu } from "./command-menu"
@@ -17,15 +18,25 @@ import { env } from "@/env"
 export const AppLayout = ({ children }: Readonly<{ children: React.ReactNode }>) => {
   const appVersion = env.NEXT_PUBLIC_APP_VERSION
   const { open, setOpen, openCommandMenu } = useCommandMenu()
+  const pathname = usePathname()
+  const isJournalPage = pathname === "/journal"
 
   return (
     <CreateContextProvider>
       <SidebarProvider>
         <AppSidebar appVersion={appVersion} />
-        <SidebarInset className="min-h-screen md:peer-data-[variant=inset]:shadow-none border">
+        <SidebarInset className="min-h-screen md:peer-data-[variant=inset]:shadow-none border min-w-0">
           <CommandMenu open={open} onOpenChange={setOpen} />
-          <div className="container mx-auto p-2">
-            <div className="max-w-7xl w-full mx-auto">
+          <div
+            className={
+              isJournalPage ? "mx-auto p-2 w-full min-w-0" : "container mx-auto p-2"
+            }
+          >
+            <div
+              className={
+                isJournalPage ? "w-full mx-auto min-w-0" : "max-w-7xl w-full mx-auto"
+              }
+            >
               <header className="flex justify-between items-center mb-2 align-middle">
                 <div className="flex items-center gap-2">
                   <SidebarTrigger className="md:hidden" />

@@ -10,7 +10,7 @@ export const TableLoadingSkeleton = ({
 }) => {
   return (
     <div>
-      <Table>
+      <Table className="table-fixed w-full">
         <TableBody>
           {Array.from({ length: rows }).map((_, rowIndex) => (
             <TableRow key={rowIndex}>
