@@ -308,14 +308,18 @@ where
         let mut op = self.deposit_accounts.begin_op().await?;
 
         for mut account in accounts.entities.into_iter() {
-            match account.update_status(status) {
+            match account.update_holder_status(status) {
                 Ok(result) if result.did_execute() => {
                     self.deposit_accounts
                         .update_in_op(&mut op, &mut account)
                         .await?;
                 }
-                Err(DepositAccountError::CannotUpdateClosedAccount) => {
+                Err(DepositAccountError::CannotUpdateClosedAccount(account_id)) => {
                     tracing::warn!("Skipping update error if account already closed");
+                    continue;
+                }
+                Err(DepositAccountError::CannotUpdateFrozenAccount(account_id)) => {
+                    tracing::warn!("Skipping update error if account already frozen: {:?}", account_id);
                     continue;
                 }
                 Err(e) => {
