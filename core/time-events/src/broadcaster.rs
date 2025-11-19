@@ -27,14 +27,6 @@ where
             config,
         }
     }
-
-    pub fn outbox(&self) -> &Outbox<E> {
-        &self.outbox
-    }
-
-    pub fn config(&self) -> &TimeEventsConfig {
-        &self.config
-    }
 }
 
 impl<E> DailyClosingBroadcaster<E>
@@ -131,7 +123,7 @@ where
     }
 
     #[instrument(name = "time_events.broadcaster.run", skip(self))]
-    pub async fn run(self) {
+    pub async fn run(&self) {
         info!(
             closing_time = %self.config.daily.closing_time,
             timezone = %self.config.daily.timezone,
