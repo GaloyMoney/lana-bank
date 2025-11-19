@@ -51,23 +51,13 @@ pub fn init_tracer(config: TracingConfig) -> anyhow::Result<()> {
     let tracer = provider.tracer("lana-tracer");
     let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
 
-    // Check if RUST_LOG env var is set
-    let env_is_set = std::env::var("RUST_LOG").is_ok();
-
-    // Console output: use RUST_LOG if set, otherwise "info"
-    let fmt_filter = if env_is_set {
-        EnvFilter::try_from_default_env().unwrap()
-    } else {
-        EnvFilter::new("info")
-    };
+    // Console output: use RUST_LOG if valid, otherwise "info"
+    let fmt_filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
     let fmt_layer = fmt::layer().compact().with_filter(fmt_filter);
 
-    // OpenTelemetry: use RUST_LOG if set, otherwise "info,sqlx=debug"
-    let otel_filter = if env_is_set {
-        EnvFilter::try_from_default_env().unwrap()
-    } else {
-        EnvFilter::try_new("info,sqlx=debug").unwrap()
-    };
+    // OpenTelemetry: use RUST_LOG if valid, otherwise "info,sqlx=debug"
+    let otel_filter = EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| EnvFilter::try_new("info,sqlx=debug").unwrap());
 
     tracing_subscriber::registry()
         .with(fmt_layer)
