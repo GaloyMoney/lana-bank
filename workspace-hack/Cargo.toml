@@ -21,6 +21,7 @@ async-graphql = { version = "7", default-features = false, features = ["chrono",
 axum = { version = "0.8", features = ["macros"] }
 base16ct = { version = "0.2", default-features = false, features = ["alloc"] }
 base64 = { version = "0.22" }
+bitflags = { version = "2", default-features = false, features = ["std"] }
 byteorder = { version = "1", default-features = false, features = ["std"] }
 bytes = { version = "1", features = ["serde"] }
 cala-ledger = { version = "0.12", default-features = false, features = ["graphql", "json-schema"] }
@@ -58,6 +59,7 @@ indexmap = { version = "2", features = ["serde"] }
 inout = { version = "0.1", default-features = false, features = ["block-padding"] }
 job = { version = "0.2", default-features = false, features = ["json-schema", "sim-time"] }
 lalrpop-util = { version = "0.22", features = ["lexer"] }
+libc = { version = "0.2" }
 log = { version = "0.4", default-features = false, features = ["std"] }
 memchr = { version = "2" }
 num-traits = { version = "0.2", features = ["i128"] }
@@ -70,6 +72,7 @@ pkcs8 = { version = "0.10", default-features = false, features = ["encryption", 
 prost = { version = "0.13", features = ["prost-derive"] }
 rand = { version = "0.9" }
 rand_core = { version = "0.6", default-features = false, features = ["std"] }
+regex = { version = "1" }
 regex-automata = { version = "0.4", default-features = false, features = ["dfa-build", "dfa-onepass", "hybrid", "meta", "nfa-backtrack", "perf", "std", "unicode"] }
 regex-syntax = { version = "0.8" }
 reqwest = { version = "0.12", default-features = false, features = ["blocking", "charset", "http2", "json", "macos-system-configuration", "multipart", "rustls-tls", "stream"] }
@@ -105,6 +108,7 @@ zeroize = { version = "1" }
 
 [build-dependencies]
 base64 = { version = "0.22" }
+bitflags = { version = "2", default-features = false, features = ["std"] }
 byteorder = { version = "1", default-features = false, features = ["std"] }
 bytes = { version = "1", features = ["serde"] }
 cc = { version = "1", default-features = false, features = ["parallel"] }
@@ -126,13 +130,16 @@ hmac = { version = "0.12", default-features = false, features = ["reset"] }
 idna = { version = "1" }
 indexmap = { version = "2", features = ["serde"] }
 lalrpop-util = { version = "0.22", features = ["lexer"] }
+libc = { version = "0.2" }
 log = { version = "0.4", default-features = false, features = ["std"] }
 memchr = { version = "2" }
 num-traits = { version = "0.2", features = ["i128"] }
 once_cell = { version = "1", features = ["portable-atomic"] }
 percent-encoding = { version = "2" }
+prettyplease = { version = "0.2", default-features = false, features = ["verbatim"] }
 prost = { version = "0.13", features = ["prost-derive"] }
 rand_core = { version = "0.6", default-features = false, features = ["std"] }
+regex = { version = "1" }
 regex-automata = { version = "0.4", default-features = false, features = ["dfa-build", "dfa-onepass", "hybrid", "meta", "nfa-backtrack", "perf", "std", "unicode"] }
 regex-syntax = { version = "0.8" }
 rust_decimal = { version = "1", features = ["maths"] }
@@ -166,6 +173,7 @@ ignored = [
     "axum-core",
     "base16ct",
     "base64",
+    "bitflags",
     "byteorder",
     "bytes",
     "cala-ledger",
@@ -207,6 +215,7 @@ ignored = [
     "inout",
     "job",
     "lalrpop-util",
+    "libc",
     "log",
     "memchr",
     "num-traits",
@@ -220,6 +229,7 @@ ignored = [
     "prost",
     "rand",
     "rand_core",
+    "regex",
     "regex-automata",
     "regex-syntax",
     "reqwest",
