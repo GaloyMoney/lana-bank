@@ -10,8 +10,7 @@ use futures::StreamExt;
 use job::Jobs;
 use outbox::{EphemeralOutboxEvent, Outbox, OutboxEventMarker};
 use std::sync::Arc;
-use tokio::sync::RwLock;
-use tokio::task::JoinHandle;
+use tokio::{sync::watch, task::JoinHandle};
 use tracing::Span;
 
 use error::PriceError;
@@ -21,7 +20,7 @@ pub use primitives::*;
 
 #[derive(Clone)]
 pub struct Price {
-    inner: Arc<RwLock<Option<PriceOfOneBTC>>>,
+    receiver: watch::Receiver<Option<PriceOfOneBTC>>,
     _handle: Arc<JoinHandle<Result<(), Box<dyn std::error::Error + Send + Sync>>>>,
 }
 
@@ -31,8 +30,6 @@ impl Price {
     where
         E: OutboxEventMarker<CorePriceEvent> + Send + Sync + 'static,
     {
-        let price = Arc::new(RwLock::new(None));
-
         jobs.add_initializer_and_spawn_unique(
             jobs::get_price_from_bfx::GetPriceFromClientJobInit::<E>::new(outbox),
             jobs::get_price_from_bfx::GetPriceFromClientJobConfig::<E> {
@@ -41,34 +38,40 @@ impl Price {
         )
         .await
         .map_err(PriceError::JobError)?;
+        let (tx, rx) = watch::channel(None);
 
-        let handle = Self::spawn_price_listener(outbox.clone(), Arc::clone(&price));
+        let handle = Self::spawn_price_listener(tx, outbox.clone());
 
         Ok(Self {
-            inner: price,
+            receiver: rx,
             _handle: Arc::new(handle),
         })
     }
 
-    pub async fn usd_cents_per_btc(&self) -> Result<PriceOfOneBTC, PriceError> {
-        let guard = self.inner.read().await;
-        (*guard).ok_or(PriceError::PriceUnavailable)
+    pub async fn usd_cents_per_btc(&self) -> PriceOfOneBTC {
+        loop {
+            if let Some(res) = *self.receiver.borrow() {
+                return res;
+            }
+            let mut rec = self.receiver.clone();
+            rec.changed().await;
+        }
     }
 
     fn spawn_price_listener<E>(
+        tx: watch::Sender<Option<PriceOfOneBTC>>,
         outbox: Outbox<E>,
-        price: Arc<RwLock<Option<PriceOfOneBTC>>>,
     ) -> JoinHandle<Result<(), Box<dyn std::error::Error + Send + Sync>>>
     where
         E: OutboxEventMarker<CorePriceEvent> + Send + Sync + 'static,
     {
-        tokio::spawn(Self::listen_for_price_updates(outbox, price))
+        tokio::spawn(Self::listen_for_price_updates(tx, outbox))
     }
 
     #[tracing::instrument(name = "core.price.listen_for_updates", skip_all, err)]
     async fn listen_for_price_updates<E>(
+        tx: watch::Sender<Option<PriceOfOneBTC>>,
         outbox: Outbox<E>,
-        price: Arc<RwLock<Option<PriceOfOneBTC>>>,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>>
     where
         E: OutboxEventMarker<CorePriceEvent> + Send + Sync + 'static,
@@ -76,7 +79,7 @@ impl Price {
         let mut stream = outbox.listen_ephemeral().await?;
 
         while let Some(message) = stream.next().await {
-            Self::process_message(message.as_ref(), &price).await?;
+            Self::process_message(&tx, message.as_ref()).await?;
         }
 
         tracing::info!("price outbox listener stream ended");
@@ -86,13 +89,13 @@ impl Price {
     #[tracing::instrument(
         name = "core.price.listen_for_updates.process_message",
         parent = None,
-        skip(price, message),
+        skip(tx, message),
         fields(event_type = tracing::field::Empty, handled = false, price = tracing::field::Empty),
         err
     )]
     async fn process_message<E>(
+        tx: &watch::Sender<Option<PriceOfOneBTC>>,
         message: &EphemeralOutboxEvent<E>,
-        price: &Arc<RwLock<Option<PriceOfOneBTC>>>,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>>
     where
         E: OutboxEventMarker<CorePriceEvent> + Send + Sync + 'static,
@@ -102,7 +105,7 @@ impl Price {
             Span::current().record("handled", true);
             Span::current().record("event_type", "PriceUpdated");
             Span::current().record("price", tracing::field::debug(new_price));
-            *price.write().await = Some(*new_price);
+            tx.send(Some(*new_price))?;
         }
 
         Ok(())
