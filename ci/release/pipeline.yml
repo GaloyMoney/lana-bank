@@ -118,6 +118,7 @@ jobs:
           - { get: pipeline-tasks }
       - task: run-bats
         privileged: true
+        attempts: 2
         config:
           platform: linux
           image_resource: #@ nix_flake_cachix_image_config()
@@ -194,6 +195,10 @@ jobs:
       - put: version
         params:
           file: version/version
+    on_failure:
+      put: release-lock
+      params: { release: release-lock }
+
 
   - name: await-release-binary
     serial: true
@@ -239,6 +244,9 @@ jobs:
               -c galoymoney \
               -a 300 \
               -d 10
+    on_failure:
+      put: release-lock
+      params: { release: release-lock }
 
   - name: release
     serial: true
@@ -405,6 +413,9 @@ jobs:
           tag: artifacts/gh-release-tag
           body: artifacts/gh-release-notes.md
           globs: [artifacts/binaries/*]
+    on_failure:
+      put: release-lock
+      params: { release: release-lock }
   - name: release-docker
     serial: true
     plan:
