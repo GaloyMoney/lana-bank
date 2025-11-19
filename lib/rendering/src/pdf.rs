@@ -21,7 +21,7 @@ impl PdfGenerator {
         // Use the embedded config directly
         let config_source = ConfigSource::Embedded(DEFAULT_PDF_CONFIG);
 
-        markdown2pdf::parse_into_bytes(markdown.to_string(), config_source)
+        markdown2pdf::parse_into_bytes(markdown.to_string(), config_source, None)
             .map_err(|e| RenderingError::PdfGeneration(format!("PDF generation failed: {e}")))
     }
 }
