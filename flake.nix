@@ -248,6 +248,7 @@
           meltanoPkgs.meltano
           poppler_utils
           keycloak
+          llvmPackages.clang
           # Documentation tools
           mdbook
           mdbook-mermaid
@@ -876,7 +877,9 @@
                 # Set socket if available (for both CI and local)
                 socket="$($(pwd)/dev/bin/podman-get-socket.sh 2>/dev/null || echo NO_SOCKET)"
                 [[ "$socket" != "NO_SOCKET" ]] && export DOCKER_HOST="$socket"
+
               fi
+              export LIBCLANG_PATH=${pkgs.llvmPackages.libclang.lib}/lib;
             '';
           });
 
