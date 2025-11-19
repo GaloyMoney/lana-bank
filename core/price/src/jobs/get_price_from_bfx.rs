@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
+use tokio::time::{Duration, sleep};
 
 use job::*;
 use outbox::{Outbox, OutboxEventMarker};
@@ -85,20 +86,20 @@ where
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let price: PriceOfOneBTC = bfx_client::fetch_price(self.bfx_client.as_ref()).await?;
+        loop {
+            let price: PriceOfOneBTC = bfx_client::fetch_price(self.bfx_client.as_ref()).await?;
 
-        self.outbox
-            .publish_ephemeral(
-                PRICE_UPDATED_EVENT_TYPE,
-                CorePriceEvent::PriceUpdated {
-                    price,
-                    timestamp: Utc::now(),
-                },
-            )
-            .await?;
+            self.outbox
+                .publish_ephemeral(
+                    PRICE_UPDATED_EVENT_TYPE,
+                    CorePriceEvent::PriceUpdated {
+                        price,
+                        timestamp: Utc::now(),
+                    },
+                )
+                .await?;
 
-        Ok(JobCompletion::RescheduleIn(std::time::Duration::from_secs(
-            60,
-        )))
+            sleep(Duration::from_secs(60)).await;
+        }
     }
 }
