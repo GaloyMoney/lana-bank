@@ -290,7 +290,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         holder_id: impl Into<DepositAccountHolderId> + std::fmt::Debug,
-        status: DepositAccountStatus,
+        status: DepositAccountHolderStatus,
     ) -> Result<(), CoreDepositError> {
         let holder_id = holder_id.into();
         self.authz

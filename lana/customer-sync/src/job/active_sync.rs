@@ -6,8 +6,8 @@ use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, KycVerification};
 use core_deposit::{
-    CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, DepositAccountStatus,
-    GovernanceAction, GovernanceObject,
+    CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject,
+    DepositAccountHolderStatus, GovernanceAction, GovernanceObject,
 };
 use governance::GovernanceEvent;
 use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
@@ -169,9 +169,9 @@ where
         if self.config.customer_status_sync_active {
             let deposit_account_status = match kyc_verification {
                 KycVerification::Rejected | KycVerification::PendingVerification => {
-                    DepositAccountStatus::Inactive
+                    DepositAccountHolderStatus::Inactive
                 }
-                KycVerification::Verified => DepositAccountStatus::Active,
+                KycVerification::Verified => DepositAccountHolderStatus::Active,
             };
 
             self.deposit
