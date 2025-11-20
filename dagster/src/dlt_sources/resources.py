@@ -19,7 +19,7 @@ def create_sql_table_resource(crendetials: ConnectionStringCredentials, table_na
 class PostgresResource(dg.ConfigurableResource):
 
     def get_credentials(self):
-        credentials = ConnectionStringCredentials(dg.EnvVar("PG_CON").get_value())
+        credentials = ConnectionStringCredentials(dg.EnvVar("LANA_PG_CON").get_value())
         credentials.drivername = "postgresql"
 
         return credentials

@@ -31,16 +31,6 @@ LANA_EL_TABLE_NAMES = (
 )
 
 
-def lana_resources():
-    resources = {}
-    resources["lana_core_pg"] = PostgresResource()
-    resources["dw_bq"] = BigQueryResource(
-        base64_credentials=dg.EnvVar("TF_VAR_sa_creds").get_value(),
-        target_dataset=dg.EnvVar("TARGET_BIGQUERY_DATASET").get_value(),
-    )
-    return resources
-
-
 def lana_source_protoassets() -> List[Protoasset]:
     lana_source_protoassets = []
     for table_name in LANA_EL_TABLE_NAMES:
