@@ -98,10 +98,10 @@
         strictDeps = true;
         SQLX_OFFLINE = true;
         nativeBuildInputs = pkgs.lib.optionals pkgs.stdenv.isLinux [
-          pkgs.clang
-          pkgs.libclang.lib
+          pkgs.llvmPackages.clang
+          pkgs.llvmPackages.libclang.lib
         ];
-        LIBCLANG_PATH = pkgs.lib.optionalString pkgs.stdenv.isLinux "${pkgs.libclang.lib}/lib";
+        LIBCLANG_PATH = pkgs.lib.optionalString pkgs.stdenv.isLinux "${pkgs.llvmPackages.libclang.lib}/lib";
       };
 
       cargoArtifacts = craneLib.buildDepsOnly (commonArgs
@@ -199,8 +199,7 @@
             cargo nextest list --workspace --all-features > $out/test-list.txt
           '';
 
-          nativeBuildInputs = [pkgs.cargo-nextest pkgs.llvmPackages.clang];
-          LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
+          nativeBuildInputs = commonArgs.nativeBuildInputs ++ [pkgs.cargo-nextest];
         }
       );
 
