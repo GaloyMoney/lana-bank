@@ -412,6 +412,8 @@ where
         pending_credit_facility_id: impl Into<PendingCreditFacilityId> + std::fmt::Debug,
     ) -> Result<Option<PendingCreditFacility>, PendingCreditFacilityError> {
         let id = pending_credit_facility_id.into();
+        tracing::Span::current().record("pending_credit_facility_id", tracing::field::display(&id));
+
         self.authz
             .enforce_permission(
                 sub,
@@ -419,8 +421,6 @@ where
                 CoreCreditAction::CREDIT_FACILITY_READ,
             )
             .await?;
-
-        tracing::Span::current().record("pending_credit_facility_id", tracing::field::display(&id));
 
         self.repo.maybe_find_by_id(id).await
     }
