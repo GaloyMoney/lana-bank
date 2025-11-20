@@ -37,8 +37,11 @@ pub struct FiscalYear {
 }
 
 impl FiscalYear {
-    #[instrument(name = "fiscal_year.close_last_month", skip(self, now))]
-    pub(super) fn close_last_month(&mut self, now: DateTime<Utc>) -> Idempotent<NaiveDate> {
+    #[instrument(name = "fiscal_year.close_next_sequential_month", skip(self, now))]
+    pub(super) fn close_next_sequential_month(
+        &mut self,
+        now: DateTime<Utc>,
+    ) -> Idempotent<NaiveDate> {
         let last_recorded_date = self.events.iter_all().rev().find_map(|event| match event {
             FiscalYearEvent::MonthClosed { closed_as_of, .. } => Some(*closed_as_of),
             _ => None,
@@ -81,6 +84,7 @@ impl FiscalYear {
         Idempotent::Executed(new_monthly_closing_date)
     }
 
+    #[instrument(name = "fiscal_year.is_open", skip(self))]
     pub fn is_open(&self) -> bool {
         // TODO: Manage `FiscalYear` entity lifecycle.
         true
@@ -165,13 +169,13 @@ mod test {
     }
 
     #[test]
-    fn close_last_month_first_time() {
+    fn close_next_sequential_month_first_time() {
         let period_start = "2024-01-01".parse::<NaiveDate>().unwrap();
         let expected_closed_date = "2024-01-31".parse::<NaiveDate>().unwrap();
         let mut fiscal_year = fiscal_year_from(initial_events_with_opened_date(period_start));
 
         let timestamp = Utc::now();
-        let closed_date = fiscal_year.close_last_month(timestamp).unwrap();
+        let closed_date = fiscal_year.close_next_sequential_month(timestamp).unwrap();
         assert_eq!(closed_date, expected_closed_date);
 
         let closing_event_date = fiscal_year
@@ -187,20 +191,22 @@ mod test {
     }
 
     #[test]
-    fn close_last_month_after_prior_closes() {
+    fn close_next_sequential_month_after_prior_closes() {
         let period_start = "2024-01-01".parse::<NaiveDate>().unwrap();
         let expected_second_closed_date = "2024-02-29".parse::<NaiveDate>().unwrap();
         let mut fiscal_year = fiscal_year_from(initial_events_with_opened_date(period_start));
 
-        let _ = fiscal_year.close_last_month(Utc::now()).unwrap();
+        let _ = fiscal_year.close_next_sequential_month(Utc::now()).unwrap();
 
         let second_closing_ts = Utc::now();
-        let second_closing_date = fiscal_year.close_last_month(second_closing_ts).unwrap();
+        let second_closing_date = fiscal_year
+            .close_next_sequential_month(second_closing_ts)
+            .unwrap();
         assert_eq!(second_closing_date, expected_second_closed_date);
     }
 
     #[test]
-    fn close_last_month_ignored_for_current_month() {
+    fn close_next_sequential_month_ignored_for_current_month() {
         let first_day_of_last_month = chrono::Utc::now()
             .date_naive()
             .checked_sub_months(chrono::Months::new(1))
@@ -208,8 +214,8 @@ mod test {
             .unwrap();
         let mut fiscal_year =
             fiscal_year_from(initial_events_with_opened_date(first_day_of_last_month));
-        let _ = fiscal_year.close_last_month(Utc::now()).unwrap();
-        let second_closing_date = fiscal_year.close_last_month(Utc::now());
+        let _ = fiscal_year.close_next_sequential_month(Utc::now()).unwrap();
+        let second_closing_date = fiscal_year.close_next_sequential_month(Utc::now());
         assert!(second_closing_date.was_ignored());
     }
 }

@@ -136,7 +136,7 @@ where
 
         let mut fiscal_year = self.repo.find_by_id(id).await?;
         let closed_as_of_date =
-            if let Idempotent::Executed(date) = fiscal_year.close_last_month(now) {
+            if let Idempotent::Executed(date) = fiscal_year.close_next_sequential_month(now) {
                 date
             } else {
                 return Ok(fiscal_year);
