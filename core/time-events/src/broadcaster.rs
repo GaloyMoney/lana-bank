@@ -70,7 +70,7 @@ where
             chrono::LocalResult::Ambiguous(earlier, _later) => earlier,
         };
 
-        let next_closing = if now_in_tz < today_closing {
+        if now_in_tz < today_closing {
             today_closing
         } else {
             let tomorrow = now_in_tz.date_naive() + chrono::Duration::days(1);
@@ -90,9 +90,7 @@ where
                 // During "fall back" overlap, use the earlier occurrence (first pass)
                 chrono::LocalResult::Ambiguous(earlier, _later) => earlier,
             }
-        };
-
-        next_closing
+        }
     }
 
     #[instrument(
@@ -206,7 +204,7 @@ mod tests {
                 chrono::LocalResult::Ambiguous(earlier, _later) => earlier,
             };
 
-            let next_closing = if now_in_tz < today_closing {
+            Ok(if now_in_tz < today_closing {
                 today_closing
             } else {
                 let tomorrow = now_in_tz.date_naive() + chrono::Duration::days(1);
@@ -228,9 +226,7 @@ mod tests {
                     // During "fall back" overlap, use the earlier occurrence (first pass)
                     chrono::LocalResult::Ambiguous(earlier, _later) => earlier,
                 }
-            };
-
-            Ok(next_closing)
+            })
         }
     }
 
