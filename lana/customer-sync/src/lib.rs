@@ -17,7 +17,7 @@ use core_deposit::{
     GovernanceObject,
 };
 use governance::GovernanceEvent;
-use lana_events::{LanaEvent, TimeEvent};
+use lana_events::{CoreTimeEvent, LanaEvent};
 use outbox::{Outbox, OutboxEventMarker};
 
 pub struct CustomerSync<Perms, E>
@@ -27,7 +27,7 @@ where
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<TimeEvent>,
+        + OutboxEventMarker<CoreTimeEvent>,
 {
     _phantom: std::marker::PhantomData<(Perms, E)>,
     _outbox: Outbox<E>,
@@ -40,7 +40,7 @@ where
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<TimeEvent>,
+        + OutboxEventMarker<CoreTimeEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -61,7 +61,7 @@ where
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<TimeEvent>,
+        + OutboxEventMarker<CoreTimeEvent>,
 {
     #[tracing::instrument(name = "customer_sync.init", skip_all, err)]
     pub async fn init(
