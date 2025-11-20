@@ -5,14 +5,12 @@ from typing import List, Tuple, Union
 
 import dagster as dg
 from src.assets import (
-    bitfinex_order_book,
-    bitfinex_ticker,
-    bitfinex_trades,
+    bitfinex_protoassets,
     iris_dataset_size,
     lana_source_protoassets,
     lana_to_dw_el_protoassets,
 )
-from src.resources import RESOURCE_KEY_DW_BQ, get_lana_resources
+from src.resources import get_lana_resources
 from src.core import Protoasset, lana_assetifier
 from src.otel import init_telemetry
 
@@ -85,26 +83,15 @@ definition_builder.add_asset_from_protoasset(
     Protoasset(key="iris_dataset_size", callable=iris_dataset_size)
 )
 
+bitfinex_protoassets = bitfinex_protoassets()
 bitfinex_ticker_asset = definition_builder.add_asset_from_protoasset(
-    Protoasset(
-        key="bitfinex_ticker",
-        callable=bitfinex_ticker,
-        required_resource_keys={RESOURCE_KEY_DW_BQ},
-    )
+    bitfinex_protoassets["bitfinex_ticker"]
 )
 bitfinex_trades_asset = definition_builder.add_asset_from_protoasset(
-    Protoasset(
-        key="bitfinex_trades",
-        callable=bitfinex_trades,
-        required_resource_keys={RESOURCE_KEY_DW_BQ},
-    )
+    bitfinex_protoassets["bitfinex_trades"]
 )
 bitfinex_order_book_asset = definition_builder.add_asset_from_protoasset(
-    Protoasset(
-        key="bitfinex_order_book",
-        callable=bitfinex_order_book,
-        required_resource_keys={RESOURCE_KEY_DW_BQ},
-    )
+    bitfinex_protoassets["bitfinex_order_book"]
 )
 
 bitfinex_ticker_job = definition_builder.add_job_from_assets(

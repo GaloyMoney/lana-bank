@@ -1,6 +1,9 @@
+from typing import Dict
+
 import dlt
 
 import dagster as dg
+from src.core import Protoasset
 from src.dlt_destinations.bigquery import create_bigquery_destination
 from src.dlt_resources.bitfinex import (
     DEFAULT_ORDER_BOOK_DEPTH,
@@ -53,3 +56,24 @@ def bitfinex_order_book(context: dg.AssetExecutionContext, dw_bq: BigQueryResour
         pipeline_name="bitfinex_order_book",
         dlt_resource=dlt_order_book(symbol=DEFAULT_SYMBOL, depth=DEFAULT_ORDER_BOOK_DEPTH),
     )
+
+
+def bitfinex_protoassets() -> Dict[str, Protoasset]:
+    """Return all Bitfinex protoassets keyed by asset key."""
+    return {
+        "bitfinex_ticker": Protoasset(
+            key="bitfinex_ticker",
+            callable=bitfinex_ticker,
+            required_resource_keys={RESOURCE_KEY_DW_BQ},
+        ),
+        "bitfinex_trades": Protoasset(
+            key="bitfinex_trades",
+            callable=bitfinex_trades,
+            required_resource_keys={RESOURCE_KEY_DW_BQ},
+        ),
+        "bitfinex_order_book": Protoasset(
+            key="bitfinex_order_book",
+            callable=bitfinex_order_book,
+            required_resource_keys={RESOURCE_KEY_DW_BQ},
+        ),
+    }
