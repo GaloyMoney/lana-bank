@@ -38,24 +38,19 @@ where
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(transparent)]
 pub struct EphemeralEventType(Cow<'static, str>);
 impl EphemeralEventType {
-    pub fn new(name: &'static str) -> Self {
+    pub const fn new(name: &'static str) -> Self {
         Self(Cow::Borrowed(name))
     }
 
-    pub const fn from_static(name: &'static str) -> Self {
-        Self(Cow::Borrowed(name))
-    }
-
-    pub fn as_str(&self) -> &str {
-        &self.0
-    }
-}
-
-impl From<String> for EphemeralEventType {
-    fn from(name: String) -> Self {
+    pub(crate) fn from_owned(name: String) -> Self {
         Self(Cow::Owned(name))
+    }
+
+    pub(crate) fn as_str(&self) -> &str {
+        &self.0
     }
 }
 
