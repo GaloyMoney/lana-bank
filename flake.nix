@@ -273,7 +273,7 @@
           iptables
 
           # For bindgen/libclang
-          llvmPackages.libclang
+          llvmPackages.clang
         ]
         ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [];
 
