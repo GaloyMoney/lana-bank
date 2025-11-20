@@ -139,20 +139,6 @@ Verify access
 gcloud auth application-default print-access-token
 ```
 
-### Adding new BigQuery tables
-
-Commands to re-run when adding new BQ tables
-
-```
-git checkout pre-merged-commit
-# this is important to have the previous state before pulling
-make reset-deps
-git pull
-make init-bq
-```
-
-If you are doing work that requires adding a new big query table you need to add it to `./tf/bq-setup/bq.tf`
-
 ## Honeycomb Dashboards
 
 We use Honeycomb for observability and tracing. To set up dashboards locally:
