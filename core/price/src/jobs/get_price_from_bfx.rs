@@ -11,6 +11,8 @@ use crate::{
     bfx_client::{self, BfxClient},
 };
 
+const PRICE_UPDATE_INTERVAL: Duration = Duration::from_secs(60);
+
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct GetPriceFromClientJobConfig<E>
 where
@@ -98,7 +100,7 @@ where
                 )
                 .await?;
 
-            sleep(Duration::from_secs(60)).await;
+            sleep(PRICE_UPDATE_INTERVAL).await;
         }
     }
 }
