@@ -168,6 +168,8 @@ pkcs8 = { version = "0.10.2", features = ["encryption"] }
 markdown2pdf = { version = "0.1.9", features = ["rustls-tls"], default-features = false }
 bytes = "1.11"
 keycloak = "26.4.0"
+# Pin cc to 1.2.44 to avoid protobuf-src build issue in Nix (cc 1.2.45+ changed compiler detection)
+cc = "=1.2.44"
 
 [profile.release]
 lto = true 
