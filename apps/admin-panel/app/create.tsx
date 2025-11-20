@@ -35,6 +35,7 @@ import { CreditFacilityDisbursalInitiateDialog } from "./disbursals/create"
 import { ExecuteManualTransactionDialog } from "./journal/execute-manual-transaction"
 import { CreateCustodianDialog } from "./custodians/create"
 import { AddRootNodeDialog } from "./chart-of-accounts/add-root-node-dialog"
+import { AddChildNodeDialog } from "./chart-of-accounts/add-child-node-dialog"
 import { CreateDepositAccountDialog } from "./deposit-accounts/create"
 
 import {
@@ -48,6 +49,7 @@ import {
   TermsTemplateQuery,
   GetDisbursalDetailsQuery,
   GetDepositAccountDetailsQuery,
+  LedgerAccountDetailsFragment,
 } from "@/lib/graphql/generated"
 
 export const PATH_CONFIGS = {
@@ -79,8 +81,14 @@ export const PATH_CONFIGS = {
   CHART_OF_ACCOUNTS: "/chart-of-accounts",
   LEDGER_ACCOUNTS: "/ledger-accounts",
 
+  LEDGER_ACCOUNT_DETAILS: /^\/ledger-accounts\/[^/]+/,
   DEPOSIT_ACCOUNT_DETAILS: /^\/deposit-accounts\/[^/]+/,
 }
+
+export const ALWAYS_SHOW_DROPDOWN_PATHS: (string | RegExp)[] = [
+  PATH_CONFIGS.JOURNAL,
+  PATH_CONFIGS.CHART_OF_ACCOUNTS,
+]
 
 const showCreateButton = (currentPath: string) => {
   const allowedPaths = Object.values(PATH_CONFIGS)
@@ -106,6 +114,24 @@ const isItemAllowedOnCurrentPath = (
     }
     return false
   })
+}
+
+const isDetailsPage = (currentPath: string) => {
+  const segments = currentPath.split("/").filter(Boolean)
+  return segments.length >= 2
+}
+
+const shouldAlwaysShowDropdown = (currentPath: string) => {
+  const isInExceptionList = ALWAYS_SHOW_DROPDOWN_PATHS.some((path) => {
+    if (typeof path === "string") {
+      return path === currentPath
+    } else if (path instanceof RegExp) {
+      return path.test(currentPath)
+    }
+    return false
+  })
+
+  return isDetailsPage(currentPath) || isInExceptionList
 }
 
 type MenuItem = {
@@ -134,16 +160,26 @@ const CreateButton = () => {
   const [openAddAccountDialog, setOpenAddAccountDialog] = useState(false)
   const [openCreateDepositAccountDialog, setOpenCreateDepositAccountDialog] =
     useState(false)
+  const [openAddChildAccountDialog, setOpenAddChildAccountDialog] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
 
-  const { customer, facility, depositAccount, setCustomer, setDepositAccount } =
-    useCreateContext()
+  const {
+    customer,
+    facility,
+    depositAccount,
+    ledgerAccount,
+    setCustomer,
+    setDepositAccount,
+    setLedgerAccount,
+  } = useCreateContext()
   const pathName = usePathname()
 
   const userIsInCustomerDetailsPage = Boolean(pathName.match(/^\/customers\/.+$/))
   const userIsInDepositAccountDetailsPage = Boolean(
     pathName.match(/^\/deposit-accounts\/.+$/),
   )
+  const userIsInLedgerAccountDetailsPage =
+    PATH_CONFIGS.LEDGER_ACCOUNT_DETAILS.test(pathName)
 
   const setCustomerToNullIfNotInCustomerDetails = () => {
     if (!userIsInCustomerDetailsPage) setCustomer(null)
@@ -151,6 +187,10 @@ const CreateButton = () => {
 
   const setDepositAccountToNullIfNotInDepositAccountDetails = () => {
     if (!userIsInDepositAccountDetailsPage) setDepositAccount(null)
+  }
+
+  const setLedgerAccountToNullIfNotInLedgerAccountDetails = () => {
+    if (!userIsInLedgerAccountDetailsPage) setLedgerAccount(null)
   }
 
   const isButtonDisabled = () => {
@@ -238,19 +278,19 @@ const CreateButton = () => {
       label: t("menuItems.user"),
       onClick: () => setOpenCreateUserDialog(true),
       dataTestId: "create-user-button",
-      allowedPaths: [PATH_CONFIGS.USERS, PATH_CONFIGS.USER_DETAILS],
+      allowedPaths: [PATH_CONFIGS.USERS],
     },
     {
       label: t("menuItems.termsTemplate"),
       onClick: () => setOpenCreateTermsTemplateDialog(true),
       dataTestId: "create-terms-template-button",
-      allowedPaths: [PATH_CONFIGS.TERMS_TEMPLATES, PATH_CONFIGS.TERMS_TEMPLATE_DETAILS],
+      allowedPaths: [PATH_CONFIGS.TERMS_TEMPLATES],
     },
     {
       label: t("menuItems.committee"),
       onClick: () => setOpenCreateCommitteeDialog(true),
       dataTestId: "create-committee-button",
-      allowedPaths: [PATH_CONFIGS.COMMITTEES, PATH_CONFIGS.COMMITTEE_DETAILS],
+      allowedPaths: [PATH_CONFIGS.COMMITTEES],
     },
     {
       label: t("menuItems.custodian"),
@@ -275,6 +315,15 @@ const CreateButton = () => {
       onClick: () => setOpenAddAccountDialog(true),
       dataTestId: "create-account-button",
       allowedPaths: [PATH_CONFIGS.CHART_OF_ACCOUNTS, PATH_CONFIGS.LEDGER_ACCOUNTS],
+    },
+    {
+      label: t("menuItems.subAccount"),
+      onClick: () => {
+        if (!ledgerAccount) return
+        setOpenAddChildAccountDialog(true)
+      },
+      dataTestId: "add-sub-account-button",
+      allowedPaths: [PATH_CONFIGS.LEDGER_ACCOUNT_DETAILS],
     },
   ]
 
@@ -312,7 +361,6 @@ const CreateButton = () => {
           return false
         }
       }
-
       return isPathAllowed
     })
   }
@@ -321,12 +369,13 @@ const CreateButton = () => {
     setShowMenu(false)
     const availableItems = getAvailableMenuItems()
 
-    if (availableItems.length === 1) {
+    const forceDropdown = shouldAlwaysShowDropdown(pathName)
+    if (availableItems.length === 1 && !forceDropdown) {
       availableItems[0].onClick()
       return
     }
 
-    if (availableItems.length > 1) {
+    if (availableItems.length > 0) {
       setShowMenu(true)
     }
   }
@@ -483,6 +532,20 @@ const CreateButton = () => {
           />
         </>
       )}
+
+      {ledgerAccount?.code && (
+        <AddChildNodeDialog
+          open={openAddChildAccountDialog}
+          onOpenChange={(open) => {
+            if (!open) {
+              setLedgerAccountToNullIfNotInLedgerAccountDetails()
+            }
+            setOpenAddChildAccountDialog(open)
+          }}
+          parentCode={ledgerAccount.code}
+          parentName={ledgerAccount.name}
+        />
+      )}
     </>
   )
 }
@@ -497,6 +560,7 @@ type IDisbursal = GetDisbursalDetailsQuery["disbursalByPublicId"] | null
 type IDepositAccount = NonNullable<
   GetDepositAccountDetailsQuery["depositAccountByPublicId"]
 > | null
+type ILedgerAccount = LedgerAccountDetailsFragment | null
 
 type CreateContext = {
   customer: ICustomer
@@ -507,6 +571,7 @@ type CreateContext = {
   committee: ICommittee
   disbursal: IDisbursal
   depositAccount: IDepositAccount
+  ledgerAccount: ILedgerAccount
 
   setCustomer: React.Dispatch<React.SetStateAction<ICustomer>>
   setFacility: React.Dispatch<React.SetStateAction<IFacility>>
@@ -516,6 +581,7 @@ type CreateContext = {
   setCommittee: React.Dispatch<React.SetStateAction<ICommittee>>
   setDisbursal: React.Dispatch<React.SetStateAction<IDisbursal>>
   setDepositAccount: React.Dispatch<React.SetStateAction<IDepositAccount>>
+  setLedgerAccount: React.Dispatch<React.SetStateAction<ILedgerAccount>>
 }
 
 const CreateContext = createContext<CreateContext>({
@@ -527,6 +593,7 @@ const CreateContext = createContext<CreateContext>({
   committee: null,
   disbursal: null,
   depositAccount: null,
+  ledgerAccount: null,
 
   setCustomer: () => {},
   setFacility: () => {},
@@ -536,6 +603,7 @@ const CreateContext = createContext<CreateContext>({
   setCommittee: () => {},
   setDisbursal: () => {},
   setDepositAccount: () => {},
+  setLedgerAccount: () => {},
 })
 
 export const CreateContextProvider: React.FC<React.PropsWithChildren> = ({
@@ -549,6 +617,7 @@ export const CreateContextProvider: React.FC<React.PropsWithChildren> = ({
   const [committee, setCommittee] = useState<ICommittee>(null)
   const [disbursal, setDisbursal] = useState<IDisbursal>(null)
   const [depositAccount, setDepositAccount] = useState<IDepositAccount>(null)
+  const [ledgerAccount, setLedgerAccount] = useState<ILedgerAccount>(null)
 
   return (
     <CreateContext.Provider
@@ -561,6 +630,7 @@ export const CreateContextProvider: React.FC<React.PropsWithChildren> = ({
         committee,
         disbursal,
         depositAccount,
+        ledgerAccount,
 
         setCustomer,
         setFacility,
@@ -570,6 +640,7 @@ export const CreateContextProvider: React.FC<React.PropsWithChildren> = ({
         setCommittee,
         setDisbursal,
         setDepositAccount,
+        setLedgerAccount,
       }}
     >
       {children}

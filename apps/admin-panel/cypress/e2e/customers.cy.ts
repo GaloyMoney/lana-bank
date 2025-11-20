@@ -81,6 +81,7 @@ describe("Customers", () => {
     cy.takeScreenshot("customer_no_deposit_account_banner")
 
     cy.get('[data-testid="global-create-button"]').click()
+    cy.get('[data-testid="create-deposit-account-button"]').should("be.visible").click()
     cy.contains(t("Customers.CustomerDetails.createDepositAccount.title")).should(
       "be.visible",
     )

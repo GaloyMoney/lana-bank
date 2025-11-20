@@ -2011,7 +2011,8 @@
       "executeManualTransaction": "Execute Manual Transaction",
       "role": "Role",
       "account": "Account",
-      "depositAccount": "Deposit Account"
+      "depositAccount": "Deposit Account",
+      "subAccount": "Sub Account"
     }
   },
   "DataTable": {
