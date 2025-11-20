@@ -1504,6 +1504,7 @@ dependencies = [
  "schemars 1.0.4",
  "serde",
  "serde_json",
+ "sim-time",
  "sqlx",
  "thiserror 2.0.17",
  "tokio",
