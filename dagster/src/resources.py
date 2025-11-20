@@ -24,7 +24,7 @@ class BigQueryResource(dg.ConfigurableResource):
         return dg.EnvVar("TARGET_BIGQUERY_DATASET").get_value()
 
 
-def get_lana_resources():
+def get_project_resources():
     resources = {}
     resources[RESOURCE_KEY_LANA_CORE_PG] = PostgresResource()
     resources[RESOURCE_KEY_DW_BQ] = BigQueryResource()
