@@ -9,6 +9,8 @@ from src.dlt_resources.postgres import create_dlt_postgres_resource
 from src.resources import (
     BigQueryResource,
     PostgresResource,
+    RESOURCE_KEY_DW_BQ,
+    RESOURCE_KEY_LANA_CORE_PG,
 )
 
 LANA_EL_TABLE_NAMES = (
@@ -89,7 +91,7 @@ def build_lana_to_dw_el_protoasset(table_name) -> Protoasset:
         deps=[get_el_source_asset_name(system_name=LANA_SYSTEM_NAME, table_name=table_name)],
         tags={"asset_type": EL_TARGET_ASSET_DESCRIPTION, "system": LANA_SYSTEM_NAME},
         callable=lana_to_dw_el_asset,
-        required_resource_keys={"lana_core_pg", "dw_bq"},
+        required_resource_keys={RESOURCE_KEY_LANA_CORE_PG, RESOURCE_KEY_DW_BQ},
     )
 
     return lana_to_dw_protoasset

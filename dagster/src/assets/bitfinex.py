@@ -10,7 +10,7 @@ from src.dlt_resources.bitfinex import (
 from src.dlt_resources.bitfinex import order_book as dlt_order_book
 from src.dlt_resources.bitfinex import ticker as dlt_ticker
 from src.dlt_resources.bitfinex import trades as dlt_trades
-from src.resources import BigQueryResource
+from src.resources import BigQueryResource, RESOURCE_KEY_DW_BQ
 
 
 def _run_bitfinex_pipeline(

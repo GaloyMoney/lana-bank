@@ -3,6 +3,10 @@ from typing import Any
 import dagster as dg
 
 
+RESOURCE_KEY_LANA_CORE_PG = "lana_core_pg"
+RESOURCE_KEY_DW_BQ = "dw_bq"
+
+
 class PostgresResource(dg.ConfigurableResource):
     """Dagster resource for PostgreSQL connection configuration."""
 
@@ -22,6 +26,6 @@ class BigQueryResource(dg.ConfigurableResource):
 
 def get_lana_resources():
     resources = {}
-    resources["lana_core_pg"] = PostgresResource()
-    resources["dw_bq"] = BigQueryResource()
+    resources[RESOURCE_KEY_LANA_CORE_PG] = PostgresResource()
+    resources[RESOURCE_KEY_DW_BQ] = BigQueryResource()
     return resources
