@@ -246,7 +246,7 @@
           tilt
           procps
           meltanoPkgs.meltano
-          poppler_utils
+          poppler-utils
           keycloak
           # Documentation tools
           mdbook
@@ -333,7 +333,7 @@
               pkgs.curl
               pkgs.gnused
               pkgs.gawk
-              pkgs.poppler_utils
+              pkgs.poppler-utils
               pkgs.libuuid
             ];
           in
@@ -351,7 +351,7 @@
                 pkgs.curl
                 pkgs.gnused
                 pkgs.gawk
-                pkgs.poppler_utils
+                pkgs.poppler-utils
                 pkgs.libuuid
                 lana-cli-debug
               ];
