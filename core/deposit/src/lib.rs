@@ -308,7 +308,7 @@ where
         let mut op = self.deposit_accounts.begin_op().await?;
 
         for mut account in accounts.entities.into_iter() {
-            match account.update_status(status) {
+            match account.update_status_via_holder(status) {
                 Ok(result) if result.did_execute() => {
                     self.deposit_accounts
                         .update_in_op(&mut op, &mut account)

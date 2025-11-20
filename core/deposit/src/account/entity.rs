@@ -61,7 +61,7 @@ impl DepositAccount {
         self.status == DepositAccountStatus::Frozen
     }
 
-    pub fn update_status(
+    pub fn update_status_via_holder(
         &mut self,
         status: DepositAccountHolderStatus,
     ) -> Result<Idempotent<()>, DepositAccountError> {
@@ -209,11 +209,12 @@ mod tests {
     use es_entity::{EntityEvents, TryFromEvents as _};
     use public_id::PublicId;
 
-    use crate::{DepositAccountHolderId, DepositAccountId, DepositAccountStatus};
+    use crate::{
+        DepositAccountHolderId, DepositAccountHolderStatus, DepositAccountId, DepositAccountStatus,
+    };
 
     use super::{
-        DepositAccount, DepositAccountError, DepositAccountEvent, DepositAccountHolderStatus,
-        DepositAccountLedgerAccountIds,
+        DepositAccount, DepositAccountError, DepositAccountEvent, DepositAccountLedgerAccountIds,
     };
 
     fn initial_events() -> Vec<DepositAccountEvent> {
@@ -237,21 +238,21 @@ mod tests {
 
         assert!(
             account
-                .update_status(DepositAccountHolderStatus::Inactive)
+                .update_status_via_holder(DepositAccountHolderStatus::Inactive)
                 .unwrap()
                 .did_execute()
         );
 
         assert!(
             account
-                .update_status(DepositAccountHolderStatus::Inactive)
+                .update_status_via_holder(DepositAccountHolderStatus::Inactive)
                 .unwrap()
                 .was_ignored()
         );
 
         assert!(
             account
-                .update_status(DepositAccountHolderStatus::Active)
+                .update_status_via_holder(DepositAccountHolderStatus::Active)
                 .unwrap()
                 .did_execute()
         );
@@ -265,7 +266,7 @@ mod tests {
         ))
         .unwrap();
 
-        let _ = account.update_status(DepositAccountHolderStatus::Inactive);
+        let _ = account.update_status_via_holder(DepositAccountHolderStatus::Inactive);
         assert_eq!(account.status, DepositAccountStatus::Inactive);
         assert!(account.freeze().is_err());
     }
@@ -330,7 +331,7 @@ mod tests {
         ))
         .unwrap();
         let _ = account_2
-            .update_status(DepositAccountHolderStatus::Inactive)
+            .update_status_via_holder(DepositAccountHolderStatus::Inactive)
             .unwrap();
         assert_eq!(account_2.status, DepositAccountStatus::Inactive);
 
@@ -370,11 +371,11 @@ mod tests {
         ));
 
         assert!(matches!(
-            account.update_status(DepositAccountHolderStatus::Active),
+            account.update_status_via_holder(DepositAccountHolderStatus::Active),
             Err(DepositAccountError::CannotUpdateClosedAccount(_))
         ));
         assert!(matches!(
-            account.update_status(DepositAccountHolderStatus::Inactive),
+            account.update_status_via_holder(DepositAccountHolderStatus::Inactive),
             Err(DepositAccountError::CannotUpdateClosedAccount(_))
         ));
     }
@@ -394,7 +395,7 @@ mod tests {
         assert_eq!(account.status, DepositAccountStatus::Active);
         assert!(
             account
-                .update_status(DepositAccountHolderStatus::Active)
+                .update_status_via_holder(DepositAccountHolderStatus::Active)
                 .unwrap()
                 .was_ignored()
         );
