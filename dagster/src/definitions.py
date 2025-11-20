@@ -86,13 +86,25 @@ definition_builder.add_asset_from_protoasset(
 )
 
 bitfinex_ticker_asset = definition_builder.add_asset_from_protoasset(
-    Protoasset(key="bitfinex_ticker", callable=bitfinex_ticker)
+    Protoasset(
+        key="bitfinex_ticker",
+        callable=bitfinex_ticker,
+        required_resource_keys={"dw_bq"},
+    )
 )
 bitfinex_trades_asset = definition_builder.add_asset_from_protoasset(
-    Protoasset(key="bitfinex_trades", callable=bitfinex_trades)
+    Protoasset(
+        key="bitfinex_trades",
+        callable=bitfinex_trades,
+        required_resource_keys={"dw_bq"},
+    )
 )
 bitfinex_order_book_asset = definition_builder.add_asset_from_protoasset(
-    Protoasset(key="bitfinex_order_book", callable=bitfinex_order_book)
+    Protoasset(
+        key="bitfinex_order_book",
+        callable=bitfinex_order_book,
+        required_resource_keys={"dw_bq"},
+    )
 )
 
 bitfinex_ticker_job = definition_builder.add_job_from_assets(
