@@ -136,7 +136,7 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
-    #[instrument(name = "core_credit.credit_facility_activation_job.process_message", parent = None, skip(self, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
+    #[instrument(name = "core_credit.credit_facility_activation_job.process_message", parent = None, skip(self, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty, pending_credit_facility_id = tracing::field::Empty))]
     async fn process_message(
         &self,
         message: &PersistentOutboxEvent<E>,
@@ -153,6 +153,7 @@ where
         {
             message.inject_trace_parent();
             Span::current().record("handled", true);
+            Span::current().record("pending_credit_facility_id", tracing::field::display(id));
             Span::current().record("event_type", event.as_ref());
 
             self.process.execute_activate_credit_facility(*id).await?;
