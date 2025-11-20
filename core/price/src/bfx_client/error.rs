@@ -6,6 +6,8 @@ pub enum BfxClientError {
     Reqwest(#[from] reqwest::Error),
     #[error("BfxClientError - SerdeJson: {0}")]
     Deserialization(#[from] serde_json::Error),
+    #[error("BfxClientError - ConversionError: {0}")]
+    ConversionError(#[from] core_money::ConversionError),
     #[error("BfxClientError - UnexpectedResponse: {event:?} {code:?} - {desc:?}")]
     UnexpectedResponse {
         event: String,

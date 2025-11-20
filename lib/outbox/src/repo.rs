@@ -150,7 +150,7 @@ where
     pub async fn load_ephemeral_events(&self) -> Result<VecDeque<OutboxEvent<P>>, sqlx::Error> {
         let rows = sqlx::query!(
             r#"
-            SELECT event_type, payload, tracing_context, recorded_at 
+            SELECT event_type, payload, tracing_context, recorded_at
             FROM ephemeral_outbox_events
             ORDER BY recorded_at
             "#
@@ -167,7 +167,7 @@ where
                     serde_json::from_value(p).expect("Could not deserialize tracing context")
                 });
                 let event = EphemeralOutboxEvent {
-                    event_type: EphemeralEventType::from(row.event_type),
+                    event_type: EphemeralEventType::from_owned(row.event_type),
                     payload,
                     tracing_context,
                     recorded_at: row.recorded_at,

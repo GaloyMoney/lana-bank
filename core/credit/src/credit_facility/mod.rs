@@ -292,7 +292,7 @@ where
         id: CreditFacilityId,
         upgrade_buffer_cvl_pct: CVLPct,
     ) -> Result<CompletionOutcome, CreditFacilityError> {
-        let price = self.price.usd_cents_per_btc().await?;
+        let price = self.price.usd_cents_per_btc().await;
 
         let mut credit_facility = self.repo.find_by_id(id).await?;
 
@@ -427,7 +427,7 @@ where
         &self,
         upgrade_buffer_cvl_pct: CVLPct,
     ) -> Result<(), CreditFacilityError> {
-        let price = self.price.usd_cents_per_btc().await?;
+        let price = self.price.usd_cents_per_btc().await;
         let mut has_next_page = true;
         let mut after: Option<CreditFacilitiesByCollateralizationRatioCursor> = None;
         while has_next_page {
@@ -519,7 +519,7 @@ where
             .ledger
             .get_credit_facility_balance(credit_facility.account_ids)
             .await?;
-        let price = self.price.usd_cents_per_btc().await?;
+        let price = self.price.usd_cents_per_btc().await;
 
         if credit_facility
             .update_collateralization(price, upgrade_buffer_cvl_pct, balances)

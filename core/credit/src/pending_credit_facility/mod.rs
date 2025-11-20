@@ -189,7 +189,7 @@ where
     ) -> Result<PendingCreditFacilityCompletionOutcome, PendingCreditFacilityError> {
         let mut pending_facility = self.repo.find_by_id(id).await?;
 
-        let price = self.price.usd_cents_per_btc().await?;
+        let price = self.price.usd_cents_per_btc().await;
 
         let balances = self
             .ledger
@@ -238,7 +238,7 @@ where
             .get_pending_credit_facility_balance(pending_facility.account_ids)
             .await?;
 
-        let price = self.price.usd_cents_per_btc().await?;
+        let price = self.price.usd_cents_per_btc().await;
 
         if pending_facility
             .update_collateralization(price, balances)
@@ -261,7 +261,7 @@ where
     pub(super) async fn update_collateralization_from_price(
         &self,
     ) -> Result<(), PendingCreditFacilityError> {
-        let price = self.price.usd_cents_per_btc().await?;
+        let price = self.price.usd_cents_per_btc().await;
         let mut has_next_page = true;
         let mut after: Option<PendingCreditFacilitiesByCollateralizationRatioCursor> = None;
         while has_next_page {

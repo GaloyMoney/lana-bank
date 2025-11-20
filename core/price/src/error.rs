@@ -6,4 +6,8 @@ pub enum PriceError {
     BfxClientError(#[from] super::bfx_client::error::BfxClientError),
     #[error("PriceError - ConversionError: {0}")]
     ConversionError(#[from] core_money::ConversionError),
+    #[error("PriceError - JobError: {0}")]
+    JobError(#[from] job::error::JobError),
+    #[error("PriceError - Price not yet available")]
+    PriceUnavailable,
 }

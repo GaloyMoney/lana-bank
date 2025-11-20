@@ -1,50 +1,118 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
-
-mod bfx_client;
+pub mod bfx_client;
 pub mod error;
+mod event;
+pub mod jobs;
 mod primitives;
+pub mod time;
 
-use cached::proc_macro::cached;
-use std::time::Duration;
+use futures::StreamExt;
+use job::Jobs;
+use outbox::{EphemeralOutboxEvent, Outbox, OutboxEventMarker};
+use std::sync::Arc;
+use tokio::{sync::watch, task::JoinHandle};
+use tracing::Span;
 
-use core_money::UsdCents;
-
-use bfx_client::BfxClient;
 use error::PriceError;
+
+pub use event::*;
 pub use primitives::*;
 
 #[derive(Clone)]
 pub struct Price {
-    bfx: BfxClient,
+    receiver: watch::Receiver<Option<PriceOfOneBTC>>,
+    _handle: Arc<JoinHandle<Result<(), Box<dyn std::error::Error + Send + Sync>>>>,
 }
 
 impl Price {
-    pub fn new() -> Self {
-        Self {
-            bfx: BfxClient::new(),
+    #[tracing::instrument(name = "core.price.init", skip(jobs, outbox), err)]
+    pub async fn init<E>(jobs: &Jobs, outbox: &Outbox<E>) -> Result<Self, PriceError>
+    where
+        E: OutboxEventMarker<CorePriceEvent> + Send + Sync + 'static,
+    {
+        jobs.add_initializer_and_spawn_unique(
+            jobs::get_price_from_bfx::GetPriceFromClientJobInit::<E>::new(outbox),
+            jobs::get_price_from_bfx::GetPriceFromClientJobConfig::<E> {
+                _phantom: std::marker::PhantomData,
+            },
+        )
+        .await
+        .map_err(PriceError::JobError)?;
+        let (tx, rx) = watch::channel(None);
+
+        let handle = Self::spawn_price_listener(tx, outbox.clone());
+
+        Ok(Self {
+            receiver: rx,
+            _handle: Arc::new(handle),
+        })
+    }
+
+    pub async fn usd_cents_per_btc(&self) -> PriceOfOneBTC {
+        let mut rec = self.receiver.clone();
+        loop {
+            if let Some(res) = *rec.borrow() {
+                return res;
+            }
+            let _ = rec.changed().await;
         }
     }
 
-    pub async fn usd_cents_per_btc(&self) -> Result<PriceOfOneBTC, PriceError> {
-        usd_cents_per_btc_cached(&self.bfx).await
-    }
-}
-
-impl Default for Price {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-#[cached(time = 60, result = true, key = "()", convert = r#"{}"#)]
-async fn usd_cents_per_btc_cached(bfx: &BfxClient) -> Result<PriceOfOneBTC, PriceError> {
-    if std::env::var("BFX_LOCAL_PRICE").is_ok() {
-        return Ok(PriceOfOneBTC::new(UsdCents::try_from_usd(
-            rust_decimal_macros::dec!(100_000),
-        )?));
+    fn spawn_price_listener<E>(
+        tx: watch::Sender<Option<PriceOfOneBTC>>,
+        outbox: Outbox<E>,
+    ) -> JoinHandle<Result<(), Box<dyn std::error::Error + Send + Sync>>>
+    where
+        E: OutboxEventMarker<CorePriceEvent> + Send + Sync + 'static,
+    {
+        tokio::spawn(Self::listen_for_price_updates(tx, outbox))
     }
 
-    let last_price = bfx.btc_usd_tick().await?.last_price;
-    Ok(PriceOfOneBTC::new(UsdCents::try_from_usd(last_price)?))
+    #[tracing::instrument(name = "core.price.listen_for_updates", skip_all, err)]
+    async fn listen_for_price_updates<E>(
+        tx: watch::Sender<Option<PriceOfOneBTC>>,
+        outbox: Outbox<E>,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>>
+    where
+        E: OutboxEventMarker<CorePriceEvent> + Send + Sync + 'static,
+    {
+        let mut stream = outbox.listen_ephemeral().await?;
+
+        while let Some(message) = stream.next().await {
+            Self::process_message(&tx, message.as_ref()).await?;
+        }
+
+        tracing::info!("price outbox listener stream ended");
+        Ok(())
+    }
+
+    #[tracing::instrument(
+        name = "core.price.listen_for_updates.process_message",
+        parent = None,
+        skip(tx, message),
+        fields(event_type = tracing::field::Empty, handled = false, price = tracing::field::Empty, timestamp = tracing::field::Empty),
+        err
+    )]
+    async fn process_message<E>(
+        tx: &watch::Sender<Option<PriceOfOneBTC>>,
+        message: &EphemeralOutboxEvent<E>,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>>
+    where
+        E: OutboxEventMarker<CorePriceEvent> + Send + Sync + 'static,
+    {
+        if let Some(CorePriceEvent::PriceUpdated {
+            price: new_price,
+            timestamp,
+        }) = message.payload.as_event()
+        {
+            Span::current().record("handled", true);
+            Span::current().record("event_type", "PriceUpdated");
+            Span::current().record("price", tracing::field::debug(new_price));
+            Span::current().record("timestamp", tracing::field::debug(timestamp));
+            tx.send(Some(*new_price))?;
+        }
+
+        Ok(())
+    }
 }

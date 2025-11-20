@@ -27,7 +27,6 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         core_customer::Customers::new(&pool, &authz, &outbox, document_storage, public_ids);
     let custody =
         core_custody::CoreCustody::init(&pool, &authz, helpers::custody_config(), &outbox).await?;
-    let price = core_price::Price::new();
 
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
@@ -44,6 +43,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
 
     let journal_id = helpers::init_journal(&cala).await?;
     let public_ids = PublicIds::new(&pool);
+    let price = core_price::Price::init(&jobs, &outbox).await?;
 
     let deposits = core_deposit::CoreDeposit::init(
         &pool,
