@@ -5,6 +5,7 @@ import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { HiChevronLeft, HiChevronRight, HiInformationCircle } from "react-icons/hi"
+import SimpleBar from "simplebar-react"
 
 import { Card, CardDescription, CardHeader, CardTitle } from "@lana/web/ui/card"
 import {
@@ -207,7 +208,7 @@ const getColumns = (t: ReturnType<typeof useTranslations>) => [
     width: "w-[140px]",
     align: "right",
     className:
-      "sticky right-[140px] z-10 bg-card group-hover:bg-muted transition-colors shadow-[inset_1px_0_0_0_hsl(var(--border))]",
+      "sticky right-[140px] z-10 bg-card group-hover:bg-muted transition-colors shadow-[inset_1px_0_0_0_hsl(var(--border))] border-b",
     headerClassName:
       "sticky right-[140px] z-30 bg-secondary shadow-[inset_1px_0_0_0_hsl(var(--border))]",
     render: (entry: JournalEntry) => {
@@ -224,8 +225,9 @@ const getColumns = (t: ReturnType<typeof useTranslations>) => [
     label: t("table.credit"),
     width: "w-[140px]",
     align: "right",
-    className: "sticky right-0 z-10 bg-card group-hover:bg-muted transition-colors",
-    headerClassName: "sticky right-0 z-30 bg-secondary",
+    className:
+      "sticky right-0 z-10 bg-card group-hover:bg-muted transition-colors border-b pr-6",
+    headerClassName: "sticky right-0 z-30 bg-secondary pr-6",
     render: (entry: JournalEntry) => {
       if (entry.direction !== DebitOrCredit.Credit) return null
       return entry.amount.__typename === "UsdAmount" ? (
@@ -253,7 +255,7 @@ const JournalPageCard: React.FC<{ children: React.ReactNode }> = ({ children }) 
 const JournalPage: React.FC = () => {
   const t = useTranslations("Journal")
   const columns = useMemo(() => getColumns(t), [t])
-  const scrollContainerRef = React.useRef<HTMLDivElement>(null)
+  const scrollContainerRef = React.useRef<React.ComponentRef<typeof SimpleBar>>(null)
 
   const {
     loading,
@@ -268,12 +270,14 @@ const JournalPage: React.FC = () => {
 
   const handleNextPage = async () => {
     await nextPage()
-    scrollContainerRef.current?.scrollTo({ top: 0, behavior: "smooth" })
+    const scrollElement = scrollContainerRef.current?.getScrollElement?.()
+    scrollElement?.scrollTo({ top: 0, behavior: "smooth" })
   }
 
   const handlePreviousPage = () => {
     prevPage()
-    scrollContainerRef.current?.scrollTo({ top: 0, behavior: "smooth" })
+    const scrollElement = scrollContainerRef.current?.getScrollElement?.()
+    scrollElement?.scrollTo({ top: 0, behavior: "smooth" })
   }
 
   if (loading) {
@@ -308,9 +312,11 @@ const JournalPage: React.FC = () => {
     <JournalPageCard>
       <TooltipProvider>
         <div className="w-full">
-          <div
+          <SimpleBar
             ref={scrollContainerRef}
-            className="overflow-scroll h-[calc(100vh-14rem)] border rounded-md"
+            style={{ maxHeight: "calc(100vh - 14rem)" }}
+            autoHide={false}
+            className="border rounded-md"
           >
             <table className="w-full caption-bottom text-sm table-fixed min-w-[85rem]">
               <TableHeader className="bg-secondary sticky top-0 z-20 [&_tr:hover]:!bg-secondary text-sm">
@@ -356,7 +362,7 @@ const JournalPage: React.FC = () => {
                 })}
               </TableBody>
             </table>
-          </div>
+          </SimpleBar>
           <Separator />
         </div>
         <div className="flex items-center justify-end space-x-4 py-2 mr-2">

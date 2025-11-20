@@ -1,7 +1,9 @@
 import "./globals.css"
+import "simplebar-react/dist/simplebar.min.css"
+
 import type { Metadata } from "next"
-import { NextIntlClientProvider } from "next-intl";
-import { getLocale, getMessages } from "next-intl/server";
+import { NextIntlClientProvider } from "next-intl"
+import { getLocale, getMessages } from "next-intl/server"
 import { Inter_Tight } from "next/font/google"
 
 import AppLoading from "./app-loading"
