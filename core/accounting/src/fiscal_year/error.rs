@@ -10,8 +10,6 @@ pub enum FiscalYearError {
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("FiscalYearError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
-    #[error("FiscalYearError - FiscalYearMonthAlreadyClosed")]
-    FiscalYearMonthAlreadyClosed,
     #[error("FiscalYearError - ChartOfAccountsError: {0}")]
     ChartOfAccountsError(#[from] crate::chart_of_accounts::error::ChartOfAccountsError),
 }

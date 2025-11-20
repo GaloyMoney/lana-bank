@@ -724,6 +724,7 @@ impl CoreAccountingAction {
     pub const TRIAL_BALANCE_UPDATE: Self =
         CoreAccountingAction::TrialBalance(TrialBalanceAction::Update);
     pub const FISCAL_YEAR_READ: Self = CoreAccountingAction::FiscalYear(FiscalYearAction::Read);
+    pub const FISCAL_YEAR_LIST: Self = CoreAccountingAction::FiscalYear(FiscalYearAction::List);
     pub const FISCAL_YEAR_INIT: Self = CoreAccountingAction::FiscalYear(FiscalYearAction::Init);
     pub const FISCAL_YEAR_CLOSE_MONTH: Self =
         CoreAccountingAction::FiscalYear(FiscalYearAction::CloseMonth);
@@ -1080,6 +1081,7 @@ impl From<TrialBalanceAction> for CoreAccountingAction {
 pub enum FiscalYearAction {
     Init,
     Read,
+    List,
     CloseMonth,
 }
 
@@ -1088,6 +1090,7 @@ impl ActionPermission for FiscalYearAction {
         match self {
             Self::Read => PERMISSION_SET_ACCOUNTING_VIEWER,
             Self::Init => PERMISSION_SET_ACCOUNTING_WRITER,
+            Self::List => PERMISSION_SET_ACCOUNTING_VIEWER,
             Self::CloseMonth => PERMISSION_SET_ACCOUNTING_WRITER,
         }
     }

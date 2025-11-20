@@ -1,5 +1,5 @@
-query FiscalYearsForChart($first: Int!, $after: String) {
-    fiscalYearsForChart(first: $first, after: $after) {
+query FiscalYears($first: Int!, $after: String) {
+    fiscalYears(first: $first, after: $after) {
         edges {
             cursor
             node {

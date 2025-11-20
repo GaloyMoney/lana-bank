@@ -82,19 +82,7 @@ where
             )
             .await?;
 
-        let result = self
-            .repo
-            .list_for_chart_id_by_id(
-                chart_id,
-                es_entity::PaginatedQueryArgs {
-                    first: 1,
-                    after: None,
-                },
-                es_entity::ListDirection::Descending,
-            )
-            .await?;
-
-        if let Some(existing) = result.entities.first().cloned() {
+        if let Ok(existing) = self.repo.find_by_chart_id(chart_id).await {
             return Ok(existing);
         }
 
@@ -112,7 +100,7 @@ where
             .pred_opt()
             .expect("Date was first possible NaiveDate type value");
         self.chart_of_accounts
-            .close_by_chart_id_as_of(op, sub, chart_id, close_ledger_as_of)
+            .close_as_of(op, sub, chart_id, close_ledger_as_of)
             .await?;
 
         Ok(fiscal_year)
@@ -145,7 +133,7 @@ where
         let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut fiscal_year).await?;
         self.chart_of_accounts
-            .close_by_chart_id_as_of(op, sub, fiscal_year.chart_id, closed_as_of_date)
+            .close_as_of(op, sub, fiscal_year.chart_id, closed_as_of_date)
             .await?;
 
         Ok(fiscal_year)
@@ -161,7 +149,6 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_id: ChartId,
         query: es_entity::PaginatedQueryArgs<FiscalYearsByCreatedAtCursor>,
-        direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
     ) -> Result<
         es_entity::PaginatedQueryRet<FiscalYear, FiscalYearsByCreatedAtCursor>,
         FiscalYearError,
@@ -170,12 +157,12 @@ where
             .enforce_permission(
                 sub,
                 CoreAccountingObject::all_fiscal_years(),
-                CoreAccountingAction::FISCAL_YEAR_READ,
+                CoreAccountingAction::FISCAL_YEAR_LIST,
             )
             .await?;
 
         self.repo
-            .list_for_chart_id_by_created_at(chart_id, query, direction.into())
+            .list_for_chart_id_by_created_at(chart_id, query, es_entity::ListDirection::Descending)
             .await
     }
 

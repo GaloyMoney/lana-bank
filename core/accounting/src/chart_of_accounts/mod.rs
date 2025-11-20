@@ -283,11 +283,11 @@ where
     }
 
     #[instrument(
-        name = "core_accounting.chart_of_accounts.close_by_chart_id_as_of",
+        name = "core_accounting.chart_of_accounts.close_as_of",
         skip(self, op),
         err
     )]
-    pub async fn close_by_chart_id_as_of(
+    pub async fn close_as_of(
         &self,
         mut op: es_entity::DbOp<'_>,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -303,7 +303,7 @@ where
             .await?;
 
         let mut chart = self.find_by_id(chart_id).await?;
-        if let Idempotent::Executed(closing_date) = chart.close_chart_as_of(closed_as_of) {
+        if let Idempotent::Executed(closing_date) = chart.close_as_of(closed_as_of) {
             self.repo.update_in_op(&mut op, &mut chart).await?;
             self.chart_ledger
                 .close_by_chart_root_account_set_as_of(op, closing_date, chart.account_set_id)

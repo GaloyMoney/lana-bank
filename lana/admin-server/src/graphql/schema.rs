@@ -784,7 +784,7 @@ impl Query {
         Ok(ChartOfAccounts::from(chart))
     }
 
-    async fn fiscal_years_for_chart(
+    async fn fiscal_years(
         &self,
         ctx: &Context<'_>,
         first: i32,
@@ -793,7 +793,6 @@ impl Query {
         Connection<FiscalYearsByCreatedAtCursor, FiscalYear, EmptyFields, EmptyFields>,
     > {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let direction = es_entity::ListDirection::Descending;
 
         list_with_cursor!(
             FiscalYearsByCreatedAtCursor,
@@ -801,12 +800,9 @@ impl Query {
             ctx,
             after,
             first,
-            |query| app.accounting().list_fiscal_years_for_chart(
-                sub,
-                CHART_REF.0,
-                query,
-                direction
-            )
+            |query| app
+                .accounting()
+                .list_fiscal_years_for_chart(sub, CHART_REF.0, query,)
         )
     }
 

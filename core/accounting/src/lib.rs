@@ -305,7 +305,6 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_ref: &str,
         query: es_entity::PaginatedQueryArgs<FiscalYearsByCreatedAtCursor>,
-        direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
     ) -> Result<
         es_entity::PaginatedQueryRet<FiscalYear, FiscalYearsByCreatedAtCursor>,
         CoreAccountingError,
@@ -316,7 +315,7 @@ where
             .await?;
         Ok(self
             .fiscal_year()
-            .list_for_chart_id(sub, chart.id, query, direction.into())
+            .list_for_chart_id(sub, chart.id, query)
             .await?)
     }
 
