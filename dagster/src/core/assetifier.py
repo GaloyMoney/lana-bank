@@ -1,25 +1,36 @@
 """Asset wrapping logic for Lana Dagster project."""
 
-from typing import Callable
+from typing import TYPE_CHECKING, Union
 
 import dagster as dg
 from src.otel import trace_callable
 
+if TYPE_CHECKING:
+    from .protoasset import Protoasset
 
-def lana_assetifier(asset_key: str, callable: Callable):
+
+def lana_assetifier(protoasset: "Protoasset") -> Union[dg.asset, dg.AssetSpec]:
     """
-    Gets a callable, applies centralized wrapping specific to our project,
+    Gets a protoasset, applies centralized wrapping specific to our project,
     returns a dg.asset out of it.
 
     Args:
-        asset_key: The dagster asset key
-        callable (Callable): the callable to materialize the asset.
+        protoasset (Protoasset): a protoasset of the project.
 
     Returns:
         A Dagster asset with all Lana-specific wrapping applied
     """
 
-    @dg.asset(key=asset_key)
+    if protoasset.is_external:
+        asset = dg.AssetSpec(key=protoasset.key, tags=protoasset.tags)
+        return asset
+
+    @dg.asset(
+        key=protoasset.key,
+        tags=protoasset.tags,
+        deps=protoasset.deps,
+        required_resource_keys=protoasset.required_resource_keys,
+    )
     def wrapped_callable(context: dg.AssetExecutionContext) -> None:
         asset_key_str: str = context.asset_key.to_user_string()
 
@@ -27,9 +38,17 @@ def lana_assetifier(asset_key: str, callable: Callable):
         span_attributes = {"asset.name": asset_key_str, "run.id": context.run_id}
 
         traced_callable = trace_callable(
-            span_name=span_name, callable=callable, span_attributes=span_attributes
+            span_name=span_name,
+            callable=protoasset.callable,
+            span_attributes=span_attributes,
         )
 
-        traced_callable(context=context)
+        # Extract resources from context.resources and pass them to the callable
+        callable_kwargs = {"context": context}
+        if protoasset.required_resource_keys:
+            for resource_key in protoasset.required_resource_keys:
+                callable_kwargs[resource_key] = getattr(context.resources, resource_key)
+
+        traced_callable(**callable_kwargs)
 
     return wrapped_callable

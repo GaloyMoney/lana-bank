@@ -1,10 +1,10 @@
 import base64
 import json
 
-from dlt.destinations import bigquery
+import dlt
 
 
-def create_bigquery_destination(base64_credentials):
+def create_bigquery_destination(base64_credentials) -> dlt.destinations.bigquery:
     try:
         # Decode the base64-encoded JSON credentials
         credentials_json = base64.b64decode(base64_credentials).decode("utf-8")
@@ -17,7 +17,7 @@ def create_bigquery_destination(base64_credentials):
         if field not in credentials:
             raise ValueError(f"Missing required field '{field}' in credentials")
 
-    return bigquery(
+    return dlt.destinations.bigquery(
         credentials=credentials,
         project_id=credentials["project_id"],
         location="US",

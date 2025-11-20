@@ -1,4 +1,8 @@
 """Asset definitions for Lana data warehouse."""
 
-from src.assets.bitfinex import bitfinex_order_book, bitfinex_ticker, bitfinex_trades
+from src.assets.bitfinex import bitfinex_protoassets
 from src.assets.iris import iris_dataset_size
+from src.assets.lana import (
+    lana_source_protoassets,
+    lana_to_dw_el_protoassets,
+)
