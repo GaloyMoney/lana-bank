@@ -214,8 +214,8 @@ pub mod contract_creation {
 
 pub mod time_events {
     pub use core_time_events::{
-        DailyClosingBroadcasterInit, DailyClosingBroadcasterJobConfig, TimeEvent, TimeEventsConfig,
-        error,
+        CoreTimeEvent, DailyClosingBroadcasterInit, DailyClosingBroadcasterJobConfig,
+        TimeEventsConfig, error,
     };
     pub type TimeEvents = core_time_events::TimeEvents;
 }

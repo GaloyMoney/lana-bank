@@ -7,11 +7,11 @@ use chrono::{Datelike, Timelike};
 
 use outbox::{EphemeralEventType, Outbox, OutboxEventMarker};
 
-use crate::{config::TimeEventsConfig, error::TimeEventsError, event::TimeEvent};
+use crate::{config::TimeEventsConfig, error::TimeEventsError, event::CoreTimeEvent};
 
 pub struct DailyClosingBroadcaster<E>
 where
-    E: OutboxEventMarker<TimeEvent>,
+    E: OutboxEventMarker<CoreTimeEvent>,
 {
     outbox: Outbox<E>,
     tz: Tz,
@@ -20,7 +20,7 @@ where
 
 impl<E> DailyClosingBroadcaster<E>
 where
-    E: OutboxEventMarker<TimeEvent>,
+    E: OutboxEventMarker<CoreTimeEvent>,
 {
     pub fn try_new(outbox: &Outbox<E>, config: TimeEventsConfig) -> Result<Self, TimeEventsError> {
         let tz = config
@@ -46,7 +46,7 @@ where
 
 impl<E> DailyClosingBroadcaster<E>
 where
-    E: OutboxEventMarker<TimeEvent> + Send + Sync + 'static,
+    E: OutboxEventMarker<CoreTimeEvent> + Send + Sync + 'static,
 {
     fn calculate_next_closing(&self, now: DateTime<Utc>) -> DateTime<Tz> {
         let now_in_tz = now.with_timezone(&self.tz);
@@ -109,7 +109,7 @@ where
         self.outbox
             .publish_ephemeral(
                 EphemeralEventType::new("time.daily-closing"),
-                TimeEvent::DailyClosing {
+                CoreTimeEvent::DailyClosing {
                     closing_time: closing_time_utc,
                 },
             )

@@ -12,7 +12,7 @@ mod time;
 pub use broadcaster::DailyClosingBroadcaster;
 pub use config::TimeEventsConfig;
 pub use error::TimeEventsError;
-pub use event::TimeEvent;
+pub use event::CoreTimeEvent;
 pub use job::{DailyClosingBroadcasterInit, DailyClosingBroadcasterJobConfig};
 pub use primitives::*;
 

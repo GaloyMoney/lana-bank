@@ -11,7 +11,7 @@ use core_deposit::{
 };
 
 use governance::GovernanceEvent;
-use lana_events::{LanaEvent, TimeEvent};
+use lana_events::{CoreTimeEvent, LanaEvent};
 use outbox::{Outbox, OutboxEventMarker};
 
 use job::*;
@@ -46,7 +46,7 @@ where
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<TimeEvent>,
+        + OutboxEventMarker<CoreTimeEvent>,
 {
     type Initializer = UpdateCustomerActivityStatusInit<Perms, E>;
 }
@@ -58,7 +58,7 @@ where
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<TimeEvent>,
+        + OutboxEventMarker<CoreTimeEvent>,
 {
     customers: Customers<Perms, E>,
     outbox: Outbox<E>,
@@ -71,7 +71,7 @@ where
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<TimeEvent>,
+        + OutboxEventMarker<CoreTimeEvent>,
 {
     pub fn new(customers: &Customers<Perms, E>, outbox: &Outbox<E>) -> Self {
         Self {
@@ -95,7 +95,7 @@ where
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<TimeEvent>,
+        + OutboxEventMarker<CoreTimeEvent>,
 {
     fn job_type() -> JobType
     where
@@ -126,7 +126,7 @@ where
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<TimeEvent>,
+        + OutboxEventMarker<CoreTimeEvent>,
 {
     customers: Customers<Perms, E>,
     outbox: Outbox<E>,
@@ -143,7 +143,7 @@ where
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<TimeEvent>,
+        + OutboxEventMarker<CoreTimeEvent>,
 {
     #[instrument(
         name = "update_customer_activity_status.process_message",
@@ -155,7 +155,7 @@ where
         &self,
         event: &outbox::EphemeralOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        if let Some(TimeEvent::DailyClosing { closing_time }) = event.payload.as_event() {
+        if let Some(CoreTimeEvent::DailyClosing { closing_time }) = event.payload.as_event() {
             event.inject_trace_parent();
             Span::current().record("closing_time", closing_time.to_rfc3339());
             Span::current().record("handled", true);
@@ -180,7 +180,7 @@ where
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<TimeEvent>,
+        + OutboxEventMarker<CoreTimeEvent>,
 {
     #[record_error_severity]
     #[instrument(name = "update_customer_activity_status.run", skip(self, _current_job))]

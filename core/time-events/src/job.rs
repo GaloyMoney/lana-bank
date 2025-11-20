@@ -5,19 +5,19 @@ use tracing::instrument;
 use job::{CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType};
 use outbox::{Outbox, OutboxEventMarker};
 
-use crate::{TimeEvent, broadcaster::DailyClosingBroadcaster, config::TimeEventsConfig};
+use crate::{CoreTimeEvent, broadcaster::DailyClosingBroadcaster, config::TimeEventsConfig};
 
 #[derive(Serialize, Deserialize)]
 pub struct DailyClosingBroadcasterJobConfig<E>
 where
-    E: OutboxEventMarker<TimeEvent>,
+    E: OutboxEventMarker<CoreTimeEvent>,
 {
     _phantom: std::marker::PhantomData<E>,
 }
 
 impl<E> Default for DailyClosingBroadcasterJobConfig<E>
 where
-    E: OutboxEventMarker<TimeEvent>,
+    E: OutboxEventMarker<CoreTimeEvent>,
 {
     fn default() -> Self {
         Self {
@@ -28,7 +28,7 @@ where
 
 impl<E> DailyClosingBroadcasterJobConfig<E>
 where
-    E: OutboxEventMarker<TimeEvent>,
+    E: OutboxEventMarker<CoreTimeEvent>,
 {
     pub fn new() -> Self {
         Self::default()
@@ -37,14 +37,14 @@ where
 
 impl<E> JobConfig for DailyClosingBroadcasterJobConfig<E>
 where
-    E: OutboxEventMarker<TimeEvent> + Send + Sync + 'static,
+    E: OutboxEventMarker<CoreTimeEvent> + Send + Sync + 'static,
 {
     type Initializer = DailyClosingBroadcasterInit<E>;
 }
 
 pub struct DailyClosingBroadcasterInit<E>
 where
-    E: OutboxEventMarker<TimeEvent>,
+    E: OutboxEventMarker<CoreTimeEvent>,
 {
     outbox: Outbox<E>,
     config: TimeEventsConfig,
@@ -52,7 +52,7 @@ where
 
 impl<E> DailyClosingBroadcasterInit<E>
 where
-    E: OutboxEventMarker<TimeEvent>,
+    E: OutboxEventMarker<CoreTimeEvent>,
 {
     pub fn new(outbox: &Outbox<E>, config: TimeEventsConfig) -> Self {
         Self {
@@ -66,7 +66,7 @@ const DAILY_CLOSING_BROADCASTER: JobType = JobType::new("time-events.daily-closi
 
 impl<E> JobInitializer for DailyClosingBroadcasterInit<E>
 where
-    E: OutboxEventMarker<TimeEvent> + Send + Sync + 'static,
+    E: OutboxEventMarker<CoreTimeEvent> + Send + Sync + 'static,
 {
     fn job_type() -> JobType
     where
@@ -84,7 +84,7 @@ where
 
 pub struct DailyClosingBroadcasterJobRunner<E>
 where
-    E: OutboxEventMarker<TimeEvent>,
+    E: OutboxEventMarker<CoreTimeEvent>,
 {
     broadcaster: DailyClosingBroadcaster<E>,
 }
@@ -92,7 +92,7 @@ where
 #[async_trait]
 impl<E> JobRunner for DailyClosingBroadcasterJobRunner<E>
 where
-    E: OutboxEventMarker<TimeEvent> + Send + Sync + 'static,
+    E: OutboxEventMarker<CoreTimeEvent> + Send + Sync + 'static,
 {
     #[instrument(name = "time_events.daily_closing_broadcaster_job.run", skip_all, err)]
     async fn run(
