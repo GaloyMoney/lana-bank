@@ -49,7 +49,7 @@ where
                     id: entity.id,
                     account_holder_id: entity.account_holder_id,
                 }),
-                AccountStatusUpdated {
+                AccountHolderStatusUpdated {
                     status: DepositAccountStatus::Frozen,
                     ..
                 } => Some(CoreDepositEvent::DepositAccountFrozen {

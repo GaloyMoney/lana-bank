@@ -381,6 +381,21 @@ pub enum DepositAccountStatus {
     Closed,
 }
 
+#[derive(Debug, Clone, Copy)]
+pub enum DepositAccountHolderStatus {
+    Active,
+    Inactive,
+}
+
+impl From<DepositAccountHolderStatus> for DepositAccountStatus {
+    fn from(status: DepositAccountHolderStatus) -> Self {
+        match status {
+            DepositAccountHolderStatus::Active => DepositAccountStatus::Active,
+            DepositAccountHolderStatus::Inactive => DepositAccountStatus::Inactive,
+        }
+    }
+}
+
 #[derive(Clone, Copy)]
 pub enum DepositAccountType {
     Individual,

@@ -290,7 +290,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         holder_id: impl Into<DepositAccountHolderId> + std::fmt::Debug,
-        status: DepositAccountStatus,
+        status: DepositAccountHolderStatus,
     ) -> Result<(), CoreDepositError> {
         let holder_id = holder_id.into();
         self.authz
@@ -308,14 +308,18 @@ where
         let mut op = self.deposit_accounts.begin_op().await?;
 
         for mut account in accounts.entities.into_iter() {
-            match account.update_status(status) {
+            match account.update_status_via_holder(status) {
                 Ok(result) if result.did_execute() => {
                     self.deposit_accounts
                         .update_in_op(&mut op, &mut account)
                         .await?;
                 }
-                Err(DepositAccountError::CannotUpdateClosedAccount) => {
+                Err(DepositAccountError::CannotUpdateClosedAccount(_)) => {
                     tracing::warn!("Skipping update error if account already closed");
+                    continue;
+                }
+                Err(DepositAccountError::CannotUpdateFrozenAccount(_)) => {
+                    tracing::warn!("Skipping update error if account already frozen");
                     continue;
                 }
                 Err(e) => {
