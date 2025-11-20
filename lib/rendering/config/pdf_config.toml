@@ -3,7 +3,7 @@
 
 [page]
 # Page layout settings
-margins = { top = 72, right = 72, bottom = 72, left = 72 }  # 1 inch margins
+margins = { top = 72, right = 72, bottom = 72, left = 72 } # 1 inch margins
 size = "a4"
 orientation = "portrait"
 
@@ -31,7 +31,7 @@ afterspacing = 0.8
 [text]
 # Regular body text
 size = 12
-fontfamily = "serif"
+fontfamily = "sans-serif"
 alignment = "left"
 textcolor = { r = 0, g = 0, b = 0 }
 linespacing = 1.4
@@ -60,4 +60,4 @@ underline = true
 backgroundcolor = { r = 248, g = 248, b = 248 }
 bordercolor = { r = 204, g = 204, b = 204 }
 padding = 12
-italic = true 
+italic = true
