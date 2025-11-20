@@ -2,7 +2,6 @@ from typing import Any
 
 import dagster as dg
 
-
 RESOURCE_KEY_LANA_CORE_PG = "lana_core_pg"
 RESOURCE_KEY_DW_BQ = "dw_bq"
 

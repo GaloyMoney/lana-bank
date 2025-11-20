@@ -10,9 +10,9 @@ from src.assets import (
     lana_source_protoassets,
     lana_to_dw_el_protoassets,
 )
-from src.resources import get_project_resources
 from src.core import Protoasset, lana_assetifier
 from src.otel import init_telemetry
+from src.resources import get_project_resources
 
 DAGSTER_AUTOMATIONS_ACTIVE = os.getenv(
     "DAGSTER_AUTOMATIONS_ACTIVE", ""

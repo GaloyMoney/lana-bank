@@ -7,10 +7,10 @@ from src.core import Protoasset
 from src.dlt_destinations.bigquery import create_bigquery_destination
 from src.dlt_resources.postgres import create_dlt_postgres_resource
 from src.resources import (
-    BigQueryResource,
-    PostgresResource,
     RESOURCE_KEY_DW_BQ,
     RESOURCE_KEY_LANA_CORE_PG,
+    BigQueryResource,
+    PostgresResource,
 )
 
 LANA_EL_TABLE_NAMES = (
@@ -38,6 +38,7 @@ EL_SOURCE_ASSET_DESCRIPTION = "el_source_asset"
 EL_TARGET_ASSET_DESCRIPTION = "el_target_asset"
 LANA_SYSTEM_NAME = "lana"
 
+
 def get_el_source_asset_name(system_name: str, table_name: str) -> str:
     return f"{EL_SOURCE_ASSET_DESCRIPTION}__{system_name}__{table_name}"
 
@@ -47,8 +48,13 @@ def lana_source_protoassets() -> List[Protoasset]:
     for table_name in LANA_EL_TABLE_NAMES:
         lana_source_protoassets.append(
             Protoasset(
-                key=get_el_source_asset_name(system_name=LANA_SYSTEM_NAME, table_name=table_name),
-                tags={"asset_type": EL_SOURCE_ASSET_DESCRIPTION, "system": LANA_SYSTEM_NAME},
+                key=get_el_source_asset_name(
+                    system_name=LANA_SYSTEM_NAME, table_name=table_name
+                ),
+                tags={
+                    "asset_type": EL_SOURCE_ASSET_DESCRIPTION,
+                    "system": LANA_SYSTEM_NAME,
+                },
             )
         )
     return lana_source_protoassets
@@ -88,7 +94,11 @@ def build_lana_to_dw_el_protoasset(table_name) -> Protoasset:
 
     lana_to_dw_protoasset = Protoasset(
         key=[LANA_SYSTEM_NAME, table_name],
-        deps=[get_el_source_asset_name(system_name=LANA_SYSTEM_NAME, table_name=table_name)],
+        deps=[
+            get_el_source_asset_name(
+                system_name=LANA_SYSTEM_NAME, table_name=table_name
+            )
+        ],
         tags={"asset_type": EL_TARGET_ASSET_DESCRIPTION, "system": LANA_SYSTEM_NAME},
         callable=lana_to_dw_el_asset,
         required_resource_keys={RESOURCE_KEY_LANA_CORE_PG, RESOURCE_KEY_DW_BQ},

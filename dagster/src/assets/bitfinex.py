@@ -13,7 +13,7 @@ from src.dlt_resources.bitfinex import (
 from src.dlt_resources.bitfinex import order_book as dlt_order_book
 from src.dlt_resources.bitfinex import ticker as dlt_ticker
 from src.dlt_resources.bitfinex import trades as dlt_trades
-from src.resources import BigQueryResource, RESOURCE_KEY_DW_BQ
+from src.resources import RESOURCE_KEY_DW_BQ, BigQueryResource
 
 
 def _run_bitfinex_pipeline(
@@ -25,7 +25,9 @@ def _run_bitfinex_pipeline(
     dest = create_bigquery_destination(dw_bq.get_base64_credentials())
 
     pipe = dlt.pipeline(
-        pipeline_name=pipeline_name, destination=dest, dataset_name=dw_bq.get_target_dataset()
+        pipeline_name=pipeline_name,
+        destination=dest,
+        dataset_name=dw_bq.get_target_dataset(),
     )
     info = pipe.run(dlt_resource)
     context.log.info(str(info))
@@ -49,12 +51,16 @@ def bitfinex_trades(context: dg.AssetExecutionContext, dw_bq: BigQueryResource) 
     )
 
 
-def bitfinex_order_book(context: dg.AssetExecutionContext, dw_bq: BigQueryResource) -> None:
+def bitfinex_order_book(
+    context: dg.AssetExecutionContext, dw_bq: BigQueryResource
+) -> None:
     _run_bitfinex_pipeline(
         context=context,
         dw_bq=dw_bq,
         pipeline_name="bitfinex_order_book",
-        dlt_resource=dlt_order_book(symbol=DEFAULT_SYMBOL, depth=DEFAULT_ORDER_BOOK_DEPTH),
+        dlt_resource=dlt_order_book(
+            symbol=DEFAULT_SYMBOL, depth=DEFAULT_ORDER_BOOK_DEPTH
+        ),
     )
 
 
