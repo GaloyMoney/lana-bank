@@ -199,7 +199,8 @@
             cargo nextest list --workspace --all-features > $out/test-list.txt
           '';
 
-          nativeBuildInputs = [pkgs.cargo-nextest];
+          nativeBuildInputs = [pkgs.cargo-nextest pkgs.llvmPackages.clang];
+          LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
         }
       );
 
