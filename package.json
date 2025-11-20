@@ -4,7 +4,7 @@
   "devDependencies": {
     "@anthropic-ai/claude-code": "^2.0.37",
     "@mermaid-js/mermaid-cli": "^11.12.0",
-    "md-to-pdf": "^5.2.4"
+    "md-to-pdf": "^5.2.5"
   },
   "pnpm": {
     "overrides": {
