@@ -4,7 +4,7 @@ import dlt
 
 import dagster as dg
 from src.core import Protoasset
-from src.dlt_sources.resources import (
+from src.resources import (
     BigQueryResource,
     PostgresResource,
 )
@@ -30,14 +30,21 @@ LANA_EL_TABLE_NAMES = (
     "core_chart_node_events",
 )
 
+EL_SOURCE_ASSET_PREFIX = "el_source_asset"
+EL_TARGET_ASSET_PREFIX = "el_target_asset"
+LANA_SYSTEM_NAME = "lana"
+
+def get_el_source_asset_name(system_name: str, table_name: str) -> str:
+    return f"{EL_SOURCE_ASSET_PREFIX}__{system_name}__{table_name}"
+
 
 def lana_source_protoassets() -> List[Protoasset]:
     lana_source_protoassets = []
     for table_name in LANA_EL_TABLE_NAMES:
         lana_source_protoassets.append(
             Protoasset(
-                key=f"el_source_asset__lana__{table_name}",
-                tags={"asset_type": "el_source__asset", "system": "lana"},
+                key=get_el_source_asset_name(system_name=LANA_SYSTEM_NAME, table_name=table_name),
+                tags={"asset_type": EL_SOURCE_ASSET_PREFIX, "system": LANA_SYSTEM_NAME},
             )
         )
     return lana_source_protoassets
@@ -76,9 +83,9 @@ def build_lana_to_dw_el_protoasset(table_name) -> Protoasset:
         return load_info
 
     lana_to_dw_protoasset = Protoasset(
-        key=["lana", table_name],
-        deps=[f"el_source_asset__lana__{table_name}"],
-        tags={"asset_type": "el_target__asset", "system": "lana"},
+        key=[LANA_SYSTEM_NAME, table_name],
+        deps=[get_el_source_asset_name(system_name=LANA_SYSTEM_NAME, table_name=table_name)],
+        tags={"asset_type": EL_TARGET_ASSET_PREFIX, "system": LANA_SYSTEM_NAME},
         callable=lana_to_dw_el_asset,
         required_resource_keys={"lana_core_pg", "dw_bq"},
     )
