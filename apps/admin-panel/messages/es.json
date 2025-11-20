@@ -2011,7 +2011,8 @@
       "executeManualTransaction": "Registrar partida manual",
       "role": "Rol",
       "account": "Cuenta",
-      "depositAccount": "Cuenta de depósito"
+      "depositAccount": "Cuenta de depósito",
+      "subAccount": "Subcuenta"
     }
   },
   "DataTable": {

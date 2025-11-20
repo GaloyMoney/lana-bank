@@ -14,7 +14,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@lana/web/ui/collapsible"
-import { FileDown, ArrowRight, Plus } from "lucide-react"
+import { FileDown, ArrowRight } from "lucide-react"
 import { IoCaretDownSharp, IoCaretForwardSharp } from "react-icons/io5"
 
 import Link from "next/link"
@@ -22,8 +22,6 @@ import Link from "next/link"
 import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
 import { validate } from "uuid"
-
-import { AddChildNodeDialog } from "../../chart-of-accounts/add-child-node-dialog"
 
 import { ExportCsvDialog } from "./export"
 
@@ -44,7 +42,7 @@ import { DetailsCard } from "@/components/details"
 import Balance from "@/components/balance/balance"
 import DataTable from "@/components/data-table"
 import LayerLabel from "@/app/journal/layer-label"
-import { MAX_ACCOUNT_CODE_DIGITS } from "@/app/chart-of-accounts/constants"
+import { useCreateContext } from "@/app/create"
 
 gql`
   fragment LedgerAccountDetails on LedgerAccount {
@@ -164,9 +162,9 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
   const router = useRouter()
   const t = useTranslations("ChartOfAccountsLedgerAccount")
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false)
-  const [isAddChildDialogOpen, setIsAddChildDialogOpen] = useState(false)
   const { "ledger-account-ref": ref } = use(params)
   const isRefUUID = validate(ref)
+  const { setLedgerAccount } = useCreateContext()
 
   const [isAncestorsOpen, setIsAncestorsOpen] = useState(false)
   const [isChildrenOpen, setIsChildrenOpen] = useState(false)
@@ -193,6 +191,15 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
       router.push(`/ledger-accounts/${ledgerAccount.code}`)
     }
   }, [ledgerAccount, isRefUUID, router])
+
+  useEffect(() => {
+    if (ledgerAccount) {
+      setLedgerAccount(ledgerAccount)
+    }
+    return () => {
+      setLedgerAccount(null)
+    }
+  }, [ledgerAccount, setLedgerAccount])
 
   const columns: Column<JournalEntry>[] = [
     {
@@ -262,10 +269,6 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
     setIsExportDialogOpen(true)
   }
 
-  const handleOpenAddChildDialog = () => {
-    setIsAddChildDialogOpen(true)
-  }
-
   const entityInfo = getEntityforAccount(ledgerAccount?.entity, t)
 
   const footerButtons = [
@@ -277,19 +280,6 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
         </Link>
       </Button>
     ),
-    ledgerAccount?.code &&
-      ledgerAccount.code.replace(/\./g, "").length < MAX_ACCOUNT_CODE_DIGITS && (
-        <Button
-          key="add-child"
-          variant="outline"
-          onClick={handleOpenAddChildDialog}
-          data-testid="add-child-node-button"
-          className="flex items-center gap-1"
-        >
-          <Plus className="h-4 w-4" />
-          {t("addChildNode")}
-        </Button>
-      ),
   ].filter(Boolean)
 
   const footerContent =
@@ -418,15 +408,6 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
           isOpen={isExportDialogOpen}
           onClose={() => setIsExportDialogOpen(false)}
           ledgerAccountId={ledgerAccount.ledgerAccountId}
-        />
-      )}
-
-      {ledgerAccount?.code && (
-        <AddChildNodeDialog
-          open={isAddChildDialogOpen}
-          onOpenChange={setIsAddChildDialogOpen}
-          parentCode={ledgerAccount.code}
-          parentName={ledgerAccount.name}
         />
       )}
     </>

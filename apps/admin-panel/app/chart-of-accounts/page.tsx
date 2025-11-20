@@ -8,7 +8,6 @@ import { IoCaretDownSharp, IoCaretForwardSharp } from "react-icons/io5"
 
 import { Skeleton } from "@lana/web/ui/skeleton"
 import { Table, TableBody, TableCell, TableRow } from "@lana/web/ui/table"
-import { Button } from "@lana/web/ui/button"
 
 import {
   Card,
@@ -25,7 +24,6 @@ import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 
 import ChartOfAccountsUpload from "./upload"
-import { AddRootNodeDialog } from "./add-root-node-dialog"
 
 import {
   useChartOfAccountsQuery,
@@ -326,7 +324,6 @@ const ChartOfAccountsView: React.FC<ChartOfAccountsViewProps> = ({
 
 const ChartOfAccountsPage: React.FC = () => {
   const t = useTranslations("ChartOfAccounts")
-  const [openAddRootNodeDialog, setOpenAddRootNodeDialog] = useState(false)
 
   const {
     data: newChartData,
@@ -336,29 +333,12 @@ const ChartOfAccountsPage: React.FC = () => {
     fetchPolicy: "cache-and-network",
   })
 
-  const handleOpenAddRootNode = () => {
-    setOpenAddRootNodeDialog(true)
-  }
-
   return (
     <>
       <Card className="mb-10">
         <CardHeader>
-          <div className="flex justify-between items-start">
-            <div className="flex flex-col gap-1.5">
-              <CardTitle>{t("title")}</CardTitle>
-              <CardDescription>{t("description")}</CardDescription>
-            </div>
-            {newChartData?.chartOfAccounts && (
-              <Button
-                variant="outline"
-                onClick={handleOpenAddRootNode}
-                data-testid="add-root-node-button"
-              >
-                {t("addRootNode")}
-              </Button>
-            )}
-          </div>
+          <CardTitle>{t("title")}</CardTitle>
+          <CardDescription>{t("description")}</CardDescription>
         </CardHeader>
         <CardContent>
           {newChartData?.chartOfAccounts && (
@@ -376,11 +356,6 @@ const ChartOfAccountsPage: React.FC = () => {
           )}
         </CardContent>
       </Card>
-
-      <AddRootNodeDialog
-        open={openAddRootNodeDialog}
-        onOpenChange={setOpenAddRootNodeDialog}
-      />
     </>
   )
 }

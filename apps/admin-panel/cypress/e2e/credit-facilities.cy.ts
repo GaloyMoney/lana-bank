@@ -136,6 +136,7 @@ describe("credit facility", () => {
     cy.get('[data-testid="loading-skeleton"]').should("not.exist")
 
     cy.get('[data-testid="global-create-button"]').click()
+    cy.get('[data-testid="create-credit-facility-button"]').should("be.visible").click()
     cy.takeScreenshot("01_click_create_proposal_button")
     cy.takeScreenshot("02_open_proposal_form")
 
