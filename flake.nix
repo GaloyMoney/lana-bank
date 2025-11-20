@@ -271,6 +271,9 @@
           util-linux
           psmisc
           iptables
+
+          # For bindgen/libclang
+          llvmPackages.libclang
         ]
         ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [];
 
@@ -852,6 +855,9 @@
               # Font configuration for PDF generation
               export FONTCONFIG_FILE=${pkgs.fontconfig.out}/etc/fonts/fonts.conf
               export FONTCONFIG_PATH=${pkgs.fontconfig.out}/etc/fonts
+
+              # libclang for bindgen
+              export LIBCLANG_PATH="${pkgs.llvmPackages.libclang.lib}/lib"
 
               export KC_URL="http://localhost:8081"
               export REALM="master"
