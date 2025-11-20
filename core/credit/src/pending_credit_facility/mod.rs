@@ -133,6 +133,9 @@ where
         let mut db = self.repo.begin_op().await?;
 
         let id = credit_facility_proposal_id.into();
+        tracing::Span::current()
+            .record("credit_facility_proposal_id", tracing::field::display(&id));
+
         match self.proposals.approve_in_op(&mut db, id, approved).await? {
             ProposalApprovalOutcome::Ignored => Ok(None),
             ProposalApprovalOutcome::Rejected(proposal) => {
