@@ -1954,7 +1954,7 @@ type Query {
 	journalEntries(first: Int!, after: String): JournalEntryConnection!
 	trialBalance(from: Date!, until: Date!): TrialBalance!
 	chartOfAccounts: ChartOfAccounts!
-	fiscalYearsForChart(first: Int!, after: String): FiscalYearConnection!
+	fiscalYears(first: Int!, after: String): FiscalYearConnection!
 	balanceSheet(from: Date!, until: Date): BalanceSheet!
 	profitAndLossStatement(from: Date!, until: Date): ProfitAndLossStatement!
 	realtimePrice: RealtimePrice!

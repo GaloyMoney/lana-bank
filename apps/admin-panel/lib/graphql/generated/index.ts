@@ -2193,7 +2193,7 @@ export type Query = {
   disbursal?: Maybe<CreditFacilityDisbursal>;
   disbursalByPublicId?: Maybe<CreditFacilityDisbursal>;
   disbursals: CreditFacilityDisbursalConnection;
-  fiscalYearsForChart: FiscalYearConnection;
+  fiscalYears: FiscalYearConnection;
   journalEntries: JournalEntryConnection;
   ledgerAccount?: Maybe<LedgerAccount>;
   ledgerAccountByCode?: Maybe<LedgerAccount>;
@@ -2376,7 +2376,7 @@ export type QueryDisbursalsArgs = {
 };
 
 
-export type QueryFiscalYearsForChartArgs = {
+export type QueryFiscalYearsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
 };
