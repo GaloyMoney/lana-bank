@@ -769,7 +769,7 @@ where
             .await?)
     }
 
-    #[instrument(name = "credit.update_pending_facility_collateral", skip(self), err)]
+    #[instrument(name = "credit.update_pending_facility_collateral", skip(self, pending_credit_facility_id), fields(pending_credit_facility_id = tracing::field::Empty), err)]
     pub async fn update_pending_facility_collateral(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -787,6 +787,11 @@ where
             .pending_credit_facilities()
             .find_by_id_without_audit(pending_credit_facility_id.into())
             .await?;
+
+        tracing::Span::current().record(
+            "pending_credit_facility_id",
+            tracing::field::display(pending_facility.id),
+        );
 
         let mut db = self.facilities.begin_op().await?;
 

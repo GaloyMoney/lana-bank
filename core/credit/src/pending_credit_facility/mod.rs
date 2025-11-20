@@ -120,12 +120,19 @@ where
         Ok(self.repo.begin_op().await?)
     }
 
+    #[instrument(
+        name = "credit.pending_credit_facility.transition_from_proposal",
+        skip(self, credit_facility_proposal_id),
+        fields(pending_credit_facility_id = tracing::field::Empty, credit_facility_proposal_id = tracing::field::Empty)
+    )]
     pub async fn transition_from_proposal(
         &self,
-        id: impl Into<CreditFacilityProposalId> + std::fmt::Debug,
+        credit_facility_proposal_id: impl Into<CreditFacilityProposalId> + std::fmt::Debug,
         approved: bool,
     ) -> Result<Option<CreditFacilityProposal>, PendingCreditFacilityError> {
         let mut db = self.repo.begin_op().await?;
+
+        let id = credit_facility_proposal_id.into();
         match self.proposals.approve_in_op(&mut db, id, approved).await? {
             ProposalApprovalOutcome::Ignored => Ok(None),
             ProposalApprovalOutcome::Rejected(proposal) => {
@@ -167,6 +174,10 @@ where
                     )
                     .await?;
 
+                tracing::Span::current().record(
+                    "pending_credit_facility_id",
+                    tracing::field::display(&new_pending_facility.id),
+                );
                 let pending_credit_facility = self
                     .repo
                     .create_in_op(&mut db, new_pending_facility)
@@ -181,13 +192,16 @@ where
         }
     }
 
-    #[instrument(name = "credit.pending_credit_facility.complete_in_op", skip(self, db))]
+    #[instrument(name = "credit.pending_credit_facility.complete_in_op",
+        skip(self, db),
+        fields(pending_credit_facility_id = tracing::field::display(&pending_credit_facility_id)))
+    ]
     pub(crate) async fn complete_in_op(
         &self,
         db: &mut es_entity::DbOpWithTime<'_>,
-        id: PendingCreditFacilityId,
+        pending_credit_facility_id: PendingCreditFacilityId,
     ) -> Result<PendingCreditFacilityCompletionOutcome, PendingCreditFacilityError> {
-        let mut pending_facility = self.repo.find_by_id(id).await?;
+        let mut pending_facility = self.repo.find_by_id(pending_credit_facility_id).await?;
 
         let price = self.price.usd_cents_per_btc().await?;
 
@@ -387,13 +401,17 @@ where
         self.repo.find_by_id(id.into()).await
     }
 
-    #[instrument(name = "credit.pending_credit_facility.find_by_id", skip(self, sub))]
+    #[instrument(
+        name = "credit.pending_credit_facility.find_by_id",
+        skip(self, sub, pending_credit_facility_id)
+        fields(pending_credit_facility_id = tracing::field::Empty)
+    )]
     pub async fn find_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: impl Into<PendingCreditFacilityId> + std::fmt::Debug,
+        pending_credit_facility_id: impl Into<PendingCreditFacilityId> + std::fmt::Debug,
     ) -> Result<Option<PendingCreditFacility>, PendingCreditFacilityError> {
-        let id = id.into();
+        let id = pending_credit_facility_id.into();
         self.authz
             .enforce_permission(
                 sub,
@@ -401,6 +419,8 @@ where
                 CoreCreditAction::CREDIT_FACILITY_READ,
             )
             .await?;
+
+        tracing::Span::current().record("pending_credit_facility_id", tracing::field::display(&id));
 
         self.repo.maybe_find_by_id(id).await
     }
