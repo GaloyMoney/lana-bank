@@ -87,6 +87,7 @@ export function useNavItems() {
   const navAccountingItems: NavItem[] = [
     { title: t("chartOfAccounts"), url: "/chart-of-accounts", icon: Globe },
     { title: t("ledgerAccounts"), url: "/ledger-accounts", icon: BookText },
+    { title: t("ledgerTransactions"), url: "/ledger-transactions", icon: FileText },
     { title: t("journal"), url: "/journal", icon: ScrollIcon },
     { title: t("modules"), url: "/modules", icon: Cog },
     {

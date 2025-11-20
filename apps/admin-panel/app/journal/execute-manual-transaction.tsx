@@ -112,7 +112,7 @@ export const ExecuteManualTransactionDialog: React.FC<ExecuteManualTransactionPr
           if (data?.manualTransactionExecute.transaction) {
             toast.success(t("success"))
             navigate(
-              `/ledger-transaction/${data.manualTransactionExecute.transaction.ledgerTransactionId}`,
+              `/ledger-transactions/${data.manualTransactionExecute.transaction.ledgerTransactionId}`,
             )
           } else {
             throw new Error(t("errored"))

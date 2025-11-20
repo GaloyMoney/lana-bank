@@ -205,7 +205,7 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
       label: t("table.columns.transactionId"),
       render: (_, record) => {
         return (
-          <Link className="hover:underline" href={`/ledger-transaction/${record.txId}`}>
+          <Link className="hover:underline" href={`/ledger-transactions/${record.txId}`}>
             {record.txId.substring(0, 6)}...
             {record.txId.substring(record.txId.length - 6)}
           </Link>

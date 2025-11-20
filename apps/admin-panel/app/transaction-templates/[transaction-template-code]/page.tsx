@@ -106,7 +106,7 @@ const LedgerTransactionsForTemplateCode: React.FC<
             loading={loading}
             fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
             navigateTo={({ ledgerTransactionId }) =>
-              `/ledger-transaction/${ledgerTransactionId}`
+              `/ledger-transactions/${ledgerTransactionId}`
             }
             noDataText={t("table.noData")}
           />

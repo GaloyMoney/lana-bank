@@ -24,15 +24,41 @@
   },
   "LedgerTransactions": {
     "title": "Partidas contables",
+    "description": "Detalles de la partida contable",
+    "entriesTitle": "Entradas",
     "noTransactions": "No hay partidas contables disponibles",
+    "search": {
+      "title": "Buscar partidas contables",
+      "description": "Ingrese un ID de partida contable para ver los detalles de la transacción",
+      "placeholder": "Ingrese el ID de la transacción...",
+      "searchButton": "Buscar",
+      "notFound": "Transacción no encontrada",
+      "invalidId": "Por favor ingrese un ID de transacción válido (UUID)",
+      "searchError": "Ocurrió un error al buscar"
+    },
+    "details": {
+      "description": "Descripción",
+      "createdAt": "Fecha de registro",
+      "effective": "Fecha valor"
+    },
     "table": {
       "headers": {
         "transactionId": "ID de transacción",
         "description": "Descripción",
         "effectiveDate": "Fecha valor",
         "createdAt": "Fecha de registro"
-      }
-    }
+      },
+      "ledgerAccount": "Cuenta del libro mayor",
+      "entryType": "Tipo de entrada",
+      "closestAccountWithCode": "Cuenta más cercana con código",
+      "layer": "Capa",
+      "debit": "Débito",
+      "credit": "Crédito"
+    },
+    "viewDeposit": "Ver depósito",
+    "viewWithdrawal": "Ver retiro",
+    "viewDisbursal": "Ver desembolso",
+    "noEntries": "Sin entradas"
   },
   "PermissionsDisplay": {
     "permissionsLabel": "Permisos que tiene este rol",
@@ -163,6 +189,7 @@
       "committees": "Comités",
       "chartOfAccounts": "Catálogo de Cuentas",
       "ledgerAccounts": "Cuentas del libro mayor",
+      "ledgerTransactions": "Partidas contables",
       "journal": "Registros Contables",
       "users": "Usuarios",
       "balanceSheet": "Balance General",

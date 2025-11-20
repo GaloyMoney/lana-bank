@@ -121,7 +121,7 @@ const getColumns = (t: ReturnType<typeof useTranslations>) => [
         <Tooltip>
           <TooltipTrigger asChild>
             <Link
-              href={`/ledger-transaction/${txid}`}
+              href={`/ledger-transactions/${txid}`}
               className="hover:underline text-sm"
             >
               {truncated}
