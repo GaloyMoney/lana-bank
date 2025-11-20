@@ -18,10 +18,10 @@ importers:
         version: 2.0.47
       '@mermaid-js/mermaid-cli':
         specifier: ^11.12.0
-        version: 11.12.0(@babel/core@7.28.5)(@babel/template@7.27.2)(@types/react@19.2.4)(puppeteer@24.30.0(typescript@5.9.3))
+        version: 11.12.0(@babel/core@7.28.5)(@babel/template@7.27.2)(@types/react@19.2.4)(puppeteer@24.31.0(typescript@5.9.3))
       md-to-pdf:
-        specifier: ^5.2.4
-        version: 5.2.4(typescript@5.9.3)
+        specifier: ^5.2.5
+        version: 5.2.5(typescript@5.9.3)
 
   apps/admin-panel:
     dependencies:
@@ -6538,8 +6538,8 @@ packages:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
     engines: {node: '>= 0.4'}
 
-  md-to-pdf@5.2.4:
-    resolution: {integrity: sha512-s6080i4ZSBfvn7qplSVjdqP9eWi9rIWj+t5pucEKnpAHan89VLQuQPhVx06vWIM+6JX2HrJ1wNRFMiwLlS01vg==}
+  md-to-pdf@5.2.5:
+    resolution: {integrity: sha512-TG8TgDM0PmEwCldR6j/1QP9gBElLL3DSn5ID8P3bEXEl3Y2zHOUSyszHzabWnDNxklRjKbi40ybli8YQJ5Ym5w==}
     engines: {node: '>=12.0'}
     hasBin: true
 
@@ -7262,12 +7262,12 @@ packages:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
 
-  puppeteer-core@24.30.0:
-    resolution: {integrity: sha512-2S3Smy0t0W4wJnNvDe7W0bE7wDmZjfZ3ljfMgJd6hn2Hq/f0jgN+x9PULZo2U3fu5UUIJ+JP8cNUGllu8P91Pg==}
+  puppeteer-core@24.31.0:
+    resolution: {integrity: sha512-pnAohhSZipWQoFpXuGV7xCZfaGhqcBR9C4pVrU0QSrcMi7tQMH9J9lDBqBvyMAHQqe8HCARuREqFuVKRQOgTvg==}
     engines: {node: '>=18'}
 
-  puppeteer@24.30.0:
-    resolution: {integrity: sha512-A5OtCi9WpiXBQgJ2vQiZHSyrAzQmO/WDsvghqlN4kgw21PhxA5knHUaUQq/N3EMt8CcvSS0RM+kmYLJmedR3TQ==}
+  puppeteer@24.31.0:
+    resolution: {integrity: sha512-q8y5yLxLD8xdZdzNWqdOL43NbfvUOp60SYhaLZQwHC9CdKldxQKXOyJAciOr7oUJfyAH/KgB2wKvqT2sFKoVXA==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -8428,8 +8428,8 @@ packages:
     resolution: {integrity: sha512-d2JWLCivmZYTSIoge9MsgFCZrt571BikcWGYkjC1khllbTeDlGqZ2D8vD8E/lJa8WGWbb7Plm8/XJYV7IJHZZw==}
     engines: {node: '>= 8'}
 
-  webdriver-bidi-protocol@0.3.8:
-    resolution: {integrity: sha512-21Yi2GhGntMc671vNBCjiAeEVknXjVRoyu+k+9xOMShu+ZQfpGQwnBqbNz/Sv4GXZ6JmutlPAi2nIJcrymAWuQ==}
+  webdriver-bidi-protocol@0.3.9:
+    resolution: {integrity: sha512-uIYvlRQ0PwtZR1EzHlTMol1G0lAlmOe6wPykF9a77AK3bkpvZHzIVxRE2ThOx5vjy2zISe0zhwf5rzuUfbo1PQ==}
 
   webidl-conversions@3.0.1:
     resolution: {integrity: sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==}
@@ -10730,14 +10730,14 @@ snapshots:
       '@types/react': 19.2.4
       react: 19.2.0
 
-  '@mermaid-js/mermaid-cli@11.12.0(@babel/core@7.28.5)(@babel/template@7.27.2)(@types/react@19.2.4)(puppeteer@24.30.0(typescript@5.9.3))':
+  '@mermaid-js/mermaid-cli@11.12.0(@babel/core@7.28.5)(@babel/template@7.27.2)(@types/react@19.2.4)(puppeteer@24.31.0(typescript@5.9.3))':
     dependencies:
       '@mermaid-js/mermaid-zenuml': 0.2.2(@babel/core@7.28.5)(@babel/template@7.27.2)(@types/react@19.2.4)(mermaid@11.12.1)
       chalk: 5.6.2
       commander: 14.0.2
       import-meta-resolve: 4.2.0
       mermaid: 11.12.1
-      puppeteer: 24.30.0(typescript@5.9.3)
+      puppeteer: 24.31.0(typescript@5.9.3)
     transitivePeerDependencies:
       - '@babel/core'
       - '@babel/template'
@@ -16091,7 +16091,7 @@ snapshots:
 
   math-intrinsics@1.1.0: {}
 
-  md-to-pdf@5.2.4(typescript@5.9.3):
+  md-to-pdf@5.2.5(typescript@5.9.3):
     dependencies:
       arg: 5.0.2
       chalk: 4.1.2
@@ -16103,7 +16103,7 @@ snapshots:
       iconv-lite: 0.6.3
       listr: 0.14.3
       marked: 4.3.0
-      puppeteer: 24.30.0(typescript@5.9.3)
+      puppeteer: 24.31.0(typescript@5.9.3)
       semver: 7.7.3
       serve-handler: 6.1.6
     transitivePeerDependencies:
@@ -16892,14 +16892,14 @@ snapshots:
 
   punycode@2.3.1: {}
 
-  puppeteer-core@24.30.0:
+  puppeteer-core@24.31.0:
     dependencies:
       '@puppeteer/browsers': 2.10.13
       chromium-bidi: 11.0.0(devtools-protocol@0.0.1521046)
       debug: 4.4.3(supports-color@8.1.1)
       devtools-protocol: 0.0.1521046
       typed-query-selector: 2.12.0
-      webdriver-bidi-protocol: 0.3.8
+      webdriver-bidi-protocol: 0.3.9
       ws: 8.18.3
     transitivePeerDependencies:
       - bare-abort-controller
@@ -16909,13 +16909,13 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  puppeteer@24.30.0(typescript@5.9.3):
+  puppeteer@24.31.0(typescript@5.9.3):
     dependencies:
       '@puppeteer/browsers': 2.10.13
       chromium-bidi: 11.0.0(devtools-protocol@0.0.1521046)
       cosmiconfig: 9.0.0(typescript@5.9.3)
       devtools-protocol: 0.0.1521046
-      puppeteer-core: 24.30.0
+      puppeteer-core: 24.31.0
       typed-query-selector: 2.12.0
     transitivePeerDependencies:
       - bare-abort-controller
@@ -18249,7 +18249,7 @@ snapshots:
 
   web-streams-polyfill@3.3.3: {}
 
-  webdriver-bidi-protocol@0.3.8: {}
+  webdriver-bidi-protocol@0.3.9: {}
 
   webidl-conversions@3.0.1: {}
 
