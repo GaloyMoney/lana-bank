@@ -3751,6 +3751,13 @@ export type LedgerTransactionQuery = { __typename?: 'Query', ledgerTransaction?:
         | { __typename: 'UsdAmount', usd: UsdCents }
       , ledgerAccount: { __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, code?: any | null, name: string, closestAccountWithCode?: { __typename?: 'LedgerAccount', code?: any | null } | null } }> } | null };
 
+export type LedgerTransactionExistsByIdQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type LedgerTransactionExistsByIdQuery = { __typename?: 'Query', ledgerTransaction?: { __typename?: 'LedgerTransaction', id: string } | null };
+
 export type BalanceSheetConfigureMutationVariables = Exact<{
   input: BalanceSheetModuleConfigureInput;
 }>;
@@ -8373,6 +8380,46 @@ export type LedgerTransactionQueryHookResult = ReturnType<typeof useLedgerTransa
 export type LedgerTransactionLazyQueryHookResult = ReturnType<typeof useLedgerTransactionLazyQuery>;
 export type LedgerTransactionSuspenseQueryHookResult = ReturnType<typeof useLedgerTransactionSuspenseQuery>;
 export type LedgerTransactionQueryResult = Apollo.QueryResult<LedgerTransactionQuery, LedgerTransactionQueryVariables>;
+export const LedgerTransactionExistsByIdDocument = gql`
+    query LedgerTransactionExistsById($id: UUID!) {
+  ledgerTransaction(id: $id) {
+    id
+  }
+}
+    `;
+
+/**
+ * __useLedgerTransactionExistsByIdQuery__
+ *
+ * To run a query within a React component, call `useLedgerTransactionExistsByIdQuery` and pass it any options that fit your needs.
+ * When your component renders, `useLedgerTransactionExistsByIdQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useLedgerTransactionExistsByIdQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useLedgerTransactionExistsByIdQuery(baseOptions: Apollo.QueryHookOptions<LedgerTransactionExistsByIdQuery, LedgerTransactionExistsByIdQueryVariables> & ({ variables: LedgerTransactionExistsByIdQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<LedgerTransactionExistsByIdQuery, LedgerTransactionExistsByIdQueryVariables>(LedgerTransactionExistsByIdDocument, options);
+      }
+export function useLedgerTransactionExistsByIdLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<LedgerTransactionExistsByIdQuery, LedgerTransactionExistsByIdQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<LedgerTransactionExistsByIdQuery, LedgerTransactionExistsByIdQueryVariables>(LedgerTransactionExistsByIdDocument, options);
+        }
+export function useLedgerTransactionExistsByIdSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<LedgerTransactionExistsByIdQuery, LedgerTransactionExistsByIdQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<LedgerTransactionExistsByIdQuery, LedgerTransactionExistsByIdQueryVariables>(LedgerTransactionExistsByIdDocument, options);
+        }
+export type LedgerTransactionExistsByIdQueryHookResult = ReturnType<typeof useLedgerTransactionExistsByIdQuery>;
+export type LedgerTransactionExistsByIdLazyQueryHookResult = ReturnType<typeof useLedgerTransactionExistsByIdLazyQuery>;
+export type LedgerTransactionExistsByIdSuspenseQueryHookResult = ReturnType<typeof useLedgerTransactionExistsByIdSuspenseQuery>;
+export type LedgerTransactionExistsByIdQueryResult = Apollo.QueryResult<LedgerTransactionExistsByIdQuery, LedgerTransactionExistsByIdQueryVariables>;
 export const BalanceSheetConfigureDocument = gql`
     mutation BalanceSheetConfigure($input: BalanceSheetModuleConfigureInput!) {
   balanceSheetConfigure(input: $input) {

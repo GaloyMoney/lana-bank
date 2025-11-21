@@ -78,7 +78,7 @@ type LedgerTransactionPageProps = {
 }
 
 const LedgerTransactionPage: React.FC<LedgerTransactionPageProps> = ({ params }) => {
-  const t = useTranslations("LedgerTransaction")
+  const t = useTranslations("LedgerTransactions")
   const { "ledger-transaction-id": id } = use(params)
 
   const { data, loading, error } = useLedgerTransactionQuery({

@@ -131,7 +131,7 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
         columns={columns}
         emptyMessage={t("messages.emptyTable")}
         navigateTo={(entry) =>
-          "txId" in entry ? `/ledger-transaction/${entry.txId}` : null
+          "txId" in entry ? `/ledger-transactions/${entry.txId}` : null
         }
       />
     </CardWrapper>

@@ -35,7 +35,7 @@ const LedgerTransactions: React.FC<LedgerTransactionsProps> = ({
         columns={columns}
         emptyMessage={t("noTransactions")}
         navigateTo={(transaction) =>
-          `/ledger-transaction/${transaction.ledgerTransactionId}`
+          `/ledger-transactions/${transaction.ledgerTransactionId}`
         }
       />
     </CardWrapper>

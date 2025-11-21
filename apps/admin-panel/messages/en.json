@@ -24,15 +24,41 @@
   },
   "LedgerTransactions": {
     "title": "Ledger Transactions",
+    "description": "Ledger transaction details",
+    "entriesTitle": "Entries",
     "noTransactions": "No ledger transactions available",
+    "search": {
+      "title": "Search Ledger Transactions",
+      "description": "Enter a ledger transaction ID to view transaction details",
+      "placeholder": "Enter transaction ID...",
+      "searchButton": "Search",
+      "notFound": "Transaction not found",
+      "invalidId": "Please enter a valid transaction ID (UUID)",
+      "searchError": "An error occurred while searching"
+    },
+    "details": {
+      "description": "Description",
+      "createdAt": "Created At",
+      "effective": "Effective"
+    },
     "table": {
       "headers": {
         "transactionId": "Transaction ID",
         "description": "Description",
         "effectiveDate": "Effective Date",
         "createdAt": "Created At"
-      }
-    }
+      },
+      "ledgerAccount": "Ledger Account",
+      "entryType": "Entry Type",
+      "closestAccountWithCode": "Closest Account With Code",
+      "layer": "Layer",
+      "debit": "Debit",
+      "credit": "Credit"
+    },
+    "viewDeposit": "View Deposit",
+    "viewWithdrawal": "View Withdrawal",
+    "viewDisbursal": "View Disbursal",
+    "noEntries": "No entries"
   },
   "PermissionsDisplay": {
     "permissionsLabel": "Permissions this role has",
@@ -163,6 +189,7 @@
       "committees": "Committees",
       "chartOfAccounts": "Chart of Accounts",
       "ledgerAccounts": "Ledger Accounts",
+      "ledgerTransactions": "Ledger Transactions",
       "journal": "Journal",
       "users": "Users",
       "balanceSheet": "Balance Sheet",

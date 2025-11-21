@@ -49,7 +49,7 @@ export const Default: Story = {
   parameters: {
     nextjs: {
       navigation: {
-        pathname: `/ledger-transaction/${ledgerTransactionId}`,
+        pathname: `/ledger-transactions/${ledgerTransactionId}`,
       },
     },
   },
@@ -102,7 +102,7 @@ export const Loading: Story = {
   parameters: {
     nextjs: {
       navigation: {
-        pathname: `/ledger-transaction/${ledgerTransactionId}`,
+        pathname: `/ledger-transactions/${ledgerTransactionId}`,
       },
     },
   },
