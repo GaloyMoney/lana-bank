@@ -648,6 +648,10 @@ impl DepositLedger {
         account: &DepositAccount,
     ) -> Result<(), DepositLedgerError> {
         let balance = self.balance(account.id).await?;
+        if balance.settled.is_zero() {
+            op.commit().await?;
+            return Ok(());
+        }
 
         let mut op = self
             .cala
@@ -693,6 +697,10 @@ impl DepositLedger {
         let frozen_balance = self
             .balance(account.account_ids.frozen_deposit_account_id)
             .await?;
+        if frozen_balance.settled.is_zero() {
+            op.commit().await?;
+            return Ok(());
+        }
 
         let mut op = self
             .cala
