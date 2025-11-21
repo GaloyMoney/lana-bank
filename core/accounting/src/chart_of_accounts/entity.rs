@@ -284,7 +284,7 @@ impl Chart {
     pub(super) fn close_as_of(&mut self, closed_as_of: NaiveDate) -> Idempotent<NaiveDate> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            ChartEvent::ClosedAsOf { closed_as_of: prev_date, .. } if prev_date == &closed_as_of,
+            ChartEvent::ClosedAsOf { closed_as_of: prev_date, .. } if prev_date >= &closed_as_of,
             => ChartEvent::ClosedAsOf { .. }
         );
         self.events.push(ChartEvent::ClosedAsOf { closed_as_of });
@@ -701,5 +701,18 @@ mod test {
             AccountCode::new(["1", "1", "1"].iter().map(|c| c.parse().unwrap()).collect())
         );
         assert!(cash.children.is_empty());
+    }
+
+    #[test]
+    fn enforce_chronological_closed_as_of() {
+        let mut chart = chart_from(initial_events());
+        let first_date = "2025-01-31".parse::<NaiveDate>().unwrap();
+        let _ = chart.close_as_of(first_date);
+        let second_date = "2025-02-28".parse::<NaiveDate>().unwrap();
+        let second_close_date = chart.close_as_of(second_date);
+        assert!(second_close_date.did_execute());
+        let invalid_closing_date = "2025-02-01".parse::<NaiveDate>().unwrap();
+        let invalid_close_date = chart.close_as_of(invalid_closing_date);
+        assert!(invalid_close_date.was_ignored());
     }
 }

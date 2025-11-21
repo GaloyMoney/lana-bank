@@ -88,7 +88,7 @@ impl ChartLedger {
             .find(chart_root_account_set_id)
             .await?;
 
-        let mut op = self
+        let mut ledger_op = self
             .cala
             .ledger_operation_from_db_op(op.with_db_time().await?);
 
@@ -110,10 +110,10 @@ impl ChartLedger {
         tracking_account_set.update(update_values);
         self.cala
             .account_sets()
-            .persist_in_op(&mut op, &mut tracking_account_set)
+            .persist_in_op(&mut ledger_op, &mut tracking_account_set)
             .await?;
 
-        op.commit().await?;
+        ledger_op.commit().await?;
         Ok(())
     }
 
