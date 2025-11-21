@@ -830,9 +830,9 @@ checksum = "ade8366b8bd5ba243f0a58f036cc0ca8a2f069cff1a2351ef1cac6b083e16fc0"
 
 [[package]]
 name = "cala-cel-interpreter"
-version = "0.12.10"
+version = "0.12.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "32a57e36ba3c0368983d6442f8306c88f4b45ed68cc0811950ce6acb70eb16ce"
+checksum = "fef6e218aedabea6f891444de1cae701d3e3bbe2809f5f0a5490b4a55efe679b"
 dependencies = [
  "cala-cel-parser",
  "chrono",
@@ -847,9 +847,9 @@ dependencies = [
 
 [[package]]
 name = "cala-cel-parser"
-version = "0.12.10"
+version = "0.12.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "296dd09223308b874f2716e8dc60673cb105f7436e61c102eb18e0372ce88f1d"
+checksum = "e5dd180411f789eb2a6c9f57daa50daa73d87409ee85566e7d0bf1e26676d07e"
 dependencies = [
  "cached",
  "lalrpop",
@@ -859,9 +859,9 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger"
-version = "0.12.10"
+version = "0.12.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4e096196e425c8286fd50824b0d9eece8d2dcb2fbdef54a756377edf4276983b"
+checksum = "8b2f907848e5e8b1ebe165ace40549297468ff3b438a013c61cf2a45c76a4cdc"
 dependencies = [
  "async-graphql",
  "base64 0.22.1",
@@ -896,9 +896,9 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger-core-types"
-version = "0.12.10"
+version = "0.12.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a351eda7d12fee70a45ee90aa873d5688b8beeb87599bdec6cedd4da41f38c46"
+checksum = "235660cd15a784643fdc680773dced5c832edd2580c0696adb6ed7ebcd1c6303"
 dependencies = [
  "async-graphql",
  "cala-cel-interpreter",
@@ -918,9 +918,9 @@ dependencies = [
 
 [[package]]
 name = "cala-tracing"
-version = "0.12.10"
+version = "0.12.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fcc898e88ad1fb5861f89082289a087add06b65440e9b98273a4504a13c8de60"
+checksum = "3e90758ec284e6f6878ff6c49a488bf206a1f87c5fab8845bec67a9efbf3f191"
 dependencies = [
  "anyhow",
  "axum-extra 0.10.3",

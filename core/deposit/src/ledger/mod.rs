@@ -1084,11 +1084,12 @@ impl DepositLedger {
         update
             .metadata(new_meta)
             .expect("Could not update metadata");
-        internal_account_set.update(update);
-        self.cala
-            .account_sets()
-            .persist_in_op(op, &mut internal_account_set)
-            .await?;
+        if internal_account_set.update(update).did_execute() {
+            self.cala
+                .account_sets()
+                .persist_in_op(op, &mut internal_account_set)
+                .await?;
+        }
 
         Ok(())
     }

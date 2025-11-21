@@ -107,11 +107,12 @@ impl ChartLedger {
             .metadata(Some(account_set_metadata))
             .expect("Failed to serialize metadata");
 
-        tracking_account_set.update(update_values);
-        self.cala
-            .account_sets()
-            .persist_in_op(&mut op, &mut tracking_account_set)
-            .await?;
+        if tracking_account_set.update(update_values).did_execute() {
+            self.cala
+                .account_sets()
+                .persist_in_op(&mut op, &mut tracking_account_set)
+                .await?;
+        }
 
         op.commit().await?;
         Ok(())
