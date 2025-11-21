@@ -5,47 +5,172 @@ use cloud_storage::{Storage, config::StorageConfig};
 use document_storage::DocumentStorage;
 use job::{JobSvcConfig, Jobs};
 
-use cala_ledger::{CalaLedger, CalaLedgerConfig, Currency, DebitOrCredit};
-use core_accounting::{AccountIdOrCode, CoreAccounting, ManualEntryInput};
+use cala_ledger::{
+    CalaLedger, CalaLedgerConfig, Currency, DebitOrCredit, error::LedgerError,
+    velocity::error::VelocityError,
+};
+use core_accounting::{
+    AccountIdOrCode, Chart, CoreAccounting, ManualEntryInput, error::CoreAccountingError,
+    manual_transaction::error::ManualTransactionError,
+};
 use helpers::{action, object};
 use rust_decimal_macros::dec;
 
 #[tokio::test]
-#[rustfmt::skip]
-async fn manual_transaction() -> anyhow::Result<()> {
-    let (accounting, chart_ref) = prepare_test().await?;
+async fn manual_transaction_fails_for_unopened_fiscal_year() -> anyhow::Result<()> {
+    let (accounting, chart) = prepare_test().await?;
 
     let to: AccountIdOrCode = "1".parse().unwrap();
     let from: AccountIdOrCode = "2".parse().unwrap();
 
     let entries = vec![
-        ManualEntryInput::builder().account_id_or_code(to.clone()).amount(dec!(100)).currency(Currency::USD).direction(DebitOrCredit::Debit).description("test 1 debit").build().unwrap(),
-        ManualEntryInput::builder().account_id_or_code(from.clone()).amount(dec!(100)).currency(Currency::USD).direction(DebitOrCredit::Credit).description("test 1 credit").build().unwrap(),
+        ManualEntryInput::builder()
+            .account_id_or_code(to.clone())
+            .amount(dec!(100))
+            .currency(Currency::USD)
+            .direction(DebitOrCredit::Debit)
+            .description("test 1 debit")
+            .build()
+            .unwrap(),
+        ManualEntryInput::builder()
+            .account_id_or_code(from.clone())
+            .amount(dec!(100))
+            .currency(Currency::USD)
+            .direction(DebitOrCredit::Credit)
+            .description("test 1 credit")
+            .build()
+            .unwrap(),
     ];
-    accounting.execute_manual_transaction(&DummySubject, &chart_ref, None, "Test transaction 1".to_string(), None, entries).await?;
+    let res = accounting
+        .execute_manual_transaction(
+            &DummySubject,
+            &chart.reference,
+            None,
+            "Test transaction 1".to_string(),
+            None,
+            entries,
+        )
+        .await;
 
-    let account = accounting.find_ledger_account_by_code(&DummySubject, &chart_ref, "2".to_string()).await?.unwrap();
-    assert_eq!(account.usd_balance_range.expect("should have balance").close.expect("balance missing").settled(), dec!(100));
+    assert!(matches!(
+        res,
+        Err(CoreAccountingError::ManualTransactionError(
+            ManualTransactionError::LedgerError(LedgerError::VelocityError(
+                VelocityError::Enforcement(_)
+            ))
+        ))
+    ));
 
     Ok(())
 }
 
 #[tokio::test]
-#[rustfmt::skip]
-async fn ledger_transactions_by_template_code() -> anyhow::Result<()> {
-    let (accounting, chart_ref) = prepare_test().await?;
+async fn manual_transaction() -> anyhow::Result<()> {
+    let (accounting, chart) = prepare_test().await?;
+
+    let opened_as_of = "2021-01-01".parse::<chrono::NaiveDate>().unwrap();
+    accounting
+        .fiscal_year()
+        .init_fiscal_year_for_chart(&DummySubject, opened_as_of, chart.id)
+        .await?;
 
     let to: AccountIdOrCode = "1".parse().unwrap();
     let from: AccountIdOrCode = "2".parse().unwrap();
 
     let entries = vec![
-        ManualEntryInput::builder().account_id_or_code(to.clone()).amount(dec!(100)).currency(Currency::USD).direction(DebitOrCredit::Debit).description("test 1 debit").build().unwrap(),
-        ManualEntryInput::builder().account_id_or_code(from.clone()).amount(dec!(100)).currency(Currency::USD).direction(DebitOrCredit::Credit).description("test 1 credit").build().unwrap(),
+        ManualEntryInput::builder()
+            .account_id_or_code(to.clone())
+            .amount(dec!(100))
+            .currency(Currency::USD)
+            .direction(DebitOrCredit::Debit)
+            .description("test 1 debit")
+            .build()
+            .unwrap(),
+        ManualEntryInput::builder()
+            .account_id_or_code(from.clone())
+            .amount(dec!(100))
+            .currency(Currency::USD)
+            .direction(DebitOrCredit::Credit)
+            .description("test 1 credit")
+            .build()
+            .unwrap(),
+    ];
+    accounting
+        .execute_manual_transaction(
+            &DummySubject,
+            &chart.reference,
+            None,
+            "Test transaction 1".to_string(),
+            None,
+            entries,
+        )
+        .await?;
+
+    let account = accounting
+        .find_ledger_account_by_code(&DummySubject, &chart.reference, "2".to_string())
+        .await?
+        .unwrap();
+    assert_eq!(
+        account
+            .usd_balance_range
+            .expect("should have balance")
+            .close
+            .expect("balance missing")
+            .settled(),
+        dec!(100)
+    );
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn ledger_transactions_by_template_code() -> anyhow::Result<()> {
+    let (accounting, chart) = prepare_test().await?;
+
+    let opened_as_of = "2021-01-01".parse::<chrono::NaiveDate>().unwrap();
+    accounting
+        .fiscal_year()
+        .init_fiscal_year_for_chart(&DummySubject, opened_as_of, chart.id)
+        .await?;
+
+    let to: AccountIdOrCode = "1".parse().unwrap();
+    let from: AccountIdOrCode = "2".parse().unwrap();
+
+    let entries = vec![
+        ManualEntryInput::builder()
+            .account_id_or_code(to.clone())
+            .amount(dec!(100))
+            .currency(Currency::USD)
+            .direction(DebitOrCredit::Debit)
+            .description("test 1 debit")
+            .build()
+            .unwrap(),
+        ManualEntryInput::builder()
+            .account_id_or_code(from.clone())
+            .amount(dec!(100))
+            .currency(Currency::USD)
+            .direction(DebitOrCredit::Credit)
+            .description("test 1 credit")
+            .build()
+            .unwrap(),
     ];
 
-    let manual_tx = accounting.execute_manual_transaction(&DummySubject, &chart_ref, None, "Test transaction 1".to_string(), None, entries).await?;
+    let manual_tx = accounting
+        .execute_manual_transaction(
+            &DummySubject,
+            &chart.reference,
+            None,
+            "Test transaction 1".to_string(),
+            None,
+            entries,
+        )
+        .await?;
 
-    let template_txs = accounting.ledger_transactions().list_for_template_code(&DummySubject, "MANUAL_TRANSACTION_2", Default::default()).await?.entities;
+    let template_txs = accounting
+        .ledger_transactions()
+        .list_for_template_code(&DummySubject, "MANUAL_TRANSACTION_2", Default::default())
+        .await?
+        .entities;
     assert!(template_txs.iter().any(|tx| tx.id == manual_tx.id));
 
     Ok(())
@@ -53,7 +178,7 @@ async fn ledger_transactions_by_template_code() -> anyhow::Result<()> {
 
 async fn prepare_test() -> anyhow::Result<(
     CoreAccounting<DummyPerms<action::DummyAction, object::DummyObject>>,
-    String,
+    Chart,
 )> {
     use rand::Rng;
     let pool = helpers::init_pool().await?;
@@ -71,14 +196,9 @@ async fn prepare_test() -> anyhow::Result<(
 
     let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, document_storage, &jobs);
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
-    accounting
+    let chart = accounting
         .chart_of_accounts()
-        .create_chart(
-            &DummySubject,
-            "Test chart".to_string(),
-            chart_ref.clone(),
-            "2021-01-01".parse::<chrono::NaiveDate>().unwrap(),
-        )
+        .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())
         .await?;
     let import = r#"
         1,,Assets
@@ -89,5 +209,5 @@ async fn prepare_test() -> anyhow::Result<(
         .import_from_csv(&DummySubject, &chart_ref, import)
         .await?;
 
-    Ok((accounting, chart_ref))
+    Ok((accounting, chart))
 }

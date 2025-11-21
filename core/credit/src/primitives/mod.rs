@@ -37,7 +37,8 @@ es_entity::entity_id! {
     ObligationId,
     LiquidationProcessId,
     InterestAccrualCycleId,
-    TermsTemplateId;
+    TermsTemplateId,
+    FiscalYearId;
 
     CreditFacilityProposalId => PendingCreditFacilityId,
 

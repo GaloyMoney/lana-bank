@@ -784,6 +784,28 @@ impl Query {
         Ok(ChartOfAccounts::from(chart))
     }
 
+    async fn fiscal_years(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<FiscalYearsByCreatedAtCursor, FiscalYear, EmptyFields, EmptyFields>,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        list_with_cursor!(
+            FiscalYearsByCreatedAtCursor,
+            FiscalYear,
+            ctx,
+            after,
+            first,
+            |query| app
+                .accounting()
+                .list_fiscal_years_for_chart(sub, CHART_REF.0, query,)
+        )
+    }
+
     async fn balance_sheet(
         &self,
         ctx: &Context<'_>,
@@ -2084,17 +2106,36 @@ impl Mutation {
         )
     }
 
-    async fn chart_of_accounts_close_monthly(
+    async fn fiscal_year_init(
         &self,
         ctx: &Context<'_>,
-    ) -> async_graphql::Result<ChartOfAccountsCloseMonthlyPayload> {
+        input: FiscalYearInitInput,
+    ) -> async_graphql::Result<FiscalYearInitPayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         exec_mutation!(
-            ChartOfAccountsCloseMonthlyPayload,
-            ChartOfAccounts,
-            ChartId,
+            FiscalYearInitPayload,
+            FiscalYear,
+            FiscalYearId,
             ctx,
-            app.accounting().close_monthly(sub, CHART_REF.0)
+            app.accounting()
+                .init_fiscal_year_for_chart(sub, CHART_REF.0, input.opened_as_of)
+        )
+    }
+
+    async fn fiscal_year_close_month(
+        &self,
+        ctx: &Context<'_>,
+        input: FiscalYearCloseMonthInput,
+    ) -> async_graphql::Result<FiscalYearCloseMonthPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            FiscalYearCloseMonthPayload,
+            FiscalYear,
+            FiscalYearId,
+            ctx,
+            app.accounting()
+                .fiscal_year()
+                .close_month(sub, input.fiscal_year_id)
         )
     }
 

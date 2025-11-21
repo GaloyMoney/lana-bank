@@ -1,5 +1,3 @@
-use std::path::PathBuf;
-
 use crate::accounting_init::{constants::*, *};
 
 use rbac_types::Subject;
@@ -13,52 +11,53 @@ pub(crate) async fn init(
     deposit: &Deposits,
     balance_sheet: &BalanceSheets,
     profit_and_loss: &ProfitAndLossStatements,
+    fiscal_year: &FiscalYears,
     accounting_init_config: AccountingInitConfig,
 ) -> Result<(), AccountingInitError> {
-    let AccountingInitConfig {
-        chart_of_accounts_opening_date,
-        chart_of_accounts_seed_path,
-        ..
-    } = accounting_init_config.clone();
-    let opening_date = chart_of_accounts_opening_date.ok_or_else(|| {
-        AccountingInitError::MissingConfig("chart_of_accounts_opening_date".to_string())
-    })?;
+    create_chart_of_accounts(
+        chart_of_accounts,
+        fiscal_year,
+        accounting_init_config.clone(),
+    )
+    .await?;
 
-    create_chart_of_accounts(chart_of_accounts, opening_date).await?;
+    seed_chart_of_accounts(
+        chart_of_accounts,
+        trial_balances,
+        credit,
+        deposit,
+        balance_sheet,
+        profit_and_loss,
+        accounting_init_config,
+    )
+    .await?;
 
-    if let Some(path) = chart_of_accounts_seed_path {
-        seed_chart_of_accounts(
-            chart_of_accounts,
-            trial_balances,
-            credit,
-            deposit,
-            balance_sheet,
-            profit_and_loss,
-            path,
-            accounting_init_config,
-        )
-        .await?;
-    }
     Ok(())
 }
 
 async fn create_chart_of_accounts(
     chart_of_accounts: &ChartOfAccounts,
-    opening_date: chrono::NaiveDate,
+    fiscal_year: &FiscalYears,
+    accounting_init_config: AccountingInitConfig,
 ) -> Result<(), AccountingInitError> {
     if chart_of_accounts
         .maybe_find_by_reference(CHART_REF)
         .await?
         .is_none()
     {
-        chart_of_accounts
+        let chart = chart_of_accounts
             .create_chart(
                 &Subject::System,
                 CHART_NAME.to_string(),
                 CHART_REF.to_string(),
-                opening_date,
             )
             .await?;
+
+        if let Some(opening_date) = accounting_init_config.chart_of_accounts_opening_date {
+            fiscal_year
+                .init_fiscal_year_for_chart(&Subject::System, opening_date, chart.id)
+                .await?;
+        }
     }
 
     Ok(())
@@ -71,20 +70,24 @@ async fn seed_chart_of_accounts(
     deposit: &Deposits,
     balance_sheet: &BalanceSheets,
     profit_and_loss: &ProfitAndLossStatements,
-    chart_of_accounts_seed_path: PathBuf,
     accounting_init_config: AccountingInitConfig,
 ) -> Result<(), AccountingInitError> {
     let AccountingInitConfig {
+        chart_of_accounts_seed_path: seed_path,
+
         credit_config_path,
         deposit_config_path,
         balance_sheet_config_path,
         profit_and_loss_config_path,
 
         chart_of_accounts_opening_date: _,
-        chart_of_accounts_seed_path: _,
     } = accounting_init_config;
 
-    let data = std::fs::read_to_string(chart_of_accounts_seed_path)?;
+    let data = match seed_path {
+        Some(seed_path) => std::fs::read_to_string(seed_path)?,
+        None => return Ok(()),
+    };
+
     let chart = if let (chart, Some(new_account_set_ids)) = chart_of_accounts
         .import_from_csv(&Subject::System, CHART_REF, data)
         .await?

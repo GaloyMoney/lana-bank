@@ -22,10 +22,10 @@ use crate::primitives::{
 
 #[cfg(feature = "json-schema")]
 pub use chart_node::ChartNodeEvent;
+pub use entity::Chart;
 #[cfg(feature = "json-schema")]
 pub use entity::ChartEvent;
 pub(super) use entity::*;
-pub use entity::{Chart, PeriodClosing};
 use error::*;
 use import::{
     BulkAccountImport, BulkImportResult,
@@ -40,7 +40,7 @@ where
 {
     repo: ChartRepo,
     chart_ledger: ChartLedger,
-    cala: CalaLedger, // TODO: move calls into chart ledger
+    cala: CalaLedger,
     authz: Perms,
     journal_id: CalaJournalId,
 }
@@ -94,7 +94,6 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         name: String,
         reference: String,
-        first_period_opened_as_of: chrono::NaiveDate,
     ) -> Result<Chart, ChartOfAccountsError> {
         let id = ChartId::new();
 
@@ -112,7 +111,6 @@ where
             .account_set_id(id)
             .name(name)
             .reference(reference)
-            .first_period_opened_as_of(first_period_opened_as_of)
             .build()
             .expect("Could not build new chart of accounts");
 
@@ -178,44 +176,6 @@ where
             .collect::<Vec<_>>();
 
         Ok((chart, Some(new_account_set_ids.clone())))
-    }
-
-    #[instrument(
-        name = "core_accounting.chart_of_accounts.close_monthly",
-        skip(self,),
-        err
-    )]
-    pub async fn close_monthly(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart_ref: &str,
-    ) -> Result<Chart, ChartOfAccountsError> {
-        let now = crate::time::now();
-
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreAccountingObject::all_charts(),
-                CoreAccountingAction::CHART_CLOSE_MONTHLY,
-            )
-            .await?;
-
-        let mut chart = self.find_by_reference(chart_ref).await?;
-        let closed_as_of_date =
-            if let Idempotent::Executed(date) = chart.close_last_monthly_period(now)? {
-                date
-            } else {
-                return Ok(chart);
-            };
-
-        let mut op = self.repo.begin_op().await?;
-        self.repo.update_in_op(&mut op, &mut chart).await?;
-
-        self.chart_ledger
-            .monthly_close_chart_as_of(op, chart.id, closed_as_of_date)
-            .await?;
-
-        Ok(chart)
     }
 
     #[instrument(
@@ -320,6 +280,36 @@ where
 
         let new_account_set_id = chart.trial_balance_account_id_from_new_account(account_set_id);
         Ok((chart, new_account_set_id))
+    }
+
+    #[instrument(
+        name = "core_accounting.chart_of_accounts.close_as_of",
+        skip(self, op),
+        err
+    )]
+    pub async fn close_as_of(
+        &self,
+        mut op: es_entity::DbOp<'_>,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_id: ChartId,
+        closed_as_of: chrono::NaiveDate,
+    ) -> Result<(), ChartOfAccountsError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_charts(),
+                CoreAccountingAction::CHART_CLOSE_MONTHLY,
+            )
+            .await?;
+
+        let mut chart = self.find_by_id(chart_id).await?;
+        if let Idempotent::Executed(closing_date) = chart.close_as_of(closed_as_of) {
+            self.repo.update_in_op(&mut op, &mut chart).await?;
+            self.chart_ledger
+                .close_by_chart_root_account_set_as_of(op, closing_date, chart.account_set_id)
+                .await?;
+        }
+        Ok(())
     }
 
     #[instrument(name = "core_accounting.chart_of_accounts.find_by_id", skip(self), err)]

@@ -1,10 +1,5 @@
 scalar AccountCode
 
-type AccountingClosing {
-	closedAsOf: Date!
-	closedAt: Timestamp!
-}
-
 type AccountingCsvDocument {
 	id: ID!
 	documentId: UUID!
@@ -240,7 +235,6 @@ type ChartOfAccounts {
 	id: ID!
 	chartId: UUID!
 	name: String!
-	monthlyClosing: AccountingClosing!
 	children: [ChartNode!]!
 }
 
@@ -261,10 +255,6 @@ input ChartOfAccountsAddRootNodeInput {
 }
 
 type ChartOfAccountsAddRootNodePayload {
-	chartOfAccounts: ChartOfAccounts!
-}
-
-type ChartOfAccountsCloseMonthlyPayload {
 	chartOfAccounts: ChartOfAccounts!
 }
 
@@ -1337,6 +1327,58 @@ type FiniteCVLPct {
 	value: CVLPctValue!
 }
 
+type FiscalYear {
+	id: ID!
+	chartId: UUID!
+	openedAsOf: Date!
+	isOpen: Boolean!
+}
+
+input FiscalYearCloseMonthInput {
+	fiscalYearId: UUID!
+}
+
+type FiscalYearCloseMonthPayload {
+	fiscalYear: FiscalYear!
+}
+
+type FiscalYearConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [FiscalYearEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [FiscalYear!]!
+}
+
+"""
+An edge in a connection.
+"""
+type FiscalYearEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: FiscalYear!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
+input FiscalYearInitInput {
+	openedAsOf: Date!
+}
+
+type FiscalYearInitPayload {
+	fiscalYear: FiscalYear!
+}
+
 type GovernanceNavigationItems {
 	committee: Boolean!
 	policy: Boolean!
@@ -1605,7 +1647,8 @@ type Mutation {
 	customerDocumentDelete(input: CustomerDocumentDeleteInput!): CustomerDocumentDeletePayload!
 	customerDocumentArchive(input: CustomerDocumentArchiveInput!): CustomerDocumentArchivePayload!
 	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
-	chartOfAccountsCloseMonthly: ChartOfAccountsCloseMonthlyPayload!
+	fiscalYearInit(input: FiscalYearInitInput!): FiscalYearInitPayload!
+	fiscalYearCloseMonth(input: FiscalYearCloseMonthInput!): FiscalYearCloseMonthPayload!
 	chartOfAccountsAddRootNode(input: ChartOfAccountsAddRootNodeInput!): ChartOfAccountsAddRootNodePayload!
 	chartOfAccountsAddChildNode(input: ChartOfAccountsAddChildNodeInput!): ChartOfAccountsAddChildNodePayload!
 	balanceSheetConfigure(input: BalanceSheetModuleConfigureInput!): BalanceSheetModuleConfigurePayload!
@@ -1911,6 +1954,7 @@ type Query {
 	journalEntries(first: Int!, after: String): JournalEntryConnection!
 	trialBalance(from: Date!, until: Date!): TrialBalance!
 	chartOfAccounts: ChartOfAccounts!
+	fiscalYears(first: Int!, after: String): FiscalYearConnection!
 	balanceSheet(from: Date!, until: Date): BalanceSheet!
 	profitAndLossStatement(from: Date!, until: Date): ProfitAndLossStatement!
 	realtimePrice: RealtimePrice!

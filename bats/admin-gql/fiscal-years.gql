@@ -1,0 +1,19 @@
+query FiscalYears($first: Int!, $after: String) {
+    fiscalYears(first: $first, after: $after) {
+        edges {
+            cursor
+            node {
+                id
+                openedAsOf
+            }
+        }
+        nodes {
+            id
+            openedAsOf
+        }
+        pageInfo {
+            hasNextPage
+            endCursor
+        }
+    }
+}

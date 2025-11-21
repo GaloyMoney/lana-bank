@@ -24,7 +24,8 @@ es_entity::entity_id! {
     ChartNodeId,
     ManualTransactionId,
     LedgerAccountId,
-    AccountingCsvId;
+    AccountingCsvId,
+    FiscalYearId;
 
     ChartId => CalaAccountSetId,
     LedgerAccountId => CalaAccountId,
@@ -374,6 +375,7 @@ pub type BalanceSheetConfigurationAllOrOne = AllOrOne<LedgerAccountId>;
 pub type AccountingCsvAllOrOne = AllOrOne<AccountingCsvId>;
 pub type TrialBalanceAllOrOne = AllOrOne<LedgerAccountId>; // what to do if there is only All
 // option
+pub type FiscalYearAllOrOne = AllOrOne<FiscalYearId>;
 
 pub const PERMISSION_SET_ACCOUNTING_VIEWER: &str = "accounting_viewer";
 pub const PERMISSION_SET_ACCOUNTING_WRITER: &str = "accounting_writer";
@@ -394,6 +396,7 @@ pub enum CoreAccountingAction {
     BalanceSheetConfiguration(BalanceSheetConfigurationAction),
     AccountingCsv(AccountingCsvAction),
     TrialBalance(TrialBalanceAction),
+    FiscalYear(FiscalYearAction),
 }
 
 impl CoreAccountingAction {
@@ -440,6 +443,9 @@ impl CoreAccountingAction {
                 TrialBalance => {
                     map_action!(accounting, TrialBalance, TrialBalanceAction)
                 }
+                FiscalYear => {
+                    map_action!(accounting, FiscalYear, FiscalYearAction)
+                }
             })
             .collect()
     }
@@ -461,6 +467,7 @@ pub enum CoreAccountingObject {
     BalanceSheetConfiguration(BalanceSheetConfigurationAllOrOne),
     AccountingCsv(AccountingCsvAllOrOne),
     TrialBalance(TrialBalanceAllOrOne),
+    FiscalYear(FiscalYearAllOrOne),
 }
 
 impl CoreAccountingObject {
@@ -542,6 +549,13 @@ impl CoreAccountingObject {
     pub fn all_trial_balance() -> Self {
         CoreAccountingObject::TrialBalance(AllOrOne::All)
     }
+    pub fn fiscal_year(id: FiscalYearId) -> Self {
+        CoreAccountingObject::FiscalYear(AllOrOne::ById(id))
+    }
+
+    pub fn all_fiscal_years() -> Self {
+        CoreAccountingObject::FiscalYear(AllOrOne::All)
+    }
 }
 
 impl Display for CoreAccountingObject {
@@ -561,6 +575,7 @@ impl Display for CoreAccountingObject {
             BalanceSheetConfiguration(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             AccountingCsv(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             TrialBalance(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            FiscalYear(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
         }
     }
 }
@@ -629,6 +644,10 @@ impl FromStr for CoreAccountingObject {
             TrialBalance => {
                 let obj_ref = id.parse().map_err(|_| "could not parse TrialBalance")?;
                 CoreAccountingObject::TrialBalance(obj_ref)
+            }
+            FiscalYear => {
+                let obj_ref = id.parse().map_err(|_| "could not parse FiscalYear")?;
+                CoreAccountingObject::FiscalYear(obj_ref)
             }
         };
         Ok(res)
@@ -704,6 +723,11 @@ impl CoreAccountingAction {
         CoreAccountingAction::TrialBalance(TrialBalanceAction::Create);
     pub const TRIAL_BALANCE_UPDATE: Self =
         CoreAccountingAction::TrialBalance(TrialBalanceAction::Update);
+    pub const FISCAL_YEAR_READ: Self = CoreAccountingAction::FiscalYear(FiscalYearAction::Read);
+    pub const FISCAL_YEAR_LIST: Self = CoreAccountingAction::FiscalYear(FiscalYearAction::List);
+    pub const FISCAL_YEAR_INIT: Self = CoreAccountingAction::FiscalYear(FiscalYearAction::Init);
+    pub const FISCAL_YEAR_CLOSE_MONTH: Self =
+        CoreAccountingAction::FiscalYear(FiscalYearAction::CloseMonth);
 }
 
 impl Display for CoreAccountingAction {
@@ -723,6 +747,7 @@ impl Display for CoreAccountingAction {
             BalanceSheetConfiguration(action) => action.fmt(f),
             AccountingCsv(action) => action.fmt(f),
             TrialBalance(action) => action.fmt(f),
+            FiscalYear(action) => action.fmt(f),
         }
     }
 }
@@ -768,6 +793,9 @@ impl FromStr for CoreAccountingAction {
             }
             CoreAccountingActionDiscriminants::TrialBalance => {
                 CoreAccountingAction::from(action.parse::<TrialBalanceAction>()?)
+            }
+            CoreAccountingActionDiscriminants::FiscalYear => {
+                CoreAccountingAction::from(action.parse::<FiscalYearAction>()?)
             }
         };
         Ok(res)
@@ -1045,6 +1073,32 @@ impl ActionPermission for TrialBalanceAction {
 impl From<TrialBalanceAction> for CoreAccountingAction {
     fn from(action: TrialBalanceAction) -> Self {
         CoreAccountingAction::TrialBalance(action)
+    }
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
+#[strum(serialize_all = "kebab-case")]
+pub enum FiscalYearAction {
+    Init,
+    Read,
+    List,
+    CloseMonth,
+}
+
+impl ActionPermission for FiscalYearAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Read => PERMISSION_SET_ACCOUNTING_VIEWER,
+            Self::Init => PERMISSION_SET_ACCOUNTING_WRITER,
+            Self::List => PERMISSION_SET_ACCOUNTING_VIEWER,
+            Self::CloseMonth => PERMISSION_SET_ACCOUNTING_WRITER,
+        }
+    }
+}
+
+impl From<FiscalYearAction> for CoreAccountingAction {
+    fn from(action: FiscalYearAction) -> Self {
+        CoreAccountingAction::FiscalYear(action)
     }
 }
 

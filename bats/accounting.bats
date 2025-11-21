@@ -213,17 +213,18 @@ teardown_file() {
   [[ "$entryType1" != "$entryType2" ]] || exit 1
 }
 
-@test "accounting: cannot execute transaction before last closing date" {
-  exec_admin_graphql 'chart-of-accounts-closing'
+@test "accounting: cannot execute transaction before system inception date" {
+  exec_admin_graphql 'fiscal-years' '{"first": 1}'
   graphql_output
-  closing_date=$(graphql_output '.data.chartOfAccounts.monthlyClosing.closedAsOf')
-  [[ "$closing_date" != "null" ]] || exit 1
+  inception_date=$(graphql_output '.data.fiscalYears.nodes[0].openedAsOf')
+  [[ "$inception_date" != "null" ]] || exit 1
+  closed_as_of_date=$(date -d "$inception_date -1 day" +%Y-%m-%d)
 
   amount=$((RANDOM % 1000))
   variables=$(
     jq -n \
     --arg amount "$amount" \
-    --arg effective "$closing_date" \
+    --arg effective "$closed_as_of_date" \
     '{
       input: {
         description: "Manual transaction - test",

@@ -38,12 +38,6 @@ export type Scalars = {
   UsdCents: { input: UsdCents; output: UsdCents; }
 };
 
-export type AccountingClosing = {
-  __typename?: 'AccountingClosing';
-  closedAsOf: Scalars['Date']['output'];
-  closedAt: Scalars['Timestamp']['output'];
-};
-
 export type AccountingCsvDocument = {
   __typename?: 'AccountingCsvDocument';
   createdAt: Scalars['Timestamp']['output'];
@@ -271,7 +265,6 @@ export type ChartOfAccounts = {
   chartId: Scalars['UUID']['output'];
   children: Array<ChartNode>;
   id: Scalars['ID']['output'];
-  monthlyClosing: AccountingClosing;
   name: Scalars['String']['output'];
 };
 
@@ -294,11 +287,6 @@ export type ChartOfAccountsAddRootNodeInput = {
 
 export type ChartOfAccountsAddRootNodePayload = {
   __typename?: 'ChartOfAccountsAddRootNodePayload';
-  chartOfAccounts: ChartOfAccounts;
-};
-
-export type ChartOfAccountsCloseMonthlyPayload = {
-  __typename?: 'ChartOfAccountsCloseMonthlyPayload';
   chartOfAccounts: ChartOfAccounts;
 };
 
@@ -1345,6 +1333,51 @@ export type FiniteCvlPct = {
   value: Scalars['CVLPctValue']['output'];
 };
 
+export type FiscalYear = {
+  __typename?: 'FiscalYear';
+  chartId: Scalars['UUID']['output'];
+  id: Scalars['ID']['output'];
+  isOpen: Scalars['Boolean']['output'];
+  openedAsOf: Scalars['Date']['output'];
+};
+
+export type FiscalYearCloseMonthInput = {
+  fiscalYearId: Scalars['UUID']['input'];
+};
+
+export type FiscalYearCloseMonthPayload = {
+  __typename?: 'FiscalYearCloseMonthPayload';
+  fiscalYear: FiscalYear;
+};
+
+export type FiscalYearConnection = {
+  __typename?: 'FiscalYearConnection';
+  /** A list of edges. */
+  edges: Array<FiscalYearEdge>;
+  /** A list of nodes. */
+  nodes: Array<FiscalYear>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+/** An edge in a connection. */
+export type FiscalYearEdge = {
+  __typename?: 'FiscalYearEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: FiscalYear;
+};
+
+export type FiscalYearInitInput = {
+  openedAsOf: Scalars['Date']['input'];
+};
+
+export type FiscalYearInitPayload = {
+  __typename?: 'FiscalYearInitPayload';
+  fiscalYear: FiscalYear;
+};
+
 export type GovernanceNavigationItems = {
   __typename?: 'GovernanceNavigationItems';
   approvalProcess: Scalars['Boolean']['output'];
@@ -1579,7 +1612,6 @@ export type Mutation = {
   balanceSheetConfigure: BalanceSheetModuleConfigurePayload;
   chartOfAccountsAddChildNode: ChartOfAccountsAddChildNodePayload;
   chartOfAccountsAddRootNode: ChartOfAccountsAddRootNodePayload;
-  chartOfAccountsCloseMonthly: ChartOfAccountsCloseMonthlyPayload;
   chartOfAccountsCsvImport: ChartOfAccountsCsvImportPayload;
   committeeAddUser: CommitteeAddUserPayload;
   committeeCreate: CommitteeCreatePayload;
@@ -1608,6 +1640,8 @@ export type Mutation = {
   depositModuleConfigure: DepositModuleConfigurePayload;
   depositRecord: DepositRecordPayload;
   depositRevert: DepositRevertPayload;
+  fiscalYearCloseMonth: FiscalYearCloseMonthPayload;
+  fiscalYearInit: FiscalYearInitPayload;
   ledgerAccountCsvCreate: LedgerAccountCsvCreatePayload;
   loanAgreementDownloadLinkGenerate: LoanAgreementDownloadLinksGeneratePayload;
   loanAgreementGenerate: LoanAgreementGeneratePayload;
@@ -1800,6 +1834,16 @@ export type MutationDepositRecordArgs = {
 
 export type MutationDepositRevertArgs = {
   input: DepositRevertInput;
+};
+
+
+export type MutationFiscalYearCloseMonthArgs = {
+  input: FiscalYearCloseMonthInput;
+};
+
+
+export type MutationFiscalYearInitArgs = {
+  input: FiscalYearInitInput;
 };
 
 
@@ -2149,6 +2193,7 @@ export type Query = {
   disbursal?: Maybe<CreditFacilityDisbursal>;
   disbursalByPublicId?: Maybe<CreditFacilityDisbursal>;
   disbursals: CreditFacilityDisbursalConnection;
+  fiscalYears: FiscalYearConnection;
   journalEntries: JournalEntryConnection;
   ledgerAccount?: Maybe<LedgerAccount>;
   ledgerAccountByCode?: Maybe<LedgerAccount>;
@@ -2326,6 +2371,12 @@ export type QueryDisbursalByPublicIdArgs = {
 
 
 export type QueryDisbursalsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
+};
+
+
+export type QueryFiscalYearsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
 };

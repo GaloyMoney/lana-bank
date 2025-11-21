@@ -551,6 +551,23 @@ CREATE TABLE casbin_rule (
   CONSTRAINT unique_key_sqlx_adapter UNIQUE(ptype, v0, v1, v2, v3, v4, v5)
 );
 
+CREATE TABLE core_fiscal_years (
+  id UUID PRIMARY KEY,
+  chart_id UUID NOT NULL REFERENCES core_charts(id),
+  reference VARCHAR NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE core_fiscal_year_events (
+  id UUID NOT NULL REFERENCES core_fiscal_years(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE audit_entries (
   id BIGSERIAL PRIMARY KEY,
   subject VARCHAR NOT NULL,

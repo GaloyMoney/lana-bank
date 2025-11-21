@@ -7,9 +7,7 @@ use cala_ledger::{
     AccountSetId, CalaLedger, DebitOrCredit, JournalId, LedgerOperation, VelocityControlId,
     VelocityLimitId,
     account_set::{AccountSetUpdate, NewAccountSet},
-    velocity::{
-        NewBalanceLimit, NewLimit, NewVelocityControl, NewVelocityLimit, Params, VelocityLimit,
-    },
+    velocity::{NewBalanceLimit, NewLimit, NewVelocityControl, NewVelocityLimit, Params},
 };
 
 use closing::*;
@@ -37,12 +35,12 @@ impl ChartLedger {
         op: es_entity::DbOp<'_>,
         chart: &Chart,
     ) -> Result<(), ChartLedgerError> {
-        let mut op = self
+        let mut ledger_op = self
             .cala
             .ledger_operation_from_db_op(op.with_db_time().await?);
 
         let new_account_set = NewAccountSet::builder()
-            .id(chart.id)
+            .id(chart.account_set_id)
             .journal_id(self.journal_id)
             .external_id(chart.id.to_string())
             .name(chart.name.clone())
@@ -50,82 +48,69 @@ impl ChartLedger {
             .normal_balance_type(DebitOrCredit::Debit)
             .build()
             .expect("Could not build new account set");
-        let mut chart_account_set = self
-            .cala
+
+        self.cala
             .account_sets()
-            .create_in_op(&mut op, new_account_set)
+            .create_in_op(&mut ledger_op, new_account_set)
             .await?;
 
-        let control_id = self
-            .create_monthly_close_control_with_limits_in_op(&mut op)
-            .await?;
+        let control_id = self.create_close_control_in_op(&mut ledger_op).await?;
+
         self.cala
             .velocities()
             .attach_control_to_account_set_in_op(
-                &mut op,
+                &mut ledger_op,
                 control_id,
-                chart_account_set.id(),
+                chart.account_set_id,
                 Params::new(),
             )
             .await?;
 
-        let mut metadata = chart_account_set
-            .values()
-            .clone()
-            .metadata
-            .unwrap_or_else(|| serde_json::json!({}));
-        AccountingClosingMetadata::update_metadata(
-            &mut metadata,
-            chart.monthly_closing.closed_as_of,
-        );
-
-        let mut update_values = AccountSetUpdate::default();
-        update_values
-            .metadata(Some(metadata))
-            .expect("Failed to serialize metadata");
-
-        chart_account_set.update(update_values);
-        self.cala
-            .account_sets()
-            .persist_in_op(&mut op, &mut chart_account_set)
-            .await?;
-
-        op.commit().await?;
+        ledger_op.commit().await?;
         Ok(())
     }
 
-    #[instrument(name = "chart_ledger.monthly_close_chart_as_of", skip(self, op, chart_root_account_set_id), fields(chart_id = tracing::field::Empty, closed_as_of = %closed_as_of), err)]
-    pub async fn monthly_close_chart_as_of(
+    #[instrument(
+        name = "chart_ledger.close_by_chart_root_account_set_as_of", 
+        skip(self, op),
+        fields(chart_id = tracing::field::Empty, closed_as_of = %closed_as_of),
+        err,
+    )]
+    pub async fn close_by_chart_root_account_set_as_of(
         &self,
         op: es_entity::DbOp<'_>,
-        chart_root_account_set_id: impl Into<AccountSetId>,
         closed_as_of: chrono::NaiveDate,
+        chart_root_account_set_id: AccountSetId,
     ) -> Result<(), ChartLedgerError> {
-        let id = chart_root_account_set_id.into();
-        tracing::Span::current().record("chart_id", id.to_string());
-
-        let mut chart_account_set = self.cala.account_sets().find(id).await?;
+        let mut tracking_account_set = self
+            .cala
+            .account_sets()
+            .find(chart_root_account_set_id)
+            .await?;
 
         let mut op = self
             .cala
             .ledger_operation_from_db_op(op.with_db_time().await?);
 
-        let mut metadata = chart_account_set
+        let mut account_set_metadata = tracking_account_set
             .values()
             .clone()
             .metadata
             .unwrap_or_else(|| serde_json::json!({}));
-        AccountingClosingMetadata::update_metadata(&mut metadata, closed_as_of);
+        AccountingClosingMetadata::update_with_monthly_closing(
+            &mut account_set_metadata,
+            closed_as_of,
+        );
 
         let mut update_values = AccountSetUpdate::default();
         update_values
-            .metadata(Some(metadata))
+            .metadata(Some(account_set_metadata))
             .expect("Failed to serialize metadata");
 
-        chart_account_set.update(update_values);
+        tracking_account_set.update(update_values);
         self.cala
             .account_sets()
-            .persist_in_op(&mut op, &mut chart_account_set)
+            .persist_in_op(&mut op, &mut tracking_account_set)
             .await?;
 
         op.commit().await?;
@@ -133,16 +118,39 @@ impl ChartLedger {
     }
 
     #[instrument(
-        name = "chart_ledger.create_monthly_close_control_with_limits_in_op",
+        name = "chart_ledger.attach_closing_controls_to_account_set_in_op",
         skip(self, op),
         err
     )]
-    async fn create_monthly_close_control_with_limits_in_op(
+    async fn attach_closing_controls_to_account_set_in_op(
+        &self,
+        mut op: LedgerOperation<'_>,
+        tracking_account_set_id: impl Into<AccountSetId> + std::fmt::Debug,
+    ) -> Result<VelocityControlId, ChartLedgerError> {
+        let tracking_account_set_id = tracking_account_set_id.into();
+        let control_id = self.create_close_control_in_op(&mut op).await?;
+
+        self.cala
+            .velocities()
+            .attach_control_to_account_set_in_op(
+                &mut op,
+                control_id,
+                tracking_account_set_id,
+                Params::new(),
+            )
+            .await?;
+
+        op.commit().await?;
+
+        Ok(control_id)
+    }
+
+    #[instrument(name = "chart_ledger.create_close_control_in_op", skip(self, op), err)]
+    async fn create_close_control_in_op(
         &self,
         op: &mut LedgerOperation<'_>,
     ) -> Result<VelocityControlId, ChartLedgerError> {
         let monthly_cel_conditions = AccountingClosingMetadata::monthly_cel_conditions();
-
         let new_control = NewVelocityControl::builder()
             .id(VelocityControlId::new())
             .name("Account Closing")
@@ -156,13 +164,14 @@ impl ChartLedger {
             .create_control_in_op(op, new_control)
             .await?;
 
-        // TODO: add_all to avoid n+1-ish issue
+        // TODO: add_all to avoid n+1 ish issue
         let AccountClosingLimits {
             debit_settled: debit_settled_limit,
             debit_pending: debit_pending_limit,
             credit_settled: credit_settled_limit,
             credit_pending: credit_pending_limit,
         } = self.create_account_closing_limits_in_op(op).await?;
+
         self.cala
             .velocities()
             .add_limit_to_control_in_op(op, control.id(), debit_settled_limit.id())
@@ -303,11 +312,4 @@ impl ChartLedger {
             credit_pending: credit_pending_limit,
         })
     }
-}
-
-struct AccountClosingLimits {
-    debit_settled: VelocityLimit,
-    debit_pending: VelocityLimit,
-    credit_settled: VelocityLimit,
-    credit_pending: VelocityLimit,
 }
