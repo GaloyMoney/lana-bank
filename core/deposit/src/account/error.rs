@@ -10,8 +10,6 @@ pub enum DepositAccountError {
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("DepositAccountError - CannotFreezeInactiveAccount: {0}")]
     CannotFreezeInactiveAccount(crate::DepositAccountId),
-    #[error("DepositAccountError - CannotUnfreezeNonFrozenAccount: {0}")]
-    CannotUnfreezeNonFrozenAccount(crate::DepositAccountId),
     #[error("DepositAccountError - CannotUpdateClosedAccount: {0}")]
     CannotUpdateClosedAccount(crate::DepositAccountId),
     #[error("DepositAccountError - CannotUpdateFrozenAccount")]

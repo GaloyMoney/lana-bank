@@ -19,7 +19,6 @@ pub async fn interest_late_scenario(sub: Subject, app: &LanaApp) -> anyhow::Resu
     let cf_terms = helpers::std_terms();
     let cf_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
     let cf_proposal = app
-        .credit()
         .create_facility_proposal(&sub, customer_id, cf_amount, cf_terms, None::<CustodianId>)
         .await?;
 

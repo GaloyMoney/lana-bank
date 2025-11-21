@@ -8,8 +8,6 @@ pub enum CoreCreditError {
     AuditError(#[from] audit::error::AuditError),
     #[error("CoreCreditError - CustomerError: {0}")]
     CustomerError(#[from] core_customer::error::CustomerError),
-    #[error("CoreCreditError - DepositError: {0}")]
-    DepositError(#[from] core_deposit::error::CoreDepositError),
     #[error("CoreCreditError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("CoreCreditError - CreditError: {0}")]
