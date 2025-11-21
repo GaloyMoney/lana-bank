@@ -74,7 +74,7 @@ services:
         condition: service_started
 
   dagster_postgres:
-    image: postgres:15
+    image: postgres:17.5
     container_name: dagster_postgres
     environment:
       POSTGRES_USER: 'postgres_user'
