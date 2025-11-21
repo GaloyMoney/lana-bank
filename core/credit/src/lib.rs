@@ -38,7 +38,7 @@ use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Custo
 use core_deposit::{
     CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, error::CoreDepositError,
 };
-use core_price::Price;
+use core_price::{CorePriceEvent, Price};
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
@@ -92,7 +92,8 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>,
+        + OutboxEventMarker<CoreDepositEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     authz: Arc<Perms>,
     credit_facility_proposals: Arc<CreditFacilityProposals<Perms, E>>,
@@ -127,7 +128,8 @@ where
         + OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>,
+        + OutboxEventMarker<CoreDepositEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -176,7 +178,8 @@ where
         + OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>,
+        + OutboxEventMarker<CoreDepositEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     #[instrument(name = "credit.init", skip_all, fields(journal_id = %journal_id), err)]
     pub async fn init(
@@ -317,29 +320,6 @@ where
         let terms_templates = TermsTemplates::new(pool, authz_arc.clone());
         let terms_templates_arc = Arc::new(terms_templates);
 
-        jobs.add_initializer_and_spawn_unique(
-            collateralization_from_price_for_pending_facility::PendingCreditFacilityCollateralizationFromPriceInit::<
-                Perms,
-                E,
-            >::new(pending_credit_facilities_arc.as_ref().clone()),
-            collateralization_from_price_for_pending_facility::PendingCreditFacilityCollateralizationFromPriceJobConfig {
-                job_interval: config_arc.pending_collateralization_from_price_job_interval,
-                _phantom: std::marker::PhantomData,
-            },
-        ).await?;
-
-        jobs
-            .add_initializer_and_spawn_unique(
-                collateralization_from_price::CreditFacilityCollateralizationFromPriceInit::<
-                    Perms,
-                    E,
-                >::new(facilities_arc.as_ref().clone()),
-                collateralization_from_price::CreditFacilityCollateralizationFromPriceJobConfig {
-                    job_interval: config_arc.collateralization_from_price_job_interval,
-                    _phantom: std::marker::PhantomData,
-                },
-            )
-            .await?;
         jobs
             .add_initializer_and_spawn_unique(
                 collateralization_from_events_for_pending_facility::PendingCreditFacilityCollateralizationFromEventsInit::<

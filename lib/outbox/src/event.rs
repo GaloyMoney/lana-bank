@@ -54,6 +54,12 @@ impl EphemeralEventType {
     }
 }
 
+impl std::fmt::Display for EphemeralEventType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(bound(deserialize = "T: DeserializeOwned"))]
 pub struct EphemeralOutboxEvent<T>
@@ -64,6 +70,17 @@ where
     pub payload: T,
     pub(crate) tracing_context: Option<tracing_utils::persistence::SerializableTraceContext>,
     pub recorded_at: chrono::DateTime<chrono::Utc>,
+}
+
+impl<T> EphemeralOutboxEvent<T>
+where
+    T: Serialize + DeserializeOwned + Send,
+{
+    pub fn inject_trace_parent(&self) {
+        if let Some(context) = &self.tracing_context {
+            tracing_utils::persistence::set_parent(context);
+        }
+    }
 }
 
 impl<P> From<EphemeralOutboxEvent<P>> for OutboxEvent<P>
