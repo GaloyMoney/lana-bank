@@ -4,11 +4,14 @@ log:
   leak_sensitive_values: true
 
 tracing:
+  service_name: oathkeeper
   provider: otel
   providers:
     otlp:
       server_url: otel-agent:4318
       insecure: true
+      sampling:
+        sampling_ratio: 1.0
 
 authenticators:
   jwt:
