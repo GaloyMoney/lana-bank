@@ -322,18 +322,6 @@ where
 
         jobs
             .add_initializer_and_spawn_unique(
-                collateralization_from_price::CreditFacilityCollateralizationFromPriceInit::<
-                    Perms,
-                    E,
-                >::new(facilities_arc.as_ref().clone()),
-                collateralization_from_price::CreditFacilityCollateralizationFromPriceJobConfig {
-                    job_interval: config_arc.collateralization_from_price_job_interval,
-                    _phantom: std::marker::PhantomData,
-                },
-            )
-            .await?;
-        jobs
-            .add_initializer_and_spawn_unique(
                 collateralization_from_events_for_pending_facility::PendingCreditFacilityCollateralizationFromEventsInit::<
                     Perms,
                     E,
