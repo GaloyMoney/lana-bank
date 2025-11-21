@@ -102,6 +102,10 @@
       "label": "Creación de pago con fecha",
       "description": "Puede crear pagos para líneas de crédito con fechas de vigencia personalizadas"
     },
+    "credit_term_templates": {
+      "label": "Creador de plantillas de términos",
+      "description": "Permite crear y actualizar plantillas de términos"
+    },
     "customer_viewer": {
       "label": "Visualizador de clientes",
       "description": "Puede ver perfiles de clientes y detalles de cuentas"

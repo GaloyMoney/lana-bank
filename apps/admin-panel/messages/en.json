@@ -102,6 +102,10 @@
       "label": "Dated Payment Creation",
       "description": "Can create payments for credit facilities with custom effective dates"
     },
+    "credit_term_templates": {
+      "label": "Term Templates Writer",
+      "description": "Can create and update term templates"
+    },
     "customer_viewer": {
       "label": "Customer Viewer",
       "description": "Can view customer profiles and account details"
