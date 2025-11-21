@@ -254,11 +254,11 @@ where
     }
 
     #[instrument(
-        name = "credit.credit_facility.update_collateralization_from_price",
+        name = "credit.credit_facility.update_collateralization_from_price_event",
         skip(self),
         err
     )]
-    pub(super) async fn update_collateralization_from_price(
+    pub(super) async fn update_collateralization_from_price_event(
         &self,
         price: PriceOfOneBTC,
     ) -> Result<(), PendingCreditFacilityError> {

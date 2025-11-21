@@ -193,7 +193,7 @@ where
                 Span::current().record("event_type", tracing::field::display(&message.event_type));
 
                 self.credit_facilities
-                    .update_collateralization_from_price(CVLPct::UPGRADE_BUFFER, *price)
+                    .update_collateralization_from_price_event(CVLPct::UPGRADE_BUFFER, *price)
                     .await?;
             }
             _ => {}

@@ -185,7 +185,7 @@ where
                 Span::current().record("event_type", tracing::field::display(&message.event_type));
 
                 self.pending_credit_facility
-                    .update_collateralization_from_price(*price)
+                    .update_collateralization_from_price_event(*price)
                     .await?;
             }
             _ => {}
