@@ -2,7 +2,7 @@ services:
   #! Telemetry
   otel-agent:
     image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.133.0
-    ports: [4317:4317]
+    ports: [4317:4317, 4318:4318]
     environment:
       - HONEYCOMB_API_KEY=${INGEST_HONEYCOMB_API_KEY}
     command: --config=/etc/otel-agent-config.yaml
@@ -32,11 +32,16 @@ services:
       - "./dev/keycloak:/opt/keycloak/data/import"
 
   oathkeeper:
-    image: oryd/oathkeeper:v0.40.7-distroless
+    image: oryd/oathkeeper:v0.40.8-distroless
     ports: [4455:4455, 4456:4456]
+    environment:
+      - TRACING_SERVICE_NAME=oathkeeper
+      - TRACING_PROVIDER=otel
+      - TRACING_PROVIDERS_OTLP_SERVER_URL=otel-agent:4318
+      - TRACING_PROVIDERS_OTLP_INSECURE=true
     command: serve -c /home/ory/oathkeeper.yml --sqa-opt-out
     volumes: ["./dev/ory:/home/ory"]
-    depends_on: [keycloak]
+    depends_on: [keycloak, otel-agent]
 
   mailcrab:
     image: marlonb/mailcrab:latest
