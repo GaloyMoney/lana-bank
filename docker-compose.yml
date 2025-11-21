@@ -39,6 +39,7 @@ services:
       - TRACING_PROVIDER=otel
       - TRACING_PROVIDERS_OTLP_SERVER_URL=otel-agent:4318
       - TRACING_PROVIDERS_OTLP_INSECURE=true
+      - TRACING_PROVIDERS_OTLP_SAMPLING_SAMPLING_RATIO=1.0
     command: serve -c /home/ory/oathkeeper.yml --sqa-opt-out
     volumes: ["./dev/ory:/home/ory"]
     depends_on: [keycloak, otel-agent]
