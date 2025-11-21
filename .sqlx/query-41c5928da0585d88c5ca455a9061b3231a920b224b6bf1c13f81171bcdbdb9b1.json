@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT id as \"id: FundingLinkId\" FROM cpl_funding_links \n            WHERE deposit_account_id = $1\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id: FundingLinkId",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "41c5928da0585d88c5ca455a9061b3231a920b224b6bf1c13f81171bcdbdb9b1"
+}

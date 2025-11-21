@@ -1,0 +1,36 @@
+[package]
+name = "core-payment-link"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+async-trait = { workspace = true }
+audit = { workspace = true }
+authz = { workspace = true }
+chrono = { workspace = true }
+core-credit = { workspace = true }
+core-customer = { workspace = true }
+core-deposit = { workspace = true }
+core-money = { workspace = true }
+derive_builder = { workspace = true }
+es-entity = { workspace = true }
+futures = { workspace = true }
+job = { workspace = true }
+outbox = { workspace = true }
+serde = { workspace = true }
+sqlx = { workspace = true }
+strum = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }
+
+[features]
+json-schema = ["dep:schemars"]
+
+[dependencies.schemars]
+workspace = true
+optional = true
+

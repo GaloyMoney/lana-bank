@@ -28,6 +28,7 @@ use crate::{
     job::Jobs,
     notification::Notification,
     outbox::Outbox,
+    payment_link::PaymentLinks,
     price::Price,
     primitives::Subject,
     public_id::PublicIds,
@@ -50,6 +51,7 @@ pub struct LanaApp {
     deposits: Deposits,
     applicants: Applicants,
     access: Access,
+    payment_links: PaymentLinks,
     credit: Credit,
     custody: Custody,
     price: Price,
@@ -159,6 +161,20 @@ impl LanaApp {
 
         let custody = Custody::init(&pool, &authz, config.custody, &outbox).await?;
 
+        let payment_links = PaymentLinks::init(&pool, &outbox).await?;
+
+        jobs.add_initializer_and_spawn_unique(
+            core_payment_link::jobs::AccountMonitoringInit::new(&outbox, &payment_links),
+            core_payment_link::jobs::AccountMonitoringJobConfig::new(),
+        )
+        .await?;
+
+        jobs.add_initializer_and_spawn_unique(
+            core_payment_link::jobs::DisbursalCoordinationInit::new(&outbox),
+            core_payment_link::jobs::DisbursalCoordinationJobConfig::new(),
+        )
+        .await?;
+
         let credit = Credit::init(
             &pool,
             config.credit,
@@ -166,7 +182,6 @@ impl LanaApp {
             &jobs,
             &authz,
             &customers,
-            &deposits,
             &custody,
             &price,
             &outbox,
@@ -203,6 +218,7 @@ impl LanaApp {
             deposits,
             applicants,
             access,
+            payment_links,
             price,
             credit,
             custody,
@@ -285,6 +301,10 @@ impl LanaApp {
         &self.credit
     }
 
+    pub fn payment_links(&self) -> &PaymentLinks {
+        &self.payment_links
+    }
+
     pub fn access(&self) -> &Access {
         &self.access
     }
@@ -295,6 +315,41 @@ impl LanaApp {
 
     pub fn contract_creation(&self) -> &ContractCreation {
         &self.contract_creation
+    }
+
+    /// Create a FundingLink for a credit facility
+    ///
+    /// This establishes the connection between a credit facility and a deposit account
+    /// for disbursement purposes. The FundingLink monitors the account status and
+    /// emits events when the account becomes unusable (closed/frozen).
+    #[instrument(name = "lana.create_funding_link_for_facility", skip(self), err)]
+    pub async fn create_funding_link_for_facility(
+        &self,
+        customer_id: crate::customer::CustomerId,
+        credit_facility_id: uuid::Uuid,
+    ) -> Result<crate::payment_link::FundingLink, ApplicationError> {
+        // Find the deposit account for this customer
+        let deposit_account = self
+            .deposits
+            .find_account_by_account_holder_without_audit(customer_id)
+            .await?;
+
+        // Create the funding link
+        let funding_link = self
+            .payment_links
+            .create_funding_link(customer_id, deposit_account.id, credit_facility_id)
+            .await?;
+
+        // Link the deposit account's Cala account ID to the pending credit facility
+        // so that when it activates, disbursals will target the correct account
+        self.credit
+            .link_disbursal_account(
+                credit_facility_id,
+                deposit_account.account_ids.deposit_account_id,
+            )
+            .await?;
+
+        Ok(funding_link)
     }
 
     pub async fn get_visible_nav_items(

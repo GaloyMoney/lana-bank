@@ -387,6 +387,24 @@ where
         self.repo.find_by_id(id.into()).await
     }
 
+    #[instrument(name = "credit.pending_credit_facility.link_disbursal_account", skip(self))]
+    #[es_entity::retry_on_concurrent_modification(any_error = true)]
+    pub(crate) async fn link_disbursal_account(
+        &self,
+        id: PendingCreditFacilityId,
+        disbursal_credit_account_id: CalaAccountId,
+    ) -> Result<(), PendingCreditFacilityError> {
+        let mut op = self.repo.begin_op().await?;
+        let mut pending_facility = self.repo.find_by_id_in_op(&mut op, id).await?;
+
+        if pending_facility.link_disbursal_account(disbursal_credit_account_id).did_execute() {
+            self.repo.update_in_op(&mut op, &mut pending_facility).await?;
+            op.commit().await?;
+        }
+
+        Ok(())
+    }
+
     #[instrument(name = "credit.pending_credit_facility.find_by_id", skip(self, sub))]
     pub async fn find_by_id(
         &self,

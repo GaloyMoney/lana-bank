@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO cpl_funding_links (id, customer_id, deposit_account_id, credit_facility_id, created_at) VALUES ($1, $2, $3, $4, COALESCE($5, NOW()))",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "497f288b74dffa4eafed9096bf3ad69079f2a5b8a30ba7f4cc888f8b54d45cd0"
+}

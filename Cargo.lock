@@ -1487,6 +1487,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "core-payment-link"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "audit",
+ "authz",
+ "chrono",
+ "core-credit",
+ "core-customer",
+ "core-deposit",
+ "core-money",
+ "derive_builder",
+ "es-entity",
+ "futures",
+ "job",
+ "outbox",
+ "schemars 1.0.4",
+ "serde",
+ "sqlx",
+ "strum 0.27.2",
+ "thiserror 2.0.17",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "core-price"
 version = "0.0.0"
 dependencies = [
@@ -3358,6 +3385,7 @@ dependencies = [
  "core-customer",
  "core-deposit",
  "core-money",
+ "core-payment-link",
  "core-price",
  "core-report",
  "customer-sync",
@@ -3423,6 +3451,7 @@ dependencies = [
  "core-custody",
  "core-customer",
  "core-deposit",
+ "core-payment-link",
  "core-price",
  "core-report",
  "governance",

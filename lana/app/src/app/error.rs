@@ -2,6 +2,8 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum ApplicationError {
+    #[error("ApplicationError - PaymentLinkError: {0}")]
+    PaymentLinkError(#[from] crate::payment_link::PaymentLinkError),
     #[error("ApplicationError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
     #[error("ApplicationError - MigrateError: {0}")]

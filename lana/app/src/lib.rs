@@ -156,6 +156,15 @@ pub mod custody {
         core_custody::CoreCustody<crate::authorization::Authorization, lana_events::LanaEvent>;
 }
 
+pub mod payment_link {
+    pub use core_payment_link::{
+        BrokenReason, CorePaymentLinkEvent, FundingLink, FundingLinkId, LinkStatus,
+        PaymentLinkError,
+    };
+
+    pub type PaymentLinks = core_payment_link::CorePaymentLink<lana_events::LanaEvent>;
+}
+
 pub mod credit {
     pub use core_credit::{
         APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS, APPROVE_DISBURSAL_PROCESS,

@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE cpl_funding_links SET customer_id = $2, deposit_account_id = $3, credit_facility_id = $4, status = $5 WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "6d58018870b82f0edf2a60990c2f79cb4fbbb20eef8d10f3fb313c487063b555"
+}

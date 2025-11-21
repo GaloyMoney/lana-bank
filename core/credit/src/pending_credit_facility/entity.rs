@@ -45,6 +45,9 @@ pub enum PendingCreditFacilityEvent {
     CollateralizationRatioChanged {
         collateralization_ratio: CollateralizationRatio,
     },
+    DisbursalAccountLinked {
+        disbursal_credit_account_id: CalaAccountId,
+    },
     Completed {},
 }
 
@@ -177,6 +180,23 @@ impl PendingCreditFacility {
             .unwrap_or(PendingCreditFacilityCollateralizationState::UnderCollateralized)
     }
 
+    pub(super) fn link_disbursal_account(
+        &mut self,
+        disbursal_credit_account_id: CalaAccountId,
+    ) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            PendingCreditFacilityEvent::DisbursalAccountLinked { .. }
+        );
+
+        self.events
+            .push(PendingCreditFacilityEvent::DisbursalAccountLinked {
+                disbursal_credit_account_id,
+            });
+
+        Idempotent::Executed(())
+    }
+
     pub(super) fn complete(
         &mut self,
         balances: PendingCreditFacilityBalanceSummary,
@@ -295,6 +315,11 @@ impl TryFromEvents<PendingCreditFacilityEvent> for PendingCreditFacility {
                 }
                 PendingCreditFacilityEvent::CollateralizationStateChanged { .. } => {}
                 PendingCreditFacilityEvent::CollateralizationRatioChanged { .. } => {}
+                PendingCreditFacilityEvent::DisbursalAccountLinked {
+                    disbursal_credit_account_id,
+                } => {
+                    builder = builder.disbursal_credit_account_id(*disbursal_credit_account_id);
+                }
                 PendingCreditFacilityEvent::Completed { .. } => {}
             }
         }

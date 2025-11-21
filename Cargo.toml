@@ -41,6 +41,7 @@ core-custody = { path = "core/custody" }
 core-customer = { path = "core/customer" }
 core-deposit = { path = "core/deposit" }
 core-money = { path = "core/money" }
+core-payment-link = { path = "core/payment-link" }
 core-price = { path = "core/price" }
 core-report = { path = "core/report" }
 document-storage = { path = "core/document-storage" }
