@@ -1,8 +1,4 @@
 receivers:
-  jaeger:
-    protocols:
-      thrift_compact: # on port 6831
-      thrift_binary: # on port 6832
   otlp:
     protocols:
       grpc:
@@ -27,6 +23,6 @@ service:
   extensions: [health_check, pprof, zpages]
   pipelines:
     traces:
-      receivers: [jaeger, otlp]
+      receivers: [otlp]
       processors: []
       exporters: [otlp, debug]
