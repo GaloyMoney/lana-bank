@@ -6,9 +6,13 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
-use outbox::{EventSequence, Outbox, OutboxEventMarker, PersistentOutboxEvent};
+use outbox::{
+    EphemeralOutboxEvent, EventSequence, Outbox, OutboxEvent, OutboxEventMarker,
+    PersistentOutboxEvent,
+};
 
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
+use core_price::CorePriceEvent;
 
 use crate::{
     event::CoreCreditEvent, pending_credit_facility::PendingCreditFacilities, primitives::*,
@@ -27,7 +31,8 @@ where
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     type Initializer = PendingCreditFacilityCollateralizationFromEventsInit<Perms, E>;
 }
@@ -41,7 +46,8 @@ where
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     outbox: Outbox<E>,
     pending_credit_facilities: PendingCreditFacilities<Perms, E>,
@@ -56,7 +62,8 @@ where
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     pub fn new(
         outbox: &Outbox<E>,
@@ -80,7 +87,8 @@ where
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     fn job_type() -> JobType
     where
@@ -118,7 +126,8 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     outbox: Outbox<E>,
     pending_credit_facility: PendingCreditFacilities<Perms, E>,
@@ -133,11 +142,12 @@ where
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
-    #[instrument(name = "core_credit.pending_credit_facility_collateralization_job.process_message", parent = None, skip(self, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty, credit_facility_proposal_id = tracing::field::Empty))]
+    #[instrument(name = "core_credit.pending_credit_facility_collateralization_job.process_persistent_message", parent = None, skip(self, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty, credit_facility_proposal_id = tracing::field::Empty))]
     #[allow(clippy::single_match)]
-    async fn process_message(
+    async fn process_persistent_message(
         &self,
         message: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error>> {
@@ -161,6 +171,27 @@ where
         }
         Ok(())
     }
+
+    #[instrument(name = "core_credit.pending_credit_facility_collateralization_job.process_ephemeral_message", parent = None, skip(self, message), fields(handled = false, event_type = tracing::field::Empty))]
+    #[allow(clippy::single_match)]
+    async fn process_ephemeral_message(
+        &self,
+        message: &EphemeralOutboxEvent<E>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        match message.payload.as_event() {
+            Some(CorePriceEvent::PriceUpdated { price, .. }) => {
+                message.inject_trace_parent();
+                Span::current().record("handled", true);
+                Span::current().record("event_type", tracing::field::display(&message.event_type));
+
+                self.pending_credit_facility
+                    .update_collateralization_from_price(*price)
+                    .await?;
+            }
+            _ => {}
+        }
+        Ok(())
+    }
 }
 
 #[async_trait::async_trait]
@@ -173,7 +204,8 @@ where
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     async fn run(
         &self,
@@ -182,12 +214,19 @@ where
         let mut state = current_job
             .execution_state::<PendingCreditFacilityCollateralizationFromEventsData>()?
             .unwrap_or_default();
-        let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
+        let mut stream = self.outbox.listen_all(Some(state.sequence)).await?;
 
-        while let Some(message) = stream.next().await {
-            self.process_message(&message).await?;
-            state.sequence = message.sequence;
-            current_job.update_execution_state(state).await?;
+        while let Some(event) = stream.next().await {
+            match event {
+                OutboxEvent::Persistent(e) => {
+                    self.process_persistent_message(&e).await?;
+                    state.sequence = e.sequence;
+                    current_job.update_execution_state(state).await?;
+                }
+                OutboxEvent::Ephemeral(e) => {
+                    self.process_ephemeral_message(e.as_ref()).await?;
+                }
+            }
         }
 
         Ok(JobCompletion::RescheduleNow)

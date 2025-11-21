@@ -260,8 +260,8 @@ where
     )]
     pub(super) async fn update_collateralization_from_price(
         &self,
+        price: PriceOfOneBTC,
     ) -> Result<(), PendingCreditFacilityError> {
-        let price = self.price.usd_cents_per_btc().await;
         let mut has_next_page = true;
         let mut after: Option<PendingCreditFacilitiesByCollateralizationRatioCursor> = None;
         while has_next_page {
