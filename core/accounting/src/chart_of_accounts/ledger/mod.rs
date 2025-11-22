@@ -71,14 +71,14 @@ impl ChartLedger {
     }
 
     #[instrument(
-        name = "chart_ledger.close_by_chart_root_account_set_as_of", 
+        name = "chart_ledger.close_by_chart_root_account_set_as_of_in_op", 
         skip(self, op),
         fields(chart_id = tracing::field::Empty, closed_as_of = %closed_as_of),
         err,
     )]
-    pub async fn close_by_chart_root_account_set_as_of(
+    pub async fn close_by_chart_root_account_set_as_of_in_op(
         &self,
-        op: es_entity::DbOp<'_>,
+        op: &mut LedgerOperation<'_>,
         closed_as_of: chrono::NaiveDate,
         chart_root_account_set_id: AccountSetId,
     ) -> Result<(), ChartLedgerError> {
@@ -87,10 +87,6 @@ impl ChartLedger {
             .account_sets()
             .find(chart_root_account_set_id)
             .await?;
-
-        let mut ledger_op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
 
         let mut account_set_metadata = tracking_account_set
             .values()
@@ -110,10 +106,9 @@ impl ChartLedger {
         tracking_account_set.update(update_values);
         self.cala
             .account_sets()
-            .persist_in_op(&mut ledger_op, &mut tracking_account_set)
+            .persist_in_op(op, &mut tracking_account_set)
             .await?;
 
-        ledger_op.commit().await?;
         Ok(())
     }
 

@@ -303,18 +303,25 @@ where
             .await?;
 
         let mut chart = self.find_by_id(chart_id).await?;
-        let closing = chart.close_as_of(closed_as_of);
-        let Idempotent::Executed(closing_date) = closing else {
-            op.commit().await?;
-            return Ok(());
-        };
-
-        self.repo.update_in_op(&mut op, &mut chart).await?;
-
-        self.chart_ledger
-            .close_by_chart_root_account_set_as_of(op, closing_date, chart.account_set_id)
-            .await?;
-
+        match chart.close_as_of(closed_as_of) {
+            Idempotent::Executed(closing_date) => {
+                self.repo.update_in_op(&mut op, &mut chart).await?;
+                let mut ledger_op = self
+                    .cala
+                    .ledger_operation_from_db_op(op.with_db_time().await?);
+                self.chart_ledger
+                    .close_by_chart_root_account_set_as_of_in_op(
+                        &mut ledger_op,
+                        closing_date,
+                        chart.account_set_id,
+                    )
+                    .await?;
+                ledger_op.commit().await?;
+            }
+            Idempotent::Ignored => {
+                op.commit().await?;
+            }
+        }
         Ok(())
     }
 
