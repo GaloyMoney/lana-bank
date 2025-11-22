@@ -16,6 +16,7 @@ anyhow = { workspace = true }
 axum = { workspace = true, optional = true }
 axum-extra = { workspace = true }
 serde = { workspace = true }
+thiserror = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 tracing-opentelemetry = { workspace = true }
