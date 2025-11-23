@@ -245,7 +245,9 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
     }
     info!("Server handles finished");
 
-    app.shutdown().await?;
+    if let Err(e) = app.shutdown().await {
+        eprintln!("Error shutting down app: {}", e);
+    }
     eprintln!("shutdown complete");
 
     result
