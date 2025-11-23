@@ -7799,7 +7799,6 @@ dependencies = [
  "standback",
  "subtle",
  "syn 2.0.110",
- "thiserror 2.0.17",
  "time 0.3.44",
  "tokio",
  "tokio-stream",
