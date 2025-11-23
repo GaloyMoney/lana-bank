@@ -312,6 +312,10 @@ impl LanaApp {
         tracing::info!("app.shutdown");
 
         self.jobs.shutdown().await?;
+
+        // Shutdown tracer to flush all pending spans
+        tracing_utils::shutdown_tracer()?;
+
         Ok(())
     }
 }

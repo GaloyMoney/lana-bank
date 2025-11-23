@@ -22,8 +22,13 @@ use primitives::*;
 
 use std::sync::Arc;
 
+use std::future::Future;
+
 #[instrument(name = "admin_server.run", skip_all)]
-pub async fn run(config: AdminServerConfig, app: LanaApp) -> anyhow::Result<()> {
+pub async fn run<S>(config: AdminServerConfig, app: LanaApp, signal: S) -> anyhow::Result<()>
+where
+    S: Future<Output = ()> + Send + 'static,
+{
     let port = config.port;
     let aud = config.aud.as_ref();
 
@@ -58,7 +63,9 @@ pub async fn run(config: AdminServerConfig, app: LanaApp) -> anyhow::Result<()> 
     info!("Starting admin server on port {port}");
     let listener =
         tokio::net::TcpListener::bind(&std::net::SocketAddr::from(([0, 0, 0, 0], port))).await?;
-    axum::serve(listener, app.into_make_service()).await?;
+    axum::serve(listener, app.into_make_service())
+        .with_graceful_shutdown(signal)
+        .await?;
     Ok(())
 }
 
