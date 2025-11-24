@@ -37,14 +37,17 @@ pub async fn timely_payments_scenario(sub: Subject, app: &LanaApp) -> anyhow::Re
 
     let (tx, rx) = mpsc::channel::<UsdCents>(32);
     let sim_app = app.clone();
-    tokio::spawn(
-        async move {
-            do_timely_payments(sub, sim_app, cf_proposal.id.into(), rx)
-                .await
-                .expect("timely payments failed");
-        }
-        .instrument(Span::current()),
-    );
+    let _ = tokio::task::Builder::new()
+        .name("sim-bootstrap.timely-payments-handler")
+        .spawn(
+            async move {
+                do_timely_payments(sub, sim_app, cf_proposal.id.into(), rx)
+                    .await
+                    .expect("timely payments failed");
+            }
+            .instrument(Span::current()),
+        )
+        .expect("Failed to spawn sim-bootstrap.timely-payments-handler task");
 
     while let Some(msg) = stream.next().await {
         if process_obligation_message(&msg, &cf_proposal, &tx).await? {

@@ -44,25 +44,31 @@ pub async fn disbursal_different_months_scenario(
     }
 
     let sim_app = app.clone();
-    tokio::spawn(
-        async move {
-            do_disbursal_in_different_months(sub, sim_app, cf_proposal.id.into())
-                .await
-                .expect("disbursal different months failed");
-        }
-        .instrument(Span::current()),
-    );
+    let _ = tokio::task::Builder::new()
+        .name("sim-bootstrap.disbursal-diff-months-handler")
+        .spawn(
+            async move {
+                do_disbursal_in_different_months(sub, sim_app, cf_proposal.id.into())
+                    .await
+                    .expect("disbursal different months failed");
+            }
+            .instrument(Span::current()),
+        )
+        .expect("Failed to spawn sim-bootstrap.disbursal-diff-months-handler task");
 
     let (tx, rx) = mpsc::channel::<UsdCents>(32);
     let sim_app = app.clone();
-    tokio::spawn(
-        async move {
-            do_timely_payments(sub, sim_app, cf_proposal.id.into(), rx)
-                .await
-                .expect("disbursal different months timely payments failed");
-        }
-        .instrument(Span::current()),
-    );
+    let _ = tokio::task::Builder::new()
+        .name("disbursal-diff-months-payments")
+        .spawn(
+            async move {
+                do_timely_payments(sub, sim_app, cf_proposal.id.into(), rx)
+                    .await
+                    .expect("disbursal different months timely payments failed");
+            }
+            .instrument(Span::current()),
+        )
+        .expect("Failed to spawn disbursal-diff-months-payments task");
 
     while let Some(msg) = stream.next().await {
         if process_obligation_message(&msg, &cf_proposal, &tx).await? {

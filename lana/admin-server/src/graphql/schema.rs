@@ -31,6 +31,11 @@ impl Query {
         Ok(MeUser::from(user))
     }
 
+    async fn sleep(&self, _ctx: &Context<'_>, seconds: u64) -> async_graphql::Result<String> {
+        tokio::time::sleep(std::time::Duration::from_secs(seconds)).await;
+        Ok("Wake up!".to_string())
+    }
+
     async fn dashboard(&self, ctx: &Context<'_>) -> async_graphql::Result<Dashboard> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let dashboard = app.dashboard().load(sub).await?;

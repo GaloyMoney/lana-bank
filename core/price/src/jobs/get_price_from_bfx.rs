@@ -85,7 +85,7 @@ where
 {
     async fn run(
         &self,
-        _current_job: CurrentJob,
+        mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         loop {
             let price: PriceOfOneBTC = bfx_client::fetch_price(self.bfx_client.as_ref()).await?;
@@ -100,7 +100,19 @@ where
                 )
                 .await?;
 
-            sleep(PRICE_UPDATE_INTERVAL).await;
+            tokio::select! {
+                _ = sleep(PRICE_UPDATE_INTERVAL) => {
+                    tracing::debug!(job_id = %current_job.id(), "Sleep completed, continuing");
+                }
+                _ = current_job.shutdown_requested() => {
+                    tracing::info!(
+                        job_id = %current_job.id(),
+                        job_type = "cron.core-price.get-price-from-bfx",
+                        "Job received shutdown signal (during sleep), exiting gracefully"
+                    );
+                    return Ok(JobCompletion::RescheduleNow);
+                }
+            }
         }
     }
 }
