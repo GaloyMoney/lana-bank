@@ -67,6 +67,7 @@ pub enum CoreCreditEvent {
         effective: chrono::NaiveDate,
         collateral: Satoshis,
         outstanding: CreditFacilityReceivable,
+        cvl: CVLPct,
         price: PriceOfOneBTC,
     },
     DisbursalSettled {
@@ -119,10 +120,8 @@ pub enum CoreCreditEvent {
     },
     LiquidationProcessStarted {
         id: LiquidationProcessId,
-        obligation_id: ObligationId,
         credit_facility_id: CreditFacilityId,
         ledger_tx_id: LedgerTxId,
-        amount: UsdCents,
         recorded_at: DateTime<Utc>,
         effective: chrono::NaiveDate,
     },

@@ -517,6 +517,7 @@ pub enum CreditFacilityStatus {
     #[default]
     Active,
     Matured,
+    // InLiquidation ???
     Closed,
 }
 
@@ -629,6 +630,7 @@ pub enum CollateralizationState {
     FullyCollateralized,
     UnderMarginCallThreshold,
     UnderLiquidationThreshold,
+    // InLiquidation ???
     #[default]
     NoCollateral,
     NoExposure,

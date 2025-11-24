@@ -90,6 +90,7 @@ where
                     collateral,
                     outstanding,
                     price,
+                    cvl,
                     ..
                 } => Some(CoreCreditEvent::FacilityCollateralizationChanged {
                     id: entity.id,
@@ -99,6 +100,7 @@ where
                     collateral: *collateral,
                     outstanding: *outstanding,
                     price: *price,
+                    cvl: *cvl,
                 }),
 
                 _ => None,
@@ -422,17 +424,13 @@ where
             .map(|event| match &event.event {
                 Initialized {
                     id,
-                    obligation_id,
                     credit_facility_id,
                     ledger_tx_id,
-                    initial_amount,
                     effective,
                     ..
                 } => CoreCreditEvent::LiquidationProcessStarted {
                     id: *id,
-                    obligation_id: *obligation_id,
                     credit_facility_id: *credit_facility_id,
-                    amount: *initial_amount,
                     effective: *effective,
                     ledger_tx_id: *ledger_tx_id,
                     recorded_at: event.recorded_at,
@@ -442,6 +440,14 @@ where
                     obligation_id: entity.obligation_id,
                     credit_facility_id: entity.credit_facility_id,
                 },
+                CollateralSentOut {
+                    amount,
+                    ledger_tx_id,
+                } => todo!(),
+                RepaymentAmountReceived {
+                    amount,
+                    ledger_tx_id,
+                } => todo!(),
             })
             .collect::<Vec<_>>();
         self.outbox
