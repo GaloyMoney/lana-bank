@@ -166,7 +166,6 @@ impl LanaApp {
             &jobs,
             &authz,
             &customers,
-            &deposits,
             &custody,
             &price,
             &outbox,
@@ -313,5 +312,39 @@ impl LanaApp {
 
         self.jobs.shutdown().await?;
         Ok(())
+    }
+
+    #[instrument(name = "lana.app.create_proposal", skip(self),fields(credit_facility_proposal_id = tracing::field::Empty), err)]
+    pub async fn create_facility_proposal(
+        &self,
+        sub: &Subject,
+        customer_id: impl Into<crate::primitives::CustomerId> + std::fmt::Debug + Copy,
+        amount: core_money::UsdCents,
+        terms: core_credit::TermValues,
+        custodian_id: Option<impl Into<crate::primitives::CustodianId> + std::fmt::Debug + Copy>,
+    ) -> Result<crate::credit::CreditFacilityProposal, ApplicationError> {
+        let customer_id = customer_id.into();
+        let deposit_account = self
+            .deposits()
+            .find_account_by_account_holder_without_audit(customer_id)
+            .await?;
+
+        if deposit_account.is_closed() || deposit_account.is_frozen() {
+            return Err(ApplicationError::CanNotCreateProposalForClosedOrFrozenAccount);
+        }
+
+        let ret = self
+            .credit()
+            .create_facility_proposal(
+                sub,
+                customer_id,
+                deposit_account.id,
+                amount,
+                terms,
+                custodian_id,
+            )
+            .await?;
+
+        Ok(ret)
     }
 }

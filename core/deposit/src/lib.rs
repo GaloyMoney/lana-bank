@@ -609,9 +609,9 @@ where
             self.deposit_accounts
                 .update_in_op(&mut op, &mut account)
                 .await?;
-        }
 
-        self.ledger.freeze_account_in_op(op, &account).await?;
+            self.ledger.freeze_account_in_op(op, &account).await?;
+        }
 
         Ok(account)
     }
@@ -639,9 +639,9 @@ where
             self.deposit_accounts
                 .update_in_op(&mut op, &mut account)
                 .await?;
-        }
 
-        self.ledger.unfreeze_account_in_op(op, &account).await?;
+            self.ledger.unfreeze_account_in_op(op, &account).await?;
+        }
 
         Ok(account)
     }

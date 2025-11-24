@@ -76,7 +76,6 @@ pub async fn process_facility_lifecycle(
     let mut stream = app.outbox().listen_persisted(None).await?;
 
     let cf_proposal = app
-        .credit()
         .create_facility_proposal(
             &sub,
             customer_id,
