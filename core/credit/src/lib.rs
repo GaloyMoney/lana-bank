@@ -586,13 +586,15 @@ where
         Ok(credit_facility_proposal)
     }
 
-    #[instrument(name = "credit.history", skip(self), err)]
+    #[instrument(name = "credit.history", skip(self, credit_facility_id), fields(credit_facility_id = tracing::field::Empty), err)]
     pub async fn history<T: From<CreditFacilityHistoryEntry>>(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug,
     ) -> Result<Vec<T>, CoreCreditError> {
         let id = credit_facility_id.into();
+        tracing::Span::current().record("credit_facility_id", tracing::field::display(id));
+
         self.authz
             .enforce_permission(
                 sub,
@@ -638,7 +640,7 @@ where
             .await?)
     }
 
-    #[instrument(name = "credit.initiate_disbursal", skip(self), err)]
+    #[instrument(name = "credit.initiate_disbursal", skip(self),fields(credit_facility_id = %credit_facility_id), err)]
     pub async fn initiate_disbursal(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -863,7 +865,7 @@ where
             .await?)
     }
 
-    #[instrument(name = "credit.record_payment", skip(self), err)]
+    #[instrument(name = "credit.record_payment", skip(self, credit_facility_id), fields(credit_facility_id = tracing::field::Empty), err)]
     #[es_entity::retry_on_concurrent_modification(any_error = true)]
     pub async fn record_payment(
         &self,
@@ -876,6 +878,11 @@ where
             .expect("audit info missing");
 
         let credit_facility_id = credit_facility_id.into();
+
+        tracing::Span::current().record(
+            "credit_facility_id",
+            tracing::field::display(credit_facility_id),
+        );
 
         let credit_facility = self
             .facilities
