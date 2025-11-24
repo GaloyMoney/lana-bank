@@ -177,26 +177,37 @@ def report_sample_txt(
     }
 
 
-def inform_lana_of_reports(context: dg.AssetExecutionContext) -> None:
+def inform_lana_of_reports(
+    context: dg.AssetExecutionContext,
+    report_sample_csv: Dict[str, str],
+    report_sample_xml: Dict[str, str],
+    report_sample_txt: Dict[str, str],
+) -> None:
     """
     Inform Lana system of all generated reports.
     This asset runs after all report assets have completed.
     """
     context.log.info("Informing Lana of generated reports...")
     
-    # Get the run ID to query for upstream asset materializations
-    run_id = context.run_id
+    # Collect all report information
+    reports = [
+        report_sample_csv,
+        report_sample_xml,
+        report_sample_txt,
+    ]
     
-    # Log information about the dependent assets
-    context.log.info(f"Run ID: {run_id}")
-    context.log.info("This asset depends on: report_sample_csv, report_sample_xml, report_sample_txt")
+    # Log detailed information about each report
+    for report in reports:
+        context.log.info(
+            f"Report generated: format={report['format']}, "
+            f"gcs_path={report['gcs_path']}, "
+            f"timestamp={report['timestamp']}"
+        )
     
     # In a real implementation, you would:
-    # 1. Query the Dagster API to get the metadata from the upstream assets
-    # 2. Send this information to the Lana system via API call
-    # 3. Store notification status in a database
+    # 1. Send this information to the Lana system via API call
+    # 2. Store notification status in a database
     
-    # For now, we'll just log that the notification would be sent
     context.log.info("All reports have been generated and uploaded successfully.")
     context.log.info("Notification would be sent to Lana system here.")
     
@@ -204,7 +215,8 @@ def inform_lana_of_reports(context: dg.AssetExecutionContext) -> None:
     context.add_output_metadata(
         {
             "notification_time": datetime.utcnow().isoformat(),
-            "dependent_reports": ["csv", "xml", "txt"],
+            "dependent_reports": [r["format"] for r in reports],
+            "report_paths": [r["gcs_path"] for r in reports],
             "status": "completed",
         }
     )
@@ -234,7 +246,11 @@ def file_report_protoassets() -> Dict[str, Protoasset]:
         "inform_lana_of_reports": Protoasset(
             key="inform_lana_of_reports",
             callable=inform_lana_of_reports,
-            deps=["report_sample_csv", "report_sample_xml", "report_sample_txt"],
+            ins={
+                "report_sample_csv": "report_sample_csv",
+                "report_sample_xml": "report_sample_xml",
+                "report_sample_txt": "report_sample_txt",
+            },
             tags={"category": "notification"},
         ),
     }

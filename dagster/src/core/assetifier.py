@@ -25,13 +25,22 @@ def lana_assetifier(protoasset: "Protoasset") -> Union[dg.asset, dg.AssetSpec]:
         asset = dg.AssetSpec(key=protoasset.key, tags=protoasset.tags)
         return asset
 
+    # Build ins mapping if provided
+    ins_mapping = None
+    if protoasset.ins:
+        ins_mapping = {
+            param_name: dg.AssetIn(key=asset_key)
+            for param_name, asset_key in protoasset.ins.items()
+        }
+
     @dg.asset(
         key=protoasset.key,
         tags=protoasset.tags,
         deps=protoasset.deps,
+        ins=ins_mapping,
         required_resource_keys=protoasset.required_resource_keys,
     )
-    def wrapped_callable(context: dg.AssetExecutionContext) -> None:
+    def wrapped_callable(context: dg.AssetExecutionContext, **upstream_outputs):
         asset_key_str: str = context.asset_key.to_user_string()
 
         span_name = f"asset_{asset_key_str}_run"
@@ -48,7 +57,10 @@ def lana_assetifier(protoasset: "Protoasset") -> Union[dg.asset, dg.AssetSpec]:
         if protoasset.required_resource_keys:
             for resource_key in protoasset.required_resource_keys:
                 callable_kwargs[resource_key] = getattr(context.resources, resource_key)
+        
+        # Add upstream outputs to kwargs
+        callable_kwargs.update(upstream_outputs)
 
-        traced_callable(**callable_kwargs)
+        return traced_callable(**callable_kwargs)
 
     return wrapped_callable
