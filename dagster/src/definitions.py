@@ -6,6 +6,7 @@ from typing import List, Tuple, Union
 import dagster as dg
 from src.assets import (
     bitfinex_protoassets,
+    file_report_protoassets,
     iris_dataset_size,
     lana_source_protoassets,
     lana_to_dw_el_protoassets,
@@ -123,5 +124,10 @@ for lana_source_protoasset in lana_source_protoassets():
     definition_builder.add_asset_from_protoasset(lana_source_protoasset)
 for lana_to_dw_el_protoasset in lana_to_dw_el_protoassets():
     definition_builder.add_asset_from_protoasset(lana_to_dw_el_protoasset)
+
+# Register file report assets
+file_report_protoassets_dict = file_report_protoassets()
+for protoasset in file_report_protoassets_dict.values():
+    definition_builder.add_asset_from_protoasset(protoasset)
 
 defs = definition_builder.build()
