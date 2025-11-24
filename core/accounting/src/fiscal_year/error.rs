@@ -14,6 +14,8 @@ pub enum FiscalYearError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("FiscalYearError - ChartOfAccountsError: {0}")]
     ChartOfAccountsError(#[from] crate::chart_of_accounts::error::ChartOfAccountsError),
+    #[error("FiscalYearError - NotReadyForAnnualClose")]
+    NotReadyForAnnualClose,
 }
 
 es_entity::from_es_entity_error!(FiscalYearError);

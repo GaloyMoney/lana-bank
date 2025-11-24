@@ -13,7 +13,7 @@ pub struct FiscalYear {
     fiscal_year_id: UUID,
     chart_id: UUID,
     opened_as_of: Date,
-    is_open: bool,
+    closed_as_of: Option<Date>,
     #[graphql(skip)]
     pub(crate) entity: Arc<DomainFiscalYear>,
 }
@@ -24,7 +24,7 @@ impl From<DomainFiscalYear> for FiscalYear {
             fiscal_year_id: UUID::from(fiscal_year.id),
             chart_id: UUID::from(fiscal_year.chart_id),
             opened_as_of: fiscal_year.opened_as_of.into(),
-            is_open: fiscal_year.is_open(),
+            closed_as_of: fiscal_year.closed_as_of.map(|date| date.into()),
             entity: Arc::new(fiscal_year),
         }
     }
@@ -69,3 +69,10 @@ pub struct FiscalYearInitInput {
 }
 
 crate::mutation_payload! { FiscalYearInitPayload, fiscal_year: FiscalYear }
+
+#[derive(InputObject)]
+pub struct FiscalYearCloseAndOpenNextInput {
+    pub fiscal_year_id: UUID,
+}
+
+crate::mutation_payload! { FiscalYearCloseAndOpenNextPayload, fiscal_year: FiscalYear }

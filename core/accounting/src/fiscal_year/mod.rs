@@ -106,6 +106,40 @@ where
         Ok(fiscal_year)
     }
 
+    #[instrument(
+        name = "core_accounting.fiscal_year.close_and_open_next",
+        skip(self),
+        err
+    )]
+    pub async fn close_and_open_next(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        fiscal_year_id: impl Into<FiscalYearId> + std::fmt::Debug + Copy,
+    ) -> Result<FiscalYear, FiscalYearError> {
+        let id = fiscal_year_id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::fiscal_year(id),
+                CoreAccountingAction::FISCAL_YEAR_INIT,
+            )
+            .await?;
+        let now = crate::time::now();
+
+        let mut fiscal_year = self.repo.find_by_id(id).await?;
+        match fiscal_year.close_and_open_next(now)? {
+            Idempotent::Executed(next_fiscal_year) => {
+                let mut op = self.repo.begin_op().await?;
+                let new_fiscal_year = self.repo.create_in_op(&mut op, next_fiscal_year).await?;
+                // TODO: Use `ChartLedger` via `ChartOfAccounts` to transfer
+                // net income from `ProfitAndLossStatement` to `BalanceSheet`.
+                op.commit().await?;
+                Ok(new_fiscal_year)
+            }
+            Idempotent::Ignored => return Ok(fiscal_year),
+        }
+    }
+
     #[instrument(name = "core_accounting.fiscal_year.close_month", skip(self), err)]
     pub async fn close_month(
         &self,

@@ -6,6 +6,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
+use super::error::*;
 use crate::primitives::{ChartId, FiscalYearId};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -20,8 +21,13 @@ pub enum FiscalYearEvent {
         opened_as_of: chrono::NaiveDate,
     },
     MonthClosed {
+        month_closed_as_of: NaiveDate,
+        month_closed_at: DateTime<Utc>,
+    },
+    YearClosed {
         closed_as_of: NaiveDate,
         closed_at: DateTime<Utc>,
+        // TODO: LedgerTransactionId on this event or the Chart entity event (as optional)?
     },
 }
 
@@ -32,7 +38,8 @@ pub struct FiscalYear {
     pub chart_id: ChartId,
     pub reference: String,
     pub opened_as_of: NaiveDate,
-
+    #[builder(default)]
+    pub closed_as_of: Option<NaiveDate>,
     events: EntityEvents<FiscalYearEvent>,
 }
 
@@ -42,13 +49,45 @@ pub struct FiscalMonthClosure {
 }
 
 impl FiscalYear {
+    #[instrument(name = "fiscal_year.close_and_open_next", skip(self, now))]
+    pub(super) fn close_and_open_next(
+        &mut self,
+        now: DateTime<Utc>,
+    ) -> Result<Idempotent<NewFiscalYear>, FiscalYearError> {
+        self.check_can_close()?;
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            FiscalYearEvent::YearClosed { .. }
+        );
+        self.events.push(FiscalYearEvent::YearClosed {
+            closed_as_of: now.date_naive(),
+            closed_at: now,
+        });
+        let next_fiscal_year = NewFiscalYear::builder()
+            .id(FiscalYearId::new())
+            .chart_id(self.chart_id)
+            .opened_as_of(self.start_of_next_fiscal_year())
+            .build()
+            .expect("Failed to build next fiscal year");
+
+        Ok(Idempotent::Executed(next_fiscal_year))
+    }
+
+    fn start_of_next_fiscal_year(&self) -> NaiveDate {
+        let next_year = self.opened_as_of.year() + 1;
+        NaiveDate::from_ymd_opt(next_year, 1, 1)
+            .expect("Failed to compute start of next fiscal year")
+    }
+
     #[instrument(name = "fiscal_year.close_next_sequential_month", skip(self, now))]
     pub(super) fn close_next_sequential_month(
         &mut self,
         now: DateTime<Utc>,
     ) -> Idempotent<NaiveDate> {
         let last_recorded_date = self.events.iter_all().rev().find_map(|event| match event {
-            FiscalYearEvent::MonthClosed { closed_as_of, .. } => Some(*closed_as_of),
+            FiscalYearEvent::MonthClosed {
+                month_closed_as_of, ..
+            } => Some(*month_closed_as_of),
             _ => None,
         });
         let new_monthly_closing_date = match last_recorded_date {
@@ -83,8 +122,8 @@ impl FiscalYear {
         };
 
         self.events.push(FiscalYearEvent::MonthClosed {
-            closed_as_of: new_monthly_closing_date,
-            closed_at: now,
+            month_closed_as_of: new_monthly_closing_date,
+            month_closed_at: now,
         });
         Idempotent::Executed(new_monthly_closing_date)
     }
@@ -107,14 +146,34 @@ impl FiscalYear {
 
     #[instrument(name = "fiscal_year.is_open", skip(self))]
     pub fn is_open(&self) -> bool {
-        // TODO: Manage `FiscalYear` entity lifecycle.
-        true
+        !self
+            .events
+            .iter_all()
+            .rev()
+            .any(|event| matches!(event, FiscalYearEvent::YearClosed { .. }))
+    }
+
+    fn check_can_close(&self) -> Result<(), FiscalYearError> {
+        let year = self.opened_as_of.year();
+        let last_month_of_year = NaiveDate::from_ymd_opt(year, 12, 1)
+            .expect("Failed to compute december of fiscal year");
+        let expected_last_month_closed_as_of = last_month_of_year
+            .checked_add_months(Months::new(1))
+            .and_then(|d| d.with_day(1))
+            .and_then(|d| d.pred_opt())
+            .expect("Failed to compute expected december closing date for fiscal year");
+        if self.events.iter_all().rev().any(|event| matches!(event, FiscalYearEvent::MonthClosed { month_closed_as_of, .. } if *month_closed_as_of == expected_last_month_closed_as_of)) {
+            return Ok(());
+        }
+        Err(FiscalYearError::NotReadyForAnnualClose)
     }
 }
 
 impl TryFromEvents<FiscalYearEvent> for FiscalYear {
     fn try_from_events(events: EntityEvents<FiscalYearEvent>) -> Result<Self, EsEntityError> {
         let mut builder = FiscalYearBuilder::default();
+        // TODO: Handle optional tracked field.
+        let mut closed_as_of = None;
 
         for event in events.iter_all() {
             match event {
@@ -132,9 +191,13 @@ impl TryFromEvents<FiscalYearEvent> for FiscalYear {
                         .opened_as_of(*opened_as_of)
                 }
                 FiscalYearEvent::MonthClosed { .. } => {}
+                FiscalYearEvent::YearClosed {
+                    closed_as_of: year_closed_as_of,
+                    ..
+                } => closed_as_of = Some(*year_closed_as_of),
             }
         }
-        builder.events(events).build()
+        builder.closed_as_of(closed_as_of).events(events).build()
     }
 }
 
@@ -204,7 +267,9 @@ mod test {
             .iter_all()
             .rev()
             .find_map(|e| match e {
-                FiscalYearEvent::MonthClosed { closed_as_of, .. } => Some(*closed_as_of),
+                FiscalYearEvent::MonthClosed {
+                    month_closed_as_of, ..
+                } => Some(*month_closed_as_of),
                 _ => None,
             })
             .unwrap();
@@ -238,5 +303,54 @@ mod test {
         let _ = fiscal_year.close_next_sequential_month(Utc::now()).unwrap();
         let second_closing_date = fiscal_year.close_next_sequential_month(Utc::now());
         assert!(second_closing_date.was_ignored());
+    }
+
+    #[test]
+    fn not_ready_for_close_year_and_open_next_with_no_december_closing() {
+        let period_start = "2024-01-01".parse::<NaiveDate>().unwrap();
+        let mut fiscal_year = fiscal_year_from(initial_events_with_opened_date(period_start));
+
+        let _ = fiscal_year.close_next_sequential_month(Utc::now()).unwrap();
+        let result = fiscal_year.close_and_open_next(Utc::now());
+        assert!(result.is_err());
+        assert!(matches!(
+            result,
+            Err(FiscalYearError::NotReadyForAnnualClose)
+        ));
+    }
+
+    #[test]
+    fn close_year_and_open_next_with_december_closing() {
+        let period_start = "2024-12-01".parse::<NaiveDate>().unwrap();
+        let mut fiscal_year = fiscal_year_from(initial_events_with_opened_date(period_start));
+
+        let _ = fiscal_year.close_next_sequential_month(Utc::now()).unwrap();
+        let result = fiscal_year.close_and_open_next(Utc::now());
+        assert!(result.is_ok());
+
+        let db_op = result.unwrap();
+        assert!(db_op.did_execute());
+
+        let next_fiscal_year = db_op.unwrap();
+        assert_eq!(
+            next_fiscal_year.opened_as_of,
+            "2025-01-01".parse::<NaiveDate>().unwrap()
+        );
+
+        let expected_reference = format!("{}:AC2025", fiscal_year.chart_id);
+        assert_eq!(next_fiscal_year.reference(), expected_reference);
+    }
+
+    #[test]
+    fn close_year_and_open_next_ignored_for_current_year() {
+        let period_start = "2024-12-01".parse::<NaiveDate>().unwrap();
+        let mut fiscal_year = fiscal_year_from(initial_events_with_opened_date(period_start));
+
+        let _ = fiscal_year.close_next_sequential_month(Utc::now()).unwrap();
+        let _ = fiscal_year.close_and_open_next(Utc::now());
+
+        let second_closing = fiscal_year.close_and_open_next(Utc::now());
+        assert!(second_closing.is_ok());
+        assert!(second_closing.unwrap().was_ignored());
     }
 }
