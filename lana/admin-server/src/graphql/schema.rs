@@ -1779,7 +1779,7 @@ impl Mutation {
             CreditFacilityProposalCreatePayload,
             CreditFacilityProposal,
             ctx,
-            app.credit().create_facility_proposal(
+            app.create_facility_proposal(
                 sub,
                 customer_id,
                 facility,

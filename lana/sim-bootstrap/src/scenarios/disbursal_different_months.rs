@@ -27,7 +27,6 @@ pub async fn disbursal_different_months_scenario(
     let cf_terms = helpers::std_terms_12m();
     let cf_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
     let cf_proposal = app
-        .credit()
         .create_facility_proposal(&sub, customer_id, cf_amount, cf_terms, None::<CustodianId>)
         .await?;
 

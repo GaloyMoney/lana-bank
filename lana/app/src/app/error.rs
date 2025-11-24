@@ -58,4 +58,6 @@ pub enum ApplicationError {
     ReportError(#[from] crate::report::error::ReportError),
     #[error("ApplicationError - TracingError: {0}")]
     TracingError(#[from] tracing_utils::TracingError),
+    #[error("ApplicationError - CanNotCreateProposalForClosedOrFrozenAccount")]
+    CanNotCreateProposalForClosedOrFrozenAccount,
 }

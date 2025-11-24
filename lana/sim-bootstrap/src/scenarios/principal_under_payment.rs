@@ -30,7 +30,6 @@ pub async fn principal_under_payment_scenario(sub: Subject, app: &LanaApp) -> an
     let cf_terms = helpers::std_terms_with_liquidation();
     let cf_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
     let cf_proposal = app
-        .credit()
         .create_facility_proposal(&sub, customer_id, cf_amount, cf_terms, None::<CustodianId>)
         .await?;
 

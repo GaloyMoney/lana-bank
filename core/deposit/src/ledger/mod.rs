@@ -648,30 +648,33 @@ impl DepositLedger {
         account: &DepositAccount,
     ) -> Result<(), DepositLedgerError> {
         let balance = self.balance(account.id).await?;
-        if balance.settled.is_zero() {
-            op.commit().await?;
-            return Ok(());
-        }
 
         let mut op = self
             .cala
             .ledger_operation_from_db_op(op.with_db_time().await?);
 
-        let params = templates::FreezeAccountParams {
-            journal_id: self.journal_id,
-            account_id: account.account_ids.deposit_account_id,
-            frozen_accounts_account_id: account.account_ids.frozen_deposit_account_id,
-            amount: balance.settled.to_usd(),
-            currency: self.usd,
-        };
+        if !balance.settled.is_zero() {
+            let params = templates::FreezeAccountParams {
+                journal_id: self.journal_id,
+                account_id: account.account_ids.deposit_account_id,
+                frozen_accounts_account_id: account.account_ids.frozen_deposit_account_id,
+                amount: balance.settled.to_usd(),
+                currency: self.usd,
+            };
+
+            self.cala
+                .post_transaction_in_op(
+                    &mut op,
+                    TransactionId::new(),
+                    templates::FREEZE_ACCOUNT_CODE,
+                    params,
+                )
+                .await?;
+        }
 
         self.cala
-            .post_transaction_in_op(
-                &mut op,
-                TransactionId::new(),
-                templates::FREEZE_ACCOUNT_CODE,
-                params,
-            )
+            .accounts()
+            .lock_in_op(&mut op, account.account_ids.deposit_account_id)
             .await?;
 
         op.commit().await?;
@@ -697,31 +700,33 @@ impl DepositLedger {
         let frozen_balance = self
             .balance(account.account_ids.frozen_deposit_account_id)
             .await?;
-        if frozen_balance.settled.is_zero() {
-            op.commit().await?;
-            return Ok(());
-        }
-
         let mut op = self
             .cala
             .ledger_operation_from_db_op(op.with_db_time().await?);
 
-        let params = templates::UnfreezeAccountParams {
-            journal_id: self.journal_id,
-            account_id: account.account_ids.deposit_account_id,
-            frozen_accounts_account_id: account.account_ids.frozen_deposit_account_id,
-            amount: frozen_balance.settled.to_usd(),
-            currency: self.usd,
-        };
-
         self.cala
-            .post_transaction_in_op(
-                &mut op,
-                TransactionId::new(),
-                templates::UNFREEZE_ACCOUNT_CODE,
-                params,
-            )
+            .accounts()
+            .unlock_in_op(&mut op, account.account_ids.deposit_account_id)
             .await?;
+
+        if !frozen_balance.settled.is_zero() {
+            let params = templates::UnfreezeAccountParams {
+                journal_id: self.journal_id,
+                account_id: account.account_ids.deposit_account_id,
+                frozen_accounts_account_id: account.account_ids.frozen_deposit_account_id,
+                amount: frozen_balance.settled.to_usd(),
+                currency: self.usd,
+            };
+
+            self.cala
+                .post_transaction_in_op(
+                    &mut op,
+                    TransactionId::new(),
+                    templates::UNFREEZE_ACCOUNT_CODE,
+                    params,
+                )
+                .await?;
+        }
 
         op.commit().await?;
 
@@ -1084,11 +1089,12 @@ impl DepositLedger {
         update
             .metadata(new_meta)
             .expect("Could not update metadata");
-        internal_account_set.update(update);
-        self.cala
-            .account_sets()
-            .persist_in_op(op, &mut internal_account_set)
-            .await?;
+        if internal_account_set.update(update).did_execute() {
+            self.cala
+                .account_sets()
+                .persist_in_op(op, &mut internal_account_set)
+                .await?;
+        }
 
         Ok(())
     }

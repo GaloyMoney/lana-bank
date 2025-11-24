@@ -25,7 +25,6 @@ pub async fn interest_under_payment_scenario(sub: Subject, app: &LanaApp) -> any
     let cf_terms = helpers::std_terms();
     let cf_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
     let cf_proposal = app
-        .credit()
         .create_facility_proposal(&sub, customer_id, cf_amount, cf_terms, None::<CustodianId>)
         .await?;
 

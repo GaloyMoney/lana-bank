@@ -45,20 +45,6 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let public_ids = PublicIds::new(&pool);
     let price = core_price::Price::init(&jobs, &outbox).await?;
 
-    let deposits = core_deposit::CoreDeposit::init(
-        &pool,
-        &authz,
-        &outbox,
-        &governance,
-        &jobs,
-        &cala,
-        journal_id,
-        &public_ids,
-        &customers,
-        Default::default(),
-    )
-    .await?;
-
     let credit = CoreCredit::init(
         &pool,
         Default::default(),
@@ -66,7 +52,6 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         &jobs,
         &authz,
         &customers,
-        &deposits,
         &custody,
         &price,
         &outbox,

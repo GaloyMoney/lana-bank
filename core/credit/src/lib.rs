@@ -35,9 +35,6 @@ use core_custody::{
     CoreCustody, CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject, CustodianId,
 };
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
-use core_deposit::{
-    CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, error::CoreDepositError,
-};
 use core_price::{CorePriceEvent, Price};
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
@@ -91,9 +88,8 @@ where
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<CorePriceEvent>,
+        + OutboxEventMarker<CorePriceEvent>
+        + OutboxEventMarker<CoreCustomerEvent>,
 {
     authz: Arc<Perms>,
     credit_facility_proposals: Arc<CreditFacilityProposals<Perms, E>>,
@@ -105,7 +101,6 @@ where
     repayment_plan_repo: Arc<RepaymentPlanRepo>,
     governance: Arc<Governance<Perms, E>>,
     customer: Arc<Customers<Perms, E>>,
-    deposit: Arc<CoreDeposit<Perms, E>>,
     ledger: Arc<CreditLedger>,
     price: Arc<Price>,
     config: Arc<CreditConfig>,
@@ -127,9 +122,8 @@ where
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<CorePriceEvent>,
+        + OutboxEventMarker<CorePriceEvent>
+        + OutboxEventMarker<CoreCustomerEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -146,7 +140,6 @@ where
             repayment_plan_repo: self.repayment_plan_repo.clone(),
             governance: self.governance.clone(),
             customer: self.customer.clone(),
-            deposit: self.deposit.clone(),
             ledger: self.ledger.clone(),
             price: self.price.clone(),
             config: self.config.clone(),
@@ -167,19 +160,16 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
         + From<GovernanceAction>
         + From<CoreCustomerAction>
-        + From<CoreCustodyAction>
-        + From<CoreDepositAction>,
+        + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
         + From<GovernanceObject>
         + From<CustomerObject>
-        + From<CoreCustodyObject>
-        + From<CoreDepositObject>,
+        + From<CoreCustodyObject>,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<CorePriceEvent>,
+        + OutboxEventMarker<CorePriceEvent>
+        + OutboxEventMarker<CoreCustomerEvent>,
 {
     #[instrument(name = "credit.init", skip_all, fields(journal_id = %journal_id), err)]
     pub async fn init(
@@ -189,7 +179,6 @@ where
         jobs: &Jobs,
         authz: &Perms,
         customer: &Customers<Perms, E>,
-        deposit: &CoreDeposit<Perms, E>,
         custody: &CoreCustody<Perms, E>,
         price: &Price,
         outbox: &Outbox<E>,
@@ -204,7 +193,6 @@ where
         let price_arc = Arc::new(price.clone());
         let public_ids_arc = Arc::new(public_ids.clone());
         let customer_arc = Arc::new(customer.clone());
-        let deposit_arc = Arc::new(deposit.clone());
         let custody_arc = Arc::new(custody.clone());
         let cala_arc = Arc::new(cala.clone());
         let config_arc = Arc::new(config);
@@ -428,7 +416,6 @@ where
         Ok(Self {
             authz: authz_arc,
             customer: customer_arc,
-            deposit: deposit_arc,
             credit_facility_proposals: proposals_arc,
             pending_credit_facilities: pending_credit_facilities_arc,
             facilities: facilities_arc,
@@ -532,6 +519,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug + Copy,
+        deposit_account_id: impl Into<CalaAccountId> + std::fmt::Debug,
         amount: UsdCents,
         terms: TermValues,
         custodian_id: Option<impl Into<CustodianId> + std::fmt::Debug + Copy>,
@@ -543,18 +531,6 @@ where
         let customer = self.customer.find_by_id_without_audit(customer_id).await?;
         if self.config.customer_active_check_enabled && !customer.kyc_verification.is_verified() {
             return Err(CoreCreditError::CustomerNotVerified);
-        }
-
-        let deposit_account = self
-            .deposit
-            .find_account_by_account_holder_without_audit(customer.id)
-            .await?;
-
-        if deposit_account.is_closed() {
-            return Err(CoreDepositError::DepositAccountClosed.into());
-        }
-        if deposit_account.is_frozen() {
-            return Err(CoreDepositError::DepositAccountFrozen.into());
         }
 
         let proposal_id = CreditFacilityProposalId::new();
@@ -570,7 +546,7 @@ where
             .customer_id(customer.id)
             .customer_type(customer.customer_type)
             .custodian_id(custodian_id.map(|id| id.into()))
-            .disbursal_credit_account_id(deposit_account.id)
+            .disbursal_credit_account_id(deposit_account_id)
             .terms(terms)
             .amount(amount)
             .build()
@@ -658,17 +634,6 @@ where
         let customer = self.customer.find_by_id_without_audit(customer_id).await?;
         if self.config.customer_active_check_enabled && !customer.kyc_verification.is_verified() {
             return Err(CoreCreditError::CustomerNotVerified);
-        }
-
-        let account = self
-            .deposit
-            .find_account_by_account_holder_without_audit(customer_id)
-            .await?;
-        if account.is_closed() {
-            return Err(CoreDepositError::DepositAccountClosed.into());
-        }
-        if account.is_frozen() {
-            return Err(CoreDepositError::DepositAccountFrozen.into());
         }
 
         let now = crate::time::now();
@@ -882,17 +847,6 @@ where
             .find_by_id_without_audit(credit_facility_id)
             .await?;
 
-        let account = self
-            .deposit
-            .find_account_by_account_holder_without_audit(credit_facility.customer_id)
-            .await?;
-        if account.is_closed() {
-            return Err(CoreDepositError::DepositAccountClosed.into());
-        }
-        if account.is_frozen() {
-            return Err(CoreDepositError::DepositAccountFrozen.into());
-        }
-
         let mut db = self.facilities.begin_op().await?;
 
         let payment = self
@@ -948,17 +902,6 @@ where
             .facilities
             .find_by_id_without_audit(credit_facility_id)
             .await?;
-
-        let account = self
-            .deposit
-            .find_account_by_account_holder_without_audit(credit_facility.customer_id)
-            .await?;
-        if account.is_closed() {
-            return Err(CoreDepositError::DepositAccountClosed.into());
-        }
-        if account.is_frozen() {
-            return Err(CoreDepositError::DepositAccountFrozen.into());
-        }
 
         let mut db = self.facilities.begin_op().await?;
 
