@@ -1,6 +1,13 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+pub mod error;
+
+use std::sync::{
+    Arc, Mutex,
+    atomic::{AtomicBool, Ordering},
+};
+
 use opentelemetry::{KeyValue, global, trace::TracerProvider};
 use opentelemetry_otlp::WithExportConfig;
 use opentelemetry_sdk::{
@@ -12,6 +19,7 @@ use opentelemetry_semantic_conventions::resource::SERVICE_NAMESPACE;
 use serde::{Deserialize, Serialize};
 use tracing_subscriber::{filter::EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
+pub use error::TracingError;
 pub use tracing::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -27,6 +35,16 @@ impl Default for TracingConfig {
         }
     }
 }
+
+/// Handle for managing tracer lifecycle
+#[derive(Clone)]
+pub struct TracerHandle {
+    provider: Arc<SdkTracerProvider>,
+    shutdown_called: Arc<AtomicBool>,
+}
+
+// Global handle for shutdown coordination
+static TRACER_HANDLE: Mutex<Option<TracerHandle>> = Mutex::new(None);
 
 pub fn init_tracer(config: TracingConfig) -> anyhow::Result<()> {
     global::set_text_map_propagator(TraceContextPropagator::new());
@@ -45,8 +63,20 @@ pub fn init_tracer(config: TracingConfig) -> anyhow::Result<()> {
         .with_sampler(Sampler::AlwaysOn)
         .build();
 
-    global::set_tracer_provider(provider.clone());
-    let tracer = provider.tracer("lana-tracer");
+    let provider_arc = Arc::new(provider);
+
+    // Store handle in global state for graceful shutdown
+    let handle = TracerHandle {
+        provider: Arc::clone(&provider_arc),
+        shutdown_called: Arc::new(AtomicBool::new(false)),
+    };
+    {
+        let mut guard = TRACER_HANDLE.lock().expect("Failed to lock tracer handle");
+        *guard = Some(handle);
+    }
+
+    global::set_tracer_provider((*provider_arc).clone());
+    let tracer = provider_arc.tracer("lana-tracer");
     let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
 
     let fmt_layer = fmt::layer().compact();
@@ -62,6 +92,53 @@ pub fn init_tracer(config: TracingConfig) -> anyhow::Result<()> {
         .init();
 
     setup_panic_hook();
+
+    Ok(())
+}
+
+/// Gracefully shutdown the tracer provider, flushing all pending spans
+///
+/// This should be called during application shutdown to ensure all telemetry
+/// data is properly exported before the process exits.
+pub fn shutdown_tracer() -> Result<(), TracingError> {
+    // Get the handle from global state
+    let handle = {
+        let guard = TRACER_HANDLE.lock().expect("Failed to lock tracer handle");
+        guard.clone()
+    };
+
+    if let Some(handle) = handle {
+        perform_shutdown(handle)?;
+    } else {
+        eprintln!("No tracer handle found during shutdown");
+    }
+
+    Ok(())
+}
+
+fn perform_shutdown(handle: TracerHandle) -> Result<(), TracingError> {
+    // Ensure shutdown is only called once using atomic bool
+    if handle
+        .shutdown_called
+        .compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)
+        .is_err()
+    {
+        eprintln!("Tracer shutdown already called, skipping");
+        return Ok(());
+    }
+
+    println!("Shutting down tracer provider");
+
+    // Force flush and shutdown the provider
+    // This ensures all pending spans are exported
+    if let Err(e) = handle.provider.force_flush() {
+        eprintln!("Error flushing tracer provider: {:?}", e);
+    } else {
+        println!("Tracer provider flushed successfully");
+    }
+
+    handle.provider.shutdown()?;
+    println!("Tracer provider shut down successfully");
 
     Ok(())
 }
@@ -99,12 +176,6 @@ fn telemetry_resource(config: &TracingConfig) -> Resource {
         .with_service_name(config.service_name.clone())
         .with_attributes([KeyValue::new(SERVICE_NAMESPACE, "lana")])
         .build()
-}
-
-pub fn insert_error_fields(level: tracing::Level, error: impl std::fmt::Display) {
-    Span::current().record("error", tracing::field::display("true"));
-    Span::current().record("error.level", tracing::field::display(level));
-    Span::current().record("error.message", tracing::field::display(error));
 }
 
 #[cfg(feature = "http")]

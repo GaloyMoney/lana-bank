@@ -20,8 +20,13 @@ use lana_app::app::LanaApp;
 pub use config::*;
 use primitives::*;
 
+use std::future::Future;
+
 #[instrument(name = "customer_server.run", skip_all)]
-pub async fn run(config: CustomerServerConfig, app: LanaApp) -> anyhow::Result<()> {
+pub async fn run<S>(config: CustomerServerConfig, app: LanaApp, signal: S) -> anyhow::Result<()>
+where
+    S: Future<Output = ()> + Send + 'static,
+{
     let port = config.port;
     let aud = config.aud.as_ref();
 
@@ -54,7 +59,9 @@ pub async fn run(config: CustomerServerConfig, app: LanaApp) -> anyhow::Result<(
     info!("Starting customer server on port {port}");
     let listener =
         tokio::net::TcpListener::bind(&std::net::SocketAddr::from(([0, 0, 0, 0], port))).await?;
-    axum::serve(listener, app.into_make_service()).await?;
+    axum::serve(listener, app.into_make_service())
+        .with_graceful_shutdown(signal)
+        .await?;
     Ok(())
 }
 

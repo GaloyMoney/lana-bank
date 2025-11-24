@@ -163,7 +163,8 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
         sim_time::init(config.time);
     }
 
-    let (send, mut receive) = tokio::sync::mpsc::channel(1);
+    let (error_send, mut error_recv) = tokio::sync::mpsc::channel(1);
+    let (shutdown_send, shutdown_recv) = tokio::sync::broadcast::channel(1);
     let mut server_handles = Vec::new();
     let pool = db::init_pool(&config.db).await?;
 
@@ -184,23 +185,29 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
         let _ = sim_bootstrap::run(superuser_email.to_string(), &app, config.bootstrap).await;
     }
 
-    let admin_send = send.clone();
+    let admin_error_send = error_send.clone();
     let admin_app = app.clone();
+    let mut admin_shutdown = shutdown_recv.resubscribe();
 
     server_handles.push(tokio::spawn(async move {
-        let _ = admin_send.try_send(
-            admin_server::run(config.admin_server, admin_app)
-                .await
-                .context("Admin server error"),
+        let _ = admin_error_send.try_send(
+            admin_server::run(config.admin_server, admin_app, async move {
+                let _ = admin_shutdown.recv().await;
+            })
+            .await
+            .context("Admin server error"),
         );
     }));
-    let customer_send = send.clone();
+    let customer_error_send = error_send.clone();
     let customer_app = app.clone();
+    let mut customer_shutdown = shutdown_recv.resubscribe();
     server_handles.push(tokio::spawn(async move {
-        let _ = customer_send.try_send(
-            customer_server::run(config.customer_server, customer_app)
-                .await
-                .context("Customer server error"),
+        let _ = customer_error_send.try_send(
+            customer_server::run(config.customer_server, customer_app, async move {
+                let _ = customer_shutdown.recv().await;
+            })
+            .await
+            .context("Customer server error"),
         );
     }));
 
@@ -211,9 +218,14 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
         .context("Failed to setup SIGINT handler")?;
 
     let result = tokio::select! {
-        reason = receive.recv() => {
-            error!("Shutting down due to error...");
-            reason.expect("Didn't receive msg")
+        reason = error_recv.recv() => {
+            let reason = reason.expect("Didn't receive error msg");
+            if let Err(ref e) = reason {
+                error!(error = ?e, "Shutting down due to error");
+            } else {
+                error!("Shutting down unexpectedly");
+            }
+            reason
         }
         _ = sigterm.recv() => {
             info!("Received SIGTERM, shutting down gracefully...");
@@ -225,11 +237,17 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
         }
     };
 
-    for handle in server_handles {
-        handle.abort();
-    }
+    info!("Sending shutdown signal to servers");
+    let _ = shutdown_send.send(());
 
-    app.shutdown().await?;
+    for handle in server_handles {
+        let _ = handle.await;
+    }
+    info!("Server handles finished");
+
+    if let Err(e) = app.shutdown().await {
+        eprintln!("Error shutting down app: {}", e);
+    }
     eprintln!("shutdown complete");
 
     result

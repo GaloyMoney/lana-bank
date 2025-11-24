@@ -56,6 +56,8 @@ pub enum ApplicationError {
     ContractCreationError(#[from] crate::contract_creation::ContractCreationError),
     #[error("ApplicationError - ReportError: {0}")]
     ReportError(#[from] crate::report::error::ReportError),
+    #[error("ApplicationError - TracingError: {0}")]
+    TracingError(#[from] tracing_utils::TracingError),
     #[error("ApplicationError - CanNotCreateProposalForClosedOrFrozenAccount")]
     CanNotCreateProposalForClosedOrFrozenAccount,
 }
