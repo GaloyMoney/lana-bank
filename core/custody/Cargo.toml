@@ -35,6 +35,7 @@ uuid = { workspace = true }
 http = { workspace = true }
 hmac = { workspace = true }
 sha2 = { workspace = true }
+sim-time = { workspace = true, optional = true }
 
 async-graphql = { workspace = true, optional = true }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
