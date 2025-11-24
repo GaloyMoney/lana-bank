@@ -138,8 +138,11 @@ where
         Ok(self.repo.begin_op().await?)
     }
 
-    #[instrument(name = "credit.credit_facility.activate", skip(self), err)]
-    pub(super) async fn activate(&self, id: CreditFacilityId) -> Result<(), CreditFacilityError> {
+    #[instrument(name = "credit.credit_facility.activate", skip(self), fields(credit_facility_id = %credit_facility_id), err)]
+    pub(super) async fn activate(
+        &self,
+        credit_facility_id: CreditFacilityId,
+    ) -> Result<(), CreditFacilityError> {
         let mut db = self.repo.begin_op().await?.with_db_time().await?;
 
         self.authz
@@ -153,7 +156,7 @@ where
 
         let (mut new_credit_facility_builder, initial_disbursal) = match self
             .pending_credit_facilities
-            .complete_in_op(&mut db, id.into())
+            .complete_in_op(&mut db, credit_facility_id.into())
             .await?
         {
             PendingCreditFacilityCompletionOutcome::Completed {
@@ -167,7 +170,7 @@ where
 
         let public_id = self
             .public_ids
-            .create_in_op(&mut db, CREDIT_FACILITY_REF_TARGET, id)
+            .create_in_op(&mut db, CREDIT_FACILITY_REF_TARGET, credit_facility_id)
             .await?;
 
         let new_credit_facility = new_credit_facility_builder
@@ -209,7 +212,7 @@ where
                 &mut db,
                 accrual_id,
                 interest_accruals::InterestAccrualJobConfig::<Perms, E> {
-                    credit_facility_id: id,
+                    credit_facility_id: credit_facility_id,
                     _phantom: std::marker::PhantomData,
                 },
                 periods.accrual.end,
@@ -247,10 +250,16 @@ where
         Ok(())
     }
 
+    #[instrument(
+        name = "credit.credit_facility.confirm_interest_accrual_in_op",
+        skip(self, op),
+        fields(credit_facility_id = %credit_facility_id),
+        err
+    )]
     pub(super) async fn confirm_interest_accrual_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
-        id: CreditFacilityId,
+        credit_facility_id: CreditFacilityId,
     ) -> Result<ConfirmedAccrual, CreditFacilityError> {
         self.authz
             .audit()
@@ -261,7 +270,7 @@ where
             )
             .await?;
 
-        let mut credit_facility = self.repo.find_by_id(id).await?;
+        let mut credit_facility = self.repo.find_by_id(credit_facility_id).await?;
 
         let confirmed_accrual = {
             let account_ids = credit_facility.account_ids;
@@ -286,15 +295,21 @@ where
         Ok(confirmed_accrual)
     }
 
+    #[instrument(
+        name = "credit.credit_facility.complete_in_op",
+        skip(self, db),
+        fields(credit_facility_id = %credit_facility_id),
+        err
+    )]
     pub(super) async fn complete_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
-        id: CreditFacilityId,
+        credit_facility_id: CreditFacilityId,
         upgrade_buffer_cvl_pct: CVLPct,
     ) -> Result<CompletionOutcome, CreditFacilityError> {
         let price = self.price.usd_cents_per_btc().await;
 
-        let mut credit_facility = self.repo.find_by_id(id).await?;
+        let mut credit_facility = self.repo.find_by_id(credit_facility_id).await?;
 
         let balances = self
             .ledger
@@ -317,13 +332,14 @@ where
     #[instrument(
         name = "credit.facility.complete_interest_cycle_and_maybe_start_new_cycle",
         skip(self, db)
+        fields(credit_facility_id = %credit_facility_id),
     )]
     pub(super) async fn complete_interest_cycle_and_maybe_start_new_cycle(
         &self,
         db: &mut es_entity::DbOp<'_>,
-        id: CreditFacilityId,
+        credit_facility_id: CreditFacilityId,
     ) -> Result<CompletedAccrualCycle, CreditFacilityError> {
-        let mut credit_facility = self.repo.find_by_id(id).await?;
+        let mut credit_facility = self.repo.find_by_id(credit_facility_id).await?;
 
         let (accrual_cycle_data, new_obligation) = if let es_entity::Idempotent::Executed(res) =
             credit_facility.record_interest_accrual_cycle()?
@@ -370,13 +386,19 @@ where
         self.repo.find_by_id(id.into()).await
     }
 
-    #[instrument(name = "credit.credit_facility.find_by_id", skip(self), err)]
+    #[instrument(
+        name = "credit.credit_facility.find_by_id",
+        skip(self, credit_facility_id),
+        fields(credit_facility_id = tracing::field::Empty),
+        err
+    )]
     pub async fn find_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: impl Into<CreditFacilityId> + std::fmt::Debug,
+        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug,
     ) -> Result<Option<CreditFacility>, CreditFacilityError> {
-        let id = id.into();
+        let id = credit_facility_id.into();
+        tracing::Span::current().record("credit_facility_id", id.to_string());
         self.authz
             .enforce_permission(
                 sub,
@@ -388,11 +410,17 @@ where
         self.repo.maybe_find_by_id(id).await
     }
 
+    #[instrument(
+        name = "credit.credit_facility.mark_as_matured",
+        skip(self),
+        fields(credit_facility_id = %credit_facility_id),
+        err
+    )]
     pub(super) async fn mark_facility_as_matured(
         &self,
-        id: CreditFacilityId,
+        credit_facility_id: CreditFacilityId,
     ) -> Result<(), CreditFacilityError> {
-        let mut facility = self.repo.find_by_id(id).await?;
+        let mut facility = self.repo.find_by_id(credit_facility_id).await?;
 
         if facility.mature().did_execute() {
             self.repo.update(&mut facility).await?;
@@ -401,12 +429,19 @@ where
         Ok(())
     }
 
-    #[instrument(name = "credit.credit_facility.find_by_public_id", skip(self), err)]
+    #[instrument(
+        name = "credit.credit_facility.find_by_public_id",
+        skip(self, public_id),
+        fields(public_id = tracing::field::Empty),
+        err
+    )]
     pub async fn find_by_public_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         public_id: impl Into<public_id::PublicId> + std::fmt::Debug,
     ) -> Result<Option<CreditFacility>, CreditFacilityError> {
+        let public_id = public_id.into();
+        tracing::Span::current().record("public_id", public_id.to_string());
         self.authz
             .enforce_permission(
                 sub,
@@ -415,7 +450,7 @@ where
             )
             .await?;
 
-        self.repo.maybe_find_by_public_id(public_id.into()).await
+        self.repo.maybe_find_by_public_id(public_id).await
     }
 
     #[instrument(
@@ -489,18 +524,20 @@ where
 
     #[instrument(
         name = "credit.credit_facility.update_collateralization_from_events",
-        skip(self)
+        skip(self),
+        fields(credit_facility_id = %credit_facility_id),
     )]
     #[es_entity::retry_on_concurrent_modification]
     pub(super) async fn update_collateralization_from_events(
         &self,
-        id: CreditFacilityId,
+        credit_facility_id: CreditFacilityId,
         upgrade_buffer_cvl_pct: CVLPct,
     ) -> Result<(), CreditFacilityError> {
         let mut op = self.repo.begin_op().await?;
         // if the pending facility is not collateralized enough to be activated there will be no
         // credit facility to update the collateralization state for
-        let Some(mut credit_facility) = self.repo.maybe_find_by_id(id).await? else {
+        let Some(mut credit_facility) = self.repo.maybe_find_by_id(credit_facility_id).await?
+        else {
             return Ok(());
         };
 
@@ -608,7 +645,7 @@ where
         self.repo.find_all(ids).await
     }
 
-    #[instrument(name = "credit.credit_facility.list_for_customer", skip(self), err)]
+    #[instrument(name = "credit.credit_facility.list_for_customer", skip(self),fields(customer_id = %customer_id), err)]
     pub(super) async fn list_for_customer(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -634,23 +671,15 @@ where
             .await
     }
 
-    #[instrument(name = "credit.credit_facility.find_by_wallet", skip(self), err)]
-    pub async fn find_by_custody_wallet(
-        &self,
-        custody_wallet_id: impl Into<CustodyWalletId> + std::fmt::Debug,
-    ) -> Result<CreditFacility, CreditFacilityError> {
-        self.repo
-            .find_by_custody_wallet(custody_wallet_id.into())
-            .await
-    }
-
-    #[instrument(name = "credit.credit_facility.balance", skip(self), err)]
+    #[instrument(name = "credit.credit_facility.balance", skip(self, credit_facility_id), fields(credit_facility_id = tracing::field::Empty), err)]
     pub async fn balance(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: impl Into<CreditFacilityId> + std::fmt::Debug,
+        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug,
     ) -> Result<crate::CreditFacilityBalanceSummary, CreditFacilityError> {
-        let id = id.into();
+        let id = credit_facility_id.into();
+        tracing::Span::current().record("credit_facility_id", id.to_string());
+
         self.authz
             .enforce_permission(
                 sub,
