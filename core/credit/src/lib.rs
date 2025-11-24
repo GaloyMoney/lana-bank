@@ -822,6 +822,17 @@ where
 
         Ok(credit_facility)
     }
+
+    pub async fn record_payment_from_liquidation(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        liquidation_process_id: LiquidationProcessId,
+        amount: UsdCents,
+    ) -> Result<(), CoreCreditError> {
+        // post transaction to ledger account associated with liquidation process
+        Ok(())
+    }
+
     pub async fn subject_can_record_payment(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

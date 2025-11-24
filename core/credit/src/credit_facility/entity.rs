@@ -50,10 +50,14 @@ pub enum CreditFacilityEvent {
         collateralization_state: CollateralizationState,
         collateral: Satoshis,
         outstanding: CreditFacilityReceivable,
+        cvl: CVLPct,
         price: PriceOfOneBTC,
     },
     CollateralizationRatioChanged {
         collateralization_ratio: CollateralizationRatio,
+    },
+    PartialLiquidationInitiated {
+        liquidation_process_id: LiquidationProcessId,
     },
     Matured {},
     Completed {},
@@ -245,6 +249,10 @@ impl CreditFacility {
         } else {
             CreditFacilityStatus::Active
         }
+    }
+
+    pub(crate) fn start_partial_liquidation(&mut self) -> Idempotent<()> {
+        todo!()
     }
 
     pub(crate) fn mature(&mut self) -> Idempotent<()> {
@@ -476,6 +484,7 @@ impl CreditFacility {
                     collateralization_state: calculated_collateralization,
                     collateral: balances.collateral(),
                     outstanding: balances.into(),
+                    cvl: balances.current_cvl(price),
                     price,
                 });
 
@@ -578,6 +587,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                 CreditFacilityEvent::CollateralizationRatioChanged { .. } => (),
                 CreditFacilityEvent::Matured { .. } => (),
                 CreditFacilityEvent::Completed { .. } => (),
+                CreditFacilityEvent::PartialLiquidationInitiated { .. } => todo!(),
             }
         }
         builder.events(events).build()

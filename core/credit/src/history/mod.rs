@@ -130,21 +130,20 @@ impl CreditFacilityHistory {
                 ));
             }
             LiquidationProcessStarted {
-                amount,
                 recorded_at,
                 effective,
                 ledger_tx_id,
                 ..
             } => {
-                self.entries
-                    .push(CreditFacilityHistoryEntry::ReservedForLiquidation(
-                        ObligationMovedToLiquidation {
-                            cents: *amount,
-                            recorded_at: *recorded_at,
-                            effective: *effective,
-                            tx_id: *ledger_tx_id,
-                        },
-                    ));
+                // self.entries
+                // .push(CreditFacilityHistoryEntry::ReservedForLiquidation(
+                // ObligationMovedToLiquidation {
+                // cents: *amount,
+                // recorded_at: *recorded_at,
+                // effective: *effective,
+                // tx_id: *ledger_tx_id,
+                // },
+                // ));
             }
             PendingCreditFacilityCollateralizationChanged {
                 state,
