@@ -212,7 +212,7 @@ where
                 &mut db,
                 accrual_id,
                 interest_accruals::InterestAccrualJobConfig::<Perms, E> {
-                    credit_facility_id: credit_facility_id,
+                    credit_facility_id,
                     _phantom: std::marker::PhantomData,
                 },
                 periods.accrual.end,
