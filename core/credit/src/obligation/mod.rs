@@ -250,7 +250,7 @@ where
     #[instrument(
         name = "credit.obligation.allocate_payment_in_op",
         skip(self, op),
-        fields(n_new_allocations, n_facility_obligations, amount_allocated)
+        fields(n_new_allocations, n_facility_obligations, amount_allocated, credit_facility_id = %credit_facility_id)
     )]
     pub async fn allocate_payment_in_op(
         &self,
