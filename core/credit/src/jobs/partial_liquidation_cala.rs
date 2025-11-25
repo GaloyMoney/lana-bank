@@ -4,17 +4,14 @@
 //! accounts.
 
 use async_trait::async_trait;
-use futures::{StreamExt as _, select};
+use futures::StreamExt as _;
 use outbox::OutboxEventMarker;
 use serde::{Deserialize, Serialize};
 
 use cala_ledger::{AccountId, CalaLedger, outbox::*};
 use job::*;
 
-use crate::{
-    CollateralAction, CollateralizationState, CoreCreditEvent, LiquidationProcessId,
-    liquidation_process::LiquidationProcessRepo,
-};
+use crate::{CoreCreditEvent, LiquidationProcessId, liquidation_process::Liquidations};
 
 #[derive(Default, Clone, Deserialize, Serialize)]
 struct PartialLiquidationCalaJobData {
@@ -43,17 +40,17 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     cala: CalaLedger,
-    liquidation_process_repo: LiquidationProcessRepo<E>,
+    liquidations: Liquidations<E>,
 }
 
 impl<E> PartialLiquidationCalaInit<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    pub fn new(cala: &CalaLedger, liquidation_process_repo: &LiquidationProcessRepo<E>) -> Self {
+    pub fn new(cala: &CalaLedger, liquidations: &Liquidations<E>) -> Self {
         Self {
             cala: cala.clone(),
-            liquidation_process_repo: liquidation_process_repo.clone(),
+            liquidations: liquidations.clone(),
         }
     }
 }
@@ -74,7 +71,7 @@ where
         Ok(Box::new(PartialLiquidationCalaJobRunner::<E> {
             config: job.config()?,
             cala: self.cala.clone(),
-            liquidation_process_repo: self.liquidation_process_repo.clone(),
+            liquidations: self.liquidations.clone(),
         }))
     }
 }
@@ -85,7 +82,7 @@ where
 {
     config: PartialLiquidationCalaJobConfig<E>,
     cala: CalaLedger,
-    liquidation_process_repo: LiquidationProcessRepo<E>,
+    liquidations: Liquidations<E>,
 }
 
 #[async_trait]
@@ -107,8 +104,10 @@ where
             .await?;
 
         while let Some(message) = stream.next().await {
-            let mut db = self.liquidation_process_repo.begin().await?;
-            self.process_cala_message(&message, &mut db).await?;
+            let mut db = self.liquidations.begin_op().await?;
+
+            self.process_message(&mut db, &message).await?;
+
             state.sequence = message.sequence;
             current_job
                 .update_execution_state_in_op(&mut db, &state)
@@ -125,25 +124,19 @@ impl<E> PartialLiquidationCalaJobRunner<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    async fn process_cala_message(
+    async fn process_message(
         &self,
+        db: &mut es_entity::DbOp<'_>,
         message: &OutboxEvent,
-        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         match &message.payload {
+            // TransactionCreated with external ID or some other easily detectable value?
             OutboxEventPayload::BalanceUpdated { balance, .. }
                 if balance.account_id == self.config.receivable_account_id =>
             {
-                let mut x = self
-                    .liquidation_process_repo
-                    .find_by_id(self.config.liquidation_process_id)
+                self.liquidations
+                    .record_payment_from_liquidator_in_op(db, self.config.liquidation_process_id)
                     .await?;
-
-                x.record_repayment_received(todo!(), todo!());
-
-                self.liquidation_process_repo.update(&mut x).await?;
-
-                todo!()
             }
             _ => {}
         }
