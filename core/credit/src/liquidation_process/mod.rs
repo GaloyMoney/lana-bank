@@ -2,6 +2,7 @@ mod entity;
 pub mod error;
 mod repo;
 
+use cala_ledger::AccountId as CalaAccountId;
 #[cfg(feature = "json-schema")]
 pub use entity::LiquidationProcessEvent;
 pub(crate) use entity::*;
@@ -18,6 +19,17 @@ where
     repo: LiquidationProcessRepo<E>,
 }
 
+impl<E> Clone for Liquidations<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            repo: self.repo.clone(),
+        }
+    }
+}
+
 impl<E> Liquidations<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
@@ -28,16 +40,45 @@ where
         }
     }
 
-    pub async fn record_payment_from_liquidator(
+    pub(super) async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, LiquidationProcessError> {
+        Ok(self.repo.begin_op().await?)
+    }
+
+    pub async fn record_collateral_sent_in_op(
         &self,
+        db: &mut es_entity::DbOp<'_>,
         liquidation_process_id: LiquidationProcessId,
     ) -> Result<(), LiquidationProcessError> {
         let mut liquidation = self.repo.find_by_id(liquidation_process_id).await?;
 
-        // ???
+        liquidation.record_collateral_sent(todo!(), todo!());
 
-        self.repo.update(&mut liquidation).await?;
+        self.repo.update_in_op(db, &mut liquidation).await?;
 
         Ok(())
+    }
+
+    pub async fn record_payment_from_liquidator_in_op(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        liquidation_process_id: LiquidationProcessId,
+    ) -> Result<(), LiquidationProcessError> {
+        let mut liquidation = self.repo.find_by_id(liquidation_process_id).await?;
+
+        // self.ledger.find the incoming repayment
+
+        liquidation.record_repayment_from_liquidator(todo!(), todo!());
+
+        self.repo.update_in_op(db, &mut liquidation).await?;
+
+        Ok(())
+    }
+
+    pub async fn complete_in_op(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        liquidation_process_id: LiquidationProcessId,
+    ) -> Result<(), LiquidationProcessError> {
+        todo!()
     }
 }

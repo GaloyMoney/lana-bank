@@ -50,7 +50,7 @@ impl LiquidationProcess {
         todo!()
     }
 
-    pub fn record_repayment_received(
+    pub fn record_repayment_from_liquidator(
         &mut self,
         amount_received: UsdCents,
         ledger_tx_id: LedgerTxId,

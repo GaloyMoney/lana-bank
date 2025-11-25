@@ -4,15 +4,15 @@
 //! accounts.
 
 use async_trait::async_trait;
-use futures::{StreamExt as _, select};
+use futures::StreamExt as _;
 use serde::{Deserialize, Serialize};
 
 use job::*;
 use outbox::*;
 
 use crate::{
-    CollateralAction, CollateralizationState, CoreCreditEvent, LiquidationProcessId,
-    liquidation_process::LiquidationProcessRepo,
+    CollateralAction, CoreCreditEvent, CreditFacilityId, LiquidationProcessId,
+    liquidation_process::Liquidations,
 };
 
 #[derive(Default, Clone, Deserialize, Serialize)]
@@ -26,6 +26,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     pub liquidation_process_id: LiquidationProcessId,
+    pub credit_facility_id: CreditFacilityId,
     pub _phantom: std::marker::PhantomData<E>,
 }
 
@@ -41,17 +42,17 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     outbox: Outbox<E>,
-    liquidation_process_repo: LiquidationProcessRepo<E>,
+    liquidations: Liquidations<E>,
 }
 
 impl<E> PartialLiquidationInit<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    pub fn new(outbox: &Outbox<E>, liquidation_process_repo: &LiquidationProcessRepo<E>) -> Self {
+    pub fn new(outbox: &Outbox<E>, liquidations: &Liquidations<E>) -> Self {
         Self {
             outbox: outbox.clone(),
-            liquidation_process_repo: liquidation_process_repo.clone(),
+            liquidations: liquidations.clone(),
         }
     }
 }
@@ -72,7 +73,7 @@ where
         Ok(Box::new(PartialLiquidationJobRunner::<E> {
             config: job.config()?,
             outbox: self.outbox.clone(),
-            liquidation_process_repo: self.liquidation_process_repo.clone(),
+            liquidations: self.liquidations.clone(),
         }))
     }
 }
@@ -83,7 +84,7 @@ where
 {
     config: PartialLiquidationJobConfig<E>,
     outbox: Outbox<E>,
-    liquidation_process_repo: LiquidationProcessRepo<E>,
+    liquidations: Liquidations<E>,
 }
 
 #[async_trait]
@@ -102,8 +103,8 @@ where
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
         while let Some(message) = stream.next().await {
-            let mut db = self.liquidation_process_repo.begin().await?;
-            self.process_credit_message(message.as_ref(), &mut db)
+            let mut db = self.liquidations.begin_op().await?;
+            self.process_message(&mut db, message.as_ref())
                 .await?;
             state.sequence = message.sequence;
             current_job
@@ -121,37 +122,30 @@ impl<E> PartialLiquidationJobRunner<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    async fn process_credit_message(
+    async fn process_message(
         &self,
+        db: &mut es_entity::DbOp<'_>,
         message: &PersistentOutboxEvent<E>,
-        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         use CoreCreditEvent::*;
 
         match &message.as_event() {
             Some(FacilityCollateralUpdated {
+                credit_facility_id,
                 action: CollateralAction::Remove,
                 ledger_tx_id,
                 abs_diff,
                 ..
-            }) => {
-                // change liquidation process status
-                let mut x = self
-                    .liquidation_process_repo
-                    .find_by_id(self.config.liquidation_process_id)
+            }) if *credit_facility_id == self.config.credit_facility_id => {
+                self.liquidations
+                    .record_collateral_sent_in_op(db, self.config.liquidation_process_id)
                     .await?;
-
-                x.record_collateral_sent(*abs_diff, *ledger_tx_id);
-
-                self.liquidation_process_repo.update(&mut x).await?;
-
-                todo!()
             }
             Some(PartialLiquidationSatisfied {
                 credit_facility_id,
                 amount,
-            }) => {
-                // record payment
+            }) if *credit_facility_id == self.config.credit_facility_id => {
+                // call record payment
                 todo!()
             }
             Some(FacilityRepaymentRecorded {
@@ -162,9 +156,10 @@ where
                 amount,
                 recorded_at,
                 effective,
-            }) => {
-                // complete liquidation
-                todo!()
+            }) if *credit_facility_id == self.config.credit_facility_id => {
+                self.liquidations
+                    .complete_in_op(db, self.config.liquidation_process_id)
+                    .await?;
             }
             _ => {}
         }
