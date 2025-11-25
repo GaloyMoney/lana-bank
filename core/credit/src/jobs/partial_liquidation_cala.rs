@@ -5,10 +5,11 @@
 
 use async_trait::async_trait;
 use futures::{StreamExt as _, select};
+use outbox::OutboxEventMarker;
 use serde::{Deserialize, Serialize};
 
+use cala_ledger::{AccountId, CalaLedger, outbox::*};
 use job::*;
-use outbox::*;
 
 use crate::{
     CollateralAction, CollateralizationState, CoreCreditEvent, LiquidationProcessId,
@@ -16,48 +17,49 @@ use crate::{
 };
 
 #[derive(Default, Clone, Deserialize, Serialize)]
-struct PartialLiquidationJobData {
+struct PartialLiquidationCalaJobData {
     sequence: EventSequence,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
-pub(crate) struct PartialLiquidationJobConfig<E>
+pub(crate) struct PartialLiquidationCalaJobConfig<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
+    pub receivable_account_id: AccountId,
     pub liquidation_process_id: LiquidationProcessId,
     pub _phantom: std::marker::PhantomData<E>,
 }
 
-impl<E> JobConfig for PartialLiquidationJobConfig<E>
+impl<E> JobConfig for PartialLiquidationCalaJobConfig<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    type Initializer = PartialLiquidationInit<E>;
+    type Initializer = PartialLiquidationCalaInit<E>;
 }
 
-pub struct PartialLiquidationInit<E>
+pub struct PartialLiquidationCalaInit<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    outbox: Outbox<E>,
+    cala: CalaLedger,
     liquidation_process_repo: LiquidationProcessRepo<E>,
 }
 
-impl<E> PartialLiquidationInit<E>
+impl<E> PartialLiquidationCalaInit<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    pub fn new(outbox: &Outbox<E>, liquidation_process_repo: &LiquidationProcessRepo<E>) -> Self {
+    pub fn new(cala: &CalaLedger, liquidation_process_repo: &LiquidationProcessRepo<E>) -> Self {
         Self {
-            outbox: outbox.clone(),
+            cala: cala.clone(),
             liquidation_process_repo: liquidation_process_repo.clone(),
         }
     }
 }
 
-const PARTIAL_LIQUIDATION_JOB: JobType = JobType::new("outbox.partial-liquidation");
-impl<E> JobInitializer for PartialLiquidationInit<E>
+const PARTIAL_LIQUIDATION_CALA_JOB: JobType = JobType::new("outbox.partial-liquidation-cala");
+impl<E> JobInitializer for PartialLiquidationCalaInit<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
@@ -65,29 +67,29 @@ where
     where
         Self: Sized,
     {
-        PARTIAL_LIQUIDATION_JOB
+        PARTIAL_LIQUIDATION_CALA_JOB
     }
 
     fn init(&self, job: &job::Job) -> Result<Box<dyn job::JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(PartialLiquidationJobRunner::<E> {
+        Ok(Box::new(PartialLiquidationCalaJobRunner::<E> {
             config: job.config()?,
-            outbox: self.outbox.clone(),
+            cala: self.cala.clone(),
             liquidation_process_repo: self.liquidation_process_repo.clone(),
         }))
     }
 }
 
-pub struct PartialLiquidationJobRunner<E>
+pub struct PartialLiquidationCalaJobRunner<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    config: PartialLiquidationJobConfig<E>,
-    outbox: Outbox<E>,
+    config: PartialLiquidationCalaJobConfig<E>,
+    cala: CalaLedger,
     liquidation_process_repo: LiquidationProcessRepo<E>,
 }
 
 #[async_trait]
-impl<E> JobRunner for PartialLiquidationJobRunner<E>
+impl<E> JobRunner for PartialLiquidationCalaJobRunner<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
@@ -96,15 +98,17 @@ where
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut state = current_job
-            .execution_state::<PartialLiquidationJobData>()?
+            .execution_state::<PartialLiquidationCalaJobData>()?
             .unwrap_or_default();
 
-        let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
+        let mut stream = self
+            .cala
+            .register_outbox_listener(Some(state.sequence))
+            .await?;
 
         while let Some(message) = stream.next().await {
             let mut db = self.liquidation_process_repo.begin().await?;
-            self.process_credit_message(message.as_ref(), &mut db)
-                .await?;
+            self.process_cala_message(&message, &mut db).await?;
             state.sequence = message.sequence;
             current_job
                 .update_execution_state_in_op(&mut db, &state)
@@ -117,53 +121,28 @@ where
     }
 }
 
-impl<E> PartialLiquidationJobRunner<E>
+impl<E> PartialLiquidationCalaJobRunner<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    async fn process_credit_message(
+    async fn process_cala_message(
         &self,
-        message: &PersistentOutboxEvent<E>,
+        message: &OutboxEvent,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        use CoreCreditEvent::*;
-
-        match &message.as_event() {
-            Some(FacilityCollateralUpdated {
-                action: CollateralAction::Remove,
-                ledger_tx_id,
-                abs_diff,
-                ..
-            }) => {
-                // change liquidation process status
+        match &message.payload {
+            OutboxEventPayload::BalanceUpdated { balance, .. }
+                if balance.account_id == self.config.receivable_account_id =>
+            {
                 let mut x = self
                     .liquidation_process_repo
                     .find_by_id(self.config.liquidation_process_id)
                     .await?;
 
-                x.record_collateral_sent(*abs_diff, *ledger_tx_id);
+                x.record_repayment_received(todo!(), todo!());
 
                 self.liquidation_process_repo.update(&mut x).await?;
 
-                todo!()
-            }
-            Some(PartialLiquidationSatisfied {
-                credit_facility_id,
-                amount,
-            }) => {
-                // record payment
-                todo!()
-            }
-            Some(FacilityRepaymentRecorded {
-                credit_facility_id,
-                obligation_id,
-                obligation_type,
-                payment_id,
-                amount,
-                recorded_at,
-                effective,
-            }) => {
-                // complete liquidation
                 todo!()
             }
             _ => {}

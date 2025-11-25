@@ -13,9 +13,10 @@ use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::{JobId, Jobs};
 use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
+use crate::jobs::{partial_liquidation, partial_liquidation_cala};
 use crate::{
     CollateralizationState, CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilities,
-    jobs::partial_liquidation, liquidation_process::LiquidationProcessRepo,
+    liquidation_process::LiquidationProcessRepo,
 };
 
 pub struct CreditFacilityHealthJobRunner<Perms, E>
@@ -83,6 +84,16 @@ where
                                 .create_and_spawn(
                                     JobId::new(),
                                     partial_liquidation::PartialLiquidationJobConfig::<E> {
+                                        liquidation_process_id: x.id,
+                                        _phantom: std::marker::PhantomData,
+                                    },
+                                )
+                                .await
+                                .unwrap();
+                            self.jobs
+                                .create_and_spawn(
+                                    JobId::new(),
+                                    partial_liquidation_cala::PartialLiquidationCalaJobConfig::<E> {
                                         receivable_account_id: todo!(),
                                         liquidation_process_id: x.id,
                                         _phantom: std::marker::PhantomData,

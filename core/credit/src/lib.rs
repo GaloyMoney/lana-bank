@@ -382,6 +382,16 @@ where
                 obligations_arc.as_ref(),
             ),
         );
+        jobs.add_initializer(partial_liquidation::PartialLiquidationInit::<E>::new(
+            &outbox,
+            todo!(),
+        ));
+        jobs.add_initializer(
+            partial_liquidation_cala::PartialLiquidationCalaInit::<E>::new(
+                cala_arc.as_ref(),
+                todo!(),
+            ),
+        );
         jobs.add_initializer(credit_facility_maturity::CreditFacilityMaturityInit::<
             Perms,
             E,
