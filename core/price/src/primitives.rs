@@ -1,5 +1,6 @@
 use rust_decimal::RoundingStrategy;
 use serde::{Deserialize, Serialize};
+use std::fmt;
 
 use core_money::{Satoshis, UsdCents};
 
@@ -28,5 +29,11 @@ impl PriceOfOneBTC {
 
     pub fn into_inner(self) -> UsdCents {
         self.0
+    }
+}
+
+impl fmt::Display for PriceOfOneBTC {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:.2}", self.0.to_usd())
     }
 }

@@ -108,7 +108,7 @@ impl Price {
         {
             Span::current().record("handled", true);
             Span::current().record("event_type", "PriceUpdated");
-            Span::current().record("price", tracing::field::debug(new_price));
+            Span::current().record("price", tracing::field::display(new_price));
             Span::current().record("timestamp", tracing::field::debug(timestamp));
             tx.send(Some(*new_price))?;
         }
