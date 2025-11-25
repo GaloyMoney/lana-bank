@@ -8,6 +8,8 @@ use es_entity::*;
 
 use crate::primitives::*;
 
+use super::error::LiquidationProcessError;
+
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -38,24 +40,82 @@ pub enum LiquidationProcessEvent {
 pub struct LiquidationProcess {
     pub id: LiquidationProcessId,
     pub credit_facility_id: CreditFacilityId,
+    pub expected_to_receive: UsdCents,
+    pub amount_sent: Satoshis,
+    pub amount_received: UsdCents,
     events: EntityEvents<LiquidationProcessEvent>,
 }
 
 impl LiquidationProcess {
-    pub fn record_collateral_sent(
+    pub fn record_collateral_sent_out(
         &mut self,
         amount_sent: Satoshis,
         ledger_tx_id: LedgerTxId,
-    ) -> Idempotent<()> {
-        todo!()
+    ) -> Result<Idempotent<()>, LiquidationProcessError> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            LiquidationProcessEvent::CollateralSentOut {
+                amount,
+                ledger_tx_id: tx_id
+            } if amount_sent == *amount && ledger_tx_id == *tx_id
+        );
+
+        if self.is_satisfied() {
+            Err(LiquidationProcessError::AlreadySatisfied)
+        } else {
+            self.amount_sent += amount_sent;
+
+            self.events
+                .push(LiquidationProcessEvent::CollateralSentOut {
+                    amount: amount_sent,
+                    ledger_tx_id,
+                });
+
+            Ok(Idempotent::Executed(()))
+        }
     }
 
     pub fn record_repayment_from_liquidator(
         &mut self,
         amount_received: UsdCents,
         ledger_tx_id: LedgerTxId,
-    ) -> Idempotent<()> {
-        todo!()
+    ) -> Result<Idempotent<()>, LiquidationProcessError> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            LiquidationProcessEvent::RepaymentAmountReceived {
+                amount,
+                ledger_tx_id: tx_id
+            } if amount_received == *amount && ledger_tx_id == *tx_id
+        );
+
+        if self.is_satisfied() {
+            Err(LiquidationProcessError::AlreadySatisfied)
+        } else {
+            self.amount_received += amount_received;
+
+            self.events
+                .push(LiquidationProcessEvent::RepaymentAmountReceived {
+                    amount: amount_received,
+                    ledger_tx_id,
+                });
+
+            self.mark_satisfied_if_needed();
+
+            Ok(Idempotent::Executed(()))
+        }
+    }
+
+    fn mark_satisfied_if_needed(&mut self) {
+        if self.amount_received >= self.expected_to_receive {
+            self.events.push(LiquidationProcessEvent::Satisfied {});
+        }
+    }
+
+    pub fn is_satisfied(&self) -> bool {
+        self.events
+            .iter_all()
+            .rev()
+            .any(|e| matches!(e, LiquidationProcessEvent::Satisfied { .. }))
     }
 }
 
