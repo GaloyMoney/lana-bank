@@ -3,6 +3,7 @@ pub mod error;
 mod repo;
 
 use cala_ledger::AccountId as CalaAccountId;
+use core_money::UsdCents;
 #[cfg(feature = "json-schema")]
 pub use entity::LiquidationProcessEvent;
 pub(crate) use entity::*;
@@ -58,18 +59,23 @@ where
         Ok(())
     }
 
-    pub async fn record_payment_from_liquidator_in_op(
+    // expost in GQL
+    pub async fn record_payment_from_liquidation(
         &self,
-        db: &mut es_entity::DbOp<'_>,
         liquidation_process_id: LiquidationProcessId,
+        amount: UsdCents,
     ) -> Result<(), LiquidationProcessError> {
         let mut liquidation = self.repo.find_by_id(liquidation_process_id).await?;
+        let mut db = self.repo.begin().await?;
 
-        // self.ledger.find the incoming repayment
+        // post transaction in op
 
-        liquidation.record_repayment_from_liquidator(todo!(), todo!());
-
-        self.repo.update_in_op(db, &mut liquidation).await?;
+        if liquidation
+            .record_repayment_from_liquidation(amount, todo!())?
+            .did_execute()
+        {
+            self.repo.update_in_op(&mut db, &mut liquidation).await?;
+        }
 
         Ok(())
     }

@@ -59,6 +59,7 @@ pub enum CreditFacilityEvent {
     },
     PartialLiquidationInitiated {
         liquidation_process_id: LiquidationProcessId,
+        receivable_account_id: CalaAccountId,
     },
     Matured {},
     Completed {},
@@ -255,6 +256,7 @@ impl CreditFacility {
     pub(crate) fn initiate_partial_liquidation(
         &mut self,
         price: PriceOfOneBTC,
+        receivable_account_id: CalaAccountId,
     ) -> Idempotent<NewLiquidationProcess> {
         idempotency_guard!(
             self.events.iter_all().rev(),
@@ -267,11 +269,13 @@ impl CreditFacility {
         let new_liquidation = NewLiquidationProcess {
             id: LiquidationProcessId::new(),
             credit_facility_id: self.id,
+            receivable_account_id,
         };
 
         self.events
             .push(CreditFacilityEvent::PartialLiquidationInitiated {
                 liquidation_process_id: new_liquidation.id,
+                receivable_account_id,
             });
 
         Idempotent::Executed(new_liquidation)
