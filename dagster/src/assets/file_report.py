@@ -1,25 +1,37 @@
 import csv
+import inspect
 import io
+import sys
 import xml.etree.ElementTree as ET
 from datetime import datetime
-from typing import Dict
+from typing import Dict, List, Literal, TypedDict
 
 import dagster as dg
 from src.core import Protoasset
 from src.resources import RESOURCE_KEY_GCS, GCSResource
 
 
+class ReportFile(TypedDict):
+    """Represents a single file in a report."""
+    type: Literal["csv", "txt", "xml"]
+    path_in_bucket: str
+
+
+class Report(TypedDict):
+    """Represents a report with its metadata and associated files."""
+    name: str
+    norm: str
+    files: List[ReportFile]
+
+### vvv START - TEMPORARY FUNCTIONS TO BE REPLACED WITH REAL REPORT GENERATION FUNCTIONS - START vvv ###
 def _generate_sample_data() -> list[dict]:
-    """Generate sample data for reports."""
     return [
         {"id": "1", "name": "Sample Item 1", "value": "100.50", "date": "2025-11-24"},
         {"id": "2", "name": "Sample Item 2", "value": "250.75", "date": "2025-11-24"},
         {"id": "3", "name": "Sample Item 3", "value": "175.25", "date": "2025-11-24"},
     ]
 
-
 def _generate_csv_report() -> bytes:
-    """Generate a CSV report."""
     data = _generate_sample_data()
     output = io.StringIO()
     
@@ -30,9 +42,7 @@ def _generate_csv_report() -> bytes:
     
     return output.getvalue().encode('utf-8')
 
-
 def _generate_xml_report() -> bytes:
-    """Generate an XML report."""
     data = _generate_sample_data()
     
     root = ET.Element("report")
@@ -47,9 +57,7 @@ def _generate_xml_report() -> bytes:
     
     return ET.tostring(root, encoding='utf-8', xml_declaration=True)
 
-
 def _generate_txt_report() -> bytes:
-    """Generate a TXT report."""
     data = _generate_sample_data()
     
     lines = ["Sample Report", "=" * 50, ""]
@@ -65,193 +73,198 @@ def _generate_txt_report() -> bytes:
     
     return "\n".join(lines).encode('utf-8')
 
-
-def report_sample_csv(
+def report_sample_1(
     context: dg.AssetExecutionContext, gcs: GCSResource
-) -> Dict[str, str]:
-    """Generate and upload a CSV report to GCS."""
-    context.log.info("Generating CSV report...")
-    
-    # Generate the report
+) -> None:
+    """Generate and upload sample report 1 (CSV format) to GCS."""    
     report_content = _generate_csv_report()
-    
-    # Upload to GCS
+
+    context.log.info("Uploading report 1 (CSV) to GCS...")
     timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-    file_path = f"reports/csv/sample_report_{timestamp}.csv"
+    file_path = f"reports/sample_1/report_{timestamp}.csv"
     gcs_path = gcs.upload_file(
         content=report_content,
         path=file_path,
         content_type="text/csv"
     )
+    context.log.info(f"Report 1 uploaded to: {gcs_path}")
     
-    context.log.info(f"CSV report uploaded to: {gcs_path}")
-    
-    # Add metadata to the materialization
-    context.add_output_metadata(
-        {
-            "gcs_path": gcs_path,
-            "file_size_bytes": len(report_content),
-            "timestamp": timestamp,
-            "format": "csv",
-        }
-    )
-    
-    return {
-        "gcs_path": gcs_path,
-        "format": "csv",
-        "timestamp": timestamp,
+    # Store report information in metadata using the Report type
+    report: Report = {
+        "name": "sample_1",
+        "norm": "sample_report_norm_1",
+        "files": [
+            {
+                "type": "csv",
+                "path_in_bucket": gcs_path,
+            }
+        ]
     }
+    
+    context.add_output_metadata({"reports": [report]})
 
-
-def report_sample_xml(
+def report_sample_2(
     context: dg.AssetExecutionContext, gcs: GCSResource
-) -> Dict[str, str]:
-    """Generate and upload an XML report to GCS."""
-    context.log.info("Generating XML report...")
+) -> None:
+    """Generate and upload 3 files for sample report 2 to GCS."""
+    context.log.info("Generating 3 files for sample_2...")
     
-    # Generate the report
-    report_content = _generate_xml_report()
-    
-    # Upload to GCS
     timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-    file_path = f"reports/xml/sample_report_{timestamp}.xml"
-    gcs_path = gcs.upload_file(
-        content=report_content,
-        path=file_path,
+    files: List[ReportFile] = []
+    
+    # File 1: XML format
+    context.log.info("Generating XML file...")
+    xml_content = _generate_xml_report()
+    xml_file_path = f"reports/sample_2/report_{timestamp}_data.xml"
+    xml_gcs_path = gcs.upload_file(
+        content=xml_content,
+        path=xml_file_path,
         content_type="application/xml"
     )
+    context.log.info(f"XML file uploaded to: {xml_gcs_path}")
+    files.append({
+        "type": "xml",
+        "path_in_bucket": xml_gcs_path,
+    })
     
-    context.log.info(f"XML report uploaded to: {gcs_path}")
-    
-    # Add metadata to the materialization
-    context.add_output_metadata(
-        {
-            "gcs_path": gcs_path,
-            "file_size_bytes": len(report_content),
-            "timestamp": timestamp,
-            "format": "xml",
-        }
+    # File 2: CSV summary
+    context.log.info("Generating CSV file...")
+    csv_content = _generate_csv_report()
+    csv_file_path = f"reports/sample_2/report_{timestamp}_summary.csv"
+    csv_gcs_path = gcs.upload_file(
+        content=csv_content,
+        path=csv_file_path,
+        content_type="text/csv"
     )
+    context.log.info(f"CSV file uploaded to: {csv_gcs_path}")
+    files.append({
+        "type": "csv",
+        "path_in_bucket": csv_gcs_path,
+    })
     
-    return {
-        "gcs_path": gcs_path,
-        "format": "xml",
-        "timestamp": timestamp,
+    # File 3: TXT details
+    context.log.info("Generating TXT file...")
+    txt_content = _generate_txt_report()
+    txt_file_path = f"reports/sample_2/report_{timestamp}_details.txt"
+    txt_gcs_path = gcs.upload_file(
+        content=txt_content,
+        path=txt_file_path,
+        content_type="text/plain"
+    )
+    context.log.info(f"TXT file uploaded to: {txt_gcs_path}")
+    files.append({
+        "type": "txt",
+        "path_in_bucket": txt_gcs_path,
+    })
+    
+    context.log.info(f"Successfully generated and uploaded {len(files)} files for sample_2")
+    
+    # Store report information in metadata using the Report type
+    report: Report = {
+        "name": "sample_2",
+        "norm": "sample_report_norm_2",
+        "files": files
     }
+    
+    context.add_output_metadata({"reports": [report]})
 
-
-def report_sample_txt(
+def report_sample_3(
     context: dg.AssetExecutionContext, gcs: GCSResource
-) -> Dict[str, str]:
-    """Generate and upload a TXT report to GCS."""
-    context.log.info("Generating TXT report...")
-    
-    # Generate the report
+) -> None:
+    """Generate and upload sample report 3 (TXT format) to GCS."""
+
+    context.log.info("Uploading report 3 (TXT) to GCS...")
     report_content = _generate_txt_report()
-    
-    # Upload to GCS
     timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-    file_path = f"reports/txt/sample_report_{timestamp}.txt"
+    file_path = f"reports/sample_3/report_{timestamp}.txt"
     gcs_path = gcs.upload_file(
         content=report_content,
         path=file_path,
         content_type="text/plain"
     )
+    context.log.info(f"Report 3 uploaded to: {gcs_path}")
     
-    context.log.info(f"TXT report uploaded to: {gcs_path}")
-    
-    # Add metadata to the materialization
-    context.add_output_metadata(
-        {
-            "gcs_path": gcs_path,
-            "file_size_bytes": len(report_content),
-            "timestamp": timestamp,
-            "format": "txt",
-        }
-    )
-    
-    return {
-        "gcs_path": gcs_path,
-        "format": "txt",
-        "timestamp": timestamp,
+    # Store report information in metadata using the Report type
+    report: Report = {
+        "name": "sample_3",
+        "norm": "sample_report_norm_3",
+        "files": [
+            {
+                "type": "txt",
+                "path_in_bucket": gcs_path,
+            }
+        ]
     }
+    
+    context.add_output_metadata({"reports": [report]})
+### ^^^ END - TEMPORARY FUNCTIONS TO BE REPLACED WITH REAL REPORT GENERATION FUNCTIONS - END ^^^ ###
+
+def _discover_reports() -> Dict[str, callable]:
+    """Fetch all functions that start with report_"""
+    current_module = sys.modules[__name__]
+    reports = {}
+
+    for name, obj in inspect.getmembers(current_module, inspect.isfunction):
+        if name.startswith('report_'):
+            reports[name] = obj
+
+    return reports
 
 
-def inform_lana_of_reports(
-    context: dg.AssetExecutionContext,
-    report_sample_csv: Dict[str, str],
-    report_sample_xml: Dict[str, str],
-    report_sample_txt: Dict[str, str],
-) -> None:
-    """
-    Inform Lana system of all generated reports.
-    This asset runs after all report assets have completed.
-    """
-    context.log.info("Informing Lana of generated reports...")
+def _extract_reports_from_asset(context: dg.AssetExecutionContext, asset_key_str: str) -> List[Report]:
+    asset_key = dg.AssetKey(asset_key_str)
+    materialization = context.instance.get_latest_materialization_event(asset_key)
+
+    if not (materialization and materialization.asset_materialization):
+        return []
+
+    metadata = materialization.asset_materialization.metadata
+    if "reports" not in metadata:
+        return []
+
+    reports_metadata = metadata["reports"]
+    reports_list = getattr(reports_metadata, 'value', reports_metadata)
+
+    return reports_list
+
+
+def inform_lana_of_reports(context: dg.AssetExecutionContext) -> None:
+    all_reports: List[Report] = []
+    reports = _discover_reports()
     
-    # Collect all report information
-    reports = [
-        report_sample_csv,
-        report_sample_xml,
-        report_sample_txt,
-    ]
-    
-    # Log detailed information about each report
-    for report in reports:
+    for asset_key_str in reports.keys():
+        all_reports.extend(_extract_reports_from_asset(context, asset_key_str))
+
+    context.log.info(f"Total reports collected: {len(all_reports)}")
+    for report in all_reports:
+        file_types = [f["type"] for f in report["files"]]
         context.log.info(
-            f"Report generated: format={report['format']}, "
-            f"gcs_path={report['gcs_path']}, "
-            f"timestamp={report['timestamp']}"
+            f"Report: name={report['name']}, "
+            f"norm={report['norm']}, "
+            f"files={len(report['files'])} ({', '.join(file_types)})"
         )
-    
-    # In a real implementation, you would:
-    # 1. Send this information to the Lana system via API call
-    # 2. Store notification status in a database
-    
-    context.log.info("All reports have been generated and uploaded successfully.")
-    context.log.info("Notification would be sent to Lana system here.")
-    
-    # Add metadata about the notification
-    context.add_output_metadata(
-        {
-            "notification_time": datetime.utcnow().isoformat(),
-            "dependent_reports": [r["format"] for r in reports],
-            "report_paths": [r["gcs_path"] for r in reports],
-            "status": "completed",
-        }
-    )
+
+    context.log.info("TODO: Notification would be sent to Lana system here.")
 
 
 def file_report_protoassets() -> Dict[str, Protoasset]:
-    """Return all file report protoassets keyed by asset key."""
-    return {
-        "report_sample_csv": Protoasset(
-            key="report_sample_csv",
-            callable=report_sample_csv,
+    protoassets = {}
+    reports = _discover_reports()
+
+    for report_name, report_callable in reports.items():
+        protoassets[report_name] = Protoasset(
+            key=report_name,
+            callable=report_callable,
             required_resource_keys={RESOURCE_KEY_GCS},
-            tags={"report_type": "csv", "category": "sample"},
-        ),
-        "report_sample_xml": Protoasset(
-            key="report_sample_xml",
-            callable=report_sample_xml,
-            required_resource_keys={RESOURCE_KEY_GCS},
-            tags={"report_type": "xml", "category": "sample"},
-        ),
-        "report_sample_txt": Protoasset(
-            key="report_sample_txt",
-            callable=report_sample_txt,
-            required_resource_keys={RESOURCE_KEY_GCS},
-            tags={"report_type": "txt", "category": "sample"},
-        ),
-        "inform_lana_of_reports": Protoasset(
-            key="inform_lana_of_reports",
-            callable=inform_lana_of_reports,
-            ins={
-                "report_sample_csv": "report_sample_csv",
-                "report_sample_xml": "report_sample_xml",
-                "report_sample_txt": "report_sample_txt",
-            },
-            tags={"category": "notification"},
-        ),
-    }
+            tags={"category": "report_generation", "report_name": report_name},
+        )
+
+    protoassets["inform_lana_of_reports"] = Protoasset(
+        key="inform_lana_of_reports",
+        callable=inform_lana_of_reports,
+        deps=list(reports.keys()),
+        tags={"category": "notification"},
+    )
+
+    return protoassets
 
