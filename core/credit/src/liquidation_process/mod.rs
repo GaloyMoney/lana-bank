@@ -51,7 +51,7 @@ where
     ) -> Result<(), LiquidationProcessError> {
         let mut liquidation = self.repo.find_by_id(liquidation_process_id).await?;
 
-        liquidation.record_collateral_sent(todo!(), todo!());
+        liquidation.record_collateral_sent_out(todo!(), todo!());
 
         self.repo.update_in_op(db, &mut liquidation).await?;
 

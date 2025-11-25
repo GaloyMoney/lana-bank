@@ -143,9 +143,12 @@ where
             }
             Some(PartialLiquidationSatisfied {
                 credit_facility_id,
-                amount,
+                liquidation_process_id,
+                amount_sent,
+                amount_received,
+                recorded_at,
             }) if *credit_facility_id == self.config.credit_facility_id => {
-                // call record payment
+                // call credit::record_payment (or similar)
                 todo!()
             }
             Some(FacilityRepaymentRecorded {

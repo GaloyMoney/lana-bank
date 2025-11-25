@@ -417,7 +417,13 @@ where
                     amount,
                     ledger_tx_id,
                 } => todo!(),
-                Satisfied {} => todo!(),
+                Satisfied {} => CoreCreditEvent::PartialLiquidationSatisfied {
+                    liquidation_process_id: entity.id,
+                    credit_facility_id: entity.credit_facility_id,
+                    amount_sent: entity.amount_sent,
+                    amount_received: entity.amount_received,
+                    recorded_at: event.recorded_at,
+                },
             })
             .collect::<Vec<_>>();
         self.outbox

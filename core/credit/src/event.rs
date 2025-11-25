@@ -119,8 +119,11 @@ pub enum CoreCreditEvent {
         credit_facility_id: CreditFacilityId,
     },
     PartialLiquidationSatisfied {
+        liquidation_process_id: LiquidationProcessId,
         credit_facility_id: CreditFacilityId,
-        amount: UsdCents,
+        amount_sent: Satoshis,
+        amount_received: UsdCents,
+        recorded_at: DateTime<Utc>,
     },
     LiquidationProcessStarted {
         id: LiquidationProcessId,
