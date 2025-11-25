@@ -132,8 +132,7 @@ where
                 let mut op = self.repo.begin_op().await?;
                 self.repo.update_in_op(&mut op, &mut fiscal_year).await?;
                 let new_fiscal_year = self.repo.create_in_op(&mut op, next_fiscal_year).await?;
-                // TODO: Use `ChartLedger` via `ChartOfAccounts` to transfer
-                // net income from `ProfitAndLossStatement` to `BalanceSheet`.
+
                 op.commit().await?;
                 Ok(new_fiscal_year)
             }
@@ -158,20 +157,17 @@ where
         let now = crate::time::now();
 
         let mut fiscal_year = self.repo.find_by_id(id).await?;
-        let closed_as_of_date =
-            if let Idempotent::Executed(date) = fiscal_year.close_next_sequential_month(now) {
-                date
-            } else {
-                return Ok(fiscal_year);
-            };
-
-        let mut op = self.repo.begin_op().await?;
-        self.repo.update_in_op(&mut op, &mut fiscal_year).await?;
-        self.chart_of_accounts
-            .close_as_of(op, sub, fiscal_year.chart_id, closed_as_of_date)
-            .await?;
-
-        Ok(fiscal_year)
+        match fiscal_year.close_next_sequential_month(now)? {
+            Idempotent::Executed(date) => {
+                let mut op = self.repo.begin_op().await?;
+                self.repo.update_in_op(&mut op, &mut fiscal_year).await?;
+                self.chart_of_accounts
+                    .close_as_of(op, sub, fiscal_year.chart_id, date)
+                    .await?;
+                Ok(fiscal_year)
+            }
+            Idempotent::Ignored => Ok(fiscal_year),
+        }
     }
 
     #[instrument(

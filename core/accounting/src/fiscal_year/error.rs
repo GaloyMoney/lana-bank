@@ -16,6 +16,8 @@ pub enum FiscalYearError {
     ChartOfAccountsError(#[from] crate::chart_of_accounts::error::ChartOfAccountsError),
     #[error("FiscalYearError - NotReadyForAnnualClose")]
     NotReadyForAnnualClose,
+    #[error("FiscalYearError - AlreadyClosed")]
+    AlreadyClosed,
 }
 
 es_entity::from_es_entity_error!(FiscalYearError);

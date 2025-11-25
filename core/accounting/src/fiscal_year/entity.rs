@@ -27,7 +27,6 @@ pub enum FiscalYearEvent {
     YearClosed {
         closed_as_of: NaiveDate,
         closed_at: DateTime<Utc>,
-        // TODO: LedgerTransactionId on this event or the Chart entity event (as optional)?
     },
 }
 
@@ -85,7 +84,10 @@ impl FiscalYear {
     pub(super) fn close_next_sequential_month(
         &mut self,
         now: DateTime<Utc>,
-    ) -> Idempotent<NaiveDate> {
+    ) -> Result<Idempotent<NaiveDate>, FiscalYearError> {
+        if !self.is_open() {
+            return Err(FiscalYearError::AlreadyClosed);
+        }
         let last_recorded_date = self.events.iter_all().rev().find_map(|event| match event {
             FiscalYearEvent::MonthClosed {
                 month_closed_as_of, ..
@@ -100,7 +102,7 @@ impl FiscalYear {
                     .and_then(|d| d.pred_opt())
                     .expect("Failed to compute last day of previous month");
                 if last_effective == last_day_of_previous_month {
-                    return Idempotent::Ignored;
+                    return Ok(Idempotent::Ignored);
                 }
 
                 last_effective
@@ -127,7 +129,7 @@ impl FiscalYear {
             month_closed_as_of: new_monthly_closing_date,
             month_closed_at: now,
         });
-        Idempotent::Executed(new_monthly_closing_date)
+        Ok(Idempotent::Executed(new_monthly_closing_date))
     }
 
     pub fn month_closures(&self) -> Vec<FiscalMonthClosure> {
@@ -165,6 +167,14 @@ impl FiscalYear {
             .and_then(|d| d.pred_opt())
             .expect("Failed to compute expected december closing date for fiscal year");
         self.events.iter_all().rev().any(|event| matches!(event, FiscalYearEvent::MonthClosed { month_closed_as_of, .. } if *month_closed_as_of == expected_last_month_closed_as_of))
+    }
+
+    fn is_open(&self) -> bool {
+        !self
+            .events
+            .iter_all()
+            .rev()
+            .any(|event| matches!(event, FiscalYearEvent::YearClosed { .. }))
     }
 }
 
@@ -255,7 +265,10 @@ mod test {
         let mut fiscal_year = fiscal_year_from(initial_events_with_opened_date(period_start));
 
         let timestamp = Utc::now();
-        let closed_date = fiscal_year.close_next_sequential_month(timestamp).unwrap();
+        let closed_date = fiscal_year
+            .close_next_sequential_month(timestamp)
+            .unwrap()
+            .unwrap();
         assert_eq!(closed_date, expected_closed_date);
 
         let closing_event_date = fiscal_year
@@ -283,6 +296,7 @@ mod test {
         let second_closing_ts = Utc::now();
         let second_closing_date = fiscal_year
             .close_next_sequential_month(second_closing_ts)
+            .unwrap()
             .unwrap();
         assert_eq!(second_closing_date, expected_second_closed_date);
     }
@@ -297,7 +311,7 @@ mod test {
         let mut fiscal_year =
             fiscal_year_from(initial_events_with_opened_date(first_day_of_last_month));
         let _ = fiscal_year.close_next_sequential_month(Utc::now()).unwrap();
-        let second_closing_date = fiscal_year.close_next_sequential_month(Utc::now());
+        let second_closing_date = fiscal_year.close_next_sequential_month(Utc::now()).unwrap();
         assert!(second_closing_date.was_ignored());
     }
 
@@ -348,5 +362,16 @@ mod test {
         let second_closing = fiscal_year.close_and_open_next(Utc::now());
         assert!(second_closing.is_ok());
         assert!(second_closing.unwrap().was_ignored());
+    }
+
+    #[test]
+    fn cant_close_month_if_year_is_closed() {
+        let period_start = "2024-12-01".parse::<NaiveDate>().unwrap();
+        let mut fiscal_year = fiscal_year_from(initial_events_with_opened_date(period_start));
+        let _ = fiscal_year.close_next_sequential_month(Utc::now()).unwrap();
+        let _ = fiscal_year.close_and_open_next(Utc::now()).unwrap();
+        let result = fiscal_year.close_next_sequential_month(Utc::now());
+        assert!(result.is_err());
+        assert!(matches!(result, Err(FiscalYearError::AlreadyClosed)));
     }
 }
