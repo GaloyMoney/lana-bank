@@ -78,7 +78,7 @@ where
             .enforce_permission(
                 sub,
                 CoreAccountingObject::all_fiscal_years(),
-                CoreAccountingAction::FISCAL_YEAR_INIT,
+                CoreAccountingAction::FISCAL_YEAR_CREATE,
             )
             .await?;
 
@@ -121,7 +121,7 @@ where
             .enforce_permission(
                 sub,
                 CoreAccountingObject::fiscal_year(id),
-                CoreAccountingAction::FISCAL_YEAR_INIT,
+                CoreAccountingAction::FISCAL_YEAR_CREATE,
             )
             .await?;
         let now = crate::time::now();
@@ -130,6 +130,7 @@ where
         match fiscal_year.close_and_open_next(now)? {
             Idempotent::Executed(next_fiscal_year) => {
                 let mut op = self.repo.begin_op().await?;
+                self.repo.update_in_op(&mut op, &mut fiscal_year).await?;
                 let new_fiscal_year = self.repo.create_in_op(&mut op, next_fiscal_year).await?;
                 // TODO: Use `ChartLedger` via `ChartOfAccounts` to transfer
                 // net income from `ProfitAndLossStatement` to `BalanceSheet`.

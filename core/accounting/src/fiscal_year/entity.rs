@@ -54,11 +54,13 @@ impl FiscalYear {
         &mut self,
         now: DateTime<Utc>,
     ) -> Result<Idempotent<NewFiscalYear>, FiscalYearError> {
-        self.check_can_close()?;
         idempotency_guard!(
             self.events.iter_all().rev(),
             FiscalYearEvent::YearClosed { .. }
         );
+        if !self.can_close() {
+            return Err(FiscalYearError::NotReadyForAnnualClose);
+        }
         self.events.push(FiscalYearEvent::YearClosed {
             closed_as_of: now.date_naive(),
             closed_at: now,
@@ -153,7 +155,7 @@ impl FiscalYear {
             .any(|event| matches!(event, FiscalYearEvent::YearClosed { .. }))
     }
 
-    fn check_can_close(&self) -> Result<(), FiscalYearError> {
+    fn can_close(&self) -> bool {
         let year = self.opened_as_of.year();
         let last_month_of_year = NaiveDate::from_ymd_opt(year, 12, 1)
             .expect("Failed to compute december of fiscal year");
@@ -162,18 +164,13 @@ impl FiscalYear {
             .and_then(|d| d.with_day(1))
             .and_then(|d| d.pred_opt())
             .expect("Failed to compute expected december closing date for fiscal year");
-        if self.events.iter_all().rev().any(|event| matches!(event, FiscalYearEvent::MonthClosed { month_closed_as_of, .. } if *month_closed_as_of == expected_last_month_closed_as_of)) {
-            return Ok(());
-        }
-        Err(FiscalYearError::NotReadyForAnnualClose)
+        self.events.iter_all().rev().any(|event| matches!(event, FiscalYearEvent::MonthClosed { month_closed_as_of, .. } if *month_closed_as_of == expected_last_month_closed_as_of))
     }
 }
 
 impl TryFromEvents<FiscalYearEvent> for FiscalYear {
     fn try_from_events(events: EntityEvents<FiscalYearEvent>) -> Result<Self, EsEntityError> {
         let mut builder = FiscalYearBuilder::default();
-        // TODO: Handle optional tracked field.
-        let mut closed_as_of = None;
 
         for event in events.iter_all() {
             match event {
@@ -191,13 +188,12 @@ impl TryFromEvents<FiscalYearEvent> for FiscalYear {
                         .opened_as_of(*opened_as_of)
                 }
                 FiscalYearEvent::MonthClosed { .. } => {}
-                FiscalYearEvent::YearClosed {
-                    closed_as_of: year_closed_as_of,
-                    ..
-                } => closed_as_of = Some(*year_closed_as_of),
+                FiscalYearEvent::YearClosed { closed_as_of, .. } => {
+                    builder = builder.closed_as_of(Some(*closed_as_of));
+                }
             }
         }
-        builder.closed_as_of(closed_as_of).events(events).build()
+        builder.events(events).build()
     }
 }
 
