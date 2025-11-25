@@ -104,14 +104,7 @@ where
         Ok(())
     }
 
-    #[instrument(name = "time_events.broadcaster.run", skip(self))]
     pub async fn run(&self) {
-        info!(
-            closing_time = %self.closing_time,
-            timezone = %self.tz,
-            "Starting DailyClosing broadcaster"
-        );
-
         loop {
             let now = crate::time::now();
             let next_closing = self.calculate_next_closing(now);
