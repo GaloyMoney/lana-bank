@@ -12,7 +12,7 @@ This github repository is a monorepo.
 
 The backend is in rust. The frontend is in next js.
 
-During local dev, Podman a Podman compose is being used.
+During local dev, Podman and Podman compose is being used.
 
 Useful commands to run are in the Makefile.
 
