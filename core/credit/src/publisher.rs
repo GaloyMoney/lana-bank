@@ -422,6 +422,7 @@ where
                     amount,
                     ledger_tx_id,
                 } => todo!(),
+                Satisfied {} => todo!(),
             })
             .collect::<Vec<_>>();
         self.outbox

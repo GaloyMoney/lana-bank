@@ -8,6 +8,7 @@ use es_entity::*;
 
 use crate::{
     ledger::*,
+    liquidation_process::NewLiquidationProcess,
     obligation::{NewObligation, ObligationsAmounts},
     primitives::*,
     terms::{InterestPeriod, TermValues},
@@ -251,8 +252,18 @@ impl CreditFacility {
         }
     }
 
-    pub(crate) fn start_partial_liquidation(&mut self) -> Idempotent<()> {
-        todo!()
+    pub(crate) fn initiate_partial_liquidation(
+        &mut self,
+        price: PriceOfOneBTC,
+    ) -> Idempotent<NewLiquidationProcess> {
+        // calculate amount to sell/receive (will be extracted to value object)
+
+        let new_liquidation = NewLiquidationProcess {
+            id: LiquidationProcessId::new(),
+            credit_facility_id: self.id,
+        };
+
+        Idempotent::Executed(new_liquidation)
     }
 
     pub(crate) fn mature(&mut self) -> Idempotent<()> {
