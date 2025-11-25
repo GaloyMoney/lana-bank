@@ -22,25 +22,12 @@ impl<E> DailyClosingBroadcaster<E>
 where
     E: OutboxEventMarker<CoreTimeEvent>,
 {
-    pub fn try_new(outbox: &Outbox<E>, config: TimeEventsConfig) -> Result<Self, TimeEventsError> {
-        let tz = config
-            .daily
-            .timezone
-            .parse()
-            .map_err(|_| TimeEventsError::InvalidTimezone {
-                timezone: config.daily.timezone.clone(),
-            })?;
-
-        let closing_time = NaiveTime::parse_from_str(&config.daily.closing_time, "%H:%M:%S")
-            .map_err(|_| TimeEventsError::InvalidTimeFormat {
-                time_format: config.daily.closing_time.clone(),
-            })?;
-
-        Ok(Self {
+    pub fn new(outbox: &Outbox<E>, config: TimeEventsConfig) -> Self {
+        Self {
             outbox: outbox.clone(),
-            tz,
-            closing_time,
-        })
+            tz: config.daily.timezone,
+            closing_time: config.daily.closing_time,
+        }
     }
 }
 
