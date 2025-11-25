@@ -118,6 +118,10 @@ pub enum CoreCreditEvent {
         id: ObligationId,
         credit_facility_id: CreditFacilityId,
     },
+    PartialLiquidationSatisfied {
+        credit_facility_id: CreditFacilityId,
+        amount: UsdCents,
+    },
     LiquidationProcessStarted {
         id: LiquidationProcessId,
         credit_facility_id: CreditFacilityId,

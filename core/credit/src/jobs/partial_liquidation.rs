@@ -64,6 +64,18 @@ impl<E: OutboxEventMarker<CoreCreditEvent>> PartialLiquidationJobRunner<E> {
                 // record payment
                 todo!()
             }
+            Some(FacilityRepaymentRecorded {
+                credit_facility_id,
+                obligation_id,
+                obligation_type,
+                payment_id,
+                amount,
+                recorded_at,
+                effective,
+            }) => {
+                // complete liquidation
+                todo!()
+            }
             _ => {}
         }
 
