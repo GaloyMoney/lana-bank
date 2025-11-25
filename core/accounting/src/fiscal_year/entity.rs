@@ -125,15 +125,6 @@ impl FiscalYear {
         Idempotent::Executed(new_monthly_closing_date)
     }
 
-    #[instrument(name = "fiscal_year.is_open", skip(self))]
-    pub fn is_open(&self) -> bool {
-        !self
-            .events
-            .iter_all()
-            .rev()
-            .any(|event| matches!(event, FiscalYearEvent::YearClosed { .. }))
-    }
-
     fn can_close(&self) -> bool {
         let year = self.opened_as_of.year();
         let last_month_of_year = NaiveDate::from_ymd_opt(year, 12, 1)
