@@ -3,13 +3,14 @@
 //! of Bitcoins and is waiting for balance updates on relevant
 //! accounts.
 
+use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
 use cala_ledger::{
     AccountId,
     outbox::{OutboxEvent, OutboxEventPayload},
 };
-use job::Jobs;
+use job::*;
 use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use crate::{
@@ -18,20 +19,80 @@ use crate::{
 };
 
 #[derive(Clone, Serialize, Deserialize)]
-pub(crate) struct PartialLiquidationJobConfig<E> {
+pub(crate) struct PartialLiquidationJobConfig<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
     pub receivable_account_id: AccountId,
     pub liquidation_process_id: LiquidationProcessId,
     pub _phantom: std::marker::PhantomData<E>,
 }
 
-pub struct PartialLiquidationJobRunner<E: OutboxEventMarker<CoreCreditEvent>> {
+impl<E> JobConfig for PartialLiquidationJobConfig<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
+    type Initializer = PartialLiquidationInit<E>;
+}
+
+pub struct PartialLiquidationInit<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
+    outbox: Outbox<E>,
+    jobs: Jobs,
+    liquidation_process_repo: LiquidationProcessRepo<E>,
+}
+
+const PARTIAL_LIQUIDATION_JOB: JobType = JobType::new("outbox.partial-liquidation");
+impl<E> JobInitializer for PartialLiquidationInit<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
+    fn job_type() -> JobType
+    where
+        Self: Sized,
+    {
+        PARTIAL_LIQUIDATION_JOB
+    }
+
+    fn init(&self, job: &job::Job) -> Result<Box<dyn job::JobRunner>, Box<dyn std::error::Error>> {
+        Ok(Box::new(PartialLiquidationJobRunner::<E> {
+            config: job.config()?,
+            outbox: self.outbox.clone(),
+            jobs: self.jobs.clone(),
+            liquidation_process_repo: self.liquidation_process_repo.clone(),
+        }))
+    }
+}
+
+pub struct PartialLiquidationJobRunner<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
     config: PartialLiquidationJobConfig<E>,
     outbox: Outbox<E>,
     jobs: Jobs,
     liquidation_process_repo: LiquidationProcessRepo<E>,
 }
 
-impl<E: OutboxEventMarker<CoreCreditEvent>> PartialLiquidationJobRunner<E> {
+#[async_trait]
+impl<E> JobRunner for PartialLiquidationJobRunner<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
+    async fn run(
+        &self,
+        _current_job: CurrentJob,
+    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+        todo!()
+    }
+}
+
+impl<E> PartialLiquidationJobRunner<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
     async fn process_message(
         &self,
         message: &PersistentOutboxEvent<E>,

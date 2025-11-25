@@ -377,13 +377,6 @@ where
             jobs,
         ));
         jobs.add_initializer(
-            obligation_liquidation::ObligationLiquidationInit::<Perms, E>::new(
-                ledger_arc.as_ref(),
-                obligations_arc.as_ref(),
-                jobs,
-            ),
-        );
-        jobs.add_initializer(
             obligation_defaulted::ObligationDefaultedInit::<Perms, E>::new(
                 ledger_arc.as_ref(),
                 obligations_arc.as_ref(),

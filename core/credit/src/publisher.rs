@@ -399,19 +399,14 @@ where
                 Initialized {
                     id,
                     credit_facility_id,
-                    ledger_tx_id,
-                    effective,
                     ..
                 } => CoreCreditEvent::LiquidationProcessStarted {
                     id: *id,
                     credit_facility_id: *credit_facility_id,
-                    effective: *effective,
-                    ledger_tx_id: *ledger_tx_id,
                     recorded_at: event.recorded_at,
                 },
                 Completed { .. } => CoreCreditEvent::LiquidationProcessConcluded {
                     id: entity.id,
-                    obligation_id: entity.obligation_id,
                     credit_facility_id: entity.credit_facility_id,
                 },
                 CollateralSentOut {

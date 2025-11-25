@@ -8,7 +8,6 @@ pub mod interest_accrual_cycles;
 pub mod interest_accruals;
 pub mod obligation_defaulted;
 pub mod obligation_due;
-pub mod obligation_liquidation;
 pub mod obligation_overdue;
 pub mod partial_liquidation;
 pub mod wallet_collateral_sync;

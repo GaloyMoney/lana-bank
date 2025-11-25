@@ -3,6 +3,7 @@ pub mod error;
 pub mod interest_accrual_cycle;
 mod repo;
 
+use es_entity::Idempotent;
 use std::sync::Arc;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
@@ -20,6 +21,7 @@ use crate::{
     event::CoreCreditEvent,
     jobs::{credit_facility_maturity, interest_accruals},
     ledger::{CreditFacilityInterestAccrual, CreditFacilityInterestAccrualCycle, CreditLedger},
+    liquidation_process::NewLiquidationProcess,
     obligation::Obligations,
     pending_credit_facility::{PendingCreditFacilities, PendingCreditFacilityCompletionOutcome},
     primitives::*,
@@ -735,6 +737,18 @@ where
             .get_credit_facility_balance(credit_facility.account_ids)
             .await?;
         Ok(balances.any_outstanding_or_defaulted())
+    }
+
+    pub async fn initiate_liquidation(
+        &self,
+        credit_facility_id: CreditFacilityId,
+        price: PriceOfOneBTC,
+    ) -> Result<NewLiquidationProcess, CreditFacilityError> {
+        let mut facility = self.repo.find_by_id(credit_facility_id).await?;
+        match facility.initiate_partial_liquidation(price) {
+            Idempotent::Executed(new_liquidation) => Ok(new_liquidation),
+            Idempotent::Ignored => todo!(),
+        }
     }
 }
 

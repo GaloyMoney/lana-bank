@@ -125,13 +125,10 @@ pub enum CoreCreditEvent {
     LiquidationProcessStarted {
         id: LiquidationProcessId,
         credit_facility_id: CreditFacilityId,
-        ledger_tx_id: LedgerTxId,
         recorded_at: DateTime<Utc>,
-        effective: chrono::NaiveDate,
     },
     LiquidationProcessConcluded {
         id: LiquidationProcessId,
-        obligation_id: ObligationId,
         credit_facility_id: CreditFacilityId,
     },
 }

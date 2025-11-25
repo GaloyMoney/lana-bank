@@ -206,41 +206,6 @@ where
         Ok(data)
     }
 
-    pub async fn start_liquidation_process_in_op(
-        &self,
-        op: &mut es_entity::DbOp<'_>,
-        id: ObligationId,
-        effective: chrono::NaiveDate,
-    ) -> Result<(Obligation, Option<LiquidationProcess>), ObligationError> {
-        let mut obligation = self.repo.find_by_id(id).await?;
-
-        self.authz
-            .audit()
-            .record_system_entry_in_tx(
-                op,
-                CoreCreditObject::obligation(id),
-                CoreCreditAction::OBLIGATION_UPDATE_STATUS,
-            )
-            .await
-            .map_err(authz::error::AuthorizationError::from)?;
-
-        let liquidation_process = if let Idempotent::Executed(new_liquidation_process) =
-            obligation.start_liquidation(effective)
-        {
-            self.repo.update_in_op(op, &mut obligation).await?;
-            let liquidation_process = self
-                .liquidation_process_repo
-                .create_in_op(op, new_liquidation_process)
-                .await?;
-
-            Some(liquidation_process)
-        } else {
-            None
-        };
-
-        Ok((obligation, liquidation_process))
-    }
-
     pub async fn find_by_id_without_audit(
         &self,
         id: ObligationId,
