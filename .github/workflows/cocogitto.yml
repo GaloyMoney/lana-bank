@@ -1,18 +1,16 @@
 name: "Conventional Commit Check"
 
-on: [push]
+on: 
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
 
 jobs:
-  cog_check_job:
+  pr_title_check:
     runs-on: ubuntu-latest
-    name: check conventional commit compliance
+    name: check PR title conventional commit compliance
     steps:
-      - uses: actions/checkout@main
-        with:
-          fetch-depth: 0
-
-      - name: Conventional commits check
-        uses: cocogitto/cocogitto-action@v3
-        with:
-          check-latest-tag-only: true
+      - name: Validate PR title
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
