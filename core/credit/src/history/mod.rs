@@ -129,12 +129,7 @@ impl CreditFacilityHistory {
                     },
                 ));
             }
-            LiquidationProcessStarted {
-                recorded_at,
-                effective,
-                ledger_tx_id,
-                ..
-            } => {
+            LiquidationProcessStarted { recorded_at, .. } => {
                 // self.entries
                 // .push(CreditFacilityHistoryEntry::ReservedForLiquidation(
                 // ObligationMovedToLiquidation {
@@ -170,6 +165,7 @@ impl CreditFacilityHistory {
             ObligationDefaulted { .. } => {}
             LiquidationProcessConcluded { .. } => {}
             ObligationCompleted { .. } => {}
+            PartialLiquidationSatisfied { .. } => todo!(),
         }
     }
 }

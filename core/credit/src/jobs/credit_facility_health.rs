@@ -9,14 +9,13 @@
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
-use core_price::PriceOfOneBTC;
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
-use job::Jobs;
+use job::{JobId, Jobs};
 use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use crate::{
     CollateralizationState, CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilities,
-    CreditFacilityId, liquidation_process::LiquidationProcessRepo,
+    jobs::partial_liquidation, liquidation_process::LiquidationProcessRepo,
 };
 
 pub struct CreditFacilityHealthJobRunner<Perms, E>
@@ -70,7 +69,27 @@ where
                         .await
                     {
                         Err(e) if e.was_not_found() => {
-                            self.initiate_liquidation(*id, *price).await;
+                            let new_liquidation = self
+                                .facilities
+                                .initiate_liquidation(*id, *price)
+                                .await
+                                .unwrap();
+                            let x = self
+                                .liquidation_process_repo
+                                .create(new_liquidation)
+                                .await
+                                .unwrap();
+                            self.jobs
+                                .create_and_spawn(
+                                    JobId::new(),
+                                    partial_liquidation::PartialLiquidationJobConfig::<E> {
+                                        receivable_account_id: todo!(),
+                                        liquidation_process_id: x.id,
+                                        _phantom: std::marker::PhantomData,
+                                    },
+                                )
+                                .await
+                                .unwrap();
                         }
                         Err(e) => {}
                         Ok(_) => {
@@ -83,18 +102,5 @@ where
         }
 
         Ok(())
-    }
-
-    async fn initiate_liquidation(
-        &self,
-        credit_facility_id: CreditFacilityId,
-        price: PriceOfOneBTC,
-    ) {
-        let mut facility = self
-            .facilities
-            .find_by_id_without_audit(credit_facility_id)
-            .await
-            .unwrap();
-        let x = facility.initiate_partial_liquidation(price);
     }
 }

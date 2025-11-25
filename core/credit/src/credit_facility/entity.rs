@@ -256,12 +256,23 @@ impl CreditFacility {
         &mut self,
         price: PriceOfOneBTC,
     ) -> Idempotent<NewLiquidationProcess> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            CreditFacilityEvent::PartialLiquidationInitiated { .. },
+            => CreditFacilityEvent::InterestAccrualCycleConcluded { .. }
+        );
+
         // calculate amount to sell/receive (will be extracted to value object)
 
         let new_liquidation = NewLiquidationProcess {
             id: LiquidationProcessId::new(),
             credit_facility_id: self.id,
         };
+
+        self.events
+            .push(CreditFacilityEvent::PartialLiquidationInitiated {
+                liquidation_process_id: new_liquidation.id,
+            });
 
         Idempotent::Executed(new_liquidation)
     }
