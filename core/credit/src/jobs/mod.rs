@@ -10,5 +10,4 @@ pub mod obligation_defaulted;
 pub mod obligation_due;
 pub mod obligation_overdue;
 pub mod partial_liquidation;
-pub mod partial_liquidation_cala;
 pub mod wallet_collateral_sync;

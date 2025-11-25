@@ -16,7 +16,7 @@ use job::*;
 use outbox::{EventSequence, Outbox, OutboxEventMarker, PersistentOutboxEvent};
 use serde::{Deserialize, Serialize};
 
-use crate::jobs::{partial_liquidation, partial_liquidation_cala};
+use crate::jobs::partial_liquidation;
 use crate::{
     CollateralizationState, CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilities,
     liquidation_process::LiquidationProcessRepo,
@@ -227,17 +227,6 @@ where
                                     partial_liquidation::PartialLiquidationJobConfig::<E> {
                                         liquidation_process_id: liquidation.id,
                                         credit_facility_id: *id,
-                                        _phantom: std::marker::PhantomData,
-                                    },
-                                )
-                                .await?;
-                            self.jobs
-                                .create_and_spawn_in_op(
-                                    db,
-                                    JobId::new(),
-                                    partial_liquidation_cala::PartialLiquidationCalaJobConfig::<E> {
-                                        receivable_account_id: todo!(),
-                                        liquidation_process_id: liquidation.id,
                                         _phantom: std::marker::PhantomData,
                                     },
                                 )

@@ -386,12 +386,6 @@ where
             &outbox,
             todo!(),
         ));
-        jobs.add_initializer(
-            partial_liquidation_cala::PartialLiquidationCalaInit::<E>::new(
-                cala_arc.as_ref(),
-                todo!(),
-            ),
-        );
         jobs.add_initializer(credit_facility_maturity::CreditFacilityMaturityInit::<
             Perms,
             E,
@@ -826,14 +820,14 @@ where
         Ok(credit_facility)
     }
 
-    pub async fn record_payment_from_liquidation(
+    pub async fn send_collateral_for_liquidation(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         liquidation_process_id: LiquidationProcessId,
-        amount: UsdCents,
+        amount: Satoshis,
+        effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
     ) -> Result<(), CoreCreditError> {
-        // post transaction to ledger account associated with liquidation process
-        Ok(())
+        todo!()
     }
 
     pub async fn subject_can_record_payment(

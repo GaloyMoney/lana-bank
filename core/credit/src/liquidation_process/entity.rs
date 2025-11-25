@@ -6,6 +6,8 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
+use cala_ledger::AccountId as CalaAccountId;
+
 use crate::primitives::*;
 
 use super::error::LiquidationProcessError;
@@ -18,6 +20,7 @@ pub enum LiquidationProcessEvent {
     Initialized {
         id: LiquidationProcessId,
         credit_facility_id: CreditFacilityId,
+        receivable_account_id: CalaAccountId,
         liquidated_amount: Satoshis,
         expected_to_receive: UsdCents,
         price_at_initiation: PriceOfOneBTC,
@@ -43,6 +46,7 @@ pub struct LiquidationProcess {
     pub expected_to_receive: UsdCents,
     pub amount_sent: Satoshis,
     pub amount_received: UsdCents,
+    pub receivable_account_id: CalaAccountId,
     events: EntityEvents<LiquidationProcessEvent>,
 }
 
@@ -75,7 +79,7 @@ impl LiquidationProcess {
         }
     }
 
-    pub fn record_repayment_from_liquidator(
+    pub fn record_repayment_from_liquidation(
         &mut self,
         amount_received: UsdCents,
         ledger_tx_id: LedgerTxId,
@@ -124,20 +128,41 @@ impl TryFromEvents<LiquidationProcessEvent> for LiquidationProcess {
         events: EntityEvents<LiquidationProcessEvent>,
     ) -> Result<Self, EsEntityError> {
         let mut builder = LiquidationProcessBuilder::default();
+
+        let mut amount_sent = Default::default();
+        let mut amount_received = Default::default();
+
         for event in events.iter_all() {
             match event {
                 LiquidationProcessEvent::Initialized {
                     id,
                     credit_facility_id,
+                    receivable_account_id,
+                    expected_to_receive,
                     ..
-                } => builder = builder.id(*id).credit_facility_id(*credit_facility_id),
-                LiquidationProcessEvent::CollateralSentOut { .. } => {}
-                LiquidationProcessEvent::RepaymentAmountReceived { .. } => {}
+                } => {
+                    builder = builder
+                        .id(*id)
+                        .credit_facility_id(*credit_facility_id)
+                        .receivable_account_id(*receivable_account_id)
+                        .expected_to_receive(*expected_to_receive)
+                }
+                LiquidationProcessEvent::CollateralSentOut { amount, .. } => {
+                    amount_sent += *amount;
+                }
+                LiquidationProcessEvent::RepaymentAmountReceived { amount, .. } => {
+                    amount_received += *amount;
+                }
                 LiquidationProcessEvent::Satisfied { .. } => {}
                 LiquidationProcessEvent::Completed { .. } => {}
             }
         }
-        builder.events(events).build()
+
+        builder
+            .amount_received(amount_received)
+            .amount_sent(amount_sent)
+            .events(events)
+            .build()
     }
 }
 
@@ -147,6 +172,7 @@ pub struct NewLiquidationProcess {
     pub(crate) id: LiquidationProcessId,
     #[builder(setter(into))]
     pub(crate) credit_facility_id: CreditFacilityId,
+    pub(crate) receivable_account_id: CalaAccountId,
 }
 
 impl NewLiquidationProcess {
@@ -162,6 +188,7 @@ impl IntoEvents<LiquidationProcessEvent> for NewLiquidationProcess {
             [LiquidationProcessEvent::Initialized {
                 id: self.id,
                 credit_facility_id: self.credit_facility_id,
+                receivable_account_id: self.receivable_account_id,
                 liquidated_amount: todo!(),
                 expected_to_receive: todo!(),
                 price_at_initiation: todo!(),

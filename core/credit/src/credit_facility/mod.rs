@@ -744,8 +744,12 @@ where
         credit_facility_id: CreditFacilityId,
         price: PriceOfOneBTC,
     ) -> Result<NewLiquidationProcess, CreditFacilityError> {
+        // create ledger receivable account
+
+        let receivable_account_id = CalaAccountId::new();
+
         let mut facility = self.repo.find_by_id(credit_facility_id).await?;
-        match facility.initiate_partial_liquidation(price) {
+        match facility.initiate_partial_liquidation(price, receivable_account_id) {
             Idempotent::Executed(new_liquidation) => Ok(new_liquidation),
             Idempotent::Ignored => todo!(),
         }
