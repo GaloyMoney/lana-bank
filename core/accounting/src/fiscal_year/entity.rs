@@ -135,11 +135,11 @@ impl FiscalYear {
             .iter_all()
             .filter_map(|event| match event {
                 FiscalYearEvent::MonthClosed {
-                    closed_as_of,
-                    closed_at,
+                    month_closed_as_of,
+                    month_closed_at,
                 } => Some(FiscalMonthClosure {
-                    closed_as_of: *closed_as_of,
-                    closed_at: *closed_at,
+                    closed_as_of: *month_closed_as_of,
+                    closed_at: *month_closed_at,
                 }),
                 _ => None,
             })
