@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum ApplicantError {
@@ -30,4 +32,25 @@ pub enum ApplicantError {
     SumsubError(#[from] sumsub::SumsubError),
     #[error("ApplicantError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
+}
+
+impl ErrorSeverity for ApplicantError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::Serde(_) => Level::ERROR,
+            Self::CustomerError(e) => e.severity(),
+            Self::SystemTimeError(_) => Level::ERROR,
+            Self::UnhandledCallbackType => Level::ERROR,
+            Self::UnhandledLevelType => Level::ERROR,
+            Self::MissingExternalUserId(_) => Level::WARN,
+            Self::UuidError(_) => Level::ERROR,
+            Self::JobError(_) => Level::ERROR,
+            Self::CustomerIdNotFound(_) => Level::WARN,
+            Self::SumsubVerificationLevelParseError(_) => Level::ERROR,
+            Self::ReviewAnswerParseError(_) => Level::ERROR,
+            Self::SumsubError(_) => Level::ERROR,
+            Self::AuthorizationError(e) => e.severity(),
+        }
+    }
 }
