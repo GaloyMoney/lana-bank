@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use futures::StreamExt;
+use futures::{FutureExt, StreamExt, select};
 use serde::{Deserialize, Serialize};
 use tracing::{Span, instrument};
 
@@ -223,16 +223,34 @@ where
             .unwrap_or_default();
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
-        while let Some(message) = stream.next().await {
-            let mut op = current_job.pool().begin().await?;
-            self.process_message(message.as_ref(), &mut op).await?;
-            state.sequence = message.sequence;
-            current_job
-                .update_execution_state_in_op(&mut op, &state)
-                .await?;
-            op.commit().await?;
+        loop {
+            select! {
+                message = stream.next().fuse() => {
+                    match message {
+                        Some(message) => {
+                            let mut op = current_job.pool().begin().await?;
+                            self.process_message(message.as_ref(), &mut op).await?;
+                            state.sequence = message.sequence;
+                            current_job
+                                .update_execution_state_in_op(&mut op, &state)
+                                .await?;
+                            op.commit().await?;
+                        }
+                        None => {
+                            return Ok(JobCompletion::RescheduleNow);
+                        }
+                    }
+                }
+                _ = current_job.shutdown_requested().fuse() => {
+                    tracing::info!(
+                        job_id = %current_job.id(),
+                        job_type = %EMAIL_LISTENER_JOB,
+                        last_sequence = %state.sequence,
+                        "Shutdown signal received"
+                    );
+                    return Ok(JobCompletion::RescheduleNow);
+                }
+            }
         }
-
-        Ok(JobCompletion::RescheduleNow)
     }
 }
