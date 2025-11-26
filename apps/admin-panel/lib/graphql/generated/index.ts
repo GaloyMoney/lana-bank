@@ -1337,6 +1337,7 @@ export type FiscalYear = {
   __typename?: 'FiscalYear';
   chartId: Scalars['UUID']['output'];
   closedAsOf?: Maybe<Scalars['Date']['output']>;
+  fiscalYearId: Scalars['UUID']['output'];
   id: Scalars['ID']['output'];
   openedAsOf: Scalars['Date']['output'];
 };

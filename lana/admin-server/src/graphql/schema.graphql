@@ -1329,6 +1329,7 @@ type FiniteCVLPct {
 
 type FiscalYear {
 	id: ID!
+	fiscalYearId: UUID!
 	chartId: UUID!
 	openedAsOf: Date!
 	closedAsOf: Date

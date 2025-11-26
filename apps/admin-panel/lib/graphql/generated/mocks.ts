@@ -1728,6 +1728,7 @@ export const mockFiscalYear = (overrides?: Partial<FiscalYear>, _relationshipsTo
         __typename: 'FiscalYear',
         chartId: overrides && overrides.hasOwnProperty('chartId') ? overrides.chartId! : generateMockValue.uuid(),
         closedAsOf: overrides && overrides.hasOwnProperty('closedAsOf') ? overrides.closedAsOf! : faker.date.past({ years: 1, refDate: new Date(2022, 0) }).toISOString(),
+        fiscalYearId: overrides && overrides.hasOwnProperty('fiscalYearId') ? overrides.fiscalYearId! : generateMockValue.uuid(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         openedAsOf: overrides && overrides.hasOwnProperty('openedAsOf') ? overrides.openedAsOf! : faker.date.past({ years: 1, refDate: new Date(2022, 0) }).toISOString(),
     };
