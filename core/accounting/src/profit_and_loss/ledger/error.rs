@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum ProfitAndLossStatementLedgerError {
@@ -24,5 +26,18 @@ impl ProfitAndLossStatementLedgerError {
                 cala_ledger::account_set::error::AccountSetError::ExternalIdAlreadyExists,
             )
         )
+    }
+}
+
+impl ErrorSeverity for ProfitAndLossStatementLedgerError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::CalaLedger(_) => Level::ERROR,
+            Self::CalaAccountSet(_) => Level::ERROR,
+            Self::CalaBalance(_) => Level::ERROR,
+            Self::NonAccountSetMemberTypeFound => Level::ERROR,
+            Self::NotFound(_) => Level::WARN,
+        }
     }
 }
