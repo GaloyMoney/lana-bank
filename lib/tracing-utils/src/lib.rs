@@ -14,11 +14,13 @@ use opentelemetry_otlp::WithExportConfig;
 use opentelemetry_sdk::{
     Resource,
     propagation::TraceContextPropagator,
-    trace::{Sampler, SdkTracerProvider},
+    trace::{BatchConfigBuilder, BatchSpanProcessor, Sampler, SdkTracerProvider},
 };
 use opentelemetry_semantic_conventions::resource::SERVICE_NAMESPACE;
 use serde::{Deserialize, Serialize};
-use tracing_subscriber::{filter::EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
+use tracing_subscriber::{
+    Layer, filter::EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt,
+};
 
 pub use error::TracingError;
 pub use error_severity::ErrorSeverity;
@@ -49,6 +51,10 @@ pub struct TracerHandle {
 static TRACER_HANDLE: Mutex<Option<TracerHandle>> = Mutex::new(None);
 
 pub fn init_tracer(config: TracingConfig) -> anyhow::Result<()> {
+    let enable_tokio_console = std::env::var("TOKIO_CONSOLE")
+        .map(|v| v == "1" || v.to_lowercase() == "true")
+        .unwrap_or(false);
+
     global::set_text_map_propagator(TraceContextPropagator::new());
 
     let endpoint = std::env::var("OTEL_EXPORTER_OTLP_ENDPOINT")
@@ -59,9 +65,17 @@ pub fn init_tracer(config: TracingConfig) -> anyhow::Result<()> {
         .with_endpoint(endpoint)
         .build()?;
 
+    let batch_config = BatchConfigBuilder::default()
+        .with_max_queue_size(8192)
+        .build();
+
+    let batch_processor = BatchSpanProcessor::builder(exporter)
+        .with_batch_config(batch_config)
+        .build();
+
     let provider = SdkTracerProvider::builder()
         .with_resource(telemetry_resource(&config))
-        .with_batch_exporter(exporter)
+        .with_span_processor(batch_processor)
         .with_sampler(Sampler::AlwaysOn)
         .build();
 
@@ -79,19 +93,68 @@ pub fn init_tracer(config: TracingConfig) -> anyhow::Result<()> {
 
     global::set_tracer_provider((*provider_arc).clone());
     let tracer = provider_arc.tracer("lana-tracer");
-    let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
 
-    let fmt_layer = fmt::layer().compact();
+    // Build separate filter for OTEL that excludes tokio/runtime
+    let otel_filter = EnvFilter::try_from_default_env()
+        .or_else(|_| EnvFilter::try_new("info,sqlx=debug"))
+        .unwrap()
+        .add_directive("tokio=off".parse().unwrap())
+        .add_directive("runtime=off".parse().unwrap());
 
-    // set env to RUST_LOG=debug or RUST_LOG=info,sqlx=warn to change this value dynamically
-    let filter_layer = EnvFilter::try_from_default_env()
+    let telemetry = tracing_opentelemetry::layer()
+        .with_tracer(tracer)
+        .with_filter(otel_filter);
+
+    // Build separate filter for fmt_layer that excludes tokio/runtime/sqlx from stdout
+    let fmt_filter = EnvFilter::try_from_default_env()
+        .or_else(|_| EnvFilter::try_new("info"))
+        .unwrap()
+        .add_directive("tokio=off".parse().unwrap())
+        .add_directive("runtime=off".parse().unwrap())
+        .add_directive("sqlx=off".parse().unwrap());
+
+    let fmt_layer = fmt::layer().compact().with_filter(fmt_filter);
+
+    // Build the base filter - only used if console is enabled for tokio/runtime traces
+    let mut base_filter = EnvFilter::try_from_default_env()
         .or_else(|_| EnvFilter::try_new("info,sqlx=debug"))
         .unwrap();
-    tracing_subscriber::registry()
-        .with(filter_layer)
+
+    // If tokio-console is enabled AND tokio_unstable is available,
+    // ensure tokio and runtime traces are at TRACE level
+    // This is required by console-subscriber as per the documentation
+    #[cfg(tokio_unstable)]
+    if enable_tokio_console {
+        base_filter = base_filter
+            .add_directive("tokio=trace".parse().unwrap())
+            .add_directive("runtime=trace".parse().unwrap());
+    }
+
+    let registry = tracing_subscriber::registry()
+        .with(base_filter)
         .with(fmt_layer)
-        .with(telemetry)
-        .init();
+        .with(telemetry);
+
+    // Add console layer if both env var is set AND tokio_unstable cfg is enabled
+    // Note: console-subscriber requires tokio_unstable to work
+    #[cfg(tokio_unstable)]
+    if enable_tokio_console {
+        let console_layer = console_subscriber::spawn();
+        registry.with(console_layer).init();
+    } else {
+        registry.init();
+    }
+
+    #[cfg(not(tokio_unstable))]
+    {
+        if enable_tokio_console {
+            eprintln!("WARNING: TOKIO_CONSOLE=true but tokio_unstable is not enabled.");
+            eprintln!("To enable tokio-console, you must also set:");
+            eprintln!("  RUSTFLAGS=\"--cfg tokio_unstable\"");
+            eprintln!("in your .env file");
+        }
+        registry.init();
+    }
 
     setup_panic_hook();
 
