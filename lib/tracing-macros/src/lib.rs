@@ -48,26 +48,26 @@ pub fn record_error_severity(_args: TokenStream, input: TokenStream) -> TokenStr
                     let __severity = __e.severity();
 
                     // Record error metadata on current span
-                    __span.record("error", &::tracing::field::display(__e));
+                    // __span.record("error", true);
                     __span.record("error.level", __severity.as_str());
                     __span.record("error.message", &::tracing::field::display(__e));
 
-                    // Emit event at appropriate level
+                    // Emit event at appropriate level with "error" field for OpenTelemetry
                     match __severity {
                         ::tracing::Level::ERROR => {
-                            ::tracing::event!(::tracing::Level::ERROR, error = %__e, "Operation failed");
+                            ::tracing::event!(::tracing::Level::ERROR, error = &::tracing::field::display(__e));
                         }
                         ::tracing::Level::WARN => {
-                            ::tracing::event!(::tracing::Level::WARN, error = %__e, "Operation warning");
+                            ::tracing::event!(::tracing::Level::WARN, error = &::tracing::field::display(__e));
                         }
                         ::tracing::Level::INFO => {
-                            ::tracing::event!(::tracing::Level::INFO, error = %__e, "Operation notice");
+                            ::tracing::event!(::tracing::Level::INFO, error = &::tracing::field::display(__e));
                         }
                         ::tracing::Level::DEBUG => {
-                            ::tracing::event!(::tracing::Level::DEBUG, error = %__e, "Operation debug");
+                            ::tracing::event!(::tracing::Level::DEBUG, error = &::tracing::field::display(__e));
                         }
                         ::tracing::Level::TRACE => {
-                            ::tracing::event!(::tracing::Level::TRACE, error = %__e, "Operation trace");
+                            ::tracing::event!(::tracing::Level::TRACE, error = &::tracing::field::display(__e));
                         }
                     }
                 }
@@ -89,26 +89,26 @@ pub fn record_error_severity(_args: TokenStream, input: TokenStream) -> TokenStr
                     let __severity = __e.severity();
 
                     // Record error metadata on current span
-                    __span.record("error", &::tracing::field::display(__e));
+                    // __span.record("error", true);
                     __span.record("error.level", __severity.as_str());
                     __span.record("error.message", &::tracing::field::display(__e));
 
-                    // Emit event at appropriate level
+                    // Emit event at appropriate level with "error" field for OpenTelemetry
                     match __severity {
                         ::tracing::Level::ERROR => {
-                            ::tracing::event!(::tracing::Level::ERROR, error = %__e, "Operation failed");
+                            ::tracing::event!(::tracing::Level::ERROR, error = &::tracing::field::display(__e));
                         }
                         ::tracing::Level::WARN => {
-                            ::tracing::event!(::tracing::Level::WARN, error = %__e, "Operation warning");
+                            ::tracing::event!(::tracing::Level::WARN, error = &::tracing::field::display(__e));
                         }
                         ::tracing::Level::INFO => {
-                            ::tracing::event!(::tracing::Level::INFO, error = %__e, "Operation notice");
+                            ::tracing::event!(::tracing::Level::INFO, error = &::tracing::field::display(__e));
                         }
                         ::tracing::Level::DEBUG => {
-                            ::tracing::event!(::tracing::Level::DEBUG, error = %__e, "Operation debug");
+                            ::tracing::event!(::tracing::Level::DEBUG, error = &::tracing::field::display(__e));
                         }
                         ::tracing::Level::TRACE => {
-                            ::tracing::event!(::tracing::Level::TRACE, error = %__e, "Operation trace");
+                            ::tracing::event!(::tracing::Level::TRACE, error = &::tracing::field::display(__e));
                         }
                     }
                 }
