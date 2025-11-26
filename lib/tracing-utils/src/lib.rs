@@ -2,6 +2,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
 pub mod error;
+pub mod error_severity;
 
 use std::sync::{
     Arc, Mutex,
@@ -20,6 +21,7 @@ use serde::{Deserialize, Serialize};
 use tracing_subscriber::{filter::EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
 pub use error::TracingError;
+pub use error_severity::ErrorSeverity;
 pub use tracing::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
