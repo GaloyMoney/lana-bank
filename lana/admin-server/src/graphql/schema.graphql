@@ -1671,7 +1671,7 @@ type Mutation {
 	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
 	fiscalYearInit(input: FiscalYearInitInput!): FiscalYearInitPayload!
 	fiscalYearCloseMonth(input: FiscalYearCloseMonthInput!): FiscalYearCloseMonthPayload!
-	fiscalYearOpenNext(input: FiscalYearOpenNextInput!): FiscalYearOpenNextPayload!
+	fiscalYearOpenNext: FiscalYearOpenNextPayload!
 	fiscalYearClose(input: FiscalYearCloseInput!): FiscalYearClosePayload!
 	chartOfAccountsAddRootNode(input: ChartOfAccountsAddRootNodeInput!): ChartOfAccountsAddRootNodePayload!
 	chartOfAccountsAddChildNode(input: ChartOfAccountsAddChildNodeInput!): ChartOfAccountsAddChildNodePayload!

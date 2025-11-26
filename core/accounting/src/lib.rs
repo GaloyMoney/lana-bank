@@ -295,7 +295,27 @@ where
 
         Ok(self
             .fiscal_year()
-            .init_fiscal_year_for_chart(sub, opened_as_of, chart.id)
+            .init_for_chart(sub, opened_as_of, chart.id)
+            .await?)
+    }
+
+    #[instrument(
+        name = "core_accounting.open_next_fiscal_year_for_chart",
+        skip(self),
+        err
+    )]
+    pub async fn open_next_fiscal_year_for_chart(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_ref: &str,
+    ) -> Result<FiscalYear, CoreAccountingError> {
+        let chart = self
+            .chart_of_accounts()
+            .find_by_reference(chart_ref)
+            .await?;
+        Ok(self
+            .fiscal_year()
+            .open_next_for_chart(sub, chart.id)
             .await?)
     }
 

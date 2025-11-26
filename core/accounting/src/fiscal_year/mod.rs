@@ -2,11 +2,12 @@ mod entity;
 pub mod error;
 mod repo;
 
+use chrono::{Days, NaiveDate};
 use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use es_entity::Idempotent;
+use es_entity::{Idempotent, PaginatedQueryArgs};
 
 use crate::{
     FiscalYearId,
@@ -62,14 +63,14 @@ where
     }
 
     #[instrument(
-        name = "core_accounting.fiscal_year.init_fiscal_year_for_chart"
+        name = "core_accounting.fiscal_year.init_for_chart"
         skip(self),
         err
     )]
-    pub async fn init_fiscal_year_for_chart(
+    pub async fn init_for_chart(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        opened_as_of: impl Into<chrono::NaiveDate> + std::fmt::Debug,
+        opened_as_of: impl Into<NaiveDate> + std::fmt::Debug,
         chart_id: ChartId,
     ) -> Result<FiscalYear, FiscalYearError> {
         let opened_as_of = opened_as_of.into();
@@ -81,9 +82,9 @@ where
                 CoreAccountingAction::FISCAL_YEAR_CREATE,
             )
             .await?;
-
-        if let Ok(existing) = self.repo.find_by_chart_id(chart_id).await {
-            return Ok(existing);
+        let latest_fiscal_year = self.find_latest_for_chart(chart_id).await?;
+        if let Some(latest_fiscal_year) = latest_fiscal_year {
+            return Ok(latest_fiscal_year);
         }
 
         tracing::info!("Initializing first FiscalYear for chart ID: {}", chart_id);
@@ -106,32 +107,40 @@ where
         Ok(fiscal_year)
     }
 
-    #[instrument(name = "core_accounting.fiscal_year.open_next", skip(self), err)]
-    pub async fn open_next(
+    #[instrument(
+        name = "core_accounting.fiscal_year.open_next_for_chart",
+        skip(self),
+        err
+    )]
+    pub async fn open_next_for_chart(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        fiscal_year_id: impl Into<FiscalYearId> + std::fmt::Debug + Copy,
+        chart_id: ChartId,
     ) -> Result<FiscalYear, FiscalYearError> {
-        let id = fiscal_year_id.into();
         self.authz
             .enforce_permission(
                 sub,
-                CoreAccountingObject::fiscal_year(id),
+                CoreAccountingObject::all_fiscal_years(),
                 CoreAccountingAction::FISCAL_YEAR_CREATE,
             )
             .await?;
-        let mut fiscal_year = self.repo.find_by_id(id).await?;
-        match fiscal_year.open_next()? {
-            Idempotent::Executed(next_fiscal_year) => {
-                let mut op = self.repo.begin_op().await?;
-                self.repo.update_in_op(&mut op, &mut fiscal_year).await?;
-                let _new_fiscal_year = self.repo.create_in_op(&mut op, next_fiscal_year).await?;
-                op.commit().await?;
+        let fiscal_year = self
+            .find_latest_for_chart(chart_id)
+            .await?
+            .ok_or_else(|| FiscalYearError::FiscalYearNotInitializedForChart(chart_id))?;
+        let next_year_opened_as_of = fiscal_year
+            .closes_as_of()
+            .checked_add_days(Days::new(1))
+            .expect("Failed to compute start of next fiscal year");
+        let new_fiscal_year = NewFiscalYear::builder()
+            .id(FiscalYearId::new())
+            .chart_id(chart_id)
+            .opened_as_of(next_year_opened_as_of)
+            .build()
+            .expect("Could not build new fiscal year");
 
-                Ok(fiscal_year)
-            }
-            Idempotent::Ignored => Ok(fiscal_year),
-        }
+        let next_fiscal_year = self.repo.create(new_fiscal_year).await?;
+        Ok(next_fiscal_year)
     }
 
     #[instrument(name = "core_accounting.fiscal_year.close", skip(self), err)]
@@ -154,6 +163,7 @@ where
             Idempotent::Executed(_) => {
                 let mut op = self.repo.begin_op().await?;
                 self.repo.update_in_op(&mut op, &mut fiscal_year).await?;
+                // TODO: Operate on ledger via `chart_of_accounts`.
                 op.commit().await?;
 
                 Ok(fiscal_year)
@@ -243,5 +253,21 @@ where
         ids: &[FiscalYearId],
     ) -> Result<std::collections::HashMap<FiscalYearId, T>, FiscalYearError> {
         self.repo.find_all(ids).await
+    }
+
+    async fn find_latest_for_chart(
+        &self,
+        chart_id: ChartId,
+    ) -> Result<Option<FiscalYear>, FiscalYearError> {
+        let query = PaginatedQueryArgs::<FiscalYearsByCreatedAtCursor> {
+            first: 1,
+            after: None,
+        };
+        let result = self
+            .repo
+            .list_for_chart_id_by_created_at(chart_id, query, es_entity::ListDirection::Descending)
+            .await?;
+
+        Ok(result.entities.into_iter().next())
     }
 }

@@ -1878,11 +1878,6 @@ export type MutationFiscalYearInitArgs = {
 };
 
 
-export type MutationFiscalYearOpenNextArgs = {
-  input: FiscalYearOpenNextInput;
-};
-
-
 export type MutationLedgerAccountCsvCreateArgs = {
   input: LedgerAccountCsvCreateInput;
 };

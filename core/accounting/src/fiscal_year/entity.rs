@@ -24,7 +24,6 @@ pub enum FiscalYearEvent {
         month_closed_as_of: NaiveDate,
         month_closed_at: DateTime<Utc>,
     },
-    NextYearOpened {},
     YearClosed {
         closed_as_of: NaiveDate,
         closed_at: DateTime<Utc>,
@@ -49,24 +48,6 @@ pub struct FiscalMonthClosure {
 }
 
 impl FiscalYear {
-    #[instrument(name = "fiscal_year.open_next", skip(self))]
-    pub(super) fn open_next(&mut self) -> Result<Idempotent<NewFiscalYear>, FiscalYearError> {
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            FiscalYearEvent::NextYearOpened { .. }
-        );
-
-        let next_fiscal_year = NewFiscalYear::builder()
-            .id(FiscalYearId::new())
-            .chart_id(self.chart_id)
-            .opened_as_of(self.next_year_opened_as_of())
-            .build()
-            .expect("Failed to build next fiscal year");
-
-        self.events.push(FiscalYearEvent::NextYearOpened {});
-        Ok(Idempotent::Executed(next_fiscal_year))
-    }
-
     #[instrument(name = "fiscal_year.close", skip(self, now))]
     pub(super) fn close(
         &mut self,
@@ -79,9 +60,7 @@ impl FiscalYear {
         if !self.is_last_month_closed() {
             return Err(FiscalYearError::AllMonthsNotClosed);
         }
-        if !self.is_next_year_opened() {
-            return Err(FiscalYearError::NextYearNotOpenedBeforeClose);
-        }
+
         let closed_as_of = self.closes_as_of();
         self.events.push(FiscalYearEvent::YearClosed {
             closed_as_of,
@@ -90,13 +69,7 @@ impl FiscalYear {
         Ok(Idempotent::Executed(closed_as_of))
     }
 
-    fn next_year_opened_as_of(&self) -> NaiveDate {
-        let next_year = self.opened_as_of.year() + 1;
-        NaiveDate::from_ymd_opt(next_year, 1, 1)
-            .expect("Failed to compute start of next fiscal year")
-    }
-
-    fn closes_as_of(&self) -> NaiveDate {
+    pub(super) fn closes_as_of(&self) -> NaiveDate {
         let year = self.opened_as_of.year();
         let last_month_of_year = NaiveDate::from_ymd_opt(year, 12, 1)
             .expect("Failed to compute december of fiscal year");
@@ -213,13 +186,6 @@ impl FiscalYear {
             .rev()
             .any(|event| matches!(event, FiscalYearEvent::YearClosed { .. }))
     }
-
-    fn is_next_year_opened(&self) -> bool {
-        self.events
-            .iter_all()
-            .rev()
-            .any(|event| matches!(event, FiscalYearEvent::NextYearOpened { .. }))
-    }
 }
 
 impl TryFromEvents<FiscalYearEvent> for FiscalYear {
@@ -245,7 +211,6 @@ impl TryFromEvents<FiscalYearEvent> for FiscalYear {
                 FiscalYearEvent::YearClosed { closed_as_of, .. } => {
                     builder = builder.closed_as_of(Some(*closed_as_of));
                 }
-                FiscalYearEvent::NextYearOpened { .. } => {}
             }
         }
         builder.events(events).build()
@@ -366,33 +331,17 @@ mod test {
         let mut fiscal_year = fiscal_year_from(initial_events_with_opened_date(period_start));
 
         let _ = fiscal_year.close_next_sequential_month(Utc::now()).unwrap();
-        let _ = fiscal_year.open_next().unwrap();
         let result = fiscal_year.close(Utc::now());
         assert!(result.is_err());
         assert!(matches!(result, Err(FiscalYearError::AllMonthsNotClosed)));
     }
 
     #[test]
-    fn close_fails_when_next_year_not_opened() {
+    fn close_succeeds_when_december_closed() {
         let period_start = "2024-12-01".parse::<NaiveDate>().unwrap();
         let mut fiscal_year = fiscal_year_from(initial_events_with_opened_date(period_start));
 
         let _ = fiscal_year.close_next_sequential_month(Utc::now()).unwrap();
-        let result = fiscal_year.close(Utc::now());
-        assert!(result.is_err());
-        assert!(matches!(
-            result,
-            Err(FiscalYearError::NextYearNotOpenedBeforeClose)
-        ));
-    }
-
-    #[test]
-    fn close_succeeds_when_december_closed_and_next_year_opened() {
-        let period_start = "2024-12-01".parse::<NaiveDate>().unwrap();
-        let mut fiscal_year = fiscal_year_from(initial_events_with_opened_date(period_start));
-
-        let _ = fiscal_year.close_next_sequential_month(Utc::now()).unwrap();
-        let _ = fiscal_year.open_next().unwrap();
         let result = fiscal_year.close(Utc::now());
         assert!(result.is_ok());
 
@@ -409,7 +358,6 @@ mod test {
         let mut fiscal_year = fiscal_year_from(initial_events_with_opened_date(period_start));
 
         let _ = fiscal_year.close_next_sequential_month(Utc::now()).unwrap();
-        let _ = fiscal_year.open_next().unwrap();
         let _ = fiscal_year.close(Utc::now());
 
         let second_closing = fiscal_year.close(Utc::now());
@@ -422,41 +370,9 @@ mod test {
         let period_start = "2024-12-01".parse::<NaiveDate>().unwrap();
         let mut fiscal_year = fiscal_year_from(initial_events_with_opened_date(period_start));
         let _ = fiscal_year.close_next_sequential_month(Utc::now()).unwrap();
-        let _ = fiscal_year.open_next().unwrap();
         let _ = fiscal_year.close(Utc::now()).unwrap();
         let result = fiscal_year.close_next_sequential_month(Utc::now());
         assert!(result.is_err());
         assert!(matches!(result, Err(FiscalYearError::AlreadyClosed)));
-    }
-
-    #[test]
-    fn open_next_succeeds_when_year_is_open() {
-        let period_start = "2024-12-01".parse::<NaiveDate>().unwrap();
-        let mut current_fiscal_year =
-            fiscal_year_from(initial_events_with_opened_date(period_start));
-
-        let result = current_fiscal_year.open_next().unwrap();
-
-        assert!(result.did_execute());
-        let next_fiscal_year = result.unwrap();
-        assert_eq!(
-            next_fiscal_year.opened_as_of,
-            "2025-01-01".parse::<NaiveDate>().unwrap()
-        );
-        assert_eq!(
-            next_fiscal_year.reference(),
-            format!("{}:AC2025", current_fiscal_year.chart_id)
-        );
-    }
-
-    #[test]
-    fn open_next_ignored_when_already_opened() {
-        let period_start = "2024-12-01".parse::<NaiveDate>().unwrap();
-        let mut fiscal_year = fiscal_year_from(initial_events_with_opened_date(period_start));
-
-        let _ = fiscal_year.open_next().unwrap();
-        let second_open_next = fiscal_year.open_next();
-        assert!(second_open_next.is_ok());
-        assert!(second_open_next.unwrap().was_ignored());
     }
 }

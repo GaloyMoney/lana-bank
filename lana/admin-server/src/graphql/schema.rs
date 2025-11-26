@@ -2157,7 +2157,6 @@ impl Mutation {
     async fn fiscal_year_open_next(
         &self,
         ctx: &Context<'_>,
-        input: FiscalYearOpenNextInput,
     ) -> async_graphql::Result<FiscalYearOpenNextPayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         exec_mutation!(
@@ -2166,8 +2165,7 @@ impl Mutation {
             FiscalYearId,
             ctx,
             app.accounting()
-                .fiscal_year()
-                .open_next(sub, input.fiscal_year_id)
+                .open_next_fiscal_year_for_chart(sub, CHART_REF.0)
         )
     }
 
