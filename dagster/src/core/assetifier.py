@@ -57,7 +57,7 @@ def lana_assetifier(protoasset: "Protoasset") -> Union[dg.asset, dg.AssetSpec]:
         if protoasset.required_resource_keys:
             for resource_key in protoasset.required_resource_keys:
                 callable_kwargs[resource_key] = getattr(context.resources, resource_key)
-        
+
         # Add upstream outputs to kwargs
         callable_kwargs.update(upstream_outputs)
 

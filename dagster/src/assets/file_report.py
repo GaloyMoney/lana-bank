@@ -34,49 +34,49 @@ def _generate_sample_data() -> list[dict]:
 def _generate_csv_report() -> bytes:
     data = _generate_sample_data()
     output = io.StringIO()
-    
+
     if data:
         writer = csv.DictWriter(output, fieldnames=data[0].keys())
         writer.writeheader()
         writer.writerows(data)
-    
+
     return output.getvalue().encode('utf-8')
 
 def _generate_xml_report() -> bytes:
     data = _generate_sample_data()
-    
+
     root = ET.Element("report")
     root.set("generated_at", datetime.utcnow().isoformat())
-    
+
     items = ET.SubElement(root, "items")
     for item in data:
         item_elem = ET.SubElement(items, "item")
         for key, value in item.items():
             child = ET.SubElement(item_elem, key)
             child.text = str(value)
-    
+
     return ET.tostring(root, encoding='utf-8', xml_declaration=True)
 
 def _generate_txt_report() -> bytes:
     data = _generate_sample_data()
-    
+
     lines = ["Sample Report", "=" * 50, ""]
     lines.append(f"Generated at: {datetime.utcnow().isoformat()}")
     lines.append("")
-    
+
     for item in data:
         lines.append(f"ID: {item['id']}")
         lines.append(f"  Name: {item['name']}")
         lines.append(f"  Value: {item['value']}")
         lines.append(f"  Date: {item['date']}")
         lines.append("")
-    
+
     return "\n".join(lines).encode('utf-8')
 
 def report_sample_1(
     context: dg.AssetExecutionContext, gcs: GCSResource
 ) -> None:
-    """Generate and upload sample report 1 (CSV format) to GCS."""    
+    """Generate and upload sample report 1 (CSV format) to GCS."""
     report_content = _generate_csv_report()
 
     context.log.info("Uploading report 1 (CSV) to GCS...")
@@ -88,7 +88,7 @@ def report_sample_1(
         content_type="text/csv"
     )
     context.log.info(f"Report 1 uploaded to: {gcs_path}")
-    
+
     # Store report information in metadata using the Report type
     report: Report = {
         "name": "sample_1",
@@ -100,7 +100,7 @@ def report_sample_1(
             }
         ]
     }
-    
+
     context.add_output_metadata({"reports": [report]})
 
 def report_sample_2(
@@ -108,10 +108,10 @@ def report_sample_2(
 ) -> None:
     """Generate and upload 3 files for sample report 2 to GCS."""
     context.log.info("Generating 3 files for sample_2...")
-    
+
     timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
     files: List[ReportFile] = []
-    
+
     # File 1: XML format
     context.log.info("Generating XML file...")
     xml_content = _generate_xml_report()
@@ -126,7 +126,7 @@ def report_sample_2(
         "type": "xml",
         "path_in_bucket": xml_gcs_path,
     })
-    
+
     # File 2: CSV summary
     context.log.info("Generating CSV file...")
     csv_content = _generate_csv_report()
@@ -141,7 +141,7 @@ def report_sample_2(
         "type": "csv",
         "path_in_bucket": csv_gcs_path,
     })
-    
+
     # File 3: TXT details
     context.log.info("Generating TXT file...")
     txt_content = _generate_txt_report()
@@ -156,16 +156,16 @@ def report_sample_2(
         "type": "txt",
         "path_in_bucket": txt_gcs_path,
     })
-    
+
     context.log.info(f"Successfully generated and uploaded {len(files)} files for sample_2")
-    
+
     # Store report information in metadata using the Report type
     report: Report = {
         "name": "sample_2",
         "norm": "sample_report_norm_2",
         "files": files
     }
-    
+
     context.add_output_metadata({"reports": [report]})
 
 def report_sample_3(
@@ -183,7 +183,7 @@ def report_sample_3(
         content_type="text/plain"
     )
     context.log.info(f"Report 3 uploaded to: {gcs_path}")
-    
+
     # Store report information in metadata using the Report type
     report: Report = {
         "name": "sample_3",
@@ -195,7 +195,7 @@ def report_sample_3(
             }
         ]
     }
-    
+
     context.add_output_metadata({"reports": [report]})
 ### ^^^ END - TEMPORARY FUNCTIONS TO BE REPLACED WITH REAL REPORT GENERATION FUNCTIONS - END ^^^ ###
 

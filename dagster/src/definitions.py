@@ -130,7 +130,7 @@ for lana_source_protoasset in lana_source_protoassets():
     definition_builder.add_asset_from_protoasset(lana_source_protoasset)
 for lana_to_dw_el_protoasset in lana_to_dw_el_protoassets():
     definition_builder.add_asset_from_protoasset(lana_to_dw_el_protoasset)
-    
+
 
 report_protoassets, inform_lana_protoasset = file_report_protoassets()
 
