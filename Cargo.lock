@@ -6844,7 +6844,10 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.111",
+ "thiserror 2.0.17",
+ "tokio",
  "tracing",
+ "tracing-subscriber",
  "tracing-utils",
  "workspace-hack",
 ]

@@ -27,7 +27,6 @@ pub fn record_error_severity(_args: TokenStream, input: TokenStream) -> TokenStr
     let fn_attrs = &function.attrs;
     let is_async = function.sig.asyncness.is_some();
 
-
     // Extract the return type from the function signature
     let return_type = match &function.sig.output {
         ReturnType::Default => quote! { () },
