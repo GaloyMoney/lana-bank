@@ -26,6 +26,7 @@ class DefinitionsBuilder:
         self.assets: List[dg.asset] = []
         self.jobs = []
         self.schedules = []
+        self.sensors = []
         self.resources = {}
 
     def init_telemetry(self):
@@ -68,11 +69,16 @@ class DefinitionsBuilder:
 
         return new_job_schedule
 
+    def add_sensor(self, sensor: dg.SensorDefinition):
+        self.sensors.append(sensor)
+        return sensor
+
     def build(self) -> dg.Definitions:
         return dg.Definitions(
             assets=self.assets,
             jobs=self.jobs,
             schedules=self.schedules,
+            sensors=self.sensors,
             resources=self.resources,
         )
 
@@ -124,10 +130,55 @@ for lana_source_protoasset in lana_source_protoassets():
     definition_builder.add_asset_from_protoasset(lana_source_protoasset)
 for lana_to_dw_el_protoasset in lana_to_dw_el_protoassets():
     definition_builder.add_asset_from_protoasset(lana_to_dw_el_protoasset)
+    
 
-# Register file report assets
-file_report_protoassets_dict = file_report_protoassets()
-for protoasset in file_report_protoassets_dict.values():
+report_protoassets, inform_lana_protoasset = file_report_protoassets()
+
+report_generation_assets = [
     definition_builder.add_asset_from_protoasset(protoasset)
+    for protoasset in report_protoassets.values()
+]
+file_reports_job = definition_builder.add_job_from_assets(
+    job_name="file_reports_generation", assets=tuple(report_generation_assets)
+)
+definition_builder.add_job_schedule(
+    job=file_reports_job, cron_expression="0 */2 * * *"
+)
+
+inform_lana_asset = definition_builder.add_asset_from_protoasset(inform_lana_protoasset)
+inform_lana_job = definition_builder.add_job_from_assets(
+    job_name="inform_lana_of_new_reports", assets=(inform_lana_asset,)
+)
+
+@dg.run_status_sensor(
+    run_status=dg.DagsterRunStatus.SUCCESS,
+    request_job=inform_lana_job,
+    monitor_all_code_locations=False,
+    default_status=(
+        dg.DefaultSensorStatus.RUNNING
+        if DAGSTER_AUTOMATIONS_ACTIVE
+        else dg.DefaultSensorStatus.STOPPED
+    ),
+)
+def file_reports_success_sensor(context: dg.RunStatusSensorContext):
+    if context.dagster_run.job_name == "file_reports_generation":
+        yield dg.RunRequest(run_key=f"inform_lana_success_{context.dagster_run.run_id}")
+
+@dg.run_status_sensor(
+    run_status=dg.DagsterRunStatus.FAILURE,
+    request_job=inform_lana_job,
+    monitor_all_code_locations=False,
+    default_status=(
+        dg.DefaultSensorStatus.RUNNING
+        if DAGSTER_AUTOMATIONS_ACTIVE
+        else dg.DefaultSensorStatus.STOPPED
+    ),
+)
+def file_reports_failure_sensor(context: dg.RunStatusSensorContext):
+    if context.dagster_run.job_name == "file_reports_generation":
+        yield dg.RunRequest(run_key=f"inform_lana_failure_{context.dagster_run.run_id}")
+
+definition_builder.add_sensor(file_reports_success_sensor)
+definition_builder.add_sensor(file_reports_failure_sensor)
 
 defs = definition_builder.build()

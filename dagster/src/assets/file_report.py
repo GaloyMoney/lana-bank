@@ -212,6 +212,7 @@ def _discover_reports() -> Dict[str, callable]:
 
 
 def _extract_reports_from_asset(context: dg.AssetExecutionContext, asset_key_str: str) -> List[Report]:
+    """Extract report metadata from a materialized asset."""
     asset_key = dg.AssetKey(asset_key_str)
     materialization = context.instance.get_latest_materialization_event(asset_key)
 
@@ -228,10 +229,11 @@ def _extract_reports_from_asset(context: dg.AssetExecutionContext, asset_key_str
     return reports_list
 
 
-def inform_lana_of_reports(context: dg.AssetExecutionContext) -> None:
+def inform_lana_of_new_reports(context: dg.AssetExecutionContext) -> None:
+    """Collect all generated reports and notify Lana system."""
     all_reports: List[Report] = []
     reports = _discover_reports()
-    
+
     for asset_key_str in reports.keys():
         all_reports.extend(_extract_reports_from_asset(context, asset_key_str))
 
@@ -247,24 +249,22 @@ def inform_lana_of_reports(context: dg.AssetExecutionContext) -> None:
     context.log.info("TODO: Notification would be sent to Lana system here.")
 
 
-def file_report_protoassets() -> Dict[str, Protoasset]:
-    protoassets = {}
+def file_report_protoassets() -> tuple[Dict[str, Protoasset], Protoasset]:
+    report_protoassets = {}
     reports = _discover_reports()
 
     for report_name, report_callable in reports.items():
-        protoassets[report_name] = Protoasset(
+        report_protoassets[report_name] = Protoasset(
             key=report_name,
             callable=report_callable,
             required_resource_keys={RESOURCE_KEY_GCS},
             tags={"category": "report_generation", "report_name": report_name},
         )
 
-    protoassets["inform_lana_of_reports"] = Protoasset(
-        key="inform_lana_of_reports",
-        callable=inform_lana_of_reports,
-        deps=list(reports.keys()),
+    inform_lana_protoasset = Protoasset(
+        key="inform_lana_of_new_reports",
+        callable=inform_lana_of_new_reports,
         tags={"category": "notification"},
     )
 
-    return protoassets
-
+    return report_protoassets, inform_lana_protoasset
