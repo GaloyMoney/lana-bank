@@ -13,3 +13,8 @@ quote = "1.0"
 tracing = { workspace = true }
 tracing-utils = { workspace = true }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
+
+[dev-dependencies]
+thiserror = { workspace = true }
+tracing-subscriber = { workspace = true }
+tokio = { workspace = true, features = ["rt", "time", "macros"] }
