@@ -1,5 +1,6 @@
-import dagster as dg
 from typing import Sequence
+
+import dagster as dg
 
 
 def build_file_report_sensors(
