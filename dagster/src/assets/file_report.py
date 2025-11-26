@@ -13,15 +13,18 @@ from src.resources import RESOURCE_KEY_GCS, GCSResource
 
 class ReportFile(TypedDict):
     """Represents a single file in a report."""
+
     type: Literal["csv", "txt", "xml"]
     path_in_bucket: str
 
 
 class Report(TypedDict):
     """Represents a report with its metadata and associated files."""
+
     name: str
     norm: str
     files: List[ReportFile]
+
 
 ### vvv START - TEMPORARY FUNCTIONS TO BE REPLACED WITH REAL REPORT GENERATION FUNCTIONS - START vvv ###
 def _generate_sample_data() -> list[dict]:
@@ -30,6 +33,7 @@ def _generate_sample_data() -> list[dict]:
         {"id": "2", "name": "Sample Item 2", "value": "250.75", "date": "2025-11-24"},
         {"id": "3", "name": "Sample Item 3", "value": "175.25", "date": "2025-11-24"},
     ]
+
 
 def _generate_csv_report() -> bytes:
     data = _generate_sample_data()
@@ -40,7 +44,8 @@ def _generate_csv_report() -> bytes:
         writer.writeheader()
         writer.writerows(data)
 
-    return output.getvalue().encode('utf-8')
+    return output.getvalue().encode("utf-8")
+
 
 def _generate_xml_report() -> bytes:
     data = _generate_sample_data()
@@ -55,7 +60,8 @@ def _generate_xml_report() -> bytes:
             child = ET.SubElement(item_elem, key)
             child.text = str(value)
 
-    return ET.tostring(root, encoding='utf-8', xml_declaration=True)
+    return ET.tostring(root, encoding="utf-8", xml_declaration=True)
+
 
 def _generate_txt_report() -> bytes:
     data = _generate_sample_data()
@@ -71,11 +77,10 @@ def _generate_txt_report() -> bytes:
         lines.append(f"  Date: {item['date']}")
         lines.append("")
 
-    return "\n".join(lines).encode('utf-8')
+    return "\n".join(lines).encode("utf-8")
 
-def report_sample_1(
-    context: dg.AssetExecutionContext, gcs: GCSResource
-) -> None:
+
+def report_sample_1(context: dg.AssetExecutionContext, gcs: GCSResource) -> None:
     """Generate and upload sample report 1 (CSV format) to GCS."""
     report_content = _generate_csv_report()
 
@@ -83,9 +88,7 @@ def report_sample_1(
     timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
     file_path = f"reports/sample_1/report_{timestamp}.csv"
     gcs_path = gcs.upload_file(
-        content=report_content,
-        path=file_path,
-        content_type="text/csv"
+        content=report_content, path=file_path, content_type="text/csv"
     )
     context.log.info(f"Report 1 uploaded to: {gcs_path}")
 
@@ -98,14 +101,13 @@ def report_sample_1(
                 "type": "csv",
                 "path_in_bucket": gcs_path,
             }
-        ]
+        ],
     }
 
     context.add_output_metadata({"reports": [report]})
 
-def report_sample_2(
-    context: dg.AssetExecutionContext, gcs: GCSResource
-) -> None:
+
+def report_sample_2(context: dg.AssetExecutionContext, gcs: GCSResource) -> None:
     """Generate and upload 3 files for sample report 2 to GCS."""
     context.log.info("Generating 3 files for sample_2...")
 
@@ -117,60 +119,61 @@ def report_sample_2(
     xml_content = _generate_xml_report()
     xml_file_path = f"reports/sample_2/report_{timestamp}_data.xml"
     xml_gcs_path = gcs.upload_file(
-        content=xml_content,
-        path=xml_file_path,
-        content_type="application/xml"
+        content=xml_content, path=xml_file_path, content_type="application/xml"
     )
     context.log.info(f"XML file uploaded to: {xml_gcs_path}")
-    files.append({
-        "type": "xml",
-        "path_in_bucket": xml_gcs_path,
-    })
+    files.append(
+        {
+            "type": "xml",
+            "path_in_bucket": xml_gcs_path,
+        }
+    )
 
     # File 2: CSV summary
     context.log.info("Generating CSV file...")
     csv_content = _generate_csv_report()
     csv_file_path = f"reports/sample_2/report_{timestamp}_summary.csv"
     csv_gcs_path = gcs.upload_file(
-        content=csv_content,
-        path=csv_file_path,
-        content_type="text/csv"
+        content=csv_content, path=csv_file_path, content_type="text/csv"
     )
     context.log.info(f"CSV file uploaded to: {csv_gcs_path}")
-    files.append({
-        "type": "csv",
-        "path_in_bucket": csv_gcs_path,
-    })
+    files.append(
+        {
+            "type": "csv",
+            "path_in_bucket": csv_gcs_path,
+        }
+    )
 
     # File 3: TXT details
     context.log.info("Generating TXT file...")
     txt_content = _generate_txt_report()
     txt_file_path = f"reports/sample_2/report_{timestamp}_details.txt"
     txt_gcs_path = gcs.upload_file(
-        content=txt_content,
-        path=txt_file_path,
-        content_type="text/plain"
+        content=txt_content, path=txt_file_path, content_type="text/plain"
     )
     context.log.info(f"TXT file uploaded to: {txt_gcs_path}")
-    files.append({
-        "type": "txt",
-        "path_in_bucket": txt_gcs_path,
-    })
+    files.append(
+        {
+            "type": "txt",
+            "path_in_bucket": txt_gcs_path,
+        }
+    )
 
-    context.log.info(f"Successfully generated and uploaded {len(files)} files for sample_2")
+    context.log.info(
+        f"Successfully generated and uploaded {len(files)} files for sample_2"
+    )
 
     # Store report information in metadata using the Report type
     report: Report = {
         "name": "sample_2",
         "norm": "sample_report_norm_2",
-        "files": files
+        "files": files,
     }
 
     context.add_output_metadata({"reports": [report]})
 
-def report_sample_3(
-    context: dg.AssetExecutionContext, gcs: GCSResource
-) -> None:
+
+def report_sample_3(context: dg.AssetExecutionContext, gcs: GCSResource) -> None:
     """Generate and upload sample report 3 (TXT format) to GCS."""
 
     context.log.info("Uploading report 3 (TXT) to GCS...")
@@ -178,9 +181,7 @@ def report_sample_3(
     timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
     file_path = f"reports/sample_3/report_{timestamp}.txt"
     gcs_path = gcs.upload_file(
-        content=report_content,
-        path=file_path,
-        content_type="text/plain"
+        content=report_content, path=file_path, content_type="text/plain"
     )
     context.log.info(f"Report 3 uploaded to: {gcs_path}")
 
@@ -193,11 +194,14 @@ def report_sample_3(
                 "type": "txt",
                 "path_in_bucket": gcs_path,
             }
-        ]
+        ],
     }
 
     context.add_output_metadata({"reports": [report]})
+
+
 ### ^^^ END - TEMPORARY FUNCTIONS TO BE REPLACED WITH REAL REPORT GENERATION FUNCTIONS - END ^^^ ###
+
 
 def _discover_reports() -> Dict[str, callable]:
     """Fetch all functions that start with report_"""
@@ -205,13 +209,15 @@ def _discover_reports() -> Dict[str, callable]:
     reports = {}
 
     for name, obj in inspect.getmembers(current_module, inspect.isfunction):
-        if name.startswith('report_'):
+        if name.startswith("report_"):
             reports[name] = obj
 
     return reports
 
 
-def _extract_reports_from_asset(context: dg.AssetExecutionContext, asset_key_str: str) -> List[Report]:
+def _extract_reports_from_asset(
+    context: dg.AssetExecutionContext, asset_key_str: str
+) -> List[Report]:
     """Extract report metadata from a materialized asset."""
     asset_key = dg.AssetKey(asset_key_str)
     materialization = context.instance.get_latest_materialization_event(asset_key)
@@ -224,7 +230,7 @@ def _extract_reports_from_asset(context: dg.AssetExecutionContext, asset_key_str
         return []
 
     reports_metadata = metadata["reports"]
-    reports_list = getattr(reports_metadata, 'value', reports_metadata)
+    reports_list = getattr(reports_metadata, "value", reports_metadata)
 
     return reports_list
 

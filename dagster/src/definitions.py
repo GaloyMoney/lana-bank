@@ -141,14 +141,13 @@ report_generation_assets = [
 file_reports_job = definition_builder.add_job_from_assets(
     job_name="file_reports_generation", assets=tuple(report_generation_assets)
 )
-definition_builder.add_job_schedule(
-    job=file_reports_job, cron_expression="0 */2 * * *"
-)
+definition_builder.add_job_schedule(job=file_reports_job, cron_expression="0 */2 * * *")
 
 inform_lana_asset = definition_builder.add_asset_from_protoasset(inform_lana_protoasset)
 inform_lana_job = definition_builder.add_job_from_assets(
     job_name="inform_lana_of_new_reports", assets=(inform_lana_asset,)
 )
+
 
 @dg.run_status_sensor(
     run_status=dg.DagsterRunStatus.SUCCESS,
@@ -164,6 +163,7 @@ def file_reports_success_sensor(context: dg.RunStatusSensorContext):
     if context.dagster_run.job_name == "file_reports_generation":
         yield dg.RunRequest(run_key=f"inform_lana_success_{context.dagster_run.run_id}")
 
+
 @dg.run_status_sensor(
     run_status=dg.DagsterRunStatus.FAILURE,
     request_job=inform_lana_job,
@@ -177,6 +177,7 @@ def file_reports_success_sensor(context: dg.RunStatusSensorContext):
 def file_reports_failure_sensor(context: dg.RunStatusSensorContext):
     if context.dagster_run.job_name == "file_reports_generation":
         yield dg.RunRequest(run_key=f"inform_lana_failure_{context.dagster_run.run_id}")
+
 
 definition_builder.add_sensor(file_reports_success_sensor)
 definition_builder.add_sensor(file_reports_failure_sensor)

@@ -1,10 +1,11 @@
-from typing import Any
 import base64
 import json
+from typing import Any
 
-import dagster as dg
 from google.cloud import storage
 from google.oauth2 import service_account
+
+import dagster as dg
 
 RESOURCE_KEY_LANA_CORE_PG = "lana_core_pg"
 RESOURCE_KEY_DW_BQ = "dw_bq"
