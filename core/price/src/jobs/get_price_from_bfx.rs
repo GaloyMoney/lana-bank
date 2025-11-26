@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use futures::{FutureExt, select};
 use serde::{Deserialize, Serialize};
 use tokio::time::{Duration, sleep};
 
@@ -85,7 +86,7 @@ where
 {
     async fn run(
         &self,
-        _current_job: CurrentJob,
+        mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         loop {
             let price: PriceOfOneBTC = bfx_client::fetch_price(self.bfx_client.as_ref()).await?;
@@ -100,7 +101,19 @@ where
                 )
                 .await?;
 
-            sleep(PRICE_UPDATE_INTERVAL).await;
+            select! {
+                _ = sleep(PRICE_UPDATE_INTERVAL).fuse() => {
+                    tracing::debug!(job_id = %current_job.id(), "Sleep completed, continuing");
+                }
+                _ = current_job.shutdown_requested().fuse() => {
+                    tracing::info!(
+                        job_id = %current_job.id(),
+                        job_type = %GET_PRICE_FROM_CLIENT_JOB_TYPE,
+                        "Shutdown signal received"
+                    );
+                    return Ok(JobCompletion::RescheduleNow);
+                }
+            }
         }
     }
 }
