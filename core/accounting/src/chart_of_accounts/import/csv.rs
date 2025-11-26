@@ -7,11 +7,21 @@ use crate::primitives::{
 };
 
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum CsvParseError {
     #[error("CsvParseError - AccountCodeError")]
     AccountCodeError(#[from] AccountCodeError),
+}
+
+impl ErrorSeverity for CsvParseError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::AccountCodeError(e) => e.severity(),
+        }
+    }
 }
 
 pub struct CsvParser {

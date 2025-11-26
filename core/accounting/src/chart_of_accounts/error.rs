@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum ChartOfAccountsError {
@@ -33,3 +35,24 @@ pub enum ChartOfAccountsError {
 }
 
 es_entity::from_es_entity_error!(ChartOfAccountsError);
+
+impl ErrorSeverity for ChartOfAccountsError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::EsEntityError(_) => Level::ERROR,
+            Self::CursorDestructureError(_) => Level::ERROR,
+            Self::AuthorizationError(e) => e.severity(),
+            Self::CodeNotFoundInChart(_) => Level::WARN,
+            Self::CsvParse(e) => e.severity(),
+            Self::CalaLedger(_) => Level::ERROR,
+            Self::CalaAccount(_) => Level::ERROR,
+            Self::CalaAccountSet(_) => Level::ERROR,
+            Self::ChartLedgerError(e) => e.severity(),
+            Self::AccountCode(e) => e.severity(),
+            Self::NonLeafAccount(_) => Level::WARN,
+            Self::ParentAccountNotFound(_) => Level::ERROR,
+            Self::ChartOfAccountsNotFoundByReference(_) => Level::ERROR,
+        }
+    }
+}
