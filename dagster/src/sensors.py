@@ -1,5 +1,6 @@
 import dagster as dg
 
+
 def build_file_report_sensors(
     inform_lana_job: dg.JobDefinition,
     dagster_automations_active: bool,
@@ -15,7 +16,11 @@ def build_file_report_sensors(
     @dg.run_status_sensor(
         run_status=dg.DagsterRunStatus.SUCCESS,
         request_job=inform_lana_job,
-        monitored_jobs=[dg.JobSelector(job_name="file_reports_generation", location_name=location_name)],
+        monitored_jobs=[
+            dg.JobSelector(
+                job_name="file_reports_generation", location_name=location_name
+            )
+        ],
         monitor_all_code_locations=False,
         default_status=default_status,
     )
@@ -25,7 +30,11 @@ def build_file_report_sensors(
     @dg.run_status_sensor(
         run_status=dg.DagsterRunStatus.FAILURE,
         request_job=inform_lana_job,
-        monitored_jobs=[dg.JobSelector(job_name="file_reports_generation", location_name=location_name)],
+        monitored_jobs=[
+            dg.JobSelector(
+                job_name="file_reports_generation", location_name=location_name
+            )
+        ],
         monitor_all_code_locations=False,
         default_status=default_status,
     )

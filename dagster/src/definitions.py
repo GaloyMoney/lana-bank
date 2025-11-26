@@ -145,7 +145,9 @@ file_reports_job = definition_builder.add_job_from_assets(
 )
 definition_builder.add_job_schedule(job=file_reports_job, cron_expression="0 */2 * * *")
 
-inform_lana_asset = definition_builder.add_asset_from_protoasset(inform_lana_protoasset())
+inform_lana_asset = definition_builder.add_asset_from_protoasset(
+    inform_lana_protoasset()
+)
 inform_lana_job = definition_builder.add_job_from_assets(
     job_name="notify_lana_job", assets=(inform_lana_asset,)
 )

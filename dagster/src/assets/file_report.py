@@ -80,7 +80,9 @@ def _generate_txt_report() -> bytes:
     return "\n".join(lines).encode("utf-8")
 
 
-def report_sample_1(context: dg.AssetExecutionContext, file_reports_bucket: GCSResource) -> None:
+def report_sample_1(
+    context: dg.AssetExecutionContext, file_reports_bucket: GCSResource
+) -> None:
     """Generate and upload sample report 1 (CSV format) to GCS."""
     report_content = _generate_csv_report()
 
@@ -107,7 +109,9 @@ def report_sample_1(context: dg.AssetExecutionContext, file_reports_bucket: GCSR
     context.add_output_metadata({"reports": [report]})
 
 
-def report_sample_2(context: dg.AssetExecutionContext, file_reports_bucket: GCSResource) -> None:
+def report_sample_2(
+    context: dg.AssetExecutionContext, file_reports_bucket: GCSResource
+) -> None:
     """Generate and upload 3 files for sample report 2 to GCS."""
     context.log.info("Generating 3 files for sample_2...")
 
@@ -173,7 +177,9 @@ def report_sample_2(context: dg.AssetExecutionContext, file_reports_bucket: GCSR
     context.add_output_metadata({"reports": [report]})
 
 
-def report_sample_3(context: dg.AssetExecutionContext, file_reports_bucket: GCSResource) -> None:
+def report_sample_3(
+    context: dg.AssetExecutionContext, file_reports_bucket: GCSResource
+) -> None:
     """Generate and upload sample report 3 (TXT format) to GCS."""
 
     context.log.info("Uploading report 3 (TXT) to GCS...")
