@@ -1,6 +1,5 @@
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -138,7 +137,6 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
-    #[instrument(name = "credit.job.interest-accrual-cycles", skip(self, _current_job))]
     async fn run(
         &self,
         _current_job: CurrentJob,
