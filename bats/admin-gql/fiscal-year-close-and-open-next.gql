@@ -1,0 +1,10 @@
+mutation FiscalYearCloseAndOpenNext($input: FiscalYearCloseAndOpenNextInput!) {
+    fiscalYearCloseAndOpenNext(input: $input) {
+        fiscalYear {
+            id
+            fiscalYearId
+            openedAsOf
+            closedAsOf
+        }
+    }
+}

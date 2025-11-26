@@ -1745,6 +1745,23 @@ export const mockFiscalYear = (overrides?: Partial<FiscalYear>, _relationshipsTo
     };
 };
 
+export const mockFiscalYearCloseAndOpenNextInput = (overrides?: Partial<FiscalYearCloseAndOpenNextInput>, _relationshipsToOmit: Set<string> = new Set()): FiscalYearCloseAndOpenNextInput => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('FiscalYearCloseAndOpenNextInput');
+    return {
+        fiscalYearId: overrides && overrides.hasOwnProperty('fiscalYearId') ? overrides.fiscalYearId! : generateMockValue.uuid(),
+    };
+};
+
+export const mockFiscalYearCloseAndOpenNextPayload = (overrides?: Partial<FiscalYearCloseAndOpenNextPayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'FiscalYearCloseAndOpenNextPayload' } & FiscalYearCloseAndOpenNextPayload => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('FiscalYearCloseAndOpenNextPayload');
+    return {
+        __typename: 'FiscalYearCloseAndOpenNextPayload',
+        fiscalYear: overrides && overrides.hasOwnProperty('fiscalYear') ? overrides.fiscalYear! : relationshipsToOmit.has('FiscalYear') ? {} as FiscalYear : mockFiscalYear({}, relationshipsToOmit),
+    };
+};
+
 export const mockFiscalYearCloseInput = (overrides?: Partial<FiscalYearCloseInput>, _relationshipsToOmit: Set<string> = new Set()): FiscalYearCloseInput => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('FiscalYearCloseInput');
@@ -2135,6 +2152,7 @@ export const mockMutation = (overrides?: Partial<Mutation>, _relationshipsToOmit
         depositRecord: overrides && overrides.hasOwnProperty('depositRecord') ? overrides.depositRecord! : relationshipsToOmit.has('DepositRecordPayload') ? {} as DepositRecordPayload : mockDepositRecordPayload({}, relationshipsToOmit),
         depositRevert: overrides && overrides.hasOwnProperty('depositRevert') ? overrides.depositRevert! : relationshipsToOmit.has('DepositRevertPayload') ? {} as DepositRevertPayload : mockDepositRevertPayload({}, relationshipsToOmit),
         fiscalYearClose: overrides && overrides.hasOwnProperty('fiscalYearClose') ? overrides.fiscalYearClose! : relationshipsToOmit.has('FiscalYearClosePayload') ? {} as FiscalYearClosePayload : mockFiscalYearClosePayload({}, relationshipsToOmit),
+        fiscalYearCloseAndOpenNext: overrides && overrides.hasOwnProperty('fiscalYearCloseAndOpenNext') ? overrides.fiscalYearCloseAndOpenNext! : relationshipsToOmit.has('FiscalYearCloseAndOpenNextPayload') ? {} as FiscalYearCloseAndOpenNextPayload : mockFiscalYearCloseAndOpenNextPayload({}, relationshipsToOmit),
         fiscalYearCloseMonth: overrides && overrides.hasOwnProperty('fiscalYearCloseMonth') ? overrides.fiscalYearCloseMonth! : relationshipsToOmit.has('FiscalYearCloseMonthPayload') ? {} as FiscalYearCloseMonthPayload : mockFiscalYearCloseMonthPayload({}, relationshipsToOmit),
         fiscalYearInit: overrides && overrides.hasOwnProperty('fiscalYearInit') ? overrides.fiscalYearInit! : relationshipsToOmit.has('FiscalYearInitPayload') ? {} as FiscalYearInitPayload : mockFiscalYearInitPayload({}, relationshipsToOmit),
         fiscalYearOpenNext: overrides && overrides.hasOwnProperty('fiscalYearOpenNext') ? overrides.fiscalYearOpenNext! : relationshipsToOmit.has('FiscalYearOpenNextPayload') ? {} as FiscalYearOpenNextPayload : mockFiscalYearOpenNextPayload({}, relationshipsToOmit),
