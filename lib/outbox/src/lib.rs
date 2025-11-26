@@ -163,34 +163,40 @@ where
         let mut listener = PgListener::connect_with(pool).await?;
         listener.listen("persistent_outbox_events").await?;
         let persistent_sender = sender.clone();
-        tokio::spawn(async move {
-            loop {
-                if let Ok(notification) = listener.recv().await
-                    && let Ok(event) =
-                        serde_json::from_str::<PersistentOutboxEvent<P>>(notification.payload())
-                {
-                    let new_highest_sequence = u64::from(event.sequence);
-                    highest_known_sequence.fetch_max(new_highest_sequence, Ordering::AcqRel);
-                    if persistent_sender.send(event.into()).is_err() {
-                        break;
+        tokio::task::Builder::new()
+            .name("outbox-persistent-listener")
+            .spawn(async move {
+                loop {
+                    if let Ok(notification) = listener.recv().await
+                        && let Ok(event) =
+                            serde_json::from_str::<PersistentOutboxEvent<P>>(notification.payload())
+                    {
+                        let new_highest_sequence = u64::from(event.sequence);
+                        highest_known_sequence.fetch_max(new_highest_sequence, Ordering::AcqRel);
+                        if persistent_sender.send(event.into()).is_err() {
+                            break;
+                        }
                     }
                 }
-            }
-        });
+            })
+            .expect("failed to spawn outbox-persistent-listener");
 
         let mut listener = PgListener::connect_with(pool).await?;
         listener.listen("ephemeral_outbox_events").await?;
-        tokio::spawn(async move {
-            loop {
-                if let Ok(notification) = listener.recv().await
-                    && let Ok(event) =
-                        serde_json::from_str::<EphemeralOutboxEvent<P>>(notification.payload())
-                    && sender.send(event.into()).is_err()
-                {
-                    break;
+        tokio::task::Builder::new()
+            .name("outbox-ephemeral-listener")
+            .spawn(async move {
+                loop {
+                    if let Ok(notification) = listener.recv().await
+                        && let Ok(event) =
+                            serde_json::from_str::<EphemeralOutboxEvent<P>>(notification.payload())
+                        && sender.send(event.into()).is_err()
+                    {
+                        break;
+                    }
                 }
-            }
-        });
+            })
+            .expect("failed to spawn outbox-ephemeral-listener");
         Ok(())
     }
 }

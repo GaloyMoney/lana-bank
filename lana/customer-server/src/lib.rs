@@ -32,9 +32,12 @@ where
 
     let jwks_decoder = Arc::new(RemoteJwksDecoder::new(config.jwks_url.clone(), aud));
     let decoder = jwks_decoder.clone();
-    tokio::spawn(async move {
-        decoder.refresh_keys_periodically().await;
-    });
+    let _jwks_refresh_handle = tokio::task::Builder::new()
+        .name("customer-jwks-refresh")
+        .spawn(async move {
+            decoder.refresh_keys_periodically().await;
+        })
+        .expect("Failed to spawn customer-jwks-refresh task");
     let schema = graphql::schema(Some(app.clone()));
 
     let cors = CorsLayer::permissive();

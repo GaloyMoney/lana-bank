@@ -26,39 +26,63 @@ pub async fn run(
 
     {
         let app = app.clone();
-        handles.push(tokio::spawn(async move {
-            timely_payments::timely_payments_scenario(sub, &app).await
-        }));
+        handles.push(
+            tokio::task::Builder::new()
+                .name("sim-bootstrap.scenario-timely-payments")
+                .spawn(async move { timely_payments::timely_payments_scenario(sub, &app).await })
+                .expect("Failed to spawn sim-bootstrap.scenario-timely-payments task"),
+        );
     }
     {
         let app = app.clone();
-        handles.push(tokio::spawn(async move {
-            interest_late::interest_late_scenario(sub, &app).await
-        }));
+        handles.push(
+            tokio::task::Builder::new()
+                .name("sim-bootstrap.scenario-interest-late")
+                .spawn(async move { interest_late::interest_late_scenario(sub, &app).await })
+                .expect("Failed to spawn sim-bootstrap.scenario-interest-late task"),
+        );
     }
     {
         let app = app.clone();
-        handles.push(tokio::spawn(async move {
-            principal_late::principal_late_scenario(sub, &app).await
-        }));
+        handles.push(
+            tokio::task::Builder::new()
+                .name("sim-bootstrap.scenario-principal-late")
+                .spawn(async move { principal_late::principal_late_scenario(sub, &app).await })
+                .expect("Failed to spawn sim-bootstrap.scenario-principal-late task"),
+        );
     }
     {
         let app = app.clone();
-        handles.push(tokio::spawn(async move {
-            disbursal_different_months::disbursal_different_months_scenario(sub, &app).await
-        }));
+        handles.push(
+            tokio::task::Builder::new()
+                .name("sim-bootstrap.scenario-disbursal-diff-months")
+                .spawn(async move {
+                    disbursal_different_months::disbursal_different_months_scenario(sub, &app).await
+                })
+                .expect("Failed to spawn sim-bootstrap.scenario-disbursal-diff-months task"),
+        );
     }
     {
         let app = app.clone();
-        handles.push(tokio::spawn(async move {
-            interest_under_payment::interest_under_payment_scenario(sub, &app).await
-        }));
+        handles.push(
+            tokio::task::Builder::new()
+                .name("sim-bootstrap.scenario-interest-underpay")
+                .spawn(async move {
+                    interest_under_payment::interest_under_payment_scenario(sub, &app).await
+                })
+                .expect("Failed to spawn sim-bootstrap.scenario-interest-underpay task"),
+        );
     }
     {
         let app = app.clone();
-        handles.push(tokio::spawn(async move {
-            principal_under_payment::principal_under_payment_scenario(sub, &app).await
-        }));
+        handles.push(
+            tokio::task::Builder::new()
+                .name("sim-bootstrap.scenario-principal-underpay")
+                .spawn(async move {
+                    principal_under_payment::principal_under_payment_scenario(sub, &app).await
+                })
+                .expect("Failed to spawn sim-bootstrap.scenario-principal-underpay task"),
+        );
     }
 
     Ok(handles)

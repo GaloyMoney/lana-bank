@@ -37,14 +37,17 @@ pub async fn principal_late_scenario(sub: Subject, app: &LanaApp) -> anyhow::Res
 
     let (tx, rx) = mpsc::channel::<(ObligationType, UsdCents)>(32);
     let sim_app = app.clone();
-    tokio::spawn(
-        async move {
-            do_principal_late(sub, sim_app, cf_proposal.id.into(), rx)
-                .await
-                .expect("principal late failed");
-        }
-        .instrument(Span::current()),
-    );
+    let _principal_late_handler = tokio::task::Builder::new()
+        .name("sim-bootstrap.principal-late-handler")
+        .spawn(
+            async move {
+                do_principal_late(sub, sim_app, cf_proposal.id.into(), rx)
+                    .await
+                    .expect("principal late failed");
+            }
+            .instrument(Span::current()),
+        )
+        .expect("Failed to spawn sim-bootstrap.principal-late-handler task");
 
     while let Some(msg) = stream.next().await {
         if process_obligation_message(&msg, &cf_proposal, &tx).await? {
