@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use authz::PermissionCheck;
-use futures::StreamExt;
+use futures::{FutureExt, StreamExt, select};
 use tracing::{Span, instrument};
 
 use audit::AuditSvc;
@@ -174,12 +174,30 @@ where
             .unwrap_or_default();
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
-        while let Some(message) = stream.next().await {
-            self.process_message(message.as_ref()).await?;
-            state.sequence = message.sequence;
-            current_job.update_execution_state(state).await?;
+        loop {
+            select! {
+                message = stream.next().fuse() => {
+                    match message {
+                        Some(message) => {
+                            self.process_message(message.as_ref()).await?;
+                            state.sequence = message.sequence;
+                            current_job.update_execution_state(state).await?;
+                        }
+                        None => {
+                            return Ok(JobCompletion::RescheduleNow);
+                        }
+                    }
+                }
+                _ = current_job.shutdown_requested().fuse() => {
+                    tracing::info!(
+                        job_id = %current_job.id(),
+                        job_type = %WITHDRAW_APPROVE_JOB,
+                        last_sequence = %state.sequence,
+                        "Shutdown signal received"
+                    );
+                    return Ok(JobCompletion::RescheduleNow);
+                }
+            }
         }
-
-        Ok(JobCompletion::RescheduleNow)
     }
 }
