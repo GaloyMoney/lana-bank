@@ -106,12 +106,8 @@ where
         Ok(fiscal_year)
     }
 
-    #[instrument(
-        name = "core_accounting.fiscal_year.close_and_open_next",
-        skip(self),
-        err
-    )]
-    pub async fn close_and_open_next(
+    #[instrument(name = "core_accounting.fiscal_year.open_next", skip(self), err)]
+    pub async fn open_next(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         fiscal_year_id: impl Into<FiscalYearId> + std::fmt::Debug + Copy,
@@ -124,19 +120,45 @@ where
                 CoreAccountingAction::FISCAL_YEAR_CREATE,
             )
             .await?;
-        let now = crate::time::now();
-
         let mut fiscal_year = self.repo.find_by_id(id).await?;
-        match fiscal_year.close_and_open_next(now)? {
+        match fiscal_year.open_next()? {
             Idempotent::Executed(next_fiscal_year) => {
                 let mut op = self.repo.begin_op().await?;
                 self.repo.update_in_op(&mut op, &mut fiscal_year).await?;
-                let new_fiscal_year = self.repo.create_in_op(&mut op, next_fiscal_year).await?;
-
+                let _new_fiscal_year = self.repo.create_in_op(&mut op, next_fiscal_year).await?;
                 op.commit().await?;
-                Ok(new_fiscal_year)
+
+                Ok(fiscal_year)
             }
-            Idempotent::Ignored => return Ok(fiscal_year),
+            Idempotent::Ignored => Ok(fiscal_year),
+        }
+    }
+
+    #[instrument(name = "core_accounting.fiscal_year.close", skip(self), err)]
+    pub async fn close(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        fiscal_year_id: impl Into<FiscalYearId> + std::fmt::Debug + Copy,
+    ) -> Result<FiscalYear, FiscalYearError> {
+        let id = fiscal_year_id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::fiscal_year(id),
+                CoreAccountingAction::FISCAL_YEAR_CLOSE,
+            )
+            .await?;
+        let mut fiscal_year = self.repo.find_by_id(id).await?;
+        let now = crate::time::now();
+        match fiscal_year.close(now)? {
+            Idempotent::Executed(_) => {
+                let mut op = self.repo.begin_op().await?;
+                self.repo.update_in_op(&mut op, &mut fiscal_year).await?;
+                op.commit().await?;
+
+                Ok(fiscal_year)
+            }
+            Idempotent::Ignored => Ok(fiscal_year),
         }
     }
 

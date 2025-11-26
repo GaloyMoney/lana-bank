@@ -1341,13 +1341,8 @@ export type FiscalYear = {
   openedAsOf: Scalars['Date']['output'];
 };
 
-export type FiscalYearCloseAndOpenNextInput = {
+export type FiscalYearCloseInput = {
   fiscalYearId: Scalars['UUID']['input'];
-};
-
-export type FiscalYearCloseAndOpenNextPayload = {
-  __typename?: 'FiscalYearCloseAndOpenNextPayload';
-  fiscalYear: FiscalYear;
 };
 
 export type FiscalYearCloseMonthInput = {
@@ -1356,6 +1351,11 @@ export type FiscalYearCloseMonthInput = {
 
 export type FiscalYearCloseMonthPayload = {
   __typename?: 'FiscalYearCloseMonthPayload';
+  fiscalYear: FiscalYear;
+};
+
+export type FiscalYearClosePayload = {
+  __typename?: 'FiscalYearClosePayload';
   fiscalYear: FiscalYear;
 };
 
@@ -1656,9 +1656,10 @@ export type Mutation = {
   depositModuleConfigure: DepositModuleConfigurePayload;
   depositRecord: DepositRecordPayload;
   depositRevert: DepositRevertPayload;
-  fiscalYearCloseAndOpenNext: FiscalYearCloseAndOpenNextPayload;
+  fiscalYearClose: FiscalYearClosePayload;
   fiscalYearCloseMonth: FiscalYearCloseMonthPayload;
   fiscalYearInit: FiscalYearInitPayload;
+  fiscalYearOpenNext: FiscalYearOpenNextPayload;
   ledgerAccountCsvCreate: LedgerAccountCsvCreatePayload;
   loanAgreementDownloadLinkGenerate: LoanAgreementDownloadLinksGeneratePayload;
   loanAgreementGenerate: LoanAgreementGeneratePayload;
@@ -1854,8 +1855,8 @@ export type MutationDepositRevertArgs = {
 };
 
 
-export type MutationFiscalYearCloseAndOpenNextArgs = {
-  input: FiscalYearCloseAndOpenNextInput;
+export type MutationFiscalYearCloseArgs = {
+  input: FiscalYearCloseInput;
 };
 
 
@@ -1866,6 +1867,11 @@ export type MutationFiscalYearCloseMonthArgs = {
 
 export type MutationFiscalYearInitArgs = {
   input: FiscalYearInitInput;
+};
+
+
+export type MutationFiscalYearOpenNextArgs = {
+  input: FiscalYearOpenNextInput;
 };
 
 
