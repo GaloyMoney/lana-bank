@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum BalanceSheetError {
@@ -16,4 +18,18 @@ pub enum BalanceSheetError {
     BalanceSheetConfigAlreadyExists,
     #[error("BalanceSheetError - ChartIdMismatch")]
     ChartIdMismatch,
+}
+
+impl ErrorSeverity for BalanceSheetError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::AuditError(e) => e.severity(),
+            Self::AuthorizationError(e) => e.severity(),
+            Self::BalanceSheetLedgerError(e) => e.severity(),
+            Self::ChartOfAccountsError(e) => e.severity(),
+            Self::BalanceSheetConfigAlreadyExists => Level::WARN,
+            Self::ChartIdMismatch => Level::ERROR,
+        }
+    }
 }
