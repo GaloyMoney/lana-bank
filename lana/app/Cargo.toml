@@ -57,6 +57,7 @@ sim-time = { workspace = true, optional = true }
 
 anyhow = { workspace = true }
 async-graphql = { workspace = true }
+async-trait = { workspace = true }
 
 thiserror = { workspace = true }
 sqlx = { workspace = true }

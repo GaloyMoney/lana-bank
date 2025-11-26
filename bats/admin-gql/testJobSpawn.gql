@@ -1,0 +1,8 @@
+mutation TestJobSpawn($input: TestJobSpawnInput!) {
+  testJobSpawn(input: $input) {
+    jobId
+    waitSeconds
+    respectShutdown
+  }
+}
+

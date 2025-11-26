@@ -16,7 +16,7 @@ use super::{
     contract_creation::*, credit_config::*, credit_facility::*, custody::*, customer::*,
     dashboard::*, deposit::*, deposit_config::*, document::*, loader::*, me::*, policy::*,
     price::*, profit_and_loss_config::*, public_id::*, reports::*, sumsub::*, terms_template::*,
-    withdrawal::*,
+    test_job::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -29,6 +29,11 @@ impl Query {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         loader.feed_one(user.id, User::from(user.clone())).await;
         Ok(MeUser::from(user))
+    }
+
+    async fn sleep(&self, _ctx: &Context<'_>, seconds: u64) -> async_graphql::Result<String> {
+        tokio::time::sleep(std::time::Duration::from_secs(seconds)).await;
+        Ok("Wake up!".to_string())
     }
 
     async fn dashboard(&self, ctx: &Context<'_>) -> async_graphql::Result<Dashboard> {
@@ -1044,6 +1049,15 @@ pub struct Mutation;
 
 #[Object]
 impl Mutation {
+    /// Spawn a test wait job (for testing graceful shutdown)
+    async fn test_job_spawn(
+        &self,
+        ctx: &Context<'_>,
+        input: TestJobSpawnInput,
+    ) -> async_graphql::Result<TestJobSpawnPayload> {
+        TestJobMutation.test_job_spawn(ctx, input).await
+    }
+
     pub async fn customer_document_attach(
         &self,
         ctx: &Context<'_>,
