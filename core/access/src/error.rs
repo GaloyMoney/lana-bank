@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum CoreAccessError {
@@ -16,4 +18,20 @@ pub enum CoreAccessError {
     RoleError(#[from] super::role::RoleError),
     #[error("CoreAccessError - PermissionSetError: {0}")]
     PermissionSetError(#[from] super::permission_set::PermissionSetError),
+}
+
+es_entity::from_es_entity_error!(CoreAccessError);
+
+impl ErrorSeverity for CoreAccessError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::EsEntityError(_) => Level::ERROR,
+            Self::CursorDestructureError(_) => Level::ERROR,
+            Self::AuthorizationError(e) => e.severity(),
+            Self::UserError(e) => e.severity(),
+            Self::RoleError(e) => e.severity(),
+            Self::PermissionSetError(e) => e.severity(),
+        }
+    }
 }
