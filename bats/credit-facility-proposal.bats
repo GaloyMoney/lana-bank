@@ -136,6 +136,7 @@ ymd() {
           accrualInterval: "END_OF_DAY",
           disbursalPolicy: "MULTIPLE_DISBURSAL",
           oneTimeFeeRate: "5",
+          liquidationFeeRate: "5",
           duration: { period: "MONTHS", units: 3 },
           interestDueDurationFromAccrual: { period: "DAYS", units: 0 },
           obligationOverdueDurationFromDue: { period: "DAYS", units: 50 },

@@ -411,6 +411,7 @@ mod test {
             .liquidation_cvl(dec!(105))
             .margin_call_cvl(dec!(125))
             .initial_cvl(dec!(140))
+            .liquidation_fee_rate(dec!(5))
             .build()
             .expect("should build a valid term")
     }

@@ -27,6 +27,7 @@ export type Scalars = {
   CVLPctValue: { input: any; output: any; }
   Date: { input: any; output: any; }
   Decimal: { input: any; output: any; }
+  LiquidationFeeRatePct: { input: any; output: any; }
   OneTimeFeeRatePct: { input: any; output: any; }
   PublicId: { input: any; output: any; }
   Satoshis: { input: Satoshis; output: Satoshis; }
@@ -2686,6 +2687,7 @@ export type TermValues = {
   duration: Duration;
   initialCvl: Cvlpct;
   liquidationCvl: Cvlpct;
+  liquidationFeeRate: Scalars['LiquidationFeeRatePct']['output'];
   marginCallCvl: Cvlpct;
   oneTimeFeeRate: Scalars['OneTimeFeeRatePct']['output'];
 };
@@ -2699,6 +2701,7 @@ export type TermsInput = {
   initialCvl: Scalars['CVLPctValue']['input'];
   interestDueDurationFromAccrual: DurationInput;
   liquidationCvl: Scalars['CVLPctValue']['input'];
+  liquidationFeeRate: Scalars['LiquidationFeeRatePct']['input'];
   marginCallCvl: Scalars['CVLPctValue']['input'];
   obligationLiquidationDurationFromDue: DurationInput;
   obligationOverdueDurationFromDue: DurationInput;
@@ -2724,6 +2727,7 @@ export type TermsTemplateCreateInput = {
   initialCvl: Scalars['CVLPctValue']['input'];
   interestDueDurationFromAccrual: DurationInput;
   liquidationCvl: Scalars['CVLPctValue']['input'];
+  liquidationFeeRate: Scalars['LiquidationFeeRatePct']['input'];
   marginCallCvl: Scalars['CVLPctValue']['input'];
   name: Scalars['String']['input'];
   obligationLiquidationDurationFromDue: DurationInput;
@@ -2746,6 +2750,7 @@ export type TermsTemplateUpdateInput = {
   initialCvl: Scalars['CVLPctValue']['input'];
   interestDueDurationFromAccrual: DurationInput;
   liquidationCvl: Scalars['CVLPctValue']['input'];
+  liquidationFeeRate: Scalars['LiquidationFeeRatePct']['input'];
   marginCallCvl: Scalars['CVLPctValue']['input'];
   obligationLiquidationDurationFromDue: DurationInput;
   obligationOverdueDurationFromDue: DurationInput;

@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 pub use lana_app::terms::{
     AnnualRatePct, CVLPct as DomainCVLPct, DisbursalPolicy, FacilityDuration as DomainDuration,
     InterestInterval, ObligationDuration as DomainObligationDuration, OneTimeFeeRatePct,
+    LiquidationFeeRatePct,
     TermValues as DomainTermValues,
 };
 
@@ -13,6 +14,7 @@ pub struct TermValues {
     accrual_interval: InterestInterval,
     accrual_cycle_interval: InterestInterval,
     one_time_fee_rate: OneTimeFeeRatePct,
+    liquidation_fee_rate: LiquidationFeeRatePct,
     disbursal_policy: DisbursalPolicy,
     duration: Duration,
     liquidation_cvl: CVLPct,
@@ -27,6 +29,7 @@ impl From<DomainTermValues> for TermValues {
             accrual_interval: values.accrual_interval,
             accrual_cycle_interval: values.accrual_cycle_interval,
             one_time_fee_rate: values.one_time_fee_rate,
+            liquidation_fee_rate: values.liquidation_fee_rate,
             disbursal_policy: values.disbursal_policy,
             duration: values.duration.into(),
             liquidation_cvl: values.liquidation_cvl.into(),
@@ -41,6 +44,7 @@ pub struct TermsInput {
     pub accrual_interval: InterestInterval,
     pub accrual_cycle_interval: InterestInterval,
     pub one_time_fee_rate: OneTimeFeeRatePct,
+    pub liquidation_fee_rate: LiquidationFeeRatePct,
     pub disbursal_policy: DisbursalPolicy,
     pub duration: DurationInput,
     pub interest_due_duration_from_accrual: DurationInput,
