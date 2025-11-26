@@ -6838,6 +6838,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "tracing-macros"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.111",
+ "tracing",
+ "tracing-utils",
+ "workspace-hack",
+]
+
+[[package]]
 name = "tracing-opentelemetry"
 version = "0.32.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
