@@ -16,7 +16,7 @@ use super::{
     contract_creation::*, credit_config::*, credit_facility::*, custody::*, customer::*,
     dashboard::*, deposit::*, deposit_config::*, document::*, loader::*, me::*, policy::*,
     price::*, profit_and_loss_config::*, public_id::*, reports::*, sumsub::*, terms_template::*,
-    withdrawal::*,
+    test_job::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -1049,6 +1049,15 @@ pub struct Mutation;
 
 #[Object]
 impl Mutation {
+    /// Spawn a test wait job (for testing graceful shutdown)
+    async fn test_job_spawn(
+        &self,
+        ctx: &Context<'_>,
+        input: TestJobSpawnInput,
+    ) -> async_graphql::Result<TestJobSpawnPayload> {
+        TestJobMutation.test_job_spawn(ctx, input).await
+    }
+
     pub async fn customer_document_attach(
         &self,
         ctx: &Context<'_>,

@@ -3506,6 +3506,7 @@ version = "0.0.0"
 dependencies = [
  "anyhow",
  "async-graphql",
+ "async-trait",
  "audit",
  "authz",
  "cala-ledger",

@@ -1,4 +1,4 @@
-use futures::StreamExt;
+use futures::{FutureExt, StreamExt, select};
 use serde::{Deserialize, Serialize};
 use tracing::{Span, instrument};
 
@@ -224,19 +224,37 @@ where
             .unwrap_or_default();
         let mut stream = self.outbox.listen_all(Some(state.sequence)).await?;
 
-        while let Some(event) = stream.next().await {
-            match event {
-                OutboxEvent::Persistent(e) => {
-                    self.process_persistent_message(&e).await?;
-                    state.sequence = e.sequence;
-                    current_job.update_execution_state(state).await?;
+        loop {
+            select! {
+                event = stream.next().fuse() => {
+                    match event {
+                        Some(event) => {
+                            match event {
+                                OutboxEvent::Persistent(e) => {
+                                    self.process_persistent_message(&e).await?;
+                                    state.sequence = e.sequence;
+                                    current_job.update_execution_state(state).await?;
+                                }
+                                OutboxEvent::Ephemeral(e) => {
+                                    self.process_ephemeral_message(e.as_ref()).await?;
+                                }
+                            }
+                        }
+                        None => {
+                            return Ok(JobCompletion::RescheduleNow);
+                        }
+                    }
                 }
-                OutboxEvent::Ephemeral(e) => {
-                    self.process_ephemeral_message(e.as_ref()).await?;
+                _ = current_job.shutdown_requested().fuse() => {
+                    tracing::info!(
+                        job_id = %current_job.id(),
+                        job_type = "outbox.credit-facility-collateralization",
+                        last_sequence = %state.sequence,
+                        "Job received shutdown signal, exiting gracefully"
+                    );
+                    return Ok(JobCompletion::RescheduleNow);
                 }
             }
         }
-
-        Ok(JobCompletion::RescheduleNow)
     }
 }
