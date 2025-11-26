@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 use crate::chart_of_accounts;
 
@@ -25,3 +27,19 @@ pub enum ManualTransactionError {
 }
 
 es_entity::from_es_entity_error!(ManualTransactionError);
+
+impl ErrorSeverity for ManualTransactionError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::EsEntityError(_) => Level::ERROR,
+            Self::CursorDestructureError(_) => Level::ERROR,
+            Self::LedgerError(_) => Level::ERROR,
+            Self::AccountSetError(_) => Level::ERROR,
+            Self::AccountError(_) => Level::ERROR,
+            Self::TxTemplateError(_) => Level::ERROR,
+            Self::AuthorizationError(e) => e.severity(),
+            Self::ChartOfAccountsError(e) => e.severity(),
+        }
+    }
+}

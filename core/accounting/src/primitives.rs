@@ -2,6 +2,8 @@ use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, fmt::Display, str::FromStr};
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
 
@@ -128,10 +130,28 @@ pub enum AccountCodeParseError {
     InvalidParent,
 }
 
+impl ErrorSeverity for AccountCodeParseError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Empty => Level::WARN,
+            Self::AccountCodeSectionParseError(_) => Level::WARN,
+            Self::InvalidParent => Level::WARN,
+        }
+    }
+}
+
 #[derive(Error, Debug)]
 pub enum AccountCodeError {
     #[error("AccountCodeError - InvalidParent")]
     InvalidParent,
+}
+
+impl ErrorSeverity for AccountCodeError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::InvalidParent => Level::WARN,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]

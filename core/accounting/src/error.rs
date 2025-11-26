@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum CoreAccountingError {
@@ -18,4 +20,20 @@ pub enum CoreAccountingError {
     TrialBalance(#[from] super::trial_balance::error::TrialBalanceError),
     #[error("CoreAccountingError - FiscalYearError: {0}")]
     FiscalYearError(#[from] super::fiscal_year::error::FiscalYearError),
+}
+
+impl ErrorSeverity for CoreAccountingError {
+    fn severity(&self) -> Level {
+        match self {
+            // Most accounting errors are system-level issues
+            Self::ChartOfAccountsError(e) => e.severity(),
+            Self::LedgerAccountError(e) => e.severity(),
+            Self::ManualTransactionError(e) => e.severity(),
+            Self::LedgerTransactionError(e) => e.severity(),
+            Self::AccountCodeParseError(e) => e.severity(),
+            Self::AccountingCsvExportError(e) => e.severity(),
+            Self::TrialBalance(e) => e.severity(),
+            Self::FiscalYearError(e) => e.severity(),
+        }
+    }
 }
