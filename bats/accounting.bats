@@ -213,7 +213,7 @@ teardown_file() {
   [[ "$entryType1" != "$entryType2" ]] || exit 1
 }
 
-@test "accounting: cannot execute transaction before system inception date" {
+@test "accounting: can not execute transaction before system inception date" {
   exec_admin_graphql 'fiscal-years' '{"first": 1}'
   graphql_output
   inception_date=$(graphql_output '.data.fiscalYears.nodes[0].openedAsOf')
@@ -254,7 +254,7 @@ teardown_file() {
   [[ "$errors" =~ "VelocityError" ]] || exit 1
 }
 
-@test "accounting: cannot close before all months closed" {
+@test "accounting: can not close before all months closed" {
   exec_admin_graphql 'fiscal-years' '{"first": 1}'
   fiscal_year_id=$(graphql_output '.data.fiscalYears.nodes[0].fiscalYearId')
   [[ "$fiscal_year_id" != "null" ]] || exit 1
