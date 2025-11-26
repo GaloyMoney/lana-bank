@@ -48,9 +48,7 @@ pub fn record_error_severity(_args: TokenStream, input: TokenStream) -> TokenStr
                     let __severity = __e.severity();
 
                     // Record error metadata on current span
-                    // __span.record("error", true);
                     __span.record("error.level", __severity.as_str());
-                    __span.record("error.message", &::tracing::field::display(__e));
 
                     // Emit event at appropriate level with "error" field for OpenTelemetry
                     match __severity {
@@ -89,9 +87,7 @@ pub fn record_error_severity(_args: TokenStream, input: TokenStream) -> TokenStr
                     let __severity = __e.severity();
 
                     // Record error metadata on current span
-                    // __span.record("error", true);
                     __span.record("error.level", __severity.as_str());
-                    __span.record("error.message", &::tracing::field::display(__e));
 
                     // Emit event at appropriate level with "error" field for OpenTelemetry
                     match __severity {
