@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum TrialBalanceLedgerError {
@@ -26,5 +28,19 @@ impl TrialBalanceLedgerError {
                 cala_ledger::account_set::error::AccountSetError::ExternalIdAlreadyExists,
             )
         )
+    }
+}
+
+impl ErrorSeverity for TrialBalanceLedgerError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::CalaLedger(_) => Level::ERROR,
+            Self::CalaAccountSet(_) => Level::ERROR,
+            Self::CalaBalance(_) => Level::ERROR,
+            Self::CalaEntry(_) => Level::ERROR,
+            Self::NonAccountSetMemberTypeFound => Level::ERROR,
+            Self::AccountCodeParseError(e) => e.severity(),
+        }
     }
 }

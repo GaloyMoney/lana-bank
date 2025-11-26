@@ -31,6 +31,7 @@ rendering = { path = "lib/rendering" }
 smtp-client = { path = "lib/smtp-client" }
 sumsub = { path = "lib/sumsub" }
 tracing-utils = { path = "lib/tracing-utils" }
+tracing-macros = { path = "lib/tracing-macros" }
 
 # Core dependencies
 core-access = { path = "core/access" }

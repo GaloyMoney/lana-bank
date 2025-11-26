@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum TrialBalanceError {
@@ -10,4 +12,15 @@ pub enum TrialBalanceError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("TrialBalanceError - TrialBalanceLedgerError: {0}")]
     TrialBalanceLedgerError(#[from] super::ledger::error::TrialBalanceLedgerError),
+}
+
+impl ErrorSeverity for TrialBalanceError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::AuditError(_) => Level::ERROR,
+            Self::AuthorizationError(_) => Level::ERROR,
+            Self::TrialBalanceLedgerError(e) => e.severity(),
+        }
+    }
 }

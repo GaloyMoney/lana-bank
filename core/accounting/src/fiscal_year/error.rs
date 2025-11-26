@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum FiscalYearError {
@@ -15,3 +17,15 @@ pub enum FiscalYearError {
 }
 
 es_entity::from_es_entity_error!(FiscalYearError);
+
+impl ErrorSeverity for FiscalYearError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::EsEntityError(_) => Level::ERROR,
+            Self::CursorDestructureError(_) => Level::ERROR,
+            Self::AuthorizationError(_) => Level::ERROR,
+            Self::ChartOfAccountsError(_) => Level::ERROR,
+        }
+    }
+}

@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum LedgerAccountLedgerError {
@@ -20,4 +22,20 @@ pub enum LedgerAccountLedgerError {
     JournalError(#[from] crate::journal_error::JournalError),
     #[error("LedgerAccountError - ConversionError: {0}")]
     ConversionError(#[from] core_money::ConversionError),
+}
+
+impl ErrorSeverity for LedgerAccountLedgerError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::CalaLedger(_) => Level::ERROR,
+            Self::CalaEntry(_) => Level::ERROR,
+            Self::CalaBalance(_) => Level::ERROR,
+            Self::CalaAccountSet(_) => Level::ERROR,
+            Self::CalaAccount(_) => Level::ERROR,
+            Self::ParseCurrencyError(_) => Level::WARN,
+            Self::JournalError(e) => e.severity(),
+            Self::ConversionError(_) => Level::ERROR,
+        }
+    }
 }

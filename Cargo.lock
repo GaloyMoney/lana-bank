@@ -1332,6 +1332,8 @@ dependencies = [
  "thiserror 2.0.17",
  "tokio",
  "tracing",
+ "tracing-macros",
+ "tracing-utils",
  "uuid",
  "workspace-hack",
 ]
@@ -6835,6 +6837,21 @@ dependencies = [
  "log",
  "once_cell",
  "tracing-core",
+]
+
+[[package]]
+name = "tracing-macros"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.111",
+ "thiserror 2.0.17",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+ "tracing-utils",
+ "workspace-hack",
 ]
 
 [[package]]
