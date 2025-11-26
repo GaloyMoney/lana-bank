@@ -4,11 +4,13 @@ query FiscalYears($first: Int!, $after: String) {
             cursor
             node {
                 id
+                fiscalYearId
                 openedAsOf
             }
         }
         nodes {
             id
+            fiscalYearId
             openedAsOf
         }
         pageInfo {

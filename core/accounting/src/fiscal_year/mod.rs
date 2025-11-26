@@ -172,6 +172,50 @@ where
         }
     }
 
+    #[instrument(
+        name = "core_accounting.fiscal_year.close_and_open_next",
+        skip(self),
+        err
+    )]
+    pub async fn close_and_open_next(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        fiscal_year_id: impl Into<FiscalYearId> + std::fmt::Debug + Copy,
+    ) -> Result<FiscalYear, FiscalYearError> {
+        let id = fiscal_year_id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::fiscal_year(id),
+                CoreAccountingAction::FISCAL_YEAR_CLOSE,
+            )
+            .await?;
+        let mut fiscal_year = self.repo.find_by_id(id).await?;
+
+        let now = crate::time::now();
+        let closed_as_of = match fiscal_year.close(now)? {
+            Idempotent::Executed(date) => date,
+            Idempotent::Ignored => return Ok(fiscal_year),
+        };
+
+        let next_year_opened_as_of = closed_as_of
+            .checked_add_days(Days::new(1))
+            .expect("Failed to compute start of next fiscal year");
+        let new_fiscal_year = NewFiscalYear::builder()
+            .id(FiscalYearId::new())
+            .chart_id(fiscal_year.chart_id)
+            .opened_as_of(next_year_opened_as_of)
+            .build()
+            .expect("Could not build new fiscal year");
+
+        let mut op = self.repo.begin_op().await?;
+        self.repo.update_in_op(&mut op, &mut fiscal_year).await?;
+        let next_fiscal_year = self.repo.create_in_op(&mut op, new_fiscal_year).await?;
+        // TODO: Operate on ledger via `chart_of_accounts`.
+        op.commit().await?;
+        Ok(next_fiscal_year)
+    }
+
     #[instrument(name = "core_accounting.fiscal_year.close_month", skip(self), err)]
     pub async fn close_month(
         &self,
