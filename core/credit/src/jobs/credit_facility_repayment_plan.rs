@@ -144,35 +144,34 @@ where
 
         loop {
             select! {
-                    message = stream.next().fuse() => {
-                        match message {
-                            Some(message) => {
-                let mut db = self.repo.begin().await?;
-                self.process_message(&message, &mut db, state.sequence)
-                    .await?;
+                message = stream.next().fuse() => {
+                    match message {
+                        Some(message) => {
+                            let mut db = self.repo.begin().await?;
+                            self.process_message(&message, &mut db, state.sequence)
+                                .await?;
 
-                state.sequence = message.sequence;
-                current_job
-                    .update_execution_state_in_op(&mut db, &state)
-                    .await?;
-
-                db.commit().await?;
-            }
-                            None => {
-                                return Ok(JobCompletion::RescheduleNow);
-                            }
+                            state.sequence = message.sequence;
+                            current_job
+                                .update_execution_state_in_op(&mut db, &state)
+                                .await?;
+                            db.commit().await?;
+                        }
+                        None => {
+                            return Ok(JobCompletion::RescheduleNow);
                         }
                     }
-                    _ = current_job.shutdown_requested().fuse() => {
-                        tracing::info!(
-                            job_id = %current_job.id(),
-                            job_type = %REPAYMENT_PLAN_PROJECTION,
-                            last_sequence = %state.sequence,
-                            "Shutdown signal received"
-                        );
-                        return Ok(JobCompletion::RescheduleNow);
-                    }
                 }
+                _ = current_job.shutdown_requested().fuse() => {
+                    tracing::info!(
+                        job_id = %current_job.id(),
+                        job_type = %REPAYMENT_PLAN_PROJECTION,
+                        last_sequence = %state.sequence,
+                        "Shutdown signal received"
+                    );
+                    return Ok(JobCompletion::RescheduleNow);
+                }
+            }
         }
     }
 }

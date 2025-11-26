@@ -191,28 +191,28 @@ where
 
         loop {
             select! {
-                    message = stream.next().fuse() => {
-                        match message {
-                            Some(message) => {
-                self.process_message(message.as_ref()).await?;
-                state.sequence = message.sequence;
-                current_job.update_execution_state(&state).await?;
-            }
-                            None => {
-                                return Ok(JobCompletion::RescheduleNow);
-                            }
+                message = stream.next().fuse() => {
+                    match message {
+                        Some(message) => {
+                            self.process_message(message.as_ref()).await?;
+                            state.sequence = message.sequence;
+                            current_job.update_execution_state(&state).await?;
+                        }
+                        None => {
+                            return Ok(JobCompletion::RescheduleNow);
                         }
                     }
-                    _ = current_job.shutdown_requested().fuse() => {
-                        tracing::info!(
-                            job_id = %current_job.id(),
-                            job_type = %DISBURSAL_APPROVE_JOB,
-                            last_sequence = %state.sequence,
-                            "Shutdown signal received"
-                        );
-                        return Ok(JobCompletion::RescheduleNow);
-                    }
                 }
+                _ = current_job.shutdown_requested().fuse() => {
+                    tracing::info!(
+                        job_id = %current_job.id(),
+                        job_type = %DISBURSAL_APPROVE_JOB,
+                        last_sequence = %state.sequence,
+                        "Shutdown signal received"
+                    );
+                    return Ok(JobCompletion::RescheduleNow);
+                }
+            }
         }
     }
 }
