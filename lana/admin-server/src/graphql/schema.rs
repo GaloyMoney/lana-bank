@@ -2154,20 +2154,37 @@ impl Mutation {
         )
     }
 
-    async fn fiscal_year_close_and_open_next(
+    async fn fiscal_year_open_next(
         &self,
         ctx: &Context<'_>,
-        input: FiscalYearCloseAndOpenNextInput,
-    ) -> async_graphql::Result<FiscalYearCloseAndOpenNextPayload> {
+        input: FiscalYearOpenNextInput,
+    ) -> async_graphql::Result<FiscalYearOpenNextPayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         exec_mutation!(
-            FiscalYearCloseAndOpenNextPayload,
+            FiscalYearOpenNextPayload,
             FiscalYear,
             FiscalYearId,
             ctx,
             app.accounting()
                 .fiscal_year()
-                .close_and_open_next(sub, input.fiscal_year_id)
+                .open_next(sub, input.fiscal_year_id)
+        )
+    }
+
+    async fn fiscal_year_close(
+        &self,
+        ctx: &Context<'_>,
+        input: FiscalYearCloseInput,
+    ) -> async_graphql::Result<FiscalYearClosePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            FiscalYearClosePayload,
+            FiscalYear,
+            FiscalYearId,
+            ctx,
+            app.accounting()
+                .fiscal_year()
+                .close(sub, input.fiscal_year_id)
         )
     }
 

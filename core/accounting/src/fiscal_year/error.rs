@@ -14,10 +14,14 @@ pub enum FiscalYearError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("FiscalYearError - ChartOfAccountsError: {0}")]
     ChartOfAccountsError(#[from] crate::chart_of_accounts::error::ChartOfAccountsError),
-    #[error("FiscalYearError - NotReadyForAnnualClose")]
-    NotReadyForAnnualClose,
+    #[error("FiscalYearError - AllMonthsNotClosed")]
+    AllMonthsNotClosed,
     #[error("FiscalYearError - AlreadyClosed")]
     AlreadyClosed,
+    #[error("FiscalYearError - NextYearAlreadyOpened")]
+    NextYearAlreadyOpened,
+    #[error("FiscalYearError - NextYearNotOpenedBeforeClose")]
+    NextYearNotOpenedBeforeClose,
 }
 
 es_entity::from_es_entity_error!(FiscalYearError);
