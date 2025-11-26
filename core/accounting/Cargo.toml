@@ -5,8 +5,13 @@ edition = "2024"
 
 [features]
 fail-on-warnings = []
-graphql = [ "dep:async-graphql" ]
-json-schema = ["dep:schemars", "es-entity/json-schema", "cala-ledger/json-schema", "document-storage/json-schema"]
+graphql = ["dep:async-graphql"]
+json-schema = [
+    "dep:schemars",
+    "es-entity/json-schema",
+    "cala-ledger/json-schema",
+    "document-storage/json-schema",
+]
 
 [dependencies]
 audit = { workspace = true }
@@ -30,6 +35,8 @@ serde_json = { workspace = true }
 strum = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
+tracing-macros = { workspace = true }
+tracing-utils = { workspace = true }
 uuid = { workspace = true }
 async-graphql = { workspace = true, optional = true }
 async-trait = { workspace = true }

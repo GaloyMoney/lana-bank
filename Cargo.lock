@@ -1332,6 +1332,8 @@ dependencies = [
  "thiserror 2.0.17",
  "tokio",
  "tracing",
+ "tracing-macros",
+ "tracing-utils",
  "uuid",
  "workspace-hack",
 ]
