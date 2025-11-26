@@ -7,6 +7,7 @@ import dagster as dg
 from src.assets import (
     bitfinex_protoassets,
     file_report_protoassets,
+    inform_lana_protoasset,
     iris_dataset_size,
     lana_source_protoassets,
     lana_to_dw_el_protoassets,
@@ -14,6 +15,7 @@ from src.assets import (
 from src.core import Protoasset, lana_assetifier
 from src.otel import init_telemetry
 from src.resources import get_project_resources
+from src.sensors import build_file_report_sensors
 
 DAGSTER_AUTOMATIONS_ACTIVE = os.getenv(
     "DAGSTER_AUTOMATIONS_ACTIVE", ""
@@ -132,7 +134,7 @@ for lana_to_dw_el_protoasset in lana_to_dw_el_protoassets():
     definition_builder.add_asset_from_protoasset(lana_to_dw_el_protoasset)
 
 
-report_protoassets, inform_lana_protoasset = file_report_protoassets()
+report_protoassets = file_report_protoassets()
 
 report_generation_assets = [
     definition_builder.add_asset_from_protoasset(protoasset)
@@ -143,41 +145,15 @@ file_reports_job = definition_builder.add_job_from_assets(
 )
 definition_builder.add_job_schedule(job=file_reports_job, cron_expression="0 */2 * * *")
 
-inform_lana_asset = definition_builder.add_asset_from_protoasset(inform_lana_protoasset)
+inform_lana_asset = definition_builder.add_asset_from_protoasset(inform_lana_protoasset())
 inform_lana_job = definition_builder.add_job_from_assets(
     job_name="notify_lana_job", assets=(inform_lana_asset,)
 )
 
-
-@dg.run_status_sensor(
-    run_status=dg.DagsterRunStatus.SUCCESS,
-    request_job=inform_lana_job,
-    monitor_all_code_locations=False,
-    default_status=(
-        dg.DefaultSensorStatus.RUNNING
-        if DAGSTER_AUTOMATIONS_ACTIVE
-        else dg.DefaultSensorStatus.STOPPED
-    ),
+file_reports_success_sensor, file_reports_failure_sensor = build_file_report_sensors(
+    inform_lana_job=inform_lana_job,
+    dagster_automations_active=DAGSTER_AUTOMATIONS_ACTIVE,
 )
-def file_reports_success_sensor(context: dg.RunStatusSensorContext):
-    if context.dagster_run.job_name == "file_reports_generation":
-        yield dg.RunRequest(run_key=f"inform_lana_success_{context.dagster_run.run_id}")
-
-
-@dg.run_status_sensor(
-    run_status=dg.DagsterRunStatus.FAILURE,
-    request_job=inform_lana_job,
-    monitor_all_code_locations=False,
-    default_status=(
-        dg.DefaultSensorStatus.RUNNING
-        if DAGSTER_AUTOMATIONS_ACTIVE
-        else dg.DefaultSensorStatus.STOPPED
-    ),
-)
-def file_reports_failure_sensor(context: dg.RunStatusSensorContext):
-    if context.dagster_run.job_name == "file_reports_generation":
-        yield dg.RunRequest(run_key=f"inform_lana_failure_{context.dagster_run.run_id}")
-
 
 definition_builder.add_sensor(file_reports_success_sensor)
 definition_builder.add_sensor(file_reports_failure_sensor)

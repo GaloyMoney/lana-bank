@@ -8,7 +8,7 @@ from typing import Dict, List, Literal, TypedDict
 
 import dagster as dg
 from src.core import Protoasset
-from src.resources import RESOURCE_KEY_GCS, GCSResource
+from src.resources import RESOURCE_KEY_FILE_REPORTS_BUCKET, GCSResource
 
 
 class ReportFile(TypedDict):
@@ -80,14 +80,14 @@ def _generate_txt_report() -> bytes:
     return "\n".join(lines).encode("utf-8")
 
 
-def report_sample_1(context: dg.AssetExecutionContext, gcs: GCSResource) -> None:
+def report_sample_1(context: dg.AssetExecutionContext, file_reports_bucket: GCSResource) -> None:
     """Generate and upload sample report 1 (CSV format) to GCS."""
     report_content = _generate_csv_report()
 
     context.log.info("Uploading report 1 (CSV) to GCS...")
     timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
     file_path = f"reports/sample_1/report_{timestamp}.csv"
-    gcs_path = gcs.upload_file(
+    gcs_path = file_reports_bucket.upload_file(
         content=report_content, path=file_path, content_type="text/csv"
     )
     context.log.info(f"Report 1 uploaded to: {gcs_path}")
@@ -107,7 +107,7 @@ def report_sample_1(context: dg.AssetExecutionContext, gcs: GCSResource) -> None
     context.add_output_metadata({"reports": [report]})
 
 
-def report_sample_2(context: dg.AssetExecutionContext, gcs: GCSResource) -> None:
+def report_sample_2(context: dg.AssetExecutionContext, file_reports_bucket: GCSResource) -> None:
     """Generate and upload 3 files for sample report 2 to GCS."""
     context.log.info("Generating 3 files for sample_2...")
 
@@ -118,7 +118,7 @@ def report_sample_2(context: dg.AssetExecutionContext, gcs: GCSResource) -> None
     context.log.info("Generating XML file...")
     xml_content = _generate_xml_report()
     xml_file_path = f"reports/sample_2/report_{timestamp}_data.xml"
-    xml_gcs_path = gcs.upload_file(
+    xml_gcs_path = file_reports_bucket.upload_file(
         content=xml_content, path=xml_file_path, content_type="application/xml"
     )
     context.log.info(f"XML file uploaded to: {xml_gcs_path}")
@@ -133,7 +133,7 @@ def report_sample_2(context: dg.AssetExecutionContext, gcs: GCSResource) -> None
     context.log.info("Generating CSV file...")
     csv_content = _generate_csv_report()
     csv_file_path = f"reports/sample_2/report_{timestamp}_summary.csv"
-    csv_gcs_path = gcs.upload_file(
+    csv_gcs_path = file_reports_bucket.upload_file(
         content=csv_content, path=csv_file_path, content_type="text/csv"
     )
     context.log.info(f"CSV file uploaded to: {csv_gcs_path}")
@@ -148,7 +148,7 @@ def report_sample_2(context: dg.AssetExecutionContext, gcs: GCSResource) -> None
     context.log.info("Generating TXT file...")
     txt_content = _generate_txt_report()
     txt_file_path = f"reports/sample_2/report_{timestamp}_details.txt"
-    txt_gcs_path = gcs.upload_file(
+    txt_gcs_path = file_reports_bucket.upload_file(
         content=txt_content, path=txt_file_path, content_type="text/plain"
     )
     context.log.info(f"TXT file uploaded to: {txt_gcs_path}")
@@ -173,14 +173,14 @@ def report_sample_2(context: dg.AssetExecutionContext, gcs: GCSResource) -> None
     context.add_output_metadata({"reports": [report]})
 
 
-def report_sample_3(context: dg.AssetExecutionContext, gcs: GCSResource) -> None:
+def report_sample_3(context: dg.AssetExecutionContext, file_reports_bucket: GCSResource) -> None:
     """Generate and upload sample report 3 (TXT format) to GCS."""
 
     context.log.info("Uploading report 3 (TXT) to GCS...")
     report_content = _generate_txt_report()
     timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
     file_path = f"reports/sample_3/report_{timestamp}.txt"
-    gcs_path = gcs.upload_file(
+    gcs_path = file_reports_bucket.upload_file(
         content=report_content, path=file_path, content_type="text/plain"
     )
     context.log.info(f"Report 3 uploaded to: {gcs_path}")
@@ -255,7 +255,8 @@ def inform_lana_of_new_reports(context: dg.AssetExecutionContext) -> None:
     context.log.info("TODO: Notification would be sent to Lana system here.")
 
 
-def file_report_protoassets() -> tuple[Dict[str, Protoasset], Protoasset]:
+def file_report_protoassets() -> Dict[str, Protoasset]:
+    """Create protoassets for all discovered report generation functions."""
     report_protoassets = {}
     reports = _discover_reports()
 
@@ -263,14 +264,17 @@ def file_report_protoassets() -> tuple[Dict[str, Protoasset], Protoasset]:
         report_protoassets[report_name] = Protoasset(
             key=report_name,
             callable=report_callable,
-            required_resource_keys={RESOURCE_KEY_GCS},
+            required_resource_keys={RESOURCE_KEY_FILE_REPORTS_BUCKET},
             tags={"category": "report_generation", "report_name": report_name},
         )
 
-    inform_lana_protoasset = Protoasset(
+    return report_protoassets
+
+
+def inform_lana_protoasset() -> Protoasset:
+    """Create protoasset for informing Lana of new reports."""
+    return Protoasset(
         key="inform_lana_of_new_reports",
         callable=inform_lana_of_new_reports,
         tags={"category": "notification"},
     )
-
-    return report_protoassets, inform_lana_protoasset

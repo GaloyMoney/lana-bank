@@ -11,6 +11,7 @@ services:
       DAGSTER_POSTGRES_USER: 'postgres_user'
       DAGSTER_POSTGRES_PASSWORD: 'postgres_password'
       DAGSTER_POSTGRES_DB: 'postgres_db'
+      DAGSTER_CODE_LOCATION_NAME: ${DAGSTER_CODE_LOCATION_NAME:-Lana DW}
       TF_VAR_sa_creds: ${TF_VAR_sa_creds:-}
       TARGET_BIGQUERY_DATASET: ${TARGET_BIGQUERY_DATASET:-}
       REPORTS_BUCKET_NAME: ${REPORTS_BUCKET_NAME:-}

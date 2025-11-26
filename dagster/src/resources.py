@@ -9,7 +9,7 @@ import dagster as dg
 
 RESOURCE_KEY_LANA_CORE_PG = "lana_core_pg"
 RESOURCE_KEY_DW_BQ = "dw_bq"
-RESOURCE_KEY_GCS = "gcs"
+RESOURCE_KEY_FILE_REPORTS_BUCKET = "file_reports_bucket"
 
 
 class PostgresResource(dg.ConfigurableResource):
@@ -93,5 +93,5 @@ def get_project_resources():
     resources = {}
     resources[RESOURCE_KEY_LANA_CORE_PG] = PostgresResource()
     resources[RESOURCE_KEY_DW_BQ] = BigQueryResource()
-    resources[RESOURCE_KEY_GCS] = GCSResource()
+    resources[RESOURCE_KEY_FILE_REPORTS_BUCKET] = GCSResource()
     return resources
