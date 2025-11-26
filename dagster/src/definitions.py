@@ -154,6 +154,7 @@ inform_lana_job = definition_builder.add_job_from_assets(
 
 file_reports_success_sensor, file_reports_failure_sensor = build_file_report_sensors(
     inform_lana_job=inform_lana_job,
+    monitored_jobs=[file_reports_job],
     dagster_automations_active=DAGSTER_AUTOMATIONS_ACTIVE,
 )
 
