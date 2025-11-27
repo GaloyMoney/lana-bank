@@ -851,7 +851,7 @@ checksums:
     DepositAccounts/DepositAccountDetails/closeDepositAccount/success: 460c93de5a20825d6a8838ce5d44deb2
     DepositAccounts/DepositAccountDetails/closeDepositAccount/disabledTooltip: 9932be231de2dff3b4bc23ac6db4c587
     DepositAccounts/DepositAccountDetails/transactions/title: 7dc0729b2cd4d854f57348269d495010
-    DepositAccounts/DepositAccountDetails/transactions/description: 477e157badf809e81fb0cc2a1046965c
+    DepositAccounts/DepositAccountDetails/transactions/description: 8bbd15d09e36bc6399e82bb5d16c86f1
     DepositAccounts/DepositAccountDetails/transactions/table/headers/date: 56f41c5d30a76295bb087b20b7bee4c3
     DepositAccounts/DepositAccountDetails/transactions/table/headers/type: f04471a7ddac844b9ad145eb9911ef75
     DepositAccounts/DepositAccountDetails/transactions/table/headers/amount: a0ae9c6ff98b57475cdce56f66066aa4
@@ -860,6 +860,8 @@ checksums:
     DepositAccounts/DepositAccountDetails/transactions/table/types/withdrawal: 90991ef39c923572c15cac977346ee77
     DepositAccounts/DepositAccountDetails/transactions/table/types/disbursal: 2aa8ff038a96888966ede2b19fc8b8bb
     DepositAccounts/DepositAccountDetails/transactions/table/types/payment: 95142d3fd8b6a6f551aba771842e9c11
+    DepositAccounts/DepositAccountDetails/transactions/table/types/freeze: e0c13eaed8d178ceb6d63a8fa7b50f5c
+    DepositAccounts/DepositAccountDetails/transactions/table/types/unfreeze: ffa29e47d68fa27901dcf63ef7299eb2
     DepositAccounts/DepositAccountDetails/transactions/table/empty: 15f5fee32cbd24775ccda66e8ca83132
     Deposits/title: 9518ad41e01682ba217001a93932bc1c
     Deposits/description: 574e2918e4528209b7d3f987da3d5964

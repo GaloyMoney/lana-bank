@@ -15,6 +15,8 @@ pub enum DepositAccountHistoryEntry {
     CancelledWithdrawal(CancelledWithdrawalEntry),
     Disbursal(DisbursalEntry),
     Payment(PaymentEntry),
+    Freeze(FreezeEntry),
+    Unfreeze(UnfreezeEntry),
     Unknown(UnknownEntry),
 }
 
@@ -55,6 +57,20 @@ pub struct PaymentEntry {
     #[graphql(skip)]
     pub tx_id: UUID,
     pub recorded_at: Timestamp,
+}
+
+#[derive(SimpleObject)]
+pub struct FreezeEntry {
+    pub tx_id: UUID,
+    pub recorded_at: Timestamp,
+    pub amount: UsdCents,
+}
+
+#[derive(SimpleObject)]
+pub struct UnfreezeEntry {
+    pub tx_id: UUID,
+    pub recorded_at: Timestamp,
+    pub amount: UsdCents,
 }
 
 #[derive(SimpleObject)]
@@ -172,6 +188,20 @@ impl From<lana_app::deposit::DepositAccountHistoryEntry> for DepositAccountHisto
                 Self::Payment(PaymentEntry {
                     tx_id: UUID::from(entry.tx_id),
                     recorded_at: entry.recorded_at.into(),
+                })
+            }
+            lana_app::deposit::DepositAccountHistoryEntry::Freeze(entry) => {
+                Self::Freeze(FreezeEntry {
+                    tx_id: UUID::from(entry.tx_id),
+                    recorded_at: entry.recorded_at.into(),
+                    amount: entry.amount,
+                })
+            }
+            lana_app::deposit::DepositAccountHistoryEntry::Unfreeze(entry) => {
+                Self::Unfreeze(UnfreezeEntry {
+                    tx_id: UUID::from(entry.tx_id),
+                    recorded_at: entry.recorded_at.into(),
+                    amount: entry.amount,
                 })
             }
             lana_app::deposit::DepositAccountHistoryEntry::Unknown(entry) => {

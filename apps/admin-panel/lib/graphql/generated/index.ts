@@ -1145,7 +1145,7 @@ export type DepositAccountFreezePayload = {
   account: DepositAccount;
 };
 
-export type DepositAccountHistoryEntry = CancelledWithdrawalEntry | DepositEntry | DisbursalEntry | PaymentEntry | UnknownEntry | WithdrawalEntry;
+export type DepositAccountHistoryEntry = CancelledWithdrawalEntry | DepositEntry | DisbursalEntry | FreezeEntry | PaymentEntry | UnfreezeEntry | UnknownEntry | WithdrawalEntry;
 
 export type DepositAccountHistoryEntryConnection = {
   __typename?: 'DepositAccountHistoryEntryConnection';
@@ -1376,6 +1376,13 @@ export type FiscalYearInitInput = {
 export type FiscalYearInitPayload = {
   __typename?: 'FiscalYearInitPayload';
   fiscalYear: FiscalYear;
+};
+
+export type FreezeEntry = {
+  __typename?: 'FreezeEntry';
+  amount: Scalars['UsdCents']['output'];
+  recordedAt: Scalars['Timestamp']['output'];
+  txId: Scalars['UUID']['output'];
 };
 
 export type GovernanceNavigationItems = {
@@ -2796,6 +2803,13 @@ export type TrialBalance = {
   total: LedgerAccountBalanceRangeByCurrency;
 };
 
+export type UnfreezeEntry = {
+  __typename?: 'UnfreezeEntry';
+  amount: Scalars['UsdCents']['output'];
+  recordedAt: Scalars['Timestamp']['output'];
+  txId: Scalars['UUID']['output'];
+};
+
 export type UnknownEntry = {
   __typename?: 'UnknownEntry';
   recordedAt: Scalars['Timestamp']['output'];
@@ -3578,7 +3592,9 @@ export type GetDepositAccountDetailsQuery = { __typename?: 'Query', depositAccou
           | { __typename: 'CancelledWithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, publicId: any, accountId: string, amount: UsdCents, createdAt: any, reference: string, status: WithdrawalStatus } }
           | { __typename: 'DepositEntry', recordedAt: any, deposit: { __typename?: 'Deposit', id: string, depositId: string, publicId: any, accountId: string, amount: UsdCents, createdAt: any, reference: string, status: DepositStatus } }
           | { __typename: 'DisbursalEntry', recordedAt: any, disbursal: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, publicId: any, amount: UsdCents, createdAt: any, status: DisbursalStatus } }
+          | { __typename: 'FreezeEntry', txId: string, recordedAt: any, amount: UsdCents }
           | { __typename: 'PaymentEntry', recordedAt: any, payment: { __typename?: 'CreditFacilityPaymentAllocation', id: string, paymentAllocationId: string, amount: UsdCents, createdAt: any } }
+          | { __typename: 'UnfreezeEntry', txId: string, recordedAt: any, amount: UsdCents }
           | { __typename?: 'UnknownEntry' }
           | { __typename: 'WithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, publicId: any, accountId: string, amount: UsdCents, createdAt: any, reference: string, status: WithdrawalStatus } }
          }> } } | null };
@@ -7423,6 +7439,18 @@ export const GetDepositAccountDetailsDocument = gql`
               amount
               createdAt
             }
+          }
+          ... on FreezeEntry {
+            __typename
+            txId
+            recordedAt
+            amount
+          }
+          ... on UnfreezeEntry {
+            __typename
+            txId
+            recordedAt
+            amount
           }
         }
       }

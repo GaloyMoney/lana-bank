@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::primitives::{CalaEntryId, CalaTransactionId as CalaTxId};
+use crate::primitives::{CalaEntryId, CalaTransactionId as CalaTxId, UsdCents};
 
 pub enum DepositAccountHistoryEntry {
     Deposit(DepositEntry),
@@ -9,6 +9,8 @@ pub enum DepositAccountHistoryEntry {
     CancelledWithdrawal(WithdrawalEntry),
     Disbursal(DisbursalEntry),
     Payment(PaymentEntry),
+    Freeze(FreezeEntry),
+    Unfreeze(UnfreezeEntry),
     Unknown(UnknownEntry),
     Ignored,
 }
@@ -36,6 +38,20 @@ pub struct PaymentEntry {
     pub recorded_at: DateTime<Utc>,
 }
 
+pub struct FreezeEntry {
+    pub tx_id: CalaTxId,
+    pub entry_id: CalaEntryId,
+    pub recorded_at: DateTime<Utc>,
+    pub amount: UsdCents,
+}
+
+pub struct UnfreezeEntry {
+    pub tx_id: CalaTxId,
+    pub entry_id: CalaEntryId,
+    pub recorded_at: DateTime<Utc>,
+    pub amount: UsdCents,
+}
+
 pub struct UnknownEntry {
     pub tx_id: CalaTxId,
     pub entry_id: CalaEntryId,
@@ -48,6 +64,10 @@ const CANCEL_WITHDRAW: &str = "CANCEL_WITHDRAW_SETTLED_CR";
 const CONFIRM_DISBURSAL: &str = "CONFIRM_DISBURSAL_SETTLED_CR";
 const RECORD_PAYMENT_ALLOCATION: &str = "RECORD_PAYMENT_ALLOCATION_DR";
 const CONFIRM_INITIAL_DISBURSAL: &str = "SINGLE_DISBURSAL_RECEIVABLE_CR";
+const FREEZE_ACCOUNT_DR: &str = "FREEZE_ACCOUNT_DR";
+const FREEZE_ACCOUNT_CR: &str = "FREEZE_ACCOUNT_CR";
+const UNFREEZE_ACCOUNT_DR: &str = "UNFREEZE_ACCOUNT_DR";
+const UNFREEZE_ACCOUNT_CR: &str = "UNFREEZE_ACCOUNT_CR";
 
 const IGNORE_INITIATE_WITHDRAW_PENDING: &str = "INITIATE_WITHDRAW_PENDING_CR";
 const IGNORE_CONFIRM_WITHDRAWAL_PENDING: &str = "CONFIRM_WITHDRAW_PENDING_DR";
@@ -86,6 +106,26 @@ impl From<cala_ledger::entry::Entry> for DepositAccountHistoryEntry {
                 entry_id: entry.id,
                 recorded_at: entry.created_at(),
             }),
+            FREEZE_ACCOUNT_DR | FREEZE_ACCOUNT_CR => {
+                let amount = UsdCents::try_from_usd(entry.values().units)
+                    .expect("freeze amount should convert to cents");
+                DepositAccountHistoryEntry::Freeze(FreezeEntry {
+                    tx_id: entry.values().transaction_id,
+                    entry_id: entry.id,
+                    recorded_at: entry.created_at(),
+                    amount,
+                })
+            }
+            UNFREEZE_ACCOUNT_DR | UNFREEZE_ACCOUNT_CR => {
+                let amount = UsdCents::try_from_usd(entry.values().units)
+                    .expect("unfreeze amount should convert to cents");
+                DepositAccountHistoryEntry::Unfreeze(UnfreezeEntry {
+                    tx_id: entry.values().transaction_id,
+                    entry_id: entry.id,
+                    recorded_at: entry.created_at(),
+                    amount,
+                })
+            }
 
             IGNORE_CONFIRM_WITHDRAWAL_PENDING => DepositAccountHistoryEntry::Ignored,
             IGNORE_INITIATE_WITHDRAW_PENDING => DepositAccountHistoryEntry::Ignored,
@@ -126,6 +166,14 @@ impl From<&DepositAccountHistoryEntry> for DepositAccountHistoryCursor {
                 created_at: entry.recorded_at,
             },
             DepositAccountHistoryEntry::Payment(entry) => Self {
+                entry_id: entry.entry_id,
+                created_at: entry.recorded_at,
+            },
+            DepositAccountHistoryEntry::Freeze(entry) => Self {
+                entry_id: entry.entry_id,
+                created_at: entry.recorded_at,
+            },
+            DepositAccountHistoryEntry::Unfreeze(entry) => Self {
                 entry_id: entry.entry_id,
                 created_at: entry.recorded_at,
             },

@@ -1450,7 +1450,7 @@
       },
       "transactions": {
         "title": "Historial de Transacciones",
-        "description": "Todos los depósitos, retiros, desembolsos y pagos de esta cuenta",
+        "description": "Todos los depósitos, retiros, desembolsos, pagos, bloqueos y desbloqueos para esta cuenta",
         "table": {
           "headers": {
             "date": "Fecha",
@@ -1462,7 +1462,9 @@
             "deposit": "Depósito",
             "withdrawal": "Retiro",
             "disbursal": "Desembolso",
-            "payment": "Pago"
+            "payment": "Pago",
+            "freeze": "Congelación",
+            "unfreeze": "Descongelación"
           },
           "empty": "No se encontraron transacciones"
         }

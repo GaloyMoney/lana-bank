@@ -1131,7 +1131,7 @@ type DepositAccountFreezePayload {
 	account: DepositAccount!
 }
 
-union DepositAccountHistoryEntry = DepositEntry | WithdrawalEntry | CancelledWithdrawalEntry | DisbursalEntry | PaymentEntry | UnknownEntry
+union DepositAccountHistoryEntry = DepositEntry | WithdrawalEntry | CancelledWithdrawalEntry | DisbursalEntry | PaymentEntry | FreezeEntry | UnfreezeEntry | UnknownEntry
 
 type DepositAccountHistoryEntryConnection {
 	"""
@@ -1377,6 +1377,12 @@ input FiscalYearInitInput {
 
 type FiscalYearInitPayload {
 	fiscalYear: FiscalYear!
+}
+
+type FreezeEntry {
+	txId: UUID!
+	recordedAt: Timestamp!
+	amount: UsdCents!
 }
 
 type GovernanceNavigationItems {
@@ -2270,6 +2276,12 @@ type TrialBalance {
 }
 
 scalar UUID
+
+type UnfreezeEntry {
+	txId: UUID!
+	recordedAt: Timestamp!
+	amount: UsdCents!
+}
 
 type UnknownEntry {
 	txId: UUID!

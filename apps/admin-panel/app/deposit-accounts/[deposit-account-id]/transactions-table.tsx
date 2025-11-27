@@ -40,6 +40,8 @@ type SupportedHistoryNode = Extract<
   | { __typename: "CancelledWithdrawalEntry" }
   | { __typename: "DisbursalEntry" }
   | { __typename: "PaymentEntry" }
+  | { __typename: "FreezeEntry" }
+  | { __typename: "UnfreezeEntry" }
 >
 
 const isSupportedEntry = (node: HistoryNode): node is SupportedHistoryNode => {
@@ -48,7 +50,9 @@ const isSupportedEntry = (node: HistoryNode): node is SupportedHistoryNode => {
     node.__typename === "WithdrawalEntry" ||
     node.__typename === "CancelledWithdrawalEntry" ||
     node.__typename === "DisbursalEntry" ||
-    node.__typename === "PaymentEntry"
+    node.__typename === "PaymentEntry" ||
+    node.__typename === "FreezeEntry" ||
+    node.__typename === "UnfreezeEntry"
   )
 }
 
@@ -87,6 +91,10 @@ export const DepositAccountTransactionsTable: React.FC<{
             return t("table.types.disbursal")
           case "PaymentEntry":
             return t("table.types.payment")
+          case "FreezeEntry":
+            return t("table.types.freeze")
+          case "UnfreezeEntry":
+            return t("table.types.unfreeze")
           default:
             exhaustiveCheck(type)
         }
@@ -106,6 +114,9 @@ export const DepositAccountTransactionsTable: React.FC<{
             return <Balance amount={entry.disbursal.amount} currency="usd" />
           case "PaymentEntry":
             return <Balance amount={entry.payment.amount} currency="usd" />
+          case "FreezeEntry":
+          case "UnfreezeEntry":
+            return <Balance amount={entry.amount} currency="usd" />
           default:
             exhaustiveCheck(entry)
         }
@@ -124,6 +135,8 @@ export const DepositAccountTransactionsTable: React.FC<{
           case "DisbursalEntry":
             return <DisbursalStatusBadge status={entry.disbursal.status} />
           case "PaymentEntry":
+          case "FreezeEntry":
+          case "UnfreezeEntry":
             return "-"
           default:
             exhaustiveCheck(entry)
@@ -141,6 +154,10 @@ export const DepositAccountTransactionsTable: React.FC<{
         return `/withdrawals/${entry.withdrawal.publicId}`
       case "DisbursalEntry":
         return `/disbursals/${entry.disbursal.publicId}`
+      case "FreezeEntry":
+        return `/ledger-transactions/${entry.txId}`
+      case "UnfreezeEntry":
+        return `/ledger-transactions/${entry.txId}`
       case "PaymentEntry":
         return ""
       default:

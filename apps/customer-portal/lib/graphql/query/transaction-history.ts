@@ -77,6 +77,14 @@ gql`
                     createdAt
                   }
                 }
+                ... on FreezeEntry {
+                  recordedAt
+                  amount
+                }
+                ... on UnfreezeEntry {
+                  recordedAt
+                  amount
+                }
               }
             }
           }

@@ -110,6 +110,18 @@ gql`
                 createdAt
               }
             }
+            ... on FreezeEntry {
+              __typename
+              txId
+              recordedAt
+              amount
+            }
+            ... on UnfreezeEntry {
+              __typename
+              txId
+              recordedAt
+              amount
+            }
           }
         }
       }

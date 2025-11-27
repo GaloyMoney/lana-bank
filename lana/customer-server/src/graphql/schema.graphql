@@ -201,7 +201,7 @@ type DepositAccountBalance {
 	pending: UsdCents!
 }
 
-union DepositAccountHistoryEntry = DepositEntry | WithdrawalEntry | CancelledWithdrawalEntry | DisbursalEntry | PaymentEntry | UnknownEntry
+union DepositAccountHistoryEntry = DepositEntry | WithdrawalEntry | CancelledWithdrawalEntry | DisbursalEntry | PaymentEntry | FreezeEntry | UnfreezeEntry | UnknownEntry
 
 type DepositAccountHistoryEntryConnection {
 	"""
@@ -267,6 +267,12 @@ type Duration {
 
 type FacilityRemaining {
 	usdBalance: UsdCents!
+}
+
+type FreezeEntry {
+	txId: UUID!
+	recordedAt: Timestamp!
+	amount: UsdCents!
 }
 
 type Interest {
@@ -376,6 +382,12 @@ type Total {
 }
 
 scalar UUID
+
+type UnfreezeEntry {
+	txId: UUID!
+	recordedAt: Timestamp!
+	amount: UsdCents!
+}
 
 type UnknownEntry {
 	txId: UUID!
