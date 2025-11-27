@@ -12,6 +12,8 @@ data "honeycombio_query_specification" "price_current" {
   }
 
   time_range = 86400
+
+  granularity = 300
 }
 
 resource "honeycombio_query" "price_current" {
