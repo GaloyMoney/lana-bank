@@ -257,6 +257,7 @@ impl CreditFacility {
         &mut self,
         price: PriceOfOneBTC,
         receivable_account_id: CalaAccountId,
+        collateral: Satoshis,
     ) -> Idempotent<NewLiquidationProcess> {
         idempotency_guard!(
             self.events.iter_all().rev(),
@@ -265,6 +266,7 @@ impl CreditFacility {
         );
 
         // calculate amount to sell/receive (will be extracted to value object)
+        let _repay_amount = LiquidationPayment::new(self.amount, price, self.terms.initial_cvl, collateral).calculate();
 
         let new_liquidation = NewLiquidationProcess {
             id: LiquidationProcessId::new(),

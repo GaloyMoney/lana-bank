@@ -1,7 +1,8 @@
 mod cvl;
+mod liquidation_payment;
 
 use chrono::{DateTime, TimeZone, Utc};
-use rust_decimal::Decimal;
+use rust_decimal::{Decimal};
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "json-schema")]
@@ -24,6 +25,7 @@ pub use governance::ApprovalProcessId;
 pub use public_id::PublicId;
 
 pub use cvl::*;
+pub use liquidation_payment::LiquidationPayment;
 
 es_entity::entity_id! {
     CreditFacilityProposalId,
