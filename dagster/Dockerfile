@@ -25,7 +25,6 @@ RUN pip install \
     dagster-postgres~=${DAGSTER_EXT_VERSION} \
     dagster-k8s~=${DAGSTER_EXT_VERSION} \
     dagster-dbt~=${DAGSTER_EXT_VERSION} \
-    dbt-bigquery~=${DBT_EXT_VERSION} \
     opentelemetry-api~=${OTEL_VERSION} \
     opentelemetry-sdk~=${OTEL_VERSION} \
     opentelemetry-exporter-otlp-proto-grpc~=${OTEL_VERSION}
@@ -34,11 +33,18 @@ RUN pip install \
 RUN pip install \
     dlt[bigquery]~=1.18.1 \
     dagster-dlt~=${DAGSTER_EXT_VERSION} \
+    dbt-bigquery~=1.10.3 \
     pandas
 
 # Add our project specific code
 RUN mkdir -p /lana-dw
 COPY src/ /lana-dw/src/
+
+# Add GCP secrets file
+ENV KEYFILE=keyfile.json
+ENV SECRETS_FOLDER=/lana-dw/secrets/
+RUN mkdir -p $SECRETS_FOLDER
+COPY $KEYFILE $SECRETS_FOLDER
 
 EXPOSE 4000
 
