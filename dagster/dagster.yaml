@@ -1,3 +1,6 @@
+telemetry:
+  enabled: false
+
 scheduler:
   module: dagster.core.scheduler
   class: DagsterDaemonScheduler
