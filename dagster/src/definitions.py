@@ -82,8 +82,11 @@ definition_builder.init_telemetry()
 definition_builder.add_resources(get_project_resources())
 
 
-definition_builder.add_asset_from_protoasset(
+iris_dataset_size_asset = definition_builder.add_asset_from_protoasset(
     Protoasset(key="iris_dataset_size", callable=iris_dataset_size)
+)
+definition_builder.add_job_from_assets(
+    job_name="iris_dataset_size_job", assets=(iris_dataset_size_asset,)
 )
 
 bitfinex_protoassets = bitfinex_protoassets()
