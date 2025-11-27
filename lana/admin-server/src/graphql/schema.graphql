@@ -1395,6 +1395,10 @@ type FiscalYearInitPayload {
 	fiscalYear: FiscalYear!
 }
 
+type FiscalYearOpenNextPayload {
+	fiscalYear: FiscalYear!
+}
+
 type FreezeEntry {
 	txId: UUID!
 	recordedAt: Timestamp!
