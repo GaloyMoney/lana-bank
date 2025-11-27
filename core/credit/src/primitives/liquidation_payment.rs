@@ -4,10 +4,9 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 
-use core_money::UsdCents;
-use core_price::PriceOfOneBTC;
 use crate::primitives::CVLPct;
-use core_money::Satoshis;
+use core_money::{Satoshis, UsdCents};
+use core_price::PriceOfOneBTC;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -32,7 +31,7 @@ impl LiquidationPayment {
             collateral,
         }
     }
-   
+
     pub fn calculate(&self) -> UsdCents {
         let target_ratio = match self.target_cvl {
             CVLPct::Finite(pct) => pct / Decimal::from(100u64),
@@ -44,11 +43,12 @@ impl LiquidationPayment {
             .price
             .sats_to_cents_round_down(self.collateral)
             .to_usd();
-        
+
         let liquidation_fee = Decimal::from(105u64) / Decimal::from(100u64);
-        
+
         // repay_amount  = (loan * target_cvl - collateral * trigger_price) / (target_cvl - liquidation_fee)
-        let repay_usd = ((loan_usd * target_ratio - collateral_usd) / (target_ratio - liquidation_fee))
+        let repay_usd = ((loan_usd * target_ratio - collateral_usd)
+            / (target_ratio - liquidation_fee))
             .max(Decimal::ZERO)
             .round_dp_with_strategy(2, RoundingStrategy::AwayFromZero);
 
@@ -62,7 +62,6 @@ mod test {
 
     #[test]
     fn test_calculate() {
-        
         let amount = UsdCents::from(50_000_00);
         let price = PriceOfOneBTC::new(UsdCents::from(62_500_00));
         let target_cvl = CVLPct::new(140);

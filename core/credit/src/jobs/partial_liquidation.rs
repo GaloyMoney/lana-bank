@@ -104,8 +104,7 @@ where
 
         while let Some(message) = stream.next().await {
             let mut db = self.liquidations.begin_op().await?;
-            self.process_message(&mut db, message.as_ref())
-                .await?;
+            self.process_message(&mut db, message.as_ref()).await?;
             state.sequence = message.sequence;
             current_job
                 .update_execution_state_in_op(&mut db, &state)

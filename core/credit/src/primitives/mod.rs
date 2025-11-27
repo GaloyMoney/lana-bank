@@ -2,7 +2,7 @@ mod cvl;
 mod liquidation_payment;
 
 use chrono::{DateTime, TimeZone, Utc};
-use rust_decimal::{Decimal};
+use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "json-schema")]
@@ -636,6 +636,12 @@ pub enum CollateralizationState {
     #[default]
     NoCollateral,
     NoExposure,
+}
+
+impl CollateralizationState {
+    pub fn is_under_liquidation_threshold(&self) -> bool {
+        matches!(self, Self::UnderLiquidationThreshold)
+    }
 }
 
 #[derive(

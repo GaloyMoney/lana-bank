@@ -16,11 +16,12 @@ use job::*;
 use outbox::{EventSequence, Outbox, OutboxEventMarker, PersistentOutboxEvent};
 use serde::{Deserialize, Serialize};
 
-use crate::jobs::partial_liquidation;
 use crate::{
-    CollateralizationState, CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilities,
-    liquidation_process::LiquidationProcessRepo,
+    CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilities,
+    CreditFacilityEvent::PartialLiquidationInitiated,
+    liquidation_process::{LiquidationProcessRepo, NewLiquidationProcess},
 };
+use crate::{credit_facility::CreditFacilityEvent, jobs::partial_liquidation};
 
 #[derive(Default, Clone, Deserialize, Serialize)]
 struct CreditFacilityHealthJobData {
@@ -37,7 +38,8 @@ where
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CreditFacilityEvent>,
 {
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
@@ -51,7 +53,8 @@ where
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CreditFacilityEvent>,
 {
     type Initializer = CreditFacilityHealthInit<Perms, E>;
 }
@@ -65,7 +68,8 @@ where
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CreditFacilityEvent>,
 {
     outbox: Outbox<E>,
     jobs: Jobs,
@@ -82,7 +86,8 @@ where
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CreditFacilityEvent>,
 {
     pub fn new(
         outbox: &Outbox<E>,
@@ -109,7 +114,8 @@ where
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CreditFacilityEvent>,
 {
     fn job_type() -> JobType
     where
@@ -137,7 +143,8 @@ where
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CreditFacilityEvent>,
 {
     outbox: Outbox<E>,
     jobs: Jobs,
@@ -155,7 +162,8 @@ where
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CreditFacilityEvent>,
 {
     async fn run(
         &self,
@@ -191,31 +199,32 @@ where
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CreditFacilityEvent>,
 {
     async fn process_message(
         &self,
         message: &PersistentOutboxEvent<E>,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        use CoreCreditEvent::*;
-
         if let Some(event) = message.as_event() {
             match event {
-                FacilityCollateralizationChanged {
-                    id,
-                    state: CollateralizationState::UnderLiquidationThreshold,
-                    price,
-                    ..
+                PartialLiquidationInitiated {
+                    liquidation_process_id,
+                    credit_facility_id,
+                    receivable_account_id,
                 } => {
                     match self
                         .liquidation_process_repo
-                        .find_by_credit_facility_id(*id)
+                        .find_by_credit_facility_id(*credit_facility_id)
                         .await
                     {
                         Err(e) if e.was_not_found() => {
-                            let new_liquidation =
-                                self.facilities.initiate_liquidation(*id, *price).await?;
+                            let new_liquidation = NewLiquidationProcess {
+                                id: *liquidation_process_id,
+                                credit_facility_id: *credit_facility_id,
+                                receivable_account_id: *receivable_account_id,
+                            };
                             let liquidation = self
                                 .liquidation_process_repo
                                 .create(new_liquidation)
@@ -226,7 +235,7 @@ where
                                     JobId::new(),
                                     partial_liquidation::PartialLiquidationJobConfig::<E> {
                                         liquidation_process_id: liquidation.id,
-                                        credit_facility_id: *id,
+                                        credit_facility_id: *credit_facility_id,
                                         _phantom: std::marker::PhantomData,
                                     },
                                 )
