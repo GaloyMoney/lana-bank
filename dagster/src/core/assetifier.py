@@ -31,7 +31,7 @@ def lana_assetifier(protoasset: "Protoasset") -> Union[dg.asset, dg.AssetSpec]:
         deps=protoasset.deps,
         required_resource_keys=protoasset.required_resource_keys,
     )
-    def wrapped_callable(context: dg.AssetExecutionContext) -> None:
+    def wrapped_callable(context: dg.AssetExecutionContext):
         asset_key_str: str = context.asset_key.to_user_string()
 
         span_name = f"asset_{asset_key_str}_run"
@@ -49,6 +49,6 @@ def lana_assetifier(protoasset: "Protoasset") -> Union[dg.asset, dg.AssetSpec]:
             for resource_key in protoasset.required_resource_keys:
                 callable_kwargs[resource_key] = getattr(context.resources, resource_key)
 
-        traced_callable(**callable_kwargs)
+        return traced_callable(**callable_kwargs)
 
     return wrapped_callable

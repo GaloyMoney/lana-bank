@@ -13,6 +13,7 @@ services:
       DAGSTER_POSTGRES_DB: 'postgres_db'
       TF_VAR_sa_creds: ${TF_VAR_sa_creds:-}
       TARGET_BIGQUERY_DATASET: ${TARGET_BIGQUERY_DATASET:-}
+      REPORTS_BUCKET_NAME: ${REPORTS_BUCKET_NAME:-}
       OTEL_EXPORTER_OTLP_ENDPOINT: 'http://otel-agent:4317'
       DAGSTER_AUTOMATIONS_ACTIVE: ${DAGSTER_AUTOMATIONS_ACTIVE:-}
       LANA_PG_CON: 'postgres://user:password@172.17.0.1:5433/pg'
@@ -65,6 +66,7 @@ services:
       DAGSTER_POSTGRES_DB: 'postgres_db'
       TF_VAR_sa_creds: ${TF_VAR_sa_creds:-}
       TARGET_BIGQUERY_DATASET: ${TARGET_BIGQUERY_DATASET:-}
+      REPORTS_BUCKET_NAME: ${REPORTS_BUCKET_NAME:-}
     volumes:
       - /tmp/io_manager_storage:/tmp/io_manager_storage
     depends_on:
