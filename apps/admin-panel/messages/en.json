@@ -1450,7 +1450,7 @@
       },
       "transactions": {
         "title": "Transaction History",
-        "description": "All deposits, withdrawals, disbursals and payments for this account",
+        "description": "All deposits, withdrawals, disbursals, payments, freezes and unfreezes for this account",
         "table": {
           "headers": {
             "date": "Date",
@@ -1462,7 +1462,9 @@
             "deposit": "Deposit",
             "withdrawal": "Withdrawal",
             "disbursal": "Disbursal",
-            "payment": "Payment"
+            "payment": "Payment",
+            "freeze": "Freeze",
+            "unfreeze": "Unfreeze"
           },
           "empty": "No transactions found"
         }

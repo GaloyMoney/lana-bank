@@ -35,6 +35,8 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
         "CancelledWithdrawalEntry",
         "DisbursalEntry",
         "PaymentEntry",
+        "FreezeEntry",
+        "UnfreezeEntry",
       ].includes(entry.__typename),
   )
 
@@ -61,6 +63,10 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
             return "Disbursal"
           case "PaymentEntry":
             return "Payment"
+          case "FreezeEntry":
+            return "Freeze"
+          case "UnfreezeEntry":
+            return "Unfreeze"
           default:
             return "-"
         }
@@ -80,6 +86,9 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
             return <Balance amount={entry.disbursal.amount} currency="usd" />
           case "PaymentEntry":
             return <Balance amount={entry.payment.amount} currency="usd" />
+          case "FreezeEntry":
+          case "UnfreezeEntry":
+            return <Balance amount={entry.amount} currency="usd" />
           default:
             return "-"
         }

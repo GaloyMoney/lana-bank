@@ -248,7 +248,7 @@ export type DepositAccountBalance = {
   settled: Scalars['UsdCents']['output'];
 };
 
-export type DepositAccountHistoryEntry = CancelledWithdrawalEntry | DepositEntry | DisbursalEntry | PaymentEntry | UnknownEntry | WithdrawalEntry;
+export type DepositAccountHistoryEntry = CancelledWithdrawalEntry | DepositEntry | DisbursalEntry | FreezeEntry | PaymentEntry | UnfreezeEntry | UnknownEntry | WithdrawalEntry;
 
 export type DepositAccountHistoryEntryConnection = {
   __typename?: 'DepositAccountHistoryEntryConnection';
@@ -309,6 +309,13 @@ export type Duration = {
 export type FacilityRemaining = {
   __typename?: 'FacilityRemaining';
   usdBalance: Scalars['UsdCents']['output'];
+};
+
+export type FreezeEntry = {
+  __typename?: 'FreezeEntry';
+  amount: Scalars['UsdCents']['output'];
+  recordedAt: Scalars['Timestamp']['output'];
+  txId: Scalars['UUID']['output'];
 };
 
 export type Interest = {
@@ -416,6 +423,13 @@ export type Total = {
   usdBalance: Scalars['UsdCents']['output'];
 };
 
+export type UnfreezeEntry = {
+  __typename?: 'UnfreezeEntry';
+  amount: Scalars['UsdCents']['output'];
+  recordedAt: Scalars['Timestamp']['output'];
+  txId: Scalars['UUID']['output'];
+};
+
 export type UnknownEntry = {
   __typename?: 'UnknownEntry';
   recordedAt: Scalars['Timestamp']['output'];
@@ -484,7 +498,9 @@ export type GetTransactionHistoryQuery = { __typename?: 'Query', me: { __typenam
               | { __typename?: 'CancelledWithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: any, accountId: any, amount: any, createdAt: any, reference: string, status: WithdrawalStatus } }
               | { __typename?: 'DepositEntry', recordedAt: any, deposit: { __typename?: 'Deposit', id: string, depositId: any, accountId: any, amount: any, createdAt: any, reference: string } }
               | { __typename?: 'DisbursalEntry', recordedAt: any, disbursal: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: any, amount: any, createdAt: any, status: DisbursalStatus } }
+              | { __typename?: 'FreezeEntry', recordedAt: any, amount: any }
               | { __typename?: 'PaymentEntry', recordedAt: any, payment: { __typename?: 'CreditFacilityPaymentAllocation', id: string, paymentAllocationId: any, amount: any, createdAt: any } }
+              | { __typename?: 'UnfreezeEntry', recordedAt: any, amount: any }
               | { __typename?: 'UnknownEntry' }
               | { __typename?: 'WithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: any, accountId: any, amount: any, createdAt: any, reference: string, status: WithdrawalStatus } }
              }> } } } } };
@@ -853,6 +869,14 @@ export const GetTransactionHistoryDocument = gql`
                   amount
                   createdAt
                 }
+              }
+              ... on FreezeEntry {
+                recordedAt
+                amount
+              }
+              ... on UnfreezeEntry {
+                recordedAt
+                amount
               }
             }
           }
