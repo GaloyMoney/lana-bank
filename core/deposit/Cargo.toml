@@ -22,6 +22,7 @@ authz = { workspace = true }
 outbox = { workspace = true }
 job = { workspace = true }
 cloud-storage = { workspace = true }
+domain-configurations = { workspace = true }
 
 cala-ledger = { workspace = true }
 es-entity = { workspace = true }

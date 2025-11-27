@@ -1,4 +1,5 @@
 use async_graphql::*;
+use domain_configurations::DomainConfigurationRecord;
 
 use crate::primitives::*;
 
@@ -28,6 +29,14 @@ impl From<DomainChartOfAccountsIntegrationConfig> for ProfitAndLossStatementModu
             ),
             _entity: Arc::new(value),
         }
+    }
+}
+
+impl From<DomainConfigurationRecord<DomainChartOfAccountsIntegrationConfig>>
+    for ProfitAndLossStatementModuleConfig
+{
+    fn from(record: DomainConfigurationRecord<DomainChartOfAccountsIntegrationConfig>) -> Self {
+        Self::from(record.value)
     }
 }
 

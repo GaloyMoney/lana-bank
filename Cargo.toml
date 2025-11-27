@@ -21,6 +21,7 @@ version = "0.0.0"
 airflow = { path = "lib/airflow" }
 audit = { path = "lib/audit" }
 authz = { path = "lib/authz" }
+domain-configurations = { path = "lib/domain-configurations" }
 bitgo = { path = "lib/bitgo" }
 cloud-storage = { path = "lib/cloud-storage" }
 jwks-utils = { path = "lib/jwks-utils" }

@@ -10,6 +10,7 @@ use core_customer::CustomerObject;
 use core_deposit::CoreDepositObject;
 use core_report::ReportObject;
 use dashboard::DashboardModuleObject;
+use domain_configurations::DomainConfigurationObject;
 use governance::GovernanceObject;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
@@ -27,6 +28,7 @@ pub enum LanaObject {
     Dashboard(DashboardModuleObject),
     Report(ReportObject),
     Contract(ContractModuleObject),
+    DomainConfig(DomainConfigurationObject),
 }
 
 impl From<AuditObject> for LanaObject {
@@ -87,6 +89,12 @@ impl From<ContractModuleObject> for LanaObject {
     }
 }
 
+impl From<DomainConfigurationObject> for LanaObject {
+    fn from(object: DomainConfigurationObject) -> Self {
+        LanaObject::DomainConfig(object)
+    }
+}
+
 impl Display for LanaObject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}/", LanaObjectDiscriminants::from(self))?;
@@ -103,6 +111,7 @@ impl Display for LanaObject {
             Dashboard(object) => object.fmt(f),
             Report(object) => object.fmt(f),
             Contract(object) => object.fmt(f),
+            DomainConfig(object) => object.fmt(f),
         }
     }
 }
@@ -132,6 +141,11 @@ impl FromStr for LanaObject {
                 object
                     .parse::<ContractModuleObject>()
                     .map_err(|_| "could not parse ContractModuleObject")?,
+            ),
+            DomainConfig => LanaObject::from(
+                object
+                    .parse::<DomainConfigurationObject>()
+                    .map_err(|_| "could not parse DomainConfigurationObject")?,
             ),
         };
         Ok(res)

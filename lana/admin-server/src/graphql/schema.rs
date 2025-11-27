@@ -896,10 +896,15 @@ impl Query {
     ) -> async_graphql::Result<Option<DepositModuleConfig>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let config = app
-            .deposits()
-            .get_chart_of_accounts_integration_config(sub)
-            .await?;
-        Ok(config.map(DepositModuleConfig::from))
+            .domain_configurations()
+            .get_with_meta::<lana_app::config_keys::DepositChartConfigKey, _>(sub)
+            .await;
+
+        match config {
+            Ok(value) => Ok(Some(DepositModuleConfig::from(value))),
+            Err(domain_configurations::DomainConfigurationError::NotSet) => Ok(None),
+            Err(e) => Err(async_graphql::Error::new(e.to_string())),
+        }
     }
 
     async fn credit_config(
@@ -908,11 +913,15 @@ impl Query {
     ) -> async_graphql::Result<Option<CreditModuleConfig>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let config = app
-            .credit()
-            .chart_of_accounts_integrations()
-            .get_config(sub)
-            .await?;
-        Ok(config.map(CreditModuleConfig::from))
+            .domain_configurations()
+            .get_with_meta::<lana_app::config_keys::CreditChartConfigKey, _>(sub)
+            .await;
+
+        match config {
+            Ok(value) => Ok(Some(CreditModuleConfig::from(value))),
+            Err(domain_configurations::DomainConfigurationError::NotSet) => Ok(None),
+            Err(e) => Err(async_graphql::Error::new(e.to_string())),
+        }
     }
 
     async fn balance_sheet_config(
@@ -921,11 +930,15 @@ impl Query {
     ) -> async_graphql::Result<Option<BalanceSheetModuleConfig>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let config = app
-            .accounting()
-            .balance_sheets()
-            .get_chart_of_accounts_integration_config(sub, BALANCE_SHEET_NAME.to_string())
-            .await?;
-        Ok(config.map(BalanceSheetModuleConfig::from))
+            .domain_configurations()
+            .get_with_meta::<lana_app::config_keys::BalanceSheetChartConfigKey, _>(sub)
+            .await;
+
+        match config {
+            Ok(value) => Ok(Some(BalanceSheetModuleConfig::from(value))),
+            Err(domain_configurations::DomainConfigurationError::NotSet) => Ok(None),
+            Err(e) => Err(async_graphql::Error::new(e.to_string())),
+        }
     }
 
     async fn profit_and_loss_statement_config(
@@ -934,14 +947,15 @@ impl Query {
     ) -> async_graphql::Result<Option<ProfitAndLossStatementModuleConfig>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let config = app
-            .accounting()
-            .profit_and_loss()
-            .get_chart_of_accounts_integration_config(
-                sub,
-                PROFIT_AND_LOSS_STATEMENT_NAME.to_string(),
-            )
-            .await?;
-        Ok(config.map(ProfitAndLossStatementModuleConfig::from))
+            .domain_configurations()
+            .get_with_meta::<lana_app::config_keys::ProfitAndLossChartConfigKey, _>(sub)
+            .await;
+
+        match config {
+            Ok(value) => Ok(Some(ProfitAndLossStatementModuleConfig::from(value))),
+            Err(domain_configurations::DomainConfigurationError::NotSet) => Ok(None),
+            Err(e) => Err(async_graphql::Error::new(e.to_string())),
+        }
     }
 
     async fn public_id_target(
@@ -1292,12 +1306,19 @@ impl Mutation {
         };
 
         let config = app
-            .deposits()
-            .set_chart_of_accounts_integration_config(sub, chart.as_ref(), config_values)
-            .await?;
-        Ok(DepositModuleConfigurePayload::from(
-            DepositModuleConfig::from(config),
-        ))
+            .domain_configurations()
+            .set::<lana_app::config_keys::DepositChartConfigKey, _>(
+                sub,
+                config_values,
+                None,
+                None,
+            )
+            .await
+            .map_err(|e| async_graphql::Error::new(e.to_string()))?;
+
+        Ok(DepositModuleConfigurePayload::from(DepositModuleConfig::from(
+            config,
+        )))
     }
 
     pub async fn manual_transaction_execute(
@@ -1736,13 +1757,18 @@ impl Mutation {
         };
 
         let config = app
-            .credit()
-            .chart_of_accounts_integrations()
-            .set_config(sub, chart.as_ref(), config_values)
-            .await?;
-        Ok(CreditModuleConfigurePayload::from(
-            CreditModuleConfig::from(config),
-        ))
+            .domain_configurations()
+            .set::<lana_app::config_keys::CreditChartConfigKey, _>(
+                sub,
+                config_values,
+                None,
+                None,
+            )
+            .await
+            .map_err(|e| async_graphql::Error::new(e.to_string()))?;
+        Ok(CreditModuleConfigurePayload::from(CreditModuleConfig::from(
+            config,
+        )))
     }
 
     pub async fn credit_facility_proposal_create(
@@ -2215,18 +2241,18 @@ impl Mutation {
         };
 
         let config = app
-            .accounting()
-            .balance_sheets()
-            .set_chart_of_accounts_integration_config(
+            .domain_configurations()
+            .set::<lana_app::config_keys::BalanceSheetChartConfigKey, _>(
                 sub,
-                BALANCE_SHEET_NAME.to_string(),
-                chart.as_ref(),
                 config_values,
+                None,
+                None,
             )
-            .await?;
-        Ok(BalanceSheetModuleConfigurePayload::from(
-            BalanceSheetModuleConfig::from(config),
-        ))
+            .await
+            .map_err(|e| async_graphql::Error::new(e.to_string()))?;
+        Ok(BalanceSheetModuleConfigurePayload::from(BalanceSheetModuleConfig::from(
+            config,
+        )))
     }
 
     async fn profit_and_loss_statement_configure(
@@ -2257,15 +2283,15 @@ impl Mutation {
         };
 
         let config = app
-            .accounting()
-            .profit_and_loss()
-            .set_chart_of_accounts_integration_config(
+            .domain_configurations()
+            .set::<lana_app::config_keys::ProfitAndLossChartConfigKey, _>(
                 sub,
-                PROFIT_AND_LOSS_STATEMENT_NAME.to_string(),
-                chart.as_ref(),
                 config_values,
+                None,
+                None,
             )
-            .await?;
+            .await
+            .map_err(|e| async_graphql::Error::new(e.to_string()))?;
         Ok(ProfitAndLossStatementModuleConfigurePayload::from(
             ProfitAndLossStatementModuleConfig::from(config),
         ))

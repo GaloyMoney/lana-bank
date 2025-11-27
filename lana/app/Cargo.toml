@@ -50,6 +50,7 @@ outbox = { workspace = true }
 authz = { workspace = true }
 cloud-storage = { workspace = true }
 tracing-utils = { workspace = true }
+domain-configurations = { workspace = true }
 
 cala-ledger = { workspace = true, features = ["graphql"] }
 es-entity = { workspace = true, features = ["graphql"] }

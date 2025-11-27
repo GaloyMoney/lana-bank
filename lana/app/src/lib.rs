@@ -3,6 +3,7 @@
 
 pub mod accounting_init;
 pub mod app;
+mod config_keys;
 
 pub mod applicant {
     pub use core_applicant::*;
@@ -118,6 +119,8 @@ pub mod deposit {
     pub type Deposits =
         core_deposit::CoreDeposit<crate::authorization::Authorization, lana_events::LanaEvent>;
 }
+
+pub use config_keys::*;
 
 pub mod accounting {
     pub use core_accounting::{

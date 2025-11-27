@@ -47,6 +47,8 @@ pub enum PermissionSetName {
     ReportViewer,
     ReportWriter,
     AuditViewer,
+    DomainConfigViewer,
+    DomainConfigWriter,
 }
 
 impl std::str::FromStr for PermissionSetName {
@@ -88,6 +90,12 @@ impl std::str::FromStr for PermissionSetName {
             contract_creation::PERMISSION_SET_CONTRACT_CREATION => Ok(ContractCreation),
 
             PERMISSION_SET_AUDIT_VIEWER => Ok(AuditViewer),
+            domain_configurations::PERMISSION_SET_DOMAIN_CONFIGURATION_VIEWER => {
+                Ok(DomainConfigViewer)
+            }
+            domain_configurations::PERMISSION_SET_DOMAIN_CONFIGURATION_WRITER => {
+                Ok(DomainConfigWriter)
+            }
 
             _ => Err(strum::ParseError::VariantNotFound),
         }

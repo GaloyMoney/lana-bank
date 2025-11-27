@@ -24,6 +24,7 @@ use crate::{
     deposit::Deposits,
     deposit_sync::DepositSync,
     document::DocumentStorage,
+    domain_configurations::DomainConfigurations,
     governance::Governance,
     job::Jobs,
     notification::Notification,
@@ -59,6 +60,7 @@ pub struct LanaApp {
     public_ids: PublicIds,
     contract_creation: ContractCreation,
     reports: Reports,
+    domain_configurations: DomainConfigurations<Authorization>,
     _user_onboarding: UserOnboarding,
     _customer_sync: CustomerSync,
     _deposit_sync: DepositSync,
@@ -75,6 +77,7 @@ impl LanaApp {
         let audit = Audit::new(&pool);
         let outbox = Outbox::init(&pool).await?;
         let authz = Authorization::init(&pool, &audit).await?;
+        let domain_configurations = DomainConfigurations::new(&pool, &authz);
 
         let access = Access::init(
             &pool,
@@ -212,6 +215,7 @@ impl LanaApp {
             public_ids,
             contract_creation,
             reports,
+            domain_configurations,
             _user_onboarding: user_onboarding,
             _customer_sync: customer_sync,
             _deposit_sync: deposit_sync,
@@ -295,6 +299,10 @@ impl LanaApp {
 
     pub fn contract_creation(&self) -> &ContractCreation {
         &self.contract_creation
+    }
+
+    pub fn domain_configurations(&self) -> &DomainConfigurations<Authorization> {
+        &self.domain_configurations
     }
 
     pub async fn get_visible_nav_items(
