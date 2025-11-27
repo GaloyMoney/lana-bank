@@ -1388,6 +1388,11 @@ export type FiscalYearInitPayload = {
   fiscalYear: FiscalYear;
 };
 
+export type FiscalYearOpenNextPayload = {
+  __typename?: 'FiscalYearOpenNextPayload';
+  fiscalYear: FiscalYear;
+};
+
 export type FreezeEntry = {
   __typename?: 'FreezeEntry';
   amount: Scalars['UsdCents']['output'];
