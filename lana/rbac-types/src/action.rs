@@ -10,6 +10,7 @@ use core_credit::CoreCreditAction;
 use core_custody::CoreCustodyAction;
 use core_customer::CoreCustomerAction;
 use core_deposit::CoreDepositAction;
+use domain_configurations::DomainConfigurationAction;
 use core_report::CoreReportAction;
 use dashboard::DashboardModuleAction;
 use governance::GovernanceAction;
@@ -29,6 +30,7 @@ pub enum LanaAction {
     Custody(CoreCustodyAction),
     Report(CoreReportAction),
     Contract(ContractModuleAction),
+    DomainConfiguration(DomainConfigurationAction),
 }
 
 impl LanaAction {
@@ -46,6 +48,7 @@ impl LanaAction {
             CoreCustodyAction::actions(),
             CoreReportAction::actions(),
             ContractModuleAction::actions(),
+            DomainConfigurationAction::actions(),
         ]
         .concat()
     }
@@ -106,6 +109,11 @@ impl From<ContractModuleAction> for LanaAction {
         LanaAction::Contract(action)
     }
 }
+impl From<DomainConfigurationAction> for LanaAction {
+    fn from(action: DomainConfigurationAction) -> Self {
+        LanaAction::DomainConfiguration(action)
+    }
+}
 
 impl Display for LanaAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -145,6 +153,7 @@ impl FromStr for LanaAction {
             Custody => LanaAction::from(action.parse::<CoreCustodyAction>()?),
             Report => LanaAction::from(action.parse::<CoreReportAction>()?),
             Contract => LanaAction::from(action.parse::<ContractModuleAction>()?),
+            DomainConfiguration => LanaAction::from(action.parse::<DomainConfigurationAction>()?),
         };
         Ok(res)
     }

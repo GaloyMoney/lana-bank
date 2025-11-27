@@ -3,6 +3,7 @@
 
 pub mod accounting_init;
 pub mod app;
+pub mod domain_configurations;
 
 pub mod applicant {
     pub use core_applicant::*;
@@ -192,6 +193,13 @@ pub mod terms {
 
 pub mod public_id {
     pub use public_id::{PublicId, PublicIdEntity, PublicIdTargetType, PublicIds, error};
+}
+
+pub mod domain_configurations {
+    pub use domain_configurations::*;
+    pub use crate::domain_configurations::{ExampleConfig, ExampleConfigKey};
+    pub type DomainConfigurations =
+        domain_configurations::DomainConfigurations<crate::authorization::Authorization, lana_events::LanaEvent>;
 }
 
 pub mod report {

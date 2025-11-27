@@ -1613,6 +1613,7 @@ type Mutation {
 	customerTelegramIdUpdate(input: CustomerTelegramIdUpdateInput!): CustomerTelegramIdUpdatePayload!
 	customerEmailUpdate(input: CustomerEmailUpdateInput!): CustomerEmailUpdatePayload!
 	depositModuleConfigure(input: DepositModuleConfigureInput!): DepositModuleConfigurePayload!
+	exampleConfigurationSet(input: ExampleConfigurationSetInput!): ExampleConfigurationSetPayload!
 	manualTransactionExecute(input: ManualTransactionExecuteInput!): ManualTransactionExecutePayload!
 	depositRecord(input: DepositRecordInput!): DepositRecordPayload!
 	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
@@ -1902,6 +1903,30 @@ type ProfitAndLossStatementModuleConfigurePayload {
 	profitAndLossConfig: ProfitAndLossStatementModuleConfig!
 }
 
+type ExampleConfiguration {
+	featureEnabled: Boolean!
+	threshold: Int!
+}
+
+type ExampleConfigurationRecord {
+	value: ExampleConfiguration!
+	updatedBy: String!
+	updatedAt: Timestamp!
+	reason: String
+	correlationId: String
+}
+
+input ExampleConfigurationSetInput {
+	featureEnabled: Boolean!
+	threshold: Int!
+	reason: String
+	correlationId: String
+}
+
+type ExampleConfigurationSetPayload {
+	exampleConfiguration: ExampleConfigurationRecord!
+}
+
 scalar PublicId
 
 union PublicIdTarget = Customer | DepositAccount | Deposit | Withdrawal | CreditFacility | CreditFacilityDisbursal
@@ -1964,6 +1989,7 @@ type Query {
 	creditConfig: CreditModuleConfig
 	balanceSheetConfig: BalanceSheetModuleConfig
 	profitAndLossStatementConfig: ProfitAndLossStatementModuleConfig
+	exampleConfiguration: ExampleConfigurationRecord
 	publicIdTarget(id: PublicId!): PublicIdTarget
 	loanAgreement(id: UUID!): LoanAgreement
 	accountEntryCsv(ledgerAccountId: UUID!): AccountingCsvDocument

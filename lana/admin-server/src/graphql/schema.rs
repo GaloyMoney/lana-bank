@@ -6,7 +6,7 @@ use lana_app::{
     accounting_init::constants::{
         BALANCE_SHEET_NAME, PROFIT_AND_LOSS_STATEMENT_NAME, TRIAL_BALANCE_STATEMENT_NAME,
     },
-    app::LanaApp,
+    app::{error::ApplicationError, LanaApp},
 };
 
 use crate::primitives::*;
@@ -14,9 +14,9 @@ use crate::primitives::*;
 use super::{
     access::*, accounting::*, approval_process::*, audit::*, balance_sheet_config::*, committee::*,
     contract_creation::*, credit_config::*, credit_facility::*, custody::*, customer::*,
-    dashboard::*, deposit::*, deposit_config::*, document::*, loader::*, me::*, policy::*,
-    price::*, profit_and_loss_config::*, public_id::*, reports::*, sumsub::*, terms_template::*,
-    withdrawal::*,
+    dashboard::*, deposit::*, deposit_config::*, document::*, domain_configuration::*, loader::*,
+    me::*, policy::*, price::*, profit_and_loss_config::*, public_id::*, reports::*, sumsub::*,
+    terms_template::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -944,6 +944,24 @@ impl Query {
         Ok(config.map(ProfitAndLossStatementModuleConfig::from))
     }
 
+    async fn example_configuration(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<ExampleConfigurationRecord>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        match app.get_example_config(sub).await {
+            Ok(Some(record)) => Ok(Some(ExampleConfigurationRecord::from(record))),
+            Ok(None) => Ok(None),
+            Err(ApplicationError::DomainConfigurationError(
+                domain_configurations::DomainConfigurationError::NotSet,
+            )) => Ok(None),
+            Err(ApplicationError::DomainConfigurationError(err)) => {
+                Err(map_domain_configuration_error(err))
+            }
+            Err(err) => Err(err.into()),
+        }
+    }
+
     async fn public_id_target(
         &self,
         ctx: &Context<'_>,
@@ -1298,6 +1316,39 @@ impl Mutation {
         Ok(DepositModuleConfigurePayload::from(
             DepositModuleConfig::from(config),
         ))
+    }
+
+    async fn example_configuration_set(
+        &self,
+        ctx: &Context<'_>,
+        input: ExampleConfigurationSetInput,
+    ) -> async_graphql::Result<ExampleConfigurationSetPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        let threshold = u32::try_from(input.threshold).map_err(|e| {
+            async_graphql::Error::new(e.to_string()).extend_with(|_, ext| {
+                ext.set("code", "BAD_USER_INPUT");
+            })
+        })?;
+
+        let value = lana_app::domain_configurations::ExampleConfig {
+            feature_enabled: input.feature_enabled,
+            threshold,
+        };
+
+        let result = app
+            .set_example_config(sub, value, input.reason, input.correlation_id)
+            .await;
+
+        match result {
+            Ok(record) => Ok(ExampleConfigurationSetPayload::from(
+                ExampleConfigurationRecord::from(record),
+            )),
+            Err(ApplicationError::DomainConfigurationError(err)) => {
+                Err(map_domain_configuration_error(err))
+            }
+            Err(err) => Err(err.into()),
+        }
     }
 
     pub async fn manual_transaction_execute(

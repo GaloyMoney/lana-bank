@@ -19,6 +19,7 @@ core-custody = { workspace = true }
 core-deposit = { workspace = true }
 core-accounting = { workspace = true }
 core-report = { workspace = true }
+domain-configurations = { workspace = true }
 audit = { workspace = true }
 authz = { workspace = true }
 
