@@ -224,17 +224,24 @@ impl LedgerAccountLedger {
             })
             .collect::<Vec<_>>();
 
-        let (account_sets_result, accounts_result, balances_result) = tokio::join!(
-            self.cala
-                .account_sets()
-                .find_all::<AccountSet>(&account_set_ids),
-            self.cala.accounts().find_all::<Account>(&account_ids),
-            self.cala.balances().find_all(&balance_ids)
-        );
+        let mut op = self.cala.begin_operation().await?;
 
-        let account_sets = account_sets_result?;
-        let accounts = accounts_result?;
-        let mut balances = balances_result?;
+        let account_sets = self
+            .cala
+            .account_sets()
+            .find_all_in_op::<AccountSet>(&mut op, &account_set_ids)
+            .await?;
+        let accounts = self
+            .cala
+            .accounts()
+            .find_all_in_op::<Account>(&mut op, &account_ids)
+            .await?;
+        let mut balances = self
+            .cala
+            .balances()
+            .find_all_in_op(&mut op, &balance_ids)
+            .await?;
+
         let mut result = HashMap::new();
 
         for (id, account_set) in account_sets {
@@ -258,6 +265,8 @@ impl LedgerAccountLedger {
             let ledger_account = LedgerAccount::from((account, account_balances));
             result.insert(account_id, ledger_account);
         }
+
+        op.commit().await?;
 
         Ok(result)
     }
