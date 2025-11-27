@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum CustodianError {
@@ -15,3 +17,15 @@ pub enum CustodianError {
 }
 
 es_entity::from_es_entity_error!(CustodianError);
+
+impl ErrorSeverity for CustodianError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::EsEntityError(_) => Level::ERROR,
+            Self::CursorDestructureError(_) => Level::ERROR,
+            Self::FromHex(_) => Level::ERROR,
+            Self::InvalidEncryptionKey => Level::ERROR,
+        }
+    }
+}
