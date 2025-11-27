@@ -11,7 +11,7 @@ pub enum LiquidationProcessError {
     #[error("LiquidationProcessError - CursorDestructureError: {0}")]
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("LiquidationProcessError - AlreadySatifissed")]
-    AlreadySatisfied
+    AlreadySatisfied,
 }
 
 es_entity::from_es_entity_error!(LiquidationProcessError);

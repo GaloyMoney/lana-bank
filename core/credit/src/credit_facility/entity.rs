@@ -8,7 +8,6 @@ use es_entity::*;
 
 use crate::{
     ledger::*,
-    liquidation_process::NewLiquidationProcess,
     obligation::{NewObligation, ObligationsAmounts},
     primitives::*,
     terms::{InterestPeriod, TermValues},
@@ -59,6 +58,7 @@ pub enum CreditFacilityEvent {
     },
     PartialLiquidationInitiated {
         liquidation_process_id: LiquidationProcessId,
+        credit_facility_id: CreditFacilityId,
         receivable_account_id: CalaAccountId,
     },
     Matured {},
@@ -256,9 +256,8 @@ impl CreditFacility {
     pub(crate) fn initiate_partial_liquidation(
         &mut self,
         price: PriceOfOneBTC,
-        receivable_account_id: CalaAccountId,
         collateral: Satoshis,
-    ) -> Idempotent<NewLiquidationProcess> {
+    ) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             CreditFacilityEvent::PartialLiquidationInitiated { .. },
@@ -266,21 +265,18 @@ impl CreditFacility {
         );
 
         // calculate amount to sell/receive (will be extracted to value object)
-        let _repay_amount = LiquidationPayment::new(self.amount, price, self.terms.initial_cvl, collateral).calculate();
-
-        let new_liquidation = NewLiquidationProcess {
-            id: LiquidationProcessId::new(),
-            credit_facility_id: self.id,
-            receivable_account_id,
-        };
+        let _repay_amount =
+            LiquidationPayment::new(self.amount, price, self.terms.initial_cvl, collateral)
+                .calculate();
 
         self.events
             .push(CreditFacilityEvent::PartialLiquidationInitiated {
-                liquidation_process_id: new_liquidation.id,
-                receivable_account_id,
+                liquidation_process_id: LiquidationProcessId::new(),
+                credit_facility_id: self.id,
+                receivable_account_id: CalaAccountId::new(),
             });
 
-        Idempotent::Executed(new_liquidation)
+        Idempotent::Executed(())
     }
 
     pub(crate) fn mature(&mut self) -> Idempotent<()> {
@@ -515,6 +511,10 @@ impl CreditFacility {
                     cvl: balances.current_cvl(price),
                     price,
                 });
+
+            if calculated_collateralization.is_under_liquidation_threshold() {
+                self.initiate_partial_liquidation(price, balances.collateral());
+            }
 
             Idempotent::Executed(Some(calculated_collateralization))
         } else if ratio_changed {

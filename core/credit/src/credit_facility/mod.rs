@@ -738,23 +738,6 @@ where
             .await?;
         Ok(balances.any_outstanding_or_defaulted())
     }
-
-    pub async fn initiate_liquidation(
-        &self,
-        credit_facility_id: CreditFacilityId,
-        price: PriceOfOneBTC,
-    ) -> Result<NewLiquidationProcess, CreditFacilityError> {
-        // create ledger receivable account
-        let receivable_account_id = CalaAccountId::new();
-        let mut facility = self.repo.find_by_id(credit_facility_id).await?;
-
-        let balances = self.ledger.get_credit_facility_balance(facility.account_ids).await?;
-
-        match facility.initiate_partial_liquidation(price, receivable_account_id, balances.collateral()) {
-            Idempotent::Executed(new_liquidation) => Ok(new_liquidation),
-            Idempotent::Ignored => todo!(),
-        }
-    }
 }
 
 pub(crate) struct CompletedAccrualCycle {
