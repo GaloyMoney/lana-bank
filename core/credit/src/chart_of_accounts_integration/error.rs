@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum ChartOfAccountsIntegrationError {
@@ -12,4 +14,16 @@ pub enum ChartOfAccountsIntegrationError {
     CreditLedgerError(#[from] crate::ledger::error::CreditLedgerError),
     #[error("ChartOfAccountIntegrationError - ChartOfAccountsError: {0}")]
     ChartOfAccountsError(#[from] core_accounting::chart_of_accounts::error::ChartOfAccountsError),
+}
+
+impl ErrorSeverity for ChartOfAccountsIntegrationError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::AuthorizationError(e) => e.severity(),
+            Self::ChartIdMismatch => Level::ERROR,
+            Self::CreditConfigAlreadyExists => Level::WARN,
+            Self::CreditLedgerError(e) => e.severity(),
+            Self::ChartOfAccountsError(e) => e.severity(),
+        }
+    }
 }

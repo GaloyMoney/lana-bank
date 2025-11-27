@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum InterestAccrualCycleError {
@@ -14,6 +16,19 @@ pub enum InterestAccrualCycleError {
     AccrualsAlreadyPosted,
     #[error("InterestAccrualCycleError - InterestPeriodStartDatePastAccrualCycleDate")]
     InterestPeriodStartDatePastAccrualCycleDate,
+}
+
+impl ErrorSeverity for InterestAccrualCycleError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::EsEntityError(_) => Level::ERROR,
+            Self::CursorDestructureError(_) => Level::ERROR,
+            Self::JobError(_) => Level::ERROR,
+            Self::AccrualsAlreadyPosted => Level::WARN,
+            Self::InterestPeriodStartDatePastAccrualCycleDate => Level::ERROR,
+        }
+    }
 }
 
 es_entity::from_es_entity_error!(InterestAccrualCycleError);
