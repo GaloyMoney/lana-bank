@@ -78,10 +78,3 @@ pub struct FiscalYearCloseInput {
 }
 
 crate::mutation_payload! { FiscalYearClosePayload, fiscal_year: FiscalYear }
-
-#[derive(InputObject)]
-pub struct FiscalYearCloseAndOpenNextInput {
-    pub fiscal_year_id: UUID,
-}
-
-crate::mutation_payload! { FiscalYearCloseAndOpenNextPayload, fiscal_year: FiscalYear }

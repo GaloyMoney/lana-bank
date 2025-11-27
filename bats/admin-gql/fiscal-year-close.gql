@@ -1,0 +1,10 @@
+mutation FiscalYearClose($input: FiscalYearCloseInput!) {
+    fiscalYearClose(input: $input) {
+        fiscalYear {
+            id
+            fiscalYearId
+            openedAsOf
+            closedAsOf
+        }
+    }
+}

@@ -1349,15 +1349,6 @@ export type FiscalYear = {
   openedAsOf: Scalars['Date']['output'];
 };
 
-export type FiscalYearCloseAndOpenNextInput = {
-  fiscalYearId: Scalars['UUID']['input'];
-};
-
-export type FiscalYearCloseAndOpenNextPayload = {
-  __typename?: 'FiscalYearCloseAndOpenNextPayload';
-  fiscalYear: FiscalYear;
-};
-
 export type FiscalYearCloseInput = {
   fiscalYearId: Scalars['UUID']['input'];
 };
@@ -1674,7 +1665,6 @@ export type Mutation = {
   depositRecord: DepositRecordPayload;
   depositRevert: DepositRevertPayload;
   fiscalYearClose: FiscalYearClosePayload;
-  fiscalYearCloseAndOpenNext: FiscalYearCloseAndOpenNextPayload;
   fiscalYearCloseMonth: FiscalYearCloseMonthPayload;
   fiscalYearInit: FiscalYearInitPayload;
   fiscalYearOpenNext: FiscalYearOpenNextPayload;
@@ -1875,11 +1865,6 @@ export type MutationDepositRevertArgs = {
 
 export type MutationFiscalYearCloseArgs = {
   input: FiscalYearCloseInput;
-};
-
-
-export type MutationFiscalYearCloseAndOpenNextArgs = {
-  input: FiscalYearCloseAndOpenNextInput;
 };
 
 
