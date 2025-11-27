@@ -42,7 +42,7 @@ impl LanaLoader {
     pub fn new(app: &LanaApp) -> LanaDataLoader {
         DataLoader::new(Self { app: app.clone() }, tokio::task::spawn)
             // Set delay to 0 as per https://github.com/async-graphql/async-graphql/issues/1306
-            .delay(std::time::Duration::from_secs(0))
+            .delay(std::time::Duration::from_millis(5))
     }
 }
 impl Loader<UserId> for LanaLoader {

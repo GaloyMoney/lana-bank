@@ -329,7 +329,6 @@ where
         &self,
         reference: &str,
     ) -> Result<Option<Chart>, ChartOfAccountsError> {
-        let reference = reference.to_string();
         self.repo.maybe_find_by_reference(reference).await
     }
 
