@@ -11,7 +11,7 @@ use rbac_types::{AuditAction, AuditEntityAction, AuditObject};
 use crate::{
     access::Access,
     accounting::Accounting,
-    accounting_init::{ChartsInit, JournalInit, StatementsInit},
+    accounting_init::{constants::{CHART_REF, BALANCE_SHEET_NAME, PROFIT_AND_LOSS_STATEMENT_NAME}, ChartsInit, JournalInit, StatementsInit},
     applicant::Applicants,
     audit::{Audit, AuditCursor, AuditEntry},
     authorization::{Authorization, seed},
@@ -35,6 +35,7 @@ use crate::{
     report::Reports,
     storage::Storage,
     user_onboarding::UserOnboarding,
+    config_keys::*,
 };
 
 pub use config::*;
@@ -193,6 +194,64 @@ impl LanaApp {
 
         ChartsInit::charts_of_accounts(&accounting, &credit, &deposits, config.accounting_init)
             .await?;
+
+        // Sync persisted domain configurations into ledger-backed modules at startup.
+        if let Some(chart) = accounting
+            .chart_of_accounts()
+            .maybe_find_by_reference(CHART_REF)
+            .await?
+        {
+            let sys = &Subject::System;
+
+            if let Ok(cfg) = domain_configurations
+                .get::<crate::config_keys::DepositChartConfigKey, _>(sys)
+                .await
+            {
+                let _ = deposits
+                    .set_chart_of_accounts_integration_config(sys, &chart, cfg.clone())
+                    .await;
+            }
+
+            if let Ok(cfg) = domain_configurations
+                .get::<crate::config_keys::CreditChartConfigKey, _>(sys)
+                .await
+            {
+                let _ = credit
+                    .chart_of_accounts_integrations()
+                    .set_config(sys, &chart, cfg)
+                    .await;
+            }
+
+            if let Ok(cfg) = domain_configurations
+                .get::<crate::config_keys::BalanceSheetChartConfigKey, _>(sys)
+                .await
+            {
+                let _ = accounting
+                    .balance_sheets()
+                    .set_chart_of_accounts_integration_config(
+                        sys,
+                        BALANCE_SHEET_NAME.to_string(),
+                        &chart,
+                        cfg,
+                    )
+                    .await;
+            }
+
+            if let Ok(cfg) = domain_configurations
+                .get::<crate::config_keys::ProfitAndLossChartConfigKey, _>(sys)
+                .await
+            {
+                let _ = accounting
+                    .profit_and_loss()
+                    .set_chart_of_accounts_integration_config(
+                        sys,
+                        PROFIT_AND_LOSS_STATEMENT_NAME.to_string(),
+                        &chart,
+                        cfg,
+                    )
+                    .await;
+            }
+        }
 
         jobs.start_poll().await?;
 
