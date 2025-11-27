@@ -44,11 +44,7 @@ pub fn record_error_severity(_args: TokenStream, input: TokenStream) -> TokenStr
                 if let Err(ref __e) = __result {
                     use tracing_utils::ErrorSeverity;
 
-                    let __span = ::tracing::Span::current();
                     let __severity = __e.severity();
-
-                    // Record error metadata on current span
-                    __span.record("error.level", __severity.as_str());
 
                     // Emit event at appropriate level with "error" field for OpenTelemetry
                     match __severity {
@@ -83,11 +79,7 @@ pub fn record_error_severity(_args: TokenStream, input: TokenStream) -> TokenStr
                 if let Err(ref __e) = __result {
                     use tracing_utils::ErrorSeverity;
 
-                    let __span = ::tracing::Span::current();
                     let __severity = __e.severity();
-
-                    // Record error metadata on current span
-                    __span.record("error.level", __severity.as_str());
 
                     // Emit event at appropriate level with "error" field for OpenTelemetry
                     match __severity {
