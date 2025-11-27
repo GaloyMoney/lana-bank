@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum PaymentAllocationError {
@@ -10,6 +12,17 @@ pub enum PaymentAllocationError {
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("PaymentAllocationError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
+}
+
+impl ErrorSeverity for PaymentAllocationError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::EsEntityError(_) => Level::ERROR,
+            Self::CursorDestructureError(_) => Level::ERROR,
+            Self::AuthorizationError(e) => e.severity(),
+        }
+    }
 }
 
 es_entity::from_es_entity_error!(PaymentAllocationError);
