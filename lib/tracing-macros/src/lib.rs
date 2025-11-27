@@ -20,9 +20,6 @@ pub fn record_error_severity(_args: TokenStream, input: TokenStream) -> TokenStr
     // Extract function components
     let fn_vis = &function.vis;
     let fn_sig = &function.sig;
-    let _fn_ident = &function.sig.ident;
-    let _fn_inputs = &function.sig.inputs;
-    let _fn_output = &function.sig.output;
     let fn_body = &function.block;
     let fn_attrs = &function.attrs;
     let is_async = function.sig.asyncness.is_some();
