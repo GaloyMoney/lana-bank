@@ -66,6 +66,7 @@ impl FiscalYear {
             closed_as_of,
             closed_at: now,
         });
+        self.closed_as_of = Some(closed_as_of);
         Ok(Idempotent::Executed(closed_as_of))
     }
 
