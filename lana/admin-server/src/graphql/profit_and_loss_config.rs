@@ -11,6 +11,10 @@ pub struct ProfitAndLossStatementModuleConfig {
     chart_of_accounts_revenue_code: Option<String>,
     chart_of_accounts_cost_of_revenue_code: Option<String>,
     chart_of_accounts_expenses_code: Option<String>,
+    updated_by: Option<String>,
+    updated_at: Option<chrono::DateTime<chrono::Utc>>,
+    reason: Option<String>,
+    correlation_id: Option<String>,
 
     #[graphql(skip)]
     pub(super) _entity: Arc<DomainChartOfAccountsIntegrationConfig>,
@@ -27,6 +31,10 @@ impl From<DomainChartOfAccountsIntegrationConfig> for ProfitAndLossStatementModu
             chart_of_accounts_cost_of_revenue_code: Some(
                 value.chart_of_accounts_cost_of_revenue_code.to_string(),
             ),
+            updated_by: None,
+            updated_at: None,
+            reason: None,
+            correlation_id: None,
             _entity: Arc::new(value),
         }
     }
@@ -36,7 +44,12 @@ impl From<DomainConfigurationRecord<DomainChartOfAccountsIntegrationConfig>>
     for ProfitAndLossStatementModuleConfig
 {
     fn from(record: DomainConfigurationRecord<DomainChartOfAccountsIntegrationConfig>) -> Self {
-        Self::from(record.value)
+        let mut base = Self::from(record.value);
+        base.updated_by = Some(record.updated_by);
+        base.updated_at = Some(record.updated_at);
+        base.reason = record.reason;
+        base.correlation_id = record.correlation_id;
+        base
     }
 }
 

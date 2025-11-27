@@ -8,6 +8,7 @@ use lana_app::{
     },
     app::LanaApp,
 };
+use domain_configurations::DomainConfigurationError;
 
 use crate::primitives::*;
 
@@ -902,7 +903,7 @@ impl Query {
 
         match config {
             Ok(value) => Ok(Some(DepositModuleConfig::from(value))),
-            Err(domain_configurations::DomainConfigurationError::NotSet) => Ok(None),
+            Err(DomainConfigurationError::NotSet) => Ok(None),
             Err(e) => Err(async_graphql::Error::new(e.to_string())),
         }
     }
@@ -919,7 +920,7 @@ impl Query {
 
         match config {
             Ok(value) => Ok(Some(CreditModuleConfig::from(value))),
-            Err(domain_configurations::DomainConfigurationError::NotSet) => Ok(None),
+            Err(DomainConfigurationError::NotSet) => Ok(None),
             Err(e) => Err(async_graphql::Error::new(e.to_string())),
         }
     }
@@ -936,7 +937,7 @@ impl Query {
 
         match config {
             Ok(value) => Ok(Some(BalanceSheetModuleConfig::from(value))),
-            Err(domain_configurations::DomainConfigurationError::NotSet) => Ok(None),
+            Err(DomainConfigurationError::NotSet) => Ok(None),
             Err(e) => Err(async_graphql::Error::new(e.to_string())),
         }
     }
@@ -953,7 +954,7 @@ impl Query {
 
         match config {
             Ok(value) => Ok(Some(ProfitAndLossStatementModuleConfig::from(value))),
-            Err(domain_configurations::DomainConfigurationError::NotSet) => Ok(None),
+            Err(DomainConfigurationError::NotSet) => Ok(None),
             Err(e) => Err(async_graphql::Error::new(e.to_string())),
         }
     }
@@ -1305,19 +1306,25 @@ impl Mutation {
             chart_of_accounts_omnibus_parent_code: chart_of_accounts_omnibus_parent_code.parse()?,
         };
 
-        let config = app
+        let config_record = app
             .domain_configurations()
             .set::<lana_app::config_keys::DepositChartConfigKey, _>(
                 sub,
-                config_values,
+                config_values.clone(),
                 None,
                 None,
             )
             .await
             .map_err(|e| async_graphql::Error::new(e.to_string()))?;
 
+        // Maintain existing ledger setup; ignore already-exists.
+        let _ = app
+            .deposits()
+            .set_chart_of_accounts_integration_config(sub, chart.as_ref(), config_values)
+            .await;
+
         Ok(DepositModuleConfigurePayload::from(DepositModuleConfig::from(
-            config,
+            config_record,
         )))
     }
 
@@ -1756,18 +1763,26 @@ impl Mutation {
                     .parse()?
         };
 
-        let config = app
+        let config_record = app
             .domain_configurations()
             .set::<lana_app::config_keys::CreditChartConfigKey, _>(
                 sub,
-                config_values,
+                config_values.clone(),
                 None,
                 None,
             )
             .await
             .map_err(|e| async_graphql::Error::new(e.to_string()))?;
+
+        // Maintain existing ledger setup; ignore already-exists errors.
+        let _ = app
+            .credit()
+            .chart_of_accounts_integrations()
+            .set_config(sub, chart.as_ref(), config_values)
+            .await;
+
         Ok(CreditModuleConfigurePayload::from(CreditModuleConfig::from(
-            config,
+            config_record,
         )))
     }
 
@@ -2240,18 +2255,31 @@ impl Mutation {
             chart_of_accounts_expenses_code: chart_of_accounts_expenses_code.parse()?,
         };
 
-        let config = app
+        let config_record = app
             .domain_configurations()
             .set::<lana_app::config_keys::BalanceSheetChartConfigKey, _>(
                 sub,
-                config_values,
+                config_values.clone(),
                 None,
                 None,
             )
             .await
             .map_err(|e| async_graphql::Error::new(e.to_string()))?;
+
+        // Keep ledger setup updated; ignore already-exists errors.
+        let _ = app
+            .accounting()
+            .balance_sheets()
+            .set_chart_of_accounts_integration_config(
+                sub,
+                BALANCE_SHEET_NAME.to_string(),
+                chart.as_ref(),
+                config_values,
+            )
+            .await;
+
         Ok(BalanceSheetModuleConfigurePayload::from(BalanceSheetModuleConfig::from(
-            config,
+            config_record,
         )))
     }
 
@@ -2282,18 +2310,31 @@ impl Mutation {
             chart_of_accounts_expenses_code: chart_of_accounts_expenses_code.parse()?,
         };
 
-        let config = app
+        let config_record = app
             .domain_configurations()
             .set::<lana_app::config_keys::ProfitAndLossChartConfigKey, _>(
                 sub,
-                config_values,
+                config_values.clone(),
                 None,
                 None,
             )
             .await
             .map_err(|e| async_graphql::Error::new(e.to_string()))?;
+
+        // Keep ledger setup updated; ignore already-exists errors.
+        let _ = app
+            .accounting()
+            .profit_and_loss()
+            .set_chart_of_accounts_integration_config(
+                sub,
+                PROFIT_AND_LOSS_STATEMENT_NAME.to_string(),
+                chart.as_ref(),
+                config_values,
+            )
+            .await;
+
         Ok(ProfitAndLossStatementModuleConfigurePayload::from(
-            ProfitAndLossStatementModuleConfig::from(config),
+            ProfitAndLossStatementModuleConfig::from(config_record),
         ))
     }
 
