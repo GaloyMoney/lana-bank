@@ -6,4 +6,5 @@ from src.assets.iris import iris_dataset_size
 from src.assets.lana import (
     lana_source_protoassets,
     lana_to_dw_el_protoassets,
+    lana_dbt_assets,
 )
