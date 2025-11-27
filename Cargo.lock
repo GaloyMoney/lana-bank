@@ -6838,6 +6838,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "tracing-macros"
+version = "0.1.0"
+dependencies = [
+ "quote",
+ "syn 2.0.111",
+ "thiserror 2.0.17",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+ "tracing-utils",
+ "workspace-hack",
+]
+
+[[package]]
 name = "tracing-opentelemetry"
 version = "0.32.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7792,7 +7806,6 @@ dependencies = [
  "smallvec",
  "socket2 0.6.1",
  "spki",
- "sqlx-core",
  "sqlx-postgres",
  "standback",
  "subtle",

@@ -15,7 +15,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-podman
-      - uses: DeterminateSystems/nix-installer-action@v16
       - uses: jlumbroso/free-disk-space@main
         with:
           tool-cache: true
@@ -25,6 +24,7 @@ jobs:
           large-packages: false
           docker-images: true
           swap-storage: true
+      - uses: DeterminateSystems/nix-installer-action@v16
       - uses: cachix/cachix-action@v15
         with:
           name: galoymoney
