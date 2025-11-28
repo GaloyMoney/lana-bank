@@ -1792,6 +1792,7 @@ dependencies = [
  "sim-time",
  "thiserror 2.0.17",
  "tracing",
+ "tracing-utils",
  "workspace-hack",
 ]
 
