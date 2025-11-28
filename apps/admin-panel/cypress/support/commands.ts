@@ -226,6 +226,7 @@ Cypress.Commands.add(
           marginCallCvl: input.marginCallCvl,
           initialCvl: input.initialCvl,
           oneTimeFeeRate: input.oneTimeFeeRate,
+          liquidationFeeRate: input.liquidationFeeRate,
           disbursalPolicy: input.disbursalPolicy,
         },
       })

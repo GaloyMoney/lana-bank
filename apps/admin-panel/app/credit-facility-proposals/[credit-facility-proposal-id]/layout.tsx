@@ -37,6 +37,7 @@ gql`
       accrualInterval
       accrualCycleInterval
       oneTimeFeeRate
+      liquidationFeeRate
       disbursalPolicy
       duration {
         period

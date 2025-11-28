@@ -60,6 +60,7 @@ gql`
         }
       }
       oneTimeFeeRate
+      liquidationFeeRate
       disbursalPolicy
       duration {
         period
