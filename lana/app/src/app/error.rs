@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum ApplicationError {
@@ -60,4 +62,40 @@ pub enum ApplicationError {
     TracingError(#[from] tracing_utils::TracingError),
     #[error("ApplicationError - CanNotCreateProposalForClosedOrFrozenAccount")]
     CanNotCreateProposalForClosedOrFrozenAccount,
+}
+
+impl ErrorSeverity for ApplicationError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::MigrateError(_) => Level::ERROR,
+            Self::JobError(_) => Level::ERROR,
+            Self::CustomerError(e) => e.severity(),
+            Self::CustomerSyncError(e) => e.severity(),
+            Self::DepositSyncError(e) => e.severity(),
+            Self::NotificationError(e) => e.severity(),
+            Self::CreditFacilityError(e) => e.severity(),
+            Self::TrialBalanceError(e) => e.severity(),
+            Self::ProfitAndLossStatementError(e) => e.severity(),
+            Self::BalanceSheetError(e) => e.severity(),
+            Self::CoreAccessError(e) => e.severity(),
+            Self::UserOnboardingError(e) => e.severity(),
+            Self::AuthorizationError(e) => e.severity(),
+            Self::AuditError(e) => e.severity(),
+            Self::PriceError(e) => e.severity(),
+            Self::AccountingInitError(e) => e.severity(),
+            Self::GovernanceError(e) => e.severity(),
+            Self::DashboardError(e) => e.severity(),
+            Self::CalaError(_) => Level::ERROR,
+            Self::ChartOfAccountsError(e) => e.severity(),
+            Self::DepositError(e) => e.severity(),
+            Self::StorageError(e) => e.severity(),
+            Self::ApplicantError(e) => e.severity(),
+            Self::CustodyError(e) => e.severity(),
+            Self::ContractCreationError(e) => e.severity(),
+            Self::ReportError(e) => e.severity(),
+            Self::TracingError(e) => e.severity(),
+            Self::CanNotCreateProposalForClosedOrFrozenAccount => Level::WARN,
+        }
+    }
 }
