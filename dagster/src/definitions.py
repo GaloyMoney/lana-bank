@@ -9,9 +9,9 @@ from src.assets import (
     file_report_protoassets,
     inform_lana_protoasset,
     iris_dataset_size,
+    lana_dbt_assets,
     lana_source_protoassets,
     lana_to_dw_el_protoassets,
-    lana_dbt_assets,
 )
 from src.core import Protoasset, lana_assetifier
 from src.otel import init_telemetry
