@@ -12,6 +12,8 @@ graphql = ["async-graphql"]
 
 serde = { workspace = true }
 thiserror = { workspace = true }
+tracing = { workspace = true }
+tracing-utils = { workspace = true }
 rust_decimal = { workspace = true }
 rust_decimal_macros = { workspace = true }
 async-graphql = { workspace = true, optional = true }
