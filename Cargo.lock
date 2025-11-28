@@ -1569,6 +1569,8 @@ dependencies = [
  "schemars 1.1.0",
  "serde",
  "thiserror 2.0.17",
+ "tracing",
+ "tracing-utils",
  "workspace-hack",
 ]
 
