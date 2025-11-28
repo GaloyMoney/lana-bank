@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum ProfitAndLossStatementError {
@@ -18,4 +20,18 @@ pub enum ProfitAndLossStatementError {
     ProfitAndLossStatementConfigAlreadyExists,
     #[error("ProfitAndLossStatementError - ChartIdMismatch")]
     ChartIdMismatch,
+}
+
+impl ErrorSeverity for ProfitAndLossStatementError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::AuditError(e) => e.severity(),
+            Self::AuthorizationError(e) => e.severity(),
+            Self::ProfitAndLossStatementLedgerError(e) => e.severity(),
+            Self::ChartOfAccountsError(e) => e.severity(),
+            Self::ProfitAndLossStatementConfigAlreadyExists => Level::WARN,
+            Self::ChartIdMismatch => Level::ERROR,
+        }
+    }
 }

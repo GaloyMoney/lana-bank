@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum DepositAccountError {
@@ -19,3 +21,17 @@ pub enum DepositAccountError {
 }
 
 es_entity::from_es_entity_error!(DepositAccountError);
+
+impl ErrorSeverity for DepositAccountError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::EsEntityError(_) => Level::ERROR,
+            Self::CursorDestructureError(_) => Level::ERROR,
+            Self::CannotFreezeInactiveAccount(_) => Level::WARN,
+            Self::CannotUpdateClosedAccount(_) => Level::WARN,
+            Self::CannotUpdateFrozenAccount(_) => Level::WARN,
+            Self::BalanceIsNotZero => Level::WARN,
+        }
+    }
+}

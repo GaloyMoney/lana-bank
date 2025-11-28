@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Debug, Error)]
 pub enum CustodianClientError {
@@ -27,5 +29,13 @@ impl From<komainu::KomainuError> for CustodianClientError {
 impl From<core_money::ConversionError> for CustodianClientError {
     fn from(error: core_money::ConversionError) -> Self {
         Self::ClientError(Box::new(error))
+    }
+}
+
+impl ErrorSeverity for CustodianClientError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::ClientError(_) => Level::ERROR,
+        }
     }
 }

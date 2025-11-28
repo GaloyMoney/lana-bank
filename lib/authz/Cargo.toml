@@ -23,6 +23,7 @@ async-trait = { workspace = true }
 sqlx = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
+tracing-utils = { workspace = true }
 thiserror = { workspace = true }
 schemars = { workspace = true, optional = true }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }

@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum CommitteeError {
@@ -13,3 +15,14 @@ pub enum CommitteeError {
 }
 
 es_entity::from_es_entity_error!(CommitteeError);
+
+impl ErrorSeverity for CommitteeError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::EsEntityError(_) => Level::ERROR,
+            Self::CursorDestructureError(_) => Level::ERROR,
+            Self::MemberAlreadyAdded(_) => Level::WARN,
+        }
+    }
+}

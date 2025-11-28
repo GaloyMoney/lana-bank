@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum CustomerError {
@@ -23,3 +25,19 @@ pub enum CustomerError {
 }
 
 es_entity::from_es_entity_error!(CustomerError);
+
+impl ErrorSeverity for CustomerError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::EsEntityError(_) => Level::ERROR,
+            Self::CursorDestructureError(_) => Level::ERROR,
+            Self::UnexpectedCurrency => Level::ERROR,
+            Self::AuthorizationError(e) => e.severity(),
+            Self::AuditError(e) => e.severity(),
+            Self::SubjectIsNotCustomer => Level::WARN,
+            Self::DocumentStorageError(e) => e.severity(),
+            Self::PublicIdError(e) => e.severity(),
+        }
+    }
+}

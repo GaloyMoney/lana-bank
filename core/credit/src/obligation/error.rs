@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum ObligationError {
@@ -24,6 +26,24 @@ pub enum ObligationError {
     PaymentAmountGreaterThanOutstandingObligations,
     #[error("CoreCreditError - ObligationError: {0}")]
     CreditLedgerError(#[from] crate::ledger::error::CreditLedgerError),
+}
+
+impl ErrorSeverity for ObligationError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::AuthorizationError(e) => e.severity(),
+            Self::Sqlx(_) => Level::ERROR,
+            Self::EsEntityError(_) => Level::ERROR,
+            Self::CursorDestructureError(_) => Level::ERROR,
+            Self::JobError(_) => Level::ERROR,
+            Self::LiquidationProcess(e) => e.severity(),
+            Self::InvalidStatusTransitionToOverdue => Level::ERROR,
+            Self::InvalidStatusTransitionToDefaulted => Level::ERROR,
+            Self::PaymentAllocationError(e) => e.severity(),
+            Self::PaymentAmountGreaterThanOutstandingObligations => Level::WARN,
+            Self::CreditLedgerError(e) => e.severity(),
+        }
+    }
 }
 
 es_entity::from_es_entity_error!(ObligationError);

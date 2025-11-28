@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum CoreCreditError {
@@ -62,4 +64,37 @@ pub enum CoreCreditError {
     DisbursalBuilderError(#[from] super::NewDisbursalBuilderError),
     #[error("CoreCreditError - PublicIdError: {0}")]
     PublicIdError(#[from] public_id::PublicIdError),
+}
+
+impl ErrorSeverity for CoreCreditError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::AuditError(e) => e.severity(),
+            Self::CustomerError(e) => e.severity(),
+            Self::AuthorizationError(e) => e.severity(),
+            Self::CreditLedgerError(e) => e.severity(),
+            Self::ChartOfAccountsIntegrationError(e) => e.severity(),
+            Self::CreditFacilityProposalError(e) => e.severity(),
+            Self::PendingCreditFacilityError(e) => e.severity(),
+            Self::CreditFacilityError(e) => e.severity(),
+            Self::HistoryError(e) => e.severity(),
+            Self::RepaymentPlanError(e) => e.severity(),
+            Self::CollateralError(e) => e.severity(),
+            Self::CustodyError(e) => e.severity(),
+            Self::PaymentError(e) => e.severity(),
+            Self::PaymentAllocationError(e) => e.severity(),
+            Self::DisbursalError(e) => e.severity(),
+            Self::ObligationError(e) => e.severity(),
+            Self::InterestAccrualCycleError(e) => e.severity(),
+            Self::PriceError(e) => e.severity(),
+            Self::GovernanceError(e) => e.severity(),
+            Self::JobError(_) => Level::ERROR,
+            Self::CustomerMismatchForCreditFacility => Level::ERROR,
+            Self::SubjectIsNotCustomer => Level::WARN,
+            Self::CustomerNotVerified => Level::WARN,
+            Self::DisbursalBuilderError(_) => Level::ERROR,
+            Self::PublicIdError(e) => e.severity(),
+        }
+    }
 }

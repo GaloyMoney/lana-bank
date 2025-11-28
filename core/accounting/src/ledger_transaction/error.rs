@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum LedgerTransactionError {
@@ -16,4 +18,18 @@ pub enum LedgerTransactionError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("LedgerTransactionError - JournalError: {0}")]
     JournalError(#[from] crate::journal::error::JournalError),
+}
+
+impl ErrorSeverity for LedgerTransactionError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::CalaLedger(_) => Level::ERROR,
+            Self::CalaEntry(_) => Level::ERROR,
+            Self::CalaTransaction(_) => Level::ERROR,
+            Self::CalaTxTemplate(_) => Level::ERROR,
+            Self::AuthorizationError(e) => e.severity(),
+            Self::JournalError(e) => e.severity(),
+        }
+    }
 }

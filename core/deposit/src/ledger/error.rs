@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum DepositLedgerError {
@@ -34,4 +36,26 @@ pub enum DepositLedgerError {
     NonAccountMemberFoundInAccountSet(String),
     #[error("DepositLedgerError - JournalIdMismatch: Account sets have wrong JournalId")]
     JournalIdMismatch,
+}
+
+impl ErrorSeverity for DepositLedgerError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::CalaLedger(_) => Level::ERROR,
+            Self::CalaAccount(_) => Level::ERROR,
+            Self::AccountSetError(_) => Level::ERROR,
+            Self::CalaJournal(_) => Level::ERROR,
+            Self::CalaTxTemplate(_) => Level::ERROR,
+            Self::CalaBalance(_) => Level::ERROR,
+            Self::CalaTransaction(_) => Level::ERROR,
+            Self::CalaEntry(_) => Level::ERROR,
+            Self::CalaVelocity(_) => Level::ERROR,
+            Self::ConversionError(e) => e.severity(),
+            Self::MissingTxMetadata => Level::WARN,
+            Self::MismatchedTxMetadata(_) => Level::WARN,
+            Self::NonAccountMemberFoundInAccountSet(_) => Level::ERROR,
+            Self::JournalIdMismatch => Level::ERROR,
+        }
+    }
 }

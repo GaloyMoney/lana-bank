@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum StorageClientError {
@@ -10,4 +12,15 @@ pub enum StorageClientError {
     GcsSignUrl(#[from] google_cloud_storage::sign::SignedURLError),
     #[error("StorageClientError - StdIo: {0}")]
     StdIo(#[from] std::io::Error),
+}
+
+impl ErrorSeverity for StorageClientError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Auth(_) => Level::ERROR,
+            Self::Gcs(_) => Level::ERROR,
+            Self::GcsSignUrl(_) => Level::ERROR,
+            Self::StdIo(_) => Level::ERROR,
+        }
+    }
 }

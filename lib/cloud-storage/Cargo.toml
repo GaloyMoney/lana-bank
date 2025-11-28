@@ -10,6 +10,8 @@ fail-on-warnings = []
 [dependencies]
 google-cloud-storage = { workspace = true }
 thiserror = { workspace = true }
+tracing = { workspace = true }
+tracing-utils = { workspace = true }
 serde = { workspace = true }
 anyhow = { workspace = true }
 tokio = { workspace = true }
