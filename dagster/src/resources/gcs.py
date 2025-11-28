@@ -1,10 +1,10 @@
 import json
 
+from dagster_dbt import DbtCliResource
 from google.cloud import storage
 from google.oauth2 import service_account
 
 import dagster as dg
-from dagster_dbt import DbtCliResource
 
 RESOURCE_KEY_FILE_REPORTS_BUCKET = "file_reports_bucket"
 RESOURCE_KEY_LANA_DBT = "dbt"

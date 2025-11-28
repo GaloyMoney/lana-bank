@@ -1,10 +1,10 @@
 from pathlib import Path
-from typing import List, Any, Optional, Mapping
+from typing import Any, List, Mapping, Optional
 
 import dlt
+from dagster_dbt import DagsterDbtTranslator, DbtCliResource, dbt_assets
 
 import dagster as dg
-from dagster_dbt import DbtCliResource, dbt_assets, DagsterDbtTranslator
 from src.core import Protoasset
 from src.dlt_destinations.bigquery import create_bigquery_destination
 from src.dlt_resources.postgres import create_dlt_postgres_resource
@@ -13,8 +13,8 @@ from src.resources import (
     RESOURCE_KEY_LANA_CORE_PG,
     BigQueryResource,
     PostgresResource,
-    dbt_resource,
     dbt_manifest_path,
+    dbt_resource,
 )
 
 LANA_EL_TABLE_NAMES = (
@@ -84,7 +84,6 @@ def lana_to_dw_el_protoassets() -> List[Protoasset]:
     return lana_el_protoassets
 
 
-
 def build_lana_to_dw_el_protoasset(table_name) -> Protoasset:
 
     def lana_to_dw_el_asset(
@@ -144,18 +143,6 @@ def prepare_lana_el_pipeline(lana_core_pg, dw_bq, table_name):
         return load_info
 
     return wrapped_pipeline
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 def lana_dbt_assets():
