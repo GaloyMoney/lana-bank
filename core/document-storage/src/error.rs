@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum DocumentStorageError {
@@ -13,3 +15,14 @@ pub enum DocumentStorageError {
 }
 
 es_entity::from_es_entity_error!(DocumentStorageError);
+
+impl ErrorSeverity for DocumentStorageError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::EsEntityError(_) => Level::ERROR,
+            Self::CursorDestructureError(_) => Level::ERROR,
+            Self::StorageError(e) => e.severity(),
+        }
+    }
+}
