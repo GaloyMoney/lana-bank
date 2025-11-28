@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum DashboardError {
@@ -8,4 +10,14 @@ pub enum DashboardError {
     Job(#[from] ::job::error::JobError),
     #[error("DashboardError - Authorization: {0}")]
     Authorization(#[from] authz::error::AuthorizationError),
+}
+
+impl ErrorSeverity for DashboardError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::Job(_) => Level::ERROR,
+            Self::Authorization(e) => e.severity(),
+        }
+    }
 }
