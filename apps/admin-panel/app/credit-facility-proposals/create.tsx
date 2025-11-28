@@ -79,6 +79,7 @@ const initialFormValues = {
   initialCvl: "",
   durationUnits: "",
   oneTimeFeeRate: "",
+  liquidationFeeRate: "",
   disbursalPolicy: DisbursalPolicy.SingleDisbursal,
 }
 
@@ -137,6 +138,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
         initialCvl: getCvlValue(latestTemplate.values.initialCvl).toString(),
         durationUnits: latestTemplate.values.duration.units.toString(),
         oneTimeFeeRate: latestTemplate.values.oneTimeFeeRate.toString(),
+        liquidationFeeRate: latestTemplate.values.liquidationFeeRate.toString(),
         disbursalPolicy: latestTemplate.values.disbursalPolicy,
       }))
     }
@@ -166,6 +168,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
         initialCvl: getCvlValue(selectedTemplate.values.initialCvl).toString(),
         durationUnits: selectedTemplate.values.duration.units.toString(),
         oneTimeFeeRate: selectedTemplate.values.oneTimeFeeRate.toString(),
+        liquidationFeeRate: selectedTemplate.values.liquidationFeeRate.toString(),
         disbursalPolicy: selectedTemplate.values.disbursalPolicy,
       }))
     }
@@ -182,6 +185,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
       initialCvl,
       durationUnits,
       oneTimeFeeRate,
+      liquidationFeeRate,
       disbursalPolicy,
     } = formValues
 
@@ -193,6 +197,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
       !initialCvl ||
       !durationUnits ||
       !oneTimeFeeRate ||
+      !liquidationFeeRate ||
       !disbursalPolicy
     ) {
       toast.error(t("form.messages.fillAllFields"))
@@ -214,6 +219,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
               marginCallCvl: parseFloat(marginCallCvl),
               initialCvl: parseFloat(initialCvl),
               oneTimeFeeRate: parseFloat(oneTimeFeeRate),
+              liquidationFeeRate: parseFloat(liquidationFeeRate),
               disbursalPolicy: disbursalPolicy,
               duration: {
                 units: parseInt(durationUnits),
@@ -265,6 +271,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
         initialCvl: getCvlValue(latestTemplate.values.initialCvl).toString(),
         durationUnits: latestTemplate.values.duration.units.toString(),
         oneTimeFeeRate: latestTemplate.values.oneTimeFeeRate?.toString(),
+        liquidationFeeRate: latestTemplate.values.liquidationFeeRate?.toString(),
         disbursalPolicy: latestTemplate.values.disbursalPolicy,
       })
     } else {
@@ -418,6 +425,10 @@ export const CreateCreditFacilityProposalDialog: React.FC<
                   value={formValues.oneTimeFeeRate}
                 />
                 <DetailItem
+                  label={t("form.labels.liquidationFeeRate")}
+                  value={formValues.liquidationFeeRate}
+                />
+                <DetailItem
                   label={t("form.labels.disbursalPolicy")}
                   value={
                     formValues.disbursalPolicy === DisbursalPolicy.MultipleDisbursal
@@ -492,6 +503,18 @@ export const CreateCreditFacilityProposalDialog: React.FC<
                     value={formValues.oneTimeFeeRate}
                     onChange={handleChange}
                     placeholder={t("form.placeholders.structuringFeeRate")}
+                    min={0}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label>{t("form.labels.liquidationFeeRate")}</Label>
+                  <Input
+                    type="number"
+                    name="liquidationFeeRate"
+                    value={formValues.liquidationFeeRate}
+                    onChange={handleChange}
+                    placeholder={t("form.placeholders.liquidationFeeRate")}
                     min={0}
                     required
                   />

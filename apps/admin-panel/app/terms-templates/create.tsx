@@ -85,6 +85,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
     initialCvl: "",
     durationUnits: "",
     oneTimeFeeRate: "",
+    liquidationFeeRate: "",
     disbursalPolicy: DisbursalPolicy.SingleDisbursal,
   })
   const [error, setError] = useState<string | null>(null)
@@ -99,6 +100,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
         initialCvl: getCvlValue(templateToDuplicate.values.initialCvl).toString(),
         durationUnits: templateToDuplicate.values.duration.units.toString(),
         oneTimeFeeRate: templateToDuplicate.values.oneTimeFeeRate.toString(),
+        liquidationFeeRate: templateToDuplicate.values.liquidationFeeRate.toString(),
         disbursalPolicy: templateToDuplicate.values.disbursalPolicy,
       })
     }
@@ -144,6 +146,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
             marginCallCvl: formValues.marginCallCvl,
             initialCvl: formValues.initialCvl,
             oneTimeFeeRate: formValues.oneTimeFeeRate,
+            liquidationFeeRate: formValues.liquidationFeeRate,
             disbursalPolicy: formValues.disbursalPolicy,
           },
         },
@@ -174,6 +177,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
       initialCvl: "",
       durationUnits: "",
       oneTimeFeeRate: "",
+      liquidationFeeRate: "",
       disbursalPolicy: DisbursalPolicy.SingleDisbursal,
     })
     setError(null)
@@ -262,6 +266,20 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                   onChange={handleChange}
                   disabled={isLoading}
                   data-testid="terms-template-one-time-fee-rate-input"
+                />
+              </div>
+              <div>
+                <Label htmlFor="liquidationFeeRate">{t("fields.liquidationFeeRate")}</Label>
+                <Input
+                  id="liquidationFeeRate"
+                  name="liquidationFeeRate"
+                  type="number"
+                  required
+                  placeholder={t("placeholders.liquidationFeeRate")}
+                  value={formValues.liquidationFeeRate}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                  data-testid="terms-template-liquidation-fee-rate-input"
                 />
               </div>
               <div>

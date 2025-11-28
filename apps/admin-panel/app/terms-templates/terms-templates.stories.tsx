@@ -81,6 +81,7 @@ const createTermsTemplates = () => {
           value: riskProfile.initialCvl,
         },
         oneTimeFeeRate: 0.5,
+        liquidationFeeRate: 5.0,
         disbursalPolicy: DisbursalPolicy.MultipleDisbursal,
         duration: mockDuration({
           units: riskProfile.duration.units,

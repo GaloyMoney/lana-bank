@@ -75,6 +75,28 @@ impl From<Decimal> for OneTimeFeeRatePct {
         OneTimeFeeRatePct(value)
     }
 }
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+#[serde(transparent)]
+pub struct LiquidationFeeRatePct(Decimal);
+#[cfg(feature = "graphql")]
+async_graphql::scalar!(LiquidationFeeRatePct);
+
+impl LiquidationFeeRatePct {
+    pub const ZERO: Self = Self(dec!(0));
+
+    pub fn new(pct: u64) -> Self {
+        LiquidationFeeRatePct(Decimal::from(pct))
+    }
+}
+
+impl From<Decimal> for LiquidationFeeRatePct {
+    fn from(value: Decimal) -> Self {
+        LiquidationFeeRatePct(value)
+    }
+}
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
@@ -251,6 +273,8 @@ pub struct TermValues {
     #[builder(setter(into))]
     pub one_time_fee_rate: OneTimeFeeRatePct,
     #[builder(setter(into))]
+    pub liquidation_fee_rate: LiquidationFeeRatePct,
+    #[builder(setter(into))]
     pub liquidation_cvl: CVLPct,
     #[builder(setter(into))]
     pub margin_call_cvl: CVLPct,
@@ -416,6 +440,10 @@ impl TermValuesBuilder {
             .liquidation_cvl
             .ok_or(UninitializedFieldError::new("liquidation_cvl"))?;
 
+        if self.liquidation_fee_rate.is_none() {
+            return Err(UninitializedFieldError::new("liquidation_fee_rate").into());
+        }
+
         if initial_cvl <= margin_call_cvl {
             return Err(TermsError::MarginCallAboveInitialLimit(
                 margin_call_cvl,
@@ -450,6 +478,7 @@ mod test {
             .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .accrual_interval(InterestInterval::EndOfDay)
             .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
+            .liquidation_fee_rate(LiquidationFeeRatePct(dec!(5)))
             .disbursal_policy(DisbursalPolicy::SingleDisbursal)
             .liquidation_cvl(dec!(105))
             .margin_call_cvl(dec!(125))
@@ -465,6 +494,7 @@ mod test {
             .duration(FacilityDuration::Months(3))
             .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
+            .liquidation_fee_rate(LiquidationFeeRatePct(dec!(5)))
             .disbursal_policy(DisbursalPolicy::SingleDisbursal)
             .liquidation_cvl(dec!(105))
             .margin_call_cvl(dec!(150))
@@ -487,6 +517,7 @@ mod test {
             .duration(FacilityDuration::Months(3))
             .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
+            .liquidation_fee_rate(LiquidationFeeRatePct(dec!(5)))
             .disbursal_policy(DisbursalPolicy::SingleDisbursal)
             .liquidation_cvl(dec!(130))
             .margin_call_cvl(dec!(125))
@@ -509,6 +540,7 @@ mod test {
             .duration(FacilityDuration::Months(3))
             .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
+            .liquidation_fee_rate(LiquidationFeeRatePct(dec!(5)))
             .disbursal_policy(DisbursalPolicy::SingleDisbursal)
             .liquidation_cvl(dec!(125))
             .margin_call_cvl(dec!(125))
@@ -685,6 +717,7 @@ mod test {
             .liquidation_cvl(dec!(105))
             .margin_call_cvl(dec!(125))
             .initial_cvl(dec!(140))
+            .liquidation_fee_rate(LiquidationFeeRatePct(dec!(5)))
             .build()
             .expect("should build a valid term")
     }

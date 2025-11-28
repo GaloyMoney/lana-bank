@@ -1551,6 +1551,8 @@ type LedgerTransactionEdge {
 
 union LedgerTransactionEntity = Deposit | Withdrawal | CreditFacilityDisbursal
 
+scalar LiquidationFeeRatePct
+
 type LoanAgreement {
 	id: ID!
 	status: LoanAgreementStatus!
@@ -2158,6 +2160,7 @@ type TermValues {
 	accrualInterval: InterestInterval!
 	accrualCycleInterval: InterestInterval!
 	oneTimeFeeRate: OneTimeFeeRatePct!
+	liquidationFeeRate: LiquidationFeeRatePct!
 	disbursalPolicy: DisbursalPolicy!
 	duration: Duration!
 	liquidationCvl: Cvlpct!
@@ -2170,6 +2173,7 @@ input TermsInput {
 	accrualInterval: InterestInterval!
 	accrualCycleInterval: InterestInterval!
 	oneTimeFeeRate: OneTimeFeeRatePct!
+	liquidationFeeRate: LiquidationFeeRatePct!
 	disbursalPolicy: DisbursalPolicy!
 	duration: DurationInput!
 	interestDueDurationFromAccrual: DurationInput!
@@ -2195,6 +2199,7 @@ input TermsTemplateCreateInput {
 	accrualInterval: InterestInterval!
 	accrualCycleInterval: InterestInterval!
 	oneTimeFeeRate: OneTimeFeeRatePct!
+	liquidationFeeRate: LiquidationFeeRatePct!
 	disbursalPolicy: DisbursalPolicy!
 	duration: DurationInput!
 	interestDueDurationFromAccrual: DurationInput!
@@ -2215,6 +2220,7 @@ input TermsTemplateUpdateInput {
 	accrualInterval: InterestInterval!
 	accrualCycleInterval: InterestInterval!
 	oneTimeFeeRate: OneTimeFeeRatePct!
+	liquidationFeeRate: LiquidationFeeRatePct!
 	disbursalPolicy: DisbursalPolicy!
 	liquidationCvl: CVLPctValue!
 	duration: DurationInput!

@@ -93,6 +93,7 @@ pub fn std_terms() -> TermValues {
         .accrual_cycle_interval(InterestInterval::EndOfMonth)
         .one_time_fee_rate(dec!(0.01))
         .disbursal_policy(DisbursalPolicy::SingleDisbursal)
+        .liquidation_fee_rate(dec!(5))
         .build()
         .unwrap()
 }
@@ -110,6 +111,7 @@ pub fn std_terms_with_liquidation() -> TermValues {
         .accrual_interval(InterestInterval::EndOfDay)
         .accrual_cycle_interval(InterestInterval::EndOfMonth)
         .one_time_fee_rate(dec!(0.01))
+        .liquidation_fee_rate(dec!(5))
         .disbursal_policy(DisbursalPolicy::SingleDisbursal)
         .build()
         .unwrap()
@@ -128,6 +130,7 @@ pub fn std_terms_12m() -> TermValues {
         .accrual_interval(InterestInterval::EndOfDay)
         .accrual_cycle_interval(InterestInterval::EndOfMonth)
         .one_time_fee_rate(dec!(0.01))
+        .liquidation_fee_rate(dec!(5))
         .disbursal_policy(DisbursalPolicy::MultipleDisbursal)
         .build()
         .unwrap()

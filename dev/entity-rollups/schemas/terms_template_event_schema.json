@@ -135,6 +135,13 @@
         "liquidation_cvl": {
           "$ref": "#/$defs/CVLPct"
         },
+        "liquidation_fee_rate": {
+          "pattern": "^-?\\d+(\\.\\d+)?([eE]\\d+)?$",
+          "type": [
+            "string",
+            "number"
+          ]
+        },
         "margin_call_cvl": {
           "$ref": "#/$defs/CVLPct"
         },
@@ -173,6 +180,7 @@
         "accrual_cycle_interval",
         "accrual_interval",
         "one_time_fee_rate",
+        "liquidation_fee_rate",
         "liquidation_cvl",
         "margin_call_cvl",
         "initial_cvl",
