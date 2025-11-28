@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 use crate::primitives::WithdrawalId;
 
@@ -23,3 +25,18 @@ pub enum WithdrawalError {
 }
 
 es_entity::from_es_entity_error!(WithdrawalError);
+
+impl ErrorSeverity for WithdrawalError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::EsEntityError(_) => Level::ERROR,
+            Self::CursorDestructureError(_) => Level::ERROR,
+            Self::AlreadyConfirmed(_) => Level::WARN,
+            Self::AlreadyCancelled(_) => Level::WARN,
+            Self::NotApproved(_) => Level::WARN,
+            Self::AuditError(e) => e.severity(),
+            Self::NotConfirmed(_) => Level::WARN,
+        }
+    }
+}
