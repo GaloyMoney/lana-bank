@@ -248,6 +248,7 @@
           meltanoPkgs.meltano
           poppler-utils
           keycloak
+          tokio-console
           # Documentation tools
           mdbook
           mdbook-mermaid
