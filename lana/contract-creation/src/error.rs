@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum ContractCreationError {
@@ -20,4 +22,20 @@ pub enum ContractCreationError {
     Sqlx(#[from] sqlx::Error),
     #[error("Document not found error")]
     NotFound,
+}
+
+impl ErrorSeverity for ContractCreationError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Rendering(e) => e.severity(),
+            Self::DocumentStorage(e) => e.severity(),
+            Self::TemplateNotFound(_) => Level::ERROR,
+            Self::InvalidTemplateData(_) => Level::ERROR,
+            Self::Io(_) => Level::ERROR,
+            Self::Job(_) => Level::ERROR,
+            Self::Auth(e) => e.severity(),
+            Self::Sqlx(_) => Level::ERROR,
+            Self::NotFound => Level::WARN,
+        }
+    }
 }
