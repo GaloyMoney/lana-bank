@@ -1914,6 +1914,7 @@ union PublicIdTarget = Customer | DepositAccount | Deposit | Withdrawal | Credit
 
 type Query {
 	me: Me!
+	sleep(seconds: Int!): String!
 	dashboard: Dashboard!
 	user(id: UUID!): User
 	users: [User!]!

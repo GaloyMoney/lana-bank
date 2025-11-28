@@ -191,6 +191,8 @@ impl LanaApp {
         ChartsInit::charts_of_accounts(&accounting, &credit, &deposits, config.accounting_init)
             .await?;
 
+        jobs.add_initializer(crate::test_job::TestWaitJobInit::new());
+
         jobs.start_poll().await?;
 
         Ok(Self {
@@ -295,6 +297,10 @@ impl LanaApp {
 
     pub fn contract_creation(&self) -> &ContractCreation {
         &self.contract_creation
+    }
+
+    pub fn jobs(&self) -> &Jobs {
+        &self.jobs
     }
 
     pub async fn get_visible_nav_items(
