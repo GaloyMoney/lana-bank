@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum ReportRunError {
@@ -11,3 +13,13 @@ pub enum ReportRunError {
 }
 
 es_entity::from_es_entity_error!(ReportRunError);
+
+impl ErrorSeverity for ReportRunError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::EsEntityError(_) => Level::ERROR,
+            Self::CursorDestructureError(_) => Level::ERROR,
+        }
+    }
+}
