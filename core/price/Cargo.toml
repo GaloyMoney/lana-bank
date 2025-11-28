@@ -24,6 +24,7 @@ serde_json = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
+tracing-utils = { workspace = true }
 schemars = { workspace = true, optional = true }
 chrono = { workspace = true }
 sim-time = { workspace = true, optional = true }
