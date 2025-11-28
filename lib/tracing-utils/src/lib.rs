@@ -18,7 +18,9 @@ use opentelemetry_sdk::{
 };
 use opentelemetry_semantic_conventions::resource::SERVICE_NAMESPACE;
 use serde::{Deserialize, Serialize};
-use tracing_subscriber::{filter::EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
+use tracing_subscriber::{
+    Layer, filter::EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt,
+};
 
 pub use error::TracingError;
 pub use error_severity::ErrorSeverity;
@@ -81,16 +83,17 @@ pub fn init_tracer(config: TracingConfig) -> anyhow::Result<()> {
     let tracer = provider_arc.tracer("lana-tracer");
     let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
 
-    let fmt_layer = fmt::layer().compact();
+    // Console output: use RUST_LOG if valid, otherwise "info"
+    let fmt_filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
+    let fmt_layer = fmt::layer().compact().with_filter(fmt_filter);
 
-    // set env to RUST_LOG=debug or RUST_LOG=info,sqlx=warn to change this value dynamically
-    let filter_layer = EnvFilter::try_from_default_env()
-        .or_else(|_| EnvFilter::try_new("info,sqlx=debug"))
-        .unwrap();
+    // OpenTelemetry: use RUST_LOG if valid, otherwise "info,sqlx=debug"
+    let otel_filter = EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| EnvFilter::try_new("info,sqlx=debug").unwrap());
+
     tracing_subscriber::registry()
-        .with(filter_layer)
         .with(fmt_layer)
-        .with(telemetry)
+        .with(telemetry.with_filter(otel_filter))
         .init();
 
     setup_panic_hook();
