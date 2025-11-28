@@ -115,7 +115,7 @@ pub fn init_tracer(config: TracingConfig) -> anyhow::Result<()> {
 
     let fmt_layer = fmt::layer().compact().with_filter(fmt_filter);
 
-    // Build the base filter - only used if console is enabled for tokio/runtime traces
+    #[cfg_attr(not(tokio_unstable), allow(unused_mut))]
     let mut base_filter = EnvFilter::try_from_default_env()
         .or_else(|_| EnvFilter::try_new("info,sqlx=debug"))
         .unwrap();
