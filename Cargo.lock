@@ -108,6 +108,7 @@ dependencies = [
  "serde",
  "thiserror 2.0.17",
  "tracing",
+ "tracing-utils",
  "url",
  "workspace-hack",
 ]
