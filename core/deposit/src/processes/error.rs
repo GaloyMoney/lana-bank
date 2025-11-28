@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum ProcessError {
@@ -15,3 +17,15 @@ pub enum ProcessError {
 }
 
 es_entity::from_es_entity_error!(ProcessError);
+
+impl ErrorSeverity for ProcessError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::EsEntityError(_) => Level::ERROR,
+            Self::GovernanceError(e) => e.severity(),
+            Self::Sqlx(_) => Level::ERROR,
+            Self::WithdrawalError(e) => e.severity(),
+            Self::AuditError(e) => e.severity(),
+        }
+    }
+}
