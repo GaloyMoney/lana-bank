@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum AuditError {
@@ -10,4 +12,15 @@ pub enum AuditError {
     ObjectParseError(String),
     #[error("AuditError - ActionParseError: Could not parse '{0}'")]
     ActionParseError(String),
+}
+
+impl ErrorSeverity for AuditError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::SubjectParseError(_) => Level::WARN,
+            Self::ObjectParseError(_) => Level::WARN,
+            Self::ActionParseError(_) => Level::WARN,
+        }
+    }
 }
