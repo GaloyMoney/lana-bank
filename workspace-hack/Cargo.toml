@@ -22,7 +22,7 @@ async-graphql = { version = "7", default-features = false, features = ["chrono",
 axum = { version = "0.8", features = ["macros"] }
 base16ct = { version = "0.2", default-features = false, features = ["alloc"] }
 base64 = { version = "0.22" }
-byteorder = { version = "1", default-features = false, features = ["std"] }
+byteorder = { version = "1" }
 bytes = { version = "1", features = ["serde"] }
 cala-ledger = { version = "0.12", default-features = false, features = ["graphql", "json-schema"] }
 cala-ledger-core-types = { version = "0.12", default-features = false, features = ["graphql", "json-schema"] }
@@ -30,6 +30,7 @@ chrono = { version = "0.4", features = ["serde"] }
 cipher = { version = "0.4", default-features = false, features = ["block-padding", "zeroize"] }
 clap = { version = "4", features = ["derive", "env"] }
 clap_builder = { version = "4", default-features = false, features = ["color", "env", "help", "std", "suggestions", "usage"] }
+crossbeam-utils = { version = "0.8" }
 crypto-common = { version = "0.1", default-features = false, features = ["getrandom", "std"] }
 der = { version = "0.7", default-features = false, features = ["oid", "pem", "std"] }
 deranged = { version = "0.5", features = ["powerfmt", "serde"] }
@@ -91,9 +92,10 @@ sqlx-postgres = { version = "0.8", default-features = false, features = ["any", 
 standback = { version = "0.2", default-features = false, features = ["std"] }
 subtle = { version = "2", default-features = false, features = ["i128"] }
 time = { version = "0.3", features = ["formatting", "macros", "parsing", "serde"] }
-tokio = { version = "1", features = ["fs", "io-std", "io-util", "macros", "net", "parking_lot", "rt-multi-thread", "signal", "sync", "time"] }
+tokio = { version = "1", features = ["fs", "io-std", "io-util", "macros", "net", "parking_lot", "rt-multi-thread", "signal", "sync", "time", "tracing"] }
 tokio-stream = { version = "0.1", features = ["fs", "net", "sync"] }
 tokio-util = { version = "0.7", features = ["codec", "compat", "io"] }
+tonic = { version = "0.14" }
 tower = { version = "0.5", default-features = false, features = ["balance", "buffer", "limit", "load-shed", "log"] }
 tracing = { version = "0.1", features = ["log"] }
 tracing-core = { version = "0.1" }
@@ -109,7 +111,7 @@ async-graphql = { version = "7", default-features = false, features = ["chrono",
 axum = { version = "0.8", features = ["macros"] }
 base16ct = { version = "0.2", default-features = false, features = ["alloc"] }
 base64 = { version = "0.22" }
-byteorder = { version = "1", default-features = false, features = ["std"] }
+byteorder = { version = "1" }
 bytes = { version = "1", features = ["serde"] }
 cala-ledger = { version = "0.12", default-features = false, features = ["graphql", "json-schema"] }
 cala-ledger-core-types = { version = "0.12", default-features = false, features = ["graphql", "json-schema"] }
@@ -118,6 +120,7 @@ chrono = { version = "0.4", features = ["serde"] }
 cipher = { version = "0.4", default-features = false, features = ["block-padding", "zeroize"] }
 clap = { version = "4", features = ["derive", "env"] }
 clap_builder = { version = "4", default-features = false, features = ["color", "env", "help", "std", "suggestions", "usage"] }
+crossbeam-utils = { version = "0.8" }
 crypto-common = { version = "0.1", default-features = false, features = ["getrandom", "std"] }
 der = { version = "0.7", default-features = false, features = ["oid", "pem", "std"] }
 deranged = { version = "0.5", features = ["powerfmt", "serde"] }
@@ -181,9 +184,10 @@ standback = { version = "0.2", default-features = false, features = ["std"] }
 subtle = { version = "2", default-features = false, features = ["i128"] }
 syn = { version = "2", features = ["extra-traits", "fold", "full", "visit", "visit-mut"] }
 time = { version = "0.3", features = ["formatting", "macros", "parsing", "serde"] }
-tokio = { version = "1", features = ["fs", "io-std", "io-util", "macros", "net", "parking_lot", "rt-multi-thread", "signal", "sync", "time"] }
+tokio = { version = "1", features = ["fs", "io-std", "io-util", "macros", "net", "parking_lot", "rt-multi-thread", "signal", "sync", "time", "tracing"] }
 tokio-stream = { version = "0.1", features = ["fs", "net", "sync"] }
 tokio-util = { version = "0.7", features = ["codec", "compat", "io"] }
+tonic = { version = "0.14" }
 tower = { version = "0.5", default-features = false, features = ["balance", "buffer", "limit", "load-shed", "log"] }
 tracing = { version = "0.1", features = ["log"] }
 tracing-core = { version = "0.1" }
@@ -211,6 +215,7 @@ ignored = [
     "cipher",
     "clap",
     "clap_builder",
+    "crossbeam-utils",
     "crypto-common",
     "der",
     "deranged",

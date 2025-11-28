@@ -4,6 +4,9 @@ name = "tracing-utils"
 license = "BUSL-1.1"
 edition = "2024"
 
+[lints]
+workspace = true
+
 [features]
 
 fail-on-warnings = []
@@ -26,4 +29,5 @@ opentelemetry-semantic-conventions = { workspace = true, features = ["semconv_ex
 opentelemetry_sdk = { workspace = true }
 opentelemetry-http = { workspace = true, optional = true }
 reqwest = { workspace = true, optional = true }
+console-subscriber = { workspace = true }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
