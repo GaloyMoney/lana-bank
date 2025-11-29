@@ -52,8 +52,8 @@ impl FiscalYear {
             self.events.iter_all().rev(),
             FiscalYearEvent::YearClosed { .. }
         );
-        if !self.is_last_month_closed() {
-            return Err(FiscalYearError::AllMonthsNotClosed);
+        if !self.is_last_month_of_year_closed() {
+            return Err(FiscalYearError::LastMonthNotClosed);
         }
 
         let closed_as_of = self.closes_as_of();
@@ -128,7 +128,7 @@ impl FiscalYear {
         Ok(Idempotent::Executed(new_monthly_closing_date))
     }
 
-    fn is_last_month_closed(&self) -> bool {
+    fn is_last_month_of_year_closed(&self) -> bool {
         let last_month_closes_as_of = self.closes_as_of();
         self.events
             .iter_all()
@@ -145,6 +145,16 @@ impl FiscalYear {
             .iter_all()
             .rev()
             .any(|event| matches!(event, FiscalYearEvent::YearClosed { .. }))
+    }
+
+    #[instrument(name = "fiscal_year.next", skip(self))]
+    pub(super) fn next(&self, opened_as_of: NaiveDate) -> NewFiscalYear {
+        NewFiscalYear::builder()
+            .id(FiscalYearId::new())
+            .chart_id(self.chart_id)
+            .opened_as_of(opened_as_of)
+            .build()
+            .expect("Could not build new fiscal year")
     }
 }
 
@@ -293,7 +303,7 @@ mod test {
         let _ = fiscal_year.close_next_sequential_month(Utc::now()).unwrap();
         let result = fiscal_year.close(Utc::now());
         assert!(result.is_err());
-        assert!(matches!(result, Err(FiscalYearError::AllMonthsNotClosed)));
+        assert!(matches!(result, Err(FiscalYearError::LastMonthNotClosed)));
     }
 
     #[test]
