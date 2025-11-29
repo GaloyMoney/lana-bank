@@ -16,12 +16,12 @@ pub enum FiscalYearError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("FiscalYearError - ChartOfAccountsError: {0}")]
     ChartOfAccountsError(#[from] crate::chart_of_accounts::error::ChartOfAccountsError),
-    #[error("FiscalYearError - AllMonthsNotClosed")]
-    AllMonthsNotClosed,
+    #[error("FiscalYearError - LastMonthNotClosed")]
+    LastMonthNotClosed,
     #[error("FiscalYearError - AlreadyClosed")]
     AlreadyClosed,
-    #[error("FiscalYearError - YearAlreadyOpened")]
-    YearAlreadyOpened,
+    #[error("FiscalYearError - AlreadyOpened")]
+    AlreadyOpened,
     #[error("FiscalYearError - FiscalYearNotInitializedForChart: {0}")]
     FiscalYearNotInitializedForChart(ChartId),
 }
@@ -49,7 +49,7 @@ impl From<sqlx::Error> for FiscalYearError {
             && let Some(constraint) = err.constraint()
             && constraint.contains("reference")
         {
-            return Self::YearAlreadyOpened;
+            return Self::AlreadyOpened;
         }
         Self::Sqlx(error)
     }

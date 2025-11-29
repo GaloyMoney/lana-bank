@@ -107,16 +107,13 @@ where
         Ok(fiscal_year)
     }
 
-    #[instrument(
-        name = "core_accounting.fiscal_year.open_next_for_chart",
-        skip(self),
-        err
-    )]
-    pub async fn open_next_for_chart(
+    #[instrument(name = "core_accounting.fiscal_year.open_next", skip(self), err)]
+    pub async fn open_next(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart_id: ChartId,
+        fiscal_year_id: impl Into<FiscalYearId> + std::fmt::Debug + Copy,
     ) -> Result<FiscalYear, FiscalYearError> {
+        let id = fiscal_year_id.into();
         self.authz
             .enforce_permission(
                 sub,
@@ -124,20 +121,12 @@ where
                 CoreAccountingAction::FISCAL_YEAR_CREATE,
             )
             .await?;
-        let fiscal_year = self
-            .find_latest_for_chart(chart_id)
-            .await?
-            .ok_or_else(|| FiscalYearError::FiscalYearNotInitializedForChart(chart_id))?;
+        let fiscal_year = self.repo.find_by_id(id).await?;
         let next_year_opened_as_of = fiscal_year
             .closes_as_of()
             .checked_add_days(Days::new(1))
             .expect("Failed to compute start of next fiscal year");
-        let new_fiscal_year = NewFiscalYear::builder()
-            .id(FiscalYearId::new())
-            .chart_id(chart_id)
-            .opened_as_of(next_year_opened_as_of)
-            .build()
-            .expect("Could not build new fiscal year");
+        let new_fiscal_year = fiscal_year.next(next_year_opened_as_of);
 
         let next_fiscal_year = self.repo.create(new_fiscal_year).await?;
         Ok(next_fiscal_year)
@@ -189,17 +178,14 @@ where
         let now = crate::time::now();
 
         let mut fiscal_year = self.repo.find_by_id(id).await?;
-        match fiscal_year.close_next_sequential_month(now)? {
-            Idempotent::Executed(date) => {
-                let mut op = self.repo.begin_op().await?;
-                self.repo.update_in_op(&mut op, &mut fiscal_year).await?;
-                self.chart_of_accounts
-                    .close_as_of(op, sub, fiscal_year.chart_id, date)
-                    .await?;
-                Ok(fiscal_year)
-            }
-            Idempotent::Ignored => Ok(fiscal_year),
+        if let Idempotent::Executed(date) = fiscal_year.close_next_sequential_month(now)? {
+            let mut op = self.repo.begin_op().await?;
+            self.repo.update_in_op(&mut op, &mut fiscal_year).await?;
+            self.chart_of_accounts
+                .close_as_of(op, sub, fiscal_year.chart_id, date)
+                .await?;
         }
+        Ok(fiscal_year)
     }
 
     #[instrument(

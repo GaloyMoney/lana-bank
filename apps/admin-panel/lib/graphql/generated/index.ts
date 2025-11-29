@@ -1395,6 +1395,10 @@ export type FiscalYearInitPayload = {
   fiscalYear: FiscalYear;
 };
 
+export type FiscalYearOpenNextInput = {
+  fiscalYearId: Scalars['UUID']['input'];
+};
+
 export type FiscalYearOpenNextPayload = {
   __typename?: 'FiscalYearOpenNextPayload';
   fiscalYear: FiscalYear;
@@ -1880,6 +1884,11 @@ export type MutationFiscalYearCloseMonthArgs = {
 
 export type MutationFiscalYearInitArgs = {
   input: FiscalYearInitInput;
+};
+
+
+export type MutationFiscalYearOpenNextArgs = {
+  input: FiscalYearOpenNextInput;
 };
 
 

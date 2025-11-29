@@ -1817,6 +1817,14 @@ export const mockFiscalYearInitPayload = (overrides?: Partial<FiscalYearInitPayl
     };
 };
 
+export const mockFiscalYearOpenNextInput = (overrides?: Partial<FiscalYearOpenNextInput>, _relationshipsToOmit: Set<string> = new Set()): FiscalYearOpenNextInput => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('FiscalYearOpenNextInput');
+    return {
+        fiscalYearId: overrides && overrides.hasOwnProperty('fiscalYearId') ? overrides.fiscalYearId! : generateMockValue.uuid(),
+    };
+};
+
 export const mockFiscalYearOpenNextPayload = (overrides?: Partial<FiscalYearOpenNextPayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'FiscalYearOpenNextPayload' } & FiscalYearOpenNextPayload => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('FiscalYearOpenNextPayload');

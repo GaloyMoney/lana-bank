@@ -272,5 +272,5 @@ teardown_file() {
   exec_admin_graphql 'fiscal-year-close' "$variables"
   graphql_output
   errors=$(graphql_output '.errors')
-  [[ "$errors" =~ "AllMonthsNotClosed" ]] || exit 1
+  [[ "$errors" =~ "LastMonthNotClosed" ]] || exit 1
 }
