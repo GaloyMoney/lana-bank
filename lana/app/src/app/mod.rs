@@ -21,9 +21,14 @@ use crate::{
     customer::Customers,
     customer_sync::CustomerSync,
     dashboard::Dashboard,
+    domain_configurations::{
+        DomainConfigurationRecord as DomainConfigurationRecordTyped, DomainConfigurations,
+        ExampleConfig, ExampleConfigKey,
+    },
     deposit::Deposits,
     deposit_sync::DepositSync,
     document::DocumentStorage,
+    domain_configurations::DomainConfigurationPublisher,
     governance::Governance,
     job::Jobs,
     notification::Notification,
@@ -57,6 +62,7 @@ pub struct LanaApp {
     governance: Governance,
     dashboard: Dashboard,
     public_ids: PublicIds,
+    domain_configurations: DomainConfigurations,
     contract_creation: ContractCreation,
     reports: Reports,
     _user_onboarding: UserOnboarding,
@@ -75,6 +81,9 @@ impl LanaApp {
         let audit = Audit::new(&pool);
         let outbox = Outbox::init(&pool).await?;
         let authz = Authorization::init(&pool, &audit).await?;
+        let domain_configuration_publisher = DomainConfigurationPublisher::new(&outbox);
+        let domain_configurations =
+            DomainConfigurations::new(&pool, &authz, &domain_configuration_publisher);
 
         let access = Access::init(
             &pool,
@@ -210,6 +219,7 @@ impl LanaApp {
             governance,
             dashboard,
             public_ids,
+            domain_configurations,
             contract_creation,
             reports,
             _user_onboarding: user_onboarding,
@@ -291,6 +301,38 @@ impl LanaApp {
 
     pub fn public_ids(&self) -> &PublicIds {
         &self.public_ids
+    }
+
+    pub fn domain_configurations(&self) -> &DomainConfigurations {
+        &self.domain_configurations
+    }
+
+    pub async fn get_example_config(
+        &self,
+        sub: &Subject,
+    ) -> Result<Option<DomainConfigurationRecordTyped<ExampleConfig>>, ApplicationError> {
+        match self
+            .domain_configurations
+            .get_with_meta::<ExampleConfigKey, ExampleConfig>(sub)
+            .await
+        {
+            Ok(record) => Ok(Some(record)),
+            Err(domain_configurations::DomainConfigurationError::NotSet) => Ok(None),
+            Err(err) => Err(ApplicationError::from(err)),
+        }
+    }
+
+    pub async fn set_example_config(
+        &self,
+        sub: &Subject,
+        value: ExampleConfig,
+        reason: Option<String>,
+        correlation_id: Option<String>,
+    ) -> Result<DomainConfigurationRecordTyped<ExampleConfig>, ApplicationError> {
+        self.domain_configurations
+            .set::<ExampleConfigKey, _>(sub, value, reason, correlation_id)
+            .await
+            .map_err(ApplicationError::from)
     }
 
     pub fn contract_creation(&self) -> &ContractCreation {

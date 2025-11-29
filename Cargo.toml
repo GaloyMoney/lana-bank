@@ -45,10 +45,11 @@ core-customer = { path = "core/customer" }
 core-deposit = { path = "core/deposit" }
 core-money = { path = "core/money" }
 core-price = { path = "core/price" }
-core-report = { path = "core/report" }
-document-storage = { path = "core/document-storage" }
-governance = { path = "core/governance" }
-public-id = { path = "core/public-id" }
+  core-report = { path = "core/report" }
+  document-storage = { path = "core/document-storage" }
+  governance = { path = "core/governance" }
+  public-id = { path = "core/public-id" }
+  domain-configurations = { path = "core/domain-configurations" }
 
 # Lana dependencies
 admin-server = { path = "lana/admin-server" }

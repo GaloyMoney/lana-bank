@@ -22,6 +22,7 @@ import { DepositConfigUpdateDialog } from "./deposit-config-update"
 import { CreditConfigUpdateDialog } from "./credit-config-update"
 import { BalanceSheetConfigUpdateDialog } from "./balance-sheet-config-update"
 import { ProfitAndLossConfigUpdateDialog } from "./profit-and-loss-config-update"
+import { ExampleConfigUpdateDialog } from "./example-config-update"
 
 import { DetailItem } from "@/components/details"
 import {
@@ -29,6 +30,7 @@ import {
   useCreditConfigQuery,
   useBalanceSheetConfigQuery,
   useProfitAndLossStatementConfigQuery,
+  useExampleConfigurationQuery,
 } from "@/lib/graphql/generated"
 
 gql`
@@ -116,6 +118,19 @@ gql`
       chartOfAccountsExpensesCode
     }
   }
+
+  query ExampleConfiguration {
+    exampleConfiguration {
+      value {
+        featureEnabled
+        threshold
+      }
+      updatedBy
+      updatedAt
+      reason
+      correlationId
+    }
+  }
 `
 
 const Modules: React.FC = () => {
@@ -128,6 +143,8 @@ const Modules: React.FC = () => {
     useState(false)
   const [openProfitAndLossConfigUpdateDialog, setOpenProfitAndLossConfigUpdateDialog] =
     useState(false)
+  const [openExampleConfigUpdateDialog, setOpenExampleConfigUpdateDialog] =
+    useState(false)
 
   const { data: depositConfig, loading: depositConfigLoading } = useDepositConfigQuery()
   const { data: creditConfig, loading: creditConfigLoading } = useCreditConfigQuery()
@@ -135,6 +152,8 @@ const Modules: React.FC = () => {
     useBalanceSheetConfigQuery()
   const { data: profitAndLossConfig, loading: profitAndLossConfigLoading } =
     useProfitAndLossStatementConfigQuery()
+  const { data: exampleConfig, loading: exampleConfigLoading } =
+    useExampleConfigurationQuery()
 
   return (
     <>
@@ -159,6 +178,11 @@ const Modules: React.FC = () => {
         profitAndLossConfig={
           profitAndLossConfig?.profitAndLossStatementConfig || undefined
         }
+      />
+      <ExampleConfigUpdateDialog
+        open={openExampleConfigUpdateDialog}
+        setOpen={setOpenExampleConfigUpdateDialog}
+        exampleConfiguration={exampleConfig?.exampleConfiguration || null}
       />
 
       <Card>
@@ -327,6 +351,59 @@ const Modules: React.FC = () => {
             </CardFooter>
           </>
         )}
+      </Card>
+      <Card className="mt-3">
+        <CardHeader>
+          <CardTitle>Example configuration</CardTitle>
+          <CardDescription>
+            Minimal runtime-editable configuration backed by domain-configurations
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent>
+          {exampleConfigLoading ? (
+            <LoaderCircle className="animate-spin" />
+          ) : exampleConfig?.exampleConfiguration ? (
+            <DetailsGroup>
+              <DetailItem
+                label="Feature enabled"
+                value={exampleConfig.exampleConfiguration.value.featureEnabled ? "Yes" : "No"}
+              />
+              <DetailItem
+                label="Threshold"
+                value={exampleConfig.exampleConfiguration.value.threshold.toString()}
+              />
+              <DetailItem
+                label="Updated by"
+                value={exampleConfig.exampleConfiguration.updatedBy}
+              />
+              <DetailItem
+                label="Updated at"
+                value={new Date(exampleConfig.exampleConfiguration.updatedAt).toLocaleString()}
+              />
+              <DetailItem
+                label="Reason"
+                value={exampleConfig.exampleConfiguration.reason || "-"}
+              />
+              <DetailItem
+                label="Correlation ID"
+                value={exampleConfig.exampleConfiguration.correlationId || "-"}
+              />
+            </DetailsGroup>
+          ) : (
+            <div>{t("notYetConfigured")}</div>
+          )}
+        </CardContent>
+        <Separator className="mb-4" />
+        <CardFooter className="-mb-3 -mt-1 justify-end">
+          <Button
+            variant="outline"
+            onClick={() => setOpenExampleConfigUpdateDialog(true)}
+          >
+            <Pencil />
+            Edit example configuration
+          </Button>
+        </CardFooter>
       </Card>
     </>
   )

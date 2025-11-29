@@ -44,6 +44,7 @@ core-accounting = { workspace = true, features = ["graphql"] }
 core-report = { workspace = true, features = ["graphql"] }
 document-storage = { workspace = true, features = ["graphql"] }
 public-id = { workspace = true, features = ["graphql"] }
+domain-configurations = { workspace = true }
 audit = { workspace = true }
 job = { workspace = true }
 outbox = { workspace = true }

@@ -10,6 +10,7 @@ mod credit_facility;
 mod custody;
 mod customer;
 mod dashboard;
+mod domain_configuration;
 mod deposit;
 mod deposit_account;
 mod deposit_account_history;

@@ -8,6 +8,7 @@ use core_credit::CoreCreditObject;
 use core_custody::CoreCustodyObject;
 use core_customer::CustomerObject;
 use core_deposit::CoreDepositObject;
+use domain_configurations::DomainConfigurationObject;
 use core_report::ReportObject;
 use dashboard::DashboardModuleObject;
 use governance::GovernanceObject;
@@ -27,6 +28,7 @@ pub enum LanaObject {
     Dashboard(DashboardModuleObject),
     Report(ReportObject),
     Contract(ContractModuleObject),
+    DomainConfiguration(DomainConfigurationObject),
 }
 
 impl From<AuditObject> for LanaObject {
@@ -86,6 +88,11 @@ impl From<ContractModuleObject> for LanaObject {
         LanaObject::Contract(object)
     }
 }
+impl From<DomainConfigurationObject> for LanaObject {
+    fn from(object: DomainConfigurationObject) -> Self {
+        LanaObject::DomainConfiguration(object)
+    }
+}
 
 impl Display for LanaObject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -103,6 +110,7 @@ impl Display for LanaObject {
             Dashboard(object) => object.fmt(f),
             Report(object) => object.fmt(f),
             Contract(object) => object.fmt(f),
+            DomainConfiguration(object) => object.fmt(f),
         }
     }
 }
@@ -132,6 +140,11 @@ impl FromStr for LanaObject {
                 object
                     .parse::<ContractModuleObject>()
                     .map_err(|_| "could not parse ContractModuleObject")?,
+            ),
+            DomainConfiguration => LanaObject::from(
+                object
+                    .parse::<DomainConfigurationObject>()
+                    .map_err(|_| "could not parse DomainConfigurationObject")?,
             ),
         };
         Ok(res)

@@ -11,6 +11,9 @@ use uuid::{Uuid, uuid};
 
 use core_access::UserId;
 use core_customer::CustomerId;
+use domain_configurations::{
+    PERMISSION_SET_DOMAIN_CONFIGURATION_VIEWER, PERMISSION_SET_DOMAIN_CONFIGURATION_WRITER,
+};
 
 pub use action::*;
 pub use audit_action::*;
@@ -47,6 +50,8 @@ pub enum PermissionSetName {
     ReportViewer,
     ReportWriter,
     AuditViewer,
+    DomainConfigurationViewer,
+    DomainConfigurationWriter,
 }
 
 impl std::str::FromStr for PermissionSetName {
@@ -88,6 +93,9 @@ impl std::str::FromStr for PermissionSetName {
             contract_creation::PERMISSION_SET_CONTRACT_CREATION => Ok(ContractCreation),
 
             PERMISSION_SET_AUDIT_VIEWER => Ok(AuditViewer),
+
+            PERMISSION_SET_DOMAIN_CONFIGURATION_VIEWER => Ok(DomainConfigurationViewer),
+            PERMISSION_SET_DOMAIN_CONFIGURATION_WRITER => Ok(DomainConfigurationWriter),
 
             _ => Err(strum::ParseError::VariantNotFound),
         }
