@@ -1,4 +1,4 @@
-use chrono::{DateTime, Datelike, Months, NaiveDate, Utc};
+use chrono::{DateTime, Datelike, Days, Months, NaiveDate, Utc};
 use derive_builder::Builder;
 use es_entity::*;
 #[cfg(feature = "json-schema")]
@@ -183,13 +183,30 @@ impl FiscalYear {
     }
 
     #[instrument(name = "fiscal_year.next", skip(self))]
-    pub(super) fn next(&self, opened_as_of: NaiveDate) -> NewFiscalYear {
-        NewFiscalYear::builder()
+    pub(super) fn next(&self) -> Result<NewFiscalYear, FiscalYearError> {
+        let next_year_opened_as_of = self
+            .closes_as_of()
+            .checked_add_days(Days::new(1))
+            .expect("Failed to compute start of next fiscal year");
+
+        self.can_open_next(&next_year_opened_as_of)?;
+
+        Ok(NewFiscalYear::builder()
             .id(FiscalYearId::new())
             .chart_id(self.chart_id)
-            .opened_as_of(opened_as_of)
+            .opened_as_of(next_year_opened_as_of)
             .build()
-            .expect("Could not build new fiscal year")
+            .expect("Could not build new fiscal year"))
+    }
+
+    fn can_open_next(&self, next_year_opened_as_of: &NaiveDate) -> Result<(), FiscalYearError> {
+        let now = crate::time::now().date_naive();
+        if next_year_opened_as_of.year() > now.year() + 1 {
+            return Err(FiscalYearError::FiscalYearWithInvalidOpenedAsOf(
+                *next_year_opened_as_of,
+            ));
+        }
+        Ok(())
     }
 }
 
@@ -379,5 +396,27 @@ mod test {
         let result = fiscal_year.close_next_sequential_month(Utc::now());
         assert!(result.is_err());
         assert!(matches!(result, Err(FiscalYearError::AlreadyClosed)));
+    }
+
+    #[test]
+    fn next_fails_when_year_is_invalid() {
+        let now = crate::time::now().date_naive();
+        let invalid_year = now.year() + 1;
+        let period_start = NaiveDate::from_ymd_opt(invalid_year, 12, 1).unwrap();
+        let fiscal_year = fiscal_year_from(initial_events_with_opened_date(period_start));
+        let result = fiscal_year.next();
+        assert!(result.is_err());
+        assert!(matches!(
+            result,
+            Err(FiscalYearError::FiscalYearWithInvalidOpenedAsOf(_))
+        ));
+    }
+
+    #[test]
+    fn next_succeeds_when_year_is_valid() {
+        let period_start = "2025-12-01".parse::<NaiveDate>().unwrap();
+        let fiscal_year = fiscal_year_from(initial_events_with_opened_date(period_start));
+        let result = fiscal_year.next();
+        assert!(result.is_ok());
     }
 }

@@ -1,8 +1,8 @@
+use crate::primitives::ChartId;
+use chrono::NaiveDate;
 use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
-
-use crate::primitives::ChartId;
 
 #[derive(Error, Debug)]
 pub enum FiscalYearError {
@@ -24,6 +24,8 @@ pub enum FiscalYearError {
     AlreadyOpened,
     #[error("FiscalYearError - FiscalYearNotInitializedForChart: {0}")]
     FiscalYearNotInitializedForChart(ChartId),
+    #[error("FiscalYearError - FiscalYearWithInvalidOpenedAsOf: {0}")]
+    FiscalYearWithInvalidOpenedAsOf(NaiveDate),
 }
 
 es_entity::from_es_entity_error!(FiscalYearError);
