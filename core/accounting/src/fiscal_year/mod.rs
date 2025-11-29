@@ -2,7 +2,7 @@ mod entity;
 pub mod error;
 mod repo;
 
-use chrono::{Days, NaiveDate};
+use chrono::NaiveDate;
 use tracing::instrument;
 
 use audit::AuditSvc;
@@ -122,12 +122,8 @@ where
             )
             .await?;
         let fiscal_year = self.repo.find_by_id(id).await?;
-        let next_year_opened_as_of = fiscal_year
-            .closes_as_of()
-            .checked_add_days(Days::new(1))
-            .expect("Failed to compute start of next fiscal year");
-        let new_fiscal_year = fiscal_year.next(next_year_opened_as_of);
 
+        let new_fiscal_year = fiscal_year.next()?;
         let next_fiscal_year = self.repo.create(new_fiscal_year).await?;
         Ok(next_fiscal_year)
     }
