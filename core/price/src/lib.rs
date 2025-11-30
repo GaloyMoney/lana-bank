@@ -66,7 +66,10 @@ impl Price {
     where
         E: OutboxEventMarker<CorePriceEvent> + Send + Sync + 'static,
     {
-        tokio::spawn(Self::listen_for_price_updates(tx, outbox))
+        tokio::task::Builder::new()
+            .name("price-updates-listener")
+            .spawn(Self::listen_for_price_updates(tx, outbox))
+            .expect("failed to spawn price listener task")
     }
 
     #[tracing::instrument(name = "core.price.listen_for_updates", skip_all, err)]

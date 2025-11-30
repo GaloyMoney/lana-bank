@@ -46,18 +46,21 @@ pub async fn run(
         for _ in 0..config.num_facilities {
             let spawned_app = app.clone();
 
-            let handle = tokio::spawn(
-                async move {
-                    scenarios::process_facility_lifecycle(
-                        sub,
-                        spawned_app,
-                        customer_id,
-                        deposit_account_id,
-                    )
-                    .await
-                }
-                .instrument(Span::current()),
-            );
+            let handle = tokio::task::Builder::new()
+                .name("sim-bootstrap.facility-lifecycle")
+                .spawn(
+                    async move {
+                        scenarios::process_facility_lifecycle(
+                            sub,
+                            spawned_app,
+                            customer_id,
+                            deposit_account_id,
+                        )
+                        .await
+                    }
+                    .instrument(Span::current()),
+                )
+                .expect("Failed to spawn sim-bootstrap.facility-lifecycle task");
             handles.push(handle);
         }
     }

@@ -37,14 +37,17 @@ pub async fn interest_late_scenario(sub: Subject, app: &LanaApp) -> anyhow::Resu
 
     let (tx, rx) = mpsc::channel::<(ObligationType, UsdCents)>(32);
     let sim_app = app.clone();
-    tokio::spawn(
-        async move {
-            do_interest_late(sub, sim_app, cf_proposal.id.into(), rx)
-                .await
-                .expect("interest late failed");
-        }
-        .instrument(Span::current()),
-    );
+    let _interest_late_handler = tokio::task::Builder::new()
+        .name("sim-bootstrap.interest-late-handler")
+        .spawn(
+            async move {
+                do_interest_late(sub, sim_app, cf_proposal.id.into(), rx)
+                    .await
+                    .expect("interest late failed");
+            }
+            .instrument(Span::current()),
+        )
+        .expect("Failed to spawn sim-bootstrap.interest-late-handler task");
 
     while let Some(msg) = stream.next().await {
         if process_obligation_message(&msg, &cf_proposal, &tx).await? {

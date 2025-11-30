@@ -189,27 +189,37 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
     let admin_app = app.clone();
     let mut admin_shutdown = shutdown_recv.resubscribe();
 
-    server_handles.push(tokio::spawn(async move {
-        let _ = admin_error_send.try_send(
-            admin_server::run(config.admin_server, admin_app, async move {
-                let _ = admin_shutdown.recv().await;
+    server_handles.push(
+        tokio::task::Builder::new()
+            .name("admin-server")
+            .spawn(async move {
+                let _ = admin_error_send.try_send(
+                    admin_server::run(config.admin_server, admin_app, async move {
+                        let _ = admin_shutdown.recv().await;
+                    })
+                    .await
+                    .context("Admin server error"),
+                );
             })
-            .await
-            .context("Admin server error"),
-        );
-    }));
+            .expect("Failed to spawn admin-server task"),
+    );
     let customer_error_send = error_send.clone();
     let customer_app = app.clone();
     let mut customer_shutdown = shutdown_recv.resubscribe();
-    server_handles.push(tokio::spawn(async move {
-        let _ = customer_error_send.try_send(
-            customer_server::run(config.customer_server, customer_app, async move {
-                let _ = customer_shutdown.recv().await;
+    server_handles.push(
+        tokio::task::Builder::new()
+            .name("customer-server")
+            .spawn(async move {
+                let _ = customer_error_send.try_send(
+                    customer_server::run(config.customer_server, customer_app, async move {
+                        let _ = customer_shutdown.recv().await;
+                    })
+                    .await
+                    .context("Customer server error"),
+                );
             })
-            .await
-            .context("Customer server error"),
-        );
-    }));
+            .expect("Failed to spawn customer-server task"),
+    );
 
     // Setup signal handlers
     let mut sigterm = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
@@ -247,6 +257,7 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
 
     if let Err(e) = app.shutdown().await {
         eprintln!("Error shutting down app: {}", e);
+        return Err(e.into());
     }
     eprintln!("shutdown complete");
 
