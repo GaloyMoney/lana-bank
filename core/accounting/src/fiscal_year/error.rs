@@ -1,9 +1,11 @@
+use crate::primitives::ChartId;
+use chrono::NaiveDate;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum FiscalYearError {
     #[error("FiscalYearError - Sqlx: {0}")]
-    Sqlx(#[from] sqlx::Error),
+    Sqlx(sqlx::Error),
     #[error("FiscalYearError - EsEntityError: {0}")]
     EsEntityError(es_entity::EsEntityError),
     #[error("FiscalYearError - CursorDestructureError: {0}")]
@@ -12,6 +14,28 @@ pub enum FiscalYearError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("FiscalYearError - ChartOfAccountsError: {0}")]
     ChartOfAccountsError(#[from] crate::chart_of_accounts::error::ChartOfAccountsError),
+    #[error("FiscalYearError - LastMonthNotClosed")]
+    LastMonthNotClosed,
+    #[error("FiscalYearError - AlreadyClosed")]
+    AlreadyClosed,
+    #[error("FiscalYearError - AlreadyOpened")]
+    AlreadyOpened,
+    #[error("FiscalYearError - FiscalYearNotInitializedForChart: {0}")]
+    FiscalYearNotInitializedForChart(ChartId),
+    #[error("FiscalYearError - FiscalYearWithInvalidOpenedAsOf: {0}")]
+    FiscalYearWithInvalidOpenedAsOf(NaiveDate),
 }
 
 es_entity::from_es_entity_error!(FiscalYearError);
+
+impl From<sqlx::Error> for FiscalYearError {
+    fn from(error: sqlx::Error) -> Self {
+        if let Some(err) = error.as_database_error()
+            && let Some(constraint) = err.constraint()
+            && constraint.contains("reference")
+        {
+            return Self::AlreadyOpened;
+        }
+        Self::Sqlx(error)
+    }
+}

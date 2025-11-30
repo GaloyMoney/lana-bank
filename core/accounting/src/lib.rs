@@ -295,7 +295,7 @@ where
 
         Ok(self
             .fiscal_year()
-            .init_fiscal_year_for_chart(sub, opened_as_of, chart.id)
+            .init_for_chart(sub, opened_as_of, chart.id)
             .await?)
     }
 
