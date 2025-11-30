@@ -1,6 +1,8 @@
-from typing import List
+from pathlib import Path
+from typing import Any, List, Mapping, Optional
 
 import dlt
+from dagster_dbt import DagsterDbtTranslator, DbtCliResource, dbt_assets
 
 import dagster as dg
 from src.core import Protoasset
@@ -11,6 +13,8 @@ from src.resources import (
     RESOURCE_KEY_LANA_CORE_PG,
     BigQueryResource,
     PostgresResource,
+    dbt_manifest_path,
+    dbt_resource,
 )
 
 LANA_EL_TABLE_NAMES = (
@@ -129,3 +133,19 @@ def prepare_lana_el_pipeline(lana_core_pg, dw_bq, table_name):
         return load_info
 
     return wrapped_pipeline
+
+
+def lana_dbt_assets():
+    class CustomDagsterDbtTranslator(DagsterDbtTranslator):
+        def get_automation_condition(
+            self, dbt_resource_props: Mapping[str, Any]
+        ) -> Optional[dg.AutomationCondition]:
+            return dg.AutomationCondition.eager()
+
+    @dbt_assets(
+        manifest=dbt_manifest_path, dagster_dbt_translator=CustomDagsterDbtTranslator()
+    )
+    def dbt_models(context: dg.AssetExecutionContext, dbt: DbtCliResource):
+        yield from dbt.cli(["build"], context=context).stream()
+
+    return dbt_models
