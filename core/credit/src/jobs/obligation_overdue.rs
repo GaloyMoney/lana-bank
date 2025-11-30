@@ -8,7 +8,7 @@ use outbox::OutboxEventMarker;
 
 use crate::{event::CoreCreditEvent, ledger::CreditLedger, obligation::Obligations, primitives::*};
 
-use super::{obligation_defaulted, obligation_liquidation};
+use super::obligation_defaulted;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub(crate) struct ObligationOverdueJobConfig<Perms, E> {
@@ -112,18 +112,18 @@ where
         };
 
         if let Some(liquidation_at) = obligation.liquidation_at() {
-            self.jobs
-                .create_and_spawn_at_in_op(
-                    &mut db,
-                    JobId::new(),
-                    obligation_liquidation::ObligationLiquidationJobConfig::<Perms, E> {
-                        obligation_id: obligation.id,
-                        effective: liquidation_at.date_naive(),
-                        _phantom: std::marker::PhantomData,
-                    },
-                    liquidation_at,
-                )
-                .await?;
+            // self.jobs
+            //     .create_and_spawn_at_in_op(
+            //         &mut db,
+            //         JobId::new(),
+            //         obligation_liquidation::ObligationLiquidationJobConfig::<Perms, E> {
+            //             obligation_id: obligation.id,
+            //             effective: liquidation_at.date_naive(),
+            //             _phantom: std::marker::PhantomData,
+            //         },
+            //         liquidation_at,
+            //     )
+            //     .await?;
         } else if let Some(defaulted_at) = obligation.defaulted_at() {
             self.jobs
                 .create_and_spawn_at_in_op(

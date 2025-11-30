@@ -375,18 +375,15 @@ where
             jobs,
         ));
         jobs.add_initializer(
-            obligation_liquidation::ObligationLiquidationInit::<Perms, E>::new(
-                ledger_arc.as_ref(),
-                obligations_arc.as_ref(),
-                jobs,
-            ),
-        );
-        jobs.add_initializer(
             obligation_defaulted::ObligationDefaultedInit::<Perms, E>::new(
                 ledger_arc.as_ref(),
                 obligations_arc.as_ref(),
             ),
         );
+        jobs.add_initializer(partial_liquidation::PartialLiquidationInit::<E>::new(
+            &outbox,
+            todo!(),
+        ));
         jobs.add_initializer(credit_facility_maturity::CreditFacilityMaturityInit::<
             Perms,
             E,
@@ -814,6 +811,17 @@ where
 
         Ok(credit_facility)
     }
+
+    pub async fn send_collateral_for_liquidation(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        liquidation_process_id: LiquidationProcessId,
+        amount: Satoshis,
+        effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
+    ) -> Result<(), CoreCreditError> {
+        todo!()
+    }
+
     pub async fn subject_can_record_payment(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

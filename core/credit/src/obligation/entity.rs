@@ -411,50 +411,6 @@ impl Obligation {
         Ok(Idempotent::Executed(res))
     }
 
-    pub(crate) fn start_liquidation(
-        &mut self,
-        effective: chrono::NaiveDate,
-    ) -> Idempotent<NewLiquidationProcess> {
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            ObligationEvent::LiquidationProcessStarted { .. },
-            => ObligationEvent::LiquidationProcessConcluded {..}
-        );
-
-        match self.status() {
-            ObligationStatus::NotYetDue | ObligationStatus::Due | ObligationStatus::Overdue => (),
-            _ => return Idempotent::Ignored,
-        }
-
-        if !self.has_outstanding_balance() {
-            return Idempotent::Ignored;
-        }
-
-        let liquidation_process_id = LiquidationProcessId::new();
-        let ledger_tx_id = LedgerTxId::new();
-        let initial_amount = self.outstanding();
-        let new_liquidation_process = NewLiquidationProcess::builder()
-            .id(liquidation_process_id)
-            .ledger_tx_id(LedgerTxId::new())
-            .credit_facility_id(self.credit_facility_id)
-            .obligation_id(self.id)
-            .in_liquidation_account_id(self.in_liquidation_account())
-            .initial_amount(initial_amount)
-            .effective(effective)
-            .build()
-            .expect("could not build new payment allocation");
-
-        self.events
-            .push(ObligationEvent::LiquidationProcessStarted {
-                liquidation_process_id,
-                ledger_tx_id,
-                effective,
-                initial_amount,
-            });
-
-        Idempotent::Executed(new_liquidation_process)
-    }
-
     pub(crate) fn allocate_payment(
         &mut self,
         amount: UsdCents,

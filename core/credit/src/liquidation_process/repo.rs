@@ -11,10 +11,7 @@ use super::{entity::*, error::*};
 #[es_repo(
     entity = "LiquidationProcess",
     err = "LiquidationProcessError",
-    columns(
-        obligation_id(ty = "ObligationId", list_for, update(persist = false)),
-        credit_facility_id(ty = "CreditFacilityId", list_for, update(persist = false)),
-    ),
+    columns(credit_facility_id(ty = "CreditFacilityId", list_for, update(persist = false)),),
     tbl_prefix = "core",
     post_persist_hook = "publish"
 )]
@@ -24,6 +21,17 @@ where
 {
     pool: PgPool,
     publisher: CreditFacilityPublisher<E>,
+}
+
+impl<E> LiquidationProcessRepo<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
+    pub async fn begin(
+        &self,
+    ) -> Result<sqlx::Transaction<'_, sqlx::Postgres>, LiquidationProcessError> {
+        Ok(self.pool.begin().await?)
+    }
 }
 
 impl<E> Clone for LiquidationProcessRepo<E>
