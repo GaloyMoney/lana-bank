@@ -33,6 +33,7 @@ use crate::{
     public_id::PublicIds,
     report::Reports,
     storage::Storage,
+    time_events::TimeEvents,
     user_onboarding::UserOnboarding,
 };
 
@@ -62,6 +63,7 @@ pub struct LanaApp {
     _user_onboarding: UserOnboarding,
     _customer_sync: CustomerSync,
     _deposit_sync: DepositSync,
+    _time_events: TimeEvents,
 }
 
 impl LanaApp {
@@ -191,6 +193,13 @@ impl LanaApp {
         ChartsInit::charts_of_accounts(&accounting, &credit, &deposits, config.accounting_init)
             .await?;
 
+        let time_events = TimeEvents::new();
+        jobs.add_initializer_and_spawn_unique(
+            crate::time_events::DailyClosingBroadcasterInit::new(&outbox, config.time_events),
+            crate::time_events::DailyClosingBroadcasterJobConfig::new(),
+        )
+        .await?;
+
         jobs.start_poll().await?;
 
         Ok(Self {
@@ -215,6 +224,7 @@ impl LanaApp {
             _user_onboarding: user_onboarding,
             _customer_sync: customer_sync,
             _deposit_sync: deposit_sync,
+            _time_events: time_events,
         })
     }
 
