@@ -7,7 +7,9 @@ pub use cala_ledger::primitives::{
     DebitOrCredit as LedgerDebitOrCredit, JournalId as LedgerJournalId,
     TransactionId as LedgerTxId, TxTemplateId as LedgerTxTemplateId,
 };
+pub use core_custody::WalletId as CustodyWalletId;
 pub use core_customer::{CustomerId, CustomerType};
+pub use core_money::Satoshis;
 pub use core_money::UsdCents;
 pub use credit_terms::TermValues;
 pub use governance::ApprovalProcessId;
@@ -15,7 +17,8 @@ pub use governance::ApprovalProcessId;
 es_entity::entity_id! {
     CreditFacilityProposalId,
     PendingCreditFacilityId,
-    CreditFacilityId;
+    CreditFacilityId,
+    CollateralId;
 
     CreditFacilityProposalId => PendingCreditFacilityId,
 
@@ -67,4 +70,19 @@ pub enum CreditFacilityProposalStatus {
     PendingApproval,
     Approved,
     Denied,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]
+#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+pub enum CollateralAction {
+    Add,
+    Remove,
+}
+
+pub struct CollateralUpdate {
+    pub tx_id: LedgerTxId,
+    pub abs_diff: Satoshis,
+    pub action: CollateralAction,
+    pub effective: chrono::NaiveDate,
 }

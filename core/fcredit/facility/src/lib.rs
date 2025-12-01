@@ -1,6 +1,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+mod collateral;
 mod config;
 mod error;
 mod event;
