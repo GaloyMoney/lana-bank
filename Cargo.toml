@@ -3,6 +3,7 @@ resolver = "2"
 members = [
   "lana/*",
   "core/*",
+  "core/fcredit/*",
   "lib/*",
   "dev/entity-rollups",
   "dev/check-dependency-dag",
@@ -10,6 +11,7 @@ members = [
 ]
 exclude = [
   "lib/js",
+  "core/fcredit/src",
 ]
 
 [workspace.lints.rust]
