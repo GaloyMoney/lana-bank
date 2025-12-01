@@ -299,6 +299,17 @@ where
             .await?)
     }
 
+    #[instrument(name = "core_accounting.find_fiscal_year_by_id", skip(self), err)]
+    pub async fn find_fiscal_year_by_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        fiscal_year_id: impl Into<FiscalYearId> + std::fmt::Debug,
+    ) -> Result<Option<FiscalYear>, CoreAccountingError> {
+        Ok(Some(
+            self.fiscal_year().find_by_id(sub, fiscal_year_id).await?,
+        ))
+    }
+
     #[instrument(name = "core_accounting.list_fiscal_years_for_chart", skip(self), err)]
     pub async fn list_fiscal_years_for_chart(
         &self,

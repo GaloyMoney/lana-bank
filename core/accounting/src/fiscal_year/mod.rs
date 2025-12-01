@@ -14,10 +14,10 @@ use crate::{
     primitives::{ChartId, CoreAccountingAction, CoreAccountingObject},
 };
 
-pub use entity::FiscalYear;
 #[cfg(feature = "json-schema")]
 pub use entity::FiscalYearEvent;
 pub(super) use entity::*;
+pub use entity::{FiscalMonthClosure, FiscalYear};
 use error::*;
 pub use repo::{fiscal_year_cursor::FiscalYearsByCreatedAtCursor, *};
 
@@ -164,6 +164,24 @@ where
         self.repo
             .list_for_chart_id_by_created_at(chart_id, query, es_entity::ListDirection::Descending)
             .await
+    }
+
+    #[instrument(name = "core_accounting.fiscal_year.find_by_id", skip(self), err)]
+    pub async fn find_by_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        fiscal_year_id: impl Into<FiscalYearId> + std::fmt::Debug,
+    ) -> Result<FiscalYear, FiscalYearError> {
+        let id = fiscal_year_id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::fiscal_year(id),
+                CoreAccountingAction::FISCAL_YEAR_READ,
+            )
+            .await?;
+
+        self.repo.find_by_id(id).await
     }
 
     #[instrument(name = "core_accounting.fiscal_year.find_all", skip(self), err)]
