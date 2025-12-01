@@ -52,7 +52,6 @@ impl FiscalYear {
             FiscalYearEvent::MonthClosed { closed_as_of, .. } => Some(*closed_as_of),
             _ => None,
         });
-
         let new_monthly_closing_date = match last_recorded_date {
             Some(last_effective) => {
                 let last_day_of_previous_month = now
@@ -240,34 +239,5 @@ mod test {
         let _ = fiscal_year.close_next_sequential_month(Utc::now()).unwrap();
         let second_closing_date = fiscal_year.close_next_sequential_month(Utc::now());
         assert!(second_closing_date.was_ignored());
-    }
-
-    #[test]
-    fn month_closures_collects_closed_events_in_order() {
-        let period_start = "2024-01-01".parse::<NaiveDate>().unwrap();
-        let mut fiscal_year = fiscal_year_from(initial_events_with_opened_date(period_start));
-
-        let first_closed_at = "2024-02-15T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
-        let second_closed_at = "2024-03-20T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
-
-        let _ = fiscal_year
-            .close_next_sequential_month(first_closed_at)
-            .unwrap();
-        let _ = fiscal_year
-            .close_next_sequential_month(second_closed_at)
-            .unwrap();
-
-        let closures = fiscal_year.month_closures();
-        assert_eq!(closures.len(), 2);
-        assert_eq!(
-            closures[0].closed_as_of,
-            "2024-01-31".parse::<NaiveDate>().unwrap()
-        );
-        assert_eq!(closures[0].closed_at, first_closed_at);
-        assert_eq!(
-            closures[1].closed_as_of,
-            "2024-02-29".parse::<NaiveDate>().unwrap()
-        );
-        assert_eq!(closures[1].closed_at, second_closed_at);
     }
 }

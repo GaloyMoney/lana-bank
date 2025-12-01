@@ -1333,11 +1333,19 @@ export type FiniteCvlPct = {
   value: Scalars['CVLPctValue']['output'];
 };
 
+export type FiscalMonthClosure = {
+  __typename?: 'FiscalMonthClosure';
+  closedAsOf: Scalars['Date']['output'];
+  closedAt: Scalars['Timestamp']['output'];
+};
+
 export type FiscalYear = {
   __typename?: 'FiscalYear';
   chartId: Scalars['UUID']['output'];
+  fiscalYearId: Scalars['UUID']['output'];
   id: Scalars['ID']['output'];
   isOpen: Scalars['Boolean']['output'];
+  monthClosures: Array<FiscalMonthClosure>;
   openedAsOf: Scalars['Date']['output'];
 };
 
@@ -2201,6 +2209,7 @@ export type Query = {
   disbursal?: Maybe<CreditFacilityDisbursal>;
   disbursalByPublicId?: Maybe<CreditFacilityDisbursal>;
   disbursals: CreditFacilityDisbursalConnection;
+  fiscalYear?: Maybe<FiscalYear>;
   fiscalYears: FiscalYearConnection;
   journalEntries: JournalEntryConnection;
   ledgerAccount?: Maybe<LedgerAccount>;
@@ -2381,6 +2390,11 @@ export type QueryDisbursalByPublicIdArgs = {
 export type QueryDisbursalsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
+};
+
+
+export type QueryFiscalYearArgs = {
+  fiscalYearId: Scalars['UUID']['input'];
 };
 
 
@@ -3702,6 +3716,39 @@ export type DisbursalsQueryVariables = Exact<{
 
 export type DisbursalsQuery = { __typename?: 'Query', disbursals: { __typename?: 'CreditFacilityDisbursalConnection', edges: Array<{ __typename?: 'CreditFacilityDisbursalEdge', cursor: string, node: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, publicId: any, amount: UsdCents, createdAt: any, status: DisbursalStatus } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
+export type FiscalYearDetailsPageFragmentFragment = { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: any, isOpen: boolean, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: any, closedAt: any }> };
+
+export type GetFiscalYearDetailsQueryVariables = Exact<{
+  fiscalYearId: Scalars['UUID']['input'];
+}>;
+
+
+export type GetFiscalYearDetailsQuery = { __typename?: 'Query', fiscalYear?: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: any, isOpen: boolean, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: any, closedAt: any }> } | null };
+
+export type FiscalYearCloseMonthMutationVariables = Exact<{
+  input: FiscalYearCloseMonthInput;
+}>;
+
+
+export type FiscalYearCloseMonthMutation = { __typename?: 'Mutation', fiscalYearCloseMonth: { __typename?: 'FiscalYearCloseMonthPayload', fiscalYear: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: any, isOpen: boolean, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: any, closedAt: any }> } } };
+
+export type FiscalYearInitMutationVariables = Exact<{
+  input: FiscalYearInitInput;
+}>;
+
+
+export type FiscalYearInitMutation = { __typename?: 'Mutation', fiscalYearInit: { __typename?: 'FiscalYearInitPayload', fiscalYear: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: any, isOpen: boolean } } };
+
+export type FiscalYearFieldsFragment = { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: any, isOpen: boolean };
+
+export type FiscalYearsQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type FiscalYearsQuery = { __typename?: 'Query', fiscalYears: { __typename?: 'FiscalYearConnection', edges: Array<{ __typename?: 'FiscalYearEdge', cursor: string, node: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: any, isOpen: boolean } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+
 export type ExecuteManualTransactionMutationVariables = Exact<{
   input: ManualTransactionExecuteInput;
 }>;
@@ -4847,6 +4894,28 @@ export const DepositFieldsFragmentDoc = gql`
       email
     }
   }
+}
+    `;
+export const FiscalYearDetailsPageFragmentFragmentDoc = gql`
+    fragment FiscalYearDetailsPageFragment on FiscalYear {
+  id
+  fiscalYearId
+  chartId
+  openedAsOf
+  isOpen
+  monthClosures {
+    closedAsOf
+    closedAt
+  }
+}
+    `;
+export const FiscalYearFieldsFragmentDoc = gql`
+    fragment FiscalYearFields on FiscalYear {
+  id
+  fiscalYearId
+  chartId
+  openedAsOf
+  isOpen
 }
     `;
 export const LedgerAccountDetailsFragmentDoc = gql`
@@ -7979,6 +8048,168 @@ export type DisbursalsQueryHookResult = ReturnType<typeof useDisbursalsQuery>;
 export type DisbursalsLazyQueryHookResult = ReturnType<typeof useDisbursalsLazyQuery>;
 export type DisbursalsSuspenseQueryHookResult = ReturnType<typeof useDisbursalsSuspenseQuery>;
 export type DisbursalsQueryResult = Apollo.QueryResult<DisbursalsQuery, DisbursalsQueryVariables>;
+export const GetFiscalYearDetailsDocument = gql`
+    query GetFiscalYearDetails($fiscalYearId: UUID!) {
+  fiscalYear(fiscalYearId: $fiscalYearId) {
+    ...FiscalYearDetailsPageFragment
+  }
+}
+    ${FiscalYearDetailsPageFragmentFragmentDoc}`;
+
+/**
+ * __useGetFiscalYearDetailsQuery__
+ *
+ * To run a query within a React component, call `useGetFiscalYearDetailsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFiscalYearDetailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetFiscalYearDetailsQuery({
+ *   variables: {
+ *      fiscalYearId: // value for 'fiscalYearId'
+ *   },
+ * });
+ */
+export function useGetFiscalYearDetailsQuery(baseOptions: Apollo.QueryHookOptions<GetFiscalYearDetailsQuery, GetFiscalYearDetailsQueryVariables> & ({ variables: GetFiscalYearDetailsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetFiscalYearDetailsQuery, GetFiscalYearDetailsQueryVariables>(GetFiscalYearDetailsDocument, options);
+      }
+export function useGetFiscalYearDetailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetFiscalYearDetailsQuery, GetFiscalYearDetailsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetFiscalYearDetailsQuery, GetFiscalYearDetailsQueryVariables>(GetFiscalYearDetailsDocument, options);
+        }
+export function useGetFiscalYearDetailsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetFiscalYearDetailsQuery, GetFiscalYearDetailsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetFiscalYearDetailsQuery, GetFiscalYearDetailsQueryVariables>(GetFiscalYearDetailsDocument, options);
+        }
+export type GetFiscalYearDetailsQueryHookResult = ReturnType<typeof useGetFiscalYearDetailsQuery>;
+export type GetFiscalYearDetailsLazyQueryHookResult = ReturnType<typeof useGetFiscalYearDetailsLazyQuery>;
+export type GetFiscalYearDetailsSuspenseQueryHookResult = ReturnType<typeof useGetFiscalYearDetailsSuspenseQuery>;
+export type GetFiscalYearDetailsQueryResult = Apollo.QueryResult<GetFiscalYearDetailsQuery, GetFiscalYearDetailsQueryVariables>;
+export const FiscalYearCloseMonthDocument = gql`
+    mutation FiscalYearCloseMonth($input: FiscalYearCloseMonthInput!) {
+  fiscalYearCloseMonth(input: $input) {
+    fiscalYear {
+      ...FiscalYearDetailsPageFragment
+    }
+  }
+}
+    ${FiscalYearDetailsPageFragmentFragmentDoc}`;
+export type FiscalYearCloseMonthMutationFn = Apollo.MutationFunction<FiscalYearCloseMonthMutation, FiscalYearCloseMonthMutationVariables>;
+
+/**
+ * __useFiscalYearCloseMonthMutation__
+ *
+ * To run a mutation, you first call `useFiscalYearCloseMonthMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useFiscalYearCloseMonthMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [fiscalYearCloseMonthMutation, { data, loading, error }] = useFiscalYearCloseMonthMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useFiscalYearCloseMonthMutation(baseOptions?: Apollo.MutationHookOptions<FiscalYearCloseMonthMutation, FiscalYearCloseMonthMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<FiscalYearCloseMonthMutation, FiscalYearCloseMonthMutationVariables>(FiscalYearCloseMonthDocument, options);
+      }
+export type FiscalYearCloseMonthMutationHookResult = ReturnType<typeof useFiscalYearCloseMonthMutation>;
+export type FiscalYearCloseMonthMutationResult = Apollo.MutationResult<FiscalYearCloseMonthMutation>;
+export type FiscalYearCloseMonthMutationOptions = Apollo.BaseMutationOptions<FiscalYearCloseMonthMutation, FiscalYearCloseMonthMutationVariables>;
+export const FiscalYearInitDocument = gql`
+    mutation FiscalYearInit($input: FiscalYearInitInput!) {
+  fiscalYearInit(input: $input) {
+    fiscalYear {
+      ...FiscalYearFields
+    }
+  }
+}
+    ${FiscalYearFieldsFragmentDoc}`;
+export type FiscalYearInitMutationFn = Apollo.MutationFunction<FiscalYearInitMutation, FiscalYearInitMutationVariables>;
+
+/**
+ * __useFiscalYearInitMutation__
+ *
+ * To run a mutation, you first call `useFiscalYearInitMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useFiscalYearInitMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [fiscalYearInitMutation, { data, loading, error }] = useFiscalYearInitMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useFiscalYearInitMutation(baseOptions?: Apollo.MutationHookOptions<FiscalYearInitMutation, FiscalYearInitMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<FiscalYearInitMutation, FiscalYearInitMutationVariables>(FiscalYearInitDocument, options);
+      }
+export type FiscalYearInitMutationHookResult = ReturnType<typeof useFiscalYearInitMutation>;
+export type FiscalYearInitMutationResult = Apollo.MutationResult<FiscalYearInitMutation>;
+export type FiscalYearInitMutationOptions = Apollo.BaseMutationOptions<FiscalYearInitMutation, FiscalYearInitMutationVariables>;
+export const FiscalYearsDocument = gql`
+    query FiscalYears($first: Int!, $after: String) {
+  fiscalYears(first: $first, after: $after) {
+    edges {
+      cursor
+      node {
+        ...FiscalYearFields
+      }
+    }
+    pageInfo {
+      endCursor
+      startCursor
+      hasNextPage
+      hasPreviousPage
+    }
+  }
+}
+    ${FiscalYearFieldsFragmentDoc}`;
+
+/**
+ * __useFiscalYearsQuery__
+ *
+ * To run a query within a React component, call `useFiscalYearsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useFiscalYearsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useFiscalYearsQuery({
+ *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useFiscalYearsQuery(baseOptions: Apollo.QueryHookOptions<FiscalYearsQuery, FiscalYearsQueryVariables> & ({ variables: FiscalYearsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<FiscalYearsQuery, FiscalYearsQueryVariables>(FiscalYearsDocument, options);
+      }
+export function useFiscalYearsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<FiscalYearsQuery, FiscalYearsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<FiscalYearsQuery, FiscalYearsQueryVariables>(FiscalYearsDocument, options);
+        }
+export function useFiscalYearsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<FiscalYearsQuery, FiscalYearsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<FiscalYearsQuery, FiscalYearsQueryVariables>(FiscalYearsDocument, options);
+        }
+export type FiscalYearsQueryHookResult = ReturnType<typeof useFiscalYearsQuery>;
+export type FiscalYearsLazyQueryHookResult = ReturnType<typeof useFiscalYearsLazyQuery>;
+export type FiscalYearsSuspenseQueryHookResult = ReturnType<typeof useFiscalYearsSuspenseQuery>;
+export type FiscalYearsQueryResult = Apollo.QueryResult<FiscalYearsQuery, FiscalYearsQueryVariables>;
 export const ExecuteManualTransactionDocument = gql`
     mutation ExecuteManualTransaction($input: ManualTransactionExecuteInput!) {
   manualTransactionExecute(input: $input) {
