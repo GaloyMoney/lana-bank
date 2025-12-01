@@ -1515,6 +1515,34 @@ name = "core-fcredit"
 version = "0.0.0"
 
 [[package]]
+name = "core-fcredit-collateral"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "audit",
+ "authz",
+ "cala-ledger",
+ "chrono",
+ "core-custody",
+ "core-customer",
+ "core-money",
+ "core-price",
+ "derive_builder",
+ "es-entity",
+ "governance",
+ "job",
+ "outbox",
+ "public-id",
+ "schemars 1.1.0",
+ "serde",
+ "sqlx",
+ "strum 0.27.2",
+ "thiserror 2.0.17",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "core-fcredit-facility"
 version = "0.0.0"
 dependencies = [
