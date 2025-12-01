@@ -19,6 +19,7 @@ use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Custo
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use outbox::{Outbox, OutboxEventMarker};
 
+use collateral::*;
 use config::*;
 use error::*;
 use event::CoreCreditFacilityEvent;
@@ -36,6 +37,7 @@ where
     config: CreditFacilityConfig,
     authz: Arc<Perms>,
     proposals: CreditFacilityProposalRepo<E>,
+    collaterals: CollateralRepo<E>,
     customers: Arc<Customers<Perms, E>>,
 }
 
@@ -52,6 +54,7 @@ where
             authz: self.authz.clone(),
             proposals: self.proposals.clone(),
             customers: self.customers.clone(),
+            collaterals: self.collaterals.clone(),
         }
     }
 }
@@ -76,6 +79,7 @@ where
     ) -> Result<Self, CoreCreditFacilityError> {
         let publisher = publisher::CreditFacilityPublisher::new(outbox);
         let proposals = CreditFacilityProposalRepo::new(pool, &publisher);
+        let collaterals = CollateralRepo::new(pool, &publisher);
         match governance
             .init_policy(proposal::APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS)
             .await
@@ -90,6 +94,7 @@ where
             config,
             authz,
             proposals,
+            collaterals,
             customers,
         })
     }
