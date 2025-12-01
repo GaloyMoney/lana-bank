@@ -6,7 +6,8 @@ use crate::{
     access::config::AccessConfig, applicant::SumsubConfig, credit::CreditConfig,
     custody::CustodyConfig, customer_sync::CustomerSyncConfig, deposit::DepositConfig,
     job::JobPollerConfig, notification::NotificationConfig, report::ReportConfig,
-    storage::config::StorageConfig, user_onboarding::UserOnboardingConfig,
+    storage::config::StorageConfig, time_events::TimeEventsConfig,
+    user_onboarding::UserOnboardingConfig,
 };
 
 #[derive(Clone, Default, Debug, Deserialize, Serialize)]
@@ -37,6 +38,8 @@ pub struct AppConfig {
     pub report: ReportConfig,
     #[serde(default)]
     pub deposit: DepositConfig,
+    #[serde(default)]
+    pub time_events: TimeEventsConfig,
 }
 
 #[derive(Clone, Default, Debug, Deserialize, Serialize)]

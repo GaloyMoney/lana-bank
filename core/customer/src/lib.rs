@@ -577,10 +577,10 @@ where
     )]
     pub async fn perform_customer_activity_status_update(
         &self,
-        now: DateTime<Utc>,
+        closing_time: DateTime<Utc>,
     ) -> Result<(), CustomerError> {
-        let escheatment_date = self.config.get_escheatment_threshold_date(now);
-        let inactive_date = self.config.get_inactive_threshold_date(now);
+        let escheatment_date = self.config.get_escheatment_threshold_date(closing_time);
+        let inactive_date = self.config.get_inactive_threshold_date(closing_time);
 
         // Update customers with very old activity (10+ years) to Suspended
         self.update_customers_by_activity_and_date_range(
@@ -599,8 +599,12 @@ where
         .await?;
 
         // Update customers with recent activity (<1 year) to Active
-        self.update_customers_by_activity_and_date_range(inactive_date, now, Activity::Active)
-            .await?;
+        self.update_customers_by_activity_and_date_range(
+            inactive_date,
+            closing_time,
+            Activity::Active,
+        )
+        .await?;
 
         Ok(())
     }
