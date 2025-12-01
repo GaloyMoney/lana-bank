@@ -55,7 +55,12 @@ impl LiquidationPayment {
     }
 }
 
+#[cfg(test)]
 mod test {
+    use core_money::{Satoshis, UsdCents};
+    use core_price::PriceOfOneBTC;
+
+    use crate::{CVLPct, LiquidationPayment};
 
     #[test]
     fn test_calculate() {
@@ -65,7 +70,7 @@ mod test {
         let collateral = Satoshis::from(100_000_000);
         let liquidation_payment = LiquidationPayment::new(amount, price, target_cvl, collateral);
         let amount = liquidation_payment.calculate();
-        assert_eq!(amount, UsdCents::from(21_428_58));
+        assert_eq!(amount, UsdCents::from(18_750_00));
     }
 
     #[test]

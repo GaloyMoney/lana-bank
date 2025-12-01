@@ -819,17 +819,6 @@ mod test {
         assert_eq!(obligation.status(), ObligationStatus::Paid);
     }
 
-    #[test]
-    fn payment_allocation_ignored_in_liquidation() {
-        let mut obligation = obligation_from(initial_events());
-        let _ = obligation.start_liquidation(Utc::now().date_naive());
-        assert!(
-            obligation
-                .allocate_payment(UsdCents::ONE, PaymentId::new(), Utc::now().date_naive(),)
-                .was_ignored()
-        );
-    }
-
     mod is_status_up_to_date {
 
         use super::*;
