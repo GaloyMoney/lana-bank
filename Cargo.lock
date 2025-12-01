@@ -1519,6 +1519,8 @@ name = "core-fcredit-facility"
 version = "0.0.0"
 dependencies = [
  "anyhow",
+ "audit",
+ "authz",
  "cala-ledger",
  "chrono",
  "core-custody",
