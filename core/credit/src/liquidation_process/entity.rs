@@ -1,5 +1,4 @@
 use derive_builder::Builder;
-use rust_decimal::Decimal;
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -21,10 +20,15 @@ pub enum LiquidationProcessEvent {
         id: LiquidationProcessId,
         credit_facility_id: CreditFacilityId,
         receivable_account_id: CalaAccountId,
-        liquidated_amount: Satoshis,
+        trigger_price: PriceOfOneBTC,
+        initially_expected_to_receive: UsdCents,
+        initially_estimated_to_liquidate: Satoshis,
+    },
+    Updated {
+        outstanding: UsdCents,
+        to_liquidate_at_current_price: Satoshis,
+        current_price: PriceOfOneBTC,
         expected_to_receive: UsdCents,
-        price_at_initiation: PriceOfOneBTC,
-        liquidation_fee: Decimal,
     },
     CollateralSentOut {
         amount: Satoshis,
@@ -44,8 +48,8 @@ pub struct LiquidationProcess {
     pub id: LiquidationProcessId,
     pub credit_facility_id: CreditFacilityId,
     pub expected_to_receive: UsdCents,
-    pub amount_sent: Satoshis,
-    pub amount_received: UsdCents,
+    pub sent_total: Satoshis,
+    pub received_total: UsdCents,
     pub receivable_account_id: CalaAccountId,
     events: EntityEvents<LiquidationProcessEvent>,
 }
@@ -67,7 +71,7 @@ impl LiquidationProcess {
         if self.is_satisfied() {
             Err(LiquidationProcessError::AlreadySatisfied)
         } else {
-            self.amount_sent += amount_sent;
+            self.sent_total += amount_sent;
 
             self.events
                 .push(LiquidationProcessEvent::CollateralSentOut {
@@ -95,7 +99,7 @@ impl LiquidationProcess {
         if self.is_satisfied() {
             Err(LiquidationProcessError::AlreadySatisfied)
         } else {
-            self.amount_received += amount_received;
+            self.received_total += amount_received;
 
             self.events
                 .push(LiquidationProcessEvent::RepaymentAmountReceived {
@@ -110,9 +114,20 @@ impl LiquidationProcess {
     }
 
     fn mark_satisfied_if_needed(&mut self) {
-        if self.amount_received >= self.expected_to_receive {
+        if self.received_total >= self.expected_to_receive {
             self.events.push(LiquidationProcessEvent::Satisfied {});
         }
+    }
+
+    pub fn complete(&mut self) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            LiquidationProcessEvent::Completed {}
+        );
+
+        self.events.push(LiquidationProcessEvent::Completed {});
+
+        Idempotent::Executed(())
     }
 
     pub fn is_satisfied(&self) -> bool {
@@ -138,14 +153,14 @@ impl TryFromEvents<LiquidationProcessEvent> for LiquidationProcess {
                     id,
                     credit_facility_id,
                     receivable_account_id,
-                    expected_to_receive,
+                    initially_expected_to_receive,
                     ..
                 } => {
                     builder = builder
                         .id(*id)
                         .credit_facility_id(*credit_facility_id)
                         .receivable_account_id(*receivable_account_id)
-                        .expected_to_receive(*expected_to_receive)
+                        .expected_to_receive(*initially_expected_to_receive)
                 }
                 LiquidationProcessEvent::CollateralSentOut { amount, .. } => {
                     amount_sent += *amount;
@@ -155,12 +170,16 @@ impl TryFromEvents<LiquidationProcessEvent> for LiquidationProcess {
                 }
                 LiquidationProcessEvent::Satisfied { .. } => {}
                 LiquidationProcessEvent::Completed { .. } => {}
+                LiquidationProcessEvent::Updated {
+                    expected_to_receive,
+                    ..
+                } => builder = builder.expected_to_receive(*expected_to_receive),
             }
         }
 
         builder
-            .amount_received(amount_received)
-            .amount_sent(amount_sent)
+            .received_total(amount_received)
+            .sent_total(amount_sent)
             .events(events)
             .build()
     }
@@ -173,6 +192,9 @@ pub struct NewLiquidationProcess {
     #[builder(setter(into))]
     pub(crate) credit_facility_id: CreditFacilityId,
     pub(crate) receivable_account_id: CalaAccountId,
+    pub(crate) trigger_price: PriceOfOneBTC,
+    pub(crate) initially_expected_to_receive: UsdCents,
+    pub(crate) initially_estimated_to_liquidate: Satoshis,
 }
 
 impl NewLiquidationProcess {
@@ -189,10 +211,9 @@ impl IntoEvents<LiquidationProcessEvent> for NewLiquidationProcess {
                 id: self.id,
                 credit_facility_id: self.credit_facility_id,
                 receivable_account_id: self.receivable_account_id,
-                liquidated_amount: todo!(),
-                expected_to_receive: todo!(),
-                price_at_initiation: todo!(),
-                liquidation_fee: todo!(),
+                trigger_price: self.trigger_price,
+                initially_expected_to_receive: self.initially_expected_to_receive,
+                initially_estimated_to_liquidate: self.initially_estimated_to_liquidate,
             }],
         )
     }

@@ -100,6 +100,20 @@ where
                     price: *price,
                     cvl: *cvl,
                 }),
+                PartialLiquidationInitiated {
+                    liquidation_process_id,
+                    receivable_account_id,
+                    trigger_price,
+                    initially_expected_to_receive,
+                    initially_estimated_to_liquidate,
+                } => Some(CoreCreditEvent::PartialLiquidationInitiated {
+                    credit_facility_id: entity.id,
+                    liquidation_process_id: *liquidation_process_id,
+                    receivable_account_id: *receivable_account_id,
+                    trigger_price: *trigger_price,
+                    initially_expected_to_receive: *initially_expected_to_receive,
+                    initially_estimated_to_liquidate: *initially_estimated_to_liquidate,
+                }),
 
                 _ => None,
             })
@@ -395,35 +409,22 @@ where
     ) -> Result<(), LiquidationProcessError> {
         use LiquidationProcessEvent::*;
         let publish_events = new_events
-            .map(|event| match &event.event {
-                Initialized {
-                    id,
-                    credit_facility_id,
-                    ..
-                } => CoreCreditEvent::LiquidationProcessStarted {
-                    id: *id,
-                    credit_facility_id: *credit_facility_id,
-                    recorded_at: event.recorded_at,
-                },
-                Completed { .. } => CoreCreditEvent::LiquidationProcessConcluded {
+            .filter_map(|event| match &event.event {
+                Initialized { .. } => None,
+                Completed { .. } => Some(CoreCreditEvent::LiquidationProcessConcluded {
                     id: entity.id,
                     credit_facility_id: entity.credit_facility_id,
-                },
-                CollateralSentOut {
-                    amount,
-                    ledger_tx_id,
-                } => todo!(),
-                RepaymentAmountReceived {
-                    amount,
-                    ledger_tx_id,
-                } => todo!(),
-                Satisfied {} => CoreCreditEvent::PartialLiquidationSatisfied {
+                }),
+                Satisfied {} => Some(CoreCreditEvent::PartialLiquidationSatisfied {
                     liquidation_process_id: entity.id,
                     credit_facility_id: entity.credit_facility_id,
-                    amount_sent: entity.amount_sent,
-                    amount_received: entity.amount_received,
+                    amount_sent: entity.sent_total,
+                    amount_received: entity.received_total,
                     recorded_at: event.recorded_at,
-                },
+                }),
+                CollateralSentOut { .. } => None,
+                RepaymentAmountReceived { .. } => None,
+                Updated { .. } => None,
             })
             .collect::<Vec<_>>();
         self.outbox

@@ -132,32 +132,20 @@ where
             Some(FacilityCollateralUpdated {
                 credit_facility_id,
                 action: CollateralAction::Remove,
-                ledger_tx_id,
                 abs_diff,
                 ..
             }) if *credit_facility_id == self.config.credit_facility_id => {
                 self.liquidations
-                    .record_collateral_sent_in_op(db, self.config.liquidation_process_id)
+                    .record_collateral_sent_in_op(db, self.config.liquidation_process_id, *abs_diff)
                     .await?;
             }
             Some(PartialLiquidationSatisfied {
-                credit_facility_id,
-                liquidation_process_id,
-                amount_sent,
-                amount_received,
-                recorded_at,
+                credit_facility_id, ..
             }) if *credit_facility_id == self.config.credit_facility_id => {
-                // call credit::record_payment (or similar)
-                todo!()
+                // TODO: call credit::record_payment
             }
             Some(FacilityRepaymentRecorded {
-                credit_facility_id,
-                obligation_id,
-                obligation_type,
-                payment_id,
-                amount,
-                recorded_at,
-                effective,
+                credit_facility_id, ..
             }) if *credit_facility_id == self.config.credit_facility_id => {
                 self.liquidations
                     .complete_in_op(db, self.config.liquidation_process_id)

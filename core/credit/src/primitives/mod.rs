@@ -519,7 +519,6 @@ pub enum CreditFacilityStatus {
     #[default]
     Active,
     Matured,
-    // InLiquidation ???
     Closed,
 }
 
@@ -632,14 +631,13 @@ pub enum CollateralizationState {
     FullyCollateralized,
     UnderMarginCallThreshold,
     UnderLiquidationThreshold,
-    // InLiquidation ???
     #[default]
     NoCollateral,
     NoExposure,
 }
 
 impl CollateralizationState {
-    pub fn is_under_liquidation_threshold(&self) -> bool {
+    pub const fn is_under_liquidation_threshold(&self) -> bool {
         matches!(self, Self::UnderLiquidationThreshold)
     }
 }

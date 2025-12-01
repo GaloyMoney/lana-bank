@@ -18,6 +18,8 @@ pub struct LiquidationPayment {
 }
 
 impl LiquidationPayment {
+    const NO_LIQUIDATION_FEE: Decimal = Decimal::ONE;
+
     pub fn new(
         amount: UsdCents,
         price: PriceOfOneBTC,
@@ -44,11 +46,8 @@ impl LiquidationPayment {
             .sats_to_cents_round_down(self.collateral)
             .to_usd();
 
-        let liquidation_fee = Decimal::from(105u64) / Decimal::from(100u64);
-
-        // repay_amount  = (loan * target_cvl - collateral * trigger_price) / (target_cvl - liquidation_fee)
         let repay_usd = ((loan_usd * target_ratio - collateral_usd)
-            / (target_ratio - liquidation_fee))
+            / (target_ratio - Self::NO_LIQUIDATION_FEE))
             .max(Decimal::ZERO)
             .round_dp_with_strategy(2, RoundingStrategy::AwayFromZero);
 
@@ -57,8 +56,6 @@ impl LiquidationPayment {
 }
 
 mod test {
-
-    use super::*;
 
     #[test]
     fn test_calculate() {

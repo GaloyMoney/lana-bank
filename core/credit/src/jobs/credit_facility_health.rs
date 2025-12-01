@@ -7,115 +7,55 @@
 //! All other state changes are ignored by this job.
 
 use async_trait::async_trait;
-use audit::AuditSvc;
-use authz::PermissionCheck;
-use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
+use core_custody::CoreCustodyEvent;
+use es_entity::DbOp;
 use futures::StreamExt as _;
-use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
+use governance::GovernanceEvent;
 use job::*;
 use outbox::{EventSequence, Outbox, OutboxEventMarker, PersistentOutboxEvent};
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilities,
-    CreditFacilityEvent::PartialLiquidationInitiated,
-    liquidation_process::{LiquidationProcessRepo, NewLiquidationProcess},
-};
-use crate::{credit_facility::CreditFacilityEvent, jobs::partial_liquidation};
+use crate::CoreCreditEvent;
+use crate::jobs::partial_liquidation;
+use crate::liquidation_process::Liquidations;
 
 #[derive(Default, Clone, Deserialize, Serialize)]
 struct CreditFacilityHealthJobData {
     sequence: EventSequence,
 }
 
-#[derive(Clone, Serialize, Deserialize)]
-pub(crate) struct CreditFacilityHealthJobConfig<Perms, E>
+pub struct CreditFacilityHealthInit<E>
 where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CreditFacilityEvent>,
-{
-    pub _phantom: std::marker::PhantomData<(Perms, E)>,
-}
-
-impl<Perms, E> JobConfig for CreditFacilityHealthJobConfig<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
-    E: OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CreditFacilityEvent>,
-{
-    type Initializer = CreditFacilityHealthInit<Perms, E>;
-}
-
-pub struct CreditFacilityHealthInit<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
-    E: OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CreditFacilityEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     outbox: Outbox<E>,
     jobs: Jobs,
-    liquidation_process_repo: LiquidationProcessRepo<E>,
-    facilities: CreditFacilities<Perms, E>,
+    liquidations: Liquidations<E>,
 }
 
-impl<Perms, E> CreditFacilityHealthInit<Perms, E>
+impl<E> CreditFacilityHealthInit<E>
 where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CreditFacilityEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
-    pub fn new(
-        outbox: &Outbox<E>,
-        jobs: &Jobs,
-        facilities: &CreditFacilities<Perms, E>,
-        liquidation_process_repo: &LiquidationProcessRepo<E>,
-    ) -> Self {
+    pub fn new(outbox: &Outbox<E>, jobs: &Jobs, liquidations: &Liquidations<E>) -> Self {
         Self {
             outbox: outbox.clone(),
             jobs: jobs.clone(),
-            facilities: facilities.clone(),
-            liquidation_process_repo: liquidation_process_repo.clone(),
+            liquidations: liquidations.clone(),
         }
     }
 }
 
 const CREDIT_FACILITY_HEALTH_JOB: JobType = JobType::new("outbox.credit-facility-health");
-impl<Perms, E> JobInitializer for CreditFacilityHealthInit<Perms, E>
+impl<E> JobInitializer for CreditFacilityHealthInit<E>
 where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CreditFacilityEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     fn job_type() -> JobType
     where
@@ -124,46 +64,32 @@ where
         CREDIT_FACILITY_HEALTH_JOB
     }
 
-    fn init(&self, job: &job::Job) -> Result<Box<dyn job::JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(CreditFacilityHealthJobRunner::<Perms, E> {
+    fn init(&self, _job: &job::Job) -> Result<Box<dyn job::JobRunner>, Box<dyn std::error::Error>> {
+        Ok(Box::new(CreditFacilityHealthJobRunner::<E> {
             outbox: self.outbox.clone(),
             jobs: self.jobs.clone(),
-            liquidation_process_repo: self.liquidation_process_repo.clone(),
-            facilities: self.facilities.clone(),
+            liquidations: self.liquidations.clone(),
         }))
     }
 }
 
-pub struct CreditFacilityHealthJobRunner<Perms, E>
+pub struct CreditFacilityHealthJobRunner<E>
 where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CreditFacilityEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     outbox: Outbox<E>,
     jobs: Jobs,
-    liquidation_process_repo: LiquidationProcessRepo<E>,
-    facilities: CreditFacilities<Perms, E>,
+    liquidations: Liquidations<E>,
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for CreditFacilityHealthJobRunner<Perms, E>
+impl<E> JobRunner for CreditFacilityHealthJobRunner<E>
 where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CreditFacilityEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     async fn run(
         &self,
@@ -176,7 +102,7 @@ where
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
         while let Some(message) = stream.next().await {
-            let mut db = self.liquidation_process_repo.begin().await?;
+            let mut db = self.liquidations.begin_op().await?;
             self.process_message(message.as_ref(), &mut db).await?;
             state.sequence = message.sequence;
             current_job
@@ -190,62 +116,52 @@ where
     }
 }
 
-impl<Perms, E> CreditFacilityHealthJobRunner<Perms, E>
+impl<E> CreditFacilityHealthJobRunner<E>
 where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CreditFacilityEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     async fn process_message(
         &self,
         message: &PersistentOutboxEvent<E>,
-        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        db: &mut DbOp<'_>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         if let Some(event) = message.as_event() {
             match event {
-                PartialLiquidationInitiated {
+                CoreCreditEvent::PartialLiquidationInitiated {
                     liquidation_process_id,
                     credit_facility_id,
                     receivable_account_id,
+                    trigger_price,
+                    initially_expected_to_receive,
+                    initially_estimated_to_liquidate,
                 } => {
-                    match self
-                        .liquidation_process_repo
-                        .find_by_credit_facility_id(*credit_facility_id)
-                        .await
+                    if let Some(liquidation) = self
+                        .liquidations
+                        .create_if_not_exist_in_op(
+                            db,
+                            *liquidation_process_id,
+                            *credit_facility_id,
+                            *receivable_account_id,
+                            *trigger_price,
+                            *initially_expected_to_receive,
+                            *initially_estimated_to_liquidate,
+                        )
+                        .await?
                     {
-                        Err(e) if e.was_not_found() => {
-                            let new_liquidation = NewLiquidationProcess {
-                                id: *liquidation_process_id,
-                                credit_facility_id: *credit_facility_id,
-                                receivable_account_id: *receivable_account_id,
-                            };
-                            let liquidation = self
-                                .liquidation_process_repo
-                                .create(new_liquidation)
-                                .await?;
-                            self.jobs
-                                .create_and_spawn_in_op(
-                                    db,
-                                    JobId::new(),
-                                    partial_liquidation::PartialLiquidationJobConfig::<E> {
-                                        liquidation_process_id: liquidation.id,
-                                        credit_facility_id: *credit_facility_id,
-                                        _phantom: std::marker::PhantomData,
-                                    },
-                                )
-                                .await?;
-                        }
-                        Err(e) => return Err(Box::new(e)),
-                        Ok(_) => {
-                            // liquidation process already running for this facility
-                        }
-                    };
+                        self.jobs
+                            .create_and_spawn_in_op(
+                                db,
+                                JobId::new(),
+                                partial_liquidation::PartialLiquidationJobConfig::<E> {
+                                    liquidation_process_id: liquidation.id,
+                                    credit_facility_id: *credit_facility_id,
+                                    _phantom: std::marker::PhantomData,
+                                },
+                            )
+                            .await?;
+                    }
                 }
                 _ => {}
             }

@@ -3,7 +3,6 @@ pub mod error;
 pub mod interest_accrual_cycle;
 mod repo;
 
-use es_entity::Idempotent;
 use std::sync::Arc;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
@@ -21,7 +20,6 @@ use crate::{
     event::CoreCreditEvent,
     jobs::{credit_facility_maturity, interest_accruals},
     ledger::{CreditFacilityInterestAccrual, CreditFacilityInterestAccrualCycle, CreditLedger},
-    liquidation_process::NewLiquidationProcess,
     obligation::Obligations,
     pending_credit_facility::{PendingCreditFacilities, PendingCreditFacilityCompletionOutcome},
     primitives::*,

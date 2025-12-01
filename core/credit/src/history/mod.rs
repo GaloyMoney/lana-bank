@@ -129,17 +129,6 @@ impl CreditFacilityHistory {
                     },
                 ));
             }
-            LiquidationProcessStarted { recorded_at, .. } => {
-                // self.entries
-                // .push(CreditFacilityHistoryEntry::ReservedForLiquidation(
-                // ObligationMovedToLiquidation {
-                // cents: *amount,
-                // recorded_at: *recorded_at,
-                // effective: *effective,
-                // tx_id: *ledger_tx_id,
-                // },
-                // ));
-            }
             PendingCreditFacilityCollateralizationChanged {
                 state,
                 collateral,
@@ -163,9 +152,10 @@ impl CreditFacilityHistory {
             ObligationDue { .. } => {}
             ObligationOverdue { .. } => {}
             ObligationDefaulted { .. } => {}
+            PartialLiquidationInitiated { .. } => {}
             LiquidationProcessConcluded { .. } => {}
             ObligationCompleted { .. } => {}
-            PartialLiquidationSatisfied { .. } => todo!(),
+            PartialLiquidationSatisfied { .. } => {}
         }
     }
 }

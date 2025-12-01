@@ -10,7 +10,6 @@ use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use es_entity::Idempotent;
 use job::{JobId, Jobs};
 use outbox::OutboxEventMarker;
 
@@ -18,7 +17,6 @@ use crate::{
     CreditLedger, PaymentAllocation, PaymentAllocationId, PaymentAllocationRepo,
     event::CoreCreditEvent,
     jobs::obligation_due,
-    liquidation_process::{LiquidationProcess, LiquidationProcessRepo},
     primitives::{
         CoreCreditAction, CoreCreditObject, CreditFacilityId, ObligationId, PaymentId, UsdCents,
     },
@@ -42,7 +40,6 @@ where
 {
     authz: Arc<Perms>,
     repo: Arc<ObligationRepo<E>>,
-    liquidation_process_repo: Arc<LiquidationProcessRepo<E>>,
     payment_allocation_repo: Arc<PaymentAllocationRepo<E>>,
     ledger: Arc<CreditLedger>,
     jobs: Arc<Jobs>,
@@ -57,7 +54,6 @@ where
         Self {
             authz: self.authz.clone(),
             repo: self.repo.clone(),
-            liquidation_process_repo: self.liquidation_process_repo.clone(),
             payment_allocation_repo: self.payment_allocation_repo.clone(),
             ledger: self.ledger.clone(),
             jobs: self.jobs.clone(),
@@ -80,12 +76,10 @@ where
         publisher: &CreditFacilityPublisher<E>,
     ) -> Self {
         let obligation_repo = ObligationRepo::new(pool, publisher);
-        let liquidation_process_repo = LiquidationProcessRepo::new(pool, publisher);
         let payment_allocation_repo = PaymentAllocationRepo::new(pool, publisher);
         Self {
             authz,
             repo: Arc::new(obligation_repo),
-            liquidation_process_repo: Arc::new(liquidation_process_repo),
             jobs,
             ledger,
             payment_allocation_repo: Arc::new(payment_allocation_repo),

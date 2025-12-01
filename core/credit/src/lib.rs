@@ -38,6 +38,7 @@ use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Custo
 use core_price::{CorePriceEvent, Price};
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
+use liquidation_process::Liquidations;
 use outbox::{Outbox, OutboxEventMarker};
 use public_id::PublicIds;
 use tracing::instrument;
@@ -212,6 +213,9 @@ where
         );
         let obligations_arc = Arc::new(obligations);
 
+        let liquidations = Liquidations::new(pool, &publisher);
+        let liquidations_arc = Arc::new(liquidations);
+
         let credit_facility_proposals = CreditFacilityProposals::init(
             pool,
             authz_arc.clone(),
@@ -384,7 +388,12 @@ where
         );
         jobs.add_initializer(partial_liquidation::PartialLiquidationInit::<E>::new(
             &outbox,
-            todo!(),
+            liquidations_arc.as_ref(),
+        ));
+        jobs.add_initializer(credit_facility_health::CreditFacilityHealthInit::<E>::new(
+            &outbox,
+            &jobs,
+            liquidations_arc.as_ref(),
         ));
         jobs.add_initializer(credit_facility_maturity::CreditFacilityMaturityInit::<
             Perms,
@@ -818,16 +827,6 @@ where
             .await?;
 
         Ok(credit_facility)
-    }
-
-    pub async fn send_collateral_for_liquidation(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        liquidation_process_id: LiquidationProcessId,
-        amount: Satoshis,
-        effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
-    ) -> Result<(), CoreCreditError> {
-        todo!()
     }
 
     pub async fn subject_can_record_payment(

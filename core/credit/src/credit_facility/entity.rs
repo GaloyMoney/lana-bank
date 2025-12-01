@@ -58,9 +58,12 @@ pub enum CreditFacilityEvent {
     },
     PartialLiquidationInitiated {
         liquidation_process_id: LiquidationProcessId,
-        credit_facility_id: CreditFacilityId,
         receivable_account_id: CalaAccountId,
+        trigger_price: PriceOfOneBTC,
+        initially_expected_to_receive: UsdCents,
+        initially_estimated_to_liquidate: Satoshis,
     },
+    PartialLiquidationConcluded {},
     Matured {},
     Completed {},
 }
@@ -253,7 +256,7 @@ impl CreditFacility {
         }
     }
 
-    pub(crate) fn initiate_partial_liquidation(
+    fn initiate_partial_liquidation(
         &mut self,
         price: PriceOfOneBTC,
         collateral: Satoshis,
@@ -261,19 +264,22 @@ impl CreditFacility {
         idempotency_guard!(
             self.events.iter_all().rev(),
             CreditFacilityEvent::PartialLiquidationInitiated { .. },
-            => CreditFacilityEvent::InterestAccrualCycleConcluded { .. }
+            => CreditFacilityEvent::PartialLiquidationConcluded { .. }
         );
 
-        // calculate amount to sell/receive (will be extracted to value object)
-        let _repay_amount =
+        let repay_amount =
             LiquidationPayment::new(self.amount, price, self.terms.initial_cvl, collateral)
                 .calculate();
+
+        let liquidate_btc = price.cents_to_sats_round_up(repay_amount);
 
         self.events
             .push(CreditFacilityEvent::PartialLiquidationInitiated {
                 liquidation_process_id: LiquidationProcessId::new(),
-                credit_facility_id: self.id,
                 receivable_account_id: CalaAccountId::new(),
+                trigger_price: price,
+                initially_expected_to_receive: repay_amount,
+                initially_estimated_to_liquidate: liquidate_btc,
             });
 
         Idempotent::Executed(())
@@ -513,7 +519,7 @@ impl CreditFacility {
                 });
 
             if calculated_collateralization.is_under_liquidation_threshold() {
-                self.initiate_partial_liquidation(price, balances.collateral());
+                let _ = self.initiate_partial_liquidation(price, balances.collateral());
             }
 
             Idempotent::Executed(Some(calculated_collateralization))
@@ -615,7 +621,8 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                 CreditFacilityEvent::CollateralizationRatioChanged { .. } => (),
                 CreditFacilityEvent::Matured { .. } => (),
                 CreditFacilityEvent::Completed { .. } => (),
-                CreditFacilityEvent::PartialLiquidationInitiated { .. } => todo!(),
+                CreditFacilityEvent::PartialLiquidationInitiated { .. } => {}
+                CreditFacilityEvent::PartialLiquidationConcluded {} => {}
             }
         }
         builder.events(events).build()

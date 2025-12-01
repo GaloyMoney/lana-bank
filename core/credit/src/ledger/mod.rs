@@ -25,7 +25,6 @@ use crate::{
     COLLATERAL_ENTITY_TYPE, ChartOfAccountsIntegrationConfig, CollateralId, FacilityDurationType,
     Obligation, ObligationDefaultedReallocationData, ObligationDueReallocationData,
     ObligationOverdueReallocationData,
-    liquidation_process::LiquidationProcess,
     payment_allocation::PaymentAllocation,
     primitives::{
         CREDIT_FACILITY_ENTITY_TYPE, CREDIT_FACILITY_PROPOSAL_ENTITY_TYPE, CalaAccountId,

@@ -7,10 +7,7 @@ use std::cmp::Ordering;
 
 use es_entity::*;
 
-use crate::{
-    CreditFacilityId, liquidation_process::NewLiquidationProcess,
-    payment_allocation::NewPaymentAllocation, primitives::*,
-};
+use crate::{CreditFacilityId, payment_allocation::NewPaymentAllocation, primitives::*};
 
 use super::{error::ObligationError, primitives::*};
 
