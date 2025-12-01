@@ -106,7 +106,7 @@ impl DenyWithdraw {
             .expect("Couldn't build TxInput");
         let entries = vec![
             NewTxTemplateEntry::builder()
-                .entry_type("'DENY_WITHDRAW_SETTLED_CR'")
+                .entry_type("'DENY_WITHDRAW_PENDING_CR'")
                 .currency("params.currency")
                 .account_id("params.deposit_omnibus_account_id")
                 .direction("CREDIT")
@@ -115,7 +115,7 @@ impl DenyWithdraw {
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
-                .entry_type("'DENY_WITHDRAW_SETTLED_DR'")
+                .entry_type("'DENY_WITHDRAW_PENDING_DR'")
                 .currency("params.currency")
                 .account_id("params.credit_account_id")
                 .direction("DEBIT")
@@ -124,16 +124,16 @@ impl DenyWithdraw {
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
-                .entry_type("'DENY_WITHDRAW_PENDING_DR'")
+                .entry_type("'DENY_WITHDRAW_SETTLED_DR'")
                 .currency("params.currency")
                 .account_id("params.deposit_omnibus_account_id")
                 .direction("DEBIT")
-                .layer("SETLLED")
+                .layer("SETTLED")
                 .units("params.amount")
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
-                .entry_type("'DENY_WITHDRAW_PENDING_CR'")
+                .entry_type("'DENY_WITHDRAW_SETTLED_CR'")
                 .currency("params.currency")
                 .account_id("params.credit_account_id")
                 .direction("CREDIT")
