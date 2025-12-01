@@ -1,0 +1,29 @@
+[package]
+name = "core-fcredit-facility"
+license = "BUSL-1.1"
+edition = "2024"
+
+[features]
+
+fail-on-warnings = []
+json-schema = ["dep:schemars", "cala-ledger/json-schema", "es-entity/json-schema", "core-money/json-schema", "job/json-schema", "core-price/json-schema", "outbox/json-schema", "public-id/json-schema"]
+
+[dependencies]
+outbox = { workspace = true }
+core-money = { workspace = true }
+core-price = { workspace = true }
+core-custody = { workspace = true }
+public-id = { workspace = true }
+
+serde = { workspace = true }
+thiserror = { workspace = true }
+cala-ledger = { workspace = true }
+es-entity = { workspace = true }
+sqlx = { workspace = true }
+job = { workspace = true }
+
+schemars = { workspace = true, optional = true }
+
+[dev-dependencies]
+anyhow = { workspace = true }
+tokio = { workspace = true }

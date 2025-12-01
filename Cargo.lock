@@ -1511,6 +1511,48 @@ dependencies = [
 ]
 
 [[package]]
+name = "core-fcredit"
+version = "0.0.0"
+
+[[package]]
+name = "core-fcredit-facility"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "cala-ledger",
+ "core-custody",
+ "core-money",
+ "core-price",
+ "es-entity",
+ "job",
+ "outbox",
+ "public-id",
+ "schemars 1.1.0",
+ "serde",
+ "sqlx",
+ "thiserror 2.0.17",
+ "tokio",
+]
+
+[[package]]
+name = "core-fcredit-terms"
+version = "0.0.0"
+dependencies = [
+ "async-graphql",
+ "chrono",
+ "core-money",
+ "core-price",
+ "derive_builder",
+ "es-entity",
+ "rust_decimal",
+ "rust_decimal_macros",
+ "schemars 1.1.0",
+ "serde",
+ "strum 0.27.2",
+ "thiserror 2.0.17",
+]
+
+[[package]]
 name = "core-foundation"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
