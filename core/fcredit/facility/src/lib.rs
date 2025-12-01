@@ -1,6 +1,8 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+mod error;
 mod event;
 mod primitives;
-// mod proposal;
+mod proposal;
+mod publisher;

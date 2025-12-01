@@ -3,14 +3,16 @@ use sqlx::PgPool;
 use es_entity::*;
 use outbox::OutboxEventMarker;
 
-use crate::{event::CoreCreditEvent, primitives::*, publisher::*};
+use crate::{
+    error::CoreCreditFacilityError, event::CoreCreditFacilityEvent, primitives::*, publisher::*,
+};
 
 use super::{entity::*, error::CreditFacilityProposalError};
 
 #[derive(EsRepo)]
 #[es_repo(
     entity = "CreditFacilityProposal",
-    err = "CreditFacilityProposalError",
+    err = "CoreCreditFacilityError",
     columns(
         customer_id(ty = "CustomerId", list_for, update(persist = false)),
         approval_process_id(ty = "Option<ApprovalProcessId>", list_by, create(persist = "false")),
@@ -20,7 +22,7 @@ use super::{entity::*, error::CreditFacilityProposalError};
 )]
 pub struct CreditFacilityProposalRepo<E>
 where
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditFacilityEvent>,
 {
     pool: PgPool,
     publisher: CreditFacilityPublisher<E>,
@@ -28,7 +30,7 @@ where
 
 impl<E> Clone for CreditFacilityProposalRepo<E>
 where
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditFacilityEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -40,7 +42,7 @@ where
 
 impl<E> CreditFacilityProposalRepo<E>
 where
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditFacilityEvent>,
 {
     pub fn new(pool: &PgPool, publisher: &CreditFacilityPublisher<E>) -> Self {
         Self {
@@ -59,7 +61,7 @@ where
         op: &mut impl es_entity::AtomicOperation,
         entity: &CreditFacilityProposal,
         new_events: es_entity::LastPersisted<'_, CreditFacilityProposalEvent>,
-    ) -> Result<(), CreditFacilityProposalError> {
+    ) -> Result<(), CoreCreditFacilityError> {
         self.publisher
             .publish_proposal(op, entity, new_events)
             .await

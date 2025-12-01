@@ -1550,6 +1550,7 @@ dependencies = [
  "cala-ledger",
  "chrono",
  "core-custody",
+ "core-customer",
  "core-fcredit-terms",
  "core-money",
  "core-price",
