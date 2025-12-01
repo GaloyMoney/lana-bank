@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum BitgoError {
@@ -20,4 +22,18 @@ pub enum BitgoError {
     MissingWebhookSignature,
     #[error("BitgoError - InvalidWebhookSignature")]
     InvalidWebhookSignature(#[from] sha2::digest::MacError),
+}
+
+impl ErrorSeverity for BitgoError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::ReqwestError(_) => Level::ERROR,
+            Self::JsonFormat(_) => Level::ERROR,
+            Self::BitgoError { .. } => Level::ERROR,
+            Self::InvalidWebhookUrl => Level::ERROR,
+            Self::DecryptXprv(_) => Level::ERROR,
+            Self::MissingWebhookSignature => Level::WARN,
+            Self::InvalidWebhookSignature(_) => Level::WARN,
+        }
+    }
 }

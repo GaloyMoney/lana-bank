@@ -35,7 +35,19 @@ impl From<core_money::ConversionError> for CustodianClientError {
 impl ErrorSeverity for CustodianClientError {
     fn severity(&self) -> Level {
         match self {
-            Self::ClientError(_) => Level::ERROR,
+            Self::ClientError(e) => {
+                // Try to downcast to known error types that implement ErrorSeverity
+                if let Some(bitgo_err) = e.downcast_ref::<bitgo::BitgoError>() {
+                    bitgo_err.severity()
+                } else if let Some(komainu_err) = e.downcast_ref::<komainu::KomainuError>() {
+                    komainu_err.severity()
+                } else if let Some(money_err) = e.downcast_ref::<core_money::ConversionError>() {
+                    money_err.severity()
+                } else {
+                    // Default to ERROR for unknown error types
+                    Level::ERROR
+                }
+            }
         }
     }
 }

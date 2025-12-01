@@ -646,6 +646,7 @@ dependencies = [
  "sha2",
  "thiserror 2.0.17",
  "tracing",
+ "tracing-utils",
  "url",
  "workspace-hack",
 ]
@@ -3452,6 +3453,7 @@ dependencies = [
  "thiserror 2.0.17",
  "tokio",
  "tracing",
+ "tracing-utils",
  "url",
  "workspace-hack",
 ]
