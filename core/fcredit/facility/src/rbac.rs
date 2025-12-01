@@ -28,3 +28,9 @@ pub type CreditFacilityProposalAllOrOne = AllOrOne<CreditFacilityProposalId>;
 pub enum CoreCreditFacilityObject {
     CreditFacilityProposal(CreditFacilityProposalAllOrOne),
 }
+
+impl CoreCreditFacilityObject {
+    pub fn all_credit_facility_proposals() -> Self {
+        CoreCreditFacilityObject::CreditFacilityProposal(AllOrOne::All)
+    }
+}

@@ -80,8 +80,8 @@ impl Customer {
             .expect("entity_first_persisted_at not found")
     }
 
-    pub fn may_create_loan(&self) -> bool {
-        true
+    pub fn eligible_for_credit_facility(&self) -> bool {
+        self.kyc_verification.is_verified()
     }
 
     pub fn should_sync_financial_transactions(&self) -> bool {

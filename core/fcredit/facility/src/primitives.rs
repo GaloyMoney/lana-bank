@@ -9,6 +9,7 @@ pub use cala_ledger::primitives::{
 };
 pub use core_customer::{CustomerId, CustomerType};
 pub use core_money::UsdCents;
+pub use credit_terms::TermValues;
 pub use governance::ApprovalProcessId;
 
 es_entity::entity_id! {
