@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum DepositSyncError {
@@ -12,4 +14,16 @@ pub enum DepositSyncError {
     DecimalConversion(#[from] rust_decimal::Error),
     #[error("DepositSyncError - CoreDepositError: {0}")]
     CoreDeposit(#[from] core_deposit::error::CoreDepositError),
+}
+
+impl ErrorSeverity for DepositSyncError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Job(_) => Level::ERROR,
+            Self::Sumsub(e) => e.severity(),
+            Self::CoreMoney(e) => e.severity(),
+            Self::DecimalConversion(_) => Level::ERROR,
+            Self::CoreDeposit(e) => e.severity(),
+        }
+    }
 }
