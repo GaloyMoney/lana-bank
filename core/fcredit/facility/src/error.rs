@@ -10,6 +10,12 @@ pub enum CoreCreditFacilityError {
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("CoreCreditFacilityError - GovernanceError: {0}")]
     GovernanceError(#[from] governance::error::GovernanceError),
+    #[error("CoreCreditFacilityError - AuthorizationError: {0}")]
+    AuthorizationError(#[from] authz::error::AuthorizationError),
+    #[error("CoreCreditFacilityError - CustomerError: {0}")]
+    CustomerError(#[from] core_customer::error::CustomerError),
+    #[error("CoreCreditFacilityError - CustomerNotEligible")]
+    CustomerNotEligible,
 }
 
 es_entity::from_es_entity_error!(CoreCreditFacilityError);
