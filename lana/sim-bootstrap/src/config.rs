@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct BootstrapConfig {
+    #[serde(default)]
+    pub active: bool,
     #[serde(default = "default_num_facilities")]
     pub num_facilities: u32,
     #[serde(default = "default_num_customers")]
@@ -11,6 +13,7 @@ pub struct BootstrapConfig {
 impl Default for BootstrapConfig {
     fn default() -> Self {
         Self {
+            active: false,
             num_facilities: default_num_facilities(),
             num_customers: default_num_customers(),
         }

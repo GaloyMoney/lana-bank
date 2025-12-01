@@ -13,14 +13,13 @@ app:
     job_lost_interval: 300
     max_jobs_per_process: 50
     min_jobs_per_process: 30
+    shutdown_timeout: 5
   access:
     superuser_email: null
   credit:
     customer_active_check_enabled: true
     collateralization_from_price_job_interval: 30
     pending_collateralization_from_price_job_interval: 30
-  deposit:
-    require_verified_customer_for_account: false
   storage:
     provider: local
     root_folder: ''
@@ -37,8 +36,8 @@ app:
       realm: customer
     activity_update_job_interval: 86400
   accounting_init:
-    chart_of_accounts_seed_path: null
     chart_of_accounts_opening_date: null
+    chart_of_accounts_seed_path: null
     deposit_config_path: null
     credit_config_path: null
     balance_sheet_config_path: null
@@ -63,6 +62,8 @@ app:
     enabled: false
     airflow:
       uri: http://localhost:8080/
+  deposit:
+    require_verified_customer_for_account: true
 tracing:
   service_name: lana-dev
 time:
@@ -73,5 +74,7 @@ time:
     tick_duration_secs: 1000
     transform_to_realtime: false
 bootstrap:
+  active: false
   num_facilities: 0
   num_customers: 0
+
