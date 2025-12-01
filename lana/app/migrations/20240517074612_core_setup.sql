@@ -379,15 +379,15 @@ CREATE TABLE core_obligation_events (
   UNIQUE(id, sequence)
 );
 
-CREATE TABLE core_liquidation_processes (
+CREATE TABLE core_liquidations (
   id UUID PRIMARY KEY,
   obligation_id UUID NOT NULL REFERENCES core_obligations(id),
   credit_facility_id UUID NOT NULL REFERENCES core_credit_facilities(id),
   created_at TIMESTAMPTZ NOT NULL
 );
 
-CREATE TABLE core_liquidation_process_events (
-  id UUID NOT NULL REFERENCES core_liquidation_processes(id),
+CREATE TABLE core_liquidation_events (
+  id UUID NOT NULL REFERENCES core_liquidations(id),
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,

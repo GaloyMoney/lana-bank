@@ -20,7 +20,7 @@ CREATE TABLE core_credit_facility_events_rollup (
   initially_expected_to_receive BIGINT,
   interest_accrual_cycle_idx INTEGER,
   interest_period JSONB,
-  liquidation_process_id UUID,
+  liquidation_id UUID,
   maturity_date VARCHAR,
   outstanding JSONB,
   pending_credit_facility_id UUID,
@@ -102,7 +102,7 @@ BEGIN
        ELSE ARRAY[]::UUID[]
      END
 ;
-    new_row.liquidation_process_id := (NEW.event ->> 'liquidation_process_id')::UUID;
+    new_row.liquidation_id := (NEW.event ->> 'liquidation_id')::UUID;
     new_row.maturity_date := (NEW.event ->> 'maturity_date');
     new_row.obligation_ids := CASE
        WHEN NEW.event ? 'obligation_ids' THEN
@@ -139,7 +139,7 @@ BEGIN
     new_row.is_completed := current_row.is_completed;
     new_row.is_matured := current_row.is_matured;
     new_row.ledger_tx_ids := current_row.ledger_tx_ids;
-    new_row.liquidation_process_id := current_row.liquidation_process_id;
+    new_row.liquidation_id := current_row.liquidation_id;
     new_row.maturity_date := current_row.maturity_date;
     new_row.obligation_ids := current_row.obligation_ids;
     new_row.outstanding := current_row.outstanding;
@@ -187,7 +187,7 @@ BEGIN
     WHEN 'partial_liquidation_initiated' THEN
       new_row.initially_estimated_to_liquidate := (NEW.event ->> 'initially_estimated_to_liquidate')::BIGINT;
       new_row.initially_expected_to_receive := (NEW.event ->> 'initially_expected_to_receive')::BIGINT;
-      new_row.liquidation_process_id := (NEW.event ->> 'liquidation_process_id')::UUID;
+      new_row.liquidation_id := (NEW.event ->> 'liquidation_id')::UUID;
       new_row.receivable_account_id := (NEW.event ->> 'receivable_account_id')::UUID;
       new_row.trigger_price := (NEW.event -> 'trigger_price');
     WHEN 'partial_liquidation_concluded' THEN
@@ -223,7 +223,7 @@ BEGIN
     is_completed,
     is_matured,
     ledger_tx_ids,
-    liquidation_process_id,
+    liquidation_id,
     maturity_date,
     obligation_ids,
     outstanding,
@@ -259,7 +259,7 @@ BEGIN
     new_row.is_completed,
     new_row.is_matured,
     new_row.ledger_tx_ids,
-    new_row.liquidation_process_id,
+    new_row.liquidation_id,
     new_row.maturity_date,
     new_row.obligation_ids,
     new_row.outstanding,

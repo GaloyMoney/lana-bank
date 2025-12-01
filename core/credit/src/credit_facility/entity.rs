@@ -57,7 +57,7 @@ pub enum CreditFacilityEvent {
         collateralization_ratio: CollateralizationRatio,
     },
     PartialLiquidationInitiated {
-        liquidation_process_id: LiquidationProcessId,
+        liquidation_id: LiquidationId,
         receivable_account_id: CalaAccountId,
         trigger_price: PriceOfOneBTC,
         initially_expected_to_receive: UsdCents,
@@ -275,7 +275,7 @@ impl CreditFacility {
 
         self.events
             .push(CreditFacilityEvent::PartialLiquidationInitiated {
-                liquidation_process_id: LiquidationProcessId::new(),
+                liquidation_id: LiquidationId::new(),
                 receivable_account_id: CalaAccountId::new(),
                 trigger_price: price,
                 initially_expected_to_receive: repay_amount,

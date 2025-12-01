@@ -102,7 +102,7 @@ where
                 },
             )
             | Some(
-                event @ LiquidationProcessConcluded {
+                event @ PartialLiquidationConcluded {
                     credit_facility_id: id,
                     ..
                 },

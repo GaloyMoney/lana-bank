@@ -15,7 +15,7 @@ pub enum ObligationError {
     #[error("CoreCreditError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
     #[error("CoreCreditError - LiquidationProcess: {0}")]
-    LiquidationProcess(#[from] crate::liquidation_process::error::LiquidationProcessError),
+    LiquidationProcess(#[from] crate::liquidation::error::LiquidationError),
     #[error("ObligationError - InvalidStatusTransitionToOverdue")]
     InvalidStatusTransitionToOverdue,
     #[error("ObligationError - InvalidStatusTransitionToDefaulted")]

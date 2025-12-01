@@ -10,13 +10,13 @@ use super::{entity::*, error::*};
 
 #[derive(EsRepo)]
 #[es_repo(
-    entity = "LiquidationProcess",
-    err = "LiquidationProcessError",
+    entity = "Liquidation",
+    err = "LiquidationError",
     columns(credit_facility_id(ty = "CreditFacilityId", list_for, update(persist = false)),),
     tbl_prefix = "core",
     post_persist_hook = "publish"
 )]
-pub struct LiquidationProcessRepo<E>
+pub struct LiquidationRepo<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
@@ -24,18 +24,16 @@ where
     publisher: CreditFacilityPublisher<E>,
 }
 
-impl<E> LiquidationProcessRepo<E>
+impl<E> LiquidationRepo<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    pub async fn begin(
-        &self,
-    ) -> Result<sqlx::Transaction<'_, sqlx::Postgres>, LiquidationProcessError> {
+    pub async fn begin(&self) -> Result<sqlx::Transaction<'_, sqlx::Postgres>, LiquidationError> {
         Ok(self.pool.begin().await?)
     }
 }
 
-impl<E> Clone for LiquidationProcessRepo<E>
+impl<E> Clone for LiquidationRepo<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
@@ -47,7 +45,7 @@ where
     }
 }
 
-impl<E> LiquidationProcessRepo<E>
+impl<E> LiquidationRepo<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
@@ -59,15 +57,15 @@ where
     }
 
     #[record_error_severity]
-    #[tracing::instrument(name = "liquidation_process.publish", skip_all)]
+    #[tracing::instrument(name = "liquidation.publish", skip_all)]
     async fn publish(
         &self,
         op: &mut impl es_entity::AtomicOperation,
-        entity: &LiquidationProcess,
-        new_events: es_entity::LastPersisted<'_, LiquidationProcessEvent>,
-    ) -> Result<(), LiquidationProcessError> {
+        entity: &Liquidation,
+        new_events: es_entity::LastPersisted<'_, LiquidationEvent>,
+    ) -> Result<(), LiquidationError> {
         self.publisher
-            .publish_liquidation_process(op, entity, new_events)
+            .publish_liquidation(op, entity, new_events)
             .await
     }
 }

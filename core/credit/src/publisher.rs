@@ -17,9 +17,7 @@ use crate::{
     },
     disbursal::{Disbursal, DisbursalEvent, error::DisbursalError},
     event::*,
-    liquidation_process::{
-        LiquidationProcess, LiquidationProcessEvent, error::LiquidationProcessError,
-    },
+    liquidation::{Liquidation, LiquidationEvent, error::LiquidationError},
     obligation::{Obligation, ObligationEvent, error::ObligationError},
     payment_allocation::{
         PaymentAllocation, PaymentAllocationEvent, error::PaymentAllocationError,
@@ -101,14 +99,14 @@ where
                     cvl: *cvl,
                 }),
                 PartialLiquidationInitiated {
-                    liquidation_process_id,
+                    liquidation_id,
                     receivable_account_id,
                     trigger_price,
                     initially_expected_to_receive,
                     initially_estimated_to_liquidate,
                 } => Some(CoreCreditEvent::PartialLiquidationInitiated {
                     credit_facility_id: entity.id,
-                    liquidation_process_id: *liquidation_process_id,
+                    liquidation_id: *liquidation_id,
                     receivable_account_id: *receivable_account_id,
                     trigger_price: *trigger_price,
                     initially_expected_to_receive: *initially_expected_to_receive,
@@ -400,23 +398,23 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "credit.publisher.publish_liquidation_process", skip_all)]
-    pub async fn publish_liquidation_process(
+    #[instrument(name = "credit.publisher.publish_liquidation", skip_all)]
+    pub async fn publish_liquidation(
         &self,
         op: &mut impl es_entity::AtomicOperation,
-        entity: &LiquidationProcess,
-        new_events: es_entity::LastPersisted<'_, LiquidationProcessEvent>,
-    ) -> Result<(), LiquidationProcessError> {
-        use LiquidationProcessEvent::*;
+        entity: &Liquidation,
+        new_events: es_entity::LastPersisted<'_, LiquidationEvent>,
+    ) -> Result<(), LiquidationError> {
+        use LiquidationEvent::*;
         let publish_events = new_events
             .filter_map(|event| match &event.event {
                 Initialized { .. } => None,
-                Completed { .. } => Some(CoreCreditEvent::LiquidationProcessConcluded {
-                    id: entity.id,
+                Completed { .. } => Some(CoreCreditEvent::PartialLiquidationConcluded {
+                    liquidation_id: entity.id,
                     credit_facility_id: entity.credit_facility_id,
                 }),
                 Satisfied {} => Some(CoreCreditEvent::PartialLiquidationSatisfied {
-                    liquidation_process_id: entity.id,
+                    liquidation_id: entity.id,
                     credit_facility_id: entity.credit_facility_id,
                     amount_sent: entity.sent_total,
                     amount_received: entity.received_total,

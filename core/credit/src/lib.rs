@@ -13,7 +13,7 @@ mod for_subject;
 mod history;
 mod jobs;
 pub mod ledger;
-mod liquidation_process;
+mod liquidation;
 mod obligation;
 mod payment;
 mod payment_allocation;
@@ -38,7 +38,7 @@ use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Custo
 use core_price::{CorePriceEvent, Price};
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
-use liquidation_process::Liquidations;
+use liquidation::Liquidations;
 use outbox::{Outbox, OutboxEventMarker};
 use public_id::PublicIds;
 use tracing::instrument;
@@ -77,9 +77,9 @@ pub mod event_schema {
     pub use crate::{
         TermsTemplateEvent, collateral::CollateralEvent, credit_facility::CreditFacilityEvent,
         credit_facility_proposal::CreditFacilityProposalEvent, disbursal::DisbursalEvent,
-        interest_accrual_cycle::InterestAccrualCycleEvent,
-        liquidation_process::LiquidationProcessEvent, obligation::ObligationEvent,
-        payment::PaymentEvent, payment_allocation::PaymentAllocationEvent,
+        interest_accrual_cycle::InterestAccrualCycleEvent, liquidation::LiquidationEvent,
+        obligation::ObligationEvent, payment::PaymentEvent,
+        payment_allocation::PaymentAllocationEvent,
         pending_credit_facility::PendingCreditFacilityEvent,
     };
 }

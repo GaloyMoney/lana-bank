@@ -11,8 +11,7 @@ use job::*;
 use outbox::*;
 
 use crate::{
-    CollateralAction, CoreCreditEvent, CreditFacilityId, LiquidationProcessId,
-    liquidation_process::Liquidations,
+    CollateralAction, CoreCreditEvent, CreditFacilityId, LiquidationId, liquidation::Liquidations,
 };
 
 #[derive(Default, Clone, Deserialize, Serialize)]
@@ -25,7 +24,7 @@ pub(crate) struct PartialLiquidationJobConfig<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    pub liquidation_process_id: LiquidationProcessId,
+    pub liquidation_id: LiquidationId,
     pub credit_facility_id: CreditFacilityId,
     pub _phantom: std::marker::PhantomData<E>,
 }
@@ -136,7 +135,7 @@ where
                 ..
             }) if *credit_facility_id == self.config.credit_facility_id => {
                 self.liquidations
-                    .record_collateral_sent_in_op(db, self.config.liquidation_process_id, *abs_diff)
+                    .record_collateral_sent_in_op(db, self.config.liquidation_id, *abs_diff)
                     .await?;
             }
             Some(PartialLiquidationSatisfied {
@@ -148,7 +147,7 @@ where
                 credit_facility_id, ..
             }) if *credit_facility_id == self.config.credit_facility_id => {
                 self.liquidations
-                    .complete_in_op(db, self.config.liquidation_process_id)
+                    .complete_in_op(db, self.config.liquidation_id)
                     .await?;
             }
             _ => {}

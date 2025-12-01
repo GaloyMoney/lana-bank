@@ -545,7 +545,7 @@
         "initially_expected_to_receive": {
           "$ref": "#/$defs/UsdCents"
         },
-        "liquidation_process_id": {
+        "liquidation_id": {
           "format": "uuid",
           "type": "string"
         },
@@ -563,7 +563,7 @@
       },
       "required": [
         "type",
-        "liquidation_process_id",
+        "liquidation_id",
         "receivable_account_id",
         "trigger_price",
         "initially_expected_to_receive",

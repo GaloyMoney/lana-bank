@@ -6,20 +6,20 @@ use cala_ledger::{AccountId as CalaAccountId, TransactionId as CalaTransactionId
 use core_money::{Satoshis, UsdCents};
 use core_price::PriceOfOneBTC;
 #[cfg(feature = "json-schema")]
-pub use entity::LiquidationProcessEvent;
+pub use entity::LiquidationEvent;
 pub(crate) use entity::*;
-use error::LiquidationProcessError;
+use error::LiquidationError;
 use es_entity::DbOp;
 use outbox::OutboxEventMarker;
-pub(crate) use repo::LiquidationProcessRepo;
+pub(crate) use repo::LiquidationRepo;
 
-use crate::{CoreCreditEvent, CreditFacilityId, LiquidationProcessId};
+use crate::{CoreCreditEvent, CreditFacilityId, LiquidationId};
 
 pub struct Liquidations<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    repo: LiquidationProcessRepo<E>,
+    repo: LiquidationRepo<E>,
 }
 
 impl<E> Clone for Liquidations<E>
@@ -39,27 +39,27 @@ where
 {
     pub fn new(pool: &sqlx::PgPool, publisher: &crate::CreditFacilityPublisher<E>) -> Self {
         Self {
-            repo: LiquidationProcessRepo::new(pool, publisher),
+            repo: LiquidationRepo::new(pool, publisher),
         }
     }
 
     pub async fn create_if_not_exist_in_op(
         &self,
         db: &mut DbOp<'_>,
-        liquidation_process_id: LiquidationProcessId,
+        liquidation_process_id: LiquidationId,
         credit_facility_id: CreditFacilityId,
         receivable_account_id: CalaAccountId,
         trigger_price: PriceOfOneBTC,
         initially_expected_to_receive: UsdCents,
         initially_estimated_to_liquidate: Satoshis,
-    ) -> Result<Option<LiquidationProcess>, LiquidationProcessError> {
+    ) -> Result<Option<Liquidation>, LiquidationError> {
         match self
             .repo
             .maybe_find_by_credit_facility_id_in_op(&mut *db, credit_facility_id)
             .await?
         {
             None => {
-                let new_liquidation = NewLiquidationProcess {
+                let new_liquidation = NewLiquidation {
                     id: liquidation_process_id,
                     credit_facility_id,
                     receivable_account_id,
@@ -74,7 +74,7 @@ where
         }
     }
 
-    pub(super) async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, LiquidationProcessError> {
+    pub(super) async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, LiquidationError> {
         Ok(self.repo.begin_op().await?)
     }
 
@@ -82,9 +82,9 @@ where
     pub async fn record_collateral_sent_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
-        liquidation_process_id: LiquidationProcessId,
+        liquidation_process_id: LiquidationId,
         amount: Satoshis,
-    ) -> Result<(), LiquidationProcessError> {
+    ) -> Result<(), LiquidationError> {
         let mut liquidation = self.repo.find_by_id(liquidation_process_id).await?;
 
         let tx_id = CalaTransactionId::new();
@@ -103,9 +103,9 @@ where
     #[allow(dead_code)]
     pub async fn record_payment_from_liquidation(
         &self,
-        liquidation_process_id: LiquidationProcessId,
+        liquidation_process_id: LiquidationId,
         amount: UsdCents,
-    ) -> Result<(), LiquidationProcessError> {
+    ) -> Result<(), LiquidationError> {
         let mut liquidation = self.repo.find_by_id(liquidation_process_id).await?;
         let mut db = self.repo.begin().await?;
 
@@ -125,8 +125,8 @@ where
     pub async fn complete_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
-        liquidation_process_id: LiquidationProcessId,
-    ) -> Result<(), LiquidationProcessError> {
+        liquidation_process_id: LiquidationId,
+    ) -> Result<(), LiquidationError> {
         let mut liquidation = self.repo.find_by_id(liquidation_process_id).await?;
 
         if liquidation.complete().did_execute() {

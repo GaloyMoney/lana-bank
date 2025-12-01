@@ -53,13 +53,13 @@ pub enum ObligationEvent {
         payment_allocation_amount: UsdCents,
     },
     LiquidationProcessStarted {
-        liquidation_process_id: LiquidationProcessId,
+        liquidation_process_id: LiquidationId,
         ledger_tx_id: LedgerTxId,
         effective: chrono::NaiveDate,
         initial_amount: UsdCents,
     },
     LiquidationProcessConcluded {
-        liquidation_process_id: LiquidationProcessId,
+        liquidation_process_id: LiquidationId,
     },
     Completed {
         effective: chrono::NaiveDate,

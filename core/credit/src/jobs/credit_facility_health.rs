@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::CoreCreditEvent;
 use crate::jobs::partial_liquidation;
-use crate::liquidation_process::Liquidations;
+use crate::liquidation::Liquidations;
 
 #[derive(Default, Clone, Deserialize, Serialize)]
 struct CreditFacilityHealthJobData {
@@ -129,7 +129,7 @@ where
     ) -> Result<(), Box<dyn std::error::Error>> {
         if let Some(event) = message.as_event()
             && let CoreCreditEvent::PartialLiquidationInitiated {
-                liquidation_process_id,
+                liquidation_id,
                 credit_facility_id,
                 receivable_account_id,
                 trigger_price,
@@ -140,7 +140,7 @@ where
                 .liquidations
                 .create_if_not_exist_in_op(
                     db,
-                    *liquidation_process_id,
+                    *liquidation_id,
                     *credit_facility_id,
                     *receivable_account_id,
                     *trigger_price,
@@ -154,7 +154,7 @@ where
                     db,
                     JobId::new(),
                     partial_liquidation::PartialLiquidationJobConfig::<E> {
-                        liquidation_process_id: liquidation.id,
+                        liquidation_id: liquidation.id,
                         credit_facility_id: *credit_facility_id,
                         _phantom: std::marker::PhantomData,
                     },

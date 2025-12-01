@@ -3,25 +3,26 @@ use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
-pub enum LiquidationProcessError {
-    #[error("LiquidationProcessError - Sqlx: {0}")]
+pub enum LiquidationError {
+    #[error("LiquidationError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("LiquidationProcessError - EsEntityError: {0}")]
+    #[error("LiquidationError - EsEntityError: {0}")]
     EsEntityError(es_entity::EsEntityError),
-    #[error("LiquidationProcessError - CursorDestructureError: {0}")]
+    #[error("LiquidationError - CursorDestructureError: {0}")]
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
-    #[error("LiquidationProcessError - AlreadySatifissed")]
+    #[error("LiquidationError - AlreadySatifissed")]
     AlreadySatisfied,
 }
 
-es_entity::from_es_entity_error!(LiquidationProcessError);
+es_entity::from_es_entity_error!(LiquidationError);
 
-impl ErrorSeverity for LiquidationProcessError {
+impl ErrorSeverity for LiquidationError {
     fn severity(&self) -> Level {
         match self {
             Self::Sqlx(_) => Level::ERROR,
             Self::EsEntityError(_) => Level::ERROR,
             Self::CursorDestructureError(_) => Level::ERROR,
+            Self::AlreadySatisfied => Level::WARN,
         }
     }
 }

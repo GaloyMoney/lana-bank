@@ -9,15 +9,15 @@ use cala_ledger::AccountId as CalaAccountId;
 
 use crate::primitives::*;
 
-use super::error::LiquidationProcessError;
+use super::error::LiquidationError;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
-#[es_event(id = "LiquidationProcessId")]
-pub enum LiquidationProcessEvent {
+#[es_event(id = "LiquidationId")]
+pub enum LiquidationEvent {
     Initialized {
-        id: LiquidationProcessId,
+        id: LiquidationId,
         credit_facility_id: CreditFacilityId,
         receivable_account_id: CalaAccountId,
         trigger_price: PriceOfOneBTC,
@@ -44,40 +44,39 @@ pub enum LiquidationProcessEvent {
 
 #[derive(EsEntity, Builder)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
-pub struct LiquidationProcess {
-    pub id: LiquidationProcessId,
+pub struct Liquidation {
+    pub id: LiquidationId,
     pub credit_facility_id: CreditFacilityId,
     pub expected_to_receive: UsdCents,
     pub sent_total: Satoshis,
     pub received_total: UsdCents,
     pub receivable_account_id: CalaAccountId,
-    events: EntityEvents<LiquidationProcessEvent>,
+    events: EntityEvents<LiquidationEvent>,
 }
 
-impl LiquidationProcess {
+impl Liquidation {
     pub fn record_collateral_sent_out(
         &mut self,
         amount_sent: Satoshis,
         ledger_tx_id: LedgerTxId,
-    ) -> Result<Idempotent<()>, LiquidationProcessError> {
+    ) -> Result<Idempotent<()>, LiquidationError> {
         idempotency_guard!(
             self.events.iter_all(),
-            LiquidationProcessEvent::CollateralSentOut {
+            LiquidationEvent::CollateralSentOut {
                 amount,
                 ledger_tx_id: tx_id
             } if amount_sent == *amount && ledger_tx_id == *tx_id
         );
 
         if self.is_satisfied() {
-            Err(LiquidationProcessError::AlreadySatisfied)
+            Err(LiquidationError::AlreadySatisfied)
         } else {
             self.sent_total += amount_sent;
 
-            self.events
-                .push(LiquidationProcessEvent::CollateralSentOut {
-                    amount: amount_sent,
-                    ledger_tx_id,
-                });
+            self.events.push(LiquidationEvent::CollateralSentOut {
+                amount: amount_sent,
+                ledger_tx_id,
+            });
 
             Ok(Idempotent::Executed(()))
         }
@@ -87,25 +86,24 @@ impl LiquidationProcess {
         &mut self,
         amount_received: UsdCents,
         ledger_tx_id: LedgerTxId,
-    ) -> Result<Idempotent<()>, LiquidationProcessError> {
+    ) -> Result<Idempotent<()>, LiquidationError> {
         idempotency_guard!(
             self.events.iter_all(),
-            LiquidationProcessEvent::RepaymentAmountReceived {
+            LiquidationEvent::RepaymentAmountReceived {
                 amount,
                 ledger_tx_id: tx_id
             } if amount_received == *amount && ledger_tx_id == *tx_id
         );
 
         if self.is_satisfied() {
-            Err(LiquidationProcessError::AlreadySatisfied)
+            Err(LiquidationError::AlreadySatisfied)
         } else {
             self.received_total += amount_received;
 
-            self.events
-                .push(LiquidationProcessEvent::RepaymentAmountReceived {
-                    amount: amount_received,
-                    ledger_tx_id,
-                });
+            self.events.push(LiquidationEvent::RepaymentAmountReceived {
+                amount: amount_received,
+                ledger_tx_id,
+            });
 
             self.mark_satisfied_if_needed();
 
@@ -115,17 +113,14 @@ impl LiquidationProcess {
 
     fn mark_satisfied_if_needed(&mut self) {
         if self.received_total >= self.expected_to_receive {
-            self.events.push(LiquidationProcessEvent::Satisfied {});
+            self.events.push(LiquidationEvent::Satisfied {});
         }
     }
 
     pub fn complete(&mut self) -> Idempotent<()> {
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            LiquidationProcessEvent::Completed {}
-        );
+        idempotency_guard!(self.events.iter_all().rev(), LiquidationEvent::Completed {});
 
-        self.events.push(LiquidationProcessEvent::Completed {});
+        self.events.push(LiquidationEvent::Completed {});
 
         Idempotent::Executed(())
     }
@@ -134,22 +129,20 @@ impl LiquidationProcess {
         self.events
             .iter_all()
             .rev()
-            .any(|e| matches!(e, LiquidationProcessEvent::Satisfied { .. }))
+            .any(|e| matches!(e, LiquidationEvent::Satisfied { .. }))
     }
 }
 
-impl TryFromEvents<LiquidationProcessEvent> for LiquidationProcess {
-    fn try_from_events(
-        events: EntityEvents<LiquidationProcessEvent>,
-    ) -> Result<Self, EsEntityError> {
-        let mut builder = LiquidationProcessBuilder::default();
+impl TryFromEvents<LiquidationEvent> for Liquidation {
+    fn try_from_events(events: EntityEvents<LiquidationEvent>) -> Result<Self, EsEntityError> {
+        let mut builder = LiquidationBuilder::default();
 
         let mut amount_sent = Default::default();
         let mut amount_received = Default::default();
 
         for event in events.iter_all() {
             match event {
-                LiquidationProcessEvent::Initialized {
+                LiquidationEvent::Initialized {
                     id,
                     credit_facility_id,
                     receivable_account_id,
@@ -162,15 +155,15 @@ impl TryFromEvents<LiquidationProcessEvent> for LiquidationProcess {
                         .receivable_account_id(*receivable_account_id)
                         .expected_to_receive(*initially_expected_to_receive)
                 }
-                LiquidationProcessEvent::CollateralSentOut { amount, .. } => {
+                LiquidationEvent::CollateralSentOut { amount, .. } => {
                     amount_sent += *amount;
                 }
-                LiquidationProcessEvent::RepaymentAmountReceived { amount, .. } => {
+                LiquidationEvent::RepaymentAmountReceived { amount, .. } => {
                     amount_received += *amount;
                 }
-                LiquidationProcessEvent::Satisfied { .. } => {}
-                LiquidationProcessEvent::Completed { .. } => {}
-                LiquidationProcessEvent::Updated {
+                LiquidationEvent::Satisfied { .. } => {}
+                LiquidationEvent::Completed { .. } => {}
+                LiquidationEvent::Updated {
                     expected_to_receive,
                     ..
                 } => builder = builder.expected_to_receive(*expected_to_receive),
@@ -186,9 +179,9 @@ impl TryFromEvents<LiquidationProcessEvent> for LiquidationProcess {
 }
 
 #[derive(Debug, Builder)]
-pub struct NewLiquidationProcess {
+pub struct NewLiquidation {
     #[builder(setter(into))]
-    pub(crate) id: LiquidationProcessId,
+    pub(crate) id: LiquidationId,
     #[builder(setter(into))]
     pub(crate) credit_facility_id: CreditFacilityId,
     pub(crate) receivable_account_id: CalaAccountId,
@@ -197,17 +190,17 @@ pub struct NewLiquidationProcess {
     pub(crate) initially_estimated_to_liquidate: Satoshis,
 }
 
-impl NewLiquidationProcess {
-    pub fn builder() -> NewLiquidationProcessBuilder {
-        NewLiquidationProcessBuilder::default()
+impl NewLiquidation {
+    pub fn builder() -> NewLiquidationBuilder {
+        NewLiquidationBuilder::default()
     }
 }
 
-impl IntoEvents<LiquidationProcessEvent> for NewLiquidationProcess {
-    fn into_events(self) -> EntityEvents<LiquidationProcessEvent> {
+impl IntoEvents<LiquidationEvent> for NewLiquidation {
+    fn into_events(self) -> EntityEvents<LiquidationEvent> {
         EntityEvents::init(
             self.id,
-            [LiquidationProcessEvent::Initialized {
+            [LiquidationEvent::Initialized {
                 id: self.id,
                 credit_facility_id: self.credit_facility_id,
                 receivable_account_id: self.receivable_account_id,
