@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 use crate::primitives::TermsTemplateId;
 
@@ -19,3 +21,16 @@ pub enum TermsTemplateError {
 }
 
 es_entity::from_es_entity_error!(TermsTemplateError);
+
+impl ErrorSeverity for TermsTemplateError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::EsEntityError(_) => Level::ERROR,
+            Self::CursorDestructureError(_) => Level::ERROR,
+            Self::CouldNotFindById(_) => Level::WARN,
+            Self::AuthorizationError(e) => e.severity(),
+            Self::AuditError(e) => e.severity(),
+        }
+    }
+}

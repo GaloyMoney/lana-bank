@@ -1,3 +1,6 @@
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
+
 #[derive(thiserror::Error, Debug)]
 pub enum CollateralError {
     #[error("CollateralError - Sqlx: {0}")]
@@ -10,6 +13,18 @@ pub enum CollateralError {
     CreditLedgerError(#[from] crate::ledger::error::CreditLedgerError),
     #[error("CollateralError - ManualUpdateError: Cannot update collateral with a custodian")]
     ManualUpdateError,
+}
+
+impl ErrorSeverity for CollateralError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::EsEntityError(_) => Level::ERROR,
+            Self::CursorDestructureError(_) => Level::ERROR,
+            Self::CreditLedgerError(e) => e.severity(),
+            Self::ManualUpdateError => Level::WARN,
+        }
+    }
 }
 
 es_entity::from_es_entity_error!(CollateralError);

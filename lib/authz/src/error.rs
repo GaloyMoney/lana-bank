@@ -1,5 +1,7 @@
 use sqlx_adapter::casbin::error::Error as CasbinError;
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum AuthorizationError {
@@ -29,5 +31,17 @@ impl From<CasbinError> for AuthorizationError {
             );
         }
         AuthorizationError::Casbin(error)
+    }
+}
+
+impl ErrorSeverity for AuthorizationError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Casbin(_) => Level::ERROR,
+            Self::NotAuthorized => Level::WARN,
+            Self::PermissionAlreadyExistsForRole(_) => Level::WARN,
+            Self::AuditError(e) => e.severity(),
+            Self::RoleParseError(_) => Level::WARN,
+        }
     }
 }

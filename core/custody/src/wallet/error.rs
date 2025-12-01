@@ -1,3 +1,6 @@
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
+
 #[derive(thiserror::Error, Debug)]
 pub enum WalletError {
     #[error("WalletError - Sqlx: {0}")]
@@ -9,3 +12,13 @@ pub enum WalletError {
 }
 
 es_entity::from_es_entity_error!(WalletError);
+
+impl ErrorSeverity for WalletError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::EsEntityError(_) => Level::ERROR,
+            Self::CursorDestructureError(_) => Level::ERROR,
+        }
+    }
+}

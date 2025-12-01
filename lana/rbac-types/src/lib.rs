@@ -7,6 +7,8 @@ mod audit_object;
 mod object;
 
 use serde::{Deserialize, Serialize};
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 use uuid::{Uuid, uuid};
 
 use core_access::UserId;
@@ -137,6 +139,16 @@ pub enum ParseSubjectError {
     Uuid(#[from] uuid::Error),
     #[error("ParseSubjectError - InvalidSubjectFormat")]
     InvalidSubjectFormat,
+}
+
+impl ErrorSeverity for ParseSubjectError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Strum(_) => Level::WARN,
+            Self::Uuid(_) => Level::WARN,
+            Self::InvalidSubjectFormat => Level::WARN,
+        }
+    }
 }
 
 impl From<UserId> for Subject {

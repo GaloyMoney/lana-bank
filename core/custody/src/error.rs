@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum CoreCustodyError {
@@ -19,3 +21,17 @@ pub enum CoreCustodyError {
 }
 
 es_entity::from_es_entity_error!(CoreCustodyError);
+
+impl ErrorSeverity for CoreCustodyError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::EsEntityError(_) => Level::ERROR,
+            Self::AuthorizationError(e) => e.severity(),
+            Self::AuditError(e) => e.severity(),
+            Self::Sqlx(_) => Level::ERROR,
+            Self::Custodian(e) => e.severity(),
+            Self::CustodianClient(e) => e.severity(),
+            Self::Wallet(e) => e.severity(),
+        }
+    }
+}

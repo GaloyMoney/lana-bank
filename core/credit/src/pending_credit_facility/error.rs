@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum PendingCreditFacilityError {
@@ -30,6 +32,26 @@ pub enum PendingCreditFacilityError {
     ),
     #[error("PendingCreditFacilityError - AuditError: ${0}")]
     AuditError(#[from] audit::error::AuditError),
+}
+
+impl ErrorSeverity for PendingCreditFacilityError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::EsEntityError(_) => Level::ERROR,
+            Self::CursorDestructureError(_) => Level::ERROR,
+            Self::GovernanceError(e) => e.severity(),
+            Self::LedgerError(e) => e.severity(),
+            Self::PriceError(e) => e.severity(),
+            Self::ApprovalInProgress => Level::WARN,
+            Self::BelowMarginLimit => Level::WARN,
+            Self::AuthorizationError(e) => e.severity(),
+            Self::CoreCustodyError(e) => e.severity(),
+            Self::CollateralError(e) => e.severity(),
+            Self::CreditFacilityProposalError(e) => e.severity(),
+            Self::AuditError(e) => e.severity(),
+        }
+    }
 }
 
 es_entity::from_es_entity_error!(PendingCreditFacilityError);

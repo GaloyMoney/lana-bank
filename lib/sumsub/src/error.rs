@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum SumsubError {
@@ -14,4 +16,17 @@ pub enum SumsubError {
     ApiError { code: u16, description: String },
     #[error("SumsubError - InvalidResponse: {0}")]
     InvalidResponse(String),
+}
+
+impl ErrorSeverity for SumsubError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::ReqwestError(_) => Level::ERROR,
+            Self::JsonFormat(_) => Level::ERROR,
+            Self::SystemTimeError(_) => Level::ERROR,
+            Self::InvalidHeaderValue(_) => Level::ERROR,
+            Self::ApiError { .. } => Level::ERROR,
+            Self::InvalidResponse(_) => Level::ERROR,
+        }
+    }
 }
