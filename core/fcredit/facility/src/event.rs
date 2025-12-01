@@ -19,4 +19,14 @@ pub enum CoreCreditFacilityEvent {
         amount: UsdCents,
         created_at: DateTime<Utc>,
     },
+    FacilityCollateralUpdated {
+        credit_facility_id: CreditFacilityId,
+        pending_credit_facility_id: PendingCreditFacilityId,
+        ledger_tx_id: LedgerTxId,
+        new_amount: Satoshis,
+        abs_diff: Satoshis,
+        action: CollateralAction,
+        recorded_at: DateTime<Utc>,
+        effective: chrono::NaiveDate,
+    },
 }

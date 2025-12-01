@@ -4,10 +4,10 @@ use es_entity::*;
 use outbox::OutboxEventMarker;
 
 use crate::{
-    error::CoreCreditCollateralError,
-    event::CoreCreditCollateralEvent,
+    error::CoreCreditFacilityError,
+    event::CoreCreditFacilityEvent,
     primitives::{CollateralId, CustodyWalletId},
-    publisher::CollateralPublisher,
+    publisher::CreditFacilityPublisher,
 };
 
 use super::{entity::*, error::*};
@@ -15,24 +15,24 @@ use super::{entity::*, error::*};
 #[derive(EsRepo)]
 #[es_repo(
     entity = "Collateral",
-    err = "CoreCreditCollateralError",
+    err = "CoreCreditFacilityError",
     columns(custody_wallet_id(ty = "Option<CustodyWalletId>", update(persist = false))),
     tbl_prefix = "core",
     post_persist_hook = "publish"
 )]
 pub struct CollateralRepo<E>
 where
-    E: OutboxEventMarker<CoreCreditCollateralEvent>,
+    E: OutboxEventMarker<CoreCreditFacilityEvent>,
 {
     pool: PgPool,
-    publisher: CollateralPublisher<E>,
+    publisher: CreditFacilityPublisher<E>,
 }
 
 impl<E> CollateralRepo<E>
 where
-    E: OutboxEventMarker<CoreCreditCollateralEvent>,
+    E: OutboxEventMarker<CoreCreditFacilityEvent>,
 {
-    pub fn new(pool: &PgPool, publisher: &CollateralPublisher<E>) -> Self {
+    pub fn new(pool: &PgPool, publisher: &CreditFacilityPublisher<E>) -> Self {
         Self {
             pool: pool.clone(),
             publisher: publisher.clone(),
@@ -45,7 +45,7 @@ where
         op: &mut impl es_entity::AtomicOperation,
         entity: &Collateral,
         new_events: es_entity::LastPersisted<'_, CollateralEvent>,
-    ) -> Result<(), CoreCreditCollateralError> {
+    ) -> Result<(), CoreCreditFacilityError> {
         self.publisher
             .publish_collateral(op, entity, new_events)
             .await
@@ -54,7 +54,7 @@ where
 
 impl<E> Clone for CollateralRepo<E>
 where
-    E: OutboxEventMarker<CoreCreditCollateralEvent>,
+    E: OutboxEventMarker<CoreCreditFacilityEvent>,
 {
     fn clone(&self) -> Self {
         Self {
