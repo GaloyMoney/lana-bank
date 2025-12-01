@@ -25,16 +25,7 @@ impl ErrorSeverity for SumsubError {
             Self::JsonFormat(_) => Level::ERROR,
             Self::SystemTimeError(_) => Level::ERROR,
             Self::InvalidHeaderValue(_) => Level::ERROR,
-            Self::ApiError { code, .. } => {
-                // 4xx errors might be less severe than 5xx errors
-                if *code >= 500 {
-                    Level::ERROR
-                } else if *code >= 400 {
-                    Level::WARN
-                } else {
-                    Level::ERROR
-                }
-            }
+            Self::ApiError { .. } => Level::ERROR,
             Self::InvalidResponse(_) => Level::ERROR,
         }
     }

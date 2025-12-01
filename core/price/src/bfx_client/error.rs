@@ -40,7 +40,7 @@ impl ErrorSeverity for BfxClientError {
             Self::Deserialization(_) => Level::ERROR,
             Self::ConversionError(e) => e.severity(),
             Self::UnexpectedResponse { .. } => Level::ERROR,
-            Self::RequestParametersError { .. } => Level::WARN,
+            Self::RequestParametersError { .. } => Level::ERROR,
         }
     }
 }

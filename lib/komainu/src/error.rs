@@ -27,16 +27,7 @@ impl ErrorSeverity for KomainuError {
         match self {
             Self::ReqwestError(_) => Level::ERROR,
             Self::SecretKey => Level::ERROR,
-            Self::KomainuError { status, .. } => {
-                // 4xx errors might be less severe than 5xx errors
-                if *status >= 500 {
-                    Level::ERROR
-                } else if *status >= 400 {
-                    Level::WARN
-                } else {
-                    Level::ERROR
-                }
-            }
+            Self::KomainuError { .. } => Level::ERROR,
             Self::JsonFormat(_) => Level::ERROR,
             Self::MissingWebhookHeaders => Level::WARN,
             Self::InvalidWebhookSignature(_) => Level::WARN,
