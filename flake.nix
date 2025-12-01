@@ -746,7 +746,7 @@
             src = pkgs.lib.cleanSourceWith {
               src = ./.;
               filter = path: type:
-                pkgs.lib.hasInfix "/dev/lana.default.yml" path;
+                type == "directory" || pkgs.lib.hasInfix "/dev/lana.default.yml" path;
             };
 
             nativeBuildInputs = with pkgs; [
