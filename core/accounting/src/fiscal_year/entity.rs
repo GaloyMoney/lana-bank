@@ -72,13 +72,7 @@ impl FiscalYear {
 
     pub(super) fn closes_as_of(&self) -> NaiveDate {
         let year = self.opened_as_of.year();
-        let last_month_of_year = NaiveDate::from_ymd_opt(year, 12, 1)
-            .expect("Failed to compute december of fiscal year");
-        last_month_of_year
-            .checked_add_months(Months::new(1))
-            .and_then(|d| d.with_day(1))
-            .and_then(|d| d.pred_opt())
-            .expect("Failed to compute expected december closing date for fiscal year")
+        NaiveDate::from_ymd_opt(year, 12, 31).expect("Failed to compute december of fiscal year")
     }
 
     #[instrument(name = "fiscal_year.close_next_sequential_month", skip(self, now))]
