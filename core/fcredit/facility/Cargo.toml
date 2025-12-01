@@ -13,10 +13,16 @@ outbox = { workspace = true }
 core-money = { workspace = true }
 core-price = { workspace = true }
 core-custody = { workspace = true }
+governance = { workspace = true }
 public-id = { workspace = true }
+credit-terms = { package = "core-fcredit-terms", path = "../terms" }
 
+tracing = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
+chrono = { workspace = true }
+strum = { workspace = true }
+derive_builder = { workspace = true }
 cala-ledger = { workspace = true }
 es-entity = { workspace = true }
 sqlx = { workspace = true }

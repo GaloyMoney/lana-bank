@@ -5,13 +5,14 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use core_custody::CustodianId;
+use credit_terms::TermValues;
 use es_entity::*;
 
-use crate::{
-    // pending_credit_facility::{NewPendingCreditFacility, NewPendingCreditFacilityBuilder},
-    // primitives::*,
-    terms::TermValues,
-};
+// use crate::{
+//     // pending_credit_facility::{NewPendingCreditFacility, NewPendingCreditFacilityBuilder},
+//     // primitives::*,
+//     terms::TermValues,
+// };
 
 use super::error::CreditFacilityProposalError;
 
