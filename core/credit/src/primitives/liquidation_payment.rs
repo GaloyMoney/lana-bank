@@ -64,20 +64,20 @@ mod test {
 
     #[test]
     fn test_calculate() {
-        let amount = UsdCents::from(50_000_00);
-        let price = PriceOfOneBTC::new(UsdCents::from(62_500_00));
+        let amount = UsdCents::from(5_000_000);
+        let price = PriceOfOneBTC::new(UsdCents::from(6_250_000));
         let target_cvl = CVLPct::new(140);
         let collateral = Satoshis::from(100_000_000);
         let liquidation_payment = LiquidationPayment::new(amount, price, target_cvl, collateral);
         let amount = liquidation_payment.calculate();
-        assert_eq!(amount, UsdCents::from(18_750_00));
+        assert_eq!(amount, UsdCents::from(1_875_000));
     }
 
     #[test]
 
     fn test_calculate_with_infinite_cvl() {
-        let amount = UsdCents::from(50_000_00);
-        let price = PriceOfOneBTC::new(UsdCents::from(62_500_00));
+        let amount = UsdCents::from(5_000_000);
+        let price = PriceOfOneBTC::new(UsdCents::from(6_250_000));
         let target_cvl = CVLPct::Infinite;
         let collateral = Satoshis::from(100_000_000);
         let liquidation_payment = LiquidationPayment::new(amount, price, target_cvl, collateral);

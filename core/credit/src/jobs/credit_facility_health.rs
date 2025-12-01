@@ -127,8 +127,8 @@ where
         message: &PersistentOutboxEvent<E>,
         db: &mut DbOp<'_>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        if let Some(event) = message.as_event() {
-            if let CoreCreditEvent::PartialLiquidationInitiated {
+        if let Some(event) = message.as_event()
+            && let CoreCreditEvent::PartialLiquidationInitiated {
                 liquidation_process_id,
                 credit_facility_id,
                 receivable_account_id,
@@ -136,33 +136,30 @@ where
                 initially_expected_to_receive,
                 initially_estimated_to_liquidate,
             } = event
-            {
-                if let Some(liquidation) = self
-                    .liquidations
-                    .create_if_not_exist_in_op(
-                        db,
-                        *liquidation_process_id,
-                        *credit_facility_id,
-                        *receivable_account_id,
-                        *trigger_price,
-                        *initially_expected_to_receive,
-                        *initially_estimated_to_liquidate,
-                    )
-                    .await?
-                {
-                    self.jobs
-                        .create_and_spawn_in_op(
-                            db,
-                            JobId::new(),
-                            partial_liquidation::PartialLiquidationJobConfig::<E> {
-                                liquidation_process_id: liquidation.id,
-                                credit_facility_id: *credit_facility_id,
-                                _phantom: std::marker::PhantomData,
-                            },
-                        )
-                        .await?;
-                }
-            }
+            && let Some(liquidation) = self
+                .liquidations
+                .create_if_not_exist_in_op(
+                    db,
+                    *liquidation_process_id,
+                    *credit_facility_id,
+                    *receivable_account_id,
+                    *trigger_price,
+                    *initially_expected_to_receive,
+                    *initially_estimated_to_liquidate,
+                )
+                .await?
+        {
+            self.jobs
+                .create_and_spawn_in_op(
+                    db,
+                    JobId::new(),
+                    partial_liquidation::PartialLiquidationJobConfig::<E> {
+                        liquidation_process_id: liquidation.id,
+                        credit_facility_id: *credit_facility_id,
+                        _phantom: std::marker::PhantomData,
+                    },
+                )
+                .await?;
         }
 
         Ok(())

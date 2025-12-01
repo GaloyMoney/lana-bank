@@ -497,6 +497,9 @@
         "collateralization_state": {
           "$ref": "#/$defs/CollateralizationState"
         },
+        "cvl": {
+          "$ref": "#/$defs/CVLPct"
+        },
         "outstanding": {
           "$ref": "#/$defs/CreditFacilityReceivable"
         },
@@ -513,6 +516,7 @@
         "collateralization_state",
         "collateral",
         "outstanding",
+        "cvl",
         "price"
       ],
       "type": "object"
@@ -530,6 +534,52 @@
       "required": [
         "type",
         "collateralization_ratio"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "initially_estimated_to_liquidate": {
+          "$ref": "#/$defs/Satoshis"
+        },
+        "initially_expected_to_receive": {
+          "$ref": "#/$defs/UsdCents"
+        },
+        "liquidation_process_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "receivable_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "trigger_price": {
+          "$ref": "#/$defs/PriceOfOneBTC"
+        },
+        "type": {
+          "const": "partial_liquidation_initiated",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "liquidation_process_id",
+        "receivable_account_id",
+        "trigger_price",
+        "initially_expected_to_receive",
+        "initially_estimated_to_liquidate"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "partial_liquidation_concluded",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
       ],
       "type": "object"
     },
