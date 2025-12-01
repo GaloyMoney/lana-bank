@@ -5857,6 +5857,8 @@ dependencies = [
  "lettre",
  "serde",
  "thiserror 2.0.17",
+ "tracing",
+ "tracing-utils",
  "workspace-hack",
 ]
 
