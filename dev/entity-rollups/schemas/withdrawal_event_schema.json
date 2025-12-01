@@ -76,6 +76,13 @@
         "approved": {
           "type": "boolean"
         },
+        "ledger_tx_id": {
+          "format": "uuid",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "status": {
           "$ref": "#/$defs/WithdrawalStatus"
         },
