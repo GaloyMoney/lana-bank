@@ -13,6 +13,7 @@ outbox = { workspace = true }
 core-money = { workspace = true }
 core-price = { workspace = true }
 core-custody = { workspace = true }
+core-customer = { workspace = true }
 governance = { workspace = true }
 public-id = { workspace = true }
 credit-terms = { package = "core-fcredit-terms", path = "../terms" }

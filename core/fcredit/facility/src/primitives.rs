@@ -1,7 +1,15 @@
 use serde::{Deserialize, Serialize};
 
-use core_money::UsdCents;
 use credit_terms::balance_summary::CreditFacilityBalanceSummary;
+
+pub use cala_ledger::primitives::{
+    AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, Currency,
+    DebitOrCredit as LedgerDebitOrCredit, JournalId as LedgerJournalId,
+    TransactionId as LedgerTxId, TxTemplateId as LedgerTxTemplateId,
+};
+pub use core_customer::{CustomerId, CustomerType};
+pub use core_money::UsdCents;
+pub use governance::ApprovalProcessId;
 
 es_entity::entity_id! {
     CreditFacilityProposalId,
@@ -35,4 +43,27 @@ impl From<CreditFacilityBalanceSummary> for CreditFacilityReceivable {
             interest: balance.interest_outstanding_payable(),
         }
     }
+}
+
+#[derive(
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    Serialize,
+    Deserialize,
+    PartialEq,
+    Eq,
+    strum::Display,
+    strum::EnumString,
+)]
+#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+pub enum CreditFacilityProposalStatus {
+    #[default]
+    PendingCustomerApproval,
+    CustomerDenied,
+    PendingApproval,
+    Approved,
+    Denied,
 }
