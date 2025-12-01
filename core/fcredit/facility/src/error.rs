@@ -8,6 +8,8 @@ pub enum CoreCreditFacilityError {
     EsEntityError(es_entity::EsEntityError),
     #[error("CoreCreditFacilityError - CursorDestructureError: {0}")]
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
+    #[error("CoreCreditFacilityError - GovernanceError: {0}")]
+    GovernanceError(#[from] governance::error::GovernanceError),
 }
 
 es_entity::from_es_entity_error!(CoreCreditFacilityError);

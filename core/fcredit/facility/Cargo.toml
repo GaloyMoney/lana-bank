@@ -14,7 +14,9 @@ core-money = { workspace = true }
 core-price = { workspace = true }
 core-custody = { workspace = true }
 core-customer = { workspace = true }
+audit = { workspace = true }
 governance = { workspace = true }
+authz = { workspace = true }
 public-id = { workspace = true }
 credit-terms = { package = "core-fcredit-terms", path = "../terms" }
 
