@@ -8,6 +8,8 @@ pub enum CoreCreditCollateralError {
     EsEntityError(es_entity::EsEntityError),
     #[error("CoreCreditCollateralError - CursorDestructureError: {0}")]
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
-    #[error("CoreCreditCollateralError - CreditError: {0}")]
-    CreditLedgerError(#[from] crate::ledger::error::CreditLedgerError),
+    // #[error("CoreCreditCollateralError - CreditError: {0}")]
+    // CreditLedgerError(#[from] crate::ledger::error::CreditLedgerError),
 }
+
+es_entity::from_es_entity_error!(CoreCreditCollateralError);
