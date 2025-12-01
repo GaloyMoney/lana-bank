@@ -42,6 +42,7 @@ pub enum WithdrawalEvent {
         approval_process_id: ApprovalProcessId,
         approved: bool,
         status: WithdrawalStatus,
+        ledger_tx_id: Option<CalaTransactionId>,
     },
     Confirmed {
         ledger_tx_id: CalaTransactionId,
@@ -210,12 +211,15 @@ impl Withdrawal {
                 WithdrawalEvent::Confirmed { ledger_tx_id, .. } => Some(*ledger_tx_id),
                 WithdrawalEvent::Cancelled { ledger_tx_id, .. } => Some(*ledger_tx_id),
                 WithdrawalEvent::Reverted { ledger_tx_id, .. } => Some(*ledger_tx_id),
-                WithdrawalEvent::ApprovalProcessConcluded { .. } => None,
+                WithdrawalEvent::ApprovalProcessConcluded { ledger_tx_id, .. } => *ledger_tx_id,
             })
             .collect()
     }
 
-    pub fn approval_process_concluded(&mut self, approved: bool) -> Idempotent<()> {
+    pub fn approval_process_concluded(
+        &mut self,
+        approved: bool,
+    ) -> Idempotent<Option<CalaTransactionId>> {
         idempotency_guard!(
             self.events.iter_all(),
             WithdrawalEvent::ApprovalProcessConcluded { .. }
@@ -225,12 +229,18 @@ impl Withdrawal {
         } else {
             WithdrawalStatus::Denied
         };
+        let ledger_tx_id = if !approved {
+            Some(CalaTransactionId::new())
+        } else {
+            None
+        };
         self.events.push(WithdrawalEvent::ApprovalProcessConcluded {
             approval_process_id: self.id.into(),
             approved,
             status,
+            ledger_tx_id,
         });
-        Idempotent::Executed(())
+        Idempotent::Executed(ledger_tx_id)
     }
 }
 

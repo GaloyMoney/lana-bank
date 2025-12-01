@@ -90,21 +90,25 @@ where
                 CoreDepositAction::Withdrawal(WithdrawalAction::ConcludeApprovalProcess),
             )
             .await?;
-        if withdraw.approval_process_concluded(approved).did_execute() {
-            self.repo.update_in_op(&mut op, &mut withdraw).await?;
-            if !approved {
+        match withdraw.approval_process_concluded(approved) {
+            es_entity::Idempotent::Executed(Some(denied_tx_id)) => {
+                self.repo.update_in_op(&mut op, &mut withdraw).await?;
                 self.ledger
                     .deny_withdrawal(
                         op,
                         withdraw.id,
+                        denied_tx_id,
                         withdraw.amount,
                         withdraw.deposit_account_id,
                     )
                     .await?;
-            } else {
+            }
+            es_entity::Idempotent::Executed(None) => {
+                self.repo.update_in_op(&mut op, &mut withdraw).await?;
                 op.commit().await?;
             }
-        }
+            _ => (),
+        };
         Ok(withdraw)
     }
 }

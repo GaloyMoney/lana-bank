@@ -580,10 +580,11 @@ impl DepositLedger {
         &self,
         op: es_entity::DbOp<'_>,
         entity_id: WithdrawalId,
+        tx_id: impl Into<TransactionId>,
         amount: UsdCents,
         credit_account_id: impl Into<AccountId>,
     ) -> Result<(), DepositLedgerError> {
-        let tx_id = entity_id.into();
+        let tx_id = tx_id.into();
         tracing::Span::current().record("entity_id", tracing::field::debug(&entity_id));
         let credit_account_id = credit_account_id.into();
         tracing::Span::current().record(
