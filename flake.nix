@@ -743,19 +743,23 @@
 
           check-default-config = pkgs.stdenv.mkDerivation {
             name = "check-default-config";
-            src = rustSource;
+            src = pkgs.lib.cleanSourceWith {
+              src = ./.;
+              filter = path: type:
+                pkgs.lib.hasInfix "/dev/lana.default.yml" path;
+            };
 
             nativeBuildInputs = with pkgs; [
               diffutils
             ];
 
             buildInputs = [
-              lana-cli-debug
+              lana-cli-bootstrap
             ];
 
             buildPhase = ''
               echo "Generating default config..."
-              ${lana-cli-debug}/bin/lana-cli dump-default-config > default-config-generated.yml
+              ${lana-cli-bootstrap}/bin/lana-cli dump-default-config > default-config-generated.yml
 
               echo "Comparing default config..."
               if ! diff -u dev/lana.default.yml default-config-generated.yml; then
