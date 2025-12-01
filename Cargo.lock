@@ -1520,18 +1520,24 @@ version = "0.0.0"
 dependencies = [
  "anyhow",
  "cala-ledger",
+ "chrono",
  "core-custody",
+ "core-fcredit-terms",
  "core-money",
  "core-price",
+ "derive_builder",
  "es-entity",
+ "governance",
  "job",
  "outbox",
  "public-id",
  "schemars 1.1.0",
  "serde",
  "sqlx",
+ "strum 0.27.2",
  "thiserror 2.0.17",
  "tokio",
+ "tracing",
 ]
 
 [[package]]
