@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum AccountingInitError {
@@ -32,4 +34,26 @@ pub enum AccountingInitError {
     SeedFileError(#[from] std::io::Error),
     #[error("AccountingInitError - MissingConfig: {0}")]
     MissingConfig(String),
+}
+
+impl ErrorSeverity for AccountingInitError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::JsonSerde(_) => Level::ERROR,
+            Self::AccountCodeParseError(e) => e.severity(),
+            Self::ChartOfAccountsError(e) => e.severity(),
+            Self::CreditChartOfAccountsIntegrationError(e) => e.severity(),
+            Self::CoreDepositError(e) => e.severity(),
+            Self::LedgerError(_) => Level::ERROR,
+            Self::JournalError(_) => Level::ERROR,
+            Self::AccountError(_) => Level::ERROR,
+            Self::TrialBalanceError(e) => e.severity(),
+            Self::ProfitAndLossStatementError(e) => e.severity(),
+            Self::BalanceSheetError(e) => e.severity(),
+            Self::FiscalYearError(e) => e.severity(),
+            Self::SeedFileError(_) => Level::ERROR,
+            Self::MissingConfig(_) => Level::ERROR,
+        }
+    }
 }

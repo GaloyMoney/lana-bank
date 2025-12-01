@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum KomainuError {
@@ -18,4 +20,17 @@ pub enum KomainuError {
     MissingWebhookHeaders,
     #[error("KomainuError - InvalidWebhookSignature")]
     InvalidWebhookSignature(#[from] sha2::digest::MacError),
+}
+
+impl ErrorSeverity for KomainuError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::ReqwestError(_) => Level::ERROR,
+            Self::SecretKey => Level::ERROR,
+            Self::KomainuError { .. } => Level::ERROR,
+            Self::JsonFormat(_) => Level::ERROR,
+            Self::MissingWebhookHeaders => Level::WARN,
+            Self::InvalidWebhookSignature(_) => Level::WARN,
+        }
+    }
 }

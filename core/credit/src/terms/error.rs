@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 use crate::primitives::CVLPct;
 
@@ -21,4 +23,16 @@ pub enum TermsError {
     MarginCallBelowLiquidationLimit(CVLPct, CVLPct),
     #[error("TermsError - UninitializedField: {0}")]
     UninitializedField(#[from] derive_builder::UninitializedFieldError),
+}
+
+impl ErrorSeverity for TermsError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::ConversionError(e) => e.severity(),
+            Self::InvalidFutureDateComparisonForAccrualDate(_, _) => Level::WARN,
+            Self::MarginCallAboveInitialLimit(_, _) => Level::WARN,
+            Self::MarginCallBelowLiquidationLimit(_, _) => Level::WARN,
+            Self::UninitializedField(_) => Level::ERROR,
+        }
+    }
 }

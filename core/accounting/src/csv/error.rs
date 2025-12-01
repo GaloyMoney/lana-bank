@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum AccountingCsvExportError {
@@ -14,4 +16,17 @@ pub enum AccountingCsvExportError {
     DocumentStorageError(#[from] document_storage::error::DocumentStorageError),
     #[error("AccountingCsvExportError - CsvError: {0}")]
     CsvError(String),
+}
+
+impl ErrorSeverity for AccountingCsvExportError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::AuthorizationError(e) => e.severity(),
+            Self::LedgerAccountError(e) => e.severity(),
+            Self::JobError(_) => Level::ERROR,
+            Self::DocumentStorageError(e) => e.severity(),
+            Self::CsvError(_) => Level::WARN,
+        }
+    }
 }

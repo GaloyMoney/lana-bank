@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum PolicyError {
@@ -27,5 +29,18 @@ impl From<sqlx::Error> for PolicyError {
             return Self::DuplicateApprovalProcessType;
         }
         Self::Sqlx(error)
+    }
+}
+
+impl ErrorSeverity for PolicyError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::EsEntityError(_) => Level::ERROR,
+            Self::CursorDestructureError(_) => Level::ERROR,
+            Self::DuplicateApprovalProcessType => Level::WARN,
+            Self::PolicyThresholdTooHigh(_, _) => Level::WARN,
+            Self::PolicyThresholdTooLow(_, _) => Level::WARN,
+        }
     }
 }

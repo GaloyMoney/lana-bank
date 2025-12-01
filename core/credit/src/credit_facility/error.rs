@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 use core_money::{Satoshis, UsdCents};
 
@@ -74,6 +76,45 @@ pub enum CreditFacilityError {
     CreditFacilityProposalError(
         #[from] crate::pending_credit_facility::error::PendingCreditFacilityError,
     ),
+}
+
+impl ErrorSeverity for CreditFacilityError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::EsEntityError(_) => Level::ERROR,
+            Self::CursorDestructureError(_) => Level::ERROR,
+            Self::ConversionError(e) => e.severity(),
+            Self::InterestAccrualCycleError(e) => e.severity(),
+            Self::DisbursalError(e) => e.severity(),
+            Self::ApprovalInProgress => Level::WARN,
+            Self::Denied => Level::WARN,
+            Self::DisbursalPastMaturityDate => Level::WARN,
+            Self::OnlyOneDisbursalAllowed => Level::WARN,
+            Self::NotActivatedYet => Level::WARN,
+            Self::InterestAccrualNotCompletedYet => Level::WARN,
+            Self::NoDisbursalInProgress => Level::WARN,
+            Self::CollateralNotUpdated(_, _) => Level::ERROR,
+            Self::NoCollateral => Level::WARN,
+            Self::BelowMarginLimit => Level::WARN,
+            Self::PaymentExceedsOutstandingCreditFacilityAmount(_, _) => Level::WARN,
+            Self::FacilityLedgerBalanceMismatch => Level::ERROR,
+            Self::OutstandingAmount => Level::WARN,
+            Self::InterestAccrualCycleWithInvalidFutureStartDate => Level::ERROR,
+            Self::InProgressInterestAccrualCycleNotCompletedYet => Level::WARN,
+            Self::DisbursalAmountTooLarge(_, _) => Level::WARN,
+            Self::AuthorizationError(e) => e.severity(),
+            Self::AuditError(e) => e.severity(),
+            Self::LedgerError(e) => e.severity(),
+            Self::PriceError(e) => e.severity(),
+            Self::ObligationError(e) => e.severity(),
+            Self::GovernanceError(e) => e.severity(),
+            Self::PublicIdError(e) => e.severity(),
+            Self::PaymentAllocationError(e) => e.severity(),
+            Self::JobError(_) => Level::ERROR,
+            Self::CreditFacilityProposalError(e) => e.severity(),
+        }
+    }
 }
 
 es_entity::from_es_entity_error!(CreditFacilityError);

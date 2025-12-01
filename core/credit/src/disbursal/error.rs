@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum DisbursalError {
@@ -18,6 +20,21 @@ pub enum DisbursalError {
     ObligationError(#[from] crate::obligation::error::ObligationError),
     #[error("CreditFacilityError - AuditError: {0}")]
     AuditError(#[from] audit::error::AuditError),
+}
+
+impl ErrorSeverity for DisbursalError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::EsEntityError(_) => Level::ERROR,
+            Self::CursorDestructureError(_) => Level::ERROR,
+            Self::JobError(_) => Level::ERROR,
+            Self::AuthorizationError(e) => e.severity(),
+            Self::GovernanceError(e) => e.severity(),
+            Self::ObligationError(e) => e.severity(),
+            Self::AuditError(e) => e.severity(),
+        }
+    }
 }
 
 es_entity::from_es_entity_error!(DisbursalError);

@@ -5,6 +5,8 @@ use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
@@ -85,6 +87,16 @@ pub enum ConversionError {
     UnexpectedNegativeNumber(rust_decimal::Decimal),
     #[error("ConversionError - Overflow")]
     Overflow,
+}
+
+impl ErrorSeverity for ConversionError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::DecimalError(_) => Level::ERROR,
+            Self::UnexpectedNegativeNumber(_) => Level::WARN,
+            Self::Overflow => Level::ERROR,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]

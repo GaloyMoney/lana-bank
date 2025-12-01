@@ -11,6 +11,7 @@ fail-on-warnings = []
 [dependencies]
 
 thiserror = { workspace = true }
+tracing-utils = { workspace = true }
 reqwest = { workspace = true }
 serde = { workspace = true }
 tracing = { workspace = true }

@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum GovernanceError {
@@ -16,4 +18,18 @@ pub enum GovernanceError {
     AuditError(#[from] audit::error::AuditError),
     #[error("GovernanceError - SubjectIsNotCommitteeMember")]
     SubjectIsNotCommitteeMember,
+}
+
+impl ErrorSeverity for GovernanceError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::AuthorizationError(e) => e.severity(),
+            Self::CommitteeError(e) => e.severity(),
+            Self::PolicyError(e) => e.severity(),
+            Self::ApprovalProcessError(e) => e.severity(),
+            Self::AuditError(e) => e.severity(),
+            Self::SubjectIsNotCommitteeMember => Level::WARN,
+        }
+    }
 }

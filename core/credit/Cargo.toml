@@ -37,6 +37,7 @@ serde_with = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
+tracing-utils = { workspace = true }
 uuid = { workspace = true }
 derive_builder = { workspace = true }
 rust_decimal = { workspace = true }

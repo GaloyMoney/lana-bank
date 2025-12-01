@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum RoleError {
@@ -15,3 +17,15 @@ pub enum RoleError {
 }
 
 es_entity::from_es_entity_error!(RoleError);
+
+impl ErrorSeverity for RoleError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::EsEntityError(_) => Level::ERROR,
+            Self::CursorDestructureError(_) => Level::ERROR,
+            Self::AuthorizationError(e) => e.severity(),
+            Self::AuditError(e) => e.severity(),
+        }
+    }
+}

@@ -1,4 +1,6 @@
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum CoreDepositError {
@@ -60,5 +62,35 @@ impl CoreDepositError {
                 cala_ledger::account::error::AccountError::ExternalIdAlreadyExists
             ))
         )
+    }
+}
+
+impl ErrorSeverity for CoreDepositError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Sqlx(_) => Level::ERROR,
+            Self::AuditError(e) => e.severity(),
+            Self::AuthorizationError(e) => e.severity(),
+            Self::DepositAccountError(e) => e.severity(),
+            Self::DepositError(e) => e.severity(),
+            Self::WithdrawalError(e) => e.severity(),
+            Self::DepositLedgerError(e) => e.severity(),
+            Self::GovernanceError(e) => e.severity(),
+            Self::CustomerError(e) => e.severity(),
+            Self::CoreChartOfAccountsError(e) => e.severity(),
+            Self::JobError(_) => Level::ERROR,
+            Self::ProcessError(e) => e.severity(),
+            Self::SubjectIsNotDepositAccountHolder => Level::WARN,
+            Self::DepositAccountNotFound => Level::WARN,
+            Self::ChartIdMismatch => Level::ERROR,
+            Self::DepositConfigAlreadyExists => Level::WARN,
+            Self::DepositAccountInactive => Level::WARN,
+            Self::DepositAccountFrozen => Level::WARN,
+            Self::DepositAccountClosed => Level::WARN,
+            Self::WithdrawalBuilderError(_) => Level::ERROR,
+            Self::DepositBuilderError(_) => Level::ERROR,
+            Self::PublicIdError(e) => e.severity(),
+            Self::CustomerNotVerified => Level::WARN,
+        }
     }
 }
