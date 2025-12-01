@@ -18,8 +18,8 @@ pub enum FiscalYearError {
     ChartOfAccountsError(#[from] crate::chart_of_accounts::error::ChartOfAccountsError),
     #[error("FiscalYearError - LastMonthNotClosed")]
     LastMonthNotClosed,
-    #[error("FiscalYearError - AlreadyClosed")]
-    AlreadyClosed,
+    #[error("FiscalYearError - AllMonthsAlreadyClosed")]
+    AllMonthsAlreadyClosed,
     #[error("FiscalYearError - AlreadyOpened")]
     AlreadyOpened,
     #[error("FiscalYearError - FiscalYearNotInitializedForChart: {0}")]

@@ -121,13 +121,14 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                CoreAccountingObject::all_fiscal_years(),
+                CoreAccountingObject::fiscal_year(id),
                 CoreAccountingAction::FISCAL_YEAR_CREATE,
             )
             .await?;
-        let fiscal_year = self.repo.find_by_id(id).await?;
+        let now = crate::time::now();
 
-        let new_fiscal_year = fiscal_year.next()?;
+        let fiscal_year = self.repo.find_by_id(id).await?;
+        let new_fiscal_year = fiscal_year.next(now)?;
         let next_fiscal_year = self.repo.create(new_fiscal_year).await?;
         Ok(next_fiscal_year)
     }
