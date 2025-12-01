@@ -1,5 +1,7 @@
 use handlebars::{RenderError, TemplateError};
 use thiserror::Error;
+use tracing::Level;
+use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum EmailError {
@@ -21,4 +23,20 @@ pub enum EmailError {
     Obligation(#[from] core_credit::ObligationError),
     #[error("EmailError - CreditFacility: {0}")]
     CreditFacility(#[from] core_credit::CreditFacilityError),
+}
+
+impl ErrorSeverity for EmailError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::Smtp(e) => e.severity(),
+            Self::Template(_) => Level::ERROR,
+            Self::Render(_) => Level::ERROR,
+            Self::Job(_) => Level::ERROR,
+            Self::User(e) => e.severity(),
+            Self::CoreCredit(e) => e.severity(),
+            Self::Customer(e) => e.severity(),
+            Self::Obligation(e) => e.severity(),
+            Self::CreditFacility(e) => e.severity(),
+        }
+    }
 }
