@@ -12,6 +12,7 @@ use outbox::OutboxEventMarker;
 use crate::{
     CoreDepositAction, CoreDepositObject, WithdrawalAction,
     event::CoreDepositEvent,
+    ledger::DepositLedger,
     primitives::WithdrawalId,
     withdrawal::{Withdrawal, error::WithdrawalError, repo::WithdrawalRepo},
 };
@@ -28,6 +29,7 @@ where
     repo: WithdrawalRepo<E>,
     audit: Perms::Audit,
     governance: Governance<Perms, E>,
+    ledger: DepositLedger,
 }
 impl<Perms, E> Clone for ApproveWithdrawal<Perms, E>
 where
@@ -39,6 +41,7 @@ where
             repo: self.repo.clone(),
             audit: self.audit.clone(),
             governance: self.governance.clone(),
+            ledger: self.ledger.clone(),
         }
     }
 }
@@ -56,11 +59,13 @@ where
         repo: &WithdrawalRepo<E>,
         audit: &Perms::Audit,
         governance: &Governance<Perms, E>,
+        ledger: &DepositLedger,
     ) -> Self {
         Self {
             repo: repo.clone(),
             audit: audit.clone(),
             governance: governance.clone(),
+            ledger: ledger.clone(),
         }
     }
 
@@ -87,7 +92,18 @@ where
             .await?;
         if withdraw.approval_process_concluded(approved).did_execute() {
             self.repo.update_in_op(&mut op, &mut withdraw).await?;
-            op.commit().await?;
+            if !approved {
+                self.ledger
+                    .deny_withdrawal(
+                        op,
+                        withdraw.id,
+                        withdraw.amount,
+                        withdraw.deposit_account_id,
+                    )
+                    .await?;
+            } else {
+                op.commit().await?;
+            }
         }
         Ok(withdraw)
     }
