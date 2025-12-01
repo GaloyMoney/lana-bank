@@ -25,7 +25,7 @@ struct Cli {
         value_name = "FILE"
     )]
     config: PathBuf,
-    #[clap(env = "PG_CON")]
+    #[clap(env = "PG_CON", default_value = "")]
     pg_con: String,
     #[clap(env = "SUMSUB_KEY", default_value = "")]
     sumsub_key: String,

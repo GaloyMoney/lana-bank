@@ -741,6 +741,42 @@
             '';
           };
 
+          check-default-config = pkgs.stdenv.mkDerivation {
+            name = "check-default-config";
+            src = pkgs.lib.cleanSourceWith {
+              src = ./.;
+              filter = path: type:
+                type == "directory" || pkgs.lib.hasInfix "/dev/lana.default.yml" path;
+            };
+
+            nativeBuildInputs = with pkgs; [
+              diffutils
+            ];
+
+            buildInputs = [
+              lana-cli-bootstrap
+            ];
+
+            buildPhase = ''
+              echo "Generating default config..."
+              ${lana-cli-bootstrap}/bin/lana-cli dump-default-config > default-config-generated.yml
+
+              echo "Comparing default config..."
+              if ! diff -u dev/lana.default.yml default-config-generated.yml; then
+                echo "ERROR: Default config is out of date!"
+                echo "Run 'make generate-default-config' to update the config"
+                exit 1
+              fi
+
+              echo "Default config is up to date ✓"
+            '';
+
+            installPhase = ''
+              mkdir -p $out
+              echo "Default config check passed" > $out/result.txt
+            '';
+          };
+
           check-fmt = pkgs.stdenv.mkDerivation {
             name = "check-fmt";
             src = ./.;

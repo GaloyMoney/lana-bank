@@ -13,7 +13,8 @@ podman-service-start:
 # available container engines. To force use of podman, set ENGINE_DEFAULT=podman in your environment.
 # The podman-* targets below are Linux-only and used for manual podman service setup.
 
-check-code-rust:
+check-code-rust: generate-default-config
+	git diff --exit-code dev/lana.default.yml
 	SQLX_OFFLINE=true cargo fmt --check --all
 	SQLX_OFFLINE=true cargo check
 	SQLX_OFFLINE=true cargo clippy --all-features --all-targets
