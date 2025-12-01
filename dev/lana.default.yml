@@ -74,6 +74,7 @@ time:
     tick_duration_secs: 1000
     transform_to_realtime: false
 bootstrap:
+  active: false
   num_facilities: 0
   num_customers: 0
 

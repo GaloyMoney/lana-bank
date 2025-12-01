@@ -20,6 +20,10 @@ pub async fn run(
     app: &LanaApp,
     config: BootstrapConfig,
 ) -> anyhow::Result<()> {
+    if !config.active {
+        return Ok(());
+    }
+
     let sub = superuser_subject(&superuser_email, app).await?;
 
     create_term_templates(&sub, app).await?;
