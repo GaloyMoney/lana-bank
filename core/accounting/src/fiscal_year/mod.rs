@@ -87,7 +87,11 @@ where
             return Ok(latest_fiscal_year);
         }
 
-        tracing::info!("Initializing first FiscalYear for chart ID: {}", chart_id);
+        tracing::info!(
+            chart_id = %chart_id,
+            "Initializing first fiscal year for chart"
+
+        );
         let new_fiscal_year = NewFiscalYear::builder()
             .id(FiscalYearId::new())
             .chart_id(chart_id)
