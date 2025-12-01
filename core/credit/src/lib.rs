@@ -387,12 +387,12 @@ where
             ),
         );
         jobs.add_initializer(partial_liquidation::PartialLiquidationInit::<E>::new(
-            &outbox,
+            outbox,
             liquidations_arc.as_ref(),
         ));
         jobs.add_initializer(credit_facility_health::CreditFacilityHealthInit::<E>::new(
-            &outbox,
-            &jobs,
+            outbox,
+            jobs,
             liquidations_arc.as_ref(),
         ));
         jobs.add_initializer(credit_facility_maturity::CreditFacilityMaturityInit::<
