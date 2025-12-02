@@ -13,6 +13,7 @@ use axum::{Extension, Router, middleware, routing::get};
 use serde::{Deserialize, Serialize};
 use tower_http::cors::CorsLayer;
 use tracing::{info, instrument};
+use tracing_macros::record_error_severity;
 
 use jwks_utils::{Claims, JwtDecoderState, RemoteJwksDecoder};
 use lana_app::app::LanaApp;
@@ -24,6 +25,7 @@ use std::sync::Arc;
 
 use std::future::Future;
 
+#[record_error_severity]
 #[instrument(name = "admin_server.run", skip_all)]
 pub async fn run<S>(config: AdminServerConfig, app: LanaApp, signal: S) -> anyhow::Result<()>
 where
@@ -74,6 +76,7 @@ pub struct AdminJwtClaims {
     pub subject: String,
 }
 
+#[record_error_severity]
 #[instrument(name = "admin_server.graphql", skip_all, fields(graphql.operation_name, graphql.operation_type, graphql.query, graphql.variables, jwt.subject, user.id, error, error.level, error.message))]
 #[es_entity::es_event_context]
 pub async fn graphql_handler(
