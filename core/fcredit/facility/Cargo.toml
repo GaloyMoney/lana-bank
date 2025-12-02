@@ -26,6 +26,8 @@ thiserror = { workspace = true }
 chrono = { workspace = true }
 strum = { workspace = true }
 derive_builder = { workspace = true }
+rust_decimal = { workspace = true }
+rust_decimal_macros = { workspace = true }
 cala-ledger = { workspace = true }
 es-entity = { workspace = true }
 sqlx = { workspace = true }

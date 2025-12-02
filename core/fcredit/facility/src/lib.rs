@@ -5,6 +5,8 @@ mod collateral;
 mod config;
 mod error;
 mod event;
+mod ledger;
+mod pending_facility;
 mod primitives;
 mod proposal;
 mod publisher;

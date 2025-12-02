@@ -1562,6 +1562,8 @@ dependencies = [
  "job",
  "outbox",
  "public-id",
+ "rust_decimal",
+ "rust_decimal_macros",
  "schemars 1.1.0",
  "serde",
  "sqlx",
