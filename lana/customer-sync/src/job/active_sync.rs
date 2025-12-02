@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 use futures::{FutureExt, StreamExt, select};
 use tracing::{Span, instrument};
+use tracing_macros::record_error_severity;
 
 use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
@@ -136,6 +137,7 @@ where
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
+    #[record_error_severity]
     #[instrument(name = "customer_sync.active_sync_job.process_message", parent = None, skip(self, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
     #[allow(clippy::single_match)]
     async fn process_message(
@@ -160,6 +162,7 @@ where
         Ok(())
     }
 
+    #[record_error_severity]
     #[instrument(name = "customer_sync.active_sync_job.handle", skip(self), fields(id = ?id, kyc = ?kyc_verification))]
     async fn handle_status_updated(
         &self,

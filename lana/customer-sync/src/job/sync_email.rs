@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 use futures::{FutureExt, StreamExt, select};
 use tracing::{Span, instrument};
+use tracing_macros::record_error_severity;
 
 use core_customer::CoreCustomerEvent;
 use keycloak_client::KeycloakClient;
@@ -92,6 +93,7 @@ impl<E> SyncEmailJobRunner<E>
 where
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
+    #[record_error_severity]
     #[instrument(name = "customer_sync.sync_email_job.process_message", parent = None, skip(self, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
     #[allow(clippy::single_match)]
     async fn process_message(

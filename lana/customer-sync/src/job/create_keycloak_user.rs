@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use futures::{FutureExt, StreamExt, select};
 use keycloak_client::KeycloakClient;
 use tracing::{Span, instrument};
+use tracing_macros::record_error_severity;
 
 use core_customer::CoreCustomerEvent;
 use core_deposit::CoreDepositEvent;
@@ -92,6 +93,7 @@ impl<E> CreateKeycloakUserJobRunner<E>
 where
     E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
+    #[record_error_severity]
     #[instrument(name = "customer_sync.create_keycloak_user_job.process_message", parent = None, skip(self, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
     #[allow(clippy::single_match)]
     async fn process_message(

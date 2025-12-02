@@ -4,6 +4,7 @@ use tracing::{Span, instrument};
 
 use job::*;
 use outbox::{EventSequence, Outbox, OutboxEventMarker, PersistentOutboxEvent};
+use tracing_macros::record_error_severity;
 
 use crate::{event::CoreCreditEvent, history::*, primitives::CreditFacilityId};
 
@@ -21,6 +22,7 @@ impl<E> HistoryProjectionJobRunner<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
+    #[record_error_severity]
     #[instrument(name = "outbox.core_credit.history_projection_job.process_message", parent = None, skip(self, message, db), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
     #[allow(clippy::single_match)]
     async fn process_message(

@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use core_access::CoreAccessEvent;
 use futures::{FutureExt, StreamExt, select};
 use tracing::{Span, instrument};
+use tracing_macros::record_error_severity;
 
 use job::*;
 
@@ -91,6 +92,7 @@ impl<E> UserOnboardingJobRunner<E>
 where
     E: OutboxEventMarker<CoreAccessEvent>,
 {
+    #[record_error_severity]
     #[instrument(name = "user_onboarding.job.process_message", parent = None, skip(self, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
     #[allow(clippy::single_match)]
     async fn process_message(

@@ -14,6 +14,7 @@ use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 use sumsub::SumsubClient;
 
 use tracing::{Span, instrument};
+use tracing_macros::record_error_severity;
 
 use job::*;
 use lana_events::LanaEvent;
@@ -179,6 +180,7 @@ where
         + OutboxEventMarker<LanaEvent>
         + std::fmt::Debug,
 {
+    #[record_error_severity]
     #[instrument(name = "deposit_sync.sumsub_export_job.process_message", parent = None, skip(self, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
     #[allow(clippy::single_match)]
     async fn process_message(

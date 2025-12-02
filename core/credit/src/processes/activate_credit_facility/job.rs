@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 use futures::{FutureExt, StreamExt, select};
 use tracing::{Span, instrument};
+use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -136,6 +137,7 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
+    #[record_error_severity]
     #[instrument(name = "core_credit.credit_facility_activation_job.process_message", parent = None, skip(self, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty, pending_credit_facility_id = tracing::field::Empty))]
     async fn process_message(
         &self,
