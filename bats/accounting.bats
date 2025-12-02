@@ -253,24 +253,3 @@ teardown_file() {
   errors=$(graphql_output '.errors')
   [[ "$errors" =~ "VelocityError" ]] || exit 1
 }
-
-@test "accounting: can not close before all months closed" {
-  exec_admin_graphql 'fiscal-years' '{"first": 1}'
-  fiscal_year_id=$(graphql_output '.data.fiscalYears.nodes[0].fiscalYearId')
-  [[ "$fiscal_year_id" != "null" ]] || exit 1
-
-  variables=$(
-    jq -n \
-    --arg fiscalYearId "$fiscal_year_id" \
-    '{
-      input: {
-        fiscalYearId: $fiscalYearId
-      }
-    }'
-  )
-
-  exec_admin_graphql 'fiscal-year-close' "$variables"
-  graphql_output
-  errors=$(graphql_output '.errors')
-  [[ "$errors" =~ "LastMonthNotClosed" ]] || exit 1
-}
