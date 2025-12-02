@@ -5,15 +5,13 @@ use outbox::PersistentOutboxEvent;
 use rust_decimal_macros::dec;
 use tokio::sync::mpsc;
 use tracing::{Instrument, Span, instrument};
+use tracing_macros::record_error_severity;
 
 use crate::helpers;
 
 // Scenario 4: A credit facility that has multiple disbursals making timely payments
-#[tracing::instrument(
-    name = "sim_bootstrap.disbursal_different_months_scenario",
-    skip(app),
-    err
-)]
+#[record_error_severity]
+#[tracing::instrument(name = "sim_bootstrap.disbursal_different_months_scenario", skip(app))]
 pub async fn disbursal_different_months_scenario(
     sub: Subject,
     app: &LanaApp,
@@ -81,6 +79,7 @@ pub async fn disbursal_different_months_scenario(
     Ok(())
 }
 
+#[record_error_severity]
 #[instrument(name = "sim_bootstrap.disbursal_different_months.process_activation_message", skip(message, sub, app, cf_proposal), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
 async fn process_activation_message(
     message: &PersistentOutboxEvent<LanaEvent>,
@@ -123,6 +122,7 @@ async fn process_activation_message(
     Ok(false)
 }
 
+#[record_error_severity]
 #[instrument(name = "sim_bootstrap.disbursal_different_months.process_obligation_message", skip(message, cf_proposal, tx), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
 async fn process_obligation_message(
     message: &PersistentOutboxEvent<LanaEvent>,
@@ -157,11 +157,8 @@ async fn process_obligation_message(
     Ok(false)
 }
 
-#[tracing::instrument(
-    name = "sim_bootstrap.do_disbursal_in_different_months",
-    skip(app),
-    err
-)]
+#[record_error_severity]
+#[tracing::instrument(name = "sim_bootstrap.do_disbursal_in_different_months", skip(app))]
 async fn do_disbursal_in_different_months(
     sub: Subject,
     app: LanaApp,
@@ -187,10 +184,10 @@ async fn do_disbursal_in_different_months(
     Ok(())
 }
 
+#[record_error_severity]
 #[tracing::instrument(
     name = "sim_bootstrap.disbursal_different_months.do_timely_payments",
-    skip(app, obligation_amount_rx),
-    err
+    skip(app, obligation_amount_rx)
 )]
 async fn do_timely_payments(
     sub: Subject,

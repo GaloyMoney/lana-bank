@@ -5809,6 +5809,7 @@ dependencies = [
  "sim-time",
  "tokio",
  "tracing",
+ "tracing-macros",
  "workspace-hack",
 ]
 
