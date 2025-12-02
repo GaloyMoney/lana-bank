@@ -271,13 +271,15 @@ impl CreditFacility {
             => CreditFacilityEvent::PartialLiquidationConcluded { .. }
         );
 
-        let repay_amount = LiquidationPayment::new(
-            balances.total_outstanding(),
-            price,
-            self.terms.initial_cvl,
-            balances.collateral(),
-        )
-        .repay_amount();
+        let amount = if balances.any_disbursed() {
+            balances.total_outstanding()
+        } else {
+            balances.facility()
+        };
+
+        let repay_amount =
+            LiquidationPayment::new(amount, price, self.terms.initial_cvl, balances.collateral())
+                .repay_amount();
 
         let liquidate_btc = price.cents_to_sats_round_up(repay_amount);
 
@@ -970,6 +972,70 @@ mod test {
                 .amount,
             expected_fee
         );
+    }
+
+    mod partial_liquidation {
+        use super::*;
+
+        #[test]
+        fn liquidation_initiated_when_below_liquidation_threshold() {
+            let mut credit_facility = facility_from(initial_events());
+
+            let balances = CreditFacilityBalanceSummary {
+                collateral: Satoshis::try_from_btc(dec!(2)).unwrap(),
+                not_yet_due_disbursed_outstanding: UsdCents::ZERO,
+                due_disbursed_outstanding: UsdCents::ZERO,
+                overdue_disbursed_outstanding: UsdCents::ZERO,
+                disbursed_defaulted: UsdCents::ZERO,
+                not_yet_due_interest_outstanding: UsdCents::ZERO,
+                due_interest_outstanding: UsdCents::ZERO,
+                overdue_interest_outstanding: UsdCents::ZERO,
+                interest_defaulted: UsdCents::ZERO,
+
+                facility: UsdCents::from(10000000),
+                facility_remaining: UsdCents::ZERO,
+                disbursed: UsdCents::ZERO,
+                interest_posted: UsdCents::ZERO,
+            };
+
+            // Price high enough to keep CVL above thresholds
+            let price = PriceOfOneBTC::new(UsdCents::from(7500000));
+            let state_update = credit_facility.update_collateralization(
+                price,
+                default_upgrade_buffer_cvl_pct(),
+                balances,
+            );
+            assert!(state_update.did_execute());
+            assert_eq!(
+                state_update.unwrap(),
+                Some(CollateralizationState::FullyCollateralized)
+            );
+            assert!(
+                credit_facility
+                    .events
+                    .iter_all()
+                    .all(|e| !matches!(e, CreditFacilityEvent::PartialLiquidationInitiated { .. }))
+            );
+
+            // Price dropped so that CVL is below threshold
+            let price = PriceOfOneBTC::new(UsdCents::from(5000000));
+            let state_update = credit_facility.update_collateralization(
+                price,
+                default_upgrade_buffer_cvl_pct(),
+                balances,
+            );
+            assert!(state_update.did_execute());
+            assert_eq!(
+                state_update.unwrap(),
+                Some(CollateralizationState::UnderLiquidationThreshold)
+            );
+            assert!(
+                credit_facility
+                    .events
+                    .iter_all()
+                    .any(|e| matches!(e, CreditFacilityEvent::PartialLiquidationInitiated { .. }))
+            );
+        }
     }
 
     mod completion {
