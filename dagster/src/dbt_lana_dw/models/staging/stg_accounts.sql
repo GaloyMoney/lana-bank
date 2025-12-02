@@ -1,0 +1,33 @@
+{{ config(
+    unique_key = ['id'],
+) }}
+
+with raw_stg_cala_accounts as (select * from {{ source("lana", "cala_accounts")}} ),
+
+ordered as (
+
+    select
+        id,
+        code,
+        name,
+        normal_balance_type,
+        -- TODO: need fixing: where did old latest_values go?
+        -- It held "$.config.is_account_set" flag
+        null as latest_values,
+        created_at,
+        TIMESTAMP_MICROS(CAST(CAST(_dlt_load_id AS DECIMAL) * 1e6 as INT64 )) as loaded_to_dw_at,
+        row_number()
+            over (
+                partition by id
+                order by _dlt_load_id desc
+            )
+            as order_received_desc
+
+    from raw_stg_cala_accounts
+)
+
+select * except (order_received_desc)
+
+from ordered
+
+where order_received_desc = 1

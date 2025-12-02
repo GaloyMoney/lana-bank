@@ -18,6 +18,12 @@ from src.resources import (
 )
 
 LANA_EL_TABLE_NAMES = (
+    "cala_account_set_member_account_sets",
+    "cala_account_set_member_accounts",
+    "cala_account_sets",
+    "cala_accounts",
+    "cala_balance_history",
+
     "core_chart_events_rollup",
     "core_collateral_events_rollup",
     "core_credit_facility_events_rollup",
