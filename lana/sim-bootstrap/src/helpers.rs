@@ -6,7 +6,8 @@ use lana_app::{
 };
 use rust_decimal_macros::dec;
 
-#[tracing::instrument(name = "sim_bootstrap.helpers.create_customer", skip(app), err)]
+#[record_error_severity]
+#[tracing::instrument(name = "sim_bootstrap.helpers.create_customer", skip(app))]
 pub async fn create_customer(
     sub: &Subject,
     app: &LanaApp,
@@ -49,7 +50,8 @@ pub async fn create_customer(
     }
 }
 
-#[tracing::instrument(name = "sim_bootstrap.helpers.make_deposit", skip(app), err)]
+#[record_error_severity]
+#[tracing::instrument(name = "sim_bootstrap.helpers.make_deposit", skip(app))]
 pub async fn make_deposit(
     sub: &Subject,
     app: &LanaApp,

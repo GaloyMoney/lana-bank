@@ -5,11 +5,13 @@ use lana_events::{CoreCreditEvent, LanaEvent};
 use outbox::PersistentOutboxEvent;
 use rust_decimal_macros::dec;
 use tracing::{Span, instrument};
+use tracing_macros::record_error_severity;
 
 use crate::helpers;
 
 // Scenario 5: A fresh credit facility with no previous payments (interest under payment)
-#[tracing::instrument(name = "sim_bootstrap.interest_under_payment_scenario", skip(app), err)]
+#[record_error_severity]
+#[tracing::instrument(name = "sim_bootstrap.interest_under_payment_scenario", skip(app))]
 pub async fn interest_under_payment_scenario(sub: Subject, app: &LanaApp) -> anyhow::Result<()> {
     let (customer_id, _) = helpers::create_customer(&sub, app, "5-interest-under-payment").await?;
 
@@ -44,6 +46,7 @@ pub async fn interest_under_payment_scenario(sub: Subject, app: &LanaApp) -> any
     Ok(())
 }
 
+#[record_error_severity]
 #[instrument(name = "sim_bootstrap.interest_under_payment.process_activation_message", skip(message, sub, app, cf_proposal), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
 async fn process_activation_message(
     message: &PersistentOutboxEvent<LanaEvent>,

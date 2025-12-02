@@ -5,11 +5,13 @@ use outbox::PersistentOutboxEvent;
 use rust_decimal_macros::dec;
 use tokio::sync::mpsc;
 use tracing::{Instrument, Span, instrument};
+use tracing_macros::record_error_severity;
 
 use crate::helpers;
 
 // Scenario 3: A credit facility with an principal payment >90 days late
-#[tracing::instrument(name = "sim_bootstrap.principal_late_scenario", skip(app), err)]
+#[record_error_severity]
+#[tracing::instrument(name = "sim_bootstrap.principal_late_scenario", skip(app))]
 pub async fn principal_late_scenario(sub: Subject, app: &LanaApp) -> anyhow::Result<()> {
     let (customer_id, _) = helpers::create_customer(&sub, app, "3-principal-late").await?;
 
@@ -63,6 +65,7 @@ pub async fn principal_late_scenario(sub: Subject, app: &LanaApp) -> anyhow::Res
     Ok(())
 }
 
+#[record_error_severity]
 #[instrument(name = "sim_bootstrap.principal_late.process_activation_message", skip(message, sub, app, cf_proposal), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
 async fn process_activation_message(
     message: &PersistentOutboxEvent<LanaEvent>,
@@ -101,6 +104,7 @@ async fn process_activation_message(
     Ok(false)
 }
 
+#[record_error_severity]
 #[instrument(name = "sim_bootstrap.principal_late.process_obligation_message", skip(message, cf_proposal, tx), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
 async fn process_obligation_message(
     message: &PersistentOutboxEvent<LanaEvent>,
@@ -136,10 +140,10 @@ async fn process_obligation_message(
     Ok(false)
 }
 
+#[record_error_severity]
 #[tracing::instrument(
     name = "sim_bootstrap.do_principal_late",
-    skip(app, obligation_amount_rx),
-    err
+    skip(app, obligation_amount_rx)
 )]
 async fn do_principal_late(
     sub: Subject,

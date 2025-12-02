@@ -9,12 +9,14 @@ use std::collections::HashSet;
 
 use rust_decimal_macros::dec;
 use tracing::{Instrument, Span, info, instrument};
+use tracing_macros::record_error_severity;
 
 use lana_app::{app::LanaApp, primitives::*};
 
 pub use config::*;
 
-#[instrument(name = "sim_bootstrap.run", skip(app, config), fields(num_customers = config.num_customers, num_facilities = config.num_facilities), err)]
+#[record_error_severity]
+#[instrument(name = "sim_bootstrap.run", skip(app, config), fields(num_customers = config.num_customers, num_facilities = config.num_facilities))]
 pub async fn run(
     superuser_email: String,
     app: &LanaApp,
@@ -73,6 +75,7 @@ pub async fn run(
     Ok(())
 }
 
+#[record_error_severity]
 #[instrument(name = "sim_bootstrap.create_term_templates", skip(sub, app))]
 async fn create_term_templates(sub: &Subject, app: &LanaApp) -> anyhow::Result<()> {
     let term_values = helpers::std_terms();
@@ -84,6 +87,7 @@ async fn create_term_templates(sub: &Subject, app: &LanaApp) -> anyhow::Result<(
     Ok(())
 }
 
+#[record_error_severity]
 #[instrument(name = "sim_bootstrap.create_customers", skip(sub, app, config), fields(num_customers = config.num_customers))]
 async fn create_customers(
     sub: &Subject,
@@ -101,6 +105,7 @@ async fn create_customers(
     Ok(customers)
 }
 
+#[record_error_severity]
 #[instrument(name = "sim_bootstrap.make_deposits", skip(sub, app, customer_ids, config), fields(num_customers = customer_ids.len(), num_facilities = config.num_facilities))]
 async fn make_deposits(
     sub: &Subject,
@@ -119,6 +124,7 @@ async fn make_deposits(
     Ok(())
 }
 
+#[record_error_severity]
 #[instrument(
     name = "sim_bootstrap.superuser_subject",
     skip(app),

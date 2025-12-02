@@ -8,6 +8,7 @@ mod timely_payments;
 use futures::StreamExt;
 use rust_decimal_macros::dec;
 use tracing::{Span, instrument};
+use tracing_macros::record_error_severity;
 
 use lana_app::{app::LanaApp, primitives::*};
 use lana_events::*;
@@ -16,7 +17,8 @@ use tokio::task::JoinHandle;
 
 use super::helpers;
 
-#[instrument(name = "sim_bootstrap.scenarios.run", skip(app), err)]
+#[record_error_severity]
+#[instrument(name = "sim_bootstrap.scenarios.run", skip(app))]
 pub async fn run(
     sub: &Subject,
     app: &LanaApp,
@@ -64,6 +66,7 @@ pub async fn run(
     Ok(handles)
 }
 
+#[record_error_severity]
 #[instrument(name = "sim_bootstrap.process_facility_lifecycle", skip(sub, app), fields(customer_id = %customer_id, deposit_account_id = %deposit_account_id, proposal_id = tracing::field::Empty))]
 pub async fn process_facility_lifecycle(
     sub: Subject,
@@ -102,6 +105,7 @@ pub async fn process_facility_lifecycle(
     Ok(())
 }
 
+#[record_error_severity]
 #[instrument(name = "sim_bootstrap.process_facility_message", skip(message, sub, app, cf_proposal), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
 async fn process_facility_message(
     message: &PersistentOutboxEvent<LanaEvent>,

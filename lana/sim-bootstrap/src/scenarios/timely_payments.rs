@@ -5,11 +5,13 @@ use outbox::PersistentOutboxEvent;
 use rust_decimal_macros::dec;
 use tokio::sync::mpsc;
 use tracing::{Instrument, Span, event, instrument};
+use tracing_macros::record_error_severity;
 
 use crate::helpers;
 
 // Scenario 1: A credit facility that made timely payments and was paid off all according to the initial payment plan
-#[tracing::instrument(name = "sim_bootstrap.timely_payments_scenario", skip(app), err)]
+#[record_error_severity]
+#[tracing::instrument(name = "sim_bootstrap.timely_payments_scenario", skip(app))]
 pub async fn timely_payments_scenario(sub: Subject, app: &LanaApp) -> anyhow::Result<()> {
     let (customer_id, _) = helpers::create_customer(&sub, app, "1-timely-paid").await?;
 
@@ -80,6 +82,7 @@ pub async fn timely_payments_scenario(sub: Subject, app: &LanaApp) -> anyhow::Re
     Ok(())
 }
 
+#[record_error_severity]
 #[instrument(name = "sim_bootstrap.timely_payments.process_activation_message", skip(message, sub, app, cf_proposal), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
 async fn process_activation_message(
     message: &PersistentOutboxEvent<LanaEvent>,
@@ -118,6 +121,7 @@ async fn process_activation_message(
     Ok(false)
 }
 
+#[record_error_severity]
 #[instrument(name = "sim_bootstrap.timely_payments.process_obligation_message", skip(message, cf_proposal, tx), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
 async fn process_obligation_message(
     message: &PersistentOutboxEvent<LanaEvent>,
@@ -152,10 +156,10 @@ async fn process_obligation_message(
     Ok(false)
 }
 
+#[record_error_severity]
 #[tracing::instrument(
     name = "sim_bootstrap.timely_payments.do_timely_payments",
-    skip(app, obligation_amount_rx),
-    err
+    skip(app, obligation_amount_rx)
 )]
 async fn do_timely_payments(
     sub: Subject,
