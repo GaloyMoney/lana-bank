@@ -1,11 +1,3 @@
-//! Credit Facility Health listens to changes in collateralization
-//! state of credit facilities and initiates a partial liquidation of
-//! credit facility whose CVL drops below liquidation threshold
-//! (i. e. became unhealthy), unless this credit facility is already
-//! in an active liquidation.
-//!
-//! All other state changes are ignored by this job.
-
 use async_trait::async_trait;
 use core_custody::CoreCustodyEvent;
 use es_entity::DbOp;
@@ -20,11 +12,11 @@ use crate::jobs::partial_liquidation;
 use crate::liquidation::{Liquidations, NewLiquidation};
 
 #[derive(Default, Clone, Deserialize, Serialize)]
-struct CreditFacilityHealthJobData {
+struct CreditFacilityLiquidationsJobData {
     sequence: EventSequence,
 }
 
-pub struct CreditFacilityHealthInit<E>
+pub struct CreditFacilityLiquidationsInit<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
@@ -35,7 +27,7 @@ where
     liquidations: Liquidations<E>,
 }
 
-impl<E> CreditFacilityHealthInit<E>
+impl<E> CreditFacilityLiquidationsInit<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
@@ -50,8 +42,9 @@ where
     }
 }
 
-const CREDIT_FACILITY_HEALTH_JOB: JobType = JobType::new("outbox.credit-facility-health");
-impl<E> JobInitializer for CreditFacilityHealthInit<E>
+const CREDIT_FACILITY_LIQUDATIONS_JOB: JobType =
+    JobType::new("outbox.credit-facility-liquidations");
+impl<E> JobInitializer for CreditFacilityLiquidationsInit<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
@@ -61,11 +54,11 @@ where
     where
         Self: Sized,
     {
-        CREDIT_FACILITY_HEALTH_JOB
+        CREDIT_FACILITY_LIQUDATIONS_JOB
     }
 
     fn init(&self, _job: &job::Job) -> Result<Box<dyn job::JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(CreditFacilityHealthJobRunner::<E> {
+        Ok(Box::new(CreditFacilityLiquidationsJobRunner::<E> {
             outbox: self.outbox.clone(),
             jobs: self.jobs.clone(),
             liquidations: self.liquidations.clone(),
@@ -73,7 +66,7 @@ where
     }
 }
 
-pub struct CreditFacilityHealthJobRunner<E>
+pub struct CreditFacilityLiquidationsJobRunner<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
@@ -85,7 +78,7 @@ where
 }
 
 #[async_trait]
-impl<E> JobRunner for CreditFacilityHealthJobRunner<E>
+impl<E> JobRunner for CreditFacilityLiquidationsJobRunner<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
@@ -96,7 +89,7 @@ where
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut state = current_job
-            .execution_state::<CreditFacilityHealthJobData>()?
+            .execution_state::<CreditFacilityLiquidationsJobData>()?
             .unwrap_or_default();
 
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
@@ -116,7 +109,7 @@ where
     }
 }
 
-impl<E> CreditFacilityHealthJobRunner<E>
+impl<E> CreditFacilityLiquidationsJobRunner<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>

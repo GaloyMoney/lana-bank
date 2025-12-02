@@ -390,11 +390,13 @@ where
             outbox,
             liquidations_arc.as_ref(),
         ));
-        jobs.add_initializer(credit_facility_health::CreditFacilityHealthInit::<E>::new(
-            outbox,
-            jobs,
-            liquidations_arc.as_ref(),
-        ));
+        jobs.add_initializer(
+            credit_facility_liquidations::CreditFacilityLiquidationsInit::<E>::new(
+                outbox,
+                jobs,
+                liquidations_arc.as_ref(),
+            ),
+        );
         jobs.add_initializer(credit_facility_maturity::CreditFacilityMaturityInit::<
             Perms,
             E,

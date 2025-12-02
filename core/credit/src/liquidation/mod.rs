@@ -2,9 +2,8 @@ mod entity;
 pub mod error;
 mod repo;
 
-use cala_ledger::{AccountId as CalaAccountId, TransactionId as CalaTransactionId};
+use cala_ledger::TransactionId as CalaTransactionId;
 use core_money::{Satoshis, UsdCents};
-use core_price::PriceOfOneBTC;
 #[cfg(feature = "json-schema")]
 pub use entity::LiquidationEvent;
 pub(crate) use entity::*;
@@ -47,7 +46,7 @@ where
         &self,
         db: &mut DbOp<'_>,
         credit_facility_id: CreditFacilityId,
-        new_liqiudation: NewLiquidation,
+        new_liquidation: NewLiquidation,
     ) -> Result<Option<Liquidation>, LiquidationError> {
         let existing_liquidation = self
             .repo

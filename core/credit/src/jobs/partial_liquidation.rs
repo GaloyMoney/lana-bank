@@ -1,8 +1,3 @@
-//! Partial Liquidation job monitors a running partial liquidation
-//! process. In particular, it is overwatching the actual liquidation
-//! of Bitcoins and is waiting for balance updates on relevant
-//! accounts.
-
 use async_trait::async_trait;
 use futures::StreamExt as _;
 use serde::{Deserialize, Serialize};
@@ -10,9 +5,7 @@ use serde::{Deserialize, Serialize};
 use job::*;
 use outbox::*;
 
-use crate::{
-    CollateralAction, CoreCreditEvent, CreditFacilityId, LiquidationId, liquidation::Liquidations,
-};
+use crate::{CoreCreditEvent, CreditFacilityId, LiquidationId, liquidation::Liquidations};
 
 #[derive(Default, Clone, Deserialize, Serialize)]
 struct PartialLiquidationJobData {
@@ -128,16 +121,6 @@ where
         use CoreCreditEvent::*;
 
         match &message.as_event() {
-            Some(FacilityCollateralUpdated {
-                credit_facility_id,
-                action: CollateralAction::Remove,
-                abs_diff,
-                ..
-            }) if *credit_facility_id == self.config.credit_facility_id => {
-                self.liquidations
-                    .record_collateral_sent_in_op(db, self.config.liquidation_id, *abs_diff)
-                    .await?;
-            }
             Some(PartialLiquidationSatisfied {
                 credit_facility_id, ..
             }) if *credit_facility_id == self.config.credit_facility_id => {
