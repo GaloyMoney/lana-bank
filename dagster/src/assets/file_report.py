@@ -1,12 +1,14 @@
 import csv
 import inspect
 import io
+import os
 import sys
 import xml.etree.ElementTree as ET
 from datetime import datetime
 from typing import Dict, List, Literal, TypedDict
 
 import dagster as dg
+import requests
 from src.core import Protoasset
 from src.resources import RESOURCE_KEY_FILE_REPORTS_BUCKET, GCSResource
 
@@ -221,44 +223,18 @@ def _discover_reports() -> Dict[str, callable]:
     return reports
 
 
-def _extract_reports_from_asset(
-    context: dg.AssetExecutionContext, asset_key_str: str
-) -> List[Report]:
-    """Extract report metadata from a materialized asset."""
-    asset_key = dg.AssetKey(asset_key_str)
-    materialization = context.instance.get_latest_materialization_event(asset_key)
-
-    if not (materialization and materialization.asset_materialization):
-        return []
-
-    metadata = materialization.asset_materialization.metadata
-    if "reports" not in metadata:
-        return []
-
-    reports_metadata = metadata["reports"]
-    reports_list = getattr(reports_metadata, "value", reports_metadata)
-
-    return reports_list
-
-
 def inform_lana_of_new_reports(context: dg.AssetExecutionContext) -> None:
-    """Collect all generated reports and notify Lana system."""
-    all_reports: List[Report] = []
-    reports = _discover_reports()
+    """Notify Lana system that new reports are available."""
+    lana_admin_server_url = os.environ.get("LANA_ADMIN_SERVER_URL")
+    if not lana_admin_server_url:
+        raise ValueError("LANA_ADMIN_SERVER_URL environment variable is not set")
 
-    for asset_key_str in reports.keys():
-        all_reports.extend(_extract_reports_from_asset(context, asset_key_str))
+    webhook_url = f"{lana_admin_server_url}/webhook/new-reports"
 
-    context.log.info(f"Total reports collected: {len(all_reports)}")
-    for report in all_reports:
-        file_types = [f["type"] for f in report["files"]]
-        context.log.info(
-            f"Report: name={report['name']}, "
-            f"norm={report['norm']}, "
-            f"files={len(report['files'])} ({', '.join(file_types)})"
-        )
-
-    context.log.info("TODO: Notification would be sent to Lana system here.")
+    context.log.info(f"Notifying Lana server of new reports at {webhook_url}...")
+    response = requests.get(webhook_url, timeout=30)
+    response.raise_for_status()
+    context.log.info("Lana server notified successfully.")
 
 
 def file_report_protoassets() -> Dict[str, Protoasset]:

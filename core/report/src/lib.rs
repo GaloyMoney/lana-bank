@@ -278,4 +278,10 @@ where
         let download_link = self.storage.generate_download_link(location).await?;
         Ok(download_link)
     }
+
+    #[tracing::instrument(name = "report.handle_new_reports_callback", skip(self), err)]
+    pub async fn handle_new_reports_callback(&self) -> Result<(), ReportError> {
+        tracing::info!("Received notification of new reports from Dagster");
+        Ok(())
+    }
 }
