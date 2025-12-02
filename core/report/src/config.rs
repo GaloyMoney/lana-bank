@@ -1,4 +1,5 @@
 use airflow::AirflowConfig;
+use dagster::DagsterConfig;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -8,6 +9,8 @@ pub struct ReportConfig {
     pub enabled: bool,
     #[serde(default)]
     pub airflow: AirflowConfig,
+    #[serde(default)]
+    pub dagster: DagsterConfig,
 }
 
 impl Default for ReportConfig {
@@ -15,6 +18,7 @@ impl Default for ReportConfig {
         Self {
             enabled: default_enabled(),
             airflow: AirflowConfig::default(),
+            dagster: DagsterConfig::default(),
         }
     }
 }

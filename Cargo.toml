@@ -26,6 +26,7 @@ audit = { path = "lib/audit" }
 authz = { path = "lib/authz" }
 bitgo = { path = "lib/bitgo" }
 cloud-storage = { path = "lib/cloud-storage" }
+dagster = { path = "lib/dagster" }
 jwks-utils = { path = "lib/jwks-utils" }
 keycloak-client = { path = "lib/keycloak-client" }
 komainu = { path = "lib/komainu" }

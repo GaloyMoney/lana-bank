@@ -160,3 +160,20 @@ impl From<airflow::reports_api_client::ReportFile> for crate::report::ReportFile
         }
     }
 }
+
+impl From<dagster::DagsterRunStatus> for crate::report_run::ReportRunState {
+    fn from(status: dagster::DagsterRunStatus) -> Self {
+        match status {
+            dagster::DagsterRunStatus::Queued | dagster::DagsterRunStatus::NotStarted => {
+                crate::report_run::ReportRunState::Queued
+            }
+            dagster::DagsterRunStatus::Managed
+            | dagster::DagsterRunStatus::Starting
+            | dagster::DagsterRunStatus::Started => crate::report_run::ReportRunState::Running,
+            dagster::DagsterRunStatus::Success => crate::report_run::ReportRunState::Success,
+            dagster::DagsterRunStatus::Failure
+            | dagster::DagsterRunStatus::Canceling
+            | dagster::DagsterRunStatus::Canceled => crate::report_run::ReportRunState::Failed,
+        }
+    }
+}

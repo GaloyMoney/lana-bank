@@ -1620,6 +1620,7 @@ dependencies = [
  "authz",
  "chrono",
  "cloud-storage",
+ "dagster",
  "derive_builder",
  "es-entity",
  "job",
@@ -1794,6 +1795,20 @@ dependencies = [
  "thiserror 2.0.17",
  "tracing",
  "tracing-utils",
+ "workspace-hack",
+]
+
+[[package]]
+name = "dagster"
+version = "0.0.0"
+dependencies = [
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.17",
+ "tracing",
+ "tracing-utils",
+ "url",
  "workspace-hack",
 ]
 

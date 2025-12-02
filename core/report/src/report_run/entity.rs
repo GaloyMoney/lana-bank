@@ -136,6 +136,30 @@ impl ReportRun {
             end_date,
         });
     }
+
+    pub fn update_state_from_dagster(
+        &mut self,
+        state: ReportRunState,
+        start_time: Option<f64>,
+        end_time: Option<f64>,
+    ) {
+        let start_date = start_time
+            .and_then(|ts| DateTime::from_timestamp(ts as i64, 0))
+            .unwrap_or_else(Utc::now);
+        let end_date = end_time.and_then(|ts| DateTime::from_timestamp(ts as i64, 0));
+
+        self.state = state;
+        self.start_date = Some(start_date);
+        self.end_date = end_date;
+
+        self.events.push(ReportRunEvent::StateUpdated {
+            state,
+            run_type: self.run_type,
+            execution_date: self.execution_date,
+            start_date,
+            end_date,
+        });
+    }
 }
 
 #[derive(Debug, Builder)]

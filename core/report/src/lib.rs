@@ -27,10 +27,11 @@ use publisher::ReportPublisher;
 
 use jobs::{
     FindNewReportRunJobConfig, FindNewReportRunJobInit, MonitorReportRunJobInit,
-    TriggerReportRunJobConfig, TriggerReportRunJobInit,
+    SyncReportsJobConfig, SyncReportsJobInit, TriggerReportRunJobConfig, TriggerReportRunJobInit,
 };
 
 use airflow::*;
+use dagster::*;
 pub use report::*;
 pub use report_run::*;
 
@@ -48,6 +49,7 @@ where
     reports: ReportRepo<E>,
     report_runs: ReportRunRepo<E>,
     airflow: Airflow,
+    dagster: Dagster,
     storage: Storage,
     jobs: Jobs,
     config: ReportConfig,
@@ -64,6 +66,7 @@ where
             reports: self.reports.clone(),
             report_runs: self.report_runs.clone(),
             airflow: self.airflow.clone(),
+            dagster: self.dagster.clone(),
             storage: self.storage.clone(),
             jobs: self.jobs.clone(),
             config: self.config.clone(),
@@ -89,6 +92,7 @@ where
     ) -> Result<Self, ReportError> {
         let publisher = ReportPublisher::new(outbox);
         let airflow = Airflow::new(config.airflow.clone());
+        let dagster = Dagster::new(config.dagster.clone());
         let report_repo = ReportRepo::new(pool, &publisher);
         let report_run_repo = ReportRunRepo::new(pool, &publisher);
 
@@ -114,10 +118,16 @@ where
             .await?;
         }
 
+        jobs.add_initializer(SyncReportsJobInit::new(
+            dagster.clone(),
+            report_run_repo.clone(),
+        ));
+
         Ok(Self {
             authz: authz.clone(),
             storage: storage.clone(),
             airflow,
+            dagster,
             reports: report_repo,
             report_runs: report_run_repo,
             jobs: jobs.clone(),
@@ -279,9 +289,23 @@ where
         Ok(download_link)
     }
 
-    #[tracing::instrument(name = "report.handle_new_reports_callback", skip(self), err)]
+    #[tracing::instrument(name = "report.handle_new_reports_callback", skip(self), fields(job_id = tracing::field::Empty), err)]
     pub async fn handle_new_reports_callback(&self) -> Result<(), ReportError> {
         tracing::info!("Received notification of new reports from Dagster");
+
+        let mut db = self.report_runs.begin_op().await?;
+        let job = self
+            .jobs
+            .create_and_spawn_in_op(
+                &mut db,
+                job::JobId::new(),
+                SyncReportsJobConfig::<E>::new(),
+            )
+            .await?;
+        tracing::Span::current().record("job_id", job.id.to_string());  
+
+        db.commit().await?;
+
         Ok(())
     }
 }

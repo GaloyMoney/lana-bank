@@ -11,6 +11,7 @@ json-schema = ["dep:schemars", "es-entity/json-schema", "outbox/json-schema", "a
 [dependencies]
 airflow = { workspace = true }
 audit = { workspace = true }
+dagster = { workspace = true }
 authz = { workspace = true }
 outbox = { workspace = true }
 job = { workspace = true }
