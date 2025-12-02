@@ -62,6 +62,8 @@ app:
     enabled: false
     airflow:
       uri: http://localhost:8080/
+    dagster:
+      uri: http://localhost:3000/
   deposit:
     require_verified_customer_for_account: true
 tracing:

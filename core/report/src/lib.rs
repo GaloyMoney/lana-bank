@@ -296,13 +296,9 @@ where
         let mut db = self.report_runs.begin_op().await?;
         let job = self
             .jobs
-            .create_and_spawn_in_op(
-                &mut db,
-                job::JobId::new(),
-                SyncReportsJobConfig::<E>::new(),
-            )
+            .create_and_spawn_in_op(&mut db, job::JobId::new(), SyncReportsJobConfig::<E>::new())
             .await?;
-        tracing::Span::current().record("job_id", job.id.to_string());  
+        tracing::Span::current().record("job_id", job.id.to_string());
 
         db.commit().await?;
 

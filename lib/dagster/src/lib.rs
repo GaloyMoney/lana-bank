@@ -8,8 +8,9 @@ pub mod graphql_client;
 pub use config::DagsterConfig;
 pub use error::DagsterError;
 pub use graphql_client::{
-    AssetEvent, AssetEventHistory, AssetKey, DagsterAsset, DagsterGraphQLClient, DagsterRun,
-    DagsterRunStatus, FileReportsRunsResponse, MetadataEntry,
+    AssetEvent, AssetEventHistory, AssetKey, DagsterAsset, DagsterGraphQLClient,
+    DagsterParsedReport, DagsterReportFile, DagsterRun, DagsterRunStatus, FileReportsRunsResponse,
+    MetadataEntry,
 };
 
 #[derive(Clone)]

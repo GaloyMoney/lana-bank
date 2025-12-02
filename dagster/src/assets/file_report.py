@@ -7,8 +7,9 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 from typing import Dict, List, Literal, TypedDict
 
-import dagster as dg
 import requests
+
+import dagster as dg
 from src.core import Protoasset
 from src.resources import RESOURCE_KEY_FILE_REPORTS_BUCKET, GCSResource
 

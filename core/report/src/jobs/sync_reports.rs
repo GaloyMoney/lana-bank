@@ -74,7 +74,7 @@ where
         let _config: SyncReportsJobConfig<E> = job.config()?;
         Ok(Box::new(SyncReportsJobRunner {
             dagster: self.dagster.clone(),
-            report_run_repo: self.report_run_repo.clone(),
+            _report_run_repo: self.report_run_repo.clone(),
         }))
     }
 
@@ -88,7 +88,7 @@ where
     E: OutboxEventMarker<CoreReportEvent>,
 {
     dagster: Dagster,
-    report_run_repo: ReportRunRepo<E>,
+    _report_run_repo: ReportRunRepo<E>,
 }
 
 #[async_trait]
@@ -103,9 +103,9 @@ where
     )]
     async fn run(
         &self,
-        mut current_job: CurrentJob,
+        current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let mut state = current_job
+        let state = current_job
             .execution_state::<SyncReportsJobExecutionState>()?
             .unwrap_or_default();
 
@@ -115,7 +115,18 @@ where
             .check_for_new_reports(state.last_run_id.clone())
             .await
         {
-            println!("response: {:?}", response);
+            for run in &response.runs {
+                let reports = run.extract_reports();
+                for report in reports {
+                    println!("Report: name={}, norm={}, files:", report.name, report.norm);
+                    for file in &report.files {
+                        println!(
+                            "  - type: {}, path: {}",
+                            file.file_type, file.path_in_bucket
+                        );
+                    }
+                }
+            }
             // for run in response.runs.into_iter() {
             //     // Create the report run if it doesn't exist
             //     match self
@@ -161,8 +172,6 @@ where
             // }
         }
 
-        Ok(JobCompletion::RescheduleIn(std::time::Duration::from_secs(
-            60,
-        )))
+        Ok(JobCompletion::Complete)
     }
 }

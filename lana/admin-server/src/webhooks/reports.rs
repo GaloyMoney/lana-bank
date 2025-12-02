@@ -1,5 +1,5 @@
-use axum::{Extension, Router, routing::get};
 use axum::response::IntoResponse;
+use axum::{Extension, Router, routing::get};
 use jwks_utils::JwtDecoderState;
 use lana_app::app::LanaApp;
 

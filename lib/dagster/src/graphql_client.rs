@@ -127,11 +127,11 @@ impl DagsterGraphQLClient {
 
         let gql_response: GraphQLResponse<FileReportsRunsData> = response.json().await?;
 
-        if let Some(errors) = gql_response.errors {
-            if !errors.is_empty() {
-                tracing::error!("GraphQL errors: {:?}", errors);
-                return Err(DagsterError::ApiError);
-            }
+        if let Some(errors) = gql_response.errors
+            && !errors.is_empty()
+        {
+            tracing::error!("GraphQL errors: {:?}", errors);
+            return Err(DagsterError::ApiError);
         }
 
         let data = gql_response.data.ok_or(DagsterError::ApiError)?;
@@ -272,4 +272,54 @@ pub enum DagsterRunStatus {
 pub struct FileReportsRunsResponse {
     pub count: i32,
     pub runs: Vec<DagsterRun>,
+}
+
+/// A report file with its path and type from Dagster
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DagsterReportFile {
+    pub path_in_bucket: String,
+    #[serde(rename = "type")]
+    pub file_type: String,
+}
+
+/// A parsed report from the Dagster metadata
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DagsterParsedReport {
+    pub name: String,
+    pub norm: String,
+    pub files: Vec<DagsterReportFile>,
+}
+
+impl DagsterRun {
+    /// Extract all reports from the run's asset materialization events
+    pub fn extract_reports(&self) -> Vec<DagsterParsedReport> {
+        let mut reports = Vec::new();
+
+        for asset in &self.assets {
+            for event in &asset.asset_event_history.results {
+                if let AssetEvent::MaterializationEvent {
+                    metadata_entries, ..
+                } = event
+                {
+                    for entry in metadata_entries {
+                        if let MetadataEntry::JsonMetadataEntry {
+                            label, json_string, ..
+                        } = entry
+                            && label == "reports"
+                        {
+                            if let Ok(parsed) =
+                                serde_json::from_str::<Vec<DagsterParsedReport>>(json_string)
+                            {
+                                reports.extend(parsed);
+                            } else {
+                                tracing::warn!("Failed to parse reports JSON: {}", json_string);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        reports
+    }
 }
