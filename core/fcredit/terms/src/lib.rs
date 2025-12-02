@@ -8,4 +8,5 @@ mod effective_date;
 mod error;
 mod value;
 
+pub use cvl::CVLPct;
 pub use value::{InterestPeriod, TermValues};
