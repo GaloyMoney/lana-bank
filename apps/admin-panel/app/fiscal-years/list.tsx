@@ -92,7 +92,7 @@ const FiscalYearsList = () => {
   }
 
   return (
-    <div>
+    <>
       {error && <p className="text-destructive text-sm">{error?.message}</p>}
       <PaginatedTable<FiscalYear>
         columns={columns}
@@ -102,7 +102,7 @@ const FiscalYearsList = () => {
         pageSize={DEFAULT_PAGESIZE}
         navigateTo={(fiscalYear) => `/fiscal-years/${fiscalYear.fiscalYearId}`}
       />
-    </div>
+    </>
   )
 }
 

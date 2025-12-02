@@ -1,7 +1,7 @@
 "use client"
 
 import { gql } from "@apollo/client"
-import { use, useEffect } from "react"
+import { use } from "react"
 import { useTranslations } from "next-intl"
 
 import FiscalYearDetailsCard from "./details"
@@ -9,7 +9,6 @@ import MonthClosuresList from "./month-closures-list"
 
 import { useGetFiscalYearDetailsQuery } from "@/lib/graphql/generated"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
-import { useBreadcrumb } from "@/app/breadcrumb-provider"
 
 gql`
   fragment FiscalYearDetailsPageFragment on FiscalYear {
@@ -39,31 +38,13 @@ function FiscalYearPage({
   }>
 }) {
   const { "fiscal-year-id": fiscalYearId } = use(params)
-  const { setCustomLinks, resetToDefault } = useBreadcrumb()
-  const navTranslations = useTranslations("Sidebar.navItems")
   const tCommon = useTranslations("Common")
 
   const { data, loading, error } = useGetFiscalYearDetailsQuery({
     variables: { fiscalYearId },
   })
 
-  useEffect(() => {
-    if (data?.fiscalYear) {
-      setCustomLinks([
-        { title: navTranslations("fiscalYears"), href: "/fiscal-years" },
-        {
-          title: fiscalYearId,
-          isCurrentPage: true,
-        },
-      ])
-    }
-    return () => {
-      resetToDefault()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data?.fiscalYear])
-
-  if (loading && !data) {
+  if (loading) {
     return <DetailsPageSkeleton tabs={0} tabsCards={0} />
   }
   if (error) return <div className="text-destructive">{error.message}</div>
