@@ -171,7 +171,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         fiscal_year_id: impl Into<FiscalYearId> + std::fmt::Debug,
-    ) -> Result<FiscalYear, FiscalYearError> {
+    ) -> Result<Option<FiscalYear>, FiscalYearError> {
         let id = fiscal_year_id.into();
         self.authz
             .enforce_permission(
@@ -181,7 +181,7 @@ where
             )
             .await?;
 
-        self.repo.find_by_id(id).await
+        self.repo.maybe_find_by_id(id).await
     }
 
     #[instrument(name = "core_accounting.fiscal_year.find_all", skip(self), err)]

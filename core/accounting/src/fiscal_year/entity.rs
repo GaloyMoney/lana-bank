@@ -36,7 +36,6 @@ pub struct FiscalYear {
     events: EntityEvents<FiscalYearEvent>,
 }
 
-#[derive(Debug, Clone)]
 pub struct FiscalMonthClosure {
     pub closed_as_of: NaiveDate,
     pub closed_at: DateTime<Utc>,

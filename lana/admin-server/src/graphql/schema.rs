@@ -793,7 +793,9 @@ impl Query {
         maybe_fetch_one!(
             FiscalYear,
             ctx,
-            app.accounting().find_fiscal_year_by_id(sub, fiscal_year_id)
+            app.accounting()
+                .fiscal_year()
+                .find_by_id(sub, fiscal_year_id)
         )
     }
 
