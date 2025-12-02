@@ -235,7 +235,12 @@ impl IntoEvents<FiscalYearEvent> for NewFiscalYear {
                 id: self.id,
                 chart_id: self.chart_id,
                 reference: self.reference(),
-                opened_as_of: self.opened_as_of,
+                opened_as_of: NaiveDate::from_ymd_opt(
+                    self.opened_as_of.year(),
+                    self.opened_as_of.month(),
+                    1,
+                )
+                .expect("Invalid date"),
             }],
         )
     }
@@ -388,5 +393,37 @@ mod test {
         let fiscal_year = fiscal_year_from(initial_events_with_opened_date(period_start));
         let result = fiscal_year.next(Utc::now());
         assert!(result.is_ok());
+    }
+
+    #[test]
+    fn new_fiscal_year_opening_date_normalized_to_first_of_month() {
+        let test_cases = [
+            (
+                NaiveDate::from_ymd_opt(2025, 6, 15).unwrap(),
+                NaiveDate::from_ymd_opt(2025, 6, 1).unwrap(),
+            ),
+            (
+                NaiveDate::from_ymd_opt(2024, 12, 31).unwrap(),
+                NaiveDate::from_ymd_opt(2024, 12, 1).unwrap(),
+            ),
+            (
+                NaiveDate::from_ymd_opt(2023, 3, 1).unwrap(),
+                NaiveDate::from_ymd_opt(2023, 3, 1).unwrap(),
+            ),
+        ];
+
+        for (input_date, expected_opening) in test_cases {
+            let new_fiscal_year = NewFiscalYear::builder()
+                .id(FiscalYearId::new())
+                .chart_id(ChartId::new())
+                .opened_as_of(input_date)
+                .build()
+                .unwrap();
+
+            let events = new_fiscal_year.into_events();
+            let fiscal_year = FiscalYear::try_from_events(events).unwrap();
+
+            assert_eq!(fiscal_year.opened_as_of, expected_opening);
+        }
     }
 }
