@@ -309,6 +309,57 @@ exec_dagster_graphql_status() {
     "${DAGSTER_URL:-http://localhost:3000/graphql}"
 }
 
+dagster_validate_json() {
+  if ! echo "$output" | jq . >/dev/null 2>&1; then
+    echo "Dagster GraphQL did not return valid JSON: $output"
+    return 1
+  fi
+}
+
+# Check if the launch_run GraphQL response (in global $output) contains errors
+# Must be called immediately after exec_dagster_graphql "launch_run" to check the response
+dagster_check_launch_run_errors() {
+  dagster_validate_json || return 1
+
+  local error_type=$(echo "$output" | jq -r '.data.launchRun.__typename // empty')
+  if [ "$error_type" = "PythonError" ] || [ "$error_type" = "RunConfigValidationInvalid" ] || [ "$error_type" = "InvalidSubsetError" ]; then
+    local error_msg=$(echo "$output" | jq -r '.data.launchRun.message // .data.launchRun.errors[0].message // "Unknown error"')
+    echo "Failed to launch run: $error_type - $error_msg"
+    echo "Full response: $output"
+    return 1
+  fi
+}
+
+dagster_poll_run_status() {
+  local run_id=$1
+  local attempts=${2:-90}
+  local sleep_between=${3:-2}
+  local run_status=""
+
+  while [ $attempts -gt 0 ]; do
+    local poll_vars=$(jq -n --arg runId "$run_id" '{ runId: $runId }')
+    exec_dagster_graphql "run_status" "$poll_vars"
+    
+    dagster_validate_json || return 1
+    
+    run_status=$(echo "$output" | jq -r '.data.runOrError.status // empty')
+    
+    if [ "$run_status" = "SUCCESS" ]; then
+      return 0
+    fi
+    if [ "$run_status" = "FAILURE" ] || [ "$run_status" = "CANCELED" ]; then
+      echo "Run failed: $output"
+      return 1
+    fi
+    
+    attempts=$((attempts-1))
+    sleep $sleep_between
+  done
+  
+  echo "Run last status: $run_status"
+  return 1
+}
+
 # Run the given command in the background. Useful for starting a
 # node and then moving on with commands that exercise it for the
 # test.

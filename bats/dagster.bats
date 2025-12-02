@@ -49,47 +49,114 @@ load helpers
   }')
   
   exec_dagster_graphql "launch_run" "$variables"
-  echo "$output" | jq . >/dev/null || skip "Dagster GraphQL did not return JSON"
+  dagster_validate_json || skip "Dagster GraphQL did not return JSON"
   
   run_id=$(echo "$output" | jq -r '.data.launchRun.run.runId // empty')
   [ -n "$run_id" ] || { echo "$output"; return 1; }
   
-  # Poll run status until SUCCESS
-  attempts=30
-  sleep_between=2
-  run_status=""
-  while [ $attempts -gt 0 ]; do
-    poll_vars=$(jq -n --arg runId "$run_id" '{ runId: $runId }')
-    exec_dagster_graphql "run_status" "$poll_vars"
-    run_status=$(echo "$output" | jq -r '.data.runOrError.status // empty')
-    
-    if [ "$run_status" = "SUCCESS" ]; then
-      break
-    fi
-    if [ "$run_status" = "FAILURE" ] || [ "$run_status" = "CANCELED" ]; then
-      echo "$output"
-      return 1
-    fi
-    
-    attempts=$((attempts-1))
-    sleep $sleep_between
-  done
+  dagster_poll_run_status "$run_id" 60 2 || return 1
   
-  [ "$run_status" = "SUCCESS" ] || { echo "last status: $run_status"; return 1; }
-  
-  # Verify iris_dataset_size was materialized by checking that it has materializations
-  # and that the run ID matches our execution
   asset_vars=$(jq -n '{
     assetKey: { path: ["iris_dataset_size"] }
   }')
   exec_dagster_graphql "asset_materializations" "$asset_vars"
   
-  # Check that the asset exists and has materializations
   asset_type=$(echo "$output" | jq -r '.data.assetOrError.__typename // empty')
   [ "$asset_type" = "Asset" ] || { echo "Asset not found: $output"; return 1; }
   
-  # Check that the most recent materialization was from our run
   recent_run_id=$(echo "$output" | jq -r '.data.assetOrError.assetMaterializations[0].runId // empty')
   [ "$recent_run_id" = "$run_id" ] || { echo "Expected run ID $run_id, got $recent_run_id"; return 1; }
+}
+
+@test "dagster: materialize core_withdrawal_events_rollup" {
+  if [[ "${DAGSTER}" != "true" ]]; then
+    skip "Skipping dagster tests"
+  fi
+
+  variables=$(jq -n '{
+    executionParams: {
+      selector: {
+        repositoryLocationName: "Lana DW",
+        repositoryName: "__repository__",
+        jobName: "__ASSET_JOB",
+        assetSelection: [
+          { path: ["lana", "core_withdrawal_events_rollup"] }
+        ]
+      },
+      runConfigData: {}
+    }
+  }')
+  
+  exec_dagster_graphql "launch_run" "$variables"
+
+  dagster_check_launch_run_errors || return 1
+
+  run_id=$(echo "$output" | jq -r '.data.launchRun.run.runId // empty')
+  if [ -z "$run_id" ]; then
+    echo "Failed to launch run - no runId returned"
+    echo "Response: $output"
+    return 1
+  fi
+  
+  dagster_poll_run_status "$run_id" 90 2 || return 1
+  
+  asset_vars=$(jq -n '{
+    assetKey: { path: ["lana", "core_withdrawal_events_rollup"] }
+  }')
+  exec_dagster_graphql "asset_materializations" "$asset_vars"
+  
+  dagster_validate_json || return 1
+  
+  asset_type=$(echo "$output" | jq -r '.data.assetOrError.__typename // empty')
+  [ "$asset_type" = "Asset" ] || { echo "Asset core_withdrawal_events_rollup not found: $output"; return 1; }
+  
+  recent_run_id=$(echo "$output" | jq -r '.data.assetOrError.assetMaterializations[0].runId // empty')
+  [ "$recent_run_id" = "$run_id" ] || { echo "Expected run ID $run_id for core_withdrawal_events_rollup, got $recent_run_id"; return 1; }
+}
+
+@test "dagster: materialize stg_core_withdrawal_events_rollup" {
+  if [[ "${DAGSTER}" != "true" ]]; then
+    skip "Skipping dagster tests"
+  fi
+
+  variables=$(jq -n '{
+    executionParams: {
+      selector: {
+        repositoryLocationName: "Lana DW",
+        repositoryName: "__repository__",
+        jobName: "__ASSET_JOB",
+        assetSelection: [
+          { path: ["stg_core_withdrawal_events_rollup"] }
+        ]
+      },
+      runConfigData: {}
+    }
+  }')
+  
+  exec_dagster_graphql "launch_run" "$variables"
+
+  dagster_check_launch_run_errors || return 1
+
+  run_id=$(echo "$output" | jq -r '.data.launchRun.run.runId // empty')
+  if [ -z "$run_id" ]; then
+    echo "Failed to launch run - no runId returned"
+    echo "Response: $output"
+    return 1
+  fi
+  
+  dagster_poll_run_status "$run_id" 90 2 || return 1
+  
+  asset_vars=$(jq -n '{
+    assetKey: { path: ["stg_core_withdrawal_events_rollup"] }
+  }')
+  exec_dagster_graphql "asset_materializations" "$asset_vars"
+  
+  dagster_validate_json || return 1
+  
+  asset_type=$(echo "$output" | jq -r '.data.assetOrError.__typename // empty')
+  [ "$asset_type" = "Asset" ] || { echo "Asset stg_core_withdrawal_events_rollup not found: $output"; return 1; }
+  
+  recent_run_id=$(echo "$output" | jq -r '.data.assetOrError.assetMaterializations[0].runId // empty')
+  [ "$recent_run_id" = "$run_id" ] || { echo "Expected run ID $run_id for stg_core_withdrawal_events_rollup, got $recent_run_id"; return 1; }
 }
 

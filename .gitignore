@@ -60,3 +60,7 @@ lib/rendering/test-output
 docs/book/
 
 vendor/
+
+# python
+
+**/__pycache__/

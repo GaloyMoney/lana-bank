@@ -11,20 +11,14 @@ services:
       DAGSTER_POSTGRES_USER: 'postgres_user'
       DAGSTER_POSTGRES_PASSWORD: 'postgres_password'
       DAGSTER_POSTGRES_DB: 'postgres_db'
-      TF_VAR_sa_creds: ${TF_VAR_sa_creds:-}
       TARGET_BIGQUERY_DATASET: ${TARGET_BIGQUERY_DATASET:-}
       REPORTS_BUCKET_NAME: ${REPORTS_BUCKET_NAME:-}
       OTEL_EXPORTER_OTLP_ENDPOINT: 'http://otel-agent:4317'
       DAGSTER_AUTOMATIONS_ACTIVE: ${DAGSTER_AUTOMATIONS_ACTIVE:-}
       LANA_PG_CON: 'postgres://user:password@172.17.0.1:5433/pg'
-      DBT_BIGQUERY_AUTH_METHOD: ${DBT_BIGQUERY_AUTH_METHOD:-}
+      DBT_BIGQUERY_CREDENTIALS_JSON: ${DBT_BIGQUERY_CREDENTIALS_JSON:-}
       DBT_BIGQUERY_PROJECT: ${DBT_BIGQUERY_PROJECT:-}
       DBT_BIGQUERY_DATASET: ${DBT_BIGQUERY_DATASET:-}
-      DBT_BIGQUERY_REFRESH_TOKEN: ${DBT_BIGQUERY_REFRESH_TOKEN:-}
-      DBT_BIGQUERY_CLIENT_ID: ${DBT_BIGQUERY_CLIENT_ID:-}
-      DBT_BIGQUERY_CLIENT_SECRET: ${DBT_BIGQUERY_CLIENT_SECRET:-}
-      DBT_BIGQUERY_TOKEN_URI: ${DBT_BIGQUERY_TOKEN_URI:-}
-      DBT_BIGQUERY_KEYFILE: /lana-dw/secrets/keyfile.json
   # This service runs dagster-webserver, which loads your user code from the user code container.
   # Since our instance uses the QueuedRunCoordinator, any runs submitted from the webserver will be put on
   # a queue and later dequeued and launched by dagster-daemon.
@@ -72,7 +66,7 @@ services:
       DAGSTER_POSTGRES_USER: 'postgres_user'
       DAGSTER_POSTGRES_PASSWORD: 'postgres_password'
       DAGSTER_POSTGRES_DB: 'postgres_db'
-      TF_VAR_sa_creds: ${TF_VAR_sa_creds:-}
+      DBT_BIGQUERY_CREDENTIALS_JSON: ${DBT_BIGQUERY_CREDENTIALS_JSON:-}
       TARGET_BIGQUERY_DATASET: ${TARGET_BIGQUERY_DATASET:-}
       REPORTS_BUCKET_NAME: ${REPORTS_BUCKET_NAME:-}
     volumes:
