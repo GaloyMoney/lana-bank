@@ -3,7 +3,7 @@ import dlt
 
 def create_bigquery_destination(credentials: dict) -> dlt.destinations.bigquery:
     """Create a BigQuery destination for dlt.
-    
+
     Args:
         credentials: Service account credentials as a dictionary.
     """
