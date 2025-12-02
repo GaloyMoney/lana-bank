@@ -42,7 +42,10 @@ pub enum WithdrawalEvent {
         approval_process_id: ApprovalProcessId,
         approved: bool,
         status: WithdrawalStatus,
-        ledger_tx_id: Option<CalaTransactionId>,
+    },
+    Denied {
+        ledger_tx_id: CalaTransactionId,
+        status: WithdrawalStatus,
     },
     Confirmed {
         ledger_tx_id: CalaTransactionId,
@@ -196,6 +199,7 @@ impl Withdrawal {
                 WithdrawalEvent::Confirmed { status, .. } => *status,
                 WithdrawalEvent::Cancelled { status, .. } => *status,
                 WithdrawalEvent::Reverted { status, .. } => *status,
+                WithdrawalEvent::Denied { status, .. } => *status,
                 WithdrawalEvent::ApprovalProcessConcluded { status, .. } => *status,
                 WithdrawalEvent::Initialized { status, .. } => *status,
             })
@@ -208,10 +212,11 @@ impl Withdrawal {
             .iter_all()
             .filter_map(|e| match e {
                 WithdrawalEvent::Initialized { ledger_tx_id, .. } => Some(*ledger_tx_id),
+                WithdrawalEvent::Denied { ledger_tx_id, .. } => Some(*ledger_tx_id),
                 WithdrawalEvent::Confirmed { ledger_tx_id, .. } => Some(*ledger_tx_id),
                 WithdrawalEvent::Cancelled { ledger_tx_id, .. } => Some(*ledger_tx_id),
                 WithdrawalEvent::Reverted { ledger_tx_id, .. } => Some(*ledger_tx_id),
-                WithdrawalEvent::ApprovalProcessConcluded { ledger_tx_id, .. } => *ledger_tx_id,
+                WithdrawalEvent::ApprovalProcessConcluded { .. } => None,
             })
             .collect()
     }
@@ -229,18 +234,21 @@ impl Withdrawal {
         } else {
             WithdrawalStatus::Denied
         };
-        let ledger_tx_id = if !approved {
-            Some(CalaTransactionId::new())
-        } else {
-            None
-        };
         self.events.push(WithdrawalEvent::ApprovalProcessConcluded {
             approval_process_id: self.id.into(),
             approved,
             status,
-            ledger_tx_id,
         });
-        Idempotent::Executed(ledger_tx_id)
+
+        if !approved {
+            let ledger_tx_id = CalaTransactionId::new();
+            self.events.push(WithdrawalEvent::Denied {
+                ledger_tx_id,
+                status,
+            });
+            return Idempotent::Executed(Some(ledger_tx_id));
+        }
+        Idempotent::Executed(None)
     }
 }
 
