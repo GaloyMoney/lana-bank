@@ -37,18 +37,13 @@ if [[ "${CI:-false}" == "true" ]]; then
 fi
 
 # ── Load environment variables ─────────────────────────────────────────────────
-# Note: Credential transformations are now handled in .envrc (single source of truth)
-# These variables should already be set if direnv is active, but we ensure they're available
-# for cases where the script is run without direnv (e.g., CI/CD)
-
-# Ensure keyfile exists (already created by .envrc if direnv is active)
 if [[ -n "${TARGET_BIGQUERY_CREDENTIALS_JSON:-}" ]] && [[ ! -f meltano/keyfile.json ]]; then
   echo "$TARGET_BIGQUERY_CREDENTIALS_JSON" > meltano/keyfile.json
 fi
 
-# Set dataset/bucket names if not already set (fallback for non-direnv contexts)
 export TARGET_BIGQUERY_DATASET="${TARGET_BIGQUERY_DATASET:-${TF_VAR_name_prefix:-${USER}}_dataset}"
 export DBT_BIGQUERY_DATASET="${DBT_BIGQUERY_DATASET:-dbt_${TF_VAR_name_prefix:-${USER}}}"
+export DBT_BIGQUERY_PROJECT="${DBT_BIGQUERY_PROJECT:-$(echo "$TF_VAR_sa_creds" | base64 -d | jq -r '.project_id')}"
 export DOCS_BUCKET_NAME="${DOCS_BUCKET_NAME:-${TF_VAR_name_prefix:-${USER}}-lana-documents}"
 export TARGET_BIGQUERY_LOCATION="${TARGET_BIGQUERY_LOCATION:-US}"
 
