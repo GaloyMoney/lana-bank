@@ -18,7 +18,7 @@ pub struct LiquidationPayment {
 }
 
 impl LiquidationPayment {
-    const UNITY_FEE_FACTOR: Decimal = Decimal::ONE;
+    const UNIT_FEE_FACTOR: Decimal = Decimal::ONE;
 
     pub const fn new(
         outstanding: UsdCents,
@@ -47,7 +47,7 @@ impl LiquidationPayment {
             .to_usd();
 
         let repay_usd = ((outstanding_usd * target_ratio - collateral_usd)
-            / (target_ratio - Self::UNITY_FEE_FACTOR))
+            / (target_ratio - Self::UNIT_FEE_FACTOR))
             .max(Decimal::ZERO)
             .round_dp_with_strategy(2, RoundingStrategy::AwayFromZero);
 
