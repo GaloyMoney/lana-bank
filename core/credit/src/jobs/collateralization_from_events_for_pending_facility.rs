@@ -10,6 +10,7 @@ use outbox::{
     EphemeralOutboxEvent, EventSequence, Outbox, OutboxEvent, OutboxEventMarker,
     PersistentOutboxEvent,
 };
+use tracing_macros::record_error_severity;
 
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use core_price::CorePriceEvent;
@@ -145,6 +146,7 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
+    #[record_error_severity]
     #[instrument(name = "core_credit.pending_credit_facility_collateralization_job.process_persistent_message", parent = None, skip(self, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty, credit_facility_proposal_id = tracing::field::Empty))]
     #[allow(clippy::single_match)]
     async fn process_persistent_message(
@@ -172,6 +174,7 @@ where
         Ok(())
     }
 
+    #[record_error_severity]
     #[instrument(name = "core_credit.pending_credit_facility_collateralization_job.process_ephemeral_message", parent = None, skip(self, message), fields(handled = false, event_type = tracing::field::Empty))]
     #[allow(clippy::single_match)]
     async fn process_ephemeral_message(

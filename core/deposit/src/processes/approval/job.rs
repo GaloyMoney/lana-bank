@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use authz::PermissionCheck;
 use futures::{FutureExt, StreamExt, select};
 use tracing::{Span, instrument};
+use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
@@ -124,6 +125,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CoreDepositObject> + From<GovernanceObject>,
 {
+    #[record_error_severity]
     #[instrument(name = "core_deposit.withdraw_approval_job.process_message", parent = None, skip(self, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty, process_type = tracing::field::Empty))]
     #[allow(clippy::single_match)]
     async fn process_message(

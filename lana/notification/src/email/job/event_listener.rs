@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use futures::{FutureExt, StreamExt, select};
 use serde::{Deserialize, Serialize};
 use tracing::{Span, instrument};
+use tracing_macros::record_error_severity;
 
 use job::{
     CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType, RetrySettings,
@@ -144,6 +145,7 @@ where
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
         From<core_access::UserId>,
 {
+    #[record_error_severity]
     #[instrument(name = "notification.email_listener_job.process_message", parent = None, skip(self, message, op), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn process_message(
         &self,

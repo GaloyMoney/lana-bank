@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use futures::{FutureExt, StreamExt, select};
 use serde::{Deserialize, Serialize};
 use tracing::{Span, instrument};
+use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -47,6 +48,7 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
 {
+    #[record_error_severity]
     #[instrument(name = "customer_sync.update_last_activity_date_job.process_message", parent = None, skip(self, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
     #[allow(clippy::single_match)]
     async fn process_message(

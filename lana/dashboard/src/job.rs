@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 use futures::{FutureExt, StreamExt, select};
 use tracing::{Span, instrument};
+use tracing_macros::record_error_severity;
 
 use job::*;
 use outbox::PersistentOutboxEvent;
@@ -63,6 +64,7 @@ pub struct DashboardProjectionJobRunner {
 }
 
 impl DashboardProjectionJobRunner {
+    #[record_error_severity]
     #[instrument(name = "dashboard.projection_job.process_message", parent = None, skip(self, message, dashboard), fields(seq = %message.sequence, handled = false))]
     async fn process_message(
         &self,

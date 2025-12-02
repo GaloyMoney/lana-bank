@@ -13,6 +13,7 @@ use outbox::{EphemeralOutboxEvent, Outbox, OutboxEventMarker};
 use std::sync::Arc;
 use tokio::{sync::watch, task::JoinHandle};
 use tracing::Span;
+use tracing_macros::record_error_severity;
 
 use error::PriceError;
 
@@ -26,7 +27,8 @@ pub struct Price {
 }
 
 impl Price {
-    #[tracing::instrument(name = "core.price.init", skip(jobs, outbox), err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "core.price.init", skip(jobs, outbox))]
     pub async fn init<E>(jobs: &Jobs, outbox: &Outbox<E>) -> Result<Self, PriceError>
     where
         E: OutboxEventMarker<CorePriceEvent> + Send + Sync + 'static,
@@ -69,7 +71,8 @@ impl Price {
         tokio::spawn(Self::listen_for_price_updates(tx, outbox))
     }
 
-    #[tracing::instrument(name = "core.price.listen_for_updates", skip_all, err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "core.price.listen_for_updates", skip_all)]
     async fn listen_for_price_updates<E>(
         tx: watch::Sender<Option<PriceOfOneBTC>>,
         outbox: Outbox<E>,
@@ -87,12 +90,12 @@ impl Price {
         Ok(())
     }
 
+    #[record_error_severity]
     #[tracing::instrument(
         name = "core.price.listen_for_updates.process_message",
         parent = None,
         skip(tx, message),
         fields(event_type = tracing::field::Empty, handled = false, price = tracing::field::Empty, timestamp = tracing::field::Empty),
-        err
     )]
     async fn process_message<E>(
         tx: &watch::Sender<Option<PriceOfOneBTC>>,
