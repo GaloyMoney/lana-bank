@@ -12,6 +12,7 @@ pub struct FiscalYear {
     id: ID,
     fiscal_year_id: UUID,
     chart_id: UUID,
+    is_open: bool,
     opened_as_of: Date,
     closed_as_of: Option<Date>,
     #[graphql(skip)]
@@ -23,6 +24,7 @@ impl From<DomainFiscalYear> for FiscalYear {
             id: fiscal_year.id.to_global_id(),
             fiscal_year_id: UUID::from(fiscal_year.id),
             chart_id: UUID::from(fiscal_year.chart_id),
+            is_open: fiscal_year.closed_as_of.is_none(),
             opened_as_of: fiscal_year.opened_as_of.into(),
             closed_as_of: fiscal_year.closed_as_of.map(|date| date.into()),
             entity: Arc::new(fiscal_year),

@@ -143,28 +143,6 @@ impl FiscalYear {
             .collect()
     }
 
-    // TODO: This was made public by UI PR.
-    #[instrument(name = "fiscal_year.is_open", skip(self))]
-    pub fn is_open(&self) -> bool {
-        !self
-            .events
-            .iter_all()
-            .rev()
-            .any(|event| matches!(event, FiscalYearEvent::YearClosed { .. }))
-    }
-
-    fn can_close(&self) -> bool {
-        let year = self.opened_as_of.year();
-        let last_month_of_year = NaiveDate::from_ymd_opt(year, 12, 1)
-            .expect("Failed to compute december of fiscal year");
-        let expected_last_month_closed_as_of = last_month_of_year
-            .checked_add_months(Months::new(1))
-            .and_then(|d| d.with_day(1))
-            .and_then(|d| d.pred_opt())
-            .expect("Failed to compute expected december closing date for fiscal year");
-        self.events.iter_all().rev().any(|event| matches!(event, FiscalYearEvent::MonthClosed { month_closed_as_of, .. } if *month_closed_as_of == expected_last_month_closed_as_of))
-    }
-
     fn is_last_month_of_year_closed(&self) -> bool {
         let last_month_closes_as_of = self.closes_as_of();
         self.events

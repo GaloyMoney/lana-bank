@@ -1336,10 +1336,10 @@ type FiscalYear {
 	id: ID!
 	fiscalYearId: UUID!
 	chartId: UUID!
-	openedAsOf: Date!
 	isOpen: Boolean!
-	monthClosures: [FiscalMonthClosure!]!
+	openedAsOf: Date!
 	closedAsOf: Date
+	monthClosures: [FiscalMonthClosure!]!
 }
 
 input FiscalYearCloseInput {
