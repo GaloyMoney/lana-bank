@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::CoreCreditEvent;
 use crate::jobs::partial_liquidation;
-use crate::liquidation::Liquidations;
+use crate::liquidation::{Liquidations, NewLiquidation};
 
 #[derive(Default, Clone, Deserialize, Serialize)]
 struct CreditFacilityHealthJobData {
@@ -127,41 +127,45 @@ where
         message: &PersistentOutboxEvent<E>,
         db: &mut DbOp<'_>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        if let Some(event) = message.as_event()
-            && let CoreCreditEvent::PartialLiquidationInitiated {
-                liquidation_id,
-                credit_facility_id,
-                receivable_account_id,
-                trigger_price,
-                initially_expected_to_receive,
-                initially_estimated_to_liquidate,
-            } = event
-            && let Some(liquidation) = self
-                .liquidations
-                .create_if_not_exist_in_op(
-                    db,
-                    *liquidation_id,
-                    *credit_facility_id,
-                    *receivable_account_id,
-                    *trigger_price,
-                    *initially_expected_to_receive,
-                    *initially_estimated_to_liquidate,
-                )
-                .await?
+        if let Some(CoreCreditEvent::PartialLiquidationInitiated {
+            liquidation_id,
+            credit_facility_id,
+            receivable_account_id,
+            trigger_price,
+            initially_expected_to_receive,
+            initially_estimated_to_liquidate,
+        }) = message.as_event()
         {
-            self.jobs
-                .create_and_spawn_in_op(
+            let maybe_new_liqudation = self
+                .liquidations
+                .create_if_not_exist_for_facility_in_op(
                     db,
-                    JobId::new(),
-                    partial_liquidation::PartialLiquidationJobConfig::<E> {
-                        liquidation_id: liquidation.id,
+                    *credit_facility_id,
+                    NewLiquidation {
+                        id: *liquidation_id,
                         credit_facility_id: *credit_facility_id,
-                        _phantom: std::marker::PhantomData,
+                        receivable_account_id: *receivable_account_id,
+                        trigger_price: *trigger_price,
+                        initially_expected_to_receive: *initially_expected_to_receive,
+                        initially_estimated_to_liquidate: *initially_estimated_to_liquidate,
                     },
                 )
                 .await?;
-        }
 
+            if let Some(liquidation) = maybe_new_liqudation {
+                self.jobs
+                    .create_and_spawn_in_op(
+                        db,
+                        JobId::new(),
+                        partial_liquidation::PartialLiquidationJobConfig::<E> {
+                            liquidation_id: liquidation.id,
+                            credit_facility_id: *credit_facility_id,
+                            _phantom: std::marker::PhantomData,
+                        },
+                    )
+                    .await?;
+            }
+        }
         Ok(())
     }
 }

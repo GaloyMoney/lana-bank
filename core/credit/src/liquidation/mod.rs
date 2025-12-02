@@ -43,34 +43,22 @@ where
         }
     }
 
-    pub async fn create_if_not_exist_in_op(
+    pub async fn create_if_not_exist_for_facility_in_op(
         &self,
         db: &mut DbOp<'_>,
-        liquidation_process_id: LiquidationId,
         credit_facility_id: CreditFacilityId,
-        receivable_account_id: CalaAccountId,
-        trigger_price: PriceOfOneBTC,
-        initially_expected_to_receive: UsdCents,
-        initially_estimated_to_liquidate: Satoshis,
+        new_liqiudation: NewLiquidation,
     ) -> Result<Option<Liquidation>, LiquidationError> {
-        match self
+        let existing_liquidation = self
             .repo
             .maybe_find_by_credit_facility_id_in_op(&mut *db, credit_facility_id)
-            .await?
-        {
-            None => {
-                let new_liquidation = NewLiquidation {
-                    id: liquidation_process_id,
-                    credit_facility_id,
-                    receivable_account_id,
-                    trigger_price,
-                    initially_expected_to_receive,
-                    initially_estimated_to_liquidate,
-                };
-                let liquidation = self.repo.create_in_op(db, new_liquidation).await?;
-                Ok(Some(liquidation))
-            }
-            _ => Ok(None),
+            .await?;
+
+        if existing_liquidation.is_none() {
+            let liquidation = self.repo.create_in_op(db, new_liquidation).await?;
+            Ok(Some(liquidation))
+        } else {
+            Ok(None)
         }
     }
 
