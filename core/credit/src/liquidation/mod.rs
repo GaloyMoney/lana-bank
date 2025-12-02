@@ -84,10 +84,10 @@ where
     pub async fn record_collateral_sent_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
-        liquidation_process_id: LiquidationId,
+        liquidation_id: LiquidationId,
         amount: Satoshis,
     ) -> Result<(), LiquidationError> {
-        let mut liquidation = self.repo.find_by_id(liquidation_process_id).await?;
+        let mut liquidation = self.repo.find_by_id(liquidation_id).await?;
 
         let tx_id = CalaTransactionId::new();
 
@@ -110,10 +110,10 @@ where
     #[allow(dead_code)]
     pub async fn record_payment_from_liquidation(
         &self,
-        liquidation_process_id: LiquidationId,
+        liquidation_id: LiquidationId,
         amount: UsdCents,
     ) -> Result<(), LiquidationError> {
-        let mut liquidation = self.repo.find_by_id(liquidation_process_id).await?;
+        let mut liquidation = self.repo.find_by_id(liquidation_id).await?;
         let mut db = self.repo.begin().await?;
 
         // TODO: post transaction in op
@@ -133,9 +133,9 @@ where
     pub async fn complete_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
-        liquidation_process_id: LiquidationId,
+        liquidation_id: LiquidationId,
     ) -> Result<(), LiquidationError> {
-        let mut liquidation = self.repo.find_by_id(liquidation_process_id).await?;
+        let mut liquidation = self.repo.find_by_id(liquidation_id).await?;
 
         if liquidation.complete().did_execute() {
             self.repo.update_in_op(db, &mut liquidation).await?;
