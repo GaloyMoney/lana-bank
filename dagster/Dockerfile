@@ -40,12 +40,6 @@ RUN pip install \
 RUN mkdir -p /lana-dw
 COPY src/ /lana-dw/src/
 
-# Add GCP secrets file
-ENV KEYFILE=keyfile.json
-ENV SECRETS_FOLDER=/lana-dw/secrets/
-RUN mkdir -p $SECRETS_FOLDER
-COPY $KEYFILE $SECRETS_FOLDER
-
 EXPOSE 4000
 
 CMD ["dagster", "api", "grpc", "-h", "0.0.0.0", "-p", "4000", "-f", "/lana-dw/src/definitions.py", "-d", "/lana-dw"]

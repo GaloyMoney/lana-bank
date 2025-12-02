@@ -1,4 +1,3 @@
-import base64
 import json
 from pathlib import Path
 from typing import Any
@@ -25,8 +24,13 @@ class PostgresResource(dg.ConfigurableResource):
 class BigQueryResource(dg.ConfigurableResource):
     """Dagster resource for BigQuery configuration."""
 
-    def get_base64_credentials(self) -> str:
-        return dg.EnvVar("TF_VAR_sa_creds").get_value()
+    def get_credentials_json(self) -> str:
+        """Get BigQuery credentials JSON from environment variable."""
+        return dg.EnvVar("DBT_BIGQUERY_CREDENTIALS_JSON").get_value()
+
+    def get_credentials_dict(self) -> dict:
+        """Get BigQuery credentials as a dictionary."""
+        return json.loads(self.get_credentials_json())
 
     def get_target_dataset(self) -> str:
         return dg.EnvVar("TARGET_BIGQUERY_DATASET").get_value()
@@ -37,10 +41,13 @@ class GCSResource(dg.ConfigurableResource):
 
     def get_credentials_dict(self) -> dict:
         """Get GCS credentials dictionary from environment variable."""
-        base64_creds = dg.EnvVar("TF_VAR_sa_creds").get_value()
-        creds_json = base64.b64decode(base64_creds).decode("utf-8")
-        creds_dict = json.loads(creds_json)
-        return creds_dict
+        creds_json = dg.EnvVar("DBT_BIGQUERY_CREDENTIALS_JSON").get_value()
+        if not creds_json:
+            raise ValueError(
+                "DBT_BIGQUERY_CREDENTIALS_JSON environment variable is not set or is empty. "
+                "Ensure TF_VAR_sa_creds is set in .env and .envrc is loaded (via direnv allow) before starting containers."
+            )
+        return json.loads(creds_json)
 
     def get_credentials(self) -> service_account.Credentials:
         """Get GCS credentials from environment variable."""
