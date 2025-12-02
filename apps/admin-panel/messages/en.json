@@ -192,6 +192,7 @@
       "auditLogs": "Audit Logs",
       "committees": "Committees",
       "chartOfAccounts": "Chart of Accounts",
+      "fiscalYears": "Fiscal Years",
       "ledgerAccounts": "Ledger Accounts",
       "ledgerTransactions": "Ledger Transactions",
       "journal": "Journal",
@@ -1903,6 +1904,67 @@
     },
     "copied": "Copied Account Code: \"{code}\""
   },
+  "FiscalYears": {
+    "title": "Fiscal Years",
+    "description": "Manage fiscal years and monthly closing periods for accounting",
+    "status": {
+      "open": "Open",
+      "closed": "Closed"
+    },
+    "table": {
+      "headers": {
+        "openedAsOf": "Fiscal Year Start",
+        "status": "Status"
+      },
+      "initFiscalYear": "Initialize Fiscal Year"
+    },
+    "init": {
+      "title": "Initialize Fiscal Year",
+      "description": "Create a new fiscal year with an opening date.",
+      "warning": "This action is irreversible. Once initialized, the fiscal year cannot be deleted.",
+      "fields": {
+        "openedAsOf": "Opening Date",
+        "selectDate": "Select opening date"
+      },
+      "cancel": "Cancel",
+      "confirm": "Initialize",
+      "success": "Fiscal year initialized successfully",
+      "validation": {
+        "dateRequired": "Opening date is required"
+      }
+    },
+    "closeMonth": {
+      "title": "Close Month",
+      "description": "This will close the next sequential month for this fiscal year. This action is permanent and cannot be undone. Once closed, no transactions can be posted to this period.",
+      "cancel": "Cancel",
+      "confirm": "Close Month",
+      "success": "Month closed successfully"
+    },
+    "details": {
+      "title": "Fiscal Year Details",
+      "fields": {
+        "openedAsOf": "Fiscal Year Start",
+        "status": "Status",
+        "monthsClosed": "Months Closed",
+        "lastClosedMonth": "Last Closed Month",
+        "processedAt": "Processed {date}",
+        "noMonthsClosed": "No months closed yet"
+      },
+      "buttons": {
+        "closeMonth": "Close Next Month"
+      }
+    },
+    "monthClosures": {
+      "title": "Month Closures",
+      "noClosures": "No months have been closed yet.",
+      "table": {
+        "headers": {
+          "closedAsOf": "Month-End Date",
+          "closedAt": "Processed At"
+        }
+      }
+    }
+  },
   "BalanceSheet": {
     "title": "Balance Sheet",
     "description": "A financial statement showing the company's assets, liabilities, and equity at a specific point in time.",
@@ -2045,7 +2107,8 @@
       "role": "Role",
       "account": "Account",
       "depositAccount": "Deposit Account",
-      "subAccount": "Sub Account"
+      "subAccount": "Sub Account",
+      "fiscalYear": "Fiscal Year"
     }
   },
   "DataTable": {

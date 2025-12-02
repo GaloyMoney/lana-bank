@@ -36,6 +36,11 @@ pub struct FiscalYear {
     events: EntityEvents<FiscalYearEvent>,
 }
 
+pub struct FiscalMonthClosure {
+    pub closed_as_of: NaiveDate,
+    pub closed_at: DateTime<Utc>,
+}
+
 impl FiscalYear {
     #[instrument(name = "fiscal_year.close_next_sequential_month", skip(self, now))]
     pub(super) fn close_next_sequential_month(
@@ -82,6 +87,22 @@ impl FiscalYear {
             closed_at: now,
         });
         Idempotent::Executed(new_monthly_closing_date)
+    }
+
+    pub fn month_closures(&self) -> Vec<FiscalMonthClosure> {
+        self.events
+            .iter_all()
+            .filter_map(|event| match event {
+                FiscalYearEvent::MonthClosed {
+                    closed_as_of,
+                    closed_at,
+                } => Some(FiscalMonthClosure {
+                    closed_as_of: *closed_as_of,
+                    closed_at: *closed_at,
+                }),
+                _ => None,
+            })
+            .collect()
     }
 
     #[instrument(name = "fiscal_year.is_open", skip(self))]

@@ -784,6 +784,21 @@ impl Query {
         Ok(ChartOfAccounts::from(chart))
     }
 
+    async fn fiscal_year(
+        &self,
+        ctx: &Context<'_>,
+        fiscal_year_id: UUID,
+    ) -> async_graphql::Result<Option<FiscalYear>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(
+            FiscalYear,
+            ctx,
+            app.accounting()
+                .fiscal_year()
+                .find_by_id(sub, fiscal_year_id)
+        )
+    }
+
     async fn fiscal_years(
         &self,
         ctx: &Context<'_>,
