@@ -25,6 +25,7 @@ import {
   Building2,
   FileSignature,
   Clock,
+  Calendar,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
 
@@ -86,6 +87,7 @@ export function useNavItems() {
 
   const navAccountingItems: NavItem[] = [
     { title: t("chartOfAccounts"), url: "/chart-of-accounts", icon: Globe },
+    { title: t("fiscalYears"), url: "/fiscal-years", icon: Calendar },
     { title: t("ledgerAccounts"), url: "/ledger-accounts", icon: BookText },
     { title: t("ledgerTransactions"), url: "/ledger-transactions", icon: FileText },
     { title: t("journal"), url: "/journal", icon: ScrollIcon },

@@ -1327,11 +1327,18 @@ type FiniteCVLPct {
 	value: CVLPctValue!
 }
 
+type FiscalMonthClosure {
+	closedAsOf: Date!
+	closedAt: Timestamp!
+}
+
 type FiscalYear {
 	id: ID!
+	fiscalYearId: UUID!
 	chartId: UUID!
 	openedAsOf: Date!
 	isOpen: Boolean!
+	monthClosures: [FiscalMonthClosure!]!
 }
 
 input FiscalYearCloseMonthInput {
@@ -1961,6 +1968,7 @@ type Query {
 	journalEntries(first: Int!, after: String): JournalEntryConnection!
 	trialBalance(from: Date!, until: Date!): TrialBalance!
 	chartOfAccounts: ChartOfAccounts!
+	fiscalYear(fiscalYearId: UUID!): FiscalYear
 	fiscalYears(first: Int!, after: String): FiscalYearConnection!
 	balanceSheet(from: Date!, until: Date): BalanceSheet!
 	profitAndLossStatement(from: Date!, until: Date): ProfitAndLossStatement!

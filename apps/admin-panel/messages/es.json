@@ -192,6 +192,7 @@
       "auditLogs": "Registros de Auditoría",
       "committees": "Comités",
       "chartOfAccounts": "Catálogo de Cuentas",
+      "fiscalYears": "Años Fiscales",
       "ledgerAccounts": "Cuentas del libro mayor",
       "ledgerTransactions": "Partidas contables",
       "journal": "Registros Contables",
@@ -1903,6 +1904,67 @@
     },
     "copied": "Código de cuenta copiado: \"{code}\""
   },
+  "FiscalYears": {
+    "title": "Años Fiscales",
+    "description": "Gestionar años fiscales y períodos de cierre mensual para contabilidad",
+    "status": {
+      "open": "Abierto",
+      "closed": "Cerrado"
+    },
+    "table": {
+      "headers": {
+        "openedAsOf": "Inicio del Año Fiscal",
+        "status": "Estado"
+      },
+      "initFiscalYear": "Inicializar Año Fiscal"
+    },
+    "init": {
+      "title": "Inicializar Año Fiscal",
+      "description": "Crear un nuevo año fiscal con una fecha de apertura. El día anterior a la fecha de apertura se cerrará automáticamente.",
+      "warning": "Esta acción es irreversible. Una vez inicializado, el año fiscal no se puede eliminar.",
+      "fields": {
+        "openedAsOf": "Fecha de Apertura",
+        "selectDate": "Seleccionar fecha de apertura"
+      },
+      "cancel": "Cancelar",
+      "confirm": "Inicializar",
+      "success": "Año fiscal inicializado exitosamente",
+      "validation": {
+        "dateRequired": "La fecha de apertura es obligatoria"
+      }
+    },
+    "closeMonth": {
+      "title": "Cerrar Mes",
+      "description": "Esto cerrará el próximo mes secuencial para este año fiscal. Esta acción es permanente y no se puede deshacer. Una vez cerrado, no se pueden registrar transacciones en este período.",
+      "cancel": "Cancelar",
+      "confirm": "Cerrar Mes",
+      "success": "Mes cerrado exitosamente"
+    },
+    "details": {
+      "title": "Detalles del Año Fiscal",
+      "fields": {
+        "openedAsOf": "Inicio del Año Fiscal",
+        "status": "Estado",
+        "monthsClosed": "Meses Cerrados",
+        "lastClosedMonth": "Último Mes Cerrado",
+        "processedAt": "Procesado {date}",
+        "noMonthsClosed": "Aún no hay meses cerrados"
+      },
+      "buttons": {
+        "closeMonth": "Cerrar Próximo Mes"
+      }
+    },
+    "monthClosures": {
+      "title": "Cierres Mensuales",
+      "noClosures": "Aún no se han cerrado meses.",
+      "table": {
+        "headers": {
+          "closedAsOf": "Fin de Mes",
+          "closedAt": "Procesado en (UTC)"
+        }
+      }
+    }
+  },
   "BalanceSheet": {
     "title": "Balance General",
     "description": "Un estado financiero que muestra los activos, pasivos y patrimonio de la empresa en un momento específico.",
@@ -2045,7 +2107,8 @@
       "role": "Rol",
       "account": "Cuenta",
       "depositAccount": "Cuenta de depósito",
-      "subAccount": "Subcuenta"
+      "subAccount": "Subcuenta",
+      "fiscalYear": "Año Fiscal"
     }
   },
   "DataTable": {
