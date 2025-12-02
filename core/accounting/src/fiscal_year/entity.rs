@@ -71,8 +71,10 @@ impl FiscalYear {
     }
 
     pub(super) fn closes_as_of(&self) -> NaiveDate {
-        let year = self.opened_as_of.year();
-        NaiveDate::from_ymd_opt(year, 12, 31).expect("Failed to compute december of fiscal year")
+        self.opened_as_of
+            .checked_add_months(Months::new(12))
+            .and_then(|d| d.pred_opt())
+            .expect("Failed to compute end of fiscal year")
     }
 
     #[instrument(name = "fiscal_year.close_next_sequential_month", skip(self, now))]
@@ -257,6 +259,13 @@ mod test {
         }]
     }
 
+    fn close_all_months_in_fiscal_year(fiscal_year: &mut FiscalYear) {
+        let now = Utc::now();
+        while fiscal_year.close_next_sequential_month(now).did_execute() {
+            // Continue closing months until did_execute() returns false
+        }
+    }
+
     #[test]
     fn close_next_sequential_month_first_time() {
         let period_start = "2024-01-01".parse::<NaiveDate>().unwrap();
@@ -311,7 +320,7 @@ mod test {
     }
 
     #[test]
-    fn close_fails_when_december_not_closed() {
+    fn close_fails_when_final_month_not_closed() {
         let period_start = "2024-01-01".parse::<NaiveDate>().unwrap();
         let mut fiscal_year = fiscal_year_from(initial_events_with_opened_date(period_start));
 
@@ -322,11 +331,11 @@ mod test {
     }
 
     #[test]
-    fn close_succeeds_when_december_closed() {
-        let period_start = "2024-12-01".parse::<NaiveDate>().unwrap();
+    fn close_succeeds_when_all_months_closed() {
+        let period_start = "2021-12-01".parse::<NaiveDate>().unwrap();
         let mut fiscal_year = fiscal_year_from(initial_events_with_opened_date(period_start));
 
-        let _ = fiscal_year.close_next_sequential_month(Utc::now()).unwrap();
+        close_all_months_in_fiscal_year(&mut fiscal_year);
         let result = fiscal_year.close(Utc::now());
         assert!(result.is_ok());
 
@@ -334,20 +343,29 @@ mod test {
         assert!(db_op.did_execute());
 
         let closed_as_of = db_op.unwrap();
-        assert_eq!(closed_as_of, "2024-12-31".parse::<NaiveDate>().unwrap());
+        assert_eq!(closed_as_of, "2022-11-30".parse::<NaiveDate>().unwrap());
     }
 
     #[test]
     fn close_ignored_when_already_closed() {
-        let period_start = "2024-12-01".parse::<NaiveDate>().unwrap();
+        let period_start = "2021-12-01".parse::<NaiveDate>().unwrap();
         let mut fiscal_year = fiscal_year_from(initial_events_with_opened_date(period_start));
 
-        let _ = fiscal_year.close_next_sequential_month(Utc::now()).unwrap();
+        close_all_months_in_fiscal_year(&mut fiscal_year);
         let _ = fiscal_year.close(Utc::now());
 
         let second_closing = fiscal_year.close(Utc::now());
         assert!(second_closing.is_ok());
         assert!(second_closing.unwrap().was_ignored());
+    }
+
+    #[test]
+    fn close_next_sequential_month_is_ignored_when_all_months_are_closed() {
+        let period_start = "2021-12-01".parse::<NaiveDate>().unwrap();
+        let mut fiscal_year = fiscal_year_from(initial_events_with_opened_date(period_start));
+        close_all_months_in_fiscal_year(&mut fiscal_year);
+        let result = fiscal_year.close_next_sequential_month(Utc::now());
+        assert!(result.was_ignored());
     }
 
     #[test]
