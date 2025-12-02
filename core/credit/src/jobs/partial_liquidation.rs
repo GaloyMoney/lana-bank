@@ -125,10 +125,6 @@ where
                 credit_facility_id, ..
             }) if *credit_facility_id == self.config.credit_facility_id => {
                 // TODO: call credit::record_payment
-            }
-            Some(FacilityRepaymentRecorded {
-                credit_facility_id, ..
-            }) if *credit_facility_id == self.config.credit_facility_id => {
                 self.liquidations
                     .complete_in_op(db, self.config.liquidation_id)
                     .await?;

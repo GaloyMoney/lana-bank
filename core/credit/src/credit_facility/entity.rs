@@ -63,7 +63,11 @@ pub enum CreditFacilityEvent {
         initially_expected_to_receive: UsdCents,
         initially_estimated_to_liquidate: Satoshis,
     },
-    PartialLiquidationConcluded {},
+    PartialLiquidationConcluded {
+        liquidation_id: LiquidationId,
+        liquidated: Satoshis,
+        received: UsdCents,
+    },
     Matured {},
     Completed {},
 }
@@ -259,7 +263,7 @@ impl CreditFacility {
     fn initiate_partial_liquidation(
         &mut self,
         price: PriceOfOneBTC,
-        collateral: Satoshis,
+        balances: CreditFacilityBalanceSummary,
     ) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
@@ -267,9 +271,13 @@ impl CreditFacility {
             => CreditFacilityEvent::PartialLiquidationConcluded { .. }
         );
 
-        let repay_amount =
-            LiquidationPayment::new(self.amount, price, self.terms.initial_cvl, collateral)
-                .calculate();
+        let repay_amount = LiquidationPayment::new(
+            balances.total_outstanding(),
+            price,
+            self.terms.initial_cvl,
+            balances.collateral(),
+        )
+        .repay_amount();
 
         let liquidate_btc = price.cents_to_sats_round_up(repay_amount);
 
@@ -519,7 +527,7 @@ impl CreditFacility {
                 });
 
             if calculated_collateralization.is_under_liquidation_threshold() {
-                let _ = self.initiate_partial_liquidation(price, balances.collateral());
+                let _ = self.initiate_partial_liquidation(price, balances);
             }
 
             Idempotent::Executed(Some(calculated_collateralization))
@@ -622,7 +630,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                 CreditFacilityEvent::Matured { .. } => (),
                 CreditFacilityEvent::Completed { .. } => (),
                 CreditFacilityEvent::PartialLiquidationInitiated { .. } => {}
-                CreditFacilityEvent::PartialLiquidationConcluded {} => {}
+                CreditFacilityEvent::PartialLiquidationConcluded { .. } => {}
             }
         }
         builder.events(events).build()

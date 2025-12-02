@@ -573,13 +573,26 @@
     },
     {
       "properties": {
+        "liquidated": {
+          "$ref": "#/$defs/Satoshis"
+        },
+        "liquidation_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "received": {
+          "$ref": "#/$defs/UsdCents"
+        },
         "type": {
           "const": "partial_liquidation_concluded",
           "type": "string"
         }
       },
       "required": [
-        "type"
+        "type",
+        "liquidation_id",
+        "liquidated",
+        "received"
       ],
       "type": "object"
     },
