@@ -1,5 +1,6 @@
 mod entity;
 pub mod error;
+mod opening_date;
 mod repo;
 
 use chrono::NaiveDate;
@@ -12,6 +13,7 @@ use es_entity::{Idempotent, PaginatedQueryArgs};
 use crate::{
     FiscalYearId,
     chart_of_accounts::ChartOfAccounts,
+    fiscal_year::opening_date::*,
     primitives::{ChartId, CoreAccountingAction, CoreAccountingObject},
 };
 
@@ -73,7 +75,8 @@ where
         opened_as_of: impl Into<NaiveDate> + std::fmt::Debug,
         chart_id: ChartId,
     ) -> Result<FiscalYear, FiscalYearError> {
-        let opened_as_of = opened_as_of.into();
+        let opened_as_of =
+            OpeningDateForJurisdiction::new(opened_as_of, Jurisdiction::ElSalvador).date();
 
         self.authz
             .enforce_permission(
