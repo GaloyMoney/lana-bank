@@ -586,6 +586,7 @@ impl DepositLedger {
     ) -> Result<(), DepositLedgerError> {
         let tx_id = tx_id.into();
         tracing::Span::current().record("entity_id", tracing::field::debug(&entity_id));
+        tracing::Span::current().record("tx_id", tracing::field::debug(&tx_id));
         let credit_account_id = credit_account_id.into();
         tracing::Span::current().record(
             "credit_account_id",

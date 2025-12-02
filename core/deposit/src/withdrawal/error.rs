@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-use crate::{ledger::error::DepositLedgerError, primitives::WithdrawalId};
+use crate::primitives::WithdrawalId;
 
 #[derive(Error, Debug)]
 pub enum WithdrawalError {
@@ -13,7 +13,7 @@ pub enum WithdrawalError {
     #[error("WithdrawalError - CursorDestructureError: {0}")]
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("WithdrawalError - DepositLedgerError: {0}")]
-    DepositLedgerError(#[from] DepositLedgerError),
+    DepositLedgerError(#[from] crate::ledger::error::DepositLedgerError),
     #[error("WithdrawalError - AlreadyConfirmed: {0}")]
     AlreadyConfirmed(WithdrawalId),
     #[error("WithdrawalError - AlreadyCancelled: {0}")]
