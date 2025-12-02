@@ -9,4 +9,7 @@ mod error;
 mod value;
 
 pub use cvl::CVLPct;
-pub use value::{InterestPeriod, TermValues};
+pub use value::{
+    DisbursalPolicy, FacilityDuration, InterestInterval, InterestPeriod, ObligationDuration,
+    OneTimeFeeRatePct, TermValues,
+};
