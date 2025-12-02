@@ -96,7 +96,7 @@ where
 
         while let Some(message) = stream.next().await {
             let mut db = self.liquidations.begin_op().await?;
-            self.process_message(message.as_ref(), &mut db).await?;
+            self.process_message(&mut db, message.as_ref()).await?;
             state.sequence = message.sequence;
             current_job
                 .update_execution_state_in_op(&mut db, &state)
@@ -117,8 +117,8 @@ where
 {
     async fn process_message(
         &self,
-        message: &PersistentOutboxEvent<E>,
         db: &mut DbOp<'_>,
+        message: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         if let Some(CoreCreditEvent::PartialLiquidationInitiated {
             liquidation_id,
@@ -134,14 +134,15 @@ where
                 .create_if_not_exist_for_facility_in_op(
                     db,
                     *credit_facility_id,
-                    NewLiquidation {
-                        id: *liquidation_id,
-                        credit_facility_id: *credit_facility_id,
-                        receivable_account_id: *receivable_account_id,
-                        trigger_price: *trigger_price,
-                        initially_expected_to_receive: *initially_expected_to_receive,
-                        initially_estimated_to_liquidate: *initially_estimated_to_liquidate,
-                    },
+                    NewLiquidation::builder()
+                        .id(*liquidation_id)
+                        .credit_facility_id(*credit_facility_id)
+                        .receivable_account_id(*receivable_account_id)
+                        .trigger_price(*trigger_price)
+                        .initially_expected_to_receive(*initially_expected_to_receive)
+                        .initially_estimated_to_liquidate(*initially_estimated_to_liquidate)
+                        .build()
+                        .expect("Could not build new liquidation"),
                 )
                 .await?;
 

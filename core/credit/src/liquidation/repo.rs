@@ -24,15 +24,6 @@ where
     publisher: CreditFacilityPublisher<E>,
 }
 
-impl<E> LiquidationRepo<E>
-where
-    E: OutboxEventMarker<CoreCreditEvent>,
-{
-    pub async fn begin(&self) -> Result<sqlx::Transaction<'_, sqlx::Postgres>, LiquidationError> {
-        Ok(self.pool.begin().await?)
-    }
-}
-
 impl<E> Clone for LiquidationRepo<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,

@@ -63,7 +63,7 @@ mod test {
     use crate::{CVLPct, LiquidationPayment};
 
     #[test]
-    fn test_calculate() {
+    fn calculate() {
         let amount = UsdCents::from(5_000_000);
         let price = PriceOfOneBTC::new(UsdCents::from(6_250_000));
         let target_cvl = CVLPct::new(140);
@@ -75,7 +75,7 @@ mod test {
 
     #[test]
 
-    fn test_calculate_with_infinite_cvl() {
+    fn calculate_with_infinite_cvl() {
         let amount = UsdCents::from(5_000_000);
         let price = PriceOfOneBTC::new(UsdCents::from(6_250_000));
         let target_cvl = CVLPct::Infinite;

@@ -114,7 +114,7 @@ where
         amount: UsdCents,
     ) -> Result<(), LiquidationError> {
         let mut liquidation = self.repo.find_by_id(liquidation_id).await?;
-        let mut db = self.repo.begin().await?;
+        let mut db = self.repo.begin_op().await?;
 
         // TODO: post transaction in op
         let tx_id = CalaTransactionId::new();
