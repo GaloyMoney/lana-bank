@@ -2,17 +2,18 @@ mod entity;
 pub mod error;
 mod repo;
 
+use tracing::instrument;
+
 use cala_ledger::TransactionId as CalaTransactionId;
 use core_money::{Satoshis, UsdCents};
-#[cfg(feature = "json-schema")]
+use es_entity::DbOp;
+use outbox::OutboxEventMarker;
+
+use crate::{CoreCreditEvent, CreditFacilityId, LiquidationId};
 pub use entity::LiquidationEvent;
 pub(crate) use entity::*;
 use error::LiquidationError;
-use es_entity::DbOp;
-use outbox::OutboxEventMarker;
 pub(crate) use repo::LiquidationRepo;
-
-use crate::{CoreCreditEvent, CreditFacilityId, LiquidationId};
 
 pub struct Liquidations<E>
 where
@@ -42,6 +43,12 @@ where
         }
     }
 
+    #[instrument(
+        name = "credit.liquidation.create_if_not_exist_for_facility_in_op",
+        skip(self, db, new_liquidation),
+        fields(existing_liquidation_found),
+        err
+    )]
     pub async fn create_if_not_exist_for_facility_in_op(
         &self,
         db: &mut DbOp<'_>,
@@ -52,6 +59,9 @@ where
             .repo
             .maybe_find_by_credit_facility_id_in_op(&mut *db, credit_facility_id)
             .await?;
+
+        tracing::Span::current()
+            .record("existing_liquidation_found", existing_liquidation.is_some());
 
         if existing_liquidation.is_none() {
             let liquidation = self.repo.create_in_op(db, new_liquidation).await?;
@@ -65,6 +75,11 @@ where
         Ok(self.repo.begin_op().await?)
     }
 
+    #[instrument(
+        name = "credit.liquidation.record_collateral_sent_in_op",
+        skip(self, db),
+        err
+    )]
     #[allow(dead_code)]
     pub async fn record_collateral_sent_in_op(
         &self,
@@ -87,6 +102,11 @@ where
         Ok(())
     }
 
+    #[instrument(
+        name = "credit.liquidation.record_payment_from_liquidation",
+        skip(self),
+        err
+    )]
     #[allow(dead_code)]
     pub async fn record_payment_from_liquidation(
         &self,
@@ -109,6 +129,7 @@ where
         Ok(())
     }
 
+    #[instrument(name = "credit.liquidation.complete_in_op", skip(self, db), err)]
     pub async fn complete_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,

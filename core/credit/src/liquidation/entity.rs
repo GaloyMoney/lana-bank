@@ -3,9 +3,8 @@ use derive_builder::Builder;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use es_entity::*;
-
 use cala_ledger::AccountId as CalaAccountId;
+use es_entity::*;
 
 use crate::primitives::*;
 
