@@ -34,6 +34,7 @@ impl ErrorSeverity for WithdrawalError {
             Self::Sqlx(_) => Level::ERROR,
             Self::EsEntityError(_) => Level::ERROR,
             Self::CursorDestructureError(_) => Level::ERROR,
+            Self::DepositLedgerError(_) => Level::ERROR,
             Self::AlreadyConfirmed(_) => Level::WARN,
             Self::AlreadyCancelled(_) => Level::WARN,
             Self::NotApproved(_) => Level::WARN,
