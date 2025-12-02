@@ -121,23 +121,16 @@ impl CreditFacilityBalanceSummary {
             && self.total_defaulted().is_zero())
     }
 
-    pub fn facility_amount_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
-        let facility_amount = self.facility;
-        CVLData::new(self.collateral, facility_amount).cvl(price)
-    }
-
-    pub fn outstanding_amount_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
-        CVLData::new(self.collateral, self.total_outstanding()).cvl(price)
+    pub fn amount_for_collateralization(&self) -> UsdCents {
+        if self.any_disbursed() {
+            self.total_outstanding()
+        } else {
+            self.facility
+        }
     }
 
     pub fn current_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
-        if self.disbursed.is_zero() {
-            self.facility_amount_cvl(price)
-        } else if self.total_outstanding().is_zero() {
-            CVLPct::Infinite
-        } else {
-            self.outstanding_amount_cvl(price)
-        }
+        CVLData::new(self.collateral, self.amount_for_collateralization()).cvl(price)
     }
 
     pub fn with_collateral(self, collateral: Satoshis) -> Self {
@@ -153,11 +146,7 @@ impl CreditFacilityBalanceSummary {
     }
 
     pub fn current_collateralization_ratio(&self) -> CollateralizationRatio {
-        let amount = if self.disbursed > UsdCents::ZERO {
-            self.total_outstanding()
-        } else {
-            self.facility()
-        };
+        let amount = self.amount_for_collateralization();
 
         if amount.is_zero() {
             return CollateralizationRatio::Infinite;
@@ -200,7 +189,7 @@ impl PendingCreditFacilityBalanceSummary {
         CollateralizationRatio::Finite(collateral / amount)
     }
 
-    pub fn facility_amount_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
+    pub fn current_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
         CVLData::new(self.collateral, self.facility).cvl(price)
     }
 }
@@ -217,11 +206,15 @@ impl CVLData {
     }
 
     fn cvl(&self, price: PriceOfOneBTC) -> CVLPct {
-        let collateral_value = price.sats_to_cents_round_down(self.collateral);
-        if collateral_value == UsdCents::ZERO {
-            CVLPct::ZERO
+        if self.amount.is_zero() {
+            CVLPct::Infinite
         } else {
-            CVLPct::from_loan_amounts(collateral_value, self.amount)
+            let collateral_value = price.sats_to_cents_round_down(self.collateral);
+            if collateral_value == UsdCents::ZERO {
+                CVLPct::ZERO
+            } else {
+                CVLPct::from_loan_amounts(collateral_value, self.amount)
+            }
         }
     }
 }
@@ -255,11 +248,11 @@ mod test {
         let price = PriceOfOneBTC::new(UsdCents::from(100_000_00));
         assert_eq!(
             balances.current_cvl(price),
-            balances.facility_amount_cvl(price)
+            CVLData::new(balances.collateral, balances.facility()).cvl(price)
         );
         assert_ne!(
             balances.current_cvl(price),
-            balances.outstanding_amount_cvl(price)
+            CVLData::new(balances.collateral, balances.total_outstanding()).cvl(price)
         );
     }
 
@@ -286,11 +279,11 @@ mod test {
         let price = PriceOfOneBTC::new(UsdCents::from(100_000_00));
         assert_eq!(
             balances.current_cvl(price),
-            balances.outstanding_amount_cvl(price)
+            CVLData::new(balances.collateral, balances.total_outstanding()).cvl(price)
         );
         assert_ne!(
             balances.current_cvl(price),
-            balances.facility_amount_cvl(price)
+            CVLData::new(balances.collateral, balances.facility()).cvl(price)
         );
     }
 
