@@ -115,7 +115,7 @@ def prepare_lana_el_pipeline(lana_core_pg, dw_bq, table_name):
     dlt_postgres_resource = create_dlt_postgres_resource(
         connection_string=lana_core_pg.get_connection_string(), table_name=table_name
     )
-    dlt_bq_destination = create_bigquery_destination(dw_bq.get_base64_credentials())
+    dlt_bq_destination = create_bigquery_destination(dw_bq.get_credentials_dict())
 
     pipeline = dlt.pipeline(
         pipeline_name=table_name,
