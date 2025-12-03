@@ -39,6 +39,7 @@ dependencies = [
  "tokio",
  "tower-http",
  "tracing",
+ "tracing-macros",
  "tracing-utils",
  "uuid",
  "workspace-hack",
@@ -1781,6 +1782,7 @@ dependencies = [
  "tokio",
  "tower-http",
  "tracing",
+ "tracing-macros",
  "tracing-utils",
  "uuid",
  "workspace-hack",
@@ -5807,6 +5809,7 @@ dependencies = [
  "sim-time",
  "tokio",
  "tracing",
+ "tracing-macros",
  "workspace-hack",
 ]
 
