@@ -50,7 +50,6 @@ pub enum CreditFacilityEvent {
         collateralization_state: CollateralizationState,
         collateral: Satoshis,
         outstanding: CreditFacilityReceivable,
-        cvl: CVLPct,
         price: PriceOfOneBTC,
     },
     CollateralizationRatioChanged {
@@ -532,7 +531,6 @@ impl CreditFacility {
                     collateralization_state: calculated_collateralization,
                     collateral: balances.collateral(),
                     outstanding: balances.into(),
-                    cvl: balances.current_cvl(price),
                     price,
                 });
 

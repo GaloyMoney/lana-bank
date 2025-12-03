@@ -86,7 +86,6 @@ where
                     collateral,
                     outstanding,
                     price,
-                    cvl,
                     ..
                 } => Some(CoreCreditEvent::FacilityCollateralizationChanged {
                     id: entity.id,
@@ -96,7 +95,6 @@ where
                     collateral: *collateral,
                     outstanding: *outstanding,
                     price: *price,
-                    cvl: *cvl,
                 }),
                 PartialLiquidationInitiated {
                     liquidation_id,

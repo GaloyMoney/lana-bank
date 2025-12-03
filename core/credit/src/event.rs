@@ -67,7 +67,6 @@ pub enum CoreCreditEvent {
         effective: chrono::NaiveDate,
         collateral: Satoshis,
         outstanding: CreditFacilityReceivable,
-        cvl: CVLPct,
         price: PriceOfOneBTC,
     },
     DisbursalSettled {

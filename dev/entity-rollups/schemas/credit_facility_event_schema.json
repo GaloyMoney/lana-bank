@@ -497,9 +497,6 @@
         "collateralization_state": {
           "$ref": "#/$defs/CollateralizationState"
         },
-        "cvl": {
-          "$ref": "#/$defs/CVLPct"
-        },
         "outstanding": {
           "$ref": "#/$defs/CreditFacilityReceivable"
         },
@@ -516,7 +513,6 @@
         "collateralization_state",
         "collateral",
         "outstanding",
-        "cvl",
         "price"
       ],
       "type": "object"

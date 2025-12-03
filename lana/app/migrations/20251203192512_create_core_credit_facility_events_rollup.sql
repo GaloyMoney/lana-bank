@@ -14,7 +14,6 @@ CREATE TABLE core_credit_facility_events_rollup (
   collateralization_state VARCHAR,
   customer_id UUID,
   customer_type VARCHAR,
-  cvl JSONB,
   disbursal_credit_account_id UUID,
   initially_estimated_to_liquidate BIGINT,
   initially_expected_to_receive BIGINT,
@@ -84,7 +83,6 @@ BEGIN
     new_row.collateralization_state := (NEW.event ->> 'collateralization_state');
     new_row.customer_id := (NEW.event ->> 'customer_id')::UUID;
     new_row.customer_type := (NEW.event ->> 'customer_type');
-    new_row.cvl := (NEW.event -> 'cvl');
     new_row.disbursal_credit_account_id := (NEW.event ->> 'disbursal_credit_account_id')::UUID;
     new_row.initially_estimated_to_liquidate := (NEW.event ->> 'initially_estimated_to_liquidate')::BIGINT;
     new_row.initially_expected_to_receive := (NEW.event ->> 'initially_expected_to_receive')::BIGINT;
@@ -133,7 +131,6 @@ BEGIN
     new_row.collateralization_state := current_row.collateralization_state;
     new_row.customer_id := current_row.customer_id;
     new_row.customer_type := current_row.customer_type;
-    new_row.cvl := current_row.cvl;
     new_row.disbursal_credit_account_id := current_row.disbursal_credit_account_id;
     new_row.initially_estimated_to_liquidate := current_row.initially_estimated_to_liquidate;
     new_row.initially_expected_to_receive := current_row.initially_expected_to_receive;
@@ -185,7 +182,6 @@ BEGIN
     WHEN 'collateralization_state_changed' THEN
       new_row.collateral := (NEW.event ->> 'collateral')::BIGINT;
       new_row.collateralization_state := (NEW.event ->> 'collateralization_state');
-      new_row.cvl := (NEW.event -> 'cvl');
       new_row.outstanding := (NEW.event -> 'outstanding');
       new_row.price := (NEW.event -> 'price');
     WHEN 'collateralization_ratio_changed' THEN
@@ -222,7 +218,6 @@ BEGIN
     collateralization_state,
     customer_id,
     customer_type,
-    cvl,
     disbursal_credit_account_id,
     initially_estimated_to_liquidate,
     initially_expected_to_receive,
@@ -260,7 +255,6 @@ BEGIN
     new_row.collateralization_state,
     new_row.customer_id,
     new_row.customer_type,
-    new_row.cvl,
     new_row.disbursal_credit_account_id,
     new_row.initially_estimated_to_liquidate,
     new_row.initially_expected_to_receive,
