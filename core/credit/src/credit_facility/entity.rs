@@ -277,9 +277,12 @@ impl CreditFacility {
             balances.facility()
         };
 
-        let repay_amount =
-            LiquidationPayment::new(amount, price, self.terms.initial_cvl, balances.collateral())
-                .repay_amount();
+        let repay_amount = LiquidationPayment::repay_amount(
+            amount,
+            price,
+            self.terms.initial_cvl,
+            balances.collateral(),
+        );
 
         let liquidate_btc = price.cents_to_sats_round_up(repay_amount);
 
