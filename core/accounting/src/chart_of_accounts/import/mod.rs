@@ -1,10 +1,12 @@
 pub mod csv;
 
+use std::collections::HashMap;
 use tracing::instrument;
+
+use tracing_macros::record_error_severity;
 
 use super::entity::{Chart, NewAccountSetWithNodeId};
 use crate::primitives::{AccountCode, AccountSpec, CalaAccountSetId, CalaJournalId, ChartNodeId};
-use std::collections::HashMap;
 
 pub(super) struct BulkAccountImport<'a> {
     chart: &'a mut Chart,
@@ -16,6 +18,7 @@ impl<'a> BulkAccountImport<'a> {
         Self { chart, journal_id }
     }
 
+    #[record_error_severity]
     #[instrument(name = "chart_import.import", skip(self, account_specs), fields(specs_count = account_specs.len()))]
     pub(super) fn import(self, account_specs: Vec<AccountSpec>) -> BulkImportResult {
         let mut new_account_sets = Vec::new();

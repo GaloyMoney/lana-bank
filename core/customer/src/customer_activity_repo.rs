@@ -2,6 +2,8 @@ use sqlx::PgPool;
 use sqlx::types::uuid;
 use tracing::{Span, field};
 
+use tracing_macros::record_error_severity;
+
 use crate::{Activity, CustomerError, CustomerId};
 
 #[derive(Clone)]
@@ -14,11 +16,11 @@ impl CustomerActivityRepo {
         Self { pool }
     }
 
+    #[record_error_severity]
     #[tracing::instrument(
         name = "customer_activity.upsert_activity",
         skip(self),
         fields(customer_id = %customer_id),
-        err(level = "warn")
     )]
     pub async fn upsert_activity(
         &self,
@@ -44,11 +46,11 @@ impl CustomerActivityRepo {
         Ok(())
     }
 
+    #[record_error_severity]
     #[tracing::instrument(
         name = "customer_activity.find_customers_needing_activity_update",
         skip(self),
         fields(matched_count = field::Empty),
-        err(level = "warn")
     )]
     pub async fn find_customers_needing_activity_update(
         &self,

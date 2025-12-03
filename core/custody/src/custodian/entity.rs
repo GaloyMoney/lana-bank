@@ -3,6 +3,7 @@ use derive_builder::Builder;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 use es_entity::*;
 
@@ -77,7 +78,8 @@ impl Custodian {
         Ok(())
     }
 
-    #[instrument(name = "custody.custodian_client", skip(self, key), fields(custodian_id = %self.id), err)]
+    #[record_error_severity]
+    #[instrument(name = "custody.custodian_client", skip(self, key), fields(custodian_id = %self.id))]
     pub fn custodian_client(
         self,
         key: EncryptionKey,

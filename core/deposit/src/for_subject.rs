@@ -2,6 +2,7 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use outbox::OutboxEventMarker;
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 use crate::{
     account::*,
@@ -86,7 +87,8 @@ where
             .await?)
     }
 
-    #[instrument(name = "deposit.for_subject.account_balance", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "deposit.for_subject.account_balance", skip(self))]
     pub async fn account_balance(
         &self,
         account_id: impl Into<DepositAccountId> + std::fmt::Debug,
@@ -104,7 +106,8 @@ where
         Ok(balance)
     }
 
-    #[instrument(name = "deposit.for_subject.account_history", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "deposit.for_subject.account_history", skip(self))]
     pub async fn account_history(
         &self,
         account_id: impl Into<DepositAccountId> + std::fmt::Debug,

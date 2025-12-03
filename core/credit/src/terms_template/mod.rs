@@ -7,6 +7,7 @@ use std::{collections::HashMap, sync::Arc};
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 use crate::{CoreCreditAction, CoreCreditObject, TermValues, primitives::TermsTemplateId};
 
@@ -110,6 +111,7 @@ where
         Ok(terms_template)
     }
 
+    #[record_error_severity]
     #[instrument(name = "core_credit.terms_template.find_by_id", skip(self))]
     pub async fn find_by_id(
         &self,

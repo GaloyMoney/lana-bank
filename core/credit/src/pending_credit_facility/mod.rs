@@ -12,6 +12,7 @@ use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject
 use job::Jobs;
 use outbox::OutboxEventMarker;
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 use crate::{
     Collaterals, CreditFacilityProposals,
@@ -120,6 +121,7 @@ where
         Ok(self.repo.begin_op().await?)
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "credit.pending_credit_facility.transition_from_proposal",
         skip(self, credit_facility_proposal_id),
@@ -195,6 +197,7 @@ where
         }
     }
 
+    #[record_error_severity]
     #[instrument(name = "credit.pending_credit_facility.complete_in_op",
         skip(self, db),
         fields(pending_credit_facility_id = tracing::field::display(&pending_credit_facility_id)))
@@ -233,6 +236,7 @@ where
         }
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "credit.pending_credit_facility.update_collateralization_from_events",
         skip(self)
@@ -270,10 +274,10 @@ where
         Ok(pending_facility)
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "credit.credit_facility.update_collateralization_from_price_event",
-        skip(self),
-        err
+        skip(self)
     )]
     pub(super) async fn update_collateralization_from_price_event(
         &self,
@@ -333,6 +337,7 @@ where
         Ok(())
     }
 
+    #[record_error_severity]
     #[instrument(name = "credit.pending_credit_facility.list", skip(self))]
     pub async fn list(
         &self,
@@ -358,6 +363,7 @@ where
             .await
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "credit.pending_credit_facility.list_for_customer_by_created_at",
         skip(self)
@@ -388,6 +394,7 @@ where
             .entities)
     }
 
+    #[record_error_severity]
     #[instrument(name = "credit.pending_credit_facility.find_all", skip(self, ids))]
     pub async fn find_all<T: From<PendingCreditFacility>>(
         &self,
@@ -404,6 +411,7 @@ where
         self.repo.find_by_id(id.into()).await
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "credit.pending_credit_facility.find_by_id",
         skip(self, sub, pending_credit_facility_id)

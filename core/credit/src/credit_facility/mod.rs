@@ -5,6 +5,7 @@ mod repo;
 
 use std::sync::Arc;
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -138,7 +139,8 @@ where
         Ok(self.repo.begin_op().await?)
     }
 
-    #[instrument(name = "credit.credit_facility.activate", skip(self), fields(credit_facility_id = %credit_facility_id), err)]
+    #[record_error_severity]
+    #[instrument(name = "credit.credit_facility.activate", skip(self), fields(credit_facility_id = %credit_facility_id))]
     pub(super) async fn activate(
         &self,
         credit_facility_id: CreditFacilityId,
@@ -250,11 +252,11 @@ where
         Ok(())
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "credit.credit_facility.confirm_interest_accrual_in_op",
         skip(self, op),
-        fields(credit_facility_id = %credit_facility_id),
-        err
+        fields(credit_facility_id = %credit_facility_id)
     )]
     pub(super) async fn confirm_interest_accrual_in_op(
         &self,
@@ -295,11 +297,11 @@ where
         Ok(confirmed_accrual)
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "credit.credit_facility.complete_in_op",
         skip(self, db),
-        fields(credit_facility_id = %credit_facility_id),
-        err
+        fields(credit_facility_id = %credit_facility_id)
     )]
     pub(super) async fn complete_in_op(
         &self,
@@ -329,6 +331,7 @@ where
         Ok(CompletionOutcome::Completed((credit_facility, completion)))
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "credit.facility.complete_interest_cycle_and_maybe_start_new_cycle",
         skip(self, db)
@@ -386,11 +389,11 @@ where
         self.repo.find_by_id(id.into()).await
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "credit.credit_facility.find_by_id",
         skip(self, credit_facility_id),
-        fields(credit_facility_id = tracing::field::Empty),
-        err
+        fields(credit_facility_id = tracing::field::Empty)
     )]
     pub async fn find_by_id(
         &self,
@@ -410,11 +413,11 @@ where
         self.repo.maybe_find_by_id(id).await
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "credit.credit_facility.mark_as_matured",
         skip(self),
-        fields(credit_facility_id = %credit_facility_id),
-        err
+        fields(credit_facility_id = %credit_facility_id)
     )]
     pub(super) async fn mark_facility_as_matured(
         &self,
@@ -429,11 +432,11 @@ where
         Ok(())
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "credit.credit_facility.find_by_public_id",
         skip(self, public_id),
-        fields(public_id = tracing::field::Empty),
-        err
+        fields(public_id = tracing::field::Empty)
     )]
     pub async fn find_by_public_id(
         &self,
@@ -453,10 +456,10 @@ where
         self.repo.maybe_find_by_public_id(public_id).await
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "credit.credit_facility.update_collateralization_from_price_event",
-        skip(self),
-        err
+        skip(self)
     )]
     pub(super) async fn update_collateralization_from_price_event(
         &self,
@@ -522,6 +525,7 @@ where
         Ok(())
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "credit.credit_facility.update_collateralization_from_events",
         skip(self),
@@ -571,7 +575,8 @@ where
         Ok(())
     }
 
-    #[instrument(name = "credit.credit_facility.list", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "credit.credit_facility.list", skip(self))]
     pub async fn list(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -608,10 +613,10 @@ where
             .await
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "credit.credit_facility.list_by_collateralization_ratio",
-        skip(self),
-        err
+        skip(self)
     )]
     pub async fn list_by_collateralization_ratio(
         &self,
@@ -637,7 +642,8 @@ where
             .await
     }
 
-    #[instrument(name = "credit.credit_facility.find_all", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "credit.credit_facility.find_all", skip(self))]
     pub async fn find_all<T: From<CreditFacility>>(
         &self,
         ids: &[CreditFacilityId],
@@ -645,7 +651,8 @@ where
         self.repo.find_all(ids).await
     }
 
-    #[instrument(name = "credit.credit_facility.list_for_customer", skip(self),fields(customer_id = %customer_id), err)]
+    #[record_error_severity]
+    #[instrument(name = "credit.credit_facility.list_for_customer", skip(self),fields(customer_id = %customer_id))]
     pub(super) async fn list_for_customer(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -671,7 +678,8 @@ where
             .await
     }
 
-    #[instrument(name = "credit.credit_facility.balance", skip(self, credit_facility_id), fields(credit_facility_id = tracing::field::Empty), err)]
+    #[record_error_severity]
+    #[instrument(name = "credit.credit_facility.balance", skip(self, credit_facility_id), fields(credit_facility_id = tracing::field::Empty))]
     pub async fn balance(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

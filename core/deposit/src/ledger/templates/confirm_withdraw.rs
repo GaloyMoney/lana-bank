@@ -1,6 +1,7 @@
 use rust_decimal::Decimal;
 
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 use cala_ledger::{
     tx_template::{Params, error::TxTemplateError, *},
@@ -111,6 +112,7 @@ impl From<ConfirmWithdrawParams> for Params {
 pub struct ConfirmWithdraw;
 
 impl ConfirmWithdraw {
+    #[record_error_severity]
     #[instrument(name = "ledger.confirm_withdraw.init", skip_all)]
     pub async fn init(ledger: &CalaLedger) -> Result<(), DepositLedgerError> {
         let tx_input = NewTxTemplateTransaction::builder()

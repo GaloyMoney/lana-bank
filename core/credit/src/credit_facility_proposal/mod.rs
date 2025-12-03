@@ -11,6 +11,7 @@ use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject
 use job::Jobs;
 use outbox::OutboxEventMarker;
 use tracing::{Span, instrument};
+use tracing_macros::record_error_severity;
 
 use crate::{
     event::CoreCreditEvent, pending_credit_facility::NewPendingCreditFacility, primitives::*,
@@ -92,6 +93,7 @@ where
         })
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "credit.credit_facility_proposals.create_in_op",
         skip(self, db, new_proposal)
@@ -104,11 +106,11 @@ where
         self.repo.create_in_op(db, new_proposal).await
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "credit.credit_facility_proposals.conclude_customer_approval",
         skip(self, credit_facility_proposal_id),
         fields(credit_facility_proposal_id = tracing::field::Empty),
-        err
     )]
     pub async fn conclude_customer_approval(
         &self,
@@ -153,6 +155,7 @@ where
         }
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "credit.credit_facility_proposals.approve_in_op",
         skip(self, db, credit_facility_proposal_id),
@@ -186,6 +189,7 @@ where
         }
     }
 
+    #[record_error_severity]
     #[instrument(name = "credit.credit_facility_proposals.find_all", skip(self, ids))]
     pub async fn find_all<T: From<CreditFacilityProposal>>(
         &self,
@@ -195,11 +199,11 @@ where
         self.repo.find_all(ids).await
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "credit.credit_facility_proposals.find_by_id",
         skip(self, sub, credit_facility_proposal_id),
         fields(credit_facility_proposal_id = tracing::field::Empty),
-        err
     )]
     pub async fn find_by_id(
         &self,
@@ -219,6 +223,7 @@ where
         self.repo.maybe_find_by_id(id).await
     }
 
+    #[record_error_severity]
     #[instrument(name = "credit.pending_credit_facility.list", skip(self))]
     pub async fn list(
         &self,
@@ -244,6 +249,7 @@ where
             .await
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "credit.credit_facility_proposals.list_for_customer_by_created_at",
         skip(self)

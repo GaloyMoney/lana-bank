@@ -3,6 +3,7 @@ use job::{CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, 
 use serde::{Deserialize, Serialize};
 use smtp_client::SmtpClient;
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 use crate::email::templates::{EmailTemplate, EmailType};
 
@@ -54,6 +55,7 @@ pub struct EmailSenderRunner {
 
 #[async_trait]
 impl JobRunner for EmailSenderRunner {
+    #[record_error_severity]
     #[instrument(name = "notification.email_sender_job.run", skip(self, _current_job), fields(recipient = %self.config.recipient, email_type = ?self.config.email_type))]
     async fn run(
         &self,

@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -139,11 +140,8 @@ where
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    #[instrument(
-        name = "update_customer_activity_status.run",
-        skip(self, _current_job),
-        err
-    )]
+    #[record_error_severity]
+    #[instrument(name = "update_customer_activity_status.run", skip(self, _current_job))]
     async fn run(
         &self,
         _current_job: CurrentJob,

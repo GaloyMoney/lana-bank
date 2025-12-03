@@ -10,6 +10,7 @@ pub use sumsub::testing_utils as sumsub_testing_utils;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -210,7 +211,8 @@ where
         }
     }
 
-    #[instrument(name = "applicant.handle_callback", skip_all, err)]
+    #[record_error_severity]
+    #[instrument(name = "applicant.handle_callback", skip_all)]
     pub async fn handle_callback(&self, payload: serde_json::Value) -> Result<(), ApplicantError> {
         let customer_id: CustomerId = payload["externalUserId"]
             .as_str()
@@ -237,11 +239,11 @@ where
         Ok(())
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "applicant.process_payload",
         skip(self, db),
-        fields(ignore_for_sandbox = false, callback_type = tracing::field::Empty, sandbox_mode = tracing::field::Empty, applicant_id = tracing::field::Empty, kyc_level = tracing::field::Empty, customer_id = tracing::field::Empty),
-        err
+        fields(ignore_for_sandbox = false, callback_type = tracing::field::Empty, sandbox_mode = tracing::field::Empty, applicant_id = tracing::field::Empty, kyc_level = tracing::field::Empty, customer_id = tracing::field::Empty)
     )]
     async fn process_payload(
         &self,
@@ -376,6 +378,7 @@ where
         Ok(())
     }
 
+    #[record_error_severity]
     #[instrument(name = "applicant.create_permalink", skip(self))]
     pub async fn create_permalink(
         &self,
@@ -401,6 +404,7 @@ where
             .await?)
     }
 
+    #[record_error_severity]
     #[instrument(name = "applicant.get_applicant_info_without_audit", skip(self))]
     pub async fn get_applicant_info_without_audit(
         &self,
@@ -422,6 +426,7 @@ where
     /// Creates a complete test applicant with documents and approval for testing purposes
     /// This method executes the full KYC flow automatically using predefined test data
     #[cfg(feature = "sumsub-testing")]
+    #[record_error_severity]
     #[instrument(name = "applicant.create_complete_test_applicant", skip(self))]
     pub async fn create_complete_test_applicant(
         &self,

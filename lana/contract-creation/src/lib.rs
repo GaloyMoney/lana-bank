@@ -10,6 +10,8 @@ use document_storage::{
     GeneratedDocumentDownloadLink, ReferenceId,
 };
 use outbox::OutboxEventMarker;
+use tracing::instrument;
+use tracing_macros::record_error_severity;
 use uuid::Uuid;
 
 mod error;
@@ -22,8 +24,6 @@ pub use primitives::{
     ContractCreationId, ContractModuleAction, ContractModuleObject,
     PERMISSION_SET_CONTRACT_CREATION,
 };
-
-use tracing::instrument;
 
 pub mod primitives;
 const LOAN_AGREEMENT_DOCUMENT_TYPE: DocumentType = DocumentType::new("loan_agreement");
@@ -90,7 +90,8 @@ where
         }
     }
 
-    #[instrument(name = "contract.initiate_loan_agreement_generation", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "contract.initiate_loan_agreement_generation", skip(self))]
     pub async fn initiate_loan_agreement_generation(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -135,7 +136,8 @@ where
         Ok(LoanAgreement::from(document))
     }
 
-    #[instrument(name = "contract.find_by_id", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "contract.find_by_id", skip(self))]
     pub async fn find_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -159,7 +161,8 @@ where
         }
     }
 
-    #[instrument(name = "contract.generate_document_download_link", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "contract.generate_document_download_link", skip(self))]
     pub async fn generate_document_download_link(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

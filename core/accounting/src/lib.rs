@@ -25,6 +25,7 @@ use document_storage::DocumentStorage;
 use job::Jobs;
 use manual_transaction::ManualTransactions;
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 pub use balance_sheet::{BalanceSheet, BalanceSheets};
 pub use chart_of_accounts::{Chart, ChartOfAccounts, error as chart_of_accounts_error, tree};
@@ -175,7 +176,8 @@ where
         &self.fiscal_year
     }
 
-    #[instrument(name = "core_accounting.find_ledger_account_by_id", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.find_ledger_account_by_id", skip(self))]
     pub async fn find_ledger_account_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -187,7 +189,8 @@ where
         Ok(self.ledger_accounts.find_by_id(sub, &chart, id).await?)
     }
 
-    #[instrument(name = "core_accounting.find_ledger_account_by_code", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.find_ledger_account_by_code", skip(self))]
     pub async fn find_ledger_account_by_code(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -201,7 +204,8 @@ where
             .await?)
     }
 
-    #[instrument(name = "core_accounting.find_all_ledger_accounts", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.find_all_ledger_accounts", skip(self))]
     pub async fn find_all_ledger_accounts<T: From<LedgerAccount>>(
         &self,
         chart_ref: &str,
@@ -211,7 +215,8 @@ where
         Ok(self.ledger_accounts.find_all(&chart, ids).await?)
     }
 
-    #[instrument(name = "core_accounting.list_all_account_flattened", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.list_all_account_flattened", skip(self))]
     pub async fn list_all_account_flattened(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -227,10 +232,10 @@ where
             .await?)
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "core_accounting.execute_manual_transaction",
-        skip(self, entries),
-        err
+        skip(self, entries)
     )]
     pub async fn execute_manual_transaction(
         &self,
@@ -260,7 +265,8 @@ where
             .expect("Could not find LedgerTransaction"))
     }
 
-    #[instrument(name = "core_accounting.import_csv", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.import_csv", skip(self))]
     pub async fn import_csv(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -281,7 +287,8 @@ where
         Ok(chart)
     }
 
-    #[instrument(name = "core_accounting.init_fiscal_year_for_chart", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.init_fiscal_year_for_chart", skip(self))]
     pub async fn init_fiscal_year_for_chart(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -299,7 +306,8 @@ where
             .await?)
     }
 
-    #[instrument(name = "core_accounting.list_fiscal_years_for_chart", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.list_fiscal_years_for_chart", skip(self))]
     pub async fn list_fiscal_years_for_chart(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -319,7 +327,8 @@ where
             .await?)
     }
 
-    #[instrument(name = "core_accounting.add_root_node", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.add_root_node", skip(self))]
     pub async fn add_root_node(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -340,7 +349,8 @@ where
         Ok(chart)
     }
 
-    #[instrument(name = "core_accounting.add_child_node", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.add_child_node", skip(self))]
     pub async fn add_child_node(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

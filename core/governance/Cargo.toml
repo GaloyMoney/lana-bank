@@ -20,6 +20,7 @@ sqlx = { workspace = true }
 serde = { workspace = true }
 derive_builder = { workspace = true }
 tracing = { workspace = true }
+tracing-macros = { workspace = true }
 tracing-utils = { workspace = true }
 thiserror = { workspace = true }
 chrono = { workspace = true }

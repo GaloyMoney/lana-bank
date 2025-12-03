@@ -5,6 +5,7 @@ use job::{
 use serde::{Deserialize, Serialize};
 
 use outbox::OutboxEventMarker;
+use tracing_macros::record_error_severity;
 
 use crate::{event::CoreReportEvent, primitives::*, report::*, report_run::*};
 use airflow::Airflow;
@@ -103,10 +104,10 @@ impl<E> JobRunner for MonitorReportRunJobRunner<E>
 where
     E: OutboxEventMarker<CoreReportEvent> + Send + Sync + 'static,
 {
+    #[record_error_severity]
     #[tracing::instrument(
         name = "core_reports.job.monitor_report_run.run",
-        skip(self, _current_job),
-        err
+        skip(self, _current_job)
     )]
     async fn run(
         &self,

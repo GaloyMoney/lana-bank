@@ -13,6 +13,7 @@ mod webhook_notification_repo;
 use chrono::{DateTime, Utc};
 use strum::IntoDiscriminant as _;
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 use es_entity::DbOp;
 pub use event::CoreCustodyEvent;
@@ -57,7 +58,8 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCustodyEvent>,
 {
-    #[tracing::instrument(name = "custody.init", skip_all, err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "custody.init", skip_all)]
     pub async fn init(
         pool: &sqlx::PgPool,
         authz: &Perms,
@@ -84,11 +86,8 @@ where
     }
 
     #[cfg(feature = "mock-custodian")]
-    #[instrument(
-        name = "credit_facility.ensure_mock_custodian_in_op",
-        skip(self, db),
-        err
-    )]
+    #[record_error_severity]
+    #[instrument(name = "credit_facility.ensure_mock_custodian_in_op", skip(self, db))]
     pub async fn ensure_mock_custodian_in_op(
         &self,
         db: &mut DbOp<'_>,
@@ -108,7 +107,8 @@ where
     }
 
     #[cfg(feature = "mock-custodian")]
-    #[instrument(name = "core_custody.create_mock_custodian_in_op", skip(self, db), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_custody.create_mock_custodian_in_op", skip(self, db))]
     pub async fn create_mock_custodian_in_op(
         &self,
         db: &mut DbOp<'_>,
@@ -134,7 +134,8 @@ where
         Ok(custodian)
     }
 
-    #[instrument(name = "core_custody.create_custodian_in_op", skip(self, db), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_custody.create_custodian_in_op", skip(self, db))]
     pub async fn create_custodian_in_op(
         &self,
         db: &mut DbOp<'_>,
@@ -182,11 +183,8 @@ where
         Ok(custodian)
     }
 
-    #[instrument(
-        name = "core_custody.create_custodian",
-        skip(self, custodian_config),
-        err
-    )]
+    #[record_error_severity]
+    #[instrument(name = "core_custody.create_custodian", skip(self, custodian_config))]
     pub async fn create_custodian(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -261,7 +259,8 @@ where
         Ok(())
     }
 
-    #[instrument(name = "core_custody.find_all_wallets", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_custody.find_all_wallets", skip(self))]
     pub async fn find_all_wallets<T: From<Wallet>>(
         &self,
         ids: &[WalletId],
@@ -269,7 +268,8 @@ where
         Ok(self.wallets.find_all(ids).await?)
     }
 
-    #[instrument(name = "core_custody.find_all_custodians", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_custody.find_all_custodians", skip(self))]
     pub async fn find_all_custodians<T: From<Custodian>>(
         &self,
         ids: &[CustodianId],
@@ -277,7 +277,8 @@ where
         Ok(self.custodians.find_all(ids).await?)
     }
 
-    #[instrument(name = "core_custody.list_custodians", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_custody.list_custodians", skip(self))]
     pub async fn list_custodians(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -297,7 +298,8 @@ where
             .await?)
     }
 
-    #[instrument(name = "custody.create_wallet_in_op", skip(self, db), err)]
+    #[record_error_severity]
+    #[instrument(name = "custody.create_wallet_in_op", skip(self, db))]
     pub async fn create_wallet_in_op(
         &self,
         db: &mut DbOp<'_>,
@@ -329,7 +331,8 @@ where
         Ok(wallet)
     }
 
-    #[instrument(name = "custody.handle_webhook", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "custody.handle_webhook", skip(self))]
     pub async fn handle_webhook(
         &self,
         provider: String,
@@ -370,7 +373,8 @@ where
         Ok(())
     }
 
-    #[instrument(name = "custody.update_wallet_balance", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "custody.update_wallet_balance", skip(self))]
     async fn update_wallet_balance(
         &self,
         external_wallet_id: String,

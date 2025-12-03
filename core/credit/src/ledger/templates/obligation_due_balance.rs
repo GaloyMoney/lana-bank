@@ -1,5 +1,6 @@
 use rust_decimal::Decimal;
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 use cala_ledger::{
     tx_template::{Params, error::TxTemplateError, *},
@@ -77,6 +78,7 @@ impl From<RecordObligationDueBalanceParams> for Params {
 pub struct RecordObligationDueBalance;
 
 impl RecordObligationDueBalance {
+    #[record_error_severity]
     #[instrument(name = "ledger.record_obligation_due_balance.init", skip_all)]
     pub async fn init(ledger: &CalaLedger) -> Result<(), CreditLedgerError> {
         let tx_input = NewTxTemplateTransaction::builder()

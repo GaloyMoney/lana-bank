@@ -9,6 +9,7 @@ use crate::PriceOfOneBTC;
 use error::BfxClientError;
 use response::{BfxErrorResponse, BtcUsdTick};
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 const BASE_URL: &str = "https://api-pub.bitfinex.com/v2/";
 
@@ -58,7 +59,8 @@ impl BfxClient {
     }
 }
 
-#[instrument(name = "core.price.bfx_client.fetch_price", skip(client), err)]
+#[record_error_severity]
+#[instrument(name = "core.price.bfx_client.fetch_price", skip(client))]
 pub async fn fetch_price(client: &BfxClient) -> Result<PriceOfOneBTC, BfxClientError> {
     let tick = client.btc_usd_tick().await?;
     let usd_cents =

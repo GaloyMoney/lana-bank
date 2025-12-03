@@ -3,6 +3,7 @@ mod job;
 use std::sync::Arc;
 
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -90,6 +91,7 @@ where
         }
     }
 
+    #[record_error_severity]
     #[instrument(name = "credit.credit_facility.activation.execute", skip(self))]
     #[es_entity::retry_on_concurrent_modification(any_error = true)]
     pub async fn execute_activate_credit_facility(

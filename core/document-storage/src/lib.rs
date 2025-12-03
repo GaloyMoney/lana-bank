@@ -10,6 +10,7 @@ use cloud_storage::Storage;
 use es_entity::ListDirection;
 use std::collections::HashMap;
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 pub use entity::{Document, DocumentStatus, GeneratedDocumentDownloadLink, NewDocument};
 use error::*;
@@ -48,7 +49,8 @@ impl DocumentStorage {
         self.repo.begin_op().await
     }
 
-    #[instrument(name = "document_storage.create_in_op", skip(self, db), err)]
+    #[record_error_severity]
+    #[instrument(name = "document_storage.create_in_op", skip(self, db))]
     pub async fn create_in_op(
         &self,
         filename: impl Into<String> + std::fmt::Debug,
@@ -77,10 +79,10 @@ impl DocumentStorage {
         Ok(document)
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "document_storage.upload_in_op",
-        skip(self, content, document, db),
-        err
+        skip(self, content, document, db)
     )]
     pub async fn upload_in_op(
         &self,
@@ -100,7 +102,8 @@ impl DocumentStorage {
         Ok(())
     }
 
-    #[instrument(name = "document_storage.upload", skip(self, content, document), err)]
+    #[record_error_severity]
+    #[instrument(name = "document_storage.upload", skip(self, content, document))]
     pub async fn upload(
         &self,
         content: Vec<u8>,
@@ -112,7 +115,8 @@ impl DocumentStorage {
         Ok(())
     }
 
-    #[instrument(name = "document_storage.create_and_upload", skip(self, content), err)]
+    #[record_error_severity]
+    #[instrument(name = "document_storage.create_and_upload", skip(self, content))]
     pub async fn create_and_upload(
         &self,
         content: Vec<u8>,
@@ -147,7 +151,8 @@ impl DocumentStorage {
         Ok(document)
     }
 
-    #[instrument(name = "document_storage.find_by_id", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "document_storage.find_by_id", skip(self))]
     pub async fn find_by_id(
         &self,
         id: impl Into<DocumentId> + std::fmt::Debug + Copy,
@@ -155,7 +160,8 @@ impl DocumentStorage {
         self.repo.find_by_id(id.into()).await
     }
 
-    #[instrument(name = "document_storage.list_for_reference_id", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "document_storage.list_for_reference_id", skip(self))]
     pub async fn list_for_reference_id(
         &self,
         reference_id: impl Into<ReferenceId> + std::fmt::Debug,
@@ -171,11 +177,8 @@ impl DocumentStorage {
             .entities)
     }
 
-    #[instrument(
-        name = "document_storage.list_for_reference_id_paginated",
-        skip(self),
-        err
-    )]
+    #[record_error_severity]
+    #[instrument(name = "document_storage.list_for_reference_id_paginated", skip(self))]
     pub async fn list_for_reference_id_paginated(
         &self,
         reference_id: impl Into<ReferenceId> + std::fmt::Debug,
@@ -193,7 +196,8 @@ impl DocumentStorage {
             .await
     }
 
-    #[instrument(name = "document_storage.generate_download_link", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "document_storage.generate_download_link", skip(self))]
     pub async fn generate_download_link(
         &self,
         document_id: impl Into<DocumentId> + std::fmt::Debug,
@@ -216,7 +220,8 @@ impl DocumentStorage {
         Ok(GeneratedDocumentDownloadLink { document_id, link })
     }
 
-    #[instrument(name = "document_storage.delete", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "document_storage.delete", skip(self))]
     pub async fn delete(
         &self,
         document_id: impl Into<DocumentId> + std::fmt::Debug + Copy,
@@ -239,7 +244,8 @@ impl DocumentStorage {
         Ok(())
     }
 
-    #[instrument(name = "document_storage.archive", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "document_storage.archive", skip(self))]
     pub async fn archive(
         &self,
         document_id: impl Into<DocumentId> + std::fmt::Debug + Copy,
@@ -253,7 +259,8 @@ impl DocumentStorage {
         Ok(document)
     }
 
-    #[instrument(name = "document_storage.find_all", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "document_storage.find_all", skip(self))]
     pub async fn find_all<T: From<Document>>(
         &self,
         ids: &[DocumentId],

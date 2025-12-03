@@ -13,6 +13,7 @@ mod repo;
 use chrono::{DateTime, Utc};
 use std::collections::HashMap;
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -116,7 +117,8 @@ where
             .await?)
     }
 
-    #[instrument(name = "customer.create_customer", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "customer.create_customer", skip(self))]
     pub async fn create(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -153,6 +155,7 @@ where
         Ok(customer)
     }
 
+    #[record_error_severity]
     #[instrument(name = "customer.find_for_subject", skip(self))]
     pub async fn find_for_subject(
         &self,
@@ -165,7 +168,8 @@ where
         self.repo.find_by_id(id).await
     }
 
-    #[instrument(name = "customer.find_by_id", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "customer.find_by_id", skip(self))]
     pub async fn find_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -183,7 +187,8 @@ where
         self.repo.maybe_find_by_id(id).await
     }
 
-    #[instrument(name = "customer.find_by_id_without_audit", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "customer.find_by_id_without_audit", skip(self))]
     pub async fn find_by_id_without_audit(
         &self,
         id: impl Into<CustomerId> + std::fmt::Debug,
@@ -191,7 +196,8 @@ where
         self.repo.find_by_id(id.into()).await
     }
 
-    #[instrument(name = "customer.find_by_email", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "customer.find_by_email", skip(self))]
     pub async fn find_by_email(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -208,7 +214,8 @@ where
         self.repo.maybe_find_by_email(email).await
     }
 
-    #[instrument(name = "customer.find_by_public_id", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "customer.find_by_public_id", skip(self))]
     pub async fn find_by_public_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -225,7 +232,8 @@ where
         self.repo.maybe_find_by_public_id(public_id.into()).await
     }
 
-    #[instrument(name = "customer.list", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "customer.list", skip(self))]
     pub async fn list(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -243,6 +251,7 @@ where
         self.repo.list_for_filter(filter, sort.into(), query).await
     }
 
+    #[record_error_severity]
     #[instrument(name = "customer.start_kyc", skip(self, db))]
     pub async fn start_kyc(
         &self,
@@ -268,6 +277,7 @@ where
         Ok(customer)
     }
 
+    #[record_error_severity]
     #[instrument(name = "customer.approve_kyc", skip(self, db))]
     pub async fn approve_kyc(
         &self,
@@ -298,6 +308,7 @@ where
         Ok(customer)
     }
 
+    #[record_error_severity]
     #[instrument(name = "customer.decline_kyc", skip(self, db))]
     pub async fn decline_kyc(
         &self,
@@ -323,7 +334,8 @@ where
         Ok(customer)
     }
 
-    #[instrument(name = "customer.find_all", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "customer.find_all", skip(self))]
     pub async fn find_all<T: From<Customer>>(
         &self,
         ids: &[CustomerId],
@@ -331,7 +343,8 @@ where
         self.repo.find_all(ids).await
     }
 
-    #[instrument(name = "customer.update_telegram_id", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "customer.update_telegram_id", skip(self))]
     pub async fn update_telegram_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -355,7 +368,8 @@ where
         Ok(customer)
     }
 
-    #[instrument(name = "customer.update_email", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "customer.update_email", skip(self))]
     pub async fn update_email(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -380,7 +394,8 @@ where
     }
 
     // Document management methods
-    #[instrument(name = "customer.create_document", skip(self, content), err)]
+    #[record_error_severity]
+    #[instrument(name = "customer.create_document", skip(self, content))]
     pub async fn create_document(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -412,7 +427,8 @@ where
         Ok(document)
     }
 
-    #[instrument(name = "customer.list_documents_for_customer", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "customer.list_documents_for_customer", skip(self))]
     pub async fn list_documents_for_customer_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -435,7 +451,8 @@ where
         Ok(documents)
     }
 
-    #[instrument(name = "customer.generate_document_download_link", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "customer.generate_document_download_link", skip(self))]
     pub async fn generate_document_download_link(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -458,7 +475,8 @@ where
         Ok(link)
     }
 
-    #[instrument(name = "customer.delete_document", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "customer.delete_document", skip(self))]
     pub async fn delete_document(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -478,7 +496,8 @@ where
         Ok(())
     }
 
-    #[instrument(name = "customer.archive_document", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "customer.archive_document", skip(self))]
     pub async fn archive_document(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -498,7 +517,8 @@ where
         Ok(document)
     }
 
-    #[instrument(name = "customer.find_customer_document_by_id", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "customer.find_customer_document_by_id", skip(self))]
     pub async fn find_customer_document_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -520,7 +540,8 @@ where
         }
     }
 
-    #[instrument(name = "customer.find_all_documents", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "customer.find_all_documents", skip(self))]
     pub async fn find_all_documents<T: From<Document>>(
         &self,
         ids: &[CustomerDocumentId],
@@ -537,7 +558,8 @@ where
         Ok(result)
     }
 
-    #[instrument(name = "customer.record_last_activity_date", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "customer.record_last_activity_date", skip(self))]
     pub async fn record_last_activity_date(
         &self,
         customer_id: CustomerId,
@@ -570,11 +592,8 @@ where
         Ok(())
     }
 
-    #[instrument(
-        name = "customer.perform_customer_activity_status_update",
-        skip(self),
-        err
-    )]
+    #[record_error_severity]
+    #[instrument(name = "customer.perform_customer_activity_status_update", skip(self))]
     pub async fn perform_customer_activity_status_update(
         &self,
         now: DateTime<Utc>,
