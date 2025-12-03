@@ -264,4 +264,27 @@ where
 
         Ok(result.entities.into_iter().next())
     }
+
+    fn _is_configured(&self) -> bool {
+        todo!()
+    }
+
+    fn _config(&self) -> Result<FiscalYearConfig, FiscalYearError> {
+        todo!()
+    }
+
+    #[instrument(name = "core_accounting.fiscal_year.configure", skip(self), err)]
+    pub fn configure(&self, config: FiscalYearConfig) -> Result<(), FiscalYearError> {
+        todo!()
+    }
+
+    #[instrument(name = "core_accounting.fiscal_year.get_config", skip(self), err)]
+    pub fn get_config(&self) -> Result<FiscalYearConfig, FiscalYearError> {
+        todo!()
+    }
+
+    #[instrument(name = "core_accounting.fiscal_year.update_config", skip(self), err)]
+    pub fn update_config(&self, config: FiscalYearConfig) -> Result<FiscalYearConfig, FiscalYearError> {
+        todo!()
+    }
 }

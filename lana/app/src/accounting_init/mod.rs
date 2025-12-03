@@ -9,7 +9,6 @@ use crate::{
     balance_sheet::BalanceSheets,
     credit::Credit,
     deposit::Deposits,
-    fiscal_year::FiscalYears,
     primitives::CalaJournalId,
     profit_and_loss::ProfitAndLossStatements,
     trial_balance::TrialBalances,
@@ -64,7 +63,6 @@ impl ChartsInit {
             deposit,
             accounting.balance_sheets(),
             accounting.profit_and_loss(),
-            accounting.fiscal_year(),
             accounting_init_config,
         )
         .await

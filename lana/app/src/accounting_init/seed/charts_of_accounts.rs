@@ -11,15 +11,9 @@ pub(crate) async fn init(
     deposit: &Deposits,
     balance_sheet: &BalanceSheets,
     profit_and_loss: &ProfitAndLossStatements,
-    fiscal_year: &FiscalYears,
     accounting_init_config: AccountingInitConfig,
 ) -> Result<(), AccountingInitError> {
-    create_chart_of_accounts(
-        chart_of_accounts,
-        fiscal_year,
-        accounting_init_config.clone(),
-    )
-    .await?;
+    create_chart_of_accounts(chart_of_accounts).await?;
 
     seed_chart_of_accounts(
         chart_of_accounts,
@@ -37,28 +31,19 @@ pub(crate) async fn init(
 
 async fn create_chart_of_accounts(
     chart_of_accounts: &ChartOfAccounts,
-    fiscal_year: &FiscalYears,
-    accounting_init_config: AccountingInitConfig,
 ) -> Result<(), AccountingInitError> {
     if chart_of_accounts
         .maybe_find_by_reference(CHART_REF)
         .await?
         .is_none()
     {
-        let chart = chart_of_accounts
+        let _chart = chart_of_accounts
             .create_chart(
                 &Subject::System,
                 CHART_NAME.to_string(),
                 CHART_REF.to_string(),
             )
             .await?;
-        // TODO: Revisit tie to any YML config for `FiscalYear` - ledger actions (manual transactions) require
-        // this to be called.
-        if let Some(opening_date) = accounting_init_config.chart_of_accounts_opening_date {
-            fiscal_year
-                .init_for_chart(&Subject::System, opening_date, chart.id)
-                .await?;
-        }
     }
 
     Ok(())

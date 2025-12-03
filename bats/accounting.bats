@@ -159,6 +159,19 @@ teardown_file() {
   [[ "$control_account_code" == "201" ]] || exit 1
 }
 
+@test "accounting: can init fiscal year" {
+  exec_admin_graphql 'chart-of-accounts'
+  chart_id=$(graphql_output '.data.chartOfAccounts.chartId')
+  [[ "$chart_id" != "null" ]] || exit 1
+  
+  variables=$(jq -n '{input: { openedAsOf: "2021-01-01" } }')
+  exec_admin_graphql 'fiscal-year-init' "$variables"
+
+  fiscal_year_chart_id=$(graphql_output '.data.fiscalYearInit.fiscalYear.chartId')
+  [[ "$chart_id" == "$fiscal_year_chart_id" ]] || exit 1
+  
+}
+
 @test "accounting: can execute manual transaction" {
 
   # expects chart of accounts from 'import CSV' step to exist
