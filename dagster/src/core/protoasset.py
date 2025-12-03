@@ -12,7 +12,7 @@ class Protoasset:
         key: Union[str, list[str]],
         callable: Optional[Callable] = None,
         tags: Optional[dict[str, str]] = None,
-        deps: Optional[list[str]] = None,
+        deps: Optional[list[Union[str, list[str]]]] = None,
         required_resource_keys: Optional[set[str]] = None,
     ):
         self.key = key

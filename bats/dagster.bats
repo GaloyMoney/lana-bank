@@ -126,7 +126,7 @@ load helpers
         repositoryName: "__repository__",
         jobName: "__ASSET_JOB",
         assetSelection: [
-          { path: ["stg_core_withdrawal_events_rollup"] }
+          { path: ["dbt_lana_dw", "staging", "rollups", "stg_core_withdrawal_events_rollup"] }
         ]
       },
       runConfigData: {}
@@ -145,17 +145,17 @@ load helpers
   fi
   
   dagster_poll_run_status "$run_id" 90 2 || return 1
-  
+
   asset_vars=$(jq -n '{
-    assetKey: { path: ["stg_core_withdrawal_events_rollup"] }
+    assetKey: { path: ["dbt_lana_dw", "staging", "rollups", "stg_core_withdrawal_events_rollup"] }
   }')
   exec_dagster_graphql "asset_materializations" "$asset_vars"
-  
+
   dagster_validate_json || return 1
-  
+
   asset_type=$(echo "$output" | jq -r '.data.assetOrError.__typename // empty')
   [ "$asset_type" = "Asset" ] || { echo "Asset stg_core_withdrawal_events_rollup not found: $output"; return 1; }
-  
+
   recent_run_id=$(echo "$output" | jq -r '.data.assetOrError.assetMaterializations[0].runId // empty')
   [ "$recent_run_id" = "$run_id" ] || { echo "Expected run ID $run_id for stg_core_withdrawal_events_rollup, got $recent_run_id"; return 1; }
 }
