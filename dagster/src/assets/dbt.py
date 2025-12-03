@@ -5,12 +5,12 @@ from dagster_dbt import DbtCliResource
 
 import dagster as dg
 from src.core import Protoasset
-from src.resources import RESOURCE_KEY_LANA_DBT, dbt_manifest_path
+from src.resources import RESOURCE_KEY_LANA_DBT, DBT_MANIFEST_PATH
 
 
 def _load_dbt_manifest() -> dict:
     """Load and parse the dbt manifest.json file."""
-    with open(dbt_manifest_path, "r") as f:
+    with open(DBT_MANIFEST_PATH, "r") as f:
         manifest = json.load(f)
     return manifest
 
@@ -82,7 +82,7 @@ def _extract_source_info(
 
 
 def _get_dbt_model_dependencies(
-    manifest: dict, model_unique_id: str, el_asset_keys: Set[Tuple[str, ...]]
+    manifest: dict, model_unique_id: str, source_asset_keys: Set[Tuple[str, ...]]
 ) -> List[List[str]]:
     """Extract Dagster asset key dependencies for a dbt model.
 
@@ -91,13 +91,13 @@ def _get_dbt_model_dependencies(
 
     Includes:
     - Other dbt models (from depends_on.nodes)
-    - Lana EL assets (from sources, mapped to ["lana", table_name])
-      Only includes EL assets that are in the provided el_asset_keys set.
+    - Lana source assets (from sources, mapped to ["lana", table_name])
+      Only includes source assets that are in the provided source_asset_keys set.
 
     Args:
         manifest: The dbt manifest dictionary
         model_unique_id: The unique ID of the dbt model
-        el_asset_keys: Set of EL asset keys (as tuples) that exist in Dagster.
+        source_asset_keys: Set of source asset keys (as tuples) that exist in Dagster.
                       Format: {("lana", "table_name"), ...}
     """
     model_node = manifest["nodes"][model_unique_id]
@@ -110,7 +110,7 @@ def _get_dbt_model_dependencies(
         if dep_node and dep_node["resource_type"] == "model":
             deps.append(_get_dbt_asset_key(manifest, dep_unique_id))
 
-    # Add dependencies on Lana EL assets (from sources)
+    # Add dependencies on Lana source assets (from sources)
     for source_unique_id in _get_source_dependencies(manifest, model_unique_id):
         source_info = _extract_source_info(manifest, source_unique_id)
         if not source_info:
@@ -120,23 +120,24 @@ def _get_dbt_model_dependencies(
         if not source_name or not table_name:
             continue
 
-        # Check if this EL asset exists
-        el_asset_key_tuple = (source_name, table_name)
-        if el_asset_key_tuple in el_asset_keys:
+        source_asset_key_tuple = (source_name, table_name)
+        if source_asset_key_tuple in source_asset_keys:
             deps.append([source_name, table_name])
 
     return deps
 
 
 def _create_dbt_model_callable(manifest: dict, model_unique_id: str):
-    """Create a callable that runs a specific dbt model."""
+    """Create a callable that runs a specific dbt model.
+    """
     fqn = manifest["nodes"][model_unique_id].get("fqn", [])
     # Use fqn for more specific model selection (handles models with same name in different paths)
     # Format: project_name.path.to.model_name
     model_selector = ".".join(fqn)
 
     def run_dbt_model(context: dg.AssetExecutionContext, dbt: DbtCliResource) -> None:
-        """Run a specific dbt model."""
+        """Run a specific dbt model.
+        """
         context.log.info(f"Running dbt model: {model_unique_id}")
 
         stream = dbt.cli(
@@ -152,24 +153,24 @@ def _create_dbt_model_callable(manifest: dict, model_unique_id: str):
     return run_dbt_model
 
 
-def lana_dbt_protoassets(el_protoassets: List[Protoasset]) -> List[Protoasset]:
+def lana_dbt_protoassets(source_protoassets: List[Protoasset]) -> List[Protoasset]:
     """
     Create Protoassets for each dbt model in the manifest.
     Each model will have dependencies on:
     - Other dbt models (from dbt's depends_on.nodes)
     - EL assets (from dbt's depends_on.sources, mapped to [source_name, table_name])
-      Only includes EL assets that are in the provided el_protoassets list.
+      Only includes source assets that are in the provided source_protoassets list.
 
     Args:
-        el_protoassets: List of EL protoassets that exist in Dagster.
-                       These are the upstream EL assets that dbt models can depend on.
+        source_protoassets: List of source protoassets that exist in Dagster.
+                       These are the upstream source assets that dbt models can depend on.
     """
-    el_asset_keys = set()
-    for protoasset in el_protoassets:
+    source_asset_keys = set()
+    for protoasset in source_protoassets:
         if isinstance(protoasset.key, list):
-            el_asset_keys.add(tuple(protoasset.key))
+            source_asset_keys.add(tuple(protoasset.key))
         else:
-            el_asset_keys.add((protoasset.key,))
+            source_asset_keys.add((protoasset.key,))
 
     manifest = _load_dbt_manifest()
     dbt_protoassets = []
@@ -179,7 +180,7 @@ def lana_dbt_protoassets(el_protoassets: List[Protoasset]) -> List[Protoasset]:
             continue
 
         asset_key = _get_dbt_asset_key(manifest, unique_id)
-        deps = _get_dbt_model_dependencies(manifest, unique_id, el_asset_keys)
+        deps = _get_dbt_model_dependencies(manifest, unique_id, source_asset_keys)
         callable = _create_dbt_model_callable(manifest, unique_id)
 
         protoasset = Protoasset(
