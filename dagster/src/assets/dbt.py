@@ -110,7 +110,7 @@ def _get_dbt_model_dependencies(
             asset_key_list = _get_dbt_asset_key(manifest, dep_unique_id)
             deps.append(dg.AssetKey(asset_key_list))
 
-    # Add dependencies on Lana source assets (from sources)
+    # Add dependencies on source assets
     for source_unique_id in _get_source_dependencies(manifest, model_unique_id):
         source_info = _extract_source_info(manifest, source_unique_id)
         if not source_info:
