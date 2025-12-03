@@ -9,6 +9,7 @@ mod policy;
 mod primitives;
 
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 use std::collections::{HashMap, HashSet};
 
@@ -79,6 +80,7 @@ where
         }
     }
 
+    #[record_error_severity]
     #[tracing::instrument(name = "governance.init_policy", skip(self), fields(process_type = ?process_type, policy_id = tracing::field::Empty))]
     pub async fn init_policy(
         &self,
@@ -106,7 +108,8 @@ where
         Ok(policy)
     }
 
-    #[instrument(name = "governance.find_policy", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "governance.find_policy", skip(self))]
     pub async fn find_policy(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -127,7 +130,8 @@ where
             .map_err(GovernanceError::PolicyError)
     }
 
-    #[instrument(name = "governance.list_policies", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "governance.list_policies", skip(self))]
     pub async fn list_policies_by_created_at(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -151,7 +155,8 @@ where
         Ok(policies)
     }
 
-    #[instrument(name = "governance.assign_committee_to_policy", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "governance.assign_committee_to_policy", skip(self))]
     pub async fn assign_committee_to_policy(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -186,7 +191,8 @@ where
         Ok(policy)
     }
 
-    #[instrument(name = "governance.find_all_policies", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "governance.find_all_policies", skip(self))]
     pub async fn find_all_policies<T: From<Policy>>(
         &self,
         ids: &[PolicyId],
@@ -194,7 +200,8 @@ where
         Ok(self.policy_repo.find_all(ids).await?)
     }
 
-    #[instrument(name = "governance.start_process", skip(self, db), err)]
+    #[record_error_severity]
+    #[instrument(name = "governance.start_process", skip(self, db))]
     pub async fn start_process(
         &self,
         db: &mut es_entity::DbOp<'_>,
@@ -222,7 +229,8 @@ where
         Ok(process)
     }
 
-    #[instrument(name = "governance.approve_process", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "governance.approve_process", skip(self))]
     pub async fn approve_process(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -258,7 +266,8 @@ where
         Ok(process)
     }
 
-    #[instrument(name = "governance.deny_process", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "governance.deny_process", skip(self))]
     pub async fn deny_process(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -301,7 +310,8 @@ where
         Ok(process)
     }
 
-    #[instrument(name = "governance.create_committee", skip(self, name), fields(committee_name = %name), err)]
+    #[record_error_severity]
+    #[instrument(name = "governance.create_committee", skip(self, name), fields(committee_name = %name))]
     pub async fn create_committee(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -368,7 +378,8 @@ where
         Ok(false)
     }
 
-    #[instrument(name = "governance.add_member_to_committee", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "governance.add_member_to_committee", skip(self))]
     pub async fn add_member_to_committee(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -391,7 +402,8 @@ where
         Ok(committee)
     }
 
-    #[instrument(name = "governance.remove_member_from_committee", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "governance.remove_member_from_committee", skip(self))]
     pub async fn remove_member_from_committee(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -414,7 +426,8 @@ where
         Ok(committee)
     }
 
-    #[instrument(name = "governance.find_committee_by_id", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "governance.find_committee_by_id", skip(self))]
     pub async fn find_committee_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -435,7 +448,8 @@ where
             .map_err(GovernanceError::CommitteeError)
     }
 
-    #[instrument(name = "governance.list_committees", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "governance.list_committees", skip(self))]
     pub async fn list_committees(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -464,7 +478,8 @@ where
         Ok(committees)
     }
 
-    #[instrument(name = "governance.find_all_committees", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "governance.find_all_committees", skip(self))]
     pub async fn find_all_committees<T: From<Committee>>(
         &self,
         ids: &[CommitteeId],
@@ -472,7 +487,8 @@ where
         Ok(self.committee_repo.find_all(ids).await?)
     }
 
-    #[instrument(name = "governance.find_approval_process_by_id", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "governance.find_approval_process_by_id", skip(self))]
     pub async fn find_approval_process_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -493,7 +509,8 @@ where
             .map_err(GovernanceError::ApprovalProcessError)
     }
 
-    #[instrument(name = "governance.list_approval_processes", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "governance.list_approval_processes", skip(self))]
     pub async fn list_approval_processes(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -522,7 +539,8 @@ where
         Ok(approval_processes)
     }
 
-    #[instrument(name = "governance.find_all_approval_processes", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "governance.find_all_approval_processes", skip(self))]
     pub async fn find_all_approval_processes<T: From<ApprovalProcess>>(
         &self,
         ids: &[ApprovalProcessId],

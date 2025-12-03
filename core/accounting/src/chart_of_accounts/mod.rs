@@ -12,6 +12,7 @@ use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use tracing_macros::record_error_severity;
 
 use cala_ledger::{CalaLedger, account::Account};
 
@@ -84,11 +85,8 @@ where
         }
     }
 
-    #[instrument(
-        name = "core_accounting.chart_of_accounts.create_chart",
-        skip(self),
-        err
-    )]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.chart_of_accounts.create_chart", skip(self))]
     pub async fn create_chart(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -123,10 +121,10 @@ where
         Ok(chart)
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "core_accounting.chart_of_accounts.import_from_csv",
-        skip(self, import_data),
-        err
+        skip(self, import_data)
     )]
     pub async fn import_from_csv(
         &self,
@@ -178,11 +176,8 @@ where
         Ok((chart, Some(new_account_set_ids.clone())))
     }
 
-    #[instrument(
-        name = "core_accounting.chart_of_accounts.add_root_node",
-        skip(self,),
-        err
-    )]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.chart_of_accounts.add_root_node", skip(self,))]
     pub async fn add_root_node(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -230,11 +225,8 @@ where
         Ok((chart, new_account_set_id))
     }
 
-    #[instrument(
-        name = "core_accounting.chart_of_accounts.add_child_node",
-        skip(self),
-        err
-    )]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.chart_of_accounts.add_child_node", skip(self))]
     pub async fn add_child_node(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -282,11 +274,8 @@ where
         Ok((chart, new_account_set_id))
     }
 
-    #[instrument(
-        name = "core_accounting.chart_of_accounts.close_as_of",
-        skip(self, op),
-        err
-    )]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.chart_of_accounts.close_as_of", skip(self, op))]
     pub async fn close_as_of(
         &self,
         mut op: es_entity::DbOp<'_>,
@@ -312,7 +301,8 @@ where
         Ok(())
     }
 
-    #[instrument(name = "core_accounting.chart_of_accounts.find_by_id", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.chart_of_accounts.find_by_id", skip(self))]
     pub async fn find_by_id(
         &self,
         id: impl Into<ChartId> + std::fmt::Debug,
@@ -320,10 +310,10 @@ where
         self.repo.find_by_id(id.into()).await
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "core_accounting.chart_of_accounts.maybe_find_by_reference",
-        skip(self),
-        err
+        skip(self)
     )]
     pub async fn maybe_find_by_reference(
         &self,
@@ -332,10 +322,10 @@ where
         self.repo.maybe_find_by_reference(reference).await
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "core_accounting.chart_of_accounts.find_by_reference_with_sub",
-        skip(self),
-        err
+        skip(self)
     )]
     pub async fn find_by_reference_with_sub(
         &self,
@@ -353,10 +343,10 @@ where
         self.find_by_reference(reference).await
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "core_accounting.chart_of_accounts.find_by_reference",
-        skip(self),
-        err
+        skip(self)
     )]
     pub async fn find_by_reference(&self, reference: &str) -> Result<Chart, ChartOfAccountsError> {
         self.maybe_find_by_reference(reference)
@@ -366,7 +356,8 @@ where
             })
     }
 
-    #[instrument(name = "core_accounting.chart_of_accounts.find_all", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.chart_of_accounts.find_all", skip(self))]
     pub async fn find_all<T: From<Chart>>(
         &self,
         ids: &[ChartId],
@@ -374,10 +365,10 @@ where
         self.repo.find_all(ids).await
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "core_accounting.chart_of_accounts.manual_transaction_account_id_for_account_id_or_code",
-        skip(self),
-        err
+        skip(self)
     )]
     pub async fn manual_transaction_account_id_for_account_id_or_code(
         &self,

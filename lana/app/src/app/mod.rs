@@ -3,6 +3,7 @@ mod error;
 
 use sqlx::PgPool;
 use tracing::{Instrument, instrument};
+use tracing_macros::record_error_severity;
 
 use authz::PermissionCheck;
 
@@ -65,7 +66,8 @@ pub struct LanaApp {
 }
 
 impl LanaApp {
-    #[instrument(name = "lana_app.init", skip_all, err)]
+    #[record_error_severity]
+    #[instrument(name = "lana_app.init", skip_all)]
     pub async fn init(pool: PgPool, config: AppConfig) -> Result<Self, ApplicationError> {
         sqlx::migrate!()
             .run(&pool)
@@ -246,7 +248,8 @@ impl LanaApp {
         &self.outbox
     }
 
-    #[instrument(name = "lana.audit.list_audit", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "lana.audit.list_audit", skip(self))]
     pub async fn list_audit(
         &self,
         sub: &Subject,
@@ -318,7 +321,8 @@ impl LanaApp {
         Ok(())
     }
 
-    #[instrument(name = "lana.app.create_proposal", skip(self),fields(credit_facility_proposal_id = tracing::field::Empty), err)]
+    #[record_error_severity]
+    #[instrument(name = "lana.app.create_proposal", skip(self),fields(credit_facility_proposal_id = tracing::field::Empty))]
     pub async fn create_facility_proposal(
         &self,
         sub: &Subject,

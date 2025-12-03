@@ -1,4 +1,5 @@
 use sqlx::PgPool;
+use tracing_macros::record_error_severity;
 
 use es_entity::*;
 
@@ -32,7 +33,8 @@ impl PublicIdRepo {
         Self { pool: pool.clone() }
     }
 
-    #[tracing::instrument(name = "public_id.next_counter", skip_all, err(level = "warn"))]
+    #[record_error_severity]
+    #[tracing::instrument(name = "public_id.next_counter", skip_all)]
     pub async fn next_counter(&self) -> Result<PublicId, PublicIdError> {
         let result = sqlx::query!("SELECT nextval('core_public_id_counter') as counter")
             .fetch_one(&self.pool)

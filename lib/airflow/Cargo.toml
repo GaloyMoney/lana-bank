@@ -15,6 +15,7 @@ tracing-utils = { workspace = true }
 reqwest = { workspace = true }
 serde = { workspace = true }
 tracing = { workspace = true }
+tracing-macros = { workspace = true }
 url = { workspace = true }
 chrono = { workspace = true }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }

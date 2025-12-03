@@ -19,6 +19,7 @@ use cala_ledger::{
     account_set::{AccountSet, AccountSetMemberId, AccountSetUpdate, NewAccountSet},
     velocity::{NewVelocityControl, VelocityControlId},
 };
+use tracing_macros::record_error_severity;
 
 use crate::{
     COLLATERAL_ENTITY_TYPE, ChartOfAccountsIntegrationConfig, CollateralId, FacilityDurationType,
@@ -183,7 +184,8 @@ pub struct CreditLedger {
 }
 
 impl CreditLedger {
-    #[instrument(name = "credit_ledger.init", skip_all, err)]
+    #[record_error_severity]
+    #[instrument(name = "credit_ledger.init", skip_all)]
     pub async fn init(cala: &CalaLedger, journal_id: JournalId) -> Result<Self, CreditLedgerError> {
         templates::AddCollateral::init(cala).await?;
         templates::AddStructuringFee::init(cala).await?;
@@ -833,6 +835,7 @@ impl CreditLedger {
         })
     }
 
+    #[record_error_severity]
     #[instrument(name = "credit_ledger.find_or_create_account_set", skip(cala, name), fields(journal_id = %journal_id, reference = %reference, account_set_name = %name))]
     async fn find_or_create_account_set(
         cala: &CalaLedger,
@@ -874,6 +877,7 @@ impl CreditLedger {
         }
     }
 
+    #[record_error_severity]
     #[instrument(name = "credit_ledger.find_or_create_omnibus_account", skip(cala, name), fields(journal_id = %journal_id, reference = %reference, account_set_name = %name))]
     async fn find_or_create_omnibus_account(
         cala: &CalaLedger,

@@ -18,6 +18,7 @@ serde = { workspace = true }
 chrono = { workspace = true }
 derive_builder = { workspace = true }
 tracing = { workspace = true }
+tracing-macros = { workspace = true }
 tracing-utils = { workspace = true }
 schemars = { workspace = true, optional = true }
 async-graphql = { workspace = true, optional = true }

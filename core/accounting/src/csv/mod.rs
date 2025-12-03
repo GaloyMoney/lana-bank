@@ -12,6 +12,7 @@ use document_storage::{
     Document, DocumentId, DocumentStorage, DocumentType, DocumentsByCreatedAtCursor,
     GeneratedDocumentDownloadLink, ReferenceId,
 };
+use tracing_macros::record_error_severity;
 
 use crate::Jobs;
 
@@ -61,7 +62,8 @@ where
         }
     }
 
-    #[instrument(name = "core_accounting.csv.create", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.csv.create", skip(self))]
     pub async fn create_ledger_account_csv(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -104,7 +106,8 @@ where
         Ok(document)
     }
 
-    #[instrument(name = "core_accounting.csv.generate_download_link", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.csv.generate_download_link", skip(self))]
     pub async fn generate_download_link(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -126,11 +129,8 @@ where
         Ok(link)
     }
 
-    #[instrument(
-        name = "core_accounting.csv.list_for_ledger_account_id",
-        skip(self),
-        err
-    )]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.csv.list_for_ledger_account_id", skip(self))]
     pub async fn list_for_ledger_account_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -154,10 +154,10 @@ where
         Ok(documents)
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "core_accounting.csv.list_for_ledger_account_id_paginated",
-        skip(self),
-        err
+        skip(self)
     )]
     pub async fn list_for_ledger_account_id_paginated(
         &self,
@@ -189,10 +189,10 @@ where
         Ok(result)
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "core_accounting.csv.get_latest_for_ledger_account_id",
-        skip(self),
-        err
+        skip(self)
     )]
     pub async fn get_latest_for_ledger_account_id(
         &self,
@@ -225,7 +225,8 @@ where
         Ok(result.entities.into_iter().next())
     }
 
-    #[instrument(name = "core_accounting.csv.find_all_documents", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.csv.find_all_documents", skip(self))]
     pub async fn find_all_documents<T: From<Document>>(
         &self,
         ids: &[AccountingCsvDocumentId],

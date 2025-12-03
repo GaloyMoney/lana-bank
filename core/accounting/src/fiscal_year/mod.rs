@@ -8,6 +8,7 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use es_entity::{Idempotent, PaginatedQueryArgs};
+use tracing_macros::record_error_severity;
 
 use crate::{
     FiscalYearId,
@@ -62,10 +63,10 @@ where
         }
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "core_accounting.fiscal_year.init_for_chart"
         skip(self),
-        err
     )]
     pub async fn init_for_chart(
         &self,
@@ -111,7 +112,8 @@ where
         Ok(fiscal_year)
     }
 
-    #[instrument(name = "core_accounting.fiscal_year.open_next", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.fiscal_year.open_next", skip(self))]
     pub async fn open_next(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -133,7 +135,8 @@ where
         Ok(next_fiscal_year)
     }
 
-    #[instrument(name = "core_accounting.fiscal_year.close", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.fiscal_year.close", skip(self))]
     pub async fn close(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -162,7 +165,8 @@ where
         }
     }
 
-    #[instrument(name = "core_accounting.fiscal_year.close_month", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.fiscal_year.close_month", skip(self))]
     pub async fn close_month(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -189,11 +193,8 @@ where
         Ok(fiscal_year)
     }
 
-    #[instrument(
-        name = "core_accounting.fiscal_years.list_for_chart_id",
-        skip(self),
-        err
-    )]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.fiscal_years.list_for_chart_id", skip(self))]
     pub async fn list_for_chart_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -216,7 +217,8 @@ where
             .await
     }
 
-    #[instrument(name = "core_accounting.fiscal_year.find_by_id", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.fiscal_year.find_by_id", skip(self))]
     pub async fn find_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -234,7 +236,8 @@ where
         self.repo.maybe_find_by_id(id).await
     }
 
-    #[instrument(name = "core_accounting.fiscal_year.find_all", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.fiscal_year.find_all", skip(self))]
     pub async fn find_all<T: From<FiscalYear>>(
         &self,
         ids: &[FiscalYearId],

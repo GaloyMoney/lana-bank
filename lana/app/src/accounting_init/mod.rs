@@ -3,6 +3,8 @@ mod seed;
 
 pub mod error;
 
+use tracing_macros::record_error_severity;
+
 use crate::{
     accounting::{Accounting, ChartOfAccounts},
     app::AccountingInitConfig,
@@ -16,6 +18,7 @@ use crate::{
 };
 
 use cala_ledger::CalaLedger;
+
 use error::*;
 
 #[derive(Clone)]
@@ -24,7 +27,8 @@ pub struct JournalInit {
 }
 
 impl JournalInit {
-    #[tracing::instrument(name = "accounting_init.journal", skip_all, err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "accounting_init.journal", skip_all)]
     pub async fn journal(cala: &CalaLedger) -> Result<Self, AccountingInitError> {
         seed::journal::init(cala).await
     }
@@ -34,7 +38,8 @@ impl JournalInit {
 pub struct StatementsInit;
 
 impl StatementsInit {
-    #[tracing::instrument(name = "accounting_init.statements", skip_all, err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "accounting_init.statements", skip_all)]
     pub async fn statements(accounting: &Accounting) -> Result<(), AccountingInitError> {
         seed::statements::init(
             accounting.trial_balances(),
@@ -50,7 +55,8 @@ impl StatementsInit {
 pub struct ChartsInit;
 
 impl ChartsInit {
-    #[tracing::instrument(name = "accounting_init.charts_of_accounts", skip_all, err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "accounting_init.charts_of_accounts", skip_all)]
     pub async fn charts_of_accounts(
         accounting: &Accounting,
         credit: &Credit,

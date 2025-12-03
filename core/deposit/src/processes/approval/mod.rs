@@ -3,6 +3,7 @@ mod job;
 use authz::PermissionCheck;
 use governance::{ApprovalProcessType, GovernanceAction, GovernanceEvent, GovernanceObject};
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use governance::Governance;
@@ -63,6 +64,7 @@ where
         }
     }
 
+    #[record_error_severity]
     #[instrument(name = "core_deposit.withdrawal_approval.execute", skip(self))]
     #[es_entity::retry_on_concurrent_modification]
     pub async fn execute_withdrawal_approval(

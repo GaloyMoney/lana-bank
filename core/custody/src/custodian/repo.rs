@@ -2,6 +2,8 @@ use sqlx::PgPool;
 
 use es_entity::*;
 
+use tracing_macros::record_error_severity;
+
 use crate::primitives::*;
 
 use super::{entity::*, error::*};
@@ -36,7 +38,8 @@ impl CustodianRepo {
         Ok(custodians)
     }
 
-    #[tracing::instrument(name = "custodian.update_config_in_op", skip_all, err(level = "warn"))]
+    #[record_error_severity]
+    #[tracing::instrument(name = "custodian.update_config_in_op", skip_all)]
     pub async fn update_config_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,

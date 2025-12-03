@@ -12,6 +12,7 @@ use reqwest::{Client, Url, header::HeaderMap};
 use serde::{Serialize, de::DeserializeOwned};
 use serde_json::{Value, json};
 use sha2::Sha256;
+use tracing_macros::record_error_severity;
 
 pub use config::{BitgoConfig, BitgoDirectoryConfig};
 pub use error::*;
@@ -65,7 +66,8 @@ impl BitgoClient {
         self.is_test
     }
 
-    #[tracing::instrument(name = "bitgo.validate_webhook_notification", skip(self), err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "bitgo.validate_webhook_notification", skip(self))]
     pub fn validate_webhook_notification(
         &self,
         headers: &HeaderMap,
@@ -85,7 +87,8 @@ impl BitgoClient {
         Ok(serde_json::from_slice::<Notification>(payload)?)
     }
 
-    #[tracing::instrument(name = "bitgo.create_key", skip(self), fields(response, url), err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "bitgo.create_key", skip(self), fields(response, url))]
     pub async fn create_key(&self, source: KeySource) -> Result<Key, BitgoError> {
         // https://developers.bitgo.com/api/v2.key.add
 
@@ -114,7 +117,8 @@ impl BitgoClient {
         .await
     }
 
-    #[tracing::instrument(name = "bitgo.add_wallet", skip(self), fields(response, url), err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "bitgo.add_wallet", skip(self), fields(response, url))]
     pub async fn add_wallet(&self, label: &str) -> Result<(Wallet, Value), BitgoError> {
         // https://developers.bitgo.com/api/v2.wallet.add
 
@@ -142,11 +146,11 @@ impl BitgoClient {
         Ok((wallet, response_json))
     }
 
+    #[record_error_severity]
     #[tracing::instrument(
         name = "bitgo.add_wallet_webhook",
         skip(self),
-        fields(self.webhook_url, response, url),
-        err
+        fields(self.webhook_url, response, url)
     )]
     pub async fn add_wallet_webhook(&self, wallet_id: &str) -> Result<(), BitgoError> {
         // https://developers.bitgo.com/api/v2.wallet.addwebhook
@@ -164,7 +168,8 @@ impl BitgoClient {
         Ok(())
     }
 
-    #[tracing::instrument(name = "bitgo.get_wallet", skip(self), fields(response, url), err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "bitgo.get_wallet", skip(self), fields(response, url))]
     pub async fn get_wallet(&self, id: &str) -> Result<(Wallet, Value), BitgoError> {
         // https://developers.bitgo.com/api/v2.wallet.getbyid
 
@@ -173,12 +178,8 @@ impl BitgoClient {
         Ok((wallet, response))
     }
 
-    #[tracing::instrument(
-        name = "bitgo.get_wallet_count",
-        skip(self),
-        fields(response, url),
-        err
-    )]
+    #[record_error_severity]
+    #[tracing::instrument(name = "bitgo.get_wallet_count", skip(self), fields(response, url))]
     pub async fn get_wallet_count(&self) -> Result<u32, BitgoError> {
         // https://developers.bitgo.com/api/v2.wallet.count
 
@@ -186,7 +187,8 @@ impl BitgoClient {
         Ok(serde_json::from_value::<GetWalletCountResponse>(response)?.count)
     }
 
-    #[tracing::instrument(name = "bitgo.get_enterprise", skip(self), fields(response, url), err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "bitgo.get_enterprise", skip(self), fields(response, url))]
     pub async fn get_enterprise(&self) -> Result<Enterprise, BitgoError> {
         // https://developers.bitgo.com/api/enterprise.getById
 
@@ -196,7 +198,8 @@ impl BitgoClient {
         Ok(serde_json::from_value(response)?)
     }
 
-    #[tracing::instrument(name = "bitgo.get_transfer", skip(self), fields(response, url), err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "bitgo.get_transfer", skip(self), fields(response, url))]
     pub async fn get_transfer(&self, id: &str, wallet_id: &str) -> Result<Transfer, BitgoError> {
         // https://developers.bitgo.com/api/v2.wallet.gettransfer
 

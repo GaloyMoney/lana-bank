@@ -8,6 +8,7 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
+use tracing_macros::record_error_severity;
 
 use crate::{
     LedgerAccountId,
@@ -78,7 +79,8 @@ where
         }
     }
 
-    #[instrument(name = "core_accounting.profit_and_loss.create_pl_statement", skip(self, name), fields(pl_statement_name = %name), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.profit_and_loss.create_pl_statement", skip(self, name), fields(pl_statement_name = %name))]
     pub async fn create_pl_statement(
         &self,
         name: String,
@@ -101,10 +103,10 @@ where
         }
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "core_accounting.profit_and_loss.get_chart_of_accounts_integration_config",
-        skip(self),
-        err
+        skip(self)
     )]
     pub async fn get_chart_of_accounts_integration_config(
         &self,
@@ -124,6 +126,7 @@ where
             .await?)
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "core_accounting.profit_and_loss.set_chart_of_accounts_integration_config",
         skip(self, chart)
@@ -180,7 +183,8 @@ where
         Ok(config)
     }
 
-    #[instrument(name = "core_accounting.profit_and_loss.pl_statement", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.profit_and_loss.pl_statement", skip(self))]
     pub async fn pl_statement(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

@@ -9,6 +9,7 @@ use governance::{
     ApprovalProcessType, Governance, GovernanceAction, GovernanceEvent, GovernanceObject,
 };
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 use outbox::OutboxEventMarker;
 
@@ -81,6 +82,7 @@ where
         }
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "credit_facility.approve_disbursal",
         skip(self),

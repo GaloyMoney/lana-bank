@@ -2,13 +2,16 @@ pub mod error;
 
 use std::collections::HashMap;
 
+use chrono::NaiveDate;
+use tracing::instrument;
+
 use cala_ledger::{
     CalaLedger, Currency, JournalId,
     account::Account,
     account_set::{AccountSet, AccountSetId, AccountSetMemberId},
 };
-use chrono::NaiveDate;
-use tracing::instrument;
+
+use tracing_macros::record_error_severity;
 
 use crate::{AccountCode, LedgerAccount, LedgerAccountId, journal_error::JournalError};
 
@@ -185,6 +188,7 @@ impl LedgerAccountLedger {
         })
     }
 
+    #[record_error_severity]
     #[instrument(name = "ledger_account.load_by_external_id", skip(self), fields(external_id = %external_id))]
     pub async fn load_ledger_account_by_external_id(
         &self,

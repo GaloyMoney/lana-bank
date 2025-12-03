@@ -2,6 +2,7 @@ use sqlx::PgPool;
 
 use es_entity::*;
 use outbox::OutboxEventMarker;
+use tracing_macros::record_error_severity;
 
 use crate::primitives::*;
 
@@ -52,7 +53,8 @@ where
         }
     }
 
-    #[tracing::instrument(name = "payment_allocation.publish", skip_all, err(level = "warn"))]
+    #[record_error_severity]
+    #[tracing::instrument(name = "payment_allocation.publish", skip_all)]
     async fn publish(
         &self,
         op: &mut impl es_entity::AtomicOperation,

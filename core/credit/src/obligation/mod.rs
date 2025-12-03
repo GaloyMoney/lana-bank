@@ -6,6 +6,7 @@ mod repo;
 use std::sync::Arc;
 
 use tracing::{Span, instrument};
+use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -247,6 +248,7 @@ where
         self.repo.find_by_id(id).await
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "credit.obligation.allocate_payment_in_op",
         skip(self, op),
@@ -311,7 +313,8 @@ where
             .await?)
     }
 
-    #[instrument(name = "core_credit.obligation.find_allocation_by_id", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_credit.obligation.find_allocation_by_id", skip(self))]
     pub async fn find_allocation_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -347,11 +350,11 @@ where
         Ok(true)
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "credit.obligation.facility_obligations",
         skip(self),
-        fields(credit_facility_id = %credit_facility_id, n_obligations),
-        err
+        fields(credit_facility_id = %credit_facility_id, n_obligations)
     )]
     async fn facility_obligations(
         &self,

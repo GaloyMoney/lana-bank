@@ -1,5 +1,7 @@
 use sqlx::PgPool;
 
+use tracing_macros::record_error_severity;
+
 use crate::{error::*, values::*};
 
 const DASHBOARD_ID: uuid::Uuid = uuid::uuid!("00000000-0000-0000-0000-000000000000");
@@ -18,7 +20,8 @@ impl DashboardRepo {
         Ok(self.pool.begin().await?)
     }
 
-    #[tracing::instrument(name = "dashboard.persist_in_tx", skip_all, err(level = "warn"))]
+    #[record_error_severity]
+    #[tracing::instrument(name = "dashboard.persist_in_tx", skip_all)]
     pub async fn persist_in_tx(
         &self,
         tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
@@ -40,7 +43,8 @@ impl DashboardRepo {
         Ok(())
     }
 
-    #[tracing::instrument(name = "dashboard.load", skip_all, err(level = "warn"))]
+    #[record_error_severity]
+    #[tracing::instrument(name = "dashboard.load", skip_all)]
     pub async fn load(&self) -> Result<DashboardValues, DashboardError> {
         let row = sqlx::query!(
             r#" 

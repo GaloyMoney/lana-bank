@@ -7,6 +7,7 @@ use chacha20poly1305::{
 };
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 pub use bitgo::{BitgoConfig, BitgoDirectoryConfig};
 pub use komainu::{KomainuConfig, KomainuDirectoryConfig};
@@ -64,7 +65,8 @@ pub enum CustodianConfig {
 }
 
 impl CustodianConfig {
-    #[instrument(name = "custody.custodian_client", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "custody.custodian_client", skip(self))]
     pub fn custodian_client(
         self,
         provider_config: &CustodyProviderConfig,

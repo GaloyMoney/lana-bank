@@ -18,6 +18,7 @@ mod time;
 mod withdrawal;
 
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -112,7 +113,8 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
 {
-    #[tracing::instrument(name = "deposit.init", skip_all, fields(journal_id = %journal_id), err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "deposit.init", skip_all, fields(journal_id = %journal_id))]
     pub async fn init(
         pool: &sqlx::PgPool,
         authz: &Perms,
@@ -185,7 +187,8 @@ where
         ))
     }
 
-    #[instrument(name = "deposit.create_account", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "deposit.create_account", skip(self))]
     pub async fn create_account(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -238,7 +241,8 @@ where
         Ok(account)
     }
 
-    #[instrument(name = "deposit.find_account_by_id", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "deposit.find_account_by_id", skip(self))]
     pub async fn find_account_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -256,7 +260,8 @@ where
         Ok(self.deposit_accounts.maybe_find_by_id(id).await?)
     }
 
-    #[instrument(name = "deposit.find_account_by_public_id", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "deposit.find_account_by_public_id", skip(self))]
     pub async fn find_account_by_public_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -276,7 +281,8 @@ where
             .await?)
     }
 
-    #[instrument(name = "deposit.find_account_by_id_without_audit", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "deposit.find_account_by_id_without_audit", skip(self))]
     pub async fn find_account_by_id_without_audit(
         &self,
         id: impl Into<DepositAccountId> + std::fmt::Debug,
@@ -285,7 +291,8 @@ where
         Ok(self.deposit_accounts.find_by_id(id).await?)
     }
 
-    #[instrument(name = "deposit.update_account_status_for_holder", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "deposit.update_account_status_for_holder", skip(self))]
     pub async fn update_account_status_for_holder(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -332,7 +339,8 @@ where
         Ok(())
     }
 
-    #[instrument(name = "deposit.account_history", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "deposit.account_history", skip(self))]
     pub async fn account_history(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -360,7 +368,8 @@ where
         Ok(history)
     }
 
-    #[instrument(name = "deposit.record_deposit", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "deposit.record_deposit", skip(self))]
     pub async fn record_deposit(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -399,7 +408,8 @@ where
         Ok(deposit)
     }
 
-    #[instrument(name = "deposit.initiate_withdrawal", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "deposit.initiate_withdrawal", skip(self))]
     pub async fn initiate_withdrawal(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -451,7 +461,8 @@ where
         Ok(withdrawal)
     }
 
-    #[instrument(name = "deposit.revert_deposit", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "deposit.revert_deposit", skip(self))]
     pub async fn revert_deposit(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -481,7 +492,8 @@ where
         Ok(deposit)
     }
 
-    #[instrument(name = "deposit.revert_withdrawal", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "deposit.revert_withdrawal", skip(self))]
     pub async fn revert_withdrawal(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -514,7 +526,8 @@ where
         Ok(withdrawal)
     }
 
-    #[instrument(name = "deposit.confirm_withdrawal", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "deposit.confirm_withdrawal", skip(self))]
     pub async fn confirm_withdrawal(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -552,7 +565,8 @@ where
         Ok(withdrawal)
     }
 
-    #[instrument(name = "deposit.cancel_withdrawal", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "deposit.cancel_withdrawal", skip(self))]
     pub async fn cancel_withdrawal(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -586,7 +600,8 @@ where
         Ok(withdrawal)
     }
 
-    #[instrument(name = "deposit.freeze_account", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "deposit.freeze_account", skip(self))]
     pub async fn freeze_account(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -616,7 +631,8 @@ where
         Ok(account)
     }
 
-    #[instrument(name = "deposit.unfreeze_account", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "deposit.unfreeze_account", skip(self))]
     pub async fn unfreeze_account(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -646,7 +662,8 @@ where
         Ok(account)
     }
 
-    #[instrument(name = "deposit.close_account", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "deposit.close_account", skip(self))]
     pub async fn close_account(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -680,7 +697,8 @@ where
         Ok(account)
     }
 
-    #[instrument(name = "deposit.account_balance", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "deposit.account_balance", skip(self))]
     pub async fn account_balance(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -700,7 +718,8 @@ where
         Ok(balance)
     }
 
-    #[instrument(name = "deposit.find_deposit_by_id", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "deposit.find_deposit_by_id", skip(self))]
     pub async fn find_deposit_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -718,7 +737,8 @@ where
         Ok(self.deposits.maybe_find_by_id(id).await?)
     }
 
-    #[instrument(name = "deposit.find_withdrawal_by_id", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "deposit.find_withdrawal_by_id", skip(self))]
     pub async fn find_withdrawal_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -736,7 +756,8 @@ where
         Ok(self.withdrawals.maybe_find_by_id(id).await?)
     }
 
-    #[instrument(name = "deposit.find_deposit_by_public_id", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "deposit.find_deposit_by_public_id", skip(self))]
     pub async fn find_deposit_by_public_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -756,7 +777,8 @@ where
             .await?)
     }
 
-    #[instrument(name = "deposit.find_withdrawal_by_public_id", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "deposit.find_withdrawal_by_public_id", skip(self))]
     pub async fn find_withdrawal_by_public_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -776,7 +798,8 @@ where
             .await?)
     }
 
-    #[instrument(name = "deposit.find_withdrawal_by_cancelled_tx_id", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "deposit.find_withdrawal_by_cancelled_tx_id", skip(self))]
     pub async fn find_withdrawal_by_cancelled_tx_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -798,7 +821,8 @@ where
         Ok(withdrawal)
     }
 
-    #[instrument(name = "deposit.find_all_withdrawals", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "deposit.find_all_withdrawals", skip(self))]
     pub async fn find_all_withdrawals<T: From<Withdrawal>>(
         &self,
         ids: &[WithdrawalId],
@@ -806,7 +830,8 @@ where
         Ok(self.withdrawals.find_all(ids).await?)
     }
 
-    #[instrument(name = "deposit.find_all_deposits", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "deposit.find_all_deposits", skip(self))]
     pub async fn find_all_deposits<T: From<Deposit>>(
         &self,
         ids: &[DepositId],
@@ -814,7 +839,8 @@ where
         Ok(self.deposits.find_all(ids).await?)
     }
 
-    #[instrument(name = "deposit.find_all_deposit_accounts", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "deposit.find_all_deposit_accounts", skip(self))]
     pub async fn find_all_deposit_accounts<T: From<DepositAccount>>(
         &self,
         ids: &[DepositAccountId],
@@ -822,7 +848,8 @@ where
         Ok(self.deposit_accounts.find_all(ids).await?)
     }
 
-    #[instrument(name = "deposit.list_withdrawals", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "deposit.list_withdrawals", skip(self))]
     pub async fn list_withdrawals(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -844,7 +871,8 @@ where
             .await?)
     }
 
-    #[instrument(name = "deposit.list_deposits", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "deposit.list_deposits", skip(self))]
     pub async fn list_deposits(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -864,7 +892,8 @@ where
             .await?)
     }
 
-    #[instrument(name = "deposit.list_accounts", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "deposit.list_accounts", skip(self))]
     pub async fn list_accounts(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -886,7 +915,8 @@ where
             .await?)
     }
 
-    #[instrument(name = "deposit.list_deposits_for_account", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "deposit.list_deposits_for_account", skip(self))]
     pub async fn list_deposits_for_account(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -911,7 +941,8 @@ where
             .entities)
     }
 
-    #[instrument(name = "deposit.list_withdrawals_for_account", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "deposit.list_withdrawals_for_account", skip(self))]
     pub async fn list_withdrawals_for_account(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -936,10 +967,10 @@ where
             .entities)
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "deposit.list_accounts_by_created_at_for_account_holder",
-        skip(self),
-        err
+        skip(self)
     )]
     pub async fn list_accounts_by_created_at_for_account_holder(
         &self,
@@ -966,10 +997,10 @@ where
             .await?)
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "deposit.find_account_by_account_holder_without_audit",
-        skip(self),
-        err
+        skip(self)
     )]
     pub async fn find_account_by_account_holder_without_audit(
         &self,
@@ -999,6 +1030,7 @@ where
             .await?)
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "deposit.set_chart_of_accounts_integration_config",
         skip(self, chart)

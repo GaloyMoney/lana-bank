@@ -12,6 +12,7 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::{CalaLedger, JournalId};
 use ledger::{EntryParams, ManualTransactionLedger, ManualTransactionParams};
+use tracing_macros::record_error_severity;
 
 use crate::{
     chart_of_accounts::ChartOfAccounts,
@@ -62,11 +63,8 @@ where
         }
     }
 
-    #[instrument(
-        name = "core_accounting.manual_transaction.find_by_id",
-        skip(self),
-        err
-    )]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.manual_transaction.find_by_id", skip(self))]
     pub async fn find_manual_transaction_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -84,7 +82,8 @@ where
         self.repo.maybe_find_by_id(id).await
     }
 
-    #[instrument(name = "core_accounting.manual_transaction.list", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.manual_transaction.list", skip(self))]
     pub async fn list_manual_transactions(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -106,7 +105,8 @@ where
             .await
     }
 
-    #[instrument(name = "core_accounting.manual_transaction.find_all", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.manual_transaction.find_all", skip(self))]
     pub async fn find_all<T: From<ManualTransaction>>(
         &self,
         ids: &[ManualTransactionId],
@@ -114,7 +114,8 @@ where
         self.repo.find_all(ids).await
     }
 
-    #[instrument(name = "manual_transaction.execute", skip(self, entries), fields(subject = %sub, chart_ref = %chart_ref, effective = %effective, entries_count = entries.len()), err)]
+    #[record_error_severity]
+    #[instrument(name = "manual_transaction.execute", skip(self, entries), fields(subject = %sub, chart_ref = %chart_ref, effective = %effective, entries_count = entries.len()))]
     pub async fn execute(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

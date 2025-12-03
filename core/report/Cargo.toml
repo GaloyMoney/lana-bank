@@ -6,7 +6,12 @@ edition = "2024"
 [features]
 fail-on-warnings = []
 graphql = ["es-entity/graphql"]
-json-schema = ["dep:schemars", "es-entity/json-schema", "outbox/json-schema", "audit/json-schema"]
+json-schema = [
+    "dep:schemars",
+    "es-entity/json-schema",
+    "outbox/json-schema",
+    "audit/json-schema",
+]
 
 [dependencies]
 airflow = { workspace = true }
@@ -24,6 +29,7 @@ sqlx = { workspace = true }
 thiserror = { workspace = true }
 chrono = { workspace = true }
 tracing = { workspace = true }
+tracing-macros = { workspace = true }
 tracing-utils = { workspace = true }
 async-trait = { workspace = true }
 schemars = { workspace = true, optional = true }
