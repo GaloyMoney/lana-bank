@@ -260,11 +260,16 @@ impl CreditFacility {
         }
     }
 
-    fn initiate_partial_liquidation(
+    fn maybe_initiate_partial_liquidation(
         &mut self,
+        state: CollateralizationState,
         price: PriceOfOneBTC,
         balances: CreditFacilityBalanceSummary,
     ) -> Idempotent<()> {
+        if !state.is_under_liquidation_threshold() {
+            return Idempotent::Ignored;
+        }
+
         idempotency_guard!(
             self.events.iter_all().rev(),
             CreditFacilityEvent::PartialLiquidationInitiated { .. },
@@ -531,9 +536,11 @@ impl CreditFacility {
                     price,
                 });
 
-            if calculated_collateralization.is_under_liquidation_threshold() {
-                let _ = self.initiate_partial_liquidation(price, balances);
-            }
+            let _ = self.maybe_initiate_partial_liquidation(
+                calculated_collateralization,
+                price,
+                balances,
+            );
 
             Idempotent::Executed(Some(calculated_collateralization))
         } else if ratio_changed {
