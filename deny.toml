@@ -202,6 +202,11 @@ expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
+crate = "domain-config"
+expression = "LicenseRef-BUSL-1.1"
+license-files = []
+
+[[licenses.clarify]]
 crate = "core-money"
 expression = "LicenseRef-BUSL-1.1"
 license-files = []
