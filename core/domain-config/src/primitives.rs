@@ -43,7 +43,7 @@ impl From<&str> for DomainConfigKey {
 }
 
 impl FromStr for DomainConfigKey {
-    type Err = std::convert::Infallible;
+    type Err = &'static str;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(DomainConfigKey::from_owned(s.to_owned()))
