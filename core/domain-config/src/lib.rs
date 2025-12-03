@@ -45,7 +45,7 @@ impl DomainConfigs {
         T: DomainConfigValue,
     {
         let domain_config_id = DomainConfigId::new();
-        let value_json = serde_json::to_value(value.clone())?;
+        let value_json = serde_json::to_value(value)?;
         let new = NewDomainConfig::builder()
             .id(domain_config_id)
             .key(T::KEY)
@@ -66,9 +66,9 @@ impl DomainConfigs {
     where
         T: DomainConfigValue,
     {
-        let value_json = serde_json::to_value(value.clone())?;
+        let value_json = serde_json::to_value(value)?;
 
-        let mut config = self.repo.find_by_key(T::KEY).await?;
+        let mut config = self.repo.find_by_key_in_op(&mut *op, T::KEY).await?;
 
         if config.update(value_json).did_execute() {
             self.repo.update_in_op(op, &mut config).await?;

@@ -91,7 +91,7 @@ impl IntoEvents<DomainConfigEvent> for NewDomainConfig {
             [DomainConfigEvent::Initialized {
                 id: self.id,
                 key: self.key,
-                value: self.value.clone(),
+                value: self.value,
             }],
         )
     }
