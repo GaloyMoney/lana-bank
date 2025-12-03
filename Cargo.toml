@@ -49,6 +49,7 @@ core-report = { path = "core/report" }
 document-storage = { path = "core/document-storage" }
 governance = { path = "core/governance" }
 public-id = { path = "core/public-id" }
+domain-config = { path = "core/domain-config" }
 
 # Lana dependencies
 admin-server = { path = "lana/admin-server" }
