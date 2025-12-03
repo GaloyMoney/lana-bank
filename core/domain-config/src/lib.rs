@@ -70,8 +70,9 @@ impl DomainConfigs {
 
         let mut config = self.repo.find_by_key(T::KEY).await?;
 
-        config.apply_update(value_json);
-        self.repo.update_in_op(op, &mut config).await?;
+        if config.update(value_json).did_execute() {
+            self.repo.update_in_op(op, &mut config).await?;
+        }
 
         Ok(())
     }

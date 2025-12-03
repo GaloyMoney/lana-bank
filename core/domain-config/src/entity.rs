@@ -27,12 +27,17 @@ pub struct DomainConfig {
 }
 
 impl DomainConfig {
-    pub(super) fn apply_update(&mut self, new_value: serde_json::Value) {
-        let event = DomainConfigEvent::Updated {
-            value: new_value.clone(),
-        };
+    pub(super) fn update(&mut self, new_value: serde_json::Value) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            DomainConfigEvent::Updated { value } if value == &new_value,
+            => DomainConfigEvent::Updated { .. }
+        );
 
-        self.events.push(event);
+        self.events
+            .push(DomainConfigEvent::Updated { value: new_value });
+
+        Idempotent::Executed(())
     }
 
     pub(super) fn current_value<T: DeserializeOwned>(&self) -> Result<T, serde_json::Error> {
@@ -153,14 +158,40 @@ mod tests {
             limit: 15,
         };
 
-        config.apply_update(json!(updated));
+        let updated_json = json!(updated.clone());
+        let result = config.update(updated_json.clone());
 
+        assert!(result.did_execute());
         assert_eq!(config.events.iter_all().count(), 2);
         let last_event = config.events.iter_all().next_back().unwrap();
         assert!(matches!(
             last_event,
-            DomainConfigEvent::Updated { value } if value == &json!(updated)
+            DomainConfigEvent::Updated { value } if value == &updated_json
         ));
+        assert_eq!(config.current_value::<SampleConfig>().unwrap(), updated);
+    }
+
+    #[test]
+    fn apply_update_is_idempotent_when_value_is_unchanged() {
+        let mut config = build_config(
+            DomainConfigId::new(),
+            &SampleConfig {
+                enabled: true,
+                limit: 5,
+            },
+        );
+        let updated = SampleConfig {
+            enabled: false,
+            limit: 15,
+        };
+
+        let updated_json = json!(updated.clone());
+
+        assert!(config.update(updated_json.clone()).did_execute());
+        let result = config.update(updated_json.clone());
+
+        assert!(result.was_ignored());
+        assert_eq!(config.events.iter_all().count(), 2);
         assert_eq!(config.current_value::<SampleConfig>().unwrap(), updated);
     }
 
@@ -183,8 +214,11 @@ mod tests {
             limit: 7,
         };
 
-        config.apply_update(json!(first));
-        config.apply_update(json!(second));
+        let first_json = json!(first);
+        let second_json = json!(second.clone());
+
+        assert!(config.update(first_json.clone()).did_execute());
+        assert!(config.update(second_json.clone()).did_execute());
 
         let rehydrated = DomainConfig::try_from_events(config.events.clone()).unwrap();
 
