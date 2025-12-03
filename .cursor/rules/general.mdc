@@ -19,3 +19,5 @@ Useful commands to run are in the Makefile.
 The ledger is being handle by Cala, another rust crate. It maintain the list of all transactions and provide double entry bookkeeping ledger with strong consistency guarantees through custom templates
 
 do not create any .md file as a recap to your action until it's explicitly mandated in the prompt
+
+do not create any git commit or push anything

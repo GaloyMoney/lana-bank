@@ -31,6 +31,7 @@ pub(crate) mod macros;
 mod access;
 mod policy;
 mod schema;
+mod test_job;
 
 use async_graphql::*;
 

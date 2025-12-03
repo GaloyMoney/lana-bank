@@ -1,0 +1,4 @@
+query Sleep($seconds: Int!) {
+  sleep(seconds: $seconds)
+}
+
