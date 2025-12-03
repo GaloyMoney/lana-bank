@@ -1,11 +1,11 @@
+pub mod error;
 mod template;
 
 use cala_ledger::CalaLedger;
 
 use crate::primitives::CalaTxId;
 
-use super::error::ManualTransactionError;
-
+use error::*;
 use template::*;
 pub use template::{EntryParams, ManualTransactionParams};
 
@@ -24,7 +24,7 @@ impl ManualTransactionLedger {
         op: es_entity::DbOp<'_>,
         tx_id: CalaTxId,
         params: ManualTransactionParams,
-    ) -> Result<(), ManualTransactionError> {
+    ) -> Result<(), ManualTransactionLedgerError> {
         let mut op = self
             .cala
             .ledger_operation_from_db_op(op.with_db_time().await?);

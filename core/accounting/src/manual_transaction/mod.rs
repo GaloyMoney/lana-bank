@@ -1,6 +1,6 @@
 mod entity;
 pub mod error;
-mod ledger;
+pub mod ledger;
 mod primitives;
 mod repo;
 
