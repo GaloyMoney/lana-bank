@@ -83,11 +83,10 @@ def _extract_source_info(
 
 def _get_dbt_model_dependencies(
     manifest: dict, model_unique_id: str, source_asset_keys: Set[Tuple[str, ...]]
-) -> List[List[str]]:
+) -> List[dg.AssetKey]:
     """Extract Dagster asset key dependencies for a dbt model.
 
-    Returns a list of asset key lists (not strings) since Dagster requires
-    multi-part asset keys to be specified as lists, not dot-separated strings.
+    Returns a list of AssetKey objects for dependencies.
 
     Includes:
     - Other dbt models (from depends_on.nodes)
@@ -108,7 +107,8 @@ def _get_dbt_model_dependencies(
     for dep_unique_id in depends_on.get("nodes", []):
         dep_node = manifest["nodes"].get(dep_unique_id)
         if dep_node and dep_node["resource_type"] == "model":
-            deps.append(_get_dbt_asset_key(manifest, dep_unique_id))
+            asset_key_list = _get_dbt_asset_key(manifest, dep_unique_id)
+            deps.append(dg.AssetKey(asset_key_list))
 
     # Add dependencies on Lana source assets (from sources)
     for source_unique_id in _get_source_dependencies(manifest, model_unique_id):
@@ -122,7 +122,7 @@ def _get_dbt_model_dependencies(
 
         source_asset_key_tuple = (source_name, table_name)
         if source_asset_key_tuple in source_asset_keys:
-            deps.append([source_name, table_name])
+            deps.append(dg.AssetKey([source_name, table_name]))
 
     return deps
 

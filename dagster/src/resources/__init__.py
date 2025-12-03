@@ -6,19 +6,15 @@ from src.resources.gcs import GCSResource, RESOURCE_KEY_FILE_REPORTS_BUCKET
 from src.resources.postgres import PostgresResource, RESOURCE_KEY_LANA_CORE_PG
 
 __all__ = [
-    # Constants
     "RESOURCE_KEY_LANA_CORE_PG",
-    "RESOURCE_KEY_DW_BQ",
+    "RESOURCE_KEY_DW_BQ",       
     "RESOURCE_KEY_FILE_REPORTS_BUCKET",
     "RESOURCE_KEY_LANA_DBT",
-    # Resource classes
     "PostgresResource",
     "BigQueryResource",
     "GCSResource",
-    # DBT
     "dbt_resource",
     "DBT_MANIFEST_PATH",
-    # Functions
     "get_project_resources",
 ]
 
