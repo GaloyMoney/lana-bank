@@ -163,4 +163,32 @@ mod tests {
         ));
         assert_eq!(config.current_value::<SampleConfig>().unwrap(), updated);
     }
+
+    #[test]
+    fn rehydrates_after_multiple_updates() {
+        let mut config = build_config(
+            DomainConfigId::new(),
+            &SampleConfig {
+                enabled: true,
+                limit: 5,
+            },
+        );
+
+        let first = SampleConfig {
+            enabled: false,
+            limit: 6,
+        };
+        let second = SampleConfig {
+            enabled: true,
+            limit: 7,
+        };
+
+        config.apply_update(json!(first));
+        config.apply_update(json!(second));
+
+        let rehydrated = DomainConfig::try_from_events(config.events.clone()).unwrap();
+
+        assert_eq!(rehydrated.current_value::<SampleConfig>().unwrap(), second);
+        assert_eq!(rehydrated.events.iter_all().count(), 3);
+    }
 }
