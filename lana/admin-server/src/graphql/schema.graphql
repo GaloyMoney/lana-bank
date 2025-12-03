@@ -1336,9 +1336,14 @@ type FiscalYear {
 	id: ID!
 	fiscalYearId: UUID!
 	chartId: UUID!
-	openedAsOf: Date!
 	isOpen: Boolean!
+	openedAsOf: Date!
+	closedAsOf: Date
 	monthClosures: [FiscalMonthClosure!]!
+}
+
+input FiscalYearCloseInput {
+	fiscalYearId: UUID!
 }
 
 input FiscalYearCloseMonthInput {
@@ -1346,6 +1351,10 @@ input FiscalYearCloseMonthInput {
 }
 
 type FiscalYearCloseMonthPayload {
+	fiscalYear: FiscalYear!
+}
+
+type FiscalYearClosePayload {
 	fiscalYear: FiscalYear!
 }
 
@@ -1383,6 +1392,14 @@ input FiscalYearInitInput {
 }
 
 type FiscalYearInitPayload {
+	fiscalYear: FiscalYear!
+}
+
+input FiscalYearOpenNextInput {
+	fiscalYearId: UUID!
+}
+
+type FiscalYearOpenNextPayload {
 	fiscalYear: FiscalYear!
 }
 
@@ -1662,6 +1679,8 @@ type Mutation {
 	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
 	fiscalYearInit(input: FiscalYearInitInput!): FiscalYearInitPayload!
 	fiscalYearCloseMonth(input: FiscalYearCloseMonthInput!): FiscalYearCloseMonthPayload!
+	fiscalYearOpenNext(input: FiscalYearOpenNextInput!): FiscalYearOpenNextPayload!
+	fiscalYearClose(input: FiscalYearCloseInput!): FiscalYearClosePayload!
 	chartOfAccountsAddRootNode(input: ChartOfAccountsAddRootNodeInput!): ChartOfAccountsAddRootNodePayload!
 	chartOfAccountsAddChildNode(input: ChartOfAccountsAddChildNodeInput!): ChartOfAccountsAddChildNodePayload!
 	balanceSheetConfigure(input: BalanceSheetModuleConfigureInput!): BalanceSheetModuleConfigurePayload!
