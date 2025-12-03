@@ -124,6 +124,13 @@ impl Liquidation {
         Idempotent::Executed(())
     }
 
+    pub(crate) fn is_completed(&self) -> bool {
+        self.events
+            .iter_all()
+            .rev()
+            .any(|e| matches!(e, LiquidationEvent::Completed { .. }))
+    }
+
     pub fn is_satisfied(&self) -> bool {
         self.events
             .iter_all()

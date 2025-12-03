@@ -12,7 +12,14 @@ use super::{entity::*, error::*};
 #[es_repo(
     entity = "Liquidation",
     err = "LiquidationError",
-    columns(credit_facility_id(ty = "CreditFacilityId", list_for, update(persist = false)),),
+    columns(
+        credit_facility_id(ty = "CreditFacilityId", list_for, update(persist = false)),
+        completed(
+            ty = "bool",
+            create(persist = false),
+            update(accessor = "is_completed()")
+        )
+    ),
     tbl_prefix = "core",
     post_persist_hook = "publish"
 )]
@@ -58,5 +65,31 @@ where
         self.publisher
             .publish_liquidation(op, entity, new_events)
             .await
+    }
+
+    #[tracing::instrument(
+        name = "liquidation.maybe_find_active_liquidation_by_credit_facility_id_in_op",
+        skip(self, db),
+        err
+    )]
+    pub async fn maybe_find_active_liquidation_for_credit_facility_id_in_op(
+        &self,
+        db: &mut DbOp<'_>,
+        credit_facility_id: CreditFacilityId,
+    ) -> Result<Option<Liquidation>, LiquidationError> {
+        let res = es_entity::es_query!(
+            entity = Liquidation,
+            r#"
+            SELECT *
+            FROM core_liquidations
+            WHERE credit_facility_id = $1
+              AND completed = false
+            "#,
+            credit_facility_id as CreditFacilityId
+        )
+        .fetch_optional(db)
+        .await?;
+
+        Ok(res)
     }
 }

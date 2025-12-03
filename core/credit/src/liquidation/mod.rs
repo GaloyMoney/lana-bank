@@ -57,7 +57,10 @@ where
     ) -> Result<Option<Liquidation>, LiquidationError> {
         let existing_liquidation = self
             .repo
-            .maybe_find_by_credit_facility_id_in_op(&mut *db, credit_facility_id)
+            .maybe_find_active_liquidation_for_credit_facility_id_in_op(
+                &mut *db,
+                credit_facility_id,
+            )
             .await?;
 
         tracing::Span::current()

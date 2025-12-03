@@ -383,6 +383,7 @@ CREATE TABLE core_liquidations (
   id UUID PRIMARY KEY,
   obligation_id UUID NOT NULL REFERENCES core_obligations(id),
   credit_facility_id UUID NOT NULL REFERENCES core_credit_facilities(id),
+  completed BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMPTZ NOT NULL
 );
 
