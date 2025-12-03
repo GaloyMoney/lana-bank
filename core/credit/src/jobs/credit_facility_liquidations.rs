@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use core_custody::CoreCustodyEvent;
 use es_entity::DbOp;
-use futures::StreamExt as _;
+use futures::{FutureExt as _, StreamExt as _, select};
 use governance::GovernanceEvent;
 use job::*;
 use outbox::{EventSequence, Outbox, OutboxEventMarker, PersistentOutboxEvent};
@@ -42,7 +42,7 @@ where
     }
 }
 
-const CREDIT_FACILITY_LIQUDATIONS_JOB: JobType =
+const CREDIT_FACILITY_LIQUIDATIONS_JOB: JobType =
     JobType::new("outbox.credit-facility-liquidations");
 impl<E> JobInitializer for CreditFacilityLiquidationsInit<E>
 where
@@ -54,7 +54,7 @@ where
     where
         Self: Sized,
     {
-        CREDIT_FACILITY_LIQUDATIONS_JOB
+        CREDIT_FACILITY_LIQUIDATIONS_JOB
     }
 
     fn init(&self, _job: &job::Job) -> Result<Box<dyn job::JobRunner>, Box<dyn std::error::Error>> {
@@ -94,18 +94,33 @@ where
 
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
-        while let Some(message) = stream.next().await {
-            let mut db = self.liquidations.begin_op().await?;
-            self.process_message(&mut db, message.as_ref()).await?;
-            state.sequence = message.sequence;
-            current_job
-                .update_execution_state_in_op(&mut db, &state)
-                .await?;
-
-            db.commit().await?;
+        loop {
+            select! {
+                message = stream.next().fuse() => {
+                    match message {
+                        Some(message) => {
+                            let mut db = self.liquidations.begin_op().await?;
+                            self.process_message(&mut db, message.as_ref()).await?;
+                            state.sequence = message.sequence;
+                            current_job
+                                .update_execution_state_in_op(&mut db, &state)
+                                .await?;
+                            db.commit().await?;
+                        }
+                        None => return Ok(JobCompletion::RescheduleNow)
+                    }
+                }
+                _ = current_job.shutdown_requested().fuse() => {
+                    tracing::info!(
+                        job_id = %current_job.id(),
+                        job_type = %CREDIT_FACILITY_LIQUIDATIONS_JOB,
+                        last_sequence = %state.sequence,
+                        "Shutdown signal received"
+                    );
+                    return Ok(JobCompletion::RescheduleNow);
+                }
+            }
         }
-
-        Ok(JobCompletion::RescheduleNow)
     }
 }
 

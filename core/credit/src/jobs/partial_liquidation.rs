@@ -1,7 +1,7 @@
 use std::ops::ControlFlow;
 
 use async_trait::async_trait;
-use futures::StreamExt as _;
+use futures::{FutureExt as _, StreamExt as _, select};
 use serde::{Deserialize, Serialize};
 
 use job::*;
@@ -96,24 +96,40 @@ where
 
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
-        while let Some(message) = stream.next().await {
-            let mut db = self.liquidations.begin_op().await?;
+        loop {
+            select! {
+                message = stream.next().fuse() => {
+                    match message {
+                        Some(message) => {
+                            let mut db = self.liquidations.begin_op().await?;
 
-            let next = self.process_message(&mut db, message.as_ref()).await?;
+                            let next = self.process_message(&mut db, message.as_ref()).await?;
 
-            state.sequence = message.sequence;
-            current_job
-                .update_execution_state_in_op(&mut db, &state)
-                .await?;
+                            state.sequence = message.sequence;
+                            current_job
+                                .update_execution_state_in_op(&mut db, &state)
+                                .await?;
 
-            db.commit().await?;
+                            db.commit().await?;
 
-            if next.is_break() {
-                return Ok(JobCompletion::Complete);
+                            if next.is_break() {
+                                return Ok(JobCompletion::Complete);
+                            }
+                        }
+                        None => return Ok(JobCompletion::RescheduleNow)
+                    }
+                }
+                _ = current_job.shutdown_requested().fuse() => {
+                    tracing::info!(
+                        job_id = %current_job.id(),
+                        job_type = %PARTIAL_LIQUIDATION_JOB,
+                        last_sequence = %state.sequence,
+                        "Shutdown signal received"
+                    );
+                    return Ok(JobCompletion::RescheduleNow);
+                }
             }
         }
-
-        Ok(JobCompletion::RescheduleNow)
     }
 }
 
