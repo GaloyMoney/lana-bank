@@ -1,4 +1,5 @@
 use rust_decimal::Decimal;
+use tracing_macros::record_error_severity;
 
 use cala_ledger::{
     AccountId as CalaAccountId,
@@ -6,6 +7,8 @@ use cala_ledger::{
     tx_template::{Params, error::TxTemplateError, *},
     *,
 };
+
+use super::error::*;
 
 #[derive(Debug)]
 pub struct EntryParams {
@@ -144,15 +147,23 @@ impl ManualTransactionTemplate {
         format!("MANUAL_TRANSACTION_{}", self.n_entries)
     }
 
-    #[instrument(name = "manual_transaction_template.init", skip(ledger), fields(n_entries = n_entries), err)]
-    pub async fn init(ledger: &CalaLedger, n_entries: usize) -> Result<Self, TxTemplateError> {
+    #[record_error_severity]
+    #[instrument(name = "manual_transaction_template.init", skip(ledger), fields(n_entries = n_entries))]
+    pub async fn init(
+        ledger: &CalaLedger,
+        n_entries: usize,
+    ) -> Result<Self, ManualTransactionLedgerError> {
         let res = Self { n_entries };
         res.find_or_create_template(ledger).await?;
         Ok(res)
     }
 
-    #[instrument(name = "manual_transaction_template.find_or_create", skip(self, ledger), fields(template_code = tracing::field::Empty), err)]
-    async fn find_or_create_template(&self, ledger: &CalaLedger) -> Result<(), TxTemplateError> {
+    #[record_error_severity]
+    #[instrument(name = "manual_transaction_template.find_or_create", skip(self, ledger), fields(template_code = tracing::field::Empty))]
+    async fn find_or_create_template(
+        &self,
+        ledger: &CalaLedger,
+    ) -> Result<(), ManualTransactionLedgerError> {
         let code = self.code();
         tracing::Span::current().record("template_code", &code);
         let tx_input = NewTxTemplateTransaction::builder()
@@ -177,7 +188,7 @@ impl ManualTransactionTemplate {
             .expect("Couldn't build template");
         match ledger.tx_templates().create(template).await {
             Err(TxTemplateError::DuplicateCode) => Ok(()),
-            Err(e) => Err(e),
+            Err(e) => Err(e.into()),
             Ok(_) => Ok(()),
         }
     }
