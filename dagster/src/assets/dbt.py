@@ -5,7 +5,7 @@ from dagster_dbt import DbtCliResource
 
 import dagster as dg
 from src.core import Protoasset
-from src.resources import RESOURCE_KEY_LANA_DBT, DBT_MANIFEST_PATH
+from src.resources import DBT_MANIFEST_PATH, RESOURCE_KEY_LANA_DBT
 
 
 def _load_dbt_manifest() -> dict:
@@ -128,16 +128,14 @@ def _get_dbt_model_dependencies(
 
 
 def _create_dbt_model_callable(manifest: dict, model_unique_id: str):
-    """Create a callable that runs a specific dbt model.
-    """
+    """Create a callable that runs a specific dbt model."""
     fqn = manifest["nodes"][model_unique_id].get("fqn", [])
     # Use fqn for more specific model selection (handles models with same name in different paths)
     # Format: project_name.path.to.model_name
     model_selector = ".".join(fqn)
 
     def run_dbt_model(context: dg.AssetExecutionContext, dbt: DbtCliResource) -> None:
-        """Run a specific dbt model.
-        """
+        """Run a specific dbt model."""
         context.log.info(f"Running dbt model: {model_unique_id}")
 
         stream = dbt.cli(

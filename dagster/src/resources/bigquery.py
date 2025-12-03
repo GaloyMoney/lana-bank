@@ -18,4 +18,3 @@ class BigQueryResource(dg.ConfigurableResource):
 
     def get_target_dataset(self) -> str:
         return dg.EnvVar("TARGET_BIGQUERY_DATASET").get_value()
-

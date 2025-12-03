@@ -69,4 +69,3 @@ class GCSResource(dg.ConfigurableResource):
         blob = bucket.blob(path)
         blob.upload_from_string(content, content_type=content_type)
         return f"gs://{bucket_name}/{path}"
-

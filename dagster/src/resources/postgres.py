@@ -8,4 +8,3 @@ class PostgresResource(dg.ConfigurableResource):
 
     def get_connection_string(self) -> str:
         return dg.EnvVar("LANA_PG_CON").get_value()
-
