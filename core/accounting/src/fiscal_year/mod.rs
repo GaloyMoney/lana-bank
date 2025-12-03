@@ -7,6 +7,7 @@ use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use domain_config::DomainConfigs;
 use es_entity::{Idempotent, PaginatedQueryArgs};
 
 use crate::{
@@ -30,6 +31,7 @@ where
     repo: FiscalYearRepo,
     authz: Perms,
     chart_of_accounts: ChartOfAccounts<Perms>,
+    domain_configs: DomainConfigs,
 }
 
 impl<Perms> Clone for FiscalYears<Perms>
@@ -41,6 +43,7 @@ where
             repo: self.repo.clone(),
             authz: self.authz.clone(),
             chart_of_accounts: self.chart_of_accounts.clone(),
+            domain_configs: self.domain_configs.clone(),
         }
     }
 }
@@ -54,12 +57,14 @@ where
     pub fn new(
         pool: &sqlx::PgPool,
         authz: &Perms,
+        domain_configs: &DomainConfigs,
         chart_of_accounts: &ChartOfAccounts<Perms>,
     ) -> Self {
         Self {
             repo: FiscalYearRepo::new(pool),
             authz: authz.clone(),
             chart_of_accounts: chart_of_accounts.clone(),
+            domain_configs: domain_configs.clone(),
         }
     }
 

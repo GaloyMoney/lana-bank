@@ -1,19 +1,19 @@
 mod helpers;
 
 use authz::dummy::{DummyPerms, DummySubject};
-use cloud_storage::{Storage, config::StorageConfig};
-use document_storage::DocumentStorage;
-use job::{JobSvcConfig, Jobs};
-
 use cala_ledger::{
     CalaLedger, CalaLedgerConfig, Currency, DebitOrCredit, error::LedgerError,
     velocity::error::VelocityError,
 };
+use cloud_storage::{Storage, config::StorageConfig};
 use core_accounting::{
     AccountIdOrCode, Chart, CoreAccounting, ManualEntryInput, error::CoreAccountingError,
     manual_transaction::error::ManualTransactionError,
 };
+use document_storage::DocumentStorage;
+use domain_config::DomainConfigs;
 use helpers::{action, object};
+use job::{JobSvcConfig, Jobs};
 use rust_decimal_macros::dec;
 
 #[tokio::test]
@@ -193,8 +193,16 @@ async fn prepare_test() -> anyhow::Result<(
     let storage = Storage::new(&StorageConfig::default());
     let document_storage = DocumentStorage::new(&pool, &storage);
     let jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
-
-    let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, document_storage, &jobs);
+    let domain_configs = DomainConfigs::new(&pool);
+    let accounting = CoreAccounting::new(
+        &pool,
+        &authz,
+        &cala,
+        journal_id,
+        document_storage,
+        &jobs,
+        &domain_configs,
+    );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
     let chart = accounting
         .chart_of_accounts()

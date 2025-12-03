@@ -24,6 +24,7 @@ use crate::{
     deposit::Deposits,
     deposit_sync::DepositSync,
     document::DocumentStorage,
+    domain_config::DomainConfigs,
     governance::Governance,
     job::Jobs,
     notification::Notification,
@@ -94,7 +95,7 @@ impl LanaApp {
                 .expect("Couldn't build JobSvcConfig"),
         )
         .await?;
-
+        let domain_configs = DomainConfigs::new(&pool);
         let dashboard = Dashboard::init(&pool, &authz, &jobs, &outbox).await?;
         let governance = Governance::new(&pool, &authz, &outbox);
         let storage = Storage::new(&config.storage);
@@ -119,6 +120,7 @@ impl LanaApp {
             journal_init.journal_id,
             documents.clone(),
             &jobs,
+            &domain_configs,
         );
 
         StatementsInit::statements(&accounting).await?;

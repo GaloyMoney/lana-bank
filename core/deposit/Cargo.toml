@@ -16,6 +16,7 @@ governance = { workspace = true }
 core-customer = { workspace = true }
 core-accounting = { workspace = true }
 public-id = { workspace = true }
+domain-config = { workspace = true }
 
 audit = { workspace = true }
 authz = { workspace = true }

@@ -13,8 +13,9 @@ pub struct FiscalYearConfig {
     pub expenses_code: AccountCode,
     pub equity_retained_earnings_code: AccountCode,
     pub equity_retained_losses_code: AccountCode,
-    // TODO: some type of frequency of closing type indication.
-    // "monthly"/"quarterly" or "soft"/"hard".
+    // TODO: some type of frequency of closing type indication -
+    // "monthly"/"quarterly" or "soft"/"hard" - especially if considering many jurisdictions
+    // now.
     // closing_type_or_frequency: String,
 }
 

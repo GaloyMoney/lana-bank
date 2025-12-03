@@ -30,6 +30,7 @@ user-onboarding = { workspace = true }
 customer-sync = { workspace = true }
 deposit-sync = { workspace = true }
 notification = { workspace = true }
+domain-config = { workspace = true }
 
 governance = { workspace = true, features = ["graphql"] }
 core-money = { workspace = true, features = ["graphql"] }
