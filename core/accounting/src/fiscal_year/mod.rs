@@ -1,7 +1,7 @@
+mod config;
 mod entity;
 pub mod error;
 mod repo;
-
 use chrono::NaiveDate;
 use tracing::instrument;
 
@@ -15,6 +15,7 @@ use crate::{
     primitives::{ChartId, CoreAccountingAction, CoreAccountingObject},
 };
 
+pub use config::FiscalYearConfig;
 #[cfg(feature = "json-schema")]
 pub use entity::FiscalYearEvent;
 pub(super) use entity::*;
@@ -73,6 +74,7 @@ where
         opened_as_of: impl Into<NaiveDate> + std::fmt::Debug,
         chart_id: ChartId,
     ) -> Result<FiscalYear, FiscalYearError> {
+        // TODO: Must  be configured.
         let opened_as_of = opened_as_of.into();
 
         self.authz

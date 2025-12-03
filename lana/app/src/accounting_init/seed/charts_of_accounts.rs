@@ -37,27 +37,27 @@ pub(crate) async fn init(
 
 async fn create_chart_of_accounts(
     chart_of_accounts: &ChartOfAccounts,
-    fiscal_year: &FiscalYears,
-    accounting_init_config: AccountingInitConfig,
+    _fiscal_year: &FiscalYears,
+    _accounting_init_config: AccountingInitConfig,
 ) -> Result<(), AccountingInitError> {
     if chart_of_accounts
         .maybe_find_by_reference(CHART_REF)
         .await?
         .is_none()
     {
-        let chart = chart_of_accounts
+        let _chart = chart_of_accounts
             .create_chart(
                 &Subject::System,
                 CHART_NAME.to_string(),
                 CHART_REF.to_string(),
             )
             .await?;
-
-        if let Some(opening_date) = accounting_init_config.chart_of_accounts_opening_date {
-            fiscal_year
-                .init_for_chart(&Subject::System, opening_date, chart.id)
-                .await?;
-        }
+        // TODO: Revisit tie to any YML config.
+        // if let Some(opening_date) = accounting_init_config.chart_of_accounts_opening_date {
+        //     fiscal_year
+        //         .init_for_chart(&Subject::System, opening_date, chart.id)
+        //         .await?;
+        // }
     }
 
     Ok(())
