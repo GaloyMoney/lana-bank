@@ -1,5 +1,6 @@
 use serde::{Serialize, de::DeserializeOwned};
 use sqlx::PgPool;
+use tracing_macros::record_error_severity;
 
 use std::collections::VecDeque;
 
@@ -36,11 +37,8 @@ where
         }
     }
 
-    #[tracing::instrument(
-        name = "outbox_lana.highest_known_sequence",
-        skip_all,
-        err(level = "warn")
-    )]
+    #[record_error_severity]
+    #[tracing::instrument(name = "outbox_lana.highest_known_sequence", skip_all)]
     pub async fn highest_known_sequence(&self) -> Result<EventSequence, sqlx::Error> {
         let row = sqlx::query!(
             r#"SELECT COALESCE(MAX(sequence), 0) AS "max!" FROM persistent_outbox_events"#
@@ -50,7 +48,8 @@ where
         Ok(EventSequence::from(row.max as u64))
     }
 
-    #[tracing::instrument(name = "outbox_lana.persist_events", skip_all, err(level = "warn"))]
+    #[record_error_severity]
+    #[tracing::instrument(name = "outbox_lana.persist_events", skip_all)]
     pub async fn persist_events(
         &self,
         op: &mut impl es_entity::AtomicOperation,
@@ -101,11 +100,8 @@ where
         Ok(events)
     }
 
-    #[tracing::instrument(
-        name = "outbox_lana.persist_ephemeral_event",
-        skip_all,
-        err(level = "warn")
-    )]
+    #[record_error_severity]
+    #[tracing::instrument(name = "outbox_lana.persist_ephemeral_event", skip_all)]
     pub async fn persist_ephemeral_event(
         &self,
         event_type: EphemeralEventType,
@@ -142,11 +138,8 @@ where
         })
     }
 
-    #[tracing::instrument(
-        name = "outbox_lana.load_ephemeral_events",
-        skip_all,
-        err(level = "warn")
-    )]
+    #[record_error_severity]
+    #[tracing::instrument(name = "outbox_lana.load_ephemeral_events", skip_all)]
     pub async fn load_ephemeral_events(&self) -> Result<VecDeque<OutboxEvent<P>>, sqlx::Error> {
         let rows = sqlx::query!(
             r#"
@@ -178,7 +171,8 @@ where
         Ok(events)
     }
 
-    #[tracing::instrument(name = "outbox_lana.load_next_page", skip_all, err(level = "warn"))]
+    #[record_error_severity]
+    #[tracing::instrument(name = "outbox_lana.load_next_page", skip_all)]
     pub async fn load_next_page(
         &self,
         from_sequence: EventSequence,

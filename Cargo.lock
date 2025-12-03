@@ -4233,6 +4233,7 @@ dependencies = [
  "tokio",
  "tokio-stream",
  "tracing",
+ "tracing-macros",
  "tracing-utils",
  "workspace-hack",
 ]
