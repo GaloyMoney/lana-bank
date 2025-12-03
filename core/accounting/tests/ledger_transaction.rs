@@ -10,8 +10,11 @@ use cala_ledger::{
     velocity::error::VelocityError,
 };
 use core_accounting::{
-    AccountIdOrCode, Chart, CoreAccounting, ManualEntryInput, error::CoreAccountingError,
-    manual_transaction::error::ManualTransactionError,
+    AccountIdOrCode, Chart, CoreAccounting, ManualEntryInput,
+    error::CoreAccountingError,
+    manual_transaction::{
+        error::ManualTransactionError, ledger::error::ManualTransactionLedgerError,
+    },
 };
 use helpers::{action, object};
 use rust_decimal_macros::dec;
@@ -55,9 +58,11 @@ async fn manual_transaction_fails_for_unopened_fiscal_year() -> anyhow::Result<(
     assert!(matches!(
         res,
         Err(CoreAccountingError::ManualTransactionError(
-            ManualTransactionError::LedgerError(LedgerError::VelocityError(
-                VelocityError::Enforcement(_)
-            ))
+            ManualTransactionError::ManualTransactionLedgerError(
+                ManualTransactionLedgerError::CalaLedger(LedgerError::VelocityError(
+                    VelocityError::Enforcement(_)
+                ))
+            )
         ))
     ));
 

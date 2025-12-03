@@ -7,6 +7,8 @@ use cala_ledger::{
     *,
 };
 
+use super::error::*;
+
 #[derive(Debug)]
 pub struct EntryParams {
     pub account_id: CalaAccountId,
@@ -145,14 +147,20 @@ impl ManualTransactionTemplate {
     }
 
     #[instrument(name = "manual_transaction_template.init", skip(ledger), fields(n_entries = n_entries), err)]
-    pub async fn init(ledger: &CalaLedger, n_entries: usize) -> Result<Self, TxTemplateError> {
+    pub async fn init(
+        ledger: &CalaLedger,
+        n_entries: usize,
+    ) -> Result<Self, ManualTransactionLedgerError> {
         let res = Self { n_entries };
         res.find_or_create_template(ledger).await?;
         Ok(res)
     }
 
     #[instrument(name = "manual_transaction_template.find_or_create", skip(self, ledger), fields(template_code = tracing::field::Empty), err)]
-    async fn find_or_create_template(&self, ledger: &CalaLedger) -> Result<(), TxTemplateError> {
+    async fn find_or_create_template(
+        &self,
+        ledger: &CalaLedger,
+    ) -> Result<(), ManualTransactionLedgerError> {
         let code = self.code();
         tracing::Span::current().record("template_code", &code);
         let tx_input = NewTxTemplateTransaction::builder()
@@ -177,7 +185,7 @@ impl ManualTransactionTemplate {
             .expect("Couldn't build template");
         match ledger.tx_templates().create(template).await {
             Err(TxTemplateError::DuplicateCode) => Ok(()),
-            Err(e) => Err(e),
+            Err(e) => Err(e.into()),
             Ok(_) => Ok(()),
         }
     }

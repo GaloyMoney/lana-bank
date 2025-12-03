@@ -12,14 +12,8 @@ pub enum ManualTransactionError {
     EsEntityError(es_entity::EsEntityError),
     #[error("ManualTransactionError - CursorDestructureError: {0}")]
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
-    #[error("ManualTransactionError - CalaError: {0}")]
-    LedgerError(#[from] cala_ledger::error::LedgerError),
-    #[error("ManualTransactionError - CalaAccountSetError: {0}")]
-    AccountSetError(#[from] cala_ledger::account_set::error::AccountSetError),
-    #[error("ManualTransactionError - CalaAccountError: {0}")]
-    AccountError(#[from] cala_ledger::account::error::AccountError),
-    #[error("ManualTransactionError - CalaTxTemplateError: {0}")]
-    TxTemplateError(#[from] cala_ledger::tx_template::error::TxTemplateError),
+    #[error("ManualTransactionError - ManualTransactionLedgerError: {0}")]
+    ManualTransactionLedgerError(#[from] super::ledger::error::ManualTransactionLedgerError),
     #[error("ManualTransactionError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("ManualTransactionError - ChartOfAccounts: {0}")]
@@ -34,10 +28,7 @@ impl ErrorSeverity for ManualTransactionError {
             Self::Sqlx(_) => Level::ERROR,
             Self::EsEntityError(_) => Level::ERROR,
             Self::CursorDestructureError(_) => Level::ERROR,
-            Self::LedgerError(_) => Level::ERROR,
-            Self::AccountSetError(_) => Level::ERROR,
-            Self::AccountError(_) => Level::ERROR,
-            Self::TxTemplateError(_) => Level::ERROR,
+            Self::ManualTransactionLedgerError(e) => e.severity(),
             Self::AuthorizationError(e) => e.severity(),
             Self::ChartOfAccountsError(e) => e.severity(),
         }
