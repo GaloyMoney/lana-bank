@@ -19,12 +19,8 @@ impl DomainConfigKey {
         DomainConfigKey(Cow::Borrowed(key))
     }
 
-    pub fn from_owned(key: String) -> Self {
+    fn from_owned(key: String) -> Self {
         DomainConfigKey(Cow::Owned(key))
-    }
-
-    pub fn as_str(&self) -> &str {
-        &self.0
     }
 }
 
