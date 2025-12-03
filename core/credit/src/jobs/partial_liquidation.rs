@@ -1,3 +1,5 @@
+use std::ops::ControlFlow;
+
 use async_trait::async_trait;
 use futures::StreamExt as _;
 use serde::{Deserialize, Serialize};
@@ -96,13 +98,19 @@ where
 
         while let Some(message) = stream.next().await {
             let mut db = self.liquidations.begin_op().await?;
-            self.process_message(&mut db, message.as_ref()).await?;
+
+            let next = self.process_message(&mut db, message.as_ref()).await?;
+
             state.sequence = message.sequence;
             current_job
                 .update_execution_state_in_op(&mut db, &state)
                 .await?;
 
             db.commit().await?;
+
+            if next.is_break() {
+                return Ok(JobCompletion::Complete);
+            }
         }
 
         Ok(JobCompletion::RescheduleNow)
@@ -117,7 +125,7 @@ where
         &self,
         db: &mut es_entity::DbOp<'_>,
         message: &PersistentOutboxEvent<E>,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<ControlFlow<()>, Box<dyn std::error::Error>> {
         use CoreCreditEvent::*;
 
         match &message.as_event() {
@@ -128,10 +136,10 @@ where
                 self.liquidations
                     .complete_in_op(db, self.config.liquidation_id)
                     .await?;
-            }
-            _ => {}
-        }
 
-        Ok(())
+                Ok(ControlFlow::Break(()))
+            }
+            _ => Ok(ControlFlow::Continue(())),
+        }
     }
 }
