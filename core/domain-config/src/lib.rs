@@ -44,8 +44,10 @@ impl DomainConfigs {
     where
         T: DomainConfigValue,
     {
+        let domain_config_id = DomainConfigId::new();
         let value_json = serde_json::to_value(value.clone())?;
         let new = NewDomainConfig::builder()
+            .id(domain_config_id)
             .key(T::KEY)
             .value(value_json)
             .build()
