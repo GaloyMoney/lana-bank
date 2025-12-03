@@ -91,3 +91,76 @@ impl IntoEvents<DomainConfigEvent> for NewDomainConfig {
         )
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use es_entity::{IntoEvents as _, TryFromEvents as _};
+    use serde::{Deserialize, Serialize};
+    use serde_json::json;
+
+    use crate::{DomainConfigId, DomainConfigKey, DomainConfigValue};
+
+    use super::{DomainConfig, DomainConfigEvent, NewDomainConfig};
+
+    #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+    struct SampleConfig {
+        enabled: bool,
+        limit: u32,
+    }
+
+    impl DomainConfigValue for SampleConfig {
+        const KEY: DomainConfigKey = DomainConfigKey::new("sample-config");
+    }
+
+    fn build_config(id: DomainConfigId, value: &SampleConfig) -> DomainConfig {
+        let events = NewDomainConfig::builder()
+            .id(id)
+            .key(SampleConfig::KEY)
+            .value(serde_json::to_value(value).unwrap())
+            .build()
+            .unwrap()
+            .into_events();
+
+        DomainConfig::try_from_events(events).unwrap()
+    }
+
+    #[test]
+    fn rehydrates_from_initialized_event() {
+        let id = DomainConfigId::new();
+        let value = SampleConfig {
+            enabled: true,
+            limit: 10,
+        };
+
+        let config = build_config(id, &value);
+
+        assert_eq!(config.id, id);
+        assert_eq!(config.key, SampleConfig::KEY);
+        assert_eq!(config.current_value::<SampleConfig>().unwrap(), value);
+    }
+
+    #[test]
+    fn apply_update_appends_event_and_updates_value() {
+        let mut config = build_config(
+            DomainConfigId::new(),
+            &SampleConfig {
+                enabled: true,
+                limit: 5,
+            },
+        );
+        let updated = SampleConfig {
+            enabled: false,
+            limit: 15,
+        };
+
+        config.apply_update(json!(updated));
+
+        assert_eq!(config.events.iter_all().count(), 2);
+        let last_event = config.events.iter_all().next_back().unwrap();
+        assert!(matches!(
+            last_event,
+            DomainConfigEvent::Updated { value } if value == &json!(updated)
+        ));
+        assert_eq!(config.current_value::<SampleConfig>().unwrap(), updated);
+    }
+}
