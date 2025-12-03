@@ -1,4 +1,5 @@
 use rust_decimal::Decimal;
+use tracing_macros::record_error_severity;
 
 use cala_ledger::{
     AccountId as CalaAccountId,
@@ -146,7 +147,8 @@ impl ManualTransactionTemplate {
         format!("MANUAL_TRANSACTION_{}", self.n_entries)
     }
 
-    #[instrument(name = "manual_transaction_template.init", skip(ledger), fields(n_entries = n_entries), err)]
+    #[record_error_severity]
+    #[instrument(name = "manual_transaction_template.init", skip(ledger), fields(n_entries = n_entries))]
     pub async fn init(
         ledger: &CalaLedger,
         n_entries: usize,
@@ -156,7 +158,8 @@ impl ManualTransactionTemplate {
         Ok(res)
     }
 
-    #[instrument(name = "manual_transaction_template.find_or_create", skip(self, ledger), fields(template_code = tracing::field::Empty), err)]
+    #[record_error_severity]
+    #[instrument(name = "manual_transaction_template.find_or_create", skip(self, ledger), fields(template_code = tracing::field::Empty))]
     async fn find_or_create_template(
         &self,
         ledger: &CalaLedger,
