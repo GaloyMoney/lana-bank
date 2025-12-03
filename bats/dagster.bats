@@ -160,3 +160,29 @@ load helpers
   [ "$recent_run_id" = "$run_id" ] || { echo "Expected run ID $run_id for stg_core_withdrawal_events_rollup, got $recent_run_id"; return 1; }
 }
 
+@test "dagster: verify stg_core_withdrawal_events_rollup depends on core_withdrawal_events_rollup" {
+  if [[ "${DAGSTER}" != "true" ]]; then
+    skip "Skipping dagster tests"
+  fi
+
+  # Query dependencies of the staging model
+  staging_asset_vars=$(jq -n '{
+    assetKey: { path: ["dbt_lana_dw", "staging", "rollups", "stg_core_withdrawal_events_rollup"] }
+  }')
+  exec_dagster_graphql "asset_dependencies" "$staging_asset_vars"
+  
+  dagster_validate_json || return 1
+  
+  # Check if the asset node exists
+  asset_node=$(echo "$output" | jq -e '.data.assetNodes[0] // empty')
+  [ -n "$asset_node" ] || { echo "Asset stg_core_withdrawal_events_rollup not found: $output"; return 1; }
+  
+  # Check if the EL asset is in the dependencies
+  if ! echo "$output" | jq -e '.data.assetNodes[0].dependencies[]?.asset.assetKey.path | select(. == ["lana", "core_withdrawal_events_rollup"])' >/dev/null; then
+    echo "stg_core_withdrawal_events_rollup does not depend on [\"lana\", \"core_withdrawal_events_rollup\"]"
+    echo "Dependencies found:"
+    echo "$output" | jq '.data.assetNodes[0].dependencies[].asset.assetKey.path'
+    return 1
+  fi
+}
+

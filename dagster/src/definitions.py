@@ -132,22 +132,15 @@ definition_builder.add_job_schedule(
 for lana_source_protoasset in lana_source_protoassets():
     definition_builder.add_asset_from_protoasset(lana_source_protoasset)
 
-# Collect EL asset keys to pass to dbt protoassets for dependency mapping
+# Create EL protoassets
 lana_el_protoassets = lana_to_dw_el_protoassets()
-el_asset_keys = set()
-for el_protoasset in lana_el_protoassets:
-    # Convert asset key to tuple for set membership
-    if isinstance(el_protoasset.key, list):
-        el_asset_keys.add(tuple(el_protoasset.key))
-    else:
-        el_asset_keys.add((el_protoasset.key,))
 
 # Add EL assets to definitions
 for lana_to_dw_el_protoasset in lana_el_protoassets:
     definition_builder.add_asset_from_protoasset(lana_to_dw_el_protoasset)
 
-# Create dbt protoassets with explicit EL asset key dependencies
-for dbt_protoasset in lana_dbt_protoassets(el_asset_keys=el_asset_keys):
+# Create dbt protoassets with explicit EL asset dependencies
+for dbt_protoasset in lana_dbt_protoassets(el_protoassets=lana_el_protoassets):
     definition_builder.add_asset_from_protoasset(dbt_protoasset)
 
 
