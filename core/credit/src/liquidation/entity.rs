@@ -37,8 +37,9 @@ pub enum LiquidationEvent {
         amount: UsdCents,
         ledger_tx_id: LedgerTxId,
     },
-    Satisfied {},
-    Completed {},
+    Completed {
+        payment_id: PaymentId,
+    },
 }
 
 #[derive(EsEntity, Builder)]
@@ -67,18 +68,14 @@ impl Liquidation {
             } if amount_sent == *amount && ledger_tx_id == *tx_id
         );
 
-        if self.is_satisfied() {
-            Err(LiquidationError::AlreadySatisfied)
-        } else {
-            self.sent_total += amount_sent;
+        self.sent_total += amount_sent;
 
-            self.events.push(LiquidationEvent::CollateralSentOut {
-                amount: amount_sent,
-                ledger_tx_id,
-            });
+        self.events.push(LiquidationEvent::CollateralSentOut {
+            amount: amount_sent,
+            ledger_tx_id,
+        });
 
-            Ok(Idempotent::Executed(()))
-        }
+        Ok(Idempotent::Executed(()))
     }
 
     pub fn record_repayment_from_liquidation(
@@ -94,32 +91,23 @@ impl Liquidation {
             } if amount_received == *amount && ledger_tx_id == *tx_id
         );
 
-        if self.is_satisfied() {
-            Err(LiquidationError::AlreadySatisfied)
-        } else {
-            self.received_total += amount_received;
+        self.received_total += amount_received;
 
-            self.events.push(LiquidationEvent::RepaymentAmountReceived {
-                amount: amount_received,
-                ledger_tx_id,
-            });
+        self.events.push(LiquidationEvent::RepaymentAmountReceived {
+            amount: amount_received,
+            ledger_tx_id,
+        });
 
-            self.mark_satisfied_if_needed();
-
-            Ok(Idempotent::Executed(()))
-        }
+        Ok(Idempotent::Executed(()))
     }
 
-    fn mark_satisfied_if_needed(&mut self) {
-        if self.received_total >= self.expected_to_receive {
-            self.events.push(LiquidationEvent::Satisfied {});
-        }
-    }
+    pub fn complete(&mut self, payment_id: PaymentId) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            LiquidationEvent::Completed { .. }
+        );
 
-    pub fn complete(&mut self) -> Idempotent<()> {
-        idempotency_guard!(self.events.iter_all().rev(), LiquidationEvent::Completed {});
-
-        self.events.push(LiquidationEvent::Completed {});
+        self.events.push(LiquidationEvent::Completed { payment_id });
 
         Idempotent::Executed(())
     }
@@ -129,13 +117,6 @@ impl Liquidation {
             .iter_all()
             .rev()
             .any(|e| matches!(e, LiquidationEvent::Completed { .. }))
-    }
-
-    pub fn is_satisfied(&self) -> bool {
-        self.events
-            .iter_all()
-            .rev()
-            .any(|e| matches!(e, LiquidationEvent::Satisfied { .. }))
     }
 }
 
@@ -167,7 +148,6 @@ impl TryFromEvents<LiquidationEvent> for Liquidation {
                 LiquidationEvent::RepaymentAmountReceived { amount, .. } => {
                     amount_received += *amount;
                 }
-                LiquidationEvent::Satisfied { .. } => {}
                 LiquidationEvent::Completed { .. } => {}
                 LiquidationEvent::Updated {
                     expected_to_receive,

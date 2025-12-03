@@ -118,13 +118,6 @@ pub enum CoreCreditEvent {
         id: ObligationId,
         credit_facility_id: CreditFacilityId,
     },
-    PartialLiquidationSatisfied {
-        liquidation_id: LiquidationId,
-        credit_facility_id: CreditFacilityId,
-        amount_sent: Satoshis,
-        amount_received: UsdCents,
-        recorded_at: DateTime<Utc>,
-    },
     PartialLiquidationInitiated {
         liquidation_id: LiquidationId,
         credit_facility_id: CreditFacilityId,
@@ -133,8 +126,15 @@ pub enum CoreCreditEvent {
         initially_expected_to_receive: UsdCents,
         initially_estimated_to_liquidate: Satoshis,
     },
-    PartialLiquidationConcluded {
+    PartialLiquidationRepaymentAmountReceived {
         liquidation_id: LiquidationId,
         credit_facility_id: CreditFacilityId,
+        amount: UsdCents,
+        ledger_tx_id: LedgerTxId,
+    },
+    PartialLiquidationCompleted {
+        liquidation_id: LiquidationId,
+        credit_facility_id: CreditFacilityId,
+        payment_id: PaymentId,
     },
 }

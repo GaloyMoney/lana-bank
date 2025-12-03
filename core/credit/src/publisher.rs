@@ -409,19 +409,23 @@ where
         let publish_events = new_events
             .filter_map(|event| match &event.event {
                 Initialized { .. } => None,
-                Completed { .. } => Some(CoreCreditEvent::PartialLiquidationConcluded {
+                Completed { payment_id, .. } => {
+                    Some(CoreCreditEvent::PartialLiquidationCompleted {
+                        liquidation_id: entity.id,
+                        credit_facility_id: entity.credit_facility_id,
+                        payment_id: *payment_id,
+                    })
+                }
+                RepaymentAmountReceived {
+                    amount,
+                    ledger_tx_id,
+                } => Some(CoreCreditEvent::PartialLiquidationRepaymentAmountReceived {
                     liquidation_id: entity.id,
                     credit_facility_id: entity.credit_facility_id,
-                }),
-                Satisfied {} => Some(CoreCreditEvent::PartialLiquidationSatisfied {
-                    liquidation_id: entity.id,
-                    credit_facility_id: entity.credit_facility_id,
-                    amount_sent: entity.sent_total,
-                    amount_received: entity.received_total,
-                    recorded_at: event.recorded_at,
+                    amount: *amount,
+                    ledger_tx_id: *ledger_tx_id,
                 }),
                 CollateralSentOut { .. } => None,
-                RepaymentAmountReceived { .. } => None,
                 Updated { .. } => None,
             })
             .collect::<Vec<_>>();

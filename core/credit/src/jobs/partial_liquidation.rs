@@ -129,12 +129,14 @@ where
         use CoreCreditEvent::*;
 
         match &message.as_event() {
-            Some(PartialLiquidationSatisfied {
+            Some(PartialLiquidationRepaymentAmountReceived {
                 credit_facility_id, ..
             }) if *credit_facility_id == self.config.credit_facility_id => {
-                // TODO: call credit::record_payment
+                let payment_id = crate::PaymentId::new();
+                // TODO: let payment_id = credit::record_payment
+
                 self.liquidations
-                    .complete_in_op(db, self.config.liquidation_id)
+                    .complete_in_op(db, self.config.liquidation_id, payment_id)
                     .await?;
 
                 Ok(ControlFlow::Break(()))

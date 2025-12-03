@@ -9,7 +9,7 @@ use core_money::{Satoshis, UsdCents};
 use es_entity::DbOp;
 use outbox::OutboxEventMarker;
 
-use crate::{CoreCreditEvent, CreditFacilityId, LiquidationId};
+use crate::{CoreCreditEvent, CreditFacilityId, LiquidationId, PaymentId};
 pub use entity::LiquidationEvent;
 pub(crate) use entity::*;
 use error::LiquidationError;
@@ -137,10 +137,11 @@ where
         &self,
         db: &mut es_entity::DbOp<'_>,
         liquidation_id: LiquidationId,
+        payment_id: PaymentId,
     ) -> Result<(), LiquidationError> {
         let mut liquidation = self.repo.find_by_id(liquidation_id).await?;
 
-        if liquidation.complete().did_execute() {
+        if liquidation.complete(payment_id).did_execute() {
             self.repo.update_in_op(db, &mut liquidation).await?;
         }
 
