@@ -1,6 +1,8 @@
 use sqlx::PgPool;
 use uuid::Uuid;
 
+use tracing_macros::record_error_severity;
+
 use crate::primitives::CreditFacilityId;
 
 use super::{CreditFacilityRepaymentPlan, error::*};
@@ -21,7 +23,8 @@ impl RepaymentPlanRepo {
         Ok(self.pool.begin().await?)
     }
 
-    #[tracing::instrument(name = "repayment_plan.persist_in_tx", skip_all, err(level = "warn"))]
+    #[record_error_severity]
+    #[tracing::instrument(name = "repayment_plan.persist_in_tx", skip_all)]
     pub async fn persist_in_tx(
         &self,
         tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
@@ -44,7 +47,8 @@ impl RepaymentPlanRepo {
         Ok(())
     }
 
-    #[tracing::instrument(name = "repayment_plan.load", skip_all, err(level = "warn"))]
+    #[record_error_severity]
+    #[tracing::instrument(name = "repayment_plan.load", skip_all)]
     pub async fn load(
         &self,
         credit_facility_id: CreditFacilityId,

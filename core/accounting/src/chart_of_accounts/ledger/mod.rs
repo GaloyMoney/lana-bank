@@ -9,6 +9,7 @@ use cala_ledger::{
     account_set::{AccountSetUpdate, NewAccountSet},
     velocity::{NewBalanceLimit, NewLimit, NewVelocityControl, NewVelocityLimit, Params},
 };
+use tracing_macros::record_error_severity;
 
 use closing::*;
 use error::*;
@@ -29,7 +30,8 @@ impl ChartLedger {
         }
     }
 
-    #[instrument(name = "chart_ledger.create_chart_root_account_set_in_op", skip(self, op, chart), fields(chart_id = %chart.id, chart_name = %chart.name), err)]
+    #[record_error_severity]
+    #[instrument(name = "chart_ledger.create_chart_root_account_set_in_op", skip(self, op, chart), fields(chart_id = %chart.id, chart_name = %chart.name))]
     pub async fn create_chart_root_account_set_in_op(
         &self,
         op: es_entity::DbOp<'_>,
@@ -70,11 +72,11 @@ impl ChartLedger {
         Ok(())
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "chart_ledger.close_by_chart_root_account_set_as_of", 
         skip(self, op),
-        fields(chart_id = tracing::field::Empty, closed_as_of = %closed_as_of),
-        err,
+        fields(chart_id = tracing::field::Empty, closed_as_of = %closed_as_of)
     )]
     pub async fn close_by_chart_root_account_set_as_of(
         &self,
@@ -118,10 +120,10 @@ impl ChartLedger {
         Ok(())
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "chart_ledger.attach_closing_controls_to_account_set_in_op",
-        skip(self, op),
-        err
+        skip(self, op)
     )]
     async fn attach_closing_controls_to_account_set_in_op(
         &self,
@@ -146,7 +148,8 @@ impl ChartLedger {
         Ok(control_id)
     }
 
-    #[instrument(name = "chart_ledger.create_close_control_in_op", skip(self, op), err)]
+    #[record_error_severity]
+    #[instrument(name = "chart_ledger.create_close_control_in_op", skip(self, op))]
     async fn create_close_control_in_op(
         &self,
         op: &mut LedgerOperation<'_>,
@@ -193,10 +196,10 @@ impl ChartLedger {
         Ok(control.id())
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "chart_ledger.create_account_closing_limits_in_op",
-        skip(self, op),
-        err
+        skip(self, op)
     )]
     async fn create_account_closing_limits_in_op(
         &self,

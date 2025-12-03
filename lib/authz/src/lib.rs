@@ -19,6 +19,7 @@ use sqlx_adapter::{
 use std::{fmt, marker::PhantomData, sync::Arc};
 use tokio::sync::RwLock;
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 use audit::{AuditInfo, AuditSvc};
 
@@ -46,7 +47,8 @@ where
     Audit: AuditSvc,
     Role: fmt::Display + fmt::Debug + Clone + Send + Sync,
 {
-    #[tracing::instrument(name = "authz.init", skip_all, err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "authz.init", skip_all)]
     pub async fn init(pool: &sqlx::PgPool, audit: &Audit) -> Result<Self, AuthorizationError> {
         let model = DefaultModel::from_str(MODEL).await?;
         let adapter = SqlxAdapter::new_with_pool(pool.clone()).await?;
@@ -61,7 +63,8 @@ where
         Ok(auth)
     }
 
-    #[tracing::instrument(name = "authz.add_role_hierarchy", skip(self), fields(parent_role = tracing::field::Empty, child_role = tracing::field::Empty), err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "authz.add_role_hierarchy", skip(self), fields(parent_role = tracing::field::Empty, child_role = tracing::field::Empty))]
     pub async fn add_role_hierarchy<R1: Into<Role>, R2: Into<Role>>(
         &self,
         parent_role: R1,
@@ -86,7 +89,8 @@ where
         }
     }
 
-    #[tracing::instrument(name = "authz.remove_role_hierarchy", skip(self), fields(parent_role = tracing::field::Empty, child_role = tracing::field::Empty), err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "authz.remove_role_hierarchy", skip(self), fields(parent_role = tracing::field::Empty, child_role = tracing::field::Empty))]
     pub async fn remove_role_hierarchy<R1: Into<Role>, R2: Into<Role>>(
         &self,
         parent_role: R1,
@@ -111,7 +115,8 @@ where
         }
     }
 
-    #[tracing::instrument(name = "authz.add_permission_to_role", skip(self), fields(role = tracing::field::Empty, object = %object, action = %action), err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "authz.add_permission_to_role", skip(self), fields(role = tracing::field::Empty, object = %object, action = %action))]
     pub async fn add_permission_to_role<R>(
         &self,
         role: &R,
@@ -141,7 +146,8 @@ where
         }
     }
 
-    #[tracing::instrument(name = "authz.remove_permission_from_role", skip(self, role), fields(role = tracing::field::Empty, object = tracing::field::Empty, action = tracing::field::Empty), err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "authz.remove_permission_from_role", skip(self, role), fields(role = tracing::field::Empty, object = tracing::field::Empty, action = tracing::field::Empty))]
     pub async fn remove_permission_from_role<R>(
         &self,
         role: &R,
@@ -171,7 +177,8 @@ where
         Ok(())
     }
 
-    #[tracing::instrument(name = "authz.assign_role_to_subject", skip(self, sub, role), fields(subject = tracing::field::Empty, role = tracing::field::Empty), err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "authz.assign_role_to_subject", skip(self, sub, role), fields(subject = tracing::field::Empty, role = tracing::field::Empty))]
     pub async fn assign_role_to_subject<R>(
         &self,
         sub: impl Into<Audit::Subject>,
@@ -199,7 +206,8 @@ where
         }
     }
 
-    #[tracing::instrument(name = "authz.revoke_role_from_subject", skip(self, sub, role), fields(subject = tracing::field::Empty, role = tracing::field::Empty), err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "authz.revoke_role_from_subject", skip(self, sub, role), fields(subject = tracing::field::Empty, role = tracing::field::Empty))]
     pub async fn revoke_role_from_subject<R>(
         &self,
         sub: impl Into<Audit::Subject>,
@@ -224,7 +232,8 @@ where
         }
     }
 
-    #[tracing::instrument(name = "authz.roles_for_subject", skip(self, sub), fields(subject = tracing::field::Empty, roles_count = tracing::field::Empty), err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "authz.roles_for_subject", skip(self, sub), fields(subject = tracing::field::Empty, roles_count = tracing::field::Empty))]
     pub async fn roles_for_subject(
         &self,
         sub: impl Into<Audit::Subject>,
@@ -252,7 +261,8 @@ where
         Ok(roles)
     }
 
-    #[tracing::instrument(name = "authz.check_all_permissions", skip(self), fields(subject = %sub, object = tracing::field::Empty, actions_count = actions.len()), err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "authz.check_all_permissions", skip(self), fields(subject = %sub, object = tracing::field::Empty, actions_count = actions.len()))]
     pub async fn check_all_permissions(
         &self,
         sub: &Audit::Subject,
@@ -273,7 +283,8 @@ where
         Ok(true)
     }
 
-    #[tracing::instrument(name = "authz.check_permission", skip(self), fields(subject = %sub, object = tracing::field::Empty, action = tracing::field::Empty, authorized = tracing::field::Empty), err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "authz.check_permission", skip(self), fields(subject = %sub, object = tracing::field::Empty, action = tracing::field::Empty, authorized = tracing::field::Empty))]
     async fn check_permission(
         &self,
         sub: &Audit::Subject,
@@ -315,6 +326,7 @@ where
         &self.audit
     }
 
+    #[record_error_severity]
     #[instrument(name = "authz.enforce_permission", skip(self))]
     async fn enforce_permission(
         &self,
@@ -336,6 +348,7 @@ where
         }
     }
 
+    #[record_error_severity]
     #[instrument(name = "authz.evaluate_permission", skip(self))]
     async fn evaluate_permission(
         &self,

@@ -3,6 +3,7 @@ use sqlx::PgPool;
 use es_entity::*;
 pub use es_entity::{ListDirection, Sort};
 use outbox::OutboxEventMarker;
+use tracing_macros::record_error_severity;
 
 use crate::{event::CoreCreditEvent, primitives::*, publisher::*};
 
@@ -74,7 +75,8 @@ where
         }
     }
 
-    #[tracing::instrument(name = "credit_facility.publish", skip_all, err(level = "warn"))]
+    #[record_error_severity]
+    #[tracing::instrument(name = "credit_facility.publish", skip_all)]
     async fn publish(
         &self,
         op: &mut impl es_entity::AtomicOperation,
@@ -86,11 +88,8 @@ where
             .await
     }
 
-    #[tracing::instrument(
-        name = "credit_facility.find_by_custody_wallet",
-        skip_all,
-        err(level = "warn")
-    )]
+    #[record_error_severity]
+    #[tracing::instrument(name = "credit_facility.find_by_custody_wallet", skip_all)]
     pub async fn find_by_custody_wallet(
         &self,
         wallet_id: CustodyWalletId,
@@ -150,7 +149,8 @@ where
         }
     }
 
-    #[tracing::instrument(name = "interest_accrual_cycle.publish", skip_all, err(level = "warn"))]
+    #[record_error_severity]
+    #[tracing::instrument(name = "interest_accrual_cycle.publish", skip_all)]
     async fn publish(
         &self,
         op: &mut impl es_entity::AtomicOperation,

@@ -2,6 +2,7 @@ use sqlx::PgPool;
 
 use es_entity::*;
 use outbox::OutboxEventMarker;
+use tracing_macros::record_error_severity;
 
 use crate::{event::CoreCreditEvent, primitives::*, publisher::CreditFacilityPublisher};
 
@@ -49,7 +50,8 @@ where
         }
     }
 
-    #[tracing::instrument(name = "liquidation_process.publish", skip_all, err(level = "warn"))]
+    #[record_error_severity]
+    #[tracing::instrument(name = "liquidation_process.publish", skip_all)]
     async fn publish(
         &self,
         op: &mut impl es_entity::AtomicOperation,

@@ -1,6 +1,8 @@
 use handlebars::Handlebars;
 use serde::Serialize;
 
+use tracing_macros::record_error_severity;
+
 use super::error::ContractCreationError;
 
 /// Contract template manager that handles embedded templates
@@ -30,11 +32,11 @@ impl ContractTemplates {
     }
 
     /// Render a contract template with the provided data
+    #[record_error_severity]
     #[tracing::instrument(
         name = "lana.contract_creation.render_template",
         skip_all,
         fields(template_name = %template_name),
-        err
     )]
     pub fn render_template<T: Serialize>(
         &self,

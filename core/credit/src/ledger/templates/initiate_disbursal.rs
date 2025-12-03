@@ -4,6 +4,7 @@ use cala_ledger::{
 };
 use rust_decimal::Decimal;
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 use crate::{
     ledger::error::*,
@@ -85,6 +86,7 @@ impl From<InitiateDisbursalParams> for Params {
 pub struct InitiateDisbursal;
 
 impl InitiateDisbursal {
+    #[record_error_severity]
     #[instrument(name = "ledger.initiate_disbursal.init", skip_all)]
     pub async fn init(ledger: &CalaLedger) -> Result<(), CreditLedgerError> {
         let tx_input = NewTxTemplateTransaction::builder()

@@ -9,6 +9,7 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
+use tracing_macros::record_error_severity;
 
 use crate::journal::{JournalEntry, JournalEntryCursor};
 use crate::{
@@ -45,7 +46,8 @@ where
         }
     }
 
-    #[instrument(name = "core_accounting.ledger_account.history", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.ledger_account.history", skip(self))]
     pub async fn history(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -65,11 +67,8 @@ where
         Ok(self.ledger.ledger_account_history(id, args).await?)
     }
 
-    #[instrument(
-        name = "core_accounting.ledger_account.complete_history",
-        skip(self),
-        err
-    )]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.ledger_account.complete_history", skip(self))]
     pub(crate) async fn complete_history(
         &self,
         id: impl Into<LedgerAccountId> + Copy + std::fmt::Debug,
@@ -99,11 +98,8 @@ where
         Ok(all_entries)
     }
 
-    #[instrument(
-        name = "core_accounting.ledger_account.find_by_id",
-        skip(self, chart),
-        err
-    )]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.ledger_account.find_by_id", skip(self, chart))]
     pub async fn find_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -122,11 +118,8 @@ where
         Ok(accounts.remove(&id))
     }
 
-    #[instrument(
-        name = "core_accounting.ledger_account.find_by_id",
-        skip(self, chart),
-        err
-    )]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.ledger_account.find_by_id", skip(self, chart))]
     pub async fn find_by_code(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -153,11 +146,8 @@ where
         }
     }
 
-    #[instrument(
-        name = "core_accounting.ledger_account.find_all",
-        skip(self, chart),
-        err
-    )]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.ledger_account.find_all", skip(self, chart))]
     pub async fn find_all<T: From<LedgerAccount>>(
         &self,
         chart: &Chart,
@@ -173,10 +163,10 @@ where
         Ok(res)
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "core_accounting.ledger_account.list_all_account_flattened",
-        skip(self, chart),
-        err
+        skip(self, chart)
     )]
     pub async fn list_all_account_flattened(
         &self,
@@ -217,10 +207,10 @@ where
     /// Pushes into `account`'s `ancestor_ids` ancestors from the chart of account. The ancestors
     /// are pushed in ascending order, the root of the chart of accounts is pushed last. `account`
     /// itself is not pushed.
+    #[record_error_severity]
     #[instrument(
         name = "core_accounting.ledger_account.populate_ancestors",
-        skip(self, chart, account),
-        err
+        skip(self, chart, account)
     )]
     async fn populate_ancestors(
         &self,
@@ -241,10 +231,10 @@ where
         Ok(())
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "core_accounting.ledger_account.populate_children",
-        skip(self, chart, account),
-        err
+        skip(self, chart, account)
     )]
     async fn populate_children(
         &self,

@@ -7,6 +7,8 @@ use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
 use super::error::*;
+use tracing_macros::record_error_severity;
+
 use crate::primitives::{ChartId, FiscalYearId};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -48,6 +50,7 @@ pub struct FiscalMonthClosure {
 }
 
 impl FiscalYear {
+    #[record_error_severity]
     #[instrument(name = "fiscal_year.close", skip(self, now))]
     pub(super) fn close(
         &mut self,
@@ -75,6 +78,7 @@ impl FiscalYear {
         NaiveDate::from_ymd_opt(year, 12, 31).expect("Failed to compute december of fiscal year")
     }
 
+    #[record_error_severity]
     #[instrument(name = "fiscal_year.close_next_sequential_month", skip(self, now))]
     pub(super) fn close_next_sequential_month(
         &mut self,
@@ -154,6 +158,7 @@ impl FiscalYear {
             ))
     }
 
+    #[record_error_severity]
     #[instrument(name = "fiscal_year.next", skip(self))]
     pub(super) fn next(&self, now: DateTime<Utc>) -> Result<NewFiscalYear, FiscalYearError> {
         let next_year_opened_as_of = self

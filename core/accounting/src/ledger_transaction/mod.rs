@@ -9,6 +9,7 @@ use std::collections::HashMap;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::{CalaLedger, transaction::TransactionsByCreatedAtCursor};
+use tracing_macros::record_error_severity;
 
 use crate::primitives::{CoreAccountingAction, CoreAccountingObject, LedgerTransactionId};
 
@@ -38,11 +39,8 @@ where
         }
     }
 
-    #[instrument(
-        name = "core_accounting.ledger_transaction.find_by_id",
-        skip(self),
-        err
-    )]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.ledger_transaction.find_by_id", skip(self))]
     pub async fn find_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -69,7 +67,8 @@ where
         Ok(res)
     }
 
-    #[instrument(name = "core_accounting.ledger_transaction.find_all", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.ledger_transaction.find_all", skip(self))]
     pub async fn find_all<T: From<LedgerTransaction>>(
         &self,
         ids: &[LedgerTransactionId],
@@ -113,10 +112,10 @@ where
         Ok(res)
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "core_accounting.ledger_transaction.list_for_template_code",
-        skip(self),
-        err
+        skip(self)
     )]
     pub async fn list_for_template_code(
         &self,

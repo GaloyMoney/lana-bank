@@ -10,6 +10,7 @@ use cala_ledger::{
     AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation,
     account_set::{AccountSet, AccountSetMemberId, AccountSetUpdate, NewAccountSet},
 };
+use tracing_macros::record_error_severity;
 
 use crate::primitives::{BalanceRange, CalaBalanceRange};
 
@@ -40,7 +41,8 @@ impl BalanceSheetLedger {
         }
     }
 
-    #[instrument(name = "bs_ledger.create_unique_account_set", skip(self, op, parents), fields(reference = %reference, normal_balance_type = ?normal_balance_type, parents_count = parents.len()), err)]
+    #[record_error_severity]
+    #[instrument(name = "bs_ledger.create_unique_account_set", skip(self, op, parents), fields(reference = %reference, normal_balance_type = ?normal_balance_type, parents_count = parents.len()))]
     async fn create_unique_account_set(
         &self,
         op: &mut LedgerOperation<'_>,
@@ -73,7 +75,8 @@ impl BalanceSheetLedger {
         Ok(id)
     }
 
-    #[instrument(name = "bs_ledger.create_account_set", skip(self, op, parents), fields(reference = %reference, normal_balance_type = ?normal_balance_type, parents_count = parents.len()), err)]
+    #[record_error_severity]
+    #[instrument(name = "bs_ledger.create_account_set", skip(self, op, parents), fields(reference = %reference, normal_balance_type = ?normal_balance_type, parents_count = parents.len()))]
     async fn create_account_set(
         &self,
         op: &mut LedgerOperation<'_>,
@@ -105,7 +108,8 @@ impl BalanceSheetLedger {
         Ok(id)
     }
 
-    #[instrument(name = "bs_ledger.get_member_account_set_ids_and_names", skip_all, err)]
+    #[record_error_severity]
+    #[instrument(name = "bs_ledger.get_member_account_set_ids_and_names", skip_all)]
     async fn get_member_account_set_ids_and_names(
         &self,
         id: impl Into<AccountSetId> + Copy,
@@ -134,7 +138,8 @@ impl BalanceSheetLedger {
         Ok(accounts)
     }
 
-    #[instrument(name = "bs_ledger.get_account_set_with_balances", skip(self, balances_by_id), fields(account_set_id = %account_set_id), err)]
+    #[record_error_severity]
+    #[instrument(name = "bs_ledger.get_account_set_with_balances", skip(self, balances_by_id), fields(account_set_id = %account_set_id))]
     async fn get_account_set_with_balances(
         &self,
         account_set_id: AccountSetId,
@@ -150,7 +155,8 @@ impl BalanceSheetLedger {
         Ok((account_set, (usd_balance, btc_balance)))
     }
 
-    #[instrument(name = "bs_ledger.get_balances_by_id", skip(self, all_account_set_ids), fields(count = all_account_set_ids.len(), from = %from, until = ?until), err)]
+    #[record_error_severity]
+    #[instrument(name = "bs_ledger.get_balances_by_id", skip(self, all_account_set_ids), fields(count = all_account_set_ids.len(), from = %from, until = ?until))]
     async fn get_balances_by_id(
         &self,
         all_account_set_ids: Vec<AccountSetId>,
@@ -176,7 +182,8 @@ impl BalanceSheetLedger {
         Ok(res)
     }
 
-    #[instrument(name = "bs_ledger.add_member", skip(self, op, node_account_set_id), fields(node_id = tracing::field::Empty, member_id = %member), err)]
+    #[record_error_severity]
+    #[instrument(name = "bs_ledger.add_member", skip(self, op, node_account_set_id), fields(node_id = tracing::field::Empty, member_id = %member))]
     pub async fn add_member(
         &self,
         op: es_entity::DbOp<'_>,
@@ -203,7 +210,8 @@ impl BalanceSheetLedger {
         Ok(())
     }
 
-    #[instrument(name = "bs_ledger.create", skip(self, op), fields(reference = %reference), err)]
+    #[record_error_severity]
+    #[instrument(name = "bs_ledger.create", skip(self, op), fields(reference = %reference))]
     pub async fn create(
         &self,
         op: es_entity::DbOp<'_>,
@@ -289,6 +297,7 @@ impl BalanceSheetLedger {
         })
     }
 
+    #[record_error_severity]
     #[instrument(name = "balance_sheet.get_ids_from_reference", skip(self), fields(reference = %reference))]
     pub async fn get_ids_from_reference(
         &self,

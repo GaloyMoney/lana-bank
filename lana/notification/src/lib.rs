@@ -5,6 +5,8 @@ pub mod config;
 pub mod email;
 pub mod error;
 
+use tracing_macros::record_error_severity;
+
 use core_access::user::Users;
 use core_credit::CoreCredit;
 use core_customer::Customers;
@@ -52,7 +54,8 @@ where
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
         From<core_access::UserId>,
 {
-    #[tracing::instrument(name = "notification.init", skip_all, err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "notification.init", skip_all)]
     pub async fn init(
         config: NotificationConfig,
         jobs: &Jobs,

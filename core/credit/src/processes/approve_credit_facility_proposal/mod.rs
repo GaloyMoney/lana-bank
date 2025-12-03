@@ -3,6 +3,7 @@ mod job;
 use std::sync::Arc;
 
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -78,6 +79,7 @@ where
         }
     }
 
+    #[record_error_severity]
     #[instrument(name = "credit_facility.approval.execute",
         skip(self, credit_facility_proposal_id),
         fields(credit_facility_proposal_id = tracing::field::Empty))

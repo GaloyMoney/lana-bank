@@ -1,5 +1,7 @@
 use sqlx::PgPool;
 
+use tracing_macros::record_error_severity;
+
 use crate::primitives::CreditFacilityId;
 
 use super::{CreditFacilityHistory, error::*};
@@ -20,11 +22,8 @@ impl HistoryRepo {
         Ok(self.pool.begin().await?)
     }
 
-    #[tracing::instrument(
-        name = "credit_facility_history.persist_in_tx",
-        skip_all,
-        err(level = "warn")
-    )]
+    #[record_error_severity]
+    #[tracing::instrument(name = "credit_facility_history.persist_in_tx", skip_all)]
     pub async fn persist_in_tx(
         &self,
         tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
@@ -47,7 +46,8 @@ impl HistoryRepo {
         Ok(())
     }
 
-    #[tracing::instrument(name = "credit_facility_history.load", skip_all, err(level = "warn"))]
+    #[record_error_severity]
+    #[tracing::instrument(name = "credit_facility_history.load", skip_all)]
     pub async fn load(
         &self,
         credit_facility_proposal_id: impl Into<CreditFacilityId>,

@@ -1,6 +1,8 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+use tracing_macros::record_error_severity;
+
 pub mod error;
 pub mod pdf;
 pub mod template;
@@ -28,7 +30,8 @@ impl Renderer {
     }
 
     /// Render a handlebars template and convert to PDF
-    #[tracing::instrument(name = "rendering.render_template_to_pdf", skip_all, err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "rendering.render_template_to_pdf", skip_all)]
     pub fn render_template_to_pdf(&self, content: &str) -> Result<Vec<u8>, RenderingError> {
         let pdf_bytes = self.pdf_generator.generate_pdf_from_markdown(content)?;
         Ok(pdf_bytes)

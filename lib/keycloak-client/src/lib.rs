@@ -11,6 +11,7 @@ use keycloak::types::*;
 use keycloak::{KeycloakAdmin, KeycloakServiceAccountAdminTokenRetriever};
 use reqwest::Client;
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 use uuid::Uuid;
 
 #[derive(Clone)]
@@ -44,7 +45,8 @@ impl KeycloakClient {
         )
     }
 
-    #[instrument(name = "keycloak.create_user", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "keycloak.create_user", skip(self))]
     pub async fn create_user(
         &self,
         email: String,
@@ -74,7 +76,8 @@ impl KeycloakClient {
         Ok(uuid)
     }
 
-    #[instrument(name = "keycloak.update_user_email", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "keycloak.update_user_email", skip(self))]
     pub async fn update_user_email(
         &self,
         lana_id: Uuid,
@@ -94,7 +97,8 @@ impl KeycloakClient {
         Ok(())
     }
 
-    #[instrument(name = "keycloak.query_users_by_attribute", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "keycloak.query_users_by_attribute", skip(self))]
     async fn query_users_by_attribute(
         &self,
         attribute: &str,
@@ -123,7 +127,8 @@ impl KeycloakClient {
         Ok(users)
     }
 
-    #[instrument(name = "keycloak.get_keycloak_id_by_lana_id", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "keycloak.get_keycloak_id_by_lana_id", skip(self))]
     pub async fn get_keycloak_id_by_lana_id(
         &self,
         lana_id: Uuid,

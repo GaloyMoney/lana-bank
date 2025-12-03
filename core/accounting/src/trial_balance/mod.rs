@@ -7,6 +7,7 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
+use tracing_macros::record_error_severity;
 
 use crate::primitives::{CalaAccountSetId, CoreAccountingAction, CoreAccountingObject};
 
@@ -45,10 +46,10 @@ where
         }
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "core_accounting.trial_balance.create_trial_balance_statement",
-        skip(self),
-        err
+        skip(self)
     )]
     pub async fn create_trial_balance_statement(
         &self,
@@ -72,7 +73,8 @@ where
         }
     }
 
-    #[instrument(name = "core_accounting.trial_balance.add_new_chart_accounts_to_trial_balance", skip(self, name), fields(statement_name = %name), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.trial_balance.add_new_chart_accounts_to_trial_balance", skip(self, name), fields(statement_name = %name))]
     pub async fn add_new_chart_accounts_to_trial_balance(
         &self,
         name: &str,
@@ -101,7 +103,8 @@ where
         Ok(())
     }
 
-    #[instrument(name = "core_accounting.trial_balance.trial_balance", skip(self, name), fields(statement_name = %name), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.trial_balance.trial_balance", skip(self, name), fields(statement_name = %name))]
     pub async fn trial_balance(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

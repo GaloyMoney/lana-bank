@@ -11,6 +11,7 @@ use job::*;
 
 use core_access::CoreAccessEvent;
 use outbox::{Outbox, OutboxEventMarker};
+use tracing_macros::record_error_severity;
 
 pub struct UserOnboarding<E>
 where
@@ -36,7 +37,8 @@ impl<E> UserOnboarding<E>
 where
     E: OutboxEventMarker<CoreAccessEvent>,
 {
-    #[tracing::instrument(name = "user_onboarding.init", skip_all, err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "user_onboarding.init", skip_all)]
     pub async fn init(
         jobs: &::job::Jobs,
         outbox: &Outbox<E>,

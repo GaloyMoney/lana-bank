@@ -8,6 +8,7 @@ mod repo;
 
 use std::collections::HashMap;
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 pub use entity::{NewPublicIdEntity, PublicIdEntity};
 pub use error::*;
@@ -37,7 +38,8 @@ impl PublicIds {
         Self { repo }
     }
 
-    #[instrument(name = "public_id_service.create_in_op", skip(self, op), err)]
+    #[record_error_severity]
+    #[instrument(name = "public_id_service.create_in_op", skip(self, op))]
     pub async fn create_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
@@ -58,7 +60,8 @@ impl PublicIds {
         Ok(public_id)
     }
 
-    #[instrument(name = "public_id_service.find_by_id", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "public_id_service.find_by_id", skip(self))]
     pub async fn find_by_id(
         &self,
         id: impl Into<PublicId> + std::fmt::Debug,
@@ -66,7 +69,8 @@ impl PublicIds {
         self.repo.maybe_find_by_id(id.into()).await
     }
 
-    #[instrument(name = "public_id_service.find_all", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "public_id_service.find_all", skip(self))]
     pub async fn find_all<T: From<PublicIdEntity>>(
         &self,
         ids: &[PublicId],

@@ -9,6 +9,7 @@ use cala_ledger::{
     CalaLedger,
     tx_template::{TxTemplate, TxTemplatesByCodeCursor},
 };
+use tracing_macros::record_error_severity;
 
 use crate::primitives::{CoreAccountingAction, CoreAccountingObject, TransactionTemplateId};
 
@@ -39,7 +40,8 @@ where
         }
     }
 
-    #[instrument(name = "core_accounting.transaction_template.list", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.transaction_template.list", skip(self))]
     pub async fn list(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -69,11 +71,8 @@ where
         })
     }
 
-    #[instrument(
-        name = "core_accounting.transaction_template.find_all",
-        skip(self),
-        err
-    )]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.transaction_template.find_all", skip(self))]
     pub async fn find_all<T: From<TransactionTemplate>>(
         &self,
         ids: &[TransactionTemplateId],

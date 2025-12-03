@@ -20,6 +20,7 @@ use core_deposit::{
 use governance::GovernanceEvent;
 use lana_events::LanaEvent;
 use outbox::{Outbox, OutboxEventMarker};
+use tracing_macros::record_error_severity;
 
 pub struct CustomerSync<Perms, E>
 where
@@ -61,7 +62,8 @@ where
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    #[tracing::instrument(name = "customer_sync.init", skip_all, err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "customer_sync.init", skip_all)]
     pub async fn init(
         jobs: &::job::Jobs,
         outbox: &Outbox<E>,

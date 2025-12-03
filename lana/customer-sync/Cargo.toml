@@ -18,6 +18,7 @@ audit = { workspace = true }
 authz = { workspace = true }
 
 tracing = { workspace = true }
+tracing-macros = { workspace = true }
 tracing-utils = { workspace = true }
 serde = { workspace = true }
 serde_with = { workspace = true }

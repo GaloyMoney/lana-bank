@@ -16,6 +16,7 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
+use tracing_macros::*;
 
 pub use config::*;
 pub use error::ReportError;
@@ -78,7 +79,8 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<ReportObject>,
     E: OutboxEventMarker<CoreReportEvent>,
 {
-    #[tracing::instrument(name = "report.init", skip_all, fields(enabled = config.enabled), err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "report.init", skip_all, fields(enabled = config.enabled))]
     pub async fn init(
         pool: &sqlx::PgPool,
         authz: &Perms,
@@ -125,7 +127,8 @@ where
         })
     }
 
-    #[tracing::instrument(name = "report.find_all_reports", skip(self), fields(count = ids.len()), err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "report.find_all_reports", skip(self), fields(count = ids.len()))]
     pub async fn find_all_reports(
         &self,
         ids: &[ReportId],
@@ -133,7 +136,8 @@ where
         self.reports.find_all(ids).await.map_err(ReportError::from)
     }
 
-    #[tracing::instrument(name = "report.find_all_report_runs", skip(self), fields(count = ids.len()), err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "report.find_all_report_runs", skip(self), fields(count = ids.len()))]
     pub async fn find_all_report_runs(
         &self,
         ids: &[ReportRunId],
@@ -144,7 +148,8 @@ where
             .map_err(ReportError::from)
     }
 
-    #[tracing::instrument(name = "report.list_report_runs", skip(self, query), fields(subject = %sub), err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "report.list_report_runs", skip(self, query), fields(subject = %sub))]
     pub async fn list_report_runs(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -164,7 +169,8 @@ where
             .await?)
     }
 
-    #[tracing::instrument(name = "report.list_reports_for_run", skip(self), fields(subject = %sub, run_id = %run_id), err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "report.list_reports_for_run", skip(self), fields(subject = %sub, run_id = %run_id))]
     pub async fn list_reports_for_run(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -189,7 +195,8 @@ where
             .entities)
     }
 
-    #[tracing::instrument(name = "report.find_report_run_by_id", skip(self), fields(subject = %sub, run_id = tracing::field::Empty), err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "report.find_report_run_by_id", skip(self), fields(subject = %sub, run_id = tracing::field::Empty))]
     pub async fn find_report_run_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -209,7 +216,8 @@ where
         Ok(self.report_runs.maybe_find_by_id(id).await?)
     }
 
-    #[tracing::instrument(name = "report.trigger_report_run", skip(self), fields(subject = %sub, job_id = tracing::field::Empty), err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "report.trigger_report_run", skip(self), fields(subject = %sub, job_id = tracing::field::Empty))]
     pub async fn trigger_report_run(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -242,7 +250,8 @@ where
         Ok(job.id)
     }
 
-    #[tracing::instrument(name = "report.generate_report_file_download_link", skip(self), fields(subject = %sub, report_id = tracing::field::Empty, extension = %extension), err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "report.generate_report_file_download_link", skip(self), fields(subject = %sub, report_id = tracing::field::Empty, extension = %extension))]
     pub async fn generate_report_file_download_link(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

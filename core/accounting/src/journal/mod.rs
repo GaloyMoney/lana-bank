@@ -7,6 +7,7 @@ use cala_ledger::CalaLedger;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use tracing_macros::record_error_severity;
 
 use crate::primitives::{CalaJournalId, CoreAccountingAction, CoreAccountingObject};
 
@@ -37,7 +38,8 @@ where
         }
     }
 
-    #[instrument(name = "core_accounting.journal.entries", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.journal.entries", skip(self))]
     pub async fn entries(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

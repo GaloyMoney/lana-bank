@@ -1,5 +1,6 @@
 use sqlx::PgPool;
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 use crate::{error::*, primitives::*};
 
@@ -13,7 +14,8 @@ impl WebhookNotificationRepo {
         Self { pool: pool.clone() }
     }
 
-    #[instrument(name = "custody.webhook_notification.persist", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "custody.webhook_notification.persist", skip(self))]
     pub async fn persist(
         &self,
         custodian_id: Option<CustodianId>,

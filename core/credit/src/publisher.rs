@@ -1,5 +1,6 @@
 use outbox::{Outbox, OutboxEventMarker};
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 use crate::{
     EffectiveDate,
@@ -57,11 +58,8 @@ where
         }
     }
 
-    #[instrument(
-        name = "credit.publisher.publish_facility",
-        skip_all,
-        err(level = "warn")
-    )]
+    #[record_error_severity]
+    #[instrument(name = "credit.publisher.publish_facility", skip_all)]
     pub async fn publish_facility(
         &self,
         op: &mut impl es_entity::AtomicOperation,
@@ -110,11 +108,8 @@ where
         Ok(())
     }
 
-    #[instrument(
-        name = "credit.publisher.publish_proposal",
-        skip_all,
-        err(level = "warn")
-    )]
+    #[record_error_severity]
+    #[instrument(name = "credit.publisher.publish_proposal", skip_all)]
     pub async fn publish_proposal(
         &self,
         op: &mut impl es_entity::AtomicOperation,
@@ -147,11 +142,8 @@ where
         Ok(())
     }
 
-    #[instrument(
-        name = "credit.publisher.publish_pending_credit_facility",
-        skip_all,
-        err(level = "warn")
-    )]
+    #[record_error_severity]
+    #[instrument(name = "credit.publisher.publish_pending_credit_facility", skip_all)]
     pub async fn publish_pending_credit_facility(
         &self,
         op: &mut impl es_entity::AtomicOperation,
@@ -185,11 +177,8 @@ where
         Ok(())
     }
 
-    #[instrument(
-        name = "credit.publisher.publish_collateral",
-        skip_all,
-        err(level = "warn")
-    )]
+    #[record_error_severity]
+    #[instrument(name = "credit.publisher.publish_collateral", skip_all)]
     pub async fn publish_collateral(
         &self,
         op: &mut impl es_entity::AtomicOperation,
@@ -229,11 +218,8 @@ where
         Ok(())
     }
 
-    #[instrument(
-        name = "credit.publisher.publish_disbursal",
-        skip_all,
-        err(level = "warn")
-    )]
+    #[record_error_severity]
+    #[instrument(name = "credit.publisher.publish_disbursal", skip_all)]
     pub async fn publish_disbursal(
         &self,
         op: &mut impl es_entity::AtomicOperation,
@@ -265,11 +251,8 @@ where
         Ok(())
     }
 
-    #[instrument(
-        name = "credit.publisher.publish_interest_accrual_cycle",
-        skip_all,
-        err(level = "warn")
-    )]
+    #[record_error_severity]
+    #[instrument(name = "credit.publisher.publish_interest_accrual_cycle", skip_all)]
     pub async fn publish_interest_accrual_cycle(
         &self,
         op: &mut impl es_entity::AtomicOperation,
@@ -303,11 +286,8 @@ where
         Ok(())
     }
 
-    #[instrument(
-        name = "credit.publisher.publish_payment_allocation",
-        skip_all,
-        err(level = "warn")
-    )]
+    #[record_error_severity]
+    #[instrument(name = "credit.publisher.publish_payment_allocation", skip_all)]
     pub async fn publish_payment_allocation(
         &self,
         op: &mut impl es_entity::AtomicOperation,
@@ -341,11 +321,8 @@ where
         Ok(())
     }
 
-    #[instrument(
-        name = "credit.publisher.publish_obligation",
-        skip_all,
-        err(level = "warn")
-    )]
+    #[record_error_severity]
+    #[instrument(name = "credit.publisher.publish_obligation", skip_all)]
     pub async fn publish_obligation(
         &self,
         op: &mut impl es_entity::AtomicOperation,
@@ -406,11 +383,8 @@ where
         Ok(())
     }
 
-    #[instrument(
-        name = "credit.publisher.publish_liquidation_process",
-        skip_all,
-        err(level = "warn")
-    )]
+    #[record_error_severity]
+    #[instrument(name = "credit.publisher.publish_liquidation_process", skip_all)]
     pub async fn publish_liquidation_process(
         &self,
         op: &mut impl es_entity::AtomicOperation,

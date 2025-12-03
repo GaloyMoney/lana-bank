@@ -18,6 +18,7 @@ use core_deposit::{
 use governance::GovernanceEvent;
 use outbox::{Outbox, OutboxEventMarker};
 use sumsub::SumsubClient;
+use tracing_macros::record_error_severity;
 
 use lana_events::LanaEvent;
 
@@ -64,7 +65,8 @@ where
         + OutboxEventMarker<LanaEvent>
         + std::fmt::Debug,
 {
-    #[tracing::instrument(name = "deposit_sync.init", skip_all, err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "deposit_sync.init", skip_all)]
     pub async fn init(
         jobs: &Jobs,
         outbox: &Outbox<E>,

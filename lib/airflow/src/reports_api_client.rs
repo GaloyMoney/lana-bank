@@ -3,6 +3,8 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
+use tracing_macros::record_error_severity;
+
 use super::{config::AirflowConfig, error::AirflowError};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -69,6 +71,7 @@ impl ReportsApiClient {
         Ok(self.base.join("api/v1/reports/")?)
     }
 
+    #[record_error_severity]
     #[tracing::instrument(name = "airflow.reports_api_client.list_runs", skip(self))]
     pub async fn list_runs(
         &self,
@@ -97,6 +100,7 @@ impl ReportsApiClient {
         Ok(runs)
     }
 
+    #[record_error_severity]
     #[tracing::instrument(name = "airflow.reports_api_client.get_run", skip(self))]
     pub async fn get_run(&self, run_id: &str) -> Result<Option<RunData>, AirflowError> {
         let url = self.reports_url()?.join(run_id)?;
@@ -110,6 +114,7 @@ impl ReportsApiClient {
         Ok(Some(run))
     }
 
+    #[record_error_severity]
     #[tracing::instrument(name = "reports_api.generate_report", skip(self))]
     pub async fn generate_report(&self) -> Result<ReportGenerateResponse, AirflowError> {
         let url = self.reports_url()?.join("generate")?;

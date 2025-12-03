@@ -9,6 +9,7 @@ use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerO
 use document_storage::{DocumentId, DocumentStorage};
 use job::{CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType};
 use outbox::OutboxEventMarker;
+use tracing_macros::record_error_severity;
 
 use super::{LoanAgreementData, templates::ContractTemplates};
 use crate::{Applicants, Customers};
@@ -123,6 +124,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
     E: OutboxEventMarker<CoreCustomerEvent> + Send + Sync,
 {
+    #[record_error_severity]
     #[tracing::instrument(
         name = "contract_creation.generate_loan_agreement_job.run",
         skip_all,
@@ -131,7 +133,6 @@ where
             job_attempt = current_job.attempt(),
             customer_id = %self.config.customer_id
         ),
-        err
     )]
     async fn run(
         &self,

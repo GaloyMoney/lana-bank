@@ -5,6 +5,7 @@ mod repo;
 use std::sync::Arc;
 
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -112,6 +113,7 @@ where
         Ok(disbursal)
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "disbursals.create_pre_approved_disbursal_in_op",
         skip(self, db, new_disbursal)
@@ -137,7 +139,8 @@ where
         Ok(disbursal)
     }
 
-    #[instrument(name = "core_credit.disbursals.find_by_id", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_credit.disbursals.find_by_id", skip(self))]
     pub async fn find_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -163,11 +166,8 @@ where
         self.repo.find_by_concluded_tx_id(Some(tx_id)).await
     }
 
-    #[instrument(
-        name = "core_credit.disbursals.find_by_concluded_tx_id",
-        skip(self),
-        err
-    )]
+    #[record_error_severity]
+    #[instrument(name = "core_credit.disbursals.find_by_concluded_tx_id", skip(self))]
     pub async fn find_by_concluded_tx_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -186,7 +186,8 @@ where
         Ok(disbursal)
     }
 
-    #[instrument(name = "core_credit.disbursals.find_by_public_id", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_credit.disbursals.find_by_public_id", skip(self))]
     pub async fn find_by_public_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -239,7 +240,8 @@ where
         Ok(ret)
     }
 
-    #[instrument(name = "core_credit.disbursals.list", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_credit.disbursals.list", skip(self))]
     pub async fn list(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -283,7 +285,8 @@ where
             .await
     }
 
-    #[instrument(name = "core_credit.disbursals.find_all", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "core_credit.disbursals.find_all", skip(self))]
     pub async fn find_all<T: From<Disbursal>>(
         &self,
         ids: &[DisbursalId],

@@ -6,6 +6,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 use authz::PermissionCheck;
 use outbox::OutboxEventMarker;
@@ -89,10 +90,10 @@ where
         self.repo.create_in_op(db, new_collateral).await
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "collateral.record_collateral_update_via_manual_input_in_op",
-        skip(db, self),
-        err
+        skip(db, self)
     )]
     pub(super) async fn record_collateral_update_via_manual_input_in_op(
         &self,
@@ -119,11 +120,11 @@ where
         Ok(res)
     }
 
+    #[record_error_severity]
     #[instrument(
         name = "collateral.record_collateral_update_via_custodian_sync",
         fields(updated_collateral = %updated_collateral, effective = %effective),
         skip(self),
-        err
     )]
     pub(super) async fn record_collateral_update_via_custodian_sync(
         &self,

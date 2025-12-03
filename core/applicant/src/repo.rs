@@ -1,6 +1,7 @@
 use core_customer::CustomerId;
 
 use sqlx::PgPool;
+use tracing_macros::record_error_severity;
 
 use super::error::ApplicantError;
 
@@ -18,7 +19,8 @@ impl ApplicantRepo {
         Ok(es_entity::DbOp::init(&self.pool).await?)
     }
 
-    #[tracing::instrument(name = "applicant.persist_webhook_data", skip(self), err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "applicant.persist_webhook_data", skip(self))]
     pub async fn persist_webhook_data(
         &self,
         customer_id: CustomerId,
