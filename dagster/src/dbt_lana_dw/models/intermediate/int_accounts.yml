@@ -1,0 +1,13 @@
+version: 2
+
+models:
+  - name: int_accounts
+    columns:
+    - name: account_id
+      tests:
+      - unique
+      - not_null
+    - name: account_key
+      tests:
+      - unique
+      - not_null
