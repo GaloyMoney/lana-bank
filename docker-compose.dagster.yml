@@ -66,9 +66,6 @@ services:
       DAGSTER_POSTGRES_USER: 'postgres_user'
       DAGSTER_POSTGRES_PASSWORD: 'postgres_password'
       DAGSTER_POSTGRES_DB: 'postgres_db'
-      DBT_BIGQUERY_CREDENTIALS_JSON: ${DBT_BIGQUERY_CREDENTIALS_JSON:-}
-      TARGET_BIGQUERY_DATASET: ${TARGET_BIGQUERY_DATASET:-}
-      REPORTS_BUCKET_NAME: ${REPORTS_BUCKET_NAME:-}
     volumes:
       - /tmp/io_manager_storage:/tmp/io_manager_storage
     depends_on:
