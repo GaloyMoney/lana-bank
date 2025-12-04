@@ -1,11 +1,13 @@
 import os
-from typing import Callable, Union
+from typing import Callable, Dict, Optional, Union
 
 from opentelemetry import trace
+from opentelemetry.context import Context
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
 
 
 def init_telemetry():
@@ -27,10 +29,29 @@ def init_telemetry():
 
 
 tracer = trace.get_tracer(__name__)
+_trace_propagator = TraceContextTextMapPropagator()
+
+
+def context_from_traceparent(traceparent: str) -> Context:
+    """Build an OTEL Context from a traceparent string."""
+    return _trace_propagator.extract(carrier={"traceparent": traceparent})
+
+
+def current_span_to_traceparent() -> Optional[str]:
+    """
+    Serialize the *current* span context into a W3C traceparent string.
+    Returns None if nothing could be injected.
+    """
+    carrier: Dict[str, str] = {}
+    _trace_propagator.inject(carrier)
+    return carrier.get("traceparent")
 
 
 def trace_callable(
-    span_name: str, callable: Callable, span_attributes: Union[dict, None] = None
+    span_name: str,
+    callable: Callable,
+    span_attributes: Union[dict, None] = None,
+    parent_context: Optional[Context] = None,
 ):
     """
     Wrapper that traces a callable with OpenTelemetry.
@@ -39,13 +60,18 @@ def trace_callable(
         span_name: Name for the trace span
         callable: The function to wrap with tracing
         span_attributes: Optional dict of attributes to set on the span
+        parent_context: Optional OTEL Context to use as the parent span context
 
     Returns:
         A callable that executes the original callable within a trace span
     """
 
     def traced_wrapper(**kwargs):
-        with tracer.start_as_current_span(span_name) as span:
+        span_kwargs = {}
+        if parent_context is not None:
+            span_kwargs["context"] = parent_context
+
+        with tracer.start_as_current_span(span_name, **span_kwargs) as span:
             if span_attributes:
                 for key, value in span_attributes.items():
                     span.set_attribute(key, str(value))
