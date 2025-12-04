@@ -50,7 +50,11 @@ export DBT_BIGQUERY_KEYFILE="$(pwd)/meltano/keyfile.json"
 
 # ── Up ──────────────────────────────────────────────────────────────────────────
 echo "Starting services..."
-"$ENGINE" compose "${FILES[@]}" up -d "$@"
+BUILD_FLAG=()
+if [[ "${DAGSTER:-false}" == "true" ]]; then
+  BUILD_FLAG=(--build)
+fi
+"$ENGINE" compose "${FILES[@]}" up -d "${BUILD_FLAG[@]}" "$@"
 
 wait4x postgresql ${PG_CON} --timeout 120s
 
