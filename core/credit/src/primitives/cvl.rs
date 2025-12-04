@@ -160,7 +160,7 @@ mod test {
     }
 
     #[test]
-    fn current_cvl_from_loan_amounts() {
+    fn outstanding_cvl_from_loan_amounts() {
         let expected_cvl = CVLPct::Finite(dec!(125));
         let collateral_value = UsdCents::from(125000);
         let outstanding_amount = UsdCents::from(100000);
@@ -175,7 +175,7 @@ mod test {
     }
 
     #[test]
-    fn current_cvl_for_zero_amounts() {
+    fn outstanding_cvl_for_zero_amounts() {
         let expected_cvl = CVLPct::ZERO;
         let collateral_value = UsdCents::ZERO;
         let outstanding_amount = UsdCents::from(100000);

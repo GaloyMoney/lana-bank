@@ -121,22 +121,11 @@ impl CreditFacilityBalanceSummary {
             && self.total_defaulted().is_zero())
     }
 
-    pub fn facility_amount_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
-        let facility_amount = self.facility;
-        CVLData::new(self.collateral, facility_amount).cvl(price)
-    }
-
     pub fn outstanding_amount_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
-        CVLData::new(self.collateral, self.total_outstanding()).cvl(price)
-    }
-
-    pub fn current_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
-        if self.disbursed.is_zero() {
-            self.facility_amount_cvl(price)
-        } else if self.total_outstanding().is_zero() {
+        if self.total_outstanding().is_zero() {
             CVLPct::Infinite
         } else {
-            self.outstanding_amount_cvl(price)
+            CVLData::new(self.collateral, self.total_outstanding()).cvl(price)
         }
     }
 
@@ -233,7 +222,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn current_cvl_returns_facility_amount_when_no_disbursals() {
+    fn outstanding_cvl_returns_infinite_when_no_disbursals() {
         let balances = CreditFacilityBalanceSummary {
             collateral: Satoshis::from(100),
             facility: UsdCents::from(2),
@@ -253,18 +242,11 @@ mod test {
         };
 
         let price = PriceOfOneBTC::new(UsdCents::from(100_000_00));
-        assert_eq!(
-            balances.current_cvl(price),
-            balances.facility_amount_cvl(price)
-        );
-        assert_ne!(
-            balances.current_cvl(price),
-            balances.outstanding_amount_cvl(price)
-        );
+        assert_eq!(balances.outstanding_amount_cvl(price), CVLPct::Infinite);
     }
 
     #[test]
-    fn current_cvl_returns_disbursed_amount_when_disbursals_with_outstanding() {
+    fn outstanding_cvl_returns_non_zero_amount_when_disbursals_with_outstanding() {
         let balances = CreditFacilityBalanceSummary {
             collateral: Satoshis::from(100),
             facility: UsdCents::from(2),
@@ -284,18 +266,12 @@ mod test {
         };
 
         let price = PriceOfOneBTC::new(UsdCents::from(100_000_00));
-        assert_eq!(
-            balances.current_cvl(price),
-            balances.outstanding_amount_cvl(price)
-        );
-        assert_ne!(
-            balances.current_cvl(price),
-            balances.facility_amount_cvl(price)
-        );
+        assert_ne!(balances.outstanding_amount_cvl(price), CVLPct::ZERO);
+        assert_ne!(balances.outstanding_amount_cvl(price), CVLPct::Infinite);
     }
 
     #[test]
-    fn current_cvl_returns_infinite_when_disbursals_with_no_outstanding() {
+    fn outstanding_cvl_returns_infinite_when_disbursals_with_no_outstanding() {
         let balances = CreditFacilityBalanceSummary {
             collateral: Satoshis::from(100),
             facility: UsdCents::from(2),
@@ -315,7 +291,7 @@ mod test {
         };
 
         let price = PriceOfOneBTC::new(UsdCents::from(100_000_00));
-        assert_eq!(balances.current_cvl(price), CVLPct::Infinite);
+        assert_eq!(balances.outstanding_amount_cvl(price), CVLPct::Infinite);
     }
 
     #[test]

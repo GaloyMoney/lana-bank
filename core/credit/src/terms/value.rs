@@ -326,12 +326,12 @@ impl TermValues {
 
     pub fn collateralization_update(
         &self,
-        current_cvl: CVLPct,
+        outstanding_cvl: CVLPct,
         last_collateralization_state: CollateralizationState,
         upgrade_buffer_cvl_pct: Option<CVLPct>,
         liquidation_upgrade_blocked: bool,
     ) -> Option<CollateralizationState> {
-        let calculated_collateralization = &self.collateralization(current_cvl);
+        let calculated_collateralization = &self.collateralization(outstanding_cvl);
 
         match (last_collateralization_state, *calculated_collateralization) {
             // Redundant same state changes
@@ -367,7 +367,7 @@ impl TermValues {
                 Some(buffer) => {
                     if self
                         .margin_call_cvl
-                        .is_significantly_lower_than(current_cvl, buffer)
+                        .is_significantly_lower_than(outstanding_cvl, buffer)
                     {
                         Some(*calculated_collateralization)
                     } else {
