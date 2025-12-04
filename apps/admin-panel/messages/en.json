@@ -2335,7 +2335,7 @@
     }
   },
   "ManualTransactions": {
-    "title": "Execute Manual Transaction",
+    "title": "Create Manual Transaction",
     "description": "Create a manual transaction by providing the required details",
     "fields": {
       "description": "Transaction Description",
@@ -2354,7 +2354,7 @@
     },
     "noEntries": "No journal entry for this transaction. Please add one.",
     "addEntryBtn": "Add",
-    "execute": "Execute",
+    "execute": "Create",
     "placeholdersJournalEntry": {
       "accountRef": "Enter account ref",
       "currency": "Select currency",

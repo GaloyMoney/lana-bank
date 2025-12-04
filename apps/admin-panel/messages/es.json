@@ -2335,7 +2335,7 @@
     }
   },
   "ManualTransactions": {
-    "title": "Registrar partida manual",
+    "title": "Crear partida manual",
     "description": "Crea una partida manual proporcionando los detalles requeridos",
     "fields": {
       "description": "Descripción de la partida",
@@ -2354,7 +2354,7 @@
     },
     "noEntries": "No hay asientos contables para esta partida. Por favor, añada uno.",
     "addEntryBtn": "Añadir",
-    "execute": "Registrar",
+    "execute": "Crear",
     "placeholdersJournalEntry": {
       "accountRef": "Introduce la referencia de cuenta",
       "currency": "Seleccione moneda",
