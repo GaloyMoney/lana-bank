@@ -1,0 +1,29 @@
+version: 2
+
+models:
+  - name: stg_accounts
+    columns:
+    - name: id
+      data_tests:
+      - unique
+      - not_null
+    - name: created_at
+      data_tests:
+      - not_null
+    - name: normal_balance_type
+      data_tests:
+      - not_null
+      - accepted_values:
+          arguments:
+            values: ['credit', 'debit']
+    - name: latest_values
+      data_tests:
+      - not_null:
+          config:
+            severity: warn
+    - name: name
+      data_tests:
+      - not_null
+    - name: code
+      data_tests:
+      - not_null
