@@ -30,46 +30,74 @@ pub fn record_error_severity(_args: TokenStream, input: TokenStream) -> TokenStr
         ReturnType::Type(_, ty) => quote! { #ty },
     };
 
-    // Create the execution part based on whether the function is async
-    let execute_body = if is_async {
-        quote! { async move #fn_body.await }
-    } else {
-        quote! { #fn_body }
-    };
-
     // Create the new function body that wraps the original
-    let new_body = quote! {
-        {
-            // Execute the original function body directly
-            let __result: #return_type = #execute_body;
+    let new_body = if is_async {
+        quote! {
+            {
+                async move {
+                    let __result: #return_type = #fn_body;
 
-            // Record error severity if it's an Err
-            if let Err(ref __e) = __result {
-                use tracing_utils::ErrorSeverity;
+                    // Record error severity if it's an Err
+                    if let Err(ref __e) = __result {
+                        use tracing_utils::ErrorSeverity;
+                        let __severity = __e.severity();
 
-                let __severity = __e.severity();
+                        // Emit event at appropriate level with "error" field for OpenTelemetry
+                        match __severity {
+                            ::tracing::Level::ERROR => {
+                                ::tracing::event!(::tracing::Level::ERROR, error = &::tracing::field::display(__e));
+                            }
+                            ::tracing::Level::WARN => {
+                                ::tracing::event!(::tracing::Level::WARN, error = &::tracing::field::display(__e));
+                            }
+                            ::tracing::Level::INFO => {
+                                ::tracing::event!(::tracing::Level::INFO, error = &::tracing::field::display(__e));
+                            }
+                            ::tracing::Level::DEBUG => {
+                                ::tracing::event!(::tracing::Level::DEBUG, error = &::tracing::field::display(__e));
+                            }
+                            ::tracing::Level::TRACE => {
+                                ::tracing::event!(::tracing::Level::TRACE, error = &::tracing::field::display(__e));
+                            }
+                        }
+                    }
 
-                // Emit event at appropriate level with "error" field for OpenTelemetry
-                match __severity {
-                    ::tracing::Level::ERROR => {
-                        ::tracing::event!(::tracing::Level::ERROR, error = &::tracing::field::display(__e));
-                    }
-                    ::tracing::Level::WARN => {
-                        ::tracing::event!(::tracing::Level::WARN, error = &::tracing::field::display(__e));
-                    }
-                    ::tracing::Level::INFO => {
-                        ::tracing::event!(::tracing::Level::INFO, error = &::tracing::field::display(__e));
-                    }
-                    ::tracing::Level::DEBUG => {
-                        ::tracing::event!(::tracing::Level::DEBUG, error = &::tracing::field::display(__e));
-                    }
-                    ::tracing::Level::TRACE => {
-                        ::tracing::event!(::tracing::Level::TRACE, error = &::tracing::field::display(__e));
+                    __result
+                }.await
+            }
+        }
+    } else {
+        quote! {
+            {
+                let __result: #return_type = #fn_body;
+
+                // Record error severity if it's an Err
+                if let Err(ref __e) = __result {
+                    use tracing_utils::ErrorSeverity;
+                    let __severity = __e.severity();
+
+                    // Emit event at appropriate level with "error" field for OpenTelemetry
+                    match __severity {
+                        ::tracing::Level::ERROR => {
+                            ::tracing::event!(::tracing::Level::ERROR, error = &::tracing::field::display(__e));
+                        }
+                        ::tracing::Level::WARN => {
+                            ::tracing::event!(::tracing::Level::WARN, error = &::tracing::field::display(__e));
+                        }
+                        ::tracing::Level::INFO => {
+                            ::tracing::event!(::tracing::Level::INFO, error = &::tracing::field::display(__e));
+                        }
+                        ::tracing::Level::DEBUG => {
+                            ::tracing::event!(::tracing::Level::DEBUG, error = &::tracing::field::display(__e));
+                        }
+                        ::tracing::Level::TRACE => {
+                            ::tracing::event!(::tracing::Level::TRACE, error = &::tracing::field::display(__e));
+                        }
                     }
                 }
-            }
 
-            __result
+                __result
+            }
         }
     };
 
@@ -91,6 +119,10 @@ fn is_result_type(ty: &Type) -> bool {
             } else {
                 false
             }
+        }
+        Type::TraitObject(_) => {
+            // Handle trait object types like BoxStream wrapped in Result
+            false
         }
         _ => false,
     }
