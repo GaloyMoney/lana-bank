@@ -144,7 +144,7 @@ impl CreditFacilityBalanceSummary {
         CollateralizationRatio::Finite(collateral / amount)
     }
 
-    pub fn outstanding_amount_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
+    pub fn current_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
         CVLData::new(self.collateral(), self.total_outstanding()).cvl(price)
     }
 }
@@ -212,7 +212,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn outstanding_cvl_returns_infinite_when_no_disbursals() {
+    fn current_cvl_returns_infinite_when_no_disbursals() {
         let balances = CreditFacilityBalanceSummary {
             collateral: Satoshis::from(100),
             facility: UsdCents::from(2),
@@ -232,11 +232,11 @@ mod test {
         };
 
         let price = PriceOfOneBTC::new(UsdCents::from(100_000_00));
-        assert_eq!(balances.outstanding_amount_cvl(price), CVLPct::Infinite);
+        assert_eq!(balances.current_cvl(price), CVLPct::Infinite);
     }
 
     #[test]
-    fn outstanding_cvl_returns_non_zero_amount_when_disbursals_with_outstanding() {
+    fn current_cvl_returns_non_zero_amount_when_disbursals_with_outstanding() {
         let balances = CreditFacilityBalanceSummary {
             collateral: Satoshis::from(100),
             facility: UsdCents::from(2),
@@ -256,12 +256,12 @@ mod test {
         };
 
         let price = PriceOfOneBTC::new(UsdCents::from(100_000_00));
-        assert_ne!(balances.outstanding_amount_cvl(price), CVLPct::ZERO);
-        assert_ne!(balances.outstanding_amount_cvl(price), CVLPct::Infinite);
+        assert_ne!(balances.current_cvl(price), CVLPct::ZERO);
+        assert_ne!(balances.current_cvl(price), CVLPct::Infinite);
     }
 
     #[test]
-    fn outstanding_cvl_returns_infinite_when_disbursals_with_no_outstanding() {
+    fn current_cvl_returns_infinite_when_disbursals_with_no_outstanding() {
         let balances = CreditFacilityBalanceSummary {
             collateral: Satoshis::from(100),
             facility: UsdCents::from(2),
@@ -281,7 +281,7 @@ mod test {
         };
 
         let price = PriceOfOneBTC::new(UsdCents::from(100_000_00));
-        assert_eq!(balances.outstanding_amount_cvl(price), CVLPct::Infinite);
+        assert_eq!(balances.current_cvl(price), CVLPct::Infinite);
     }
 
     #[test]

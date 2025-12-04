@@ -1001,7 +1001,7 @@ where
             .get_credit_facility_balance(entity.account_ids)
             .await?;
         let price = self.price.usd_cents_per_btc().await;
-        Ok(balances.outstanding_amount_cvl(price))
+        Ok(balances.current_cvl(price))
     }
 
     pub async fn outstanding(&self, entity: &CreditFacility) -> Result<UsdCents, CoreCreditError> {
