@@ -240,15 +240,17 @@ impl Withdrawal {
             status,
         });
 
-        if !approved {
-            let ledger_tx_id = CalaTransactionId::new();
-            self.events.push(WithdrawalEvent::Denied {
-                ledger_tx_id,
-                status,
-            });
-            return Idempotent::Executed(Some(ledger_tx_id));
+        if approved {
+            return Idempotent::Executed(None);
         }
-        Idempotent::Executed(None)
+
+        let ledger_tx_id = CalaTransactionId::new();
+        self.events.push(WithdrawalEvent::Denied {
+            ledger_tx_id,
+            status,
+        });
+
+        Idempotent::Executed(Some(ledger_tx_id))
     }
 }
 
