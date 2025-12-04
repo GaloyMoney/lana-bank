@@ -1,3 +1,7 @@
+{{ config(
+    unique_key = ['id', 'version'],
+) }}
+
 with raw_stg_core_collateral_events_rollup as (select * from {{ source("lana", "core_collateral_events_rollup")}} )
 select
     id as collateral_id,

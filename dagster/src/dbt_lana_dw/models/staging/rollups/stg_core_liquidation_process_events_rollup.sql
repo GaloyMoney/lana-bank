@@ -1,3 +1,7 @@
+{{ config(
+    unique_key = ['id', 'version'],
+) }}
+
 with raw_stg_core_liquidation_process_events_rollup as (select * from {{ source("lana", "core_liquidation_process_events_rollup")}} )
 select
     id as liquidation_process_id,
