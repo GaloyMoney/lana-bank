@@ -274,7 +274,7 @@ impl CreditFacility {
             CreditFacilityEvent::PartialLiquidationInitiated { .. },
             => CreditFacilityEvent::PartialLiquidationConcluded { .. }
         );
-        
+
         if balances.total_outstanding().is_zero() {
             return Idempotent::Ignored;
         }
