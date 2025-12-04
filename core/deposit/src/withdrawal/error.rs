@@ -12,6 +12,8 @@ pub enum WithdrawalError {
     EsEntityError(es_entity::EsEntityError),
     #[error("WithdrawalError - CursorDestructureError: {0}")]
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
+    #[error("WithdrawalError - DepositLedgerError: {0}")]
+    DepositLedgerError(#[from] crate::ledger::error::DepositLedgerError),
     #[error("WithdrawalError - AlreadyConfirmed: {0}")]
     AlreadyConfirmed(WithdrawalId),
     #[error("WithdrawalError - AlreadyCancelled: {0}")]
@@ -32,6 +34,7 @@ impl ErrorSeverity for WithdrawalError {
             Self::Sqlx(_) => Level::ERROR,
             Self::EsEntityError(_) => Level::ERROR,
             Self::CursorDestructureError(_) => Level::ERROR,
+            Self::DepositLedgerError(_) => Level::ERROR,
             Self::AlreadyConfirmed(_) => Level::WARN,
             Self::AlreadyCancelled(_) => Level::WARN,
             Self::NotApproved(_) => Level::WARN,

@@ -43,6 +43,10 @@ pub enum WithdrawalEvent {
         approved: bool,
         status: WithdrawalStatus,
     },
+    Denied {
+        ledger_tx_id: CalaTransactionId,
+        status: WithdrawalStatus,
+    },
     Confirmed {
         ledger_tx_id: CalaTransactionId,
         status: WithdrawalStatus,
@@ -195,6 +199,7 @@ impl Withdrawal {
                 WithdrawalEvent::Confirmed { status, .. } => *status,
                 WithdrawalEvent::Cancelled { status, .. } => *status,
                 WithdrawalEvent::Reverted { status, .. } => *status,
+                WithdrawalEvent::Denied { status, .. } => *status,
                 WithdrawalEvent::ApprovalProcessConcluded { status, .. } => *status,
                 WithdrawalEvent::Initialized { status, .. } => *status,
             })
@@ -207,6 +212,7 @@ impl Withdrawal {
             .iter_all()
             .filter_map(|e| match e {
                 WithdrawalEvent::Initialized { ledger_tx_id, .. } => Some(*ledger_tx_id),
+                WithdrawalEvent::Denied { ledger_tx_id, .. } => Some(*ledger_tx_id),
                 WithdrawalEvent::Confirmed { ledger_tx_id, .. } => Some(*ledger_tx_id),
                 WithdrawalEvent::Cancelled { ledger_tx_id, .. } => Some(*ledger_tx_id),
                 WithdrawalEvent::Reverted { ledger_tx_id, .. } => Some(*ledger_tx_id),
@@ -215,7 +221,10 @@ impl Withdrawal {
             .collect()
     }
 
-    pub fn approval_process_concluded(&mut self, approved: bool) -> Idempotent<()> {
+    pub fn approval_process_concluded(
+        &mut self,
+        approved: bool,
+    ) -> Idempotent<Option<CalaTransactionId>> {
         idempotency_guard!(
             self.events.iter_all(),
             WithdrawalEvent::ApprovalProcessConcluded { .. }
@@ -230,7 +239,18 @@ impl Withdrawal {
             approved,
             status,
         });
-        Idempotent::Executed(())
+
+        if approved {
+            return Idempotent::Executed(None);
+        }
+
+        let ledger_tx_id = CalaTransactionId::new();
+        self.events.push(WithdrawalEvent::Denied {
+            ledger_tx_id,
+            status,
+        });
+
+        Idempotent::Executed(Some(ledger_tx_id))
     }
 }
 

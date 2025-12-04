@@ -102,6 +102,27 @@
           "$ref": "#/$defs/WithdrawalStatus"
         },
         "type": {
+          "const": "denied",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "ledger_tx_id",
+        "status"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "ledger_tx_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/WithdrawalStatus"
+        },
+        "type": {
           "const": "confirmed",
           "type": "string"
         }

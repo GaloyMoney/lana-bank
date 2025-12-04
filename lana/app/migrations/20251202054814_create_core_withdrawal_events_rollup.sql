@@ -42,7 +42,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'approval_process_concluded', 'confirmed', 'cancelled', 'reverted') THEN
+  IF event_type NOT IN ('initialized', 'approval_process_concluded', 'denied', 'confirmed', 'cancelled', 'reverted') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -99,6 +99,8 @@ BEGIN
       new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
       new_row.approved := (NEW.event ->> 'approved')::BOOLEAN;
       new_row.is_approval_process_concluded := true;
+      new_row.status := (NEW.event ->> 'status');
+    WHEN 'denied' THEN
       new_row.status := (NEW.event ->> 'status');
     WHEN 'confirmed' THEN
       new_row.is_confirmed := true;

@@ -133,7 +133,8 @@ where
         let withdrawals = WithdrawalRepo::new(pool, &publisher);
         let ledger = DepositLedger::init(cala, journal_id).await?;
 
-        let approve_withdrawal = ApproveWithdrawal::new(&withdrawals, authz.audit(), governance);
+        let approve_withdrawal =
+            ApproveWithdrawal::new(&withdrawals, authz.audit(), governance, &ledger);
 
         jobs.add_initializer_and_spawn_unique(
             WithdrawApprovalInit::new(outbox, &approve_withdrawal),
