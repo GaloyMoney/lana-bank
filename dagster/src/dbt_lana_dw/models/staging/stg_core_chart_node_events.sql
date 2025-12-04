@@ -1,4 +1,15 @@
-with raw_stg_core_chart_node_events as (select * from {{ source("lana", "core_chart_node_events")}} )
+with raw_stg_core_chart_node_events as (
+    select
+        id,
+        sequence,
+        event_type,
+        event,
+        context,
+        recorded_at,
+        _dlt_load_id,
+        _dlt_id
+    from {{ source("lana", "core_chart_node_events")}}
+)
 select
     id,
     sequence,
