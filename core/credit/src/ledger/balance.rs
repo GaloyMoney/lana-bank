@@ -142,17 +142,11 @@ impl CreditFacilityBalanceSummary {
     }
 
     pub fn current_collateralization_ratio(&self) -> CollateralizationRatio {
-        let amount = if self.disbursed > UsdCents::ZERO {
-            self.total_outstanding()
-        } else {
-            self.facility()
-        };
-
-        if amount.is_zero() {
+        if self.total_outstanding().is_zero() {
             return CollateralizationRatio::Infinite;
         }
 
-        let amount = Decimal::from(amount.into_inner());
+        let amount = Decimal::from(self.total_outstanding().into_inner());
         let collateral = Decimal::from(self.collateral().into_inner());
 
         CollateralizationRatio::Finite(collateral / amount)
@@ -314,11 +308,9 @@ mod test {
             interest_posted: UsdCents::from(1),
         };
 
-        let collateral = Decimal::from(balances.collateral().into_inner());
-        let expected = collateral / Decimal::from(balances.facility().into_inner());
         assert_eq!(
             balances.current_collateralization_ratio(),
-            CollateralizationRatio::Finite(expected)
+            CollateralizationRatio::Infinite
         );
     }
 
