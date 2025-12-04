@@ -39,19 +39,16 @@ impl CVLPct {
         Self::Finite(Decimal::from(value))
     }
 
-    pub fn from_loan_amounts(
-        collateral_value: UsdCents,
-        total_outstanding_amount: UsdCents,
-    ) -> Self {
+    pub fn from_loan_amounts(collateral_value: UsdCents, amount: UsdCents) -> Self {
         if collateral_value.is_zero() {
             return Self::ZERO;
         }
 
-        if total_outstanding_amount.is_zero() {
+        if amount.is_zero() {
             return Self::Infinite;
         }
 
-        let ratio = (collateral_value.to_usd() / total_outstanding_amount.to_usd())
+        let ratio = (collateral_value.to_usd() / amount.to_usd())
             .round_dp_with_strategy(2, RoundingStrategy::ToZero)
             * dec!(100);
 

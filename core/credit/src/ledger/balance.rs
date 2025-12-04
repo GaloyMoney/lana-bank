@@ -121,14 +121,6 @@ impl CreditFacilityBalanceSummary {
             && self.total_defaulted().is_zero())
     }
 
-    pub fn outstanding_amount_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
-        if self.total_outstanding().is_zero() {
-            CVLPct::Infinite
-        } else {
-            CVLData::new(self.collateral, self.total_outstanding()).cvl(price)
-        }
-    }
-
     pub fn with_collateral(self, collateral: Satoshis) -> Self {
         Self { collateral, ..self }
     }
@@ -150,6 +142,10 @@ impl CreditFacilityBalanceSummary {
         let collateral = Decimal::from(self.collateral().into_inner());
 
         CollateralizationRatio::Finite(collateral / amount)
+    }
+
+    pub fn outstanding_amount_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
+        CVLData::new(self.collateral(), self.total_outstanding()).cvl(price)
     }
 }
 
