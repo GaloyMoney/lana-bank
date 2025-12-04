@@ -18,3 +18,4 @@ workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 thiserror = { workspace = true }
 tracing-subscriber = { workspace = true }
 tokio = { workspace = true, features = ["rt", "time", "macros"] }
+futures = { workspace = true }

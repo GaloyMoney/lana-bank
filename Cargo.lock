@@ -6995,6 +6995,7 @@ dependencies = [
 name = "tracing-macros"
 version = "0.1.0"
 dependencies = [
+ "futures",
  "quote",
  "syn 2.0.111",
  "thiserror 2.0.17",
