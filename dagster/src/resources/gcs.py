@@ -1,39 +1,11 @@
 import json
-from pathlib import Path
-from typing import Any
 
-from dagster_dbt import DbtCliResource
 from google.cloud import storage
 from google.oauth2 import service_account
 
 import dagster as dg
 
-RESOURCE_KEY_LANA_CORE_PG = "lana_core_pg"
-RESOURCE_KEY_DW_BQ = "dw_bq"
 RESOURCE_KEY_FILE_REPORTS_BUCKET = "file_reports_bucket"
-RESOURCE_KEY_LANA_DBT = "dbt"
-
-
-class PostgresResource(dg.ConfigurableResource):
-    """Dagster resource for PostgreSQL connection configuration."""
-
-    def get_connection_string(self) -> str:
-        return dg.EnvVar("LANA_PG_CON").get_value()
-
-
-class BigQueryResource(dg.ConfigurableResource):
-    """Dagster resource for BigQuery configuration."""
-
-    def get_credentials_json(self) -> str:
-        """Get BigQuery credentials JSON from environment variable."""
-        return dg.EnvVar("DBT_BIGQUERY_CREDENTIALS_JSON").get_value()
-
-    def get_credentials_dict(self) -> dict:
-        """Get BigQuery credentials as a dictionary."""
-        return json.loads(self.get_credentials_json())
-
-    def get_target_dataset(self) -> str:
-        return dg.EnvVar("TARGET_BIGQUERY_DATASET").get_value()
 
 
 class GCSResource(dg.ConfigurableResource):
@@ -97,17 +69,3 @@ class GCSResource(dg.ConfigurableResource):
         blob = bucket.blob(path)
         blob.upload_from_string(content, content_type=content_type)
         return f"gs://{bucket_name}/{path}"
-
-
-dbt_resource = DbtCliResource(project_dir=Path("/lana-dw/src/dbt_lana_dw/"))
-dbt_parse_invocation = dbt_resource.cli(["parse"], manifest={}).wait()
-dbt_manifest_path = dbt_parse_invocation.target_path.joinpath("manifest.json")
-
-
-def get_project_resources():
-    resources = {}
-    resources[RESOURCE_KEY_LANA_CORE_PG] = PostgresResource()
-    resources[RESOURCE_KEY_DW_BQ] = BigQueryResource()
-    resources[RESOURCE_KEY_FILE_REPORTS_BUCKET] = GCSResource()
-    resources[RESOURCE_KEY_LANA_DBT] = dbt_resource
-    return resources

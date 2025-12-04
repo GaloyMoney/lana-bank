@@ -96,8 +96,10 @@ def build_lana_to_dw_el_protoasset(table_name) -> Protoasset:
     lana_to_dw_protoasset = Protoasset(
         key=[LANA_SYSTEM_NAME, table_name],
         deps=[
-            get_el_source_asset_name(
-                system_name=LANA_SYSTEM_NAME, table_name=table_name
+            dg.AssetKey(
+                get_el_source_asset_name(
+                    system_name=LANA_SYSTEM_NAME, table_name=table_name
+                )
             )
         ],
         tags={"asset_type": EL_TARGET_ASSET_DESCRIPTION, "system": LANA_SYSTEM_NAME},
