@@ -1396,6 +1396,30 @@ export type FiscalYearInitPayload = {
   fiscalYear: FiscalYear;
 };
 
+export type FiscalYearModuleConfig = {
+  __typename?: 'FiscalYearModuleConfig';
+  costOfRevenueCode?: Maybe<Scalars['String']['output']>;
+  equityRetainedEarningsCode?: Maybe<Scalars['String']['output']>;
+  equityRetainedLossesCode?: Maybe<Scalars['String']['output']>;
+  expensesCode?: Maybe<Scalars['String']['output']>;
+  revenueCode?: Maybe<Scalars['String']['output']>;
+  yearEndMonth?: Maybe<Scalars['Int']['output']>;
+};
+
+export type FiscalYearModuleConfigureInput = {
+  costOfRevenueCode: Scalars['String']['input'];
+  equityRetainedEarningsCode: Scalars['String']['input'];
+  equityRetainedLossesCode: Scalars['String']['input'];
+  expensesCode: Scalars['String']['input'];
+  revenueCode: Scalars['String']['input'];
+  yearEndMonth: Scalars['Int']['input'];
+};
+
+export type FiscalYearModuleConfigurePayload = {
+  __typename?: 'FiscalYearModuleConfigurePayload';
+  fiscalYearConfig: FiscalYearModuleConfig;
+};
+
 export type FiscalYearOpenNextInput = {
   fiscalYearId: Scalars['UUID']['input'];
 };
@@ -1677,6 +1701,7 @@ export type Mutation = {
   fiscalYearClose: FiscalYearClosePayload;
   fiscalYearCloseMonth: FiscalYearCloseMonthPayload;
   fiscalYearInit: FiscalYearInitPayload;
+  fiscalYearModuleConfigure: FiscalYearModuleConfigurePayload;
   fiscalYearOpenNext: FiscalYearOpenNextPayload;
   ledgerAccountCsvCreate: LedgerAccountCsvCreatePayload;
   loanAgreementDownloadLinkGenerate: LoanAgreementDownloadLinksGeneratePayload;
@@ -1885,6 +1910,11 @@ export type MutationFiscalYearCloseMonthArgs = {
 
 export type MutationFiscalYearInitArgs = {
   input: FiscalYearInitInput;
+};
+
+
+export type MutationFiscalYearModuleConfigureArgs = {
+  input: FiscalYearModuleConfigureInput;
 };
 
 
@@ -2241,6 +2271,7 @@ export type Query = {
   disbursalByPublicId?: Maybe<CreditFacilityDisbursal>;
   disbursals: CreditFacilityDisbursalConnection;
   fiscalYear?: Maybe<FiscalYear>;
+  fiscalYearModuleConfig: FiscalYearModuleConfig;
   fiscalYears: FiscalYearConnection;
   journalEntries: JournalEntryConnection;
   ledgerAccount?: Maybe<LedgerAccount>;

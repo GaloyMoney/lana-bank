@@ -14,9 +14,9 @@ use crate::primitives::*;
 use super::{
     access::*, accounting::*, approval_process::*, audit::*, balance_sheet_config::*, committee::*,
     contract_creation::*, credit_config::*, credit_facility::*, custody::*, customer::*,
-    dashboard::*, deposit::*, deposit_config::*, document::*, loader::*, me::*, policy::*,
-    price::*, profit_and_loss_config::*, public_id::*, reports::*, sumsub::*, terms_template::*,
-    withdrawal::*,
+    dashboard::*, deposit::*, deposit_config::*, document::*, fiscal_year_config::*, loader::*,
+    me::*, policy::*, price::*, profit_and_loss_config::*, public_id::*, reports::*, sumsub::*,
+    terms_template::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -819,6 +819,15 @@ impl Query {
                 .accounting()
                 .list_fiscal_years_for_chart(sub, CHART_REF.0, query,)
         )
+    }
+
+    async fn fiscal_year_module_config(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<FiscalYearModuleConfig> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let config = app.accounting().fiscal_year().get_config(sub).await?;
+        Ok(FiscalYearModuleConfig::from(config))
     }
 
     async fn balance_sheet(
@@ -2186,6 +2195,38 @@ impl Mutation {
                 .fiscal_year()
                 .close(sub, input.fiscal_year_id)
         )
+    }
+
+    async fn fiscal_year_module_configure(
+        &self,
+        ctx: &Context<'_>,
+        input: FiscalYearModuleConfigureInput,
+    ) -> async_graphql::Result<FiscalYearModuleConfigurePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let FiscalYearModuleConfigureInput {
+            year_end_month,
+            revenue_code,
+            cost_of_revenue_code,
+            expenses_code,
+            equity_retained_earnings_code,
+            equity_retained_losses_code,
+        } = input;
+        let config_values = lana_app::fiscal_year::FiscalYearConfig {
+            year_end_month,
+            revenue_code: revenue_code.parse()?,
+            cost_of_revenue_code: cost_of_revenue_code.parse()?,
+            expenses_code: expenses_code.parse()?,
+            equity_retained_earnings_code: equity_retained_earnings_code.parse()?,
+            equity_retained_losses_code: equity_retained_losses_code.parse()?,
+        };
+        let config = app
+            .accounting()
+            .fiscal_year()
+            .configure(sub, config_values)
+            .await?;
+        Ok(FiscalYearModuleConfigurePayload::from(
+            FiscalYearModuleConfig::from(config),
+        ))
     }
 
     async fn chart_of_accounts_add_root_node(

@@ -267,7 +267,15 @@ where
     }
 
     async fn config(&self) -> Result<FiscalYearConfig, FiscalYearError> {
-        Ok(self.domain_configs.get::<FiscalYearConfig>().await?)
+        self.domain_configs
+            .get::<FiscalYearConfig>()
+            .await
+            .map_err(|e| match e {
+                DomainConfigError::Sqlx(sqlx::Error::RowNotFound) => {
+                    FiscalYearError::FiscalYearNotConfigured
+                }
+                err => err.into(),
+            })
     }
 
     #[instrument(name = "core_accounting.fiscal_year.configure", skip(self), err)]
@@ -275,7 +283,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         config: FiscalYearConfig,
-    ) -> Result<(), FiscalYearError> {
+    ) -> Result<FiscalYearConfig, FiscalYearError> {
         self.authz
             .enforce_permission(
                 sub,
@@ -284,45 +292,21 @@ where
             )
             .await?;
         let mut op = self.repo.begin_op().await?;
-        self.domain_configs
-            .create_in_op(&mut op, config)
-            .await
-            .map_err(|e| match e {
-                DomainConfigError::Sqlx(sqlx::Error::RowNotFound) => {
-                    FiscalYearError::FiscalYearNotConfigured
-                }
-                err => err.into(),
-            })?;
+        match self.config().await {
+            Ok(_) => {
+                self.domain_configs
+                    .update_in_op(&mut op, config.clone())
+                    .await?;
+            }
+            Err(FiscalYearError::FiscalYearNotConfigured) => {
+                self.domain_configs
+                    .create_in_op(&mut op, config.clone())
+                    .await?;
+            }
+            Err(e) => return Err(e),
+        }
         op.commit().await?;
-        Ok(())
-    }
-
-    #[instrument(name = "core_accounting.fiscal_year.update_config", skip(self), err)]
-    pub async fn update_config(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        config: FiscalYearConfig,
-    ) -> Result<(), FiscalYearError> {
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreAccountingObject::all_fiscal_years(),
-                CoreAccountingAction::FISCAL_YEAR_CONFIG_UPDATE,
-            )
-            .await?;
-
-        let mut op = self.repo.begin_op().await?;
-        self.domain_configs
-            .update_in_op(&mut op, config)
-            .await
-            .map_err(|e| match e {
-                DomainConfigError::Sqlx(sqlx::Error::RowNotFound) => {
-                    FiscalYearError::FiscalYearNotConfigured
-                }
-                err => err.into(),
-            })?;
-        op.commit().await?;
-        Ok(())
+        Ok(config)
     }
 
     #[instrument(name = "core_accounting.fiscal_year.get_config", skip(self), err)]
