@@ -9,7 +9,7 @@ from src.assets import (
     file_report_protoassets,
     inform_lana_protoasset,
     iris_dataset_size,
-    lana_dbt_assets,
+    lana_dbt_protoassets,
     lana_source_protoassets,
     lana_to_dw_el_protoassets,
 )
@@ -40,11 +40,6 @@ class DefinitionsBuilder:
         resources: Union[dg.ConfigurableResource, Tuple[dg.ConfigurableResource, ...]],
     ):
         self.resources.update(resources)
-
-    def add_asset(self, asset: dg.asset) -> dg.asset:
-        self.assets.append(asset)
-
-        return asset
 
     def add_asset_from_protoasset(self, protoasset: Protoasset) -> dg.asset:
         asset: dg.asset = lana_assetifier(protoasset=protoasset)
@@ -136,11 +131,14 @@ definition_builder.add_job_schedule(
 
 for lana_source_protoasset in lana_source_protoassets():
     definition_builder.add_asset_from_protoasset(lana_source_protoasset)
-for lana_to_dw_el_protoasset in lana_to_dw_el_protoassets():
+
+lana_el_protoassets = lana_to_dw_el_protoassets()
+
+for lana_to_dw_el_protoasset in lana_el_protoassets:
     definition_builder.add_asset_from_protoasset(lana_to_dw_el_protoasset)
 
-definition_builder.add_asset(lana_dbt_assets())
-
+for dbt_protoasset in lana_dbt_protoassets(el_protoassets=lana_el_protoassets):
+    definition_builder.add_asset_from_protoasset(dbt_protoasset)
 
 report_protoassets = file_report_protoassets()
 
