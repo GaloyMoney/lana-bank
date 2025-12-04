@@ -11,7 +11,6 @@ use core_accounting::{
     manual_transaction::error::ManualTransactionError,
 };
 use document_storage::DocumentStorage;
-use domain_config::DomainConfigs;
 use helpers::{action, object};
 use job::{JobSvcConfig, Jobs};
 use rust_decimal_macros::dec;
@@ -193,16 +192,7 @@ async fn prepare_test() -> anyhow::Result<(
     let storage = Storage::new(&StorageConfig::default());
     let document_storage = DocumentStorage::new(&pool, &storage);
     let jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
-    let domain_configs = DomainConfigs::new(&pool);
-    let accounting = CoreAccounting::new(
-        &pool,
-        &authz,
-        &cala,
-        journal_id,
-        document_storage,
-        &jobs,
-        &domain_configs,
-    );
+    let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, document_storage, &jobs);
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
     let chart = accounting
         .chart_of_accounts()

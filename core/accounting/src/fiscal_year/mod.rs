@@ -2,12 +2,13 @@ mod config;
 mod entity;
 pub mod error;
 mod repo;
+
 use chrono::NaiveDate;
 use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use domain_config::{DomainConfigError, DomainConfigs};
+use domain_config::DomainConfigs;
 use es_entity::{Idempotent, PaginatedQueryArgs};
 
 use crate::{
@@ -279,21 +280,31 @@ where
             .enforce_permission(
                 sub,
                 CoreAccountingObject::all_fiscal_years(),
-                CoreAccountingAction::FISCAL_YEAR_CONFIG_WRITE,
+                CoreAccountingAction::FISCAL_YEAR_CONFIG_CREATE,
             )
             .await?;
         let mut op = self.repo.begin_op().await?;
-        match self.config().await {
-            Ok(_) => {
-                self.domain_configs.update_in_op(&mut op, config).await?;
-            }
-            Err(FiscalYearError::DomainConfigError(DomainConfigError::Sqlx(
-                sqlx::Error::RowNotFound,
-            ))) => {
-                self.domain_configs.create_in_op(&mut op, config).await?;
-            }
-            Err(err) => return Err(err),
-        }
+        self.domain_configs.create_in_op(&mut op, config).await?;
+        op.commit().await?;
+        Ok(())
+    }
+
+    #[instrument(name = "core_accounting.fiscal_year.update_config", skip(self), err)]
+    pub async fn update_config(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        config: FiscalYearConfig,
+    ) -> Result<(), FiscalYearError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_fiscal_years(),
+                CoreAccountingAction::FISCAL_YEAR_CONFIG_UPDATE,
+            )
+            .await?;
+
+        let mut op = self.repo.begin_op().await?;
+        self.domain_configs.update_in_op(&mut op, config).await?;
         op.commit().await?;
         Ok(())
     }

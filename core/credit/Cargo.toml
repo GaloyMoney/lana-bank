@@ -18,7 +18,6 @@ core-customer = { workspace = true }
 core-custody = { workspace = true }
 governance = { workspace = true }
 core-accounting = { workspace = true }
-domain-config = { workspace = true }
 
 audit = { workspace = true }
 authz = { workspace = true }

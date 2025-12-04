@@ -9,7 +9,6 @@ use cloud_storage::{Storage, config::StorageConfig};
 use core_accounting::CoreAccounting;
 use core_credit::*;
 use document_storage::DocumentStorage;
-use domain_config::DomainConfigs;
 use helpers::{action, event, object};
 use public_id::PublicIds;
 
@@ -61,7 +60,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         &public_ids,
     )
     .await?;
-    let domain_configs = DomainConfigs::new(&pool);
+
     let accounting_document_storage = DocumentStorage::new(&pool, &storage);
     let accounting = CoreAccounting::new(
         &pool,
@@ -70,7 +69,6 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         journal_id,
         accounting_document_storage,
         &jobs,
-        &domain_configs,
     );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
     let chart_id = accounting

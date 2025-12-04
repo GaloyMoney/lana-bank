@@ -751,8 +751,10 @@ impl CoreAccountingAction {
     pub const FISCAL_YEAR_CLOSE: Self = CoreAccountingAction::FiscalYear(FiscalYearAction::Close);
     pub const FISCAL_YEAR_CONFIG_READ: Self =
         CoreAccountingAction::FiscalYear(FiscalYearAction::ConfigRead);
-    pub const FISCAL_YEAR_CONFIG_WRITE: Self =
-        CoreAccountingAction::FiscalYear(FiscalYearAction::ConfigWrite);
+    pub const FISCAL_YEAR_CONFIG_CREATE: Self =
+        CoreAccountingAction::FiscalYear(FiscalYearAction::ConfigCreate);
+    pub const FISCAL_YEAR_CONFIG_UPDATE: Self =
+        CoreAccountingAction::FiscalYear(FiscalYearAction::ConfigUpdate);
 }
 
 impl Display for CoreAccountingAction {
@@ -1110,7 +1112,8 @@ pub enum FiscalYearAction {
     CloseMonth,
     Close,
     ConfigRead,
-    ConfigWrite,
+    ConfigCreate,
+    ConfigUpdate,
 }
 
 impl ActionPermission for FiscalYearAction {
@@ -1122,7 +1125,8 @@ impl ActionPermission for FiscalYearAction {
             Self::CloseMonth => PERMISSION_SET_ACCOUNTING_WRITER,
             Self::Close => PERMISSION_SET_ACCOUNTING_WRITER,
             Self::ConfigRead => PERMISSION_SET_ACCOUNTING_VIEWER,
-            Self::ConfigWrite => PERMISSION_SET_ACCOUNTING_WRITER,
+            Self::ConfigCreate => PERMISSION_SET_ACCOUNTING_WRITER,
+            Self::ConfigUpdate => PERMISSION_SET_ACCOUNTING_WRITER,
         }
     }
 }
