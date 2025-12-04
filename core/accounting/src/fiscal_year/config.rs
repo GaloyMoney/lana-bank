@@ -3,8 +3,6 @@ use serde::{Deserialize, Serialize};
 use crate::primitives::AccountCode;
 use domain_config::{DomainConfigKey, DomainConfigValue};
 
-pub const FISCAL_YEAR_CONFIG_KEY: &str = "fiscal-year-config";
-
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FiscalYearConfig {
     pub year_end_month: u32,
@@ -20,5 +18,5 @@ pub struct FiscalYearConfig {
 }
 
 impl DomainConfigValue for FiscalYearConfig {
-    const KEY: DomainConfigKey = DomainConfigKey::new(FISCAL_YEAR_CONFIG_KEY);
+    const KEY: DomainConfigKey = DomainConfigKey::new("fiscal-year-config");
 }

@@ -7,7 +7,7 @@ use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use domain_config::DomainConfigs;
+use domain_config::{DomainConfigError, DomainConfigs};
 use es_entity::{Idempotent, PaginatedQueryArgs};
 
 use crate::{
@@ -265,26 +265,51 @@ where
         Ok(result.entities.into_iter().next())
     }
 
-    fn _is_configured(&self) -> bool {
-        todo!()
-    }
-
-    fn _config(&self) -> Result<FiscalYearConfig, FiscalYearError> {
-        todo!()
+    async fn config(&self) -> Result<FiscalYearConfig, FiscalYearError> {
+        Ok(self.domain_configs.get::<FiscalYearConfig>().await?)
     }
 
     #[instrument(name = "core_accounting.fiscal_year.configure", skip(self), err)]
-    pub fn configure(&self, config: FiscalYearConfig) -> Result<(), FiscalYearError> {
-        todo!()
+    pub async fn configure(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        config: FiscalYearConfig,
+    ) -> Result<(), FiscalYearError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_fiscal_years(),
+                CoreAccountingAction::FISCAL_YEAR_CONFIG_WRITE,
+            )
+            .await?;
+        let mut op = self.repo.begin_op().await?;
+        match self.config().await {
+            Ok(_) => {
+                self.domain_configs.update_in_op(&mut op, config).await?;
+            }
+            Err(FiscalYearError::DomainConfigError(DomainConfigError::Sqlx(
+                sqlx::Error::RowNotFound,
+            ))) => {
+                self.domain_configs.create_in_op(&mut op, config).await?;
+            }
+            Err(err) => return Err(err),
+        }
+        op.commit().await?;
+        Ok(())
     }
 
     #[instrument(name = "core_accounting.fiscal_year.get_config", skip(self), err)]
-    pub fn get_config(&self) -> Result<FiscalYearConfig, FiscalYearError> {
-        todo!()
-    }
-
-    #[instrument(name = "core_accounting.fiscal_year.update_config", skip(self), err)]
-    pub fn update_config(&self, config: FiscalYearConfig) -> Result<FiscalYearConfig, FiscalYearError> {
-        todo!()
+    pub async fn get_config(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+    ) -> Result<FiscalYearConfig, FiscalYearError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_fiscal_years(),
+                CoreAccountingAction::FISCAL_YEAR_CONFIG_READ,
+            )
+            .await?;
+        self.config().await
     }
 }
