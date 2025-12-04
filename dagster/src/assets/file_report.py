@@ -243,6 +243,8 @@ def _extract_reports_from_asset(
 
 def inform_lana_of_new_reports(context: dg.AssetExecutionContext) -> None:
     """Collect all generated reports and notify Lana system."""
+    from src.otel import PARENT_JOB_TRACEPARENT_TAG
+
     all_reports: List[Report] = []
     reports = _discover_reports()
 
@@ -257,6 +259,16 @@ def inform_lana_of_new_reports(context: dg.AssetExecutionContext) -> None:
             f"norm={report['norm']}, "
             f"files={len(report['files'])} ({', '.join(file_types)})"
         )
+
+    # Get the parent traceparent that should be used for the HTTP callback
+    run = context.instance.get_run_by_id(context.run_id)
+    tags = dict(getattr(run, "tags", {}) or {})
+    parent_traceparent = tags.get(PARENT_JOB_TRACEPARENT_TAG)
+
+    if parent_traceparent:
+        context.log.info(f"Parent trace ID for HTTP callback: {parent_traceparent}")
+    else:
+        context.log.warning("No parent trace ID found in run tags")
 
     context.log.info("TODO: Notification would be sent to Lana system here.")
 
