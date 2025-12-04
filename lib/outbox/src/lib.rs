@@ -135,6 +135,7 @@ where
         ))
     }
 
+    #[record_error_severity]
     #[tracing::instrument(name = "outbox.listen_persisted", skip(self), fields(start_after = ?start_after))]
     pub async fn listen_persisted(
         &self,
@@ -149,6 +150,7 @@ where
         })))
     }
 
+    #[record_error_severity]
     #[tracing::instrument(name = "outbox.listen_ephemeral", skip(self))]
     pub async fn listen_ephemeral(
         &self,
