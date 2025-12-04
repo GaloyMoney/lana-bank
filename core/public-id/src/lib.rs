@@ -17,7 +17,7 @@ pub use repo::PublicIdRepo;
 
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
-    pub use crate::entity::PublicIdEvent;
+    pub use crate::entity::PublicIdEntityEvent;
 }
 
 pub struct PublicIds {

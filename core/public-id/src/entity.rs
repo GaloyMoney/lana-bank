@@ -11,7 +11,7 @@ use crate::primitives::*;
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "PublicId")]
-pub enum PublicIdEvent {
+pub enum PublicIdEntityEvent {
     Initialized {
         id: PublicId,
         target_id: PublicIdTargetId,
@@ -20,13 +20,12 @@ pub enum PublicIdEvent {
 }
 
 #[derive(EsEntity, Builder)]
-#[es_entity(event = PublicIdEvent)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct PublicIdEntity {
     pub id: PublicId,
     pub target_id: PublicIdTargetId,
     pub target_type: PublicIdTargetType,
-    events: EntityEvents<PublicIdEvent>,
+    events: EntityEvents<PublicIdEntityEvent>,
 }
 
 impl core::fmt::Display for PublicIdEntity {
@@ -35,13 +34,13 @@ impl core::fmt::Display for PublicIdEntity {
     }
 }
 
-impl TryFromEvents<PublicIdEvent> for PublicIdEntity {
-    fn try_from_events(events: EntityEvents<PublicIdEvent>) -> Result<Self, EsEntityError> {
+impl TryFromEvents<PublicIdEntityEvent> for PublicIdEntity {
+    fn try_from_events(events: EntityEvents<PublicIdEntityEvent>) -> Result<Self, EsEntityError> {
         let mut builder = PublicIdEntityBuilder::default();
 
         for event in events.iter_all() {
             match event {
-                PublicIdEvent::Initialized {
+                PublicIdEntityEvent::Initialized {
                     id,
                     target_id,
                     target_type,
@@ -75,11 +74,11 @@ impl NewPublicIdEntity {
     }
 }
 
-impl IntoEvents<PublicIdEvent> for NewPublicIdEntity {
-    fn into_events(self) -> EntityEvents<PublicIdEvent> {
+impl IntoEvents<PublicIdEntityEvent> for NewPublicIdEntity {
+    fn into_events(self) -> EntityEvents<PublicIdEntityEvent> {
         EntityEvents::init(
             self.id.clone(),
-            [PublicIdEvent::Initialized {
+            [PublicIdEntityEvent::Initialized {
                 id: self.id,
                 target_id: self.target_id,
                 target_type: self.target_type,

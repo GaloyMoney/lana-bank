@@ -10,7 +10,6 @@ use super::{entity::*, error::*};
 #[derive(EsRepo)]
 #[es_repo(
     entity = "PublicIdEntity",
-    event = PublicIdEvent,
     id = "PublicId",
     err = "PublicIdError",
     columns(target_id(ty = "PublicIdTargetId"),),
