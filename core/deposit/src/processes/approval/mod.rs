@@ -12,6 +12,7 @@ use outbox::OutboxEventMarker;
 use crate::{
     CoreDepositAction, CoreDepositObject, WithdrawalAction,
     event::CoreDepositEvent,
+    ledger::DepositLedger,
     primitives::WithdrawalId,
     withdrawal::{Withdrawal, error::WithdrawalError, repo::WithdrawalRepo},
 };
@@ -28,6 +29,7 @@ where
     repo: WithdrawalRepo<E>,
     audit: Perms::Audit,
     governance: Governance<Perms, E>,
+    ledger: DepositLedger,
 }
 impl<Perms, E> Clone for ApproveWithdrawal<Perms, E>
 where
@@ -39,6 +41,7 @@ where
             repo: self.repo.clone(),
             audit: self.audit.clone(),
             governance: self.governance.clone(),
+            ledger: self.ledger.clone(),
         }
     }
 }
@@ -56,11 +59,13 @@ where
         repo: &WithdrawalRepo<E>,
         audit: &Perms::Audit,
         governance: &Governance<Perms, E>,
+        ledger: &DepositLedger,
     ) -> Self {
         Self {
             repo: repo.clone(),
             audit: audit.clone(),
             governance: governance.clone(),
+            ledger: ledger.clone(),
         }
     }
 
@@ -85,10 +90,25 @@ where
                 CoreDepositAction::Withdrawal(WithdrawalAction::ConcludeApprovalProcess),
             )
             .await?;
-        if withdraw.approval_process_concluded(approved).did_execute() {
-            self.repo.update_in_op(&mut op, &mut withdraw).await?;
-            op.commit().await?;
-        }
+        match withdraw.approval_process_concluded(approved) {
+            es_entity::Idempotent::Executed(Some(denied_tx_id)) => {
+                self.repo.update_in_op(&mut op, &mut withdraw).await?;
+                self.ledger
+                    .deny_withdrawal(
+                        op,
+                        withdraw.id,
+                        denied_tx_id,
+                        withdraw.amount,
+                        withdraw.deposit_account_id,
+                    )
+                    .await?;
+            }
+            es_entity::Idempotent::Executed(None) => {
+                self.repo.update_in_op(&mut op, &mut withdraw).await?;
+                op.commit().await?;
+            }
+            _ => (),
+        };
         Ok(withdraw)
     }
 }

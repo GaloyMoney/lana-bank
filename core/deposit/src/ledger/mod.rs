@@ -132,6 +132,7 @@ impl DepositLedger {
     ) -> Result<Self, DepositLedgerError> {
         templates::RecordDeposit::init(cala).await?;
         templates::InitiateWithdraw::init(cala).await?;
+        templates::DenyWithdraw::init(cala).await?;
         templates::CancelWithdraw::init(cala).await?;
         templates::ConfirmWithdraw::init(cala).await?;
         templates::RevertWithdraw::init(cala).await?;
@@ -563,6 +564,49 @@ impl DepositLedger {
 
         self.cala
             .post_transaction_in_op(&mut op, tx_id, templates::INITIATE_WITHDRAW_CODE, params)
+            .await?;
+
+        op.commit().await?;
+        Ok(())
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "deposit_ledger.deny_withdrawal",
+        skip_all,
+        fields(entity_id = tracing::field::Empty, credit_account_id = tracing::field::Empty)
+    )]
+    pub async fn deny_withdrawal(
+        &self,
+        op: es_entity::DbOp<'_>,
+        entity_id: WithdrawalId,
+        tx_id: impl Into<TransactionId>,
+        amount: UsdCents,
+        credit_account_id: impl Into<AccountId>,
+    ) -> Result<(), DepositLedgerError> {
+        let tx_id = tx_id.into();
+        tracing::Span::current().record("entity_id", tracing::field::debug(&entity_id));
+        tracing::Span::current().record("tx_id", tracing::field::debug(&tx_id));
+        let credit_account_id = credit_account_id.into();
+        tracing::Span::current().record(
+            "credit_account_id",
+            tracing::field::debug(&credit_account_id),
+        );
+        let mut op = self
+            .cala
+            .ledger_operation_from_db_op(op.with_db_time().await?);
+
+        let params = templates::DenyWithdrawParams {
+            entity_id: entity_id.into(),
+            journal_id: self.journal_id,
+            deposit_omnibus_account_id: self.deposit_omnibus_account_ids.account_id,
+            credit_account_id,
+            amount: amount.to_usd(),
+            currency: self.usd,
+        };
+
+        self.cala
+            .post_transaction_in_op(&mut op, tx_id, templates::DENY_WITHDRAW_CODE, params)
             .await?;
 
         op.commit().await?;
