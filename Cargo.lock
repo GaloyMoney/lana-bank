@@ -7068,6 +7068,7 @@ dependencies = [
  "opentelemetry_sdk",
  "reqwest",
  "serde",
+ "sqlx",
  "thiserror 2.0.17",
  "tracing",
  "tracing-opentelemetry",
@@ -7889,7 +7890,6 @@ name = "workspace-hack"
 version = "0.1.0"
 dependencies = [
  "ahash 0.8.12",
- "arrayvec",
  "async-graphql",
  "axum",
  "base16ct",
@@ -7916,15 +7916,12 @@ dependencies = [
  "ff",
  "form_urlencoded",
  "futures-channel",
- "futures-io",
  "futures-sink",
  "futures-task",
  "futures-util",
  "generic-array",
- "getrandom 0.2.16",
  "group",
  "hashbrown 0.14.5",
- "hmac",
  "hyper",
  "hyper-util",
  "idna",
@@ -7941,7 +7938,6 @@ dependencies = [
  "pkcs8",
  "prost 0.13.5",
  "rand 0.9.2",
- "rand_core 0.6.4",
  "regex-automata",
  "regex-syntax",
  "reqwest",
@@ -7967,10 +7963,8 @@ dependencies = [
  "tokio-util",
  "tonic 0.14.2",
  "tower",
- "tracing",
  "tracing-core",
  "uuid",
- "zeroize",
 ]
 
 [[package]]
