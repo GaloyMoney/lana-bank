@@ -279,9 +279,7 @@ impl TermValues {
         amount: UsdCents,
         price: PriceOfOneBTC,
     ) -> bool {
-        let cvl = balance
-            .with_added_disbursal(amount)
-            .outstanding_amount_cvl(price);
+        let cvl = balance.with_added_disbursal(amount).current_cvl(price);
         cvl >= self.margin_call_cvl
     }
 
@@ -290,7 +288,7 @@ impl TermValues {
         balance: PendingCreditFacilityBalanceSummary,
         price: PriceOfOneBTC,
     ) -> bool {
-        let total = balance.facility_amount_cvl(price);
+        let total = balance.current_cvl(price);
         total >= self.margin_call_cvl
     }
 
