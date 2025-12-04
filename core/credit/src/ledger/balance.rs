@@ -134,14 +134,7 @@ impl CreditFacilityBalanceSummary {
     }
 
     pub fn current_collateralization_ratio(&self) -> CollateralizationRatio {
-        if self.total_outstanding().is_zero() {
-            return CollateralizationRatio::Infinite;
-        }
-
-        let amount = Decimal::from(self.total_outstanding().into_inner());
-        let collateral = Decimal::from(self.collateral().into_inner());
-
-        CollateralizationRatio::Finite(collateral / amount)
+        CVLData::new(self.collateral(), self.total_outstanding()).ratio()
     }
 
     pub fn current_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
@@ -169,14 +162,7 @@ impl PendingCreditFacilityBalanceSummary {
     }
 
     pub fn current_collateralization_ratio(&self) -> CollateralizationRatio {
-        if self.facility.is_zero() {
-            return CollateralizationRatio::Infinite;
-        }
-
-        let amount = Decimal::from(self.facility.into_inner());
-        let collateral = Decimal::from(self.collateral.into_inner());
-
-        CollateralizationRatio::Finite(collateral / amount)
+        CVLData::new(self.collateral, self.facility).ratio()
     }
 
     pub fn current_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
@@ -193,6 +179,17 @@ struct CVLData {
 impl CVLData {
     fn new(collateral: Satoshis, amount: UsdCents) -> Self {
         Self { collateral, amount }
+    }
+
+    fn ratio(&self) -> CollateralizationRatio {
+        if self.amount.is_zero() {
+            return CollateralizationRatio::Infinite;
+        }
+
+        let amount = Decimal::from(self.amount.into_inner());
+        let collateral = Decimal::from(self.collateral.into_inner());
+
+        CollateralizationRatio::Finite(collateral / amount)
     }
 
     fn cvl(&self, price: PriceOfOneBTC) -> CVLPct {
