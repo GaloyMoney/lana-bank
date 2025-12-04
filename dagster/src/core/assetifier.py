@@ -26,7 +26,11 @@ def lana_assetifier(protoasset: "Protoasset") -> Union[dg.asset, dg.AssetSpec]:
         return asset
 
     # Convert AssetKey to list if needed
-    asset_key = protoasset.key.path if isinstance(protoasset.key, dg.AssetKey) else protoasset.key
+    asset_key = (
+        protoasset.key.path
+        if isinstance(protoasset.key, dg.AssetKey)
+        else protoasset.key
+    )
 
     @dg.asset(
         key=asset_key,
