@@ -7,7 +7,6 @@ import dagster as dg
 from src.core import Protoasset
 from src.resources import DBT_MANIFEST_PATH, RESOURCE_KEY_LANA_DBT
 
-# Tag constants for dbt assets
 TAG_KEY_ASSET_TYPE = "asset_type"
 TAG_VALUE_DBT_MODEL = "dbt_model"
 
