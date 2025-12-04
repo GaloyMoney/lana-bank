@@ -19,7 +19,6 @@ use core_report::event_schema::{ReportEvent, ReportRunEvent};
 use document_storage::event_schema::DocumentEvent;
 use domain_config::event_schema::DomainConfigEvent;
 use governance::event_schema::{ApprovalProcessEvent, CommitteeEvent, PolicyEvent};
-use public_id::event_schema::PublicIdEntityEvent;
 use schemars::schema_for;
 
 pub use json_schema::{SchemaChangeInfo, detect_schema_changes, process_schemas_with_changes};
@@ -443,12 +442,6 @@ pub fn update_schemas(
             name: "ManualTransactionEvent",
             filename: "manual_transaction_event_schema.json",
             generate_schema: || serde_json::to_value(schema_for!(ManualTransactionEvent)).unwrap(),
-            ..Default::default()
-        },
-        SchemaInfo {
-            name: "PublicIdEntityEvent",
-            filename: "public_id_entity_event_schema.json",
-            generate_schema: || serde_json::to_value(schema_for!(PublicIdEntityEvent)).unwrap(),
             ..Default::default()
         },
         SchemaInfo {

@@ -2271,7 +2271,6 @@ dependencies = [
  "domain-config",
  "governance",
  "handlebars",
- "public-id",
  "schemars 1.1.0",
  "serde",
  "serde_json",

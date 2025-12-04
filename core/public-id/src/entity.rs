@@ -11,7 +11,7 @@ use crate::primitives::*;
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "PublicId")]
-pub enum PublicIdEntityEvent {
+pub enum PublicIdEvent {
     Initialized {
         id: PublicId,
         target_id: PublicIdTargetId,
@@ -20,12 +20,13 @@ pub enum PublicIdEntityEvent {
 }
 
 #[derive(EsEntity, Builder)]
+#[es_entity(event = PublicIdEvent)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct PublicIdEntity {
     pub id: PublicId,
     pub target_id: PublicIdTargetId,
     pub target_type: PublicIdTargetType,
-    events: EntityEvents<PublicIdEntityEvent>,
+    events: EntityEvents<PublicIdEvent>,
 }
 
 impl core::fmt::Display for PublicIdEntity {
@@ -34,13 +35,13 @@ impl core::fmt::Display for PublicIdEntity {
     }
 }
 
-impl TryFromEvents<PublicIdEntityEvent> for PublicIdEntity {
-    fn try_from_events(events: EntityEvents<PublicIdEntityEvent>) -> Result<Self, EsEntityError> {
+impl TryFromEvents<PublicIdEvent> for PublicIdEntity {
+    fn try_from_events(events: EntityEvents<PublicIdEvent>) -> Result<Self, EsEntityError> {
         let mut builder = PublicIdEntityBuilder::default();
 
         for event in events.iter_all() {
             match event {
-                PublicIdEntityEvent::Initialized {
+                PublicIdEvent::Initialized {
                     id,
                     target_id,
                     target_type,
@@ -74,11 +75,11 @@ impl NewPublicIdEntity {
     }
 }
 
-impl IntoEvents<PublicIdEntityEvent> for NewPublicIdEntity {
-    fn into_events(self) -> EntityEvents<PublicIdEntityEvent> {
+impl IntoEvents<PublicIdEvent> for NewPublicIdEntity {
+    fn into_events(self) -> EntityEvents<PublicIdEvent> {
         EntityEvents::init(
             self.id.clone(),
-            [PublicIdEntityEvent::Initialized {
+            [PublicIdEvent::Initialized {
                 id: self.id,
                 target_id: self.target_id,
                 target_type: self.target_type,
