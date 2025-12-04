@@ -4,17 +4,22 @@ mod migration;
 use colored::*;
 
 use core_access::event_schema::{PermissionSetEvent, RoleEvent, UserEvent};
-use core_accounting::event_schema::{ChartEvent, ChartNodeEvent, ManualTransactionEvent};
+use core_accounting::event_schema::{
+    ChartEvent, ChartNodeEvent, FiscalYearEvent, ManualTransactionEvent,
+};
 use core_credit::event_schema::{
     CollateralEvent, CreditFacilityEvent, CreditFacilityProposalEvent, DisbursalEvent,
     InterestAccrualCycleEvent, LiquidationProcessEvent, ObligationEvent, PaymentAllocationEvent,
     PaymentEvent, PendingCreditFacilityEvent, TermsTemplateEvent,
 };
-use core_custody::event_schema::CustodianEvent;
+use core_custody::event_schema::{CustodianEvent, WalletEvent};
 use core_customer::event_schema::CustomerEvent;
 use core_deposit::event_schema::{DepositAccountEvent, DepositEvent, WithdrawalEvent};
+use core_report::event_schema::{ReportEvent, ReportRunEvent};
 use document_storage::event_schema::DocumentEvent;
+use domain_config::event_schema::DomainConfigEvent;
 use governance::event_schema::{ApprovalProcessEvent, CommitteeEvent, PolicyEvent};
+use public_id::event_schema::PublicIdEntityEvent;
 use schemars::schema_for;
 
 pub use json_schema::{SchemaChangeInfo, detect_schema_changes, process_schemas_with_changes};
@@ -438,6 +443,42 @@ pub fn update_schemas(
             name: "ManualTransactionEvent",
             filename: "manual_transaction_event_schema.json",
             generate_schema: || serde_json::to_value(schema_for!(ManualTransactionEvent)).unwrap(),
+            ..Default::default()
+        },
+        SchemaInfo {
+            name: "PublicIdEntityEvent",
+            filename: "public_id_entity_event_schema.json",
+            generate_schema: || serde_json::to_value(schema_for!(PublicIdEntityEvent)).unwrap(),
+            ..Default::default()
+        },
+        SchemaInfo {
+            name: "DomainConfigEvent",
+            filename: "domain_config_event_schema.json",
+            generate_schema: || serde_json::to_value(schema_for!(DomainConfigEvent)).unwrap(),
+            ..Default::default()
+        },
+        SchemaInfo {
+            name: "WalletEvent",
+            filename: "wallet_event_schema.json",
+            generate_schema: || serde_json::to_value(schema_for!(WalletEvent)).unwrap(),
+            ..Default::default()
+        },
+        SchemaInfo {
+            name: "FiscalYearEvent",
+            filename: "fiscal_year_event_schema.json",
+            generate_schema: || serde_json::to_value(schema_for!(FiscalYearEvent)).unwrap(),
+            ..Default::default()
+        },
+        SchemaInfo {
+            name: "ReportEvent",
+            filename: "report_event_schema.json",
+            generate_schema: || serde_json::to_value(schema_for!(ReportEvent)).unwrap(),
+            ..Default::default()
+        },
+        SchemaInfo {
+            name: "ReportRunEvent",
+            filename: "report_run_event_schema.json",
+            generate_schema: || serde_json::to_value(schema_for!(ReportRunEvent)).unwrap(),
             ..Default::default()
         },
     ];

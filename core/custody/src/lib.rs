@@ -35,6 +35,7 @@ pub use primitives::*;
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
     pub use crate::custodian::CustodianEvent;
+    pub use crate::wallet::WalletEvent;
 }
 
 pub struct CoreCustody<Perms, E>

@@ -47,6 +47,7 @@ pub use trial_balance::{TrialBalanceRoot, TrialBalances};
 pub mod event_schema {
     pub use crate::chart_of_accounts::ChartEvent;
     pub use crate::chart_of_accounts::chart_node::ChartNodeEvent;
+    pub use crate::fiscal_year::FiscalYearEvent;
     pub use crate::manual_transaction::ManualTransactionEvent;
 }
 

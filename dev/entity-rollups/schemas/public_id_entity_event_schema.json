@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "target_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "target_type": {
+          "type": "string"
+        },
+        "type": {
+          "const": "initialized",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "target_id",
+        "target_type"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "PublicIdEntityEvent"
+}

@@ -38,6 +38,8 @@ pub use report_run::*;
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
     pub use crate::event::CoreReportEvent;
+    pub use crate::report::ReportEvent;
+    pub use crate::report_run::ReportRunEvent;
 }
 
 pub struct CoreReports<Perms, E>

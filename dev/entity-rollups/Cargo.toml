@@ -14,7 +14,10 @@ json-schema = [
   "document-storage/json-schema",
   "core-deposit/json-schema",
   "core-credit/json-schema",
-  "core-accounting/json-schema"
+  "core-accounting/json-schema",
+  "core-report/json-schema",
+  "public-id/json-schema",
+  "domain-config/json-schema"
 ]
 
 [[bin]]
@@ -29,6 +32,9 @@ core-customer = { path = "../../core/customer" }
 core-deposit = { path = "../../core/deposit" }
 core-credit = { path = "../../core/credit" }
 core-accounting = { path = "../../core/accounting" }
+core-report = { path = "../../core/report" }
+domain-config = { path = "../../core/domain-config" }
+public-id = { path = "../../core/public-id" }
 document-storage = { path = "../../core/document-storage" }
 
 clap = { workspace = true }

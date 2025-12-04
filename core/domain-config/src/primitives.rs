@@ -1,3 +1,5 @@
+#[cfg(feature = "json-schema")]
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use std::{borrow::Cow, str::FromStr};
 
@@ -10,6 +12,7 @@ pub trait DomainConfigValue: Serialize + DeserializeOwned + Clone {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, sqlx::Type)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[sqlx(transparent)]
 #[serde(transparent)]
 pub struct DomainConfigKey(Cow<'static, str>);
