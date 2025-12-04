@@ -25,11 +25,15 @@ def lana_assetifier(protoasset: "Protoasset") -> Union[dg.asset, dg.AssetSpec]:
         asset = dg.AssetSpec(key=protoasset.key, tags=protoasset.tags)
         return asset
 
+    # Convert AssetKey to list if needed
+    asset_key = protoasset.key.path if isinstance(protoasset.key, dg.AssetKey) else protoasset.key
+
     @dg.asset(
-        key=protoasset.key,
+        key=asset_key,
         tags=protoasset.tags,
         deps=protoasset.deps,
         required_resource_keys=protoasset.required_resource_keys,
+        automation_condition=protoasset.automation_condition,
     )
     def wrapped_callable(context: dg.AssetExecutionContext):
         asset_key_str: str = context.asset_key.to_user_string()

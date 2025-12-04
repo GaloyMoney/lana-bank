@@ -16,7 +16,7 @@ from src.assets import (
 from src.core import Protoasset, lana_assetifier
 from src.otel import init_telemetry
 from src.resources import get_project_resources
-from src.sensors import build_file_report_sensors
+from src.sensors import build_dbt_automation_sensor, build_file_report_sensors
 
 DAGSTER_AUTOMATIONS_ACTIVE = os.getenv(
     "DAGSTER_AUTOMATIONS_ACTIVE", ""
@@ -93,7 +93,7 @@ definition_builder.add_resources(get_project_resources())
 
 
 definition_builder.add_asset_from_protoasset(
-    Protoasset(key="iris_dataset_size", callable=iris_dataset_size)
+    Protoasset(key=dg.AssetKey("iris_dataset_size"), callable=iris_dataset_size)
 )
 
 bitfinex_protoassets = bitfinex_protoassets()
@@ -134,11 +134,23 @@ for lana_source_protoasset in lana_source_protoassets():
 
 lana_el_protoassets = lana_to_dw_el_protoassets()
 
+lana_to_dw_el_assets = []
 for lana_to_dw_el_protoasset in lana_el_protoassets:
-    definition_builder.add_asset_from_protoasset(lana_to_dw_el_protoasset)
+    lana_to_dw_el_asset = definition_builder.add_asset_from_protoasset(lana_to_dw_el_protoasset)
+    lana_to_dw_el_assets.append(lana_to_dw_el_asset)
 
-for dbt_protoasset in lana_dbt_protoassets(el_protoassets=lana_el_protoassets):
+lana_to_dw_el_job = definition_builder.add_job_from_assets(
+    job_name="lana_to_dw_el", assets=tuple(lana_to_dw_el_assets)
+)
+definition_builder.add_job_schedule(
+    job=lana_to_dw_el_job, cron_expression="0 0 * * *"
+)
+
+for dbt_protoasset in lana_dbt_protoassets(source_protoassets=lana_el_protoassets):
     definition_builder.add_asset_from_protoasset(dbt_protoasset)
+
+dbt_automation_sensor = build_dbt_automation_sensor(dagster_automations_active=DAGSTER_AUTOMATIONS_ACTIVE)
+definition_builder.add_sensor(dbt_automation_sensor)
 
 report_protoassets = file_report_protoassets()
 

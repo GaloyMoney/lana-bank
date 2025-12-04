@@ -7,6 +7,10 @@ import dagster as dg
 from src.core import Protoasset
 from src.resources import DBT_MANIFEST_PATH, RESOURCE_KEY_LANA_DBT
 
+# Tag constants for dbt assets
+TAG_KEY_ASSET_TYPE = "asset_type"
+TAG_VALUE_DBT_MODEL = "dbt_model"
+
 
 def _load_dbt_manifest() -> dict:
     """Load and parse the dbt manifest.json file."""
@@ -165,10 +169,8 @@ def lana_dbt_protoassets(source_protoassets: List[Protoasset]) -> List[Protoasse
     """
     source_asset_keys = set()
     for protoasset in source_protoassets:
-        if isinstance(protoasset.key, list):
-            source_asset_keys.add(tuple(protoasset.key))
-        else:
-            source_asset_keys.add((protoasset.key,))
+        # protoasset.key is an AssetKey, convert path (list) to tuple for set
+        source_asset_keys.add(tuple(protoasset.key.path))
 
     manifest = _load_dbt_manifest()
     dbt_protoassets = []
@@ -182,11 +184,12 @@ def lana_dbt_protoassets(source_protoassets: List[Protoasset]) -> List[Protoasse
         callable = _create_dbt_model_callable(manifest, unique_id)
 
         protoasset = Protoasset(
-            key=asset_key,
+            key=dg.AssetKey(asset_key),
             callable=callable,
-            tags={"asset_type": "dbt_model", "dbt_model": node["name"]},
+            tags={TAG_KEY_ASSET_TYPE: TAG_VALUE_DBT_MODEL, "dbt_model": node["name"]},
             deps=deps,
             required_resource_keys={RESOURCE_KEY_LANA_DBT},
+            automation_condition=dg.AutomationCondition.eager(),
         )
 
         dbt_protoassets.append(protoasset)

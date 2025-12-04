@@ -68,17 +68,17 @@ def bitfinex_protoassets() -> Dict[str, Protoasset]:
     """Return all Bitfinex protoassets keyed by asset key."""
     return {
         "bitfinex_ticker": Protoasset(
-            key="bitfinex_ticker",
+            key=dg.AssetKey("bitfinex_ticker"),
             callable=bitfinex_ticker,
             required_resource_keys={RESOURCE_KEY_DW_BQ},
         ),
         "bitfinex_trades": Protoasset(
-            key="bitfinex_trades",
+            key=dg.AssetKey("bitfinex_trades"),
             callable=bitfinex_trades,
             required_resource_keys={RESOURCE_KEY_DW_BQ},
         ),
         "bitfinex_order_book": Protoasset(
-            key="bitfinex_order_book",
+            key=dg.AssetKey("bitfinex_order_book"),
             callable=bitfinex_order_book,
             required_resource_keys={RESOURCE_KEY_DW_BQ},
         ),
