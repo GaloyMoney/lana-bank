@@ -108,8 +108,7 @@ impl PendingCreditFacility {
 
         let ratio_changed = self.update_collateralization_ratio(&balances).did_execute();
 
-        let is_fully_collateralized =
-            balances.facility_amount_cvl(price) >= self.terms.margin_call_cvl;
+        let is_fully_collateralized = balances.current_cvl(price) >= self.terms.margin_call_cvl;
 
         let calculated_collateralization_state = if is_fully_collateralized {
             PendingCreditFacilityCollateralizationState::FullyCollateralized

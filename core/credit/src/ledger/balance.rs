@@ -179,7 +179,7 @@ impl PendingCreditFacilityBalanceSummary {
         CollateralizationRatio::Finite(collateral / amount)
     }
 
-    pub fn facility_amount_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
+    pub fn current_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
         CVLData::new(self.collateral, self.facility).cvl(price)
     }
 }
