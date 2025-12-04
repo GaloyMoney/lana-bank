@@ -4,7 +4,7 @@ use tracing_macros::record_error_severity;
 
 use std::collections::VecDeque;
 
-use super::event::*;
+use super::{error::*, event::*};
 
 pub(super) struct OutboxRepo<P>
 where
@@ -39,7 +39,7 @@ where
 
     #[record_error_severity]
     #[tracing::instrument(name = "outbox_lana.highest_known_sequence", skip_all)]
-    pub async fn highest_known_sequence(&self) -> Result<EventSequence, sqlx::Error> {
+    pub async fn highest_known_sequence(&self) -> Result<EventSequence, OutboxError> {
         let row = sqlx::query!(
             r#"SELECT COALESCE(MAX(sequence), 0) AS "max!" FROM persistent_outbox_events"#
         )
@@ -54,7 +54,7 @@ where
         &self,
         op: &mut impl es_entity::AtomicOperation,
         events: impl Iterator<Item = P>,
-    ) -> Result<Vec<PersistentOutboxEvent<P>>, sqlx::Error> {
+    ) -> Result<Vec<PersistentOutboxEvent<P>>, OutboxError> {
         let mut payloads = Vec::new();
         let serialized_events = events
             .map(|e| {
@@ -106,7 +106,7 @@ where
         &self,
         event_type: EphemeralEventType,
         payload: P,
-    ) -> Result<EphemeralOutboxEvent<P>, sqlx::Error> {
+    ) -> Result<EphemeralOutboxEvent<P>, OutboxError> {
         let serialized_payload =
             serde_json::to_value(&payload).expect("Could not serialize payload");
         let tracing_context = tracing_utils::persistence::extract();
@@ -140,7 +140,7 @@ where
 
     #[record_error_severity]
     #[tracing::instrument(name = "outbox_lana.load_ephemeral_events", skip_all)]
-    pub async fn load_ephemeral_events(&self) -> Result<VecDeque<OutboxEvent<P>>, sqlx::Error> {
+    pub async fn load_ephemeral_events(&self) -> Result<VecDeque<OutboxEvent<P>>, OutboxError> {
         let rows = sqlx::query!(
             r#"
             SELECT event_type, payload, tracing_context, recorded_at
@@ -177,7 +177,7 @@ where
         &self,
         from_sequence: EventSequence,
         buffer_size: usize,
-    ) -> Result<Vec<PersistentOutboxEvent<P>>, sqlx::Error> {
+    ) -> Result<Vec<PersistentOutboxEvent<P>>, OutboxError> {
         let rows = sqlx::query!(
             r#"
             WITH max_sequence AS (

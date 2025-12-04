@@ -1,6 +1,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+mod error;
 mod event;
 mod listener;
 mod repo;
@@ -16,6 +17,7 @@ use std::sync::{
     atomic::{AtomicU64, Ordering},
 };
 
+use error::*;
 pub use event::*;
 pub use listener::*;
 use repo::*;
@@ -54,7 +56,7 @@ where
 {
     #[record_error_severity]
     #[tracing::instrument(name = "outbox.init", skip(pool), fields(highest_sequence = tracing::field::Empty))]
-    pub async fn init(pool: &PgPool) -> Result<Self, sqlx::Error> {
+    pub async fn init(pool: &PgPool) -> Result<Self, OutboxError> {
         let buffer_size = DEFAULT_BUFFER_SIZE;
         let (sender, recv) = broadcast::channel(buffer_size);
         let repo = OutboxRepo::new(pool);
@@ -80,7 +82,7 @@ where
         &self,
         op: &mut impl es_entity::AtomicOperation,
         event: impl Into<P>,
-    ) -> Result<(), sqlx::Error> {
+    ) -> Result<(), OutboxError> {
         self.publish_all_persisted(op, std::iter::once(event)).await
     }
 
@@ -90,7 +92,7 @@ where
         &self,
         op: &mut impl es_entity::AtomicOperation,
         events: impl IntoIterator<Item = impl Into<P>>,
-    ) -> Result<(), sqlx::Error> {
+    ) -> Result<(), OutboxError> {
         let _ = self
             .repo
             .persist_events(op, events.into_iter().map(Into::into))
@@ -104,7 +106,7 @@ where
         &self,
         event_type: EphemeralEventType,
         event: impl Into<P>,
-    ) -> Result<(), sqlx::Error> {
+    ) -> Result<(), OutboxError> {
         self.repo
             .persist_ephemeral_event(event_type, event.into())
             .await?;
@@ -116,7 +118,7 @@ where
     pub async fn listen_all(
         &self,
         start_after: Option<EventSequence>,
-    ) -> Result<OutboxListener<P>, sqlx::Error> {
+    ) -> Result<OutboxListener<P>, OutboxError> {
         let sub = self.event_receiver.resubscribe();
         let latest_known = EventSequence::from(self.highest_known_sequence.load(Ordering::Relaxed));
         tracing::Span::current().record("latest_known", u64::from(latest_known));
@@ -137,7 +139,7 @@ where
     pub async fn listen_persisted(
         &self,
         start_after: Option<EventSequence>,
-    ) -> Result<BoxStream<'_, Arc<PersistentOutboxEvent<P>>>, sqlx::Error> {
+    ) -> Result<BoxStream<'_, Arc<PersistentOutboxEvent<P>>>, OutboxError> {
         let listener = self.listen_all(start_after).await?;
         Ok(Box::pin(listener.filter_map(|event| async move {
             match event {
@@ -150,7 +152,7 @@ where
     #[tracing::instrument(name = "outbox.listen_ephemeral", skip(self))]
     pub async fn listen_ephemeral(
         &self,
-    ) -> Result<BoxStream<'_, Arc<EphemeralOutboxEvent<P>>>, sqlx::Error> {
+    ) -> Result<BoxStream<'_, Arc<EphemeralOutboxEvent<P>>>, OutboxError> {
         let listener = self.listen_all(None).await?;
         Ok(Box::pin(listener.filter_map(|event| async move {
             match event {
@@ -166,7 +168,7 @@ where
         pool: &PgPool,
         sender: broadcast::Sender<OutboxEvent<P>>,
         highest_known_sequence: Arc<AtomicU64>,
-    ) -> Result<(), sqlx::Error> {
+    ) -> Result<(), OutboxError> {
         let mut listener = PgListener::connect_with(pool).await?;
         listener.listen("persistent_outbox_events").await?;
         let persistent_sender = sender.clone();
