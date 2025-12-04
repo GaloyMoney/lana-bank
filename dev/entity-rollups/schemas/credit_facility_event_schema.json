@@ -580,7 +580,7 @@
           "$ref": "#/$defs/UsdCents"
         },
         "type": {
-          "const": "partial_liquidation_concluded",
+          "const": "partial_liquidation_completed",
           "type": "string"
         }
       },

@@ -62,7 +62,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'interest_accrual_cycle_started', 'interest_accrual_cycle_concluded', 'collateralization_state_changed', 'collateralization_ratio_changed', 'partial_liquidation_initiated', 'partial_liquidation_concluded', 'matured', 'completed', 'activated') THEN
+  IF event_type NOT IN ('initialized', 'interest_accrual_cycle_started', 'interest_accrual_cycle_concluded', 'collateralization_state_changed', 'collateralization_ratio_changed', 'partial_liquidation_initiated', 'partial_liquidation_completed', 'matured', 'completed', 'activated') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -192,7 +192,7 @@ BEGIN
       new_row.liquidation_id := (NEW.event ->> 'liquidation_id')::UUID;
       new_row.receivable_account_id := (NEW.event ->> 'receivable_account_id')::UUID;
       new_row.trigger_price := (NEW.event -> 'trigger_price');
-    WHEN 'partial_liquidation_concluded' THEN
+    WHEN 'partial_liquidation_completed' THEN
       new_row.liquidated := (NEW.event ->> 'liquidated')::BIGINT;
       new_row.liquidation_id := (NEW.event ->> 'liquidation_id')::UUID;
       new_row.received := (NEW.event ->> 'received')::BIGINT;
