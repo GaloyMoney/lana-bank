@@ -2,6 +2,8 @@ from typing import Callable, Optional
 
 import dagster as dg
 
+import dagster as dg
+
 
 class Protoasset:
     """

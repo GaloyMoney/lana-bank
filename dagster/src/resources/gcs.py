@@ -1,6 +1,5 @@
 import json
 
-from dagster_dbt import DbtCliResource
 from google.cloud import storage
 from google.oauth2 import service_account
 

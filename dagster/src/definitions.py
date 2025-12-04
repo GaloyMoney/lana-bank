@@ -41,11 +41,6 @@ class DefinitionsBuilder:
     ):
         self.resources.update(resources)
 
-    def add_asset(self, asset: dg.asset) -> dg.asset:
-        self.assets.append(asset)
-
-        return asset
-
     def add_asset_from_protoasset(self, protoasset: Protoasset) -> dg.asset:
         asset: dg.asset = lana_assetifier(protoasset=protoasset)
         self.assets.append(asset)

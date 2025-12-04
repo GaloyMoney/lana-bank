@@ -385,7 +385,7 @@ has_bigquery_credentials() {
         repositoryName: "__repository__",
         jobName: "__ASSET_JOB",
         assetSelection: [
-          { path: ["stg_core_withdrawal_events_rollup"] }
+          { path: ["dbt_lana_dw", "staging", "rollups", "stg_core_withdrawal_events_rollup"] }
         ]
       },
       runConfigData: {}
@@ -406,7 +406,7 @@ has_bigquery_credentials() {
   dagster_poll_run_status "$run_id" 90 2 || return 1
 
   asset_vars=$(jq -n '{
-    assetKey: { path: ["stg_core_withdrawal_events_rollup"] }
+    assetKey: { path: ["dbt_lana_dw", "staging", "rollups", "stg_core_withdrawal_events_rollup"] }
   }')
   exec_dagster_graphql "asset_materializations" "$asset_vars"
 
