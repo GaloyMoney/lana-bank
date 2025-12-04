@@ -8,7 +8,7 @@ use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use domain_config::DomainConfigs;
+use domain_config::{DomainConfigError, DomainConfigs};
 use es_entity::{Idempotent, PaginatedQueryArgs};
 
 use crate::{
@@ -284,7 +284,15 @@ where
             )
             .await?;
         let mut op = self.repo.begin_op().await?;
-        self.domain_configs.create_in_op(&mut op, config).await?;
+        self.domain_configs
+            .create_in_op(&mut op, config)
+            .await
+            .map_err(|e| match e {
+                DomainConfigError::Sqlx(sqlx::Error::RowNotFound) => {
+                    FiscalYearError::FiscalYearNotConfigured
+                }
+                err => err.into(),
+            })?;
         op.commit().await?;
         Ok(())
     }
@@ -304,7 +312,15 @@ where
             .await?;
 
         let mut op = self.repo.begin_op().await?;
-        self.domain_configs.update_in_op(&mut op, config).await?;
+        self.domain_configs
+            .update_in_op(&mut op, config)
+            .await
+            .map_err(|e| match e {
+                DomainConfigError::Sqlx(sqlx::Error::RowNotFound) => {
+                    FiscalYearError::FiscalYearNotConfigured
+                }
+                err => err.into(),
+            })?;
         op.commit().await?;
         Ok(())
     }

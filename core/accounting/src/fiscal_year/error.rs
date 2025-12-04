@@ -29,6 +29,8 @@ pub enum FiscalYearError {
     FiscalYearNotInitializedForChart(ChartId),
     #[error("FiscalYearError - FiscalYearWithInvalidOpenedAsOf: {0}")]
     FiscalYearWithInvalidOpenedAsOf(NaiveDate),
+    #[error("FiscalYearError - FiscalYearNotConfigured")]
+    FiscalYearNotConfigured,
 }
 
 es_entity::from_es_entity_error!(FiscalYearError);
@@ -47,6 +49,7 @@ impl ErrorSeverity for FiscalYearError {
             Self::FiscalYearNotInitializedForChart(_) => Level::ERROR,
             Self::FiscalYearWithInvalidOpenedAsOf(_) => Level::ERROR,
             Self::DomainConfigError(e) => e.severity(),
+            Self::FiscalYearNotConfigured => Level::ERROR,
         }
     }
 }
