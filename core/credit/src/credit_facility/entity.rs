@@ -62,7 +62,7 @@ pub enum CreditFacilityEvent {
         initially_expected_to_receive: UsdCents,
         initially_estimated_to_liquidate: Satoshis,
     },
-    PartialLiquidationConcluded {
+    PartialLiquidationCompleted {
         liquidation_id: LiquidationId,
         liquidated: Satoshis,
         received: UsdCents,
@@ -272,7 +272,7 @@ impl CreditFacility {
         idempotency_guard!(
             self.events.iter_all().rev(),
             CreditFacilityEvent::PartialLiquidationInitiated { .. },
-            => CreditFacilityEvent::PartialLiquidationConcluded { .. }
+            => CreditFacilityEvent::PartialLiquidationCompleted { .. }
         );
 
         if balances.total_outstanding().is_zero() {
@@ -640,7 +640,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                 CreditFacilityEvent::Matured { .. } => (),
                 CreditFacilityEvent::Completed { .. } => (),
                 CreditFacilityEvent::PartialLiquidationInitiated { .. } => {}
-                CreditFacilityEvent::PartialLiquidationConcluded { .. } => {}
+                CreditFacilityEvent::PartialLiquidationCompleted { .. } => {}
             }
         }
         builder.events(events).build()
