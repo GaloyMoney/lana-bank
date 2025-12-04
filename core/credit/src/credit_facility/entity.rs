@@ -274,12 +274,12 @@ impl CreditFacility {
             CreditFacilityEvent::PartialLiquidationInitiated { .. },
             => CreditFacilityEvent::PartialLiquidationConcluded { .. }
         );
+        
+        if balances.total_outstanding().is_zero() {
+            return Idempotent::Ignored;
+        }
 
-        let amount = if balances.any_disbursed() {
-            balances.total_outstanding()
-        } else {
-            balances.facility()
-        };
+        let amount = balances.total_outstanding();
 
         let repay_amount = LiquidationPayment::repay_amount(
             amount,
