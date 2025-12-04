@@ -80,13 +80,13 @@ export const PATH_CONFIGS = {
 
   CHART_OF_ACCOUNTS: "/chart-of-accounts",
   LEDGER_ACCOUNTS: "/ledger-accounts",
+  LEDGER_TRANSACTIONS: "/ledger-transactions",
 
   LEDGER_ACCOUNT_DETAILS: /^\/ledger-accounts\/[^/]+/,
   DEPOSIT_ACCOUNT_DETAILS: /^\/deposit-accounts\/[^/]+/,
 }
 
 export const ALWAYS_SHOW_DROPDOWN_PATHS: (string | RegExp)[] = [
-  PATH_CONFIGS.JOURNAL,
   PATH_CONFIGS.CHART_OF_ACCOUNTS,
 ]
 
@@ -302,7 +302,7 @@ const CreateButton = () => {
       label: t("menuItems.executeManualTransaction"),
       onClick: () => setOpenExecuteManualTransaction(true),
       dataTestId: "execute-manual-transaction-button",
-      allowedPaths: [PATH_CONFIGS.JOURNAL],
+      allowedPaths: [PATH_CONFIGS.LEDGER_TRANSACTIONS],
     },
     {
       label: t("menuItems.role"),
