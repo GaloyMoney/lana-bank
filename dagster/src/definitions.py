@@ -9,6 +9,7 @@ from src.assets import (
     file_report_protoassets,
     inform_lana_protoasset,
     iris_dataset_size,
+    lana_dbt_protoassets,
     lana_source_protoassets,
     lana_to_dw_el_protoassets,
 )
@@ -130,9 +131,14 @@ definition_builder.add_job_schedule(
 
 for lana_source_protoasset in lana_source_protoassets():
     definition_builder.add_asset_from_protoasset(lana_source_protoasset)
-for lana_to_dw_el_protoasset in lana_to_dw_el_protoassets():
+
+lana_el_protoassets = lana_to_dw_el_protoassets()
+
+for lana_to_dw_el_protoasset in lana_el_protoassets:
     definition_builder.add_asset_from_protoasset(lana_to_dw_el_protoasset)
 
+for dbt_protoasset in lana_dbt_protoassets(el_protoassets=lana_el_protoassets):
+    definition_builder.add_asset_from_protoasset(dbt_protoasset)
 
 report_protoassets = file_report_protoassets()
 
