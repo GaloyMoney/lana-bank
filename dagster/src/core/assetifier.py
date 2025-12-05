@@ -3,7 +3,7 @@
 from typing import TYPE_CHECKING, Union
 
 import dagster as dg
-from src.otel import trace_callable
+from src.otel import get_asset_span_context_and_attrs, trace_callable
 
 if TYPE_CHECKING:
     from .protoasset import Protoasset
@@ -35,13 +35,17 @@ def lana_assetifier(protoasset: "Protoasset") -> Union[dg.asset, dg.AssetSpec]:
     def wrapped_callable(context: dg.AssetExecutionContext):
         asset_key_str: str = context.asset_key.to_user_string()
 
+        parent_context, span_attributes = get_asset_span_context_and_attrs(
+            context, asset_key_str
+        )
+
         span_name = f"asset_{asset_key_str}_run"
-        span_attributes = {"asset.name": asset_key_str, "run.id": context.run_id}
 
         traced_callable = trace_callable(
             span_name=span_name,
             callable=protoasset.callable,
             span_attributes=span_attributes,
+            parent_context=parent_context,
         )
 
         # Extract resources from context.resources and pass them to the callable
