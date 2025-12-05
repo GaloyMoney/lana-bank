@@ -24,6 +24,8 @@ pub use primitives::*;
 use cloud_storage::Storage;
 use publisher::ReportPublisher;
 
+use jobs::SyncReportsJobInit;
+
 pub use report::*;
 pub use report_run::*;
 
@@ -81,6 +83,8 @@ where
         let publisher = ReportPublisher::new(outbox);
         let report_repo = ReportRepo::new(pool, &publisher);
         let report_run_repo = ReportRunRepo::new(pool, &publisher);
+
+        jobs.add_initializer(SyncReportsJobInit::<E>::new());
 
         Ok(Self {
             authz: authz.clone(),
@@ -233,5 +237,24 @@ where
 
         let download_link = self.storage.generate_download_link(location).await?;
         Ok(download_link)
+    }
+
+    #[record_error_severity]
+    #[tracing::instrument(name = "report.reports_sync", skip(self), fields(job_id = tracing::field::Empty))]
+    pub async fn reports_sync(&self) -> Result<job::JobId, ReportError> {
+        let mut db = self.report_runs.begin_op().await?;
+        let job = self
+            .jobs
+            .create_and_spawn_in_op(
+                &mut db,
+                job::JobId::new(),
+                jobs::SyncReportsJobConfig::<E>::new(),
+            )
+            .await?;
+
+        tracing::Span::current().record("job_id", job.id.to_string());
+        db.commit().await?;
+
+        Ok(job.id)
     }
 }
