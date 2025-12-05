@@ -190,7 +190,7 @@ impl KomainuClient {
         endpoint: &str,
         offset: Option<u64>,
         payload: Option<T>,
-    ) -> Result<RequestBuilder, reqwest::Error> {
+    ) -> Result<RequestBuilder, KomainuError> {
         let access_token = self.get_access_token().await?;
         let timestamp = chrono::Utc::now().timestamp_millis();
 
@@ -234,7 +234,7 @@ impl KomainuClient {
             .body(payload))
     }
 
-    async fn get_access_token(&self) -> Result<String, reqwest::Error> {
+    async fn get_access_token(&self) -> Result<String, KomainuError> {
         // Optimistically try reading first (common case: token is valid)
         {
             let access_token = self.access_token.read().await;
@@ -263,7 +263,7 @@ impl KomainuClient {
     }
 
     #[tracing::instrument(name = "komainu.refresh_token", skip(self))]
-    async fn refresh_token(&self) -> Result<AccessToken, reqwest::Error> {
+    async fn refresh_token(&self) -> Result<AccessToken, KomainuError> {
         let response: GetTokenResponse = self
             .http_client
             .post(self.url("v1/auth/token"))
