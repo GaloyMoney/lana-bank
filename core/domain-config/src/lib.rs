@@ -12,6 +12,11 @@ pub use entity::{DomainConfig, DomainConfigEvent, NewDomainConfig};
 pub use error::DomainConfigError;
 pub use primitives::{DomainConfigId, DomainConfigKey, DomainConfigValue};
 
+#[cfg(feature = "json-schema")]
+pub mod event_schema {
+    pub use crate::entity::DomainConfigEvent;
+}
+
 use repo::DomainConfigRepo;
 
 #[derive(Clone)]

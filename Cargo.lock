@@ -2077,6 +2077,7 @@ version = "0.0.0"
 dependencies = [
  "derive_builder",
  "es-entity",
+ "schemars 1.1.0",
  "serde",
  "serde_json",
  "sqlx",
@@ -2265,7 +2266,9 @@ dependencies = [
  "core-custody",
  "core-customer",
  "core-deposit",
+ "core-report",
  "document-storage",
+ "domain-config",
  "governance",
  "handlebars",
  "schemars 1.1.0",

@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "key": {
+          "type": "string"
+        },
+        "type": {
+          "const": "initialized",
+          "type": "string"
+        },
+        "value": true
+      },
+      "required": [
+        "type",
+        "id",
+        "key",
+        "value"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "updated",
+          "type": "string"
+        },
+        "value": true
+      },
+      "required": [
+        "type",
+        "value"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "DomainConfigEvent"
+}
