@@ -80,7 +80,7 @@ where
         opened_as_of: impl Into<NaiveDate> + std::fmt::Debug,
         chart_id: ChartId,
     ) -> Result<FiscalYear, FiscalYearError> {
-        // TODO: Must  be configured.
+        self.config().await?;
         let opened_as_of = opened_as_of.into();
 
         self.authz
@@ -271,7 +271,7 @@ where
             .get::<FiscalYearConfig>()
             .await
             .map_err(|e| match e {
-                DomainConfigError::Sqlx(sqlx::Error::RowNotFound) => {
+                DomainConfigError::EsEntityError(es_entity::EsEntityError::NotFound) => {
                     FiscalYearError::FiscalYearNotConfigured
                 }
                 err => err.into(),

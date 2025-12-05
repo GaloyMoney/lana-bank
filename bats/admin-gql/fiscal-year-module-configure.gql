@@ -1,0 +1,12 @@
+mutation FiscalYearModuleConfigure($input: FiscalYearModuleConfigureInput!) {
+  fiscalYearModuleConfigure(input: $input) {
+    fiscalYearConfig {
+      yearEndMonth
+      revenueCode
+      costOfRevenueCode
+      expensesCode
+      equityRetainedEarningsCode
+      equityRetainedLossesCode
+    }
+  }
+}

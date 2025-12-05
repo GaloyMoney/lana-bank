@@ -111,6 +111,26 @@ teardown_file() {
   [[ "$omnibus_code" == "4" ]] || exit 1
 }
 
+@test "accounting: configure fiscal year module" {
+  variables=$(
+    jq -n '{
+      input: {
+        yearEndMonth: 12,
+        revenueCode: "4",
+        costOfRevenueCode: "5",
+        expensesCode: "6",
+        equityRetainedEarningsCode: "3.11",
+        equityRetainedLossesCode: "3.12"
+      }
+    }'
+  )
+  exec_admin_graphql 'fiscal-year-module-configure' "$variables"
+  errors=$(graphql_output '.errors')
+  [[ "$errors" == "null" ]] || { echo "$errors"; exit 1; }
+  year_end_month=$(graphql_output '.data.fiscalYearModuleConfigure.fiscalYearConfig.yearEndMonth')
+  [[ "$year_end_month" != "null" ]] || exit 1
+}
+
 @test "accounting: can import CSV file into chart of accounts" {
   exec_admin_graphql 'chart-of-accounts'
   chart_id=$(graphql_output '.data.chartOfAccounts.chartId')
