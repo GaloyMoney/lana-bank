@@ -1,13 +1,17 @@
 import csv
 import inspect
 import io
+import os
 import sys
 import xml.etree.ElementTree as ET
 from datetime import datetime
 from typing import Dict, List, Literal, TypedDict
 
+import requests
+
 import dagster as dg
 from src.core import Protoasset
+from src.otel import _current_span_to_traceparent
 from src.resources import RESOURCE_KEY_FILE_REPORTS_BUCKET, GCSResource
 
 
@@ -221,44 +225,33 @@ def _discover_reports() -> Dict[str, callable]:
     return reports
 
 
-def _extract_reports_from_asset(
-    context: dg.AssetExecutionContext, asset_key_str: str
-) -> List[Report]:
-    """Extract report metadata from a materialized asset."""
-    asset_key = dg.AssetKey(asset_key_str)
-    materialization = context.instance.get_latest_materialization_event(asset_key)
-
-    if not (materialization and materialization.asset_materialization):
-        return []
-
-    metadata = materialization.asset_materialization.metadata
-    if "reports" not in metadata:
-        return []
-
-    reports_metadata = metadata["reports"]
-    reports_list = getattr(reports_metadata, "value", reports_metadata)
-
-    return reports_list
-
-
 def inform_lana_of_new_reports(context: dg.AssetExecutionContext) -> None:
-    """Collect all generated reports and notify Lana system."""
-    all_reports: List[Report] = []
-    reports = _discover_reports()
-
-    for asset_key_str in reports.keys():
-        all_reports.extend(_extract_reports_from_asset(context, asset_key_str))
-
-    context.log.info(f"Total reports collected: {len(all_reports)}")
-    for report in all_reports:
-        file_types = [f["type"] for f in report["files"]]
-        context.log.info(
-            f"Report: name={report['name']}, "
-            f"norm={report['norm']}, "
-            f"files={len(report['files'])} ({', '.join(file_types)})"
+    """Notify Lana system to sync reports."""
+    # Call the Lana admin server webhook to sync reports
+    admin_server_url = os.getenv("LANA_ADMIN_SERVER_URL")
+    if not admin_server_url:
+        raise ValueError(
+            "LANA_ADMIN_SERVER_URL environment variable is not set. "
+            "Please configure it to point to the Lana admin server."
         )
+    webhook_url = f"{admin_server_url}/webhook/reports/sync"
 
-    context.log.info("TODO: Notification would be sent to Lana system here.")
+    # Get traceparent from current span for distributed tracing
+    headers = {}
+    if traceparent := _current_span_to_traceparent():
+        headers["traceparent"] = traceparent
+        context.log.info(f"Sending traceparent: {traceparent}")
+
+    try:
+        context.log.info(f"Calling webhook: {webhook_url}")
+        response = requests.post(webhook_url, headers=headers, timeout=30)
+        response.raise_for_status()
+        context.log.info(
+            f"Successfully notified Lana system. Response: {response.status_code}"
+        )
+    except requests.exceptions.RequestException as e:
+        context.log.error(f"Failed to notify Lana system: {e}")
+        raise
 
 
 def file_report_protoassets() -> Dict[str, Protoasset]:

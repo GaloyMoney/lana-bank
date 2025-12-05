@@ -1,7 +1,6 @@
 use async_trait::async_trait;
 use job::{
-    CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType,
-    RetrySettings,
+    CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType, RetrySettings,
 };
 use serde::{Deserialize, Serialize};
 

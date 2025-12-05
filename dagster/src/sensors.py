@@ -30,10 +30,9 @@ def build_file_report_sensors(
         tags = {}
         if traceparent := parent_tags.get(JOB_TRACEPARENT_TAG):
             tags[JOB_TRACEPARENT_TAG] = traceparent
-        
+
         yield dg.RunRequest(
-            run_key=f"inform_lana_success_{context.dagster_run.run_id}",
-            tags=tags
+            run_key=f"inform_lana_success_{context.dagster_run.run_id}", tags=tags
         )
 
     @dg.run_status_sensor(
@@ -49,10 +48,9 @@ def build_file_report_sensors(
         tags = {}
         if traceparent := parent_tags.get(JOB_TRACEPARENT_TAG):
             tags[JOB_TRACEPARENT_TAG] = traceparent
-        
+
         yield dg.RunRequest(
-            run_key=f"inform_lana_failure_{context.dagster_run.run_id}",
-            tags=tags
+            run_key=f"inform_lana_failure_{context.dagster_run.run_id}", tags=tags
         )
 
     return file_reports_success_sensor, file_reports_failure_sensor

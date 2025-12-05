@@ -108,41 +108,39 @@ def _get_job_name(context) -> Optional[str]:
 def _try_acquire_span_creation_lock(context) -> Optional[str]:
     """
     Try to acquire the exclusive right to create the job span for this run.
-    
+
     Returns the claim_id if we won the lock, None otherwise.
-    
+
     This prevents race conditions when multiple processes try to create
     the job span simultaneously by using optimistic locking with a unique UUID.
     """
     claim_id = str(uuid.uuid4())
-    
+
     try:
-        context.instance.add_run_tags(
-            context.run_id, {JOB_SPAN_LOCK_TAG: claim_id}
-        )
+        context.instance.add_run_tags(context.run_id, {JOB_SPAN_LOCK_TAG: claim_id})
     except Exception:
         # Failed to write lock tag
         return None
-    
+
     # Small delay to ensure tag write propagates through Dagster's storage
     time.sleep(0.05)
-    
+
     # Check if we won the lock (first write wins)
     tags = dict(
         getattr(context.instance.get_run_by_id(context.run_id), "tags", {}) or {}
     )
-    
+
     return claim_id if tags.get(JOB_SPAN_LOCK_TAG) == claim_id else None
 
 
 def _wait_for_job_traceparent(context, timeout_seconds: float = 1.0) -> Optional[str]:
     """
     Wait for another process to create and persist the job traceparent.
-    
+
     Returns the traceparent if found within timeout, None otherwise.
     """
     attempts = int(timeout_seconds / 0.05)
-    
+
     for _ in range(attempts):
         time.sleep(0.05)
         tags = dict(
@@ -150,7 +148,7 @@ def _wait_for_job_traceparent(context, timeout_seconds: float = 1.0) -> Optional
         )
         if traceparent := tags.get(JOB_TRACEPARENT_TAG):
             return traceparent
-    
+
     return None
 
 
@@ -158,7 +156,7 @@ def _ensure_job_parent_context(context, job_name: str) -> Optional[Context]:
     """
     Ensure there is exactly one job-level span per Dagster run.
     We persist the span context via run tags so all processes can reuse it.
-    
+
     If a traceparent is passed via run tags (e.g., from a sensor), we reuse it
     to continue the same trace across multiple jobs.
     """
@@ -183,11 +181,11 @@ def _ensure_job_parent_context(context, job_name: str) -> Optional[Context]:
                 context.run_id, {JOB_TRACEPARENT_TAG: traceparent}
             )
             return _context_from_traceparent(traceparent)
-    
+
     # We lost the lock - wait for winner to write traceparent
     if traceparent := _wait_for_job_traceparent(context):
         return _context_from_traceparent(traceparent)
-    
+
     # Timeout - winner may have failed
     return None
 
