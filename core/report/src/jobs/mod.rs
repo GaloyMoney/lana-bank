@@ -1,1 +1,2 @@
-// Job scaffolding placeholder - jobs removed
+mod sync_reports;
+pub use sync_reports::*;
