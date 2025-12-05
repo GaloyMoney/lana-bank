@@ -44,11 +44,11 @@ jobs:
           export KEYFILE
 
           PROJECT_ID=$(python - <<'PY'
-import json, os
-with open(os.environ["KEYFILE"]) as f:
-  print(json.load(f)["project_id"])
-PY
-)
+          import json, os
+          with open(os.environ["KEYFILE"]) as f:
+            print(json.load(f)["project_id"])
+          PY
+          )
           SAFE_PREFIX="sqlfluff_${GITHUB_RUN_ID}_${GITHUB_RUN_ATTEMPT}"
           SAFE_PREFIX=$(printf '%s' "$SAFE_PREFIX" | tr -c '[:alnum:]_' '_' )
 
