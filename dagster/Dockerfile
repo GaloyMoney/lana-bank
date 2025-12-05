@@ -30,7 +30,8 @@ RUN pip install \
 RUN pip install \
     dlt[bigquery]~=1.18.1 \
     dagster-dlt~=${DAGSTER_EXT_VERSION} \
-    pandas
+    pandas \
+    requests
 
 # Add our project specific code
 RUN mkdir -p /lana-dw
