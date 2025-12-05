@@ -289,7 +289,7 @@ where
             .enforce_permission(
                 sub,
                 CoreAccountingObject::all_fiscal_years(),
-                CoreAccountingAction::FISCAL_YEAR_CONFIG_CREATE,
+                CoreAccountingAction::FISCAL_YEAR_CONFIGURE,
             )
             .await?;
         let mut op = self.repo.begin_op().await?;
