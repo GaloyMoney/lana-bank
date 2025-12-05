@@ -1,0 +1,64 @@
+{
+  "$defs": {
+    "ReportFile": {
+      "properties": {
+        "extension": {
+          "type": "string"
+        },
+        "path_in_bucket": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "extension",
+        "path_in_bucket"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "properties": {
+        "external_id": {
+          "type": "string"
+        },
+        "files": {
+          "items": {
+            "$ref": "#/$defs/ReportFile"
+          },
+          "type": "array"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "norm": {
+          "type": "string"
+        },
+        "run_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "const": "initialized",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "external_id",
+        "run_id",
+        "name",
+        "norm",
+        "files"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "ReportEvent"
+}

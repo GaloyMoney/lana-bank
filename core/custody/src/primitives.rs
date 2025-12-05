@@ -1,4 +1,6 @@
 use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
+#[cfg(feature = "json-schema")]
+use schemars::JsonSchema;
 
 es_entity::entity_id! {
     CustodianId,
@@ -26,6 +28,7 @@ pub struct ExternalWallet {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub enum WalletNetwork {
     Testnet3,
     Testnet4,

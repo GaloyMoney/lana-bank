@@ -1,0 +1,78 @@
+{
+  "$defs": {
+    "Satoshis": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "WalletNetwork": {
+      "enum": [
+        "Testnet3",
+        "Testnet4",
+        "Mainnet"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "properties": {
+        "address": {
+          "type": "string"
+        },
+        "custodian_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "custodian_response": true,
+        "external_wallet_id": {
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "network": {
+          "$ref": "#/$defs/WalletNetwork"
+        },
+        "type": {
+          "const": "initialized",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "custodian_id",
+        "external_wallet_id",
+        "address",
+        "network",
+        "custodian_response"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "changed_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "new_balance": {
+          "$ref": "#/$defs/Satoshis"
+        },
+        "type": {
+          "const": "balance_changed",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "new_balance",
+        "changed_at"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "WalletEvent"
+}

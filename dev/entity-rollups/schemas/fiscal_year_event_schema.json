@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "properties": {
+        "chart_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "opened_as_of": {
+          "format": "date",
+          "type": "string"
+        },
+        "reference": {
+          "type": "string"
+        },
+        "type": {
+          "const": "initialized",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "chart_id",
+        "reference",
+        "opened_as_of"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "month_closed_as_of": {
+          "format": "date",
+          "type": "string"
+        },
+        "month_closed_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "type": {
+          "const": "month_closed",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "month_closed_as_of",
+        "month_closed_at"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "closed_as_of": {
+          "format": "date",
+          "type": "string"
+        },
+        "closed_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "type": {
+          "const": "year_closed",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "closed_as_of",
+        "closed_at"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "FiscalYearEvent"
+}

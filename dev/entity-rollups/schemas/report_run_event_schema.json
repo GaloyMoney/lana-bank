@@ -1,0 +1,95 @@
+{
+  "$defs": {
+    "ReportRunState": {
+      "enum": [
+        "queued",
+        "running",
+        "success",
+        "failed"
+      ],
+      "type": "string"
+    },
+    "ReportRunType": {
+      "enum": [
+        "scheduled",
+        "manual"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "properties": {
+        "execution_date": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "external_id": {
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "run_type": {
+          "$ref": "#/$defs/ReportRunType"
+        },
+        "state": {
+          "$ref": "#/$defs/ReportRunState"
+        },
+        "type": {
+          "const": "initialized",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "external_id",
+        "execution_date",
+        "state",
+        "run_type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "end_date": {
+          "format": "date-time",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "execution_date": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "run_type": {
+          "$ref": "#/$defs/ReportRunType"
+        },
+        "start_date": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/$defs/ReportRunState"
+        },
+        "type": {
+          "const": "state_updated",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "execution_date",
+        "state",
+        "run_type",
+        "start_date"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "ReportRunEvent"
+}

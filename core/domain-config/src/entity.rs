@@ -1,10 +1,13 @@
 use derive_builder::Builder;
 use es_entity::*;
+#[cfg(feature = "json-schema")]
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 
 use crate::primitives::{DomainConfigId, DomainConfigKey};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "DomainConfigId")]
 pub enum DomainConfigEvent {
