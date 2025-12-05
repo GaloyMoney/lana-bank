@@ -1,0 +1,21 @@
+query($limit: Int) {
+  runsOrError(
+    limit: $limit
+  ) {
+    __typename
+    ... on Runs {
+      results {
+        id
+        runId
+        status
+        assetSelection {
+          path
+        }
+      }
+    }
+    ... on PythonError {
+      message
+    }
+  }
+}
+
