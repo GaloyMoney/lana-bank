@@ -20,6 +20,7 @@ services:
       DBT_BIGQUERY_CREDENTIALS_JSON: ${DBT_BIGQUERY_CREDENTIALS_JSON:-}
       DBT_BIGQUERY_PROJECT: ${DBT_BIGQUERY_PROJECT:-}
       DBT_BIGQUERY_DATASET: ${DBT_BIGQUERY_DATASET:-}
+      LANA_ADMIN_SERVER_URL: 'http://host.containers.internal:5253'
   # This service runs dagster-webserver, which loads your user code from the user code container.
   # Since our instance uses the QueuedRunCoordinator, any runs submitted from the webserver will be put on
   # a queue and later dequeued and launched by dagster-daemon.
@@ -67,6 +68,7 @@ services:
       DAGSTER_POSTGRES_USER: 'postgres_user'
       DAGSTER_POSTGRES_PASSWORD: 'postgres_password'
       DAGSTER_POSTGRES_DB: 'postgres_db'
+      LANA_ADMIN_SERVER_URL: 'http://host.containers.internal:5253'
     volumes:
       - /tmp/io_manager_storage:/tmp/io_manager_storage
     depends_on:
