@@ -1,4 +1,7 @@
+import os
 from typing import Callable, List, Literal, Optional, TypedDict
+
+import requests
 
 import dagster as dg
 from generate_es_reports.constants import DEFAULT_REPORTS_YAML_PATH
@@ -7,6 +10,7 @@ from generate_es_reports.generator import generate_single_report
 from generate_es_reports.io import BigQueryTableFetcher, load_report_jobs_from_yaml
 from src.assets.dbt import _get_dbt_asset_key, _load_dbt_manifest
 from src.core import Protoasset
+from src.otel import _current_span_to_traceparent
 from src.resources import (
     RESOURCE_KEY_DW_BQ,
     RESOURCE_KEY_FILE_REPORTS_BUCKET,
@@ -187,16 +191,30 @@ def inform_lana_of_new_reports(context: dg.AssetExecutionContext) -> None:
 
     all_reports: List[Report] = list(reports_by_name.values())
 
-    context.log.info(f"Total reports collected: {len(all_reports)}")
-    for report in all_reports:
-        file_types = [f["type"] for f in report["files"]]
-        context.log.info(
-            f"Report: name={report['name']}, "
-            f"norm={report['norm']}, "
-            f"files={len(report['files'])} ({', '.join(file_types)})"
+    admin_server_url = os.getenv("LANA_ADMIN_SERVER_URL")
+    if not admin_server_url:
+        raise ValueError(
+            "LANA_ADMIN_SERVER_URL environment variable is not set. "
+            "Please configure it to point to the Lana admin server."
         )
+    webhook_url = f"{admin_server_url}/webhook/reports/sync"
 
-    context.log.info("TODO: Notification would be sent to Lana system here.")
+    # Get traceparent from current span for distributed tracing
+    headers = {}
+    if traceparent := _current_span_to_traceparent():
+        headers["traceparent"] = traceparent
+        context.log.info(f"Sending traceparent: {traceparent}")
+
+    try:
+        context.log.info(f"Calling webhook: {webhook_url}")
+        response = requests.post(webhook_url, headers=headers, timeout=30)
+        response.raise_for_status()
+        context.log.info(
+            f"Successfully notified Lana system. Response: {response.status_code}"
+        )
+    except requests.exceptions.RequestException as e:
+        context.log.error(f"Failed to notify Lana system: {e}")
+        raise
 
     context.add_output_metadata(
         {
