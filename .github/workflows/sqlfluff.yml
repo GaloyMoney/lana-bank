@@ -69,8 +69,8 @@ jobs:
         run: dbt deps
 
       - name: Run sqlfluff (dbt templater)
-        working-directory: meltano/transform
+        working-directory: meltano
         run: |
           dbt --version
           sqlfluff --version
-          sqlfluff lint --templater dbt --dialect bigquery models
+          sqlfluff lint --templater dbt --dialect bigquery transform/models
