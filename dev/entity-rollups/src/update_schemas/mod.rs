@@ -421,8 +421,8 @@ pub fn update_schemas(
             ..Default::default()
         },
         SchemaInfo {
-            name: "LiquidationProcessEvent",
-            filename: "liquidation_process_event_schema.json",
+            name: "LiquidationEvent",
+            filename: "liquidation_event_schema.json",
             toggle_events: vec!["Completed"],
             generate_schema: || serde_json::to_value(schema_for!(LiquidationEvent)).unwrap(),
             ..Default::default()

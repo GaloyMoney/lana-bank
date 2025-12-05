@@ -1,5 +1,5 @@
--- Auto-generated rollup table for LiquidationProcessEvent
-CREATE TABLE core_liquidation_process_events_rollup (
+-- Auto-generated rollup table for LiquidationEvent
+CREATE TABLE core_liquidation_events_rollup (
   id UUID NOT NULL,
   version INT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL,
@@ -24,20 +24,20 @@ CREATE TABLE core_liquidation_process_events_rollup (
   PRIMARY KEY (id, version)
 );
 
--- Auto-generated trigger function for LiquidationProcessEvent
-CREATE OR REPLACE FUNCTION core_liquidation_process_events_rollup_trigger()
+-- Auto-generated trigger function for LiquidationEvent
+CREATE OR REPLACE FUNCTION core_liquidation_events_rollup_trigger()
 RETURNS TRIGGER AS $$
 DECLARE
   event_type TEXT;
-  current_row core_liquidation_process_events_rollup%ROWTYPE;
-  new_row core_liquidation_process_events_rollup%ROWTYPE;
+  current_row core_liquidation_events_rollup%ROWTYPE;
+  new_row core_liquidation_events_rollup%ROWTYPE;
 BEGIN
   event_type := NEW.event_type;
 
   -- Load the previous version if this isn't the first event
   IF NEW.sequence > 1 THEN
     SELECT * INTO current_row
-    FROM core_liquidation_process_events_rollup
+    FROM core_liquidation_events_rollup
     WHERE id = NEW.id AND version = NEW.sequence - 1;
   END IF;
 
@@ -108,7 +108,7 @@ BEGIN
       new_row.payment_id := (NEW.event ->> 'payment_id')::UUID;
   END CASE;
 
-  INSERT INTO core_liquidation_process_events_rollup (
+  INSERT INTO core_liquidation_events_rollup (
     id,
     version,
     created_at,
@@ -151,8 +151,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Auto-generated trigger for LiquidationProcessEvent
-CREATE TRIGGER core_liquidation_process_events_rollup_trigger
-  AFTER INSERT ON core_liquidation_process_events
+-- Auto-generated trigger for LiquidationEvent
+CREATE TRIGGER core_liquidation_events_rollup_trigger
+  AFTER INSERT ON core_liquidation_events
   FOR EACH ROW
-  EXECUTE FUNCTION core_liquidation_process_events_rollup_trigger();
+  EXECUTE FUNCTION core_liquidation_events_rollup_trigger();
