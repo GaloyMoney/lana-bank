@@ -1,32 +1,32 @@
 {{ config(
     materialized = 'incremental',
-    unique_key = ['liquidation_process_id', 'version'],
+    unique_key = ['liquidation_id', 'version'],
 ) }}
 
 
 with source as (
     select s.*
-    from {{ ref('stg_core_liquidation_process_events_rollup') }} as s
+    from {{ ref('stg_core_liquidation_events_rollup') }} as s
 
     {% if is_incremental() %}
-        left join {{ this }} as t using (liquidation_process_id, version)
-        where t.liquidation_process_id is null
+        left join {{ this }} as t using (liquidation_id, version)
+        where t.liquidation_id is null
     {% endif %}
 ),
 
 transformed as (
     select
-        liquidation_process_id,
+        liquidation_id,
         credit_facility_id,
 
         cast(effective as timestamp) as effective,
         is_completed,
         cast(initial_amount as numeric) / {{ var('cents_per_usd') }} as initial_amount_usd,
-        created_at as liquidation_process_created_at,
-        modified_at as liquidation_process_modified_at,
+        created_at as liquidation_created_at,
+        modified_at as liquidation_modified_at,
 
         * except (
-            liquidation_process_id,
+            liquidation_id,
             credit_facility_id,
 
             effective,
