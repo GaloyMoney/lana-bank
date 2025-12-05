@@ -65,8 +65,6 @@ async fn seed_chart_of_accounts(
         deposit_config_path,
         balance_sheet_config_path,
         profit_and_loss_config_path,
-
-        chart_of_accounts_opening_date: _,
     } = accounting_init_config;
 
     let data = match seed_path {
