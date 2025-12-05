@@ -1,20 +1,25 @@
 mod closing;
 pub mod error;
-
-use tracing::instrument;
+mod template;
 
 use cala_ledger::{
-    AccountSetId, CalaLedger, DebitOrCredit, JournalId, LedgerOperation, VelocityControlId,
-    VelocityLimitId,
-    account_set::{AccountSetUpdate, NewAccountSet},
+    AccountId, AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId,
+    LedgerOperation, VelocityControlId, VelocityLimitId,
+    account::{Account, NewAccount},
+    account_set::{AccountSetMemberId, AccountSetUpdate, NewAccountSet},
     velocity::{NewBalanceLimit, NewLimit, NewVelocityControl, NewVelocityLimit, Params},
 };
+use chrono::NaiveDate;
+use es_entity::{PaginatedQueryArgs, PaginatedQueryRet};
+use rust_decimal::Decimal;
+use tracing::instrument;
 use tracing_macros::record_error_severity;
 
 use closing::*;
 use error::*;
+use template::*;
 
-use crate::Chart;
+use crate::{Chart, primitives::CalaTxId};
 
 #[derive(Clone)]
 pub struct ChartLedger {
@@ -315,5 +320,210 @@ impl ChartLedger {
             credit_settled: credit_settled_limit,
             credit_pending: credit_pending_limit,
         })
+    }
+
+    
+    #[record_error_severity]
+    #[instrument(name = "chart_ledger.post_closing_transaction_in_op", skip(self, op))]
+    pub async fn post_closing_transaction_in_op(
+        &self,
+        op: es_entity::DbOp<'_>,
+        ledger_tx_id: CalaTxId,
+        description: Option<String>,
+        opened_as_of: NaiveDate,
+        closed_as_of: NaiveDate,
+        revenue_account_set_id: AccountSetId,
+        cost_of_revenue_account_set_id: AccountSetId,
+        expenses_account_set_id: AccountSetId,
+        equity_retained_earnings_account_set_id: AccountSetId,
+        equity_retained_losses_account_set_id: AccountSetId,
+    ) -> Result<(), ChartLedgerError> {
+        let (net_income, mut closing_entries) = self
+            .get_closing_account_entry_params(
+                revenue_account_set_id,
+                cost_of_revenue_account_set_id,
+                expenses_account_set_id,
+                opened_as_of,
+                closed_as_of,
+            )
+            .await?
+            .to_closing_entries();
+        let mut op = self
+            .cala
+            .ledger_operation_from_db_op(op.with_db_time().await?);
+        let equity_entry = self
+            .create_equity_entry(
+                &mut op,
+                equity_retained_earnings_account_set_id,
+                equity_retained_losses_account_set_id,
+                net_income,
+            )
+            .await?;
+        closing_entries.push(equity_entry);
+        let closing_transaction_params = ClosingTransactionParams::new(
+            self.journal_id,
+            description.unwrap_or("Annual Closing".to_string()),
+            closed_as_of,
+            closing_entries,
+        );
+        let template = ClosingTransactionTemplate::init(
+            &self.cala,
+            closing_transaction_params.closing_entries.len(),
+            "Fiscal Year Reference".to_string(),
+        )
+        .await?;
+        self.cala
+            .post_transaction_in_op(
+                &mut op,
+                ledger_tx_id,
+                &template.code(),
+                closing_transaction_params,
+            )
+            .await?;
+
+        Ok(())
+    }
+
+    async fn get_closing_account_entry_params(
+        &self,
+        revenue_account_set_id: AccountSetId,
+        cost_of_revenue_account_set_id: AccountSetId,
+        expenses_account_set_id: AccountSetId,
+        from: NaiveDate,
+        until: NaiveDate,
+    ) -> Result<ClosingAccountBalances, ChartLedgerError> {
+        let revenue_accounts = self
+            .find_all_accounts_by_parent_set_id(revenue_account_set_id)
+            .await?;
+        let expense_accounts = self
+            .find_all_accounts_by_parent_set_id(expenses_account_set_id)
+            .await?;
+        let cost_of_revenue_accounts = self
+            .find_all_accounts_by_parent_set_id(cost_of_revenue_account_set_id)
+            .await?;
+
+        let revenue_account_balances = self
+            .cala
+            .balances()
+            .effective()
+            .find_all_in_range(&revenue_accounts, from, Some(until))
+            .await?;
+        let cost_of_revenue_account_balances = self
+            .cala
+            .balances()
+            .effective()
+            .find_all_in_range(&cost_of_revenue_accounts, from, Some(until))
+            .await?;
+        let expenses_account_balances = self
+            .cala
+            .balances()
+            .effective()
+            .find_all_in_range(&expense_accounts, from, Some(until))
+            .await?;
+
+        Ok(ClosingAccountBalances {
+            revenue: revenue_account_balances,
+            cost_of_revenue: cost_of_revenue_account_balances,
+            expenses: expenses_account_balances,
+        })
+    }
+
+    async fn find_all_accounts_by_parent_set_id(
+        &self,
+        parent_set_id: AccountSetId,
+    ) -> Result<Vec<BalanceId>, ChartLedgerError> {
+        let mut accounts: Vec<BalanceId> = Vec::new();
+
+        let mut has_next_page = true;
+        let mut after = None;
+
+        while has_next_page {
+            let PaginatedQueryRet {
+                entities,
+                has_next_page: next_page,
+                end_cursor,
+            } = self
+                .cala
+                .account_sets()
+                .list_members_by_created_at(parent_set_id, PaginatedQueryArgs { first: 100, after })
+                .await?;
+
+            after = end_cursor;
+            has_next_page = next_page;
+
+            for member in entities {
+                match member.id {
+                    AccountSetMemberId::Account(account_id) => {
+                        accounts.push((self.journal_id, account_id, Currency::USD));
+                    }
+                    AccountSetMemberId::AccountSet(account_set_id) => {
+                        let nested_accounts =
+                            Box::pin(self.find_all_accounts_by_parent_set_id(account_set_id))
+                                .await?;
+                        accounts.extend(nested_accounts);
+                    }
+                }
+            }
+        }
+        Ok(accounts)
+    }
+
+    async fn create_equity_entry(
+        &self,
+        op: &mut LedgerOperation<'_>,
+        equity_retained_earnings_account_set_id: AccountSetId,
+        equity_retained_losses_account_set_id: AccountSetId,
+        net_earnings: Decimal,
+    ) -> Result<ClosingAccountEntry, ChartLedgerError> {
+        let account = if net_earnings >= Decimal::ZERO {
+            self.create_account_in_op(
+                op,
+                DebitOrCredit::Credit,
+                equity_retained_earnings_account_set_id,
+            )
+            .await?
+        } else {
+            self.create_account_in_op(
+                op,
+                DebitOrCredit::Debit,
+                equity_retained_losses_account_set_id,
+            )
+            .await?
+        };
+
+        Ok(ClosingAccountEntry {
+            account_id: account.id.into(),
+            currency: Currency::USD,
+            amount: net_earnings.abs(),
+            direction: account.values().normal_balance_type,
+        })
+    }
+
+    async fn create_account_in_op(
+        &self,
+        op: &mut LedgerOperation<'_>,
+        normal_balance_type: DebitOrCredit,
+        parent_account_set: AccountSetId,
+    ) -> Result<Account, ChartLedgerError> {
+        let id = AccountId::new();
+        // TODO: `name` as input parameter (`FiscalYear` `reference`?)
+        let new_ledger_account = NewAccount::builder()
+            .id(id)
+            .name("Retained Earnings")
+            .code(id.to_string())
+            .normal_balance_type(normal_balance_type)
+            .build()
+            .expect("Could not build new account for annual close net income transfer entry");
+        let ledger_account = self
+            .cala
+            .accounts()
+            .create_in_op(op, new_ledger_account)
+            .await?;
+        self.cala
+            .account_sets()
+            .add_member_in_op(op, parent_account_set, ledger_account.id)
+            .await?;
+
+        Ok(ledger_account)
     }
 }
