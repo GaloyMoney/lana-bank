@@ -1,9 +1,10 @@
 use serde::{Serialize, de::DeserializeOwned};
 use sqlx::PgPool;
+use tracing_macros::record_error_severity;
 
 use std::collections::VecDeque;
 
-use super::event::*;
+use super::{error::*, event::*};
 
 pub(super) struct OutboxRepo<P>
 where
@@ -36,12 +37,9 @@ where
         }
     }
 
-    #[tracing::instrument(
-        name = "outbox_lana.highest_known_sequence",
-        skip_all,
-        err(level = "warn")
-    )]
-    pub async fn highest_known_sequence(&self) -> Result<EventSequence, sqlx::Error> {
+    #[record_error_severity]
+    #[tracing::instrument(name = "outbox_lana.highest_known_sequence", skip_all)]
+    pub async fn highest_known_sequence(&self) -> Result<EventSequence, OutboxError> {
         let row = sqlx::query!(
             r#"SELECT COALESCE(MAX(sequence), 0) AS "max!" FROM persistent_outbox_events"#
         )
@@ -50,12 +48,13 @@ where
         Ok(EventSequence::from(row.max as u64))
     }
 
-    #[tracing::instrument(name = "outbox_lana.persist_events", skip_all, err(level = "warn"))]
+    #[record_error_severity]
+    #[tracing::instrument(name = "outbox_lana.persist_events", skip_all)]
     pub async fn persist_events(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         events: impl Iterator<Item = P>,
-    ) -> Result<Vec<PersistentOutboxEvent<P>>, sqlx::Error> {
+    ) -> Result<Vec<PersistentOutboxEvent<P>>, OutboxError> {
         let mut payloads = Vec::new();
         let serialized_events = events
             .map(|e| {
@@ -101,16 +100,13 @@ where
         Ok(events)
     }
 
-    #[tracing::instrument(
-        name = "outbox_lana.persist_ephemeral_event",
-        skip_all,
-        err(level = "warn")
-    )]
+    #[record_error_severity]
+    #[tracing::instrument(name = "outbox_lana.persist_ephemeral_event", skip_all)]
     pub async fn persist_ephemeral_event(
         &self,
         event_type: EphemeralEventType,
         payload: P,
-    ) -> Result<EphemeralOutboxEvent<P>, sqlx::Error> {
+    ) -> Result<EphemeralOutboxEvent<P>, OutboxError> {
         let serialized_payload =
             serde_json::to_value(&payload).expect("Could not serialize payload");
         let tracing_context = tracing_utils::persistence::extract();
@@ -142,12 +138,9 @@ where
         })
     }
 
-    #[tracing::instrument(
-        name = "outbox_lana.load_ephemeral_events",
-        skip_all,
-        err(level = "warn")
-    )]
-    pub async fn load_ephemeral_events(&self) -> Result<VecDeque<OutboxEvent<P>>, sqlx::Error> {
+    #[record_error_severity]
+    #[tracing::instrument(name = "outbox_lana.load_ephemeral_events", skip_all)]
+    pub async fn load_ephemeral_events(&self) -> Result<VecDeque<OutboxEvent<P>>, OutboxError> {
         let rows = sqlx::query!(
             r#"
             SELECT event_type, payload, tracing_context, recorded_at
@@ -178,12 +171,13 @@ where
         Ok(events)
     }
 
-    #[tracing::instrument(name = "outbox_lana.load_next_page", skip_all, err(level = "warn"))]
+    #[record_error_severity]
+    #[tracing::instrument(name = "outbox_lana.load_next_page", skip_all)]
     pub async fn load_next_page(
         &self,
         from_sequence: EventSequence,
         buffer_size: usize,
-    ) -> Result<Vec<PersistentOutboxEvent<P>>, sqlx::Error> {
+    ) -> Result<Vec<PersistentOutboxEvent<P>>, OutboxError> {
         let rows = sqlx::query!(
             r#"
             WITH max_sequence AS (

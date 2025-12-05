@@ -1,6 +1,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+pub mod error;
 mod event;
 mod listener;
 mod repo;
@@ -9,12 +10,14 @@ use futures::{StreamExt, stream::BoxStream};
 use serde::{Serialize, de::DeserializeOwned};
 use sqlx::{PgPool, postgres::PgListener};
 use tokio::sync::broadcast;
+use tracing_macros::record_error_severity;
 
 use std::sync::{
     Arc,
     atomic::{AtomicU64, Ordering},
 };
 
+use error::*;
 pub use event::*;
 pub use listener::*;
 use repo::*;
@@ -51,8 +54,9 @@ impl<P> Outbox<P>
 where
     P: Serialize + DeserializeOwned + Send + Sync + 'static + Unpin,
 {
-    #[tracing::instrument(name = "outbox.init", skip(pool), fields(highest_sequence = tracing::field::Empty), err)]
-    pub async fn init(pool: &PgPool) -> Result<Self, sqlx::Error> {
+    #[record_error_severity]
+    #[tracing::instrument(name = "outbox.init", skip(pool), fields(highest_sequence = tracing::field::Empty))]
+    pub async fn init(pool: &PgPool) -> Result<Self, OutboxError> {
         let buffer_size = DEFAULT_BUFFER_SIZE;
         let (sender, recv) = broadcast::channel(buffer_size);
         let repo = OutboxRepo::new(pool);
@@ -72,21 +76,23 @@ where
         })
     }
 
-    #[tracing::instrument(name = "outbox.publish_persisted", skip_all, err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "outbox.publish_persisted", skip_all)]
     pub async fn publish_persisted(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         event: impl Into<P>,
-    ) -> Result<(), sqlx::Error> {
+    ) -> Result<(), OutboxError> {
         self.publish_all_persisted(op, std::iter::once(event)).await
     }
 
-    #[tracing::instrument(name = "outbox.publish_all_persisted", skip_all, err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "outbox.publish_all_persisted", skip_all)]
     pub async fn publish_all_persisted(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         events: impl IntoIterator<Item = impl Into<P>>,
-    ) -> Result<(), sqlx::Error> {
+    ) -> Result<(), OutboxError> {
         let _ = self
             .repo
             .persist_events(op, events.into_iter().map(Into::into))
@@ -94,23 +100,25 @@ where
         Ok(())
     }
 
-    #[tracing::instrument(name = "outbox.publish_ephemeral", skip_all, err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "outbox.publish_ephemeral", skip_all)]
     pub async fn publish_ephemeral(
         &self,
         event_type: EphemeralEventType,
         event: impl Into<P>,
-    ) -> Result<(), sqlx::Error> {
+    ) -> Result<(), OutboxError> {
         self.repo
             .persist_ephemeral_event(event_type, event.into())
             .await?;
         Ok(())
     }
 
-    #[tracing::instrument(name = "outbox.listen_all", skip(self), fields(start_after = ?start_after, latest_known = tracing::field::Empty), err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "outbox.listen_all", skip(self), fields(start_after = ?start_after, latest_known = tracing::field::Empty))]
     pub async fn listen_all(
         &self,
         start_after: Option<EventSequence>,
-    ) -> Result<OutboxListener<P>, sqlx::Error> {
+    ) -> Result<OutboxListener<P>, OutboxError> {
         let sub = self.event_receiver.resubscribe();
         let latest_known = EventSequence::from(self.highest_known_sequence.load(Ordering::Relaxed));
         tracing::Span::current().record("latest_known", u64::from(latest_known));
@@ -127,11 +135,11 @@ where
         ))
     }
 
-    #[tracing::instrument(name = "outbox.listen_persisted", skip(self), fields(start_after = ?start_after), err)]
+    #[tracing::instrument(name = "outbox.listen_persisted", skip(self), fields(start_after = ?start_after))]
     pub async fn listen_persisted(
         &self,
         start_after: Option<EventSequence>,
-    ) -> Result<BoxStream<'_, Arc<PersistentOutboxEvent<P>>>, sqlx::Error> {
+    ) -> Result<BoxStream<'_, Arc<PersistentOutboxEvent<P>>>, OutboxError> {
         let listener = self.listen_all(start_after).await?;
         Ok(Box::pin(listener.filter_map(|event| async move {
             match event {
@@ -141,10 +149,10 @@ where
         })))
     }
 
-    #[tracing::instrument(name = "outbox.listen_ephemeral", skip(self), err)]
+    #[tracing::instrument(name = "outbox.listen_ephemeral", skip(self))]
     pub async fn listen_ephemeral(
         &self,
-    ) -> Result<BoxStream<'_, Arc<EphemeralOutboxEvent<P>>>, sqlx::Error> {
+    ) -> Result<BoxStream<'_, Arc<EphemeralOutboxEvent<P>>>, OutboxError> {
         let listener = self.listen_all(None).await?;
         Ok(Box::pin(listener.filter_map(|event| async move {
             match event {
@@ -154,12 +162,13 @@ where
         })))
     }
 
-    #[tracing::instrument(name = "outbox.spawn_pg_listener", skip_all, err)]
+    #[record_error_severity]
+    #[tracing::instrument(name = "outbox.spawn_pg_listener", skip_all)]
     async fn spawn_pg_listeners(
         pool: &PgPool,
         sender: broadcast::Sender<OutboxEvent<P>>,
         highest_known_sequence: Arc<AtomicU64>,
-    ) -> Result<(), sqlx::Error> {
+    ) -> Result<(), OutboxError> {
         let mut listener = PgListener::connect_with(pool).await?;
         listener.listen("persistent_outbox_events").await?;
         let persistent_sender = sender.clone();

@@ -9,7 +9,7 @@ use std::{
     task::Poll,
 };
 
-use super::{event::*, repo::*};
+use super::{error::*, event::*, repo::*};
 
 pub struct OutboxListener<P>
 where
@@ -22,7 +22,7 @@ where
     buffer_size: usize,
     sequenced_cache: BTreeMap<EventSequence, OutboxEvent<P>>,
     return_queue: VecDeque<OutboxEvent<P>>,
-    next_page_handle: Option<JoinHandle<Result<Vec<PersistentOutboxEvent<P>>, sqlx::Error>>>,
+    next_page_handle: Option<JoinHandle<Result<Vec<PersistentOutboxEvent<P>>, OutboxError>>>,
 }
 
 impl<P> OutboxListener<P>
