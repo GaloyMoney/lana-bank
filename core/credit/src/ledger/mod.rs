@@ -25,7 +25,6 @@ use crate::{
     COLLATERAL_ENTITY_TYPE, ChartOfAccountsIntegrationConfig, CollateralId, FacilityDurationType,
     Obligation, ObligationDefaultedReallocationData, ObligationDueReallocationData,
     ObligationOverdueReallocationData,
-    liquidation_process::LiquidationProcess,
     payment_allocation::PaymentAllocation,
     primitives::{
         CREDIT_FACILITY_ENTITY_TYPE, CREDIT_FACILITY_PROPOSAL_ENTITY_TYPE, CalaAccountId,
@@ -1426,40 +1425,6 @@ impl CreditLedger {
                     amount: outstanding_amount.to_usd(),
                     receivable_account_id,
                     defaulted_account_id,
-                    effective,
-                },
-            )
-            .await?;
-        op.commit().await?;
-        Ok(())
-    }
-
-    pub async fn reserve_for_liquidation(
-        &self,
-        op: es_entity::DbOp<'_>,
-        LiquidationProcess {
-            ledger_tx_id,
-            initial_amount: outstanding,
-            in_liquidation_account_id,
-            effective,
-            ..
-        }: LiquidationProcess,
-    ) -> Result<(), CreditLedgerError> {
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
-        self.cala
-            .post_transaction_in_op(
-                &mut op,
-                ledger_tx_id,
-                templates::RESERVE_FOR_LIQUIDATION_CODE,
-                templates::ReserveForLiquidationParams {
-                    journal_id: self.journal_id,
-                    amount: outstanding.to_usd(),
-                    liquidation_omnibus_account_id: self
-                        .in_liquidation_omnibus_account_ids
-                        .account_id,
-                    facility_liquidation_account_id: in_liquidation_account_id,
                     effective,
                 },
             )

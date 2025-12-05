@@ -449,7 +449,7 @@ sources:
             count: 7
             period: day
 
-      - name: public_core_liquidation_process_events_rollup_view
+      - name: public_core_liquidation_events_rollup_view
         freshness:
           warn_after:
             count: 2

@@ -15,15 +15,22 @@ CREATE TABLE core_credit_facility_events_rollup (
   customer_id UUID,
   customer_type VARCHAR,
   disbursal_credit_account_id UUID,
+  initially_estimated_to_liquidate BIGINT,
+  initially_expected_to_receive BIGINT,
   interest_accrual_cycle_idx INTEGER,
   interest_period JSONB,
+  liquidated BIGINT,
+  liquidation_id UUID,
   maturity_date VARCHAR,
   outstanding JSONB,
   pending_credit_facility_id UUID,
   price JSONB,
   public_id VARCHAR,
+  receivable_account_id UUID,
+  received BIGINT,
   structuring_fee_tx_id UUID,
   terms JSONB,
+  trigger_price JSONB,
 
   -- Collection rollups
   interest_accrual_ids UUID[],
@@ -55,7 +62,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'interest_accrual_cycle_started', 'interest_accrual_cycle_concluded', 'collateralization_state_changed', 'collateralization_ratio_changed', 'matured', 'completed', 'activated') THEN
+  IF event_type NOT IN ('initialized', 'interest_accrual_cycle_started', 'interest_accrual_cycle_concluded', 'collateralization_state_changed', 'collateralization_ratio_changed', 'partial_liquidation_initiated', 'partial_liquidation_completed', 'matured', 'completed', 'activated') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -77,6 +84,8 @@ BEGIN
     new_row.customer_id := (NEW.event ->> 'customer_id')::UUID;
     new_row.customer_type := (NEW.event ->> 'customer_type');
     new_row.disbursal_credit_account_id := (NEW.event ->> 'disbursal_credit_account_id')::UUID;
+    new_row.initially_estimated_to_liquidate := (NEW.event ->> 'initially_estimated_to_liquidate')::BIGINT;
+    new_row.initially_expected_to_receive := (NEW.event ->> 'initially_expected_to_receive')::BIGINT;
     new_row.interest_accrual_cycle_idx := (NEW.event ->> 'interest_accrual_cycle_idx')::INTEGER;
     new_row.interest_accrual_ids := CASE
        WHEN NEW.event ? 'interest_accrual_ids' THEN
@@ -93,6 +102,8 @@ BEGIN
        ELSE ARRAY[]::UUID[]
      END
 ;
+    new_row.liquidated := (NEW.event ->> 'liquidated')::BIGINT;
+    new_row.liquidation_id := (NEW.event ->> 'liquidation_id')::UUID;
     new_row.maturity_date := (NEW.event ->> 'maturity_date');
     new_row.obligation_ids := CASE
        WHEN NEW.event ? 'obligation_ids' THEN
@@ -104,8 +115,11 @@ BEGIN
     new_row.pending_credit_facility_id := (NEW.event ->> 'pending_credit_facility_id')::UUID;
     new_row.price := (NEW.event -> 'price');
     new_row.public_id := (NEW.event ->> 'public_id');
+    new_row.receivable_account_id := (NEW.event ->> 'receivable_account_id')::UUID;
+    new_row.received := (NEW.event ->> 'received')::BIGINT;
     new_row.structuring_fee_tx_id := (NEW.event ->> 'structuring_fee_tx_id')::UUID;
     new_row.terms := (NEW.event -> 'terms');
+    new_row.trigger_price := (NEW.event -> 'trigger_price');
   ELSE
     -- Default all fields to current values
     new_row.account_ids := current_row.account_ids;
@@ -118,20 +132,27 @@ BEGIN
     new_row.customer_id := current_row.customer_id;
     new_row.customer_type := current_row.customer_type;
     new_row.disbursal_credit_account_id := current_row.disbursal_credit_account_id;
+    new_row.initially_estimated_to_liquidate := current_row.initially_estimated_to_liquidate;
+    new_row.initially_expected_to_receive := current_row.initially_expected_to_receive;
     new_row.interest_accrual_cycle_idx := current_row.interest_accrual_cycle_idx;
     new_row.interest_accrual_ids := current_row.interest_accrual_ids;
     new_row.interest_period := current_row.interest_period;
     new_row.is_completed := current_row.is_completed;
     new_row.is_matured := current_row.is_matured;
     new_row.ledger_tx_ids := current_row.ledger_tx_ids;
+    new_row.liquidated := current_row.liquidated;
+    new_row.liquidation_id := current_row.liquidation_id;
     new_row.maturity_date := current_row.maturity_date;
     new_row.obligation_ids := current_row.obligation_ids;
     new_row.outstanding := current_row.outstanding;
     new_row.pending_credit_facility_id := current_row.pending_credit_facility_id;
     new_row.price := current_row.price;
     new_row.public_id := current_row.public_id;
+    new_row.receivable_account_id := current_row.receivable_account_id;
+    new_row.received := current_row.received;
     new_row.structuring_fee_tx_id := current_row.structuring_fee_tx_id;
     new_row.terms := current_row.terms;
+    new_row.trigger_price := current_row.trigger_price;
   END IF;
 
   -- Update only the fields that are modified by the specific event
@@ -165,6 +186,16 @@ BEGIN
       new_row.price := (NEW.event -> 'price');
     WHEN 'collateralization_ratio_changed' THEN
       new_row.collateralization_ratio := (NEW.event -> 'collateralization_ratio');
+    WHEN 'partial_liquidation_initiated' THEN
+      new_row.initially_estimated_to_liquidate := (NEW.event ->> 'initially_estimated_to_liquidate')::BIGINT;
+      new_row.initially_expected_to_receive := (NEW.event ->> 'initially_expected_to_receive')::BIGINT;
+      new_row.liquidation_id := (NEW.event ->> 'liquidation_id')::UUID;
+      new_row.receivable_account_id := (NEW.event ->> 'receivable_account_id')::UUID;
+      new_row.trigger_price := (NEW.event -> 'trigger_price');
+    WHEN 'partial_liquidation_completed' THEN
+      new_row.liquidated := (NEW.event ->> 'liquidated')::BIGINT;
+      new_row.liquidation_id := (NEW.event ->> 'liquidation_id')::UUID;
+      new_row.received := (NEW.event ->> 'received')::BIGINT;
     WHEN 'matured' THEN
       new_row.is_matured := true;
     WHEN 'completed' THEN
@@ -188,20 +219,27 @@ BEGIN
     customer_id,
     customer_type,
     disbursal_credit_account_id,
+    initially_estimated_to_liquidate,
+    initially_expected_to_receive,
     interest_accrual_cycle_idx,
     interest_accrual_ids,
     interest_period,
     is_completed,
     is_matured,
     ledger_tx_ids,
+    liquidated,
+    liquidation_id,
     maturity_date,
     obligation_ids,
     outstanding,
     pending_credit_facility_id,
     price,
     public_id,
+    receivable_account_id,
+    received,
     structuring_fee_tx_id,
-    terms
+    terms,
+    trigger_price
   )
   VALUES (
     new_row.id,
@@ -218,20 +256,27 @@ BEGIN
     new_row.customer_id,
     new_row.customer_type,
     new_row.disbursal_credit_account_id,
+    new_row.initially_estimated_to_liquidate,
+    new_row.initially_expected_to_receive,
     new_row.interest_accrual_cycle_idx,
     new_row.interest_accrual_ids,
     new_row.interest_period,
     new_row.is_completed,
     new_row.is_matured,
     new_row.ledger_tx_ids,
+    new_row.liquidated,
+    new_row.liquidation_id,
     new_row.maturity_date,
     new_row.obligation_ids,
     new_row.outstanding,
     new_row.pending_credit_facility_id,
     new_row.price,
     new_row.public_id,
+    new_row.receivable_account_id,
+    new_row.received,
     new_row.structuring_fee_tx_id,
-    new_row.terms
+    new_row.terms,
+    new_row.trigger_price
   );
 
   RETURN NEW;

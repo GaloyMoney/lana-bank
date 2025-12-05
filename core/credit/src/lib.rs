@@ -13,7 +13,7 @@ mod for_subject;
 mod history;
 mod jobs;
 pub mod ledger;
-mod liquidation_process;
+mod liquidation;
 mod obligation;
 mod payment;
 mod payment_allocation;
@@ -38,6 +38,7 @@ use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Custo
 use core_price::{CorePriceEvent, Price};
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
+use liquidation::Liquidations;
 use outbox::{Outbox, OutboxEventMarker};
 use public_id::PublicIds;
 use tracing::instrument;
@@ -76,9 +77,9 @@ pub mod event_schema {
     pub use crate::{
         TermsTemplateEvent, collateral::CollateralEvent, credit_facility::CreditFacilityEvent,
         credit_facility_proposal::CreditFacilityProposalEvent, disbursal::DisbursalEvent,
-        interest_accrual_cycle::InterestAccrualCycleEvent,
-        liquidation_process::LiquidationProcessEvent, obligation::ObligationEvent,
-        payment::PaymentEvent, payment_allocation::PaymentAllocationEvent,
+        interest_accrual_cycle::InterestAccrualCycleEvent, liquidation::LiquidationEvent,
+        obligation::ObligationEvent, payment::PaymentEvent,
+        payment_allocation::PaymentAllocationEvent,
         pending_credit_facility::PendingCreditFacilityEvent,
     };
 }
@@ -211,6 +212,9 @@ where
             &publisher,
         );
         let obligations_arc = Arc::new(obligations);
+
+        let liquidations = Liquidations::new(pool, &publisher);
+        let liquidations_arc = Arc::new(liquidations);
 
         let credit_facility_proposals = CreditFacilityProposals::init(
             pool,
@@ -377,16 +381,20 @@ where
             jobs,
         ));
         jobs.add_initializer(
-            obligation_liquidation::ObligationLiquidationInit::<Perms, E>::new(
-                ledger_arc.as_ref(),
-                obligations_arc.as_ref(),
-                jobs,
-            ),
-        );
-        jobs.add_initializer(
             obligation_defaulted::ObligationDefaultedInit::<Perms, E>::new(
                 ledger_arc.as_ref(),
                 obligations_arc.as_ref(),
+            ),
+        );
+        jobs.add_initializer(partial_liquidation::PartialLiquidationInit::<E>::new(
+            outbox,
+            liquidations_arc.as_ref(),
+        ));
+        jobs.add_initializer(
+            credit_facility_liquidations::CreditFacilityLiquidationsInit::<E>::new(
+                outbox,
+                jobs,
+                liquidations_arc.as_ref(),
             ),
         );
         jobs.add_initializer(credit_facility_maturity::CreditFacilityMaturityInit::<
@@ -822,6 +830,7 @@ where
 
         Ok(credit_facility)
     }
+
     pub async fn subject_can_record_payment(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

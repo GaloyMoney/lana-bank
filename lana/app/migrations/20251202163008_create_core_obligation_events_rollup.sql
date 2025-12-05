@@ -14,16 +14,13 @@ CREATE TABLE core_obligation_events_rollup (
   due_amount BIGINT,
   due_date VARCHAR,
   effective VARCHAR,
-  in_liquidation_account_id UUID,
-  initial_amount BIGINT,
   liquidation_date JSONB,
-  liquidation_process_id UUID,
   not_yet_due_accounts JSONB,
-  payment_allocation_amount BIGINT,
   obligation_type VARCHAR,
   overdue_accounts JSONB,
   overdue_amount BIGINT,
   overdue_date JSONB,
+  payment_allocation_amount BIGINT,
   payment_id UUID,
   reference VARCHAR,
 
@@ -58,7 +55,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'due_recorded', 'overdue_recorded', 'defaulted_recorded', 'payment_allocated', 'liquidation_process_started', 'liquidation_process_concluded', 'completed') THEN
+  IF event_type NOT IN ('initialized', 'due_recorded', 'overdue_recorded', 'defaulted_recorded', 'payment_allocated', 'completed') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -79,8 +76,6 @@ BEGIN
     new_row.due_amount := (NEW.event ->> 'due_amount')::BIGINT;
     new_row.due_date := (NEW.event ->> 'due_date');
     new_row.effective := (NEW.event ->> 'effective');
-    new_row.in_liquidation_account_id := (NEW.event ->> 'in_liquidation_account_id')::UUID;
-    new_row.initial_amount := (NEW.event ->> 'initial_amount')::BIGINT;
     new_row.is_completed := false;
     new_row.is_defaulted_recorded := false;
     new_row.is_due_recorded := false;
@@ -92,8 +87,11 @@ BEGIN
      END
 ;
     new_row.liquidation_date := (NEW.event -> 'liquidation_date');
-    new_row.liquidation_process_id := (NEW.event ->> 'liquidation_process_id')::UUID;
     new_row.not_yet_due_accounts := (NEW.event -> 'not_yet_due_accounts');
+    new_row.obligation_type := (NEW.event ->> 'obligation_type');
+    new_row.overdue_accounts := (NEW.event -> 'overdue_accounts');
+    new_row.overdue_amount := (NEW.event ->> 'overdue_amount')::BIGINT;
+    new_row.overdue_date := (NEW.event -> 'overdue_date');
     new_row.payment_allocation_amount := (NEW.event ->> 'payment_allocation_amount')::BIGINT;
     new_row.payment_allocation_ids := CASE
        WHEN NEW.event ? 'payment_allocation_ids' THEN
@@ -101,10 +99,6 @@ BEGIN
        ELSE ARRAY[]::UUID[]
      END
 ;
-    new_row.obligation_type := (NEW.event ->> 'obligation_type');
-    new_row.overdue_accounts := (NEW.event -> 'overdue_accounts');
-    new_row.overdue_amount := (NEW.event ->> 'overdue_amount')::BIGINT;
-    new_row.overdue_date := (NEW.event -> 'overdue_date');
     new_row.payment_id := (NEW.event ->> 'payment_id')::UUID;
     new_row.reference := (NEW.event ->> 'reference');
   ELSE
@@ -118,22 +112,19 @@ BEGIN
     new_row.due_amount := current_row.due_amount;
     new_row.due_date := current_row.due_date;
     new_row.effective := current_row.effective;
-    new_row.in_liquidation_account_id := current_row.in_liquidation_account_id;
-    new_row.initial_amount := current_row.initial_amount;
     new_row.is_completed := current_row.is_completed;
     new_row.is_defaulted_recorded := current_row.is_defaulted_recorded;
     new_row.is_due_recorded := current_row.is_due_recorded;
     new_row.is_overdue_recorded := current_row.is_overdue_recorded;
     new_row.ledger_tx_ids := current_row.ledger_tx_ids;
     new_row.liquidation_date := current_row.liquidation_date;
-    new_row.liquidation_process_id := current_row.liquidation_process_id;
     new_row.not_yet_due_accounts := current_row.not_yet_due_accounts;
-    new_row.payment_allocation_amount := current_row.payment_allocation_amount;
-    new_row.payment_allocation_ids := current_row.payment_allocation_ids;
     new_row.obligation_type := current_row.obligation_type;
     new_row.overdue_accounts := current_row.overdue_accounts;
     new_row.overdue_amount := current_row.overdue_amount;
     new_row.overdue_date := current_row.overdue_date;
+    new_row.payment_allocation_amount := current_row.payment_allocation_amount;
+    new_row.payment_allocation_ids := current_row.payment_allocation_ids;
     new_row.payment_id := current_row.payment_id;
     new_row.reference := current_row.reference;
   END IF;
@@ -148,7 +139,6 @@ BEGIN
       new_row.due_accounts := (NEW.event -> 'due_accounts');
       new_row.due_date := (NEW.event ->> 'due_date');
       new_row.effective := (NEW.event ->> 'effective');
-      new_row.in_liquidation_account_id := (NEW.event ->> 'in_liquidation_account_id')::UUID;
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
       new_row.liquidation_date := (NEW.event -> 'liquidation_date');
       new_row.not_yet_due_accounts := (NEW.event -> 'not_yet_due_accounts');
@@ -173,12 +163,6 @@ BEGIN
       new_row.payment_allocation_amount := (NEW.event ->> 'payment_allocation_amount')::BIGINT;
       new_row.payment_allocation_ids := array_append(COALESCE(current_row.payment_allocation_ids, ARRAY[]::UUID[]), (NEW.event ->> 'payment_allocation_id')::UUID);
       new_row.payment_id := (NEW.event ->> 'payment_id')::UUID;
-    WHEN 'liquidation_process_started' THEN
-      new_row.effective := (NEW.event ->> 'effective');
-      new_row.initial_amount := (NEW.event ->> 'initial_amount')::BIGINT;
-      new_row.liquidation_process_id := (NEW.event ->> 'liquidation_process_id')::UUID;
-    WHEN 'liquidation_process_concluded' THEN
-      new_row.liquidation_process_id := (NEW.event ->> 'liquidation_process_id')::UUID;
     WHEN 'completed' THEN
       new_row.effective := (NEW.event ->> 'effective');
       new_row.is_completed := true;
@@ -198,22 +182,19 @@ BEGIN
     due_amount,
     due_date,
     effective,
-    in_liquidation_account_id,
-    initial_amount,
     is_completed,
     is_defaulted_recorded,
     is_due_recorded,
     is_overdue_recorded,
     ledger_tx_ids,
     liquidation_date,
-    liquidation_process_id,
     not_yet_due_accounts,
-    payment_allocation_amount,
-    payment_allocation_ids,
     obligation_type,
     overdue_accounts,
     overdue_amount,
     overdue_date,
+    payment_allocation_amount,
+    payment_allocation_ids,
     payment_id,
     reference
   )
@@ -231,22 +212,19 @@ BEGIN
     new_row.due_amount,
     new_row.due_date,
     new_row.effective,
-    new_row.in_liquidation_account_id,
-    new_row.initial_amount,
     new_row.is_completed,
     new_row.is_defaulted_recorded,
     new_row.is_due_recorded,
     new_row.is_overdue_recorded,
     new_row.ledger_tx_ids,
     new_row.liquidation_date,
-    new_row.liquidation_process_id,
     new_row.not_yet_due_accounts,
-    new_row.payment_allocation_amount,
-    new_row.payment_allocation_ids,
     new_row.obligation_type,
     new_row.overdue_accounts,
     new_row.overdue_amount,
     new_row.overdue_date,
+    new_row.payment_allocation_amount,
+    new_row.payment_allocation_ids,
     new_row.payment_id,
     new_row.reference
   );

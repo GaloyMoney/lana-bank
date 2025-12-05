@@ -117,18 +117,23 @@ pub enum CoreCreditEvent {
         id: ObligationId,
         credit_facility_id: CreditFacilityId,
     },
-    LiquidationProcessStarted {
-        id: LiquidationProcessId,
-        obligation_id: ObligationId,
+    PartialLiquidationInitiated {
+        liquidation_id: LiquidationId,
         credit_facility_id: CreditFacilityId,
-        ledger_tx_id: LedgerTxId,
-        amount: UsdCents,
-        recorded_at: DateTime<Utc>,
-        effective: chrono::NaiveDate,
+        receivable_account_id: CalaAccountId,
+        trigger_price: PriceOfOneBTC,
+        initially_expected_to_receive: UsdCents,
+        initially_estimated_to_liquidate: Satoshis,
     },
-    LiquidationProcessConcluded {
-        id: LiquidationProcessId,
-        obligation_id: ObligationId,
+    PartialLiquidationRepaymentAmountReceived {
+        liquidation_id: LiquidationId,
         credit_facility_id: CreditFacilityId,
+        amount: UsdCents,
+        ledger_tx_id: LedgerTxId,
+    },
+    PartialLiquidationCompleted {
+        liquidation_id: LiquidationId,
+        credit_facility_id: CreditFacilityId,
+        payment_id: PaymentId,
     },
 }

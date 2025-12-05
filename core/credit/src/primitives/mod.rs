@@ -1,4 +1,5 @@
 mod cvl;
+mod liquidation_payment;
 
 use chrono::{DateTime, TimeZone, Utc};
 use rust_decimal::Decimal;
@@ -24,6 +25,7 @@ pub use governance::ApprovalProcessId;
 pub use public_id::PublicId;
 
 pub use cvl::*;
+pub use liquidation_payment::LiquidationPayment;
 
 es_entity::entity_id! {
     CreditFacilityProposalId,
@@ -35,7 +37,7 @@ es_entity::entity_id! {
     ChartOfAccountsIntegrationConfigId,
     CollateralId,
     ObligationId,
-    LiquidationProcessId,
+    LiquidationId,
     InterestAccrualCycleId,
     TermsTemplateId,
     FiscalYearId;
@@ -632,6 +634,12 @@ pub enum CollateralizationState {
     #[default]
     NoCollateral,
     NoExposure,
+}
+
+impl CollateralizationState {
+    pub const fn is_under_liquidation_threshold(&self) -> bool {
+        matches!(self, Self::UnderLiquidationThreshold)
+    }
 }
 
 #[derive(

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT id FROM core_liquidation_processes WHERE id = ANY($1)) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $2 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_liquidation_process_events e ON i.id = e.id ORDER BY i.id, e.sequence",
+  "query": "WITH entities AS (\n            SELECT *\n            FROM core_liquidations\n            WHERE credit_facility_id = $1\n              AND completed = false\n            ) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $2 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_liquidation_events e ON i.id = e.id ORDER BY i.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -31,7 +31,7 @@
     ],
     "parameters": {
       "Left": [
-        "UuidArray",
+        "Uuid",
         "Bool"
       ]
     },
@@ -43,5 +43,5 @@
       false
     ]
   },
-  "hash": "7c4d3f99093b146ebeccb1fa4c45f2425a5d5a84d2fff8fbd71daa8dc5d744ad"
+  "hash": "87bd7f5c58ab0bc6ab817f8ca7de37f681f39235ff17fcc49e0a708f923476e9"
 }
