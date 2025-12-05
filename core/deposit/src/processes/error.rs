@@ -21,7 +21,7 @@ es_entity::from_es_entity_error!(ProcessError);
 impl ErrorSeverity for ProcessError {
     fn severity(&self) -> Level {
         match self {
-            Self::EsEntityError(_) => Level::ERROR,
+            Self::EsEntityError(e) => e.severity(),
             Self::GovernanceError(e) => e.severity(),
             Self::Sqlx(_) => Level::ERROR,
             Self::WithdrawalError(e) => e.severity(),

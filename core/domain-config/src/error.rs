@@ -21,7 +21,7 @@ impl ErrorSeverity for DomainConfigError {
         match self {
             Self::Serde(_) => Level::ERROR,
             Self::Sqlx(_) => Level::ERROR,
-            Self::EsEntityError(_) => Level::ERROR,
+            Self::EsEntityError(e) => e.severity(),
             Self::CursorDestructureError(_) => Level::ERROR,
         }
     }

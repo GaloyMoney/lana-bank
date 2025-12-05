@@ -34,7 +34,7 @@ impl ErrorSeverity for CreditFacilityProposalError {
     fn severity(&self) -> Level {
         match self {
             Self::Sqlx(_) => Level::ERROR,
-            Self::EsEntityError(_) => Level::ERROR,
+            Self::EsEntityError(e) => e.severity(),
             Self::CursorDestructureError(_) => Level::ERROR,
             Self::GovernanceError(e) => e.severity(),
             Self::LedgerError(e) => e.severity(),
