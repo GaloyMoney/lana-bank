@@ -16,7 +16,9 @@ with ordered as (
 )
 
 select
-    * except (order_recorded_at_desc),
+    customer_id,
+    recorded_at,
+    content,
     safe.parse_json(content) as parsed_content
 
 from ordered
