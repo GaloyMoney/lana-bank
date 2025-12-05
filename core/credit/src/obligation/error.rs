@@ -33,6 +33,7 @@ impl ErrorSeverity for ObligationError {
         match self {
             Self::AuthorizationError(e) => e.severity(),
             Self::Sqlx(_) => Level::ERROR,
+            Self::EsEntityError(es_entity::EsEntityError::ConcurrentModification) => Level::WARN,
             Self::EsEntityError(_) => Level::ERROR,
             Self::CursorDestructureError(_) => Level::ERROR,
             Self::JobError(_) => Level::ERROR,
