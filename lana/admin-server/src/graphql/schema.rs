@@ -2212,7 +2212,7 @@ impl Mutation {
             equity_retained_losses_code,
         } = input;
         let config_values = lana_app::fiscal_year::FiscalYearConfig {
-            year_end_month,
+            year_end_month: year_end_month.try_into()?,
             revenue_code: revenue_code.parse()?,
             cost_of_revenue_code: cost_of_revenue_code.parse()?,
             expenses_code: expenses_code.parse()?,

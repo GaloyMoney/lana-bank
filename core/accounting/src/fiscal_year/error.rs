@@ -5,6 +5,8 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
+use super::config;
+
 #[derive(Error, Debug)]
 pub enum FiscalYearError {
     #[error("FiscalYearError - Sqlx: {0}")]
@@ -31,6 +33,8 @@ pub enum FiscalYearError {
     FiscalYearWithInvalidOpenedAsOf(NaiveDate),
     #[error("FiscalYearError - FiscalYearNotConfigured")]
     FiscalYearNotConfigured,
+    #[error("FiscalYearError - YearEndMonthParseError: {0}")]
+    YearEndMonthParseError(#[from] config::YearEndMonthParseError),
 }
 
 es_entity::from_es_entity_error!(FiscalYearError);
@@ -50,6 +54,7 @@ impl ErrorSeverity for FiscalYearError {
             Self::FiscalYearWithInvalidOpenedAsOf(_) => Level::ERROR,
             Self::DomainConfigError(e) => e.severity(),
             Self::FiscalYearNotConfigured => Level::ERROR,
+            Self::YearEndMonthParseError(e) => e.severity(),
         }
     }
 }

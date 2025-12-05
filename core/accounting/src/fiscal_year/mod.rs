@@ -17,7 +17,8 @@ use crate::{
     primitives::{ChartId, CoreAccountingAction, CoreAccountingObject},
 };
 
-pub use config::FiscalYearConfig;
+pub use config::{FiscalYearConfig, YearEndMonth};
+
 #[cfg(feature = "json-schema")]
 pub use entity::FiscalYearEvent;
 pub(super) use entity::*;
