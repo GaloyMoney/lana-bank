@@ -19,7 +19,6 @@ transformed as (
         liquidation_id,
         credit_facility_id,
 
-        cast(effective as timestamp) as effective,
         is_completed,
         cast(initial_amount as numeric) / {{ var('cents_per_usd') }} as initial_amount_usd,
         created_at as liquidation_created_at,
@@ -29,7 +28,6 @@ transformed as (
             liquidation_id,
             credit_facility_id,
 
-            effective,
             is_completed,
             initial_amount,
             created_at,
