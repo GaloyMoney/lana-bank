@@ -42,7 +42,6 @@ pub struct AppConfig {
 #[derive(Clone, Default, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct AccountingInitConfig {
-    pub chart_of_accounts_opening_date: Option<chrono::NaiveDate>,
     #[serde(default)]
     pub chart_of_accounts_seed_path: Option<PathBuf>,
     #[serde(default)]

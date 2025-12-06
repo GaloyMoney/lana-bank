@@ -36,7 +36,6 @@ app:
       realm: customer
     activity_update_job_interval: 86400
   accounting_init:
-    chart_of_accounts_opening_date: null
     chart_of_accounts_seed_path: null
     deposit_config_path: null
     credit_config_path: null

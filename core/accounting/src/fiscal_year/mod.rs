@@ -1,3 +1,4 @@
+mod config;
 mod entity;
 pub mod error;
 mod repo;
@@ -7,6 +8,7 @@ use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use domain_config::{DomainConfigError, DomainConfigs};
 use es_entity::{Idempotent, PaginatedQueryArgs};
 use tracing_macros::record_error_severity;
 
@@ -15,6 +17,8 @@ use crate::{
     chart_of_accounts::ChartOfAccounts,
     primitives::{ChartId, CoreAccountingAction, CoreAccountingObject},
 };
+
+pub use config::{FiscalYearConfig, YearEndMonth};
 
 #[cfg(feature = "json-schema")]
 pub use entity::FiscalYearEvent;
@@ -30,6 +34,7 @@ where
     repo: FiscalYearRepo,
     authz: Perms,
     chart_of_accounts: ChartOfAccounts<Perms>,
+    domain_configs: DomainConfigs,
 }
 
 impl<Perms> Clone for FiscalYears<Perms>
@@ -41,6 +46,7 @@ where
             repo: self.repo.clone(),
             authz: self.authz.clone(),
             chart_of_accounts: self.chart_of_accounts.clone(),
+            domain_configs: self.domain_configs.clone(),
         }
     }
 }
@@ -54,12 +60,14 @@ where
     pub fn new(
         pool: &sqlx::PgPool,
         authz: &Perms,
+        domain_configs: &DomainConfigs,
         chart_of_accounts: &ChartOfAccounts<Perms>,
     ) -> Self {
         Self {
             repo: FiscalYearRepo::new(pool),
             authz: authz.clone(),
             chart_of_accounts: chart_of_accounts.clone(),
+            domain_configs: domain_configs.clone(),
         }
     }
 
@@ -74,6 +82,7 @@ where
         opened_as_of: impl Into<NaiveDate> + std::fmt::Debug,
         chart_id: ChartId,
     ) -> Result<FiscalYear, FiscalYearError> {
+        self.config().await?;
         let opened_as_of = opened_as_of.into();
 
         self.authz
@@ -259,5 +268,63 @@ where
             .await?;
 
         Ok(result.entities.into_iter().next())
+    }
+
+    async fn config(&self) -> Result<FiscalYearConfig, FiscalYearError> {
+        self.domain_configs
+            .get::<FiscalYearConfig>()
+            .await
+            .map_err(|e| match e {
+                DomainConfigError::EsEntityError(es_entity::EsEntityError::NotFound) => {
+                    FiscalYearError::FiscalYearNotConfigured
+                }
+                err => err.into(),
+            })
+    }
+
+    #[instrument(name = "core_accounting.fiscal_year.configure", skip(self), err)]
+    pub async fn configure(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        config: FiscalYearConfig,
+    ) -> Result<FiscalYearConfig, FiscalYearError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_fiscal_years(),
+                CoreAccountingAction::FISCAL_YEAR_CONFIGURE,
+            )
+            .await?;
+        let mut op = self.repo.begin_op().await?;
+        match self.config().await {
+            Ok(_) => {
+                self.domain_configs
+                    .update_in_op(&mut op, config.clone())
+                    .await?;
+            }
+            Err(FiscalYearError::FiscalYearNotConfigured) => {
+                self.domain_configs
+                    .create_in_op(&mut op, config.clone())
+                    .await?;
+            }
+            Err(e) => return Err(e),
+        }
+        op.commit().await?;
+        Ok(config)
+    }
+
+    #[instrument(name = "core_accounting.fiscal_year.get_config", skip(self), err)]
+    pub async fn get_config(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+    ) -> Result<FiscalYearConfig, FiscalYearError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_fiscal_years(),
+                CoreAccountingAction::FISCAL_YEAR_CONFIG_READ,
+            )
+            .await?;
+        self.config().await
     }
 }

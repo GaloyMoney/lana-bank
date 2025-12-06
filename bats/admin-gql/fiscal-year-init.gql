@@ -1,0 +1,9 @@
+mutation FiscalYearInit($input: FiscalYearInitInput!) {
+  fiscalYearInit(input: $input) {
+    fiscalYear {
+      fiscalYearId
+      openedAsOf
+      chartId
+    }
+  }
+}

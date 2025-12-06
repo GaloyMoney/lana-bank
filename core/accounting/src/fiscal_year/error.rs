@@ -1,8 +1,11 @@
 use crate::primitives::ChartId;
 use chrono::NaiveDate;
+use domain_config::error::DomainConfigError;
 use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
+
+use super::config;
 
 #[derive(Error, Debug)]
 pub enum FiscalYearError {
@@ -16,6 +19,8 @@ pub enum FiscalYearError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("FiscalYearError - ChartOfAccountsError: {0}")]
     ChartOfAccountsError(#[from] crate::chart_of_accounts::error::ChartOfAccountsError),
+    #[error("FiscalYearError - DomainConfigError: {0}")]
+    DomainConfigError(#[from] DomainConfigError),
     #[error("FiscalYearError - LastMonthNotClosed")]
     LastMonthNotClosed,
     #[error("FiscalYearError - AllMonthsAlreadyClosed")]
@@ -26,6 +31,10 @@ pub enum FiscalYearError {
     FiscalYearNotInitializedForChart(ChartId),
     #[error("FiscalYearError - FiscalYearWithInvalidOpenedAsOf: {0}")]
     FiscalYearWithInvalidOpenedAsOf(NaiveDate),
+    #[error("FiscalYearError - FiscalYearNotConfigured")]
+    FiscalYearNotConfigured,
+    #[error("FiscalYearError - YearEndMonthParseError: {0}")]
+    YearEndMonthParseError(#[from] config::YearEndMonthParseError),
 }
 
 es_entity::from_es_entity_error!(FiscalYearError);
@@ -43,6 +52,9 @@ impl ErrorSeverity for FiscalYearError {
             Self::AlreadyOpened => Level::ERROR,
             Self::FiscalYearNotInitializedForChart(_) => Level::ERROR,
             Self::FiscalYearWithInvalidOpenedAsOf(_) => Level::ERROR,
+            Self::DomainConfigError(e) => e.severity(),
+            Self::FiscalYearNotConfigured => Level::ERROR,
+            Self::YearEndMonthParseError(e) => e.severity(),
         }
     }
 }

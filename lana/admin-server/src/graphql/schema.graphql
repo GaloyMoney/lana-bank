@@ -1395,6 +1395,28 @@ type FiscalYearInitPayload {
 	fiscalYear: FiscalYear!
 }
 
+type FiscalYearModuleConfig {
+	yearEndMonth: Int
+	revenueCode: String
+	costOfRevenueCode: String
+	expensesCode: String
+	equityRetainedEarningsCode: String
+	equityRetainedLossesCode: String
+}
+
+input FiscalYearModuleConfigureInput {
+	yearEndMonth: Int!
+	revenueCode: String!
+	costOfRevenueCode: String!
+	expensesCode: String!
+	equityRetainedEarningsCode: String!
+	equityRetainedLossesCode: String!
+}
+
+type FiscalYearModuleConfigurePayload {
+	fiscalYearConfig: FiscalYearModuleConfig!
+}
+
 input FiscalYearOpenNextInput {
 	fiscalYearId: UUID!
 }
@@ -1681,6 +1703,7 @@ type Mutation {
 	fiscalYearCloseMonth(input: FiscalYearCloseMonthInput!): FiscalYearCloseMonthPayload!
 	fiscalYearOpenNext(input: FiscalYearOpenNextInput!): FiscalYearOpenNextPayload!
 	fiscalYearClose(input: FiscalYearCloseInput!): FiscalYearClosePayload!
+	fiscalYearModuleConfigure(input: FiscalYearModuleConfigureInput!): FiscalYearModuleConfigurePayload!
 	chartOfAccountsAddRootNode(input: ChartOfAccountsAddRootNodeInput!): ChartOfAccountsAddRootNodePayload!
 	chartOfAccountsAddChildNode(input: ChartOfAccountsAddChildNodeInput!): ChartOfAccountsAddChildNodePayload!
 	balanceSheetConfigure(input: BalanceSheetModuleConfigureInput!): BalanceSheetModuleConfigurePayload!
@@ -1989,6 +2012,7 @@ type Query {
 	chartOfAccounts: ChartOfAccounts!
 	fiscalYear(fiscalYearId: UUID!): FiscalYear
 	fiscalYears(first: Int!, after: String): FiscalYearConnection!
+	fiscalYearModuleConfig: FiscalYearModuleConfig!
 	balanceSheet(from: Date!, until: Date): BalanceSheet!
 	profitAndLossStatement(from: Date!, until: Date): ProfitAndLossStatement!
 	realtimePrice: RealtimePrice!
