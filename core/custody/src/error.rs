@@ -25,7 +25,7 @@ es_entity::from_es_entity_error!(CoreCustodyError);
 impl ErrorSeverity for CoreCustodyError {
     fn severity(&self) -> Level {
         match self {
-            Self::EsEntityError(_) => Level::ERROR,
+            Self::EsEntityError(e) => e.severity(),
             Self::AuthorizationError(e) => e.severity(),
             Self::AuditError(e) => e.severity(),
             Self::Sqlx(_) => Level::ERROR,
