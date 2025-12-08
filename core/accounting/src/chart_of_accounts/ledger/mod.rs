@@ -322,7 +322,6 @@ impl ChartLedger {
         })
     }
 
-    
     #[record_error_severity]
     #[instrument(name = "chart_ledger.post_closing_transaction_in_op", skip(self, op))]
     pub async fn post_closing_transaction_in_op(
