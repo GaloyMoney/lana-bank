@@ -1940,6 +1940,18 @@
       "confirm": "Close Month",
       "success": "Month closed successfully"
     },
+    "closeYear": {
+      "title": "Close Fiscal Year",
+      "description": "This will post a closing transaction, transferring net income for the fiscal year to the balance sheet. The action will reduce your profit and loss statement accounts by their effective balance as of the fiscal year close date.",
+      "confirm": "Close Fiscal Year",
+      "success": "Fiscal year's net income transferred to balance sheet successfully"
+    },
+    "openNextYear": {
+      "title": "Open Next Fiscal Year",
+      "description": "This will create and open the next sequential fiscal year starting immediately after the current one.",
+      "confirm": "Open Next Fiscal Year",
+      "success": "Next fiscal year opened successfully"
+    },
     "details": {
       "title": "Fiscal Year Details",
       "fields": {
@@ -1951,7 +1963,10 @@
         "noMonthsClosed": "No months closed yet"
       },
       "buttons": {
-        "closeMonth": "Close Next Month"
+        "closeMonth": "Close Next Month",
+        "closeYear": "Close Fiscal Year",
+        "openNextYear": "Open Next Fiscal Year",
+        "closeYearDisabledTooltip": "Last month is not closed yet"
       }
     },
     "monthClosures": {
