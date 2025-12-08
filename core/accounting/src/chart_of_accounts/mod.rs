@@ -12,13 +12,14 @@ use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use chrono::NaiveDate;
 use tracing_macros::record_error_severity;
 
 use cala_ledger::{CalaLedger, account::Account};
 
 use crate::primitives::{
     AccountCode, AccountIdOrCode, AccountName, AccountSpec, CalaAccountSetId, CalaJournalId,
-    ChartId, ClosingTxSpec, CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
+    CalaTxId, ChartId, ClosingSpec, CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
 };
 
 #[cfg(feature = "json-schema")]
@@ -311,7 +312,11 @@ where
         mut op: es_entity::DbOp<'_>,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_id: ChartId,
-        closing_tx_spec: ClosingTxSpec,
+        closing_spec: ClosingSpec,
+        description: String,
+        tx_id: CalaTxId,
+        effective_balances_as_of: NaiveDate,
+        effective_balances_from: NaiveDate,
     ) -> Result<(), ChartOfAccountsError> {
         self.authz
             .enforce_permission(
@@ -321,27 +326,26 @@ where
             )
             .await?;
         let mut chart = self.find_by_id(chart_id).await?;
-        let revenue_account_set_id =
-            chart.account_set_id_from_code(&closing_tx_spec.revenue_code)?;
+        let revenue_account_set_id = chart.account_set_id_from_code(&closing_spec.revenue_code)?;
         let cost_of_revenue_account_set_id =
-            chart.account_set_id_from_code(&closing_tx_spec.cost_of_revenue_code)?;
+            chart.account_set_id_from_code(&closing_spec.cost_of_revenue_code)?;
         let expenses_account_set_id =
-            chart.account_set_id_from_code(&closing_tx_spec.expenses_code)?;
+            chart.account_set_id_from_code(&closing_spec.expenses_code)?;
         let equity_retained_earnings_account_set_id =
-            chart.account_set_id_from_code(&closing_tx_spec.equity_retained_earnings_code)?;
+            chart.account_set_id_from_code(&closing_spec.equity_retained_earnings_code)?;
         let equity_retained_losses_account_set_id =
-            chart.account_set_id_from_code(&closing_tx_spec.equity_retained_losses_code)?;
+            chart.account_set_id_from_code(&closing_spec.equity_retained_losses_code)?;
 
-        if let Idempotent::Executed(effective_as_of) = chart
-            .post_closing_tx_with_effective_balances_as_of(closing_tx_spec.effective_balances_until)
+        if let Idempotent::Executed(effective_as_of) =
+            chart.post_closing_tx_with_effective_balances_as_of(effective_balances_as_of)
         {
             self.repo.update_in_op(&mut op, &mut chart).await?;
             self.chart_ledger
                 .post_closing_transaction(
                     op,
-                    closing_tx_spec.tx_id,
-                    closing_tx_spec.description,
-                    closing_tx_spec.effective_balances_from,
+                    tx_id,
+                    description,
+                    effective_balances_from,
                     effective_as_of,
                     revenue_account_set_id,
                     cost_of_revenue_account_set_id,

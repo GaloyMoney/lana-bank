@@ -2182,9 +2182,7 @@ impl Mutation {
             FiscalYear,
             FiscalYearId,
             ctx,
-            app.accounting()
-                .fiscal_year()
-                .close(sub, input.fiscal_year_id)
+            app.accounting().fiscal_year().close(sub, input.try_into()?)
         )
     }
 
