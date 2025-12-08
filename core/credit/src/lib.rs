@@ -392,6 +392,8 @@ where
             partial_liquidation::PartialLiquidationInit::<Perms, E>::new(
                 outbox,
                 liquidations_arc.as_ref(),
+                payments_arc.as_ref(),
+                obligations_arc.as_ref(),
             ),
         );
         jobs.add_initializer_and_spawn_unique(
