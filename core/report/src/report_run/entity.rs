@@ -34,32 +34,26 @@ pub enum ReportRunEvent {
     Initialized {
         id: ReportRunId,
         external_id: String,
-        execution_date: DateTime<Utc>,
         state: ReportRunState,
         run_type: ReportRunType,
+        start_time: Option<DateTime<Utc>>,
     },
     StateUpdated {
-        // API eventually sets the correct execution data from Airflow Run
-        execution_date: DateTime<Utc>,
         state: ReportRunState,
         run_type: ReportRunType,
-        start_date: DateTime<Utc>,
-        end_date: Option<DateTime<Utc>>,
+        start_time: Option<DateTime<Utc>>,
     },
 }
 
-#[derive(EsEntity, Builder)]
+#[derive(EsEntity, Builder, Clone)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct ReportRun {
     pub id: ReportRunId,
     pub external_id: String,
-    pub execution_date: DateTime<Utc>,
     pub state: ReportRunState,
     pub run_type: ReportRunType,
-    #[builder(setter(strip_option), default)]
-    pub start_date: Option<DateTime<Utc>>,
-    #[builder(setter(strip_option), default)]
-    pub end_date: Option<DateTime<Utc>>,
+    #[builder(default)]
+    pub start_time: Option<DateTime<Utc>>,
     events: EntityEvents<ReportRunEvent>,
 }
 
@@ -72,33 +66,26 @@ impl TryFromEvents<ReportRunEvent> for ReportRun {
                 ReportRunEvent::Initialized {
                     id,
                     external_id,
-                    execution_date,
                     state,
                     run_type,
+                    start_time,
                 } => {
                     builder = builder
                         .id(*id)
                         .external_id(external_id.clone())
-                        .execution_date(*execution_date)
                         .state(*state)
                         .run_type(*run_type)
+                        .start_time(*start_time)
                 }
                 ReportRunEvent::StateUpdated {
-                    start_date,
-                    end_date,
-                    execution_date,
                     state,
                     run_type,
+                    start_time,
                 } => {
                     builder = builder
-                        .start_date(*start_date)
-                        .execution_date(*execution_date)
                         .state(*state)
-                        .run_type(*run_type);
-
-                    if let Some(end_date) = end_date {
-                        builder = builder.end_date(*end_date);
-                    }
+                        .run_type(*run_type)
+                        .start_time(*start_time)
                 }
             }
         }
@@ -118,22 +105,16 @@ impl ReportRun {
         &mut self,
         state: ReportRunState,
         run_type: ReportRunType,
-        execution_date: DateTime<Utc>,
-        start_date: DateTime<Utc>,
-        end_date: Option<DateTime<Utc>>,
+        start_time: Option<DateTime<Utc>>,
     ) {
         self.state = state;
         self.run_type = run_type;
-        self.execution_date = execution_date;
-        self.start_date = Some(start_date);
-        self.end_date = end_date;
+        self.start_time = start_time;
 
         self.events.push(ReportRunEvent::StateUpdated {
             state,
             run_type,
-            execution_date,
-            start_date,
-            end_date,
+            start_time,
         });
     }
 }
@@ -145,11 +126,11 @@ pub struct NewReportRun {
     #[builder(setter(into))]
     pub(super) external_id: String,
     #[builder(setter(into))]
-    pub(super) execution_date: DateTime<Utc>,
-    #[builder(setter(into))]
     pub(super) state: ReportRunState,
     #[builder(setter(into))]
     pub(super) run_type: ReportRunType,
+    #[builder(default)]
+    pub(super) start_time: Option<DateTime<Utc>>,
 }
 
 impl NewReportRun {
@@ -158,7 +139,6 @@ impl NewReportRun {
 
         let mut builder = NewReportRunBuilder::default();
         builder.id(report_run_id);
-        builder.execution_date(Utc::now());
         builder.state(ReportRunState::Queued);
         builder.run_type(ReportRunType::Manual);
         builder
@@ -172,9 +152,9 @@ impl IntoEvents<ReportRunEvent> for NewReportRun {
             [ReportRunEvent::Initialized {
                 id: self.id,
                 external_id: self.external_id,
-                execution_date: self.execution_date,
                 state: self.state,
                 run_type: self.run_type,
+                start_time: self.start_time,
             }],
         )
     }

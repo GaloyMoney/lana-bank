@@ -50,7 +50,7 @@ pub struct ReportRun {
     report_run_id: UUID,
     state: ReportRunState,
     run_type: ReportRunType,
-    execution_date: Timestamp,
+    start_time: Option<Timestamp>,
 
     #[graphql(skip)]
     pub entity: Arc<DomainReportRun>,
@@ -63,7 +63,7 @@ impl From<lana_app::report::ReportRun> for ReportRun {
             report_run_id: UUID::from(report_run.id),
             state: ReportRunState::from(report_run.state),
             run_type: ReportRunType::from(report_run.run_type),
-            execution_date: report_run.execution_date.into(),
+            start_time: report_run.start_time.map(|dt| dt.into()),
             entity: Arc::new(report_run),
         }
     }
@@ -71,14 +71,6 @@ impl From<lana_app::report::ReportRun> for ReportRun {
 
 #[ComplexObject]
 impl ReportRun {
-    async fn start_date(&self) -> Option<Timestamp> {
-        self.entity.start_date.map(|dt| dt.into())
-    }
-
-    async fn end_date(&self) -> Option<Timestamp> {
-        self.entity.end_date.map(|dt| dt.into())
-    }
-
     async fn reports(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Report>> {
         let app = ctx.data_unchecked::<lana_app::app::LanaApp>();
         let sub = &ctx
@@ -96,12 +88,5 @@ impl ReportRun {
 
 #[derive(SimpleObject)]
 pub struct ReportRunCreatePayload {
-    pub job_id: String,
-}
-impl From<lana_app::job::JobId> for ReportRunCreatePayload {
-    fn from(job_id: lana_app::job::JobId) -> Self {
-        ReportRunCreatePayload {
-            job_id: job_id.to_string(),
-        }
-    }
+    pub run_id: Option<String>,
 }
