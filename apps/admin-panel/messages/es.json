@@ -1943,14 +1943,12 @@
     "closeYear": {
       "title": "Cerrar Año Fiscal",
       "description": "Esto cerrará el año fiscal y bloqueará todos los períodos restantes. La acción es permanente y no se podrán registrar transacciones adicionales.",
-      "cancel": "Cancelar",
       "confirm": "Cerrar Año Fiscal",
       "success": "Año fiscal cerrado exitosamente"
     },
     "openNextYear": {
       "title": "Abrir Próximo Año Fiscal",
       "description": "Esto creará y abrirá el siguiente año fiscal secuencial que inicia inmediatamente después del actual.",
-      "cancel": "Cancelar",
       "confirm": "Abrir Próximo Año Fiscal",
       "success": "Próximo año fiscal abierto exitosamente"
     },

@@ -91,7 +91,7 @@ export function CloseYearDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {t("cancel")}
+            {tCommon("cancel")}
           </Button>
           <Button variant="destructive" onClick={handleCloseYear} loading={loading}>
             {t("confirm")}

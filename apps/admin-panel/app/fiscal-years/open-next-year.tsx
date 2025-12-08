@@ -96,7 +96,7 @@ export function OpenNextYearDialog({
         {error && <p className="text-destructive text-sm">{error}</p>}
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {t("cancel")}
+            {tCommon("cancel")}
           </Button>
           <Button onClick={handleOpenNextYear} loading={loading}>
             {t("confirm")}
