@@ -9,7 +9,7 @@ use core_accounting::event_schema::{
 };
 use core_credit::event_schema::{
     CollateralEvent, CreditFacilityEvent, CreditFacilityProposalEvent, DisbursalEvent,
-    InterestAccrualCycleEvent, LiquidationProcessEvent, ObligationEvent, PaymentAllocationEvent,
+    InterestAccrualCycleEvent, LiquidationEvent, ObligationEvent, PaymentAllocationEvent,
     PaymentEvent, PendingCreditFacilityEvent, TermsTemplateEvent,
 };
 use core_custody::event_schema::{CustodianEvent, WalletEvent};
@@ -425,10 +425,10 @@ pub fn update_schemas(
             ..Default::default()
         },
         SchemaInfo {
-            name: "LiquidationProcessEvent",
-            filename: "liquidation_process_event_schema.json",
+            name: "LiquidationEvent",
+            filename: "liquidation_event_schema.json",
             toggle_events: vec!["Completed"],
-            generate_schema: || serde_json::to_value(schema_for!(LiquidationProcessEvent)).unwrap(),
+            generate_schema: || serde_json::to_value(schema_for!(LiquidationEvent)).unwrap(),
             ..Default::default()
         },
         SchemaInfo {

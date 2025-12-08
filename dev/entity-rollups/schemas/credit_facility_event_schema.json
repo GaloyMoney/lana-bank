@@ -535,6 +535,65 @@
     },
     {
       "properties": {
+        "initially_estimated_to_liquidate": {
+          "$ref": "#/$defs/Satoshis"
+        },
+        "initially_expected_to_receive": {
+          "$ref": "#/$defs/UsdCents"
+        },
+        "liquidation_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "receivable_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "trigger_price": {
+          "$ref": "#/$defs/PriceOfOneBTC"
+        },
+        "type": {
+          "const": "partial_liquidation_initiated",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "liquidation_id",
+        "receivable_account_id",
+        "trigger_price",
+        "initially_expected_to_receive",
+        "initially_estimated_to_liquidate"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "liquidated": {
+          "$ref": "#/$defs/Satoshis"
+        },
+        "liquidation_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "received": {
+          "$ref": "#/$defs/UsdCents"
+        },
+        "type": {
+          "const": "partial_liquidation_completed",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "liquidation_id",
+        "liquidated",
+        "received"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
         "type": {
           "const": "matured",
           "type": "string"

@@ -14,8 +14,6 @@ pub enum ObligationError {
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("CoreCreditError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
-    #[error("CoreCreditError - LiquidationProcess: {0}")]
-    LiquidationProcess(#[from] crate::liquidation_process::error::LiquidationProcessError),
     #[error("ObligationError - InvalidStatusTransitionToOverdue")]
     InvalidStatusTransitionToOverdue,
     #[error("ObligationError - InvalidStatusTransitionToDefaulted")]
@@ -36,7 +34,6 @@ impl ErrorSeverity for ObligationError {
             Self::EsEntityError(_) => Level::ERROR,
             Self::CursorDestructureError(_) => Level::ERROR,
             Self::JobError(_) => Level::ERROR,
-            Self::LiquidationProcess(e) => e.severity(),
             Self::InvalidStatusTransitionToOverdue => Level::ERROR,
             Self::InvalidStatusTransitionToDefaulted => Level::ERROR,
             Self::PaymentAllocationError(e) => e.severity(),

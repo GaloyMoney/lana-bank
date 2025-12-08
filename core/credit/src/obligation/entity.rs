@@ -7,10 +7,7 @@ use std::cmp::Ordering;
 
 use es_entity::*;
 
-use crate::{
-    CreditFacilityId, liquidation_process::NewLiquidationProcess,
-    payment_allocation::NewPaymentAllocation, primitives::*,
-};
+use crate::{CreditFacilityId, payment_allocation::NewPaymentAllocation, primitives::*};
 
 use super::{error::ObligationError, primitives::*};
 
@@ -29,7 +26,6 @@ pub enum ObligationEvent {
         not_yet_due_accounts: ObligationAccounts,
         due_accounts: ObligationAccounts,
         overdue_accounts: ObligationAccounts,
-        in_liquidation_account_id: CalaAccountId,
         defaulted_account_id: CalaAccountId,
         due_date: EffectiveDate,
         overdue_date: Option<EffectiveDate>,
@@ -54,15 +50,6 @@ pub enum ObligationEvent {
         payment_id: PaymentId,
         payment_allocation_id: PaymentAllocationId,
         payment_allocation_amount: UsdCents,
-    },
-    LiquidationProcessStarted {
-        liquidation_process_id: LiquidationProcessId,
-        ledger_tx_id: LedgerTxId,
-        effective: chrono::NaiveDate,
-        initial_amount: UsdCents,
-    },
-    LiquidationProcessConcluded {
-        liquidation_process_id: LiquidationProcessId,
     },
     Completed {
         effective: chrono::NaiveDate,
@@ -160,19 +147,6 @@ impl Obligation {
                 ObligationEvent::Initialized {
                     overdue_accounts, ..
                 } => Some(*overdue_accounts),
-                _ => None,
-            })
-            .expect("Entity was not Initialized")
-    }
-
-    pub fn in_liquidation_account(&self) -> CalaAccountId {
-        self.events
-            .iter_all()
-            .find_map(|e| match e {
-                ObligationEvent::Initialized {
-                    in_liquidation_account_id,
-                    ..
-                } => Some(*in_liquidation_account_id),
                 _ => None,
             })
             .expect("Entity was not Initialized")
@@ -303,18 +277,6 @@ impl Obligation {
         !self.outstanding().is_zero()
     }
 
-    pub fn is_in_liquidation(&self) -> bool {
-        self.events
-            .iter_all()
-            .rev()
-            .find_map(|e| match e {
-                ObligationEvent::LiquidationProcessStarted { .. } => Some(true),
-                ObligationEvent::LiquidationProcessConcluded { .. } => Some(false),
-                _ => None,
-            })
-            .unwrap_or_default()
-    }
-
     pub(crate) fn record_due(
         &mut self,
         effective: chrono::NaiveDate,
@@ -411,50 +373,6 @@ impl Obligation {
         Ok(Idempotent::Executed(res))
     }
 
-    pub(crate) fn start_liquidation(
-        &mut self,
-        effective: chrono::NaiveDate,
-    ) -> Idempotent<NewLiquidationProcess> {
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            ObligationEvent::LiquidationProcessStarted { .. },
-            => ObligationEvent::LiquidationProcessConcluded {..}
-        );
-
-        match self.status() {
-            ObligationStatus::NotYetDue | ObligationStatus::Due | ObligationStatus::Overdue => (),
-            _ => return Idempotent::Ignored,
-        }
-
-        if !self.has_outstanding_balance() {
-            return Idempotent::Ignored;
-        }
-
-        let liquidation_process_id = LiquidationProcessId::new();
-        let ledger_tx_id = LedgerTxId::new();
-        let initial_amount = self.outstanding();
-        let new_liquidation_process = NewLiquidationProcess::builder()
-            .id(liquidation_process_id)
-            .ledger_tx_id(LedgerTxId::new())
-            .credit_facility_id(self.credit_facility_id)
-            .obligation_id(self.id)
-            .in_liquidation_account_id(self.in_liquidation_account())
-            .initial_amount(initial_amount)
-            .effective(effective)
-            .build()
-            .expect("could not build new payment allocation");
-
-        self.events
-            .push(ObligationEvent::LiquidationProcessStarted {
-                liquidation_process_id,
-                ledger_tx_id,
-                effective,
-                initial_amount,
-            });
-
-        Idempotent::Executed(new_liquidation_process)
-    }
-
     pub(crate) fn allocate_payment(
         &mut self,
         amount: UsdCents,
@@ -467,9 +385,6 @@ impl Obligation {
         );
         let pre_payment_outstanding = self.outstanding();
         if pre_payment_outstanding.is_zero() {
-            return Idempotent::Ignored;
-        }
-        if self.is_in_liquidation() {
             return Idempotent::Ignored;
         }
 
@@ -543,8 +458,6 @@ impl TryFromEvents<ObligationEvent> for Obligation {
                 ObligationEvent::OverdueRecorded { .. } => (),
                 ObligationEvent::DefaultedRecorded { .. } => (),
                 ObligationEvent::PaymentAllocated { .. } => (),
-                ObligationEvent::LiquidationProcessStarted { .. } => (),
-                ObligationEvent::LiquidationProcessConcluded { .. } => (),
                 ObligationEvent::Completed { .. } => (),
             }
         }
@@ -569,8 +482,6 @@ pub struct NewObligation {
     not_yet_due_accounts: ObligationAccounts,
     due_accounts: ObligationAccounts,
     overdue_accounts: ObligationAccounts,
-    #[builder(setter(into))]
-    in_liquidation_account_id: CalaAccountId,
     #[builder(setter(into))]
     defaulted_account_id: CalaAccountId,
     due_date: EffectiveDate,
@@ -618,7 +529,6 @@ impl IntoEvents<ObligationEvent> for NewObligation {
                 not_yet_due_accounts: self.not_yet_due_accounts,
                 due_accounts: self.due_accounts,
                 overdue_accounts: self.overdue_accounts,
-                in_liquidation_account_id: self.in_liquidation_account_id,
                 defaulted_account_id: self.defaulted_account_id,
                 due_date: self.due_date,
                 overdue_date: self.overdue_date,
@@ -708,7 +618,6 @@ mod test {
                 receivable_account_id: CalaAccountId::new(),
                 account_to_be_credited_id: CalaAccountId::new(),
             },
-            in_liquidation_account_id: CalaAccountId::new(),
             defaulted_account_id: CalaAccountId::new(),
             due_date: Utc::now().into(),
             overdue_date: Some(Utc::now().into()),
@@ -866,17 +775,6 @@ mod test {
         assert_eq!(obligation.status(), ObligationStatus::Paid);
     }
 
-    #[test]
-    fn payment_allocation_ignored_in_liquidation() {
-        let mut obligation = obligation_from(initial_events());
-        let _ = obligation.start_liquidation(Utc::now().date_naive());
-        assert!(
-            obligation
-                .allocate_payment(UsdCents::ONE, PaymentId::new(), Utc::now().date_naive(),)
-                .was_ignored()
-        );
-    }
-
     mod is_status_up_to_date {
 
         use super::*;
@@ -913,7 +811,6 @@ mod test {
                     receivable_account_id: CalaAccountId::new(),
                     account_to_be_credited_id: CalaAccountId::new(),
                 },
-                in_liquidation_account_id: CalaAccountId::new(),
                 defaulted_account_id: CalaAccountId::new(),
                 due_date: due_timestamp(now).into(),
                 overdue_date: Some(overdue_timestamp(now).into()),

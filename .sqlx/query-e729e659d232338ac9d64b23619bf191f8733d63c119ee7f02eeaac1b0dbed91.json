@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT credit_facility_id, created_at, id FROM core_liquidation_processes WHERE ((credit_facility_id = $1) AND (COALESCE((created_at, id) > ($4, $3), $3 IS NULL))) ORDER BY created_at ASC, id ASC LIMIT $2) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $5 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_liquidation_process_events e ON i.id = e.id ORDER BY i.created_at asc, i.id asc, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT id FROM core_liquidations WHERE (COALESCE(id > $2, true)) ORDER BY id ASC LIMIT $1) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $3 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_liquidation_events e ON i.id = e.id ORDER BY i.id asc, i.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -31,10 +31,8 @@
     ],
     "parameters": {
       "Left": [
-        "Uuid",
         "Int8",
         "Uuid",
-        "Timestamptz",
         "Bool"
       ]
     },
@@ -46,5 +44,5 @@
       false
     ]
   },
-  "hash": "b42a1610957883d3645eaf7da411279fa540b5f84221d0c36c09932512420bc0"
+  "hash": "e729e659d232338ac9d64b23619bf191f8733d63c119ee7f02eeaac1b0dbed91"
 }
