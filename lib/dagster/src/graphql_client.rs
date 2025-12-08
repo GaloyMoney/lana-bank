@@ -115,6 +115,49 @@ pub struct GetLogsForRunResponse {
     pub data: GetLogsForRunData,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PipelineSelector {
+    #[serde(rename = "pipelineName")]
+    pub pipeline_name: String,
+    #[serde(rename = "repositoryLocationName")]
+    pub repository_location_name: String,
+    #[serde(rename = "repositoryName")]
+    pub repository_name: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ExecutionParams {
+    pub selector: PipelineSelector,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(tag = "__typename")]
+pub enum LaunchPipelineResult {
+    LaunchRunSuccess {
+        #[serde(rename = "run")]
+        run: Option<LaunchRunDetails>,
+    },
+    #[serde(other)]
+    Error,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LaunchRunDetails {
+    #[serde(rename = "runId")]
+    pub run_id: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LaunchPipelineData {
+    #[serde(rename = "launchPipelineExecution")]
+    pub launch_pipeline_execution: LaunchPipelineResult,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LaunchPipelineResponse {
+    pub data: LaunchPipelineData,
+}
+
 #[derive(Clone)]
 pub struct GraphqlClient {
     http: Client,
@@ -243,5 +286,53 @@ query GetLogsForRun($runId: ID!) {
         }
 
         Ok(reports)
+    }
+
+    #[record_error_severity]
+    #[tracing::instrument(name = "dagster.graphql_client.trigger_file_report_run", skip(self))]
+    pub async fn trigger_file_report_run(&self) -> Result<LaunchPipelineResponse, DagsterError> {
+        let query = r#"
+mutation LaunchPipeline($executionParams: ExecutionParams!) {
+  launchPipelineExecution(executionParams: $executionParams) {
+    __typename
+    ... on LaunchRunSuccess {
+      run {
+        runId
+      }
+    }
+  }
+}
+"#;
+
+        let execution_params = ExecutionParams {
+            selector: PipelineSelector {
+                pipeline_name: "file_reports_generation".to_string(),
+                repository_location_name: "Lana DW".to_string(),
+                repository_name: "__repository__".to_string(),
+            },
+        };
+
+        let variables = json!({
+            "executionParams": execution_params
+        });
+
+        let request = json!({
+            "query": query,
+            "variables": variables
+        });
+
+        let response = self
+            .http
+            .post(self.url.clone())
+            .json(&request)
+            .send()
+            .await?;
+
+        if !response.status().is_success() {
+            return Err(DagsterError::ApiError);
+        }
+
+        let response_data: LaunchPipelineResponse = response.json().await?;
+        Ok(response_data)
     }
 }

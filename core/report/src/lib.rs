@@ -28,7 +28,8 @@ use publisher::ReportPublisher;
 
 use jobs::{
     FindNewReportRunJobConfig, FindNewReportRunJobInit, MonitorReportRunJobInit,
-    SyncReportsJobInit, TriggerReportRunJobConfig, TriggerReportRunJobInit,
+    SyncReportsJobInit, TriggerFileReportRunJobConfig, TriggerFileReportRunJobInit,
+    TriggerReportRunJobConfig, TriggerReportRunJobInit,
 };
 
 use airflow::*;
@@ -126,6 +127,11 @@ where
             dagster.clone(),
             report_run_repo.clone(),
             report_repo.clone(),
+        ));
+        jobs.add_initializer(TriggerFileReportRunJobInit::new(
+            dagster.clone(),
+            report_run_repo.clone(),
+            jobs.clone(),
         ));
 
         Ok(Self {
@@ -314,6 +320,35 @@ where
             )
             .await?;
 
+        tracing::Span::current().record("job_id", job.id.to_string());
+        db.commit().await?;
+
+        Ok(job.id)
+    }
+
+    #[record_error_severity]
+    #[tracing::instrument(name = "report.trigger_file_report_run", skip(self), fields(subject = %sub, job_id = tracing::field::Empty))]
+    pub async fn trigger_file_report_run(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+    ) -> Result<job::JobId, ReportError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                ReportObject::all_reports(),
+                CoreReportAction::REPORT_GENERATE,
+            )
+            .await?;
+
+        let mut db = self.report_runs.begin_op().await?;
+        let job = self
+            .jobs
+            .create_and_spawn_in_op(
+                &mut db,
+                job::JobId::new(),
+                TriggerFileReportRunJobConfig::<E>::new(),
+            )
+            .await?;
         tracing::Span::current().record("job_id", job.id.to_string());
         db.commit().await?;
 
