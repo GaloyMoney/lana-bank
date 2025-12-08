@@ -991,7 +991,7 @@ mod test {
 
             let balances = CreditFacilityBalanceSummary {
                 collateral: Satoshis::try_from_btc(dec!(2)).unwrap(),
-                not_yet_due_disbursed_outstanding: UsdCents::ZERO,
+                not_yet_due_disbursed_outstanding: UsdCents::from(100_000_00),
                 due_disbursed_outstanding: UsdCents::ZERO,
                 overdue_disbursed_outstanding: UsdCents::ZERO,
                 disbursed_defaulted: UsdCents::ZERO,
@@ -1000,19 +1000,20 @@ mod test {
                 overdue_interest_outstanding: UsdCents::ZERO,
                 interest_defaulted: UsdCents::ZERO,
 
-                facility: UsdCents::from(10000000),
+                facility: UsdCents::from(1_000_000_00),
                 facility_remaining: UsdCents::ZERO,
-                disbursed: UsdCents::ZERO,
+                disbursed: UsdCents::from(100_000_00),
                 interest_posted: UsdCents::ZERO,
             };
 
-            // Price high enough to keep CVL above thresholds
-            let price = PriceOfOneBTC::new(UsdCents::from(7500000));
+            // Price high enough to keep CVL (200) above thresholds
+            let price = PriceOfOneBTC::new(UsdCents::from(100_000_00));
             let state_update = credit_facility.update_collateralization(
                 price,
                 default_upgrade_buffer_cvl_pct(),
                 balances,
             );
+
             assert!(state_update.did_execute());
             assert_eq!(
                 state_update.unwrap(),
@@ -1025,8 +1026,8 @@ mod test {
                     .all(|e| !matches!(e, CreditFacilityEvent::PartialLiquidationInitiated { .. }))
             );
 
-            // Price dropped so that CVL is below threshold
-            let price = PriceOfOneBTC::new(UsdCents::from(5000000));
+            // Price dropped so that CVL (100) is below threshold
+            let price = PriceOfOneBTC::new(UsdCents::from(50_000_00));
             let state_update = credit_facility.update_collateralization(
                 price,
                 default_upgrade_buffer_cvl_pct(),
