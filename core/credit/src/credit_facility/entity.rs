@@ -991,7 +991,7 @@ mod test {
 
             let balances = CreditFacilityBalanceSummary {
                 collateral: Satoshis::try_from_btc(dec!(2)).unwrap(),
-                not_yet_due_disbursed_outstanding: UsdCents::from(100_000_00),
+                not_yet_due_disbursed_outstanding: UsdCents::from(10000000),
                 due_disbursed_outstanding: UsdCents::ZERO,
                 overdue_disbursed_outstanding: UsdCents::ZERO,
                 disbursed_defaulted: UsdCents::ZERO,
@@ -1000,14 +1000,14 @@ mod test {
                 overdue_interest_outstanding: UsdCents::ZERO,
                 interest_defaulted: UsdCents::ZERO,
 
-                facility: UsdCents::from(1_000_000_00),
+                facility: UsdCents::from(100000000),
                 facility_remaining: UsdCents::ZERO,
-                disbursed: UsdCents::from(100_000_00),
+                disbursed: UsdCents::from(10000000),
                 interest_posted: UsdCents::ZERO,
             };
 
             // Price high enough to keep CVL (200) above thresholds
-            let price = PriceOfOneBTC::new(UsdCents::from(100_000_00));
+            let price = PriceOfOneBTC::new(UsdCents::from(10000000));
             let state_update = credit_facility.update_collateralization(
                 price,
                 default_upgrade_buffer_cvl_pct(),
@@ -1027,7 +1027,7 @@ mod test {
             );
 
             // Price dropped so that CVL (100) is below threshold
-            let price = PriceOfOneBTC::new(UsdCents::from(50_000_00));
+            let price = PriceOfOneBTC::new(UsdCents::from(5000000));
             let state_update = credit_facility.update_collateralization(
                 price,
                 default_upgrade_buffer_cvl_pct(),
