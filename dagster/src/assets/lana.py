@@ -55,8 +55,10 @@ def lana_source_protoassets() -> List[Protoasset]:
     for table_name in LANA_EL_TABLE_NAMES:
         lana_source_protoassets.append(
             Protoasset(
-                key=get_el_source_asset_name(
-                    system_name=LANA_SYSTEM_NAME, table_name=table_name
+                key=dg.AssetKey(
+                    get_el_source_asset_name(
+                        system_name=LANA_SYSTEM_NAME, table_name=table_name
+                    )
                 ),
                 tags={
                     "asset_type": EL_SOURCE_ASSET_DESCRIPTION,
@@ -100,7 +102,7 @@ def build_lana_to_dw_el_protoasset(table_name) -> Protoasset:
         return load_info
 
     lana_to_dw_protoasset = Protoasset(
-        key=[LANA_SYSTEM_NAME, table_name],
+        key=dg.AssetKey([LANA_SYSTEM_NAME, table_name]),
         deps=[
             dg.AssetKey(
                 get_el_source_asset_name(

@@ -268,7 +268,7 @@ def file_report_protoassets() -> Dict[str, Protoasset]:
 
     for report_name, report_callable in reports.items():
         report_protoassets[report_name] = Protoasset(
-            key=report_name,
+            key=dg.AssetKey(report_name),
             callable=report_callable,
             required_resource_keys={RESOURCE_KEY_FILE_REPORTS_BUCKET},
             tags={"category": "report_generation", "report_name": report_name},
@@ -280,7 +280,7 @@ def file_report_protoassets() -> Dict[str, Protoasset]:
 def inform_lana_protoasset() -> Protoasset:
     """Create protoasset for informing Lana of new reports."""
     return Protoasset(
-        key="inform_lana_of_new_reports",
+        key=dg.AssetKey("inform_lana_of_new_reports"),
         callable=inform_lana_of_new_reports,
         tags={"category": "notification"},
     )

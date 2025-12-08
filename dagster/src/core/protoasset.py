@@ -1,4 +1,4 @@
-from typing import Callable, Optional, Union
+from typing import Callable, Optional
 
 import dagster as dg
 
@@ -11,17 +11,19 @@ class Protoasset:
 
     def __init__(
         self,
-        key: Union[str, list[str]],
+        key: dg.AssetKey,
         callable: Optional[Callable] = None,
         tags: Optional[dict[str, str]] = None,
         deps: Optional[list[dg.AssetKey]] = None,
         required_resource_keys: Optional[set[str]] = None,
+        automation_condition: Optional[dg.AutomationCondition] = None,
     ):
         self.key = key
         self.callable = callable
         self.tags = tags
         self.deps = deps
         self.required_resource_keys = required_resource_keys
+        self.automation_condition = automation_condition
 
     @property
     def is_external(self) -> bool:
