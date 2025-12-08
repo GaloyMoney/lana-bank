@@ -14,7 +14,10 @@ json-schema = [
 
 [dependencies]
 audit = { workspace = true }
+async-trait = { workspace = true }
+dagster = { workspace = true }
 authz = { workspace = true }
+job = { workspace = true }
 obix = { workspace = true }
 cloud-storage = { workspace = true }
 

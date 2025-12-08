@@ -119,3 +119,36 @@ impl From<ReportEntityAction> for CoreReportAction {
         CoreReportAction::Report(action)
     }
 }
+
+impl From<dagster::graphql_client::RunStatus> for crate::report_run::ReportRunState {
+    fn from(status: dagster::graphql_client::RunStatus) -> Self {
+        match status {
+            dagster::graphql_client::RunStatus::Queued
+            | dagster::graphql_client::RunStatus::NotStarted => {
+                crate::report_run::ReportRunState::Queued
+            }
+            dagster::graphql_client::RunStatus::Managed
+            | dagster::graphql_client::RunStatus::Starting
+            | dagster::graphql_client::RunStatus::Started => {
+                crate::report_run::ReportRunState::Running
+            }
+            dagster::graphql_client::RunStatus::Success => {
+                crate::report_run::ReportRunState::Success
+            }
+            dagster::graphql_client::RunStatus::Failure
+            | dagster::graphql_client::RunStatus::Cancelling
+            | dagster::graphql_client::RunStatus::Cancelled => {
+                crate::report_run::ReportRunState::Failed
+            }
+        }
+    }
+}
+
+impl From<dagster::graphql_client::ReportFile> for crate::report::ReportFile {
+    fn from(file: dagster::graphql_client::ReportFile) -> Self {
+        crate::report::ReportFile {
+            extension: file.extension,
+            path_in_bucket: file.path_in_bucket,
+        }
+    }
+}

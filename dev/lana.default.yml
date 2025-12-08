@@ -57,7 +57,9 @@ app:
       port: 0
       insecure: false
       admin_panel_url: ''
-  report: {}
+  report:
+    dagster:
+      uri: http://localhost:3000/graphql
   deposit:
     require_verified_customer_for_account: true
 tracing:

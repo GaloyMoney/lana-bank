@@ -2557,8 +2557,8 @@ impl Mutation {
         ctx: &Context<'_>,
     ) -> async_graphql::Result<ReportRunCreatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        app.reports().trigger_report_run(sub).await?;
-        Err("Report generation is currently disabled".into())
+        let _job_id = app.reports().trigger_report_run_job(sub).await?;
+        Ok(ReportRunCreatePayload { run_id: None })
     }
 
     async fn report_file_generate_download_link(

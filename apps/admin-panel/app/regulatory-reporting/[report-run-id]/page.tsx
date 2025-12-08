@@ -32,9 +32,7 @@ gql`
       reportRunId
       state
       runType
-      executionDate
-      startDate
-      endDate
+      startTime
       reports {
         id
         reportId
@@ -76,7 +74,7 @@ const ReportRunPage = ({ params }: ReportRunPageProps) => {
 
   if (loading && !data) return <TableLoadingSkeleton />
 
-  const date = data?.reportRun?.startDate || data?.reportRun?.executionDate
+  const date = data?.reportRun?.startTime
 
   return (
     <Card>

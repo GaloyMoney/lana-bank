@@ -2819,13 +2819,11 @@ export const mockReportRun = (overrides?: Partial<ReportRun>, _relationshipsToOm
     relationshipsToOmit.add('ReportRun');
     return {
         __typename: 'ReportRun',
-        endDate: overrides && overrides.hasOwnProperty('endDate') ? overrides.endDate! : generateMockValue.timestamp(),
-        executionDate: overrides && overrides.hasOwnProperty('executionDate') ? overrides.executionDate! : generateMockValue.timestamp(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         reportRunId: overrides && overrides.hasOwnProperty('reportRunId') ? overrides.reportRunId! : generateMockValue.uuid(),
         reports: overrides && overrides.hasOwnProperty('reports') ? overrides.reports! : [relationshipsToOmit.has('Report') ? {} as Report : mockReport({}, relationshipsToOmit)],
         runType: overrides && overrides.hasOwnProperty('runType') ? overrides.runType! : ReportRunType.Manual,
-        startDate: overrides && overrides.hasOwnProperty('startDate') ? overrides.startDate! : generateMockValue.timestamp(),
+        startTime: overrides && overrides.hasOwnProperty('startTime') ? overrides.startTime! : generateMockValue.timestamp(),
         state: overrides && overrides.hasOwnProperty('state') ? overrides.state! : ReportRunState.Failed,
     };
 };
@@ -2846,7 +2844,7 @@ export const mockReportRunCreatePayload = (overrides?: Partial<ReportRunCreatePa
     relationshipsToOmit.add('ReportRunCreatePayload');
     return {
         __typename: 'ReportRunCreatePayload',
-        jobId: overrides && overrides.hasOwnProperty('jobId') ? overrides.jobId! : faker.lorem.word(),
+        runId: overrides && overrides.hasOwnProperty('runId') ? overrides.runId! : faker.lorem.word(),
     };
 };
 

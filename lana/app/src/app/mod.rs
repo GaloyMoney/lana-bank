@@ -119,7 +119,8 @@ impl LanaApp {
         let dashboard = Dashboard::init(&pool, &authz, &mut jobs, &outbox).await?;
         let governance = Governance::new(&pool, &authz, &outbox, clock.clone());
         let storage = Storage::new(&config.storage);
-        let reports = Reports::init(&pool, &authz, config.report, &outbox, &storage).await?;
+        let reports =
+            Reports::init(&pool, &authz, config.report, &outbox, &storage, &mut jobs).await?;
         let price = Price::init(&mut jobs, &outbox).await?;
         let documents = DocumentStorage::new(&pool, &storage, clock.clone());
         let public_ids = PublicIds::new(&pool);

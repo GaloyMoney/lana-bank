@@ -2256,9 +2256,7 @@ type ReportRun {
 	reportRunId: UUID!
 	state: ReportRunState!
 	runType: ReportRunType!
-	executionDate: Timestamp!
-	startDate: Timestamp
-	endDate: Timestamp
+	startTime: Timestamp
 	reports: [Report!]!
 }
 
@@ -2278,7 +2276,7 @@ type ReportRunConnection {
 }
 
 type ReportRunCreatePayload {
-	jobId: String!
+	runId: String
 }
 
 """

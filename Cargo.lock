@@ -1626,12 +1626,15 @@ dependencies = [
 name = "core-report"
 version = "0.0.0"
 dependencies = [
+ "async-trait",
  "audit",
  "authz",
  "chrono",
  "cloud-storage",
+ "dagster",
  "derive_builder",
  "es-entity",
+ "job",
  "obix",
  "schemars 1.2.0",
  "serde",
@@ -1804,6 +1807,22 @@ dependencies = [
  "tracing",
  "tracing-macros",
  "tracing-utils",
+ "workspace-hack",
+]
+
+[[package]]
+name = "dagster"
+version = "0.0.0"
+dependencies = [
+ "chrono",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.17",
+ "tracing",
+ "tracing-macros",
+ "tracing-utils",
+ "url",
  "workspace-hack",
 ]
 

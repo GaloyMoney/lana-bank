@@ -1,13 +1,15 @@
 use async_trait::async_trait;
-use job::{
-    CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType, RetrySettings,
-};
+use job::*;
 use serde::{Deserialize, Serialize};
 
-use outbox::OutboxEventMarker;
+use obix::out::OutboxEventMarker;
 use tracing_macros::record_error_severity;
 
-use crate::event::CoreReportEvent;
+use crate::{
+    event::CoreReportEvent,
+    report::{NewReport, ReportRepo},
+    report_run::{NewReportRun, ReportRunRepo, ReportRunState, ReportRunType},
+};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SyncReportsJobConfig<E>
@@ -15,6 +17,17 @@ where
     E: OutboxEventMarker<CoreReportEvent>,
 {
     _phantom: std::marker::PhantomData<E>,
+}
+
+impl<E> Clone for SyncReportsJobConfig<E>
+where
+    E: OutboxEventMarker<CoreReportEvent>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            _phantom: std::marker::PhantomData,
+        }
+    }
 }
 
 impl<E> SyncReportsJobConfig<E>
@@ -28,27 +41,28 @@ where
     }
 }
 
-impl<E> JobConfig for SyncReportsJobConfig<E>
-where
-    E: OutboxEventMarker<CoreReportEvent>,
-{
-    type Initializer = SyncReportsJobInit<E>;
-}
-
 pub struct SyncReportsJobInit<E>
 where
     E: OutboxEventMarker<CoreReportEvent>,
 {
-    _phantom: std::marker::PhantomData<E>,
+    dagster: dagster::Dagster,
+    report_runs: ReportRunRepo<E>,
+    reports: ReportRepo<E>,
 }
 
 impl<E> SyncReportsJobInit<E>
 where
     E: OutboxEventMarker<CoreReportEvent>,
 {
-    pub fn new() -> Self {
+    pub fn new(
+        dagster: dagster::Dagster,
+        report_runs: ReportRunRepo<E>,
+        reports: ReportRepo<E>,
+    ) -> Self {
         Self {
-            _phantom: std::marker::PhantomData,
+            dagster,
+            report_runs,
+            reports,
         }
     }
 }
@@ -59,18 +73,26 @@ impl<E> JobInitializer for SyncReportsJobInit<E>
 where
     E: OutboxEventMarker<CoreReportEvent> + Send + Sync + 'static,
 {
-    fn job_type() -> JobType {
+    type Config = SyncReportsJobConfig<E>;
+
+    fn job_type(&self) -> JobType {
         SYNC_REPORTS_JOB_TYPE
     }
 
-    fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
+    fn init(
+        &self,
+        job: &Job,
+        _: JobSpawner<Self::Config>,
+    ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         let _config: SyncReportsJobConfig<E> = job.config()?;
         Ok(Box::new(SyncReportsJobRunner {
-            _phantom: std::marker::PhantomData::<E>,
+            dagster: self.dagster.clone(),
+            report_runs: self.report_runs.clone(),
+            reports: self.reports.clone(),
         }))
     }
 
-    fn retry_on_error_settings() -> RetrySettings {
+    fn retry_on_error_settings(&self) -> RetrySettings {
         RetrySettings::repeat_indefinitely()
     }
 }
@@ -79,7 +101,9 @@ pub struct SyncReportsJobRunner<E>
 where
     E: OutboxEventMarker<CoreReportEvent>,
 {
-    _phantom: std::marker::PhantomData<E>,
+    dagster: dagster::Dagster,
+    report_runs: ReportRunRepo<E>,
+    reports: ReportRepo<E>,
 }
 
 #[async_trait]
@@ -93,9 +117,129 @@ where
         &self,
         mut _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        // Basic sync implementation - no business logic yet
-        tracing::info!("Sync reports job triggered");
+        let limit = 50;
+
+        let response = self
+            .dagster
+            .graphql()
+            .file_reports_runs(limit, None)
+            .await?;
+
+        let runs = match response.data.runs_or_error {
+            dagster::graphql_client::RunsOrError::Runs(runs) => runs,
+            dagster::graphql_client::RunsOrError::Error { message } => {
+                tracing::error!("Error fetching runs from Dagster: {}", message);
+                return Err(message.into());
+            }
+        };
+
+        for run_result in runs.results.iter().rev() {
+            let existing_run = self
+                .report_runs
+                .find_by_external_id(&run_result.run_id)
+                .await;
+
+            match existing_run {
+                Ok(mut report_run) => {
+                    let state: ReportRunState = run_result.status.clone().into();
+                    let run_id = report_run.id;
+                    if report_run.state != state {
+                        let run_type = if run_result.is_scheduled() {
+                            ReportRunType::Scheduled
+                        } else {
+                            ReportRunType::Manual
+                        };
+
+                        report_run.update_state(state, run_type, run_result.start_time);
+
+                        let mut db = self.report_runs.begin_op().await?;
+                        self.report_runs
+                            .update_in_op(&mut db, &mut report_run)
+                            .await?;
+                        db.commit().await?;
+                    }
+
+                    if run_result.status.is_finished() {
+                        let reports = self
+                            .reports
+                            .list_for_run_id_by_created_at(
+                                run_id,
+                                Default::default(),
+                                es_entity::ListDirection::Descending,
+                            )
+                            .await?;
+
+                        if reports.entities.is_empty() {
+                            self.sync_reports(&run_result.run_id, run_id).await?;
+                        }
+                    }
+                }
+                Err(e) if e.was_not_found() => {
+                    let state: ReportRunState = run_result.status.clone().into();
+                    let run_type = if run_result.is_scheduled() {
+                        ReportRunType::Scheduled
+                    } else {
+                        ReportRunType::Manual
+                    };
+
+                    let new_run = NewReportRun::builder()
+                        .external_id(run_result.run_id.clone())
+                        .state(state)
+                        .run_type(run_type)
+                        .start_time(run_result.start_time)
+                        .build()?;
+
+                    let mut db = self.report_runs.begin_op().await?;
+                    let report_run = self.report_runs.create_in_op(&mut db, new_run).await?;
+                    db.commit().await?;
+
+                    if run_result.status.is_finished() {
+                        self.sync_reports(&run_result.run_id, report_run.id).await?;
+                    }
+                }
+                Err(e) => return Err(e.into()),
+            }
+        }
 
         Ok(JobCompletion::Complete)
     }
 }
+
+impl<E> SyncReportsJobRunner<E>
+where
+    E: OutboxEventMarker<CoreReportEvent> + Send + Sync + 'static,
+{
+    async fn sync_reports(
+        &self,
+        external_id: &str,
+        run_id: crate::ReportRunId,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let dagster_reports = self.dagster.graphql().get_logs_for_run(external_id).await?;
+
+        for dagster_report in dagster_reports {
+            let files: Vec<crate::report::ReportFile> =
+                dagster_report.files.into_iter().map(|f| f.into()).collect();
+
+            let external_id = format!(
+                "{}_{}_{}",
+                external_id, dagster_report.norm, dagster_report.name
+            );
+
+            let new_report = NewReport::builder()
+                .external_id(external_id)
+                .run_id(run_id)
+                .name(dagster_report.name)
+                .norm(dagster_report.norm)
+                .files(files)
+                .build()?;
+
+            let mut db = self.reports.begin_op().await?;
+            self.reports.create_in_op(&mut db, new_report).await?;
+            db.commit().await?;
+        }
+
+        Ok(())
+    }
+}
+
+pub type SyncReportsJobSpawner<E> = JobSpawner<SyncReportsJobConfig<E>>;
