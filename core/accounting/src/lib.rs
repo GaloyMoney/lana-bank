@@ -254,7 +254,7 @@ where
                 chart_ref,
                 reference,
                 description,
-                effective.unwrap_or_else(|| chrono::Utc::now().date_naive()),
+                effective.unwrap_or_else(|| crate::time::now().date_naive()),
                 entries,
             )
             .await?;
