@@ -62,7 +62,7 @@ impl From<lana_app::credit::CreditFacilityRepaymentPlanEntry> for CreditFacility
             initial: repayment.initial,
             outstanding: repayment.outstanding,
             accrual_at: repayment.recorded_at.into(),
-            due_at: repayment.due_at.start_of_day().into(),
+            due_at: repayment.due_at.end_of_day().into(),
         }
     }
 }
