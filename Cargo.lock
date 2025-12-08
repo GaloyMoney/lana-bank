@@ -7075,7 +7075,6 @@ dependencies = [
  "opentelemetry_sdk",
  "reqwest",
  "serde",
- "sqlx",
  "thiserror 2.0.17",
  "tracing",
  "tracing-opentelemetry",
@@ -7897,6 +7896,7 @@ name = "workspace-hack"
 version = "0.1.0"
 dependencies = [
  "ahash 0.8.12",
+ "arrayvec",
  "async-graphql",
  "axum",
  "base16ct",
@@ -7960,6 +7960,10 @@ dependencies = [
  "signature",
  "smallvec",
  "spki",
+ "sqlx",
+ "sqlx-core",
+ "sqlx-macros",
+ "sqlx-macros-core",
  "sqlx-postgres",
  "standback",
  "subtle",
