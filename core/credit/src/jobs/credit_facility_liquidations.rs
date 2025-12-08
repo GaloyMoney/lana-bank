@@ -6,6 +6,7 @@ use governance::GovernanceEvent;
 use job::*;
 use outbox::{EventSequence, Outbox, OutboxEventMarker, PersistentOutboxEvent};
 use serde::{Deserialize, Serialize};
+use tracing::{Span, instrument};
 
 use crate::CoreCreditEvent;
 use crate::jobs::partial_liquidation;
@@ -130,20 +131,26 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
+    #[instrument(name = "outbox.core_credit.credit_facility_liquidations.process_message", parent = None, skip(self, message, db), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn process_message(
         &self,
         db: &mut DbOp<'_>,
         message: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        if let Some(CoreCreditEvent::PartialLiquidationInitiated {
-            liquidation_id,
-            credit_facility_id,
-            receivable_account_id,
-            trigger_price,
-            initially_expected_to_receive,
-            initially_estimated_to_liquidate,
-        }) = message.as_event()
+        if let Some(
+            event @ CoreCreditEvent::PartialLiquidationInitiated {
+                liquidation_id,
+                credit_facility_id,
+                receivable_account_id,
+                trigger_price,
+                initially_expected_to_receive,
+                initially_estimated_to_liquidate,
+            },
+        ) = message.as_event()
         {
+            Span::current().record("handled", true);
+            Span::current().record("event_type", event.as_ref());
+
             let maybe_new_liqudation = self
                 .liquidations
                 .create_if_not_exist_for_facility_in_op(

@@ -3,6 +3,7 @@ use std::ops::ControlFlow;
 use async_trait::async_trait;
 use futures::{FutureExt as _, StreamExt as _, select};
 use serde::{Deserialize, Serialize};
+use tracing::{Span, instrument};
 
 use job::*;
 use outbox::*;
@@ -137,6 +138,7 @@ impl<E> PartialLiquidationJobRunner<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
+    #[instrument(name = "outbox.core_credit.partial_liquidation.process_message", parent = None, skip(self, message, db), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn process_message(
         &self,
         db: &mut es_entity::DbOp<'_>,
@@ -145,9 +147,14 @@ where
         use CoreCreditEvent::*;
 
         match &message.as_event() {
-            Some(PartialLiquidationRepaymentAmountReceived {
-                credit_facility_id, ..
-            }) if *credit_facility_id == self.config.credit_facility_id => {
+            Some(
+                event @ PartialLiquidationRepaymentAmountReceived {
+                    credit_facility_id, ..
+                },
+            ) if *credit_facility_id == self.config.credit_facility_id => {
+                Span::current().record("handled", true);
+                Span::current().record("event_type", event.as_ref());
+
                 let payment_id = crate::PaymentId::new();
                 // TODO: let payment_id = credit::record_payment
 
