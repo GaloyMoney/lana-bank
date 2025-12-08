@@ -5,7 +5,7 @@ use tracing_utils::ErrorSeverity;
 #[derive(Error, Debug)]
 pub enum CustomerError {
     #[error("CustomerError - Sqlx: {0}")]
-    Sqlx(#[from] sqlx::Error),
+    Sqlx(sqlx::Error),
     #[error("CustomerError - EsEntityError: {0}")]
     EsEntityError(es_entity::EsEntityError),
     #[error("CustomerError - CursorDestructureError: {0}")]
@@ -22,6 +22,21 @@ pub enum CustomerError {
     DocumentStorageError(#[from] document_storage::error::DocumentStorageError),
     #[error("CustomerError - PublicIdError: {0}")]
     PublicIdError(#[from] public_id::PublicIdError),
+    #[error("CustomerError - AlreadyExists")]
+    AlreadyExists,
+}
+
+impl From<sqlx::Error> for CustomerError {
+    fn from(error: sqlx::Error) -> Self {
+        if let Some(err) = error.as_database_error()
+            && let Some(constraint) = err.constraint()
+            && (constraint.contains("core_customers_email_key")
+                || constraint.contains("core_customers_telegram_id_key"))
+        {
+            return Self::AlreadyExists;
+        }
+        Self::Sqlx(error)
+    }
 }
 
 es_entity::from_es_entity_error!(CustomerError);
@@ -30,6 +45,7 @@ impl ErrorSeverity for CustomerError {
     fn severity(&self) -> Level {
         match self {
             Self::Sqlx(_) => Level::ERROR,
+            Self::AlreadyExists => Level::WARN,
             Self::EsEntityError(_) => Level::ERROR,
             Self::CursorDestructureError(_) => Level::ERROR,
             Self::UnexpectedCurrency => Level::ERROR,
