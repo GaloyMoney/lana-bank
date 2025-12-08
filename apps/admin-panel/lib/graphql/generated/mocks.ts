@@ -1752,7 +1752,12 @@ export const mockFiscalYearCloseInput = (overrides?: Partial<FiscalYearCloseInpu
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('FiscalYearCloseInput');
     return {
+        costOfRevenueCode: overrides && overrides.hasOwnProperty('costOfRevenueCode') ? overrides.costOfRevenueCode! : faker.lorem.word(),
+        expensesCode: overrides && overrides.hasOwnProperty('expensesCode') ? overrides.expensesCode! : faker.lorem.word(),
         fiscalYearId: overrides && overrides.hasOwnProperty('fiscalYearId') ? overrides.fiscalYearId! : generateMockValue.uuid(),
+        retainedEarningsGainCode: overrides && overrides.hasOwnProperty('retainedEarningsGainCode') ? overrides.retainedEarningsGainCode! : faker.lorem.word(),
+        retainedEarningsLossCode: overrides && overrides.hasOwnProperty('retainedEarningsLossCode') ? overrides.retainedEarningsLossCode! : faker.lorem.word(),
+        revenueCode: overrides && overrides.hasOwnProperty('revenueCode') ? overrides.revenueCode! : faker.lorem.word(),
     };
 };
 

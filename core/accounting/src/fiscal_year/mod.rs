@@ -2,8 +2,6 @@ mod entity;
 pub mod error;
 mod repo;
 
-use std::str::FromStr;
-
 use chrono::NaiveDate;
 use tracing::instrument;
 
@@ -13,9 +11,9 @@ use es_entity::{Idempotent, PaginatedQueryArgs};
 use tracing_macros::record_error_severity;
 
 use crate::{
-    AccountCode, FiscalYearId,
+    FiscalYearId,
     chart_of_accounts::ChartOfAccounts,
-    primitives::{CalaTxId, ChartId, ClosingTxSpec, CoreAccountingAction, CoreAccountingObject},
+    primitives::{CalaTxId, ChartId, ClosingSpec, CoreAccountingAction, CoreAccountingObject},
 };
 
 #[cfg(feature = "json-schema")]
@@ -142,9 +140,9 @@ where
     pub async fn close(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        fiscal_year_id: impl Into<FiscalYearId> + std::fmt::Debug + Copy,
+        closing_spec: ClosingSpec,
     ) -> Result<FiscalYear, FiscalYearError> {
-        let id = fiscal_year_id.into();
+        let id = closing_spec.fiscal_year_id;
         self.authz
             .enforce_permission(
                 sub,
@@ -161,19 +159,17 @@ where
                 self.repo.update_in_op(&mut op, &mut fiscal_year).await?;
                 // TODO: read configuration that depends on and extends existing config
                 // related to the `ProfitAndLossStatement` and `BalanceSheet`.
-                let closing_tx_spec = ClosingTxSpec::new(
-                    tx_id,
-                    AccountCode::from_str("4").unwrap(),
-                    AccountCode::from_str("5").unwrap(),
-                    AccountCode::from_str("6").unwrap(),
-                    AccountCode::from_str("32.01").unwrap(),
-                    AccountCode::from_str("32.02").unwrap(),
-                    fiscal_year.reference.clone(),
-                    fiscal_year.opened_as_of,
-                    closed_as_of,
-                );
                 self.chart_of_accounts
-                    .post_closing_transaction(op, sub, fiscal_year.chart_id, closing_tx_spec)
+                    .post_closing_transaction(
+                        op,
+                        sub,
+                        fiscal_year.chart_id,
+                        closing_spec,
+                        fiscal_year.reference.clone(),
+                        tx_id,
+                        fiscal_year.opened_as_of,
+                        closed_as_of,
+                    )
                     .await?;
 
                 Ok(fiscal_year)
