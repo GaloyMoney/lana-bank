@@ -2,7 +2,6 @@ from typing import Sequence
 
 import dagster as dg
 from src.assets.dbt import TAG_KEY_ASSET_TYPE, TAG_VALUE_DBT_MODEL
-
 from src.otel import JOB_TRACEPARENT_TAG
 
 

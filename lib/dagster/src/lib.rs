@@ -2,7 +2,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
 mod config;
-mod error;
+pub mod error;
 pub mod graphql_client;
 
 pub use config::DagsterConfig;
