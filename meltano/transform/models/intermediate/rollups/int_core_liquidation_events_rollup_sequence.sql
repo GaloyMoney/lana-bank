@@ -16,20 +16,11 @@ with source as (
 
 transformed as (
     select
-        liquidation_id,
-        credit_facility_id,
-
-        is_completed,
-        cast(initial_amount as numeric) / {{ var('cents_per_usd') }} as initial_amount_usd,
-        created_at as liquidation_created_at,
-        modified_at as liquidation_modified_at,
-
         * except (
             liquidation_id,
             credit_facility_id,
 
             is_completed,
-            initial_amount,
             created_at,
             modified_at,
 
@@ -39,7 +30,14 @@ transformed as (
             _sdc_deleted_at,
             _sdc_sequence,
             _sdc_table_version
-        )
+        ),
+        liquidation_id,
+
+        credit_facility_id,
+        is_completed,
+        created_at as liquidation_created_at,
+
+        modified_at as liquidation_modified_at
     from source
 )
 
