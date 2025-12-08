@@ -1,14 +1,15 @@
 use async_trait::async_trait;
+use futures::{FutureExt as _, StreamExt as _, select};
+use serde::{Deserialize, Serialize};
+use tracing::{Span, instrument};
+
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_custody::CoreCustodyEvent;
 use es_entity::DbOp;
-use futures::{FutureExt as _, StreamExt as _, select};
 use governance::GovernanceEvent;
 use job::*;
 use outbox::{EventSequence, Outbox, OutboxEventMarker, PersistentOutboxEvent};
-use serde::{Deserialize, Serialize};
-use tracing::{Span, instrument};
 
 use crate::jobs::partial_liquidation;
 use crate::liquidation::{Liquidations, NewLiquidation};
@@ -27,6 +28,9 @@ where
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
 {
     outbox: Outbox<E>,
     jobs: Jobs,
@@ -41,6 +45,9 @@ where
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
 {
     pub fn new(outbox: &Outbox<E>, jobs: &Jobs, liquidations: &Liquidations<Perms, E>) -> Self {
         Self {
@@ -61,6 +68,9 @@ where
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
 {
     fn job_type() -> JobType
     where
@@ -86,6 +96,9 @@ where
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
 {
     outbox: Outbox<E>,
     jobs: Jobs,
@@ -101,6 +114,9 @@ where
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
 {
     async fn run(
         &self,
@@ -150,6 +166,9 @@ where
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
 {
     #[instrument(name = "outbox.core_credit.credit_facility_liquidations.process_message", parent = None, skip(self, message, db), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn process_message(

@@ -1,18 +1,18 @@
 use std::ops::ControlFlow;
 
 use async_trait::async_trait;
-use audit::AuditSvc;
-use authz::PermissionCheck;
 use futures::{FutureExt as _, StreamExt as _, select};
 use serde::{Deserialize, Serialize};
 use tracing::{Span, instrument};
 
+use audit::AuditSvc;
+use authz::PermissionCheck;
 use job::*;
 use outbox::*;
 
 use crate::{
     CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId, LiquidationId,
-    liquidation::Liquidations,
+    Obligations, Payments, liquidation::Liquidations,
 };
 
 #[derive(Default, Clone, Deserialize, Serialize)]
@@ -27,6 +27,9 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
 {
     pub liquidation_id: LiquidationId,
     pub credit_facility_id: CreditFacilityId,
@@ -39,6 +42,9 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
 {
     type Initializer = PartialLiquidationInit<Perms, E>;
 }
@@ -49,9 +55,14 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
 {
     outbox: Outbox<E>,
     liquidations: Liquidations<Perms, E>,
+    payments: Payments<Perms>,
+    obligations: Obligations<Perms, E>,
 }
 
 impl<Perms, E> PartialLiquidationInit<Perms, E>
@@ -60,11 +71,21 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
 {
-    pub fn new(outbox: &Outbox<E>, liquidations: &Liquidations<Perms, E>) -> Self {
+    pub fn new(
+        outbox: &Outbox<E>,
+        liquidations: &Liquidations<Perms, E>,
+        payments: &Payments<Perms>,
+        obligations: &Obligations<Perms, E>,
+    ) -> Self {
         Self {
             outbox: outbox.clone(),
             liquidations: liquidations.clone(),
+            payments: payments.clone(),
+            obligations: obligations.clone(),
         }
     }
 }
@@ -76,6 +97,9 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
 {
     fn job_type() -> JobType
     where
@@ -89,6 +113,8 @@ where
             config: job.config()?,
             outbox: self.outbox.clone(),
             liquidations: self.liquidations.clone(),
+            payments: self.payments.clone(),
+            obligations: self.obligations.clone(),
         }))
     }
 }
@@ -99,10 +125,15 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
 {
     config: PartialLiquidationJobConfig<Perms, E>,
     outbox: Outbox<E>,
     liquidations: Liquidations<Perms, E>,
+    payments: Payments<Perms>,
+    obligations: Obligations<Perms, E>,
 }
 
 #[async_trait]
@@ -112,6 +143,9 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
 {
     async fn run(
         &self,
@@ -130,14 +164,12 @@ where
                         Some(message) => {
                             let mut db = self.liquidations.begin_op().await?;
 
-                            let next = self.process_message(&mut db, message.as_ref()).await?;
-
                             state.sequence = message.sequence;
                             current_job
                                 .update_execution_state_in_op(&mut db, &state)
                                 .await?;
 
-                            db.commit().await?;
+                            let next = self.process_message(db, message.as_ref()).await?;
 
                             if next.is_break() {
                                 return Ok(JobCompletion::Complete);
@@ -166,11 +198,14 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
 {
     #[instrument(name = "outbox.core_credit.partial_liquidation.process_message", parent = None, skip(self, message, db), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn process_message(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        mut db: es_entity::DbOp<'_>,
         message: &PersistentOutboxEvent<E>,
     ) -> Result<ControlFlow<()>, Box<dyn std::error::Error>> {
         use CoreCreditEvent::*;
@@ -178,17 +213,31 @@ where
         match &message.as_event() {
             Some(
                 event @ PartialLiquidationRepaymentAmountReceived {
-                    credit_facility_id, ..
+                    amount,
+                    credit_facility_id,
+                    ..
                 },
             ) if *credit_facility_id == self.config.credit_facility_id => {
                 Span::current().record("handled", true);
                 Span::current().record("event_type", event.as_ref());
 
-                let payment_id = crate::PaymentId::new();
-                // TODO: let payment_id = credit::record_payment
+                let payment = self
+                    .payments
+                    .record_in_op(&mut db, *credit_facility_id, *amount)
+                    .await?;
 
                 self.liquidations
-                    .complete_in_op(db, self.config.liquidation_id, payment_id)
+                    .complete_in_op(&mut db, self.config.liquidation_id, payment.id)
+                    .await?;
+
+                self.obligations
+                    .allocate_payment_in_op(
+                        db,
+                        self.config.credit_facility_id,
+                        payment.id,
+                        *amount,
+                        crate::time::now().date_naive(),
+                    )
                     .await?;
 
                 Ok(ControlFlow::Break(()))
