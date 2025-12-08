@@ -328,7 +328,7 @@ impl ChartLedger {
         &self,
         op: es_entity::DbOp<'_>,
         ledger_tx_id: CalaTxId,
-        description: Option<String>,
+        description: String,
         opened_as_of: NaiveDate,
         closed_as_of: NaiveDate,
         revenue_account_set_id: AccountSetId,
@@ -361,7 +361,7 @@ impl ChartLedger {
         closing_entries.push(equity_entry);
         let closing_transaction_params = ClosingTransactionParams::new(
             self.journal_id,
-            description.unwrap_or("Annual Closing".to_string()),
+            description,
             closed_as_of,
             closing_entries,
         );

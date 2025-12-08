@@ -382,6 +382,47 @@ impl AccountSpec {
     }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+pub struct ClosingTxSpec {
+    pub tx_id: CalaTxId,
+    pub revenue_code: AccountCode,
+    pub cost_of_revenue_code: AccountCode,
+    pub expenses_code: AccountCode,
+    pub equity_retained_earnings_code: AccountCode,
+    pub equity_retained_losses_code: AccountCode,
+    pub description: String,
+    pub effective_balances_from: chrono::NaiveDate,
+    pub effective_balances_until: chrono::NaiveDate,
+}
+
+impl ClosingTxSpec {
+    pub fn new(
+        tx_id: CalaTxId,
+        revenue_code: AccountCode,
+        cost_of_revenue_code: AccountCode,
+        expenses_code: AccountCode,
+        equity_retained_earnings_code: AccountCode,
+        equity_retained_losses_code: AccountCode,
+        description: String,
+        effective_balances_from: chrono::NaiveDate,
+        effective_balances_until: chrono::NaiveDate,
+    ) -> Self {
+        // TODO: consider validation on `NaiveDate` fields and `equity_` prefixed `AccountCode` fields i.e. `try_new`.
+        Self {
+            tx_id,
+            revenue_code,
+            cost_of_revenue_code,
+            expenses_code,
+            equity_retained_earnings_code,
+            equity_retained_losses_code,
+            description,
+            effective_balances_from,
+            effective_balances_until,
+        }
+    }
+}
+
 pub type ChartAllOrOne = AllOrOne<ChartId>;
 pub type JournalAllOrOne = AllOrOne<CalaJournalId>;
 pub type LedgerAccountAllOrOne = AllOrOne<LedgerAccountId>;
