@@ -26,6 +26,9 @@ pub enum ChartEvent {
     ClosedAsOf {
         closed_as_of: NaiveDate,
     },
+    PostClosingTransaction {
+        effective_balances_as_of: NaiveDate,
+    },
 }
 
 #[derive(EsEntity, Builder)]
@@ -290,6 +293,21 @@ impl Chart {
         self.events.push(ChartEvent::ClosedAsOf { closed_as_of });
         Idempotent::Executed(closed_as_of)
     }
+
+    pub(super) fn post_closing_tx_with_effective_balances_as_of(
+        &mut self,
+        effective_balances_as_of: NaiveDate,
+    ) -> Idempotent<NaiveDate> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            ChartEvent::PostClosingTransaction { effective_balances_as_of: prev_date, .. } if prev_date >= &effective_balances_as_of,
+            => ChartEvent::PostClosingTransaction { .. }
+        );
+        self.events.push(ChartEvent::PostClosingTransaction {
+            effective_balances_as_of,
+        });
+        Idempotent::Executed(effective_balances_as_of)
+    }
 }
 
 impl TryFromEvents<ChartEvent> for Chart {
@@ -312,6 +330,7 @@ impl TryFromEvents<ChartEvent> for Chart {
                         .name(name.to_string());
                 }
                 ChartEvent::ClosedAsOf { .. } => {}
+                ChartEvent::PostClosingTransaction { .. } => {}
             }
         }
 
