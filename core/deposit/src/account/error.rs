@@ -26,7 +26,7 @@ impl ErrorSeverity for DepositAccountError {
     fn severity(&self) -> Level {
         match self {
             Self::Sqlx(_) => Level::ERROR,
-            Self::EsEntityError(_) => Level::ERROR,
+            Self::EsEntityError(e) => e.severity(),
             Self::CursorDestructureError(_) => Level::ERROR,
             Self::CannotFreezeInactiveAccount(_) => Level::WARN,
             Self::CannotUpdateClosedAccount(_) => Level::WARN,

@@ -17,7 +17,7 @@ impl ErrorSeverity for WalletError {
     fn severity(&self) -> Level {
         match self {
             Self::Sqlx(_) => Level::ERROR,
-            Self::EsEntityError(_) => Level::ERROR,
+            Self::EsEntityError(e) => e.severity(),
             Self::CursorDestructureError(_) => Level::ERROR,
         }
     }
