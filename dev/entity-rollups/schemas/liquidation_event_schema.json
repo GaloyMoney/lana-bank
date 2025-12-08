@@ -1,0 +1,147 @@
+{
+  "$defs": {
+    "PriceOfOneBTC": {
+      "$ref": "#/$defs/UsdCents"
+    },
+    "Satoshis": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "UsdCents": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "properties": {
+        "credit_facility_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "initially_estimated_to_liquidate": {
+          "$ref": "#/$defs/Satoshis"
+        },
+        "initially_expected_to_receive": {
+          "$ref": "#/$defs/UsdCents"
+        },
+        "receivable_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "trigger_price": {
+          "$ref": "#/$defs/PriceOfOneBTC"
+        },
+        "type": {
+          "const": "initialized",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "credit_facility_id",
+        "receivable_account_id",
+        "trigger_price",
+        "initially_expected_to_receive",
+        "initially_estimated_to_liquidate"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "current_price": {
+          "$ref": "#/$defs/PriceOfOneBTC"
+        },
+        "expected_to_receive": {
+          "$ref": "#/$defs/UsdCents"
+        },
+        "outstanding": {
+          "$ref": "#/$defs/UsdCents"
+        },
+        "to_liquidate_at_current_price": {
+          "$ref": "#/$defs/Satoshis"
+        },
+        "type": {
+          "const": "updated",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "outstanding",
+        "to_liquidate_at_current_price",
+        "current_price",
+        "expected_to_receive"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "amount": {
+          "$ref": "#/$defs/Satoshis"
+        },
+        "ledger_tx_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "const": "collateral_sent_out",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "amount",
+        "ledger_tx_id"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "amount": {
+          "$ref": "#/$defs/UsdCents"
+        },
+        "ledger_tx_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "const": "repayment_amount_received",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "amount",
+        "ledger_tx_id"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "payment_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "const": "completed",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "payment_id"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "LiquidationEvent"
+}

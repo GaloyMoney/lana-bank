@@ -55,6 +55,18 @@ pub enum CreditFacilityEvent {
     CollateralizationRatioChanged {
         collateralization_ratio: CollateralizationRatio,
     },
+    PartialLiquidationInitiated {
+        liquidation_id: LiquidationId,
+        receivable_account_id: CalaAccountId,
+        trigger_price: PriceOfOneBTC,
+        initially_expected_to_receive: UsdCents,
+        initially_estimated_to_liquidate: Satoshis,
+    },
+    PartialLiquidationCompleted {
+        liquidation_id: LiquidationId,
+        liquidated: Satoshis,
+        received: UsdCents,
+    },
     Matured {},
     Completed {},
 }
@@ -245,6 +257,49 @@ impl CreditFacility {
         } else {
             CreditFacilityStatus::Active
         }
+    }
+
+    fn maybe_initiate_partial_liquidation(
+        &mut self,
+        state: CollateralizationState,
+        price: PriceOfOneBTC,
+        balances: CreditFacilityBalanceSummary,
+    ) -> Idempotent<()> {
+        if !state.is_under_liquidation_threshold() {
+            return Idempotent::Ignored;
+        }
+
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            CreditFacilityEvent::PartialLiquidationInitiated { .. },
+            => CreditFacilityEvent::PartialLiquidationCompleted { .. }
+        );
+
+        if balances.total_outstanding().is_zero() {
+            return Idempotent::Ignored;
+        }
+
+        let amount = balances.total_outstanding();
+
+        let repay_amount = LiquidationPayment::repay_amount(
+            amount,
+            price,
+            self.terms.initial_cvl,
+            balances.collateral(),
+        );
+
+        let liquidate_btc = price.cents_to_sats_round_up(repay_amount);
+
+        self.events
+            .push(CreditFacilityEvent::PartialLiquidationInitiated {
+                liquidation_id: LiquidationId::new(),
+                receivable_account_id: CalaAccountId::new(),
+                trigger_price: price,
+                initially_expected_to_receive: repay_amount,
+                initially_estimated_to_liquidate: liquidate_btc,
+            });
+
+        Idempotent::Executed(())
     }
 
     pub(crate) fn mature(&mut self) -> Idempotent<()> {
@@ -479,6 +534,12 @@ impl CreditFacility {
                     price,
                 });
 
+            let _ = self.maybe_initiate_partial_liquidation(
+                calculated_collateralization,
+                price,
+                balances,
+            );
+
             Idempotent::Executed(Some(calculated_collateralization))
         } else if ratio_changed {
             Idempotent::Executed(None)
@@ -578,6 +639,8 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                 CreditFacilityEvent::CollateralizationRatioChanged { .. } => (),
                 CreditFacilityEvent::Matured { .. } => (),
                 CreditFacilityEvent::Completed { .. } => (),
+                CreditFacilityEvent::PartialLiquidationInitiated { .. } => {}
+                CreditFacilityEvent::PartialLiquidationCompleted { .. } => {}
             }
         }
         builder.events(events).build()
@@ -917,6 +980,71 @@ mod test {
                 .amount,
             expected_fee
         );
+    }
+
+    mod partial_liquidation {
+        use super::*;
+
+        #[test]
+        fn liquidation_initiated_when_below_liquidation_threshold() {
+            let mut credit_facility = facility_from(initial_events());
+
+            let balances = CreditFacilityBalanceSummary {
+                collateral: Satoshis::try_from_btc(dec!(2)).unwrap(),
+                not_yet_due_disbursed_outstanding: UsdCents::from(10000000),
+                due_disbursed_outstanding: UsdCents::ZERO,
+                overdue_disbursed_outstanding: UsdCents::ZERO,
+                disbursed_defaulted: UsdCents::ZERO,
+                not_yet_due_interest_outstanding: UsdCents::ZERO,
+                due_interest_outstanding: UsdCents::ZERO,
+                overdue_interest_outstanding: UsdCents::ZERO,
+                interest_defaulted: UsdCents::ZERO,
+
+                facility: UsdCents::from(100000000),
+                facility_remaining: UsdCents::ZERO,
+                disbursed: UsdCents::from(10000000),
+                interest_posted: UsdCents::ZERO,
+            };
+
+            // Price high enough to keep CVL (200) above thresholds
+            let price = PriceOfOneBTC::new(UsdCents::from(10000000));
+            let state_update = credit_facility.update_collateralization(
+                price,
+                default_upgrade_buffer_cvl_pct(),
+                balances,
+            );
+
+            assert!(state_update.did_execute());
+            assert_eq!(
+                state_update.unwrap(),
+                Some(CollateralizationState::FullyCollateralized)
+            );
+            assert!(
+                credit_facility
+                    .events
+                    .iter_all()
+                    .all(|e| !matches!(e, CreditFacilityEvent::PartialLiquidationInitiated { .. }))
+            );
+
+            // Price dropped so that CVL (100) is below threshold
+            let price = PriceOfOneBTC::new(UsdCents::from(5000000));
+            let state_update = credit_facility.update_collateralization(
+                price,
+                default_upgrade_buffer_cvl_pct(),
+                balances,
+            );
+            assert!(state_update.did_execute());
+            assert_eq!(
+                state_update.unwrap(),
+                Some(CollateralizationState::UnderLiquidationThreshold)
+            );
+            assert!(
+                credit_facility
+                    .events
+                    .iter_all()
+                    .any(|e| matches!(e, CreditFacilityEvent::PartialLiquidationInitiated { .. }))
+            );
+        }
     }
 
     mod completion {

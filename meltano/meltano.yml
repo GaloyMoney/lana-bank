@@ -113,7 +113,7 @@ plugins:
         - public-core_chart_events_rollup.*
         - public-core_manual_transaction_events_rollup.*
         - public-core_document_events_rollup.*
-        - public-core_liquidation_process_events_rollup.*
+        - public-core_liquidation_events_rollup.*
         - public-core_public_ids.*
     - name: tap-bitfinexapi
       namespace: tap_bitfinexapi

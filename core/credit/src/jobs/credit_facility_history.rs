@@ -96,13 +96,13 @@ where
                 },
             )
             | Some(
-                event @ LiquidationProcessStarted {
+                event @ PartialLiquidationInitiated {
                     credit_facility_id: id,
                     ..
                 },
             )
             | Some(
-                event @ LiquidationProcessConcluded {
+                event @ PartialLiquidationCompleted {
                     credit_facility_id: id,
                     ..
                 },

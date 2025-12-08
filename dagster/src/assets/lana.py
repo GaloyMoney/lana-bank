@@ -30,7 +30,7 @@ LANA_EL_TABLE_NAMES = (
     "core_deposit_events_rollup",
     "core_disbursal_events_rollup",
     "core_interest_accrual_cycle_events_rollup",
-    "core_liquidation_process_events_rollup",
+    "core_liquidation_events_rollup",
     "core_obligation_events_rollup",
     "core_payment_allocation_events_rollup",
     "core_payment_events_rollup",
