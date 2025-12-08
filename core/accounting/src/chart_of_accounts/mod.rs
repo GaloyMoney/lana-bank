@@ -303,10 +303,10 @@ where
 
     #[record_error_severity]
     #[instrument(
-        name = "core_accounting.chart_of_accounts.post_closing_transaction_in_op",
+        name = "core_accounting.chart_of_accounts.post_closing_transaction",
         skip(self, op)
     )]
-    pub async fn post_closing_transaction_in_op(
+    pub async fn post_closing_transaction(
         &self,
         mut op: es_entity::DbOp<'_>,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -337,7 +337,7 @@ where
         {
             self.repo.update_in_op(&mut op, &mut chart).await?;
             self.chart_ledger
-                .post_closing_transaction_in_op(
+                .post_closing_transaction(
                     op,
                     closing_tx_spec.tx_id,
                     closing_tx_spec.description,
