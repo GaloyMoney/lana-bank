@@ -323,8 +323,8 @@ impl ChartLedger {
     }
 
     #[record_error_severity]
-    #[instrument(name = "chart_ledger.post_closing_transaction_in_op", skip(self, op))]
-    pub async fn post_closing_transaction_in_op(
+    #[instrument(name = "chart_ledger.post_closing_transaction", skip(self, op))]
+    pub async fn post_closing_transaction(
         &self,
         op: es_entity::DbOp<'_>,
         ledger_tx_id: CalaTxId,
@@ -379,7 +379,7 @@ impl ChartLedger {
                 closing_transaction_params,
             )
             .await?;
-
+        op.commit().await?;
         Ok(())
     }
 

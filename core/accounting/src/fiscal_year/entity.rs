@@ -9,7 +9,7 @@ use tracing::instrument;
 use super::error::*;
 use tracing_macros::record_error_severity;
 
-use crate::primitives::{ChartId, FiscalYearId};
+use crate::primitives::{CalaTxId, ChartId, FiscalYearId};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -29,6 +29,7 @@ pub enum FiscalYearEvent {
     YearClosed {
         closed_as_of: NaiveDate,
         closed_at: DateTime<Utc>,
+        tx_id: CalaTxId,
     },
 }
 
@@ -55,6 +56,7 @@ impl FiscalYear {
     pub(super) fn close(
         &mut self,
         now: DateTime<Utc>,
+        tx_id: CalaTxId,
     ) -> Result<Idempotent<NaiveDate>, FiscalYearError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
@@ -68,6 +70,7 @@ impl FiscalYear {
         self.events.push(FiscalYearEvent::YearClosed {
             closed_as_of,
             closed_at: now,
+            tx_id,
         });
         self.closed_as_of = Some(closed_as_of);
         Ok(Idempotent::Executed(closed_as_of))
@@ -321,7 +324,7 @@ mod test {
         let mut fiscal_year = fiscal_year_from(initial_events_with_opened_date(period_start));
 
         let _ = fiscal_year.close_next_sequential_month(Utc::now()).unwrap();
-        let result = fiscal_year.close(Utc::now());
+        let result = fiscal_year.close(Utc::now(), CalaTxId::new());
         assert!(result.is_err());
         assert!(matches!(result, Err(FiscalYearError::LastMonthNotClosed)));
     }
@@ -332,7 +335,7 @@ mod test {
         let mut fiscal_year = fiscal_year_from(initial_events_with_opened_date(period_start));
 
         let _ = fiscal_year.close_next_sequential_month(Utc::now()).unwrap();
-        let result = fiscal_year.close(Utc::now());
+        let result = fiscal_year.close(Utc::now(), CalaTxId::new());
         assert!(result.is_ok());
 
         let db_op = result.unwrap();
@@ -348,9 +351,9 @@ mod test {
         let mut fiscal_year = fiscal_year_from(initial_events_with_opened_date(period_start));
 
         let _ = fiscal_year.close_next_sequential_month(Utc::now()).unwrap();
-        let _ = fiscal_year.close(Utc::now());
+        let _ = fiscal_year.close(Utc::now(), CalaTxId::new());
 
-        let second_closing = fiscal_year.close(Utc::now());
+        let second_closing = fiscal_year.close(Utc::now(), CalaTxId::new());
         assert!(second_closing.is_ok());
         assert!(second_closing.unwrap().was_ignored());
     }
