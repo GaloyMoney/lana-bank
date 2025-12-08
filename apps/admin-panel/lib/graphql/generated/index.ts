@@ -1345,6 +1345,7 @@ export type FiscalYear = {
   closedAsOf?: Maybe<Scalars['Date']['output']>;
   fiscalYearId: Scalars['UUID']['output'];
   id: Scalars['ID']['output'];
+  isLastMonthOfYearClosed: Scalars['Boolean']['output'];
   isOpen: Scalars['Boolean']['output'];
   monthClosures: Array<FiscalMonthClosure>;
   openedAsOf: Scalars['Date']['output'];
@@ -3747,21 +3748,28 @@ export type DisbursalsQueryVariables = Exact<{
 
 export type DisbursalsQuery = { __typename?: 'Query', disbursals: { __typename?: 'CreditFacilityDisbursalConnection', edges: Array<{ __typename?: 'CreditFacilityDisbursalEdge', cursor: string, node: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, publicId: any, amount: UsdCents, createdAt: any, status: DisbursalStatus } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
-export type FiscalYearDetailsPageFragmentFragment = { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: any, isOpen: boolean, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: any, closedAt: any }> };
+export type FiscalYearDetailsPageFragmentFragment = { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: any, isOpen: boolean, isLastMonthOfYearClosed: boolean, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: any, closedAt: any }> };
 
 export type GetFiscalYearDetailsQueryVariables = Exact<{
   fiscalYearId: Scalars['UUID']['input'];
 }>;
 
 
-export type GetFiscalYearDetailsQuery = { __typename?: 'Query', fiscalYear?: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: any, isOpen: boolean, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: any, closedAt: any }> } | null };
+export type GetFiscalYearDetailsQuery = { __typename?: 'Query', fiscalYear?: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: any, isOpen: boolean, isLastMonthOfYearClosed: boolean, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: any, closedAt: any }> } | null };
 
 export type FiscalYearCloseMonthMutationVariables = Exact<{
   input: FiscalYearCloseMonthInput;
 }>;
 
 
-export type FiscalYearCloseMonthMutation = { __typename?: 'Mutation', fiscalYearCloseMonth: { __typename?: 'FiscalYearCloseMonthPayload', fiscalYear: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: any, isOpen: boolean, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: any, closedAt: any }> } } };
+export type FiscalYearCloseMonthMutation = { __typename?: 'Mutation', fiscalYearCloseMonth: { __typename?: 'FiscalYearCloseMonthPayload', fiscalYear: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: any, isOpen: boolean, isLastMonthOfYearClosed: boolean, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: any, closedAt: any }> } } };
+
+export type FiscalYearCloseMutationVariables = Exact<{
+  input: FiscalYearCloseInput;
+}>;
+
+
+export type FiscalYearCloseMutation = { __typename?: 'Mutation', fiscalYearClose: { __typename?: 'FiscalYearClosePayload', fiscalYear: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: any, isOpen: boolean, isLastMonthOfYearClosed: boolean, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: any, closedAt: any }> } } };
 
 export type FiscalYearInitMutationVariables = Exact<{
   input: FiscalYearInitInput;
@@ -3779,6 +3787,13 @@ export type FiscalYearsQueryVariables = Exact<{
 
 
 export type FiscalYearsQuery = { __typename?: 'Query', fiscalYears: { __typename?: 'FiscalYearConnection', edges: Array<{ __typename?: 'FiscalYearEdge', cursor: string, node: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: any, isOpen: boolean } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+
+export type FiscalYearOpenNextMutationVariables = Exact<{
+  input: FiscalYearOpenNextInput;
+}>;
+
+
+export type FiscalYearOpenNextMutation = { __typename?: 'Mutation', fiscalYearOpenNext: { __typename?: 'FiscalYearOpenNextPayload', fiscalYear: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: any, isOpen: boolean, isLastMonthOfYearClosed: boolean, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: any, closedAt: any }> } } };
 
 export type ExecuteManualTransactionMutationVariables = Exact<{
   input: ManualTransactionExecuteInput;
@@ -4934,6 +4949,7 @@ export const FiscalYearDetailsPageFragmentFragmentDoc = gql`
   chartId
   openedAsOf
   isOpen
+  isLastMonthOfYearClosed
   monthClosures {
     closedAsOf
     closedAt
@@ -8154,6 +8170,41 @@ export function useFiscalYearCloseMonthMutation(baseOptions?: Apollo.MutationHoo
 export type FiscalYearCloseMonthMutationHookResult = ReturnType<typeof useFiscalYearCloseMonthMutation>;
 export type FiscalYearCloseMonthMutationResult = Apollo.MutationResult<FiscalYearCloseMonthMutation>;
 export type FiscalYearCloseMonthMutationOptions = Apollo.BaseMutationOptions<FiscalYearCloseMonthMutation, FiscalYearCloseMonthMutationVariables>;
+export const FiscalYearCloseDocument = gql`
+    mutation FiscalYearClose($input: FiscalYearCloseInput!) {
+  fiscalYearClose(input: $input) {
+    fiscalYear {
+      ...FiscalYearDetailsPageFragment
+    }
+  }
+}
+    ${FiscalYearDetailsPageFragmentFragmentDoc}`;
+export type FiscalYearCloseMutationFn = Apollo.MutationFunction<FiscalYearCloseMutation, FiscalYearCloseMutationVariables>;
+
+/**
+ * __useFiscalYearCloseMutation__
+ *
+ * To run a mutation, you first call `useFiscalYearCloseMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useFiscalYearCloseMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [fiscalYearCloseMutation, { data, loading, error }] = useFiscalYearCloseMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useFiscalYearCloseMutation(baseOptions?: Apollo.MutationHookOptions<FiscalYearCloseMutation, FiscalYearCloseMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<FiscalYearCloseMutation, FiscalYearCloseMutationVariables>(FiscalYearCloseDocument, options);
+      }
+export type FiscalYearCloseMutationHookResult = ReturnType<typeof useFiscalYearCloseMutation>;
+export type FiscalYearCloseMutationResult = Apollo.MutationResult<FiscalYearCloseMutation>;
+export type FiscalYearCloseMutationOptions = Apollo.BaseMutationOptions<FiscalYearCloseMutation, FiscalYearCloseMutationVariables>;
 export const FiscalYearInitDocument = gql`
     mutation FiscalYearInit($input: FiscalYearInitInput!) {
   fiscalYearInit(input: $input) {
@@ -8241,6 +8292,41 @@ export type FiscalYearsQueryHookResult = ReturnType<typeof useFiscalYearsQuery>;
 export type FiscalYearsLazyQueryHookResult = ReturnType<typeof useFiscalYearsLazyQuery>;
 export type FiscalYearsSuspenseQueryHookResult = ReturnType<typeof useFiscalYearsSuspenseQuery>;
 export type FiscalYearsQueryResult = Apollo.QueryResult<FiscalYearsQuery, FiscalYearsQueryVariables>;
+export const FiscalYearOpenNextDocument = gql`
+    mutation FiscalYearOpenNext($input: FiscalYearOpenNextInput!) {
+  fiscalYearOpenNext(input: $input) {
+    fiscalYear {
+      ...FiscalYearDetailsPageFragment
+    }
+  }
+}
+    ${FiscalYearDetailsPageFragmentFragmentDoc}`;
+export type FiscalYearOpenNextMutationFn = Apollo.MutationFunction<FiscalYearOpenNextMutation, FiscalYearOpenNextMutationVariables>;
+
+/**
+ * __useFiscalYearOpenNextMutation__
+ *
+ * To run a mutation, you first call `useFiscalYearOpenNextMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useFiscalYearOpenNextMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [fiscalYearOpenNextMutation, { data, loading, error }] = useFiscalYearOpenNextMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useFiscalYearOpenNextMutation(baseOptions?: Apollo.MutationHookOptions<FiscalYearOpenNextMutation, FiscalYearOpenNextMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<FiscalYearOpenNextMutation, FiscalYearOpenNextMutationVariables>(FiscalYearOpenNextDocument, options);
+      }
+export type FiscalYearOpenNextMutationHookResult = ReturnType<typeof useFiscalYearOpenNextMutation>;
+export type FiscalYearOpenNextMutationResult = Apollo.MutationResult<FiscalYearOpenNextMutation>;
+export type FiscalYearOpenNextMutationOptions = Apollo.BaseMutationOptions<FiscalYearOpenNextMutation, FiscalYearOpenNextMutationVariables>;
 export const ExecuteManualTransactionDocument = gql`
     mutation ExecuteManualTransaction($input: ManualTransactionExecuteInput!) {
   manualTransactionExecute(input: $input) {

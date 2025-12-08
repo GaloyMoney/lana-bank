@@ -1340,6 +1340,7 @@ type FiscalYear {
 	openedAsOf: Date!
 	closedAsOf: Date
 	monthClosures: [FiscalMonthClosure!]!
+	isLastMonthOfYearClosed: Boolean!
 }
 
 input FiscalYearCloseInput {
