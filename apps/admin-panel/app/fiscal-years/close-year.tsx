@@ -16,13 +16,13 @@ import { Button } from "@lana/web/ui/button"
 
 import {
   FiscalYear,
-  useFiscalYearCloseMonthMutation,
+  useFiscalYearCloseMutation,
   FiscalYearsDocument,
 } from "@/lib/graphql/generated"
 
 gql`
-  mutation FiscalYearCloseMonth($input: FiscalYearCloseMonthInput!) {
-    fiscalYearCloseMonth(input: $input) {
+  mutation FiscalYearClose($input: FiscalYearCloseInput!) {
+    fiscalYearClose(input: $input) {
       fiscalYear {
         ...FiscalYearDetailsPageFragment
       }
@@ -30,29 +30,29 @@ gql`
   }
 `
 
-interface CloseMonthDialogProps {
+type CloseYearDialogProps = {
   fiscalYear: FiscalYear
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
-export function CloseMonthDialog({
+export function CloseYearDialog({
   fiscalYear,
   open,
   onOpenChange,
-}: CloseMonthDialogProps) {
-  const t = useTranslations("FiscalYears.closeMonth")
+}: CloseYearDialogProps) {
+  const t = useTranslations("FiscalYears.closeYear")
   const tCommon = useTranslations("Common")
   const [error, setError] = useState<string | null>(null)
 
-  const [closeMonthMutation, { loading }] = useFiscalYearCloseMonthMutation({
+  const [closeYearMutation, { loading }] = useFiscalYearCloseMutation({
     refetchQueries: [FiscalYearsDocument],
   })
 
-  const handleCloseMonth = async () => {
+  const handleCloseYear = async () => {
     setError(null)
     try {
-      await closeMonthMutation({
+      await closeYearMutation({
         variables: {
           input: {
             fiscalYearId: fiscalYear.fiscalYearId,
@@ -93,7 +93,7 @@ export function CloseMonthDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t("cancel")}
           </Button>
-          <Button onClick={handleCloseMonth} variant="destructive" loading={loading}>
+          <Button variant="destructive" onClick={handleCloseYear} loading={loading}>
             {t("confirm")}
           </Button>
         </DialogFooter>

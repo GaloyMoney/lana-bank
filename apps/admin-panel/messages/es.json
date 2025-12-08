@@ -1940,6 +1940,20 @@
       "confirm": "Cerrar Mes",
       "success": "Mes cerrado exitosamente"
     },
+    "closeYear": {
+      "title": "Cerrar Año Fiscal",
+      "description": "Esto cerrará el año fiscal y bloqueará todos los períodos restantes. La acción es permanente y no se podrán registrar transacciones adicionales.",
+      "cancel": "Cancelar",
+      "confirm": "Cerrar Año Fiscal",
+      "success": "Año fiscal cerrado exitosamente"
+    },
+    "openNextYear": {
+      "title": "Abrir Próximo Año Fiscal",
+      "description": "Esto creará y abrirá el siguiente año fiscal secuencial que inicia inmediatamente después del actual.",
+      "cancel": "Cancelar",
+      "confirm": "Abrir Próximo Año Fiscal",
+      "success": "Próximo año fiscal abierto exitosamente"
+    },
     "details": {
       "title": "Detalles del Año Fiscal",
       "fields": {
@@ -1951,7 +1965,10 @@
         "noMonthsClosed": "Aún no hay meses cerrados"
       },
       "buttons": {
-        "closeMonth": "Cerrar Próximo Mes"
+        "closeMonth": "Cerrar Próximo Mes",
+        "closeYear": "Cerrar Año Fiscal",
+        "openNextYear": "Abrir Próximo Año Fiscal",
+        "closeYearDisabledTooltip": "Cierra los {count} meses antes de cerrar el año fiscal"
       }
     },
     "monthClosures": {

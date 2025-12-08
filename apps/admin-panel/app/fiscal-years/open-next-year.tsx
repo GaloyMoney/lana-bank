@@ -8,21 +8,24 @@ import { toast } from "sonner"
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@lana/web/ui/dialog"
 import { Button } from "@lana/web/ui/button"
 
+import { useModalNavigation } from "@/hooks/use-modal-navigation"
+
 import {
   FiscalYear,
-  useFiscalYearCloseMonthMutation,
+  useFiscalYearOpenNextMutation,
   FiscalYearsDocument,
 } from "@/lib/graphql/generated"
 
 gql`
-  mutation FiscalYearCloseMonth($input: FiscalYearCloseMonthInput!) {
-    fiscalYearCloseMonth(input: $input) {
+  mutation FiscalYearOpenNext($input: FiscalYearOpenNextInput!) {
+    fiscalYearOpenNext(input: $input) {
       fiscalYear {
         ...FiscalYearDetailsPageFragment
       }
@@ -30,29 +33,33 @@ gql`
   }
 `
 
-interface CloseMonthDialogProps {
+type OpenNextYearDialogProps = {
   fiscalYear: FiscalYear
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
-export function CloseMonthDialog({
+export function OpenNextYearDialog({
   fiscalYear,
   open,
   onOpenChange,
-}: CloseMonthDialogProps) {
-  const t = useTranslations("FiscalYears.closeMonth")
+}: OpenNextYearDialogProps) {
+  const t = useTranslations("FiscalYears.openNextYear")
   const tCommon = useTranslations("Common")
   const [error, setError] = useState<string | null>(null)
 
-  const [closeMonthMutation, { loading }] = useFiscalYearCloseMonthMutation({
+  const { navigate } = useModalNavigation({
+    closeModal: () => onOpenChange(false),
+  })
+
+  const [openNextYearMutation, { loading }] = useFiscalYearOpenNextMutation({
     refetchQueries: [FiscalYearsDocument],
   })
 
-  const handleCloseMonth = async () => {
+  const handleOpenNextYear = async () => {
     setError(null)
     try {
-      await closeMonthMutation({
+      const { data } = await openNextYearMutation({
         variables: {
           input: {
             fiscalYearId: fiscalYear.fiscalYearId,
@@ -60,7 +67,10 @@ export function CloseMonthDialog({
         },
       })
       toast.success(t("success"))
-      onOpenChange(false)
+      const nextFiscalYearId = data?.fiscalYearOpenNext?.fiscalYear?.fiscalYearId
+      if (nextFiscalYearId) {
+        navigate(`/fiscal-years/${nextFiscalYearId}`)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : tCommon("error"))
     }
@@ -82,18 +92,13 @@ export function CloseMonthDialog({
         <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>
         </DialogHeader>
-
-        <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
-          {t("description")}
-        </div>
-
+        <DialogDescription>{t("description")}</DialogDescription>
         {error && <p className="text-destructive text-sm">{error}</p>}
-
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t("cancel")}
           </Button>
-          <Button onClick={handleCloseMonth} variant="destructive" loading={loading}>
+          <Button onClick={handleOpenNextYear} loading={loading}>
             {t("confirm")}
           </Button>
         </DialogFooter>
