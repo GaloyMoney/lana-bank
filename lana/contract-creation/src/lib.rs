@@ -16,10 +16,12 @@ use uuid::Uuid;
 
 mod error;
 pub mod job;
+mod loan_agreement;
 mod templates;
 
 pub use error::*;
 pub use job::*;
+pub use loan_agreement::*;
 pub use primitives::{
     ContractCreationId, ContractModuleAction, ContractModuleObject,
     PERMISSION_SET_CONTRACT_CREATION,
