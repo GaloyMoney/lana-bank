@@ -24,8 +24,6 @@ import { GetFiscalYearDetailsQuery, useFiscalYearsQuery } from "@/lib/graphql/ge
 type FiscalYearDetailsProps = {
   fiscalYear: NonNullable<GetFiscalYearDetailsQuery["fiscalYear"]>
 }
-const totalMonthsRequiredToCloseYear = 12
-
 const FiscalYearDetailsCard: React.FC<FiscalYearDetailsProps> = ({ fiscalYear }) => {
   const t = useTranslations("FiscalYears.details")
   const [openCloseMonthDialog, setOpenCloseMonthDialog] = useState(false)
@@ -40,7 +38,7 @@ const FiscalYearDetailsCard: React.FC<FiscalYearDetailsProps> = ({ fiscalYear })
     latestFiscalYearData?.fiscalYears?.edges?.[0]?.node?.fiscalYearId
 
   const monthsClosed = fiscalYear.monthClosures.length
-  const isCloseYearDisabled = monthsClosed < totalMonthsRequiredToCloseYear
+  const isCloseYearDisabled = !fiscalYear.isLastMonthOfYearClosed
   const lastClosure = monthsClosed > 0 ? fiscalYear.monthClosures[monthsClosed - 1] : null
 
   const details: DetailItemProps[] = [
@@ -76,7 +74,7 @@ const FiscalYearDetailsCard: React.FC<FiscalYearDetailsProps> = ({ fiscalYear })
       <div className="flex flex-wrap gap-2">
         {fiscalYear.isOpen && (
           <>
-            {monthsClosed < totalMonthsRequiredToCloseYear && (
+            {!fiscalYear.isLastMonthOfYearClosed && (
               <Button variant="outline" onClick={() => setOpenCloseMonthDialog(true)}>
                 <CalendarCheck className="h-4 w-4" />
                 {t("buttons.closeMonth")}
@@ -97,11 +95,7 @@ const FiscalYearDetailsCard: React.FC<FiscalYearDetailsProps> = ({ fiscalYear })
               </TooltipTrigger>
               {isCloseYearDisabled && (
                 <TooltipContent>
-                  <p>
-                    {t("buttons.closeYearDisabledTooltip", {
-                      count: totalMonthsRequiredToCloseYear,
-                    })}
-                  </p>
+                  <p>{t("buttons.closeYearDisabledTooltip")}</p>
                 </TooltipContent>
               )}
             </Tooltip>

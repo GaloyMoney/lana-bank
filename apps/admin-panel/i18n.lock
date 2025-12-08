@@ -1120,9 +1120,9 @@ checksums:
     FiscalYears/closeMonth/confirm: be9f9c9ee4abdf3c19dcbbd5306a6a55
     FiscalYears/closeMonth/success: 73644cf6238dcc4e64dab925d25826f8
     FiscalYears/closeYear/title: fd83a574e4d32cf68bccd2f4c5137fae
-    FiscalYears/closeYear/description: 5c04e3ab0b5a467871f613bd5f04472f
+    FiscalYears/closeYear/description: b6ff8224661a191560a162a6a49ac168
     FiscalYears/closeYear/confirm: fd83a574e4d32cf68bccd2f4c5137fae
-    FiscalYears/closeYear/success: aa0ac0c5b4e4dfe1e2e2b0ab11e9b460
+    FiscalYears/closeYear/success: f2d555aba4747c061dca9849e035c3e3
     FiscalYears/openNextYear/title: ac7359b8cdfda02e10ab97afbf89c60e
     FiscalYears/openNextYear/description: 7ca05871ee633d8591983de310cc91e6
     FiscalYears/openNextYear/confirm: ac7359b8cdfda02e10ab97afbf89c60e
@@ -1137,7 +1137,7 @@ checksums:
     FiscalYears/details/buttons/closeMonth: e447be5bf5e937f26cc2f4c6c9b158ed
     FiscalYears/details/buttons/closeYear: fd83a574e4d32cf68bccd2f4c5137fae
     FiscalYears/details/buttons/openNextYear: ac7359b8cdfda02e10ab97afbf89c60e
-    FiscalYears/details/buttons/closeYearDisabledTooltip: 09f446becf59921d249be72bd9f030cc
+    FiscalYears/details/buttons/closeYearDisabledTooltip: 80fd4f9eea644dc2d46d7273c44a8e4e
     FiscalYears/monthClosures/title: 18e222b95afa669096e64cc0498c7c34
     FiscalYears/monthClosures/noClosures: 59b07a7da12eaa145278ecc55d3977b3
     FiscalYears/monthClosures/table/headers/closedAsOf: 7f0f74f255686704369ca1155682455e

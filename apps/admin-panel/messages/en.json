@@ -1942,9 +1942,9 @@
     },
     "closeYear": {
       "title": "Close Fiscal Year",
-      "description": "This will close the fiscal year and lock all remaining periods. The action is permanent and no additional transactions can be recorded afterward.",
+      "description": "This will post a closing transaction, transferring net income for the fiscal year to the balance sheet. The action will reduce your profit and loss statement accounts by their effective balance as of the fiscal year close date.",
       "confirm": "Close Fiscal Year",
-      "success": "Fiscal year closed successfully"
+      "success": "Fiscal year's net income transferred to balance sheet successfully"
     },
     "openNextYear": {
       "title": "Open Next Fiscal Year",
@@ -1966,7 +1966,7 @@
         "closeMonth": "Close Next Month",
         "closeYear": "Close Fiscal Year",
         "openNextYear": "Open Next Fiscal Year",
-        "closeYearDisabledTooltip": "Close all {count} months before closing the fiscal year"
+        "closeYearDisabledTooltip": "Last month is not closed yet"
       }
     },
     "monthClosures": {

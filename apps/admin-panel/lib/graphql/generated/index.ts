@@ -1345,6 +1345,7 @@ export type FiscalYear = {
   closedAsOf?: Maybe<Scalars['Date']['output']>;
   fiscalYearId: Scalars['UUID']['output'];
   id: Scalars['ID']['output'];
+  isLastMonthOfYearClosed: Scalars['Boolean']['output'];
   isOpen: Scalars['Boolean']['output'];
   monthClosures: Array<FiscalMonthClosure>;
   openedAsOf: Scalars['Date']['output'];
@@ -3747,28 +3748,28 @@ export type DisbursalsQueryVariables = Exact<{
 
 export type DisbursalsQuery = { __typename?: 'Query', disbursals: { __typename?: 'CreditFacilityDisbursalConnection', edges: Array<{ __typename?: 'CreditFacilityDisbursalEdge', cursor: string, node: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, publicId: any, amount: UsdCents, createdAt: any, status: DisbursalStatus } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
-export type FiscalYearDetailsPageFragmentFragment = { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: any, isOpen: boolean, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: any, closedAt: any }> };
+export type FiscalYearDetailsPageFragmentFragment = { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: any, isOpen: boolean, isLastMonthOfYearClosed: boolean, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: any, closedAt: any }> };
 
 export type GetFiscalYearDetailsQueryVariables = Exact<{
   fiscalYearId: Scalars['UUID']['input'];
 }>;
 
 
-export type GetFiscalYearDetailsQuery = { __typename?: 'Query', fiscalYear?: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: any, isOpen: boolean, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: any, closedAt: any }> } | null };
+export type GetFiscalYearDetailsQuery = { __typename?: 'Query', fiscalYear?: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: any, isOpen: boolean, isLastMonthOfYearClosed: boolean, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: any, closedAt: any }> } | null };
 
 export type FiscalYearCloseMonthMutationVariables = Exact<{
   input: FiscalYearCloseMonthInput;
 }>;
 
 
-export type FiscalYearCloseMonthMutation = { __typename?: 'Mutation', fiscalYearCloseMonth: { __typename?: 'FiscalYearCloseMonthPayload', fiscalYear: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: any, isOpen: boolean, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: any, closedAt: any }> } } };
+export type FiscalYearCloseMonthMutation = { __typename?: 'Mutation', fiscalYearCloseMonth: { __typename?: 'FiscalYearCloseMonthPayload', fiscalYear: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: any, isOpen: boolean, isLastMonthOfYearClosed: boolean, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: any, closedAt: any }> } } };
 
 export type FiscalYearCloseMutationVariables = Exact<{
   input: FiscalYearCloseInput;
 }>;
 
 
-export type FiscalYearCloseMutation = { __typename?: 'Mutation', fiscalYearClose: { __typename?: 'FiscalYearClosePayload', fiscalYear: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: any, isOpen: boolean, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: any, closedAt: any }> } } };
+export type FiscalYearCloseMutation = { __typename?: 'Mutation', fiscalYearClose: { __typename?: 'FiscalYearClosePayload', fiscalYear: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: any, isOpen: boolean, isLastMonthOfYearClosed: boolean, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: any, closedAt: any }> } } };
 
 export type FiscalYearInitMutationVariables = Exact<{
   input: FiscalYearInitInput;
@@ -3792,7 +3793,7 @@ export type FiscalYearOpenNextMutationVariables = Exact<{
 }>;
 
 
-export type FiscalYearOpenNextMutation = { __typename?: 'Mutation', fiscalYearOpenNext: { __typename?: 'FiscalYearOpenNextPayload', fiscalYear: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: any, isOpen: boolean, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: any, closedAt: any }> } } };
+export type FiscalYearOpenNextMutation = { __typename?: 'Mutation', fiscalYearOpenNext: { __typename?: 'FiscalYearOpenNextPayload', fiscalYear: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: any, isOpen: boolean, isLastMonthOfYearClosed: boolean, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: any, closedAt: any }> } } };
 
 export type ExecuteManualTransactionMutationVariables = Exact<{
   input: ManualTransactionExecuteInput;
@@ -4948,6 +4949,7 @@ export const FiscalYearDetailsPageFragmentFragmentDoc = gql`
   chartId
   openedAsOf
   isOpen
+  isLastMonthOfYearClosed
   monthClosures {
     closedAsOf
     closedAt

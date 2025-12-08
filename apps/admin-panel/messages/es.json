@@ -1942,9 +1942,9 @@
     },
     "closeYear": {
       "title": "Cerrar Año Fiscal",
-      "description": "Esto cerrará el año fiscal y bloqueará todos los períodos restantes. La acción es permanente y no se podrán registrar transacciones adicionales.",
+      "description": "Esto registrará una transacción de cierre, transfiriendo los ingresos netos del año fiscal al balance general. La acción reducirá las cuentas de su estado de pérdidas y ganancias por su saldo efectivo a la fecha de cierre del año fiscal.",
       "confirm": "Cerrar Año Fiscal",
-      "success": "Año fiscal cerrado exitosamente"
+      "success": "Los ingresos netos del año fiscal se transfirieron correctamente al balance general"
     },
     "openNextYear": {
       "title": "Abrir Próximo Año Fiscal",
@@ -1966,7 +1966,7 @@
         "closeMonth": "Cerrar Próximo Mes",
         "closeYear": "Cerrar Año Fiscal",
         "openNextYear": "Abrir Próximo Año Fiscal",
-        "closeYearDisabledTooltip": "Cierra los {count} meses antes de cerrar el año fiscal"
+        "closeYearDisabledTooltip": "El último mes aún no está cerrado"
       }
     },
     "monthClosures": {

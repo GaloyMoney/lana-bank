@@ -41,6 +41,10 @@ impl FiscalYear {
             .map(FiscalMonthClosure::from)
             .collect()
     }
+
+    pub async fn is_last_month_of_year_closed(&self) -> bool {
+        self.entity.is_last_month_of_year_closed()
+    }
 }
 
 #[derive(SimpleObject, Clone)]

@@ -1740,6 +1740,7 @@ export const mockFiscalYear = (overrides?: Partial<FiscalYear>, _relationshipsTo
         closedAsOf: overrides && overrides.hasOwnProperty('closedAsOf') ? overrides.closedAsOf! : faker.date.past({ years: 1, refDate: new Date(2022, 0) }).toISOString(),
         fiscalYearId: overrides && overrides.hasOwnProperty('fiscalYearId') ? overrides.fiscalYearId! : generateMockValue.uuid(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
+        isLastMonthOfYearClosed: overrides && overrides.hasOwnProperty('isLastMonthOfYearClosed') ? overrides.isLastMonthOfYearClosed! : faker.datatype.boolean(),
         isOpen: overrides && overrides.hasOwnProperty('isOpen') ? overrides.isOpen! : faker.datatype.boolean(),
         monthClosures: overrides && overrides.hasOwnProperty('monthClosures') ? overrides.monthClosures! : [relationshipsToOmit.has('FiscalMonthClosure') ? {} as FiscalMonthClosure : mockFiscalMonthClosure({}, relationshipsToOmit)],
         openedAsOf: overrides && overrides.hasOwnProperty('openedAsOf') ? overrides.openedAsOf! : faker.date.past({ years: 1, refDate: new Date(2022, 0) }).toISOString(),

@@ -147,7 +147,7 @@ impl FiscalYear {
             .collect()
     }
 
-    fn is_last_month_of_year_closed(&self) -> bool {
+    pub fn is_last_month_of_year_closed(&self) -> bool {
         let last_month_closes_as_of = self.closes_as_of();
         self.events
             .iter_all()

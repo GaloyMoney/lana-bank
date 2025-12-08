@@ -17,6 +17,7 @@ gql`
     chartId
     openedAsOf
     isOpen
+    isLastMonthOfYearClosed
     monthClosures {
       closedAsOf
       closedAt
