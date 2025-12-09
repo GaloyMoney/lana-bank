@@ -123,7 +123,7 @@ impl ClosingAccountBalances {
             Self::create_closing_account_entries(&self.cost_of_revenue);
         let (expenses_balance, mut expenses) = Self::create_closing_account_entries(&self.expenses);
 
-        let net_income = revenue_balance - cost_of_revenue_balance - expenses_balance;
+        let net_income = revenue_balance + cost_of_revenue_balance + expenses_balance;
 
         let mut entries = Vec::new();
         entries.append(&mut revenue);
@@ -140,11 +140,13 @@ impl ClosingAccountBalances {
         let mut closing_entries = Vec::new();
 
         for ((_, account_id, currency), balance) in balances {
-            let amount = balance.close.settled().abs();
-            net_balance += amount;
+            let amount = balance.close.settled();
+
             let direction = if balance.close.balance_type == DebitOrCredit::Debit {
+                net_balance -= amount;
                 DebitOrCredit::Credit
             } else {
+                net_balance += amount;
                 DebitOrCredit::Debit
             };
 
