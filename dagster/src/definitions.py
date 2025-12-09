@@ -111,7 +111,7 @@ bitfinex_ticker_job = definition_builder.add_job_from_assets(
     job_name="bitfinex_ticker_el", assets=(bitfinex_ticker_asset,)
 )
 definition_builder.add_job_schedule(
-    job=bitfinex_ticker_job, cron_expression="* * * * *"
+    job=bitfinex_ticker_job, cron_expression="*/10 * * * *"
 )
 
 bitfinex_trades_job = definition_builder.add_job_from_assets(
