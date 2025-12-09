@@ -1,5 +1,8 @@
 use async_graphql::*;
 use std::sync::Arc;
+use tracing::Level;
+
+use tracing_utils::ErrorSeverity;
 
 use lana_app::customer::{Customer as DomainCustomer, CustomerType, KycLevel, KycVerification};
 
@@ -13,6 +16,14 @@ use thiserror::Error;
 pub enum CustomerError {
     #[error("CustomerError - DepositAccountNotFound")]
     DepositAccountNotFound,
+}
+
+impl ErrorSeverity for CustomerError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::DepositAccountNotFound => Level::WARN,
+        }
+    }
 }
 
 #[derive(SimpleObject, Clone)]
