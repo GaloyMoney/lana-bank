@@ -15,6 +15,7 @@ mod deposit_account;
 mod deposit_account_history;
 mod deposit_config;
 mod document;
+mod error;
 mod loader;
 mod me;
 mod price;

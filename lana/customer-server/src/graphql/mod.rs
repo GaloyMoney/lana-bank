@@ -5,6 +5,7 @@ mod customer;
 mod deposit;
 mod deposit_account;
 mod deposit_account_history;
+mod error;
 mod me;
 mod price;
 mod schema;

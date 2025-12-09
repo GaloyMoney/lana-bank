@@ -83,3 +83,5 @@ impl_to_global_id! {
     DisbursalId,
     PaymentAllocationId
 }
+
+pub const ERROR_EXTENSIONS_LEVEL_KEY: &str = "level";

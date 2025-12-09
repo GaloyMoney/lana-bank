@@ -133,3 +133,5 @@ impl_to_global_id! {
     LedgerAccountId,
     FiscalYearId
 }
+
+pub const ERROR_EXTENSIONS_LEVEL_KEY: &str = "level";
