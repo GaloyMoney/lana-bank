@@ -406,13 +406,17 @@ impl ChartLedger {
             .cala
             .balances()
             .effective()
-            .find_all_in_range(&revenue_accounts, from, Some(until))
+            .find_all_in_range(
+                &revenue_accounts,
+                from,
+                Some(chrono::Utc::now().date_naive()),
+            )
             .await?;
         let cost_of_revenue_account_balances = self
             .cala
             .balances()
             .effective()
-            .find_all_in_range(&cost_of_revenue_accounts, from, Some(until))
+            .find_all_in_range(&cost_of_revenue_accounts, from, None)
             .await?;
         let expenses_account_balances = self
             .cala
