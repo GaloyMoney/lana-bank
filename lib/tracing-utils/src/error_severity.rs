@@ -14,3 +14,9 @@ impl ErrorSeverity for es_entity::EsEntityError {
         }
     }
 }
+
+impl ErrorSeverity for std::io::Error {
+    fn severity(&self) -> Level {
+        Level::ERROR
+    }
+}
