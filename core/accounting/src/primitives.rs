@@ -79,6 +79,12 @@ pub enum AccountNameParseError {
     StartsWithDigit,
 }
 
+impl ErrorSeverity for AccountNameParseError {
+    fn severity(&self) -> Level {
+        Level::WARN
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub struct AccountName {
