@@ -131,7 +131,7 @@ where
             .expect("audit info missing");
 
         let customer_id = CustomerId::new();
-        tracing::Span::current().record("customer_id", tracing::field::display(customer_id));
+        tracing::Span::current().record("customer_id", customer_id.to_string().as_str());
 
         let mut db = self.repo.begin_op().await?;
 
