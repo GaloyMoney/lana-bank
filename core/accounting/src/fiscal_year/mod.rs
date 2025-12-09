@@ -13,7 +13,7 @@ use tracing_macros::record_error_severity;
 use crate::{
     FiscalYearId,
     chart_of_accounts::ChartOfAccounts,
-    primitives::{CalaTxId, ChartId, ClosingSpec, CoreAccountingAction, CoreAccountingObject},
+    primitives::{CalaTxId, ChartId, CoreAccountingAction, CoreAccountingObject},
 };
 
 #[cfg(feature = "json-schema")]
@@ -140,37 +140,25 @@ where
     pub async fn close(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        spec: ClosingSpec,
+        fiscal_year_id: impl Into<FiscalYearId> + std::fmt::Debug + Copy,
     ) -> Result<FiscalYear, FiscalYearError> {
+        let id = fiscal_year_id.into();
         self.authz
             .enforce_permission(
                 sub,
-                CoreAccountingObject::fiscal_year(spec.fiscal_year_id),
+                CoreAccountingObject::fiscal_year(id),
                 CoreAccountingAction::FISCAL_YEAR_CLOSE,
             )
             .await?;
-        let mut fiscal_year = self.repo.find_by_id(spec.fiscal_year_id).await?;
+        let mut fiscal_year = self.repo.find_by_id(id).await?;
         let now = crate::time::now();
         let tx_id = CalaTxId::new();
         match fiscal_year.close(now, tx_id)? {
-            Idempotent::Executed(closed_as_of) => {
+            Idempotent::Executed(_) => {
                 let mut op = self.repo.begin_op().await?;
                 self.repo.update_in_op(&mut op, &mut fiscal_year).await?;
-                // TODO: read configuration that depends on and extends existing config
-                // related to the `ProfitAndLossStatement` and `BalanceSheet`.
-                self.chart_of_accounts
-                    .post_closing_transaction(
-                        op,
-                        sub,
-                        fiscal_year.chart_id,
-                        spec,
-                        fiscal_year.reference.clone(),
-                        tx_id,
-                        fiscal_year.opened_as_of,
-                        closed_as_of,
-                    )
-                    .await?;
-
+                // TODO: Operate on ledger via `chart_of_accounts`.
+                op.commit().await?;
                 Ok(fiscal_year)
             }
             Idempotent::Ignored => Ok(fiscal_year),
