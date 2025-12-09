@@ -399,6 +399,23 @@
                 ${pkgs.wait4x}/bin/wait4x http http://localhost:8081 --timeout 180s
                 echo "Waiting for Dagster GraphQL endpoint to be ready..."
                 ${pkgs.wait4x}/bin/wait4x http http://localhost:3000/graphql --timeout 180s
+                
+                # Wait for Dagster to load assets from code location
+                echo "Waiting for Dagster assets to be loaded..."
+                for i in {1..60}; do
+                  asset_count=$(curl -s -X POST \
+                    -H "Content-Type: application/json" \
+                    -d '{"query":"query { assetsOrError { __typename ... on AssetConnection { nodes { key { path } } } } }"}' \
+                    http://localhost:3000/graphql | jq '.data.assetsOrError.nodes | length' 2>/dev/null || echo "0")
+                  if [ "$asset_count" -gt 0 ]; then
+                    echo "Dagster assets loaded: $asset_count assets"
+                    break
+                  fi
+                  if [ $i -eq 60 ]; then
+                    echo "Warning: Dagster assets not loaded after 120 seconds"
+                  fi
+                  sleep 2
+                done
 
                 # Set TERM for CI environments
                 export TERM="''${TERM:-dumb}"
