@@ -1,7 +1,7 @@
 mod helpers;
 
 use anyhow::Result;
-use chrono::{Days, NaiveDate};
+use chrono::{Months, NaiveDate};
 use rust_decimal::Decimal;
 
 use authz::dummy::{DummyPerms, DummySubject};
@@ -269,7 +269,6 @@ async fn setup_test() -> anyhow::Result<Test> {
 ,,,,,
 ,,0101,Regulatory Fees,,
         "#;
-    let chart_id = chart.id;
     let (chart, _) = accounting
         .chart_of_accounts()
         .import_from_csv(&DummySubject, &chart.reference, import)
@@ -277,8 +276,7 @@ async fn setup_test() -> anyhow::Result<Test> {
 
     let opened_as_of = "2021-01-01".parse::<NaiveDate>().unwrap();
     let fiscal_year = accounting
-        .fiscal_year()
-        .init_for_chart(&DummySubject, opened_as_of, chart_id)
+        .init_fiscal_year_for_chart(&DummySubject, &chart_ref, opened_as_of)
         .await?;
 
     Ok(Test {
@@ -342,7 +340,7 @@ impl Test {
         let effective_tx_date = self
             .fiscal_year
             .opened_as_of
-            .checked_add_days(Days::new(1))
+            .checked_add_months(Months::new(6))
             .unwrap();
         self.accounting
             .execute_manual_transaction(
