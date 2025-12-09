@@ -13,7 +13,7 @@ pub use lana_app::credit::{
 
 use crate::{LanaApp, primitives::*};
 
-use super::terms::*;
+use super::{error::*, terms::*};
 
 use balance::*;
 use disbursal::*;
@@ -61,16 +61,22 @@ impl CreditFacility {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         let balance = app
             .credit()
-            .for_subject(sub)?
+            .for_subject(sub)
+            .map_err(GqlError::from)?
             .balance(self.entity.id)
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
 
         Ok(CreditFacilityBalance::from(balance))
     }
 
     async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<CVLPct> {
         let app = ctx.data_unchecked::<LanaApp>();
-        Ok(app.credit().current_cvl(&self.entity).await?)
+        Ok(app
+            .credit()
+            .current_cvl(&self.entity)
+            .await
+            .map_err(GqlError::from)?)
     }
 
     async fn history(
@@ -80,9 +86,11 @@ impl CreditFacility {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app
             .credit()
-            .for_subject(sub)?
+            .for_subject(sub)
+            .map_err(GqlError::from)?
             .history(self.entity.id)
-            .await?)
+            .await
+            .map_err(GqlError::from)?)
     }
 
     async fn disbursals(
@@ -93,7 +101,8 @@ impl CreditFacility {
 
         let disbursals = app
             .credit()
-            .for_subject(sub)?
+            .for_subject(sub)
+            .map_err(GqlError::from)?
             .list_disbursals_for_credit_facility(
                 self.entity.id,
                 Default::default(),
@@ -102,7 +111,8 @@ impl CreditFacility {
                     direction: ListDirection::Descending,
                 },
             )
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
 
         Ok(disbursals
             .entities
@@ -118,8 +128,10 @@ impl CreditFacility {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app
             .credit()
-            .for_subject(sub)?
+            .for_subject(sub)
+            .map_err(GqlError::from)?
             .repayment_plan(self.entity.id)
-            .await?)
+            .await
+            .map_err(GqlError::from)?)
     }
 }

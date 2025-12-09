@@ -7,7 +7,7 @@ pub use lana_app::deposit::{
     DepositAccountHistoryEntry as DomainDepositAccountHistoryEntry,
 };
 
-use super::{deposit::*, deposit_account_history::*, withdrawal::*};
+use super::{deposit::*, deposit_account_history::*, error::*, withdrawal::*};
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -55,9 +55,11 @@ impl DepositAccount {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         let balance = app
             .deposits()
-            .for_subject(sub)?
+            .for_subject(sub)
+            .map_err(GqlError::from)?
             .account_balance(self.entity.id)
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
         Ok(DepositAccountBalance::from(balance))
     }
 
@@ -65,9 +67,11 @@ impl DepositAccount {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         let deposits = app
             .deposits()
-            .for_subject(sub)?
+            .for_subject(sub)
+            .map_err(GqlError::from)?
             .list_deposits_for_account(self.entity.id)
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
         Ok(deposits.into_iter().map(Deposit::from).collect())
     }
 
@@ -75,9 +79,11 @@ impl DepositAccount {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         let withdrawals = app
             .deposits()
-            .for_subject(sub)?
+            .for_subject(sub)
+            .map_err(GqlError::from)?
             .list_withdrawals_for_account(self.entity.id)
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
         Ok(withdrawals.into_iter().map(Withdrawal::from).collect())
     }
 
@@ -106,9 +112,11 @@ impl DepositAccount {
                 let query_args = es_entity::PaginatedQueryArgs { first, after };
                 let res = app
                     .deposits()
-                    .for_subject(sub)?
+                    .for_subject(sub)
+                    .map_err(GqlError::from)?
                     .account_history(self.entity.id, query_args)
-                    .await?;
+                    .await
+                    .map_err(GqlError::from)?;
 
                 let mut connection = Connection::new(false, res.has_next_page);
                 connection.edges.extend(

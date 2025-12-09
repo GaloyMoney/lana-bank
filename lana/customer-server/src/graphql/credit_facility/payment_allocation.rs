@@ -1,6 +1,6 @@
 use async_graphql::*;
 
-use crate::primitives::*;
+use crate::{graphql::error::*, primitives::*};
 
 pub use lana_app::credit::PaymentAllocation as DomainPaymentAllocation;
 
@@ -38,9 +38,11 @@ impl CreditFacilityPaymentAllocation {
 
         let cf = app
             .credit()
-            .for_subject(sub)?
+            .for_subject(sub)
+            .map_err(GqlError::from)?
             .find_by_id(self.entity.credit_facility_id)
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("facility should exist for a payment");
         Ok(super::CreditFacility::from(cf))
     }

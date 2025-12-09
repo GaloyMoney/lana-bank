@@ -1,5 +1,6 @@
 use async_graphql::*;
 use std::sync::Arc;
+use thiserror::Error;
 use tracing::Level;
 
 use tracing_utils::ErrorSeverity;
@@ -8,9 +9,7 @@ use lana_app::customer::{Customer as DomainCustomer, CustomerType, KycLevel, Kyc
 
 use crate::primitives::*;
 
-use super::{credit_facility::*, deposit_account::*};
-
-use thiserror::Error;
+use super::{credit_facility::*, deposit_account::*, error::*};
 
 #[derive(Error, Debug)]
 pub enum CustomerError {
@@ -69,14 +68,17 @@ impl Customer {
 
         Ok(app
             .deposits()
-            .for_subject(sub)?
+            .for_subject(sub)
+            .map_err(GqlError::from)?
             .list_accounts_by_created_at(Default::default(), ListDirection::Descending)
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .entities
             .into_iter()
             .map(DepositAccount::from)
             .next()
-            .ok_or(CustomerError::DepositAccountNotFound)?)
+            .ok_or(CustomerError::DepositAccountNotFound)
+            .map_err(GqlError::from)?)
     }
 
     async fn credit_facilities(
@@ -87,9 +89,11 @@ impl Customer {
 
         Ok(app
             .credit()
-            .for_subject(sub)?
+            .for_subject(sub)
+            .map_err(GqlError::from)?
             .list_credit_facilities_by_created_at(Default::default(), ListDirection::Descending)
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .entities
             .into_iter()
             .map(CreditFacility::from)

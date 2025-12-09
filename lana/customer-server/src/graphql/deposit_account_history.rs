@@ -5,7 +5,7 @@ use crate::primitives::*;
 use super::{
     credit_facility::disbursal::CreditFacilityDisbursal,
     credit_facility::payment_allocation::CreditFacilityPaymentAllocation, deposit::Deposit,
-    withdrawal::Withdrawal,
+    error::*, withdrawal::Withdrawal,
 };
 
 #[derive(Union)]
@@ -86,9 +86,11 @@ impl DepositEntry {
 
         let deposit = app
             .deposits()
-            .for_subject(sub)?
+            .for_subject(sub)
+            .map_err(GqlError::from)?
             .find_deposit_by_id(self.tx_id)
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
 
         Ok(Deposit::from(deposit))
     }
@@ -101,9 +103,11 @@ impl WithdrawalEntry {
 
         let withdrawal = app
             .deposits()
-            .for_subject(sub)?
+            .for_subject(sub)
+            .map_err(GqlError::from)?
             .find_withdrawal_by_id(self.tx_id)
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
 
         Ok(Withdrawal::from(withdrawal))
     }
@@ -116,9 +120,11 @@ impl CancelledWithdrawalEntry {
 
         let withdrawal = app
             .deposits()
-            .for_subject(sub)?
+            .for_subject(sub)
+            .map_err(GqlError::from)?
             .find_withdrawal_by_cancelled_tx_id(self.tx_id)
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
 
         Ok(Withdrawal::from(withdrawal))
     }
@@ -131,9 +137,11 @@ impl DisbursalEntry {
 
         let disbursal = app
             .credit()
-            .for_subject(sub)?
+            .for_subject(sub)
+            .map_err(GqlError::from)?
             .find_disbursal_by_concluded_tx_id(self.tx_id)
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
 
         Ok(CreditFacilityDisbursal::from(disbursal))
     }
@@ -149,9 +157,11 @@ impl PaymentEntry {
 
         let payment = app
             .credit()
-            .for_subject(sub)?
+            .for_subject(sub)
+            .map_err(GqlError::from)?
             .find_payment_allocation_by_id(self.tx_id)
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
 
         Ok(CreditFacilityPaymentAllocation::from(payment))
     }
