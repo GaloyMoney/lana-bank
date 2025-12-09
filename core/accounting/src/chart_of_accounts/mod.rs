@@ -21,6 +21,8 @@ use crate::primitives::{
     ChartId, ClosingSpec, CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
 };
 
+use ledger::closing::ClosingParams;
+
 #[cfg(feature = "json-schema")]
 pub use chart_node::ChartNodeEvent;
 pub use entity::Chart;
@@ -334,19 +336,19 @@ where
         {
             let mut op = self.repo.begin_op().await?;
             self.repo.update_in_op(&mut op, &mut chart).await?;
+            let closing_params = ClosingParams {
+                tx_id: spec.tx_id,
+                description: spec.description,
+                effective_balances_from: spec.effective_balances_from,
+                effective_balances_until: effective_as_of,
+                revenue_account_set_id,
+                cost_of_revenue_account_set_id,
+                expenses_account_set_id,
+                equity_retained_earnings_account_set_id,
+                equity_retained_losses_account_set_id,
+            };
             self.chart_ledger
-                .post_closing_transaction(
-                    op,
-                    spec.tx_id,
-                    spec.description,
-                    spec.effective_balances_from,
-                    effective_as_of,
-                    revenue_account_set_id,
-                    cost_of_revenue_account_set_id,
-                    expenses_account_set_id,
-                    equity_retained_earnings_account_set_id,
-                    equity_retained_losses_account_set_id,
-                )
+                .post_closing_transaction(op, closing_params)
                 .await?;
         }
         Ok(())
