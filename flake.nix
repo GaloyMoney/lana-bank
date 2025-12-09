@@ -402,14 +402,33 @@
                 
                 # Wait for Dagster to load assets from code location
                 echo "Waiting for Dagster assets to be loaded..."
+                echo "=== Container status ==="
+                podman-compose-runner ''${COMPOSE_FILES[@]} ps || true
+                
+                echo "=== Checking workspace/code location status ==="
+                workspace_response=$(curl -s -X POST \
+                  -H "Content-Type: application/json" \
+                  -d '{"query":"query { workspaceOrError { __typename ... on Workspace { locationEntries { name loadStatus locationOrLoadError { __typename ... on RepositoryLocation { name } ... on PythonError { message } } } } } }"}' \
+                  http://localhost:3000/graphql)
+                echo "Workspace status: $workspace_response"
+                
                 for i in {1..60}; do
-                  asset_count=$(curl -s -X POST \
+                  response=$(curl -s -X POST \
                     -H "Content-Type: application/json" \
                     -d '{"query":"query { assetsOrError { __typename ... on AssetConnection { nodes { key { path } } } } }"}' \
-                    http://localhost:3000/graphql | jq '.data.assetsOrError.nodes | length' 2>/dev/null || echo "0")
+                    http://localhost:3000/graphql)
+                  asset_count=$(echo "$response" | jq '.data.assetsOrError.nodes | length' 2>/dev/null || echo "0")
                   if [ "$asset_count" -gt 0 ]; then
                     echo "Dagster assets loaded: $asset_count assets"
                     break
+                  fi
+                  if [ $i -eq 1 ] || [ $i -eq 30 ] || [ $i -eq 60 ]; then
+                    echo "=== Attempt $i: asset_count=$asset_count ==="
+                    echo "Assets response: $response"
+                    echo "Code location logs (last 30 lines):"
+                    podman-compose-runner ''${COMPOSE_FILES[@]} logs dagster-code-location-lana-dw --tail=30 2>/dev/null || true
+                    echo "Webserver logs (last 10 lines):"
+                    podman-compose-runner ''${COMPOSE_FILES[@]} logs dagster_webserver --tail=10 2>/dev/null || true
                   fi
                   if [ $i -eq 60 ]; then
                     echo "Warning: Dagster assets not loaded after 120 seconds"
