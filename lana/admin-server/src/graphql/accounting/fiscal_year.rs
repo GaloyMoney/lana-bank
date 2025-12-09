@@ -1,6 +1,6 @@
 use async_graphql::*;
 
-use crate::{graphql::accounting::AccountCode, primitives::*};
+use crate::primitives::*;
 pub use lana_app::fiscal_year::{
     FiscalMonthClosure as DomainFiscalMonthClosure, FiscalYear as DomainFiscalYear,
     FiscalYearsByCreatedAtCursor,
@@ -79,29 +79,9 @@ crate::mutation_payload! { FiscalYearInitPayload, fiscal_year: FiscalYear }
 #[derive(InputObject)]
 pub struct FiscalYearCloseInput {
     pub fiscal_year_id: UUID,
-    pub retained_earnings_gain_code: AccountCode,
-    pub retained_earnings_loss_code: AccountCode,
-    pub revenue_code: AccountCode,
-    pub cost_of_revenue_code: AccountCode,
-    pub expenses_code: AccountCode,
 }
 
 crate::mutation_payload! { FiscalYearClosePayload, fiscal_year: FiscalYear }
-
-impl TryFrom<FiscalYearCloseInput> for ClosingSpec {
-    type Error = Box<dyn std::error::Error + Sync + Send>;
-
-    fn try_from(input: FiscalYearCloseInput) -> Result<Self, Self::Error> {
-        Ok(Self::try_new(
-            input.fiscal_year_id.into(),
-            input.retained_earnings_gain_code.try_into()?,
-            input.retained_earnings_loss_code.try_into()?,
-            input.revenue_code.try_into()?,
-            input.cost_of_revenue_code.try_into()?,
-            input.expenses_code.try_into()?,
-        ))
-    }
-}
 
 #[derive(InputObject)]
 pub struct FiscalYearOpenNextInput {

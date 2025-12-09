@@ -1353,12 +1353,7 @@ export type FiscalYear = {
 };
 
 export type FiscalYearCloseInput = {
-  costOfRevenueCode: Scalars['AccountCode']['input'];
-  expensesCode: Scalars['AccountCode']['input'];
   fiscalYearId: Scalars['UUID']['input'];
-  retainedEarningsGainCode: Scalars['AccountCode']['input'];
-  retainedEarningsLossCode: Scalars['AccountCode']['input'];
-  revenueCode: Scalars['AccountCode']['input'];
 };
 
 export type FiscalYearCloseMonthInput = {

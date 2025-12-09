@@ -385,31 +385,40 @@ impl AccountSpec {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub struct ClosingSpec {
-    pub fiscal_year_id: FiscalYearId,
     pub revenue_code: AccountCode,
     pub cost_of_revenue_code: AccountCode,
     pub expenses_code: AccountCode,
     pub equity_retained_earnings_code: AccountCode,
     pub equity_retained_losses_code: AccountCode,
+    pub description: String,
+    pub tx_id: CalaTxId,
+    pub effective_balances_until: chrono::NaiveDate,
+    pub effective_balances_from: chrono::NaiveDate,
 }
 
 impl ClosingSpec {
     pub fn try_new(
-        fiscal_year_id: FiscalYearId,
         revenue_code: AccountCode,
         cost_of_revenue_code: AccountCode,
         expenses_code: AccountCode,
         equity_retained_earnings_code: AccountCode,
         equity_retained_losses_code: AccountCode,
+        description: String,
+        tx_id: CalaTxId,
+        effective_balances_until: chrono::NaiveDate,
+        effective_balances_from: chrono::NaiveDate,
     ) -> Self {
-        // TODO: consider validation on `equity_` prefixed `AccountCode` fields i.e. actual `try_new`.
+        // TODO: remove as accounting_init config gets replaced with domain configs.
         Self {
-            fiscal_year_id,
             revenue_code,
             cost_of_revenue_code,
             expenses_code,
             equity_retained_earnings_code,
             equity_retained_losses_code,
+            description,
+            tx_id,
+            effective_balances_until,
+            effective_balances_from,
         }
     }
 }

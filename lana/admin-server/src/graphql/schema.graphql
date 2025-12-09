@@ -1346,11 +1346,6 @@ type FiscalYear {
 
 input FiscalYearCloseInput {
 	fiscalYearId: UUID!
-	retainedEarningsGainCode: AccountCode!
-	retainedEarningsLossCode: AccountCode!
-	revenueCode: AccountCode!
-	costOfRevenueCode: AccountCode!
-	expensesCode: AccountCode!
 }
 
 input FiscalYearCloseMonthInput {
