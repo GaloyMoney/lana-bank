@@ -197,7 +197,7 @@ impl ClosingTransactionTemplate {
             .entries(self.entries())
             .params(params)
             .description(format!(
-                "Template to execute an closing transaction with {} entries.",
+                "Template to execute a closing transaction with {} entries.",
                 self.n_entries
             ))
             .build()
