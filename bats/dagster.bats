@@ -377,6 +377,9 @@ has_bigquery_credentials() {
   if [[ "${DAGSTER}" != "true" ]]; then
     skip "Skipping dagster tests"
   fi
+  if ! has_bigquery_credentials; then
+    skip "Skipping - requires BigQuery credentials"
+  fi
 
   variables=$(jq -n '{
     executionParams: {
