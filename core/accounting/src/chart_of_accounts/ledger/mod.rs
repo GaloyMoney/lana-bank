@@ -342,7 +342,6 @@ impl ChartLedger {
         let mut op = self
             .cala
             .ledger_operation_from_db_op(op.with_db_time().await?);
-        // TODO: use of `description` (`FiscalYear` `reference`) is overloaded.
         let equity_entry = self
             .create_equity_entry(
                 &mut op,
@@ -398,17 +397,13 @@ impl ChartLedger {
             .cala
             .balances()
             .effective()
-            .find_all_in_range(
-                &revenue_accounts,
-                from,
-                Some(chrono::Utc::now().date_naive()),
-            )
+            .find_all_in_range(&revenue_accounts, from, Some(until))
             .await?;
         let cost_of_revenue_account_balances = self
             .cala
             .balances()
             .effective()
-            .find_all_in_range(&cost_of_revenue_accounts, from, None)
+            .find_all_in_range(&cost_of_revenue_accounts, from, Some(until))
             .await?;
         let expenses_account_balances = self
             .cala
