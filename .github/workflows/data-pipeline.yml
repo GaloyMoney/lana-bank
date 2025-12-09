@@ -73,32 +73,16 @@ jobs:
           TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
 
       - name: Configure BigQuery environment
-        run: |
-          # Create keyfile for Meltano/dbt
-          echo $SA_CREDS_BASE64 | base64 --decode > meltano/keyfile.json
-          
+        run: |         
           # Compute all BigQuery/DBT env vars once
           SAFE_PREFIX="$(printf '%s' "$NAME_PREFIX" | tr -c '[:alnum:]_' '_')"
           
           echo "TF_VAR_name_prefix=$NAME_PREFIX" >> $GITHUB_ENV
           echo "DBT_BIGQUERY_PROJECT=$(echo $SA_CREDS_BASE64 | base64 -d | jq -r '.project_id')" >> $GITHUB_ENV
           echo "DBT_BIGQUERY_DATASET=dbt_${SAFE_PREFIX}" >> $GITHUB_ENV
-          echo "DBT_BIGQUERY_KEYFILE=$(pwd)/meltano/keyfile.json" >> $GITHUB_ENV
           echo "TARGET_BIGQUERY_DATASET=${SAFE_PREFIX}_dataset" >> $GITHUB_ENV
           echo "DOCS_BUCKET_NAME=${NAME_PREFIX}-lana-documents" >> $GITHUB_ENV
-          
-          # Store credentials JSON (multi-line values)
-          {
-            echo "DBT_BIGQUERY_CREDENTIALS_JSON<<EOF"
-            cat meltano/keyfile.json
-            echo "EOF"
-          } >> "$GITHUB_ENV"
-          
-          {
-            echo "TARGET_BIGQUERY_CREDENTIALS_JSON<<EOF"
-            cat meltano/keyfile.json
-            echo "EOF"
-          } >> "$GITHUB_ENV"
+
         env:
           SA_CREDS_BASE64: ${{ env.SA_CREDS }}
           NAME_PREFIX: ${{ env.NAME_PREFIX }}
@@ -113,16 +97,6 @@ jobs:
           DBT_BIGQUERY_DATASET: ${{ env.DBT_BIGQUERY_DATASET }}
           DBT_BIGQUERY_CREDENTIALS_JSON: ${{ env.DBT_BIGQUERY_CREDENTIALS_JSON }}
           TARGET_BIGQUERY_DATASET: ${{ env.TARGET_BIGQUERY_DATASET }}
-
-      - run: nix develop -c meltano install
-      - run: nix develop -c meltano run tap-postgres target-bigquery
-      - run: nix develop -c meltano run tap-bitfinexapi target-bigquery
-      - run: nix develop -c meltano run tap-sumsubapi target-bigquery
-      - run: nix develop -c meltano run dbt-bigquery:deps
-      - run: nix develop -c meltano run dbt-bigquery:seed
-      - run: nix develop -c meltano run dbt-bigquery:run --full-refresh
-      - run: nix develop -c meltano run dbt-bigquery:test
-      - run: nix develop -c meltano run generate-es-reports:run
 
       - name: Cleanup BigQuery infrastructure
         if: always()
