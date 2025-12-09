@@ -2,6 +2,12 @@
 
 load helpers
 
+# Helper to check if BigQuery credentials are available
+# SA_CREDS_BASE64 is set in data-pipeline CI, not in basic BATS CI
+has_bigquery_credentials() {
+  [[ -n "${SA_CREDS_BASE64:-}" ]]
+}
+
 @test "dagster: graphql endpoint responds to POST" {
   if [[ "${DAGSTER}" != "true" ]]; then
     skip "Skipping dagster tests"
@@ -15,6 +21,9 @@ load helpers
 @test "dagster: list assets and verify iris_dataset_size exists" {
   if [[ "${DAGSTER}" != "true" ]]; then
     skip "Skipping dagster tests"
+  fi
+  if ! has_bigquery_credentials; then
+    skip "Skipping - requires BigQuery credentials for code location to load"
   fi
 
   exec_dagster_graphql "assets"
@@ -33,6 +42,9 @@ load helpers
 @test "dagster: materialize iris_dataset_size and wait for success" {
   if [[ "${DAGSTER}" != "true" ]]; then
     skip "Skipping dagster tests"
+  fi
+  if ! has_bigquery_credentials; then
+    skip "Skipping - requires BigQuery credentials for code location to load"
   fi
 
   # Launch materialization targeting only iris_dataset_size asset
@@ -71,6 +83,9 @@ load helpers
 @test "dagster: materialize core_withdrawal_events_rollup" {
   if [[ "${DAGSTER}" != "true" ]]; then
     skip "Skipping dagster tests"
+  fi
+  if ! has_bigquery_credentials; then
+    skip "Skipping - requires BigQuery credentials"
   fi
 
   variables=$(jq -n '{
@@ -118,6 +133,9 @@ load helpers
   if [[ "${DAGSTER}" != "true" ]]; then
     skip "Skipping dagster tests"
   fi
+  if ! has_bigquery_credentials; then
+    skip "Skipping - requires BigQuery credentials"
+  fi
 
   variables=$(jq -n '{
     executionParams: {
@@ -164,6 +182,9 @@ load helpers
   if [[ "${DAGSTER}" != "true" ]]; then
     skip "Skipping dagster tests"
   fi
+  if ! has_bigquery_credentials; then
+    skip "Skipping - requires BigQuery credentials"
+  fi
 
   # Query dependencies of the staging model
   staging_asset_vars=$(jq -n '{
@@ -189,6 +210,9 @@ load helpers
 @test "dagster: verify dbt asset automatically starts when upstream completes" {
   if [[ "${DAGSTER}" != "true" ]]; then
     skip "Skipping dagster tests"
+  fi
+  if ! has_bigquery_credentials; then
+    skip "Skipping - requires BigQuery credentials"
   fi
 
   sensor_vars=$(jq -n '{
