@@ -1392,7 +1392,7 @@ impl Mutation {
 
         let mut entries = Vec::with_capacity(input.entries.len());
         for entry in input.entries.into_iter() {
-            entries.push(entry.try_into()?);
+            entries.push(entry.try_into().map_err(GqlError::from_input)?);
         }
 
         exec_mutation!(
@@ -2277,7 +2277,7 @@ impl Mutation {
             app.accounting().add_root_node(
                 sub,
                 CHART_REF.0,
-                input.try_into()?,
+                input.try_into().map_err(GqlError::from_input)?,
                 TRIAL_BALANCE_STATEMENT_NAME,
             )
         )
@@ -2297,8 +2297,8 @@ impl Mutation {
             app.accounting().add_child_node(
                 sub,
                 CHART_REF.0,
-                input.parent.try_into()?,
-                input.code.try_into()?,
+                input.parent.try_into().map_err(GqlError::from_input)?,
+                input.code.try_into().map_err(GqlError::from_input)?,
                 input.name.parse().map_err(GqlError::from)?,
                 TRIAL_BALANCE_STATEMENT_NAME,
             )
