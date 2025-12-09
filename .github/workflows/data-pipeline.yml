@@ -73,10 +73,10 @@ jobs:
           TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
 
       - name: Configure BigQuery environment
-        run: |         
+        run: |
           # Compute all BigQuery/DBT env vars once
           SAFE_PREFIX="$(printf '%s' "$NAME_PREFIX" | tr -c '[:alnum:]_' '_')"
-          
+
           echo "TF_VAR_name_prefix=$NAME_PREFIX" >> $GITHUB_ENV
           echo "DBT_BIGQUERY_PROJECT=$(echo $SA_CREDS_BASE64 | base64 -d | jq -r '.project_id')" >> $GITHUB_ENV
           echo "DBT_BIGQUERY_DATASET=dbt_${SAFE_PREFIX}" >> $GITHUB_ENV
