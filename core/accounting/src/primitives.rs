@@ -397,7 +397,7 @@ pub struct ClosingSpec {
 }
 
 impl ClosingSpec {
-    pub fn try_new(
+    pub fn new(
         revenue_code: AccountCode,
         cost_of_revenue_code: AccountCode,
         expenses_code: AccountCode,

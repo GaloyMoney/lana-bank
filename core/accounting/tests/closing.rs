@@ -60,7 +60,7 @@ async fn post_closing_tx_with_loss() -> Result<()> {
     let ledger_tx_id = CalaTxId::new();
     let effective_balances_from = test.fiscal_year.opened_as_of;
     let effective_balances_as_of = test.fiscal_year.closes_as_of();
-    let closing_spec = ClosingSpec::try_new(
+    let closing_spec = ClosingSpec::new(
         REVENUES.parse::<AccountCode>().unwrap(),
         COSTS.parse::<AccountCode>().unwrap(),
         EXPENSES.parse::<AccountCode>().unwrap(),
@@ -125,7 +125,7 @@ async fn post_closing_tx_with_gain() -> Result<()> {
     let ledger_tx_id = CalaTxId::new();
     let effective_balances_from = test.fiscal_year.opened_as_of;
     let effective_balances_as_of = test.fiscal_year.closes_as_of();
-    let closing_spec = ClosingSpec::try_new(
+    let closing_spec = ClosingSpec::new(
         REVENUES.parse::<AccountCode>().unwrap(),
         COSTS.parse::<AccountCode>().unwrap(),
         EXPENSES.parse::<AccountCode>().unwrap(),
