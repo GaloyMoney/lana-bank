@@ -123,13 +123,28 @@ pub async fn graphql_handler(
 
     let response = schema.execute(req).await;
     if !response.errors.is_empty() {
-        for err in &response.errors {
-            tracing::error!(
-                path = ?err.path,
-                locations = ?err.locations,
-                extensions = ?err.extensions,
-                "{}", err.message
+        for error in &response.errors {
+            let fields = (
+                ("path", &error.path),
+                ("locations", &error.locations),
+                ("extensions", &error.extensions),
             );
+            let level = error
+                .extensions
+                .as_ref()
+                .and_then(|e| e.get(ERROR_EXTENSIONS_LEVEL_KEY))
+                .and_then(|v| match v {
+                    async_graphql::Value::String(s) => s.parse::<tracing::Level>().ok(),
+                    _ => None,
+                })
+                .unwrap_or(tracing::Level::ERROR);
+            match level {
+                tracing::Level::ERROR => tracing::error!(?fields, "{}", error.message),
+                tracing::Level::WARN => tracing::warn!(?fields, "{}", error.message),
+                tracing::Level::INFO => tracing::info!(?fields, "{}", error.message),
+                tracing::Level::DEBUG => tracing::debug!(?fields, "{}", error.message),
+                tracing::Level::TRACE => tracing::trace!(?fields, "{}", error.message),
+            }
         }
     }
     response.into()
