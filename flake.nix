@@ -400,7 +400,7 @@
                 ${pkgs.wait4x}/bin/wait4x http http://localhost:8081 --timeout 180s
                 echo "Waiting for Dagster GraphQL endpoint to be ready..."
                 ${pkgs.wait4x}/bin/wait4x http http://localhost:3000/graphql --timeout 180s
-                
+
                 # Wait for Dagster to load assets from code location
                 echo "Waiting for Dagster assets to be loaded..."
                 for i in {1..60}; do
