@@ -42,7 +42,10 @@ macro_rules! app_and_sub_from_ctx {
 #[macro_export]
 macro_rules! maybe_fetch_one {
     ($ty:ty, $ctx:expr, $load_entity:expr) => {
-        if let Some(entity) = $load_entity.await? {
+        if let Some(entity) = $load_entity
+            .await
+            .map_err($crate::graphql::error::GqlError::from)?
+        {
             let entity = <$ty>::from(entity);
             let loader = $ctx.data_unchecked::<LanaDataLoader>();
             loader.feed_one(entity.entity.id, entity.clone()).await;
@@ -52,7 +55,10 @@ macro_rules! maybe_fetch_one {
         }
     };
     ($ty:ty, $id:ty, $ctx:expr, $load_entity:expr) => {
-        if let Some(entity) = $load_entity.await? {
+        if let Some(entity) = $load_entity
+            .await
+            .map_err($crate::graphql::error::GqlError::from)?
+        {
             let entity = <$ty>::from(entity);
             let loader = $ctx.data_unchecked::<LanaDataLoader>();
             loader
@@ -68,13 +74,21 @@ macro_rules! maybe_fetch_one {
 #[macro_export]
 macro_rules! exec_mutation {
     ($payload:ty, $ty:ty, $ctx:expr, $load:expr) => {{
-        let entity = <$ty>::from($load.await?);
+        let entity = <$ty>::from(
+            $load
+                .await
+                .map_err($crate::graphql::error::GqlError::from)?,
+        );
         let loader = $ctx.data_unchecked::<LanaDataLoader>();
         loader.feed_one(entity.entity.id, entity.clone()).await;
         Ok(<$payload>::from(entity))
     }};
     ($payload:ty, $ty:ty, $id:ty, $ctx:expr, $load:expr) => {{
-        let entity = <$ty>::from($load.await?);
+        let entity = <$ty>::from(
+            $load
+                .await
+                .map_err($crate::graphql::error::GqlError::from)?,
+        );
         let loader = $ctx.data_unchecked::<LanaDataLoader>();
         loader
             .feed_one(<$id>::from(entity.entity.id), entity.clone())
@@ -132,7 +146,9 @@ macro_rules! list_with_cursor {
             |after, _, first, _| async move {
                 let first = first.expect("First always exists") as usize;
                 let args = es_entity::PaginatedQueryArgs { first, after };
-                let res = $load(args).await?;
+                let res = $load(args)
+                    .await
+                    .map_err($crate::graphql::error::GqlError::from)?;
                 let mut connection =
                     async_graphql::types::connection::Connection::new(false, res.has_next_page);
                 connection
@@ -213,7 +229,9 @@ macro_rules! list_with_combo_cursor {
                 let first = first.expect("First always exists") as usize;
                 let after = after.map(<$combo_cursor>::from);
                 let args = es_entity::PaginatedQueryArgs { first, after };
-                let res = $load(args).await?;
+                let res = $load(args)
+                    .await
+                    .map_err($crate::graphql::error::GqlError::from)?;
                 let mut connection =
                     async_graphql::types::connection::Connection::new(false, res.has_next_page);
                 connection
