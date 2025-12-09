@@ -128,11 +128,7 @@ where
             report_run_repo.clone(),
             report_repo.clone(),
         ));
-        jobs.add_initializer(TriggerFileReportRunJobInit::new(
-            dagster.clone(),
-            report_run_repo.clone(),
-            jobs.clone(),
-        ));
+        jobs.add_initializer(TriggerFileReportRunJobInit::<E>::new(dagster.clone()));
 
         Ok(Self {
             authz: authz.clone(),

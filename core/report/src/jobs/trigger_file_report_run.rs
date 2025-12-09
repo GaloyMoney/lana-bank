@@ -1,14 +1,13 @@
 use async_trait::async_trait;
 use job::{
-    CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType, Jobs,
-    RetrySettings,
+    CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType, RetrySettings,
 };
 use serde::{Deserialize, Serialize};
 
 use outbox::OutboxEventMarker;
 use tracing_macros::record_error_severity;
 
-use crate::{event::CoreReportEvent, report_run::*};
+use crate::event::CoreReportEvent;
 use dagster::Dagster;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -43,19 +42,17 @@ where
     E: OutboxEventMarker<CoreReportEvent>,
 {
     pub dagster: Dagster,
-    pub report_run_repo: ReportRunRepo<E>,
-    pub jobs: Jobs,
+    _phantom: std::marker::PhantomData<E>,
 }
 
 impl<E> TriggerFileReportRunJobInit<E>
 where
     E: OutboxEventMarker<CoreReportEvent>,
 {
-    pub fn new(dagster: Dagster, report_run_repo: ReportRunRepo<E>, jobs: Jobs) -> Self {
+    pub fn new(dagster: Dagster) -> Self {
         Self {
             dagster,
-            report_run_repo,
-            jobs,
+            _phantom: std::marker::PhantomData,
         }
     }
 }
@@ -74,8 +71,7 @@ where
         let _config: TriggerFileReportRunJobConfig<E> = job.config()?;
         Ok(Box::new(TriggerFileReportRunJobRunner {
             dagster: self.dagster.clone(),
-            report_run_repo: self.report_run_repo.clone(),
-            jobs: self.jobs.clone(),
+            _phantom: std::marker::PhantomData::<E>,
         }))
     }
 
@@ -89,8 +85,7 @@ where
     E: OutboxEventMarker<CoreReportEvent>,
 {
     dagster: Dagster,
-    report_run_repo: ReportRunRepo<E>,
-    jobs: Jobs,
+    _phantom: std::marker::PhantomData<E>,
 }
 
 #[async_trait]
