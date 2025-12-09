@@ -101,6 +101,9 @@ async fn post_closing_tx_with_gain() -> Result<()> {
         .await;
     test.add_account_with_balance("41.01.0102", 800, Credit)
         .await;
+    // Revenue contra-account
+    test.add_account_with_balance("41.01.0102", 100, Debit)
+        .await;
 
     // Costs
     test.add_account_with_balance("51.01.0101", 250, Debit)
@@ -112,7 +115,10 @@ async fn post_closing_tx_with_gain() -> Result<()> {
     test.add_account_with_balance("61.01.0101", 500, Debit)
         .await;
 
-    assert_eq!(test.balance(REVENUES).await?, Decimal::from(400 + 800));
+    assert_eq!(
+        test.balance(REVENUES).await?,
+        Decimal::from(400 + 800 - 100)
+    );
     assert_eq!(test.balance(COSTS).await?, Decimal::from(250 + 250));
     assert_eq!(test.balance(EXPENSES).await?, Decimal::from(500));
 
@@ -145,7 +151,7 @@ async fn post_closing_tx_with_gain() -> Result<()> {
     assert_eq!(test.children(RETAINED_EARNINGS_GAIN).await?.len(), 1);
     assert_eq!(
         test.balance(RETAINED_EARNINGS_GAIN).await?,
-        Decimal::from(400 + 800 - 250 - 250 - 500)
+        Decimal::from(400 + 800 - 100 - 250 - 250 - 500)
     );
 
     assert!(test.children(RETAINED_EARNINGS_LOSS).await?.is_empty());
