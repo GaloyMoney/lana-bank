@@ -1,12 +1,13 @@
+use chrono::NaiveDate;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use crate::LedgerAccountId;
+use crate::{LedgerAccountId, primitives::CalaTxId};
 
 use cala_ledger::{
-    BalanceId, Currency as CalaCurrency, DebitOrCredit, balance::BalanceRange as CalaBalanceRange,
-    velocity::VelocityLimit,
+    BalanceId, Currency as CalaCurrency, DebitOrCredit, account_set::AccountSetId,
+    balance::BalanceRange as CalaBalanceRange, velocity::VelocityLimit,
 };
 
 pub(super) struct AccountClosingLimits {
@@ -72,15 +73,15 @@ impl AccountingClosingMetadata {
 }
 
 #[derive(Debug, Clone)]
-pub struct ClosingAccountEntry {
-    pub account_id: LedgerAccountId,
-    pub amount: Decimal,
-    pub currency: CalaCurrency,
-    pub direction: DebitOrCredit,
+pub(super) struct ClosingAccountEntry {
+    pub(super) account_id: LedgerAccountId,
+    pub(super) amount: Decimal,
+    pub(super) currency: CalaCurrency,
+    pub(super) direction: DebitOrCredit,
 }
 
 impl ClosingAccountEntry {
-    pub fn new(
+    pub(super) fn new(
         account_id: LedgerAccountId,
         amount: Decimal,
         currency: CalaCurrency,
@@ -95,15 +96,28 @@ impl ClosingAccountEntry {
     }
 }
 
+#[derive(Debug)]
+pub(crate) struct ClosingParams {
+    pub(crate) tx_id: CalaTxId,
+    pub(crate) description: String,
+    pub(crate) effective_balances_from: NaiveDate,
+    pub(crate) effective_balances_until: NaiveDate,
+    pub(crate) revenue_account_set_id: AccountSetId,
+    pub(crate) cost_of_revenue_account_set_id: AccountSetId,
+    pub(crate) expenses_account_set_id: AccountSetId,
+    pub(crate) equity_retained_earnings_account_set_id: AccountSetId,
+    pub(crate) equity_retained_losses_account_set_id: AccountSetId,
+}
+
 #[derive(Debug, Clone)]
-pub struct ClosingAccountBalances {
-    pub revenue: HashMap<BalanceId, CalaBalanceRange>,
-    pub cost_of_revenue: HashMap<BalanceId, CalaBalanceRange>,
-    pub expenses: HashMap<BalanceId, CalaBalanceRange>,
+pub(super) struct ClosingAccountBalances {
+    pub(super) revenue: HashMap<BalanceId, CalaBalanceRange>,
+    pub(super) cost_of_revenue: HashMap<BalanceId, CalaBalanceRange>,
+    pub(super) expenses: HashMap<BalanceId, CalaBalanceRange>,
 }
 
 impl ClosingAccountBalances {
-    pub fn to_closing_entries(&self) -> (Decimal, Vec<ClosingAccountEntry>) {
+    pub(super) fn to_closing_entries(&self) -> (Decimal, Vec<ClosingAccountEntry>) {
         let (revenue_balance, mut revenue) = Self::create_closing_account_entries(&self.revenue);
         let (cost_of_revenue_balance, mut cost_of_revenue) =
             Self::create_closing_account_entries(&self.cost_of_revenue);
