@@ -27,7 +27,7 @@ impl From<ClosingAccountEntry> for EntryParams {
             .currency(spec.currency)
             .direction(spec.direction)
             .build()
-            .expect("Failed to build EntryParams from ClosingTxEntrySpec")
+            .expect("Failed to build EntryParams from ClosingAccountEntry")
     }
 }
 
@@ -187,7 +187,7 @@ impl ClosingTransactionTemplate {
             .description("params.description")
             .effective("params.effective")
             .build()
-            .expect("Couldn't build TxInput for ClosingTransactionTxTemplate");
+            .expect("Couldn't build TxInput for ClosingTransactionTemplate");
 
         let params = ClosingTransactionParams::defs(self.n_entries);
         let template = NewTxTemplate::builder()
@@ -201,7 +201,7 @@ impl ClosingTransactionTemplate {
                 self.n_entries
             ))
             .build()
-            .expect("Couldn't build template for ClosingTransactionTxTemplate");
+            .expect("Couldn't build template for ClosingTransactionTemplate");
         match ledger.tx_templates().create(template).await {
             Err(TxTemplateError::DuplicateCode) => Ok(()),
             Err(e) => Err(e),
@@ -224,7 +224,7 @@ impl ClosingTransactionTemplate {
                     .layer(format!("params.{}", EntryParams::layer_param_name(i)))
                     .direction(format!("params.{}", EntryParams::direction_param_name(i)))
                     .build()
-                    .expect("Couldn't build ClosingTransaction TxTemplateEntry entry"),
+                    .expect("Couldn't build entry for ClosingTransactionTemplate"),
             );
         }
         entries

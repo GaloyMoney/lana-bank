@@ -402,7 +402,6 @@ impl ChartLedger {
         let cost_of_revenue_accounts = self
             .find_all_accounts_by_parent_set_id(cost_of_revenue_account_set_id)
             .await?;
-
         let revenue_account_balances = self
             .cala
             .balances()
