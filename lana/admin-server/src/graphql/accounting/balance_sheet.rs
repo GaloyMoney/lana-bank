@@ -1,10 +1,13 @@
 use async_graphql::*;
 
+use crate::{
+    graphql::{error::*, loader::*},
+    primitives::*,
+};
+
+use super::ledger_account::{LedgerAccount, LedgerAccountBalanceRange};
+
 use lana_app::balance_sheet::BalanceSheet as DomainBalanceSheet;
-
-use crate::{graphql::loader::*, primitives::*};
-
-use super::{LedgerAccount, LedgerAccountBalanceRange};
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
@@ -38,7 +41,8 @@ impl BalanceSheet {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let categories = loader
             .load_many(self.entity.category_ids.iter().copied())
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
 
         Ok(self
             .entity

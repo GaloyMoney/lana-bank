@@ -18,7 +18,7 @@ publish = false
 [dependencies]
 ahash = { version = "0.8", default-features = false, features = ["compile-time-rng", "runtime-rng", "std"] }
 arrayvec = { version = "0.7", default-features = false, features = ["std"] }
-async-graphql = { version = "7", default-features = false, features = ["chrono", "dataloader", "playground", "tempfile", "tracing"] }
+async-graphql = { version = "7", default-features = false, features = ["chrono", "custom-error-conversion", "dataloader", "playground", "tempfile", "tracing"] }
 axum = { version = "0.8", features = ["macros"] }
 base16ct = { version = "0.2", default-features = false, features = ["alloc"] }
 base64 = { version = "0.22" }
@@ -96,7 +96,7 @@ uuid = { version = "1", features = ["serde", "v4", "v7"] }
 [build-dependencies]
 ahash = { version = "0.8", default-features = false, features = ["compile-time-rng", "runtime-rng", "std"] }
 arrayvec = { version = "0.7", default-features = false, features = ["std"] }
-async-graphql = { version = "7", default-features = false, features = ["chrono", "dataloader", "playground", "tempfile", "tracing"] }
+async-graphql = { version = "7", default-features = false, features = ["chrono", "custom-error-conversion", "dataloader", "playground", "tempfile", "tracing"] }
 axum = { version = "0.8", features = ["macros"] }
 base16ct = { version = "0.2", default-features = false, features = ["alloc"] }
 base64 = { version = "0.22" }

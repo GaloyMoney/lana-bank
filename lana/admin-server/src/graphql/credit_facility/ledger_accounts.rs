@@ -1,8 +1,9 @@
 use async_graphql::*;
 
-use crate::{graphql::accounting::LedgerAccount, primitives::*};
-
-use super::LanaDataLoader;
+use crate::{
+    graphql::{accounting::LedgerAccount, error::*, loader::LanaDataLoader},
+    primitives::*,
+};
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
@@ -28,7 +29,8 @@ impl CreditFacilityLedgerAccounts {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let facility_account = loader
             .load_one(LedgerAccountId::from(self.facility_account_id))
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("Ledger account not found");
         Ok(facility_account)
     }
@@ -36,7 +38,8 @@ impl CreditFacilityLedgerAccounts {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let in_liquidation_account = loader
             .load_one(LedgerAccountId::from(self.in_liquidation_account_id))
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("Ledger account not found");
         Ok(in_liquidation_account)
     }
@@ -49,7 +52,8 @@ impl CreditFacilityLedgerAccounts {
             .load_one(LedgerAccountId::from(
                 self.disbursed_receivable_not_yet_due_account_id,
             ))
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("Ledger account not found");
         Ok(disbursed_receivable_not_yet_due_account)
     }
@@ -59,7 +63,8 @@ impl CreditFacilityLedgerAccounts {
             .load_one(LedgerAccountId::from(
                 self.disbursed_receivable_due_account_id,
             ))
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("Ledger account not found");
         Ok(disbursed_receivable_due_account)
     }
@@ -72,7 +77,8 @@ impl CreditFacilityLedgerAccounts {
             .load_one(LedgerAccountId::from(
                 self.disbursed_receivable_overdue_account_id,
             ))
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("Ledger account not found");
         Ok(disbursed_receivable_overdue_account)
     }
@@ -80,7 +86,8 @@ impl CreditFacilityLedgerAccounts {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let disbursed_defaulted_account = loader
             .load_one(LedgerAccountId::from(self.disbursed_defaulted_account_id))
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("Ledger account not found");
         Ok(disbursed_defaulted_account)
     }
@@ -88,7 +95,8 @@ impl CreditFacilityLedgerAccounts {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let collateral_account = loader
             .load_one(LedgerAccountId::from(self.collateral_account_id))
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("Ledger account not found");
         Ok(collateral_account)
     }
@@ -101,7 +109,8 @@ impl CreditFacilityLedgerAccounts {
             .load_one(LedgerAccountId::from(
                 self.interest_receivable_not_yet_due_account_id,
             ))
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("Ledger account not found");
         Ok(interest_receivable_not_yet_due_account)
     }
@@ -111,7 +120,8 @@ impl CreditFacilityLedgerAccounts {
             .load_one(LedgerAccountId::from(
                 self.interest_receivable_due_account_id,
             ))
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("Ledger account not found");
         Ok(interest_receivable_due_account)
     }
@@ -124,7 +134,8 @@ impl CreditFacilityLedgerAccounts {
             .load_one(LedgerAccountId::from(
                 self.interest_receivable_overdue_account_id,
             ))
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("Ledger account not found");
         Ok(interest_receivable_overdue_account)
     }
@@ -132,7 +143,8 @@ impl CreditFacilityLedgerAccounts {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let interest_defaulted_account = loader
             .load_one(LedgerAccountId::from(self.interest_defaulted_account_id))
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("Ledger account not found");
         Ok(interest_defaulted_account)
     }
@@ -140,7 +152,8 @@ impl CreditFacilityLedgerAccounts {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let interest_income_account = loader
             .load_one(LedgerAccountId::from(self.interest_income_account_id))
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("Ledger account not found");
         Ok(interest_income_account)
     }
@@ -148,7 +161,8 @@ impl CreditFacilityLedgerAccounts {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let fee_income_account = loader
             .load_one(LedgerAccountId::from(self.fee_income_account_id))
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("Ledger account not found");
         Ok(fee_income_account)
     }

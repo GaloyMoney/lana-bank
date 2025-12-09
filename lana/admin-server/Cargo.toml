@@ -14,6 +14,7 @@ lana-app = { workspace = true }
 
 audit = { workspace = true }
 tracing-utils = { workspace = true, features = ["http"] }
+tracing-macros = { workspace = true }
 jwks-utils = { workspace = true }
 
 es-entity = { workspace = true, features = ["graphql"] }

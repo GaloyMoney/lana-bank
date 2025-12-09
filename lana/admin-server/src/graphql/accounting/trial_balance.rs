@@ -1,8 +1,11 @@
 use async_graphql::*;
 
-use crate::{graphql::loader::CHART_REF, primitives::*};
+use crate::{
+    graphql::{error::*, loader::CHART_REF},
+    primitives::*,
+};
 
-use super::{
+use super::ledger_account::{
     BtcLedgerAccountBalanceRange, LedgerAccount, LedgerAccountBalanceRangeByCurrency,
     UsdLedgerAccountBalanceRange,
 };
@@ -49,7 +52,8 @@ impl TrialBalance {
                 self.from.into_inner(),
                 Some(self.until.into_inner()),
             )
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
         Ok(accounts.into_iter().map(LedgerAccount::from).collect())
     }
 }

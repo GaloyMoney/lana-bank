@@ -1,8 +1,9 @@
 use async_graphql::*;
 
-use crate::primitives::*;
-
-use super::super::loader::LanaDataLoader;
+use crate::{
+    graphql::{error::*, loader::LanaDataLoader},
+    primitives::*,
+};
 
 pub use lana_app::report::{Report as DomainReport, ReportFile as DomainReportFile};
 
@@ -68,7 +69,8 @@ impl Report {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let report_run = loader
             .load_one(self.entity.run_id)
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("report run not found");
         Ok(report_run)
     }

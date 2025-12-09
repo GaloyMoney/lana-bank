@@ -1,6 +1,6 @@
 use async_graphql::*;
 
-use super::access::User;
+use super::{access::User, error::*};
 use lana_app::{access::user::User as DomainUser, authorization::VisibleNavigationItems};
 
 use crate::primitives::*;
@@ -18,7 +18,10 @@ impl MeUser {
         ctx: &Context<'_>,
     ) -> async_graphql::Result<VisibleNavigationItems> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        let permissions = app.get_visible_nav_items(sub).await?;
+        let permissions = app
+            .get_visible_nav_items(sub)
+            .await
+            .map_err(GqlError::from)?;
         Ok(permissions)
     }
 

@@ -1,11 +1,14 @@
 use async_graphql::*;
 
 use crate::{
-    graphql::{custody::Wallet, customer::*, loader::LanaDataLoader, terms::TermValues},
+    graphql::{
+        approval_process::ApprovalProcess, custody::Wallet, customer::*, error::*,
+        loader::LanaDataLoader, terms::TermValues,
+    },
     primitives::*,
 };
 
-use super::{ApprovalProcess, CollateralBalance, CreditFacilityRepaymentPlanEntry};
+use super::{balance::CollateralBalance, repayment::CreditFacilityRepaymentPlanEntry};
 
 pub use lana_app::credit::{
     PendingCreditFacilitiesByCreatedAtCursor, PendingCreditFacility as DomainPendingCreditFacility,
@@ -32,11 +35,15 @@ impl PendingCreditFacility {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let collateral = loader
             .load_one(self.entity.collateral_id)
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("credit facility proposal has collateral");
 
         if let Some(wallet_id) = collateral.wallet_id {
-            Ok(loader.load_one(WalletId::from(wallet_id)).await?)
+            Ok(loader
+                .load_one(WalletId::from(wallet_id))
+                .await
+                .map_err(GqlError::from)?)
         } else {
             Ok(None)
         }
@@ -49,7 +56,8 @@ impl PendingCreditFacility {
             .credit()
             .pending_credit_facilities()
             .collateral(sub, self.entity.id)
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
 
         Ok(CollateralBalance {
             btc_balance: collateral,
@@ -60,7 +68,8 @@ impl PendingCreditFacility {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let customer = loader
             .load_one(self.entity.customer_id)
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("customer not found");
         Ok(customer)
     }
@@ -74,14 +83,19 @@ impl PendingCreditFacility {
         ctx: &Context<'_>,
     ) -> async_graphql::Result<Vec<CreditFacilityRepaymentPlanEntry>> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        Ok(app.credit().repayment_plan(sub, self.entity.id).await?)
+        Ok(app
+            .credit()
+            .repayment_plan(sub, self.entity.id)
+            .await
+            .map_err(GqlError::from)?)
     }
 
     async fn approval_process(&self, ctx: &Context<'_>) -> async_graphql::Result<ApprovalProcess> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let process = loader
             .load_one(self.entity.approval_process_id)
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("process not found");
         Ok(process)
     }

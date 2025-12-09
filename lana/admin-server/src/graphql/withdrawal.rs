@@ -4,7 +4,7 @@ use crate::primitives::*;
 
 use super::{
     accounting::LedgerTransaction, approval_process::ApprovalProcess,
-    deposit_account::DepositAccount, loader::LanaDataLoader,
+    deposit_account::DepositAccount, error::*, loader::LanaDataLoader,
 };
 
 pub use lana_app::{
@@ -56,7 +56,8 @@ impl Withdrawal {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let process = loader
             .load_one(self.entity.approval_process_id)
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("process not found");
         Ok(process)
     }
@@ -65,7 +66,8 @@ impl Withdrawal {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let account = loader
             .load_one(self.entity.deposit_account_id)
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("account not found");
         Ok(account)
     }
@@ -76,7 +78,10 @@ impl Withdrawal {
     ) -> async_graphql::Result<Vec<LedgerTransaction>> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let tx_ids = self.entity.ledger_tx_ids();
-        let loaded_transactions = loader.load_many(tx_ids.iter().copied()).await?;
+        let loaded_transactions = loader
+            .load_many(tx_ids.iter().copied())
+            .await
+            .map_err(GqlError::from)?;
 
         Ok(tx_ids
             .iter()

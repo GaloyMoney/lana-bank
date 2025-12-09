@@ -2,12 +2,14 @@ mod error;
 
 use async_graphql::*;
 
-use crate::primitives::*;
-use lana_app::public_id::PublicId;
-
-use super::{
-    credit_facility::*, deposit_account::*, document::CustomerDocument, primitives::SortDirection,
+use crate::{
+    graphql::{
+        credit_facility::*, deposit_account::*, document::CustomerDocument, error::*,
+        primitives::SortDirection,
+    },
+    primitives::*,
 };
+use lana_app::public_id::PublicId;
 
 pub use lana_app::customer::{
     Activity, Customer as DomainCustomer, CustomerType, CustomersCursor,
@@ -79,7 +81,8 @@ impl Customer {
                 Default::default(),
                 ListDirection::Descending,
             )
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .entities
             .into_iter()
             .map(DepositAccount::from)
@@ -104,7 +107,8 @@ impl Customer {
                     direction: ListDirection::Descending,
                 },
             )
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .entities
             .into_iter()
             .map(CreditFacility::from)
@@ -123,7 +127,8 @@ impl Customer {
             .credit()
             .pending_credit_facilities()
             .list_for_customer_by_created_at(sub, self.entity.id)
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .into_iter()
             .map(crate::graphql::credit_facility::PendingCreditFacility::from)
             .collect();
@@ -141,7 +146,8 @@ impl Customer {
             .credit()
             .proposals()
             .list_for_customer_by_created_at(sub, self.entity.id)
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .into_iter()
             .map(crate::graphql::credit_facility::CreditFacilityProposal::from)
             .collect();
@@ -154,7 +160,8 @@ impl Customer {
         let documents = app
             .customers()
             .list_documents_for_customer_id(sub, self.entity.id)
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
         Ok(documents.into_iter().map(CustomerDocument::from).collect())
     }
 

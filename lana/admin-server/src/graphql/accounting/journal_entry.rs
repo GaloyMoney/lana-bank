@@ -6,9 +6,12 @@ use lana_app::accounting::journal::{
 };
 use lana_app::primitives::{DebitOrCredit, Layer};
 
-use super::{ledger_account::LedgerAccount, ledger_transaction::LedgerTransaction};
+use crate::{
+    graphql::{error::*, loader::LanaDataLoader},
+    primitives::*,
+};
 
-use crate::{graphql::loader::LanaDataLoader, primitives::*};
+use super::{ledger_account::LedgerAccount, ledger_transaction::LedgerTransaction};
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
@@ -54,7 +57,8 @@ impl JournalEntry {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let account = loader
             .load_one(self.entity.ledger_account_id)
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("account not found");
         Ok(account)
     }
@@ -66,7 +70,8 @@ impl JournalEntry {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let tx = loader
             .load_one(self.entity.ledger_transaction_id)
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("transaction not found");
         Ok(tx)
     }

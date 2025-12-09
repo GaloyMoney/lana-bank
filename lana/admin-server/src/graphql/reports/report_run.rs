@@ -1,6 +1,6 @@
 use async_graphql::*;
 
-use crate::primitives::*;
+use crate::{graphql::error::*, primitives::*};
 
 use super::report::Report;
 
@@ -88,7 +88,8 @@ impl ReportRun {
         let reports = app
             .reports()
             .list_reports_for_run(sub, self.entity.id)
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
 
         Ok(reports.into_iter().map(|r| r.into()).collect())
     }

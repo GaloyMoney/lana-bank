@@ -17,12 +17,13 @@ use crate::{
     graphql::{
         credit_facility::{Collateral, CreditFacility},
         deposit::DepositAccount,
+        error::*,
         loader::*,
     },
     primitives::*,
 };
 
-use super::JournalEntry;
+use super::journal_entry::JournalEntry;
 
 #[derive(Union)]
 pub enum LedgerAccountEntity {
@@ -67,21 +68,24 @@ impl LedgerAccount {
             entity_type if entity_type == &DEPOSIT_ACCOUNT_ENTITY_TYPE => {
                 let deposit_account = loader
                     .load_one(DepositAccountId::from(entity_ref.entity_id))
-                    .await?
+                    .await
+                    .map_err(GqlError::from)?
                     .expect("Could not find deposit account");
                 Some(LedgerAccountEntity::DepositAccount(deposit_account))
             }
             entity_type if entity_type == &CREDIT_FACILITY_ENTITY_TYPE => {
                 let credit_facility = loader
                     .load_one(CreditFacilityId::from(entity_ref.entity_id))
-                    .await?
+                    .await
+                    .map_err(GqlError::from)?
                     .expect("Could not find credit facility");
                 Some(LedgerAccountEntity::CreditFacility(credit_facility))
             }
             entity_type if entity_type == &COLLATERAL_ENTITY_TYPE => {
                 let collateral = loader
                     .load_one(CollateralId::from(entity_ref.entity_id))
-                    .await?
+                    .await
+                    .map_err(GqlError::from)?
                     .expect("Could not find collateral");
                 Some(LedgerAccountEntity::Collateral(collateral))
             }
@@ -112,7 +116,10 @@ impl LedgerAccount {
 
     async fn ancestors(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<LedgerAccount>> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
-        let ancestors = loader.load_many(self.entity.ancestor_ids.clone()).await?;
+        let ancestors = loader
+            .load_many(self.entity.ancestor_ids.clone())
+            .await
+            .map_err(GqlError::from)?;
 
         Ok(self
             .entity
@@ -138,7 +145,10 @@ impl LedgerAccount {
 
     async fn children(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<LedgerAccount>> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
-        let children = loader.load_many(self.entity.children_ids.clone()).await?;
+        let children = loader
+            .load_many(self.entity.children_ids.clone())
+            .await
+            .map_err(GqlError::from)?;
 
         Ok(self
             .entity
@@ -169,7 +179,8 @@ impl LedgerAccount {
                     .accounting()
                     .ledger_accounts()
                     .history(sub, self.ledger_account_id, query_args)
-                    .await?;
+                    .await
+                    .map_err(GqlError::from)?;
 
                 let mut connection = Connection::new(false, res.has_next_page);
                 connection

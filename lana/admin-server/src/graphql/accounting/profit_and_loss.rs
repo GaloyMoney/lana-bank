@@ -2,9 +2,12 @@ use async_graphql::*;
 
 use lana_app::profit_and_loss::ProfitAndLossStatement as DomainProfitAndLossStatement;
 
-use crate::{graphql::loader::*, primitives::*};
+use crate::{
+    graphql::{error::*, loader::*},
+    primitives::*,
+};
 
-use super::{
+use super::ledger_account::{
     BtcLedgerAccountBalanceRange, LedgerAccount, LedgerAccountBalanceRangeByCurrency,
     UsdLedgerAccountBalanceRange,
 };
@@ -49,7 +52,8 @@ impl ProfitAndLossStatement {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let categories = loader
             .load_many(self.entity.category_ids.iter().copied())
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
 
         Ok(self
             .entity

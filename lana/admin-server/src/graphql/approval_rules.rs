@@ -1,6 +1,6 @@
 use async_graphql::*;
 
-use super::{committee::Committee, loader::LanaDataLoader};
+use super::{committee::Committee, error::*, loader::LanaDataLoader};
 
 use lana_app::governance::{ApprovalRules as DomainApprovalRules, CommitteeId};
 
@@ -46,7 +46,8 @@ impl CommitteeThreshold {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let committee = loader
             .load_one(self.committee_id)
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("committee not found");
         Ok(committee)
     }

@@ -1,9 +1,13 @@
 use async_graphql::*;
 
-use crate::{graphql::loader::LanaDataLoader, primitives::*};
-use lana_app::access::user::User as DomainUser;
+use crate::{
+    graphql::{error::GqlError, loader::LanaDataLoader},
+    primitives::*,
+};
 
-use super::Role;
+use super::role::Role;
+
+use lana_app::access::user::User as DomainUser;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -43,7 +47,7 @@ impl User {
     async fn role(&self, ctx: &Context<'_>) -> async_graphql::Result<Role> {
         let role_id = self.entity.current_role();
         let loader = ctx.data_unchecked::<LanaDataLoader>();
-        let role = loader.load_one(role_id).await?;
+        let role = loader.load_one(role_id).await.map_err(GqlError::from)?;
         role.ok_or_else(|| {
             Error::new(format!(
                 "Data integrity error: Role with ID {} not found for user {}. This should never happen.",

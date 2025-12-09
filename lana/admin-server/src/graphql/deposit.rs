@@ -1,8 +1,8 @@
 use async_graphql::*;
 
-use crate::{graphql::accounting::LedgerTransaction, primitives::*};
+use crate::primitives::*;
 
-use super::loader::LanaDataLoader;
+use super::{accounting::LedgerTransaction, error::*, loader::LanaDataLoader};
 
 pub use super::deposit_account::DepositAccount;
 
@@ -59,7 +59,8 @@ impl Deposit {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let account = loader
             .load_one(self.entity.deposit_account_id)
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("process not found");
         Ok(account)
     }
@@ -67,7 +68,10 @@ impl Deposit {
     async fn ledger_transactions(&self, ctx: &Context<'_>) -> Result<Vec<LedgerTransaction>> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let tx_ids = self.entity.ledger_tx_ids();
-        let loaded_transactions = loader.load_many(tx_ids.iter().copied()).await?;
+        let loaded_transactions = loader
+            .load_many(tx_ids.iter().copied())
+            .await
+            .map_err(GqlError::from)?;
 
         Ok(tx_ids
             .iter()

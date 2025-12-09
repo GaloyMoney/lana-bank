@@ -2,15 +2,17 @@ use async_graphql::*;
 
 use crate::{
     graphql::{
+        approval_process::ApprovalProcess,
         custody::Custodian,
         customer::*,
+        error::*,
         loader::LanaDataLoader,
         terms::{TermValues, TermsInput},
     },
     primitives::*,
 };
 
-use super::{ApprovalProcess, CreditFacilityRepaymentPlanEntry};
+use super::repayment::CreditFacilityRepaymentPlanEntry;
 
 pub use lana_app::credit::{
     CreditFacilityProposal as DomainCreditFacilityProposal,
@@ -39,7 +41,8 @@ impl CreditFacilityProposal {
         if let Some(custodian_id) = self.entity.custodian_id {
             let custodian = loader
                 .load_one(custodian_id)
-                .await?
+                .await
+                .map_err(GqlError::from)?
                 .expect("custodian not found");
 
             return Ok(Some(custodian));
@@ -51,7 +54,8 @@ impl CreditFacilityProposal {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let customer = loader
             .load_one(self.entity.customer_id)
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("customer not found");
         Ok(customer)
     }
@@ -61,7 +65,11 @@ impl CreditFacilityProposal {
         ctx: &Context<'_>,
     ) -> async_graphql::Result<Vec<CreditFacilityRepaymentPlanEntry>> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        Ok(app.credit().repayment_plan(sub, self.entity.id).await?)
+        Ok(app
+            .credit()
+            .repayment_plan(sub, self.entity.id)
+            .await
+            .map_err(GqlError::from)?)
     }
 
     async fn approval_process(
@@ -72,7 +80,8 @@ impl CreditFacilityProposal {
         if let Some(approval_process_id) = self.approval_process_id {
             let process = loader
                 .load_one(ApprovalProcessId::from(approval_process_id))
-                .await?
+                .await
+                .map_err(GqlError::from)?
                 .expect("process not found");
             return Ok(Some(process));
         }

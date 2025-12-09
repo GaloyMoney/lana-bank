@@ -3,8 +3,8 @@ use async_graphql::*;
 use crate::primitives::*;
 
 use super::{
-    access::User, approval_rules::*, credit_facility::*, loader::LanaDataLoader, policy::*,
-    withdrawal::*,
+    access::User, approval_rules::*, credit_facility::*, error::*, loader::LanaDataLoader,
+    policy::*, withdrawal::*,
 };
 
 pub use lana_app::governance::{
@@ -53,7 +53,8 @@ impl ApprovalProcess {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let policy = loader
             .load_one(self.entity.policy_id)
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("policy not found");
         Ok(policy)
     }
@@ -65,7 +66,8 @@ impl ApprovalProcess {
             let loader = ctx.data_unchecked::<LanaDataLoader>();
             let committee = loader
                 .load_one(committee_id)
-                .await?
+                .await
+                .map_err(GqlError::from)?
                 .expect("committee not found");
             Some(committee.entity)
         } else {
@@ -75,7 +77,8 @@ impl ApprovalProcess {
         Ok(app
             .governance()
             .subject_can_submit_decision(sub, &self.entity, committee.as_ref().map(AsRef::as_ref))
-            .await?)
+            .await
+            .map_err(GqlError::from)?)
     }
 
     async fn voters(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<ApprovalProcessVoter>> {
@@ -83,7 +86,8 @@ impl ApprovalProcess {
             let loader = ctx.data_unchecked::<LanaDataLoader>();
             let committee = loader
                 .load_one(committee_id)
-                .await?
+                .await
+                .map_err(GqlError::from)?
                 .expect("committee not found");
             let mut approvers = self.entity.approvers();
             let mut deniers = self.entity.deniers();
@@ -137,7 +141,8 @@ impl ApprovalProcess {
                             .parse::<WithdrawalId>()
                             .expect("invalid target ref"),
                     )
-                    .await?
+                    .await
+                    .map_err(GqlError::from)?
                     .expect("withdrawal not found");
                 Ok(ApprovalProcessTarget::Withdrawal(withdrawal))
             }
@@ -149,7 +154,8 @@ impl ApprovalProcess {
                             .parse::<CreditFacilityProposalId>()
                             .expect("invalid target ref"),
                     )
-                    .await?
+                    .await
+                    .map_err(GqlError::from)?
                     .expect("credit facility proposal not found");
                 Ok(ApprovalProcessTarget::CreditFacilityProposal(
                     credit_facility_proposal,
@@ -163,7 +169,8 @@ impl ApprovalProcess {
                             .parse::<DisbursalId>()
                             .expect("invalid target ref"),
                     )
-                    .await?
+                    .await
+                    .map_err(GqlError::from)?
                     .expect("disbursal not found");
                 Ok(ApprovalProcessTarget::CreditFacilityDisbursal(disbursal))
             }
@@ -211,7 +218,8 @@ impl ApprovalProcessVoter {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let users = loader
             .load_one(self.user_id)
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("user not found");
 
         Ok(users)

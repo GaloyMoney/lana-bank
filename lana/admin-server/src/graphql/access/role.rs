@@ -1,8 +1,10 @@
 use async_graphql::*;
 
-use crate::graphql::access::PermissionSet;
-use crate::graphql::loader::LanaDataLoader;
-use crate::primitives::*;
+use crate::{
+    graphql::{access::PermissionSet, error::GqlError, loader::LanaDataLoader},
+    primitives::*,
+};
+
 use lana_app::access::role::Role as DomainRole;
 pub use lana_app::access::role::RolesByNameCursor;
 
@@ -30,7 +32,8 @@ impl Role {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let loaded = loader
             .load_many(self.entity.permission_sets.iter().copied())
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
         Ok(loaded.into_values().collect())
     }
 }

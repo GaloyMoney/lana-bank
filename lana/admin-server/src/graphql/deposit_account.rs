@@ -9,7 +9,7 @@ pub use lana_app::deposit::{
 
 use super::{
     accounting::LedgerAccount, customer::Customer, deposit::*, deposit_account_history::*,
-    loader::LanaDataLoader, withdrawal::*,
+    error::*, loader::LanaDataLoader, withdrawal::*,
 };
 
 #[derive(SimpleObject, Clone)]
@@ -67,7 +67,8 @@ impl DepositAccountLedgerAccounts {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let account = loader
             .load_one(LedgerAccountId::from(self.deposit_account_id))
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("Ledger account not found");
         Ok(account)
     }
@@ -76,7 +77,8 @@ impl DepositAccountLedgerAccounts {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let account = loader
             .load_one(LedgerAccountId::from(self.frozen_deposit_account_id))
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("Ledger account not found");
         Ok(account)
     }
@@ -93,7 +95,8 @@ impl DepositAccount {
         let deposits = app
             .deposits()
             .list_deposits_for_account(sub, self.entity.id)
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
         Ok(deposits.into_iter().map(Deposit::from).collect())
     }
 
@@ -102,7 +105,8 @@ impl DepositAccount {
         let withdrawals = app
             .deposits()
             .list_withdrawals_for_account(sub, self.entity.id)
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
         Ok(withdrawals.into_iter().map(Withdrawal::from).collect())
     }
 
@@ -132,7 +136,8 @@ impl DepositAccount {
                 let res = app
                     .deposits()
                     .account_history(sub, self.entity.id, query_args)
-                    .await?;
+                    .await
+                    .map_err(GqlError::from)?;
 
                 let mut connection = Connection::new(false, res.has_next_page);
                 connection.edges.extend(
@@ -152,7 +157,11 @@ impl DepositAccount {
 
     async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<DepositAccountBalance> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        let balance = app.deposits().account_balance(sub, self.entity.id).await?;
+        let balance = app
+            .deposits()
+            .account_balance(sub, self.entity.id)
+            .await
+            .map_err(GqlError::from)?;
         Ok(DepositAccountBalance::from(balance))
     }
 
@@ -161,7 +170,8 @@ impl DepositAccount {
         let customer = app
             .customers()
             .find_by_id(sub, self.entity.account_holder_id)
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("customer not found");
 
         Ok(Customer::from(customer))

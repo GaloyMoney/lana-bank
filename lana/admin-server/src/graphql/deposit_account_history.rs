@@ -7,6 +7,7 @@ use super::{
         disbursal::CreditFacilityDisbursal, payment_allocation::CreditFacilityPaymentAllocation,
     },
     deposit::Deposit,
+    error::*,
     withdrawal::Withdrawal,
 };
 
@@ -89,7 +90,8 @@ impl DepositEntry {
         let deposit = app
             .deposits()
             .find_deposit_by_id(sub, self.tx_id)
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("deposit should exist");
 
         Ok(Deposit::from(deposit))
@@ -104,7 +106,8 @@ impl WithdrawalEntry {
         let withdrawal = app
             .deposits()
             .find_withdrawal_by_id(sub, self.tx_id)
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("withdrawal should exist");
 
         Ok(Withdrawal::from(withdrawal))
@@ -119,7 +122,8 @@ impl CancelledWithdrawalEntry {
         let withdrawal = app
             .deposits()
             .find_withdrawal_by_cancelled_tx_id(sub, self.tx_id)
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
 
         Ok(Withdrawal::from(withdrawal))
     }
@@ -133,7 +137,8 @@ impl DisbursalEntry {
             .credit()
             .disbursals()
             .find_by_concluded_tx_id(sub, self.tx_id)
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
 
         Ok(CreditFacilityDisbursal::from(disbursal))
     }
@@ -151,7 +156,8 @@ impl PaymentEntry {
             .credit()
             .obligations()
             .find_allocation_by_id(sub, self.tx_id)
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
 
         Ok(CreditFacilityPaymentAllocation::from(payment))
     }

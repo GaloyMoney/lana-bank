@@ -2,7 +2,9 @@ use async_graphql::*;
 
 use super::CreditFacility;
 use crate::{
-    graphql::{accounting::LedgerTransaction, approval_process::*, loader::LanaDataLoader},
+    graphql::{
+        accounting::LedgerTransaction, approval_process::*, error::*, loader::LanaDataLoader,
+    },
     primitives::*,
 };
 pub use lana_app::{
@@ -46,7 +48,8 @@ impl CreditFacilityDisbursal {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let facility = loader
             .load_one(self.entity.facility_id)
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("committee not found");
         Ok(facility)
     }
@@ -55,7 +58,8 @@ impl CreditFacilityDisbursal {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let process = loader
             .load_one(self.entity.approval_process_id)
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("process not found");
         Ok(process)
     }
@@ -66,7 +70,10 @@ impl CreditFacilityDisbursal {
     ) -> async_graphql::Result<Vec<LedgerTransaction>> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let tx_ids = self.entity.ledger_tx_ids();
-        let loaded_transactions = loader.load_many(tx_ids.iter().copied()).await?;
+        let loaded_transactions = loader
+            .load_many(tx_ids.iter().copied())
+            .await
+            .map_err(GqlError::from)?;
 
         Ok(tx_ids
             .iter()

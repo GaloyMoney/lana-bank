@@ -10,13 +10,13 @@ pub use lana_app::{
 
 use crate::{
     graphql::{
-        credit_facility::CreditFacilityDisbursal, deposit::Deposit, loader::*,
+        credit_facility::CreditFacilityDisbursal, deposit::Deposit, error::*, loader::*,
         withdrawal::Withdrawal,
     },
     primitives::*,
 };
 
-use super::JournalEntry;
+use super::journal_entry::JournalEntry;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -53,21 +53,24 @@ impl LedgerTransaction {
             entity_type if entity_type == &DEPOSIT_TRANSACTION_ENTITY_TYPE => {
                 let deposit = loader
                     .load_one(DepositId::from(entity_ref.entity_id))
-                    .await?
+                    .await
+                    .map_err(GqlError::from)?
                     .expect("Could not find deposit entity");
                 Some(LedgerTransactionEntity::Deposit(deposit))
             }
             entity_type if entity_type == &WITHDRAWAL_TRANSACTION_ENTITY_TYPE => {
                 let withdrawal = loader
                     .load_one(WithdrawalId::from(entity_ref.entity_id))
-                    .await?
+                    .await
+                    .map_err(GqlError::from)?
                     .expect("Could not find withdrawal entity");
                 Some(LedgerTransactionEntity::Withdrawal(withdrawal))
             }
             entity_type if entity_type == &DISBURSAL_TRANSACTION_ENTITY_TYPE => {
                 let disbursal = loader
                     .load_one(DisbursalId::from(entity_ref.entity_id))
-                    .await?
+                    .await
+                    .map_err(GqlError::from)?
                     .expect("Could not find disbursal entity");
                 Some(LedgerTransactionEntity::Disbursal(disbursal))
             }

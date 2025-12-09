@@ -1,10 +1,13 @@
 use async_graphql::*;
 
-use crate::{graphql::loader::LanaDataLoader, primitives::*};
-
-pub use lana_app::custody::{Wallet as DomainWallet, WalletNetwork};
+use crate::{
+    graphql::{error::*, loader::LanaDataLoader},
+    primitives::*,
+};
 
 use super::Custodian;
+
+pub use lana_app::custody::{Wallet as DomainWallet, WalletNetwork};
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -40,7 +43,8 @@ impl Wallet {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         Ok(loader
             .load_one(self.entity.custodian_id)
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("wallet must have a custodian"))
     }
 }

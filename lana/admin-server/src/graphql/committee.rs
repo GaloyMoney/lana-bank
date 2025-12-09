@@ -2,7 +2,7 @@ use async_graphql::*;
 
 use crate::primitives::*;
 
-use super::{access::User, loader::LanaDataLoader};
+use super::{access::User, error::*, loader::LanaDataLoader};
 
 pub use lana_app::governance::{
     Committee as DomainCommittee, committee_cursor::CommitteesByCreatedAtCursor,
@@ -39,7 +39,8 @@ impl Committee {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let users = loader
             .load_many(self.entity.members().into_iter().map(UserId::from))
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .into_values()
             .collect();
 

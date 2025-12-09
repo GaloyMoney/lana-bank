@@ -11,10 +11,12 @@ mod repayment;
 
 use async_graphql::*;
 
-use crate::primitives::*;
-
-use super::{
-    custody::Wallet, customer::*, loader::LanaDataLoader, primitives::SortDirection, terms::*,
+use crate::{
+    graphql::{
+        custody::Wallet, customer::*, error::*, loader::LanaDataLoader, primitives::SortDirection,
+        terms::*,
+    },
+    primitives::*,
 };
 pub use lana_app::{
     credit::{
@@ -76,7 +78,11 @@ impl CreditFacility {
     }
     async fn can_be_completed(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
         let (app, _) = crate::app_and_sub_from_ctx!(ctx);
-        Ok(app.credit().can_be_completed(&self.entity).await?)
+        Ok(app
+            .credit()
+            .can_be_completed(&self.entity)
+            .await
+            .map_err(GqlError::from)?)
     }
 
     async fn credit_facility_terms(&self) -> TermValues {
@@ -85,7 +91,12 @@ impl CreditFacility {
 
     async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<CVLPct> {
         let (app, _) = crate::app_and_sub_from_ctx!(ctx);
-        Ok(app.credit().current_cvl(&self.entity).await?.into())
+        Ok(app
+            .credit()
+            .current_cvl(&self.entity)
+            .await
+            .map_err(GqlError::from)?
+            .into())
     }
 
     async fn history(
@@ -94,7 +105,11 @@ impl CreditFacility {
     ) -> async_graphql::Result<Vec<CreditFacilityHistoryEntry>> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
 
-        Ok(app.credit().history(sub, self.entity.id).await?)
+        Ok(app
+            .credit()
+            .history(sub, self.entity.id)
+            .await
+            .map_err(GqlError::from)?)
     }
 
     async fn repayment_plan(
@@ -102,7 +117,11 @@ impl CreditFacility {
         ctx: &Context<'_>,
     ) -> async_graphql::Result<Vec<CreditFacilityRepaymentPlanEntry>> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        Ok(app.credit().repayment_plan(sub, self.entity.id).await?)
+        Ok(app
+            .credit()
+            .repayment_plan(sub, self.entity.id)
+            .await
+            .map_err(GqlError::from)?)
     }
 
     async fn disbursals(
@@ -123,7 +142,8 @@ impl CreditFacility {
                     direction: ListDirection::Descending,
                 },
             )
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
 
         Ok(disbursals
             .entities
@@ -180,7 +200,8 @@ impl CreditFacility {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let customer = loader
             .load_one(self.entity.customer_id)
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("customer not found");
         Ok(customer)
     }
@@ -191,7 +212,8 @@ impl CreditFacility {
             .credit()
             .facilities()
             .balance(sub, self.entity.id)
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
         Ok(CreditFacilityBalance::from(balance))
     }
 
@@ -199,11 +221,15 @@ impl CreditFacility {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let collateral = loader
             .load_one(self.entity.collateral_id)
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .expect("credit facility has collateral");
 
         if let Some(wallet_id) = collateral.wallet_id {
-            Ok(loader.load_one(WalletId::from(wallet_id)).await?)
+            Ok(loader
+                .load_one(WalletId::from(wallet_id))
+                .await
+                .map_err(GqlError::from)?)
         } else {
             Ok(None)
         }

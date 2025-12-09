@@ -14,9 +14,9 @@ use crate::primitives::*;
 use super::{
     access::*, accounting::*, approval_process::*, audit::*, balance_sheet_config::*, committee::*,
     contract_creation::*, credit_config::*, credit_facility::*, custody::*, customer::*,
-    dashboard::*, deposit::*, deposit_config::*, document::*, loader::*, me::*, policy::*,
-    price::*, profit_and_loss_config::*, public_id::*, reports::*, sumsub::*, terms_template::*,
-    withdrawal::*,
+    dashboard::*, deposit::*, deposit_config::*, document::*, error::*, loader::*, me::*,
+    policy::*, price::*, profit_and_loss_config::*, public_id::*, reports::*, sumsub::*,
+    terms_template::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -25,7 +25,13 @@ pub struct Query;
 impl Query {
     async fn me(&self, ctx: &Context<'_>) -> async_graphql::Result<MeUser> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let user = Arc::new(app.access().users().find_for_subject(sub).await?);
+        let user = Arc::new(
+            app.access()
+                .users()
+                .find_for_subject(sub)
+                .await
+                .map_err(GqlError::from)?,
+        );
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         loader.feed_one(user.id, User::from(user.clone())).await;
         Ok(MeUser::from(user))
@@ -33,7 +39,7 @@ impl Query {
 
     async fn dashboard(&self, ctx: &Context<'_>) -> async_graphql::Result<Dashboard> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let dashboard = app.dashboard().load(sub).await?;
+        let dashboard = app.dashboard().load(sub).await.map_err(GqlError::from)?;
         Ok(Dashboard::from(dashboard))
     }
 
@@ -49,7 +55,8 @@ impl Query {
             .access()
             .users()
             .list_users(sub)
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .into_iter()
             .map(User::from)
             .collect();
@@ -138,9 +145,11 @@ impl Query {
         let filter = match filter_field {
             None => DomainCustomersFilter::NoFilter,
             Some(CustomersFilterBy::AccountKycVerification) => {
-                let status = status.ok_or(CustomerError::MissingValueForFilterField(
-                    "kyc_verification".to_string(),
-                ))?;
+                let status = status
+                    .ok_or(CustomerError::MissingValueForFilterField(
+                        "kyc_verification".to_string(),
+                    ))
+                    .map_err(GqlError::from)?;
                 DomainCustomersFilter::WithKycVerification(status)
             }
         };
@@ -306,7 +315,12 @@ impl Query {
         ctx: &Context<'_>,
     ) -> async_graphql::Result<Vec<TermsTemplate>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let terms_templates = app.credit().terms_templates().list(sub).await?;
+        let terms_templates = app
+            .credit()
+            .terms_templates()
+            .list(sub)
+            .await
+            .map_err(GqlError::from)?;
         Ok(terms_templates
             .into_iter()
             .map(TermsTemplate::from)
@@ -438,17 +452,19 @@ impl Query {
         let filter = match filter_field {
             None => DomainCreditFacilitiesFilter::NoFilter,
             Some(CreditFacilitiesFilterBy::Status) => {
-                let status = status.ok_or(CreditFacilityError::MissingValueForFilterField(
-                    "status".to_string(),
-                ))?;
+                let status = status
+                    .ok_or(CreditFacilityError::MissingValueForFilterField(
+                        "status".to_string(),
+                    ))
+                    .map_err(GqlError::from)?;
                 DomainCreditFacilitiesFilter::WithStatus(status)
             }
             Some(CreditFacilitiesFilterBy::CollateralizationState) => {
-                let collateralization_state = collateralization_state.ok_or(
-                    CreditFacilityError::MissingValueForFilterField(
+                let collateralization_state = collateralization_state
+                    .ok_or(CreditFacilityError::MissingValueForFilterField(
                         "collateralization_state".to_string(),
-                    ),
-                )?;
+                    ))
+                    .map_err(GqlError::from)?;
                 DomainCreditFacilitiesFilter::WithCollateralizationState(collateralization_state)
             }
         };
@@ -739,7 +755,12 @@ impl Query {
             |after, _, first, _| async move {
                 let first = first.expect("First always exists");
                 let query_args = es_entity::PaginatedQueryArgs { first, after };
-                let res = app.accounting().journal().entries(sub, query_args).await?;
+                let res = app
+                    .accounting()
+                    .journal()
+                    .entries(sub, query_args)
+                    .await
+                    .map_err(GqlError::from)?;
 
                 let mut connection = Connection::new(false, res.has_next_page);
                 connection
@@ -770,7 +791,8 @@ impl Query {
                 from.into_inner(),
                 until.into_inner(),
             )
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
         Ok(TrialBalance::from(account_summary))
     }
 
@@ -780,7 +802,8 @@ impl Query {
             .accounting()
             .chart_of_accounts()
             .find_by_reference_with_sub(sub, CHART_REF.0)
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
         Ok(ChartOfAccounts::from(chart))
     }
 
@@ -837,7 +860,8 @@ impl Query {
                 from.into_inner(),
                 until.map(|t| t.into_inner()),
             )
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
         Ok(BalanceSheet::from(balance_sheet))
     }
 
@@ -857,7 +881,8 @@ impl Query {
                 from.into_inner(),
                 until.map(|t| t.into_inner()),
             )
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
         Ok(ProfitAndLossStatement::from(profit_and_loss))
     }
 
@@ -889,7 +914,8 @@ impl Query {
                             after: after.map(lana_app::audit::AuditCursor::from),
                         },
                     )
-                    .await?;
+                    .await
+                    .map_err(GqlError::from)?;
 
                 let mut connection = Connection::new(false, res.has_next_page);
                 connection
@@ -913,7 +939,8 @@ impl Query {
         let config = app
             .deposits()
             .get_chart_of_accounts_integration_config(sub)
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
         Ok(config.map(DepositModuleConfig::from))
     }
 
@@ -926,7 +953,8 @@ impl Query {
             .credit()
             .chart_of_accounts_integrations()
             .get_config(sub)
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
         Ok(config.map(CreditModuleConfig::from))
     }
 
@@ -939,7 +967,8 @@ impl Query {
             .accounting()
             .balance_sheets()
             .get_chart_of_accounts_integration_config(sub, BALANCE_SHEET_NAME.to_string())
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
         Ok(config.map(BalanceSheetModuleConfig::from))
     }
 
@@ -955,7 +984,8 @@ impl Query {
                 sub,
                 PROFIT_AND_LOSS_STATEMENT_NAME.to_string(),
             )
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
         Ok(config.map(ProfitAndLossStatementModuleConfig::from))
     }
 
@@ -965,7 +995,12 @@ impl Query {
         id: PublicId,
     ) -> async_graphql::Result<Option<PublicIdTarget>> {
         let (app, _sub) = app_and_sub_from_ctx!(ctx);
-        let Some(public_id) = app.public_ids().find_by_id(id).await? else {
+        let Some(public_id) = app
+            .public_ids()
+            .find_by_id(id)
+            .await
+            .map_err(GqlError::from)?
+        else {
             return Ok(None);
         };
 
@@ -1005,7 +1040,11 @@ impl Query {
         id: UUID,
     ) -> async_graphql::Result<Option<LoanAgreement>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let agreement = app.contract_creation().find_by_id(sub, id).await?;
+        let agreement = app
+            .contract_creation()
+            .find_by_id(sub, id)
+            .await
+            .map_err(GqlError::from)?;
         Ok(agreement.map(LoanAgreement::from))
     }
 
@@ -1020,7 +1059,8 @@ impl Query {
             .accounting()
             .csvs()
             .get_latest_for_ledger_account_id(sub, ledger_account_id)
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .map(AccountingCsvDocument::from);
 
         Ok(latest)
@@ -1097,7 +1137,8 @@ impl Mutation {
                 sub,
                 lana_app::primitives::CustomerId::from(input.customer_id),
             )
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
         Ok(SumsubPermalinkCreatePayload { url: permalink.url })
     }
 
@@ -1115,7 +1156,8 @@ impl Mutation {
             .create_complete_test_applicant(lana_app::primitives::CustomerId::from(
                 input.customer_id,
             ))
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
         Ok(SumsubTestApplicantCreatePayload { applicant_id })
     }
 
@@ -1256,7 +1298,8 @@ impl Mutation {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let chart = loader
             .load_one(CHART_REF)
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .unwrap_or_else(|| panic!("Chart of accounts not found for ref {CHART_REF:?}"));
 
         let DepositModuleConfigureInput {
@@ -1278,38 +1321,63 @@ impl Mutation {
         let config_values = lana_app::deposit::ChartOfAccountsIntegrationConfig {
             chart_of_accounts_id: chart.id,
             chart_of_accounts_individual_deposit_accounts_parent_code:
-                chart_of_accounts_individual_deposit_accounts_parent_code.parse()?,
+                chart_of_accounts_individual_deposit_accounts_parent_code
+                    .parse()
+                    .map_err(GqlError::from)?,
             chart_of_accounts_government_entity_deposit_accounts_parent_code:
-                chart_of_accounts_government_entity_deposit_accounts_parent_code.parse()?,
+                chart_of_accounts_government_entity_deposit_accounts_parent_code
+                    .parse()
+                    .map_err(GqlError::from)?,
             chart_of_account_private_company_deposit_accounts_parent_code:
-                chart_of_account_private_company_deposit_accounts_parent_code.parse()?,
+                chart_of_account_private_company_deposit_accounts_parent_code
+                    .parse()
+                    .map_err(GqlError::from)?,
             chart_of_account_bank_deposit_accounts_parent_code:
-                chart_of_account_bank_deposit_accounts_parent_code.parse()?,
+                chart_of_account_bank_deposit_accounts_parent_code
+                    .parse()
+                    .map_err(GqlError::from)?,
             chart_of_account_financial_institution_deposit_accounts_parent_code:
-                chart_of_account_financial_institution_deposit_accounts_parent_code.parse()?,
+                chart_of_account_financial_institution_deposit_accounts_parent_code
+                    .parse()
+                    .map_err(GqlError::from)?,
             chart_of_account_non_domiciled_individual_deposit_accounts_parent_code:
-                chart_of_account_non_domiciled_individual_deposit_accounts_parent_code.parse()?,
+                chart_of_account_non_domiciled_individual_deposit_accounts_parent_code
+                    .parse()
+                    .map_err(GqlError::from)?,
             chart_of_accounts_frozen_individual_deposit_accounts_parent_code:
-                chart_of_accounts_frozen_individual_deposit_accounts_parent_code.parse()?,
+                chart_of_accounts_frozen_individual_deposit_accounts_parent_code
+                    .parse()
+                    .map_err(GqlError::from)?,
             chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code:
-                chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code.parse()?,
+                chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code
+                    .parse()
+                    .map_err(GqlError::from)?,
             chart_of_account_frozen_private_company_deposit_accounts_parent_code:
-                chart_of_account_frozen_private_company_deposit_accounts_parent_code.parse()?,
+                chart_of_account_frozen_private_company_deposit_accounts_parent_code
+                    .parse()
+                    .map_err(GqlError::from)?,
             chart_of_account_frozen_bank_deposit_accounts_parent_code:
-                chart_of_account_frozen_bank_deposit_accounts_parent_code.parse()?,
+                chart_of_account_frozen_bank_deposit_accounts_parent_code
+                    .parse()
+                    .map_err(GqlError::from)?,
             chart_of_account_frozen_financial_institution_deposit_accounts_parent_code:
                 chart_of_account_frozen_financial_institution_deposit_accounts_parent_code
-                    .parse()?,
+                    .parse()
+                    .map_err(GqlError::from)?,
             chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code:
                 chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code
-                    .parse()?,
-            chart_of_accounts_omnibus_parent_code: chart_of_accounts_omnibus_parent_code.parse()?,
+                    .parse()
+                    .map_err(GqlError::from)?,
+            chart_of_accounts_omnibus_parent_code: chart_of_accounts_omnibus_parent_code
+                .parse()
+                .map_err(GqlError::from)?,
         };
 
         let config = app
             .deposits()
             .set_chart_of_accounts_integration_config(sub, chart.as_ref(), config_values)
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
         Ok(DepositModuleConfigurePayload::from(
             DepositModuleConfig::from(config),
         ))
@@ -1517,7 +1585,8 @@ impl Mutation {
             .liquidation_cvl(input.liquidation_cvl)
             .margin_call_cvl(input.margin_call_cvl)
             .initial_cvl(input.initial_cvl)
-            .build()?;
+            .build()
+            .map_err(GqlError::from)?;
 
         exec_mutation!(
             TermsTemplateCreatePayload,
@@ -1551,7 +1620,8 @@ impl Mutation {
             .liquidation_cvl(input.liquidation_cvl)
             .margin_call_cvl(input.margin_call_cvl)
             .initial_cvl(input.initial_cvl)
-            .build()?;
+            .build()
+            .map_err(GqlError::from)?;
         exec_mutation!(
             TermsTemplateUpdatePayload,
             TermsTemplate,
@@ -1574,7 +1644,8 @@ impl Mutation {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let chart = loader
             .load_one(CHART_REF)
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .unwrap_or_else(|| panic!("Chart of accounts not found for ref {CHART_REF:?}"));
 
         let CreditModuleConfigureInput {
@@ -1631,130 +1702,131 @@ impl Mutation {
         let config_values = lana_app::credit::ChartOfAccountsIntegrationConfig {
             chart_of_accounts_id: chart.id,
             chart_of_account_facility_omnibus_parent_code:
-                chart_of_account_facility_omnibus_parent_code.parse()?,
+                chart_of_account_facility_omnibus_parent_code.parse().map_err(GqlError::from)?,
             chart_of_account_collateral_omnibus_parent_code:
-                chart_of_account_collateral_omnibus_parent_code.parse()?,
+                chart_of_account_collateral_omnibus_parent_code.parse().map_err(GqlError::from)?,
             chart_of_account_in_liquidation_omnibus_parent_code:
-                chart_of_account_in_liquidation_omnibus_parent_code.parse()?,
-            chart_of_account_facility_parent_code: chart_of_account_facility_parent_code.parse()?,
+                chart_of_account_in_liquidation_omnibus_parent_code.parse().map_err(GqlError::from)?,
+            chart_of_account_facility_parent_code: chart_of_account_facility_parent_code.parse().map_err(GqlError::from)?,
             chart_of_account_collateral_parent_code: chart_of_account_collateral_parent_code
-                .parse()?,
+                .parse().map_err(GqlError::from)?,
             chart_of_account_in_liquidation_parent_code:
-                chart_of_account_in_liquidation_parent_code.parse()?,
+                chart_of_account_in_liquidation_parent_code.parse().map_err(GqlError::from)?,
             chart_of_account_interest_income_parent_code:
-                chart_of_account_interest_income_parent_code.parse()?,
+                chart_of_account_interest_income_parent_code.parse().map_err(GqlError::from)?,
             chart_of_account_fee_income_parent_code: chart_of_account_fee_income_parent_code
-                .parse()?,
+                .parse().map_err(GqlError::from)?,
             chart_of_account_short_term_individual_disbursed_receivable_parent_code:
-                chart_of_account_short_term_individual_disbursed_receivable_parent_code.parse()?,
+                chart_of_account_short_term_individual_disbursed_receivable_parent_code.parse().map_err(GqlError::from)?,
             chart_of_account_short_term_government_entity_disbursed_receivable_parent_code:
                 chart_of_account_short_term_government_entity_disbursed_receivable_parent_code
-                    .parse()?,
+                    .parse().map_err(GqlError::from)?,
             chart_of_account_short_term_private_company_disbursed_receivable_parent_code:
                 chart_of_account_short_term_private_company_disbursed_receivable_parent_code
-                    .parse()?,
+                    .parse().map_err(GqlError::from)?,
             chart_of_account_short_term_bank_disbursed_receivable_parent_code:
-                chart_of_account_short_term_bank_disbursed_receivable_parent_code.parse()?,
+                chart_of_account_short_term_bank_disbursed_receivable_parent_code.parse().map_err(GqlError::from)?,
             chart_of_account_short_term_financial_institution_disbursed_receivable_parent_code:
                 chart_of_account_short_term_financial_institution_disbursed_receivable_parent_code
-                    .parse()?,
+                    .parse().map_err(GqlError::from)?,
             chart_of_account_short_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code:
                 chart_of_account_short_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code
-                    .parse()?,
+                    .parse().map_err(GqlError::from)?,
             chart_of_account_short_term_non_domiciled_company_disbursed_receivable_parent_code:
                 chart_of_account_short_term_non_domiciled_company_disbursed_receivable_parent_code
-                    .parse()?,
+                    .parse().map_err(GqlError::from)?,
             chart_of_account_long_term_individual_disbursed_receivable_parent_code:
                 chart_of_account_long_term_individual_disbursed_receivable_parent_code
-                    .parse()?,
+                    .parse().map_err(GqlError::from)?,
             chart_of_account_long_term_government_entity_disbursed_receivable_parent_code:
                 chart_of_account_long_term_government_entity_disbursed_receivable_parent_code
-                    .parse()?,
+                    .parse().map_err(GqlError::from)?,
             chart_of_account_long_term_private_company_disbursed_receivable_parent_code:
                 chart_of_account_long_term_private_company_disbursed_receivable_parent_code
-                    .parse()?,
+                    .parse().map_err(GqlError::from)?,
             chart_of_account_long_term_bank_disbursed_receivable_parent_code:
                 chart_of_account_long_term_bank_disbursed_receivable_parent_code
-                    .parse()?,
+                    .parse().map_err(GqlError::from)?,
             chart_of_account_long_term_financial_institution_disbursed_receivable_parent_code:
                 chart_of_account_long_term_financial_institution_disbursed_receivable_parent_code
-                    .parse()?,
+                    .parse().map_err(GqlError::from)?,
             chart_of_account_long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code:
                 chart_of_account_long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code
-                    .parse()?,
+                    .parse().map_err(GqlError::from)?,
             chart_of_account_long_term_non_domiciled_company_disbursed_receivable_parent_code:
                 chart_of_account_long_term_non_domiciled_company_disbursed_receivable_parent_code
-                    .parse()?,
+                    .parse().map_err(GqlError::from)?,
             chart_of_account_short_term_individual_interest_receivable_parent_code:
                 chart_of_account_short_term_individual_interest_receivable_parent_code
-                    .parse()?,
+                    .parse().map_err(GqlError::from)?,
             chart_of_account_short_term_government_entity_interest_receivable_parent_code:
                 chart_of_account_short_term_government_entity_interest_receivable_parent_code
-                    .parse()?,
+                    .parse().map_err(GqlError::from)?,
             chart_of_account_short_term_private_company_interest_receivable_parent_code:
                 chart_of_account_short_term_private_company_interest_receivable_parent_code
-                    .parse()?,
+                    .parse().map_err(GqlError::from)?,
             chart_of_account_short_term_bank_interest_receivable_parent_code:
                 chart_of_account_short_term_bank_interest_receivable_parent_code
-                    .parse()?,
+                    .parse().map_err(GqlError::from)?,
             chart_of_account_short_term_financial_institution_interest_receivable_parent_code:
                 chart_of_account_short_term_financial_institution_interest_receivable_parent_code
-                    .parse()?,
+                    .parse().map_err(GqlError::from)?,
             chart_of_account_short_term_foreign_agency_or_subsidiary_interest_receivable_parent_code:
                 chart_of_account_short_term_foreign_agency_or_subsidiary_interest_receivable_parent_code
-                    .parse()?,
+                    .parse().map_err(GqlError::from)?,
             chart_of_account_short_term_non_domiciled_company_interest_receivable_parent_code:
                 chart_of_account_short_term_non_domiciled_company_interest_receivable_parent_code
-                    .parse()?,
+                    .parse().map_err(GqlError::from)?,
             chart_of_account_long_term_individual_interest_receivable_parent_code:
                 chart_of_account_long_term_individual_interest_receivable_parent_code
-                    .parse()?,
+                    .parse().map_err(GqlError::from)?,
             chart_of_account_long_term_government_entity_interest_receivable_parent_code:
                 chart_of_account_long_term_government_entity_interest_receivable_parent_code
-                    .parse()?,
+                    .parse().map_err(GqlError::from)?,
             chart_of_account_long_term_private_company_interest_receivable_parent_code:
                 chart_of_account_long_term_private_company_interest_receivable_parent_code
-                    .parse()?,
+                    .parse().map_err(GqlError::from)?,
             chart_of_account_long_term_bank_interest_receivable_parent_code:
                 chart_of_account_long_term_bank_interest_receivable_parent_code
-                    .parse()?,
+                    .parse().map_err(GqlError::from)?,
             chart_of_account_long_term_financial_institution_interest_receivable_parent_code:
                 chart_of_account_long_term_financial_institution_interest_receivable_parent_code
-                    .parse()?,
+                    .parse().map_err(GqlError::from)?,
             chart_of_account_long_term_foreign_agency_or_subsidiary_interest_receivable_parent_code:
                 chart_of_account_long_term_foreign_agency_or_subsidiary_interest_receivable_parent_code
-                    .parse()?,
+                    .parse().map_err(GqlError::from)?,
             chart_of_account_long_term_non_domiciled_company_interest_receivable_parent_code:
                 chart_of_account_long_term_non_domiciled_company_interest_receivable_parent_code
-                    .parse()?,
+                    .parse().map_err(GqlError::from)?,
             chart_of_account_overdue_individual_disbursed_receivable_parent_code:
                 chart_of_account_overdue_individual_disbursed_receivable_parent_code
-                    .parse()?,
+                    .parse().map_err(GqlError::from)?,
             chart_of_account_overdue_government_entity_disbursed_receivable_parent_code:
                 chart_of_account_overdue_government_entity_disbursed_receivable_parent_code
-                    .parse()?,
+                    .parse().map_err(GqlError::from)?,
             chart_of_account_overdue_private_company_disbursed_receivable_parent_code:
                 chart_of_account_overdue_private_company_disbursed_receivable_parent_code
-                    .parse()?,
+                    .parse().map_err(GqlError::from)?,
             chart_of_account_overdue_bank_disbursed_receivable_parent_code:
                 chart_of_account_overdue_bank_disbursed_receivable_parent_code
-                    .parse()?,
+                    .parse().map_err(GqlError::from)?,
             chart_of_account_overdue_financial_institution_disbursed_receivable_parent_code:
                 chart_of_account_overdue_financial_institution_disbursed_receivable_parent_code
-                    .parse()?,
+                    .parse().map_err(GqlError::from)?,
             chart_of_account_overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_code:
                 chart_of_account_overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_code
-                    .parse()?,
+                    .parse().map_err(GqlError::from)?,
             chart_of_account_overdue_non_domiciled_company_disbursed_receivable_parent_code:
                 chart_of_account_overdue_non_domiciled_company_disbursed_receivable_parent_code
-                    .parse()?
+                    .parse().map_err(GqlError::from)?
         };
 
         let config = app
             .credit()
             .chart_of_accounts_integrations()
             .set_config(sub, chart.as_ref(), config_values)
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
         Ok(CreditModuleConfigurePayload::from(
             CreditModuleConfig::from(config),
         ))
@@ -1788,7 +1860,8 @@ impl Mutation {
             .liquidation_cvl(terms.liquidation_cvl)
             .margin_call_cvl(terms.margin_call_cvl)
             .initial_cvl(terms.initial_cvl)
-            .build()?;
+            .build()
+            .map_err(GqlError::from)?;
 
         exec_mutation!(
             CreditFacilityProposalCreatePayload,
@@ -2067,7 +2140,8 @@ impl Mutation {
         let doc = app
             .customers()
             .generate_document_download_link(sub, input.document_id)
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
         Ok(CustomerDocumentDownloadLinksGeneratePayload::from(doc))
     }
 
@@ -2080,7 +2154,8 @@ impl Mutation {
         // not using macro here because DocumentDeletePayload is non standard
         app.customers()
             .delete_document(sub, input.document_id)
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
         Ok(CustomerDocumentDeletePayload {
             deleted_document_id: input.document_id,
         })
@@ -2224,7 +2299,7 @@ impl Mutation {
                 CHART_REF.0,
                 input.parent.try_into()?,
                 input.code.try_into()?,
-                input.name.parse()?,
+                input.name.parse().map_err(GqlError::from)?,
                 TRIAL_BALANCE_STATEMENT_NAME,
             )
         )
@@ -2240,7 +2315,8 @@ impl Mutation {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let chart = loader
             .load_one(CHART_REF)
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .unwrap_or_else(|| panic!("Chart of accounts not found for ref {CHART_REF:?}"));
 
         let BalanceSheetModuleConfigureInput {
@@ -2254,13 +2330,24 @@ impl Mutation {
 
         let config_values = lana_app::balance_sheet::ChartOfAccountsIntegrationConfig {
             chart_of_accounts_id: chart.id,
-            chart_of_accounts_assets_code: chart_of_accounts_assets_code.parse()?,
-            chart_of_accounts_liabilities_code: chart_of_accounts_liabilities_code.parse()?,
-            chart_of_accounts_equity_code: chart_of_accounts_equity_code.parse()?,
-            chart_of_accounts_revenue_code: chart_of_accounts_revenue_code.parse()?,
+            chart_of_accounts_assets_code: chart_of_accounts_assets_code
+                .parse()
+                .map_err(GqlError::from)?,
+            chart_of_accounts_liabilities_code: chart_of_accounts_liabilities_code
+                .parse()
+                .map_err(GqlError::from)?,
+            chart_of_accounts_equity_code: chart_of_accounts_equity_code
+                .parse()
+                .map_err(GqlError::from)?,
+            chart_of_accounts_revenue_code: chart_of_accounts_revenue_code
+                .parse()
+                .map_err(GqlError::from)?,
             chart_of_accounts_cost_of_revenue_code: chart_of_accounts_cost_of_revenue_code
-                .parse()?,
-            chart_of_accounts_expenses_code: chart_of_accounts_expenses_code.parse()?,
+                .parse()
+                .map_err(GqlError::from)?,
+            chart_of_accounts_expenses_code: chart_of_accounts_expenses_code
+                .parse()
+                .map_err(GqlError::from)?,
         };
 
         let config = app
@@ -2272,7 +2359,8 @@ impl Mutation {
                 chart.as_ref(),
                 config_values,
             )
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
         Ok(BalanceSheetModuleConfigurePayload::from(
             BalanceSheetModuleConfig::from(config),
         ))
@@ -2288,7 +2376,8 @@ impl Mutation {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let chart = loader
             .load_one(CHART_REF)
-            .await?
+            .await
+            .map_err(GqlError::from)?
             .unwrap_or_else(|| panic!("Chart of accounts not found for ref {CHART_REF:?}"));
 
         let ProfitAndLossModuleConfigureInput {
@@ -2299,10 +2388,15 @@ impl Mutation {
 
         let config_values = lana_app::profit_and_loss::ChartOfAccountsIntegrationConfig {
             chart_of_accounts_id: chart.id,
-            chart_of_accounts_revenue_code: chart_of_accounts_revenue_code.parse()?,
+            chart_of_accounts_revenue_code: chart_of_accounts_revenue_code
+                .parse()
+                .map_err(GqlError::from)?,
             chart_of_accounts_cost_of_revenue_code: chart_of_accounts_cost_of_revenue_code
-                .parse()?,
-            chart_of_accounts_expenses_code: chart_of_accounts_expenses_code.parse()?,
+                .parse()
+                .map_err(GqlError::from)?,
+            chart_of_accounts_expenses_code: chart_of_accounts_expenses_code
+                .parse()
+                .map_err(GqlError::from)?,
         };
 
         let config = app
@@ -2314,7 +2408,8 @@ impl Mutation {
                 chart.as_ref(),
                 config_values,
             )
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
         Ok(ProfitAndLossStatementModuleConfigurePayload::from(
             ProfitAndLossStatementModuleConfig::from(config),
         ))
@@ -2330,7 +2425,8 @@ impl Mutation {
             .accounting()
             .csvs()
             .create_ledger_account_csv(sub, input.ledger_account_id)
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
 
         let csv_document = AccountingCsvDocument::from(csv);
         Ok(LedgerAccountCsvCreatePayload::from(csv_document))
@@ -2346,7 +2442,8 @@ impl Mutation {
             .accounting()
             .csvs()
             .generate_download_link(sub, input.document_id.into())
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
 
         let link = AccountingCsvDownloadLink::from(result);
 
@@ -2364,7 +2461,8 @@ impl Mutation {
         let loan_agreement = app
             .contract_creation()
             .initiate_loan_agreement_generation(sub, input.customer_id)
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
 
         let loan_agreement = LoanAgreement::from(loan_agreement);
         Ok(LoanAgreementGeneratePayload::from(loan_agreement))
@@ -2379,7 +2477,8 @@ impl Mutation {
         let doc = app
             .contract_creation()
             .generate_document_download_link(sub, input.loan_agreement_id)
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
         Ok(LoanAgreementDownloadLinksGeneratePayload::from(doc))
     }
 
@@ -2388,7 +2487,11 @@ impl Mutation {
         ctx: &Context<'_>,
     ) -> async_graphql::Result<ReportRunCreatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let job_id = app.reports().trigger_report_run(sub).await?;
+        let job_id = app
+            .reports()
+            .trigger_report_run(sub)
+            .await
+            .map_err(GqlError::from)?;
         Ok(ReportRunCreatePayload::from(job_id))
     }
 
@@ -2401,7 +2504,8 @@ impl Mutation {
         let url = app
             .reports()
             .generate_report_file_download_link(sub, input.report_id, input.extension)
-            .await?;
+            .await
+            .map_err(GqlError::from)?;
         Ok(ReportFileGenerateDownloadLinkPayload { url })
     }
 }

@@ -2,9 +2,10 @@ use async_graphql::{ComplexObject, Context, ID, SimpleObject, Union, connection:
 use serde::{Deserialize, Serialize};
 
 use crate::primitives::*;
-use lana_app::primitives::Subject as DomainSubject;
 
-use super::{access::User, loader::*};
+use super::{access::User, error::*, loader::*};
+
+use lana_app::primitives::Subject as DomainSubject;
 
 #[derive(SimpleObject)]
 pub struct System {
@@ -38,7 +39,7 @@ impl AuditEntry {
 
         match self.subject {
             DomainSubject::User(id) => {
-                let user = loader.load_one(id).await?;
+                let user = loader.load_one(id).await.map_err(GqlError::from)?;
                 match user {
                     None => Err("User not found".into()),
                     Some(user) => Ok(AuditSubject::User(user)),
