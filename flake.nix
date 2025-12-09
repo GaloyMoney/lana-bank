@@ -399,7 +399,7 @@
                 ${pkgs.wait4x}/bin/wait4x http http://localhost:8081 --timeout 180s
                 echo "Waiting for Dagster GraphQL endpoint to be ready..."
                 ${pkgs.wait4x}/bin/wait4x http http://localhost:3000/graphql --timeout 180s
-                
+
 
                 # Set TERM for CI environments
                 export TERM="''${TERM:-dumb}"
