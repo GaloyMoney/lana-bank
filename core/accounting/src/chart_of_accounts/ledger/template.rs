@@ -96,11 +96,11 @@ impl EntryParams {
 }
 
 #[derive(Debug)]
-pub struct ClosingTransactionParams {
-    pub journal_id: JournalId,
-    pub description: String,
-    pub effective: chrono::NaiveDate,
-    pub closing_entries: Vec<ClosingAccountEntry>,
+pub(super) struct ClosingTransactionParams {
+    pub(super) journal_id: JournalId,
+    pub(super) description: String,
+    pub(super) effective: chrono::NaiveDate,
+    pub(super) closing_entries: Vec<ClosingAccountEntry>,
 }
 
 impl From<ClosingTransactionParams> for Params {
@@ -119,7 +119,7 @@ impl From<ClosingTransactionParams> for Params {
 }
 
 impl ClosingTransactionParams {
-    pub fn new(
+    pub(super) fn new(
         journal_id: JournalId,
         description: String,
         effective: NaiveDate,
@@ -133,7 +133,7 @@ impl ClosingTransactionParams {
         }
     }
 
-    pub fn defs(n: usize) -> Vec<NewParamDefinition> {
+    pub(super) fn defs(n: usize) -> Vec<NewParamDefinition> {
         let mut params = vec![
             NewParamDefinition::builder()
                 .name("journal_id")
@@ -164,11 +164,11 @@ pub(super) struct ClosingTransactionTemplate {
 }
 
 impl ClosingTransactionTemplate {
-    pub fn code(&self) -> String {
+    pub(super) fn code(&self) -> String {
         format!("CLOSING_TRANSACTION_{}", self.period_designation)
     }
 
-    pub async fn init(
+    pub(super) async fn init(
         ledger: &CalaLedger,
         n_entries: usize,
         period_designation: String,

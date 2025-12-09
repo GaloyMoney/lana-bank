@@ -1,4 +1,4 @@
-mod closing;
+pub(crate) mod closing;
 pub mod error;
 mod template;
 
@@ -15,11 +15,11 @@ use rust_decimal::Decimal;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-use closing::*;
+pub(crate) use closing::*;
 use error::*;
 use template::*;
 
-use crate::{Chart, primitives::CalaTxId};
+use crate::Chart;
 
 #[derive(Clone)]
 pub struct ChartLedger {
@@ -327,23 +327,15 @@ impl ChartLedger {
     pub async fn post_closing_transaction(
         &self,
         op: es_entity::DbOp<'_>,
-        ledger_tx_id: CalaTxId,
-        description: String,
-        opened_as_of: NaiveDate,
-        closed_as_of: NaiveDate,
-        revenue_account_set_id: AccountSetId,
-        cost_of_revenue_account_set_id: AccountSetId,
-        expenses_account_set_id: AccountSetId,
-        equity_retained_earnings_account_set_id: AccountSetId,
-        equity_retained_losses_account_set_id: AccountSetId,
+        params: ClosingParams,
     ) -> Result<(), ChartLedgerError> {
         let (net_income, mut closing_entries) = self
             .get_closing_account_entry_params(
-                revenue_account_set_id,
-                cost_of_revenue_account_set_id,
-                expenses_account_set_id,
-                opened_as_of,
-                closed_as_of,
+                params.revenue_account_set_id,
+                params.cost_of_revenue_account_set_id,
+                params.expenses_account_set_id,
+                params.effective_balances_from,
+                params.effective_balances_until,
             )
             .await?
             .to_closing_entries();
@@ -354,29 +346,29 @@ impl ChartLedger {
         let equity_entry = self
             .create_equity_entry(
                 &mut op,
-                description.clone(),
-                equity_retained_earnings_account_set_id,
-                equity_retained_losses_account_set_id,
+                params.description.clone(),
+                params.equity_retained_earnings_account_set_id,
+                params.equity_retained_losses_account_set_id,
                 net_income,
             )
             .await?;
         closing_entries.push(equity_entry);
         let closing_transaction_params = ClosingTransactionParams::new(
             self.journal_id,
-            description.clone(),
-            closed_as_of,
+            params.description.clone(),
+            params.effective_balances_until,
             closing_entries,
         );
         let template = ClosingTransactionTemplate::init(
             &self.cala,
             closing_transaction_params.closing_entries.len(),
-            description,
+            params.description,
         )
         .await?;
         self.cala
             .post_transaction_in_op(
                 &mut op,
-                ledger_tx_id,
+                params.tx_id,
                 &template.code(),
                 closing_transaction_params,
             )
