@@ -6,6 +6,8 @@ use tracing_utils::ErrorSeverity;
 pub enum CustomerError {
     #[error("CustomerError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
+    #[error("CustomerError - OutboxError: {0}")]
+    OutboxError(#[from] outbox::error::OutboxError),
     #[error("CustomerError - EsEntityError: {0}")]
     EsEntityError(es_entity::EsEntityError),
     #[error("CustomerError - CursorDestructureError: {0}")]
@@ -33,6 +35,7 @@ impl ErrorSeverity for CustomerError {
             Self::EsEntityError(e) => e.severity(),
             Self::CursorDestructureError(_) => Level::ERROR,
             Self::UnexpectedCurrency => Level::ERROR,
+            Self::OutboxError(e) => e.severity(),
             Self::AuthorizationError(e) => e.severity(),
             Self::AuditError(e) => e.severity(),
             Self::SubjectIsNotCustomer => Level::WARN,
