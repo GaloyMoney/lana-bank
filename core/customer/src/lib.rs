@@ -118,7 +118,7 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "customer.create_customer", skip(self))]
+    #[instrument(name = "customer.create_customer", fields(customer_id = tracing::field::Empty), skip(self))]
     pub async fn create(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -131,6 +131,7 @@ where
             .expect("audit info missing");
 
         let customer_id = CustomerId::new();
+        tracing::Span::current().record("customer_id", tracing::field::display(customer_id));
 
         let mut db = self.repo.begin_op().await?;
 
