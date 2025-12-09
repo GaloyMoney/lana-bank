@@ -6,6 +6,8 @@ use tracing_utils::ErrorSeverity;
 pub enum ApplicationError {
     #[error("ApplicationError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
+    #[error("ApplicationError - OutboxError: {0}")]
+    OutboxError(#[from] outbox::error::OutboxError),
     #[error("ApplicationError - MigrateError: {0}")]
     MigrateError(#[from] sqlx::migrate::MigrateError),
     #[error("ApplicationError - JobError: {0}")]
@@ -70,6 +72,7 @@ impl ErrorSeverity for ApplicationError {
             Self::Sqlx(_) => Level::ERROR,
             Self::MigrateError(_) => Level::ERROR,
             Self::JobError(_) => Level::ERROR,
+            Self::OutboxError(e) => e.severity(),
             Self::CustomerError(e) => e.severity(),
             Self::CustomerSyncError(e) => e.severity(),
             Self::DepositSyncError(e) => e.severity(),

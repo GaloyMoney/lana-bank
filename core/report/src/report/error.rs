@@ -6,6 +6,8 @@ use tracing_utils::ErrorSeverity;
 pub enum ReportError {
     #[error("ReportError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
+    #[error("ReportError - OutboxError: {0}")]
+    OutboxError(#[from] outbox::error::OutboxError),
     #[error("ReportError - EsEntityError: {0}")]
     EsEntityError(es_entity::EsEntityError),
     #[error("ReportError - CursorDestructureError: {0}")]
@@ -24,6 +26,7 @@ impl ErrorSeverity for ReportError {
             Self::Sqlx(_) => Level::ERROR,
             Self::EsEntityError(e) => e.severity(),
             Self::CursorDestructureError(_) => Level::ERROR,
+            Self::OutboxError(e) => e.severity(),
             Self::AuthorizationError(e) => e.severity(),
             Self::AuditError(e) => e.severity(),
         }
