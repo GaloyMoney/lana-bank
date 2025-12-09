@@ -140,17 +140,16 @@ where
     pub async fn close(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        closing_spec: ClosingSpec,
+        spec: ClosingSpec,
     ) -> Result<FiscalYear, FiscalYearError> {
-        let id = closing_spec.fiscal_year_id;
         self.authz
             .enforce_permission(
                 sub,
-                CoreAccountingObject::fiscal_year(id),
+                CoreAccountingObject::fiscal_year(spec.fiscal_year_id),
                 CoreAccountingAction::FISCAL_YEAR_CLOSE,
             )
             .await?;
-        let mut fiscal_year = self.repo.find_by_id(id).await?;
+        let mut fiscal_year = self.repo.find_by_id(spec.fiscal_year_id).await?;
         let now = crate::time::now();
         let tx_id = CalaTxId::new();
         match fiscal_year.close(now, tx_id)? {
@@ -164,7 +163,7 @@ where
                         op,
                         sub,
                         fiscal_year.chart_id,
-                        closing_spec,
+                        spec,
                         fiscal_year.reference.clone(),
                         tx_id,
                         fiscal_year.opened_as_of,
