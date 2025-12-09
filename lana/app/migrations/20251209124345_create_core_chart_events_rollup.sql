@@ -7,6 +7,7 @@ CREATE TABLE core_chart_events_rollup (
   -- Flattened fields from the event JSON
   account_set_id UUID,
   closed_as_of VARCHAR,
+  effective_balances_as_of VARCHAR,
   name VARCHAR,
   reference VARCHAR
 ,
@@ -31,7 +32,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'closed_as_of') THEN
+  IF event_type NOT IN ('initialized', 'closed_as_of', 'post_closing_transaction') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -45,12 +46,14 @@ BEGIN
   IF current_row.id IS NULL THEN
     new_row.account_set_id := (NEW.event ->> 'account_set_id')::UUID;
     new_row.closed_as_of := (NEW.event ->> 'closed_as_of');
+    new_row.effective_balances_as_of := (NEW.event ->> 'effective_balances_as_of');
     new_row.name := (NEW.event ->> 'name');
     new_row.reference := (NEW.event ->> 'reference');
   ELSE
     -- Default all fields to current values
     new_row.account_set_id := current_row.account_set_id;
     new_row.closed_as_of := current_row.closed_as_of;
+    new_row.effective_balances_as_of := current_row.effective_balances_as_of;
     new_row.name := current_row.name;
     new_row.reference := current_row.reference;
   END IF;
@@ -63,6 +66,8 @@ BEGIN
       new_row.reference := (NEW.event ->> 'reference');
     WHEN 'closed_as_of' THEN
       new_row.closed_as_of := (NEW.event ->> 'closed_as_of');
+    WHEN 'post_closing_transaction' THEN
+      new_row.effective_balances_as_of := (NEW.event ->> 'effective_balances_as_of');
   END CASE;
 
   INSERT INTO core_chart_events_rollup (
@@ -72,6 +77,7 @@ BEGIN
     modified_at,
     account_set_id,
     closed_as_of,
+    effective_balances_as_of,
     name,
     reference
   )
@@ -82,6 +88,7 @@ BEGIN
     new_row.modified_at,
     new_row.account_set_id,
     new_row.closed_as_of,
+    new_row.effective_balances_as_of,
     new_row.name,
     new_row.reference
   );
