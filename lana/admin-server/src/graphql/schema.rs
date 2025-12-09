@@ -1106,9 +1106,11 @@ impl Mutation {
     ) -> async_graphql::Result<CustomerDocumentCreatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
-        let mut file = input.file.value(ctx)?;
+        let mut file = input.file.value(ctx).map_err(GqlError::from)?;
         let mut data = Vec::new();
-        file.content.read_to_end(&mut data)?;
+        file.content
+            .read_to_end(&mut data)
+            .map_err(GqlError::from)?;
         exec_mutation!(
             CustomerDocumentCreatePayload,
             CustomerDocument,
@@ -2183,9 +2185,9 @@ impl Mutation {
     ) -> async_graphql::Result<ChartOfAccountsCsvImportPayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
-        let mut file = input.file.value(ctx)?.content;
+        let mut file = input.file.value(ctx).map_err(GqlError::from)?.content;
         let mut data = String::new();
-        file.read_to_string(&mut data)?;
+        file.read_to_string(&mut data).map_err(GqlError::from)?;
         exec_mutation!(
             ChartOfAccountsCsvImportPayload,
             ChartOfAccounts,
