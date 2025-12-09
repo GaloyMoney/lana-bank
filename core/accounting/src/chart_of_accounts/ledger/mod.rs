@@ -350,9 +350,11 @@ impl ChartLedger {
         let mut op = self
             .cala
             .ledger_operation_from_db_op(op.with_db_time().await?);
+        // TODO: use of `description` (`FiscalYear` `reference`) is overloaded.
         let equity_entry = self
             .create_equity_entry(
                 &mut op,
+                description.clone(),
                 equity_retained_earnings_account_set_id,
                 equity_retained_losses_account_set_id,
                 net_income,
@@ -361,14 +363,14 @@ impl ChartLedger {
         closing_entries.push(equity_entry);
         let closing_transaction_params = ClosingTransactionParams::new(
             self.journal_id,
-            description,
+            description.clone(),
             closed_as_of,
             closing_entries,
         );
         let template = ClosingTransactionTemplate::init(
             &self.cala,
             closing_transaction_params.closing_entries.len(),
-            "Fiscal Year Reference".to_string(),
+            description,
         )
         .await?;
         self.cala
@@ -470,6 +472,7 @@ impl ChartLedger {
     async fn create_equity_entry(
         &self,
         op: &mut LedgerOperation<'_>,
+        name: String,
         equity_retained_earnings_account_set_id: AccountSetId,
         equity_retained_losses_account_set_id: AccountSetId,
         net_earnings: Decimal,
@@ -477,6 +480,7 @@ impl ChartLedger {
         let account = if net_earnings >= Decimal::ZERO {
             self.create_account_in_op(
                 op,
+                name,
                 DebitOrCredit::Credit,
                 equity_retained_earnings_account_set_id,
             )
@@ -484,6 +488,7 @@ impl ChartLedger {
         } else {
             self.create_account_in_op(
                 op,
+                name,
                 DebitOrCredit::Debit,
                 equity_retained_losses_account_set_id,
             )
@@ -501,14 +506,14 @@ impl ChartLedger {
     async fn create_account_in_op(
         &self,
         op: &mut LedgerOperation<'_>,
+        name: String,
         normal_balance_type: DebitOrCredit,
         parent_account_set: AccountSetId,
     ) -> Result<Account, ChartLedgerError> {
         let id = AccountId::new();
-        // TODO: `name` as input parameter (`FiscalYear` `reference`?)
         let new_ledger_account = NewAccount::builder()
             .id(id)
-            .name("Retained Earnings")
+            .name(name)
             .code(id.to_string())
             .normal_balance_type(normal_balance_type)
             .build()

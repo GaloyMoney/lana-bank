@@ -92,7 +92,7 @@ impl TryFrom<FiscalYearCloseInput> for ClosingSpec {
     type Error = Box<dyn std::error::Error + Sync + Send>;
 
     fn try_from(input: FiscalYearCloseInput) -> Result<Self, Self::Error> {
-        Ok(ClosingSpec::try_new(
+        Ok(Self::try_new(
             input.fiscal_year_id.into(),
             input.retained_earnings_gain_code.try_into()?,
             input.retained_earnings_loss_code.try_into()?,
