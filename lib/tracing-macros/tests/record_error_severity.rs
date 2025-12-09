@@ -150,3 +150,45 @@ async fn test_record_error_severity_async() {
     assert_eq!(recorded_events[0].0, tracing::Level::ERROR);
     assert!(recorded_events[0].1.contains("Critical error"));
 }
+
+#[tokio::test]
+async fn test_record_error_severity_with_early_return() {
+    let (collector, events) = TestCollector::new();
+    let subscriber = Registry::default().with(collector);
+
+    async fn always_fails() -> Result<String, TestError> {
+        Err(TestError::Warning)
+    }
+
+    #[record_error_severity]
+    async fn function_with_question_mark_early_return() -> Result<String, TestError> {
+        let _value = always_fails().await?;
+        Ok("never reached".to_string())
+    }
+
+    #[record_error_severity]
+    async fn function_with_explicit_early_return() -> Result<String, TestError> {
+        if true {
+            return Err(TestError::Critical);
+        }
+        Ok("this would normally be reached".to_string())
+    }
+
+    let _guard = tracing::subscriber::set_default(subscriber);
+
+    let _ = function_with_question_mark_early_return().await;
+    let _ = function_with_explicit_early_return().await;
+
+    let recorded_events = events.lock().unwrap();
+
+    assert_eq!(
+        recorded_events.len(),
+        2,
+        "Expected 2 error events, but got {}",
+        recorded_events.len()
+    );
+    assert_eq!(recorded_events[0].0, tracing::Level::WARN);
+    assert!(recorded_events[0].1.contains("Warning error"));
+    assert_eq!(recorded_events[1].0, tracing::Level::ERROR);
+    assert!(recorded_events[1].1.contains("Critical error"));
+}
