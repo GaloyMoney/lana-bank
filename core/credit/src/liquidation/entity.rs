@@ -55,6 +55,12 @@ pub struct Liquidation {
 }
 
 impl Liquidation {
+    pub fn created_at(&self) -> chrono::DateTime<chrono::Utc> {
+        self.events
+            .entity_first_persisted_at()
+            .expect("entity_first_persisted_at not found")
+    }
+
     pub fn record_collateral_sent_out(
         &mut self,
         amount_sent: Satoshis,
@@ -112,11 +118,37 @@ impl Liquidation {
         Idempotent::Executed(())
     }
 
-    pub(crate) fn is_completed(&self) -> bool {
+    pub fn is_completed(&self) -> bool {
         self.events
             .iter_all()
             .rev()
             .any(|e| matches!(e, LiquidationEvent::Completed { .. }))
+    }
+
+    pub fn collateral_sent_out(&self) -> Vec<(Satoshis, LedgerTxId)> {
+        self.events
+            .iter_all()
+            .filter_map(|e| match e {
+                LiquidationEvent::CollateralSentOut {
+                    amount,
+                    ledger_tx_id,
+                } => Some((*amount, *ledger_tx_id)),
+                _ => None,
+            })
+            .collect()
+    }
+
+    pub fn repayment_amounts_received(&self) -> Vec<(UsdCents, LedgerTxId)> {
+        self.events
+            .iter_all()
+            .filter_map(|e| match e {
+                LiquidationEvent::RepaymentAmountReceived {
+                    amount,
+                    ledger_tx_id,
+                } => Some((*amount, *ledger_tx_id)),
+                _ => None,
+            })
+            .collect()
     }
 }
 
