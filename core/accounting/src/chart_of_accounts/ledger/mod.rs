@@ -468,7 +468,7 @@ impl ChartLedger {
         net_earnings: Decimal,
     ) -> Result<ClosingAccountEntry, ChartLedgerError> {
         let account = if net_earnings >= Decimal::ZERO {
-            self.create_account_in_op(
+            self.create_net_income_account_in_op(
                 op,
                 name,
                 DebitOrCredit::Credit,
@@ -476,7 +476,7 @@ impl ChartLedger {
             )
             .await?
         } else {
-            self.create_account_in_op(
+            self.create_net_income_account_in_op(
                 op,
                 name,
                 DebitOrCredit::Debit,
@@ -493,7 +493,7 @@ impl ChartLedger {
         })
     }
 
-    async fn create_account_in_op(
+    async fn create_net_income_account_in_op(
         &self,
         op: &mut LedgerOperation<'_>,
         name: String,

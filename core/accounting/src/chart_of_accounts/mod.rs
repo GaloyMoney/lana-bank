@@ -332,7 +332,7 @@ where
             chart.account_set_id_from_code(&spec.equity_retained_losses_code)?;
 
         if let Idempotent::Executed(effective_as_of) =
-            chart.post_closing_tx_with_effective_balances_as_of(spec.effective_balances_until)
+            chart.post_closing_tx_as_of(spec.effective_balances_until)
         {
             let mut op = self.repo.begin_op().await?;
             self.repo.update_in_op(&mut op, &mut chart).await?;
