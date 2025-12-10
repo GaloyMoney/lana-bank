@@ -64,6 +64,12 @@ data "honeycombio_query_specification" "concurrent_modifications_jobs_and_events
     value  = "outbox.core"
   }
 
+  filter {
+    column = "root.name"
+    op     = "does-not-contain"
+    value  = "ephemeral"
+  }
+
   breakdowns = ["event_type", "trace.trace_id", "root.name"]
 
   time_range = 604800
@@ -103,7 +109,7 @@ data "honeycombio_query_specification" "concurrent_modifications_jobs_and_retry_
     value  = "1"
   }
 
-  breakdowns = ["trace.trace_id", "attempt"]
+  breakdowns = ["trace.trace_id", "attempt", "root.name"]
 
   order {
     column = "attempt"
