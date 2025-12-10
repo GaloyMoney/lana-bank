@@ -97,6 +97,12 @@ data "honeycombio_query_specification" "concurrent_modifications_jobs_and_retry_
     value  = "job"
   }
 
+  filter {
+    column = "attempt"
+    op     = ">"
+    value  = "1"
+  }
+
   breakdowns = ["trace.trace_id", "attempt"]
 
   order {
@@ -115,7 +121,7 @@ resource "honeycombio_query" "concurrent_modifications_jobs_and_retry_frequency"
 resource "honeycombio_query_annotation" "concurrent_modifications_jobs_and_retry_frequency" {
   dataset  = var.honeycomb_dataset
   query_id = honeycombio_query.concurrent_modifications_jobs_and_retry_frequency.id
-  name     = "Jobs with retry attempts for concurrent modification errors"
+  name     = "Jobs with multiple retry attempts"
 }
 
 resource "honeycombio_flexible_board" "concurrent_modifications" {
