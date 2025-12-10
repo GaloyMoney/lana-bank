@@ -445,6 +445,7 @@ impl ChartLedger {
             for member in entities {
                 match member.id {
                     AccountSetMemberId::Account(account_id) => {
+                        // TODO: Lookup the account currency using `account_id`?
                         accounts.push((self.journal_id, account_id, Currency::USD));
                     }
                     AccountSetMemberId::AccountSet(account_set_id) => {
@@ -484,7 +485,8 @@ impl ChartLedger {
             )
             .await?
         };
-
+        // TODO: Should there be equity entry (and closing transaction), per the set of different
+        // `Currency` its accounts use?
         Ok(ClosingAccountEntry {
             account_id: account.id.into(),
             currency: Currency::USD,

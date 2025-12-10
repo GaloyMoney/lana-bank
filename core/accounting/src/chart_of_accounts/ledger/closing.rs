@@ -136,29 +136,39 @@ impl ClosingAccountBalances {
     fn create_closing_account_entries(
         balances: &HashMap<BalanceId, CalaBalanceRange>,
     ) -> (Decimal, Vec<ClosingAccountEntry>) {
-        let mut net_balance: Decimal = Decimal::ZERO;
+        let mut net_income_contribution: Decimal = Decimal::ZERO;
         let mut closing_entries = Vec::new();
 
         for ((_, account_id, currency), balance) in balances {
             let amount = balance.close.settled();
 
-            let direction = if balance.close.balance_type == DebitOrCredit::Debit {
-                net_balance -= amount;
-                DebitOrCredit::Credit
+            let (offset_dir, offset_amt) = if balance.close.balance_type == DebitOrCredit::Debit {
+                net_income_contribution -= amount;
+
+                if amount < Decimal::ZERO {
+                    (DebitOrCredit::Debit, amount.abs())
+                } else {
+                    (DebitOrCredit::Credit, amount)
+                }
             } else {
-                net_balance += amount;
-                DebitOrCredit::Debit
+                net_income_contribution += amount;
+
+                if amount < Decimal::ZERO {
+                    (DebitOrCredit::Credit, amount.abs())
+                } else {
+                    (DebitOrCredit::Debit, amount)
+                }
             };
 
             closing_entries.push(ClosingAccountEntry::new(
                 (*account_id).into(),
-                amount,
+                offset_amt,
                 *currency,
-                direction,
+                offset_dir,
             ));
         }
 
-        (net_balance, closing_entries)
+        (net_income_contribution, closing_entries)
     }
 }
 

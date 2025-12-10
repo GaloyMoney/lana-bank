@@ -34,7 +34,7 @@ async fn post_closing_tx_with_loss() -> Result<()> {
     // Revenues
     test.add_account_with_balance("41.01.0101", 300, Credit)
         .await;
-    test.add_account_with_balance("41.01.0102", 700, Credit)
+    test.add_account_with_balance("41.01.0102", 200, Credit)
         .await;
 
     // Costs
@@ -42,13 +42,22 @@ async fn post_closing_tx_with_loss() -> Result<()> {
         .await;
     test.add_account_with_balance("51.01.0101", 250, Debit)
         .await;
+    // Cost of revenue contra-account
+    test.add_account_with_balance("51.01.0101", 50, Credit)
+        .await;
+    // Negative debit-normal settled balance cost of revenue account
+    test.add_account_with_balance("51.01.0101", -50, Debit)
+        .await;
 
     // Expenses
     test.add_account_with_balance("61.01.0101", 600, Debit)
         .await;
 
-    assert_eq!(test.balance(REVENUES).await?, Decimal::from(300 + 700));
-    assert_eq!(test.balance(COSTS).await?, Decimal::from(250 + 250));
+    assert_eq!(test.balance(REVENUES).await?, Decimal::from(300 + 200));
+    assert_eq!(
+        test.balance(COSTS).await?,
+        Decimal::from(250 + 250 - 50 - 50)
+    );
     assert_eq!(test.balance(EXPENSES).await?, Decimal::from(600));
 
     assert!(test.children(RETAINED_EARNINGS_GAIN).await?.is_empty());
@@ -82,7 +91,7 @@ async fn post_closing_tx_with_loss() -> Result<()> {
     assert_eq!(test.children(RETAINED_EARNINGS_LOSS).await?.len(), 1);
     assert_eq!(
         test.balance(RETAINED_EARNINGS_LOSS).await?,
-        Decimal::from(300 + 700 - 250 - 250 - 600)
+        Decimal::from(300 + 200 - 250 - 250 + 50 + 50 - 600)
     );
 
     assert_eq!(test.balance(REVENUES).await?, Decimal::ZERO);
@@ -102,7 +111,9 @@ async fn post_closing_tx_with_gain() -> Result<()> {
     test.add_account_with_balance("41.01.0102", 800, Credit)
         .await;
     // Revenue contra-account
-    test.add_account_with_balance("41.01.0102", 100, Debit)
+    test.add_account_with_balance("41.01.0102", 50, Debit).await;
+    // Negative credit-normal settled balance revenue account
+    test.add_account_with_balance("41.01.0102", -50, Credit)
         .await;
 
     // Costs
@@ -117,7 +128,7 @@ async fn post_closing_tx_with_gain() -> Result<()> {
 
     assert_eq!(
         test.balance(REVENUES).await?,
-        Decimal::from(400 + 800 - 100)
+        Decimal::from(400 + 800 - 50 - 50)
     );
     assert_eq!(test.balance(COSTS).await?, Decimal::from(250 + 250));
     assert_eq!(test.balance(EXPENSES).await?, Decimal::from(500));
@@ -151,7 +162,7 @@ async fn post_closing_tx_with_gain() -> Result<()> {
     assert_eq!(test.children(RETAINED_EARNINGS_GAIN).await?.len(), 1);
     assert_eq!(
         test.balance(RETAINED_EARNINGS_GAIN).await?,
-        Decimal::from(400 + 800 - 100 - 250 - 250 - 500)
+        Decimal::from(400 + 800 - 50 - 50 - 250 - 250 - 500)
     );
 
     assert!(test.children(RETAINED_EARNINGS_LOSS).await?.is_empty());
