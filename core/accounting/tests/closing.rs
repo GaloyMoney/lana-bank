@@ -29,6 +29,7 @@ const EXPENSES: &str = "6";
 
 #[tokio::test]
 async fn post_closing_tx_with_loss() -> Result<()> {
+    const EXPECTED_CREDIT_NORMAL_NET_INCOME: i32 = -500;
     let mut test = setup_test().await?;
 
     // Revenues
@@ -89,9 +90,10 @@ async fn post_closing_tx_with_loss() -> Result<()> {
     assert_eq!(test.balance(RETAINED_EARNINGS_GAIN).await?, Decimal::ZERO);
 
     assert_eq!(test.children(RETAINED_EARNINGS_LOSS).await?.len(), 1);
+    // Parent account is credit-normal but child account is debit-normal.
     assert_eq!(
         test.balance(RETAINED_EARNINGS_LOSS).await?,
-        Decimal::from(300 + 200 - 250 - 250 + 50 + 50 - 600)
+        Decimal::from(EXPECTED_CREDIT_NORMAL_NET_INCOME),
     );
 
     assert_eq!(test.balance(REVENUES).await?, Decimal::ZERO);
@@ -103,6 +105,7 @@ async fn post_closing_tx_with_loss() -> Result<()> {
 
 #[tokio::test]
 async fn post_closing_tx_with_gain() -> Result<()> {
+    const EXPECTED_CREDIT_NORMAL_NET_INCOME: i32 = 100;
     let mut test = setup_test().await?;
 
     // Revenues
@@ -162,7 +165,7 @@ async fn post_closing_tx_with_gain() -> Result<()> {
     assert_eq!(test.children(RETAINED_EARNINGS_GAIN).await?.len(), 1);
     assert_eq!(
         test.balance(RETAINED_EARNINGS_GAIN).await?,
-        Decimal::from(400 + 800 - 50 - 50 - 250 - 250 - 500)
+        Decimal::from(EXPECTED_CREDIT_NORMAL_NET_INCOME),
     );
 
     assert!(test.children(RETAINED_EARNINGS_LOSS).await?.is_empty());
