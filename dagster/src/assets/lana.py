@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import List
 
 import dlt
@@ -14,6 +15,12 @@ from src.resources import (
 )
 
 LANA_EL_TABLE_NAMES = (
+    "cala_account_set_member_account_sets",
+    "cala_account_set_member_accounts",
+    "cala_account_sets",
+    "cala_accounts",
+    "cala_balance_history",
+
     "core_chart_events_rollup",
     "core_collateral_events_rollup",
     "core_credit_facility_events_rollup",
@@ -48,8 +55,10 @@ def lana_source_protoassets() -> List[Protoasset]:
     for table_name in LANA_EL_TABLE_NAMES:
         lana_source_protoassets.append(
             Protoasset(
-                key=get_el_source_asset_name(
-                    system_name=LANA_SYSTEM_NAME, table_name=table_name
+                key=dg.AssetKey(
+                    get_el_source_asset_name(
+                        system_name=LANA_SYSTEM_NAME, table_name=table_name
+                    )
                 ),
                 tags={
                     "asset_type": EL_SOURCE_ASSET_DESCRIPTION,
@@ -93,10 +102,12 @@ def build_lana_to_dw_el_protoasset(table_name) -> Protoasset:
         return load_info
 
     lana_to_dw_protoasset = Protoasset(
-        key=[LANA_SYSTEM_NAME, table_name],
+        key=dg.AssetKey([LANA_SYSTEM_NAME, table_name]),
         deps=[
-            get_el_source_asset_name(
-                system_name=LANA_SYSTEM_NAME, table_name=table_name
+            dg.AssetKey(
+                get_el_source_asset_name(
+                    system_name=LANA_SYSTEM_NAME, table_name=table_name
+                )
             )
         ],
         tags={"asset_type": EL_TARGET_ASSET_DESCRIPTION, "system": LANA_SYSTEM_NAME},
@@ -111,7 +122,7 @@ def prepare_lana_el_pipeline(lana_core_pg, dw_bq, table_name):
     dlt_postgres_resource = create_dlt_postgres_resource(
         connection_string=lana_core_pg.get_connection_string(), table_name=table_name
     )
-    dlt_bq_destination = create_bigquery_destination(dw_bq.get_base64_credentials())
+    dlt_bq_destination = create_bigquery_destination(dw_bq.get_credentials_dict())
 
     pipeline = dlt.pipeline(
         pipeline_name=table_name,

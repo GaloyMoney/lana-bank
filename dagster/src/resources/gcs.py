@@ -1,32 +1,11 @@
-import base64
 import json
-from typing import Any
 
 from google.cloud import storage
 from google.oauth2 import service_account
 
 import dagster as dg
 
-RESOURCE_KEY_LANA_CORE_PG = "lana_core_pg"
-RESOURCE_KEY_DW_BQ = "dw_bq"
 RESOURCE_KEY_FILE_REPORTS_BUCKET = "file_reports_bucket"
-
-
-class PostgresResource(dg.ConfigurableResource):
-    """Dagster resource for PostgreSQL connection configuration."""
-
-    def get_connection_string(self) -> str:
-        return dg.EnvVar("LANA_PG_CON").get_value()
-
-
-class BigQueryResource(dg.ConfigurableResource):
-    """Dagster resource for BigQuery configuration."""
-
-    def get_base64_credentials(self) -> str:
-        return dg.EnvVar("TF_VAR_sa_creds").get_value()
-
-    def get_target_dataset(self) -> str:
-        return dg.EnvVar("TARGET_BIGQUERY_DATASET").get_value()
 
 
 class GCSResource(dg.ConfigurableResource):
@@ -34,10 +13,13 @@ class GCSResource(dg.ConfigurableResource):
 
     def get_credentials_dict(self) -> dict:
         """Get GCS credentials dictionary from environment variable."""
-        base64_creds = dg.EnvVar("TF_VAR_sa_creds").get_value()
-        creds_json = base64.b64decode(base64_creds).decode("utf-8")
-        creds_dict = json.loads(creds_json)
-        return creds_dict
+        creds_json = dg.EnvVar("DBT_BIGQUERY_CREDENTIALS_JSON").get_value()
+        if not creds_json:
+            raise ValueError(
+                "DBT_BIGQUERY_CREDENTIALS_JSON environment variable is not set or is empty. "
+                "Ensure TF_VAR_sa_creds is set in .env and .envrc is loaded (via direnv allow) before starting containers."
+            )
+        return json.loads(creds_json)
 
     def get_credentials(self) -> service_account.Credentials:
         """Get GCS credentials from environment variable."""
@@ -87,11 +69,3 @@ class GCSResource(dg.ConfigurableResource):
         blob = bucket.blob(path)
         blob.upload_from_string(content, content_type=content_type)
         return f"gs://{bucket_name}/{path}"
-
-
-def get_project_resources():
-    resources = {}
-    resources[RESOURCE_KEY_LANA_CORE_PG] = PostgresResource()
-    resources[RESOURCE_KEY_DW_BQ] = BigQueryResource()
-    resources[RESOURCE_KEY_FILE_REPORTS_BUCKET] = GCSResource()
-    return resources
