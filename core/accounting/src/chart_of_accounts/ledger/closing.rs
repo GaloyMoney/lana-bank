@@ -73,14 +73,14 @@ impl AccountingClosingMetadata {
 }
 
 #[derive(Debug, Clone)]
-pub(super) struct ClosingAccountEntry {
+pub(super) struct ClosingTxEntry {
     pub(super) account_id: LedgerAccountId,
     pub(super) amount: Decimal,
     pub(super) currency: CalaCurrency,
     pub(super) direction: DebitOrCredit,
 }
 
-impl ClosingAccountEntry {
+impl ClosingTxEntry {
     pub(super) fn new(
         account_id: LedgerAccountId,
         amount: Decimal,
@@ -97,7 +97,7 @@ impl ClosingAccountEntry {
 }
 
 #[derive(Debug)]
-pub(crate) struct ClosingParams {
+pub(crate) struct ClosingTxParams {
     pub(crate) tx_id: CalaTxId,
     pub(crate) description: String,
     pub(crate) effective_balances_from: NaiveDate,
@@ -110,65 +110,94 @@ pub(crate) struct ClosingParams {
 }
 
 #[derive(Debug, Clone)]
-pub(super) struct ClosingAccountBalances {
-    pub(super) revenue: HashMap<BalanceId, CalaBalanceRange>,
-    pub(super) cost_of_revenue: HashMap<BalanceId, CalaBalanceRange>,
-    pub(super) expenses: HashMap<BalanceId, CalaBalanceRange>,
+pub(super) struct LineItemClosingTxInput {
+    pub(super) net_income_contribution: Decimal,
+    pub(super) entries: Vec<ClosingTxEntry>,
 }
 
-impl ClosingAccountBalances {
-    pub(super) fn to_closing_entries(&self) -> (Decimal, Vec<ClosingAccountEntry>) {
-        let (revenue_balance, mut revenue) = Self::create_closing_account_entries(&self.revenue);
-        let (cost_of_revenue_balance, mut cost_of_revenue) =
-            Self::create_closing_account_entries(&self.cost_of_revenue);
-        let (expenses_balance, mut expenses) = Self::create_closing_account_entries(&self.expenses);
+#[derive(Debug, Clone)]
+pub(super) struct ProfitAndLossLineItemDetail(HashMap<BalanceId, CalaBalanceRange>);
 
-        let net_income = revenue_balance + cost_of_revenue_balance + expenses_balance;
-
-        let mut entries = Vec::new();
-        entries.append(&mut revenue);
-        entries.append(&mut expenses);
-        entries.append(&mut cost_of_revenue);
-
-        (net_income, entries)
-    }
-
-    fn create_closing_account_entries(
-        balances: &HashMap<BalanceId, CalaBalanceRange>,
-    ) -> (Decimal, Vec<ClosingAccountEntry>) {
-        let mut net_income_contribution: Decimal = Decimal::ZERO;
+impl ProfitAndLossLineItemDetail {
+    pub(super) fn closing_tx_input(&self) -> LineItemClosingTxInput {
+        let mut contribution: Decimal = Decimal::ZERO;
         let mut closing_entries = Vec::new();
 
-        for ((_, account_id, currency), balance) in balances {
+        for ((_, account_id, currency), balance) in self.iter() {
             let amount = balance.close.settled();
+            let balance_type = balance.close.balance_type;
 
-            let (offset_dir, offset_amt) = if balance.close.balance_type == DebitOrCredit::Debit {
-                net_income_contribution -= amount;
-
-                if amount < Decimal::ZERO {
-                    (DebitOrCredit::Debit, amount.abs())
-                } else {
-                    (DebitOrCredit::Credit, amount)
-                }
-            } else {
-                net_income_contribution += amount;
-
-                if amount < Decimal::ZERO {
-                    (DebitOrCredit::Credit, amount.abs())
-                } else {
-                    (DebitOrCredit::Debit, amount)
-                }
+            contribution += match balance_type {
+                DebitOrCredit::Credit => amount,
+                DebitOrCredit::Debit => -amount,
             };
 
-            closing_entries.push(ClosingAccountEntry::new(
+            let offset_dir = if amount >= Decimal::ZERO {
+                match balance_type {
+                    DebitOrCredit::Debit => DebitOrCredit::Credit,
+                    DebitOrCredit::Credit => DebitOrCredit::Debit,
+                }
+            } else {
+                balance_type
+            };
+
+            closing_entries.push(ClosingTxEntry::new(
                 (*account_id).into(),
-                offset_amt,
+                amount.abs(),
                 *currency,
                 offset_dir,
             ));
         }
 
-        (net_income_contribution, closing_entries)
+        LineItemClosingTxInput {
+            net_income_contribution: contribution,
+            entries: closing_entries,
+        }
+    }
+
+    pub(super) fn iter(&self) -> std::collections::hash_map::Iter<'_, BalanceId, CalaBalanceRange> {
+        self.0.iter()
+    }
+}
+
+impl From<HashMap<BalanceId, CalaBalanceRange>> for ProfitAndLossLineItemDetail {
+    fn from(account_balances: HashMap<BalanceId, CalaBalanceRange>) -> Self {
+        Self(account_balances)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub(super) struct ClosingTxNetIncomeInput {
+    pub(super) net_income: Decimal,
+    pub(super) entries: Vec<ClosingTxEntry>,
+}
+
+#[derive(Debug, Clone)]
+pub(super) struct ClosingProfitAndLossAccountBalances {
+    pub(super) revenue: ProfitAndLossLineItemDetail,
+    pub(super) cost_of_revenue: ProfitAndLossLineItemDetail,
+    pub(super) expenses: ProfitAndLossLineItemDetail,
+}
+
+impl ClosingProfitAndLossAccountBalances {
+    pub(super) fn to_net_income_input(&self) -> ClosingTxNetIncomeInput {
+        let mut revenue_closing_input = self.revenue.closing_tx_input();
+        let mut cost_of_revenue_closing_input = self.cost_of_revenue.closing_tx_input();
+        let mut expenses_closing_input = self.expenses.closing_tx_input();
+
+        let net_income = revenue_closing_input.net_income_contribution
+            + cost_of_revenue_closing_input.net_income_contribution
+            + expenses_closing_input.net_income_contribution;
+
+        let mut entries = Vec::new();
+        entries.append(&mut revenue_closing_input.entries);
+        entries.append(&mut cost_of_revenue_closing_input.entries);
+        entries.append(&mut expenses_closing_input.entries);
+
+        ClosingTxNetIncomeInput {
+            net_income,
+            entries,
+        }
     }
 }
 
