@@ -7,3 +7,9 @@ x-hostgw: &hostgw
 services:
   oathkeeper:
     <<: *hostgw
+
+  dagster-code-location-lana-dw:
+    <<: *hostgw
+
+  dagster_daemon:
+    <<: *hostgw

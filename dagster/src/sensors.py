@@ -1,6 +1,7 @@
 from typing import Sequence
 
 import dagster as dg
+from src.otel import JOB_TRACEPARENT_TAG
 
 
 def build_file_report_sensors(
@@ -22,7 +23,15 @@ def build_file_report_sensors(
         default_status=default_status,
     )
     def file_reports_success_sensor(context: dg.RunStatusSensorContext):
-        yield dg.RunRequest(run_key=f"inform_lana_success_{context.dagster_run.run_id}")
+        # Pass the parent job's traceparent to continue the same trace
+        parent_tags = dict(context.dagster_run.tags or {})
+        tags = {}
+        if traceparent := parent_tags.get(JOB_TRACEPARENT_TAG):
+            tags[JOB_TRACEPARENT_TAG] = traceparent
+
+        yield dg.RunRequest(
+            run_key=f"inform_lana_success_{context.dagster_run.run_id}", tags=tags
+        )
 
     @dg.run_status_sensor(
         run_status=dg.DagsterRunStatus.FAILURE,
@@ -32,6 +41,14 @@ def build_file_report_sensors(
         default_status=default_status,
     )
     def file_reports_failure_sensor(context: dg.RunStatusSensorContext):
-        yield dg.RunRequest(run_key=f"inform_lana_failure_{context.dagster_run.run_id}")
+        # Pass the parent job's traceparent to continue the same trace
+        parent_tags = dict(context.dagster_run.tags or {})
+        tags = {}
+        if traceparent := parent_tags.get(JOB_TRACEPARENT_TAG):
+            tags[JOB_TRACEPARENT_TAG] = traceparent
+
+        yield dg.RunRequest(
+            run_key=f"inform_lana_failure_{context.dagster_run.run_id}", tags=tags
+        )
 
     return file_reports_success_sensor, file_reports_failure_sensor
