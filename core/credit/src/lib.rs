@@ -116,6 +116,7 @@ where
     chart_of_accounts_integrations: Arc<ChartOfAccountsIntegrations<Perms>>,
     terms_templates: Arc<TermsTemplates<Perms>>,
     public_ids: Arc<PublicIds>,
+    liquidations: Arc<Liquidations<E>>,
 }
 
 impl<Perms, E> Clone for CoreCredit<Perms, E>
@@ -152,6 +153,7 @@ where
             chart_of_accounts_integrations: self.chart_of_accounts_integrations.clone(),
             terms_templates: self.terms_templates.clone(),
             public_ids: self.public_ids.clone(),
+            liquidations: self.liquidations.clone(),
         }
     }
 }
@@ -447,6 +449,7 @@ where
             chart_of_accounts_integrations: chart_of_accounts_integrations_arc,
             terms_templates: terms_templates_arc,
             public_ids: public_ids_arc,
+            liquidations: liquidations_arc,
         })
     }
 
@@ -484,6 +487,10 @@ where
 
     pub fn terms_templates(&self) -> &TermsTemplates<Perms> {
         self.terms_templates.as_ref()
+    }
+
+    pub fn liquidations(&self) -> &Liquidations<E> {
+        self.liquidations.as_ref()
     }
 
     pub async fn subject_can_create(

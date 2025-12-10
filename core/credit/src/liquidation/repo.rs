@@ -92,4 +92,20 @@ where
 
         Ok(res)
     }
+
+    #[tracing::instrument(name = "liquidation.list_active", skip(self), err)]
+    pub async fn list_active(&self) -> Result<Vec<Liquidation>, LiquidationError> {
+        let res = es_entity::es_query!(
+            entity = Liquidation,
+            r#"
+            SELECT *
+            FROM core_liquidations
+            WHERE completed = false
+            "#
+        )
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(res)
+    }
 }

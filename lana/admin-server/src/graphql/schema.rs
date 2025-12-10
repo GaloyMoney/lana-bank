@@ -364,6 +364,15 @@ impl Query {
         )
     }
 
+    async fn current_liquidations(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<Liquidation>> {
+        let (app, _sub) = app_and_sub_from_ctx!(ctx);
+        let liquidations = app.credit().liquidations().list_active().await?;
+        Ok(liquidations.into_iter().map(Liquidation::from).collect())
+    }
+
     async fn pending_credit_facility(
         &self,
         ctx: &Context<'_>,

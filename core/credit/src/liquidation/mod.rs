@@ -147,4 +147,8 @@ where
 
         Ok(())
     }
+
+    pub async fn list_active(&self) -> Result<Vec<Liquidation>, LiquidationError> {
+        self.repo.list_active().await
+    }
 }

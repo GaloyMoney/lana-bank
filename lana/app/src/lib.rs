@@ -175,7 +175,7 @@ pub mod credit {
         ObligationMovedToLiquidation, Payment, PaymentAllocation,
         PendingCreditFacilitiesByCreatedAtCursor, PendingCreditFacility,
         PendingCreditFacilityCollateralizationUpdated, PendingCreditFacilityId, RepaymentStatus,
-        RepaymentType, Sort, TermsTemplate, error, terms_template_error,
+        RepaymentType, Sort, TermsTemplate, error, liquidation, terms_template_error,
     };
 
     pub type Credit =
