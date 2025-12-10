@@ -327,10 +327,10 @@ impl ChartLedger {
     pub async fn post_closing_transaction(
         &self,
         op: es_entity::DbOp<'_>,
-        params: ClosingParams,
+        params: ClosingTxParams,
     ) -> Result<(), ChartLedgerError> {
-        let (net_income, mut closing_entries) = self
-            .get_closing_account_entry_params(
+        let net_income_input = self
+            .find_all_profit_and_loss_statement_effective_balances(
                 params.revenue_account_set_id,
                 params.cost_of_revenue_account_set_id,
                 params.expenses_account_set_id,
@@ -338,25 +338,35 @@ impl ChartLedger {
                 params.effective_balances_until,
             )
             .await?
-            .to_closing_entries();
+            .to_net_income_input();
         let mut op = self
             .cala
             .ledger_operation_from_db_op(op.with_db_time().await?);
-        let equity_entry = self
-            .create_equity_entry(
+        let net_income_recipient_account = self
+            .create_retained_earnings_child_account(
                 &mut op,
                 params.description.clone(),
                 params.equity_retained_earnings_account_set_id,
                 params.equity_retained_losses_account_set_id,
-                net_income,
+                net_income_input.net_income,
             )
             .await?;
-        closing_entries.push(equity_entry);
+
+        let retained_earnings_entry = ClosingTxEntry {
+            account_id: net_income_recipient_account.id.into(),
+            // TODO: Can this be assumed? Move to per currency closing tx?
+            currency: Currency::USD,
+            amount: net_income_input.net_income.abs(),
+            direction: net_income_recipient_account.values().normal_balance_type,
+        };
+
+        let mut closing_tx_entries = net_income_input.entries;
+        closing_tx_entries.push(retained_earnings_entry);
         let closing_transaction_params = ClosingTransactionParams::new(
             self.journal_id,
             params.description.clone(),
             params.effective_balances_until,
-            closing_entries,
+            closing_tx_entries,
         );
         let template = ClosingTransactionTemplate::init(
             &self.cala,
@@ -376,14 +386,14 @@ impl ChartLedger {
         Ok(())
     }
 
-    async fn get_closing_account_entry_params(
+    async fn find_all_profit_and_loss_statement_effective_balances(
         &self,
         revenue_account_set_id: AccountSetId,
         cost_of_revenue_account_set_id: AccountSetId,
         expenses_account_set_id: AccountSetId,
         from: NaiveDate,
         until: NaiveDate,
-    ) -> Result<ClosingAccountBalances, ChartLedgerError> {
+    ) -> Result<ClosingProfitAndLossAccountBalances, ChartLedgerError> {
         let revenue_accounts = self
             .find_all_accounts_by_parent_set_id(revenue_account_set_id)
             .await?;
@@ -411,11 +421,10 @@ impl ChartLedger {
             .effective()
             .find_all_in_range(&expense_accounts, from, Some(until))
             .await?;
-
-        Ok(ClosingAccountBalances {
-            revenue: revenue_account_balances,
-            cost_of_revenue: cost_of_revenue_account_balances,
-            expenses: expenses_account_balances,
+        Ok(ClosingProfitAndLossAccountBalances {
+            revenue: revenue_account_balances.into(),
+            cost_of_revenue: cost_of_revenue_account_balances.into(),
+            expenses: expenses_account_balances.into(),
         })
     }
 
@@ -460,16 +469,16 @@ impl ChartLedger {
         Ok(accounts)
     }
 
-    async fn create_equity_entry(
+    async fn create_retained_earnings_child_account(
         &self,
         op: &mut LedgerOperation<'_>,
         name: String,
         equity_retained_earnings_account_set_id: AccountSetId,
         equity_retained_losses_account_set_id: AccountSetId,
         net_earnings: Decimal,
-    ) -> Result<ClosingAccountEntry, ChartLedgerError> {
+    ) -> Result<Account, ChartLedgerError> {
         let account = if net_earnings >= Decimal::ZERO {
-            self.create_net_income_account_in_op(
+            self.create_child_account_in_op(
                 op,
                 name,
                 DebitOrCredit::Credit,
@@ -477,7 +486,7 @@ impl ChartLedger {
             )
             .await?
         } else {
-            self.create_net_income_account_in_op(
+            self.create_child_account_in_op(
                 op,
                 name,
                 DebitOrCredit::Debit,
@@ -485,17 +494,10 @@ impl ChartLedger {
             )
             .await?
         };
-        // TODO: Should there be equity entry (and closing transaction), per the set of different
-        // `Currency` its accounts use?
-        Ok(ClosingAccountEntry {
-            account_id: account.id.into(),
-            currency: Currency::USD,
-            amount: net_earnings.abs(),
-            direction: account.values().normal_balance_type,
-        })
+        Ok(account)
     }
 
-    async fn create_net_income_account_in_op(
+    async fn create_child_account_in_op(
         &self,
         op: &mut LedgerOperation<'_>,
         name: String,
