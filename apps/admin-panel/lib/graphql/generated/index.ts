@@ -427,6 +427,7 @@ export type CreditFacility = {
   history: Array<CreditFacilityHistoryEntry>;
   id: Scalars['ID']['output'];
   ledgerAccounts: CreditFacilityLedgerAccounts;
+  liquidations: Array<Liquidation>;
   maturesAt: Scalars['Timestamp']['output'];
   publicId: Scalars['PublicId']['output'];
   repaymentPlan: Array<CreditFacilityRepaymentPlanEntry>;
@@ -1571,6 +1572,17 @@ export type LedgerTransactionEdge = {
 };
 
 export type LedgerTransactionEntity = CreditFacilityDisbursal | Deposit | Withdrawal;
+
+export type Liquidation = {
+  __typename?: 'Liquidation';
+  completed: Scalars['Boolean']['output'];
+  createdAt: Scalars['Timestamp']['output'];
+  expectedToReceive: Scalars['UsdCents']['output'];
+  id: Scalars['ID']['output'];
+  liquidationId: Scalars['UUID']['output'];
+  receivedTotal: Scalars['UsdCents']['output'];
+  sentTotal: Scalars['Satoshis']['output'];
+};
 
 export type Loan = {
   __typename?: 'Loan';

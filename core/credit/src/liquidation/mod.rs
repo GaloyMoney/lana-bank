@@ -2,44 +2,63 @@ mod entity;
 pub mod error;
 mod repo;
 
+use std::sync::Arc;
+
+use audit::AuditSvc;
+use authz::PermissionCheck;
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 use cala_ledger::TransactionId as CalaTransactionId;
 use core_money::{Satoshis, UsdCents};
 use es_entity::DbOp;
 use outbox::OutboxEventMarker;
 
-use crate::{CoreCreditEvent, CreditFacilityId, LiquidationId, PaymentId};
-pub use entity::LiquidationEvent;
-pub(crate) use entity::*;
+use crate::{
+    CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId, LiquidationId, PaymentId,
+};
+pub use entity::NewLiquidation;
+pub use entity::{Liquidation, LiquidationEvent};
 use error::LiquidationError;
 pub(crate) use repo::LiquidationRepo;
 
-pub struct Liquidations<E>
+pub struct Liquidations<Perms, E>
 where
+    Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     repo: LiquidationRepo<E>,
+    authz: Arc<Perms>,
 }
 
-impl<E> Clone for Liquidations<E>
+impl<Perms, E> Clone for Liquidations<Perms, E>
 where
+    Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     fn clone(&self) -> Self {
         Self {
             repo: self.repo.clone(),
+            authz: self.authz.clone(),
         }
     }
 }
 
-impl<E> Liquidations<E>
+impl<Perms, E> Liquidations<Perms, E>
 where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    pub fn new(pool: &sqlx::PgPool, publisher: &crate::CreditFacilityPublisher<E>) -> Self {
+    pub fn new(
+        pool: &sqlx::PgPool,
+        authz: Arc<Perms>,
+        publisher: &crate::CreditFacilityPublisher<E>,
+    ) -> Self {
         Self {
             repo: LiquidationRepo::new(pool, publisher),
+            authz,
         }
     }
 
@@ -146,5 +165,34 @@ where
         }
 
         Ok(())
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "credit.liquidation.list_for_facility_by_created_at",
+        skip(self)
+    )]
+    pub async fn list_for_facility_by_created_at(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        credit_facility_id: CreditFacilityId,
+    ) -> Result<Vec<Liquidation>, LiquidationError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::all_liquidations(),
+                CoreCreditAction::LIQUIDATION_LIST,
+            )
+            .await?;
+
+        Ok(self
+            .repo
+            .list_for_credit_facility_id_by_created_at(
+                credit_facility_id,
+                Default::default(),
+                es_entity::ListDirection::Descending,
+            )
+            .await?
+            .entities)
     }
 }

@@ -55,6 +55,12 @@ pub struct Liquidation {
 }
 
 impl Liquidation {
+    pub fn created_at(&self) -> chrono::DateTime<chrono::Utc> {
+        self.events
+            .entity_first_persisted_at()
+            .expect("entity_first_persisted_at not found")
+    }
+
     pub fn record_collateral_sent_out(
         &mut self,
         amount_sent: Satoshis,
@@ -112,7 +118,7 @@ impl Liquidation {
         Idempotent::Executed(())
     }
 
-    pub(crate) fn is_completed(&self) -> bool {
+    pub fn is_completed(&self) -> bool {
         self.events
             .iter_all()
             .rev()

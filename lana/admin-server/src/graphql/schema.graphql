@@ -396,6 +396,7 @@ type CreditFacility {
 	history: [CreditFacilityHistoryEntry!]!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
 	disbursals: [CreditFacilityDisbursal!]!
+	liquidations: [Liquidation!]!
 	userCanUpdateCollateral: Boolean!
 	userCanInitiateDisbursal: Boolean!
 	userCanRecordPayment: Boolean!
@@ -1574,6 +1575,16 @@ type LedgerTransactionEdge {
 }
 
 union LedgerTransactionEntity = Deposit | Withdrawal | CreditFacilityDisbursal
+
+type Liquidation {
+	id: ID!
+	liquidationId: UUID!
+	expectedToReceive: UsdCents!
+	sentTotal: Satoshis!
+	receivedTotal: UsdCents!
+	createdAt: Timestamp!
+	completed: Boolean!
+}
 
 type LoanAgreement {
 	id: ID!
