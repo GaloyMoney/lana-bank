@@ -37,7 +37,9 @@ if [[ "${CI:-false}" == "true" ]]; then
 fi
 
 # ── Load environment variables ─────────────────────────────────────────────────
-echo "$TARGET_BIGQUERY_CREDENTIALS_JSON" > meltano/keyfile.json
+if [[ -n "${TARGET_BIGQUERY_CREDENTIALS_JSON:-}" ]]; then
+  echo "$TARGET_BIGQUERY_CREDENTIALS_JSON" > meltano/keyfile.json
+fi
 
 export TARGET_BIGQUERY_DATASET="${TARGET_BIGQUERY_DATASET:-${TF_VAR_name_prefix:-${USER}}_dataset}"
 export DBT_BIGQUERY_DATASET="${DBT_BIGQUERY_DATASET:-dbt_${TF_VAR_name_prefix:-${USER}}}"
