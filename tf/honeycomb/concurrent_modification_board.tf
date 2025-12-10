@@ -86,50 +86,6 @@ resource "honeycombio_query_annotation" "concurrent_modifications_jobs_and_event
   name     = "Jobs and their triggering events"
 }
 
-data "honeycombio_query_specification" "concurrent_modifications_jobs_and_retry_frequency" {
-  calculation {
-    op = "COUNT"
-  }
-
-  filter {
-    column = "name"
-    op     = "contains"
-    value  = "retry_wrapper"
-  }
-
-  filter {
-    column = "root.name"
-    op     = "contains"
-    value  = "job"
-  }
-
-  filter {
-    column = "attempt"
-    op     = ">"
-    value  = "1"
-  }
-
-  breakdowns = ["trace.trace_id", "attempt", "root.name"]
-
-  order {
-    column = "attempt"
-    order  = "descending"
-  }
-
-  time_range = 604800
-}
-
-resource "honeycombio_query" "concurrent_modifications_jobs_and_retry_frequency" {
-  dataset    = var.honeycomb_dataset
-  query_json = data.honeycombio_query_specification.concurrent_modifications_jobs_and_retry_frequency.json
-}
-
-resource "honeycombio_query_annotation" "concurrent_modifications_jobs_and_retry_frequency" {
-  dataset  = var.honeycomb_dataset
-  query_id = honeycombio_query.concurrent_modifications_jobs_and_retry_frequency.id
-  name     = "Jobs with multiple retry attempts"
-}
-
 resource "honeycombio_flexible_board" "concurrent_modifications" {
   name        = "${local.name_prefix}-concurrent-modifications"
   description = "Track concurrent modification errors across jobs and event processing in ${local.name_prefix}"
@@ -150,16 +106,6 @@ resource "honeycombio_flexible_board" "concurrent_modifications" {
     query_panel {
       query_id            = honeycombio_query.concurrent_modifications_jobs_and_events_frequency.id
       query_annotation_id = honeycombio_query_annotation.concurrent_modifications_jobs_and_events_frequency.id
-      query_style         = "graph"
-    }
-  }
-
-  panel {
-    type = "query"
-
-    query_panel {
-      query_id            = honeycombio_query.concurrent_modifications_jobs_and_retry_frequency.id
-      query_annotation_id = honeycombio_query_annotation.concurrent_modifications_jobs_and_retry_frequency.id
       query_style         = "graph"
     }
   }
