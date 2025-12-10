@@ -1,6 +1,7 @@
 mod config;
 mod error;
 
+use core_time_events::TimeEvents;
 use sqlx::PgPool;
 use tracing::{Instrument, instrument};
 use tracing_macros::record_error_severity;
@@ -96,6 +97,8 @@ impl LanaApp {
                 .expect("Couldn't build JobSvcConfig"),
         )
         .await?;
+
+        let _time_event = TimeEvents::init();
 
         let dashboard = Dashboard::init(&pool, &authz, &jobs, &outbox).await?;
         let governance = Governance::new(&pool, &authz, &outbox);
