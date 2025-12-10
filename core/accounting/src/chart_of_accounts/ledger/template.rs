@@ -9,7 +9,7 @@ use cala_ledger::{
     *,
 };
 
-use super::closing::ClosingAccountEntry;
+use super::closing::ClosingTxEntry;
 
 #[derive(Debug, Builder)]
 pub struct EntryParams {
@@ -19,15 +19,15 @@ pub struct EntryParams {
     pub direction: DebitOrCredit,
 }
 
-impl From<ClosingAccountEntry> for EntryParams {
-    fn from(spec: ClosingAccountEntry) -> Self {
+impl From<ClosingTxEntry> for EntryParams {
+    fn from(spec: ClosingTxEntry) -> Self {
         EntryParams::builder()
             .account_id(spec.account_id.into())
             .amount(spec.amount)
             .currency(spec.currency)
             .direction(spec.direction)
             .build()
-            .expect("Failed to build EntryParams from ClosingAccountEntry")
+            .expect("Failed to build EntryParams from ClosingTxEntry")
     }
 }
 
@@ -100,7 +100,7 @@ pub(super) struct ClosingTransactionParams {
     pub(super) journal_id: JournalId,
     pub(super) description: String,
     pub(super) effective: chrono::NaiveDate,
-    pub(super) closing_entries: Vec<ClosingAccountEntry>,
+    pub(super) closing_entries: Vec<ClosingTxEntry>,
 }
 
 impl From<ClosingTransactionParams> for Params {
@@ -123,7 +123,7 @@ impl ClosingTransactionParams {
         journal_id: JournalId,
         description: String,
         effective: NaiveDate,
-        closing_entries: Vec<ClosingAccountEntry>,
+        closing_entries: Vec<ClosingTxEntry>,
     ) -> ClosingTransactionParams {
         Self {
             journal_id,
