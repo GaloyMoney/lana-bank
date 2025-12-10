@@ -50,18 +50,18 @@
     },
     {
       "properties": {
-        "effective_balances_as_of": {
+        "posted_as_of": {
           "format": "date",
           "type": "string"
         },
         "type": {
-          "const": "post_closing_transaction",
+          "const": "closing_transaction_posted",
           "type": "string"
         }
       },
       "required": [
         "type",
-        "effective_balances_as_of"
+        "posted_as_of"
       ],
       "type": "object"
     }
