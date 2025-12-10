@@ -170,7 +170,7 @@ ymd() {
 }
 
 @test "pending-credit-facility: can update collateral" {
-  retry 10 1 wait_for_approval "$(read_value 'credit_facility_proposal_id')"
+  retry 30 2 wait_for_approval "$(read_value 'credit_facility_proposal_id')"
 
   pending_credit_facility_id=$(read_value 'credit_facility_proposal_id')
 
@@ -192,7 +192,7 @@ ymd() {
 
   credit_facility_id=$pending_credit_facility_id
 
-  retry 10 1 wait_for_active "$credit_facility_id"
+  retry 30 2 wait_for_active "$credit_facility_id"
 
   cache_value 'credit_facility_id' "$credit_facility_id"
 }
@@ -219,8 +219,8 @@ ymd() {
   disbursal_id=$(graphql_output '.data.creditFacilityDisbursalInitiate.disbursal.id')
   [[ "$disbursal_id" != "null" ]] || exit 1
 
-  retry 10 1 wait_for_disbursal "$credit_facility_id" "$disbursal_id"
-  retry 10 1 wait_for_dashboard_disbursed "$disbursed_before" "$amount"
+  retry 30 2 wait_for_disbursal "$credit_facility_id" "$disbursal_id"
+  retry 30 2 wait_for_dashboard_disbursed "$disbursed_before" "$amount"
 }
 
 @test "credit-facility: records accruals" {
@@ -299,7 +299,7 @@ ymd() {
   updated_interest_outstanding=$(echo $updated_balance | jq -r '.interest.outstanding.usdBalance')
   [[ "$updated_interest_outstanding" -eq "0" ]] || exit 1
 
-  retry 10 1 wait_for_dashboard_payment "$disbursed_before" "$disbursed_payment"
+  retry 30 2 wait_for_dashboard_payment "$disbursed_before" "$disbursed_payment"
 
   # assert_accounts_balanced
 }

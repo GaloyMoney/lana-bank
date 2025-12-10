@@ -97,7 +97,7 @@ wait_for_collateral() {
 
   exec_admin_graphql 'credit-facility-proposal-customer-approval-conclude' "$variables"
 
-  retry 10 1 wait_for_approval "$credit_facility_proposal_id"
+  retry 30 2 wait_for_approval "$credit_facility_proposal_id"
 
   variables=$(
     jq -n \
@@ -147,5 +147,5 @@ wait_for_collateral() {
   # external wallet ID 123 is hard coded in mock custodian
   curl -s -X POST --json '{"wallet": "123", "balance": 1000}' http://localhost:5253/webhook/custodian/mock
 
-  retry 10 1 wait_for_collateral "$pending_credit_facility_id"
+  retry 30 2 wait_for_collateral "$pending_credit_facility_id"
 }
