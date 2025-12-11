@@ -1,2 +1,0 @@
-elementpath==4.8.0
-xmlschema==4.0.1

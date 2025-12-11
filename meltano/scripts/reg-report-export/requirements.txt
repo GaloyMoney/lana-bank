@@ -1,7 +1,0 @@
-pandas==2.2.2
-numpy==1.24.1
-google-cloud-bigquery==3.10.0
-functions-framework==3.3.0
-lxml==5.2.1
-pyarrow==14.0.1
-db-dtypes==1.1.1

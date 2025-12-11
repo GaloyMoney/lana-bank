@@ -60,8 +60,6 @@ app:
       admin_panel_url: ''
   report:
     enabled: false
-    airflow:
-      uri: http://localhost:8080/
   deposit:
     require_verified_customer_for_account: true
 tracing:

@@ -44,7 +44,6 @@ Set them in your `.env` file
 
 #### Optional
 
-- `DATA_PIPELINE=true`: Enable data pipeline features (Meltano, Airflow)
 - `DAGSTER=true`: Enables the local dagster deployment.
 - `TF_VAR_sa_creds`: Service account credentials into GCP (BigQuery & Documents access)
 - `SUMSUB_KEY`: SumSub API key for identity verification

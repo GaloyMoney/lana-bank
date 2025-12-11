@@ -14,7 +14,6 @@ json-schema = [
 ]
 
 [dependencies]
-airflow = { workspace = true }
 audit = { workspace = true }
 authz = { workspace = true }
 outbox = { workspace = true }

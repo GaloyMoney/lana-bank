@@ -1,6 +1,4 @@
 compose_files = ["../docker-compose.yml", "../docker-compose.docker.yml"]
-if os.getenv("DATA_PIPELINE", "false") == "true":
-    compose_files.append("../docker-compose.data.yml")
 if os.getenv("DAGSTER", "false") == "true":
     compose_files.append("../docker-compose.dagster.yml")
 
@@ -11,9 +9,6 @@ docker_groups = {
     "otel": ["otel-agent"],
     "core": ["core-pg"],
 }
-
-if os.getenv("DATA_PIPELINE", "false") == "true":
-    docker_groups["data-pipeline"] = ["airflow-scheduler", "airflow-webserver", "airflow-pg"]
 
 for service, deps in docker_groups.items():
     for dep in deps:

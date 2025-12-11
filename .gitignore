@@ -25,7 +25,6 @@ node_modules/
 .bacon-locations
 
 *.tgz
-meltano/keyfile.json
 
 .sumsub_customer_id
 *.code-workspace
@@ -41,13 +40,7 @@ artefacts/
 
 dev/dag/output/*
 result
-meltano/.venv/
-meltano/transform_duckdb/models
-meltano/.build
-meltano/**/dbt.log
 .claude/settings.local.json
-meltano/**/*.pid
-meltano/**/*.log
 
 # Fuzz testing
 fuzz/target/

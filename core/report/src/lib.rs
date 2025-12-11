@@ -26,12 +26,6 @@ pub use primitives::*;
 use cloud_storage::Storage;
 use publisher::ReportPublisher;
 
-use jobs::{
-    FindNewReportRunJobConfig, FindNewReportRunJobInit, MonitorReportRunJobInit,
-    TriggerReportRunJobConfig, TriggerReportRunJobInit,
-};
-
-use airflow::*;
 pub use report::*;
 pub use report_run::*;
 
@@ -50,7 +44,6 @@ where
     authz: Perms,
     reports: ReportRepo<E>,
     report_runs: ReportRunRepo<E>,
-    airflow: Airflow,
     storage: Storage,
     jobs: Jobs,
     config: ReportConfig,
@@ -66,7 +59,6 @@ where
             authz: self.authz.clone(),
             reports: self.reports.clone(),
             report_runs: self.report_runs.clone(),
-            airflow: self.airflow.clone(),
             storage: self.storage.clone(),
             jobs: self.jobs.clone(),
             config: self.config.clone(),
@@ -92,36 +84,13 @@ where
         storage: &Storage,
     ) -> Result<Self, ReportError> {
         let publisher = ReportPublisher::new(outbox);
-        let airflow = Airflow::new(config.airflow.clone());
         let report_repo = ReportRepo::new(pool, &publisher);
         let report_run_repo = ReportRunRepo::new(pool, &publisher);
 
-        if config.enabled {
-            jobs.add_initializer(MonitorReportRunJobInit::new(
-                airflow.clone(),
-                report_run_repo.clone(),
-                report_repo.clone(),
-            ));
-            jobs.add_initializer(TriggerReportRunJobInit::new(
-                airflow.clone(),
-                report_run_repo.clone(),
-                jobs.clone(),
-            ));
-            jobs.add_initializer_and_spawn_unique(
-                FindNewReportRunJobInit::new(
-                    airflow.clone(),
-                    report_run_repo.clone(),
-                    jobs.clone(),
-                ),
-                FindNewReportRunJobConfig::new(),
-            )
-            .await?;
-        }
 
         Ok(Self {
             authz: authz.clone(),
             storage: storage.clone(),
-            airflow,
             reports: report_repo,
             report_runs: report_run_repo,
             jobs: jobs.clone(),
@@ -219,11 +188,11 @@ where
     }
 
     #[record_error_severity]
-    #[tracing::instrument(name = "report.trigger_report_run", skip(self), fields(subject = %sub, job_id = tracing::field::Empty))]
+    #[tracing::instrument(name = "report.trigger_report_run", skip(self), fields(subject = %sub))]
     pub async fn trigger_report_run(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-    ) -> Result<job::JobId, ReportError> {
+    ) -> Result<(), ReportError> {
         if !self.config.enabled {
             return Err(ReportError::Disabled);
         }
@@ -236,20 +205,7 @@ where
             )
             .await?;
 
-        let mut db = self.report_runs.begin_op().await?;
-        let job = self
-            .jobs
-            .create_and_spawn_in_op(
-                &mut db,
-                job::JobId::new(),
-                TriggerReportRunJobConfig::<E>::new(),
-            )
-            .await?;
-        tracing::Span::current().record("job_id", job.id.to_string());
-
-        db.commit().await?;
-
-        Ok(job.id)
+        Err(ReportError::Disabled)
     }
 
     #[record_error_severity]
