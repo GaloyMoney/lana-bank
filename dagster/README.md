@@ -54,3 +54,13 @@ To bump the dagster versions:
 The project is designed to send traces for every dagster run. You get this feature for free by properly using the method `add_callable_as_asset` of `DefinitionsBuilder` in `src/definitions.py`.
 
 Each asset materialization gets represented as a single span, and any exception happening during the materialization runtime will result in a span with `error=true`.
+
+# Testing the Sumsub extractor
+
+To test the Sumsub extractor without wiring a new webhook:
+
+- Complete a KYC flow on the staging deployment to generate a callback.
+- From the staging bastion, dump only the data for the table:
+- `make reset-deps`
+- `psql postgres://user:password@localhost:5433/pg < public.sumsub_callbacks.sql`
+- Open the UI at `http://localhost:3000/assets/sumsub_applicants` and materialize
