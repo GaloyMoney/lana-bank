@@ -48,21 +48,9 @@ jobs:
     tasks:
       - generate-es-reports:run
 schedules:
-  - name: postgres-to-bigquery
-    interval: "0,30 * * * *"
-    job: tap-postgres-to-target-bigquery
-  - name: dbt-on-bigquery
-    interval: "15,45 * * * *"
-    job: dbt-bigquery-run
-  - name: poll-bitfinex-on-minute
-    interval: "* * * * *"
-    job: poll-bitfinex
   - name: sync-sumsub-on-minute
     interval: "*/10 * * * *"
     job: sync-sumsub
-  - name: test-dbt-daily
-    interval: "@daily"
-    job: test-dbt
   - name: drop-old-relations-weekly
     interval: "@weekly"
     job: drop-old-relations
