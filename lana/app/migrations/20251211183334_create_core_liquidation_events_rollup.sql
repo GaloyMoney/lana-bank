@@ -103,6 +103,7 @@ BEGIN
     WHEN 'repayment_amount_received' THEN
       new_row.amount := (NEW.event ->> 'amount')::BIGINT;
       new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
+      new_row.payment_id := (NEW.event ->> 'payment_id')::UUID;
     WHEN 'completed' THEN
       new_row.is_completed := true;
       new_row.payment_id := (NEW.event ->> 'payment_id')::UUID;
