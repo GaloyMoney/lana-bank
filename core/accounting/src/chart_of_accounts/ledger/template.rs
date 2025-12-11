@@ -169,6 +169,7 @@ impl ClosingTransactionTemplate {
     }
 
     pub(super) async fn init(
+        op: &mut LedgerOperation<'_>,
         ledger: &CalaLedger,
         n_entries: usize,
         period_designation: String,
@@ -177,11 +178,15 @@ impl ClosingTransactionTemplate {
             period_designation,
             n_entries,
         };
-        res.find_or_create_template(ledger).await?;
+        res.find_or_create_template_in_op(op, ledger).await?;
         Ok(res)
     }
 
-    async fn find_or_create_template(&self, ledger: &CalaLedger) -> Result<(), TxTemplateError> {
+    async fn find_or_create_template_in_op(
+        &self,
+        op: &mut LedgerOperation<'_>,
+        ledger: &CalaLedger,
+    ) -> Result<(), TxTemplateError> {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .description("params.description")
@@ -202,7 +207,7 @@ impl ClosingTransactionTemplate {
             ))
             .build()
             .expect("Couldn't build template for ClosingTransactionTemplate");
-        match ledger.tx_templates().create(template).await {
+        match ledger.tx_templates().create_in_op(op, template).await {
             Err(TxTemplateError::DuplicateCode) => Ok(()),
             Err(e) => Err(e),
             Ok(_) => Ok(()),

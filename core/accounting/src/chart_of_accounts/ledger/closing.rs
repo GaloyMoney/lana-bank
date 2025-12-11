@@ -169,7 +169,28 @@ impl From<HashMap<BalanceId, CalaBalanceRange>> for ProfitAndLossLineItemDetail 
 #[derive(Debug, Clone)]
 pub(super) struct ClosingTxNetIncomeInput {
     pub(super) net_income: Decimal,
+    pub(super) retained_earnings_parent_account_id: AccountSetId,
     pub(super) entries: Vec<ClosingTxEntry>,
+    pub(super) retained_earnings_account_normal_balance_type: DebitOrCredit,
+}
+
+impl ClosingTxNetIncomeInput {
+    pub(super) fn merge_closing_tx_entries(
+        &self,
+        account_id: LedgerAccountId,
+    ) -> Vec<ClosingTxEntry> {
+        let retained_earnings_entry = ClosingTxEntry {
+            account_id,
+            amount: self.net_income.abs(),
+            currency: CalaCurrency::USD,
+            direction: self.retained_earnings_account_normal_balance_type,
+        };
+        self.entries
+            .iter()
+            .cloned()
+            .chain(std::iter::once(retained_earnings_entry))
+            .collect()
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -180,7 +201,11 @@ pub(super) struct ClosingProfitAndLossAccountBalances {
 }
 
 impl ClosingProfitAndLossAccountBalances {
-    pub(super) fn to_net_income_input(&self) -> ClosingTxNetIncomeInput {
+    pub(super) fn to_net_income_input(
+        &self,
+        retained_earnings_gain_account_id: AccountSetId,
+        retained_earnings_loss_account_id: AccountSetId,
+    ) -> ClosingTxNetIncomeInput {
         let mut revenue_closing_input = self.revenue.closing_tx_input();
         let mut cost_of_revenue_closing_input = self.cost_of_revenue.closing_tx_input();
         let mut expenses_closing_input = self.expenses.closing_tx_input();
@@ -194,9 +219,18 @@ impl ClosingProfitAndLossAccountBalances {
         entries.append(&mut cost_of_revenue_closing_input.entries);
         entries.append(&mut expenses_closing_input.entries);
 
+        let (retained_earnings_account_balance_type, retained_earnings_parent_account_id) =
+            if net_income >= Decimal::ZERO {
+                (DebitOrCredit::Credit, retained_earnings_gain_account_id)
+            } else {
+                (DebitOrCredit::Debit, retained_earnings_loss_account_id)
+            };
+
         ClosingTxNetIncomeInput {
             net_income,
             entries,
+            retained_earnings_parent_account_id,
+            retained_earnings_account_normal_balance_type: retained_earnings_account_balance_type,
         }
     }
 }

@@ -21,8 +21,6 @@ use crate::primitives::{
     ChartId, ClosingSpec, CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
 };
 
-use ledger::closing::ClosingTxParams;
-
 #[cfg(feature = "json-schema")]
 pub use chart_node::ChartNodeEvent;
 pub use entity::Chart;
@@ -322,33 +320,11 @@ where
             )
             .await?;
         let mut chart = self.find_by_id(chart_id).await?;
-        let revenue_account_set_id = chart.account_set_id_from_code(&spec.revenue_code)?;
-        let cost_of_revenue_account_set_id =
-            chart.account_set_id_from_code(&spec.cost_of_revenue_code)?;
-        let expenses_account_set_id = chart.account_set_id_from_code(&spec.expenses_code)?;
-        let equity_retained_earnings_account_set_id =
-            chart.account_set_id_from_code(&spec.equity_retained_earnings_code)?;
-        let equity_retained_losses_account_set_id =
-            chart.account_set_id_from_code(&spec.equity_retained_losses_code)?;
-
-        if let Idempotent::Executed(effective_as_of) =
-            chart.post_closing_tx_as_of(spec.effective_balances_until)
-        {
+        if let Idempotent::Executed(closing_tx_params) = chart.post_closing_tx_as_of(spec)? {
             let mut op = self.repo.begin_op().await?;
             self.repo.update_in_op(&mut op, &mut chart).await?;
-            let closing_params = ClosingTxParams {
-                tx_id: spec.tx_id,
-                description: spec.description,
-                effective_balances_from: spec.effective_balances_from,
-                effective_balances_until: effective_as_of,
-                revenue_account_set_id,
-                cost_of_revenue_account_set_id,
-                expenses_account_set_id,
-                equity_retained_earnings_account_set_id,
-                equity_retained_losses_account_set_id,
-            };
             self.chart_ledger
-                .post_closing_transaction(op, closing_params)
+                .post_closing_transaction(op, closing_tx_params)
                 .await?;
         }
         Ok(())

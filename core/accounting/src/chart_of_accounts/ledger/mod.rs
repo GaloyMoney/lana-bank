@@ -11,7 +11,7 @@ use cala_ledger::{
 };
 use chrono::NaiveDate;
 use es_entity::{PaginatedQueryArgs, PaginatedQueryRet};
-use rust_decimal::Decimal;
+
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
@@ -338,7 +338,10 @@ impl ChartLedger {
                 params.effective_balances_until,
             )
             .await?
-            .to_net_income_input();
+            .to_net_income_input(
+                params.equity_retained_earnings_account_set_id,
+                params.equity_retained_losses_account_set_id,
+            );
         let mut op = self
             .cala
             .ledger_operation_from_db_op(op.with_db_time().await?);
@@ -346,29 +349,18 @@ impl ChartLedger {
             .create_retained_earnings_child_account(
                 &mut op,
                 params.description.clone(),
-                params.equity_retained_earnings_account_set_id,
-                params.equity_retained_losses_account_set_id,
-                net_income_input.net_income,
+                net_income_input.retained_earnings_account_normal_balance_type,
+                net_income_input.retained_earnings_parent_account_id,
             )
             .await?;
-
-        let retained_earnings_entry = ClosingTxEntry {
-            account_id: net_income_recipient_account.id.into(),
-            // TODO: Can this be assumed? Move to per currency closing tx?
-            currency: Currency::USD,
-            amount: net_income_input.net_income.abs(),
-            direction: net_income_recipient_account.values().normal_balance_type,
-        };
-
-        let mut closing_tx_entries = net_income_input.entries;
-        closing_tx_entries.push(retained_earnings_entry);
         let closing_transaction_params = ClosingTransactionParams::new(
             self.journal_id,
             params.description.clone(),
             params.effective_balances_until,
-            closing_tx_entries,
+            net_income_input.merge_closing_tx_entries(net_income_recipient_account.id.into()),
         );
         let template = ClosingTransactionTemplate::init(
+            &mut op,
             &self.cala,
             closing_transaction_params.closing_entries.len(),
             params.description,
@@ -473,27 +465,12 @@ impl ChartLedger {
         &self,
         op: &mut LedgerOperation<'_>,
         name: String,
-        equity_retained_earnings_account_set_id: AccountSetId,
-        equity_retained_losses_account_set_id: AccountSetId,
-        net_earnings: Decimal,
+        normal_balance_type: DebitOrCredit,
+        retained_earnings_set_id: AccountSetId,
     ) -> Result<Account, ChartLedgerError> {
-        let account = if net_earnings >= Decimal::ZERO {
-            self.create_child_account_in_op(
-                op,
-                name,
-                DebitOrCredit::Credit,
-                equity_retained_earnings_account_set_id,
-            )
-            .await?
-        } else {
-            self.create_child_account_in_op(
-                op,
-                name,
-                DebitOrCredit::Debit,
-                equity_retained_losses_account_set_id,
-            )
-            .await?
-        };
+        let account = self
+            .create_child_account_in_op(op, name, normal_balance_type, retained_earnings_set_id)
+            .await?;
         Ok(account)
     }
 
