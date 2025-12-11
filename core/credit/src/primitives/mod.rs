@@ -141,6 +141,7 @@ pub const DISBURSAL_TRANSACTION_ENTITY_TYPE: core_accounting::EntityType =
 pub type CreditFacilityAllOrOne = AllOrOne<CreditFacilityId>;
 pub type ChartOfAccountsIntegrationConfigAllOrOne = AllOrOne<ChartOfAccountsIntegrationConfigId>;
 pub type DisbursalAllOrOne = AllOrOne<DisbursalId>;
+pub type LiquidationAllOrOne = AllOrOne<LiquidationId>;
 pub type ObligationAllOrOne = AllOrOne<ObligationId>;
 pub type TermsTemplateAllOrOne = AllOrOne<TermsTemplateId>;
 
@@ -161,6 +162,7 @@ pub enum CoreCreditObject {
     CreditFacility(CreditFacilityAllOrOne),
     ChartOfAccountsIntegrationConfig(ChartOfAccountsIntegrationConfigAllOrOne),
     Disbursal(DisbursalAllOrOne),
+    Liquidation(LiquidationAllOrOne),
     Obligation(ObligationAllOrOne),
     TermsTemplate(TermsTemplateAllOrOne),
 }
@@ -184,6 +186,14 @@ impl CoreCreditObject {
 
     pub fn all_disbursals() -> Self {
         CoreCreditObject::Disbursal(AllOrOne::All)
+    }
+
+    pub fn liquidation(id: LiquidationId) -> Self {
+        CoreCreditObject::Liquidation(AllOrOne::ById(id))
+    }
+
+    pub fn all_liquidations() -> Self {
+        CoreCreditObject::Liquidation(AllOrOne::All)
     }
 
     pub fn obligation(id: ObligationId) -> Self {
@@ -211,6 +221,7 @@ impl std::fmt::Display for CoreCreditObject {
             CreditFacility(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             ChartOfAccountsIntegrationConfig(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             Disbursal(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            Liquidation(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             Obligation(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             TermsTemplate(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
         }
@@ -240,6 +251,10 @@ impl FromStr for CoreCreditObject {
                 let obj_ref = id.parse().map_err(|_| "could not parse CoreCreditObject")?;
                 CoreCreditObject::Disbursal(obj_ref)
             }
+            Liquidation => {
+                let obj_ref = id.parse().map_err(|_| "could not parse CoreCreditObject")?;
+                CoreCreditObject::Liquidation(obj_ref)
+            }
             TermsTemplate => {
                 let obj_ref = id.parse().map_err(|_| "could not parse CoreCreditObject")?;
                 CoreCreditObject::TermsTemplate(obj_ref)
@@ -256,6 +271,7 @@ pub enum CoreCreditAction {
     CreditFacility(CreditFacilityAction),
     ChartOfAccountsIntegrationConfig(ChartOfAccountsIntegrationConfigAction),
     Disbursal(DisbursalAction),
+    Liquidation(LiquidationAction),
     Obligation(ObligationAction),
     TermsTemplate(TermsTemplateAction),
 }
@@ -296,6 +312,13 @@ impl CoreCreditAction {
     pub const DISBURSAL_LIST: Self = CoreCreditAction::Disbursal(DisbursalAction::List);
     pub const DISBURSAL_READ: Self = CoreCreditAction::Disbursal(DisbursalAction::Read);
 
+    pub const LIQUIDATION_LIST: Self = CoreCreditAction::Liquidation(LiquidationAction::List);
+    pub const LIQUIDATION_READ: Self = CoreCreditAction::Liquidation(LiquidationAction::Read);
+    pub const LIQUIDATION_RECORD_COLLATERAL_SENT: Self =
+        CoreCreditAction::Liquidation(LiquidationAction::RecordCollateralSent);
+    pub const LIQUIDATION_RECORD_PAYMENT_RECEIVED: Self =
+        CoreCreditAction::Liquidation(LiquidationAction::RecordPaymentReceived);
+
     pub const OBLIGATION_READ: Self = CoreCreditAction::Obligation(ObligationAction::Read);
     pub const OBLIGATION_UPDATE_STATUS: Self =
         CoreCreditAction::Obligation(ObligationAction::UpdateStatus);
@@ -327,6 +350,7 @@ impl CoreCreditAction {
                     ChartOfAccountsIntegrationConfigAction
                 ),
                 Disbursal => map_action!(credit, Disbursal, DisbursalAction),
+                Liquidation => map_action!(credit, Liquidation, LiquidationAction),
                 Obligation => map_action!(credit, Obligation, ObligationAction),
                 TermsTemplate => map_action!(credit, TermsTemplate, TermsTemplateAction),
             })
@@ -342,6 +366,7 @@ impl std::fmt::Display for CoreCreditAction {
             CreditFacility(action) => action.fmt(f),
             ChartOfAccountsIntegrationConfig(action) => action.fmt(f),
             Disbursal(action) => action.fmt(f),
+            Liquidation(action) => action.fmt(f),
             Obligation(action) => action.fmt(f),
             TermsTemplate(action) => action.fmt(f),
         }
@@ -362,6 +387,7 @@ impl FromStr for CoreCreditAction {
                 CoreCreditAction::from(action.parse::<ChartOfAccountsIntegrationConfigAction>()?)
             }
             Disbursal => CoreCreditAction::from(action.parse::<DisbursalAction>()?),
+            Liquidation => CoreCreditAction::from(action.parse::<LiquidationAction>()?),
             Obligation => CoreCreditAction::from(action.parse::<ObligationAction>()?),
             TermsTemplate => CoreCreditAction::from(action.parse::<TermsTemplateAction>()?),
         };
@@ -427,6 +453,32 @@ impl ActionPermission for DisbursalAction {
 impl From<DisbursalAction> for CoreCreditAction {
     fn from(action: DisbursalAction) -> Self {
         Self::Disbursal(action)
+    }
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
+#[strum(serialize_all = "kebab-case")]
+pub enum LiquidationAction {
+    List,
+    Read,
+    RecordCollateralSent,
+    RecordPaymentReceived,
+}
+
+impl ActionPermission for LiquidationAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::List | Self::Read => PERMISSION_SET_CREDIT_VIEWER,
+            Self::RecordCollateralSent | Self::RecordPaymentReceived => {
+                PERMISSION_SET_CREDIT_WRITER
+            }
+        }
+    }
+}
+
+impl From<LiquidationAction> for CoreCreditAction {
+    fn from(action: LiquidationAction) -> Self {
+        Self::Liquidation(action)
     }
 }
 

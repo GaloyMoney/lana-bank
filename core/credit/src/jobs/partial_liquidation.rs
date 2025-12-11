@@ -1,6 +1,8 @@
 use std::ops::ControlFlow;
 
 use async_trait::async_trait;
+use audit::AuditSvc;
+use authz::PermissionCheck;
 use futures::{FutureExt as _, StreamExt as _, select};
 use serde::{Deserialize, Serialize};
 use tracing::{Span, instrument};
@@ -8,7 +10,10 @@ use tracing::{Span, instrument};
 use job::*;
 use outbox::*;
 
-use crate::{CoreCreditEvent, CreditFacilityId, LiquidationId, liquidation::Liquidations};
+use crate::{
+    CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId, LiquidationId,
+    liquidation::Liquidations,
+};
 
 #[derive(Default, Clone, Deserialize, Serialize)]
 struct PartialLiquidationJobData {
@@ -16,35 +21,47 @@ struct PartialLiquidationJobData {
 }
 
 #[derive(Clone, Serialize, Deserialize)]
-pub(crate) struct PartialLiquidationJobConfig<E>
+pub(crate) struct PartialLiquidationJobConfig<Perms, E>
 where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     pub liquidation_id: LiquidationId,
     pub credit_facility_id: CreditFacilityId,
-    pub _phantom: std::marker::PhantomData<E>,
+    pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
 
-impl<E> JobConfig for PartialLiquidationJobConfig<E>
+impl<Perms, E> JobConfig for PartialLiquidationJobConfig<Perms, E>
 where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    type Initializer = PartialLiquidationInit<E>;
+    type Initializer = PartialLiquidationInit<Perms, E>;
 }
 
-pub struct PartialLiquidationInit<E>
+pub struct PartialLiquidationInit<Perms, E>
 where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     outbox: Outbox<E>,
-    liquidations: Liquidations<E>,
+    liquidations: Liquidations<Perms, E>,
 }
 
-impl<E> PartialLiquidationInit<E>
+impl<Perms, E> PartialLiquidationInit<Perms, E>
 where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    pub fn new(outbox: &Outbox<E>, liquidations: &Liquidations<E>) -> Self {
+    pub fn new(outbox: &Outbox<E>, liquidations: &Liquidations<Perms, E>) -> Self {
         Self {
             outbox: outbox.clone(),
             liquidations: liquidations.clone(),
@@ -53,8 +70,11 @@ where
 }
 
 const PARTIAL_LIQUIDATION_JOB: JobType = JobType::new("outbox.partial-liquidation");
-impl<E> JobInitializer for PartialLiquidationInit<E>
+impl<Perms, E> JobInitializer for PartialLiquidationInit<Perms, E>
 where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     fn job_type() -> JobType
@@ -65,7 +85,7 @@ where
     }
 
     fn init(&self, job: &job::Job) -> Result<Box<dyn job::JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(PartialLiquidationJobRunner::<E> {
+        Ok(Box::new(PartialLiquidationJobRunner::<Perms, E> {
             config: job.config()?,
             outbox: self.outbox.clone(),
             liquidations: self.liquidations.clone(),
@@ -73,18 +93,24 @@ where
     }
 }
 
-pub struct PartialLiquidationJobRunner<E>
+pub struct PartialLiquidationJobRunner<Perms, E>
 where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    config: PartialLiquidationJobConfig<E>,
+    config: PartialLiquidationJobConfig<Perms, E>,
     outbox: Outbox<E>,
-    liquidations: Liquidations<E>,
+    liquidations: Liquidations<Perms, E>,
 }
 
 #[async_trait]
-impl<E> JobRunner for PartialLiquidationJobRunner<E>
+impl<Perms, E> JobRunner for PartialLiquidationJobRunner<Perms, E>
 where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     async fn run(
@@ -134,8 +160,11 @@ where
     }
 }
 
-impl<E> PartialLiquidationJobRunner<E>
+impl<Perms, E> PartialLiquidationJobRunner<Perms, E>
 where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     #[instrument(name = "outbox.core_credit.partial_liquidation.process_message", parent = None, skip(self, message, db), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]

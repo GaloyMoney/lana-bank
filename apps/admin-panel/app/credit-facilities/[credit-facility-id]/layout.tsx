@@ -164,6 +164,7 @@ export default function CreditFacilityLayout({
   const TABS = [
     { id: "1", url: "/", tabLabel: t("tabs.history") },
     { id: "4", url: "/disbursals", tabLabel: t("tabs.disbursals") },
+    { id: "7", url: "/liquidations", tabLabel: t("tabs.liquidations") },
     { id: "5", url: "/repayment-plan", tabLabel: t("tabs.repaymentPlan") },
     { id: "6", url: "/ledger-accounts", tabLabel: t("tabs.ledgerAccounts") },
   ]

@@ -7,6 +7,7 @@ use lana_app::{
         BALANCE_SHEET_NAME, PROFIT_AND_LOSS_STATEMENT_NAME, TRIAL_BALANCE_STATEMENT_NAME,
     },
     app::LanaApp,
+    credit::LiquidationsByIdCursor,
 };
 
 use crate::primitives::*;
@@ -515,6 +516,38 @@ impl Query {
             after,
             first,
             |query| { app.credit().disbursals().list(sub, query, filter, sort) }
+        )
+    }
+
+    async fn liquidation(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<Liquidation>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(
+            Liquidation,
+            ctx,
+            app.credit().liquidations().find_by_id(sub, id)
+        )
+    }
+
+    async fn liquidations(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<LiquidationsByIdCursor, Liquidation, EmptyFields, EmptyFields>,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor!(
+            LiquidationsByIdCursor,
+            Liquidation,
+            ctx,
+            after,
+            first,
+            |query| app.credit().liquidations().list(sub, query)
         )
     }
 
@@ -1932,6 +1965,42 @@ impl Mutation {
             ctx,
             app.credit()
                 .complete_facility(sub, input.credit_facility_id)
+        )
+    }
+
+    async fn liquidation_record_collateral_sent(
+        &self,
+        ctx: &Context<'_>,
+        input: LiquidationRecordCollateralSentInput,
+    ) -> async_graphql::Result<LiquidationRecordCollateralSentPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            LiquidationRecordCollateralSentPayload,
+            Liquidation,
+            ctx,
+            app.credit().liquidations().record_collateral_sent(
+                sub,
+                input.liquidation_id.into(),
+                input.amount
+            )
+        )
+    }
+
+    async fn liquidation_record_payment_received(
+        &self,
+        ctx: &Context<'_>,
+        input: LiquidationRecordPaymentReceivedInput,
+    ) -> async_graphql::Result<LiquidationRecordPaymentReceivedPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            LiquidationRecordPaymentReceivedPayload,
+            Liquidation,
+            ctx,
+            app.credit().liquidations().record_payment_from_liquidation(
+                sub,
+                input.liquidation_id.into(),
+                input.amount
+            )
         )
     }
 
