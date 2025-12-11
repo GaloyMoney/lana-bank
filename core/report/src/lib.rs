@@ -87,7 +87,6 @@ where
         let report_repo = ReportRepo::new(pool, &publisher);
         let report_run_repo = ReportRunRepo::new(pool, &publisher);
 
-
         Ok(Self {
             authz: authz.clone(),
             storage: storage.clone(),
