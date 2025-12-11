@@ -1,4 +1,5 @@
-pub(crate) mod closing;
+pub(crate) mod closing_amounts;
+pub(crate) mod closing_metadata;
 pub mod error;
 mod template;
 
@@ -15,7 +16,8 @@ use rust_decimal::Decimal;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-pub(crate) use closing::*;
+pub(crate) use closing_amounts::*;
+use closing_metadata::*;
 use error::*;
 use template::*;
 
@@ -329,7 +331,7 @@ impl ChartLedger {
         op: es_entity::DbOp<'_>,
         params: ClosingTxParams,
     ) -> Result<(), ChartLedgerError> {
-        let net_income_input = self
+        let balances = self
             .find_all_profit_and_loss_statement_effective_balances(
                 params.revenue_account_set_id,
                 params.cost_of_revenue_account_set_id,
@@ -337,8 +339,7 @@ impl ChartLedger {
                 params.effective_balances_from,
                 params.effective_balances_until,
             )
-            .await?
-            .to_net_income_input();
+            .await?;
         let mut op = self
             .cala
             .ledger_operation_from_db_op(op.with_db_time().await?);
@@ -348,7 +349,7 @@ impl ChartLedger {
                 params.description.clone(),
                 params.equity_retained_earnings_account_set_id,
                 params.equity_retained_losses_account_set_id,
-                net_income_input.net_income,
+                balances.net_income(),
             )
             .await?;
 
@@ -356,11 +357,11 @@ impl ChartLedger {
             account_id: net_income_recipient_account.id.into(),
             // TODO: Can this be assumed? Move to per currency closing tx?
             currency: Currency::USD,
-            amount: net_income_input.net_income.abs(),
+            amount: balances.net_income().abs(),
             direction: net_income_recipient_account.values().normal_balance_type,
         };
 
-        let mut closing_tx_entries = net_income_input.entries;
+        let mut closing_tx_entries = balances.entries();
         closing_tx_entries.push(retained_earnings_entry);
         let closing_transaction_params = ClosingTransactionParams::new(
             self.journal_id,
