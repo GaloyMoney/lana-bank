@@ -887,7 +887,7 @@ where
 
         let payment = self
             .payments
-            .record_in_op(&mut db, credit_facility_id, amount)
+            .record_in_op(&mut db, PaymentId::new(), credit_facility_id, amount)
             .await?;
 
         self.obligations
@@ -944,7 +944,7 @@ where
 
         let payment = self
             .payments
-            .record_in_op(&mut db, credit_facility_id, amount)
+            .record_in_op(&mut db, PaymentId::new(), credit_facility_id, amount)
             .await?;
 
         self.obligations

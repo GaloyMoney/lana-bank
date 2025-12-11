@@ -35,6 +35,7 @@ pub enum LiquidationEvent {
     },
     RepaymentAmountReceived {
         amount: UsdCents,
+        payment_id: PaymentId,
         ledger_tx_id: LedgerTxId,
     },
     Completed {
@@ -87,20 +88,21 @@ impl Liquidation {
     pub fn record_repayment_from_liquidation(
         &mut self,
         amount_received: UsdCents,
+        payment_id: PaymentId,
         ledger_tx_id: LedgerTxId,
     ) -> Result<Idempotent<()>, LiquidationError> {
         idempotency_guard!(
             self.events.iter_all(),
             LiquidationEvent::RepaymentAmountReceived {
-                amount,
-                ledger_tx_id: tx_id
-            } if amount_received == *amount && ledger_tx_id == *tx_id
+                payment_id: id,..
+            } if payment_id == *id
         );
 
         self.received_total += amount_received;
 
         self.events.push(LiquidationEvent::RepaymentAmountReceived {
             amount: amount_received,
+            payment_id,
             ledger_tx_id,
         });
 
@@ -145,6 +147,7 @@ impl Liquidation {
                 LiquidationEvent::RepaymentAmountReceived {
                     amount,
                     ledger_tx_id,
+                    ..
                 } => Some((*amount, *ledger_tx_id)),
                 _ => None,
             })

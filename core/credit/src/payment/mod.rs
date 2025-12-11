@@ -55,11 +55,12 @@ where
     pub(super) async fn record_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
+        payment_id: PaymentId,
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
     ) -> Result<Payment, PaymentError> {
         let new_payment = NewPayment::builder()
-            .id(PaymentId::new())
+            .id(payment_id)
             .amount(amount)
             .credit_facility_id(credit_facility_id)
             .build()
