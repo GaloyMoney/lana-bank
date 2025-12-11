@@ -1978,9 +1978,11 @@ impl Mutation {
             LiquidationRecordCollateralSentPayload,
             Liquidation,
             ctx,
-            app.credit()
-                .liquidations()
-                .record_collateral_sent(sub, input.liquidation_id.into(), input.amount)
+            app.credit().liquidations().record_collateral_sent(
+                sub,
+                input.liquidation_id.into(),
+                input.amount
+            )
         )
     }
 
@@ -1994,9 +1996,11 @@ impl Mutation {
             LiquidationRecordPaymentReceivedPayload,
             Liquidation,
             ctx,
-            app.credit()
-                .liquidations()
-                .record_payment_from_liquidation(sub, input.liquidation_id.into(), input.amount)
+            app.credit().liquidations().record_payment_from_liquidation(
+                sub,
+                input.liquidation_id.into(),
+                input.amount
+            )
         )
     }
 

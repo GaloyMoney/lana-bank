@@ -98,7 +98,11 @@ where
         Ok(self.repo.begin_op().await?)
     }
 
-    #[instrument(name = "credit.liquidation.record_collateral_sent", skip(self, sub), err)]
+    #[instrument(
+        name = "credit.liquidation.record_collateral_sent",
+        skip(self, sub),
+        err
+    )]
     pub async fn record_collateral_sent(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

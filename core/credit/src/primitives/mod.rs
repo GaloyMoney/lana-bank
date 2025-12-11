@@ -468,9 +468,10 @@ pub enum LiquidationAction {
 impl ActionPermission for LiquidationAction {
     fn permission_set(&self) -> &'static str {
         match self {
-            Self::List => PERMISSION_SET_CREDIT_VIEWER,
-            Self::Read => PERMISSION_SET_CREDIT_VIEWER,
-            Self::RecordCollateralSent | Self::RecordPaymentReceived => PERMISSION_SET_CREDIT_WRITER,
+            Self::List | Self::Read => PERMISSION_SET_CREDIT_VIEWER,
+            Self::RecordCollateralSent | Self::RecordPaymentReceived => {
+                PERMISSION_SET_CREDIT_WRITER
+            }
         }
     }
 }
