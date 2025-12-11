@@ -1,6 +1,7 @@
 from typing import Sequence
 
 import dagster as dg
+from src.assets.dbt import TAG_KEY_ASSET_TYPE, TAG_VALUE_DBT_MODEL
 
 
 def build_file_report_sensors(
@@ -35,3 +36,17 @@ def build_file_report_sensors(
         yield dg.RunRequest(run_key=f"inform_lana_failure_{context.dagster_run.run_id}")
 
     return file_reports_success_sensor, file_reports_failure_sensor
+
+
+def build_dbt_automation_sensor(
+    dagster_automations_active: bool,
+) -> dg.AutomationConditionSensorDefinition:
+    return dg.AutomationConditionSensorDefinition(
+        name="dbt_automation_condition_sensor",
+        target=dg.AssetSelection.tag(TAG_KEY_ASSET_TYPE, TAG_VALUE_DBT_MODEL),
+        default_status=(
+            dg.DefaultSensorStatus.RUNNING
+            if dagster_automations_active
+            else dg.DefaultSensorStatus.STOPPED
+        ),
+    )

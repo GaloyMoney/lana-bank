@@ -1,0 +1,10 @@
+dbt_lana_dw:
+  target: lana-dw
+  outputs:
+    lana-dw:
+      type: bigquery
+      method: service-account-json
+      project: "{{ env_var('DBT_BIGQUERY_PROJECT') }}"
+      dataset: "{{ env_var('DBT_BIGQUERY_DATASET') }}"
+      threads: 4
+      keyfile_json: "{{ fromjson(env_var('DBT_BIGQUERY_CREDENTIALS_JSON')) }}"

@@ -1,0 +1,16 @@
+query($assetKey: AssetKeyInput!) {
+  assetNodes(assetKeys: [$assetKey]) {
+    id
+    assetKey {
+      path
+    }
+    dependencies {
+      asset {
+        assetKey {
+          path
+        }
+      }
+    }
+  }
+}
+

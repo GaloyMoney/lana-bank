@@ -72,53 +72,32 @@ jobs:
         env:
           TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
 
+      - name: Configure BigQuery environment
+        run: |         
+          # Compute all BigQuery/DBT env vars once
+          SAFE_PREFIX="$(printf '%s' "$NAME_PREFIX" | tr -c '[:alnum:]_' '_')"
+          
+          echo "TF_VAR_name_prefix=$NAME_PREFIX" >> $GITHUB_ENV
+          echo "DBT_BIGQUERY_PROJECT=$(echo $SA_CREDS_BASE64 | base64 -d | jq -r '.project_id')" >> $GITHUB_ENV
+          echo "DBT_BIGQUERY_DATASET=dbt_${SAFE_PREFIX}" >> $GITHUB_ENV
+          echo "TARGET_BIGQUERY_DATASET=${SAFE_PREFIX}_dataset" >> $GITHUB_ENV
+          echo "DOCS_BUCKET_NAME=${NAME_PREFIX}-lana-documents" >> $GITHUB_ENV
+          echo "DBT_BIGQUERY_CREDENTIALS_JSON=$(echo $SA_CREDS_BASE64 | base64 -d | jq -c '.')" >> $GITHUB_ENV
+
+        env:
+          SA_CREDS_BASE64: ${{ env.SA_CREDS }}
+          NAME_PREFIX: ${{ env.NAME_PREFIX }}
+
       - name: Run BATS tests
         run: KEEP_PODMAN_UP=1 nix run .#bats
         env:
           TF_VAR_sa_creds: ${{ env.SA_CREDS }}
           SA_CREDS_BASE64: ${{ env.SA_CREDS }}
           TF_VAR_name_prefix: ${{ env.NAME_PREFIX }}
-
-      - name: Configure Meltano environment variables
-        run: |
-          echo "TF_VAR_name_prefix=$TF_VAR_name_prefix" >> $GITHUB_ENV
-          echo $SA_CREDS_BASE64 | base64 --decode > meltano/keyfile.json
-
-          export TARGET_BIGQUERY_CREDENTIALS_JSON=$(cat meltano/keyfile.json)
-          export DBT_BIGQUERY_KEYFILE="$(pwd)/meltano/keyfile.json"
-          export DBT_BIGQUERY_PROJECT="$(echo $TF_VAR_sa_creds | base64 -d | jq -r '.project_id')"
-          export DOCS_BUCKET_NAME="${TF_VAR_name_prefix}-lana-documents"
-
-          RAW_PREFIX="${TF_VAR_name_prefix}"
-          SAFE_PREFIX="$(printf '%s' "$RAW_PREFIX" | tr -c '[:alnum:]_' '_' )"
-          export TARGET_BIGQUERY_DATASET="${SAFE_PREFIX}_dataset"
-          export DBT_BIGQUERY_DATASET="dbt_${SAFE_PREFIX}"
-
-          echo "DBT_BIGQUERY_KEYFILE=$DBT_BIGQUERY_KEYFILE" >> $GITHUB_ENV
-          echo "DBT_BIGQUERY_PROJECT=$DBT_BIGQUERY_PROJECT" >> $GITHUB_ENV
-          echo "TARGET_BIGQUERY_DATASET=$TARGET_BIGQUERY_DATASET" >> $GITHUB_ENV
-          echo "DBT_BIGQUERY_DATASET=$DBT_BIGQUERY_DATASET" >> $GITHUB_ENV
-          echo "DOCS_BUCKET_NAME=$DOCS_BUCKET_NAME" >> $GITHUB_ENV
-
-          {
-            echo "TARGET_BIGQUERY_CREDENTIALS_JSON<<EOF"
-            cat meltano/keyfile.json
-            echo "EOF"
-          } >> "$GITHUB_ENV"
-        env:
-          TF_VAR_sa_creds: ${{ env.SA_CREDS }}
-          SA_CREDS_BASE64: ${{ env.SA_CREDS }}
-          TF_VAR_name_prefix: ${{ env.NAME_PREFIX }}
-
-      - run: nix develop -c meltano install
-      - run: nix develop -c meltano run tap-postgres target-bigquery
-      - run: nix develop -c meltano run tap-bitfinexapi target-bigquery
-      - run: nix develop -c meltano run tap-sumsubapi target-bigquery
-      - run: nix develop -c meltano run dbt-bigquery:deps
-      - run: nix develop -c meltano run dbt-bigquery:seed
-      - run: nix develop -c meltano run dbt-bigquery:run --full-refresh
-      - run: nix develop -c meltano run dbt-bigquery:test
-      - run: nix develop -c meltano run generate-es-reports:run
+          DBT_BIGQUERY_PROJECT: ${{ env.DBT_BIGQUERY_PROJECT }}
+          DBT_BIGQUERY_DATASET: ${{ env.DBT_BIGQUERY_DATASET }}
+          DBT_BIGQUERY_CREDENTIALS_JSON: ${{ env.DBT_BIGQUERY_CREDENTIALS_JSON }}
+          TARGET_BIGQUERY_DATASET: ${{ env.TARGET_BIGQUERY_DATASET }}
 
       - name: Cleanup BigQuery infrastructure
         if: always()
