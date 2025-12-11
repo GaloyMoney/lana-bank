@@ -221,26 +221,26 @@ where
                 event @ PartialLiquidationRepaymentAmountReceived {
                     amount,
                     credit_facility_id,
+                    payment_id,
                     ..
                 },
             ) if *credit_facility_id == self.config.credit_facility_id => {
                 Span::current().record("handled", true);
                 Span::current().record("event_type", event.as_ref());
 
-                let payment = self
-                    .payments
-                    .record_in_op(db, *credit_facility_id, *amount)
+                self.payments
+                    .record_in_op(db, *payment_id, *credit_facility_id, *amount)
                     .await?;
 
                 self.liquidations
-                    .complete_in_op(db, self.config.liquidation_id, payment.id)
+                    .complete_in_op(db, self.config.liquidation_id, *payment_id)
                     .await?;
 
                 self.obligations
                     .allocate_payment_in_op(
                         db,
                         self.config.credit_facility_id,
-                        payment.id,
+                        *payment_id,
                         *amount,
                         crate::time::now().date_naive(),
                     )
