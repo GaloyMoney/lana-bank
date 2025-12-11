@@ -1,7 +1,6 @@
 #@ load("@ytt:data", "data")
 
 #@ load("fragments.lib.yml",
-#@   "build_edge_image",
 #@   "public_gar_registry",
 #@   "nodejs_task_image_config",
 #@   "edge_image_resource",
@@ -37,7 +36,6 @@ groups:
       - test-integration
       - release
       - flake-check
-      - build-edge-image
       - release-docker
       #! - set-dev-version
       - bump-image-in-chart
@@ -79,8 +77,6 @@ jobs:
       - put: version
         params:
           bump: patch
-
-  -  #@ build_edge_image()
 
   - name: test-integration
     serial: true
@@ -679,7 +675,6 @@ resources:
       repository: #@ public_gar_registry() + "/dagster-code-location-lana-dw"
 
   -  #@ pipeline_tasks_resource()
-  -  #@ edge_image_resource(publicRepo=False)
   -  #@ version_resource()
   -  #@ gh_release_resource()
   -  #@ charts_repo_bot_branch()
