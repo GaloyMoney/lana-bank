@@ -21,7 +21,7 @@ use crate::primitives::{
     ChartId, ClosingSpec, CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
 };
 
-use ledger::closing::ClosingTxParams;
+use ledger::closing_amounts::ClosingTxParams;
 
 #[cfg(feature = "json-schema")]
 pub use chart_node::ChartNodeEvent;
