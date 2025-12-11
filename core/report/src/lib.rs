@@ -74,7 +74,7 @@ where
     E: OutboxEventMarker<CoreReportEvent>,
 {
     #[record_error_severity]
-    #[tracing::instrument(name = "report.init", skip_all, fields(enabled = config.enabled))]
+    #[tracing::instrument(name = "report.init", skip_all)]
     pub async fn init(
         pool: &sqlx::PgPool,
         authz: &Perms,
@@ -193,10 +193,6 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
     ) -> Result<(), ReportError> {
-        if !self.config.enabled {
-            return Err(ReportError::Disabled);
-        }
-
         self.authz
             .enforce_permission(
                 sub,
