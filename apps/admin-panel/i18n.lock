@@ -542,10 +542,21 @@ checksums:
     CreditFacilities/CreditFacilityDetails/DetailsCard/loanAgreement/error: 888ad57aa228cb9a409d22468bb3f9ba
     CreditFacilities/CreditFacilityDetails/Layout/tabs/history: b0578d6d225f512e42f823fbca2e3c32
     CreditFacilities/CreditFacilityDetails/Layout/tabs/disbursals: a926d10544d2ae0fd17a6e5f19a97080
+    CreditFacilities/CreditFacilityDetails/Layout/tabs/liquidations: d5e225f5b3204b60ff0dea79c7cc89f3
     CreditFacilities/CreditFacilityDetails/Layout/tabs/repaymentPlan: 416716dbfa4883b589c792610e827d74
     CreditFacilities/CreditFacilityDetails/Layout/tabs/ledgerAccounts: da987c523a54fbda73beda300c3afc33
     CreditFacilities/CreditFacilityDetails/Layout/errors/notFound: 58efcf2ecdcf18f0cd0253acc60eb812
     CreditFacilities/CreditFacilityDetails/Layout/errors/loading: 82b4ea7ed1439094d7c4be13aaba9a66
+    CreditFacilities/CreditFacilityDetails/Liquidations/title: d5e225f5b3204b60ff0dea79c7cc89f3
+    CreditFacilities/CreditFacilityDetails/Liquidations/description: affb1a37116efd2f52e878edb32fb1a1
+    CreditFacilities/CreditFacilityDetails/Liquidations/columns/status: 4e1fcce15854d824919b4a582c697c90
+    CreditFacilities/CreditFacilityDetails/Liquidations/columns/expectedToReceive: 3fa01e9ae94c919fae9fc0f46d49b9cc
+    CreditFacilities/CreditFacilityDetails/Liquidations/columns/sentTotal: fc40b27969deda2caeab3853a49a3593
+    CreditFacilities/CreditFacilityDetails/Liquidations/columns/receivedTotal: 0e4f52c9fe1b61dc834294d7af823356
+    CreditFacilities/CreditFacilityDetails/Liquidations/columns/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
+    CreditFacilities/CreditFacilityDetails/Liquidations/status/completed: 0e4bbce9985f25eb673d9a054c8d5334
+    CreditFacilities/CreditFacilityDetails/Liquidations/status/inProgress: 3de9afebcb9d4ce8ac42e14995f79ffd
+    CreditFacilities/CreditFacilityDetails/Liquidations/messages/emptyTable: e44c22d65882fcd7afdf871e2627a1fa
     CreditFacilities/CreditFacilityDetails/CreditFacilityPartialPayment/dialog/title: 610c610c61d2449a5461972a189996c2
     CreditFacilities/CreditFacilityDetails/CreditFacilityPartialPayment/dialog/description: fe992630f2de0995b30bd782a29b2927
     CreditFacilities/CreditFacilityDetails/CreditFacilityPartialPayment/form/labels/amount: a0ae9c6ff98b57475cdce56f66066aa4
@@ -648,6 +659,24 @@ checksums:
     Disbursals/DisbursalDetails/CreditFacilityDisbursalInitiate/buttons/submit: bc306441cd28c007b84ab52f4e00e5c9
     Disbursals/DisbursalDetails/CreditFacilityDisbursalInitiate/messages/success: d56a28a537a2df1b5b47edd805abb136
     Disbursals/DisbursalDetails/CreditFacilityDisbursalInitiate/messages/unknownError: 4fa139b42a7b7ed262b07bdda7cd2fb6
+    Liquidations/LiquidationDetails/DetailsCard/title: 0c38d7f6db5a24f62b1ec41f068446e2
+    Liquidations/LiquidationDetails/DetailsCard/details/status: 4e1fcce15854d824919b4a582c697c90
+    Liquidations/LiquidationDetails/DetailsCard/details/expectedToReceive: 3fa01e9ae94c919fae9fc0f46d49b9cc
+    Liquidations/LiquidationDetails/DetailsCard/details/sentTotal: fc40b27969deda2caeab3853a49a3593
+    Liquidations/LiquidationDetails/DetailsCard/details/receivedTotal: 0e4f52c9fe1b61dc834294d7af823356
+    Liquidations/LiquidationDetails/DetailsCard/details/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
+    Liquidations/LiquidationDetails/DetailsCard/status/completed: 0e4bbce9985f25eb673d9a054c8d5334
+    Liquidations/LiquidationDetails/DetailsCard/status/inProgress: 3de9afebcb9d4ce8ac42e14995f79ffd
+    Liquidations/LiquidationDetails/CollateralSent/title: 3ceee0dbfa639450fd55bc2c3278ea82
+    Liquidations/LiquidationDetails/CollateralSent/description: f8b19056b82621a57164f50b2ac97e40
+    Liquidations/LiquidationDetails/CollateralSent/columns/amount: 3603c72f703082c839dec4d2afae00a3
+    Liquidations/LiquidationDetails/CollateralSent/columns/ledgerTxId: 33592c809a104a909a8215fd34b67c35
+    Liquidations/LiquidationDetails/CollateralSent/messages/emptyTable: cb1b6ac1c0e1f0d388dc48e2cd3690e6
+    Liquidations/LiquidationDetails/PaymentReceived/title: 55f185160f00b3b331f8e4deef25cd78
+    Liquidations/LiquidationDetails/PaymentReceived/description: 5950f6b0b62f5d0a4a04cfde29fec67e
+    Liquidations/LiquidationDetails/PaymentReceived/columns/amount: c8d0739dbcc0346a0f33c606f4801999
+    Liquidations/LiquidationDetails/PaymentReceived/columns/ledgerTxId: 33592c809a104a909a8215fd34b67c35
+    Liquidations/LiquidationDetails/PaymentReceived/messages/emptyTable: 643701fdb0f26c955b2b7c8ef2daf114
     TermsTemplates/title: 6830f63158657ad7dd84b3ec1f8e205b
     TermsTemplates/description: f67f513416852ad80a7087f51b2c6257
     TermsTemplates/table/headers/name: 9368b5a047572b6051f334af5aa76819

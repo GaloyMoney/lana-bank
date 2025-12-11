@@ -74,7 +74,21 @@ pub struct AdminJwtClaims {
     pub subject: String,
 }
 
-#[instrument(name = "admin_server.graphql", skip_all, fields(graphql.operation_name, graphql.operation_type, graphql.query, graphql.variables, jwt.subject, user.id, error, error.level, error.message))]
+#[instrument(
+    name = "admin_server.graphql",
+    skip_all,
+    fields(
+        graphql.operation_name,
+        graphql.operation_type,
+        graphql.query,
+        graphql.variables,
+        jwt.subject,
+        user.id,
+        error,
+        error.level,
+        error.message,
+    )
+)]
 #[es_entity::es_event_context]
 pub async fn graphql_handler(
     schema: Extension<Schema<graphql::Query, graphql::Mutation, EmptySubscription>>,
@@ -124,7 +138,7 @@ pub async fn graphql_handler(
     let response = schema.execute(req).await;
     if !response.errors.is_empty() {
         for err in &response.errors {
-            tracing::error!(
+            tracing::warn!(
                 path = ?err.path,
                 locations = ?err.locations,
                 extensions = ?err.extensions,

@@ -866,12 +866,31 @@
         "tabs": {
           "history": "History",
           "disbursals": "Disbursals",
+          "liquidations": "Liquidations",
           "repaymentPlan": "Repayment Plan",
           "ledgerAccounts": "Ledger Accounts"
         },
         "errors": {
           "notFound": "Not found",
           "loading": "Loading..."
+        }
+      },
+      "Liquidations": {
+        "title": "Liquidations",
+        "description": "Liquidations associated with this credit facility",
+        "columns": {
+          "status": "Status",
+          "expectedToReceive": "Expected to Receive",
+          "sentTotal": "Sent Total",
+          "receivedTotal": "Received Total",
+          "createdAt": "Created At"
+        },
+        "status": {
+          "completed": "Completed",
+          "inProgress": "In Progress"
+        },
+        "messages": {
+          "emptyTable": "No liquidations found"
         }
       },
       "CreditFacilityPartialPayment": {
@@ -1080,6 +1099,46 @@
         "messages": {
           "success": "Disbursal initiated successfully",
           "unknownError": "An unknown error occurred"
+        }
+      }
+    }
+  },
+  "Liquidations": {
+    "LiquidationDetails": {
+      "DetailsCard": {
+        "title": "Liquidation",
+        "details": {
+          "status": "Status",
+          "expectedToReceive": "Expected to Receive",
+          "sentTotal": "Sent Total",
+          "receivedTotal": "Received Total",
+          "createdAt": "Created At"
+        },
+        "status": {
+          "completed": "Completed",
+          "inProgress": "In Progress"
+        }
+      },
+      "CollateralSent": {
+        "title": "Collateral Sent",
+        "description": "Collateral sent out during liquidation",
+        "columns": {
+          "amount": "Amount (BTC)",
+          "ledgerTxId": "Ledger Transaction ID"
+        },
+        "messages": {
+          "emptyTable": "No collateral sent"
+        }
+      },
+      "PaymentReceived": {
+        "title": "Payment Received",
+        "description": "Payments received from liquidation",
+        "columns": {
+          "amount": "Amount (USD)",
+          "ledgerTxId": "Ledger Transaction ID"
+        },
+        "messages": {
+          "emptyTable": "No payments received"
         }
       }
     }

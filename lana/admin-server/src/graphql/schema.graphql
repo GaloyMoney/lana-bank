@@ -396,6 +396,7 @@ type CreditFacility {
 	history: [CreditFacilityHistoryEntry!]!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
 	disbursals: [CreditFacilityDisbursal!]!
+	liquidations: [Liquidation!]!
 	userCanUpdateCollateral: Boolean!
 	userCanInitiateDisbursal: Boolean!
 	userCanRecordPayment: Boolean!
@@ -1576,6 +1577,76 @@ type LedgerTransactionEdge {
 
 union LedgerTransactionEntity = Deposit | Withdrawal | CreditFacilityDisbursal
 
+type Liquidation {
+	id: ID!
+	liquidationId: UUID!
+	creditFacilityId: UUID!
+	expectedToReceive: UsdCents!
+	sentTotal: Satoshis!
+	receivedTotal: UsdCents!
+	createdAt: Timestamp!
+	completed: Boolean!
+	sentCollateral: [LiquidationCollateralSent!]!
+	receivedPayment: [LiquidationPaymentReceived!]!
+}
+
+type LiquidationCollateralSent {
+	amount: Satoshis!
+	ledgerTxId: UUID!
+}
+
+type LiquidationConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [LiquidationEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [Liquidation!]!
+}
+
+"""
+An edge in a connection.
+"""
+type LiquidationEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: Liquidation!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
+type LiquidationPaymentReceived {
+	amount: UsdCents!
+	ledgerTxId: UUID!
+}
+
+input LiquidationRecordCollateralSentInput {
+	liquidationId: UUID!
+	amount: Satoshis!
+}
+
+type LiquidationRecordCollateralSentPayload {
+	liquidation: Liquidation!
+}
+
+input LiquidationRecordPaymentReceivedInput {
+	liquidationId: UUID!
+	amount: UsdCents!
+}
+
+type LiquidationRecordPaymentReceivedPayload {
+	liquidation: Liquidation!
+}
+
 type LoanAgreement {
 	id: ID!
 	status: LoanAgreementStatus!
@@ -1666,6 +1737,8 @@ type Mutation {
 	creditFacilityPartialPaymentWithDateRecord(input: CreditFacilityPartialPaymentWithDateRecordInput!): CreditFacilityPartialPaymentRecordPayload!
 	creditFacilityDisbursalInitiate(input: CreditFacilityDisbursalInitiateInput!): CreditFacilityDisbursalInitiatePayload!
 	creditFacilityComplete(input: CreditFacilityCompleteInput!): CreditFacilityCompletePayload!
+	liquidationRecordCollateralSent(input: LiquidationRecordCollateralSentInput!): LiquidationRecordCollateralSentPayload!
+	liquidationRecordPaymentReceived(input: LiquidationRecordPaymentReceivedInput!): LiquidationRecordPaymentReceivedPayload!
 	custodianCreate(input: CustodianCreateInput!): CustodianCreatePayload!
 	custodianConfigUpdate(input: CustodianConfigUpdateInput!): CustodianConfigUpdatePayload!
 	committeeCreate(input: CommitteeCreateInput!): CommitteeCreatePayload!
@@ -1972,6 +2045,8 @@ type Query {
 	disbursal(id: UUID!): CreditFacilityDisbursal
 	disbursalByPublicId(id: PublicId!): CreditFacilityDisbursal
 	disbursals(first: Int!, after: String): CreditFacilityDisbursalConnection!
+	liquidation(id: UUID!): Liquidation
+	liquidations(first: Int!, after: String): LiquidationConnection!
 	custodians(first: Int!, after: String): CustodianConnection!
 	committee(id: UUID!): Committee
 	committees(first: Int!, after: String): CommitteeConnection!

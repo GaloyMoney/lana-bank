@@ -866,12 +866,31 @@
         "tabs": {
           "history": "Historial",
           "disbursals": "Desembolsos",
+          "liquidations": "Liquidaciones",
           "repaymentPlan": "Plan de Pago",
           "ledgerAccounts": "Cuentas de Libro Mayor"
         },
         "errors": {
           "notFound": "No encontrado",
           "loading": "Cargando..."
+        }
+      },
+      "Liquidations": {
+        "title": "Liquidaciones",
+        "description": "Liquidaciones asociadas con esta línea de crédito",
+        "columns": {
+          "status": "Estado",
+          "expectedToReceive": "Esperado a recibir",
+          "sentTotal": "Total enviado",
+          "receivedTotal": "Total recibido",
+          "createdAt": "Fecha de registro"
+        },
+        "status": {
+          "completed": "Completado",
+          "inProgress": "En progreso"
+        },
+        "messages": {
+          "emptyTable": "No se encontraron liquidaciones"
         }
       },
       "CreditFacilityPartialPayment": {
@@ -1080,6 +1099,46 @@
         "messages": {
           "success": "Desembolso iniciado exitosamente",
           "unknownError": "Ocurrió un error desconocido"
+        }
+      }
+    }
+  },
+  "Liquidations": {
+    "LiquidationDetails": {
+      "DetailsCard": {
+        "title": "Liquidación",
+        "details": {
+          "status": "Estado",
+          "expectedToReceive": "Esperado a recibir",
+          "sentTotal": "Total enviado",
+          "receivedTotal": "Total recibido",
+          "createdAt": "Fecha de registro"
+        },
+        "status": {
+          "completed": "Completado",
+          "inProgress": "En progreso"
+        }
+      },
+      "CollateralSent": {
+        "title": "Garantía enviada",
+        "description": "Garantía enviada durante la liquidación",
+        "columns": {
+          "amount": "Cantidad (BTC)",
+          "ledgerTxId": "ID de transacción contable"
+        },
+        "messages": {
+          "emptyTable": "No se ha enviado garantía"
+        }
+      },
+      "PaymentReceived": {
+        "title": "Pago recibido",
+        "description": "Pagos recibidos de la liquidación",
+        "columns": {
+          "amount": "Monto (USD)",
+          "ledgerTxId": "ID de partida contable"
+        },
+        "messages": {
+          "emptyTable": "No se han recibido pagos"
         }
       }
     }
