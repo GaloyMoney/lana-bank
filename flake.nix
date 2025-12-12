@@ -97,6 +97,10 @@
         src = rustSource;
         strictDeps = true;
         SQLX_OFFLINE = true;
+        # clang and lld for faster linking (configured in .cargo/config.toml)
+        nativeBuildInputs =
+          pkgs.lib.optionals pkgs.stdenv.isLinux [pkgs.clang pkgs.lld]
+          ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [pkgs.llvmPackages.lld];
       };
 
       cargoArtifacts = craneLib.buildDepsOnly (commonArgs
@@ -194,7 +198,7 @@
             cargo nextest list --workspace --all-features > $out/test-list.txt
           '';
 
-          nativeBuildInputs = [pkgs.cargo-nextest];
+          nativeBuildInputs = commonArgs.nativeBuildInputs ++ [pkgs.cargo-nextest];
         }
       );
 
@@ -254,6 +258,7 @@
           dejavu_fonts # Provides serif, sans-serif, and monospace
         ]
         ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
+          lld
           xvfb-run
           cypress
           python313Packages.weasyprint
@@ -265,7 +270,9 @@
           psmisc
           iptables
         ]
-        ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [];
+        ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
+          llvmPackages.lld
+        ];
 
       devEnvVars = rec {
         OTEL_EXPORTER_OTLP_ENDPOINT = http://localhost:4317;

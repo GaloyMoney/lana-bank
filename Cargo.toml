@@ -172,8 +172,21 @@ markdown2pdf = { version = "0.1.9", features = ["rustls-tls"], default-features 
 bytes = "1.11"
 keycloak = "26.4.0"
 
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+debug = false
+
+[profile.debugging]
+inherits = "dev"
+debug = true
+
 [profile.release]
-lto = true 
+incremental = false
+codegen-units = 64
+opt-level = 0
+lto = "thin"
 
 [workspace.metadata.crane]
 name = "lana-bank"
