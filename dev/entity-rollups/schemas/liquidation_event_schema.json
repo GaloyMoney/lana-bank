@@ -113,6 +113,10 @@
           "format": "uuid",
           "type": "string"
         },
+        "payment_id": {
+          "format": "uuid",
+          "type": "string"
+        },
         "type": {
           "const": "repayment_amount_received",
           "type": "string"
@@ -121,6 +125,7 @@
       "required": [
         "type",
         "amount",
+        "payment_id",
         "ledger_tx_id"
       ],
       "type": "object"

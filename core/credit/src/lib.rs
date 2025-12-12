@@ -392,6 +392,8 @@ where
             partial_liquidation::PartialLiquidationInit::<Perms, E>::new(
                 outbox,
                 liquidations_arc.as_ref(),
+                payments_arc.as_ref(),
+                obligations_arc.as_ref(),
             ),
         );
         jobs.add_initializer_and_spawn_unique(
@@ -889,7 +891,7 @@ where
 
         let payment = self
             .payments
-            .record_in_op(&mut db, credit_facility_id, amount)
+            .record_in_op(&mut db, PaymentId::new(), credit_facility_id, amount)
             .await?;
 
         self.obligations
@@ -946,7 +948,7 @@ where
 
         let payment = self
             .payments
-            .record_in_op(&mut db, credit_facility_id, amount)
+            .record_in_op(&mut db, PaymentId::new(), credit_facility_id, amount)
             .await?;
 
         self.obligations
