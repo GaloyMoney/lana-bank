@@ -512,9 +512,6 @@ impl ChartLedger {
         let n_entries = params.entries_params.len();
 
         let code = &format!("CLOSING_TRANSACTION_{}", period_designation);
-        if let Ok(template) = self.cala.tx_templates().find_by_code(code).await {
-            return Ok(template.into_values().code);
-        }
 
         let mut entries = vec![];
         for i in 0..n_entries {
@@ -554,12 +551,15 @@ impl ChartLedger {
             ))
             .build()
             .expect("Couldn't build template for ClosingTransactionTemplate");
-        let template = self
+        match self
             .cala
             .tx_templates()
             .create_in_op(op, new_template)
-            .await?;
-
-        Ok(template.into_values().code)
+            .await
+        {
+            Err(TxTemplateError::DuplicateCode) => Ok(code.to_string()),
+            Err(e) => Err(e),
+            Ok(template) => Ok(template.into_values().code),
+        }
     }
 }

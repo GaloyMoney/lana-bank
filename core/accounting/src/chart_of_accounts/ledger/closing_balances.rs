@@ -95,6 +95,7 @@ impl ProfitAndLossLineItemDetail {
 
     fn entries_params(&self) -> Vec<EntryParams> {
         self.iter()
+            .filter(|(_, balance)| !balance.abs().is_zero())
             .map(|((_, account_id, currency), balance)| {
                 EntryParams::builder()
                     .account_id(*account_id)
@@ -167,7 +168,7 @@ mod tests {
     use super::*;
 
     mod profit_and_loss_closing_entry_params {
-        use cala_ledger::DebitOrCredit;
+        use cala_ledger::{AccountId, DebitOrCredit, JournalId};
         use rust_decimal::Decimal;
         use rust_decimal_macros::dec;
 
@@ -175,6 +176,33 @@ mod tests {
 
         fn balance(amount: Decimal, direction: DebitOrCredit) -> ClosingAccountBalance {
             ClosingAccountBalance { amount, direction }
+        }
+
+        fn line_item_with_zero_balance_account() -> ProfitAndLossLineItemDetail {
+            let journal_id = JournalId::new();
+            let mut balances = HashMap::new();
+            balances.insert(
+                (journal_id, AccountId::new(), CalaCurrency::USD),
+                ClosingAccountBalance {
+                    amount: dec!(0),
+                    direction: DebitOrCredit::Credit,
+                },
+            );
+            balances.insert(
+                (journal_id, AccountId::new(), CalaCurrency::USD),
+                ClosingAccountBalance {
+                    amount: dec!(100),
+                    direction: DebitOrCredit::Credit,
+                },
+            );
+            ProfitAndLossLineItemDetail(balances)
+        }
+
+        #[test]
+        fn skips_entry_param_for_zero_balance_account() {
+            let line_item = line_item_with_zero_balance_account();
+            let entries = line_item.entries_params();
+            assert_eq!(entries.len(), 1);
         }
 
         #[test]
