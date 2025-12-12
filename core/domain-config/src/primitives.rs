@@ -3,12 +3,16 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use std::{borrow::Cow, str::FromStr};
 
+use crate::DomainConfigError;
+
 es_entity::entity_id! {
     DomainConfigId,
 }
 
-pub trait DomainConfigValue: Serialize + DeserializeOwned + Clone {
+pub trait DomainConfigValue: Serialize + DeserializeOwned + Clone + Default {
     const KEY: DomainConfigKey;
+
+    fn validate(&self) -> Result<(), DomainConfigError>;
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, sqlx::Type)]

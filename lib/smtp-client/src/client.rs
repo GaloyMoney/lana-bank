@@ -9,8 +9,6 @@ use crate::{SmtpConfig, SmtpError};
 #[derive(Clone)]
 pub struct SmtpClient {
     client: AsyncSmtpTransport<Tokio1Executor>,
-    from_email: String,
-    from_name: String,
 }
 
 impl SmtpClient {
@@ -27,23 +25,21 @@ impl SmtpClient {
                 .build()
         };
 
-        Ok(Self {
-            client,
-            from_email: config.from_email,
-            from_name: config.from_name,
-        })
+        Ok(Self { client })
     }
 
     pub async fn send_email(
         &self,
+        from_email: &str,
+        from_name: Option<&str>,
         to_email: &str,
         subject: &str,
         body: String,
     ) -> Result<(), SmtpError> {
         let email = Message::builder()
             .from(Mailbox::new(
-                Some(self.from_name.clone()),
-                self.from_email.parse()?,
+                from_name.map(str::to_string),
+                from_email.parse()?,
             ))
             .to(Mailbox::new(None, to_email.parse()?))
             .subject(subject)

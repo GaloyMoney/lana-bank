@@ -1,0 +1,6 @@
+query notificationEmailConfig {
+  notificationEmailConfig {
+    fromEmail
+    fromName
+  }
+}

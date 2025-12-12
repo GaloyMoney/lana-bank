@@ -48,6 +48,7 @@ audit = { workspace = true }
 job = { workspace = true }
 outbox = { workspace = true }
 authz = { workspace = true }
+domain-config = { workspace = true }
 cloud-storage = { workspace = true }
 tracing-utils = { workspace = true }
 

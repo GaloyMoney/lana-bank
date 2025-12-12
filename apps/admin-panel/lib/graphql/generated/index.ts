@@ -1751,6 +1751,7 @@ export type Mutation = {
   loanAgreementDownloadLinkGenerate: LoanAgreementDownloadLinksGeneratePayload;
   loanAgreementGenerate: LoanAgreementGeneratePayload;
   manualTransactionExecute: ManualTransactionExecutePayload;
+  notificationEmailConfigUpdate: NotificationEmailConfigPayload;
   pendingCreditFacilityCollateralUpdate: PendingCreditFacilityCollateralUpdatePayload;
   policyAssignCommittee: PolicyAssignCommitteePayload;
   profitAndLossStatementConfigure: ProfitAndLossStatementModuleConfigurePayload;
@@ -1992,6 +1993,11 @@ export type MutationManualTransactionExecuteArgs = {
 };
 
 
+export type MutationNotificationEmailConfigUpdateArgs = {
+  input: NotificationEmailConfigInput;
+};
+
+
 export type MutationPendingCreditFacilityCollateralUpdateArgs = {
   input: PendingCreditFacilityCollateralUpdateInput;
 };
@@ -2069,6 +2075,22 @@ export type MutationWithdrawalInitiateArgs = {
 
 export type MutationWithdrawalRevertArgs = {
   input: WithdrawalRevertInput;
+};
+
+export type NotificationEmailConfig = {
+  __typename?: 'NotificationEmailConfig';
+  fromEmail: Scalars['String']['output'];
+  fromName: Scalars['String']['output'];
+};
+
+export type NotificationEmailConfigInput = {
+  fromEmail: Scalars['String']['input'];
+  fromName: Scalars['String']['input'];
+};
+
+export type NotificationEmailConfigPayload = {
+  __typename?: 'NotificationEmailConfigPayload';
+  notificationEmailConfig: NotificationEmailConfig;
 };
 
 export type Outstanding = {
@@ -2215,6 +2237,8 @@ export enum PermissionSetName {
   DepositWriter = 'DEPOSIT_WRITER',
   GovernanceViewer = 'GOVERNANCE_VIEWER',
   GovernanceWriter = 'GOVERNANCE_WRITER',
+  NotificationEmailConfigViewer = 'NOTIFICATION_EMAIL_CONFIG_VIEWER',
+  NotificationEmailConfigWriter = 'NOTIFICATION_EMAIL_CONFIG_WRITER',
   ReportViewer = 'REPORT_VIEWER',
   ReportWriter = 'REPORT_WRITER'
 }
@@ -2330,6 +2354,7 @@ export type Query = {
   liquidations: LiquidationConnection;
   loanAgreement?: Maybe<LoanAgreement>;
   me: Me;
+  notificationEmailConfig: NotificationEmailConfig;
   pendingCreditFacilities: PendingCreditFacilityConnection;
   pendingCreditFacility?: Maybe<PendingCreditFacility>;
   permissionSets: PermissionSetConnection;
@@ -3268,6 +3293,18 @@ export type CommitteeRemoveUserMutationVariables = Exact<{
 
 
 export type CommitteeRemoveUserMutation = { __typename?: 'Mutation', committeeRemoveUser: { __typename?: 'CommitteeRemoveUserPayload', committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } }> } } };
+
+export type NotificationEmailConfigQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type NotificationEmailConfigQuery = { __typename?: 'Query', notificationEmailConfig: { __typename?: 'NotificationEmailConfig', fromEmail: string, fromName: string } };
+
+export type NotificationEmailConfigUpdateMutationVariables = Exact<{
+  input: NotificationEmailConfigInput;
+}>;
+
+
+export type NotificationEmailConfigUpdateMutation = { __typename?: 'Mutation', notificationEmailConfigUpdate: { __typename?: 'NotificationEmailConfigPayload', notificationEmailConfig: { __typename?: 'NotificationEmailConfig', fromEmail: string, fromName: string } } };
 
 export type DisbursalOnFacilityPageFragment = { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, publicId: any, amount: UsdCents, status: DisbursalStatus, createdAt: any };
 
@@ -6112,6 +6149,82 @@ export function useCommitteeRemoveUserMutation(baseOptions?: Apollo.MutationHook
 export type CommitteeRemoveUserMutationHookResult = ReturnType<typeof useCommitteeRemoveUserMutation>;
 export type CommitteeRemoveUserMutationResult = Apollo.MutationResult<CommitteeRemoveUserMutation>;
 export type CommitteeRemoveUserMutationOptions = Apollo.BaseMutationOptions<CommitteeRemoveUserMutation, CommitteeRemoveUserMutationVariables>;
+export const NotificationEmailConfigDocument = gql`
+    query notificationEmailConfig {
+  notificationEmailConfig {
+    fromEmail
+    fromName
+  }
+}
+    `;
+
+/**
+ * __useNotificationEmailConfigQuery__
+ *
+ * To run a query within a React component, call `useNotificationEmailConfigQuery` and pass it any options that fit your needs.
+ * When your component renders, `useNotificationEmailConfigQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useNotificationEmailConfigQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useNotificationEmailConfigQuery(baseOptions?: Apollo.QueryHookOptions<NotificationEmailConfigQuery, NotificationEmailConfigQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<NotificationEmailConfigQuery, NotificationEmailConfigQueryVariables>(NotificationEmailConfigDocument, options);
+      }
+export function useNotificationEmailConfigLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<NotificationEmailConfigQuery, NotificationEmailConfigQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<NotificationEmailConfigQuery, NotificationEmailConfigQueryVariables>(NotificationEmailConfigDocument, options);
+        }
+export function useNotificationEmailConfigSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<NotificationEmailConfigQuery, NotificationEmailConfigQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<NotificationEmailConfigQuery, NotificationEmailConfigQueryVariables>(NotificationEmailConfigDocument, options);
+        }
+export type NotificationEmailConfigQueryHookResult = ReturnType<typeof useNotificationEmailConfigQuery>;
+export type NotificationEmailConfigLazyQueryHookResult = ReturnType<typeof useNotificationEmailConfigLazyQuery>;
+export type NotificationEmailConfigSuspenseQueryHookResult = ReturnType<typeof useNotificationEmailConfigSuspenseQuery>;
+export type NotificationEmailConfigQueryResult = Apollo.QueryResult<NotificationEmailConfigQuery, NotificationEmailConfigQueryVariables>;
+export const NotificationEmailConfigUpdateDocument = gql`
+    mutation notificationEmailConfigUpdate($input: NotificationEmailConfigInput!) {
+  notificationEmailConfigUpdate(input: $input) {
+    notificationEmailConfig {
+      fromEmail
+      fromName
+    }
+  }
+}
+    `;
+export type NotificationEmailConfigUpdateMutationFn = Apollo.MutationFunction<NotificationEmailConfigUpdateMutation, NotificationEmailConfigUpdateMutationVariables>;
+
+/**
+ * __useNotificationEmailConfigUpdateMutation__
+ *
+ * To run a mutation, you first call `useNotificationEmailConfigUpdateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useNotificationEmailConfigUpdateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [notificationEmailConfigUpdateMutation, { data, loading, error }] = useNotificationEmailConfigUpdateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useNotificationEmailConfigUpdateMutation(baseOptions?: Apollo.MutationHookOptions<NotificationEmailConfigUpdateMutation, NotificationEmailConfigUpdateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<NotificationEmailConfigUpdateMutation, NotificationEmailConfigUpdateMutationVariables>(NotificationEmailConfigUpdateDocument, options);
+      }
+export type NotificationEmailConfigUpdateMutationHookResult = ReturnType<typeof useNotificationEmailConfigUpdateMutation>;
+export type NotificationEmailConfigUpdateMutationResult = Apollo.MutationResult<NotificationEmailConfigUpdateMutation>;
+export type NotificationEmailConfigUpdateMutationOptions = Apollo.BaseMutationOptions<NotificationEmailConfigUpdateMutation, NotificationEmailConfigUpdateMutationVariables>;
 export const GetCreditFacilityDisbursalsDocument = gql`
     query GetCreditFacilityDisbursals($publicId: PublicId!) {
   creditFacilityByPublicId(id: $publicId) {

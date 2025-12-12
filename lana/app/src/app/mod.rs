@@ -36,6 +36,7 @@ use crate::{
     storage::Storage,
     user_onboarding::UserOnboarding,
 };
+use domain_config::DomainConfigs;
 
 pub use config::*;
 use error::ApplicationError;
@@ -63,6 +64,7 @@ pub struct LanaApp {
     _user_onboarding: UserOnboarding,
     _customer_sync: CustomerSync,
     _deposit_sync: DepositSync,
+    notification: Notification,
 }
 
 impl LanaApp {
@@ -77,6 +79,7 @@ impl LanaApp {
         let audit = Audit::new(&pool);
         let outbox = Outbox::init(&pool).await?;
         let authz = Authorization::init(&pool, &audit).await?;
+        let domain_configs = DomainConfigs::new(&pool);
 
         let access = Access::init(
             &pool,
@@ -180,13 +183,15 @@ impl LanaApp {
         let contract_creation =
             ContractCreation::new(&customers, &applicants, &documents, &jobs, &authz);
 
-        Notification::init(
+        let notification = Notification::init(
             config.notification,
             &jobs,
             &outbox,
             access.users(),
             &credit,
             &customers,
+            &authz,
+            &domain_configs,
         )
         .await?;
 
@@ -217,6 +222,7 @@ impl LanaApp {
             _user_onboarding: user_onboarding,
             _customer_sync: customer_sync,
             _deposit_sync: deposit_sync,
+            notification,
         })
     }
 
@@ -298,6 +304,10 @@ impl LanaApp {
 
     pub fn contract_creation(&self) -> &ContractCreation {
         &self.contract_creation
+    }
+
+    pub fn notification(&self) -> &Notification {
+        &self.notification
     }
 
     pub async fn get_visible_nav_items(

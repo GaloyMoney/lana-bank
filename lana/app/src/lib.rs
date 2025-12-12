@@ -43,6 +43,7 @@ pub mod notification {
     pub type Notification = notification::Notification<crate::authorization::Authorization>;
     pub type EmailNotification =
         notification::email::EmailNotification<crate::authorization::Authorization>;
+    pub use notification::NotificationEmailConfig;
 }
 
 pub mod rbac {

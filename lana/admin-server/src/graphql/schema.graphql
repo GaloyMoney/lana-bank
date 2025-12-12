@@ -1714,6 +1714,7 @@ type Mutation {
 	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
 	customerTelegramIdUpdate(input: CustomerTelegramIdUpdateInput!): CustomerTelegramIdUpdatePayload!
 	customerEmailUpdate(input: CustomerEmailUpdateInput!): CustomerEmailUpdatePayload!
+	notificationEmailConfigUpdate(input: NotificationEmailConfigInput!): NotificationEmailConfigPayload!
 	depositModuleConfigure(input: DepositModuleConfigureInput!): DepositModuleConfigurePayload!
 	manualTransactionExecute(input: ManualTransactionExecuteInput!): ManualTransactionExecutePayload!
 	depositRecord(input: DepositRecordInput!): DepositRecordPayload!
@@ -1765,6 +1766,20 @@ type Mutation {
 	loanAgreementDownloadLinkGenerate(input: LoanAgreementDownloadLinksGenerateInput!): LoanAgreementDownloadLinksGeneratePayload!
 	triggerReportRun: ReportRunCreatePayload!
 	reportFileGenerateDownloadLink(input: ReportFileGenerateDownloadLinkInput!): ReportFileGenerateDownloadLinkPayload!
+}
+
+type NotificationEmailConfig {
+	fromEmail: String!
+	fromName: String!
+}
+
+input NotificationEmailConfigInput {
+	fromEmail: String!
+	fromName: String!
+}
+
+type NotificationEmailConfigPayload {
+	notificationEmailConfig: NotificationEmailConfig!
 }
 
 scalar OneTimeFeeRatePct
@@ -1937,6 +1952,8 @@ enum PermissionSetName {
 	REPORT_VIEWER
 	REPORT_WRITER
 	AUDIT_VIEWER
+	NOTIFICATION_EMAIL_CONFIG_VIEWER
+	NOTIFICATION_EMAIL_CONFIG_WRITER
 }
 
 type Policy {
@@ -2070,6 +2087,7 @@ type Query {
 	realtimePrice: RealtimePrice!
 	audit(first: Int!, after: String): AuditEntryConnection!
 	depositConfig: DepositModuleConfig
+	notificationEmailConfig: NotificationEmailConfig!
 	creditConfig: CreditModuleConfig
 	balanceSheetConfig: BalanceSheetModuleConfig
 	profitAndLossStatementConfig: ProfitAndLossStatementModuleConfig

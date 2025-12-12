@@ -15,8 +15,6 @@ app:
   notification:
     email:
       admin_panel_url: "http://admin.localhost:4455"
-      from_email: "noreply@local.test"
-      from_name: "Lana Dev"
       relay: "localhost"
       port: 1025
       insecure: true
