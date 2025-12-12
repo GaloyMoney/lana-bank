@@ -18,11 +18,6 @@ LOGGER = logging.getLogger(__name__)
 REQUEST_TIMEOUT = 60
 SUMSUB_API_BASE = "https://api.sumsub.com"
 
-
-def _utc_now() -> datetime:
-    return datetime.now(timezone.utc)
-
-
 def _sumsub_send(
     session: requests.Session,
     method: str,
