@@ -361,17 +361,13 @@ impl ChartLedger {
             params.effective_balances_until,
             balances.entries_params(net_income_recipient_account),
         );
-        let template = ClosingTransactionTemplate::init(
-            &self.cala,
-            closing_transaction_params.entries_params.len(),
-            &closing_transaction_params.description,
-        )
-        .await?;
+        let template =
+            ClosingTransactionTemplate::init(&self.cala, &closing_transaction_params).await?;
         self.cala
             .post_transaction_in_op(
                 &mut op,
                 params.tx_id,
-                &template.code(),
+                &template.code,
                 closing_transaction_params,
             )
             .await?;

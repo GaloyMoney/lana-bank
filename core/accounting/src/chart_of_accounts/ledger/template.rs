@@ -145,29 +145,25 @@ impl ClosingTransactionParams {
 }
 
 pub(super) struct ClosingTransactionTemplate {
-    pub period_designation: String,
-    pub n_entries: usize,
+    pub code: String,
 }
 
 impl ClosingTransactionTemplate {
-    pub(super) fn code(&self) -> String {
-        format!("CLOSING_TRANSACTION_{}", self.period_designation)
-    }
-
     pub(super) async fn init(
         ledger: &CalaLedger,
-        n_entries: usize,
-        period_designation: &str,
+        closing_transactions_params: &ClosingTransactionParams,
     ) -> Result<Self, TxTemplateError> {
-        let res = Self {
-            period_designation: period_designation.to_string(),
-            n_entries,
+        let period_designation = &closing_transactions_params.description;
+        let code = &format!("CLOSING_TRANSACTION_{}", period_designation);
+        if ledger.tx_templates().find_by_code(code).await.is_ok() {
+            return Ok(Self {
+                code: code.to_string(),
+            });
         };
-        res.find_or_create_template(ledger).await?;
-        Ok(res)
-    }
 
-    async fn find_or_create_template(&self, ledger: &CalaLedger) -> Result<(), TxTemplateError> {
+        let n_entries = closing_transactions_params.entries_params.len();
+        let params = ClosingTransactionParams::defs(n_entries);
+
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .description("params.description")
@@ -175,34 +171,13 @@ impl ClosingTransactionTemplate {
             .build()
             .expect("Couldn't build TxInput for ClosingTransactionTemplate");
 
-        let params = ClosingTransactionParams::defs(self.n_entries);
-        let template = NewTxTemplate::builder()
-            .id(TxTemplateId::new())
-            .code(self.code())
-            .transaction(tx_input)
-            .entries(self.entries())
-            .params(params)
-            .description(format!(
-                "Template to execute a closing transaction with {} entries.",
-                self.n_entries
-            ))
-            .build()
-            .expect("Couldn't build template for ClosingTransactionTemplate");
-        match ledger.tx_templates().create(template).await {
-            Err(TxTemplateError::DuplicateCode) => Ok(()),
-            Err(e) => Err(e),
-            Ok(_) => Ok(()),
-        }
-    }
-
-    fn entries(&self) -> Vec<NewTxTemplateEntry> {
         let mut entries = vec![];
-        for i in 0..self.n_entries {
+        for i in 0..n_entries {
             entries.push(
                 NewTxTemplateEntry::builder()
                     .entry_type(format!(
                         "'CLOSING_TRANSACTION_{}_ENTRY_{}'",
-                        self.period_designation, i
+                        period_designation, i
                     ))
                     .account_id(format!("params.{}", EntryParams::account_id_param_name(i)))
                     .units(format!("params.{}", EntryParams::amount_param_name(i)))
@@ -213,6 +188,23 @@ impl ClosingTransactionTemplate {
                     .expect("Couldn't build entry for ClosingTransactionTemplate"),
             );
         }
-        entries
+
+        let template = NewTxTemplate::builder()
+            .id(TxTemplateId::new())
+            .code(code)
+            .transaction(tx_input)
+            .entries(entries)
+            .params(params)
+            .description(format!(
+                "Template to execute a closing transaction with {} entries.",
+                n_entries
+            ))
+            .build()
+            .expect("Couldn't build template for ClosingTransactionTemplate");
+        ledger.tx_templates().create(template).await?;
+
+        Ok(Self {
+            code: code.to_string(),
+        })
     }
 }
