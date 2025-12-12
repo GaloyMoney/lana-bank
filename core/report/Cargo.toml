@@ -14,7 +14,6 @@ json-schema = [
 ]
 
 [dependencies]
-airflow = { workspace = true }
 audit = { workspace = true }
 authz = { workspace = true }
 outbox = { workspace = true }
@@ -31,6 +30,5 @@ chrono = { workspace = true }
 tracing = { workspace = true }
 tracing-macros = { workspace = true }
 tracing-utils = { workspace = true }
-async-trait = { workspace = true }
 schemars = { workspace = true, optional = true }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }

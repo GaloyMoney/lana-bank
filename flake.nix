@@ -205,8 +205,6 @@
 
       craneLibMusl = (crane.mkLib pkgs).overrideToolchain rustToolchainMusl;
 
-      meltanoPkgs = pkgs.callPackage ./nix/meltano.nix {};
-
       nativeBuildInputs = with pkgs;
         [
           wait4x
@@ -245,7 +243,6 @@
           curl
           tilt
           procps
-          meltanoPkgs.meltano
           poppler-utils
           keycloak
           tokio-console
@@ -279,8 +276,6 @@
     in
       with pkgs; {
         packages = {
-          meltano = meltanoPkgs.meltano;
-          meltano-image = meltanoPkgs.meltano-image;
           default = lana-cli-debug;
           lana-cli-debug = lana-cli-debug;
           lana-cli-release = lana-cli-release;
@@ -880,7 +875,6 @@
             inherit nativeBuildInputs;
             shellHook = ''
               export LANA_CONFIG="$(pwd)/bats/lana.yml"
-              export MELTANO_PROJECT_ROOT="$(pwd)/meltano"
 
               # Font configuration for PDF generation
               export FONTCONFIG_FILE=${pkgs.fontconfig.out}/etc/fonts/fonts.conf

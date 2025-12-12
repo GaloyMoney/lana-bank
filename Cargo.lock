@@ -100,21 +100,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "airflow"
-version = "0.0.0"
-dependencies = [
- "chrono",
- "reqwest",
- "serde",
- "thiserror 2.0.17",
- "tracing",
- "tracing-macros",
- "tracing-utils",
- "url",
- "workspace-hack",
-]
-
-[[package]]
 name = "allocator-api2"
 version = "0.2.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1627,8 +1612,6 @@ dependencies = [
 name = "core-report"
 version = "0.0.0"
 dependencies = [
- "airflow",
- "async-trait",
  "audit",
  "authz",
  "chrono",

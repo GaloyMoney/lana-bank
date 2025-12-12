@@ -22,8 +22,6 @@ pub enum ReportError {
     ReportError(#[from] crate::report::error::ReportError),
     #[error("ReportError - ReportRunError: {0}")]
     ReportRunError(#[from] crate::report_run::error::ReportRunError),
-    #[error("ReportError - AirflowError: {0}")]
-    AirflowError(#[from] airflow::AirflowError),
     #[error("ReportError - Disabled")]
     Disabled,
     #[error("ReportError - NotFound")]
@@ -44,7 +42,6 @@ impl ErrorSeverity for ReportError {
             Self::StorageError(e) => e.severity(),
             Self::ReportError(e) => e.severity(),
             Self::ReportRunError(e) => e.severity(),
-            Self::AirflowError(e) => e.severity(),
             Self::Disabled => Level::WARN,
             Self::NotFound => Level::WARN,
         }

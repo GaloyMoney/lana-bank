@@ -18,7 +18,6 @@ version = "0.0.0"
 [workspace.dependencies]
 # Internal dependencies
 # Lib dependencies
-airflow = { path = "lib/airflow" }
 audit = { path = "lib/audit" }
 authz = { path = "lib/authz" }
 bitgo = { path = "lib/bitgo" }

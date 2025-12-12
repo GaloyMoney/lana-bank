@@ -35,6 +35,7 @@ where
         }
     }
 
+    #[allow(dead_code)]
     async fn publish(
         &self,
         db: &mut impl es_entity::AtomicOperation,
