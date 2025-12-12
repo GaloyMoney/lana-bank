@@ -1166,7 +1166,7 @@
         "title": "Garantía enviada",
         "description": "Garantía enviada durante la liquidación",
         "columns": {
-          "amount": "Cantidad (BTC)",
+          "amount": "Monto",
           "ledgerTxId": "ID de transacción contable"
         },
         "messages": {
@@ -1177,7 +1177,7 @@
         "title": "Pago recibido",
         "description": "Pagos recibidos de la liquidación",
         "columns": {
-          "amount": "Monto (USD)",
+          "amount": "Monto",
           "ledgerTxId": "ID de partida contable"
         },
         "messages": {
