@@ -91,6 +91,10 @@ checksums:
     Permissions/governance_viewer/description: 84a7ff7991222611fe8a7d55bd61aacc
     Permissions/governance_writer/label: b9dd0624ee128d1ece7da289d0c28eb5
     Permissions/governance_writer/description: 56c0335d078338288795e0cd66062197
+    Permissions/notification_email_config_viewer/label: 04a7848c3529d9347a3f47084102ac6c
+    Permissions/notification_email_config_viewer/description: 4f00a2c98c96adbcc6e06198f5606faf
+    Permissions/notification_email_config_writer/label: f1fcc74d45a6b0ba8017e188b27cb1ec
+    Permissions/notification_email_config_writer/description: fe822d3d451d1d69dd430f76e2ad3944
     Permissions/custody_viewer/label: 0367a13b223d99c79edcac6d4bc69d38
     Permissions/custody_viewer/description: 5be32922e339e74936937610f32d03d4
     Permissions/custody_writer/label: d7d4513c6a80a74f28e925ad18a81fc1
@@ -99,6 +103,15 @@ checksums:
     Permissions/report_viewer/description: b9a52307adee71b1c818d70ac5160696
     Permissions/report_writer/label: abba08c361cb57585c6bf6dde57051db
     Permissions/report_writer/description: d0bb9b9ba3824a2e4c9fadb87d926881
+    Configurations/notificationEmail/title: b985a2fd021fe1e0db711fb99f453c09
+    Configurations/notificationEmail/description: 36b803104adeda10b7da625a9d727ee1
+    Configurations/notificationEmail/fromEmail: a1e0b8feec2dd2e908eb7c87d7a93df8
+    Configurations/notificationEmail/fromName: 1c0419f91e21d495a26e10a14e2f3188
+    Configurations/notificationEmail/reset: c19c53a05e21c7f3b395247809a14b51
+    Configurations/notificationEmail/save: f7a2929f33bc420195e59ac5a8bcd454
+    Configurations/notificationEmail/saveSuccess: af7f32e1027ffb939cbe97a98f69fe6e
+    Configurations/notificationEmail/saveError: 82584a6533562246393c38fb93c7b2da
+    Configurations/notificationEmail/saveErrorWithReason: 5308e02e10c0e633d7436b602ca685ae
     interestInterval/endOfDay: 24234805a9fd10dfe74eaeafec362699
     interestInterval/endOfMonth: df268ce61af23ae591e0a727f34ad13f
     period/days: 47648cd60fc313bc3f05b70357a1d675
@@ -137,6 +150,7 @@ checksums:
     Sidebar/navItems/transactionTemplates: cdfe1e063b21076f6b5dc06d5c6cce33
     Sidebar/navItems/rolesAndPermissions: 766190959c36bdfa5506b087f190707d
     Sidebar/navItems/custodians: c69cf14ea7b8332077f570c0c8b06585
+    Sidebar/navItems/configurations: 073691963088b401d00d351cd4f6a58b
     Sidebar/footer/appName: 7dfeb06f156f842109c07f26a73cb311
     Sidebar/footer/version: d640a8609bd8374f70e40f862250cb70
     UserBlock/settings: 8df6777277469c1fd88cc18dde2f1cc3
