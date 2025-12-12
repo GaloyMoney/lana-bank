@@ -5,7 +5,7 @@ pub mod templates;
 
 use ::job::{JobId, Jobs};
 use core_access::user::Users;
-use core_credit::{CoreCredit, CreditFacilityId, ObligationId, ObligationType};
+use core_credit::{CoreCredit, CreditFacilityId, ObligationId, ObligationType, PriceOfOneBTC};
 use core_customer::Customers;
 use domain_config::DomainConfigs;
 use job::{EmailSenderConfig, EmailSenderInit};
@@ -14,7 +14,7 @@ use smtp_client::SmtpClient;
 
 use templates::{
     DepositAccountCreatedEmailData, EmailTemplate, EmailType, OverduePaymentEmailData,
-    RoleCreatedEmailData,
+    PartialLiquidationInitiatedEmailData, RoleCreatedEmailData,
 };
 
 pub use config::{EmailInfraConfig, NotificationEmailConfig};
@@ -139,6 +139,71 @@ where
                     .await?;
             }
         }
+        Ok(())
+    }
+
+    pub async fn send_partial_liquidation_initiated_notification(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        credit_facility_id: &CreditFacilityId,
+        trigger_price: &PriceOfOneBTC,
+        initially_estimated_to_liquidate: &core_money::Satoshis,
+        initially_expected_to_receive: &core_money::UsdCents,
+    ) -> Result<(), EmailError> {
+        let credit_facility = self
+            .credit
+            .facilities()
+            .find_by_id_without_audit(*credit_facility_id)
+            .await?;
+
+        let customer = self
+            .customers
+            .find_by_id_without_audit(credit_facility.customer_id)
+            .await?;
+
+        let email_data = PartialLiquidationInitiatedEmailData {
+            facility_id: credit_facility_id.to_string(),
+            trigger_price: *trigger_price,
+            initially_estimated_to_liquidate: *initially_estimated_to_liquidate,
+            initially_expected_to_receive: *initially_expected_to_receive,
+            customer_email: customer.email.clone(),
+        };
+
+        let mut has_next_page = true;
+        let mut after = None;
+        while has_next_page {
+            let es_entity::PaginatedQueryRet {
+                entities: users,
+                has_next_page: next_page,
+                end_cursor,
+            } = self
+                .users
+                .list_users_without_audit(
+                    es_entity::PaginatedQueryArgs { first: 20, after },
+                    es_entity::ListDirection::Descending,
+                )
+                .await?;
+            (after, has_next_page) = (end_cursor, next_page);
+
+            for user in users {
+                let email_config = EmailSenderConfig {
+                    recipient: user.email,
+                    email_type: EmailType::PartialLiquidationInitiated(email_data.clone()),
+                };
+                self.jobs
+                    .create_and_spawn_in_op(op, JobId::new(), email_config)
+                    .await?;
+            }
+        }
+
+        let email_config = EmailSenderConfig {
+            recipient: customer.email,
+            email_type: EmailType::PartialLiquidationInitiated(email_data),
+        };
+
+        self.jobs
+            .create_and_spawn_in_op(op, JobId::new(), email_config)
+            .await?;
         Ok(())
     }
 
