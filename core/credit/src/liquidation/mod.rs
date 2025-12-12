@@ -130,6 +130,8 @@ where
             // TODO: ledger send collateral for liquidation
         }
 
+        db.commit().await?;
+
         Ok(liquidation)
     }
 
@@ -164,6 +166,8 @@ where
         {
             self.repo.update_in_op(&mut db, &mut liquidation).await?;
         }
+
+        db.commit().await?;
 
         Ok(liquidation)
     }
