@@ -1,5 +1,4 @@
 use async_trait::async_trait;
-use futures::StreamExt as _;
 use serde::{Deserialize, Serialize};
 use tokio::select;
 use tracing::{Span, instrument};

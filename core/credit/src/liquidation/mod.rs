@@ -141,7 +141,7 @@ where
             self.repo.update_in_op(&mut db, &mut liquidation).await?;
             self.ledger
                 .record_collateral_sent_in_op(
-                    db,
+                    &mut db,
                     tx_id,
                     amount,
                     liquidation.collateral_account_id,
@@ -149,6 +149,8 @@ where
                 )
                 .await?;
         }
+
+        db.commit().await?;
 
         Ok(liquidation)
     }
@@ -184,7 +186,7 @@ where
             self.repo.update_in_op(&mut db, &mut liquidation).await?;
             self.ledger
                 .record_payment_from_liquidation_in_op(
-                    db,
+                    &mut db,
                     tx_id,
                     amount,
                     self.omnibus_account_ids.account_id,
