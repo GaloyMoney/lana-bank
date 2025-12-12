@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use core_money::UsdCents;
+use core_money::{Satoshis, UsdCents};
 use handlebars::Handlebars;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -9,6 +9,7 @@ use crate::email::error::EmailError;
 #[derive(Debug, Serialize, Deserialize)]
 pub enum EmailType {
     OverduePayment(OverduePaymentEmailData),
+    PartialLiquidationInitiated(PartialLiquidationInitiatedEmailData),
     DepositAccountCreated(DepositAccountCreatedEmailData),
     RoleCreated(RoleCreatedEmailData),
     General { subject: String, body: String },
@@ -29,6 +30,10 @@ impl EmailTemplate {
         handlebars.register_template_string("general", include_str!("views/general.hbs"))?;
         handlebars.register_template_string("overdue", include_str!("views/overdue.hbs"))?;
         handlebars.register_template_string(
+            "partial_liquidation",
+            include_str!("views/partial_liquidation.hbs"),
+        )?;
+        handlebars.register_template_string(
             "account_created",
             include_str!("views/account_created.hbs"),
         )?;
@@ -44,6 +49,9 @@ impl EmailTemplate {
     pub fn render_email(&self, email_type: &EmailType) -> Result<(String, String), EmailError> {
         match email_type {
             EmailType::OverduePayment(data) => self.render_overdue_payment_email(data),
+            EmailType::PartialLiquidationInitiated(data) => {
+                self.render_partial_liquidation_initiated_email(data)
+            }
             EmailType::DepositAccountCreated(data) => {
                 self.render_deposit_account_created_email(data)
             }
@@ -94,6 +102,33 @@ impl EmailTemplate {
     }
 
     #[allow(clippy::result_large_err)]
+    fn render_partial_liquidation_initiated_email(
+        &self,
+        data: &PartialLiquidationInitiatedEmailData,
+    ) -> Result<(String, String), EmailError> {
+        let subject = format!(
+            "Lana Bank: Partial Liquidation Initiated - {}",
+            data.facility_id,
+        );
+        let facility_url = format!(
+            "{}/credit-facilities/{}",
+            self.admin_panel_url, data.facility_id
+        );
+        // also add url for liqudiation on staging?
+        let data = json!({
+            "subject": &subject,
+            "facility_id": &data.facility_id,
+            "customer_email": &data.customer_email,
+            "trigger_price": data.trigger_price.into_inner().formatted_usd(),
+            "expected_to_receive": data.initially_expected_to_receive.formatted_usd(),
+            "estimated_to_liquidate": data.initially_estimated_to_liquidate.formatted_btc(),
+            "facility_url": &facility_url,
+        });
+        let html_body = self.handlebars.render("partial_liquidation", &data)?;
+        Ok((subject, html_body))
+    }
+
+    #[allow(clippy::result_large_err)]
     fn render_deposit_account_created_email(
         &self,
         data: &DepositAccountCreatedEmailData,
@@ -131,6 +166,15 @@ pub struct OverduePaymentEmailData {
     pub original_amount: UsdCents,
     pub outstanding_amount: UsdCents,
     pub due_date: DateTime<Utc>,
+    pub customer_email: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PartialLiquidationInitiatedEmailData {
+    pub facility_id: String,
+    pub trigger_price: core_credit::PriceOfOneBTC,
+    pub initially_expected_to_receive: UsdCents,
+    pub initially_estimated_to_liquidate: Satoshis,
     pub customer_email: String,
 }
 
