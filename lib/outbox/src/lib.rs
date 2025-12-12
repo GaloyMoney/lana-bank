@@ -135,7 +135,7 @@ where
         ))
     }
 
-    #[tracing::instrument(name = "outbox.listen_persisted", skip(self), fields(start_after = ?start_after))]
+    #[tracing::instrument(name = "outbox.listen_persisted", skip(self), fields(start_after = ?start_after), err)]
     pub async fn listen_persisted(
         &self,
         start_after: Option<EventSequence>,
@@ -149,7 +149,7 @@ where
         })))
     }
 
-    #[tracing::instrument(name = "outbox.listen_ephemeral", skip(self))]
+    #[tracing::instrument(name = "outbox.listen_ephemeral", skip(self), err)]
     pub async fn listen_ephemeral(
         &self,
     ) -> Result<BoxStream<'_, Arc<EphemeralOutboxEvent<P>>>, OutboxError> {
