@@ -183,6 +183,7 @@
       "pendingCreditFacilities": "Pending Credit Facilities",
       "creditFacilityProposals": "Credit Facility Proposals",
       "disbursals": "Disbursals",
+      "liquidations": "Liquidations",
       "termTemplates": "Term Templates",
       "customers": "Customers",
       "policies": "Policies",
@@ -1104,10 +1105,31 @@
     }
   },
   "Liquidations": {
+    "title": "Liquidations",
+    "description": "Liquidations across all credit facilities",
+    "table": {
+      "headers": {
+        "liquidationId": "Liquidation ID",
+        "creditFacility": "Credit Facility",
+        "status": "Status",
+        "expectedToReceive": "Expected to Receive",
+        "sentTotal": "Sent Total",
+        "receivedTotal": "Received Total",
+        "createdAt": "Created At"
+      }
+    },
+    "status": {
+      "completed": "Completed",
+      "inProgress": "In Progress"
+    },
+    "errors": {
+      "general": "An error occurred"
+    },
     "LiquidationDetails": {
       "DetailsCard": {
         "title": "Liquidation",
         "details": {
+          "customerEmail": "Customer Email",
           "status": "Status",
           "expectedToReceive": "Expected to Receive",
           "sentTotal": "Sent Total",
@@ -1117,13 +1139,34 @@
         "status": {
           "completed": "Completed",
           "inProgress": "In Progress"
+        },
+        "buttons": {
+          "recordCollateralSent": "Record Collateral Sent",
+          "recordPaymentReceived": "Record Payment Received",
+          "viewCreditFacility": "View Credit Facility"
+        }
+      },
+      "CreditFacilityCard": {
+        "title": "Credit Facility",
+        "details": {
+          "creditFacility": "Credit Facility",
+          "customer": "Customer",
+          "status": "Status",
+          "collateralizationState": "Collateralization State",
+          "facilityAmount": "Facility Amount",
+          "totalOutstanding": "Total Outstanding",
+          "collateralBalance": "Collateral Balance",
+          "currentCvl": "Current CVL",
+          "liquidationCvl": "Liquidation CVL",
+          "activatedAt": "Activated At",
+          "maturesAt": "Matures At"
         }
       },
       "CollateralSent": {
         "title": "Collateral Sent",
         "description": "Collateral sent out during liquidation",
         "columns": {
-          "amount": "Amount (BTC)",
+          "amount": "Amount",
           "ledgerTxId": "Ledger Transaction ID"
         },
         "messages": {
@@ -1134,12 +1177,42 @@
         "title": "Payment Received",
         "description": "Payments received from liquidation",
         "columns": {
-          "amount": "Amount (USD)",
+          "amount": "Amount",
           "ledgerTxId": "Ledger Transaction ID"
         },
         "messages": {
           "emptyTable": "No payments received"
         }
+      },
+      "recordCollateralSent": {
+        "title": "Record Collateral Sent",
+        "description": "Record the amount of collateral sent during liquidation",
+        "fields": {
+          "amount": "Amount",
+          "amountPlaceholder": "Enter amount in BTC"
+        },
+        "buttons": {
+          "submit": "Record Collateral Sent"
+        },
+        "errors": {
+          "invalidAmount": "Please enter a valid amount greater than 0"
+        },
+        "success": "Collateral sent recorded successfully"
+      },
+      "recordPaymentReceived": {
+        "title": "Record Payment Received",
+        "description": "Record the amount of payment received from liquidation",
+        "fields": {
+          "amount": "Amount",
+          "amountPlaceholder": "Enter amount in USD"
+        },
+        "buttons": {
+          "submit": "Record Payment Received"
+        },
+        "errors": {
+          "invalidAmount": "Please enter a valid amount greater than 0"
+        },
+        "success": "Payment received recorded successfully"
       }
     }
   },

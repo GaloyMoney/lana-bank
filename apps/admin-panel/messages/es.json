@@ -183,6 +183,7 @@
       "pendingCreditFacilities": "Líneas de Crédito Pendientes",
       "creditFacilityProposals": "Propuestas de Línea de Crédito",
       "disbursals": "Desembolsos",
+      "liquidations": "Liquidaciones",
       "termTemplates": "Plantillas de Términos",
       "customers": "Clientes",
       "policies": "Políticas",
@@ -1104,10 +1105,31 @@
     }
   },
   "Liquidations": {
+    "title": "Liquidaciones",
+    "description": "Liquidaciones en todas las líneas de crédito",
+    "table": {
+      "headers": {
+        "liquidationId": "ID de liquidación",
+        "creditFacility": "Línea de Crédito",
+        "status": "Estado",
+        "expectedToReceive": "Esperado a recibir",
+        "sentTotal": "Total enviado",
+        "receivedTotal": "Total recibido",
+        "createdAt": "Fecha de registro"
+      }
+    },
+    "status": {
+      "completed": "Completado",
+      "inProgress": "En progreso"
+    },
+    "errors": {
+      "general": "Ocurrió un error"
+    },
     "LiquidationDetails": {
       "DetailsCard": {
         "title": "Liquidación",
         "details": {
+          "customerEmail": "Correo Electrónico del Cliente",
           "status": "Estado",
           "expectedToReceive": "Esperado a recibir",
           "sentTotal": "Total enviado",
@@ -1117,6 +1139,27 @@
         "status": {
           "completed": "Completado",
           "inProgress": "En progreso"
+        },
+        "buttons": {
+          "recordCollateralSent": "Registrar garantía enviada",
+          "recordPaymentReceived": "Registrar pago recibido",
+          "viewCreditFacility": "Ver Línea de Crédito"
+        }
+      },
+      "CreditFacilityCard": {
+        "title": "Línea de Crédito",
+        "details": {
+          "creditFacility": "Línea de Crédito",
+          "customer": "Cliente",
+          "status": "Estado",
+          "collateralizationState": "Estado de Colateralización",
+          "facilityAmount": "Monto de línea",
+          "totalOutstanding": "Total pendiente",
+          "collateralBalance": "Garantía",
+          "currentCvl": "CVL actual",
+          "liquidationCvl": "CVL de liquidación",
+          "activatedAt": "Fecha de desembolso",
+          "maturesAt": "Fecha de vencimiento"
         }
       },
       "CollateralSent": {
@@ -1140,6 +1183,36 @@
         "messages": {
           "emptyTable": "No se han recibido pagos"
         }
+      },
+      "recordCollateralSent": {
+        "title": "Registrar garantía enviada",
+        "description": "Registre la cantidad de garantía enviada durante la liquidación",
+        "fields": {
+          "amount": "Cantidad",
+          "amountPlaceholder": "Ingrese la cantidad en BTC"
+        },
+        "buttons": {
+          "submit": "Registrar garantía enviada"
+        },
+        "errors": {
+          "invalidAmount": "Por favor ingrese una cantidad válida mayor que 0"
+        },
+        "success": "Garantía enviada registrada exitosamente"
+      },
+      "recordPaymentReceived": {
+        "title": "Registrar pago recibido",
+        "description": "Registre la cantidad de pago recibido de la liquidación",
+        "fields": {
+          "amount": "Cantidad",
+          "amountPlaceholder": "Ingrese la cantidad en USD"
+        },
+        "buttons": {
+          "submit": "Registrar pago recibido"
+        },
+        "errors": {
+          "invalidAmount": "Por favor ingrese una cantidad válida mayor que 0"
+        },
+        "success": "Pago recibido registrado exitosamente"
       }
     }
   },

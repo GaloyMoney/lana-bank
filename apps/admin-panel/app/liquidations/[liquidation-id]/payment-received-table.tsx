@@ -25,6 +25,7 @@ export const LiquidationPaymentReceivedTable: React.FC<
     {
       key: "amount",
       header: t("columns.amount"),
+      width: "200px",
       render: (amount: PaymentReceived["amount"]) => (
         <Balance amount={amount} currency="usd" />
       ),
@@ -32,19 +33,25 @@ export const LiquidationPaymentReceivedTable: React.FC<
     {
       key: "ledgerTxId",
       header: t("columns.ledgerTxId"),
+      width: "250px",
       render: (txId: PaymentReceived["ledgerTxId"]) => (
-        <span className="font-mono text-xs">{txId}</span>
+        <span className="font-mono text-xs" title={txId}>
+          {txId.slice(0, 8)}...{txId.slice(-8)}
+        </span>
       ),
     },
   ]
 
   return (
-    <CardWrapper title={t("title")} description={t("description")}>
-      <DataTable
-        data={paymentsReceived}
-        columns={columns}
-        emptyMessage={t("messages.emptyTable")}
-      />
-    </CardWrapper>
+    <div className="flex-1">
+      <CardWrapper title={t("title")} description={t("description")}>
+        <DataTable
+          data={paymentsReceived}
+          columns={columns}
+          emptyMessage={t("messages.emptyTable")}
+          navigateTo={(item) => `/ledger-transactions/${item.ledgerTxId}`}
+        />
+      </CardWrapper>
+    </div>
   )
 }
