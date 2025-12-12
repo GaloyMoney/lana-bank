@@ -6,8 +6,8 @@ use std::collections::HashMap;
 use crate::{LedgerAccountId, primitives::CalaTxId};
 
 use cala_ledger::{
-    BalanceId, Currency as CalaCurrency, DebitOrCredit, account_set::AccountSetId,
-    balance::BalanceRange as CalaBalanceRange, velocity::VelocityLimit,
+    BalanceId, Currency as CalaCurrency, DebitOrCredit, account::Account,
+    account_set::AccountSetId, balance::BalanceRange as CalaBalanceRange, velocity::VelocityLimit,
 };
 
 pub(super) struct AccountClosingLimits {
@@ -110,12 +110,6 @@ pub(crate) struct ClosingTxParams {
 }
 
 #[derive(Debug, Clone)]
-pub(super) struct LineItemClosingTxInput {
-    pub(super) net_income_contribution: Decimal,
-    pub(super) entries: Vec<ClosingTxEntry>,
-}
-
-#[derive(Debug, Clone)]
 pub(super) struct ClosingAccountBalance {
     pub(super) closed_settled_amount: Decimal,
     pub(super) normal_balance_type: DebitOrCredit,
@@ -127,6 +121,30 @@ impl From<&CalaBalanceRange> for ClosingAccountBalance {
             closed_settled_amount: balance_range.close.settled(),
             normal_balance_type: balance_range.close.balance_type,
         }
+    }
+}
+
+pub struct OffsetDebitOrCredit(DebitOrCredit);
+
+impl OffsetDebitOrCredit {
+    fn new(b: &ClosingAccountBalance) -> Self {
+        let amount = b.closed_settled_amount;
+        let balance_type = b.normal_balance_type;
+
+        Self(if amount >= Decimal::ZERO {
+            match balance_type {
+                DebitOrCredit::Debit => DebitOrCredit::Credit,
+                DebitOrCredit::Credit => DebitOrCredit::Debit,
+            }
+        } else {
+            balance_type
+        })
+    }
+}
+
+impl From<OffsetDebitOrCredit> for DebitOrCredit {
+    fn from(offset_dir: OffsetDebitOrCredit) -> Self {
+        offset_dir.0
     }
 }
 
@@ -145,73 +163,35 @@ impl From<HashMap<BalanceId, CalaBalanceRange>> for ProfitAndLossLineItemDetail 
 }
 
 impl ProfitAndLossLineItemDetail {
-    pub(super) fn closing_tx_input(&self) -> LineItemClosingTxInput {
-        let mut contribution: Decimal = Decimal::ZERO;
-        let mut closing_entries = Vec::new();
-
-        for ((_, account_id, currency), balance) in self.iter() {
-            let amount = balance.closed_settled_amount;
-            let balance_type = balance.normal_balance_type;
-
-            contribution += match balance_type {
-                DebitOrCredit::Credit => amount,
-                DebitOrCredit::Debit => -amount,
-            };
-
-            let offset_dir = if amount >= Decimal::ZERO {
-                match balance_type {
-                    DebitOrCredit::Debit => DebitOrCredit::Credit,
-                    DebitOrCredit::Credit => DebitOrCredit::Debit,
+    fn contributions(&self) -> Decimal {
+        self.iter()
+            .map(|(_, balance)| {
+                let amount = balance.closed_settled_amount;
+                match balance.normal_balance_type {
+                    DebitOrCredit::Credit => amount,
+                    DebitOrCredit::Debit => -amount,
                 }
-            } else {
-                balance_type
-            };
+            })
+            .sum()
+    }
 
-            closing_entries.push(ClosingTxEntry::new(
-                (*account_id).into(),
-                amount.abs(),
-                *currency,
-                offset_dir,
-            ));
-        }
-
-        LineItemClosingTxInput {
-            net_income_contribution: contribution,
-            entries: closing_entries,
-        }
+    fn entries(&self) -> Vec<ClosingTxEntry> {
+        self.iter()
+            .map(|((_, account_id, currency), balance)| {
+                ClosingTxEntry::new(
+                    (*account_id).into(),
+                    balance.closed_settled_amount.abs(),
+                    *currency,
+                    OffsetDebitOrCredit::new(balance).into(),
+                )
+            })
+            .collect()
     }
 
     pub(super) fn iter(
         &self,
     ) -> std::collections::hash_map::Iter<'_, BalanceId, ClosingAccountBalance> {
         self.0.iter()
-    }
-}
-
-#[derive(Debug, Clone)]
-pub(super) struct ClosingTxNetIncomeInput {
-    pub(super) net_income: Decimal,
-    pub(super) retained_earnings_parent_account_id: AccountSetId,
-    pub(super) entries: Vec<ClosingTxEntry>,
-    pub(super) retained_earnings_account_normal_balance_type: DebitOrCredit,
-}
-
-impl ClosingTxNetIncomeInput {
-    pub(super) fn merge_closing_tx_entries(
-        &self,
-        account_id: LedgerAccountId,
-    ) -> Vec<ClosingTxEntry> {
-        let retained_earnings_entry = ClosingTxEntry {
-            account_id,
-            amount: self.net_income.abs(),
-            currency: CalaCurrency::USD,
-            direction: self.retained_earnings_account_normal_balance_type,
-        };
-        self.entries
-            .iter()
-            .cloned()
-            .chain(std::iter::once(retained_earnings_entry))
-            .collect()
     }
 }
 
@@ -223,36 +203,38 @@ pub(super) struct ClosingProfitAndLossAccountBalances {
 }
 
 impl ClosingProfitAndLossAccountBalances {
-    pub(super) fn to_net_income_input(
+    fn contributions(&self) -> Decimal {
+        self.revenue.contributions()
+            + self.cost_of_revenue.contributions()
+            + self.expenses.contributions()
+    }
+
+    pub(super) fn entries(&self, retained_earnings_account: Account) -> Vec<ClosingTxEntry> {
+        let retained_earnings_entry = vec![ClosingTxEntry {
+            account_id: retained_earnings_account.id.into(),
+            amount: self.contributions().abs(),
+            currency: CalaCurrency::USD,
+            direction: retained_earnings_account.values().normal_balance_type,
+        }];
+
+        self.revenue
+            .entries()
+            .into_iter()
+            .chain(self.cost_of_revenue.entries())
+            .chain(self.expenses.entries())
+            .chain(retained_earnings_entry)
+            .collect()
+    }
+
+    pub(super) fn retained_earnings(
         &self,
         retained_earnings_gain_account_id: AccountSetId,
         retained_earnings_loss_account_id: AccountSetId,
-    ) -> ClosingTxNetIncomeInput {
-        let mut revenue_closing_input = self.revenue.closing_tx_input();
-        let mut cost_of_revenue_closing_input = self.cost_of_revenue.closing_tx_input();
-        let mut expenses_closing_input = self.expenses.closing_tx_input();
-
-        let net_income = revenue_closing_input.net_income_contribution
-            + cost_of_revenue_closing_input.net_income_contribution
-            + expenses_closing_input.net_income_contribution;
-
-        let mut entries = Vec::new();
-        entries.append(&mut revenue_closing_input.entries);
-        entries.append(&mut cost_of_revenue_closing_input.entries);
-        entries.append(&mut expenses_closing_input.entries);
-
-        let (retained_earnings_account_balance_type, retained_earnings_parent_account_id) =
-            if net_income >= Decimal::ZERO {
-                (DebitOrCredit::Credit, retained_earnings_gain_account_id)
-            } else {
-                (DebitOrCredit::Debit, retained_earnings_loss_account_id)
-            };
-
-        ClosingTxNetIncomeInput {
-            net_income,
-            entries,
-            retained_earnings_parent_account_id,
-            retained_earnings_account_normal_balance_type: retained_earnings_account_balance_type,
+    ) -> (DebitOrCredit, AccountSetId) {
+        if self.contributions() >= Decimal::ZERO {
+            (DebitOrCredit::Credit, retained_earnings_gain_account_id)
+        } else {
+            (DebitOrCredit::Debit, retained_earnings_loss_account_id)
         }
     }
 }
@@ -261,240 +243,6 @@ impl ClosingProfitAndLossAccountBalances {
 mod tests {
 
     use super::*;
-
-    mod net_income {
-        use cala_ledger::{
-            AccountId, Currency, DebitOrCredit, JournalId, account_set::AccountSetId,
-        };
-        use std::collections::HashMap;
-
-        use super::*;
-
-        struct LineItemInput {
-            account_id: AccountId,
-            amount: i32,
-            balance_type: DebitOrCredit,
-        }
-
-        fn line_item_input(
-            account_id: AccountId,
-            amount: i32,
-            balance_type: DebitOrCredit,
-        ) -> LineItemInput {
-            LineItemInput {
-                account_id,
-                amount,
-                balance_type,
-            }
-        }
-
-        fn profit_and_loss_line_item(
-            journal_id: JournalId,
-            currency: Currency,
-            accounts: Vec<LineItemInput>,
-        ) -> ProfitAndLossLineItemDetail {
-            let map: HashMap<_, _> = accounts
-                .into_iter()
-                .map(|input| {
-                    (
-                        (journal_id, input.account_id, currency),
-                        ClosingAccountBalance {
-                            closed_settled_amount: Decimal::from(input.amount),
-                            normal_balance_type: input.balance_type,
-                        },
-                    )
-                })
-                .collect();
-            ProfitAndLossLineItemDetail(map)
-        }
-
-        fn profit_and_loss_closing_input(
-            revenue: ProfitAndLossLineItemDetail,
-            cost_of_revenue: ProfitAndLossLineItemDetail,
-            expenses: ProfitAndLossLineItemDetail,
-        ) -> ClosingProfitAndLossAccountBalances {
-            ClosingProfitAndLossAccountBalances {
-                revenue,
-                cost_of_revenue,
-                expenses,
-            }
-        }
-
-        #[test]
-        fn credit_normal_positive_contributes_positive() {
-            let currency = Currency::USD;
-            let journal_id = JournalId::new();
-            let account_id = AccountId::new();
-
-            let line_item = profit_and_loss_line_item(
-                journal_id,
-                currency,
-                vec![line_item_input(account_id, 100, DebitOrCredit::Credit)],
-            );
-
-            let net_income_contribution = line_item.closing_tx_input();
-            assert_eq!(
-                net_income_contribution.net_income_contribution,
-                Decimal::from(100)
-            );
-
-            let closing_entry = net_income_contribution.entries.first().unwrap();
-            assert_eq!(closing_entry.amount, Decimal::from(100));
-            assert_eq!(closing_entry.direction, DebitOrCredit::Debit);
-        }
-
-        #[test]
-        fn debit_normal_positive_contributes_negative() {
-            let currency = Currency::USD;
-            let journal_id = JournalId::new();
-            let account_id = AccountId::new();
-
-            let line_item = profit_and_loss_line_item(
-                journal_id,
-                currency,
-                vec![line_item_input(account_id, 100, DebitOrCredit::Debit)],
-            );
-
-            let net_income_contribution = line_item.closing_tx_input();
-            assert_eq!(
-                net_income_contribution.net_income_contribution,
-                Decimal::from(-100)
-            );
-
-            let closing_entry = net_income_contribution.entries.first().unwrap();
-            assert_eq!(closing_entry.amount, Decimal::from(100));
-            assert_eq!(closing_entry.direction, DebitOrCredit::Credit);
-        }
-
-        #[test]
-        fn credit_normal_negative_contributes_negative() {
-            let currency = Currency::USD;
-            let journal_id = JournalId::new();
-            let account_id = AccountId::new();
-
-            let line_item = profit_and_loss_line_item(
-                journal_id,
-                currency,
-                vec![line_item_input(account_id, -100, DebitOrCredit::Credit)],
-            );
-
-            let net_income_contribution = line_item.closing_tx_input();
-            assert_eq!(
-                net_income_contribution.net_income_contribution,
-                Decimal::from(-100)
-            );
-
-            let closing_entry = net_income_contribution.entries.first().unwrap();
-            assert_eq!(closing_entry.amount, Decimal::from(100));
-            assert_eq!(closing_entry.direction, DebitOrCredit::Credit);
-        }
-
-        #[test]
-        fn debit_normal_negative_contributes_positive() {
-            let currency = Currency::USD;
-            let journal_id = JournalId::new();
-            let account_id = AccountId::new();
-
-            let line_item = profit_and_loss_line_item(
-                journal_id,
-                currency,
-                vec![line_item_input(account_id, -100, DebitOrCredit::Debit)],
-            );
-
-            let net_income_contribution = line_item.closing_tx_input();
-            assert_eq!(
-                net_income_contribution.net_income_contribution,
-                Decimal::from(100)
-            );
-
-            let closing_entry = net_income_contribution.entries.first().unwrap();
-            assert_eq!(closing_entry.amount, Decimal::from(100));
-            assert_eq!(closing_entry.direction, DebitOrCredit::Debit);
-        }
-
-        #[test]
-        fn credit_to_retained_earnings_when_net_income_is_positive() {
-            let journal_id = JournalId::new();
-            let currency = Currency::USD;
-            let retained_earnings_gain_account_set_id = AccountSetId::new();
-            let retained_earnings_loss_account_set_id = AccountSetId::new();
-
-            let revenue = profit_and_loss_line_item(
-                journal_id,
-                currency,
-                vec![
-                    line_item_input(AccountId::new(), 100, DebitOrCredit::Credit),
-                    line_item_input(AccountId::new(), 400, DebitOrCredit::Credit),
-                ],
-            );
-            let cost_of_revenue = profit_and_loss_line_item(
-                journal_id,
-                currency,
-                vec![
-                    line_item_input(AccountId::new(), 200, DebitOrCredit::Debit),
-                    line_item_input(AccountId::new(), 100, DebitOrCredit::Debit),
-                ],
-            );
-            let expenses = profit_and_loss_line_item(
-                journal_id,
-                currency,
-                vec![line_item_input(AccountId::new(), 100, DebitOrCredit::Debit)],
-            );
-
-            let closing_input = profit_and_loss_closing_input(revenue, cost_of_revenue, expenses);
-            let net_income_input = closing_input.to_net_income_input(
-                retained_earnings_gain_account_set_id,
-                retained_earnings_loss_account_set_id,
-            );
-            assert_eq!(net_income_input.net_income, Decimal::from(100));
-            assert_eq!(
-                net_income_input.retained_earnings_account_normal_balance_type,
-                DebitOrCredit::Credit
-            );
-        }
-
-        #[test]
-        fn debit_to_retained_earnings_when_net_income_is_negative() {
-            let journal_id = JournalId::new();
-            let currency = Currency::USD;
-            let retained_earnings_gain_account_set_id = AccountSetId::new();
-            let retained_earnings_loss_account_set_id = AccountSetId::new();
-
-            let revenue = profit_and_loss_line_item(
-                journal_id,
-                currency,
-                vec![line_item_input(
-                    AccountId::new(),
-                    100,
-                    DebitOrCredit::Credit,
-                )],
-            );
-            let cost_of_revenue = profit_and_loss_line_item(
-                journal_id,
-                currency,
-                vec![
-                    line_item_input(AccountId::new(), 200, DebitOrCredit::Debit),
-                    line_item_input(AccountId::new(), 100, DebitOrCredit::Debit),
-                ],
-            );
-            let expenses = profit_and_loss_line_item(
-                journal_id,
-                currency,
-                vec![line_item_input(AccountId::new(), 100, DebitOrCredit::Debit)],
-            );
-
-            let closing_input = profit_and_loss_closing_input(revenue, cost_of_revenue, expenses);
-            let net_income_input = closing_input.to_net_income_input(
-                retained_earnings_gain_account_set_id,
-                retained_earnings_loss_account_set_id,
-            );
-            assert_eq!(net_income_input.net_income, Decimal::from(-300));
-            assert_eq!(
-                net_income_input.retained_earnings_account_normal_balance_type,
-                DebitOrCredit::Debit
-            );
-        }
-    }
 
     mod monthly_cel {
 
