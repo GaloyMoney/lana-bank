@@ -55,7 +55,7 @@ def _sumsub_send(
 
 def _get_applicant_data(
     session: requests.Session, external_user_id: str, key: str, secret: str
-):
+) -> requests.Response:
     url = f"{SUMSUB_API_BASE}/resources/applicants/-;externalUserId={external_user_id}/one"
     return _sumsub_send(session, "GET", url, key, secret)
 
