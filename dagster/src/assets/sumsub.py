@@ -4,6 +4,7 @@ import os
 from typing import Dict
 
 import dlt
+
 import dagster as dg
 from src.core import Protoasset
 from src.dlt_destinations.bigquery import create_bigquery_destination

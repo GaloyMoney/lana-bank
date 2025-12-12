@@ -77,7 +77,9 @@ def _get_document_metadata(
 def _download_document_image(
     session: requests.Session, inspection_id: str, image_id: str, key: str, secret: str
 ) -> Optional[str]:
-    url = f"{SUMSUB_API_BASE}/resources/inspections/{inspection_id}/resources/{image_id}"
+    url = (
+        f"{SUMSUB_API_BASE}/resources/inspections/{inspection_id}/resources/{image_id}"
+    )
     resp = _sumsub_send(session, "GET", url, key, secret)
     if resp.status_code == 200:
         return base64.b64encode(resp.content).decode("utf-8")
@@ -142,7 +144,9 @@ def applicants(
                     customer_id,
                     recorded_at,
                 )
-                resp = _get_applicant_data(session, customer_id, sumsub_key, sumsub_secret)
+                resp = _get_applicant_data(
+                    session, customer_id, sumsub_key, sumsub_secret
+                )
                 content_text = resp.text
                 resp.raise_for_status()
 
