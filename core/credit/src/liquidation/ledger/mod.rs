@@ -1,11 +1,11 @@
 mod error;
 mod templates;
 
-use core_money::Satoshis;
+use core_money::{Satoshis, UsdCents};
 use tracing::instrument;
 
 use cala_ledger::{
-    AccountId as CalaAccountId, CalaLedger, JournalId, TransactionId as CalaTransactionId,
+    AccountId as CalaAccountId, CalaLedger, Currency, JournalId, TransactionId as CalaTransactionId,
 };
 use tracing_macros::record_error_severity;
 
@@ -61,6 +61,44 @@ impl LiquidationLedger {
                     collateral_account_id,
                     collateral_in_liquidation_account_id,
                     effective: crate::time::now().date_naive(),
+                },
+            )
+            .await?;
+
+        db.commit().await?;
+
+        Ok(())
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "core_credit.liquidation.ledger.record_payment_from_liquidation_in_op",
+        skip(self, db)
+    )]
+    pub async fn record_payment_from_liquidation_in_op(
+        &self,
+        db: es_entity::DbOp<'_>,
+        tx_id: CalaTransactionId,
+        amount: UsdCents,
+        omnibus_account_id: CalaAccountId,
+        receivable_account_id: CalaAccountId,
+    ) -> Result<(), LiquidationLedgerError> {
+        let mut db = self
+            .cala
+            .ledger_operation_from_db_op(db.with_db_time().await?);
+
+        self.cala
+            .post_transaction_in_op(
+                &mut db,
+                tx_id,
+                templates::RECEIVE_PAYMENT_FROM_LIQUIDATION,
+                templates::ReceivePaymentFromLiquidationParams {
+                    amount,
+                    journal_id: self.journal_id,
+                    omnibus_account_id,
+                    receivable_account_id,
+                    effective: crate::time::now().date_naive(),
+                    currency: Currency::USD,
                 },
             )
             .await?;

@@ -20,6 +20,7 @@ pub struct ReceivePaymentFromLiquidationParams {
     pub journal_id: JournalId,
     pub amount: UsdCents,
     pub currency: Currency,
+    pub omnibus_account_id: CalaAccountId,
     pub receivable_account_id: CalaAccountId,
     pub effective: NaiveDate,
 }
@@ -38,7 +39,12 @@ impl ReceivePaymentFromLiquidationParams {
                 .build()
                 .expect("Could not build param definition"),
             NewParamDefinition::builder()
-                .name("SOME OMNIBUS ?????????????")
+                .name("currency")
+                .r#type(ParamDataType::String)
+                .build()
+                .expect("Could not build param definition"),
+            NewParamDefinition::builder()
+                .name("omnibus_account_id")
                 .r#type(ParamDataType::Uuid)
                 .build()
                 .expect("Could not build param definition"),
@@ -64,13 +70,14 @@ impl From<ReceivePaymentFromLiquidationParams> for Params {
             receivable_account_id,
             journal_id,
             effective,
+            omnibus_account_id,
         }: ReceivePaymentFromLiquidationParams,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
         params.insert("currency", currency);
         params.insert("amount", amount.to_usd());
-        params.insert("SOME OMNIBUS", "");
+        params.insert("omnibus_account_id", omnibus_account_id);
         params.insert("receivable_account_id", receivable_account_id);
         params.insert("effective", effective);
 
