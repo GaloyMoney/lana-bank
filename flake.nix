@@ -146,6 +146,7 @@
 
       lana-cli-release = let
         rustTarget = "x86_64-unknown-linux-musl";
+        muslCC = pkgs.pkgsCross.musl64.stdenv.cc;
       in
         craneLibMusl.buildPackage {
           version = cliVersion; # Use the conditional version
@@ -161,19 +162,18 @@
 
           RELEASE_BUILD_VERSION = cliVersion;
 
-          # clang for host build scripts (proc-macros, build.rs)
-          nativeBuildInputs = [pkgs.clang];
+          # clang + lld for linking (handles response files, avoiding ARG_MAX)
+          nativeBuildInputs = [pkgs.clang pkgs.lld];
 
           # Add musl target for static linking
-          depsBuildBuild = with pkgs; [
-            pkgsCross.musl64.stdenv.cc
-          ];
+          depsBuildBuild = [muslCC];
 
-          # Use Rust's bundled lld (rust-lld) which handles large argument lists
-          # via response files, avoiding the ARG_MAX issue
-          CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_RUSTFLAGS = "-C linker-flavor=gnu-lld";
-          CC_x86_64_unknown_linux_musl = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
-          TARGET_CC = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
+          # Use clang as linker driver with lld backend
+          # clang handles response files properly, avoiding ARG_MAX issues
+          CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER = "clang";
+          CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_RUSTFLAGS = "-C link-arg=--target=x86_64-unknown-linux-musl -C link-arg=-fuse-ld=lld -C link-arg=--sysroot=${muslCC.libc}";
+          CC_x86_64_unknown_linux_musl = "${muslCC}/bin/x86_64-unknown-linux-musl-gcc";
+          TARGET_CC = "${muslCC}/bin/x86_64-unknown-linux-musl-gcc";
         };
 
       # Pre-built test binaries with nextest archive
@@ -262,6 +262,7 @@
           dejavu_fonts # Provides serif, sans-serif, and monospace
         ]
         ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
+          clang
           lld
           xvfb-run
           cypress
