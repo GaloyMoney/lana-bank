@@ -15,7 +15,7 @@ pub use self::build_info::BuildInfo;
 use self::config::{Config, EnvSecrets};
 
 #[derive(Parser)]
-#[clap(long_about = None)]
+#[clap(version = env!("BUILD_VERSION"), long_about = None)]
 struct Cli {
     #[clap(
         short,
