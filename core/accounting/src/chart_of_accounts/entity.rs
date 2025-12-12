@@ -308,9 +308,7 @@ impl Chart {
             ChartEvent::ClosingTransactionPosted { posted_as_of: prev_date, .. } if prev_date >= &spec.effective_balances_until,
             => ChartEvent::ClosingTransactionPosted { .. }
         );
-        self.events.push(ChartEvent::ClosingTransactionPosted {
-            posted_as_of: spec.effective_balances_until,
-        });
+
         let closing_tx_params = ClosingTxParams {
             tx_id: spec.tx_id,
             description: spec.description,
@@ -325,6 +323,9 @@ impl Chart {
             equity_retained_losses_account_set_id: self
                 .account_set_id_from_code(&spec.equity_retained_losses_code)?,
         };
+        self.events.push(ChartEvent::ClosingTransactionPosted {
+            posted_as_of: spec.effective_balances_until,
+        });
         Ok(Idempotent::Executed(closing_tx_params))
     }
 }
