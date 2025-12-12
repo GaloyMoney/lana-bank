@@ -135,14 +135,6 @@
         }
       );
 
-      lana-cli-bootstrap = craneLib.buildPackage (
-        individualCrateArgs
-        // {
-          pname = "lana-cli-bootstrap";
-          cargoExtraArgs = "-p lana-cli --all-features";
-          src = rustSource;
-        }
-      );
 
       lana-cli-release = let
         rustTarget = "x86_64-unknown-linux-musl";
@@ -434,7 +426,7 @@
                 podman-runner.podman-compose-runner
                 pkgs.wait4x
                 pkgs.gnugrep
-                lana-cli-bootstrap
+                lana-cli-release
               ];
               postBuild = ''
                 mkdir -p $out/bin
@@ -470,7 +462,7 @@
 
                 echo "Running cli"
                 export LANA_CONFIG="./bats/lana.yml"
-                ${lana-cli-bootstrap}/bin/lana-cli 2>&1 | tee server.log &
+                ${lana-cli-release}/bin/lana-cli 2>&1 | tee server.log &
                 echo "$!" > .server.pid
 
                 wait4x http http://localhost:5253/health --timeout 30m
@@ -762,12 +754,12 @@
             ];
 
             buildInputs = [
-              lana-cli-bootstrap
+              lana-cli-release
             ];
 
             buildPhase = ''
               echo "Generating default config..."
-              ${lana-cli-bootstrap}/bin/lana-cli dump-default-config > default-config-generated.yml
+              ${lana-cli-release}/bin/lana-cli dump-default-config > default-config-generated.yml
 
               echo "Comparing default config..."
               if ! diff -u dev/lana.default.yml default-config-generated.yml; then
