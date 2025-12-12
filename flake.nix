@@ -97,10 +97,10 @@
         src = rustSource;
         strictDeps = true;
         SQLX_OFFLINE = true;
-        # clang and lld for faster linking (configured in .cargo/config.toml)
+        # clang and mold for faster linking (configured in .cargo/config.toml)
         nativeBuildInputs =
-          pkgs.lib.optionals pkgs.stdenv.isLinux [pkgs.clang pkgs.lld]
-          ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [pkgs.llvmPackages.lld];
+          pkgs.lib.optionals pkgs.stdenv.isLinux [pkgs.clang pkgs.mold]
+          ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [pkgs.mold];
       };
 
       cargoArtifacts = craneLib.buildDepsOnly (commonArgs
@@ -262,7 +262,7 @@
           dejavu_fonts # Provides serif, sans-serif, and monospace
         ]
         ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
-          lld
+          mold
           xvfb-run
           cypress
           python313Packages.weasyprint
@@ -275,7 +275,7 @@
           iptables
         ]
         ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
-          llvmPackages.lld
+          mold
         ];
 
       devEnvVars = rec {
