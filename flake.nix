@@ -161,6 +161,10 @@
 
           RELEASE_BUILD_VERSION = cliVersion;
 
+          # clang and lld for faster linking (configured in .cargo/config.toml)
+          # Needed for build scripts that compile for the host
+          nativeBuildInputs = [pkgs.clang pkgs.lld];
+
           # Add musl target for static linking
           depsBuildBuild = with pkgs; [
             pkgsCross.musl64.stdenv.cc
