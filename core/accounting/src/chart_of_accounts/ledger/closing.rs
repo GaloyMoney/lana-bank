@@ -413,7 +413,7 @@ mod tests {
         }
 
         #[test]
-        fn credit_retained_earnings_when_net_income_is_positive() {
+        fn credit_to_retained_earnings_when_net_income_is_positive() {
             let journal_id = JournalId::new();
             let currency = Currency::USD;
             let retained_earnings_gain_account_set_id = AccountSetId::new();
@@ -450,6 +450,48 @@ mod tests {
             assert_eq!(
                 net_income_input.retained_earnings_account_normal_balance_type,
                 DebitOrCredit::Credit
+            );
+        }
+
+        #[test]
+        fn debit_to_retained_earnings_when_net_income_is_negative() {
+            let journal_id = JournalId::new();
+            let currency = Currency::USD;
+            let retained_earnings_gain_account_set_id = AccountSetId::new();
+            let retained_earnings_loss_account_set_id = AccountSetId::new();
+
+            let revenue = profit_and_loss_line_item(
+                journal_id,
+                currency,
+                vec![line_item_input(
+                    AccountId::new(),
+                    100,
+                    DebitOrCredit::Credit,
+                )],
+            );
+            let cost_of_revenue = profit_and_loss_line_item(
+                journal_id,
+                currency,
+                vec![
+                    line_item_input(AccountId::new(), 200, DebitOrCredit::Debit),
+                    line_item_input(AccountId::new(), 100, DebitOrCredit::Debit),
+                ],
+            );
+            let expenses = profit_and_loss_line_item(
+                journal_id,
+                currency,
+                vec![line_item_input(AccountId::new(), 100, DebitOrCredit::Debit)],
+            );
+
+            let closing_input = profit_and_loss_closing_input(revenue, cost_of_revenue, expenses);
+            let net_income_input = closing_input.to_net_income_input(
+                retained_earnings_gain_account_set_id,
+                retained_earnings_loss_account_set_id,
+            );
+            assert_eq!(net_income_input.net_income, Decimal::from(-300));
+            assert_eq!(
+                net_income_input.retained_earnings_account_normal_balance_type,
+                DebitOrCredit::Debit
             );
         }
     }
