@@ -197,6 +197,25 @@ mod tests {
     }
 
     #[test]
+    fn update_domain_config_validates_value() {
+        let mut config = build_config(
+            DomainConfigId::new(),
+            &SampleConfig {
+                enabled: true,
+                limit: 5,
+            },
+        );
+        let invalid = SampleConfig {
+            enabled: false,
+            limit: 101,
+        };
+
+        let result = config.update(invalid.clone());
+
+        assert!(matches!(result, Err(DomainConfigError::InvalidState(_))));
+    }
+
+    #[test]
     fn apply_update_appends_event_and_updates_value() {
         let mut config = build_config(
             DomainConfigId::new(),
