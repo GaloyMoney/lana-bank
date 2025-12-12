@@ -26,40 +26,37 @@ pub(crate) struct ClosingTxParams {
 
 #[derive(Debug, Clone)]
 pub(super) struct ClosingAccountBalance {
-    pub(super) closed_settled_amount: Decimal,
-    pub(super) normal_balance_type: DebitOrCredit,
+    pub(super) amount: Decimal,
+    pub(super) direction: DebitOrCredit,
 }
 
 impl From<&CalaBalanceRange> for ClosingAccountBalance {
     fn from(balance_range: &CalaBalanceRange) -> Self {
         Self {
-            closed_settled_amount: balance_range.close.settled(),
-            normal_balance_type: balance_range.close.balance_type,
+            amount: balance_range.close.settled(),
+            direction: balance_range.close.balance_type,
         }
     }
 }
 
-pub struct OffsetDebitOrCredit(DebitOrCredit);
-
-impl OffsetDebitOrCredit {
-    fn new(b: &ClosingAccountBalance) -> Self {
-        let amount = b.closed_settled_amount;
-        let balance_type = b.normal_balance_type;
-
-        Self(if amount >= Decimal::ZERO {
-            match balance_type {
-                DebitOrCredit::Debit => DebitOrCredit::Credit,
-                DebitOrCredit::Credit => DebitOrCredit::Debit,
-            }
-        } else {
-            balance_type
-        })
+impl ClosingAccountBalance {
+    fn abs(&self) -> Decimal {
+        self.amount.abs()
     }
-}
 
-impl From<OffsetDebitOrCredit> for DebitOrCredit {
-    fn from(offset_dir: OffsetDebitOrCredit) -> Self {
-        offset_dir.0
+    fn direction_for_offsetting_entry(&self) -> DebitOrCredit {
+        if self.amount.is_sign_negative() {
+            self.direction
+        } else {
+            self.flip_direction()
+        }
+    }
+
+    fn flip_direction(&self) -> DebitOrCredit {
+        match self.direction {
+            DebitOrCredit::Debit => DebitOrCredit::Credit,
+            DebitOrCredit::Credit => DebitOrCredit::Debit,
+        }
     }
 }
 
@@ -81,8 +78,8 @@ impl ProfitAndLossLineItemDetail {
     fn contributions(&self) -> Decimal {
         self.iter()
             .map(|(_, balance)| {
-                let amount = balance.closed_settled_amount;
-                match balance.normal_balance_type {
+                let amount = balance.amount;
+                match balance.direction {
                     DebitOrCredit::Credit => amount,
                     DebitOrCredit::Debit => -amount,
                 }
@@ -95,9 +92,9 @@ impl ProfitAndLossLineItemDetail {
             .map(|((_, account_id, currency), balance)| {
                 EntryParams::builder()
                     .account_id(*account_id)
-                    .amount(balance.closed_settled_amount.abs())
+                    .amount(balance.abs())
                     .currency(*currency)
-                    .direction(OffsetDebitOrCredit::new(balance).into())
+                    .direction(balance.direction_for_offsetting_entry())
                     .build()
                     .expect("Failed to build EntryParams")
             })
@@ -200,8 +197,8 @@ mod tests {
             revenue_map.insert(
                 revenue_balance_id,
                 ClosingAccountBalance {
-                    closed_settled_amount: revenue_amt,
-                    normal_balance_type: DebitOrCredit::Credit,
+                    amount: revenue_amt,
+                    direction: DebitOrCredit::Credit,
                 },
             );
 
@@ -209,8 +206,8 @@ mod tests {
             cost_of_revenue_map.insert(
                 cost_of_revenue_balance_id,
                 ClosingAccountBalance {
-                    closed_settled_amount: cost_of_revenue_amt,
-                    normal_balance_type: DebitOrCredit::Debit,
+                    amount: cost_of_revenue_amt,
+                    direction: DebitOrCredit::Debit,
                 },
             );
 
@@ -218,8 +215,8 @@ mod tests {
             expenses_map.insert(
                 expenses_balance_id,
                 ClosingAccountBalance {
-                    closed_settled_amount: expenses_amt,
-                    normal_balance_type: DebitOrCredit::Debit,
+                    amount: expenses_amt,
+                    direction: DebitOrCredit::Debit,
                 },
             );
 
