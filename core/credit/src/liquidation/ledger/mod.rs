@@ -18,13 +18,6 @@ pub struct LiquidationLedger {
 }
 
 impl LiquidationLedger {
-    pub fn new(cala: &CalaLedger, journal_id: JournalId) -> Self {
-        Self {
-            cala: cala.clone(),
-            journal_id,
-        }
-    }
-
     #[record_error_severity]
     #[instrument(name = "core_credit.liquidation.ledger.init", skip_all)]
     pub async fn init(

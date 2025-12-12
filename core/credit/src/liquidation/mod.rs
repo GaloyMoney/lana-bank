@@ -56,18 +56,18 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    pub fn new(
+    pub async fn init(
         pool: &sqlx::PgPool,
         journal_id: JournalId,
         cala: &CalaLedger,
         authz: Arc<Perms>,
         publisher: &crate::CreditFacilityPublisher<E>,
-    ) -> Self {
-        Self {
+    ) -> Result<Self, LiquidationError> {
+        Ok(Self {
             repo: LiquidationRepo::new(pool, publisher),
             authz,
-            ledger: LiquidationLedger::new(cala, journal_id),
-        }
+            ledger: LiquidationLedger::init(cala, journal_id).await?,
+        })
     }
 
     #[instrument(

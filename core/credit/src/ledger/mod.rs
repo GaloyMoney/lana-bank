@@ -111,8 +111,17 @@ pub struct InterestReceivable {
 
 #[derive(Clone, Copy)]
 pub struct LiquidationAccountSets {
+    /// Groups accounts tracking parts of collaterals that have been
+    /// sent for liquidation but for which payments have not yet been
+    /// received.
     pub collateral_in_liquidation: InternalAccountSetDetails,
+
+    /// Groups accounts tracking parts of collaterals for which
+    /// payments have already been received.
     pub liquidated_collateral: InternalAccountSetDetails,
+
+    /// Groups accounts tracking payments received from
+    /// liquidations.
     pub payment_receivable: InternalAccountSetDetails,
 }
 
