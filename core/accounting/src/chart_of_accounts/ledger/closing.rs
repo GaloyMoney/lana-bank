@@ -374,6 +374,112 @@ mod tests {
         }
     }
 
+    mod retained_earnings {
+        use cala_ledger::{AccountId, JournalId, account_set::AccountSetId};
+        use rust_decimal_macros::dec;
+
+        use super::*;
+
+        fn gain_account_set_id() -> AccountSetId {
+            AccountSetId::new()
+        }
+
+        fn loss_account_set_id() -> AccountSetId {
+            AccountSetId::new()
+        }
+
+        fn empty_balances() -> ClosingProfitAndLossAccountBalances {
+            ClosingProfitAndLossAccountBalances {
+                revenue: ProfitAndLossLineItemDetail(HashMap::new()),
+                cost_of_revenue: ProfitAndLossLineItemDetail(HashMap::new()),
+                expenses: ProfitAndLossLineItemDetail(HashMap::new()),
+            }
+        }
+
+        fn balances_with(
+            revenue_amt: Decimal,
+            cost_of_revenue_amt: Decimal,
+            expenses_amt: Decimal,
+        ) -> ClosingProfitAndLossAccountBalances {
+            let journal_id = JournalId::new();
+
+            let revenue_balance_id = (journal_id, AccountId::new(), CalaCurrency::USD);
+            let cost_of_revenue_balance_id = (journal_id, AccountId::new(), CalaCurrency::USD);
+            let expenses_balance_id = (journal_id, AccountId::new(), CalaCurrency::USD);
+
+            let mut revenue_map = HashMap::new();
+            revenue_map.insert(
+                revenue_balance_id,
+                ClosingAccountBalance {
+                    closed_settled_amount: revenue_amt,
+                    normal_balance_type: DebitOrCredit::Credit,
+                },
+            );
+
+            let mut cost_of_revenue_map = HashMap::new();
+            cost_of_revenue_map.insert(
+                cost_of_revenue_balance_id,
+                ClosingAccountBalance {
+                    closed_settled_amount: cost_of_revenue_amt,
+                    normal_balance_type: DebitOrCredit::Debit,
+                },
+            );
+
+            let mut expenses_map = HashMap::new();
+            expenses_map.insert(
+                expenses_balance_id,
+                ClosingAccountBalance {
+                    closed_settled_amount: expenses_amt,
+                    normal_balance_type: DebitOrCredit::Debit,
+                },
+            );
+
+            ClosingProfitAndLossAccountBalances {
+                revenue: ProfitAndLossLineItemDetail(revenue_map),
+                cost_of_revenue: ProfitAndLossLineItemDetail(cost_of_revenue_map),
+                expenses: ProfitAndLossLineItemDetail(expenses_map),
+            }
+        }
+
+        #[test]
+        fn returns_gain_account_with_credit_for_zero_contributions() {
+            let balances = empty_balances();
+            let gain_id = gain_account_set_id();
+            let loss_id = loss_account_set_id();
+
+            let (direction, account_id) = balances.retained_earnings(gain_id, loss_id);
+
+            assert_eq!(direction, DebitOrCredit::Credit);
+            assert_eq!(account_id, gain_id);
+        }
+
+        #[test]
+        fn returns_gain_account_with_credit_for_positive_contributions() {
+            // Revenue > (cost_of_revenue + expenses) => positive net income
+            let balances = balances_with(dec!(1000), dec!(300), dec!(200));
+            let gain_id = gain_account_set_id();
+            let loss_id = loss_account_set_id();
+
+            let (direction, account_id) = balances.retained_earnings(gain_id, loss_id);
+
+            assert_eq!(direction, DebitOrCredit::Credit);
+            assert_eq!(account_id, gain_id);
+        }
+
+        #[test]
+        fn returns_loss_account_with_debit_for_negative_contributions() {
+            // Revenue < (cost_of_revenue + expenses) => negative net income (loss)
+            let balances = balances_with(dec!(100), dec!(300), dec!(200));
+            let gain_id = gain_account_set_id();
+            let loss_id = loss_account_set_id();
+
+            let (direction, account_id) = balances.retained_earnings(gain_id, loss_id);
+
+            assert_eq!(direction, DebitOrCredit::Debit);
+            assert_eq!(account_id, loss_id);
+        }
+    }
+
     mod update_with_monthly_closing {
         use chrono::{DateTime, NaiveDate, Utc};
         use serde_json::json;
