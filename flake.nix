@@ -161,13 +161,17 @@
 
           RELEASE_BUILD_VERSION = cliVersion;
 
+          # clang for host build scripts, mold to avoid "Argument list too long" errors
+          nativeBuildInputs = [pkgs.clang pkgs.mold];
+
           # Add musl target for static linking
           depsBuildBuild = with pkgs; [
             pkgsCross.musl64.stdenv.cc
           ];
 
-          # Environment variables for static linking
+          # Use musl-gcc but with mold linker (mold uses @response files, avoiding ARG_MAX)
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
+          CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_RUSTFLAGS = "-C link-arg=-fuse-ld=mold";
           CC_x86_64_unknown_linux_musl = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
           TARGET_CC = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
         };
