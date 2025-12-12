@@ -3,10 +3,9 @@ use derive_builder::Builder;
 use rust_decimal::Decimal;
 
 use cala_ledger::{
-    AccountId as CalaAccountId,
+    AccountId as CalaAccountId, Currency, JournalId,
     primitives::DebitOrCredit,
-    tx_template::{Params, error::TxTemplateError, *},
-    *,
+    tx_template::{NewParamDefinition, ParamDataType, Params},
 };
 
 #[derive(Debug, Builder)]
@@ -60,23 +59,23 @@ impl EntryParams {
         ]
     }
 
-    fn account_id_param_name(n: usize) -> String {
+    pub fn account_id_param_name(n: usize) -> String {
         format!("entry_{n}_account_id")
     }
 
-    fn currency_param_name(n: usize) -> String {
+    pub fn currency_param_name(n: usize) -> String {
         format!("entry_{n}_currency")
     }
 
-    fn amount_param_name(n: usize) -> String {
+    pub fn amount_param_name(n: usize) -> String {
         format!("entry_{n}_amount")
     }
 
-    fn direction_param_name(n: usize) -> String {
+    pub fn direction_param_name(n: usize) -> String {
         format!("entry_{n}_direction")
     }
 
-    fn layer_param_name(n: usize) -> String {
+    pub fn layer_param_name(n: usize) -> String {
         format!("entry_{n}_layer")
     }
 }
@@ -141,83 +140,5 @@ impl ClosingTransactionParams {
             params.extend(EntryParams::defs_for_entry(i));
         }
         params
-    }
-}
-
-pub(super) struct ClosingTransactionTemplate {
-    pub period_designation: String,
-    pub n_entries: usize,
-}
-
-impl ClosingTransactionTemplate {
-    pub(super) fn code(&self) -> String {
-        format!("CLOSING_TRANSACTION_{}", self.period_designation)
-    }
-
-    pub(super) async fn init(
-        op: &mut LedgerOperation<'_>,
-        ledger: &CalaLedger,
-        n_entries: usize,
-        period_designation: String,
-    ) -> Result<Self, TxTemplateError> {
-        let res = Self {
-            period_designation,
-            n_entries,
-        };
-        res.find_or_create_template_in_op(op, ledger).await?;
-        Ok(res)
-    }
-
-    async fn find_or_create_template_in_op(
-        &self,
-        op: &mut LedgerOperation<'_>,
-        ledger: &CalaLedger,
-    ) -> Result<(), TxTemplateError> {
-        let tx_input = NewTxTemplateTransaction::builder()
-            .journal_id("params.journal_id")
-            .description("params.description")
-            .effective("params.effective")
-            .build()
-            .expect("Couldn't build TxInput for ClosingTransactionTemplate");
-
-        let params = ClosingTransactionParams::defs(self.n_entries);
-        let template = NewTxTemplate::builder()
-            .id(TxTemplateId::new())
-            .code(self.code())
-            .transaction(tx_input)
-            .entries(self.entries())
-            .params(params)
-            .description(format!(
-                "Template to execute a closing transaction with {} entries.",
-                self.n_entries
-            ))
-            .build()
-            .expect("Couldn't build template for ClosingTransactionTemplate");
-        match ledger.tx_templates().create_in_op(op, template).await {
-            Err(TxTemplateError::DuplicateCode) => Ok(()),
-            Err(e) => Err(e),
-            Ok(_) => Ok(()),
-        }
-    }
-
-    fn entries(&self) -> Vec<NewTxTemplateEntry> {
-        let mut entries = vec![];
-        for i in 0..self.n_entries {
-            entries.push(
-                NewTxTemplateEntry::builder()
-                    .entry_type(format!(
-                        "'CLOSING_TRANSACTION_{}_ENTRY_{}'",
-                        self.period_designation, i
-                    ))
-                    .account_id(format!("params.{}", EntryParams::account_id_param_name(i)))
-                    .units(format!("params.{}", EntryParams::amount_param_name(i)))
-                    .currency(format!("params.{}", EntryParams::currency_param_name(i)))
-                    .layer(format!("params.{}", EntryParams::layer_param_name(i)))
-                    .direction(format!("params.{}", EntryParams::direction_param_name(i)))
-                    .build()
-                    .expect("Couldn't build entry for ClosingTransactionTemplate"),
-            );
-        }
-        entries
     }
 }
