@@ -401,6 +401,7 @@ where
                 outbox,
                 jobs,
                 liquidations_arc.as_ref(),
+                facilities_arc.as_ref(),
             ),
             credit_facility_liquidations::CreditFacilityLiquidationsJobConfig::<Perms, E> {
                 _phantom: std::marker::PhantomData,

@@ -1022,7 +1022,8 @@ impl CreditLedger {
             in_liquidation_account_id: _,
             fee_income_account_id: _,
             interest_income_account_id: _,
-            collateral_in_liquidation_id: _,
+            collateral_in_liquidation_account_id: _,
+            liquidation_payment_receivable_account_id: _,
         }: CreditFacilityLedgerAccountIds,
     ) -> Result<CreditFacilityBalanceSummary, CreditLedgerError> {
         let facility_id = (self.journal_id, facility_account_id, self.usd);
@@ -1960,11 +1961,12 @@ impl CreditLedger {
             interest_defaulted_account_id,
             interest_income_account_id,
             fee_income_account_id,
+            collateral_in_liquidation_account_id,
+            liquidation_payment_receivable_account_id,
 
             // these accounts are created during proposal creation
             collateral_account_id: _collateral_account_id,
             facility_account_id: _facility_account_id,
-            collateral_in_liquidation_id: _,
         } = account_ids;
 
         let entity_ref = EntityRef::new(CREDIT_FACILITY_ENTITY_TYPE, credit_facility_id);
@@ -2136,6 +2138,37 @@ impl CreditLedger {
             fee_income_reference,
             fee_income_name,
             fee_income_name,
+            entity_ref,
+        )
+        .await?;
+
+        let collateral_in_liquidation_reference =
+            &format!("credit-facility-collateral-in-liquidation:{credit_facility_id}");
+        let collatera_in_liquidation_name =
+            &format!("Collateral in Liquidation Account for Credit Facility {credit_facility_id}");
+        self.create_account_in_op(
+            op,
+            collateral_in_liquidation_account_id,
+            todo!(),
+            collateral_in_liquidation_reference,
+            collatera_in_liquidation_name,
+            collatera_in_liquidation_name,
+            entity_ref,
+        )
+        .await?;
+
+        let liquidation_payment_receivable_reference =
+            &format!("credit-facility-liquidation-payment-receivable:{credit_facility_id}");
+        let liquidation_payment_receivable_name = &format!(
+            "Liquidation Payment Receivable Account for Credit Facility {credit_facility_id}"
+        );
+        self.create_account_in_op(
+            op,
+            liquidation_payment_receivable_account_id,
+            todo!(),
+            liquidation_payment_receivable_reference,
+            liquidation_payment_receivable_name,
+            liquidation_payment_receivable_name,
             entity_ref,
         )
         .await?;

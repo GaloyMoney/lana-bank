@@ -143,8 +143,6 @@ where
                 .await?;
         }
 
-        db.commit().await?;
-
         Ok(liquidation)
     }
 
