@@ -97,10 +97,10 @@
         src = rustSource;
         strictDeps = true;
         SQLX_OFFLINE = true;
-        # clang and mold for faster linking (configured in .cargo/config.toml)
+        # clang and lld for faster linking (configured in .cargo/config.toml)
         nativeBuildInputs =
-          pkgs.lib.optionals pkgs.stdenv.isLinux [pkgs.clang pkgs.mold]
-          ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [pkgs.mold];
+          pkgs.lib.optionals pkgs.stdenv.isLinux [pkgs.clang pkgs.lld]
+          ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [pkgs.llvmPackages.lld];
       };
 
       cargoArtifacts = craneLib.buildDepsOnly (commonArgs
@@ -146,7 +146,6 @@
 
       lana-cli-release = let
         rustTarget = "x86_64-unknown-linux-musl";
-        muslSysroot = pkgs.pkgsCross.musl64.stdenv.cc.libc;
       in
         craneLibMusl.buildPackage {
           version = cliVersion; # Use the conditional version
@@ -162,19 +161,17 @@
 
           RELEASE_BUILD_VERSION = cliVersion;
 
-          # clang as linker driver (handles response files, avoiding ARG_MAX)
-          # mold as the actual linker (fast)
-          # musl toolchain for cross-compilation
-          nativeBuildInputs = [pkgs.clang pkgs.mold];
+          # clang for host build scripts (proc-macros, build.rs)
+          nativeBuildInputs = [pkgs.clang];
 
           # Add musl target for static linking
           depsBuildBuild = with pkgs; [
             pkgsCross.musl64.stdenv.cc
           ];
 
-          # Use clang as linker driver with mold backend (bypasses gcc wrapper ARG_MAX issue)
-          CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER = "clang";
-          CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_RUSTFLAGS = "-C link-arg=--target=x86_64-unknown-linux-musl -C link-arg=-fuse-ld=mold -C link-arg=--sysroot=${muslSysroot}";
+          # Use Rust's bundled lld (rust-lld) which handles large argument lists
+          # via response files, avoiding the ARG_MAX issue
+          CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_RUSTFLAGS = "-C linker-flavor=gnu-lld";
           CC_x86_64_unknown_linux_musl = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
           TARGET_CC = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
         };
@@ -265,7 +262,7 @@
           dejavu_fonts # Provides serif, sans-serif, and monospace
         ]
         ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
-          mold
+          lld
           xvfb-run
           cypress
           python313Packages.weasyprint
@@ -278,7 +275,7 @@
           iptables
         ]
         ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
-          mold
+          llvmPackages.lld
         ];
 
       devEnvVars = rec {
