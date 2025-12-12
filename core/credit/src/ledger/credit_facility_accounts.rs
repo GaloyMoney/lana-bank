@@ -19,6 +19,7 @@ pub struct CreditFacilityLedgerAccountIds {
     pub disbursed_receivable_overdue_account_id: CalaAccountId,
     pub disbursed_defaulted_account_id: CalaAccountId,
     pub collateral_account_id: CalaAccountId,
+    pub collateral_in_liquidation_id: CalaAccountId,
     pub interest_receivable_not_yet_due_account_id: CalaAccountId,
     pub interest_receivable_due_account_id: CalaAccountId,
     pub interest_receivable_overdue_account_id: CalaAccountId,
@@ -33,12 +34,13 @@ impl CreditFacilityLedgerAccountIds {
     pub fn new() -> Self {
         Self {
             facility_account_id: CalaAccountId::new(),
-            collateral_account_id: CalaAccountId::new(),
             in_liquidation_account_id: CalaAccountId::new(),
             disbursed_receivable_not_yet_due_account_id: CalaAccountId::new(),
             disbursed_receivable_due_account_id: CalaAccountId::new(),
             disbursed_receivable_overdue_account_id: CalaAccountId::new(),
             disbursed_defaulted_account_id: CalaAccountId::new(),
+            collateral_account_id: CalaAccountId::new(),
+            collateral_in_liquidation_id: todo!(),
             interest_receivable_not_yet_due_account_id: CalaAccountId::new(),
             interest_receivable_due_account_id: CalaAccountId::new(),
             interest_receivable_overdue_account_id: CalaAccountId::new(),
@@ -53,12 +55,13 @@ impl From<PendingCreditFacilityAccountIds> for CreditFacilityLedgerAccountIds {
     fn from(proposal_ids: PendingCreditFacilityAccountIds) -> Self {
         Self {
             facility_account_id: proposal_ids.facility_account_id,
-            collateral_account_id: proposal_ids.collateral_account_id,
             in_liquidation_account_id: CalaAccountId::new(),
             disbursed_receivable_not_yet_due_account_id: CalaAccountId::new(),
             disbursed_receivable_due_account_id: CalaAccountId::new(),
             disbursed_receivable_overdue_account_id: CalaAccountId::new(),
             disbursed_defaulted_account_id: CalaAccountId::new(),
+            collateral_account_id: proposal_ids.collateral_account_id,
+            collateral_in_liquidation_id: todo!(),
             interest_receivable_not_yet_due_account_id: CalaAccountId::new(),
             interest_receivable_due_account_id: CalaAccountId::new(),
             interest_receivable_overdue_account_id: CalaAccountId::new(),

@@ -1,5 +1,6 @@
 mod entity;
 pub mod error;
+mod ledger;
 mod repo;
 
 use std::sync::Arc;
@@ -20,6 +21,7 @@ use crate::{
 pub use entity::NewLiquidation;
 pub use entity::{Liquidation, LiquidationEvent};
 use error::LiquidationError;
+use ledger::LiquidationLedger;
 pub(crate) use repo::LiquidationRepo;
 pub use repo::liquidation_cursor;
 
@@ -30,6 +32,7 @@ where
 {
     repo: LiquidationRepo<E>,
     authz: Arc<Perms>,
+    ledger: LiquidationLedger,
 }
 
 impl<Perms, E> Clone for Liquidations<Perms, E>
@@ -41,6 +44,7 @@ where
         Self {
             repo: self.repo.clone(),
             authz: self.authz.clone(),
+            ledger: self.ledger.clone(),
         }
     }
 }
@@ -60,6 +64,7 @@ where
         Self {
             repo: LiquidationRepo::new(pool, publisher),
             authz,
+            ledger: todo!(),
         }
     }
 
@@ -116,9 +121,9 @@ where
                 CoreCreditAction::LIQUIDATION_RECORD_COLLATERAL_SENT,
             )
             .await?;
-
-        let mut liquidation = self.repo.find_by_id(liquidation_id).await?;
         let mut db = self.repo.begin_op().await?;
+
+        let mut liquidation = self.repo.find_by_id_in_op(&mut db, liquidation_id).await?;
 
         let tx_id = CalaTransactionId::new();
 
@@ -127,7 +132,15 @@ where
             .did_execute()
         {
             self.repo.update_in_op(&mut db, &mut liquidation).await?;
-            // TODO: ledger send collateral for liquidation
+            self.ledger
+                .record_collateral_sent_in_op(
+                    db,
+                    tx_id,
+                    amount,
+                    liquidation.collateral_account_id,
+                    liquidation.collateral_in_liquidation_account_id,
+                )
+                .await?;
         }
 
         db.commit().await?;

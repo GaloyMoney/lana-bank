@@ -222,6 +222,8 @@ where
                         .id(*liquidation_id)
                         .credit_facility_id(*credit_facility_id)
                         .receivable_account_id(*receivable_account_id)
+                        .collateral_account_id(todo!())
+                        .collateral_in_liquidation_account_id(todo!())
                         .trigger_price(*trigger_price)
                         .initially_expected_to_receive(*initially_expected_to_receive)
                         .initially_estimated_to_liquidate(*initially_estimated_to_liquidate)
