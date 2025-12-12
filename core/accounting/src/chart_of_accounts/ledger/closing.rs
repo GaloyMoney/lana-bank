@@ -116,7 +116,33 @@ pub(super) struct LineItemClosingTxInput {
 }
 
 #[derive(Debug, Clone)]
-pub(super) struct ProfitAndLossLineItemDetail(HashMap<BalanceId, CalaBalanceRange>);
+pub(super) struct ClosingAccountBalance {
+    pub(super) closed_settled_amount: Decimal,
+    pub(super) normal_balance_type: DebitOrCredit,
+}
+
+impl From<&CalaBalanceRange> for ClosingAccountBalance {
+    fn from(balance_range: &CalaBalanceRange) -> Self {
+        Self {
+            closed_settled_amount: balance_range.close.settled(),
+            normal_balance_type: balance_range.close.balance_type,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub(super) struct ProfitAndLossLineItemDetail(HashMap<BalanceId, ClosingAccountBalance>);
+
+impl From<HashMap<BalanceId, CalaBalanceRange>> for ProfitAndLossLineItemDetail {
+    fn from(account_balances: HashMap<BalanceId, CalaBalanceRange>) -> Self {
+        Self(
+            account_balances
+                .into_iter()
+                .map(|(k, v)| (k, ClosingAccountBalance::from(&v)))
+                .collect(),
+        )
+    }
+}
 
 impl ProfitAndLossLineItemDetail {
     pub(super) fn closing_tx_input(&self) -> LineItemClosingTxInput {
@@ -124,8 +150,8 @@ impl ProfitAndLossLineItemDetail {
         let mut closing_entries = Vec::new();
 
         for ((_, account_id, currency), balance) in self.iter() {
-            let amount = balance.close.settled();
-            let balance_type = balance.close.balance_type;
+            let amount = balance.closed_settled_amount;
+            let balance_type = balance.normal_balance_type;
 
             contribution += match balance_type {
                 DebitOrCredit::Credit => amount,
@@ -155,14 +181,10 @@ impl ProfitAndLossLineItemDetail {
         }
     }
 
-    pub(super) fn iter(&self) -> std::collections::hash_map::Iter<'_, BalanceId, CalaBalanceRange> {
+    pub(super) fn iter(
+        &self,
+    ) -> std::collections::hash_map::Iter<'_, BalanceId, ClosingAccountBalance> {
         self.0.iter()
-    }
-}
-
-impl From<HashMap<BalanceId, CalaBalanceRange>> for ProfitAndLossLineItemDetail {
-    fn from(account_balances: HashMap<BalanceId, CalaBalanceRange>) -> Self {
-        Self(account_balances)
     }
 }
 
@@ -239,6 +261,106 @@ impl ClosingProfitAndLossAccountBalances {
 mod tests {
 
     use super::*;
+
+    mod net_income {
+        use cala_ledger::{
+            AccountId, Currency, DebitOrCredit, JournalId, account_set::AccountSetId,
+        };
+        use std::collections::HashMap;
+
+        use super::*;
+
+        struct LineItemInput {
+            account_id: AccountId,
+            amount: i32,
+            balance_type: DebitOrCredit,
+        }
+
+        fn line_item_input(
+            account_id: AccountId,
+            amount: i32,
+            balance_type: DebitOrCredit,
+        ) -> LineItemInput {
+            LineItemInput {
+                account_id,
+                amount,
+                balance_type,
+            }
+        }
+
+        fn profit_and_loss_line_item(
+            journal_id: JournalId,
+            currency: Currency,
+            accounts: Vec<LineItemInput>,
+        ) -> ProfitAndLossLineItemDetail {
+            let map: HashMap<_, _> = accounts
+                .into_iter()
+                .map(|input| {
+                    (
+                        (journal_id, input.account_id, currency),
+                        ClosingAccountBalance {
+                            closed_settled_amount: Decimal::from(input.amount),
+                            normal_balance_type: input.balance_type,
+                        },
+                    )
+                })
+                .collect();
+            ProfitAndLossLineItemDetail(map)
+        }
+
+        fn profit_and_loss_closing_input(
+            revenue: ProfitAndLossLineItemDetail,
+            cost_of_revenue: ProfitAndLossLineItemDetail,
+            expenses: ProfitAndLossLineItemDetail,
+        ) -> ClosingProfitAndLossAccountBalances {
+            ClosingProfitAndLossAccountBalances {
+                revenue,
+                cost_of_revenue,
+                expenses,
+            }
+        }
+
+        #[test]
+        fn credit_retained_earnings_when_net_income_is_positive() {
+            let journal_id = JournalId::new();
+            let currency = Currency::USD;
+            let retained_earnings_gain_account_set_id = AccountSetId::new();
+            let retained_earnings_loss_account_set_id = AccountSetId::new();
+
+            let revenue = profit_and_loss_line_item(
+                journal_id,
+                currency,
+                vec![
+                    line_item_input(AccountId::new(), 100, DebitOrCredit::Credit),
+                    line_item_input(AccountId::new(), 400, DebitOrCredit::Credit),
+                ],
+            );
+            let cost_of_revenue = profit_and_loss_line_item(
+                journal_id,
+                currency,
+                vec![
+                    line_item_input(AccountId::new(), 200, DebitOrCredit::Debit),
+                    line_item_input(AccountId::new(), 100, DebitOrCredit::Debit),
+                ],
+            );
+            let expenses = profit_and_loss_line_item(
+                journal_id,
+                currency,
+                vec![line_item_input(AccountId::new(), 100, DebitOrCredit::Debit)],
+            );
+
+            let closing_input = profit_and_loss_closing_input(revenue, cost_of_revenue, expenses);
+            let net_income_input = closing_input.to_net_income_input(
+                retained_earnings_gain_account_set_id,
+                retained_earnings_loss_account_set_id,
+            );
+            assert_eq!(net_income_input.net_income, Decimal::from(100));
+            assert_eq!(
+                net_income_input.retained_earnings_account_normal_balance_type,
+                DebitOrCredit::Credit
+            );
+        }
+    }
 
     mod monthly_cel {
 
