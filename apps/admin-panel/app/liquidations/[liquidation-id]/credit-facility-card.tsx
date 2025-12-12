@@ -1,9 +1,12 @@
 "use client"
 
 import React from "react"
+import Link from "next/link"
 import { useTranslations } from "next-intl"
+import { ArrowRight } from "lucide-react"
 
 import { formatDate } from "@lana/web/utils"
+import { Button } from "@lana/web/ui/button"
 
 import Balance from "@/components/balance/balance"
 import { DetailsCard, DetailItemProps } from "@/components/details"
@@ -26,6 +29,7 @@ export const LiquidationCreditFacilityCard: React.FC<
   LiquidationCreditFacilityCardProps
 > = ({ creditFacility }) => {
   const t = useTranslations("CreditFacilities.CreditFacilityDetails")
+  const buttonsT = useTranslations("Liquidations.LiquidationDetails.DetailsCard.buttons")
 
   const details: DetailItemProps[] = [
     {
@@ -39,13 +43,13 @@ export const LiquidationCreditFacilityCard: React.FC<
       ),
     },
     {
+      label: t("DetailsCard.details.dateOfIssuance"),
+      value: formatDate(creditFacility.activatedAt),
+    },
+    {
       label: t("DetailsCard.details.maturityDate"),
       value: formatDate(creditFacility.maturesAt),
       displayCondition: creditFacility.maturesAt !== null,
-    },
-    {
-      label: t("DetailsCard.details.dateOfIssuance"),
-      value: formatDate(creditFacility.activatedAt),
     },
     {
       label: t("FacilityCard.details.facilityAmount"),
@@ -73,12 +77,22 @@ export const LiquidationCreditFacilityCard: React.FC<
     },
   ]
 
+  const footerContent = (
+    <Link href={`/credit-facilities/${creditFacility.publicId}`}>
+      <Button variant="outline">
+        {buttonsT("viewMoreDetails")}
+        <ArrowRight className="h-4 w-4 ml-2" />
+      </Button>
+    </Link>
+  )
+
   return (
     <DetailsCard
       publicId={creditFacility.publicId}
       title={t("DetailsCard.title")}
       details={details}
       columns={4}
+      footerContent={footerContent}
     />
   )
 }

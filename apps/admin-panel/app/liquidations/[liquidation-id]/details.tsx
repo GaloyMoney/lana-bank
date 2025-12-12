@@ -1,9 +1,8 @@
 "use client"
 
 import React, { useState } from "react"
-import Link from "next/link"
 import { useTranslations } from "next-intl"
-import { ArrowDownToLine, ArrowRight, ArrowUpFromLine } from "lucide-react"
+import { ArrowDownToLine, ArrowUpFromLine } from "lucide-react"
 
 import { formatDate } from "@lana/web/utils"
 import { Button } from "@lana/web/ui/button"
@@ -59,12 +58,6 @@ export const LiquidationDetailsCard: React.FC<LiquidationDetailsProps> = ({
 
   const footerContent = (
     <>
-      <Link href={`/credit-facilities/${liquidation.creditFacility.publicId}`}>
-        <Button variant="outline">
-          {t("buttons.viewCreditFacility")}
-          <ArrowRight />
-        </Button>
-      </Link>
       <Button
         variant="outline"
         onClick={() => setOpenCollateralSentDialog(true)}

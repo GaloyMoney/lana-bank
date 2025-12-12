@@ -662,7 +662,6 @@ checksums:
     Disbursals/DisbursalDetails/CreditFacilityDisbursalInitiate/messages/unknownError: 4fa139b42a7b7ed262b07bdda7cd2fb6
     Liquidations/title: d5e225f5b3204b60ff0dea79c7cc89f3
     Liquidations/description: 74d6c0d195c41309b8a6985b34771242
-    Liquidations/table/headers/liquidationId: a7ee9e99f5c0be118b5e06964f3e65d5
     Liquidations/table/headers/creditFacility: d96f87cd95639f3ba97b53f681f2fb5f
     Liquidations/table/headers/status: 4e1fcce15854d824919b4a582c697c90
     Liquidations/table/headers/expectedToReceive: 3fa01e9ae94c919fae9fc0f46d49b9cc
@@ -679,23 +678,9 @@ checksums:
     Liquidations/LiquidationDetails/DetailsCard/details/sentTotal: fc40b27969deda2caeab3853a49a3593
     Liquidations/LiquidationDetails/DetailsCard/details/receivedTotal: 0e4f52c9fe1b61dc834294d7af823356
     Liquidations/LiquidationDetails/DetailsCard/details/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
-    Liquidations/LiquidationDetails/DetailsCard/status/completed: 0e4bbce9985f25eb673d9a054c8d5334
-    Liquidations/LiquidationDetails/DetailsCard/status/inProgress: 3de9afebcb9d4ce8ac42e14995f79ffd
     Liquidations/LiquidationDetails/DetailsCard/buttons/recordCollateralSent: 4ccb2caa89e295615e642f43999c285f
     Liquidations/LiquidationDetails/DetailsCard/buttons/recordPaymentReceived: 3bd2bb18bcccd58281d50a1c27e2c48e
-    Liquidations/LiquidationDetails/DetailsCard/buttons/viewCreditFacility: f02e316eba6ca5ad813099ca29b5c8f1
-    Liquidations/LiquidationDetails/CreditFacilityCard/title: d96f87cd95639f3ba97b53f681f2fb5f
-    Liquidations/LiquidationDetails/CreditFacilityCard/details/creditFacility: d96f87cd95639f3ba97b53f681f2fb5f
-    Liquidations/LiquidationDetails/CreditFacilityCard/details/customer: 846b48bb14b3d62c75cde5031e6bbfd7
-    Liquidations/LiquidationDetails/CreditFacilityCard/details/status: 4e1fcce15854d824919b4a582c697c90
-    Liquidations/LiquidationDetails/CreditFacilityCard/details/collateralizationState: 7c33429a42e7cb133439b578ee6f1b78
-    Liquidations/LiquidationDetails/CreditFacilityCard/details/facilityAmount: 70e63659ee9f7ab8a38ec09c24f3c97c
-    Liquidations/LiquidationDetails/CreditFacilityCard/details/totalOutstanding: 194b6da9c09e98eef3a8e94c8be376b7
-    Liquidations/LiquidationDetails/CreditFacilityCard/details/collateralBalance: 747269fa7292d41b1b0e10d3526e5ad4
-    Liquidations/LiquidationDetails/CreditFacilityCard/details/currentCvl: c7bb280a34ad5e3a082c74df8187317e
-    Liquidations/LiquidationDetails/CreditFacilityCard/details/liquidationCvl: ed00ad53b85e787ba92a9364da417a55
-    Liquidations/LiquidationDetails/CreditFacilityCard/details/activatedAt: 598bd7b17bfe1910961f8adf0c127c03
-    Liquidations/LiquidationDetails/CreditFacilityCard/details/maturesAt: d1cef315c776b386912ac10bd1ec00d4
+    Liquidations/LiquidationDetails/DetailsCard/buttons/viewMoreDetails: 8ab63c6de1a1dc0d39f0f1cbdf6db655
     Liquidations/LiquidationDetails/CollateralSent/title: 3ceee0dbfa639450fd55bc2c3278ea82
     Liquidations/LiquidationDetails/CollateralSent/description: f8b19056b82621a57164f50b2ac97e40
     Liquidations/LiquidationDetails/CollateralSent/columns/amount: a0ae9c6ff98b57475cdce56f66066aa4

@@ -1138,7 +1138,7 @@
         "buttons": {
           "recordCollateralSent": "Record Collateral Sent",
           "recordPaymentReceived": "Record Payment Received",
-          "viewCreditFacility": "View Credit Facility"
+          "viewMoreDetails": "View More Details"
         }
       },
       "CollateralSent": {

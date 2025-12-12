@@ -1138,7 +1138,7 @@
         "buttons": {
           "recordCollateralSent": "Registrar garantía enviada",
           "recordPaymentReceived": "Registrar pago recibido",
-          "viewCreditFacility": "Ver Línea de Crédito"
+          "viewMoreDetails": "Ver más detalles"
         }
       },
       "CollateralSent": {
