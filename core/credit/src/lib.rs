@@ -394,13 +394,17 @@ where
                 liquidations_arc.as_ref(),
             ),
         );
-        jobs.add_initializer(
+        jobs.add_initializer_and_spawn_unique(
             credit_facility_liquidations::CreditFacilityLiquidationsInit::<Perms, E>::new(
                 outbox,
                 jobs,
                 liquidations_arc.as_ref(),
             ),
-        );
+            credit_facility_liquidations::CreditFacilityLiquidationsJobConfig::<Perms, E> {
+                _phantom: std::marker::PhantomData,
+            },
+        )
+        .await?;
         jobs.add_initializer(credit_facility_maturity::CreditFacilityMaturityInit::<
             Perms,
             E,
