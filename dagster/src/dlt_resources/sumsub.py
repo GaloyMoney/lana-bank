@@ -25,7 +25,7 @@ def _sumsub_send(
     key: str,
     secret: str,
     body: Optional[bytes] = None,
-):
+) -> requests.Response:
     """Prepare and send a signed Sumsub API request."""
     req = requests.Request(method, url, data=body)
     prepared = session.prepare_request(req)
