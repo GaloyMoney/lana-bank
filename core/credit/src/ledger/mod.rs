@@ -1021,6 +1021,7 @@ impl CreditLedger {
             in_liquidation_account_id: _,
             fee_income_account_id: _,
             interest_income_account_id: _,
+            collateral_in_liquidation_id: _,
         }: CreditFacilityLedgerAccountIds,
     ) -> Result<CreditFacilityBalanceSummary, CreditLedgerError> {
         let facility_id = (self.journal_id, facility_account_id, self.usd);
@@ -2018,6 +2019,7 @@ impl CreditLedger {
             // these accounts are created during proposal creation
             collateral_account_id: _collateral_account_id,
             facility_account_id: _facility_account_id,
+            collateral_in_liquidation_id: _,
         } = account_ids;
 
         let entity_ref = EntityRef::new(CREDIT_FACILITY_ENTITY_TYPE, credit_facility_id);
