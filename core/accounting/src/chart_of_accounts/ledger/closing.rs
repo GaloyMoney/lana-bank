@@ -321,6 +321,98 @@ mod tests {
         }
 
         #[test]
+        fn credit_normal_positive_contributes_positive() {
+            let currency = Currency::USD;
+            let journal_id = JournalId::new();
+            let account_id = AccountId::new();
+
+            let line_item = profit_and_loss_line_item(
+                journal_id,
+                currency,
+                vec![line_item_input(account_id, 100, DebitOrCredit::Credit)],
+            );
+
+            let net_income_contribution = line_item.closing_tx_input();
+            assert_eq!(
+                net_income_contribution.net_income_contribution,
+                Decimal::from(100)
+            );
+
+            let closing_entry = net_income_contribution.entries.first().unwrap();
+            assert_eq!(closing_entry.amount, Decimal::from(100));
+            assert_eq!(closing_entry.direction, DebitOrCredit::Debit);
+        }
+
+        #[test]
+        fn debit_normal_positive_contributes_negative() {
+            let currency = Currency::USD;
+            let journal_id = JournalId::new();
+            let account_id = AccountId::new();
+
+            let line_item = profit_and_loss_line_item(
+                journal_id,
+                currency,
+                vec![line_item_input(account_id, 100, DebitOrCredit::Debit)],
+            );
+
+            let net_income_contribution = line_item.closing_tx_input();
+            assert_eq!(
+                net_income_contribution.net_income_contribution,
+                Decimal::from(-100)
+            );
+
+            let closing_entry = net_income_contribution.entries.first().unwrap();
+            assert_eq!(closing_entry.amount, Decimal::from(100));
+            assert_eq!(closing_entry.direction, DebitOrCredit::Credit);
+        }
+
+        #[test]
+        fn credit_normal_negative_contributes_negative() {
+            let currency = Currency::USD;
+            let journal_id = JournalId::new();
+            let account_id = AccountId::new();
+
+            let line_item = profit_and_loss_line_item(
+                journal_id,
+                currency,
+                vec![line_item_input(account_id, -100, DebitOrCredit::Credit)],
+            );
+
+            let net_income_contribution = line_item.closing_tx_input();
+            assert_eq!(
+                net_income_contribution.net_income_contribution,
+                Decimal::from(-100)
+            );
+
+            let closing_entry = net_income_contribution.entries.first().unwrap();
+            assert_eq!(closing_entry.amount, Decimal::from(100));
+            assert_eq!(closing_entry.direction, DebitOrCredit::Credit);
+        }
+
+        #[test]
+        fn debit_normal_negative_contributes_positive() {
+            let currency = Currency::USD;
+            let journal_id = JournalId::new();
+            let account_id = AccountId::new();
+
+            let line_item = profit_and_loss_line_item(
+                journal_id,
+                currency,
+                vec![line_item_input(account_id, -100, DebitOrCredit::Debit)],
+            );
+
+            let net_income_contribution = line_item.closing_tx_input();
+            assert_eq!(
+                net_income_contribution.net_income_contribution,
+                Decimal::from(100)
+            );
+
+            let closing_entry = net_income_contribution.entries.first().unwrap();
+            assert_eq!(closing_entry.amount, Decimal::from(100));
+            assert_eq!(closing_entry.direction, DebitOrCredit::Debit);
+        }
+
+        #[test]
         fn credit_retained_earnings_when_net_income_is_positive() {
             let journal_id = JournalId::new();
             let currency = Currency::USD;
