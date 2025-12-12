@@ -19,6 +19,23 @@ struct CreditFacilityLiquidationsJobData {
     sequence: EventSequence,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct CreditFacilityLiquidationsJobConfig<Perms, E> {
+    pub _phantom: std::marker::PhantomData<(Perms, E)>,
+}
+
+impl<Perms, E> JobConfig for CreditFacilityLiquidationsJobConfig<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
+{
+    type Initializer = CreditFacilityLiquidationsInit<Perms, E>;
+}
+
 pub struct CreditFacilityLiquidationsInit<Perms, E>
 where
     Perms: PermissionCheck,
@@ -117,6 +134,7 @@ where
                 message = stream.next().fuse() => {
                     match message {
                         Some(message) => {
+
                             let mut db = self.liquidations.begin_op().await?;
                             self.process_message(&mut db, message.as_ref()).await?;
                             state.sequence = message.sequence;
