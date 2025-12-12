@@ -52,8 +52,6 @@ app:
         production_url: https://app.bitgo.com/
   notification:
     email:
-      from_email: ''
-      from_name: ''
       relay: ''
       port: 0
       insecure: false

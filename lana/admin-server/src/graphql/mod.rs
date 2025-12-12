@@ -17,6 +17,7 @@ mod deposit_config;
 mod document;
 mod loader;
 mod me;
+mod notification;
 mod price;
 mod primitives;
 mod profit_and_loss_config;

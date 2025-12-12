@@ -15,9 +15,9 @@ use crate::primitives::*;
 use super::{
     access::*, accounting::*, approval_process::*, audit::*, balance_sheet_config::*, committee::*,
     contract_creation::*, credit_config::*, credit_facility::*, custody::*, customer::*,
-    dashboard::*, deposit::*, deposit_config::*, document::*, loader::*, me::*, policy::*,
-    price::*, profit_and_loss_config::*, public_id::*, reports::*, sumsub::*, terms_template::*,
-    withdrawal::*,
+    dashboard::*, deposit::*, deposit_config::*, document::*, loader::*, me::*, notification::*,
+    policy::*, price::*, profit_and_loss_config::*, public_id::*, reports::*, sumsub::*,
+    terms_template::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -950,6 +950,15 @@ impl Query {
         Ok(config.map(DepositModuleConfig::from))
     }
 
+    async fn notification_email_config(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<NotificationEmailConfig> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let config = app.notification().get_email_config(sub).await?;
+        Ok(NotificationEmailConfig::from(config))
+    }
+
     async fn credit_config(
         &self,
         ctx: &Context<'_>,
@@ -1277,6 +1286,22 @@ impl Mutation {
             app.customers()
                 .update_email(sub, input.customer_id, input.email)
         )
+    }
+
+    async fn notification_email_config_update(
+        &self,
+        ctx: &Context<'_>,
+        input: NotificationEmailConfigInput,
+    ) -> async_graphql::Result<NotificationEmailConfigPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let updated = app
+            .notification()
+            .update_email_config(sub, input.into())
+            .await?;
+
+        Ok(NotificationEmailConfigPayload::from(
+            NotificationEmailConfig::from(updated),
+        ))
     }
 
     async fn deposit_module_configure(

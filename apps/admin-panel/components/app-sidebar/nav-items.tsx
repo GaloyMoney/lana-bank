@@ -67,6 +67,7 @@ export function useNavItems() {
     { title: t("users"), url: "/users", icon: UserCircle },
     { title: t("rolesAndPermissions"), url: "/roles-and-permissions", icon: ShieldAlert },
     { title: t("custodians"), url: "/custodians", icon: Building },
+    { title: t("configurations"), url: "/configurations", icon: Cog },
   ]
 
   const navFinanceItems: NavItem[] = [

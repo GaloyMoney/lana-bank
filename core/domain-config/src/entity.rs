@@ -2,9 +2,12 @@ use derive_builder::Builder;
 use es_entity::*;
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
-use serde::{Deserialize, Serialize, de::DeserializeOwned};
+use serde::{Deserialize, Serialize};
 
-use crate::primitives::{DomainConfigId, DomainConfigKey};
+use crate::{
+    DomainConfigError, DomainConfigValue,
+    primitives::{DomainConfigId, DomainConfigKey},
+};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -30,20 +33,29 @@ pub struct DomainConfig {
 }
 
 impl DomainConfig {
-    pub(super) fn update(&mut self, new_value: serde_json::Value) -> Idempotent<()> {
+    pub(super) fn update<T>(&mut self, new_value: T) -> Result<Idempotent<()>, DomainConfigError>
+    where
+        T: DomainConfigValue,
+    {
+        new_value.validate()?;
+
+        let value_json = serde_json::to_value(new_value)?;
         idempotency_guard!(
             self.events.iter_all().rev(),
-            DomainConfigEvent::Updated { value } if value == &new_value,
+            DomainConfigEvent::Updated { value } if value == &value_json,
             => DomainConfigEvent::Updated { .. }
         );
 
         self.events
-            .push(DomainConfigEvent::Updated { value: new_value });
+            .push(DomainConfigEvent::Updated { value: value_json });
 
-        Idempotent::Executed(())
+        Ok(Idempotent::Executed(()))
     }
 
-    pub(super) fn current_value<T: DeserializeOwned>(&self) -> Result<T, serde_json::Error> {
+    pub(super) fn current_value<T>(&self) -> Result<T, DomainConfigError>
+    where
+        T: DomainConfigValue,
+    {
         let last_event = self
             .events
             .iter_all()
@@ -53,7 +65,7 @@ impl DomainConfig {
             DomainConfigEvent::Initialized { value, .. } => value,
             DomainConfigEvent::Updated { value } => value,
         };
-        serde_json::from_value(value.clone())
+        Ok(serde_json::from_value(value.clone())?)
     }
 }
 
@@ -87,6 +99,22 @@ impl NewDomainConfig {
     }
 }
 
+impl NewDomainConfigBuilder {
+    pub fn with_value<T>(mut self, id: DomainConfigId, value: T) -> Result<Self, DomainConfigError>
+    where
+        T: DomainConfigValue,
+    {
+        value.validate()?;
+        let value_json = serde_json::to_value(value)?;
+
+        self.id(id);
+        self.key(T::KEY);
+        self.value(value_json);
+
+        Ok(self)
+    }
+}
+
 impl IntoEvents<DomainConfigEvent> for NewDomainConfig {
     fn into_events(self) -> EntityEvents<DomainConfigEvent> {
         EntityEvents::init(
@@ -106,11 +134,11 @@ mod tests {
     use serde::{Deserialize, Serialize};
     use serde_json::json;
 
-    use crate::{DomainConfigId, DomainConfigKey, DomainConfigValue};
+    use crate::{DomainConfigError, DomainConfigId, DomainConfigKey, DomainConfigValue};
 
     use super::{DomainConfig, DomainConfigEvent, NewDomainConfig};
 
-    #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
     struct SampleConfig {
         enabled: bool,
         limit: u32,
@@ -118,13 +146,22 @@ mod tests {
 
     impl DomainConfigValue for SampleConfig {
         const KEY: DomainConfigKey = DomainConfigKey::new("sample-config");
+
+        fn validate(&self) -> Result<(), DomainConfigError> {
+            if self.limit > 100 {
+                return Err(DomainConfigError::InvalidState(
+                    "Limit is too high".to_string(),
+                ));
+            }
+
+            Ok(())
+        }
     }
 
     fn build_config(id: DomainConfigId, value: &SampleConfig) -> DomainConfig {
         let events = NewDomainConfig::builder()
-            .id(id)
-            .key(SampleConfig::KEY)
-            .value(serde_json::to_value(value).unwrap())
+            .with_value(id, value.clone())
+            .unwrap()
             .build()
             .unwrap()
             .into_events();
@@ -148,6 +185,37 @@ mod tests {
     }
 
     #[test]
+    fn new_domain_config_validates_value() {
+        let invalid = SampleConfig {
+            enabled: true,
+            limit: 101,
+        };
+
+        let result = NewDomainConfig::builder().with_value(DomainConfigId::new(), invalid);
+
+        assert!(matches!(result, Err(DomainConfigError::InvalidState(_))));
+    }
+
+    #[test]
+    fn update_domain_config_validates_value() {
+        let mut config = build_config(
+            DomainConfigId::new(),
+            &SampleConfig {
+                enabled: true,
+                limit: 5,
+            },
+        );
+        let invalid = SampleConfig {
+            enabled: false,
+            limit: 101,
+        };
+
+        let result = config.update(invalid.clone());
+
+        assert!(matches!(result, Err(DomainConfigError::InvalidState(_))));
+    }
+
+    #[test]
     fn apply_update_appends_event_and_updates_value() {
         let mut config = build_config(
             DomainConfigId::new(),
@@ -162,7 +230,9 @@ mod tests {
         };
 
         let updated_json = json!(updated.clone());
-        let result = config.update(updated_json.clone());
+        let result = config
+            .update(updated.clone())
+            .expect("update should succeed");
 
         assert!(result.did_execute());
         assert_eq!(config.events.iter_all().count(), 2);
@@ -190,11 +260,23 @@ mod tests {
 
         let updated_json = json!(updated.clone());
 
-        assert!(config.update(updated_json.clone()).did_execute());
-        let result = config.update(updated_json.clone());
+        assert!(
+            config
+                .update(updated.clone())
+                .expect("first update should succeed")
+                .did_execute()
+        );
+        let result = config
+            .update(updated.clone())
+            .expect("second update should not error");
 
         assert!(result.was_ignored());
         assert_eq!(config.events.iter_all().count(), 2);
+        let last_event = config.events.iter_all().next_back().unwrap();
+        assert!(matches!(
+            last_event,
+            DomainConfigEvent::Updated { value } if value == &updated_json
+        ));
         assert_eq!(config.current_value::<SampleConfig>().unwrap(), updated);
     }
 
@@ -217,11 +299,18 @@ mod tests {
             limit: 7,
         };
 
-        let first_json = json!(first);
-        let second_json = json!(second.clone());
-
-        assert!(config.update(first_json.clone()).did_execute());
-        assert!(config.update(second_json.clone()).did_execute());
+        assert!(
+            config
+                .update(first.clone())
+                .expect("first update should succeed")
+                .did_execute()
+        );
+        assert!(
+            config
+                .update(second.clone())
+                .expect("second update should succeed")
+                .did_execute()
+        );
 
         let rehydrated = DomainConfig::try_from_events(config.events.clone()).unwrap();
 

@@ -49,6 +49,8 @@ pub enum PermissionSetName {
     ReportViewer,
     ReportWriter,
     AuditViewer,
+    NotificationEmailConfigViewer,
+    NotificationEmailConfigWriter,
 }
 
 impl std::str::FromStr for PermissionSetName {
@@ -88,6 +90,13 @@ impl std::str::FromStr for PermissionSetName {
             core_report::PERMISSION_SET_REPORT_WRITER => Ok(ReportWriter),
 
             contract_creation::PERMISSION_SET_CONTRACT_CREATION => Ok(ContractCreation),
+
+            notification::PERMISSION_SET_NOTIFICATION_EMAIL_CONFIG_VIEWER => {
+                Ok(NotificationEmailConfigViewer)
+            }
+            notification::PERMISSION_SET_NOTIFICATION_EMAIL_CONFIG_WRITER => {
+                Ok(NotificationEmailConfigWriter)
+            }
 
             PERMISSION_SET_AUDIT_VIEWER => Ok(AuditViewer),
 

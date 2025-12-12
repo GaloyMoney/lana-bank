@@ -4,6 +4,8 @@ use tracing_utils::ErrorSeverity;
 
 #[derive(Error, Debug)]
 pub enum DomainConfigError {
+    #[error("DomainConfigError - Invalid State: {0}")]
+    InvalidState(String),
     #[error("DomainConfigError - Serde: {0}")]
     Serde(#[from] serde_json::Error),
     #[error("DomainConfigError - Sqlx: {0}")]
@@ -19,6 +21,7 @@ es_entity::from_es_entity_error!(DomainConfigError);
 impl ErrorSeverity for DomainConfigError {
     fn severity(&self) -> Level {
         match self {
+            Self::InvalidState(_) => Level::ERROR,
             Self::Serde(_) => Level::ERROR,
             Self::Sqlx(_) => Level::ERROR,
             Self::EsEntityError(e) => e.severity(),

@@ -107,6 +107,16 @@ export function usePermissionDisplay() {
           label: t("governance_writer.label"),
           description: t("governance_writer.description"),
         }
+      case PermissionSetName.NotificationEmailConfigViewer:
+        return {
+          label: t("notification_email_config_viewer.label"),
+          description: t("notification_email_config_viewer.description"),
+        }
+      case PermissionSetName.NotificationEmailConfigWriter:
+        return {
+          label: t("notification_email_config_writer.label"),
+          description: t("notification_email_config_writer.description"),
+        }
       case PermissionSetName.CustodyViewer:
         return {
           label: t("custody_viewer.label"),
