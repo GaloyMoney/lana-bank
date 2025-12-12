@@ -9,7 +9,7 @@ use cala_ledger::{
     *,
 };
 
-use super::closing::ClosingTxEntry;
+use super::closing_balances::ClosingTxEntry;
 
 #[derive(Debug, Builder)]
 pub struct EntryParams {

@@ -1,4 +1,5 @@
-pub(crate) mod closing;
+mod closing_balances;
+pub(crate) mod closing_metadata;
 pub mod error;
 mod template;
 
@@ -15,7 +16,8 @@ use es_entity::{PaginatedQueryArgs, PaginatedQueryRet};
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-pub(crate) use closing::*;
+pub(crate) use closing_balances::*;
+use closing_metadata::*;
 use error::*;
 use template::*;
 
