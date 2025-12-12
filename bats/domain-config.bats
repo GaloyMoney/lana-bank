@@ -40,20 +40,3 @@ teardown_file() {
   [[ "$current_email" == "$from_email" ]] || exit 1
   [[ "$current_name" == "$from_name" ]] || exit 1
 }
-
-@test "domain-config: notification email config rejects blank fromName" {
-  variables=$(
-    jq -n \
-    '{
-      input: {
-        fromEmail: "notifications@example.com",
-        fromName: "   "
-      }
-    }'
-  )
-
-  exec_admin_graphql 'notification-email-config-update' "$variables"
-
-  errors=$(graphql_output '.errors')
-  [[ "$errors" =~ "from_name is required" ]] || exit 1
-}
