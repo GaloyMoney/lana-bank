@@ -6,6 +6,7 @@ import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
 import { LiquidationDetailsCard } from "./details"
+import { LiquidationCreditFacilityCard } from "./credit-facility-card"
 import { LiquidationCollateralSentTable } from "./collateral-sent-table"
 import { LiquidationPaymentReceivedTable } from "./payment-received-table"
 
@@ -23,21 +24,70 @@ gql`
     ledgerTxId
   }
 
+  fragment LiquidationDetails on Liquidation {
+    id
+    liquidationId
+    creditFacilityId
+    expectedToReceive
+    sentTotal
+    receivedTotal
+    createdAt
+    completed
+    creditFacility {
+      id
+      creditFacilityId
+      publicId
+      status
+      collateralizationState
+      facilityAmount
+      activatedAt
+      maturesAt
+      currentCvl {
+        __typename
+        ... on FiniteCVLPct {
+          value
+        }
+        ... on InfiniteCVLPct {
+          isInfinite
+        }
+      }
+      creditFacilityTerms {
+        liquidationCvl {
+          __typename
+          ... on FiniteCVLPct {
+            value
+          }
+          ... on InfiniteCVLPct {
+            isInfinite
+          }
+        }
+      }
+      balance {
+        outstanding {
+          usdBalance
+        }
+        collateral {
+          btcBalance
+        }
+      }
+      customer {
+        customerId
+        publicId
+        customerType
+        email
+      }
+    }
+    sentCollateral {
+      ...LiquidationCollateralSentFragment
+    }
+    receivedPayment {
+      ...LiquidationPaymentReceivedFragment
+    }
+  }
+
   query GetLiquidationDetails($liquidationId: UUID!) {
     liquidation(id: $liquidationId) {
-      id
-      liquidationId
-      expectedToReceive
-      sentTotal
-      receivedTotal
-      createdAt
-      completed
-      sentCollateral {
-        ...LiquidationCollateralSentFragment
-      }
-      receivedPayment {
-        ...LiquidationPaymentReceivedFragment
-      }
+      ...LiquidationDetails
     }
   }
 `
@@ -56,15 +106,16 @@ function LiquidationPage({
   const commonT = useTranslations("Common")
 
   if (loading) {
-    return <DetailsPageSkeleton tabs={0} detailItems={5} tabsCards={0} />
+    return <DetailsPageSkeleton tabs={0} detailItems={6} tabsCards={0} />
   }
   if (error) return <div className="text-destructive">{error.message}</div>
   if (!data?.liquidation) return <div>{commonT("notFound")}</div>
 
   return (
-    <main className="max-w-7xl m-auto space-y-4">
+    <main className="max-w-7xl m-auto space-y-2">
       <LiquidationDetailsCard liquidation={data.liquidation} />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <LiquidationCreditFacilityCard creditFacility={data.liquidation.creditFacility} />
+      <div className="flex flex-col md:flex-row gap-2 items-start">
         <LiquidationCollateralSentTable
           collateralSent={data.liquidation.sentCollateral}
         />

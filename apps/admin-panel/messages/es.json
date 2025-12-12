@@ -204,6 +204,7 @@
       "pendingCreditFacilities": "Líneas de Crédito Pendientes",
       "creditFacilityProposals": "Propuestas de Línea de Crédito",
       "disbursals": "Desembolsos",
+      "liquidations": "Liquidaciones",
       "termTemplates": "Plantillas de Términos",
       "customers": "Clientes",
       "policies": "Políticas",
@@ -1126,26 +1127,47 @@
     }
   },
   "Liquidations": {
+    "title": "Liquidaciones",
+    "description": "Liquidaciones en todas las líneas de crédito",
+    "table": {
+      "headers": {
+        "creditFacility": "Línea de Crédito",
+        "status": "Estado",
+        "expectedToReceive": "Esperado a recibir",
+        "sentTotal": "Total enviado",
+        "receivedTotal": "Total recibido",
+        "createdAt": "Fecha de registro"
+      }
+    },
+    "status": {
+      "completed": "Completado",
+      "inProgress": "En progreso"
+    },
+    "errors": {
+      "general": "Ocurrió un error"
+    },
     "LiquidationDetails": {
       "DetailsCard": {
         "title": "Liquidación",
         "details": {
+          "customerEmail": "Correo Electrónico del Cliente",
           "status": "Estado",
           "expectedToReceive": "Esperado a recibir",
           "sentTotal": "Total enviado",
           "receivedTotal": "Total recibido",
           "createdAt": "Fecha de registro"
         },
-        "status": {
-          "completed": "Completado",
-          "inProgress": "En progreso"
+        "buttons": {
+          "recordCollateralSent": "Registrar garantía enviada",
+          "recordPaymentReceived": "Registrar pago recibido",
+          "viewMoreDetails": "Ver más detalles"
         }
       },
       "CollateralSent": {
         "title": "Garantía enviada",
         "description": "Garantía enviada durante la liquidación",
         "columns": {
-          "amount": "Cantidad (BTC)",
+          "amount": "Monto",
           "ledgerTxId": "ID de transacción contable"
         },
         "messages": {
@@ -1156,12 +1178,42 @@
         "title": "Pago recibido",
         "description": "Pagos recibidos de la liquidación",
         "columns": {
-          "amount": "Monto (USD)",
+          "amount": "Monto",
           "ledgerTxId": "ID de partida contable"
         },
         "messages": {
           "emptyTable": "No se han recibido pagos"
         }
+      },
+      "recordCollateralSent": {
+        "title": "Registrar garantía enviada",
+        "description": "Registre la cantidad de garantía enviada durante la liquidación",
+        "fields": {
+          "amount": "Cantidad",
+          "amountPlaceholder": "Ingrese la cantidad en BTC"
+        },
+        "buttons": {
+          "submit": "Registrar garantía enviada"
+        },
+        "errors": {
+          "invalidAmount": "Por favor ingrese una cantidad válida mayor que 0"
+        },
+        "success": "Garantía enviada registrada exitosamente"
+      },
+      "recordPaymentReceived": {
+        "title": "Registrar pago recibido",
+        "description": "Registre la cantidad de pago recibido de la liquidación",
+        "fields": {
+          "amount": "Cantidad",
+          "amountPlaceholder": "Ingrese la cantidad en USD"
+        },
+        "buttons": {
+          "submit": "Registrar pago recibido"
+        },
+        "errors": {
+          "invalidAmount": "Por favor ingrese una cantidad válida mayor que 0"
+        },
+        "success": "Pago recibido registrado exitosamente"
       }
     }
   },

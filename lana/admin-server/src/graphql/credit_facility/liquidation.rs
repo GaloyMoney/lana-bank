@@ -1,5 +1,6 @@
 use async_graphql::*;
 
+use super::super::loader::LanaDataLoader;
 use crate::primitives::*;
 pub use lana_app::credit::Liquidation as DomainLiquidation;
 
@@ -63,6 +64,18 @@ pub struct LiquidationPaymentReceived {
 
 #[ComplexObject]
 impl Liquidation {
+    async fn credit_facility(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<super::CreditFacility> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let credit_facility = loader
+            .load_one(self.entity.credit_facility_id)
+            .await?
+            .expect("credit facility not found");
+        Ok(credit_facility)
+    }
+
     async fn sent_collateral(&self) -> Vec<LiquidationCollateralSent> {
         self.entity
             .collateral_sent_out()
