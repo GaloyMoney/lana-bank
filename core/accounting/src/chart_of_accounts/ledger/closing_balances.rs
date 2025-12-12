@@ -24,6 +24,12 @@ pub(crate) struct ClosingTxParams {
     pub(crate) equity_retained_losses_account_set_id: AccountSetId,
 }
 
+impl ClosingTxParams {
+    pub(super) fn retained_earnings_account_name(&self) -> String {
+        format!("NET_INCOME_{}", self.description)
+    }
+}
+
 #[derive(Debug, Clone)]
 pub(super) struct ClosingAccountBalance {
     pub(super) amount: Decimal,
