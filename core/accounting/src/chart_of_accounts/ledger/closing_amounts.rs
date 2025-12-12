@@ -2,7 +2,7 @@ use chrono::NaiveDate;
 use rust_decimal::Decimal;
 use std::collections::HashMap;
 
-use crate::primitives::CalaTxId;
+use crate::primitives::{CalaAccount, CalaCurrency, CalaTxId};
 
 use cala_ledger::{
     BalanceId, DebitOrCredit, account_set::AccountSetId, balance::BalanceRange as CalaBalanceRange,
@@ -112,15 +112,15 @@ impl ClosingProfitAndLossAccountBalances {
             .collect()
     }
 
-    // pub(super) fn retained_earnings_entry_params(&self, account: CalaAccount) -> EntryParams {
-    //     EntryParams::builder()
-    //         .account_id(account.id())
-    //         .amount(self.net_income().abs())
-    //         .currency(CalaCurrency::USD)
-    //         .direction(account.values().normal_balance_type)
-    //         .build()
-    //         .expect("Failed to build EntryParams")
-    // }
+    pub(super) fn retained_earnings_entry_params(&self, account: CalaAccount) -> EntryParams {
+        EntryParams::builder()
+            .account_id(account.id())
+            .amount(self.net_income().abs())
+            .currency(CalaCurrency::USD)
+            .direction(account.values().normal_balance_type)
+            .build()
+            .expect("Failed to build EntryParams")
+    }
 }
 
 #[cfg(test)]
