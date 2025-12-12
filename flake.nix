@@ -146,6 +146,7 @@
 
       lana-cli-release = let
         rustTarget = "x86_64-unknown-linux-musl";
+        muslSysroot = pkgs.pkgsCross.musl64.stdenv.cc.libc;
       in
         craneLibMusl.buildPackage {
           version = cliVersion; # Use the conditional version
@@ -161,7 +162,9 @@
 
           RELEASE_BUILD_VERSION = cliVersion;
 
-          # clang for host build scripts, mold to avoid "Argument list too long" errors
+          # clang as linker driver (handles response files, avoiding ARG_MAX)
+          # mold as the actual linker (fast)
+          # musl toolchain for cross-compilation
           nativeBuildInputs = [pkgs.clang pkgs.mold];
 
           # Add musl target for static linking
@@ -169,9 +172,9 @@
             pkgsCross.musl64.stdenv.cc
           ];
 
-          # Use musl-gcc but with mold linker (mold uses @response files, avoiding ARG_MAX)
-          CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
-          CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_RUSTFLAGS = "-C link-arg=-fuse-ld=mold";
+          # Use clang as linker driver with mold backend (bypasses gcc wrapper ARG_MAX issue)
+          CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER = "clang";
+          CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_RUSTFLAGS = "-C link-arg=--target=x86_64-unknown-linux-musl -C link-arg=-fuse-ld=mold -C link-arg=--sysroot=${muslSysroot}";
           CC_x86_64_unknown_linux_musl = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
           TARGET_CC = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
         };
