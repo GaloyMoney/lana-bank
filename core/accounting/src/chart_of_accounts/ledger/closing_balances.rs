@@ -160,6 +160,36 @@ mod tests {
 
     use super::*;
 
+    mod profit_and_loss_closing_entry_params {
+        use cala_ledger::DebitOrCredit;
+        use rust_decimal::Decimal;
+        use rust_decimal_macros::dec;
+
+        use super::*;
+
+        fn balance(amount: Decimal, direction: DebitOrCredit) -> ClosingAccountBalance {
+            ClosingAccountBalance { amount, direction }
+        }
+
+        #[test]
+        fn returns_same_normal_balance_type_to_offset_negative_normal_balance() {
+            let negative_normal_credit_balance = balance(dec!(-100), DebitOrCredit::Credit);
+            assert_eq!(
+                negative_normal_credit_balance.direction_for_offsetting_entry(),
+                DebitOrCredit::Credit
+            );
+        }
+
+        #[test]
+        fn returns_flipped_normal_balance_type_to_offset_positive_normal_balance() {
+            let positive_normal_debit_balance = balance(dec!(100), DebitOrCredit::Debit);
+            assert_eq!(
+                positive_normal_debit_balance.direction_for_offsetting_entry(),
+                DebitOrCredit::Credit
+            );
+        }
+    }
+
     mod retained_earnings {
         use cala_ledger::{AccountId, JournalId, account_set::AccountSetId};
         use rust_decimal_macros::dec;
