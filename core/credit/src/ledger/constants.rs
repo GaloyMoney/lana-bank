@@ -23,10 +23,18 @@ pub const CREDIT_FACILITY_REMAINING_ACCOUNT_SET_REF: &str = "credit-facility-rem
 pub const CREDIT_COLLATERAL_ACCOUNT_SET_NAME: &str = "Credit Collateral Account Set";
 pub const CREDIT_COLLATERAL_ACCOUNT_SET_REF: &str = "credit-collateral-account-set";
 
-pub const CREDIT_FACILITY_IN_LIQUIDATION_ACCOUNT_SET_NAME: &str =
-    "Credit Facility In-Liquidation Account Set";
-pub const CREDIT_FACILITY_IN_LIQUIDATION_ACCOUNT_SET_REF: &str =
-    "credit-facility-in-liquidation-account-set";
+pub const CREDIT_FACILITY_COLLATERAL_IN_LIQUIDATION_ACCOUNT_SET_NAME: &str =
+    "Credit Facility Collateral In-Liquidation Account Set";
+pub const CREDIT_FACILITY_COLLATERAL_IN_LIQUIDATION_ACCOUNT_SET_REF: &str =
+    "credit-facility-collateral-in-liquidation-account-set";
+pub const CREDIT_FACILITY_LIQUIDATED_COLLATERAL_ACCOUNT_SET_NAME: &str =
+    "Credit Facility Liquidated Collateral Account Set";
+pub const CREDIT_FACILITY_LIQUIDATED_COLLATERAL_ACCOUNT_SET_REF: &str =
+    "credit-facility-liquidated-collateral-account-set";
+pub const CREDIT_FACILITY_LIQUIDATION_PAYMENT_RECEIVABLE_ACCOUNT_SET_NAME: &str =
+    "Credit Facility Liquidation Payment Receivable Account Set";
+pub const CREDIT_FACILITY_LIQUIDATION_PAYMENT_RECEIVABLE_ACCOUNT_SET_REF: &str =
+    "credit-facility-liquidation-payment-receivable-account-set";
 
 pub const SHORT_TERM_CREDIT_INDIVIDUAL_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME: &str =
     "Short Term Credit Individual Disbursed Receivable Account Set";

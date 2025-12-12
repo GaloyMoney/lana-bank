@@ -10,7 +10,7 @@ use authz::PermissionCheck;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-use cala_ledger::TransactionId as CalaTransactionId;
+use cala_ledger::{CalaLedger, JournalId, TransactionId as CalaTransactionId};
 use core_money::{Satoshis, UsdCents};
 use es_entity::DbOp;
 use obix::out::OutboxEventMarker;
@@ -58,13 +58,15 @@ where
 {
     pub fn new(
         pool: &sqlx::PgPool,
+        journal_id: JournalId,
+        cala: &CalaLedger,
         authz: Arc<Perms>,
         publisher: &crate::CreditFacilityPublisher<E>,
     ) -> Self {
         Self {
             repo: LiquidationRepo::new(pool, publisher),
             authz,
-            ledger: todo!(),
+            ledger: LiquidationLedger::new(cala, journal_id),
         }
     }
 
