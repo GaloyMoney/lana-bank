@@ -17,10 +17,7 @@ import { Button } from "@lana/web/ui/button"
 import { Input } from "@lana/web/ui/input"
 import { Label } from "@lana/web/ui/label"
 
-import {
-  useLiquidationRecordCollateralSentMutation,
-  GetLiquidationDetailsDocument,
-} from "@/lib/graphql/generated"
+import { useLiquidationRecordCollateralSentMutation } from "@/lib/graphql/generated"
 import { currencyConverter } from "@/lib/utils"
 
 gql`
@@ -29,7 +26,7 @@ gql`
   ) {
     liquidationRecordCollateralSent(input: $input) {
       liquidation {
-        id
+        ...LiquidationDetails
       }
     }
   }
@@ -50,9 +47,7 @@ export const RecordCollateralSentDialog: React.FC<RecordCollateralSentDialogProp
   const commonT = useTranslations("Common")
 
   const [recordCollateralSent, { loading, reset }] =
-    useLiquidationRecordCollateralSentMutation({
-      refetchQueries: [GetLiquidationDetailsDocument],
-    })
+    useLiquidationRecordCollateralSentMutation()
   const [amount, setAmount] = useState("")
   const [error, setError] = useState<string | null>(null)
 

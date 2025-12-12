@@ -1109,7 +1109,6 @@
     "description": "Liquidaciones en todas las líneas de crédito",
     "table": {
       "headers": {
-        "liquidationId": "ID de liquidación",
         "creditFacility": "Línea de Crédito",
         "status": "Estado",
         "expectedToReceive": "Esperado a recibir",
@@ -1136,30 +1135,10 @@
           "receivedTotal": "Total recibido",
           "createdAt": "Fecha de registro"
         },
-        "status": {
-          "completed": "Completado",
-          "inProgress": "En progreso"
-        },
         "buttons": {
           "recordCollateralSent": "Registrar garantía enviada",
           "recordPaymentReceived": "Registrar pago recibido",
           "viewCreditFacility": "Ver Línea de Crédito"
-        }
-      },
-      "CreditFacilityCard": {
-        "title": "Línea de Crédito",
-        "details": {
-          "creditFacility": "Línea de Crédito",
-          "customer": "Cliente",
-          "status": "Estado",
-          "collateralizationState": "Estado de Colateralización",
-          "facilityAmount": "Monto de línea",
-          "totalOutstanding": "Total pendiente",
-          "collateralBalance": "Garantía",
-          "currentCvl": "CVL actual",
-          "liquidationCvl": "CVL de liquidación",
-          "activatedAt": "Fecha de desembolso",
-          "maturesAt": "Fecha de vencimiento"
         }
       },
       "CollateralSent": {

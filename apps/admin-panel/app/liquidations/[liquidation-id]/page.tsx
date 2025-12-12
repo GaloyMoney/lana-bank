@@ -24,26 +24,35 @@ gql`
     ledgerTxId
   }
 
-  query GetLiquidationDetails($liquidationId: UUID!) {
-    liquidation(id: $liquidationId) {
+  fragment LiquidationDetails on Liquidation {
+    id
+    liquidationId
+    creditFacilityId
+    expectedToReceive
+    sentTotal
+    receivedTotal
+    createdAt
+    completed
+    creditFacility {
       id
-      liquidationId
       creditFacilityId
-      expectedToReceive
-      sentTotal
-      receivedTotal
-      createdAt
-      completed
-      creditFacility {
-        id
-        creditFacilityId
-        publicId
-        status
-        collateralizationState
-        facilityAmount
-        activatedAt
-        maturesAt
-        currentCvl {
+      publicId
+      status
+      collateralizationState
+      facilityAmount
+      activatedAt
+      maturesAt
+      currentCvl {
+        __typename
+        ... on FiniteCVLPct {
+          value
+        }
+        ... on InfiniteCVLPct {
+          isInfinite
+        }
+      }
+      creditFacilityTerms {
+        liquidationCvl {
           __typename
           ... on FiniteCVLPct {
             value
@@ -52,38 +61,33 @@ gql`
             isInfinite
           }
         }
-        creditFacilityTerms {
-          liquidationCvl {
-            __typename
-            ... on FiniteCVLPct {
-              value
-            }
-            ... on InfiniteCVLPct {
-              isInfinite
-            }
-          }
+      }
+      balance {
+        outstanding {
+          usdBalance
         }
-        balance {
-          outstanding {
-            usdBalance
-          }
-          collateral {
-            btcBalance
-          }
-        }
-        customer {
-          customerId
-          publicId
-          customerType
-          email
+        collateral {
+          btcBalance
         }
       }
-      sentCollateral {
-        ...LiquidationCollateralSentFragment
+      customer {
+        customerId
+        publicId
+        customerType
+        email
       }
-      receivedPayment {
-        ...LiquidationPaymentReceivedFragment
-      }
+    }
+    sentCollateral {
+      ...LiquidationCollateralSentFragment
+    }
+    receivedPayment {
+      ...LiquidationPaymentReceivedFragment
+    }
+  }
+
+  query GetLiquidationDetails($liquidationId: UUID!) {
+    liquidation(id: $liquidationId) {
+      ...LiquidationDetails
     }
   }
 `

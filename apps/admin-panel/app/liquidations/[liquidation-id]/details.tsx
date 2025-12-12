@@ -6,8 +6,9 @@ import { useTranslations } from "next-intl"
 import { ArrowDownToLine, ArrowRight, ArrowUpFromLine } from "lucide-react"
 
 import { formatDate } from "@lana/web/utils"
-import { Badge } from "@lana/web/ui/badge"
 import { Button } from "@lana/web/ui/button"
+
+import { LiquidationStatusBadge } from "../status-badge"
 
 import RecordCollateralSentDialog from "./record-collateral-sent-dialog"
 import RecordPaymentReceivedDialog from "./record-payment-received-dialog"
@@ -36,11 +37,7 @@ export const LiquidationDetailsCard: React.FC<LiquidationDetailsProps> = ({
     },
     {
       label: t("details.status"),
-      value: liquidation.completed ? (
-        <Badge variant="success">{t("status.completed")}</Badge>
-      ) : (
-        <Badge variant="warning">{t("status.inProgress")}</Badge>
-      ),
+      value: <LiquidationStatusBadge completed={liquidation.completed} />,
     },
     {
       label: t("details.expectedToReceive"),

@@ -25,50 +25,50 @@ type LiquidationCreditFacilityCardProps = {
 export const LiquidationCreditFacilityCard: React.FC<
   LiquidationCreditFacilityCardProps
 > = ({ creditFacility }) => {
-  const t = useTranslations("Liquidations.LiquidationDetails.CreditFacilityCard")
+  const t = useTranslations("CreditFacilities.CreditFacilityDetails")
 
   const details: DetailItemProps[] = [
     {
-      label: t("details.status"),
+      label: t("DetailsCard.details.status"),
       value: <LoanAndCreditFacilityStatusBadge status={creditFacility.status} />,
     },
     {
-      label: t("details.collateralizationState"),
+      label: t("DetailsCard.details.collateralizationState"),
       value: (
         <CollateralizationStateLabel state={creditFacility.collateralizationState} />
       ),
     },
     {
-      label: t("details.maturesAt"),
+      label: t("DetailsCard.details.maturityDate"),
       value: formatDate(creditFacility.maturesAt),
       displayCondition: creditFacility.maturesAt !== null,
     },
     {
-      label: t("details.activatedAt"),
+      label: t("DetailsCard.details.dateOfIssuance"),
       value: formatDate(creditFacility.activatedAt),
     },
     {
-      label: t("details.facilityAmount"),
+      label: t("FacilityCard.details.facilityAmount"),
       value: <Balance amount={creditFacility.facilityAmount} currency="usd" />,
     },
     {
-      label: t("details.totalOutstanding"),
+      label: t("FacilityCard.details.totalOutstanding"),
       value: (
         <Balance amount={creditFacility.balance.outstanding.usdBalance} currency="usd" />
       ),
     },
     {
-      label: t("details.collateralBalance"),
+      label: t("CollateralCard.details.collateralBalance"),
       value: (
         <Balance amount={creditFacility.balance.collateral.btcBalance} currency="btc" />
       ),
     },
     {
-      label: t("details.liquidationCvl"),
+      label: t("TermsDialog.details.liquidationCvl"),
       value: formatCvl(creditFacility.creditFacilityTerms.liquidationCvl),
     },
     {
-      label: t("details.currentCvl"),
+      label: t("CollateralCard.details.currentCvl"),
       value: formatCvl(creditFacility.currentCvl),
     },
   ]
@@ -76,7 +76,7 @@ export const LiquidationCreditFacilityCard: React.FC<
   return (
     <DetailsCard
       publicId={creditFacility.publicId}
-      title={t("title")}
+      title={t("DetailsCard.title")}
       details={details}
       columns={4}
     />

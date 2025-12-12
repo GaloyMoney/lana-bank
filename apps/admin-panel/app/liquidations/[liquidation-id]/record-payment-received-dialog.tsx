@@ -17,17 +17,16 @@ import { Button } from "@lana/web/ui/button"
 import { Input } from "@lana/web/ui/input"
 import { Label } from "@lana/web/ui/label"
 
-import {
-  useLiquidationRecordPaymentReceivedMutation,
-  GetLiquidationDetailsDocument,
-} from "@/lib/graphql/generated"
+import { useLiquidationRecordPaymentReceivedMutation } from "@/lib/graphql/generated"
 import { currencyConverter } from "@/lib/utils"
 
 gql`
-  mutation LiquidationRecordPaymentReceived($input: LiquidationRecordPaymentReceivedInput!) {
+  mutation LiquidationRecordPaymentReceived(
+    $input: LiquidationRecordPaymentReceivedInput!
+  ) {
     liquidationRecordPaymentReceived(input: $input) {
       liquidation {
-        id
+        ...LiquidationDetails
       }
     }
   }
@@ -47,9 +46,8 @@ export const RecordPaymentReceivedDialog: React.FC<RecordPaymentReceivedDialogPr
   const t = useTranslations("Liquidations.LiquidationDetails.recordPaymentReceived")
   const commonT = useTranslations("Common")
 
-  const [recordPaymentReceived, { loading, reset }] = useLiquidationRecordPaymentReceivedMutation({
-    refetchQueries: [GetLiquidationDetailsDocument],
-  })
+  const [recordPaymentReceived, { loading, reset }] =
+    useLiquidationRecordPaymentReceivedMutation()
   const [amount, setAmount] = useState("")
   const [error, setError] = useState<string | null>(null)
 

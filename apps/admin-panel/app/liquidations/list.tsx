@@ -4,7 +4,8 @@ import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
 import DateWithTooltip from "@lana/web/components/date-with-tooltip"
-import { Badge } from "@lana/web/ui/badge"
+
+import { LiquidationStatusBadge } from "./status-badge"
 
 import PaginatedTable, {
   Column,
@@ -55,22 +56,18 @@ const LiquidationsList = () => {
 
   const columns: Column<Liquidation>[] = [
     {
+      key: "completed",
+      label: t("table.headers.status"),
+      render: (completed) => <LiquidationStatusBadge completed={completed} />,
+    },
+    {
       key: "creditFacility",
       label: t("table.headers.creditFacility"),
       render: (creditFacility) => (
         <PublicIdBadge publicId={String(creditFacility.publicId)} />
       ),
     },
-    {
-      key: "completed",
-      label: t("table.headers.status"),
-      render: (completed) =>
-        completed ? (
-          <Badge variant="success">{t("status.completed")}</Badge>
-        ) : (
-          <Badge variant="warning">{t("status.inProgress")}</Badge>
-        ),
-    },
+
     {
       key: "expectedToReceive",
       label: t("table.headers.expectedToReceive"),
@@ -109,5 +106,3 @@ const LiquidationsList = () => {
 }
 
 export default LiquidationsList
-
-

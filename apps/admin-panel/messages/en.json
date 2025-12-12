@@ -1109,7 +1109,6 @@
     "description": "Liquidations across all credit facilities",
     "table": {
       "headers": {
-        "liquidationId": "Liquidation ID",
         "creditFacility": "Credit Facility",
         "status": "Status",
         "expectedToReceive": "Expected to Receive",
@@ -1136,30 +1135,10 @@
           "receivedTotal": "Received Total",
           "createdAt": "Created At"
         },
-        "status": {
-          "completed": "Completed",
-          "inProgress": "In Progress"
-        },
         "buttons": {
           "recordCollateralSent": "Record Collateral Sent",
           "recordPaymentReceived": "Record Payment Received",
           "viewCreditFacility": "View Credit Facility"
-        }
-      },
-      "CreditFacilityCard": {
-        "title": "Credit Facility",
-        "details": {
-          "creditFacility": "Credit Facility",
-          "customer": "Customer",
-          "status": "Status",
-          "collateralizationState": "Collateralization State",
-          "facilityAmount": "Facility Amount",
-          "totalOutstanding": "Total Outstanding",
-          "collateralBalance": "Collateral Balance",
-          "currentCvl": "Current CVL",
-          "liquidationCvl": "Liquidation CVL",
-          "activatedAt": "Activated At",
-          "maturesAt": "Matures At"
         }
       },
       "CollateralSent": {
