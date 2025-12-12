@@ -9,26 +9,12 @@ use cala_ledger::{
     *,
 };
 
-use super::closing_balances::ClosingTxEntry;
-
 #[derive(Debug, Builder)]
 pub struct EntryParams {
     pub account_id: CalaAccountId,
     pub currency: Currency,
     pub amount: Decimal,
     pub direction: DebitOrCredit,
-}
-
-impl From<ClosingTxEntry> for EntryParams {
-    fn from(spec: ClosingTxEntry) -> Self {
-        EntryParams::builder()
-            .account_id(spec.account_id.into())
-            .amount(spec.amount)
-            .currency(spec.currency)
-            .direction(spec.direction)
-            .build()
-            .expect("Failed to build EntryParams from ClosingTxEntry")
-    }
 }
 
 impl EntryParams {
@@ -100,7 +86,7 @@ pub(super) struct ClosingTransactionParams {
     pub(super) journal_id: JournalId,
     pub(super) description: String,
     pub(super) effective: chrono::NaiveDate,
-    pub(super) closing_entries: Vec<ClosingTxEntry>,
+    pub(super) entries_params: Vec<EntryParams>,
 }
 
 impl From<ClosingTransactionParams> for Params {
@@ -110,8 +96,8 @@ impl From<ClosingTransactionParams> for Params {
         params.insert("description", input_params.description);
         params.insert("effective", input_params.effective);
 
-        for (n, entry) in input_params.closing_entries.into_iter().enumerate() {
-            EntryParams::from(entry).populate_params(&mut params, n);
+        for (n, entry) in input_params.entries_params.into_iter().enumerate() {
+            entry.populate_params(&mut params, n);
         }
 
         params
@@ -123,13 +109,13 @@ impl ClosingTransactionParams {
         journal_id: JournalId,
         description: String,
         effective: NaiveDate,
-        closing_entries: Vec<ClosingTxEntry>,
+        entries_params: Vec<EntryParams>,
     ) -> ClosingTransactionParams {
         Self {
             journal_id,
             description,
             effective,
-            closing_entries,
+            entries_params,
         }
     }
 

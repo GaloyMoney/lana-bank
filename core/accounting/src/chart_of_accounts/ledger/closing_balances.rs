@@ -2,36 +2,14 @@ use chrono::NaiveDate;
 use rust_decimal::Decimal;
 use std::collections::HashMap;
 
-use crate::{LedgerAccountId, primitives::CalaTxId};
+use crate::primitives::CalaTxId;
+
+use super::template::EntryParams;
 
 use cala_ledger::{
     BalanceId, Currency as CalaCurrency, DebitOrCredit, account::Account,
     account_set::AccountSetId, balance::BalanceRange as CalaBalanceRange,
 };
-
-#[derive(Debug, Clone)]
-pub(super) struct ClosingTxEntry {
-    pub(super) account_id: LedgerAccountId,
-    pub(super) amount: Decimal,
-    pub(super) currency: CalaCurrency,
-    pub(super) direction: DebitOrCredit,
-}
-
-impl ClosingTxEntry {
-    pub(super) fn new(
-        account_id: LedgerAccountId,
-        amount: Decimal,
-        currency: CalaCurrency,
-        direction: DebitOrCredit,
-    ) -> Self {
-        Self {
-            account_id,
-            amount,
-            currency,
-            direction,
-        }
-    }
-}
 
 #[derive(Debug)]
 pub(crate) struct ClosingTxParams {
@@ -112,15 +90,16 @@ impl ProfitAndLossLineItemDetail {
             .sum()
     }
 
-    fn entries(&self) -> Vec<ClosingTxEntry> {
+    fn entries_params(&self) -> Vec<EntryParams> {
         self.iter()
             .map(|((_, account_id, currency), balance)| {
-                ClosingTxEntry::new(
-                    (*account_id).into(),
-                    balance.closed_settled_amount.abs(),
-                    *currency,
-                    OffsetDebitOrCredit::new(balance).into(),
-                )
+                EntryParams::builder()
+                    .account_id(*account_id)
+                    .amount(balance.closed_settled_amount.abs())
+                    .currency(*currency)
+                    .direction(OffsetDebitOrCredit::new(balance).into())
+                    .build()
+                    .expect("Failed to build EntryParams")
             })
             .collect()
     }
@@ -146,19 +125,22 @@ impl ClosingProfitAndLossAccountBalances {
             + self.expenses.contributions()
     }
 
-    pub(super) fn entries(&self, retained_earnings_account: Account) -> Vec<ClosingTxEntry> {
-        let retained_earnings_entry = vec![ClosingTxEntry {
-            account_id: retained_earnings_account.id.into(),
-            amount: self.contributions().abs(),
-            currency: CalaCurrency::USD,
-            direction: retained_earnings_account.values().normal_balance_type,
-        }];
+    pub(super) fn entries_params(&self, retained_earnings_account: Account) -> Vec<EntryParams> {
+        let retained_earnings_entry = vec![
+            EntryParams::builder()
+                .account_id(retained_earnings_account.id)
+                .amount(self.contributions().abs())
+                .currency(CalaCurrency::USD)
+                .direction(retained_earnings_account.values().normal_balance_type)
+                .build()
+                .expect("Failed to build EntryParams"),
+        ];
 
         self.revenue
-            .entries()
+            .entries_params()
             .into_iter()
-            .chain(self.cost_of_revenue.entries())
-            .chain(self.expenses.entries())
+            .chain(self.cost_of_revenue.entries_params())
+            .chain(self.expenses.entries_params())
             .chain(retained_earnings_entry)
             .collect()
     }

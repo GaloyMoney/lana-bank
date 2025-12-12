@@ -351,12 +351,12 @@ impl ChartLedger {
             self.journal_id,
             params.description.clone(),
             params.effective_balances_until,
-            balances.entries(net_income_recipient_account),
+            balances.entries_params(net_income_recipient_account),
         );
         let template = ClosingTransactionTemplate::init(
             &mut op,
             &self.cala,
-            closing_transaction_params.closing_entries.len(),
+            closing_transaction_params.entries_params.len(),
             params.description,
         )
         .await?;
