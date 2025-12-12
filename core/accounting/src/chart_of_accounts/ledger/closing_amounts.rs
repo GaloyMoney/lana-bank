@@ -103,16 +103,23 @@ impl ClosingProfitAndLossAccountBalances {
             + self.expenses.contribution()
     }
 
-    pub(super) fn entries_params(&self) -> Vec<EntryParams> {
+    pub(super) fn entries_params(
+        &self,
+        retained_earnings_account: CalaAccount,
+    ) -> Vec<EntryParams> {
+        let retained_earning_entry_params =
+            vec![self.retained_earnings_entry_params(retained_earnings_account)];
+
         self.revenue
             .entries_params()
             .into_iter()
             .chain(self.cost_of_revenue.entries_params())
             .chain(self.expenses.entries_params())
+            .chain(retained_earning_entry_params)
             .collect()
     }
 
-    pub(super) fn retained_earnings_entry_params(&self, account: CalaAccount) -> EntryParams {
+    fn retained_earnings_entry_params(&self, account: CalaAccount) -> EntryParams {
         EntryParams::builder()
             .account_id(account.id())
             .amount(self.net_income().abs())

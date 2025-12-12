@@ -354,22 +354,17 @@ impl ChartLedger {
                 balances.net_income(),
             )
             .await?;
-        let retained_earnings_entry_params =
-            balances.retained_earnings_entry_params(net_income_recipient_account);
-
-        let mut closing_tx_entries_params = balances.entries_params();
-        closing_tx_entries_params.push(retained_earnings_entry_params);
 
         let closing_transaction_params = ClosingTransactionParams::new(
             self.journal_id,
             params.description.clone(),
             params.effective_balances_until,
-            closing_tx_entries_params,
+            balances.entries_params(net_income_recipient_account),
         );
         let template = ClosingTransactionTemplate::init(
             &self.cala,
             closing_transaction_params.entries_params.len(),
-            params.description,
+            &closing_transaction_params.description,
         )
         .await?;
         self.cala

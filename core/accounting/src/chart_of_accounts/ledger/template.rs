@@ -157,10 +157,10 @@ impl ClosingTransactionTemplate {
     pub(super) async fn init(
         ledger: &CalaLedger,
         n_entries: usize,
-        period_designation: String,
+        period_designation: &str,
     ) -> Result<Self, TxTemplateError> {
         let res = Self {
-            period_designation,
+            period_designation: period_designation.to_string(),
             n_entries,
         };
         res.find_or_create_template(ledger).await?;
