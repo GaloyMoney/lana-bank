@@ -2,36 +2,13 @@ use chrono::NaiveDate;
 use rust_decimal::Decimal;
 use std::collections::HashMap;
 
-use crate::{LedgerAccountId, primitives::CalaTxId};
+use crate::primitives::CalaTxId;
 
 use cala_ledger::{
-    BalanceId, Currency as CalaCurrency, DebitOrCredit, account_set::AccountSetId,
-    balance::BalanceRange as CalaBalanceRange,
+    BalanceId, DebitOrCredit, account_set::AccountSetId, balance::BalanceRange as CalaBalanceRange,
 };
 
-#[derive(Debug, Clone)]
-pub(super) struct ClosingTxEntry {
-    pub(super) account_id: LedgerAccountId,
-    pub(super) amount: Decimal,
-    pub(super) currency: CalaCurrency,
-    pub(super) direction: DebitOrCredit,
-}
-
-impl ClosingTxEntry {
-    pub(super) fn new(
-        account_id: impl Into<LedgerAccountId>,
-        currency: CalaCurrency,
-        amount: Decimal,
-        direction: impl Into<DebitOrCredit>,
-    ) -> Self {
-        Self {
-            account_id: account_id.into(),
-            amount,
-            currency,
-            direction: direction.into(),
-        }
-    }
-}
+use super::template::EntryParams;
 
 struct AdjustedDebitOrCredit(DebitOrCredit);
 
@@ -87,15 +64,16 @@ impl ProfitAndLossLineItemDetail {
             .sum()
     }
 
-    pub(super) fn entries(&self) -> Vec<ClosingTxEntry> {
+    pub(super) fn entries_params(&self) -> Vec<EntryParams> {
         self.iter()
             .map(|((_, account_id, currency), balance)| {
-                ClosingTxEntry::new(
-                    *account_id,
-                    *currency,
-                    balance.close.settled().abs(),
-                    AdjustedDebitOrCredit::new(balance),
-                )
+                EntryParams::builder()
+                    .account_id(*account_id)
+                    .amount(balance.close.settled().abs())
+                    .currency(*currency)
+                    .direction(AdjustedDebitOrCredit::new(balance).into())
+                    .build()
+                    .expect("Failed to build EntryParams")
             })
             .collect()
     }
@@ -125,14 +103,24 @@ impl ClosingProfitAndLossAccountBalances {
             + self.expenses.contribution()
     }
 
-    pub(super) fn entries(&self) -> Vec<ClosingTxEntry> {
+    pub(super) fn entries_params(&self) -> Vec<EntryParams> {
         self.revenue
-            .entries()
+            .entries_params()
             .into_iter()
-            .chain(self.cost_of_revenue.entries())
-            .chain(self.expenses.entries())
+            .chain(self.cost_of_revenue.entries_params())
+            .chain(self.expenses.entries_params())
             .collect()
     }
+
+    // pub(super) fn retained_earnings_entry_params(&self, account: CalaAccount) -> EntryParams {
+    //     EntryParams::builder()
+    //         .account_id(account.id())
+    //         .amount(self.net_income().abs())
+    //         .currency(CalaCurrency::USD)
+    //         .direction(account.values().normal_balance_type)
+    //         .build()
+    //         .expect("Failed to build EntryParams")
+    // }
 }
 
 #[cfg(test)]
@@ -256,34 +244,34 @@ mod tests {
         }
 
         #[test]
-        fn entries_generates_closing_entry_for_credit_balance() {
+        fn entry_params_generates_closing_entry_for_credit_balance() {
             let detail = create_detail_with_balance(dec!(1000), DebitOrCredit::Credit);
-            let entries = detail.entries();
+            let entries_params = detail.entries_params();
 
-            assert_eq!(entries.len(), 1);
-            let entry = &entries[0];
-            assert_eq!(entry.amount, dec!(1000));
+            assert_eq!(entries_params.len(), 1);
+            let entry_params = &entries_params[0];
+            assert_eq!(entry_params.amount, dec!(1000));
             // Credit balance should be offset with a debit
-            assert_eq!(entry.direction, DebitOrCredit::Debit);
+            assert_eq!(entry_params.direction, DebitOrCredit::Debit);
         }
 
         #[test]
-        fn entries_generates_closing_entry_for_debit_balance() {
+        fn entry_params_generates_closing_entry_for_debit_balance() {
             let detail = create_detail_with_balance(dec!(500), DebitOrCredit::Debit);
-            let entries = detail.entries();
+            let entries_params = detail.entries_params();
 
-            assert_eq!(entries.len(), 1);
-            let entry = &entries[0];
-            assert_eq!(entry.amount, dec!(500));
+            assert_eq!(entries_params.len(), 1);
+            let entry_params = &entries_params[0];
+            assert_eq!(entry_params.amount, dec!(500));
             // Debit balance should be offset with a credit
-            assert_eq!(entry.direction, DebitOrCredit::Credit);
+            assert_eq!(entry_params.direction, DebitOrCredit::Credit);
         }
 
         #[test]
-        fn entries_empty_for_empty_detail() {
+        fn entry_params_empty_for_empty_detail() {
             let detail = ProfitAndLossLineItemDetail::from(HashMap::new());
-            let entries = detail.entries();
-            assert!(entries.is_empty());
+            let entries_params = detail.entries_params();
+            assert!(entries_params.is_empty());
         }
 
         #[test]

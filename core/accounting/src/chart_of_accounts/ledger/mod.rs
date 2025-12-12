@@ -353,25 +353,25 @@ impl ChartLedger {
             )
             .await?;
 
-        let retained_earnings_entry = ClosingTxEntry {
-            account_id: net_income_recipient_account.id.into(),
-            // TODO: Can this be assumed? Move to per currency closing tx?
-            currency: Currency::USD,
-            amount: balances.net_income().abs(),
-            direction: net_income_recipient_account.values().normal_balance_type,
-        };
+        let retained_earnings_entry = EntryParams::builder()
+            .account_id(net_income_recipient_account.id.into())
+            .currency(Currency::USD)
+            .amount(balances.net_income().abs())
+            .direction(net_income_recipient_account.values().normal_balance_type)
+            .build()
+            .expect("Failed to build EntryParams ");
 
-        let mut closing_tx_entries = balances.entries();
-        closing_tx_entries.push(retained_earnings_entry);
+        let mut closing_tx_entries_params = balances.entries_params();
+        closing_tx_entries_params.push(retained_earnings_entry);
         let closing_transaction_params = ClosingTransactionParams::new(
             self.journal_id,
             params.description.clone(),
             params.effective_balances_until,
-            closing_tx_entries,
+            closing_tx_entries_params,
         );
         let template = ClosingTransactionTemplate::init(
             &self.cala,
-            closing_transaction_params.closing_entries.len(),
+            closing_transaction_params.entries_params.len(),
             params.description,
         )
         .await?;
