@@ -16,7 +16,8 @@ use es_entity::DbOp;
 use obix::out::OutboxEventMarker;
 
 use crate::{
-    CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId, LiquidationId, PaymentId,
+    CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId, LedgerOmnibusAccountIds,
+    LiquidationId, PaymentId,
 };
 pub use entity::NewLiquidation;
 pub use entity::{Liquidation, LiquidationEvent};
@@ -33,6 +34,7 @@ where
     repo: LiquidationRepo<E>,
     authz: Arc<Perms>,
     ledger: LiquidationLedger,
+    omnibus_account_ids: LedgerOmnibusAccountIds,
 }
 
 impl<Perms, E> Clone for Liquidations<Perms, E>
@@ -45,6 +47,7 @@ where
             repo: self.repo.clone(),
             authz: self.authz.clone(),
             ledger: self.ledger.clone(),
+            omnibus_account_ids: self.omnibus_account_ids.clone(),
         }
     }
 }
@@ -60,6 +63,7 @@ where
         pool: &sqlx::PgPool,
         journal_id: JournalId,
         cala: &CalaLedger,
+        omnibus_account_ids: &LedgerOmnibusAccountIds,
         authz: Arc<Perms>,
         publisher: &crate::CreditFacilityPublisher<E>,
     ) -> Result<Self, LiquidationError> {
@@ -67,6 +71,7 @@ where
             repo: LiquidationRepo::new(pool, publisher),
             authz,
             ledger: LiquidationLedger::init(cala, journal_id).await?,
+            omnibus_account_ids: omnibus_account_ids.clone(),
         })
     }
 
@@ -170,7 +175,6 @@ where
         let mut liquidation = self.repo.find_by_id(liquidation_id).await?;
         let mut db = self.repo.begin_op().await?;
 
-        // TODO: post transaction in op
         let tx_id = CalaTransactionId::new();
 
         if liquidation
@@ -178,6 +182,15 @@ where
             .did_execute()
         {
             self.repo.update_in_op(&mut db, &mut liquidation).await?;
+            self.ledger
+                .record_payment_from_liquidation_in_op(
+                    db,
+                    tx_id,
+                    amount,
+                    self.omnibus_account_ids.account_id,
+                    liquidation.receivable_account_id,
+                )
+                .await?;
         }
 
         db.commit().await?;

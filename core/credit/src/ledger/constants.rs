@@ -8,12 +8,12 @@ pub const CREDIT_FACILITY_OMNIBUS_ACCOUNT_SET_NAME: &str = "Credit Facility Omni
 pub const CREDIT_FACILITY_OMNIBUS_ACCOUNT_SET_REF: &str = "credit-facility-omnibus-account-set";
 pub const CREDIT_FACILITY_OMNIBUS_ACCOUNT_REF: &str = "credit-facility-omnibus-account";
 
-pub const CREDIT_FACILITY_IN_LIQUIDATION_OMNIBUS_ACCOUNT_SET_NAME: &str =
-    "Credit Facility In-Liquidation Omnibus Account Set";
-pub const CREDIT_FACILITY_IN_LIQUIDATION_OMNIBUS_ACCOUNT_SET_REF: &str =
-    "credit-facility-in-liquidation-omnibus-account-set";
-pub const CREDIT_FACILITY_IN_LIQUIDATION_OMNIBUS_ACCOUNT_REF: &str =
-    "credit-facility-in-liquidation-omnibus-account";
+pub const CREDIT_FACILITY_LIQUIDATION_PAYMENT_RECEIVABLE_OMNIBUS_ACCOUNT_SET_NAME: &str =
+    "Credit Facility Liquidation Payment Receivable Omnibus Account Set";
+pub const CREDIT_FACILITY_LIQUIDATION_PAYMENT_RECEIVABLE_OMNIBUS_ACCOUNT_SET_REF: &str =
+    "credit-facility-liquidation-payment-receivable-omnibus-account-set";
+pub const CREDIT_FACILITY_LIQUIDATION_PAYMENT_RECEIVABLE_OMNIBUS_ACCOUNT_REF: &str =
+    "credit-facility-liquidation-payment-receivable-omnibus-account";
 
 // Summary Accounts
 pub const CREDIT_FACILITY_REMAINING_ACCOUNT_SET_NAME: &str =
