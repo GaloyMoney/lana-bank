@@ -329,7 +329,7 @@ impl ChartLedger {
         op: es_entity::DbOp<'_>,
         params: ClosingTxParams,
     ) -> Result<(), ChartLedgerError> {
-        let net_income_input = self
+        let balances = self
             .find_all_profit_and_loss_statement_effective_balances(
                 params.revenue_account_set_id,
                 params.cost_of_revenue_account_set_id,
@@ -337,27 +337,19 @@ impl ChartLedger {
                 params.effective_balances_from,
                 params.effective_balances_until,
             )
-            .await?
-            .to_net_income_input(
-                params.equity_retained_earnings_account_set_id,
-                params.equity_retained_losses_account_set_id,
-            );
+            .await?;
+
         let mut op = self
             .cala
             .ledger_operation_from_db_op(op.with_db_time().await?);
         let net_income_recipient_account = self
-            .create_retained_earnings_child_account(
-                &mut op,
-                params.description.clone(),
-                net_income_input.retained_earnings_account_normal_balance_type,
-                net_income_input.retained_earnings_parent_account_id,
-            )
+            .create_retained_earnings_child_account(&mut op, &balances, &params)
             .await?;
         let closing_transaction_params = ClosingTransactionParams::new(
             self.journal_id,
             params.description.clone(),
             params.effective_balances_until,
-            net_income_input.merge_closing_tx_entries(net_income_recipient_account.id.into()),
+            balances.entries(net_income_recipient_account),
         );
         let template = ClosingTransactionTemplate::init(
             &mut op,
@@ -464,10 +456,18 @@ impl ChartLedger {
     async fn create_retained_earnings_child_account(
         &self,
         op: &mut LedgerOperation<'_>,
-        name: String,
-        normal_balance_type: DebitOrCredit,
-        retained_earnings_set_id: AccountSetId,
+        balances: &ClosingProfitAndLossAccountBalances,
+        params: &ClosingTxParams,
     ) -> Result<Account, ChartLedgerError> {
+        let name = params.description.clone();
+        let retained_earnings_gain_account_id = params.equity_retained_earnings_account_set_id;
+        let retained_earnings_loss_account_id = params.equity_retained_losses_account_set_id;
+
+        let (normal_balance_type, retained_earnings_set_id) = balances.retained_earnings(
+            retained_earnings_gain_account_id,
+            retained_earnings_loss_account_id,
+        );
+
         let account = self
             .create_child_account_in_op(op, name, normal_balance_type, retained_earnings_set_id)
             .await?;
