@@ -19,7 +19,7 @@ use es_entity::{PaginatedQueryArgs, PaginatedQueryRet};
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-pub(crate) use closing_balances::*;
+pub(super) use closing_balances::*;
 use closing_metadata::*;
 use error::*;
 use template::*;
@@ -460,7 +460,7 @@ impl ChartLedger {
         balances: &ClosingProfitAndLossAccountBalances,
         params: &ClosingTxParams,
     ) -> Result<Account, ChartLedgerError> {
-        let name = params.description.clone();
+        let name = params.retained_earnings_account_name();
         let retained_earnings_gain_account_id = params.equity_retained_earnings_account_set_id;
         let retained_earnings_loss_account_id = params.equity_retained_losses_account_set_id;
 
