@@ -5,9 +5,12 @@ mod template;
 
 use cala_ledger::{
     AccountId, AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId,
-    LedgerOperation, VelocityControlId, VelocityLimitId,
+    LedgerOperation, TxTemplateId, VelocityControlId, VelocityLimitId,
     account::{Account, NewAccount},
     account_set::{AccountSetMemberId, AccountSetUpdate, NewAccountSet},
+    tx_template::{
+        NewTxTemplate, NewTxTemplateEntry, NewTxTemplateTransaction, error::TxTemplateError,
+    },
     velocity::{NewBalanceLimit, NewLimit, NewVelocityControl, NewVelocityLimit, Params},
 };
 use chrono::NaiveDate;
@@ -353,18 +356,14 @@ impl ChartLedger {
             params.effective_balances_until,
             balances.entries_params(net_income_recipient_account),
         );
-        let template = ClosingTransactionTemplate::init(
-            &mut op,
-            &self.cala,
-            closing_transaction_params.entries_params.len(),
-            params.description,
-        )
-        .await?;
+        let template_code = self
+            .find_or_create_template(&mut op, &closing_transaction_params)
+            .await?;
         self.cala
             .post_transaction_in_op(
                 &mut op,
                 params.tx_id,
-                &template.code(),
+                &template_code,
                 closing_transaction_params,
             )
             .await?;
@@ -502,5 +501,65 @@ impl ChartLedger {
             .await?;
 
         Ok(ledger_account)
+    }
+
+    async fn find_or_create_template(
+        &self,
+        op: &mut LedgerOperation<'_>,
+        params: &ClosingTransactionParams,
+    ) -> Result<String, TxTemplateError> {
+        let period_designation = &params.description;
+        let n_entries = params.entries_params.len();
+
+        let code = &format!("CLOSING_TRANSACTION_{}", period_designation);
+        if let Ok(template) = self.cala.tx_templates().find_by_code(code).await {
+            return Ok(template.into_values().code);
+        }
+
+        let mut entries = vec![];
+        for i in 0..n_entries {
+            entries.push(
+                NewTxTemplateEntry::builder()
+                    .entry_type(format!(
+                        "'CLOSING_TRANSACTION_{}_ENTRY_{}'",
+                        period_designation, i
+                    ))
+                    .account_id(format!("params.{}", EntryParams::account_id_param_name(i)))
+                    .units(format!("params.{}", EntryParams::amount_param_name(i)))
+                    .currency(format!("params.{}", EntryParams::currency_param_name(i)))
+                    .layer(format!("params.{}", EntryParams::layer_param_name(i)))
+                    .direction(format!("params.{}", EntryParams::direction_param_name(i)))
+                    .build()
+                    .expect("Couldn't build entry for ClosingTransactionTemplate"),
+            );
+        }
+
+        let tx_input = NewTxTemplateTransaction::builder()
+            .journal_id("params.journal_id")
+            .description("params.description")
+            .effective("params.effective")
+            .build()
+            .expect("Couldn't build TxInput for ClosingTransactionTemplate");
+
+        let params = ClosingTransactionParams::defs(n_entries);
+        let new_template = NewTxTemplate::builder()
+            .id(TxTemplateId::new())
+            .code(code)
+            .transaction(tx_input)
+            .entries(entries)
+            .params(params)
+            .description(format!(
+                "Template to execute a closing transaction with {} entries.",
+                n_entries
+            ))
+            .build()
+            .expect("Couldn't build template for ClosingTransactionTemplate");
+        let template = self
+            .cala
+            .tx_templates()
+            .create_in_op(op, new_template)
+            .await?;
+
+        Ok(template.into_values().code)
     }
 }
