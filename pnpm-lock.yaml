@@ -14,8 +14,8 @@ importers:
   .:
     devDependencies:
       '@anthropic-ai/claude-code':
-        specifier: ^2.0.59
-        version: 2.0.59
+        specifier: ^2.0.60
+        version: 2.0.60
       '@mermaid-js/mermaid-cli':
         specifier: ^11.12.0
         version: 11.12.0(@babel/core@7.28.5)(@babel/template@7.27.2)(@types/react@19.2.7)(puppeteer@24.31.0(typescript@5.9.3))
@@ -506,8 +506,8 @@ packages:
   '@antfu/utils@9.3.0':
     resolution: {integrity: sha512-9hFT4RauhcUzqOE4f1+frMKLZrgNog5b06I7VmZQV1BkvwvqrbC8EBZf3L1eEL2AKb6rNKjER0sEvJiSP1FXEA==}
 
-  '@anthropic-ai/claude-code@2.0.59':
-    resolution: {integrity: sha512-QCOtahWfU8WkAUoM4IzA01L57pScOj8WehYEzVSlF6sVKXILrpC+hZSKgOh+0ZR/Zj7IYesc6rbKoKJVxpF9Vg==}
+  '@anthropic-ai/claude-code@2.0.60':
+    resolution: {integrity: sha512-hy2VGi/tYs93BcH2v0AuBsA6n3Hc48XskBbgQMd7QAOJYhA0v2/wIYFWH+y1vZAWB/Gf3n6v2xBKSZIsP1i8sQ==}
     engines: {node: '>=18.0.0'}
     hasBin: true
 
@@ -8690,7 +8690,7 @@ snapshots:
 
   '@antfu/utils@9.3.0': {}
 
-  '@anthropic-ai/claude-code@2.0.59':
+  '@anthropic-ai/claude-code@2.0.60':
     optionalDependencies:
       '@img/sharp-darwin-arm64': 0.33.5
       '@img/sharp-darwin-x64': 0.33.5
