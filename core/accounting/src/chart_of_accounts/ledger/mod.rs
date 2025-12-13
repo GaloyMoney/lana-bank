@@ -1,18 +1,28 @@
-mod closing;
+mod closing_balances;
+pub(crate) mod closing_metadata;
 pub mod error;
-
-use tracing::instrument;
+mod template;
 
 use cala_ledger::{
-    AccountSetId, CalaLedger, DebitOrCredit, JournalId, LedgerOperation, VelocityControlId,
-    VelocityLimitId,
-    account_set::{AccountSetUpdate, NewAccountSet},
+    AccountId, AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId,
+    LedgerOperation, TxTemplateId, VelocityControlId, VelocityLimitId,
+    account::{Account, NewAccount},
+    account_set::{AccountSetMemberId, AccountSetUpdate, NewAccountSet},
+    tx_template::{
+        NewTxTemplate, NewTxTemplateEntry, NewTxTemplateTransaction, error::TxTemplateError,
+    },
     velocity::{NewBalanceLimit, NewLimit, NewVelocityControl, NewVelocityLimit, Params},
 };
+use chrono::NaiveDate;
+use es_entity::{PaginatedQueryArgs, PaginatedQueryRet};
+
+use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-use closing::*;
+pub(super) use closing_balances::*;
+use closing_metadata::*;
 use error::*;
+use template::*;
 
 use crate::Chart;
 
@@ -315,5 +325,241 @@ impl ChartLedger {
             credit_settled: credit_settled_limit,
             credit_pending: credit_pending_limit,
         })
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "chart_ledger.post_closing_transaction", skip(self, op))]
+    pub async fn post_closing_transaction(
+        &self,
+        op: es_entity::DbOp<'_>,
+        params: ClosingTxParams,
+    ) -> Result<(), ChartLedgerError> {
+        let balances = self
+            .find_all_profit_and_loss_statement_effective_balances(
+                params.revenue_account_set_id,
+                params.cost_of_revenue_account_set_id,
+                params.expenses_account_set_id,
+                params.effective_balances_from,
+                params.effective_balances_until,
+            )
+            .await?;
+
+        let mut op = self
+            .cala
+            .ledger_operation_from_db_op(op.with_db_time().await?);
+        let net_income_recipient_account = self
+            .create_retained_earnings_child_account(&mut op, &balances, &params)
+            .await?;
+        let closing_transaction_params = ClosingTransactionParams::new(
+            self.journal_id,
+            params.description.clone(),
+            params.effective_balances_until,
+            balances.entries_params(net_income_recipient_account),
+        );
+        let template_code = self
+            .find_or_create_template(&mut op, &closing_transaction_params)
+            .await?;
+        self.cala
+            .post_transaction_in_op(
+                &mut op,
+                params.tx_id,
+                &template_code,
+                closing_transaction_params,
+            )
+            .await?;
+        op.commit().await?;
+        Ok(())
+    }
+
+    async fn find_all_profit_and_loss_statement_effective_balances(
+        &self,
+        revenue_account_set_id: AccountSetId,
+        cost_of_revenue_account_set_id: AccountSetId,
+        expenses_account_set_id: AccountSetId,
+        from: NaiveDate,
+        until: NaiveDate,
+    ) -> Result<ClosingProfitAndLossAccountBalances, ChartLedgerError> {
+        let revenue_accounts = self
+            .find_all_accounts_by_parent_set_id(revenue_account_set_id)
+            .await?;
+        let expense_accounts = self
+            .find_all_accounts_by_parent_set_id(expenses_account_set_id)
+            .await?;
+        let cost_of_revenue_accounts = self
+            .find_all_accounts_by_parent_set_id(cost_of_revenue_account_set_id)
+            .await?;
+        let revenue_account_balances = self
+            .cala
+            .balances()
+            .effective()
+            .find_all_in_range(&revenue_accounts, from, Some(until))
+            .await?;
+        let cost_of_revenue_account_balances = self
+            .cala
+            .balances()
+            .effective()
+            .find_all_in_range(&cost_of_revenue_accounts, from, Some(until))
+            .await?;
+        let expenses_account_balances = self
+            .cala
+            .balances()
+            .effective()
+            .find_all_in_range(&expense_accounts, from, Some(until))
+            .await?;
+        Ok(ClosingProfitAndLossAccountBalances {
+            revenue: revenue_account_balances.into(),
+            cost_of_revenue: cost_of_revenue_account_balances.into(),
+            expenses: expenses_account_balances.into(),
+        })
+    }
+
+    async fn find_all_accounts_by_parent_set_id(
+        &self,
+        parent_set_id: AccountSetId,
+    ) -> Result<Vec<BalanceId>, ChartLedgerError> {
+        let mut accounts: Vec<BalanceId> = Vec::new();
+
+        let mut has_next_page = true;
+        let mut after = None;
+
+        while has_next_page {
+            let PaginatedQueryRet {
+                entities,
+                has_next_page: next_page,
+                end_cursor,
+            } = self
+                .cala
+                .account_sets()
+                .list_members_by_created_at(parent_set_id, PaginatedQueryArgs { first: 100, after })
+                .await?;
+
+            after = end_cursor;
+            has_next_page = next_page;
+
+            for member in entities {
+                match member.id {
+                    AccountSetMemberId::Account(account_id) => {
+                        // TODO: Lookup the account currency using `account_id`?
+                        accounts.push((self.journal_id, account_id, Currency::USD));
+                    }
+                    AccountSetMemberId::AccountSet(account_set_id) => {
+                        let nested_accounts =
+                            Box::pin(self.find_all_accounts_by_parent_set_id(account_set_id))
+                                .await?;
+                        accounts.extend(nested_accounts);
+                    }
+                }
+            }
+        }
+        Ok(accounts)
+    }
+
+    async fn create_retained_earnings_child_account(
+        &self,
+        op: &mut LedgerOperation<'_>,
+        balances: &ClosingProfitAndLossAccountBalances,
+        params: &ClosingTxParams,
+    ) -> Result<Account, ChartLedgerError> {
+        let name = params.retained_earnings_account_name();
+        let retained_earnings_gain_account_id = params.equity_retained_earnings_account_set_id;
+        let retained_earnings_loss_account_id = params.equity_retained_losses_account_set_id;
+
+        let (normal_balance_type, retained_earnings_set_id) = balances.retained_earnings(
+            retained_earnings_gain_account_id,
+            retained_earnings_loss_account_id,
+        );
+
+        let account = self
+            .create_child_account_in_op(op, name, normal_balance_type, retained_earnings_set_id)
+            .await?;
+        Ok(account)
+    }
+
+    async fn create_child_account_in_op(
+        &self,
+        op: &mut LedgerOperation<'_>,
+        name: String,
+        normal_balance_type: DebitOrCredit,
+        parent_account_set: AccountSetId,
+    ) -> Result<Account, ChartLedgerError> {
+        let id = AccountId::new();
+        let new_ledger_account = NewAccount::builder()
+            .id(id)
+            .name(name)
+            .code(id.to_string())
+            .normal_balance_type(normal_balance_type)
+            .build()
+            .expect("Could not build new account for annual close net income transfer entry");
+        let ledger_account = self
+            .cala
+            .accounts()
+            .create_in_op(op, new_ledger_account)
+            .await?;
+        self.cala
+            .account_sets()
+            .add_member_in_op(op, parent_account_set, ledger_account.id)
+            .await?;
+
+        Ok(ledger_account)
+    }
+
+    async fn find_or_create_template(
+        &self,
+        op: &mut LedgerOperation<'_>,
+        params: &ClosingTransactionParams,
+    ) -> Result<String, TxTemplateError> {
+        let period_designation = &params.description;
+        let n_entries = params.entries_params.len();
+
+        let code = &format!("CLOSING_TRANSACTION_{}", period_designation);
+
+        let mut entries = vec![];
+        for i in 0..n_entries {
+            entries.push(
+                NewTxTemplateEntry::builder()
+                    .entry_type(format!(
+                        "'CLOSING_TRANSACTION_{}_ENTRY_{}'",
+                        period_designation, i
+                    ))
+                    .account_id(format!("params.{}", EntryParams::account_id_param_name(i)))
+                    .units(format!("params.{}", EntryParams::amount_param_name(i)))
+                    .currency(format!("params.{}", EntryParams::currency_param_name(i)))
+                    .layer(format!("params.{}", EntryParams::layer_param_name(i)))
+                    .direction(format!("params.{}", EntryParams::direction_param_name(i)))
+                    .build()
+                    .expect("Couldn't build entry for ClosingTransactionTemplate"),
+            );
+        }
+
+        let tx_input = NewTxTemplateTransaction::builder()
+            .journal_id("params.journal_id")
+            .description("params.description")
+            .effective("params.effective")
+            .build()
+            .expect("Couldn't build TxInput for ClosingTransactionTemplate");
+
+        let params = ClosingTransactionParams::defs(n_entries);
+        let new_template = NewTxTemplate::builder()
+            .id(TxTemplateId::new())
+            .code(code)
+            .transaction(tx_input)
+            .entries(entries)
+            .params(params)
+            .description(format!(
+                "Template to execute a closing transaction with {} entries.",
+                n_entries
+            ))
+            .build()
+            .expect("Couldn't build template for ClosingTransactionTemplate");
+        match self
+            .cala
+            .tx_templates()
+            .create_in_op(op, new_template)
+            .await
+        {
+            Err(TxTemplateError::DuplicateCode) => Ok(code.to_string()),
+            Err(e) => Err(e),
+            Ok(template) => Ok(template.into_values().code),
+        }
     }
 }

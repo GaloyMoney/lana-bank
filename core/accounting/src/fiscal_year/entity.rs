@@ -73,7 +73,7 @@ impl FiscalYear {
         Ok(Idempotent::Executed(closed_as_of))
     }
 
-    pub(super) fn closes_as_of(&self) -> NaiveDate {
+    pub fn closes_as_of(&self) -> NaiveDate {
         let year = self.opened_as_of.year();
         NaiveDate::from_ymd_opt(year, 12, 31).expect("Failed to compute december of fiscal year")
     }

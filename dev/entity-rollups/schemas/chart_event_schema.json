@@ -47,6 +47,23 @@
         "closed_as_of"
       ],
       "type": "object"
+    },
+    {
+      "properties": {
+        "posted_as_of": {
+          "format": "date",
+          "type": "string"
+        },
+        "type": {
+          "const": "closing_transaction_posted",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "posted_as_of"
+      ],
+      "type": "object"
     }
   ],
   "title": "ChartEvent"

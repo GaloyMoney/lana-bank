@@ -152,13 +152,13 @@ where
             .await?;
         let mut fiscal_year = self.repo.find_by_id(id).await?;
         let now = crate::time::now();
+
         match fiscal_year.close(now)? {
             Idempotent::Executed(_) => {
                 let mut op = self.repo.begin_op().await?;
                 self.repo.update_in_op(&mut op, &mut fiscal_year).await?;
                 // TODO: Operate on ledger via `chart_of_accounts`.
                 op.commit().await?;
-
                 Ok(fiscal_year)
             }
             Idempotent::Ignored => Ok(fiscal_year),
