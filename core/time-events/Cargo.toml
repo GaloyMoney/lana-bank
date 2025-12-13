@@ -1,0 +1,12 @@
+[package]
+name = "core-time-events"
+edition = "2024"
+
+[dependencies]
+domain-config = { workspace = true }
+chrono = { workspace = true }
+chrono-tz = { workspace = true }
+thiserror = { workspace = true }
+
+[lints]
+workspace = true
