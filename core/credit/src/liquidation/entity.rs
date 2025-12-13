@@ -18,7 +18,9 @@ pub enum LiquidationEvent {
     Initialized {
         id: LiquidationId,
         credit_facility_id: CreditFacilityId,
-        receivable_account_id: CalaAccountId,
+        liquidation_payment_receivable_account_id: CalaAccountId,
+        collateral_account_id: CalaAccountId,
+        collateral_in_liquidation_account_id: CalaAccountId,
         trigger_price: PriceOfOneBTC,
         initially_expected_to_receive: UsdCents,
         initially_estimated_to_liquidate: Satoshis,
@@ -51,6 +53,8 @@ pub struct Liquidation {
     pub sent_total: Satoshis,
     pub received_total: UsdCents,
     pub receivable_account_id: CalaAccountId,
+    pub collateral_account_id: CalaAccountId,
+    pub collateral_in_liquidation_account_id: CalaAccountId,
     events: EntityEvents<LiquidationEvent>,
 }
 
@@ -164,7 +168,9 @@ impl TryFromEvents<LiquidationEvent> for Liquidation {
                 LiquidationEvent::Initialized {
                     id,
                     credit_facility_id,
-                    receivable_account_id,
+                    liquidation_payment_receivable_account_id: receivable_account_id,
+                    collateral_account_id,
+                    collateral_in_liquidation_account_id,
                     initially_expected_to_receive,
                     ..
                 } => {
@@ -172,6 +178,8 @@ impl TryFromEvents<LiquidationEvent> for Liquidation {
                         .id(*id)
                         .credit_facility_id(*credit_facility_id)
                         .receivable_account_id(*receivable_account_id)
+                        .collateral_account_id(*collateral_account_id)
+                        .collateral_in_liquidation_account_id(*collateral_in_liquidation_account_id)
                         .expected_to_receive(*initially_expected_to_receive)
                 }
                 LiquidationEvent::CollateralSentOut { amount, .. } => {
@@ -202,7 +210,9 @@ pub struct NewLiquidation {
     pub(crate) id: LiquidationId,
     #[builder(setter(into))]
     pub(crate) credit_facility_id: CreditFacilityId,
-    pub(crate) receivable_account_id: CalaAccountId,
+    pub(crate) liquidation_payment_receivable_account_id: CalaAccountId,
+    pub(crate) collateral_account_id: CalaAccountId,
+    pub(crate) collateral_in_liquidation_account_id: CalaAccountId,
     pub(crate) trigger_price: PriceOfOneBTC,
     pub(crate) initially_expected_to_receive: UsdCents,
     pub(crate) initially_estimated_to_liquidate: Satoshis,
@@ -221,10 +231,13 @@ impl IntoEvents<LiquidationEvent> for NewLiquidation {
             [LiquidationEvent::Initialized {
                 id: self.id,
                 credit_facility_id: self.credit_facility_id,
-                receivable_account_id: self.receivable_account_id,
+                liquidation_payment_receivable_account_id: self
+                    .liquidation_payment_receivable_account_id,
                 trigger_price: self.trigger_price,
                 initially_expected_to_receive: self.initially_expected_to_receive,
                 initially_estimated_to_liquidate: self.initially_estimated_to_liquidate,
+                collateral_account_id: self.collateral_account_id,
+                collateral_in_liquidation_account_id: self.collateral_in_liquidation_account_id,
             }],
         )
     }

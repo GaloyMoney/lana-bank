@@ -325,7 +325,8 @@ where
 
             facility_omnibus_parent_account_set_id,
             collateral_omnibus_parent_account_set_id,
-            in_liquidation_omnibus_parent_account_set_id,
+            liquidation_payment_receivable_omnibus_parent_account_set_id:
+                in_liquidation_omnibus_parent_account_set_id,
             facility_parent_account_set_id,
             collateral_parent_account_set_id,
             in_liquidation_parent_account_set_id,
