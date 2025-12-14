@@ -22,6 +22,8 @@ pub enum ContractCreationError {
     Sqlx(#[from] sqlx::Error),
     #[error("Document not found error")]
     NotFound,
+    #[error("Customer error: {0}")]
+    Customer(#[from] core_customer::error::CustomerError),
 }
 
 impl ErrorSeverity for ContractCreationError {
@@ -36,6 +38,7 @@ impl ErrorSeverity for ContractCreationError {
             Self::Auth(e) => e.severity(),
             Self::Sqlx(_) => Level::ERROR,
             Self::NotFound => Level::WARN,
+            Self::Customer(e) => e.severity(),
         }
     }
 }
