@@ -135,7 +135,6 @@
         }
       );
 
-
       lana-cli-release = let
         rustTarget = "x86_64-unknown-linux-musl";
         muslCC = pkgs.pkgsCross.musl64.stdenv.cc;
