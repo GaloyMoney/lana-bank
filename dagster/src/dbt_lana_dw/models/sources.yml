@@ -6,86 +6,22 @@ sources:
     tables:
 
       - name: bitfinex_order_book_dlt
-        freshness:
-          warn_after:
-            count: 2
-            period: day
-          error_after:
-            count: 7
-            period: day
 
       - name: bitfinex_order_book_dlt__orders
-        freshness:
-          warn_after:
-            count: 2
-            period: day
-          error_after:
-            count: 7
-            period: day
 
       - name: bitfinex_ticker_dlt
-        freshness:
-          warn_after:
-            count: 2
-            period: day
-          error_after:
-            count: 7
-            period: day
 
       - name: bitfinex_trades_dlt
-        freshness:
-          warn_after:
-            count: 2
-            period: day
-          error_after:
-            count: 7
-            period: day
-
 
       - name: cala_account_set_member_account_sets
-        freshness:
-          warn_after:
-            count: 2
-            period: day
-          error_after:
-            count: 7
-            period: day
 
       - name: cala_account_set_member_accounts
-        freshness:
-          warn_after:
-            count: 2
-            period: day
-          error_after:
-            count: 7
-            period: day
 
       - name: cala_account_sets
-        freshness:
-          warn_after:
-            count: 2
-            period: day
-          error_after:
-            count: 7
-            period: day
 
       - name: cala_accounts
-        freshness:
-          warn_after:
-            count: 2
-            period: day
-          error_after:
-            count: 7
-            period: day
 
       - name: cala_balance_history
-        freshness:
-          warn_after:
-            count: 2
-            period: day
-          error_after:
-            count: 7
-            period: day
 
       - name: core_chart_events_rollup
 
