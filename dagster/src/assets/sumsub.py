@@ -1,6 +1,5 @@
 """Sumsub DLT assets."""
 
-import os
 from typing import Dict
 
 import dlt
@@ -12,8 +11,10 @@ from src.dlt_resources.sumsub import applicants as dlt_sumsub_applicants
 from src.resources import (
     RESOURCE_KEY_DW_BQ,
     RESOURCE_KEY_LANA_CORE_PG,
+    RESOURCE_KEY_SUMSUB,
     BigQueryResource,
     PostgresResource,
+    SumsubResource,
 )
 
 
@@ -21,14 +22,11 @@ def sumsub_applicants(
     context: dg.AssetExecutionContext,
     lana_core_pg: PostgresResource,
     dw_bq: BigQueryResource,
+    sumsub: SumsubResource,
 ) -> None:
     """Runs the Sumsub applicants DLT pipeline into BigQuery."""
-    sumsub_key = os.getenv("SUMSUB_KEY")
-    sumsub_secret = os.getenv("SUMSUB_SECRET")
-    if not sumsub_key or not sumsub_secret:
-        raise RuntimeError(
-            "Missing SUMSUB_KEY or SUMSUB_SECRET environment variables required to run Sumsub sync."
-        )
+    sumsub_key = sumsub.get_key()
+    sumsub_secret = sumsub.get_secret()
 
     dest = create_bigquery_destination(dw_bq.get_credentials_dict())
     pipe = dlt.pipeline(
@@ -53,6 +51,10 @@ def sumsub_protoassets() -> Dict[str, Protoasset]:
         "sumsub_applicants": Protoasset(
             key=dg.AssetKey("sumsub_applicants"),
             callable=sumsub_applicants,
-            required_resource_keys={RESOURCE_KEY_LANA_CORE_PG, RESOURCE_KEY_DW_BQ},
+            required_resource_keys={
+                RESOURCE_KEY_LANA_CORE_PG,
+                RESOURCE_KEY_DW_BQ,
+                RESOURCE_KEY_SUMSUB,
+            },
         ),
     }
