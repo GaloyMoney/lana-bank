@@ -253,3 +253,58 @@ teardown_file() {
   errors=$(graphql_output '.errors')
   [[ "$errors" =~ "VelocityError" ]] || exit 1
 }
+
+@test "accounting: can close month in fiscal year" {
+  exec_admin_graphql 'fiscal-years' '{"first": 1}'
+  fiscal_year_id=$(graphql_output '.data.fiscalYears.nodes[0].fiscalYearId')
+
+  last_month_of_year_closed=$(graphql_output '.data.fiscalYears.nodes[0].isLastMonthOfYearClosed')
+  [[ "$last_month_of_year_closed" != "true" ]] || exit 1
+  n_month_closures_before=$(graphql_output '.data.fiscalYears.nodes[0].monthClosures | length')
+
+  variables=$(
+    jq -n \
+    --arg fiscal_year_id "$fiscal_year_id" \
+    '{
+      input: {
+        fiscalYearId: $fiscal_year_id
+      }
+    }'
+  )
+  exec_admin_graphql 'fiscal-year-close-month' "$variables"
+  n_month_closures_after=$(graphql_output '.data.fiscalYearCloseMonth.fiscalYear.monthClosures | length')
+  [[ "$n_month_closures_after" -gt "$n_month_closures_before" ]] || exit 1
+}
+
+@test "accounting: can close fiscal year" {
+  exec_admin_graphql 'fiscal-years' '{"first": 1}'
+  fiscal_year_id=$(graphql_output '.data.fiscalYears.nodes[0].fiscalYearId')
+  last_month_of_year_closed=$(graphql_output '.data.fiscalYears.nodes[0].isLastMonthOfYearClosed')
+
+  is_open_before=$(graphql_output '.data.fiscalYears.nodes[0].isOpen')
+  [[ "$is_open_before" = "true" ]] || exit 1
+
+  variables=$(
+    jq -n \
+    --arg fiscal_year_id "$fiscal_year_id" \
+    '{
+      input: {
+        fiscalYearId: $fiscal_year_id
+      }
+    }'
+  )
+
+  count=0
+  while [[ "$last_month_of_year_closed" != "true" ]]; do
+    exec_admin_graphql 'fiscal-year-close-month' "$variables"
+    last_month_of_year_closed=$(graphql_output '.data.fiscalYearCloseMonth.fiscalYear.isLastMonthOfYearClosed')
+
+    count=$(( $count + 1 ))
+    [[ "$count" -lt 20 ]] || exit 1
+  done
+
+  
+  exec_admin_graphql 'fiscal-year-close' "$variables"
+  is_open_after=$(graphql_output '.data.fiscalYearClose.fiscalYear.isOpen')
+  [[ "$is_open_after" != "true" ]] || exit 1
+}
