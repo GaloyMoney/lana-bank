@@ -2,7 +2,7 @@
     unique_key = ['account_set_id', 'member_account_set_id'],
 ) }}
 
-with raw_stg_cala_account_set_member_account_sets as (select * from {{ source("lana", " ")}} ),
+with raw_stg_cala_account_set_member_account_sets as (select * from {{ source("lana", "cala_account_set_member_account_sets")}} ),
 
 ordered as (
 
