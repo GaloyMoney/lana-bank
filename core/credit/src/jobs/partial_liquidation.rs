@@ -228,23 +228,26 @@ where
                 Span::current().record("handled", true);
                 Span::current().record("event_type", event.as_ref());
 
-                self.payments
+                let payment_created = self
+                    .payments
                     .record_in_op(db, *payment_id, *credit_facility_id, *amount)
                     .await?;
 
-                self.liquidations
-                    .complete_in_op(db, self.config.liquidation_id, *payment_id)
-                    .await?;
+                if payment_created {
+                    self.liquidations
+                        .complete_in_op(db, self.config.liquidation_id, *payment_id)
+                        .await?;
 
-                self.obligations
-                    .allocate_payment_in_op(
-                        db,
-                        self.config.credit_facility_id,
-                        *payment_id,
-                        *amount,
-                        crate::time::now().date_naive(),
-                    )
-                    .await?;
+                    self.obligations
+                        .allocate_payment_in_op(
+                            db,
+                            self.config.credit_facility_id,
+                            *payment_id,
+                            *amount,
+                            crate::time::now().date_naive(),
+                        )
+                        .await?;
+                }
 
                 Ok(ControlFlow::Break(()))
             }

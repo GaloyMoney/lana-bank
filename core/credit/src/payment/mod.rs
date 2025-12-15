@@ -52,13 +52,17 @@ where
         }
     }
 
+    /// Attempts to create new Payment entity with
+    /// `payment_id`. Returns `true` if the new entity was created
+    /// (i. e. `payment_id` was not previously used), otherwise
+    /// returns `false`.
     pub(super) async fn record_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
         payment_id: PaymentId,
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
-    ) -> Result<Payment, PaymentError> {
+    ) -> Result<bool, PaymentError> {
         let new_payment = NewPayment::builder()
             .id(payment_id)
             .amount(amount)
@@ -66,8 +70,11 @@ where
             .build()
             .expect("could not build new payment");
 
-        let payment = self.repo.create_in_op(db, new_payment).await?;
-
-        Ok(payment)
+        if self.repo.maybe_find_by_id(payment_id).await?.is_some() {
+            Ok(false)
+        } else {
+            self.repo.create_in_op(db, new_payment).await?;
+            Ok(true)
+        }
     }
 }
