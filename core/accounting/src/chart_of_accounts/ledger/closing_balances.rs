@@ -159,9 +159,7 @@ mod tests {
 
     use super::*;
 
-    mod profit_and_loss_closing_entry_params {
-        use cala_ledger::{AccountId, DebitOrCredit, JournalId};
-        use rust_decimal::Decimal;
+    mod closing_account_balance {
         use rust_decimal_macros::dec;
 
         use super::*;
@@ -170,61 +168,69 @@ mod tests {
             ClosingAccountBalance { amount, direction }
         }
 
-        fn line_item_with_zero_balance_account() -> ProfitAndLossLineItemDetail {
-            let journal_id = JournalId::new();
-            let mut balances = HashMap::new();
-            balances.insert(
-                (journal_id, AccountId::new(), CalaCurrency::USD),
-                ClosingAccountBalance {
-                    amount: dec!(0),
-                    direction: DebitOrCredit::Credit,
-                },
-            );
-            balances.insert(
-                (journal_id, AccountId::new(), CalaCurrency::USD),
-                ClosingAccountBalance {
-                    amount: dec!(100),
-                    direction: DebitOrCredit::Credit,
-                },
-            );
-            ProfitAndLossLineItemDetail(balances)
+        #[test]
+        fn negative_balance_offsets_with_same_side_entry() {
+            let bal = balance(dec!(-100), DebitOrCredit::Credit);
+            assert_eq!(bal.direction_for_offsetting_entry(), DebitOrCredit::Credit);
+
+            let bal = balance(dec!(-100), DebitOrCredit::Debit);
+            assert_eq!(bal.direction_for_offsetting_entry(), DebitOrCredit::Debit);
         }
 
         #[test]
-        fn skips_entry_param_for_zero_balance_account() {
-            let line_item = line_item_with_zero_balance_account();
-            let entries = line_item.entries_params();
-            assert_eq!(entries.len(), 1);
+        fn positive_credit_balance_offsets_with_opposite_side_entry() {
+            let bal = balance(dec!(100), DebitOrCredit::Credit);
+            assert_eq!(bal.direction_for_offsetting_entry(), DebitOrCredit::Debit);
+
+            let bal = balance(dec!(100), DebitOrCredit::Debit);
+            assert_eq!(bal.direction_for_offsetting_entry(), DebitOrCredit::Credit);
         }
 
-        mod direction_for_offsetting_entry {
+        #[test]
+        fn zero_credit_balance_offsets_with_opposite_side_entry() {
+            let bal = balance(dec!(0), DebitOrCredit::Credit);
+            assert_eq!(bal.direction_for_offsetting_entry(), DebitOrCredit::Debit);
+
+            let bal = balance(dec!(0), DebitOrCredit::Debit);
+            assert_eq!(bal.direction_for_offsetting_entry(), DebitOrCredit::Credit);
+        }
+    }
+
+    mod profit_and_loss_line_item_detail {
+        use cala_ledger::{AccountId, DebitOrCredit, JournalId};
+        use rust_decimal::Decimal;
+        use rust_decimal_macros::dec;
+
+        use super::*;
+
+        mod entries_params {
             use super::*;
 
-            #[test]
-            fn negative_balance_offsets_with_same_side_entry() {
-                let bal = balance(dec!(-100), DebitOrCredit::Credit);
-                assert_eq!(bal.direction_for_offsetting_entry(), DebitOrCredit::Credit);
-
-                let bal = balance(dec!(-100), DebitOrCredit::Debit);
-                assert_eq!(bal.direction_for_offsetting_entry(), DebitOrCredit::Debit);
+            fn line_item_with_zero_balance_account() -> ProfitAndLossLineItemDetail {
+                let journal_id = JournalId::new();
+                let mut balances = HashMap::new();
+                balances.insert(
+                    (journal_id, AccountId::new(), CalaCurrency::USD),
+                    ClosingAccountBalance {
+                        amount: dec!(0),
+                        direction: DebitOrCredit::Credit,
+                    },
+                );
+                balances.insert(
+                    (journal_id, AccountId::new(), CalaCurrency::USD),
+                    ClosingAccountBalance {
+                        amount: dec!(100),
+                        direction: DebitOrCredit::Credit,
+                    },
+                );
+                ProfitAndLossLineItemDetail(balances)
             }
 
             #[test]
-            fn positive_credit_balance_offsets_with_opposite_side_entry() {
-                let bal = balance(dec!(100), DebitOrCredit::Credit);
-                assert_eq!(bal.direction_for_offsetting_entry(), DebitOrCredit::Debit);
-
-                let bal = balance(dec!(100), DebitOrCredit::Debit);
-                assert_eq!(bal.direction_for_offsetting_entry(), DebitOrCredit::Credit);
-            }
-
-            #[test]
-            fn zero_credit_balance_offsets_with_opposite_side_entry() {
-                let bal = balance(dec!(0), DebitOrCredit::Credit);
-                assert_eq!(bal.direction_for_offsetting_entry(), DebitOrCredit::Debit);
-
-                let bal = balance(dec!(0), DebitOrCredit::Debit);
-                assert_eq!(bal.direction_for_offsetting_entry(), DebitOrCredit::Credit);
+            fn skips_entry_param_for_zero_balance_account() {
+                let line_item = line_item_with_zero_balance_account();
+                let entries = line_item.entries_params();
+                assert_eq!(entries.len(), 1);
             }
         }
 
@@ -277,109 +283,113 @@ mod tests {
         }
     }
 
-    mod retained_earnings {
-        use cala_ledger::{AccountId, JournalId, account_set::AccountSetId};
-        use rust_decimal_macros::dec;
-
+    mod closing_profit_and_loss_account_balances {
         use super::*;
 
-        fn gain_account_set_id() -> AccountSetId {
-            AccountSetId::new()
-        }
+        mod retained_earnings {
+            use cala_ledger::{AccountId, JournalId, account_set::AccountSetId};
+            use rust_decimal_macros::dec;
 
-        fn loss_account_set_id() -> AccountSetId {
-            AccountSetId::new()
-        }
+            use super::*;
 
-        fn empty_balances() -> ClosingProfitAndLossAccountBalances {
-            ClosingProfitAndLossAccountBalances {
-                revenue: ProfitAndLossLineItemDetail(HashMap::new()),
-                cost_of_revenue: ProfitAndLossLineItemDetail(HashMap::new()),
-                expenses: ProfitAndLossLineItemDetail(HashMap::new()),
+            fn gain_account_set_id() -> AccountSetId {
+                AccountSetId::new()
             }
-        }
 
-        fn balances_with(
-            revenue_amt: Decimal,
-            cost_of_revenue_amt: Decimal,
-            expenses_amt: Decimal,
-        ) -> ClosingProfitAndLossAccountBalances {
-            let journal_id = JournalId::new();
-
-            let revenue_balance_id = (journal_id, AccountId::new(), CalaCurrency::USD);
-            let cost_of_revenue_balance_id = (journal_id, AccountId::new(), CalaCurrency::USD);
-            let expenses_balance_id = (journal_id, AccountId::new(), CalaCurrency::USD);
-
-            let mut revenue_map = HashMap::new();
-            revenue_map.insert(
-                revenue_balance_id,
-                ClosingAccountBalance {
-                    amount: revenue_amt,
-                    direction: DebitOrCredit::Credit,
-                },
-            );
-
-            let mut cost_of_revenue_map = HashMap::new();
-            cost_of_revenue_map.insert(
-                cost_of_revenue_balance_id,
-                ClosingAccountBalance {
-                    amount: cost_of_revenue_amt,
-                    direction: DebitOrCredit::Debit,
-                },
-            );
-
-            let mut expenses_map = HashMap::new();
-            expenses_map.insert(
-                expenses_balance_id,
-                ClosingAccountBalance {
-                    amount: expenses_amt,
-                    direction: DebitOrCredit::Debit,
-                },
-            );
-
-            ClosingProfitAndLossAccountBalances {
-                revenue: ProfitAndLossLineItemDetail(revenue_map),
-                cost_of_revenue: ProfitAndLossLineItemDetail(cost_of_revenue_map),
-                expenses: ProfitAndLossLineItemDetail(expenses_map),
+            fn loss_account_set_id() -> AccountSetId {
+                AccountSetId::new()
             }
-        }
 
-        #[test]
-        fn returns_gain_account_with_credit_for_zero_contributions() {
-            let balances = empty_balances();
-            let gain_id = gain_account_set_id();
-            let loss_id = loss_account_set_id();
+            fn empty_balances() -> ClosingProfitAndLossAccountBalances {
+                ClosingProfitAndLossAccountBalances {
+                    revenue: ProfitAndLossLineItemDetail(HashMap::new()),
+                    cost_of_revenue: ProfitAndLossLineItemDetail(HashMap::new()),
+                    expenses: ProfitAndLossLineItemDetail(HashMap::new()),
+                }
+            }
 
-            let (direction, account_id) = balances.retained_earnings(gain_id, loss_id);
+            fn balances_with(
+                revenue_amt: Decimal,
+                cost_of_revenue_amt: Decimal,
+                expenses_amt: Decimal,
+            ) -> ClosingProfitAndLossAccountBalances {
+                let journal_id = JournalId::new();
 
-            assert_eq!(direction, DebitOrCredit::Credit);
-            assert_eq!(account_id, gain_id);
-        }
+                let revenue_balance_id = (journal_id, AccountId::new(), CalaCurrency::USD);
+                let cost_of_revenue_balance_id = (journal_id, AccountId::new(), CalaCurrency::USD);
+                let expenses_balance_id = (journal_id, AccountId::new(), CalaCurrency::USD);
 
-        #[test]
-        fn returns_gain_account_with_credit_for_positive_contributions() {
-            // Revenue > (cost_of_revenue + expenses) => positive net income
-            let balances = balances_with(dec!(1000), dec!(300), dec!(200));
-            let gain_id = gain_account_set_id();
-            let loss_id = loss_account_set_id();
+                let mut revenue_map = HashMap::new();
+                revenue_map.insert(
+                    revenue_balance_id,
+                    ClosingAccountBalance {
+                        amount: revenue_amt,
+                        direction: DebitOrCredit::Credit,
+                    },
+                );
 
-            let (direction, account_id) = balances.retained_earnings(gain_id, loss_id);
+                let mut cost_of_revenue_map = HashMap::new();
+                cost_of_revenue_map.insert(
+                    cost_of_revenue_balance_id,
+                    ClosingAccountBalance {
+                        amount: cost_of_revenue_amt,
+                        direction: DebitOrCredit::Debit,
+                    },
+                );
 
-            assert_eq!(direction, DebitOrCredit::Credit);
-            assert_eq!(account_id, gain_id);
-        }
+                let mut expenses_map = HashMap::new();
+                expenses_map.insert(
+                    expenses_balance_id,
+                    ClosingAccountBalance {
+                        amount: expenses_amt,
+                        direction: DebitOrCredit::Debit,
+                    },
+                );
 
-        #[test]
-        fn returns_loss_account_with_debit_for_negative_contributions() {
-            // Revenue < (cost_of_revenue + expenses) => negative net income (loss)
-            let balances = balances_with(dec!(100), dec!(300), dec!(200));
-            let gain_id = gain_account_set_id();
-            let loss_id = loss_account_set_id();
+                ClosingProfitAndLossAccountBalances {
+                    revenue: ProfitAndLossLineItemDetail(revenue_map),
+                    cost_of_revenue: ProfitAndLossLineItemDetail(cost_of_revenue_map),
+                    expenses: ProfitAndLossLineItemDetail(expenses_map),
+                }
+            }
 
-            let (direction, account_id) = balances.retained_earnings(gain_id, loss_id);
+            #[test]
+            fn returns_gain_account_with_credit_for_zero_contributions() {
+                let balances = empty_balances();
+                let gain_id = gain_account_set_id();
+                let loss_id = loss_account_set_id();
 
-            assert_eq!(direction, DebitOrCredit::Debit);
-            assert_eq!(account_id, loss_id);
+                let (direction, account_id) = balances.retained_earnings(gain_id, loss_id);
+
+                assert_eq!(direction, DebitOrCredit::Credit);
+                assert_eq!(account_id, gain_id);
+            }
+
+            #[test]
+            fn returns_gain_account_with_credit_for_positive_contributions() {
+                // Revenue > (cost_of_revenue + expenses) => positive net income
+                let balances = balances_with(dec!(1000), dec!(300), dec!(200));
+                let gain_id = gain_account_set_id();
+                let loss_id = loss_account_set_id();
+
+                let (direction, account_id) = balances.retained_earnings(gain_id, loss_id);
+
+                assert_eq!(direction, DebitOrCredit::Credit);
+                assert_eq!(account_id, gain_id);
+            }
+
+            #[test]
+            fn returns_loss_account_with_debit_for_negative_contributions() {
+                // Revenue < (cost_of_revenue + expenses) => negative net income (loss)
+                let balances = balances_with(dec!(100), dec!(300), dec!(200));
+                let gain_id = gain_account_set_id();
+                let loss_id = loss_account_set_id();
+
+                let (direction, account_id) = balances.retained_earnings(gain_id, loss_id);
+
+                assert_eq!(direction, DebitOrCredit::Debit);
+                assert_eq!(account_id, loss_id);
+            }
         }
     }
 }
