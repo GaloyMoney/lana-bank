@@ -24,6 +24,7 @@ serde = { workspace = true }
 serde_with = { workspace = true }
 async-trait = { workspace = true }
 futures = { workspace = true }
+tokio = { workspace = true }
 thiserror = { workspace = true }
 keycloak-client = { workspace = true }
 chrono = { workspace = true }

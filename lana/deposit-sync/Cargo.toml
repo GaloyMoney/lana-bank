@@ -27,6 +27,7 @@ tracing-utils = { workspace = true }
 serde = { workspace = true }
 async-trait = { workspace = true }
 futures = { workspace = true }
+tokio = { workspace = true }
 thiserror = { workspace = true }
-rust_decimal = { workspace = true } 
+rust_decimal = { workspace = true }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }

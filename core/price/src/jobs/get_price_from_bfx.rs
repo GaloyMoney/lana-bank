@@ -1,7 +1,6 @@
 use async_trait::async_trait;
-use futures::{FutureExt, select};
 use serde::{Deserialize, Serialize};
-use tokio::time::{Duration, sleep};
+use tokio::{select, time::Duration};
 
 use job::*;
 use outbox::{Outbox, OutboxEventMarker};
@@ -102,16 +101,18 @@ where
                 .await?;
 
             select! {
-                _ = sleep(PRICE_UPDATE_INTERVAL).fuse() => {
-                    tracing::debug!(job_id = %current_job.id(), "Sleep completed, continuing");
-                }
-                _ = current_job.shutdown_requested().fuse() => {
+                biased;
+
+                _ = current_job.shutdown_requested() => {
                     tracing::info!(
                         job_id = %current_job.id(),
                         job_type = %GET_PRICE_FROM_CLIENT_JOB_TYPE,
                         "Shutdown signal received"
                     );
                     return Ok(JobCompletion::RescheduleNow);
+                }
+                _ = tokio::time::sleep(PRICE_UPDATE_INTERVAL) => {
+                    tracing::debug!(job_id = %current_job.id(), "Sleep completed, continuing");
                 }
             }
         }

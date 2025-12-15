@@ -1,6 +1,8 @@
-use futures::{FutureExt, StreamExt, select};
 use serde::{Deserialize, Serialize};
+use tokio::select;
 use tracing::{Span, instrument};
+
+use futures::StreamExt;
 
 use job::*;
 use outbox::{EventSequence, Outbox, OutboxEventMarker, PersistentOutboxEvent};
@@ -148,7 +150,18 @@ where
 
         loop {
             select! {
-                message = stream.next().fuse() => {
+                biased;
+
+                _ = current_job.shutdown_requested() => {
+                    tracing::info!(
+                        job_id = %current_job.id(),
+                        job_type = %HISTORY_PROJECTION,
+                        last_sequence = %state.sequence,
+                        "Shutdown signal received"
+                    );
+                    return Ok(JobCompletion::RescheduleNow);
+                }
+                message = stream.next() => {
                     match message {
                         Some(message) => {
                             let mut db = self.repo.begin().await?;
@@ -163,15 +176,6 @@ where
                             return Ok(JobCompletion::RescheduleNow);
                         }
                     }
-                }
-                _ = current_job.shutdown_requested().fuse() => {
-                    tracing::info!(
-                        job_id = %current_job.id(),
-                        job_type = %HISTORY_PROJECTION,
-                        last_sequence = %state.sequence,
-                        "Shutdown signal received"
-                    );
-                    return Ok(JobCompletion::RescheduleNow);
                 }
             }
         }
