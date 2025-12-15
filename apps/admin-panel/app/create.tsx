@@ -1,7 +1,7 @@
 /* eslint-disable no-empty-function */
 "use client"
 
-import { useState, useContext, createContext } from "react"
+import { useState, useContext, createContext, useMemo } from "react"
 import { HiPlus } from "react-icons/hi"
 import { usePathname, useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
@@ -53,6 +53,7 @@ import {
   LedgerAccountDetailsFragment,
   FiscalYear,
 } from "@/lib/graphql/generated"
+import { getUTCYear } from "@/utils/fiscal-year-dates"
 
 export const PATH_CONFIGS = {
   COMMITTEES: "/committees",
@@ -181,7 +182,18 @@ const CreateButton = () => {
   const pathName = usePathname()
   const isFiscalYearsPath = pathName === PATH_CONFIGS.FISCAL_YEARS
 
-  const canOpenNextFiscalYear = Boolean(latestFiscalYear && !latestFiscalYear.isOpen)
+  const { nextFiscalYear, canOpenNextFiscalYear } = useMemo(() => {
+    if (!latestFiscalYear) return { nextFiscalYear: null, canOpenNextFiscalYear: false }
+
+    const latestFiscalYearYear = getUTCYear(latestFiscalYear.openedAsOf)
+    const nextFiscalYear = latestFiscalYearYear !== null ? latestFiscalYearYear + 1 : null
+    const nowUtcYear = new Date().getUTCFullYear()
+
+    return {
+      nextFiscalYear,
+      canOpenNextFiscalYear: nextFiscalYear !== null && nextFiscalYear <= nowUtcYear + 1,
+    }
+  }, [latestFiscalYear])
 
   const userIsInCustomerDetailsPage = Boolean(pathName.match(/^\/customers\/.+$/))
   const userIsInDepositAccountDetailsPage = Boolean(
@@ -219,7 +231,7 @@ const CreateButton = () => {
   const getDisabledMessage = () => {
     if (isFiscalYearsPath && isButtonDisabled()) {
       if (!latestFiscalYear) return ""
-      return t("disabledMessages.fiscalYearMustBeClosed")
+      return t("disabledMessages.fiscalYearCannotOpenNextYet")
     }
     if (pathName.includes("credit-facilities") && isButtonDisabled()) {
       return t("disabledMessages.creditFacilityMustBeActive")
@@ -312,7 +324,7 @@ const CreateButton = () => {
     {
       label: t("menuItems.nextFiscalYear"),
       onClick: () => {
-        if (!canOpenNextFiscalYear || !latestFiscalYear) return
+        if (!canOpenNextFiscalYear || !latestFiscalYear || nextFiscalYear === null) return
         setOpenOpenNextYearDialog(true)
       },
       dataTestId: "create-next-fiscal-year-button",
@@ -420,7 +432,7 @@ const CreateButton = () => {
               <div>
                 <DropdownMenu
                   open={showMenu && !disabled}
-                  onOpenChange={(open) => {
+                  onOpenChange={(open: boolean) => {
                     if (open && !disabled) decideCreation()
                     else setShowMenu(false)
                   }}
@@ -562,7 +574,7 @@ const CreateButton = () => {
       {ledgerAccount?.code && (
         <AddChildNodeDialog
           open={openAddChildAccountDialog}
-          onOpenChange={(open) => {
+          onOpenChange={(open: boolean) => {
             if (!open) {
               setLedgerAccountToNullIfNotInLedgerAccountDetails()
             }
@@ -573,9 +585,10 @@ const CreateButton = () => {
         />
       )}
 
-      {canOpenNextFiscalYear && latestFiscalYear && (
+      {canOpenNextFiscalYear && latestFiscalYear && nextFiscalYear !== null && (
         <OpenNextYearDialog
           fiscalYear={latestFiscalYear}
+          nextFiscalYear={nextFiscalYear}
           open={openOpenNextYearDialog}
           onOpenChange={setOpenOpenNextYearDialog}
         />
@@ -595,7 +608,7 @@ type IDepositAccount = NonNullable<
   GetDepositAccountDetailsQuery["depositAccountByPublicId"]
 > | null
 type ILedgerAccount = LedgerAccountDetailsFragment | null
-type ILatestFiscalYear = Pick<FiscalYear, "fiscalYearId" | "openedAsOf" | "isOpen"> | null
+type ILatestFiscalYear = Pick<FiscalYear, "fiscalYearId" | "openedAsOf"> | null
 
 type CreateContext = {
   customer: ICustomer

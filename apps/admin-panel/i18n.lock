@@ -1296,7 +1296,7 @@ checksums:
     CreateButton/buttons/create: 757ccd28dd533ff3a933355273c1e32a
     CreateButton/disabledMessages/creditFacilityMustBeActive: 5efddd4fdff0f2bde5685825d2ba51e5
     CreateButton/disabledMessages/depositAccountClosed: afb09c14f6c34fea6b93992fd2a54bbd
-    CreateButton/disabledMessages/fiscalYearMustBeClosed: d41f9d6623c9ec9c63070012a1ef6371
+    CreateButton/disabledMessages/fiscalYearCannotOpenNextYet: 0fe3c5608a6550671e7491fbf4bc3f56
     CreateButton/menuItems/deposit: e233d53e369427d12f87d610bcf56ccb
     CreateButton/menuItems/withdrawal: 90991ef39c923572c15cac977346ee77
     CreateButton/menuItems/customer: 846b48bb14b3d62c75cde5031e6bbfd7

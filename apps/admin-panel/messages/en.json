@@ -2250,7 +2250,7 @@
     "disabledMessages": {
       "creditFacilityMustBeActive": "Credit facility must be active to perform actions",
       "depositAccountClosed": "Deposit account is closed, cannot create proposals",
-      "fiscalYearMustBeClosed": "Cannot create the next fiscal year unless the current fiscal year is closed."
+      "fiscalYearCannotOpenNextYet": "You can only create the next fiscal year if it starts this year or next and that year is not already open."
     },
     "menuItems": {
       "deposit": "Deposit",

@@ -16,7 +16,6 @@ import {
 import { Button } from "@lana/web/ui/button"
 
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
-import { getUTCYear } from "@/utils/fiscal-year-dates"
 import { DetailItem } from "@/components/details/item"
 import { DetailsGroup } from "@/components/details/group"
 
@@ -37,22 +36,21 @@ gql`
 `
 
 type OpenNextYearDialogProps = {
-  fiscalYear: Pick<FiscalYear, "fiscalYearId" | "openedAsOf">
+  fiscalYear: Pick<FiscalYear, "fiscalYearId">
+  nextFiscalYear: number
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
 export function OpenNextYearDialog({
   fiscalYear,
+  nextFiscalYear,
   open,
   onOpenChange,
 }: OpenNextYearDialogProps) {
   const t = useTranslations("FiscalYears.openNextYear")
   const tCommon = useTranslations("Common")
   const [error, setError] = useState<string | null>(null)
-
-  const latestClosedYear = getUTCYear(fiscalYear.openedAsOf)
-  const nextFiscalYear = latestClosedYear !== null ? latestClosedYear + 1 : null
 
   const { navigate } = useModalNavigation({
     closeModal: () => onOpenChange(false),
@@ -99,7 +97,7 @@ export function OpenNextYearDialog({
           <DialogTitle>{t("title")}</DialogTitle>
         </DialogHeader>
         <DialogDescription>{t("description")}</DialogDescription>
-        {nextFiscalYear && (
+        {Number.isFinite(nextFiscalYear) && (
           <DetailsGroup layout="horizontal">
             <DetailItem
               label={t("nextFiscalYearLabel")}

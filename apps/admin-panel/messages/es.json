@@ -2250,7 +2250,7 @@
     "disabledMessages": {
       "creditFacilityMustBeActive": "La línea de crédito debe estar activa para realizar acciones",
       "depositAccountClosed": "La cuenta de depósito está cerrada, no se pueden crear propuestas",
-      "fiscalYearMustBeClosed": "Cierra el año fiscal actual antes de crear el siguiente"
+      "fiscalYearCannotOpenNextYet": "No se puede crear el siguiente año fiscal a más de un año en el futuro."
     },
     "menuItems": {
       "deposit": "Depósito",
