@@ -18,6 +18,7 @@ LOGGER = logging.getLogger(__name__)
 REQUEST_TIMEOUT = 60
 SUMSUB_API_BASE = "https://api.sumsub.com"
 
+
 def _sumsub_send(
     session: requests.Session,
     method: str,

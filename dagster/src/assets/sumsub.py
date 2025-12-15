@@ -30,7 +30,7 @@ def sumsub_applicants(
             "Missing SUMSUB_KEY or SUMSUB_SECRET environment variables required to run Sumsub sync."
         )
 
-    dest = create_bigquery_destination(dw_bq.get_base64_credentials())
+    dest = create_bigquery_destination(dw_bq.get_credentials_dict())
     pipe = dlt.pipeline(
         pipeline_name="sumsub_applicants",
         destination=dest,
@@ -51,7 +51,7 @@ def sumsub_protoassets() -> Dict[str, Protoasset]:
     """Return all Sumsub protoassets keyed by asset key."""
     return {
         "sumsub_applicants": Protoasset(
-            key="sumsub_applicants",
+            key=dg.AssetKey("sumsub_applicants"),
             callable=sumsub_applicants,
             required_resource_keys={RESOURCE_KEY_LANA_CORE_PG, RESOURCE_KEY_DW_BQ},
         ),
