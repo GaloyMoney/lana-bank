@@ -1,3 +1,7 @@
+{{ config(
+    unique_key ='requested_at',
+) }}
+
 with raw_bitfinex_ticker as (select * from {{ source("lana", "bitfinex_ticker_dlt")}} )
 select
     *,

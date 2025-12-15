@@ -1,3 +1,7 @@
+{{ config(
+    unique_key ='ID',
+) }}
+
 with raw_bitfinex_trades as (select * from {{ source("lana", "bitfinex_trades_dlt")}} )
 select
     *,

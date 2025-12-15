@@ -1,3 +1,7 @@
+{{ config(
+    unique_key ='requested_at',
+) }}
+
 with raw_bitfinex_order_book as (select * from {{ source("lana", "bitfinex_order_book_dlt")}} )
 select
     *,

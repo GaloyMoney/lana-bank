@@ -1,3 +1,7 @@
+{{ config(
+    unique_key = ['id', 'version'],
+) }}
+
 with raw_stg_core_interest_accrual_cycle_events_rollup as (
     select
         id,
