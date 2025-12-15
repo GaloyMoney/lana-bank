@@ -25,8 +25,7 @@ def sumsub_applicants(
     sumsub: SumsubResource,
 ) -> None:
     """Runs the Sumsub applicants DLT pipeline into BigQuery."""
-    sumsub_key = sumsub.get_key()
-    sumsub_secret = sumsub.get_secret()
+    sumsub_key, sumsub_secret = sumsub.get_auth()
 
     dest = create_bigquery_destination(dw_bq.get_credentials_dict())
     pipe = dlt.pipeline(
@@ -45,16 +44,15 @@ def sumsub_applicants(
     context.log.info(str(load_info))
 
 
-def sumsub_protoassets() -> Dict[str, Protoasset]:
-    """Return all Sumsub protoassets keyed by asset key."""
-    return {
-        "sumsub_applicants": Protoasset(
-            key=dg.AssetKey("sumsub_applicants"),
-            callable=sumsub_applicants,
-            required_resource_keys={
-                RESOURCE_KEY_LANA_CORE_PG,
-                RESOURCE_KEY_DW_BQ,
-                RESOURCE_KEY_SUMSUB,
-            },
-        ),
-    }
+def sumsub_protoasset() -> Protoasset:
+    """Return the single Sumsub applicants protoasset."""
+    return Protoasset(
+        key=dg.AssetKey("sumsub_applicants"),
+        callable=sumsub_applicants,
+        required_resource_keys={
+            RESOURCE_KEY_LANA_CORE_PG,
+            RESOURCE_KEY_DW_BQ,
+            RESOURCE_KEY_SUMSUB,
+        },
+        tags={"system": "sumsub", "asset_type": "el_source_asset"},
+    )

@@ -12,7 +12,7 @@ from src.assets import (
     lana_dbt_protoassets,
     lana_source_protoassets,
     lana_to_dw_el_protoassets,
-    sumsub_protoassets,
+    sumsub_protoasset,
 )
 from src.core import Protoasset, lana_assetifier
 from src.otel import init_telemetry
@@ -131,9 +131,9 @@ definition_builder.add_job_schedule(
 
 
 # Sumsub applicants EL (every 15 minutes)
-sumsub_protoassets = sumsub_protoassets()
+sumsub_applicants_protoasset = sumsub_protoasset()
 sumsub_applicants_asset = definition_builder.add_asset_from_protoasset(
-    sumsub_protoassets["sumsub_applicants"]
+    sumsub_applicants_protoasset
 )
 sumsub_applicants_job = definition_builder.add_job_from_assets(
     job_name="sumsub_applicants_el", assets=(sumsub_applicants_asset,)

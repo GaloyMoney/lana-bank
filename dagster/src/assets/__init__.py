@@ -8,4 +8,4 @@ from src.assets.lana import (
     lana_source_protoassets,
     lana_to_dw_el_protoassets,
 )
-from src.assets.sumsub import sumsub_protoassets
+from src.assets.sumsub import sumsub_protoasset
