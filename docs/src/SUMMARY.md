@@ -10,6 +10,7 @@
   - [Interest Process](credit/interest-process/README.md)
 - [Accounting](accounting/README.md)
   - [Closing](accounting/closing/README.md)
+  - [FiscalYear](accounting/fiscal-year/README.md)
 - [ERDs](erds/README.md)
   - [Cala](erds/cala.md)
   - [Lana](erds/lana.md)

@@ -1,5 +1,8 @@
 ## `FiscalYear`
 
+### Important Assumptions
+- `ProfitAndLossStatement` accounts deal in USD only.
+
 ### Initialization
 
 No transactions can be posted until the first `FiscalYear` entity has been initialized. An account set metadata update made to the root account set of the `Chart` the `FiscalYear` relates to enables velocity controls to be satisfied.
