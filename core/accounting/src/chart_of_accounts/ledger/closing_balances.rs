@@ -122,23 +122,29 @@ impl ClosingProfitAndLossAccountBalances {
     }
 
     pub(super) fn entries_params(&self, retained_earnings_account: Account) -> Vec<EntryParams> {
-        let retained_earnings_entry = vec![
-            EntryParams::builder()
-                .account_id(retained_earnings_account.id)
-                .amount(self.contributions().abs())
-                .currency(CalaCurrency::USD)
-                .direction(retained_earnings_account.values().normal_balance_type)
-                .build()
-                .expect("Failed to build EntryParams"),
-        ];
-
-        self.revenue
+        let net_income_entries = self
+            .revenue
             .entries_params()
             .into_iter()
             .chain(self.cost_of_revenue.entries_params())
             .chain(self.expenses.entries_params())
-            .chain(retained_earnings_entry)
-            .collect()
+            .collect::<Vec<EntryParams>>();
+        let mut entries = if net_income_entries.is_empty() {
+            return vec![];
+        } else {
+            net_income_entries
+        };
+
+        let retained_earnings_entry = EntryParams::builder()
+            .account_id(retained_earnings_account.id)
+            .amount(self.contributions().abs())
+            .currency(CalaCurrency::USD)
+            .direction(retained_earnings_account.values().normal_balance_type)
+            .build()
+            .expect("Failed to build EntryParams");
+        entries.push(retained_earnings_entry);
+
+        entries
     }
 
     pub(super) fn retained_earnings(
@@ -284,10 +290,137 @@ mod tests {
     }
 
     mod closing_profit_and_loss_account_balances {
+        use cala_ledger::{AccountId, JournalId};
+
         use super::*;
 
+        fn balances_with(
+            revenue_amt: Decimal,
+            cost_of_revenue_amt: Decimal,
+            expenses_amt: Decimal,
+        ) -> ClosingProfitAndLossAccountBalances {
+            let journal_id = JournalId::new();
+
+            let revenue_balance_id = (journal_id, AccountId::new(), CalaCurrency::USD);
+            let cost_of_revenue_balance_id = (journal_id, AccountId::new(), CalaCurrency::USD);
+            let expenses_balance_id = (journal_id, AccountId::new(), CalaCurrency::USD);
+
+            let mut revenue_map = HashMap::new();
+            revenue_map.insert(
+                revenue_balance_id,
+                ClosingAccountBalance {
+                    amount: revenue_amt,
+                    direction: DebitOrCredit::Credit,
+                },
+            );
+
+            let mut cost_of_revenue_map = HashMap::new();
+            cost_of_revenue_map.insert(
+                cost_of_revenue_balance_id,
+                ClosingAccountBalance {
+                    amount: cost_of_revenue_amt,
+                    direction: DebitOrCredit::Debit,
+                },
+            );
+
+            let mut expenses_map = HashMap::new();
+            expenses_map.insert(
+                expenses_balance_id,
+                ClosingAccountBalance {
+                    amount: expenses_amt,
+                    direction: DebitOrCredit::Debit,
+                },
+            );
+
+            ClosingProfitAndLossAccountBalances {
+                revenue: ProfitAndLossLineItemDetail(revenue_map),
+                cost_of_revenue: ProfitAndLossLineItemDetail(cost_of_revenue_map),
+                expenses: ProfitAndLossLineItemDetail(expenses_map),
+            }
+        }
+
+        fn empty_balances() -> ClosingProfitAndLossAccountBalances {
+            ClosingProfitAndLossAccountBalances {
+                revenue: ProfitAndLossLineItemDetail(HashMap::new()),
+                cost_of_revenue: ProfitAndLossLineItemDetail(HashMap::new()),
+                expenses: ProfitAndLossLineItemDetail(HashMap::new()),
+            }
+        }
+
+        mod entries_params {
+            use cala_ledger::account::NewAccount;
+            use es_entity::{IntoEvents, TryFromEvents};
+            use rust_decimal_macros::dec;
+
+            use crate::LedgerAccountId;
+
+            use super::*;
+
+            fn random_account() -> Account {
+                let account_id = LedgerAccountId::new();
+                let new_account = NewAccount::builder()
+                    .name(account_id.to_string())
+                    .id(account_id)
+                    .code(account_id.to_string())
+                    .build()
+                    .unwrap();
+                Account::try_from_events(new_account.into_events()).unwrap()
+            }
+
+            #[test]
+            fn returns_empty_vec_for_empty_balances() {
+                let balances = empty_balances();
+                let retained_earnings_account = random_account();
+
+                let entries = balances.entries_params(retained_earnings_account);
+
+                assert!(entries.is_empty());
+            }
+
+            #[test]
+            fn returns_entries_for_each_account_plus_retained_earnings() {
+                // 3 accounts with non-zero balances + 1 retained earnings = 4 entries
+                let balances = balances_with(dec!(1000), dec!(300), dec!(100));
+                let retained_earnings_account = random_account();
+
+                let entries = balances.entries_params(retained_earnings_account);
+
+                assert_eq!(entries.len(), 4);
+            }
+
+            #[test]
+            fn returned_entries_sum_to_zero() {
+                let balances = balances_with(dec!(1000), dec!(300), dec!(100));
+                let retained_earnings_account = random_account();
+
+                let entries = balances.entries_params(retained_earnings_account);
+
+                let sum: Decimal = entries
+                    .iter()
+                    .map(|e| match e.direction {
+                        DebitOrCredit::Debit => e.amount,
+                        DebitOrCredit::Credit => -e.amount,
+                    })
+                    .sum();
+
+                assert_eq!(sum, Decimal::ZERO);
+            }
+
+            #[test]
+            fn retained_earnings_entry_has_absolute_contribution_amount() {
+                // Net income = 1000 (credit) - 300 (debit) - 100 (debit) = 600
+                let balances = balances_with(dec!(1000), dec!(300), dec!(100));
+                let retained_earnings_account = random_account();
+
+                let entries = balances.entries_params(retained_earnings_account);
+                let retained_earnings_entry = entries.last().unwrap();
+
+                assert_eq!(retained_earnings_entry.amount, dec!(600));
+            }
+        }
+
         mod retained_earnings {
-            use cala_ledger::{AccountId, JournalId, account_set::AccountSetId};
+            use cala_ledger::account_set::AccountSetId;
             use rust_decimal_macros::dec;
 
             use super::*;
@@ -298,59 +431,6 @@ mod tests {
 
             fn loss_account_set_id() -> AccountSetId {
                 AccountSetId::new()
-            }
-
-            fn empty_balances() -> ClosingProfitAndLossAccountBalances {
-                ClosingProfitAndLossAccountBalances {
-                    revenue: ProfitAndLossLineItemDetail(HashMap::new()),
-                    cost_of_revenue: ProfitAndLossLineItemDetail(HashMap::new()),
-                    expenses: ProfitAndLossLineItemDetail(HashMap::new()),
-                }
-            }
-
-            fn balances_with(
-                revenue_amt: Decimal,
-                cost_of_revenue_amt: Decimal,
-                expenses_amt: Decimal,
-            ) -> ClosingProfitAndLossAccountBalances {
-                let journal_id = JournalId::new();
-
-                let revenue_balance_id = (journal_id, AccountId::new(), CalaCurrency::USD);
-                let cost_of_revenue_balance_id = (journal_id, AccountId::new(), CalaCurrency::USD);
-                let expenses_balance_id = (journal_id, AccountId::new(), CalaCurrency::USD);
-
-                let mut revenue_map = HashMap::new();
-                revenue_map.insert(
-                    revenue_balance_id,
-                    ClosingAccountBalance {
-                        amount: revenue_amt,
-                        direction: DebitOrCredit::Credit,
-                    },
-                );
-
-                let mut cost_of_revenue_map = HashMap::new();
-                cost_of_revenue_map.insert(
-                    cost_of_revenue_balance_id,
-                    ClosingAccountBalance {
-                        amount: cost_of_revenue_amt,
-                        direction: DebitOrCredit::Debit,
-                    },
-                );
-
-                let mut expenses_map = HashMap::new();
-                expenses_map.insert(
-                    expenses_balance_id,
-                    ClosingAccountBalance {
-                        amount: expenses_amt,
-                        direction: DebitOrCredit::Debit,
-                    },
-                );
-
-                ClosingProfitAndLossAccountBalances {
-                    revenue: ProfitAndLossLineItemDetail(revenue_map),
-                    cost_of_revenue: ProfitAndLossLineItemDetail(cost_of_revenue_map),
-                    expenses: ProfitAndLossLineItemDetail(expenses_map),
-                }
             }
 
             #[test]
