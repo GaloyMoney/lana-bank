@@ -82,8 +82,9 @@ impl From<HashMap<BalanceId, CalaBalanceRange>> for ProfitAndLossLineItemDetail 
 
 impl ProfitAndLossLineItemDetail {
     fn contributions(&self) -> Decimal {
-        self.iter()
-            .map(|(_, balance)| {
+        self.0
+            .values()
+            .map(|balance| {
                 let amount = balance.amount;
                 match balance.direction {
                     DebitOrCredit::Credit => amount,
@@ -94,7 +95,8 @@ impl ProfitAndLossLineItemDetail {
     }
 
     fn entries_params(&self) -> Vec<EntryParams> {
-        self.iter()
+        self.0
+            .iter()
             .filter(|(_, balance)| !balance.abs().is_zero())
             .map(|((_, account_id, currency), balance)| {
                 EntryParams::builder()
@@ -106,12 +108,6 @@ impl ProfitAndLossLineItemDetail {
                     .expect("Failed to build EntryParams")
             })
             .collect()
-    }
-
-    pub(super) fn iter(
-        &self,
-    ) -> std::collections::hash_map::Iter<'_, BalanceId, ClosingAccountBalance> {
-        self.0.iter()
     }
 }
 
