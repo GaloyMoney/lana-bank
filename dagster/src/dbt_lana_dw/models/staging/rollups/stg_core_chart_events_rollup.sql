@@ -6,8 +6,6 @@ with raw_stg_core_chart_events_rollup as (
         modified_at,
         account_set_id,
         closed_as_of,
-        first_period_opened_as_of,
-        first_period_opened_at,
         name,
         reference,
         _dlt_load_id,
@@ -21,8 +19,6 @@ select
     modified_at,
     account_set_id,
     closed_as_of,
-    first_period_opened_as_of,
-    first_period_opened_at,
     name,
     reference,
     TIMESTAMP_MICROS(CAST(CAST(_dlt_load_id AS DECIMAL) * 1e6 as INT64 )) as loaded_to_dw_at
