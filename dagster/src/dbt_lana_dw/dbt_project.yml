@@ -5,6 +5,14 @@
 name: 'dbt_lana_dw'
 version: '1.0.0'
 
+on-run-start:
+- '{{create_udfs()}}'
+
+vars:
+  sats_per_bitcoin: '100000000'
+  cents_per_usd: '100'
+  deposits_coverage_limit: '10289.00'
+
 flags:
   send_anonymous_usage_stats: False
   use_colors: True
