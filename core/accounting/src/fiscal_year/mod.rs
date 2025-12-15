@@ -237,6 +237,24 @@ where
     }
 
     #[record_error_severity]
+    #[instrument(name = "core_accounting.fiscal_year.find_by_reference", skip(self))]
+    pub async fn find_by_reference(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        reference: &str,
+    ) -> Result<Option<FiscalYear>, FiscalYearError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_fiscal_years(),
+                CoreAccountingAction::FISCAL_YEAR_READ,
+            )
+            .await?;
+
+        self.repo.maybe_find_by_reference(reference).await
+    }
+
+    #[record_error_severity]
     #[instrument(name = "core_accounting.fiscal_year.find_all", skip(self))]
     pub async fn find_all<T: From<FiscalYear>>(
         &self,

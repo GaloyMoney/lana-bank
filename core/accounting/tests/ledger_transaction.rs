@@ -73,7 +73,7 @@ async fn manual_transaction_fails_for_unopened_fiscal_year() -> anyhow::Result<(
 async fn manual_transaction() -> anyhow::Result<()> {
     let (accounting, chart) = prepare_test().await?;
 
-    let opened_as_of = "2021-01-01".parse::<chrono::NaiveDate>().unwrap();
+    let opened_as_of = random_opened_as_of();
     accounting
         .fiscal_year()
         .init_for_chart(&DummySubject, opened_as_of, chart.id)
@@ -132,7 +132,7 @@ async fn manual_transaction() -> anyhow::Result<()> {
 async fn ledger_transactions_by_template_code() -> anyhow::Result<()> {
     let (accounting, chart) = prepare_test().await?;
 
-    let opened_as_of = "2021-01-01".parse::<chrono::NaiveDate>().unwrap();
+    let opened_as_of = random_opened_as_of();
     accounting
         .fiscal_year()
         .init_for_chart(&DummySubject, opened_as_of, chart.id)
@@ -179,6 +179,12 @@ async fn ledger_transactions_by_template_code() -> anyhow::Result<()> {
     assert!(template_txs.iter().any(|tx| tx.id == manual_tx.id));
 
     Ok(())
+}
+
+fn random_opened_as_of() -> chrono::NaiveDate {
+    use rand::Rng;
+    let year = rand::rng().random_range(1000..=2000);
+    chrono::NaiveDate::from_ymd_opt(year, 1, 1).expect("valid date")
 }
 
 async fn prepare_test() -> anyhow::Result<(

@@ -26,8 +26,8 @@ gql`
     }
   }
 
-  query GetFiscalYearDetails($fiscalYearId: UUID!) {
-    fiscalYear(fiscalYearId: $fiscalYearId) {
+  query GetFiscalYearDetails($reference: String!) {
+    fiscalYearByReference(reference: $reference) {
       ...FiscalYearDetailsPageFragment
     }
   }
@@ -37,26 +37,26 @@ function FiscalYearPage({
   params,
 }: {
   params: Promise<{
-    "fiscal-year-id": string
+    reference: string
   }>
 }) {
-  const { "fiscal-year-id": fiscalYearId } = use(params)
+  const { reference } = use(params)
   const tCommon = useTranslations("Common")
 
   const { data, loading, error } = useGetFiscalYearDetailsQuery({
-    variables: { fiscalYearId },
+    variables: { reference },
   })
 
   if (loading) {
     return <DetailsPageSkeleton tabs={0} tabsCards={0} />
   }
   if (error) return <div className="text-destructive">{error.message}</div>
-  if (!data?.fiscalYear) return <div>{tCommon("notFound")}</div>
+  if (!data?.fiscalYearByReference) return <div>{tCommon("notFound")}</div>
 
   return (
     <main className="max-w-7xl m-auto space-y-2">
-      <FiscalYearDetailsCard fiscalYear={data.fiscalYear} />
-      <MonthClosuresList monthClosures={data.fiscalYear.monthClosures} />
+      <FiscalYearDetailsCard fiscalYear={data.fiscalYearByReference} />
+      <MonthClosuresList monthClosures={data.fiscalYearByReference.monthClosures} />
     </main>
   )
 }

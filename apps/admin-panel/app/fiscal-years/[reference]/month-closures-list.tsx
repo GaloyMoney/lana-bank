@@ -10,11 +10,11 @@ import CardWrapper from "@/components/card-wrapper"
 import DataTable, { Column } from "@/components/data-table"
 
 type FiscalMonthClosure = NonNullable<
-  GetFiscalYearDetailsQuery["fiscalYear"]
+  GetFiscalYearDetailsQuery["fiscalYearByReference"]
 >["monthClosures"][number]
 
 type MonthClosuresListProps = {
-  monthClosures: NonNullable<GetFiscalYearDetailsQuery["fiscalYear"]>["monthClosures"]
+  monthClosures: NonNullable<GetFiscalYearDetailsQuery["fiscalYearByReference"]>["monthClosures"]
 }
 
 const MonthClosuresList: React.FC<MonthClosuresListProps> = ({ monthClosures }) => {

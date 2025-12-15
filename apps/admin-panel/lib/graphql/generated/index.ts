@@ -2339,6 +2339,7 @@ export type Query = {
   disbursalByPublicId?: Maybe<CreditFacilityDisbursal>;
   disbursals: CreditFacilityDisbursalConnection;
   fiscalYear?: Maybe<FiscalYear>;
+  fiscalYearByReference?: Maybe<FiscalYear>;
   fiscalYears: FiscalYearConnection;
   journalEntries: JournalEntryConnection;
   ledgerAccount?: Maybe<LedgerAccount>;
@@ -2527,6 +2528,11 @@ export type QueryDisbursalsArgs = {
 
 export type QueryFiscalYearArgs = {
   fiscalYearId: Scalars['UUID']['input'];
+};
+
+
+export type QueryFiscalYearByReferenceArgs = {
+  reference: Scalars['String']['input'];
 };
 
 
@@ -3877,11 +3883,11 @@ export type DisbursalsQuery = { __typename?: 'Query', disbursals: { __typename?:
 export type FiscalYearDetailsPageFragmentFragment = { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: any, isOpen: boolean, isLastMonthOfYearClosed: boolean, reference: string, nextMonthToClose?: any | null, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: any, closedAt: any }> };
 
 export type GetFiscalYearDetailsQueryVariables = Exact<{
-  fiscalYearId: Scalars['UUID']['input'];
+  reference: Scalars['String']['input'];
 }>;
 
 
-export type GetFiscalYearDetailsQuery = { __typename?: 'Query', fiscalYear?: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: any, isOpen: boolean, isLastMonthOfYearClosed: boolean, reference: string, nextMonthToClose?: any | null, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: any, closedAt: any }> } | null };
+export type GetFiscalYearDetailsQuery = { __typename?: 'Query', fiscalYearByReference?: { __typename?: 'FiscalYear', id: string, fiscalYearId: string, chartId: string, openedAsOf: any, isOpen: boolean, isLastMonthOfYearClosed: boolean, reference: string, nextMonthToClose?: any | null, monthClosures: Array<{ __typename?: 'FiscalMonthClosure', closedAsOf: any, closedAt: any }> } | null };
 
 export type FiscalYearCloseMonthMutationVariables = Exact<{
   input: FiscalYearCloseMonthInput;
@@ -8501,8 +8507,8 @@ export type DisbursalsLazyQueryHookResult = ReturnType<typeof useDisbursalsLazyQ
 export type DisbursalsSuspenseQueryHookResult = ReturnType<typeof useDisbursalsSuspenseQuery>;
 export type DisbursalsQueryResult = Apollo.QueryResult<DisbursalsQuery, DisbursalsQueryVariables>;
 export const GetFiscalYearDetailsDocument = gql`
-    query GetFiscalYearDetails($fiscalYearId: UUID!) {
-  fiscalYear(fiscalYearId: $fiscalYearId) {
+    query GetFiscalYearDetails($reference: String!) {
+  fiscalYearByReference(reference: $reference) {
     ...FiscalYearDetailsPageFragment
   }
 }
@@ -8520,7 +8526,7 @@ export const GetFiscalYearDetailsDocument = gql`
  * @example
  * const { data, loading, error } = useGetFiscalYearDetailsQuery({
  *   variables: {
- *      fiscalYearId: // value for 'fiscalYearId'
+ *      reference: // value for 'reference'
  *   },
  * });
  */

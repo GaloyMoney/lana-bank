@@ -242,7 +242,7 @@ impl NewFiscalYear {
     }
 
     pub(super) fn reference(&self) -> String {
-        format!("{}:AC{}", self.chart_id, self.opened_as_of.year())
+        self.opened_as_of.year().to_string()
     }
 }
 
@@ -273,7 +273,7 @@ mod test {
         vec![FiscalYearEvent::Initialized {
             id: FiscalYearId::new(),
             chart_id: ChartId::new(),
-            reference: "AC2025".to_string(),
+            reference: "2025".to_string(),
             opened_as_of,
         }]
     }

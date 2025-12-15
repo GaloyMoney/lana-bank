@@ -22,7 +22,7 @@ import { GetFiscalYearDetailsQuery } from "@/lib/graphql/generated"
 import { formatUTCMonthYear } from "@/utils/fiscal-year-dates"
 
 type FiscalYearDetailsProps = {
-  fiscalYear: NonNullable<GetFiscalYearDetailsQuery["fiscalYear"]>
+  fiscalYear: NonNullable<GetFiscalYearDetailsQuery["fiscalYearByReference"]>
 }
 const FiscalYearDetailsCard: React.FC<FiscalYearDetailsProps> = ({ fiscalYear }) => {
   const t = useTranslations("FiscalYears.details")

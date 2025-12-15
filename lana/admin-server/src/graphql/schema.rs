@@ -832,6 +832,21 @@ impl Query {
         )
     }
 
+    async fn fiscal_year_by_reference(
+        &self,
+        ctx: &Context<'_>,
+        reference: String,
+    ) -> async_graphql::Result<Option<FiscalYear>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(
+            FiscalYear,
+            ctx,
+            app.accounting()
+                .fiscal_year()
+                .find_by_reference(sub, &reference)
+        )
+    }
+
     async fn fiscal_years(
         &self,
         ctx: &Context<'_>,

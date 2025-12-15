@@ -112,7 +112,7 @@ const FiscalYearsList = () => {
         loading={loading}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
         pageSize={DEFAULT_PAGESIZE}
-        navigateTo={(fiscalYear) => `/fiscal-years/${fiscalYear.fiscalYearId}`}
+        navigateTo={(fiscalYear) => `/fiscal-years/${fiscalYear.reference}`}
       />
     </>
   )
