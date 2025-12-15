@@ -54,14 +54,10 @@ impl ClosingAccountBalance {
         if self.amount.is_sign_negative() {
             self.direction
         } else {
-            self.flip_direction()
-        }
-    }
-
-    fn flip_direction(&self) -> DebitOrCredit {
-        match self.direction {
-            DebitOrCredit::Debit => DebitOrCredit::Credit,
-            DebitOrCredit::Credit => DebitOrCredit::Debit,
+            match self.direction {
+                DebitOrCredit::Debit => DebitOrCredit::Credit,
+                DebitOrCredit::Credit => DebitOrCredit::Debit,
+            }
         }
     }
 }
@@ -201,22 +197,35 @@ mod tests {
             assert_eq!(entries.len(), 1);
         }
 
-        #[test]
-        fn returns_same_normal_balance_type_to_offset_negative_normal_balance() {
-            let negative_normal_credit_balance = balance(dec!(-100), DebitOrCredit::Credit);
-            assert_eq!(
-                negative_normal_credit_balance.direction_for_offsetting_entry(),
-                DebitOrCredit::Credit
-            );
-        }
+        mod direction_for_offsetting_entry {
+            use super::*;
 
-        #[test]
-        fn returns_flipped_normal_balance_type_to_offset_positive_normal_balance() {
-            let positive_normal_debit_balance = balance(dec!(100), DebitOrCredit::Debit);
-            assert_eq!(
-                positive_normal_debit_balance.direction_for_offsetting_entry(),
-                DebitOrCredit::Credit
-            );
+            #[test]
+            fn negative_balance_offsets_with_same_side_entry() {
+                let bal = balance(dec!(-100), DebitOrCredit::Credit);
+                assert_eq!(bal.direction_for_offsetting_entry(), DebitOrCredit::Credit);
+
+                let bal = balance(dec!(-100), DebitOrCredit::Debit);
+                assert_eq!(bal.direction_for_offsetting_entry(), DebitOrCredit::Debit);
+            }
+
+            #[test]
+            fn positive_credit_balance_offsets_with_opposite_side_entry() {
+                let bal = balance(dec!(100), DebitOrCredit::Credit);
+                assert_eq!(bal.direction_for_offsetting_entry(), DebitOrCredit::Debit);
+
+                let bal = balance(dec!(100), DebitOrCredit::Debit);
+                assert_eq!(bal.direction_for_offsetting_entry(), DebitOrCredit::Credit);
+            }
+
+            #[test]
+            fn zero_credit_balance_offsets_with_opposite_side_entry() {
+                let bal = balance(dec!(0), DebitOrCredit::Credit);
+                assert_eq!(bal.direction_for_offsetting_entry(), DebitOrCredit::Debit);
+
+                let bal = balance(dec!(0), DebitOrCredit::Debit);
+                assert_eq!(bal.direction_for_offsetting_entry(), DebitOrCredit::Credit);
+            }
         }
     }
 
