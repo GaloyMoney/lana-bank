@@ -227,6 +227,54 @@ mod tests {
                 assert_eq!(bal.direction_for_offsetting_entry(), DebitOrCredit::Credit);
             }
         }
+
+        mod contributions {
+            use super::*;
+
+            fn line_item_with(
+                balances: Vec<(Decimal, DebitOrCredit)>,
+            ) -> ProfitAndLossLineItemDetail {
+                let journal_id = JournalId::new();
+                let mut map = HashMap::new();
+                for (amount, direction) in balances {
+                    map.insert(
+                        (journal_id, AccountId::new(), CalaCurrency::USD),
+                        ClosingAccountBalance { amount, direction },
+                    );
+                }
+                ProfitAndLossLineItemDetail(map)
+            }
+
+            #[test]
+            fn empty_line_item_returns_zero() {
+                let line_item = ProfitAndLossLineItemDetail(HashMap::new());
+                assert_eq!(line_item.contributions(), Decimal::ZERO);
+            }
+
+            #[test]
+            fn single_credit_balance_returns_positive() {
+                let line_item = line_item_with(vec![(dec!(100), DebitOrCredit::Credit)]);
+                assert_eq!(line_item.contributions(), dec!(100));
+            }
+
+            #[test]
+            fn single_debit_balance_returns_negative() {
+                let line_item = line_item_with(vec![(dec!(100), DebitOrCredit::Debit)]);
+                assert_eq!(line_item.contributions(), dec!(-100));
+            }
+
+            #[test]
+            fn negative_credit_balance_returns_negative() {
+                let line_item = line_item_with(vec![(dec!(-100), DebitOrCredit::Credit)]);
+                assert_eq!(line_item.contributions(), dec!(-100));
+            }
+
+            #[test]
+            fn negative_debit_balance_returns_positive() {
+                let line_item = line_item_with(vec![(dec!(-100), DebitOrCredit::Debit)]);
+                assert_eq!(line_item.contributions(), dec!(100));
+            }
+        }
     }
 
     mod retained_earnings {
