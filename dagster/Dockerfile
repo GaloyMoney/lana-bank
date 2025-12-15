@@ -18,7 +18,6 @@ RUN pip install --upgrade pip
 # Install dagster general dependencies
 ARG DAGSTER_VERSION=1.12.0
 ARG DAGSTER_EXT_VERSION=0.28.1
-ARG DBT_EXT_VERSION=1.10.3
 ARG OTEL_VERSION=1.38.0
 RUN pip install \
     dagster~=${DAGSTER_VERSION} \
