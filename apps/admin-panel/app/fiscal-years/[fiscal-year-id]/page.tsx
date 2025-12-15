@@ -18,6 +18,8 @@ gql`
     openedAsOf
     isOpen
     isLastMonthOfYearClosed
+    reference
+    nextMonthToClose
     monthClosures {
       closedAsOf
       closedAt

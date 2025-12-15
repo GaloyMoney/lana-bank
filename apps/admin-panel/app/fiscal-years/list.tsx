@@ -2,12 +2,14 @@
 
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Plus } from "lucide-react"
 
 import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 import { Button } from "@lana/web/ui/button"
 import { Card, CardContent } from "@lana/web/ui/card"
+
+import { useCreateContext } from "../create"
 
 import { FiscalYearStatusBadge } from "./status-badge"
 import { InitFiscalYearDialog } from "./init-fiscal-year"
@@ -26,6 +28,8 @@ gql`
     chartId
     openedAsOf
     isOpen
+    reference
+    isLastMonthOfYearClosed
   }
 
   query FiscalYears($first: Int!, $after: String) {
@@ -56,6 +60,14 @@ const FiscalYearsList = () => {
       first: DEFAULT_PAGESIZE,
     },
   })
+
+  const { setLatestFiscalYear } = useCreateContext()
+
+  useEffect(() => {
+    const latestFiscalYear = data?.fiscalYears?.edges?.[0]?.node ?? null
+    setLatestFiscalYear(latestFiscalYear)
+    return () => setLatestFiscalYear(null)
+  }, [data, setLatestFiscalYear])
 
   const columns: Column<FiscalYear>[] = [
     {

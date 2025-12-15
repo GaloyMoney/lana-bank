@@ -15,6 +15,7 @@ pub struct FiscalYear {
     is_open: bool,
     opened_as_of: Date,
     closed_as_of: Option<Date>,
+    reference: String,
     #[graphql(skip)]
     pub(crate) entity: Arc<DomainFiscalYear>,
 }
@@ -27,6 +28,7 @@ impl From<DomainFiscalYear> for FiscalYear {
             is_open: fiscal_year.closed_as_of.is_none(),
             opened_as_of: fiscal_year.opened_as_of.into(),
             closed_as_of: fiscal_year.closed_as_of.map(|date| date.into()),
+            reference: fiscal_year.reference.clone(),
             entity: Arc::new(fiscal_year),
         }
     }
@@ -44,6 +46,10 @@ impl FiscalYear {
 
     pub async fn is_last_month_of_year_closed(&self) -> bool {
         self.entity.is_last_month_of_year_closed()
+    }
+
+    pub async fn next_month_to_close(&self) -> Option<Date> {
+        self.entity.next_month_to_close().map(|date| date.into())
     }
 }
 

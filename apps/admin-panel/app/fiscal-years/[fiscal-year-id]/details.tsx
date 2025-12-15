@@ -1,8 +1,8 @@
 "use client"
 
 import React, { useState } from "react"
-import { useTranslations } from "next-intl"
-import { CalendarCheck, CalendarPlus, CalendarX2 } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
+import { CalendarCheck, CalendarX2 } from "lucide-react"
 
 import { Button } from "@lana/web/ui/button"
 import {
@@ -16,30 +16,28 @@ import { formatDate } from "@lana/web/utils"
 import { FiscalYearStatusBadge } from "../status-badge"
 import { CloseMonthDialog } from "../close-month"
 import { CloseYearDialog } from "../close-year"
-import { OpenNextYearDialog } from "../open-next-year"
 
 import { DetailsCard, DetailItemProps } from "@/components/details"
-import { GetFiscalYearDetailsQuery, useFiscalYearsQuery } from "@/lib/graphql/generated"
+import { GetFiscalYearDetailsQuery } from "@/lib/graphql/generated"
+import { formatUTCMonthYear } from "@/utils/fiscal-year-dates"
 
 type FiscalYearDetailsProps = {
   fiscalYear: NonNullable<GetFiscalYearDetailsQuery["fiscalYear"]>
 }
 const FiscalYearDetailsCard: React.FC<FiscalYearDetailsProps> = ({ fiscalYear }) => {
   const t = useTranslations("FiscalYears.details")
+  const locale = useLocale()
   const [openCloseMonthDialog, setOpenCloseMonthDialog] = useState(false)
   const [openCloseYearDialog, setOpenCloseYearDialog] = useState(false)
-  const [openOpenNextYearDialog, setOpenOpenNextYearDialog] = useState(false)
-  const { data: latestFiscalYearData } = useFiscalYearsQuery({
-    variables: { first: 1 },
-    skip: fiscalYear.isOpen,
-  })
-
-  const latestFiscalYearId =
-    latestFiscalYearData?.fiscalYears?.edges?.[0]?.node?.fiscalYearId
 
   const monthsClosed = fiscalYear.monthClosures.length
   const isCloseYearDisabled = !fiscalYear.isLastMonthOfYearClosed
   const lastClosure = monthsClosed > 0 ? fiscalYear.monthClosures[monthsClosed - 1] : null
+
+  const nextMonthToCloseDisplay = formatUTCMonthYear(
+    fiscalYear.nextMonthToClose,
+    locale,
+  )
 
   const details: DetailItemProps[] = [
     {
@@ -66,6 +64,10 @@ const FiscalYearDetailsCard: React.FC<FiscalYearDetailsProps> = ({ fiscalYear })
       ) : (
         t("fields.noMonthsClosed")
       ),
+    },
+    {
+      label: t("fields.nextMonthToClose"),
+      value: nextMonthToCloseDisplay ?? t("fields.allMonthsClosed"),
     },
   ]
 
@@ -101,12 +103,6 @@ const FiscalYearDetailsCard: React.FC<FiscalYearDetailsProps> = ({ fiscalYear })
             </Tooltip>
           </>
         )}
-        {!fiscalYear.isOpen && fiscalYear.fiscalYearId === latestFiscalYearId && (
-          <Button onClick={() => setOpenOpenNextYearDialog(true)}>
-            <CalendarPlus className="h-4 w-4" />
-            {t("buttons.openNextYear")}
-          </Button>
-        )}
       </div>
     </TooltipProvider>
   )
@@ -128,11 +124,6 @@ const FiscalYearDetailsCard: React.FC<FiscalYearDetailsProps> = ({ fiscalYear })
         fiscalYear={fiscalYear}
         open={openCloseYearDialog}
         onOpenChange={setOpenCloseYearDialog}
-      />
-      <OpenNextYearDialog
-        fiscalYear={fiscalYear}
-        open={openOpenNextYearDialog}
-        onOpenChange={setOpenOpenNextYearDialog}
       />
     </>
   )

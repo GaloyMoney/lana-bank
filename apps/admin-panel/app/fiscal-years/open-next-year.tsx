@@ -16,6 +16,9 @@ import {
 import { Button } from "@lana/web/ui/button"
 
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
+import { getUTCYear } from "@/utils/fiscal-year-dates"
+import { DetailItem } from "@/components/details/item"
+import { DetailsGroup } from "@/components/details/group"
 
 import {
   FiscalYear,
@@ -34,7 +37,7 @@ gql`
 `
 
 type OpenNextYearDialogProps = {
-  fiscalYear: FiscalYear
+  fiscalYear: Pick<FiscalYear, "fiscalYearId" | "openedAsOf">
   open: boolean
   onOpenChange: (open: boolean) => void
 }
@@ -47,6 +50,9 @@ export function OpenNextYearDialog({
   const t = useTranslations("FiscalYears.openNextYear")
   const tCommon = useTranslations("Common")
   const [error, setError] = useState<string | null>(null)
+
+  const latestClosedYear = getUTCYear(fiscalYear.openedAsOf)
+  const nextFiscalYear = latestClosedYear !== null ? latestClosedYear + 1 : null
 
   const { navigate } = useModalNavigation({
     closeModal: () => onOpenChange(false),
@@ -93,6 +99,15 @@ export function OpenNextYearDialog({
           <DialogTitle>{t("title")}</DialogTitle>
         </DialogHeader>
         <DialogDescription>{t("description")}</DialogDescription>
+        {nextFiscalYear && (
+          <DetailsGroup layout="horizontal">
+            <DetailItem
+              label={t("nextFiscalYearLabel")}
+              value={nextFiscalYear}
+              className="bg-muted/50 border rounded-lg p-2"
+            />
+          </DetailsGroup>
+        )}
         {error && <p className="text-destructive text-sm">{error}</p>}
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>

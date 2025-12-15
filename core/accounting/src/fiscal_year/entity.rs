@@ -84,45 +84,26 @@ impl FiscalYear {
         &mut self,
         now: DateTime<Utc>,
     ) -> Idempotent<NaiveDate> {
-        if self.is_last_month_of_year_closed() {
+        let Some(new_monthly_closing_date) = self.next_month_to_close() else {
             return Idempotent::Ignored;
-        }
+        };
         let last_recorded_date = self.events.iter_all().rev().find_map(|event| match event {
             FiscalYearEvent::MonthClosed {
                 month_closed_as_of, ..
             } => Some(*month_closed_as_of),
             _ => None,
         });
-        let new_monthly_closing_date = match last_recorded_date {
-            Some(last_effective) => {
-                let last_day_of_previous_month = now
-                    .date_naive()
-                    .with_day(1)
-                    .and_then(|d| d.pred_opt())
-                    .expect("Failed to compute last day of previous month");
-                if last_effective == last_day_of_previous_month {
-                    return Idempotent::Ignored;
-                }
 
-                last_effective
-                    .checked_add_months(Months::new(2))
-                    .and_then(|d| d.with_day(1))
-                    .and_then(|d| d.pred_opt())
-                    .expect("Failed to compute new monthly closing date")
-            }
-            None => self
-                .events
-                .iter_all()
-                .find_map(|event| match event {
-                    FiscalYearEvent::Initialized { opened_as_of, .. } => Some(opened_as_of),
-                    _ => None,
-                })
-                .expect("Entity was not initialized")
-                .checked_add_months(Months::new(1))
-                .and_then(|d| d.with_day(1))
+        if let Some(last_effective) = last_recorded_date {
+            let last_day_of_previous_month = now
+                .date_naive()
+                .with_day(1)
                 .and_then(|d| d.pred_opt())
-                .expect("Failed to compute new monthly closing date"),
-        };
+                .expect("Failed to compute last day of previous month");
+            if last_effective == last_day_of_previous_month {
+                return Idempotent::Ignored;
+            }
+        }
 
         self.events.push(FiscalYearEvent::MonthClosed {
             month_closed_as_of: new_monthly_closing_date,
@@ -156,6 +137,41 @@ impl FiscalYear {
                 event,
                 FiscalYearEvent::MonthClosed { month_closed_as_of, .. } if *month_closed_as_of == last_month_closes_as_of
             ))
+    }
+
+    pub fn next_month_to_close(&self) -> Option<NaiveDate> {
+        if self.is_last_month_of_year_closed() {
+            return None;
+        }
+
+        let last_recorded_date = self.events.iter_all().rev().find_map(|event| match event {
+            FiscalYearEvent::MonthClosed {
+                month_closed_as_of, ..
+            } => Some(*month_closed_as_of),
+            _ => None,
+        });
+
+        let next_month = match last_recorded_date {
+            Some(last_effective) => last_effective
+                .checked_add_months(Months::new(2))
+                .and_then(|d| d.with_day(1))
+                .and_then(|d| d.pred_opt())
+                .expect("Failed to compute new monthly closing date"),
+            None => self
+                .events
+                .iter_all()
+                .find_map(|event| match event {
+                    FiscalYearEvent::Initialized { opened_as_of, .. } => Some(opened_as_of),
+                    _ => None,
+                })
+                .expect("Entity was not initialized")
+                .checked_add_months(Months::new(1))
+                .and_then(|d| d.with_day(1))
+                .and_then(|d| d.pred_opt())
+                .expect("Failed to compute new monthly closing date"),
+        };
+
+        Some(next_month)
     }
 
     #[record_error_severity]

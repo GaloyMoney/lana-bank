@@ -37,6 +37,7 @@ import { CreateCustodianDialog } from "./custodians/create"
 import { AddRootNodeDialog } from "./chart-of-accounts/add-root-node-dialog"
 import { AddChildNodeDialog } from "./chart-of-accounts/add-child-node-dialog"
 import { CreateDepositAccountDialog } from "./deposit-accounts/create"
+import { OpenNextYearDialog } from "./fiscal-years/open-next-year"
 
 import {
   CreditFacility,
@@ -50,6 +51,7 @@ import {
   GetDisbursalDetailsQuery,
   GetDepositAccountDetailsQuery,
   LedgerAccountDetailsFragment,
+  FiscalYear,
 } from "@/lib/graphql/generated"
 
 export const PATH_CONFIGS = {
@@ -77,6 +79,8 @@ export const PATH_CONFIGS = {
   JOURNAL: "/journal",
 
   ROLES_AND_PERMISSIONS: "/roles-and-permissions",
+
+  FISCAL_YEARS: "/fiscal-years",
 
   CHART_OF_ACCOUNTS: "/chart-of-accounts",
   LEDGER_ACCOUNTS: "/ledger-accounts",
@@ -161,6 +165,7 @@ const CreateButton = () => {
   const [openCreateDepositAccountDialog, setOpenCreateDepositAccountDialog] =
     useState(false)
   const [openAddChildAccountDialog, setOpenAddChildAccountDialog] = useState(false)
+  const [openOpenNextYearDialog, setOpenOpenNextYearDialog] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
 
   const {
@@ -168,11 +173,15 @@ const CreateButton = () => {
     facility,
     depositAccount,
     ledgerAccount,
+    latestFiscalYear,
     setCustomer,
     setDepositAccount,
     setLedgerAccount,
   } = useCreateContext()
   const pathName = usePathname()
+  const isFiscalYearsPath = pathName === PATH_CONFIGS.FISCAL_YEARS
+
+  const canOpenNextFiscalYear = Boolean(latestFiscalYear && !latestFiscalYear.isOpen)
 
   const userIsInCustomerDetailsPage = Boolean(pathName.match(/^\/customers\/.+$/))
   const userIsInDepositAccountDetailsPage = Boolean(
@@ -194,6 +203,10 @@ const CreateButton = () => {
   }
 
   const isButtonDisabled = () => {
+    if (isFiscalYearsPath) {
+      if (!latestFiscalYear) return true
+      return !canOpenNextFiscalYear
+    }
     if (PATH_CONFIGS.CREDIT_FACILITY_DETAILS.test(pathName)) {
       return !facility || facility.status !== CreditFacilityStatus.Active
     }
@@ -204,6 +217,10 @@ const CreateButton = () => {
   }
 
   const getDisabledMessage = () => {
+    if (isFiscalYearsPath && isButtonDisabled()) {
+      if (!latestFiscalYear) return ""
+      return t("disabledMessages.fiscalYearMustBeClosed")
+    }
     if (pathName.includes("credit-facilities") && isButtonDisabled()) {
       return t("disabledMessages.creditFacilityMustBeActive")
     }
@@ -291,6 +308,15 @@ const CreateButton = () => {
       onClick: () => setOpenCreateCommitteeDialog(true),
       dataTestId: "create-committee-button",
       allowedPaths: [PATH_CONFIGS.COMMITTEES],
+    },
+    {
+      label: t("menuItems.nextFiscalYear"),
+      onClick: () => {
+        if (!canOpenNextFiscalYear || !latestFiscalYear) return
+        setOpenOpenNextYearDialog(true)
+      },
+      dataTestId: "create-next-fiscal-year-button",
+      allowedPaths: [PATH_CONFIGS.FISCAL_YEARS],
     },
     {
       label: t("menuItems.custodian"),
@@ -546,6 +572,14 @@ const CreateButton = () => {
           parentName={ledgerAccount.name}
         />
       )}
+
+      {canOpenNextFiscalYear && latestFiscalYear && (
+        <OpenNextYearDialog
+          fiscalYear={latestFiscalYear}
+          open={openOpenNextYearDialog}
+          onOpenChange={setOpenOpenNextYearDialog}
+        />
+      )}
     </>
   )
 }
@@ -561,6 +595,7 @@ type IDepositAccount = NonNullable<
   GetDepositAccountDetailsQuery["depositAccountByPublicId"]
 > | null
 type ILedgerAccount = LedgerAccountDetailsFragment | null
+type ILatestFiscalYear = Pick<FiscalYear, "fiscalYearId" | "openedAsOf" | "isOpen"> | null
 
 type CreateContext = {
   customer: ICustomer
@@ -572,6 +607,7 @@ type CreateContext = {
   disbursal: IDisbursal
   depositAccount: IDepositAccount
   ledgerAccount: ILedgerAccount
+  latestFiscalYear: ILatestFiscalYear
 
   setCustomer: React.Dispatch<React.SetStateAction<ICustomer>>
   setFacility: React.Dispatch<React.SetStateAction<IFacility>>
@@ -582,6 +618,7 @@ type CreateContext = {
   setDisbursal: React.Dispatch<React.SetStateAction<IDisbursal>>
   setDepositAccount: React.Dispatch<React.SetStateAction<IDepositAccount>>
   setLedgerAccount: React.Dispatch<React.SetStateAction<ILedgerAccount>>
+  setLatestFiscalYear: React.Dispatch<React.SetStateAction<ILatestFiscalYear>>
 }
 
 const CreateContext = createContext<CreateContext>({
@@ -594,6 +631,7 @@ const CreateContext = createContext<CreateContext>({
   disbursal: null,
   depositAccount: null,
   ledgerAccount: null,
+  latestFiscalYear: null,
 
   setCustomer: () => {},
   setFacility: () => {},
@@ -604,6 +642,7 @@ const CreateContext = createContext<CreateContext>({
   setDisbursal: () => {},
   setDepositAccount: () => {},
   setLedgerAccount: () => {},
+  setLatestFiscalYear: () => {},
 })
 
 export const CreateContextProvider: React.FC<React.PropsWithChildren> = ({
@@ -618,6 +657,7 @@ export const CreateContextProvider: React.FC<React.PropsWithChildren> = ({
   const [disbursal, setDisbursal] = useState<IDisbursal>(null)
   const [depositAccount, setDepositAccount] = useState<IDepositAccount>(null)
   const [ledgerAccount, setLedgerAccount] = useState<ILedgerAccount>(null)
+  const [latestFiscalYear, setLatestFiscalYear] = useState<ILatestFiscalYear>(null)
 
   return (
     <CreateContext.Provider
@@ -631,6 +671,7 @@ export const CreateContextProvider: React.FC<React.PropsWithChildren> = ({
         disbursal,
         depositAccount,
         ledgerAccount,
+        latestFiscalYear,
 
         setCustomer,
         setFacility,
@@ -641,6 +682,7 @@ export const CreateContextProvider: React.FC<React.PropsWithChildren> = ({
         setDisbursal,
         setDepositAccount,
         setLedgerAccount,
+        setLatestFiscalYear,
       }}
     >
       {children}

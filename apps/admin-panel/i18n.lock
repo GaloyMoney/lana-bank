@@ -1184,29 +1184,41 @@ checksums:
     FiscalYears/init/confirm: b355bfd1f4668d97fc6dec301ae5a1d0
     FiscalYears/init/success: 124d01f16628d2ac1df039dd25eb161c
     FiscalYears/init/validation/dateRequired: 5d8ebaad53c83f00b73a81aee7c568f1
-    FiscalYears/closeMonth/title: be9f9c9ee4abdf3c19dcbbd5306a6a55
-    FiscalYears/closeMonth/description: c25b0fc2d6085c629e0cb4893c1c6b8d
+    FiscalYears/closeMonth/title: e447be5bf5e937f26cc2f4c6c9b158ed
+    FiscalYears/closeMonth/description: 0ee7aebf3d1192e6e722de024adb3253
+    FiscalYears/closeMonth/warning: ec02f49d3f96ef6be9c077fa8ee59a40
+    FiscalYears/closeMonth/closingMonth: ea4194eb919e80f51ddd84c36da700b9
+    FiscalYears/closeMonth/confirmationLabel: 05029d37e633a5b26bf96bbaf68708f2
+    FiscalYears/closeMonth/placeholder: 78037f5832fcc78ee5afddbd083fe212
+    FiscalYears/closeMonth/allMonthsClosed: 10967df2682b6233c0b22051d8a63efd
     FiscalYears/closeMonth/cancel: 2e2a849c2223911717de8caa2c71bade
-    FiscalYears/closeMonth/confirm: be9f9c9ee4abdf3c19dcbbd5306a6a55
+    FiscalYears/closeMonth/confirm: e447be5bf5e937f26cc2f4c6c9b158ed
     FiscalYears/closeMonth/success: 73644cf6238dcc4e64dab925d25826f8
     FiscalYears/closeYear/title: fd83a574e4d32cf68bccd2f4c5137fae
     FiscalYears/closeYear/description: b6ff8224661a191560a162a6a49ac168
+    FiscalYears/closeYear/warning: b9345874b5815a01d9a4313b6c0587c8
+    FiscalYears/closeYear/closingYear: 3082ff7a5cc0dfa7d84fa60ab093b8db
+    FiscalYears/closeYear/confirmationLabel: 05029d37e633a5b26bf96bbaf68708f2
+    FiscalYears/closeYear/placeholder: 78037f5832fcc78ee5afddbd083fe212
     FiscalYears/closeYear/confirm: fd83a574e4d32cf68bccd2f4c5137fae
     FiscalYears/closeYear/success: f2d555aba4747c061dca9849e035c3e3
-    FiscalYears/openNextYear/title: ac7359b8cdfda02e10ab97afbf89c60e
+    FiscalYears/openNextYear/title: c98e9c74a1d82824fa959bf6685ce281
     FiscalYears/openNextYear/description: 7ca05871ee633d8591983de310cc91e6
-    FiscalYears/openNextYear/confirm: ac7359b8cdfda02e10ab97afbf89c60e
+    FiscalYears/openNextYear/confirm: c98e9c74a1d82824fa959bf6685ce281
     FiscalYears/openNextYear/success: 7204624fa6722b334da06d182723e7c7
+    FiscalYears/openNextYear/nextFiscalYearLabel: 161cd0416817e439d7163869e99a035f
     FiscalYears/details/title: b87cc279801206c536251f5bfdd6e852
     FiscalYears/details/fields/openedAsOf: ca6a2b39ea3c716e993d0db703b88710
     FiscalYears/details/fields/status: 4e1fcce15854d824919b4a582c697c90
     FiscalYears/details/fields/monthsClosed: ea15f4f584b0d3404590605d31ac7674
+    FiscalYears/details/fields/nextMonthToClose: 6efa997fabcf8b5368ac9e4b1e2e3298
     FiscalYears/details/fields/lastClosedMonth: 4bcd8b8d41a8fd2646a64b2d31c21a5d
     FiscalYears/details/fields/processedAt: f52fd5509a4c735e2c085668928938da
     FiscalYears/details/fields/noMonthsClosed: 5bd7f4c87bd5d58b1df4f8cec400a45b
+    FiscalYears/details/fields/allMonthsClosed: 5dc5f675bac681b7bd8425412c7d729e
     FiscalYears/details/buttons/closeMonth: e447be5bf5e937f26cc2f4c6c9b158ed
     FiscalYears/details/buttons/closeYear: fd83a574e4d32cf68bccd2f4c5137fae
-    FiscalYears/details/buttons/openNextYear: ac7359b8cdfda02e10ab97afbf89c60e
+    FiscalYears/details/buttons/openNextYear: c98e9c74a1d82824fa959bf6685ce281
     FiscalYears/details/buttons/closeYearDisabledTooltip: 80fd4f9eea644dc2d46d7273c44a8e4e
     FiscalYears/monthClosures/title: 18e222b95afa669096e64cc0498c7c34
     FiscalYears/monthClosures/noClosures: 59b07a7da12eaa145278ecc55d3977b3
@@ -1284,6 +1296,7 @@ checksums:
     CreateButton/buttons/create: 757ccd28dd533ff3a933355273c1e32a
     CreateButton/disabledMessages/creditFacilityMustBeActive: 5efddd4fdff0f2bde5685825d2ba51e5
     CreateButton/disabledMessages/depositAccountClosed: afb09c14f6c34fea6b93992fd2a54bbd
+    CreateButton/disabledMessages/fiscalYearMustBeClosed: d41f9d6623c9ec9c63070012a1ef6371
     CreateButton/menuItems/deposit: e233d53e369427d12f87d610bcf56ccb
     CreateButton/menuItems/withdrawal: 90991ef39c923572c15cac977346ee77
     CreateButton/menuItems/customer: 846b48bb14b3d62c75cde5031e6bbfd7
@@ -1300,6 +1313,7 @@ checksums:
     CreateButton/menuItems/depositAccount: 23d240412c0bf14efcff84a2325587be
     CreateButton/menuItems/subAccount: a961000f7042205eb33b04f0d07e2ced
     CreateButton/menuItems/fiscalYear: e3e280db0cd9a365118398f104a31b7f
+    CreateButton/menuItems/nextFiscalYear: 4d89ad79a33c23980fb65ec7c97654d5
     DataTable/view: 36a9b5e3dc153c036d320460d72a03c3
     DataTable/noData: d30b546a626d903d1ec1b466b2b4b865
     PaginatedTable/view: 36a9b5e3dc153c036d320460d72a03c3

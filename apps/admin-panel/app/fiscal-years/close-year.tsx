@@ -2,16 +2,10 @@
 
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
-import { useState } from "react"
+import { useState, type ReactNode } from "react"
 import { toast } from "sonner"
 
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@lana/web/ui/dialog"
+import { Dialog, DialogContent, DialogFooter } from "@lana/web/ui/dialog"
 import { Button } from "@lana/web/ui/button"
 
 import {
@@ -19,6 +13,9 @@ import {
   useFiscalYearCloseMutation,
   FiscalYearsDocument,
 } from "@/lib/graphql/generated"
+import { useDialogSnapshot } from "@/hooks/use-dialog-snapshot"
+import { useFiscalYearCloseConfirmation } from "@/hooks/use-fiscal-year-close-confirmation"
+import { FiscalYearCloseDialogContent } from "@/components/fiscal-year-close-dialog-content"
 
 gql`
   mutation FiscalYearClose($input: FiscalYearCloseInput!) {
@@ -45,9 +42,25 @@ export function CloseYearDialog({
   const tCommon = useTranslations("Common")
   const [error, setError] = useState<string | null>(null)
 
+  const fiscalYearSnapshot = useDialogSnapshot(fiscalYear, open)
+
+  const confirmation = useFiscalYearCloseConfirmation(fiscalYearSnapshot)
+  const confirmationLabel: ReactNode = confirmation.confirmationText
+    ? t.rich("confirmationLabel", {
+        text: confirmation.confirmationText,
+        mono: (chunks: ReactNode) => (
+          <span className="font-mono font-semibold text-foreground mx-1">{chunks}</span>
+        ),
+      })
+    : null
   const [closeYearMutation, { loading }] = useFiscalYearCloseMutation({
     refetchQueries: [FiscalYearsDocument],
   })
+
+  const resetState = () => {
+    setError(null)
+    confirmation.reset()
+  }
 
   const handleCloseYear = async () => {
     setError(null)
@@ -55,19 +68,16 @@ export function CloseYearDialog({
       await closeYearMutation({
         variables: {
           input: {
-            fiscalYearId: fiscalYear.fiscalYearId,
+            fiscalYearId: fiscalYearSnapshot.fiscalYearId,
           },
         },
       })
       toast.success(t("success"))
+      resetState()
       onOpenChange(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : tCommon("error"))
     }
-  }
-
-  const resetState = () => {
-    setError(null)
   }
 
   return (
@@ -78,22 +88,44 @@ export function CloseYearDialog({
         if (!isOpen) resetState()
       }}
     >
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{t("title")}</DialogTitle>
-        </DialogHeader>
-
-        <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
-          {t("description")}
-        </div>
-
-        {error && <p className="text-destructive text-sm">{error}</p>}
+      <DialogContent className="sm:max-w-md">
+        <FiscalYearCloseDialogContent
+          title={t("title")}
+          content={{
+            description: t("description"),
+            warning: t("warning"),
+            closingLabel: t("closingYear"),
+            closingValue: confirmation.displayText,
+          }}
+          confirmation={{
+            label: confirmationLabel,
+            expectedValue: confirmation.confirmationText,
+            placeholder: t("placeholder"),
+            value: confirmation.input,
+            onChange: confirmation.setInput,
+          }}
+          state={{
+            error,
+            loading,
+          }}
+        />
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button
+            variant="outline"
+            onClick={() => {
+              resetState()
+              onOpenChange(false)
+            }}
+            disabled={loading}
+          >
             {tCommon("cancel")}
           </Button>
-          <Button variant="destructive" onClick={handleCloseYear} loading={loading}>
+          <Button
+            onClick={handleCloseYear}
+            loading={loading}
+            disabled={!confirmation.isValid}
+          >
             {t("confirm")}
           </Button>
         </DialogFooter>

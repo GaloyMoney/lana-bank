@@ -2066,23 +2066,33 @@
       }
     },
     "closeMonth": {
-      "title": "Close Month",
-      "description": "This will close the next sequential month for this fiscal year. This action is permanent and cannot be undone. Once closed, no transactions can be posted to this period.",
+      "title": "Close Next Month",
+      "description": "This will close the next sequential month for this fiscal year. Once closed, no transactions can be posted to this period.",
+      "warning": "This action is irreversible. Once a month is closed, it cannot be reopened.",
+      "closingMonth": "Closing month",
+      "confirmationLabel": "Type <mono>{text}</mono> to confirm",
+      "placeholder": "Enter confirmation text",
+      "allMonthsClosed": "All months for this fiscal year have been closed.",
       "cancel": "Cancel",
-      "confirm": "Close Month",
+      "confirm": "Close Next Month",
       "success": "Month closed successfully"
     },
     "closeYear": {
       "title": "Close Fiscal Year",
       "description": "This will post a closing transaction, transferring net income for the fiscal year to the balance sheet. The action will reduce your profit and loss statement accounts by their effective balance as of the fiscal year close date.",
+      "warning": "This action is irreversible. Once a fiscal year is closed, it cannot be reopened.",
+      "closingYear": "Closing fiscal year",
+      "confirmationLabel": "Type <mono>{text}</mono> to confirm",
+      "placeholder": "Enter confirmation text",
       "confirm": "Close Fiscal Year",
       "success": "Fiscal year's net income transferred to balance sheet successfully"
     },
     "openNextYear": {
-      "title": "Open Next Fiscal Year",
+      "title": "Create Next Fiscal Year",
       "description": "This will create and open the next sequential fiscal year starting immediately after the current one.",
-      "confirm": "Open Next Fiscal Year",
-      "success": "Next fiscal year opened successfully"
+      "confirm": "Create Next Fiscal Year",
+      "success": "Next fiscal year opened successfully",
+      "nextFiscalYearLabel": "Next fiscal year to create"
     },
     "details": {
       "title": "Fiscal Year Details",
@@ -2090,14 +2100,16 @@
         "openedAsOf": "Fiscal Year Start",
         "status": "Status",
         "monthsClosed": "Months Closed",
+        "nextMonthToClose": "Next Month To Close",
         "lastClosedMonth": "Last Closed Month",
         "processedAt": "Processed {date}",
-        "noMonthsClosed": "No months closed yet"
+        "noMonthsClosed": "No months closed yet",
+        "allMonthsClosed": "All months are closed"
       },
       "buttons": {
         "closeMonth": "Close Next Month",
         "closeYear": "Close Fiscal Year",
-        "openNextYear": "Open Next Fiscal Year",
+        "openNextYear": "Create Next Fiscal Year",
         "closeYearDisabledTooltip": "Last month is not closed yet"
       }
     },
@@ -2237,7 +2249,8 @@
     },
     "disabledMessages": {
       "creditFacilityMustBeActive": "Credit facility must be active to perform actions",
-      "depositAccountClosed": "Deposit account is closed, cannot create proposals"
+      "depositAccountClosed": "Deposit account is closed, cannot create proposals",
+      "fiscalYearMustBeClosed": "Cannot create the next fiscal year unless the current fiscal year is closed."
     },
     "menuItems": {
       "deposit": "Deposit",
@@ -2255,7 +2268,8 @@
       "account": "Account",
       "depositAccount": "Deposit Account",
       "subAccount": "Sub Account",
-      "fiscalYear": "Fiscal Year"
+      "fiscalYear": "Fiscal Year",
+      "nextFiscalYear": "Next Fiscal Year"
     }
   },
   "DataTable": {
