@@ -1,20 +1,12 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from pathlib import Path
 from typing import Any
 from xml.etree import ElementTree
 import io
 import csv
-from typing import TYPE_CHECKING, Union
-
-if TYPE_CHECKING:
-    from generate_es_reports.io import BaseTableFetcher, BaseReportStorer
+from typing import Union
 
 from xmlschema import XMLSchema
-
-from generate_es_reports.logging import SingletonLogger
-
-logger = SingletonLogger().get_logger()
 
 
 class StorableReportOutput:
@@ -31,7 +23,7 @@ class TabularReportContents:
     formats.
     """
 
-    def __init__(self, field_names: tuple[str, ...], records: dict[str, Any]):
+    def __init__(self, field_names: tuple[str, ...], records: list[dict[str, Any]]):
         self.fields = field_names
         self.records = records
 
@@ -97,10 +89,10 @@ class XMLFileOutputConfig(BaseFileOutputConfig):
         report_has_content = len(table_contents.records) > 0
         is_xml_valid = self.xml_schema.is_valid(source=report_content)
         if report_has_content and not is_xml_valid:
-            logger.warning(f"Schema validation for report failed. Listing errors.")
+            print(f"WARNING: Schema validation for report failed. Listing errors.")
             for err in self.xml_schema.iter_errors(report_content):
-                logger.debug(f"Path: {err.path}, Reason: {err.reason}")
-                logger.debug(f"  Source: {err.source}")
+                print(f"  Path: {err.path}, Reason: {err.reason}")
+                print(f"  Source: {err.source}")
 
         return StorableReportOutput(
             report_content=report_content, report_content_type=self.content_type
@@ -133,7 +125,7 @@ class XMLFileOutputConfig(BaseFileOutputConfig):
 class CSVFileOutputConfig(BaseFileOutputConfig):
 
     file_extension = "csv"
-    content_type = "text/plain"
+    content_type = "text/csv"
 
     def __init__(self, delimiter: str = ",", lineterminator: str = "\n") -> None:
         self.delimiter = delimiter
@@ -209,69 +201,3 @@ class ReportJobDefinition:
     @property
     def source_table_name(self) -> str:
         return f"report_{self.norm}_{self.id}"
-
-
-class ReportGeneratorConfig:
-    """
-    The config for one execution of this CLI.
-    """
-
-    def __init__(
-        self,
-        project_id: str,
-        dataset: str,
-        bucket_name: str,
-        run_id: str,
-        keyfile: Path,
-        use_gcs: bool,
-        use_local_fs: bool,
-    ):
-        self.project_id = project_id
-        self.dataset = dataset
-        self.bucket_name = bucket_name
-        self.run_id = run_id
-        self.keyfile = keyfile
-        self.use_gcs = use_gcs
-        self.use_local_fs = use_local_fs
-
-
-class ReportBatch:
-    """
-    A bunch of report job definitions, named with an ID and set with specific
-    fetcher and storer so we have somewhere to read from and somewhere to write to.
-    """
-
-    def __init__(
-        self,
-        run_id: str,
-        table_fetcher: BaseTableFetcher,
-        report_storer: BaseReportStorer,
-        report_jobs: tuple[ReportJobDefinition, ...],
-    ):
-        self.run_id = run_id
-        self.report_jobs = report_jobs
-        self.table_fetcher = table_fetcher
-        self.report_storer = report_storer
-
-    def generate_batch(self):
-        """
-        Execute the specified jobs, reading and writing from the given locations.
-        """
-        for report_job in self.report_jobs:
-            logger.info(f"Working on report: {report_job.norm}-{report_job.id}")
-            table_contents = self.table_fetcher.fetch_table_contents(
-                report_job.source_table_name
-            )
-
-            for file_output_config in report_job.file_output_configs:
-                logger.info(f"Storing as {file_output_config.file_extension}.")
-                storable_report = file_output_config.rows_to_report_output(
-                    table_contents=table_contents
-                )
-                path_without_extension = f"reports/{self.run_id}/{report_job.norm}/{report_job.friendly_name}"
-                full_path = (
-                    path_without_extension + "." + file_output_config.file_extension
-                )
-                self.report_storer.store_report(path=full_path, report=storable_report)
-
-            logger.info(f"Finished: {report_job.norm}-{report_job.id}")
