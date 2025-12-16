@@ -3,7 +3,6 @@ from __future__ import annotations
 import base64
 import hashlib
 import hmac
-import json
 import logging
 import time
 from datetime import datetime, timezone
@@ -82,27 +81,21 @@ def _download_document_image(
     return None
 
 
-def _iter_customer_ids(
-    conn_str: str, since: datetime, table: str = "sumsub_callbacks"
-) -> Iterator[Tuple[str, datetime]]:
-    """Yield (customer_id, now_at_db) for distinct customers with recent callbacks."""
+def _get_customers(conn_str: str, since: datetime) -> List[Tuple[str, datetime]]:
+    """Return (customer_id, max_recorded_at) for callbacks strictly after 'since', ordered by max_recorded_at."""
     with psycopg2.connect(conn_str) as conn:
         with conn.cursor() as cursor:
-            query = f"""
-                with customer_ids as (
-                    select distinct customer_id
-                    from {table}
-                    where recorded_at > %s
-                      and content->>'type' in ('applicantReviewed', 'applicantPersonalInfoChanged')
-                )
-                select
-                    customer_id,
-                    now() as recorded_at
-                from customer_ids
-            """
-            cursor.execute(query, (since,))
-            for row in cursor:
-                yield row[0], row[1]
+            cursor.execute(
+                """
+                select customer_id, max(recorded_at) as max_recorded_at
+                from sumsub_callbacks
+                where recorded_at > %s
+                group by customer_id
+                order by max(recorded_at) asc
+                """,
+                (since,),
+            )
+            return [(row[0], row[1]) for row in cursor]
 
 
 @dlt.resource(
@@ -117,13 +110,13 @@ def applicants(
     callbacks_since=dlt.sources.incremental(
         "recorded_at", initial_value=datetime(1970, 1, 1, tzinfo=timezone.utc)
     ),
-    callbacks_table: str = "sumsub_callbacks",
 ) -> Iterator[Dict[str, Any]]:
     """
-    Fetch applicant data from Sumsub for customer_ids observed in callbacks table.
+    Fetch applicant data from Sumsub for customers with callbacks since the last run.
 
-    - Uses recorded_at (set to DB now()) as incremental cursor to page new callback batches.
-    - Emits one row per customer with optional base64-encoded document images.
+    - One row per customer, using the maximum recorded_at from sumsub_callbacks as the incremental cursor.
+    - Do not emit a row on applicant fetch/JSON failure; stop processing to retry on the next run.
+    - Metadata/image fetch failures are non-fatal and only affect document_images.
     """
     start_ts: datetime = callbacks_since.last_value or datetime(
         1970, 1, 1, tzinfo=timezone.utc
@@ -131,33 +124,65 @@ def applicants(
     LOGGER.info("Starting Sumsub applicants sync from %s", start_ts)
 
     with requests.Session() as session:
-        for customer_id, recorded_at in _iter_customer_ids(
-            pg_connection_string, start_ts, callbacks_table
-        ):
+        customer_rows: List[Tuple[str, datetime]] = _get_customers(
+            pg_connection_string, start_ts
+        )
+        for customer_id, max_recorded_at in customer_rows:
+            LOGGER.info(
+                "Fetching Sumsub data for customer_id=%s recorded_at=%s",
+                customer_id,
+                max_recorded_at,
+            )
+
+            # Narrow try: only wrap network/HTTP and JSON parsing for the main applicant call.
             try:
-                LOGGER.info(
-                    "Fetching Sumsub data for customer_id=%s recorded_at=%s",
-                    customer_id,
-                    recorded_at,
-                )
                 resp = _get_applicant_data(
                     session, customer_id, sumsub_key, sumsub_secret
                 )
-                content_text = resp.text
                 resp.raise_for_status()
+            except requests.exceptions.RequestException as e:
+                LOGGER.warning(
+                    "Applicant fetch failed for customer_id=%s (will retry next run): %s",
+                    customer_id,
+                    e,
+                )
+                # Stop processing to avoid advancing the incremental cursor past the failure.
+                break
 
+            try:
                 resp_json = resp.json()
-                document_images: List[Dict[str, Optional[str]]] = []
+            except ValueError as e:
+                LOGGER.warning(
+                    "Invalid JSON from Sumsub for customer_id=%s (will retry next run): %s",
+                    customer_id,
+                    e,
+                )
+                # Stop processing to avoid advancing the incremental cursor past the failure.
+                break
 
-                applicant_id = resp_json.get("id")
-                inspection_id = resp_json.get("inspectionId")
-                if applicant_id:
+            content_text = resp.text
+            document_images: List[Dict[str, Optional[str]]] = []
+
+            applicant_id = resp_json.get("id")
+            inspection_id = resp_json.get("inspectionId")
+
+            if applicant_id:
+                try:
                     metadata = _get_document_metadata(
                         session, applicant_id, sumsub_key, sumsub_secret
                     )
-                    for item in metadata.get("items", []):
-                        image_id = item.get("id")
-                        if image_id and inspection_id:
+                except requests.exceptions.RequestException as e:
+                    LOGGER.warning(
+                        "Metadata fetch failed for customer_id=%s (continuing without images): %s",
+                        customer_id,
+                        e,
+                    )
+                    metadata = {"items": []}
+
+                for item in metadata.get("items", []):
+                    image_id = item.get("id")
+                    if image_id and inspection_id:
+                        try:
                             base64_image = _download_document_image(
                                 session,
                                 inspection_id,
@@ -165,19 +190,21 @@ def applicants(
                                 sumsub_key,
                                 sumsub_secret,
                             )
-                            document_images.append(
-                                {"image_id": image_id, "base64_image": base64_image}
+                        except requests.exceptions.RequestException as e:
+                            LOGGER.warning(
+                                "Image download failed for customer_id=%s image_id=%s: %s",
+                                customer_id,
+                                image_id,
+                                e,
                             )
-            except requests.exceptions.RequestException as e:
-                LOGGER.warning(
-                    "Sumsub request error for customer_id=%s: %s", customer_id, e
-                )
-                content_text = json.dumps({"error": str(e)})
-                document_images = []
+                            base64_image = None
+                        document_images.append(
+                            {"image_id": image_id, "base64_image": base64_image}
+                        )
 
             yield {
                 "customer_id": customer_id,
-                "recorded_at": recorded_at,
+                "recorded_at": max_recorded_at,
                 "content": content_text,
                 "document_images": document_images,
             }
