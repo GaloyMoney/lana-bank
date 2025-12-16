@@ -41,7 +41,7 @@ export TARGET_BIGQUERY_LOCATION="${TARGET_BIGQUERY_LOCATION:-US}"
 
 # ── Up ──────────────────────────────────────────────────────────────────────────
 echo "Starting services..."
-"$ENGINE" compose "${FILES[@]}" up -d "$@"
+"$ENGINE" compose "${FILES[@]}" up -d "$@" --build
 
 wait4x postgresql ${PG_CON} --timeout 120s
 
