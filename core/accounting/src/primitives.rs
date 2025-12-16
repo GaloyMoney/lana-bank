@@ -382,6 +382,47 @@ impl AccountSpec {
     }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+pub struct ClosingSpec {
+    pub revenue_code: AccountCode,
+    pub cost_of_revenue_code: AccountCode,
+    pub expenses_code: AccountCode,
+    pub equity_retained_earnings_code: AccountCode,
+    pub equity_retained_losses_code: AccountCode,
+    pub description: String,
+    pub tx_id: CalaTxId,
+    pub effective_balances_until: chrono::NaiveDate,
+    pub effective_balances_from: chrono::NaiveDate,
+}
+
+impl ClosingSpec {
+    pub fn new(
+        revenue_code: AccountCode,
+        cost_of_revenue_code: AccountCode,
+        expenses_code: AccountCode,
+        equity_retained_earnings_code: AccountCode,
+        equity_retained_losses_code: AccountCode,
+        description: String,
+        tx_id: CalaTxId,
+        effective_balances_until: chrono::NaiveDate,
+        effective_balances_from: chrono::NaiveDate,
+    ) -> Self {
+        // TODO: remove as accounting_init config gets replaced with domain configs.
+        Self {
+            revenue_code,
+            cost_of_revenue_code,
+            expenses_code,
+            equity_retained_earnings_code,
+            equity_retained_losses_code,
+            description,
+            tx_id,
+            effective_balances_until,
+            effective_balances_from,
+        }
+    }
+}
+
 pub type ChartAllOrOne = AllOrOne<ChartId>;
 pub type JournalAllOrOne = AllOrOne<CalaJournalId>;
 pub type LedgerAccountAllOrOne = AllOrOne<LedgerAccountId>;
@@ -681,6 +722,8 @@ impl CoreAccountingAction {
     pub const CHART_IMPORT_ACCOUNTS: Self =
         CoreAccountingAction::Chart(ChartAction::ImportAccounts);
     pub const CHART_CLOSE_MONTHLY: Self = CoreAccountingAction::Chart(ChartAction::CloseMonthly);
+    pub const CHART_POST_CLOSING_TRANSACTION: Self =
+        CoreAccountingAction::Chart(ChartAction::PostClosingTransaction);
 
     pub const JOURNAL_READ_ENTRIES: Self =
         CoreAccountingAction::Journal(JournalAction::ReadEntries);
@@ -831,6 +874,7 @@ pub enum ChartAction {
     Update,
     ImportAccounts,
     CloseMonthly,
+    PostClosingTransaction,
 }
 
 impl ActionPermission for ChartAction {
@@ -838,9 +882,11 @@ impl ActionPermission for ChartAction {
         match self {
             Self::List => PERMISSION_SET_ACCOUNTING_VIEWER,
 
-            Self::Create | Self::Update | Self::ImportAccounts | Self::CloseMonthly => {
-                PERMISSION_SET_ACCOUNTING_WRITER
-            }
+            Self::Create
+            | Self::Update
+            | Self::ImportAccounts
+            | Self::CloseMonthly
+            | Self::PostClosingTransaction => PERMISSION_SET_ACCOUNTING_WRITER,
         }
     }
 }
