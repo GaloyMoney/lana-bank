@@ -14,7 +14,8 @@ models:
       data_tests:
       - not_null
       - accepted_values:
-          values: ['credit', 'debit']
+          arguments:
+            values: ['credit', 'debit']
     - name: latest_values
       data_tests:
       - not_null:
