@@ -7,8 +7,10 @@ use crate::primitives::CalaTxId;
 use super::template::EntryParams;
 
 use cala_ledger::{
-    BalanceId, Currency as CalaCurrency, DebitOrCredit, account::Account,
-    account_set::AccountSetId, balance::BalanceRange as CalaBalanceRange,
+    AccountId, BalanceId, Currency as CalaCurrency, DebitOrCredit,
+    account::{Account, NewAccount},
+    account_set::AccountSetId,
+    balance::BalanceRange as CalaBalanceRange,
 };
 
 #[derive(Debug)]
@@ -108,6 +110,12 @@ impl ProfitAndLossLineItemDetail {
 }
 
 #[derive(Debug, Clone)]
+pub(super) struct NewAccountDetails {
+    pub(super) new_account: NewAccount,
+    pub(super) parent_account_set_id: AccountSetId,
+}
+
+#[derive(Debug, Clone)]
 pub(super) struct ClosingProfitAndLossAccountBalances {
     pub(super) revenue: ProfitAndLossLineItemDetail,
     pub(super) cost_of_revenue: ProfitAndLossLineItemDetail,
@@ -121,42 +129,78 @@ impl ClosingProfitAndLossAccountBalances {
             + self.expenses.contributions()
     }
 
-    pub(super) fn entries_params(&self, retained_earnings_account: Account) -> Vec<EntryParams> {
-        let net_income_entries = self
-            .revenue
+    fn net_income_entries(&self) -> Vec<EntryParams> {
+        self.revenue
             .entries_params()
             .into_iter()
             .chain(self.cost_of_revenue.entries_params())
             .chain(self.expenses.entries_params())
-            .collect::<Vec<EntryParams>>();
-        let mut entries = if net_income_entries.is_empty() {
-            return vec![];
-        } else {
-            net_income_entries
-        };
-
-        let retained_earnings_entry = EntryParams::builder()
-            .account_id(retained_earnings_account.id)
-            .amount(self.contributions().abs())
-            .currency(CalaCurrency::USD)
-            .direction(retained_earnings_account.values().normal_balance_type)
-            .build()
-            .expect("Failed to build EntryParams");
-        entries.push(retained_earnings_entry);
-
-        entries
+            .collect::<Vec<EntryParams>>()
     }
 
-    pub(super) fn retained_earnings(
+    fn has_retained_earnings_entry(&self) -> bool {
+        !self.net_income_entries().is_empty()
+    }
+
+    fn retained_earnings_direction(
         &self,
-        retained_earnings_gain_account_id: AccountSetId,
-        retained_earnings_loss_account_id: AccountSetId,
+        ClosingTxParams {
+            equity_retained_earnings_account_set_id: gain_account_id,
+            equity_retained_losses_account_set_id: loss_account_id,
+            ..
+        }: &ClosingTxParams,
     ) -> (DebitOrCredit, AccountSetId) {
         if self.contributions() >= Decimal::ZERO {
-            (DebitOrCredit::Credit, retained_earnings_gain_account_id)
+            (DebitOrCredit::Credit, *gain_account_id)
         } else {
-            (DebitOrCredit::Debit, retained_earnings_loss_account_id)
+            (DebitOrCredit::Debit, *loss_account_id)
         }
+    }
+
+    pub(super) fn retained_earnings_new_account(
+        &self,
+        params: &ClosingTxParams,
+    ) -> Option<NewAccountDetails> {
+        if !self.has_retained_earnings_entry() {
+            return None;
+        }
+
+        let (normal_balance_type, parent_account_set_id) = self.retained_earnings_direction(params);
+
+        let id = AccountId::new();
+        let new_account = NewAccount::builder()
+            .id(id)
+            .name(params.retained_earnings_account_name())
+            .code(id.to_string())
+            .normal_balance_type(normal_balance_type)
+            .build()
+            .expect("Could not build new account for annual close net income transfer entry");
+
+        Some(NewAccountDetails {
+            new_account,
+            parent_account_set_id,
+        })
+    }
+
+    pub(super) fn entries_params(
+        &self,
+        retained_earnings_account: Option<Account>,
+    ) -> Vec<EntryParams> {
+        let mut entries = vec![];
+        if let Some(retained_earnings_account) = retained_earnings_account {
+            entries.extend(self.net_income_entries());
+
+            let retained_earnings_entry = EntryParams::builder()
+                .account_id(retained_earnings_account.id)
+                .amount(self.contributions().abs())
+                .currency(CalaCurrency::USD)
+                .direction(retained_earnings_account.values().normal_balance_type)
+                .build()
+                .expect("Failed to build EntryParams");
+            entries.push(retained_earnings_entry);
+        }
+
+        entries
     }
 }
 
@@ -347,6 +391,20 @@ mod tests {
             }
         }
 
+        fn dummy_params() -> ClosingTxParams {
+            ClosingTxParams {
+                tx_id: CalaTxId::new(),
+                description: "".to_string(),
+                effective_balances_from: chrono::Utc::now().date_naive(),
+                effective_balances_until: chrono::Utc::now().date_naive(),
+                revenue_account_set_id: AccountSetId::new(),
+                cost_of_revenue_account_set_id: AccountSetId::new(),
+                expenses_account_set_id: AccountSetId::new(),
+                equity_retained_earnings_account_set_id: AccountSetId::new(),
+                equity_retained_losses_account_set_id: AccountSetId::new(),
+            }
+        }
+
         mod entries_params {
             use cala_ledger::account::NewAccount;
             use es_entity::{IntoEvents, TryFromEvents};
@@ -370,10 +428,12 @@ mod tests {
             #[test]
             fn returns_empty_vec_for_empty_balances() {
                 let balances = empty_balances();
-                let retained_earnings_account = random_account();
 
-                let entries = balances.entries_params(retained_earnings_account);
+                let retained_earnings_account =
+                    balances.retained_earnings_new_account(&dummy_params());
+                assert!(retained_earnings_account.is_none());
 
+                let entries = balances.entries_params(None);
                 assert!(entries.is_empty());
             }
 
@@ -383,7 +443,7 @@ mod tests {
                 let balances = balances_with(dec!(1000), dec!(300), dec!(100));
                 let retained_earnings_account = random_account();
 
-                let entries = balances.entries_params(retained_earnings_account);
+                let entries = balances.entries_params(Some(retained_earnings_account));
 
                 assert_eq!(entries.len(), 4);
             }
@@ -393,7 +453,7 @@ mod tests {
                 let balances = balances_with(dec!(1000), dec!(300), dec!(100));
                 let retained_earnings_account = random_account();
 
-                let entries = balances.entries_params(retained_earnings_account);
+                let entries = balances.entries_params(Some(retained_earnings_account));
 
                 let sum: Decimal = entries
                     .iter()
@@ -412,34 +472,27 @@ mod tests {
                 let balances = balances_with(dec!(1000), dec!(300), dec!(100));
                 let retained_earnings_account = random_account();
 
-                let entries = balances.entries_params(retained_earnings_account);
+                let entries = balances.entries_params(Some(retained_earnings_account));
                 let retained_earnings_entry = entries.last().unwrap();
 
                 assert_eq!(retained_earnings_entry.amount, dec!(600));
             }
         }
 
-        mod retained_earnings {
-            use cala_ledger::account_set::AccountSetId;
+        mod retained_earnings_direction {
             use rust_decimal_macros::dec;
 
             use super::*;
 
-            fn gain_account_set_id() -> AccountSetId {
-                AccountSetId::new()
-            }
-
-            fn loss_account_set_id() -> AccountSetId {
-                AccountSetId::new()
-            }
-
             #[test]
             fn returns_gain_account_with_credit_for_zero_contributions() {
                 let balances = empty_balances();
-                let gain_id = gain_account_set_id();
-                let loss_id = loss_account_set_id();
+                let params @ ClosingTxParams {
+                    equity_retained_earnings_account_set_id: gain_id,
+                    ..
+                } = dummy_params();
 
-                let (direction, account_id) = balances.retained_earnings(gain_id, loss_id);
+                let (direction, account_id) = balances.retained_earnings_direction(&params);
 
                 assert_eq!(direction, DebitOrCredit::Credit);
                 assert_eq!(account_id, gain_id);
@@ -449,10 +502,12 @@ mod tests {
             fn returns_gain_account_with_credit_for_positive_contributions() {
                 // Revenue > (cost_of_revenue + expenses) => positive net income
                 let balances = balances_with(dec!(1000), dec!(300), dec!(200));
-                let gain_id = gain_account_set_id();
-                let loss_id = loss_account_set_id();
+                let params @ ClosingTxParams {
+                    equity_retained_earnings_account_set_id: gain_id,
+                    ..
+                } = dummy_params();
 
-                let (direction, account_id) = balances.retained_earnings(gain_id, loss_id);
+                let (direction, account_id) = balances.retained_earnings_direction(&params);
 
                 assert_eq!(direction, DebitOrCredit::Credit);
                 assert_eq!(account_id, gain_id);
@@ -462,10 +517,12 @@ mod tests {
             fn returns_loss_account_with_debit_for_negative_contributions() {
                 // Revenue < (cost_of_revenue + expenses) => negative net income (loss)
                 let balances = balances_with(dec!(100), dec!(300), dec!(200));
-                let gain_id = gain_account_set_id();
-                let loss_id = loss_account_set_id();
+                let params @ ClosingTxParams {
+                    equity_retained_losses_account_set_id: loss_id,
+                    ..
+                } = dummy_params();
 
-                let (direction, account_id) = balances.retained_earnings(gain_id, loss_id);
+                let (direction, account_id) = balances.retained_earnings_direction(&params);
 
                 assert_eq!(direction, DebitOrCredit::Debit);
                 assert_eq!(account_id, loss_id);

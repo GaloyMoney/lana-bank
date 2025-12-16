@@ -4,9 +4,9 @@ pub mod error;
 mod template;
 
 use cala_ledger::{
-    AccountId, AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId,
-    LedgerOperation, TxTemplateId, VelocityControlId, VelocityLimitId,
-    account::{Account, NewAccount},
+    AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation,
+    TxTemplateId, VelocityControlId, VelocityLimitId,
+    account::Account,
     account_set::{AccountSetMemberId, AccountSetUpdate, NewAccountSet},
     tx_template::{
         NewTxTemplate, NewTxTemplateEntry, NewTxTemplateTransaction, error::TxTemplateError,
@@ -347,9 +347,14 @@ impl ChartLedger {
         let mut op = self
             .cala
             .ledger_operation_from_db_op(op.with_db_time().await?);
-        let net_income_recipient_account = self
-            .create_retained_earnings_child_account(&mut op, &balances, &params)
-            .await?;
+
+        let net_income_recipient_account =
+            if let Some(details) = balances.retained_earnings_new_account(&params) {
+                Some(self.create_child_account_in_op(&mut op, details).await?)
+            } else {
+                None
+            };
+
         let closing_transaction_params = ClosingTransactionParams::new(
             self.journal_id,
             params.description.clone(),
@@ -454,42 +459,14 @@ impl ChartLedger {
         Ok(accounts)
     }
 
-    async fn create_retained_earnings_child_account(
-        &self,
-        op: &mut LedgerOperation<'_>,
-        balances: &ClosingProfitAndLossAccountBalances,
-        params: &ClosingTxParams,
-    ) -> Result<Account, ChartLedgerError> {
-        let name = params.retained_earnings_account_name();
-        let retained_earnings_gain_account_id = params.equity_retained_earnings_account_set_id;
-        let retained_earnings_loss_account_id = params.equity_retained_losses_account_set_id;
-
-        let (normal_balance_type, retained_earnings_set_id) = balances.retained_earnings(
-            retained_earnings_gain_account_id,
-            retained_earnings_loss_account_id,
-        );
-
-        let account = self
-            .create_child_account_in_op(op, name, normal_balance_type, retained_earnings_set_id)
-            .await?;
-        Ok(account)
-    }
-
     async fn create_child_account_in_op(
         &self,
         op: &mut LedgerOperation<'_>,
-        name: String,
-        normal_balance_type: DebitOrCredit,
-        parent_account_set: AccountSetId,
+        NewAccountDetails {
+            new_account: new_ledger_account,
+            parent_account_set_id,
+        }: NewAccountDetails,
     ) -> Result<Account, ChartLedgerError> {
-        let id = AccountId::new();
-        let new_ledger_account = NewAccount::builder()
-            .id(id)
-            .name(name)
-            .code(id.to_string())
-            .normal_balance_type(normal_balance_type)
-            .build()
-            .expect("Could not build new account for annual close net income transfer entry");
         let ledger_account = self
             .cala
             .accounts()
@@ -497,7 +474,7 @@ impl ChartLedger {
             .await?;
         self.cala
             .account_sets()
-            .add_member_in_op(op, parent_account_set, ledger_account.id)
+            .add_member_in_op(op, parent_account_set_id, ledger_account.id)
             .await?;
 
         Ok(ledger_account)
