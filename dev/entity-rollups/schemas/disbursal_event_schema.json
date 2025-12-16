@@ -6,6 +6,10 @@
           "format": "uuid",
           "type": "string"
         },
+        "collateral_in_liquidation_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
         "disbursed_defaulted_account_id": {
           "format": "uuid",
           "type": "string"
@@ -53,6 +57,14 @@
         "interest_receivable_overdue_account_id": {
           "format": "uuid",
           "type": "string"
+        },
+        "liquidated_collateral_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "liquidation_payment_receivable_account_id": {
+          "format": "uuid",
+          "type": "string"
         }
       },
       "required": [
@@ -63,6 +75,9 @@
         "disbursed_receivable_overdue_account_id",
         "disbursed_defaulted_account_id",
         "collateral_account_id",
+        "collateral_in_liquidation_account_id",
+        "liquidated_collateral_account_id",
+        "liquidation_payment_receivable_account_id",
         "interest_receivable_not_yet_due_account_id",
         "interest_receivable_due_account_id",
         "interest_receivable_overdue_account_id",
