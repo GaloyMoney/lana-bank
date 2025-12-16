@@ -803,7 +803,6 @@
           "incrementalPayment": "Payment",
           "disbursalExecuted": "Disbursal",
           "interestAccrued": "Interest Accrued",
-          "liquidationAmountReserved": "Liquidation Amount Reserved",
           "pendingFacilityCollateralization": "Pending Facility Collateralization Updated"
         },
         "messages": {
