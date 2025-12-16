@@ -7,7 +7,7 @@ import re
 import yaml
 from xmlschema import XMLSchema
 
-from generate_es_reports.constants import Constants
+from generate_es_reports.constants import DEFAULT_XML_SCHEMAS_PATH, DEFAULT_REPORTS_YAML_PATH
 from generate_es_reports.domain.report import (
     CSVFileOutputConfig,
     ReportJobDefinition,
@@ -22,7 +22,7 @@ class XMLSchemaRepository:
 
     xml_schema_extension = ".xsd"
 
-    def __init__(self, schema_folder_path: Path = Constants.DEFAULT_XML_SCHEMAS_PATH):
+    def __init__(self, schema_folder_path: Path = DEFAULT_XML_SCHEMAS_PATH):
         self.schema_folder_path = schema_folder_path
 
     def get_schema(self, schema_id: str) -> XMLSchema:
@@ -111,3 +111,8 @@ def load_report_jobs_from_yaml(
         )
 
     return tuple(report_jobs)
+
+
+def load_default_report_jobs() -> tuple[ReportJobDefinition, ...]:
+    """Load report jobs from the package's default reports.yml with default schemas."""
+    return load_report_jobs_from_yaml(DEFAULT_REPORTS_YAML_PATH)
