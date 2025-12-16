@@ -185,6 +185,7 @@ BEGIN
       new_row.customer_id := (NEW.event ->> 'customer_id')::UUID;
       new_row.outstanding := (NEW.event -> 'outstanding');
       new_row.price := (NEW.event -> 'price');
+      new_row.public_id := (NEW.event ->> 'public_id');
     WHEN 'collateralization_ratio_changed' THEN
       new_row.collateralization_ratio := (NEW.event -> 'collateralization_ratio');
     WHEN 'partial_liquidation_initiated' THEN
@@ -192,6 +193,7 @@ BEGIN
       new_row.initially_estimated_to_liquidate := (NEW.event ->> 'initially_estimated_to_liquidate')::BIGINT;
       new_row.initially_expected_to_receive := (NEW.event ->> 'initially_expected_to_receive')::BIGINT;
       new_row.liquidation_id := (NEW.event ->> 'liquidation_id')::UUID;
+      new_row.public_id := (NEW.event ->> 'public_id');
       new_row.receivable_account_id := (NEW.event ->> 'receivable_account_id')::UUID;
       new_row.trigger_price := (NEW.event -> 'trigger_price');
     WHEN 'partial_liquidation_completed' THEN

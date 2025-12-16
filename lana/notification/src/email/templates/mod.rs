@@ -118,7 +118,11 @@ impl EmailTemplate {
         );
         let facility_url = format!(
             "{}/credit-facilities/{}",
-            self.admin_panel_url, data.facility_id
+            self.admin_panel_url, data.public_id
+        );
+        let liquidation_url = format!(
+            "{}/liquidations/{}",
+            self.admin_panel_url, data.liquidation_id
         );
         let data = json!({
             "subject": &subject,
@@ -127,6 +131,7 @@ impl EmailTemplate {
             "expected_to_receive": data.initially_expected_to_receive.formatted_usd(),
             "estimated_to_liquidate": data.initially_estimated_to_liquidate.formatted_btc(),
             "facility_url": &facility_url,
+            "liquidation_url": &liquidation_url,
         });
         let html_body = self.handlebars.render("partial_liquidation", &data)?;
         Ok((subject, html_body))
@@ -140,7 +145,7 @@ impl EmailTemplate {
         let subject = format!("Lana Bank: Margin Call Warning - {}", data.facility_id,);
         let facility_url = format!(
             "{}/credit-facilities/{}",
-            self.admin_panel_url, data.facility_id
+            self.admin_panel_url, data.public_id
         );
         let data = json!({
             "subject": &subject,
@@ -202,7 +207,8 @@ pub struct OverduePaymentEmailData {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PartialLiquidationInitiatedEmailData {
     pub facility_id: String,
-    pub liquidatoin_id: String,
+    pub liquidation_id: String,
+    pub public_id: String,
     pub trigger_price: core_credit::PriceOfOneBTC,
     pub initially_expected_to_receive: UsdCents,
     pub initially_estimated_to_liquidate: Satoshis,
@@ -211,13 +217,14 @@ pub struct PartialLiquidationInitiatedEmailData {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UnderMarginCallEmailData {
     pub facility_id: String,
+    pub public_id: String,
     pub recorded_at: DateTime<Utc>,
     pub effective: NaiveDate,
     pub collateral: Satoshis,
     pub outstanding_disbursed: UsdCents,
     pub outstanding_interest: UsdCents,
     pub total_outstanding: UsdCents,
-    pub price: core_credit::PriceOfOneBTC, // comment: can add more fields
+    pub price: core_credit::PriceOfOneBTC,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

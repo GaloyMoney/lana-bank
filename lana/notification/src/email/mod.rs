@@ -7,7 +7,7 @@ use ::job::{JobId, Jobs};
 use core_access::user::Users;
 use core_credit::{
     CoreCredit, CreditFacilityId, CustomerId, LiquidationId, ObligationId, ObligationType,
-    PriceOfOneBTC,
+    PriceOfOneBTC, PublicId,
 };
 use core_customer::Customers;
 use domain_config::DomainConfigs;
@@ -151,6 +151,7 @@ where
         liquidation_id: &LiquidationId,
         credit_facility_id: &CreditFacilityId,
         customer_id: &CustomerId,
+        public_id: &PublicId,
         trigger_price: &PriceOfOneBTC,
         initially_estimated_to_liquidate: &core_money::Satoshis,
         initially_expected_to_receive: &core_money::UsdCents,
@@ -162,7 +163,8 @@ where
 
         let email_data = PartialLiquidationInitiatedEmailData {
             facility_id: credit_facility_id.to_string(),
-            liquidatoin_id: liquidation_id.to_string(),
+            liquidation_id: liquidation_id.to_string(),
+            public_id: public_id.to_string(),
             trigger_price: *trigger_price,
             initially_estimated_to_liquidate: *initially_estimated_to_liquidate,
             initially_expected_to_receive: *initially_expected_to_receive,
@@ -211,6 +213,7 @@ where
         op: &mut impl es_entity::AtomicOperation,
         credit_facility_id: &CreditFacilityId,
         customer_id: &CustomerId,
+        public_id: &PublicId,
         recorded_at: &chrono::DateTime<chrono::Utc>,
         effective: &chrono::NaiveDate,
         collateral: &core_money::Satoshis,
@@ -226,6 +229,7 @@ where
         let total_outstanding = *outstanding_disbursed + *outstanding_interest;
         let email_data = UnderMarginCallEmailData {
             facility_id: credit_facility_id.to_string(),
+            public_id: public_id.to_string(),
             recorded_at: *recorded_at,
             effective: *effective,
             collateral: *collateral,

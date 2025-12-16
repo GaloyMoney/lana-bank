@@ -507,6 +507,9 @@
         "price": {
           "$ref": "#/$defs/PriceOfOneBTC"
         },
+        "public_id": {
+          "type": "string"
+        },
         "type": {
           "const": "collateralization_state_changed",
           "type": "string"
@@ -518,7 +521,8 @@
         "collateral",
         "outstanding",
         "price",
-        "customer_id"
+        "customer_id",
+        "public_id"
       ],
       "type": "object"
     },
@@ -554,6 +558,9 @@
           "format": "uuid",
           "type": "string"
         },
+        "public_id": {
+          "type": "string"
+        },
         "receivable_account_id": {
           "format": "uuid",
           "type": "string"
@@ -570,6 +577,7 @@
         "type",
         "liquidation_id",
         "customer_id",
+        "public_id",
         "receivable_account_id",
         "trigger_price",
         "initially_expected_to_receive",
