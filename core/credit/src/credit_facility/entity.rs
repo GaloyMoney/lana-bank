@@ -51,12 +51,14 @@ pub enum CreditFacilityEvent {
         collateral: Satoshis,
         outstanding: CreditFacilityReceivable,
         price: PriceOfOneBTC,
+        customer_id: CustomerId,
     },
     CollateralizationRatioChanged {
         collateralization_ratio: CollateralizationRatio,
     },
     PartialLiquidationInitiated {
         liquidation_id: LiquidationId,
+        customer_id: CustomerId,
         receivable_account_id: CalaAccountId,
         trigger_price: PriceOfOneBTC,
         initially_expected_to_receive: UsdCents,
@@ -293,6 +295,7 @@ impl CreditFacility {
         self.events
             .push(CreditFacilityEvent::PartialLiquidationInitiated {
                 liquidation_id: LiquidationId::new(),
+                customer_id: self.customer_id,
                 receivable_account_id: CalaAccountId::new(),
                 trigger_price: price,
                 initially_expected_to_receive: repay_amount,
@@ -532,6 +535,7 @@ impl CreditFacility {
                     collateral: balances.collateral(),
                     outstanding: balances.into(),
                     price,
+                    customer_id: self.customer_id,
                 });
 
             let _ = self.maybe_initiate_partial_liquidation(

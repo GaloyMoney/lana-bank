@@ -169,7 +169,9 @@ where
             }
             Some(LanaEvent::Credit(
                 credit_event @ CoreCreditEvent::PartialLiquidationInitiated {
+                    liquidation_id,
                     credit_facility_id,
+                    customer_id,
                     trigger_price,
                     initially_expected_to_receive,
                     initially_estimated_to_liquidate,
@@ -183,7 +185,9 @@ where
                 self.email_notification
                     .send_partial_liquidation_initiated_notification(
                         op,
+                        liquidation_id,
                         credit_facility_id,
+                        customer_id,
                         trigger_price,
                         initially_estimated_to_liquidate,
                         initially_expected_to_receive,
@@ -193,6 +197,7 @@ where
             Some(LanaEvent::Credit(
                 credit_event @ CoreCreditEvent::FacilityCollateralizationChanged {
                     id,
+                    customer_id,
                     state: core_credit::CollateralizationState::UnderMarginCallThreshold,
                     recorded_at,
                     effective,
@@ -209,6 +214,7 @@ where
                     .send_under_margin_call_notification(
                         op,
                         id,
+                        customer_id,
                         recorded_at,
                         effective,
                         collateral,

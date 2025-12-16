@@ -120,11 +120,9 @@ impl EmailTemplate {
             "{}/credit-facilities/{}",
             self.admin_panel_url, data.facility_id
         );
-        // also add url for liqudiation on staging?
         let data = json!({
             "subject": &subject,
             "facility_id": &data.facility_id,
-            "customer_email": &data.customer_email,
             "trigger_price": data.trigger_price.into_inner().formatted_usd(),
             "expected_to_receive": data.initially_expected_to_receive.formatted_usd(),
             "estimated_to_liquidate": data.initially_estimated_to_liquidate.formatted_btc(),
@@ -144,7 +142,6 @@ impl EmailTemplate {
             "{}/credit-facilities/{}",
             self.admin_panel_url, data.facility_id
         );
-        // also add url for liqudiation on staging?
         let data = json!({
             "subject": &subject,
             "facility_id": &data.facility_id,
@@ -205,10 +202,10 @@ pub struct OverduePaymentEmailData {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PartialLiquidationInitiatedEmailData {
     pub facility_id: String,
+    pub liquidatoin_id: String,
     pub trigger_price: core_credit::PriceOfOneBTC,
     pub initially_expected_to_receive: UsdCents,
     pub initially_estimated_to_liquidate: Satoshis,
-    pub customer_email: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -220,7 +217,7 @@ pub struct UnderMarginCallEmailData {
     pub outstanding_disbursed: UsdCents,
     pub outstanding_interest: UsdCents,
     pub total_outstanding: UsdCents,
-    pub price: core_credit::PriceOfOneBTC,
+    pub price: core_credit::PriceOfOneBTC, // comment: can add more fields
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

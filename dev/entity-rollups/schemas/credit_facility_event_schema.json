@@ -497,6 +497,10 @@
         "collateralization_state": {
           "$ref": "#/$defs/CollateralizationState"
         },
+        "customer_id": {
+          "format": "uuid",
+          "type": "string"
+        },
         "outstanding": {
           "$ref": "#/$defs/CreditFacilityReceivable"
         },
@@ -513,7 +517,8 @@
         "collateralization_state",
         "collateral",
         "outstanding",
-        "price"
+        "price",
+        "customer_id"
       ],
       "type": "object"
     },
@@ -535,6 +540,10 @@
     },
     {
       "properties": {
+        "customer_id": {
+          "format": "uuid",
+          "type": "string"
+        },
         "initially_estimated_to_liquidate": {
           "$ref": "#/$defs/Satoshis"
         },
@@ -560,6 +569,7 @@
       "required": [
         "type",
         "liquidation_id",
+        "customer_id",
         "receivable_account_id",
         "trigger_price",
         "initially_expected_to_receive",

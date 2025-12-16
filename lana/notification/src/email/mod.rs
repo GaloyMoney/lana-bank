@@ -5,7 +5,10 @@ pub mod templates;
 
 use ::job::{JobId, Jobs};
 use core_access::user::Users;
-use core_credit::{CoreCredit, CreditFacilityId, ObligationId, ObligationType, PriceOfOneBTC};
+use core_credit::{
+    CoreCredit, CreditFacilityId, CustomerId, LiquidationId, ObligationId, ObligationType,
+    PriceOfOneBTC,
+};
 use core_customer::Customers;
 use domain_config::DomainConfigs;
 use job::{EmailSenderConfig, EmailSenderInit};
@@ -145,28 +148,24 @@ where
     pub async fn send_partial_liquidation_initiated_notification(
         &self,
         op: &mut impl es_entity::AtomicOperation,
+        liquidation_id: &LiquidationId,
         credit_facility_id: &CreditFacilityId,
+        customer_id: &CustomerId,
         trigger_price: &PriceOfOneBTC,
         initially_estimated_to_liquidate: &core_money::Satoshis,
         initially_expected_to_receive: &core_money::UsdCents,
     ) -> Result<(), EmailError> {
-        let credit_facility = self
-            .credit
-            .facilities()
-            .find_by_id_without_audit(*credit_facility_id)
-            .await?;
-
         let customer = self
             .customers
-            .find_by_id_without_audit(credit_facility.customer_id)
+            .find_by_id_without_audit(*customer_id)
             .await?;
 
         let email_data = PartialLiquidationInitiatedEmailData {
             facility_id: credit_facility_id.to_string(),
+            liquidatoin_id: liquidation_id.to_string(),
             trigger_price: *trigger_price,
             initially_estimated_to_liquidate: *initially_estimated_to_liquidate,
             initially_expected_to_receive: *initially_expected_to_receive,
-            customer_email: customer.email.clone(),
         };
 
         let mut has_next_page = true;
@@ -211,6 +210,7 @@ where
         &self,
         op: &mut impl es_entity::AtomicOperation,
         credit_facility_id: &CreditFacilityId,
+        customer_id: &CustomerId,
         recorded_at: &chrono::DateTime<chrono::Utc>,
         effective: &chrono::NaiveDate,
         collateral: &core_money::Satoshis,
@@ -218,15 +218,9 @@ where
         outstanding_interest: &core_money::UsdCents,
         price: &PriceOfOneBTC,
     ) -> Result<(), EmailError> {
-        let credit_facility = self
-            .credit
-            .facilities()
-            .find_by_id_without_audit(*credit_facility_id)
-            .await?;
-
         let customer = self
             .customers
-            .find_by_id_without_audit(credit_facility.customer_id)
+            .find_by_id_without_audit(*customer_id)
             .await?;
 
         let total_outstanding = *outstanding_disbursed + *outstanding_interest;
