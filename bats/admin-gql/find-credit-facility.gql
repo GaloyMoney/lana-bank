@@ -12,14 +12,12 @@ query creditFacility($id: UUID!) {
     history {
       __typename
       ... on CreditFacilityInterestAccrued {
-        __typename
         cents
         recordedAt
         txId
         days
       }
       ... on CreditFacilityCollateralizationUpdated {
-        __typename
         state
       }
     }
