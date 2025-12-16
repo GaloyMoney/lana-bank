@@ -10,12 +10,17 @@ query creditFacility($id: UUID!) {
       status
     }
     history {
+      __typename
       ... on CreditFacilityInterestAccrued {
         __typename
         cents
         recordedAt
         txId
         days
+      }
+      ... on CreditFacilityCollateralizationUpdated {
+        __typename
+        state
       }
     }
     balance {
@@ -44,6 +49,9 @@ query creditFacility($id: UUID!) {
           usdBalance
         }
       }
+    }
+    liquidations {
+      liquidationId
     }
   }
 }
