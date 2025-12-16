@@ -9,8 +9,8 @@ use authz::PermissionCheck;
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
 use outbox::{
-    EphemeralOutboxEvent, EventSequence, Outbox, OutboxEventMarker,
-    OutboxEvent, PersistentOutboxEvent,
+    EphemeralOutboxEvent, EventSequence, Outbox, OutboxEvent, OutboxEventMarker,
+    PersistentOutboxEvent,
 };
 
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
