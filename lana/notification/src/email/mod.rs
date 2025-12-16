@@ -14,7 +14,7 @@ use smtp_client::SmtpClient;
 
 use templates::{
     DepositAccountCreatedEmailData, EmailTemplate, EmailType, OverduePaymentEmailData,
-    PartialLiquidationInitiatedEmailData, RoleCreatedEmailData,
+    PartialLiquidationInitiatedEmailData, RoleCreatedEmailData, UnderMarginCallEmailData,
 };
 
 pub use config::{EmailInfraConfig, NotificationEmailConfig};
@@ -199,6 +199,51 @@ where
         let email_config = EmailSenderConfig {
             recipient: customer.email,
             email_type: EmailType::PartialLiquidationInitiated(email_data),
+        };
+
+        self.jobs
+            .create_and_spawn_in_op(op, JobId::new(), email_config)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn send_under_margin_call_notification(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        credit_facility_id: &CreditFacilityId,
+        recorded_at: &chrono::DateTime<chrono::Utc>,
+        effective: &chrono::NaiveDate,
+        collateral: &core_money::Satoshis,
+        outstanding_disbursed: &core_money::UsdCents,
+        outstanding_interest: &core_money::UsdCents,
+        price: &PriceOfOneBTC,
+    ) -> Result<(), EmailError> {
+        let credit_facility = self
+            .credit
+            .facilities()
+            .find_by_id_without_audit(*credit_facility_id)
+            .await?;
+
+        let customer = self
+            .customers
+            .find_by_id_without_audit(credit_facility.customer_id)
+            .await?;
+
+        let total_outstanding = *outstanding_disbursed + *outstanding_interest;
+        let email_data = UnderMarginCallEmailData {
+            facility_id: credit_facility_id.to_string(),
+            recorded_at: *recorded_at,
+            effective: *effective,
+            collateral: *collateral,
+            outstanding_disbursed: *outstanding_disbursed,
+            outstanding_interest: *outstanding_interest,
+            total_outstanding,
+            price: *price,
+        };
+
+        let email_config = EmailSenderConfig {
+            recipient: customer.email,
+            email_type: EmailType::UnderMarginCall(email_data),
         };
 
         self.jobs

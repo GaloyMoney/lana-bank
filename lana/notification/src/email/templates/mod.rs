@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDate, Utc};
 use core_money::{Satoshis, UsdCents};
 use handlebars::Handlebars;
 use serde::{Deserialize, Serialize};
@@ -10,6 +10,7 @@ use crate::email::error::EmailError;
 pub enum EmailType {
     OverduePayment(OverduePaymentEmailData),
     PartialLiquidationInitiated(PartialLiquidationInitiatedEmailData),
+    UnderMarginCall(UnderMarginCallEmailData),
     DepositAccountCreated(DepositAccountCreatedEmailData),
     RoleCreated(RoleCreatedEmailData),
     General { subject: String, body: String },
@@ -34,6 +35,10 @@ impl EmailTemplate {
             include_str!("views/partial_liquidation.hbs"),
         )?;
         handlebars.register_template_string(
+            "under_margin_call",
+            include_str!("views/under_margin_call.hbs"),
+        )?;
+        handlebars.register_template_string(
             "account_created",
             include_str!("views/account_created.hbs"),
         )?;
@@ -52,6 +57,7 @@ impl EmailTemplate {
             EmailType::PartialLiquidationInitiated(data) => {
                 self.render_partial_liquidation_initiated_email(data)
             }
+            EmailType::UnderMarginCall(data) => self.render_under_margin_call_email(data),
             EmailType::DepositAccountCreated(data) => {
                 self.render_deposit_account_created_email(data)
             }
@@ -129,6 +135,33 @@ impl EmailTemplate {
     }
 
     #[allow(clippy::result_large_err)]
+    fn render_under_margin_call_email(
+        &self,
+        data: &UnderMarginCallEmailData,
+    ) -> Result<(String, String), EmailError> {
+        let subject = format!("Lana Bank: Margin Call Warning - {}", data.facility_id,);
+        let facility_url = format!(
+            "{}/credit-facilities/{}",
+            self.admin_panel_url, data.facility_id
+        );
+        // also add url for liqudiation on staging?
+        let data = json!({
+            "subject": &subject,
+            "facility_id": &data.facility_id,
+            "recorded_at": data.recorded_at,
+            "effective": data.effective,
+            "collateral": data.collateral.formatted_btc(),
+            "outstanding_disbursed": data.outstanding_disbursed.formatted_usd(),
+            "outstanding_interest": data.outstanding_interest.formatted_usd(),
+            "total_outstanding": data.total_outstanding.formatted_usd(),
+            "price": data.price.into_inner().formatted_usd(),
+            "facility_url": &facility_url,
+        });
+        let html_body = self.handlebars.render("under_margin_call", &data)?;
+        Ok((subject, html_body))
+    }
+
+    #[allow(clippy::result_large_err)]
     fn render_deposit_account_created_email(
         &self,
         data: &DepositAccountCreatedEmailData,
@@ -176,6 +209,18 @@ pub struct PartialLiquidationInitiatedEmailData {
     pub initially_expected_to_receive: UsdCents,
     pub initially_estimated_to_liquidate: Satoshis,
     pub customer_email: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UnderMarginCallEmailData {
+    pub facility_id: String,
+    pub recorded_at: DateTime<Utc>,
+    pub effective: NaiveDate,
+    pub collateral: Satoshis,
+    pub outstanding_disbursed: UsdCents,
+    pub outstanding_interest: UsdCents,
+    pub total_outstanding: UsdCents,
+    pub price: core_credit::PriceOfOneBTC,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

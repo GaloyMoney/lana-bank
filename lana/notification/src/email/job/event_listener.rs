@@ -190,6 +190,34 @@ where
                     )
                     .await?;
             }
+            Some(LanaEvent::Credit(
+                credit_event @ CoreCreditEvent::FacilityCollateralizationChanged {
+                    id,
+                    state: core_credit::CollateralizationState::UnderMarginCallThreshold,
+                    recorded_at,
+                    effective,
+                    collateral,
+                    outstanding,
+                    price,
+                },
+            )) => {
+                message.inject_trace_parent();
+                Span::current().record("handled", true);
+                Span::current().record("event_type", credit_event.as_ref());
+
+                self.email_notification
+                    .send_under_margin_call_notification(
+                        op,
+                        id,
+                        recorded_at,
+                        effective,
+                        collateral,
+                        &outstanding.disbursed,
+                        &outstanding.interest,
+                        price,
+                    )
+                    .await?;
+            }
             Some(LanaEvent::Deposit(
                 deposit_event @ CoreDepositEvent::DepositAccountCreated {
                     id,
