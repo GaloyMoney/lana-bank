@@ -1,0 +1,12 @@
+mutation LiquidationRecordCollateralSent($input: LiquidationRecordCollateralSentInput!) {
+  liquidationRecordCollateralSent(input: $input) {
+    liquidation {
+      liquidationId
+      sentTotal
+      sentCollateral {
+        amount
+      }
+    }
+  }
+}
+

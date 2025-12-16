@@ -163,3 +163,30 @@ wait_for_facility_to_be_under_liquidation_threshold() {
   [[ "$liquidation_id" != "null" ]] || exit 1
   cache_value 'liquidation_id' "$liquidation_id"
 }
+
+@test "liquidation: can send collateral out for liquidation" {
+  liquidation_id=$(read_value 'liquidation_id')
+
+  collateral_to_send=50000000
+  variables=$(
+    jq -n \
+      --arg liquidationId "$liquidation_id" \
+      --argjson amount "$collateral_to_send" \
+    '{
+      input: {
+        liquidationId: $liquidationId,
+        amount: $amount
+      }
+    }'
+  )
+  exec_admin_graphql 'liquidation-record-collateral-sent' "$variables"
+
+  returned_id=$(graphql_output '.data.liquidationRecordCollateralSent.liquidation.liquidationId')
+  [[ "$returned_id" == "$liquidation_id" ]] || exit 1
+
+  sent_total=$(graphql_output '.data.liquidationRecordCollateralSent.liquidation.sentTotal')
+  [[ "$sent_total" -ge "$collateral_to_send" ]] || exit 1
+
+  last_sent_amount=$(graphql_output '.data.liquidationRecordCollateralSent.liquidation.sentCollateral[-1].amount')
+  [[ "$last_sent_amount" -eq "$collateral_to_send" ]] || exit 1
+}
