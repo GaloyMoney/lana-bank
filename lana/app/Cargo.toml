@@ -71,6 +71,8 @@ tracing-macros = { workspace = true }
 schemars = { workspace = true }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
+core-time-events = { workspace = true }
+
 [dev-dependencies]
 rand = { workspace = true }
 serial_test = { workspace = true }
