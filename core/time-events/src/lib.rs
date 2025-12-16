@@ -27,22 +27,70 @@ pub struct TimeEvents<T: Now> {
     now_fn: T,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
+pub struct TimezoneConfig {
+    // pub timezone_db: String
+    // we need a way to convert (serde) the value in the db into another type 
+    // after it being loaded.
+    // ie: here for timezone we want a Tz type, for closing_time we want a NaiveTime
+    // I think this is what the domainConfig API should expose automatically after loading the value
+
+    pub timezone: Tz,
+}
+
+impl DomainConfigValue for TimezoneConfig {
+    const KEY: DomainConfigKey = DomainConfigKey::new("timezone");
+
+    fn validate(&self) -> Result<(), DomainConfigError> {
+        get_timezone(self.timezone.clone())
+            .map_err(|e| DomainConfigError::InvalidState("invalid timezone".to_string()))?;
+
+        Ok(())
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
+pub struct ClosingTimeConfig {
+    pub closing_time: NaiveTime,
+}
+
+impl DomainConfigValue for ClosingTimeConfig {
+    const KEY: DomainConfigKey = DomainConfigKey::new("closing-time");
+
+    fn validate(&self) -> Result<(), DomainConfigError> {
+        get_closing_time(self.closing_time.clone())
+            .map_err(|e| DomainConfigError::InvalidState("invalid timezone".to_string()))?;
+
+        Ok(())
+    }
+}
+
 impl<T: Now> TimeEvents<T> {
     pub fn init(domain_configs: DomainConfigs, now_fn: T) -> Result<Self, TimeEventsError> {
         let _test = now_fn.now();
 
         // let config = TimeEventsConfig::try_from(raw_config)?;
 
-        Ok(Self { domain_configs, now_fn })
+        Ok(Self {
+            domain_configs,
+            now_fn,
+        })
     }
 
-    fn next_closing_in_utc(self) -> DateTime<Utc> {
-        let timezone = self.domain_configs.get_or_default().await
+    async fn next_closing_in_utc(self) -> DateTime<Utc> {
+        let tz = self
+            .domain_configs
+            .get_or_default::<TimezoneConfig>()
+            .await?;
 
-        let tz = self.config.timezone;
+        let closing_time = self
+            .domain_configs
+            .get_or_default::<ClosingTimeConfig>()
+            .await?;
+
         let now_in_tz = self.now_fn.now().with_timezone(&tz);
         let today = now_in_tz.date_naive();
-        let mut naive_dt = today.and_time(self.config.closing_time);
+        let mut naive_dt = today.and_time(closing_time);
 
         if naive_dt.time() < now_in_tz.time() {
             naive_dt = naive_dt + chrono::Days::new(1)
@@ -124,13 +172,28 @@ mod tests {
 
     #[test]
     fn error_with_wrong_config() {
-        let raw_config = RawTimeEventsConfig {
+        // here I want to do something like:
+        let preCachedDomainConfig = DomainConfigPreCached::init(Cache {
             timezone: "UTC".to_string(),
             closing_time: "00:11:22:33".to_string(),
-        };
+        });
+
+        // so that I don't have to set up an integration test for this module
+        // rather I just want to do unit test
+        //
+        // currently this is not possible because domain config needs a database connection
+        // but this make every test that relies on domain an integration currently
+        //
+        // this is a poor DX and will make test a lot longer to run
+
+
+        // let raw_config = RawTimeEventsConfig {
+        //     timezone: "UTC".to_string(),
+        //     closing_time: "00:11:22:33".to_string(),
+        // };
 
         let time_events = TimeEvents::init(
-            raw_config,
+            preCachedDomainConfig,
             MockNow {
                 date_raw: "2021-01-15T12:00:00Z".to_string(),
             },

@@ -213,3 +213,7 @@ pub mod contract_creation {
         lana_events::LanaEvent,
     >;
 }
+
+pub mod domain_config {
+    pub use domain_config::*;
+}
