@@ -1,0 +1,75 @@
+db:
+  pool_size: 20
+admin_server:
+  port: 5253
+  jwks_url: http://localhost:4456/.well-known/jwks.json
+  aud: https://admin-api/graphql
+customer_server:
+  port: 5254
+  jwks_url: http://localhost:4456/.well-known/jwks.json
+  aud: https://customer-api/graphql
+app:
+  job_poller:
+    job_lost_interval: 300
+    max_jobs_per_process: 50
+    min_jobs_per_process: 30
+    shutdown_timeout: 5
+  access:
+    superuser_email: null
+  credit:
+    customer_active_check_enabled: true
+    collateralization_from_price_job_interval: 30
+    pending_collateralization_from_price_job_interval: 30
+  storage:
+    provider: local
+    root_folder: ''
+  user_onboarding:
+    keycloak:
+      url: http://localhost:8081
+      client_id: internal-service-account
+      realm: internal
+  customer_sync:
+    customer_status_sync_active: true
+    keycloak:
+      url: http://localhost:8081
+      client_id: customer-service-account
+      realm: customer
+    activity_update_job_interval: 86400
+  accounting_init:
+    chart_of_accounts_opening_date: null
+    chart_of_accounts_seed_path: null
+    deposit_config_path: null
+    credit_config_path: null
+    balance_sheet_config_path: null
+    profit_and_loss_config_path: null
+  custody:
+    custody_providers:
+      komainu_directory:
+        production_url: https://api.komainu.io/
+        testing_url: https://api-demo.komainu.io/
+      bitgo_directory:
+        testing_url: https://app.bitgo-test.com/
+        production_url: https://app.bitgo.com/
+  notification:
+    email:
+      relay: ''
+      port: 0
+      insecure: false
+      admin_panel_url: ''
+  report: {}
+  deposit:
+    require_verified_customer_for_account: true
+tracing:
+  service_name: lana-dev
+time:
+  realtime: true
+  simulation:
+    start_at: 2021-01-01T00:00:00Z
+    tick_interval_ms: 1
+    tick_duration_secs: 1000
+    transform_to_realtime: false
+bootstrap:
+  active: false
+  num_facilities: 0
+  num_customers: 0
+
