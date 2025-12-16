@@ -89,7 +89,7 @@ type CreditFacilityDisbursalExecuted {
 	txId: UUID!
 }
 
-union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityApproved | PendingCreditFacilityCollateralizationUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityInterestAccrued | CreditFacilityLiquidationAmountReserved
+union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityApproved | PendingCreditFacilityCollateralizationUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityInterestAccrued
 
 type CreditFacilityIncrementalPayment {
 	cents: UsdCents!
@@ -104,13 +104,6 @@ type CreditFacilityInterestAccrued {
 	effective: Date!
 	txId: UUID!
 	days: Int!
-}
-
-type CreditFacilityLiquidationAmountReserved {
-	cents: UsdCents!
-	recordedAt: Timestamp!
-	effective: Date!
-	txId: UUID!
 }
 
 type CreditFacilityPaymentAllocation {

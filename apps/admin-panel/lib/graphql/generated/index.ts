@@ -568,7 +568,7 @@ export type CreditFacilityEdge = {
   node: CreditFacility;
 };
 
-export type CreditFacilityHistoryEntry = CreditFacilityApproved | CreditFacilityCollateralUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityIncrementalPayment | CreditFacilityInterestAccrued | CreditFacilityLiquidationAmountReserved | PendingCreditFacilityCollateralizationUpdated;
+export type CreditFacilityHistoryEntry = CreditFacilityApproved | CreditFacilityCollateralUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityIncrementalPayment | CreditFacilityInterestAccrued | PendingCreditFacilityCollateralizationUpdated;
 
 export type CreditFacilityIncrementalPayment = {
   __typename?: 'CreditFacilityIncrementalPayment';
@@ -615,14 +615,6 @@ export type CreditFacilityLedgerAccounts = {
   interestReceivableNotYetDueAccountId: Scalars['UUID']['output'];
   interestReceivableOverdueAccount: LedgerAccount;
   interestReceivableOverdueAccountId: Scalars['UUID']['output'];
-};
-
-export type CreditFacilityLiquidationAmountReserved = {
-  __typename?: 'CreditFacilityLiquidationAmountReserved';
-  cents: Scalars['UsdCents']['output'];
-  effective: Scalars['Date']['output'];
-  recordedAt: Scalars['Timestamp']['output'];
-  txId: Scalars['UUID']['output'];
 };
 
 export type CreditFacilityPartialPaymentRecordInput = {
@@ -3416,7 +3408,6 @@ export type CreditFacilityHistoryFragmentFragment = { __typename?: 'CreditFacili
     | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string, effective: any }
     | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string, effective: any }
     | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number, effective: any }
-    | { __typename?: 'CreditFacilityLiquidationAmountReserved', cents: UsdCents, recordedAt: any, effective: any, txId: string }
     | { __typename?: 'PendingCreditFacilityCollateralizationUpdated', collateral: Satoshis, price: UsdCents, recordedAt: any, effective: any, pendingState: PendingCreditFacilityCollateralizationState }
   > };
 
@@ -3432,7 +3423,6 @@ export type GetCreditFacilityHistoryQuery = { __typename?: 'Query', creditFacili
       | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string, effective: any }
       | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string, effective: any }
       | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number, effective: any }
-      | { __typename?: 'CreditFacilityLiquidationAmountReserved', cents: UsdCents, recordedAt: any, effective: any, txId: string }
       | { __typename?: 'PendingCreditFacilityCollateralizationUpdated', collateral: Satoshis, price: UsdCents, recordedAt: any, effective: any, pendingState: PendingCreditFacilityCollateralizationState }
     > } | null };
 
@@ -3457,7 +3447,6 @@ export type CreditFacilityCollateralUpdateMutation = { __typename?: 'Mutation', 
         | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string, effective: any }
         | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string, effective: any }
         | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number, effective: any }
-        | { __typename?: 'CreditFacilityLiquidationAmountReserved', cents: UsdCents, recordedAt: any, effective: any, txId: string }
         | { __typename?: 'PendingCreditFacilityCollateralizationUpdated', collateral: Satoshis, price: UsdCents, recordedAt: any, effective: any, pendingState: PendingCreditFacilityCollateralizationState }
       >, currentCvl:
         | { __typename: 'FiniteCVLPct', value: any }
@@ -3507,7 +3496,6 @@ export type CreditFacilityPartialPaymentRecordMutation = { __typename?: 'Mutatio
         | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string, effective: any }
         | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string, effective: any }
         | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number, effective: any }
-        | { __typename?: 'CreditFacilityLiquidationAmountReserved', cents: UsdCents, recordedAt: any, effective: any, txId: string }
         | { __typename?: 'PendingCreditFacilityCollateralizationUpdated', collateral: Satoshis, price: UsdCents, recordedAt: any, effective: any, pendingState: PendingCreditFacilityCollateralizationState }
       >, currentCvl:
         | { __typename: 'FiniteCVLPct', value: any }
@@ -3535,7 +3523,6 @@ export type CreditFacilityPartialPaymentWithDateRecordMutation = { __typename?: 
         | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string, effective: any }
         | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string, effective: any }
         | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number, effective: any }
-        | { __typename?: 'CreditFacilityLiquidationAmountReserved', cents: UsdCents, recordedAt: any, effective: any, txId: string }
         | { __typename?: 'PendingCreditFacilityCollateralizationUpdated', collateral: Satoshis, price: UsdCents, recordedAt: any, effective: any, pendingState: PendingCreditFacilityCollateralizationState }
       >, currentCvl:
         | { __typename: 'FiniteCVLPct', value: any }
@@ -3862,7 +3849,6 @@ export type CreditFacilityDisbursalInitiateMutation = { __typename?: 'Mutation',
           | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string, effective: any }
           | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string, effective: any }
           | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number, effective: any }
-          | { __typename?: 'CreditFacilityLiquidationAmountReserved', cents: UsdCents, recordedAt: any, effective: any, txId: string }
           | { __typename?: 'PendingCreditFacilityCollateralizationUpdated', collateral: Satoshis, price: UsdCents, recordedAt: any, effective: any, pendingState: PendingCreditFacilityCollateralizationState }
         >, currentCvl:
           | { __typename: 'FiniteCVLPct', value: any }
@@ -4901,12 +4887,6 @@ export const CreditFacilityHistoryFragmentFragmentDoc = gql`
       txId
       days
       effective
-    }
-    ... on CreditFacilityLiquidationAmountReserved {
-      cents
-      recordedAt
-      effective
-      txId
     }
     ... on PendingCreditFacilityCollateralizationUpdated {
       pendingState: state

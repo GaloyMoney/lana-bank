@@ -12,7 +12,6 @@ pub enum CreditFacilityHistoryEntry {
     Collateralization(CreditFacilityCollateralizationUpdated),
     Disbursal(CreditFacilityDisbursalExecuted),
     Interest(CreditFacilityInterestAccrued),
-    ReservedForLiquidation(CreditFacilityLiquidationAmountReserved),
 }
 
 #[derive(SimpleObject)]
@@ -77,14 +76,6 @@ pub struct CreditFacilityInterestAccrued {
     pub days: u32,
 }
 
-#[derive(SimpleObject)]
-pub struct CreditFacilityLiquidationAmountReserved {
-    pub cents: UsdCents,
-    pub recorded_at: Timestamp,
-    pub effective: Date,
-    pub tx_id: UUID,
-}
-
 impl From<lana_app::credit::CreditFacilityHistoryEntry> for CreditFacilityHistoryEntry {
     fn from(transaction: lana_app::credit::CreditFacilityHistoryEntry) -> Self {
         match transaction {
@@ -105,9 +96,6 @@ impl From<lana_app::credit::CreditFacilityHistoryEntry> for CreditFacilityHistor
             }
             lana_app::credit::CreditFacilityHistoryEntry::Interest(interest) => {
                 CreditFacilityHistoryEntry::Interest(interest.into())
-            }
-            lana_app::credit::CreditFacilityHistoryEntry::ReservedForLiquidation(liquidation) => {
-                CreditFacilityHistoryEntry::ReservedForLiquidation(liquidation.into())
             }
                         lana_app::credit::CreditFacilityHistoryEntry::PendingCreditFacilityCollateralization(collateralization) => {
                 CreditFacilityHistoryEntry::PendingCreditFacilityCollateralization(
@@ -206,15 +194,3 @@ impl From<lana_app::credit::InterestAccrualsPosted> for CreditFacilityInterestAc
     }
 }
 
-impl From<lana_app::credit::ObligationMovedToLiquidation>
-    for CreditFacilityLiquidationAmountReserved
-{
-    fn from(liquidation: lana_app::credit::ObligationMovedToLiquidation) -> Self {
-        Self {
-            cents: liquidation.cents,
-            recorded_at: liquidation.recorded_at.into(),
-            effective: liquidation.effective.into(),
-            tx_id: UUID::from(liquidation.tx_id),
-        }
-    }
-}

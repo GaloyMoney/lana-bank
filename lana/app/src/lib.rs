@@ -173,7 +173,7 @@ pub mod credit {
         CreditFacilityRepaymentPlanEntry, CreditFacilityStatus, DISBURSAL_TRANSACTION_ENTITY_TYPE,
         Disbursal, DisbursalExecuted, DisbursalStatus, DisbursalsCursor, DisbursalsFilter,
         DisbursalsSortBy, IncrementalPayment, InterestAccrualsPosted, Liquidation,
-        LiquidationsByIdCursor, LiquidationsCursor, ListDirection, ObligationMovedToLiquidation,
+        LiquidationsByIdCursor, LiquidationsCursor, ListDirection,
         Payment, PaymentAllocation, PendingCreditFacilitiesByCreatedAtCursor,
         PendingCreditFacility, PendingCreditFacilityCollateralizationUpdated,
         PendingCreditFacilityId, RepaymentStatus, RepaymentType, Sort, TermsTemplate, error,

@@ -140,7 +140,6 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
           case "CreditFacilityIncrementalPayment":
           case "CreditFacilityDisbursalExecuted":
           case "CreditFacilityInterestAccrued":
-          case "CreditFacilityLiquidationAmountReserved":
             return <Balance amount={entry.cents} currency="usd" align="end" />
           default:
             return <span>-</span>
