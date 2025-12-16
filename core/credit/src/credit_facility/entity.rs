@@ -763,7 +763,6 @@ mod test {
     fn account_ids() -> CreditFacilityLedgerAccountIds {
         CreditFacilityLedgerAccountIds {
             facility_account_id: CalaAccountId::new(),
-            in_liquidation_account_id: CalaAccountId::new(),
             disbursed_receivable_not_yet_due_account_id: CalaAccountId::new(),
             disbursed_receivable_due_account_id: CalaAccountId::new(),
             disbursed_receivable_overdue_account_id: CalaAccountId::new(),

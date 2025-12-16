@@ -50,9 +50,6 @@ gql`
         facilityAccount {
           ...LedgerAccountInfo
         }
-        inLiquidationAccount {
-          ...LedgerAccountInfo
-        }
         disbursedReceivableNotYetDueAccount {
           ...LedgerAccountInfo
         }
@@ -119,7 +116,6 @@ export default function CreditFacilityLedgerAccountsPage({
     ledgerAccounts.disbursedReceivableOverdueAccount,
     ledgerAccounts.facilityAccount,
     ledgerAccounts.feeIncomeAccount,
-    ledgerAccounts.inLiquidationAccount,
     ledgerAccounts.interestDefaultedAccount,
     ledgerAccounts.interestIncomeAccount,
     ledgerAccounts.interestReceivableDueAccount,

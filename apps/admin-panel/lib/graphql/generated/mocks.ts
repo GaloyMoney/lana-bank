@@ -813,8 +813,6 @@ export const mockCreditFacilityLedgerAccounts = (overrides?: Partial<CreditFacil
         facilityAccountId: overrides && overrides.hasOwnProperty('facilityAccountId') ? overrides.facilityAccountId! : generateMockValue.uuid(),
         feeIncomeAccount: overrides && overrides.hasOwnProperty('feeIncomeAccount') ? overrides.feeIncomeAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
         feeIncomeAccountId: overrides && overrides.hasOwnProperty('feeIncomeAccountId') ? overrides.feeIncomeAccountId! : generateMockValue.uuid(),
-        inLiquidationAccount: overrides && overrides.hasOwnProperty('inLiquidationAccount') ? overrides.inLiquidationAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
-        inLiquidationAccountId: overrides && overrides.hasOwnProperty('inLiquidationAccountId') ? overrides.inLiquidationAccountId! : generateMockValue.uuid(),
         interestDefaultedAccount: overrides && overrides.hasOwnProperty('interestDefaultedAccount') ? overrides.interestDefaultedAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
         interestDefaultedAccountId: overrides && overrides.hasOwnProperty('interestDefaultedAccountId') ? overrides.interestDefaultedAccountId! : generateMockValue.uuid(),
         interestIncomeAccount: overrides && overrides.hasOwnProperty('interestIncomeAccount') ? overrides.interestIncomeAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),

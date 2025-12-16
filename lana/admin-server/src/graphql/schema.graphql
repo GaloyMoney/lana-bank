@@ -566,7 +566,6 @@ type CreditFacilityInterestAccrued {
 
 type CreditFacilityLedgerAccounts {
 	facilityAccountId: UUID!
-	inLiquidationAccountId: UUID!
 	disbursedReceivableNotYetDueAccountId: UUID!
 	disbursedReceivableDueAccountId: UUID!
 	disbursedReceivableOverdueAccountId: UUID!
@@ -579,7 +578,6 @@ type CreditFacilityLedgerAccounts {
 	interestIncomeAccountId: UUID!
 	feeIncomeAccountId: UUID!
 	facilityAccount: LedgerAccount!
-	inLiquidationAccount: LedgerAccount!
 	disbursedReceivableNotYetDueAccount: LedgerAccount!
 	disbursedReceivableDueAccount: LedgerAccount!
 	disbursedReceivableOverdueAccount: LedgerAccount!

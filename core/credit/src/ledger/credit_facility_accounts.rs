@@ -13,7 +13,6 @@ use crate::{
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct CreditFacilityLedgerAccountIds {
     pub facility_account_id: CalaAccountId,
-    pub in_liquidation_account_id: CalaAccountId,
     pub disbursed_receivable_not_yet_due_account_id: CalaAccountId,
     pub disbursed_receivable_due_account_id: CalaAccountId,
     pub disbursed_receivable_overdue_account_id: CalaAccountId,
@@ -36,7 +35,6 @@ impl CreditFacilityLedgerAccountIds {
     pub fn new() -> Self {
         Self {
             facility_account_id: CalaAccountId::new(),
-            in_liquidation_account_id: CalaAccountId::new(),
             disbursed_receivable_not_yet_due_account_id: CalaAccountId::new(),
             disbursed_receivable_due_account_id: CalaAccountId::new(),
             disbursed_receivable_overdue_account_id: CalaAccountId::new(),
@@ -59,7 +57,6 @@ impl From<PendingCreditFacilityAccountIds> for CreditFacilityLedgerAccountIds {
     fn from(proposal_ids: PendingCreditFacilityAccountIds) -> Self {
         Self {
             facility_account_id: proposal_ids.facility_account_id,
-            in_liquidation_account_id: CalaAccountId::new(),
             disbursed_receivable_not_yet_due_account_id: CalaAccountId::new(),
             disbursed_receivable_due_account_id: CalaAccountId::new(),
             disbursed_receivable_overdue_account_id: CalaAccountId::new(),

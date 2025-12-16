@@ -1077,7 +1077,6 @@ impl CreditLedger {
             interest_receivable_overdue_account_id,
             interest_defaulted_account_id,
 
-            in_liquidation_account_id: _,
             fee_income_account_id: _,
             interest_income_account_id: _,
             collateral_in_liquidation_account_id: _,
@@ -2009,7 +2008,6 @@ impl CreditLedger {
         duration_type: FacilityDurationType,
     ) -> Result<(), CreditLedgerError> {
         let CreditFacilityLedgerAccountIds {
-            in_liquidation_account_id,
             disbursed_receivable_not_yet_due_account_id,
             disbursed_receivable_due_account_id,
             disbursed_receivable_overdue_account_id,
@@ -2030,23 +2028,6 @@ impl CreditLedger {
         } = account_ids;
 
         let entity_ref = EntityRef::new(CREDIT_FACILITY_ENTITY_TYPE, credit_facility_id);
-        let in_liquidation_reference =
-            &format!("credit-facility-obs-in-liquidation:{credit_facility_id}");
-        let in_liquidation_name = &format!(
-            "Off-Balance-Sheet In-Liquidation Account for Credit Facility {credit_facility_id}"
-        );
-        self.create_account_in_op(
-            op,
-            in_liquidation_account_id,
-            self.internal_account_sets
-                .liquidation
-                .collateral_in_liquidation,
-            in_liquidation_reference,
-            in_liquidation_name,
-            in_liquidation_name,
-            entity_ref.clone(),
-        )
-        .await?;
 
         let disbursed_receivable_not_yet_due_reference =
             &format!("credit-facility-disbursed-not-yet-due-receivable:{credit_facility_id}");
@@ -2359,7 +2340,7 @@ impl CreditLedger {
             liquidation_payment_receivable_omnibus_parent_account_set_id,
             facility_parent_account_set_id,
             collateral_parent_account_set_id,
-            in_liquidation_parent_account_set_id,
+            collateral_in_liquidation_parent_account_set_id,
             interest_income_parent_account_set_id,
             fee_income_parent_account_set_id,
             short_term_disbursed_integration_meta,
@@ -2425,9 +2406,9 @@ impl CreditLedger {
                 .liquidation
                 .collateral_in_liquidation
                 .id,
-            *in_liquidation_parent_account_set_id,
+            *collateral_in_liquidation_parent_account_set_id,
             &charts_integration_meta,
-            |meta| meta.in_liquidation_parent_account_set_id,
+            |meta| meta.collateral_in_liquidation_parent_account_set_id,
         )
         .await?;
         // self.attach_charts_account_set(
@@ -3150,7 +3131,7 @@ pub struct ChartOfAccountsIntegrationMeta {
     pub liquidation_payment_receivable_omnibus_parent_account_set_id: CalaAccountSetId,
     pub facility_parent_account_set_id: CalaAccountSetId,
     pub collateral_parent_account_set_id: CalaAccountSetId,
-    pub in_liquidation_parent_account_set_id: CalaAccountSetId,
+    pub collateral_in_liquidation_parent_account_set_id: CalaAccountSetId,
     pub interest_income_parent_account_set_id: CalaAccountSetId,
     pub fee_income_parent_account_set_id: CalaAccountSetId,
 

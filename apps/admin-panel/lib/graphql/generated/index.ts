@@ -603,8 +603,6 @@ export type CreditFacilityLedgerAccounts = {
   facilityAccountId: Scalars['UUID']['output'];
   feeIncomeAccount: LedgerAccount;
   feeIncomeAccountId: Scalars['UUID']['output'];
-  inLiquidationAccount: LedgerAccount;
-  inLiquidationAccountId: Scalars['UUID']['output'];
   interestDefaultedAccount: LedgerAccount;
   interestDefaultedAccountId: Scalars['UUID']['output'];
   interestIncomeAccount: LedgerAccount;
@@ -3361,9 +3359,6 @@ export type CreditFacilityLedgerAccountsQueryVariables = Exact<{
 
 
 export type CreditFacilityLedgerAccountsQuery = { __typename?: 'Query', creditFacilityByPublicId?: { __typename?: 'CreditFacility', id: string, ledgerAccounts: { __typename?: 'CreditFacilityLedgerAccounts', facilityAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
-          | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
-          | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
-         }, inLiquidationAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
           | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
           | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
          }, disbursedReceivableNotYetDueAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
@@ -6438,9 +6433,6 @@ export const CreditFacilityLedgerAccountsDocument = gql`
     id
     ledgerAccounts {
       facilityAccount {
-        ...LedgerAccountInfo
-      }
-      inLiquidationAccount {
         ...LedgerAccountInfo
       }
       disbursedReceivableNotYetDueAccount {
