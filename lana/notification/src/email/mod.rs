@@ -100,7 +100,7 @@ where
             .await?;
 
         let email_data = OverduePaymentEmailData {
-            facility_id: credit_facility_id.to_string(),
+            public_id: credit_facility.public_id.to_string(),
             payment_type: match obligation.obligation_type {
                 ObligationType::Disbursal => "Principal Repayment".to_string(),
                 ObligationType::Interest => "Interest Payment".to_string(),
