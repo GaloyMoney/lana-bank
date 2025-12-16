@@ -5,7 +5,7 @@ edition = "2024"
 [dependencies]
 domain-config = { workspace = true }
 chrono = { workspace = true }
-chrono-tz = { workspace = true }
+chrono-tz = { workspace = true, features = ["serde"] }
 thiserror = { workspace = true }
 serde = { workspace = true }
 

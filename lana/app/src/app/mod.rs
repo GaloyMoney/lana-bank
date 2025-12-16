@@ -1,7 +1,7 @@
 mod config;
 mod error;
 
-use core_time_events::TimeEvents;
+use core_time_events::{RealNow, TimeEvents};
 use sqlx::PgPool;
 use tracing::{Instrument, instrument};
 use tracing_macros::record_error_severity;
@@ -101,7 +101,7 @@ impl LanaApp {
         )
         .await?;
 
-        let _time_event = TimeEvents::init(domain_configs, RealNow::RealNow);
+        let _time_event = TimeEvents::init(domain_configs.clone(), RealNow);
 
         let dashboard = Dashboard::init(&pool, &authz, &jobs, &outbox).await?;
         let governance = Governance::new(&pool, &authz, &outbox);
