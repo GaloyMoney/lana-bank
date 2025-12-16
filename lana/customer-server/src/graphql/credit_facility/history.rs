@@ -193,4 +193,3 @@ impl From<lana_app::credit::InterestAccrualsPosted> for CreditFacilityInterestAc
         }
     }
 }
-
