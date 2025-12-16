@@ -10,8 +10,6 @@ pub enum ApplicantError {
     Serde(#[from] serde_json::Error),
     #[error("ApplicantError - CustomerError: {0}")]
     CustomerError(#[from] core_customer::error::CustomerError),
-    #[error("ApplicantError - SystemTimeError: {0}")]
-    SystemTimeError(#[from] std::time::SystemTimeError),
     #[error("ApplicantError - UnhandledCallbackType")]
     UnhandledCallbackType,
     #[error("ApplicantError - UnhandledLevelType")]
@@ -40,7 +38,6 @@ impl ErrorSeverity for ApplicantError {
             Self::Sqlx(_) => Level::ERROR,
             Self::Serde(_) => Level::ERROR,
             Self::CustomerError(e) => e.severity(),
-            Self::SystemTimeError(_) => Level::ERROR,
             Self::UnhandledCallbackType => Level::ERROR,
             Self::UnhandledLevelType => Level::ERROR,
             Self::MissingExternalUserId(_) => Level::WARN,
