@@ -3,9 +3,11 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_custody::CoreCustodyEvent;
 use es_entity::DbOp;
-use futures::{FutureExt as _, StreamExt as _, select};
 use governance::GovernanceEvent;
 use job::*;
+use tokio::select;
+
+use futures::StreamExt as _;
 use outbox::{EventSequence, Outbox, OutboxEventMarker, PersistentOutboxEvent};
 use serde::{Deserialize, Serialize};
 use tracing::{Span, instrument};
@@ -131,7 +133,18 @@ where
 
         loop {
             select! {
-                message = stream.next().fuse() => {
+                biased;
+
+                _ = current_job.shutdown_requested() => {
+                    tracing::info!(
+                        job_id = %current_job.id(),
+                        job_type = %CREDIT_FACILITY_LIQUIDATIONS_JOB,
+                        last_sequence = %state.sequence,
+                        "Shutdown signal received"
+                    );
+                    return Ok(JobCompletion::RescheduleNow);
+                }
+                message = stream.next() => {
                     match message {
                         Some(message) => {
 
@@ -145,15 +158,6 @@ where
                         }
                         None => return Ok(JobCompletion::RescheduleNow)
                     }
-                }
-                _ = current_job.shutdown_requested().fuse() => {
-                    tracing::info!(
-                        job_id = %current_job.id(),
-                        job_type = %CREDIT_FACILITY_LIQUIDATIONS_JOB,
-                        last_sequence = %state.sequence,
-                        "Shutdown signal received"
-                    );
-                    return Ok(JobCompletion::RescheduleNow);
                 }
             }
         }

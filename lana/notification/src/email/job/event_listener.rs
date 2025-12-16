@@ -1,6 +1,7 @@
 use async_trait::async_trait;
-use futures::{FutureExt, StreamExt, select};
+use futures::StreamExt;
 use serde::{Deserialize, Serialize};
+use tokio::select;
 use tracing::{Span, instrument};
 
 use job::{
@@ -225,7 +226,18 @@ where
 
         loop {
             select! {
-                message = stream.next().fuse() => {
+                biased;
+
+                _ = current_job.shutdown_requested() => {
+                    tracing::info!(
+                        job_id = %current_job.id(),
+                        job_type = %EMAIL_LISTENER_JOB,
+                        last_sequence = %state.sequence,
+                        "Shutdown signal received"
+                    );
+                    return Ok(JobCompletion::RescheduleNow);
+                }
+                message = stream.next() => {
                     match message {
                         Some(message) => {
                             let mut op = current_job.pool().begin().await?;
@@ -240,15 +252,6 @@ where
                             return Ok(JobCompletion::RescheduleNow);
                         }
                     }
-                }
-                _ = current_job.shutdown_requested().fuse() => {
-                    tracing::info!(
-                        job_id = %current_job.id(),
-                        job_type = %EMAIL_LISTENER_JOB,
-                        last_sequence = %state.sequence,
-                        "Shutdown signal received"
-                    );
-                    return Ok(JobCompletion::RescheduleNow);
                 }
             }
         }
