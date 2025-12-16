@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xs:schema 
+   elementFormDefault="qualified"
+   targetNamespace="http://validador.ssf.gob.sv/ctri/garantia_fiduciaria"
+   xmlns:xs="http://www.w3.org/2001/XMLSchema"
+   xmlns:tns="http://validador.ssf.gob.sv/ctri/garantia_fiduciaria">
+   <xs:element name="ctri">
+      <xs:complexType>
+         <xs:sequence maxOccurs="unbounded" minOccurs="1">
+            <xs:element name="garantia_fiduciaria">
+               <xs:complexType>
+                  <xs:all maxOccurs="1" minOccurs="1">
+                     <xs:element name="num_referencia">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Referencia
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:maxLength value="20"/>
+                             <xs:minLength value="1"/>
+                             <xs:whiteSpace value="collapse"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="cod_cartera">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Código Cartera
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:length value="2"/>
+                             <xs:whiteSpace value="collapse"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="cod_activo">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Código Activo
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:length value="2"/>
+                             <xs:whiteSpace value="collapse"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="nit_fiador_codeudor">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Nit Fiador Codeudor
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:maxLength value="14"/>
+                             <xs:minLength value="1"/>
+                             <xs:whiteSpace value="collapse"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="fiador_codeudor">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Tipo
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:length value="1"/>
+                             <xs:whiteSpace value="collapse"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                  </xs:all>
+               </xs:complexType>
+            </xs:element>
+         </xs:sequence>
+      </xs:complexType>
+   </xs:element>
+</xs:schema>
