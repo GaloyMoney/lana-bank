@@ -3,7 +3,6 @@ from __future__ import annotations
 import base64
 import hashlib
 import hmac
-import logging
 import time
 from datetime import datetime, timezone
 from typing import Any, Dict, Iterator, List, Optional, Tuple
@@ -13,8 +12,6 @@ import dagster as dg
 from dlt.sources.helpers import requests
 from google.cloud import bigquery
 from google.oauth2 import service_account
-
-LOGGER = logging.getLogger(__name__)
 
 REQUEST_TIMEOUT = 60
 SUMSUB_API_BASE = "https://api.sumsub.com"
@@ -100,7 +97,7 @@ def _get_customers_bq(
       WITH customers AS (
         SELECT customer_id, MAX(recorded_at) AS recorded_at
         FROM {table}
-        WHERE recorded_at >= @since
+        WHERE recorded_at > @since
         GROUP BY customer_id
       )
       SELECT customer_id, recorded_at

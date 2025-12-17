@@ -1,5 +1,3 @@
-"""Sumsub DLT assets."""
-
 from typing import Dict
 
 import dlt
