@@ -382,45 +382,30 @@ impl AccountSpec {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
-pub struct ClosingSpec {
-    pub revenue_code: AccountCode,
-    pub cost_of_revenue_code: AccountCode,
-    pub expenses_code: AccountCode,
-    pub equity_retained_earnings_code: AccountCode,
-    pub equity_retained_losses_code: AccountCode,
+#[derive(Debug, Clone)]
+pub struct ClosingAccountCodes {
+    pub revenue: AccountCode,
+    pub cost_of_revenue: AccountCode,
+    pub expenses: AccountCode,
+    pub equity_retained_earnings: AccountCode,
+    pub equity_retained_losses: AccountCode,
+}
+
+#[derive(Debug, Clone)]
+pub struct ClosingAccountSetIds {
+    pub revenue: CalaAccountSetId,
+    pub cost_of_revenue: CalaAccountSetId,
+    pub expenses: CalaAccountSetId,
+    pub equity_retained_earnings: CalaAccountSetId,
+    pub equity_retained_losses: CalaAccountSetId,
+}
+
+#[derive(Debug, Clone)]
+pub struct ClosingTxDetails {
     pub description: String,
     pub tx_id: CalaTxId,
     pub effective_balances_until: chrono::NaiveDate,
     pub effective_balances_from: chrono::NaiveDate,
-}
-
-impl ClosingSpec {
-    pub fn new(
-        revenue_code: AccountCode,
-        cost_of_revenue_code: AccountCode,
-        expenses_code: AccountCode,
-        equity_retained_earnings_code: AccountCode,
-        equity_retained_losses_code: AccountCode,
-        description: String,
-        tx_id: CalaTxId,
-        effective_balances_until: chrono::NaiveDate,
-        effective_balances_from: chrono::NaiveDate,
-    ) -> Self {
-        // TODO: remove as accounting_init config gets replaced with domain configs.
-        Self {
-            revenue_code,
-            cost_of_revenue_code,
-            expenses_code,
-            equity_retained_earnings_code,
-            equity_retained_losses_code,
-            description,
-            tx_id,
-            effective_balances_until,
-            effective_balances_from,
-        }
-    }
 }
 
 pub type ChartAllOrOne = AllOrOne<ChartId>;

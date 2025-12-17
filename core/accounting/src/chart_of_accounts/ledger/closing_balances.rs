@@ -2,7 +2,7 @@ use chrono::NaiveDate;
 use rust_decimal::Decimal;
 use std::collections::HashMap;
 
-use crate::primitives::CalaTxId;
+use crate::primitives::{CalaTxId, ClosingAccountSetIds, ClosingTxDetails};
 
 use super::template::EntryParams;
 
@@ -27,6 +27,25 @@ pub(crate) struct ClosingTxParams {
 }
 
 impl ClosingTxParams {
+    pub(crate) fn new(account_set_ids: ClosingAccountSetIds, tx_details: ClosingTxDetails) -> Self {
+        Self {
+            tx_id: tx_details.tx_id,
+            description: tx_details.description,
+            effective_balances_from: tx_details.effective_balances_from,
+            effective_balances_until: tx_details.effective_balances_until,
+
+            revenue_account_set_id: account_set_ids.revenue,
+            cost_of_revenue_account_set_id: account_set_ids.cost_of_revenue,
+            expenses_account_set_id: account_set_ids.expenses,
+            equity_retained_earnings_account_set_id: account_set_ids.equity_retained_earnings,
+            equity_retained_losses_account_set_id: account_set_ids.equity_retained_losses,
+        }
+    }
+
+    pub(crate) fn posted_as_of(&self) -> NaiveDate {
+        self.effective_balances_until
+    }
+
     pub(super) fn retained_earnings_account_name(&self) -> String {
         format!("NET_INCOME_{}", self.description)
     }
