@@ -57,12 +57,14 @@ def build_sumsub_sensor(
     dagster_automations_active: bool,
 ) -> dg.SensorDefinition:
     def _trigger_sumsub_on_callbacks(context: dg.SensorEvaluationContext, _asset_event):
-        yield dg.RunRequest(run_key=f"sumsub_{_asset_event.event_log_entry.storage_id}")
+        yield dg.RunRequest(
+            run_key=f"sumsub_applicants_from_callbacks{_asset_event.storage_id}"
+        )
 
     return dg.AssetSensorDefinition(
         name="sumsub_applicants_callbacks_sensor",
         asset_key=dg.AssetKey(["lana", "sumsub_callbacks"]),
-        job=sumsub_applicants_job,
+        job_name=sumsub_applicants_job.name,
         asset_materialization_fn=_trigger_sumsub_on_callbacks,
         default_status=(
             dg.DefaultSensorStatus.RUNNING

@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import hmac
+import logging
 import time
 from datetime import datetime, timezone
 from typing import Any, Dict, Iterator, List, Optional, Tuple
@@ -11,8 +12,6 @@ import dlt
 from dlt.sources.helpers import requests
 from google.cloud import bigquery
 from google.oauth2 import service_account
-
-import logging
 
 REQUEST_TIMEOUT = 60
 SUMSUB_API_BASE = "https://api.sumsub.com"
