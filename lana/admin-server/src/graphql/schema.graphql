@@ -1334,6 +1334,7 @@ type FiscalYear {
 	openedAsOf: Date!
 	closedAsOf: Date
 	reference: String!
+	year: String!
 	monthClosures: [FiscalMonthClosure!]!
 	isLastMonthOfYearClosed: Boolean!
 	nextMonthToClose: Date
@@ -2077,7 +2078,7 @@ type Query {
 	trialBalance(from: Date!, until: Date!): TrialBalance!
 	chartOfAccounts: ChartOfAccounts!
 	fiscalYear(fiscalYearId: UUID!): FiscalYear
-	fiscalYearByReference(reference: String!): FiscalYear
+	fiscalYearByYear(year: String!): FiscalYear
 	fiscalYears(first: Int!, after: String): FiscalYearConnection!
 	balanceSheet(from: Date!, until: Date): BalanceSheet!
 	profitAndLossStatement(from: Date!, until: Date): ProfitAndLossStatement!

@@ -236,12 +236,10 @@ where
         self.repo.maybe_find_by_id(id).await
     }
 
-    #[record_error_severity]
-    #[instrument(name = "core_accounting.fiscal_year.find_by_reference", skip(self))]
-    pub async fn find_by_reference(
+    pub async fn find_by_year(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        reference: &str,
+        year: &str,
     ) -> Result<Option<FiscalYear>, FiscalYearError> {
         self.authz
             .enforce_permission(
@@ -251,7 +249,7 @@ where
             )
             .await?;
 
-        self.repo.maybe_find_by_reference(reference).await
+        self.repo.maybe_find_by_year(year).await
     }
 
     #[record_error_severity]

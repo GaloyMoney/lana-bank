@@ -20,6 +20,7 @@ pub enum FiscalYearEvent {
         id: FiscalYearId,
         chart_id: ChartId,
         reference: String,
+        year: String,
         opened_as_of: chrono::NaiveDate,
     },
     MonthClosed {
@@ -38,6 +39,7 @@ pub struct FiscalYear {
     pub id: FiscalYearId,
     pub chart_id: ChartId,
     pub reference: String,
+    pub year: String,
     pub opened_as_of: NaiveDate,
     #[builder(default)]
     pub closed_as_of: Option<NaiveDate>,
@@ -208,6 +210,7 @@ impl TryFromEvents<FiscalYearEvent> for FiscalYear {
                     id,
                     chart_id,
                     reference,
+                    year,
                     opened_as_of,
                     ..
                 } => {
@@ -215,6 +218,7 @@ impl TryFromEvents<FiscalYearEvent> for FiscalYear {
                         .id(*id)
                         .chart_id(*chart_id)
                         .reference(reference.to_string())
+                        .year(year.to_string())
                         .opened_as_of(*opened_as_of)
                 }
                 FiscalYearEvent::MonthClosed { .. } => {}
@@ -242,6 +246,10 @@ impl NewFiscalYear {
     }
 
     pub(super) fn reference(&self) -> String {
+        format!("{}:AC{}", self.chart_id, self.opened_as_of.year())
+    }
+
+    pub(super) fn year(&self) -> String {
         self.opened_as_of.year().to_string()
     }
 }
@@ -254,6 +262,7 @@ impl IntoEvents<FiscalYearEvent> for NewFiscalYear {
                 id: self.id,
                 chart_id: self.chart_id,
                 reference: self.reference(),
+                year: self.year(),
                 opened_as_of: self.opened_as_of,
             }],
         )
@@ -270,10 +279,12 @@ mod test {
     }
 
     fn initial_events_with_opened_date(opened_as_of: NaiveDate) -> Vec<FiscalYearEvent> {
+        let chart_id = ChartId::new();
         vec![FiscalYearEvent::Initialized {
             id: FiscalYearId::new(),
-            chart_id: ChartId::new(),
-            reference: "2025".to_string(),
+            chart_id,
+            reference: format!("{}:AC{}", chart_id, opened_as_of.year()),
+            year: opened_as_of.year().to_string(),
             opened_as_of,
         }]
     }

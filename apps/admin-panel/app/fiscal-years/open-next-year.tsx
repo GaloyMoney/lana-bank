@@ -71,9 +71,9 @@ export function OpenNextYearDialog({
         },
       })
       toast.success(t("success"))
-      const nextFiscalYearReference = data?.fiscalYearOpenNext?.fiscalYear?.reference
-      if (nextFiscalYearReference) {
-        navigate(`/fiscal-years/${nextFiscalYearReference}`)
+      const nextFiscalYearYear = data?.fiscalYearOpenNext?.fiscalYear?.year
+      if (nextFiscalYearYear) {
+        navigate(`/fiscal-years/${nextFiscalYearYear}`)
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : tCommon("error"))

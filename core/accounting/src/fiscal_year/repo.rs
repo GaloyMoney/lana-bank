@@ -14,6 +14,7 @@ use crate::primitives::{ChartId, FiscalYearId};
     columns(
         chart_id(ty = "ChartId", update(persist = false), list_for),
         reference(ty = "String", create(accessor = "reference()")),
+        year(ty = "String", create(accessor = "year()"), find_by),
     ),
     tbl_prefix = "core"
 )]
