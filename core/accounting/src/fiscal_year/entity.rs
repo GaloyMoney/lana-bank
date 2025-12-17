@@ -247,7 +247,8 @@ impl NewFiscalYear {
 
     pub(super) fn reference(&self) -> String {
         let year = self.opened_as_of.year().to_string();
-        FiscalYearReference::new(self.chart_id, &year)
+        FiscalYearReference::try_new(self.chart_id, &year)
+            .expect("Invalid year from type")
             .as_ref()
             .to_owned()
     }
@@ -275,8 +276,17 @@ impl IntoEvents<FiscalYearEvent> for NewFiscalYear {
 pub(super) struct FiscalYearReference(String);
 
 impl FiscalYearReference {
-    pub(super) fn new(chart_id: ChartId, year: &str) -> Self {
-        Self(format!("{}:AC{}", chart_id, year))
+    pub(super) fn try_new(chart_id: ChartId, year: &str) -> Result<Self, FiscalYearError> {
+        Self::validate_year(year)?;
+
+        Ok(Self(format!("{}:AC{}", chart_id, year)))
+    }
+
+    fn validate_year(year: &str) -> Result<(), FiscalYearError> {
+        NaiveDate::from_ymd_opt(year.parse()?, 1, 1)
+            .ok_or(FiscalYearError::InvalidYearString(year.to_string()))?;
+
+        Ok(())
     }
 }
 

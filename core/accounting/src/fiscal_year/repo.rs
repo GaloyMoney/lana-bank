@@ -36,7 +36,7 @@ impl FiscalYearRepo {
         chart_id: ChartId,
         year: &str,
     ) -> Result<Option<FiscalYear>, FiscalYearError> {
-        let reference = FiscalYearReference::new(chart_id, year);
+        let reference = FiscalYearReference::try_new(chart_id, year)?;
         match self.find_by_reference(reference).await {
             Err(e) if e.was_not_found() => Ok(None),
             Err(e) => Err(e),
