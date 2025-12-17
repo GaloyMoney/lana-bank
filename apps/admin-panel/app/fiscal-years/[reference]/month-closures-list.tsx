@@ -4,6 +4,7 @@ import React from "react"
 import { useTranslations } from "next-intl"
 
 import DateWithTooltip from "@lana/web/components/date-with-tooltip"
+import { formatUTCDateOnly } from "@lana/web/utils"
 
 import { GetFiscalYearDetailsQuery } from "@/lib/graphql/generated"
 import CardWrapper from "@/components/card-wrapper"
@@ -14,7 +15,9 @@ type FiscalMonthClosure = NonNullable<
 >["monthClosures"][number]
 
 type MonthClosuresListProps = {
-  monthClosures: NonNullable<GetFiscalYearDetailsQuery["fiscalYearByReference"]>["monthClosures"]
+  monthClosures: NonNullable<
+    GetFiscalYearDetailsQuery["fiscalYearByReference"]
+  >["monthClosures"]
 }
 
 const MonthClosuresList: React.FC<MonthClosuresListProps> = ({ monthClosures }) => {
@@ -24,7 +27,7 @@ const MonthClosuresList: React.FC<MonthClosuresListProps> = ({ monthClosures }) 
     {
       key: "closedAsOf",
       header: t("table.headers.closedAsOf"),
-      render: (value) => <DateWithTooltip value={value} />,
+      render: (value) => formatUTCDateOnly(value) ?? "-",
     },
     {
       key: "closedAt",

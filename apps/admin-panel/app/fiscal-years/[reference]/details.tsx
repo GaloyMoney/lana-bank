@@ -11,7 +11,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@lana/web/ui/tooltip"
-import { formatDate } from "@lana/web/utils"
+import { formatDate, formatUTCDateOnly, formatUTCMonthYear } from "@lana/web/utils"
 
 import { FiscalYearStatusBadge } from "../status-badge"
 import { CloseMonthDialog } from "../close-month"
@@ -19,7 +19,6 @@ import { CloseYearDialog } from "../close-year"
 
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import { GetFiscalYearDetailsQuery } from "@/lib/graphql/generated"
-import { formatUTCMonthYear } from "@/utils/fiscal-year-dates"
 
 type FiscalYearDetailsProps = {
   fiscalYear: NonNullable<GetFiscalYearDetailsQuery["fiscalYearByReference"]>
@@ -42,7 +41,7 @@ const FiscalYearDetailsCard: React.FC<FiscalYearDetailsProps> = ({ fiscalYear })
   const details: DetailItemProps[] = [
     {
       label: t("fields.openedAsOf"),
-      value: formatDate(fiscalYear.openedAsOf),
+      value: formatUTCDateOnly(fiscalYear.openedAsOf) ?? "-",
     },
     {
       label: t("fields.status"),
@@ -56,7 +55,7 @@ const FiscalYearDetailsCard: React.FC<FiscalYearDetailsProps> = ({ fiscalYear })
       label: t("fields.lastClosedMonth"),
       value: lastClosure ? (
         <div className="flex flex-col gap-0.5">
-          <span>{formatDate(lastClosure.closedAsOf)}</span>
+          <span>{formatUTCDateOnly(lastClosure.closedAsOf) ?? "-"}</span>
           <span className="text-xs text-muted-foreground">
             {t("fields.processedAt", { date: formatDate(lastClosure.closedAt) })}
           </span>

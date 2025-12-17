@@ -5,9 +5,9 @@ import { useTranslations } from "next-intl"
 import { useState, useEffect } from "react"
 import { Plus } from "lucide-react"
 
-import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 import { Button } from "@lana/web/ui/button"
 import { Card, CardContent } from "@lana/web/ui/card"
+import { formatUTCDateOnly } from "@lana/web/utils"
 
 import { useCreateContext } from "../create"
 
@@ -73,7 +73,7 @@ const FiscalYearsList = () => {
     {
       key: "openedAsOf",
       label: t("headers.openedAsOf"),
-      render: (openedAsOf) => <DateWithTooltip value={openedAsOf} />,
+      render: (openedAsOf) => formatUTCDateOnly(openedAsOf) ?? "-",
     },
     {
       key: "isOpen",

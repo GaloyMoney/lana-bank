@@ -22,6 +22,8 @@ import {
   DropdownMenuTrigger,
 } from "@lana/web/ui/dropdown-menu"
 
+import { getUTCYear } from "@lana/web/utils"
+
 import { CreateCustomerDialog } from "./customers/create"
 import { CreateDepositDialog } from "./deposits/create"
 import { WithdrawalInitiateDialog } from "./withdrawals/initiate"
@@ -53,7 +55,6 @@ import {
   LedgerAccountDetailsFragment,
   FiscalYear,
 } from "@/lib/graphql/generated"
-import { getUTCYear } from "@/utils/fiscal-year-dates"
 
 export const PATH_CONFIGS = {
   COMMITTEES: "/committees",

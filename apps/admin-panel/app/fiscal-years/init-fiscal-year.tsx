@@ -18,7 +18,8 @@ import { Label } from "@lana/web/ui/label"
 import { Calendar } from "@lana/web/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@lana/web/ui/popover"
 import { CalendarIcon } from "lucide-react"
-import { formatDate } from "@lana/web/utils"
+
+import { formatUTCDateOnly } from "@lana/web/utils"
 
 import { useFiscalYearInitMutation, FiscalYearsDocument } from "@/lib/graphql/generated"
 
@@ -104,7 +105,7 @@ export function InitFiscalYearDialog({ open, onOpenChange }: InitFiscalYearDialo
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {openedAsOf ? (
-                    formatDate(openedAsOf.toISOString())
+                    (formatUTCDateOnly(openedAsOf.toISOString()) ?? "")
                   ) : (
                     <span>{t("fields.selectDate")}</span>
                   )}

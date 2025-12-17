@@ -2,12 +2,13 @@ import { useCallback, useMemo, useState, type Dispatch, type SetStateAction } fr
 
 import { useLocale, useTranslations } from "next-intl"
 
-import type { FiscalYear } from "@/lib/graphql/generated"
 import {
   formatUTCMonthName,
   formatUTCMonthYear,
   getUTCYear,
-} from "@/utils/fiscal-year-dates"
+} from "@lana/web/utils"
+
+import type { FiscalYear } from "@/lib/graphql/generated"
 
 type FiscalYearInput = Pick<FiscalYear, "openedAsOf">
 type FiscalMonthInput = Pick<FiscalYear, "nextMonthToClose">
