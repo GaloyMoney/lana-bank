@@ -141,11 +141,15 @@ sumsub_applicants_job = definition_builder.add_job_from_assets(
     assets=(sumsub_applicants_asset,),
 )
 
+def _trigger_sumsub_on_callbacks(context: dg.SensorEvaluationContext, _asset_event):
+    yield dg.RunRequest(run_key=None)
+
 definition_builder.add_sensor(
     dg.AssetSensorDefinition(
         name="run_sumsub_applicants_el_on_callbacks",
         asset_key=dg.AssetKey(["lana", "sumsub_callbacks"]),
-        job=sumsub_applicants_job,
+        job_name=sumsub_applicants_job.name,
+        asset_materialization_fn=_trigger_sumsub_on_callbacks,
         default_status=(
             dg.DefaultSensorStatus.RUNNING
             if DAGSTER_AUTOMATIONS_ACTIVE
