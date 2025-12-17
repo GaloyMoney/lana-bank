@@ -12,11 +12,16 @@ from src.assets import (
     lana_dbt_protoassets,
     lana_source_protoassets,
     lana_to_dw_el_protoassets,
+    sumsub_protoasset,
 )
 from src.core import Protoasset, lana_assetifier
 from src.otel import init_telemetry
 from src.resources import get_project_resources
-from src.sensors import build_dbt_automation_sensor, build_file_report_sensors
+from src.sensors import (
+    build_dbt_automation_sensor,
+    build_file_report_sensors,
+    build_sumsub_sensor,
+)
 
 DAGSTER_AUTOMATIONS_ACTIVE = os.getenv(
     "DAGSTER_AUTOMATIONS_ACTIVE", ""
@@ -129,6 +134,25 @@ definition_builder.add_job_schedule(
 )
 
 
+# Sumsub applicants EL (sensor-triggered on lana/sumsub_callbacks)
+sumsub_applicants_protoasset = sumsub_protoasset()
+sumsub_applicants_asset = definition_builder.add_asset_from_protoasset(
+    sumsub_applicants_protoasset
+)
+
+sumsub_applicants_job = definition_builder.add_job_from_assets(
+    job_name="sumsub_applicants_el",
+    assets=(sumsub_applicants_asset,),
+)
+
+definition_builder.add_sensor(
+    build_sumsub_sensor(
+        sumsub_applicants_job=sumsub_applicants_job,
+        dagster_automations_active=DAGSTER_AUTOMATIONS_ACTIVE,
+    )
+)
+
+
 for lana_source_protoasset in lana_source_protoassets():
     definition_builder.add_asset_from_protoasset(lana_source_protoasset)
 
@@ -142,7 +166,8 @@ for lana_to_dw_el_protoasset in lana_el_protoassets:
     lana_to_dw_el_assets.append(lana_to_dw_el_asset)
 
 lana_to_dw_el_job = definition_builder.add_job_from_assets(
-    job_name="lana_to_dw_el", assets=tuple(lana_to_dw_el_assets)
+    job_name="lana_to_dw_el",
+    assets=tuple(lana_to_dw_el_assets),
 )
 definition_builder.add_job_schedule(job=lana_to_dw_el_job, cron_expression="0 0 * * *")
 
