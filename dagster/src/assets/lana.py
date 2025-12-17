@@ -33,6 +33,7 @@ LANA_EL_TABLE_NAMES = (
     "core_public_ids",
     "core_chart_events",
     "core_chart_node_events",
+    "sumsub_callbacks",
 )
 
 EL_SOURCE_ASSET_DESCRIPTION = "el_source_asset"

@@ -10,17 +10,14 @@ from src.dlt_destinations.bigquery import create_bigquery_destination
 from src.dlt_resources.sumsub import applicants as dlt_sumsub_applicants
 from src.resources import (
     RESOURCE_KEY_DW_BQ,
-    RESOURCE_KEY_LANA_CORE_PG,
     RESOURCE_KEY_SUMSUB,
     BigQueryResource,
-    PostgresResource,
     SumsubResource,
 )
 
 
 def sumsub_applicants(
     context: dg.AssetExecutionContext,
-    lana_core_pg: PostgresResource,
     dw_bq: BigQueryResource,
     sumsub: SumsubResource,
 ) -> None:
@@ -35,7 +32,8 @@ def sumsub_applicants(
     )
 
     dlt_resource = dlt_sumsub_applicants(
-        pg_connection_string=lana_core_pg.get_connection_string(),
+        bq_credentials=dw_bq.get_credentials_dict(),
+        bq_dataset=dw_bq.get_target_dataset(),
         sumsub_key=sumsub_key,
         sumsub_secret=sumsub_secret,
     )
@@ -50,9 +48,9 @@ def sumsub_protoasset() -> Protoasset:
         key=dg.AssetKey("sumsub_applicants"),
         callable=sumsub_applicants,
         required_resource_keys={
-            RESOURCE_KEY_LANA_CORE_PG,
             RESOURCE_KEY_DW_BQ,
             RESOURCE_KEY_SUMSUB,
         },
+        deps=[dg.AssetKey(["lana", "sumsub_callbacks"])],
         tags={"system": "sumsub", "asset_type": "el_source_asset"},
     )

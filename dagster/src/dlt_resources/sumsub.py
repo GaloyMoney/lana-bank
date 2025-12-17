@@ -9,8 +9,9 @@ from datetime import datetime, timezone
 from typing import Any, Dict, Iterator, List, Optional, Tuple
 
 import dlt
-import psycopg2
 from dlt.sources.helpers import requests
+from google.cloud import bigquery
+from google.oauth2 import service_account
 
 LOGGER = logging.getLogger(__name__)
 
@@ -81,25 +82,35 @@ def _download_document_image(
     return None
 
 
-def _get_customers(conn_str: str, since: datetime) -> List[Tuple[str, datetime]]:
-    """Return (customer_id, max_recorded_at) for callbacks strictly after 'since', ordered by max_recorded_at."""
-    with psycopg2.connect(conn_str) as conn:
-        with conn.cursor() as cursor:
-            cursor.execute(
-                """
-                with customers as (
-                    select customer_id, max(recorded_at) as recorded_at
-                    from sumsub_callbacks
-                    where recorded_at >= %s
-                    group by customer_id
-                )
-                select customer_id, recorded_at
-                from customers
-                order by recorded_at asc
-                """,
-                (since,),
-            )
-            return [(row[0], row[1]) for row in cursor]
+def _get_bq_client(credentials_dict: Dict[str, Any]) -> bigquery.Client:
+    """Create a BigQuery client from service account credentials dict."""
+    creds = service_account.Credentials.from_service_account_info(credentials_dict)
+    project_id = credentials_dict["project_id"]
+    return bigquery.Client(project=project_id, credentials=creds)
+
+
+def _get_customers_bq(
+    credentials_dict: Dict[str, Any], dataset: str, since: datetime
+) -> List[Tuple[str, datetime]]:
+    """Return (customer_id, max_recorded_at) for callbacks on/after 'since', ordered by max_recorded_at."""
+    client = _get_bq_client(credentials_dict)
+    table = f"`{credentials_dict['project_id']}.{dataset}.sumsub_callbacks`"
+    sql = f"""
+      WITH customers AS (
+        SELECT customer_id, MAX(recorded_at) AS recorded_at
+        FROM {table}
+        WHERE recorded_at >= @since
+        GROUP BY customer_id
+      )
+      SELECT customer_id, recorded_at
+      FROM customers
+      ORDER BY recorded_at ASC
+    """
+    job_config = bigquery.QueryJobConfig(
+        query_parameters=[bigquery.ScalarQueryParameter("since", "TIMESTAMP", since)]
+    )
+    rows = list(client.query(sql, job_config=job_config))
+    return [(row["customer_id"], row["recorded_at"]) for row in rows]
 
 
 @dlt.resource(
@@ -108,7 +119,8 @@ def _get_customers(conn_str: str, since: datetime) -> List[Tuple[str, datetime]]
     primary_key=["customer_id", "recorded_at"],
 )
 def applicants(
-    pg_connection_string: str,
+    bq_credentials: Dict[str, Any],
+    bq_dataset: str,
     sumsub_key: str,
     sumsub_secret: str,
     callbacks_since=dlt.sources.incremental(
@@ -128,8 +140,8 @@ def applicants(
     LOGGER.info("Starting Sumsub applicants sync from %s", start_ts)
 
     with requests.Session() as session:
-        customer_rows: List[Tuple[str, datetime]] = _get_customers(
-            pg_connection_string, start_ts
+        customer_rows: List[Tuple[str, datetime]] = _get_customers_bq(
+            bq_credentials, bq_dataset, start_ts
         )
         for customer_id, max_recorded_at in customer_rows:
             LOGGER.info(
