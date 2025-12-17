@@ -2080,7 +2080,7 @@
     "closeYear": {
       "title": "Cerrar Año Fiscal",
       "description": "Esto registrará una transacción de cierre, transfiriendo los ingresos netos del año fiscal al balance general. La acción reducirá las cuentas de su estado de pérdidas y ganancias por su saldo efectivo a la fecha de cierre del año fiscal.",
-      "warning": "Esta acción es irreversible. Una vez cerrado un año fiscal, no se puede reabrir.",
+      "warning": "Esta acción es irreversible. Las cuentas de ingresos, costo de ingresos y gastos se restablecerán para el próximo año fiscal. Una vez que se cierra un año fiscal, no se puede volver a abrir.",
       "closingYear": "Año fiscal a cerrar",
       "confirmationLabel": "Escribe <mono>{text}</mono> para confirmar",
       "placeholder": "Ingresa texto de confirmación",

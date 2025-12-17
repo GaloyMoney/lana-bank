@@ -1196,7 +1196,7 @@ checksums:
     FiscalYears/closeMonth/success: 73644cf6238dcc4e64dab925d25826f8
     FiscalYears/closeYear/title: fd83a574e4d32cf68bccd2f4c5137fae
     FiscalYears/closeYear/description: b6ff8224661a191560a162a6a49ac168
-    FiscalYears/closeYear/warning: b9345874b5815a01d9a4313b6c0587c8
+    FiscalYears/closeYear/warning: fd650352fcf3be5351385519c4ec0380
     FiscalYears/closeYear/closingYear: 3082ff7a5cc0dfa7d84fa60ab093b8db
     FiscalYears/closeYear/confirmationLabel: 05029d37e633a5b26bf96bbaf68708f2
     FiscalYears/closeYear/placeholder: 78037f5832fcc78ee5afddbd083fe212
