@@ -15,8 +15,8 @@ use cala_ledger::{
     account::NewAccount,
 };
 use core_accounting::{
-    AccountCode, AccountIdOrCode, CalaTxId, Chart, ClosingSpec, CoreAccounting, LedgerAccountId,
-    ManualEntryInput, fiscal_year::FiscalYear,
+    AccountCode, AccountIdOrCode, CalaTxId, Chart, ClosingAccountCodes, ClosingTxDetails,
+    CoreAccounting, LedgerAccountId, ManualEntryInput, fiscal_year::FiscalYear,
 };
 
 use helpers::{action, object};
@@ -59,21 +59,28 @@ async fn post_closing_tx_with_gain() -> Result<()> {
     let ledger_tx_id = CalaTxId::new();
     let effective_balances_from = test.fiscal_year.opened_as_of;
     let effective_balances_as_of = test.fiscal_year.closes_as_of();
-    let closing_spec = ClosingSpec::new(
-        REVENUES.parse::<AccountCode>().unwrap(),
-        COSTS.parse::<AccountCode>().unwrap(),
-        EXPENSES.parse::<AccountCode>().unwrap(),
-        RETAINED_EARNINGS_GAIN.parse::<AccountCode>().unwrap(),
-        RETAINED_EARNINGS_LOSS.parse::<AccountCode>().unwrap(),
-        test.fiscal_year.reference.clone(),
-        ledger_tx_id,
-        effective_balances_as_of,
+    let closing_account_codes = ClosingAccountCodes {
+        revenue: REVENUES.parse::<AccountCode>().unwrap(),
+        cost_of_revenue: COSTS.parse::<AccountCode>().unwrap(),
+        expenses: EXPENSES.parse::<AccountCode>().unwrap(),
+        equity_retained_earnings: RETAINED_EARNINGS_GAIN.parse::<AccountCode>().unwrap(),
+        equity_retained_losses: RETAINED_EARNINGS_LOSS.parse::<AccountCode>().unwrap(),
+    };
+    let closing_tx_details = ClosingTxDetails {
+        description: test.fiscal_year.reference.clone(),
+        tx_id: ledger_tx_id,
+        effective_balances_until: effective_balances_as_of,
         effective_balances_from,
-    );
+    };
 
     test.accounting
         .chart_of_accounts()
-        .post_closing_transaction(&DummySubject, test.chart.id, closing_spec)
+        .post_closing_transaction(
+            &DummySubject,
+            test.chart.id,
+            closing_account_codes,
+            closing_tx_details,
+        )
         .await?;
 
     assert!(test.children(RETAINED_EARNINGS_LOSS).await?.is_empty());
@@ -130,21 +137,28 @@ async fn post_closing_tx_with_loss() -> Result<()> {
     let ledger_tx_id = CalaTxId::new();
     let effective_balances_from = test.fiscal_year.opened_as_of;
     let effective_balances_as_of = test.fiscal_year.closes_as_of();
-    let closing_spec = ClosingSpec::new(
-        REVENUES.parse::<AccountCode>().unwrap(),
-        COSTS.parse::<AccountCode>().unwrap(),
-        EXPENSES.parse::<AccountCode>().unwrap(),
-        RETAINED_EARNINGS_GAIN.parse::<AccountCode>().unwrap(),
-        RETAINED_EARNINGS_LOSS.parse::<AccountCode>().unwrap(),
-        test.fiscal_year.reference.clone(),
-        ledger_tx_id,
-        effective_balances_as_of,
+    let closing_account_codes = ClosingAccountCodes {
+        revenue: REVENUES.parse::<AccountCode>().unwrap(),
+        cost_of_revenue: COSTS.parse::<AccountCode>().unwrap(),
+        expenses: EXPENSES.parse::<AccountCode>().unwrap(),
+        equity_retained_earnings: RETAINED_EARNINGS_GAIN.parse::<AccountCode>().unwrap(),
+        equity_retained_losses: RETAINED_EARNINGS_LOSS.parse::<AccountCode>().unwrap(),
+    };
+    let closing_spec = ClosingTxDetails {
+        description: test.fiscal_year.reference.clone(),
+        tx_id: ledger_tx_id,
+        effective_balances_until: effective_balances_as_of,
         effective_balances_from,
-    );
+    };
 
     test.accounting
         .chart_of_accounts()
-        .post_closing_transaction(&DummySubject, test.chart.id, closing_spec)
+        .post_closing_transaction(
+            &DummySubject,
+            test.chart.id,
+            closing_account_codes,
+            closing_spec,
+        )
         .await?;
     assert!(test.children(RETAINED_EARNINGS_GAIN).await?.is_empty());
     assert_eq!(test.balance(RETAINED_EARNINGS_GAIN).await?, Decimal::ZERO);

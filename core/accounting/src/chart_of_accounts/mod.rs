@@ -18,7 +18,8 @@ use cala_ledger::{CalaLedger, account::Account};
 
 use crate::primitives::{
     AccountCode, AccountIdOrCode, AccountName, AccountSpec, CalaAccountSetId, CalaJournalId,
-    ChartId, ClosingSpec, CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
+    ChartId, ClosingAccountCodes, ClosingTxDetails, CoreAccountingAction, CoreAccountingObject,
+    LedgerAccountId,
 };
 
 #[cfg(feature = "json-schema")]
@@ -310,7 +311,8 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_id: ChartId,
-        spec: ClosingSpec,
+        account_codes: ClosingAccountCodes,
+        tx_details: ClosingTxDetails,
     ) -> Result<(), ChartOfAccountsError> {
         self.authz
             .enforce_permission(
@@ -320,11 +322,13 @@ where
             )
             .await?;
         let mut chart = self.find_by_id(chart_id).await?;
-        if let Idempotent::Executed(closing_tx_params) = chart.post_closing_tx_as_of(spec)? {
+        if let Idempotent::Executed(closing_tx_parents_and_details) =
+            chart.post_closing_tx_as_of(account_codes, tx_details)?
+        {
             let mut op = self.repo.begin_op().await?;
             self.repo.update_in_op(&mut op, &mut chart).await?;
             self.chart_ledger
-                .post_closing_transaction(op, closing_tx_params)
+                .post_closing_transaction(op, closing_tx_parents_and_details)
                 .await?;
         }
         Ok(())

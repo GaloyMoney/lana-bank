@@ -141,4 +141,12 @@ impl ClosingTransactionParams {
         }
         params
     }
+
+    pub(super) fn template_code(&self) -> String {
+        format!("CLOSING_TRANSACTION_{}", self.description)
+    }
+
+    pub(super) fn tx_entry_type(&self, i: usize) -> String {
+        format!("'CLOSING_TRANSACTION_{}_ENTRY_{}'", self.description, i)
+    }
 }

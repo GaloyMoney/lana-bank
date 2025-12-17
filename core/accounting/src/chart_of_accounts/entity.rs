@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use es_entity::*;
 
 use super::chart_node::*;
-use crate::{chart_of_accounts::ledger::ClosingTxParams, primitives::*};
+use crate::{chart_of_accounts::ledger::ClosingTxParentIdsAndDetails, primitives::*};
 
 use super::{error::*, tree};
 
@@ -299,33 +299,41 @@ impl Chart {
         Idempotent::Executed(closed_as_of)
     }
 
+    fn closing_account_set_ids_from_codes(
+        &self,
+        account_codes: ClosingAccountCodes,
+    ) -> Result<ClosingAccountSetIds, ChartOfAccountsError> {
+        Ok(ClosingAccountSetIds {
+            revenue: self.account_set_id_from_code(&account_codes.revenue)?,
+            cost_of_revenue: self.account_set_id_from_code(&account_codes.cost_of_revenue)?,
+            expenses: self.account_set_id_from_code(&account_codes.expenses)?,
+            equity_retained_earnings: self
+                .account_set_id_from_code(&account_codes.equity_retained_earnings)?,
+            equity_retained_losses: self
+                .account_set_id_from_code(&account_codes.equity_retained_losses)?,
+        })
+    }
+
     pub(super) fn post_closing_tx_as_of(
         &mut self,
-        spec: ClosingSpec,
-    ) -> Result<Idempotent<ClosingTxParams>, ChartOfAccountsError> {
+        account_codes: ClosingAccountCodes,
+        tx_details: ClosingTxDetails,
+    ) -> Result<Idempotent<ClosingTxParentIdsAndDetails>, ChartOfAccountsError> {
+        let closing_tx_params = ClosingTxParentIdsAndDetails::new(
+            self.closing_account_set_ids_from_codes(account_codes)?,
+            tx_details,
+        );
+        let posted_as_of = closing_tx_params.posted_as_of();
+
         idempotency_guard!(
             self.events.iter_all().rev(),
-            ChartEvent::ClosingTransactionPosted { posted_as_of: prev_date, .. } if prev_date >= &spec.effective_balances_until,
+            ChartEvent::ClosingTransactionPosted { posted_as_of: prev_date, .. } if prev_date >= &posted_as_of,
             => ChartEvent::ClosingTransactionPosted { .. }
         );
 
-        let closing_tx_params = ClosingTxParams {
-            tx_id: spec.tx_id,
-            description: spec.description,
-            effective_balances_from: spec.effective_balances_from,
-            effective_balances_until: spec.effective_balances_until,
-            revenue_account_set_id: self.account_set_id_from_code(&spec.revenue_code)?,
-            cost_of_revenue_account_set_id: self
-                .account_set_id_from_code(&spec.cost_of_revenue_code)?,
-            expenses_account_set_id: self.account_set_id_from_code(&spec.expenses_code)?,
-            equity_retained_earnings_account_set_id: self
-                .account_set_id_from_code(&spec.equity_retained_earnings_code)?,
-            equity_retained_losses_account_set_id: self
-                .account_set_id_from_code(&spec.equity_retained_losses_code)?,
-        };
-        self.events.push(ChartEvent::ClosingTransactionPosted {
-            posted_as_of: spec.effective_balances_until,
-        });
+        self.events
+            .push(ChartEvent::ClosingTransactionPosted { posted_as_of });
+
         Ok(Idempotent::Executed(closing_tx_params))
     }
 }
