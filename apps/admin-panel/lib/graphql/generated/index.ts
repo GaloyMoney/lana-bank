@@ -591,6 +591,8 @@ export type CreditFacilityLedgerAccounts = {
   __typename?: 'CreditFacilityLedgerAccounts';
   collateralAccount: LedgerAccount;
   collateralAccountId: Scalars['UUID']['output'];
+  collateralInLiquidationAccount: LedgerAccount;
+  collateralInLiquidationAccountId: Scalars['UUID']['output'];
   disbursedDefaultedAccount: LedgerAccount;
   disbursedDefaultedAccountId: Scalars['UUID']['output'];
   disbursedReceivableDueAccount: LedgerAccount;
@@ -613,6 +615,8 @@ export type CreditFacilityLedgerAccounts = {
   interestReceivableNotYetDueAccountId: Scalars['UUID']['output'];
   interestReceivableOverdueAccount: LedgerAccount;
   interestReceivableOverdueAccountId: Scalars['UUID']['output'];
+  liquidationPaymentReceivableAccount: LedgerAccount;
+  liquidationPaymentReceivableAccountId: Scalars['UUID']['output'];
 };
 
 export type CreditFacilityPartialPaymentRecordInput = {
@@ -3374,6 +3378,12 @@ export type CreditFacilityLedgerAccountsQuery = { __typename?: 'Query', creditFa
           | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
           | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
          }, collateralAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
+          | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
+          | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
+         }, collateralInLiquidationAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
+          | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
+          | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
+         }, liquidationPaymentReceivableAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
           | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
           | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
          }, interestReceivableNotYetDueAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
@@ -6448,6 +6458,12 @@ export const CreditFacilityLedgerAccountsDocument = gql`
         ...LedgerAccountInfo
       }
       collateralAccount {
+        ...LedgerAccountInfo
+      }
+      collateralInLiquidationAccount {
+        ...LedgerAccountInfo
+      }
+      liquidationPaymentReceivableAccount {
         ...LedgerAccountInfo
       }
       interestReceivableNotYetDueAccount {

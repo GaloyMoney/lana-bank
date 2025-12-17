@@ -251,6 +251,16 @@ impl CreditFacility {
                 .disbursed_defaulted_account_id
                 .into(),
             collateral_account_id: self.entity.account_ids.collateral_account_id.into(),
+            collateral_in_liquidation_account_id: self
+                .entity
+                .account_ids
+                .collateral_in_liquidation_account_id
+                .into(),
+            liquidation_payment_receivable_account_id: self
+                .entity
+                .account_ids
+                .liquidation_payment_receivable_account_id
+                .into(),
             interest_receivable_not_yet_due_account_id: self
                 .entity
                 .account_ids
