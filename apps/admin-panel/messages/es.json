@@ -803,7 +803,6 @@
           "incrementalPayment": "Pago",
           "disbursalExecuted": "Desembolso",
           "interestAccrued": "Interés acumulado",
-          "liquidationAmountReserved": "Importe de liquidación reservado",
           "pendingFacilityCollateralization": "Actualización de colateralización de línea de crédito pendiente"
         },
         "messages": {
