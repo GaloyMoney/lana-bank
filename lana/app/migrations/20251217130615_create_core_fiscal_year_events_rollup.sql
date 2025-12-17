@@ -11,7 +11,8 @@ CREATE TABLE core_fiscal_year_events_rollup (
   month_closed_as_of VARCHAR,
   month_closed_at TIMESTAMPTZ,
   opened_as_of VARCHAR,
-  reference VARCHAR
+  reference VARCHAR,
+  year VARCHAR
 ,
   PRIMARY KEY (id, version)
 );
@@ -53,6 +54,7 @@ BEGIN
     new_row.month_closed_at := (NEW.event ->> 'month_closed_at')::TIMESTAMPTZ;
     new_row.opened_as_of := (NEW.event ->> 'opened_as_of');
     new_row.reference := (NEW.event ->> 'reference');
+    new_row.year := (NEW.event ->> 'year');
   ELSE
     -- Default all fields to current values
     new_row.chart_id := current_row.chart_id;
@@ -62,6 +64,7 @@ BEGIN
     new_row.month_closed_at := current_row.month_closed_at;
     new_row.opened_as_of := current_row.opened_as_of;
     new_row.reference := current_row.reference;
+    new_row.year := current_row.year;
   END IF;
 
   -- Update only the fields that are modified by the specific event
@@ -70,6 +73,7 @@ BEGIN
       new_row.chart_id := (NEW.event ->> 'chart_id')::UUID;
       new_row.opened_as_of := (NEW.event ->> 'opened_as_of');
       new_row.reference := (NEW.event ->> 'reference');
+      new_row.year := (NEW.event ->> 'year');
     WHEN 'month_closed' THEN
       new_row.month_closed_as_of := (NEW.event ->> 'month_closed_as_of');
       new_row.month_closed_at := (NEW.event ->> 'month_closed_at')::TIMESTAMPTZ;
@@ -89,7 +93,8 @@ BEGIN
     month_closed_as_of,
     month_closed_at,
     opened_as_of,
-    reference
+    reference,
+    year
   )
   VALUES (
     new_row.id,
@@ -102,7 +107,8 @@ BEGIN
     new_row.month_closed_as_of,
     new_row.month_closed_at,
     new_row.opened_as_of,
-    new_row.reference
+    new_row.reference,
+    new_row.year
   );
 
   RETURN NEW;
