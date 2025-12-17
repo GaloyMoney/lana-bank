@@ -246,7 +246,10 @@ impl NewFiscalYear {
     }
 
     pub(super) fn reference(&self) -> String {
-        format!("{}:AC{}", self.chart_id, self.opened_as_of.year())
+        let year = self.opened_as_of.year().to_string();
+        FiscalYearReference::new(self.chart_id, &year)
+            .as_ref()
+            .to_owned()
     }
 
     pub(super) fn year(&self) -> String {
@@ -266,6 +269,20 @@ impl IntoEvents<FiscalYearEvent> for NewFiscalYear {
                 opened_as_of: self.opened_as_of,
             }],
         )
+    }
+}
+
+pub(super) struct FiscalYearReference(String);
+
+impl FiscalYearReference {
+    pub(super) fn new(chart_id: ChartId, year: &str) -> Self {
+        Self(format!("{}:AC{}", chart_id, year))
+    }
+}
+
+impl AsRef<str> for FiscalYearReference {
+    fn as_ref(&self) -> &str {
+        &self.0
     }
 }
 
