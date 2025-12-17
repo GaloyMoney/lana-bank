@@ -130,20 +130,20 @@ definition_builder.add_job_schedule(
 )
 
 
-# Sumsub applicants EL (runs with postgres EL schedule)
+# Sumsub applicants EL (sensor-triggered on lana/sumsub_callbacks)
 sumsub_applicants_protoasset = sumsub_protoasset()
 sumsub_applicants_asset = definition_builder.add_asset_from_protoasset(
     sumsub_applicants_protoasset
 )
 
 sumsub_applicants_job = definition_builder.add_job_from_assets(
-    job_name="sumsub_applicants",
+    job_name="sumsub_applicants_el",
     assets=(sumsub_applicants_asset,),
 )
 
 definition_builder.add_sensor(
     dg.AssetSensorDefinition(
-        name="run_sumsub_applicants_on_callbacks",
+        name="run_sumsub_applicants_el_on_callbacks",
         asset_key=dg.AssetKey(["lana", "sumsub_callbacks"]),
         job=sumsub_applicants_job,
         default_status=(

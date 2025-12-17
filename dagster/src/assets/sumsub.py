@@ -52,5 +52,5 @@ def sumsub_protoasset() -> Protoasset:
             RESOURCE_KEY_SUMSUB,
         },
         deps=[dg.AssetKey(["lana", "sumsub_callbacks"])],
-        tags={"system": "sumsub", "asset_type": "el_source_asset"},
+        tags={"system": "sumsub", "asset_type": "el_target_asset"},
     )
