@@ -329,6 +329,28 @@ where
     }
 
     #[record_error_severity]
+    #[instrument(
+        name = "core_accounting.fiscal_year.find_for_chart_by_year",
+        skip(self)
+    )]
+    pub async fn find_fiscal_year_for_chart_by_year(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_ref: &str,
+        year: &str,
+    ) -> Result<Option<FiscalYear>, CoreAccountingError> {
+        let chart = self
+            .chart_of_accounts()
+            .find_by_reference(chart_ref)
+            .await?;
+
+        Ok(self
+            .fiscal_year()
+            .find_by_chart_id_and_year(sub, chart.id, year)
+            .await?)
+    }
+
+    #[record_error_severity]
     #[instrument(name = "core_accounting.add_root_node", skip(self))]
     pub async fn add_root_node(
         &self,

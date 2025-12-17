@@ -21,6 +21,9 @@
         "type": {
           "const": "initialized",
           "type": "string"
+        },
+        "year": {
+          "type": "string"
         }
       },
       "required": [
@@ -28,6 +31,7 @@
         "id",
         "chart_id",
         "reference",
+        "year",
         "opened_as_of"
       ],
       "type": "object"
