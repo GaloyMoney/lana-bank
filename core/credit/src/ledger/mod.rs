@@ -2411,24 +2411,6 @@ impl CreditLedger {
             |meta| meta.collateral_in_liquidation_parent_account_set_id,
         )
         .await?;
-        // self.attach_charts_account_set(
-        //     &mut op,
-        //     &mut account_sets,
-        //     self.internal_account_sets.liquidation.liquidated_collateral.id,
-        //     *in_liquidation_parent_account_set_id,
-        //     &charts_integration_meta,
-        //     |meta| meta.in_liquidation_parent_account_set_id,
-        // )
-        // .await?;
-        // self.attach_charts_account_set(
-        //     &mut op,
-        //     &mut account_sets,
-        //     self.internal_account_sets.liquidation.payment_receivable.id,
-        //     *in_liquidation_parent_account_set_id,
-        //     &charts_integration_meta,
-        //     |meta| meta.in_liquidation_parent_account_set_id,
-        // )
-        // .await?;
         self.attach_charts_account_set(
             &mut op,
             &mut account_sets,
