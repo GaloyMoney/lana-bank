@@ -10,7 +10,8 @@
     "overrides": {
       "glob": ">=11.1.0",
       "js-yaml": ">=3.14.2",
-      "pino": ">=10.0.0"
+      "pino": ">=10.0.0",
+      "systeminformation": ">=5.27.14"
     }
   }
 }
