@@ -50,3 +50,23 @@ def build_dbt_automation_sensor(
             else dg.DefaultSensorStatus.STOPPED
         ),
     )
+
+
+def build_sumsub_sensor(
+    sumsub_applicants_job: dg.JobDefinition,
+    dagster_automations_active: bool,
+) -> dg.SensorDefinition:
+    def _trigger_sumsub_on_callbacks(context: dg.SensorEvaluationContext, _asset_event):
+        yield dg.RunRequest(run_key=f"sumsub_{_asset_event.event_log_entry.storage_id}")
+
+    return dg.AssetSensorDefinition(
+        name="sumsub_applicants_callbacks_sensor",
+        asset_key=dg.AssetKey(["lana", "sumsub_callbacks"]),
+        job=sumsub_applicants_job,
+        asset_materialization_fn=_trigger_sumsub_on_callbacks,
+        default_status=(
+            dg.DefaultSensorStatus.RUNNING
+            if dagster_automations_active
+            else dg.DefaultSensorStatus.STOPPED
+        ),
+    )

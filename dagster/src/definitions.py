@@ -17,7 +17,7 @@ from src.assets import (
 from src.core import Protoasset, lana_assetifier
 from src.otel import init_telemetry
 from src.resources import get_project_resources
-from src.sensors import build_dbt_automation_sensor, build_file_report_sensors
+from src.sensors import build_dbt_automation_sensor, build_file_report_sensors, build_sumsub_sensor
 
 DAGSTER_AUTOMATIONS_ACTIVE = os.getenv(
     "DAGSTER_AUTOMATIONS_ACTIVE", ""
@@ -141,20 +141,10 @@ sumsub_applicants_job = definition_builder.add_job_from_assets(
     assets=(sumsub_applicants_asset,),
 )
 
-def _trigger_sumsub_on_callbacks(context: dg.SensorEvaluationContext, _asset_event):
-    yield dg.RunRequest(run_key=None)
-
 definition_builder.add_sensor(
-    dg.AssetSensorDefinition(
-        name="run_sumsub_applicants_el_on_callbacks",
-        asset_key=dg.AssetKey(["lana", "sumsub_callbacks"]),
-        job_name=sumsub_applicants_job.name,
-        asset_materialization_fn=_trigger_sumsub_on_callbacks,
-        default_status=(
-            dg.DefaultSensorStatus.RUNNING
-            if DAGSTER_AUTOMATIONS_ACTIVE
-            else dg.DefaultSensorStatus.STOPPED
-        ),
+    build_sumsub_sensor(
+        sumsub_applicants_job=sumsub_applicants_job,
+        dagster_automations_active=DAGSTER_AUTOMATIONS_ACTIVE,
     )
 )
 
