@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, Iterator, List, Optional, Tuple
 
 import dlt
+import dagster as dg
 from dlt.sources.helpers import requests
 from google.cloud import bigquery
 from google.oauth2 import service_account
@@ -134,17 +135,18 @@ def applicants(
     - Do not emit a row on applicant fetch/JSON failure; stop processing to retry on the next run.
     - Metadata/image fetch failures are non-fatal and only affect document_images.
     """
+    logger = dg.get_dagster_logger()
     start_ts: datetime = callbacks_since.last_value or datetime(
         1970, 1, 1, tzinfo=timezone.utc
     )
-    LOGGER.info("Starting Sumsub applicants sync from %s", start_ts)
+    logger.info("Starting Sumsub applicants sync from %s", start_ts)
 
     with requests.Session() as session:
         customer_rows: List[Tuple[str, datetime]] = _get_customers_bq(
             bq_credentials, bq_dataset, start_ts
         )
         for customer_id, max_recorded_at in customer_rows:
-            LOGGER.info(
+            logger.info(
                 "Fetching Sumsub data for customer_id=%s recorded_at=%s",
                 customer_id,
                 max_recorded_at,
@@ -157,7 +159,7 @@ def applicants(
                 )
                 resp.raise_for_status()
             except requests.exceptions.RequestException as e:
-                LOGGER.warning(
+                logger.warning(
                     "Applicant fetch failed for customer_id=%s (will retry next run): %s",
                     customer_id,
                     e,
@@ -168,7 +170,7 @@ def applicants(
             try:
                 resp_json = resp.json()
             except ValueError as e:
-                LOGGER.warning(
+                logger.warning(
                     "Invalid JSON from Sumsub for customer_id=%s (will retry next run): %s",
                     customer_id,
                     e,
@@ -188,7 +190,7 @@ def applicants(
                         session, applicant_id, sumsub_key, sumsub_secret
                     )
                 except requests.exceptions.RequestException as e:
-                    LOGGER.warning(
+                    logger.warning(
                         "Metadata fetch failed for customer_id=%s (continuing without images): %s",
                         customer_id,
                         e,
@@ -207,7 +209,7 @@ def applicants(
                                 sumsub_secret,
                             )
                         except requests.exceptions.RequestException as e:
-                            LOGGER.warning(
+                            logger.warning(
                                 "Image download failed for customer_id=%s image_id=%s: %s",
                                 customer_id,
                                 image_id,
