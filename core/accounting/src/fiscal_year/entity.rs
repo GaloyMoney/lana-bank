@@ -85,33 +85,45 @@ impl FiscalYear {
     pub(super) fn close_next_sequential_month(
         &mut self,
         now: DateTime<Utc>,
-    ) -> Idempotent<NaiveDate> {
-        let Some(new_monthly_closing_date) = self.next_month_to_close() else {
-            return Idempotent::Ignored;
-        };
+    ) -> Result<Idempotent<NaiveDate>, FiscalYearError> {
+        if self.is_last_month_of_year_closed() {
+            return Ok(Idempotent::Ignored);
+        }
         let last_recorded_date = self.events.iter_all().rev().find_map(|event| match event {
             FiscalYearEvent::MonthClosed {
                 month_closed_as_of, ..
             } => Some(*month_closed_as_of),
             _ => None,
         });
-
-        if let Some(last_effective) = last_recorded_date {
-            let last_day_of_previous_month = now
-                .date_naive()
-                .with_day(1)
+        let new_monthly_closing_date = match last_recorded_date {
+            Some(last_effective) => last_effective
+                .checked_add_months(Months::new(2))
+                .and_then(|d| d.with_day(1))
                 .and_then(|d| d.pred_opt())
-                .expect("Failed to compute last day of previous month");
-            if last_effective == last_day_of_previous_month {
-                return Idempotent::Ignored;
-            }
+                .expect("Failed to compute new monthly closing date"),
+            None => self
+                .events
+                .iter_all()
+                .find_map(|event| match event {
+                    FiscalYearEvent::Initialized { opened_as_of, .. } => Some(opened_as_of),
+                    _ => None,
+                })
+                .expect("Entity was not initialized")
+                .checked_add_months(Months::new(1))
+                .and_then(|d| d.with_day(1))
+                .and_then(|d| d.pred_opt())
+                .expect("Failed to compute new monthly closing date"),
+        };
+
+        if now.date_naive() <= new_monthly_closing_date {
+            return Err(FiscalYearError::MonthHasNotEnded);
         }
 
         self.events.push(FiscalYearEvent::MonthClosed {
             month_closed_as_of: new_monthly_closing_date,
             month_closed_at: now,
         });
-        Idempotent::Executed(new_monthly_closing_date)
+        Ok(Idempotent::Executed(new_monthly_closing_date))
     }
 
     pub fn month_closures(&self) -> Vec<FiscalMonthClosure> {
