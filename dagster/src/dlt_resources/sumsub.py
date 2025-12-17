@@ -8,10 +8,11 @@ from datetime import datetime, timezone
 from typing import Any, Dict, Iterator, List, Optional, Tuple
 
 import dlt
-import dagster as dg
 from dlt.sources.helpers import requests
 from google.cloud import bigquery
 from google.oauth2 import service_account
+
+import dagster as dg
 
 REQUEST_TIMEOUT = 60
 SUMSUB_API_BASE = "https://api.sumsub.com"

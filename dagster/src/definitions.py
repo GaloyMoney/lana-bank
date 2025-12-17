@@ -17,7 +17,11 @@ from src.assets import (
 from src.core import Protoasset, lana_assetifier
 from src.otel import init_telemetry
 from src.resources import get_project_resources
-from src.sensors import build_dbt_automation_sensor, build_file_report_sensors, build_sumsub_sensor
+from src.sensors import (
+    build_dbt_automation_sensor,
+    build_file_report_sensors,
+    build_sumsub_sensor,
+)
 
 DAGSTER_AUTOMATIONS_ACTIVE = os.getenv(
     "DAGSTER_AUTOMATIONS_ACTIVE", ""
