@@ -322,13 +322,13 @@ where
             )
             .await?;
         let mut chart = self.find_by_id(chart_id).await?;
-        if let Idempotent::Executed(closing_tx_params) =
+        if let Idempotent::Executed(closing_tx_parents_and_details) =
             chart.post_closing_tx_as_of(account_codes, tx_details)?
         {
             let mut op = self.repo.begin_op().await?;
             self.repo.update_in_op(&mut op, &mut chart).await?;
             self.chart_ledger
-                .post_closing_transaction(op, closing_tx_params)
+                .post_closing_transaction(op, closing_tx_parents_and_details)
                 .await?;
         }
         Ok(())

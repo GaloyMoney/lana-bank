@@ -408,6 +408,12 @@ pub struct ClosingTxDetails {
     pub effective_balances_from: chrono::NaiveDate,
 }
 
+impl ClosingTxDetails {
+    pub fn retained_earnings_account_name(&self) -> String {
+        format!("NET_INCOME_{}", self.description)
+    }
+}
+
 pub type ChartAllOrOne = AllOrOne<ChartId>;
 pub type JournalAllOrOne = AllOrOne<CalaJournalId>;
 pub type LedgerAccountAllOrOne = AllOrOne<LedgerAccountId>;

@@ -2,7 +2,7 @@ use chrono::NaiveDate;
 use rust_decimal::Decimal;
 use std::collections::HashMap;
 
-use crate::primitives::{CalaTxId, ClosingAccountSetIds, ClosingTxDetails};
+use crate::primitives::{ClosingAccountSetIds, ClosingTxDetails};
 
 use super::template::EntryParams;
 
@@ -14,40 +14,45 @@ use cala_ledger::{
 };
 
 #[derive(Debug)]
-pub(crate) struct ClosingTxParams {
-    pub(crate) tx_id: CalaTxId,
-    pub(crate) description: String,
-    pub(crate) effective_balances_from: NaiveDate,
-    pub(crate) effective_balances_until: NaiveDate,
-    pub(crate) revenue_account_set_id: AccountSetId,
-    pub(crate) cost_of_revenue_account_set_id: AccountSetId,
-    pub(crate) expenses_account_set_id: AccountSetId,
-    pub(crate) equity_retained_earnings_account_set_id: AccountSetId,
-    pub(crate) equity_retained_losses_account_set_id: AccountSetId,
+pub(crate) struct NetIncomeAccountSetIds {
+    pub(crate) revenue: AccountSetId,
+    pub(crate) cost_of_revenue: AccountSetId,
+    pub(crate) expenses: AccountSetId,
 }
 
-impl ClosingTxParams {
+#[derive(Debug)]
+pub(crate) struct RetainedEarningsAccountSetIds {
+    pub(crate) equity_retained_earnings: AccountSetId,
+    pub(crate) equity_retained_losses: AccountSetId,
+}
+
+#[derive(Debug)]
+pub(crate) struct ClosingTxParentIdsAndDetails {
+    pub(crate) tx_details: ClosingTxDetails,
+    pub(crate) net_income_parent_ids: NetIncomeAccountSetIds,
+    pub(crate) retained_earnings_parent_ids: RetainedEarningsAccountSetIds,
+}
+
+impl ClosingTxParentIdsAndDetails {
     pub(crate) fn new(account_set_ids: ClosingAccountSetIds, tx_details: ClosingTxDetails) -> Self {
         Self {
-            tx_id: tx_details.tx_id,
-            description: tx_details.description,
-            effective_balances_from: tx_details.effective_balances_from,
-            effective_balances_until: tx_details.effective_balances_until,
+            tx_details,
 
-            revenue_account_set_id: account_set_ids.revenue,
-            cost_of_revenue_account_set_id: account_set_ids.cost_of_revenue,
-            expenses_account_set_id: account_set_ids.expenses,
-            equity_retained_earnings_account_set_id: account_set_ids.equity_retained_earnings,
-            equity_retained_losses_account_set_id: account_set_ids.equity_retained_losses,
+            net_income_parent_ids: NetIncomeAccountSetIds {
+                revenue: account_set_ids.revenue,
+                cost_of_revenue: account_set_ids.cost_of_revenue,
+                expenses: account_set_ids.expenses,
+            },
+
+            retained_earnings_parent_ids: RetainedEarningsAccountSetIds {
+                equity_retained_earnings: account_set_ids.equity_retained_earnings,
+                equity_retained_losses: account_set_ids.equity_retained_losses,
+            },
         }
     }
 
     pub(crate) fn posted_as_of(&self) -> NaiveDate {
-        self.effective_balances_until
-    }
-
-    pub(super) fn retained_earnings_account_name(&self) -> String {
-        format!("NET_INCOME_{}", self.description)
+        self.tx_details.effective_balances_until
     }
 }
 
@@ -163,33 +168,34 @@ impl ClosingProfitAndLossAccountBalances {
 
     fn retained_earnings_direction(
         &self,
-        ClosingTxParams {
-            equity_retained_earnings_account_set_id: gain_account_id,
-            equity_retained_losses_account_set_id: loss_account_id,
-            ..
-        }: &ClosingTxParams,
+        RetainedEarningsAccountSetIds {
+            equity_retained_earnings: gain_account_id,
+            equity_retained_losses: loss_account_id,
+        }: RetainedEarningsAccountSetIds,
     ) -> (DebitOrCredit, AccountSetId) {
         if self.contributions() >= Decimal::ZERO {
-            (DebitOrCredit::Credit, *gain_account_id)
+            (DebitOrCredit::Credit, gain_account_id)
         } else {
-            (DebitOrCredit::Debit, *loss_account_id)
+            (DebitOrCredit::Debit, loss_account_id)
         }
     }
 
     pub(super) fn retained_earnings_new_account(
         &self,
-        params: &ClosingTxParams,
+        name: String,
+        parent_account_set_ids: RetainedEarningsAccountSetIds,
     ) -> Option<NewAccountDetails> {
         if !self.has_retained_earnings_entry() {
             return None;
         }
 
-        let (normal_balance_type, parent_account_set_id) = self.retained_earnings_direction(params);
+        let (normal_balance_type, parent_account_set_id) =
+            self.retained_earnings_direction(parent_account_set_ids);
 
         let id = AccountId::new();
         let new_account = NewAccount::builder()
             .id(id)
-            .name(params.retained_earnings_account_name())
+            .name(name)
             .code(id.to_string())
             .normal_balance_type(normal_balance_type)
             .build()
@@ -353,7 +359,7 @@ mod tests {
     }
 
     mod closing_profit_and_loss_account_balances {
-        use cala_ledger::{AccountId, JournalId};
+        use cala_ledger::{AccountId, JournalId, TransactionId};
 
         use super::*;
 
@@ -410,17 +416,23 @@ mod tests {
             }
         }
 
-        fn dummy_params() -> ClosingTxParams {
-            ClosingTxParams {
-                tx_id: CalaTxId::new(),
-                description: "".to_string(),
-                effective_balances_from: chrono::Utc::now().date_naive(),
-                effective_balances_until: chrono::Utc::now().date_naive(),
-                revenue_account_set_id: AccountSetId::new(),
-                cost_of_revenue_account_set_id: AccountSetId::new(),
-                expenses_account_set_id: AccountSetId::new(),
-                equity_retained_earnings_account_set_id: AccountSetId::new(),
-                equity_retained_losses_account_set_id: AccountSetId::new(),
+        fn dummy_params() -> ClosingTxParentIdsAndDetails {
+            ClosingTxParentIdsAndDetails {
+                tx_details: ClosingTxDetails {
+                    tx_id: TransactionId::new(),
+                    description: "".to_string(),
+                    effective_balances_from: chrono::Utc::now().date_naive(),
+                    effective_balances_until: chrono::Utc::now().date_naive(),
+                },
+                net_income_parent_ids: NetIncomeAccountSetIds {
+                    revenue: AccountSetId::new(),
+                    cost_of_revenue: AccountSetId::new(),
+                    expenses: AccountSetId::new(),
+                },
+                retained_earnings_parent_ids: RetainedEarningsAccountSetIds {
+                    equity_retained_earnings: AccountSetId::new(),
+                    equity_retained_losses: AccountSetId::new(),
+                },
             }
         }
 
@@ -448,8 +460,10 @@ mod tests {
             fn returns_empty_vec_for_empty_balances() {
                 let balances = empty_balances();
 
-                let retained_earnings_account =
-                    balances.retained_earnings_new_account(&dummy_params());
+                let retained_earnings_account = balances.retained_earnings_new_account(
+                    "".to_string(),
+                    dummy_params().retained_earnings_parent_ids,
+                );
                 assert!(retained_earnings_account.is_none());
 
                 let entries = balances.entries_params(None);
@@ -506,12 +520,16 @@ mod tests {
             #[test]
             fn returns_gain_account_with_credit_for_zero_contributions() {
                 let balances = empty_balances();
-                let params @ ClosingTxParams {
-                    equity_retained_earnings_account_set_id: gain_id,
+                let ClosingTxParentIdsAndDetails {
+                    retained_earnings_parent_ids:
+                        parent_ids @ RetainedEarningsAccountSetIds {
+                            equity_retained_earnings: gain_id,
+                            ..
+                        },
                     ..
                 } = dummy_params();
 
-                let (direction, account_id) = balances.retained_earnings_direction(&params);
+                let (direction, account_id) = balances.retained_earnings_direction(parent_ids);
 
                 assert_eq!(direction, DebitOrCredit::Credit);
                 assert_eq!(account_id, gain_id);
@@ -521,12 +539,16 @@ mod tests {
             fn returns_gain_account_with_credit_for_positive_contributions() {
                 // Revenue > (cost_of_revenue + expenses) => positive net income
                 let balances = balances_with(dec!(1000), dec!(300), dec!(200));
-                let params @ ClosingTxParams {
-                    equity_retained_earnings_account_set_id: gain_id,
+                let ClosingTxParentIdsAndDetails {
+                    retained_earnings_parent_ids:
+                        parent_ids @ RetainedEarningsAccountSetIds {
+                            equity_retained_earnings: gain_id,
+                            ..
+                        },
                     ..
                 } = dummy_params();
 
-                let (direction, account_id) = balances.retained_earnings_direction(&params);
+                let (direction, account_id) = balances.retained_earnings_direction(parent_ids);
 
                 assert_eq!(direction, DebitOrCredit::Credit);
                 assert_eq!(account_id, gain_id);
@@ -536,12 +558,16 @@ mod tests {
             fn returns_loss_account_with_debit_for_negative_contributions() {
                 // Revenue < (cost_of_revenue + expenses) => negative net income (loss)
                 let balances = balances_with(dec!(100), dec!(300), dec!(200));
-                let params @ ClosingTxParams {
-                    equity_retained_losses_account_set_id: loss_id,
+                let ClosingTxParentIdsAndDetails {
+                    retained_earnings_parent_ids:
+                        parent_ids @ RetainedEarningsAccountSetIds {
+                            equity_retained_losses: loss_id,
+                            ..
+                        },
                     ..
                 } = dummy_params();
 
-                let (direction, account_id) = balances.retained_earnings_direction(&params);
+                let (direction, account_id) = balances.retained_earnings_direction(parent_ids);
 
                 assert_eq!(direction, DebitOrCredit::Debit);
                 assert_eq!(account_id, loss_id);

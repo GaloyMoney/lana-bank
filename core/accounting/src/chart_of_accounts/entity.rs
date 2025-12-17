@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use es_entity::*;
 
 use super::chart_node::*;
-use crate::{chart_of_accounts::ledger::ClosingTxParams, primitives::*};
+use crate::{chart_of_accounts::ledger::ClosingTxParentIdsAndDetails, primitives::*};
 
 use super::{error::*, tree};
 
@@ -318,8 +318,8 @@ impl Chart {
         &mut self,
         account_codes: ClosingAccountCodes,
         tx_details: ClosingTxDetails,
-    ) -> Result<Idempotent<ClosingTxParams>, ChartOfAccountsError> {
-        let closing_tx_params = ClosingTxParams::new(
+    ) -> Result<Idempotent<ClosingTxParentIdsAndDetails>, ChartOfAccountsError> {
+        let closing_tx_params = ClosingTxParentIdsAndDetails::new(
             self.closing_account_set_ids_from_codes(account_codes)?,
             tx_details,
         );

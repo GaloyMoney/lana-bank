@@ -13,7 +13,7 @@ use cala_ledger::{
     },
     velocity::{NewBalanceLimit, NewLimit, NewVelocityControl, NewVelocityLimit, Params},
 };
-use chrono::NaiveDate;
+
 use es_entity::{PaginatedQueryArgs, PaginatedQueryRet};
 
 use tracing::instrument;
@@ -24,7 +24,7 @@ use closing_metadata::*;
 use error::*;
 use template::*;
 
-use crate::Chart;
+use crate::{Chart, ClosingTxDetails};
 
 #[derive(Clone)]
 pub struct ChartLedger {
@@ -332,15 +332,16 @@ impl ChartLedger {
     pub async fn post_closing_transaction(
         &self,
         op: es_entity::DbOp<'_>,
-        params: ClosingTxParams,
+        ClosingTxParentIdsAndDetails {
+            net_income_parent_ids,
+            retained_earnings_parent_ids,
+            tx_details,
+        }: ClosingTxParentIdsAndDetails,
     ) -> Result<(), ChartLedgerError> {
         let balances = self
             .find_all_profit_and_loss_statement_effective_balances(
-                params.revenue_account_set_id,
-                params.cost_of_revenue_account_set_id,
-                params.expenses_account_set_id,
-                params.effective_balances_from,
-                params.effective_balances_until,
+                net_income_parent_ids,
+                &tx_details,
             )
             .await?;
 
@@ -348,41 +349,57 @@ impl ChartLedger {
             .cala
             .ledger_operation_from_db_op(op.with_db_time().await?);
 
-        let net_income_recipient_account =
-            if let Some(details) = balances.retained_earnings_new_account(&params) {
-                Some(self.create_child_account_in_op(&mut op, details).await?)
-            } else {
-                None
-            };
+        let net_income_recipient_account = if let Some(retained_earnings_details) = balances
+            .retained_earnings_new_account(
+                tx_details.retained_earnings_account_name(),
+                retained_earnings_parent_ids,
+            ) {
+            Some(
+                self.create_child_account_in_op(&mut op, retained_earnings_details)
+                    .await?,
+            )
+        } else {
+            None
+        };
+
+        let ClosingTxDetails {
+            tx_id,
+            effective_balances_until,
+            description,
+            ..
+        } = tx_details;
 
         let closing_transaction_params = ClosingTransactionParams::new(
             self.journal_id,
-            params.description.clone(),
-            params.effective_balances_until,
+            description,
+            effective_balances_until,
             balances.entries_params(net_income_recipient_account),
         );
         let template_code = self
             .find_or_create_template(&mut op, &closing_transaction_params)
             .await?;
+
         self.cala
-            .post_transaction_in_op(
-                &mut op,
-                params.tx_id,
-                &template_code,
-                closing_transaction_params,
-            )
+            .post_transaction_in_op(&mut op, tx_id, &template_code, closing_transaction_params)
             .await?;
+
         op.commit().await?;
+
         Ok(())
     }
 
     async fn find_all_profit_and_loss_statement_effective_balances(
         &self,
-        revenue_account_set_id: AccountSetId,
-        cost_of_revenue_account_set_id: AccountSetId,
-        expenses_account_set_id: AccountSetId,
-        from: NaiveDate,
-        until: NaiveDate,
+        NetIncomeAccountSetIds {
+            revenue: revenue_account_set_id,
+            cost_of_revenue: cost_of_revenue_account_set_id,
+            expenses: expenses_account_set_id,
+        }: NetIncomeAccountSetIds,
+        ClosingTxDetails {
+            effective_balances_from: from,
+            effective_balances_until: until,
+            ..
+        }: &ClosingTxDetails,
     ) -> Result<ClosingProfitAndLossAccountBalances, ChartLedgerError> {
         let revenue_accounts = self
             .find_all_accounts_by_parent_set_id(revenue_account_set_id)
@@ -397,19 +414,19 @@ impl ChartLedger {
             .cala
             .balances()
             .effective()
-            .find_all_in_range(&revenue_accounts, from, Some(until))
+            .find_all_in_range(&revenue_accounts, *from, Some(*until))
             .await?;
         let cost_of_revenue_account_balances = self
             .cala
             .balances()
             .effective()
-            .find_all_in_range(&cost_of_revenue_accounts, from, Some(until))
+            .find_all_in_range(&cost_of_revenue_accounts, *from, Some(*until))
             .await?;
         let expenses_account_balances = self
             .cala
             .balances()
             .effective()
-            .find_all_in_range(&expense_accounts, from, Some(until))
+            .find_all_in_range(&expense_accounts, *from, Some(*until))
             .await?;
         Ok(ClosingProfitAndLossAccountBalances {
             revenue: revenue_account_balances.into(),
