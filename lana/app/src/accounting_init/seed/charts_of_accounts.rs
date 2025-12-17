@@ -77,8 +77,7 @@ async fn seed_chart_of_accounts(
 
         credit_config_path,
         deposit_config_path,
-        balance_sheet_config_path,
-        profit_and_loss_config_path,
+        fiscal_year_config_path,
 
         chart_of_accounts_opening_date: _,
     } = accounting_init_config;
@@ -119,7 +118,7 @@ async fn seed_chart_of_accounts(
             });
     }
 
-    if let Some(config_path) = balance_sheet_config_path {
+    if let Some(config_path) = fiscal_year_config_path.clone() {
         balance_sheet_module_configure(balance_sheet, &chart, config_path)
             .await
             .unwrap_or_else(|e| {
@@ -127,7 +126,7 @@ async fn seed_chart_of_accounts(
             });
     }
 
-    if let Some(config_path) = profit_and_loss_config_path {
+    if let Some(config_path) = fiscal_year_config_path {
         profit_and_loss_module_configure(profit_and_loss, &chart, config_path)
             .await
             .unwrap_or_else(|e| {
