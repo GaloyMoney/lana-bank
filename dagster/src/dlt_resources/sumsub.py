@@ -87,11 +87,15 @@ def _get_customers(conn_str: str, since: datetime) -> List[Tuple[str, datetime]]
         with conn.cursor() as cursor:
             cursor.execute(
                 """
-                select customer_id, max(recorded_at) as max_recorded_at
-                from sumsub_callbacks
-                where recorded_at > %s
-                group by customer_id
-                order by max(recorded_at) asc
+                with customers as (
+                    select customer_id, max(recorded_at) as recorded_at
+                    from sumsub_callbacks
+                    where recorded_at > %s
+                    group by customer_id
+                )
+                select customer_id, recorded_at
+                from customers
+                order by recorded_at asc
                 """,
                 (since,),
             )

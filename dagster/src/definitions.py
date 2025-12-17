@@ -130,16 +130,10 @@ definition_builder.add_job_schedule(
 )
 
 
-# Sumsub applicants EL (every 15 minutes)
+# Sumsub applicants EL (runs with postgres EL schedule)
 sumsub_applicants_protoasset = sumsub_protoasset()
 sumsub_applicants_asset = definition_builder.add_asset_from_protoasset(
     sumsub_applicants_protoasset
-)
-sumsub_applicants_job = definition_builder.add_job_from_assets(
-    job_name="sumsub_applicants_el", assets=(sumsub_applicants_asset,)
-)
-definition_builder.add_job_schedule(
-    job=sumsub_applicants_job, cron_expression="*/15 * * * *"
 )
 
 
@@ -156,7 +150,8 @@ for lana_to_dw_el_protoasset in lana_el_protoassets:
     lana_to_dw_el_assets.append(lana_to_dw_el_asset)
 
 lana_to_dw_el_job = definition_builder.add_job_from_assets(
-    job_name="lana_to_dw_el", assets=tuple(lana_to_dw_el_assets)
+    job_name="lana_to_dw_el",
+    assets=tuple(lana_to_dw_el_assets + [sumsub_applicants_asset]),
 )
 definition_builder.add_job_schedule(job=lana_to_dw_el_job, cron_expression="0 0 * * *")
 
