@@ -237,10 +237,14 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "core_accounting.fiscal_year.find_by_year", skip(self))]
-    pub async fn find_by_year(
+    #[instrument(
+        name = "core_accounting.fiscal_year.find_by_chart_id_and_year",
+        skip(self)
+    )]
+    pub async fn find_by_chart_id_and_year(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_id: ChartId,
         year: &str,
     ) -> Result<Option<FiscalYear>, FiscalYearError> {
         self.authz
@@ -251,7 +255,9 @@ where
             )
             .await?;
 
-        self.repo.maybe_find_by_year(year).await
+        self.repo
+            .maybe_find_by_chart_id_and_year(chart_id, year)
+            .await
     }
 
     #[record_error_severity]

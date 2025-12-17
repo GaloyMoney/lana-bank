@@ -841,7 +841,8 @@ impl Query {
         maybe_fetch_one!(
             FiscalYear,
             ctx,
-            app.accounting().fiscal_year().find_by_year(sub, &year)
+            app.accounting()
+                .find_fiscal_year_for_chart_by_year(sub, CHART_REF.0, &year)
         )
     }
 
