@@ -12,7 +12,7 @@ from dlt.sources.helpers import requests
 from google.cloud import bigquery
 from google.oauth2 import service_account
 
-import dagster as dg
+import logging
 
 REQUEST_TIMEOUT = 60
 SUMSUB_API_BASE = "https://api.sumsub.com"
@@ -122,6 +122,7 @@ def applicants(
     bq_dataset: str,
     sumsub_key: str,
     sumsub_secret: str,
+    logger: Optional[Any] = None,
     callbacks_since=dlt.sources.incremental(
         "recorded_at", initial_value=datetime(1970, 1, 1, tzinfo=timezone.utc)
     ),
@@ -133,7 +134,8 @@ def applicants(
     - Do not emit a row on applicant fetch/JSON failure; stop processing to retry on the next run.
     - Metadata/image fetch failures are non-fatal and only affect document_images.
     """
-    logger = dg.get_dagster_logger()
+    if logger is None:
+        logger = logging.getLogger("sumsub_applicants")
     start_ts: datetime = callbacks_since.last_value or datetime(
         1970, 1, 1, tzinfo=timezone.utc
     )

@@ -34,6 +34,7 @@ def sumsub_applicants(
         bq_dataset=dw_bq.get_target_dataset(),
         sumsub_key=sumsub_key,
         sumsub_secret=sumsub_secret,
+        logger=context.log,
     )
 
     load_info = pipe.run(dlt_resource)
