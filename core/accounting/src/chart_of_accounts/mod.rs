@@ -16,9 +16,10 @@ use tracing_macros::record_error_severity;
 
 use cala_ledger::{CalaLedger, account::Account};
 
+use crate::FiscalYearClosingCoaMappingConfig;
 use crate::primitives::{
     AccountCode, AccountIdOrCode, AccountName, AccountSpec, CalaAccountSetId, CalaJournalId,
-    ChartId, ClosingSpec, CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
+    CalaTxId, ChartId, ClosingSpec, CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
 };
 
 #[cfg(feature = "json-schema")]
@@ -303,14 +304,17 @@ where
 
     #[record_error_severity]
     #[instrument(
-        name = "core_accounting.chart_of_accounts.post_closing_transaction",
+        name = "core_accounting.chart_of_accounts.post_fiscal_year_closing_transaction",
         skip(self)
     )]
-    pub async fn post_closing_transaction(
+    pub(crate) async fn post_fiscal_year_closing_transaction(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_id: ChartId,
-        spec: ClosingSpec,
+        mapping: &FiscalYearClosingCoaMappingConfig,
+        description: String,
+        effective_balances_from: chrono::NaiveDate,
+        effective_balances_until: chrono::NaiveDate,
     ) -> Result<(), ChartOfAccountsError> {
         self.authz
             .enforce_permission(
@@ -319,8 +323,24 @@ where
                 CoreAccountingAction::CHART_POST_CLOSING_TRANSACTION,
             )
             .await?;
+
         let mut chart = self.find_by_id(chart_id).await?;
-        if let Idempotent::Executed(closing_tx_params) = chart.post_closing_tx_as_of(spec)? {
+        debug_assert_eq!(mapping.chart_of_accounts_id, chart_id);
+        let closing_spec = ClosingSpec::new(
+            mapping.revenue_code.clone(),
+            mapping.cost_of_revenue_code.clone(),
+            mapping.expenses_code.clone(),
+            mapping.retained_earnings_gain_code.clone(),
+            mapping.retained_earnings_loss_code.clone(),
+            description,
+            CalaTxId::new(),
+            effective_balances_until,
+            effective_balances_from,
+        );
+
+        if let Idempotent::Executed(closing_tx_params) =
+            chart.post_closing_tx_as_of(closing_spec)?
+        {
             let mut op = self.repo.begin_op().await?;
             self.repo.update_in_op(&mut op, &mut chart).await?;
             self.chart_ledger

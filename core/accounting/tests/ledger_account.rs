@@ -27,8 +27,17 @@ async fn ledger_account_ancestors() -> anyhow::Result<()> {
     let storage = Storage::new(&StorageConfig::default());
     let document_storage = DocumentStorage::new(&pool, &storage);
     let jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
+    let domain_configs = domain_config::DomainConfigs::new(&pool);
 
-    let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, document_storage, &jobs);
+    let accounting = CoreAccounting::new(
+        &pool,
+        &authz,
+        &cala,
+        journal_id,
+        document_storage,
+        &jobs,
+        &domain_configs,
+    );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
     accounting
         .chart_of_accounts()
@@ -151,8 +160,17 @@ async fn ledger_account_children() -> anyhow::Result<()> {
     let storage = Storage::new(&StorageConfig::default());
     let document_storage = DocumentStorage::new(&pool, &storage);
     let jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
+    let domain_configs = domain_config::DomainConfigs::new(&pool);
 
-    let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, document_storage, &jobs);
+    let accounting = CoreAccounting::new(
+        &pool,
+        &authz,
+        &cala,
+        journal_id,
+        document_storage,
+        &jobs,
+        &domain_configs,
+    );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
     accounting
         .chart_of_accounts()
@@ -243,8 +261,17 @@ async fn internal_account_contains_coa_account() -> anyhow::Result<()> {
     let storage = Storage::new(&StorageConfig::default());
     let document_storage = DocumentStorage::new(&pool, &storage);
     let jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
+    let domain_configs = domain_config::DomainConfigs::new(&pool);
 
-    let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, document_storage, &jobs);
+    let accounting = CoreAccounting::new(
+        &pool,
+        &authz,
+        &cala,
+        journal_id,
+        document_storage,
+        &jobs,
+        &domain_configs,
+    );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
     accounting
         .chart_of_accounts()

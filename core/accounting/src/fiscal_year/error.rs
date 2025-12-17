@@ -16,6 +16,17 @@ pub enum FiscalYearError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("FiscalYearError - ChartOfAccountsError: {0}")]
     ChartOfAccountsError(#[from] crate::chart_of_accounts::error::ChartOfAccountsError),
+    #[error("FiscalYearError - DomainConfigError: {0}")]
+    DomainConfigError(#[from] domain_config::DomainConfigError),
+    #[error("FiscalYearError - FiscalYearClosingMappingNotConfigured")]
+    FiscalYearClosingMappingNotConfigured,
+    #[error(
+        "FiscalYearError - FiscalYearClosingMappingChartMismatch: config chart is {config_chart_id} but fiscal year chart is {fiscal_year_chart_id}"
+    )]
+    FiscalYearClosingMappingChartMismatch {
+        config_chart_id: ChartId,
+        fiscal_year_chart_id: ChartId,
+    },
     #[error("FiscalYearError - LastMonthNotClosed")]
     LastMonthNotClosed,
     #[error("FiscalYearError - AllMonthsAlreadyClosed")]
@@ -38,6 +49,9 @@ impl ErrorSeverity for FiscalYearError {
             Self::CursorDestructureError(_) => Level::ERROR,
             Self::AuthorizationError(e) => e.severity(),
             Self::ChartOfAccountsError(e) => e.severity(),
+            Self::DomainConfigError(e) => e.severity(),
+            Self::FiscalYearClosingMappingNotConfigured => Level::ERROR,
+            Self::FiscalYearClosingMappingChartMismatch { .. } => Level::ERROR,
             Self::LastMonthNotClosed => Level::ERROR,
             Self::AllMonthsAlreadyClosed => Level::ERROR,
             Self::AlreadyOpened => Level::ERROR,

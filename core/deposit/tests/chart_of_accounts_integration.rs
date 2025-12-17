@@ -61,7 +61,16 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     )
     .await?;
 
-    let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, document_storage, &jobs);
+    let domain_configs = domain_config::DomainConfigs::new(&pool);
+    let accounting = CoreAccounting::new(
+        &pool,
+        &authz,
+        &cala,
+        journal_id,
+        document_storage,
+        &jobs,
+        &domain_configs,
+    );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
     let chart_id = accounting
         .chart_of_accounts()

@@ -124,6 +124,7 @@ impl LanaApp {
             journal_init.journal_id,
             documents.clone(),
             &jobs,
+            &domain_configs,
         );
 
         StatementsInit::statements(&accounting).await?;

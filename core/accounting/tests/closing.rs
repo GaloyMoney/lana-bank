@@ -15,7 +15,7 @@ use cala_ledger::{
     account::NewAccount,
 };
 use core_accounting::{
-    AccountCode, AccountIdOrCode, CalaTxId, Chart, ClosingSpec, CoreAccounting, LedgerAccountId,
+    AccountIdOrCode, Chart, CoreAccounting, FiscalYearClosingCoaMappingConfig, LedgerAccountId,
     ManualEntryInput, fiscal_year::FiscalYear,
 };
 
@@ -56,25 +56,7 @@ async fn post_closing_tx_with_gain() -> Result<()> {
     assert!(test.children(RETAINED_EARNINGS_LOSS).await?.is_empty());
     assert_eq!(test.balance(RETAINED_EARNINGS_LOSS).await?, Decimal::ZERO);
 
-    let ledger_tx_id = CalaTxId::new();
-    let effective_balances_from = test.fiscal_year.opened_as_of;
-    let effective_balances_as_of = test.fiscal_year.closes_as_of();
-    let closing_spec = ClosingSpec::new(
-        REVENUES.parse::<AccountCode>().unwrap(),
-        COSTS.parse::<AccountCode>().unwrap(),
-        EXPENSES.parse::<AccountCode>().unwrap(),
-        RETAINED_EARNINGS_GAIN.parse::<AccountCode>().unwrap(),
-        RETAINED_EARNINGS_LOSS.parse::<AccountCode>().unwrap(),
-        test.fiscal_year.reference.clone(),
-        ledger_tx_id,
-        effective_balances_as_of,
-        effective_balances_from,
-    );
-
-    test.accounting
-        .chart_of_accounts()
-        .post_closing_transaction(&DummySubject, test.chart.id, closing_spec)
-        .await?;
+    test.close_fiscal_year().await;
 
     assert!(test.children(RETAINED_EARNINGS_LOSS).await?.is_empty());
     assert_eq!(test.balance(RETAINED_EARNINGS_LOSS).await?, Decimal::ZERO);
@@ -127,25 +109,7 @@ async fn post_closing_tx_with_loss() -> Result<()> {
     assert!(test.children(RETAINED_EARNINGS_LOSS).await?.is_empty());
     assert_eq!(test.balance(RETAINED_EARNINGS_LOSS).await?, Decimal::ZERO);
 
-    let ledger_tx_id = CalaTxId::new();
-    let effective_balances_from = test.fiscal_year.opened_as_of;
-    let effective_balances_as_of = test.fiscal_year.closes_as_of();
-    let closing_spec = ClosingSpec::new(
-        REVENUES.parse::<AccountCode>().unwrap(),
-        COSTS.parse::<AccountCode>().unwrap(),
-        EXPENSES.parse::<AccountCode>().unwrap(),
-        RETAINED_EARNINGS_GAIN.parse::<AccountCode>().unwrap(),
-        RETAINED_EARNINGS_LOSS.parse::<AccountCode>().unwrap(),
-        test.fiscal_year.reference.clone(),
-        ledger_tx_id,
-        effective_balances_as_of,
-        effective_balances_from,
-    );
-
-    test.accounting
-        .chart_of_accounts()
-        .post_closing_transaction(&DummySubject, test.chart.id, closing_spec)
-        .await?;
+    test.close_fiscal_year().await;
     assert!(test.children(RETAINED_EARNINGS_GAIN).await?.is_empty());
     assert_eq!(test.balance(RETAINED_EARNINGS_GAIN).await?, Decimal::ZERO);
 
@@ -181,8 +145,17 @@ async fn setup_test() -> anyhow::Result<Test> {
     let storage = Storage::new(&StorageConfig::default());
     let document_storage = DocumentStorage::new(&pool, &storage);
     let jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
+    let domain_configs = domain_config::DomainConfigs::new(&pool);
 
-    let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, document_storage, &jobs);
+    let accounting = CoreAccounting::new(
+        &pool,
+        &authz,
+        &cala,
+        journal_id,
+        document_storage,
+        &jobs,
+        &domain_configs,
+    );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
     let chart = accounting
         .chart_of_accounts()
@@ -281,6 +254,19 @@ async fn setup_test() -> anyhow::Result<Test> {
         .chart_of_accounts()
         .import_from_csv(&DummySubject, &chart.reference, import)
         .await?;
+
+    let closing_mapping = FiscalYearClosingCoaMappingConfig {
+        chart_of_accounts_id: chart.id,
+        revenue_code: REVENUES.parse().unwrap(),
+        cost_of_revenue_code: COSTS.parse().unwrap(),
+        expenses_code: EXPENSES.parse().unwrap(),
+        retained_earnings_gain_code: RETAINED_EARNINGS_GAIN.parse().unwrap(),
+        retained_earnings_loss_code: RETAINED_EARNINGS_LOSS.parse().unwrap(),
+    };
+    domain_configs
+        .upsert(closing_mapping)
+        .await
+        .expect("Failed to store fiscal year closing mapping config");
 
     let opened_as_of = "2021-01-01".parse::<NaiveDate>().unwrap();
     let fiscal_year = accounting
@@ -417,5 +403,26 @@ impl Test {
             .and_then(|r| r.close)
             .map(|b| b.settled())
             .unwrap_or(Decimal::ZERO))
+    }
+
+    pub async fn close_fiscal_year(&mut self) {
+        self.close_remaining_months().await;
+        self.fiscal_year = self
+            .accounting
+            .fiscal_year()
+            .close(&DummySubject, self.fiscal_year.id)
+            .await
+            .unwrap();
+    }
+
+    async fn close_remaining_months(&mut self) {
+        while !self.fiscal_year.is_last_month_of_year_closed() {
+            self.fiscal_year = self
+                .accounting
+                .fiscal_year()
+                .close_month(&DummySubject, self.fiscal_year.id)
+                .await
+                .unwrap();
+        }
     }
 }

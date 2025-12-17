@@ -62,6 +62,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     .await?;
 
     let accounting_document_storage = DocumentStorage::new(&pool, &storage);
+    let domain_configs = domain_config::DomainConfigs::new(&pool);
     let accounting = CoreAccounting::new(
         &pool,
         &authz,
@@ -69,6 +70,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         journal_id,
         accounting_document_storage,
         &jobs,
+        &domain_configs,
     );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
     let chart_id = accounting

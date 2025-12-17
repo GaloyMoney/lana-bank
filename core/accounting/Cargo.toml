@@ -15,6 +15,7 @@ core-money = { workspace = true }
 document-storage = { workspace = true }
 job = { workspace = true }
 cloud-storage = { workspace = true }
+domain-config = { workspace = true }
 
 cala-ledger = { workspace = true }
 es-entity = { workspace = true, features = ["graphql"] }

@@ -50,6 +50,7 @@ workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 [dev-dependencies]
 authz = { workspace = true, features = ["test-dummy"] }
 document-storage = { workspace = true }
+domain-config = { workspace = true }
 
 tokio = { workspace = true }
 anyhow = { workspace = true }
