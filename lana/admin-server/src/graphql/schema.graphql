@@ -1337,6 +1337,7 @@ type FiscalYear {
 	monthClosures: [FiscalMonthClosure!]!
 	isLastMonthOfYearClosed: Boolean!
 	nextMonthToClose: Date
+	year: String!
 }
 
 input FiscalYearCloseInput {

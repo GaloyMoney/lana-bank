@@ -1344,6 +1344,7 @@ export type FiscalYear = {
   nextMonthToClose?: Maybe<Scalars['Date']['output']>;
   openedAsOf: Scalars['Date']['output'];
   reference: Scalars['String']['output'];
+  year: Scalars['String']['output'];
 };
 
 export type FiscalYearCloseInput = {

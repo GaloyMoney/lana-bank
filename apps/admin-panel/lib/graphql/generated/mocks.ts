@@ -1735,6 +1735,7 @@ export const mockFiscalYear = (overrides?: Partial<FiscalYear>, _relationshipsTo
         nextMonthToClose: overrides && overrides.hasOwnProperty('nextMonthToClose') ? overrides.nextMonthToClose! : faker.date.past({ years: 1, refDate: new Date(2022, 0) }).toISOString(),
         openedAsOf: overrides && overrides.hasOwnProperty('openedAsOf') ? overrides.openedAsOf! : faker.date.past({ years: 1, refDate: new Date(2022, 0) }).toISOString(),
         reference: overrides && overrides.hasOwnProperty('reference') ? overrides.reference! : generateMockValue.reference(),
+        year: overrides && overrides.hasOwnProperty('year') ? overrides.year! : faker.lorem.word(),
     };
 };
 

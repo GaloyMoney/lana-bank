@@ -51,6 +51,10 @@ impl FiscalYear {
     pub async fn next_month_to_close(&self) -> Option<Date> {
         self.entity.next_month_to_close().map(|date| date.into())
     }
+
+    pub async fn year(&self) -> String {
+        self.entity.year()
+    }
 }
 
 #[derive(SimpleObject, Clone)]
