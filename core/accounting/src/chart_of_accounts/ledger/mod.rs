@@ -502,19 +502,14 @@ impl ChartLedger {
         op: &mut LedgerOperation<'_>,
         params: &ClosingTransactionParams,
     ) -> Result<String, TxTemplateError> {
-        let period_designation = &params.description;
         let n_entries = params.entries_params.len();
-
-        let code = &format!("CLOSING_TRANSACTION_{}", period_designation);
+        let code = params.template_code();
 
         let mut entries = vec![];
         for i in 0..n_entries {
             entries.push(
                 NewTxTemplateEntry::builder()
-                    .entry_type(format!(
-                        "'CLOSING_TRANSACTION_{}_ENTRY_{}'",
-                        period_designation, i
-                    ))
+                    .entry_type(params.tx_entry_type(i))
                     .account_id(format!("params.{}", EntryParams::account_id_param_name(i)))
                     .units(format!("params.{}", EntryParams::amount_param_name(i)))
                     .currency(format!("params.{}", EntryParams::currency_param_name(i)))
@@ -535,7 +530,7 @@ impl ChartLedger {
         let params = ClosingTransactionParams::defs(n_entries);
         let new_template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
-            .code(code)
+            .code(&code)
             .transaction(tx_input)
             .entries(entries)
             .params(params)
@@ -551,7 +546,7 @@ impl ChartLedger {
             .create_in_op(op, new_template)
             .await
         {
-            Err(TxTemplateError::DuplicateCode) => Ok(code.to_string()),
+            Err(TxTemplateError::DuplicateCode) => Ok(code),
             Err(e) => Err(e),
             Ok(template) => Ok(template.into_values().code),
         }
