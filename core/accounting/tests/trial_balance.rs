@@ -26,8 +26,17 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
     let storage = Storage::new(&StorageConfig::default());
     let document_storage = DocumentStorage::new(&pool, &storage);
     let jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
+    let domain_configs = domain_config::DomainConfigs::new(&pool);
 
-    let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, document_storage, &jobs);
+    let accounting = CoreAccounting::new(
+        &pool,
+        &authz,
+        &cala,
+        journal_id,
+        document_storage,
+        &jobs,
+        &domain_configs,
+    );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
     let chart_id = accounting
         .chart_of_accounts()

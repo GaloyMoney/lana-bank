@@ -1,6 +1,9 @@
+mod config;
 mod entity;
 pub mod error;
 mod repo;
+
+pub use config::FiscalYearClosingCoaMappingConfig;
 
 use chrono::NaiveDate;
 use tracing::instrument;
@@ -15,6 +18,8 @@ use crate::{
     chart_of_accounts::ChartOfAccounts,
     primitives::{ChartId, CoreAccountingAction, CoreAccountingObject},
 };
+use config::FiscalYearClosingConfigService;
+use domain_config::DomainConfigs;
 
 #[cfg(feature = "json-schema")]
 pub use entity::FiscalYearEvent;
@@ -30,6 +35,7 @@ where
     repo: FiscalYearRepo,
     authz: Perms,
     chart_of_accounts: ChartOfAccounts<Perms>,
+    closing_config: FiscalYearClosingConfigService,
 }
 
 impl<Perms> Clone for FiscalYears<Perms>
@@ -41,6 +47,7 @@ where
             repo: self.repo.clone(),
             authz: self.authz.clone(),
             chart_of_accounts: self.chart_of_accounts.clone(),
+            closing_config: self.closing_config.clone(),
         }
     }
 }
@@ -55,19 +62,18 @@ where
         pool: &sqlx::PgPool,
         authz: &Perms,
         chart_of_accounts: &ChartOfAccounts<Perms>,
+        domain_configs: &DomainConfigs,
     ) -> Self {
         Self {
             repo: FiscalYearRepo::new(pool),
             authz: authz.clone(),
             chart_of_accounts: chart_of_accounts.clone(),
+            closing_config: FiscalYearClosingConfigService::new(domain_configs),
         }
     }
 
     #[record_error_severity]
-    #[instrument(
-        name = "core_accounting.fiscal_year.init_for_chart"
-        skip(self),
-    )]
+    #[instrument(name = "core_accounting.fiscal_year.init_for_chart", skip(self))]
     pub async fn init_for_chart(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -154,10 +160,22 @@ where
         let now = crate::time::now();
 
         match fiscal_year.close(now)? {
-            Idempotent::Executed(_) => {
+            Idempotent::Executed(closed_as_of) => {
+                let mapping_config = self.closing_config.load(fiscal_year.chart_id).await?;
+
+                self.chart_of_accounts
+                    .post_fiscal_year_closing_transaction(
+                        sub,
+                        fiscal_year.chart_id,
+                        &mapping_config,
+                        fiscal_year.reference.clone(),
+                        fiscal_year.opened_as_of,
+                        closed_as_of,
+                    )
+                    .await?;
+
                 let mut op = self.repo.begin_op().await?;
                 self.repo.update_in_op(&mut op, &mut fiscal_year).await?;
-                // TODO: Operate on ledger via `chart_of_accounts`.
                 op.commit().await?;
                 Ok(fiscal_year)
             }

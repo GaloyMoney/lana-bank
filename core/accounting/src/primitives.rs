@@ -384,7 +384,7 @@ impl AccountSpec {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
-pub struct ClosingSpec {
+pub(crate) struct ClosingSpec {
     pub revenue_code: AccountCode,
     pub cost_of_revenue_code: AccountCode,
     pub expenses_code: AccountCode,
