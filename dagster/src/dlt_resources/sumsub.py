@@ -90,7 +90,7 @@ def _get_customers(conn_str: str, since: datetime) -> List[Tuple[str, datetime]]
                 with customers as (
                     select customer_id, max(recorded_at) as recorded_at
                     from sumsub_callbacks
-                    where recorded_at > %s
+                    where recorded_at >= %s
                     group by customer_id
                 )
                 select customer_id, recorded_at
