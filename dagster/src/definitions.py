@@ -136,6 +136,24 @@ sumsub_applicants_asset = definition_builder.add_asset_from_protoasset(
     sumsub_applicants_protoasset
 )
 
+sumsub_applicants_job = definition_builder.add_job_from_assets(
+    job_name="sumsub_applicants",
+    assets=(sumsub_applicants_asset,),
+)
+
+definition_builder.add_sensor(
+    dg.AssetSensorDefinition(
+        name="run_sumsub_applicants_on_callbacks",
+        asset_key=dg.AssetKey(["lana", "sumsub_callbacks"]),
+        job=sumsub_applicants_job,
+        default_status=(
+            dg.DefaultSensorStatus.RUNNING
+            if DAGSTER_AUTOMATIONS_ACTIVE
+            else dg.DefaultSensorStatus.STOPPED
+        ),
+    )
+)
+
 
 for lana_source_protoasset in lana_source_protoassets():
     definition_builder.add_asset_from_protoasset(lana_source_protoasset)
@@ -151,7 +169,7 @@ for lana_to_dw_el_protoasset in lana_el_protoassets:
 
 lana_to_dw_el_job = definition_builder.add_job_from_assets(
     job_name="lana_to_dw_el",
-    assets=tuple(lana_to_dw_el_assets + [sumsub_applicants_asset]),
+    assets=tuple(lana_to_dw_el_assets),
 )
 definition_builder.add_job_schedule(job=lana_to_dw_el_job, cron_expression="0 0 * * *")
 
