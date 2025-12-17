@@ -2080,7 +2080,7 @@
     "closeYear": {
       "title": "Close Fiscal Year",
       "description": "This will post a closing transaction, transferring net income for the fiscal year to the balance sheet. The action will reduce your profit and loss statement accounts by their effective balance as of the fiscal year close date.",
-      "warning": "This action is irreversible. Once a fiscal year is closed, it cannot be reopened.",
+      "warning": "This action is irreversible. Revenue, Cost of Revenue, and Expense accounts will be reset for the next fiscal year. Once a fiscal year is closed, it cannot be reopened.",
       "closingYear": "Closing fiscal year",
       "confirmationLabel": "Type <mono>{text}</mono> to confirm",
       "placeholder": "Enter confirmation text",
