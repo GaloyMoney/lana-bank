@@ -279,7 +279,7 @@ impl FiscalYearReference {
     pub(super) fn try_new(chart_id: ChartId, year: &str) -> Result<Self, FiscalYearError> {
         Self::validate_year(year)?;
 
-        Ok(Self(format!("{}:AC{}", chart_id, year)))
+        Ok(Self(format!("{}:FY{}", chart_id, year)))
     }
 
     fn validate_year(year: &str) -> Result<(), FiscalYearError> {
