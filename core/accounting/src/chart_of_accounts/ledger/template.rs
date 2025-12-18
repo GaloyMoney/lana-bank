@@ -1,6 +1,7 @@
 use chrono::NaiveDate;
 use derive_builder::Builder;
 use rust_decimal::Decimal;
+use serde::{Deserialize, Serialize};
 
 use cala_ledger::{
     AccountId as CalaAccountId, Currency, JournalId,
@@ -80,6 +81,19 @@ impl EntryParams {
     }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub(super) struct ClosingTransactionMetadata {
+    is_closing_tx: bool,
+}
+
+impl ClosingTransactionMetadata {
+    pub fn new() -> Self {
+        Self {
+            is_closing_tx: true,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub(super) struct ClosingTransactionParams {
     pub(super) journal_id: JournalId,
@@ -91,9 +105,12 @@ pub(super) struct ClosingTransactionParams {
 impl From<ClosingTransactionParams> for Params {
     fn from(input_params: ClosingTransactionParams) -> Self {
         let mut params = Self::default();
+        let closing_metadata = serde_json::to_value(ClosingTransactionMetadata::new())
+            .expect("Failed to serialize closing metadata");
         params.insert("journal_id", input_params.journal_id);
         params.insert("description", input_params.description);
         params.insert("effective", input_params.effective);
+        params.insert("meta", closing_metadata);
 
         for (n, entry) in input_params.entries_params.into_iter().enumerate() {
             entry.populate_params(&mut params, n);
@@ -133,6 +150,11 @@ impl ClosingTransactionParams {
             NewParamDefinition::builder()
                 .name("effective")
                 .r#type(ParamDataType::Date)
+                .build()
+                .unwrap(),
+            NewParamDefinition::builder()
+                .name("meta")
+                .r#type(ParamDataType::Json)
                 .build()
                 .unwrap(),
         ];

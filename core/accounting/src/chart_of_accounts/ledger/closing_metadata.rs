@@ -40,11 +40,18 @@ impl AccountingClosingMetadata {
     fn period_cel_conditions(period: &str) -> String {
         format!(
             r#"
-            !has({path}) ||
-            !has({path}.{key}) ||
-            !has({path}.{key}.{period}) ||
-            !has({path}.{key}.{period}.{closing_date_key}) ||
-            date({path}.{key}.{period}.{closing_date_key}) >= context.vars.transaction.effective
+            (
+             !has(context.vars.transaction.metadata) ||
+             !has(context.vars.transaction.metadata.is_closing_tx) ||
+             !context.vars.transaction.metadata.is_closing_tx
+            ) &&
+            (
+             !has({path}) ||
+             !has({path}.{key}) ||
+             !has({path}.{key}.{period}) ||
+             !has({path}.{key}.{period}.{closing_date_key}) ||
+             date({path}.{key}.{period}.{closing_date_key}) >= context.vars.transaction.effective
+            )
         "#,
             path = Self::METADATA_PATH,
             key = Self::METADATA_KEY,
