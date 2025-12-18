@@ -167,6 +167,60 @@ where
                     .send_obligation_overdue_notification(op, id, credit_facility_id, amount)
                     .await?;
             }
+            Some(LanaEvent::Credit(
+                credit_event @ CoreCreditEvent::PartialLiquidationInitiated {
+                    credit_facility_id,
+                    customer_id,
+                    trigger_price,
+                    initially_expected_to_receive,
+                    initially_estimated_to_liquidate,
+                    ..
+                },
+            )) => {
+                message.inject_trace_parent();
+                Span::current().record("handled", true);
+                Span::current().record("event_type", credit_event.as_ref());
+
+                self.email_notification
+                    .send_partial_liquidation_initiated_notification(
+                        op,
+                        credit_facility_id,
+                        customer_id,
+                        trigger_price,
+                        initially_estimated_to_liquidate,
+                        initially_expected_to_receive,
+                    )
+                    .await?;
+            }
+            Some(LanaEvent::Credit(
+                credit_event @ CoreCreditEvent::FacilityCollateralizationChanged {
+                    id,
+                    customer_id,
+                    state: core_credit::CollateralizationState::UnderMarginCallThreshold,
+                    effective,
+                    collateral,
+                    outstanding,
+                    price,
+                    ..
+                },
+            )) => {
+                message.inject_trace_parent();
+                Span::current().record("handled", true);
+                Span::current().record("event_type", credit_event.as_ref());
+
+                self.email_notification
+                    .send_under_margin_call_notification(
+                        op,
+                        id,
+                        customer_id,
+                        effective,
+                        collateral,
+                        &outstanding.disbursed,
+                        &outstanding.interest,
+                        price,
+                    )
+                    .await?;
+            }
             Some(LanaEvent::Deposit(
                 deposit_event @ CoreDepositEvent::DepositAccountCreated {
                     id,

@@ -187,6 +187,7 @@ where
                 trigger_price,
                 initially_expected_to_receive,
                 initially_estimated_to_liquidate,
+                ..
             },
         ) = message.as_event()
         {

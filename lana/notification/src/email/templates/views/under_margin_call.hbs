@@ -1,0 +1,24 @@
+{{#> base}}
+<tr>
+    <td align="left" style="background-color: #fff; padding: 20px">
+    <h2 style="margin-top: 0; margin-bottom: 20px; font-size: 20px">
+        {{subject}}
+    </h2>
+    <p style="margin-top: 0; margin-bottom: 20px; font-size: 16px; line-height: 1.5; text-align: left;">
+        The margin call threshold has been breached for the following credit facility:
+    </p>
+    <ul style="margin-top: 0; margin-bottom: 20px; font-size: 16px; line-height: 1.5; text-align: left;">
+        <li>Facility ID: {{facility_id}}</li>
+        <li>Effective Date: {{effective}}</li>
+        <li>BTC Collateral: {{collateral}}</li>
+        <li>Outstanding (Disbursed): {{outstanding_disbursed}}</li>
+        <li>Outstanding (Interest): {{outstanding_interest}}</li>
+        <li>Total Outstanding: {{total_outstanding}}</li>
+        <li>Reference Price (BTC/USD): {{price}}</li>
+    </ul>
+    <p style="margin-top: 0; margin-bottom: 20px; font-size: 16px; line-height: 1.5; text-align: left;">
+        <strong>Action Required:</strong> To avoid liquidation of your collateral, please take one of the following actions immediately: (1) deposit additional BTC collateral to your facility, or (2) repay part or all of your outstanding loan amount.
+    </p>
+    </td>
+</tr>
+{{/base}}

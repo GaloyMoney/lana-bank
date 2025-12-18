@@ -89,6 +89,7 @@ where
                     ..
                 } => Some(CoreCreditEvent::FacilityCollateralizationChanged {
                     id: entity.id,
+                    customer_id: entity.customer_id,
                     state: *state,
                     recorded_at: event.recorded_at,
                     effective: event.recorded_at.date_naive(),
@@ -105,6 +106,7 @@ where
                 } => Some(CoreCreditEvent::PartialLiquidationInitiated {
                     credit_facility_id: entity.id,
                     liquidation_id: *liquidation_id,
+                    customer_id: entity.customer_id,
                     receivable_account_id: *receivable_account_id,
                     trigger_price: *trigger_price,
                     initially_expected_to_receive: *initially_expected_to_receive,
