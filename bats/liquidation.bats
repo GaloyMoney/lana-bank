@@ -190,3 +190,42 @@ wait_for_facility_to_be_under_liquidation_threshold() {
   last_sent_amount=$(graphql_output '.data.liquidationRecordCollateralSent.liquidation.sentCollateral[-1].amount')
   [[ "$last_sent_amount" -eq "$collateral_to_send" ]] || exit 1
 }
+
+@test "liquidation: can record payment received from liquidation" { 
+  liquidation_id=$(read_value 'liquidation_id')
+  
+  variables=$(
+    jq -n \
+      --arg id "$liquidation_id" \
+    '{ id: $id }'
+  )
+  exec_admin_graphql 'find-liquidation' "$variables"
+  before_received_total=$(graphql_output '.data.liquidation.receivedTotal')
+  before_received_len=$(graphql_output '.data.liquidation.receivedPayment | length')
+
+  payment=10000000
+  variables=$(
+    jq -n \
+      --arg liquidationId "$liquidation_id" \
+      --argjson amount "$payment" \
+    '{
+      input: {
+        liquidationId: $liquidationId,
+        amount: $amount
+      }
+    }'
+  )
+  exec_admin_graphql 'liquidation-record-payment-received' "$variables"
+
+  returned_id=$(graphql_output '.data.liquidationRecordPaymentReceived.liquidation.liquidationId')
+  [[ "$returned_id" == "$liquidation_id" ]] || exit 1
+
+  received_total=$(graphql_output '.data.liquidationRecordPaymentReceived.liquidation.receivedTotal')
+  [[ "$received_total" -eq "$((before_received_total + payment))" ]] || exit 1
+
+  received_len=$(graphql_output '.data.liquidationRecordPaymentReceived.liquidation.receivedPayment | length')
+  [[ "$received_len" -eq "$((before_received_len + 1))" ]] || exit 1
+
+  last_received_amount=$(graphql_output '.data.liquidationRecordPaymentReceived.liquidation.receivedPayment[-1].amount')
+  [[ "$last_received_amount" -eq "$payment" ]] || exit 1
+}

@@ -1,0 +1,11 @@
+query liquidation($id: UUID!) {
+  liquidation(id: $id) {
+    liquidationId
+    receivedTotal
+    receivedPayment {
+      amount
+    }
+  }
+}
+
+
