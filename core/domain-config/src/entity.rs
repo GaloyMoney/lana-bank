@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     DomainConfigError, DomainConfigValue,
     primitives::{DomainConfigId, DomainConfigKey},
+    simple::SimpleType,
 };
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -67,6 +68,19 @@ impl DomainConfig {
         };
         Ok(serde_json::from_value(value.clone())?)
     }
+
+    pub(super) fn update_simple_value(&mut self, new_value: serde_json::Value) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            DomainConfigEvent::Updated { value } if value == &new_value,
+            => DomainConfigEvent::Updated { .. }
+        );
+
+        self.events
+            .push(DomainConfigEvent::Updated { value: new_value });
+
+        Idempotent::Executed(())
+    }
 }
 
 impl TryFromEvents<DomainConfigEvent> for DomainConfig {
@@ -90,12 +104,18 @@ impl TryFromEvents<DomainConfigEvent> for DomainConfig {
 pub struct NewDomainConfig {
     pub(super) id: DomainConfigId,
     pub(super) key: DomainConfigKey,
+    #[builder(default)]
+    pub(super) simple_type: Option<SimpleType>,
     value: serde_json::Value,
 }
 
 impl NewDomainConfig {
     pub fn builder() -> NewDomainConfigBuilder {
         NewDomainConfigBuilder::default()
+    }
+
+    pub fn simple_type(&self) -> Option<SimpleType> {
+        self.simple_type
     }
 }
 
@@ -109,7 +129,23 @@ impl NewDomainConfigBuilder {
 
         self.id(id);
         self.key(T::KEY);
+        self.simple_type(None);
         self.value(value_json);
+
+        Ok(self)
+    }
+
+    pub fn with_simple_value(
+        mut self,
+        id: DomainConfigId,
+        key: DomainConfigKey,
+        simple_type: SimpleType,
+        value: serde_json::Value,
+    ) -> Result<Self, DomainConfigError> {
+        self.id(id);
+        self.key(key);
+        self.simple_type(Some(simple_type));
+        self.value(value);
 
         Ok(self)
     }
@@ -134,7 +170,9 @@ mod tests {
     use serde::{Deserialize, Serialize};
     use serde_json::json;
 
-    use crate::{DomainConfigError, DomainConfigId, DomainConfigKey, DomainConfigValue};
+    use crate::{
+        DomainConfigError, DomainConfigId, DomainConfigKey, DomainConfigValue, SimpleType,
+    };
 
     use super::{DomainConfig, DomainConfigEvent, NewDomainConfig};
 
@@ -316,5 +354,41 @@ mod tests {
 
         assert_eq!(rehydrated.current_value::<SampleConfig>().unwrap(), second);
         assert_eq!(rehydrated.events.iter_all().count(), 3);
+    }
+
+    #[test]
+    fn builder_sets_simple_type() {
+        let id = DomainConfigId::new();
+        let key = DomainConfigKey::new("simple-bool");
+        let value = json!(true);
+
+        let new = NewDomainConfig::builder()
+            .with_simple_value(id, key.clone(), SimpleType::Bool, value)
+            .unwrap()
+            .build()
+            .unwrap();
+
+        assert_eq!(new.simple_type(), Some(SimpleType::Bool));
+        assert_eq!(new.key, key);
+    }
+
+    #[test]
+    fn update_simple_value_is_idempotent() {
+        let mut config = build_config(
+            DomainConfigId::new(),
+            &SampleConfig {
+                enabled: true,
+                limit: 5,
+            },
+        );
+
+        let new_value = json!(true);
+        assert!(config.update_simple_value(new_value.clone()).did_execute());
+        assert!(config.update_simple_value(new_value.clone()).was_ignored());
+        let last_event = config.events.iter_all().next_back().unwrap();
+        assert!(matches!(
+            last_event,
+            DomainConfigEvent::Updated { value } if value == &new_value
+        ));
     }
 }
