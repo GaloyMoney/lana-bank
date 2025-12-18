@@ -15,6 +15,7 @@ pub enum ConfigKind {
 pub trait ConfigSpec: sealed::Sealed {
     type Value;
     fn kind() -> ConfigKind;
+    fn key(&self) -> DomainConfigKey;
 }
 
 /// Handle for structured domain configs backed by a `DomainConfigValue`.
@@ -41,6 +42,10 @@ impl<T: DomainConfigValue> ConfigSpec for TypedConfig<T> {
     fn kind() -> ConfigKind {
         ConfigKind::Complex
     }
+
+    fn key(&self) -> DomainConfigKey {
+        T::KEY
+    }
 }
 
 impl<T: SimpleScalar> ConfigSpec for SimpleConfig<T> {
@@ -48,6 +53,35 @@ impl<T: SimpleScalar> ConfigSpec for SimpleConfig<T> {
 
     fn kind() -> ConfigKind {
         ConfigKind::Simple(T::SIMPLE_TYPE)
+    }
+
+    fn key(&self) -> DomainConfigKey {
+        DomainConfigKey::new(self.key)
+    }
+}
+
+pub(crate) trait ConfigSpecAdapter: ConfigSpec + Copy {
+    fn as_simple(self) -> Option<SimpleConfig<Self::Value>>;
+    fn as_complex(self) -> Option<TypedConfig<Self::Value>>;
+}
+
+impl<T: SimpleScalar> ConfigSpecAdapter for SimpleConfig<T> {
+    fn as_simple(self) -> Option<SimpleConfig<Self::Value>> {
+        Some(self)
+    }
+
+    fn as_complex(self) -> Option<TypedConfig<Self::Value>> {
+        None
+    }
+}
+
+impl<T: DomainConfigValue> ConfigSpecAdapter for TypedConfig<T> {
+    fn as_simple(self) -> Option<SimpleConfig<Self::Value>> {
+        None
+    }
+
+    fn as_complex(self) -> Option<TypedConfig<Self::Value>> {
+        Some(self)
     }
 }
 
