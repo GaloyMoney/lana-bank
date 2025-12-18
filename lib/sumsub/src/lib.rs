@@ -8,6 +8,7 @@ mod wire;
 #[cfg(feature = "sumsub-testing")]
 pub mod testing_utils;
 
+use chrono::Utc;
 use hmac::{Hmac, Mac};
 use reqwest::{
     Client as ReqwestClient, Url,
@@ -15,7 +16,6 @@ use reqwest::{
 };
 use serde_json::json;
 use sha2::Sha256;
-use std::time::{SystemTime, UNIX_EPOCH};
 
 pub use config::SumsubConfig;
 pub use error::SumsubError;
@@ -320,7 +320,7 @@ impl SumsubClient {
 
         let metadata = Self::create_document_metadata(doc_type, doc_sub_type, country);
 
-        let timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
+        let timestamp = Utc::now().timestamp();
 
         // Manually construct multipart body for signature calculation
         let boundary = format!("----formdata-reqwest-{timestamp}");
@@ -533,7 +533,7 @@ impl SumsubClient {
         url: &str,
         body: Option<&str>,
     ) -> Result<HeaderMap, SumsubError> {
-        let timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
+        let timestamp = Utc::now().timestamp();
         let signature = self.sign(method, url, body, timestamp)?;
 
         let mut headers = HeaderMap::new();
@@ -557,7 +557,7 @@ impl SumsubClient {
         method: &str,
         url: &str,
         body: Option<&str>,
-        timestamp: u64,
+        timestamp: i64,
     ) -> Result<String, SumsubError> {
         type HmacSha256 = Hmac<Sha256>;
         let mut mac = HmacSha256::new_from_slice(self.sumsub_secret.as_bytes())

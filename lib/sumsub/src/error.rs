@@ -8,8 +8,6 @@ pub enum SumsubError {
     ReqwestError(#[from] reqwest::Error),
     #[error("SumsubError - JSON format error: {0}")]
     JsonFormat(#[from] serde_json::Error),
-    #[error("SumsubError - SystemTimeError: {0}")]
-    SystemTimeError(#[from] std::time::SystemTimeError),
     #[error("SumsubError - InvalidHeaderValue: {0}")]
     InvalidHeaderValue(#[from] reqwest::header::InvalidHeaderValue),
     #[error("SumsubError - API Error: {code}, {description}")]
@@ -23,7 +21,6 @@ impl ErrorSeverity for SumsubError {
         match self {
             Self::ReqwestError(_) => Level::ERROR,
             Self::JsonFormat(_) => Level::ERROR,
-            Self::SystemTimeError(_) => Level::ERROR,
             Self::InvalidHeaderValue(_) => Level::ERROR,
             Self::ApiError { .. } => Level::ERROR,
             Self::InvalidResponse(_) => Level::ERROR,

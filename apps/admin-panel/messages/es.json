@@ -142,6 +142,14 @@
       "label": "Editor de gobernanza",
       "description": "Puede crear y gestionar comités y políticas, y controlar procesos de aprobación (crear, aprobar, denegar, concluir)"
     },
+    "notification_email_config_viewer": {
+      "label": "Visualizador de configuración de correo de notificaciones",
+      "description": "Puede ver la configuración de correo para notificaciones"
+    },
+    "notification_email_config_writer": {
+      "label": "Editor de configuración de correo de notificaciones",
+      "description": "Puede configurar el correo de notificaciones, incluida la identidad del remitente"
+    },
     "custody_viewer": {
       "label": "Visualizador de custodia",
       "description": "Puede ver configuraciones de custodios"
@@ -157,6 +165,19 @@
     "report_writer": {
       "label": "Redactor de informes",
       "description": "Puede iniciar la generación de informes regulatorios"
+    }
+  },
+  "Configurations": {
+    "notificationEmail": {
+      "title": "Correo de notificaciones",
+      "description": "Datos del remitente para todas las notificaciones por correo.",
+      "fromEmail": "Correo del remitente",
+      "fromName": "Nombre del remitente",
+      "reset": "Restablecer",
+      "save": "Guardar",
+      "saveSuccess": "Configuración de correo de notificación actualizada",
+      "saveError": "No se pudo actualizar la configuración de correo de notificación",
+      "saveErrorWithReason": "No se pudo actualizar la configuración de correo de notificación: {error}"
     }
   },
   "interestInterval": {
@@ -183,6 +204,7 @@
       "pendingCreditFacilities": "Líneas de Crédito Pendientes",
       "creditFacilityProposals": "Propuestas de Línea de Crédito",
       "disbursals": "Desembolsos",
+      "liquidations": "Liquidaciones",
       "termTemplates": "Plantillas de Términos",
       "customers": "Clientes",
       "policies": "Políticas",
@@ -204,7 +226,8 @@
       "modules": "Módulos",
       "transactionTemplates": "Plantillas de transacciones",
       "rolesAndPermissions": "Roles y permisos",
-      "custodians": "Custodios"
+      "custodians": "Custodios",
+      "configurations": "Configuraciones"
     },
     "footer": {
       "appName": "Lana Bank",
@@ -780,7 +803,6 @@
           "incrementalPayment": "Pago",
           "disbursalExecuted": "Desembolso",
           "interestAccrued": "Interés acumulado",
-          "liquidationAmountReserved": "Importe de liquidación reservado",
           "pendingFacilityCollateralization": "Actualización de colateralización de línea de crédito pendiente"
         },
         "messages": {
@@ -866,12 +888,31 @@
         "tabs": {
           "history": "Historial",
           "disbursals": "Desembolsos",
+          "liquidations": "Liquidaciones",
           "repaymentPlan": "Plan de Pago",
           "ledgerAccounts": "Cuentas de Libro Mayor"
         },
         "errors": {
           "notFound": "No encontrado",
           "loading": "Cargando..."
+        }
+      },
+      "Liquidations": {
+        "title": "Liquidaciones",
+        "description": "Liquidaciones asociadas con esta línea de crédito",
+        "columns": {
+          "status": "Estado",
+          "expectedToReceive": "Esperado a recibir",
+          "sentTotal": "Total enviado",
+          "receivedTotal": "Total recibido",
+          "createdAt": "Fecha de registro"
+        },
+        "status": {
+          "completed": "Completado",
+          "inProgress": "En progreso"
+        },
+        "messages": {
+          "emptyTable": "No se encontraron liquidaciones"
         }
       },
       "CreditFacilityPartialPayment": {
@@ -1081,6 +1122,97 @@
           "success": "Desembolso iniciado exitosamente",
           "unknownError": "Ocurrió un error desconocido"
         }
+      }
+    }
+  },
+  "Liquidations": {
+    "title": "Liquidaciones",
+    "description": "Liquidaciones en todas las líneas de crédito",
+    "table": {
+      "headers": {
+        "creditFacility": "Línea de Crédito",
+        "status": "Estado",
+        "expectedToReceive": "Esperado a recibir",
+        "sentTotal": "Total enviado",
+        "receivedTotal": "Total recibido",
+        "createdAt": "Fecha de registro"
+      }
+    },
+    "status": {
+      "completed": "Completado",
+      "inProgress": "En progreso"
+    },
+    "errors": {
+      "general": "Ocurrió un error"
+    },
+    "LiquidationDetails": {
+      "DetailsCard": {
+        "title": "Liquidación",
+        "details": {
+          "customerEmail": "Correo Electrónico del Cliente",
+          "status": "Estado",
+          "expectedToReceive": "Esperado a recibir",
+          "sentTotal": "Total enviado",
+          "receivedTotal": "Total recibido",
+          "createdAt": "Fecha de registro"
+        },
+        "buttons": {
+          "recordCollateralSent": "Registrar garantía enviada",
+          "recordPaymentReceived": "Registrar pago recibido",
+          "viewMoreDetails": "Ver más detalles"
+        }
+      },
+      "CollateralSent": {
+        "title": "Garantía enviada",
+        "description": "Garantía enviada durante la liquidación",
+        "columns": {
+          "amount": "Monto",
+          "ledgerTxId": "ID de transacción contable"
+        },
+        "messages": {
+          "emptyTable": "No se ha enviado garantía"
+        }
+      },
+      "PaymentReceived": {
+        "title": "Pago recibido",
+        "description": "Pagos recibidos de la liquidación",
+        "columns": {
+          "amount": "Monto",
+          "ledgerTxId": "ID de partida contable"
+        },
+        "messages": {
+          "emptyTable": "No se han recibido pagos"
+        }
+      },
+      "recordCollateralSent": {
+        "title": "Registrar garantía enviada",
+        "description": "Registre la cantidad de garantía enviada durante la liquidación",
+        "fields": {
+          "amount": "Cantidad",
+          "amountPlaceholder": "Ingrese la cantidad en BTC"
+        },
+        "buttons": {
+          "submit": "Registrar garantía enviada"
+        },
+        "errors": {
+          "invalidAmount": "Por favor ingrese una cantidad válida mayor que 0"
+        },
+        "success": "Garantía enviada registrada exitosamente"
+      },
+      "recordPaymentReceived": {
+        "title": "Registrar pago recibido",
+        "description": "Registre la cantidad de pago recibido de la liquidación",
+        "fields": {
+          "amount": "Cantidad",
+          "amountPlaceholder": "Ingrese la cantidad en USD"
+        },
+        "buttons": {
+          "submit": "Registrar pago recibido"
+        },
+        "errors": {
+          "invalidAmount": "Por favor ingrese una cantidad válida mayor que 0"
+        },
+        "success": "Pago recibido registrado exitosamente"
       }
     }
   },

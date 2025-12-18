@@ -40,6 +40,7 @@ derive_builder = { workspace = true }
 rust_decimal = { workspace = true }
 async-trait = { workspace = true }
 futures = { workspace = true }
+tokio = { workspace = true }
 async-graphql = { workspace = true, optional = true }
 sim-time = { workspace = true, optional = true }
 base64 = { workspace = true }

@@ -1,7 +1,0 @@
-/venv
-/.meltano
-.env
-**/__pycache__/
-
-# This directory is used as a target by target-jsonl, so ignore all files
-output

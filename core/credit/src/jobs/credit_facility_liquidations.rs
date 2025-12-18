@@ -1,40 +1,67 @@
 use async_trait::async_trait;
+use audit::AuditSvc;
+use authz::PermissionCheck;
 use core_custody::CoreCustodyEvent;
 use es_entity::DbOp;
-use futures::{FutureExt as _, StreamExt as _, select};
 use governance::GovernanceEvent;
 use job::*;
+use tokio::select;
+
+use futures::StreamExt as _;
 use outbox::{EventSequence, Outbox, OutboxEventMarker, PersistentOutboxEvent};
 use serde::{Deserialize, Serialize};
 use tracing::{Span, instrument};
 
-use crate::CoreCreditEvent;
 use crate::jobs::partial_liquidation;
 use crate::liquidation::{Liquidations, NewLiquidation};
+use crate::{CoreCreditAction, CoreCreditEvent, CoreCreditObject};
 
 #[derive(Default, Clone, Deserialize, Serialize)]
 struct CreditFacilityLiquidationsJobData {
     sequence: EventSequence,
 }
 
-pub struct CreditFacilityLiquidationsInit<E>
+#[derive(Serialize, Deserialize)]
+pub struct CreditFacilityLiquidationsJobConfig<Perms, E> {
+    pub _phantom: std::marker::PhantomData<(Perms, E)>,
+}
+
+impl<Perms, E> JobConfig for CreditFacilityLiquidationsJobConfig<Perms, E>
 where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
+{
+    type Initializer = CreditFacilityLiquidationsInit<Perms, E>;
+}
+
+pub struct CreditFacilityLiquidationsInit<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
     outbox: Outbox<E>,
     jobs: Jobs,
-    liquidations: Liquidations<E>,
+    liquidations: Liquidations<Perms, E>,
 }
 
-impl<E> CreditFacilityLiquidationsInit<E>
+impl<Perms, E> CreditFacilityLiquidationsInit<Perms, E>
 where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
-    pub fn new(outbox: &Outbox<E>, jobs: &Jobs, liquidations: &Liquidations<E>) -> Self {
+    pub fn new(outbox: &Outbox<E>, jobs: &Jobs, liquidations: &Liquidations<Perms, E>) -> Self {
         Self {
             outbox: outbox.clone(),
             jobs: jobs.clone(),
@@ -45,8 +72,11 @@ where
 
 const CREDIT_FACILITY_LIQUIDATIONS_JOB: JobType =
     JobType::new("outbox.credit-facility-liquidations");
-impl<E> JobInitializer for CreditFacilityLiquidationsInit<E>
+impl<Perms, E> JobInitializer for CreditFacilityLiquidationsInit<Perms, E>
 where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
@@ -59,7 +89,7 @@ where
     }
 
     fn init(&self, _job: &job::Job) -> Result<Box<dyn job::JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(CreditFacilityLiquidationsJobRunner::<E> {
+        Ok(Box::new(CreditFacilityLiquidationsJobRunner::<Perms, E> {
             outbox: self.outbox.clone(),
             jobs: self.jobs.clone(),
             liquidations: self.liquidations.clone(),
@@ -67,20 +97,26 @@ where
     }
 }
 
-pub struct CreditFacilityLiquidationsJobRunner<E>
+pub struct CreditFacilityLiquidationsJobRunner<Perms, E>
 where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
     outbox: Outbox<E>,
     jobs: Jobs,
-    liquidations: Liquidations<E>,
+    liquidations: Liquidations<Perms, E>,
 }
 
 #[async_trait]
-impl<E> JobRunner for CreditFacilityLiquidationsJobRunner<E>
+impl<Perms, E> JobRunner for CreditFacilityLiquidationsJobRunner<Perms, E>
 where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
@@ -97,9 +133,21 @@ where
 
         loop {
             select! {
-                message = stream.next().fuse() => {
+                biased;
+
+                _ = current_job.shutdown_requested() => {
+                    tracing::info!(
+                        job_id = %current_job.id(),
+                        job_type = %CREDIT_FACILITY_LIQUIDATIONS_JOB,
+                        last_sequence = %state.sequence,
+                        "Shutdown signal received"
+                    );
+                    return Ok(JobCompletion::RescheduleNow);
+                }
+                message = stream.next() => {
                     match message {
                         Some(message) => {
+
                             let mut db = self.liquidations.begin_op().await?;
                             self.process_message(&mut db, message.as_ref()).await?;
                             state.sequence = message.sequence;
@@ -111,22 +159,16 @@ where
                         None => return Ok(JobCompletion::RescheduleNow)
                     }
                 }
-                _ = current_job.shutdown_requested().fuse() => {
-                    tracing::info!(
-                        job_id = %current_job.id(),
-                        job_type = %CREDIT_FACILITY_LIQUIDATIONS_JOB,
-                        last_sequence = %state.sequence,
-                        "Shutdown signal received"
-                    );
-                    return Ok(JobCompletion::RescheduleNow);
-                }
             }
         }
     }
 }
 
-impl<E> CreditFacilityLiquidationsJobRunner<E>
+impl<Perms, E> CreditFacilityLiquidationsJobRunner<Perms, E>
 where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
@@ -173,7 +215,7 @@ where
                     .create_and_spawn_in_op(
                         db,
                         JobId::new(),
-                        partial_liquidation::PartialLiquidationJobConfig::<E> {
+                        partial_liquidation::PartialLiquidationJobConfig::<Perms, E> {
                             liquidation_id: liquidation.id,
                             credit_facility_id: *credit_facility_id,
                             _phantom: std::marker::PhantomData,

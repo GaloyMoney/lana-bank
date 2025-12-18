@@ -43,6 +43,7 @@ pub mod notification {
     pub type Notification = notification::Notification<crate::authorization::Authorization>;
     pub type EmailNotification =
         notification::email::EmailNotification<crate::authorization::Authorization>;
+    pub use notification::NotificationEmailConfig;
 }
 
 pub mod rbac {
@@ -171,8 +172,8 @@ pub mod credit {
         CreditFacilityProposal, CreditFacilityProposalId, CreditFacilityProposalsByCreatedAtCursor,
         CreditFacilityRepaymentPlanEntry, CreditFacilityStatus, DISBURSAL_TRANSACTION_ENTITY_TYPE,
         Disbursal, DisbursalExecuted, DisbursalStatus, DisbursalsCursor, DisbursalsFilter,
-        DisbursalsSortBy, IncrementalPayment, InterestAccrualsPosted, ListDirection,
-        ObligationMovedToLiquidation, Payment, PaymentAllocation,
+        DisbursalsSortBy, IncrementalPayment, InterestAccrualsPosted, Liquidation,
+        LiquidationsByIdCursor, LiquidationsCursor, ListDirection, Payment, PaymentAllocation,
         PendingCreditFacilitiesByCreatedAtCursor, PendingCreditFacility,
         PendingCreditFacilityCollateralizationUpdated, PendingCreditFacilityId, RepaymentStatus,
         RepaymentType, Sort, TermsTemplate, error, terms_template_error,

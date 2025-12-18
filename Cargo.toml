@@ -8,9 +8,6 @@ members = [
   "dev/check-dependency-dag",
   "workspace-hack",
 ]
-exclude = [
-  "lib/js",
-]
 
 [workspace.lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(tokio_unstable)'] }
@@ -21,7 +18,6 @@ version = "0.0.0"
 [workspace.dependencies]
 # Internal dependencies
 # Lib dependencies
-airflow = { path = "lib/airflow" }
 audit = { path = "lib/audit" }
 authz = { path = "lib/authz" }
 bitgo = { path = "lib/bitgo" }
@@ -109,7 +105,7 @@ sqlx = { version = "0.8", features = [
   "json",
 ] }
 thiserror = "2.0.17"
-uuid = { version = "1.18", features = ["serde", "v4"] }
+uuid = { version = "1.19", features = ["serde", "v4"] }
 log = "0.4"
 tracing = "0.1.41"
 tracing-opentelemetry = "0.32.0"
@@ -138,7 +134,7 @@ strum = { version = "0.27", features = ["derive"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_yaml = "0.9.32"
 serde_json = "1.0.145"
-serde_with = "3.16.0"
+serde_with = "3.16.1"
 futures = "0.3.29"
 http = "1.4"
 reqwest = { version = "0.12.24", default-features = false, features = ["json", "rustls-tls", "charset", "http2", "macos-system-configuration", "multipart"] }
@@ -176,8 +172,21 @@ markdown2pdf = { version = "0.1.9", features = ["rustls-tls"], default-features 
 bytes = "1.11"
 keycloak = "26.4.0"
 
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+debug = false
+
+[profile.debugging]
+inherits = "dev"
+debug = true
+
 [profile.release]
-lto = true 
+incremental = false
+codegen-units = 64
+opt-level = 0
+lto = "thin"
 
 [workspace.metadata.crane]
 name = "lana-bank"

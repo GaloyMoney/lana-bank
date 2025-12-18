@@ -1,5 +1,6 @@
 use async_trait::async_trait;
-use futures::{FutureExt, StreamExt, select};
+use futures::StreamExt;
+use tokio::select;
 use tracing::{Span, instrument};
 
 use job::*;
@@ -92,7 +93,18 @@ impl JobRunner for DashboardProjectionJobRunner {
 
         loop {
             select! {
-                message = stream.next().fuse() => {
+                biased;
+
+                _ = current_job.shutdown_requested() => {
+                    tracing::info!(
+                        job_id = %current_job.id(),
+                        job_type = %DASHBOARD_PROJECTION_JOB,
+                        last_sequence = %state.sequence,
+                        "Shutdown signal received"
+                    );
+                    return Ok(JobCompletion::RescheduleNow);
+                }
+                message = stream.next() => {
                     match message {
                         Some(message) => {
                             let mut db = self.repo.begin().await?;
@@ -110,15 +122,6 @@ impl JobRunner for DashboardProjectionJobRunner {
                             return Ok(JobCompletion::RescheduleNow);
                         }
                     }
-                }
-                _ = current_job.shutdown_requested().fuse() => {
-                    tracing::info!(
-                        job_id = %current_job.id(),
-                        job_type = %DASHBOARD_PROJECTION_JOB,
-                        last_sequence = %state.sequence,
-                        "Shutdown signal received"
-                    );
-                    return Ok(JobCompletion::RescheduleNow);
                 }
             }
         }

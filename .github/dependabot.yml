@@ -8,18 +8,21 @@ updates:
 - package-ecosystem: "cargo"
   directory: "/"
   schedule:
-    interval: "daily"
+    interval: "weekly"
   cooldown:
     default-days: 7
   groups:
     all-dependencies:
       patterns:
         - "*"
+  ignore:
+    - dependency-name: "tracing"
+    - dependency-name: "tracing-subscriber"
 
 - package-ecosystem: "npm"
   directory: "/"
   schedule:
-    interval: "daily"
+    interval: "weekly"
   cooldown:
     default-days: 7
   groups:

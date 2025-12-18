@@ -12,6 +12,12 @@ query FiscalYears($first: Int!, $after: String) {
             id
             fiscalYearId
             openedAsOf
+            monthClosures {
+                closedAsOf
+                closedAt
+            }
+            isLastMonthOfYearClosed
+            isOpen
         }
         pageInfo {
             hasNextPage

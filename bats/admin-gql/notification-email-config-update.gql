@@ -1,0 +1,8 @@
+mutation NotificationEmailConfigUpdate($input: NotificationEmailConfigInput!) {
+  notificationEmailConfigUpdate(input: $input) {
+    notificationEmailConfig {
+      fromEmail
+      fromName
+    }
+  }
+}

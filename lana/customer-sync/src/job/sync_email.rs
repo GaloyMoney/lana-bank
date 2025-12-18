@@ -1,5 +1,6 @@
 use async_trait::async_trait;
-use futures::{FutureExt, StreamExt, select};
+use futures::StreamExt;
+use tokio::select;
 use tracing::{Span, instrument};
 
 use core_customer::CoreCustomerEvent;
@@ -130,7 +131,18 @@ where
 
         loop {
             select! {
-                message = stream.next().fuse() => {
+                biased;
+
+                _ = current_job.shutdown_requested() => {
+                    tracing::info!(
+                        job_id = %current_job.id(),
+                        job_type = %SYNC_EMAIL_JOB,
+                        last_sequence = %state.sequence,
+                        "Shutdown signal received"
+                    );
+                    return Ok(JobCompletion::RescheduleNow);
+                }
+                message = stream.next() => {
                     match message {
                         Some(message) => {
                             self.process_message(message.as_ref()).await?;
@@ -141,15 +153,6 @@ where
                             return Ok(JobCompletion::RescheduleNow);
                         }
                     }
-                }
-                _ = current_job.shutdown_requested().fuse() => {
-                    tracing::info!(
-                        job_id = %current_job.id(),
-                        job_type = %SYNC_EMAIL_JOB,
-                        last_sequence = %state.sequence,
-                        "Shutdown signal received"
-                    );
-                    return Ok(JobCompletion::RescheduleNow);
                 }
             }
         }

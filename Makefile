@@ -150,47 +150,6 @@ isort --check-only dagster/src || isort_status=$$?; \
 if [[ $$black_status -ne 0 || $$isort_status -ne 0 ]]; then exit 1; fi \
 '
 
-# Meltano
-meltano-bitfinex-run:
-	meltano run tap-bitfinexapi target-bigquery
-
-meltano-sumsub-run:
-	meltano run tap-sumsubapi target-bigquery
-
-meltano-pg2bq-run:
-	meltano run tap-postgres target-bigquery
-
-meltano-pipeline-seed:
-	meltano run dbt-bigquery:seed
-
-meltano-pipeline-run:
-	meltano run dbt-bigquery:run
-
-meltano-pipeline-test:
-	meltano run dbt-bigquery:test
-
-meltano-sqlfluff-lint:
-	cd meltano && meltano invoke sqlfluff:lint
-
-meltano-sqlfluff-fix:
-	cd meltano && meltano invoke sqlfluff:fix
-
-meltano-sqlfluff-install:
-	cd meltano && rm -rf .meltano/utilities/sqlfluff && meltano install utility sqlfluff && .meltano/utilities/sqlfluff/venv/bin/pip install --quiet --upgrade platformdirs
-
-meltano-drop-old-run:
-	meltano run drop-old-relations
-
-meltano-drop-all-run:
-	meltano run drop-all-relations
-
-# Meltano EL writes into a different BQ dataset than dbt. This empties that dataset.
-bq-drop-meltano-landing:
-	bq ls -n 100000 --project_id=$(DBT_BIGQUERY_PROJECT) $(TARGET_BIGQUERY_DATASET) | awk 'NR>2 {print $$1}' | xargs -P 32 -n1 -I{} bash -c 'echo "Deleting: $(DBT_BIGQUERY_PROJECT):$(TARGET_BIGQUERY_DATASET).{}"; bq rm -f -t $(DBT_BIGQUERY_PROJECT):$(TARGET_BIGQUERY_DATASET).{}'
-
-create-airflow-admin:
-	meltano invoke airflow users create -e admin@galoy.io -f Admin -l Galoy -u admin -p admin --role Admin
-
 # misc
 sumsub-webhook-test: # add https://xxx.ngrok-free.app/sumsub/callback to test integration with sumsub
 	ngrok http 5253

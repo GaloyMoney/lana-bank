@@ -14,6 +14,8 @@ pub enum LiquidationError {
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("LiquidationError - AlreadySatifissed")]
     AlreadySatisfied,
+    #[error("LiquidationError - AuthorizationError: {0}")]
+    AuthorizationError(#[from] authz::error::AuthorizationError),
 }
 
 es_entity::from_es_entity_error!(LiquidationError);
@@ -26,6 +28,7 @@ impl ErrorSeverity for LiquidationError {
             Self::EsEntityError(e) => e.severity(),
             Self::CursorDestructureError(_) => Level::ERROR,
             Self::AlreadySatisfied => Level::WARN,
+            Self::AuthorizationError(e) => e.severity(),
         }
     }
 }

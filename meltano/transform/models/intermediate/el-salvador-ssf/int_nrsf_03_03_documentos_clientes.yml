@@ -1,8 +1,0 @@
-version: 2
-
-models:
-  - name: int_nrsf_03_03_documentos_clientes
-    columns:
-      - name: "NIU"
-        tests:
-          - not_null_quoted

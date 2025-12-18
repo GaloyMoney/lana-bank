@@ -2,7 +2,6 @@
 set -euo pipefail
 
 BASE=docker-compose.yml
-DATA=docker-compose.data.yml
 OVERRIDE=docker-compose.docker.yml   # contains the extra_hosts entry
 DAGSTER_FILE=docker-compose.dagster.yml
 
@@ -21,9 +20,6 @@ fi
 
 # ── Compose file set ────────────────────────────────────────────────────────────
 FILES=(-f "$BASE")
-if [[ "${DATA_PIPELINE:-false}" == "true" ]]; then
-    FILES+=(-f "$DATA")
-fi
 if [[ "${DAGSTER:-false}" == "true" ]]; then
     FILES+=(-f "$DAGSTER_FILE")
 fi
@@ -37,10 +33,6 @@ if [[ "${CI:-false}" == "true" ]]; then
 fi
 
 # ── Load environment variables ─────────────────────────────────────────────────
-if [[ -n "${TARGET_BIGQUERY_CREDENTIALS_JSON:-}" ]]; then
-  echo "$TARGET_BIGQUERY_CREDENTIALS_JSON" > meltano/keyfile.json
-fi
-
 export TARGET_BIGQUERY_DATASET="${TARGET_BIGQUERY_DATASET:-${TF_VAR_name_prefix:-${USER}}_dataset}"
 export DBT_BIGQUERY_DATASET="${DBT_BIGQUERY_DATASET:-dbt_${TF_VAR_name_prefix:-${USER}}}"
 export DBT_BIGQUERY_PROJECT="${DBT_BIGQUERY_PROJECT:-$(echo "$TF_VAR_sa_creds" | base64 -d | jq -r '.project_id')}"
@@ -49,7 +41,7 @@ export TARGET_BIGQUERY_LOCATION="${TARGET_BIGQUERY_LOCATION:-US}"
 
 # ── Up ──────────────────────────────────────────────────────────────────────────
 echo "Starting services..."
-"$ENGINE" compose "${FILES[@]}" up -d "$@"
+"$ENGINE" compose "${FILES[@]}" up -d "$@" --build
 
 wait4x postgresql ${PG_CON} --timeout 120s
 

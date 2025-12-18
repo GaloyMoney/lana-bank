@@ -56,7 +56,7 @@ const mockEnums = {
 };
 
 import { fakerEN as faker } from '@faker-js/faker';
-import { AccountingCsvDocument, AccountingCsvDownloadLink, AccountingCsvDownloadLinkGenerateInput, AccountingCsvDownloadLinkGeneratePayload, ApprovalProcess, ApprovalProcessApproveInput, ApprovalProcessApprovePayload, ApprovalProcessConnection, ApprovalProcessDenyInput, ApprovalProcessDenyPayload, ApprovalProcessEdge, ApprovalProcessVoter, AuditEntry, AuditEntryConnection, AuditEntryEdge, BalanceSheet, BalanceSheetModuleConfig, BalanceSheetModuleConfigureInput, BalanceSheetModuleConfigurePayload, BitgoConfig, BtcAmount, BtcBalanceDetails, BtcLedgerAccountBalance, BtcLedgerAccountBalanceRange, CancelledWithdrawalEntry, ChartNode, ChartOfAccounts, ChartOfAccountsAddChildNodeInput, ChartOfAccountsAddChildNodePayload, ChartOfAccountsAddRootNodeInput, ChartOfAccountsAddRootNodePayload, ChartOfAccountsCsvImportInput, ChartOfAccountsCsvImportPayload, Collateral, CollateralBalance, Committee, CommitteeAddUserInput, CommitteeAddUserPayload, CommitteeConnection, CommitteeCreateInput, CommitteeCreatePayload, CommitteeEdge, CommitteeRemoveUserInput, CommitteeRemoveUserPayload, CommitteeThreshold, CreditFacilitiesFilter, CreditFacilitiesSort, CreditFacility, CreditFacilityApproved, CreditFacilityBalance, CreditFacilityCollateralUpdateInput, CreditFacilityCollateralUpdatePayload, CreditFacilityCollateralUpdated, CreditFacilityCollateralizationUpdated, CreditFacilityCompleteInput, CreditFacilityCompletePayload, CreditFacilityConnection, CreditFacilityDisbursal, CreditFacilityDisbursalConnection, CreditFacilityDisbursalEdge, CreditFacilityDisbursalExecuted, CreditFacilityDisbursalInitiateInput, CreditFacilityDisbursalInitiatePayload, CreditFacilityEdge, CreditFacilityIncrementalPayment, CreditFacilityInterestAccrued, CreditFacilityLedgerAccounts, CreditFacilityLiquidationAmountReserved, CreditFacilityPartialPaymentRecordInput, CreditFacilityPartialPaymentRecordPayload, CreditFacilityPartialPaymentWithDateRecordInput, CreditFacilityPaymentAllocation, CreditFacilityProposal, CreditFacilityProposalConnection, CreditFacilityProposalCreateInput, CreditFacilityProposalCreatePayload, CreditFacilityProposalCustomerApprovalConcludeInput, CreditFacilityProposalCustomerApprovalConcludePayload, CreditFacilityProposalEdge, CreditFacilityRepaymentPlanEntry, CreditModuleConfig, CreditModuleConfigureInput, CreditModuleConfigurePayload, Custodian, CustodianConfigInput, CustodianConfigUpdateInput, CustodianConfigUpdatePayload, CustodianConnection, CustodianCreateInput, CustodianCreatePayload, CustodianEdge, Customer, CustomerConnection, CustomerCreateInput, CustomerCreatePayload, CustomerDocument, CustomerDocumentArchiveInput, CustomerDocumentArchivePayload, CustomerDocumentCreateInput, CustomerDocumentCreatePayload, CustomerDocumentDeleteInput, CustomerDocumentDeletePayload, CustomerDocumentDownloadLinksGenerateInput, CustomerDocumentDownloadLinksGeneratePayload, CustomerEdge, CustomerEmailUpdateInput, CustomerEmailUpdatePayload, CustomerTelegramIdUpdateInput, CustomerTelegramIdUpdatePayload, CustomersFilter, CustomersSort, Dashboard, Deposit, DepositAccount, DepositAccountBalance, DepositAccountCloseInput, DepositAccountClosePayload, DepositAccountConnection, DepositAccountCreateInput, DepositAccountCreatePayload, DepositAccountEdge, DepositAccountFreezeInput, DepositAccountFreezePayload, DepositAccountHistoryEntryConnection, DepositAccountHistoryEntryEdge, DepositAccountLedgerAccounts, DepositAccountUnfreezeInput, DepositAccountUnfreezePayload, DepositConnection, DepositEdge, DepositEntry, DepositModuleConfig, DepositModuleConfigureInput, DepositModuleConfigurePayload, DepositRecordInput, DepositRecordPayload, DepositRevertInput, DepositRevertPayload, DisbursalEntry, Disbursed, Duration, DurationInput, FacilityRemaining, FiniteCvlPct, FiscalMonthClosure, FiscalYear, FiscalYearCloseInput, FiscalYearCloseMonthInput, FiscalYearCloseMonthPayload, FiscalYearClosePayload, FiscalYearConnection, FiscalYearEdge, FiscalYearInitInput, FiscalYearInitPayload, FiscalYearOpenNextInput, FiscalYearOpenNextPayload, FreezeEntry, GovernanceNavigationItems, InfiniteCvlPct, Interest, JournalEntry, JournalEntryConnection, JournalEntryEdge, KomainuConfig, LedgerAccount, LedgerAccountBalanceRangeByCurrency, LedgerAccountCsvCreateInput, LedgerAccountCsvCreatePayload, LedgerTransaction, LedgerTransactionConnection, LedgerTransactionEdge, Loan, LoanAgreement, LoanAgreementDownloadLinksGenerateInput, LoanAgreementDownloadLinksGeneratePayload, LoanAgreementGenerateInput, LoanAgreementGeneratePayload, ManualTransactionEntryInput, ManualTransactionExecuteInput, ManualTransactionExecutePayload, Me, Mutation, Outstanding, PageInfo, PaymentEntry, PendingCreditFacility, PendingCreditFacilityCollateralUpdateInput, PendingCreditFacilityCollateralUpdatePayload, PendingCreditFacilityCollateralizationUpdated, PendingCreditFacilityConnection, PendingCreditFacilityEdge, PermissionSet, PermissionSetConnection, PermissionSetEdge, Policy, PolicyAssignCommitteeInput, PolicyAssignCommitteePayload, PolicyConnection, PolicyEdge, ProfitAndLossModuleConfigureInput, ProfitAndLossStatement, ProfitAndLossStatementModuleConfig, ProfitAndLossStatementModuleConfigurePayload, Query, RealtimePrice, Report, ReportFile, ReportFileGenerateDownloadLinkInput, ReportFileGenerateDownloadLinkPayload, ReportRun, ReportRunConnection, ReportRunCreatePayload, ReportRunEdge, Role, RoleAddPermissionSetsInput, RoleAddPermissionSetsPayload, RoleConnection, RoleCreateInput, RoleCreatePayload, RoleEdge, RoleRemovePermissionSetsInput, RoleRemovePermissionSetsPayload, SumsubPermalinkCreateInput, SumsubPermalinkCreatePayload, System, SystemApproval, TermValues, TermsInput, TermsTemplate, TermsTemplateCreateInput, TermsTemplateCreatePayload, TermsTemplateUpdateInput, TermsTemplateUpdatePayload, Total, TransactionTemplate, TransactionTemplateConnection, TransactionTemplateEdge, TrialBalance, UnfreezeEntry, UnknownEntry, UsdAmount, UsdBalanceDetails, UsdLedgerAccountBalance, UsdLedgerAccountBalanceRange, User, UserCreateInput, UserCreatePayload, UserUpdateRoleInput, UserUpdateRolePayload, VisibleNavigationItems, Wallet, Withdrawal, WithdrawalCancelInput, WithdrawalCancelPayload, WithdrawalConfirmInput, WithdrawalConfirmPayload, WithdrawalConnection, WithdrawalEdge, WithdrawalEntry, WithdrawalInitiateInput, WithdrawalInitiatePayload, WithdrawalRevertInput, WithdrawalRevertPayload, Activity, ApprovalProcessStatus, ApprovalProcessType, CollateralAction, CollateralizationState, CreditFacilitiesFilterBy, CreditFacilitiesSortBy, CreditFacilityProposalStatus, CreditFacilityRepaymentStatus, CreditFacilityRepaymentType, CreditFacilityStatus, CustomerType, CustomersFilterBy, CustomersSortBy, DebitOrCredit, DepositAccountStatus, DepositStatus, DisbursalPolicy, DisbursalStatus, DocumentStatus, InterestInterval, KycLevel, KycVerification, Layer, LoanAgreementStatus, PendingCreditFacilityCollateralizationState, PendingCreditFacilityStatus, Period, PermissionSetName, ReportRunState, ReportRunType, SortDirection, WalletNetwork, WithdrawalStatus } from './index';
+import { AccountingCsvDocument, AccountingCsvDownloadLink, AccountingCsvDownloadLinkGenerateInput, AccountingCsvDownloadLinkGeneratePayload, ApprovalProcess, ApprovalProcessApproveInput, ApprovalProcessApprovePayload, ApprovalProcessConnection, ApprovalProcessDenyInput, ApprovalProcessDenyPayload, ApprovalProcessEdge, ApprovalProcessVoter, AuditEntry, AuditEntryConnection, AuditEntryEdge, BalanceSheet, BalanceSheetModuleConfig, BalanceSheetModuleConfigureInput, BalanceSheetModuleConfigurePayload, BitgoConfig, BtcAmount, BtcBalanceDetails, BtcLedgerAccountBalance, BtcLedgerAccountBalanceRange, CancelledWithdrawalEntry, ChartNode, ChartOfAccounts, ChartOfAccountsAddChildNodeInput, ChartOfAccountsAddChildNodePayload, ChartOfAccountsAddRootNodeInput, ChartOfAccountsAddRootNodePayload, ChartOfAccountsCsvImportInput, ChartOfAccountsCsvImportPayload, Collateral, CollateralBalance, Committee, CommitteeAddUserInput, CommitteeAddUserPayload, CommitteeConnection, CommitteeCreateInput, CommitteeCreatePayload, CommitteeEdge, CommitteeRemoveUserInput, CommitteeRemoveUserPayload, CommitteeThreshold, CreditFacilitiesFilter, CreditFacilitiesSort, CreditFacility, CreditFacilityApproved, CreditFacilityBalance, CreditFacilityCollateralUpdateInput, CreditFacilityCollateralUpdatePayload, CreditFacilityCollateralUpdated, CreditFacilityCollateralizationUpdated, CreditFacilityCompleteInput, CreditFacilityCompletePayload, CreditFacilityConnection, CreditFacilityDisbursal, CreditFacilityDisbursalConnection, CreditFacilityDisbursalEdge, CreditFacilityDisbursalExecuted, CreditFacilityDisbursalInitiateInput, CreditFacilityDisbursalInitiatePayload, CreditFacilityEdge, CreditFacilityIncrementalPayment, CreditFacilityInterestAccrued, CreditFacilityLedgerAccounts, CreditFacilityPartialPaymentRecordInput, CreditFacilityPartialPaymentRecordPayload, CreditFacilityPartialPaymentWithDateRecordInput, CreditFacilityPaymentAllocation, CreditFacilityProposal, CreditFacilityProposalConnection, CreditFacilityProposalCreateInput, CreditFacilityProposalCreatePayload, CreditFacilityProposalCustomerApprovalConcludeInput, CreditFacilityProposalCustomerApprovalConcludePayload, CreditFacilityProposalEdge, CreditFacilityRepaymentPlanEntry, CreditModuleConfig, CreditModuleConfigureInput, CreditModuleConfigurePayload, Custodian, CustodianConfigInput, CustodianConfigUpdateInput, CustodianConfigUpdatePayload, CustodianConnection, CustodianCreateInput, CustodianCreatePayload, CustodianEdge, Customer, CustomerConnection, CustomerCreateInput, CustomerCreatePayload, CustomerDocument, CustomerDocumentArchiveInput, CustomerDocumentArchivePayload, CustomerDocumentCreateInput, CustomerDocumentCreatePayload, CustomerDocumentDeleteInput, CustomerDocumentDeletePayload, CustomerDocumentDownloadLinksGenerateInput, CustomerDocumentDownloadLinksGeneratePayload, CustomerEdge, CustomerEmailUpdateInput, CustomerEmailUpdatePayload, CustomerTelegramIdUpdateInput, CustomerTelegramIdUpdatePayload, CustomersFilter, CustomersSort, Dashboard, Deposit, DepositAccount, DepositAccountBalance, DepositAccountCloseInput, DepositAccountClosePayload, DepositAccountConnection, DepositAccountCreateInput, DepositAccountCreatePayload, DepositAccountEdge, DepositAccountFreezeInput, DepositAccountFreezePayload, DepositAccountHistoryEntryConnection, DepositAccountHistoryEntryEdge, DepositAccountLedgerAccounts, DepositAccountUnfreezeInput, DepositAccountUnfreezePayload, DepositConnection, DepositEdge, DepositEntry, DepositModuleConfig, DepositModuleConfigureInput, DepositModuleConfigurePayload, DepositRecordInput, DepositRecordPayload, DepositRevertInput, DepositRevertPayload, DisbursalEntry, Disbursed, Duration, DurationInput, FacilityRemaining, FiniteCvlPct, FiscalMonthClosure, FiscalYear, FiscalYearCloseInput, FiscalYearCloseMonthInput, FiscalYearCloseMonthPayload, FiscalYearClosePayload, FiscalYearConnection, FiscalYearEdge, FiscalYearInitInput, FiscalYearInitPayload, FiscalYearOpenNextInput, FiscalYearOpenNextPayload, FreezeEntry, GovernanceNavigationItems, InfiniteCvlPct, Interest, JournalEntry, JournalEntryConnection, JournalEntryEdge, KomainuConfig, LedgerAccount, LedgerAccountBalanceRangeByCurrency, LedgerAccountCsvCreateInput, LedgerAccountCsvCreatePayload, LedgerTransaction, LedgerTransactionConnection, LedgerTransactionEdge, Liquidation, LiquidationCollateralSent, LiquidationConnection, LiquidationEdge, LiquidationPaymentReceived, LiquidationRecordCollateralSentInput, LiquidationRecordCollateralSentPayload, LiquidationRecordPaymentReceivedInput, LiquidationRecordPaymentReceivedPayload, Loan, LoanAgreement, LoanAgreementDownloadLinksGenerateInput, LoanAgreementDownloadLinksGeneratePayload, LoanAgreementGenerateInput, LoanAgreementGeneratePayload, ManualTransactionEntryInput, ManualTransactionExecuteInput, ManualTransactionExecutePayload, Me, Mutation, NotificationEmailConfig, NotificationEmailConfigInput, NotificationEmailConfigPayload, Outstanding, PageInfo, PaymentEntry, PendingCreditFacility, PendingCreditFacilityCollateralUpdateInput, PendingCreditFacilityCollateralUpdatePayload, PendingCreditFacilityCollateralizationUpdated, PendingCreditFacilityConnection, PendingCreditFacilityEdge, PermissionSet, PermissionSetConnection, PermissionSetEdge, Policy, PolicyAssignCommitteeInput, PolicyAssignCommitteePayload, PolicyConnection, PolicyEdge, ProfitAndLossModuleConfigureInput, ProfitAndLossStatement, ProfitAndLossStatementModuleConfig, ProfitAndLossStatementModuleConfigurePayload, Query, RealtimePrice, Report, ReportFile, ReportFileGenerateDownloadLinkInput, ReportFileGenerateDownloadLinkPayload, ReportRun, ReportRunConnection, ReportRunCreatePayload, ReportRunEdge, Role, RoleAddPermissionSetsInput, RoleAddPermissionSetsPayload, RoleConnection, RoleCreateInput, RoleCreatePayload, RoleEdge, RoleRemovePermissionSetsInput, RoleRemovePermissionSetsPayload, SumsubPermalinkCreateInput, SumsubPermalinkCreatePayload, System, SystemApproval, TermValues, TermsInput, TermsTemplate, TermsTemplateCreateInput, TermsTemplateCreatePayload, TermsTemplateUpdateInput, TermsTemplateUpdatePayload, Total, TransactionTemplate, TransactionTemplateConnection, TransactionTemplateEdge, TrialBalance, UnfreezeEntry, UnknownEntry, UsdAmount, UsdBalanceDetails, UsdLedgerAccountBalance, UsdLedgerAccountBalanceRange, User, UserCreateInput, UserCreatePayload, UserUpdateRoleInput, UserUpdateRolePayload, VisibleNavigationItems, Wallet, Withdrawal, WithdrawalCancelInput, WithdrawalCancelPayload, WithdrawalConfirmInput, WithdrawalConfirmPayload, WithdrawalConnection, WithdrawalEdge, WithdrawalEntry, WithdrawalInitiateInput, WithdrawalInitiatePayload, WithdrawalRevertInput, WithdrawalRevertPayload, Activity, ApprovalProcessStatus, ApprovalProcessType, CollateralAction, CollateralizationState, CreditFacilitiesFilterBy, CreditFacilitiesSortBy, CreditFacilityProposalStatus, CreditFacilityRepaymentStatus, CreditFacilityRepaymentType, CreditFacilityStatus, CustomerType, CustomersFilterBy, CustomersSortBy, DebitOrCredit, DepositAccountStatus, DepositStatus, DisbursalPolicy, DisbursalStatus, DocumentStatus, InterestInterval, KycLevel, KycVerification, Layer, LoanAgreementStatus, PendingCreditFacilityCollateralizationState, PendingCreditFacilityStatus, Period, PermissionSetName, ReportRunState, ReportRunType, SortDirection, WalletNetwork, WithdrawalStatus } from './index';
 
 faker.seed(0);
 
@@ -575,6 +575,7 @@ export const mockCreditFacility = (overrides?: Partial<CreditFacility>, _relatio
         history: overrides && overrides.hasOwnProperty('history') ? overrides.history! : [relationshipsToOmit.has('CreditFacilityApproved') ? {} as CreditFacilityApproved : mockCreditFacilityApproved({}, relationshipsToOmit)],
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         ledgerAccounts: overrides && overrides.hasOwnProperty('ledgerAccounts') ? overrides.ledgerAccounts! : relationshipsToOmit.has('CreditFacilityLedgerAccounts') ? {} as CreditFacilityLedgerAccounts : mockCreditFacilityLedgerAccounts({}, relationshipsToOmit),
+        liquidations: overrides && overrides.hasOwnProperty('liquidations') ? overrides.liquidations! : [relationshipsToOmit.has('Liquidation') ? {} as Liquidation : mockLiquidation({}, relationshipsToOmit)],
         maturesAt: overrides && overrides.hasOwnProperty('maturesAt') ? overrides.maturesAt! : generateMockValue.timestamp(),
         publicId: overrides && overrides.hasOwnProperty('publicId') ? overrides.publicId! : faker.lorem.word(),
         repaymentPlan: overrides && overrides.hasOwnProperty('repaymentPlan') ? overrides.repaymentPlan! : [relationshipsToOmit.has('CreditFacilityRepaymentPlanEntry') ? {} as CreditFacilityRepaymentPlanEntry : mockCreditFacilityRepaymentPlanEntry({}, relationshipsToOmit)],
@@ -824,18 +825,6 @@ export const mockCreditFacilityLedgerAccounts = (overrides?: Partial<CreditFacil
         interestReceivableNotYetDueAccountId: overrides && overrides.hasOwnProperty('interestReceivableNotYetDueAccountId') ? overrides.interestReceivableNotYetDueAccountId! : generateMockValue.uuid(),
         interestReceivableOverdueAccount: overrides && overrides.hasOwnProperty('interestReceivableOverdueAccount') ? overrides.interestReceivableOverdueAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
         interestReceivableOverdueAccountId: overrides && overrides.hasOwnProperty('interestReceivableOverdueAccountId') ? overrides.interestReceivableOverdueAccountId! : generateMockValue.uuid(),
-    };
-};
-
-export const mockCreditFacilityLiquidationAmountReserved = (overrides?: Partial<CreditFacilityLiquidationAmountReserved>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CreditFacilityLiquidationAmountReserved' } & CreditFacilityLiquidationAmountReserved => {
-    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
-    relationshipsToOmit.add('CreditFacilityLiquidationAmountReserved');
-    return {
-        __typename: 'CreditFacilityLiquidationAmountReserved',
-        cents: overrides && overrides.hasOwnProperty('cents') ? overrides.cents! : generateMockValue.usdCents(),
-        effective: overrides && overrides.hasOwnProperty('effective') ? overrides.effective! : faker.date.past({ years: 1, refDate: new Date(2022, 0) }).toISOString(),
-        recordedAt: overrides && overrides.hasOwnProperty('recordedAt') ? overrides.recordedAt! : generateMockValue.timestamp(),
-        txId: overrides && overrides.hasOwnProperty('txId') ? overrides.txId! : generateMockValue.uuid(),
     };
 };
 
@@ -2014,6 +2003,102 @@ export const mockLedgerTransactionEdge = (overrides?: Partial<LedgerTransactionE
     };
 };
 
+export const mockLiquidation = (overrides?: Partial<Liquidation>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'Liquidation' } & Liquidation => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('Liquidation');
+    return {
+        __typename: 'Liquidation',
+        completed: overrides && overrides.hasOwnProperty('completed') ? overrides.completed! : faker.datatype.boolean(),
+        createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
+        creditFacility: overrides && overrides.hasOwnProperty('creditFacility') ? overrides.creditFacility! : relationshipsToOmit.has('CreditFacility') ? {} as CreditFacility : mockCreditFacility({}, relationshipsToOmit),
+        creditFacilityId: overrides && overrides.hasOwnProperty('creditFacilityId') ? overrides.creditFacilityId! : generateMockValue.uuid(),
+        expectedToReceive: overrides && overrides.hasOwnProperty('expectedToReceive') ? overrides.expectedToReceive! : generateMockValue.usdCents(),
+        id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
+        liquidationId: overrides && overrides.hasOwnProperty('liquidationId') ? overrides.liquidationId! : generateMockValue.uuid(),
+        receivedPayment: overrides && overrides.hasOwnProperty('receivedPayment') ? overrides.receivedPayment! : [relationshipsToOmit.has('LiquidationPaymentReceived') ? {} as LiquidationPaymentReceived : mockLiquidationPaymentReceived({}, relationshipsToOmit)],
+        receivedTotal: overrides && overrides.hasOwnProperty('receivedTotal') ? overrides.receivedTotal! : generateMockValue.usdCents(),
+        sentCollateral: overrides && overrides.hasOwnProperty('sentCollateral') ? overrides.sentCollateral! : [relationshipsToOmit.has('LiquidationCollateralSent') ? {} as LiquidationCollateralSent : mockLiquidationCollateralSent({}, relationshipsToOmit)],
+        sentTotal: overrides && overrides.hasOwnProperty('sentTotal') ? overrides.sentTotal! : generateMockValue.satoshis(),
+    };
+};
+
+export const mockLiquidationCollateralSent = (overrides?: Partial<LiquidationCollateralSent>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'LiquidationCollateralSent' } & LiquidationCollateralSent => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('LiquidationCollateralSent');
+    return {
+        __typename: 'LiquidationCollateralSent',
+        amount: overrides && overrides.hasOwnProperty('amount') ? overrides.amount! : generateMockValue.satoshis(),
+        ledgerTxId: overrides && overrides.hasOwnProperty('ledgerTxId') ? overrides.ledgerTxId! : generateMockValue.uuid(),
+    };
+};
+
+export const mockLiquidationConnection = (overrides?: Partial<LiquidationConnection>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'LiquidationConnection' } & LiquidationConnection => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('LiquidationConnection');
+    return {
+        __typename: 'LiquidationConnection',
+        edges: overrides && overrides.hasOwnProperty('edges') ? overrides.edges! : [relationshipsToOmit.has('LiquidationEdge') ? {} as LiquidationEdge : mockLiquidationEdge({}, relationshipsToOmit)],
+        nodes: overrides && overrides.hasOwnProperty('nodes') ? overrides.nodes! : [relationshipsToOmit.has('Liquidation') ? {} as Liquidation : mockLiquidation({}, relationshipsToOmit)],
+        pageInfo: overrides && overrides.hasOwnProperty('pageInfo') ? overrides.pageInfo! : relationshipsToOmit.has('PageInfo') ? {} as PageInfo : mockPageInfo({}, relationshipsToOmit),
+    };
+};
+
+export const mockLiquidationEdge = (overrides?: Partial<LiquidationEdge>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'LiquidationEdge' } & LiquidationEdge => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('LiquidationEdge');
+    return {
+        __typename: 'LiquidationEdge',
+        cursor: overrides && overrides.hasOwnProperty('cursor') ? overrides.cursor! : generateMockValue.cursor(),
+        node: overrides && overrides.hasOwnProperty('node') ? overrides.node! : relationshipsToOmit.has('Liquidation') ? {} as Liquidation : mockLiquidation({}, relationshipsToOmit),
+    };
+};
+
+export const mockLiquidationPaymentReceived = (overrides?: Partial<LiquidationPaymentReceived>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'LiquidationPaymentReceived' } & LiquidationPaymentReceived => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('LiquidationPaymentReceived');
+    return {
+        __typename: 'LiquidationPaymentReceived',
+        amount: overrides && overrides.hasOwnProperty('amount') ? overrides.amount! : generateMockValue.usdCents(),
+        ledgerTxId: overrides && overrides.hasOwnProperty('ledgerTxId') ? overrides.ledgerTxId! : generateMockValue.uuid(),
+    };
+};
+
+export const mockLiquidationRecordCollateralSentInput = (overrides?: Partial<LiquidationRecordCollateralSentInput>, _relationshipsToOmit: Set<string> = new Set()): LiquidationRecordCollateralSentInput => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('LiquidationRecordCollateralSentInput');
+    return {
+        amount: overrides && overrides.hasOwnProperty('amount') ? overrides.amount! : generateMockValue.satoshis(),
+        liquidationId: overrides && overrides.hasOwnProperty('liquidationId') ? overrides.liquidationId! : generateMockValue.uuid(),
+    };
+};
+
+export const mockLiquidationRecordCollateralSentPayload = (overrides?: Partial<LiquidationRecordCollateralSentPayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'LiquidationRecordCollateralSentPayload' } & LiquidationRecordCollateralSentPayload => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('LiquidationRecordCollateralSentPayload');
+    return {
+        __typename: 'LiquidationRecordCollateralSentPayload',
+        liquidation: overrides && overrides.hasOwnProperty('liquidation') ? overrides.liquidation! : relationshipsToOmit.has('Liquidation') ? {} as Liquidation : mockLiquidation({}, relationshipsToOmit),
+    };
+};
+
+export const mockLiquidationRecordPaymentReceivedInput = (overrides?: Partial<LiquidationRecordPaymentReceivedInput>, _relationshipsToOmit: Set<string> = new Set()): LiquidationRecordPaymentReceivedInput => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('LiquidationRecordPaymentReceivedInput');
+    return {
+        amount: overrides && overrides.hasOwnProperty('amount') ? overrides.amount! : generateMockValue.usdCents(),
+        liquidationId: overrides && overrides.hasOwnProperty('liquidationId') ? overrides.liquidationId! : generateMockValue.uuid(),
+    };
+};
+
+export const mockLiquidationRecordPaymentReceivedPayload = (overrides?: Partial<LiquidationRecordPaymentReceivedPayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'LiquidationRecordPaymentReceivedPayload' } & LiquidationRecordPaymentReceivedPayload => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('LiquidationRecordPaymentReceivedPayload');
+    return {
+        __typename: 'LiquidationRecordPaymentReceivedPayload',
+        liquidation: overrides && overrides.hasOwnProperty('liquidation') ? overrides.liquidation! : relationshipsToOmit.has('Liquidation') ? {} as Liquidation : mockLiquidation({}, relationshipsToOmit),
+    };
+};
+
 export const mockLoan = (overrides?: Partial<Loan>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'Loan' } & Loan => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('Loan');
@@ -2158,9 +2243,12 @@ export const mockMutation = (overrides?: Partial<Mutation>, _relationshipsToOmit
         fiscalYearInit: overrides && overrides.hasOwnProperty('fiscalYearInit') ? overrides.fiscalYearInit! : relationshipsToOmit.has('FiscalYearInitPayload') ? {} as FiscalYearInitPayload : mockFiscalYearInitPayload({}, relationshipsToOmit),
         fiscalYearOpenNext: overrides && overrides.hasOwnProperty('fiscalYearOpenNext') ? overrides.fiscalYearOpenNext! : relationshipsToOmit.has('FiscalYearOpenNextPayload') ? {} as FiscalYearOpenNextPayload : mockFiscalYearOpenNextPayload({}, relationshipsToOmit),
         ledgerAccountCsvCreate: overrides && overrides.hasOwnProperty('ledgerAccountCsvCreate') ? overrides.ledgerAccountCsvCreate! : relationshipsToOmit.has('LedgerAccountCsvCreatePayload') ? {} as LedgerAccountCsvCreatePayload : mockLedgerAccountCsvCreatePayload({}, relationshipsToOmit),
+        liquidationRecordCollateralSent: overrides && overrides.hasOwnProperty('liquidationRecordCollateralSent') ? overrides.liquidationRecordCollateralSent! : relationshipsToOmit.has('LiquidationRecordCollateralSentPayload') ? {} as LiquidationRecordCollateralSentPayload : mockLiquidationRecordCollateralSentPayload({}, relationshipsToOmit),
+        liquidationRecordPaymentReceived: overrides && overrides.hasOwnProperty('liquidationRecordPaymentReceived') ? overrides.liquidationRecordPaymentReceived! : relationshipsToOmit.has('LiquidationRecordPaymentReceivedPayload') ? {} as LiquidationRecordPaymentReceivedPayload : mockLiquidationRecordPaymentReceivedPayload({}, relationshipsToOmit),
         loanAgreementDownloadLinkGenerate: overrides && overrides.hasOwnProperty('loanAgreementDownloadLinkGenerate') ? overrides.loanAgreementDownloadLinkGenerate! : relationshipsToOmit.has('LoanAgreementDownloadLinksGeneratePayload') ? {} as LoanAgreementDownloadLinksGeneratePayload : mockLoanAgreementDownloadLinksGeneratePayload({}, relationshipsToOmit),
         loanAgreementGenerate: overrides && overrides.hasOwnProperty('loanAgreementGenerate') ? overrides.loanAgreementGenerate! : relationshipsToOmit.has('LoanAgreementGeneratePayload') ? {} as LoanAgreementGeneratePayload : mockLoanAgreementGeneratePayload({}, relationshipsToOmit),
         manualTransactionExecute: overrides && overrides.hasOwnProperty('manualTransactionExecute') ? overrides.manualTransactionExecute! : relationshipsToOmit.has('ManualTransactionExecutePayload') ? {} as ManualTransactionExecutePayload : mockManualTransactionExecutePayload({}, relationshipsToOmit),
+        notificationEmailConfigUpdate: overrides && overrides.hasOwnProperty('notificationEmailConfigUpdate') ? overrides.notificationEmailConfigUpdate! : relationshipsToOmit.has('NotificationEmailConfigPayload') ? {} as NotificationEmailConfigPayload : mockNotificationEmailConfigPayload({}, relationshipsToOmit),
         pendingCreditFacilityCollateralUpdate: overrides && overrides.hasOwnProperty('pendingCreditFacilityCollateralUpdate') ? overrides.pendingCreditFacilityCollateralUpdate! : relationshipsToOmit.has('PendingCreditFacilityCollateralUpdatePayload') ? {} as PendingCreditFacilityCollateralUpdatePayload : mockPendingCreditFacilityCollateralUpdatePayload({}, relationshipsToOmit),
         policyAssignCommittee: overrides && overrides.hasOwnProperty('policyAssignCommittee') ? overrides.policyAssignCommittee! : relationshipsToOmit.has('PolicyAssignCommitteePayload') ? {} as PolicyAssignCommitteePayload : mockPolicyAssignCommitteePayload({}, relationshipsToOmit),
         profitAndLossStatementConfigure: overrides && overrides.hasOwnProperty('profitAndLossStatementConfigure') ? overrides.profitAndLossStatementConfigure! : relationshipsToOmit.has('ProfitAndLossStatementModuleConfigurePayload') ? {} as ProfitAndLossStatementModuleConfigurePayload : mockProfitAndLossStatementModuleConfigurePayload({}, relationshipsToOmit),
@@ -2178,6 +2266,34 @@ export const mockMutation = (overrides?: Partial<Mutation>, _relationshipsToOmit
         withdrawalConfirm: overrides && overrides.hasOwnProperty('withdrawalConfirm') ? overrides.withdrawalConfirm! : relationshipsToOmit.has('WithdrawalConfirmPayload') ? {} as WithdrawalConfirmPayload : mockWithdrawalConfirmPayload({}, relationshipsToOmit),
         withdrawalInitiate: overrides && overrides.hasOwnProperty('withdrawalInitiate') ? overrides.withdrawalInitiate! : relationshipsToOmit.has('WithdrawalInitiatePayload') ? {} as WithdrawalInitiatePayload : mockWithdrawalInitiatePayload({}, relationshipsToOmit),
         withdrawalRevert: overrides && overrides.hasOwnProperty('withdrawalRevert') ? overrides.withdrawalRevert! : relationshipsToOmit.has('WithdrawalRevertPayload') ? {} as WithdrawalRevertPayload : mockWithdrawalRevertPayload({}, relationshipsToOmit),
+    };
+};
+
+export const mockNotificationEmailConfig = (overrides?: Partial<NotificationEmailConfig>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'NotificationEmailConfig' } & NotificationEmailConfig => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('NotificationEmailConfig');
+    return {
+        __typename: 'NotificationEmailConfig',
+        fromEmail: overrides && overrides.hasOwnProperty('fromEmail') ? overrides.fromEmail! : faker.lorem.word(),
+        fromName: overrides && overrides.hasOwnProperty('fromName') ? overrides.fromName! : faker.lorem.word(),
+    };
+};
+
+export const mockNotificationEmailConfigInput = (overrides?: Partial<NotificationEmailConfigInput>, _relationshipsToOmit: Set<string> = new Set()): NotificationEmailConfigInput => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('NotificationEmailConfigInput');
+    return {
+        fromEmail: overrides && overrides.hasOwnProperty('fromEmail') ? overrides.fromEmail! : faker.lorem.word(),
+        fromName: overrides && overrides.hasOwnProperty('fromName') ? overrides.fromName! : faker.lorem.word(),
+    };
+};
+
+export const mockNotificationEmailConfigPayload = (overrides?: Partial<NotificationEmailConfigPayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'NotificationEmailConfigPayload' } & NotificationEmailConfigPayload => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('NotificationEmailConfigPayload');
+    return {
+        __typename: 'NotificationEmailConfigPayload',
+        notificationEmailConfig: overrides && overrides.hasOwnProperty('notificationEmailConfig') ? overrides.notificationEmailConfig! : relationshipsToOmit.has('NotificationEmailConfig') ? {} as NotificationEmailConfig : mockNotificationEmailConfig({}, relationshipsToOmit),
     };
 };
 
@@ -2457,8 +2573,11 @@ export const mockQuery = (overrides?: Partial<Query>, _relationshipsToOmit: Set<
         ledgerAccountByCode: overrides && overrides.hasOwnProperty('ledgerAccountByCode') ? overrides.ledgerAccountByCode! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
         ledgerTransaction: overrides && overrides.hasOwnProperty('ledgerTransaction') ? overrides.ledgerTransaction! : relationshipsToOmit.has('LedgerTransaction') ? {} as LedgerTransaction : mockLedgerTransaction({}, relationshipsToOmit),
         ledgerTransactionsForTemplateCode: overrides && overrides.hasOwnProperty('ledgerTransactionsForTemplateCode') ? overrides.ledgerTransactionsForTemplateCode! : relationshipsToOmit.has('LedgerTransactionConnection') ? {} as LedgerTransactionConnection : mockLedgerTransactionConnection({}, relationshipsToOmit),
+        liquidation: overrides && overrides.hasOwnProperty('liquidation') ? overrides.liquidation! : relationshipsToOmit.has('Liquidation') ? {} as Liquidation : mockLiquidation({}, relationshipsToOmit),
+        liquidations: overrides && overrides.hasOwnProperty('liquidations') ? overrides.liquidations! : relationshipsToOmit.has('LiquidationConnection') ? {} as LiquidationConnection : mockLiquidationConnection({}, relationshipsToOmit),
         loanAgreement: overrides && overrides.hasOwnProperty('loanAgreement') ? overrides.loanAgreement! : relationshipsToOmit.has('LoanAgreement') ? {} as LoanAgreement : mockLoanAgreement({}, relationshipsToOmit),
         me: overrides && overrides.hasOwnProperty('me') ? overrides.me! : relationshipsToOmit.has('Me') ? {} as Me : mockMe({}, relationshipsToOmit),
+        notificationEmailConfig: overrides && overrides.hasOwnProperty('notificationEmailConfig') ? overrides.notificationEmailConfig! : relationshipsToOmit.has('NotificationEmailConfig') ? {} as NotificationEmailConfig : mockNotificationEmailConfig({}, relationshipsToOmit),
         pendingCreditFacilities: overrides && overrides.hasOwnProperty('pendingCreditFacilities') ? overrides.pendingCreditFacilities! : relationshipsToOmit.has('PendingCreditFacilityConnection') ? {} as PendingCreditFacilityConnection : mockPendingCreditFacilityConnection({}, relationshipsToOmit),
         pendingCreditFacility: overrides && overrides.hasOwnProperty('pendingCreditFacility') ? overrides.pendingCreditFacility! : relationshipsToOmit.has('PendingCreditFacility') ? {} as PendingCreditFacility : mockPendingCreditFacility({}, relationshipsToOmit),
         permissionSets: overrides && overrides.hasOwnProperty('permissionSets') ? overrides.permissionSets! : relationshipsToOmit.has('PermissionSetConnection') ? {} as PermissionSetConnection : mockPermissionSetConnection({}, relationshipsToOmit),

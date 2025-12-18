@@ -91,6 +91,10 @@ checksums:
     Permissions/governance_viewer/description: 84a7ff7991222611fe8a7d55bd61aacc
     Permissions/governance_writer/label: b9dd0624ee128d1ece7da289d0c28eb5
     Permissions/governance_writer/description: 56c0335d078338288795e0cd66062197
+    Permissions/notification_email_config_viewer/label: 04a7848c3529d9347a3f47084102ac6c
+    Permissions/notification_email_config_viewer/description: 4f00a2c98c96adbcc6e06198f5606faf
+    Permissions/notification_email_config_writer/label: f1fcc74d45a6b0ba8017e188b27cb1ec
+    Permissions/notification_email_config_writer/description: fe822d3d451d1d69dd430f76e2ad3944
     Permissions/custody_viewer/label: 0367a13b223d99c79edcac6d4bc69d38
     Permissions/custody_viewer/description: 5be32922e339e74936937610f32d03d4
     Permissions/custody_writer/label: d7d4513c6a80a74f28e925ad18a81fc1
@@ -99,6 +103,15 @@ checksums:
     Permissions/report_viewer/description: b9a52307adee71b1c818d70ac5160696
     Permissions/report_writer/label: abba08c361cb57585c6bf6dde57051db
     Permissions/report_writer/description: d0bb9b9ba3824a2e4c9fadb87d926881
+    Configurations/notificationEmail/title: b985a2fd021fe1e0db711fb99f453c09
+    Configurations/notificationEmail/description: 36b803104adeda10b7da625a9d727ee1
+    Configurations/notificationEmail/fromEmail: a1e0b8feec2dd2e908eb7c87d7a93df8
+    Configurations/notificationEmail/fromName: 1c0419f91e21d495a26e10a14e2f3188
+    Configurations/notificationEmail/reset: c19c53a05e21c7f3b395247809a14b51
+    Configurations/notificationEmail/save: f7a2929f33bc420195e59ac5a8bcd454
+    Configurations/notificationEmail/saveSuccess: af7f32e1027ffb939cbe97a98f69fe6e
+    Configurations/notificationEmail/saveError: 82584a6533562246393c38fb93c7b2da
+    Configurations/notificationEmail/saveErrorWithReason: 5308e02e10c0e633d7436b602ca685ae
     interestInterval/endOfDay: 24234805a9fd10dfe74eaeafec362699
     interestInterval/endOfMonth: df268ce61af23ae591e0a727f34ad13f
     period/days: 47648cd60fc313bc3f05b70357a1d675
@@ -115,6 +128,7 @@ checksums:
     Sidebar/navItems/pendingCreditFacilities: fadf95c8c9c8014ed31214fd803be427
     Sidebar/navItems/creditFacilityProposals: 11a59748c3c3c261a3b99fd7afb4a023
     Sidebar/navItems/disbursals: a926d10544d2ae0fd17a6e5f19a97080
+    Sidebar/navItems/liquidations: d5e225f5b3204b60ff0dea79c7cc89f3
     Sidebar/navItems/termTemplates: 510fe24eb6689e49ff4ab151535c9715
     Sidebar/navItems/customers: c31a0dfd0d92496ba6f5673781db24ef
     Sidebar/navItems/policies: 212492478eb8dd9a506878148c9a4d7c
@@ -137,6 +151,7 @@ checksums:
     Sidebar/navItems/transactionTemplates: cdfe1e063b21076f6b5dc06d5c6cce33
     Sidebar/navItems/rolesAndPermissions: 766190959c36bdfa5506b087f190707d
     Sidebar/navItems/custodians: c69cf14ea7b8332077f570c0c8b06585
+    Sidebar/navItems/configurations: 073691963088b401d00d351cd4f6a58b
     Sidebar/footer/appName: 7dfeb06f156f842109c07f26a73cb311
     Sidebar/footer/version: d640a8609bd8374f70e40f862250cb70
     UserBlock/settings: 8df6777277469c1fd88cc18dde2f1cc3
@@ -484,7 +499,6 @@ checksums:
     CreditFacilities/CreditFacilityDetails/History/entryTypes/incrementalPayment: 95142d3fd8b6a6f551aba771842e9c11
     CreditFacilities/CreditFacilityDetails/History/entryTypes/disbursalExecuted: 2aa8ff038a96888966ede2b19fc8b8bb
     CreditFacilities/CreditFacilityDetails/History/entryTypes/interestAccrued: 7a2a22eb72a60ee80626eef9988e35ff
-    CreditFacilities/CreditFacilityDetails/History/entryTypes/liquidationAmountReserved: 0cd8af79a7b79801e5d943f115c836e1
     CreditFacilities/CreditFacilityDetails/History/entryTypes/pendingFacilityCollateralization: c1e5fb1c1e4ad8e0195b8bec7276c938
     CreditFacilities/CreditFacilityDetails/History/messages/unknownType: 82d1742db9fd0f5ca6bd0b05b561c284
     CreditFacilities/CreditFacilityDetails/History/messages/emptyTable: 37a7aed7a4d616149ed640ce3d72d6f9
@@ -542,10 +556,21 @@ checksums:
     CreditFacilities/CreditFacilityDetails/DetailsCard/loanAgreement/error: 888ad57aa228cb9a409d22468bb3f9ba
     CreditFacilities/CreditFacilityDetails/Layout/tabs/history: b0578d6d225f512e42f823fbca2e3c32
     CreditFacilities/CreditFacilityDetails/Layout/tabs/disbursals: a926d10544d2ae0fd17a6e5f19a97080
+    CreditFacilities/CreditFacilityDetails/Layout/tabs/liquidations: d5e225f5b3204b60ff0dea79c7cc89f3
     CreditFacilities/CreditFacilityDetails/Layout/tabs/repaymentPlan: 416716dbfa4883b589c792610e827d74
     CreditFacilities/CreditFacilityDetails/Layout/tabs/ledgerAccounts: da987c523a54fbda73beda300c3afc33
     CreditFacilities/CreditFacilityDetails/Layout/errors/notFound: 58efcf2ecdcf18f0cd0253acc60eb812
     CreditFacilities/CreditFacilityDetails/Layout/errors/loading: 82b4ea7ed1439094d7c4be13aaba9a66
+    CreditFacilities/CreditFacilityDetails/Liquidations/title: d5e225f5b3204b60ff0dea79c7cc89f3
+    CreditFacilities/CreditFacilityDetails/Liquidations/description: affb1a37116efd2f52e878edb32fb1a1
+    CreditFacilities/CreditFacilityDetails/Liquidations/columns/status: 4e1fcce15854d824919b4a582c697c90
+    CreditFacilities/CreditFacilityDetails/Liquidations/columns/expectedToReceive: 3fa01e9ae94c919fae9fc0f46d49b9cc
+    CreditFacilities/CreditFacilityDetails/Liquidations/columns/sentTotal: fc40b27969deda2caeab3853a49a3593
+    CreditFacilities/CreditFacilityDetails/Liquidations/columns/receivedTotal: 0e4f52c9fe1b61dc834294d7af823356
+    CreditFacilities/CreditFacilityDetails/Liquidations/columns/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
+    CreditFacilities/CreditFacilityDetails/Liquidations/status/completed: 0e4bbce9985f25eb673d9a054c8d5334
+    CreditFacilities/CreditFacilityDetails/Liquidations/status/inProgress: 3de9afebcb9d4ce8ac42e14995f79ffd
+    CreditFacilities/CreditFacilityDetails/Liquidations/messages/emptyTable: e44c22d65882fcd7afdf871e2627a1fa
     CreditFacilities/CreditFacilityDetails/CreditFacilityPartialPayment/dialog/title: 610c610c61d2449a5461972a189996c2
     CreditFacilities/CreditFacilityDetails/CreditFacilityPartialPayment/dialog/description: fe992630f2de0995b30bd782a29b2927
     CreditFacilities/CreditFacilityDetails/CreditFacilityPartialPayment/form/labels/amount: a0ae9c6ff98b57475cdce56f66066aa4
@@ -648,6 +673,51 @@ checksums:
     Disbursals/DisbursalDetails/CreditFacilityDisbursalInitiate/buttons/submit: bc306441cd28c007b84ab52f4e00e5c9
     Disbursals/DisbursalDetails/CreditFacilityDisbursalInitiate/messages/success: d56a28a537a2df1b5b47edd805abb136
     Disbursals/DisbursalDetails/CreditFacilityDisbursalInitiate/messages/unknownError: 4fa139b42a7b7ed262b07bdda7cd2fb6
+    Liquidations/title: d5e225f5b3204b60ff0dea79c7cc89f3
+    Liquidations/description: 74d6c0d195c41309b8a6985b34771242
+    Liquidations/table/headers/creditFacility: d96f87cd95639f3ba97b53f681f2fb5f
+    Liquidations/table/headers/status: 4e1fcce15854d824919b4a582c697c90
+    Liquidations/table/headers/expectedToReceive: 3fa01e9ae94c919fae9fc0f46d49b9cc
+    Liquidations/table/headers/sentTotal: fc40b27969deda2caeab3853a49a3593
+    Liquidations/table/headers/receivedTotal: 0e4f52c9fe1b61dc834294d7af823356
+    Liquidations/table/headers/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
+    Liquidations/status/completed: 0e4bbce9985f25eb673d9a054c8d5334
+    Liquidations/status/inProgress: 3de9afebcb9d4ce8ac42e14995f79ffd
+    Liquidations/errors/general: 53a2b5f5e7d83c737c8e02fe18fb4bdb
+    Liquidations/LiquidationDetails/DetailsCard/title: 0c38d7f6db5a24f62b1ec41f068446e2
+    Liquidations/LiquidationDetails/DetailsCard/details/customerEmail: ebca1f74384e364c0bbc0782c0b14d93
+    Liquidations/LiquidationDetails/DetailsCard/details/status: 4e1fcce15854d824919b4a582c697c90
+    Liquidations/LiquidationDetails/DetailsCard/details/expectedToReceive: 3fa01e9ae94c919fae9fc0f46d49b9cc
+    Liquidations/LiquidationDetails/DetailsCard/details/sentTotal: fc40b27969deda2caeab3853a49a3593
+    Liquidations/LiquidationDetails/DetailsCard/details/receivedTotal: 0e4f52c9fe1b61dc834294d7af823356
+    Liquidations/LiquidationDetails/DetailsCard/details/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
+    Liquidations/LiquidationDetails/DetailsCard/buttons/recordCollateralSent: 4ccb2caa89e295615e642f43999c285f
+    Liquidations/LiquidationDetails/DetailsCard/buttons/recordPaymentReceived: 3bd2bb18bcccd58281d50a1c27e2c48e
+    Liquidations/LiquidationDetails/DetailsCard/buttons/viewMoreDetails: 8ab63c6de1a1dc0d39f0f1cbdf6db655
+    Liquidations/LiquidationDetails/CollateralSent/title: 3ceee0dbfa639450fd55bc2c3278ea82
+    Liquidations/LiquidationDetails/CollateralSent/description: f8b19056b82621a57164f50b2ac97e40
+    Liquidations/LiquidationDetails/CollateralSent/columns/amount: a0ae9c6ff98b57475cdce56f66066aa4
+    Liquidations/LiquidationDetails/CollateralSent/columns/ledgerTxId: 33592c809a104a909a8215fd34b67c35
+    Liquidations/LiquidationDetails/CollateralSent/messages/emptyTable: cb1b6ac1c0e1f0d388dc48e2cd3690e6
+    Liquidations/LiquidationDetails/PaymentReceived/title: 55f185160f00b3b331f8e4deef25cd78
+    Liquidations/LiquidationDetails/PaymentReceived/description: 5950f6b0b62f5d0a4a04cfde29fec67e
+    Liquidations/LiquidationDetails/PaymentReceived/columns/amount: a0ae9c6ff98b57475cdce56f66066aa4
+    Liquidations/LiquidationDetails/PaymentReceived/columns/ledgerTxId: 33592c809a104a909a8215fd34b67c35
+    Liquidations/LiquidationDetails/PaymentReceived/messages/emptyTable: 643701fdb0f26c955b2b7c8ef2daf114
+    Liquidations/LiquidationDetails/recordCollateralSent/title: 4ccb2caa89e295615e642f43999c285f
+    Liquidations/LiquidationDetails/recordCollateralSent/description: d2b17d3ba5e0bece0028497f2ae32abd
+    Liquidations/LiquidationDetails/recordCollateralSent/fields/amount: a0ae9c6ff98b57475cdce56f66066aa4
+    Liquidations/LiquidationDetails/recordCollateralSent/fields/amountPlaceholder: 763e7ec890d6ba214e86337891319118
+    Liquidations/LiquidationDetails/recordCollateralSent/buttons/submit: 4ccb2caa89e295615e642f43999c285f
+    Liquidations/LiquidationDetails/recordCollateralSent/errors/invalidAmount: 0f12d47f42ab98e3aa278b858391a379
+    Liquidations/LiquidationDetails/recordCollateralSent/success: 55b2673bb10f7613b94539255f7b5286
+    Liquidations/LiquidationDetails/recordPaymentReceived/title: 3bd2bb18bcccd58281d50a1c27e2c48e
+    Liquidations/LiquidationDetails/recordPaymentReceived/description: f3c5b1a352f000814c8a6d8651f34c4d
+    Liquidations/LiquidationDetails/recordPaymentReceived/fields/amount: a0ae9c6ff98b57475cdce56f66066aa4
+    Liquidations/LiquidationDetails/recordPaymentReceived/fields/amountPlaceholder: 0023932e4cad8dde133613a121e10e98
+    Liquidations/LiquidationDetails/recordPaymentReceived/buttons/submit: 3bd2bb18bcccd58281d50a1c27e2c48e
+    Liquidations/LiquidationDetails/recordPaymentReceived/errors/invalidAmount: 0f12d47f42ab98e3aa278b858391a379
+    Liquidations/LiquidationDetails/recordPaymentReceived/success: 52cc935144519afdf275e2e660e1e2bb
     TermsTemplates/title: 6830f63158657ad7dd84b3ec1f8e205b
     TermsTemplates/description: f67f513416852ad80a7087f51b2c6257
     TermsTemplates/table/headers/name: 9368b5a047572b6051f334af5aa76819

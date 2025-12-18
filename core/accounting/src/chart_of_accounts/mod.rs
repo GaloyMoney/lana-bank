@@ -18,7 +18,8 @@ use cala_ledger::{CalaLedger, account::Account};
 
 use crate::primitives::{
     AccountCode, AccountIdOrCode, AccountName, AccountSpec, CalaAccountSetId, CalaJournalId,
-    ChartId, CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
+    ChartId, ClosingAccountCodes, ClosingTxDetails, CoreAccountingAction, CoreAccountingObject,
+    LedgerAccountId,
 };
 
 #[cfg(feature = "json-schema")]
@@ -286,7 +287,7 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                CoreAccountingObject::all_charts(),
+                CoreAccountingObject::chart(chart_id),
                 CoreAccountingAction::CHART_CLOSE_MONTHLY,
             )
             .await?;
@@ -296,6 +297,38 @@ where
             self.repo.update_in_op(&mut op, &mut chart).await?;
             self.chart_ledger
                 .close_by_chart_root_account_set_as_of(op, closing_date, chart.account_set_id)
+                .await?;
+        }
+        Ok(())
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "core_accounting.chart_of_accounts.post_closing_transaction",
+        skip(self)
+    )]
+    pub async fn post_closing_transaction(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_id: ChartId,
+        account_codes: ClosingAccountCodes,
+        tx_details: ClosingTxDetails,
+    ) -> Result<(), ChartOfAccountsError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::chart(chart_id),
+                CoreAccountingAction::CHART_POST_CLOSING_TRANSACTION,
+            )
+            .await?;
+        let mut chart = self.find_by_id(chart_id).await?;
+        if let Idempotent::Executed(closing_tx_parents_and_details) =
+            chart.post_closing_tx_as_of(account_codes, tx_details)?
+        {
+            let mut op = self.repo.begin_op().await?;
+            self.repo.update_in_op(&mut op, &mut chart).await?;
+            self.chart_ledger
+                .post_closing_transaction(op, closing_tx_parents_and_details)
                 .await?;
         }
         Ok(())

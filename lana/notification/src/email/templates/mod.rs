@@ -78,7 +78,7 @@ impl EmailTemplate {
         );
         let facility_url = format!(
             "{}/credit-facilities/{}",
-            self.admin_panel_url, data.facility_id
+            self.admin_panel_url, data.public_id
         );
         let data = json!({
             "subject": &subject,
@@ -126,7 +126,7 @@ impl EmailTemplate {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OverduePaymentEmailData {
-    pub facility_id: String,
+    pub public_id: String,
     pub payment_type: String,
     pub original_amount: UsdCents,
     pub outstanding_amount: UsdCents,

@@ -52,16 +52,11 @@ app:
         production_url: https://app.bitgo.com/
   notification:
     email:
-      from_email: ''
-      from_name: ''
       relay: ''
       port: 0
       insecure: false
       admin_panel_url: ''
-  report:
-    enabled: false
-    airflow:
-      uri: http://localhost:8080/
+  report: {}
   deposit:
     require_verified_customer_for_account: true
 tracing:

@@ -145,12 +145,6 @@ gql`
           days
           effective
         }
-        ... on CreditFacilityLiquidationAmountReserved {
-          cents
-          recordedAt
-          txId
-          effective
-        }
         ... on PendingCreditFacilityCollateralizationUpdated {
           pendingState: state
           collateral

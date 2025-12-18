@@ -100,21 +100,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "airflow"
-version = "0.0.0"
-dependencies = [
- "chrono",
- "reqwest",
- "serde",
- "thiserror 2.0.17",
- "tracing",
- "tracing-macros",
- "tracing-utils",
- "url",
- "workspace-hack",
-]
-
-[[package]]
 name = "allocator-api2"
 version = "0.2.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1627,8 +1612,6 @@ dependencies = [
 name = "core-report"
 version = "0.0.0"
 dependencies = [
- "airflow",
- "async-trait",
  "audit",
  "authz",
  "chrono",
@@ -1806,6 +1789,7 @@ dependencies = [
  "serde_with",
  "sim-time",
  "thiserror 2.0.17",
+ "tokio",
  "tracing",
  "tracing-macros",
  "tracing-utils",
@@ -1902,6 +1886,7 @@ dependencies = [
  "sqlx",
  "strum 0.27.2",
  "thiserror 2.0.17",
+ "tokio",
  "tracing",
  "tracing-macros",
  "tracing-utils",
@@ -1934,6 +1919,7 @@ dependencies = [
  "serde",
  "sumsub",
  "thiserror 2.0.17",
+ "tokio",
  "tracing",
  "tracing-macros",
  "tracing-utils",
@@ -3566,6 +3552,7 @@ dependencies = [
  "dashboard",
  "deposit-sync",
  "document-storage",
+ "domain-config",
  "es-entity",
  "governance",
  "job",
@@ -4006,17 +3993,21 @@ dependencies = [
  "core-customer",
  "core-deposit",
  "core-money",
+ "domain-config",
  "es-entity",
  "futures",
  "governance",
  "handlebars",
  "job",
  "lana-events",
+ "lettre",
  "outbox",
  "serde",
  "serde_json",
  "smtp-client",
+ "strum 0.27.2",
  "thiserror 2.0.17",
+ "tokio",
  "tracing",
  "tracing-macros",
  "tracing-utils",
@@ -4955,6 +4946,7 @@ dependencies = [
  "core-report",
  "dashboard",
  "governance",
+ "notification",
  "serde",
  "strum 0.27.2",
  "thiserror 2.0.17",
@@ -5644,9 +5636,9 @@ dependencies = [
 
 [[package]]
 name = "serde_with"
-version = "3.16.0"
+version = "3.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "10574371d41b0d9b2cff89418eda27da52bcaff2cc8741db26382a77c29131f1"
+checksum = "4fa237f2807440d238e0364a218270b98f767a00d3dada77b1c53ae88940e2e7"
 dependencies = [
  "base64 0.22.1",
  "chrono",
@@ -5663,9 +5655,9 @@ dependencies = [
 
 [[package]]
 name = "serde_with_macros"
-version = "3.16.0"
+version = "3.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "08a72d8216842fdd57820dc78d840bef99248e35fb2554ff923319e60f2d686b"
+checksum = "52a8e3ca0ca629121f70ab50f95249e5a6f925cc0f6ffe8256c45b728875706c"
 dependencies = [
  "darling 0.21.3",
  "proc-macro2",
@@ -7261,6 +7253,7 @@ dependencies = [
  "outbox",
  "serde",
  "thiserror 2.0.17",
+ "tokio",
  "tracing",
  "tracing-macros",
  "tracing-utils",
@@ -7287,13 +7280,13 @@ checksum = "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
 
 [[package]]
 name = "uuid"
-version = "1.18.1"
+version = "1.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2f87b8aa10b915a06587d0dec516c282ff295b475d94abf425d62b57710070a2"
+checksum = "e2e054861b4bd027cd373e18e8d8d8e6548085000e41290d95ce0c373a654b4a"
 dependencies = [
  "getrandom 0.3.4",
  "js-sys",
- "serde",
+ "serde_core",
  "wasm-bindgen",
 ]
 

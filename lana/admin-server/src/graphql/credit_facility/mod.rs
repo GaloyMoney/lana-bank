@@ -4,6 +4,7 @@ pub(super) mod disbursal;
 mod error;
 mod history;
 mod ledger_accounts;
+mod liquidation;
 pub(super) mod payment_allocation;
 mod pending_facility;
 mod proposal;
@@ -35,6 +36,7 @@ pub use disbursal::*;
 pub use error::*;
 pub use history::*;
 use ledger_accounts::*;
+pub use liquidation::*;
 pub use pending_facility::*;
 pub use proposal::*;
 pub use repayment::*;
@@ -131,6 +133,21 @@ impl CreditFacility {
             .into_iter()
             .map(CreditFacilityDisbursal::from)
             .collect())
+    }
+
+    async fn liquidations(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Liquidation>> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+
+        let liquidations = app
+            .credit()
+            .liquidations()
+            .list_for_facility_by_created_at(sub, self.entity.id)
+            .await?
+            .into_iter()
+            .map(Liquidation::from)
+            .collect();
+
+        Ok(liquidations)
     }
 
     async fn user_can_update_collateral(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {

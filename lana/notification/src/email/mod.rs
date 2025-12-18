@@ -7,6 +7,7 @@ use ::job::{JobId, Jobs};
 use core_access::user::Users;
 use core_credit::{CoreCredit, CreditFacilityId, ObligationId, ObligationType};
 use core_customer::Customers;
+use domain_config::DomainConfigs;
 use job::{EmailSenderConfig, EmailSenderInit};
 use lana_events::LanaEvent;
 use smtp_client::SmtpClient;
@@ -16,7 +17,7 @@ use templates::{
     RoleCreatedEmailData,
 };
 
-pub use config::EmailConfig;
+pub use config::{EmailInfraConfig, NotificationEmailConfig};
 pub use error::EmailError;
 
 #[derive(Clone)]
@@ -51,14 +52,20 @@ where
 {
     pub async fn init(
         jobs: &Jobs,
-        config: EmailConfig,
+        domain_configs: &DomainConfigs,
+        infra_config: EmailInfraConfig,
         users: &Users<AuthzType::Audit, LanaEvent>,
         credit: &CoreCredit<AuthzType, LanaEvent>,
         customers: &Customers<AuthzType, LanaEvent>,
     ) -> Result<Self, EmailError> {
-        let template = EmailTemplate::new(config.admin_panel_url.clone())?;
-        let smtp_client = SmtpClient::init(config.to_smtp_config())?;
-        jobs.add_initializer(EmailSenderInit::new(smtp_client, template));
+        let template = EmailTemplate::new(infra_config.admin_panel_url.clone())?;
+        let smtp_client = SmtpClient::init(infra_config.to_smtp_config())?;
+
+        jobs.add_initializer(EmailSenderInit::new(
+            smtp_client,
+            template,
+            domain_configs.clone(),
+        ));
         Ok(Self {
             jobs: jobs.clone(),
             users: users.clone(),
@@ -93,7 +100,7 @@ where
             .await?;
 
         let email_data = OverduePaymentEmailData {
-            facility_id: credit_facility_id.to_string(),
+            public_id: credit_facility.public_id.to_string(),
             payment_type: match obligation.obligation_type {
                 ObligationType::Disbursal => "Principal Repayment".to_string(),
                 ObligationType::Interest => "Interest Payment".to_string(),

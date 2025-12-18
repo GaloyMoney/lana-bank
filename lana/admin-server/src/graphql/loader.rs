@@ -432,6 +432,24 @@ impl Loader<DisbursalId> for LanaLoader {
     }
 }
 
+impl Loader<LiquidationId> for LanaLoader {
+    type Value = Liquidation;
+    type Error = Arc<lana_app::credit::error::CoreCreditError>;
+
+    #[instrument(name = "loader.liquidations", skip(self), fields(count = keys.len()), err)]
+    async fn load(
+        &self,
+        keys: &[LiquidationId],
+    ) -> Result<HashMap<LiquidationId, Liquidation>, Self::Error> {
+        self.app
+            .credit()
+            .liquidations()
+            .find_all(keys)
+            .await
+            .map_err(|e| Arc::new(e.into()))
+    }
+}
+
 impl Loader<LedgerAccountId> for LanaLoader {
     type Value = LedgerAccount;
     type Error = Arc<lana_app::accounting::error::CoreAccountingError>;

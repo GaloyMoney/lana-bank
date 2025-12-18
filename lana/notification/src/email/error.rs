@@ -13,6 +13,8 @@ pub enum EmailError {
     Render(#[from] RenderError),
     #[error("EmailError - Job: {0}")]
     Job(#[from] ::job::error::JobError),
+    #[error("EmailError - DomainConfig: {0}")]
+    DomainConfig(#[from] domain_config::DomainConfigError),
     #[error("EmailError - User: {0}")]
     User(#[from] core_access::user::error::UserError),
     #[error("EmailError - CoreCredit: {0}")]
@@ -32,6 +34,7 @@ impl ErrorSeverity for EmailError {
             Self::Template(_) => Level::ERROR,
             Self::Render(_) => Level::ERROR,
             Self::Job(_) => Level::ERROR,
+            Self::DomainConfig(e) => e.severity(),
             Self::User(e) => e.severity(),
             Self::CoreCredit(e) => e.severity(),
             Self::Customer(e) => e.severity(),

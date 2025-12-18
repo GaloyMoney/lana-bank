@@ -142,6 +142,14 @@
       "label": "Governance Writer",
       "description": "Can create and manage committees and policies, and control approval processes (create, approve, deny, conclude)"
     },
+    "notification_email_config_viewer": {
+      "label": "Notification Email Config Viewer",
+      "description": "Can view notification email configuration"
+    },
+    "notification_email_config_writer": {
+      "label": "Notification Email Config Writer",
+      "description": "Can configure notification email settings, including sender identity"
+    },
     "custody_viewer": {
       "label": "Custody Viewer",
       "description": "Can view custodian configurations"
@@ -157,6 +165,19 @@
     "report_writer": {
       "label": "Report Writer",
       "description": "Can trigger generation of regulatory reports"
+    }
+  },
+  "Configurations": {
+    "notificationEmail": {
+      "title": "Notification email",
+      "description": "Email sender details for all outgoing notifications.",
+      "fromEmail": "From email",
+      "fromName": "From name",
+      "reset": "Reset",
+      "save": "Save",
+      "saveSuccess": "Notification email settings updated",
+      "saveError": "Could not update notification email settings",
+      "saveErrorWithReason": "Could not update notification email settings: {error}"
     }
   },
   "interestInterval": {
@@ -183,6 +204,7 @@
       "pendingCreditFacilities": "Pending Credit Facilities",
       "creditFacilityProposals": "Credit Facility Proposals",
       "disbursals": "Disbursals",
+      "liquidations": "Liquidations",
       "termTemplates": "Term Templates",
       "customers": "Customers",
       "policies": "Policies",
@@ -204,7 +226,8 @@
       "modules": "Modules",
       "transactionTemplates": "Transaction Templates",
       "rolesAndPermissions": "Roles & Permissions",
-      "custodians": "Custodians"
+      "custodians": "Custodians",
+      "configurations": "Configurations"
     },
     "footer": {
       "appName": "Lana Bank",
@@ -780,7 +803,6 @@
           "incrementalPayment": "Payment",
           "disbursalExecuted": "Disbursal",
           "interestAccrued": "Interest Accrued",
-          "liquidationAmountReserved": "Liquidation Amount Reserved",
           "pendingFacilityCollateralization": "Pending Facility Collateralization Updated"
         },
         "messages": {
@@ -866,12 +888,31 @@
         "tabs": {
           "history": "History",
           "disbursals": "Disbursals",
+          "liquidations": "Liquidations",
           "repaymentPlan": "Repayment Plan",
           "ledgerAccounts": "Ledger Accounts"
         },
         "errors": {
           "notFound": "Not found",
           "loading": "Loading..."
+        }
+      },
+      "Liquidations": {
+        "title": "Liquidations",
+        "description": "Liquidations associated with this credit facility",
+        "columns": {
+          "status": "Status",
+          "expectedToReceive": "Expected to Receive",
+          "sentTotal": "Sent Total",
+          "receivedTotal": "Received Total",
+          "createdAt": "Created At"
+        },
+        "status": {
+          "completed": "Completed",
+          "inProgress": "In Progress"
+        },
+        "messages": {
+          "emptyTable": "No liquidations found"
         }
       },
       "CreditFacilityPartialPayment": {
@@ -1081,6 +1122,97 @@
           "success": "Disbursal initiated successfully",
           "unknownError": "An unknown error occurred"
         }
+      }
+    }
+  },
+  "Liquidations": {
+    "title": "Liquidations",
+    "description": "Liquidations across all credit facilities",
+    "table": {
+      "headers": {
+        "creditFacility": "Credit Facility",
+        "status": "Status",
+        "expectedToReceive": "Expected to Receive",
+        "sentTotal": "Sent Total",
+        "receivedTotal": "Received Total",
+        "createdAt": "Created At"
+      }
+    },
+    "status": {
+      "completed": "Completed",
+      "inProgress": "In Progress"
+    },
+    "errors": {
+      "general": "An error occurred"
+    },
+    "LiquidationDetails": {
+      "DetailsCard": {
+        "title": "Liquidation",
+        "details": {
+          "customerEmail": "Customer Email",
+          "status": "Status",
+          "expectedToReceive": "Expected to Receive",
+          "sentTotal": "Sent Total",
+          "receivedTotal": "Received Total",
+          "createdAt": "Created At"
+        },
+        "buttons": {
+          "recordCollateralSent": "Record Collateral Sent",
+          "recordPaymentReceived": "Record Payment Received",
+          "viewMoreDetails": "View More Details"
+        }
+      },
+      "CollateralSent": {
+        "title": "Collateral Sent",
+        "description": "Collateral sent out during liquidation",
+        "columns": {
+          "amount": "Amount",
+          "ledgerTxId": "Ledger Transaction ID"
+        },
+        "messages": {
+          "emptyTable": "No collateral sent"
+        }
+      },
+      "PaymentReceived": {
+        "title": "Payment Received",
+        "description": "Payments received from liquidation",
+        "columns": {
+          "amount": "Amount",
+          "ledgerTxId": "Ledger Transaction ID"
+        },
+        "messages": {
+          "emptyTable": "No payments received"
+        }
+      },
+      "recordCollateralSent": {
+        "title": "Record Collateral Sent",
+        "description": "Record the amount of collateral sent during liquidation",
+        "fields": {
+          "amount": "Amount",
+          "amountPlaceholder": "Enter amount in BTC"
+        },
+        "buttons": {
+          "submit": "Record Collateral Sent"
+        },
+        "errors": {
+          "invalidAmount": "Please enter a valid amount greater than 0"
+        },
+        "success": "Collateral sent recorded successfully"
+      },
+      "recordPaymentReceived": {
+        "title": "Record Payment Received",
+        "description": "Record the amount of payment received from liquidation",
+        "fields": {
+          "amount": "Amount",
+          "amountPlaceholder": "Enter amount in USD"
+        },
+        "buttons": {
+          "submit": "Record Payment Received"
+        },
+        "errors": {
+          "invalidAmount": "Please enter a valid amount greater than 0"
+        },
+        "success": "Payment received recorded successfully"
       }
     }
   },

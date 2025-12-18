@@ -21,7 +21,7 @@ pub async fn init_pool(config: &DbConfig) -> anyhow::Result<sqlx::PgPool> {
         .max_connections(config.pool_size)
         .connect_with(
             sqlx::postgres::PgConnectOptions::from_str(&config.pg_con)?
-                .log_slow_statements(LevelFilter::Warn, std::time::Duration::from_millis(100)),
+                .log_slow_statements(LevelFilter::Warn, std::time::Duration::from_millis(30000)),
         )
         .await?;
 

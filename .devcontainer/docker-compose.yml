@@ -21,7 +21,6 @@ services:
       - PG_CON=postgres://user:password@core-pg:5432/pg
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-agent:4317
       # Other environment variables
-      - MELTANO_PROJECT_ROOT=/workspaces/lana-bank/meltano
       - SQLX_OFFLINE=true
       - NIX_CONFIG=experimental-features = nix-command flakes
       # Add Nix to PATH

@@ -123,7 +123,7 @@ export type CreditFacilityDisbursalExecuted = {
   txId: Scalars['UUID']['output'];
 };
 
-export type CreditFacilityHistoryEntry = CreditFacilityApproved | CreditFacilityCollateralUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityIncrementalPayment | CreditFacilityInterestAccrued | CreditFacilityLiquidationAmountReserved | PendingCreditFacilityCollateralizationUpdated;
+export type CreditFacilityHistoryEntry = CreditFacilityApproved | CreditFacilityCollateralUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityIncrementalPayment | CreditFacilityInterestAccrued | PendingCreditFacilityCollateralizationUpdated;
 
 export type CreditFacilityIncrementalPayment = {
   __typename?: 'CreditFacilityIncrementalPayment';
@@ -137,14 +137,6 @@ export type CreditFacilityInterestAccrued = {
   __typename?: 'CreditFacilityInterestAccrued';
   cents: Scalars['UsdCents']['output'];
   days: Scalars['Int']['output'];
-  effective: Scalars['Date']['output'];
-  recordedAt: Scalars['Timestamp']['output'];
-  txId: Scalars['UUID']['output'];
-};
-
-export type CreditFacilityLiquidationAmountReserved = {
-  __typename?: 'CreditFacilityLiquidationAmountReserved';
-  cents: Scalars['UsdCents']['output'];
   effective: Scalars['Date']['output'];
   recordedAt: Scalars['Timestamp']['output'];
   txId: Scalars['UUID']['output'];
@@ -474,7 +466,6 @@ export type GetCreditFacilityQuery = { __typename?: 'Query', creditFacility?: { 
       | { __typename?: 'CreditFacilityDisbursalExecuted', cents: any, recordedAt: any, txId: any, effective: any }
       | { __typename?: 'CreditFacilityIncrementalPayment', cents: any, recordedAt: any, txId: any, effective: any }
       | { __typename?: 'CreditFacilityInterestAccrued', cents: any, recordedAt: any, txId: any, days: number, effective: any }
-      | { __typename?: 'CreditFacilityLiquidationAmountReserved', cents: any, recordedAt: any, txId: any, effective: any }
       | { __typename?: 'PendingCreditFacilityCollateralizationUpdated', collateral: any, price: any, recordedAt: any, effective: any, pendingState: PendingCreditFacilityCollateralizationState }
     > } | null };
 
@@ -621,12 +612,6 @@ export const GetCreditFacilityDocument = gql`
         recordedAt
         txId
         days
-        effective
-      }
-      ... on CreditFacilityLiquidationAmountReserved {
-        cents
-        recordedAt
-        txId
         effective
       }
       ... on PendingCreditFacilityCollateralizationUpdated {

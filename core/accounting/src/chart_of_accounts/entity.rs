@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use es_entity::*;
 
 use super::chart_node::*;
-use crate::primitives::*;
+use crate::{chart_of_accounts::ledger::ClosingTxParentIdsAndDetails, primitives::*};
 
 use super::{error::*, tree};
 
@@ -25,6 +25,9 @@ pub enum ChartEvent {
     },
     ClosedAsOf {
         closed_as_of: NaiveDate,
+    },
+    ClosingTransactionPosted {
+        posted_as_of: NaiveDate,
     },
 }
 
@@ -231,6 +234,11 @@ impl Chart {
             .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))
     }
 
+    pub fn maybe_account_set_id_from_code(&self, code: &AccountCode) -> Option<CalaAccountSetId> {
+        self.find_node_details_by_code(code)
+            .map(|details| details.account_set_id)
+    }
+
     pub fn manual_transaction_account(
         &mut self,
         account_id_or_code: AccountIdOrCode,
@@ -290,6 +298,44 @@ impl Chart {
         self.events.push(ChartEvent::ClosedAsOf { closed_as_of });
         Idempotent::Executed(closed_as_of)
     }
+
+    fn closing_account_set_ids_from_codes(
+        &self,
+        account_codes: ClosingAccountCodes,
+    ) -> Result<ClosingAccountSetIds, ChartOfAccountsError> {
+        Ok(ClosingAccountSetIds {
+            revenue: self.account_set_id_from_code(&account_codes.revenue)?,
+            cost_of_revenue: self.account_set_id_from_code(&account_codes.cost_of_revenue)?,
+            expenses: self.account_set_id_from_code(&account_codes.expenses)?,
+            equity_retained_earnings: self
+                .account_set_id_from_code(&account_codes.equity_retained_earnings)?,
+            equity_retained_losses: self
+                .account_set_id_from_code(&account_codes.equity_retained_losses)?,
+        })
+    }
+
+    pub(super) fn post_closing_tx_as_of(
+        &mut self,
+        account_codes: ClosingAccountCodes,
+        tx_details: ClosingTxDetails,
+    ) -> Result<Idempotent<ClosingTxParentIdsAndDetails>, ChartOfAccountsError> {
+        let closing_tx_params = ClosingTxParentIdsAndDetails::new(
+            self.closing_account_set_ids_from_codes(account_codes)?,
+            tx_details,
+        );
+        let posted_as_of = closing_tx_params.posted_as_of();
+
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            ChartEvent::ClosingTransactionPosted { posted_as_of: prev_date, .. } if prev_date >= &posted_as_of,
+            => ChartEvent::ClosingTransactionPosted { .. }
+        );
+
+        self.events
+            .push(ChartEvent::ClosingTransactionPosted { posted_as_of });
+
+        Ok(Idempotent::Executed(closing_tx_params))
+    }
 }
 
 impl TryFromEvents<ChartEvent> for Chart {
@@ -312,6 +358,7 @@ impl TryFromEvents<ChartEvent> for Chart {
                         .name(name.to_string());
                 }
                 ChartEvent::ClosedAsOf { .. } => {}
+                ChartEvent::ClosingTransactionPosted { .. } => {}
             }
         }
 

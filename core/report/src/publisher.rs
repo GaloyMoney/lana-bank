@@ -32,6 +32,7 @@ where
         }
     }
 
+    #[allow(dead_code)]
     pub async fn publish_report(
         &self,
         op: &mut impl es_entity::AtomicOperation,
@@ -50,6 +51,7 @@ where
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub async fn publish_report_run(
         &self,
         db: &mut impl es_entity::AtomicOperation,

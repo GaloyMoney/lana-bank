@@ -97,6 +97,10 @@
         src = rustSource;
         strictDeps = true;
         SQLX_OFFLINE = true;
+        # clang and lld for faster linking (configured in .cargo/config.toml)
+        nativeBuildInputs =
+          pkgs.lib.optionals pkgs.stdenv.isLinux [pkgs.clang pkgs.lld]
+          ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [pkgs.llvmPackages.lld];
       };
 
       cargoArtifacts = craneLib.buildDepsOnly (commonArgs
@@ -142,6 +146,7 @@
 
       lana-cli-release = let
         rustTarget = "x86_64-unknown-linux-musl";
+        muslCC = pkgs.pkgsCross.musl64.stdenv.cc;
       in
         craneLibMusl.buildPackage {
           version = cliVersion; # Use the conditional version
@@ -157,15 +162,18 @@
 
           RELEASE_BUILD_VERSION = cliVersion;
 
-          # Add musl target for static linking
-          depsBuildBuild = with pkgs; [
-            pkgsCross.musl64.stdenv.cc
-          ];
+          # clang + lld for linking (handles response files, avoiding ARG_MAX)
+          nativeBuildInputs = [pkgs.clang pkgs.lld];
 
-          # Environment variables for static linking
-          CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
-          CC_x86_64_unknown_linux_musl = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
-          TARGET_CC = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
+          # Add musl target for static linking
+          depsBuildBuild = [muslCC];
+
+          # Use clang as linker driver with lld backend
+          # clang handles response files properly, avoiding ARG_MAX issues
+          CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER = "clang";
+          CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_RUSTFLAGS = "-C link-arg=--target=x86_64-unknown-linux-musl -C link-arg=-fuse-ld=lld -C link-arg=--sysroot=${muslCC.libc}";
+          CC_x86_64_unknown_linux_musl = "${muslCC}/bin/x86_64-unknown-linux-musl-gcc";
+          TARGET_CC = "${muslCC}/bin/x86_64-unknown-linux-musl-gcc";
         };
 
       # Pre-built test binaries with nextest archive
@@ -194,7 +202,7 @@
             cargo nextest list --workspace --all-features > $out/test-list.txt
           '';
 
-          nativeBuildInputs = [pkgs.cargo-nextest];
+          nativeBuildInputs = commonArgs.nativeBuildInputs ++ [pkgs.cargo-nextest];
         }
       );
 
@@ -204,8 +212,6 @@
       };
 
       craneLibMusl = (crane.mkLib pkgs).overrideToolchain rustToolchainMusl;
-
-      meltanoPkgs = pkgs.callPackage ./nix/meltano.nix {};
 
       nativeBuildInputs = with pkgs;
         [
@@ -245,7 +251,6 @@
           curl
           tilt
           procps
-          meltanoPkgs.meltano
           poppler-utils
           keycloak
           tokio-console
@@ -257,6 +262,8 @@
           dejavu_fonts # Provides serif, sans-serif, and monospace
         ]
         ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
+          clang
+          lld
           xvfb-run
           cypress
           python313Packages.weasyprint
@@ -268,7 +275,9 @@
           psmisc
           iptables
         ]
-        ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [];
+        ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
+          llvmPackages.lld
+        ];
 
       devEnvVars = rec {
         OTEL_EXPORTER_OTLP_ENDPOINT = http://localhost:4317;
@@ -279,8 +288,6 @@
     in
       with pkgs; {
         packages = {
-          meltano = meltanoPkgs.meltano;
-          meltano-image = meltanoPkgs.meltano-image;
           default = lana-cli-debug;
           lana-cli-debug = lana-cli-debug;
           lana-cli-release = lana-cli-release;
@@ -880,7 +887,6 @@
             inherit nativeBuildInputs;
             shellHook = ''
               export LANA_CONFIG="$(pwd)/bats/lana.yml"
-              export MELTANO_PROJECT_ROOT="$(pwd)/meltano"
 
               # Font configuration for PDF generation
               export FONTCONFIG_FILE=${pkgs.fontconfig.out}/etc/fonts/fonts.conf

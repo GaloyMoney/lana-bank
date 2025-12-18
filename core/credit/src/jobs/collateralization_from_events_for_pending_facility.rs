@@ -1,6 +1,8 @@
-use futures::{FutureExt, StreamExt, select};
 use serde::{Deserialize, Serialize};
+use tokio::select;
 use tracing::{Span, instrument};
+
+use futures::StreamExt;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -145,7 +147,7 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
-    #[instrument(name = "core_credit.pending_credit_facility_collateralization_job.process_persistent_message", parent = None, skip(self, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty, credit_facility_proposal_id = tracing::field::Empty))]
+    #[instrument(name = "core_credit.pending_credit_facility_collateralization_job.process_persistent_message", parent = None, skip(self, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty, pending_credit_facility_id = tracing::field::Empty))]
     #[allow(clippy::single_match)]
     async fn process_persistent_message(
         &self,
@@ -218,7 +220,18 @@ where
 
         loop {
             select! {
-                event = stream.next().fuse() => {
+                biased;
+
+                _ = current_job.shutdown_requested() => {
+                    tracing::info!(
+                        job_id = %current_job.id(),
+                        job_type = %PENDING_CREDIT_FACILITY_COLLATERALIZATION_FROM_EVENTS_JOB,
+                        last_sequence = %state.sequence,
+                        "Shutdown signal received"
+                    );
+                    return Ok(JobCompletion::RescheduleNow);
+                }
+                event = stream.next() => {
                     match event {
                         Some(event) => {
                             match event {
@@ -236,15 +249,6 @@ where
                             return Ok(JobCompletion::RescheduleNow);
                         }
                     }
-                }
-                _ = current_job.shutdown_requested().fuse() => {
-                    tracing::info!(
-                        job_id = %current_job.id(),
-                        job_type = %PENDING_CREDIT_FACILITY_COLLATERALIZATION_FROM_EVENTS_JOB,
-                        last_sequence = %state.sequence,
-                        "Shutdown signal received"
-                    );
-                    return Ok(JobCompletion::RescheduleNow);
                 }
             }
         }

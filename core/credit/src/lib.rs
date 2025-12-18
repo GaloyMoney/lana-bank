@@ -38,7 +38,6 @@ use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Custo
 use core_price::{CorePriceEvent, Price};
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
-use liquidation::Liquidations;
 use outbox::{Outbox, OutboxEventMarker};
 use public_id::PublicIds;
 use tracing::instrument;
@@ -60,6 +59,7 @@ use for_subject::CreditFacilitiesForSubject;
 pub use history::*;
 use jobs::*;
 pub use ledger::*;
+pub use liquidation::{liquidation_cursor::*, *};
 pub use obligation::{error::*, obligation_cursor::*, *};
 pub use payment::*;
 pub use payment_allocation::*;
@@ -116,6 +116,7 @@ where
     chart_of_accounts_integrations: Arc<ChartOfAccountsIntegrations<Perms>>,
     terms_templates: Arc<TermsTemplates<Perms>>,
     public_ids: Arc<PublicIds>,
+    liquidations: Arc<Liquidations<Perms, E>>,
 }
 
 impl<Perms, E> Clone for CoreCredit<Perms, E>
@@ -152,6 +153,7 @@ where
             chart_of_accounts_integrations: self.chart_of_accounts_integrations.clone(),
             terms_templates: self.terms_templates.clone(),
             public_ids: self.public_ids.clone(),
+            liquidations: self.liquidations.clone(),
         }
     }
 }
@@ -213,7 +215,7 @@ where
         );
         let obligations_arc = Arc::new(obligations);
 
-        let liquidations = Liquidations::new(pool, &publisher);
+        let liquidations = Liquidations::new(pool, authz_arc.clone(), &publisher);
         let liquidations_arc = Arc::new(liquidations);
 
         let credit_facility_proposals = CreditFacilityProposals::init(
@@ -386,17 +388,23 @@ where
                 obligations_arc.as_ref(),
             ),
         );
-        jobs.add_initializer(partial_liquidation::PartialLiquidationInit::<E>::new(
-            outbox,
-            liquidations_arc.as_ref(),
-        ));
         jobs.add_initializer(
-            credit_facility_liquidations::CreditFacilityLiquidationsInit::<E>::new(
+            partial_liquidation::PartialLiquidationInit::<Perms, E>::new(
+                outbox,
+                liquidations_arc.as_ref(),
+            ),
+        );
+        jobs.add_initializer_and_spawn_unique(
+            credit_facility_liquidations::CreditFacilityLiquidationsInit::<Perms, E>::new(
                 outbox,
                 jobs,
                 liquidations_arc.as_ref(),
             ),
-        );
+            credit_facility_liquidations::CreditFacilityLiquidationsJobConfig::<Perms, E> {
+                _phantom: std::marker::PhantomData,
+            },
+        )
+        .await?;
         jobs.add_initializer(credit_facility_maturity::CreditFacilityMaturityInit::<
             Perms,
             E,
@@ -447,6 +455,7 @@ where
             chart_of_accounts_integrations: chart_of_accounts_integrations_arc,
             terms_templates: terms_templates_arc,
             public_ids: public_ids_arc,
+            liquidations: liquidations_arc,
         })
     }
 
@@ -460,6 +469,10 @@ where
 
     pub fn disbursals(&self) -> &Disbursals<Perms, E> {
         self.disbursals.as_ref()
+    }
+
+    pub fn liquidations(&self) -> &Liquidations<Perms, E> {
+        self.liquidations.as_ref()
     }
 
     pub fn proposals(&self) -> &CreditFacilityProposals<Perms, E> {

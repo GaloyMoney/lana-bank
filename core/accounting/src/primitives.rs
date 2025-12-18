@@ -382,6 +382,38 @@ impl AccountSpec {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct ClosingAccountCodes {
+    pub revenue: AccountCode,
+    pub cost_of_revenue: AccountCode,
+    pub expenses: AccountCode,
+    pub equity_retained_earnings: AccountCode,
+    pub equity_retained_losses: AccountCode,
+}
+
+#[derive(Debug, Clone)]
+pub struct ClosingAccountSetIds {
+    pub revenue: CalaAccountSetId,
+    pub cost_of_revenue: CalaAccountSetId,
+    pub expenses: CalaAccountSetId,
+    pub equity_retained_earnings: CalaAccountSetId,
+    pub equity_retained_losses: CalaAccountSetId,
+}
+
+#[derive(Debug, Clone)]
+pub struct ClosingTxDetails {
+    pub description: String,
+    pub tx_id: CalaTxId,
+    pub effective_balances_until: chrono::NaiveDate,
+    pub effective_balances_from: chrono::NaiveDate,
+}
+
+impl ClosingTxDetails {
+    pub fn retained_earnings_account_name(&self) -> String {
+        format!("NET_INCOME_{}", self.description)
+    }
+}
+
 pub type ChartAllOrOne = AllOrOne<ChartId>;
 pub type JournalAllOrOne = AllOrOne<CalaJournalId>;
 pub type LedgerAccountAllOrOne = AllOrOne<LedgerAccountId>;
@@ -681,6 +713,8 @@ impl CoreAccountingAction {
     pub const CHART_IMPORT_ACCOUNTS: Self =
         CoreAccountingAction::Chart(ChartAction::ImportAccounts);
     pub const CHART_CLOSE_MONTHLY: Self = CoreAccountingAction::Chart(ChartAction::CloseMonthly);
+    pub const CHART_POST_CLOSING_TRANSACTION: Self =
+        CoreAccountingAction::Chart(ChartAction::PostClosingTransaction);
 
     pub const JOURNAL_READ_ENTRIES: Self =
         CoreAccountingAction::Journal(JournalAction::ReadEntries);
@@ -831,6 +865,7 @@ pub enum ChartAction {
     Update,
     ImportAccounts,
     CloseMonthly,
+    PostClosingTransaction,
 }
 
 impl ActionPermission for ChartAction {
@@ -838,9 +873,11 @@ impl ActionPermission for ChartAction {
         match self {
             Self::List => PERMISSION_SET_ACCOUNTING_VIEWER,
 
-            Self::Create | Self::Update | Self::ImportAccounts | Self::CloseMonthly => {
-                PERMISSION_SET_ACCOUNTING_WRITER
-            }
+            Self::Create
+            | Self::Update
+            | Self::ImportAccounts
+            | Self::CloseMonthly
+            | Self::PostClosingTransaction => PERMISSION_SET_ACCOUNTING_WRITER,
         }
     }
 }

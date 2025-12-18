@@ -30,6 +30,7 @@ serde_json = { workspace = true }
 chrono = { workspace = true }
 async-trait = { workspace = true }
 futures = { workspace = true }
+tokio = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 tracing-macros = { workspace = true }

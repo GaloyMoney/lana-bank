@@ -427,6 +427,7 @@ export type CreditFacility = {
   history: Array<CreditFacilityHistoryEntry>;
   id: Scalars['ID']['output'];
   ledgerAccounts: CreditFacilityLedgerAccounts;
+  liquidations: Array<Liquidation>;
   maturesAt: Scalars['Timestamp']['output'];
   publicId: Scalars['PublicId']['output'];
   repaymentPlan: Array<CreditFacilityRepaymentPlanEntry>;
@@ -567,7 +568,7 @@ export type CreditFacilityEdge = {
   node: CreditFacility;
 };
 
-export type CreditFacilityHistoryEntry = CreditFacilityApproved | CreditFacilityCollateralUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityIncrementalPayment | CreditFacilityInterestAccrued | CreditFacilityLiquidationAmountReserved | PendingCreditFacilityCollateralizationUpdated;
+export type CreditFacilityHistoryEntry = CreditFacilityApproved | CreditFacilityCollateralUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityIncrementalPayment | CreditFacilityInterestAccrued | PendingCreditFacilityCollateralizationUpdated;
 
 export type CreditFacilityIncrementalPayment = {
   __typename?: 'CreditFacilityIncrementalPayment';
@@ -614,14 +615,6 @@ export type CreditFacilityLedgerAccounts = {
   interestReceivableNotYetDueAccountId: Scalars['UUID']['output'];
   interestReceivableOverdueAccount: LedgerAccount;
   interestReceivableOverdueAccountId: Scalars['UUID']['output'];
-};
-
-export type CreditFacilityLiquidationAmountReserved = {
-  __typename?: 'CreditFacilityLiquidationAmountReserved';
-  cents: Scalars['UsdCents']['output'];
-  effective: Scalars['Date']['output'];
-  recordedAt: Scalars['Timestamp']['output'];
-  txId: Scalars['UUID']['output'];
 };
 
 export type CreditFacilityPartialPaymentRecordInput = {
@@ -1573,6 +1566,72 @@ export type LedgerTransactionEdge = {
 
 export type LedgerTransactionEntity = CreditFacilityDisbursal | Deposit | Withdrawal;
 
+export type Liquidation = {
+  __typename?: 'Liquidation';
+  completed: Scalars['Boolean']['output'];
+  createdAt: Scalars['Timestamp']['output'];
+  creditFacility: CreditFacility;
+  creditFacilityId: Scalars['UUID']['output'];
+  expectedToReceive: Scalars['UsdCents']['output'];
+  id: Scalars['ID']['output'];
+  liquidationId: Scalars['UUID']['output'];
+  receivedPayment: Array<LiquidationPaymentReceived>;
+  receivedTotal: Scalars['UsdCents']['output'];
+  sentCollateral: Array<LiquidationCollateralSent>;
+  sentTotal: Scalars['Satoshis']['output'];
+};
+
+export type LiquidationCollateralSent = {
+  __typename?: 'LiquidationCollateralSent';
+  amount: Scalars['Satoshis']['output'];
+  ledgerTxId: Scalars['UUID']['output'];
+};
+
+export type LiquidationConnection = {
+  __typename?: 'LiquidationConnection';
+  /** A list of edges. */
+  edges: Array<LiquidationEdge>;
+  /** A list of nodes. */
+  nodes: Array<Liquidation>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+/** An edge in a connection. */
+export type LiquidationEdge = {
+  __typename?: 'LiquidationEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: Liquidation;
+};
+
+export type LiquidationPaymentReceived = {
+  __typename?: 'LiquidationPaymentReceived';
+  amount: Scalars['UsdCents']['output'];
+  ledgerTxId: Scalars['UUID']['output'];
+};
+
+export type LiquidationRecordCollateralSentInput = {
+  amount: Scalars['Satoshis']['input'];
+  liquidationId: Scalars['UUID']['input'];
+};
+
+export type LiquidationRecordCollateralSentPayload = {
+  __typename?: 'LiquidationRecordCollateralSentPayload';
+  liquidation: Liquidation;
+};
+
+export type LiquidationRecordPaymentReceivedInput = {
+  amount: Scalars['UsdCents']['input'];
+  liquidationId: Scalars['UUID']['input'];
+};
+
+export type LiquidationRecordPaymentReceivedPayload = {
+  __typename?: 'LiquidationRecordPaymentReceivedPayload';
+  liquidation: Liquidation;
+};
+
 export type Loan = {
   __typename?: 'Loan';
   collateralToMatchInitialCvl?: Maybe<Scalars['Satoshis']['output']>;
@@ -1680,9 +1739,12 @@ export type Mutation = {
   fiscalYearInit: FiscalYearInitPayload;
   fiscalYearOpenNext: FiscalYearOpenNextPayload;
   ledgerAccountCsvCreate: LedgerAccountCsvCreatePayload;
+  liquidationRecordCollateralSent: LiquidationRecordCollateralSentPayload;
+  liquidationRecordPaymentReceived: LiquidationRecordPaymentReceivedPayload;
   loanAgreementDownloadLinkGenerate: LoanAgreementDownloadLinksGeneratePayload;
   loanAgreementGenerate: LoanAgreementGeneratePayload;
   manualTransactionExecute: ManualTransactionExecutePayload;
+  notificationEmailConfigUpdate: NotificationEmailConfigPayload;
   pendingCreditFacilityCollateralUpdate: PendingCreditFacilityCollateralUpdatePayload;
   policyAssignCommittee: PolicyAssignCommitteePayload;
   profitAndLossStatementConfigure: ProfitAndLossStatementModuleConfigurePayload;
@@ -1899,6 +1961,16 @@ export type MutationLedgerAccountCsvCreateArgs = {
 };
 
 
+export type MutationLiquidationRecordCollateralSentArgs = {
+  input: LiquidationRecordCollateralSentInput;
+};
+
+
+export type MutationLiquidationRecordPaymentReceivedArgs = {
+  input: LiquidationRecordPaymentReceivedInput;
+};
+
+
 export type MutationLoanAgreementDownloadLinkGenerateArgs = {
   input: LoanAgreementDownloadLinksGenerateInput;
 };
@@ -1911,6 +1983,11 @@ export type MutationLoanAgreementGenerateArgs = {
 
 export type MutationManualTransactionExecuteArgs = {
   input: ManualTransactionExecuteInput;
+};
+
+
+export type MutationNotificationEmailConfigUpdateArgs = {
+  input: NotificationEmailConfigInput;
 };
 
 
@@ -1991,6 +2068,22 @@ export type MutationWithdrawalInitiateArgs = {
 
 export type MutationWithdrawalRevertArgs = {
   input: WithdrawalRevertInput;
+};
+
+export type NotificationEmailConfig = {
+  __typename?: 'NotificationEmailConfig';
+  fromEmail: Scalars['String']['output'];
+  fromName: Scalars['String']['output'];
+};
+
+export type NotificationEmailConfigInput = {
+  fromEmail: Scalars['String']['input'];
+  fromName: Scalars['String']['input'];
+};
+
+export type NotificationEmailConfigPayload = {
+  __typename?: 'NotificationEmailConfigPayload';
+  notificationEmailConfig: NotificationEmailConfig;
 };
 
 export type Outstanding = {
@@ -2137,6 +2230,8 @@ export enum PermissionSetName {
   DepositWriter = 'DEPOSIT_WRITER',
   GovernanceViewer = 'GOVERNANCE_VIEWER',
   GovernanceWriter = 'GOVERNANCE_WRITER',
+  NotificationEmailConfigViewer = 'NOTIFICATION_EMAIL_CONFIG_VIEWER',
+  NotificationEmailConfigWriter = 'NOTIFICATION_EMAIL_CONFIG_WRITER',
   ReportViewer = 'REPORT_VIEWER',
   ReportWriter = 'REPORT_WRITER'
 }
@@ -2248,8 +2343,11 @@ export type Query = {
   ledgerAccountByCode?: Maybe<LedgerAccount>;
   ledgerTransaction?: Maybe<LedgerTransaction>;
   ledgerTransactionsForTemplateCode: LedgerTransactionConnection;
+  liquidation?: Maybe<Liquidation>;
+  liquidations: LiquidationConnection;
   loanAgreement?: Maybe<LoanAgreement>;
   me: Me;
+  notificationEmailConfig: NotificationEmailConfig;
   pendingCreditFacilities: PendingCreditFacilityConnection;
   pendingCreditFacility?: Maybe<PendingCreditFacility>;
   permissionSets: PermissionSetConnection;
@@ -2461,6 +2559,17 @@ export type QueryLedgerTransactionsForTemplateCodeArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
   templateCode: Scalars['String']['input'];
+};
+
+
+export type QueryLiquidationArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
+export type QueryLiquidationsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 
@@ -3178,6 +3287,18 @@ export type CommitteeRemoveUserMutationVariables = Exact<{
 
 export type CommitteeRemoveUserMutation = { __typename?: 'Mutation', committeeRemoveUser: { __typename?: 'CommitteeRemoveUserPayload', committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } }> } } };
 
+export type NotificationEmailConfigQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type NotificationEmailConfigQuery = { __typename?: 'Query', notificationEmailConfig: { __typename?: 'NotificationEmailConfig', fromEmail: string, fromName: string } };
+
+export type NotificationEmailConfigUpdateMutationVariables = Exact<{
+  input: NotificationEmailConfigInput;
+}>;
+
+
+export type NotificationEmailConfigUpdateMutation = { __typename?: 'Mutation', notificationEmailConfigUpdate: { __typename?: 'NotificationEmailConfigPayload', notificationEmailConfig: { __typename?: 'NotificationEmailConfig', fromEmail: string, fromName: string } } };
+
 export type DisbursalOnFacilityPageFragment = { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, publicId: any, amount: UsdCents, status: DisbursalStatus, createdAt: any };
 
 export type GetCreditFacilityDisbursalsQueryVariables = Exact<{
@@ -3271,6 +3392,15 @@ export type CreditFacilityLedgerAccountsQuery = { __typename?: 'Query', creditFa
           | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
          } } } | null };
 
+export type LiquidationOnFacilityPageFragment = { __typename?: 'Liquidation', id: string, liquidationId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, receivedTotal: UsdCents, createdAt: any, completed: boolean };
+
+export type GetCreditFacilityLiquidationsQueryVariables = Exact<{
+  publicId: Scalars['PublicId']['input'];
+}>;
+
+
+export type GetCreditFacilityLiquidationsQuery = { __typename?: 'Query', creditFacilityByPublicId?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, liquidations: Array<{ __typename?: 'Liquidation', id: string, liquidationId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, receivedTotal: UsdCents, createdAt: any, completed: boolean }> } | null };
+
 export type CreditFacilityHistoryFragmentFragment = { __typename?: 'CreditFacility', id: string, creditFacilityId: string, history: Array<
     | { __typename?: 'CreditFacilityApproved', cents: UsdCents, recordedAt: any, txId: string, effective: any }
     | { __typename?: 'CreditFacilityCollateralUpdated', satoshis: Satoshis, recordedAt: any, action: CollateralAction, txId: string, effective: any }
@@ -3278,7 +3408,6 @@ export type CreditFacilityHistoryFragmentFragment = { __typename?: 'CreditFacili
     | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string, effective: any }
     | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string, effective: any }
     | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number, effective: any }
-    | { __typename?: 'CreditFacilityLiquidationAmountReserved', cents: UsdCents, recordedAt: any, effective: any, txId: string }
     | { __typename?: 'PendingCreditFacilityCollateralizationUpdated', collateral: Satoshis, price: UsdCents, recordedAt: any, effective: any, pendingState: PendingCreditFacilityCollateralizationState }
   > };
 
@@ -3294,7 +3423,6 @@ export type GetCreditFacilityHistoryQuery = { __typename?: 'Query', creditFacili
       | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string, effective: any }
       | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string, effective: any }
       | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number, effective: any }
-      | { __typename?: 'CreditFacilityLiquidationAmountReserved', cents: UsdCents, recordedAt: any, effective: any, txId: string }
       | { __typename?: 'PendingCreditFacilityCollateralizationUpdated', collateral: Satoshis, price: UsdCents, recordedAt: any, effective: any, pendingState: PendingCreditFacilityCollateralizationState }
     > } | null };
 
@@ -3319,7 +3447,6 @@ export type CreditFacilityCollateralUpdateMutation = { __typename?: 'Mutation', 
         | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string, effective: any }
         | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string, effective: any }
         | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number, effective: any }
-        | { __typename?: 'CreditFacilityLiquidationAmountReserved', cents: UsdCents, recordedAt: any, effective: any, txId: string }
         | { __typename?: 'PendingCreditFacilityCollateralizationUpdated', collateral: Satoshis, price: UsdCents, recordedAt: any, effective: any, pendingState: PendingCreditFacilityCollateralizationState }
       >, currentCvl:
         | { __typename: 'FiniteCVLPct', value: any }
@@ -3369,7 +3496,6 @@ export type CreditFacilityPartialPaymentRecordMutation = { __typename?: 'Mutatio
         | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string, effective: any }
         | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string, effective: any }
         | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number, effective: any }
-        | { __typename?: 'CreditFacilityLiquidationAmountReserved', cents: UsdCents, recordedAt: any, effective: any, txId: string }
         | { __typename?: 'PendingCreditFacilityCollateralizationUpdated', collateral: Satoshis, price: UsdCents, recordedAt: any, effective: any, pendingState: PendingCreditFacilityCollateralizationState }
       >, currentCvl:
         | { __typename: 'FiniteCVLPct', value: any }
@@ -3397,7 +3523,6 @@ export type CreditFacilityPartialPaymentWithDateRecordMutation = { __typename?: 
         | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string, effective: any }
         | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string, effective: any }
         | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number, effective: any }
-        | { __typename?: 'CreditFacilityLiquidationAmountReserved', cents: UsdCents, recordedAt: any, effective: any, txId: string }
         | { __typename?: 'PendingCreditFacilityCollateralizationUpdated', collateral: Satoshis, price: UsdCents, recordedAt: any, effective: any, pendingState: PendingCreditFacilityCollateralizationState }
       >, currentCvl:
         | { __typename: 'FiniteCVLPct', value: any }
@@ -3724,7 +3849,6 @@ export type CreditFacilityDisbursalInitiateMutation = { __typename?: 'Mutation',
           | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string, effective: any }
           | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string, effective: any }
           | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number, effective: any }
-          | { __typename?: 'CreditFacilityLiquidationAmountReserved', cents: UsdCents, recordedAt: any, effective: any, txId: string }
           | { __typename?: 'PendingCreditFacilityCollateralizationUpdated', collateral: Satoshis, price: UsdCents, recordedAt: any, effective: any, pendingState: PendingCreditFacilityCollateralizationState }
         >, currentCvl:
           | { __typename: 'FiniteCVLPct', value: any }
@@ -3918,6 +4042,67 @@ export type LedgerTransactionExistsByIdQueryVariables = Exact<{
 
 
 export type LedgerTransactionExistsByIdQuery = { __typename?: 'Query', ledgerTransaction?: { __typename?: 'LedgerTransaction', id: string } | null };
+
+export type LiquidationCollateralSentFragmentFragment = { __typename?: 'LiquidationCollateralSent', amount: Satoshis, ledgerTxId: string };
+
+export type LiquidationPaymentReceivedFragmentFragment = { __typename?: 'LiquidationPaymentReceived', amount: UsdCents, ledgerTxId: string };
+
+export type LiquidationDetailsFragment = { __typename?: 'Liquidation', id: string, liquidationId: string, creditFacilityId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, receivedTotal: UsdCents, createdAt: any, completed: boolean, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, publicId: any, status: CreditFacilityStatus, collateralizationState: CollateralizationState, facilityAmount: UsdCents, activatedAt: any, maturesAt: any, currentCvl:
+      | { __typename: 'FiniteCVLPct', value: any }
+      | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
+    , creditFacilityTerms: { __typename?: 'TermValues', liquidationCvl:
+        | { __typename: 'FiniteCVLPct', value: any }
+        | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
+       }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string } }, sentCollateral: Array<{ __typename?: 'LiquidationCollateralSent', amount: Satoshis, ledgerTxId: string }>, receivedPayment: Array<{ __typename?: 'LiquidationPaymentReceived', amount: UsdCents, ledgerTxId: string }> };
+
+export type GetLiquidationDetailsQueryVariables = Exact<{
+  liquidationId: Scalars['UUID']['input'];
+}>;
+
+
+export type GetLiquidationDetailsQuery = { __typename?: 'Query', liquidation?: { __typename?: 'Liquidation', id: string, liquidationId: string, creditFacilityId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, receivedTotal: UsdCents, createdAt: any, completed: boolean, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, publicId: any, status: CreditFacilityStatus, collateralizationState: CollateralizationState, facilityAmount: UsdCents, activatedAt: any, maturesAt: any, currentCvl:
+        | { __typename: 'FiniteCVLPct', value: any }
+        | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
+      , creditFacilityTerms: { __typename?: 'TermValues', liquidationCvl:
+          | { __typename: 'FiniteCVLPct', value: any }
+          | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
+         }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string } }, sentCollateral: Array<{ __typename?: 'LiquidationCollateralSent', amount: Satoshis, ledgerTxId: string }>, receivedPayment: Array<{ __typename?: 'LiquidationPaymentReceived', amount: UsdCents, ledgerTxId: string }> } | null };
+
+export type LiquidationRecordCollateralSentMutationVariables = Exact<{
+  input: LiquidationRecordCollateralSentInput;
+}>;
+
+
+export type LiquidationRecordCollateralSentMutation = { __typename?: 'Mutation', liquidationRecordCollateralSent: { __typename?: 'LiquidationRecordCollateralSentPayload', liquidation: { __typename?: 'Liquidation', id: string, liquidationId: string, creditFacilityId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, receivedTotal: UsdCents, createdAt: any, completed: boolean, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, publicId: any, status: CreditFacilityStatus, collateralizationState: CollateralizationState, facilityAmount: UsdCents, activatedAt: any, maturesAt: any, currentCvl:
+          | { __typename: 'FiniteCVLPct', value: any }
+          | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
+        , creditFacilityTerms: { __typename?: 'TermValues', liquidationCvl:
+            | { __typename: 'FiniteCVLPct', value: any }
+            | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
+           }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string } }, sentCollateral: Array<{ __typename?: 'LiquidationCollateralSent', amount: Satoshis, ledgerTxId: string }>, receivedPayment: Array<{ __typename?: 'LiquidationPaymentReceived', amount: UsdCents, ledgerTxId: string }> } } };
+
+export type LiquidationRecordPaymentReceivedMutationVariables = Exact<{
+  input: LiquidationRecordPaymentReceivedInput;
+}>;
+
+
+export type LiquidationRecordPaymentReceivedMutation = { __typename?: 'Mutation', liquidationRecordPaymentReceived: { __typename?: 'LiquidationRecordPaymentReceivedPayload', liquidation: { __typename?: 'Liquidation', id: string, liquidationId: string, creditFacilityId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, receivedTotal: UsdCents, createdAt: any, completed: boolean, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, publicId: any, status: CreditFacilityStatus, collateralizationState: CollateralizationState, facilityAmount: UsdCents, activatedAt: any, maturesAt: any, currentCvl:
+          | { __typename: 'FiniteCVLPct', value: any }
+          | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
+        , creditFacilityTerms: { __typename?: 'TermValues', liquidationCvl:
+            | { __typename: 'FiniteCVLPct', value: any }
+            | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
+           }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string } }, sentCollateral: Array<{ __typename?: 'LiquidationCollateralSent', amount: Satoshis, ledgerTxId: string }>, receivedPayment: Array<{ __typename?: 'LiquidationPaymentReceived', amount: UsdCents, ledgerTxId: string }> } } };
+
+export type LiquidationListFieldsFragment = { __typename?: 'Liquidation', id: string, liquidationId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, receivedTotal: UsdCents, createdAt: any, completed: boolean, creditFacility: { __typename?: 'CreditFacility', publicId: any } };
+
+export type LiquidationsQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type LiquidationsQuery = { __typename?: 'Query', liquidations: { __typename?: 'LiquidationConnection', edges: Array<{ __typename?: 'LiquidationEdge', cursor: string, node: { __typename?: 'Liquidation', id: string, liquidationId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, receivedTotal: UsdCents, createdAt: any, completed: boolean, creditFacility: { __typename?: 'CreditFacility', publicId: any } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type BalanceSheetConfigureMutationVariables = Exact<{
   input: BalanceSheetModuleConfigureInput;
@@ -4646,6 +4831,17 @@ export const LedgerAccountInfoFragmentDoc = gql`
   }
 }
     `;
+export const LiquidationOnFacilityPageFragmentDoc = gql`
+    fragment LiquidationOnFacilityPage on Liquidation {
+  id
+  liquidationId
+  expectedToReceive
+  sentTotal
+  receivedTotal
+  createdAt
+  completed
+}
+    `;
 export const CreditFacilityHistoryFragmentFragmentDoc = gql`
     fragment CreditFacilityHistoryFragment on CreditFacility {
   id
@@ -4691,12 +4887,6 @@ export const CreditFacilityHistoryFragmentFragmentDoc = gql`
       txId
       days
       effective
-    }
-    ... on CreditFacilityLiquidationAmountReserved {
-      cents
-      recordedAt
-      effective
-      txId
     }
     ... on PendingCreditFacilityCollateralizationUpdated {
       pendingState: state
@@ -5057,6 +5247,95 @@ export const LedgerAccountDetailsFragmentDoc = gql`
       hasNextPage
       hasPreviousPage
     }
+  }
+}
+    `;
+export const LiquidationCollateralSentFragmentFragmentDoc = gql`
+    fragment LiquidationCollateralSentFragment on LiquidationCollateralSent {
+  amount
+  ledgerTxId
+}
+    `;
+export const LiquidationPaymentReceivedFragmentFragmentDoc = gql`
+    fragment LiquidationPaymentReceivedFragment on LiquidationPaymentReceived {
+  amount
+  ledgerTxId
+}
+    `;
+export const LiquidationDetailsFragmentDoc = gql`
+    fragment LiquidationDetails on Liquidation {
+  id
+  liquidationId
+  creditFacilityId
+  expectedToReceive
+  sentTotal
+  receivedTotal
+  createdAt
+  completed
+  creditFacility {
+    id
+    creditFacilityId
+    publicId
+    status
+    collateralizationState
+    facilityAmount
+    activatedAt
+    maturesAt
+    currentCvl {
+      __typename
+      ... on FiniteCVLPct {
+        value
+      }
+      ... on InfiniteCVLPct {
+        isInfinite
+      }
+    }
+    creditFacilityTerms {
+      liquidationCvl {
+        __typename
+        ... on FiniteCVLPct {
+          value
+        }
+        ... on InfiniteCVLPct {
+          isInfinite
+        }
+      }
+    }
+    balance {
+      outstanding {
+        usdBalance
+      }
+      collateral {
+        btcBalance
+      }
+    }
+    customer {
+      customerId
+      publicId
+      customerType
+      email
+    }
+  }
+  sentCollateral {
+    ...LiquidationCollateralSentFragment
+  }
+  receivedPayment {
+    ...LiquidationPaymentReceivedFragment
+  }
+}
+    ${LiquidationCollateralSentFragmentFragmentDoc}
+${LiquidationPaymentReceivedFragmentFragmentDoc}`;
+export const LiquidationListFieldsFragmentDoc = gql`
+    fragment LiquidationListFields on Liquidation {
+  id
+  liquidationId
+  expectedToReceive
+  sentTotal
+  receivedTotal
+  createdAt
+  completed
+  creditFacility {
+    publicId
   }
 }
     `;
@@ -5978,6 +6257,82 @@ export function useCommitteeRemoveUserMutation(baseOptions?: Apollo.MutationHook
 export type CommitteeRemoveUserMutationHookResult = ReturnType<typeof useCommitteeRemoveUserMutation>;
 export type CommitteeRemoveUserMutationResult = Apollo.MutationResult<CommitteeRemoveUserMutation>;
 export type CommitteeRemoveUserMutationOptions = Apollo.BaseMutationOptions<CommitteeRemoveUserMutation, CommitteeRemoveUserMutationVariables>;
+export const NotificationEmailConfigDocument = gql`
+    query notificationEmailConfig {
+  notificationEmailConfig {
+    fromEmail
+    fromName
+  }
+}
+    `;
+
+/**
+ * __useNotificationEmailConfigQuery__
+ *
+ * To run a query within a React component, call `useNotificationEmailConfigQuery` and pass it any options that fit your needs.
+ * When your component renders, `useNotificationEmailConfigQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useNotificationEmailConfigQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useNotificationEmailConfigQuery(baseOptions?: Apollo.QueryHookOptions<NotificationEmailConfigQuery, NotificationEmailConfigQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<NotificationEmailConfigQuery, NotificationEmailConfigQueryVariables>(NotificationEmailConfigDocument, options);
+      }
+export function useNotificationEmailConfigLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<NotificationEmailConfigQuery, NotificationEmailConfigQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<NotificationEmailConfigQuery, NotificationEmailConfigQueryVariables>(NotificationEmailConfigDocument, options);
+        }
+export function useNotificationEmailConfigSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<NotificationEmailConfigQuery, NotificationEmailConfigQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<NotificationEmailConfigQuery, NotificationEmailConfigQueryVariables>(NotificationEmailConfigDocument, options);
+        }
+export type NotificationEmailConfigQueryHookResult = ReturnType<typeof useNotificationEmailConfigQuery>;
+export type NotificationEmailConfigLazyQueryHookResult = ReturnType<typeof useNotificationEmailConfigLazyQuery>;
+export type NotificationEmailConfigSuspenseQueryHookResult = ReturnType<typeof useNotificationEmailConfigSuspenseQuery>;
+export type NotificationEmailConfigQueryResult = Apollo.QueryResult<NotificationEmailConfigQuery, NotificationEmailConfigQueryVariables>;
+export const NotificationEmailConfigUpdateDocument = gql`
+    mutation notificationEmailConfigUpdate($input: NotificationEmailConfigInput!) {
+  notificationEmailConfigUpdate(input: $input) {
+    notificationEmailConfig {
+      fromEmail
+      fromName
+    }
+  }
+}
+    `;
+export type NotificationEmailConfigUpdateMutationFn = Apollo.MutationFunction<NotificationEmailConfigUpdateMutation, NotificationEmailConfigUpdateMutationVariables>;
+
+/**
+ * __useNotificationEmailConfigUpdateMutation__
+ *
+ * To run a mutation, you first call `useNotificationEmailConfigUpdateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useNotificationEmailConfigUpdateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [notificationEmailConfigUpdateMutation, { data, loading, error }] = useNotificationEmailConfigUpdateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useNotificationEmailConfigUpdateMutation(baseOptions?: Apollo.MutationHookOptions<NotificationEmailConfigUpdateMutation, NotificationEmailConfigUpdateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<NotificationEmailConfigUpdateMutation, NotificationEmailConfigUpdateMutationVariables>(NotificationEmailConfigUpdateDocument, options);
+      }
+export type NotificationEmailConfigUpdateMutationHookResult = ReturnType<typeof useNotificationEmailConfigUpdateMutation>;
+export type NotificationEmailConfigUpdateMutationResult = Apollo.MutationResult<NotificationEmailConfigUpdateMutation>;
+export type NotificationEmailConfigUpdateMutationOptions = Apollo.BaseMutationOptions<NotificationEmailConfigUpdateMutation, NotificationEmailConfigUpdateMutationVariables>;
 export const GetCreditFacilityDisbursalsDocument = gql`
     query GetCreditFacilityDisbursals($publicId: PublicId!) {
   creditFacilityByPublicId(id: $publicId) {
@@ -6143,6 +6498,50 @@ export type CreditFacilityLedgerAccountsQueryHookResult = ReturnType<typeof useC
 export type CreditFacilityLedgerAccountsLazyQueryHookResult = ReturnType<typeof useCreditFacilityLedgerAccountsLazyQuery>;
 export type CreditFacilityLedgerAccountsSuspenseQueryHookResult = ReturnType<typeof useCreditFacilityLedgerAccountsSuspenseQuery>;
 export type CreditFacilityLedgerAccountsQueryResult = Apollo.QueryResult<CreditFacilityLedgerAccountsQuery, CreditFacilityLedgerAccountsQueryVariables>;
+export const GetCreditFacilityLiquidationsDocument = gql`
+    query GetCreditFacilityLiquidations($publicId: PublicId!) {
+  creditFacilityByPublicId(id: $publicId) {
+    id
+    creditFacilityId
+    liquidations {
+      ...LiquidationOnFacilityPage
+    }
+  }
+}
+    ${LiquidationOnFacilityPageFragmentDoc}`;
+
+/**
+ * __useGetCreditFacilityLiquidationsQuery__
+ *
+ * To run a query within a React component, call `useGetCreditFacilityLiquidationsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCreditFacilityLiquidationsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCreditFacilityLiquidationsQuery({
+ *   variables: {
+ *      publicId: // value for 'publicId'
+ *   },
+ * });
+ */
+export function useGetCreditFacilityLiquidationsQuery(baseOptions: Apollo.QueryHookOptions<GetCreditFacilityLiquidationsQuery, GetCreditFacilityLiquidationsQueryVariables> & ({ variables: GetCreditFacilityLiquidationsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetCreditFacilityLiquidationsQuery, GetCreditFacilityLiquidationsQueryVariables>(GetCreditFacilityLiquidationsDocument, options);
+      }
+export function useGetCreditFacilityLiquidationsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCreditFacilityLiquidationsQuery, GetCreditFacilityLiquidationsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetCreditFacilityLiquidationsQuery, GetCreditFacilityLiquidationsQueryVariables>(GetCreditFacilityLiquidationsDocument, options);
+        }
+export function useGetCreditFacilityLiquidationsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetCreditFacilityLiquidationsQuery, GetCreditFacilityLiquidationsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetCreditFacilityLiquidationsQuery, GetCreditFacilityLiquidationsQueryVariables>(GetCreditFacilityLiquidationsDocument, options);
+        }
+export type GetCreditFacilityLiquidationsQueryHookResult = ReturnType<typeof useGetCreditFacilityLiquidationsQuery>;
+export type GetCreditFacilityLiquidationsLazyQueryHookResult = ReturnType<typeof useGetCreditFacilityLiquidationsLazyQuery>;
+export type GetCreditFacilityLiquidationsSuspenseQueryHookResult = ReturnType<typeof useGetCreditFacilityLiquidationsSuspenseQuery>;
+export type GetCreditFacilityLiquidationsQueryResult = Apollo.QueryResult<GetCreditFacilityLiquidationsQuery, GetCreditFacilityLiquidationsQueryVariables>;
 export const GetCreditFacilityHistoryDocument = gql`
     query GetCreditFacilityHistory($publicId: PublicId!) {
   creditFacilityByPublicId(id: $publicId) {
@@ -8848,6 +9247,168 @@ export type LedgerTransactionExistsByIdQueryHookResult = ReturnType<typeof useLe
 export type LedgerTransactionExistsByIdLazyQueryHookResult = ReturnType<typeof useLedgerTransactionExistsByIdLazyQuery>;
 export type LedgerTransactionExistsByIdSuspenseQueryHookResult = ReturnType<typeof useLedgerTransactionExistsByIdSuspenseQuery>;
 export type LedgerTransactionExistsByIdQueryResult = Apollo.QueryResult<LedgerTransactionExistsByIdQuery, LedgerTransactionExistsByIdQueryVariables>;
+export const GetLiquidationDetailsDocument = gql`
+    query GetLiquidationDetails($liquidationId: UUID!) {
+  liquidation(id: $liquidationId) {
+    ...LiquidationDetails
+  }
+}
+    ${LiquidationDetailsFragmentDoc}`;
+
+/**
+ * __useGetLiquidationDetailsQuery__
+ *
+ * To run a query within a React component, call `useGetLiquidationDetailsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetLiquidationDetailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetLiquidationDetailsQuery({
+ *   variables: {
+ *      liquidationId: // value for 'liquidationId'
+ *   },
+ * });
+ */
+export function useGetLiquidationDetailsQuery(baseOptions: Apollo.QueryHookOptions<GetLiquidationDetailsQuery, GetLiquidationDetailsQueryVariables> & ({ variables: GetLiquidationDetailsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetLiquidationDetailsQuery, GetLiquidationDetailsQueryVariables>(GetLiquidationDetailsDocument, options);
+      }
+export function useGetLiquidationDetailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetLiquidationDetailsQuery, GetLiquidationDetailsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetLiquidationDetailsQuery, GetLiquidationDetailsQueryVariables>(GetLiquidationDetailsDocument, options);
+        }
+export function useGetLiquidationDetailsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetLiquidationDetailsQuery, GetLiquidationDetailsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetLiquidationDetailsQuery, GetLiquidationDetailsQueryVariables>(GetLiquidationDetailsDocument, options);
+        }
+export type GetLiquidationDetailsQueryHookResult = ReturnType<typeof useGetLiquidationDetailsQuery>;
+export type GetLiquidationDetailsLazyQueryHookResult = ReturnType<typeof useGetLiquidationDetailsLazyQuery>;
+export type GetLiquidationDetailsSuspenseQueryHookResult = ReturnType<typeof useGetLiquidationDetailsSuspenseQuery>;
+export type GetLiquidationDetailsQueryResult = Apollo.QueryResult<GetLiquidationDetailsQuery, GetLiquidationDetailsQueryVariables>;
+export const LiquidationRecordCollateralSentDocument = gql`
+    mutation LiquidationRecordCollateralSent($input: LiquidationRecordCollateralSentInput!) {
+  liquidationRecordCollateralSent(input: $input) {
+    liquidation {
+      ...LiquidationDetails
+    }
+  }
+}
+    ${LiquidationDetailsFragmentDoc}`;
+export type LiquidationRecordCollateralSentMutationFn = Apollo.MutationFunction<LiquidationRecordCollateralSentMutation, LiquidationRecordCollateralSentMutationVariables>;
+
+/**
+ * __useLiquidationRecordCollateralSentMutation__
+ *
+ * To run a mutation, you first call `useLiquidationRecordCollateralSentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useLiquidationRecordCollateralSentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [liquidationRecordCollateralSentMutation, { data, loading, error }] = useLiquidationRecordCollateralSentMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useLiquidationRecordCollateralSentMutation(baseOptions?: Apollo.MutationHookOptions<LiquidationRecordCollateralSentMutation, LiquidationRecordCollateralSentMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<LiquidationRecordCollateralSentMutation, LiquidationRecordCollateralSentMutationVariables>(LiquidationRecordCollateralSentDocument, options);
+      }
+export type LiquidationRecordCollateralSentMutationHookResult = ReturnType<typeof useLiquidationRecordCollateralSentMutation>;
+export type LiquidationRecordCollateralSentMutationResult = Apollo.MutationResult<LiquidationRecordCollateralSentMutation>;
+export type LiquidationRecordCollateralSentMutationOptions = Apollo.BaseMutationOptions<LiquidationRecordCollateralSentMutation, LiquidationRecordCollateralSentMutationVariables>;
+export const LiquidationRecordPaymentReceivedDocument = gql`
+    mutation LiquidationRecordPaymentReceived($input: LiquidationRecordPaymentReceivedInput!) {
+  liquidationRecordPaymentReceived(input: $input) {
+    liquidation {
+      ...LiquidationDetails
+    }
+  }
+}
+    ${LiquidationDetailsFragmentDoc}`;
+export type LiquidationRecordPaymentReceivedMutationFn = Apollo.MutationFunction<LiquidationRecordPaymentReceivedMutation, LiquidationRecordPaymentReceivedMutationVariables>;
+
+/**
+ * __useLiquidationRecordPaymentReceivedMutation__
+ *
+ * To run a mutation, you first call `useLiquidationRecordPaymentReceivedMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useLiquidationRecordPaymentReceivedMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [liquidationRecordPaymentReceivedMutation, { data, loading, error }] = useLiquidationRecordPaymentReceivedMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useLiquidationRecordPaymentReceivedMutation(baseOptions?: Apollo.MutationHookOptions<LiquidationRecordPaymentReceivedMutation, LiquidationRecordPaymentReceivedMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<LiquidationRecordPaymentReceivedMutation, LiquidationRecordPaymentReceivedMutationVariables>(LiquidationRecordPaymentReceivedDocument, options);
+      }
+export type LiquidationRecordPaymentReceivedMutationHookResult = ReturnType<typeof useLiquidationRecordPaymentReceivedMutation>;
+export type LiquidationRecordPaymentReceivedMutationResult = Apollo.MutationResult<LiquidationRecordPaymentReceivedMutation>;
+export type LiquidationRecordPaymentReceivedMutationOptions = Apollo.BaseMutationOptions<LiquidationRecordPaymentReceivedMutation, LiquidationRecordPaymentReceivedMutationVariables>;
+export const LiquidationsDocument = gql`
+    query Liquidations($first: Int!, $after: String) {
+  liquidations(first: $first, after: $after) {
+    edges {
+      node {
+        ...LiquidationListFields
+      }
+      cursor
+    }
+    pageInfo {
+      endCursor
+      startCursor
+      hasNextPage
+      hasPreviousPage
+    }
+  }
+}
+    ${LiquidationListFieldsFragmentDoc}`;
+
+/**
+ * __useLiquidationsQuery__
+ *
+ * To run a query within a React component, call `useLiquidationsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useLiquidationsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useLiquidationsQuery({
+ *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useLiquidationsQuery(baseOptions: Apollo.QueryHookOptions<LiquidationsQuery, LiquidationsQueryVariables> & ({ variables: LiquidationsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<LiquidationsQuery, LiquidationsQueryVariables>(LiquidationsDocument, options);
+      }
+export function useLiquidationsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<LiquidationsQuery, LiquidationsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<LiquidationsQuery, LiquidationsQueryVariables>(LiquidationsDocument, options);
+        }
+export function useLiquidationsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<LiquidationsQuery, LiquidationsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<LiquidationsQuery, LiquidationsQueryVariables>(LiquidationsDocument, options);
+        }
+export type LiquidationsQueryHookResult = ReturnType<typeof useLiquidationsQuery>;
+export type LiquidationsLazyQueryHookResult = ReturnType<typeof useLiquidationsLazyQuery>;
+export type LiquidationsSuspenseQueryHookResult = ReturnType<typeof useLiquidationsSuspenseQuery>;
+export type LiquidationsQueryResult = Apollo.QueryResult<LiquidationsQuery, LiquidationsQueryVariables>;
 export const BalanceSheetConfigureDocument = gql`
     mutation BalanceSheetConfigure($input: BalanceSheetModuleConfigureInput!) {
   balanceSheetConfigure(input: $input) {

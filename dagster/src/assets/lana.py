@@ -38,6 +38,7 @@ LANA_EL_TABLE_NAMES = (
     "cala_account_sets",
     "cala_accounts",
     "cala_balance_history",
+    "sumsub_callbacks",
 )
 
 EL_SOURCE_ASSET_DESCRIPTION = "el_source_asset"

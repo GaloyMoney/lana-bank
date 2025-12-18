@@ -1,7 +1,6 @@
 #@ load("@ytt:data", "data")
 
 #@ load("fragments.lib.yml",
-#@   "build_edge_image",
 #@   "public_gar_registry",
 #@   "nodejs_task_image_config",
 #@   "edge_image_resource",
@@ -37,13 +36,11 @@ groups:
       - test-integration
       - release
       - flake-check
-      - build-edge-image
       - release-docker
       #! - set-dev-version
       - bump-image-in-chart
       -  #@ build_app_edge_image_name("admin-panel")
       -  #@ build_app_edge_image_name("customer-portal")
-      - build-meltano-edge-image
       - await-release-binary
       - build-dagster-edge-image
 
@@ -79,8 +76,6 @@ jobs:
       - put: version
         params:
           bump: patch
-
-  -  #@ build_edge_image()
 
   - name: test-integration
     serial: true
@@ -260,7 +255,6 @@ jobs:
               - test-bats
               - test-integration
               - await-release-binary
-              - build-meltano-edge-image
             trigger: true
           - get: pipeline-tasks
           - get: version
@@ -271,10 +265,6 @@ jobs:
           - get: #@ app_src_resource_name("customer-portal")
             passed:
               -  #@ build_app_edge_image_name("customer-portal")
-          - get: meltano-edge-image
-            params: { skip_download: true }
-            passed:
-              - build-meltano-edge-image
           - get: dagster-edge-image
             params: { skip_download: true }
             passed:
@@ -428,11 +418,6 @@ jobs:
               - release
             trigger: true
           - get: pipeline-tasks
-          - get: meltano-edge-image
-            passed:
-              - release
-            params:
-              format: oci
           - get: dagster-edge-image
             passed:
               - release
@@ -476,10 +461,6 @@ jobs:
             params:
               image: image/image.tar
               additional_tags: version/version
-          - put: meltano-latest-image
-            params:
-              image: meltano-edge-image/image.tar
-              additional_tags: version/version
           - put: dagster-latest-image
             params:
               image: dagster-edge-image/image.tar
@@ -492,9 +473,6 @@ jobs:
             params: { skip_download: true }
           - get: #@ app_latest_image_resource_name("admin-panel")
           - get: #@ app_latest_image_resource_name("customer-portal")
-          - get: meltano-latest-image
-            passed: [release-docker]
-            params: { skip_download: true }
           - get: dagster-latest-image
             passed: [release-docker]
             params: { skip_download: true }
@@ -516,7 +494,6 @@ jobs:
             - name: latest-image
             - name: #@ app_latest_image_resource_name("admin-panel")
             - name: #@ app_latest_image_resource_name("customer-portal")
-            - name: meltano-latest-image
             - name: dagster-latest-image
             - name: pipeline-tasks
             - name: charts-repo
@@ -552,38 +529,6 @@ jobs:
 
   -  #@ build_app_edge_image("admin-panel")
   -  #@ build_app_edge_image("customer-portal")
-
-  - name: build-meltano-edge-image
-    serial: true
-    plan:
-      - get: repo
-        trigger: true
-      - task: build
-        config:
-          platform: linux
-          image_resource: #@ nix_flake_cachix_image_config()
-          inputs:
-          - name: repo
-          outputs:
-          - name: image
-          params:
-            CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
-            CACHIX_CACHE_NAME: #@ data.values.cachix_cache_name
-          run:
-            path: bash
-            args:
-              - -c
-              - |
-                set -eux
-                pushd repo
-
-                cachix use $CACHIX_CACHE_NAME
-
-                nix build --no-sandbox .#meltano-image
-                cp $(nix eval --raw .#meltano-image.outPath) ../image/image.tar
-      - put: meltano-edge-image
-        params:
-          image: image/image.tar
 
   - name: build-dagster-edge-image
     serial: true
@@ -646,14 +591,6 @@ resources:
       password: #@ data.values.gar_registry_password
       repository: #@ private_gar_registry() + "/" + data.values.folder_registry_image
 
-  - name: meltano-edge-image
-    type: registry-image
-    source:
-      tag: edge
-      username: #@ data.values.gar_registry_user
-      password: #@ data.values.gar_registry_password
-      repository: #@ public_gar_registry() + "/meltano"
-
   - name: dagster-edge-image
     type: registry-image
     source:
@@ -661,14 +598,6 @@ resources:
       username: #@ data.values.gar_registry_user
       password: #@ data.values.gar_registry_password
       repository: #@ public_gar_registry() + "/dagster-code-location-lana-dw"
-
-  - name: meltano-latest-image
-    type: registry-image
-    source:
-      tag: latest
-      username: #@ data.values.gar_registry_user
-      password: #@ data.values.gar_registry_password
-      repository: #@ public_gar_registry() + "/meltano"
 
   - name: dagster-latest-image
     type: registry-image
@@ -679,7 +608,6 @@ resources:
       repository: #@ public_gar_registry() + "/dagster-code-location-lana-dw"
 
   -  #@ pipeline_tasks_resource()
-  -  #@ edge_image_resource(publicRepo=False)
   -  #@ version_resource()
   -  #@ gh_release_resource()
   -  #@ charts_repo_bot_branch()

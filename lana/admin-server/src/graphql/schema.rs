@@ -7,6 +7,7 @@ use lana_app::{
         BALANCE_SHEET_NAME, PROFIT_AND_LOSS_STATEMENT_NAME, TRIAL_BALANCE_STATEMENT_NAME,
     },
     app::LanaApp,
+    credit::LiquidationsByIdCursor,
 };
 
 use crate::primitives::*;
@@ -14,9 +15,9 @@ use crate::primitives::*;
 use super::{
     access::*, accounting::*, approval_process::*, audit::*, balance_sheet_config::*, committee::*,
     contract_creation::*, credit_config::*, credit_facility::*, custody::*, customer::*,
-    dashboard::*, deposit::*, deposit_config::*, document::*, loader::*, me::*, policy::*,
-    price::*, profit_and_loss_config::*, public_id::*, reports::*, sumsub::*, terms_template::*,
-    withdrawal::*,
+    dashboard::*, deposit::*, deposit_config::*, document::*, loader::*, me::*, notification::*,
+    policy::*, price::*, profit_and_loss_config::*, public_id::*, reports::*, sumsub::*,
+    terms_template::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -518,6 +519,38 @@ impl Query {
         )
     }
 
+    async fn liquidation(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<Liquidation>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(
+            Liquidation,
+            ctx,
+            app.credit().liquidations().find_by_id(sub, id)
+        )
+    }
+
+    async fn liquidations(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<LiquidationsByIdCursor, Liquidation, EmptyFields, EmptyFields>,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor!(
+            LiquidationsByIdCursor,
+            Liquidation,
+            ctx,
+            after,
+            first,
+            |query| app.credit().liquidations().list(sub, query)
+        )
+    }
+
     async fn custodians(
         &self,
         ctx: &Context<'_>,
@@ -917,6 +950,15 @@ impl Query {
         Ok(config.map(DepositModuleConfig::from))
     }
 
+    async fn notification_email_config(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<NotificationEmailConfig> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let config = app.notification().get_email_config(sub).await?;
+        Ok(NotificationEmailConfig::from(config))
+    }
+
     async fn credit_config(
         &self,
         ctx: &Context<'_>,
@@ -1244,6 +1286,22 @@ impl Mutation {
             app.customers()
                 .update_email(sub, input.customer_id, input.email)
         )
+    }
+
+    async fn notification_email_config_update(
+        &self,
+        ctx: &Context<'_>,
+        input: NotificationEmailConfigInput,
+    ) -> async_graphql::Result<NotificationEmailConfigPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let updated = app
+            .notification()
+            .update_email_config(sub, input.into())
+            .await?;
+
+        Ok(NotificationEmailConfigPayload::from(
+            NotificationEmailConfig::from(updated),
+        ))
     }
 
     async fn deposit_module_configure(
@@ -1935,6 +1993,42 @@ impl Mutation {
         )
     }
 
+    async fn liquidation_record_collateral_sent(
+        &self,
+        ctx: &Context<'_>,
+        input: LiquidationRecordCollateralSentInput,
+    ) -> async_graphql::Result<LiquidationRecordCollateralSentPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            LiquidationRecordCollateralSentPayload,
+            Liquidation,
+            ctx,
+            app.credit().liquidations().record_collateral_sent(
+                sub,
+                input.liquidation_id.into(),
+                input.amount
+            )
+        )
+    }
+
+    async fn liquidation_record_payment_received(
+        &self,
+        ctx: &Context<'_>,
+        input: LiquidationRecordPaymentReceivedInput,
+    ) -> async_graphql::Result<LiquidationRecordPaymentReceivedPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            LiquidationRecordPaymentReceivedPayload,
+            Liquidation,
+            ctx,
+            app.credit().liquidations().record_payment_from_liquidation(
+                sub,
+                input.liquidation_id.into(),
+                input.amount
+            )
+        )
+    }
+
     async fn custodian_create(
         &self,
         ctx: &Context<'_>,
@@ -2388,8 +2482,8 @@ impl Mutation {
         ctx: &Context<'_>,
     ) -> async_graphql::Result<ReportRunCreatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let job_id = app.reports().trigger_report_run(sub).await?;
-        Ok(ReportRunCreatePayload::from(job_id))
+        app.reports().trigger_report_run(sub).await?;
+        Err("Report generation is currently disabled".into())
     }
 
     async fn report_file_generate_download_link(

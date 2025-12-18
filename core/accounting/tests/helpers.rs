@@ -13,6 +13,7 @@ pub async fn init_journal(cala: &CalaLedger) -> anyhow::Result<cala_ledger::Jour
     let new = NewJournal::builder()
         .id(id)
         .name("Test journal")
+        .enable_effective_balance(true)
         .build()
         .unwrap();
     let journal = cala.journals().create(new).await?;
