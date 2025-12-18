@@ -1389,6 +1389,7 @@ dependencies = [
  "csv",
  "derive_builder",
  "document-storage",
+ "domain-config",
  "es-entity",
  "job",
  "rand 0.9.2",
