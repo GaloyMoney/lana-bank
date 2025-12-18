@@ -33,6 +33,11 @@ LANA_EL_TABLE_NAMES = (
     "core_public_ids",
     "core_chart_events",
     "core_chart_node_events",
+    "cala_account_set_member_account_sets",
+    "cala_account_set_member_accounts",
+    "cala_account_sets",
+    "cala_accounts",
+    "cala_balance_history",
     "sumsub_callbacks",
 )
 

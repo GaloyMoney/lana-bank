@@ -1,3 +1,7 @@
+{{ config(
+    unique_key = ['id', 'sequence'],
+) }}
+
 with raw_stg_core_chart_events as (
     select
         id,

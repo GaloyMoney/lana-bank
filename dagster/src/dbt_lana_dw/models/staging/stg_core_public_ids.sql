@@ -1,3 +1,7 @@
+{{ config(
+    unique_key = ['target_id'],
+) }}
+
 with raw_stg_core_public_ids as (
     select
         id,
