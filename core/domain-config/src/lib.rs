@@ -19,7 +19,7 @@ pub mod event_schema {
     pub use crate::entity::DomainConfigEvent;
 }
 
-use repo::{DomainConfigRepo, SimpleConfigCurrentRow};
+use repo::DomainConfigRepo;
 
 #[derive(Clone)]
 pub struct DomainConfigs {
@@ -161,7 +161,7 @@ impl DomainConfigs {
     ) -> Result<(), DomainConfigError> {
         if self
             .repo
-            .simple_metadata_by_key(config.key())
+            .maybe_find_by_key(config.key().clone())
             .await?
             .is_some()
         {
@@ -192,31 +192,9 @@ impl DomainConfigs {
         config: SimpleConfig<T>,
         value: T,
     ) -> Result<(), DomainConfigError> {
-        let Some(meta) = self.repo.simple_metadata_by_key(config.key()).await? else {
-            return Err(DomainConfigError::EsEntityError(
-                es_entity::EsEntityError::NotFound,
-            ));
-        };
+        let mut config_entity = self.repo.find_by_key(config.key().clone()).await?;
+        validate_simple_type(&config_entity, config.key().clone(), T::SIMPLE_TYPE)?;
 
-        match meta.simple_type {
-            Some(found) if found == T::SIMPLE_TYPE => {}
-            Some(found) => {
-                return Err(DomainConfigError::InvalidSimpleType {
-                    key: config.key().clone(),
-                    expected: T::SIMPLE_TYPE,
-                    found: Some(found),
-                });
-            }
-            None => {
-                return Err(DomainConfigError::InvalidSimpleType {
-                    key: config.key().clone(),
-                    expected: T::SIMPLE_TYPE,
-                    found: None,
-                });
-            }
-        }
-
-        let mut config_entity = self.repo.find_by_id(meta.id).await?;
         if config_entity
             .update_simple_value(value.to_json())
             .did_execute()
@@ -232,50 +210,70 @@ impl DomainConfigs {
         &self,
         config: SimpleConfig<T>,
     ) -> Result<T, DomainConfigError> {
-        let Some(meta) = self.repo.simple_metadata_by_key(config.key()).await? else {
-            return Err(DomainConfigError::EsEntityError(
-                es_entity::EsEntityError::NotFound,
-            ));
-        };
+        let config_entity = self.repo.find_by_key(config.key().clone()).await?;
+        validate_simple_type(&config_entity, config.key().clone(), T::SIMPLE_TYPE)?;
 
-        match meta.simple_type {
-            Some(found) if found == T::SIMPLE_TYPE => {}
-            Some(found) => {
-                return Err(DomainConfigError::InvalidSimpleType {
-                    key: config.key().clone(),
-                    expected: T::SIMPLE_TYPE,
-                    found: Some(found),
-                });
-            }
-            None => {
-                return Err(DomainConfigError::InvalidSimpleType {
-                    key: config.key().clone(),
-                    expected: T::SIMPLE_TYPE,
-                    found: None,
-                });
-            }
-        }
-
-        let Some(row) = self.repo.simple_with_value_by_key(config.key()).await? else {
-            return Err(DomainConfigError::MissingSimpleValue(config.key().clone()));
-        };
-
-        T::from_json(row.value)
+        let value = config_entity.current_json_value().clone();
+        T::from_json(value)
     }
 
     #[instrument(name = "domain_config.list_simple", skip(self), err)]
     pub async fn list_simple(&self) -> Result<Vec<SimpleEntry>, DomainConfigError> {
-        let rows = self.repo.list_simple_with_values().await?;
+        let mut entries = Vec::new();
+        for simple_type in [
+            SimpleType::Bool,
+            SimpleType::String,
+            SimpleType::Int,
+            SimpleType::Decimal,
+        ] {
+            collect_simple_of_type(&self.repo, simple_type, &mut entries).await?;
+        }
 
-        rows.into_iter().map(simple_entry_from_row).collect()
+        Ok(entries)
     }
 }
 
-fn simple_entry_from_row(row: SimpleConfigCurrentRow) -> Result<SimpleEntry, DomainConfigError> {
-    let value = row.simple_type.parse_json(row.value)?;
-    Ok(SimpleEntry {
-        key: row.key.to_string(),
-        simple_type: row.simple_type,
-        value,
-    })
+fn validate_simple_type(
+    config: &DomainConfig,
+    key: &DomainConfigKey,
+    expected: SimpleType,
+) -> Result<(), DomainConfigError> {
+    match config.simple_type {
+        Some(found) if found == expected => Ok(()),
+        Some(found) => Err(DomainConfigError::InvalidSimpleType {
+            key: key.clone(),
+            expected,
+            found: Some(found),
+        }),
+        None => Err(DomainConfigError::InvalidSimpleType {
+            key: key.clone(),
+            expected,
+            found: None,
+        }),
+    }
+}
+
+async fn collect_simple_of_type(
+    repo: &DomainConfigRepo,
+    simple_type: SimpleType,
+    acc: &mut Vec<SimpleEntry>,
+) -> Result<(), DomainConfigError> {
+    let mut next = Some(es_entity::PaginatedQueryArgs::default());
+
+    while let Some(query) = next.take() {
+        let mut ret = repo
+            .list_for_simple_type_by_created_at(Some(simple_type), query, Default::default())
+            .await?;
+        for config in &ret.entities {
+            let value = simple_type.parse_json(config.current_json_value().clone())?;
+            acc.push(SimpleEntry {
+                key: config.key.to_string(),
+                simple_type,
+                value,
+            });
+        }
+        next = ret.into_next_query();
+    }
+
+    Ok(())
 }

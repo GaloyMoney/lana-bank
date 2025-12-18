@@ -18,6 +18,7 @@ pub enum DomainConfigEvent {
     Initialized {
         id: DomainConfigId,
         key: DomainConfigKey,
+        simple_type: Option<SimpleType>,
         value: serde_json::Value,
     },
     Updated {
@@ -30,6 +31,7 @@ pub enum DomainConfigEvent {
 pub struct DomainConfig {
     pub id: DomainConfigId,
     pub key: DomainConfigKey,
+    pub simple_type: Option<SimpleType>,
     events: EntityEvents<DomainConfigEvent>,
 }
 
@@ -69,6 +71,18 @@ impl DomainConfig {
         Ok(serde_json::from_value(value.clone())?)
     }
 
+    pub(super) fn current_json_value(&self) -> &serde_json::Value {
+        let last_event = self
+            .events
+            .iter_all()
+            .next_back()
+            .expect("last event exists");
+        match last_event {
+            DomainConfigEvent::Initialized { value, .. } => value,
+            DomainConfigEvent::Updated { value } => value,
+        }
+    }
+
     pub(super) fn update_simple_value(&mut self, new_value: serde_json::Value) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
@@ -86,17 +100,24 @@ impl DomainConfig {
 impl TryFromEvents<DomainConfigEvent> for DomainConfig {
     fn try_from_events(events: EntityEvents<DomainConfigEvent>) -> Result<Self, EsEntityError> {
         let mut builder = DomainConfigBuilder::default();
+        let mut simple_type = None;
 
         for event in events.iter_all() {
             match event {
-                DomainConfigEvent::Initialized { id, key, .. } => {
+                DomainConfigEvent::Initialized {
+                    id,
+                    key,
+                    simple_type: st,
+                    ..
+                } => {
                     builder = builder.id(*id).key(key.clone());
+                    simple_type = *st;
                 }
                 DomainConfigEvent::Updated { .. } => {}
             }
         }
 
-        builder.events(events).build()
+        builder.simple_type(simple_type).events(events).build()
     }
 }
 
@@ -158,6 +179,7 @@ impl IntoEvents<DomainConfigEvent> for NewDomainConfig {
             [DomainConfigEvent::Initialized {
                 id: self.id,
                 key: self.key,
+                simple_type: self.simple_type,
                 value: self.value,
             }],
         )
@@ -370,6 +392,25 @@ mod tests {
 
         assert_eq!(new.simple_type(), Some(SimpleType::Bool));
         assert_eq!(new.key, key);
+    }
+
+    #[test]
+    fn rehydrates_simple_type_from_event() {
+        let id = DomainConfigId::new();
+        let key = DomainConfigKey::new("simple-bool");
+        let value = json!(true);
+
+        let events = NewDomainConfig::builder()
+            .with_simple_value(id, key.clone(), SimpleType::Bool, value.clone())
+            .unwrap()
+            .build()
+            .unwrap()
+            .into_events();
+
+        let config = DomainConfig::try_from_events(events).unwrap();
+
+        assert_eq!(config.simple_type, Some(SimpleType::Bool));
+        assert_eq!(config.current_json_value(), &value);
     }
 
     #[test]
