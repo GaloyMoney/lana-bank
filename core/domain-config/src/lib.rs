@@ -144,12 +144,6 @@ impl DomainConfigs {
         value: T,
     ) -> Result<(), DomainConfigError> {
         let key: DomainConfigKey = spec.into();
-        if self.repo.maybe_find_by_key(key.clone()).await?.is_some() {
-            return Err(DomainConfigError::InvalidState(format!(
-                "Domain config {} already exists",
-                key
-            )));
-        }
 
         let domain_config_id = DomainConfigId::new();
         let new = NewDomainConfig::builder()
@@ -191,13 +185,6 @@ impl DomainConfigs {
     ) -> Result<(), DomainConfigError> {
         let key = T::KEY;
 
-        if self.repo.maybe_find_by_key(key.clone()).await?.is_some() {
-            return Err(DomainConfigError::InvalidState(format!(
-                "Domain config {} already exists",
-                key
-            )));
-        }
-
         let domain_config_id = DomainConfigId::new();
         let new = NewDomainConfig::builder()
             .with_value(domain_config_id, value)?
@@ -223,9 +210,7 @@ impl DomainConfigs {
         Ok(())
     }
 
-    async fn get_complex_value<T: DomainConfigValue>(
-        &self,
-    ) -> Result<T, DomainConfigError> {
+    async fn get_complex_value<T: DomainConfigValue>(&self) -> Result<T, DomainConfigError> {
         let key = T::KEY;
         let config = self.repo.find_by_key(key).await?;
         config.ensure_complex()?;
