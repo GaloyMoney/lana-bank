@@ -38,8 +38,7 @@ pub struct NotificationEmailConfig {
     pub from_name: String,
 }
 
-pub const NOTIFICATION_EMAIL_CONFIG: TypedConfig<NotificationEmailConfig> =
-    TypedConfig::new("notification-email");
+pub const NOTIFICATION_EMAIL_CONFIG: TypedConfig<NotificationEmailConfig> = TypedConfig::new();
 
 impl DomainConfigValue for NotificationEmailConfig {
     const KEY: DomainConfigKey = DomainConfigKey::new("notification-email");

@@ -65,8 +65,8 @@ impl DomainConfigs {
     where
         S: ConfigSpecDispatch,
     {
-        let key = DomainConfigKey::new(spec.key());
-        if self.repo.maybe_find_by_key(key).await?.is_some() {
+        let key = spec.key();
+        if self.repo.maybe_find_by_key(key.clone()).await?.is_some() {
             spec.update(self, value).await
         } else {
             spec.create(self, value).await
@@ -150,16 +150,10 @@ impl DomainConfigs {
 
     async fn create_complex_value<T: DomainConfigValue>(
         &self,
-        spec: TypedConfig<T>,
+        _spec: TypedConfig<T>,
         value: T,
     ) -> Result<(), DomainConfigError> {
-        let key = DomainConfigKey::new(spec.key);
-        if key != T::KEY {
-            return Err(DomainConfigError::InvalidState(format!(
-                "Config key {} does not match type key {}",
-                key, T::KEY
-            )));
-        }
+        let key = T::KEY;
 
         if self.repo.maybe_find_by_key(key.clone()).await?.is_some() {
             return Err(DomainConfigError::InvalidState(format!(
@@ -180,16 +174,10 @@ impl DomainConfigs {
 
     async fn update_complex_value<T: DomainConfigValue>(
         &self,
-        spec: TypedConfig<T>,
+        _spec: TypedConfig<T>,
         value: T,
     ) -> Result<(), DomainConfigError> {
-        let key = DomainConfigKey::new(spec.key);
-        if key != T::KEY {
-            return Err(DomainConfigError::InvalidState(format!(
-                "Config key {} does not match type key {}",
-                key, T::KEY
-            )));
-        }
+        let key = T::KEY;
         let mut config = self.repo.find_by_key(key.clone()).await?;
         config.ensure_complex()?;
 
@@ -202,15 +190,9 @@ impl DomainConfigs {
 
     async fn get_complex_value<T: DomainConfigValue>(
         &self,
-        spec: TypedConfig<T>,
+        _spec: TypedConfig<T>,
     ) -> Result<T, DomainConfigError> {
-        let key = DomainConfigKey::new(spec.key);
-        if key != T::KEY {
-            return Err(DomainConfigError::InvalidState(format!(
-                "Config key {} does not match type key {}",
-                key, T::KEY
-            )));
-        }
+        let key = T::KEY;
         let config = self.repo.find_by_key(key).await?;
         config.ensure_complex()?;
         config.current_value()
@@ -238,7 +220,7 @@ async fn collect_simple_of_type(
 }
 
 trait ConfigSpecDispatch: ConfigSpec {
-    fn key(&self) -> &'static str;
+    fn key(&self) -> DomainConfigKey;
 
     fn create<'a>(
         self,
@@ -259,8 +241,8 @@ trait ConfigSpecDispatch: ConfigSpec {
 }
 
 impl<T: SimpleScalar> ConfigSpecDispatch for SimpleConfig<T> {
-    fn key(&self) -> &'static str {
-        self.key
+    fn key(&self) -> DomainConfigKey {
+        DomainConfigKey::new(self.key)
     }
 
     fn create<'a>(
@@ -288,8 +270,8 @@ impl<T: SimpleScalar> ConfigSpecDispatch for SimpleConfig<T> {
 }
 
 impl<T: DomainConfigValue> ConfigSpecDispatch for TypedConfig<T> {
-    fn key(&self) -> &'static str {
-        self.key
+    fn key(&self) -> DomainConfigKey {
+        T::KEY
     }
 
     fn create<'a>(

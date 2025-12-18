@@ -3,6 +3,7 @@ use std::marker::PhantomData;
 use crate::{
     DomainConfigValue,
     simple::{SimpleConfig, SimpleScalar, SimpleType},
+    DomainConfigKey,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -19,16 +20,18 @@ pub trait ConfigSpec: sealed::Sealed {
 /// Handle for structured domain configs backed by a `DomainConfigValue`.
 #[derive(Debug, Clone, Copy)]
 pub struct TypedConfig<T: DomainConfigValue> {
-    pub key: &'static str,
     _pd: PhantomData<T>,
 }
 
 impl<T: DomainConfigValue> TypedConfig<T> {
-    pub const fn new(key: &'static str) -> Self {
+    pub const fn new() -> Self {
         Self {
-            key,
             _pd: PhantomData,
         }
+    }
+
+    pub const fn key(&self) -> DomainConfigKey {
+        T::KEY
     }
 }
 
@@ -74,7 +77,7 @@ mod tests {
     #[test]
     fn specs_encode_kind_and_key() {
         const SIMPLE: SimpleConfig<bool> = SimpleConfig::new("feature_x_enabled");
-        const COMPLEX: TypedConfig<DummyConfig> = TypedConfig::new("dummy-config");
+        const COMPLEX: TypedConfig<DummyConfig> = TypedConfig::new();
 
         assert!(matches!(
             SimpleConfig::<bool>::kind(),
@@ -83,6 +86,6 @@ mod tests {
         assert!(matches!(TypedConfig::<DummyConfig>::kind(), ConfigKind::Complex));
 
         let _: &'static str = SIMPLE.key;
-        let _: &'static str = COMPLEX.key;
+        let _: DomainConfigKey = COMPLEX.key();
     }
 }
