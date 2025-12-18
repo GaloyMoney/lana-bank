@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xs:schema 
+   elementFormDefault="qualified"
+   targetNamespace="http://validador.ssf.gob.sv/coes/dato_extracontable"
+   xmlns:xs="http://www.w3.org/2001/XMLSchema"
+   xmlns:tns="http://validador.ssf.gob.sv/coes/dato_extracontable">
+   <xs:element name="coes">
+      <xs:complexType>
+         <xs:sequence maxOccurs="unbounded" minOccurs="1">
+            <xs:element name="dato_extracontable">
+               <xs:complexType>
+                  <xs:all maxOccurs="1" minOccurs="1">
+                     <xs:element name="id_codigo_extracontable">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Código Extracontable
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:maxLength value="10"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="desc_extra_contable" nillable="true">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Nombre Cuenta Extracontable
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:maxLength value="80"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="valor" nillable="true">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Valor
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:decimal">
+                             <xs:totalDigits value="17"/>
+                             <xs:fractionDigits value="2"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                  </xs:all>
+               </xs:complexType>
+            </xs:element>
+         </xs:sequence>
+      </xs:complexType>
+   </xs:element>
+</xs:schema>

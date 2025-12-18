@@ -1,0 +1,6 @@
+# Dependencies for generate_es_reports package
+PyYAML~=6.0
+google-cloud-bigquery~=3.25
+google-cloud-storage~=2.18
+xmlschema~=3.4
+

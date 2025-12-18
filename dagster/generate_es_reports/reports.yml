@@ -1,0 +1,293 @@
+report_jobs:
+  - norm: nrp_41
+    id: "01_persona"
+    friendly_name: "persona"
+    outputs:
+      - type: xml
+        validation_schema_id: ssf_ctri_persona
+      - type: csv
+
+  - norm: nrp_41
+    id: "02_referencia"
+    friendly_name: "referencia"
+    outputs:
+      - type: xml
+        validation_schema_id: ssf_ctri_referencia
+      - type: csv
+
+  - norm: nrp_41
+    id: "03_referencia_garantia"
+    friendly_name: "referencia_garantia"
+    outputs:
+      - type: xml
+        validation_schema_id: ssf_ctri_referencia_garantia
+      - type: csv
+
+  - norm: nrp_41
+    id: "04_garantia_hipotecaria"
+    friendly_name: "garantia_hipotecaria"
+    outputs:
+      - type: xml
+        validation_schema_id: ssf_ctri_garantia_hipotecaria
+      - type: csv
+
+  - norm: nrp_41
+    id: "05_garantia_fiduciaria"
+    friendly_name: "garantia_fiduciaria"
+    outputs:
+      - type: xml
+        validation_schema_id: ssf_ctri_garantia_fiduciaria
+      - type: csv
+
+  - norm: nrp_41
+    id: "06_garantia_aval"
+    friendly_name: "garantia_aval"
+    outputs:
+      - type: xml
+        validation_schema_id: ssf_ctri_garantia_aval
+      - type: csv
+
+  - norm: nrp_41
+    id: "07_garantia_pignorada"
+    friendly_name: "garantia_pignorada"
+    outputs:
+      - type: xml
+        validation_schema_id: ssf_ctri_garantia_pignorada
+      - type: csv
+
+  - norm: nrp_41
+    id: "08_garantia_prenda"
+    friendly_name: "garantia_prenda"
+    outputs:
+      - type: xml
+        validation_schema_id: ssf_ctri_garantia_prenda
+      - type: csv
+
+  - norm: nrp_41
+    id: "09_garantia_bono"
+    friendly_name: "garantia_bono"
+    outputs:
+      - type: xml
+        validation_schema_id: ssf_ctri_garantia_bono
+      - type: csv
+
+  - norm: nrp_41
+    id: "10_garantia_poliza"
+    friendly_name: "garantia_poliza"
+    outputs:
+      - type: xml
+        validation_schema_id: ssf_ctri_garantia_poliza
+      - type: csv
+
+  - norm: nrp_41
+    id: "11_garantia_fondo"
+    friendly_name: "garantia_fondo"
+    outputs:
+      - type: xml
+        validation_schema_id: ssf_ctri_garantia_fondo
+      - type: csv
+
+  - norm: nrp_41
+    id: "12_referencia_gasto"
+    friendly_name: "referencia_gasto"
+    outputs:
+      - type: xml
+        validation_schema_id: ssf_ctri_referencia_gasto
+      - type: csv
+
+  - norm: nrp_41
+    id: "13_referencia_unidad"
+    friendly_name: "referencia_unidad"
+    outputs:
+      - type: xml
+        validation_schema_id: ssf_ctri_referencia_unidad
+      - type: csv
+
+  - norm: nrp_41
+    id: "14_referencia_cancelada"
+    friendly_name: "referencia_cancelada"
+    outputs:
+      - type: xml
+        validation_schema_id: ssf_ctri_referencia_cancelada
+      - type: csv
+
+  - norm: nrp_41
+    id: "15_socios_sociedades"
+    friendly_name: "socios_sociedades"
+    outputs:
+      - type: xml
+        validation_schema_id: ssf_ctri_socios_sociedades
+      - type: csv
+
+  - norm: nrp_41
+    id: "16_junta_directiva"
+    friendly_name: "junta_directiva"
+    outputs:
+      - type: xml
+        validation_schema_id: ssf_ctri_junta_directiva
+      - type: csv
+
+  - norm: nrp_41
+    id: "17_garantia_prendaria"
+    friendly_name: "garantia_prendaria"
+    outputs:
+      - type: xml
+        validation_schema_id: ssf_ctri_garantia_prendaria
+      - type: csv
+
+  - norm: nrp_51
+    id: "01_saldo_cuenta"
+    friendly_name: "saldo_cuenta"
+    outputs:
+      - type: xml
+        validation_schema_id: ssf_coes_saldo_cuenta
+      - type: csv
+
+  - norm: nrp_51
+    id: "02_deposito_extranjero"
+    friendly_name: "deposito_extranjero"
+    outputs:
+      - type: xml
+        validation_schema_id: ssf_coes_deposito_extranjero
+      - type: csv
+
+  - norm: nrp_51
+    id: "03_dato_extracontable"
+    friendly_name: "dato_extracontable"
+    outputs:
+      - type: xml
+        validation_schema_id: ssf_coes_dato_extracontable
+      - type: csv
+
+  - norm: nrp_51
+    id: "04_titulo_valor_extranjero"
+    friendly_name: "titulo_valor_extranjero"
+    outputs:
+      - type: xml
+        validation_schema_id: ssf_coes_titulo_valor_extranjero
+      - type: csv
+
+  - norm: nrp_51
+    id: "05_prestamo_garantizado"
+    friendly_name: "prestamo_garantizado"
+    outputs:
+      - type: xml
+        validation_schema_id: ssf_coes_prestamo_garantizado
+      - type: csv
+
+  - norm: nrp_51
+    id: "06_aval_garantizado"
+    friendly_name: "aval_garantizado"
+    outputs:
+      - type: xml
+        validation_schema_id: ssf_coes_aval_garantizado
+      - type: csv
+
+  - norm: nrp_51
+    id: "07_deuda_subordinada"
+    friendly_name: "deuda_subordinada"
+    outputs:
+      - type: xml
+        validation_schema_id: ssf_coes_deuda_subordinada
+      - type: csv
+
+  - norm: nrp_51
+    id: "08_balance_proyectado"
+    friendly_name: "balance_proyectado"
+    outputs:
+      - type: xml
+        validation_schema_id: ssf_coes_balance_proyectado
+      - type: csv
+
+  - norm: nrsf_03
+    id: "01_cliente"
+    friendly_name: "cliente"
+    outputs:
+      - type: csv
+      - type: txt
+
+  - norm: nrsf_03
+    id: "02_depósitos"
+    friendly_name: "depósitos"
+    outputs:
+      - type: csv
+      - type: txt
+
+  - norm: nrsf_03
+    id: "03_documentos_clientes"
+    friendly_name: "documentos_clientes"
+    outputs:
+      - type: csv
+      - type: txt
+
+  - norm: nrsf_03
+    id: "04_titulares"
+    friendly_name: "titulares"
+    outputs:
+      - type: csv
+      - type: txt
+
+  - norm: nrsf_03
+    id: "05_agencias"
+    friendly_name: "agencias"
+    outputs:
+      - type: csv
+      - type: txt
+
+  - norm: nrsf_03
+    id: "06_productos"
+    friendly_name: "productos"
+    outputs:
+      - type: csv
+      - type: txt
+
+  - norm: nrsf_03
+    id: "07_funcionarios_y_empleados"
+    friendly_name: "funcionarios_y_empleados"
+    outputs:
+      - type: csv
+      - type: txt
+
+  - norm: nrsf_03
+    id: "08_resumen_de_depósitos_garantizados"
+    friendly_name: "resumen_de_depósitos_garantizados"
+    outputs:
+      - type: csv
+      - type: txt
+
+  - norm: nrsf_03
+    id: "09_ajustes"
+    friendly_name: "ajustes"
+    outputs:
+      - type: csv
+      - type: txt
+
+  - norm: other
+    id: "calculo_de_riesgo_neto"
+    friendly_name: "cálculo_de_riesgo_neto"
+    outputs:
+      - type: csv
+
+  - norm: other
+    id: "estado_de_cuenta_de_prestamo"
+    friendly_name: "estado_de_cuenta_de_préstamo"
+    outputs:
+      - type: csv
+
+  - norm: other
+    id: "historial_de_pagos"
+    friendly_name: "historial_de_pagos"
+    outputs:
+      - type: csv
+
+  - norm: other
+    id: "listado_de_prestamos_activos"
+    friendly_name: "listado_de_préstamos_activos"
+    outputs:
+      - type: csv
+
+  - norm: other
+    id: "reporte_de_cartera_de_prestamos"
+    friendly_name: "reporte_de_cartera_de_préstamos"
+    outputs:
+      - type: csv

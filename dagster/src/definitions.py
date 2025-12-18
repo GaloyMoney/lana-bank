@@ -188,7 +188,7 @@ report_generation_assets = [
 file_reports_job = definition_builder.add_job_from_assets(
     job_name="file_reports_generation", assets=tuple(report_generation_assets)
 )
-definition_builder.add_job_schedule(job=file_reports_job, cron_expression="0 */2 * * *")
+definition_builder.add_job_schedule(job=file_reports_job, cron_expression="0 0 * * *")
 
 inform_lana_asset = definition_builder.add_asset_from_protoasset(
     inform_lana_protoasset()

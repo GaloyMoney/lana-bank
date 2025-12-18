@@ -35,6 +35,11 @@ RUN pip install \
     dbt-bigquery~=1.10.3 \
     pandas
 
+# Add generate_es_reports package and its dependencies
+COPY generate_es_reports/requirements.txt /tmp/generate_es_reports_requirements.txt
+RUN pip install -r /tmp/generate_es_reports_requirements.txt
+COPY generate_es_reports/ /lana-dw/generate_es_reports/
+
 # Add our project specific code
 RUN mkdir -p /lana-dw
 COPY src/ /lana-dw/src/
