@@ -46,7 +46,7 @@ echo "Starting services..."
 wait4x postgresql ${PG_CON} --timeout 120s
 
 # wait for keycloak to be ready
-wait4x http http://localhost:8081/health/ready --timeout 120s
+wait4x http http://localhost:9000/health/ready --timeout 120s
 
 if [[ "${DAGSTER:-false}" == "true" ]]; then
   wait4x http http://localhost:3000/graphql --timeout 120s || true
