@@ -5,8 +5,6 @@ use tracing_utils::ErrorSeverity;
 pub enum WalletError {
     #[error("WalletError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("WalletError - OutboxError: {0}")]
-    OutboxError(#[from] outbox::error::OutboxError),
     #[error("WalletError - EsEntityError: {0}")]
     EsEntityError(es_entity::EsEntityError),
     #[error("WalletError - CursorDestructureError: {0}")]
@@ -19,7 +17,6 @@ impl ErrorSeverity for WalletError {
     fn severity(&self) -> Level {
         match self {
             Self::Sqlx(_) => Level::ERROR,
-            Self::OutboxError(e) => e.severity(),
             Self::EsEntityError(e) => e.severity(),
             Self::CursorDestructureError(_) => Level::ERROR,
         }
