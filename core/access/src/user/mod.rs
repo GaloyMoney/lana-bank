@@ -8,7 +8,7 @@ use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::{Authorization, PermissionCheck};
-use outbox::{Outbox, OutboxEventMarker};
+use obix::out::{Outbox, OutboxEventMarker};
 use tracing_macros::record_error_severity;
 
 use crate::{Role, event::*, primitives::*, publisher::UserPublisher};

@@ -41,7 +41,7 @@ impl User {
     pub(crate) fn update_role(&mut self, role: &Role) -> Idempotent<RoleId> {
         let current = self.current_role();
         if role.id == current {
-            Idempotent::Ignored
+            Idempotent::AlreadyApplied
         } else {
             self.events
                 .push(UserEvent::RoleUpdated { role_id: role.id });
@@ -172,7 +172,7 @@ mod tests {
             )
             .unwrap(),
         );
-        assert!(matches!(same_role_update, Idempotent::Ignored));
+        assert!(matches!(same_role_update, Idempotent::AlreadyApplied));
         assert_eq!(user.current_role(), initial_role);
 
         // Updating to a different role should return the previous role

@@ -15,7 +15,7 @@ use std::collections::{HashMap, HashSet};
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use outbox::{Outbox, OutboxEventMarker};
+use obix::out::{Outbox, OutboxEventMarker};
 
 pub use approval_process::{error as approval_process_error, *};
 pub use committee::{error as committee_error, *};
@@ -359,15 +359,15 @@ where
             process.check_concluded(eligible)
         {
             self.outbox
-                .publish_persisted(
+                .publish_all_persisted(
                     &mut op,
-                    GovernanceEvent::ApprovalProcessConcluded {
+                    [GovernanceEvent::ApprovalProcessConcluded {
                         id: process.id,
                         approved,
                         denied_reason,
                         process_type: process.process_type.clone(),
                         target_ref: process.target_ref().to_string(),
-                    },
+                    }],
                 )
                 .await?;
             op.commit().await?;

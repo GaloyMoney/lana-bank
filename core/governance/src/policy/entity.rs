@@ -73,7 +73,7 @@ impl Policy {
         };
 
         if self.rules == rules {
-            return Ok(Idempotent::Ignored);
+            return Ok(Idempotent::AlreadyApplied);
         }
 
         if threshold > n_committee_members {

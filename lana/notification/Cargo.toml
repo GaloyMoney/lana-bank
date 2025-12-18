@@ -8,7 +8,7 @@ edition = "2024"
 fail-on-warnings = []
 
 [dependencies]
-outbox = { workspace = true }
+obix = { workspace = true }
 job = { workspace = true }
 lana-events = { workspace = true }
 core-access = { workspace = true }

@@ -7,12 +7,12 @@ edition = "2024"
 
 fail-on-warnings = []
 graphql = ["es-entity/graphql", "dep:async-graphql"]
-json-schema = ["dep:schemars", "es-entity/json-schema", "audit/json-schema", "authz/json-schema", "outbox/json-schema"]
+json-schema = ["dep:schemars", "es-entity/json-schema", "audit/json-schema", "authz/json-schema"]
 
 [dependencies]
 audit = { workspace = true }
 authz = { workspace = true }
-outbox = { workspace = true }
+obix = { workspace = true }
 
 es-entity = { workspace = true }
 uuid = { workspace = true }

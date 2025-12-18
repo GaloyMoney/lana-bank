@@ -6,8 +6,6 @@ use tracing_utils::ErrorSeverity;
 pub enum GovernanceError {
     #[error("GovernanceError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("GovernanceError - OutboxError: {0}")]
-    OutboxError(#[from] outbox::error::OutboxError),
     #[error("GovernanceError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("GovernanceError - CommitteeError: {0}")]
@@ -26,7 +24,6 @@ impl ErrorSeverity for GovernanceError {
     fn severity(&self) -> Level {
         match self {
             Self::Sqlx(_) => Level::ERROR,
-            Self::OutboxError(e) => e.severity(),
             Self::AuthorizationError(e) => e.severity(),
             Self::CommitteeError(e) => e.severity(),
             Self::PolicyError(e) => e.severity(),

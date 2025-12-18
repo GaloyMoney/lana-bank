@@ -13,7 +13,7 @@ sumsub-testing = ["sumsub/sumsub-testing"]
 json-schema = ["dep:schemars", "es-entity/json-schema"]
 
 [dependencies]
-outbox = { workspace = true }
+obix = { workspace = true }
 job = { workspace = true }
 core-customer = { workspace = true }
 

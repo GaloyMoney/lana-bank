@@ -11,14 +11,14 @@ ignored = ["governance"]
 default = ["governance"]
 fail-on-warnings = []
 graphql = ["es-entity/graphql", "governance?/graphql", "dep:async-graphql"]
-json-schema = ["dep:schemars", "es-entity/json-schema", "outbox/json-schema", "audit/json-schema"]
+json-schema = ["dep:schemars", "es-entity/json-schema", "audit/json-schema"]
 governance = ["dep:governance"]
 
 [dependencies]
 
 audit = { workspace = true }
 authz = { workspace = true }
-outbox = { workspace = true }
+obix = { workspace = true }
 governance = { workspace = true, optional = true }
 document-storage = { workspace = true }
 public-id = { workspace = true }

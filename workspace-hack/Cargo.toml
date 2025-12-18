@@ -24,8 +24,8 @@ base16ct = { version = "0.2", default-features = false, features = ["alloc"] }
 base64 = { version = "0.22" }
 byteorder = { version = "1" }
 bytes = { version = "1", features = ["serde"] }
-cala-ledger = { version = "0.12", default-features = false, features = ["graphql", "json-schema"] }
-cala-ledger-core-types = { version = "0.12", default-features = false, features = ["graphql", "json-schema"] }
+cala-ledger = { version = "0.13", default-features = false, features = ["graphql", "json-schema"] }
+cala-ledger-core-types = { version = "0.13", default-features = false, features = ["graphql", "json-schema"] }
 chrono = { version = "0.4", features = ["serde"] }
 cipher = { version = "0.4", default-features = false, features = ["block-padding", "zeroize"] }
 clap = { version = "4", features = ["derive", "env"] }
@@ -38,7 +38,7 @@ digest = { version = "0.10", features = ["mac", "oid", "std"] }
 ecdsa = { version = "0.16", default-features = false, features = ["pem", "signing", "std", "verifying"] }
 either = { version = "1", features = ["serde", "use_std"] }
 elliptic-curve = { version = "0.13", default-features = false, features = ["digest", "hazmat", "pem", "std"] }
-es-entity = { version = "0.10", default-features = false, features = ["event-context", "graphql", "instrument", "json-schema", "sim-time", "tracing-context"] }
+es-entity = { version = "0.10.6", default-features = false, features = ["event-context", "graphql", "instrument", "json-schema", "sim-time", "tracing-context"] }
 ff = { version = "0.13", default-features = false, features = ["alloc"] }
 form_urlencoded = { version = "1" }
 futures-channel = { version = "0.3", features = ["sink"] }
@@ -53,7 +53,7 @@ hyper-util = { version = "0.1", features = ["client-legacy", "server-auto", "ser
 idna = { version = "1" }
 indexmap = { version = "2", features = ["serde"] }
 inout = { version = "0.1", default-features = false, features = ["block-padding"] }
-job = { version = "0.2", default-features = false, features = ["json-schema", "sim-time"] }
+job = { version = "0.3", default-features = false, features = ["json-schema", "sim-time"] }
 lalrpop-util = { version = "0.22", features = ["lexer"] }
 log = { version = "0.4", default-features = false, features = ["std"] }
 memchr = { version = "2" }
@@ -102,8 +102,8 @@ base16ct = { version = "0.2", default-features = false, features = ["alloc"] }
 base64 = { version = "0.22" }
 byteorder = { version = "1" }
 bytes = { version = "1", features = ["serde"] }
-cala-ledger = { version = "0.12", default-features = false, features = ["graphql", "json-schema"] }
-cala-ledger-core-types = { version = "0.12", default-features = false, features = ["graphql", "json-schema"] }
+cala-ledger = { version = "0.13", default-features = false, features = ["graphql", "json-schema"] }
+cala-ledger-core-types = { version = "0.13", default-features = false, features = ["graphql", "json-schema"] }
 cc = { version = "1", default-features = false, features = ["parallel"] }
 chrono = { version = "0.4", features = ["serde"] }
 cipher = { version = "0.4", default-features = false, features = ["block-padding", "zeroize"] }
@@ -117,7 +117,7 @@ digest = { version = "0.10", features = ["mac", "oid", "std"] }
 ecdsa = { version = "0.16", default-features = false, features = ["pem", "signing", "std", "verifying"] }
 either = { version = "1", features = ["serde", "use_std"] }
 elliptic-curve = { version = "0.13", default-features = false, features = ["digest", "hazmat", "pem", "std"] }
-es-entity = { version = "0.10", default-features = false, features = ["event-context", "graphql", "instrument", "json-schema", "sim-time", "tracing-context"] }
+es-entity = { version = "0.10.6", default-features = false, features = ["event-context", "graphql", "instrument", "json-schema", "sim-time", "tracing-context"] }
 es-entity-macros = { version = "0.10", default-features = false, features = ["event-context", "graphql", "instrument"] }
 ff = { version = "0.13", default-features = false, features = ["alloc"] }
 form_urlencoded = { version = "1" }
@@ -133,7 +133,7 @@ hyper-util = { version = "0.1", features = ["client-legacy", "server-auto", "ser
 idna = { version = "1" }
 indexmap = { version = "2", features = ["serde"] }
 inout = { version = "0.1", default-features = false, features = ["block-padding"] }
-job = { version = "0.2", default-features = false, features = ["json-schema", "sim-time"] }
+job = { version = "0.3", default-features = false, features = ["json-schema", "sim-time"] }
 lalrpop-util = { version = "0.22", features = ["lexer"] }
 log = { version = "0.4", default-features = false, features = ["std"] }
 memchr = { version = "2" }

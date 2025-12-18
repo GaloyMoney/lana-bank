@@ -6,8 +6,6 @@ use tracing_utils::ErrorSeverity;
 pub enum RoleError {
     #[error("RoleError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("RoleError - OutboxError: {0}")]
-    OutboxError(#[from] outbox::error::OutboxError),
     #[error("RoleError - EsEntityError: {0}")]
     EsEntityError(es_entity::EsEntityError),
     #[error("RoleError - CursorDestructureError: {0}")]
@@ -26,7 +24,6 @@ impl ErrorSeverity for RoleError {
             Self::Sqlx(_) => Level::ERROR,
             Self::EsEntityError(e) => e.severity(),
             Self::CursorDestructureError(_) => Level::ERROR,
-            Self::OutboxError(e) => e.severity(),
             Self::AuthorizationError(e) => e.severity(),
             Self::AuditError(e) => e.severity(),
         }

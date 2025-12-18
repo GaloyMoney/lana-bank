@@ -26,7 +26,7 @@ pub mod document {
 }
 
 pub mod outbox {
-    pub type Outbox = outbox::Outbox<lana_events::LanaEvent>;
+    pub type Outbox = obix::Outbox<lana_events::LanaEvent>;
 }
 pub mod dashboard {
     pub type Dashboard = dashboard::Dashboard<crate::authorization::Authorization>;

@@ -13,7 +13,7 @@ fail-on-warnings = []
 [dependencies]
 core-access = { workspace = true }
 
-outbox = { workspace = true }
+obix = { workspace = true }
 job = { workspace = true }
 keycloak-client = { workspace = true }
 

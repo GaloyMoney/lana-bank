@@ -827,10 +827,28 @@ version = "0.12.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9c87906e0624a8e48d56d43a529fc0f416482bbea32f264f9f63ba0390a09494"
 dependencies = [
- "cala-cel-parser",
+ "cala-cel-parser 0.12.12",
  "chrono",
  "lazy_static",
  "rust_decimal",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.17",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "cala-cel-interpreter"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d88e180639dd4fed732b6f4a74184eefce4bec27a792f2fb8f66ac396ecd96e1"
+dependencies = [
+ "cala-cel-parser 0.13.0",
+ "chrono",
+ "lazy_static",
+ "rust_decimal",
+ "schemars 1.1.0",
  "serde",
  "serde_json",
  "thiserror 2.0.17",
@@ -851,15 +869,27 @@ dependencies = [
 ]
 
 [[package]]
-name = "cala-ledger"
-version = "0.12.12"
+name = "cala-cel-parser"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "643f20442559ad6319d4f056b8ec1576456952c72845213143ef049509bcf506"
+checksum = "d1e16c6b159dca8a6d92d6cb32a4ac0513487923a95247ae90a3621d3f635517"
+dependencies = [
+ "cached",
+ "lalrpop",
+ "lalrpop-util",
+ "tracing",
+]
+
+[[package]]
+name = "cala-ledger"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "736117993ea6201373f390c7d363fe726499ffcd78a034eb70104c6f124df57f"
 dependencies = [
  "async-graphql",
  "base64 0.22.1",
  "cached",
- "cala-cel-interpreter",
+ "cala-cel-interpreter 0.13.0",
  "cala-ledger-core-types",
  "cala-tracing",
  "chrono",
@@ -867,12 +897,14 @@ dependencies = [
  "es-entity",
  "futures",
  "job",
+ "obix",
  "opentelemetry",
  "prost 0.13.5",
  "prost-wkt-types",
  "protobuf-src",
  "regex",
  "rust_decimal",
+ "schemars 1.1.0",
  "serde",
  "serde_json",
  "sqlx",
@@ -889,12 +921,12 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger-core-types"
-version = "0.12.12"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "947c4578977b129b481163662b932bf035133f44f217a529ae26b3dab34449d1"
+checksum = "f47fb31ed9a9c3b7d8d8a5158a8654dde53b13399865e712aa4569c391246e29"
 dependencies = [
  "async-graphql",
- "cala-cel-interpreter",
+ "cala-cel-interpreter 0.13.0",
  "chrono",
  "derive_builder",
  "es-entity",
@@ -904,16 +936,16 @@ dependencies = [
  "serde",
  "serde_json",
  "sqlx",
- "strum 0.26.3",
+ "strum 0.27.2",
  "thiserror 2.0.17",
  "uuid",
 ]
 
 [[package]]
 name = "cala-tracing"
-version = "0.12.12"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "edc7bac529a701e1f53f31709aa3e5435bd3345883281ec752575eb7d48904d7"
+checksum = "2ace600c3eb847c140f98d4e24ad3a8d35186f5c3a43e88172c1e81cecdd12de"
 dependencies = [
  "anyhow",
  "axum-extra 0.10.3",
@@ -1292,7 +1324,7 @@ dependencies = [
  "es-entity",
  "handlebars",
  "job",
- "outbox",
+ "obix",
  "rendering",
  "schemars 1.1.0",
  "serde",
@@ -1309,9 +1341,9 @@ dependencies = [
 
 [[package]]
 name = "convert_case"
-version = "0.8.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "baaaa0ecca5b51987b9423ccdc971514dd8b0bb7b4060b983d3664dad3f1f89f"
+checksum = "633458d4ef8c78b72454de2d54fd6ab2e60f9e02be22f3c6104cdc8a4e0fceb9"
 dependencies = [
  "unicode-segmentation",
 ]
@@ -1326,7 +1358,7 @@ dependencies = [
  "derive_builder",
  "es-entity",
  "governance",
- "outbox",
+ "obix",
  "schemars 1.1.0",
  "serde",
  "serde_json",
@@ -1349,7 +1381,7 @@ dependencies = [
  "audit",
  "authz",
  "base64 0.22.1",
- "cala-cel-interpreter",
+ "cala-cel-interpreter 0.12.12",
  "cala-ledger",
  "chrono",
  "cloud-storage",
@@ -1387,7 +1419,7 @@ dependencies = [
  "core-customer",
  "es-entity",
  "job",
- "outbox",
+ "obix",
  "schemars 1.1.0",
  "serde",
  "serde_json",
@@ -1426,7 +1458,7 @@ dependencies = [
  "futures",
  "governance",
  "job",
- "outbox",
+ "obix",
  "public-id",
  "rand 0.9.2",
  "rust_decimal",
@@ -1467,7 +1499,7 @@ dependencies = [
  "hmac",
  "http",
  "komainu",
- "outbox",
+ "obix",
  "schemars 1.1.0",
  "serde",
  "serde_json",
@@ -1494,7 +1526,7 @@ dependencies = [
  "document-storage",
  "es-entity",
  "governance",
- "outbox",
+ "obix",
  "public-id",
  "schemars 1.1.0",
  "serde",
@@ -1529,7 +1561,7 @@ dependencies = [
  "futures",
  "governance",
  "job",
- "outbox",
+ "obix",
  "public-id",
  "rand 0.9.2",
  "rust_decimal",
@@ -1590,7 +1622,7 @@ dependencies = [
  "core-money",
  "futures",
  "job",
- "outbox",
+ "obix",
  "rand 0.9.2",
  "reqwest",
  "rust_decimal",
@@ -1619,7 +1651,7 @@ dependencies = [
  "derive_builder",
  "es-entity",
  "job",
- "outbox",
+ "obix",
  "schemars 1.1.0",
  "serde",
  "sqlx",
@@ -1784,7 +1816,7 @@ dependencies = [
  "job",
  "keycloak-client",
  "lana-events",
- "outbox",
+ "obix",
  "serde",
  "serde_with",
  "sim-time",
@@ -1817,6 +1849,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "darling"
+version = "0.23.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "25ae13da2f202d56bd7f91c25fba009e7717a1e4a1cc98a76d844b65ae912e9d"
+dependencies = [
+ "darling_core 0.23.0",
+ "darling_macro 0.23.0",
+]
+
+[[package]]
 name = "darling_core"
 version = "0.20.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1837,6 +1879,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1247195ecd7e3c85f83c8d2a366e4210d588e802133e1e355180a9870b517ea4"
 dependencies = [
  "fnv",
+ "ident_case",
+ "proc-macro2",
+ "quote",
+ "strsim",
+ "syn 2.0.111",
+]
+
+[[package]]
+name = "darling_core"
+version = "0.23.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9865a50f7c335f53564bb694ef660825eb8610e0a53d3e11bf1b0d3df31e03b0"
+dependencies = [
  "ident_case",
  "proc-macro2",
  "quote",
@@ -1867,6 +1922,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "darling_macro"
+version = "0.23.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ac3984ec7bd6cfa798e62b4a642426a5be0e68f9401cfc2a01e3fa9ea2fcdb8d"
+dependencies = [
+ "darling_core 0.23.0",
+ "quote",
+ "syn 2.0.111",
+]
+
+[[package]]
 name = "dashboard"
 version = "0.0.0"
 dependencies = [
@@ -1879,7 +1945,7 @@ dependencies = [
  "futures",
  "job",
  "lana-events",
- "outbox",
+ "obix",
  "schemars 1.1.0",
  "serde",
  "serde_json",
@@ -1914,7 +1980,7 @@ dependencies = [
  "governance",
  "job",
  "lana-events",
- "outbox",
+ "obix",
  "rust_decimal",
  "serde",
  "sumsub",
@@ -2294,9 +2360,9 @@ dependencies = [
 
 [[package]]
 name = "es-entity"
-version = "0.10.5"
+version = "0.10.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0a50f67c5fc9a13be82b91aefe2901b6fff0111a4c972c74e4330617b19b3f74"
+checksum = "fc9443d7b82815dfa963bec3e002aabf0d94b56d1889e07ee5c9d1a86a582011"
 dependencies = [
  "async-graphql",
  "base64 0.22.1",
@@ -2320,12 +2386,12 @@ dependencies = [
 
 [[package]]
 name = "es-entity-macros"
-version = "0.10.5"
+version = "0.10.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d0ea43d699d13207f455c69f431a704e6b42f6896ebecf13ad79a0a028a928b1"
+checksum = "808070a692f8e26cf4e6e8af4a8347349f6aeec1c201b8dc9b9a0fd6310ba259"
 dependencies = [
  "convert_case",
- "darling 0.21.3",
+ "darling 0.23.0",
  "pluralizer",
  "proc-macro2",
  "quote",
@@ -2744,7 +2810,7 @@ dependencies = [
  "chrono",
  "derive_builder",
  "es-entity",
- "outbox",
+ "obix",
  "schemars 1.1.0",
  "serde",
  "sqlx",
@@ -3321,9 +3387,9 @@ checksum = "4a5f13b858c8d314ee3e8f639011f7ccefe71f97f96e50151fb991f267928e2c"
 
 [[package]]
 name = "job"
-version = "0.2.14"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a7774d409080373c370eee34f283f03b2bfd03e7baf29dfd8c20721952a079f3"
+checksum = "d4ca6e40fd252b81c2d5f31b216b0163d58c6b92459b495e2f148a8ff1d9c14e"
 dependencies = [
  "async-trait",
  "chrono",
@@ -3559,7 +3625,7 @@ dependencies = [
  "lana-events",
  "lana-ids",
  "notification",
- "outbox",
+ "obix",
  "public-id",
  "rand 0.9.2",
  "rbac-types",
@@ -3615,7 +3681,7 @@ dependencies = [
  "core-price",
  "core-report",
  "governance",
- "outbox",
+ "obix",
  "serde",
  "strum 0.27.2",
  "workspace-hack",
@@ -4001,7 +4067,7 @@ dependencies = [
  "job",
  "lana-events",
  "lettre",
- "outbox",
+ "obix",
  "serde",
  "serde_json",
  "smtp-client",
@@ -4099,6 +4165,36 @@ checksum = "071dfc062690e90b734c0b2273ce72ad0ffa95f0c74596bc250dcfd960262841"
 dependencies = [
  "autocfg",
  "libm",
+]
+
+[[package]]
+name = "obix"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e3a92f432cecb69868fa619bb74a5f54995d3945ceffee5b89e0745e2177690d"
+dependencies = [
+ "chrono",
+ "es-entity",
+ "futures",
+ "im",
+ "obix-macros",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "tokio",
+ "tokio-stream",
+]
+
+[[package]]
+name = "obix-macros"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6382b5e09621f96b50f2663be6550e0f25e0797b62b3164e8e06fe637d41cca9"
+dependencies = [
+ "darling 0.23.0",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.111",
 ]
 
 [[package]]
@@ -5794,7 +5890,7 @@ dependencies = [
  "futures",
  "lana-app",
  "lana-events",
- "outbox",
+ "obix",
  "rust_decimal",
  "rust_decimal_macros",
  "serde",
@@ -5806,9 +5902,9 @@ dependencies = [
 
 [[package]]
 name = "sim-time"
-version = "0.10.5"
+version = "0.10.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "309a4bec0f36c218dae045cbeff5af3281b234c01be3c1c0a03d41992113af1e"
+checksum = "203ef7918e4189f5026b3e654d64936719731e0de20c03ff1f254a22b8aa19a0"
 dependencies = [
  "chrono",
  "serde",
@@ -7250,7 +7346,7 @@ dependencies = [
  "futures",
  "job",
  "keycloak-client",
- "outbox",
+ "obix",
  "serde",
  "thiserror 2.0.17",
  "tokio",
