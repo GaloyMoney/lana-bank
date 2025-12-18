@@ -71,15 +71,14 @@ impl DomainConfig {
         T::from_json(self.current_json_value().clone())
     }
 
-    pub(super) fn to_simple_entry(
-        &self,
-        expected: SimpleType,
-    ) -> Result<SimpleEntry, DomainConfigError> {
-        self.ensure_simple_type(expected)?;
-        let value = expected.parse_json(self.current_json_value().clone())?;
+    pub(super) fn to_simple_entry(&self) -> Result<SimpleEntry, DomainConfigError> {
+        let simple_type = self
+            .simple_type
+            .ok_or_else(|| DomainConfigError::InvalidState(format!("Missing simple_type for {}", self.key)))?;
+        let value = simple_type.parse_json(self.current_json_value().clone())?;
         Ok(SimpleEntry {
             key: self.key.to_string(),
-            simple_type: expected,
+            simple_type,
             value,
         })
     }
@@ -459,7 +458,7 @@ mod tests {
 
         assert_eq!(config.simple_type, Some(SimpleType::Bool));
         let entry = config
-            .to_simple_entry(SimpleType::Bool)
+            .to_simple_entry()
             .expect("should parse simple entry");
         assert_eq!(
             entry.value,
