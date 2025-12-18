@@ -1732,7 +1732,10 @@ export const mockFiscalYear = (overrides?: Partial<FiscalYear>, _relationshipsTo
         isLastMonthOfYearClosed: overrides && overrides.hasOwnProperty('isLastMonthOfYearClosed') ? overrides.isLastMonthOfYearClosed! : faker.datatype.boolean(),
         isOpen: overrides && overrides.hasOwnProperty('isOpen') ? overrides.isOpen! : faker.datatype.boolean(),
         monthClosures: overrides && overrides.hasOwnProperty('monthClosures') ? overrides.monthClosures! : [relationshipsToOmit.has('FiscalMonthClosure') ? {} as FiscalMonthClosure : mockFiscalMonthClosure({}, relationshipsToOmit)],
+        nextMonthToClose: overrides && overrides.hasOwnProperty('nextMonthToClose') ? overrides.nextMonthToClose! : faker.date.past({ years: 1, refDate: new Date(2022, 0) }).toISOString(),
         openedAsOf: overrides && overrides.hasOwnProperty('openedAsOf') ? overrides.openedAsOf! : faker.date.past({ years: 1, refDate: new Date(2022, 0) }).toISOString(),
+        reference: overrides && overrides.hasOwnProperty('reference') ? overrides.reference! : generateMockValue.reference(),
+        year: overrides && overrides.hasOwnProperty('year') ? overrides.year! : faker.lorem.word(),
     };
 };
 
@@ -2567,6 +2570,7 @@ export const mockQuery = (overrides?: Partial<Query>, _relationshipsToOmit: Set<
         disbursalByPublicId: overrides && overrides.hasOwnProperty('disbursalByPublicId') ? overrides.disbursalByPublicId! : relationshipsToOmit.has('CreditFacilityDisbursal') ? {} as CreditFacilityDisbursal : mockCreditFacilityDisbursal({}, relationshipsToOmit),
         disbursals: overrides && overrides.hasOwnProperty('disbursals') ? overrides.disbursals! : relationshipsToOmit.has('CreditFacilityDisbursalConnection') ? {} as CreditFacilityDisbursalConnection : mockCreditFacilityDisbursalConnection({}, relationshipsToOmit),
         fiscalYear: overrides && overrides.hasOwnProperty('fiscalYear') ? overrides.fiscalYear! : relationshipsToOmit.has('FiscalYear') ? {} as FiscalYear : mockFiscalYear({}, relationshipsToOmit),
+        fiscalYearByYear: overrides && overrides.hasOwnProperty('fiscalYearByYear') ? overrides.fiscalYearByYear! : relationshipsToOmit.has('FiscalYear') ? {} as FiscalYear : mockFiscalYear({}, relationshipsToOmit),
         fiscalYears: overrides && overrides.hasOwnProperty('fiscalYears') ? overrides.fiscalYears! : relationshipsToOmit.has('FiscalYearConnection') ? {} as FiscalYearConnection : mockFiscalYearConnection({}, relationshipsToOmit),
         journalEntries: overrides && overrides.hasOwnProperty('journalEntries') ? overrides.journalEntries! : relationshipsToOmit.has('JournalEntryConnection') ? {} as JournalEntryConnection : mockJournalEntryConnection({}, relationshipsToOmit),
         ledgerAccount: overrides && overrides.hasOwnProperty('ledgerAccount') ? overrides.ledgerAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),

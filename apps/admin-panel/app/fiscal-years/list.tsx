@@ -2,12 +2,14 @@
 
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Plus } from "lucide-react"
 
-import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 import { Button } from "@lana/web/ui/button"
 import { Card, CardContent } from "@lana/web/ui/card"
+import { formatUTCDateOnly } from "@lana/web/utils"
+
+import { useCreateContext } from "../create"
 
 import { FiscalYearStatusBadge } from "./status-badge"
 import { InitFiscalYearDialog } from "./init-fiscal-year"
@@ -26,6 +28,9 @@ gql`
     chartId
     openedAsOf
     isOpen
+    reference
+    year
+    isLastMonthOfYearClosed
   }
 
   query FiscalYears($first: Int!, $after: String) {
@@ -57,11 +62,19 @@ const FiscalYearsList = () => {
     },
   })
 
+  const { setLatestFiscalYear } = useCreateContext()
+
+  useEffect(() => {
+    const latestFiscalYear = data?.fiscalYears?.edges?.[0]?.node ?? null
+    setLatestFiscalYear(latestFiscalYear)
+    return () => setLatestFiscalYear(null)
+  }, [data, setLatestFiscalYear])
+
   const columns: Column<FiscalYear>[] = [
     {
       key: "openedAsOf",
       label: t("headers.openedAsOf"),
-      render: (openedAsOf) => <DateWithTooltip value={openedAsOf} />,
+      render: (openedAsOf) => formatUTCDateOnly(openedAsOf) ?? "-",
     },
     {
       key: "isOpen",
@@ -100,7 +113,7 @@ const FiscalYearsList = () => {
         loading={loading}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
         pageSize={DEFAULT_PAGESIZE}
-        navigateTo={(fiscalYear) => `/fiscal-years/${fiscalYear.fiscalYearId}`}
+        navigateTo={(fiscalYear) => `/fiscal-years/${fiscalYear.year}`}
       />
     </>
   )

@@ -16,6 +16,8 @@ import {
 import { Button } from "@lana/web/ui/button"
 
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
+import { DetailItem } from "@/components/details/item"
+import { DetailsGroup } from "@/components/details/group"
 
 import {
   FiscalYear,
@@ -34,13 +36,15 @@ gql`
 `
 
 type OpenNextYearDialogProps = {
-  fiscalYear: FiscalYear
+  fiscalYear: Pick<FiscalYear, "fiscalYearId">
+  nextFiscalYear: number
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
 export function OpenNextYearDialog({
   fiscalYear,
+  nextFiscalYear,
   open,
   onOpenChange,
 }: OpenNextYearDialogProps) {
@@ -67,9 +71,9 @@ export function OpenNextYearDialog({
         },
       })
       toast.success(t("success"))
-      const nextFiscalYearId = data?.fiscalYearOpenNext?.fiscalYear?.fiscalYearId
-      if (nextFiscalYearId) {
-        navigate(`/fiscal-years/${nextFiscalYearId}`)
+      const nextFiscalYearYear = data?.fiscalYearOpenNext?.fiscalYear?.year
+      if (nextFiscalYearYear) {
+        navigate(`/fiscal-years/${nextFiscalYearYear}`)
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : tCommon("error"))
@@ -93,6 +97,15 @@ export function OpenNextYearDialog({
           <DialogTitle>{t("title")}</DialogTitle>
         </DialogHeader>
         <DialogDescription>{t("description")}</DialogDescription>
+        {Number.isFinite(nextFiscalYear) && (
+          <DetailsGroup layout="horizontal">
+            <DetailItem
+              label={t("nextFiscalYearLabel")}
+              value={nextFiscalYear}
+              className="bg-muted/50 border rounded-lg p-2"
+            />
+          </DetailsGroup>
+        )}
         {error && <p className="text-destructive text-sm">{error}</p>}
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>

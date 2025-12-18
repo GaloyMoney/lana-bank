@@ -20,6 +20,7 @@ pub enum FiscalYearEvent {
         id: FiscalYearId,
         chart_id: ChartId,
         reference: String,
+        year: String,
         opened_as_of: chrono::NaiveDate,
     },
     MonthClosed {
@@ -38,6 +39,7 @@ pub struct FiscalYear {
     pub id: FiscalYearId,
     pub chart_id: ChartId,
     pub reference: String,
+    pub year: String,
     pub opened_as_of: NaiveDate,
     #[builder(default)]
     pub closed_as_of: Option<NaiveDate>,
@@ -84,45 +86,26 @@ impl FiscalYear {
         &mut self,
         now: DateTime<Utc>,
     ) -> Idempotent<NaiveDate> {
-        if self.is_last_month_of_year_closed() {
+        let Some(new_monthly_closing_date) = self.next_month_to_close() else {
             return Idempotent::Ignored;
-        }
+        };
         let last_recorded_date = self.events.iter_all().rev().find_map(|event| match event {
             FiscalYearEvent::MonthClosed {
                 month_closed_as_of, ..
             } => Some(*month_closed_as_of),
             _ => None,
         });
-        let new_monthly_closing_date = match last_recorded_date {
-            Some(last_effective) => {
-                let last_day_of_previous_month = now
-                    .date_naive()
-                    .with_day(1)
-                    .and_then(|d| d.pred_opt())
-                    .expect("Failed to compute last day of previous month");
-                if last_effective == last_day_of_previous_month {
-                    return Idempotent::Ignored;
-                }
 
-                last_effective
-                    .checked_add_months(Months::new(2))
-                    .and_then(|d| d.with_day(1))
-                    .and_then(|d| d.pred_opt())
-                    .expect("Failed to compute new monthly closing date")
-            }
-            None => self
-                .events
-                .iter_all()
-                .find_map(|event| match event {
-                    FiscalYearEvent::Initialized { opened_as_of, .. } => Some(opened_as_of),
-                    _ => None,
-                })
-                .expect("Entity was not initialized")
-                .checked_add_months(Months::new(1))
-                .and_then(|d| d.with_day(1))
+        if let Some(last_effective) = last_recorded_date {
+            let last_day_of_previous_month = now
+                .date_naive()
+                .with_day(1)
                 .and_then(|d| d.pred_opt())
-                .expect("Failed to compute new monthly closing date"),
-        };
+                .expect("Failed to compute last day of previous month");
+            if last_effective == last_day_of_previous_month {
+                return Idempotent::Ignored;
+            }
+        }
 
         self.events.push(FiscalYearEvent::MonthClosed {
             month_closed_as_of: new_monthly_closing_date,
@@ -156,6 +139,41 @@ impl FiscalYear {
                 event,
                 FiscalYearEvent::MonthClosed { month_closed_as_of, .. } if *month_closed_as_of == last_month_closes_as_of
             ))
+    }
+
+    pub fn next_month_to_close(&self) -> Option<NaiveDate> {
+        if self.is_last_month_of_year_closed() {
+            return None;
+        }
+
+        let last_recorded_date = self.events.iter_all().rev().find_map(|event| match event {
+            FiscalYearEvent::MonthClosed {
+                month_closed_as_of, ..
+            } => Some(*month_closed_as_of),
+            _ => None,
+        });
+
+        let next_month = match last_recorded_date {
+            Some(last_effective) => last_effective
+                .checked_add_months(Months::new(2))
+                .and_then(|d| d.with_day(1))
+                .and_then(|d| d.pred_opt())
+                .expect("Failed to compute new monthly closing date"),
+            None => self
+                .events
+                .iter_all()
+                .find_map(|event| match event {
+                    FiscalYearEvent::Initialized { opened_as_of, .. } => Some(opened_as_of),
+                    _ => None,
+                })
+                .expect("Entity was not initialized")
+                .checked_add_months(Months::new(1))
+                .and_then(|d| d.with_day(1))
+                .and_then(|d| d.pred_opt())
+                .expect("Failed to compute new monthly closing date"),
+        };
+
+        Some(next_month)
     }
 
     #[record_error_severity]
@@ -192,6 +210,7 @@ impl TryFromEvents<FiscalYearEvent> for FiscalYear {
                     id,
                     chart_id,
                     reference,
+                    year,
                     opened_as_of,
                     ..
                 } => {
@@ -199,6 +218,7 @@ impl TryFromEvents<FiscalYearEvent> for FiscalYear {
                         .id(*id)
                         .chart_id(*chart_id)
                         .reference(reference.to_string())
+                        .year(year.to_string())
                         .opened_as_of(*opened_as_of)
                 }
                 FiscalYearEvent::MonthClosed { .. } => {}
@@ -226,7 +246,15 @@ impl NewFiscalYear {
     }
 
     pub(super) fn reference(&self) -> String {
-        format!("{}:AC{}", self.chart_id, self.opened_as_of.year())
+        let year = self.opened_as_of.year().to_string();
+        FiscalYearReference::try_new(self.chart_id, &year)
+            .expect("Invalid year from type")
+            .as_ref()
+            .to_owned()
+    }
+
+    pub(super) fn year(&self) -> String {
+        self.opened_as_of.year().to_string()
     }
 }
 
@@ -238,9 +266,33 @@ impl IntoEvents<FiscalYearEvent> for NewFiscalYear {
                 id: self.id,
                 chart_id: self.chart_id,
                 reference: self.reference(),
+                year: self.year(),
                 opened_as_of: self.opened_as_of,
             }],
         )
+    }
+}
+
+pub(super) struct FiscalYearReference(String);
+
+impl FiscalYearReference {
+    pub(super) fn try_new(chart_id: ChartId, year: &str) -> Result<Self, FiscalYearError> {
+        Self::validate_year(year)?;
+
+        Ok(Self(format!("{}:FY{}", chart_id, year)))
+    }
+
+    fn validate_year(year: &str) -> Result<(), FiscalYearError> {
+        NaiveDate::from_ymd_opt(year.parse()?, 1, 1)
+            .ok_or(FiscalYearError::InvalidYearString(year.to_string()))?;
+
+        Ok(())
+    }
+}
+
+impl AsRef<str> for FiscalYearReference {
+    fn as_ref(&self) -> &str {
+        &self.0
     }
 }
 
@@ -254,10 +306,12 @@ mod test {
     }
 
     fn initial_events_with_opened_date(opened_as_of: NaiveDate) -> Vec<FiscalYearEvent> {
+        let chart_id = ChartId::new();
         vec![FiscalYearEvent::Initialized {
             id: FiscalYearId::new(),
-            chart_id: ChartId::new(),
-            reference: "AC2025".to_string(),
+            chart_id,
+            reference: format!("{}:AC{}", chart_id, opened_as_of.year()),
+            year: opened_as_of.year().to_string(),
             opened_as_of,
         }]
     }

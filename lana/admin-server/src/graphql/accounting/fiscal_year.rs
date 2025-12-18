@@ -34,6 +34,14 @@ impl From<DomainFiscalYear> for FiscalYear {
 
 #[ComplexObject]
 impl FiscalYear {
+    pub async fn reference(&self) -> &str {
+        &self.entity.reference
+    }
+
+    pub async fn year(&self) -> &str {
+        &self.entity.year
+    }
+
     pub async fn month_closures(&self) -> Vec<FiscalMonthClosure> {
         self.entity
             .month_closures()
@@ -44,6 +52,10 @@ impl FiscalYear {
 
     pub async fn is_last_month_of_year_closed(&self) -> bool {
         self.entity.is_last_month_of_year_closed()
+    }
+
+    pub async fn next_month_to_close(&self) -> Option<Date> {
+        self.entity.next_month_to_close().map(|date| date.into())
     }
 }
 

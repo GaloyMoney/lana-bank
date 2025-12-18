@@ -8,6 +8,8 @@ use tracing_utils::ErrorSeverity;
 pub enum FiscalYearError {
     #[error("FiscalYearError - Sqlx: {0}")]
     Sqlx(sqlx::Error),
+    #[error("FiscalYearError - ParseIntError: {0}")]
+    ParseIntError(#[from] std::num::ParseIntError),
     #[error("FiscalYearError - EsEntityError: {0}")]
     EsEntityError(es_entity::EsEntityError),
     #[error("FiscalYearError - CursorDestructureError: {0}")]
@@ -26,6 +28,8 @@ pub enum FiscalYearError {
     FiscalYearNotInitializedForChart(ChartId),
     #[error("FiscalYearError - FiscalYearWithInvalidOpenedAsOf: {0}")]
     FiscalYearWithInvalidOpenedAsOf(NaiveDate),
+    #[error("FiscalYearError - InvalidYearString: {0}")]
+    InvalidYearString(String),
 }
 
 es_entity::from_es_entity_error!(FiscalYearError);
@@ -34,6 +38,7 @@ impl ErrorSeverity for FiscalYearError {
     fn severity(&self) -> Level {
         match self {
             Self::Sqlx(_) => Level::ERROR,
+            Self::ParseIntError(_) => Level::WARN,
             Self::EsEntityError(e) => e.severity(),
             Self::CursorDestructureError(_) => Level::ERROR,
             Self::AuthorizationError(e) => e.severity(),
@@ -43,6 +48,7 @@ impl ErrorSeverity for FiscalYearError {
             Self::AlreadyOpened => Level::ERROR,
             Self::FiscalYearNotInitializedForChart(_) => Level::ERROR,
             Self::FiscalYearWithInvalidOpenedAsOf(_) => Level::ERROR,
+            Self::InvalidYearString(_) => Level::WARN,
         }
     }
 }

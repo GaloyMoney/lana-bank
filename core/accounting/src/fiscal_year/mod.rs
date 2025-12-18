@@ -237,6 +237,30 @@ where
     }
 
     #[record_error_severity]
+    #[instrument(
+        name = "core_accounting.fiscal_year.find_by_chart_id_and_year",
+        skip(self)
+    )]
+    pub async fn find_by_chart_id_and_year(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_id: ChartId,
+        year: &str,
+    ) -> Result<Option<FiscalYear>, FiscalYearError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_fiscal_years(),
+                CoreAccountingAction::FISCAL_YEAR_READ,
+            )
+            .await?;
+
+        self.repo
+            .maybe_find_by_chart_id_and_year(chart_id, year)
+            .await
+    }
+
+    #[record_error_severity]
     #[instrument(name = "core_accounting.fiscal_year.find_all", skip(self))]
     pub async fn find_all<T: From<FiscalYear>>(
         &self,

@@ -2066,23 +2066,33 @@
       }
     },
     "closeMonth": {
-      "title": "Cerrar Mes",
-      "description": "Esto cerrará el próximo mes secuencial para este año fiscal. Esta acción es permanente y no se puede deshacer. Una vez cerrado, no se pueden registrar transacciones en este período.",
+      "title": "Cerrar próximo mes",
+      "description": "Esto cerrará el siguiente mes secuencial para este año fiscal. Una vez cerrado, no se podrán registrar transacciones en este período.",
+      "warning": "Esta acción es irreversible. Una vez cerrado un mes, no se puede reabrir.",
+      "closingMonth": "Mes a cerrar",
+      "confirmationLabel": "Escribe <mono>{text}</mono> para confirmar",
+      "placeholder": "Ingresa texto de confirmación",
+      "allMonthsClosed": "Todos los meses de este año fiscal han sido cerrados.",
       "cancel": "Cancelar",
-      "confirm": "Cerrar Mes",
+      "confirm": "Cerrar próximo mes",
       "success": "Mes cerrado exitosamente"
     },
     "closeYear": {
       "title": "Cerrar Año Fiscal",
       "description": "Esto registrará una transacción de cierre, transfiriendo los ingresos netos del año fiscal al balance general. La acción reducirá las cuentas de su estado de pérdidas y ganancias por su saldo efectivo a la fecha de cierre del año fiscal.",
+      "warning": "Esta acción es irreversible. Las cuentas de ingresos, costo de ingresos y gastos se restablecerán para el próximo año fiscal. Una vez que se cierra un año fiscal, no se puede volver a abrir.",
+      "closingYear": "Año fiscal a cerrar",
+      "confirmationLabel": "Escribe <mono>{text}</mono> para confirmar",
+      "placeholder": "Ingresa texto de confirmación",
       "confirm": "Cerrar Año Fiscal",
       "success": "Los ingresos netos del año fiscal se transfirieron correctamente al balance general"
     },
     "openNextYear": {
-      "title": "Abrir Próximo Año Fiscal",
+      "title": "Crear próximo año fiscal",
       "description": "Esto creará y abrirá el siguiente año fiscal secuencial que inicia inmediatamente después del actual.",
-      "confirm": "Abrir Próximo Año Fiscal",
-      "success": "Próximo año fiscal abierto exitosamente"
+      "confirm": "Crear próximo año fiscal",
+      "success": "Próximo año fiscal abierto exitosamente",
+      "nextFiscalYearLabel": "Próximo año fiscal a crear"
     },
     "details": {
       "title": "Detalles del Año Fiscal",
@@ -2090,14 +2100,16 @@
         "openedAsOf": "Inicio del Año Fiscal",
         "status": "Estado",
         "monthsClosed": "Meses Cerrados",
+        "nextMonthToClose": "Próximo mes a cerrar",
         "lastClosedMonth": "Último Mes Cerrado",
         "processedAt": "Procesado {date}",
-        "noMonthsClosed": "Aún no hay meses cerrados"
+        "noMonthsClosed": "Aún no hay meses cerrados",
+        "allMonthsClosed": "Todos los meses están cerrados"
       },
       "buttons": {
         "closeMonth": "Cerrar Próximo Mes",
         "closeYear": "Cerrar Año Fiscal",
-        "openNextYear": "Abrir Próximo Año Fiscal",
+        "openNextYear": "Crear próximo año fiscal",
         "closeYearDisabledTooltip": "El último mes aún no está cerrado"
       }
     },
@@ -2237,7 +2249,8 @@
     },
     "disabledMessages": {
       "creditFacilityMustBeActive": "La línea de crédito debe estar activa para realizar acciones",
-      "depositAccountClosed": "La cuenta de depósito está cerrada, no se pueden crear propuestas"
+      "depositAccountClosed": "La cuenta de depósito está cerrada, no se pueden crear propuestas",
+      "fiscalYearCannotOpenNextYet": "No se puede crear el siguiente año fiscal a más de un año en el futuro."
     },
     "menuItems": {
       "deposit": "Depósito",
@@ -2255,7 +2268,8 @@
       "account": "Cuenta",
       "depositAccount": "Cuenta de depósito",
       "subAccount": "Subcuenta",
-      "fiscalYear": "Año Fiscal"
+      "fiscalYear": "Año Fiscal",
+      "nextFiscalYear": "Próximo Año Fiscal"
     }
   },
   "DataTable": {
