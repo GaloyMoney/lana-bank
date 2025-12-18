@@ -193,12 +193,7 @@ impl DomainConfigs {
         value: T,
     ) -> Result<(), DomainConfigError> {
         let mut config_entity = self.repo.find_by_key(config.key().clone()).await?;
-        validate_simple_type(&config_entity, config.key().clone(), T::SIMPLE_TYPE)?;
-
-        if config_entity
-            .update_simple_value(value.to_json())
-            .did_execute()
-        {
+        if config_entity.update_simple(value)?.did_execute() {
             self.repo.update(&mut config_entity).await?;
         }
 
@@ -211,10 +206,7 @@ impl DomainConfigs {
         config: SimpleConfig<T>,
     ) -> Result<T, DomainConfigError> {
         let config_entity = self.repo.find_by_key(config.key().clone()).await?;
-        validate_simple_type(&config_entity, config.key().clone(), T::SIMPLE_TYPE)?;
-
-        let value = config_entity.current_json_value().clone();
-        T::from_json(value)
+        config_entity.current_simple_value::<T>()
     }
 
     #[instrument(name = "domain_config.list_simple", skip(self), err)]
@@ -233,26 +225,6 @@ impl DomainConfigs {
     }
 }
 
-fn validate_simple_type(
-    config: &DomainConfig,
-    key: &DomainConfigKey,
-    expected: SimpleType,
-) -> Result<(), DomainConfigError> {
-    match config.simple_type {
-        Some(found) if found == expected => Ok(()),
-        Some(found) => Err(DomainConfigError::InvalidSimpleType {
-            key: key.clone(),
-            expected,
-            found: Some(found),
-        }),
-        None => Err(DomainConfigError::InvalidSimpleType {
-            key: key.clone(),
-            expected,
-            found: None,
-        }),
-    }
-}
-
 async fn collect_simple_of_type(
     repo: &DomainConfigRepo,
     simple_type: SimpleType,
@@ -265,12 +237,7 @@ async fn collect_simple_of_type(
             .list_for_simple_type_by_created_at(Some(simple_type), query, Default::default())
             .await?;
         for config in &ret.entities {
-            let value = simple_type.parse_json(config.current_json_value().clone())?;
-            acc.push(SimpleEntry {
-                key: config.key.to_string(),
-                simple_type,
-                value,
-            });
+            acc.push(config.to_simple_entry(simple_type)?);
         }
         next = ret.into_next_query();
     }

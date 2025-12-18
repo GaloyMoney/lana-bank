@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     DomainConfigError, DomainConfigValue,
     primitives::{DomainConfigId, DomainConfigKey},
-    simple::SimpleType,
+    simple::{SimpleEntry, SimpleType},
 };
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -59,19 +59,39 @@ impl DomainConfig {
     where
         T: DomainConfigValue,
     {
-        let last_event = self
-            .events
-            .iter_all()
-            .next_back()
-            .expect("last event exists");
-        let value = match last_event {
-            DomainConfigEvent::Initialized { value, .. } => value,
-            DomainConfigEvent::Updated { value } => value,
-        };
+        let value = self.current_json_value();
         Ok(serde_json::from_value(value.clone())?)
     }
 
-    pub(super) fn current_json_value(&self) -> &serde_json::Value {
+    pub(super) fn current_simple_value<T: crate::SimpleScalar>(
+        &self,
+    ) -> Result<T, DomainConfigError> {
+        self.ensure_simple_type(T::SIMPLE_TYPE)?;
+        T::from_json(self.current_json_value().clone())
+    }
+
+    pub(super) fn to_simple_entry(
+        &self,
+        expected: SimpleType,
+    ) -> Result<SimpleEntry, DomainConfigError> {
+        self.ensure_simple_type(expected)?;
+        let value = expected.parse_json(self.current_json_value().clone())?;
+        Ok(SimpleEntry {
+            key: self.key.to_string(),
+            simple_type: expected,
+            value,
+        })
+    }
+
+    pub(super) fn update_simple<T: crate::SimpleScalar>(
+        &mut self,
+        new_value: T,
+    ) -> Result<Idempotent<()>, DomainConfigError> {
+        self.ensure_simple_type(T::SIMPLE_TYPE)?;
+        Ok(self.update_simple_value(new_value.to_json()))
+    }
+
+    fn current_json_value(&self) -> &serde_json::Value {
         let last_event = self
             .events
             .iter_all()
@@ -94,6 +114,22 @@ impl DomainConfig {
             .push(DomainConfigEvent::Updated { value: new_value });
 
         Idempotent::Executed(())
+    }
+
+    fn ensure_simple_type(&self, expected: SimpleType) -> Result<(), DomainConfigError> {
+        match self.simple_type {
+            Some(found) if found == expected => Ok(()),
+            Some(found) => Err(DomainConfigError::InvalidSimpleType {
+                key: self.key.clone(),
+                expected,
+                found: Some(found),
+            }),
+            None => Err(DomainConfigError::InvalidSimpleType {
+                key: self.key.clone(),
+                expected,
+                found: None,
+            }),
+        }
     }
 }
 
@@ -410,7 +446,15 @@ mod tests {
         let config = DomainConfig::try_from_events(events).unwrap();
 
         assert_eq!(config.simple_type, Some(SimpleType::Bool));
-        assert_eq!(config.current_json_value(), &value);
+        let entry = config
+            .to_simple_entry(SimpleType::Bool)
+            .expect("should parse simple entry");
+        assert_eq!(
+            entry.value,
+            SimpleType::Bool
+                .parse_json(value.clone())
+                .expect("parse from simple type")
+        );
     }
 
     #[test]
