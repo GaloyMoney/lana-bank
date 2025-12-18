@@ -92,7 +92,20 @@ impl DomainConfigs {
             SimpleType::Int,
             SimpleType::Decimal,
         ] {
-            collect_simple_of_type(&self.repo, simple_type, &mut entries).await?;
+            let ret = self
+                .repo
+                .list_for_simple_type_by_created_at(
+                    Some(simple_type),
+                    es_entity::PaginatedQueryArgs {
+                        first: usize::MAX,
+                        after: None,
+                    },
+                    Default::default(),
+                )
+                .await?;
+            for config in ret.entities {
+                entries.push(config.into_simple_entry()?);
+            }
         }
 
         Ok(entries)
@@ -214,24 +227,4 @@ impl DomainConfigs {
         config.ensure_complex()?;
         config.current_value()
     }
-}
-
-async fn collect_simple_of_type(
-    repo: &DomainConfigRepo,
-    simple_type: SimpleType,
-    acc: &mut Vec<SimpleEntry>,
-) -> Result<(), DomainConfigError> {
-    let mut next = Some(es_entity::PaginatedQueryArgs::default());
-
-    while let Some(query) = next.take() {
-        let ret = repo
-            .list_for_simple_type_by_created_at(Some(simple_type), query, Default::default())
-            .await?;
-        for config in &ret.entities {
-            acc.push(config.to_simple_entry()?);
-        }
-        next = ret.into_next_query();
-    }
-
-    Ok(())
 }

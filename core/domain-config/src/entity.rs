@@ -70,7 +70,7 @@ impl DomainConfig {
         T::from_json(self.current_json_value().clone())
     }
 
-    pub(super) fn to_simple_entry(&self) -> Result<SimpleEntry, DomainConfigError> {
+    pub(super) fn into_simple_entry(self) -> Result<SimpleEntry, DomainConfigError> {
         let simple_type = self
             .simple_type
             .ok_or_else(|| DomainConfigError::NotSimpleConfig(self.key.clone()))?;
@@ -456,7 +456,7 @@ mod tests {
 
         assert_eq!(config.simple_type, Some(SimpleType::Bool));
         let entry = config
-            .to_simple_entry()
+            .into_simple_entry()
             .expect("should parse simple entry");
         assert_eq!(
             entry.value,
