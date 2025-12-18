@@ -63,7 +63,6 @@ pub enum CoreCreditEvent {
     FacilityCollateralizationChanged {
         id: CreditFacilityId,
         customer_id: CustomerId,
-        public_id: PublicId,
         state: CollateralizationState,
         recorded_at: DateTime<Utc>,
         effective: chrono::NaiveDate,
@@ -123,7 +122,6 @@ pub enum CoreCreditEvent {
         liquidation_id: LiquidationId,
         credit_facility_id: CreditFacilityId,
         customer_id: CustomerId,
-        public_id: PublicId,
         receivable_account_id: CalaAccountId,
         trigger_price: PriceOfOneBTC,
         initially_expected_to_receive: UsdCents,

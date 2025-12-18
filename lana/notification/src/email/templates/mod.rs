@@ -116,22 +116,12 @@ impl EmailTemplate {
             "Lana Bank: Partial Liquidation Initiated - {}",
             data.facility_id,
         );
-        let facility_url = format!(
-            "{}/credit-facilities/{}",
-            self.admin_panel_url, data.public_id
-        );
-        let liquidation_url = format!(
-            "{}/liquidations/{}",
-            self.admin_panel_url, data.liquidation_id
-        );
         let data = json!({
             "subject": &subject,
             "facility_id": &data.facility_id,
             "trigger_price": data.trigger_price.into_inner().formatted_usd(),
             "expected_to_receive": data.initially_expected_to_receive.formatted_usd(),
             "estimated_to_liquidate": data.initially_estimated_to_liquidate.formatted_btc(),
-            "facility_url": &facility_url,
-            "liquidation_url": &liquidation_url,
         });
         let html_body = self.handlebars.render("partial_liquidation", &data)?;
         Ok((subject, html_body))
@@ -143,21 +133,15 @@ impl EmailTemplate {
         data: &UnderMarginCallEmailData,
     ) -> Result<(String, String), EmailError> {
         let subject = format!("Lana Bank: Margin Call Warning - {}", data.facility_id,);
-        let facility_url = format!(
-            "{}/credit-facilities/{}",
-            self.admin_panel_url, data.public_id
-        );
         let data = json!({
             "subject": &subject,
             "facility_id": &data.facility_id,
-            "recorded_at": data.recorded_at,
             "effective": data.effective,
             "collateral": data.collateral.formatted_btc(),
             "outstanding_disbursed": data.outstanding_disbursed.formatted_usd(),
             "outstanding_interest": data.outstanding_interest.formatted_usd(),
             "total_outstanding": data.total_outstanding.formatted_usd(),
             "price": data.price.into_inner().formatted_usd(),
-            "facility_url": &facility_url,
         });
         let html_body = self.handlebars.render("under_margin_call", &data)?;
         Ok((subject, html_body))
@@ -207,8 +191,6 @@ pub struct OverduePaymentEmailData {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PartialLiquidationInitiatedEmailData {
     pub facility_id: String,
-    pub liquidation_id: String,
-    pub public_id: String,
     pub trigger_price: core_credit::PriceOfOneBTC,
     pub initially_expected_to_receive: UsdCents,
     pub initially_estimated_to_liquidate: Satoshis,
@@ -217,8 +199,6 @@ pub struct PartialLiquidationInitiatedEmailData {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UnderMarginCallEmailData {
     pub facility_id: String,
-    pub public_id: String,
-    pub recorded_at: DateTime<Utc>,
     pub effective: NaiveDate,
     pub collateral: Satoshis,
     pub outstanding_disbursed: UsdCents,

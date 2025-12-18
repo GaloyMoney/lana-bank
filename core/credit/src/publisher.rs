@@ -90,7 +90,6 @@ where
                 } => Some(CoreCreditEvent::FacilityCollateralizationChanged {
                     id: entity.id,
                     customer_id: entity.customer_id,
-                    public_id: entity.public_id.clone(),
                     state: *state,
                     recorded_at: event.recorded_at,
                     effective: event.recorded_at.date_naive(),
@@ -108,7 +107,6 @@ where
                     credit_facility_id: entity.id,
                     liquidation_id: *liquidation_id,
                     customer_id: entity.customer_id,
-                    public_id: entity.public_id.clone(),
                     receivable_account_id: *receivable_account_id,
                     trigger_price: *trigger_price,
                     initially_expected_to_receive: *initially_expected_to_receive,
