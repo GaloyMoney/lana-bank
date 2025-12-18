@@ -6,7 +6,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::DomainConfigError;
+use crate::{DomainConfigError, DomainConfigKey};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, sqlx::Type)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -146,6 +146,12 @@ impl<T: SimpleScalar> SimpleConfig<T> {
             key,
             _marker: PhantomData,
         }
+    }
+}
+
+impl<T: SimpleScalar> From<SimpleConfig<T>> for DomainConfigKey {
+    fn from(spec: SimpleConfig<T>) -> Self {
+        DomainConfigKey::new(spec.key)
     }
 }
 

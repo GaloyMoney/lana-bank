@@ -130,7 +130,7 @@ impl DomainConfigs {
         spec: SimpleConfig<T>,
         value: T,
     ) -> Result<(), DomainConfigError> {
-        let key = DomainConfigKey::new(spec.key);
+        let key: DomainConfigKey = spec.into();
         if self.repo.maybe_find_by_key(key.clone()).await?.is_some() {
             self.update_simple(spec, value).await
         } else {
@@ -143,7 +143,7 @@ impl DomainConfigs {
         spec: SimpleConfig<T>,
         value: T,
     ) -> Result<(), DomainConfigError> {
-        let key = DomainConfigKey::new(spec.key);
+        let key: DomainConfigKey = spec.into();
         if self.repo.maybe_find_by_key(key.clone()).await?.is_some() {
             return Err(DomainConfigError::InvalidState(format!(
                 "Domain config {} already exists",
@@ -166,7 +166,7 @@ impl DomainConfigs {
         spec: SimpleConfig<T>,
         value: T,
     ) -> Result<(), DomainConfigError> {
-        let key = DomainConfigKey::new(spec.key);
+        let key: DomainConfigKey = spec.into();
         let mut config = self.repo.find_by_key(key.clone()).await?;
         config.ensure_simple_type(T::SIMPLE_TYPE)?;
         if config.update_simple(value)?.did_execute() {
@@ -180,7 +180,7 @@ impl DomainConfigs {
         &self,
         spec: SimpleConfig<T>,
     ) -> Result<T, DomainConfigError> {
-        let key = DomainConfigKey::new(spec.key);
+        let key: DomainConfigKey = spec.into();
         let config = self.repo.find_by_key(key).await?;
         config.current_simple_value::<T>()
     }
