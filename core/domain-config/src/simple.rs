@@ -98,6 +98,39 @@ pub struct SimpleConfig<T: SimpleScalar> {
 }
 
 impl<T: SimpleScalar> SimpleConfig<T> {
+    /// # Examples
+    /// ```no_run
+    /// use domain_config::{DomainConfigs, SimpleConfig};
+    /// use rust_decimal::Decimal;
+    ///
+    /// // Client-facing definitions
+    /// const FEATURE_X_ENABLED: SimpleConfig<bool> = SimpleConfig::new("feature_x_enabled");
+    /// const MAX_RETRIES: SimpleConfig<i64> = SimpleConfig::new("max_retries");
+    /// const FEE_RATE: SimpleConfig<Decimal> = SimpleConfig::new("fee_rate");
+    ///
+    /// async fn configure(pool: &sqlx::PgPool) -> Result<(), domain_config::DomainConfigError> {
+    ///     let configs = DomainConfigs::new(pool);
+    ///
+    ///     // Create strongly-typed simple configs
+    ///     configs.create_simple(FEATURE_X_ENABLED, true).await?;
+    ///     configs.create_simple(MAX_RETRIES, 3).await?;
+    ///     configs.create_simple(FEE_RATE, Decimal::new(25, 2)).await?;
+    ///
+    ///     // Typed access
+    ///     let enabled: bool = configs.get_simple(FEATURE_X_ENABLED).await?;
+    ///     let retries: i64 = configs.get_simple(MAX_RETRIES).await?;
+    ///     let fee_rate: Decimal = configs.get_simple(FEE_RATE).await?;
+    ///
+    ///     // Update stays type-safe
+    ///     configs.update_simple(FEATURE_X_ENABLED, !enabled).await?;
+    ///
+    ///     // Listing returns dynamic entries
+    ///     let all = configs.list_simple().await?;
+    ///     assert!(all.iter().any(|c| c.key == "feature_x_enabled" && matches!(c.simple_type, domain_config::SimpleType::Bool)));
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
     pub const fn new(key: &'static str) -> Self {
         Self {
             key: DomainConfigKey::new(key),
