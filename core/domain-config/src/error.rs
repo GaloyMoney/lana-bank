@@ -25,6 +25,8 @@ pub enum DomainConfigError {
         key: DomainConfigKey,
         found: SimpleType,
     },
+    #[error("DomainConfigError - Config is not simple for {0}")]
+    NotSimpleConfig(DomainConfigKey),
     #[error("DomainConfigError - Serde: {0}")]
     Serde(#[from] serde_json::Error),
     #[error("DomainConfigError - Sqlx: {0}")]
@@ -45,6 +47,7 @@ impl ErrorSeverity for DomainConfigError {
             Self::MissingSimpleValue(_) => Level::ERROR,
             Self::InvalidSimpleValue(_) => Level::ERROR,
             Self::InvalidConfigKind { .. } => Level::ERROR,
+            Self::NotSimpleConfig(_) => Level::ERROR,
             Self::Serde(_) => Level::ERROR,
             Self::Sqlx(_) => Level::ERROR,
             Self::EsEntityError(e) => e.severity(),

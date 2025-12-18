@@ -73,7 +73,7 @@ impl DomainConfig {
     pub(super) fn to_simple_entry(&self) -> Result<SimpleEntry, DomainConfigError> {
         let simple_type = self
             .simple_type
-            .ok_or_else(|| DomainConfigError::InvalidState(format!("Missing simple_type for {}", self.key)))?;
+            .ok_or_else(|| DomainConfigError::NotSimpleConfig(self.key.clone()))?;
         let value = simple_type.parse_json(self.current_json_value().clone())?;
         Ok(SimpleEntry {
             key: self.key.to_string(),
