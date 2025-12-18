@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO core_domain_configs (id, key, simple_type, created_at) VALUES ($1, $2, $3, COALESCE($4, NOW()))",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Varchar",
+        "Text",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "0830765ccfd6f34abfb8ac3cc1f6891372202f532e68b0bb8569fcd8c06a7355"
+}
