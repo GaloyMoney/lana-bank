@@ -104,7 +104,7 @@ impl DomainConfigs {
         spec: SimpleConfig<T>,
         value: T,
     ) -> Result<(), DomainConfigError> {
-        self.create_simple_value(spec, T::SIMPLE_TYPE, value).await
+        self.create_simple_value(spec, value).await
     }
 
     #[instrument(name = "domain_config.update_simple", skip(self, value), err)]
@@ -113,7 +113,7 @@ impl DomainConfigs {
         spec: SimpleConfig<T>,
         value: T,
     ) -> Result<(), DomainConfigError> {
-        self.update_simple_value(spec, T::SIMPLE_TYPE, value).await
+        self.update_simple_value(spec, value).await
     }
 
     #[instrument(name = "domain_config.get_simple", skip(self), err)]
@@ -141,7 +141,6 @@ impl DomainConfigs {
     async fn create_simple_value<T: SimpleScalar>(
         &self,
         spec: SimpleConfig<T>,
-        simple_type: SimpleType,
         value: T,
     ) -> Result<(), DomainConfigError> {
         let key = DomainConfigKey::new(spec.key);
@@ -154,7 +153,7 @@ impl DomainConfigs {
 
         let domain_config_id = DomainConfigId::new();
         let new = NewDomainConfig::builder()
-            .with_simple_value(domain_config_id, key, simple_type, value.to_json())?
+            .with_simple_value(domain_config_id, key, T::SIMPLE_TYPE, value.to_json())?
             .build()
             .expect("Could not build NewDomainConfig");
         self.repo.create(new).await?;
@@ -165,12 +164,11 @@ impl DomainConfigs {
     async fn update_simple_value<T: SimpleScalar>(
         &self,
         spec: SimpleConfig<T>,
-        expected: SimpleType,
         value: T,
     ) -> Result<(), DomainConfigError> {
         let key = DomainConfigKey::new(spec.key);
         let mut config = self.repo.find_by_key(key.clone()).await?;
-        config.ensure_simple_type(expected)?;
+        config.ensure_simple_type(T::SIMPLE_TYPE)?;
         if config.update_simple(value)?.did_execute() {
             self.repo.update(&mut config).await?;
         }
