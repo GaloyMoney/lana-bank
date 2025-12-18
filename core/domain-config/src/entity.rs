@@ -8,7 +8,6 @@ use crate::{
     DomainConfigError, DomainConfigValue,
     primitives::{DomainConfigId, DomainConfigKey},
     simple::{SimpleEntry, SimpleType},
-    ConfigKind,
 };
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -137,8 +136,7 @@ impl DomainConfig {
             None => Ok(()),
             Some(found) => Err(DomainConfigError::InvalidConfigKind {
                 key: self.key.clone(),
-                expected: ConfigKind::Complex,
-                found: ConfigKind::Simple(found),
+                found,
             }),
         }
     }

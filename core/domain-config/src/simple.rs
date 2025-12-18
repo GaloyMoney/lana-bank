@@ -112,17 +112,17 @@ impl<T: SimpleScalar> SimpleConfig<T> {
     ///     let configs = DomainConfigs::new(pool);
     ///
     ///     // Create strongly-typed simple configs
-    ///     configs.create(FEATURE_X_ENABLED, true).await?;
-    ///     configs.create(MAX_RETRIES, 3).await?;
-    ///     configs.create(FEE_RATE, Decimal::new(25, 2)).await?;
+    ///     configs.create_simple(FEATURE_X_ENABLED, true).await?;
+    ///     configs.create_simple(MAX_RETRIES, 3).await?;
+    ///     configs.create_simple(FEE_RATE, Decimal::new(25, 2)).await?;
     ///
     ///     // Typed access
-    ///     let enabled: bool = configs.get(FEATURE_X_ENABLED).await?;
-    ///     let retries: i64 = configs.get(MAX_RETRIES).await?;
-    ///     let fee_rate: Decimal = configs.get(FEE_RATE).await?;
+    ///     let enabled: bool = configs.get_simple(FEATURE_X_ENABLED).await?;
+    ///     let retries: i64 = configs.get_simple(MAX_RETRIES).await?;
+    ///     let fee_rate: Decimal = configs.get_simple(FEE_RATE).await?;
     ///
     ///     // Update stays type-safe
-    ///     configs.update(FEATURE_X_ENABLED, !enabled).await?;
+    ///     configs.update_simple(FEATURE_X_ENABLED, !enabled).await?;
     ///
     ///     // Listing returns dynamic entries
     ///     let all = configs.list_simple().await?;
@@ -138,7 +138,7 @@ impl<T: SimpleScalar> SimpleConfig<T> {
     /// const FEATURE_X_ENABLED: SimpleConfig<bool> = SimpleConfig::new("feature_x_enabled");
     ///
     /// fn wrong_type(configs: DomainConfigs) {
-    ///     let _ = configs.create(FEATURE_X_ENABLED, "not a bool");
+    ///     let _ = configs.create_simple(FEATURE_X_ENABLED, "not a bool");
     /// }
     /// ```
     pub const fn new(key: &'static str) -> Self {
