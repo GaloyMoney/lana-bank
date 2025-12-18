@@ -10,6 +10,7 @@ from src.assets import (
     inform_lana_protoasset,
     iris_dataset_size,
     lana_dbt_protoassets,
+    lana_dbt_seed_protoassets,
     lana_source_protoassets,
     lana_to_dw_el_protoassets,
     sumsub_protoasset,
@@ -178,6 +179,17 @@ dbt_automation_sensor = build_dbt_automation_sensor(
     dagster_automations_active=DAGSTER_AUTOMATIONS_ACTIVE
 )
 definition_builder.add_sensor(dbt_automation_sensor)
+
+dbt_seed_assets = []
+for seed_protoasset in lana_dbt_seed_protoassets():
+    seed_asset = definition_builder.add_asset_from_protoasset(seed_protoasset)
+    dbt_seed_assets.append(seed_asset)
+
+dbt_seeds_job = definition_builder.add_job_from_assets(
+    job_name="dbt_seeds_job",
+    assets=tuple(dbt_seed_assets),
+)
+definition_builder.add_job_schedule(job=dbt_seeds_job, cron_expression="0 0 * * *")
 
 report_protoassets = file_report_protoassets()
 
