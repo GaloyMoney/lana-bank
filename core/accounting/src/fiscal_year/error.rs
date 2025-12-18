@@ -20,6 +20,8 @@ pub enum FiscalYearError {
     ChartOfAccountsError(#[from] crate::chart_of_accounts::error::ChartOfAccountsError),
     #[error("FiscalYearError - LastMonthNotClosed")]
     LastMonthNotClosed,
+    #[error("FiscalYearError - MonthHasNotEnded")]
+    MonthHasNotEnded,
     #[error("FiscalYearError - AllMonthsAlreadyClosed")]
     AllMonthsAlreadyClosed,
     #[error("FiscalYearError - AlreadyOpened")]
@@ -49,6 +51,7 @@ impl ErrorSeverity for FiscalYearError {
             Self::FiscalYearNotInitializedForChart(_) => Level::ERROR,
             Self::FiscalYearWithInvalidOpenedAsOf(_) => Level::ERROR,
             Self::InvalidYearString(_) => Level::WARN,
+            Self::MonthHasNotEnded => Level::ERROR,
         }
     }
 }

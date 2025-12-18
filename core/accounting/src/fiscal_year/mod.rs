@@ -183,7 +183,7 @@ where
         let now = crate::time::now();
 
         let mut fiscal_year = self.repo.find_by_id(id).await?;
-        if let Idempotent::Executed(date) = fiscal_year.close_next_sequential_month(now) {
+        if let Idempotent::Executed(date) = fiscal_year.close_next_sequential_month(now)? {
             let mut op = self.repo.begin_op().await?;
             self.repo.update_in_op(&mut op, &mut fiscal_year).await?;
             self.chart_of_accounts
