@@ -2,7 +2,7 @@ use es_entity::*;
 use sqlx::PgPool;
 
 use super::{
-    entity::{FiscalYear, FiscalYearEvent},
+    entity::{FiscalYear, FiscalYearEvent, FiscalYearReference},
     error::FiscalYearError,
 };
 use crate::primitives::{ChartId, FiscalYearId};
@@ -14,7 +14,6 @@ use crate::primitives::{ChartId, FiscalYearId};
     columns(
         chart_id(ty = "ChartId", update(persist = false), list_for),
         reference(ty = "String", create(accessor = "reference()")),
-        year(ty = "String", create(accessor = "year()")),
     ),
     tbl_prefix = "core"
 )]
@@ -37,20 +36,11 @@ impl FiscalYearRepo {
         chart_id: ChartId,
         year: &str,
     ) -> Result<Option<FiscalYear>, FiscalYearError> {
-        let res = es_entity::es_query!(
-            entity = FiscalYear,
-            r#"
-            SELECT * 
-            FROM core_fiscal_years
-            WHERE chart_id = $1 
-            AND year = $2
-            "#,
-            chart_id as ChartId,
-            year as &str
-        )
-        .fetch_optional(&self.pool)
-        .await?;
-
-        Ok(res)
+        let reference = FiscalYearReference::try_new(chart_id, year)?;
+        match self.find_by_reference(reference).await {
+            Err(e) if e.was_not_found() => Ok(None),
+            Err(e) => Err(e),
+            Ok(res) => Ok(Some(res)),
+        }
     }
 }

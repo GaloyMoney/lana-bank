@@ -571,9 +571,7 @@ CREATE TABLE core_fiscal_years (
   id UUID PRIMARY KEY,
   chart_id UUID NOT NULL REFERENCES core_charts(id),
   reference VARCHAR NOT NULL UNIQUE,
-  year VARCHAR NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL,
-  UNIQUE(chart_id, year)
+  created_at TIMESTAMPTZ NOT NULL
 );
 
 CREATE TABLE core_fiscal_year_events (
