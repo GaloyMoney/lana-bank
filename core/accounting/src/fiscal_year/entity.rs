@@ -9,7 +9,7 @@ use tracing::instrument;
 use super::error::*;
 use tracing_macros::record_error_severity;
 
-use crate::primitives::{ChartId, FiscalYearId};
+use crate::primitives::{CalaTxId, ChartId, ClosingTxDetails, FiscalYearId};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -28,6 +28,7 @@ pub enum FiscalYearEvent {
         month_closed_at: DateTime<Utc>,
     },
     YearClosed {
+        ledger_tx_id: CalaTxId,
         closed_as_of: NaiveDate,
         closed_at: DateTime<Utc>,
     },
@@ -57,7 +58,7 @@ impl FiscalYear {
     pub(super) fn close(
         &mut self,
         now: DateTime<Utc>,
-    ) -> Result<Idempotent<NaiveDate>, FiscalYearError> {
+    ) -> Result<Idempotent<ClosingTxDetails>, FiscalYearError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             FiscalYearEvent::YearClosed { .. }
@@ -66,13 +67,21 @@ impl FiscalYear {
             return Err(FiscalYearError::LastMonthNotClosed);
         }
 
+        let ledger_tx_id = CalaTxId::new();
         let closed_as_of = self.closes_as_of();
         self.events.push(FiscalYearEvent::YearClosed {
+            ledger_tx_id,
             closed_as_of,
             closed_at: now,
         });
         self.closed_as_of = Some(closed_as_of);
-        Ok(Idempotent::Executed(closed_as_of))
+
+        Ok(Idempotent::Executed(ClosingTxDetails {
+            description: self.reference.to_string(), // TODO: what will we set here?
+            tx_id: ledger_tx_id,
+            effective_balances_from: self.opened_as_of,
+            effective_balances_until: closed_as_of,
+        }))
     }
 
     pub fn closes_as_of(&self) -> NaiveDate {
@@ -366,7 +375,10 @@ mod test {
         let db_op = result.unwrap();
         assert!(db_op.did_execute());
 
-        let closed_as_of = db_op.unwrap();
+        let ClosingTxDetails {
+            effective_balances_until: closed_as_of,
+            ..
+        } = db_op.unwrap();
         assert_eq!(closed_as_of, "2024-12-31".parse::<NaiveDate>().unwrap());
     }
 
