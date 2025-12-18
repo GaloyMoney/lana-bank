@@ -17,7 +17,7 @@ use job::Jobs;
 use lana_events::LanaEvent;
 
 use email::job::{EmailEventListenerConfig, EmailEventListenerInit};
-use email::{EmailInfraConfig, EmailNotification};
+use email::{EmailInfraConfig, EmailNotification, NOTIFICATION_EMAIL_CONFIG};
 
 pub use authorization::{
     NotificationAction, NotificationObject, PERMISSION_SET_NOTIFICATION_EMAIL_CONFIG_VIEWER,
@@ -142,7 +142,9 @@ where
             )
             .await?;
 
-        self.domain_configs.upsert(new_config.clone()).await?;
+        self.domain_configs
+            .upsert(NOTIFICATION_EMAIL_CONFIG, new_config.clone())
+            .await?;
 
         Ok(new_config)
     }

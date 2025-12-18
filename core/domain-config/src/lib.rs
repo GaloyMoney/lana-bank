@@ -5,6 +5,7 @@ mod entity;
 pub mod error;
 mod primitives;
 mod repo;
+mod spec;
 mod simple;
 
 use tracing::instrument;
@@ -12,6 +13,7 @@ use tracing::instrument;
 pub use entity::{DomainConfig, DomainConfigEvent, NewDomainConfig};
 pub use error::DomainConfigError;
 pub use primitives::{DomainConfigId, DomainConfigKey, DomainConfigValue};
+pub use spec::{ConfigKind, ConfigSpec, TypedConfig};
 pub use simple::{SimpleConfig, SimpleEntry, SimpleScalar, SimpleType, SimpleValue};
 
 #[cfg(feature = "json-schema")]
@@ -20,6 +22,8 @@ pub mod event_schema {
 }
 
 use repo::DomainConfigRepo;
+use spec::{ConfigSpec, TypedConfig};
+use std::{future::Future, pin::Pin};
 
 #[derive(Clone)]
 pub struct DomainConfigs {
@@ -32,14 +36,41 @@ impl DomainConfigs {
         Self { repo }
     }
 
-    #[instrument(name = "domain_config.get", skip(self), err)]
-    pub async fn get<T>(&self) -> Result<T, DomainConfigError>
+    #[instrument(name = "domain_config.create", skip(self, value), err)]
+    pub async fn create<S>(&self, spec: S, value: S::Value) -> Result<(), DomainConfigError>
     where
-        T: DomainConfigValue,
+        S: ConfigSpecDispatch,
     {
-        let config = self.repo.find_by_key(T::KEY).await?;
+        spec.create(self, value).await
+    }
 
-        config.current_value()
+    #[instrument(name = "domain_config.update", skip(self, value), err)]
+    pub async fn update<S>(&self, spec: S, value: S::Value) -> Result<(), DomainConfigError>
+    where
+        S: ConfigSpecDispatch,
+    {
+        spec.update(self, value).await
+    }
+
+    #[instrument(name = "domain_config.get", skip(self), err)]
+    pub async fn get<S>(&self, spec: S) -> Result<S::Value, DomainConfigError>
+    where
+        S: ConfigSpecDispatch,
+    {
+        spec.get(self).await
+    }
+
+    #[instrument(name = "domain_config.upsert", skip(self, value), err)]
+    pub async fn upsert<S>(&self, spec: S, value: S::Value) -> Result<(), DomainConfigError>
+    where
+        S: ConfigSpecDispatch,
+    {
+        let key = DomainConfigKey::new(spec.key());
+        if self.repo.maybe_find_by_key(key).await?.is_some() {
+            spec.update(self, value).await
+        } else {
+            spec.create(self, value).await
+        }
     }
 
     #[instrument(name = "domain_config.get_or_default", skip(self), err)]
@@ -56,159 +87,6 @@ impl DomainConfigs {
         Ok(config_value)
     }
 
-    #[instrument(name = "domain_config.create_in_op", skip(self, op, value), err)]
-    pub async fn create_in_op<T>(
-        &self,
-        op: &mut es_entity::DbOp<'_>,
-        value: T,
-    ) -> Result<(), DomainConfigError>
-    where
-        T: DomainConfigValue,
-    {
-        let domain_config_id = DomainConfigId::new();
-        let new = NewDomainConfig::builder()
-            .with_value(domain_config_id, value)?
-            .build()
-            .expect("Could not build NewDomainConfig");
-        self.repo.create_in_op(op, new).await?;
-
-        Ok(())
-    }
-
-    #[instrument(name = "domain_config.create", skip(self, value), err)]
-    pub async fn create<T>(&self, value: T) -> Result<(), DomainConfigError>
-    where
-        T: DomainConfigValue,
-    {
-        let domain_config_id = DomainConfigId::new();
-        let new = NewDomainConfig::builder()
-            .with_value(domain_config_id, value)?
-            .build()
-            .expect("Could not build NewDomainConfig");
-        self.repo.create(new).await?;
-
-        Ok(())
-    }
-
-    #[instrument(name = "domain_config.update_in_op", skip(self, op, value), err)]
-    pub async fn update_in_op<T>(
-        &self,
-        op: &mut es_entity::DbOp<'_>,
-        value: T,
-    ) -> Result<(), DomainConfigError>
-    where
-        T: DomainConfigValue,
-    {
-        let mut config = self.repo.find_by_key_in_op(&mut *op, T::KEY).await?;
-
-        if config.update(value)?.did_execute() {
-            self.repo.update_in_op(op, &mut config).await?;
-        }
-
-        Ok(())
-    }
-
-    #[instrument(name = "domain_config.update", skip(self, value), err)]
-    pub async fn update<T>(&self, value: T) -> Result<(), DomainConfigError>
-    where
-        T: DomainConfigValue,
-    {
-        let mut config = self.repo.find_by_key(T::KEY).await?;
-        if config.update(value)?.did_execute() {
-            self.repo.update(&mut config).await?;
-        }
-
-        Ok(())
-    }
-
-    #[instrument(name = "domain_config.upsert_in_op", skip(self, op, value), err)]
-    pub async fn upsert_in_op<T>(
-        &self,
-        op: &mut es_entity::DbOp<'_>,
-        value: T,
-    ) -> Result<(), DomainConfigError>
-    where
-        T: DomainConfigValue,
-    {
-        match self.update_in_op(op, value.clone()).await {
-            Ok(()) => Ok(()),
-            Err(DomainConfigError::EsEntityError(es_entity::EsEntityError::NotFound)) => {
-                self.create_in_op(op, value).await
-            }
-            Err(e) => Err(e),
-        }
-    }
-
-    #[instrument(name = "domain_config.upsert", skip(self, value), err)]
-    pub async fn upsert<T>(&self, value: T) -> Result<(), DomainConfigError>
-    where
-        T: DomainConfigValue,
-    {
-        match self.update(value.clone()).await {
-            Ok(()) => Ok(()),
-            Err(DomainConfigError::EsEntityError(es_entity::EsEntityError::NotFound)) => {
-                self.create(value).await
-            }
-            Err(e) => Err(e),
-        }
-    }
-
-    #[instrument(name = "domain_config.create_simple", skip(self, value), err)]
-    pub async fn create_simple<T: SimpleScalar>(
-        &self,
-        config: SimpleConfig<T>,
-        value: T,
-    ) -> Result<(), DomainConfigError> {
-        if self
-            .repo
-            .maybe_find_by_key(config.key().clone())
-            .await?
-            .is_some()
-        {
-            return Err(DomainConfigError::InvalidState(format!(
-                "Domain config {} already exists",
-                config.key()
-            )));
-        }
-
-        let domain_config_id = DomainConfigId::new();
-        let new = NewDomainConfig::builder()
-            .with_simple_value(
-                domain_config_id,
-                config.key().clone(),
-                T::SIMPLE_TYPE,
-                value.to_json(),
-            )?
-            .build()
-            .expect("Could not build NewDomainConfig");
-        self.repo.create(new).await?;
-
-        Ok(())
-    }
-
-    #[instrument(name = "domain_config.update_simple", skip(self, value), err)]
-    pub async fn update_simple<T: SimpleScalar>(
-        &self,
-        config: SimpleConfig<T>,
-        value: T,
-    ) -> Result<(), DomainConfigError> {
-        let mut config_entity = self.repo.find_by_key(config.key().clone()).await?;
-        if config_entity.update_simple(value)?.did_execute() {
-            self.repo.update(&mut config_entity).await?;
-        }
-
-        Ok(())
-    }
-
-    #[instrument(name = "domain_config.get_simple", skip(self), err)]
-    pub async fn get_simple<T: SimpleScalar>(
-        &self,
-        config: SimpleConfig<T>,
-    ) -> Result<T, DomainConfigError> {
-        let config_entity = self.repo.find_by_key(config.key().clone()).await?;
-        config_entity.current_simple_value::<T>()
-    }
-
     #[instrument(name = "domain_config.list_simple", skip(self), err)]
     pub async fn list_simple(&self) -> Result<Vec<SimpleEntry>, DomainConfigError> {
         let mut entries = Vec::new();
@@ -222,6 +100,120 @@ impl DomainConfigs {
         }
 
         Ok(entries)
+    }
+
+    async fn create_simple_value<T: SimpleScalar>(
+        &self,
+        spec: SimpleConfig<T>,
+        value: T,
+    ) -> Result<(), DomainConfigError> {
+        let key = DomainConfigKey::new(spec.key);
+        if self.repo.maybe_find_by_key(key.clone()).await?.is_some() {
+            return Err(DomainConfigError::InvalidState(format!(
+                "Domain config {} already exists",
+                key
+            )));
+        }
+
+        let domain_config_id = DomainConfigId::new();
+        let new = NewDomainConfig::builder()
+            .with_simple_value(domain_config_id, key, T::SIMPLE_TYPE, value.to_json())?
+            .build()
+            .expect("Could not build NewDomainConfig");
+        self.repo.create(new).await?;
+
+        Ok(())
+    }
+
+    async fn update_simple_value<T: SimpleScalar>(
+        &self,
+        spec: SimpleConfig<T>,
+        value: T,
+    ) -> Result<(), DomainConfigError> {
+        let key = DomainConfigKey::new(spec.key);
+        let mut config = self.repo.find_by_key(key.clone()).await?;
+        if config.update_simple(value)?.did_execute() {
+            self.repo.update(&mut config).await?;
+        }
+
+        Ok(())
+    }
+
+    async fn get_simple_value<T: SimpleScalar>(
+        &self,
+        spec: SimpleConfig<T>,
+    ) -> Result<T, DomainConfigError> {
+        let key = DomainConfigKey::new(spec.key);
+        let config = self.repo.find_by_key(key).await?;
+        config.current_simple_value::<T>()
+    }
+
+    async fn create_complex_value<T: DomainConfigValue>(
+        &self,
+        spec: TypedConfig<T>,
+        value: T,
+    ) -> Result<(), DomainConfigError> {
+        let key = DomainConfigKey::new(spec.key);
+        if key != T::KEY {
+            return Err(DomainConfigError::InvalidState(format!(
+                "Config key {} does not match type key {}",
+                key, T::KEY
+            )));
+        }
+
+        if self.repo.maybe_find_by_key(key.clone()).await?.is_some() {
+            return Err(DomainConfigError::InvalidState(format!(
+                "Domain config {} already exists",
+                key
+            )));
+        }
+
+        let domain_config_id = DomainConfigId::new();
+        let new = NewDomainConfig::builder()
+            .with_value(domain_config_id, value)?
+            .build()
+            .expect("Could not build NewDomainConfig");
+        self.repo.create(new).await?;
+
+        Ok(())
+    }
+
+    async fn update_complex_value<T: DomainConfigValue>(
+        &self,
+        spec: TypedConfig<T>,
+        value: T,
+    ) -> Result<(), DomainConfigError> {
+        let key = DomainConfigKey::new(spec.key);
+        if key != T::KEY {
+            return Err(DomainConfigError::InvalidState(format!(
+                "Config key {} does not match type key {}",
+                key, T::KEY
+            )));
+        }
+        let mut config = self.repo.find_by_key(key.clone()).await?;
+        config.ensure_complex()?;
+
+        if config.update(value)?.did_execute() {
+            self.repo.update(&mut config).await?;
+        }
+
+        Ok(())
+    }
+
+    async fn get_complex_value<T: DomainConfigValue>(
+        &self,
+        spec: TypedConfig<T>,
+    ) -> Result<T, DomainConfigError> {
+        let key = DomainConfigKey::new(spec.key);
+        if key != T::KEY {
+            return Err(DomainConfigError::InvalidState(format!(
+                "Config key {} does not match type key {}",
+                key, T::KEY
+            )));
+        }
+        let config = self.repo.find_by_key(key).await?;
+        config.ensure_complex()?;
+        config.current_value()
     }
 }
 
@@ -243,4 +235,83 @@ async fn collect_simple_of_type(
     }
 
     Ok(())
+}
+
+trait ConfigSpecDispatch: ConfigSpec {
+    fn key(&self) -> &'static str;
+
+    fn create<'a>(
+        self,
+        configs: &'a DomainConfigs,
+        value: Self::Value,
+    ) -> Pin<Box<dyn Future<Output = Result<(), DomainConfigError>> + 'a>>;
+
+    fn update<'a>(
+        self,
+        configs: &'a DomainConfigs,
+        value: Self::Value,
+    ) -> Pin<Box<dyn Future<Output = Result<(), DomainConfigError>> + 'a>>;
+
+    fn get<'a>(
+        self,
+        configs: &'a DomainConfigs,
+    ) -> Pin<Box<dyn Future<Output = Result<Self::Value, DomainConfigError>> + 'a>>;
+}
+
+impl<T: SimpleScalar> ConfigSpecDispatch for SimpleConfig<T> {
+    fn key(&self) -> &'static str {
+        self.key
+    }
+
+    fn create<'a>(
+        self,
+        configs: &'a DomainConfigs,
+        value: Self::Value,
+    ) -> Pin<Box<dyn Future<Output = Result<(), DomainConfigError>> + 'a>> {
+        Box::pin(async move { configs.create_simple_value(self, value).await })
+    }
+
+    fn update<'a>(
+        self,
+        configs: &'a DomainConfigs,
+        value: Self::Value,
+    ) -> Pin<Box<dyn Future<Output = Result<(), DomainConfigError>> + 'a>> {
+        Box::pin(async move { configs.update_simple_value(self, value).await })
+    }
+
+    fn get<'a>(
+        self,
+        configs: &'a DomainConfigs,
+    ) -> Pin<Box<dyn Future<Output = Result<Self::Value, DomainConfigError>> + 'a>> {
+        Box::pin(async move { configs.get_simple_value(self).await })
+    }
+}
+
+impl<T: DomainConfigValue> ConfigSpecDispatch for TypedConfig<T> {
+    fn key(&self) -> &'static str {
+        self.key
+    }
+
+    fn create<'a>(
+        self,
+        configs: &'a DomainConfigs,
+        value: Self::Value,
+    ) -> Pin<Box<dyn Future<Output = Result<(), DomainConfigError>> + 'a>> {
+        Box::pin(async move { configs.create_complex_value(self, value).await })
+    }
+
+    fn update<'a>(
+        self,
+        configs: &'a DomainConfigs,
+        value: Self::Value,
+    ) -> Pin<Box<dyn Future<Output = Result<(), DomainConfigError>> + 'a>> {
+        Box::pin(async move { configs.update_complex_value(self, value).await })
+    }
+
+    fn get<'a>(
+        self,
+        configs: &'a DomainConfigs,
+    ) -> Pin<Box<dyn Future<Output = Result<Self::Value, DomainConfigError>> + 'a>> {
+        Box::pin(async move { configs.get_complex_value(self).await })
+    }
 }

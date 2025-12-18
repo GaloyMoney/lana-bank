@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-use crate::{primitives::DomainConfigKey, simple::SimpleType};
+use crate::{primitives::DomainConfigKey, simple::SimpleType, spec::ConfigKind};
 
 #[derive(Error, Debug)]
 pub enum DomainConfigError {
@@ -20,6 +20,14 @@ pub enum DomainConfigError {
     MissingSimpleValue(DomainConfigKey),
     #[error("DomainConfigError - Invalid Simple Value: {0}")]
     InvalidSimpleValue(String),
+    #[error(
+        "DomainConfigError - Invalid Config Kind for {key}: expected {expected:?}, found {found:?}"
+    )]
+    InvalidConfigKind {
+        key: DomainConfigKey,
+        expected: ConfigKind,
+        found: ConfigKind,
+    },
     #[error("DomainConfigError - Serde: {0}")]
     Serde(#[from] serde_json::Error),
     #[error("DomainConfigError - Sqlx: {0}")]
@@ -39,6 +47,7 @@ impl ErrorSeverity for DomainConfigError {
             Self::InvalidSimpleType { .. } => Level::ERROR,
             Self::MissingSimpleValue(_) => Level::ERROR,
             Self::InvalidSimpleValue(_) => Level::ERROR,
+            Self::InvalidConfigKind { .. } => Level::ERROR,
             Self::Serde(_) => Level::ERROR,
             Self::Sqlx(_) => Level::ERROR,
             Self::EsEntityError(e) => e.severity(),
