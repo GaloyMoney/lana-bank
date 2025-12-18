@@ -8,7 +8,14 @@ edition = "2024"
 fail-on-warnings = []
 graphql = ["dep:async-graphql", "cala-ledger/graphql"]
 sim-time = ["dep:sim-time", "es-entity/sim-time"]
-json-schema = ["dep:schemars", "es-entity/json-schema", "cala-ledger/json-schema", "job/json-schema", "core-money/json-schema", "public-id/json-schema"]
+json-schema = [
+    "dep:schemars",
+    "es-entity/json-schema",
+    "cala-ledger/json-schema",
+    "job/json-schema",
+    "core-money/json-schema",
+    "public-id/json-schema",
+]
 
 [dependencies]
 core-money = { workspace = true }
@@ -20,6 +27,7 @@ public-id = { workspace = true }
 audit = { workspace = true }
 authz = { workspace = true }
 obix = { workspace = true }
+domain-config = { workspace = true }
 job = { workspace = true }
 cloud-storage = { workspace = true }
 

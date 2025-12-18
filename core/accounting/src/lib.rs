@@ -22,6 +22,7 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use document_storage::DocumentStorage;
+use domain_config::DomainConfigs;
 use job::Jobs;
 use manual_transaction::ManualTransactions;
 use tracing::instrument;
@@ -104,9 +105,10 @@ where
         journal_id: CalaJournalId,
         document_storage: DocumentStorage,
         jobs: &Jobs,
+        domain_configs: &DomainConfigs,
     ) -> Self {
         let chart_of_accounts = ChartOfAccounts::new(pool, authz, cala, journal_id);
-        let fiscal_year = FiscalYears::new(pool, authz, &chart_of_accounts);
+        let fiscal_year = FiscalYears::new(pool, authz, domain_configs, &chart_of_accounts);
         let journal = Journal::new(authz, cala, journal_id);
         let ledger_accounts = LedgerAccounts::new(authz, cala, journal_id);
         let manual_transactions =
