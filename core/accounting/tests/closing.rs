@@ -78,6 +78,12 @@ async fn post_closing_tx_with_gain() -> Result<()> {
         effective_balances_until: effective_balances_as_of,
         effective_balances_from,
     };
+    // HACK (B): Closing the one month in the year, before posting
+    // the closing transaction.
+    test.accounting
+        .fiscal_year()
+        .close_month(&DummySubject, test.fiscal_year.id)
+        .await?;
 
     let op = test.fiscal_year_repo.begin_op().await.unwrap();
     test.accounting
@@ -376,7 +382,7 @@ async fn setup_test() -> anyhow::Result<Test> {
         .chart_of_accounts()
         .import_from_csv(&DummySubject, &chart.reference, import)
         .await?;
-
+    // HACK (A): Only one month to close for the `FiscalYear` in this setup.
     let opened_as_of: NaiveDate = "2021-12-01".parse::<NaiveDate>().unwrap();
     let fiscal_year = accounting
         .init_fiscal_year_for_chart(&DummySubject, &chart_ref, opened_as_of)
