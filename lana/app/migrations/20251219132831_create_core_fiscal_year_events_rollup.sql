@@ -8,6 +8,7 @@ CREATE TABLE core_fiscal_year_events_rollup (
   chart_id UUID,
   closed_as_of VARCHAR,
   closed_at TIMESTAMPTZ,
+  ledger_tx_id UUID,
   month_closed_as_of VARCHAR,
   month_closed_at TIMESTAMPTZ,
   opened_as_of VARCHAR,
@@ -50,6 +51,7 @@ BEGIN
     new_row.chart_id := (NEW.event ->> 'chart_id')::UUID;
     new_row.closed_as_of := (NEW.event ->> 'closed_as_of');
     new_row.closed_at := (NEW.event ->> 'closed_at')::TIMESTAMPTZ;
+    new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
     new_row.month_closed_as_of := (NEW.event ->> 'month_closed_as_of');
     new_row.month_closed_at := (NEW.event ->> 'month_closed_at')::TIMESTAMPTZ;
     new_row.opened_as_of := (NEW.event ->> 'opened_as_of');
@@ -60,6 +62,7 @@ BEGIN
     new_row.chart_id := current_row.chart_id;
     new_row.closed_as_of := current_row.closed_as_of;
     new_row.closed_at := current_row.closed_at;
+    new_row.ledger_tx_id := current_row.ledger_tx_id;
     new_row.month_closed_as_of := current_row.month_closed_as_of;
     new_row.month_closed_at := current_row.month_closed_at;
     new_row.opened_as_of := current_row.opened_as_of;
@@ -80,6 +83,7 @@ BEGIN
     WHEN 'year_closed' THEN
       new_row.closed_as_of := (NEW.event ->> 'closed_as_of');
       new_row.closed_at := (NEW.event ->> 'closed_at')::TIMESTAMPTZ;
+      new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
   END CASE;
 
   INSERT INTO core_fiscal_year_events_rollup (
@@ -90,6 +94,7 @@ BEGIN
     chart_id,
     closed_as_of,
     closed_at,
+    ledger_tx_id,
     month_closed_as_of,
     month_closed_at,
     opened_as_of,
@@ -104,6 +109,7 @@ BEGIN
     new_row.chart_id,
     new_row.closed_as_of,
     new_row.closed_at,
+    new_row.ledger_tx_id,
     new_row.month_closed_as_of,
     new_row.month_closed_at,
     new_row.opened_as_of,
