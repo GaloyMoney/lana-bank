@@ -18,6 +18,8 @@ pub enum FiscalYearError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("FiscalYearError - ChartOfAccountsError: {0}")]
     ChartOfAccountsError(#[from] crate::chart_of_accounts::error::ChartOfAccountsError),
+    #[error("FiscalYearError - DomainConfigError: {0}")]
+    DomainConfigError(#[from] domain_config::error::DomainConfigError),
     #[error("FiscalYearError - LastMonthNotClosed")]
     LastMonthNotClosed,
     #[error("FiscalYearError - MonthHasNotEnded")]
@@ -45,6 +47,7 @@ impl ErrorSeverity for FiscalYearError {
             Self::CursorDestructureError(_) => Level::ERROR,
             Self::AuthorizationError(e) => e.severity(),
             Self::ChartOfAccountsError(e) => e.severity(),
+            Self::DomainConfigError(e) => e.severity(),
             Self::LastMonthNotClosed => Level::ERROR,
             Self::AllMonthsAlreadyClosed => Level::ERROR,
             Self::AlreadyOpened => Level::ERROR,

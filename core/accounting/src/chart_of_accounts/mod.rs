@@ -301,28 +301,22 @@ where
 
     #[record_error_severity]
     #[instrument(
-        name = "core_accounting.chart_of_accounts.post_closing_transaction",
-        skip(self)
+        name = "core_accounting.chart_of_accounts.post_yearly_closing_transaction",
+        skip(self, op)
     )]
-    pub async fn post_closing_transaction(
+    pub async fn post_yearly_closing_transaction(
         &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        mut op: es_entity::DbOp<'_>,
         chart_id: ChartId,
-        account_codes: ClosingAccountCodes,
+        account_codes: impl Into<ClosingAccountCodes> + std::fmt::Debug,
         tx_details: ClosingTxDetails,
     ) -> Result<(), ChartOfAccountsError> {
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreAccountingObject::chart(chart_id),
-                CoreAccountingAction::CHART_POST_CLOSING_TRANSACTION,
-            )
-            .await?;
+        let account_codes = account_codes.into();
+
         let mut chart = self.find_by_id(chart_id).await?;
         if let Idempotent::Executed(closing_tx_parents_and_details) =
             chart.post_closing_tx_as_of(account_codes, tx_details)?
         {
-            let mut op = self.repo.begin_op().await?;
             self.repo.update_in_op(&mut op, &mut chart).await?;
             self.chart_ledger
                 .post_closing_transaction(&mut op, closing_tx_parents_and_details)
