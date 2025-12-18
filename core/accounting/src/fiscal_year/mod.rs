@@ -8,6 +8,7 @@ use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use domain_config::DomainConfigs;
 use es_entity::{Idempotent, PaginatedQueryArgs};
 use tracing_macros::record_error_severity;
 
@@ -16,6 +17,8 @@ use crate::{
     chart_of_accounts::ChartOfAccounts,
     primitives::{ChartId, CoreAccountingAction, CoreAccountingObject},
 };
+
+use config::FiscalYearConfig;
 
 #[cfg(feature = "json-schema")]
 pub use entity::FiscalYearEvent;
@@ -30,6 +33,7 @@ where
 {
     repo: FiscalYearRepo,
     authz: Perms,
+    domain_configs: DomainConfigs,
     chart_of_accounts: ChartOfAccounts<Perms>,
 }
 
@@ -41,6 +45,7 @@ where
         Self {
             repo: self.repo.clone(),
             authz: self.authz.clone(),
+            domain_configs: self.domain_configs.clone(),
             chart_of_accounts: self.chart_of_accounts.clone(),
         }
     }
@@ -55,11 +60,13 @@ where
     pub fn new(
         pool: &sqlx::PgPool,
         authz: &Perms,
+        domain_configs: &DomainConfigs,
         chart_of_accounts: &ChartOfAccounts<Perms>,
     ) -> Self {
         Self {
             repo: FiscalYearRepo::new(pool),
             authz: authz.clone(),
+            domain_configs: domain_configs.clone(),
             chart_of_accounts: chart_of_accounts.clone(),
         }
     }
@@ -156,11 +163,24 @@ where
         let now = crate::time::now();
 
         match fiscal_year.close(now)? {
-            Idempotent::Executed(_) => {
+            Idempotent::Executed(tx_details) => {
                 let mut op = self.repo.begin_op().await?;
                 self.repo.update_in_op(&mut op, &mut fiscal_year).await?;
-                // TODO: Operate on ledger via `chart_of_accounts`.
-                op.commit().await?;
+
+                let fiscal_year_conf = self
+                    .domain_configs
+                    .get_or_default::<FiscalYearConfig>()
+                    .await?;
+
+                self.chart_of_accounts
+                    .post_closing_transaction(
+                        op,
+                        fiscal_year.chart_id,
+                        &fiscal_year_conf,
+                        tx_details,
+                    )
+                    .await?;
+
                 Ok(fiscal_year)
             }
             Idempotent::AlreadyApplied => Ok(fiscal_year),
