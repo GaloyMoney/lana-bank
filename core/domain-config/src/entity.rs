@@ -115,7 +115,7 @@ impl DomainConfig {
         Idempotent::Executed(())
     }
 
-    fn ensure_simple_type(&self, expected: SimpleType) -> Result<(), DomainConfigError> {
+    pub(super) fn ensure_simple_type(&self, expected: SimpleType) -> Result<(), DomainConfigError> {
         match self.simple_type {
             Some(found) if found == expected => Ok(()),
             Some(found) => Err(DomainConfigError::InvalidSimpleType {

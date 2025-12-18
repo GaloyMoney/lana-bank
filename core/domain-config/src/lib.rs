@@ -130,7 +130,7 @@ impl DomainConfigs {
         spec: SimpleConfig<T>,
         value: T,
     ) -> Result<(), DomainConfigError> {
-        let key: DomainConfigKey = spec.into();
+        let key: DomainConfigKey = DomainConfigKey::from(spec.key);
         if self.repo.maybe_find_by_key(key.clone()).await?.is_some() {
             self.update_simple(spec, value).await
         } else {
@@ -241,7 +241,7 @@ async fn collect_simple_of_type(
     let mut next = Some(es_entity::PaginatedQueryArgs::default());
 
     while let Some(query) = next.take() {
-        let mut ret = repo
+        let ret = repo
             .list_for_simple_type_by_created_at(Some(simple_type), query, Default::default())
             .await?;
         for config in &ret.entities {
