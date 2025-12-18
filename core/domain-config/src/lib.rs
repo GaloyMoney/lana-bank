@@ -183,8 +183,6 @@ impl DomainConfigs {
         &self,
         value: T,
     ) -> Result<(), DomainConfigError> {
-        let key = T::KEY;
-
         let domain_config_id = DomainConfigId::new();
         let new = NewDomainConfig::builder()
             .with_value(domain_config_id, value)?
