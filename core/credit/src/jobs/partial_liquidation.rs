@@ -10,8 +10,8 @@ use tracing::{Span, instrument};
 use futures::StreamExt as _;
 
 use job::*;
-use obix::out::*;
 use obix::EventSequence;
+use obix::out::*;
 
 use crate::{
     CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId, LiquidationId,

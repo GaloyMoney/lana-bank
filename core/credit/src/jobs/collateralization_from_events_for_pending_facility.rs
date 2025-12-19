@@ -8,11 +8,10 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
-use obix::out::{
-    EphemeralOutboxEvent, Outbox, OutboxEvent, OutboxEventMarker,
-    PersistentOutboxEvent,
-};
 use obix::EventSequence;
+use obix::out::{
+    EphemeralOutboxEvent, Outbox, OutboxEvent, OutboxEventMarker, PersistentOutboxEvent,
+};
 
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use core_price::CorePriceEvent;

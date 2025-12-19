@@ -5,8 +5,8 @@ use tracing::{Span, instrument};
 use futures::StreamExt;
 
 use job::*;
-use obix::out::{ Outbox, OutboxEventMarker, PersistentOutboxEvent };
 use obix::EventSequence;
+use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use crate::{event::CoreCreditEvent, history::*, primitives::CreditFacilityId};
 

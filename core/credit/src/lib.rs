@@ -1005,7 +1005,9 @@ where
                     )
                     .await?;
 
-                self.ledger.complete_credit_facility(&mut db, completion).await?;
+                self.ledger
+                    .complete_credit_facility(&mut db, completion)
+                    .await?;
                 facility
             }
         };

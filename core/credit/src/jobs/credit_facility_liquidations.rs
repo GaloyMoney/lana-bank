@@ -8,8 +8,8 @@ use job::*;
 use tokio::select;
 
 use futures::StreamExt as _;
-use obix::out::{ Outbox, OutboxEventMarker, PersistentOutboxEvent };
 use obix::EventSequence;
+use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 use serde::{Deserialize, Serialize};
 use tracing::{Span, instrument};
 

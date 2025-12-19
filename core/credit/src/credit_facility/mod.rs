@@ -247,7 +247,9 @@ where
             credit_facility.activation_data(None)
         };
 
-        self.ledger.handle_activation(&mut db, activation_data).await?;
+        self.ledger
+            .handle_activation(&mut db, activation_data)
+            .await?;
 
         Ok(())
     }

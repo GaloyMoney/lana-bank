@@ -126,7 +126,9 @@ where
                 .await?;
         }
 
-        self.ledger.record_obligation_overdue(&mut db, overdue).await?;
+        self.ledger
+            .record_obligation_overdue(&mut db, overdue)
+            .await?;
 
         Ok(JobCompletion::Complete)
     }

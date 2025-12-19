@@ -1314,8 +1314,7 @@ impl CreditLedger {
         payments: Vec<PaymentAllocation>,
     ) -> Result<(), CreditLedgerError> {
         for payment in payments {
-            self.record_obligation_repayment_in_op(op, payment)
-                .await?;
+            self.record_obligation_repayment_in_op(op, payment).await?;
         }
         Ok(())
     }

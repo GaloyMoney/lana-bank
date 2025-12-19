@@ -312,7 +312,11 @@ mod tests {
             }))
             .expect("Could not build approval process");
         let approver = CommitteeMemberId::new();
-        assert!(process.approve(&HashSet::new(), approver).was_already_applied());
+        assert!(
+            process
+                .approve(&HashSet::new(), approver)
+                .was_already_applied()
+        );
         assert!(process.approvers().is_empty());
     }
 
@@ -366,7 +370,11 @@ mod tests {
             .expect("Could not build approval process");
         let denier = CommitteeMemberId::new();
         let reason = String::new();
-        assert!(process.deny(&HashSet::new(), denier, reason).was_already_applied());
+        assert!(
+            process
+                .deny(&HashSet::new(), denier, reason)
+                .was_already_applied()
+        );
         assert!(process.deniers().is_empty());
     }
 
@@ -381,7 +389,11 @@ mod tests {
         let denier = CommitteeMemberId::new();
         let eligible: HashSet<_> = [denier].iter().copied().collect();
         assert!(process.approve(&eligible, denier).did_execute());
-        assert!(process.deny(&eligible, denier, String::new()).was_already_applied());
+        assert!(
+            process
+                .deny(&eligible, denier, String::new())
+                .was_already_applied()
+        );
     }
 
     #[test]
@@ -392,6 +404,10 @@ mod tests {
         let _ = process.check_concluded(HashSet::new());
         let denier = CommitteeMemberId::new();
         let eligible: HashSet<_> = [denier].iter().copied().collect();
-        assert!(process.deny(&eligible, denier, String::new()).was_already_applied());
+        assert!(
+            process
+                .deny(&eligible, denier, String::new())
+                .was_already_applied()
+        );
     }
 }

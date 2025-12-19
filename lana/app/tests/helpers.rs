@@ -16,7 +16,7 @@ pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
 pub async fn init_access(
     pool: &sqlx::PgPool,
     authz: &Authorization,
-)-> anyhow::Result<(Access, Subject)> {
+) -> anyhow::Result<(Access, Subject)> {
     let superuser_email = "superuser@test.io".to_string();
     let outbox = Outbox::init(pool, obix::MailboxConfig::default()).await?;
 
