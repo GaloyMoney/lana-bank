@@ -147,7 +147,7 @@ jsonwebtoken = { version = "10.2.0", default-features = false, features = ["aws_
 hex = "0.4.3"
 hmac = "0.12.1"
 sha2 = "0.10.8"
-tower-http = { version = "0.6.7", features = ["cors"] }
+tower-http = { version = "0.6.8", features = ["cors"] }
 lettre = { version = "0.11.19", default-features = false, features = ["builder", "tokio1", "tokio1-rustls-tls", "smtp-transport"] }
 sqlx-adapter = { version = "1.8", default-features = false, features = [
   "postgres",
