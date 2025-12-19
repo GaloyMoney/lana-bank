@@ -6,8 +6,6 @@ use tracing_utils::ErrorSeverity;
 pub enum DepositAccountError {
     #[error("DepositAccountError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("DepositAccountError - OutboxError: {0}")]
-    OutboxError(#[from] outbox::error::OutboxError),
     #[error("DepositAccountError - EsEntityError: {0}")]
     EsEntityError(es_entity::EsEntityError),
     #[error("DepositAccountError - CursorDestructureError: {0}")]
@@ -28,7 +26,6 @@ impl ErrorSeverity for DepositAccountError {
     fn severity(&self) -> Level {
         match self {
             Self::Sqlx(_) => Level::ERROR,
-            Self::OutboxError(e) => e.severity(),
             Self::EsEntityError(e) => e.severity(),
             Self::CursorDestructureError(_) => Level::ERROR,
             Self::CannotFreezeInactiveAccount(_) => Level::WARN,

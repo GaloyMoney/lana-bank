@@ -266,7 +266,7 @@ impl CreditFacility {
         balances: CreditFacilityBalanceSummary,
     ) -> Idempotent<()> {
         if !state.is_under_liquidation_threshold() {
-            return Idempotent::Ignored;
+            return Idempotent::AlreadyApplied;
         }
 
         idempotency_guard!(
@@ -276,7 +276,7 @@ impl CreditFacility {
         );
 
         if balances.total_outstanding().is_zero() {
-            return Idempotent::Ignored;
+            return Idempotent::AlreadyApplied;
         }
 
         let amount = balances.total_outstanding();
@@ -306,7 +306,7 @@ impl CreditFacility {
         idempotency_guard!(self.events.iter_all(), CreditFacilityEvent::Matured { .. });
 
         if self.status() == CreditFacilityStatus::Closed {
-            return Idempotent::Ignored;
+            return Idempotent::AlreadyApplied;
         }
 
         self.events.push(CreditFacilityEvent::Matured {});
@@ -438,8 +438,8 @@ impl CreditFacility {
                 accrual.idx,
                 match accrual.record_accrual_cycle(accrual_cycle_data.clone()) {
                     Idempotent::Executed(new_obligation) => new_obligation,
-                    Idempotent::Ignored => {
-                        return Ok(Idempotent::Ignored);
+                    Idempotent::AlreadyApplied => {
+                        return Ok(Idempotent::AlreadyApplied);
                     }
                 },
             )
@@ -544,7 +544,7 @@ impl CreditFacility {
         } else if ratio_changed {
             Idempotent::Executed(None)
         } else {
-            Idempotent::Ignored
+            Idempotent::AlreadyApplied
         }
     }
 
@@ -592,7 +592,7 @@ impl CreditFacility {
                     collateralization_ratio: ratio,
                 });
         } else {
-            return Idempotent::Ignored;
+            return Idempotent::AlreadyApplied;
         }
 
         Idempotent::Executed(())

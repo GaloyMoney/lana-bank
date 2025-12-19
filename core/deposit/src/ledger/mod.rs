@@ -12,7 +12,7 @@ mod templates;
 mod velocity;
 
 use cala_ledger::{
-    CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation, TransactionId,
+    CalaLedger, Currency, DebitOrCredit, JournalId, TransactionId,
     account::*,
     account_set::{AccountSet, AccountSetMemberId, AccountSetUpdate, NewAccountSet},
     tx_template::Params,
@@ -438,11 +438,9 @@ impl DepositLedger {
                     .add_member_in_op(&mut op, account_set_id, account.id)
                     .await?;
 
-                op.commit().await?;
                 id
             }
             Err(cala_ledger::account::error::AccountError::ExternalIdAlreadyExists) => {
-                op.commit().await?;
                 cala.accounts().find_by_external_id(reference).await?.id
             }
             Err(e) => return Err(e.into()),
@@ -497,7 +495,7 @@ impl DepositLedger {
     )]
     pub async fn record_deposit(
         &self,
-        op: es_entity::DbOp<'_>,
+        mut op: es_entity::DbOp<'_>,
         entity_id: DepositId,
         amount: UsdCents,
         credit_account_id: impl Into<AccountId>,
@@ -509,9 +507,7 @@ impl DepositLedger {
             "credit_account_id",
             tracing::field::debug(&credit_account_id),
         );
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        // Directly use the DbOp without wrapping
 
         let params = templates::RecordDepositParams {
             entity_id: entity_id.into(),
@@ -524,8 +520,6 @@ impl DepositLedger {
         self.cala
             .post_transaction_in_op(&mut op, tx_id, templates::RECORD_DEPOSIT_CODE, params)
             .await?;
-
-        op.commit().await?;
         Ok(())
     }
 
@@ -537,7 +531,7 @@ impl DepositLedger {
     )]
     pub async fn initiate_withdrawal(
         &self,
-        op: es_entity::DbOp<'_>,
+        mut op: es_entity::DbOp<'_>,
         entity_id: WithdrawalId,
         amount: UsdCents,
         credit_account_id: impl Into<AccountId>,
@@ -549,9 +543,7 @@ impl DepositLedger {
             "credit_account_id",
             tracing::field::debug(&credit_account_id),
         );
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        // Directly use the DbOp without wrapping
 
         let params = templates::InitiateWithdrawParams {
             entity_id: entity_id.into(),
@@ -566,7 +558,6 @@ impl DepositLedger {
             .post_transaction_in_op(&mut op, tx_id, templates::INITIATE_WITHDRAW_CODE, params)
             .await?;
 
-        op.commit().await?;
         Ok(())
     }
 
@@ -578,7 +569,7 @@ impl DepositLedger {
     )]
     pub async fn deny_withdrawal(
         &self,
-        op: es_entity::DbOp<'_>,
+        mut op: es_entity::DbOp<'_>,
         entity_id: WithdrawalId,
         tx_id: impl Into<TransactionId>,
         amount: UsdCents,
@@ -592,9 +583,7 @@ impl DepositLedger {
             "credit_account_id",
             tracing::field::debug(&credit_account_id),
         );
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        // Directly use the DbOp without wrapping
 
         let params = templates::DenyWithdrawParams {
             entity_id: entity_id.into(),
@@ -609,7 +598,6 @@ impl DepositLedger {
             .post_transaction_in_op(&mut op, tx_id, templates::DENY_WITHDRAW_CODE, params)
             .await?;
 
-        op.commit().await?;
         Ok(())
     }
 
@@ -617,12 +605,10 @@ impl DepositLedger {
     #[instrument(name = "deposit_ledger.revert_withdrawal", skip(self, op))]
     pub async fn revert_withdrawal(
         &self,
-        op: es_entity::DbOp<'_>,
+        mut op: es_entity::DbOp<'_>,
         reversal_data: WithdrawalReversalData,
     ) -> Result<(), DepositLedgerError> {
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        // Directly use the DbOp without wrapping
 
         let params = templates::RevertWithdrawParams {
             entity_id: reversal_data.entity_id.into(),
@@ -636,14 +622,12 @@ impl DepositLedger {
         };
 
         self.cala
-            .post_transaction_in_op(
-                &mut op,
+            .post_transaction_in_op(&mut op,
                 reversal_data.ledger_tx_id,
                 templates::REVERT_WITHDRAW_CODE,
                 params,
             )
             .await?;
-        op.commit().await?;
 
         Ok(())
     }
@@ -652,12 +636,10 @@ impl DepositLedger {
     #[instrument(name = "deposit_ledger.revert_deposit", skip_all)]
     pub async fn revert_deposit(
         &self,
-        op: es_entity::DbOp<'_>,
+        mut op: es_entity::DbOp<'_>,
         reversal_data: DepositReversalData,
     ) -> Result<(), DepositLedgerError> {
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        // Directly use the DbOp without wrapping
 
         let params = templates::RevertDepositParams {
             entity_id: reversal_data.entity_id.into(),
@@ -671,14 +653,12 @@ impl DepositLedger {
         };
 
         self.cala
-            .post_transaction_in_op(
-                &mut op,
+            .post_transaction_in_op(&mut op,
                 reversal_data.ledger_tx_id,
                 templates::REVERT_DEPOSIT_CODE,
                 params,
             )
             .await?;
-        op.commit().await?;
 
         Ok(())
     }
@@ -695,14 +675,12 @@ impl DepositLedger {
     )]
     pub async fn freeze_account_in_op(
         &self,
-        op: es_entity::DbOp<'_>,
+        mut op: es_entity::DbOp<'_>,
         account: &DepositAccount,
     ) -> Result<(), DepositLedgerError> {
         let balance = self.balance(account.id).await?;
 
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        // Directly use the DbOp without wrapping
 
         if !balance.settled.is_zero() {
             let params = templates::FreezeAccountParams {
@@ -714,8 +692,7 @@ impl DepositLedger {
             };
 
             self.cala
-                .post_transaction_in_op(
-                    &mut op,
+                .post_transaction_in_op(&mut op,
                     TransactionId::new(),
                     templates::FREEZE_ACCOUNT_CODE,
                     params,
@@ -728,7 +705,6 @@ impl DepositLedger {
             .lock_in_op(&mut op, account.account_ids.deposit_account_id)
             .await?;
 
-        op.commit().await?;
 
         Ok(())
     }
@@ -745,15 +721,13 @@ impl DepositLedger {
   )]
     pub async fn unfreeze_account_in_op(
         &self,
-        op: es_entity::DbOp<'_>,
+        mut op: es_entity::DbOp<'_>,
         account: &DepositAccount,
     ) -> Result<(), DepositLedgerError> {
         let frozen_balance = self
             .balance(account.account_ids.frozen_deposit_account_id)
             .await?;
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        // Directly use the DbOp without wrapping
 
         self.cala
             .accounts()
@@ -770,8 +744,7 @@ impl DepositLedger {
             };
 
             self.cala
-                .post_transaction_in_op(
-                    &mut op,
+                .post_transaction_in_op(&mut op,
                     TransactionId::new(),
                     templates::UNFREEZE_ACCOUNT_CODE,
                     params,
@@ -779,7 +752,6 @@ impl DepositLedger {
                 .await?;
         }
 
-        op.commit().await?;
 
         Ok(())
     }
@@ -788,16 +760,13 @@ impl DepositLedger {
     #[instrument(name = "deposit_ledger.lock_account", skip(self, op))]
     pub async fn lock_account(
         &self,
-        op: es_entity::DbOp<'_>,
+        mut op: es_entity::DbOp<'_>,
         account_id: AccountId,
     ) -> Result<(), DepositLedgerError> {
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        // Directly use the DbOp without wrapping
 
         self.cala.accounts().lock_in_op(&mut op, account_id).await?;
 
-        op.commit().await?;
 
         Ok(())
     }
@@ -810,7 +779,7 @@ impl DepositLedger {
     )]
     pub async fn confirm_withdrawal(
         &self,
-        op: es_entity::DbOp<'_>,
+        mut op: es_entity::DbOp<'_>,
         entity_id: WithdrawalId,
         tx_id: impl Into<TransactionId>,
         correlation_id: String,
@@ -826,9 +795,7 @@ impl DepositLedger {
             "credit_account_id",
             tracing::field::debug(&credit_account_id),
         );
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        // Directly use the DbOp without wrapping
 
         let params = templates::ConfirmWithdrawParams {
             entity_id: entity_id.into(),
@@ -844,7 +811,6 @@ impl DepositLedger {
         self.cala
             .post_transaction_in_op(&mut op, tx_id, templates::CONFIRM_WITHDRAW_CODE, params)
             .await?;
-        op.commit().await?;
         Ok(())
     }
 
@@ -856,7 +822,7 @@ impl DepositLedger {
     )]
     pub async fn cancel_withdrawal(
         &self,
-        op: es_entity::DbOp<'_>,
+        mut op: es_entity::DbOp<'_>,
         entity_id: WithdrawalId,
         tx_id: impl Into<TransactionId>,
         amount: UsdCents,
@@ -870,9 +836,7 @@ impl DepositLedger {
             "credit_account_id",
             tracing::field::debug(&credit_account_id),
         );
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        // Directly use the DbOp without wrapping
 
         let params = templates::CancelWithdrawParams {
             entity_id: entity_id.into(),
@@ -886,7 +850,6 @@ impl DepositLedger {
         self.cala
             .post_transaction_in_op(&mut op, tx_id, templates::CANCEL_WITHDRAW_CODE, params)
             .await?;
-        op.commit().await?;
         Ok(())
     }
 
@@ -919,16 +882,14 @@ impl DepositLedger {
     #[instrument(name = "deposit_ledger.create_deposit_accounts", skip_all)]
     pub async fn create_deposit_accounts(
         &self,
-        op: es_entity::DbOp<'_>,
+        mut op: es_entity::DbOp<'_>,
         account: &DepositAccount,
         deposit_account_type: impl Into<DepositAccountType>,
     ) -> Result<(), DepositLedgerError> {
         let holder_id = account.account_holder_id;
         let deposit_account_type = deposit_account_type.into();
 
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        // Directly use the DbOp without wrapping
 
         let entity_ref = EntityRef::new(DEPOSIT_ACCOUNT_ENTITY_TYPE, account.id);
         let deposit_account_name = format!("Deposit Account {holder_id}");
@@ -958,7 +919,6 @@ impl DepositLedger {
         )
         .await?;
 
-        op.commit().await?;
 
         Ok(())
     }
@@ -1009,7 +969,7 @@ impl DepositLedger {
     )]
     async fn create_account_in_op(
         &self,
-        op: &mut LedgerOperation<'_>,
+        op: &mut es_entity::DbOp<'_>,
         id: impl Into<CalaAccountId>,
         parent_account_set: InternalAccountSetDetails,
         reference: &str,
@@ -1073,7 +1033,7 @@ impl DepositLedger {
     )]
     pub async fn add_deposit_control_to_account(
         &self,
-        op: &mut cala_ledger::LedgerOperation<'_>,
+        op: &mut es_entity::DbOp<'_>,
         account_id: impl Into<AccountId>,
     ) -> Result<(), DepositLedgerError> {
         let account_id = account_id.into();
@@ -1117,7 +1077,7 @@ impl DepositLedger {
     #[instrument(name = "deposit_ledger.attach_charts_account_set", skip_all)]
     async fn attach_charts_account_set<F>(
         &self,
-        op: &mut LedgerOperation<'_>,
+        op: &mut es_entity::DbOpWithTime<'_>,
         account_sets: &mut HashMap<CalaAccountSetId, AccountSet>,
         internal_account_set_id: CalaAccountSetId,
         parent_account_set_id: CalaAccountSetId,
@@ -1330,7 +1290,6 @@ impl DepositLedger {
         )
         .await?;
 
-        op.commit().await?;
 
         Ok(())
     }

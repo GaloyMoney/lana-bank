@@ -125,7 +125,7 @@ impl Withdrawal {
 
     pub fn revert(&mut self) -> Result<Idempotent<WithdrawalReversalData>, WithdrawalError> {
         if self.is_reverted() || self.is_cancelled() {
-            return Ok(Idempotent::Ignored);
+            return Ok(Idempotent::AlreadyApplied);
         }
 
         if !self.is_confirmed() {
@@ -439,7 +439,7 @@ mod test {
         withdrawal.cancel().unwrap();
 
         let result = withdrawal.revert().unwrap();
-        assert!(result.was_ignored());
+        assert!(result.was_already_applied());
     }
 
     #[test]
@@ -448,7 +448,7 @@ mod test {
 
         let _ = withdrawal.revert().unwrap();
         let result = withdrawal.revert().unwrap();
-        assert!(result.was_ignored());
+        assert!(result.was_already_applied());
     }
 
     #[test]

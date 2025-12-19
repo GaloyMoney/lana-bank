@@ -140,7 +140,7 @@ where
         &self,
         start_after: Option<EventSequence>,
     ) -> Result<BoxStream<'_, Arc<PersistentOutboxEvent<P>>>, OutboxError> {
-        let listener = self.listen_all(start_after).await?;
+        let listener = self.listen_all(start_after);
         Ok(Box::pin(listener.filter_map(|event| async move {
             match event {
                 OutboxEvent::Persistent(persistent_event) => Some(persistent_event),
@@ -153,7 +153,7 @@ where
     pub async fn listen_ephemeral(
         &self,
     ) -> Result<BoxStream<'_, Arc<EphemeralOutboxEvent<P>>>, OutboxError> {
-        let listener = self.listen_all(None).await?;
+        let listener = self.listen_all(None);
         Ok(Box::pin(listener.filter_map(|event| async move {
             match event {
                 OutboxEvent::Ephemeral(event) => Some(event),

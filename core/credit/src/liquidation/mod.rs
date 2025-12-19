@@ -12,7 +12,7 @@ use tracing_macros::record_error_severity;
 use cala_ledger::TransactionId as CalaTransactionId;
 use core_money::{Satoshis, UsdCents};
 use es_entity::DbOp;
-use outbox::OutboxEventMarker;
+use obix::out::OutboxEventMarker;
 
 use crate::{
     CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId, LiquidationId, PaymentId,

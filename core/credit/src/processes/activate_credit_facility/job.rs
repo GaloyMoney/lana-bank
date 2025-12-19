@@ -9,7 +9,7 @@ use authz::PermissionCheck;
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
-use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
+use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use crate::{
     CoreCreditAction, CoreCreditEvent, CoreCreditObject,
@@ -109,7 +109,7 @@ where
 
 #[derive(Default, Clone, Copy, serde::Deserialize, serde::Serialize)]
 struct CreditFacilityActivationJobData {
-    sequence: outbox::EventSequence,
+    sequence: obix::EventSequence,
 }
 
 pub struct CreditFacilityActivationJobRunner<Perms, E>
@@ -183,7 +183,7 @@ where
         let mut state = current_job
             .execution_state::<CreditFacilityActivationJobData>()?
             .unwrap_or_default();
-        let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
+        let mut stream = self.outbox.listen_persisted(Some(state.sequence));
 
         loop {
             select! {

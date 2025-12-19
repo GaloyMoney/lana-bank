@@ -10,7 +10,8 @@ use tracing::{Span, instrument};
 use futures::StreamExt as _;
 
 use job::*;
-use outbox::*;
+use obix::out::*;
+use obix::EventSequence;
 
 use crate::{
     CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId, LiquidationId,
@@ -123,7 +124,7 @@ where
             .execution_state::<PartialLiquidationJobData>()?
             .unwrap_or_default();
 
-        let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
+        let mut stream = self.outbox.listen_persisted(Some(state.sequence));
 
         loop {
             select! {

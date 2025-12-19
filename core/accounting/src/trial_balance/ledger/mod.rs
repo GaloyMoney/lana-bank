@@ -4,7 +4,7 @@ use chrono::NaiveDate;
 use tracing::instrument;
 
 use cala_ledger::{
-    AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation,
+    AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId,
     account_set::{AccountSet, NewAccountSet},
 };
 use tracing_macros::record_error_severity;
@@ -40,7 +40,7 @@ impl TrialBalanceLedger {
 
     async fn create_unique_account_set(
         &self,
-        op: &mut LedgerOperation<'_>,
+        op: &mut es_entity::DbOp<'_>,
         reference: &str,
         normal_balance_type: DebitOrCredit,
         parents: Vec<AccountSetId>,
@@ -119,41 +119,33 @@ impl TrialBalanceLedger {
 
     pub async fn add_member(
         &self,
-        op: es_entity::DbOp<'_>,
+        mut op: es_entity::DbOp<'_>,
         node_account_set_id: impl Into<AccountSetId>,
         member: AccountSetId,
     ) -> Result<(), TrialBalanceLedgerError> {
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        // Directly use the DbOp without wrapping
         self.add_member_in_op(&mut op, node_account_set_id, member)
             .await?;
-
-        op.commit().await?;
         Ok(())
     }
 
     pub async fn add_members(
         &self,
-        op: es_entity::DbOp<'_>,
+        mut op: es_entity::DbOp<'_>,
         node_account_set_id: impl Into<AccountSetId> + Copy,
         members: impl Iterator<Item = &AccountSetId>,
     ) -> Result<(), TrialBalanceLedgerError> {
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        // Directly use the DbOp without wrapping
         for member in members {
             self.add_member_in_op(&mut op, node_account_set_id, *member)
                 .await?;
         }
-
-        op.commit().await?;
         Ok(())
     }
 
     async fn add_member_in_op(
         &self,
-        op: &mut LedgerOperation<'_>,
+        op: &mut es_entity::DbOp<'_>,
         node_account_set_id: impl Into<AccountSetId>,
         member: AccountSetId,
     ) -> Result<(), TrialBalanceLedgerError> {
@@ -169,18 +161,14 @@ impl TrialBalanceLedger {
 
     pub async fn create(
         &self,
-        op: es_entity::DbOp<'_>,
+        mut op: es_entity::DbOp<'_>,
         reference: &str,
     ) -> Result<AccountSetId, TrialBalanceLedgerError> {
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        // Directly use the DbOp without wrapping
 
         let statement_id = self
             .create_unique_account_set(&mut op, reference, DebitOrCredit::Debit, vec![])
             .await?;
-
-        op.commit().await?;
         Ok(statement_id)
     }
 

@@ -6,8 +6,6 @@ use tracing_utils::ErrorSeverity;
 pub enum DisbursalError {
     #[error("DisbursalError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("DisbursalError - OutboxError: {0}")]
-    OutboxError(#[from] outbox::error::OutboxError),
     #[error("DisbursalError - EsEntityError: {0}")]
     EsEntityError(es_entity::EsEntityError),
     #[error("DisbursalError - CursorDestructureError: {0}")]
@@ -31,7 +29,6 @@ impl ErrorSeverity for DisbursalError {
             Self::EsEntityError(e) => e.severity(),
             Self::CursorDestructureError(_) => Level::ERROR,
             Self::JobError(_) => Level::ERROR,
-            Self::OutboxError(e) => e.severity(),
             Self::AuthorizationError(e) => e.severity(),
             Self::GovernanceError(e) => e.severity(),
             Self::ObligationError(e) => e.severity(),

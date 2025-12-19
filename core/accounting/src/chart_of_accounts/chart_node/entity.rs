@@ -211,7 +211,7 @@ mod tests {
         assert!(node.manual_transaction_account_id.is_some());
 
         let result = node.assign_manual_transaction_account();
-        matches!(result, Ok(Idempotent::Ignored));
+        matches!(result, Ok(Idempotent::AlreadyApplied));
     }
 
     #[test]
@@ -231,6 +231,6 @@ mod tests {
         let _ = node.add_child_node(child_node_id);
 
         let result = node.add_child_node(child_node_id);
-        matches!(result, Idempotent::Ignored);
+        matches!(result, Idempotent::AlreadyApplied);
     }
 }

@@ -161,7 +161,7 @@ where
                 op.commit().await?;
                 Ok(fiscal_year)
             }
-            Idempotent::Ignored => Ok(fiscal_year),
+            Idempotent::AlreadyApplied => Ok(fiscal_year),
         }
     }
 

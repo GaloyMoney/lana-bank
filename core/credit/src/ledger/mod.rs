@@ -14,7 +14,7 @@ mod templates;
 mod velocity;
 
 use cala_ledger::{
-    CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation,
+    CalaLedger, Currency, DebitOrCredit, JournalId,
     account::NewAccount,
     account_set::{AccountSet, AccountSetMemberId, AccountSetUpdate, NewAccountSet},
     velocity::{NewVelocityControl, VelocityControlId},
@@ -937,12 +937,9 @@ impl CreditLedger {
                 cala.account_sets()
                     .add_member_in_op(&mut op, account_set_id, account.id)
                     .await?;
-
-                op.commit().await?;
                 id
             }
             Err(cala_ledger::account::error::AccountError::ExternalIdAlreadyExists) => {
-                op.commit().await?;
                 cala.accounts().find_by_external_id(reference).await?.id
             }
             Err(e) => return Err(e.into()),
@@ -1167,7 +1164,7 @@ impl CreditLedger {
 
     pub async fn update_pending_credit_facility_collateral(
         &self,
-        op: es_entity::DbOp<'_>,
+        mut op: es_entity::DbOp<'_>,
         CollateralUpdate {
             tx_id,
             abs_diff,
@@ -1176,14 +1173,11 @@ impl CreditLedger {
         }: CollateralUpdate,
         credit_facility_proposal_account_ids: PendingCreditFacilityAccountIds,
     ) -> Result<(), CreditLedgerError> {
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        // Directly use the DbOp without wrapping
         match action {
             CollateralAction::Add => {
                 self.cala
-                    .post_transaction_in_op(
-                        &mut op,
+                    .post_transaction_in_op(&mut op,
                         tx_id,
                         templates::ADD_COLLATERAL_CODE,
                         templates::AddCollateralParams {
@@ -1202,8 +1196,7 @@ impl CreditLedger {
             }
             CollateralAction::Remove => {
                 self.cala
-                    .post_transaction_in_op(
-                        &mut op,
+                    .post_transaction_in_op(&mut op,
                         tx_id,
                         templates::REMOVE_COLLATERAL_CODE,
                         templates::RemoveCollateralParams {
@@ -1221,13 +1214,12 @@ impl CreditLedger {
                     .await
             }
         }?;
-        op.commit().await?;
         Ok(())
     }
 
     pub async fn update_credit_facility_collateral(
         &self,
-        op: es_entity::DbOp<'_>,
+        mut op: es_entity::DbOp<'_>,
         CollateralUpdate {
             tx_id,
             abs_diff,
@@ -1236,14 +1228,11 @@ impl CreditLedger {
         }: CollateralUpdate,
         collateral_account_id: CalaAccountId,
     ) -> Result<(), CreditLedgerError> {
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        // Directly use the DbOp without wrapping
         match action {
             CollateralAction::Add => {
                 self.cala
-                    .post_transaction_in_op(
-                        &mut op,
+                    .post_transaction_in_op(&mut op,
                         tx_id,
                         templates::ADD_COLLATERAL_CODE,
                         templates::AddCollateralParams {
@@ -1261,8 +1250,7 @@ impl CreditLedger {
             }
             CollateralAction::Remove => {
                 self.cala
-                    .post_transaction_in_op(
-                        &mut op,
+                    .post_transaction_in_op(&mut op,
                         tx_id,
                         templates::REMOVE_COLLATERAL_CODE,
                         templates::RemoveCollateralParams {
@@ -1279,13 +1267,12 @@ impl CreditLedger {
                     .await
             }
         }?;
-        op.commit().await?;
         Ok(())
     }
 
     async fn record_obligation_repayment_in_op(
         &self,
-        op: &mut LedgerOperation<'_>,
+        op: &mut es_entity::DbOp<'_>,
         allocation @ PaymentAllocation {
             ledger_tx_id,
             amount,
@@ -1318,25 +1305,21 @@ impl CreditLedger {
 
     pub async fn record_payment_allocations(
         &self,
-        op: es_entity::DbOp<'_>,
+        mut op: es_entity::DbOp<'_>,
         payments: Vec<PaymentAllocation>,
     ) -> Result<(), CreditLedgerError> {
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        // Directly use the DbOp without wrapping
 
         for payment in payments {
             self.record_obligation_repayment_in_op(&mut op, payment)
                 .await?;
         }
-
-        op.commit().await?;
         Ok(())
     }
 
     pub async fn record_obligation_due(
         &self,
-        op: es_entity::DbOp<'_>,
+        mut op: es_entity::DbOp<'_>,
         ObligationDueReallocationData {
             tx_id,
             amount: outstanding_amount,
@@ -1346,12 +1329,9 @@ impl CreditLedger {
             ..
         }: ObligationDueReallocationData,
     ) -> Result<(), CreditLedgerError> {
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        // Directly use the DbOp without wrapping
         self.cala
-            .post_transaction_in_op(
-                &mut op,
+            .post_transaction_in_op(&mut op,
                 tx_id,
                 templates::RECORD_OBLIGATION_DUE_BALANCE_CODE,
                 templates::RecordObligationDueBalanceParams {
@@ -1363,13 +1343,12 @@ impl CreditLedger {
                 },
             )
             .await?;
-        op.commit().await?;
         Ok(())
     }
 
     pub async fn record_obligation_overdue(
         &self,
-        op: es_entity::DbOp<'_>,
+        mut op: es_entity::DbOp<'_>,
         ObligationOverdueReallocationData {
             tx_id,
             amount: outstanding_amount,
@@ -1379,12 +1358,9 @@ impl CreditLedger {
             ..
         }: ObligationOverdueReallocationData,
     ) -> Result<(), CreditLedgerError> {
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        // Directly use the DbOp without wrapping
         self.cala
-            .post_transaction_in_op(
-                &mut op,
+            .post_transaction_in_op(&mut op,
                 tx_id,
                 templates::RECORD_OBLIGATION_OVERDUE_BALANCE_CODE,
                 templates::RecordObligationOverdueBalanceParams {
@@ -1396,13 +1372,12 @@ impl CreditLedger {
                 },
             )
             .await?;
-        op.commit().await?;
         Ok(())
     }
 
     pub async fn record_obligation_defaulted(
         &self,
-        op: es_entity::DbOp<'_>,
+        mut op: es_entity::DbOp<'_>,
         ObligationDefaultedReallocationData {
             tx_id,
             amount: outstanding_amount,
@@ -1412,12 +1387,9 @@ impl CreditLedger {
             ..
         }: ObligationDefaultedReallocationData,
     ) -> Result<(), CreditLedgerError> {
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        // Directly use the DbOp without wrapping
         self.cala
-            .post_transaction_in_op(
-                &mut op,
+            .post_transaction_in_op(&mut op,
                 tx_id,
                 templates::RECORD_OBLIGATION_DEFAULTED_BALANCE_CODE,
                 templates::RecordObligationDefaultedBalanceParams {
@@ -1429,25 +1401,21 @@ impl CreditLedger {
                 },
             )
             .await?;
-        op.commit().await?;
         Ok(())
     }
 
     pub async fn complete_credit_facility(
         &self,
-        op: es_entity::DbOp<'_>,
+        mut op: es_entity::DbOp<'_>,
         CreditFacilityCompletion {
             tx_id,
             collateral,
             credit_facility_account_ids,
         }: CreditFacilityCompletion,
     ) -> Result<(), CreditLedgerError> {
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        // Directly use the DbOp without wrapping
         self.cala
-            .post_transaction_in_op(
-                &mut op,
+            .post_transaction_in_op(&mut op,
                 tx_id,
                 templates::REMOVE_COLLATERAL_CODE,
                 templates::RemoveCollateralParams {
@@ -1460,13 +1428,12 @@ impl CreditLedger {
                 },
             )
             .await?;
-        op.commit().await?;
         Ok(())
     }
 
     async fn create_credit_facility_proposal(
         &self,
-        mut op: cala_ledger::LedgerOperation<'_>,
+        mut op: es_entity::DbOpWithTime<'_>,
         PendingCreditFacilityCreation {
             tx_id,
             tx_ref,
@@ -1475,8 +1442,7 @@ impl CreditLedger {
         }: PendingCreditFacilityCreation,
     ) -> Result<(), CreditLedgerError> {
         self.cala
-            .post_transaction_in_op(
-                &mut op,
+            .post_transaction_in_op(&mut op,
                 tx_id,
                 templates::CREATE_CREDIT_FACILITY_PROPOSAL_CODE,
                 templates::CreateCreditFacilityProposalParams {
@@ -1490,13 +1456,12 @@ impl CreditLedger {
                 },
             )
             .await?;
-        op.commit().await?;
         Ok(())
     }
 
     pub async fn handle_activation(
         &self,
-        op: es_entity::DbOpWithTime<'_>,
+        op: &mut es_entity::DbOpWithTime<'_>,
         CreditFacilityActivation {
             credit_facility_id,
             tx_id,
@@ -1511,10 +1476,8 @@ impl CreditLedger {
             ..
         }: CreditFacilityActivation,
     ) -> Result<(), CreditLedgerError> {
-        let mut op = self.cala.ledger_operation_from_db_op(op);
-
         self.create_accounts_for_credit_facility(
-            &mut op,
+            op,
             credit_facility_id,
             account_ids,
             customer_type,
@@ -1522,26 +1485,24 @@ impl CreditLedger {
         )
         .await?;
 
-        self.activate_credit_facility(&mut op, tx_id, account_ids, facility_amount, tx_ref)
+        self.activate_credit_facility(op, tx_id, account_ids, facility_amount, tx_ref)
             .await?;
 
         if let Some(initial_disbursal) = initial_disbursal {
-            self.initial_disbursal(&mut op, initial_disbursal, account_ids, debit_account_id)
+            self.initial_disbursal(op, initial_disbursal, account_ids, debit_account_id)
                 .await?;
         }
 
         if let Some(structuring_fee) = structuring_fee {
-            self.add_structuring_fee(&mut op, structuring_fee, account_ids, debit_account_id)
+            self.add_structuring_fee(op, structuring_fee, account_ids, debit_account_id)
                 .await?;
         }
-
-        op.commit().await?;
         Ok(())
     }
 
     async fn initial_disbursal(
         &self,
-        op: &mut cala_ledger::LedgerOperation<'_>,
+        op: &mut es_entity::DbOpWithTime<'_>,
         InitialDisbursalOnActivation {
             id: disbursal_id,
             amount,
@@ -1573,7 +1534,7 @@ impl CreditLedger {
 
     async fn activate_credit_facility(
         &self,
-        op: &mut cala_ledger::LedgerOperation<'_>,
+        op: &mut es_entity::DbOpWithTime<'_>,
         tx_id: LedgerTxId,
         account_ids: CreditFacilityLedgerAccountIds,
         facility_amount: UsdCents,
@@ -1599,7 +1560,7 @@ impl CreditLedger {
 
     async fn add_structuring_fee(
         &self,
-        op: &mut cala_ledger::LedgerOperation<'_>,
+        op: &mut es_entity::DbOpWithTime<'_>,
         StructuringFeeOnActivation { tx_id, amount }: StructuringFeeOnActivation,
         account_ids: CreditFacilityLedgerAccountIds,
         debit_account_id: CalaAccountId,
@@ -1624,7 +1585,7 @@ impl CreditLedger {
 
     pub async fn record_interest_accrual(
         &self,
-        op: es_entity::DbOp<'_>,
+        mut op: es_entity::DbOp<'_>,
         CreditFacilityInterestAccrual {
             tx_id,
             tx_ref,
@@ -1633,12 +1594,9 @@ impl CreditLedger {
             credit_facility_account_ids,
         }: CreditFacilityInterestAccrual,
     ) -> Result<(), CreditLedgerError> {
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        // Directly use the DbOp without wrapping
         self.cala
-            .post_transaction_in_op(
-                &mut op,
+            .post_transaction_in_op(&mut op,
                 tx_id,
                 templates::CREDIT_FACILITY_ACCRUE_INTEREST_CODE,
                 templates::CreditFacilityAccrueInterestParams {
@@ -1654,13 +1612,12 @@ impl CreditLedger {
                 },
             )
             .await?;
-        op.commit().await?;
         Ok(())
     }
 
     pub async fn record_interest_accrual_cycle(
         &self,
-        op: es_entity::DbOp<'_>,
+        mut op: es_entity::DbOp<'_>,
         CreditFacilityInterestAccrualCycle {
             tx_id,
             tx_ref,
@@ -1669,12 +1626,9 @@ impl CreditLedger {
             credit_facility_account_ids,
         }: CreditFacilityInterestAccrualCycle,
     ) -> Result<(), CreditLedgerError> {
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        // Directly use the DbOp without wrapping
         self.cala
-            .post_transaction_in_op(
-                &mut op,
+            .post_transaction_in_op(&mut op,
                 tx_id,
                 templates::CREDIT_FACILITY_POST_ACCRUED_INTEREST_CODE,
                 templates::CreditFacilityPostAccruedInterestParams {
@@ -1690,24 +1644,20 @@ impl CreditLedger {
                 },
             )
             .await?;
-        op.commit().await?;
         Ok(())
     }
 
     pub async fn initiate_disbursal(
         &self,
-        op: es_entity::DbOp<'_>,
+        mut op: es_entity::DbOp<'_>,
         entity_id: DisbursalId,
         tx_id: LedgerTxId,
         amount: UsdCents,
         facility_account_id: CalaAccountId,
     ) -> Result<(), CreditLedgerError> {
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        // Directly use the DbOp without wrapping
         self.cala
-            .post_transaction_in_op(
-                &mut op,
+            .post_transaction_in_op(&mut op,
                 tx_id,
                 templates::INITIATE_DISBURSAL_CODE,
                 templates::InitiateDisbursalParams {
@@ -1719,22 +1669,19 @@ impl CreditLedger {
                 },
             )
             .await?;
-        op.commit().await?;
         Ok(())
     }
 
     pub async fn cancel_disbursal(
         &self,
         entity_id: DisbursalId,
-        op: es_entity::DbOpWithTime<'_>,
+        op: &mut es_entity::DbOpWithTime<'_>,
         tx_id: LedgerTxId,
         amount: UsdCents,
         facility_account_id: CalaAccountId,
     ) -> Result<(), CreditLedgerError> {
-        let mut op = self.cala.ledger_operation_from_db_op(op);
         self.cala
-            .post_transaction_in_op(
-                &mut op,
+            .post_transaction_in_op(op,
                 tx_id,
                 templates::CANCEL_DISBURSAL_CODE,
                 templates::CancelDisbursalParams {
@@ -1746,14 +1693,13 @@ impl CreditLedger {
                 },
             )
             .await?;
-        op.commit().await?;
         Ok(())
     }
 
     pub async fn settle_disbursal(
         &self,
         entity_id: DisbursalId,
-        op: es_entity::DbOpWithTime<'_>,
+        op: &mut es_entity::DbOpWithTime<'_>,
         obligation: Obligation,
         facility_account_id: CalaAccountId,
     ) -> Result<(), CreditLedgerError> {
@@ -1767,10 +1713,8 @@ impl CreditLedger {
             ..
         } = obligation;
 
-        let mut op = self.cala.ledger_operation_from_db_op(op);
         self.cala
-            .post_transaction_in_op(
-                &mut op,
+            .post_transaction_in_op(op,
                 tx_id,
                 templates::CONFIRM_DISBURSAL_CODE,
                 templates::ConfirmDisbursalParams {
@@ -1785,7 +1729,6 @@ impl CreditLedger {
                 },
             )
             .await?;
-        op.commit().await?;
         Ok(())
     }
 
@@ -1810,7 +1753,7 @@ impl CreditLedger {
 
     async fn add_credit_facility_control_to_account(
         &self,
-        op: &mut cala_ledger::LedgerOperation<'_>,
+        op: &mut es_entity::DbOpWithTime<'_>,
         account_id: impl Into<CalaAccountId>,
     ) -> Result<(), CreditLedgerError> {
         self.cala
@@ -1827,7 +1770,7 @@ impl CreditLedger {
 
     async fn create_account_in_op(
         &self,
-        op: &mut LedgerOperation<'_>,
+        op: &mut es_entity::DbOpWithTime<'_>,
         id: impl Into<CalaAccountId>,
         parent_account_set: InternalAccountSetDetails,
         reference: &str,
@@ -1923,12 +1866,10 @@ impl CreditLedger {
 
     pub(super) async fn handle_pending_facility_creation(
         &self,
-        op: es_entity::DbOp<'_>,
+        mut op: es_entity::DbOp<'_>,
         pending_credit_facility: &crate::PendingCreditFacility,
     ) -> Result<(), CreditLedgerError> {
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        let mut op = op.with_db_time().await?;
 
         self.create_accounts_for_credit_facility_proposal(
             &mut op,
@@ -1952,7 +1893,7 @@ impl CreditLedger {
 
     async fn create_accounts_for_credit_facility_proposal(
         &self,
-        op: &mut cala_ledger::LedgerOperation<'_>,
+        op: &mut es_entity::DbOpWithTime<'_>,
         credit_facility_id: PendingCreditFacilityId,
         collateral_id: CollateralId,
         account_ids: PendingCreditFacilityAccountIds,
@@ -1996,7 +1937,7 @@ impl CreditLedger {
 
     async fn create_accounts_for_credit_facility(
         &self,
-        op: &mut cala_ledger::LedgerOperation<'_>,
+        op: &mut es_entity::DbOpWithTime<'_>,
         credit_facility_id: CreditFacilityId,
         account_ids: CreditFacilityLedgerAccountIds,
         customer_type: CustomerType,
@@ -2216,7 +2157,7 @@ impl CreditLedger {
 
     async fn attach_charts_account_set<F>(
         &self,
-        op: &mut LedgerOperation<'_>,
+        op: &mut es_entity::DbOpWithTime<'_>,
         account_sets: &mut HashMap<CalaAccountSetId, AccountSet>,
         internal_account_set_id: CalaAccountSetId,
         parent_account_set_id: CalaAccountSetId,
@@ -2424,15 +2365,12 @@ impl CreditLedger {
             &charts_integration_meta,
         )
         .await?;
-
-        op.commit().await?;
-
         Ok(())
     }
 
     pub async fn attach_short_term_disbursed_receivable_account_sets(
         &self,
-        op: &mut LedgerOperation<'_>,
+        op: &mut es_entity::DbOpWithTime<'_>,
         short_term_disbursed_integration_meta: &ShortTermDisbursedIntegrationMeta,
         account_sets: &mut HashMap<CalaAccountSetId, AccountSet>,
         charts_integration_meta: &ChartOfAccountsIntegrationMeta,
@@ -2543,7 +2481,7 @@ impl CreditLedger {
 
     pub async fn attach_long_term_disbursed_receivable_account_sets(
         &self,
-        op: &mut LedgerOperation<'_>,
+        op: &mut es_entity::DbOpWithTime<'_>,
         long_term_disbursed_integration_meta: &LongTermDisbursedIntegrationMeta,
         account_sets: &mut HashMap<CalaAccountSetId, AccountSet>,
         charts_integration_meta: &ChartOfAccountsIntegrationMeta,
@@ -2653,7 +2591,7 @@ impl CreditLedger {
 
     async fn attach_short_term_interest_receivable_account_sets(
         &self,
-        op: &mut LedgerOperation<'_>,
+        op: &mut es_entity::DbOpWithTime<'_>,
         short_term_interest_integration_meta: &ShortTermInterestIntegrationMeta,
         account_sets: &mut HashMap<CalaAccountSetId, AccountSet>,
         charts_integration_meta: &ChartOfAccountsIntegrationMeta,
@@ -2765,7 +2703,7 @@ impl CreditLedger {
 
     async fn attach_long_term_interest_receivable_account_sets(
         &self,
-        op: &mut LedgerOperation<'_>,
+        op: &mut es_entity::DbOpWithTime<'_>,
         long_term_interest_integration_meta: &LongTermInterestIntegrationMeta,
         account_sets: &mut HashMap<CalaAccountSetId, AccountSet>,
         charts_integration_meta: &ChartOfAccountsIntegrationMeta,
@@ -2877,7 +2815,7 @@ impl CreditLedger {
 
     async fn attach_overdue_disbursed_receivable_account_sets(
         &self,
-        op: &mut LedgerOperation<'_>,
+        op: &mut es_entity::DbOpWithTime<'_>,
         overdue_disbursed_integration_meta: &OverdueDisbursedIntegrationMeta,
         account_sets: &mut HashMap<CalaAccountSetId, AccountSet>,
         charts_integration_meta: &ChartOfAccountsIntegrationMeta,

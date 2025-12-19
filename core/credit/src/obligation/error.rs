@@ -8,8 +8,6 @@ pub enum ObligationError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("ObligationError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("ObligationError - OutboxError: {0}")]
-    OutboxError(#[from] outbox::error::OutboxError),
     #[error("ObligationError - EsEntityError: {0}")]
     EsEntityError(es_entity::EsEntityError),
     #[error("ObligationError - CursorDestructureError: {0}")]
@@ -32,7 +30,6 @@ impl ErrorSeverity for ObligationError {
     fn severity(&self) -> Level {
         match self {
             Self::AuthorizationError(e) => e.severity(),
-            Self::OutboxError(e) => e.severity(),
             Self::Sqlx(_) => Level::ERROR,
             Self::EsEntityError(e) => e.severity(),
             Self::CursorDestructureError(_) => Level::ERROR,

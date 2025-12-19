@@ -159,7 +159,7 @@ impl Disbursal {
         {
             Some(new_obligation)
         } else {
-            return Idempotent::Ignored;
+            return Idempotent::AlreadyApplied;
         };
 
         self.concluded_tx_id = Some(tx_id);
@@ -188,7 +188,7 @@ impl Disbursal {
             {
                 Some(new_obligation)
             } else {
-                return Idempotent::Ignored;
+                return Idempotent::AlreadyApplied;
             }
         } else {
             self.events.push(DisbursalEvent::Cancelled {

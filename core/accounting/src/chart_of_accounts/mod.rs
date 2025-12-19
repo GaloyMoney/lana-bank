@@ -154,9 +154,7 @@ where
         let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        let mut op = op.with_db_time().await?;
         self.cala
             .account_sets()
             .create_all_in_op(&mut op, new_account_sets)
@@ -168,7 +166,6 @@ where
                 .add_member_in_op(&mut op, parent, child)
                 .await?;
         }
-        op.commit().await?;
 
         let new_account_set_ids = &chart
             .trial_balance_account_ids_from_new_accounts(&new_account_set_ids)
@@ -208,9 +205,7 @@ where
         let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        let mut op = op.with_db_time().await?;
         self.cala
             .account_sets()
             .create_in_op(&mut op, new_account_set)
@@ -219,8 +214,6 @@ where
             .account_sets()
             .add_member_in_op(&mut op, parent_account_set_id, account_set_id)
             .await?;
-
-        op.commit().await?;
 
         let new_account_set_id = chart.trial_balance_account_id_from_new_account(account_set_id);
         Ok((chart, new_account_set_id))
@@ -257,9 +250,7 @@ where
         let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        let mut op = op.with_db_time().await?;
         self.cala
             .account_sets()
             .create_in_op(&mut op, new_account_set)
@@ -268,8 +259,6 @@ where
             .account_sets()
             .add_member_in_op(&mut op, parent_account_set_id, account_set_id)
             .await?;
-
-        op.commit().await?;
 
         let new_account_set_id = chart.trial_balance_account_id_from_new_account(account_set_id);
         Ok((chart, new_account_set_id))
@@ -427,9 +416,7 @@ where
                 let mut op = self.repo.begin_op().await?;
                 self.repo.update_in_op(&mut op, &mut chart).await?;
 
-                let mut op = self
-                    .cala
-                    .ledger_operation_from_db_op(op.with_db_time().await?);
+                let mut op = op.with_db_time().await?;
                 let Account {
                     id: manual_transaction_account_id,
                     ..
@@ -443,8 +430,6 @@ where
                     .account_sets()
                     .add_member_in_op(&mut op, account_set_id, manual_transaction_account_id)
                     .await?;
-
-                op.commit().await?;
 
                 manual_transaction_account_id.into()
             }

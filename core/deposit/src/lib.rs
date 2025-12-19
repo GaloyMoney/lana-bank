@@ -27,7 +27,7 @@ use core_accounting::Chart;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerObject, Customers};
 use governance::{Governance, GovernanceEvent};
 use job::Jobs;
-use outbox::{Outbox, OutboxEventMarker};
+use obix::out::{Outbox, OutboxEventMarker};
 use public_id::PublicIds;
 
 use account::*;

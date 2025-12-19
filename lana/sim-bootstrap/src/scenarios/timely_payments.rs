@@ -1,7 +1,7 @@
 use futures::StreamExt;
 use lana_app::{app::LanaApp, primitives::*};
 use lana_events::{CoreCreditEvent, LanaEvent};
-use outbox::PersistentOutboxEvent;
+use obix::out::PersistentOutboxEvent;
 use rust_decimal_macros::dec;
 use tokio::sync::mpsc;
 use tracing::{Instrument, Span, event, instrument};
@@ -28,7 +28,7 @@ pub async fn timely_payments_scenario(sub: Subject, app: &LanaApp) -> anyhow::Re
         .conclude_customer_approval(&sub, cf_proposal.id, true)
         .await?;
 
-    let mut stream = app.outbox().listen_persisted(None).await?;
+    let mut stream = app.outbox().listen_persisted(None);
     while let Some(msg) = stream.next().await {
         if process_activation_message(&msg, &sub, app, &cf_proposal).await? {
             break;

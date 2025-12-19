@@ -11,7 +11,7 @@ use tracing_macros::record_error_severity;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use job::{JobId, Jobs};
-use outbox::OutboxEventMarker;
+use obix::out::OutboxEventMarker;
 
 use crate::{
     CreditLedger, PaymentAllocation, PaymentAllocationId, PaymentAllocationRepo,

@@ -7,7 +7,7 @@ use tracing::instrument;
 
 use audit::AuditInfo;
 use cala_ledger::{
-    AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation,
+    AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId,
     account_set::{AccountSet, AccountSetMemberId, AccountSetUpdate, NewAccountSet},
 };
 use tracing_macros::record_error_severity;
@@ -45,7 +45,7 @@ impl BalanceSheetLedger {
     #[instrument(name = "bs_ledger.create_unique_account_set", skip(self, op, parents), fields(reference = %reference, normal_balance_type = ?normal_balance_type, parents_count = parents.len()))]
     async fn create_unique_account_set(
         &self,
-        op: &mut LedgerOperation<'_>,
+        op: &mut es_entity::DbOp<'_>,
         reference: &str,
         normal_balance_type: DebitOrCredit,
         parents: Vec<AccountSetId>,
@@ -79,7 +79,7 @@ impl BalanceSheetLedger {
     #[instrument(name = "bs_ledger.create_account_set", skip(self, op, parents), fields(reference = %reference, normal_balance_type = ?normal_balance_type, parents_count = parents.len()))]
     async fn create_account_set(
         &self,
-        op: &mut LedgerOperation<'_>,
+        op: &mut es_entity::DbOp<'_>,
         reference: &str,
         normal_balance_type: DebitOrCredit,
         parents: Vec<AccountSetId>,
@@ -186,16 +186,14 @@ impl BalanceSheetLedger {
     #[instrument(name = "bs_ledger.add_member", skip(self, op, node_account_set_id), fields(node_id = tracing::field::Empty, member_id = %member))]
     pub async fn add_member(
         &self,
-        op: es_entity::DbOp<'_>,
+        mut op: es_entity::DbOp<'_>,
         node_account_set_id: impl Into<AccountSetId>,
         member: AccountSetId,
     ) -> Result<(), BalanceSheetLedgerError> {
         let node_account_set_id = node_account_set_id.into();
         tracing::Span::current().record("node_id", node_account_set_id.to_string());
 
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        // Directly use the DbOp without wrapping
         match self
             .cala
             .account_sets()
@@ -205,8 +203,6 @@ impl BalanceSheetLedger {
             Ok(_) | Err(cala_ledger::account_set::error::AccountSetError::MemberAlreadyAdded) => {}
             Err(e) => return Err(e.into()),
         }
-
-        op.commit().await?;
         Ok(())
     }
 
@@ -214,12 +210,10 @@ impl BalanceSheetLedger {
     #[instrument(name = "bs_ledger.create", skip(self, op), fields(reference = %reference))]
     pub async fn create(
         &self,
-        op: es_entity::DbOp<'_>,
+        mut op: es_entity::DbOp<'_>,
         reference: &str,
     ) -> Result<BalanceSheetIds, BalanceSheetLedgerError> {
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        // Directly use the DbOp without wrapping
 
         let statement_id = self
             .create_unique_account_set(&mut op, reference, DebitOrCredit::Debit, vec![])
@@ -283,9 +277,6 @@ impl BalanceSheetLedger {
                 vec![net_income_id],
             )
             .await?;
-
-        op.commit().await?;
-
         Ok(BalanceSheetIds {
             id: statement_id,
             assets: assets_id,
@@ -381,7 +372,7 @@ impl BalanceSheetLedger {
 
     async fn attach_charts_account_set<F>(
         &self,
-        op: &mut LedgerOperation<'_>,
+        op: &mut es_entity::DbOpWithTime<'_>,
         account_sets: &mut HashMap<AccountSetId, AccountSet>,
         internal_account_set_id: AccountSetId,
         child_account_set_id_from_chart: AccountSetId,
@@ -509,9 +500,6 @@ impl BalanceSheetLedger {
             |meta| meta.expenses_child_account_set_id_from_chart,
         )
         .await?;
-
-        op.commit().await?;
-
         Ok(())
     }
 

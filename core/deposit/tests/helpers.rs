@@ -131,7 +131,7 @@ pub mod event {
 
     macro_rules! impl_event_marker {
         ($from_type:ty, $variant:ident) => {
-            impl outbox::OutboxEventMarker<$from_type> for DummyEvent {
+            impl obix::out::OutboxEventMarker<$from_type> for DummyEvent {
                 fn as_event(&self) -> Option<&$from_type> {
                     match self {
                         &Self::$variant(ref event) => Some(event),

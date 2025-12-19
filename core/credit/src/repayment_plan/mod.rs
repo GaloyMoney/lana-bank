@@ -5,7 +5,7 @@ mod repo;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use outbox::EventSequence;
+use obix::EventSequence;
 
 use crate::{event::CoreCreditEvent, primitives::*, terms::TermValues};
 

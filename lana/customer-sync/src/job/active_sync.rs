@@ -206,7 +206,7 @@ where
         let mut state = current_job
             .execution_state::<CustomerActiveSyncJobData>()?
             .unwrap_or_default();
-        let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
+        let mut stream = self.outbox.listen_persisted(Some(state.sequence));
 
         loop {
             select! {

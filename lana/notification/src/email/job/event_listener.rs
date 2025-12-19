@@ -116,7 +116,7 @@ where
 
 #[derive(Default, Serialize, Deserialize)]
 struct EmailEventListenerJobData {
-    sequence: outbox::EventSequence,
+    sequence: obix::EventSequence,
 }
 
 pub struct EmailEventListenerRunner<AuthzType>
@@ -276,7 +276,7 @@ where
         let mut state = current_job
             .execution_state::<EmailEventListenerJobData>()?
             .unwrap_or_default();
-        let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
+        let mut stream = self.outbox.listen_persisted(Some(state.sequence));
 
         loop {
             select! {

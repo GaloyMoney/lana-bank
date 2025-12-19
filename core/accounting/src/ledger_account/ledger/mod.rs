@@ -269,9 +269,6 @@ impl LedgerAccountLedger {
             let ledger_account = LedgerAccount::from((account, account_balances));
             result.insert(account_id, ledger_account);
         }
-
-        op.commit().await?;
-
         Ok(result)
     }
 

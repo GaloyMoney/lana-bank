@@ -11,7 +11,7 @@ use governance::{
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-use outbox::OutboxEventMarker;
+use obix::out::OutboxEventMarker;
 
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 
@@ -115,7 +115,7 @@ where
                 self.ledger
                     .settle_disbursal(
                         disbursal.id,
-                        op,
+                        &mut op,
                         obligation,
                         credit_facility.account_ids.facility_account_id,
                     )
@@ -131,7 +131,7 @@ where
                 self.ledger
                     .cancel_disbursal(
                         disbursal.id,
-                        op,
+                        &mut op,
                         disbursal.initiated_tx_id,
                         disbursal.amount,
                         credit_facility.account_ids.facility_account_id,

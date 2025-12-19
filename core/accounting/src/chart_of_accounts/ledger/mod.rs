@@ -4,7 +4,7 @@ pub mod error;
 mod template;
 
 use cala_ledger::{
-    AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation,
+    AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId,
     TxTemplateId, VelocityControlId, VelocityLimitId,
     account::Account,
     account_set::{AccountSetMemberId, AccountSetUpdate, NewAccountSet},
@@ -44,12 +44,10 @@ impl ChartLedger {
     #[instrument(name = "chart_ledger.create_chart_root_account_set_in_op", skip(self, op, chart), fields(chart_id = %chart.id, chart_name = %chart.name))]
     pub async fn create_chart_root_account_set_in_op(
         &self,
-        op: es_entity::DbOp<'_>,
+        mut op: es_entity::DbOp<'_>,
         chart: &Chart,
     ) -> Result<(), ChartLedgerError> {
-        let mut ledger_op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        // Directly use the DbOp without wrapping
 
         let new_account_set = NewAccountSet::builder()
             .id(chart.account_set_id)
@@ -63,34 +61,31 @@ impl ChartLedger {
 
         self.cala
             .account_sets()
-            .create_in_op(&mut ledger_op, new_account_set)
+            .create_in_op(&mut op, new_account_set)
             .await?;
 
-        let control_id = self.create_close_control_in_op(&mut ledger_op).await?;
+        let control_id = self.create_close_control_in_op(&mut op).await?;
 
         self.cala
             .velocities()
-            .attach_control_to_account_set_in_op(
-                &mut ledger_op,
+            .attach_control_to_account_set_in_op(&mut op,
                 control_id,
                 chart.account_set_id,
                 Params::new(),
             )
             .await?;
-
-        ledger_op.commit().await?;
         Ok(())
     }
 
     #[record_error_severity]
     #[instrument(
-        name = "chart_ledger.close_by_chart_root_account_set_as_of", 
+        name = "chart_ledger.close_by_chart_root_account_set_as_of",
         skip(self, op),
         fields(chart_id = tracing::field::Empty, closed_as_of = %closed_as_of)
     )]
     pub async fn close_by_chart_root_account_set_as_of(
         &self,
-        op: es_entity::DbOp<'_>,
+        mut op: es_entity::DbOp<'_>,
         closed_as_of: chrono::NaiveDate,
         chart_root_account_set_id: AccountSetId,
     ) -> Result<(), ChartLedgerError> {
@@ -100,9 +95,7 @@ impl ChartLedger {
             .find(chart_root_account_set_id)
             .await?;
 
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        // Directly use the DbOp without wrapping
 
         let mut account_set_metadata = tracking_account_set
             .values()
@@ -125,8 +118,6 @@ impl ChartLedger {
                 .persist_in_op(&mut op, &mut tracking_account_set)
                 .await?;
         }
-
-        op.commit().await?;
         Ok(())
     }
 
@@ -137,24 +128,20 @@ impl ChartLedger {
     )]
     async fn attach_closing_controls_to_account_set_in_op(
         &self,
-        mut op: LedgerOperation<'_>,
+        op: &mut es_entity::DbOp<'_>,
         tracking_account_set_id: impl Into<AccountSetId> + std::fmt::Debug,
     ) -> Result<VelocityControlId, ChartLedgerError> {
         let tracking_account_set_id = tracking_account_set_id.into();
-        let control_id = self.create_close_control_in_op(&mut op).await?;
+        let control_id = self.create_close_control_in_op(op).await?;
 
         self.cala
             .velocities()
-            .attach_control_to_account_set_in_op(
-                &mut op,
+            .attach_control_to_account_set_in_op(op,
                 control_id,
                 tracking_account_set_id,
                 Params::new(),
             )
             .await?;
-
-        op.commit().await?;
-
         Ok(control_id)
     }
 
@@ -162,7 +149,7 @@ impl ChartLedger {
     #[instrument(name = "chart_ledger.create_close_control_in_op", skip(self, op))]
     async fn create_close_control_in_op(
         &self,
-        op: &mut LedgerOperation<'_>,
+        op: &mut es_entity::DbOp<'_>,
     ) -> Result<VelocityControlId, ChartLedgerError> {
         let monthly_cel_conditions = AccountingClosingMetadata::monthly_cel_conditions();
         let new_control = NewVelocityControl::builder()
@@ -213,7 +200,7 @@ impl ChartLedger {
     )]
     async fn create_account_closing_limits_in_op(
         &self,
-        op: &mut LedgerOperation<'_>,
+        op: &mut es_entity::DbOp<'_>,
     ) -> Result<AccountClosingLimits, ChartLedgerError> {
         let velocity = self.cala.velocities();
 
@@ -331,7 +318,7 @@ impl ChartLedger {
     #[instrument(name = "chart_ledger.post_closing_transaction", skip(self, op))]
     pub async fn post_closing_transaction(
         &self,
-        op: es_entity::DbOp<'_>,
+        mut op: es_entity::DbOp<'_>,
         ClosingTxParentIdsAndDetails {
             net_income_parent_ids,
             retained_earnings_parent_ids,
@@ -345,9 +332,7 @@ impl ChartLedger {
             )
             .await?;
 
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        // Directly use the DbOp without wrapping
 
         let net_income_recipient_account = if let Some(retained_earnings_details) = balances
             .retained_earnings_new_account(
@@ -382,9 +367,6 @@ impl ChartLedger {
         self.cala
             .post_transaction_in_op(&mut op, tx_id, &template_code, closing_transaction_params)
             .await?;
-
-        op.commit().await?;
-
         Ok(())
     }
 
@@ -478,7 +460,7 @@ impl ChartLedger {
 
     async fn create_child_account_in_op(
         &self,
-        op: &mut LedgerOperation<'_>,
+        op: &mut es_entity::DbOp<'_>,
         NewAccountDetails {
             new_account: new_ledger_account,
             parent_account_set_id,
@@ -499,7 +481,7 @@ impl ChartLedger {
 
     async fn find_or_create_template(
         &self,
-        op: &mut LedgerOperation<'_>,
+        op: &mut es_entity::DbOp<'_>,
         params: &ClosingTransactionParams,
     ) -> Result<String, TxTemplateError> {
         let n_entries = params.entries_params.len();

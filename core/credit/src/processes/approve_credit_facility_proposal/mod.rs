@@ -10,7 +10,7 @@ use authz::PermissionCheck;
 use governance::{
     ApprovalProcessType, Governance, GovernanceAction, GovernanceEvent, GovernanceObject,
 };
-use outbox::OutboxEventMarker;
+use obix::out::OutboxEventMarker;
 
 use crate::{
     CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityProposal,

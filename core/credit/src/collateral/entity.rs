@@ -70,7 +70,7 @@ impl Collateral {
         let (abs_diff, action) = match new_amount.cmp(&current) {
             Ordering::Less => (current - new_amount, CollateralAction::Remove),
             Ordering::Greater => (new_amount - current, CollateralAction::Add),
-            Ordering::Equal => return Idempotent::Ignored,
+            Ordering::Equal => return Idempotent::AlreadyApplied,
         };
 
         let tx_id = LedgerTxId::new();
@@ -102,7 +102,7 @@ impl Collateral {
         let (abs_diff, action) = match new_amount.cmp(&current) {
             Ordering::Less => (current - new_amount, CollateralAction::Remove),
             Ordering::Greater => (new_amount - current, CollateralAction::Add),
-            Ordering::Equal => return Idempotent::Ignored,
+            Ordering::Equal => return Idempotent::AlreadyApplied,
         };
 
         let tx_id = LedgerTxId::new();

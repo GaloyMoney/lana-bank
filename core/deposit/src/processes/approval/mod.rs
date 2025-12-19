@@ -7,7 +7,7 @@ use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use governance::Governance;
-use outbox::OutboxEventMarker;
+use obix::out::OutboxEventMarker;
 
 use crate::{
     CoreDepositAction, CoreDepositObject, WithdrawalAction,

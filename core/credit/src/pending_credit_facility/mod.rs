@@ -10,7 +10,7 @@ use core_custody::{CoreCustody, CoreCustodyAction, CoreCustodyEvent, CoreCustody
 use core_price::Price;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
-use outbox::OutboxEventMarker;
+use obix::out::OutboxEventMarker;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
@@ -228,7 +228,7 @@ where
                     initial_disbursal,
                 })
             }
-            Ok(es_entity::Idempotent::Ignored)
+            Ok(es_entity::Idempotent::AlreadyApplied)
             | Err(PendingCreditFacilityError::BelowMarginLimit) => {
                 Ok(PendingCreditFacilityCompletionOutcome::Ignored)
             }

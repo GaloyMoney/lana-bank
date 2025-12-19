@@ -8,7 +8,8 @@ use job::*;
 use tokio::select;
 
 use futures::StreamExt as _;
-use outbox::{EventSequence, Outbox, OutboxEventMarker, PersistentOutboxEvent};
+use obix::out::{ Outbox, OutboxEventMarker, PersistentOutboxEvent };
+use obix::EventSequence;
 use serde::{Deserialize, Serialize};
 use tracing::{Span, instrument};
 
@@ -129,7 +130,7 @@ where
             .execution_state::<CreditFacilityLiquidationsJobData>()?
             .unwrap_or_default();
 
-        let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
+        let mut stream = self.outbox.listen_persisted(Some(state.sequence));
 
         loop {
             select! {

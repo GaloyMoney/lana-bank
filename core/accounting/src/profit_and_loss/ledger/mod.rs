@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use tracing::instrument;
 
 use cala_ledger::{
-    AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation,
+    AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId,
     account_set::{AccountSet, AccountSetMemberId, AccountSetUpdate, NewAccountSet},
 };
 
@@ -45,7 +45,7 @@ impl ProfitAndLossStatementLedger {
     #[instrument(name = "pl_ledger.create_unique_account_set", skip(self, op, parents), fields(reference = %reference, normal_balance_type = ?normal_balance_type, parents_count = parents.len()))]
     async fn create_unique_account_set(
         &self,
-        op: &mut LedgerOperation<'_>,
+        op: &mut es_entity::DbOp<'_>,
         reference: &str,
         normal_balance_type: DebitOrCredit,
         parents: Vec<AccountSetId>,
@@ -79,7 +79,7 @@ impl ProfitAndLossStatementLedger {
     #[instrument(name = "pl_ledger.create_account_set", skip(self, op, parents), fields(reference = %reference, normal_balance_type = ?normal_balance_type, parents_count = parents.len()))]
     async fn create_account_set(
         &self,
-        op: &mut LedgerOperation<'_>,
+        op: &mut es_entity::DbOp<'_>,
         reference: &str,
         normal_balance_type: DebitOrCredit,
         parents: Vec<AccountSetId>,
@@ -186,16 +186,14 @@ impl ProfitAndLossStatementLedger {
     #[instrument(name = "pl_ledger.add_member", skip(self, op, node_account_set_id), fields(node_id = tracing::field::Empty, member_id = %member))]
     pub async fn add_member(
         &self,
-        op: es_entity::DbOp<'_>,
+        mut op: es_entity::DbOp<'_>,
         node_account_set_id: impl Into<AccountSetId>,
         member: AccountSetId,
     ) -> Result<(), ProfitAndLossStatementLedgerError> {
         let node_account_set_id = node_account_set_id.into();
         tracing::Span::current().record("node_id", node_account_set_id.to_string());
 
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        // Directly use the DbOp without wrapping
         match self
             .cala
             .account_sets()
@@ -205,8 +203,6 @@ impl ProfitAndLossStatementLedger {
             Ok(_) | Err(cala_ledger::account_set::error::AccountSetError::MemberAlreadyAdded) => {}
             Err(e) => return Err(e.into()),
         }
-
-        op.commit().await?;
         Ok(())
     }
 
@@ -262,9 +258,6 @@ impl ProfitAndLossStatementLedger {
             |meta| meta.expenses_child_account_set_id_from_chart,
         )
         .await?;
-
-        op.commit().await?;
-
         Ok(())
     }
 
@@ -275,7 +268,7 @@ impl ProfitAndLossStatementLedger {
     )]
     async fn attach_charts_account_set<F>(
         &self,
-        op: &mut LedgerOperation<'_>,
+        op: &mut es_entity::DbOpWithTime<'_>,
         account_sets: &mut HashMap<AccountSetId, AccountSet>,
         internal_account_set_id: AccountSetId,
         child_account_set_id_from_chart: AccountSetId,
@@ -327,12 +320,10 @@ impl ProfitAndLossStatementLedger {
     #[instrument(name = "pl_ledger.create", skip(self, op), fields(reference = %reference))]
     pub async fn create(
         &self,
-        op: es_entity::DbOp<'_>,
+        mut op: es_entity::DbOp<'_>,
         reference: &str,
     ) -> Result<ProfitAndLossStatementIds, ProfitAndLossStatementLedgerError> {
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        // Directly use the DbOp without wrapping
 
         let statement_id = self
             .create_unique_account_set(&mut op, reference, DebitOrCredit::Credit, vec![])
@@ -363,9 +354,6 @@ impl ProfitAndLossStatementLedger {
                 vec![statement_id],
             )
             .await?;
-
-        op.commit().await?;
-
         Ok(ProfitAndLossStatementIds {
             id: statement_id,
             revenue: revenue_id,

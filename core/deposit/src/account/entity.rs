@@ -67,7 +67,7 @@ impl DepositAccount {
     ) -> Result<Idempotent<()>, DepositAccountError> {
         let status = status.into();
         if self.status == status {
-            return Ok(Idempotent::Ignored);
+            return Ok(Idempotent::AlreadyApplied);
         }
         if self.is_closed() {
             return Err(DepositAccountError::CannotUpdateClosedAccount(self.id));
@@ -106,7 +106,7 @@ impl DepositAccount {
             => DepositAccountEvent::Frozen { .. }
         );
         if !self.is_frozen() {
-            return Ok(Idempotent::Ignored);
+            return Ok(Idempotent::AlreadyApplied);
         }
         if self.is_closed() {
             return Err(DepositAccountError::CannotUpdateClosedAccount(self.id));
@@ -247,7 +247,7 @@ mod tests {
             account
                 .update_status_via_holder(DepositAccountHolderStatus::Inactive)
                 .unwrap()
-                .was_ignored()
+                .was_already_applied()
         );
 
         assert!(
@@ -374,7 +374,7 @@ mod tests {
         .unwrap();
         assert!(account.freeze().unwrap().did_execute());
         assert_eq!(account.status, DepositAccountStatus::Frozen);
-        assert!(account.freeze().unwrap().was_ignored());
+        assert!(account.freeze().unwrap().was_already_applied());
 
         assert!(account.unfreeze().unwrap().did_execute());
         assert_eq!(account.status, DepositAccountStatus::Active);
@@ -382,7 +382,7 @@ mod tests {
             account
                 .update_status_via_holder(DepositAccountHolderStatus::Active)
                 .unwrap()
-                .was_ignored()
+                .was_already_applied()
         );
 
         assert!(account.freeze().unwrap().did_execute());

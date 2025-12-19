@@ -12,7 +12,7 @@ use authz::PermissionCheck;
 use core_price::Price;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::{JobId, Jobs};
-use outbox::OutboxEventMarker;
+use obix::out::OutboxEventMarker;
 
 use crate::{
     PublicIds,
@@ -247,7 +247,7 @@ where
             credit_facility.activation_data(None)
         };
 
-        self.ledger.handle_activation(db, activation_data).await?;
+        self.ledger.handle_activation(&mut db, activation_data).await?;
 
         Ok(())
     }
@@ -350,7 +350,7 @@ where
             res
         } else {
             unreachable!(
-                "record_interest_accrual_cycle returned Idempotent::Ignored, \
+                "record_interest_accrual_cycle returned Idempotent::AlreadyApplied, \
                  but this should only execute when there is an accrual cycle to record"
             );
         };

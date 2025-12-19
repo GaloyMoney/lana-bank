@@ -6,8 +6,6 @@ use tracing_utils::ErrorSeverity;
 pub enum InterestAccrualCycleError {
     #[error("InterestAccrualCycleError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("InterestAccrualCycleError - OutboxError: {0}")]
-    OutboxError(#[from] outbox::error::OutboxError),
     #[error("InterestAccrualCycleError - EsEntityError: {0}")]
     EsEntityError(es_entity::EsEntityError),
     #[error("InterestAccrualCycleError - CursorDestructureError: {0}")]
@@ -24,7 +22,6 @@ impl ErrorSeverity for InterestAccrualCycleError {
     fn severity(&self) -> Level {
         match self {
             Self::Sqlx(_) => Level::ERROR,
-            Self::OutboxError(e) => e.severity(),
             Self::EsEntityError(e) => e.severity(),
             Self::CursorDestructureError(_) => Level::ERROR,
             Self::JobError(_) => Level::ERROR,

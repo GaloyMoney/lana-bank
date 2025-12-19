@@ -8,8 +8,6 @@ use core_money::{Satoshis, UsdCents};
 pub enum CreditFacilityError {
     #[error("CreditFacilityError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("CreditFacilityError - OutboxError: {0}")]
-    OutboxError(#[from] outbox::error::OutboxError),
     #[error("CreditFacilityError - EsEntityError: {0}")]
     EsEntityError(es_entity::EsEntityError),
     #[error("FacilityError - CursorDestructureError: {0}")]
@@ -86,7 +84,6 @@ impl ErrorSeverity for CreditFacilityError {
             Self::Sqlx(_) => Level::ERROR,
             Self::EsEntityError(e) => e.severity(),
             Self::CursorDestructureError(_) => Level::ERROR,
-            Self::OutboxError(e) => e.severity(),
             Self::ConversionError(e) => e.severity(),
             Self::InterestAccrualCycleError(e) => e.severity(),
             Self::DisbursalError(e) => e.severity(),

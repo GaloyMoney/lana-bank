@@ -1,6 +1,6 @@
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use outbox::OutboxEventMarker;
+use obix::out::OutboxEventMarker;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 

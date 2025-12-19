@@ -8,6 +8,9 @@ members = [
   "dev/check-dependency-dag",
   "workspace-hack",
 ]
+exclude = [
+  "lib/outbox",
+]
 
 [workspace.lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(tokio_unstable)'] }
@@ -25,7 +28,6 @@ cloud-storage = { path = "lib/cloud-storage" }
 jwks-utils = { path = "lib/jwks-utils" }
 keycloak-client = { path = "lib/keycloak-client" }
 komainu = { path = "lib/komainu" }
-obix = { version = "0.1.6", features = ["tracing"] }
 rendering = { path = "lib/rendering" }
 smtp-client = { path = "lib/smtp-client" }
 sumsub = { path = "lib/sumsub" }
@@ -69,6 +71,7 @@ cala-ledger = "0.13.0"
 job = "0.3.0"
 sim-time = "0.10"
 cala-cel-interpreter = "0.12"
+obix = { version = "0.1.6", features = ["tracing"] }
 
 aes = "0.8"
 anyhow = "1.0.100"

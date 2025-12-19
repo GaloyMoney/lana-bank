@@ -9,7 +9,7 @@ use authz::PermissionCheck;
 use core_custody::CustodianId;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
-use outbox::OutboxEventMarker;
+use obix::out::OutboxEventMarker;
 use tracing::{Span, instrument};
 use tracing_macros::record_error_severity;
 
@@ -151,7 +151,7 @@ where
                 db.commit().await?;
                 Ok(proposal)
             }
-            es_entity::Idempotent::Ignored => Ok(proposal),
+            es_entity::Idempotent::AlreadyApplied => Ok(proposal),
         }
     }
 
@@ -185,7 +185,7 @@ where
                     None => ProposalApprovalOutcome::Rejected(proposal),
                 })
             }
-            es_entity::Idempotent::Ignored => Ok(ProposalApprovalOutcome::Ignored),
+            es_entity::Idempotent::AlreadyApplied => Ok(ProposalApprovalOutcome::Ignored),
         }
     }
 

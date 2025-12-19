@@ -1,7 +1,7 @@
 use sqlx::PgPool;
 
 use es_entity::*;
-use outbox::OutboxEventMarker;
+use obix::out::OutboxEventMarker;
 use tracing_macros::record_error_severity;
 
 use crate::{event::CoreCreditEvent, primitives::*, publisher::CreditFacilityPublisher};
