@@ -1,0 +1,13 @@
+mutation LiquidationRecordPaymentReceived($input: LiquidationRecordPaymentReceivedInput!) {
+  liquidationRecordPaymentReceived(input: $input) {
+    liquidation {
+      liquidationId
+      receivedTotal
+      receivedPayment {
+        amount
+      }
+    }
+  }
+}
+
+
