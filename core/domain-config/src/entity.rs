@@ -40,7 +40,7 @@ impl DomainConfig {
     where
         T: DomainConfigValue,
     {
-        self.ensure_complex();
+        self.ensure_complex()?;
         new_value.validate()?;
 
         let value_json = serde_json::to_value(new_value)?;
@@ -60,7 +60,7 @@ impl DomainConfig {
     where
         T: DomainConfigValue,
     {
-        self.ensure_complex();
+        self.ensure_complex()?;
         let value = self.current_json_value();
         Ok(serde_json::from_value(value.clone())?)
     }
@@ -75,7 +75,12 @@ impl DomainConfig {
     pub(super) fn into_simple_entry(self) -> Result<SimpleEntry, DomainConfigError> {
         let simple_type = self
             .simple_type
-            .ok_or_else(|| DomainConfigError::NotSimpleConfig(self.key.clone()))?;
+            .ok_or_else(|| {
+                DomainConfigError::InvalidState(format!(
+                    "Config is not simple for {key}",
+                    key = self.key
+                ))
+            })?;
         let value = simple_type.parse_json(self.current_json_value().clone())?;
         Ok(SimpleEntry {
             key: self.key.to_string(),
@@ -118,26 +123,24 @@ impl DomainConfig {
     fn ensure_simple_type(&self, expected: SimpleType) -> Result<(), DomainConfigError> {
         match self.simple_type {
             Some(found) if found == expected => Ok(()),
-            Some(found) => Err(DomainConfigError::InvalidSimpleType {
-                key: self.key.clone(),
-                expected,
-                found: Some(found),
-            }),
-            None => Err(DomainConfigError::InvalidSimpleType {
-                key: self.key.clone(),
-                expected,
-                found: None,
-            }),
+            Some(found) => Err(DomainConfigError::InvalidState(format!(
+                "Invalid simple type for {key}: expected {expected}, found {found}",
+                key = self.key
+            ))),
+            None => Err(DomainConfigError::InvalidState(format!(
+                "Invalid simple type for {key}: expected {expected}, found none",
+                key = self.key
+            ))),
         }
     }
 
     fn ensure_complex(&self) -> Result<(), DomainConfigError> {
         match self.simple_type {
             None => Ok(()),
-            Some(found) => Err(DomainConfigError::InvalidConfigKind {
-                key: self.key.clone(),
-                found,
-            }),
+            Some(found) => Err(DomainConfigError::InvalidState(format!(
+                "Config is simple for {key}: found simple type {found}",
+                key = self.key
+            ))),
         }
     }
 }
