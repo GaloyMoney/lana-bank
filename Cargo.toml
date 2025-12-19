@@ -8,9 +8,6 @@ members = [
   "dev/check-dependency-dag",
   "workspace-hack",
 ]
-exclude = [
-  "lib/outbox",
-]
 
 [workspace.lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(tokio_unstable)'] }
