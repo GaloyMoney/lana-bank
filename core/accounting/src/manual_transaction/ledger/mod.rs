@@ -21,18 +21,17 @@ impl ManualTransactionLedger {
 
     pub async fn execute(
         &self,
-        mut op: es_entity::DbOp<'_>,
+        op: &mut es_entity::DbOp<'_>,
         tx_id: CalaTxId,
         params: ManualTransactionParams,
     ) -> Result<(), ManualTransactionLedgerError> {
-        // Directly use the DbOp without wrapping
-
         let template =
             ManualTransactionTemplate::init(&self.cala, params.entry_params.len()).await?;
 
         self.cala
-            .post_transaction_in_op(&mut op, tx_id, &template.code(), params)
+            .post_transaction_in_op(op, tx_id, &template.code(), params)
             .await?;
+
         Ok(())
     }
 }

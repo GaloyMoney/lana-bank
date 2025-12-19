@@ -66,8 +66,11 @@ where
             )
             .await?;
 
-        match self.trial_balance_ledger.create(op, &reference).await {
-            Ok(_) => Ok(()),
+        match self.trial_balance_ledger.create(&mut op, &reference).await {
+            Ok(_) => {
+                op.commit().await?;
+                Ok(())
+            }
             Err(e) if e.account_set_exists() => Ok(()),
             Err(e) => Err(e.into()),
         }

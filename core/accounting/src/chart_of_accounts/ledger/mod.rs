@@ -4,8 +4,8 @@ pub mod error;
 mod template;
 
 use cala_ledger::{
-    AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId,
-    TxTemplateId, VelocityControlId, VelocityLimitId,
+    AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId, TxTemplateId,
+    VelocityControlId, VelocityLimitId,
     account::Account,
     account_set::{AccountSetMemberId, AccountSetUpdate, NewAccountSet},
     tx_template::{
@@ -44,11 +44,9 @@ impl ChartLedger {
     #[instrument(name = "chart_ledger.create_chart_root_account_set_in_op", skip(self, op, chart), fields(chart_id = %chart.id, chart_name = %chart.name))]
     pub async fn create_chart_root_account_set_in_op(
         &self,
-        mut op: es_entity::DbOp<'_>,
+        op: &mut es_entity::DbOp<'_>,
         chart: &Chart,
     ) -> Result<(), ChartLedgerError> {
-        // Directly use the DbOp without wrapping
-
         let new_account_set = NewAccountSet::builder()
             .id(chart.account_set_id)
             .journal_id(self.journal_id)
@@ -61,14 +59,15 @@ impl ChartLedger {
 
         self.cala
             .account_sets()
-            .create_in_op(&mut op, new_account_set)
+            .create_in_op(op, new_account_set)
             .await?;
 
-        let control_id = self.create_close_control_in_op(&mut op).await?;
+        let control_id = self.create_close_control_in_op(op).await?;
 
         self.cala
             .velocities()
-            .attach_control_to_account_set_in_op(&mut op,
+            .attach_control_to_account_set_in_op(
+                op,
                 control_id,
                 chart.account_set_id,
                 Params::new(),
@@ -85,17 +84,15 @@ impl ChartLedger {
     )]
     pub async fn close_by_chart_root_account_set_as_of(
         &self,
-        mut op: es_entity::DbOp<'_>,
+        op: &mut es_entity::DbOp<'_>,
         closed_as_of: chrono::NaiveDate,
         chart_root_account_set_id: AccountSetId,
     ) -> Result<(), ChartLedgerError> {
         let mut tracking_account_set = self
             .cala
             .account_sets()
-            .find(chart_root_account_set_id)
+            .find_in_op(op, chart_root_account_set_id)
             .await?;
-
-        // Directly use the DbOp without wrapping
 
         let mut account_set_metadata = tracking_account_set
             .values()
@@ -115,7 +112,7 @@ impl ChartLedger {
         if tracking_account_set.update(update_values).did_execute() {
             self.cala
                 .account_sets()
-                .persist_in_op(&mut op, &mut tracking_account_set)
+                .persist_in_op(op, &mut tracking_account_set)
                 .await?;
         }
         Ok(())
@@ -136,7 +133,8 @@ impl ChartLedger {
 
         self.cala
             .velocities()
-            .attach_control_to_account_set_in_op(op,
+            .attach_control_to_account_set_in_op(
+                op,
                 control_id,
                 tracking_account_set_id,
                 Params::new(),
@@ -318,7 +316,7 @@ impl ChartLedger {
     #[instrument(name = "chart_ledger.post_closing_transaction", skip(self, op))]
     pub async fn post_closing_transaction(
         &self,
-        mut op: es_entity::DbOp<'_>,
+        op: &mut es_entity::DbOp<'_>,
         ClosingTxParentIdsAndDetails {
             net_income_parent_ids,
             retained_earnings_parent_ids,
@@ -340,7 +338,7 @@ impl ChartLedger {
                 retained_earnings_parent_ids,
             ) {
             Some(
-                self.create_child_account_in_op(&mut op, retained_earnings_details)
+                self.create_child_account_in_op(op, retained_earnings_details)
                     .await?,
             )
         } else {
@@ -361,11 +359,11 @@ impl ChartLedger {
             balances.entries_params(net_income_recipient_account),
         );
         let template_code = self
-            .find_or_create_template(&mut op, &closing_transaction_params)
+            .find_or_create_template(op, &closing_transaction_params)
             .await?;
 
         self.cala
-            .post_transaction_in_op(&mut op, tx_id, &template_code, closing_transaction_params)
+            .post_transaction_in_op(op, tx_id, &template_code, closing_transaction_params)
             .await?;
         Ok(())
     }

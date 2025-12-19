@@ -937,6 +937,9 @@ impl CreditLedger {
                 cala.account_sets()
                     .add_member_in_op(&mut op, account_set_id, account.id)
                     .await?;
+
+                op.commit().await?;
+
                 id
             }
             Err(cala_ledger::account::error::AccountError::ExternalIdAlreadyExists) => {
@@ -1177,7 +1180,8 @@ impl CreditLedger {
         match action {
             CollateralAction::Add => {
                 self.cala
-                    .post_transaction_in_op(&mut op,
+                    .post_transaction_in_op(
+                        &mut op,
                         tx_id,
                         templates::ADD_COLLATERAL_CODE,
                         templates::AddCollateralParams {
@@ -1196,7 +1200,8 @@ impl CreditLedger {
             }
             CollateralAction::Remove => {
                 self.cala
-                    .post_transaction_in_op(&mut op,
+                    .post_transaction_in_op(
+                        &mut op,
                         tx_id,
                         templates::REMOVE_COLLATERAL_CODE,
                         templates::RemoveCollateralParams {
@@ -1232,7 +1237,8 @@ impl CreditLedger {
         match action {
             CollateralAction::Add => {
                 self.cala
-                    .post_transaction_in_op(&mut op,
+                    .post_transaction_in_op(
+                        &mut op,
                         tx_id,
                         templates::ADD_COLLATERAL_CODE,
                         templates::AddCollateralParams {
@@ -1250,7 +1256,8 @@ impl CreditLedger {
             }
             CollateralAction::Remove => {
                 self.cala
-                    .post_transaction_in_op(&mut op,
+                    .post_transaction_in_op(
+                        &mut op,
                         tx_id,
                         templates::REMOVE_COLLATERAL_CODE,
                         templates::RemoveCollateralParams {
@@ -1331,7 +1338,8 @@ impl CreditLedger {
     ) -> Result<(), CreditLedgerError> {
         // Directly use the DbOp without wrapping
         self.cala
-            .post_transaction_in_op(&mut op,
+            .post_transaction_in_op(
+                &mut op,
                 tx_id,
                 templates::RECORD_OBLIGATION_DUE_BALANCE_CODE,
                 templates::RecordObligationDueBalanceParams {
@@ -1360,7 +1368,8 @@ impl CreditLedger {
     ) -> Result<(), CreditLedgerError> {
         // Directly use the DbOp without wrapping
         self.cala
-            .post_transaction_in_op(&mut op,
+            .post_transaction_in_op(
+                &mut op,
                 tx_id,
                 templates::RECORD_OBLIGATION_OVERDUE_BALANCE_CODE,
                 templates::RecordObligationOverdueBalanceParams {
@@ -1389,7 +1398,8 @@ impl CreditLedger {
     ) -> Result<(), CreditLedgerError> {
         // Directly use the DbOp without wrapping
         self.cala
-            .post_transaction_in_op(&mut op,
+            .post_transaction_in_op(
+                &mut op,
                 tx_id,
                 templates::RECORD_OBLIGATION_DEFAULTED_BALANCE_CODE,
                 templates::RecordObligationDefaultedBalanceParams {
@@ -1415,7 +1425,8 @@ impl CreditLedger {
     ) -> Result<(), CreditLedgerError> {
         // Directly use the DbOp without wrapping
         self.cala
-            .post_transaction_in_op(&mut op,
+            .post_transaction_in_op(
+                &mut op,
                 tx_id,
                 templates::REMOVE_COLLATERAL_CODE,
                 templates::RemoveCollateralParams {
@@ -1442,7 +1453,8 @@ impl CreditLedger {
         }: PendingCreditFacilityCreation,
     ) -> Result<(), CreditLedgerError> {
         self.cala
-            .post_transaction_in_op(&mut op,
+            .post_transaction_in_op(
+                &mut op,
                 tx_id,
                 templates::CREATE_CREDIT_FACILITY_PROPOSAL_CODE,
                 templates::CreateCreditFacilityProposalParams {
@@ -1596,7 +1608,8 @@ impl CreditLedger {
     ) -> Result<(), CreditLedgerError> {
         // Directly use the DbOp without wrapping
         self.cala
-            .post_transaction_in_op(&mut op,
+            .post_transaction_in_op(
+                &mut op,
                 tx_id,
                 templates::CREDIT_FACILITY_ACCRUE_INTEREST_CODE,
                 templates::CreditFacilityAccrueInterestParams {
@@ -1628,7 +1641,8 @@ impl CreditLedger {
     ) -> Result<(), CreditLedgerError> {
         // Directly use the DbOp without wrapping
         self.cala
-            .post_transaction_in_op(&mut op,
+            .post_transaction_in_op(
+                &mut op,
                 tx_id,
                 templates::CREDIT_FACILITY_POST_ACCRUED_INTEREST_CODE,
                 templates::CreditFacilityPostAccruedInterestParams {
@@ -1657,7 +1671,8 @@ impl CreditLedger {
     ) -> Result<(), CreditLedgerError> {
         // Directly use the DbOp without wrapping
         self.cala
-            .post_transaction_in_op(&mut op,
+            .post_transaction_in_op(
+                &mut op,
                 tx_id,
                 templates::INITIATE_DISBURSAL_CODE,
                 templates::InitiateDisbursalParams {
@@ -1681,7 +1696,8 @@ impl CreditLedger {
         facility_account_id: CalaAccountId,
     ) -> Result<(), CreditLedgerError> {
         self.cala
-            .post_transaction_in_op(op,
+            .post_transaction_in_op(
+                op,
                 tx_id,
                 templates::CANCEL_DISBURSAL_CODE,
                 templates::CancelDisbursalParams {
@@ -1714,7 +1730,8 @@ impl CreditLedger {
         } = obligation;
 
         self.cala
-            .post_transaction_in_op(op,
+            .post_transaction_in_op(
+                op,
                 tx_id,
                 templates::CONFIRM_DISBURSAL_CODE,
                 templates::ConfirmDisbursalParams {
@@ -2365,6 +2382,9 @@ impl CreditLedger {
             &charts_integration_meta,
         )
         .await?;
+
+        op.commit().await?;
+
         Ok(())
     }
 

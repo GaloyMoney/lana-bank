@@ -95,13 +95,14 @@ where
                 self.repo.update_in_op(&mut op, &mut withdraw).await?;
                 self.ledger
                     .deny_withdrawal(
-                        op,
+                        &mut op,
                         withdraw.id,
                         denied_tx_id,
                         withdraw.amount,
                         withdraw.deposit_account_id,
                     )
                     .await?;
+                op.commit().await?;
             }
             es_entity::Idempotent::Executed(None) => {
                 self.repo.update_in_op(&mut op, &mut withdraw).await?;

@@ -168,7 +168,7 @@ where
 
         self.ledger
             .execute(
-                db,
+                &mut db,
                 ledger_tx_id,
                 ManualTransactionParams {
                     journal_id: self.journal_id,
@@ -178,6 +178,8 @@ where
                 },
             )
             .await?;
+
+        db.commit().await?;
 
         Ok(manual_transaction)
     }
