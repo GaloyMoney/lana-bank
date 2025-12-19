@@ -38,6 +38,11 @@ impl SendCollateralToLiquidationParams {
                 .build()
                 .expect("Could not build param definition"),
             NewParamDefinition::builder()
+                .name("currency")
+                .r#type(ParamDataType::String)
+                .build()
+                .expect("Could not build param definition"),
+            NewParamDefinition::builder()
                 .name("collateral_account_id")
                 .r#type(ParamDataType::Uuid)
                 .build()
