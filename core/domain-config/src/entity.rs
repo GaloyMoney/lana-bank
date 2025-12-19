@@ -102,7 +102,7 @@ impl DomainConfig {
         }
     }
 
-    pub(super) fn update_simple_value(&mut self, new_value: serde_json::Value) -> Idempotent<()> {
+    fn update_simple_value(&mut self, new_value: serde_json::Value) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             DomainConfigEvent::Updated { value } if value == &new_value,
