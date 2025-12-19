@@ -141,7 +141,7 @@ where
             self.ledger
                 .record_interest_accrual(&mut db, interest_accrual)
                 .await?;
-            Ok(JobCompletion::RescheduleAt(period.end))
+            Ok(JobCompletion::RescheduleAtWithOp(period.end, db))
         } else {
             self.jobs
                 .create_and_spawn_in_op(
@@ -163,7 +163,7 @@ where
                 credit_facility_id = %self.config.credit_facility_id,
                 "All accruals completed for period"
             );
-            Ok(JobCompletion::Complete)
+            Ok(JobCompletion::CompleteWithOp(db))
         }
     }
 }

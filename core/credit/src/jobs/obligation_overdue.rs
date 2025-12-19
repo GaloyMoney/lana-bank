@@ -108,7 +108,7 @@ where
         let overdue = if let Some(overdue) = overdue_data {
             overdue
         } else {
-            return Ok(JobCompletion::Complete);
+            return Ok(JobCompletion::CompleteWithOp(db));
         };
 
         if let Some(defaulted_at) = obligation.defaulted_at() {
@@ -130,6 +130,6 @@ where
             .record_obligation_overdue(&mut db, overdue)
             .await?;
 
-        Ok(JobCompletion::Complete)
+        Ok(JobCompletion::CompleteWithOp(db))
     }
 }

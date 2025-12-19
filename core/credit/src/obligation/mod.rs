@@ -86,7 +86,7 @@ where
         }
     }
 
-    pub async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, ObligationError> {
+    pub async fn begin_op(&self) -> Result<es_entity::DbOp<'static>, ObligationError> {
         Ok(self.repo.begin_op().await?)
     }
 
@@ -148,7 +148,7 @@ where
         id: ObligationId,
         effective: chrono::NaiveDate,
     ) -> Result<(Obligation, Option<ObligationDueReallocationData>), ObligationError> {
-        let mut obligation = self.repo.find_by_id(id).await?;
+        let mut obligation = self.repo.find_by_id_in_op(&mut *op, id).await?;
 
         self.authz
             .audit()

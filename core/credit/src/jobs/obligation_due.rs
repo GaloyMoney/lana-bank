@@ -108,7 +108,7 @@ where
         let due = if let Some(due) = due_data {
             due
         } else {
-            return Ok(JobCompletion::Complete);
+            return Ok(JobCompletion::CompleteWithOp(db));
         };
 
         if let Some(overdue_at) = obligation.overdue_at() {
@@ -141,6 +141,6 @@ where
 
         self.ledger.record_obligation_due(&mut db, due).await?;
 
-        Ok(JobCompletion::Complete)
+        Ok(JobCompletion::CompleteWithOp(db))
     }
 }

@@ -200,6 +200,6 @@ where
             .record_interest_accrual_cycle(&mut op, facility_accrual_cycle_data)
             .await?;
 
-        return Ok(JobCompletion::Complete);
+        return Ok(JobCompletion::CompleteWithOp(op));
     }
 }

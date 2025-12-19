@@ -110,6 +110,6 @@ where
             .record_obligation_defaulted(&mut db, defaulted)
             .await?;
 
-        Ok(JobCompletion::Complete)
+        Ok(JobCompletion::CompleteWithOp(db))
     }
 }

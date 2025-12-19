@@ -943,6 +943,7 @@ impl CreditLedger {
                 id
             }
             Err(cala_ledger::account::error::AccountError::ExternalIdAlreadyExists) => {
+                op.commit().await?;
                 cala.accounts().find_by_external_id(reference).await?.id
             }
             Err(e) => return Err(e.into()),

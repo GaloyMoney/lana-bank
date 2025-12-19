@@ -135,7 +135,7 @@ where
         }
     }
 
-    pub(super) async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, CreditFacilityError> {
+    pub(super) async fn begin_op(&self) -> Result<es_entity::DbOp<'static>, CreditFacilityError> {
         Ok(self.repo.begin_op().await?)
     }
 
@@ -250,6 +250,7 @@ where
         self.ledger
             .handle_activation(&mut db, activation_data)
             .await?;
+        db.commit().await?;
 
         Ok(())
     }

@@ -147,6 +147,7 @@ where
             self.ledger
                 .update_credit_facility_collateral(&mut db, data, collateral.account_id)
                 .await?;
+            db.commit().await?;
         }
 
         Ok(())
