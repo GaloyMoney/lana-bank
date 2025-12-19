@@ -40,6 +40,7 @@ impl DomainConfig {
     where
         T: DomainConfigValue,
     {
+        self.ensure_complex();
         new_value.validate()?;
 
         let value_json = serde_json::to_value(new_value)?;
@@ -59,6 +60,7 @@ impl DomainConfig {
     where
         T: DomainConfigValue,
     {
+        self.ensure_complex();
         let value = self.current_json_value();
         Ok(serde_json::from_value(value.clone())?)
     }
@@ -113,7 +115,7 @@ impl DomainConfig {
         }
     }
 
-    pub(super) fn ensure_simple_type(&self, expected: SimpleType) -> Result<(), DomainConfigError> {
+    fn ensure_simple_type(&self, expected: SimpleType) -> Result<(), DomainConfigError> {
         match self.simple_type {
             Some(found) if found == expected => Ok(()),
             Some(found) => Err(DomainConfigError::InvalidSimpleType {
@@ -129,7 +131,7 @@ impl DomainConfig {
         }
     }
 
-    pub(super) fn ensure_complex(&self) -> Result<(), DomainConfigError> {
+    fn ensure_complex(&self) -> Result<(), DomainConfigError> {
         match self.simple_type {
             None => Ok(()),
             Some(found) => Err(DomainConfigError::InvalidConfigKind {
@@ -214,21 +216,6 @@ impl NewDomainConfigBuilder {
 
         Ok(self)
     }
-
-    //pub fn with_simple_value(
-    //    mut self,
-    //    id: DomainConfigId,
-    //    key: DomainConfigKey,
-    //    simple_type: SimpleType,
-    //    value: serde_json::Value,
-    //) -> Result<Self, DomainConfigError> {
-    //    self.id(id);
-    //    self.key(key);
-    //    self.simple_type(Some(simple_type));
-    //    self.value(value);
-    //
-    //    Ok(self)
-    //}
 }
 
 impl IntoEvents<DomainConfigEvent> for NewDomainConfig {

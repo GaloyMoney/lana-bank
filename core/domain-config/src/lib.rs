@@ -173,7 +173,6 @@ impl DomainConfigs {
     ) -> Result<(), DomainConfigError> {
         let key: DomainConfigKey = spec.into();
         let mut config = self.repo.find_by_key(key.clone()).await?;
-        config.ensure_simple_type(T::SIMPLE_TYPE)?;
         if config.update_simple(value)?.did_execute() {
             self.repo.update(&mut config).await?;
         }
@@ -210,7 +209,6 @@ impl DomainConfigs {
     ) -> Result<(), DomainConfigError> {
         let key = T::KEY;
         let mut config = self.repo.find_by_key(key.clone()).await?;
-        config.ensure_complex()?;
 
         if config.update(value)?.did_execute() {
             self.repo.update(&mut config).await?;
@@ -222,7 +220,6 @@ impl DomainConfigs {
     async fn get_complex_value<T: DomainConfigValue>(&self) -> Result<T, DomainConfigError> {
         let key = T::KEY;
         let config = self.repo.find_by_key(key).await?;
-        config.ensure_complex()?;
         config.current_value()
     }
 }
