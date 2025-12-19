@@ -330,8 +330,6 @@ impl ChartLedger {
             )
             .await?;
 
-        // Directly use the DbOp without wrapping
-
         let net_income_recipient_account = if let Some(retained_earnings_details) = balances
             .retained_earnings_new_account(
                 tx_details.retained_earnings_account_name(),

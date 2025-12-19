@@ -96,8 +96,11 @@ where
             )
             .await?;
 
-        match self.pl_statement_ledger.create(op, &name).await {
-            Ok(_) => Ok(()),
+        match self.pl_statement_ledger.create(&mut op, &name).await {
+            Ok(_) => {
+                op.commit().await?;
+                Ok(())
+            }
             Err(e) if e.account_set_exists() => Ok(()),
             Err(e) => Err(e.into()),
         }

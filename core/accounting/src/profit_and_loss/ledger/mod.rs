@@ -183,30 +183,6 @@ impl ProfitAndLossStatementLedger {
     }
 
     #[record_error_severity]
-    #[instrument(name = "pl_ledger.add_member", skip(self, op, node_account_set_id), fields(node_id = tracing::field::Empty, member_id = %member))]
-    pub async fn add_member(
-        &self,
-        mut op: es_entity::DbOp<'_>,
-        node_account_set_id: impl Into<AccountSetId>,
-        member: AccountSetId,
-    ) -> Result<(), ProfitAndLossStatementLedgerError> {
-        let node_account_set_id = node_account_set_id.into();
-        tracing::Span::current().record("node_id", node_account_set_id.to_string());
-
-        // Directly use the DbOp without wrapping
-        match self
-            .cala
-            .account_sets()
-            .add_member_in_op(&mut op, node_account_set_id, member)
-            .await
-        {
-            Ok(_) | Err(cala_ledger::account_set::error::AccountSetError::MemberAlreadyAdded) => {}
-            Err(e) => return Err(e.into()),
-        }
-        Ok(())
-    }
-
-    #[record_error_severity]
     #[instrument(name = "pl_ledger.attach_chart_of_accounts_account_sets", skip(self, charts_integration_meta), fields(reference = %reference))]
     pub async fn attach_chart_of_accounts_account_sets(
         &self,
@@ -322,35 +298,23 @@ impl ProfitAndLossStatementLedger {
     #[instrument(name = "pl_ledger.create", skip(self, op), fields(reference = %reference))]
     pub async fn create(
         &self,
-        mut op: es_entity::DbOp<'_>,
+        op: &mut es_entity::DbOp<'_>,
         reference: &str,
     ) -> Result<ProfitAndLossStatementIds, ProfitAndLossStatementLedgerError> {
-        // Directly use the DbOp without wrapping
-
         let statement_id = self
-            .create_unique_account_set(&mut op, reference, DebitOrCredit::Credit, vec![])
+            .create_unique_account_set(op, reference, DebitOrCredit::Credit, vec![])
             .await?;
 
         let revenue_id = self
-            .create_account_set(
-                &mut op,
-                REVENUE_NAME,
-                DebitOrCredit::Credit,
-                vec![statement_id],
-            )
+            .create_account_set(op, REVENUE_NAME, DebitOrCredit::Credit, vec![statement_id])
             .await?;
         let expenses_id = self
-            .create_account_set(
-                &mut op,
-                EXPENSES_NAME,
-                DebitOrCredit::Debit,
-                vec![statement_id],
-            )
+            .create_account_set(op, EXPENSES_NAME, DebitOrCredit::Debit, vec![statement_id])
             .await?;
 
         let cost_of_revenue_id = self
             .create_account_set(
-                &mut op,
+                op,
                 COST_OF_REVENUE_NAME,
                 DebitOrCredit::Debit,
                 vec![statement_id],

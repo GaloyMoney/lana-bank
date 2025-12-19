@@ -100,8 +100,10 @@ where
             .await?;
 
         self.trial_balance_ledger
-            .add_members(op, trial_balance_id, new_chart_account_set_ids.iter())
+            .add_members(&mut op, trial_balance_id, new_chart_account_set_ids.iter())
             .await?;
+
+        op.commit().await?;
 
         Ok(())
     }

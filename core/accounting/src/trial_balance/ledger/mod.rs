@@ -117,27 +117,14 @@ impl TrialBalanceLedger {
         Ok(res)
     }
 
-    pub async fn add_member(
-        &self,
-        mut op: es_entity::DbOp<'_>,
-        node_account_set_id: impl Into<AccountSetId>,
-        member: AccountSetId,
-    ) -> Result<(), TrialBalanceLedgerError> {
-        // Directly use the DbOp without wrapping
-        self.add_member_in_op(&mut op, node_account_set_id, member)
-            .await?;
-        Ok(())
-    }
-
     pub async fn add_members(
         &self,
-        mut op: es_entity::DbOp<'_>,
+        op: &mut es_entity::DbOp<'_>,
         node_account_set_id: impl Into<AccountSetId> + Copy,
         members: impl Iterator<Item = &AccountSetId>,
     ) -> Result<(), TrialBalanceLedgerError> {
-        // Directly use the DbOp without wrapping
         for member in members {
-            self.add_member_in_op(&mut op, node_account_set_id, *member)
+            self.add_member_in_op(op, node_account_set_id, *member)
                 .await?;
         }
         Ok(())
