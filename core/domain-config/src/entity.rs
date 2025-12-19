@@ -86,8 +86,19 @@ impl DomainConfig {
         &mut self,
         new_value: T,
     ) -> Result<Idempotent<()>, DomainConfigError> {
+        let value_json = new_value.to_json();
+
         self.ensure_simple_type(T::SIMPLE_TYPE)?;
-        Ok(self.update_simple_value(new_value.to_json()))
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            DomainConfigEvent::Updated { value } if value == &value_json,
+            => DomainConfigEvent::Updated { .. }
+        );
+
+        self.events
+            .push(DomainConfigEvent::Updated { value: value_json });
+
+        Ok(Idempotent::Executed(()))
     }
 
     fn current_json_value(&self) -> &serde_json::Value {
@@ -100,19 +111,6 @@ impl DomainConfig {
             DomainConfigEvent::Initialized { value, .. } => value,
             DomainConfigEvent::Updated { value } => value,
         }
-    }
-
-    fn update_simple_value(&mut self, new_value: serde_json::Value) -> Idempotent<()> {
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            DomainConfigEvent::Updated { value } if value == &new_value,
-            => DomainConfigEvent::Updated { .. }
-        );
-
-        self.events
-            .push(DomainConfigEvent::Updated { value: new_value });
-
-        Idempotent::Executed(())
     }
 
     pub(super) fn ensure_simple_type(&self, expected: SimpleType) -> Result<(), DomainConfigError> {
@@ -480,22 +478,26 @@ mod tests {
     }
 
     #[test]
-    fn update_simple_value_is_idempotent() {
-        let mut config = build_config(
-            DomainConfigId::new(),
-            &SampleConfig {
-                enabled: true,
-                limit: 5,
-            },
-        );
+    fn update_simple_is_idempotent() {
+        let id = DomainConfigId::new();
+        let initial_value = false;
+        let new_value = true;
 
-        let new_value = json!(true);
-        assert!(config.update_simple_value(new_value.clone()).did_execute());
-        assert!(config.update_simple_value(new_value.clone()).was_ignored());
+        let events = NewDomainConfig::builder()
+            .with_simple_value(id, SIMPLE_BOOL, initial_value)
+            .unwrap()
+            .build()
+            .unwrap()
+            .into_events();
+
+        let mut config = DomainConfig::try_from_events(events).unwrap();
+
+        assert!(config.update_simple(new_value).unwrap().did_execute());
+        assert!(config.update_simple(new_value).unwrap().was_ignored());
         let last_event = config.events.iter_all().next_back().unwrap();
         assert!(matches!(
             last_event,
-            DomainConfigEvent::Updated { value } if value == &new_value
+            DomainConfigEvent::Updated { value } if value == &json!(new_value)
         ));
     }
 }
