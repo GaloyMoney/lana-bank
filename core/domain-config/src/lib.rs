@@ -156,11 +156,9 @@ impl DomainConfigs {
         spec: SimpleConfig<T>,
         value: T,
     ) -> Result<(), DomainConfigError> {
-        let key: DomainConfigKey = spec.into();
-
         let domain_config_id = DomainConfigId::new();
         let new = NewDomainConfig::builder()
-            .with_simple_value(domain_config_id, key, T::SIMPLE_TYPE, value.to_json())?
+            .with_simple_value(domain_config_id, spec, value)?
             .build()
             .expect("Could not build NewDomainConfig");
         self.repo.create(new).await?;

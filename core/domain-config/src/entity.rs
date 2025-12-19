@@ -5,9 +5,9 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    DomainConfigError, DomainConfigValue,
+    DomainConfigError, DomainConfigValue, SimpleConfig,
     primitives::{DomainConfigId, DomainConfigKey},
-    simple::{SimpleEntry, SimpleType},
+    simple::{SimpleEntry, SimpleScalar, SimpleType},
 };
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -199,20 +199,38 @@ impl NewDomainConfigBuilder {
         Ok(self)
     }
 
-    pub fn with_simple_value(
+    pub fn with_simple_value<T: SimpleScalar>(
         mut self,
         id: DomainConfigId,
-        key: DomainConfigKey,
-        simple_type: SimpleType,
-        value: serde_json::Value,
+        spec: SimpleConfig<T>,
+        value: T,
     ) -> Result<Self, DomainConfigError> {
+        let key: DomainConfigKey = spec.into();
+        let simple_type = T::SIMPLE_TYPE;
+        let value_json = value.to_json();
+
         self.id(id);
         self.key(key);
         self.simple_type(Some(simple_type));
-        self.value(value);
+        self.value(value_json);
 
         Ok(self)
     }
+
+    //pub fn with_simple_value(
+    //    mut self,
+    //    id: DomainConfigId,
+    //    key: DomainConfigKey,
+    //    simple_type: SimpleType,
+    //    value: serde_json::Value,
+    //) -> Result<Self, DomainConfigError> {
+    //    self.id(id);
+    //    self.key(key);
+    //    self.simple_type(Some(simple_type));
+    //    self.value(value);
+    //
+    //    Ok(self)
+    //}
 }
 
 impl IntoEvents<DomainConfigEvent> for NewDomainConfig {
@@ -236,7 +254,8 @@ mod tests {
     use serde_json::json;
 
     use crate::{
-        DomainConfigError, DomainConfigId, DomainConfigKey, DomainConfigValue, SimpleType,
+        DomainConfigError, DomainConfigId, DomainConfigKey, DomainConfigValue, SimpleConfig,
+        SimpleType, SimpleValue,
     };
 
     use super::{DomainConfig, DomainConfigEvent, NewDomainConfig};
@@ -260,6 +279,8 @@ mod tests {
             Ok(())
         }
     }
+
+    const SIMPLE_BOOL: SimpleConfig<bool> = SimpleConfig::new("simple-bool");
 
     fn build_config(id: DomainConfigId, value: &SampleConfig) -> DomainConfig {
         let events = NewDomainConfig::builder()
@@ -424,27 +445,25 @@ mod tests {
     #[test]
     fn builder_sets_simple_type() {
         let id = DomainConfigId::new();
-        let key = DomainConfigKey::new("simple-bool");
-        let value = json!(true);
+        let expected_key: DomainConfigKey = SIMPLE_BOOL.into();
 
         let new = NewDomainConfig::builder()
-            .with_simple_value(id, key.clone(), SimpleType::Bool, value)
+            .with_simple_value(id, SIMPLE_BOOL, true)
             .unwrap()
             .build()
             .unwrap();
 
         assert_eq!(new.simple_type(), Some(SimpleType::Bool));
-        assert_eq!(new.key, key);
+        assert_eq!(new.key, expected_key);
     }
 
     #[test]
     fn rehydrates_simple_type_from_event() {
         let id = DomainConfigId::new();
-        let key = DomainConfigKey::new("simple-bool");
-        let value = json!(true);
+        let value = true;
 
         let events = NewDomainConfig::builder()
-            .with_simple_value(id, key.clone(), SimpleType::Bool, value.clone())
+            .with_simple_value(id, SIMPLE_BOOL, value)
             .unwrap()
             .build()
             .unwrap()
@@ -456,12 +475,8 @@ mod tests {
         let entry = config
             .into_simple_entry()
             .expect("should parse simple entry");
-        assert_eq!(
-            entry.value,
-            SimpleType::Bool
-                .parse_json(value.clone())
-                .expect("parse from simple type")
-        );
+        assert_eq!(entry.key, SIMPLE_BOOL.key);
+        assert_eq!(entry.value, SimpleValue::Bool(value));
     }
 
     #[test]
