@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use tokio::time::{Duration, sleep};
 
 use core_price::{CorePriceEvent, PRICE_UPDATED_EVENT_TYPE, Price, PriceOfOneBTC};
-use outbox::Outbox;
+use obix::out::Outbox;
 
 pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
     let pg_con = std::env::var("PG_CON").unwrap();
@@ -16,7 +16,7 @@ pub enum DummyEvent {
     Price(CorePriceEvent),
 }
 
-impl outbox::OutboxEventMarker<CorePriceEvent> for DummyEvent {
+impl obix::out::OutboxEventMarker<CorePriceEvent> for DummyEvent {
     fn as_event(&self) -> Option<&CorePriceEvent> {
         match self {
             DummyEvent::Price(event) => Some(event),

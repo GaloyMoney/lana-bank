@@ -4,7 +4,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::primitives::PriceOfOneBTC;
-use outbox::EphemeralEventType;
+use obix::out::EphemeralEventType;
 
 pub const PRICE_UPDATED_EVENT_TYPE: EphemeralEventType =
     EphemeralEventType::new("core.price.price-updated");

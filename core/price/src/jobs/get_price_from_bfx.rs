@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use tokio::{select, time::Duration};
 
 use job::*;
-use outbox::{Outbox, OutboxEventMarker};
+use obix::out::{Outbox, OutboxEventMarker};
 use std::sync::Arc;
 
 use crate::{
@@ -16,21 +16,21 @@ const PRICE_UPDATE_INTERVAL: Duration = Duration::from_secs(60);
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct GetPriceFromClientJobConfig<E>
 where
-    E: OutboxEventMarker<CorePriceEvent>,
+    E: OutboxEventMarker<CorePriceEvent> + Send + Sync + 'static,
 {
     pub _phantom: std::marker::PhantomData<E>,
 }
 
 impl<E> JobConfig for GetPriceFromClientJobConfig<E>
 where
-    E: OutboxEventMarker<CorePriceEvent>,
+    E: OutboxEventMarker<CorePriceEvent> + Send + Sync + 'static,
 {
     type Initializer = GetPriceFromClientJobInit<E>;
 }
 
 pub struct GetPriceFromClientJobInit<E>
 where
-    E: OutboxEventMarker<CorePriceEvent>,
+    E: OutboxEventMarker<CorePriceEvent> + Send + Sync + 'static,
 {
     bfx_client: Arc<BfxClient>,
     outbox: Outbox<E>,
@@ -38,7 +38,7 @@ where
 
 impl<E> GetPriceFromClientJobInit<E>
 where
-    E: OutboxEventMarker<CorePriceEvent>,
+    E: OutboxEventMarker<CorePriceEvent> + Send + Sync + 'static,
 {
     pub fn new(outbox: &Outbox<E>) -> Self {
         Self {
@@ -52,7 +52,7 @@ const GET_PRICE_FROM_CLIENT_JOB_TYPE: JobType = JobType::new("cron.core-price.ge
 
 impl<E> JobInitializer for GetPriceFromClientJobInit<E>
 where
-    E: OutboxEventMarker<CorePriceEvent>,
+    E: OutboxEventMarker<CorePriceEvent> + Send + Sync + 'static,
 {
     fn job_type() -> JobType {
         GET_PRICE_FROM_CLIENT_JOB_TYPE
@@ -72,7 +72,7 @@ where
 
 pub struct GetPriceFromBfxJobRunner<E>
 where
-    E: OutboxEventMarker<CorePriceEvent>,
+    E: OutboxEventMarker<CorePriceEvent> + Send + Sync + 'static,
 {
     bfx_client: Arc<BfxClient>,
     outbox: Outbox<E>,
@@ -81,16 +81,19 @@ where
 #[async_trait]
 impl<E> JobRunner for GetPriceFromBfxJobRunner<E>
 where
-    E: OutboxEventMarker<CorePriceEvent>,
+    E: OutboxEventMarker<CorePriceEvent> + Send + Sync + 'static,
 {
     async fn run(
         &self,
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        loop {
-            let price: PriceOfOneBTC = bfx_client::fetch_price(self.bfx_client.as_ref()).await?;
+        let outbox = self.outbox.clone();
+        let bfx_client = self.bfx_client.clone();
 
-            self.outbox
+        loop {
+            let price: PriceOfOneBTC = bfx_client::fetch_price(bfx_client.as_ref()).await?;
+
+            outbox
                 .publish_ephemeral(
                     PRICE_UPDATED_EVENT_TYPE,
                     CorePriceEvent::PriceUpdated {

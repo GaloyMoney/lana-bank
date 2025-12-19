@@ -15,7 +15,7 @@ mod publisher;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use job::Jobs;
-use outbox::{Outbox, OutboxEventMarker};
+use obix::out::{Outbox, OutboxEventMarker};
 use tracing_macros::*;
 
 pub use config::*;
