@@ -107,7 +107,7 @@ where
         };
 
         self.ledger
-            .record_obligation_defaulted(db, defaulted)
+            .record_obligation_defaulted(&mut db, defaulted)
             .await?;
 
         Ok(JobCompletion::Complete)

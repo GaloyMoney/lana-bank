@@ -139,7 +139,7 @@ where
 
         if let Some(period) = next_accrual_period {
             self.ledger
-                .record_interest_accrual(db, interest_accrual)
+                .record_interest_accrual(&mut db, interest_accrual)
                 .await?;
             Ok(JobCompletion::RescheduleAt(period.end))
         } else {
@@ -154,7 +154,7 @@ where
                 )
                 .await?;
             self.ledger
-                .record_interest_accrual(db, interest_accrual)
+                .record_interest_accrual(&mut db, interest_accrual)
                 .await?;
 
             tracing::info!(

@@ -716,7 +716,7 @@ where
 
         self.ledger
             .initiate_disbursal(
-                db,
+                &mut db,
                 disbursal.id,
                 disbursal.initiated_tx_id,
                 disbursal.amount,
@@ -787,7 +787,7 @@ where
 
         self.ledger
             .update_pending_credit_facility_collateral(
-                db,
+                &mut db,
                 collateral_update,
                 pending_facility.account_ids,
             )
@@ -835,7 +835,7 @@ where
         };
         self.ledger
             .update_credit_facility_collateral(
-                db,
+                &mut db,
                 collateral_update,
                 credit_facility.account_ids.collateral_account_id,
             )
@@ -1005,7 +1005,7 @@ where
                     )
                     .await?;
 
-                self.ledger.complete_credit_facility(db, completion).await?;
+                self.ledger.complete_credit_facility(&mut db, completion).await?;
                 facility
             }
         };

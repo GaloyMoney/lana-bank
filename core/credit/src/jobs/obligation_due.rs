@@ -139,7 +139,7 @@ where
                 .await?;
         }
 
-        self.ledger.record_obligation_due(db, due).await?;
+        self.ledger.record_obligation_due(&mut db, due).await?;
 
         Ok(JobCompletion::Complete)
     }

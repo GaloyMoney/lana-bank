@@ -197,7 +197,7 @@ where
         };
 
         self.ledger
-            .record_interest_accrual_cycle(op, facility_accrual_cycle_data)
+            .record_interest_accrual_cycle(&mut op, facility_accrual_cycle_data)
             .await?;
 
         return Ok(JobCompletion::Complete);

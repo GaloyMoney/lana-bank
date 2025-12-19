@@ -256,7 +256,7 @@ where
         );
 
         self.ledger
-            .record_payment_allocations(op, allocations)
+            .record_payment_allocations(&mut op, allocations)
             .await?;
 
         Ok(())

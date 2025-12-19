@@ -1167,7 +1167,7 @@ impl CreditLedger {
 
     pub async fn update_pending_credit_facility_collateral(
         &self,
-        mut op: es_entity::DbOp<'_>,
+        op: &mut es_entity::DbOp<'_>,
         CollateralUpdate {
             tx_id,
             abs_diff,
@@ -1176,12 +1176,11 @@ impl CreditLedger {
         }: CollateralUpdate,
         credit_facility_proposal_account_ids: PendingCreditFacilityAccountIds,
     ) -> Result<(), CreditLedgerError> {
-        // Directly use the DbOp without wrapping
         match action {
             CollateralAction::Add => {
                 self.cala
                     .post_transaction_in_op(
-                        &mut op,
+                        op,
                         tx_id,
                         templates::ADD_COLLATERAL_CODE,
                         templates::AddCollateralParams {
@@ -1201,7 +1200,7 @@ impl CreditLedger {
             CollateralAction::Remove => {
                 self.cala
                     .post_transaction_in_op(
-                        &mut op,
+                        op,
                         tx_id,
                         templates::REMOVE_COLLATERAL_CODE,
                         templates::RemoveCollateralParams {
@@ -1224,7 +1223,7 @@ impl CreditLedger {
 
     pub async fn update_credit_facility_collateral(
         &self,
-        mut op: es_entity::DbOp<'_>,
+        op: &mut es_entity::DbOp<'_>,
         CollateralUpdate {
             tx_id,
             abs_diff,
@@ -1233,12 +1232,11 @@ impl CreditLedger {
         }: CollateralUpdate,
         collateral_account_id: CalaAccountId,
     ) -> Result<(), CreditLedgerError> {
-        // Directly use the DbOp without wrapping
         match action {
             CollateralAction::Add => {
                 self.cala
                     .post_transaction_in_op(
-                        &mut op,
+                        op,
                         tx_id,
                         templates::ADD_COLLATERAL_CODE,
                         templates::AddCollateralParams {
@@ -1257,7 +1255,7 @@ impl CreditLedger {
             CollateralAction::Remove => {
                 self.cala
                     .post_transaction_in_op(
-                        &mut op,
+                        op,
                         tx_id,
                         templates::REMOVE_COLLATERAL_CODE,
                         templates::RemoveCollateralParams {
@@ -1312,13 +1310,11 @@ impl CreditLedger {
 
     pub async fn record_payment_allocations(
         &self,
-        mut op: es_entity::DbOp<'_>,
+        op: &mut es_entity::DbOp<'_>,
         payments: Vec<PaymentAllocation>,
     ) -> Result<(), CreditLedgerError> {
-        // Directly use the DbOp without wrapping
-
         for payment in payments {
-            self.record_obligation_repayment_in_op(&mut op, payment)
+            self.record_obligation_repayment_in_op(op, payment)
                 .await?;
         }
         Ok(())
@@ -1326,7 +1322,7 @@ impl CreditLedger {
 
     pub async fn record_obligation_due(
         &self,
-        mut op: es_entity::DbOp<'_>,
+        op: &mut es_entity::DbOp<'_>,
         ObligationDueReallocationData {
             tx_id,
             amount: outstanding_amount,
@@ -1336,10 +1332,9 @@ impl CreditLedger {
             ..
         }: ObligationDueReallocationData,
     ) -> Result<(), CreditLedgerError> {
-        // Directly use the DbOp without wrapping
         self.cala
             .post_transaction_in_op(
-                &mut op,
+                op,
                 tx_id,
                 templates::RECORD_OBLIGATION_DUE_BALANCE_CODE,
                 templates::RecordObligationDueBalanceParams {
@@ -1356,7 +1351,7 @@ impl CreditLedger {
 
     pub async fn record_obligation_overdue(
         &self,
-        mut op: es_entity::DbOp<'_>,
+        op: &mut es_entity::DbOp<'_>,
         ObligationOverdueReallocationData {
             tx_id,
             amount: outstanding_amount,
@@ -1366,10 +1361,9 @@ impl CreditLedger {
             ..
         }: ObligationOverdueReallocationData,
     ) -> Result<(), CreditLedgerError> {
-        // Directly use the DbOp without wrapping
         self.cala
             .post_transaction_in_op(
-                &mut op,
+                op,
                 tx_id,
                 templates::RECORD_OBLIGATION_OVERDUE_BALANCE_CODE,
                 templates::RecordObligationOverdueBalanceParams {
@@ -1386,7 +1380,7 @@ impl CreditLedger {
 
     pub async fn record_obligation_defaulted(
         &self,
-        mut op: es_entity::DbOp<'_>,
+        op: &mut es_entity::DbOp<'_>,
         ObligationDefaultedReallocationData {
             tx_id,
             amount: outstanding_amount,
@@ -1396,10 +1390,9 @@ impl CreditLedger {
             ..
         }: ObligationDefaultedReallocationData,
     ) -> Result<(), CreditLedgerError> {
-        // Directly use the DbOp without wrapping
         self.cala
             .post_transaction_in_op(
-                &mut op,
+                op,
                 tx_id,
                 templates::RECORD_OBLIGATION_DEFAULTED_BALANCE_CODE,
                 templates::RecordObligationDefaultedBalanceParams {
@@ -1416,17 +1409,16 @@ impl CreditLedger {
 
     pub async fn complete_credit_facility(
         &self,
-        mut op: es_entity::DbOp<'_>,
+        op: &mut es_entity::DbOp<'_>,
         CreditFacilityCompletion {
             tx_id,
             collateral,
             credit_facility_account_ids,
         }: CreditFacilityCompletion,
     ) -> Result<(), CreditLedgerError> {
-        // Directly use the DbOp without wrapping
         self.cala
             .post_transaction_in_op(
-                &mut op,
+                op,
                 tx_id,
                 templates::REMOVE_COLLATERAL_CODE,
                 templates::RemoveCollateralParams {
@@ -1444,7 +1436,7 @@ impl CreditLedger {
 
     async fn create_credit_facility_proposal(
         &self,
-        mut op: es_entity::DbOpWithTime<'_>,
+        op: &mut es_entity::DbOpWithTime<'_>,
         PendingCreditFacilityCreation {
             tx_id,
             tx_ref,
@@ -1454,7 +1446,7 @@ impl CreditLedger {
     ) -> Result<(), CreditLedgerError> {
         self.cala
             .post_transaction_in_op(
-                &mut op,
+                op,
                 tx_id,
                 templates::CREATE_CREDIT_FACILITY_PROPOSAL_CODE,
                 templates::CreateCreditFacilityProposalParams {
@@ -1597,7 +1589,7 @@ impl CreditLedger {
 
     pub async fn record_interest_accrual(
         &self,
-        mut op: es_entity::DbOp<'_>,
+        op: &mut es_entity::DbOp<'_>,
         CreditFacilityInterestAccrual {
             tx_id,
             tx_ref,
@@ -1606,10 +1598,9 @@ impl CreditLedger {
             credit_facility_account_ids,
         }: CreditFacilityInterestAccrual,
     ) -> Result<(), CreditLedgerError> {
-        // Directly use the DbOp without wrapping
         self.cala
             .post_transaction_in_op(
-                &mut op,
+                op,
                 tx_id,
                 templates::CREDIT_FACILITY_ACCRUE_INTEREST_CODE,
                 templates::CreditFacilityAccrueInterestParams {
@@ -1630,7 +1621,7 @@ impl CreditLedger {
 
     pub async fn record_interest_accrual_cycle(
         &self,
-        mut op: es_entity::DbOp<'_>,
+        op: &mut es_entity::DbOp<'_>,
         CreditFacilityInterestAccrualCycle {
             tx_id,
             tx_ref,
@@ -1639,10 +1630,9 @@ impl CreditLedger {
             credit_facility_account_ids,
         }: CreditFacilityInterestAccrualCycle,
     ) -> Result<(), CreditLedgerError> {
-        // Directly use the DbOp without wrapping
         self.cala
             .post_transaction_in_op(
-                &mut op,
+                op,
                 tx_id,
                 templates::CREDIT_FACILITY_POST_ACCRUED_INTEREST_CODE,
                 templates::CreditFacilityPostAccruedInterestParams {
@@ -1663,16 +1653,15 @@ impl CreditLedger {
 
     pub async fn initiate_disbursal(
         &self,
-        mut op: es_entity::DbOp<'_>,
+        op: &mut es_entity::DbOp<'_>,
         entity_id: DisbursalId,
         tx_id: LedgerTxId,
         amount: UsdCents,
         facility_account_id: CalaAccountId,
     ) -> Result<(), CreditLedgerError> {
-        // Directly use the DbOp without wrapping
         self.cala
             .post_transaction_in_op(
-                &mut op,
+                op,
                 tx_id,
                 templates::INITIATE_DISBURSAL_CODE,
                 templates::InitiateDisbursalParams {
@@ -1883,7 +1872,7 @@ impl CreditLedger {
 
     pub(super) async fn handle_pending_facility_creation(
         &self,
-        mut op: es_entity::DbOp<'_>,
+        op: es_entity::DbOp<'_>,
         pending_credit_facility: &crate::PendingCreditFacility,
     ) -> Result<(), CreditLedgerError> {
         let mut op = op.with_db_time().await?;
@@ -1902,7 +1891,7 @@ impl CreditLedger {
         )
         .await?;
 
-        self.create_credit_facility_proposal(op, pending_credit_facility.creation_data())
+        self.create_credit_facility_proposal(&mut op, pending_credit_facility.creation_data())
             .await?;
 
         Ok(())
