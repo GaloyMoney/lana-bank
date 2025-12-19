@@ -145,24 +145,22 @@ impl DomainConfig {
 impl TryFromEvents<DomainConfigEvent> for DomainConfig {
     fn try_from_events(events: EntityEvents<DomainConfigEvent>) -> Result<Self, EsEntityError> {
         let mut builder = DomainConfigBuilder::default();
-        let mut simple_type = None;
 
         for event in events.iter_all() {
             match event {
                 DomainConfigEvent::Initialized {
                     id,
                     key,
-                    simple_type: st,
+                    simple_type,
                     ..
                 } => {
-                    builder = builder.id(*id).key(key.clone());
-                    simple_type = *st;
+                    builder = builder.id(*id).key(key.clone()).simple_type(*simple_type);
                 }
                 DomainConfigEvent::Updated { .. } => {}
             }
         }
 
-        builder.simple_type(simple_type).events(events).build()
+        builder.events(events).build()
     }
 }
 
