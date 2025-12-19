@@ -153,6 +153,7 @@ impl CreditFacilityHistory {
             ObligationOverdue { .. } => {}
             ObligationDefaulted { .. } => {}
             PartialLiquidationInitiated { .. } => {}
+            PartialLiquidationCollateralSentOut { .. } => {}
             PartialLiquidationRepaymentAmountReceived { .. } => {}
             PartialLiquidationCompleted { .. } => {}
             ObligationCompleted { .. } => {}

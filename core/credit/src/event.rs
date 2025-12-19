@@ -127,6 +127,12 @@ pub enum CoreCreditEvent {
         initially_expected_to_receive: UsdCents,
         initially_estimated_to_liquidate: Satoshis,
     },
+    PartialLiquidationCollateralSentOut {
+        liquidation_id: LiquidationId,
+        credit_facility_id: CreditFacilityId,
+        amount: Satoshis,
+        ledger_tx_id: LedgerTxId,
+    },
     PartialLiquidationRepaymentAmountReceived {
         liquidation_id: LiquidationId,
         credit_facility_id: CreditFacilityId,

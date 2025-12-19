@@ -427,7 +427,16 @@ where
                     payment_id: *payment_id,
                     ledger_tx_id: *ledger_tx_id,
                 }),
-                CollateralSentOut { .. } => None,
+                CollateralSentOut {
+                    amount,
+                    ledger_tx_id,
+                    ..
+                } => Some(CoreCreditEvent::PartialLiquidationCollateralSentOut {
+                    liquidation_id: entity.id,
+                    credit_facility_id: entity.credit_facility_id,
+                    amount: *amount,
+                    ledger_tx_id: *ledger_tx_id,
+                }),
                 Updated { .. } => None,
             })
             .collect::<Vec<_>>();
