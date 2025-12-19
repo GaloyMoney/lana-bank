@@ -169,14 +169,17 @@ def _create_dbt_model_callable(manifest: dict, model_unique_id: str):
 
 def _create_dbt_seed_callable(manifest: dict, seed_unique_id: str):
     """Create a callable that runs a specific dbt seed."""
-    seed_name = manifest["nodes"][seed_unique_id]["name"]
+    fqn = manifest["nodes"][seed_unique_id].get("fqn", [])
+    # Use fqn for more specific seed selection (consistent with model pattern)
+    # Format: project_name.seed_name
+    seed_selector = ".".join(fqn)
 
     def run_dbt_seed(context: dg.AssetExecutionContext, dbt: DbtCliResource) -> None:
         """Run a specific dbt seed."""
         context.log.info(f"Running dbt seed: {seed_unique_id}")
 
         stream = dbt.cli(
-            ["seed", "--select", seed_name], manifest=manifest
+            ["seed", "--select", seed_selector], manifest=manifest
         ).stream()
 
         for event in stream:
