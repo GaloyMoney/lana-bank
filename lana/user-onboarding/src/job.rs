@@ -7,7 +7,7 @@ use futures::StreamExt;
 
 use job::*;
 
-use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
+use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use keycloak_client::KeycloakClient;
 
@@ -78,7 +78,7 @@ where
 
 #[derive(Default, Clone, serde::Deserialize, serde::Serialize)]
 struct UserOnboardingJobData {
-    sequence: outbox::EventSequence,
+    sequence: obix::EventSequence,
 }
 
 pub struct UserOnboardingJobRunner<E>
@@ -127,7 +127,7 @@ where
         let mut state = current_job
             .execution_state::<UserOnboardingJobData>()?
             .unwrap_or_default();
-        let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
+        let mut stream = self.outbox.listen_persisted(Some(state.sequence));
 
         loop {
             select! {

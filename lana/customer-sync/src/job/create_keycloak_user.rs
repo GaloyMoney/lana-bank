@@ -6,7 +6,7 @@ use tracing::{Span, instrument};
 
 use core_customer::CoreCustomerEvent;
 use core_deposit::CoreDepositEvent;
-use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
+use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use job::*;
 
@@ -78,7 +78,7 @@ where
 
 #[derive(Default, Clone, serde::Deserialize, serde::Serialize)]
 struct CreateKeycloakUserJobData {
-    sequence: outbox::EventSequence,
+    sequence: obix::EventSequence,
 }
 
 pub struct CreateKeycloakUserJobRunner<E>

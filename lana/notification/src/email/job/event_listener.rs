@@ -8,7 +8,7 @@ use job::{
     CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType, RetrySettings,
 };
 use lana_events::{CoreAccessEvent, CoreCreditEvent, CoreDepositEvent, LanaEvent};
-use outbox::{Outbox, PersistentOutboxEvent};
+use obix::out::{Outbox, PersistentOutboxEvent};
 
 use crate::email::EmailNotification;
 

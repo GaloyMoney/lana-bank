@@ -11,7 +11,7 @@ use core_deposit::{
 
 use governance::GovernanceEvent;
 use lana_events::LanaEvent;
-use outbox::OutboxEventMarker;
+use obix::out::OutboxEventMarker;
 
 use crate::config::CustomerSyncConfig;
 use job::*;

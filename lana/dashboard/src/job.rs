@@ -4,7 +4,7 @@ use tokio::select;
 use tracing::{Span, instrument};
 
 use job::*;
-use outbox::PersistentOutboxEvent;
+use obix::out::PersistentOutboxEvent;
 
 use crate::{Outbox, repo::DashboardRepo, values::*};
 
