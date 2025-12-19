@@ -20,6 +20,12 @@ pub enum DomainConfigError {
 
 es_entity::from_es_entity_error!(DomainConfigError);
 
+impl From<rust_decimal::Error> for DomainConfigError {
+    fn from(value: rust_decimal::Error) -> Self {
+        Self::InvalidType(value.to_string())
+    }
+}
+
 impl ErrorSeverity for DomainConfigError {
     fn severity(&self) -> Level {
         match self {

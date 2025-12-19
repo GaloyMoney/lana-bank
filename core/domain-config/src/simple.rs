@@ -55,9 +55,7 @@ impl SimpleType {
                 ))),
             },
             SimpleType::Decimal => match value {
-                Value::String(v) => Decimal::from_str(&v)
-                    .map(SimpleValue::Decimal)
-                    .map_err(|e| DomainConfigError::InvalidType(format!("{e}"))),
+                Value::String(v) => Ok(SimpleValue::Decimal(Decimal::from_str(&v)?)),
                 other => Err(DomainConfigError::InvalidType(format!(
                     "Expected decimal string, got {other:?}"
                 ))),
@@ -233,8 +231,7 @@ impl SimpleScalar for Decimal {
 
     fn from_json(v: Value) -> Result<Self, DomainConfigError> {
         match v {
-            Value::String(v) => Decimal::from_str(&v)
-                .map_err(|e| DomainConfigError::InvalidType(format!("{e}"))),
+            Value::String(v) => Ok(Decimal::from_str(&v)?),
             other => Err(DomainConfigError::InvalidType(format!(
                 "Expected decimal string, got {other:?}"
             ))),
