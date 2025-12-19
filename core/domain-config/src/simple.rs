@@ -34,31 +34,31 @@ impl SimpleType {
         match self {
             SimpleType::Bool => match value {
                 Value::Bool(v) => Ok(SimpleValue::Bool(v)),
-                other => Err(DomainConfigError::InvalidState(format!(
+                other => Err(DomainConfigError::InvalidType(format!(
                     "Expected bool, got {other:?}"
                 ))),
             },
             SimpleType::String => match value {
                 Value::String(v) => Ok(SimpleValue::String(v)),
-                other => Err(DomainConfigError::InvalidState(format!(
+                other => Err(DomainConfigError::InvalidType(format!(
                     "Expected string, got {other:?}"
                 ))),
             },
             SimpleType::Int => match value {
                 Value::Number(v) => v.as_i64().map(SimpleValue::Int).ok_or_else(|| {
-                    DomainConfigError::InvalidState(format!(
+                    DomainConfigError::InvalidType(format!(
                         "Expected i64-compatible number, got {v}"
                     ))
                 }),
-                other => Err(DomainConfigError::InvalidState(format!(
+                other => Err(DomainConfigError::InvalidType(format!(
                     "Expected number, got {other:?}"
                 ))),
             },
             SimpleType::Decimal => match value {
                 Value::String(v) => Decimal::from_str(&v)
                     .map(SimpleValue::Decimal)
-                    .map_err(|e| DomainConfigError::InvalidState(format!("{e}"))),
-                other => Err(DomainConfigError::InvalidState(format!(
+                    .map_err(|e| DomainConfigError::InvalidType(format!("{e}"))),
+                other => Err(DomainConfigError::InvalidType(format!(
                     "Expected decimal string, got {other:?}"
                 ))),
             },
@@ -179,7 +179,7 @@ impl SimpleScalar for bool {
     fn from_json(v: Value) -> Result<Self, DomainConfigError> {
         match v {
             Value::Bool(v) => Ok(v),
-            other => Err(DomainConfigError::InvalidState(format!(
+            other => Err(DomainConfigError::InvalidType(format!(
                 "Expected bool, got {other:?}"
             ))),
         }
@@ -196,7 +196,7 @@ impl SimpleScalar for String {
     fn from_json(v: Value) -> Result<Self, DomainConfigError> {
         match v {
             Value::String(v) => Ok(v),
-            other => Err(DomainConfigError::InvalidState(format!(
+            other => Err(DomainConfigError::InvalidType(format!(
                 "Expected string, got {other:?}"
             ))),
         }
@@ -213,11 +213,11 @@ impl SimpleScalar for i64 {
     fn from_json(v: Value) -> Result<Self, DomainConfigError> {
         match v {
             Value::Number(v) => v.as_i64().ok_or_else(|| {
-                DomainConfigError::InvalidState(format!(
+                DomainConfigError::InvalidType(format!(
                     "Expected i64-compatible number, got {v}"
                 ))
             }),
-            other => Err(DomainConfigError::InvalidState(format!(
+            other => Err(DomainConfigError::InvalidType(format!(
                 "Expected number, got {other:?}"
             ))),
         }
@@ -234,8 +234,8 @@ impl SimpleScalar for Decimal {
     fn from_json(v: Value) -> Result<Self, DomainConfigError> {
         match v {
             Value::String(v) => Decimal::from_str(&v)
-                .map_err(|e| DomainConfigError::InvalidState(format!("{e}"))),
-            other => Err(DomainConfigError::InvalidState(format!(
+                .map_err(|e| DomainConfigError::InvalidType(format!("{e}"))),
+            other => Err(DomainConfigError::InvalidType(format!(
                 "Expected decimal string, got {other:?}"
             ))),
         }
@@ -283,6 +283,6 @@ mod tests {
         assert_eq!(entry, SimpleValue::Int(123));
 
         let err = SimpleType::Bool.parse_json(json!("nope")).unwrap_err();
-        assert!(matches!(err, DomainConfigError::InvalidState(_)));
+        assert!(matches!(err, DomainConfigError::InvalidType(_)));
     }
 }

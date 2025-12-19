@@ -76,7 +76,7 @@ impl DomainConfig {
         let simple_type = self
             .simple_type
             .ok_or_else(|| {
-                DomainConfigError::InvalidState(format!(
+                DomainConfigError::InvalidType(format!(
                     "Config is not simple for {key}",
                     key = self.key
                 ))
@@ -123,11 +123,11 @@ impl DomainConfig {
     fn ensure_simple_type(&self, expected: SimpleType) -> Result<(), DomainConfigError> {
         match self.simple_type {
             Some(found) if found == expected => Ok(()),
-            Some(found) => Err(DomainConfigError::InvalidState(format!(
+            Some(found) => Err(DomainConfigError::InvalidType(format!(
                 "Invalid simple type for {key}: expected {expected}, found {found}",
                 key = self.key
             ))),
-            None => Err(DomainConfigError::InvalidState(format!(
+            None => Err(DomainConfigError::InvalidType(format!(
                 "Invalid simple type for {key}: expected {expected}, found none",
                 key = self.key
             ))),
@@ -137,7 +137,7 @@ impl DomainConfig {
     fn ensure_complex(&self) -> Result<(), DomainConfigError> {
         match self.simple_type {
             None => Ok(()),
-            Some(found) => Err(DomainConfigError::InvalidState(format!(
+            Some(found) => Err(DomainConfigError::InvalidType(format!(
                 "Config is simple for {key}: found simple type {found}",
                 key = self.key
             ))),
