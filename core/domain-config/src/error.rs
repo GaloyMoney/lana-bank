@@ -8,6 +8,10 @@ pub enum DomainConfigError {
     InvalidState(String),
     #[error("DomainConfigError - Not Configured")]
     NotConfigured,
+    #[error("DomainConfigError - No default value defined for config key {0}")]
+    NoDefault(String),
+    #[error("DomainConfigError - Invalid Type: {0}")]
+    InvalidType(String),
     #[error("DomainConfigError - Serde: {0}")]
     Serde(#[from] serde_json::Error),
     #[error("DomainConfigError - Sqlx: {0}")]
@@ -25,6 +29,8 @@ impl ErrorSeverity for DomainConfigError {
         match self {
             Self::InvalidState(_) => Level::ERROR,
             Self::NotConfigured => Level::WARN,
+            Self::NoDefault(_) => Level::WARN,
+            Self::InvalidType(_) => Level::ERROR,
             Self::Serde(_) => Level::ERROR,
             Self::Sqlx(_) => Level::ERROR,
             Self::EsEntityError(e) => e.severity(),

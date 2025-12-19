@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use domain_config::{DomainConfigError, DomainConfigKey, DomainConfigValue};
+use domain_config::{Complex, ConfigSpec, DomainConfigError, DomainConfigKey, Visibility};
 
 use crate::{ClosingAccountCodes, primitives::AccountCode};
 
@@ -13,17 +13,22 @@ pub struct FiscalYearConfig {
     pub equity_retained_losses_account_code: String,
 }
 
-impl DomainConfigValue for FiscalYearConfig {
-    const KEY: DomainConfigKey = DomainConfigKey::new("fiscal-year");
+#[allow(dead_code)]
+pub struct FiscalYearConfigSpec;
 
-    fn validate(&self) -> Result<(), DomainConfigError> {
-        if self.revenue_account_code.parse::<AccountCode>().is_err() {
+impl ConfigSpec for FiscalYearConfigSpec {
+    const KEY: DomainConfigKey = DomainConfigKey::new("fiscal-year");
+    const VISIBILITY: Visibility = Visibility::Internal;
+    type Kind = Complex<FiscalYearConfig>;
+
+    fn validate(value: &FiscalYearConfig) -> Result<(), DomainConfigError> {
+        if value.revenue_account_code.parse::<AccountCode>().is_err() {
             return Err(DomainConfigError::InvalidState(
                 "revenue_account_code should be a valid account code".to_string(),
             ));
         }
 
-        if self
+        if value
             .cost_of_revenue_account_code
             .parse::<AccountCode>()
             .is_err()
@@ -33,13 +38,13 @@ impl DomainConfigValue for FiscalYearConfig {
             ));
         }
 
-        if self.expenses_account_code.parse::<AccountCode>().is_err() {
+        if value.expenses_account_code.parse::<AccountCode>().is_err() {
             return Err(DomainConfigError::InvalidState(
                 "expenses_account_code should be a valid account code".to_string(),
             ));
         }
 
-        if self
+        if value
             .equity_retained_earnings_account_code
             .parse::<AccountCode>()
             .is_err()
@@ -49,7 +54,7 @@ impl DomainConfigValue for FiscalYearConfig {
             ));
         }
 
-        if self
+        if value
             .equity_retained_losses_account_code
             .parse::<AccountCode>()
             .is_err()

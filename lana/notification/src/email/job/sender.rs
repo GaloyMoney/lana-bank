@@ -1,12 +1,12 @@
 use async_trait::async_trait;
-use domain_config::{DomainConfigValue, DomainConfigs};
+use domain_config::{ConfigSpec, DomainConfigs};
 use job::{CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType};
 use serde::{Deserialize, Serialize};
 use smtp_client::SmtpClient;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-use crate::email::config::NotificationEmailConfig;
+use crate::email::config::NotificationEmailConfigSpec;
 use crate::email::templates::{EmailTemplate, EmailType};
 
 #[derive(Serialize, Deserialize)]
@@ -73,10 +73,12 @@ impl JobRunner for EmailSenderRunner {
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let notification_email_conf = self
             .domain_configs
-            .get_or_default::<NotificationEmailConfig>()
+            .get_or_default::<NotificationEmailConfigSpec>()
             .await?;
 
-        if let Err(err) = notification_email_conf.validate() {
+        if let Err(err) =
+            <NotificationEmailConfigSpec as ConfigSpec>::validate(&notification_email_conf)
+        {
             tracing::warn!(error = ?err, "invalid notification email config; skipping email");
             return Ok(JobCompletion::Complete);
         }

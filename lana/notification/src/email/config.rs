@@ -1,7 +1,7 @@
 use lettre::address::Address;
 use serde::{Deserialize, Serialize};
 
-use domain_config::{DomainConfigError, DomainConfigKey, DomainConfigValue};
+use domain_config::{Complex, ConfigSpec, DomainConfigError, DomainConfigKey, Visibility};
 
 #[derive(Clone, Debug, Deserialize, Serialize, Default)]
 #[serde(deny_unknown_fields)]
@@ -38,23 +38,35 @@ pub struct NotificationEmailConfig {
     pub from_name: String,
 }
 
-impl DomainConfigValue for NotificationEmailConfig {
-    const KEY: DomainConfigKey = DomainConfigKey::new("notification-email");
+pub struct NotificationEmailConfigSpec;
 
-    fn validate(&self) -> Result<(), DomainConfigError> {
-        if self.from_email.trim().is_empty() {
+impl ConfigSpec for NotificationEmailConfigSpec {
+    const KEY: DomainConfigKey = DomainConfigKey::new("notification-email");
+    const VISIBILITY: Visibility = Visibility::Internal;
+    type Kind = Complex<NotificationEmailConfig>;
+
+    fn default_value() -> Option<NotificationEmailConfig> {
+        Some(NotificationEmailConfig {
+            from_email: String::new(),
+            from_name: String::new(),
+        })
+    }
+
+    fn validate(value: &NotificationEmailConfig) -> Result<(), DomainConfigError> {
+        if value.from_email.trim().is_empty() {
             return Err(DomainConfigError::InvalidState(
                 "from_email is required".to_string(),
             ));
         }
 
-        if self.from_name.trim().is_empty() {
+        if value.from_name.trim().is_empty() {
             return Err(DomainConfigError::InvalidState(
                 "from_name is required".to_string(),
             ));
         }
 
-        self.from_email
+        value
+            .from_email
             .parse::<Address>()
             .map_err(|e| DomainConfigError::InvalidState(format!("from_email is invalid: {e}")))?;
 
@@ -73,7 +85,7 @@ mod tests {
             from_name: "Notifier".to_string(),
         };
 
-        assert!(config.validate().is_ok());
+        assert!(<NotificationEmailConfigSpec as ConfigSpec>::validate(&config).is_ok());
     }
 
     #[test]
@@ -83,7 +95,7 @@ mod tests {
             from_name: "Notifier".to_string(),
         };
 
-        let result = config.validate();
+        let result = <NotificationEmailConfigSpec as ConfigSpec>::validate(&config);
 
         assert!(matches!(
             result,
@@ -98,7 +110,7 @@ mod tests {
             from_name: "   ".to_string(),
         };
 
-        let result = config.validate();
+        let result = <NotificationEmailConfigSpec as ConfigSpec>::validate(&config);
 
         assert!(matches!(
             result,
@@ -113,7 +125,7 @@ mod tests {
             from_name: "Notifier".to_string(),
         };
 
-        let result = config.validate();
+        let result = <NotificationEmailConfigSpec as ConfigSpec>::validate(&config);
 
         assert!(matches!(
             result,

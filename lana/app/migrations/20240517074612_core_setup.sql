@@ -525,8 +525,11 @@ CREATE TABLE core_report_run_events (
 CREATE TABLE core_domain_configs (
   id UUID PRIMARY KEY,
   key VARCHAR NOT NULL UNIQUE,
+  visibility TEXT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL
 );
+
+CREATE INDEX core_domain_configs_visibility_idx ON core_domain_configs(visibility);
 
 CREATE TABLE core_domain_config_events (
   id UUID NOT NULL REFERENCES core_domain_configs(id),
