@@ -7,3 +7,4 @@ SELECT
     description,
     'consumed_from_seed' AS source_type
 FROM {{ ref('_TEST_DO_NOT_USE_example_seed') }}
+
