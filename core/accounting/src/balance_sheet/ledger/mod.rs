@@ -449,6 +449,7 @@ impl BalanceSheetLedger {
             |meta| meta.expenses_child_account_set_id_from_chart,
         )
         .await?;
+        op.commit().await?;
         Ok(())
     }
 
