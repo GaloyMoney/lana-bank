@@ -426,6 +426,8 @@ where
                     amount: *amount,
                     payment_id: *payment_id,
                     ledger_tx_id: *ledger_tx_id,
+                    recorded_at: event.recorded_at,
+                    effective: event.recorded_at.date_naive(),
                 }),
                 CollateralSentOut {
                     amount,
@@ -436,6 +438,8 @@ where
                     credit_facility_id: entity.credit_facility_id,
                     amount: *amount,
                     ledger_tx_id: *ledger_tx_id,
+                    recorded_at: event.recorded_at,
+                    effective: event.recorded_at.date_naive(),
                 }),
                 Updated { .. } => None,
             })

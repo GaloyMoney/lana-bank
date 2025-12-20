@@ -65,9 +65,16 @@ pub struct InterestAccrualsPosted {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct LiquidationProcess {
-    pub sent_out: Satoshis,
-    pub received: UsdCents,
+pub struct CollateralSentOut {
+    pub amount: Satoshis,
+    pub recorded_at: DateTime<Utc>,
+    pub effective: chrono::NaiveDate,
+    pub tx_id: LedgerTxId,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct RepaymentAmountReceived {
+    pub cents: UsdCents,
     pub recorded_at: DateTime<Utc>,
     pub effective: chrono::NaiveDate,
     pub tx_id: LedgerTxId,
@@ -81,7 +88,8 @@ pub struct LiquidationProcess {
 pub enum CreditFacilityHistoryEntry {
     Approved(CreditFacilityApproved),
     Collateral(CollateralUpdated),
-    Liquidation(LiquidationProcess),
+    Liquidation(CollateralSentOut),
+    Repayment(RepaymentAmountReceived),
     Collateralization(CollateralizationUpdated),
     PendingCreditFacilityCollateralization(PendingCreditFacilityCollateralizationUpdated),
     Payment(IncrementalPayment),

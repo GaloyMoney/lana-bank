@@ -132,6 +132,8 @@ pub enum CoreCreditEvent {
         credit_facility_id: CreditFacilityId,
         amount: Satoshis,
         ledger_tx_id: LedgerTxId,
+        recorded_at: DateTime<Utc>,
+        effective: chrono::NaiveDate,
     },
     PartialLiquidationRepaymentAmountReceived {
         liquidation_id: LiquidationId,
@@ -139,6 +141,8 @@ pub enum CoreCreditEvent {
         amount: UsdCents,
         payment_id: PaymentId,
         ledger_tx_id: LedgerTxId,
+        recorded_at: DateTime<Utc>,
+        effective: chrono::NaiveDate,
     },
     PartialLiquidationCompleted {
         liquidation_id: LiquidationId,
