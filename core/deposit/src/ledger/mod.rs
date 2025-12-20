@@ -770,7 +770,7 @@ impl DepositLedger {
     )]
     pub async fn confirm_withdrawal(
         &self,
-        mut op: es_entity::DbOp<'_>,
+        op: &mut es_entity::DbOp<'_>,
         entity_id: WithdrawalId,
         tx_id: impl Into<TransactionId>,
         correlation_id: String,
@@ -786,7 +786,6 @@ impl DepositLedger {
             "credit_account_id",
             tracing::field::debug(&credit_account_id),
         );
-        // Directly use the DbOp without wrapping
 
         let params = templates::ConfirmWithdrawParams {
             entity_id: entity_id.into(),
@@ -800,7 +799,7 @@ impl DepositLedger {
         };
 
         self.cala
-            .post_transaction_in_op(&mut op, tx_id, templates::CONFIRM_WITHDRAW_CODE, params)
+            .post_transaction_in_op(op, tx_id, templates::CONFIRM_WITHDRAW_CODE, params)
             .await?;
         Ok(())
     }

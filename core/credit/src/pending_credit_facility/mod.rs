@@ -139,7 +139,7 @@ where
             .record("credit_facility_proposal_id", tracing::field::display(&id));
 
         match self.proposals.approve_in_op(&mut db, id, approved).await? {
-            ProposalApprovalOutcome::Ignored => Ok(None),
+            ProposalApprovalOutcome::AlreadyApplied => Ok(None),
             ProposalApprovalOutcome::Rejected(proposal) => {
                 db.commit().await?;
                 Ok(Some(proposal))
@@ -189,8 +189,10 @@ where
                     .await?;
 
                 self.ledger
-                    .handle_pending_facility_creation(db, &pending_credit_facility)
+                    .handle_pending_facility_creation(&mut db, &pending_credit_facility)
                     .await?;
+
+                db.commit().await?;
 
                 Ok(Some(proposal))
             }

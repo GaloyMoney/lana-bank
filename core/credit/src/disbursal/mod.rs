@@ -51,7 +51,7 @@ where
 }
 
 pub(super) enum ApprovalProcessOutcome {
-    Ignored(Disbursal),
+    AlreadyApplied(Disbursal),
     Approved((Disbursal, Obligation)),
     Denied(Disbursal),
 }
@@ -223,7 +223,9 @@ where
         let mut disbursal = self.repo.find_by_id(disbursal_id).await?;
 
         let ret = match disbursal.approval_process_concluded(approved, op.now().date_naive()) {
-            es_entity::Idempotent::AlreadyApplied => ApprovalProcessOutcome::Ignored(disbursal),
+            es_entity::Idempotent::AlreadyApplied => {
+                ApprovalProcessOutcome::AlreadyApplied(disbursal)
+            }
             es_entity::Idempotent::Executed(Some(new_obligation)) => {
                 let obligation = self
                     .obligations

@@ -28,8 +28,8 @@ where
     #[allow(clippy::single_match)]
     async fn process_message(
         &self,
-        message: &PersistentOutboxEvent<E>,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        message: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         use CoreCreditEvent::*;
 
@@ -119,7 +119,7 @@ where
 
     async fn handle_event(
         &self,
-        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        db: &mut sqlx::PgTransaction<'_>,
         message: &PersistentOutboxEvent<E>,
         event: &CoreCreditEvent,
         id: impl Into<CreditFacilityId>,
@@ -166,7 +166,7 @@ where
                     match message {
                         Some(message) => {
                             let mut db = self.repo.begin().await?;
-                            self.process_message(message.as_ref(), &mut db).await?;
+                            self.process_message(&mut db, message.as_ref()).await?;
                             state.sequence = message.sequence;
                             current_job
                                 .update_execution_state_in_op(&mut db, &state)

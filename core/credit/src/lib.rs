@@ -724,6 +724,8 @@ where
             )
             .await?;
 
+        db.commit().await?;
+
         Ok(disbursal)
     }
 
@@ -793,6 +795,8 @@ where
             )
             .await?;
 
+        db.commit().await?;
+
         Ok(pending_facility)
     }
 
@@ -840,6 +844,8 @@ where
                 credit_facility.account_ids.collateral_account_id,
             )
             .await?;
+
+        db.commit().await?;
 
         Ok(credit_facility)
     }
@@ -894,13 +900,15 @@ where
 
         self.obligations
             .allocate_payment_in_op(
-                db,
+                &mut db,
                 credit_facility_id,
                 payment.id,
                 amount,
                 crate::time::now().date_naive(),
             )
             .await?;
+
+        db.commit().await?;
 
         Ok(credit_facility)
     }
@@ -950,8 +958,15 @@ where
             .await?;
 
         self.obligations
-            .allocate_payment_in_op(db, credit_facility_id, payment.id, amount, effective.into())
+            .allocate_payment_in_op(
+                &mut db,
+                credit_facility_id,
+                payment.id,
+                amount,
+                effective.into(),
+            )
             .await?;
+        db.commit().await?;
 
         Ok(credit_facility)
     }
@@ -993,7 +1008,7 @@ where
             .complete_in_op(&mut db, id, CVLPct::UPGRADE_BUFFER)
             .await?
         {
-            CompletionOutcome::Ignored(facility) => facility,
+            CompletionOutcome::AlreadyApplied(facility) => facility,
 
             CompletionOutcome::Completed((facility, completion)) => {
                 self.collaterals
@@ -1008,6 +1023,8 @@ where
                 self.ledger
                     .complete_credit_facility(&mut db, completion)
                     .await?;
+                db.commit().await?;
+
                 facility
             }
         };

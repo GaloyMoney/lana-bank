@@ -83,7 +83,7 @@ where
 }
 
 pub(super) enum CompletionOutcome {
-    Ignored(CreditFacility),
+    AlreadyApplied(CreditFacility),
     Completed((CreditFacility, crate::CreditFacilityCompletion)),
 }
 
@@ -326,7 +326,7 @@ where
         {
             completion
         } else {
-            return Ok(CompletionOutcome::Ignored(credit_facility));
+            return Ok(CompletionOutcome::AlreadyApplied(credit_facility));
         };
 
         self.repo.update_in_op(db, &mut credit_facility).await?;

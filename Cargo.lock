@@ -2360,9 +2360,9 @@ dependencies = [
 
 [[package]]
 name = "es-entity"
-version = "0.10.6"
+version = "0.10.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fc9443d7b82815dfa963bec3e002aabf0d94b56d1889e07ee5c9d1a86a582011"
+checksum = "fa4c521892ec66e1b0d0c8e729217fbac3c83d06d662bab460cb3754eee20341"
 dependencies = [
  "async-graphql",
  "base64 0.22.1",
@@ -2386,9 +2386,9 @@ dependencies = [
 
 [[package]]
 name = "es-entity-macros"
-version = "0.10.6"
+version = "0.10.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "808070a692f8e26cf4e6e8af4a8347349f6aeec1c201b8dc9b9a0fd6310ba259"
+checksum = "6f5077b4080ef9a394b752627ce63200e0b991d8b463f99045cab33ebccfacdf"
 dependencies = [
  "convert_case",
  "darling 0.23.0",
@@ -3387,9 +3387,9 @@ checksum = "4a5f13b858c8d314ee3e8f639011f7ccefe71f97f96e50151fb991f267928e2c"
 
 [[package]]
 name = "job"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d4ca6e40fd252b81c2d5f31b216b0163d58c6b92459b495e2f148a8ff1d9c14e"
+checksum = "e51507690c1d7ca9a038ff6de2df63c517702a796d2c27727d8b06237ffd9a69"
 dependencies = [
  "async-trait",
  "chrono",
@@ -5882,9 +5882,9 @@ dependencies = [
 
 [[package]]
 name = "sim-time"
-version = "0.10.6"
+version = "0.10.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "203ef7918e4189f5026b3e654d64936719731e0de20c03ff1f254a22b8aa19a0"
+checksum = "d4c63ecacf591bd4aa4316c92a5493d904ea9776f093abe3720c6ea1c0e63ffd"
 dependencies = [
  "chrono",
  "serde",

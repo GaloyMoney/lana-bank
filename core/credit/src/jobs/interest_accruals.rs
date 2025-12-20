@@ -141,7 +141,7 @@ where
             self.ledger
                 .record_interest_accrual(&mut db, interest_accrual)
                 .await?;
-            Ok(JobCompletion::RescheduleAtWithOp(period.end, db))
+            Ok(JobCompletion::RescheduleAtWithOp(db, period.end))
         } else {
             self.jobs
                 .create_and_spawn_in_op(

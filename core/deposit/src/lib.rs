@@ -561,7 +561,7 @@ where
 
         self.ledger
             .confirm_withdrawal(
-                op,
+                &mut op,
                 id,
                 tx_id,
                 withdrawal.id.to_string(),
@@ -570,6 +570,8 @@ where
                 format!("lana:withdraw:{}:confirm", withdrawal.id),
             )
             .await?;
+
+        op.commit().await?;
 
         Ok(withdrawal)
     }

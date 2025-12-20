@@ -215,7 +215,7 @@ where
     )]
     pub async fn allocate_payment_in_op(
         &self,
-        mut op: es_entity::DbOp<'_>,
+        op: &mut es_entity::DbOp<'_>,
         credit_facility_id: CreditFacilityId,
         payment_id: PaymentId,
         amount: UsdCents,
@@ -233,7 +233,7 @@ where
             if let es_entity::Idempotent::Executed(new_allocation) =
                 obligation.allocate_payment(remaining, payment_id, effective)
             {
-                self.repo.update_in_op(&mut op, obligation).await?;
+                self.repo.update_in_op(op, obligation).await?;
                 remaining -= new_allocation.amount;
                 new_allocations.push(new_allocation);
                 if remaining == UsdCents::ZERO {
@@ -246,7 +246,7 @@ where
 
         let allocations = self
             .payment_allocation_repo
-            .create_all_in_op(&mut op, new_allocations)
+            .create_all_in_op(op, new_allocations)
             .await?;
 
         let amount_allocated = allocations.iter().fold(UsdCents::ZERO, |c, a| c + a.amount);
@@ -256,7 +256,7 @@ where
         );
 
         self.ledger
-            .record_payment_allocations(&mut op, allocations)
+            .record_payment_allocations(op, allocations)
             .await?;
 
         Ok(())

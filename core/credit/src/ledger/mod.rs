@@ -1436,7 +1436,7 @@ impl CreditLedger {
 
     async fn create_credit_facility_proposal(
         &self,
-        op: &mut es_entity::DbOpWithTime<'_>,
+        op: &mut es_entity::DbOp<'_>,
         PendingCreditFacilityCreation {
             tx_id,
             tx_ref,
@@ -1678,8 +1678,8 @@ impl CreditLedger {
 
     pub async fn cancel_disbursal(
         &self,
-        entity_id: DisbursalId,
         op: &mut es_entity::DbOpWithTime<'_>,
+        entity_id: DisbursalId,
         tx_id: LedgerTxId,
         amount: UsdCents,
         facility_account_id: CalaAccountId,
@@ -1703,8 +1703,8 @@ impl CreditLedger {
 
     pub async fn settle_disbursal(
         &self,
-        entity_id: DisbursalId,
         op: &mut es_entity::DbOpWithTime<'_>,
+        entity_id: DisbursalId,
         obligation: Obligation,
         facility_account_id: CalaAccountId,
     ) -> Result<(), CreditLedgerError> {
@@ -1759,7 +1759,7 @@ impl CreditLedger {
 
     async fn add_credit_facility_control_to_account(
         &self,
-        op: &mut es_entity::DbOpWithTime<'_>,
+        op: &mut es_entity::DbOp<'_>,
         account_id: impl Into<CalaAccountId>,
     ) -> Result<(), CreditLedgerError> {
         self.cala
@@ -1776,7 +1776,7 @@ impl CreditLedger {
 
     async fn create_account_in_op(
         &self,
-        op: &mut es_entity::DbOpWithTime<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         id: impl Into<CalaAccountId>,
         parent_account_set: InternalAccountSetDetails,
         reference: &str,
@@ -1872,13 +1872,11 @@ impl CreditLedger {
 
     pub(super) async fn handle_pending_facility_creation(
         &self,
-        op: es_entity::DbOp<'_>,
+        op: &mut es_entity::DbOp<'_>,
         pending_credit_facility: &crate::PendingCreditFacility,
     ) -> Result<(), CreditLedgerError> {
-        let mut op = op.with_db_time().await?;
-
         self.create_accounts_for_credit_facility_proposal(
-            &mut op,
+            op,
             pending_credit_facility.id,
             pending_credit_facility.collateral_id,
             pending_credit_facility.account_ids,
@@ -1886,12 +1884,12 @@ impl CreditLedger {
         .await?;
 
         self.add_credit_facility_control_to_account(
-            &mut op,
+            op,
             pending_credit_facility.account_ids.facility_account_id,
         )
         .await?;
 
-        self.create_credit_facility_proposal(&mut op, pending_credit_facility.creation_data())
+        self.create_credit_facility_proposal(op, pending_credit_facility.creation_data())
             .await?;
 
         Ok(())
@@ -1899,7 +1897,7 @@ impl CreditLedger {
 
     async fn create_accounts_for_credit_facility_proposal(
         &self,
-        op: &mut es_entity::DbOpWithTime<'_>,
+        op: &mut es_entity::DbOp<'_>,
         credit_facility_id: PendingCreditFacilityId,
         collateral_id: CollateralId,
         account_ids: PendingCreditFacilityAccountIds,

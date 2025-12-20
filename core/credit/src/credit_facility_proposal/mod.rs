@@ -29,7 +29,7 @@ pub enum ProposalApprovalOutcome {
         custodian_id: Option<CustodianId>,
         proposal: CreditFacilityProposal,
     },
-    Ignored,
+    AlreadyApplied,
 }
 
 pub struct CreditFacilityProposals<Perms, E>
@@ -185,7 +185,7 @@ where
                     None => ProposalApprovalOutcome::Rejected(proposal),
                 })
             }
-            es_entity::Idempotent::AlreadyApplied => Ok(ProposalApprovalOutcome::Ignored),
+            es_entity::Idempotent::AlreadyApplied => Ok(ProposalApprovalOutcome::AlreadyApplied),
         }
     }
 

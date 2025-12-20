@@ -151,8 +151,6 @@ impl TrialBalanceLedger {
         op: &mut es_entity::DbOp<'_>,
         reference: &str,
     ) -> Result<AccountSetId, TrialBalanceLedgerError> {
-        // Directly use the DbOp without wrapping
-
         let statement_id = self
             .create_unique_account_set(op, reference, DebitOrCredit::Debit, vec![])
             .await?;
