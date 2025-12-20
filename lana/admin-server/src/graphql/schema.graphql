@@ -425,6 +425,13 @@ type CreditFacilityBalance {
 	collateral: CollateralBalance!
 }
 
+type CreditFacilityCollateralSentOut {
+	amount: Satoshis!
+	recordedAt: Timestamp!
+	effective: Date!
+	txId: UUID!
+}
+
 input CreditFacilityCollateralUpdateInput {
 	creditFacilityId: UUID!
 	collateral: Satoshis!
@@ -547,7 +554,7 @@ type CreditFacilityEdge {
 	cursor: String!
 }
 
-union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityApproved | PendingCreditFacilityCollateralizationUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityInterestAccrued
+union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityApproved | PendingCreditFacilityCollateralizationUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityInterestAccrued | CreditFacilityCollateralSentOut | CreditFacilityRepaymentAmountReceived
 
 type CreditFacilityIncrementalPayment {
 	cents: UsdCents!
@@ -685,6 +692,13 @@ enum CreditFacilityProposalStatus {
 	PENDING_APPROVAL
 	APPROVED
 	DENIED
+}
+
+type CreditFacilityRepaymentAmountReceived {
+	cents: UsdCents!
+	recordedAt: Timestamp!
+	effective: Date!
+	txId: UUID!
 }
 
 type CreditFacilityRepaymentPlanEntry {

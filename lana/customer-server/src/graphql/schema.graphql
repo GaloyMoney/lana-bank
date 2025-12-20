@@ -56,6 +56,13 @@ type CreditFacilityBalance {
 	collateral: Collateral!
 }
 
+type CreditFacilityCollateralSentOut {
+	amount: Satoshis!
+	recordedAt: Timestamp!
+	effective: Date!
+	txId: UUID!
+}
+
 type CreditFacilityCollateralUpdated {
 	satoshis: Satoshis!
 	recordedAt: Timestamp!
@@ -89,7 +96,7 @@ type CreditFacilityDisbursalExecuted {
 	txId: UUID!
 }
 
-union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityApproved | PendingCreditFacilityCollateralizationUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityInterestAccrued
+union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityApproved | PendingCreditFacilityCollateralizationUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityInterestAccrued | CreditFacilityCollateralSentOut | CreditFacilityRepaymentAmountReceived
 
 type CreditFacilityIncrementalPayment {
 	cents: UsdCents!
@@ -112,6 +119,13 @@ type CreditFacilityPaymentAllocation {
 	amount: UsdCents!
 	createdAt: Timestamp!
 	creditFacility: CreditFacility!
+}
+
+type CreditFacilityRepaymentAmountReceived {
+	cents: UsdCents!
+	recordedAt: Timestamp!
+	effective: Date!
+	txId: UUID!
 }
 
 type CreditFacilityRepaymentPlanEntry {
