@@ -20,6 +20,8 @@ pub enum CreditFacilityError {
     ),
     #[error("CreditFacilityError - DisbursalError: {0}")]
     DisbursalError(#[from] crate::disbursal::error::DisbursalError),
+    #[error("CreditFacilityError - PaymentError: {0}")]
+    PaymentError(#[from] crate::payment::error::PaymentError),
     #[error("CreditFacilityError - ApprovalInProgress")]
     ApprovalInProgress,
     #[error("CreditFacilityError - Denied")]
@@ -87,6 +89,7 @@ impl ErrorSeverity for CreditFacilityError {
             Self::ConversionError(e) => e.severity(),
             Self::InterestAccrualCycleError(e) => e.severity(),
             Self::DisbursalError(e) => e.severity(),
+            Self::PaymentError(e) => e.severity(),
             Self::ApprovalInProgress => Level::WARN,
             Self::Denied => Level::WARN,
             Self::DisbursalPastMaturityDate => Level::WARN,

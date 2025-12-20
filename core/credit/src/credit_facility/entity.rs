@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 use es_entity::*;
 
 use crate::{
+    NewPayment,
     ledger::*,
     obligation::{NewObligation, ObligationsAmounts},
     primitives::*,
@@ -54,6 +55,10 @@ pub enum CreditFacilityEvent {
     },
     CollateralizationRatioChanged {
         collateralization_ratio: CollateralizationRatio,
+    },
+    PaymentAssigned {
+        ledger_tx_id: LedgerTxId,
+        payment_id: PaymentId,
     },
     PartialLiquidationInitiated {
         liquidation_id: LiquidationId,
@@ -548,6 +553,42 @@ impl CreditFacility {
         }
     }
 
+    pub(crate) fn register_assigned_payment(
+        &mut self,
+        payment_id: PaymentId,
+        payment_source_account_id: CalaAccountId,
+        amount: UsdCents,
+    ) -> Idempotent<NewPayment> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            CreditFacilityEvent::PaymentAssigned { payment_id: existing_id, .. } if existing_id == &payment_id
+        );
+
+        let ledger_tx_id = LedgerTxId::new();
+        self.events.push(CreditFacilityEvent::PaymentAssigned {
+            ledger_tx_id,
+            payment_id,
+        });
+
+        let assigned_payment_idx = self
+            .events()
+            .iter_all()
+            .filter(|e| matches!(e, CreditFacilityEvent::PaymentAssigned { .. }))
+            .count();
+        let new_payment = NewPayment::builder()
+            .id(payment_id)
+            .ledger_tx_id(ledger_tx_id)
+            .assigned_payment_idx(assigned_payment_idx)
+            .amount(amount)
+            .credit_facility_id(self.id)
+            .payment_account_id(CalaAccountId::new())
+            .payment_source_account_id(payment_source_account_id)
+            .build()
+            .expect("could not build new payment");
+
+        Idempotent::Executed(new_payment)
+    }
+
     pub(crate) fn is_completed(&self) -> bool {
         self.events
             .iter_all()
@@ -638,6 +679,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                 CreditFacilityEvent::CollateralizationStateChanged { .. } => (),
                 CreditFacilityEvent::CollateralizationRatioChanged { .. } => (),
                 CreditFacilityEvent::Matured { .. } => (),
+                CreditFacilityEvent::PaymentAssigned { .. } => (),
                 CreditFacilityEvent::Completed { .. } => (),
                 CreditFacilityEvent::PartialLiquidationInitiated { .. } => {}
                 CreditFacilityEvent::PartialLiquidationCompleted { .. } => {}

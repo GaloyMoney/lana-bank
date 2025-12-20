@@ -15,7 +15,7 @@ use job::{JobId, Jobs};
 use obix::out::OutboxEventMarker;
 
 use crate::{
-    PublicIds,
+    Payment, PaymentRepo, PublicIds,
     disbursal::Disbursals,
     event::CoreCreditEvent,
     jobs::{credit_facility_maturity, interest_accruals},
@@ -49,6 +49,7 @@ where
 {
     pending_credit_facilities: Arc<PendingCreditFacilities<Perms, E>>,
     repo: Arc<CreditFacilityRepo<E>>,
+    payment_repo: Arc<PaymentRepo>,
     obligations: Arc<Obligations<Perms, E>>,
     disbursals: Arc<Disbursals<Perms, E>>,
     authz: Arc<Perms>,
@@ -69,6 +70,7 @@ where
     fn clone(&self) -> Self {
         Self {
             repo: self.repo.clone(),
+            payment_repo: self.payment_repo.clone(),
             obligations: self.obligations.clone(),
             pending_credit_facilities: self.pending_credit_facilities.clone(),
             disbursals: self.disbursals.clone(),
@@ -120,9 +122,11 @@ where
         public_ids: Arc<PublicIds>,
     ) -> Self {
         let repo = CreditFacilityRepo::new(pool, publisher);
+        let payment_repo = PaymentRepo::new(pool);
 
         Self {
             repo: Arc::new(repo),
+            payment_repo: Arc::new(payment_repo),
             obligations,
             pending_credit_facilities,
             disbursals,
@@ -298,6 +302,33 @@ where
         self.repo.update_in_op(op, &mut credit_facility).await?;
 
         Ok(confirmed_accrual)
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "credit.credit_facility.assign_payment_in_op",
+        skip(self, db),
+        fields(credit_facility_id = %credit_facility_id)
+    )]
+    pub(super) async fn assign_payment_in_op(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        credit_facility_id: CreditFacilityId,
+        payment_source_account_id: CalaAccountId,
+        amount: UsdCents,
+    ) -> Result<Payment, CreditFacilityError> {
+        let mut credit_facility = self.repo.find_by_id(credit_facility_id).await?;
+
+        let new_payment = credit_facility
+            .register_assigned_payment(PaymentId::new(), payment_source_account_id, amount)
+            .expect("Payment was already created");
+        self.repo.update_in_op(db, &mut credit_facility).await?;
+
+        let payment = self.payment_repo.create_in_op(db, new_payment).await?;
+
+        self.ledger.record_payment_assigned(db, &payment).await?;
+
+        Ok(payment)
     }
 
     #[record_error_severity]
