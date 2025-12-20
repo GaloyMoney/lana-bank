@@ -254,6 +254,6 @@ mod test {
         assert!(res.did_execute());
 
         let res = deposit.revert();
-        assert!(res.was_ignored());
+        assert!(res.was_already_applied());
     }
 }

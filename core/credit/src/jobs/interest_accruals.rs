@@ -5,7 +5,7 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
-use outbox::OutboxEventMarker;
+use obix::out::OutboxEventMarker;
 
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 
@@ -139,9 +139,9 @@ where
 
         if let Some(period) = next_accrual_period {
             self.ledger
-                .record_interest_accrual(db, interest_accrual)
+                .record_interest_accrual(&mut db, interest_accrual)
                 .await?;
-            Ok(JobCompletion::RescheduleAt(period.end))
+            Ok(JobCompletion::RescheduleAtWithOp(db, period.end))
         } else {
             self.jobs
                 .create_and_spawn_in_op(
@@ -154,7 +154,7 @@ where
                 )
                 .await?;
             self.ledger
-                .record_interest_accrual(db, interest_accrual)
+                .record_interest_accrual(&mut db, interest_accrual)
                 .await?;
 
             tracing::info!(
@@ -163,7 +163,7 @@ where
                 credit_facility_id = %self.config.credit_facility_id,
                 "All accruals completed for period"
             );
-            Ok(JobCompletion::Complete)
+            Ok(JobCompletion::CompleteWithOp(db))
         }
     }
 }

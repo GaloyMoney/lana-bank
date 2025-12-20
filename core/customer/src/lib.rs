@@ -20,7 +20,7 @@ use authz::PermissionCheck;
 use document_storage::{
     Document, DocumentId, DocumentStorage, DocumentType, GeneratedDocumentDownloadLink,
 };
-use outbox::{Outbox, OutboxEventMarker};
+use obix::out::{Outbox, OutboxEventMarker};
 use public_id::PublicIds;
 
 pub use config::*;

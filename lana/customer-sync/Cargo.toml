@@ -12,7 +12,7 @@ core-customer = { workspace = true }
 core-deposit = { workspace = true }
 governance = { workspace = true }
 
-outbox = { workspace = true }
+obix = { workspace = true }
 job = { workspace = true }
 audit = { workspace = true }
 authz = { workspace = true }

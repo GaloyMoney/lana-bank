@@ -11,7 +11,7 @@ use governance::{
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-use outbox::OutboxEventMarker;
+use obix::out::OutboxEventMarker;
 
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 
@@ -101,7 +101,7 @@ where
             .conclude_approval_process_in_op(&mut op, id.into(), approved)
             .await?
         {
-            crate::ApprovalProcessOutcome::Ignored(disbursal) => {
+            crate::ApprovalProcessOutcome::AlreadyApplied(disbursal) => {
                 tracing::Span::current().record("already_applied", true);
                 disbursal
             }
@@ -114,12 +114,13 @@ where
                     .await?;
                 self.ledger
                     .settle_disbursal(
+                        &mut op,
                         disbursal.id,
-                        op,
                         obligation,
                         credit_facility.account_ids.facility_account_id,
                     )
                     .await?;
+                op.commit().await?;
                 disbursal
             }
             crate::ApprovalProcessOutcome::Denied(disbursal) => {
@@ -130,13 +131,14 @@ where
                     .await?;
                 self.ledger
                     .cancel_disbursal(
+                        &mut op,
                         disbursal.id,
-                        op,
                         disbursal.initiated_tx_id,
                         disbursal.amount,
                         credit_facility.account_ids.facility_account_id,
                     )
                     .await?;
+                op.commit().await?;
                 disbursal
             }
         };

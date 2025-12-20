@@ -246,6 +246,8 @@ impl LedgerAccountLedger {
             .find_all_in_op(&mut op, &balance_ids)
             .await?;
 
+        op.commit().await?;
+
         let mut result = HashMap::new();
 
         for (id, account_set) in account_sets {
@@ -269,9 +271,6 @@ impl LedgerAccountLedger {
             let ledger_account = LedgerAccount::from((account, account_balances));
             result.insert(account_id, ledger_account);
         }
-
-        op.commit().await?;
-
         Ok(result)
     }
 

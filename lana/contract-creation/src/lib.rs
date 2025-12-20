@@ -9,7 +9,7 @@ use document_storage::{
     Document, DocumentId, DocumentStatus, DocumentStorage, DocumentType,
     GeneratedDocumentDownloadLink, ReferenceId,
 };
-use outbox::OutboxEventMarker;
+use obix::out::OutboxEventMarker;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 use uuid::Uuid;

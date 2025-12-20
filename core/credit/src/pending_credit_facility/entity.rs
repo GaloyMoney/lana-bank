@@ -103,7 +103,7 @@ impl PendingCreditFacility {
         balances: PendingCreditFacilityBalanceSummary,
     ) -> Idempotent<Option<PendingCreditFacilityCollateralizationState>> {
         if self.is_completed() {
-            return Idempotent::Ignored;
+            return Idempotent::AlreadyApplied;
         }
 
         let ratio_changed = self.update_collateralization_ratio(&balances).did_execute();
@@ -127,7 +127,7 @@ impl PendingCreditFacility {
         } else if ratio_changed {
             Idempotent::Executed(None)
         } else {
-            Idempotent::Ignored
+            Idempotent::AlreadyApplied
         }
     }
 
@@ -138,7 +138,7 @@ impl PendingCreditFacility {
         let ratio = balance.current_collateralization_ratio();
 
         if self.last_collateralization_ratio() == ratio {
-            return Idempotent::Ignored;
+            return Idempotent::AlreadyApplied;
         }
 
         self.events
@@ -460,7 +460,7 @@ mod test {
 
             assert!(matches!(
                 facility_proposal.complete(default_balances(), default_price(), crate::time::now()),
-                Ok(Idempotent::Ignored)
+                Ok(Idempotent::AlreadyApplied)
             ));
         }
 

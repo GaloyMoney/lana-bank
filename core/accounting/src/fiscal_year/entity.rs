@@ -88,7 +88,7 @@ impl FiscalYear {
     ) -> Result<Idempotent<NaiveDate>, FiscalYearError> {
         let new_monthly_closing_date = match self.next_month_to_close() {
             Some(date) => date,
-            None => return Ok(Idempotent::Ignored),
+            None => return Ok(Idempotent::AlreadyApplied),
         };
 
         if now.date_naive() <= new_monthly_closing_date {
@@ -392,7 +392,7 @@ mod test {
 
         let second_closing = fiscal_year.close(Utc::now());
         assert!(second_closing.is_ok());
-        assert!(second_closing.unwrap().was_ignored());
+        assert!(second_closing.unwrap().was_already_applied());
     }
 
     #[test]

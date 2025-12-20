@@ -10,7 +10,7 @@ use tracing_macros::record_error_severity;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
-use outbox::OutboxEventMarker;
+use obix::out::OutboxEventMarker;
 
 use crate::{Obligation, Obligations, event::CoreCreditEvent, primitives::*};
 
@@ -51,7 +51,7 @@ where
 }
 
 pub(super) enum ApprovalProcessOutcome {
-    Ignored(Disbursal),
+    AlreadyApplied(Disbursal),
     Approved((Disbursal, Obligation)),
     Denied(Disbursal),
 }
@@ -223,7 +223,9 @@ where
         let mut disbursal = self.repo.find_by_id(disbursal_id).await?;
 
         let ret = match disbursal.approval_process_concluded(approved, op.now().date_naive()) {
-            es_entity::Idempotent::Ignored => ApprovalProcessOutcome::Ignored(disbursal),
+            es_entity::Idempotent::AlreadyApplied => {
+                ApprovalProcessOutcome::AlreadyApplied(disbursal)
+            }
             es_entity::Idempotent::Executed(Some(new_obligation)) => {
                 let obligation = self
                     .obligations

@@ -10,7 +10,7 @@ use core_custody::{CoreCustody, CoreCustodyAction, CoreCustodyEvent, CoreCustody
 use core_price::Price;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
-use outbox::OutboxEventMarker;
+use obix::out::OutboxEventMarker;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
@@ -139,7 +139,7 @@ where
             .record("credit_facility_proposal_id", tracing::field::display(&id));
 
         match self.proposals.approve_in_op(&mut db, id, approved).await? {
-            ProposalApprovalOutcome::Ignored => Ok(None),
+            ProposalApprovalOutcome::AlreadyApplied => Ok(None),
             ProposalApprovalOutcome::Rejected(proposal) => {
                 db.commit().await?;
                 Ok(Some(proposal))
@@ -189,8 +189,10 @@ where
                     .await?;
 
                 self.ledger
-                    .handle_pending_facility_creation(db, &pending_credit_facility)
+                    .handle_pending_facility_creation(&mut db, &pending_credit_facility)
                     .await?;
+
+                db.commit().await?;
 
                 Ok(Some(proposal))
             }
@@ -228,7 +230,7 @@ where
                     initial_disbursal,
                 })
             }
-            Ok(es_entity::Idempotent::Ignored)
+            Ok(es_entity::Idempotent::AlreadyApplied)
             | Err(PendingCreditFacilityError::BelowMarginLimit) => {
                 Ok(PendingCreditFacilityCompletionOutcome::Ignored)
             }

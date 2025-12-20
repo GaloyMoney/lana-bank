@@ -8,7 +8,7 @@ ignored = ["schemars"]
 
 [features]
 fail-on-warnings = []
-json-schema = ["dep:schemars", "es-entity/json-schema", "outbox/json-schema"]
+json-schema = ["dep:schemars", "es-entity/json-schema"]
 
 [dependencies]
 lana-events = { workspace = true }
@@ -16,7 +16,7 @@ core-money = { workspace = true }
 
 authz = { workspace = true }
 audit = { workspace = true }
-outbox = { workspace = true }
+obix = { workspace = true }
 job = { workspace = true }
 
 es-entity = { workspace = true, features = ["graphql"] }

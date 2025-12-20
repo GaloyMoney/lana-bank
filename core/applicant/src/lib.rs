@@ -15,7 +15,7 @@ use tracing_macros::record_error_severity;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_customer::{CoreCustomerEvent, CustomerId, Customers};
-use outbox::OutboxEventMarker;
+use obix::out::OutboxEventMarker;
 
 use error::ApplicantError;
 pub use sumsub::SumsubConfig;

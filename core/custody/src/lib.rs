@@ -17,7 +17,7 @@ use tracing_macros::record_error_severity;
 
 use es_entity::DbOp;
 pub use event::CoreCustodyEvent;
-use outbox::{Outbox, OutboxEventMarker};
+use obix::out::{Outbox, OutboxEventMarker};
 pub use publisher::CustodyPublisher;
 
 use audit::AuditSvc;

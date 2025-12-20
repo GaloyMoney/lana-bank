@@ -38,7 +38,7 @@ use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Custo
 use core_price::{CorePriceEvent, Price};
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
-use outbox::{Outbox, OutboxEventMarker};
+use obix::out::{Outbox, OutboxEventMarker};
 use public_id::PublicIds;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
@@ -716,13 +716,15 @@ where
 
         self.ledger
             .initiate_disbursal(
-                db,
+                &mut db,
                 disbursal.id,
                 disbursal.initiated_tx_id,
                 disbursal.amount,
                 disbursal.account_ids.facility_account_id,
             )
             .await?;
+
+        db.commit().await?;
 
         Ok(disbursal)
     }
@@ -787,11 +789,13 @@ where
 
         self.ledger
             .update_pending_credit_facility_collateral(
-                db,
+                &mut db,
                 collateral_update,
                 pending_facility.account_ids,
             )
             .await?;
+
+        db.commit().await?;
 
         Ok(pending_facility)
     }
@@ -835,11 +839,13 @@ where
         };
         self.ledger
             .update_credit_facility_collateral(
-                db,
+                &mut db,
                 collateral_update,
                 credit_facility.account_ids.collateral_account_id,
             )
             .await?;
+
+        db.commit().await?;
 
         Ok(credit_facility)
     }
@@ -894,13 +900,15 @@ where
 
         self.obligations
             .allocate_payment_in_op(
-                db,
+                &mut db,
                 credit_facility_id,
                 payment.id,
                 amount,
                 crate::time::now().date_naive(),
             )
             .await?;
+
+        db.commit().await?;
 
         Ok(credit_facility)
     }
@@ -950,8 +958,15 @@ where
             .await?;
 
         self.obligations
-            .allocate_payment_in_op(db, credit_facility_id, payment.id, amount, effective.into())
+            .allocate_payment_in_op(
+                &mut db,
+                credit_facility_id,
+                payment.id,
+                amount,
+                effective.into(),
+            )
             .await?;
+        db.commit().await?;
 
         Ok(credit_facility)
     }
@@ -993,7 +1008,7 @@ where
             .complete_in_op(&mut db, id, CVLPct::UPGRADE_BUFFER)
             .await?
         {
-            CompletionOutcome::Ignored(facility) => facility,
+            CompletionOutcome::AlreadyApplied(facility) => facility,
 
             CompletionOutcome::Completed((facility, completion)) => {
                 self.collaterals
@@ -1005,7 +1020,11 @@ where
                     )
                     .await?;
 
-                self.ledger.complete_credit_facility(db, completion).await?;
+                self.ledger
+                    .complete_credit_facility(&mut db, completion)
+                    .await?;
+                db.commit().await?;
+
                 facility
             }
         };

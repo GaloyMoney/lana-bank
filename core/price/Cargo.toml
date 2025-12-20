@@ -13,7 +13,7 @@ sim-time = ["dep:sim-time"]
 core-money = { workspace = true }
 
 job = { workspace = true }
-outbox = { workspace = true }
+obix = { workspace = true }
 async-trait = { workspace = true }
 futures = { workspace = true }
 reqwest = { workspace = true }

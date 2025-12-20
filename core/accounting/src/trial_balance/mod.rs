@@ -66,8 +66,11 @@ where
             )
             .await?;
 
-        match self.trial_balance_ledger.create(op, &reference).await {
-            Ok(_) => Ok(()),
+        match self.trial_balance_ledger.create(&mut op, &reference).await {
+            Ok(_) => {
+                op.commit().await?;
+                Ok(())
+            }
             Err(e) if e.account_set_exists() => Ok(()),
             Err(e) => Err(e.into()),
         }
@@ -97,8 +100,10 @@ where
             .await?;
 
         self.trial_balance_ledger
-            .add_members(op, trial_balance_id, new_chart_account_set_ids.iter())
+            .add_members(&mut op, trial_balance_id, new_chart_account_set_ids.iter())
             .await?;
+
+        op.commit().await?;
 
         Ok(())
     }

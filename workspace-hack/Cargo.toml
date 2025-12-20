@@ -24,8 +24,9 @@ base16ct = { version = "0.2", default-features = false, features = ["alloc"] }
 base64 = { version = "0.22" }
 byteorder = { version = "1" }
 bytes = { version = "1", features = ["serde"] }
-cala-ledger = { version = "0.12", default-features = false, features = ["graphql", "json-schema"] }
-cala-ledger-core-types = { version = "0.12", default-features = false, features = ["graphql", "json-schema"] }
+cala-cel-interpreter = { version = "0.13", default-features = false, features = ["json-schema"] }
+cala-ledger = { version = "0.13", default-features = false, features = ["graphql", "json-schema"] }
+cala-ledger-core-types = { version = "0.13", default-features = false, features = ["graphql", "json-schema"] }
 chrono = { version = "0.4", features = ["serde"] }
 cipher = { version = "0.4", default-features = false, features = ["block-padding", "zeroize"] }
 clap = { version = "4", features = ["derive", "env"] }
@@ -53,11 +54,12 @@ hyper-util = { version = "0.1", features = ["client-legacy", "server-auto", "ser
 idna = { version = "1" }
 indexmap = { version = "2", features = ["serde"] }
 inout = { version = "0.1", default-features = false, features = ["block-padding"] }
-job = { version = "0.2", default-features = false, features = ["json-schema", "sim-time"] }
+job = { version = "0.3", default-features = false, features = ["json-schema", "sim-time"] }
 lalrpop-util = { version = "0.22", features = ["lexer"] }
 log = { version = "0.4", default-features = false, features = ["std"] }
 memchr = { version = "2" }
 num-traits = { version = "0.2", features = ["i128"] }
+obix = { version = "0.1", features = ["tracing"] }
 once_cell = { version = "1", features = ["portable-atomic"] }
 opentelemetry-http = { version = "0.31", features = ["reqwest-rustls-webpki-roots"] }
 opentelemetry-otlp = { version = "0.31", default-features = false, features = ["grpc-tonic", "http-proto", "reqwest-client", "reqwest-rustls-webpki-roots"] }
@@ -102,8 +104,9 @@ base16ct = { version = "0.2", default-features = false, features = ["alloc"] }
 base64 = { version = "0.22" }
 byteorder = { version = "1" }
 bytes = { version = "1", features = ["serde"] }
-cala-ledger = { version = "0.12", default-features = false, features = ["graphql", "json-schema"] }
-cala-ledger-core-types = { version = "0.12", default-features = false, features = ["graphql", "json-schema"] }
+cala-cel-interpreter = { version = "0.13", default-features = false, features = ["json-schema"] }
+cala-ledger = { version = "0.13", default-features = false, features = ["graphql", "json-schema"] }
+cala-ledger-core-types = { version = "0.13", default-features = false, features = ["graphql", "json-schema"] }
 cc = { version = "1", default-features = false, features = ["parallel"] }
 chrono = { version = "0.4", features = ["serde"] }
 cipher = { version = "0.4", default-features = false, features = ["block-padding", "zeroize"] }
@@ -133,11 +136,13 @@ hyper-util = { version = "0.1", features = ["client-legacy", "server-auto", "ser
 idna = { version = "1" }
 indexmap = { version = "2", features = ["serde"] }
 inout = { version = "0.1", default-features = false, features = ["block-padding"] }
-job = { version = "0.2", default-features = false, features = ["json-schema", "sim-time"] }
+job = { version = "0.3", default-features = false, features = ["json-schema", "sim-time"] }
 lalrpop-util = { version = "0.22", features = ["lexer"] }
 log = { version = "0.4", default-features = false, features = ["std"] }
 memchr = { version = "2" }
 num-traits = { version = "0.2", features = ["i128"] }
+obix = { version = "0.1", features = ["tracing"] }
+obix-macros = { version = "0.1", default-features = false, features = ["tracing"] }
 once_cell = { version = "1", features = ["portable-atomic"] }
 opentelemetry-http = { version = "0.31", features = ["reqwest-rustls-webpki-roots"] }
 opentelemetry-otlp = { version = "0.31", default-features = false, features = ["grpc-tonic", "http-proto", "reqwest-client", "reqwest-rustls-webpki-roots"] }
@@ -189,6 +194,7 @@ ignored = [
     "base64",
     "byteorder",
     "bytes",
+    "cala-cel-interpreter",
     "cala-ledger",
     "cala-ledger-core-types",
     "chrono",
@@ -232,6 +238,8 @@ ignored = [
     "log",
     "memchr",
     "num-traits",
+    "obix",
+    "obix-macros",
     "once_cell",
     "opentelemetry",
     "opentelemetry-http",

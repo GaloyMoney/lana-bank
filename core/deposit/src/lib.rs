@@ -27,7 +27,7 @@ use core_accounting::Chart;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerObject, Customers};
 use governance::{Governance, GovernanceEvent};
 use job::Jobs;
-use outbox::{Outbox, OutboxEventMarker};
+use obix::out::{Outbox, OutboxEventMarker};
 use public_id::PublicIds;
 
 use account::*;
@@ -236,8 +236,10 @@ where
             .await?;
 
         self.ledger
-            .create_deposit_accounts(op, &account, customer.customer_type)
+            .create_deposit_accounts(&mut op, &account, customer.customer_type)
             .await?;
+
+        op.commit().await?;
 
         Ok(account)
     }
@@ -404,8 +406,9 @@ where
             .build()?;
         let deposit = self.deposits.create_in_op(&mut op, new_deposit).await?;
         self.ledger
-            .record_deposit(op, deposit_id, amount, deposit_account_id)
+            .record_deposit(&mut op, deposit_id, amount, deposit_account_id)
             .await?;
+        op.commit().await?;
         Ok(deposit)
     }
 
@@ -457,8 +460,11 @@ where
             .await?;
 
         self.ledger
-            .initiate_withdrawal(op, withdrawal_id, amount, deposit_account_id)
+            .initiate_withdrawal(&mut op, withdrawal_id, amount, deposit_account_id)
             .await?;
+
+        op.commit().await?;
+
         Ok(withdrawal)
     }
 
@@ -486,8 +492,9 @@ where
             let mut op = self.deposits.begin_op().await?;
             self.deposits.update_in_op(&mut op, &mut deposit).await?;
             self.ledger
-                .revert_deposit(op, deposit_reversal_data)
+                .revert_deposit(&mut op, deposit_reversal_data)
                 .await?;
+            op.commit().await?;
         }
 
         Ok(deposit)
@@ -520,8 +527,9 @@ where
                 .update_in_op(&mut op, &mut withdrawal)
                 .await?;
             self.ledger
-                .revert_withdrawal(op, withdrawal_reversal_data)
+                .revert_withdrawal(&mut op, withdrawal_reversal_data)
                 .await?;
+            op.commit().await?;
         }
 
         Ok(withdrawal)
@@ -553,7 +561,7 @@ where
 
         self.ledger
             .confirm_withdrawal(
-                op,
+                &mut op,
                 id,
                 tx_id,
                 withdrawal.id.to_string(),
@@ -562,6 +570,8 @@ where
                 format!("lana:withdraw:{}:confirm", withdrawal.id),
             )
             .await?;
+
+        op.commit().await?;
 
         Ok(withdrawal)
     }
@@ -591,13 +601,14 @@ where
             .await?;
         self.ledger
             .cancel_withdrawal(
-                op,
+                &mut op,
                 id,
                 tx_id,
                 withdrawal.amount,
                 withdrawal.deposit_account_id,
             )
             .await?;
+        op.commit().await?;
         Ok(withdrawal)
     }
 
@@ -619,14 +630,15 @@ where
 
         let mut account = self.deposit_accounts.find_by_id(account_id).await?;
 
-        let mut op = self.deposit_accounts.begin_op().await?;
-
         if account.freeze()?.did_execute() {
+            let mut op = self.deposit_accounts.begin_op().await?;
+
             self.deposit_accounts
                 .update_in_op(&mut op, &mut account)
                 .await?;
+            self.ledger.freeze_account_in_op(&mut op, &account).await?;
 
-            self.ledger.freeze_account_in_op(op, &account).await?;
+            op.commit().await?;
         }
 
         Ok(account)
@@ -650,14 +662,17 @@ where
 
         let mut account = self.deposit_accounts.find_by_id(account_id).await?;
 
-        let mut op = self.deposit_accounts.begin_op().await?;
-
         if account.unfreeze()?.did_execute() {
+            let mut op = self.deposit_accounts.begin_op().await?;
+
             self.deposit_accounts
                 .update_in_op(&mut op, &mut account)
                 .await?;
+            self.ledger
+                .unfreeze_account_in_op(&mut op, &account)
+                .await?;
 
-            self.ledger.unfreeze_account_in_op(op, &account).await?;
+            op.commit().await?;
         }
 
         Ok(account)
@@ -691,8 +706,9 @@ where
             self.deposit_accounts
                 .update_in_op(&mut op, &mut account)
                 .await?;
+            self.ledger.lock_account(&mut op, account_id.into()).await?;
 
-            self.ledger.lock_account(op, account_id.into()).await?;
+            op.commit().await?;
         }
 
         Ok(account)

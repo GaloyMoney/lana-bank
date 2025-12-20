@@ -11,7 +11,7 @@ pub use core_deposit::CoreDepositEvent;
 pub use core_price::CorePriceEvent;
 pub use core_report::CoreReportEvent;
 pub use governance::GovernanceEvent;
-pub use outbox::OutboxEventMarker;
+pub use obix::out::OutboxEventMarker;
 
 #[derive(Debug, Serialize, Deserialize, strum::AsRefStr)]
 #[serde(tag = "module")]

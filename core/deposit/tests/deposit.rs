@@ -15,7 +15,8 @@ use helpers::{action, event, object};
 async fn deposit() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
 
-    let outbox = outbox::Outbox::<event::DummyEvent>::init(&pool).await?;
+    let outbox =
+        obix::Outbox::<event::DummyEvent>::init(&pool, obix::MailboxConfig::default()).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
     let governance = governance::Governance::new(&pool, &authz, &outbox);
 
@@ -95,7 +96,8 @@ async fn deposit() -> anyhow::Result<()> {
 async fn revert_deposit() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
 
-    let outbox = outbox::Outbox::<event::DummyEvent>::init(&pool).await?;
+    let outbox =
+        obix::Outbox::<event::DummyEvent>::init(&pool, obix::MailboxConfig::default()).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
     let governance = governance::Governance::new(&pool, &authz, &outbox);
 

@@ -54,7 +54,7 @@ impl Chart {
         children_node_ids: Vec<ChartNodeId>,
     ) -> Idempotent<NewAccountSetWithNodeId> {
         if self.find_node_details_by_code(&spec.code).is_some() {
-            return Idempotent::Ignored;
+            return Idempotent::AlreadyApplied;
         }
 
         let new_node_id = ChartNodeId::new();
@@ -82,7 +82,7 @@ impl Chart {
         journal_id: CalaJournalId,
     ) -> Idempotent<NewChartAccountDetails> {
         if self.find_node_details_by_code(&spec.code).is_some() {
-            return Idempotent::Ignored;
+            return Idempotent::AlreadyApplied;
         }
 
         let node_id = ChartNodeId::new();
@@ -276,7 +276,7 @@ impl Chart {
                         node.account_set_id,
                         new_account,
                     ))),
-                    Idempotent::Ignored => Ok(ManualAccountFromChart::IdInChart(
+                    Idempotent::AlreadyApplied => Ok(ManualAccountFromChart::IdInChart(
                         node.manual_transaction_account_id
                             .expect("Manual transaction account id should be set"),
                     )),
@@ -760,6 +760,6 @@ mod test {
         assert!(second_close_date.did_execute());
         let invalid_closing_date = "2025-02-01".parse::<NaiveDate>().unwrap();
         let invalid_close_date = chart.close_as_of(invalid_closing_date);
-        assert!(invalid_close_date.was_ignored());
+        assert!(invalid_close_date.was_already_applied());
     }
 }

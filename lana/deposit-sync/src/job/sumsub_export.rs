@@ -11,7 +11,7 @@ use core_deposit::{
     DepositId, GovernanceAction, GovernanceObject, UsdCents, WithdrawalId,
 };
 use governance::GovernanceEvent;
-use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
+use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 use sumsub::SumsubClient;
 
 use tracing::{Span, instrument};
@@ -149,7 +149,7 @@ where
 
 #[derive(Default, Clone, serde::Deserialize, serde::Serialize)]
 struct SumsubExportJobState {
-    sequence: outbox::EventSequence,
+    sequence: obix::EventSequence,
 }
 
 pub struct SumsubExportJobRunner<Perms, E>
@@ -320,7 +320,7 @@ where
         let mut state = current_job
             .execution_state::<SumsubExportJobState>()?
             .unwrap_or_default();
-        let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
+        let mut stream = self.outbox.listen_persisted(Some(state.sequence));
 
         loop {
             select! {

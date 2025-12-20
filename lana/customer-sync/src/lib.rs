@@ -19,7 +19,7 @@ use core_deposit::{
 };
 use governance::GovernanceEvent;
 use lana_events::LanaEvent;
-use outbox::{Outbox, OutboxEventMarker};
+use obix::out::{Outbox, OutboxEventMarker};
 use tracing_macros::record_error_severity;
 
 pub struct CustomerSync<Perms, E>

@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use job::*;
-use outbox::OutboxEventMarker;
+use obix::out::OutboxEventMarker;
 
 use crate::{event::CoreCreditEvent, ledger::CreditLedger, obligation::Obligations, primitives::*};
 
@@ -107,9 +107,9 @@ where
         };
 
         self.ledger
-            .record_obligation_defaulted(db, defaulted)
+            .record_obligation_defaulted(&mut db, defaulted)
             .await?;
 
-        Ok(JobCompletion::Complete)
+        Ok(JobCompletion::CompleteWithOp(db))
     }
 }

@@ -25,7 +25,6 @@ cloud-storage = { path = "lib/cloud-storage" }
 jwks-utils = { path = "lib/jwks-utils" }
 keycloak-client = { path = "lib/keycloak-client" }
 komainu = { path = "lib/komainu" }
-outbox = { path = "lib/outbox" }
 rendering = { path = "lib/rendering" }
 smtp-client = { path = "lib/smtp-client" }
 sumsub = { path = "lib/sumsub" }
@@ -64,11 +63,12 @@ sim-bootstrap = { path = "lana/sim-bootstrap" }
 user-onboarding = { path = "lana/user-onboarding" }
 
 # External dependencies
-es-entity = { version = "0.10.5", features = ["event-context", "tracing-context", "instrument"] }
-cala-ledger = "0.12.12"
-job = "0.2.14"
+es-entity = { version = "0.10.8", features = ["event-context", "tracing-context", "instrument"] }
+cala-ledger = "0.13.0"
+job = { version = "0.3.1", features = ["es-entity"] }
 sim-time = "0.10"
 cala-cel-interpreter = "0.12"
+obix = { version = "0.1.6", features = ["tracing"] }
 
 aes = "0.8"
 anyhow = "1.0.100"

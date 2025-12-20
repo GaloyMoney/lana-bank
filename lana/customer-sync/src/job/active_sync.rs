@@ -11,7 +11,7 @@ use core_deposit::{
     DepositAccountHolderStatus, GovernanceAction, GovernanceObject,
 };
 use governance::GovernanceEvent;
-use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
+use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use job::*;
 
@@ -111,7 +111,7 @@ where
 
 #[derive(Default, Clone, serde::Deserialize, serde::Serialize)]
 struct CustomerActiveSyncJobData {
-    sequence: outbox::EventSequence,
+    sequence: obix::EventSequence,
 }
 
 pub struct CustomerActiveSyncJobRunner<Perms, E>
@@ -206,7 +206,7 @@ where
         let mut state = current_job
             .execution_state::<CustomerActiveSyncJobData>()?
             .unwrap_or_default();
-        let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
+        let mut stream = self.outbox.listen_persisted(Some(state.sequence));
 
         loop {
             select! {

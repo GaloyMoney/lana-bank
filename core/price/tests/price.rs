@@ -6,7 +6,7 @@ use rust_decimal_macros::dec;
 use core_money::{Satoshis, UsdCents};
 use core_price::{Price, PriceOfOneBTC, bfx_client::BfxClient, bfx_client::fetch_price};
 use helpers::{DummyEvent, init_pool, publish_dummy_price_event, wait_for_price_to_be_updated};
-use outbox::Outbox;
+use obix::out::Outbox;
 
 #[tokio::test]
 async fn get_price_from_client() {
@@ -19,7 +19,7 @@ async fn get_price_from_client() {
 async fn update_price() -> anyhow::Result<()> {
     let pool = init_pool().await?;
 
-    let outbox = Outbox::<DummyEvent>::init(&pool).await?;
+    let outbox = Outbox::<DummyEvent>::init(&pool, Default::default()).await?;
     let jobs = job::Jobs::init(
         job::JobSvcConfig::builder()
             .pool(pool.clone())

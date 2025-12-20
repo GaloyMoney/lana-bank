@@ -4,7 +4,7 @@ use tokio::select;
 use tracing::{Span, instrument};
 
 use job::*;
-use outbox::PersistentOutboxEvent;
+use obix::out::PersistentOutboxEvent;
 
 use crate::{Outbox, repo::DashboardRepo, values::*};
 
@@ -54,7 +54,7 @@ impl JobInitializer for DashboardProjectionInit {
 
 #[derive(Default, Clone, serde::Deserialize, serde::Serialize)]
 struct DashboardProjectionJobData {
-    sequence: outbox::EventSequence,
+    sequence: obix::EventSequence,
     dashboard: DashboardValues,
 }
 
@@ -89,7 +89,7 @@ impl JobRunner for DashboardProjectionJobRunner {
         let mut state = current_job
             .execution_state::<DashboardProjectionJobData>()?
             .unwrap_or_default();
-        let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
+        let mut stream = self.outbox.listen_persisted(Some(state.sequence));
 
         loop {
             select! {

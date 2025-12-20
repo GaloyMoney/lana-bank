@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use job::*;
-use outbox::OutboxEventMarker;
+use obix::out::OutboxEventMarker;
 
 use crate::{event::CoreCreditEvent, ledger::CreditLedger, obligation::Obligations, primitives::*};
 
@@ -108,7 +108,7 @@ where
         let overdue = if let Some(overdue) = overdue_data {
             overdue
         } else {
-            return Ok(JobCompletion::Complete);
+            return Ok(JobCompletion::CompleteWithOp(db));
         };
 
         if let Some(defaulted_at) = obligation.defaulted_at() {
@@ -126,8 +126,10 @@ where
                 .await?;
         }
 
-        self.ledger.record_obligation_overdue(db, overdue).await?;
+        self.ledger
+            .record_obligation_overdue(&mut db, overdue)
+            .await?;
 
-        Ok(JobCompletion::Complete)
+        Ok(JobCompletion::CompleteWithOp(db))
     }
 }

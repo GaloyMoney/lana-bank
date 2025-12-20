@@ -5,7 +5,7 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
-use outbox::OutboxEventMarker;
+use obix::out::OutboxEventMarker;
 
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 
@@ -197,9 +197,9 @@ where
         };
 
         self.ledger
-            .record_interest_accrual_cycle(op, facility_accrual_cycle_data)
+            .record_interest_accrual_cycle(&mut op, facility_accrual_cycle_data)
             .await?;
 
-        return Ok(JobCompletion::Complete);
+        return Ok(JobCompletion::CompleteWithOp(op));
     }
 }

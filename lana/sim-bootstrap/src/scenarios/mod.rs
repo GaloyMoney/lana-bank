@@ -11,7 +11,7 @@ use tracing::{Span, instrument};
 
 use lana_app::{app::LanaApp, primitives::*};
 use lana_events::*;
-use outbox::PersistentOutboxEvent;
+use obix::out::PersistentOutboxEvent;
 use tokio::task::JoinHandle;
 
 use super::helpers;
@@ -73,7 +73,7 @@ pub async fn process_facility_lifecycle(
 ) -> anyhow::Result<()> {
     let terms = helpers::std_terms();
 
-    let mut stream = app.outbox().listen_persisted(None).await?;
+    let mut stream = app.outbox().listen_persisted(None);
 
     let cf_proposal = app
         .create_facility_proposal(

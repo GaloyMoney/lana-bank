@@ -15,7 +15,7 @@ use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::{Authorization, PermissionCheck as _};
-use outbox::{Outbox, OutboxEventMarker};
+use obix::out::{Outbox, OutboxEventMarker};
 use permission_set::{PermissionSet, PermissionSetRepo, PermissionSetsByIdCursor};
 use tracing_macros::record_error_severity;
 

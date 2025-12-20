@@ -10,7 +10,8 @@ use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Custo
 use core_deposit::{CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject};
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
-use outbox::{EventSequence, Outbox, OutboxEventMarker, PersistentOutboxEvent};
+use obix::EventSequence;
+use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use lana_events::LanaEvent;
 
@@ -125,7 +126,7 @@ where
         let mut state = current_job
             .execution_state::<UpdateLastActivityDateJobData>()?
             .unwrap_or_default();
-        let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
+        let mut stream = self.outbox.listen_persisted(Some(state.sequence));
 
         loop {
             select! {

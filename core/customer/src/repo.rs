@@ -2,7 +2,7 @@ use sqlx::PgPool;
 
 pub use es_entity::Sort;
 use es_entity::*;
-use outbox::OutboxEventMarker;
+use obix::out::OutboxEventMarker;
 
 use crate::{event::CoreCustomerEvent, primitives::*, publisher::*};
 

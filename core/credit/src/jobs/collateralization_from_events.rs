@@ -8,9 +8,9 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
-use outbox::{
-    EphemeralOutboxEvent, EventSequence, Outbox, OutboxEvent, OutboxEventMarker,
-    PersistentOutboxEvent,
+use obix::EventSequence;
+use obix::out::{
+    EphemeralOutboxEvent, Outbox, OutboxEvent, OutboxEventMarker, PersistentOutboxEvent,
 };
 
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
@@ -224,7 +224,7 @@ where
         let mut state = current_job
             .execution_state::<CreditFacilityCollateralizationFromEventsData>()?
             .unwrap_or_default();
-        let mut stream = self.outbox.listen_all(Some(state.sequence)).await?;
+        let mut stream = self.outbox.listen_all(Some(state.sequence));
 
         loop {
             select! {

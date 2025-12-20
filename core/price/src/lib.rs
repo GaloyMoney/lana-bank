@@ -9,7 +9,7 @@ pub mod time;
 
 use futures::StreamExt;
 use job::Jobs;
-use outbox::{EphemeralOutboxEvent, Outbox, OutboxEventMarker};
+use obix::out::{EphemeralOutboxEvent, Outbox, OutboxEventMarker};
 use std::sync::Arc;
 use tokio::{sync::watch, task::JoinHandle};
 use tracing::Span;
@@ -77,7 +77,7 @@ impl Price {
     where
         E: OutboxEventMarker<CorePriceEvent> + Send + Sync + 'static,
     {
-        let mut stream = outbox.listen_ephemeral().await?;
+        let mut stream = outbox.listen_ephemeral();
 
         while let Some(message) = stream.next().await {
             Self::process_message(&tx, message.as_ref()).await?;

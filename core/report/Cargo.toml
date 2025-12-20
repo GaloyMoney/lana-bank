@@ -9,14 +9,13 @@ graphql = ["es-entity/graphql"]
 json-schema = [
     "dep:schemars",
     "es-entity/json-schema",
-    "outbox/json-schema",
     "audit/json-schema",
 ]
 
 [dependencies]
 audit = { workspace = true }
 authz = { workspace = true }
-outbox = { workspace = true }
+obix = { workspace = true }
 job = { workspace = true }
 cloud-storage = { workspace = true }
 

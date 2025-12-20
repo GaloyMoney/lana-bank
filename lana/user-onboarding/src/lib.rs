@@ -10,7 +10,7 @@ use error::*;
 use job::*;
 
 use core_access::CoreAccessEvent;
-use outbox::{Outbox, OutboxEventMarker};
+use obix::out::{Outbox, OutboxEventMarker};
 use tracing_macros::record_error_severity;
 
 pub struct UserOnboarding<E>

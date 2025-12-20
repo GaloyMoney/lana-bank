@@ -106,8 +106,9 @@ where
             .pred_opt()
             .expect("Date was first possible NaiveDate type value");
         self.chart_of_accounts
-            .close_as_of(op, sub, chart_id, close_ledger_as_of)
+            .close_as_of_in_op(&mut op, sub, chart_id, close_ledger_as_of)
             .await?;
+        op.commit().await?;
 
         Ok(fiscal_year)
     }
@@ -161,7 +162,7 @@ where
                 op.commit().await?;
                 Ok(fiscal_year)
             }
-            Idempotent::Ignored => Ok(fiscal_year),
+            Idempotent::AlreadyApplied => Ok(fiscal_year),
         }
     }
 
@@ -187,8 +188,9 @@ where
             let mut op = self.repo.begin_op().await?;
             self.repo.update_in_op(&mut op, &mut fiscal_year).await?;
             self.chart_of_accounts
-                .close_as_of(op, sub, fiscal_year.chart_id, date)
+                .close_as_of_in_op(&mut op, sub, fiscal_year.chart_id, date)
                 .await?;
+            op.commit().await?;
         }
         Ok(fiscal_year)
     }

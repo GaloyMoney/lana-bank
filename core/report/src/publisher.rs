@@ -2,7 +2,7 @@ use crate::report::{Report, ReportError, ReportEvent};
 use crate::report_run::{ReportRun, ReportRunError, ReportRunEvent};
 
 use super::event::CoreReportEvent;
-use outbox::{Outbox, OutboxEventMarker};
+use obix::out::{Outbox, OutboxEventMarker};
 
 pub struct ReportPublisher<E>
 where

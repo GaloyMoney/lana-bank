@@ -75,7 +75,7 @@ where
     pub async fn init(
         config: NotificationConfig,
         jobs: &Jobs,
-        outbox: &outbox::Outbox<LanaEvent>,
+        outbox: &obix::Outbox<LanaEvent>,
         users: &Users<AuthzType::Audit, LanaEvent>,
         credit: &CoreCredit<AuthzType, LanaEvent>,
         customers: &Customers<AuthzType, LanaEvent>,

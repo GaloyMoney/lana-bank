@@ -12,7 +12,7 @@ use authz::PermissionCheck;
 use core_price::Price;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::{JobId, Jobs};
-use outbox::OutboxEventMarker;
+use obix::out::OutboxEventMarker;
 
 use crate::{
     PublicIds,
@@ -83,7 +83,7 @@ where
 }
 
 pub(super) enum CompletionOutcome {
-    Ignored(CreditFacility),
+    AlreadyApplied(CreditFacility),
     Completed((CreditFacility, crate::CreditFacilityCompletion)),
 }
 
@@ -135,7 +135,7 @@ where
         }
     }
 
-    pub(super) async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, CreditFacilityError> {
+    pub(super) async fn begin_op(&self) -> Result<es_entity::DbOp<'static>, CreditFacilityError> {
         Ok(self.repo.begin_op().await?)
     }
 
@@ -247,7 +247,10 @@ where
             credit_facility.activation_data(None)
         };
 
-        self.ledger.handle_activation(db, activation_data).await?;
+        self.ledger
+            .handle_activation(&mut db, activation_data)
+            .await?;
+        db.commit().await?;
 
         Ok(())
     }
@@ -323,7 +326,7 @@ where
         {
             completion
         } else {
-            return Ok(CompletionOutcome::Ignored(credit_facility));
+            return Ok(CompletionOutcome::AlreadyApplied(credit_facility));
         };
 
         self.repo.update_in_op(db, &mut credit_facility).await?;
@@ -350,7 +353,7 @@ where
             res
         } else {
             unreachable!(
-                "record_interest_accrual_cycle returned Idempotent::Ignored, \
+                "record_interest_accrual_cycle returned Idempotent::AlreadyApplied, \
                  but this should only execute when there is an accrual cycle to record"
             );
         };

@@ -20,7 +20,7 @@ pub use primitives::*;
 use repo::*;
 pub use values::*;
 
-pub type Outbox = outbox::Outbox<LanaEvent>;
+pub type Outbox = obix::Outbox<LanaEvent>;
 
 pub struct Dashboard<Perms>
 where

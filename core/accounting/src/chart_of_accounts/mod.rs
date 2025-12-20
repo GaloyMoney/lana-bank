@@ -116,8 +116,10 @@ where
         let chart = self.repo.create_in_op(&mut op, new_chart).await?;
 
         self.chart_ledger
-            .create_chart_root_account_set_in_op(op, &chart)
+            .create_chart_root_account_set_in_op(&mut op, &chart)
             .await?;
+
+        op.commit().await?;
 
         Ok(chart)
     }
@@ -154,9 +156,7 @@ where
         let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        let mut op = op.with_db_time().await?;
         self.cala
             .account_sets()
             .create_all_in_op(&mut op, new_account_sets)
@@ -168,6 +168,7 @@ where
                 .add_member_in_op(&mut op, parent, child)
                 .await?;
         }
+
         op.commit().await?;
 
         let new_account_set_ids = &chart
@@ -208,9 +209,7 @@ where
         let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        let mut op = op.with_db_time().await?;
         self.cala
             .account_sets()
             .create_in_op(&mut op, new_account_set)
@@ -257,9 +256,7 @@ where
         let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
+        let mut op = op.with_db_time().await?;
         self.cala
             .account_sets()
             .create_in_op(&mut op, new_account_set)
@@ -277,9 +274,9 @@ where
 
     #[record_error_severity]
     #[instrument(name = "core_accounting.chart_of_accounts.close_as_of", skip(self, op))]
-    pub async fn close_as_of(
+    pub async fn close_as_of_in_op(
         &self,
-        mut op: es_entity::DbOp<'_>,
+        op: &mut es_entity::DbOp<'_>,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_id: ChartId,
         closed_as_of: chrono::NaiveDate,
@@ -294,7 +291,7 @@ where
 
         let mut chart = self.find_by_id(chart_id).await?;
         if let Idempotent::Executed(closing_date) = chart.close_as_of(closed_as_of) {
-            self.repo.update_in_op(&mut op, &mut chart).await?;
+            self.repo.update_in_op(op, &mut chart).await?;
             self.chart_ledger
                 .close_by_chart_root_account_set_as_of(op, closing_date, chart.account_set_id)
                 .await?;
@@ -328,8 +325,10 @@ where
             let mut op = self.repo.begin_op().await?;
             self.repo.update_in_op(&mut op, &mut chart).await?;
             self.chart_ledger
-                .post_closing_transaction(op, closing_tx_parents_and_details)
+                .post_closing_transaction(&mut op, closing_tx_parents_and_details)
                 .await?;
+
+            op.commit().await?;
         }
         Ok(())
     }
@@ -427,9 +426,7 @@ where
                 let mut op = self.repo.begin_op().await?;
                 self.repo.update_in_op(&mut op, &mut chart).await?;
 
-                let mut op = self
-                    .cala
-                    .ledger_operation_from_db_op(op.with_db_time().await?);
+                let mut op = op.with_db_time().await?;
                 let Account {
                     id: manual_transaction_account_id,
                     ..

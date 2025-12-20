@@ -5,7 +5,8 @@ use tracing::{Span, instrument};
 use futures::StreamExt;
 
 use job::*;
-use outbox::{EventSequence, Outbox, OutboxEventMarker, PersistentOutboxEvent};
+use obix::EventSequence;
+use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use crate::{event::CoreCreditEvent, repayment_plan::*};
 
@@ -142,7 +143,7 @@ where
             .execution_state::<RepaymentPlanProjectionJobData>()?
             .unwrap_or_default();
 
-        let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
+        let mut stream = self.outbox.listen_persisted(Some(state.sequence));
 
         loop {
             select! {

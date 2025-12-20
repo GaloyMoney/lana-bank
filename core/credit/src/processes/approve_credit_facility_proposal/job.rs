@@ -8,7 +8,7 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
-use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
+use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 
@@ -119,7 +119,7 @@ where
 
 #[derive(Default, Clone, Copy, serde::Deserialize, serde::Serialize)]
 struct CreditFacilityProposalApprovalJobData {
-    sequence: outbox::EventSequence,
+    sequence: obix::EventSequence,
 }
 
 pub struct CreditFacilityProposalApprovalJobRunner<Perms, E>
@@ -193,7 +193,7 @@ where
         let mut state = current_job
             .execution_state::<CreditFacilityProposalApprovalJobData>()?
             .unwrap_or_default();
-        let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
+        let mut stream = self.outbox.listen_persisted(Some(state.sequence));
 
         loop {
             select! {

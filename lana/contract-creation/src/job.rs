@@ -8,7 +8,7 @@ use audit::AuditSvc;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerObject};
 use document_storage::{DocumentId, DocumentStorage};
 use job::{CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType};
-use outbox::OutboxEventMarker;
+use obix::out::OutboxEventMarker;
 use tracing_macros::record_error_severity;
 
 use super::{LoanAgreementData, templates::ContractTemplates};

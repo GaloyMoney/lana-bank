@@ -270,7 +270,7 @@ mod tests {
             .update(updated.clone())
             .expect("second update should not error");
 
-        assert!(result.was_ignored());
+        assert!(result.was_already_applied());
         assert_eq!(config.events.iter_all().count(), 2);
         let last_event = config.events.iter_all().next_back().unwrap();
         assert!(matches!(

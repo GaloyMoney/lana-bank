@@ -1,4 +1,4 @@
-use outbox::{Outbox, OutboxEventMarker};
+use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{
     CoreCustodyEvent,

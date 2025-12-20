@@ -16,7 +16,7 @@ use core_deposit::{
     GovernanceObject,
 };
 use governance::GovernanceEvent;
-use outbox::{Outbox, OutboxEventMarker};
+use obix::out::{Outbox, OutboxEventMarker};
 use sumsub::SumsubClient;
 use tracing_macros::record_error_severity;
 

@@ -8,7 +8,7 @@ use futures::StreamExt;
 use audit::AuditSvc;
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
-use outbox::{Outbox, OutboxEventMarker};
+use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{CoreDepositAction, CoreDepositEvent, CoreDepositObject};
 
@@ -101,7 +101,7 @@ where
 
 #[derive(Default, Clone, Copy, serde::Deserialize, serde::Serialize)]
 struct WithdrawApprovalJobData {
-    sequence: outbox::EventSequence,
+    sequence: obix::EventSequence,
 }
 
 pub struct WithdrawApprovalJobRunner<Perms, E>
@@ -130,7 +130,7 @@ where
     #[allow(clippy::single_match)]
     async fn process_message(
         &self,
-        message: &outbox::PersistentOutboxEvent<E>,
+        message: &obix::out::PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         match message.as_event() {
             Some(
@@ -174,7 +174,7 @@ where
         let mut state = current_job
             .execution_state::<WithdrawApprovalJobData>()?
             .unwrap_or_default();
-        let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
+        let mut stream = self.outbox.listen_persisted(Some(state.sequence));
 
         loop {
             select! {

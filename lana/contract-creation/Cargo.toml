@@ -8,14 +8,14 @@ ignored = ["schemars"]
 
 [features]
 fail-on-warnings = []
-json-schema = ["dep:schemars", "es-entity/json-schema", "audit/json-schema", "outbox/json-schema"]
+json-schema = ["dep:schemars", "es-entity/json-schema", "audit/json-schema"]
 
 [dependencies]
 core-customer = { workspace = true }
 core-applicant = { workspace = true }
 document-storage = { workspace = true }
 job = { workspace = true }
-outbox = { workspace = true }
+obix = { workspace = true }
 authz = { workspace = true }
 audit = { workspace = true }
 rendering = { workspace = true }

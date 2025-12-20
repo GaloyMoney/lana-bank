@@ -288,7 +288,7 @@ impl Obligation {
 
         match self.status() {
             ObligationStatus::NotYetDue => (),
-            _ => return Idempotent::Ignored,
+            _ => return Idempotent::AlreadyApplied,
         }
 
         let res = ObligationDueReallocationData {
@@ -321,7 +321,7 @@ impl Obligation {
                 return Err(ObligationError::InvalidStatusTransitionToOverdue);
             }
             ObligationStatus::Due => (),
-            _ => return Ok(Idempotent::Ignored),
+            _ => return Ok(Idempotent::AlreadyApplied),
         }
 
         let res = ObligationOverdueReallocationData {
@@ -354,7 +354,7 @@ impl Obligation {
                 return Err(ObligationError::InvalidStatusTransitionToDefaulted);
             }
             ObligationStatus::Due | ObligationStatus::Overdue => (),
-            _ => return Ok(Idempotent::Ignored),
+            _ => return Ok(Idempotent::AlreadyApplied),
         }
 
         let res = ObligationDefaultedReallocationData {
@@ -385,7 +385,7 @@ impl Obligation {
         );
         let pre_payment_outstanding = self.outstanding();
         if pre_payment_outstanding.is_zero() {
-            return Idempotent::Ignored;
+            return Idempotent::AlreadyApplied;
         }
 
         let payment_amount = std::cmp::min(pre_payment_outstanding, amount);
@@ -655,7 +655,7 @@ mod test {
                 .did_execute()
         );
         let res = obligation.record_due(Utc::now().date_naive());
-        assert!(matches!(res, Idempotent::Ignored));
+        assert!(matches!(res, Idempotent::AlreadyApplied));
 
         assert!(
             obligation
@@ -664,7 +664,7 @@ mod test {
                 .did_execute()
         );
         let res = obligation.record_due(Utc::now().date_naive());
-        assert!(matches!(res, Idempotent::Ignored));
+        assert!(matches!(res, Idempotent::AlreadyApplied));
 
         let mut events = initial_events();
         events.push(ObligationEvent::Completed {
@@ -673,7 +673,7 @@ mod test {
         let mut obligation = obligation_from(events);
 
         let res = obligation.record_due(Utc::now().date_naive());
-        assert!(matches!(res, Idempotent::Ignored));
+        assert!(matches!(res, Idempotent::AlreadyApplied));
     }
 
     #[test]
@@ -693,7 +693,7 @@ mod test {
         let _ = obligation.record_due(Utc::now().date_naive());
         let _ = obligation.record_defaulted(Utc::now().date_naive());
         let res = obligation.record_overdue(Utc::now().date_naive()).unwrap();
-        assert!(matches!(res, Idempotent::Ignored));
+        assert!(matches!(res, Idempotent::AlreadyApplied));
 
         let mut events = initial_events();
         events.push(ObligationEvent::Completed {
@@ -701,7 +701,7 @@ mod test {
         });
         let mut obligation = obligation_from(events);
         let res = obligation.record_overdue(Utc::now().date_naive()).unwrap();
-        assert!(matches!(res, Idempotent::Ignored));
+        assert!(matches!(res, Idempotent::AlreadyApplied));
     }
 
     #[test]
@@ -744,7 +744,7 @@ mod test {
         let res = obligation
             .record_defaulted(Utc::now().date_naive())
             .unwrap();
-        assert!(matches!(res, Idempotent::Ignored));
+        assert!(matches!(res, Idempotent::AlreadyApplied));
     }
 
     #[test]
