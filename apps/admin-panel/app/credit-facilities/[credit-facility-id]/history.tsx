@@ -71,6 +71,10 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
             return t("entryTypes.disbursalExecuted")
           case "CreditFacilityInterestAccrued":
             return t("entryTypes.interestAccrued")
+          case "CreditFacilityRepaymentAmountReceived":
+            return t("entryTypes.repaymentAmountReceived")
+          case "CreditFacilityCollateralSentOut":
+            return t("entryTypes.collateralSentOut")
         }
         const exhaustiveCheck: never = entry.__typename
         return exhaustiveCheck
@@ -113,7 +117,10 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
           case "CreditFacilityIncrementalPayment":
           case "CreditFacilityDisbursalExecuted":
           case "CreditFacilityInterestAccrued":
+          case "CreditFacilityRepaymentAmountReceived":
             return <Balance amount={entry.cents} currency="usd" />
+          case "CreditFacilityCollateralSentOut":
+            return <Balance amount={entry.amount} currency="btc" />
           default:
             return <span>-</span>
         }
