@@ -145,6 +145,18 @@ gql`
           days
           effective
         }
+        ... on CreditFacilityRepaymentAmountReceived {
+          cents
+          recordedAt
+          txId
+          effective
+        }
+        ... on CreditFacilityCollateralSentOut {
+          amount
+          recordedAt
+          txId
+          effective
+        }
         ... on PendingCreditFacilityCollateralizationUpdated {
           pendingState: state
           collateral
