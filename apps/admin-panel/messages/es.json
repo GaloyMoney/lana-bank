@@ -803,7 +803,9 @@
           "incrementalPayment": "Pago",
           "disbursalExecuted": "Desembolso",
           "interestAccrued": "Interés acumulado",
-          "pendingFacilityCollateralization": "Actualización de colateralización de línea de crédito pendiente"
+          "pendingFacilityCollateralization": "Actualización de colateralización de línea de crédito pendiente",
+          "collateralSentOut": "Garantía enviada",
+          "repaymentAmountReceived": "Monto de reembolso recibido"
         },
         "messages": {
           "unknownType": "Tipo de entrada desconocido",
