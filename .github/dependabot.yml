@@ -30,7 +30,6 @@ updates:
       patterns:
         - "*"
   ignore:
-    - dependency-name: "tailwindcss"
     - dependency-name: "@types/node"
 
     # TODO: remove these once updated to v4
