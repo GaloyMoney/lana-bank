@@ -9,6 +9,7 @@ from src.resources import DBT_MANIFEST_PATH, RESOURCE_KEY_LANA_DBT
 
 TAG_KEY_ASSET_TYPE = "asset_type"
 TAG_VALUE_DBT_MODEL = "dbt_model"
+TAG_VALUE_DBT_SEED = "dbt_seed"
 
 
 def _load_dbt_manifest() -> dict:
@@ -18,22 +19,33 @@ def _load_dbt_manifest() -> dict:
     return manifest
 
 
-def _get_dbt_asset_key(manifest: dict, model_unique_id: str) -> List[str]:
+def _get_dbt_asset_key(manifest: dict, node_unique_id: str) -> List[str]:
     """
-    Generate Dagster asset key for a dbt model.
-    Format: [project_name, ...model_path_parts, model_name]
-    """
-    model_fully_qualified_name: list[str] = manifest["nodes"][model_unique_id].get(
-        "fqn", []
-    )
-    model_name = manifest["nodes"][model_unique_id]["name"]
-    project_name = manifest["metadata"]["project_name"]
+    Generate Dagster asset key for a dbt node (model or seed).
+    Format: [project_name, ...path_parts, node_name]
 
-    has_project_name = len(model_fully_qualified_name) > 1
-    if has_project_name:
-        return model_fully_qualified_name
-    if not has_project_name:
-        return [project_name, model_name]
+    For seeds, inserts "seeds" folder into path for consistent grouping.
+    """
+    node = manifest["nodes"][node_unique_id]
+    fqn: list[str] = node.get("fqn", [])
+    node_name = node["name"]
+    project_name = manifest["metadata"]["project_name"]
+    resource_type = node.get("resource_type", "model")
+
+    # Seeds: ensure they're under a "seeds" folder
+    # dbt fqn for seeds is typically [project_name, seed_name]
+    # We want [project_name, "seeds", seed_name]
+    if resource_type == "seed":
+        if len(fqn) >= 2 and fqn[1] != "seeds":
+            return [fqn[0], "seeds"] + fqn[1:]
+        elif len(fqn) == 1:
+            return [project_name, "seeds", node_name]
+        return fqn
+
+    # Models: use fqn as-is (already has folder structure)
+    if len(fqn) > 1:
+        return fqn
+    return [project_name, node_name]
 
 
 def _get_source_dependencies(manifest: dict, model_unique_id: str) -> List[str]:
@@ -93,6 +105,7 @@ def _get_dbt_model_dependencies(
 
     Includes:
     - Other dbt models (from depends_on.nodes)
+    - dbt seeds (from depends_on.nodes)
     - Lana source assets (from sources, mapped to ["lana", table_name])
       Only includes source assets that are in the provided source_asset_keys set.
 
@@ -106,10 +119,10 @@ def _get_dbt_model_dependencies(
     depends_on = model_node.get("depends_on", {})
     deps = []
 
-    # Add dependencies on other dbt models
+    # Add dependencies on other dbt models and seeds
     for dep_unique_id in depends_on.get("nodes", []):
         dep_node = manifest["nodes"].get(dep_unique_id)
-        if dep_node and dep_node["resource_type"] == "model":
+        if dep_node and dep_node["resource_type"] in ("model", "seed"):
             asset_key_list = _get_dbt_asset_key(manifest, dep_unique_id)
             deps.append(dg.AssetKey(asset_key_list))
 
@@ -154,6 +167,30 @@ def _create_dbt_model_callable(manifest: dict, model_unique_id: str):
     return run_dbt_model
 
 
+def _create_dbt_seed_callable(manifest: dict, seed_unique_id: str):
+    """Create a callable that runs a specific dbt seed."""
+    fqn = manifest["nodes"][seed_unique_id].get("fqn", [])
+    # Use fqn for more specific seed selection (consistent with model pattern)
+    # Format: project_name.seed_name
+    seed_selector = ".".join(fqn)
+
+    def run_dbt_seed(context: dg.AssetExecutionContext, dbt: DbtCliResource) -> None:
+        """Run a specific dbt seed."""
+        context.log.info(f"Running dbt seed: {seed_unique_id}")
+
+        stream = dbt.cli(
+            ["seed", "--select", seed_selector], manifest=manifest
+        ).stream()
+
+        for event in stream:
+            if hasattr(event, "message") and event.message:
+                context.log.info(f"dbt: {event.message}")
+
+        context.log.info(f"Completed dbt seed: {seed_unique_id}")
+
+    return run_dbt_seed
+
+
 def lana_dbt_protoassets(source_protoassets: List[Protoasset]) -> List[Protoasset]:
     """
     Create Protoassets for each dbt model in the manifest.
@@ -194,3 +231,34 @@ def lana_dbt_protoassets(source_protoassets: List[Protoasset]) -> List[Protoasse
         dbt_protoassets.append(protoasset)
 
     return dbt_protoassets
+
+
+def lana_dbt_seed_protoassets() -> List[Protoasset]:
+    """
+    Create Protoassets for each dbt seed in the manifest.
+
+    Seeds have no upstream dependencies and no automation_condition
+    (they run on a schedule, not reactively).
+    """
+    manifest = _load_dbt_manifest()
+    seed_protoassets = []
+
+    for unique_id, node in manifest["nodes"].items():
+        if node["resource_type"] != "seed":
+            continue
+
+        asset_key = _get_dbt_asset_key(manifest, unique_id)
+        callable = _create_dbt_seed_callable(manifest, unique_id)
+
+        protoasset = Protoasset(
+            key=dg.AssetKey(asset_key),
+            callable=callable,
+            tags={TAG_KEY_ASSET_TYPE: TAG_VALUE_DBT_SEED, "dbt_seed": node["name"]},
+            deps=[],
+            required_resource_keys={RESOURCE_KEY_LANA_DBT},
+            automation_condition=None,
+        )
+
+        seed_protoassets.append(protoasset)
+
+    return seed_protoassets

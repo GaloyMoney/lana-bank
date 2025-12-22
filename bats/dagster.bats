@@ -327,3 +327,91 @@ has_bigquery_credentials() {
   echo "Downstream dbt asset automatically started (run ID: $new_run_id) after upstream completion"
 }
 
+@test "dagster: verify dbt seed asset exists" {
+  if [[ "${DAGSTER}" != "true" ]]; then
+    skip "Skipping dagster tests"
+  fi
+  if ! has_bigquery_credentials; then
+    skip "Skipping - requires BigQuery credentials for code location to load"
+  fi
+
+  exec_dagster_graphql "assets"
+  dagster_validate_json || return 1
+
+  # Check if the test seed asset exists
+  if ! echo "$output" | jq -e '.data.assetsOrError.nodes[]?.key.path | select(.[0] == "dbt_lana_dw" and .[-1] == "_TEST_DO_NOT_USE_example_seed")' >/dev/null; then
+    echo "dbt seed asset _TEST_DO_NOT_USE_example_seed not found in Dagster assets"
+    echo "Available dbt_lana_dw assets:"
+    echo "$output" | jq '.data.assetsOrError.nodes[]?.key.path | select(.[0] == "dbt_lana_dw")'
+    return 1
+  fi
+}
+
+@test "dagster: run dbt_seeds_job and verify success" {
+  if [[ "${DAGSTER}" != "true" ]]; then
+    skip "Skipping dagster tests"
+  fi
+  if ! has_bigquery_credentials; then
+    skip "Skipping - requires BigQuery credentials"
+  fi
+
+  # Launch the dbt_seeds_job
+  variables=$(jq -n '{
+    executionParams: {
+      selector: {
+        repositoryLocationName: "Lana DW",
+        repositoryName: "__repository__",
+        jobName: "dbt_seeds_job"
+      },
+      runConfigData: {}
+    }
+  }')
+  
+  exec_dagster_graphql "launch_run" "$variables"
+  dagster_check_launch_run_errors || return 1
+
+  run_id=$(echo "$output" | jq -r '.data.launchRun.run.runId // empty')
+  if [ -z "$run_id" ]; then
+    echo "Failed to launch dbt_seeds_job - no runId returned"
+    echo "Response: $output"
+    return 1
+  fi
+  
+  echo "Launched dbt_seeds_job with run ID: $run_id"
+  
+  # Wait for the job to complete (timeout 90s, poll every 2s)
+  dagster_poll_run_status "$run_id" 90 2 || return 1
+  
+  echo "dbt_seeds_job completed successfully"
+}
+
+@test "dagster: verify model depends on seed" {
+  if [[ "${DAGSTER}" != "true" ]]; then
+    skip "Skipping dagster tests"
+  fi
+  if ! has_bigquery_credentials; then
+    skip "Skipping - requires BigQuery credentials"
+  fi
+
+  # Query dependencies of the test model that consumes the seed
+  model_asset_vars=$(jq -n '{
+    assetKey: { path: ["dbt_lana_dw", "staging", "_TEST_DO_NOT_USE_seed_consumer"] }
+  }')
+  exec_dagster_graphql "asset_dependencies" "$model_asset_vars"
+  
+  dagster_validate_json || return 1
+  
+  # Check if the asset node exists
+  asset_node=$(echo "$output" | jq -e '.data.assetNodes[0] // empty')
+  [ -n "$asset_node" ] || { echo "Asset _TEST_DO_NOT_USE_seed_consumer not found: $output"; return 1; }
+  
+  # Check if the seed is in the dependencies
+  if ! echo "$output" | jq -e '.data.assetNodes[0].dependencies[]?.asset.assetKey.path | select(. == ["dbt_lana_dw", "seeds", "_TEST_DO_NOT_USE_example_seed"])' >/dev/null; then
+    echo "_TEST_DO_NOT_USE_seed_consumer does not depend on seed"
+    echo "Dependencies found:"
+    echo "$output" | jq '.data.assetNodes[0].dependencies[].asset.assetKey.path'
+    return 1
+  fi
+  
+  echo "Model correctly depends on seed asset"
+}
