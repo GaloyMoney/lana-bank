@@ -103,6 +103,12 @@ jobs:
                 cd repo
                 cachix use $CACHIX_CACHE_NAME
                 nix run .#nextest
+    on_failure:
+      do:
+        - get: release-lock
+          passed: [set-next-version]
+        - put: release-lock
+          params: { release: release-lock }
 
   - name: test-bats
     serial: true
@@ -131,6 +137,12 @@ jobs:
                 cd repo
                 cachix use $CACHIX_CACHE_NAME
                 nix run .#bats
+    on_failure:
+      do:
+        - get: release-lock
+          passed: [set-next-version]
+        - put: release-lock
+          params: { release: release-lock }
 
   - name: flake-check
     serial: true
@@ -155,8 +167,14 @@ jobs:
               set -euo pipefail
               cd repo
               cachix use $CACHIX_CACHE_NAME
-              
+
               nix flake check
+    on_failure:
+      do:
+        - get: release-lock
+          passed: [set-next-version]
+        - put: release-lock
+          params: { release: release-lock }
 
   - name: set-next-version
     serial: true
