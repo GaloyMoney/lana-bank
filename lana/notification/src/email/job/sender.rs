@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use domain_config::{DomainConfigValue, DomainConfigs};
+use domain_config::{ComplexConfig, DomainConfigs};
 use job::{CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType};
 use serde::{Deserialize, Serialize};
 use smtp_client::SmtpClient;
@@ -73,7 +73,7 @@ impl JobRunner for EmailSenderRunner {
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let notification_email_conf = self
             .domain_configs
-            .get_or_default::<NotificationEmailConfig>()
+            .get_complex_or_default::<NotificationEmailConfig>()
             .await?;
 
         if let Err(err) = notification_email_conf.validate() {

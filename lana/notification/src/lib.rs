@@ -122,7 +122,7 @@ where
 
         let config = self
             .domain_configs
-            .get_or_default::<NotificationEmailConfig>()
+            .get_complex_or_default::<NotificationEmailConfig>()
             .await?;
         Ok(config)
     }
@@ -142,7 +142,9 @@ where
             )
             .await?;
 
-        self.domain_configs.upsert(new_config.clone()).await?;
+        self.domain_configs
+            .upsert_complex(new_config.clone())
+            .await?;
 
         Ok(new_config)
     }

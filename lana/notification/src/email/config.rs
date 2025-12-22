@@ -1,7 +1,7 @@
 use lettre::address::Address;
 use serde::{Deserialize, Serialize};
 
-use domain_config::{DomainConfigError, DomainConfigKey, DomainConfigValue};
+use domain_config::{ComplexConfig, DomainConfigError, DomainConfigKey};
 
 #[derive(Clone, Debug, Deserialize, Serialize, Default)]
 #[serde(deny_unknown_fields)]
@@ -38,7 +38,7 @@ pub struct NotificationEmailConfig {
     pub from_name: String,
 }
 
-impl DomainConfigValue for NotificationEmailConfig {
+impl ComplexConfig for NotificationEmailConfig {
     const KEY: DomainConfigKey = DomainConfigKey::new("notification-email");
 
     fn validate(&self) -> Result<(), DomainConfigError> {

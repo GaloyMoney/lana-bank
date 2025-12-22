@@ -4,7 +4,7 @@ use sqlx::PgPool;
 use crate::{
     entity::{DomainConfig, DomainConfigEvent},
     error::DomainConfigError,
-    primitives::{DomainConfigId, DomainConfigKey},
+    primitives::{ConfigType, DomainConfigId, DomainConfigKey},
 };
 
 #[derive(EsRepo, Clone)]
@@ -12,7 +12,15 @@ use crate::{
     entity = "DomainConfig",
     id = "DomainConfigId",
     err = "DomainConfigError",
-    columns(key(ty = "DomainConfigKey", list_by)),
+    columns(
+        key(ty = "DomainConfigKey", list_by),
+        config_type(
+            ty = "ConfigType",
+            list_for,
+            create(accessor = "config_type"),
+            update(persist = false)
+        )
+    ),
     tbl_prefix = "core"
 )]
 pub struct DomainConfigRepo {
