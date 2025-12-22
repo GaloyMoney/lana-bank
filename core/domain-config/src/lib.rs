@@ -172,34 +172,39 @@ impl DomainConfigs {
     pub async fn list_simple(&self) -> Result<Vec<SimpleEntry>, DomainConfigError> {
         let mut entries = Vec::new();
         let query_args = es_entity::PaginatedQueryArgs::<DomainConfigsByKeyCursor>::default();
-        let mut has_next_page = true;
-        let mut after = query_args.after;
+        let es_entity::PaginatedQueryArgs { first, .. } = query_args;
 
         let mut op = self.repo.begin_op().await?;
-        while has_next_page {
-            let es_entity::PaginatedQueryRet {
-                entities: configs,
-                has_next_page: next_page,
-                end_cursor,
-            } = self
-                .repo
-                .list_by_key_in_op(
-                    &mut op,
-                    es_entity::PaginatedQueryArgs {
-                        first: query_args.first,
-                        after,
-                    },
-                    es_entity::ListDirection::Ascending,
-                )
-                .await?;
-            (after, has_next_page) = (end_cursor, next_page);
+        for config_type in [
+            ConfigType::Bool,
+            ConfigType::String,
+            ConfigType::Int,
+            ConfigType::Decimal,
+        ] {
+            let mut has_next_page = true;
+            let mut after = None;
 
-            entries.reserve(configs.len());
-            for config in configs
-                .into_iter()
-                .filter(|config| config.config_type.is_simple())
-            {
-                entries.push(config.into_simple_entry()?);
+            while has_next_page {
+                let es_entity::PaginatedQueryRet {
+                    entities: configs,
+                    has_next_page: next_page,
+                    end_cursor,
+                } = self
+                    .repo
+                    .list_for_config_type_by_key_in_op(
+                        &mut op,
+                        config_type,
+                        es_entity::PaginatedQueryArgs { first, after },
+                        es_entity::ListDirection::Ascending,
+                    )
+                    .await?;
+                after = end_cursor;
+                has_next_page = next_page && after.is_some();
+
+                entries.reserve(configs.len());
+                for config in configs {
+                    entries.push(config.into_simple_entry()?);
+                }
             }
         }
         op.commit().await?;
