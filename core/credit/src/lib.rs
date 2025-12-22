@@ -98,7 +98,6 @@ where
     pending_credit_facilities: Arc<PendingCreditFacilities<Perms, E>>,
     facilities: Arc<CreditFacilities<Perms, E>>,
     disbursals: Arc<Disbursals<Perms, E>>,
-    payments: Arc<Payments<Perms>>,
     history_repo: Arc<HistoryRepo>,
     repayment_plan_repo: Arc<RepaymentPlanRepo>,
     governance: Arc<Governance<Perms, E>>,
@@ -138,7 +137,6 @@ where
             collaterals: self.collaterals.clone(),
             custody: self.custody.clone(),
             disbursals: self.disbursals.clone(),
-            payments: self.payments.clone(),
             history_repo: self.history_repo.clone(),
             repayment_plan_repo: self.repayment_plan_repo.clone(),
             governance: self.governance.clone(),
@@ -269,9 +267,6 @@ where
             public_ids_arc.clone(),
         );
         let facilities_arc = Arc::new(credit_facilities);
-
-        let payments = Payments::new(pool, authz_arc.clone());
-        let payments_arc = Arc::new(payments);
 
         let history_repo = HistoryRepo::new(pool);
         let history_repo_arc = Arc::new(history_repo);
@@ -441,7 +436,6 @@ where
             collaterals: collaterals_arc,
             custody: custody_arc,
             disbursals: disbursals_arc,
-            payments: payments_arc,
             history_repo: history_repo_arc,
             repayment_plan_repo: repayment_plan_repo_arc,
             governance: governance_arc,
@@ -485,10 +479,6 @@ where
 
     pub fn facilities(&self) -> &CreditFacilities<Perms, E> {
         self.facilities.as_ref()
-    }
-
-    pub fn payments(&self) -> &Payments<Perms> {
-        self.payments.as_ref()
     }
 
     pub fn chart_of_accounts_integrations(&self) -> &ChartOfAccountsIntegrations<Perms> {
@@ -893,9 +883,15 @@ where
 
         let mut db = self.facilities.begin_op().await?;
 
+        let payment_source_account_id = CalaAccountId::new(); // FIXME: store this somewhere
         let payment = self
-            .payments
-            .record_in_op(&mut db, credit_facility_id, amount)
+            .facilities
+            .assign_payment_in_op(
+                &mut db,
+                credit_facility_id,
+                payment_source_account_id,
+                amount,
+            )
             .await?;
 
         self.obligations
@@ -952,9 +948,15 @@ where
 
         let mut db = self.facilities.begin_op().await?;
 
+        let payment_source_account_id = CalaAccountId::new(); // FIXME: store this somewhere
         let payment = self
-            .payments
-            .record_in_op(&mut db, credit_facility_id, amount)
+            .facilities
+            .assign_payment_in_op(
+                &mut db,
+                credit_facility_id,
+                payment_source_account_id,
+                amount,
+            )
             .await?;
 
         self.obligations

@@ -22,17 +22,21 @@ use cala_ledger::{
 use tracing_macros::record_error_severity;
 
 use crate::{
-    COLLATERAL_ENTITY_TYPE, ChartOfAccountsIntegrationConfig, CollateralId, FacilityDurationType,
-    Obligation, ObligationDefaultedReallocationData, ObligationDueReallocationData,
-    ObligationOverdueReallocationData,
+    chart_of_accounts_integration::ChartOfAccountsIntegrationConfig,
+    obligation::{
+        Obligation, ObligationDefaultedReallocationData, ObligationDueReallocationData,
+        ObligationOverdueReallocationData,
+    },
+    payment::Payment,
     payment_allocation::PaymentAllocation,
     primitives::{
-        CREDIT_FACILITY_ENTITY_TYPE, CREDIT_FACILITY_PROPOSAL_ENTITY_TYPE, CalaAccountId,
-        CalaAccountSetId, CollateralAction, CollateralUpdate, CreditFacilityId, CustomerType,
-        DisbursalId, DisbursedReceivableAccountCategory, DisbursedReceivableAccountType,
-        InterestReceivableAccountType, LedgerOmnibusAccountIds, LedgerTxId,
-        PendingCreditFacilityId, Satoshis, UsdCents,
+        COLLATERAL_ENTITY_TYPE, CREDIT_FACILITY_ENTITY_TYPE, CREDIT_FACILITY_PROPOSAL_ENTITY_TYPE,
+        CalaAccountId, CalaAccountSetId, CollateralAction, CollateralId, CollateralUpdate,
+        CreditFacilityId, CustomerType, DisbursalId, DisbursedReceivableAccountCategory,
+        DisbursedReceivableAccountType, InterestReceivableAccountType, LedgerOmnibusAccountIds,
+        LedgerTxId, PendingCreditFacilityId, Satoshis, UsdCents,
     },
+    terms::FacilityDurationType,
 };
 
 pub use balance::*;
@@ -190,6 +194,7 @@ impl CreditLedger {
         templates::AddStructuringFee::init(cala).await?;
         templates::ActivateCreditFacility::init(cala).await?;
         templates::RemoveCollateral::init(cala).await?;
+        templates::RecordPaymentAssigned::init(cala).await?;
         templates::RecordPaymentAllocation::init(cala).await?;
         templates::RecordObligationDueBalance::init(cala).await?;
         templates::RecordObligationOverdueBalance::init(cala).await?;
@@ -1273,6 +1278,39 @@ impl CreditLedger {
                     .await
             }
         }?;
+        Ok(())
+    }
+
+    pub async fn record_payment_assigned(
+        &self,
+        op: &mut es_entity::DbOp<'_>,
+        payment @ Payment {
+            ledger_tx_id,
+            payment_account_id,
+            payment_source_account_id,
+            amount,
+            effective,
+            ..
+        }: &Payment,
+    ) -> Result<(), CreditLedgerError> {
+        let params = templates::RecordPaymentAssignedParams {
+            journal_id: self.journal_id,
+            currency: self.usd,
+            amount: amount.to_usd(),
+            payment_source_account_id: *payment_source_account_id,
+            payment_in_facility_account_id: *payment_account_id,
+            tx_ref: payment.tx_ref(),
+            effective: *effective,
+        };
+        self.cala
+            .post_transaction_in_op(
+                op,
+                *ledger_tx_id,
+                templates::RECORD_PAYMENT_ASSIGNED_CODE,
+                params,
+            )
+            .await?;
+
         Ok(())
     }
 
