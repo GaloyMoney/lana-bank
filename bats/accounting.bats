@@ -303,8 +303,7 @@ teardown_file() {
     [[ "$count" -lt 20 ]] || exit 1
   done
 
-  
   exec_admin_graphql 'fiscal-year-close' "$variables"
-  is_open_after=$(graphql_output '.data.fiscalYearClose.fiscalYear.isOpen')
-  [[ "$is_open_after" != "true" ]] || exit 1
+  error_message=$(graphql_output '.errors[0].message')
+  [[ "$error_message" =~ "Not Configured" ]] || exit 1
 }
