@@ -1,5 +1,4 @@
 use rust_decimal::Decimal;
-use serde_json::Value;
 use std::{fmt, str::FromStr};
 
 use crate::{
@@ -76,8 +75,8 @@ pub trait SimpleConfig {
 
 pub trait SimpleScalar: sealed::Sealed + Sized + fmt::Debug + Clone {
     const CONFIG_TYPE: ConfigType;
-    fn to_json(v: &Self) -> Value;
-    fn from_json(v: Value) -> Result<Self, DomainConfigError>;
+    fn to_json(v: &Self) -> serde_json::Value;
+    fn from_json(v: serde_json::Value) -> Result<Self, DomainConfigError>;
 }
 
 mod sealed {
@@ -91,13 +90,13 @@ mod sealed {
 impl SimpleScalar for bool {
     const CONFIG_TYPE: ConfigType = ConfigType::Bool;
 
-    fn to_json(v: &Self) -> Value {
-        Value::Bool(*v)
+    fn to_json(v: &Self) -> serde_json::Value {
+        serde_json::Value::Bool(*v)
     }
 
-    fn from_json(v: Value) -> Result<Self, DomainConfigError> {
+    fn from_json(v: serde_json::Value) -> Result<Self, DomainConfigError> {
         match v {
-            Value::Bool(v) => Ok(v),
+            serde_json::Value::Bool(v) => Ok(v),
             other => Err(DomainConfigError::InvalidType(format!(
                 "Expected bool, got {other:?}"
             ))),
@@ -108,13 +107,13 @@ impl SimpleScalar for bool {
 impl SimpleScalar for String {
     const CONFIG_TYPE: ConfigType = ConfigType::String;
 
-    fn to_json(v: &Self) -> Value {
-        Value::String(v.clone())
+    fn to_json(v: &Self) -> serde_json::Value {
+        serde_json::Value::String(v.clone())
     }
 
-    fn from_json(v: Value) -> Result<Self, DomainConfigError> {
+    fn from_json(v: serde_json::Value) -> Result<Self, DomainConfigError> {
         match v {
-            Value::String(v) => Ok(v),
+            serde_json::Value::String(v) => Ok(v),
             other => Err(DomainConfigError::InvalidType(format!(
                 "Expected string, got {other:?}"
             ))),
@@ -125,13 +124,13 @@ impl SimpleScalar for String {
 impl SimpleScalar for i64 {
     const CONFIG_TYPE: ConfigType = ConfigType::Int;
 
-    fn to_json(v: &Self) -> Value {
-        Value::Number((*v).into())
+    fn to_json(v: &Self) -> serde_json::Value {
+        serde_json::Value::Number((*v).into())
     }
 
-    fn from_json(v: Value) -> Result<Self, DomainConfigError> {
+    fn from_json(v: serde_json::Value) -> Result<Self, DomainConfigError> {
         match v {
-            Value::Number(v) => v.as_i64().ok_or_else(|| {
+            serde_json::Value::Number(v) => v.as_i64().ok_or_else(|| {
                 DomainConfigError::InvalidType(format!("Expected i64-compatible number, got {v}"))
             }),
             other => Err(DomainConfigError::InvalidType(format!(
@@ -144,13 +143,13 @@ impl SimpleScalar for i64 {
 impl SimpleScalar for Decimal {
     const CONFIG_TYPE: ConfigType = ConfigType::Decimal;
 
-    fn to_json(v: &Self) -> Value {
-        Value::String(v.to_string())
+    fn to_json(v: &Self) -> serde_json::Value {
+        serde_json::Value::String(v.to_string())
     }
 
-    fn from_json(v: Value) -> Result<Self, DomainConfigError> {
+    fn from_json(v: serde_json::Value) -> Result<Self, DomainConfigError> {
         match v {
-            Value::String(v) => Ok(Decimal::from_str(&v)?),
+            serde_json::Value::String(v) => Ok(Decimal::from_str(&v)?),
             other => Err(DomainConfigError::InvalidType(format!(
                 "Expected decimal string, got {other:?}"
             ))),
@@ -168,7 +167,7 @@ impl SimpleEntry {
     pub fn new(
         key: DomainConfigKey,
         config_type: ConfigType,
-        json: Value,
+        json: serde_json::Value,
     ) -> Result<Self, DomainConfigError> {
         if !config_type.is_simple() {
             return Err(DomainConfigError::InvalidType(format!(
@@ -210,7 +209,7 @@ mod tests {
     fn decimal_is_string_encoded() {
         let val = dec!(12.34);
         let json = Decimal::to_json(&val);
-        assert_eq!(json, Value::String("12.34".to_string()));
+        assert_eq!(json, serde_json::Value::String("12.34".to_string()));
         let parsed = Decimal::from_json(json).unwrap();
         assert_eq!(parsed, val);
     }
