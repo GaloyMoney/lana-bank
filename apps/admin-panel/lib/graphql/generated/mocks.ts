@@ -813,6 +813,8 @@ export const mockCreditFacilityLedgerAccounts = (overrides?: Partial<CreditFacil
         __typename: 'CreditFacilityLedgerAccounts',
         collateralAccount: overrides && overrides.hasOwnProperty('collateralAccount') ? overrides.collateralAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
         collateralAccountId: overrides && overrides.hasOwnProperty('collateralAccountId') ? overrides.collateralAccountId! : generateMockValue.uuid(),
+        collateralInLiquidationAccount: overrides && overrides.hasOwnProperty('collateralInLiquidationAccount') ? overrides.collateralInLiquidationAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
+        collateralInLiquidationAccountId: overrides && overrides.hasOwnProperty('collateralInLiquidationAccountId') ? overrides.collateralInLiquidationAccountId! : generateMockValue.uuid(),
         disbursedDefaultedAccount: overrides && overrides.hasOwnProperty('disbursedDefaultedAccount') ? overrides.disbursedDefaultedAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
         disbursedDefaultedAccountId: overrides && overrides.hasOwnProperty('disbursedDefaultedAccountId') ? overrides.disbursedDefaultedAccountId! : generateMockValue.uuid(),
         disbursedReceivableDueAccount: overrides && overrides.hasOwnProperty('disbursedReceivableDueAccount') ? overrides.disbursedReceivableDueAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
@@ -825,8 +827,6 @@ export const mockCreditFacilityLedgerAccounts = (overrides?: Partial<CreditFacil
         facilityAccountId: overrides && overrides.hasOwnProperty('facilityAccountId') ? overrides.facilityAccountId! : generateMockValue.uuid(),
         feeIncomeAccount: overrides && overrides.hasOwnProperty('feeIncomeAccount') ? overrides.feeIncomeAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
         feeIncomeAccountId: overrides && overrides.hasOwnProperty('feeIncomeAccountId') ? overrides.feeIncomeAccountId! : generateMockValue.uuid(),
-        inLiquidationAccount: overrides && overrides.hasOwnProperty('inLiquidationAccount') ? overrides.inLiquidationAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
-        inLiquidationAccountId: overrides && overrides.hasOwnProperty('inLiquidationAccountId') ? overrides.inLiquidationAccountId! : generateMockValue.uuid(),
         interestDefaultedAccount: overrides && overrides.hasOwnProperty('interestDefaultedAccount') ? overrides.interestDefaultedAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
         interestDefaultedAccountId: overrides && overrides.hasOwnProperty('interestDefaultedAccountId') ? overrides.interestDefaultedAccountId! : generateMockValue.uuid(),
         interestIncomeAccount: overrides && overrides.hasOwnProperty('interestIncomeAccount') ? overrides.interestIncomeAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
@@ -837,6 +837,8 @@ export const mockCreditFacilityLedgerAccounts = (overrides?: Partial<CreditFacil
         interestReceivableNotYetDueAccountId: overrides && overrides.hasOwnProperty('interestReceivableNotYetDueAccountId') ? overrides.interestReceivableNotYetDueAccountId! : generateMockValue.uuid(),
         interestReceivableOverdueAccount: overrides && overrides.hasOwnProperty('interestReceivableOverdueAccount') ? overrides.interestReceivableOverdueAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
         interestReceivableOverdueAccountId: overrides && overrides.hasOwnProperty('interestReceivableOverdueAccountId') ? overrides.interestReceivableOverdueAccountId! : generateMockValue.uuid(),
+        liquidationPaymentReceivableAccount: overrides && overrides.hasOwnProperty('liquidationPaymentReceivableAccount') ? overrides.liquidationPaymentReceivableAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
+        liquidationPaymentReceivableAccountId: overrides && overrides.hasOwnProperty('liquidationPaymentReceivableAccountId') ? overrides.liquidationPaymentReceivableAccountId! : generateMockValue.uuid(),
     };
 };
 

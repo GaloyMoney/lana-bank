@@ -6,16 +6,19 @@ use tracing::{Span, instrument};
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_custody::CoreCustodyEvent;
+use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use es_entity::DbOp;
-use governance::GovernanceEvent;
+use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
 use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use crate::jobs::partial_liquidation;
 use crate::liquidation::{Liquidations, NewLiquidation};
-use crate::{CoreCreditAction, CoreCreditEvent, CoreCreditObject};
+use crate::{
+    CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilities,
+    CreditFacilityLedgerAccountIds,
+};
 
 #[derive(Default, Clone, Deserialize, Serialize)]
 struct CreditFacilityLiquidationsJobData {
@@ -31,7 +34,11 @@ impl<Perms, E> JobConfig for CreditFacilityLiquidationsJobConfig<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustodyAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCustodyObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<GovernanceObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
@@ -43,7 +50,11 @@ pub struct CreditFacilityLiquidationsInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustodyAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCustodyObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<GovernanceObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
@@ -54,13 +65,18 @@ where
     outbox: Outbox<E>,
     jobs: Jobs,
     liquidations: Liquidations<Perms, E>,
+    facilities: CreditFacilities<Perms, E>,
 }
 
 impl<Perms, E> CreditFacilityLiquidationsInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustodyAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCustodyObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<GovernanceObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
@@ -68,11 +84,17 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
 {
-    pub fn new(outbox: &Outbox<E>, jobs: &Jobs, liquidations: &Liquidations<Perms, E>) -> Self {
+    pub fn new(
+        outbox: &Outbox<E>,
+        jobs: &Jobs,
+        liquidations: &Liquidations<Perms, E>,
+        facilities: &CreditFacilities<Perms, E>,
+    ) -> Self {
         Self {
             outbox: outbox.clone(),
             jobs: jobs.clone(),
             liquidations: liquidations.clone(),
+            facilities: facilities.clone(),
         }
     }
 }
@@ -83,7 +105,11 @@ impl<Perms, E> JobInitializer for CreditFacilityLiquidationsInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustodyAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCustodyObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<GovernanceObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
@@ -103,6 +129,7 @@ where
             outbox: self.outbox.clone(),
             jobs: self.jobs.clone(),
             liquidations: self.liquidations.clone(),
+            facilities: self.facilities.clone(),
         }))
     }
 }
@@ -111,7 +138,11 @@ pub struct CreditFacilityLiquidationsJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustodyAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCustodyObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<GovernanceObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
@@ -122,6 +153,7 @@ where
     outbox: Outbox<E>,
     jobs: Jobs,
     liquidations: Liquidations<Perms, E>,
+    facilities: CreditFacilities<Perms, E>,
 }
 
 #[async_trait]
@@ -129,7 +161,11 @@ impl<Perms, E> JobRunner for CreditFacilityLiquidationsJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustodyAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCustodyObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<GovernanceObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
@@ -184,7 +220,11 @@ impl<Perms, E> CreditFacilityLiquidationsJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustodyAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCustodyObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<GovernanceObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
@@ -213,6 +253,18 @@ where
             Span::current().record("handled", true);
             Span::current().record("event_type", event.as_ref());
 
+            let credit_facility = self
+                .facilities
+                .find_by_id_without_audit(*credit_facility_id)
+                .await?;
+            let CreditFacilityLedgerAccountIds {
+                collateral_account_id,
+                liquidation_payment_receivable_account_id,
+                collateral_in_liquidation_account_id,
+                liquidated_collateral_account_id,
+                ..
+            } = credit_facility.account_ids;
+
             let maybe_new_liqudation = self
                 .liquidations
                 .create_if_not_exist_for_facility_in_op(
@@ -222,6 +274,12 @@ where
                         .id(*liquidation_id)
                         .credit_facility_id(*credit_facility_id)
                         .payment_holding_account_id(*payment_holding_account_id)
+                        .liquidation_payment_receivable_account_id(
+                            liquidation_payment_receivable_account_id,
+                        )
+                        .collateral_account_id(collateral_account_id)
+                        .collateral_in_liquidation_account_id(collateral_in_liquidation_account_id)
+                        .liquidated_collateral_account_id(liquidated_collateral_account_id)
                         .trigger_price(*trigger_price)
                         .initially_expected_to_receive(*initially_expected_to_receive)
                         .initially_estimated_to_liquidate(*initially_estimated_to_liquidate)

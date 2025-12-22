@@ -118,10 +118,26 @@ pub struct InterestReceivable {
 }
 
 #[derive(Clone, Copy)]
+pub struct LiquidationAccountSets {
+    /// Groups accounts tracking parts of collaterals that have been
+    /// sent for liquidation but for which payments have not yet been
+    /// received.
+    pub collateral_in_liquidation: InternalAccountSetDetails,
+
+    /// Groups accounts tracking parts of collaterals for which
+    /// payments have already been received.
+    pub liquidated_collateral: InternalAccountSetDetails,
+
+    /// Groups accounts tracking payments received from
+    /// liquidations.
+    pub payment_receivable: InternalAccountSetDetails,
+}
+
+#[derive(Clone, Copy)]
 pub struct CreditFacilityInternalAccountSets {
     pub facility: InternalAccountSetDetails,
     pub collateral: InternalAccountSetDetails,
-    pub in_liquidation: InternalAccountSetDetails,
+    pub liquidation: LiquidationAccountSets,
     pub disbursed_receivable: DisbursedReceivable,
     pub disbursed_defaulted: InternalAccountSetDetails,
     pub interest_receivable: InterestReceivable,
@@ -136,7 +152,12 @@ impl CreditFacilityInternalAccountSets {
         let Self {
             facility,
             collateral,
-            in_liquidation,
+            liquidation:
+                LiquidationAccountSets {
+                    collateral_in_liquidation,
+                    liquidated_collateral,
+                    payment_receivable: liquidation_payment_receivable,
+                },
             interest_income,
             fee_income,
             payment_holding,
@@ -159,7 +180,9 @@ impl CreditFacilityInternalAccountSets {
         let mut ids = vec![
             facility.id,
             collateral.id,
-            in_liquidation.id,
+            collateral_in_liquidation.id,
+            liquidated_collateral.id,
+            liquidation_payment_receivable.id,
             interest_income.id,
             fee_income.id,
             payment_holding.id,
@@ -186,7 +209,7 @@ pub struct CreditLedger {
     journal_id: JournalId,
     facility_omnibus_account_ids: LedgerOmnibusAccountIds,
     collateral_omnibus_account_ids: LedgerOmnibusAccountIds,
-    in_liquidation_omnibus_account_ids: LedgerOmnibusAccountIds,
+    liquidation_payment_receivable_omnibus_account_ids: LedgerOmnibusAccountIds,
     internal_account_sets: CreditFacilityInternalAccountSets,
     credit_facility_control_id: VelocityControlId,
     usd: Currency,
@@ -237,16 +260,17 @@ impl CreditLedger {
         )
         .await?;
 
-        let in_liquidation_omnibus_normal_balance_type = DebitOrCredit::Debit;
-        let in_liquidation_omnibus_account_ids = Self::find_or_create_omnibus_account(
-            cala,
-            journal_id,
-            format!("{journal_id}:{CREDIT_FACILITY_IN_LIQUIDATION_OMNIBUS_ACCOUNT_SET_REF}"),
-            format!("{journal_id}:{CREDIT_FACILITY_IN_LIQUIDATION_OMNIBUS_ACCOUNT_REF}"),
-            CREDIT_FACILITY_IN_LIQUIDATION_OMNIBUS_ACCOUNT_SET_NAME.to_string(),
-            in_liquidation_omnibus_normal_balance_type,
-        )
-        .await?;
+        let liquidation_payment_receivable_omnibus_normal_balance_type = DebitOrCredit::Debit;
+        let liquidation_payment_receivable_omnibus_account_ids =
+            Self::find_or_create_omnibus_account(
+                cala,
+                journal_id,
+                format!("{journal_id}:{CREDIT_FACILITY_LIQUIDATION_PAYMENT_RECEIVABLE_OMNIBUS_ACCOUNT_SET_REF}"),
+                format!("{journal_id}:{CREDIT_FACILITY_LIQUIDATION_PAYMENT_RECEIVABLE_OMNIBUS_ACCOUNT_REF}"),
+                CREDIT_FACILITY_LIQUIDATION_PAYMENT_RECEIVABLE_OMNIBUS_ACCOUNT_SET_NAME.to_string(),
+                liquidation_payment_receivable_omnibus_normal_balance_type,
+            )
+            .await?;
 
         let facility_normal_balance_type = DebitOrCredit::Credit;
         let facility_account_set_id = Self::find_or_create_account_set(
@@ -268,13 +292,35 @@ impl CreditLedger {
         )
         .await?;
 
-        let in_liquidation_normal_balance_type = DebitOrCredit::Credit;
-        let in_liquidation_account_set_id = Self::find_or_create_account_set(
+        let collateral_in_liquidation_normal_balance_type = DebitOrCredit::Credit;
+        let collateral_in_liquidation_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            format!("{journal_id}:{CREDIT_FACILITY_IN_LIQUIDATION_ACCOUNT_SET_REF}"),
-            CREDIT_FACILITY_IN_LIQUIDATION_ACCOUNT_SET_NAME.to_string(),
-            in_liquidation_normal_balance_type,
+            format!("{journal_id}:{CREDIT_FACILITY_COLLATERAL_IN_LIQUIDATION_ACCOUNT_SET_REF}"),
+            CREDIT_FACILITY_COLLATERAL_IN_LIQUIDATION_ACCOUNT_SET_NAME.to_string(),
+            collateral_in_liquidation_normal_balance_type,
+        )
+        .await?;
+
+        let liquidated_collateral_normal_balance_type = DebitOrCredit::Credit;
+        let liquidated_collateral_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{CREDIT_FACILITY_LIQUIDATED_COLLATERAL_ACCOUNT_SET_REF}"),
+            CREDIT_FACILITY_LIQUIDATED_COLLATERAL_ACCOUNT_SET_NAME.to_string(),
+            liquidated_collateral_normal_balance_type,
+        )
+        .await?;
+
+        let liquidation_payment_receivable_normal_balance_type = DebitOrCredit::Credit;
+        let liquidation_payment_receivable_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!(
+                "{journal_id}:{CREDIT_FACILITY_LIQUIDATION_PAYMENT_RECEIVABLE_ACCOUNT_SET_REF}"
+            ),
+            CREDIT_FACILITY_LIQUIDATION_PAYMENT_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+            liquidation_payment_receivable_normal_balance_type,
         )
         .await?;
 
@@ -796,6 +842,21 @@ impl CreditLedger {
             },
         };
 
+        let liquidation_account_sets = LiquidationAccountSets {
+            collateral_in_liquidation: InternalAccountSetDetails {
+                id: collateral_in_liquidation_account_set_id,
+                normal_balance_type: collateral_in_liquidation_normal_balance_type,
+            },
+            liquidated_collateral: InternalAccountSetDetails {
+                id: liquidated_collateral_account_set_id,
+                normal_balance_type: liquidated_collateral_normal_balance_type,
+            },
+            payment_receivable: InternalAccountSetDetails {
+                id: liquidation_payment_receivable_account_set_id,
+                normal_balance_type: liquidation_payment_receivable_normal_balance_type,
+            },
+        };
+
         let internal_account_sets = CreditFacilityInternalAccountSets {
             facility: InternalAccountSetDetails {
                 id: facility_account_set_id,
@@ -805,10 +866,7 @@ impl CreditLedger {
                 id: collateral_account_set_id,
                 normal_balance_type: collateral_normal_balance_type,
             },
-            in_liquidation: InternalAccountSetDetails {
-                id: in_liquidation_account_set_id,
-                normal_balance_type: in_liquidation_normal_balance_type,
-            },
+            liquidation: liquidation_account_sets,
             disbursed_receivable,
             disbursed_defaulted: InternalAccountSetDetails {
                 id: disbursed_defaulted_account_set_id,
@@ -852,7 +910,7 @@ impl CreditLedger {
             journal_id,
             facility_omnibus_account_ids,
             collateral_omnibus_account_ids,
-            in_liquidation_omnibus_account_ids,
+            liquidation_payment_receivable_omnibus_account_ids,
             internal_account_sets,
             credit_facility_control_id,
             usd: Currency::USD,
@@ -1045,10 +1103,12 @@ impl CreditLedger {
             interest_receivable_overdue_account_id,
             interest_defaulted_account_id,
 
-            in_liquidation_account_id: _,
             fee_income_account_id: _,
             interest_income_account_id: _,
             payment_holding_account_id: _,
+            collateral_in_liquidation_account_id: _,
+            liquidation_payment_receivable_account_id: _,
+            liquidated_collateral_account_id: _,
         }: CreditFacilityLedgerAccountIds,
     ) -> Result<CreditFacilityBalanceSummary, CreditLedgerError> {
         let facility_id = (self.journal_id, facility_account_id, self.usd);
@@ -2069,7 +2129,6 @@ impl CreditLedger {
         duration_type: FacilityDurationType,
     ) -> Result<(), CreditLedgerError> {
         let CreditFacilityLedgerAccountIds {
-            in_liquidation_account_id,
             disbursed_receivable_not_yet_due_account_id,
             disbursed_receivable_due_account_id,
             disbursed_receivable_overdue_account_id,
@@ -2081,6 +2140,9 @@ impl CreditLedger {
             interest_income_account_id,
             fee_income_account_id,
             payment_holding_account_id,
+            liquidation_payment_receivable_account_id,
+            collateral_in_liquidation_account_id,
+            liquidated_collateral_account_id,
 
             // these accounts are created during proposal creation
             collateral_account_id: _collateral_account_id,
@@ -2088,21 +2150,6 @@ impl CreditLedger {
         } = account_ids;
 
         let entity_ref = EntityRef::new(CREDIT_FACILITY_ENTITY_TYPE, credit_facility_id);
-        let in_liquidation_reference =
-            &format!("credit-facility-obs-in-liquidation:{credit_facility_id}");
-        let in_liquidation_name = &format!(
-            "Off-Balance-Sheet In-Liquidation Account for Credit Facility {credit_facility_id}"
-        );
-        self.create_account_in_op(
-            op,
-            in_liquidation_account_id,
-            self.internal_account_sets.in_liquidation,
-            in_liquidation_reference,
-            in_liquidation_name,
-            in_liquidation_name,
-            entity_ref.clone(),
-        )
-        .await?;
 
         let disbursed_receivable_not_yet_due_reference =
             &format!("credit-facility-disbursed-not-yet-due-receivable:{credit_facility_id}");
@@ -2271,6 +2318,54 @@ impl CreditLedger {
             payment_holding_reference,
             payment_holding_name,
             payment_holding_name,
+            entity_ref.clone(),
+        )
+        .await?;
+
+        let collateral_in_liquidation_reference =
+            &format!("credit-facility-collateral-in-liquidation:{credit_facility_id}");
+        let collateral_in_liquidation_name =
+            &format!("Collateral in Liquidation Account for Credit Facility {credit_facility_id}");
+        self.create_account_in_op(
+            op,
+            collateral_in_liquidation_account_id,
+            self.internal_account_sets
+                .liquidation
+                .collateral_in_liquidation,
+            collateral_in_liquidation_reference,
+            collateral_in_liquidation_name,
+            collateral_in_liquidation_name,
+            entity_ref.clone(),
+        )
+        .await?;
+
+        let liquidated_collateral_reference =
+            &format!("credit-facility-liquidated-collateral:{credit_facility_id}");
+        let liquidated_collateral_name =
+            &format!("Liquidated Collateral Account for Credit Facility {credit_facility_id}");
+        self.create_account_in_op(
+            op,
+            liquidated_collateral_account_id,
+            self.internal_account_sets.liquidation.liquidated_collateral,
+            liquidated_collateral_reference,
+            liquidated_collateral_name,
+            liquidated_collateral_name,
+            entity_ref.clone(),
+        )
+        .await?;
+
+        let liquidation_payment_receivable_reference =
+            &format!("credit-facility-liquidation-payment-receivable:{credit_facility_id}");
+        let liquidation_payment_receivable_name = &format!(
+            "Liquidation Payment Receivable Account for Credit Facility {credit_facility_id}"
+        );
+        self.create_account_in_op(
+            op,
+            liquidation_payment_receivable_account_id,
+            self.internal_account_sets.liquidation.payment_receivable,
+            liquidation_payment_receivable_reference,
+            liquidation_payment_receivable_name,
+            liquidation_payment_receivable_name,
             entity_ref,
         )
         .await?;
@@ -2351,7 +2446,7 @@ impl CreditLedger {
         let Self {
             facility_omnibus_account_ids,
             collateral_omnibus_account_ids,
-            in_liquidation_omnibus_account_ids,
+            liquidation_payment_receivable_omnibus_account_ids,
             internal_account_sets,
 
             cala: _,
@@ -2364,7 +2459,7 @@ impl CreditLedger {
         let mut account_set_ids = vec![
             facility_omnibus_account_ids.account_set_id,
             collateral_omnibus_account_ids.account_set_id,
-            in_liquidation_omnibus_account_ids.account_set_id,
+            liquidation_payment_receivable_omnibus_account_ids.account_set_id,
         ];
         account_set_ids.extend(internal_account_sets.account_set_ids());
         let mut account_sets = self
@@ -2379,10 +2474,10 @@ impl CreditLedger {
 
             facility_omnibus_parent_account_set_id,
             collateral_omnibus_parent_account_set_id,
-            in_liquidation_omnibus_parent_account_set_id,
+            liquidation_payment_receivable_omnibus_parent_account_set_id,
             facility_parent_account_set_id,
             collateral_parent_account_set_id,
-            in_liquidation_parent_account_set_id,
+            collateral_in_liquidation_parent_account_set_id,
             interest_income_parent_account_set_id,
             fee_income_parent_account_set_id,
             payment_holding_parent_account_set_id,
@@ -2416,10 +2511,11 @@ impl CreditLedger {
         self.attach_charts_account_set(
             &mut op,
             &mut account_sets,
-            self.in_liquidation_omnibus_account_ids.account_set_id,
-            *in_liquidation_omnibus_parent_account_set_id,
+            self.liquidation_payment_receivable_omnibus_account_ids
+                .account_set_id,
+            *liquidation_payment_receivable_omnibus_parent_account_set_id,
             &charts_integration_meta,
-            |meta| meta.in_liquidation_omnibus_parent_account_set_id,
+            |meta| meta.liquidation_payment_receivable_omnibus_parent_account_set_id,
         )
         .await?;
 
@@ -2444,10 +2540,13 @@ impl CreditLedger {
         self.attach_charts_account_set(
             &mut op,
             &mut account_sets,
-            self.internal_account_sets.in_liquidation.id,
-            *in_liquidation_parent_account_set_id,
+            self.internal_account_sets
+                .liquidation
+                .collateral_in_liquidation
+                .id,
+            *collateral_in_liquidation_parent_account_set_id,
             &charts_integration_meta,
-            |meta| meta.in_liquidation_parent_account_set_id,
+            |meta| meta.collateral_in_liquidation_parent_account_set_id,
         )
         .await?;
         self.attach_charts_account_set(
@@ -3079,6 +3178,10 @@ impl CreditLedger {
 
         Ok(())
     }
+
+    pub fn liquidation_payment_receivable_omnibus_account_ids(&self) -> &LedgerOmnibusAccountIds {
+        &self.liquidation_payment_receivable_omnibus_account_ids
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -3154,10 +3257,10 @@ pub struct ChartOfAccountsIntegrationMeta {
 
     pub facility_omnibus_parent_account_set_id: CalaAccountSetId,
     pub collateral_omnibus_parent_account_set_id: CalaAccountSetId,
-    pub in_liquidation_omnibus_parent_account_set_id: CalaAccountSetId,
+    pub liquidation_payment_receivable_omnibus_parent_account_set_id: CalaAccountSetId,
     pub facility_parent_account_set_id: CalaAccountSetId,
     pub collateral_parent_account_set_id: CalaAccountSetId,
-    pub in_liquidation_parent_account_set_id: CalaAccountSetId,
+    pub collateral_in_liquidation_parent_account_set_id: CalaAccountSetId,
     pub interest_income_parent_account_set_id: CalaAccountSetId,
     pub fee_income_parent_account_set_id: CalaAccountSetId,
     pub payment_holding_parent_account_set_id: CalaAccountSetId,

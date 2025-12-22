@@ -1,10 +1,10 @@
 {
     "facility_omnibus_parent_code": "81.01",
     "collateral_omnibus_parent_code": "81.02",
-    "in_liquidation_omnibus_parent_code": "81.03",
+    "liquidation_payment_receivable_omnibus_parent_code": "81.03",
     "facility_parent_code": "81.01",
     "collateral_parent_code": "81.02",
-    "in_liquidation_parent_code": "81.03",
+    "collateral_in_liquidation_parent_code": "81.03",
     "interest_income_parent_code": "71.01",
     "fee_income_parent_code": "71.02",
     "payment_holding_parent_code": "11.99.0201",
