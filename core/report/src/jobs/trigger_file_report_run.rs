@@ -4,7 +4,7 @@ use job::{
 };
 use serde::{Deserialize, Serialize};
 
-use outbox::OutboxEventMarker;
+use obix::out::OutboxEventMarker;
 use tracing_macros::record_error_severity;
 
 use crate::event::CoreReportEvent;

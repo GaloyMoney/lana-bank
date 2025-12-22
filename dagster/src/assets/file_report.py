@@ -228,7 +228,7 @@ def _discover_reports() -> Dict[str, callable]:
 def inform_lana_of_new_reports(context: dg.AssetExecutionContext) -> None:
     """Notify Lana system to sync reports."""
     # Call the Lana admin server webhook to sync reports
-    admin_server_url = os.getenv("LANA_ADMIN_SERVER_URL")
+    admin_server_url = dg.EnvVar("LANA_ADMIN_SERVER_URL").get_value()
     if not admin_server_url:
         raise ValueError(
             "LANA_ADMIN_SERVER_URL environment variable is not set. "

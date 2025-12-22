@@ -1834,9 +1834,11 @@ dependencies = [
 name = "dagster"
 version = "0.0.0"
 dependencies = [
+ "chrono",
  "reqwest",
  "serde",
  "serde_json",
+ "serde_with",
  "thiserror 2.0.17",
  "tracing",
  "tracing-macros",

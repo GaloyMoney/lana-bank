@@ -1,11 +1,10 @@
 use async_trait::async_trait;
-use chrono::Utc;
 use job::{
     CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType, RetrySettings,
 };
 use serde::{Deserialize, Serialize};
 
-use outbox::OutboxEventMarker;
+use obix::out::OutboxEventMarker;
 use tracing_macros::record_error_severity;
 
 use crate::{
@@ -138,12 +137,17 @@ where
                 }
                 Err(e) if e.was_not_found() => {
                     let state: ReportRunState = run_result.status.clone().into();
+                    let run_type = if run_result.is_scheduled() {
+                        ReportRunType::Scheduled
+                    } else {
+                        ReportRunType::Manual
+                    };
 
                     let new_run = NewReportRun::builder()
                         .external_id(run_result.run_id.clone())
-                        .execution_date(Utc::now())
+                        .execution_date(run_result.start_time)
                         .state(state)
-                        .run_type(ReportRunType::Scheduled)
+                        .run_type(run_type)
                         .build()?;
 
                     let mut db = self.report_runs.begin_op().await?;

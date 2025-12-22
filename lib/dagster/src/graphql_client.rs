@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -45,10 +46,27 @@ impl RunStatus {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct RunTag {
+    pub key: String,
+    pub value: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct RunResult {
     #[serde(rename = "runId")]
     pub run_id: String,
     pub status: RunStatus,
+    #[serde(rename = "startTime", with = "chrono::serde::ts_seconds")]
+    pub start_time: DateTime<Utc>,
+    pub tags: Vec<RunTag>,
+}
+
+impl RunResult {
+    pub fn is_scheduled(&self) -> bool {
+        self.tags
+            .iter()
+            .any(|tag| tag.key == "dagster/schedule_name")
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -191,6 +209,11 @@ query FileReportsRuns($limit: Int!, $cursor: String) {
       results {
         runId
         status
+        startTime
+        tags {
+          key
+          value
+        }
       }
     }
   }
