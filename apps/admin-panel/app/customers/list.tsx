@@ -4,6 +4,8 @@ import { gql } from "@apollo/client"
 import { useState } from "react"
 import { useTranslations } from "next-intl"
 
+import { KycStatusBadge } from "./kyc-status-badge"
+
 import {
   KycVerification,
   Customer,
@@ -74,25 +76,23 @@ const CustomersList = () => {
   })
 
   const columns: Column<Customer>[] = [
-    { key: "email", label: t("columns.email"), sortable: true },
-    { key: "telegramId", label: t("columns.telegramId"), sortable: true },
+    {
+      key: "email",
+      label: t("columns.email"),
+      sortable: true,
+      labelClassName: "w-[30%]",
+    },
+    {
+      key: "telegramId",
+      label: t("columns.telegramId"),
+      sortable: true,
+      labelClassName: "w-[30%]",
+    },
     {
       key: "kycVerification",
       label: t("columns.kycVerification"),
       filterValues: Object.values(KycVerification),
-      render: (status) => (
-        <div
-          className={
-            status === KycVerification.Verified
-              ? "text-success font-medium"
-              : "text-error font-medium"
-          }
-        >
-          {status === KycVerification.Verified
-            ? t("status.verified")
-            : t("status.notVerified")}
-        </div>
-      ),
+      render: (status) => <KycStatusBadge status={status} />,
     },
     {
       key: "depositAccount",
@@ -101,7 +101,7 @@ const CustomersList = () => {
         depositAccount?.balance?.settled ? (
           <Balance amount={depositAccount?.balance?.settled} currency="usd" />
         ) : (
-          <></>
+          <>-</>
         ),
     },
   ]

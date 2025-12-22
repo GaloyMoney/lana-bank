@@ -61,7 +61,7 @@ export const CustomerCreditFacilitiesTable: React.FC<
     <DataTable
       data={creditFacilities}
       emptyMessage={
-        <div className="min-h-[10rem] w-full border rounded-md flex items-center justify-center">
+        <div className="min-h-40 w-full border rounded-md flex items-center justify-center">
           No Facility Found
         </div>
       }

@@ -190,7 +190,7 @@ const BalanceSheet = ({
                 total={assetsTotal}
               />
             )}
-            <div className="w-[1px] min-h-full bg-border" />
+            <div className="w-px min-h-full bg-border" />
             {liabilitiesAndEquity && liabilitiesAndEquity.length > 0 && (
               <BalanceSheetColumn
                 title={t("columns.liabilitiesAndEquity")}
@@ -223,7 +223,7 @@ function BalanceSheetColumn({
   total,
 }: BalanceSheetColumnProps) {
   return (
-    <div className="flex-grow flex flex-col justify-between w-1/2">
+    <div className="grow flex flex-col justify-between w-1/2">
       <Table>
         <TableBody>
           {categories.map((category) => (

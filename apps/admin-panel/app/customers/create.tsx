@@ -172,7 +172,11 @@ const DetailsForm = ({
             }}
             disabled={isLoading}
           >
-            <SelectTrigger id="companyType" data-testid="company-type-select">
+            <SelectTrigger
+              id="companyType"
+              data-testid="company-type-select"
+              className="w-full"
+            >
               <SelectValue placeholder={t("selectCompanyType")} />
             </SelectTrigger>
             <SelectContent>

@@ -137,17 +137,20 @@ const columns = (t: (key: string) => string): Column<CreditFacility>[] => [
   {
     key: "status",
     label: t("table.headers.status"),
+    labelClassName: "w-[13%]",
     render: (status) => <LoanAndCreditFacilityStatusBadge status={status} />,
     filterValues: Object.values(CreditFacilityStatus),
   },
   {
     key: "customer",
     label: t("table.headers.customer"),
-    render: (customer) => customer.email,
+    labelClassName: "w-[27%]",
+    render: (customer) => <div className="truncate">{customer.email}</div>,
   },
   {
     key: "balance",
     label: t("table.headers.outstanding"),
+    labelClassName: "w-[15%]",
     render: (balance) => (
       <Balance amount={balance.outstanding.usdBalance} currency="usd" />
     ),
@@ -155,18 +158,21 @@ const columns = (t: (key: string) => string): Column<CreditFacility>[] => [
   {
     key: "collateralizationState",
     label: t("table.headers.collateralizationState"),
+    labelClassName: "w-[20%]",
     render: (state) => <CollateralizationStateLabel state={state} />,
     filterValues: Object.values(CollateralizationState),
   },
   {
     key: "currentCvl",
     label: t("table.headers.cvl"),
+    labelClassName: "w-[10%]",
     render: (cvl) => (cvl.__typename === "FiniteCVLPct" ? `${cvl.value}%` : "∞"),
     sortable: true,
   },
   {
     key: "activatedAt",
     label: t("table.headers.activatedAt"),
+    labelClassName: "w-[13%]",
     render: (date) => <DateWithTooltip value={date} />,
     sortable: true,
   },

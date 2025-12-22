@@ -210,8 +210,8 @@ export const PendingCreditFacilityCollateralUpdateDialog: React.FC<
                     min="0"
                     required
                     data-testid="new-collateral-input"
+                    endAdornment={`BTC`}
                   />
-                  <div className="p-1.5 bg-input-text rounded-md px-4">BTC</div>
                 </div>
               </div>
               {error && <p className="text-destructive">{error}</p>}

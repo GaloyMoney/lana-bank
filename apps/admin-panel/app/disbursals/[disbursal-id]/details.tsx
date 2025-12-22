@@ -53,14 +53,14 @@ export const DisbursalDetailsCard: React.FC<DisbursalDetailsProps> = ({ disbursa
   const footerContent = (
     <>
       {disbursal.creditFacility.customer.depositAccount && (
-        <Button asChild variant="outline">
-          <Link
-            href={`/deposit-accounts/${disbursal.creditFacility.customer.depositAccount.publicId}`}
-          >
+        <Link
+          href={`/deposit-accounts/${disbursal.creditFacility.customer.depositAccount.publicId}`}
+        >
+          <Button variant="outline">
             {t("buttons.viewDepositAccount")}
             <ArrowRight />
-          </Link>
-        </Button>
+          </Button>
+        </Link>
       )}
       {disbursal.approvalProcess?.status === ApprovalProcessStatus.InProgress &&
         disbursal.approvalProcess.userCanSubmitDecision && (
@@ -82,7 +82,10 @@ export const DisbursalDetailsCard: React.FC<DisbursalDetailsProps> = ({ disbursa
           </>
         )}
       <Link href={`/credit-facilities/${disbursal.creditFacility.publicId}`}>
-        <Button variant="outline">{t("buttons.viewCreditFacility")}</Button>
+        <Button variant="outline">
+          {t("buttons.viewCreditFacility")}
+          <ArrowRight />
+        </Button>
       </Link>
     </>
   )

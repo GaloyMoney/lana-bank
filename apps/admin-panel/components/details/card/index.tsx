@@ -18,22 +18,19 @@ import { DetailItem, DetailItemProps, DetailsGroup } from ".."
 import { cn } from "@/lib/utils"
 import { PublicIdBadge } from "@/components/public-id-badge"
 
-const footerVariants = cva(
-  "pt-4 pb-4 gap-4 w-full md:w-auto [&>*]:w-full md:[&>*]:w-auto md:[&>*]:mb-0 last:[&>*]:mb-0",
-  {
-    variants: {
-      alignment: {
-        left: "flex flex-col md:flex-row",
-        right: "flex flex-col md:flex-row-reverse",
-      },
-    },
-    defaultVariants: {
-      alignment: "right",
+const footerVariants = cva("pt-0 pb-0 gap-4 w-full", {
+  variants: {
+    alignment: {
+      left: "flex flex-col md:flex-row",
+      right: "flex flex-col md:flex-row-reverse",
     },
   },
-)
+  defaultVariants: {
+    alignment: "right",
+  },
+})
 
-const containerVariants = cva("", {
+const containerVariants = cva("pb-4", {
   variants: {
     variant: {
       card: "",
@@ -134,7 +131,7 @@ export const DetailsCard: React.FC<DetailsCardProps> = ({
       <CardHeader>
         <div className="flex items-center justify-between w-full">
           <div className="space-y-1.5">
-            <div className="flex items-center gap-5">
+            <div className="flex items-center gap-2.5">
               <CardTitle>{title}</CardTitle>
               {publicId && (
                 <div className={cn("text-sm text-muted-foreground")}>
@@ -167,7 +164,7 @@ export const DetailsCard: React.FC<DetailsCardProps> = ({
       )}
       {footerContent && (
         <>
-          <Separator />
+          <Separator className="-mb-2" />
           <CardFooter className={cn(footerVariants({ alignment }), footerClassName)}>
             {footerContent}
           </CardFooter>

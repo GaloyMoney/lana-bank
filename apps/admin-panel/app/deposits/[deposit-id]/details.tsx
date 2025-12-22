@@ -55,12 +55,12 @@ const DepositDetailsCard: React.FC<DepositDetailsProps> = ({ deposit }) => {
 
   const footerContent = (
     <>
-      <Button asChild variant="outline">
-        <Link href={`/deposit-accounts/${deposit.account.publicId}`}>
+      <Link href={`/deposit-accounts/${deposit.account.publicId}`}>
+        <Button variant="outline">
           {t("buttons.viewDepositAccount")}
           <ArrowRight />
-        </Link>
-      </Button>
+        </Button>
+      </Link>
       {deposit.status === DepositStatus.Confirmed && (
         <Button
           data-testid="deposit-revert-button"
@@ -70,17 +70,17 @@ const DepositDetailsCard: React.FC<DepositDetailsProps> = ({ deposit }) => {
           <RotateCcw className="h-4 w-4" />
           {t("buttons.revert")}
         </Button>
-      )}
-      <Button asChild variant="outline">
-        <a
-          href={`https://cockpit.sumsub.com/checkus#/kyt/txns?search=${deposit.depositId}`}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
+      )}{" "}
+      <a
+        href={`https://cockpit.sumsub.com/checkus#/kyt/txns?search=${deposit.depositId}`}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <Button variant="outline">
           {t("buttons.viewOnSumsub")}
           <ExternalLinkIcon className="h-4 w-4" />
-        </a>
-      </Button>
+        </Button>
+      </a>
     </>
   )
 

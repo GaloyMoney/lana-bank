@@ -219,7 +219,7 @@ const PaginatedTable = <T,>({
         <Table className="table-fixed w-full">
           <TableHeader
             className={
-              style === "comfortable" ? "bg-secondary [&_tr:hover]:!bg-secondary" : ""
+              style === "comfortable" ? "bg-secondary [&_tr:hover]:bg-secondary!" : ""
             }
           >
             <TableRow>
@@ -228,31 +228,7 @@ const PaginatedTable = <T,>({
                   className={col.labelClassName}
                   key={`${col.key as string}-${colIdx}`}
                 >
-                  <div className="flex items-center space-x-2 justify-between">
-                    <span>{col.label}</span>
-                    <div className="flex items-center">
-                      {col.sortable && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-9 w-8 p-0"
-                          disabled
-                        >
-                          <HiSelector className="h-4 w-4" />
-                        </Button>
-                      )}
-                      {col.filterValues && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-9 w-8 p-0"
-                          disabled
-                        >
-                          <HiFilter className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
+                  {col.label}
                 </TableHead>
               ))}
               {navigateTo && <TableHead className="w-24" />}
@@ -262,12 +238,12 @@ const PaginatedTable = <T,>({
             {Array.from({ length: pageSize }).map((_, rowIndex) => (
               <TableRow key={rowIndex}>
                 {columns.map((_, colIndex) => (
-                  <TableCell key={colIndex} className="h-[3.8rem]">
+                  <TableCell key={colIndex}>
                     <Skeleton className="h-9 w-full" />
                   </TableCell>
                 ))}
                 {navigateTo && (
-                  <TableCell className="h-[3.8rem]">
+                  <TableCell>
                     <Skeleton className="h-9 w-full" />
                   </TableCell>
                 )}
@@ -421,6 +397,7 @@ const PaginatedTable = <T,>({
                       <Link href={navigateTo(subRow)}>
                         <Button
                           variant="outline"
+                          size="sm"
                           className="w-full flex items-center justify-center"
                         >
                           {t("view", { defaultMessage: "View" })}
@@ -477,15 +454,16 @@ const PaginatedTable = <T,>({
           {showHeader && (
             <TableHeader
               className={
-                style === "comfortable" ? "bg-secondary [&_tr:hover]:!bg-secondary" : ""
+                style === "comfortable" ? "bg-secondary [&_tr:hover]:bg-secondary!" : ""
               }
             >
               <TableRow>
                 {columns.map((col, colIdx) => (
-                  <TableHead key={`${col.key as string}-${colIdx}`}>
-                    <div
-                      className={`flex items-center space-x-2 justify-between ${col.labelClassName}`}
-                    >
+                  <TableHead
+                    key={`${col.key as string}-${colIdx}`}
+                    className={col.labelClassName}
+                  >
+                    <div className="flex items-center gap-2">
                       <span>{col.label}</span>
                       {col.sortable && (
                         <Button
@@ -562,7 +540,7 @@ const PaginatedTable = <T,>({
                       key={`${col.key as string}-${colIdx}`}
                       className={
                         style === "comfortable"
-                          ? "whitespace-normal break-words h-[3.8rem]"
+                          ? "whitespace-normal wrap-break-words"
                           : ""
                       }
                     >
@@ -573,13 +551,14 @@ const PaginatedTable = <T,>({
                   ))}
                   {navigateTo && (
                     <TableCell>
-                      <Link href={navigateTo(node)}>
+                      <Link href={navigateTo(node)} className="group">
                         <Button
                           variant="outline"
-                          className="w-full flex items-center justify-between"
+                          size="sm"
+                          className="w-full flex items-center gap-1"
                         >
-                          {t("view", { defaultMessage: "View" })}
-                          <ArrowRight className="h-4 w-4" />
+                          {t("view", { defaultValue: "View" })}
+                          <ArrowRight />
                         </Button>
                       </Link>
                     </TableCell>
@@ -602,7 +581,7 @@ const PaginatedTable = <T,>({
                           key={`${col.key as string}-${colIdx}`}
                           className={
                             style === "comfortable"
-                              ? "whitespace-normal break-words h-[3.8rem]"
+                              ? "whitespace-normal wrap-break-words"
                               : ""
                           }
                         >
@@ -613,13 +592,14 @@ const PaginatedTable = <T,>({
                       ))}
                       {navigateTo && (
                         <TableCell>
-                          <Link href={navigateTo(subRow)}>
+                          <Link href={navigateTo(subRow)} className="group">
                             <Button
                               variant="outline"
-                              className="w-full flex items-center justify-between"
+                              size="sm"
+                              className="w-full flex items-center gap-1"
                             >
-                              {t("view", { defaultMessage: "View" })}
-                              <ArrowRight className="h-4 w-4" />
+                              {t("view", { defaultValue: "View" })}
+                              <ArrowRight />
                             </Button>
                           </Link>
                         </TableCell>

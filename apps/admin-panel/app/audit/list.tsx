@@ -59,19 +59,33 @@ const AuditLogsList = () => {
   })
 
   const columns: Column<AuditEntry>[] = [
-    { key: "auditEntryId", label: t("headers.auditEntryId") },
+    {
+      key: "auditEntryId",
+      label: t("headers.auditEntryId"),
+      labelClassName: "w-[10%]",
+    },
     {
       key: "subject",
       label: t("headers.subject"),
+      labelClassName: "w-[20%]",
       render: (subject) => (
         <div>{subject.__typename === "User" ? subject.email : subject.__typename}</div>
       ),
     },
-    { key: "object", label: t("headers.object") },
-    { key: "action", label: t("headers.action") },
+    {
+      key: "object",
+      label: t("headers.object"),
+      labelClassName: "w-[35%]",
+    },
+    {
+      key: "action",
+      label: t("headers.action"),
+      labelClassName: "w-[20%]",
+    },
     {
       key: "recordedAt",
       label: t("headers.recordedAt"),
+      labelClassName: "w-[15%]",
       render: (date) => formatDate(date),
     },
   ]

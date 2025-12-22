@@ -146,7 +146,7 @@ const DataTable = <T,>({
     ) : (
       <div className="overflow-x-auto border rounded-md" data-testid="loading-skeleton">
         <Table className={cn("table-fixed w-full", className)}>
-          <TableHeader className="bg-secondary [&_tr:hover]:!bg-secondary">
+          <TableHeader className="bg-secondary [&_tr:hover]:bg-secondary!">
             <TableRow className={headerClassName}>
               {columns.map((column, index) => (
                 <TableHead
@@ -157,9 +157,7 @@ const DataTable = <T,>({
                   )}
                   style={{ width: column.width }}
                 >
-                  <div className="flex items-center space-x-2 justify-between">
-                    <span>{column.header}</span>
-                  </div>
+                  {column.header}
                 </TableHead>
               ))}
               {navigateTo && <TableHead className="w-24" />}
@@ -169,12 +167,12 @@ const DataTable = <T,>({
             {Array.from({ length: 5 }).map((_, rowIndex) => (
               <TableRow key={rowIndex}>
                 {columns.map((_, colIndex) => (
-                  <TableCell key={colIndex} className="h-[3.8rem]">
+                  <TableCell key={colIndex}>
                     <Skeleton className="h-9 w-full" />
                   </TableCell>
                 ))}
                 {navigateTo && (
-                  <TableCell className="h-[3.8rem]">
+                  <TableCell>
                     <Skeleton className="h-9 w-full" />
                   </TableCell>
                 )}
@@ -244,6 +242,7 @@ const DataTable = <T,>({
                 <Link href={getNavigationUrl(item) || ""}>
                   <Button
                     variant="outline"
+                    size="sm"
                     className="w-full flex items-center justify-center"
                   >
                     {t("view")}
@@ -273,7 +272,7 @@ const DataTable = <T,>({
       }}
     >
       <Table className={cn("table-fixed w-full", className)}>
-        <TableHeader className="bg-secondary [&_tr:hover]:!bg-secondary">
+        <TableHeader className="bg-secondary [&_tr:hover]:bg-secondary!">
           <TableRow className={headerClassName}>
             {columns.map((column, index) => (
               <TableHead
@@ -284,9 +283,7 @@ const DataTable = <T,>({
                 )}
                 style={{ width: column.width }}
               >
-                <div className="flex items-center space-x-2 justify-between">
-                  <span>{column.header}</span>
-                </div>
+                {column.header}
               </TableHead>
             ))}
             {navigateTo && <TableHead className="w-24" />}
@@ -315,7 +312,7 @@ const DataTable = <T,>({
                 <TableCell
                   key={colIndex}
                   className={cn(
-                    "whitespace-normal break-words h-[3.8rem]",
+                    "whitespace-normal wrap-break-words",
                     column.align === "center" && "text-center",
                     column.align === "right" && "text-right",
                     typeof cellClassName === "function"
@@ -329,14 +326,15 @@ const DataTable = <T,>({
                 </TableCell>
               ))}
               {shouldShowNavigation(item) && (
-                <TableCell className="h-[3.8rem]">
-                  <Link href={getNavigationUrl(item) || ""}>
+                <TableCell>
+                  <Link href={getNavigationUrl(item) || ""} className="group">
                     <Button
                       variant="outline"
-                      className="w-full flex items-center justify-between"
+                      size="sm"
+                      className="w-full flex items-center"
                     >
                       {t("view")}
-                      <ArrowRight className="h-4 w-4" />
+                      <ArrowRight />
                     </Button>
                   </Link>
                 </TableCell>

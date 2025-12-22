@@ -17,8 +17,6 @@ import { Input } from "@lana/web/ui/input"
 import { Button } from "@lana/web/ui/button"
 import { Label } from "@lana/web/ui/label"
 
-import { useCreateContext } from "../create"
-
 import { useWithdrawalInitiateMutation } from "@/lib/graphql/generated"
 import { currencyConverter } from "@/lib/utils"
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
@@ -72,8 +70,6 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
     closeModal: handleCloseDialog,
   })
 
-  const { customer } = useCreateContext()
-
   const [initiateWithdrawal, { loading, reset }] = useWithdrawalInitiateMutation({
     update: (cache) => {
       cache.modify({
@@ -117,14 +113,6 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
   return (
     <Dialog open={openWithdrawalInitiateDialog} onOpenChange={handleCloseDialog}>
       <DialogContent>
-        {customer?.email && (
-          <div
-            className="absolute -top-6 -left-[1px] bg-primary rounded-tl-md rounded-tr-md text-md px-2 py-1 text-secondary"
-            style={{ width: "100.35%" }}
-          >
-            {t("creatingFor", { email: customer.email })}
-          </div>
-        )}
         <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>{t("description")}</DialogDescription>
@@ -142,8 +130,8 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 disabled={isLoading}
+                endAdornment={`USD`}
               />
-              <div className="p-1.5 bg-input-text rounded-md px-4">USD</div>
             </div>
           </div>
           <div>

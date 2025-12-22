@@ -18,8 +18,6 @@ import { Input } from "@lana/web/ui/input"
 import { Button } from "@lana/web/ui/button"
 import { Label } from "@lana/web/ui/label"
 
-import { useCreateContext } from "../create"
-
 import {
   GetCustomerBasicDetailsDocument,
   useCreateDepositMutation,
@@ -82,7 +80,6 @@ export const CreateDepositDialog: React.FC<CreateDepositDialogProps> = ({
   const [error, setError] = useState<string | null>(null)
   const client = useApolloClient()
   const router = useRouter()
-  const { customer } = useCreateContext()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -132,15 +129,7 @@ export const CreateDepositDialog: React.FC<CreateDepositDialogProps> = ({
   return (
     <Dialog open={openCreateDepositDialog} onOpenChange={handleCloseDialog}>
       <DialogContent>
-        {customer?.email && (
-          <div
-            className="absolute -top-6 -left-[1px] bg-primary rounded-tl-md rounded-tr-md text-md px-2 py-1 text-secondary"
-            style={{ width: "100.35%" }}
-          >
-            {t("creatingFor", { email: customer.email })}
-          </div>
-        )}
-        <DialogHeader className="mt-4">
+        <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
@@ -156,8 +145,8 @@ export const CreateDepositDialog: React.FC<CreateDepositDialogProps> = ({
                 placeholder={t("placeholders.amount")}
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
+                endAdornment={`USD`}
               />
-              <div className="p-1.5 bg-input-text rounded-md px-4">USD</div>
             </div>
           </div>
           <div>

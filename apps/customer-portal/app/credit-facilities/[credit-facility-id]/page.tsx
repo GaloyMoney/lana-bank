@@ -6,7 +6,7 @@ import Link from "next/link"
 
 import { ArrowDownUp, ArrowLeft, Banknote, Clock } from "lucide-react"
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@lana/web/ui/tab"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@lana/web/ui/tabs"
 
 import { formatDate } from "@lana/web/utils"
 

@@ -191,7 +191,7 @@ const AccountRow = React.memo<AccountRowProps>(
             <div>
               <Badge
                 className="font-mono cursor-pointer"
-                variant="secondary"
+                variant="outline"
                 onClick={(e) => {
                   e.stopPropagation()
                   const code = account.accountCode.replace(/\./g, "")

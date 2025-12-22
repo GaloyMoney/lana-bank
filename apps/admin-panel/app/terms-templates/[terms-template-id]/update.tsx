@@ -174,7 +174,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
         }
       }}
     >
-      <DialogContent className="max-w-[38rem]">
+      <DialogContent className="max-w-152">
         <DialogHeader>
           <DialogTitle>{t("title", { name: formValues.name })}</DialogTitle>
           <DialogDescription>{t("description")}</DialogDescription>
@@ -206,10 +206,8 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
                     placeholder={t("placeholders.durationUnits")}
                     min={0}
                     required
+                    endAdornment={`${t("fields.months")}`}
                   />
-                  <div className="p-1.5 bg-input-text rounded-md px-4">
-                    {t("fields.months")}
-                  </div>
                 </div>
               </div>
               <div>
