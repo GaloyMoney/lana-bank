@@ -40,4 +40,27 @@ impl ApplicantRepo {
 
         Ok(row.id)
     }
+
+    #[record_error_severity]
+    #[tracing::instrument(name = "applicant.persist_webhook_data_in_op", skip(self, op))]
+    pub(super) async fn persist_webhook_data_in_op(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        customer_id: CustomerId,
+        webhook_data: serde_json::Value,
+    ) -> Result<i64, ApplicantError> {
+        let row = sqlx::query!(
+            r#"
+            INSERT INTO sumsub_callbacks (customer_id, content)
+            VALUES ($1, $2)
+            RETURNING id
+            "#,
+            customer_id as CustomerId,
+            webhook_data
+        )
+        .fetch_one(op.as_executor())
+        .await?;
+
+        Ok(row.id)
+    }
 }
