@@ -1,10 +1,7 @@
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use std::{borrow::Cow, fmt, str::FromStr};
-
-use crate::DomainConfigError;
 
 es_entity::entity_id! {
     DomainConfigId,
@@ -36,42 +33,6 @@ impl ConfigType {
 
     pub fn is_simple(&self) -> bool {
         !matches!(self, ConfigType::Complex)
-    }
-
-    pub fn format_json_value(&self, value: &Value) -> Result<String, DomainConfigError> {
-        match self {
-            ConfigType::Bool => match value {
-                Value::Bool(v) => Ok(v.to_string()),
-                other => Err(DomainConfigError::InvalidType(format!(
-                    "Expected bool, got {other:?}"
-                ))),
-            },
-            ConfigType::String => match value {
-                Value::String(v) => Ok(v.clone()),
-                other => Err(DomainConfigError::InvalidType(format!(
-                    "Expected string, got {other:?}"
-                ))),
-            },
-            ConfigType::Int => match value {
-                Value::Number(v) => v.as_i64().map(|v| v.to_string()).ok_or_else(|| {
-                    DomainConfigError::InvalidType(format!(
-                        "Expected i64-compatible number, got {v}"
-                    ))
-                }),
-                other => Err(DomainConfigError::InvalidType(format!(
-                    "Expected number, got {other:?}"
-                ))),
-            },
-            ConfigType::Decimal => match value {
-                Value::String(v) => Ok(v.clone()),
-                other => Err(DomainConfigError::InvalidType(format!(
-                    "Expected decimal string, got {other:?}"
-                ))),
-            },
-            ConfigType::Complex => Err(DomainConfigError::InvalidType(
-                "Config type complex cannot be formatted as a simple value".to_string(),
-            )),
-        }
     }
 }
 

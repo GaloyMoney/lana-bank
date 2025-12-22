@@ -50,7 +50,7 @@ use crate::{
 ///
 ///     // Listing returns dynamic entries
 ///     let all = configs.list_simple().await?;
-///     assert!(all.iter().any(|c| c.key == domain_config::DomainConfigKey::new("feature_x_enabled") && matches!(c.config_type, domain_config::ConfigType::Bool)));
+///     assert!(all.iter().any(|c| c.key == domain_config::DomainConfigKey::new("feature_x_enabled") && c.config_type == domain_config::ConfigType::Bool));
 ///
 ///     Ok(())
 /// }
@@ -157,7 +157,6 @@ impl SimpleScalar for Decimal {
         }
     }
 }
-
 #[derive(Debug, Clone)]
 pub struct SimpleEntry {
     pub key: DomainConfigKey,
@@ -165,9 +164,38 @@ pub struct SimpleEntry {
     pub value: String,
 }
 
+impl SimpleEntry {
+    pub fn new(
+        key: DomainConfigKey,
+        config_type: ConfigType,
+        json: Value,
+    ) -> Result<Self, DomainConfigError> {
+        if !config_type.is_simple() {
+            return Err(DomainConfigError::InvalidType(format!(
+                "Config is not simple for {key}"
+            )));
+        }
+
+        let value = match config_type {
+            ConfigType::Bool => bool::from_json(json.clone())?.to_string(),
+            ConfigType::String => String::from_json(json.clone())?,
+            ConfigType::Int => i64::from_json(json.clone())?.to_string(),
+            ConfigType::Decimal => rust_decimal::Decimal::from_json(json.clone())?.to_string(),
+            ConfigType::Complex => unreachable!(),
+        };
+
+        Ok(Self {
+            key,
+            config_type,
+            value,
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use rust_decimal_macros::dec;
+    use serde_json::json;
 
     use super::*;
 
@@ -185,5 +213,39 @@ mod tests {
         assert_eq!(json, Value::String("12.34".to_string()));
         let parsed = Decimal::from_json(json).unwrap();
         assert_eq!(parsed, val);
+    }
+
+    #[test]
+    fn simple_entry_stores_scalar_as_string() {
+        let entry =
+            SimpleEntry::new(DomainConfigKey::new("int"), ConfigType::Int, json!(42)).unwrap();
+
+        assert_eq!(entry.key, DomainConfigKey::new("int"));
+        assert_eq!(entry.value, "42");
+        assert_eq!(entry.config_type, ConfigType::Int);
+    }
+
+    #[test]
+    fn simple_entry_rejects_wrong_json_type() {
+        let err = SimpleEntry::new(
+            DomainConfigKey::new("int"),
+            ConfigType::Int,
+            json!("not an int"),
+        )
+        .expect_err("wrong json type");
+
+        assert!(matches!(err, DomainConfigError::InvalidType(_)));
+    }
+
+    #[test]
+    fn simple_entry_rejects_complex_config_type() {
+        let err = SimpleEntry::new(
+            DomainConfigKey::new("complex"),
+            ConfigType::Complex,
+            json!({"a": 1}),
+        )
+        .expect_err("complex");
+
+        assert!(matches!(err, DomainConfigError::InvalidType(_)));
     }
 }

@@ -83,13 +83,8 @@ impl DomainConfig {
                 key = self.key
             )));
         }
-        let value = self.config_type.format_json_value(&value_json)?;
 
-        Ok(SimpleEntry {
-            key: self.key.clone(),
-            config_type: self.config_type,
-            value,
-        })
+        SimpleEntry::new(self.key.clone(), self.config_type, value_json)
     }
 
     pub(super) fn update_simple<T>(
@@ -159,10 +154,7 @@ impl TryFromEvents<DomainConfigEvent> for DomainConfig {
                     config_type,
                     ..
                 } => {
-                    builder = builder
-                        .id(*id)
-                        .key(key.clone())
-                        .config_type(*config_type);
+                    builder = builder.id(*id).key(key.clone()).config_type(*config_type);
                 }
                 DomainConfigEvent::Updated { .. } => {}
             }
@@ -481,7 +473,8 @@ mod tests {
             .into_simple_entry()
             .expect("should parse simple entry");
         assert_eq!(entry.key, expected_key);
-        assert_eq!(entry.value, "true");
+        assert_eq!(entry.config_type, ConfigType::Bool);
+        assert_eq!(entry.value, value.to_string());
     }
 
     #[test]
@@ -500,7 +493,12 @@ mod tests {
         let mut config = DomainConfig::try_from_events(events).unwrap();
 
         assert!(config.update_simple(new_value).unwrap().did_execute());
-        assert!(config.update_simple(new_value).unwrap().was_ignored());
+        assert!(
+            config
+                .update_simple(new_value)
+                .unwrap()
+                .was_already_applied()
+        );
         let last_event = config.events.iter_all().next_back().unwrap();
         assert!(matches!(
             last_event,

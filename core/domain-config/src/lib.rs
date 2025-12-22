@@ -195,7 +195,10 @@ impl DomainConfigs {
             (after, has_next_page) = (end_cursor, next_page);
 
             entries.reserve(configs.len());
-            for config in configs.into_iter().filter(|config| config.config_type.is_simple()) {
+            for config in configs
+                .into_iter()
+                .filter(|config| config.config_type.is_simple())
+            {
                 entries.push(config.into_simple_entry()?);
             }
         }
