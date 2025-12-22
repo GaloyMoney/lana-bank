@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use cala_ledger::AccountId as CalaAccountId;
 use es_entity::*;
 
-use crate::primitives::*;
+use crate::{LiquidationCompletedData, primitives::*};
 
 use super::error::LiquidationError;
 
@@ -19,6 +19,10 @@ pub enum LiquidationEvent {
         id: LiquidationId,
         credit_facility_id: CreditFacilityId,
         payment_holding_account_id: CalaAccountId,
+        liquidation_payment_receivable_account_id: CalaAccountId,
+        collateral_account_id: CalaAccountId,
+        collateral_in_liquidation_account_id: CalaAccountId,
+        liquidated_collateral_account_id: CalaAccountId,
         trigger_price: PriceOfOneBTC,
         initially_expected_to_receive: UsdCents,
         initially_estimated_to_liquidate: Satoshis,
@@ -52,6 +56,10 @@ pub struct Liquidation {
     pub sent_total: Satoshis,
     pub received_total: UsdCents,
     pub payment_holding_account_id: CalaAccountId,
+    pub receivable_account_id: CalaAccountId,
+    pub collateral_account_id: CalaAccountId,
+    pub collateral_in_liquidation_account_id: CalaAccountId,
+    pub liquidated_collateral_account_id: CalaAccountId,
     events: EntityEvents<LiquidationEvent>,
 }
 
@@ -109,7 +117,7 @@ impl Liquidation {
         Ok(Idempotent::Executed(()))
     }
 
-    pub fn complete(&mut self, payment_id: PaymentId) -> Idempotent<()> {
+    pub fn complete(&mut self, payment_id: PaymentId) -> Idempotent<LiquidationCompletedData> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             LiquidationEvent::Completed { .. }
@@ -117,7 +125,11 @@ impl Liquidation {
 
         self.events.push(LiquidationEvent::Completed { payment_id });
 
-        Idempotent::Executed(())
+        Idempotent::Executed(LiquidationCompletedData {
+            sent_total: self.sent_total,
+            collateral_in_liquidation_account_id: self.collateral_in_liquidation_account_id,
+            liquidated_collateral_account_id: self.liquidated_collateral_account_id,
+        })
     }
 
     pub fn is_completed(&self) -> bool {
@@ -168,6 +180,10 @@ impl TryFromEvents<LiquidationEvent> for Liquidation {
                     id,
                     credit_facility_id,
                     payment_holding_account_id,
+                    liquidation_payment_receivable_account_id: receivable_account_id,
+                    collateral_account_id,
+                    collateral_in_liquidation_account_id,
+                    liquidated_collateral_account_id,
                     initially_expected_to_receive,
                     ..
                 } => {
@@ -175,6 +191,10 @@ impl TryFromEvents<LiquidationEvent> for Liquidation {
                         .id(*id)
                         .credit_facility_id(*credit_facility_id)
                         .payment_holding_account_id(*payment_holding_account_id)
+                        .receivable_account_id(*receivable_account_id)
+                        .collateral_account_id(*collateral_account_id)
+                        .collateral_in_liquidation_account_id(*collateral_in_liquidation_account_id)
+                        .liquidated_collateral_account_id(*liquidated_collateral_account_id)
                         .expected_to_receive(*initially_expected_to_receive)
                 }
                 LiquidationEvent::CollateralSentOut { amount, .. } => {
@@ -206,6 +226,10 @@ pub struct NewLiquidation {
     #[builder(setter(into))]
     pub(crate) credit_facility_id: CreditFacilityId,
     pub(crate) payment_holding_account_id: CalaAccountId,
+    pub(crate) liquidation_payment_receivable_account_id: CalaAccountId,
+    pub(crate) collateral_account_id: CalaAccountId,
+    pub(crate) collateral_in_liquidation_account_id: CalaAccountId,
+    pub(crate) liquidated_collateral_account_id: CalaAccountId,
     pub(crate) trigger_price: PriceOfOneBTC,
     pub(crate) initially_expected_to_receive: UsdCents,
     pub(crate) initially_estimated_to_liquidate: Satoshis,
@@ -225,9 +249,14 @@ impl IntoEvents<LiquidationEvent> for NewLiquidation {
                 id: self.id,
                 credit_facility_id: self.credit_facility_id,
                 payment_holding_account_id: self.payment_holding_account_id,
+                liquidation_payment_receivable_account_id: self
+                    .liquidation_payment_receivable_account_id,
                 trigger_price: self.trigger_price,
                 initially_expected_to_receive: self.initially_expected_to_receive,
                 initially_estimated_to_liquidate: self.initially_estimated_to_liquidate,
+                collateral_account_id: self.collateral_account_id,
+                collateral_in_liquidation_account_id: self.collateral_in_liquidation_account_id,
+                liquidated_collateral_account_id: self.liquidated_collateral_account_id,
             }],
         )
     }

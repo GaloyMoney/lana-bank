@@ -17,10 +17,10 @@ pub struct ChartOfAccountsIntegrationConfig {
     pub chart_of_accounts_id: ChartId,
     pub chart_of_account_facility_omnibus_parent_code: AccountCode,
     pub chart_of_account_collateral_omnibus_parent_code: AccountCode,
-    pub chart_of_account_in_liquidation_omnibus_parent_code: AccountCode,
+    pub chart_of_account_liquidation_payment_receivable_omnibus_parent_code: AccountCode,
     pub chart_of_account_facility_parent_code: AccountCode,
     pub chart_of_account_collateral_parent_code: AccountCode,
-    pub chart_of_account_in_liquidation_parent_code: AccountCode,
+    pub chart_of_account_collateral_in_liquidation_parent_code: AccountCode,
     pub chart_of_account_interest_income_parent_code: AccountCode,
     pub chart_of_account_fee_income_parent_code: AccountCode,
     pub chart_of_account_payment_holding_parent_code: AccountCode,
@@ -134,15 +134,17 @@ where
             .account_set_id_from_code(&config.chart_of_account_facility_omnibus_parent_code)?;
         let collateral_omnibus_parent_account_set_id = chart
             .account_set_id_from_code(&config.chart_of_account_collateral_omnibus_parent_code)?;
-        let in_liquidation_omnibus_parent_account_set_id = chart.account_set_id_from_code(
-            &config.chart_of_account_in_liquidation_omnibus_parent_code,
-        )?;
+        let liquidation_payment_receivable_omnibus_parent_account_set_id = chart
+            .account_set_id_from_code(
+                &config.chart_of_account_liquidation_payment_receivable_omnibus_parent_code,
+            )?;
         let facility_parent_account_set_id =
             chart.account_set_id_from_code(&config.chart_of_account_facility_parent_code)?;
         let collateral_parent_account_set_id =
             chart.account_set_id_from_code(&config.chart_of_account_collateral_parent_code)?;
-        let in_liquidation_parent_account_set_id =
-            chart.account_set_id_from_code(&config.chart_of_account_in_liquidation_parent_code)?;
+        let collateral_in_liquidation_parent_account_set_id = chart.account_set_id_from_code(
+            &config.chart_of_account_collateral_in_liquidation_parent_code,
+        )?;
         let interest_income_parent_account_set_id =
             chart.account_set_id_from_code(&config.chart_of_account_interest_income_parent_code)?;
         let fee_income_parent_account_set_id =
@@ -328,10 +330,10 @@ where
 
             facility_omnibus_parent_account_set_id,
             collateral_omnibus_parent_account_set_id,
-            in_liquidation_omnibus_parent_account_set_id,
+            liquidation_payment_receivable_omnibus_parent_account_set_id,
             facility_parent_account_set_id,
             collateral_parent_account_set_id,
-            in_liquidation_parent_account_set_id,
+            collateral_in_liquidation_parent_account_set_id,
             interest_income_parent_account_set_id,
             fee_income_parent_account_set_id,
             payment_holding_parent_account_set_id,

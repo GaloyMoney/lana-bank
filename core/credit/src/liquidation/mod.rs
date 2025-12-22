@@ -1,5 +1,6 @@
 mod entity;
 pub mod error;
+mod ledger;
 mod repo;
 
 use std::sync::Arc;
@@ -9,17 +10,21 @@ use authz::PermissionCheck;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-use cala_ledger::TransactionId as CalaTransactionId;
+use cala_ledger::{
+    AccountId as CalaAccountId, CalaLedger, JournalId, TransactionId as CalaTransactionId,
+};
 use core_money::{Satoshis, UsdCents};
-use es_entity::DbOp;
+use es_entity::{DbOp, Idempotent};
 use obix::out::OutboxEventMarker;
 
 use crate::{
-    CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId, LiquidationId, PaymentId,
+    CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId, LedgerOmnibusAccountIds,
+    LiquidationId, PaymentId,
 };
 pub use entity::NewLiquidation;
 pub use entity::{Liquidation, LiquidationEvent};
 use error::LiquidationError;
+use ledger::LiquidationLedger;
 pub(crate) use repo::LiquidationRepo;
 pub use repo::liquidation_cursor;
 
@@ -30,6 +35,8 @@ where
 {
     repo: LiquidationRepo<E>,
     authz: Arc<Perms>,
+    ledger: LiquidationLedger,
+    omnibus_account_ids: LedgerOmnibusAccountIds,
 }
 
 impl<Perms, E> Clone for Liquidations<Perms, E>
@@ -41,6 +48,8 @@ where
         Self {
             repo: self.repo.clone(),
             authz: self.authz.clone(),
+            ledger: self.ledger.clone(),
+            omnibus_account_ids: self.omnibus_account_ids.clone(),
         }
     }
 }
@@ -52,15 +61,20 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    pub fn new(
+    pub async fn init(
         pool: &sqlx::PgPool,
+        journal_id: JournalId,
+        cala: &CalaLedger,
+        omnibus_account_ids: &LedgerOmnibusAccountIds,
         authz: Arc<Perms>,
         publisher: &crate::CreditFacilityPublisher<E>,
-    ) -> Self {
-        Self {
+    ) -> Result<Self, LiquidationError> {
+        Ok(Self {
             repo: LiquidationRepo::new(pool, publisher),
             authz,
-        }
+            ledger: LiquidationLedger::init(cala, journal_id).await?,
+            omnibus_account_ids: omnibus_account_ids.clone(),
+        })
     }
 
     #[instrument(
@@ -116,9 +130,9 @@ where
                 CoreCreditAction::LIQUIDATION_RECORD_COLLATERAL_SENT,
             )
             .await?;
-
-        let mut liquidation = self.repo.find_by_id(liquidation_id).await?;
         let mut db = self.repo.begin_op().await?;
+
+        let mut liquidation = self.repo.find_by_id_in_op(&mut db, liquidation_id).await?;
 
         let tx_id = CalaTransactionId::new();
 
@@ -127,7 +141,15 @@ where
             .did_execute()
         {
             self.repo.update_in_op(&mut db, &mut liquidation).await?;
-            // TODO: ledger send collateral for liquidation
+            self.ledger
+                .record_collateral_sent_in_op(
+                    &mut db,
+                    tx_id,
+                    amount,
+                    liquidation.collateral_account_id,
+                    liquidation.collateral_in_liquidation_account_id,
+                )
+                .await?;
         }
 
         db.commit().await?;
@@ -157,7 +179,6 @@ where
         let mut liquidation = self.repo.find_by_id(liquidation_id).await?;
         let mut db = self.repo.begin_op().await?;
 
-        // TODO: post transaction in op
         let tx_id = CalaTransactionId::new();
 
         if liquidation
@@ -165,6 +186,15 @@ where
             .did_execute()
         {
             self.repo.update_in_op(&mut db, &mut liquidation).await?;
+            self.ledger
+                .record_payment_from_liquidation_in_op(
+                    &mut db,
+                    tx_id,
+                    amount,
+                    self.omnibus_account_ids.account_id,
+                    liquidation.receivable_account_id,
+                )
+                .await?;
         }
 
         db.commit().await?;
@@ -181,8 +211,9 @@ where
     ) -> Result<(), LiquidationError> {
         let mut liquidation = self.repo.find_by_id(liquidation_id).await?;
 
-        if liquidation.complete(payment_id).did_execute() {
+        if let Idempotent::Executed(data) = liquidation.complete(payment_id) {
             self.repo.update_in_op(db, &mut liquidation).await?;
+            self.ledger.complete_liquidation_in_op(db, data).await?;
         }
 
         Ok(())
@@ -265,4 +296,11 @@ where
             .list_by_id(query, es_entity::ListDirection::Descending)
             .await
     }
+}
+
+#[derive(Clone, Debug)]
+pub struct LiquidationCompletedData {
+    pub sent_total: Satoshis,
+    pub collateral_in_liquidation_account_id: CalaAccountId,
+    pub liquidated_collateral_account_id: CalaAccountId,
 }
