@@ -166,17 +166,19 @@ pub mod credit {
     pub use core_credit::{
         APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS, APPROVE_DISBURSAL_PROCESS,
         COLLATERAL_ENTITY_TYPE, CREDIT_FACILITY_ENTITY_TYPE, ChartOfAccountsIntegrationConfig,
-        Collateral, CollateralUpdated, CollateralizationUpdated, CoreCreditEvent, CreditConfig,
-        CreditFacilitiesCursor, CreditFacilitiesFilter, CreditFacilitiesSortBy, CreditFacility,
-        CreditFacilityApproved, CreditFacilityBalanceSummary, CreditFacilityHistoryEntry,
-        CreditFacilityProposal, CreditFacilityProposalId, CreditFacilityProposalsByCreatedAtCursor,
+        Collateral, CollateralSentOut, CollateralUpdated, CollateralizationUpdated,
+        CoreCreditEvent, CreditConfig, CreditFacilitiesCursor, CreditFacilitiesFilter,
+        CreditFacilitiesSortBy, CreditFacility, CreditFacilityApproved,
+        CreditFacilityBalanceSummary, CreditFacilityHistoryEntry, CreditFacilityProposal,
+        CreditFacilityProposalId, CreditFacilityProposalsByCreatedAtCursor,
         CreditFacilityRepaymentPlanEntry, CreditFacilityStatus, DISBURSAL_TRANSACTION_ENTITY_TYPE,
         Disbursal, DisbursalExecuted, DisbursalStatus, DisbursalsCursor, DisbursalsFilter,
         DisbursalsSortBy, IncrementalPayment, InterestAccrualsPosted, Liquidation,
         LiquidationsByIdCursor, LiquidationsCursor, ListDirection, Payment, PaymentAllocation,
         PendingCreditFacilitiesByCreatedAtCursor, PendingCreditFacility,
-        PendingCreditFacilityCollateralizationUpdated, PendingCreditFacilityId, RepaymentStatus,
-        RepaymentType, Sort, TermsTemplate, error, terms_template_error,
+        PendingCreditFacilityCollateralizationUpdated, PendingCreditFacilityId,
+        RepaymentAmountReceived, RepaymentStatus, RepaymentType, Sort, TermsTemplate, error,
+        terms_template_error,
     };
 
     pub type Credit =

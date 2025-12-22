@@ -500,6 +500,8 @@ checksums:
     CreditFacilities/CreditFacilityDetails/History/entryTypes/disbursalExecuted: 2aa8ff038a96888966ede2b19fc8b8bb
     CreditFacilities/CreditFacilityDetails/History/entryTypes/interestAccrued: 7a2a22eb72a60ee80626eef9988e35ff
     CreditFacilities/CreditFacilityDetails/History/entryTypes/pendingFacilityCollateralization: c1e5fb1c1e4ad8e0195b8bec7276c938
+    CreditFacilities/CreditFacilityDetails/History/entryTypes/collateralSentOut: 93df05f03a1743dcac2936739a9b4b84
+    CreditFacilities/CreditFacilityDetails/History/entryTypes/repaymentAmountReceived: dd6c5e595c9b31bdf98ab2d882027129
     CreditFacilities/CreditFacilityDetails/History/messages/unknownType: 82d1742db9fd0f5ca6bd0b05b561c284
     CreditFacilities/CreditFacilityDetails/History/messages/emptyTable: 37a7aed7a4d616149ed640ce3d72d6f9
     CreditFacilities/CreditFacilityDetails/TermsDialog/title: c531b88ecfe7dd2337a34f4a9ed18a5f

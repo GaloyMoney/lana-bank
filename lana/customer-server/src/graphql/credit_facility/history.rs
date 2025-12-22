@@ -12,6 +12,8 @@ pub enum CreditFacilityHistoryEntry {
     Collateralization(CreditFacilityCollateralizationUpdated),
     Disbursal(CreditFacilityDisbursalExecuted),
     Interest(CreditFacilityInterestAccrued),
+    Liquidation(CreditFacilityCollateralSentOut),
+    Repayment(CreditFacilityRepaymentAmountReceived),
 }
 
 #[derive(SimpleObject)]
@@ -76,6 +78,22 @@ pub struct CreditFacilityInterestAccrued {
     pub days: u32,
 }
 
+#[derive(SimpleObject)]
+pub struct CreditFacilityCollateralSentOut {
+    pub amount: Satoshis,
+    pub recorded_at: Timestamp,
+    pub effective: Date,
+    pub tx_id: UUID,
+}
+
+#[derive(SimpleObject)]
+pub struct CreditFacilityRepaymentAmountReceived {
+    pub cents: UsdCents,
+    pub recorded_at: Timestamp,
+    pub effective: Date,
+    pub tx_id: UUID,
+}
+
 impl From<lana_app::credit::CreditFacilityHistoryEntry> for CreditFacilityHistoryEntry {
     fn from(transaction: lana_app::credit::CreditFacilityHistoryEntry) -> Self {
         match transaction {
@@ -102,7 +120,12 @@ impl From<lana_app::credit::CreditFacilityHistoryEntry> for CreditFacilityHistor
                     collateralization.into()
                 )
             }
-
+            lana_app::credit::CreditFacilityHistoryEntry::Liquidation(liquidation) => {
+                CreditFacilityHistoryEntry::Liquidation(liquidation.into())
+            }
+            lana_app::credit::CreditFacilityHistoryEntry::Repayment(repayment) => {
+                CreditFacilityHistoryEntry::Repayment(repayment.into())
+            }
         }
     }
 }
@@ -190,6 +213,28 @@ impl From<lana_app::credit::InterestAccrualsPosted> for CreditFacilityInterestAc
             effective: interest.effective.into(),
             tx_id: UUID::from(interest.tx_id),
             days: interest.days,
+        }
+    }
+}
+
+impl From<lana_app::credit::CollateralSentOut> for CreditFacilityCollateralSentOut {
+    fn from(liquidation: lana_app::credit::CollateralSentOut) -> Self {
+        Self {
+            amount: liquidation.amount,
+            recorded_at: liquidation.recorded_at.into(),
+            effective: liquidation.effective.into(),
+            tx_id: UUID::from(liquidation.tx_id),
+        }
+    }
+}
+
+impl From<lana_app::credit::RepaymentAmountReceived> for CreditFacilityRepaymentAmountReceived {
+    fn from(repayment: lana_app::credit::RepaymentAmountReceived) -> Self {
+        Self {
+            cents: repayment.cents,
+            recorded_at: repayment.recorded_at.into(),
+            effective: repayment.effective.into(),
+            tx_id: UUID::from(repayment.tx_id),
         }
     }
 }

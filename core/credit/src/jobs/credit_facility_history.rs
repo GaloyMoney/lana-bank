@@ -109,6 +109,18 @@ where
                     credit_facility_id: id,
                     ..
                 },
+            )
+            | Some(
+                event @ PartialLiquidationRepaymentAmountReceived {
+                    credit_facility_id: id,
+                    ..
+                },
+            )
+            | Some(
+                event @ PartialLiquidationCollateralSentOut {
+                    credit_facility_id: id,
+                    ..
+                },
             ) => {
                 self.handle_event(db, message, event, *id).await?;
             }
