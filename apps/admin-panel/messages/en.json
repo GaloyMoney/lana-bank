@@ -804,8 +804,8 @@
           "disbursalExecuted": "Disbursal",
           "interestAccrued": "Interest Accrued",
           "pendingFacilityCollateralization": "Pending Facility Collateralization Updated",
-          "collateralSentOut": "Collateral Sent Out",
-          "repaymentAmountReceived": "Repayment Amount Received"
+          "collateralSentOut": "Collateral Sent To Liquidation",
+          "repaymentAmountReceived": "Payment Received From Liquidation"
         },
         "messages": {
           "unknownType": "Unknown Entry Type",
