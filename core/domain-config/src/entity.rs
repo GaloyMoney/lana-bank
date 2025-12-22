@@ -5,7 +5,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    ComplexConfig, DomainConfigError, SimpleConfig, SimpleEntry, SimpleScalar, SimpleType,
+    ComplexConfig, ConfigType, DomainConfigError, SimpleConfig, SimpleEntry, SimpleScalar,
     primitives::{DomainConfigId, DomainConfigKey},
 };
 
@@ -17,7 +17,7 @@ pub enum DomainConfigEvent {
     Initialized {
         id: DomainConfigId,
         key: DomainConfigKey,
-        simple_type: Option<SimpleType>,
+        config_type: ConfigType,
         value: serde_json::Value,
     },
     Updated {
@@ -30,7 +30,7 @@ pub enum DomainConfigEvent {
 pub struct DomainConfig {
     pub id: DomainConfigId,
     pub key: DomainConfigKey,
-    pub simple_type: Option<SimpleType>,
+    pub config_type: ConfigType,
     events: EntityEvents<DomainConfigEvent>,
 }
 
@@ -71,23 +71,23 @@ impl DomainConfig {
     where
         T: SimpleConfig,
     {
-        self.ensure_simple_type(T::Scalar::SIMPLE_TYPE)?;
+        self.ensure_config_type(T::Scalar::CONFIG_TYPE)?;
         T::Scalar::from_json(self.current_json_value().clone())
     }
 
     pub(super) fn into_simple_entry(self) -> Result<SimpleEntry, DomainConfigError> {
-        let simple_type = self.simple_type.ok_or_else(|| {
-            DomainConfigError::InvalidType(format!(
+        let value_json = self.current_json_value().clone();
+        if !self.config_type.is_simple() {
+            return Err(DomainConfigError::InvalidType(format!(
                 "Config is not simple for {key}",
                 key = self.key
-            ))
-        })?;
-        let value_json = self.current_json_value().clone();
-        let value = simple_type.format_json_value(&value_json)?;
+            )));
+        }
+        let value = self.config_type.format_json_value(&value_json)?;
 
         Ok(SimpleEntry {
             key: self.key.clone(),
-            simple_type,
+            config_type: self.config_type,
             value,
         })
     }
@@ -101,7 +101,7 @@ impl DomainConfig {
     {
         let value_json = T::to_json(&new_value);
 
-        self.ensure_simple_type(T::SIMPLE_TYPE)?;
+        self.ensure_config_type(T::CONFIG_TYPE)?;
         idempotency_guard!(
             self.events.iter_all().rev(),
             DomainConfigEvent::Updated { value } if value == &value_json,
@@ -126,25 +126,21 @@ impl DomainConfig {
         }
     }
 
-    fn ensure_simple_type(&self, expected: SimpleType) -> Result<(), DomainConfigError> {
-        match self.simple_type {
-            Some(found) if found == expected => Ok(()),
-            Some(found) => Err(DomainConfigError::InvalidType(format!(
-                "Invalid simple type for {key}: expected {expected}, found {found}",
-                key = self.key
-            ))),
-            None => Err(DomainConfigError::InvalidType(format!(
-                "Invalid simple type for {key}: expected {expected}, found none",
+    fn ensure_config_type(&self, expected: ConfigType) -> Result<(), DomainConfigError> {
+        match self.config_type {
+            found if found == expected => Ok(()),
+            found => Err(DomainConfigError::InvalidType(format!(
+                "Invalid config type for {key}: expected {expected}, found {found}",
                 key = self.key
             ))),
         }
     }
 
     fn ensure_complex(&self) -> Result<(), DomainConfigError> {
-        match self.simple_type {
-            None => Ok(()),
-            Some(found) => Err(DomainConfigError::InvalidType(format!(
-                "Config is simple for {key}: found simple type {found}",
+        match self.config_type {
+            ConfigType::Complex => Ok(()),
+            found => Err(DomainConfigError::InvalidType(format!(
+                "Config is simple for {key}: found config type {found}",
                 key = self.key
             ))),
         }
@@ -160,10 +156,13 @@ impl TryFromEvents<DomainConfigEvent> for DomainConfig {
                 DomainConfigEvent::Initialized {
                     id,
                     key,
-                    simple_type,
+                    config_type,
                     ..
                 } => {
-                    builder = builder.id(*id).key(key.clone()).simple_type(*simple_type);
+                    builder = builder
+                        .id(*id)
+                        .key(key.clone())
+                        .config_type(*config_type);
                 }
                 DomainConfigEvent::Updated { .. } => {}
             }
@@ -177,8 +176,7 @@ impl TryFromEvents<DomainConfigEvent> for DomainConfig {
 pub struct NewDomainConfig {
     pub(super) id: DomainConfigId,
     pub(super) key: DomainConfigKey,
-    #[builder(default)]
-    pub(super) simple_type: Option<SimpleType>,
+    pub(super) config_type: ConfigType,
     value: serde_json::Value,
 }
 
@@ -202,7 +200,7 @@ impl NewDomainConfigBuilder {
 
         self.id(id);
         self.key(T::KEY);
-        self.simple_type(None);
+        self.config_type(ConfigType::Complex);
         self.value(value_json);
 
         Ok(self)
@@ -218,7 +216,7 @@ impl NewDomainConfigBuilder {
     {
         self.id(id);
         self.key(T::KEY);
-        self.simple_type(Some(T::Scalar::SIMPLE_TYPE));
+        self.config_type(T::Scalar::CONFIG_TYPE);
         self.value(T::Scalar::to_json(&value));
         Ok(self)
     }
@@ -231,7 +229,7 @@ impl IntoEvents<DomainConfigEvent> for NewDomainConfig {
             [DomainConfigEvent::Initialized {
                 id: self.id,
                 key: self.key,
-                simple_type: self.simple_type,
+                config_type: self.config_type,
                 value: self.value,
             }],
         )
@@ -245,7 +243,7 @@ mod tests {
     use serde_json::json;
 
     use crate::{
-        ComplexConfig, DomainConfigError, DomainConfigId, DomainConfigKey, SimpleConfig, SimpleType,
+        ComplexConfig, ConfigType, DomainConfigError, DomainConfigId, DomainConfigKey, SimpleConfig,
     };
 
     use super::{DomainConfig, DomainConfigEvent, NewDomainConfig};
@@ -449,7 +447,7 @@ mod tests {
     }
 
     #[test]
-    fn builder_sets_simple_type() {
+    fn builder_sets_config_type() {
         let id = DomainConfigId::new();
         let expected_key = DomainConfigKey::new("simple-bool");
 
@@ -459,12 +457,12 @@ mod tests {
             .build()
             .unwrap();
 
-        assert_eq!(new.simple_type, Some(SimpleType::Bool));
+        assert_eq!(new.config_type, ConfigType::Bool);
         assert_eq!(new.key, expected_key);
     }
 
     #[test]
-    fn rehydrates_simple_type_from_event() {
+    fn rehydrates_config_type_from_event() {
         let id = DomainConfigId::new();
         let value = true;
         let expected_key = DomainConfigKey::new("simple-bool");
@@ -478,7 +476,7 @@ mod tests {
 
         let config = DomainConfig::try_from_events(events).unwrap();
 
-        assert_eq!(config.simple_type, Some(SimpleType::Bool));
+        assert_eq!(config.config_type, ConfigType::Bool);
         let entry = config
             .into_simple_entry()
             .expect("should parse simple entry");

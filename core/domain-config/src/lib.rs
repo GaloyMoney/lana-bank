@@ -13,9 +13,9 @@ use tracing::instrument;
 pub use complex::ComplexConfig;
 pub use entity::{DomainConfig, DomainConfigEvent, NewDomainConfig};
 pub use error::DomainConfigError;
-pub use primitives::{DomainConfigId, DomainConfigKey};
+pub use primitives::{ConfigType, DomainConfigId, DomainConfigKey};
 pub use repo::domain_config_cursor::DomainConfigsByKeyCursor;
-pub use simple::{SimpleConfig, SimpleEntry, SimpleScalar, SimpleType};
+pub use simple::{SimpleConfig, SimpleEntry, SimpleScalar};
 
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
@@ -183,18 +183,19 @@ impl DomainConfigs {
                 end_cursor,
             } = self
                 .repo
-                .list_simple_in_op(
+                .list_by_key_in_op(
                     &mut op,
                     es_entity::PaginatedQueryArgs {
                         first: query_args.first,
                         after,
                     },
+                    es_entity::ListDirection::Ascending,
                 )
                 .await?;
             (after, has_next_page) = (end_cursor, next_page);
 
             entries.reserve(configs.len());
-            for config in configs {
+            for config in configs.into_iter().filter(|config| config.config_type.is_simple()) {
                 entries.push(config.into_simple_entry()?);
             }
         }

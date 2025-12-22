@@ -1,73 +1,11 @@
 use rust_decimal::Decimal;
-#[cfg(feature = "json-schema")]
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::{fmt, str::FromStr};
 
-use crate::{DomainConfigError, primitives::DomainConfigKey};
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, sqlx::Type)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-#[serde(rename_all = "lowercase")]
-#[sqlx(type_name = "text")]
-#[sqlx(rename_all = "lowercase")]
-pub enum SimpleType {
-    Bool,
-    String,
-    Int,
-    Decimal,
-}
-
-impl SimpleType {
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            SimpleType::Bool => "bool",
-            SimpleType::String => "string",
-            SimpleType::Int => "int",
-            SimpleType::Decimal => "decimal",
-        }
-    }
-
-    pub fn format_json_value(&self, value: &Value) -> Result<String, DomainConfigError> {
-        match self {
-            SimpleType::Bool => match value {
-                Value::Bool(v) => Ok(v.to_string()),
-                other => Err(DomainConfigError::InvalidType(format!(
-                    "Expected bool, got {other:?}"
-                ))),
-            },
-            SimpleType::String => match value {
-                Value::String(v) => Ok(v.clone()),
-                other => Err(DomainConfigError::InvalidType(format!(
-                    "Expected string, got {other:?}"
-                ))),
-            },
-            SimpleType::Int => match value {
-                Value::Number(v) => v.as_i64().map(|v| v.to_string()).ok_or_else(|| {
-                    DomainConfigError::InvalidType(format!(
-                        "Expected i64-compatible number, got {v}"
-                    ))
-                }),
-                other => Err(DomainConfigError::InvalidType(format!(
-                    "Expected number, got {other:?}"
-                ))),
-            },
-            SimpleType::Decimal => match value {
-                Value::String(v) => Ok(v.clone()),
-                other => Err(DomainConfigError::InvalidType(format!(
-                    "Expected decimal string, got {other:?}"
-                ))),
-            },
-        }
-    }
-}
-
-impl fmt::Display for SimpleType {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(self.as_str())
-    }
-}
+use crate::{
+    DomainConfigError,
+    primitives::{ConfigType, DomainConfigKey},
+};
 
 /// Marker trait describing a simple config.
 ///
@@ -112,7 +50,7 @@ impl fmt::Display for SimpleType {
 ///
 ///     // Listing returns dynamic entries
 ///     let all = configs.list_simple().await?;
-///     assert!(all.iter().any(|c| c.key == domain_config::DomainConfigKey::new("feature_x_enabled") && matches!(c.simple_type, domain_config::SimpleType::Bool)));
+///     assert!(all.iter().any(|c| c.key == domain_config::DomainConfigKey::new("feature_x_enabled") && matches!(c.config_type, domain_config::ConfigType::Bool)));
 ///
 ///     Ok(())
 /// }
@@ -137,7 +75,7 @@ pub trait SimpleConfig {
 }
 
 pub trait SimpleScalar: sealed::Sealed + Sized + fmt::Debug + Clone {
-    const SIMPLE_TYPE: SimpleType;
+    const CONFIG_TYPE: ConfigType;
     fn to_json(v: &Self) -> Value;
     fn from_json(v: Value) -> Result<Self, DomainConfigError>;
 }
@@ -151,7 +89,7 @@ mod sealed {
 }
 
 impl SimpleScalar for bool {
-    const SIMPLE_TYPE: SimpleType = SimpleType::Bool;
+    const CONFIG_TYPE: ConfigType = ConfigType::Bool;
 
     fn to_json(v: &Self) -> Value {
         Value::Bool(*v)
@@ -168,7 +106,7 @@ impl SimpleScalar for bool {
 }
 
 impl SimpleScalar for String {
-    const SIMPLE_TYPE: SimpleType = SimpleType::String;
+    const CONFIG_TYPE: ConfigType = ConfigType::String;
 
     fn to_json(v: &Self) -> Value {
         Value::String(v.clone())
@@ -185,7 +123,7 @@ impl SimpleScalar for String {
 }
 
 impl SimpleScalar for i64 {
-    const SIMPLE_TYPE: SimpleType = SimpleType::Int;
+    const CONFIG_TYPE: ConfigType = ConfigType::Int;
 
     fn to_json(v: &Self) -> Value {
         Value::Number((*v).into())
@@ -204,7 +142,7 @@ impl SimpleScalar for i64 {
 }
 
 impl SimpleScalar for Decimal {
-    const SIMPLE_TYPE: SimpleType = SimpleType::Decimal;
+    const CONFIG_TYPE: ConfigType = ConfigType::Decimal;
 
     fn to_json(v: &Self) -> Value {
         Value::String(v.to_string())
@@ -223,7 +161,7 @@ impl SimpleScalar for Decimal {
 #[derive(Debug, Clone)]
 pub struct SimpleEntry {
     pub key: DomainConfigKey,
-    pub simple_type: SimpleType,
+    pub config_type: ConfigType,
     pub value: String,
 }
 

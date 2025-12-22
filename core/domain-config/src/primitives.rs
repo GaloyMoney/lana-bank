@@ -1,10 +1,84 @@
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::{borrow::Cow, str::FromStr};
+use serde_json::Value;
+use std::{borrow::Cow, fmt, str::FromStr};
+
+use crate::DomainConfigError;
 
 es_entity::entity_id! {
     DomainConfigId,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, sqlx::Type)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+#[serde(rename_all = "lowercase")]
+#[sqlx(type_name = "text")]
+#[sqlx(rename_all = "lowercase")]
+pub enum ConfigType {
+    Bool,
+    String,
+    Int,
+    Decimal,
+    Complex,
+}
+
+impl ConfigType {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            ConfigType::Bool => "bool",
+            ConfigType::String => "string",
+            ConfigType::Int => "int",
+            ConfigType::Decimal => "decimal",
+            ConfigType::Complex => "complex",
+        }
+    }
+
+    pub fn is_simple(&self) -> bool {
+        !matches!(self, ConfigType::Complex)
+    }
+
+    pub fn format_json_value(&self, value: &Value) -> Result<String, DomainConfigError> {
+        match self {
+            ConfigType::Bool => match value {
+                Value::Bool(v) => Ok(v.to_string()),
+                other => Err(DomainConfigError::InvalidType(format!(
+                    "Expected bool, got {other:?}"
+                ))),
+            },
+            ConfigType::String => match value {
+                Value::String(v) => Ok(v.clone()),
+                other => Err(DomainConfigError::InvalidType(format!(
+                    "Expected string, got {other:?}"
+                ))),
+            },
+            ConfigType::Int => match value {
+                Value::Number(v) => v.as_i64().map(|v| v.to_string()).ok_or_else(|| {
+                    DomainConfigError::InvalidType(format!(
+                        "Expected i64-compatible number, got {v}"
+                    ))
+                }),
+                other => Err(DomainConfigError::InvalidType(format!(
+                    "Expected number, got {other:?}"
+                ))),
+            },
+            ConfigType::Decimal => match value {
+                Value::String(v) => Ok(v.clone()),
+                other => Err(DomainConfigError::InvalidType(format!(
+                    "Expected decimal string, got {other:?}"
+                ))),
+            },
+            ConfigType::Complex => Err(DomainConfigError::InvalidType(
+                "Config type complex cannot be formatted as a simple value".to_string(),
+            )),
+        }
+    }
+}
+
+impl fmt::Display for ConfigType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, sqlx::Type)]
