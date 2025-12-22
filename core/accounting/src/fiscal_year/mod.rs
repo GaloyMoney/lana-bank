@@ -167,10 +167,7 @@ where
                 let mut op = self.repo.begin_op().await?;
                 self.repo.update_in_op(&mut op, &mut fiscal_year).await?;
 
-                let fiscal_year_conf = self
-                    .domain_configs
-                    .get_or_default::<FiscalYearConfig>()
-                    .await?;
+                let fiscal_year_conf = self.domain_configs.get::<FiscalYearConfig>().await?;
 
                 self.chart_of_accounts
                     .post_yearly_closing_transaction(
