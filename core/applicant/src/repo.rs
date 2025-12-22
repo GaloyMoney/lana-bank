@@ -26,19 +26,9 @@ impl ApplicantRepo {
         customer_id: CustomerId,
         webhook_data: serde_json::Value,
     ) -> Result<i64, ApplicantError> {
-        let row = sqlx::query!(
-            r#"
-            INSERT INTO sumsub_callbacks (customer_id, content)
-            VALUES ($1, $2)
-            RETURNING id
-            "#,
-            customer_id as CustomerId,
-            webhook_data
-        )
-        .fetch_one(&self.pool)
-        .await?;
-
-        Ok(row.id)
+        let mut op = self.pool.begin().await?;
+        self.persist_webhook_data_in_op(&mut op, customer_id, webhook_data)
+            .await
     }
 
     #[record_error_severity]
