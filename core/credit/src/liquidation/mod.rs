@@ -161,7 +161,7 @@ where
         let tx_id = CalaTransactionId::new();
 
         if liquidation
-            .record_repayment_from_liquidation(amount, tx_id)?
+            .record_repayment_from_liquidation(amount, PaymentId::new(), tx_id)?
             .did_execute()
         {
             self.repo.update_in_op(&mut db, &mut liquidation).await?;

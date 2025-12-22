@@ -419,10 +419,12 @@ where
                 RepaymentAmountReceived {
                     amount,
                     ledger_tx_id,
+                    payment_id,
                 } => Some(CoreCreditEvent::PartialLiquidationRepaymentAmountReceived {
                     liquidation_id: entity.id,
                     credit_facility_id: entity.credit_facility_id,
                     amount: *amount,
+                    payment_id: *payment_id,
                     ledger_tx_id: *ledger_tx_id,
                 }),
                 CollateralSentOut { .. } => None,
