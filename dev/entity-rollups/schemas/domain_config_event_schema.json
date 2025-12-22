@@ -1,8 +1,23 @@
 {
+  "$defs": {
+    "ConfigType": {
+      "enum": [
+        "bool",
+        "string",
+        "int",
+        "decimal",
+        "complex"
+      ],
+      "type": "string"
+    }
+  },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "oneOf": [
     {
       "properties": {
+        "config_type": {
+          "$ref": "#/$defs/ConfigType"
+        },
         "id": {
           "format": "uuid",
           "type": "string"
@@ -20,6 +35,7 @@
         "type",
         "id",
         "key",
+        "config_type",
         "value"
       ],
       "type": "object"
