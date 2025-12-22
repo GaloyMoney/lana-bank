@@ -4,7 +4,7 @@ use domain_config::{DomainConfigError, DomainConfigKey, DomainConfigValue};
 
 use crate::{ClosingAccountCodes, primitives::AccountCode};
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FiscalYearConfig {
     pub revenue_account_code: String,
     pub cost_of_revenue_account_code: String,
