@@ -35,7 +35,11 @@ impl DomainConfigs {
     where
         T: DomainConfigValue,
     {
-        let config = self.repo.find_by_key(T::KEY).await?;
+        let config = match self.repo.find_by_key(T::KEY).await {
+            Err(e) if e.was_not_found() => Err(DomainConfigError::NotConfigured),
+            Err(e) => Err(e),
+            Ok(config) => Ok(config),
+        }?;
 
         config.current_value()
     }
