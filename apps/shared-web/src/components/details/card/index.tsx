@@ -14,11 +14,12 @@ import {
 import { Separator } from "@lana/web/ui/separator"
 
 import { useBreakpointDown } from "@lana/web/hooks"
+import { cn } from "@lana/web/utils"
 
 import { DetailItem, DetailItemProps, DetailsGroup } from ".."
 
 const footerVariants = cva(
-  "pt-4 pb-4 gap-4 w-full md:w-auto [&>*]:w-full md:[&>*]:w-auto md:[&>*]:mb-0 last:[&>*]:mb-0",
+  "pt-4 pb-4 gap-4 w-full md:w-auto *:w-full md:*:w-auto md:*:mb-0 last:*:mb-0",
   {
     variants: {
       alignment: {

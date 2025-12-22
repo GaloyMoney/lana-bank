@@ -2,7 +2,7 @@
 import React from "react"
 import { useTranslations } from "next-intl"
 import { Label } from "@lana/web/ui/label"
-import { Tabs, TabsList, TabsTrigger } from "@lana/web/ui/tab"
+import { Tabs, TabsList, TabsTrigger } from "@lana/web/ui/tabs"
 
 import { Currency } from "@/components/balance/balance"
 
@@ -22,7 +22,7 @@ export const CurrencySelection: React.FC<CurrencySelectionProps> = ({
     <div>
       <Label>{t("currency.label")}</Label>
       <Tabs value={currency} onValueChange={(v) => setCurrency(v as Currency)}>
-        <TabsList className="border rounded-md py-[1rem]">
+        <TabsList className="border rounded-md ">
           <TabsTrigger value="usd">{t("currency.options.usd")}</TabsTrigger>
           <TabsTrigger value="btc">{t("currency.options.btc")}</TabsTrigger>
         </TabsList>
@@ -42,7 +42,7 @@ export const LayerSelection: React.FC<LayerSelectionProps> = ({ layer, setLayer 
     <div>
       <Label>{t("layer.label")}</Label>
       <Tabs value={layer} onValueChange={(v) => setLayer(v as ReportLayer)}>
-        <TabsList className="border rounded-md py-[1rem]">
+        <TabsList className="border rounded-md ">
           <TabsTrigger value="settled">{t("layer.options.settled")}</TabsTrigger>
           <TabsTrigger value="pending">{t("layer.options.pending")}</TabsTrigger>
         </TabsList>

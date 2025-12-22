@@ -1064,6 +1064,7 @@
     "description": "Pagos realizados desde una línea de crédito al usuario",
     "table": {
       "headers": {
+        "customer": "Cliente",
         "amount": "Monto",
         "createdAt": "Fecha",
         "status": "Estado"

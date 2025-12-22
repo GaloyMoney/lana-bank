@@ -101,7 +101,7 @@ export const RecordPaymentReceivedDialog: React.FC<RecordPaymentReceivedDialogPr
               id="amount"
               type="number"
               value={amount}
-              onValueChange={setAmount}
+              onChange={(e) => setAmount(e.target.value)}
               placeholder={t("fields.amountPlaceholder")}
               disabled={loading}
               endAdornment="USD"

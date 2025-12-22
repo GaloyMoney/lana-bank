@@ -1,7 +1,7 @@
 export const GradientProgressBar = ({ percentage }: { percentage: number }) => {
   return (
     <div className="relative w-[300px] mt-[20px]">
-      <div className="w-full h-[3px] bg-gradient-to-r from-green-500 via-yellow-500 to-red-500 relative">
+      <div className="w-full h-[3px] bg-linear-to-r from-green-500 via-yellow-500 to-red-500 relative">
         <div
           style={{
             position: "absolute",

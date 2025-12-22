@@ -8,7 +8,7 @@ import { gql } from "@apollo/client"
 
 import { Button } from "@lana/web/ui/button"
 import { Label } from "@lana/web/ui/label"
-import { Checkbox } from "@lana/web/ui/check-box"
+import { Checkbox } from "@lana/web/ui/checkbox"
 import {
   Card,
   CardContent,

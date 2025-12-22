@@ -84,6 +84,7 @@ export const DateRangeSelector = ({
                 onSelect={setSelectedFrom}
                 defaultMonth={selectedFrom}
                 disabled={(date) => date > today}
+                captionLayout="dropdown"
               />
             </div>
             <div>
@@ -96,6 +97,7 @@ export const DateRangeSelector = ({
                 disabled={(date) =>
                   date > today || (selectedFrom ? date < selectedFrom : false)
                 }
+                captionLayout="dropdown"
               />
             </div>
           </div>

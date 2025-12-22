@@ -134,7 +134,7 @@ const CustomerDocuments: React.FC<CustomerDocumentsProps> = ({ documents, refetc
       render: (_, document) => (
         <div className="flex justify-end space-x-2">
           <Button
-            variant="secondary"
+            variant="outline"
             onClick={(e) => {
               e.stopPropagation()
               openFile(document.documentId)

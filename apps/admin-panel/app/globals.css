@@ -1,16 +1,5 @@
-@import "@lana/web/globals.css";
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-.center {
-  @apply flex justify-center items-center h-full w-full;
-}
-
-thead tr {
-  @apply hover:!bg-card;
-}
+@import "tailwindcss";
+@import "@lana/web/global.css";
 
 .no-scrollbar::-webkit-scrollbar {
   display: none;

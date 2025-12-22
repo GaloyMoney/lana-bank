@@ -9,7 +9,6 @@ import { Button } from "@lana/web/ui/button"
 import { RemoveUserCommitteeDialog } from "../remove-user"
 
 import { GetCommitteeDetailsQuery } from "@/lib/graphql/generated"
-
 import DataTable, { Column } from "@/components/data-table"
 import CardWrapper from "@/components/card-wrapper"
 

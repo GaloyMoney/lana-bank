@@ -3,7 +3,7 @@ import { useId, type ReactNode } from "react"
 import { DialogHeader, DialogTitle } from "@lana/web/ui/dialog"
 import { Input } from "@lana/web/ui/input"
 import { Label } from "@lana/web/ui/label"
-import { Alert } from "@lana/web/ui/alert"
+import { Alert, AlertDescription } from "@lana/web/ui/alert"
 
 import { DetailItem } from "@/components/details/item"
 import { DetailsGroup } from "@/components/details/group"
@@ -51,13 +51,13 @@ export function FiscalYearCloseDialogContent({
           loading={state.loading}
         />
       ) : (
-        <Alert variant="default" className="p-3">
-          <p className="text-sm">{content.emptyStateMessage}</p>
+        <Alert variant="default">
+          <AlertDescription>{content.emptyStateMessage}</AlertDescription>
         </Alert>
       )}
       {state.error && (
-        <Alert variant="destructive" className="p-3">
-          <p className="text-sm">{state.error}</p>
+        <Alert variant="destructive">
+          <AlertDescription>{state.error}</AlertDescription>
         </Alert>
       )}
     </>
@@ -81,8 +81,8 @@ function FiscalYearCloseForm({
     <>
       <p className="text-sm text-muted-foreground">{content.description}</p>
 
-      <Alert variant="warning" className="p-2">
-        <p className="font-medium">{content.warning}</p>
+      <Alert variant="warning">
+        <AlertDescription className="font-medium">{content.warning}</AlertDescription>
       </Alert>
 
       <DetailsGroup layout="horizontal">

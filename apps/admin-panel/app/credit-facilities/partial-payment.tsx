@@ -158,8 +158,8 @@ export const CreditFacilityPartialPaymentDialog: React.FC<
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder={t("form.placeholders.amount")}
                 min={0}
+                endAdornment={`USD`}
               />
-              <div className="p-1.5 bg-input-text rounded-md px-4">USD</div>
             </div>
           </div>
 

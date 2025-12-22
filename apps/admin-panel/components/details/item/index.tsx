@@ -3,6 +3,7 @@
 import * as React from "react"
 
 import Link from "next/link"
+import { ArrowRight } from "lucide-react"
 
 import { DetailsGroupContext } from "../group"
 
@@ -53,7 +54,12 @@ export const DetailItem: React.FC<DetailItemProps> = ({
       onClick={onClick || undefined}
       data-testid={labelTestId}
     >
-      <div className={styles.label}>{label}</div>
+      <div className={cn(styles.label, "flex items-center gap-1")}>
+        {label}
+        {href && (
+          <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
+        )}
+      </div>
       <div className={styles.value} data-testid={valueTestId}>
         {value}
       </div>
@@ -64,7 +70,7 @@ export const DetailItem: React.FC<DetailItemProps> = ({
 
   if (href) {
     return (
-      <Link href={href} className="no-underline hover:no-underline">
+      <Link href={href} className="no-underline hover:no-underline group">
         {content}
       </Link>
     )

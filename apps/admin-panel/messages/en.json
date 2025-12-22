@@ -580,7 +580,7 @@
           "termsTemplate": "Select from predefined terms template",
           "annualRate": "Enter the annual rate",
           "initialCvl": "Enter the initial CVL",
-          "duration": "Enter duration in months",
+          "duration": "Enter duration",
           "marginCallCvl": "Enter the margin call CVL",
           "liquidationCvl": "Enter the liquidation CVL",
           "structuringFeeRate": "Enter the Structuring Fee Rate",
@@ -1064,6 +1064,7 @@
     "description": "Payments made from a credit facility to user",
     "table": {
       "headers": {
+        "customer": "Customer",
         "amount": "Amount",
         "createdAt": "Date",
         "status": "Status"
@@ -1272,7 +1273,7 @@
         },
         "placeholders": {
           "annualRate": "Enter the annual rate",
-          "durationUnits": "Enter duration in months",
+          "durationUnits": "Enter duration",
           "initialCvl": "Enter the initial CVL",
           "marginCallCvl": "Enter the margin call CVL",
           "liquidationCvl": "Enter the liquidation CVL",
@@ -1311,7 +1312,7 @@
         "placeholders": {
           "name": "Enter the template name",
           "annualRate": "Enter the annual rate",
-          "durationUnits": "Enter duration in months",
+          "durationUnits": "Enter duration",
           "initialCvl": "Enter the initial CVL",
           "marginCallCvl": "Enter the margin call CVL",
           "liquidationCvl": "Enter the liquidation CVL",
