@@ -68,7 +68,8 @@ cala-ledger = "0.13.0"
 job = { version = "0.3.1", features = ["es-entity"] }
 sim-time = "0.10"
 cala-cel-interpreter = "0.12"
-obix = { version = "0.1.6", features = ["tracing"] }
+obix = { git = "https://github.com/GaloyMoney/obix", branch = "inbox", features = ["tracing"] }
+# obix = "0.1.6"
 
 aes = "0.8"
 anyhow = "1.0.100"

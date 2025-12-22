@@ -15,6 +15,7 @@ use tracing_macros::record_error_severity;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_customer::{CoreCustomerEvent, CustomerId, Customers};
+use obix::inbox::{Inbox, InboxConfig, InboxEvent, InboxHandler, InboxResult};
 use obix::out::OutboxEventMarker;
 
 use error::ApplicantError;
@@ -161,33 +162,69 @@ pub struct ReviewResult {
     pub review_reject_type: Option<String>,
 }
 
-pub struct Applicants<Perms, E>
+struct SumsubCallbackHandler<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
-    authz: Perms,
-    sumsub_client: SumsubClient,
     repo: ApplicantRepo,
     customers: Customers<Perms, E>,
 }
 
-impl<Perms, E> Clone for Applicants<Perms, E>
+impl<Perms, E> Clone for SumsubCallbackHandler<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
     fn clone(&self) -> Self {
         Self {
-            authz: self.authz.clone(),
-            sumsub_client: self.sumsub_client.clone(),
             repo: self.repo.clone(),
             customers: self.customers.clone(),
         }
     }
 }
 
-impl<Perms, E> Applicants<Perms, E>
+impl<Perms, E> InboxHandler for SumsubCallbackHandler<Perms, E>
+where
+    Perms: PermissionCheck + Send + Sync,
+    E: OutboxEventMarker<CoreCustomerEvent> + Send + Sync,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<core_customer::CoreCustomerAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<core_customer::CustomerObject>,
+{
+    async fn handle(
+        &self,
+        event: &InboxEvent,
+    ) -> Result<InboxResult, Box<dyn std::error::Error + Send + Sync>> {
+        let payload: serde_json::Value = event.payload()?;
+
+        let customer_id: CustomerId = payload["externalUserId"]
+            .as_str()
+            .ok_or_else(|| ApplicantError::MissingExternalUserId(payload.to_string()))?
+            .parse()?;
+
+        let mut db = self.repo.begin_op().await?;
+
+        self.repo
+            .persist_webhook_data_in_op(&mut db, customer_id, payload.clone())
+            .await?;
+
+        match Self::process_payload(&self.customers, &mut db, payload).await {
+            Ok(_) => (),
+            // Silently ignoring these errors instead of returning,
+            // this prevents sumsub from retrying for these unhandled cases
+            Err(ApplicantError::UnhandledCallbackType) => (),
+            Err(ApplicantError::UnhandledLevelType) => (),
+            Err(e) => return Err(Box::new(e)),
+        }
+
+        db.commit().await?;
+
+        Ok(InboxResult::Complete)
+    }
+}
+
+impl<Perms, E> SumsubCallbackHandler<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>,
@@ -195,58 +232,14 @@ where
         From<core_customer::CoreCustomerAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<core_customer::CustomerObject>,
 {
-    pub fn new(
-        pool: &PgPool,
-        config: &SumsubConfig,
-        authz: &Perms,
-        customers: &Customers<Perms, E>,
-    ) -> Self {
-        let sumsub_client = SumsubClient::new(config);
-
-        Self {
-            authz: authz.clone(),
-            repo: ApplicantRepo::new(pool),
-            sumsub_client,
-            customers: customers.clone(),
-        }
-    }
-
-    #[record_error_severity]
-    #[instrument(name = "applicant.handle_callback", skip_all)]
-    pub async fn handle_callback(&self, payload: serde_json::Value) -> Result<(), ApplicantError> {
-        let customer_id: CustomerId = payload["externalUserId"]
-            .as_str()
-            .ok_or_else(|| ApplicantError::MissingExternalUserId(payload.to_string()))?
-            .parse()?;
-
-        self.repo
-            .persist_webhook_data(customer_id, payload.clone())
-            .await?;
-
-        let mut db = self.repo.begin_op().await?;
-
-        match self.process_payload(&mut db, payload).await {
-            Ok(_) => (),
-            // Silently ignoring these errors instead of returning,
-            // this prevents sumsub from retrying for these unhandled cases
-            Err(ApplicantError::UnhandledCallbackType) => (),
-            Err(ApplicantError::UnhandledLevelType) => (),
-            Err(e) => return Err(e),
-        }
-
-        db.commit().await?;
-
-        Ok(())
-    }
-
     #[record_error_severity]
     #[instrument(
         name = "applicant.process_payload",
-        skip(self, db),
+        skip(customers, db),
         fields(ignore_for_sandbox = false, callback_type = tracing::field::Empty, sandbox_mode = tracing::field::Empty, applicant_id = tracing::field::Empty, kyc_level = tracing::field::Empty, customer_id = tracing::field::Empty)
     )]
     async fn process_payload(
-        &self,
+        customers: &Customers<Perms, E>,
         db: &mut es_entity::DbOp<'_>,
         payload: serde_json::Value,
     ) -> Result<(), ApplicantError> {
@@ -264,8 +257,7 @@ where
                 tracing::Span::current().record("kyc_level", level_name.as_str());
                 tracing::Span::current()
                     .record("customer_id", external_user_id.to_string().as_str());
-                let res = self
-                    .customers
+                let res = customers
                     .start_kyc(db, external_user_id, applicant_id)
                     .await;
 
@@ -296,8 +288,7 @@ where
                 tracing::Span::current().record("kyc_level", level_name.as_str());
                 tracing::Span::current()
                     .record("customer_id", external_user_id.to_string().as_str());
-                let res = self
-                    .customers
+                let res = customers
                     .decline_kyc(db, external_user_id, applicant_id)
                     .await;
 
@@ -336,8 +327,7 @@ where
                     }
                 };
 
-                let res = self
-                    .customers
+                let res = customers
                     .approve_kyc(db, external_user_id, applicant_id)
                     .await;
 
@@ -375,6 +365,97 @@ where
                 return Err(ApplicantError::UnhandledCallbackType);
             }
         }
+        Ok(())
+    }
+}
+
+pub struct Applicants<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCustomerEvent>,
+{
+    authz: Perms,
+    sumsub_client: SumsubClient,
+    repo: ApplicantRepo,
+    customers: Customers<Perms, E>,
+    inbox: Inbox,
+}
+
+impl<Perms, E> Clone for Applicants<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCustomerEvent>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            authz: self.authz.clone(),
+            sumsub_client: self.sumsub_client.clone(),
+            repo: self.repo.clone(),
+            customers: self.customers.clone(),
+            inbox: self.inbox.clone(),
+        }
+    }
+}
+
+impl<Perms, E> Applicants<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCustomerEvent>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<core_customer::CoreCustomerAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<core_customer::CustomerObject>,
+{
+    pub async fn new(
+        pool: &PgPool,
+        config: &SumsubConfig,
+        authz: &Perms,
+        customers: &Customers<Perms, E>,
+        jobs: &mut job::Jobs,
+    ) -> Result<Self, ApplicantError> {
+        let sumsub_client = SumsubClient::new(config);
+        let repo = ApplicantRepo::new(pool);
+
+        let handler = SumsubCallbackHandler {
+            repo: repo.clone(),
+            customers: customers.clone(),
+        };
+
+        let inbox_config = InboxConfig::new(job::JobType::new("applicants-inbox"));
+        let inbox = Inbox::new(pool, jobs, inbox_config, handler);
+
+        Ok(Self {
+            authz: authz.clone(),
+            repo,
+            sumsub_client,
+            customers: customers.clone(),
+            inbox,
+        })
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "applicant.handle_callback", skip_all)]
+    pub async fn handle_callback(&self, payload: serde_json::Value) -> Result<(), ApplicantError> {
+        // Extract a unique idempotency key from the payload
+        // Use inspectionId if available, otherwise fall back to a hash of the payload
+        let idempotency_key =
+            if let Some(inspection_id) = payload.get("inspectionId").and_then(|v| v.as_str()) {
+                inspection_id.to_string()
+            } else {
+                // Fallback: use a hash of the payload for idempotency
+                use std::collections::hash_map::DefaultHasher;
+                use std::hash::{Hash, Hasher};
+                let mut hasher = DefaultHasher::new();
+                payload.to_string().hash(&mut hasher);
+                format!("payload-{}", hasher.finish())
+            };
+
+        let mut op = self.repo.begin_op().await?;
+        let _ = self
+            .inbox
+            .persist_and_process_in_op(&mut op, &idempotency_key, payload)
+            .await?;
+        op.commit().await?;
+
         Ok(())
     }
 

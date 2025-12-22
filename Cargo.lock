@@ -897,7 +897,7 @@ dependencies = [
  "es-entity",
  "futures",
  "job",
- "obix",
+ "obix 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "opentelemetry",
  "prost 0.13.5",
  "prost-wkt-types",
@@ -1324,7 +1324,7 @@ dependencies = [
  "es-entity",
  "handlebars",
  "job",
- "obix",
+ "obix 0.1.6 (git+https://github.com/GaloyMoney/obix?branch=inbox)",
  "rendering",
  "schemars 1.1.0",
  "serde",
@@ -1358,7 +1358,7 @@ dependencies = [
  "derive_builder",
  "es-entity",
  "governance",
- "obix",
+ "obix 0.1.6 (git+https://github.com/GaloyMoney/obix?branch=inbox)",
  "schemars 1.1.0",
  "serde",
  "serde_json",
@@ -1420,7 +1420,7 @@ dependencies = [
  "core-customer",
  "es-entity",
  "job",
- "obix",
+ "obix 0.1.6 (git+https://github.com/GaloyMoney/obix?branch=inbox)",
  "schemars 1.1.0",
  "serde",
  "serde_json",
@@ -1460,7 +1460,7 @@ dependencies = [
  "futures",
  "governance",
  "job",
- "obix",
+ "obix 0.1.6 (git+https://github.com/GaloyMoney/obix?branch=inbox)",
  "public-id",
  "rand 0.9.2",
  "rust_decimal",
@@ -1501,7 +1501,7 @@ dependencies = [
  "hmac",
  "http",
  "komainu",
- "obix",
+ "obix 0.1.6 (git+https://github.com/GaloyMoney/obix?branch=inbox)",
  "schemars 1.1.0",
  "serde",
  "serde_json",
@@ -1528,7 +1528,7 @@ dependencies = [
  "document-storage",
  "es-entity",
  "governance",
- "obix",
+ "obix 0.1.6 (git+https://github.com/GaloyMoney/obix?branch=inbox)",
  "public-id",
  "schemars 1.1.0",
  "serde",
@@ -1564,7 +1564,7 @@ dependencies = [
  "futures",
  "governance",
  "job",
- "obix",
+ "obix 0.1.6 (git+https://github.com/GaloyMoney/obix?branch=inbox)",
  "public-id",
  "rand 0.9.2",
  "rust_decimal",
@@ -1625,7 +1625,7 @@ dependencies = [
  "core-money",
  "futures",
  "job",
- "obix",
+ "obix 0.1.6 (git+https://github.com/GaloyMoney/obix?branch=inbox)",
  "rand 0.9.2",
  "reqwest",
  "rust_decimal",
@@ -1654,7 +1654,7 @@ dependencies = [
  "derive_builder",
  "es-entity",
  "job",
- "obix",
+ "obix 0.1.6 (git+https://github.com/GaloyMoney/obix?branch=inbox)",
  "schemars 1.1.0",
  "serde",
  "sqlx",
@@ -1819,7 +1819,7 @@ dependencies = [
  "job",
  "keycloak-client",
  "lana-events",
- "obix",
+ "obix 0.1.6 (git+https://github.com/GaloyMoney/obix?branch=inbox)",
  "serde",
  "serde_with",
  "sim-time",
@@ -1948,7 +1948,7 @@ dependencies = [
  "futures",
  "job",
  "lana-events",
- "obix",
+ "obix 0.1.6 (git+https://github.com/GaloyMoney/obix?branch=inbox)",
  "schemars 1.1.0",
  "serde",
  "serde_json",
@@ -1983,7 +1983,7 @@ dependencies = [
  "governance",
  "job",
  "lana-events",
- "obix",
+ "obix 0.1.6 (git+https://github.com/GaloyMoney/obix?branch=inbox)",
  "rust_decimal",
  "serde",
  "sumsub",
@@ -2358,7 +2358,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -2813,7 +2813,7 @@ dependencies = [
  "chrono",
  "derive_builder",
  "es-entity",
- "obix",
+ "obix 0.1.6 (git+https://github.com/GaloyMoney/obix?branch=inbox)",
  "schemars 1.1.0",
  "serde",
  "sqlx",
@@ -3125,7 +3125,7 @@ dependencies = [
  "libc",
  "percent-encoding",
  "pin-project-lite",
- "socket2 0.6.1",
+ "socket2 0.5.10",
  "system-configuration",
  "tokio",
  "tower-service",
@@ -3628,7 +3628,7 @@ dependencies = [
  "lana-events",
  "lana-ids",
  "notification",
- "obix",
+ "obix 0.1.6 (git+https://github.com/GaloyMoney/obix?branch=inbox)",
  "public-id",
  "rand 0.9.2",
  "rbac-types",
@@ -3684,7 +3684,7 @@ dependencies = [
  "core-price",
  "core-report",
  "governance",
- "obix",
+ "obix 0.1.6 (git+https://github.com/GaloyMoney/obix?branch=inbox)",
  "serde",
  "strum 0.27.2",
  "workspace-hack",
@@ -4070,7 +4070,7 @@ dependencies = [
  "job",
  "lana-events",
  "lettre",
- "obix",
+ "obix 0.1.6 (git+https://github.com/GaloyMoney/obix?branch=inbox)",
  "serde",
  "serde_json",
  "smtp-client",
@@ -4089,7 +4089,7 @@ version = "0.50.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7957b9740744892f114936ab4a57b3f487491bbeafaf8083688b16841a4240e5"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -4180,10 +4180,30 @@ dependencies = [
  "es-entity",
  "futures",
  "im",
- "obix-macros",
+ "obix-macros 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde",
  "serde_json",
  "sqlx",
+ "tokio",
+ "tokio-stream",
+]
+
+[[package]]
+name = "obix"
+version = "0.1.6"
+source = "git+https://github.com/GaloyMoney/obix?branch=inbox#beee3c39c8a6dae8c8727d84de0aaae24b17c165"
+dependencies = [
+ "async-trait",
+ "chrono",
+ "es-entity",
+ "futures",
+ "im",
+ "job",
+ "obix-macros 0.1.6 (git+https://github.com/GaloyMoney/obix?branch=inbox)",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "thiserror 2.0.17",
  "tokio",
  "tokio-stream",
 ]
@@ -4193,6 +4213,17 @@ name = "obix-macros"
 version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d62763cf887ffe2dcd680b3817e8fa3b05868f40beff3b8f0de45bcfb1b2af15"
+dependencies = [
+ "darling 0.23.0",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.111",
+]
+
+[[package]]
+name = "obix-macros"
+version = "0.1.6"
+source = "git+https://github.com/GaloyMoney/obix?branch=inbox#beee3c39c8a6dae8c8727d84de0aaae24b17c165"
 dependencies = [
  "darling 0.23.0",
  "proc-macro2",
@@ -4870,7 +4901,7 @@ dependencies = [
  "quinn-udp",
  "rustc-hash",
  "rustls",
- "socket2 0.6.1",
+ "socket2 0.5.10",
  "thiserror 2.0.17",
  "tokio",
  "tracing",
@@ -4907,9 +4938,9 @@ dependencies = [
  "cfg_aliases",
  "libc",
  "once_cell",
- "socket2 0.6.1",
+ "socket2 0.5.10",
  "tracing",
- "windows-sys 0.60.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -5402,7 +5433,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -5873,7 +5904,7 @@ dependencies = [
  "futures",
  "lana-app",
  "lana-events",
- "obix",
+ "obix 0.1.6 (git+https://github.com/GaloyMoney/obix?branch=inbox)",
  "rust_decimal",
  "rust_decimal_macros",
  "serde",
@@ -6543,7 +6574,7 @@ dependencies = [
  "getrandom 0.3.4",
  "once_cell",
  "rustix",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -6552,7 +6583,7 @@ version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2111ef44dae28680ae9752bb89409e7310ca33a8c621ebe7b106cf5c928b3ac0"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -7329,7 +7360,7 @@ dependencies = [
  "futures",
  "job",
  "keycloak-client",
- "obix",
+ "obix 0.1.6 (git+https://github.com/GaloyMoney/obix?branch=inbox)",
  "serde",
  "thiserror 2.0.17",
  "tokio",
@@ -7612,7 +7643,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -8010,8 +8041,8 @@ dependencies = [
  "log",
  "memchr",
  "num-traits",
- "obix",
- "obix-macros",
+ "obix 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "obix-macros 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "once_cell",
  "opentelemetry-http",
  "opentelemetry-otlp",
