@@ -62,6 +62,50 @@ resource "honeycombio_query_annotation" "attempt" {
   name     = "Multiple attempts"
 }
 
+data "honeycombio_query_specification" "concurrent_modification_errors" {
+  calculation {
+    op = "COUNT"
+  }
+
+  filter {
+    column = "error"
+    op     = "="
+    value  = "true"
+  }
+
+  filter {
+    column = "exception.message"
+    op     = "contains"
+    value  = "ConcurrentModification"
+  }
+
+  filter {
+    column = "root.name"
+    op     = "contains"
+    value  = "job.process"
+  }
+
+  breakdowns = ["trace.trace_id", "root.name"]
+
+  order {
+    op    = "COUNT"
+    order = "descending"
+  }
+
+  time_range = 604800
+}
+
+resource "honeycombio_query" "concurrent_modification_errors" {
+  dataset    = var.honeycomb_dataset
+  query_json = data.honeycombio_query_specification.concurrent_modification_errors.json
+}
+
+resource "honeycombio_query_annotation" "concurrent_modification_errors" {
+  dataset  = var.honeycomb_dataset
+  query_id = honeycombio_query.concurrent_modification_errors.id
+  name     = "Concurrent modification errors in jobs"
+}
+
 # Jobs dashboard
 resource "honeycombio_flexible_board" "jobs" {
   name        = "${local.name_prefix}-jobs"
@@ -83,6 +127,16 @@ resource "honeycombio_flexible_board" "jobs" {
     query_panel {
       query_id            = honeycombio_query.attempt.id
       query_annotation_id = honeycombio_query_annotation.attempt.id
+      query_style         = "graph"
+    }
+  }
+
+  panel {
+    type = "query"
+
+    query_panel {
+      query_id            = honeycombio_query.concurrent_modification_errors.id
+      query_annotation_id = honeycombio_query_annotation.concurrent_modification_errors.id
       query_style         = "graph"
     }
   }
