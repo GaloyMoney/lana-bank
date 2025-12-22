@@ -9,7 +9,7 @@ es_entity::entity_id! {
     DomainConfigId,
 }
 
-pub trait DomainConfigValue: Serialize + DeserializeOwned + Clone + Default {
+pub trait DomainConfigValue: Serialize + DeserializeOwned + Clone {
     const KEY: DomainConfigKey;
 
     fn validate(&self) -> Result<(), DomainConfigError>;

@@ -47,7 +47,7 @@ impl DomainConfigs {
     #[instrument(name = "domain_config.get_or_default", skip(self), err)]
     pub async fn get_or_default<T>(&self) -> Result<T, DomainConfigError>
     where
-        T: DomainConfigValue,
+        T: DomainConfigValue + Default,
     {
         let maybe_config = self.repo.maybe_find_by_key(T::KEY).await?;
         let config_value = match maybe_config {
