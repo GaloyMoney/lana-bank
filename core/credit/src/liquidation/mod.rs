@@ -10,9 +10,11 @@ use authz::PermissionCheck;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-use cala_ledger::{CalaLedger, JournalId, TransactionId as CalaTransactionId};
+use cala_ledger::{
+    AccountId as CalaAccountId, CalaLedger, JournalId, TransactionId as CalaTransactionId,
+};
 use core_money::{Satoshis, UsdCents};
-use es_entity::DbOp;
+use es_entity::{DbOp, Idempotent};
 use obix::out::OutboxEventMarker;
 
 use crate::{
@@ -209,8 +211,9 @@ where
     ) -> Result<(), LiquidationError> {
         let mut liquidation = self.repo.find_by_id(liquidation_id).await?;
 
-        if liquidation.complete(payment_id).did_execute() {
+        if let Idempotent::Executed(data) = liquidation.complete(payment_id) {
             self.repo.update_in_op(db, &mut liquidation).await?;
+            self.ledger.complete_liquidation_in_op(db, data).await?;
         }
 
         Ok(())
@@ -293,4 +296,11 @@ where
             .list_by_id(query, es_entity::ListDirection::Descending)
             .await
     }
+}
+
+#[derive(Clone, Debug)]
+pub struct LiquidationCompletedData {
+    pub sent_total: Satoshis,
+    pub collateral_in_liquidation_account_id: CalaAccountId,
+    pub liquidated_collateral_account_id: CalaAccountId,
 }

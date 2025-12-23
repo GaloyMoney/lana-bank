@@ -11,6 +11,8 @@ use tracing_macros::record_error_severity;
 
 pub use error::LiquidationLedgerError;
 
+use crate::LiquidationCompletedData;
+
 #[derive(Clone)]
 pub struct LiquidationLedger {
     cala: CalaLedger,
@@ -26,6 +28,7 @@ impl LiquidationLedger {
     ) -> Result<Self, LiquidationLedgerError> {
         templates::SendCollateralToLiquidation::init(cala).await?;
         templates::ReceivePaymentFromLiquidation::init(cala).await?;
+        templates::CompleteLiquidation::init(cala).await?;
 
         Ok(Self {
             cala: cala.clone(),
@@ -89,6 +92,34 @@ impl LiquidationLedger {
                     receivable_account_id,
                     effective: crate::time::now().date_naive(),
                     currency: Currency::USD,
+                },
+            )
+            .await?;
+
+        Ok(())
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "core_credit.liquidation.ledger.complete_liquidation_in_op",
+        skip(self, db)
+    )]
+    pub async fn complete_liquidation_in_op(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        data: LiquidationCompletedData,
+    ) -> Result<(), LiquidationLedgerError> {
+        self.cala
+            .post_transaction_in_op(
+                db,
+                CalaTransactionId::new(),
+                templates::COMPLETE_LIQUIDATION,
+                templates::CompleteLiquidationParams {
+                    amount: data.sent_total,
+                    journal_id: self.journal_id,
+                    collateral_in_liquidation_account_id: data.collateral_in_liquidation_account_id,
+                    liquidated_collateral_account_id: data.liquidated_collateral_account_id,
+                    effective: crate::time::now().date_naive(),
                 },
             )
             .await?;
