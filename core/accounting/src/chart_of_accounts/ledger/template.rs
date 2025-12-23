@@ -8,6 +8,8 @@ use cala_ledger::{
     tx_template::{NewParamDefinition, ParamDataType, Params},
 };
 
+use super::closing_metadata::AccountingClosingMetadata;
+
 #[derive(Debug, Builder)]
 pub struct EntryParams {
     pub account_id: CalaAccountId,
@@ -94,6 +96,10 @@ impl From<ClosingTransactionParams> for Params {
         params.insert("journal_id", input_params.journal_id);
         params.insert("description", input_params.description);
         params.insert("effective", input_params.effective);
+        params.insert(
+            "meta",
+            AccountingClosingMetadata::closing_tx_metadata_json(),
+        );
 
         for (n, entry) in input_params.entries_params.into_iter().enumerate() {
             entry.populate_params(&mut params, n);
@@ -133,6 +139,11 @@ impl ClosingTransactionParams {
             NewParamDefinition::builder()
                 .name("effective")
                 .r#type(ParamDataType::Date)
+                .build()
+                .unwrap(),
+            NewParamDefinition::builder()
+                .name("meta")
+                .r#type(ParamDataType::Json)
                 .build()
                 .unwrap(),
         ];

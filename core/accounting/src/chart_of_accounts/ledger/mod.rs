@@ -502,6 +502,7 @@ impl ChartLedger {
             .journal_id("params.journal_id")
             .description("params.description")
             .effective("params.effective")
+            .metadata("params.meta")
             .build()
             .expect("Couldn't build TxInput for ClosingTransactionTemplate");
 

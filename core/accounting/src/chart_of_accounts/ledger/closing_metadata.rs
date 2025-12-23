@@ -16,6 +16,7 @@ impl AccountingClosingMetadata {
     const METADATA_PATH: &'static str = "context.vars.account.metadata";
     const METADATA_KEY: &'static str = "closing";
     const CLOSING_DATE_KEY: &'static str = "closed_as_of";
+    const TX_METADATA_KEY: &'static str = "is_closing_tx";
 
     const MONTHLY: &'static str = "monthly";
 
@@ -40,12 +41,20 @@ impl AccountingClosingMetadata {
     fn period_cel_conditions(period: &str) -> String {
         format!(
             r#"
-            !has({path}) ||
-            !has({path}.{key}) ||
-            !has({path}.{key}.{period}) ||
-            !has({path}.{key}.{period}.{closing_date_key}) ||
-            date({path}.{key}.{period}.{closing_date_key}) >= context.vars.transaction.effective
+            (
+             !has(context.vars.transaction.metadata) ||
+             !has(context.vars.transaction.metadata.{is_closing_key}) ||
+             !context.vars.transaction.metadata.{is_closing_key}
+            ) &&
+            (
+             !has({path}) ||
+             !has({path}.{key}) ||
+             !has({path}.{key}.{period}) ||
+             !has({path}.{key}.{period}.{closing_date_key}) ||
+             date({path}.{key}.{period}.{closing_date_key}) >= context.vars.transaction.effective
+            )
         "#,
+            is_closing_key = Self::TX_METADATA_KEY,
             path = Self::METADATA_PATH,
             key = Self::METADATA_KEY,
             closing_date_key = Self::CLOSING_DATE_KEY,
@@ -61,6 +70,12 @@ impl AccountingClosingMetadata {
 
     pub(super) fn monthly_cel_conditions() -> String {
         Self::period_cel_conditions(Self::MONTHLY)
+    }
+
+    pub(super) fn closing_tx_metadata_json() -> serde_json::Value {
+        serde_json::json!({
+            Self::TX_METADATA_KEY: true
+        })
     }
 }
 
@@ -86,10 +101,16 @@ mod tests {
             CelExpression::try_from(cel_conditions.as_str()).unwrap()
         }
 
-        fn ctx(account_json: serde_json::Value, tx_effective_date: NaiveDate) -> CelContext {
+        fn ctx(
+            account_json: serde_json::Value,
+            tx_effective_date: NaiveDate,
+            is_closing_tx: bool,
+        ) -> CelContext {
             let mut transaction = CelMap::new();
             transaction.insert("effective", CelValue::Date(tx_effective_date));
-
+            if is_closing_tx {
+                transaction.insert("metadata", json!({"is_closing_tx": true}));
+            }
             let mut vars = CelMap::new();
             vars.insert("account", account_json);
             vars.insert("transaction", transaction);
@@ -121,7 +142,11 @@ mod tests {
                     }
                 }
             });
-            let ctx = ctx(account, AFTER_CLOSING_DATE.parse::<NaiveDate>().unwrap());
+            let ctx = ctx(
+                account,
+                AFTER_CLOSING_DATE.parse::<NaiveDate>().unwrap(),
+                false,
+            );
 
             let block_txn = expr().try_evaluate::<bool>(&ctx).unwrap();
             assert!(!block_txn);
@@ -130,7 +155,11 @@ mod tests {
         #[test]
         fn blocks_tx_for_no_metadata() {
             let account = json!({});
-            let ctx = ctx(account, AFTER_CLOSING_DATE.parse::<NaiveDate>().unwrap());
+            let ctx = ctx(
+                account,
+                AFTER_CLOSING_DATE.parse::<NaiveDate>().unwrap(),
+                false,
+            );
 
             let block_txn = expr().try_evaluate::<bool>(&ctx).unwrap();
             assert!(block_txn);
@@ -143,7 +172,11 @@ mod tests {
                     "other_field": "value"
                 }
             });
-            let ctx = ctx(account, AFTER_CLOSING_DATE.parse::<NaiveDate>().unwrap());
+            let ctx = ctx(
+                account,
+                AFTER_CLOSING_DATE.parse::<NaiveDate>().unwrap(),
+                false,
+            );
 
             let block_txn = expr().try_evaluate::<bool>(&ctx).unwrap();
             assert!(block_txn);
@@ -158,7 +191,11 @@ mod tests {
                     }
                 }
             });
-            let ctx = ctx(account, AFTER_CLOSING_DATE.parse::<NaiveDate>().unwrap());
+            let ctx = ctx(
+                account,
+                AFTER_CLOSING_DATE.parse::<NaiveDate>().unwrap(),
+                false,
+            );
 
             let block_txn = expr().try_evaluate::<bool>(&ctx).unwrap();
             assert!(block_txn);
@@ -175,7 +212,7 @@ mod tests {
                     }
                 }
             });
-            let ctx = ctx(account, CLOSING_DATE.parse::<NaiveDate>().unwrap());
+            let ctx = ctx(account, CLOSING_DATE.parse::<NaiveDate>().unwrap(), false);
 
             let block_txn = expr().try_evaluate::<bool>(&ctx).unwrap();
             assert!(block_txn);
@@ -192,10 +229,33 @@ mod tests {
                     }
                 }
             });
-            let ctx = ctx(account, BEFORE_CLOSING_DATE.parse::<NaiveDate>().unwrap());
+            let ctx = ctx(
+                account,
+                BEFORE_CLOSING_DATE.parse::<NaiveDate>().unwrap(),
+                false,
+            );
 
             let block_txn = expr().try_evaluate::<bool>(&ctx).unwrap();
             assert!(block_txn);
+        }
+
+        #[test]
+        fn allows_closing_tx_after_last_month_closing() {
+            let account = json!({
+                "metadata": {
+                    "closing": {
+                        "monthly": {
+                            "closed_as_of": CLOSING_DATE
+                        }
+                    }
+                }
+            });
+            let ctx = ctx(account, CLOSING_DATE.parse::<NaiveDate>().unwrap(), true);
+            let apply_limits = expr().try_evaluate::<bool>(&ctx).unwrap();
+            assert!(
+                !apply_limits,
+                "Closing transaction should bypass velocity controls for closing period"
+            );
         }
     }
 

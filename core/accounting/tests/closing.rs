@@ -1,7 +1,7 @@
 mod helpers;
 
-use anyhow::Result;
-use chrono::{Months, NaiveDate};
+use anyhow::{Result, anyhow};
+use chrono::{Days, NaiveDate};
 use rust_decimal::Decimal;
 
 use authz::dummy::{DummyPerms, DummySubject};
@@ -17,12 +17,17 @@ use cala_ledger::{
 };
 use core_accounting::{
     AccountCode, AccountIdOrCode, CalaTxId, Chart, ClosingAccountCodes, ClosingTxDetails,
-    CoreAccounting, LedgerAccountId, ManualEntryInput,
-    fiscal_year::{FiscalYear, FiscalYearRepo},
+    CoreAccounting, LedgerAccountId, ManualEntryInput, ProfitAndLossStatement,
+    balance_sheet::ChartOfAccountsIntegrationConfig as BalanceSheetConfig, fiscal_year::FiscalYear,
+    fiscal_year::FiscalYearRepo,
+    profit_and_loss::ChartOfAccountsIntegrationConfig as ProfitAndLossConfig,
 };
 
 use helpers::{action, object};
 
+const ASSETS: &str = "1";
+const LIABILITIES: &str = "2";
+const EQUITY: &str = "3";
 const RETAINED_EARNINGS_GAIN: &str = "32.01";
 const RETAINED_EARNINGS_LOSS: &str = "32.02";
 const REVENUES: &str = "4";
@@ -74,6 +79,7 @@ async fn post_closing_tx_with_gain() -> Result<()> {
         effective_balances_until: effective_balances_as_of,
         effective_balances_from,
     };
+    test.close_all_months_in_fiscal_year().await?;
 
     let op = test.fiscal_year_repo.begin_op().await.unwrap();
     test.accounting
@@ -87,16 +93,47 @@ async fn post_closing_tx_with_gain() -> Result<()> {
     let net_income_account_ids = test.children(RETAINED_EARNINGS_GAIN).await?;
     assert_eq!(net_income_account_ids.len(), 1);
 
-    let net_income_loss = Decimal::from(EXPECTED_CREDIT_NORMAL_NET_INCOME);
+    let net_income_gain = Decimal::from(EXPECTED_CREDIT_NORMAL_NET_INCOME);
     assert_eq!(
         test.balance_by_account_id(net_income_account_ids[0])
             .await?,
-        net_income_loss
+        net_income_gain
     );
 
     assert_eq!(test.balance(REVENUES).await?, Decimal::ZERO);
     assert_eq!(test.balance(COSTS).await?, Decimal::ZERO);
     assert_eq!(test.balance(EXPENSES).await?, Decimal::ZERO);
+
+    let until = test.fiscal_year.closes_as_of();
+
+    let profit_and_loss_normal_balance_before_close_tx = test
+        .pl_statement(until, Some(until))
+        .await?
+        .usd_balance_range
+        .as_ref()
+        .expect("USD balance range is missing for P&L statement")
+        .open
+        .clone()
+        .unwrap();
+
+    let profit_and_loss_normal_balance_after_close_tx = test
+        .pl_statement(until, Some(until))
+        .await?
+        .usd_balance_range
+        .as_ref()
+        .expect("USD balance range is missing for P&L statement")
+        .close
+        .clone()
+        .unwrap();
+
+    assert_eq!(
+        profit_and_loss_normal_balance_before_close_tx.settled(),
+        Decimal::from(EXPECTED_CREDIT_NORMAL_NET_INCOME)
+    );
+    assert_eq!(
+        profit_and_loss_normal_balance_after_close_tx.settled(),
+        Decimal::ZERO
+    );
 
     Ok(())
 }
@@ -104,6 +141,8 @@ async fn post_closing_tx_with_gain() -> Result<()> {
 #[tokio::test]
 async fn post_closing_tx_with_loss() -> Result<()> {
     const EXPECTED_DEBIT_NORMAL_NET_INCOME: i32 = 100;
+    let expected_credit_normal_net_income: i32 = -100;
+
     let mut test = setup_test().await?;
 
     // Revenues
@@ -149,6 +188,7 @@ async fn post_closing_tx_with_loss() -> Result<()> {
         effective_balances_from,
     };
 
+    test.close_all_months_in_fiscal_year().await?;
     let op = test.fiscal_year_repo.begin_op().await.unwrap();
     test.accounting
         .chart_of_accounts()
@@ -171,6 +211,35 @@ async fn post_closing_tx_with_loss() -> Result<()> {
     assert_eq!(test.balance(COSTS).await?, Decimal::ZERO);
     assert_eq!(test.balance(EXPENSES).await?, Decimal::ZERO);
 
+    let until = test.fiscal_year.closes_as_of();
+    let profit_and_loss_normal_balance_before_close_tx = test
+        .pl_statement(until, Some(until))
+        .await?
+        .usd_balance_range
+        .as_ref()
+        .expect("USD balance range is missing for P&L statement")
+        .open
+        .clone()
+        .unwrap();
+
+    let profit_and_loss_normal_balance_after_close_tx = test
+        .pl_statement(until, Some(until))
+        .await?
+        .usd_balance_range
+        .as_ref()
+        .expect("USD balance range is missing for P&L statement")
+        .close
+        .clone()
+        .unwrap();
+
+    assert_eq!(
+        profit_and_loss_normal_balance_before_close_tx.settled(),
+        Decimal::from(expected_credit_normal_net_income)
+    );
+    assert_eq!(
+        profit_and_loss_normal_balance_after_close_tx.settled(),
+        Decimal::ZERO
+    );
     Ok(())
 }
 
@@ -202,6 +271,11 @@ async fn setup_test() -> anyhow::Result<Test> {
         &domain_configs,
     );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
+    let balance_sheet_name = format!("Test Balance Sheet #{}", rand::rng().random_range(0..10000));
+    let pl_statement_name = format!(
+        "Test Profit & Loss Statement #{}",
+        rand::rng().random_range(0..10000)
+    );
     let chart = accounting
         .chart_of_accounts()
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())
@@ -248,6 +322,12 @@ async fn setup_test() -> anyhow::Result<Test> {
 ,,0201,Goodwill,,
 ,,,,,
 ,,0202,Intellectual Property,,
+,,,,,
+2,,,Liabilities,Debit,
+,,,,,
+21,,,Current Liabilities,,
+,,,,,
+,01,,Accounts Payable,,
 ,,,,,
 3,,,Equity,Credit,
 ,,,,,
@@ -299,10 +379,52 @@ async fn setup_test() -> anyhow::Result<Test> {
         .chart_of_accounts()
         .import_from_csv(&DummySubject, &chart.reference, import)
         .await?;
-
-    let opened_as_of = "2021-01-01".parse::<NaiveDate>().unwrap();
+    let opened_as_of: NaiveDate = "2021-01-01".parse::<NaiveDate>().unwrap();
     let fiscal_year = accounting
         .init_fiscal_year_for_chart(&DummySubject, &chart_ref, opened_as_of)
+        .await?;
+
+    accounting
+        .balance_sheets()
+        .create_balance_sheet(balance_sheet_name.clone())
+        .await?;
+    let balance_sheet_config = BalanceSheetConfig {
+        chart_of_accounts_id: chart.id,
+        chart_of_accounts_assets_code: ASSETS.parse().unwrap(),
+        chart_of_accounts_liabilities_code: LIABILITIES.parse().unwrap(),
+        chart_of_accounts_equity_code: EQUITY.parse().unwrap(),
+        chart_of_accounts_revenue_code: REVENUES.parse().unwrap(),
+        chart_of_accounts_cost_of_revenue_code: COSTS.parse().unwrap(),
+        chart_of_accounts_expenses_code: EXPENSES.parse().unwrap(),
+    };
+    accounting
+        .balance_sheets()
+        .set_chart_of_accounts_integration_config(
+            &DummySubject,
+            balance_sheet_name,
+            &chart,
+            balance_sheet_config,
+        )
+        .await?;
+
+    accounting
+        .profit_and_loss()
+        .create_pl_statement(pl_statement_name.clone())
+        .await?;
+    let pl_statement_config = ProfitAndLossConfig {
+        chart_of_accounts_id: chart.id,
+        chart_of_accounts_revenue_code: REVENUES.parse().unwrap(),
+        chart_of_accounts_cost_of_revenue_code: COSTS.parse().unwrap(),
+        chart_of_accounts_expenses_code: EXPENSES.parse().unwrap(),
+    };
+    accounting
+        .profit_and_loss()
+        .set_chart_of_accounts_integration_config(
+            &DummySubject,
+            pl_statement_name.clone(),
+            &chart,
+            pl_statement_config,
+        )
         .await?;
 
     Ok(Test {
@@ -312,6 +434,7 @@ async fn setup_test() -> anyhow::Result<Test> {
         fiscal_year,
         fiscal_year_repo,
         accounts: vec![],
+        pl_statement_name,
     })
 }
 
@@ -322,6 +445,7 @@ struct Test {
     pub fiscal_year: FiscalYear,
     pub fiscal_year_repo: FiscalYearRepo,
     pub accounts: Vec<AccountId>,
+    pub pl_statement_name: String,
 }
 
 impl Test {
@@ -368,7 +492,7 @@ impl Test {
         let effective_tx_date = self
             .fiscal_year
             .opened_as_of
-            .checked_add_months(Months::new(6))
+            .checked_add_days(Days::new(15))
             .unwrap();
         self.accounting
             .execute_manual_transaction(
@@ -437,5 +561,36 @@ impl Test {
             .and_then(|r| r.close)
             .map(|b| b.settled())
             .unwrap_or(Decimal::ZERO))
+    }
+
+    pub async fn close_all_months_in_fiscal_year(&mut self) -> Result<()> {
+        const MAX_MONTHS_IN_FISCAL_YEAR: usize = 12;
+        let mut months_closed = 0;
+
+        while !self.fiscal_year.is_last_month_of_year_closed() {
+            if months_closed >= MAX_MONTHS_IN_FISCAL_YEAR {
+                return Err(anyhow!("Max months in fiscal year reached"));
+            }
+            self.fiscal_year = self
+                .accounting
+                .fiscal_year()
+                .close_month(&DummySubject, self.fiscal_year.id)
+                .await?;
+
+            months_closed += 1;
+        }
+        Ok(())
+    }
+
+    pub async fn pl_statement(
+        &self,
+        from: NaiveDate,
+        until: Option<NaiveDate>,
+    ) -> Result<ProfitAndLossStatement> {
+        Ok(self
+            .accounting
+            .profit_and_loss()
+            .pl_statement(&DummySubject, self.pl_statement_name.clone(), from, until)
+            .await?)
     }
 }
