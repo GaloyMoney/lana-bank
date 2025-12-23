@@ -35,7 +35,11 @@ impl DomainConfigs {
     where
         T: DomainConfigValue,
     {
-        let config = self.repo.find_by_key(T::KEY).await?;
+        let config = match self.repo.find_by_key(T::KEY).await {
+            Err(e) if e.was_not_found() => Err(DomainConfigError::NotConfigured),
+            Err(e) => Err(e),
+            Ok(config) => Ok(config),
+        }?;
 
         config.current_value()
     }
@@ -43,7 +47,7 @@ impl DomainConfigs {
     #[instrument(name = "domain_config.get_or_default", skip(self), err)]
     pub async fn get_or_default<T>(&self) -> Result<T, DomainConfigError>
     where
-        T: DomainConfigValue,
+        T: DomainConfigValue + Default,
     {
         let maybe_config = self.repo.maybe_find_by_key(T::KEY).await?;
         let config_value = match maybe_config {

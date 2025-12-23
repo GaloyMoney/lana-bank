@@ -68,6 +68,10 @@
           "format": "date-time",
           "type": "string"
         },
+        "ledger_tx_id": {
+          "format": "uuid",
+          "type": "string"
+        },
         "type": {
           "const": "year_closed",
           "type": "string"
@@ -75,6 +79,7 @@
       },
       "required": [
         "type",
+        "ledger_tx_id",
         "closed_as_of",
         "closed_at"
       ],

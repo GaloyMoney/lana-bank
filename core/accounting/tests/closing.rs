@@ -7,6 +7,7 @@ use rust_decimal::Decimal;
 use authz::dummy::{DummyPerms, DummySubject};
 use cloud_storage::{Storage, config::StorageConfig};
 use document_storage::DocumentStorage;
+use domain_config::DomainConfigs;
 use job::{JobSvcConfig, Jobs};
 
 use cala_ledger::{
@@ -16,7 +17,8 @@ use cala_ledger::{
 };
 use core_accounting::{
     AccountCode, AccountIdOrCode, CalaTxId, Chart, ClosingAccountCodes, ClosingTxDetails,
-    CoreAccounting, LedgerAccountId, ManualEntryInput, fiscal_year::FiscalYear,
+    CoreAccounting, LedgerAccountId, ManualEntryInput,
+    fiscal_year::{FiscalYear, FiscalYearRepo},
 };
 
 use helpers::{action, object};
@@ -73,14 +75,10 @@ async fn post_closing_tx_with_gain() -> Result<()> {
         effective_balances_from,
     };
 
+    let op = test.fiscal_year_repo.begin_op().await.unwrap();
     test.accounting
         .chart_of_accounts()
-        .post_closing_transaction(
-            &DummySubject,
-            test.chart.id,
-            closing_account_codes,
-            closing_tx_details,
-        )
+        .post_closing_transaction(op, test.chart.id, closing_account_codes, closing_tx_details)
         .await?;
 
     assert!(test.children(RETAINED_EARNINGS_LOSS).await?.is_empty());
@@ -151,14 +149,10 @@ async fn post_closing_tx_with_loss() -> Result<()> {
         effective_balances_from,
     };
 
+    let op = test.fiscal_year_repo.begin_op().await.unwrap();
     test.accounting
         .chart_of_accounts()
-        .post_closing_transaction(
-            &DummySubject,
-            test.chart.id,
-            closing_account_codes,
-            closing_spec,
-        )
+        .post_closing_transaction(op, test.chart.id, closing_account_codes, closing_spec)
         .await?;
     assert!(test.children(RETAINED_EARNINGS_GAIN).await?.is_empty());
     assert_eq!(test.balance(RETAINED_EARNINGS_GAIN).await?, Decimal::ZERO);
@@ -190,13 +184,23 @@ async fn setup_test() -> anyhow::Result<Test> {
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
+    let domain_configs = DomainConfigs::new(&pool);
     let journal_id = helpers::init_journal(&cala).await?;
 
     let storage = Storage::new(&StorageConfig::default());
     let document_storage = DocumentStorage::new(&pool, &storage);
     let jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
 
-    let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, document_storage, &jobs);
+    let fiscal_year_repo = FiscalYearRepo::new(&pool);
+    let accounting = CoreAccounting::new(
+        &pool,
+        &authz,
+        &cala,
+        journal_id,
+        document_storage,
+        &jobs,
+        &domain_configs,
+    );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
     let chart = accounting
         .chart_of_accounts()
@@ -306,6 +310,7 @@ async fn setup_test() -> anyhow::Result<Test> {
         chart,
         cala,
         fiscal_year,
+        fiscal_year_repo,
         accounts: vec![],
     })
 }
@@ -315,6 +320,7 @@ struct Test {
     pub accounting: CoreAccounting<DummyPerms<action::DummyAction, object::DummyObject>>,
     pub chart: Chart,
     pub fiscal_year: FiscalYear,
+    pub fiscal_year_repo: FiscalYearRepo,
     pub accounts: Vec<AccountId>,
 }
 
