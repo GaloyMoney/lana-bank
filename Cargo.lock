@@ -823,9 +823,9 @@ checksum = "ade8366b8bd5ba243f0a58f036cc0ca8a2f069cff1a2351ef1cac6b083e16fc0"
 
 [[package]]
 name = "cala-cel-interpreter"
-version = "0.13.0"
+version = "0.13.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d88e180639dd4fed732b6f4a74184eefce4bec27a792f2fb8f66ac396ecd96e1"
+checksum = "ee2f135fe568ea4eeb52d22550e4cf517461b035f482e3fb72c946780f79e936"
 dependencies = [
  "cala-cel-parser",
  "chrono",
@@ -841,9 +841,9 @@ dependencies = [
 
 [[package]]
 name = "cala-cel-parser"
-version = "0.13.0"
+version = "0.13.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d1e16c6b159dca8a6d92d6cb32a4ac0513487923a95247ae90a3621d3f635517"
+checksum = "cf5a2a6dc2c90e76106f579a9572bd1ca84dc5ec7544d747845c44b6892a46c6"
 dependencies = [
  "cached",
  "lalrpop",
@@ -853,9 +853,9 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger"
-version = "0.13.0"
+version = "0.13.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "736117993ea6201373f390c7d363fe726499ffcd78a034eb70104c6f124df57f"
+checksum = "6757be95f2b349a49c60dbebafdba8ef9386081eb41c9f8c6bad318898ee7c48"
 dependencies = [
  "async-graphql",
  "base64 0.22.1",
@@ -867,8 +867,8 @@ dependencies = [
  "derive_builder",
  "es-entity",
  "futures",
- "job",
- "obix",
+ "job 0.4.0",
+ "obix 0.2.2",
  "opentelemetry",
  "prost 0.13.5",
  "prost-wkt-types",
@@ -892,9 +892,9 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger-core-types"
-version = "0.13.0"
+version = "0.13.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f47fb31ed9a9c3b7d8d8a5158a8654dde53b13399865e712aa4569c391246e29"
+checksum = "85bceb5eaaaa68327756e3756845e191d55c18b0212b863b1cbbe4e6088b235f"
 dependencies = [
  "async-graphql",
  "cala-cel-interpreter",
@@ -914,9 +914,9 @@ dependencies = [
 
 [[package]]
 name = "cala-tracing"
-version = "0.13.0"
+version = "0.13.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2ace600c3eb847c140f98d4e24ad3a8d35186f5c3a43e88172c1e81cecdd12de"
+checksum = "4418436d350cf992a99393cb2985ef0f47e82258a6208bee136943c20deaabaa"
 dependencies = [
  "anyhow",
  "axum-extra 0.10.3",
@@ -997,9 +997,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.2.50"
+version = "1.2.49"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9f50d563227a1c37cc0a263f64eca3334388c01c5e4c4861a9def205c614383c"
+checksum = "90583009037521a116abf44494efecd645ba48b6622457080f080b85544e2215"
 dependencies = [
  "find-msvc-tools",
  "jobserver",
@@ -1294,8 +1294,8 @@ dependencies = [
  "document-storage",
  "es-entity",
  "handlebars",
- "job",
- "obix",
+ "job 0.4.0",
+ "obix 0.2.2",
  "rendering",
  "schemars 1.1.0",
  "serde",
@@ -1329,7 +1329,7 @@ dependencies = [
  "derive_builder",
  "es-entity",
  "governance",
- "obix",
+ "obix 0.2.2",
  "schemars 1.1.0",
  "serde",
  "serde_json",
@@ -1362,7 +1362,7 @@ dependencies = [
  "document-storage",
  "domain-config",
  "es-entity",
- "job",
+ "job 0.4.0",
  "rand 0.9.2",
  "rust_decimal",
  "rust_decimal_macros",
@@ -1390,8 +1390,8 @@ dependencies = [
  "authz",
  "core-customer",
  "es-entity",
- "job",
- "obix",
+ "job 0.4.0",
+ "obix 0.2.2",
  "schemars 1.1.0",
  "serde",
  "serde_json",
@@ -1430,8 +1430,8 @@ dependencies = [
  "es-entity",
  "futures",
  "governance",
- "job",
- "obix",
+ "job 0.4.0",
+ "obix 0.2.2",
  "public-id",
  "rand 0.9.2",
  "rust_decimal",
@@ -1472,7 +1472,7 @@ dependencies = [
  "hmac",
  "http",
  "komainu",
- "obix",
+ "obix 0.2.2",
  "schemars 1.1.0",
  "serde",
  "serde_json",
@@ -1499,7 +1499,7 @@ dependencies = [
  "document-storage",
  "es-entity",
  "governance",
- "obix",
+ "obix 0.2.2",
  "public-id",
  "schemars 1.1.0",
  "serde",
@@ -1534,8 +1534,8 @@ dependencies = [
  "es-entity",
  "futures",
  "governance",
- "job",
- "obix",
+ "job 0.4.0",
+ "obix 0.2.2",
  "public-id",
  "rand 0.9.2",
  "rust_decimal",
@@ -1595,8 +1595,8 @@ dependencies = [
  "chrono",
  "core-money",
  "futures",
- "job",
- "obix",
+ "job 0.4.0",
+ "obix 0.2.2",
  "rand 0.9.2",
  "reqwest",
  "rust_decimal",
@@ -1624,8 +1624,8 @@ dependencies = [
  "cloud-storage",
  "derive_builder",
  "es-entity",
- "job",
- "obix",
+ "job 0.4.0",
+ "obix 0.2.2",
  "schemars 1.1.0",
  "serde",
  "sqlx",
@@ -1787,10 +1787,10 @@ dependencies = [
  "core-deposit",
  "futures",
  "governance",
- "job",
+ "job 0.4.0",
  "keycloak-client",
  "lana-events",
- "obix",
+ "obix 0.2.2",
  "serde",
  "serde_with",
  "sim-time",
@@ -1917,9 +1917,9 @@ dependencies = [
  "core-money",
  "es-entity",
  "futures",
- "job",
+ "job 0.4.0",
  "lana-events",
- "obix",
+ "obix 0.2.2",
  "schemars 1.1.0",
  "serde",
  "serde_json",
@@ -1952,9 +1952,9 @@ dependencies = [
  "core-money",
  "futures",
  "governance",
- "job",
+ "job 0.4.0",
  "lana-events",
- "obix",
+ "obix 0.2.2",
  "rust_decimal",
  "serde",
  "sumsub",
@@ -2329,7 +2329,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -2784,7 +2784,7 @@ dependencies = [
  "chrono",
  "derive_builder",
  "es-entity",
- "obix",
+ "obix 0.2.2",
  "schemars 1.1.0",
  "serde",
  "sqlx",
@@ -3096,7 +3096,7 @@ dependencies = [
  "libc",
  "percent-encoding",
  "pin-project-lite",
- "socket2 0.5.10",
+ "socket2 0.6.1",
  "system-configuration",
  "tokio",
  "tower-service",
@@ -3384,6 +3384,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "job"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fcaa6da12b130599abfb4e04a759fce78b1b402285a23b17bfa51c4082f41f66"
+dependencies = [
+ "async-trait",
+ "chrono",
+ "derive_builder",
+ "es-entity",
+ "futures",
+ "rand 0.9.2",
+ "schemars 1.1.0",
+ "serde",
+ "serde_json",
+ "serde_with",
+ "sim-time",
+ "sqlx",
+ "thiserror 2.0.17",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "jobserver"
 version = "0.1.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3595,11 +3619,11 @@ dependencies = [
  "domain-config",
  "es-entity",
  "governance",
- "job",
+ "job 0.4.0",
  "lana-events",
  "lana-ids",
  "notification",
- "obix",
+ "obix 0.2.2",
  "public-id",
  "rand 0.9.2",
  "rbac-types",
@@ -3655,7 +3679,7 @@ dependencies = [
  "core-price",
  "core-report",
  "governance",
- "obix",
+ "obix 0.2.2",
  "serde",
  "strum 0.27.2",
  "workspace-hack",
@@ -3668,7 +3692,7 @@ dependencies = [
  "cala-ledger",
  "es-entity",
  "governance",
- "job",
+ "job 0.4.0",
  "schemars 1.1.0",
  "serde",
  "sqlx",
@@ -4038,10 +4062,10 @@ dependencies = [
  "futures",
  "governance",
  "handlebars",
- "job",
+ "job 0.4.0",
  "lana-events",
  "lettre",
- "obix",
+ "obix 0.2.2",
  "serde",
  "serde_json",
  "smtp-client",
@@ -4060,7 +4084,7 @@ version = "0.50.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7957b9740744892f114936ab4a57b3f487491bbeafaf8083688b16841a4240e5"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -4151,10 +4175,31 @@ dependencies = [
  "es-entity",
  "futures",
  "im",
- "obix-macros",
+ "obix-macros 0.1.6",
  "serde",
  "serde_json",
  "sqlx",
+ "tokio",
+ "tokio-stream",
+]
+
+[[package]]
+name = "obix"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f72e8c3b1dbabaf688b7c275ea4a2af4db5c8ca98b753cdbacf728a0f3b56523"
+dependencies = [
+ "async-trait",
+ "chrono",
+ "es-entity",
+ "futures",
+ "im",
+ "job 0.4.0",
+ "obix-macros 0.2.2",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "thiserror 2.0.17",
  "tokio",
  "tokio-stream",
 ]
@@ -4164,6 +4209,18 @@ name = "obix-macros"
 version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d62763cf887ffe2dcd680b3817e8fa3b05868f40beff3b8f0de45bcfb1b2af15"
+dependencies = [
+ "darling 0.23.0",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.111",
+]
+
+[[package]]
+name = "obix-macros"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8c89351822673e9f4de3950bcfaf4340f5b7fb29b1ca0eef307f4905201895cc"
 dependencies = [
  "darling 0.23.0",
  "proc-macro2",
@@ -4841,7 +4898,7 @@ dependencies = [
  "quinn-udp",
  "rustc-hash",
  "rustls",
- "socket2 0.5.10",
+ "socket2 0.6.1",
  "thiserror 2.0.17",
  "tokio",
  "tracing",
@@ -4878,9 +4935,9 @@ dependencies = [
  "cfg_aliases",
  "libc",
  "once_cell",
- "socket2 0.5.10",
+ "socket2 0.6.1",
  "tracing",
- "windows-sys 0.59.0",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -5111,9 +5168,9 @@ dependencies = [
 
 [[package]]
 name = "reqwest"
-version = "0.12.26"
+version = "0.12.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3b4c14b2d9afca6a60277086b0cc6a6ae0b568f6f7916c943a8cdc79f8be240f"
+checksum = "9d0946410b9f7b082a427e4ef5c8ff541a88b357bc6c637c40db3a68ac70a36f"
 dependencies = [
  "base64 0.22.1",
  "bytes",
@@ -5373,7 +5430,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -5844,7 +5901,7 @@ dependencies = [
  "futures",
  "lana-app",
  "lana-events",
- "obix",
+ "obix 0.2.2",
  "rust_decimal",
  "rust_decimal_macros",
  "serde",
@@ -6514,7 +6571,7 @@ dependencies = [
  "getrandom 0.3.4",
  "once_cell",
  "rustix",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -6523,7 +6580,7 @@ version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2111ef44dae28680ae9752bb89409e7310ca33a8c621ebe7b106cf5c928b3ac0"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -7004,9 +7061,9 @@ dependencies = [
 
 [[package]]
 name = "tracing-core"
-version = "0.1.36"
+version = "0.1.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "db97caf9d906fbde555dd62fa95ddba9eecfd14cb388e4f491a66d74cd5fb79a"
+checksum = "7a04e24fab5c89c6a36eb8558c9656f30d81de51dfa4d3b45f26b21d61fa0a6c"
 dependencies = [
  "once_cell",
  "valuable",
@@ -7298,9 +7355,9 @@ dependencies = [
  "core-access",
  "es-entity",
  "futures",
- "job",
+ "job 0.4.0",
  "keycloak-client",
- "obix",
+ "obix 0.2.2",
  "serde",
  "thiserror 2.0.17",
  "tokio",
@@ -7583,7 +7640,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -7976,13 +8033,13 @@ dependencies = [
  "idna",
  "indexmap 2.12.0",
  "inout",
- "job",
+ "job 0.3.1",
  "lalrpop-util",
  "log",
  "memchr",
  "num-traits",
- "obix",
- "obix-macros",
+ "obix 0.1.6",
+ "obix-macros 0.1.6",
  "once_cell",
  "opentelemetry-http",
  "opentelemetry-otlp",

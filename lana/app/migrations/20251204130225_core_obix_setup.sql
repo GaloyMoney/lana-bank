@@ -69,7 +69,11 @@ CREATE TRIGGER ephemeral_outbox_events_notify
   FOR EACH ROW EXECUTE FUNCTION notify_ephemeral_outbox_events();
 
 -- Inbox events
-CREATE TYPE InboxEventStatus AS ENUM ('pending', 'processing', 'completed', 'failed');
+DO $$ BEGIN
+    CREATE TYPE InboxEventStatus AS ENUM ('pending', 'processing', 'completed', 'failed');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 CREATE TABLE inbox_events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -83,4 +87,3 @@ CREATE TABLE inbox_events (
 
 CREATE INDEX idx_inbox_events_status ON inbox_events(status)
   WHERE status IN ('pending', 'processing', 'failed');
-
