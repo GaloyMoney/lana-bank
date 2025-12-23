@@ -198,13 +198,17 @@ teardown_file() {
   txId1=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].txId)
   amount1=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].amount.usd)
   direction1=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].direction)
+  [[ "$direction1" != "null" ]] || exit 1
   entryType1=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].entryType)
+  [[ "$entryType1" != "null" ]] || exit 1
 
   exec_admin_graphql 'ledger-account-by-code' '{"code":"202"}'
   txId2=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].txId)
   amount2=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].amount.usd)
   direction2=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].direction)
+  [[ "$direction2" != "null" ]] || exit 1
   entryType2=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].entryType)
+  [[ "$entryType2" != "null" ]] || exit 1
 
   [[ "$txId1" == "$txId2" ]] || exit 1
   [[ $((amount * 100)) == $amount1 ]] || exit 1
@@ -259,7 +263,7 @@ teardown_file() {
   fiscal_year_id=$(graphql_output '.data.fiscalYears.nodes[0].fiscalYearId')
 
   last_month_of_year_closed=$(graphql_output '.data.fiscalYears.nodes[0].isLastMonthOfYearClosed')
-  [[ "$last_month_of_year_closed" != "true" ]] || exit 1
+  [[ "$last_month_of_year_closed" = "false" ]] || exit 1
   n_month_closures_before=$(graphql_output '.data.fiscalYears.nodes[0].monthClosures | length')
 
   variables=$(
@@ -295,7 +299,7 @@ teardown_file() {
   )
 
   count=0
-  while [[ "$last_month_of_year_closed" != "true" ]]; do
+  while [[ "$last_month_of_year_closed" = "false" ]]; do
     exec_admin_graphql 'fiscal-year-close-month' "$variables"
     last_month_of_year_closed=$(graphql_output '.data.fiscalYearCloseMonth.fiscalYear.isLastMonthOfYearClosed')
 
@@ -306,5 +310,5 @@ teardown_file() {
   
   exec_admin_graphql 'fiscal-year-close' "$variables"
   is_open_after=$(graphql_output '.data.fiscalYearClose.fiscalYear.isOpen')
-  [[ "$is_open_after" != "true" ]] || exit 1
+  [[ "$is_open_after" = "false" ]] || exit 1
 }
