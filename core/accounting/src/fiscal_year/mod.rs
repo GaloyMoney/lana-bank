@@ -18,8 +18,6 @@ use crate::{
     primitives::{ChartId, CoreAccountingAction, CoreAccountingObject},
 };
 
-use config::FiscalYearConfig;
-
 #[cfg(feature = "json-schema")]
 pub use entity::FiscalYearEvent;
 pub(super) use entity::*;
@@ -163,20 +161,22 @@ where
         let now = crate::time::now();
 
         match fiscal_year.close(now)? {
-            Idempotent::Executed(tx_details) => {
+            Idempotent::Executed(_tx_details) => {
                 let mut op = self.repo.begin_op().await?;
                 self.repo.update_in_op(&mut op, &mut fiscal_year).await?;
 
-                let fiscal_year_conf = self.domain_configs.get::<FiscalYearConfig>().await?;
+                // TODO: Operate on ledger via `chart_of_accounts`.
+                // let fiscal_year_conf = self.domain_configs.get::<config::FiscalYearConfig>().await?;
 
-                self.chart_of_accounts
-                    .post_closing_transaction(
-                        op,
-                        fiscal_year.chart_id,
-                        &fiscal_year_conf,
-                        tx_details,
-                    )
-                    .await?;
+                // self.chart_of_accounts
+                //     .post_closing_transaction(
+                //         op,
+                //         fiscal_year.chart_id,
+                //         &fiscal_year_conf,
+                //         tx_details,
+                //     )
+                //     .await?;
+                op.commit().await?;
 
                 Ok(fiscal_year)
             }
