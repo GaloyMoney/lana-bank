@@ -221,7 +221,7 @@ where
         let mut process = self.process_repo.create_in_op(db, new_process).await?;
         let eligible = self.eligible_voters_for_process(&process).await?;
         if self
-            .maybe_fire_concluded_event(db.begin().await?, eligible, &mut process)
+            .maybe_fire_concluded_event(db, eligible, &mut process)
             .await?
         {
             self.process_repo.update_in_op(db, &mut process).await?;
@@ -255,7 +255,7 @@ where
 
         if process.approve(&eligible, member_id).did_execute() {
             let mut db = self.policy_repo.begin_op().await?;
-            self.maybe_fire_concluded_event(db.begin().await?, eligible, &mut process)
+            self.maybe_fire_concluded_event(&mut db, eligible, &mut process)
                 .await?;
             self.process_repo
                 .update_in_op(&mut db, &mut process)
@@ -299,7 +299,7 @@ where
         };
         if process.deny(&eligible, member_id, reason).did_execute() {
             let mut db = self.policy_repo.begin_op().await?;
-            self.maybe_fire_concluded_event(db.begin().await?, eligible, &mut process)
+            self.maybe_fire_concluded_event(&mut db, eligible, &mut process)
                 .await?;
             self.process_repo
                 .update_in_op(&mut db, &mut process)
@@ -342,14 +342,14 @@ where
 
     async fn maybe_fire_concluded_event(
         &self,
-        mut op: es_entity::DbOp<'_>,
+        op: &mut es_entity::DbOp<'_>,
         eligible: HashSet<CommitteeMemberId>,
         process: &mut ApprovalProcess,
     ) -> Result<bool, GovernanceError> {
         self.authz
             .audit()
             .record_system_entry_in_tx(
-                &mut op,
+                op,
                 GovernanceObject::approval_process(process.id),
                 GovernanceAction::APPROVAL_PROCESS_CONCLUDE,
             )
@@ -360,7 +360,7 @@ where
         {
             self.outbox
                 .publish_all_persisted(
-                    &mut op,
+                    op,
                     [GovernanceEvent::ApprovalProcessConcluded {
                         id: process.id,
                         approved,
@@ -370,7 +370,6 @@ where
                     }],
                 )
                 .await?;
-            op.commit().await?;
 
             return Ok(true);
         }
