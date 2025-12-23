@@ -26,6 +26,9 @@ pub use primitives::*;
 use cloud_storage::Storage;
 use publisher::ReportPublisher;
 
+use jobs::{SyncReportsJobInit, TriggerFileReportRunJobConfig, TriggerFileReportRunJobInit};
+
+use dagster::*;
 pub use report::*;
 pub use report_run::*;
 
@@ -44,6 +47,7 @@ where
     authz: Perms,
     reports: ReportRepo<E>,
     report_runs: ReportRunRepo<E>,
+    dagster: Dagster,
     storage: Storage,
     jobs: Jobs,
     config: ReportConfig,
@@ -59,6 +63,7 @@ where
             authz: self.authz.clone(),
             reports: self.reports.clone(),
             report_runs: self.report_runs.clone(),
+            dagster: self.dagster.clone(),
             storage: self.storage.clone(),
             jobs: self.jobs.clone(),
             config: self.config.clone(),
@@ -84,12 +89,21 @@ where
         storage: &Storage,
     ) -> Result<Self, ReportError> {
         let publisher = ReportPublisher::new(outbox);
+        let dagster = Dagster::new(config.dagster.clone());
         let report_repo = ReportRepo::new(pool, &publisher);
         let report_run_repo = ReportRunRepo::new(pool, &publisher);
+
+        jobs.add_initializer(SyncReportsJobInit::<E>::new(
+            dagster.clone(),
+            report_run_repo.clone(),
+            report_repo.clone(),
+        ));
+        jobs.add_initializer(TriggerFileReportRunJobInit::<E>::new(dagster.clone()));
 
         Ok(Self {
             authz: authz.clone(),
             storage: storage.clone(),
+            dagster,
             reports: report_repo,
             report_runs: report_run_repo,
             jobs: jobs.clone(),
@@ -187,11 +201,11 @@ where
     }
 
     #[record_error_severity]
-    #[tracing::instrument(name = "report.trigger_report_run", skip(self), fields(subject = %sub))]
+    #[tracing::instrument(name = "report.trigger_report_run", skip(self), fields(subject = %sub, triggered_run_id = tracing::field::Empty))]
     pub async fn trigger_report_run(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-    ) -> Result<(), ReportError> {
+    ) -> Result<Option<String>, ReportError> {
         self.authz
             .enforce_permission(
                 sub,
@@ -200,7 +214,19 @@ where
             )
             .await?;
 
-        Err(ReportError::Disabled)
+        let run = self.dagster.graphql().trigger_file_report_run().await?;
+
+        let run_id = if let dagster::graphql_client::LaunchPipelineResult::LaunchRunSuccess {
+            run: Some(details),
+        } = &run.data.launch_pipeline_execution
+        {
+            tracing::Span::current().record("triggered_run_id", details.run_id.as_str());
+            Some(details.run_id.clone())
+        } else {
+            None
+        };
+
+        Ok(run_id)
     }
 
     #[record_error_severity]
@@ -239,5 +265,53 @@ where
 
         let download_link = self.storage.generate_download_link(location).await?;
         Ok(download_link)
+    }
+
+    #[record_error_severity]
+    #[tracing::instrument(name = "report.reports_sync", skip(self), fields(job_id = tracing::field::Empty))]
+    pub async fn reports_sync(&self) -> Result<job::JobId, ReportError> {
+        let mut db = self.report_runs.begin_op().await?;
+        let job = self
+            .jobs
+            .create_and_spawn_in_op(
+                &mut db,
+                job::JobId::new(),
+                jobs::SyncReportsJobConfig::<E>::new(),
+            )
+            .await?;
+
+        tracing::Span::current().record("job_id", job.id.to_string());
+        db.commit().await?;
+
+        Ok(job.id)
+    }
+
+    #[record_error_severity]
+    #[tracing::instrument(name = "report.trigger_file_report_run", skip(self), fields(subject = %sub, job_id = tracing::field::Empty))]
+    pub async fn trigger_file_report_run(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+    ) -> Result<job::JobId, ReportError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                ReportObject::all_reports(),
+                CoreReportAction::REPORT_GENERATE,
+            )
+            .await?;
+
+        let mut db = self.report_runs.begin_op().await?;
+        let job = self
+            .jobs
+            .create_and_spawn_in_op(
+                &mut db,
+                job::JobId::new(),
+                TriggerFileReportRunJobConfig::<E>::new(),
+            )
+            .await?;
+        tracing::Span::current().record("job_id", job.id.to_string());
+        db.commit().await?;
+
+        Ok(job.id)
     }
 }

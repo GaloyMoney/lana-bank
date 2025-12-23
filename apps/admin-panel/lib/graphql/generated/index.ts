@@ -2758,7 +2758,7 @@ export type ReportRunConnection = {
 
 export type ReportRunCreatePayload = {
   __typename?: 'ReportRunCreatePayload';
-  jobId: Scalars['String']['output'];
+  runId?: Maybe<Scalars['String']['output']>;
 };
 
 /** An edge in a connection. */
@@ -4318,7 +4318,7 @@ export type ReportFileGenerateDownloadLinkMutation = { __typename?: 'Mutation', 
 export type ReportGenerateMutationVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ReportGenerateMutation = { __typename?: 'Mutation', triggerReportRun: { __typename?: 'ReportRunCreatePayload', jobId: string } };
+export type ReportGenerateMutation = { __typename?: 'Mutation', triggerReportRun: { __typename?: 'ReportRunCreatePayload', runId?: string | null } };
 
 export type ReportRunsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -10361,7 +10361,7 @@ export type ReportFileGenerateDownloadLinkMutationOptions = Apollo.BaseMutationO
 export const ReportGenerateDocument = gql`
     mutation ReportGenerate {
   triggerReportRun {
-    jobId
+    runId
   }
 }
     `;

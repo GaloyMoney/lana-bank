@@ -16,14 +16,14 @@ pub enum ReportError {
     AuditError(#[from] audit::error::AuditError),
     #[error("ReportError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
+    #[error("ReportError - DagsterError: {0}")]
+    DagsterError(#[from] dagster::error::DagsterError),
     #[error("ReportError - StorageError: {0}")]
     StorageError(#[from] cloud_storage::error::StorageError),
     #[error("ReportError - ReportError: {0}")]
     ReportError(#[from] crate::report::error::ReportError),
     #[error("ReportError - ReportRunError: {0}")]
     ReportRunError(#[from] crate::report_run::error::ReportRunError),
-    #[error("ReportError - Disabled")]
-    Disabled,
     #[error("ReportError - NotFound")]
     NotFound,
 }
@@ -42,7 +42,7 @@ impl ErrorSeverity for ReportError {
             Self::StorageError(e) => e.severity(),
             Self::ReportError(e) => e.severity(),
             Self::ReportRunError(e) => e.severity(),
-            Self::Disabled => Level::WARN,
+            Self::DagsterError(e) => e.severity(),
             Self::NotFound => Level::WARN,
         }
     }

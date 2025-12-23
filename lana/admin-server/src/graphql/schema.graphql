@@ -2166,7 +2166,7 @@ type ReportRunConnection {
 }
 
 type ReportRunCreatePayload {
-	jobId: String!
+	runId: String
 }
 
 """

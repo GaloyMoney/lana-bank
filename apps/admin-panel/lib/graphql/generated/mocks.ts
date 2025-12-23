@@ -2716,7 +2716,7 @@ export const mockReportRunCreatePayload = (overrides?: Partial<ReportRunCreatePa
     relationshipsToOmit.add('ReportRunCreatePayload');
     return {
         __typename: 'ReportRunCreatePayload',
-        jobId: overrides && overrides.hasOwnProperty('jobId') ? overrides.jobId! : faker.lorem.word(),
+        runId: overrides && overrides.hasOwnProperty('runId') ? overrides.runId! : faker.lorem.word(),
     };
 };
 

@@ -19,7 +19,7 @@ import {
 gql`
   mutation ReportGenerate {
     triggerReportRun {
-      jobId
+      runId
     }
   }
 `

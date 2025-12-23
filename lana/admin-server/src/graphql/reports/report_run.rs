@@ -96,12 +96,5 @@ impl ReportRun {
 
 #[derive(SimpleObject)]
 pub struct ReportRunCreatePayload {
-    pub job_id: String,
-}
-impl From<lana_app::job::JobId> for ReportRunCreatePayload {
-    fn from(job_id: lana_app::job::JobId) -> Self {
-        ReportRunCreatePayload {
-            job_id: job_id.to_string(),
-        }
-    }
+    pub run_id: Option<String>,
 }
