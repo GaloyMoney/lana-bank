@@ -14,6 +14,7 @@ CREATE TABLE core_liquidation_events_rollup (
   initially_estimated_to_liquidate BIGINT,
   initially_expected_to_receive BIGINT,
   ledger_tx_id UUID,
+  liquidated_collateral_account_id UUID,
   liquidation_payment_receivable_account_id UUID,
   outstanding BIGINT,
   payment_id UUID,
@@ -66,6 +67,7 @@ BEGIN
     new_row.initially_expected_to_receive := (NEW.event ->> 'initially_expected_to_receive')::BIGINT;
     new_row.is_completed := false;
     new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
+    new_row.liquidated_collateral_account_id := (NEW.event ->> 'liquidated_collateral_account_id')::UUID;
     new_row.liquidation_payment_receivable_account_id := (NEW.event ->> 'liquidation_payment_receivable_account_id')::UUID;
     new_row.outstanding := (NEW.event ->> 'outstanding')::BIGINT;
     new_row.payment_id := (NEW.event ->> 'payment_id')::UUID;
@@ -83,6 +85,7 @@ BEGIN
     new_row.initially_expected_to_receive := current_row.initially_expected_to_receive;
     new_row.is_completed := current_row.is_completed;
     new_row.ledger_tx_id := current_row.ledger_tx_id;
+    new_row.liquidated_collateral_account_id := current_row.liquidated_collateral_account_id;
     new_row.liquidation_payment_receivable_account_id := current_row.liquidation_payment_receivable_account_id;
     new_row.outstanding := current_row.outstanding;
     new_row.payment_id := current_row.payment_id;
@@ -98,6 +101,7 @@ BEGIN
       new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
       new_row.initially_estimated_to_liquidate := (NEW.event ->> 'initially_estimated_to_liquidate')::BIGINT;
       new_row.initially_expected_to_receive := (NEW.event ->> 'initially_expected_to_receive')::BIGINT;
+      new_row.liquidated_collateral_account_id := (NEW.event ->> 'liquidated_collateral_account_id')::UUID;
       new_row.liquidation_payment_receivable_account_id := (NEW.event ->> 'liquidation_payment_receivable_account_id')::UUID;
       new_row.trigger_price := (NEW.event -> 'trigger_price');
     WHEN 'updated' THEN
@@ -132,6 +136,7 @@ BEGIN
     initially_expected_to_receive,
     is_completed,
     ledger_tx_id,
+    liquidated_collateral_account_id,
     liquidation_payment_receivable_account_id,
     outstanding,
     payment_id,
@@ -153,6 +158,7 @@ BEGIN
     new_row.initially_expected_to_receive,
     new_row.is_completed,
     new_row.ledger_tx_id,
+    new_row.liquidated_collateral_account_id,
     new_row.liquidation_payment_receivable_account_id,
     new_row.outstanding,
     new_row.payment_id,
