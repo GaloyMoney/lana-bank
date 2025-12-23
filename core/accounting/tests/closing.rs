@@ -1,6 +1,6 @@
 mod helpers;
 
-use anyhow::Result;
+use anyhow::{Result, anyhow};
 use chrono::{Days, NaiveDate};
 use rust_decimal::Decimal;
 
@@ -78,12 +78,7 @@ async fn post_closing_tx_with_gain() -> Result<()> {
         effective_balances_until: effective_balances_as_of,
         effective_balances_from,
     };
-    // HACK (B): Closing the one month in the year, before posting
-    // the closing transaction.
-    test.accounting
-        .fiscal_year()
-        .close_month(&DummySubject, test.fiscal_year.id)
-        .await?;
+    test.close_all_months_in_fiscal_year().await?;
 
     let op = test.fiscal_year_repo.begin_op().await.unwrap();
     test.accounting
@@ -192,6 +187,7 @@ async fn post_closing_tx_with_loss() -> Result<()> {
         effective_balances_from,
     };
 
+    test.close_all_months_in_fiscal_year().await?;
     let op = test.fiscal_year_repo.begin_op().await.unwrap();
     test.accounting
         .chart_of_accounts()
@@ -382,8 +378,7 @@ async fn setup_test() -> anyhow::Result<Test> {
         .chart_of_accounts()
         .import_from_csv(&DummySubject, &chart.reference, import)
         .await?;
-    // HACK (A): Only one month to close for the `FiscalYear` in this setup.
-    let opened_as_of: NaiveDate = "2021-12-01".parse::<NaiveDate>().unwrap();
+    let opened_as_of: NaiveDate = "2021-01-01".parse::<NaiveDate>().unwrap();
     let fiscal_year = accounting
         .init_fiscal_year_for_chart(&DummySubject, &chart_ref, opened_as_of)
         .await?;
@@ -565,6 +560,25 @@ impl Test {
             .and_then(|r| r.close)
             .map(|b| b.settled())
             .unwrap_or(Decimal::ZERO))
+    }
+
+    pub async fn close_all_months_in_fiscal_year(&mut self) -> Result<()> {
+        const MAX_MONTHS_IN_FISCAL_YEAR: usize = 12;
+        let mut months_closed = 0;
+
+        while !self.fiscal_year.is_last_month_of_year_closed() {
+            if months_closed >= MAX_MONTHS_IN_FISCAL_YEAR {
+                return Err(anyhow!("Max months in fiscal year reached"));
+            }
+            self.fiscal_year = self
+                .accounting
+                .fiscal_year()
+                .close_month(&DummySubject, self.fiscal_year.id)
+                .await?;
+
+            months_closed += 1;
+        }
+        Ok(())
     }
 
     pub async fn pl_statement(
