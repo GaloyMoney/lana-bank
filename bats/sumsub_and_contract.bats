@@ -86,7 +86,7 @@ wait_for_loan_agreement_completion() {
     -d '{
       "applicantId": "'"$test_applicant_id"'",
       "inspectionId": "test-inspection-id",
-      "correlationId": "test-correlation-id",
+      "correlationId": "'"$(uuidgen)"'",
       "levelName": "basic-kyc-level",
       "externalUserId": "'"$customer_id"'",
       "type": "applicantCreated",
@@ -102,7 +102,7 @@ wait_for_loan_agreement_completion() {
     -d '{
       "applicantId": "'"$test_applicant_id"'",
       "inspectionId": "test-inspection-id",
-      "correlationId": "test-correlation-id",
+      "correlationId": "'"$(uuidgen)"'",
       "externalUserId": "'"$customer_id"'",
       "levelName": "basic-kyc-level",
       "type": "applicantReviewed",
@@ -110,7 +110,7 @@ wait_for_loan_agreement_completion() {
         "reviewAnswer": "GREEN"
       },
       "reviewStatus": "completed",
-      "createdAtMs": "2024-10-05 13:23:19.002",
+      "createdAtMs": "2024-10-05 13:23:19.003",
       "sandboxMode": true
     }'
 
