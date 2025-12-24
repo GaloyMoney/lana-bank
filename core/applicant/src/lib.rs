@@ -447,12 +447,16 @@ where
     #[instrument(name = "applicant.handle_callback", skip_all)]
     pub async fn handle_callback(&self, payload: serde_json::Value) -> Result<(), ApplicantError> {
         // Extract a unique idempotency key from the payload
-        // Use inspectionId if available, otherwise fall back to a hash of the payload
+        // Use webhook_type + correlationId + createdAtMs if available,
+        // otherwise fall back to a hash of the payload
         let idempotency_key =
-            if let Some(inspection_id) = payload.get("inspectionId").and_then(|v| v.as_str()) {
-                inspection_id.to_string()
+            if let (Some(webhook_type), Some(correlation_id), Some(created_at_ms)) = (
+                payload.get("type").and_then(|v| v.as_str()),
+                payload.get("correlationId").and_then(|v| v.as_str()),
+                payload.get("createdAtMs").and_then(|v| v.as_str()),
+            ) {
+                format!("{}:{}:{}", webhook_type, correlation_id, created_at_ms)
             } else {
-                // Fallback: use a hash of the payload for idempotency
                 use std::collections::hash_map::DefaultHasher;
                 use std::hash::{Hash, Hasher};
                 let mut hasher = DefaultHasher::new();
