@@ -84,12 +84,12 @@ describe("Governance Test", () => {
 
   it("attach a committee to a policy", () => {
     cy.visit(`/policies`)
-    cy.get('[data-testid="table-row-2"] > :nth-child(3) > a > .gap-2').should(
+    cy.get('[data-testid="table-row-2"] > :nth-child(3) > a').should(
       "be.visible",
     )
     cy.takeScreenshot("12_step-visit-policies-page")
 
-    cy.get('[data-testid="table-row-2"] > :nth-child(3) > a > .gap-2').click()
+    cy.get('[data-testid="table-row-2"] > :nth-child(3) > a').click()
     cy.takeScreenshot("13_step-select-policy")
 
     cy.get('[data-testid="policy-assign-committee"]').click()
@@ -111,11 +111,11 @@ describe("Governance Test", () => {
     cy.createDeposit(amount, depositAccountId).then(() => {
       cy.initiateWithdrawal(amount, depositAccountId).then(() => {
         cy.visit(`/actions`)
-        cy.get('[data-testid="table-row-0"] > :nth-child(4) > a > .gap-2').should(
+        cy.get('[data-testid="table-row-0"] > :nth-child(4) > a').should(
           "be.visible",
         )
         cy.takeScreenshot("16_step-view-actions-page")
-        cy.get('[data-testid="table-row-0"] > :nth-child(4) > a > .gap-2').click()
+        cy.get('[data-testid="table-row-0"] > :nth-child(4) > a').click()
 
         cy.get("[data-testid=withdrawal-status-badge]")
           .should("be.visible")

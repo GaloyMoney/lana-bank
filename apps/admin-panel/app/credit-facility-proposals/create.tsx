@@ -337,7 +337,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
               }
               disabled={custodiansLoading}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger>
                 <SelectValue placeholder={t("form.placeholders.custodian")} />
               </SelectTrigger>
               <SelectContent>

@@ -34,6 +34,8 @@ import {
 import { useBreakpointDown } from "@lana/web/hooks"
 import { useTranslations } from "next-intl"
 
+import { getSafeInternalPath } from "@/lib/utils"
+
 export type Column<T> = {
   [K in keyof T]: {
     key: K
@@ -67,7 +69,7 @@ interface PaginatedTableProps<T> {
   onFilter?: (column: keyof T, value: T[keyof T] | undefined) => void
   onClick?: (record: T) => void
   showHeader?: boolean
-  navigateTo?: (record: T) => string
+  navigateTo?: (record: T) => string | null
   customFooter?: React.ReactNode
   style?: "compact" | "comfortable"
   noDataText?: string
@@ -96,6 +98,11 @@ const PaginatedTable = <T,>({
   const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1)
   const [isTableFocused, setIsTableFocused] = useState(false)
   const router = useRouter()
+
+  const getSafeNavigationUrl = (item: T): string | null => {
+    if (!navigateTo) return null
+    return getSafeInternalPath(navigateTo(item))
+  }
 
   const [sortState, setSortState] = useState<{
     column: keyof T | null
@@ -153,7 +160,10 @@ const PaginatedTable = <T,>({
             if (onClick) {
               onClick(node)
             } else if (navigateTo) {
-              router.push(navigateTo(node))
+              const url = getSafeNavigationUrl(node)
+              if (url) {
+                router.push(url)
+              }
             }
           }
           break
@@ -339,77 +349,85 @@ const PaginatedTable = <T,>({
             ))}
         </div>
 
-        {displayData.map(({ node }, idx) => (
-          <>
-            <Card key={idx} className="p-4 space-y-3" onClick={() => onClick?.(node)}>
-              {columns.map((col, colIdx) => (
-                <div
-                  key={`${col.key as string}-${colIdx}`}
-                  className="flex justify-between items-start gap-4"
-                >
-                  <div className="text-sm font-medium text-muted-foreground">
-                    {col.label}
-                  </div>
-                  <div className="text-sm">
-                    {col.render ? col.render(node[col.key], node) : String(node[col.key])}
-                  </div>
-                </div>
-              ))}
-              {navigateTo && (
-                <div className="pt-2">
-                  <Link href={navigateTo(node)}>
-                    <Button
-                      variant="outline"
-                      className="w-full flex items-center justify-center"
-                    >
-                      {t("view", { defaultMessage: "View" })}
-                      <ArrowRight className="h-4 w-4" />
-                    </Button>
-                  </Link>
-                </div>
-              )}
-            </Card>
-            {subRows &&
-              subRows(node).length > 0 &&
-              subRows(node).map((subRow, subIdx) => (
-                <Card
-                  key={`sub-row-${idx}-${subIdx}`}
-                  className="p-4 space-y-3"
-                  onClick={() => onClick?.(subRow)}
-                >
-                  {columns.map((col, colIdx) => (
-                    <div
-                      key={`${col.key as string}-${colIdx}`}
-                      className="flex justify-between items-start gap-4"
-                    >
-                      <div className="text-sm font-medium text-muted-foreground">
-                        {col.label}
-                      </div>
-                      <div className="text-sm">
-                        {col.render
-                          ? col.render(subRow[col.key], subRow)
-                          : String(subRow[col.key])}
-                      </div>
+        {displayData.map(({ node }, idx) => {
+          const safeUrl = getSafeNavigationUrl(node)
+          return (
+            <>
+              <Card key={idx} className="p-4 space-y-3" onClick={() => onClick?.(node)}>
+                {columns.map((col, colIdx) => (
+                  <div
+                    key={`${col.key as string}-${colIdx}`}
+                    className="flex justify-between items-start gap-4"
+                  >
+                    <div className="text-sm font-medium text-muted-foreground">
+                      {col.label}
                     </div>
-                  ))}
-                  {navigateTo && (
-                    <div className="pt-2">
-                      <Link href={navigateTo(subRow)}>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full flex items-center justify-center"
+                    <div className="text-sm">
+                      {col.render
+                        ? col.render(node[col.key], node)
+                        : String(node[col.key])}
+                    </div>
+                  </div>
+                ))}
+                {safeUrl && (
+                  <div className="pt-2">
+                    <Link href={safeUrl}>
+                      <Button
+                        variant="outline"
+                        className="w-full flex items-center justify-center"
+                      >
+                        {t("view", { defaultMessage: "View" })}
+                        <ArrowRight className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+              </Card>
+              {subRows &&
+                subRows(node).length > 0 &&
+                subRows(node).map((subRow, subIdx) => {
+                  const subRowSafeUrl = getSafeNavigationUrl(subRow)
+                  return (
+                    <Card
+                      key={`sub-row-${idx}-${subIdx}`}
+                      className="p-4 space-y-3"
+                      onClick={() => onClick?.(subRow)}
+                    >
+                      {columns.map((col, colIdx) => (
+                        <div
+                          key={`${col.key as string}-${colIdx}`}
+                          className="flex justify-between items-start gap-4"
                         >
-                          {t("view", { defaultMessage: "View" })}
-                          <ArrowRight className="h-4 w-4" />
-                        </Button>
-                      </Link>
-                    </div>
-                  )}
-                </Card>
-              ))}
-          </>
-        ))}
+                          <div className="text-sm font-medium text-muted-foreground">
+                            {col.label}
+                          </div>
+                          <div className="text-sm">
+                            {col.render
+                              ? col.render(subRow[col.key], subRow)
+                              : String(subRow[col.key])}
+                          </div>
+                        </div>
+                      ))}
+                      {subRowSafeUrl && (
+                        <div className="pt-2">
+                          <Link href={subRowSafeUrl}>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full flex items-center justify-center"
+                            >
+                              {t("view", { defaultMessage: "View" })}
+                              <ArrowRight className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                        </div>
+                      )}
+                    </Card>
+                  )
+                })}
+            </>
+          )
+        })}
         <div className="flex items-center justify-end space-x-4 py-2 mr-2">
           <Button
             variant="outline"
@@ -522,92 +540,98 @@ const PaginatedTable = <T,>({
             </TableHeader>
           )}
           <TableBody>
-            {displayData.map(({ node }, idx) => (
-              <React.Fragment key={idx}>
-                <TableRow
-                  data-testid={`table-row-${idx}`}
-                  onClick={() => onClick?.(node)}
-                  tabIndex={0}
-                  className={`${onClick ? "cursor-pointer" : ""} ${
-                    focusedRowIndex === idx ? "bg-muted" : ""
-                  } hover:bg-muted/50 transition-colors outline-none`}
-                  onFocus={() => setFocusedRowIndex(idx)}
-                  role="row"
-                  aria-selected={focusedRowIndex === idx}
-                >
-                  {columns.map((col, colIdx) => (
-                    <TableCell
-                      key={`${col.key as string}-${colIdx}`}
-                      className={
-                        style === "comfortable"
-                          ? "whitespace-normal wrap-break-words"
-                          : ""
-                      }
-                    >
-                      {col.render
-                        ? col.render(node[col.key], node)
-                        : String(node[col.key])}
-                    </TableCell>
-                  ))}
-                  {navigateTo && (
-                    <TableCell>
-                      <Link href={navigateTo(node)} className="group">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full flex items-center gap-1"
+            {displayData.map(({ node }, idx) => {
+              const safeUrl = getSafeNavigationUrl(node)
+              return (
+                <React.Fragment key={idx}>
+                  <TableRow
+                    data-testid={`table-row-${idx}`}
+                    onClick={() => onClick?.(node)}
+                    tabIndex={0}
+                    className={`${onClick ? "cursor-pointer" : ""} ${
+                      focusedRowIndex === idx ? "bg-muted" : ""
+                    } hover:bg-muted/50 transition-colors outline-none`}
+                    onFocus={() => setFocusedRowIndex(idx)}
+                    role="row"
+                    aria-selected={focusedRowIndex === idx}
+                  >
+                    {columns.map((col, colIdx) => (
+                      <TableCell
+                        key={`${col.key as string}-${colIdx}`}
+                        className={
+                          style === "comfortable"
+                            ? "whitespace-normal wrap-break-words"
+                            : ""
+                        }
+                      >
+                        {col.render
+                          ? col.render(node[col.key], node)
+                          : String(node[col.key])}
+                      </TableCell>
+                    ))}
+                    {safeUrl && (
+                      <TableCell>
+                        <Link href={safeUrl} className="group">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full flex items-center"
+                          >
+                            {t("view", { defaultValue: "View" })}
+                            <ArrowRight />
+                          </Button>
+                        </Link>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                  {subRows &&
+                    subRows(node).length > 0 &&
+                    subRows(node).map((subRow, subIdx) => {
+                      const subRowSafeUrl = getSafeNavigationUrl(subRow)
+                      return (
+                        <TableRow
+                          role="row"
+                          key={`sub-row-${idx}-${subIdx}`}
+                          onClick={() => onClick?.(subRow)}
+                          tabIndex={0}
+                          className={`${onClick ? "cursor-pointer" : ""} ${
+                            focusedRowIndex === idx ? "bg-muted" : ""
+                          } hover:bg-muted/50 transition-colors outline-none`}
                         >
-                          {t("view", { defaultValue: "View" })}
-                          <ArrowRight />
-                        </Button>
-                      </Link>
-                    </TableCell>
-                  )}
-                </TableRow>
-                {subRows &&
-                  subRows(node).length > 0 &&
-                  subRows(node).map((subRow, subIdx) => (
-                    <TableRow
-                      role="row"
-                      key={`sub-row-${idx}-${subIdx}`}
-                      onClick={() => onClick?.(subRow)}
-                      tabIndex={0}
-                      className={`${onClick ? "cursor-pointer" : ""} ${
-                        focusedRowIndex === idx ? "bg-muted" : ""
-                      } hover:bg-muted/50 transition-colors outline-none`}
-                    >
-                      {columns.map((col, colIdx) => (
-                        <TableCell
-                          key={`${col.key as string}-${colIdx}`}
-                          className={
-                            style === "comfortable"
-                              ? "whitespace-normal wrap-break-words"
-                              : ""
-                          }
-                        >
-                          {col.render
-                            ? col.render(subRow[col.key], subRow)
-                            : String(subRow[col.key])}
-                        </TableCell>
-                      ))}
-                      {navigateTo && (
-                        <TableCell>
-                          <Link href={navigateTo(subRow)} className="group">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="w-full flex items-center gap-1"
+                          {columns.map((col, colIdx) => (
+                            <TableCell
+                              key={`${col.key as string}-${colIdx}`}
+                              className={
+                                style === "comfortable"
+                                  ? "whitespace-normal wrap-break-words"
+                                  : ""
+                              }
                             >
-                              {t("view", { defaultValue: "View" })}
-                              <ArrowRight />
-                            </Button>
-                          </Link>
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  ))}
-              </React.Fragment>
-            ))}
+                              {col.render
+                                ? col.render(subRow[col.key], subRow)
+                                : String(subRow[col.key])}
+                            </TableCell>
+                          ))}
+                          {subRowSafeUrl && (
+                            <TableCell>
+                              <Link href={subRowSafeUrl} className="group">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="w-full flex items-center"
+                                >
+                                  {t("view", { defaultValue: "View" })}
+                                  <ArrowRight />
+                                </Button>
+                              </Link>
+                            </TableCell>
+                          )}
+                        </TableRow>
+                      )
+                    })}
+                </React.Fragment>
+              )
+            })}
           </TableBody>
           {customFooter}
         </Table>
