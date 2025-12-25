@@ -171,7 +171,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
               onValueChange={(value) => setSelectedRoleId(value || null)}
               disabled={isLoading}
             >
-              <SelectTrigger className="w-full" id="role">
+              <SelectTrigger id="role">
                 <SelectValue placeholder={t("placeholders.selectRole")} />
               </SelectTrigger>
               <SelectContent>

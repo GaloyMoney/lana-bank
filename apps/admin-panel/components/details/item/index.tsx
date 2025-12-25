@@ -45,7 +45,7 @@ export const DetailItem: React.FC<DetailItemProps> = ({
       className,
     ),
     label: cn("text-muted-foreground", layout === "vertical" ? "text-sm" : "font-normal"),
-    value: cn("text-md break-all"),
+    value: cn("text-base break-all"),
   }
 
   const content = (

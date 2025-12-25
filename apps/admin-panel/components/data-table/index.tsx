@@ -20,7 +20,7 @@ import { useBreakpointDown } from "@lana/web/hooks"
 
 import { useTranslations } from "next-intl"
 
-import { cn } from "@/lib/utils"
+import { cn, getSafeInternalPath } from "@/lib/utils"
 
 export type Column<T> = {
   [K in keyof T]: {
@@ -66,29 +66,7 @@ const DataTable = <T,>({
 
   const getSafeNavigationUrl = (item: T): string | null => {
     if (!navigateTo) return null
-    const rawUrl = navigateTo(item)
-    if (!rawUrl) return null
-
-    const url = rawUrl.toString().trim()
-    if (url === "") return null
-
-    // Disallow potentially dangerous URL schemes such as javascript:, data:, vbscript:
-    const lower = url.toLowerCase()
-    if (
-      lower.startsWith("javascript:") ||
-      lower.startsWith("data:") ||
-      lower.startsWith("vbscript:")
-    ) {
-      return null
-    }
-
-    return url
-  }
-
-  const shouldShowNavigation = (item: T): boolean => {
-    if (!navigateTo) return false
-    const url = getSafeNavigationUrl(item)
-    return url !== null && url !== ""
+    return getSafeInternalPath(navigateTo(item))
   }
 
   const focusRow = (index: number) => {
@@ -208,68 +186,71 @@ const DataTable = <T,>({
   if (isMobile) {
     return (
       <div className="space-y-4">
-        {data.map((item, index) => (
-          <Card
-            key={index}
-            className={cn(
-              "p-4 space-y-3",
-              typeof rowClassName === "function"
-                ? rowClassName(item, index)
-                : rowClassName,
-              onRowClick && "cursor-pointer",
-            )}
-            onClick={() => onRowClick?.(item)}
-          >
-            {columns.map((column, colIndex) => {
-              const hasHeader =
-                typeof column.header === "string" && column.header.trim() !== ""
-              return (
-                <div
-                  key={colIndex}
-                  className={cn(
-                    "flex items-start gap-4",
-                    hasHeader ? "justify-between" : "w-full",
-                    typeof cellClassName === "function"
-                      ? cellClassName(column, item)
-                      : cellClassName,
-                  )}
-                >
-                  {hasHeader && (
-                    <div className="text-sm font-medium text-muted-foreground">
-                      {column.header}
-                    </div>
-                  )}
+        {data.map((item, index) => {
+          const safeNavigationUrl = getSafeNavigationUrl(item)
+          return (
+            <Card
+              key={index}
+              className={cn(
+                "p-4 space-y-3",
+                typeof rowClassName === "function"
+                  ? rowClassName(item, index)
+                  : rowClassName,
+                onRowClick && "cursor-pointer",
+              )}
+              onClick={() => onRowClick?.(item)}
+            >
+              {columns.map((column, colIndex) => {
+                const hasHeader =
+                  typeof column.header === "string" && column.header.trim() !== ""
+                return (
                   <div
+                    key={colIndex}
                     className={cn(
-                      "text-sm",
-                      !hasHeader && "w-full",
-                      column.align === "center" && "text-center",
-                      column.align === "right" && "text-right",
+                      "flex items-start gap-4",
+                      hasHeader ? "justify-between" : "w-full",
+                      typeof cellClassName === "function"
+                        ? cellClassName(column, item)
+                        : cellClassName,
                     )}
                   >
-                    {column.render
-                      ? column.render(item[column.key], item, index)
-                      : String(item[column.key])}
+                    {hasHeader && (
+                      <div className="text-sm font-medium text-muted-foreground">
+                        {column.header}
+                      </div>
+                    )}
+                    <div
+                      className={cn(
+                        "text-sm",
+                        !hasHeader && "w-full",
+                        column.align === "center" && "text-center",
+                        column.align === "right" && "text-right",
+                      )}
+                    >
+                      {column.render
+                        ? column.render(item[column.key], item, index)
+                        : String(item[column.key])}
+                    </div>
                   </div>
+                )
+              })}
+              {safeNavigationUrl && (
+                <div className="pt-2">
+                  <Link href={safeNavigationUrl}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full flex items-center justify-center"
+                    >
+                      {t("view")}
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </Link>
                 </div>
-              )
-            })}
-            {shouldShowNavigation(item) && (
-              <div className="pt-2">
-                <Link href={getSafeNavigationUrl(item) || "#"}>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full flex items-center justify-center"
-                  >
-                    {t("view")}
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </Link>
-              </div>
-            )}
-          </Card>
-        ))}
+              )}
+            </Card>
+          )
+        })}
       </div>
     )
   }
@@ -307,57 +288,60 @@ const DataTable = <T,>({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data.map((item, rowIndex) => (
-            <TableRow
-              data-testid={`table-row-${rowIndex}`}
-              key={rowIndex}
-              onClick={() => onRowClick?.(item)}
-              tabIndex={0}
-              className={cn(
-                typeof rowClassName === "function"
-                  ? rowClassName(item, rowIndex)
-                  : rowClassName,
-                onRowClick && "cursor-pointer",
-                focusedRowIndex === rowIndex && "bg-muted",
-                "hover:bg-muted/50 transition-colors outline-none",
-              )}
-              onFocus={() => setFocusedRowIndex(rowIndex)}
-              role="row"
-              aria-selected={focusedRowIndex === rowIndex}
-            >
-              {columns.map((column, colIndex) => (
-                <TableCell
-                  key={colIndex}
-                  className={cn(
-                    "whitespace-normal wrap-break-words",
-                    column.align === "center" && "text-center",
-                    column.align === "right" && "text-right",
-                    typeof cellClassName === "function"
-                      ? cellClassName(column, item)
-                      : cellClassName,
-                  )}
-                >
-                  {column.render
-                    ? column.render(item[column.key], item, rowIndex)
-                    : String(item[column.key])}
-                </TableCell>
-              ))}
-              {shouldShowNavigation(item) && (
-                <TableCell>
-                  <Link href={getSafeNavigationUrl(item) || "#"} className="group">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full flex items-center"
-                    >
-                      {t("view")}
-                      <ArrowRight />
-                    </Button>
-                  </Link>
-                </TableCell>
-              )}
-            </TableRow>
-          ))}
+          {data.map((item, rowIndex) => {
+            const safeNavigationUrl = getSafeNavigationUrl(item)
+            return (
+              <TableRow
+                data-testid={`table-row-${rowIndex}`}
+                key={rowIndex}
+                onClick={() => onRowClick?.(item)}
+                tabIndex={0}
+                className={cn(
+                  typeof rowClassName === "function"
+                    ? rowClassName(item, rowIndex)
+                    : rowClassName,
+                  onRowClick && "cursor-pointer",
+                  focusedRowIndex === rowIndex && "bg-muted",
+                  "hover:bg-muted/50 transition-colors outline-none",
+                )}
+                onFocus={() => setFocusedRowIndex(rowIndex)}
+                role="row"
+                aria-selected={focusedRowIndex === rowIndex}
+              >
+                {columns.map((column, colIndex) => (
+                  <TableCell
+                    key={colIndex}
+                    className={cn(
+                      "whitespace-normal wrap-break-words",
+                      column.align === "center" && "text-center",
+                      column.align === "right" && "text-right",
+                      typeof cellClassName === "function"
+                        ? cellClassName(column, item)
+                        : cellClassName,
+                    )}
+                  >
+                    {column.render
+                      ? column.render(item[column.key], item, rowIndex)
+                      : String(item[column.key])}
+                  </TableCell>
+                ))}
+                {safeNavigationUrl && (
+                  <TableCell>
+                    <Link href={safeNavigationUrl} className="group">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full flex items-center"
+                      >
+                        {t("view")}
+                        <ArrowRight />
+                      </Button>
+                    </Link>
+                  </TableCell>
+                )}
+              </TableRow>
+            )
+          })}
         </TableBody>
       </Table>
     </div>

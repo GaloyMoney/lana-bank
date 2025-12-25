@@ -107,7 +107,7 @@ export const AddUserCommitteeDialog: React.FC<AddUserCommitteeDialogProps> = ({
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <Select value={selectedUserId} onValueChange={setSelectedUserId}>
-            <SelectTrigger className="w-full" data-testid="committee-add-user-select">
+            <SelectTrigger data-testid="committee-add-user-select">
               <SelectValue placeholder={t("placeholders.selectUser")} />
             </SelectTrigger>
             <SelectContent>

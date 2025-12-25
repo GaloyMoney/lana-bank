@@ -144,3 +144,45 @@ export const formatCvl = (cvl: CvlPctDataFragment): string =>
 
 export const getCvlValue = (cvl: CvlPctDataFragment): number =>
   cvl.__typename === "FiniteCVLPct" ? Number(cvl.value) : Infinity
+
+/**
+ * Validates and sanitizes a URL to ensure it's a safe internal navigation path.
+ * Returns null if the URL is unsafe or invalid.
+ */
+export const getSafeInternalPath = (
+  rawUrl: string | URL | null | undefined,
+): string | null => {
+  if (!rawUrl) return null
+
+  let urlString: string
+  if (typeof rawUrl === "string") {
+    urlString = rawUrl
+  } else if (rawUrl instanceof URL) {
+    urlString = `${rawUrl.pathname}${rawUrl.search}${rawUrl.hash}`
+  } else {
+    return null
+  }
+
+  const trimmed = urlString.trim()
+  if (trimmed === "") return null
+
+  // Only allow internal paths starting with /
+  if (!trimmed.startsWith("/")) return null
+
+  // Reject any URL with an explicit scheme or protocol-relative URLs
+  if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed) || trimmed.startsWith("//")) {
+    return null
+  }
+
+  // Reject path traversal and allow only safe characters
+  if (
+    trimmed.includes("..") ||
+    !/^\/[a-zA-Z0-9/_~.%+-]*(?:\?[a-zA-Z0-9/_~.%&=+-]*)?(?:#[a-zA-Z0-9/_~.%&=+-]*)?$/.test(
+      trimmed,
+    )
+  ) {
+    return null
+  }
+
+  return trimmed
+}

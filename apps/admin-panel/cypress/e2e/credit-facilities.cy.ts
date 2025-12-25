@@ -100,10 +100,10 @@ describe("credit facility", () => {
         })
 
       cy.visit(`/policies`)
-      cy.get('[data-testid="table-row-1"] > :nth-child(3) > a > .gap-2').should(
+      cy.get('[data-testid="table-row-1"] > :nth-child(3) > a').should(
         "be.visible",
       )
-      cy.get('[data-testid="table-row-1"] > :nth-child(3) > a > .gap-2').click()
+      cy.get('[data-testid="table-row-1"] > :nth-child(3) > a').click()
       cy.get('[data-testid="policy-assign-committee"]').click()
       cy.get('[data-testid="policy-select-committee-selector"]').click()
       cy.get('[role="option"]').contains(committeeName).click()
@@ -115,10 +115,10 @@ describe("credit facility", () => {
       cy.contains(committeeName).should("be.visible")
 
       cy.visit(`/policies`)
-      cy.get('[data-testid="table-row-0"] > :nth-child(3) > a > .gap-2').should(
+      cy.get('[data-testid="table-row-0"] > :nth-child(3) > a').should(
         "be.visible",
       )
-      cy.get('[data-testid="table-row-0"] > :nth-child(3) > a > .gap-2').click()
+      cy.get('[data-testid="table-row-0"] > :nth-child(3) > a').click()
       cy.get('[data-testid="policy-assign-committee"]').click()
       cy.get('[data-testid="policy-select-committee-selector"]').click()
       cy.get('[role="option"]').contains(committeeName).click()
@@ -165,7 +165,7 @@ describe("credit facility", () => {
 
   it("should show newly created proposal in the list", () => {
     cy.visit(`/credit-facility-proposals`)
-    cy.get('[data-testid="table-row-0"] > :nth-child(5) > a > .gap-2').click()
+    cy.get('[data-testid="table-row-0"] > :nth-child(5) > a').click()
     cy.contains("$5,000.00").should("be.visible")
     cy.takeScreenshot("06_proposal_in_list")
   })
@@ -285,6 +285,7 @@ describe("credit facility", () => {
     cy.wait(2000)
 
     cy.get('[data-testid="collateral-to-reach-target"]')
+      .scrollIntoView()
       .should("be.visible")
       .invoke("text")
       .then((collateralValue) => {
@@ -368,7 +369,7 @@ describe("credit facility", () => {
 
   it("should show newly created credit facility in the list", () => {
     cy.visit(`/credit-facilities`)
-    cy.get('[data-testid="table-row-0"] > :nth-child(7) > a > .gap-2').click()
+    cy.get('[data-testid="table-row-0"] > :nth-child(7) > a').click()
     cy.contains("$5,000.00").should("be.visible")
     cy.takeScreenshot("22_credit_facility_in_list")
   })
