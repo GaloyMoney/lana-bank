@@ -64,13 +64,30 @@ const DataTable = <T,>({
   const tableRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
 
-  const getNavigationUrl = (item: T): string | null => {
-    return navigateTo ? navigateTo(item) : null
+  const getSafeNavigationUrl = (item: T): string | null => {
+    if (!navigateTo) return null
+    const rawUrl = navigateTo(item)
+    if (!rawUrl) return null
+
+    const url = rawUrl.toString().trim()
+    if (url === "") return null
+
+    // Disallow potentially dangerous URL schemes such as javascript:, data:, vbscript:
+    const lower = url.toLowerCase()
+    if (
+      lower.startsWith("javascript:") ||
+      lower.startsWith("data:") ||
+      lower.startsWith("vbscript:")
+    ) {
+      return null
+    }
+
+    return url
   }
 
   const shouldShowNavigation = (item: T): boolean => {
     if (!navigateTo) return false
-    const url = getNavigationUrl(item)
+    const url = getSafeNavigationUrl(item)
     return url !== null && url !== ""
   }
 
@@ -115,7 +132,7 @@ const DataTable = <T,>({
             if (onRowClick) {
               onRowClick(item)
             } else if (navigateTo) {
-              const url = getNavigationUrl(item)
+              const url = getSafeNavigationUrl(item)
               if (url) {
                 router.push(url)
               }
@@ -239,7 +256,7 @@ const DataTable = <T,>({
             })}
             {shouldShowNavigation(item) && (
               <div className="pt-2">
-                <Link href={getNavigationUrl(item) || ""}>
+                <Link href={getSafeNavigationUrl(item) || "#"}>
                   <Button
                     variant="outline"
                     size="sm"
@@ -327,7 +344,7 @@ const DataTable = <T,>({
               ))}
               {shouldShowNavigation(item) && (
                 <TableCell>
-                  <Link href={getNavigationUrl(item) || ""} className="group">
+                  <Link href={getSafeNavigationUrl(item) || "#"} className="group">
                     <Button
                       variant="outline"
                       size="sm"
