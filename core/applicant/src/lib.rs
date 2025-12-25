@@ -2,7 +2,6 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
 pub mod error;
-mod repo;
 
 #[cfg(feature = "sumsub-testing")]
 pub use sumsub::testing_utils as sumsub_testing_utils;
@@ -21,7 +20,6 @@ use obix::out::OutboxEventMarker;
 use error::ApplicantError;
 pub use sumsub::SumsubConfig;
 
-use repo::ApplicantRepo;
 pub use sumsub::{ApplicantInfo, PermalinkResponse, SumsubClient};
 
 #[cfg(feature = "graphql")]
@@ -167,7 +165,6 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
-    repo: ApplicantRepo,
     customers: Customers<Perms, E>,
 }
 
@@ -178,7 +175,6 @@ where
 {
     fn clone(&self) -> Self {
         Self {
-            repo: self.repo.clone(),
             customers: self.customers.clone(),
         }
     }
@@ -198,18 +194,12 @@ where
     ) -> Result<InboxResult, Box<dyn std::error::Error + Send + Sync>> {
         let payload: serde_json::Value = event.payload()?;
 
-        let customer_id: CustomerId = payload["externalUserId"]
+        payload["externalUserId"]
             .as_str()
             .ok_or_else(|| ApplicantError::MissingExternalUserId(payload.to_string()))?
-            .parse()?;
+            .parse::<CustomerId>()?;
 
-        let mut db = self.repo.begin_op().await?;
-
-        self.repo
-            .persist_webhook_data_in_op(&mut db, customer_id, payload.clone())
-            .await?;
-
-        match Self::process_payload(&self.customers, &mut db, payload).await {
+        match self.process_payload(payload).await {
             Ok(_) => (),
             // Silently ignoring these errors instead of returning,
             // this prevents sumsub from retrying for these unhandled cases
@@ -217,8 +207,6 @@ where
             Err(ApplicantError::UnhandledLevelType) => (),
             Err(e) => return Err(Box::new(e)),
         }
-
-        db.commit().await?;
 
         Ok(InboxResult::Complete)
     }
@@ -235,14 +223,10 @@ where
     #[record_error_severity]
     #[instrument(
         name = "applicant.process_payload",
-        skip(customers, db),
+        skip(self),
         fields(ignore_for_sandbox = false, callback_type = tracing::field::Empty, sandbox_mode = tracing::field::Empty, applicant_id = tracing::field::Empty, kyc_level = tracing::field::Empty, customer_id = tracing::field::Empty)
     )]
-    async fn process_payload(
-        customers: &Customers<Perms, E>,
-        db: &mut es_entity::DbOp<'_>,
-        payload: serde_json::Value,
-    ) -> Result<(), ApplicantError> {
+    async fn process_payload(&self, payload: serde_json::Value) -> Result<(), ApplicantError> {
         match serde_json::from_value(payload.clone())? {
             SumsubCallbackPayload::ApplicantCreated {
                 external_user_id,
@@ -257,8 +241,9 @@ where
                 tracing::Span::current().record("kyc_level", level_name.as_str());
                 tracing::Span::current()
                     .record("customer_id", external_user_id.to_string().as_str());
-                let res = customers
-                    .start_kyc(db, external_user_id, applicant_id)
+                let res = self
+                    .customers
+                    .start_kyc(external_user_id, applicant_id)
                     .await;
 
                 match res {
@@ -288,8 +273,9 @@ where
                 tracing::Span::current().record("kyc_level", level_name.as_str());
                 tracing::Span::current()
                     .record("customer_id", external_user_id.to_string().as_str());
-                let res = customers
-                    .decline_kyc(db, external_user_id, applicant_id)
+                let res = self
+                    .customers
+                    .decline_kyc(external_user_id, applicant_id)
                     .await;
 
                 match res {
@@ -327,8 +313,9 @@ where
                     }
                 };
 
-                let res = customers
-                    .approve_kyc(db, external_user_id, applicant_id)
+                let res = self
+                    .customers
+                    .approve_kyc(external_user_id, applicant_id)
                     .await;
 
                 match res {
@@ -376,7 +363,6 @@ where
 {
     authz: Perms,
     sumsub_client: SumsubClient,
-    repo: ApplicantRepo,
     customers: Customers<Perms, E>,
     inbox: Inbox,
 }
@@ -390,7 +376,6 @@ where
         Self {
             authz: self.authz.clone(),
             sumsub_client: self.sumsub_client.clone(),
-            repo: self.repo.clone(),
             customers: self.customers.clone(),
             inbox: self.inbox.clone(),
         }
@@ -413,10 +398,8 @@ where
         jobs: &mut job::Jobs,
     ) -> Result<Self, ApplicantError> {
         let sumsub_client = SumsubClient::new(config);
-        let repo = ApplicantRepo::new(pool);
 
         let handler = SumsubCallbackHandler {
-            repo: repo.clone(),
             customers: customers.clone(),
         };
 
@@ -425,7 +408,6 @@ where
 
         Ok(Self {
             authz: authz.clone(),
-            repo,
             sumsub_client,
             customers: customers.clone(),
             inbox,
@@ -453,12 +435,10 @@ where
                 format!("payload-{}", hasher.finish())
             };
 
-        let mut op = self.repo.begin_op().await?;
-        let _ = self
+        let _res = self
             .inbox
-            .persist_and_process_in_op(&mut op, &idempotency_key, payload)
+            .persist_and_process(&idempotency_key, payload)
             .await?;
-        op.commit().await?;
 
         Ok(())
     }

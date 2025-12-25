@@ -613,11 +613,3 @@ CREATE TABLE dashboards (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   modified_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
-CREATE TABLE sumsub_callbacks (
-  id BIGSERIAL PRIMARY KEY,
-  customer_id UUID NOT NULL, -- not enforced to get all callbacks
-  content JSONB NOT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-CREATE INDEX idx_sumsub_callbacks_customer_id ON sumsub_callbacks(customer_id);
