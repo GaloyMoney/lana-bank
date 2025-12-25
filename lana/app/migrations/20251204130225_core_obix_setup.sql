@@ -1,3 +1,4 @@
+-- Persistent outbox events
 CREATE TABLE persistent_outbox_events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   sequence BIGSERIAL UNIQUE,
@@ -6,6 +7,7 @@ CREATE TABLE persistent_outbox_events (
   recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
 CREATE FUNCTION notify_persistent_outbox_events() RETURNS TRIGGER AS $$
 DECLARE
   payload TEXT;
@@ -28,14 +30,19 @@ BEGIN
   RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
-CREATE TRIGGER persistent_outbox_events AFTER INSERT ON persistent_outbox_events
+
+CREATE TRIGGER persistent_outbox_events_notify
+  AFTER INSERT ON persistent_outbox_events
   FOR EACH ROW EXECUTE FUNCTION notify_persistent_outbox_events();
+
+-- Ephemeral outbox events
 CREATE TABLE ephemeral_outbox_events (
   event_type VARCHAR NOT NULL UNIQUE,
   payload JSONB NOT NULL,
   tracing_context JSONB,
   recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
 CREATE FUNCTION notify_ephemeral_outbox_events() RETURNS TRIGGER AS $$
 DECLARE
   payload TEXT;
@@ -56,6 +63,27 @@ BEGIN
   RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
+
 CREATE TRIGGER ephemeral_outbox_events_notify
   AFTER INSERT OR UPDATE ON ephemeral_outbox_events
   FOR EACH ROW EXECUTE FUNCTION notify_ephemeral_outbox_events();
+
+-- Inbox events
+DO $$ BEGIN
+    CREATE TYPE InboxEventStatus AS ENUM ('pending', 'processing', 'completed', 'failed');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+CREATE TABLE inbox_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  idempotency_key VARCHAR UNIQUE,
+  payload JSONB NOT NULL,
+  status InboxEventStatus NOT NULL DEFAULT 'pending',
+  error VARCHAR,
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  processed_at TIMESTAMPTZ
+);
+
+CREATE INDEX idx_inbox_events_status ON inbox_events(status)
+  WHERE status IN ('pending', 'processing', 'failed');
