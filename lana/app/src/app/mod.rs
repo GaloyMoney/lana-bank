@@ -1,6 +1,7 @@
 mod config;
 mod error;
 
+use core_time_events::{RealNow, TimeEvents};
 use sqlx::PgPool;
 use tracing::{Instrument, instrument};
 use tracing_macros::record_error_severity;
@@ -25,6 +26,7 @@ use crate::{
     deposit::Deposits,
     deposit_sync::DepositSync,
     document::DocumentStorage,
+    domain_config::DomainConfigs,
     governance::Governance,
     job::Jobs,
     notification::Notification,
@@ -36,7 +38,6 @@ use crate::{
     storage::Storage,
     user_onboarding::UserOnboarding,
 };
-use domain_config::DomainConfigs;
 
 pub use config::*;
 use error::ApplicationError;
@@ -99,6 +100,8 @@ impl LanaApp {
                 .expect("Couldn't build JobSvcConfig"),
         )
         .await?;
+
+        let _time_event = TimeEvents::init(domain_configs.clone(), RealNow);
 
         let dashboard = Dashboard::init(&pool, &authz, &jobs, &outbox).await?;
         let governance = Governance::new(&pool, &authz, &outbox);
