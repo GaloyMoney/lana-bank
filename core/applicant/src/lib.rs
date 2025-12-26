@@ -258,24 +258,27 @@ where
                 sandbox_mode,
                 ..
             } => {
+                let sandbox = sandbox_mode.unwrap_or(false);
                 tracing::Span::current().record("callback_type", "ApplicantCreated");
-                tracing::Span::current().record("sandbox_mode", sandbox_mode.unwrap_or(false));
+                tracing::Span::current().record("sandbox_mode", sandbox);
                 tracing::Span::current().record("applicant_id", applicant_id.as_str());
                 tracing::Span::current().record("kyc_level", level_name.as_str());
                 tracing::Span::current()
                     .record("customer_id", external_user_id.to_string().as_str());
-                let res = self
-                    .customers
-                    .start_kyc(db, external_user_id, applicant_id)
-                    .await;
 
-                match res {
-                    Ok(_) => (),
-                    Err(e) if e.was_not_found() && sandbox_mode.unwrap_or(false) => {
+                if sandbox {
+                    let maybe_customer = self
+                        .customers
+                        .start_kyc_if_exists(db, external_user_id, applicant_id)
+                        .await?;
+                    if maybe_customer.is_none() {
                         tracing::Span::current().record("ignore_for_sandbox", true);
                         return Ok(());
                     }
-                    Err(e) => return Err(e.into()),
+                } else {
+                    self.customers
+                        .start_kyc(db, external_user_id, applicant_id)
+                        .await?;
                 }
             }
             SumsubCallbackPayload::ApplicantReviewed {
@@ -290,24 +293,27 @@ where
                 sandbox_mode,
                 ..
             } => {
+                let sandbox = sandbox_mode.unwrap_or(false);
                 tracing::Span::current().record("callback_type", "ApplicantReviewed.Red");
-                tracing::Span::current().record("sandbox_mode", sandbox_mode.unwrap_or(false));
+                tracing::Span::current().record("sandbox_mode", sandbox);
                 tracing::Span::current().record("applicant_id", applicant_id.as_str());
                 tracing::Span::current().record("kyc_level", level_name.as_str());
                 tracing::Span::current()
                     .record("customer_id", external_user_id.to_string().as_str());
-                let res = self
-                    .customers
-                    .decline_kyc(db, external_user_id, applicant_id)
-                    .await;
 
-                match res {
-                    Ok(_) => (),
-                    Err(e) if e.was_not_found() && sandbox_mode.unwrap_or(false) => {
+                if sandbox {
+                    let maybe_customer = self
+                        .customers
+                        .decline_kyc_if_exists(db, external_user_id, applicant_id)
+                        .await?;
+                    if maybe_customer.is_none() {
                         tracing::Span::current().record("ignore_for_sandbox", true);
                         return Ok(());
                     }
-                    Err(e) => return Err(e.into()),
+                } else {
+                    self.customers
+                        .decline_kyc(db, external_user_id, applicant_id)
+                        .await?;
                 }
             }
             SumsubCallbackPayload::ApplicantReviewed {
@@ -322,8 +328,9 @@ where
                 sandbox_mode,
                 ..
             } => {
+                let sandbox = sandbox_mode.unwrap_or(false);
                 tracing::Span::current().record("callback_type", "ApplicantReviewed.Green");
-                tracing::Span::current().record("sandbox_mode", sandbox_mode.unwrap_or(false));
+                tracing::Span::current().record("sandbox_mode", sandbox);
                 tracing::Span::current().record("applicant_id", applicant_id.as_str());
                 tracing::Span::current().record("kyc_level", level_name.as_str());
                 tracing::Span::current()
@@ -336,18 +343,19 @@ where
                     }
                 };
 
-                let res = self
-                    .customers
-                    .approve_kyc(db, external_user_id, applicant_id)
-                    .await;
-
-                match res {
-                    Ok(_) => (),
-                    Err(e) if e.was_not_found() && sandbox_mode.unwrap_or(false) => {
+                if sandbox {
+                    let maybe_customer = self
+                        .customers
+                        .approve_kyc_if_exists(db, external_user_id, applicant_id)
+                        .await?;
+                    if maybe_customer.is_none() {
                         tracing::Span::current().record("ignore_for_sandbox", true);
                         return Ok(());
                     }
-                    Err(e) => return Err(e.into()),
+                } else {
+                    self.customers
+                        .approve_kyc(db, external_user_id, applicant_id)
+                        .await?;
                 }
             }
             SumsubCallbackPayload::ApplicantPending {
