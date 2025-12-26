@@ -58,7 +58,7 @@ impl DomainConfigValue for NotificationEmailConfig {
             // some burden to postgres
             //
             // the default implementation is overriden here
-            // those function are not additional, it's this one OR the default. 
+            // those function are not additional, it's this one OR the default.
             return Err(DomainConfigError::InvalidState(
                 "from_name is required".to_string(),
             ));
