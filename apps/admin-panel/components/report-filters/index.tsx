@@ -35,7 +35,9 @@ export const ReportFilters: React.FC<ReportFiltersProps> = ({
       </div>
       {currency && onCurrencyChange && (
         <>
-          <Separator orientation="vertical" className="h-14" />
+          <div className="flex items-center h-14">
+            <Separator orientation="vertical" />
+          </div>
           <div className="flex flex-col gap-2">
             <CurrencySelection currency={currency} setCurrency={onCurrencyChange} />
           </div>
@@ -43,7 +45,9 @@ export const ReportFilters: React.FC<ReportFiltersProps> = ({
       )}
       {layer && onLayerChange && (
         <>
-          <Separator orientation="vertical" className="h-14" />
+          <div className="flex items-center h-14">
+            <Separator orientation="vertical" />
+          </div>
           <div className="flex flex-col gap-2">
             <LayerSelection layer={layer} setLayer={onLayerChange} />
           </div>

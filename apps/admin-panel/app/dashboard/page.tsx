@@ -48,7 +48,7 @@ const Dashboard = () => {
       : 0
 
   return (
-    <div className="w-full h-full flex flex-col gap-2 mt-2">
+    <div className="w-full h-full flex flex-col gap-2">
       <div className="relative w-full flex flex-col justify-center items-start">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 w-full">
           {loading && !data ? (

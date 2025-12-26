@@ -105,7 +105,7 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
 
   if (loading && !data) return <ActionListSkeleton />
 
-  const getVisitUrl = (data: ActionNode) => {
+  const getVisitUrl = (data: ActionNode): string | null => {
     if (
       data.approvalProcessType === ApprovalProcessType.CreditFacilityProposalApproval &&
       data.target.__typename === "CreditFacilityProposal"
@@ -122,7 +122,7 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
     ) {
       return `/disbursals/${data.target.publicId}`
     }
-    return "#"
+    return null
   }
 
   const columns: Column<ActionNode>[] = [

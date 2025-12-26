@@ -580,7 +580,7 @@
           "termsTemplate": "Seleccione de la plantilla de términos predefinida",
           "annualRate": "Ingrese la tasa anual",
           "initialCvl": "Ingrese el CVL inicial",
-          "duration": "Introduzca la duración en meses",
+          "duration": "Ingresa la duración",
           "marginCallCvl": "Ingrese el CVL de llamada de margen",
           "liquidationCvl": "Ingrese el CVL de liquidación",
           "structuringFeeRate": "Ingrese la Tasa de Comisión de Estructuración",
@@ -1064,6 +1064,7 @@
     "description": "Pagos realizados desde una línea de crédito al usuario",
     "table": {
       "headers": {
+        "customer": "Cliente",
         "amount": "Monto",
         "createdAt": "Fecha",
         "status": "Estado"
@@ -1272,7 +1273,7 @@
         },
         "placeholders": {
           "annualRate": "Ingrese la tasa anual",
-          "durationUnits": "Introduce la duración en meses",
+          "durationUnits": "Ingresa la duración",
           "initialCvl": "Ingrese el CVL inicial",
           "marginCallCvl": "Ingrese el CVL de llamada de margen",
           "liquidationCvl": "Ingrese el CVL de liquidación",
@@ -1311,7 +1312,7 @@
         "placeholders": {
           "name": "Ingrese el nombre de la plantilla",
           "annualRate": "Ingrese la tasa anual",
-          "durationUnits": "Introduce la duración en meses",
+          "durationUnits": "Ingresa la duración",
           "initialCvl": "Ingrese el CVL inicial",
           "marginCallCvl": "Ingrese el CVL de llamada de margen",
           "liquidationCvl": "Ingrese el CVL de liquidación",

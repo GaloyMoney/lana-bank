@@ -81,10 +81,12 @@ const columns = (
   {
     key: "name",
     header: t("table.headers.name"),
+    width: "25%",
   },
   {
     key: "values",
     header: t("table.headers.duration"),
+    width: "15%",
     render: (values) => (
       <>
         {String(values.duration.units)} <PeriodLabel period={values.duration.period} />
@@ -94,21 +96,25 @@ const columns = (
   {
     key: "values",
     header: t("table.headers.annualRate"),
+    width: "12%",
     render: (values) => `${values.annualRate}%`,
   },
   {
     key: "values",
     header: t("table.headers.initialCvl"),
+    width: "12%",
     render: (values) => formatCvl(values.initialCvl),
   },
   {
     key: "values",
     header: t("table.headers.marginCallCvl"),
+    width: "15%",
     render: (values) => formatCvl(values.marginCallCvl),
   },
   {
     key: "values",
     header: t("table.headers.liquidationCvl"),
+    width: "15%",
     render: (values) => formatCvl(values.liquidationCvl),
   },
 ]

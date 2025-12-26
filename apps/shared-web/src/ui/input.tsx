@@ -1,112 +1,77 @@
 import * as React from "react";
 import { NumericFormat, NumericFormatProps } from "react-number-format";
-
 import { cn } from "@lana/web/utils";
+import { InputGroup, InputGroupAddon } from "@lana/web/ui/input-group";
 
-const BaseInput = React.forwardRef<
-  HTMLInputElement,
-  React.InputHTMLAttributes<HTMLInputElement>
->(({ className, ...props }, ref) => (
-  <input
-    className={cn(
-      "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-      className
-    )}
-    ref={ref}
-    {...props}
-  />
-));
-BaseInput.displayName = "BaseInput";
-
-interface CustomInputProps extends React.ComponentProps<"input"> {
-  onValueChange?: (value: string) => void;
+interface InputProps extends React.ComponentProps<"input"> {
   startAdornment?: React.ReactNode;
   endAdornment?: React.ReactNode;
+  containerClassName?: string;
 }
 
-const Input = React.forwardRef<HTMLInputElement, CustomInputProps>(
-  (
-    { className, type, onValueChange, onChange, startAdornment, endAdornment, ...props },
-    ref
-  ) => {
-    const renderInput = (inputProps: any) => {
-      if (startAdornment || endAdornment) {
-        return (
-          <div className="flex h-9 w-full rounded-md border border-input bg-transparent shadow-sm transition-colors focus-within:ring-1 focus-within:ring-ring">
-            {startAdornment && (
-              <div className="flex items-center rounded-l-md bg-muted px-3 text-sm text-muted-foreground font-mono border-r border-input">
-                {startAdornment}
-              </div>
-            )}
+function Input({
+  className,
+  type,
+  startAdornment,
+  endAdornment,
+  containerClassName,
+  ...props
+}: InputProps) {
+  const hasAdornments = startAdornment || endAdornment;
 
-            {React.cloneElement(inputProps.element, {
-              ...inputProps.element.props,
-              className: cn(
-                "flex-1 bg-transparent px-3 py-1 text-base placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground transition-colors",
-                "!border-0 !shadow-none !ring-0 focus-visible:!ring-0",
-                !startAdornment && !endAdornment && "rounded-md",
-                startAdornment && !endAdornment && "rounded-r-md",
-                !startAdornment && endAdornment && "rounded-l-md",
-                startAdornment && endAdornment && "rounded-none"
-              ),
-              style: {
-                ...inputProps.element.props.style,
-                paddingLeft: undefined,
-                paddingRight: undefined,
-                boxShadow: "none",
-              },
-            })}
+  const renderInput = (useGroupControl: boolean = false) => {
+    const dataSlot = useGroupControl ? "input-group-control" : "input";
+    const baseClasses = useGroupControl
+      ? "placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 flex h-9 w-full min-w-0 rounded-md bg-transparent px-3 py-1 text-base transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+      : "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive";
 
-            {endAdornment && (
-              <div className="flex items-center rounded-r-md bg-muted px-3 text-sm text-muted-foreground font-mono border-l border-input">
-                {endAdornment}
-              </div>
-            )}
-          </div>
-        );
-      }
-      return inputProps.element;
-    };
     if (type === "number") {
-      const numericInput = (
+      const { onChange, name, ...rest } =
+        props as React.InputHTMLAttributes<HTMLInputElement>;
+      return (
         <NumericFormat
-          customInput={BaseInput}
-          className={className}
+          type="text"
+          data-slot={dataSlot}
+          className={cn(baseClasses, className)}
           thousandSeparator
           allowNegative={false}
-          getInputRef={ref}
-          displayType="input"
-          onValueChange={(values) => {
-            onValueChange?.(values.value);
+          onValueChange={(v) => {
             if (onChange) {
-              const event = {
-                target: {
-                  value: values.value,
-                  name: props.name,
-                },
-              } as React.ChangeEvent<HTMLInputElement>;
-              onChange(event);
+              onChange({
+                target: { value: v.value, name },
+              } as unknown as React.ChangeEvent<HTMLInputElement>);
             }
           }}
-          {...(props as NumericFormatProps)}
+          {...(rest as unknown as NumericFormatProps)}
         />
       );
-      return renderInput({ element: numericInput });
     }
 
-    const baseInput = (
-      <BaseInput
+    return (
+      <input
         type={type}
-        className={className}
-        ref={ref}
-        onChange={onChange}
+        data-slot={dataSlot}
+        className={cn(baseClasses, className)}
         {...props}
       />
     );
-    return renderInput({ element: baseInput });
-  }
-);
+  };
 
-Input.displayName = "Input";
+  if (!hasAdornments) {
+    return renderInput(false);
+  }
+
+  return (
+    <InputGroup className={containerClassName}>
+      {startAdornment && (
+        <InputGroupAddon align="inline-start">{startAdornment}</InputGroupAddon>
+      )}
+      {renderInput(true)}
+      {endAdornment && (
+        <InputGroupAddon align="inline-end">{endAdornment}</InputGroupAddon>
+      )}
+    </InputGroup>
+  );
+}
 
 export { Input };

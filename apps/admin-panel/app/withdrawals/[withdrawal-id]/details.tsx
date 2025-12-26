@@ -83,11 +83,22 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({ withdrawal })
 
   const footerContent = (
     <>
-      <Button asChild variant="outline">
-        <Link href={`/deposit-accounts/${withdrawal.account.publicId}`}>
+      <Link href={`/deposit-accounts/${withdrawal.account.publicId}`}>
+        <Button variant="outline">
           {t("buttons.viewDepositAccount")}
           <ArrowRight />
-        </Link>
+        </Button>
+      </Link>
+      <Button variant="outline">
+        <a
+          href={`https://cockpit.sumsub.com/checkus#/kyt/txns?search=${withdrawal.withdrawalId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2"
+        >
+          {t("buttons.viewOnSumsub")}
+          <ExternalLinkIcon className="h-4 w-4" />
+        </a>
       </Button>
       {withdrawal.status === WithdrawalStatus.PendingConfirmation && (
         <>
@@ -115,20 +126,11 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({ withdrawal })
           variant="outline"
           onClick={() => setOpenWithdrawalRevertDialog(withdrawal)}
         >
-          <RotateCcw className="h-4 w-4" />
           {t("buttons.revert")}
+          <RotateCcw className="h-4 w-4" />
         </Button>
       )}
-      <Button asChild variant="outline">
-        <a
-          href={`https://cockpit.sumsub.com/checkus#/kyt/txns?search=${withdrawal.withdrawalId}`}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {t("buttons.viewOnSumsub")}
-          <ExternalLinkIcon className="h-4 w-4" />
-        </a>
-      </Button>
+
       {withdrawal?.approvalProcess.status === ApprovalProcessStatus.InProgress &&
         withdrawal.approvalProcess.userCanSubmitDecision && (
           <>

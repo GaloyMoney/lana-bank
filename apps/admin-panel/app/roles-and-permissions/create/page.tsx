@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@lana/web/ui/button"
 import { Input } from "@lana/web/ui/input"
 import { Label } from "@lana/web/ui/label"
-import { Checkbox } from "@lana/web/ui/check-box"
+import { Checkbox } from "@lana/web/ui/checkbox"
 import {
   Card,
   CardContent,

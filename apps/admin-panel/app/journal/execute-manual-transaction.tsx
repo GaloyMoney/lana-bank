@@ -222,7 +222,7 @@ export const ExecuteManualTransactionDialog: React.FC<ExecuteManualTransactionPr
               <Button
                 size="sm"
                 type="button"
-                variant="secondary"
+                variant="outline"
                 onClick={addJournalEntryRow}
                 disabled={isLoading}
                 data-testid="execute-manual-transaction-entry-input-button"
@@ -380,7 +380,7 @@ export const ExecuteManualTransactionDialog: React.FC<ExecuteManualTransactionPr
                   render: (_, __, index) => (
                     <Button
                       type="button"
-                      variant="secondary"
+                      variant="outline"
                       size="icon"
                       disabled={isLoading}
                       className="bg-red-500 hover:bg-red-600 text-white"

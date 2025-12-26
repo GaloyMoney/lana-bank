@@ -1,6 +1,6 @@
 import { ArrowDownUp, CreditCard, Wallet } from "lucide-react"
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@lana/web/ui/tab"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@lana/web/ui/tabs"
 
 import React from "react"
 

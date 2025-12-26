@@ -680,6 +680,9 @@ export function useGetCreditFacilityLazyQuery(baseOptions?: Apollo.LazyQueryHook
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<GetCreditFacilityQuery, GetCreditFacilityQueryVariables>(GetCreditFacilityDocument, options);
         }
+// @ts-ignore
+export function useGetCreditFacilitySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetCreditFacilityQuery, GetCreditFacilityQueryVariables>): Apollo.UseSuspenseQueryResult<GetCreditFacilityQuery, GetCreditFacilityQueryVariables>;
+export function useGetCreditFacilitySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetCreditFacilityQuery, GetCreditFacilityQueryVariables>): Apollo.UseSuspenseQueryResult<GetCreditFacilityQuery | undefined, GetCreditFacilityQueryVariables>;
 export function useGetCreditFacilitySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetCreditFacilityQuery, GetCreditFacilityQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<GetCreditFacilityQuery, GetCreditFacilityQueryVariables>(GetCreditFacilityDocument, options);
@@ -769,6 +772,9 @@ export function useMeLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MeQuery
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<MeQuery, MeQueryVariables>(MeDocument, options);
         }
+// @ts-ignore
+export function useMeSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<MeQuery, MeQueryVariables>): Apollo.UseSuspenseQueryResult<MeQuery, MeQueryVariables>;
+export function useMeSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MeQuery, MeQueryVariables>): Apollo.UseSuspenseQueryResult<MeQuery | undefined, MeQueryVariables>;
 export function useMeSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MeQuery, MeQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<MeQuery, MeQueryVariables>(MeDocument, options);
@@ -808,6 +814,9 @@ export function useGetRealtimePriceUpdatesLazyQuery(baseOptions?: Apollo.LazyQue
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<GetRealtimePriceUpdatesQuery, GetRealtimePriceUpdatesQueryVariables>(GetRealtimePriceUpdatesDocument, options);
         }
+// @ts-ignore
+export function useGetRealtimePriceUpdatesSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetRealtimePriceUpdatesQuery, GetRealtimePriceUpdatesQueryVariables>): Apollo.UseSuspenseQueryResult<GetRealtimePriceUpdatesQuery, GetRealtimePriceUpdatesQueryVariables>;
+export function useGetRealtimePriceUpdatesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetRealtimePriceUpdatesQuery, GetRealtimePriceUpdatesQueryVariables>): Apollo.UseSuspenseQueryResult<GetRealtimePriceUpdatesQuery | undefined, GetRealtimePriceUpdatesQueryVariables>;
 export function useGetRealtimePriceUpdatesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetRealtimePriceUpdatesQuery, GetRealtimePriceUpdatesQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<GetRealtimePriceUpdatesQuery, GetRealtimePriceUpdatesQueryVariables>(GetRealtimePriceUpdatesDocument, options);
@@ -927,6 +936,9 @@ export function useGetTransactionHistoryLazyQuery(baseOptions?: Apollo.LazyQuery
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<GetTransactionHistoryQuery, GetTransactionHistoryQueryVariables>(GetTransactionHistoryDocument, options);
         }
+// @ts-ignore
+export function useGetTransactionHistorySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetTransactionHistoryQuery, GetTransactionHistoryQueryVariables>): Apollo.UseSuspenseQueryResult<GetTransactionHistoryQuery, GetTransactionHistoryQueryVariables>;
+export function useGetTransactionHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetTransactionHistoryQuery, GetTransactionHistoryQueryVariables>): Apollo.UseSuspenseQueryResult<GetTransactionHistoryQuery | undefined, GetTransactionHistoryQueryVariables>;
 export function useGetTransactionHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetTransactionHistoryQuery, GetTransactionHistoryQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<GetTransactionHistoryQuery, GetTransactionHistoryQueryVariables>(GetTransactionHistoryDocument, options);

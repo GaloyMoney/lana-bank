@@ -30,7 +30,6 @@ updates:
       patterns:
         - "*"
   ignore:
-    - dependency-name: "tailwindcss"
     - dependency-name: "eslint"
     - dependency-name: "@types/node"
     - dependency-name: "@typescript-eslint/eslint-plugin"

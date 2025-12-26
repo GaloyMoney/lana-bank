@@ -160,7 +160,7 @@ function TrialBalancePage() {
         ) : (
           <div className="overflow-x-auto rounded-md border">
             <Table>
-              <TableHeader className="bg-secondary [&_tr:hover]:!bg-secondary">
+              <TableHeader className="bg-secondary [&_tr:hover]:bg-secondary!">
                 <TableRow>
                   <TableHead className="w-32">{t("table.headers.accountCode")}</TableHead>
                   <TableHead className="min-w-64">
