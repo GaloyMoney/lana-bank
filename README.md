@@ -45,7 +45,7 @@ Set them in your `.env` file
 #### Optional
 
 - `DAGSTER=true`: Enables the local dagster deployment.
-- `TF_VAR_sa_creds`: Service account credentials into GCP (BigQuery & Documents access)
+- `TF_VAR_sa_creds`: Service account credentials into GCP (BigQuery & documents access)
 - `SUMSUB_KEY`: SumSub API key for identity verification
 - `SUMSUB_SECRET`: SumSub API secret for identity verification
 - `INGEST_HONEYCOMB_API_KEY`: Honeycomb Ingest API key for tracing
