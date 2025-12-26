@@ -2,7 +2,6 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
 pub mod error;
-mod repo;
 
 #[cfg(feature = "sumsub-testing")]
 pub use sumsub::testing_utils as sumsub_testing_utils;
@@ -21,7 +20,6 @@ use obix::out::OutboxEventMarker;
 use error::ApplicantError;
 pub use sumsub::SumsubConfig;
 
-use repo::ApplicantRepo;
 pub use sumsub::{ApplicantInfo, PermalinkResponse, SumsubClient};
 
 #[cfg(feature = "graphql")]
@@ -167,7 +165,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
-    repo: ApplicantRepo,
+    pool: PgPool,
     customers: Customers<Perms, E>,
 }
 
@@ -178,7 +176,7 @@ where
 {
     fn clone(&self) -> Self {
         Self {
-            repo: self.repo.clone(),
+            pool: self.pool.clone(),
             customers: self.customers.clone(),
         }
     }
@@ -198,16 +196,7 @@ where
     ) -> Result<InboxResult, Box<dyn std::error::Error + Send + Sync>> {
         let payload: serde_json::Value = event.payload()?;
 
-        let customer_id: CustomerId = payload["externalUserId"]
-            .as_str()
-            .ok_or_else(|| ApplicantError::MissingExternalUserId(payload.to_string()))?
-            .parse()?;
-
-        let mut db = self.repo.begin_op().await?;
-
-        self.repo
-            .persist_webhook_data_in_op(&mut db, customer_id, payload.clone())
-            .await?;
+        let mut db = es_entity::DbOp::init(&self.pool).await?;
 
         match Self::process_payload(&self.customers, &mut db, payload).await {
             Ok(_) => (),
@@ -260,8 +249,7 @@ where
                     .record("customer_id", external_user_id.to_string().as_str());
 
                 if sandbox {
-                    let maybe_customer = self
-                        .customers
+                    let maybe_customer = customers
                         .start_kyc_if_exists(db, external_user_id, applicant_id)
                         .await?;
                     if maybe_customer.is_none() {
@@ -269,7 +257,7 @@ where
                         return Ok(());
                     }
                 } else {
-                    self.customers
+                    customers
                         .start_kyc(db, external_user_id, applicant_id)
                         .await?;
                 }
@@ -295,8 +283,7 @@ where
                     .record("customer_id", external_user_id.to_string().as_str());
 
                 if sandbox {
-                    let maybe_customer = self
-                        .customers
+                    let maybe_customer = customers
                         .decline_kyc_if_exists(db, external_user_id, applicant_id)
                         .await?;
                     if maybe_customer.is_none() {
@@ -304,7 +291,7 @@ where
                         return Ok(());
                     }
                 } else {
-                    self.customers
+                    customers
                         .decline_kyc(db, external_user_id, applicant_id)
                         .await?;
                 }
@@ -337,8 +324,7 @@ where
                 };
 
                 if sandbox {
-                    let maybe_customer = self
-                        .customers
+                    let maybe_customer = customers
                         .approve_kyc_if_exists(db, external_user_id, applicant_id)
                         .await?;
                     if maybe_customer.is_none() {
@@ -346,7 +332,7 @@ where
                         return Ok(());
                     }
                 } else {
-                    self.customers
+                    customers
                         .approve_kyc(db, external_user_id, applicant_id)
                         .await?;
                 }
@@ -387,7 +373,7 @@ where
 {
     authz: Perms,
     sumsub_client: SumsubClient,
-    repo: ApplicantRepo,
+    pool: PgPool,
     customers: Customers<Perms, E>,
     inbox: Inbox,
 }
@@ -401,7 +387,7 @@ where
         Self {
             authz: self.authz.clone(),
             sumsub_client: self.sumsub_client.clone(),
-            repo: self.repo.clone(),
+            pool: self.pool.clone(),
             customers: self.customers.clone(),
             inbox: self.inbox.clone(),
         }
@@ -424,10 +410,9 @@ where
         jobs: &mut job::Jobs,
     ) -> Result<Self, ApplicantError> {
         let sumsub_client = SumsubClient::new(config);
-        let repo = ApplicantRepo::new(pool);
 
         let handler = SumsubCallbackHandler {
-            repo: repo.clone(),
+            pool: pool.clone(),
             customers: customers.clone(),
         };
 
@@ -436,7 +421,7 @@ where
 
         Ok(Self {
             authz: authz.clone(),
-            repo,
+            pool: pool.clone(),
             sumsub_client,
             customers: customers.clone(),
             inbox,
@@ -464,7 +449,7 @@ where
                 format!("payload-{}", hasher.finish())
             };
 
-        let mut op = self.repo.begin_op().await?;
+        let mut op = es_entity::DbOp::init(&self.pool).await?;
         let _ = self
             .inbox
             .persist_and_process_in_op(&mut op, &idempotency_key, payload)
