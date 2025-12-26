@@ -165,7 +165,6 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
-    pool: PgPool,
     customers: Customers<Perms, E>,
 }
 
@@ -176,7 +175,6 @@ where
 {
     fn clone(&self) -> Self {
         Self {
-            pool: self.pool.clone(),
             customers: self.customers.clone(),
         }
     }
@@ -196,9 +194,7 @@ where
     ) -> Result<InboxResult, Box<dyn std::error::Error + Send + Sync>> {
         let payload: serde_json::Value = event.payload()?;
 
-        let mut db = es_entity::DbOp::init(&self.pool).await?;
-
-        match Self::process_payload(&self.customers, &mut db, payload).await {
+        match Self::process_payload(&self.customers, payload).await {
             Ok(_) => (),
             // Silently ignoring these errors instead of returning,
             // this prevents sumsub from retrying for these unhandled cases
@@ -206,8 +202,6 @@ where
             Err(ApplicantError::UnhandledLevelType) => (),
             Err(e) => return Err(Box::new(e)),
         }
-
-        db.commit().await?;
 
         Ok(InboxResult::Complete)
     }
@@ -224,12 +218,11 @@ where
     #[record_error_severity]
     #[instrument(
         name = "applicant.process_payload",
-        skip(customers, db),
+        skip(customers),
         fields(ignore_for_sandbox = false, callback_type = tracing::field::Empty, sandbox_mode = tracing::field::Empty, applicant_id = tracing::field::Empty, kyc_level = tracing::field::Empty, customer_id = tracing::field::Empty)
     )]
     async fn process_payload(
         customers: &Customers<Perms, E>,
-        db: &mut es_entity::DbOp<'_>,
         payload: serde_json::Value,
     ) -> Result<(), ApplicantError> {
         match serde_json::from_value(payload.clone())? {
@@ -250,7 +243,7 @@ where
 
                 if sandbox {
                     let maybe_customer = customers
-                        .start_kyc_if_exists(db, external_user_id, applicant_id)
+                        .handle_kyc_started_if_exists(external_user_id, applicant_id)
                         .await?;
                     if maybe_customer.is_none() {
                         tracing::Span::current().record("ignore_for_sandbox", true);
@@ -258,7 +251,7 @@ where
                     }
                 } else {
                     customers
-                        .start_kyc(db, external_user_id, applicant_id)
+                        .handle_kyc_started(external_user_id, applicant_id)
                         .await?;
                 }
             }
@@ -284,7 +277,7 @@ where
 
                 if sandbox {
                     let maybe_customer = customers
-                        .decline_kyc_if_exists(db, external_user_id, applicant_id)
+                        .handle_kyc_declined_if_exists(external_user_id, applicant_id)
                         .await?;
                     if maybe_customer.is_none() {
                         tracing::Span::current().record("ignore_for_sandbox", true);
@@ -292,7 +285,7 @@ where
                     }
                 } else {
                     customers
-                        .decline_kyc(db, external_user_id, applicant_id)
+                        .handle_kyc_declined(external_user_id, applicant_id)
                         .await?;
                 }
             }
@@ -325,7 +318,7 @@ where
 
                 if sandbox {
                     let maybe_customer = customers
-                        .approve_kyc_if_exists(db, external_user_id, applicant_id)
+                        .handle_kyc_approved_if_exists(external_user_id, applicant_id)
                         .await?;
                     if maybe_customer.is_none() {
                         tracing::Span::current().record("ignore_for_sandbox", true);
@@ -333,7 +326,7 @@ where
                     }
                 } else {
                     customers
-                        .approve_kyc(db, external_user_id, applicant_id)
+                        .handle_kyc_approved(external_user_id, applicant_id)
                         .await?;
                 }
             }
@@ -412,7 +405,6 @@ where
         let sumsub_client = SumsubClient::new(config);
 
         let handler = SumsubCallbackHandler {
-            pool: pool.clone(),
             customers: customers.clone(),
         };
 
