@@ -7,7 +7,6 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct ObligationAccounts {
     pub receivable_account_id: CalaAccountId,
-    pub account_to_be_credited_id: CalaAccountId,
 }
 
 pub struct ObligationDueReallocationData {

@@ -1705,12 +1705,12 @@ impl CreditLedger {
         &self,
         op: &mut es_entity::DbOpWithTime<'_>,
         entity_id: DisbursalId,
+        disbursed_into_account_id: CalaAccountId,
         obligation: Obligation,
         facility_account_id: CalaAccountId,
     ) -> Result<(), CreditLedgerError> {
         let facility_disbursed_receivable_account =
             obligation.not_yet_due_accounts().receivable_account_id;
-        let account_to_be_credited_id = obligation.not_yet_due_accounts().account_to_be_credited_id;
         let Obligation {
             tx_id,
             reference: external_id,
@@ -1729,7 +1729,7 @@ impl CreditLedger {
                     credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
                     credit_facility_account: facility_account_id,
                     facility_disbursed_receivable_account,
-                    account_to_be_credited_id,
+                    account_to_be_credited_id: disbursed_into_account_id,
                     disbursed_amount: amount.to_usd(),
                     external_id,
                 },

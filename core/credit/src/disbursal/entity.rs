@@ -243,15 +243,12 @@ impl Disbursal {
                     receivable_account_id: self
                         .account_ids
                         .disbursed_receivable_not_yet_due_account_id,
-                    account_to_be_credited_id: self.obligations_repayment_from_account_id,
                 })
                 .due_accounts(ObligationAccounts {
                     receivable_account_id: self.account_ids.disbursed_receivable_due_account_id,
-                    account_to_be_credited_id: self.obligations_repayment_from_account_id,
                 })
                 .overdue_accounts(ObligationAccounts {
                     receivable_account_id: self.account_ids.disbursed_receivable_overdue_account_id,
-                    account_to_be_credited_id: self.obligations_repayment_from_account_id,
                 })
                 .defaulted_account_id(self.account_ids.disbursed_defaulted_account_id)
                 .due_date(self.due_date)

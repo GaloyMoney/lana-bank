@@ -316,15 +316,12 @@ impl InterestAccrualCycle {
             .tx_id(tx_id)
             .not_yet_due_accounts(ObligationAccounts {
                 receivable_account_id: self.account_ids.interest_receivable_not_yet_due_account_id,
-                account_to_be_credited_id: self.obligations_repayment_from_account_id,
             })
             .due_accounts(ObligationAccounts {
                 receivable_account_id: self.account_ids.interest_receivable_due_account_id,
-                account_to_be_credited_id: self.obligations_repayment_from_account_id,
             })
             .overdue_accounts(ObligationAccounts {
                 receivable_account_id: self.account_ids.interest_receivable_overdue_account_id,
-                account_to_be_credited_id: self.obligations_repayment_from_account_id,
             })
             .defaulted_account_id(self.account_ids.interest_defaulted_account_id)
             .due_date(due_date)
