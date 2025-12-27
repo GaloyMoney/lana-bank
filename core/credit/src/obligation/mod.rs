@@ -18,7 +18,8 @@ use crate::{
     event::CoreCreditEvent,
     jobs::obligation_due,
     primitives::{
-        CoreCreditAction, CoreCreditObject, CreditFacilityId, ObligationId, PaymentId, UsdCents,
+        CalaAccountId, CoreCreditAction, CoreCreditObject, CreditFacilityId, ObligationId,
+        PaymentId, UsdCents,
     },
     publisher::CreditFacilityPublisher,
 };
@@ -218,6 +219,7 @@ where
         op: &mut es_entity::DbOp<'_>,
         credit_facility_id: CreditFacilityId,
         payment_id: PaymentId,
+        payment_source_account_id: CalaAccountId,
         amount: UsdCents,
         effective: chrono::NaiveDate,
     ) -> Result<(), ObligationError> {
@@ -230,9 +232,12 @@ where
         let mut remaining = amount;
         let mut new_allocations = Vec::new();
         for obligation in obligations.iter_mut() {
-            if let es_entity::Idempotent::Executed(new_allocation) =
-                obligation.allocate_payment(remaining, payment_id, effective)
-            {
+            if let es_entity::Idempotent::Executed(new_allocation) = obligation.allocate_payment(
+                remaining,
+                payment_id,
+                payment_source_account_id,
+                effective,
+            ) {
                 self.repo.update_in_op(op, obligation).await?;
                 remaining -= new_allocation.amount;
                 new_allocations.push(new_allocation);
