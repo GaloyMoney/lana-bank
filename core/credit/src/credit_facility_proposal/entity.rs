@@ -26,6 +26,7 @@ pub enum CreditFacilityProposalEvent {
         customer_type: CustomerType,
         custodian_id: Option<CustodianId>,
         disbursal_credit_account_id: CalaAccountId,
+        obligations_repayment_from_account_id: CalaAccountId,
         terms: TermValues,
         amount: UsdCents,
         status: CreditFacilityProposalStatus,
@@ -53,6 +54,7 @@ pub struct CreditFacilityProposal {
     #[builder(default, setter(strip_option))]
     pub approval_process_id: Option<ApprovalProcessId>,
     pub disbursal_credit_account_id: CalaAccountId,
+    pub obligations_repayment_from_account_id: CalaAccountId,
     pub amount: UsdCents,
     pub terms: TermValues,
 
@@ -148,6 +150,7 @@ impl CreditFacilityProposal {
                 .ledger_tx_id(LedgerTxId::new())
                 .account_ids(crate::PendingCreditFacilityAccountIds::new())
                 .disbursal_credit_account_id(self.disbursal_credit_account_id)
+                .obligations_repayment_from_account_id(self.obligations_repayment_from_account_id)
                 .collateral_id(CollateralId::new())
                 .terms(self.terms)
                 .amount(self.amount)
@@ -191,6 +194,7 @@ impl TryFromEvents<CreditFacilityProposalEvent> for CreditFacilityProposal {
                     customer_type,
                     custodian_id,
                     disbursal_credit_account_id,
+                    obligations_repayment_from_account_id,
                     terms,
                     amount,
                     ..
@@ -201,6 +205,9 @@ impl TryFromEvents<CreditFacilityProposalEvent> for CreditFacilityProposal {
                         .customer_type(*customer_type)
                         .custodian_id(*custodian_id)
                         .disbursal_credit_account_id(*disbursal_credit_account_id)
+                        .obligations_repayment_from_account_id(
+                            *obligations_repayment_from_account_id,
+                        )
                         .terms(*terms)
                         .amount(*amount);
                 }
@@ -227,6 +234,8 @@ pub struct NewCreditFacilityProposal {
     pub(super) custodian_id: Option<CustodianId>,
     #[builder(setter(into))]
     pub(super) disbursal_credit_account_id: CalaAccountId,
+    #[builder(setter(into))]
+    pub(super) obligations_repayment_from_account_id: CalaAccountId,
     terms: TermValues,
     amount: UsdCents,
 }
@@ -247,6 +256,7 @@ impl IntoEvents<CreditFacilityProposalEvent> for NewCreditFacilityProposal {
                 customer_type: self.customer_type,
                 custodian_id: self.custodian_id,
                 disbursal_credit_account_id: self.disbursal_credit_account_id,
+                obligations_repayment_from_account_id: self.obligations_repayment_from_account_id,
                 terms: self.terms,
                 amount: self.amount,
                 status: CreditFacilityProposalStatus::PendingCustomerApproval,

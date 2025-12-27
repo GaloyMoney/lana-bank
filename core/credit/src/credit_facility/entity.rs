@@ -32,6 +32,7 @@ pub enum CreditFacilityEvent {
         amount: UsdCents,
         account_ids: CreditFacilityLedgerAccountIds,
         disbursal_credit_account_id: CalaAccountId,
+        obligations_repayment_from_account_id: CalaAccountId,
         public_id: PublicId,
         activated_at: DateTime<Utc>,
         maturity_date: EffectiveDate,
@@ -171,6 +172,7 @@ pub struct CreditFacility {
     pub terms: TermValues,
     pub account_ids: CreditFacilityLedgerAccountIds,
     pub disbursal_credit_account_id: CalaAccountId,
+    pub obligations_repayment_from_account_id: CalaAccountId,
     pub public_id: PublicId,
     pub activated_at: DateTime<Utc>,
     pub maturity_date: EffectiveDate,
@@ -612,6 +614,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                     collateral_id,
                     account_ids,
                     disbursal_credit_account_id,
+                    obligations_repayment_from_account_id,
                     terms: t,
                     public_id,
                     structuring_fee_tx_id,
@@ -628,6 +631,9 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                         .terms(*t)
                         .account_ids(*account_ids)
                         .disbursal_credit_account_id(*disbursal_credit_account_id)
+                        .obligations_repayment_from_account_id(
+                            *obligations_repayment_from_account_id,
+                        )
                         .structuring_fee_tx_id(*structuring_fee_tx_id)
                         .public_id(public_id.clone())
                         .activated_at(*activated_at)
@@ -669,7 +675,10 @@ pub struct NewCreditFacility {
     #[builder(setter(skip), default)]
     pub(super) collateralization_state: CollateralizationState,
     account_ids: CreditFacilityLedgerAccountIds,
+    #[builder(setter(into))]
     disbursal_credit_account_id: CalaAccountId,
+    #[builder(setter(into))]
+    obligations_repayment_from_account_id: CalaAccountId,
     #[builder(setter(into))]
     pub(super) public_id: PublicId,
 }
@@ -700,6 +709,7 @@ impl IntoEvents<CreditFacilityEvent> for NewCreditFacility {
                 amount: self.amount,
                 account_ids: self.account_ids,
                 disbursal_credit_account_id: self.disbursal_credit_account_id,
+                obligations_repayment_from_account_id: self.obligations_repayment_from_account_id,
                 public_id: self.public_id,
                 activated_at: self.activated_at,
                 maturity_date: self.maturity_date,
@@ -794,6 +804,7 @@ mod test {
             terms: default_terms(),
             account_ids: account_ids(),
             disbursal_credit_account_id: CalaAccountId::new(),
+            obligations_repayment_from_account_id: CalaAccountId::new(),
             public_id: PublicId::new(format!("test-public-id-{}", uuid::Uuid::new_v4())),
             activated_at: activated_at(),
             maturity_date: EffectiveDate::from(activated_at() + chrono::Duration::days(90)),
