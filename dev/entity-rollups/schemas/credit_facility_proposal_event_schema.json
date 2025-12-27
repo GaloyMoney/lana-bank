@@ -237,10 +237,6 @@
           "format": "uuid",
           "type": "string"
         },
-        "obligations_repayment_from_account_id": {
-          "format": "uuid",
-          "type": "string"
-        },
         "status": {
           "$ref": "#/$defs/CreditFacilityProposalStatus"
         },
@@ -258,7 +254,6 @@
         "customer_id",
         "customer_type",
         "disbursal_credit_account_id",
-        "obligations_repayment_from_account_id",
         "terms",
         "amount",
         "status"

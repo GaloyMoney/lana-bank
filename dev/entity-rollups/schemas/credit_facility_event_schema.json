@@ -394,10 +394,6 @@
         "maturity_date": {
           "$ref": "#/$defs/EffectiveDate"
         },
-        "obligations_repayment_from_account_id": {
-          "format": "uuid",
-          "type": "string"
-        },
         "pending_credit_facility_id": {
           "format": "uuid",
           "type": "string"
@@ -432,7 +428,6 @@
         "amount",
         "account_ids",
         "disbursal_credit_account_id",
-        "obligations_repayment_from_account_id",
         "public_id",
         "activated_at",
         "maturity_date"

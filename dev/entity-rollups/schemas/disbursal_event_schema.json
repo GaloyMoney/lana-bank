@@ -125,10 +125,6 @@
             }
           ]
         },
-        "obligations_repayment_from_account_id": {
-          "format": "uuid",
-          "type": "string"
-        },
         "overdue_date": {
           "anyOf": [
             {
@@ -156,7 +152,6 @@
         "amount",
         "account_ids",
         "disbursal_credit_account_id",
-        "obligations_repayment_from_account_id",
         "due_date",
         "public_id"
       ],

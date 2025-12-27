@@ -16,7 +16,6 @@ CREATE TABLE core_pending_credit_facility_events_rollup (
   customer_id UUID,
   customer_type VARCHAR,
   disbursal_credit_account_id UUID,
-  obligations_repayment_from_account_id UUID,
   price JSONB,
   terms JSONB,
 
@@ -81,7 +80,6 @@ BEGIN
        ELSE ARRAY[]::UUID[]
      END
 ;
-    new_row.obligations_repayment_from_account_id := (NEW.event ->> 'obligations_repayment_from_account_id')::UUID;
     new_row.price := (NEW.event -> 'price');
     new_row.terms := (NEW.event -> 'terms');
   ELSE
@@ -101,7 +99,6 @@ BEGIN
     new_row.is_collateralization_state_changed := current_row.is_collateralization_state_changed;
     new_row.is_completed := current_row.is_completed;
     new_row.ledger_tx_ids := current_row.ledger_tx_ids;
-    new_row.obligations_repayment_from_account_id := current_row.obligations_repayment_from_account_id;
     new_row.price := current_row.price;
     new_row.terms := current_row.terms;
   END IF;
@@ -118,7 +115,6 @@ BEGIN
       new_row.customer_type := (NEW.event ->> 'customer_type');
       new_row.disbursal_credit_account_id := (NEW.event ->> 'disbursal_credit_account_id')::UUID;
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
-      new_row.obligations_repayment_from_account_id := (NEW.event ->> 'obligations_repayment_from_account_id')::UUID;
       new_row.terms := (NEW.event -> 'terms');
     WHEN 'collateralization_state_changed' THEN
       new_row.collateral := (NEW.event ->> 'collateral')::BIGINT;
@@ -152,7 +148,6 @@ BEGIN
     is_collateralization_state_changed,
     is_completed,
     ledger_tx_ids,
-    obligations_repayment_from_account_id,
     price,
     terms
   )
@@ -176,7 +171,6 @@ BEGIN
     new_row.is_collateralization_state_changed,
     new_row.is_completed,
     new_row.ledger_tx_ids,
-    new_row.obligations_repayment_from_account_id,
     new_row.price,
     new_row.terms
   );
