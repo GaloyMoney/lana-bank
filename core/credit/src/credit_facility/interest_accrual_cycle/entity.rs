@@ -8,7 +8,7 @@ use es_entity::*;
 
 use crate::{
     ledger::CreditFacilityLedgerAccountIds,
-    obligation::{NewObligation, ObligationAccounts, ObligationReceivableAccountIds},
+    obligation::{NewObligation, ObligationReceivableAccountIds},
     primitives::*,
     terms::{InterestPeriod, TermValues},
 };
@@ -312,15 +312,6 @@ impl InterestAccrualCycle {
                 not_yet_due: self.account_ids.interest_receivable_not_yet_due_account_id,
                 due: self.account_ids.interest_receivable_due_account_id,
                 overdue: self.account_ids.interest_receivable_overdue_account_id,
-            })
-            .not_yet_due_accounts(ObligationAccounts {
-                receivable_account_id: self.account_ids.interest_receivable_not_yet_due_account_id,
-            })
-            .due_accounts(ObligationAccounts {
-                receivable_account_id: self.account_ids.interest_receivable_due_account_id,
-            })
-            .overdue_accounts(ObligationAccounts {
-                receivable_account_id: self.account_ids.interest_receivable_overdue_account_id,
             })
             .defaulted_account_id(self.account_ids.interest_defaulted_account_id)
             .due_date(due_date)

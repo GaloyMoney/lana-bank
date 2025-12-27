@@ -5,12 +5,6 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub struct ObligationAccounts {
-    pub receivable_account_id: CalaAccountId,
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct ObligationReceivableAccountIds {
     pub not_yet_due: CalaAccountId,
     pub due: CalaAccountId,

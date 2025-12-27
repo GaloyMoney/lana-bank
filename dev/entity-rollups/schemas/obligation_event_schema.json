@@ -4,18 +4,6 @@
       "format": "date",
       "type": "string"
     },
-    "ObligationAccounts": {
-      "properties": {
-        "receivable_account_id": {
-          "format": "uuid",
-          "type": "string"
-        }
-      },
-      "required": [
-        "receivable_account_id"
-      ],
-      "type": "object"
-    },
     "ObligationReceivableAccountIds": {
       "properties": {
         "due": {
@@ -76,9 +64,6 @@
             }
           ]
         },
-        "due_accounts": {
-          "$ref": "#/$defs/ObligationAccounts"
-        },
         "due_date": {
           "$ref": "#/$defs/EffectiveDate"
         },
@@ -104,14 +89,8 @@
             }
           ]
         },
-        "not_yet_due_accounts": {
-          "$ref": "#/$defs/ObligationAccounts"
-        },
         "obligation_type": {
           "$ref": "#/$defs/ObligationType"
-        },
-        "overdue_accounts": {
-          "$ref": "#/$defs/ObligationAccounts"
         },
         "overdue_date": {
           "anyOf": [
@@ -143,9 +122,6 @@
         "reference",
         "ledger_tx_id",
         "receivable_account_ids",
-        "not_yet_due_accounts",
-        "due_accounts",
-        "overdue_accounts",
         "defaulted_account_id",
         "due_date",
         "effective"

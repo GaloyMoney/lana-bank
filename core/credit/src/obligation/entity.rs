@@ -24,9 +24,6 @@ pub enum ObligationEvent {
         reference: String,
         ledger_tx_id: LedgerTxId,
         receivable_account_ids: ObligationReceivableAccountIds,
-        not_yet_due_accounts: ObligationAccounts,
-        due_accounts: ObligationAccounts,
-        overdue_accounts: ObligationAccounts,
         defaulted_account_id: CalaAccountId,
         due_date: EffectiveDate,
         overdue_date: Option<EffectiveDate>,
@@ -418,9 +415,6 @@ pub struct NewObligation {
     #[builder(setter(strip_option), default)]
     reference: Option<String>,
     receivable_account_ids: ObligationReceivableAccountIds,
-    not_yet_due_accounts: ObligationAccounts,
-    due_accounts: ObligationAccounts,
-    overdue_accounts: ObligationAccounts,
     #[builder(setter(into))]
     defaulted_account_id: CalaAccountId,
     due_date: EffectiveDate,
@@ -466,9 +460,6 @@ impl IntoEvents<ObligationEvent> for NewObligation {
                 amount: self.amount,
                 ledger_tx_id: self.tx_id,
                 receivable_account_ids: self.receivable_account_ids,
-                not_yet_due_accounts: self.not_yet_due_accounts,
-                due_accounts: self.due_accounts,
-                overdue_accounts: self.overdue_accounts,
                 defaulted_account_id: self.defaulted_account_id,
                 due_date: self.due_date,
                 overdue_date: self.overdue_date,
@@ -550,15 +541,6 @@ mod test {
                 not_yet_due: CalaAccountId::new(),
                 due: CalaAccountId::new(),
                 overdue: CalaAccountId::new(),
-            },
-            not_yet_due_accounts: ObligationAccounts {
-                receivable_account_id: CalaAccountId::new(),
-            },
-            due_accounts: ObligationAccounts {
-                receivable_account_id: CalaAccountId::new(),
-            },
-            overdue_accounts: ObligationAccounts {
-                receivable_account_id: CalaAccountId::new(),
             },
             defaulted_account_id: CalaAccountId::new(),
             due_date: Utc::now().into(),
@@ -751,15 +733,6 @@ mod test {
                     not_yet_due: CalaAccountId::new(),
                     due: CalaAccountId::new(),
                     overdue: CalaAccountId::new(),
-                },
-                not_yet_due_accounts: ObligationAccounts {
-                    receivable_account_id: CalaAccountId::new(),
-                },
-                due_accounts: ObligationAccounts {
-                    receivable_account_id: CalaAccountId::new(),
-                },
-                overdue_accounts: ObligationAccounts {
-                    receivable_account_id: CalaAccountId::new(),
                 },
                 defaulted_account_id: CalaAccountId::new(),
                 due_date: due_timestamp(now).into(),
