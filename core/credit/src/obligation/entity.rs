@@ -118,36 +118,14 @@ impl Obligation {
         self.lifecycle_timestamps().defaulted
     }
 
-    pub fn not_yet_due_accounts(&self) -> ObligationAccounts {
+    pub fn receivable_accounts(&self) -> &ObligationReceivableAccountIds {
         self.events
             .iter_all()
             .find_map(|e| match e {
                 ObligationEvent::Initialized {
-                    not_yet_due_accounts,
+                    receivable_account_ids,
                     ..
-                } => Some(*not_yet_due_accounts),
-                _ => None,
-            })
-            .expect("Entity was not Initialized")
-    }
-
-    pub fn due_accounts(&self) -> ObligationAccounts {
-        self.events
-            .iter_all()
-            .find_map(|e| match e {
-                ObligationEvent::Initialized { due_accounts, .. } => Some(*due_accounts),
-                _ => None,
-            })
-            .expect("Entity was not Initialized")
-    }
-
-    pub fn overdue_accounts(&self) -> ObligationAccounts {
-        self.events
-            .iter_all()
-            .find_map(|e| match e {
-                ObligationEvent::Initialized {
-                    overdue_accounts, ..
-                } => Some(*overdue_accounts),
+                } => Some(receivable_account_ids),
                 _ => None,
             })
             .expect("Entity was not Initialized")
@@ -167,29 +145,16 @@ impl Obligation {
     }
 
     pub fn receivable_account_id(&self) -> Option<CalaAccountId> {
-        let (not_yet_due_accounts, due_accounts, overdue_accounts) = self
-            .events
+        self.events
             .iter_all()
             .find_map(|e| match e {
                 ObligationEvent::Initialized {
-                    not_yet_due_accounts,
-                    due_accounts,
-                    overdue_accounts,
+                    receivable_account_ids,
                     ..
-                } => Some((*not_yet_due_accounts, *due_accounts, *overdue_accounts)),
+                } => Some(receivable_account_ids.id_for_status(self.status())),
                 _ => None,
             })
-            .expect("Entity was not Initialized");
-
-        match self.status() {
-            ObligationStatus::NotYetDue => Some(not_yet_due_accounts.receivable_account_id),
-            ObligationStatus::Due => Some(due_accounts.receivable_account_id),
-            ObligationStatus::Overdue | ObligationStatus::Defaulted => {
-                Some(overdue_accounts.receivable_account_id)
-            }
-
-            ObligationStatus::Paid => None,
-        }
+            .expect("Entity was not Initialized")
     }
 
     fn expected_status(&self, now: DateTime<Utc>) -> ObligationStatus {
@@ -269,8 +234,8 @@ impl Obligation {
         let res = ObligationDueReallocationData {
             tx_id: LedgerTxId::new(),
             amount: self.outstanding(),
-            not_yet_due_account_id: self.not_yet_due_accounts().receivable_account_id,
-            due_account_id: self.due_accounts().receivable_account_id,
+            not_yet_due_account_id: self.receivable_accounts().not_yet_due,
+            due_account_id: self.receivable_accounts().due,
             effective,
         };
 
@@ -302,8 +267,8 @@ impl Obligation {
         let res = ObligationOverdueReallocationData {
             tx_id: LedgerTxId::new(),
             amount: self.outstanding(),
-            due_account_id: self.due_accounts().receivable_account_id,
-            overdue_account_id: self.overdue_accounts().receivable_account_id,
+            due_account_id: self.receivable_accounts().due,
+            overdue_account_id: self.receivable_accounts().overdue,
             effective,
         };
 

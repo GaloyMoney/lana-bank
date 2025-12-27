@@ -17,6 +17,17 @@ pub struct ObligationReceivableAccountIds {
     pub overdue: CalaAccountId,
 }
 
+impl ObligationReceivableAccountIds {
+    pub fn id_for_status(&self, status: ObligationStatus) -> Option<CalaAccountId> {
+        match status {
+            ObligationStatus::NotYetDue => Some(self.not_yet_due),
+            ObligationStatus::Due => Some(self.due),
+            ObligationStatus::Overdue | ObligationStatus::Defaulted => Some(self.overdue),
+            ObligationStatus::Paid => None,
+        }
+    }
+}
+
 pub struct ObligationDueReallocationData {
     pub tx_id: LedgerTxId,
     pub amount: UsdCents,
