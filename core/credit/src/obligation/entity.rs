@@ -388,7 +388,7 @@ impl Obligation {
                 self.receivable_account_id()
                     .expect("Obligation was already paid"),
             )
-            .account_to_be_debited_id(payment_source_account_id)
+            .payment_source_account_id(payment_source_account_id)
             .effective(effective)
             .amount(payment_amount)
             .build()
