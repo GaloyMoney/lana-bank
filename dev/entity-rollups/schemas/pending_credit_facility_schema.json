@@ -297,6 +297,10 @@
           "format": "uuid",
           "type": "string"
         },
+        "obligations_repayment_from_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
         "terms": {
           "$ref": "#/$defs/TermValues"
         },
@@ -317,7 +321,8 @@
         "terms",
         "amount",
         "account_ids",
-        "disbursal_credit_account_id"
+        "disbursal_credit_account_id",
+        "obligations_repayment_from_account_id"
       ],
       "type": "object"
     },

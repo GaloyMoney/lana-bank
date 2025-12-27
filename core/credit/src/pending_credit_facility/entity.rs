@@ -36,6 +36,7 @@ pub enum PendingCreditFacilityEvent {
         amount: UsdCents,
         account_ids: PendingCreditFacilityAccountIds,
         disbursal_credit_account_id: CalaAccountId,
+        obligations_repayment_from_account_id: CalaAccountId,
     },
     CollateralizationStateChanged {
         collateralization_state: PendingCreditFacilityCollateralizationState,
@@ -56,6 +57,7 @@ pub struct PendingCreditFacility {
     pub approval_process_id: ApprovalProcessId,
     pub account_ids: PendingCreditFacilityAccountIds,
     pub disbursal_credit_account_id: CalaAccountId,
+    pub obligations_repayment_from_account_id: CalaAccountId,
     pub customer_id: CustomerId,
     pub customer_type: CustomerType,
     pub collateral_id: CollateralId,
@@ -204,6 +206,7 @@ impl PendingCreditFacility {
             .customer_type(self.customer_type)
             .account_ids(account_ids)
             .disbursal_credit_account_id(self.disbursal_credit_account_id)
+            .obligations_repayment_from_account_id(self.obligations_repayment_from_account_id)
             .collateral_id(self.collateral_id)
             .terms(self.terms)
             .amount(self.amount)
@@ -228,6 +231,7 @@ impl PendingCreditFacility {
                 .amount(disbursal_amount)
                 .account_ids(account_ids)
                 .disbursal_credit_account_id(self.disbursal_credit_account_id)
+                .obligations_repayment_from_account_id(self.obligations_repayment_from_account_id)
                 .due_date(due_date)
                 .overdue_date(overdue_date)
                 .liquidation_date(liquidation_date);
@@ -277,6 +281,7 @@ impl TryFromEvents<PendingCreditFacilityEvent> for PendingCreditFacility {
                     amount,
                     account_ids,
                     disbursal_credit_account_id,
+                    obligations_repayment_from_account_id,
                     terms,
                     ..
                 } => {
@@ -291,6 +296,9 @@ impl TryFromEvents<PendingCreditFacilityEvent> for PendingCreditFacility {
                         .terms(*terms)
                         .account_ids(*account_ids)
                         .disbursal_credit_account_id(*disbursal_credit_account_id)
+                        .obligations_repayment_from_account_id(
+                            *obligations_repayment_from_account_id,
+                        )
                 }
                 PendingCreditFacilityEvent::CollateralizationStateChanged { .. } => {}
                 PendingCreditFacilityEvent::CollateralizationRatioChanged { .. } => {}
@@ -319,7 +327,10 @@ pub struct NewPendingCreditFacility {
     #[builder(setter(skip), default)]
     pub(super) collateralization_state: PendingCreditFacilityCollateralizationState,
     pub(super) account_ids: PendingCreditFacilityAccountIds,
+    #[builder(setter(into))]
     disbursal_credit_account_id: CalaAccountId,
+    #[builder(setter(into))]
+    obligations_repayment_from_account_id: CalaAccountId,
     terms: TermValues,
     amount: UsdCents,
 }
@@ -346,6 +357,7 @@ impl IntoEvents<PendingCreditFacilityEvent> for NewPendingCreditFacility {
                 amount: self.amount,
                 account_ids: self.account_ids,
                 disbursal_credit_account_id: self.disbursal_credit_account_id,
+                obligations_repayment_from_account_id: self.obligations_repayment_from_account_id,
             }],
         )
     }
@@ -409,6 +421,7 @@ mod test {
             terms: default_terms(),
             account_ids: PendingCreditFacilityAccountIds::new(),
             disbursal_credit_account_id: CalaAccountId::new(),
+            obligations_repayment_from_account_id: CalaAccountId::new(),
         }]
     }
 

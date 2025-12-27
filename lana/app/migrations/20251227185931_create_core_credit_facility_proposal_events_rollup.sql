@@ -11,6 +11,7 @@ CREATE TABLE core_credit_facility_proposal_events_rollup (
   customer_id UUID,
   customer_type VARCHAR,
   disbursal_credit_account_id UUID,
+  obligations_repayment_from_account_id UUID,
   status VARCHAR,
   terms JSONB,
 
@@ -57,6 +58,7 @@ BEGIN
     new_row.customer_type := (NEW.event ->> 'customer_type');
     new_row.disbursal_credit_account_id := (NEW.event ->> 'disbursal_credit_account_id')::UUID;
     new_row.is_approval_process_concluded := false;
+    new_row.obligations_repayment_from_account_id := (NEW.event ->> 'obligations_repayment_from_account_id')::UUID;
     new_row.status := (NEW.event ->> 'status');
     new_row.terms := (NEW.event -> 'terms');
   ELSE
@@ -68,6 +70,7 @@ BEGIN
     new_row.customer_type := current_row.customer_type;
     new_row.disbursal_credit_account_id := current_row.disbursal_credit_account_id;
     new_row.is_approval_process_concluded := current_row.is_approval_process_concluded;
+    new_row.obligations_repayment_from_account_id := current_row.obligations_repayment_from_account_id;
     new_row.status := current_row.status;
     new_row.terms := current_row.terms;
   END IF;
@@ -80,6 +83,7 @@ BEGIN
       new_row.customer_id := (NEW.event ->> 'customer_id')::UUID;
       new_row.customer_type := (NEW.event ->> 'customer_type');
       new_row.disbursal_credit_account_id := (NEW.event ->> 'disbursal_credit_account_id')::UUID;
+      new_row.obligations_repayment_from_account_id := (NEW.event ->> 'obligations_repayment_from_account_id')::UUID;
       new_row.status := (NEW.event ->> 'status');
       new_row.terms := (NEW.event -> 'terms');
     WHEN 'customer_approval_concluded' THEN
@@ -105,6 +109,7 @@ BEGIN
     customer_type,
     disbursal_credit_account_id,
     is_approval_process_concluded,
+    obligations_repayment_from_account_id,
     status,
     terms
   )
@@ -120,6 +125,7 @@ BEGIN
     new_row.customer_type,
     new_row.disbursal_credit_account_id,
     new_row.is_approval_process_concluded,
+    new_row.obligations_repayment_from_account_id,
     new_row.status,
     new_row.terms
   );
