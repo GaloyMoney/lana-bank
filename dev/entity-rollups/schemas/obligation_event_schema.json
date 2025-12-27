@@ -6,18 +6,13 @@
     },
     "ObligationAccounts": {
       "properties": {
-        "account_to_be_credited_id": {
-          "format": "uuid",
-          "type": "string"
-        },
         "receivable_account_id": {
           "format": "uuid",
           "type": "string"
         }
       },
       "required": [
-        "receivable_account_id",
-        "account_to_be_credited_id"
+        "receivable_account_id"
       ],
       "type": "object"
     },

@@ -191,32 +191,6 @@ impl Obligation {
         }
     }
 
-    pub fn account_to_be_credited_id(&self) -> Option<CalaAccountId> {
-        let (not_yet_due_accounts, due_accounts, overdue_accounts) = self
-            .events
-            .iter_all()
-            .find_map(|e| match e {
-                ObligationEvent::Initialized {
-                    not_yet_due_accounts,
-                    due_accounts,
-                    overdue_accounts,
-                    ..
-                } => Some((*not_yet_due_accounts, *due_accounts, *overdue_accounts)),
-                _ => None,
-            })
-            .expect("Entity was not Initialized");
-
-        match self.status() {
-            ObligationStatus::NotYetDue => Some(not_yet_due_accounts.account_to_be_credited_id),
-            ObligationStatus::Due => Some(due_accounts.account_to_be_credited_id),
-            ObligationStatus::Overdue | ObligationStatus::Defaulted => {
-                Some(overdue_accounts.account_to_be_credited_id)
-            }
-
-            ObligationStatus::Paid => None,
-        }
-    }
-
     fn expected_status(&self, now: DateTime<Utc>) -> ObligationStatus {
         let status = self.status();
         if status == ObligationStatus::Paid {
@@ -606,15 +580,12 @@ mod test {
             ledger_tx_id: LedgerTxId::new(),
             not_yet_due_accounts: ObligationAccounts {
                 receivable_account_id: CalaAccountId::new(),
-                account_to_be_credited_id: CalaAccountId::new(),
             },
             due_accounts: ObligationAccounts {
                 receivable_account_id: CalaAccountId::new(),
-                account_to_be_credited_id: CalaAccountId::new(),
             },
             overdue_accounts: ObligationAccounts {
                 receivable_account_id: CalaAccountId::new(),
-                account_to_be_credited_id: CalaAccountId::new(),
             },
             defaulted_account_id: CalaAccountId::new(),
             due_date: Utc::now().into(),
@@ -805,15 +776,12 @@ mod test {
                 ledger_tx_id: LedgerTxId::new(),
                 not_yet_due_accounts: ObligationAccounts {
                     receivable_account_id: CalaAccountId::new(),
-                    account_to_be_credited_id: CalaAccountId::new(),
                 },
                 due_accounts: ObligationAccounts {
                     receivable_account_id: CalaAccountId::new(),
-                    account_to_be_credited_id: CalaAccountId::new(),
                 },
                 overdue_accounts: ObligationAccounts {
                     receivable_account_id: CalaAccountId::new(),
-                    account_to_be_credited_id: CalaAccountId::new(),
                 },
                 defaulted_account_id: CalaAccountId::new(),
                 due_date: due_timestamp(now).into(),
