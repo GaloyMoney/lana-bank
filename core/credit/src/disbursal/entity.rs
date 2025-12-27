@@ -6,11 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-use crate::{
-    ledger::CreditFacilityLedgerAccountIds,
-    obligation::{NewObligation, ObligationReceivableAccountIds},
-    primitives::*,
-};
+use crate::{ledger::CreditFacilityLedgerAccountIds, obligation::NewObligation, primitives::*};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -233,11 +229,7 @@ impl Disbursal {
                 .reference(tx_ref.to_string())
                 .amount(self.amount)
                 .tx_id(tx_id)
-                .receivable_account_ids(ObligationReceivableAccountIds {
-                    not_yet_due: self.account_ids.disbursed_receivable_not_yet_due_account_id,
-                    due: self.account_ids.disbursed_receivable_due_account_id,
-                    overdue: self.account_ids.disbursed_receivable_overdue_account_id,
-                })
+                .receivable_account_ids(self.account_ids.disbursed_receivable())
                 .defaulted_account_id(self.account_ids.disbursed_defaulted_account_id)
                 .due_date(self.due_date)
                 .overdue_date(self.overdue_date)

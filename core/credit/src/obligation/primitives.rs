@@ -1,26 +1,5 @@
 use crate::primitives::*;
-#[cfg(feature = "json-schema")]
-use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub struct ObligationReceivableAccountIds {
-    pub not_yet_due: CalaAccountId,
-    pub due: CalaAccountId,
-    pub overdue: CalaAccountId,
-}
-
-impl ObligationReceivableAccountIds {
-    pub fn id_for_status(&self, status: ObligationStatus) -> Option<CalaAccountId> {
-        match status {
-            ObligationStatus::NotYetDue => Some(self.not_yet_due),
-            ObligationStatus::Due => Some(self.due),
-            ObligationStatus::Overdue | ObligationStatus::Defaulted => Some(self.overdue),
-            ObligationStatus::Paid => None,
-        }
-    }
-}
 
 pub struct ObligationDueReallocationData {
     pub tx_id: LedgerTxId,

@@ -7,7 +7,9 @@ use std::cmp::Ordering;
 
 use es_entity::*;
 
-use crate::{CreditFacilityId, payment_allocation::NewPaymentAllocation, primitives::*};
+use crate::{
+    ledger::ObligationReceivableAccountIds, payment_allocation::NewPaymentAllocation, primitives::*,
+};
 
 use super::{error::ObligationError, primitives::*};
 
@@ -537,11 +539,7 @@ mod test {
             amount: UsdCents::from(10),
             reference: "ref-01".to_string(),
             ledger_tx_id: LedgerTxId::new(),
-            receivable_account_ids: ObligationReceivableAccountIds {
-                not_yet_due: CalaAccountId::new(),
-                due: CalaAccountId::new(),
-                overdue: CalaAccountId::new(),
-            },
+            receivable_account_ids: ObligationReceivableAccountIds::new(),
             defaulted_account_id: CalaAccountId::new(),
             due_date: Utc::now().into(),
             overdue_date: Some(Utc::now().into()),
@@ -729,11 +727,7 @@ mod test {
                 amount: UsdCents::from(10),
                 reference: "ref-01".to_string(),
                 ledger_tx_id: LedgerTxId::new(),
-                receivable_account_ids: ObligationReceivableAccountIds {
-                    not_yet_due: CalaAccountId::new(),
-                    due: CalaAccountId::new(),
-                    overdue: CalaAccountId::new(),
-                },
+                receivable_account_ids: ObligationReceivableAccountIds::new(),
                 defaulted_account_id: CalaAccountId::new(),
                 due_date: due_timestamp(now).into(),
                 overdue_date: Some(overdue_timestamp(now).into()),

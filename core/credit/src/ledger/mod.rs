@@ -10,6 +10,7 @@ mod balance;
 mod constants;
 mod credit_facility_accounts;
 pub mod error;
+mod obligation_accounts;
 mod templates;
 mod velocity;
 
@@ -39,6 +40,7 @@ pub use balance::*;
 use constants::*;
 pub use credit_facility_accounts::*;
 use error::*;
+pub use obligation_accounts::*;
 
 #[derive(Clone, Copy)]
 pub struct InternalAccountSetDetails {
