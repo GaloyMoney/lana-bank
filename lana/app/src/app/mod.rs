@@ -367,4 +367,69 @@ impl LanaApp {
 
         Ok(ret)
     }
+
+    #[record_error_severity]
+    #[instrument(name = "lana.app.record_payment", skip(self),fields(credit_facility_proposal_id = tracing::field::Empty))]
+    pub async fn record_payment(
+        &self,
+        sub: &Subject,
+        credit_facility_id: impl Into<crate::primitives::CreditFacilityId> + std::fmt::Debug + Copy,
+        amount: core_money::UsdCents,
+    ) -> Result<crate::credit::CreditFacility, ApplicationError> {
+        let facility = self
+            .credit()
+            .find_credit_facility(credit_facility_id)
+            .await?;
+
+        let deposit_account = self
+            .deposits()
+            .find_account_by_account_holder_without_audit(facility.customer_id)
+            .await?;
+        if deposit_account.is_closed() || deposit_account.is_frozen() {
+            return Err(ApplicationError::CanNotCreateProposalForClosedOrFrozenAccount);
+        }
+
+        let ret = self
+            .credit()
+            .record_payment(sub, credit_facility_id, deposit_account.id, amount)
+            .await?;
+
+        Ok(ret)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "lana.app.record_payment_with_date", skip(self),fields(credit_facility_proposal_id = tracing::field::Empty))]
+    pub async fn record_payment_with_date(
+        &self,
+        sub: &Subject,
+        credit_facility_id: impl Into<crate::primitives::CreditFacilityId> + std::fmt::Debug + Copy,
+        amount: core_money::UsdCents,
+        effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
+    ) -> Result<crate::credit::CreditFacility, ApplicationError> {
+        let facility = self
+            .credit()
+            .find_credit_facility(credit_facility_id)
+            .await?;
+
+        let deposit_account = self
+            .deposits()
+            .find_account_by_account_holder_without_audit(facility.customer_id)
+            .await?;
+        if deposit_account.is_closed() || deposit_account.is_frozen() {
+            return Err(ApplicationError::CanNotCreateProposalForClosedOrFrozenAccount);
+        }
+
+        let ret = self
+            .credit()
+            .record_payment_with_date(
+                sub,
+                credit_facility_id,
+                deposit_account.id,
+                amount,
+                effective,
+            )
+            .await?;
+
+        Ok(ret)
+    }
 }

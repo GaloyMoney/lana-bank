@@ -377,6 +377,7 @@ impl Obligation {
         &mut self,
         amount: UsdCents,
         payment_id: PaymentId,
+        payment_source_account_id: CalaAccountId,
         effective: chrono::NaiveDate,
     ) -> Idempotent<NewPaymentAllocation> {
         idempotency_guard!(
@@ -413,10 +414,7 @@ impl Obligation {
                 self.receivable_account_id()
                     .expect("Obligation was already paid"),
             )
-            .account_to_be_debited_id(
-                self.account_to_be_credited_id()
-                    .expect("Obligation was already paid"),
-            )
+            .account_to_be_debited_id(payment_source_account_id)
             .effective(effective)
             .amount(payment_amount)
             .build()
@@ -761,7 +759,12 @@ mod test {
     fn completes_on_final_payment_allocation() {
         let mut obligation = obligation_from(initial_events());
         obligation
-            .allocate_payment(UsdCents::ONE, PaymentId::new(), Utc::now().date_naive())
+            .allocate_payment(
+                UsdCents::ONE,
+                PaymentId::new(),
+                CalaAccountId::new(),
+                Utc::now().date_naive(),
+            )
             .unwrap();
         assert_eq!(obligation.status(), ObligationStatus::NotYetDue);
 
@@ -769,6 +772,7 @@ mod test {
             .allocate_payment(
                 obligation.outstanding(),
                 PaymentId::new(),
+                CalaAccountId::new(),
                 Utc::now().date_naive(),
             )
             .unwrap();

@@ -62,6 +62,8 @@ pub enum ApplicationError {
     TracingError(#[from] tracing_utils::TracingError),
     #[error("ApplicationError - CanNotCreateProposalForClosedOrFrozenAccount")]
     CanNotCreateProposalForClosedOrFrozenAccount,
+    #[error("ApplicationError - ClosedOrFrozenAccount")]
+    ClosedOrFrozenAccount,
 }
 
 impl ErrorSeverity for ApplicationError {
@@ -96,6 +98,7 @@ impl ErrorSeverity for ApplicationError {
             Self::ReportError(e) => e.severity(),
             Self::TracingError(e) => e.severity(),
             Self::CanNotCreateProposalForClosedOrFrozenAccount => Level::WARN,
+            Self::ClosedOrFrozenAccount => Level::WARN,
         }
     }
 }
