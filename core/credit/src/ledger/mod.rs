@@ -1282,7 +1282,7 @@ impl CreditLedger {
         allocation @ PaymentAllocation {
             ledger_tx_id,
             amount,
-            account_to_be_debited_id,
+            payment_source_account_id,
             receivable_account_id,
             effective,
             ..
@@ -1293,7 +1293,7 @@ impl CreditLedger {
             currency: self.usd,
             amount: amount.to_usd(),
             receivable_account_id,
-            account_to_be_debited_id,
+            account_to_be_debited_id: payment_source_account_id,
             tx_ref: allocation.tx_ref(),
             effective,
         };
