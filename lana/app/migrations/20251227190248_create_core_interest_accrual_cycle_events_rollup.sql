@@ -13,6 +13,7 @@ CREATE TABLE core_interest_accrual_cycle_events_rollup (
   facility_maturity_date VARCHAR,
   idx INTEGER,
   obligation_id UUID,
+  obligations_repayment_from_account_id UUID,
   period JSONB,
   terms JSONB,
   total BIGINT,
@@ -72,6 +73,7 @@ BEGIN
      END
 ;
     new_row.obligation_id := (NEW.event ->> 'obligation_id')::UUID;
+    new_row.obligations_repayment_from_account_id := (NEW.event ->> 'obligations_repayment_from_account_id')::UUID;
     new_row.period := (NEW.event -> 'period');
     new_row.terms := (NEW.event -> 'terms');
     new_row.total := (NEW.event ->> 'total')::BIGINT;
@@ -88,6 +90,7 @@ BEGIN
     new_row.is_interest_accruals_posted := current_row.is_interest_accruals_posted;
     new_row.ledger_tx_ids := current_row.ledger_tx_ids;
     new_row.obligation_id := current_row.obligation_id;
+    new_row.obligations_repayment_from_account_id := current_row.obligations_repayment_from_account_id;
     new_row.period := current_row.period;
     new_row.terms := current_row.terms;
     new_row.total := current_row.total;
@@ -101,6 +104,7 @@ BEGIN
       new_row.facility_id := (NEW.event ->> 'facility_id')::UUID;
       new_row.facility_maturity_date := (NEW.event ->> 'facility_maturity_date');
       new_row.idx := (NEW.event ->> 'idx')::INTEGER;
+      new_row.obligations_repayment_from_account_id := (NEW.event ->> 'obligations_repayment_from_account_id')::UUID;
       new_row.period := (NEW.event -> 'period');
       new_row.terms := (NEW.event -> 'terms');
     WHEN 'interest_accrued' THEN
@@ -132,6 +136,7 @@ BEGIN
     is_interest_accruals_posted,
     ledger_tx_ids,
     obligation_id,
+    obligations_repayment_from_account_id,
     period,
     terms,
     total,
@@ -152,6 +157,7 @@ BEGIN
     new_row.is_interest_accruals_posted,
     new_row.ledger_tx_ids,
     new_row.obligation_id,
+    new_row.obligations_repayment_from_account_id,
     new_row.period,
     new_row.terms,
     new_row.total,

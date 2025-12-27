@@ -407,6 +407,7 @@ impl CreditFacility {
             .id(id)
             .credit_facility_id(self.id)
             .account_ids(self.account_ids.into())
+            .obligations_repayment_from_account_id(self.obligations_repayment_from_account_id)
             .idx(idx)
             .period(accrual_cycle_period)
             .facility_maturity_date(self.maturity_date)
