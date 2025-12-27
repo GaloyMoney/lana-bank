@@ -709,6 +709,7 @@ where
             .amount(amount)
             .account_ids(facility.account_ids)
             .disbursal_credit_account_id(facility.disbursal_credit_account_id)
+            .obligations_repayment_from_account_id(facility.obligations_repayment_from_account_id)
             .due_date(due_date)
             .overdue_date(overdue_date)
             .liquidation_date(liquidation_date)

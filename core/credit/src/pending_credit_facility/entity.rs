@@ -231,6 +231,7 @@ impl PendingCreditFacility {
                 .amount(disbursal_amount)
                 .account_ids(account_ids)
                 .disbursal_credit_account_id(self.disbursal_credit_account_id)
+                .obligations_repayment_from_account_id(self.obligations_repayment_from_account_id)
                 .due_date(due_date)
                 .overdue_date(overdue_date)
                 .liquidation_date(liquidation_date);
