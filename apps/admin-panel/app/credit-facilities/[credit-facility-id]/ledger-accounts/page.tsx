@@ -50,9 +50,6 @@ gql`
         facilityAccount {
           ...LedgerAccountInfo
         }
-        inLiquidationAccount {
-          ...LedgerAccountInfo
-        }
         disbursedReceivableNotYetDueAccount {
           ...LedgerAccountInfo
         }
@@ -66,6 +63,12 @@ gql`
           ...LedgerAccountInfo
         }
         collateralAccount {
+          ...LedgerAccountInfo
+        }
+        collateralInLiquidationAccount {
+          ...LedgerAccountInfo
+        }
+        liquidationPaymentReceivableAccount {
           ...LedgerAccountInfo
         }
         interestReceivableNotYetDueAccount {
@@ -113,13 +116,14 @@ export default function CreditFacilityLedgerAccountsPage({
 
   const ledgerAccountsData: LedgerAccountInfoFragment[] = [
     ledgerAccounts.collateralAccount,
+    ledgerAccounts.collateralInLiquidationAccount,
+    ledgerAccounts.liquidationPaymentReceivableAccount,
     ledgerAccounts.disbursedDefaultedAccount,
     ledgerAccounts.disbursedReceivableDueAccount,
     ledgerAccounts.disbursedReceivableNotYetDueAccount,
     ledgerAccounts.disbursedReceivableOverdueAccount,
     ledgerAccounts.facilityAccount,
     ledgerAccounts.feeIncomeAccount,
-    ledgerAccounts.inLiquidationAccount,
     ledgerAccounts.interestDefaultedAccount,
     ledgerAccounts.interestIncomeAccount,
     ledgerAccounts.interestReceivableDueAccount,

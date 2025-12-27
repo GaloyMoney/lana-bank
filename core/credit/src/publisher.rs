@@ -99,7 +99,6 @@ where
                 }),
                 PartialLiquidationInitiated {
                     liquidation_id,
-                    receivable_account_id,
                     trigger_price,
                     initially_expected_to_receive,
                     initially_estimated_to_liquidate,
@@ -107,7 +106,6 @@ where
                     credit_facility_id: entity.id,
                     liquidation_id: *liquidation_id,
                     customer_id: entity.customer_id,
-                    receivable_account_id: *receivable_account_id,
                     trigger_price: *trigger_price,
                     initially_expected_to_receive: *initially_expected_to_receive,
                     initially_estimated_to_liquidate: *initially_estimated_to_liquidate,

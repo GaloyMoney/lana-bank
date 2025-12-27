@@ -57,7 +57,6 @@ pub enum CreditFacilityEvent {
     },
     PartialLiquidationInitiated {
         liquidation_id: LiquidationId,
-        receivable_account_id: CalaAccountId,
         trigger_price: PriceOfOneBTC,
         initially_expected_to_receive: UsdCents,
         initially_estimated_to_liquidate: Satoshis,
@@ -293,7 +292,6 @@ impl CreditFacility {
         self.events
             .push(CreditFacilityEvent::PartialLiquidationInitiated {
                 liquidation_id: LiquidationId::new(),
-                receivable_account_id: CalaAccountId::new(),
                 trigger_price: price,
                 initially_expected_to_receive: repay_amount,
                 initially_estimated_to_liquidate: liquidate_btc,
@@ -765,7 +763,6 @@ mod test {
     fn account_ids() -> CreditFacilityLedgerAccountIds {
         CreditFacilityLedgerAccountIds {
             facility_account_id: CalaAccountId::new(),
-            in_liquidation_account_id: CalaAccountId::new(),
             disbursed_receivable_not_yet_due_account_id: CalaAccountId::new(),
             disbursed_receivable_due_account_id: CalaAccountId::new(),
             disbursed_receivable_overdue_account_id: CalaAccountId::new(),
@@ -777,6 +774,9 @@ mod test {
             interest_defaulted_account_id: CalaAccountId::new(),
             interest_income_account_id: CalaAccountId::new(),
             fee_income_account_id: CalaAccountId::new(),
+            collateral_in_liquidation_account_id: CalaAccountId::new(),
+            liquidated_collateral_account_id: CalaAccountId::new(),
+            liquidation_payment_receivable_account_id: CalaAccountId::new(),
         }
     }
 
