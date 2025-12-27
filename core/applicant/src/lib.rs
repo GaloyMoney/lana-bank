@@ -193,8 +193,12 @@ where
         event: &InboxEvent,
     ) -> Result<InboxResult, Box<dyn std::error::Error + Send + Sync>> {
         let payload: serde_json::Value = event.payload()?;
+        payload["externalUserId"]
+            .as_str()
+            .ok_or_else(|| ApplicantError::MissingExternalUserId(payload.to_string()))?
+            .parse::<CustomerId>()?;
 
-        match Self::process_payload(&self.customers, payload).await {
+        match self.process_payload(payload).await {
             Ok(_) => (),
             // Silently ignoring these errors instead of returning,
             // this prevents sumsub from retrying for these unhandled cases
@@ -218,13 +222,10 @@ where
     #[record_error_severity]
     #[instrument(
         name = "applicant.process_payload",
-        skip(customers),
+        skip(self),
         fields(ignore_for_sandbox = false, callback_type = tracing::field::Empty, sandbox_mode = tracing::field::Empty, applicant_id = tracing::field::Empty, kyc_level = tracing::field::Empty, customer_id = tracing::field::Empty)
     )]
-    async fn process_payload(
-        customers: &Customers<Perms, E>,
-        payload: serde_json::Value,
-    ) -> Result<(), ApplicantError> {
+    async fn process_payload(&self, payload: serde_json::Value) -> Result<(), ApplicantError> {
         match serde_json::from_value(payload.clone())? {
             SumsubCallbackPayload::ApplicantCreated {
                 external_user_id,
@@ -242,15 +243,15 @@ where
                     .record("customer_id", external_user_id.to_string().as_str());
 
                 if sandbox {
-                    let maybe_customer = customers
+                    let res = self
+                        .customers
                         .handle_kyc_started_if_exists(external_user_id, applicant_id)
                         .await?;
-                    if maybe_customer.is_none() {
+                    if res.is_none() {
                         tracing::Span::current().record("ignore_for_sandbox", true);
-                        return Ok(());
                     }
                 } else {
-                    customers
+                    self.customers
                         .handle_kyc_started(external_user_id, applicant_id)
                         .await?;
                 }
@@ -276,15 +277,15 @@ where
                     .record("customer_id", external_user_id.to_string().as_str());
 
                 if sandbox {
-                    let maybe_customer = customers
+                    let res = self
+                        .customers
                         .handle_kyc_declined_if_exists(external_user_id, applicant_id)
                         .await?;
-                    if maybe_customer.is_none() {
+                    if res.is_none() {
                         tracing::Span::current().record("ignore_for_sandbox", true);
-                        return Ok(());
                     }
                 } else {
-                    customers
+                    self.customers
                         .handle_kyc_declined(external_user_id, applicant_id)
                         .await?;
                 }
@@ -317,15 +318,15 @@ where
                 };
 
                 if sandbox {
-                    let maybe_customer = customers
+                    let res = self
+                        .customers
                         .handle_kyc_approved_if_exists(external_user_id, applicant_id)
                         .await?;
-                    if maybe_customer.is_none() {
+                    if res.is_none() {
                         tracing::Span::current().record("ignore_for_sandbox", true);
-                        return Ok(());
                     }
                 } else {
-                    customers
+                    self.customers
                         .handle_kyc_approved(external_user_id, applicant_id)
                         .await?;
                 }
