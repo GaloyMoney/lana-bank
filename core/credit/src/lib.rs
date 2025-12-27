@@ -540,6 +540,18 @@ where
     }
 
     #[record_error_severity]
+    #[instrument(name = "credit.find_credit_facility", skip(self))]
+    pub async fn find_credit_facility(
+        &self,
+        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug,
+    ) -> Result<CreditFacility, CoreCreditError> {
+        Ok(self
+            .facilities
+            .find_by_id_without_audit(credit_facility_id)
+            .await?)
+    }
+
+    #[record_error_severity]
     #[instrument(name = "credit.create_proposal", skip(self),fields(credit_facility_proposal_id = tracing::field::Empty))]
     pub async fn create_facility_proposal(
         &self,
@@ -573,7 +585,6 @@ where
             .customer_type(customer.customer_type)
             .custodian_id(custodian_id.map(|id| id.into()))
             .disbursal_credit_account_id(deposit_account_id)
-            .obligations_repayment_from_account_id(deposit_account_id)
             .terms(terms)
             .amount(amount)
             .build()
@@ -709,7 +720,6 @@ where
             .amount(amount)
             .account_ids(facility.account_ids)
             .disbursal_credit_account_id(facility.disbursal_credit_account_id)
-            .obligations_repayment_from_account_id(facility.obligations_repayment_from_account_id)
             .due_date(due_date)
             .overdue_date(overdue_date)
             .liquidation_date(liquidation_date)
@@ -877,6 +887,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug + Copy,
+        payment_source_account_id: impl Into<CalaAccountId> + std::fmt::Debug + Copy,
         amount: UsdCents,
     ) -> Result<CreditFacility, CoreCreditError> {
         self.subject_can_record_payment(sub, true)
@@ -884,6 +895,7 @@ where
             .expect("audit info missing");
 
         let credit_facility_id = credit_facility_id.into();
+        let payment_source_account_id = payment_source_account_id.into();
 
         tracing::Span::current().record(
             "credit_facility_id",
@@ -908,6 +920,7 @@ where
                 &mut db,
                 credit_facility_id,
                 payment_id,
+                payment_source_account_id,
                 amount,
                 crate::time::now().date_naive(),
             )
@@ -941,6 +954,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug + Copy,
+        payment_source_account_id: impl Into<CalaAccountId> + std::fmt::Debug + Copy,
         amount: UsdCents,
         effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
     ) -> Result<CreditFacility, CoreCreditError> {
@@ -949,6 +963,7 @@ where
             .expect("audit info missing");
 
         let credit_facility_id = credit_facility_id.into();
+        let payment_source_account_id = payment_source_account_id.into();
 
         let credit_facility = self
             .facilities
@@ -968,6 +983,7 @@ where
                 &mut db,
                 credit_facility_id,
                 payment_id,
+                payment_source_account_id,
                 amount,
                 effective.into(),
             )

@@ -16,7 +16,7 @@ pub struct RecordPaymentAllocationParams {
     pub journal_id: JournalId,
     pub currency: Currency,
     pub amount: Decimal,
-    pub account_to_be_debited_id: CalaAccountId,
+    pub payment_source_account_id: CalaAccountId,
     pub receivable_account_id: CalaAccountId,
     pub tx_ref: String,
     pub effective: chrono::NaiveDate,
@@ -46,7 +46,7 @@ impl RecordPaymentAllocationParams {
                 .build()
                 .unwrap(),
             NewParamDefinition::builder()
-                .name("account_to_be_debited_id")
+                .name("payment_source_account_id")
                 .r#type(ParamDataType::Uuid)
                 .build()
                 .unwrap(),
@@ -69,7 +69,7 @@ impl From<RecordPaymentAllocationParams> for Params {
             journal_id,
             currency,
             amount,
-            account_to_be_debited_id,
+            payment_source_account_id,
             receivable_account_id,
             tx_ref,
             effective,
@@ -80,7 +80,7 @@ impl From<RecordPaymentAllocationParams> for Params {
         params.insert("journal_id", journal_id);
         params.insert("currency", currency);
         params.insert("amount", amount);
-        params.insert("account_to_be_debited_id", account_to_be_debited_id);
+        params.insert("payment_source_account_id", payment_source_account_id);
         params.insert("receivable_account_id", receivable_account_id);
         params.insert("effective", effective);
 
@@ -105,7 +105,7 @@ impl RecordPaymentAllocation {
             NewTxTemplateEntry::builder()
                 .entry_type("'RECORD_PAYMENT_ALLOCATION_DR'")
                 .currency("params.currency")
-                .account_id("params.account_to_be_debited_id")
+                .account_id("params.payment_source_account_id")
                 .direction("DEBIT")
                 .layer("SETTLED")
                 .units("params.amount")

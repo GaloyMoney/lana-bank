@@ -17,10 +17,6 @@
   "oneOf": [
     {
       "properties": {
-        "account_to_be_debited_id": {
-          "format": "uuid",
-          "type": "string"
-        },
         "amount": {
           "$ref": "#/$defs/UsdCents"
         },
@@ -56,6 +52,10 @@
           "format": "uuid",
           "type": "string"
         },
+        "payment_source_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
         "receivable_account_id": {
           "format": "uuid",
           "type": "string"
@@ -76,7 +76,7 @@
         "credit_facility_id",
         "amount",
         "receivable_account_id",
-        "account_to_be_debited_id",
+        "payment_source_account_id",
         "effective"
       ],
       "type": "object"

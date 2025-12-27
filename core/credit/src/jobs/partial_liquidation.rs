@@ -243,6 +243,7 @@ where
                             db,
                             self.config.credit_facility_id,
                             *payment_id,
+                            crate::primitives::CalaAccountId::new(), // TODO: replace with actual account from Liquidation entity
                             *amount,
                             crate::time::now().date_naive(),
                         )

@@ -23,7 +23,7 @@ pub enum PaymentAllocationEvent {
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
         receivable_account_id: CalaAccountId,
-        account_to_be_debited_id: CalaAccountId,
+        payment_source_account_id: CalaAccountId,
         effective: chrono::NaiveDate,
     },
 }
@@ -38,7 +38,7 @@ pub struct PaymentAllocation {
     pub credit_facility_id: CreditFacilityId,
     pub ledger_tx_id: LedgerTxId,
     pub amount: UsdCents,
-    pub account_to_be_debited_id: CalaAccountId,
+    pub payment_source_account_id: CalaAccountId,
     pub receivable_account_id: CalaAccountId,
     pub effective: chrono::NaiveDate,
 
@@ -69,7 +69,7 @@ impl TryFromEvents<PaymentAllocationEvent> for PaymentAllocation {
                     credit_facility_id,
                     ledger_tx_id,
                     amount,
-                    account_to_be_debited_id,
+                    payment_source_account_id,
                     receivable_account_id,
                     effective,
                     ..
@@ -82,7 +82,7 @@ impl TryFromEvents<PaymentAllocationEvent> for PaymentAllocation {
                         .credit_facility_id(*credit_facility_id)
                         .ledger_tx_id(*ledger_tx_id)
                         .amount(*amount)
-                        .account_to_be_debited_id(*account_to_be_debited_id)
+                        .payment_source_account_id(*payment_source_account_id)
                         .receivable_account_id(*receivable_account_id)
                         .effective(*effective)
                 }
@@ -110,7 +110,7 @@ pub struct NewPaymentAllocation {
     pub(crate) payment_allocation_idx: usize,
     pub(crate) credit_facility_id: CreditFacilityId,
     pub(crate) receivable_account_id: CalaAccountId,
-    pub(crate) account_to_be_debited_id: CalaAccountId,
+    pub(crate) payment_source_account_id: CalaAccountId,
     pub(crate) effective: chrono::NaiveDate,
     #[builder(setter(into))]
     pub(crate) amount: UsdCents,
@@ -134,7 +134,7 @@ impl IntoEvents<PaymentAllocationEvent> for NewPaymentAllocation {
                 obligation_type: self.obligation_type,
                 credit_facility_id: self.credit_facility_id,
                 amount: self.amount,
-                account_to_be_debited_id: self.account_to_be_debited_id,
+                payment_source_account_id: self.payment_source_account_id,
                 effective: self.effective,
                 receivable_account_id: self.receivable_account_id,
             }],

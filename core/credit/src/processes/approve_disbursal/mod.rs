@@ -116,6 +116,7 @@ where
                     .settle_disbursal(
                         &mut op,
                         disbursal.id,
+                        disbursal.disbursal_credit_account_id,
                         obligation,
                         credit_facility.account_ids.facility_account_id,
                     )
