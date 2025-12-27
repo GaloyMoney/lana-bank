@@ -1729,7 +1729,7 @@ impl CreditLedger {
                     credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
                     credit_facility_account: facility_account_id,
                     facility_disbursed_receivable_account,
-                    account_to_be_credited_id: disbursed_into_account_id,
+                    disbursed_into_account_id,
                     disbursed_amount: amount.to_usd(),
                     external_id,
                 },
