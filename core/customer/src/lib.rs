@@ -253,26 +253,9 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "customer.start_kyc", skip(self, db))]
-    pub async fn start_kyc(
+    #[instrument(name = "customer.handle_kyc_started_if_exists", skip(self))]
+    pub async fn handle_kyc_started_if_exists(
         &self,
-        db: &mut es_entity::DbOp<'_>,
-        customer_id: CustomerId,
-        applicant_id: String,
-    ) -> Result<Customer, CustomerError> {
-        let mut customer = self.repo.find_by_id(customer_id).await?;
-
-        self.apply_start_kyc(db, &mut customer, applicant_id)
-            .await?;
-
-        Ok(customer)
-    }
-
-    #[record_error_severity]
-    #[instrument(name = "customer.start_kyc_if_exists", skip(self, db))]
-    pub async fn start_kyc_if_exists(
-        &self,
-        db: &mut es_entity::DbOp<'_>,
         customer_id: CustomerId,
         applicant_id: String,
     ) -> Result<Option<Customer>, CustomerError> {
@@ -280,149 +263,149 @@ where
             return Ok(None);
         };
 
-        self.apply_start_kyc(db, &mut customer, applicant_id)
-            .await?;
-
-        Ok(Some(customer))
-    }
-
-    #[record_error_severity]
-    #[instrument(name = "customer.approve_kyc", skip(self, db))]
-    pub async fn approve_kyc(
-        &self,
-        db: &mut es_entity::DbOp<'_>,
-        customer_id: CustomerId,
-        applicant_id: String,
-    ) -> Result<Customer, CustomerError> {
-        let mut customer = self.repo.find_by_id(customer_id).await?;
-
-        self.apply_approve_kyc(db, &mut customer, applicant_id)
-            .await?;
-
-        Ok(customer)
-    }
-
-    #[record_error_severity]
-    #[instrument(name = "customer.approve_kyc_if_exists", skip(self, db))]
-    pub async fn approve_kyc_if_exists(
-        &self,
-        db: &mut es_entity::DbOp<'_>,
-        customer_id: CustomerId,
-        applicant_id: String,
-    ) -> Result<Option<Customer>, CustomerError> {
-        let Some(mut customer) = self.repo.maybe_find_by_id(customer_id).await? else {
-            return Ok(None);
-        };
-
-        self.apply_approve_kyc(db, &mut customer, applicant_id)
-            .await?;
-
-        Ok(Some(customer))
-    }
-
-    #[record_error_severity]
-    #[instrument(name = "customer.decline_kyc", skip(self, db))]
-    pub async fn decline_kyc(
-        &self,
-        db: &mut es_entity::DbOp<'_>,
-        customer_id: CustomerId,
-        applicant_id: String,
-    ) -> Result<Customer, CustomerError> {
-        let mut customer = self.repo.find_by_id(customer_id).await?;
-
-        self.apply_decline_kyc(db, &mut customer, applicant_id)
-            .await?;
-
-        Ok(customer)
-    }
-
-    #[record_error_severity]
-    #[instrument(name = "customer.decline_kyc_if_exists", skip(self, db))]
-    pub async fn decline_kyc_if_exists(
-        &self,
-        db: &mut es_entity::DbOp<'_>,
-        customer_id: CustomerId,
-        applicant_id: String,
-    ) -> Result<Option<Customer>, CustomerError> {
-        let Some(mut customer) = self.repo.maybe_find_by_id(customer_id).await? else {
-            return Ok(None);
-        };
-
-        self.apply_decline_kyc(db, &mut customer, applicant_id)
-            .await?;
-
-        Ok(Some(customer))
-    }
-
-    async fn apply_start_kyc(
-        &self,
-        db: &mut es_entity::DbOp<'_>,
-        customer: &mut Customer,
-        applicant_id: String,
-    ) -> Result<(), CustomerError> {
         self.authz
             .audit()
-            .record_system_entry_in_tx(
-                db,
+            .record_system_entry(
                 CustomerObject::customer(customer.id),
                 CoreCustomerAction::CUSTOMER_START_KYC,
             )
             .await?;
 
-        customer.start_kyc(applicant_id);
+        if customer.start_kyc(applicant_id).did_execute() {
+            self.repo.update(&mut customer).await?;
+        }
 
-        self.repo.update_in_op(db, customer).await?;
-
-        Ok(())
+        Ok(Some(customer))
     }
 
-    async fn apply_approve_kyc(
+    #[record_error_severity]
+    #[instrument(name = "customer.handle_kyc_started", skip(self))]
+    pub async fn handle_kyc_started(
         &self,
-        db: &mut es_entity::DbOp<'_>,
-        customer: &mut Customer,
+        customer_id: CustomerId,
         applicant_id: String,
-    ) -> Result<(), CustomerError> {
+    ) -> Result<Customer, CustomerError> {
+        let mut customer = self.repo.find_by_id(customer_id).await?;
+
         self.authz
             .audit()
-            .record_system_entry_in_tx(
-                db,
+            .record_system_entry(
+                CustomerObject::customer(customer.id),
+                CoreCustomerAction::CUSTOMER_START_KYC,
+            )
+            .await?;
+
+        if customer.start_kyc(applicant_id).did_execute() {
+            self.repo.update(&mut customer).await?;
+        }
+
+        Ok(customer)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "customer.handle_kyc_approved_if_exists", skip(self))]
+    pub async fn handle_kyc_approved_if_exists(
+        &self,
+        customer_id: CustomerId,
+        applicant_id: String,
+    ) -> Result<Option<Customer>, CustomerError> {
+        let Some(mut customer) = self.repo.maybe_find_by_id(customer_id).await? else {
+            return Ok(None);
+        };
+
+        self.authz
+            .audit()
+            .record_system_entry(
                 CustomerObject::customer(customer.id),
                 CoreCustomerAction::CUSTOMER_APPROVE_KYC,
             )
             .await?;
 
         if customer
-            // TODO: this is wrong, we should pass the SumSub verification level
-            // because we also have KYB approval
             .approve_kyc(KycLevel::Basic, applicant_id)
             .did_execute()
         {
-            self.repo.update_in_op(db, customer).await?;
+            self.repo.update(&mut customer).await?;
         }
 
-        Ok(())
+        Ok(Some(customer))
     }
 
-    async fn apply_decline_kyc(
+    #[record_error_severity]
+    #[instrument(name = "customer.handle_kyc_approved", skip(self))]
+    pub async fn handle_kyc_approved(
         &self,
-        db: &mut es_entity::DbOp<'_>,
-        customer: &mut Customer,
+        customer_id: CustomerId,
         applicant_id: String,
-    ) -> Result<(), CustomerError> {
+    ) -> Result<Customer, CustomerError> {
+        let mut customer = self.repo.find_by_id(customer_id).await?;
+
         self.authz
             .audit()
-            .record_system_entry_in_tx(
-                db,
+            .record_system_entry(
+                CustomerObject::customer(customer.id),
+                CoreCustomerAction::CUSTOMER_APPROVE_KYC,
+            )
+            .await?;
+
+        if customer
+            .approve_kyc(KycLevel::Basic, applicant_id)
+            .did_execute()
+        {
+            self.repo.update(&mut customer).await?;
+        }
+
+        Ok(customer)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "customer.handle_kyc_declined_if_exists", skip(self))]
+    pub async fn handle_kyc_declined_if_exists(
+        &self,
+        customer_id: CustomerId,
+        applicant_id: String,
+    ) -> Result<Option<Customer>, CustomerError> {
+        let Some(mut customer) = self.repo.maybe_find_by_id(customer_id).await? else {
+            return Ok(None);
+        };
+
+        self.authz
+            .audit()
+            .record_system_entry(
                 CustomerObject::customer(customer.id),
                 CoreCustomerAction::CUSTOMER_DECLINE_KYC,
             )
             .await?;
 
         if customer.decline_kyc(applicant_id).did_execute() {
-            self.repo.update_in_op(db, customer).await?;
+            self.repo.update(&mut customer).await?;
         }
 
-        Ok(())
+        Ok(Some(customer))
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "customer.handle_kyc_declined", skip(self))]
+    pub async fn handle_kyc_declined(
+        &self,
+        customer_id: CustomerId,
+        applicant_id: String,
+    ) -> Result<Customer, CustomerError> {
+        let mut customer = self.repo.find_by_id(customer_id).await?;
+
+        self.authz
+            .audit()
+            .record_system_entry(
+                CustomerObject::customer(customer.id),
+                CoreCustomerAction::CUSTOMER_DECLINE_KYC,
+            )
+            .await?;
+
+        if customer.decline_kyc(applicant_id).did_execute() {
+            self.repo.update(&mut customer).await?;
+        }
+
+        Ok(customer)
     }
 
     #[record_error_severity]

@@ -88,11 +88,16 @@ impl Customer {
         self.applicant_id.is_some()
     }
 
-    pub fn start_kyc(&mut self, applicant_id: String) {
+    pub fn start_kyc(&mut self, applicant_id: String) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            CustomerEvent::KycStarted { .. }
+        );
         self.events.push(CustomerEvent::KycStarted {
             applicant_id: applicant_id.clone(),
         });
         self.applicant_id = Some(applicant_id);
+        Idempotent::Executed(())
     }
 
     pub fn approve_kyc(&mut self, level: KycLevel, applicant_id: String) -> Idempotent<()> {
