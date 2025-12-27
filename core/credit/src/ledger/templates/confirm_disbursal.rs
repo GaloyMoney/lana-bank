@@ -20,7 +20,7 @@ pub struct ConfirmDisbursalParams {
     pub credit_omnibus_account: CalaAccountId,
     pub credit_facility_account: CalaAccountId,
     pub facility_disbursed_receivable_account: CalaAccountId,
-    pub account_to_be_credited_id: CalaAccountId,
+    pub disbursed_into_account_id: CalaAccountId,
     pub disbursed_amount: Decimal,
     pub external_id: String,
 }
@@ -49,7 +49,7 @@ impl ConfirmDisbursalParams {
                 .build()
                 .unwrap(),
             NewParamDefinition::builder()
-                .name("account_to_be_credited_id")
+                .name("disbursed_into_account_id")
                 .r#type(ParamDataType::Uuid)
                 .build()
                 .unwrap(),
@@ -85,7 +85,7 @@ impl From<ConfirmDisbursalParams> for Params {
             credit_omnibus_account,
             credit_facility_account,
             facility_disbursed_receivable_account,
-            account_to_be_credited_id,
+            disbursed_into_account_id,
             disbursed_amount,
             external_id,
         }: ConfirmDisbursalParams,
@@ -98,7 +98,7 @@ impl From<ConfirmDisbursalParams> for Params {
             "facility_disbursed_receivable_account",
             facility_disbursed_receivable_account,
         );
-        params.insert("account_to_be_credited_id", account_to_be_credited_id);
+        params.insert("disbursed_into_account_id", disbursed_into_account_id);
         params.insert("disbursed_amount", disbursed_amount);
         params.insert("external_id", external_id);
         params.insert("effective", crate::time::now().date_naive());
@@ -154,7 +154,7 @@ impl ConfirmDisbursal {
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
-                .account_id("params.account_to_be_credited_id")
+                .account_id("params.disbursed_into_account_id")
                 .units("params.disbursed_amount")
                 .currency("'USD'")
                 .entry_type("'CONFIRM_DISBURSAL_SETTLED_CR'")
