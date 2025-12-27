@@ -22,6 +22,7 @@ CREATE TABLE core_obligation_events_rollup (
   overdue_date JSONB,
   payment_allocation_amount BIGINT,
   payment_id UUID,
+  receivable_account_ids JSONB,
   reference VARCHAR,
 
   -- Collection rollups
@@ -100,6 +101,7 @@ BEGIN
      END
 ;
     new_row.payment_id := (NEW.event ->> 'payment_id')::UUID;
+    new_row.receivable_account_ids := (NEW.event -> 'receivable_account_ids');
     new_row.reference := (NEW.event ->> 'reference');
   ELSE
     -- Default all fields to current values
@@ -126,6 +128,7 @@ BEGIN
     new_row.payment_allocation_amount := current_row.payment_allocation_amount;
     new_row.payment_allocation_ids := current_row.payment_allocation_ids;
     new_row.payment_id := current_row.payment_id;
+    new_row.receivable_account_ids := current_row.receivable_account_ids;
     new_row.reference := current_row.reference;
   END IF;
 
@@ -145,6 +148,7 @@ BEGIN
       new_row.obligation_type := (NEW.event ->> 'obligation_type');
       new_row.overdue_accounts := (NEW.event -> 'overdue_accounts');
       new_row.overdue_date := (NEW.event -> 'overdue_date');
+      new_row.receivable_account_ids := (NEW.event -> 'receivable_account_ids');
       new_row.reference := (NEW.event ->> 'reference');
     WHEN 'due_recorded' THEN
       new_row.due_amount := (NEW.event ->> 'due_amount')::BIGINT;
@@ -196,6 +200,7 @@ BEGIN
     payment_allocation_amount,
     payment_allocation_ids,
     payment_id,
+    receivable_account_ids,
     reference
   )
   VALUES (
@@ -226,6 +231,7 @@ BEGIN
     new_row.payment_allocation_amount,
     new_row.payment_allocation_ids,
     new_row.payment_id,
+    new_row.receivable_account_ids,
     new_row.reference
   );
 

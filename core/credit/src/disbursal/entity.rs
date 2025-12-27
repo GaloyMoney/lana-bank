@@ -8,7 +8,7 @@ use es_entity::*;
 
 use crate::{
     ledger::CreditFacilityLedgerAccountIds,
-    obligation::{NewObligation, ObligationAccounts},
+    obligation::{NewObligation, ObligationAccounts, ObligationReceivableAccountIds},
     primitives::*,
 };
 
@@ -233,6 +233,11 @@ impl Disbursal {
                 .reference(tx_ref.to_string())
                 .amount(self.amount)
                 .tx_id(tx_id)
+                .receivable_account_ids(ObligationReceivableAccountIds {
+                    not_yet_due: self.account_ids.disbursed_receivable_not_yet_due_account_id,
+                    due: self.account_ids.disbursed_receivable_due_account_id,
+                    overdue: self.account_ids.disbursed_receivable_overdue_account_id,
+                })
                 .not_yet_due_accounts(ObligationAccounts {
                     receivable_account_id: self
                         .account_ids

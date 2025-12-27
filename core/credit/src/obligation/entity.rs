@@ -23,6 +23,7 @@ pub enum ObligationEvent {
         amount: UsdCents,
         reference: String,
         ledger_tx_id: LedgerTxId,
+        receivable_account_ids: ObligationReceivableAccountIds,
         not_yet_due_accounts: ObligationAccounts,
         due_accounts: ObligationAccounts,
         overdue_accounts: ObligationAccounts,
@@ -451,6 +452,7 @@ pub struct NewObligation {
     pub(super) amount: UsdCents,
     #[builder(setter(strip_option), default)]
     reference: Option<String>,
+    receivable_account_ids: ObligationReceivableAccountIds,
     not_yet_due_accounts: ObligationAccounts,
     due_accounts: ObligationAccounts,
     overdue_accounts: ObligationAccounts,
@@ -498,6 +500,7 @@ impl IntoEvents<ObligationEvent> for NewObligation {
                 reference: self.reference(),
                 amount: self.amount,
                 ledger_tx_id: self.tx_id,
+                receivable_account_ids: self.receivable_account_ids,
                 not_yet_due_accounts: self.not_yet_due_accounts,
                 due_accounts: self.due_accounts,
                 overdue_accounts: self.overdue_accounts,
@@ -578,6 +581,11 @@ mod test {
             amount: UsdCents::from(10),
             reference: "ref-01".to_string(),
             ledger_tx_id: LedgerTxId::new(),
+            receivable_account_ids: ObligationReceivableAccountIds {
+                not_yet_due: CalaAccountId::new(),
+                due: CalaAccountId::new(),
+                overdue: CalaAccountId::new(),
+            },
             not_yet_due_accounts: ObligationAccounts {
                 receivable_account_id: CalaAccountId::new(),
             },
@@ -774,6 +782,11 @@ mod test {
                 amount: UsdCents::from(10),
                 reference: "ref-01".to_string(),
                 ledger_tx_id: LedgerTxId::new(),
+                receivable_account_ids: ObligationReceivableAccountIds {
+                    not_yet_due: CalaAccountId::new(),
+                    due: CalaAccountId::new(),
+                    overdue: CalaAccountId::new(),
+                },
                 not_yet_due_accounts: ObligationAccounts {
                     receivable_account_id: CalaAccountId::new(),
                 },

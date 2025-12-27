@@ -16,6 +16,28 @@
       ],
       "type": "object"
     },
+    "ObligationReceivableAccountIds": {
+      "properties": {
+        "due": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "not_yet_due": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "overdue": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "not_yet_due",
+        "due",
+        "overdue"
+      ],
+      "type": "object"
+    },
     "ObligationType": {
       "enum": [
         "Disbursal",
@@ -101,6 +123,9 @@
             }
           ]
         },
+        "receivable_account_ids": {
+          "$ref": "#/$defs/ObligationReceivableAccountIds"
+        },
         "reference": {
           "type": "string"
         },
@@ -117,6 +142,7 @@
         "amount",
         "reference",
         "ledger_tx_id",
+        "receivable_account_ids",
         "not_yet_due_accounts",
         "due_accounts",
         "overdue_accounts",
