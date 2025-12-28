@@ -91,35 +91,34 @@ impl PendingCreditFacilityAccountIds {
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct InterestAccrualCycleLedgerAccountIds {
-    interest_receivable_not_yet_due_account_id: CalaAccountId,
-    interest_receivable_due_account_id: CalaAccountId,
-    interest_receivable_overdue_account_id: CalaAccountId,
-    pub interest_defaulted_account_id: CalaAccountId,
+    receivable_not_yet_due_account_id: CalaAccountId,
+    receivable_due_account_id: CalaAccountId,
+    receivable_overdue_account_id: CalaAccountId,
+    pub defaulted_account_id: CalaAccountId,
     interest_income_account_id: CalaAccountId,
 }
 
 impl From<CreditFacilityLedgerAccountIds> for InterestAccrualCycleLedgerAccountIds {
     fn from(credit_facility_account_ids: CreditFacilityLedgerAccountIds) -> Self {
         Self {
-            interest_receivable_not_yet_due_account_id: credit_facility_account_ids
+            receivable_not_yet_due_account_id: credit_facility_account_ids
                 .interest_receivable_not_yet_due_account_id,
-            interest_receivable_due_account_id: credit_facility_account_ids
+            receivable_due_account_id: credit_facility_account_ids
                 .interest_receivable_due_account_id,
-            interest_receivable_overdue_account_id: credit_facility_account_ids
+            receivable_overdue_account_id: credit_facility_account_ids
                 .interest_receivable_overdue_account_id,
-            interest_defaulted_account_id: credit_facility_account_ids
-                .interest_defaulted_account_id,
+            defaulted_account_id: credit_facility_account_ids.interest_defaulted_account_id,
             interest_income_account_id: credit_facility_account_ids.interest_income_account_id,
         }
     }
 }
 
-impl InterestAccrualCycleLedgerAccountIds {
-    pub fn interest_receivable(&self) -> ObligationReceivableAccountIds {
-        ObligationReceivableAccountIds {
-            not_yet_due: self.interest_receivable_not_yet_due_account_id,
-            due: self.interest_receivable_due_account_id,
-            overdue: self.interest_receivable_overdue_account_id,
+impl From<InterestAccrualCycleLedgerAccountIds> for ObligationReceivableAccountIds {
+    fn from(account_ids: InterestAccrualCycleLedgerAccountIds) -> Self {
+        Self {
+            not_yet_due: account_ids.receivable_not_yet_due_account_id,
+            due: account_ids.receivable_due_account_id,
+            overdue: account_ids.receivable_overdue_account_id,
         }
     }
 }
