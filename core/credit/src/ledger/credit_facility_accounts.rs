@@ -49,14 +49,6 @@ impl CreditFacilityLedgerAccountIds {
             fee_income_account_id: CalaAccountId::new(),
         }
     }
-
-    pub fn disbursed_receivable(&self) -> ObligationReceivableAccountIds {
-        ObligationReceivableAccountIds {
-            not_yet_due: self.disbursed_receivable_not_yet_due_account_id,
-            due: self.disbursed_receivable_due_account_id,
-            overdue: self.disbursed_receivable_overdue_account_id,
-        }
-    }
 }
 
 impl From<PendingCreditFacilityAccountIds> for CreditFacilityLedgerAccountIds {

@@ -1,74 +1,29 @@
 {
   "$defs": {
-    "CreditFacilityLedgerAccountIds": {
+    "DisbursalLedgerAccountIds": {
       "properties": {
-        "collateral_account_id": {
+        "defaulted_account_id": {
           "format": "uuid",
           "type": "string"
         },
-        "disbursed_defaulted_account_id": {
+        "receivable_due_account_id": {
           "format": "uuid",
           "type": "string"
         },
-        "disbursed_receivable_due_account_id": {
+        "receivable_not_yet_due_account_id": {
           "format": "uuid",
           "type": "string"
         },
-        "disbursed_receivable_not_yet_due_account_id": {
-          "format": "uuid",
-          "type": "string"
-        },
-        "disbursed_receivable_overdue_account_id": {
-          "format": "uuid",
-          "type": "string"
-        },
-        "facility_account_id": {
-          "format": "uuid",
-          "type": "string"
-        },
-        "fee_income_account_id": {
-          "format": "uuid",
-          "type": "string"
-        },
-        "in_liquidation_account_id": {
-          "format": "uuid",
-          "type": "string"
-        },
-        "interest_defaulted_account_id": {
-          "format": "uuid",
-          "type": "string"
-        },
-        "interest_income_account_id": {
-          "format": "uuid",
-          "type": "string"
-        },
-        "interest_receivable_due_account_id": {
-          "format": "uuid",
-          "type": "string"
-        },
-        "interest_receivable_not_yet_due_account_id": {
-          "format": "uuid",
-          "type": "string"
-        },
-        "interest_receivable_overdue_account_id": {
+        "receivable_overdue_account_id": {
           "format": "uuid",
           "type": "string"
         }
       },
       "required": [
-        "facility_account_id",
-        "in_liquidation_account_id",
-        "disbursed_receivable_not_yet_due_account_id",
-        "disbursed_receivable_due_account_id",
-        "disbursed_receivable_overdue_account_id",
-        "disbursed_defaulted_account_id",
-        "collateral_account_id",
-        "interest_receivable_not_yet_due_account_id",
-        "interest_receivable_due_account_id",
-        "interest_receivable_overdue_account_id",
-        "interest_defaulted_account_id",
-        "interest_income_account_id",
-        "fee_income_account_id"
+        "receivable_not_yet_due_account_id",
+        "receivable_due_account_id",
+        "receivable_overdue_account_id",
+        "defaulted_account_id"
       ],
       "type": "object"
     },
@@ -87,7 +42,7 @@
     {
       "properties": {
         "account_ids": {
-          "$ref": "#/$defs/CreditFacilityLedgerAccountIds"
+          "$ref": "#/$defs/DisbursalLedgerAccountIds"
         },
         "amount": {
           "$ref": "#/$defs/UsdCents"

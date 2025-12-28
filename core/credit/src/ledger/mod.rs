@@ -9,6 +9,7 @@ use core_accounting::EntityRef;
 mod balance;
 mod constants;
 mod credit_facility_accounts;
+mod disbursal_accounts;
 pub mod error;
 mod obligation_accounts;
 mod templates;
@@ -39,6 +40,7 @@ use crate::{
 pub use balance::*;
 use constants::*;
 pub use credit_facility_accounts::*;
+pub use disbursal_accounts::*;
 use error::*;
 pub use obligation_accounts::*;
 
