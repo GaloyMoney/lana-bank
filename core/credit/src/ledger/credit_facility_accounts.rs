@@ -91,11 +91,11 @@ impl PendingCreditFacilityAccountIds {
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct InterestAccrualCycleLedgerAccountIds {
-    pub receivable_not_yet_due_account_id: CalaAccountId,
+    receivable_not_yet_due_account_id: CalaAccountId,
     receivable_due_account_id: CalaAccountId,
     receivable_overdue_account_id: CalaAccountId,
     pub defaulted_account_id: CalaAccountId,
-    pub interest_income_account_id: CalaAccountId,
+    interest_income_account_id: CalaAccountId,
 }
 
 impl From<CreditFacilityLedgerAccountIds> for InterestAccrualCycleLedgerAccountIds {
@@ -121,6 +121,21 @@ impl From<InterestAccrualCycleLedgerAccountIds> for ObligationReceivableAccountI
             overdue: account_ids.receivable_overdue_account_id,
         }
     }
+}
+
+impl From<InterestAccrualCycleLedgerAccountIds> for InterestPostingAccountIds {
+    fn from(account_ids: InterestAccrualCycleLedgerAccountIds) -> Self {
+        Self {
+            receivable_not_yet_due: account_ids.receivable_not_yet_due_account_id,
+            income: account_ids.interest_income_account_id,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct InterestPostingAccountIds {
+    pub receivable_not_yet_due: CalaAccountId,
+    pub income: CalaAccountId,
 }
 
 #[derive(Debug, Clone)]
