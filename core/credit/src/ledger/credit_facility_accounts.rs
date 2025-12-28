@@ -91,11 +91,11 @@ impl PendingCreditFacilityAccountIds {
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct InterestAccrualCycleLedgerAccountIds {
-    receivable_not_yet_due_account_id: CalaAccountId,
+    pub receivable_not_yet_due_account_id: CalaAccountId,
     receivable_due_account_id: CalaAccountId,
     receivable_overdue_account_id: CalaAccountId,
     pub defaulted_account_id: CalaAccountId,
-    interest_income_account_id: CalaAccountId,
+    pub interest_income_account_id: CalaAccountId,
 }
 
 impl From<CreditFacilityLedgerAccountIds> for InterestAccrualCycleLedgerAccountIds {
@@ -167,7 +167,7 @@ pub struct CreditFacilityInterestAccrual {
     pub tx_ref: String,
     pub interest: UsdCents,
     pub period: InterestPeriod,
-    pub credit_facility_account_ids: CreditFacilityLedgerAccountIds,
+    pub account_ids: InterestAccrualCycleLedgerAccountIds,
 }
 
 #[derive(Debug, Clone)]
@@ -176,5 +176,5 @@ pub struct CreditFacilityInterestAccrualCycle {
     pub tx_ref: String,
     pub interest: UsdCents,
     pub effective: chrono::NaiveDate,
-    pub credit_facility_account_ids: CreditFacilityLedgerAccountIds,
+    pub account_ids: InterestAccrualCycleLedgerAccountIds,
 }

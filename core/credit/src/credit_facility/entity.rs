@@ -132,7 +132,7 @@ impl From<(InterestAccrualData, CreditFacilityLedgerAccountIds)> for CreditFacil
             period,
             tx_ref,
             tx_id,
-            credit_facility_account_ids,
+            account_ids: credit_facility_account_ids.into(),
         }
     }
 }
@@ -155,7 +155,7 @@ impl From<(InterestAccrualCycleData, CreditFacilityLedgerAccountIds)>
             effective,
             tx_ref,
             tx_id,
-            credit_facility_account_ids,
+            account_ids: credit_facility_account_ids.into(),
         }
     }
 }

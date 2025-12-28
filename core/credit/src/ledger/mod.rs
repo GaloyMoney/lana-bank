@@ -1599,7 +1599,7 @@ impl CreditLedger {
             tx_ref,
             interest,
             period,
-            credit_facility_account_ids,
+            account_ids,
         }: CreditFacilityInterestAccrual,
     ) -> Result<(), CreditLedgerError> {
         self.cala
@@ -1610,10 +1610,9 @@ impl CreditLedger {
                 templates::CreditFacilityAccrueInterestParams {
                     journal_id: self.journal_id,
 
-                    credit_facility_interest_receivable_account: credit_facility_account_ids
-                        .interest_receivable_not_yet_due_account_id,
-                    credit_facility_interest_income_account: credit_facility_account_ids
-                        .interest_income_account_id,
+                    credit_facility_interest_receivable_account: account_ids
+                        .receivable_not_yet_due_account_id,
+                    credit_facility_interest_income_account: account_ids.interest_income_account_id,
                     interest_amount: interest.to_usd(),
                     external_id: tx_ref,
                     effective: period.end.date_naive(),
@@ -1631,7 +1630,7 @@ impl CreditLedger {
             tx_ref,
             interest,
             effective,
-            credit_facility_account_ids,
+            account_ids,
         }: CreditFacilityInterestAccrualCycle,
     ) -> Result<(), CreditLedgerError> {
         self.cala
@@ -1642,10 +1641,9 @@ impl CreditLedger {
                 templates::CreditFacilityPostAccruedInterestParams {
                     journal_id: self.journal_id,
 
-                    credit_facility_interest_receivable_account: credit_facility_account_ids
-                        .interest_receivable_not_yet_due_account_id,
-                    credit_facility_interest_income_account: credit_facility_account_ids
-                        .interest_income_account_id,
+                    credit_facility_interest_receivable_account: account_ids
+                        .receivable_not_yet_due_account_id,
+                    credit_facility_interest_income_account: account_ids.interest_income_account_id,
                     interest_amount: interest.to_usd(),
                     external_id: tx_ref,
                     effective,
