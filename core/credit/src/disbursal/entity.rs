@@ -230,7 +230,7 @@ impl Disbursal {
                 .amount(self.amount)
                 .tx_id(tx_id)
                 .receivable_account_ids(self.account_ids.into())
-                .defaulted_account_id(self.account_ids.defaulted_account_id)
+                .defaulted_account_id(self.account_ids.defaulted_account_id())
                 .due_date(self.due_date)
                 .overdue_date(self.overdue_date)
                 .liquidation_date(self.liquidation_date)

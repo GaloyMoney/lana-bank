@@ -94,7 +94,7 @@ pub struct InterestAccrualCycleLedgerAccountIds {
     receivable_not_yet_due_account_id: CalaAccountId,
     receivable_due_account_id: CalaAccountId,
     receivable_overdue_account_id: CalaAccountId,
-    pub defaulted_account_id: CalaAccountId,
+    defaulted_account_id: CalaAccountId,
     interest_income_account_id: CalaAccountId,
 }
 
@@ -110,6 +110,12 @@ impl From<CreditFacilityLedgerAccountIds> for InterestAccrualCycleLedgerAccountI
             defaulted_account_id: credit_facility_account_ids.interest_defaulted_account_id,
             interest_income_account_id: credit_facility_account_ids.interest_income_account_id,
         }
+    }
+}
+
+impl InterestAccrualCycleLedgerAccountIds {
+    pub fn defaulted_account_id(&self) -> CalaAccountId {
+        self.defaulted_account_id
     }
 }
 

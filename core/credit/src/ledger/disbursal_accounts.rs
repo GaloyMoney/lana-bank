@@ -12,7 +12,7 @@ pub struct DisbursalLedgerAccountIds {
     receivable_not_yet_due_account_id: CalaAccountId,
     receivable_due_account_id: CalaAccountId,
     receivable_overdue_account_id: CalaAccountId,
-    pub defaulted_account_id: CalaAccountId,
+    defaulted_account_id: CalaAccountId,
 }
 
 impl From<CreditFacilityLedgerAccountIds> for DisbursalLedgerAccountIds {
@@ -36,5 +36,11 @@ impl From<DisbursalLedgerAccountIds> for ObligationReceivableAccountIds {
             due: account_ids.receivable_due_account_id,
             overdue: account_ids.receivable_overdue_account_id,
         }
+    }
+}
+
+impl DisbursalLedgerAccountIds {
+    pub fn defaulted_account_id(&self) -> CalaAccountId {
+        self.defaulted_account_id
     }
 }

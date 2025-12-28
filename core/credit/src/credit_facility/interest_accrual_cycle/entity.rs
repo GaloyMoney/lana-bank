@@ -283,7 +283,7 @@ impl InterestAccrualCycle {
             .amount(interest)
             .tx_id(tx_id)
             .receivable_account_ids(self.account_ids.into())
-            .defaulted_account_id(self.account_ids.defaulted_account_id)
+            .defaulted_account_id(self.account_ids.defaulted_account_id())
             .due_date(due_date)
             .overdue_date(overdue_date)
             .liquidation_date(liquidation_date)
