@@ -6,7 +6,14 @@ use crate::{ConfigType, DomainConfigError, DomainConfigKey, Visibility};
 pub struct Simple<T>(PhantomData<T>);
 pub struct Complex<T>(PhantomData<T>);
 
-pub trait ValueKind {
+// Prevent downstream crates from defining new config kinds
+mod sealed {
+    pub trait Sealed {}
+    impl<T> Sealed for super::Simple<T> {}
+    impl<T> Sealed for super::Complex<T> {}
+}
+
+pub trait ValueKind: sealed::Sealed {
     type Inner: Clone;
     const TYPE: ConfigType;
 
