@@ -581,7 +581,7 @@ const PaginatedTable = <T,>({
                             asChild
                           >
                             <Link href={safeUrl}>
-                              {t("view", { defaultValue: "View" })}
+                              {t("view")}
                               <ArrowRight />
                             </Link>
                           </Button>
@@ -627,7 +627,7 @@ const PaginatedTable = <T,>({
                                   asChild
                                 >
                                   <Link href={subRowSafeUrl}>
-                                    {t("view", { defaultValue: "View" })}
+                                    {t("view")}
                                     <ArrowRight />
                                   </Link>
                                 </Button>
