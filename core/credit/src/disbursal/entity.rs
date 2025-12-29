@@ -25,6 +25,7 @@ pub enum DisbursalEvent {
         amount: UsdCents,
         account_ids: CreditFacilityLedgerAccountIds,
         disbursal_credit_account_id: CalaAccountId,
+        obligations_repayment_from_account_id: CalaAccountId,
         due_date: EffectiveDate,
         overdue_date: Option<EffectiveDate>,
         liquidation_date: Option<EffectiveDate>,
@@ -54,6 +55,7 @@ pub struct Disbursal {
     pub amount: UsdCents,
     pub account_ids: CreditFacilityLedgerAccountIds,
     pub disbursal_credit_account_id: CalaAccountId,
+    pub obligations_repayment_from_account_id: CalaAccountId,
     pub due_date: EffectiveDate,
     pub overdue_date: Option<EffectiveDate>,
     pub liquidation_date: Option<EffectiveDate>,
@@ -77,6 +79,7 @@ impl TryFromEvents<DisbursalEvent> for Disbursal {
                     amount,
                     account_ids,
                     disbursal_credit_account_id,
+                    obligations_repayment_from_account_id,
                     due_date,
                     overdue_date,
                     liquidation_date,
@@ -91,6 +94,9 @@ impl TryFromEvents<DisbursalEvent> for Disbursal {
                         .amount(*amount)
                         .account_ids(*account_ids)
                         .disbursal_credit_account_id(*disbursal_credit_account_id)
+                        .obligations_repayment_from_account_id(
+                            *obligations_repayment_from_account_id,
+                        )
                         .due_date(*due_date)
                         .overdue_date(*overdue_date)
                         .liquidation_date(*liquidation_date)
@@ -237,15 +243,15 @@ impl Disbursal {
                     receivable_account_id: self
                         .account_ids
                         .disbursed_receivable_not_yet_due_account_id,
-                    account_to_be_credited_id: self.disbursal_credit_account_id,
+                    account_to_be_credited_id: self.obligations_repayment_from_account_id,
                 })
                 .due_accounts(ObligationAccounts {
                     receivable_account_id: self.account_ids.disbursed_receivable_due_account_id,
-                    account_to_be_credited_id: self.disbursal_credit_account_id,
+                    account_to_be_credited_id: self.obligations_repayment_from_account_id,
                 })
                 .overdue_accounts(ObligationAccounts {
                     receivable_account_id: self.account_ids.disbursed_receivable_overdue_account_id,
-                    account_to_be_credited_id: self.disbursal_credit_account_id,
+                    account_to_be_credited_id: self.obligations_repayment_from_account_id,
                 })
                 .defaulted_account_id(self.account_ids.disbursed_defaulted_account_id)
                 .due_date(self.due_date)
@@ -291,7 +297,10 @@ pub struct NewDisbursal {
     pub(super) credit_facility_id: CreditFacilityId,
     pub(super) amount: UsdCents,
     pub(super) account_ids: CreditFacilityLedgerAccountIds,
+    #[builder(setter(into))]
     pub(super) disbursal_credit_account_id: CalaAccountId,
+    #[builder(setter(into))]
+    pub(super) obligations_repayment_from_account_id: CalaAccountId,
     pub(super) due_date: EffectiveDate,
     pub(super) overdue_date: Option<EffectiveDate>,
     pub(super) liquidation_date: Option<EffectiveDate>,
@@ -332,6 +341,7 @@ impl IntoEvents<DisbursalEvent> for NewDisbursal {
                 amount: self.amount,
                 account_ids: self.account_ids,
                 disbursal_credit_account_id: self.disbursal_credit_account_id,
+                obligations_repayment_from_account_id: self.obligations_repayment_from_account_id,
                 due_date: self.due_date,
                 overdue_date: self.overdue_date,
                 liquidation_date: self.liquidation_date,

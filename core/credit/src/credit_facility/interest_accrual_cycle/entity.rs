@@ -51,6 +51,7 @@ pub enum InterestAccrualCycleEvent {
         period: InterestPeriod,
         facility_maturity_date: EffectiveDate,
         account_ids: InterestAccrualCycleLedgerAccountIds,
+        obligations_repayment_from_account_id: CalaAccountId,
         terms: TermValues,
     },
     InterestAccrued {
@@ -74,6 +75,7 @@ pub struct InterestAccrualCycle {
     pub id: InterestAccrualCycleId,
     pub credit_facility_id: CreditFacilityId,
     pub account_ids: InterestAccrualCycleLedgerAccountIds,
+    pub obligations_repayment_from_account_id: CalaAccountId,
     pub idx: InterestAccrualCycleIdx,
     pub facility_maturity_date: EffectiveDate,
     pub terms: TermValues,
@@ -114,6 +116,7 @@ impl TryFromEvents<InterestAccrualCycleEvent> for InterestAccrualCycle {
                     id,
                     facility_id,
                     account_ids,
+                    obligations_repayment_from_account_id,
                     idx,
                     period,
                     facility_maturity_date,
@@ -124,6 +127,9 @@ impl TryFromEvents<InterestAccrualCycleEvent> for InterestAccrualCycle {
                         .id(*id)
                         .credit_facility_id(*facility_id)
                         .account_ids(*account_ids)
+                        .obligations_repayment_from_account_id(
+                            *obligations_repayment_from_account_id,
+                        )
                         .idx(*idx)
                         .period(*period)
                         .facility_maturity_date(*facility_maturity_date)
@@ -310,15 +316,15 @@ impl InterestAccrualCycle {
             .tx_id(tx_id)
             .not_yet_due_accounts(ObligationAccounts {
                 receivable_account_id: self.account_ids.interest_receivable_not_yet_due_account_id,
-                account_to_be_credited_id: self.account_ids.interest_income_account_id,
+                account_to_be_credited_id: self.obligations_repayment_from_account_id,
             })
             .due_accounts(ObligationAccounts {
                 receivable_account_id: self.account_ids.interest_receivable_due_account_id,
-                account_to_be_credited_id: self.account_ids.interest_income_account_id,
+                account_to_be_credited_id: self.obligations_repayment_from_account_id,
             })
             .overdue_accounts(ObligationAccounts {
                 receivable_account_id: self.account_ids.interest_receivable_overdue_account_id,
-                account_to_be_credited_id: self.account_ids.interest_income_account_id,
+                account_to_be_credited_id: self.obligations_repayment_from_account_id,
             })
             .defaulted_account_id(self.account_ids.interest_defaulted_account_id)
             .due_date(due_date)
@@ -348,6 +354,8 @@ pub struct NewInterestAccrualCycle {
     #[builder(setter(into))]
     pub credit_facility_id: CreditFacilityId,
     pub account_ids: InterestAccrualCycleLedgerAccountIds,
+    #[builder(setter(into))]
+    pub obligations_repayment_from_account_id: CalaAccountId,
     pub idx: InterestAccrualCycleIdx,
     pub period: InterestPeriod,
     pub facility_maturity_date: EffectiveDate,
@@ -372,6 +380,7 @@ impl IntoEvents<InterestAccrualCycleEvent> for NewInterestAccrualCycle {
                 id: self.id,
                 facility_id: self.credit_facility_id,
                 account_ids: self.account_ids,
+                obligations_repayment_from_account_id: self.obligations_repayment_from_account_id,
                 idx: self.idx,
                 period: self.period,
                 facility_maturity_date: self.facility_maturity_date,
@@ -451,6 +460,7 @@ mod test {
             id: InterestAccrualCycleId::new(),
             facility_id: CreditFacilityId::new(),
             account_ids: CreditFacilityLedgerAccountIds::new().into(),
+            obligations_repayment_from_account_id: CalaAccountId::new(),
             idx: InterestAccrualCycleIdx::FIRST,
             period: default_period(),
             facility_maturity_date: terms.maturity_date(started_at),

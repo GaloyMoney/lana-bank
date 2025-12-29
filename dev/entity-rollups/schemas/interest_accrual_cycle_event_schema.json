@@ -265,6 +265,10 @@
           "format": "int32",
           "type": "integer"
         },
+        "obligations_repayment_from_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
         "period": {
           "$ref": "#/$defs/InterestPeriod"
         },
@@ -284,6 +288,7 @@
         "period",
         "facility_maturity_date",
         "account_ids",
+        "obligations_repayment_from_account_id",
         "terms"
       ],
       "type": "object"

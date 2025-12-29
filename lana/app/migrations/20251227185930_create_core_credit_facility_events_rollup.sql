@@ -22,6 +22,7 @@ CREATE TABLE core_credit_facility_events_rollup (
   liquidated BIGINT,
   liquidation_id UUID,
   maturity_date VARCHAR,
+  obligations_repayment_from_account_id UUID,
   outstanding JSONB,
   pending_credit_facility_id UUID,
   price JSONB,
@@ -111,6 +112,7 @@ BEGIN
        ELSE ARRAY[]::UUID[]
      END
 ;
+    new_row.obligations_repayment_from_account_id := (NEW.event ->> 'obligations_repayment_from_account_id')::UUID;
     new_row.outstanding := (NEW.event -> 'outstanding');
     new_row.pending_credit_facility_id := (NEW.event ->> 'pending_credit_facility_id')::UUID;
     new_row.price := (NEW.event -> 'price');
@@ -144,6 +146,7 @@ BEGIN
     new_row.liquidation_id := current_row.liquidation_id;
     new_row.maturity_date := current_row.maturity_date;
     new_row.obligation_ids := current_row.obligation_ids;
+    new_row.obligations_repayment_from_account_id := current_row.obligations_repayment_from_account_id;
     new_row.outstanding := current_row.outstanding;
     new_row.pending_credit_facility_id := current_row.pending_credit_facility_id;
     new_row.price := current_row.price;
@@ -167,6 +170,7 @@ BEGIN
       new_row.disbursal_credit_account_id := (NEW.event ->> 'disbursal_credit_account_id')::UUID;
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
       new_row.maturity_date := (NEW.event ->> 'maturity_date');
+      new_row.obligations_repayment_from_account_id := (NEW.event ->> 'obligations_repayment_from_account_id')::UUID;
       new_row.pending_credit_facility_id := (NEW.event ->> 'pending_credit_facility_id')::UUID;
       new_row.public_id := (NEW.event ->> 'public_id');
       new_row.structuring_fee_tx_id := (NEW.event ->> 'structuring_fee_tx_id')::UUID;
@@ -231,6 +235,7 @@ BEGIN
     liquidation_id,
     maturity_date,
     obligation_ids,
+    obligations_repayment_from_account_id,
     outstanding,
     pending_credit_facility_id,
     price,
@@ -268,6 +273,7 @@ BEGIN
     new_row.liquidation_id,
     new_row.maturity_date,
     new_row.obligation_ids,
+    new_row.obligations_repayment_from_account_id,
     new_row.outstanding,
     new_row.pending_credit_facility_id,
     new_row.price,
