@@ -1652,12 +1652,16 @@ dependencies = [
 name = "core-time-events"
 version = "0.0.0"
 dependencies = [
+ "async-trait",
  "chrono",
  "chrono-tz",
  "domain-config",
+ "job",
+ "outbox",
  "serde",
  "sim-time",
  "thiserror 2.0.17",
+ "workspace-hack",
 ]
 
 [[package]]

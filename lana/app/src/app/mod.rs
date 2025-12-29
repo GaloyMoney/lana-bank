@@ -1,7 +1,6 @@
 mod config;
 mod error;
 
-use core_time_events::{RealNow, TimeEvents};
 use sqlx::PgPool;
 use tracing::{Instrument, instrument};
 use tracing_macros::record_error_severity;
@@ -36,6 +35,7 @@ use crate::{
     public_id::PublicIds,
     report::Reports,
     storage::Storage,
+    time_events::{RealNow, TimeEvents},
     user_onboarding::UserOnboarding,
 };
 
@@ -65,6 +65,7 @@ pub struct LanaApp {
     _user_onboarding: UserOnboarding,
     _customer_sync: CustomerSync,
     _deposit_sync: DepositSync,
+    _time_events: TimeEvents<RealNow>,
     notification: Notification,
 }
 
@@ -101,7 +102,7 @@ impl LanaApp {
         )
         .await?;
 
-        let _time_event = TimeEvents::init(domain_configs.clone(), RealNow);
+        let _time_events = TimeEvents::init(domain_configs.clone(), RealNow);
 
         let dashboard = Dashboard::init(&pool, &authz, &jobs, &outbox).await?;
         let governance = Governance::new(&pool, &authz, &outbox);
@@ -227,6 +228,7 @@ impl LanaApp {
             _user_onboarding: user_onboarding,
             _customer_sync: customer_sync,
             _deposit_sync: deposit_sync,
+            _time_events,
             notification,
         })
     }

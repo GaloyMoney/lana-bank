@@ -3,13 +3,17 @@ name = "core-time-events"
 edition = "2024"
 
 [dependencies]
+async-trait = { workspace = true }
 domain-config = { workspace = true }
 chrono = { workspace = true }
 chrono-tz = { workspace = true, features = ["serde"] }
 thiserror = { workspace = true }
 serde = { workspace = true }
+outbox = { workspace = true }
+job = { workspace = true }
 
 sim-time = { workspace = true, optional = true }
+workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [lints]
 workspace = true

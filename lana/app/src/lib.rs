@@ -218,3 +218,7 @@ pub mod contract_creation {
 pub mod domain_config {
     pub use domain_config::*;
 }
+
+pub mod time_events {
+    pub use core_time_events::*;
+}

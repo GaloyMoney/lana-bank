@@ -1,15 +1,23 @@
+mod error;
+mod event;
+mod jobs;
+
 use chrono::{DateTime, NaiveTime, TimeZone, Utc};
 use chrono_tz::Tz;
-use domain_config::{DomainConfigError, DomainConfigKey, DomainConfigValue, DomainConfigs};
 use serde::{Deserialize, Serialize};
 
+use domain_config::{DomainConfigError, DomainConfigKey, DomainConfigValue, DomainConfigs};
+
 use crate::error::TimeEventsError;
-mod error;
+
+use event::*;
+// structure of imports/declarations
 
 pub trait Now {
     fn now(&self) -> DateTime<Utc>;
 }
 
+#[derive(Clone)]
 pub struct RealNow;
 
 impl Now for RealNow {
@@ -46,7 +54,7 @@ impl ClosingSchedule {
         let time = match self.timezone.from_local_datetime(&closing_naive_dt) {
             chrono::LocalResult::Single(dt) => dt,
             // if from_utc < closing_time and both lie in ambiguous window, we get the past/earliest/dt1 closing time
-            // even if called for time in second occurence, shown in test
+            // even if called for time in second occurrence, shown in test
             // do we not want "next_closing" instead past time
             chrono::LocalResult::Ambiguous(dt1, _) => dt1,
             // pick earliest
