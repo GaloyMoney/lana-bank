@@ -1,4 +1,5 @@
 import json
+from typing import Optional
 
 import dagster as dg
 
@@ -18,3 +19,7 @@ class BigQueryResource(dg.ConfigurableResource):
 
     def get_target_dataset(self) -> str:
         return dg.EnvVar("TARGET_BIGQUERY_DATASET").get_value()
+
+    def get_staging_bucket(self) -> Optional[str]:
+        """Get GCS bucket name for dlt staging. Uses REPORTS_BUCKET_NAME."""
+        return dg.EnvVar("REPORTS_BUCKET_NAME").get_value()

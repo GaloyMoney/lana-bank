@@ -22,7 +22,10 @@ def _run_bitfinex_pipeline(
     pipeline_name: str,
     dlt_resource,
 ):
-    dest = create_bigquery_destination(dw_bq.get_credentials_dict())
+    dest = create_bigquery_destination(
+        credentials=dw_bq.get_credentials_dict(),
+        staging_bucket=dw_bq.get_staging_bucket(),
+    )
 
     pipe = dlt.pipeline(
         pipeline_name=pipeline_name,

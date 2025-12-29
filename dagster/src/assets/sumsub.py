@@ -22,7 +22,10 @@ def sumsub_applicants(
     """Runs the Sumsub applicants DLT pipeline into BigQuery."""
     sumsub_key, sumsub_secret = sumsub.get_auth()
 
-    dest = create_bigquery_destination(dw_bq.get_credentials_dict())
+    dest = create_bigquery_destination(
+        credentials=dw_bq.get_credentials_dict(),
+        staging_bucket=dw_bq.get_staging_bucket(),
+    )
     pipe = dlt.pipeline(
         pipeline_name="sumsub_applicants",
         destination=dest,
