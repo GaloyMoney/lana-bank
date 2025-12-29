@@ -273,12 +273,12 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
 
   const footerButtons = [
     entityInfo && (
-      <Button key="entity" variant="outline">
-        <Link href={entityInfo.url} className="flex items-center gap-1">
+      <Link href={entityInfo.url} key="entity">
+        <Button variant="outline">
           {entityInfo.label}
           <ArrowRight className="h-4 w-4" />
-        </Link>
-      </Button>
+        </Button>
+      </Link>
     ),
   ].filter(Boolean)
 

@@ -560,7 +560,7 @@ const PaginatedTable = <T,>({
                         key={`${col.key as string}-${colIdx}`}
                         className={
                           style === "comfortable"
-                            ? "whitespace-normal wrap-break-words"
+                            ? "whitespace-normal wrap-break-word"
                             : ""
                         }
                       >
@@ -603,7 +603,7 @@ const PaginatedTable = <T,>({
                               key={`${col.key as string}-${colIdx}`}
                               className={
                                 style === "comfortable"
-                                  ? "whitespace-normal wrap-break-words"
+                                  ? "whitespace-normal wrap-break-word"
                                   : ""
                               }
                             >

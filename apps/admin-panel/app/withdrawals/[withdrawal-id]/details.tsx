@@ -89,17 +89,18 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({ withdrawal })
           <ArrowRight />
         </Button>
       </Link>
-      <Button variant="outline">
-        <a
-          href={`https://cockpit.sumsub.com/checkus#/kyt/txns?search=${withdrawal.withdrawalId}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2"
-        >
+      <a
+        href={`https://cockpit.sumsub.com/checkus#/kyt/txns?search=${withdrawal.withdrawalId}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-2"
+      >
+        <Button variant="outline">
           {t("buttons.viewOnSumsub")}
           <ExternalLinkIcon className="h-4 w-4" />
-        </a>
-      </Button>
+        </Button>
+      </a>
+
       {withdrawal.status === WithdrawalStatus.PendingConfirmation && (
         <>
           <Button

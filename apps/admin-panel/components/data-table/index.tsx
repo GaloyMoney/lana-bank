@@ -312,7 +312,7 @@ const DataTable = <T,>({
                   <TableCell
                     key={colIndex}
                     className={cn(
-                      "whitespace-normal wrap-break-words",
+                      "whitespace-normal wrap-break-word",
                       column.align === "center" && "text-center",
                       column.align === "right" && "text-right",
                       typeof cellClassName === "function"
