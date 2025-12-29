@@ -219,6 +219,12 @@ where
         From<core_customer::CoreCustomerAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<core_customer::CustomerObject>,
 {
+    fn new(customers: &Customers<Perms, E>) -> Self {
+        Self {
+            customers: customers.clone(),
+        }
+    }
+
     #[record_error_severity]
     #[instrument(
         name = "applicant.process_payload",
@@ -360,6 +366,8 @@ where
     }
 }
 
+const APPLICANTS_INBOX_JOB: job::JobType = job::JobType::new("applicants-inbox");
+
 pub struct Applicants<Perms, E>
 where
     Perms: PermissionCheck,
@@ -367,7 +375,6 @@ where
 {
     authz: Perms,
     sumsub_client: SumsubClient,
-    pool: PgPool,
     customers: Customers<Perms, E>,
     inbox: Inbox,
 }
@@ -381,7 +388,6 @@ where
         Self {
             authz: self.authz.clone(),
             sumsub_client: self.sumsub_client.clone(),
-            pool: self.pool.clone(),
             customers: self.customers.clone(),
             inbox: self.inbox.clone(),
         }
@@ -404,17 +410,13 @@ where
         jobs: &mut job::Jobs,
     ) -> Result<Self, ApplicantError> {
         let sumsub_client = SumsubClient::new(config);
+        let handler = SumsubCallbackHandler::new(customers);
 
-        let handler = SumsubCallbackHandler {
-            customers: customers.clone(),
-        };
-
-        let inbox_config = InboxConfig::new(job::JobType::new("applicants-inbox"));
+        let inbox_config = InboxConfig::new(APPLICANTS_INBOX_JOB);
         let inbox = Inbox::new(pool, jobs, inbox_config, handler);
 
         Ok(Self {
             authz: authz.clone(),
-            pool: pool.clone(),
             sumsub_client,
             customers: customers.clone(),
             inbox,
@@ -442,12 +444,10 @@ where
                 format!("payload-{}", hasher.finish())
             };
 
-        let mut op = es_entity::DbOp::init(&self.pool).await?;
-        let _ = self
+        let _res = self
             .inbox
-            .persist_and_process_in_op(&mut op, &idempotency_key, payload)
+            .persist_and_process(&idempotency_key, payload)
             .await?;
-        op.commit().await?;
 
         Ok(())
     }
