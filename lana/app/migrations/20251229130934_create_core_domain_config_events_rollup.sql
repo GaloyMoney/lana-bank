@@ -5,8 +5,10 @@ CREATE TABLE core_domain_config_events_rollup (
   created_at TIMESTAMPTZ NOT NULL,
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
+  config_type VARCHAR,
   key VARCHAR,
-  value JSONB
+  value JSONB,
+  visibility VARCHAR
 ,
   PRIMARY KEY (id, version)
 );
@@ -41,19 +43,25 @@ BEGIN
 
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
+    new_row.config_type := (NEW.event ->> 'config_type');
     new_row.key := (NEW.event ->> 'key');
     new_row.value := (NEW.event -> 'value');
+    new_row.visibility := (NEW.event ->> 'visibility');
   ELSE
     -- Default all fields to current values
+    new_row.config_type := current_row.config_type;
     new_row.key := current_row.key;
     new_row.value := current_row.value;
+    new_row.visibility := current_row.visibility;
   END IF;
 
   -- Update only the fields that are modified by the specific event
   CASE event_type
     WHEN 'initialized' THEN
+      new_row.config_type := (NEW.event ->> 'config_type');
       new_row.key := (NEW.event ->> 'key');
       new_row.value := (NEW.event -> 'value');
+      new_row.visibility := (NEW.event ->> 'visibility');
     WHEN 'updated' THEN
       new_row.value := (NEW.event -> 'value');
   END CASE;
@@ -63,16 +71,20 @@ BEGIN
     version,
     created_at,
     modified_at,
+    config_type,
     key,
-    value
+    value,
+    visibility
   )
   VALUES (
     new_row.id,
     new_row.version,
     new_row.created_at,
     new_row.modified_at,
+    new_row.config_type,
     new_row.key,
-    new_row.value
+    new_row.value,
+    new_row.visibility
   );
 
   RETURN NEW;
