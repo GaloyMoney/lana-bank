@@ -5,15 +5,15 @@ CREATE TABLE core_payment_allocation_events_rollup (
   created_at TIMESTAMPTZ NOT NULL,
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
-  account_to_be_debited_id UUID,
   amount BIGINT,
   credit_facility_id UUID,
   effective VARCHAR,
   ledger_tx_id UUID,
   obligation_id UUID,
-  payment_allocation_idx INTEGER,
   obligation_type VARCHAR,
+  payment_allocation_idx INTEGER,
   payment_id UUID,
+  payment_source_account_id UUID,
   receivable_account_id UUID
 ,
   PRIMARY KEY (id, version)
@@ -49,42 +49,42 @@ BEGIN
 
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
-    new_row.account_to_be_debited_id := (NEW.event ->> 'account_to_be_debited_id')::UUID;
     new_row.amount := (NEW.event ->> 'amount')::BIGINT;
     new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
     new_row.effective := (NEW.event ->> 'effective');
     new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
     new_row.obligation_id := (NEW.event ->> 'obligation_id')::UUID;
-    new_row.payment_allocation_idx := (NEW.event ->> 'payment_allocation_idx')::INTEGER;
     new_row.obligation_type := (NEW.event ->> 'obligation_type');
+    new_row.payment_allocation_idx := (NEW.event ->> 'payment_allocation_idx')::INTEGER;
     new_row.payment_id := (NEW.event ->> 'payment_id')::UUID;
+    new_row.payment_source_account_id := (NEW.event ->> 'payment_source_account_id')::UUID;
     new_row.receivable_account_id := (NEW.event ->> 'receivable_account_id')::UUID;
   ELSE
     -- Default all fields to current values
-    new_row.account_to_be_debited_id := current_row.account_to_be_debited_id;
     new_row.amount := current_row.amount;
     new_row.credit_facility_id := current_row.credit_facility_id;
     new_row.effective := current_row.effective;
     new_row.ledger_tx_id := current_row.ledger_tx_id;
     new_row.obligation_id := current_row.obligation_id;
-    new_row.payment_allocation_idx := current_row.payment_allocation_idx;
     new_row.obligation_type := current_row.obligation_type;
+    new_row.payment_allocation_idx := current_row.payment_allocation_idx;
     new_row.payment_id := current_row.payment_id;
+    new_row.payment_source_account_id := current_row.payment_source_account_id;
     new_row.receivable_account_id := current_row.receivable_account_id;
   END IF;
 
   -- Update only the fields that are modified by the specific event
   CASE event_type
     WHEN 'initialized' THEN
-      new_row.account_to_be_debited_id := (NEW.event ->> 'account_to_be_debited_id')::UUID;
       new_row.amount := (NEW.event ->> 'amount')::BIGINT;
       new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
       new_row.effective := (NEW.event ->> 'effective');
       new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
       new_row.obligation_id := (NEW.event ->> 'obligation_id')::UUID;
-      new_row.payment_allocation_idx := (NEW.event ->> 'payment_allocation_idx')::INTEGER;
       new_row.obligation_type := (NEW.event ->> 'obligation_type');
+      new_row.payment_allocation_idx := (NEW.event ->> 'payment_allocation_idx')::INTEGER;
       new_row.payment_id := (NEW.event ->> 'payment_id')::UUID;
+      new_row.payment_source_account_id := (NEW.event ->> 'payment_source_account_id')::UUID;
       new_row.receivable_account_id := (NEW.event ->> 'receivable_account_id')::UUID;
   END CASE;
 
@@ -93,15 +93,15 @@ BEGIN
     version,
     created_at,
     modified_at,
-    account_to_be_debited_id,
     amount,
     credit_facility_id,
     effective,
     ledger_tx_id,
     obligation_id,
-    payment_allocation_idx,
     obligation_type,
+    payment_allocation_idx,
     payment_id,
+    payment_source_account_id,
     receivable_account_id
   )
   VALUES (
@@ -109,15 +109,15 @@ BEGIN
     new_row.version,
     new_row.created_at,
     new_row.modified_at,
-    new_row.account_to_be_debited_id,
     new_row.amount,
     new_row.credit_facility_id,
     new_row.effective,
     new_row.ledger_tx_id,
     new_row.obligation_id,
-    new_row.payment_allocation_idx,
     new_row.obligation_type,
+    new_row.payment_allocation_idx,
     new_row.payment_id,
+    new_row.payment_source_account_id,
     new_row.receivable_account_id
   );
 

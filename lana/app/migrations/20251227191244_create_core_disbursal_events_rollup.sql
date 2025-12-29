@@ -15,7 +15,6 @@ CREATE TABLE core_disbursal_events_rollup (
   facility_id UUID,
   liquidation_date JSONB,
   obligation_id UUID,
-  obligations_repayment_from_account_id UUID,
   overdue_date JSONB,
   public_id VARCHAR,
 
@@ -79,7 +78,6 @@ BEGIN
 ;
     new_row.liquidation_date := (NEW.event -> 'liquidation_date');
     new_row.obligation_id := (NEW.event ->> 'obligation_id')::UUID;
-    new_row.obligations_repayment_from_account_id := (NEW.event ->> 'obligations_repayment_from_account_id')::UUID;
     new_row.overdue_date := (NEW.event -> 'overdue_date');
     new_row.public_id := (NEW.event ->> 'public_id');
   ELSE
@@ -98,7 +96,6 @@ BEGIN
     new_row.ledger_tx_ids := current_row.ledger_tx_ids;
     new_row.liquidation_date := current_row.liquidation_date;
     new_row.obligation_id := current_row.obligation_id;
-    new_row.obligations_repayment_from_account_id := current_row.obligations_repayment_from_account_id;
     new_row.overdue_date := current_row.overdue_date;
     new_row.public_id := current_row.public_id;
   END IF;
@@ -114,7 +111,6 @@ BEGIN
       new_row.facility_id := (NEW.event ->> 'facility_id')::UUID;
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
       new_row.liquidation_date := (NEW.event -> 'liquidation_date');
-      new_row.obligations_repayment_from_account_id := (NEW.event ->> 'obligations_repayment_from_account_id')::UUID;
       new_row.overdue_date := (NEW.event -> 'overdue_date');
       new_row.public_id := (NEW.event ->> 'public_id');
     WHEN 'approval_process_concluded' THEN
@@ -151,7 +147,6 @@ BEGIN
     ledger_tx_ids,
     liquidation_date,
     obligation_id,
-    obligations_repayment_from_account_id,
     overdue_date,
     public_id
   )
@@ -174,7 +169,6 @@ BEGIN
     new_row.ledger_tx_ids,
     new_row.liquidation_date,
     new_row.obligation_id,
-    new_row.obligations_repayment_from_account_id,
     new_row.overdue_date,
     new_row.public_id
   );

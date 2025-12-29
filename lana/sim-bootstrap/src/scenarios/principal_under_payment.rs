@@ -156,8 +156,7 @@ async fn do_principal_under_payment(
 
     while let Some((obligation_type, amount)) = obligation_amount_rx.recv().await {
         if obligation_type == ObligationType::Interest {
-            app.credit()
-                .record_payment_with_date(&sub, id, amount, sim_time::now().date_naive())
+            app.record_payment_with_date(&sub, id, amount, sim_time::now().date_naive())
                 .await?;
         } else {
             principal_remaining += amount;

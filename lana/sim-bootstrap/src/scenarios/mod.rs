@@ -149,7 +149,6 @@ async fn process_facility_message(
             Span::current().record("event_type", event.as_ref());
 
             let _ = app
-                .credit()
                 .record_payment_with_date(sub, *id, *amount, sim_time::now().date_naive())
                 .await;
             let facility = app
@@ -160,14 +159,13 @@ async fn process_facility_message(
                 .expect("cf exists");
             if facility.interest_accrual_cycle_in_progress().is_none() {
                 let total_outstanding_amount = app.credit().outstanding(&facility).await?;
-                app.credit()
-                    .record_payment_with_date(
-                        sub,
-                        facility.id,
-                        total_outstanding_amount,
-                        sim_time::now().date_naive(),
-                    )
-                    .await?;
+                app.record_payment_with_date(
+                    sub,
+                    facility.id,
+                    total_outstanding_amount,
+                    sim_time::now().date_naive(),
+                )
+                .await?;
                 app.credit().complete_facility(sub, facility.id).await?;
             }
         }

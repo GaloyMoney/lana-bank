@@ -1953,8 +1953,7 @@ impl Mutation {
             CreditFacilityPartialPaymentRecordPayload,
             CreditFacility,
             ctx,
-            app.credit()
-                .record_payment(sub, input.credit_facility_id, input.amount,)
+            app.record_payment(sub, input.credit_facility_id, input.amount,)
         )
     }
 
@@ -1968,7 +1967,7 @@ impl Mutation {
             CreditFacilityPartialPaymentRecordPayload,
             CreditFacility,
             ctx,
-            app.credit().record_payment_with_date(
+            app.record_payment_with_date(
                 sub,
                 input.credit_facility_id,
                 input.amount,
