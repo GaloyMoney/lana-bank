@@ -2,7 +2,6 @@
 
 import React, { useState } from "react"
 import { useTranslations } from "next-intl"
-import Link from "next/link"
 
 import { Button } from "@lana/web/ui/button"
 
@@ -83,23 +82,17 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({ withdrawal })
 
   const footerContent = (
     <>
-      <Link href={`/deposit-accounts/${withdrawal.account.publicId}`}>
-        <Button variant="outline">
-          {t("buttons.viewDepositAccount")}
-          <ArrowRight />
-        </Button>
-      </Link>
-      <a
+      <Button variant="outline" href={`/deposit-accounts/${withdrawal.account.publicId}`}>
+        {t("buttons.viewDepositAccount")}
+        <ArrowRight />
+      </Button>
+      <Button
+        variant="outline"
         href={`https://cockpit.sumsub.com/checkus#/kyt/txns?search=${withdrawal.withdrawalId}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center gap-2"
       >
-        <Button variant="outline">
-          {t("buttons.viewOnSumsub")}
-          <ExternalLinkIcon className="h-4 w-4" />
-        </Button>
-      </a>
+        {t("buttons.viewOnSumsub")}
+        <ExternalLinkIcon className="h-4 w-4" />
+      </Button>
 
       {withdrawal.status === WithdrawalStatus.PendingConfirmation && (
         <>

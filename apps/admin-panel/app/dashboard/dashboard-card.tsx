@@ -1,6 +1,5 @@
 "use client"
 
-import Link from "next/link"
 import { HiArrowRight } from "react-icons/hi"
 import { ReactNode } from "react"
 
@@ -74,12 +73,10 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
         {content}
         {to && (
           <div className={`${buttonToRight ? "text-right" : ""}`}>
-            <Link href={to}>
-              <Button variant="outline">
-                {buttonText}
-                <HiArrowRight />
-              </Button>
-            </Link>
+            <Button variant="outline" href={to}>
+              {buttonText}
+              <HiArrowRight />
+            </Button>
           </div>
         )}
       </CardContent>

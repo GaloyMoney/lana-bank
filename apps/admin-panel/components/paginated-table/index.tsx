@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from "react"
-import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import {
   HiChevronUp,
@@ -371,15 +370,14 @@ const PaginatedTable = <T,>({
                 ))}
                 {safeUrl && (
                   <div className="pt-2">
-                    <Link href={safeUrl}>
-                      <Button
-                        variant="outline"
-                        className="w-full flex items-center justify-center"
-                      >
-                        {t("view", { defaultMessage: "View" })}
-                        <ArrowRight className="h-4 w-4" />
-                      </Button>
-                    </Link>
+                    <Button
+                      variant="outline"
+                      className="w-full flex items-center justify-center"
+                      href={safeUrl}
+                    >
+                      {t("view", { defaultMessage: "View" })}
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
                   </div>
                 )}
               </Card>
@@ -410,16 +408,15 @@ const PaginatedTable = <T,>({
                       ))}
                       {subRowSafeUrl && (
                         <div className="pt-2">
-                          <Link href={subRowSafeUrl}>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="w-full flex items-center justify-center"
-                            >
-                              {t("view", { defaultMessage: "View" })}
-                              <ArrowRight className="h-4 w-4" />
-                            </Button>
-                          </Link>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full flex items-center justify-center"
+                            href={subRowSafeUrl}
+                          >
+                            {t("view", { defaultMessage: "View" })}
+                            <ArrowRight className="h-4 w-4" />
+                          </Button>
                         </div>
                       )}
                     </Card>
@@ -572,16 +569,15 @@ const PaginatedTable = <T,>({
                     {navigateTo && (
                       <TableCell>
                         {safeUrl && (
-                          <Link href={safeUrl} className="group">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="w-full flex items-center"
-                            >
-                              {t("view", { defaultValue: "View" })}
-                              <ArrowRight />
-                            </Button>
-                          </Link>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full flex items-center"
+                            href={safeUrl}
+                          >
+                            {t("view", { defaultValue: "View" })}
+                            <ArrowRight />
+                          </Button>
                         )}
                       </TableCell>
                     )}
@@ -617,16 +613,15 @@ const PaginatedTable = <T,>({
                           {navigateTo && (
                             <TableCell>
                               {subRowSafeUrl && (
-                                <Link href={subRowSafeUrl} className="group">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="w-full flex items-center"
-                                  >
-                                    {t("view", { defaultValue: "View" })}
-                                    <ArrowRight />
-                                  </Button>
-                                </Link>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="w-full flex items-center"
+                                  href={subRowSafeUrl}
+                                >
+                                  {t("view", { defaultValue: "View" })}
+                                  <ArrowRight />
+                                </Button>
                               )}
                             </TableCell>
                           )}

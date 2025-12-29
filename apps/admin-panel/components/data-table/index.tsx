@@ -1,7 +1,6 @@
 "use client"
 
 import React, { useState, useEffect, useRef } from "react"
-import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import { useRouter } from "next/navigation"
 
@@ -236,16 +235,15 @@ const DataTable = <T,>({
               })}
               {safeNavigationUrl && (
                 <div className="pt-2">
-                  <Link href={safeNavigationUrl}>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full flex items-center justify-center"
-                    >
-                      {t("view")}
-                      <ArrowRight className="h-4 w-4" />
-                    </Button>
-                  </Link>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full flex items-center justify-center"
+                    href={safeNavigationUrl}
+                  >
+                    {t("view")}
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
                 </div>
               )}
             </Card>
@@ -328,16 +326,15 @@ const DataTable = <T,>({
                 {navigateTo && (
                   <TableCell>
                     {safeNavigationUrl && (
-                      <Link href={safeNavigationUrl} className="group">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full flex items-center"
-                        >
-                          {t("view")}
-                          <ArrowRight />
-                        </Button>
-                      </Link>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full flex items-center"
+                        href={safeNavigationUrl}
+                      >
+                        {t("view")}
+                        <ArrowRight />
+                      </Button>
                     )}
                   </TableCell>
                 )}

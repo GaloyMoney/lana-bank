@@ -1,7 +1,6 @@
 "use client"
 
 import React from "react"
-import Link from "next/link"
 import { useTranslations } from "next-intl"
 import { ArrowRight } from "lucide-react"
 
@@ -78,12 +77,10 @@ export const LiquidationCreditFacilityCard: React.FC<
   ]
 
   const footerContent = (
-    <Link href={`/credit-facilities/${creditFacility.publicId}`}>
-      <Button variant="outline">
-        {buttonsT("viewMoreDetails")}
-        <ArrowRight className="h-4 w-4 ml-2" />
-      </Button>
-    </Link>
+    <Button variant="outline" href={`/credit-facilities/${creditFacility.publicId}`}>
+      {buttonsT("viewMoreDetails")}
+      <ArrowRight className="h-4 w-4 ml-2" />
+    </Button>
   )
 
   return (
