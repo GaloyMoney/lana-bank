@@ -61,12 +61,18 @@ where
         db: &mut es_entity::DbOp<'_>,
         payment_id: PaymentId,
         credit_facility_id: CreditFacilityId,
+        payment_source_account_id: CalaAccountId,
         amount: UsdCents,
+        effective: chrono::NaiveDate,
     ) -> Result<bool, PaymentError> {
         let new_payment = NewPayment::builder()
             .id(payment_id)
+            .ledger_tx_id(payment_id)
             .amount(amount)
             .credit_facility_id(credit_facility_id)
+            .payment_holding_account_id(CalaAccountId::new())
+            .payment_source_account_id(payment_source_account_id)
+            .effective(effective)
             .build()
             .expect("could not build new payment");
 

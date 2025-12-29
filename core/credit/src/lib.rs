@@ -911,8 +911,16 @@ where
 
         let payment_id = PaymentId::new();
 
+        let effective = crate::time::now().date_naive();
         self.payments
-            .record_in_op(&mut db, payment_id, credit_facility_id, amount)
+            .record_in_op(
+                &mut db,
+                payment_id,
+                credit_facility_id,
+                payment_source_account_id,
+                amount,
+                effective,
+            )
             .await?;
 
         self.obligations
@@ -922,7 +930,7 @@ where
                 payment_id,
                 payment_source_account_id,
                 amount,
-                crate::time::now().date_naive(),
+                effective,
             )
             .await?;
 
@@ -975,7 +983,14 @@ where
         let payment_id = PaymentId::new();
 
         self.payments
-            .record_in_op(&mut db, payment_id, credit_facility_id, amount)
+            .record_in_op(
+                &mut db,
+                payment_id,
+                credit_facility_id,
+                payment_source_account_id,
+                amount,
+                effective.into(),
+            )
             .await?;
 
         self.obligations

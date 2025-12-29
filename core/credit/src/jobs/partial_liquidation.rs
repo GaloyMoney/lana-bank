@@ -228,9 +228,19 @@ where
                 Span::current().record("handled", true);
                 Span::current().record("event_type", event.as_ref());
 
+                let payment_source_account_id = crate::primitives::CalaAccountId::new(); // TODO: replace with actual account from Liquidation entity
+
+                let effective = crate::time::now().date_naive();
                 let payment_created = self
                     .payments
-                    .record_in_op(db, *payment_id, *credit_facility_id, *amount)
+                    .record_in_op(
+                        db,
+                        *payment_id,
+                        *credit_facility_id,
+                        payment_source_account_id,
+                        *amount,
+                        effective,
+                    )
                     .await?;
 
                 if payment_created {
@@ -243,9 +253,9 @@ where
                             db,
                             self.config.credit_facility_id,
                             *payment_id,
-                            crate::primitives::CalaAccountId::new(), // TODO: replace with actual account from Liquidation entity
+                            payment_source_account_id,
                             *amount,
-                            crate::time::now().date_naive(),
+                            effective,
                         )
                         .await?;
                 }

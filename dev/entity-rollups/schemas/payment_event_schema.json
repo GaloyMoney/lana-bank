@@ -17,7 +17,23 @@
           "format": "uuid",
           "type": "string"
         },
+        "effective": {
+          "format": "date",
+          "type": "string"
+        },
         "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "ledger_tx_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "payment_holding_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "payment_source_account_id": {
           "format": "uuid",
           "type": "string"
         },
@@ -29,8 +45,12 @@
       "required": [
         "type",
         "id",
+        "ledger_tx_id",
         "credit_facility_id",
-        "amount"
+        "payment_holding_account_id",
+        "payment_source_account_id",
+        "amount",
+        "effective"
       ],
       "type": "object"
     }

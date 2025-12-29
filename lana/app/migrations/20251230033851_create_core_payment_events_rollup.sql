@@ -6,7 +6,11 @@ CREATE TABLE core_payment_events_rollup (
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
   amount BIGINT,
-  credit_facility_id UUID
+  credit_facility_id UUID,
+  effective VARCHAR,
+  ledger_tx_id UUID,
+  payment_holding_account_id UUID,
+  payment_source_account_id UUID
 ,
   PRIMARY KEY (id, version)
 );
@@ -43,10 +47,18 @@ BEGIN
   IF current_row.id IS NULL THEN
     new_row.amount := (NEW.event ->> 'amount')::BIGINT;
     new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
+    new_row.effective := (NEW.event ->> 'effective');
+    new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
+    new_row.payment_holding_account_id := (NEW.event ->> 'payment_holding_account_id')::UUID;
+    new_row.payment_source_account_id := (NEW.event ->> 'payment_source_account_id')::UUID;
   ELSE
     -- Default all fields to current values
     new_row.amount := current_row.amount;
     new_row.credit_facility_id := current_row.credit_facility_id;
+    new_row.effective := current_row.effective;
+    new_row.ledger_tx_id := current_row.ledger_tx_id;
+    new_row.payment_holding_account_id := current_row.payment_holding_account_id;
+    new_row.payment_source_account_id := current_row.payment_source_account_id;
   END IF;
 
   -- Update only the fields that are modified by the specific event
@@ -54,6 +66,10 @@ BEGIN
     WHEN 'initialized' THEN
       new_row.amount := (NEW.event ->> 'amount')::BIGINT;
       new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
+      new_row.effective := (NEW.event ->> 'effective');
+      new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
+      new_row.payment_holding_account_id := (NEW.event ->> 'payment_holding_account_id')::UUID;
+      new_row.payment_source_account_id := (NEW.event ->> 'payment_source_account_id')::UUID;
   END CASE;
 
   INSERT INTO core_payment_events_rollup (
@@ -62,7 +78,11 @@ BEGIN
     created_at,
     modified_at,
     amount,
-    credit_facility_id
+    credit_facility_id,
+    effective,
+    ledger_tx_id,
+    payment_holding_account_id,
+    payment_source_account_id
   )
   VALUES (
     new_row.id,
@@ -70,7 +90,11 @@ BEGIN
     new_row.created_at,
     new_row.modified_at,
     new_row.amount,
-    new_row.credit_facility_id
+    new_row.credit_facility_id,
+    new_row.effective,
+    new_row.ledger_tx_id,
+    new_row.payment_holding_account_id,
+    new_row.payment_source_account_id
   );
 
   RETURN NEW;
