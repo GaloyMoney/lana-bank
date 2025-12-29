@@ -190,28 +190,27 @@ impl IntoEvents<DomainConfigEvent> for NewDomainConfig {
 mod tests {
     use es_entity::{IntoEvents as _, TryFromEvents as _};
     use serde::{Deserialize, Serialize};
-    use serde_json::json;
 
     use crate::{
-        Complex, ConfigSpec, ConfigType, DomainConfigError, DomainConfigId, DomainConfigKey,
+        Complex, ConfigSpec, DomainConfigError, DomainConfigId, DomainConfigKey, ValueKind,
         Visibility,
     };
 
     use super::{DomainConfig, DomainConfigEvent, NewDomainConfig};
 
     #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
-    struct SampleConfig {
+    struct SampleComplexConfig {
         enabled: bool,
         limit: u32,
     }
 
-    struct SampleConfigSpec;
-    impl ConfigSpec for SampleConfigSpec {
+    struct SampleComplexConfigSpec;
+    impl ConfigSpec for SampleComplexConfigSpec {
         const KEY: DomainConfigKey = DomainConfigKey::new("sample-config");
         const VISIBILITY: Visibility = Visibility::Exposed;
-        type Kind = Complex<SampleConfig>;
+        type Kind = Complex<SampleComplexConfig>;
 
-        fn validate(value: &SampleConfig) -> Result<(), DomainConfigError> {
+        fn validate(value: &SampleComplexConfig) -> Result<(), DomainConfigError> {
             if value.limit > 100 {
                 return Err(DomainConfigError::InvalidState(
                     "Limit is too high".to_string(),
@@ -222,205 +221,303 @@ mod tests {
         }
     }
 
-    struct SimpleBoolSpec;
-    impl ConfigSpec for SimpleBoolSpec {
+    struct SampleSimpleBoolSpec;
+    impl ConfigSpec for SampleSimpleBoolSpec {
         const KEY: DomainConfigKey = DomainConfigKey::new("simple-bool");
         const VISIBILITY: Visibility = Visibility::Internal;
         type Kind = crate::Simple<bool>;
     }
 
-    fn build_exposed_config(id: DomainConfigId, value: &SampleConfig) -> DomainConfig {
-        let events = NewDomainConfig::builder()
-            .with_value::<SampleConfigSpec>(id, value.clone())
-            .unwrap()
-            .build()
-            .unwrap()
-            .into_events();
-
-        DomainConfig::try_from_events(events).unwrap()
+    struct SampleExposedBoolSpec;
+    impl ConfigSpec for SampleExposedBoolSpec {
+        const KEY: DomainConfigKey = DomainConfigKey::new("simple-bool");
+        const VISIBILITY: Visibility = Visibility::Exposed;
+        type Kind = crate::Simple<bool>;
     }
 
     #[test]
-    fn exposed_init_sets_fields() {
+    fn new_domain_config_emits_expected_init_metadata_for_sample_config() {
         let id = DomainConfigId::new();
-        let value = SampleConfig {
+        let value = SampleComplexConfig {
             enabled: true,
             limit: 10,
         };
 
         let events = NewDomainConfig::builder()
-            .with_value::<SampleConfigSpec>(id, value)
+            .with_value::<SampleComplexConfigSpec>(id, value)
             .unwrap()
             .build()
             .unwrap()
             .into_events();
 
-        let init = events.iter_all().next().unwrap();
+        let init = events.iter_all().next().expect("init event exists");
+        let expected_type = <<SampleComplexConfigSpec as ConfigSpec>::Kind as ValueKind>::TYPE;
         assert!(matches!(
             init,
             DomainConfigEvent::Initialized {
+                id: event_id,
+                key,
                 config_type,
                 visibility,
                 ..
-            } if *config_type == ConfigType::Complex && *visibility == Visibility::Exposed
+            } if event_id == &id
+                && key == &SampleComplexConfigSpec::KEY
+                && config_type == &expected_type
+                && visibility == &SampleComplexConfigSpec::VISIBILITY
         ));
     }
 
     #[test]
-    fn internal_init_sets_fields() {
+    fn new_domain_config_emits_expected_init_metadata_for_simple_bool() {
         let id = DomainConfigId::new();
         let events = NewDomainConfig::builder()
-            .with_value::<SimpleBoolSpec>(id, true)
+            .with_value::<SampleSimpleBoolSpec>(id, true)
             .unwrap()
             .build()
             .unwrap()
             .into_events();
 
-        let init = events.iter_all().next().unwrap();
+        let init = events.iter_all().next().expect("init event exists");
+        let expected_type = <<SampleSimpleBoolSpec as ConfigSpec>::Kind as ValueKind>::TYPE;
         assert!(matches!(
             init,
             DomainConfigEvent::Initialized {
+                id: event_id,
+                key,
                 config_type,
                 visibility,
                 ..
-            } if *config_type == ConfigType::Bool && *visibility == Visibility::Internal
+            } if event_id == &id
+                && key == &SampleSimpleBoolSpec::KEY
+                && config_type == &expected_type
+                && visibility == &SampleSimpleBoolSpec::VISIBILITY
         ));
     }
 
     #[test]
-    fn rehydrates_exposed_config() {
+    fn rehydrates_sample_config_from_events() {
         let id = DomainConfigId::new();
-        let value = SampleConfig {
+        let value = SampleComplexConfig {
             enabled: true,
             limit: 10,
         };
 
-        let config = build_exposed_config(id, &value);
-
-        assert_eq!(config.id, id);
-        assert_eq!(config.key, <SampleConfigSpec as ConfigSpec>::KEY);
-        assert_eq!(config.config_type, ConfigType::Complex);
-        assert_eq!(config.visibility, Visibility::Exposed);
-        assert_eq!(config.current_value::<SampleConfigSpec>().unwrap(), value);
-    }
-
-    #[test]
-    fn rehydrates_internal_config() {
-        let id = DomainConfigId::new();
-        let value = false;
         let events = NewDomainConfig::builder()
-            .with_value::<SimpleBoolSpec>(id, value)
+            .with_value::<SampleComplexConfigSpec>(id, value.clone())
             .unwrap()
             .build()
             .unwrap()
             .into_events();
-
         let config = DomainConfig::try_from_events(events).unwrap();
 
-        assert_eq!(config.config_type, ConfigType::Bool);
-        assert_eq!(config.visibility, Visibility::Internal);
-        assert_eq!(config.key, <SimpleBoolSpec as ConfigSpec>::KEY);
-        let current_value = config.current_value::<SimpleBoolSpec>().unwrap();
-        assert_eq!(current_value, value);
+        assert_eq!(config.id, id);
+        assert_eq!(config.key, SampleComplexConfigSpec::KEY);
+        assert_eq!(
+            config.config_type,
+            <<SampleComplexConfigSpec as ConfigSpec>::Kind as ValueKind>::TYPE
+        );
+        assert_eq!(config.visibility, SampleComplexConfigSpec::VISIBILITY);
+        assert_eq!(
+            config.current_value::<SampleComplexConfigSpec>().unwrap(),
+            value
+        );
     }
 
     #[test]
-    fn update_exposed_is_idempotent() {
-        let mut config = build_exposed_config(
-            DomainConfigId::new(),
-            &SampleConfig {
-                enabled: true,
-                limit: 5,
-            },
+    fn rehydrates_simple_bool_from_events() {
+        let id = DomainConfigId::new();
+        let events = NewDomainConfig::builder()
+            .with_value::<SampleSimpleBoolSpec>(id, false)
+            .unwrap()
+            .build()
+            .unwrap()
+            .into_events();
+        let config = DomainConfig::try_from_events(events).unwrap();
+
+        assert_eq!(config.id, id);
+        assert_eq!(config.key, SampleSimpleBoolSpec::KEY);
+        assert_eq!(
+            config.config_type,
+            <<SampleSimpleBoolSpec as ConfigSpec>::Kind as ValueKind>::TYPE
         );
-        let updated = SampleConfig {
+        assert_eq!(config.visibility, SampleSimpleBoolSpec::VISIBILITY);
+        assert!(!config.current_value::<SampleSimpleBoolSpec>().unwrap());
+    }
+
+    #[test]
+    fn update_value_is_idempotent_for_sample_config() {
+        let id = DomainConfigId::new();
+        let initial = SampleComplexConfig {
+            enabled: true,
+            limit: 5,
+        };
+        let updated = SampleComplexConfig {
             enabled: false,
             limit: 15,
         };
 
-        let updated_json = json!(updated.clone());
+        let events = NewDomainConfig::builder()
+            .with_value::<SampleComplexConfigSpec>(id, initial)
+            .unwrap()
+            .build()
+            .unwrap()
+            .into_events();
+        let mut config = DomainConfig::try_from_events(events).unwrap();
 
         assert!(
             config
-                .update_value::<SampleConfigSpec>(updated.clone())
+                .update_value::<SampleComplexConfigSpec>(updated.clone())
                 .expect("first update should succeed")
                 .did_execute()
         );
-        let result = config
-            .update_value::<SampleConfigSpec>(updated.clone())
-            .expect("second update should not error");
 
+        let result = config
+            .update_value::<SampleComplexConfigSpec>(updated.clone())
+            .expect("second update should not error");
         assert!(result.was_already_applied());
+
+        let updated_json =
+            <<SampleComplexConfigSpec as ConfigSpec>::Kind as ValueKind>::encode(&updated)
+                .expect("value encodes");
         let last_event = config.events.iter_all().next_back().unwrap();
         assert!(matches!(
             last_event,
             DomainConfigEvent::Updated { value } if value == &updated_json
         ));
-        assert_eq!(config.current_value::<SampleConfigSpec>().unwrap(), updated);
+        assert_eq!(
+            config.current_value::<SampleComplexConfigSpec>().unwrap(),
+            updated
+        );
     }
 
     #[test]
-    fn update_internal_is_idempotent() {
+    fn update_value_is_idempotent_for_simple_bool() {
         let id = DomainConfigId::new();
-        let initial_value = false;
-        let new_value = true;
-
         let events = NewDomainConfig::builder()
-            .with_value::<SimpleBoolSpec>(id, initial_value)
+            .with_value::<SampleSimpleBoolSpec>(id, false)
             .unwrap()
             .build()
             .unwrap()
             .into_events();
-
         let mut config = DomainConfig::try_from_events(events).unwrap();
 
         assert!(
             config
-                .update_value::<SimpleBoolSpec>(new_value)
-                .unwrap()
+                .update_value::<SampleSimpleBoolSpec>(true)
+                .expect("first update should succeed")
                 .did_execute()
         );
-        assert!(
-            config
-                .update_value::<SimpleBoolSpec>(new_value)
-                .unwrap()
-                .was_already_applied()
-        );
+
+        let result = config
+            .update_value::<SampleSimpleBoolSpec>(true)
+            .expect("second update should not error");
+        assert!(result.was_already_applied());
+
+        let updated_json = <<SampleSimpleBoolSpec as ConfigSpec>::Kind as ValueKind>::encode(&true)
+            .expect("value encodes");
         let last_event = config.events.iter_all().next_back().unwrap();
         assert!(matches!(
             last_event,
-            DomainConfigEvent::Updated { value } if value == &json!(new_value)
+            DomainConfigEvent::Updated { value } if value == &updated_json
+        ));
+        assert!(config.current_value::<SampleSimpleBoolSpec>().unwrap());
+    }
+
+    #[test]
+    fn create_rejects_invalid_sample_config() {
+        let invalid = SampleComplexConfig {
+            enabled: true,
+            limit: 101,
+        };
+
+        let create_result = NewDomainConfig::builder()
+            .with_value::<SampleComplexConfigSpec>(DomainConfigId::new(), invalid);
+        assert!(
+            matches!(create_result, Err(DomainConfigError::InvalidState(_))),
+            "invalid value should fail validation"
+        );
+    }
+
+    #[test]
+    fn update_rejects_invalid_sample_config() {
+        let invalid = SampleComplexConfig {
+            enabled: true,
+            limit: 101,
+        };
+
+        let events = NewDomainConfig::builder()
+            .with_value::<SampleComplexConfigSpec>(
+                DomainConfigId::new(),
+                SampleComplexConfig {
+                    enabled: true,
+                    limit: 10,
+                },
+            )
+            .unwrap()
+            .build()
+            .unwrap()
+            .into_events();
+        let mut config = DomainConfig::try_from_events(events).unwrap();
+
+        let update_result = config.update_value::<SampleComplexConfigSpec>(invalid);
+        assert!(
+            matches!(update_result, Err(DomainConfigError::InvalidState(_))),
+            "invalid update should fail validation"
+        );
+    }
+
+    #[test]
+    fn current_value_rejects_wrong_type() {
+        let events = NewDomainConfig::builder()
+            .with_value::<SampleSimpleBoolSpec>(DomainConfigId::new(), true)
+            .unwrap()
+            .build()
+            .unwrap()
+            .into_events();
+        let config = DomainConfig::try_from_events(events).unwrap();
+
+        let read_type_error = config.current_value::<SampleComplexConfigSpec>();
+        assert!(matches!(
+            read_type_error,
+            Err(DomainConfigError::InvalidType(message)) if message.contains("config type")
         ));
     }
 
     #[test]
-    fn type_invariant_enforced() {
-        let id = DomainConfigId::new();
+    fn current_value_rejects_wrong_visibility() {
         let events = NewDomainConfig::builder()
-            .with_value::<SimpleBoolSpec>(id, true)
+            .with_value::<SampleSimpleBoolSpec>(DomainConfigId::new(), true)
+            .unwrap()
+            .build()
+            .unwrap()
+            .into_events();
+        let config = DomainConfig::try_from_events(events).unwrap();
+
+        let read_visibility_error = config.current_value::<SampleExposedBoolSpec>();
+        assert!(matches!(
+            read_visibility_error,
+            Err(DomainConfigError::InvalidType(message)) if message.contains("visibility")
+        ));
+    }
+
+    #[test]
+    fn update_rejects_wrong_type() {
+        let events = NewDomainConfig::builder()
+            .with_value::<SampleSimpleBoolSpec>(DomainConfigId::new(), true)
             .unwrap()
             .build()
             .unwrap()
             .into_events();
         let mut config = DomainConfig::try_from_events(events).unwrap();
 
-        let result = config.current_value::<SampleConfigSpec>();
-        assert!(matches!(result, Err(DomainConfigError::InvalidType(_))));
-
-        let result = config.update_value::<SampleConfigSpec>(SampleConfig {
-            enabled: true,
-            limit: 1,
-        });
-        assert!(matches!(result, Err(DomainConfigError::InvalidType(_))));
-
-        let config = build_exposed_config(
-            DomainConfigId::new(),
-            &SampleConfig {
+        let update_type_error =
+            config.update_value::<SampleComplexConfigSpec>(SampleComplexConfig {
                 enabled: true,
                 limit: 1,
-            },
-        );
-        let result = config.current_value::<SimpleBoolSpec>();
-        assert!(matches!(result, Err(DomainConfigError::InvalidType(_))));
+            });
+        assert!(matches!(
+            update_type_error,
+            Err(DomainConfigError::InvalidType(message)) if message.contains("config type")
+        ));
     }
 }
