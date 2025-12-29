@@ -569,18 +569,20 @@ const PaginatedTable = <T,>({
                           : String(node[col.key])}
                       </TableCell>
                     ))}
-                    {safeUrl && (
+                    {navigateTo && (
                       <TableCell>
-                        <Link href={safeUrl} className="group">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full flex items-center"
-                          >
-                            {t("view", { defaultValue: "View" })}
-                            <ArrowRight />
-                          </Button>
-                        </Link>
+                        {safeUrl && (
+                          <Link href={safeUrl} className="group">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full flex items-center"
+                            >
+                              {t("view", { defaultValue: "View" })}
+                              <ArrowRight />
+                            </Button>
+                          </Link>
+                        )}
                       </TableCell>
                     )}
                   </TableRow>
@@ -612,18 +614,20 @@ const PaginatedTable = <T,>({
                                 : String(subRow[col.key])}
                             </TableCell>
                           ))}
-                          {subRowSafeUrl && (
+                          {navigateTo && (
                             <TableCell>
-                              <Link href={subRowSafeUrl} className="group">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="w-full flex items-center"
-                                >
-                                  {t("view", { defaultValue: "View" })}
-                                  <ArrowRight />
-                                </Button>
-                              </Link>
+                              {subRowSafeUrl && (
+                                <Link href={subRowSafeUrl} className="group">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="w-full flex items-center"
+                                  >
+                                    {t("view", { defaultValue: "View" })}
+                                    <ArrowRight />
+                                  </Button>
+                                </Link>
+                              )}
                             </TableCell>
                           )}
                         </TableRow>

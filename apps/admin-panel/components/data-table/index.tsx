@@ -325,18 +325,20 @@ const DataTable = <T,>({
                       : String(item[column.key])}
                   </TableCell>
                 ))}
-                {safeNavigationUrl && (
+                {navigateTo && (
                   <TableCell>
-                    <Link href={safeNavigationUrl} className="group">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full flex items-center"
-                      >
-                        {t("view")}
-                        <ArrowRight />
-                      </Button>
-                    </Link>
+                    {safeNavigationUrl && (
+                      <Link href={safeNavigationUrl} className="group">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full flex items-center"
+                        >
+                          {t("view")}
+                          <ArrowRight />
+                        </Button>
+                      </Link>
+                    )}
                   </TableCell>
                 )}
               </TableRow>
