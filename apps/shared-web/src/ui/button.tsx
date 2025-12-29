@@ -1,5 +1,4 @@
 import * as React from "react";
-import Link from "next/link";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 
@@ -38,118 +37,49 @@ const buttonVariants = cva(
   }
 );
 
-type ButtonVariantProps = VariantProps<typeof buttonVariants>;
-
-type CommonProps = {
+interface ButtonProps
+  extends React.ComponentProps<"button">, VariantProps<typeof buttonVariants> {
   loading?: boolean;
-  disabled?: boolean;
-  className?: string;
-  children?: React.ReactNode;
-} & ButtonVariantProps;
-
-type ButtonAsButton = CommonProps &
-  Omit<React.ComponentProps<"button">, keyof CommonProps> & {
-    href?: undefined;
-    external?: undefined;
-    asChild?: false;
-  };
-
-type ButtonAsLink = CommonProps &
-  Omit<React.ComponentProps<"a">, keyof CommonProps | "href"> & {
-    href: string;
-    external?: boolean;
-    asChild?: undefined;
-  };
-
-type ButtonAsChild = CommonProps &
-  Omit<React.ComponentProps<"button">, keyof CommonProps> & {
-    href?: undefined;
-    external?: undefined;
-    asChild: true;
-  };
-
-type ButtonProps = ButtonAsButton | ButtonAsLink | ButtonAsChild;
-
-function isExternalUrl(url: string): boolean {
-  return (
-    url.startsWith("http://") ||
-    url.startsWith("https://") ||
-    url.startsWith("//")
-  );
+  asChild?: boolean;
 }
 
-function Button(props: ButtonProps) {
-  const {
-    className,
-    variant,
-    size,
-    loading = false,
-    disabled = false,
-    children,
-    ...rest
-  } = props;
-
+function Button({
+  className,
+  variant,
+  size,
+  asChild = false,
+  loading = false,
+  children,
+  disabled,
+  ...props
+}: ButtonProps) {
+  const Comp = asChild ? Slot : "button";
   const isDisabled = loading || disabled;
-  const buttonClasses = cn(buttonVariants({ variant, size, className }));
 
-  if ("href" in rest && rest.href !== undefined) {
-    const { href, external, ...linkProps } = rest;
-    const isExternal = external ?? isExternalUrl(href);
-
-    const sharedLinkProps = {
-      className: buttonClasses,
-      ...linkProps,
-      ...(isDisabled && {
-        "aria-disabled": true as const,
-        tabIndex: -1,
-        onClick: (e: React.MouseEvent) => e.preventDefault(),
-      }),
-    };
-
-    if (isExternal) {
-      return (
-        <a
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          {...sharedLinkProps}
-        >
-          {children}
-        </a>
-      );
-    }
-
+  if (asChild) {
     return (
-      <Link href={href} {...sharedLinkProps}>
-        {children}
-      </Link>
-    );
-  }
-
-  if ("asChild" in rest && rest.asChild === true) {
-    const { asChild, ...slotProps } = rest;
-    return (
-      <Slot
-        className={buttonClasses}
-        {...(isDisabled && { "aria-disabled": true, tabIndex: -1 })}
-        {...slotProps}
+      <Comp
+        data-slot="button"
+        aria-disabled={isDisabled || undefined}
+        tabIndex={isDisabled ? -1 : undefined}
+        className={cn(buttonVariants({ variant, size, className }))}
+        {...props}
       >
         {children}
-      </Slot>
+      </Comp>
     );
   }
 
-  const { asChild, external, ...buttonProps } = rest;
   return (
-    <button
-      type={"type" in buttonProps ? buttonProps.type : "button"}
+    <Comp
+      data-slot="button"
       disabled={isDisabled}
       className={cn(
-        buttonClasses,
+        buttonVariants({ variant, size, className }),
         "relative",
         loading && "[&>*:not(.button-spinner)]:opacity-0"
       )}
-      {...buttonProps}
+      {...props}
     >
       {loading && (
         <div className="button-spinner absolute inset-0 flex items-center justify-center bg-inherit rounded-[inherit]">
@@ -157,9 +87,8 @@ function Button(props: ButtonProps) {
         </div>
       )}
       {children}
-    </button>
+    </Comp>
   );
 }
 
 export { Button, buttonVariants };
-export type { ButtonProps };

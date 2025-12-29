@@ -3,6 +3,7 @@
 import React, { useState } from "react"
 import { useTranslations } from "next-intl"
 import { ArrowRight, ExternalLinkIcon, RotateCcw } from "lucide-react"
+import Link from "next/link"
 
 import { Button } from "@lana/web/ui/button"
 
@@ -54,9 +55,11 @@ const DepositDetailsCard: React.FC<DepositDetailsProps> = ({ deposit }) => {
 
   const footerContent = (
     <>
-      <Button variant="outline" href={`/deposit-accounts/${deposit.account.publicId}`}>
-        {t("buttons.viewDepositAccount")}
-        <ArrowRight />
+      <Button variant="outline" asChild>
+        <Link href={`/deposit-accounts/${deposit.account.publicId}`}>
+          {t("buttons.viewDepositAccount")}
+          <ArrowRight />
+        </Link>
       </Button>
       {deposit.status === DepositStatus.Confirmed && (
         <Button
@@ -68,12 +71,15 @@ const DepositDetailsCard: React.FC<DepositDetailsProps> = ({ deposit }) => {
           {t("buttons.revert")}
         </Button>
       )}
-      <Button
-        variant="outline"
-        href={`https://cockpit.sumsub.com/checkus#/kyt/txns?search=${deposit.depositId}`}
-      >
-        {t("buttons.viewOnSumsub")}
-        <ExternalLinkIcon className="h-4 w-4" />
+      <Button variant="outline" asChild>
+        <a
+          href={`https://cockpit.sumsub.com/checkus#/kyt/txns?search=${deposit.depositId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {t("buttons.viewOnSumsub")}
+          <ExternalLinkIcon className="h-4 w-4" />
+        </a>
       </Button>
     </>
   )

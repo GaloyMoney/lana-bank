@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react"
+import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import {
   HiChevronUp,
@@ -373,10 +374,12 @@ const PaginatedTable = <T,>({
                     <Button
                       variant="outline"
                       className="w-full flex items-center justify-center"
-                      href={safeUrl}
+                      asChild
                     >
-                      {t("view", { defaultMessage: "View" })}
-                      <ArrowRight className="h-4 w-4" />
+                      <Link href={safeUrl}>
+                        {t("view", { defaultMessage: "View" })}
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
                     </Button>
                   </div>
                 )}
@@ -412,10 +415,12 @@ const PaginatedTable = <T,>({
                             variant="outline"
                             size="sm"
                             className="w-full flex items-center justify-center"
-                            href={subRowSafeUrl}
+                            asChild
                           >
-                            {t("view", { defaultMessage: "View" })}
-                            <ArrowRight className="h-4 w-4" />
+                            <Link href={subRowSafeUrl}>
+                              {t("view", { defaultMessage: "View" })}
+                              <ArrowRight className="h-4 w-4" />
+                            </Link>
                           </Button>
                         </div>
                       )}
@@ -573,10 +578,12 @@ const PaginatedTable = <T,>({
                             variant="outline"
                             size="sm"
                             className="w-full flex items-center"
-                            href={safeUrl}
+                            asChild
                           >
-                            {t("view", { defaultValue: "View" })}
-                            <ArrowRight />
+                            <Link href={safeUrl}>
+                              {t("view", { defaultValue: "View" })}
+                              <ArrowRight />
+                            </Link>
                           </Button>
                         )}
                       </TableCell>
@@ -617,10 +624,12 @@ const PaginatedTable = <T,>({
                                   variant="outline"
                                   size="sm"
                                   className="w-full flex items-center"
-                                  href={subRowSafeUrl}
+                                  asChild
                                 >
-                                  {t("view", { defaultValue: "View" })}
-                                  <ArrowRight />
+                                  <Link href={subRowSafeUrl}>
+                                    {t("view", { defaultValue: "View" })}
+                                    <ArrowRight />
+                                  </Link>
                                 </Button>
                               )}
                             </TableCell>

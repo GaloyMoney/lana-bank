@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
+import Link from "next/link"
 import { useTranslations } from "next-intl"
 import { ArrowRight } from "lucide-react"
 
@@ -52,12 +53,13 @@ export const DisbursalDetailsCard: React.FC<DisbursalDetailsProps> = ({ disbursa
   const footerContent = (
     <>
       {disbursal.creditFacility.customer.depositAccount && (
-        <Button
-          variant="outline"
-          href={`/deposit-accounts/${disbursal.creditFacility.customer.depositAccount.publicId}`}
-        >
-          {t("buttons.viewDepositAccount")}
-          <ArrowRight />
+        <Button variant="outline" asChild>
+          <Link
+            href={`/deposit-accounts/${disbursal.creditFacility.customer.depositAccount.publicId}`}
+          >
+            {t("buttons.viewDepositAccount")}
+            <ArrowRight />
+          </Link>
         </Button>
       )}
       {disbursal.approvalProcess?.status === ApprovalProcessStatus.InProgress &&
@@ -79,12 +81,11 @@ export const DisbursalDetailsCard: React.FC<DisbursalDetailsProps> = ({ disbursa
             </Button>
           </>
         )}
-      <Button
-        variant="outline"
-        href={`/credit-facilities/${disbursal.creditFacility.publicId}`}
-      >
-        {t("buttons.viewCreditFacility")}
-        <ArrowRight />
+      <Button variant="outline" asChild>
+        <Link href={`/credit-facilities/${disbursal.creditFacility.publicId}`}>
+          {t("buttons.viewCreditFacility")}
+          <ArrowRight />
+        </Link>
       </Button>
     </>
   )

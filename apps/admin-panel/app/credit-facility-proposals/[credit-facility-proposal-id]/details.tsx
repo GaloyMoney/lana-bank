@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl"
 import { Button } from "@lana/web/ui/button"
 import { formatDate } from "@lana/web/utils"
 import { Check, X, ArrowRight } from "lucide-react"
+import Link from "next/link"
 
 import { CreditFacilityProposalStatusBadge } from "../status-badge"
 
@@ -115,13 +116,13 @@ const CreditFacilityProposalDetailsCard: React.FC<
           </>
         )}
       {proposalDetails.status === CreditFacilityProposalStatus.Approved && (
-        <Button
-          variant="outline"
-          data-testid="view-pending-facility-button"
-          href={`/pending-credit-facilities/${proposalDetails.creditFacilityProposalId}`}
-        >
-          {t("buttons.viewPendingFacility")}
-          <ArrowRight className="h-4 w-4 ml-2" />
+        <Button variant="outline" data-testid="view-pending-facility-button" asChild>
+          <Link
+            href={`/pending-credit-facilities/${proposalDetails.creditFacilityProposalId}`}
+          >
+            {t("buttons.viewPendingFacility")}
+            <ArrowRight className="h-4 w-4 ml-2" />
+          </Link>
         </Button>
       )}
     </>

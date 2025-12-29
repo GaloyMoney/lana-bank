@@ -87,9 +87,11 @@ const LedgerTransactionPage: React.FC<LedgerTransactionPageProps> = ({ params })
 
   const entityUrl = getEntityforTransaction(data?.ledgerTransaction?.entity, t)
   const footerContent = entityUrl ? (
-    <Button variant="outline" key="entity" href={entityUrl.url}>
-      {entityUrl.label}
-      <ArrowRight className="h-4 w-4" />
+    <Button variant="outline" key="entity" asChild>
+      <Link href={entityUrl.url}>
+        {entityUrl.label}
+        <ArrowRight className="h-4 w-4" />
+      </Link>
     </Button>
   ) : undefined
 

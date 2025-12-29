@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useRef } from "react"
+import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import { useRouter } from "next/navigation"
 
@@ -239,10 +240,12 @@ const DataTable = <T,>({
                     variant="outline"
                     size="sm"
                     className="w-full flex items-center justify-center"
-                    href={safeNavigationUrl}
+                    asChild
                   >
-                    {t("view")}
-                    <ArrowRight className="h-4 w-4" />
+                    <Link href={safeNavigationUrl}>
+                      {t("view")}
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
                   </Button>
                 </div>
               )}
@@ -330,10 +333,12 @@ const DataTable = <T,>({
                         variant="outline"
                         size="sm"
                         className="w-full flex items-center"
-                        href={safeNavigationUrl}
+                        asChild
                       >
-                        {t("view")}
-                        <ArrowRight />
+                        <Link href={safeNavigationUrl}>
+                          {t("view")}
+                          <ArrowRight />
+                        </Link>
                       </Button>
                     )}
                   </TableCell>
