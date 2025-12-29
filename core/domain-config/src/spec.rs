@@ -14,22 +14,22 @@ mod sealed {
 }
 
 pub trait ValueKind: sealed::Sealed {
-    type Inner: Clone;
+    type Value: Clone;
     const TYPE: ConfigType;
 
-    fn encode(value: &Self::Inner) -> Result<serde_json::Value, DomainConfigError>;
-    fn decode(value: serde_json::Value) -> Result<Self::Inner, DomainConfigError>;
+    fn encode(value: &Self::Value) -> Result<serde_json::Value, DomainConfigError>;
+    fn decode(value: serde_json::Value) -> Result<Self::Value, DomainConfigError>;
 }
 
 impl ValueKind for Simple<bool> {
-    type Inner = bool;
+    type Value = bool;
     const TYPE: ConfigType = ConfigType::Bool;
 
-    fn encode(value: &Self::Inner) -> Result<serde_json::Value, DomainConfigError> {
+    fn encode(value: &Self::Value) -> Result<serde_json::Value, DomainConfigError> {
         Ok(serde_json::Value::Bool(*value))
     }
 
-    fn decode(value: serde_json::Value) -> Result<Self::Inner, DomainConfigError> {
+    fn decode(value: serde_json::Value) -> Result<Self::Value, DomainConfigError> {
         match value {
             serde_json::Value::Bool(value) => Ok(value),
             other => Err(DomainConfigError::InvalidType(format!(
@@ -40,14 +40,14 @@ impl ValueKind for Simple<bool> {
 }
 
 impl ValueKind for Simple<String> {
-    type Inner = String;
+    type Value = String;
     const TYPE: ConfigType = ConfigType::String;
 
-    fn encode(value: &Self::Inner) -> Result<serde_json::Value, DomainConfigError> {
+    fn encode(value: &Self::Value) -> Result<serde_json::Value, DomainConfigError> {
         Ok(serde_json::Value::String(value.clone()))
     }
 
-    fn decode(value: serde_json::Value) -> Result<Self::Inner, DomainConfigError> {
+    fn decode(value: serde_json::Value) -> Result<Self::Value, DomainConfigError> {
         match value {
             serde_json::Value::String(value) => Ok(value),
             other => Err(DomainConfigError::InvalidType(format!(
@@ -58,14 +58,14 @@ impl ValueKind for Simple<String> {
 }
 
 impl ValueKind for Simple<i64> {
-    type Inner = i64;
+    type Value = i64;
     const TYPE: ConfigType = ConfigType::Int;
 
-    fn encode(value: &Self::Inner) -> Result<serde_json::Value, DomainConfigError> {
+    fn encode(value: &Self::Value) -> Result<serde_json::Value, DomainConfigError> {
         Ok(serde_json::Value::Number((*value).into()))
     }
 
-    fn decode(value: serde_json::Value) -> Result<Self::Inner, DomainConfigError> {
+    fn decode(value: serde_json::Value) -> Result<Self::Value, DomainConfigError> {
         value
             .as_i64()
             .ok_or_else(|| DomainConfigError::InvalidType(format!("Expected i64, got {value:?}")))
@@ -73,14 +73,14 @@ impl ValueKind for Simple<i64> {
 }
 
 impl ValueKind for Simple<u64> {
-    type Inner = u64;
+    type Value = u64;
     const TYPE: ConfigType = ConfigType::Uint;
 
-    fn encode(value: &Self::Inner) -> Result<serde_json::Value, DomainConfigError> {
+    fn encode(value: &Self::Value) -> Result<serde_json::Value, DomainConfigError> {
         Ok(serde_json::Value::Number((*value).into()))
     }
 
-    fn decode(value: serde_json::Value) -> Result<Self::Inner, DomainConfigError> {
+    fn decode(value: serde_json::Value) -> Result<Self::Value, DomainConfigError> {
         value
             .as_u64()
             .ok_or_else(|| DomainConfigError::InvalidType(format!("Expected u64, got {value:?}")))
@@ -88,14 +88,14 @@ impl ValueKind for Simple<u64> {
 }
 
 impl ValueKind for Simple<rust_decimal::Decimal> {
-    type Inner = rust_decimal::Decimal;
+    type Value = rust_decimal::Decimal;
     const TYPE: ConfigType = ConfigType::Decimal;
 
-    fn encode(value: &Self::Inner) -> Result<serde_json::Value, DomainConfigError> {
+    fn encode(value: &Self::Value) -> Result<serde_json::Value, DomainConfigError> {
         Ok(serde_json::Value::String(value.to_string()))
     }
 
-    fn decode(value: serde_json::Value) -> Result<Self::Inner, DomainConfigError> {
+    fn decode(value: serde_json::Value) -> Result<Self::Value, DomainConfigError> {
         match value {
             serde_json::Value::String(value) => {
                 rust_decimal::Decimal::from_str(&value).map_err(|_| {
@@ -115,14 +115,14 @@ impl<T> ValueKind for Complex<T>
 where
     T: Serialize + DeserializeOwned + Clone,
 {
-    type Inner = T;
+    type Value = T;
     const TYPE: ConfigType = ConfigType::Complex;
 
-    fn encode(value: &Self::Inner) -> Result<serde_json::Value, DomainConfigError> {
+    fn encode(value: &Self::Value) -> Result<serde_json::Value, DomainConfigError> {
         Ok(serde_json::to_value(value)?)
     }
 
-    fn decode(value: serde_json::Value) -> Result<Self::Inner, DomainConfigError> {
+    fn decode(value: serde_json::Value) -> Result<Self::Value, DomainConfigError> {
         Ok(serde_json::from_value(value)?)
     }
 }
@@ -132,11 +132,11 @@ pub trait ConfigSpec {
     const VISIBILITY: Visibility;
     type Kind: ValueKind;
 
-    fn default_value() -> Option<<Self::Kind as ValueKind>::Inner> {
+    fn default_value() -> Option<<Self::Kind as ValueKind>::Value> {
         None
     }
 
-    fn validate(value: &<Self::Kind as ValueKind>::Inner) -> Result<(), DomainConfigError> {
+    fn validate(value: &<Self::Kind as ValueKind>::Value) -> Result<(), DomainConfigError> {
         let _ = value;
         Ok(())
     }

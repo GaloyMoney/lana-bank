@@ -34,7 +34,7 @@ impl DomainConfigs {
     }
 
     #[instrument(name = "domain_config.get", skip(self), err)]
-    pub async fn get<C>(&self) -> Result<<C::Kind as ValueKind>::Inner, DomainConfigError>
+    pub async fn get<C>(&self) -> Result<<C::Kind as ValueKind>::Value, DomainConfigError>
     where
         C: ConfigSpec,
     {
@@ -50,7 +50,7 @@ impl DomainConfigs {
     #[instrument(name = "domain_config.get_or_default", skip(self), err)]
     pub async fn get_or_default<C>(
         &self,
-    ) -> Result<<C::Kind as ValueKind>::Inner, DomainConfigError>
+    ) -> Result<<C::Kind as ValueKind>::Value, DomainConfigError>
     where
         C: ConfigSpec,
     {
@@ -66,7 +66,7 @@ impl DomainConfigs {
     #[instrument(name = "domain_config.create", skip(self, value), err)]
     pub async fn create<C>(
         &self,
-        value: <C::Kind as ValueKind>::Inner,
+        value: <C::Kind as ValueKind>::Value,
     ) -> Result<(), DomainConfigError>
     where
         C: ConfigSpec,
@@ -84,7 +84,7 @@ impl DomainConfigs {
     #[instrument(name = "domain_config.update", skip(self, value), err)]
     pub async fn update<C>(
         &self,
-        value: <C::Kind as ValueKind>::Inner,
+        value: <C::Kind as ValueKind>::Value,
     ) -> Result<(), DomainConfigError>
     where
         C: ConfigSpec,
@@ -100,11 +100,11 @@ impl DomainConfigs {
     #[instrument(name = "domain_config.upsert", skip(self, value), err)]
     pub async fn upsert<C>(
         &self,
-        value: <C::Kind as ValueKind>::Inner,
+        value: <C::Kind as ValueKind>::Value,
     ) -> Result<(), DomainConfigError>
     where
         C: ConfigSpec,
-        <C::Kind as ValueKind>::Inner: Clone,
+        <C::Kind as ValueKind>::Value: Clone,
     {
         match self.update::<C>(value.clone()).await {
             Ok(()) => Ok(()),

@@ -39,7 +39,7 @@ pub struct DomainConfig {
 impl DomainConfig {
     pub(super) fn current_value<C>(
         &self,
-    ) -> Result<<C::Kind as ValueKind>::Inner, DomainConfigError>
+    ) -> Result<<C::Kind as ValueKind>::Value, DomainConfigError>
     where
         C: ConfigSpec,
     {
@@ -49,7 +49,7 @@ impl DomainConfig {
 
     pub(super) fn update_value<C>(
         &mut self,
-        new_value: <C::Kind as ValueKind>::Inner,
+        new_value: <C::Kind as ValueKind>::Value,
     ) -> Result<Idempotent<()>, DomainConfigError>
     where
         C: ConfigSpec,
@@ -152,7 +152,7 @@ impl NewDomainConfigBuilder {
     pub fn with_value<C>(
         mut self,
         id: DomainConfigId,
-        value: <C::Kind as ValueKind>::Inner,
+        value: <C::Kind as ValueKind>::Value,
     ) -> Result<Self, DomainConfigError>
     where
         C: ConfigSpec,
