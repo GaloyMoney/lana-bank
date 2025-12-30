@@ -123,6 +123,7 @@ const DataStory = () => {
             chartOfAccountInterestReceivableParentCode: "51.01",
             chartOfAccountInterestIncomeParentCode: "41.01.0101",
             chartOfAccountFeeIncomeParentCode: "51.01",
+            chartOfAccountPaymentHoldingParentCode: "11.99.0201",
           },
         },
       },

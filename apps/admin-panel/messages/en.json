@@ -2320,6 +2320,7 @@
       "chartOfAccountInLiquidationParentCode": "In-Liquidation Parent Code",
       "chartOfAccountInterestIncomeParentCode": "Interest Income Parent Code",
       "chartOfAccountFeeIncomeParentCode": "Fee Income Parent Code",
+      "chartOfAccountPaymentHoldingParentCode": "Payment Holding Parent Code",
       "chartOfAccountShortTermIndividualInterestReceivableParentCode": "Short Term Interest Individual Receivable Parent Code",
       "chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode": "Short Term Interest Government Entity Receivable Parent Code",
       "chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode": "Short Term Interest Private Company Receivable Parent Code",

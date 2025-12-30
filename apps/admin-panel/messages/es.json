@@ -2320,6 +2320,7 @@
       "chartOfAccountInLiquidationParentCode": "Código matriz en liquidación",
       "chartOfAccountInterestIncomeParentCode": "Código padre de ingresos por intereses",
       "chartOfAccountFeeIncomeParentCode": "Código padre de ingresos por comisiones",
+      "chartOfAccountPaymentHoldingParentCode": "Código principal de retención de pago",
       "chartOfAccountShortTermIndividualInterestReceivableParentCode": "Código padre de intereses por cobrar a corto plazo de individuos",
       "chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode": "Código padre de intereses por cobrar a corto plazo de entidades gubernamentales",
       "chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode": "Código padre de intereses por cobrar a corto plazo de empresas privadas",
