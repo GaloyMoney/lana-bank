@@ -16,6 +16,7 @@ use crate::primitives::{CoreAccountingAction, CoreAccountingObject, LedgerTransa
 pub use cursor::LedgerTransactionCursor;
 use error::*;
 pub use value::*;
+pub use crate::primitives::LedgerTransactionInitiator;
 
 #[derive(Clone)]
 pub struct LedgerTransactions<Perms>

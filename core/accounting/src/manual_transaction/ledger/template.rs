@@ -9,6 +9,7 @@ use cala_ledger::{
 };
 
 use super::error::*;
+use crate::primitives::LedgerTransactionInitiator;
 
 #[derive(Debug)]
 pub struct EntryParams {
@@ -94,6 +95,7 @@ pub struct ManualTransactionParams {
     pub journal_id: JournalId,
     pub description: String,
     pub effective: chrono::NaiveDate,
+    pub initiated_by: LedgerTransactionInitiator,
     pub entry_params: Vec<EntryParams>,
 }
 
@@ -103,6 +105,12 @@ impl From<ManualTransactionParams> for Params {
         params.insert("journal_id", input_params.journal_id);
         params.insert("description", input_params.description);
         params.insert("effective", input_params.effective);
+        params.insert(
+            "meta",
+            serde_json::json!({
+                "initiated_by": input_params.initiated_by.to_string(),
+            }),
+        );
 
         for (n, entry) in input_params.entry_params.iter().enumerate() {
             entry.populate_params(&mut params, n);
@@ -128,6 +136,11 @@ impl ManualTransactionParams {
             NewParamDefinition::builder()
                 .name("effective")
                 .r#type(ParamDataType::Date)
+                .build()
+                .unwrap(),
+            NewParamDefinition::builder()
+                .name("meta")
+                .r#type(ParamDataType::Json)
                 .build()
                 .unwrap(),
         ];
@@ -170,6 +183,7 @@ impl ManualTransactionTemplate {
             .journal_id("params.journal_id")
             .description("params.description")
             .effective("params.effective")
+            .metadata("params.meta")
             .build()
             .expect("Couldn't build TxInput");
 
