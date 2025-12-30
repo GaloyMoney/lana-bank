@@ -33,7 +33,8 @@ impl ValueKind for Simple<bool> {
         match value {
             serde_json::Value::Bool(value) => Ok(value),
             other => Err(DomainConfigError::InvalidType(format!(
-                "Expected bool, got {other:?}"
+                "Expected bool, got {}",
+                json_value_type(&other)
             ))),
         }
     }
@@ -51,7 +52,8 @@ impl ValueKind for Simple<String> {
         match value {
             serde_json::Value::String(value) => Ok(value),
             other => Err(DomainConfigError::InvalidType(format!(
-                "Expected string, got {other:?}"
+                "Expected string, got {}",
+                json_value_type(&other)
             ))),
         }
     }
@@ -66,9 +68,9 @@ impl ValueKind for Simple<i64> {
     }
 
     fn decode(value: serde_json::Value) -> Result<Self::Value, DomainConfigError> {
-        value
-            .as_i64()
-            .ok_or_else(|| DomainConfigError::InvalidType(format!("Expected i64, got {value:?}")))
+        value.as_i64().ok_or_else(|| {
+            DomainConfigError::InvalidType(format!("Expected i64, got {}", json_value_type(&value)))
+        })
     }
 }
 
@@ -81,9 +83,9 @@ impl ValueKind for Simple<u64> {
     }
 
     fn decode(value: serde_json::Value) -> Result<Self::Value, DomainConfigError> {
-        value
-            .as_u64()
-            .ok_or_else(|| DomainConfigError::InvalidType(format!("Expected u64, got {value:?}")))
+        value.as_u64().ok_or_else(|| {
+            DomainConfigError::InvalidType(format!("Expected u64, got {}", json_value_type(&value)))
+        })
     }
 }
 
@@ -96,16 +98,17 @@ impl ValueKind for Simple<rust_decimal::Decimal> {
     }
 
     fn decode(value: serde_json::Value) -> Result<Self::Value, DomainConfigError> {
-        match value {
+        match &value {
             serde_json::Value::String(value) => {
-                rust_decimal::Decimal::from_str(&value).map_err(|_| {
-                    DomainConfigError::InvalidType(format!(
-                        "Expected decimal string, got {value:?}"
-                    ))
+                rust_decimal::Decimal::from_str(value).map_err(|_| {
+                    DomainConfigError::InvalidType(
+                        "Expected decimal string, got invalid string".to_string(),
+                    )
                 })
             }
             other => Err(DomainConfigError::InvalidType(format!(
-                "Expected decimal string, got {other:?}"
+                "Expected decimal string, got {}",
+                json_value_type(other)
             ))),
         }
     }
@@ -139,5 +142,16 @@ pub trait ConfigSpec {
     fn validate(value: &<Self::Kind as ValueKind>::Value) -> Result<(), DomainConfigError> {
         let _ = value;
         Ok(())
+    }
+}
+
+fn json_value_type(value: &serde_json::Value) -> &'static str {
+    match value {
+        serde_json::Value::Null => "null",
+        serde_json::Value::Bool(_) => "bool",
+        serde_json::Value::Number(_) => "number",
+        serde_json::Value::String(_) => "string",
+        serde_json::Value::Array(_) => "array",
+        serde_json::Value::Object(_) => "object",
     }
 }
