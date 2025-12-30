@@ -7,7 +7,7 @@ use std::sync::Arc;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 
-use crate::{ledger::CreditLedger, primitives::*};
+use crate::{CoreCreditAction, CoreCreditObject, primitives::*};
 
 pub use entity::Payment;
 
@@ -23,7 +23,6 @@ where
 {
     repo: Arc<PaymentRepo>,
     authz: Arc<Perms>,
-    ledger: Arc<CreditLedger>,
 }
 
 impl<Perms> Clone for Payments<Perms>
@@ -34,7 +33,6 @@ where
         Self {
             repo: self.repo.clone(),
             authz: self.authz.clone(),
-            ledger: self.ledger.clone(),
         }
     }
 }
@@ -45,13 +43,12 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
 {
-    pub fn new(pool: &sqlx::PgPool, authz: Arc<Perms>, ledger: Arc<CreditLedger>) -> Self {
+    pub fn new(pool: &sqlx::PgPool, authz: Arc<Perms>) -> Self {
         let repo = PaymentRepo::new(pool);
 
         Self {
             repo: Arc::new(repo),
             authz,
-            ledger,
         }
     }
 
@@ -62,14 +59,28 @@ where
     pub(super) async fn record_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
-        new_payment: NewPayment,
+        payment_id: PaymentId,
+        credit_facility_id: CreditFacilityId,
+        payment_source_account_id: CalaAccountId,
+        amount: UsdCents,
+        effective: chrono::NaiveDate,
     ) -> Result<bool, PaymentError> {
-        if self.repo.maybe_find_by_id(new_payment.id).await?.is_some() {
-            return Ok(false);
+        let new_payment = NewPayment::builder()
+            .id(payment_id)
+            .ledger_tx_id(payment_id)
+            .amount(amount)
+            .credit_facility_id(credit_facility_id)
+            .payment_holding_account_id(CalaAccountId::new())
+            .payment_source_account_id(payment_source_account_id)
+            .effective(effective)
+            .build()
+            .expect("could not build new payment");
+
+        if self.repo.maybe_find_by_id(payment_id).await?.is_some() {
+            Ok(false)
+        } else {
+            self.repo.create_in_op(db, new_payment).await?;
+            Ok(true)
         }
-
-        self.repo.create_in_op(db, new_payment).await?;
-
-        Ok(true)
     }
 }

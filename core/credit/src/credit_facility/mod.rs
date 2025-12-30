@@ -3,7 +3,6 @@ pub mod error;
 pub mod interest_accrual_cycle;
 mod repo;
 
-use es_entity::Idempotent;
 use std::sync::Arc;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
@@ -22,7 +21,6 @@ use crate::{
     jobs::{credit_facility_maturity, interest_accruals},
     ledger::{CreditFacilityInterestAccrual, CreditFacilityInterestAccrualCycle, CreditLedger},
     obligation::Obligations,
-    payment::NewPayment,
     pending_credit_facility::{PendingCreditFacilities, PendingCreditFacilityCompletionOutcome},
     primitives::*,
     terms::InterestPeriod,
@@ -139,33 +137,6 @@ where
 
     pub(super) async fn begin_op(&self) -> Result<es_entity::DbOp<'static>, CreditFacilityError> {
         Ok(self.repo.begin_op().await?)
-    }
-
-    pub(super) async fn register_new_payment(
-        &self,
-        db: &mut es_entity::DbOp<'_>,
-        payment_id: PaymentId,
-        credit_facility_id: CreditFacilityId,
-        payment_source_account_id: CalaAccountId,
-        amount: UsdCents,
-        effective: chrono::NaiveDate,
-    ) -> Result<(CreditFacility, Option<NewPayment>), CreditFacilityError> {
-        let mut credit_facility = self.repo.find_by_id(credit_facility_id).await?;
-
-        let new_payment = match credit_facility.register_new_payment(
-            payment_id,
-            payment_source_account_id,
-            amount,
-            effective,
-        ) {
-            Idempotent::Executed(new_payment) => {
-                self.repo.update_in_op(db, &mut credit_facility).await?;
-                Some(new_payment)
-            }
-            _ => None,
-        };
-
-        Ok((credit_facility, new_payment))
     }
 
     #[record_error_severity]

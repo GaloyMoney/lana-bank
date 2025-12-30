@@ -21,11 +21,6 @@
           "format": "date",
           "type": "string"
         },
-        "facility_payment_idx": {
-          "format": "uint",
-          "minimum": 0,
-          "type": "integer"
-        },
         "id": {
           "format": "uuid",
           "type": "string"
@@ -51,7 +46,6 @@
         "type",
         "id",
         "ledger_tx_id",
-        "facility_payment_idx",
         "credit_facility_id",
         "payment_holding_account_id",
         "payment_source_account_id",

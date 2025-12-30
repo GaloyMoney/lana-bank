@@ -8,7 +8,6 @@ CREATE TABLE core_payment_events_rollup (
   amount BIGINT,
   credit_facility_id UUID,
   effective VARCHAR,
-  facility_payment_idx INTEGER,
   ledger_tx_id UUID,
   payment_holding_account_id UUID,
   payment_source_account_id UUID
@@ -49,7 +48,6 @@ BEGIN
     new_row.amount := (NEW.event ->> 'amount')::BIGINT;
     new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
     new_row.effective := (NEW.event ->> 'effective');
-    new_row.facility_payment_idx := (NEW.event ->> 'facility_payment_idx')::INTEGER;
     new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
     new_row.payment_holding_account_id := (NEW.event ->> 'payment_holding_account_id')::UUID;
     new_row.payment_source_account_id := (NEW.event ->> 'payment_source_account_id')::UUID;
@@ -58,7 +56,6 @@ BEGIN
     new_row.amount := current_row.amount;
     new_row.credit_facility_id := current_row.credit_facility_id;
     new_row.effective := current_row.effective;
-    new_row.facility_payment_idx := current_row.facility_payment_idx;
     new_row.ledger_tx_id := current_row.ledger_tx_id;
     new_row.payment_holding_account_id := current_row.payment_holding_account_id;
     new_row.payment_source_account_id := current_row.payment_source_account_id;
@@ -70,7 +67,6 @@ BEGIN
       new_row.amount := (NEW.event ->> 'amount')::BIGINT;
       new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
       new_row.effective := (NEW.event ->> 'effective');
-      new_row.facility_payment_idx := (NEW.event ->> 'facility_payment_idx')::INTEGER;
       new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
       new_row.payment_holding_account_id := (NEW.event ->> 'payment_holding_account_id')::UUID;
       new_row.payment_source_account_id := (NEW.event ->> 'payment_source_account_id')::UUID;
@@ -84,7 +80,6 @@ BEGIN
     amount,
     credit_facility_id,
     effective,
-    facility_payment_idx,
     ledger_tx_id,
     payment_holding_account_id,
     payment_source_account_id
@@ -97,7 +92,6 @@ BEGIN
     new_row.amount,
     new_row.credit_facility_id,
     new_row.effective,
-    new_row.facility_payment_idx,
     new_row.ledger_tx_id,
     new_row.payment_holding_account_id,
     new_row.payment_source_account_id

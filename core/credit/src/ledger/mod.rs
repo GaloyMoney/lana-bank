@@ -1318,7 +1318,7 @@ impl CreditLedger {
         Ok(())
     }
 
-    pub async fn record_facility_payment_in_op(
+    pub async fn record_payment(
         &self,
         op: &mut es_entity::DbOp<'_>,
         payment @ Payment {
