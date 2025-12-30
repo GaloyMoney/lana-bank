@@ -284,7 +284,6 @@
         DATABASE_URL = "postgres://user:password@127.0.0.1:5433/pg?sslmode=disable";
         PG_CON = "${DATABASE_URL}";
         ENCRYPTION_KEY = "0000000000000000000000000000000000000000000000000000000000000000";
-        DAGSTER = "true";
       };
     in
       with pkgs; {
@@ -378,7 +377,7 @@
                 export PG_CON="${devEnvVars.PG_CON}"
                 export DATABASE_URL="${devEnvVars.DATABASE_URL}"
                 export ENCRYPTION_KEY="${devEnvVars.ENCRYPTION_KEY}"
-                export DAGSTER="''${DAGSTER:-${devEnvVars.DAGSTER}}"
+                export DAGSTER="''${DAGSTER:-"true"}"
 
                 # Build compose file arguments
                 COMPOSE_FILES=(-f docker-compose.yml)
