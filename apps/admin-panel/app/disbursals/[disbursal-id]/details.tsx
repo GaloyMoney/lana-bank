@@ -53,7 +53,7 @@ export const DisbursalDetailsCard: React.FC<DisbursalDetailsProps> = ({ disbursa
   const footerContent = (
     <>
       {disbursal.creditFacility.customer.depositAccount && (
-        <Button asChild variant="outline">
+        <Button variant="outline" asChild>
           <Link
             href={`/deposit-accounts/${disbursal.creditFacility.customer.depositAccount.publicId}`}
           >
@@ -81,9 +81,12 @@ export const DisbursalDetailsCard: React.FC<DisbursalDetailsProps> = ({ disbursa
             </Button>
           </>
         )}
-      <Link href={`/credit-facilities/${disbursal.creditFacility.publicId}`}>
-        <Button variant="outline">{t("buttons.viewCreditFacility")}</Button>
-      </Link>
+      <Button variant="outline" asChild>
+        <Link href={`/credit-facilities/${disbursal.creditFacility.publicId}`}>
+          {t("buttons.viewCreditFacility")}
+          <ArrowRight />
+        </Link>
+      </Button>
     </>
   )
 

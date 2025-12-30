@@ -83,14 +83,14 @@ const DataTable = <T,>({
         data-testid="loading-skeleton"
       >
         <Table className={cn("table-fixed w-full", className)}>
-          <TableHeader className="bg-secondary [&_tr:hover]:!bg-secondary">
+          <TableHeader className="bg-secondary [&_tr:hover]:bg-secondary!">
             <TableRow className={headerClassName}>
               {columns.map((column, index) => (
                 <TableHead
                   key={index}
                   className={cn(
-                    column.align === "center" && "!text-center",
-                    column.align === "right" && "!text-right"
+                    column.align === "center" && "text-center!",
+                    column.align === "right" && "text-right!"
                   )}
                   style={{ width: column.width }}
                 >
@@ -172,8 +172,8 @@ const DataTable = <T,>({
                     className={cn(
                       "text-sm",
                       !hasHeader && "w-full",
-                      column.align === "center" && "!text-center",
-                      column.align === "right" && "!text-right"
+                      column.align === "center" && "text-center!",
+                      column.align === "right" && "text-right!"
                     )}
                   >
                     {column.render
@@ -205,14 +205,14 @@ const DataTable = <T,>({
   return (
     <div className="overflow-x-auto border rounded-md">
       <Table className={cn("table-fixed w-full", className)}>
-        <TableHeader className="bg-secondary [&_tr:hover]:!bg-secondary">
+        <TableHeader className="bg-secondary [&_tr:hover]:bg-secondary!">
           <TableRow className={headerClassName}>
             {columns.map((column, index) => (
               <TableHead
                 key={index}
                 className={cn(
-                  column.align === "center" && "!text-center",
-                  column.align === "right" && "!text-right"
+                  column.align === "center" && "text-center!",
+                  column.align === "right" && "text-right!"
                 )}
                 style={{ width: column.width }}
               >
@@ -248,8 +248,8 @@ const DataTable = <T,>({
                   key={colIndex}
                   className={cn(
                     "whitespace-normal break-words",
-                    column.align === "center" && "!text-center",
-                    column.align === "right" && "!text-right",
+                    column.align === "center" && "text-center!",
+                    column.align === "right" && "text-right!",
                     typeof cellClassName === "function"
                       ? cellClassName(column, item)
                       : cellClassName
@@ -258,8 +258,8 @@ const DataTable = <T,>({
                   <div
                     className={cn(
                       "w-full",
-                      column.align === "center" && "!text-center",
-                      column.align === "right" && "!text-right"
+                      column.align === "center" && "text-center!",
+                      column.align === "right" && "text-right!"
                     )}
                   >
                     {column.render

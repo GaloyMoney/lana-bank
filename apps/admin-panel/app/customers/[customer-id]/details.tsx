@@ -4,21 +4,17 @@ import { useState } from "react"
 import { PiPencilSimpleLineLight } from "react-icons/pi"
 import { useTranslations } from "next-intl"
 
-import { Badge } from "@lana/web/ui/badge"
-
 import { formatDate } from "@lana/web/utils"
 
 import { Label } from "@lana/web/ui/label"
+
+import { ActivityStatusBadge } from "../activity-status-badge"
 
 import UpdateTelegramIdDialog from "./update-telegram-id"
 import UpdateEmailDialog from "./update-email"
 
 import { DetailsCard, DetailItemProps } from "@/components/details"
-import {
-  Activity,
-  CustomerType,
-  GetCustomerBasicDetailsQuery,
-} from "@/lib/graphql/generated"
+import { CustomerType, GetCustomerBasicDetailsQuery } from "@/lib/graphql/generated"
 
 type CustomerDetailsCardProps = {
   customer: NonNullable<GetCustomerBasicDetailsQuery["customerByPublicId"]>
@@ -83,23 +79,7 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ custom
     { label: t("labels.createdOn"), value: formatDate(customer.createdAt) },
     {
       label: t("labels.status"),
-      value: (
-        <Badge
-          variant={
-            customer.activity === Activity.Active
-              ? "success"
-              : customer.activity === Activity.Inactive
-                ? "secondary"
-                : "destructive"
-          }
-        >
-          {customer.activity === Activity.Active
-            ? t("status.active")
-            : customer.activity === Activity.Inactive
-              ? t("status.inactive")
-              : t("status.suspended")}
-        </Badge>
-      ),
+      value: <ActivityStatusBadge status={customer.activity} />,
     },
     {
       label: t("labels.customerType"),

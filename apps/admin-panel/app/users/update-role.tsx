@@ -120,7 +120,7 @@ export function UpdateUserRoleDialog({
                 onValueChange={(value) => setSelectedRoleId(value)}
                 disabled={isLoading}
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger>
                   <SelectValue placeholder={t("selectRole")} />
                 </SelectTrigger>
                 <SelectContent>

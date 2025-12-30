@@ -43,7 +43,10 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
   buttonText = "",
 }) => {
   return (
-    <Card className="w-full" data-testid={title.toLowerCase().replace(" ", "-")}>
+    <Card
+      className="w-full flex flex-col justify-between"
+      data-testid={title.toLowerCase().replace(" ", "-")}
+    >
       <CardHeader>
         <div className="flex flex-col">
           {h2 ? (
@@ -71,12 +74,12 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
         {content}
         {to && (
           <div className={`${buttonToRight ? "text-right" : ""}`}>
-            <Link href={to}>
-              <Button variant="outline">
+            <Button variant="outline" asChild>
+              <Link href={to}>
                 {buttonText}
                 <HiArrowRight />
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         )}
       </CardContent>

@@ -77,21 +77,25 @@ const columns = (t: (key: string) => string): Column<CreditFacilityProposal>[] =
   {
     key: "status",
     label: t("table.headers.status"),
+    labelClassName: "w-[20%]",
     render: (status) => <CreditFacilityProposalStatusBadge status={status} />,
   },
   {
     key: "customer",
     label: t("table.headers.customer"),
-    render: (customer) => customer.email,
+    labelClassName: "w-[40%]",
+    render: (customer) => <div className="truncate">{customer.email}</div>,
   },
   {
     key: "facilityAmount",
     label: t("table.headers.facilityAmount"),
+    labelClassName: "w-[25%]",
     render: (amount) => <Balance amount={amount} currency="usd" />,
   },
   {
     key: "createdAt",
     label: t("table.headers.createdAt"),
+    labelClassName: "w-[15%]",
     render: (date) => <DateWithTooltip value={date} />,
   },
 ]

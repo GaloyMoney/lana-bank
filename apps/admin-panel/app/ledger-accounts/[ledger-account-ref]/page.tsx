@@ -273,8 +273,8 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
 
   const footerButtons = [
     entityInfo && (
-      <Button key="entity" asChild variant="outline">
-        <Link href={entityInfo.url} className="flex items-center gap-1">
+      <Button variant="outline" key="entity" asChild>
+        <Link href={entityInfo.url}>
           {entityInfo.label}
           <ArrowRight className="h-4 w-4" />
         </Link>
@@ -336,7 +336,7 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
 
         return (
           <Card className="mt-2">
-            <CardContent className="pt-6">
+            <CardContent>
               <div className="flex flex-col space-y-2">
                 {ancestors.length > 0 && (
                   <CollapsibleAccountSection
@@ -475,7 +475,7 @@ const CollapsibleAccountSection: React.FC<CollapsibleAccountSectionProps> = ({
     <CollapsibleContent className="max-w-[864px] pt-2">
       <DataTable
         onRowClick={onRowClick}
-        cellClassName="!py-0 !h-10"
+        cellClassName="py-0! h-10!"
         data={data}
         columns={[
           {

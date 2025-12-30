@@ -1,16 +1,5 @@
-@import "@lana/web/globals.css";
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-.center {
-  @apply flex justify-center items-center h-full w-full;
-}
-
-thead tr {
-  @apply hover:!bg-card;
-}
+@import "tailwindcss";
+@import "@lana/web/global.css";
 
 .no-scrollbar::-webkit-scrollbar {
   display: none;
@@ -23,7 +12,7 @@ thead tr {
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: hsl(var(--muted-foreground) / 0.5) transparent;
+  scrollbar-color: color-mix(in oklch, var(--muted-foreground) 50%, transparent) transparent;
 }
 
 *::-webkit-scrollbar {
@@ -36,12 +25,12 @@ thead tr {
 }
 
 *::-webkit-scrollbar-thumb {
-  background-color: hsl(var(--muted-foreground) / 0.5);
+  background-color: color-mix(in oklch, var(--muted-foreground) 50%, transparent);
   border-radius: 4px;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background-color: hsl(var(--muted-foreground) / 0.5);
+  background-color: color-mix(in oklch, var(--muted-foreground) 50%, transparent);
 }
 
 *::-webkit-scrollbar-corner {

@@ -78,12 +78,12 @@ export const LiquidationCreditFacilityCard: React.FC<
   ]
 
   const footerContent = (
-    <Link href={`/credit-facilities/${creditFacility.publicId}`}>
-      <Button variant="outline">
+    <Button variant="outline" asChild>
+      <Link href={`/credit-facilities/${creditFacility.publicId}`}>
         {buttonsT("viewMoreDetails")}
         <ArrowRight className="h-4 w-4 ml-2" />
-      </Button>
-    </Link>
+      </Link>
+    </Button>
   )
 
   return (

@@ -25,7 +25,7 @@ export const AppLayout = ({ children }: Readonly<{ children: React.ReactNode }>)
     <CreateContextProvider>
       <SidebarProvider>
         <AppSidebar appVersion={appVersion} />
-        <SidebarInset className="min-h-screen md:peer-data-[variant=inset]:shadow-none border min-w-0">
+        <SidebarInset className="md:peer-data-[variant=inset]:shadow-none border min-w-0">
           <CommandMenu open={open} onOpenChange={setOpen} />
           <div
             className={

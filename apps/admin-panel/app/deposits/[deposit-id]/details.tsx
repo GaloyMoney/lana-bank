@@ -55,7 +55,7 @@ const DepositDetailsCard: React.FC<DepositDetailsProps> = ({ deposit }) => {
 
   const footerContent = (
     <>
-      <Button asChild variant="outline">
+      <Button variant="outline" asChild>
         <Link href={`/deposit-accounts/${deposit.account.publicId}`}>
           {t("buttons.viewDepositAccount")}
           <ArrowRight />
@@ -71,7 +71,7 @@ const DepositDetailsCard: React.FC<DepositDetailsProps> = ({ deposit }) => {
           {t("buttons.revert")}
         </Button>
       )}
-      <Button asChild variant="outline">
+      <Button variant="outline" asChild>
         <a
           href={`https://cockpit.sumsub.com/checkus#/kyt/txns?search=${deposit.depositId}`}
           target="_blank"

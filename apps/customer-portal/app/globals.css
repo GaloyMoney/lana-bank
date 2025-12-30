@@ -1,81 +1,11 @@
-@import "@lana/web/globals.css";
+@import "tailwindcss";
+@import "@lana/web/global.css";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-@layer base {
-  * {
-    @apply border-border;
-  }
-  html {
-    @apply scroll-smooth;
-  }
-  body {
-    @apply bg-background text-foreground overscroll-none;
-    font-synthesis-weight: none;
-    text-rendering: optimizeLegibility;
-  }
-
-  @supports (font: -apple-system-body) and (-webkit-appearance: none) {
-    [data-wrapper] {
-      @apply min-[1800px]:border-t;
-    }
-  }
-
-  ::-webkit-scrollbar {
-    width: 5px;
-  }
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: hsl(var(--border));
-    border-radius: 5px;
-  }
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: hsl(var(--border)) transparent;
-  }
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
-@layer utilities {
-  .step {
-    counter-increment: step;
-  }
-
-  .step:before {
-    @apply absolute w-9 h-9 bg-muted rounded-full font-mono font-medium text-center text-base inline-flex items-center justify-center -indent-px border-4 border-background;
-    @apply ml-[-50px] mt-[-4px];
-    content: counter(step);
-  }
-
-  .chunk-container {
-    @apply shadow-none;
-  }
-
-  .chunk-container::after {
-    content: "";
-    @apply absolute -inset-4 shadow-xl rounded-xl border;
-  }
-
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-
-  .border-grid {
-    @apply border-border/30 dark:border-border;
-  }
-
-  .container-wrapper {
-    @apply min-[1800px]:max-w-[1536px] min-[1800px]:border-x border-border/30 dark:border-border mx-auto w-full;
-  }
-
-  .container {
-    @apply px-4 xl:px-6 2xl:px-4 mx-auto max-w-[1536px];
-  }
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

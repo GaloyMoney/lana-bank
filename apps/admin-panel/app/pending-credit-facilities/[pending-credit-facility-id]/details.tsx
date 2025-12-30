@@ -125,12 +125,12 @@ const PendingCreditFacilityDetailsCard: React.FC<
       )}
       {pendingDetails.status === PendingCreditFacilityStatus.Completed &&
         facilityPublicId && (
-          <Link href={`/credit-facilities/${facilityPublicId}`}>
-            <Button variant="outline" data-testid="view-facility-button">
+          <Button variant="outline" data-testid="view-facility-button" asChild>
+            <Link href={`/credit-facilities/${facilityPublicId}`}>
               {t("buttons.viewFacility")}
               <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         )}
     </>
   )

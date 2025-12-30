@@ -189,7 +189,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
         }
       }}
     >
-      <DialogContent className="max-w-[38rem]">
+      <DialogContent className="max-w-152">
         <DialogHeader>
           <DialogTitle>
             {templateToDuplicate
@@ -244,10 +244,8 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                     required
                     disabled={isLoading}
                     data-testid="terms-template-duration-units-input"
+                    endAdornment={`${t("fields.months")}`}
                   />
-                  <div className="p-1.5 bg-input-text rounded-md px-4">
-                    {t("fields.months")}
-                  </div>
                 </div>
               </div>
               <div>

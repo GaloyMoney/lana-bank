@@ -24,8 +24,6 @@ import {
   SelectValue,
 } from "@lana/web/ui/select"
 
-import { useCreateContext } from "@/app/create"
-
 import {
   useCreditFacilityProposalCreateMutation,
   useGetRealtimePriceUpdatesQuery,
@@ -101,7 +99,6 @@ export const CreateCreditFacilityProposalDialog: React.FC<
   const { navigate, isNavigating } = useModalNavigation({
     closeModal: handleCloseDialog,
   })
-  const { customer } = useCreateContext()
 
   const { data: priceInfo } = useGetRealtimePriceUpdatesQuery({
     fetchPolicy: "cache-only",
@@ -289,15 +286,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
       open={openCreateCreditFacilityProposalDialog}
       onOpenChange={handleCloseDialog}
     >
-      <DialogContent className="max-w-[40rem]">
-        {customer?.email && (
-          <div
-            className="absolute -top-6 -left-[1px] bg-primary rounded-tl-md rounded-tr-md text-md px-2 py-1 text-secondary"
-            style={{ width: "100.35%" }}
-          >
-            {t("dialog.customerInfo", { email: customer.email })}
-          </div>
-        )}
+      <DialogContent className="sm:!max-w-[35rem]">
         <DialogHeader>
           <DialogTitle>{t("dialog.title")}</DialogTitle>
           <DialogDescription>{t("dialog.description")}</DialogDescription>
@@ -315,22 +304,29 @@ export const CreateCreditFacilityProposalDialog: React.FC<
                 min={0}
                 data-testid="facility-amount-input"
                 required
+                endAdornment={`USD`}
               />
-              <div className="p-1.5 bg-input-text rounded-md px-4">USD</div>
             </div>
+            {priceInfo && (
+              <div className="text-sm ml-1 flex space-x-1 items-center mt-1 text-muted-foreground font-semibold">
+                <Balance
+                  amount={collateralRequiredForDesiredFacility as Satoshis}
+                  currency="btc"
+                />
+                <div>{t("form.messages.collateralRequired")} </div>
+                <div className="flex items-center gap-">
+                  {"("}
+                  <div>{t("form.messages.btcUsdRate")} </div>
+                  <Balance
+                    amount={priceInfo?.realtimePrice.usdCentsPerBtc}
+                    currency="usd"
+                  />
+                  {")"}
+                </div>
+              </div>
+            )}
           </div>
-          {priceInfo && (
-            <div className="text-sm ml-1 flex space-x-1 items-center">
-              <Balance
-                amount={collateralRequiredForDesiredFacility as Satoshis}
-                currency="btc"
-              />
-              <div>{t("form.messages.collateralRequired")} (</div>
-              <div>{t("form.messages.btcUsdRate")} </div>
-              <Balance amount={priceInfo?.realtimePrice.usdCentsPerBtc} currency="usd" />
-              <div>)</div>
-            </div>
-          )}
+
           <div>
             <Label>{t("form.labels.custodian")}</Label>
             <Select
@@ -366,7 +362,10 @@ export const CreateCreditFacilityProposalDialog: React.FC<
                 onValueChange={handleTemplateChange}
                 disabled={termsTemplatesLoading}
               >
-                <SelectTrigger data-testid="credit-facility-terms-template-select">
+                <SelectTrigger
+                  data-testid="credit-facility-terms-template-select"
+                  className="w-full"
+                >
                   <SelectValue placeholder={t("form.placeholders.termsTemplate")} />
                 </SelectTrigger>
                 <SelectContent>
@@ -384,10 +383,10 @@ export const CreateCreditFacilityProposalDialog: React.FC<
               <button
                 type="button"
                 onClick={() => setUseTemplateTerms(false)}
-                className="mt-2 flex items-center space-x-2 ml-2 cursor-pointer text-sm hover:underline w-fit"
+                className="mt-2 flex items-center ml-1 cursor-pointer text-sm hover:underline w-fit"
               >
                 <div>{t("form.labels.creditFacilityTerms")}</div>
-                <PiPencilSimpleLineLight className="w-5 h-5 cursor-pointer text-primary" />
+                <PiPencilSimpleLineLight className="w-5 h-5 cursor-pointer text-primary ml-2" />
               </button>
               <DetailsGroup
                 layout="horizontal"
@@ -456,6 +455,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
                     required
                   />
                 </div>
+
                 <div>
                   <Label>{t("form.labels.duration")}</Label>
                   <div className="flex gap-2 items-center">
@@ -466,11 +466,9 @@ export const CreateCreditFacilityProposalDialog: React.FC<
                       onChange={handleChange}
                       placeholder={t("form.placeholders.duration")}
                       min={0}
+                      endAdornment={`${t("form.labels.months")}`}
                       required
                     />
-                    <div className="p-1.5 bg-input-text rounded-md px-4">
-                      {t("form.labels.months")}
-                    </div>
                   </div>
                 </div>
                 <div>
@@ -492,6 +490,18 @@ export const CreateCreditFacilityProposalDialog: React.FC<
                     value={formValues.oneTimeFeeRate}
                     onChange={handleChange}
                     placeholder={t("form.placeholders.structuringFeeRate")}
+                    min={0}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label>{t("form.labels.liquidationCvl")}</Label>
+                  <Input
+                    type="number"
+                    name="liquidationCvl"
+                    value={formValues.liquidationCvl}
+                    onChange={handleChange}
+                    placeholder={t("form.placeholders.liquidationCvl")}
                     min={0}
                     required
                   />
@@ -520,18 +530,6 @@ export const CreateCreditFacilityProposalDialog: React.FC<
                       </SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
-                <div>
-                  <Label>{t("form.labels.liquidationCvl")}</Label>
-                  <Input
-                    type="number"
-                    name="liquidationCvl"
-                    value={formValues.liquidationCvl}
-                    onChange={handleChange}
-                    placeholder={t("form.placeholders.liquidationCvl")}
-                    min={0}
-                    required
-                  />
                 </div>
               </div>
             </>

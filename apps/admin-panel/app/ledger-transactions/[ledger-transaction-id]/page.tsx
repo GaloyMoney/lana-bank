@@ -87,8 +87,8 @@ const LedgerTransactionPage: React.FC<LedgerTransactionPageProps> = ({ params })
 
   const entityUrl = getEntityforTransaction(data?.ledgerTransaction?.entity, t)
   const footerContent = entityUrl ? (
-    <Button asChild variant="outline">
-      <Link href={entityUrl.url} className="flex items-center gap-1">
+    <Button variant="outline" key="entity" asChild>
+      <Link href={entityUrl.url}>
         {entityUrl.label}
         <ArrowRight className="h-4 w-4" />
       </Link>
@@ -131,6 +131,7 @@ const LedgerTransactionPage: React.FC<LedgerTransactionPageProps> = ({ params })
               {
                 key: "ledgerAccount",
                 header: t("table.ledgerAccount"),
+                width: "30%",
                 render: (account) => {
                   const accountName = account.name || account.code
                   return (
@@ -143,10 +144,15 @@ const LedgerTransactionPage: React.FC<LedgerTransactionPageProps> = ({ params })
                   )
                 },
               },
-              { key: "entryType", header: t("table.entryType") },
+              {
+                key: "entryType",
+                header: t("table.entryType"),
+                width: "20%",
+              },
               {
                 key: "ledgerAccount",
                 header: t("table.closestAccountWithCode"),
+                width: "20%",
                 render: (_, record) => {
                   const closestAccountWithCode =
                     record.ledgerAccount?.closestAccountWithCode?.code
@@ -163,11 +169,13 @@ const LedgerTransactionPage: React.FC<LedgerTransactionPageProps> = ({ params })
               {
                 key: "layer",
                 header: t("table.layer"),
+                width: "10%",
                 render: (layer) => <LayerLabel value={layer} />,
               },
               {
                 key: "direction",
                 header: t("table.debit"),
+                width: "10%",
                 render: (_, record) => {
                   if (record.direction !== DebitOrCredit.Debit) return null
                   if (record.amount.__typename === "UsdAmount") {
@@ -180,6 +188,7 @@ const LedgerTransactionPage: React.FC<LedgerTransactionPageProps> = ({ params })
               {
                 key: "direction",
                 header: t("table.credit"),
+                width: "10%",
                 render: (_, record) => {
                   if (record.direction !== DebitOrCredit.Credit) return null
                   if (record.amount.__typename === "UsdAmount") {

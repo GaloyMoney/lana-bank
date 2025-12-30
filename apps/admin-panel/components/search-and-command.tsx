@@ -34,7 +34,7 @@ export function SearchAndCommand({ onOpenCommandPalette }: SearchAndCommandProps
         placeholder={t("placeholders.whatDoYouNeed")}
         readOnly
         onClick={onOpenCommandPalette}
-        className="pl-10 pr-16 w-full cursor-pointer"
+        className="pl-10 pr-16 w-full cursor-pointer bg-muted"
       />
       <kbd className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
         <span className="text-xs">{isMac ? "⌘" : "Ctrl"}</span>

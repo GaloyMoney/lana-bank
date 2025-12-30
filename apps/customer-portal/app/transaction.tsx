@@ -123,13 +123,13 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
       data={validEntries}
       columns={columns}
       emptyMessage={
-        <div className="min-h-[10rem] w-full border rounded-md flex items-center justify-center">
+        <div className="min-h-40 w-full border rounded-md flex items-center justify-center">
           No Transactions Found
         </div>
       }
       navigateTo={getNavigateUrl}
       className="w-full table-fixed"
-      headerClassName="bg-secondary [&_tr:hover]:!bg-secondary"
+      headerClassName="bg-secondary [&_tr:hover]:bg-secondary!"
     />
   )
 }

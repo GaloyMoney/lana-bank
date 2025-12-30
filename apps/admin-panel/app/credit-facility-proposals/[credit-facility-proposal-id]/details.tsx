@@ -116,14 +116,14 @@ const CreditFacilityProposalDetailsCard: React.FC<
           </>
         )}
       {proposalDetails.status === CreditFacilityProposalStatus.Approved && (
-        <Link
-          href={`/pending-credit-facilities/${proposalDetails.creditFacilityProposalId}`}
-        >
-          <Button variant="outline" data-testid="view-pending-facility-button">
+        <Button variant="outline" data-testid="view-pending-facility-button" asChild>
+          <Link
+            href={`/pending-credit-facilities/${proposalDetails.creditFacilityProposalId}`}
+          >
             {t("buttons.viewPendingFacility")}
             <ArrowRight className="h-4 w-4 ml-2" />
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       )}
     </>
   )

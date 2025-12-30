@@ -4,7 +4,7 @@ import { gql } from "@apollo/client"
 import { use, useEffect } from "react"
 import { useTranslations } from "next-intl"
 
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@lana/web/ui/tab"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@lana/web/ui/tabs"
 import { ScrollArea, ScrollBar } from "@lana/web/ui/scroll-area"
 
 import { CustomerDetailsCard } from "./details"

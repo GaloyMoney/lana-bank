@@ -34,6 +34,8 @@ import {
 import { useBreakpointDown } from "@lana/web/hooks"
 import { useTranslations } from "next-intl"
 
+import { getSafeInternalPath } from "@/lib/utils"
+
 export type Column<T> = {
   [K in keyof T]: {
     key: K
@@ -67,7 +69,7 @@ interface PaginatedTableProps<T> {
   onFilter?: (column: keyof T, value: T[keyof T] | undefined) => void
   onClick?: (record: T) => void
   showHeader?: boolean
-  navigateTo?: (record: T) => string
+  navigateTo?: (record: T) => string | null
   customFooter?: React.ReactNode
   style?: "compact" | "comfortable"
   noDataText?: string
@@ -96,6 +98,11 @@ const PaginatedTable = <T,>({
   const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1)
   const [isTableFocused, setIsTableFocused] = useState(false)
   const router = useRouter()
+
+  const getSafeNavigationUrl = (item: T): string | null => {
+    if (!navigateTo) return null
+    return getSafeInternalPath(navigateTo(item))
+  }
 
   const [sortState, setSortState] = useState<{
     column: keyof T | null
@@ -153,7 +160,10 @@ const PaginatedTable = <T,>({
             if (onClick) {
               onClick(node)
             } else if (navigateTo) {
-              router.push(navigateTo(node))
+              const url = getSafeNavigationUrl(node)
+              if (url) {
+                router.push(url)
+              }
             }
           }
           break
@@ -219,7 +229,7 @@ const PaginatedTable = <T,>({
         <Table className="table-fixed w-full">
           <TableHeader
             className={
-              style === "comfortable" ? "bg-secondary [&_tr:hover]:!bg-secondary" : ""
+              style === "comfortable" ? "bg-secondary [&_tr:hover]:bg-secondary!" : ""
             }
           >
             <TableRow>
@@ -228,31 +238,7 @@ const PaginatedTable = <T,>({
                   className={col.labelClassName}
                   key={`${col.key as string}-${colIdx}`}
                 >
-                  <div className="flex items-center space-x-2 justify-between">
-                    <span>{col.label}</span>
-                    <div className="flex items-center">
-                      {col.sortable && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-9 w-8 p-0"
-                          disabled
-                        >
-                          <HiSelector className="h-4 w-4" />
-                        </Button>
-                      )}
-                      {col.filterValues && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-9 w-8 p-0"
-                          disabled
-                        >
-                          <HiFilter className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
+                  {col.label}
                 </TableHead>
               ))}
               {navigateTo && <TableHead className="w-24" />}
@@ -262,12 +248,12 @@ const PaginatedTable = <T,>({
             {Array.from({ length: pageSize }).map((_, rowIndex) => (
               <TableRow key={rowIndex}>
                 {columns.map((_, colIndex) => (
-                  <TableCell key={colIndex} className="h-[3.8rem]">
+                  <TableCell key={colIndex}>
                     <Skeleton className="h-9 w-full" />
                   </TableCell>
                 ))}
                 {navigateTo && (
-                  <TableCell className="h-[3.8rem]">
+                  <TableCell>
                     <Skeleton className="h-9 w-full" />
                   </TableCell>
                 )}
@@ -363,76 +349,87 @@ const PaginatedTable = <T,>({
             ))}
         </div>
 
-        {displayData.map(({ node }, idx) => (
-          <>
-            <Card key={idx} className="p-4 space-y-3" onClick={() => onClick?.(node)}>
-              {columns.map((col, colIdx) => (
-                <div
-                  key={`${col.key as string}-${colIdx}`}
-                  className="flex justify-between items-start gap-4"
-                >
-                  <div className="text-sm font-medium text-muted-foreground">
-                    {col.label}
+        {displayData.map(({ node }, idx) => {
+          const safeUrl = getSafeNavigationUrl(node)
+          return (
+            <>
+              <Card key={idx} className="p-4 space-y-3" onClick={() => onClick?.(node)}>
+                {columns.map((col, colIdx) => (
+                  <div
+                    key={`${col.key as string}-${colIdx}`}
+                    className="flex justify-between items-start gap-4"
+                  >
+                    <div className="text-sm font-medium text-muted-foreground">
+                      {col.label}
+                    </div>
+                    <div className="text-sm">
+                      {col.render
+                        ? col.render(node[col.key], node)
+                        : String(node[col.key])}
+                    </div>
                   </div>
-                  <div className="text-sm">
-                    {col.render ? col.render(node[col.key], node) : String(node[col.key])}
-                  </div>
-                </div>
-              ))}
-              {navigateTo && (
-                <div className="pt-2">
-                  <Link href={navigateTo(node)}>
+                ))}
+                {safeUrl && (
+                  <div className="pt-2">
                     <Button
                       variant="outline"
                       className="w-full flex items-center justify-center"
+                      asChild
                     >
-                      {t("view", { defaultMessage: "View" })}
-                      <ArrowRight className="h-4 w-4" />
-                    </Button>
-                  </Link>
-                </div>
-              )}
-            </Card>
-            {subRows &&
-              subRows(node).length > 0 &&
-              subRows(node).map((subRow, subIdx) => (
-                <Card
-                  key={`sub-row-${idx}-${subIdx}`}
-                  className="p-4 space-y-3"
-                  onClick={() => onClick?.(subRow)}
-                >
-                  {columns.map((col, colIdx) => (
-                    <div
-                      key={`${col.key as string}-${colIdx}`}
-                      className="flex justify-between items-start gap-4"
-                    >
-                      <div className="text-sm font-medium text-muted-foreground">
-                        {col.label}
-                      </div>
-                      <div className="text-sm">
-                        {col.render
-                          ? col.render(subRow[col.key], subRow)
-                          : String(subRow[col.key])}
-                      </div>
-                    </div>
-                  ))}
-                  {navigateTo && (
-                    <div className="pt-2">
-                      <Link href={navigateTo(subRow)}>
-                        <Button
-                          variant="outline"
-                          className="w-full flex items-center justify-center"
-                        >
-                          {t("view", { defaultMessage: "View" })}
-                          <ArrowRight className="h-4 w-4" />
-                        </Button>
+                      <Link href={safeUrl}>
+                        {t("view", { defaultMessage: "View" })}
+                        <ArrowRight className="h-4 w-4" />
                       </Link>
-                    </div>
-                  )}
-                </Card>
-              ))}
-          </>
-        ))}
+                    </Button>
+                  </div>
+                )}
+              </Card>
+              {subRows &&
+                subRows(node).length > 0 &&
+                subRows(node).map((subRow, subIdx) => {
+                  const subRowSafeUrl = getSafeNavigationUrl(subRow)
+                  return (
+                    <Card
+                      key={`sub-row-${idx}-${subIdx}`}
+                      className="p-4 space-y-3"
+                      onClick={() => onClick?.(subRow)}
+                    >
+                      {columns.map((col, colIdx) => (
+                        <div
+                          key={`${col.key as string}-${colIdx}`}
+                          className="flex justify-between items-start gap-4"
+                        >
+                          <div className="text-sm font-medium text-muted-foreground">
+                            {col.label}
+                          </div>
+                          <div className="text-sm">
+                            {col.render
+                              ? col.render(subRow[col.key], subRow)
+                              : String(subRow[col.key])}
+                          </div>
+                        </div>
+                      ))}
+                      {subRowSafeUrl && (
+                        <div className="pt-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full flex items-center justify-center"
+                            asChild
+                          >
+                            <Link href={subRowSafeUrl}>
+                              {t("view", { defaultMessage: "View" })}
+                              <ArrowRight className="h-4 w-4" />
+                            </Link>
+                          </Button>
+                        </div>
+                      )}
+                    </Card>
+                  )
+                })}
+            </>
+          )
+        })}
         <div className="flex items-center justify-end space-x-4 py-2 mr-2">
           <Button
             variant="outline"
@@ -477,15 +474,16 @@ const PaginatedTable = <T,>({
           {showHeader && (
             <TableHeader
               className={
-                style === "comfortable" ? "bg-secondary [&_tr:hover]:!bg-secondary" : ""
+                style === "comfortable" ? "bg-secondary [&_tr:hover]:bg-secondary!" : ""
               }
             >
               <TableRow>
                 {columns.map((col, colIdx) => (
-                  <TableHead key={`${col.key as string}-${colIdx}`}>
-                    <div
-                      className={`flex items-center space-x-2 justify-between ${col.labelClassName}`}
-                    >
+                  <TableHead
+                    key={`${col.key as string}-${colIdx}`}
+                    className={col.labelClassName}
+                  >
+                    <div className="flex items-center gap-2">
                       <span>{col.label}</span>
                       {col.sortable && (
                         <Button
@@ -544,90 +542,104 @@ const PaginatedTable = <T,>({
             </TableHeader>
           )}
           <TableBody>
-            {displayData.map(({ node }, idx) => (
-              <React.Fragment key={idx}>
-                <TableRow
-                  data-testid={`table-row-${idx}`}
-                  onClick={() => onClick?.(node)}
-                  tabIndex={0}
-                  className={`${onClick ? "cursor-pointer" : ""} ${
-                    focusedRowIndex === idx ? "bg-muted" : ""
-                  } hover:bg-muted/50 transition-colors outline-none`}
-                  onFocus={() => setFocusedRowIndex(idx)}
-                  role="row"
-                  aria-selected={focusedRowIndex === idx}
-                >
-                  {columns.map((col, colIdx) => (
-                    <TableCell
-                      key={`${col.key as string}-${colIdx}`}
-                      className={
-                        style === "comfortable"
-                          ? "whitespace-normal break-words h-[3.8rem]"
-                          : ""
-                      }
-                    >
-                      {col.render
-                        ? col.render(node[col.key], node)
-                        : String(node[col.key])}
-                    </TableCell>
-                  ))}
-                  {navigateTo && (
-                    <TableCell>
-                      <Link href={navigateTo(node)}>
-                        <Button
-                          variant="outline"
-                          className="w-full flex items-center justify-between"
+            {displayData.map(({ node }, idx) => {
+              const safeUrl = getSafeNavigationUrl(node)
+              return (
+                <React.Fragment key={idx}>
+                  <TableRow
+                    data-testid={`table-row-${idx}`}
+                    onClick={() => onClick?.(node)}
+                    tabIndex={0}
+                    className={`${onClick ? "cursor-pointer" : ""} ${
+                      focusedRowIndex === idx ? "bg-muted" : ""
+                    } hover:bg-muted/50 transition-colors outline-none`}
+                    onFocus={() => setFocusedRowIndex(idx)}
+                    role="row"
+                    aria-selected={focusedRowIndex === idx}
+                  >
+                    {columns.map((col, colIdx) => (
+                      <TableCell
+                        key={`${col.key as string}-${colIdx}`}
+                        className={
+                          style === "comfortable"
+                            ? "whitespace-normal wrap-break-word"
+                            : ""
+                        }
+                      >
+                        {col.render
+                          ? col.render(node[col.key], node)
+                          : String(node[col.key])}
+                      </TableCell>
+                    ))}
+                    {navigateTo && (
+                      <TableCell>
+                        {safeUrl && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full flex items-center"
+                            asChild
+                          >
+                            <Link href={safeUrl}>
+                              {t("view")}
+                              <ArrowRight />
+                            </Link>
+                          </Button>
+                        )}
+                      </TableCell>
+                    )}
+                  </TableRow>
+                  {subRows &&
+                    subRows(node).length > 0 &&
+                    subRows(node).map((subRow, subIdx) => {
+                      const subRowSafeUrl = getSafeNavigationUrl(subRow)
+                      return (
+                        <TableRow
+                          role="row"
+                          key={`sub-row-${idx}-${subIdx}`}
+                          onClick={() => onClick?.(subRow)}
+                          tabIndex={0}
+                          className={`${onClick ? "cursor-pointer" : ""} ${
+                            focusedRowIndex === idx ? "bg-muted" : ""
+                          } hover:bg-muted/50 transition-colors outline-none`}
                         >
-                          {t("view", { defaultMessage: "View" })}
-                          <ArrowRight className="h-4 w-4" />
-                        </Button>
-                      </Link>
-                    </TableCell>
-                  )}
-                </TableRow>
-                {subRows &&
-                  subRows(node).length > 0 &&
-                  subRows(node).map((subRow, subIdx) => (
-                    <TableRow
-                      role="row"
-                      key={`sub-row-${idx}-${subIdx}`}
-                      onClick={() => onClick?.(subRow)}
-                      tabIndex={0}
-                      className={`${onClick ? "cursor-pointer" : ""} ${
-                        focusedRowIndex === idx ? "bg-muted" : ""
-                      } hover:bg-muted/50 transition-colors outline-none`}
-                    >
-                      {columns.map((col, colIdx) => (
-                        <TableCell
-                          key={`${col.key as string}-${colIdx}`}
-                          className={
-                            style === "comfortable"
-                              ? "whitespace-normal break-words h-[3.8rem]"
-                              : ""
-                          }
-                        >
-                          {col.render
-                            ? col.render(subRow[col.key], subRow)
-                            : String(subRow[col.key])}
-                        </TableCell>
-                      ))}
-                      {navigateTo && (
-                        <TableCell>
-                          <Link href={navigateTo(subRow)}>
-                            <Button
-                              variant="outline"
-                              className="w-full flex items-center justify-between"
+                          {columns.map((col, colIdx) => (
+                            <TableCell
+                              key={`${col.key as string}-${colIdx}`}
+                              className={
+                                style === "comfortable"
+                                  ? "whitespace-normal wrap-break-word"
+                                  : ""
+                              }
                             >
-                              {t("view", { defaultMessage: "View" })}
-                              <ArrowRight className="h-4 w-4" />
-                            </Button>
-                          </Link>
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  ))}
-              </React.Fragment>
-            ))}
+                              {col.render
+                                ? col.render(subRow[col.key], subRow)
+                                : String(subRow[col.key])}
+                            </TableCell>
+                          ))}
+                          {navigateTo && (
+                            <TableCell>
+                              {subRowSafeUrl && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="w-full flex items-center"
+                                  asChild
+                                >
+                                  <Link href={subRowSafeUrl}>
+                                    {t("view")}
+                                    <ArrowRight />
+                                  </Link>
+                                </Button>
+                              )}
+                            </TableCell>
+                          )}
+                        </TableRow>
+                      )
+                    })}
+                </React.Fragment>
+              )
+            })}
           </TableBody>
           {customFooter}
         </Table>

@@ -20,7 +20,7 @@ import { useBreakpointDown } from "@lana/web/hooks"
 
 import { useTranslations } from "next-intl"
 
-import { cn } from "@/lib/utils"
+import { cn, getSafeInternalPath } from "@/lib/utils"
 
 export type Column<T> = {
   [K in keyof T]: {
@@ -64,14 +64,9 @@ const DataTable = <T,>({
   const tableRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
 
-  const getNavigationUrl = (item: T): string | null => {
-    return navigateTo ? navigateTo(item) : null
-  }
-
-  const shouldShowNavigation = (item: T): boolean => {
-    if (!navigateTo) return false
-    const url = getNavigationUrl(item)
-    return url !== null && url !== ""
+  const getSafeNavigationUrl = (item: T): string | null => {
+    if (!navigateTo) return null
+    return getSafeInternalPath(navigateTo(item))
   }
 
   const focusRow = (index: number) => {
@@ -115,7 +110,7 @@ const DataTable = <T,>({
             if (onRowClick) {
               onRowClick(item)
             } else if (navigateTo) {
-              const url = getNavigationUrl(item)
+              const url = getSafeNavigationUrl(item)
               if (url) {
                 router.push(url)
               }
@@ -146,7 +141,7 @@ const DataTable = <T,>({
     ) : (
       <div className="overflow-x-auto border rounded-md" data-testid="loading-skeleton">
         <Table className={cn("table-fixed w-full", className)}>
-          <TableHeader className="bg-secondary [&_tr:hover]:!bg-secondary">
+          <TableHeader className="bg-secondary [&_tr:hover]:bg-secondary!">
             <TableRow className={headerClassName}>
               {columns.map((column, index) => (
                 <TableHead
@@ -157,9 +152,7 @@ const DataTable = <T,>({
                   )}
                   style={{ width: column.width }}
                 >
-                  <div className="flex items-center space-x-2 justify-between">
-                    <span>{column.header}</span>
-                  </div>
+                  {column.header}
                 </TableHead>
               ))}
               {navigateTo && <TableHead className="w-24" />}
@@ -169,12 +162,12 @@ const DataTable = <T,>({
             {Array.from({ length: 5 }).map((_, rowIndex) => (
               <TableRow key={rowIndex}>
                 {columns.map((_, colIndex) => (
-                  <TableCell key={colIndex} className="h-[3.8rem]">
+                  <TableCell key={colIndex}>
                     <Skeleton className="h-9 w-full" />
                   </TableCell>
                 ))}
                 {navigateTo && (
-                  <TableCell className="h-[3.8rem]">
+                  <TableCell>
                     <Skeleton className="h-9 w-full" />
                   </TableCell>
                 )}
@@ -193,67 +186,72 @@ const DataTable = <T,>({
   if (isMobile) {
     return (
       <div className="space-y-4">
-        {data.map((item, index) => (
-          <Card
-            key={index}
-            className={cn(
-              "p-4 space-y-3",
-              typeof rowClassName === "function"
-                ? rowClassName(item, index)
-                : rowClassName,
-              onRowClick && "cursor-pointer",
-            )}
-            onClick={() => onRowClick?.(item)}
-          >
-            {columns.map((column, colIndex) => {
-              const hasHeader =
-                typeof column.header === "string" && column.header.trim() !== ""
-              return (
-                <div
-                  key={colIndex}
-                  className={cn(
-                    "flex items-start gap-4",
-                    hasHeader ? "justify-between" : "w-full",
-                    typeof cellClassName === "function"
-                      ? cellClassName(column, item)
-                      : cellClassName,
-                  )}
-                >
-                  {hasHeader && (
-                    <div className="text-sm font-medium text-muted-foreground">
-                      {column.header}
-                    </div>
-                  )}
+        {data.map((item, index) => {
+          const safeNavigationUrl = getSafeNavigationUrl(item)
+          return (
+            <Card
+              key={index}
+              className={cn(
+                "p-4 space-y-3",
+                typeof rowClassName === "function"
+                  ? rowClassName(item, index)
+                  : rowClassName,
+                onRowClick && "cursor-pointer",
+              )}
+              onClick={() => onRowClick?.(item)}
+            >
+              {columns.map((column, colIndex) => {
+                const hasHeader =
+                  typeof column.header === "string" && column.header.trim() !== ""
+                return (
                   <div
+                    key={colIndex}
                     className={cn(
-                      "text-sm",
-                      !hasHeader && "w-full",
-                      column.align === "center" && "text-center",
-                      column.align === "right" && "text-right",
+                      "flex items-start gap-4",
+                      hasHeader ? "justify-between" : "w-full",
+                      typeof cellClassName === "function"
+                        ? cellClassName(column, item)
+                        : cellClassName,
                     )}
                   >
-                    {column.render
-                      ? column.render(item[column.key], item, index)
-                      : String(item[column.key])}
+                    {hasHeader && (
+                      <div className="text-sm font-medium text-muted-foreground">
+                        {column.header}
+                      </div>
+                    )}
+                    <div
+                      className={cn(
+                        "text-sm",
+                        !hasHeader && "w-full",
+                        column.align === "center" && "text-center",
+                        column.align === "right" && "text-right",
+                      )}
+                    >
+                      {column.render
+                        ? column.render(item[column.key], item, index)
+                        : String(item[column.key])}
+                    </div>
                   </div>
-                </div>
-              )
-            })}
-            {shouldShowNavigation(item) && (
-              <div className="pt-2">
-                <Link href={getNavigationUrl(item) || ""}>
+                )
+              })}
+              {safeNavigationUrl && (
+                <div className="pt-2">
                   <Button
                     variant="outline"
+                    size="sm"
                     className="w-full flex items-center justify-center"
+                    asChild
                   >
-                    {t("view")}
-                    <ArrowRight className="h-4 w-4" />
+                    <Link href={safeNavigationUrl}>
+                      {t("view")}
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
                   </Button>
-                </Link>
-              </div>
-            )}
-          </Card>
-        ))}
+                </div>
+              )}
+            </Card>
+          )
+        })}
       </div>
     )
   }
@@ -273,7 +271,7 @@ const DataTable = <T,>({
       }}
     >
       <Table className={cn("table-fixed w-full", className)}>
-        <TableHeader className="bg-secondary [&_tr:hover]:!bg-secondary">
+        <TableHeader className="bg-secondary [&_tr:hover]:bg-secondary!">
           <TableRow className={headerClassName}>
             {columns.map((column, index) => (
               <TableHead
@@ -284,65 +282,70 @@ const DataTable = <T,>({
                 )}
                 style={{ width: column.width }}
               >
-                <div className="flex items-center space-x-2 justify-between">
-                  <span>{column.header}</span>
-                </div>
+                {column.header}
               </TableHead>
             ))}
             {navigateTo && <TableHead className="w-24" />}
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data.map((item, rowIndex) => (
-            <TableRow
-              data-testid={`table-row-${rowIndex}`}
-              key={rowIndex}
-              onClick={() => onRowClick?.(item)}
-              tabIndex={0}
-              className={cn(
-                typeof rowClassName === "function"
-                  ? rowClassName(item, rowIndex)
-                  : rowClassName,
-                onRowClick && "cursor-pointer",
-                focusedRowIndex === rowIndex && "bg-muted",
-                "hover:bg-muted/50 transition-colors outline-none",
-              )}
-              onFocus={() => setFocusedRowIndex(rowIndex)}
-              role="row"
-              aria-selected={focusedRowIndex === rowIndex}
-            >
-              {columns.map((column, colIndex) => (
-                <TableCell
-                  key={colIndex}
-                  className={cn(
-                    "whitespace-normal break-words h-[3.8rem]",
-                    column.align === "center" && "text-center",
-                    column.align === "right" && "text-right",
-                    typeof cellClassName === "function"
-                      ? cellClassName(column, item)
-                      : cellClassName,
-                  )}
-                >
-                  {column.render
-                    ? column.render(item[column.key], item, rowIndex)
-                    : String(item[column.key])}
-                </TableCell>
-              ))}
-              {shouldShowNavigation(item) && (
-                <TableCell className="h-[3.8rem]">
-                  <Link href={getNavigationUrl(item) || ""}>
-                    <Button
-                      variant="outline"
-                      className="w-full flex items-center justify-between"
-                    >
-                      {t("view")}
-                      <ArrowRight className="h-4 w-4" />
-                    </Button>
-                  </Link>
-                </TableCell>
-              )}
-            </TableRow>
-          ))}
+          {data.map((item, rowIndex) => {
+            const safeNavigationUrl = getSafeNavigationUrl(item)
+            return (
+              <TableRow
+                data-testid={`table-row-${rowIndex}`}
+                key={rowIndex}
+                onClick={() => onRowClick?.(item)}
+                tabIndex={0}
+                className={cn(
+                  typeof rowClassName === "function"
+                    ? rowClassName(item, rowIndex)
+                    : rowClassName,
+                  onRowClick && "cursor-pointer",
+                  focusedRowIndex === rowIndex && "bg-muted",
+                  "hover:bg-muted/50 transition-colors outline-none",
+                )}
+                onFocus={() => setFocusedRowIndex(rowIndex)}
+                role="row"
+                aria-selected={focusedRowIndex === rowIndex}
+              >
+                {columns.map((column, colIndex) => (
+                  <TableCell
+                    key={colIndex}
+                    className={cn(
+                      "whitespace-normal wrap-break-word",
+                      column.align === "center" && "text-center",
+                      column.align === "right" && "text-right",
+                      typeof cellClassName === "function"
+                        ? cellClassName(column, item)
+                        : cellClassName,
+                    )}
+                  >
+                    {column.render
+                      ? column.render(item[column.key], item, rowIndex)
+                      : String(item[column.key])}
+                  </TableCell>
+                ))}
+                {navigateTo && (
+                  <TableCell>
+                    {safeNavigationUrl && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full flex items-center"
+                        asChild
+                      >
+                        <Link href={safeNavigationUrl}>
+                          {t("view")}
+                          <ArrowRight />
+                        </Link>
+                      </Button>
+                    )}
+                  </TableCell>
+                )}
+              </TableRow>
+            )
+          })}
         </TableBody>
       </Table>
     </div>

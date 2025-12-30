@@ -126,8 +126,8 @@ export const CreditFacilityDisbursalInitiateDialog: React.FC<
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 data-testid="disbursal-amount-input"
+                endAdornment={`USD`}
               />
-              <div className="p-1.5 bg-input-text rounded-md px-4">USD</div>
             </div>
           </div>
           {error && <p className="text-destructive mb-4">{error}</p>}
