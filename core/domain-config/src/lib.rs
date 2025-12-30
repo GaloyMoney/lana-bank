@@ -38,13 +38,11 @@ impl DomainConfigs {
     where
         C: ConfigSpec,
     {
-        let config = match self.repo.find_by_key(C::KEY).await {
-            Err(e) if e.was_not_found() => Err(DomainConfigError::NotConfigured),
-            Err(e) => Err(e),
-            Ok(config) => Ok(config),
-        }?;
-
-        config.current_value::<C>()
+        let maybe_config = self.repo.maybe_find_by_key(C::KEY).await?;
+        match maybe_config {
+            Some(config) => config.current_value::<C>(),
+            None => Err(DomainConfigError::NotConfigured),
+        }
     }
 
     #[instrument(name = "domain_config.get_or_default", skip(self), err)]
