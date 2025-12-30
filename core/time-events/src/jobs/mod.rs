@@ -1,1 +1,1 @@
-mod end_of_day;
+pub mod end_of_day;

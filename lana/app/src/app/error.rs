@@ -64,6 +64,8 @@ pub enum ApplicationError {
     CanNotCreateProposalForClosedOrFrozenAccount,
     #[error("ApplicationError - ClosedOrFrozenAccount")]
     ClosedOrFrozenAccount,
+    #[error("ApplicationError - TimeEventsError: {0}")]
+    TimeEventsError(#[from] crate::time_events::error::TimeEventsError),
 }
 
 impl ErrorSeverity for ApplicationError {
@@ -99,6 +101,7 @@ impl ErrorSeverity for ApplicationError {
             Self::TracingError(e) => e.severity(),
             Self::CanNotCreateProposalForClosedOrFrozenAccount => Level::WARN,
             Self::ClosedOrFrozenAccount => Level::WARN,
+            Self::TimeEventsError(e) => e.severity(),
         }
     }
 }

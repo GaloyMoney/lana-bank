@@ -1,19 +1,26 @@
 [package]
 name = "core-time-events"
+license = "BUSL-1.1"
 edition = "2024"
+
+[features]
+
+fail-on-warnings = []
+sim-time = ["dep:sim-time", "job/sim-time"]
 
 [dependencies]
 async-trait = { workspace = true }
 domain-config = { workspace = true }
 chrono = { workspace = true }
 chrono-tz = { workspace = true, features = ["serde"] }
-thiserror = { workspace = true }
 serde = { workspace = true }
-outbox = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-utils = { workspace = true }
+tracing-macros = { workspace = true }
+obix = { workspace = true }
 job = { workspace = true }
 
 sim-time = { workspace = true, optional = true }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
-
-[lints]
-workspace = true

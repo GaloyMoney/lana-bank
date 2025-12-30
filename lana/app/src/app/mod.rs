@@ -102,7 +102,7 @@ impl LanaApp {
         )
         .await?;
 
-        let _time_events = TimeEvents::init(domain_configs.clone(), RealNow);
+        let _time_events = TimeEvents::init(&domain_configs, RealNow, &jobs, &outbox).await?;
 
         let dashboard = Dashboard::init(&pool, &authz, &jobs, &outbox).await?;
         let governance = Governance::new(&pool, &authz, &outbox);

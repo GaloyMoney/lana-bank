@@ -1657,10 +1657,14 @@ dependencies = [
  "chrono-tz",
  "domain-config",
  "job",
- "outbox",
+ "obix",
  "serde",
  "sim-time",
  "thiserror 2.0.17",
+ "tokio",
+ "tracing",
+ "tracing-macros",
+ "tracing-utils",
  "workspace-hack",
 ]
 
@@ -3684,6 +3688,7 @@ dependencies = [
  "core-deposit",
  "core-price",
  "core-report",
+ "core-time-events",
  "governance",
  "obix",
  "serde",

@@ -1,17 +1,21 @@
-mod error;
+mod closing_schedule;
+mod config;
+pub mod error;
 mod event;
 mod jobs;
+mod time;
 
-use chrono::{DateTime, NaiveTime, TimeZone, Utc};
-use chrono_tz::Tz;
-use serde::{Deserialize, Serialize};
+use chrono::{DateTime, Utc};
+use job::Jobs;
+use obix::{Outbox, out::OutboxEventMarker};
+use tracing_macros::record_error_severity;
 
-use domain_config::{DomainConfigError, DomainConfigKey, DomainConfigValue, DomainConfigs};
+use domain_config::DomainConfigs;
 
 use crate::error::TimeEventsError;
 
-use event::*;
-// structure of imports/declarations
+use closing_schedule::*;
+pub use event::*;
 
 pub trait Now {
     fn now(&self) -> DateTime<Utc>;
@@ -26,103 +30,36 @@ impl Now for RealNow {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct ClosingSchedule {
-    pub timezone: Tz,
-    pub closing_time: NaiveTime,
-}
-
-impl ClosingSchedule {
-    pub fn new(timezone: Tz, closing_time: NaiveTime) -> Self {
-        Self {
-            timezone,
-            closing_time,
-        }
-    }
-
-    /// Returns the next closing time after `from_utc` expressed in UTC.
-    pub fn next_closing_from(&self, from_utc: DateTime<Utc>) -> DateTime<Utc> {
-        let now_in_tz = from_utc.with_timezone(&self.timezone);
-        let today = now_in_tz.date_naive();
-        let mut closing_naive_dt = today.and_time(self.closing_time);
-        // If the from_utc and closing time are same, do we not want next day instead of same time?
-        // since we are returning "next_closing", which answers do we want <= instead?
-        if closing_naive_dt.time() < now_in_tz.time() {
-            closing_naive_dt = closing_naive_dt + chrono::Days::new(1)
-        }
-
-        let time = match self.timezone.from_local_datetime(&closing_naive_dt) {
-            chrono::LocalResult::Single(dt) => dt,
-            // if from_utc < closing_time and both lie in ambiguous window, we get the past/earliest/dt1 closing time
-            // even if called for time in second occurrence, shown in test
-            // do we not want "next_closing" instead past time
-            chrono::LocalResult::Ambiguous(dt1, _) => dt1,
-            // pick earliest
-            chrono::LocalResult::None => self
-                .timezone
-                .from_local_datetime(&(closing_naive_dt + chrono::Duration::hours(1)))
-                .earliest()
-                .expect("time should always exist"),
-        };
-
-        time.with_timezone(&Utc)
-    }
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
-pub struct TimezoneConfig {
-    pub timezone: Tz,
-}
-
-impl DomainConfigValue for TimezoneConfig {
-    const KEY: DomainConfigKey = DomainConfigKey::new("timezone");
-
-    fn validate(&self) -> Result<(), DomainConfigError> {
-        Ok(())
-    }
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
-pub struct ClosingTimeConfig {
-    pub closing_time: NaiveTime,
-}
-
-impl DomainConfigValue for ClosingTimeConfig {
-    const KEY: DomainConfigKey = DomainConfigKey::new("closing-time");
-
-    fn validate(&self) -> Result<(), DomainConfigError> {
-        Ok(())
-    }
-}
-
 #[derive(Clone)]
 pub struct TimeEvents<T: Now> {
-    domain_configs: DomainConfigs,
-    now_fn: T,
+    _domain_configs: DomainConfigs,
+    _now_fn: T,
 }
 
 impl<T: Now> TimeEvents<T> {
-    pub fn init(domain_configs: DomainConfigs, now_fn: T) -> Self {
-        Self {
-            domain_configs,
-            now_fn,
-        }
-    }
+    #[record_error_severity]
+    #[tracing::instrument(name = "core_time_events.init", skip_all)]
+    pub async fn init<E>(
+        domain_configs: &DomainConfigs,
+        now_fn: T,
+        jobs: &Jobs,
+        outbox: &Outbox<E>,
+    ) -> Result<Self, TimeEventsError>
+    where
+        E: OutboxEventMarker<CoreTimeEvent>,
+    {
+        jobs.add_initializer_and_spawn_unique(
+            jobs::end_of_day::EndOfDayJobInit::<E>::new(outbox, domain_configs),
+            jobs::end_of_day::EndOfDayJobConfig::<E> {
+                _phantom: std::marker::PhantomData,
+            },
+        )
+        .await?;
 
-    pub async fn next_closing_in_utc(&self) -> Result<DateTime<Utc>, TimeEventsError> {
-        let tz_config = self
-            .domain_configs
-            .get_or_default::<TimezoneConfig>()
-            .await?;
-
-        let closing_time_config = self
-            .domain_configs
-            .get_or_default::<ClosingTimeConfig>()
-            .await?;
-
-        let schedule = ClosingSchedule::new(tz_config.timezone, closing_time_config.closing_time);
-
-        Ok(schedule.next_closing_from(self.now_fn.now()))
+        Ok(Self {
+            _domain_configs: domain_configs.clone(),
+            _now_fn: now_fn,
+        })
     }
 }
 
