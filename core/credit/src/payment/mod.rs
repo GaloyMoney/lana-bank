@@ -64,6 +64,7 @@ where
         db: &mut es_entity::DbOp<'_>,
         payment_id: PaymentId,
         credit_facility_id: CreditFacilityId,
+        payment_holding_account_id: CalaAccountId,
         payment_source_account_id: CalaAccountId,
         amount: UsdCents,
         effective: chrono::NaiveDate,
@@ -73,7 +74,7 @@ where
             .ledger_tx_id(payment_id)
             .amount(amount)
             .credit_facility_id(credit_facility_id)
-            .payment_holding_account_id(CalaAccountId::new())
+            .payment_holding_account_id(payment_holding_account_id)
             .payment_source_account_id(payment_source_account_id)
             .effective(effective)
             .build()

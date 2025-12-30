@@ -917,6 +917,7 @@ where
                 &mut db,
                 payment_id,
                 credit_facility_id,
+                credit_facility.payment_holding_account_id(),
                 payment_source_account_id,
                 amount,
                 effective,
@@ -975,13 +976,13 @@ where
         let mut db = self.facilities.begin_op().await?;
 
         let payment_id = PaymentId::new();
-
         if let Some(payment) = self
             .payments
             .record_in_op(
                 &mut db,
                 payment_id,
                 credit_facility_id,
+                credit_facility.payment_holding_account_id(),
                 payment_source_account_id,
                 amount,
                 effective.into(),

@@ -57,7 +57,7 @@ pub enum CreditFacilityEvent {
     },
     PartialLiquidationInitiated {
         liquidation_id: LiquidationId,
-        receivable_account_id: CalaAccountId,
+        payment_holding_account_id: CalaAccountId,
         trigger_price: PriceOfOneBTC,
         initially_expected_to_receive: UsdCents,
         initially_estimated_to_liquidate: Satoshis,
@@ -229,6 +229,10 @@ impl CreditFacility {
         self.maturity_date.start_of_day()
     }
 
+    pub fn payment_holding_account_id(&self) -> CalaAccountId {
+        self.account_ids.payment_holding_account_id
+    }
+
     fn structuring_fee_on_activation(&self) -> Option<StructuringFeeOnActivation> {
         let tx_id = self.structuring_fee_tx_id?;
 
@@ -293,7 +297,7 @@ impl CreditFacility {
         self.events
             .push(CreditFacilityEvent::PartialLiquidationInitiated {
                 liquidation_id: LiquidationId::new(),
-                receivable_account_id: CalaAccountId::new(),
+                payment_holding_account_id: self.payment_holding_account_id(),
                 trigger_price: price,
                 initially_expected_to_receive: repay_amount,
                 initially_estimated_to_liquidate: liquidate_btc,

@@ -222,6 +222,7 @@ where
                     amount,
                     credit_facility_id,
                     payment_id,
+                    payment_holding_account_id,
                     ..
                 },
             ) if *credit_facility_id == self.config.credit_facility_id => {
@@ -238,6 +239,7 @@ where
                         *payment_id,
                         *credit_facility_id,
                         payment_source_account_id,
+                        *payment_holding_account_id,
                         *amount,
                         effective,
                     )

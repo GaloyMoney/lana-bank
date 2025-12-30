@@ -18,7 +18,7 @@ pub enum LiquidationEvent {
     Initialized {
         id: LiquidationId,
         credit_facility_id: CreditFacilityId,
-        receivable_account_id: CalaAccountId,
+        payment_holding_account_id: CalaAccountId,
         trigger_price: PriceOfOneBTC,
         initially_expected_to_receive: UsdCents,
         initially_estimated_to_liquidate: Satoshis,
@@ -51,7 +51,7 @@ pub struct Liquidation {
     pub expected_to_receive: UsdCents,
     pub sent_total: Satoshis,
     pub received_total: UsdCents,
-    pub receivable_account_id: CalaAccountId,
+    pub payment_holding_account_id: CalaAccountId,
     events: EntityEvents<LiquidationEvent>,
 }
 
@@ -167,14 +167,14 @@ impl TryFromEvents<LiquidationEvent> for Liquidation {
                 LiquidationEvent::Initialized {
                     id,
                     credit_facility_id,
-                    receivable_account_id,
+                    payment_holding_account_id,
                     initially_expected_to_receive,
                     ..
                 } => {
                     builder = builder
                         .id(*id)
                         .credit_facility_id(*credit_facility_id)
-                        .receivable_account_id(*receivable_account_id)
+                        .payment_holding_account_id(*payment_holding_account_id)
                         .expected_to_receive(*initially_expected_to_receive)
                 }
                 LiquidationEvent::CollateralSentOut { amount, .. } => {
@@ -205,7 +205,7 @@ pub struct NewLiquidation {
     pub(crate) id: LiquidationId,
     #[builder(setter(into))]
     pub(crate) credit_facility_id: CreditFacilityId,
-    pub(crate) receivable_account_id: CalaAccountId,
+    pub(crate) payment_holding_account_id: CalaAccountId,
     pub(crate) trigger_price: PriceOfOneBTC,
     pub(crate) initially_expected_to_receive: UsdCents,
     pub(crate) initially_estimated_to_liquidate: Satoshis,
@@ -224,7 +224,7 @@ impl IntoEvents<LiquidationEvent> for NewLiquidation {
             [LiquidationEvent::Initialized {
                 id: self.id,
                 credit_facility_id: self.credit_facility_id,
-                receivable_account_id: self.receivable_account_id,
+                payment_holding_account_id: self.payment_holding_account_id,
                 trigger_price: self.trigger_price,
                 initially_expected_to_receive: self.initially_expected_to_receive,
                 initially_estimated_to_liquidate: self.initially_estimated_to_liquidate,
