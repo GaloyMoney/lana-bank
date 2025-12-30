@@ -7,6 +7,7 @@
     "in_liquidation_parent_code": "81.03",
     "interest_income_parent_code": "71.01",
     "fee_income_parent_code": "71.02",
+    "payment_holding_parent_code": "11.99.0201",
     "short_term_individual_interest_receivable_parent_code": "11.02.0201",
     "short_term_government_entity_interest_receivable_parent_code": "11.02.0201",
     "short_term_private_company_interest_receivable_parent_code": "11.02.0201",

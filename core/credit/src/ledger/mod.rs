@@ -2321,6 +2321,7 @@ impl CreditLedger {
             in_liquidation_parent_account_set_id,
             interest_income_parent_account_set_id,
             fee_income_parent_account_set_id,
+            payment_holding_parent_account_set_id,
             short_term_disbursed_integration_meta,
             long_term_disbursed_integration_meta,
             short_term_interest_integration_meta,
@@ -2401,6 +2402,15 @@ impl CreditLedger {
             *fee_income_parent_account_set_id,
             &charts_integration_meta,
             |meta| meta.fee_income_parent_account_set_id,
+        )
+        .await?;
+        self.attach_charts_account_set(
+            &mut op,
+            &mut account_sets,
+            self.internal_account_sets.payment_holding.id,
+            *payment_holding_parent_account_set_id,
+            &charts_integration_meta,
+            |meta| meta.payment_holding_parent_account_set_id,
         )
         .await?;
 
@@ -3086,6 +3096,7 @@ pub struct ChartOfAccountsIntegrationMeta {
     pub in_liquidation_parent_account_set_id: CalaAccountSetId,
     pub interest_income_parent_account_set_id: CalaAccountSetId,
     pub fee_income_parent_account_set_id: CalaAccountSetId,
+    pub payment_holding_parent_account_set_id: CalaAccountSetId,
 
     pub short_term_disbursed_integration_meta: ShortTermDisbursedIntegrationMeta,
     pub long_term_disbursed_integration_meta: LongTermDisbursedIntegrationMeta,

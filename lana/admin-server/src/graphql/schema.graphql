@@ -740,6 +740,7 @@ type CreditModuleConfig {
 	chartOfAccountInLiquidationParentCode: String
 	chartOfAccountInterestIncomeParentCode: String
 	chartOfAccountFeeIncomeParentCode: String
+	chartOfAccountPaymentHoldingParentCode: String
 	chartOfAccountShortTermIndividualDisbursedReceivableParentCode: String
 	chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode: String
 	chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode: String
@@ -786,6 +787,7 @@ input CreditModuleConfigureInput {
 	chartOfAccountInLiquidationParentCode: String!
 	chartOfAccountInterestIncomeParentCode: String!
 	chartOfAccountFeeIncomeParentCode: String!
+	chartOfAccountPaymentHoldingParentCode: String!
 	chartOfAccountShortTermIndividualDisbursedReceivableParentCode: String!
 	chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode: String!
 	chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode: String!
