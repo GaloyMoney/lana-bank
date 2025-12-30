@@ -12,6 +12,7 @@ mod obligation_due_balance;
 mod obligation_overdue_balance;
 mod payment_allocation;
 mod post_accrued_interest;
+mod record_payment;
 mod remove_collateral;
 mod reserve_for_liquidation;
 
@@ -29,5 +30,6 @@ pub use obligation_due_balance::*;
 pub use obligation_overdue_balance::*;
 pub use payment_allocation::*;
 pub use post_accrued_interest::*;
+pub use record_payment::*;
 pub use remove_collateral::*;
 pub use reserve_for_liquidation::*;
