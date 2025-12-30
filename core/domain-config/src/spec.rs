@@ -139,8 +139,7 @@ pub trait ConfigSpec {
         None
     }
 
-    fn validate(value: &<Self::Kind as ValueKind>::Value) -> Result<(), DomainConfigError> {
-        let _ = value;
+    fn validate(_: &<Self::Kind as ValueKind>::Value) -> Result<(), DomainConfigError> {
         Ok(())
     }
 }
