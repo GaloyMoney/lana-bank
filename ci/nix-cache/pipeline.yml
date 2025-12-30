@@ -87,6 +87,7 @@ jobs:
                 cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build ./ci#check-latest-commit
                 cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build ./ci#next-version
                 cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build ./ci#wait-cachix-paths
+                cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build ./ci#check-cachix-paths
                 cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build ./ci#rebuild-nix-cache
 
   - name: rebuild-nix-cache

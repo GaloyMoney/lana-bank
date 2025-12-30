@@ -96,6 +96,15 @@ config:
         set -euo pipefail
         cd repo
         cachix use $CACHIX_CACHE_NAME
+
+        # Check if all packages are already cached
+        echo "Checking if packages are already in cache..."
+        if nix run ./ci#check-cachix-paths -- -c ${CACHIX_CACHE_NAME} $BUILD_PACKAGES; then
+          echo "✅ All packages already cached, skipping build!"
+          exit 0
+        fi
+
+        echo "Building and caching packages..."
         for build_pkg in $BUILD_PACKAGES; do
           cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build .#${build_pkg}
         done

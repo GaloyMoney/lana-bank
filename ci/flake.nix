@@ -123,6 +123,108 @@
         fi
       '';
 
+      check-cachix-paths = pkgs.writeShellScriptBin "check-cachix-paths" ''
+        set -euo pipefail
+
+        # Check if derivation outputs already exist in cachix
+        # Returns 0 if all paths are cached (skip build), 1 if any missing (need build)
+
+        usage() {
+          echo "Usage: $0 -c CACHE_NAME <package1> [package2] ..."
+          echo ""
+          echo "Check if nix packages are already cached in Cachix."
+          echo "Returns exit code 0 if ALL packages are cached, 1 otherwise."
+          echo ""
+          echo "Package format:"
+          echo "  - Simple name (e.g., 'nextest') will be resolved as '.#nextest'"
+          echo "  - Full flake ref (e.g., './ci#check-latest-commit') used as-is"
+          echo ""
+          echo "Options:"
+          echo "  -c CACHE_NAME    Name of the Cachix cache (required)"
+          echo "  -h               Show this help message"
+          exit 1
+        }
+
+        CACHE_NAME=""
+
+        while getopts "c:h" opt; do
+          case $opt in
+            c) CACHE_NAME="$OPTARG" ;;
+            h) usage ;;
+            *) usage ;;
+          esac
+        done
+        shift $((OPTIND - 1))
+
+        if [ -z "$CACHE_NAME" ]; then
+          echo "Error: -c CACHE_NAME is required"
+          usage
+        fi
+
+        if [ $# -eq 0 ]; then
+          echo "Error: At least one package name is required"
+          usage
+        fi
+
+        echo "Checking if packages are already cached in: $CACHE_NAME"
+
+        all_cached=true
+
+        for pkg in "$@"; do
+          echo ""
+          echo "Checking package: $pkg"
+
+          # Determine the full flake reference
+          # If it contains '#', use as-is; otherwise prefix with '.#'
+          if [[ "$pkg" == *"#"* ]]; then
+            flake_ref="$pkg"
+          else
+            flake_ref=".#$pkg"
+          fi
+
+          # Get the output path for this package
+          output_path=$(${pkgs.nix}/bin/nix path-info --json "$flake_ref" 2>/dev/null | ${pkgs.jq}/bin/jq -r 'keys[0]' 2>/dev/null || echo "")
+
+          if [ -z "$output_path" ] || [ "$output_path" = "null" ]; then
+            echo "  Could not determine output path for $flake_ref (may not exist yet)"
+            echo "  ✗ Not cached (needs build)"
+            all_cached=false
+            continue
+          fi
+
+          echo "  Output path: $output_path"
+
+          # Extract hash from nix store path
+          hash=$(echo "$output_path" | ${pkgs.gnused}/bin/sed -n 's|/nix/store/\([^-]*\).*|\1|p')
+
+          if [ -z "$hash" ]; then
+            echo "  Warning: Could not extract hash from path"
+            echo "  ✗ Not cached (needs build)"
+            all_cached=false
+            continue
+          fi
+
+          url="https://''${CACHE_NAME}.cachix.org/''${hash}.narinfo"
+
+          # Check if path exists in cache
+          if ${pkgs.curl}/bin/curl -s -f -o /dev/null "$url" 2>/dev/null; then
+            echo "  ✓ Already cached"
+          else
+            echo "  ✗ Not cached (needs build)"
+            all_cached=false
+          fi
+        done
+
+        echo ""
+        if [ "$all_cached" = true ]; then
+          echo "✅ All packages are already cached! Build can be skipped."
+          exit 0
+        else
+          echo "⚠️  Some packages need to be built."
+          exit 1
+        fi
+      '';
+
       wait-cachix-paths = pkgs.writeShellScriptBin "wait-cachix-paths" ''
         set +e  # Don't exit on non-zero return codes
 
@@ -501,6 +603,10 @@
         type = "app";
         program = "${wait-cachix-paths}/bin/wait-cachix-paths";
       };
+      apps.check-cachix-paths = {
+        type = "app";
+        program = "${check-cachix-paths}/bin/check-cachix-paths";
+      };
       apps.rebuild-nix-cache = {
         type = "app";
         program = "${rebuild-nix-cache}/bin/rebuild-nix-cache";
@@ -511,6 +617,7 @@
       packages.check-latest-commit = check-latest-commit;
       packages.next-version = next-version;
       packages.wait-cachix-paths = wait-cachix-paths;
+      packages.check-cachix-paths = check-cachix-paths;
       packages.rebuild-nix-cache = rebuild-nix-cache;
       formatter = pkgs.alejandra;
     });
