@@ -132,7 +132,7 @@ impl From<(InterestAccrualData, CreditFacilityLedgerAccountIds)> for CreditFacil
             period,
             tx_ref,
             tx_id,
-            credit_facility_account_ids,
+            account_ids: credit_facility_account_ids.into(),
         }
     }
 }
@@ -155,7 +155,7 @@ impl From<(InterestAccrualCycleData, CreditFacilityLedgerAccountIds)>
             effective,
             tx_ref,
             tx_id,
-            credit_facility_account_ids,
+            account_ids: credit_facility_account_ids.into(),
         }
     }
 }
@@ -764,21 +764,7 @@ mod test {
     }
 
     fn account_ids() -> CreditFacilityLedgerAccountIds {
-        CreditFacilityLedgerAccountIds {
-            facility_account_id: CalaAccountId::new(),
-            in_liquidation_account_id: CalaAccountId::new(),
-            disbursed_receivable_not_yet_due_account_id: CalaAccountId::new(),
-            disbursed_receivable_due_account_id: CalaAccountId::new(),
-            disbursed_receivable_overdue_account_id: CalaAccountId::new(),
-            disbursed_defaulted_account_id: CalaAccountId::new(),
-            collateral_account_id: CalaAccountId::new(),
-            interest_receivable_not_yet_due_account_id: CalaAccountId::new(),
-            interest_receivable_due_account_id: CalaAccountId::new(),
-            interest_receivable_overdue_account_id: CalaAccountId::new(),
-            interest_defaulted_account_id: CalaAccountId::new(),
-            interest_income_account_id: CalaAccountId::new(),
-            fee_income_account_id: CalaAccountId::new(),
-        }
+        CreditFacilityLedgerAccountIds::new()
     }
 
     fn initial_events() -> Vec<CreditFacilityEvent> {

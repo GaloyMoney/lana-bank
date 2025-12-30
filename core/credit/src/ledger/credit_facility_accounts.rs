@@ -9,6 +9,8 @@ use crate::{
     terms::{FacilityDurationType, InterestPeriod},
 };
 
+use super::ObligationReceivableAccountIds;
+
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct CreditFacilityLedgerAccountIds {
@@ -86,6 +88,62 @@ impl PendingCreditFacilityAccountIds {
     }
 }
 
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+pub struct InterestAccrualCycleLedgerAccountIds {
+    receivable_not_yet_due_account_id: CalaAccountId,
+    receivable_due_account_id: CalaAccountId,
+    receivable_overdue_account_id: CalaAccountId,
+    defaulted_account_id: CalaAccountId,
+    interest_income_account_id: CalaAccountId,
+}
+
+impl From<CreditFacilityLedgerAccountIds> for InterestAccrualCycleLedgerAccountIds {
+    fn from(credit_facility_account_ids: CreditFacilityLedgerAccountIds) -> Self {
+        Self {
+            receivable_not_yet_due_account_id: credit_facility_account_ids
+                .interest_receivable_not_yet_due_account_id,
+            receivable_due_account_id: credit_facility_account_ids
+                .interest_receivable_due_account_id,
+            receivable_overdue_account_id: credit_facility_account_ids
+                .interest_receivable_overdue_account_id,
+            defaulted_account_id: credit_facility_account_ids.interest_defaulted_account_id,
+            interest_income_account_id: credit_facility_account_ids.interest_income_account_id,
+        }
+    }
+}
+
+impl InterestAccrualCycleLedgerAccountIds {
+    pub fn defaulted_account_id(&self) -> CalaAccountId {
+        self.defaulted_account_id
+    }
+}
+
+impl From<InterestAccrualCycleLedgerAccountIds> for ObligationReceivableAccountIds {
+    fn from(account_ids: InterestAccrualCycleLedgerAccountIds) -> Self {
+        Self {
+            not_yet_due: account_ids.receivable_not_yet_due_account_id,
+            due: account_ids.receivable_due_account_id,
+            overdue: account_ids.receivable_overdue_account_id,
+        }
+    }
+}
+
+impl From<InterestAccrualCycleLedgerAccountIds> for InterestPostingAccountIds {
+    fn from(account_ids: InterestAccrualCycleLedgerAccountIds) -> Self {
+        Self {
+            receivable_not_yet_due: account_ids.receivable_not_yet_due_account_id,
+            income: account_ids.interest_income_account_id,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct InterestPostingAccountIds {
+    pub receivable_not_yet_due: CalaAccountId,
+    pub income: CalaAccountId,
+}
+
 #[derive(Debug, Clone)]
 pub struct CreditFacilityCompletion {
     pub tx_id: LedgerTxId,
@@ -130,7 +188,7 @@ pub struct CreditFacilityInterestAccrual {
     pub tx_ref: String,
     pub interest: UsdCents,
     pub period: InterestPeriod,
-    pub credit_facility_account_ids: CreditFacilityLedgerAccountIds,
+    pub account_ids: InterestAccrualCycleLedgerAccountIds,
 }
 
 #[derive(Debug, Clone)]
@@ -139,5 +197,5 @@ pub struct CreditFacilityInterestAccrualCycle {
     pub tx_ref: String,
     pub interest: UsdCents,
     pub effective: chrono::NaiveDate,
-    pub credit_facility_account_ids: CreditFacilityLedgerAccountIds,
+    pub account_ids: InterestAccrualCycleLedgerAccountIds,
 }

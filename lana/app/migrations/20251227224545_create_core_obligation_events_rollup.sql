@@ -10,18 +10,16 @@ CREATE TABLE core_obligation_events_rollup (
   defaulted_account_id UUID,
   defaulted_amount BIGINT,
   defaulted_date JSONB,
-  due_accounts JSONB,
   due_amount BIGINT,
   due_date VARCHAR,
   effective VARCHAR,
   liquidation_date JSONB,
-  not_yet_due_accounts JSONB,
   obligation_type VARCHAR,
-  overdue_accounts JSONB,
   overdue_amount BIGINT,
   overdue_date JSONB,
   payment_allocation_amount BIGINT,
   payment_id UUID,
+  receivable_account_ids JSONB,
   reference VARCHAR,
 
   -- Collection rollups
@@ -72,7 +70,6 @@ BEGIN
     new_row.defaulted_account_id := (NEW.event ->> 'defaulted_account_id')::UUID;
     new_row.defaulted_amount := (NEW.event ->> 'defaulted_amount')::BIGINT;
     new_row.defaulted_date := (NEW.event -> 'defaulted_date');
-    new_row.due_accounts := (NEW.event -> 'due_accounts');
     new_row.due_amount := (NEW.event ->> 'due_amount')::BIGINT;
     new_row.due_date := (NEW.event ->> 'due_date');
     new_row.effective := (NEW.event ->> 'effective');
@@ -87,9 +84,7 @@ BEGIN
      END
 ;
     new_row.liquidation_date := (NEW.event -> 'liquidation_date');
-    new_row.not_yet_due_accounts := (NEW.event -> 'not_yet_due_accounts');
     new_row.obligation_type := (NEW.event ->> 'obligation_type');
-    new_row.overdue_accounts := (NEW.event -> 'overdue_accounts');
     new_row.overdue_amount := (NEW.event ->> 'overdue_amount')::BIGINT;
     new_row.overdue_date := (NEW.event -> 'overdue_date');
     new_row.payment_allocation_amount := (NEW.event ->> 'payment_allocation_amount')::BIGINT;
@@ -100,6 +95,7 @@ BEGIN
      END
 ;
     new_row.payment_id := (NEW.event ->> 'payment_id')::UUID;
+    new_row.receivable_account_ids := (NEW.event -> 'receivable_account_ids');
     new_row.reference := (NEW.event ->> 'reference');
   ELSE
     -- Default all fields to current values
@@ -108,7 +104,6 @@ BEGIN
     new_row.defaulted_account_id := current_row.defaulted_account_id;
     new_row.defaulted_amount := current_row.defaulted_amount;
     new_row.defaulted_date := current_row.defaulted_date;
-    new_row.due_accounts := current_row.due_accounts;
     new_row.due_amount := current_row.due_amount;
     new_row.due_date := current_row.due_date;
     new_row.effective := current_row.effective;
@@ -118,14 +113,13 @@ BEGIN
     new_row.is_overdue_recorded := current_row.is_overdue_recorded;
     new_row.ledger_tx_ids := current_row.ledger_tx_ids;
     new_row.liquidation_date := current_row.liquidation_date;
-    new_row.not_yet_due_accounts := current_row.not_yet_due_accounts;
     new_row.obligation_type := current_row.obligation_type;
-    new_row.overdue_accounts := current_row.overdue_accounts;
     new_row.overdue_amount := current_row.overdue_amount;
     new_row.overdue_date := current_row.overdue_date;
     new_row.payment_allocation_amount := current_row.payment_allocation_amount;
     new_row.payment_allocation_ids := current_row.payment_allocation_ids;
     new_row.payment_id := current_row.payment_id;
+    new_row.receivable_account_ids := current_row.receivable_account_ids;
     new_row.reference := current_row.reference;
   END IF;
 
@@ -136,15 +130,13 @@ BEGIN
       new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
       new_row.defaulted_account_id := (NEW.event ->> 'defaulted_account_id')::UUID;
       new_row.defaulted_date := (NEW.event -> 'defaulted_date');
-      new_row.due_accounts := (NEW.event -> 'due_accounts');
       new_row.due_date := (NEW.event ->> 'due_date');
       new_row.effective := (NEW.event ->> 'effective');
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
       new_row.liquidation_date := (NEW.event -> 'liquidation_date');
-      new_row.not_yet_due_accounts := (NEW.event -> 'not_yet_due_accounts');
       new_row.obligation_type := (NEW.event ->> 'obligation_type');
-      new_row.overdue_accounts := (NEW.event -> 'overdue_accounts');
       new_row.overdue_date := (NEW.event -> 'overdue_date');
+      new_row.receivable_account_ids := (NEW.event -> 'receivable_account_ids');
       new_row.reference := (NEW.event ->> 'reference');
     WHEN 'due_recorded' THEN
       new_row.due_amount := (NEW.event ->> 'due_amount')::BIGINT;
@@ -178,7 +170,6 @@ BEGIN
     defaulted_account_id,
     defaulted_amount,
     defaulted_date,
-    due_accounts,
     due_amount,
     due_date,
     effective,
@@ -188,14 +179,13 @@ BEGIN
     is_overdue_recorded,
     ledger_tx_ids,
     liquidation_date,
-    not_yet_due_accounts,
     obligation_type,
-    overdue_accounts,
     overdue_amount,
     overdue_date,
     payment_allocation_amount,
     payment_allocation_ids,
     payment_id,
+    receivable_account_ids,
     reference
   )
   VALUES (
@@ -208,7 +198,6 @@ BEGIN
     new_row.defaulted_account_id,
     new_row.defaulted_amount,
     new_row.defaulted_date,
-    new_row.due_accounts,
     new_row.due_amount,
     new_row.due_date,
     new_row.effective,
@@ -218,14 +207,13 @@ BEGIN
     new_row.is_overdue_recorded,
     new_row.ledger_tx_ids,
     new_row.liquidation_date,
-    new_row.not_yet_due_accounts,
     new_row.obligation_type,
-    new_row.overdue_accounts,
     new_row.overdue_amount,
     new_row.overdue_date,
     new_row.payment_allocation_amount,
     new_row.payment_allocation_ids,
     new_row.payment_id,
+    new_row.receivable_account_ids,
     new_row.reference
   );
 

@@ -7,7 +7,9 @@ use std::cmp::Ordering;
 
 use es_entity::*;
 
-use crate::{CreditFacilityId, payment_allocation::NewPaymentAllocation, primitives::*};
+use crate::{
+    ledger::ObligationReceivableAccountIds, payment_allocation::NewPaymentAllocation, primitives::*,
+};
 
 use super::{error::ObligationError, primitives::*};
 
@@ -23,9 +25,7 @@ pub enum ObligationEvent {
         amount: UsdCents,
         reference: String,
         ledger_tx_id: LedgerTxId,
-        not_yet_due_accounts: ObligationAccounts,
-        due_accounts: ObligationAccounts,
-        overdue_accounts: ObligationAccounts,
+        receivable_account_ids: ObligationReceivableAccountIds,
         defaulted_account_id: CalaAccountId,
         due_date: EffectiveDate,
         overdue_date: Option<EffectiveDate>,
@@ -117,36 +117,14 @@ impl Obligation {
         self.lifecycle_timestamps().defaulted
     }
 
-    pub fn not_yet_due_accounts(&self) -> ObligationAccounts {
+    pub fn receivable_accounts(&self) -> &ObligationReceivableAccountIds {
         self.events
             .iter_all()
             .find_map(|e| match e {
                 ObligationEvent::Initialized {
-                    not_yet_due_accounts,
+                    receivable_account_ids,
                     ..
-                } => Some(*not_yet_due_accounts),
-                _ => None,
-            })
-            .expect("Entity was not Initialized")
-    }
-
-    pub fn due_accounts(&self) -> ObligationAccounts {
-        self.events
-            .iter_all()
-            .find_map(|e| match e {
-                ObligationEvent::Initialized { due_accounts, .. } => Some(*due_accounts),
-                _ => None,
-            })
-            .expect("Entity was not Initialized")
-    }
-
-    pub fn overdue_accounts(&self) -> ObligationAccounts {
-        self.events
-            .iter_all()
-            .find_map(|e| match e {
-                ObligationEvent::Initialized {
-                    overdue_accounts, ..
-                } => Some(*overdue_accounts),
+                } => Some(receivable_account_ids),
                 _ => None,
             })
             .expect("Entity was not Initialized")
@@ -166,29 +144,16 @@ impl Obligation {
     }
 
     pub fn receivable_account_id(&self) -> Option<CalaAccountId> {
-        let (not_yet_due_accounts, due_accounts, overdue_accounts) = self
-            .events
+        self.events
             .iter_all()
             .find_map(|e| match e {
                 ObligationEvent::Initialized {
-                    not_yet_due_accounts,
-                    due_accounts,
-                    overdue_accounts,
+                    receivable_account_ids,
                     ..
-                } => Some((*not_yet_due_accounts, *due_accounts, *overdue_accounts)),
+                } => Some(receivable_account_ids.id_for_status(self.status())),
                 _ => None,
             })
-            .expect("Entity was not Initialized");
-
-        match self.status() {
-            ObligationStatus::NotYetDue => Some(not_yet_due_accounts.receivable_account_id),
-            ObligationStatus::Due => Some(due_accounts.receivable_account_id),
-            ObligationStatus::Overdue | ObligationStatus::Defaulted => {
-                Some(overdue_accounts.receivable_account_id)
-            }
-
-            ObligationStatus::Paid => None,
-        }
+            .expect("Entity was not Initialized")
     }
 
     fn expected_status(&self, now: DateTime<Utc>) -> ObligationStatus {
@@ -268,8 +233,8 @@ impl Obligation {
         let res = ObligationDueReallocationData {
             tx_id: LedgerTxId::new(),
             amount: self.outstanding(),
-            not_yet_due_account_id: self.not_yet_due_accounts().receivable_account_id,
-            due_account_id: self.due_accounts().receivable_account_id,
+            not_yet_due_account_id: self.receivable_accounts().not_yet_due,
+            due_account_id: self.receivable_accounts().due,
             effective,
         };
 
@@ -301,8 +266,8 @@ impl Obligation {
         let res = ObligationOverdueReallocationData {
             tx_id: LedgerTxId::new(),
             amount: self.outstanding(),
-            due_account_id: self.due_accounts().receivable_account_id,
-            overdue_account_id: self.overdue_accounts().receivable_account_id,
+            due_account_id: self.receivable_accounts().due,
+            overdue_account_id: self.receivable_accounts().overdue,
             effective,
         };
 
@@ -451,9 +416,7 @@ pub struct NewObligation {
     pub(super) amount: UsdCents,
     #[builder(setter(strip_option), default)]
     reference: Option<String>,
-    not_yet_due_accounts: ObligationAccounts,
-    due_accounts: ObligationAccounts,
-    overdue_accounts: ObligationAccounts,
+    receivable_account_ids: ObligationReceivableAccountIds,
     #[builder(setter(into))]
     defaulted_account_id: CalaAccountId,
     due_date: EffectiveDate,
@@ -498,9 +461,7 @@ impl IntoEvents<ObligationEvent> for NewObligation {
                 reference: self.reference(),
                 amount: self.amount,
                 ledger_tx_id: self.tx_id,
-                not_yet_due_accounts: self.not_yet_due_accounts,
-                due_accounts: self.due_accounts,
-                overdue_accounts: self.overdue_accounts,
+                receivable_account_ids: self.receivable_account_ids,
                 defaulted_account_id: self.defaulted_account_id,
                 due_date: self.due_date,
                 overdue_date: self.overdue_date,
@@ -578,15 +539,7 @@ mod test {
             amount: UsdCents::from(10),
             reference: "ref-01".to_string(),
             ledger_tx_id: LedgerTxId::new(),
-            not_yet_due_accounts: ObligationAccounts {
-                receivable_account_id: CalaAccountId::new(),
-            },
-            due_accounts: ObligationAccounts {
-                receivable_account_id: CalaAccountId::new(),
-            },
-            overdue_accounts: ObligationAccounts {
-                receivable_account_id: CalaAccountId::new(),
-            },
+            receivable_account_ids: ObligationReceivableAccountIds::new(),
             defaulted_account_id: CalaAccountId::new(),
             due_date: Utc::now().into(),
             overdue_date: Some(Utc::now().into()),
@@ -774,15 +727,7 @@ mod test {
                 amount: UsdCents::from(10),
                 reference: "ref-01".to_string(),
                 ledger_tx_id: LedgerTxId::new(),
-                not_yet_due_accounts: ObligationAccounts {
-                    receivable_account_id: CalaAccountId::new(),
-                },
-                due_accounts: ObligationAccounts {
-                    receivable_account_id: CalaAccountId::new(),
-                },
-                overdue_accounts: ObligationAccounts {
-                    receivable_account_id: CalaAccountId::new(),
-                },
+                receivable_account_ids: ObligationReceivableAccountIds::new(),
                 defaulted_account_id: CalaAccountId::new(),
                 due_date: due_timestamp(now).into(),
                 overdue_date: Some(overdue_timestamp(now).into()),

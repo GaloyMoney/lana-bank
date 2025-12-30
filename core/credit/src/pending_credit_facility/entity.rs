@@ -226,7 +226,7 @@ impl PendingCreditFacility {
                 .credit_facility_id(self.id)
                 .approval_process_id(self.approval_process_id)
                 .amount(disbursal_amount)
-                .account_ids(account_ids)
+                .account_ids(account_ids.into())
                 .disbursal_credit_account_id(self.disbursal_credit_account_id)
                 .due_date(due_date)
                 .overdue_date(overdue_date)

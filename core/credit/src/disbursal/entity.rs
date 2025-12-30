@@ -6,11 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-use crate::{
-    ledger::CreditFacilityLedgerAccountIds,
-    obligation::{NewObligation, ObligationAccounts},
-    primitives::*,
-};
+use crate::{ledger::DisbursalLedgerAccountIds, obligation::NewObligation, primitives::*};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -23,7 +19,7 @@ pub enum DisbursalEvent {
         approval_process_id: ApprovalProcessId,
         facility_id: CreditFacilityId,
         amount: UsdCents,
-        account_ids: CreditFacilityLedgerAccountIds,
+        account_ids: DisbursalLedgerAccountIds,
         disbursal_credit_account_id: CalaAccountId,
         due_date: EffectiveDate,
         overdue_date: Option<EffectiveDate>,
@@ -52,7 +48,7 @@ pub struct Disbursal {
     pub approval_process_id: ApprovalProcessId,
     pub facility_id: CreditFacilityId,
     pub amount: UsdCents,
-    pub account_ids: CreditFacilityLedgerAccountIds,
+    pub account_ids: DisbursalLedgerAccountIds,
     pub disbursal_credit_account_id: CalaAccountId,
     pub due_date: EffectiveDate,
     pub overdue_date: Option<EffectiveDate>,
@@ -233,18 +229,8 @@ impl Disbursal {
                 .reference(tx_ref.to_string())
                 .amount(self.amount)
                 .tx_id(tx_id)
-                .not_yet_due_accounts(ObligationAccounts {
-                    receivable_account_id: self
-                        .account_ids
-                        .disbursed_receivable_not_yet_due_account_id,
-                })
-                .due_accounts(ObligationAccounts {
-                    receivable_account_id: self.account_ids.disbursed_receivable_due_account_id,
-                })
-                .overdue_accounts(ObligationAccounts {
-                    receivable_account_id: self.account_ids.disbursed_receivable_overdue_account_id,
-                })
-                .defaulted_account_id(self.account_ids.disbursed_defaulted_account_id)
+                .receivable_account_ids(self.account_ids.into())
+                .defaulted_account_id(self.account_ids.defaulted_account_id())
                 .due_date(self.due_date)
                 .overdue_date(self.overdue_date)
                 .liquidation_date(self.liquidation_date)
@@ -287,7 +273,7 @@ pub struct NewDisbursal {
     #[builder(setter(into))]
     pub(super) credit_facility_id: CreditFacilityId,
     pub(super) amount: UsdCents,
-    pub(super) account_ids: CreditFacilityLedgerAccountIds,
+    pub(super) account_ids: DisbursalLedgerAccountIds,
     #[builder(setter(into))]
     pub(super) disbursal_credit_account_id: CalaAccountId,
     pub(super) due_date: EffectiveDate,

@@ -9,7 +9,9 @@ use core_accounting::EntityRef;
 mod balance;
 mod constants;
 mod credit_facility_accounts;
+mod disbursal_accounts;
 pub mod error;
+mod obligation_accounts;
 mod templates;
 mod velocity;
 
@@ -38,7 +40,9 @@ use crate::{
 pub use balance::*;
 use constants::*;
 pub use credit_facility_accounts::*;
+pub use disbursal_accounts::*;
 use error::*;
+pub use obligation_accounts::*;
 
 #[derive(Clone, Copy)]
 pub struct InternalAccountSetDetails {
@@ -1595,9 +1599,13 @@ impl CreditLedger {
             tx_ref,
             interest,
             period,
-            credit_facility_account_ids,
+            account_ids,
         }: CreditFacilityInterestAccrual,
     ) -> Result<(), CreditLedgerError> {
+        let InterestPostingAccountIds {
+            receivable_not_yet_due,
+            income,
+        } = account_ids.into();
         self.cala
             .post_transaction_in_op(
                 op,
@@ -1606,10 +1614,8 @@ impl CreditLedger {
                 templates::CreditFacilityAccrueInterestParams {
                     journal_id: self.journal_id,
 
-                    credit_facility_interest_receivable_account: credit_facility_account_ids
-                        .interest_receivable_not_yet_due_account_id,
-                    credit_facility_interest_income_account: credit_facility_account_ids
-                        .interest_income_account_id,
+                    credit_facility_interest_receivable_account: receivable_not_yet_due,
+                    credit_facility_interest_income_account: income,
                     interest_amount: interest.to_usd(),
                     external_id: tx_ref,
                     effective: period.end.date_naive(),
@@ -1627,9 +1633,13 @@ impl CreditLedger {
             tx_ref,
             interest,
             effective,
-            credit_facility_account_ids,
+            account_ids,
         }: CreditFacilityInterestAccrualCycle,
     ) -> Result<(), CreditLedgerError> {
+        let InterestPostingAccountIds {
+            receivable_not_yet_due,
+            income,
+        } = account_ids.into();
         self.cala
             .post_transaction_in_op(
                 op,
@@ -1638,10 +1648,8 @@ impl CreditLedger {
                 templates::CreditFacilityPostAccruedInterestParams {
                     journal_id: self.journal_id,
 
-                    credit_facility_interest_receivable_account: credit_facility_account_ids
-                        .interest_receivable_not_yet_due_account_id,
-                    credit_facility_interest_income_account: credit_facility_account_ids
-                        .interest_income_account_id,
+                    credit_facility_interest_receivable_account: receivable_not_yet_due,
+                    credit_facility_interest_income_account: income,
                     interest_amount: interest.to_usd(),
                     external_id: tx_ref,
                     effective,
@@ -1709,8 +1717,7 @@ impl CreditLedger {
         obligation: Obligation,
         facility_account_id: CalaAccountId,
     ) -> Result<(), CreditLedgerError> {
-        let facility_disbursed_receivable_account =
-            obligation.not_yet_due_accounts().receivable_account_id;
+        let facility_disbursed_receivable_account = obligation.receivable_accounts().not_yet_due;
         let Obligation {
             tx_id,
             reference: external_id,

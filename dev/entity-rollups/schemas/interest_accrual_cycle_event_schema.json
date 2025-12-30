@@ -61,7 +61,7 @@
     },
     "InterestAccrualCycleLedgerAccountIds": {
       "properties": {
-        "interest_defaulted_account_id": {
+        "defaulted_account_id": {
           "format": "uuid",
           "type": "string"
         },
@@ -69,24 +69,24 @@
           "format": "uuid",
           "type": "string"
         },
-        "interest_receivable_due_account_id": {
+        "receivable_due_account_id": {
           "format": "uuid",
           "type": "string"
         },
-        "interest_receivable_not_yet_due_account_id": {
+        "receivable_not_yet_due_account_id": {
           "format": "uuid",
           "type": "string"
         },
-        "interest_receivable_overdue_account_id": {
+        "receivable_overdue_account_id": {
           "format": "uuid",
           "type": "string"
         }
       },
       "required": [
-        "interest_receivable_not_yet_due_account_id",
-        "interest_receivable_due_account_id",
-        "interest_receivable_overdue_account_id",
-        "interest_defaulted_account_id",
+        "receivable_not_yet_due_account_id",
+        "receivable_due_account_id",
+        "receivable_overdue_account_id",
+        "defaulted_account_id",
         "interest_income_account_id"
       ],
       "type": "object"

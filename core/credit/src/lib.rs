@@ -718,7 +718,7 @@ where
             .approval_process_id(disbursal_id)
             .credit_facility_id(credit_facility_id)
             .amount(amount)
-            .account_ids(facility.account_ids)
+            .account_ids(facility.account_ids.into())
             .disbursal_credit_account_id(facility.disbursal_credit_account_id)
             .due_date(due_date)
             .overdue_date(overdue_date)
@@ -734,7 +734,7 @@ where
                 disbursal.id,
                 disbursal.initiated_tx_id,
                 disbursal.amount,
-                disbursal.account_ids.facility_account_id,
+                facility.account_ids.facility_account_id,
             )
             .await?;
 
