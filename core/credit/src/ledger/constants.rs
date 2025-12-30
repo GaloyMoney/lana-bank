@@ -188,6 +188,9 @@ pub const CREDIT_INTEREST_INCOME_ACCOUNT_SET_REF: &str = "credit-interest-income
 pub const CREDIT_FEE_INCOME_ACCOUNT_SET_NAME: &str = "Credit Fee Income Account Set";
 pub const CREDIT_FEE_INCOME_ACCOUNT_SET_REF: &str = "credit-fee-income-account-set";
 
+pub const CREDIT_PAYMENT_HOLDING_ACCOUNT_SET_NAME: &str = "Credit Payment Holding Account Set";
+pub const CREDIT_PAYMENT_HOLDING_ACCOUNT_SET_REF: &str = "credit-payment-holding-account-set";
+
 // Velocity Controls
 pub(super) const CREDIT_FACILITY_VELOCITY_CONTROL_ID: uuid::Uuid =
     uuid::uuid!("00000000-0000-0000-0000-000000000002");

@@ -128,6 +128,7 @@ pub struct CreditFacilityInternalAccountSets {
     pub interest_defaulted: InternalAccountSetDetails,
     pub interest_income: InternalAccountSetDetails,
     pub fee_income: InternalAccountSetDetails,
+    pub payment_holding: InternalAccountSetDetails,
 }
 
 impl CreditFacilityInternalAccountSets {
@@ -138,6 +139,7 @@ impl CreditFacilityInternalAccountSets {
             in_liquidation,
             interest_income,
             fee_income,
+            payment_holding,
 
             disbursed_receivable:
                 DisbursedReceivable {
@@ -160,6 +162,7 @@ impl CreditFacilityInternalAccountSets {
             in_liquidation.id,
             interest_income.id,
             fee_income.id,
+            payment_holding.id,
             disbursed_defaulted.id,
             interest_defaulted.id,
         ];
@@ -627,6 +630,16 @@ impl CreditLedger {
         )
         .await?;
 
+        let payment_holding_normal_balance_type = DebitOrCredit::Credit;
+        let payment_holding_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{CREDIT_PAYMENT_HOLDING_ACCOUNT_SET_REF}"),
+            CREDIT_PAYMENT_HOLDING_ACCOUNT_SET_NAME.to_string(),
+            payment_holding_normal_balance_type,
+        )
+        .await?;
+
         let disbursed_receivable = DisbursedReceivable {
             short_term: DisbursedReceivableAccountSets {
                 individual: InternalAccountSetDetails {
@@ -813,6 +826,10 @@ impl CreditLedger {
             fee_income: InternalAccountSetDetails {
                 id: fee_income_account_set_id,
                 normal_balance_type: fee_income_normal_balance_type,
+            },
+            payment_holding: InternalAccountSetDetails {
+                id: payment_holding_account_set_id,
+                normal_balance_type: payment_holding_normal_balance_type,
             },
         };
 
@@ -1031,6 +1048,7 @@ impl CreditLedger {
             in_liquidation_account_id: _,
             fee_income_account_id: _,
             interest_income_account_id: _,
+            payment_holding_account_id: _,
         }: CreditFacilityLedgerAccountIds,
     ) -> Result<CreditFacilityBalanceSummary, CreditLedgerError> {
         let facility_id = (self.journal_id, facility_account_id, self.usd);
@@ -1998,6 +2016,7 @@ impl CreditLedger {
             interest_defaulted_account_id,
             interest_income_account_id,
             fee_income_account_id,
+            payment_holding_account_id,
 
             // these accounts are created during proposal creation
             collateral_account_id: _collateral_account_id,
@@ -2173,6 +2192,21 @@ impl CreditLedger {
             fee_income_reference,
             fee_income_name,
             fee_income_name,
+            entity_ref.clone(),
+        )
+        .await?;
+
+        let payment_holding_reference =
+            &format!("credit-facility-payment-holding:{credit_facility_id}");
+        let payment_holding_name =
+            &format!("Payment Holding Account for Credit Facility {credit_facility_id}");
+        self.create_account_in_op(
+            op,
+            payment_holding_account_id,
+            self.internal_account_sets.payment_holding,
+            payment_holding_reference,
+            payment_holding_name,
+            payment_holding_name,
             entity_ref,
         )
         .await?;

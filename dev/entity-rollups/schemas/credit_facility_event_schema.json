@@ -115,6 +115,10 @@
         "interest_receivable_overdue_account_id": {
           "format": "uuid",
           "type": "string"
+        },
+        "payment_holding_account_id": {
+          "format": "uuid",
+          "type": "string"
         }
       },
       "required": [
@@ -130,7 +134,8 @@
         "interest_receivable_overdue_account_id",
         "interest_defaulted_account_id",
         "interest_income_account_id",
-        "fee_income_account_id"
+        "fee_income_account_id",
+        "payment_holding_account_id"
       ],
       "type": "object"
     },
