@@ -136,7 +136,7 @@ jobs:
                 set -euo pipefail
                 cd repo
                 cachix use $CACHIX_CACHE_NAME
-                nix run .#bats
+                DAGSTER=false nix run .#bats
     on_failure:
       do:
         - get: release-lock
