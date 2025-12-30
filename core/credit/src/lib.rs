@@ -270,7 +270,7 @@ where
         );
         let facilities_arc = Arc::new(credit_facilities);
 
-        let payments = Payments::new(pool, authz_arc.clone());
+        let payments = Payments::new(pool, authz_arc.clone(), ledger_arc.clone());
         let payments_arc = Arc::new(payments);
 
         let history_repo = HistoryRepo::new(pool);

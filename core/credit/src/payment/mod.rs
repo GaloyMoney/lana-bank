@@ -7,7 +7,7 @@ use std::sync::Arc;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 
-use crate::{CoreCreditAction, CoreCreditObject, primitives::*};
+use crate::{ledger::CreditLedger, primitives::*};
 
 pub use entity::Payment;
 
@@ -23,6 +23,7 @@ where
 {
     repo: Arc<PaymentRepo>,
     authz: Arc<Perms>,
+    ledger: Arc<CreditLedger>,
 }
 
 impl<Perms> Clone for Payments<Perms>
@@ -33,6 +34,7 @@ where
         Self {
             repo: self.repo.clone(),
             authz: self.authz.clone(),
+            ledger: self.ledger.clone(),
         }
     }
 }
@@ -43,12 +45,13 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
 {
-    pub fn new(pool: &sqlx::PgPool, authz: Arc<Perms>) -> Self {
+    pub fn new(pool: &sqlx::PgPool, authz: Arc<Perms>, ledger: Arc<CreditLedger>) -> Self {
         let repo = PaymentRepo::new(pool);
 
         Self {
             repo: Arc::new(repo),
             authz,
+            ledger,
         }
     }
 
@@ -79,7 +82,8 @@ where
         if self.repo.maybe_find_by_id(payment_id).await?.is_some() {
             Ok(false)
         } else {
-            self.repo.create_in_op(db, new_payment).await?;
+            let payment = self.repo.create_in_op(db, new_payment).await?;
+            self.ledger.record_payment(db, &payment).await?;
             Ok(true)
         }
     }
