@@ -17,7 +17,7 @@ use job::Jobs;
 use lana_events::LanaEvent;
 
 use email::job::{EmailEventListenerConfig, EmailEventListenerInit};
-use email::{EmailInfraConfig, EmailNotification};
+use email::{EmailInfraConfig, EmailNotification, NotificationEmailConfigSpec};
 
 pub use authorization::{
     NotificationAction, NotificationObject, PERMISSION_SET_NOTIFICATION_EMAIL_CONFIG_VIEWER,
@@ -122,7 +122,7 @@ where
 
         let config = self
             .domain_configs
-            .get_or_default::<NotificationEmailConfig>()
+            .get_or_default::<NotificationEmailConfigSpec>()
             .await?;
         Ok(config)
     }
@@ -142,7 +142,9 @@ where
             )
             .await?;
 
-        self.domain_configs.upsert(new_config.clone()).await?;
+        self.domain_configs
+            .upsert::<NotificationEmailConfigSpec>(new_config.clone())
+            .await?;
 
         Ok(new_config)
     }

@@ -1,18 +1,72 @@
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
-use serde::{Deserialize, Serialize, de::DeserializeOwned};
-use std::{borrow::Cow, str::FromStr};
-
-use crate::DomainConfigError;
+use serde::{Deserialize, Serialize};
+use std::{borrow::Cow, fmt, str::FromStr};
 
 es_entity::entity_id! {
     DomainConfigId,
 }
 
-pub trait DomainConfigValue: Serialize + DeserializeOwned + Clone {
-    const KEY: DomainConfigKey;
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, sqlx::Type)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+#[serde(rename_all = "lowercase")]
+#[sqlx(type_name = "text")]
+#[sqlx(rename_all = "lowercase")]
+pub enum ConfigType {
+    Bool,
+    String,
+    Int,
+    Uint,
+    Decimal,
+    Complex,
+}
 
-    fn validate(&self) -> Result<(), DomainConfigError>;
+impl ConfigType {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            ConfigType::Bool => "bool",
+            ConfigType::String => "string",
+            ConfigType::Int => "int",
+            ConfigType::Uint => "uint",
+            ConfigType::Decimal => "decimal",
+            ConfigType::Complex => "complex",
+        }
+    }
+
+    pub fn is_simple(&self) -> bool {
+        !matches!(self, ConfigType::Complex)
+    }
+}
+
+impl fmt::Display for ConfigType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, sqlx::Type)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+#[serde(rename_all = "lowercase")]
+#[sqlx(type_name = "text")]
+#[sqlx(rename_all = "lowercase")]
+pub enum Visibility {
+    Exposed,
+    Internal,
+}
+
+impl Visibility {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Visibility::Exposed => "exposed",
+            Visibility::Internal => "internal",
+        }
+    }
+}
+
+impl fmt::Display for Visibility {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, sqlx::Type)]

@@ -166,7 +166,7 @@ where
                 self.repo.update_in_op(&mut op, &mut fiscal_year).await?;
 
                 // TODO: Operate on ledger via `chart_of_accounts`.
-                // let fiscal_year_conf = self.domain_configs.get::<config::FiscalYearConfig>().await?;
+                // let fiscal_year_conf = self.domain_configs.get::<config::FiscalYearConfigSpec>().await?;
 
                 // self.chart_of_accounts
                 //     .post_closing_transaction(

@@ -1,8 +1,31 @@
 {
+  "$defs": {
+    "ConfigType": {
+      "enum": [
+        "bool",
+        "string",
+        "int",
+        "uint",
+        "decimal",
+        "complex"
+      ],
+      "type": "string"
+    },
+    "Visibility": {
+      "enum": [
+        "exposed",
+        "internal"
+      ],
+      "type": "string"
+    }
+  },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "oneOf": [
     {
       "properties": {
+        "config_type": {
+          "$ref": "#/$defs/ConfigType"
+        },
         "id": {
           "format": "uuid",
           "type": "string"
@@ -14,12 +37,17 @@
           "const": "initialized",
           "type": "string"
         },
-        "value": true
+        "value": true,
+        "visibility": {
+          "$ref": "#/$defs/Visibility"
+        }
       },
       "required": [
         "type",
         "id",
         "key",
+        "config_type",
+        "visibility",
         "value"
       ],
       "type": "object"
