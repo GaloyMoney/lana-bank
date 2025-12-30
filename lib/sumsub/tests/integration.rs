@@ -83,6 +83,15 @@ async fn test_create_permalink() {
         .await
         .expect("Failed to create permalink");
 
-    assert!(permalink.url.contains("sumsub.com"));
-    assert!(permalink.url.contains("websdk"));
+   assert!(
+        permalink.url.starts_with("https://api.sumsub.com/"),
+        "permalink must start with the official Sumsub API domain: {}",
+        permalink.url
+    );
+    
+     assert!(
+        parsed.path().ends_with("/websdkLink"),
+        "permalink path must end with /websdkLink, got: {}",
+        parsed.path()
+    );
 }
