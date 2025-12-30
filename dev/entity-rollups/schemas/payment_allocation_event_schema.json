@@ -48,11 +48,11 @@
           "minimum": 0,
           "type": "integer"
         },
-        "payment_id": {
+        "payment_holding_account_id": {
           "format": "uuid",
           "type": "string"
         },
-        "payment_source_account_id": {
+        "payment_id": {
           "format": "uuid",
           "type": "string"
         },
@@ -76,7 +76,7 @@
         "credit_facility_id",
         "amount",
         "receivable_account_id",
-        "payment_source_account_id",
+        "payment_holding_account_id",
         "effective"
       ],
       "type": "object"

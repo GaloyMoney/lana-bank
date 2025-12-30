@@ -910,9 +910,9 @@ where
         let mut db = self.facilities.begin_op().await?;
 
         let payment_id = PaymentId::new();
-
         let effective = crate::time::now().date_naive();
-        self.payments
+        if let Some(payment) = self
+            .payments
             .record_in_op(
                 &mut db,
                 payment_id,
@@ -921,20 +921,14 @@ where
                 amount,
                 effective,
             )
-            .await?;
+            .await?
+        {
+            self.obligations
+                .allocate_payment_in_op(&mut db, &payment)
+                .await?;
 
-        self.obligations
-            .allocate_payment_in_op(
-                &mut db,
-                credit_facility_id,
-                payment_id,
-                payment_source_account_id,
-                amount,
-                effective,
-            )
-            .await?;
-
-        db.commit().await?;
+            db.commit().await?;
+        }
 
         Ok(credit_facility)
     }
@@ -982,7 +976,8 @@ where
 
         let payment_id = PaymentId::new();
 
-        self.payments
+        if let Some(payment) = self
+            .payments
             .record_in_op(
                 &mut db,
                 payment_id,
@@ -991,19 +986,13 @@ where
                 amount,
                 effective.into(),
             )
-            .await?;
-
-        self.obligations
-            .allocate_payment_in_op(
-                &mut db,
-                credit_facility_id,
-                payment_id,
-                payment_source_account_id,
-                amount,
-                effective.into(),
-            )
-            .await?;
-        db.commit().await?;
+            .await?
+        {
+            self.obligations
+                .allocate_payment_in_op(&mut db, &payment)
+                .await?;
+            db.commit().await?;
+        }
 
         Ok(credit_facility)
     }

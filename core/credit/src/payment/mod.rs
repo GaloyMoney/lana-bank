@@ -67,7 +67,7 @@ where
         payment_source_account_id: CalaAccountId,
         amount: UsdCents,
         effective: chrono::NaiveDate,
-    ) -> Result<bool, PaymentError> {
+    ) -> Result<Option<Payment>, PaymentError> {
         let new_payment = NewPayment::builder()
             .id(payment_id)
             .ledger_tx_id(payment_id)
@@ -80,11 +80,11 @@ where
             .expect("could not build new payment");
 
         if self.repo.maybe_find_by_id(payment_id).await?.is_some() {
-            Ok(false)
+            Ok(None)
         } else {
             let payment = self.repo.create_in_op(db, new_payment).await?;
             self.ledger.record_payment(db, &payment).await?;
-            Ok(true)
+            Ok(Some(payment))
         }
     }
 }

@@ -231,7 +231,7 @@ where
                 let payment_source_account_id = crate::primitives::CalaAccountId::new(); // TODO: replace with actual account from Liquidation entity
 
                 let effective = crate::time::now().date_naive();
-                let payment_created = self
+                if let Some(payment) = self
                     .payments
                     .record_in_op(
                         db,
@@ -241,22 +241,14 @@ where
                         *amount,
                         effective,
                     )
-                    .await?;
-
-                if payment_created {
+                    .await?
+                {
                     self.liquidations
                         .complete_in_op(db, self.config.liquidation_id, *payment_id)
                         .await?;
 
                     self.obligations
-                        .allocate_payment_in_op(
-                            db,
-                            self.config.credit_facility_id,
-                            *payment_id,
-                            payment_source_account_id,
-                            *amount,
-                            effective,
-                        )
+                        .allocate_payment_in_op(db, &payment)
                         .await?;
                 }
 
