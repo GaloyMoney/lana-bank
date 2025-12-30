@@ -270,7 +270,7 @@ where
         );
         let facilities_arc = Arc::new(credit_facilities);
 
-        let payments = Payments::new(pool, authz_arc.clone());
+        let payments = Payments::new(pool, authz_arc.clone(), ledger_arc.clone());
         let payments_arc = Arc::new(payments);
 
         let history_repo = HistoryRepo::new(pool);
@@ -391,6 +391,7 @@ where
         jobs.add_initializer(
             partial_liquidation::PartialLiquidationInit::<Perms, E>::new(
                 outbox,
+                facilities_arc.as_ref(),
                 liquidations_arc.as_ref(),
                 payments_arc.as_ref(),
                 obligations_arc.as_ref(),
@@ -902,18 +903,13 @@ where
             tracing::field::display(credit_facility_id),
         );
 
-        let credit_facility = self
-            .facilities
-            .find_by_id_without_audit(credit_facility_id)
-            .await?;
-
         let mut db = self.facilities.begin_op().await?;
 
         let payment_id = PaymentId::new();
-
         let effective = crate::time::now().date_naive();
-        self.payments
-            .record_in_op(
+        let (credit_facility, new_payment) = self
+            .facilities
+            .register_new_payment(
                 &mut db,
                 payment_id,
                 credit_facility_id,
@@ -922,6 +918,11 @@ where
                 effective,
             )
             .await?;
+        let Some(new_payment) = new_payment else {
+            return Ok(credit_facility);
+        };
+
+        self.payments.record_in_op(&mut db, new_payment).await?;
 
         self.obligations
             .allocate_payment_in_op(
@@ -973,17 +974,12 @@ where
         let credit_facility_id = credit_facility_id.into();
         let payment_source_account_id = payment_source_account_id.into();
 
-        let credit_facility = self
-            .facilities
-            .find_by_id_without_audit(credit_facility_id)
-            .await?;
-
         let mut db = self.facilities.begin_op().await?;
 
         let payment_id = PaymentId::new();
-
-        self.payments
-            .record_in_op(
+        let (credit_facility, new_payment) = self
+            .facilities
+            .register_new_payment(
                 &mut db,
                 payment_id,
                 credit_facility_id,
@@ -992,6 +988,11 @@ where
                 effective.into(),
             )
             .await?;
+        let Some(new_payment) = new_payment else {
+            return Ok(credit_facility);
+        };
+
+        self.payments.record_in_op(&mut db, new_payment).await?;
 
         self.obligations
             .allocate_payment_in_op(

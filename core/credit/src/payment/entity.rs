@@ -16,6 +16,7 @@ pub enum PaymentEvent {
     Initialized {
         id: PaymentId,
         ledger_tx_id: LedgerTxId,
+        facility_payment_idx: usize,
         credit_facility_id: CreditFacilityId,
         payment_holding_account_id: CalaAccountId,
         payment_source_account_id: CalaAccountId,
@@ -29,6 +30,7 @@ pub enum PaymentEvent {
 pub struct Payment {
     pub id: PaymentId,
     pub ledger_tx_id: LedgerTxId,
+    pub facility_payment_idx: usize,
     pub credit_facility_id: CreditFacilityId,
     pub payment_holding_account_id: CalaAccountId,
     pub payment_source_account_id: CalaAccountId,
@@ -46,6 +48,7 @@ impl TryFromEvents<PaymentEvent> for Payment {
                 PaymentEvent::Initialized {
                     id,
                     ledger_tx_id,
+                    facility_payment_idx,
                     credit_facility_id,
                     payment_holding_account_id,
                     payment_source_account_id,
@@ -56,6 +59,7 @@ impl TryFromEvents<PaymentEvent> for Payment {
                     builder = builder
                         .id(*id)
                         .ledger_tx_id(*ledger_tx_id)
+                        .facility_payment_idx(*facility_payment_idx)
                         .credit_facility_id(*credit_facility_id)
                         .payment_holding_account_id(*payment_holding_account_id)
                         .payment_source_account_id(*payment_source_account_id)
@@ -78,7 +82,7 @@ impl Payment {
     pub(crate) fn tx_ref(&self) -> String {
         format!(
             "credit-facility-{}-idx-{}",
-            self.credit_facility_id, self.id,
+            self.credit_facility_id, self.facility_payment_idx,
         )
     }
 }
@@ -86,9 +90,10 @@ impl Payment {
 #[derive(Debug, Builder)]
 pub struct NewPayment {
     #[builder(setter(into))]
-    pub(super) id: PaymentId,
+    pub(crate) id: PaymentId,
     #[builder(setter(into))]
     pub(super) ledger_tx_id: LedgerTxId,
+    pub(crate) facility_payment_idx: usize,
     #[builder(setter(into))]
     pub(super) credit_facility_id: CreditFacilityId,
     #[builder(setter(into))]
@@ -111,6 +116,7 @@ impl IntoEvents<PaymentEvent> for NewPayment {
             [PaymentEvent::Initialized {
                 id: self.id,
                 ledger_tx_id: self.ledger_tx_id,
+                facility_payment_idx: self.facility_payment_idx,
                 credit_facility_id: self.credit_facility_id,
                 payment_holding_account_id: self.payment_holding_account_id,
                 payment_source_account_id: self.payment_source_account_id,

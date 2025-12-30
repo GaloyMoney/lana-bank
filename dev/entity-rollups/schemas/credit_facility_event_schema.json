@@ -535,6 +535,28 @@
     },
     {
       "properties": {
+        "ledger_tx_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "payment_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "const": "payment_recorded",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "ledger_tx_id",
+        "payment_id"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
         "initially_estimated_to_liquidate": {
           "$ref": "#/$defs/Satoshis"
         },
