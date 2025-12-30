@@ -81,8 +81,8 @@ async-graphql = { version = "7.0.17", default-features = false, features = [
 ] }
 async-graphql-axum = "7.0.17"
 async-trait = "0.1.89"
-axum = { version = "0.8.7", features = ["macros"] }
-axum-extra = { version = "0.12.2", default-features = false, features = [
+axum = { version = "0.8.8", features = ["macros"] }
+axum-extra = { version = "0.12.3", default-features = false, features = [
   "tracing",
   "typed-header",
 ] }
@@ -133,7 +133,7 @@ console-subscriber = "0.5"
 strum = { version = "0.27", features = ["derive"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_yaml = "0.9.32"
-serde_json = "1.0.145"
+serde_json = "1.0.146"
 serde_with = "3.16.1"
 futures = "0.3.29"
 http = "1.4"
