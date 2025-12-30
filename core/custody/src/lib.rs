@@ -8,15 +8,18 @@ mod event;
 mod primitives;
 mod publisher;
 pub mod wallet;
-mod webhook_notification_repo;
 
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 use strum::IntoDiscriminant as _;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
+use std::collections::HashMap;
+
 use es_entity::{DbOp, clock::ClockHandle};
 pub use event::CoreCustodyEvent;
+use obix::inbox::{Inbox, InboxConfig, InboxEvent, InboxHandler, InboxResult};
 use obix::out::{Outbox, OutboxEventMarker};
 pub use publisher::CustodyPublisher;
 
@@ -26,7 +29,6 @@ use core_money::Satoshis;
 
 pub use custodian::*;
 pub use wallet::*;
-use webhook_notification_repo::*;
 
 pub use config::CustodyConfig;
 use error::CoreCustodyError;
@@ -38,6 +40,155 @@ pub mod event_schema {
     pub use crate::wallet::WalletEvent;
 }
 
+#[derive(Serialize, Deserialize)]
+struct WebhookPayload {
+    provider: String,
+    uri: String,
+    headers: HashMap<String, String>,
+    payload: bytes::Bytes,
+}
+
+struct CustodianWebhookHandler<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCustodyEvent>,
+{
+    authz: Perms,
+    custodians: CustodianRepo,
+    wallets: WalletRepo<E>,
+    config: CustodyConfig,
+}
+
+impl<Perms, E> Clone for CustodianWebhookHandler<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCustodyEvent>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            authz: self.authz.clone(),
+            custodians: self.custodians.clone(),
+            wallets: self.wallets.clone(),
+            config: self.config.clone(),
+        }
+    }
+}
+
+impl<Perms, E> InboxHandler for CustodianWebhookHandler<Perms, E>
+where
+    Perms: PermissionCheck + Send + Sync,
+    E: OutboxEventMarker<CoreCustodyEvent> + Send + Sync,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustodyAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCustodyObject>,
+{
+    async fn handle(
+        &self,
+        event: &InboxEvent,
+    ) -> Result<InboxResult, Box<dyn std::error::Error + Send + Sync>> {
+        let payload: WebhookPayload = event.payload()?;
+
+        match self.process_webhook(payload).await {
+            Ok(_) => Ok(InboxResult::Complete),
+            Err(e) => Err(Box::new(e)),
+        }
+    }
+}
+
+impl<Perms, E> CustodianWebhookHandler<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCustodyEvent>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustodyAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCustodyObject>,
+{
+    fn new(pool: &sqlx::PgPool, authz: &Perms, config: &CustodyConfig, outbox: &Outbox<E>) -> Self {
+        let custodians = CustodianRepo::new(pool);
+        let wallets = WalletRepo::new(pool, &CustodyPublisher::new(outbox));
+        Self {
+            authz: authz.clone(),
+            config: config.clone(),
+            custodians,
+            wallets,
+        }
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "custody.process_webhook", skip(self))]
+    async fn process_webhook(
+        &self,
+        WebhookPayload {
+            provider,
+            headers,
+            payload,
+            ..
+        }: WebhookPayload,
+    ) -> Result<(), CoreCustodyError> {
+        let custodian = self.custodians.find_by_provider(provider).await;
+
+        let header_map: http::HeaderMap = headers
+            .into_iter()
+            .filter_map(|(key, value)| Some((key.parse().ok()?, value.parse().ok()?)))
+            .collect();
+
+        if let Ok(custodian) = custodian
+            && let Some(notification) = custodian
+                .custodian_client(self.config.encryption.key, &self.config.custody_providers)?
+                .process_webhook(&header_map, payload)
+                .await?
+        {
+            match notification {
+                CustodianNotification::WalletBalanceChanged {
+                    external_wallet_id,
+                    new_balance,
+                    changed_at,
+                } => {
+                    self.update_wallet_balance(external_wallet_id, new_balance, changed_at)
+                        .await?;
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "custody.update_wallet_balance", skip(self))]
+    async fn update_wallet_balance(
+        &self,
+        external_wallet_id: String,
+        new_balance: Satoshis,
+        update_time: DateTime<Utc>,
+    ) -> Result<(), CoreCustodyError> {
+        let mut db = self.wallets.begin_op().await?;
+
+        let mut wallet = self
+            .wallets
+            .find_by_external_wallet_id_in_op(&mut db, external_wallet_id)
+            .await?;
+
+        self.authz
+            .audit()
+            .record_system_entry_in_tx(
+                &mut db,
+                CoreCustodyObject::wallet(wallet.id),
+                CoreCustodyAction::WALLET_UPDATE,
+            )
+            .await?;
+
+        if wallet
+            .update_balance(new_balance, update_time)
+            .did_execute()
+        {
+            self.wallets.update_in_op(&mut db, &mut wallet).await?;
+        }
+
+        db.commit().await?;
+
+        Ok(())
+    }
+}
+
+const CUSTODY_INBOX_JOB: job::JobType = job::JobType::new("custody-inbox");
 pub struct CoreCustody<Perms, E>
 where
     Perms: PermissionCheck,
@@ -45,11 +196,9 @@ where
 {
     authz: Perms,
     custodians: CustodianRepo,
-    webhooks: WebhookNotificationRepo,
     config: CustodyConfig,
     wallets: WalletRepo<E>,
-    pool: sqlx::PgPool,
-    outbox: Outbox<E>,
+    inbox: Inbox,
     clock: ClockHandle,
 }
 
@@ -67,16 +216,20 @@ where
         authz: &Perms,
         config: CustodyConfig,
         outbox: &Outbox<E>,
+        jobs: &mut job::Jobs,
         clock: ClockHandle,
     ) -> Result<Self, CoreCustodyError> {
+        let handler = CustodianWebhookHandler::new(pool, authz, &config, outbox);
+
+        let inbox_config = InboxConfig::new(CUSTODY_INBOX_JOB);
+        let inbox = Inbox::new(pool, jobs, inbox_config, handler);
+
         let custody = Self {
             authz: authz.clone(),
             custodians: CustodianRepo::new(pool),
-            webhooks: WebhookNotificationRepo::new(pool),
             config,
             wallets: WalletRepo::new(pool, &CustodyPublisher::new(outbox)),
-            pool: pool.clone(),
-            outbox: outbox.clone(),
+            inbox,
             clock,
         };
 
@@ -268,7 +421,7 @@ where
     pub async fn find_all_wallets<T: From<Wallet>>(
         &self,
         ids: &[WalletId],
-    ) -> Result<std::collections::HashMap<WalletId, T>, CoreCustodyError> {
+    ) -> Result<HashMap<WalletId, T>, CoreCustodyError> {
         Ok(self.wallets.find_all(ids).await?)
     }
 
@@ -277,7 +430,7 @@ where
     pub async fn find_all_custodians<T: From<Custodian>>(
         &self,
         ids: &[CustodianId],
-    ) -> Result<std::collections::HashMap<CustodianId, T>, CoreCustodyError> {
+    ) -> Result<HashMap<CustodianId, T>, CoreCustodyError> {
         Ok(self.custodians.find_all(ids).await?)
     }
 
@@ -336,7 +489,7 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "custody.handle_webhook", skip(self))]
+    #[instrument(name = "custody.handle_webhook", skip(self, headers, payload))]
     pub async fn handle_webhook(
         &self,
         provider: String,
@@ -344,71 +497,30 @@ where
         headers: http::HeaderMap,
         payload: bytes::Bytes,
     ) -> Result<(), CoreCustodyError> {
-        let custodian = self.custodians.find_by_provider(provider).await;
+        let headers_map: HashMap<String, String> = headers
+            .iter()
+            .map(|(name, value)| {
+                (
+                    name.as_str().to_owned(),
+                    value.to_str().unwrap_or("<unreadable>").to_owned(),
+                )
+            })
+            .collect();
 
-        let custodian_id = match custodian {
-            Err(ref e) if e.was_not_found() => None,
-            Ok(ref custodian) => Some(custodian.id),
-            Err(e) => return Err(e.into()),
+        let webhook_payload = WebhookPayload {
+            provider,
+            uri: uri.to_string(),
+            headers: headers_map,
+            payload,
         };
 
-        self.webhooks
-            .persist(custodian_id, &uri, &headers, &payload)
+        // NOTE: This needs to be changed !
+        let idempotency_key = uuid::Uuid::new_v4().to_string();
+
+        let _res = self
+            .inbox
+            .persist_and_process(&idempotency_key, webhook_payload)
             .await?;
-
-        if let Ok(custodian) = custodian
-            && let Some(notification) = custodian
-                .custodian_client(self.config.encryption.key, &self.config.custody_providers)?
-                .process_webhook(&headers, payload)
-                .await?
-        {
-            match notification {
-                CustodianNotification::WalletBalanceChanged {
-                    external_wallet_id,
-                    new_balance,
-                    changed_at,
-                } => {
-                    self.update_wallet_balance(external_wallet_id, new_balance, changed_at)
-                        .await?;
-                }
-            }
-        }
-
-        Ok(())
-    }
-
-    #[record_error_severity]
-    #[instrument(name = "custody.update_wallet_balance", skip(self))]
-    async fn update_wallet_balance(
-        &self,
-        external_wallet_id: String,
-        new_balance: Satoshis,
-        update_time: DateTime<Utc>,
-    ) -> Result<(), CoreCustodyError> {
-        let mut db = self.wallets.begin_op_with_clock(&self.clock).await?;
-
-        let mut wallet = self
-            .wallets
-            .find_by_external_wallet_id_in_op(&mut db, external_wallet_id)
-            .await?;
-
-        self.authz
-            .audit()
-            .record_system_entry_in_tx(
-                &mut db,
-                CoreCustodyObject::wallet(wallet.id),
-                CoreCustodyAction::WALLET_UPDATE,
-            )
-            .await?;
-
-        if wallet
-            .update_balance(new_balance, update_time)
-            .did_execute()
-        {
-            self.wallets.update_in_op(&mut db, &mut wallet).await?;
-        }
-
-        db.commit().await?;
 
         Ok(())
     }
@@ -423,11 +535,9 @@ where
         Self {
             authz: self.authz.clone(),
             custodians: self.custodians.clone(),
-            webhooks: self.webhooks.clone(),
             wallets: self.wallets.clone(),
-            pool: self.pool.clone(),
             config: self.config.clone(),
-            outbox: self.outbox.clone(),
+            inbox: self.inbox.clone(),
             clock: self.clock.clone(),
         }
     }

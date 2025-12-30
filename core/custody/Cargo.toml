@@ -13,6 +13,7 @@ mock-custodian = []
 audit = { workspace = true }
 authz = { workspace = true }
 obix = { workspace = true }
+job = { workspace = true }
 bitgo = { workspace = true }
 komainu = { workspace = true }
 core-money = { workspace = true }

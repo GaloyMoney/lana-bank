@@ -18,6 +18,8 @@ pub enum CoreCustodyError {
     CustodianClient(#[from] crate::custodian::client::error::CustodianClientError),
     #[error("CoreCustodyError - WalletError: {0}")]
     Wallet(#[from] crate::wallet::error::WalletError),
+    #[error("CoreCustodyError - InboxError: {0}")]
+    InboxError(#[from] obix::inbox::InboxError),
 }
 
 es_entity::from_es_entity_error!(CoreCustodyError);
@@ -32,6 +34,7 @@ impl ErrorSeverity for CoreCustodyError {
             Self::Custodian(e) => e.severity(),
             Self::CustodianClient(e) => e.severity(),
             Self::Wallet(e) => e.severity(),
+            Self::InboxError(_) => Level::ERROR,
         }
     }
 }
