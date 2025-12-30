@@ -56,10 +56,15 @@ def build_sumsub_sensor(
     sumsub_applicants_job: dg.JobDefinition,
     dagster_automations_active: bool,
 ) -> dg.SensorDefinition:
-    def _trigger_sumsub_on_inbox_events(context: dg.SensorEvaluationContext, _asset_event):
-        yield dg.RunRequest(
-            run_key=f"sumsub_applicants_from_inbox_events{_asset_event.storage_id}"
+    def _trigger_sumsub_on_inbox_events(
+        _context: dg.SensorEvaluationContext, asset_event
+    ):
+        dagster_event = getattr(asset_event, "dagster_event", None)
+        event_id = getattr(dagster_event, "event_log_entry_id", None) or getattr(
+            asset_event, "run_id", None
         )
+
+        yield dg.RunRequest(run_key=f"sumsub_applicants_from_inbox_events_{event_id}")
 
     return dg.AssetSensorDefinition(
         name="sumsub_applicant_inbox_events_sensor",
