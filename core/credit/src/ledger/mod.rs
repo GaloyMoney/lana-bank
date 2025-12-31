@@ -1711,7 +1711,7 @@ impl CreditLedger {
             amount,
         }: InitialDisbursalOnActivation,
         account_ids: CreditFacilityLedgerAccountIds,
-        debit_account_id: CalaAccountId,
+        disbursed_into_account_id: CalaAccountId,
         initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), CreditLedgerError> {
         let tx_id = disbursal_id.into();
@@ -1727,7 +1727,7 @@ impl CreditLedger {
                     credit_facility_account: account_ids.facility_account_id,
                     facility_disbursed_receivable_account: account_ids
                         .disbursed_receivable_not_yet_due_account_id,
-                    debit_account_id,
+                    disbursed_into_account_id,
                     disbursed_amount: amount.to_usd(),
                     currency: self.usd,
                     external_id: format!("{}-initial-disbursal", disbursal_id),
