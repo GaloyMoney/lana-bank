@@ -17,7 +17,7 @@ pub struct RecordPaymentParams {
     pub currency: Currency,
     pub amount: Decimal,
     pub payment_source_account_id: CalaAccountId,
-    pub facility_payment_account_id: CalaAccountId,
+    pub payment_holding_account_id: CalaAccountId,
     pub tx_ref: String,
     pub effective: chrono::NaiveDate,
 }
@@ -51,7 +51,7 @@ impl RecordPaymentParams {
                 .build()
                 .unwrap(),
             NewParamDefinition::builder()
-                .name("facility_payment_account_id")
+                .name("payment_holding_account_id")
                 .r#type(ParamDataType::Uuid)
                 .build()
                 .unwrap(),
@@ -70,7 +70,7 @@ impl From<RecordPaymentParams> for Params {
             currency,
             amount,
             payment_source_account_id,
-            facility_payment_account_id,
+            payment_holding_account_id,
             tx_ref,
             effective,
         }: RecordPaymentParams,
@@ -81,7 +81,7 @@ impl From<RecordPaymentParams> for Params {
         params.insert("currency", currency);
         params.insert("amount", amount);
         params.insert("payment_source_account_id", payment_source_account_id);
-        params.insert("facility_payment_account_id", facility_payment_account_id);
+        params.insert("payment_holding_account_id", payment_holding_account_id);
         params.insert("effective", effective);
 
         params
@@ -114,7 +114,7 @@ impl RecordPayment {
             NewTxTemplateEntry::builder()
                 .entry_type("'RECORD_PAYMENT_CR'")
                 .currency("params.currency")
-                .account_id("params.facility_payment_account_id")
+                .account_id("params.payment_holding_account_id")
                 .direction("CREDIT")
                 .layer("SETTLED")
                 .units("params.amount")

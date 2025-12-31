@@ -1353,7 +1353,7 @@ impl CreditLedger {
             currency: self.usd,
             amount: amount.to_usd(),
             payment_source_account_id: *payment_source_account_id,
-            facility_payment_account_id: *payment_holding_account_id,
+            payment_holding_account_id: *payment_holding_account_id,
             tx_ref: payment.tx_ref(),
             effective: *effective,
         };
