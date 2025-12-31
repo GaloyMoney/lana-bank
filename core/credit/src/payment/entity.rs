@@ -8,6 +8,8 @@ use es_entity::*;
 
 use crate::primitives::*;
 
+use super::primitives::*;
+
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -94,7 +96,7 @@ pub struct NewPayment {
     #[builder(setter(into))]
     pub(super) payment_holding_account_id: CalaAccountId,
     #[builder(setter(into))]
-    pub(super) payment_source_account_id: CalaAccountId,
+    pub(super) payment_source_account_id: PaymentSourceAccountId,
     pub(super) amount: UsdCents,
     pub(crate) effective: chrono::NaiveDate,
 }
@@ -113,7 +115,7 @@ impl IntoEvents<PaymentEvent> for NewPayment {
                 ledger_tx_id: self.ledger_tx_id,
                 credit_facility_id: self.credit_facility_id,
                 payment_holding_account_id: self.payment_holding_account_id,
-                payment_source_account_id: self.payment_source_account_id,
+                payment_source_account_id: self.payment_source_account_id.into(),
                 amount: self.amount,
                 effective: self.effective,
             }],

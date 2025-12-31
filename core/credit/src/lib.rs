@@ -887,7 +887,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug + Copy,
-        payment_source_account_id: impl Into<CalaAccountId> + std::fmt::Debug + Copy,
+        payment_source_account_id: impl Into<PaymentSourceAccountId> + std::fmt::Debug + Copy,
         amount: UsdCents,
     ) -> Result<CreditFacility, CoreCreditError> {
         self.subject_can_record_payment(sub, true)
@@ -957,7 +957,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug + Copy,
-        payment_source_account_id: impl Into<CalaAccountId> + std::fmt::Debug + Copy,
+        payment_source_account_id: impl Into<PaymentSourceAccountId> + std::fmt::Debug + Copy,
         amount: UsdCents,
         effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
     ) -> Result<CreditFacility, CoreCreditError> {

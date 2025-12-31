@@ -12,6 +12,7 @@ use job::*;
 use obix::EventSequence;
 use obix::out::*;
 
+use crate::PaymentSourceAccountId;
 use crate::{
     CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId, LiquidationId,
     Obligations, Payments, liquidation::Liquidations,
@@ -229,7 +230,10 @@ where
                 Span::current().record("handled", true);
                 Span::current().record("event_type", event.as_ref());
 
-                let payment_source_account_id = crate::primitives::CalaAccountId::new(); // TODO: replace with actual account from Liquidation entity
+                // TODO: replace with actual account from Liquidation entity
+                let facility_liquidation_account = PlaceholderFacilityLiquidationHoldingAccount(
+                    crate::primitives::CalaAccountId::new(),
+                );
 
                 let effective = crate::time::now().date_naive();
                 if let Some(payment) = self
@@ -238,8 +242,8 @@ where
                         db,
                         *payment_id,
                         *credit_facility_id,
-                        payment_source_account_id,
                         *payment_holding_account_id,
+                        facility_liquidation_account.into(),
                         *amount,
                         effective,
                     )
@@ -258,5 +262,13 @@ where
             }
             _ => Ok(ControlFlow::Continue(())),
         }
+    }
+}
+
+struct PlaceholderFacilityLiquidationHoldingAccount(crate::primitives::CalaAccountId);
+
+impl From<PlaceholderFacilityLiquidationHoldingAccount> for PaymentSourceAccountId {
+    fn from(account_id: PlaceholderFacilityLiquidationHoldingAccount) -> Self {
+        Self::new(account_id.0)
     }
 }

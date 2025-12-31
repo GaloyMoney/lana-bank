@@ -1,5 +1,6 @@
 mod entity;
 pub mod error;
+mod primitives;
 mod repo;
 
 use std::sync::Arc;
@@ -10,6 +11,7 @@ use authz::PermissionCheck;
 use crate::{ledger::CreditLedger, primitives::*};
 
 pub use entity::Payment;
+pub use primitives::PaymentSourceAccountId;
 
 #[cfg(feature = "json-schema")]
 pub use entity::PaymentEvent;
@@ -75,7 +77,7 @@ where
         payment_id: PaymentId,
         credit_facility_id: CreditFacilityId,
         payment_holding_account_id: CalaAccountId,
-        payment_source_account_id: CalaAccountId,
+        payment_source_account_id: PaymentSourceAccountId,
         amount: UsdCents,
         effective: chrono::NaiveDate,
     ) -> Result<Option<Payment>, PaymentError> {

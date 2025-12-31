@@ -1,6 +1,7 @@
 mod config;
 mod error;
 
+use core_credit::PaymentSourceAccountId;
 use sqlx::PgPool;
 use tracing::{Instrument, instrument};
 use tracing_macros::record_error_severity;
@@ -389,9 +390,10 @@ impl LanaApp {
             return Err(ApplicationError::CanNotCreateProposalForClosedOrFrozenAccount);
         }
 
+        let payment_source_account_id = PaymentSourceAccountId::new(deposit_account.id.into());
         let ret = self
             .credit()
-            .record_payment(sub, credit_facility_id, deposit_account.id, amount)
+            .record_payment(sub, credit_facility_id, payment_source_account_id, amount)
             .await?;
 
         Ok(ret)
@@ -419,12 +421,13 @@ impl LanaApp {
             return Err(ApplicationError::CanNotCreateProposalForClosedOrFrozenAccount);
         }
 
+        let payment_source_account_id = PaymentSourceAccountId::new(deposit_account.id.into());
         let ret = self
             .credit()
             .record_payment_with_date(
                 sub,
                 credit_facility_id,
-                deposit_account.id,
+                payment_source_account_id,
                 amount,
                 effective,
             )
