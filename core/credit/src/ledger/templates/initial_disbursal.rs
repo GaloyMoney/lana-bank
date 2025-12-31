@@ -14,7 +14,7 @@ pub const INITIAL_DISBURSAL_CODE: &str = "INITIAL_DISBURSAL";
 #[derive(Debug)]
 pub struct InitialDisbursalParams {
     pub journal_id: JournalId,
-    pub credit_omnibus_account: CalaAccountId,
+    pub facility_uncovered_outstanding_account: CalaAccountId,
     pub credit_facility_account: CalaAccountId,
     pub facility_disbursed_receivable_account: CalaAccountId,
     pub disbursed_into_account_id: CalaAccountId,
@@ -32,7 +32,7 @@ impl InitialDisbursalParams {
                 .build()
                 .unwrap(),
             NewParamDefinition::builder()
-                .name("credit_omnibus_account")
+                .name("facility_uncovered_outstanding_account")
                 .r#type(ParamDataType::Uuid)
                 .build()
                 .unwrap(),
@@ -79,7 +79,7 @@ impl From<InitialDisbursalParams> for Params {
     fn from(
         InitialDisbursalParams {
             journal_id,
-            credit_omnibus_account,
+            facility_uncovered_outstanding_account,
             credit_facility_account,
             facility_disbursed_receivable_account,
             disbursed_into_account_id,
@@ -90,7 +90,10 @@ impl From<InitialDisbursalParams> for Params {
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
-        params.insert("credit_omnibus_account", credit_omnibus_account);
+        params.insert(
+            "facility_uncovered_outstanding_account",
+            facility_uncovered_outstanding_account,
+        );
         params.insert("credit_facility_account", credit_facility_account);
         params.insert(
             "facility_disbursed_receivable_account",
@@ -130,7 +133,7 @@ impl InitialDisbursal {
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
-                .account_id("params.credit_omnibus_account")
+                .account_id("params.facility_uncovered_outstanding_account")
                 .units("params.disbursed_amount")
                 .currency("params.currency")
                 .entry_type("'SINGLE_DISBURSAL_DRAWDOWN_CR'")
