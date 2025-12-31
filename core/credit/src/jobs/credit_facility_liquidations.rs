@@ -202,7 +202,7 @@ where
             event @ CoreCreditEvent::PartialLiquidationInitiated {
                 liquidation_id,
                 credit_facility_id,
-                receivable_account_id,
+                payment_holding_account_id,
                 trigger_price,
                 initially_expected_to_receive,
                 initially_estimated_to_liquidate,
@@ -221,7 +221,7 @@ where
                     NewLiquidation::builder()
                         .id(*liquidation_id)
                         .credit_facility_id(*credit_facility_id)
-                        .receivable_account_id(*receivable_account_id)
+                        .payment_holding_account_id(*payment_holding_account_id)
                         .trigger_price(*trigger_price)
                         .initially_expected_to_receive(*initially_expected_to_receive)
                         .initially_estimated_to_liquidate(*initially_estimated_to_liquidate)

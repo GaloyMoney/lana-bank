@@ -89,6 +89,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         6,Interest Receivable Parent
         7,Interest Income Parent
         8,Fee Income Parent
+        9,Payment Holding Parent
         "#
     .to_string();
     let (chart, _) = accounting
@@ -117,6 +118,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
                 chart_of_account_in_liquidation_parent_code: "3".parse().unwrap(),
                 chart_of_account_interest_income_parent_code: "7".parse().unwrap(),
                 chart_of_account_fee_income_parent_code: "8".parse().unwrap(),
+                chart_of_account_payment_holding_parent_code: "9".parse().unwrap(),
                 chart_of_account_short_term_individual_disbursed_receivable_parent_code: "1".parse().unwrap(),
                 chart_of_account_short_term_government_entity_disbursed_receivable_parent_code:
                     "2".parse().unwrap(),
@@ -208,6 +210,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         6,Other Interest Receivable Parent
         7,Other Interest Income Parent
         8,Other Fee Income Parent
+        9,Other Payment Holding Parent
         "#
     .to_string();
     let (chart, _) = accounting
@@ -229,6 +232,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
                 chart_of_account_in_liquidation_parent_code: "3".parse().unwrap(),
                 chart_of_account_interest_income_parent_code: "7".parse().unwrap(),
                 chart_of_account_fee_income_parent_code: "8".parse().unwrap(),
+                chart_of_account_payment_holding_parent_code: "9".parse().unwrap(),
                 chart_of_account_short_term_individual_disbursed_receivable_parent_code: "1".parse().unwrap(),
                 chart_of_account_short_term_government_entity_disbursed_receivable_parent_code:
                     "2".parse().unwrap(),

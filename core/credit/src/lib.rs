@@ -270,7 +270,7 @@ where
         );
         let facilities_arc = Arc::new(credit_facilities);
 
-        let payments = Payments::new(pool, authz_arc.clone());
+        let payments = Payments::new(pool, authz_arc.clone(), ledger_arc.clone());
         let payments_arc = Arc::new(payments);
 
         let history_repo = HistoryRepo::new(pool);
@@ -887,7 +887,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug + Copy,
-        payment_source_account_id: impl Into<CalaAccountId> + std::fmt::Debug + Copy,
+        payment_source_account_id: impl Into<PaymentSourceAccountId> + std::fmt::Debug + Copy,
         amount: UsdCents,
     ) -> Result<CreditFacility, CoreCreditError> {
         self.subject_can_record_payment(sub, true)
@@ -910,23 +910,26 @@ where
         let mut db = self.facilities.begin_op().await?;
 
         let payment_id = PaymentId::new();
-
-        self.payments
-            .record_in_op(&mut db, payment_id, credit_facility_id, amount)
-            .await?;
-
-        self.obligations
-            .allocate_payment_in_op(
+        let effective = crate::time::now().date_naive();
+        if let Some(payment) = self
+            .payments
+            .record_in_op(
                 &mut db,
-                credit_facility_id,
                 payment_id,
+                credit_facility_id,
+                credit_facility.payment_holding_account_id(),
                 payment_source_account_id,
                 amount,
-                crate::time::now().date_naive(),
+                effective,
             )
-            .await?;
+            .await?
+        {
+            self.obligations
+                .allocate_payment_in_op(&mut db, &payment)
+                .await?;
 
-        db.commit().await?;
+            db.commit().await?;
+        }
 
         Ok(credit_facility)
     }
@@ -954,7 +957,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug + Copy,
-        payment_source_account_id: impl Into<CalaAccountId> + std::fmt::Debug + Copy,
+        payment_source_account_id: impl Into<PaymentSourceAccountId> + std::fmt::Debug + Copy,
         amount: UsdCents,
         effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
     ) -> Result<CreditFacility, CoreCreditError> {
@@ -973,22 +976,24 @@ where
         let mut db = self.facilities.begin_op().await?;
 
         let payment_id = PaymentId::new();
-
-        self.payments
-            .record_in_op(&mut db, payment_id, credit_facility_id, amount)
-            .await?;
-
-        self.obligations
-            .allocate_payment_in_op(
+        if let Some(payment) = self
+            .payments
+            .record_in_op(
                 &mut db,
-                credit_facility_id,
                 payment_id,
+                credit_facility_id,
+                credit_facility.payment_holding_account_id(),
                 payment_source_account_id,
                 amount,
                 effective.into(),
             )
-            .await?;
-        db.commit().await?;
+            .await?
+        {
+            self.obligations
+                .allocate_payment_in_op(&mut db, &payment)
+                .await?;
+            db.commit().await?;
+        }
 
         Ok(credit_facility)
     }

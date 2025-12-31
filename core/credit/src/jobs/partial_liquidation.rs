@@ -12,6 +12,7 @@ use job::*;
 use obix::EventSequence;
 use obix::out::*;
 
+use crate::PaymentSourceAccountId;
 use crate::{
     CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId, LiquidationId,
     Obligations, Payments, liquidation::Liquidations,
@@ -222,31 +223,38 @@ where
                     amount,
                     credit_facility_id,
                     payment_id,
+                    payment_holding_account_id,
                     ..
                 },
             ) if *credit_facility_id == self.config.credit_facility_id => {
                 Span::current().record("handled", true);
                 Span::current().record("event_type", event.as_ref());
 
-                let payment_created = self
-                    .payments
-                    .record_in_op(db, *payment_id, *credit_facility_id, *amount)
-                    .await?;
+                // TODO: replace with actual account from Liquidation entity
+                let facility_liquidation_account = PlaceholderFacilityLiquidationHoldingAccount(
+                    crate::primitives::CalaAccountId::new(),
+                );
 
-                if payment_created {
+                let effective = crate::time::now().date_naive();
+                if let Some(payment) = self
+                    .payments
+                    .record_in_op(
+                        db,
+                        *payment_id,
+                        *credit_facility_id,
+                        *payment_holding_account_id,
+                        facility_liquidation_account.into(),
+                        *amount,
+                        effective,
+                    )
+                    .await?
+                {
                     self.liquidations
                         .complete_in_op(db, self.config.liquidation_id, *payment_id)
                         .await?;
 
                     self.obligations
-                        .allocate_payment_in_op(
-                            db,
-                            self.config.credit_facility_id,
-                            *payment_id,
-                            crate::primitives::CalaAccountId::new(), // TODO: replace with actual account from Liquidation entity
-                            *amount,
-                            crate::time::now().date_naive(),
-                        )
+                        .allocate_payment_in_op(db, &payment)
                         .await?;
                 }
 
@@ -254,5 +262,13 @@ where
             }
             _ => Ok(ControlFlow::Continue(())),
         }
+    }
+}
+
+struct PlaceholderFacilityLiquidationHoldingAccount(crate::primitives::CalaAccountId);
+
+impl From<PlaceholderFacilityLiquidationHoldingAccount> for PaymentSourceAccountId {
+    fn from(account_id: PlaceholderFacilityLiquidationHoldingAccount) -> Self {
+        Self::new(account_id.0)
     }
 }

@@ -32,7 +32,7 @@
         "initially_expected_to_receive": {
           "$ref": "#/$defs/UsdCents"
         },
-        "receivable_account_id": {
+        "payment_holding_account_id": {
           "format": "uuid",
           "type": "string"
         },
@@ -48,7 +48,7 @@
         "type",
         "id",
         "credit_facility_id",
-        "receivable_account_id",
+        "payment_holding_account_id",
         "trigger_price",
         "initially_expected_to_receive",
         "initially_estimated_to_liquidate"

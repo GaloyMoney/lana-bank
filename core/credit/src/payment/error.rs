@@ -12,7 +12,9 @@ pub enum PaymentError {
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("PaymentError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
-    #[error("PaymentError ObligationError: {0}")]
+    #[error("PaymentError - CreditLedgerError: {0}")]
+    CreditLedgerError(#[from] crate::ledger::error::CreditLedgerError),
+    #[error("PaymentError - ObligationError: {0}")]
     ObligationError(#[from] crate::obligation::error::ObligationError),
     #[error("PaymentError - PaymentAllocationError: {0}")]
     PaymentAllocationError(#[from] crate::payment_allocation::error::PaymentAllocationError),
@@ -25,6 +27,7 @@ impl ErrorSeverity for PaymentError {
             Self::EsEntityError(e) => e.severity(),
             Self::CursorDestructureError(_) => Level::ERROR,
             Self::AuthorizationError(e) => e.severity(),
+            Self::CreditLedgerError(e) => e.severity(),
             Self::ObligationError(e) => e.severity(),
             Self::PaymentAllocationError(e) => e.severity(),
         }

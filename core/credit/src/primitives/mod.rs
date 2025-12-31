@@ -56,6 +56,7 @@ es_entity::entity_id! {
     ObligationId => job::JobId,
 
     DisbursalId => LedgerTxId,
+    PaymentId => LedgerTxId,
     PaymentAllocationId => LedgerTxId,
 
     CreditFacilityId => public_id::PublicIdTargetId,

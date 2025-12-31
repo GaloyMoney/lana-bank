@@ -8,6 +8,7 @@ query creditConfig {
     chartOfAccountInLiquidationParentCode
     chartOfAccountInterestIncomeParentCode
     chartOfAccountFeeIncomeParentCode
+    chartOfAccountPaymentHoldingParentCode
     chartOfAccountShortTermIndividualDisbursedReceivableParentCode
     chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode
     chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode

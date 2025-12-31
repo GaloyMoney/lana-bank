@@ -60,6 +60,7 @@ gql`
       chartOfAccountInLiquidationParentCode
       chartOfAccountInterestIncomeParentCode
       chartOfAccountFeeIncomeParentCode
+      chartOfAccountPaymentHoldingParentCode
       chartOfAccountShortTermIndividualDisbursedReceivableParentCode
       chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode
       chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode

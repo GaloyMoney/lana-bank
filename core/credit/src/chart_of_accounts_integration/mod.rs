@@ -23,6 +23,7 @@ pub struct ChartOfAccountsIntegrationConfig {
     pub chart_of_account_in_liquidation_parent_code: AccountCode,
     pub chart_of_account_interest_income_parent_code: AccountCode,
     pub chart_of_account_fee_income_parent_code: AccountCode,
+    pub chart_of_account_payment_holding_parent_code: AccountCode,
 
     pub chart_of_account_short_term_individual_disbursed_receivable_parent_code: AccountCode,
     pub chart_of_account_short_term_government_entity_disbursed_receivable_parent_code: AccountCode,
@@ -146,6 +147,8 @@ where
             chart.account_set_id_from_code(&config.chart_of_account_interest_income_parent_code)?;
         let fee_income_parent_account_set_id =
             chart.account_set_id_from_code(&config.chart_of_account_fee_income_parent_code)?;
+        let payment_holding_parent_account_set_id =
+            chart.account_set_id_from_code(&config.chart_of_account_payment_holding_parent_code)?;
 
         let short_term_individual_disbursed_receivable_parent_account_set_id = chart
             .account_set_id_from_code(
@@ -331,6 +334,7 @@ where
             in_liquidation_parent_account_set_id,
             interest_income_parent_account_set_id,
             fee_income_parent_account_set_id,
+            payment_holding_parent_account_set_id,
 
             short_term_disbursed_integration_meta: ShortTermDisbursedIntegrationMeta {
                 short_term_individual_disbursed_receivable_parent_account_set_id,

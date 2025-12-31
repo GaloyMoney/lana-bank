@@ -12,8 +12,8 @@ CREATE TABLE core_payment_allocation_events_rollup (
   obligation_id UUID,
   obligation_type VARCHAR,
   payment_allocation_idx INTEGER,
+  payment_holding_account_id UUID,
   payment_id UUID,
-  payment_source_account_id UUID,
   receivable_account_id UUID
 ,
   PRIMARY KEY (id, version)
@@ -56,8 +56,8 @@ BEGIN
     new_row.obligation_id := (NEW.event ->> 'obligation_id')::UUID;
     new_row.obligation_type := (NEW.event ->> 'obligation_type');
     new_row.payment_allocation_idx := (NEW.event ->> 'payment_allocation_idx')::INTEGER;
+    new_row.payment_holding_account_id := (NEW.event ->> 'payment_holding_account_id')::UUID;
     new_row.payment_id := (NEW.event ->> 'payment_id')::UUID;
-    new_row.payment_source_account_id := (NEW.event ->> 'payment_source_account_id')::UUID;
     new_row.receivable_account_id := (NEW.event ->> 'receivable_account_id')::UUID;
   ELSE
     -- Default all fields to current values
@@ -68,8 +68,8 @@ BEGIN
     new_row.obligation_id := current_row.obligation_id;
     new_row.obligation_type := current_row.obligation_type;
     new_row.payment_allocation_idx := current_row.payment_allocation_idx;
+    new_row.payment_holding_account_id := current_row.payment_holding_account_id;
     new_row.payment_id := current_row.payment_id;
-    new_row.payment_source_account_id := current_row.payment_source_account_id;
     new_row.receivable_account_id := current_row.receivable_account_id;
   END IF;
 
@@ -83,8 +83,8 @@ BEGIN
       new_row.obligation_id := (NEW.event ->> 'obligation_id')::UUID;
       new_row.obligation_type := (NEW.event ->> 'obligation_type');
       new_row.payment_allocation_idx := (NEW.event ->> 'payment_allocation_idx')::INTEGER;
+      new_row.payment_holding_account_id := (NEW.event ->> 'payment_holding_account_id')::UUID;
       new_row.payment_id := (NEW.event ->> 'payment_id')::UUID;
-      new_row.payment_source_account_id := (NEW.event ->> 'payment_source_account_id')::UUID;
       new_row.receivable_account_id := (NEW.event ->> 'receivable_account_id')::UUID;
   END CASE;
 
@@ -100,8 +100,8 @@ BEGIN
     obligation_id,
     obligation_type,
     payment_allocation_idx,
+    payment_holding_account_id,
     payment_id,
-    payment_source_account_id,
     receivable_account_id
   )
   VALUES (
@@ -116,8 +116,8 @@ BEGIN
     new_row.obligation_id,
     new_row.obligation_type,
     new_row.payment_allocation_idx,
+    new_row.payment_holding_account_id,
     new_row.payment_id,
-    new_row.payment_source_account_id,
     new_row.receivable_account_id
   );
 

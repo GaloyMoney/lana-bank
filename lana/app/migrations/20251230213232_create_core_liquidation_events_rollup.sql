@@ -13,8 +13,8 @@ CREATE TABLE core_liquidation_events_rollup (
   initially_expected_to_receive BIGINT,
   ledger_tx_id UUID,
   outstanding BIGINT,
+  payment_holding_account_id UUID,
   payment_id UUID,
-  receivable_account_id UUID,
   to_liquidate_at_current_price BIGINT,
   trigger_price JSONB,
 
@@ -63,8 +63,8 @@ BEGIN
     new_row.is_completed := false;
     new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
     new_row.outstanding := (NEW.event ->> 'outstanding')::BIGINT;
+    new_row.payment_holding_account_id := (NEW.event ->> 'payment_holding_account_id')::UUID;
     new_row.payment_id := (NEW.event ->> 'payment_id')::UUID;
-    new_row.receivable_account_id := (NEW.event ->> 'receivable_account_id')::UUID;
     new_row.to_liquidate_at_current_price := (NEW.event ->> 'to_liquidate_at_current_price')::BIGINT;
     new_row.trigger_price := (NEW.event -> 'trigger_price');
   ELSE
@@ -78,8 +78,8 @@ BEGIN
     new_row.is_completed := current_row.is_completed;
     new_row.ledger_tx_id := current_row.ledger_tx_id;
     new_row.outstanding := current_row.outstanding;
+    new_row.payment_holding_account_id := current_row.payment_holding_account_id;
     new_row.payment_id := current_row.payment_id;
-    new_row.receivable_account_id := current_row.receivable_account_id;
     new_row.to_liquidate_at_current_price := current_row.to_liquidate_at_current_price;
     new_row.trigger_price := current_row.trigger_price;
   END IF;
@@ -90,7 +90,7 @@ BEGIN
       new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
       new_row.initially_estimated_to_liquidate := (NEW.event ->> 'initially_estimated_to_liquidate')::BIGINT;
       new_row.initially_expected_to_receive := (NEW.event ->> 'initially_expected_to_receive')::BIGINT;
-      new_row.receivable_account_id := (NEW.event ->> 'receivable_account_id')::UUID;
+      new_row.payment_holding_account_id := (NEW.event ->> 'payment_holding_account_id')::UUID;
       new_row.trigger_price := (NEW.event -> 'trigger_price');
     WHEN 'updated' THEN
       new_row.current_price := (NEW.event -> 'current_price');
@@ -123,8 +123,8 @@ BEGIN
     is_completed,
     ledger_tx_id,
     outstanding,
+    payment_holding_account_id,
     payment_id,
-    receivable_account_id,
     to_liquidate_at_current_price,
     trigger_price
   )
@@ -142,8 +142,8 @@ BEGIN
     new_row.is_completed,
     new_row.ledger_tx_id,
     new_row.outstanding,
+    new_row.payment_holding_account_id,
     new_row.payment_id,
-    new_row.receivable_account_id,
     new_row.to_liquidate_at_current_price,
     new_row.trigger_price
   );

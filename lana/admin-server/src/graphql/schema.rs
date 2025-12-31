@@ -1658,6 +1658,7 @@ impl Mutation {
             chart_of_account_in_liquidation_parent_code,
             chart_of_account_interest_income_parent_code,
             chart_of_account_fee_income_parent_code,
+            chart_of_account_payment_holding_parent_code,
 
             chart_of_account_short_term_individual_disbursed_receivable_parent_code,
             chart_of_account_short_term_government_entity_disbursed_receivable_parent_code,
@@ -1716,6 +1717,8 @@ impl Mutation {
             chart_of_account_interest_income_parent_code:
                 chart_of_account_interest_income_parent_code.parse()?,
             chart_of_account_fee_income_parent_code: chart_of_account_fee_income_parent_code
+                .parse()?,
+            chart_of_account_payment_holding_parent_code: chart_of_account_payment_holding_parent_code
                 .parse()?,
             chart_of_account_short_term_individual_disbursed_receivable_parent_code:
                 chart_of_account_short_term_individual_disbursed_receivable_parent_code.parse()?,
