@@ -27,6 +27,7 @@ pub struct CreditFacilityLedgerAccountIds {
     pub interest_defaulted_account_id: CalaAccountId,
     pub interest_income_account_id: CalaAccountId,
     pub fee_income_account_id: CalaAccountId,
+    pub uncovered_outstanding_account_id: CalaAccountId,
     pub payment_holding_account_id: CalaAccountId,
 }
 
@@ -48,6 +49,7 @@ impl CreditFacilityLedgerAccountIds {
             interest_defaulted_account_id: CalaAccountId::new(),
             interest_income_account_id: CalaAccountId::new(),
             fee_income_account_id: CalaAccountId::new(),
+            uncovered_outstanding_account_id: CalaAccountId::new(),
             payment_holding_account_id: CalaAccountId::new(),
         }
     }
@@ -69,6 +71,7 @@ impl From<PendingCreditFacilityAccountIds> for CreditFacilityLedgerAccountIds {
             interest_defaulted_account_id: CalaAccountId::new(),
             interest_income_account_id: CalaAccountId::new(),
             fee_income_account_id: CalaAccountId::new(),
+            uncovered_outstanding_account_id: CalaAccountId::new(),
             payment_holding_account_id: CalaAccountId::new(),
         }
     }

@@ -128,6 +128,7 @@ pub struct CreditFacilityInternalAccountSets {
     pub interest_defaulted: InternalAccountSetDetails,
     pub interest_income: InternalAccountSetDetails,
     pub fee_income: InternalAccountSetDetails,
+    pub uncovered_outstanding: InternalAccountSetDetails,
     pub payment_holding: InternalAccountSetDetails,
 }
 
@@ -139,6 +140,7 @@ impl CreditFacilityInternalAccountSets {
             in_liquidation,
             interest_income,
             fee_income,
+            uncovered_outstanding,
             payment_holding,
 
             disbursed_receivable:
@@ -162,6 +164,7 @@ impl CreditFacilityInternalAccountSets {
             in_liquidation.id,
             interest_income.id,
             fee_income.id,
+            uncovered_outstanding.id,
             payment_holding.id,
             disbursed_defaulted.id,
             interest_defaulted.id,
@@ -630,6 +633,16 @@ impl CreditLedger {
         )
         .await?;
 
+        let uncovered_outstanding_normal_balance_type = DebitOrCredit::Credit;
+        let uncovered_outstanding_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{CREDIT_UNCOVERED_OUTSTANDING_ACCOUNT_SET_REF}"),
+            CREDIT_UNCOVERED_OUTSTANDING_ACCOUNT_SET_NAME.to_string(),
+            uncovered_outstanding_normal_balance_type,
+        )
+        .await?;
+
         let payment_holding_normal_balance_type = DebitOrCredit::Credit;
         let payment_holding_account_set_id = Self::find_or_create_account_set(
             cala,
@@ -826,6 +839,10 @@ impl CreditLedger {
             fee_income: InternalAccountSetDetails {
                 id: fee_income_account_set_id,
                 normal_balance_type: fee_income_normal_balance_type,
+            },
+            uncovered_outstanding: InternalAccountSetDetails {
+                id: uncovered_outstanding_account_set_id,
+                normal_balance_type: uncovered_outstanding_normal_balance_type,
             },
             payment_holding: InternalAccountSetDetails {
                 id: payment_holding_account_set_id,
@@ -1048,6 +1065,7 @@ impl CreditLedger {
             in_liquidation_account_id: _,
             fee_income_account_id: _,
             interest_income_account_id: _,
+            uncovered_outstanding_account_id: _,
             payment_holding_account_id: _,
         }: CreditFacilityLedgerAccountIds,
     ) -> Result<CreditFacilityBalanceSummary, CreditLedgerError> {
@@ -2016,6 +2034,7 @@ impl CreditLedger {
             interest_defaulted_account_id,
             interest_income_account_id,
             fee_income_account_id,
+            uncovered_outstanding_account_id,
             payment_holding_account_id,
 
             // these accounts are created during proposal creation
@@ -2192,6 +2211,21 @@ impl CreditLedger {
             fee_income_reference,
             fee_income_name,
             fee_income_name,
+            entity_ref.clone(),
+        )
+        .await?;
+
+        let uncovered_outstanding_reference =
+            &format!("credit-facility-uncovered-outstanding:{credit_facility_id}");
+        let uncovered_outstanding_name =
+            &format!("Uncovered Outstanding Account for Credit Facility {credit_facility_id}");
+        self.create_account_in_op(
+            op,
+            uncovered_outstanding_account_id,
+            self.internal_account_sets.uncovered_outstanding,
+            uncovered_outstanding_reference,
+            uncovered_outstanding_name,
+            uncovered_outstanding_name,
             entity_ref.clone(),
         )
         .await?;
