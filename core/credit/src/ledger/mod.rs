@@ -1723,7 +1723,8 @@ impl CreditLedger {
                 templates::InitialDisbursalParams {
                     entity_id: disbursal_id.into(),
                     journal_id: self.journal_id,
-                    credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
+                    facility_uncovered_outstanding_account: account_ids
+                        .uncovered_outstanding_account_id,
                     credit_facility_account: account_ids.facility_account_id,
                     facility_disbursed_receivable_account: account_ids
                         .disbursed_receivable_not_yet_due_account_id,
