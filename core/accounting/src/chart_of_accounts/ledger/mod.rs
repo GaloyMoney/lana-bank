@@ -24,7 +24,7 @@ use closing_metadata::*;
 use error::*;
 use template::*;
 
-use crate::{Chart, ClosingTxDetails};
+use crate::{Chart, ClosingTxDetails, LedgerTransactionInitiator};
 
 #[derive(Clone)]
 pub struct ChartLedger {
@@ -355,6 +355,7 @@ impl ChartLedger {
             description,
             effective_balances_until,
             balances.entries_params(net_income_recipient_account),
+            LedgerTransactionInitiator::System,
         );
         let template_code = self
             .find_or_create_template(op, &closing_transaction_params)

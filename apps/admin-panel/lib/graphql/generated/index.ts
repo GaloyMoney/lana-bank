@@ -1563,6 +1563,7 @@ export type LedgerTransaction = {
   entity?: Maybe<LedgerTransactionEntity>;
   entries: Array<JournalEntry>;
   id: Scalars['ID']['output'];
+  initiatedBy: LedgerTransactionInitiator;
   ledgerTransactionId: Scalars['UUID']['output'];
 };
 
@@ -1586,6 +1587,8 @@ export type LedgerTransactionEdge = {
 };
 
 export type LedgerTransactionEntity = CreditFacilityDisbursal | Deposit | Withdrawal;
+
+export type LedgerTransactionInitiator = System | User;
 
 export type Liquidation = {
   __typename?: 'Liquidation';
