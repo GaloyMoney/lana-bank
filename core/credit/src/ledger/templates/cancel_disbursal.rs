@@ -17,7 +17,7 @@ pub const CANCEL_DISBURSAL_CODE: &str = "CANCEL_DISBURSAL";
 pub struct CancelDisbursalParams {
     pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
-    pub credit_omnibus_account: CalaAccountId,
+    pub facility_uncovered_outstanding_account: CalaAccountId,
     pub credit_facility_account: CalaAccountId,
     pub disbursed_amount: Decimal,
 }
@@ -31,7 +31,7 @@ impl CancelDisbursalParams {
                 .build()
                 .unwrap(),
             NewParamDefinition::builder()
-                .name("credit_omnibus_account")
+                .name("facility_uncovered_outstanding_account")
                 .r#type(ParamDataType::Uuid)
                 .build()
                 .unwrap(),
@@ -64,14 +64,17 @@ impl From<CancelDisbursalParams> for Params {
         CancelDisbursalParams {
             entity_id,
             journal_id,
-            credit_omnibus_account,
+            facility_uncovered_outstanding_account,
             credit_facility_account,
             disbursed_amount,
         }: CancelDisbursalParams,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
-        params.insert("credit_omnibus_account", credit_omnibus_account);
+        params.insert(
+            "facility_uncovered_outstanding_account",
+            facility_uncovered_outstanding_account,
+        );
         params.insert("credit_facility_account", credit_facility_account);
         params.insert("disbursed_amount", disbursed_amount);
         params.insert("effective", crate::time::now().date_naive());
@@ -110,7 +113,7 @@ impl CancelDisbursal {
             NewTxTemplateEntry::builder()
                 .entry_type("'CANCEL_DISBURSAL_DRAWDOWN_PENDING_CR'")
                 .currency("'USD'")
-                .account_id("params.credit_omnibus_account")
+                .account_id("params.facility_uncovered_outstanding_account")
                 .direction("CREDIT")
                 .layer("PENDING")
                 .units("params.disbursed_amount")
@@ -120,7 +123,7 @@ impl CancelDisbursal {
             NewTxTemplateEntry::builder()
                 .entry_type("'CANCEL_DISBURSAL_DRAWDOWN_SETTLED_DR'")
                 .currency("'USD'")
-                .account_id("params.credit_omnibus_account")
+                .account_id("params.facility_uncovered_outstanding_account")
                 .direction("DEBIT")
                 .layer("SETTLED")
                 .units("params.disbursed_amount")

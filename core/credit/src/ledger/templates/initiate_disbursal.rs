@@ -17,7 +17,7 @@ pub const INITIATE_DISBURSAL_CODE: &str = "INITIATE_CREDIT_FACILITY_DISBURSAL";
 pub struct InitiateDisbursalParams {
     pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
-    pub credit_omnibus_account: CalaAccountId,
+    pub facility_uncovered_outstanding_account: CalaAccountId,
     pub credit_facility_account: CalaAccountId,
     pub disbursed_amount: Decimal,
 }
@@ -31,7 +31,7 @@ impl InitiateDisbursalParams {
                 .build()
                 .unwrap(),
             NewParamDefinition::builder()
-                .name("credit_omnibus_account")
+                .name("facility_uncovered_outstanding_account")
                 .r#type(ParamDataType::Uuid)
                 .build()
                 .unwrap(),
@@ -67,12 +67,15 @@ impl From<InitiateDisbursalParams> for Params {
             journal_id,
             credit_facility_account,
             disbursed_amount,
-            credit_omnibus_account,
+            facility_uncovered_outstanding_account,
         }: InitiateDisbursalParams,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
-        params.insert("credit_omnibus_account", credit_omnibus_account);
+        params.insert(
+            "facility_uncovered_outstanding_account",
+            facility_uncovered_outstanding_account,
+        );
         params.insert("credit_facility_account", credit_facility_account);
         params.insert("disbursed_amount", disbursed_amount);
         params.insert("effective", crate::time::now().date_naive());
@@ -109,7 +112,7 @@ impl InitiateDisbursal {
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
-                .account_id("params.credit_omnibus_account")
+                .account_id("params.facility_uncovered_outstanding_account")
                 .units("params.disbursed_amount")
                 .currency("'USD'")
                 .entry_type("'INITIATE_DISBURSAL_DRAWDOWN_SETTLED_CR'")
@@ -119,7 +122,7 @@ impl InitiateDisbursal {
                 .expect("Couldn't build entry"),
             // PENDING layer entries
             NewTxTemplateEntry::builder()
-                .account_id("params.credit_omnibus_account")
+                .account_id("params.facility_uncovered_outstanding_account")
                 .units("params.disbursed_amount")
                 .currency("'USD'")
                 .entry_type("'INITIATE_DISBURSAL_DRAWDOWN_PENDING_DR'")
