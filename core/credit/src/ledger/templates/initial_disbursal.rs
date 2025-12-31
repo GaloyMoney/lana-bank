@@ -17,7 +17,7 @@ pub struct InitialDisbursalParams {
     pub credit_omnibus_account: CalaAccountId,
     pub credit_facility_account: CalaAccountId,
     pub facility_disbursed_receivable_account: CalaAccountId,
-    pub debit_account_id: CalaAccountId,
+    pub disbursed_into_account_id: CalaAccountId,
     pub disbursed_amount: Decimal,
     pub currency: Currency,
     pub external_id: String,
@@ -47,7 +47,7 @@ impl InitialDisbursalParams {
                 .build()
                 .unwrap(),
             NewParamDefinition::builder()
-                .name("debit_account_id")
+                .name("disbursed_into_account_id")
                 .r#type(ParamDataType::Uuid)
                 .build()
                 .unwrap(),
@@ -82,7 +82,7 @@ impl From<InitialDisbursalParams> for Params {
             credit_omnibus_account,
             credit_facility_account,
             facility_disbursed_receivable_account,
-            debit_account_id,
+            disbursed_into_account_id,
             disbursed_amount,
             currency,
             external_id,
@@ -96,7 +96,7 @@ impl From<InitialDisbursalParams> for Params {
             "facility_disbursed_receivable_account",
             facility_disbursed_receivable_account,
         );
-        params.insert("debit_account_id", debit_account_id);
+        params.insert("disbursed_into_account_id", disbursed_into_account_id);
         params.insert("disbursed_amount", disbursed_amount);
         params.insert("currency", currency);
         params.insert("external_id", external_id);
@@ -148,7 +148,7 @@ impl InitialDisbursal {
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
-                .account_id("params.debit_account_id")
+                .account_id("params.disbursed_into_account_id")
                 .units("params.disbursed_amount")
                 .currency("params.currency")
                 .entry_type("'SINGLE_DISBURSAL_RECEIVABLE_CR'")
