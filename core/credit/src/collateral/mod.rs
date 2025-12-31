@@ -145,7 +145,12 @@ where
             self.repo.update_in_op(&mut db, &mut collateral).await?;
 
             self.ledger
-                .update_credit_facility_collateral(&mut db, data, collateral.account_id)
+                .update_credit_facility_collateral(
+                    &mut db,
+                    data,
+                    collateral.account_id,
+                    core_accounting::LedgerTransactionInitiator::System,
+                )
                 .await?;
             db.commit().await?;
         }

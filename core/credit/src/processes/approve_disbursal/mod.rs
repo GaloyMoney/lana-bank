@@ -13,6 +13,7 @@ use tracing_macros::record_error_severity;
 
 use obix::out::OutboxEventMarker;
 
+use core_accounting::LedgerTransactionInitiator;
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 
 use crate::{
@@ -119,6 +120,7 @@ where
                         disbursal.disbursal_credit_account_id,
                         obligation,
                         credit_facility.account_ids.facility_account_id,
+                        LedgerTransactionInitiator::System,
                     )
                     .await?;
                 op.commit().await?;
@@ -137,6 +139,7 @@ where
                         disbursal.initiated_tx_id,
                         disbursal.amount,
                         credit_facility.account_ids.facility_account_id,
+                        LedgerTransactionInitiator::System,
                     )
                     .await?;
                 op.commit().await?;

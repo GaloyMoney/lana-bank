@@ -19,6 +19,7 @@ pub struct AddStructuringFeeParams {
     pub structuring_fee_amount: Decimal,
     pub currency: Currency,
     pub external_id: String,
+    pub initiated_by: core_accounting::LedgerTransactionInitiator,
 }
 
 impl AddStructuringFeeParams {
@@ -59,6 +60,11 @@ impl AddStructuringFeeParams {
                 .r#type(ParamDataType::Date)
                 .build()
                 .unwrap(),
+            NewParamDefinition::builder()
+                .name("meta")
+                .r#type(ParamDataType::Json)
+                .build()
+                .unwrap(),
         ]
     }
 }
@@ -72,6 +78,7 @@ impl From<AddStructuringFeeParams> for Params {
             structuring_fee_amount,
             currency,
             external_id,
+            initiated_by,
         }: AddStructuringFeeParams,
     ) -> Self {
         let mut params = Self::default();
@@ -82,6 +89,12 @@ impl From<AddStructuringFeeParams> for Params {
         params.insert("currency", currency);
         params.insert("external_id", external_id);
         params.insert("effective", crate::time::now().date_naive());
+        params.insert(
+            "meta",
+            serde_json::json!({
+                "initiated_by": initiated_by,
+            }),
+        );
         params
     }
 }
@@ -96,6 +109,7 @@ impl AddStructuringFee {
             .journal_id("params.journal_id")
             .effective("params.effective")
             .external_id("params.external_id")
+            .metadata("params.meta")
             .description("'Add structuring fee'")
             .build()
             .expect("Couldn't build TxInput");

@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
 use audit::AuditInfo;
-use core_accounting::EntityRef;
+use core_accounting::{EntityRef, LedgerTransactionInitiator};
 
 mod balance;
 mod constants;
@@ -1203,6 +1203,7 @@ impl CreditLedger {
             effective,
         }: CollateralUpdate,
         credit_facility_proposal_account_ids: PendingCreditFacilityAccountIds,
+        initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), CreditLedgerError> {
         match action {
             CollateralAction::Add => {
@@ -1221,6 +1222,7 @@ impl CreditLedger {
                                 .collateral_omnibus_account_ids
                                 .account_id,
                             effective,
+                            initiated_by,
                         },
                     )
                     .await
@@ -1241,6 +1243,7 @@ impl CreditLedger {
                                 .collateral_omnibus_account_ids
                                 .account_id,
                             effective,
+                            initiated_by,
                         },
                     )
                     .await
@@ -1259,6 +1262,7 @@ impl CreditLedger {
             effective,
         }: CollateralUpdate,
         collateral_account_id: CalaAccountId,
+        initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), CreditLedgerError> {
         match action {
             CollateralAction::Add => {
@@ -1276,6 +1280,7 @@ impl CreditLedger {
                                 .collateral_omnibus_account_ids
                                 .account_id,
                             effective,
+                            initiated_by,
                         },
                     )
                     .await
@@ -1295,6 +1300,7 @@ impl CreditLedger {
                                 .collateral_omnibus_account_ids
                                 .account_id,
                             effective,
+                            initiated_by,
                         },
                     )
                     .await
@@ -1314,6 +1320,7 @@ impl CreditLedger {
             effective,
             ..
         }: PaymentAllocation,
+        initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), CreditLedgerError> {
         let params = templates::RecordPaymentAllocationParams {
             journal_id: self.journal_id,
@@ -1323,6 +1330,7 @@ impl CreditLedger {
             payment_holding_account_id,
             tx_ref: allocation.tx_ref(),
             effective,
+            initiated_by,
         };
         self.cala
             .post_transaction_in_op(
@@ -1367,9 +1375,11 @@ impl CreditLedger {
         &self,
         op: &mut es_entity::DbOp<'_>,
         payments: Vec<PaymentAllocation>,
+        initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), CreditLedgerError> {
         for payment in payments {
-            self.record_obligation_repayment_in_op(op, payment).await?;
+            self.record_obligation_repayment_in_op(op, payment, initiated_by)
+                .await?;
         }
         Ok(())
     }
@@ -1385,6 +1395,7 @@ impl CreditLedger {
             effective,
             ..
         }: ObligationDueReallocationData,
+        initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), CreditLedgerError> {
         self.cala
             .post_transaction_in_op(
@@ -1397,6 +1408,7 @@ impl CreditLedger {
                     receivable_not_yet_due_account_id: not_yet_due_account_id,
                     receivable_due_account_id: due_account_id,
                     effective,
+                    initiated_by,
                 },
             )
             .await?;
@@ -1414,6 +1426,7 @@ impl CreditLedger {
             effective,
             ..
         }: ObligationOverdueReallocationData,
+        initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), CreditLedgerError> {
         self.cala
             .post_transaction_in_op(
@@ -1426,6 +1439,7 @@ impl CreditLedger {
                     receivable_due_account_id: due_account_id,
                     receivable_overdue_account_id: overdue_account_id,
                     effective,
+                    initiated_by,
                 },
             )
             .await?;
@@ -1443,6 +1457,7 @@ impl CreditLedger {
             effective,
             ..
         }: ObligationDefaultedReallocationData,
+        initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), CreditLedgerError> {
         self.cala
             .post_transaction_in_op(
@@ -1455,6 +1470,7 @@ impl CreditLedger {
                     receivable_account_id,
                     defaulted_account_id,
                     effective,
+                    initiated_by,
                 },
             )
             .await?;
@@ -1469,6 +1485,7 @@ impl CreditLedger {
             collateral,
             credit_facility_account_ids,
         }: CreditFacilityCompletion,
+        initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), CreditLedgerError> {
         self.cala
             .post_transaction_in_op(
@@ -1482,6 +1499,7 @@ impl CreditLedger {
                     collateral_account_id: credit_facility_account_ids.collateral_account_id,
                     bank_collateral_account_id: self.collateral_omnibus_account_ids.account_id,
                     effective: crate::time::now().date_naive(),
+                    initiated_by,
                 },
             )
             .await?;
@@ -1497,6 +1515,7 @@ impl CreditLedger {
             pending_credit_facility_account_ids: credit_facility_proposal_account_ids,
             facility_amount,
         }: PendingCreditFacilityCreation,
+        initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), CreditLedgerError> {
         self.cala
             .post_transaction_in_op(
@@ -1511,6 +1530,7 @@ impl CreditLedger {
                     facility_amount: facility_amount.to_usd(),
                     currency: self.usd,
                     external_id: tx_ref,
+                    initiated_by,
                 },
             )
             .await?;
@@ -1533,6 +1553,7 @@ impl CreditLedger {
             structuring_fee,
             ..
         }: CreditFacilityActivation,
+        initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), CreditLedgerError> {
         self.create_accounts_for_credit_facility(
             op,
@@ -1543,17 +1564,36 @@ impl CreditLedger {
         )
         .await?;
 
-        self.activate_credit_facility(op, tx_id, account_ids, facility_amount, tx_ref)
-            .await?;
+        self.activate_credit_facility(
+            op,
+            tx_id,
+            account_ids,
+            facility_amount,
+            tx_ref,
+            initiated_by,
+        )
+        .await?;
 
         if let Some(initial_disbursal) = initial_disbursal {
-            self.initial_disbursal(op, initial_disbursal, account_ids, debit_account_id)
-                .await?;
+            self.initial_disbursal(
+                op,
+                initial_disbursal,
+                account_ids,
+                debit_account_id,
+                initiated_by,
+            )
+            .await?;
         }
 
         if let Some(structuring_fee) = structuring_fee {
-            self.add_structuring_fee(op, structuring_fee, account_ids, debit_account_id)
-                .await?;
+            self.add_structuring_fee(
+                op,
+                structuring_fee,
+                account_ids,
+                debit_account_id,
+                initiated_by,
+            )
+            .await?;
         }
         Ok(())
     }
@@ -1567,6 +1607,7 @@ impl CreditLedger {
         }: InitialDisbursalOnActivation,
         account_ids: CreditFacilityLedgerAccountIds,
         debit_account_id: CalaAccountId,
+        initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), CreditLedgerError> {
         let tx_id = disbursal_id.into();
         self.cala
@@ -1575,6 +1616,7 @@ impl CreditLedger {
                 tx_id,
                 templates::INITIAL_DISBURSAL_CODE,
                 templates::InitialDisbursalParams {
+                    entity_id: disbursal_id.into(),
                     journal_id: self.journal_id,
                     credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
                     credit_facility_account: account_ids.facility_account_id,
@@ -1584,6 +1626,7 @@ impl CreditLedger {
                     disbursed_amount: amount.to_usd(),
                     currency: self.usd,
                     external_id: format!("{}-initial-disbursal", disbursal_id),
+                    initiated_by,
                 },
             )
             .await?;
@@ -1597,6 +1640,7 @@ impl CreditLedger {
         account_ids: CreditFacilityLedgerAccountIds,
         facility_amount: UsdCents,
         external_id: String,
+        initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), CreditLedgerError> {
         self.cala
             .post_transaction_in_op(
@@ -1610,6 +1654,7 @@ impl CreditLedger {
                     facility_amount: facility_amount.to_usd(),
                     currency: self.usd,
                     external_id,
+                    initiated_by,
                 },
             )
             .await?;
@@ -1622,6 +1667,7 @@ impl CreditLedger {
         StructuringFeeOnActivation { tx_id, amount }: StructuringFeeOnActivation,
         account_ids: CreditFacilityLedgerAccountIds,
         debit_account_id: CalaAccountId,
+        initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), CreditLedgerError> {
         self.cala
             .post_transaction_in_op(
@@ -1635,6 +1681,7 @@ impl CreditLedger {
                     structuring_fee_amount: amount.to_usd(),
                     currency: self.usd,
                     external_id: format!("{}-structuring-fee", tx_id),
+                    initiated_by,
                 },
             )
             .await?;
@@ -1651,6 +1698,7 @@ impl CreditLedger {
             period,
             account_ids,
         }: CreditFacilityInterestAccrual,
+        initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), CreditLedgerError> {
         let InterestPostingAccountIds {
             receivable_not_yet_due,
@@ -1669,6 +1717,7 @@ impl CreditLedger {
                     interest_amount: interest.to_usd(),
                     external_id: tx_ref,
                     effective: period.end.date_naive(),
+                    initiated_by,
                 },
             )
             .await?;
@@ -1685,6 +1734,7 @@ impl CreditLedger {
             effective,
             account_ids,
         }: CreditFacilityInterestAccrualCycle,
+        initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), CreditLedgerError> {
         let InterestPostingAccountIds {
             receivable_not_yet_due,
@@ -1703,6 +1753,7 @@ impl CreditLedger {
                     interest_amount: interest.to_usd(),
                     external_id: tx_ref,
                     effective,
+                    initiated_by,
                 },
             )
             .await?;
@@ -1716,6 +1767,7 @@ impl CreditLedger {
         tx_id: LedgerTxId,
         amount: UsdCents,
         facility_account_id: CalaAccountId,
+        initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), CreditLedgerError> {
         self.cala
             .post_transaction_in_op(
@@ -1728,6 +1780,7 @@ impl CreditLedger {
                     credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
                     credit_facility_account: facility_account_id,
                     disbursed_amount: amount.to_usd(),
+                    initiated_by,
                 },
             )
             .await?;
@@ -1741,6 +1794,7 @@ impl CreditLedger {
         tx_id: LedgerTxId,
         amount: UsdCents,
         facility_account_id: CalaAccountId,
+        initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), CreditLedgerError> {
         self.cala
             .post_transaction_in_op(
@@ -1753,6 +1807,7 @@ impl CreditLedger {
                     credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
                     credit_facility_account: facility_account_id,
                     disbursed_amount: amount.to_usd(),
+                    initiated_by,
                 },
             )
             .await?;
@@ -1766,6 +1821,7 @@ impl CreditLedger {
         disbursed_into_account_id: CalaAccountId,
         obligation: Obligation,
         facility_account_id: CalaAccountId,
+        initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), CreditLedgerError> {
         let facility_disbursed_receivable_account = obligation.receivable_accounts().not_yet_due;
         let Obligation {
@@ -1789,6 +1845,7 @@ impl CreditLedger {
                     disbursed_into_account_id,
                     disbursed_amount: amount.to_usd(),
                     external_id,
+                    initiated_by,
                 },
             )
             .await?;
@@ -1931,6 +1988,7 @@ impl CreditLedger {
         &self,
         op: &mut es_entity::DbOp<'_>,
         pending_credit_facility: &crate::PendingCreditFacility,
+        initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), CreditLedgerError> {
         self.create_accounts_for_credit_facility_proposal(
             op,
@@ -1946,8 +2004,12 @@ impl CreditLedger {
         )
         .await?;
 
-        self.create_credit_facility_proposal(op, pending_credit_facility.creation_data())
-            .await?;
+        self.create_credit_facility_proposal(
+            op,
+            pending_credit_facility.creation_data(),
+            initiated_by,
+        )
+        .await?;
 
         Ok(())
     }

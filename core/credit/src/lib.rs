@@ -31,6 +31,7 @@ use std::sync::Arc;
 use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
+use core_accounting::LedgerTransactionInitiator;
 use core_custody::{
     CoreCustody, CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject, CustodianId,
 };
@@ -735,6 +736,7 @@ where
                 disbursal.initiated_tx_id,
                 disbursal.amount,
                 facility.account_ids.facility_account_id,
+                LedgerTransactionInitiator::try_from_subject(sub)?,
             )
             .await?;
 
@@ -806,6 +808,7 @@ where
                 &mut db,
                 collateral_update,
                 pending_facility.account_ids,
+                LedgerTransactionInitiator::try_from_subject(sub)?,
             )
             .await?;
 
@@ -856,6 +859,7 @@ where
                 &mut db,
                 collateral_update,
                 credit_facility.account_ids.collateral_account_id,
+                LedgerTransactionInitiator::try_from_subject(sub)?,
             )
             .await?;
 
@@ -986,6 +990,7 @@ where
                 payment_source_account_id,
                 amount,
                 effective.into(),
+                LedgerTransactionInitiator::try_from_subject(sub)?,
             )
             .await?
         {
@@ -1048,7 +1053,11 @@ where
                     .await?;
 
                 self.ledger
-                    .complete_credit_facility(&mut db, completion)
+                    .complete_credit_facility(
+                        &mut db,
+                        completion,
+                        LedgerTransactionInitiator::try_from_subject(sub)?,
+                    )
                     .await?;
                 db.commit().await?;
 

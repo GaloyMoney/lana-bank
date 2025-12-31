@@ -107,7 +107,11 @@ where
         };
 
         self.ledger
-            .record_obligation_defaulted(&mut db, defaulted)
+            .record_obligation_defaulted(
+                &mut db,
+                defaulted,
+                core_accounting::LedgerTransactionInitiator::System,
+            )
             .await?;
 
         Ok(JobCompletion::CompleteWithOp(db))

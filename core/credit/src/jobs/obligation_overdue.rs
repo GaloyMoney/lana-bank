@@ -127,7 +127,11 @@ where
         }
 
         self.ledger
-            .record_obligation_overdue(&mut db, overdue)
+            .record_obligation_overdue(
+                &mut db,
+                overdue,
+                core_accounting::LedgerTransactionInitiator::System,
+            )
             .await?;
 
         Ok(JobCompletion::CompleteWithOp(db))

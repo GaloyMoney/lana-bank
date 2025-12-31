@@ -10,6 +10,7 @@ use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use core_accounting::LedgerTransactionInitiator;
 use job::{JobId, Jobs};
 use obix::out::OutboxEventMarker;
 
@@ -263,7 +264,7 @@ where
         }
 
         self.ledger
-            .record_payment_allocations(op, allocations)
+            .record_payment_allocations(op, allocations, initiated_by)
             .await?;
 
         Ok(())
