@@ -44,6 +44,9 @@ pub struct CreditFacilityLedgerAccountIds {
 
     /// Holds funds meant for payment allocation.
     pub payment_holding_account_id: CalaAccountId,
+
+    /// Holds outstanding not yet covered by an unallocated payment.
+    pub uncovered_outstanding_account_id: CalaAccountId,
 }
 
 impl CreditFacilityLedgerAccountIds {
@@ -66,6 +69,7 @@ impl CreditFacilityLedgerAccountIds {
             interest_defaulted_account_id: CalaAccountId::new(),
             interest_income_account_id: CalaAccountId::new(),
             fee_income_account_id: CalaAccountId::new(),
+            uncovered_outstanding_account_id: CalaAccountId::new(),
             payment_holding_account_id: CalaAccountId::new(),
         }
     }
@@ -89,6 +93,7 @@ impl From<PendingCreditFacilityAccountIds> for CreditFacilityLedgerAccountIds {
             interest_defaulted_account_id: CalaAccountId::new(),
             interest_income_account_id: CalaAccountId::new(),
             fee_income_account_id: CalaAccountId::new(),
+            uncovered_outstanding_account_id: CalaAccountId::new(),
             payment_holding_account_id: CalaAccountId::new(),
         }
     }

@@ -196,6 +196,11 @@ pub const CREDIT_INTEREST_INCOME_ACCOUNT_SET_REF: &str = "credit-interest-income
 pub const CREDIT_FEE_INCOME_ACCOUNT_SET_NAME: &str = "Credit Fee Income Account Set";
 pub const CREDIT_FEE_INCOME_ACCOUNT_SET_REF: &str = "credit-fee-income-account-set";
 
+pub const CREDIT_UNCOVERED_OUTSTANDING_ACCOUNT_SET_NAME: &str =
+    "Credit Uncovered Outstanding Account Set";
+pub const CREDIT_UNCOVERED_OUTSTANDING_ACCOUNT_SET_REF: &str =
+    "credit-unconvered-outstanding-account-set";
+
 pub const CREDIT_PAYMENT_HOLDING_ACCOUNT_SET_NAME: &str = "Credit Payment Holding Account Set";
 pub const CREDIT_PAYMENT_HOLDING_ACCOUNT_SET_REF: &str = "credit-payment-holding-account-set";
 
