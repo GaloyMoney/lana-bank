@@ -18,6 +18,10 @@ pub enum LedgerTransactionError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("LedgerTransactionError - JournalError: {0}")]
     JournalError(#[from] crate::journal::error::JournalError),
+    #[error("LedgerTransactionError - Metadata: {0}")]
+    Metadata(#[from] serde_json::Error),
+    #[error("LedgerTransactionError - MissingMetadata")]
+    MissingMetadata,
 }
 
 impl ErrorSeverity for LedgerTransactionError {
@@ -30,6 +34,8 @@ impl ErrorSeverity for LedgerTransactionError {
             Self::CalaTxTemplate(_) => Level::ERROR,
             Self::AuthorizationError(e) => e.severity(),
             Self::JournalError(e) => e.severity(),
+            Self::Metadata(_) => Level::ERROR,
+            Self::MissingMetadata => Level::ERROR,
         }
     }
 }

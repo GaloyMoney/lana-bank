@@ -26,6 +26,10 @@ pub enum CoreDepositError {
     CoreChartOfAccountsError(
         #[from] core_accounting::chart_of_accounts::error::ChartOfAccountsError,
     ),
+    #[error("CoreDepositError - LedgerTransactionInitiatorParseError: {0}")]
+    LedgerTransactionInitiatorParseError(
+        #[from] core_accounting::LedgerTransactionInitiatorParseError,
+    ),
     #[error("CoreDepositError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
     #[error("CoreDepositError - ProcessError: {0}")]
@@ -78,6 +82,7 @@ impl ErrorSeverity for CoreDepositError {
             Self::GovernanceError(e) => e.severity(),
             Self::CustomerError(e) => e.severity(),
             Self::CoreChartOfAccountsError(e) => e.severity(),
+            Self::LedgerTransactionInitiatorParseError(e) => e.severity(),
             Self::JobError(_) => Level::ERROR,
             Self::ProcessError(e) => e.severity(),
             Self::SubjectIsNotDepositAccountHolder => Level::WARN,
