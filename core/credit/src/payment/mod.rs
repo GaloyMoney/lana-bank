@@ -55,10 +55,20 @@ where
         }
     }
 
-    /// Attempts to create new Payment entity with
-    /// `payment_id`. Returns `true` if the new entity was created
-    /// (i. e. `payment_id` was not previously used), otherwise
-    /// returns `false`.
+    /// Attempts to create new Payment entity with `payment_id` linked
+    /// to `credit_facility_id`. Upon successful creation, the Payment
+    /// is recorded in ledger by transferring `amount` from
+    /// `payment_source_account_id` to `payment_holding_account_id`
+    /// with `effective` date.
+    ///
+    /// Returns `Some` if the new entity was created
+    /// (i. e. `payment_id` was not previously used) and funds
+    /// transferred, otherwise returns `None` (in which case no other
+    /// operation was performed).
+    ///
+    /// # Idempotency
+    ///
+    /// Idempotent via `payment_id`.
     pub(super) async fn record_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
