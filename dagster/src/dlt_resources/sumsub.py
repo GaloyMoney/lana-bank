@@ -90,12 +90,14 @@ def _get_bq_client(credentials_dict: Dict[str, Any]) -> bigquery.Client:
 def _get_customers_bq(
     credentials_dict: Dict[str, Any], dataset: str, since: datetime
 ) -> List[Tuple[str, datetime]]:
-    """Return (customer_id, max_recorded_at) for callbacks on/after 'since', ordered by max_recorded_at."""
+    """Return (customer_id, max_recorded_at) for inbox events on/after 'since', ordered by max_recorded_at."""
     client = _get_bq_client(credentials_dict)
-    table = f"`{credentials_dict['project_id']}.{dataset}.sumsub_callbacks`"
+    table = f"`{credentials_dict['project_id']}.{dataset}.inbox_events`"
     sql = f"""
       WITH customers AS (
-        SELECT customer_id, MAX(recorded_at) AS recorded_at
+        SELECT
+            JSON_VALUE(payload, '$.externalUserId') AS customer_id,
+            MAX(recorded_at) AS recorded_at
         FROM {table}
         WHERE recorded_at > @since
         GROUP BY customer_id
@@ -122,20 +124,20 @@ def applicants(
     sumsub_key: str,
     sumsub_secret: str,
     logger: Optional[Any] = None,
-    callbacks_since=dlt.sources.incremental(
+    inbox_events_since=dlt.sources.incremental(
         "recorded_at", initial_value=datetime(1970, 1, 1, tzinfo=timezone.utc)
     ),
 ) -> Iterator[Dict[str, Any]]:
     """
-    Fetch applicant data from Sumsub for customers with callbacks since the last run.
+    Fetch applicant data from Sumsub for customers with inbox events since the last run.
 
-    - One row per customer, using the maximum recorded_at from sumsub_callbacks as the incremental cursor.
+    - One row per customer, using the maximum recorded_at from inbox_events as the incremental cursor.
     - Do not emit a row on applicant fetch/JSON failure; stop processing to retry on the next run.
     - Metadata/image fetch failures are non-fatal and only affect document_images.
     """
     if logger is None:
         logger = logging.getLogger("sumsub_applicants")
-    start_ts: datetime = callbacks_since.last_value or datetime(
+    start_ts: datetime = inbox_events_since.last_value or datetime(
         1970, 1, 1, tzinfo=timezone.utc
     )
     logger.info("Starting Sumsub applicants sync from %s", start_ts)

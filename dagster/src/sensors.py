@@ -56,16 +56,21 @@ def build_sumsub_sensor(
     sumsub_applicants_job: dg.JobDefinition,
     dagster_automations_active: bool,
 ) -> dg.SensorDefinition:
-    def _trigger_sumsub_on_callbacks(context: dg.SensorEvaluationContext, _asset_event):
-        yield dg.RunRequest(
-            run_key=f"sumsub_applicants_from_callbacks{_asset_event.storage_id}"
+    def _trigger_sumsub_on_inbox_events(
+        _context: dg.SensorEvaluationContext, asset_event
+    ):
+        dagster_event = getattr(asset_event, "dagster_event", None)
+        event_id = getattr(dagster_event, "event_log_entry_id", None) or getattr(
+            asset_event, "run_id", None
         )
 
+        yield dg.RunRequest(run_key=f"sumsub_applicants_from_inbox_events_{event_id}")
+
     return dg.AssetSensorDefinition(
-        name="sumsub_applicants_callbacks_sensor",
-        asset_key=dg.AssetKey(["lana", "sumsub_callbacks"]),
+        name="sumsub_applicant_inbox_events_sensor",
+        asset_key=dg.AssetKey(["lana", "inbox_events"]),
         job_name=sumsub_applicants_job.name,
-        asset_materialization_fn=_trigger_sumsub_on_callbacks,
+        asset_materialization_fn=_trigger_sumsub_on_inbox_events,
         default_status=(
             dg.DefaultSensorStatus.RUNNING
             if dagster_automations_active

@@ -62,5 +62,5 @@ To test the Sumsub extractor without wiring a new webhook:
 - Complete a KYC flow on the staging deployment to generate a callback.
 - From the staging bastion, dump only the data for the table:
 - `make reset-deps`
-- `psql postgres://user:password@localhost:5433/pg < public.sumsub_callbacks.sql`
+- `psql postgres://user:password@localhost:5433/pg < public.inbox_events.sql`
 - Open the UI at `http://localhost:3000/assets/sumsub_applicants` and materialize

@@ -135,7 +135,7 @@ definition_builder.add_job_schedule(
 )
 
 
-# Sumsub applicants EL (sensor-triggered on lana/sumsub_callbacks)
+# Sumsub applicants EL (sensor-triggered on lana/inbox_events)
 sumsub_applicants_protoasset = sumsub_protoasset()
 sumsub_applicants_asset = definition_builder.add_asset_from_protoasset(
     sumsub_applicants_protoasset
