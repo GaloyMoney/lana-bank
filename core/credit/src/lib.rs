@@ -734,7 +734,7 @@ where
                 disbursal.id,
                 disbursal.initiated_tx_id,
                 disbursal.amount,
-                facility.account_ids.facility_account_id,
+                facility.account_ids,
                 LedgerTransactionInitiator::try_from_subject(sub)?,
             )
             .await?;
