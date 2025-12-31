@@ -21,6 +21,7 @@ pub struct UnfreezeAccountParams {
     pub frozen_accounts_account_id: CalaAccountId,
     pub amount: Decimal,
     pub currency: Currency,
+    pub initiated_by: core_accounting::LedgerTransactionInitiator,
 }
 
 impl UnfreezeAccountParams {
@@ -56,6 +57,11 @@ impl UnfreezeAccountParams {
                 .r#type(ParamDataType::Date)
                 .build()
                 .unwrap(),
+            NewParamDefinition::builder()
+                .name("meta")
+                .r#type(ParamDataType::Json)
+                .build()
+                .unwrap(),
         ]
     }
 }
@@ -68,6 +74,7 @@ impl From<UnfreezeAccountParams> for Params {
             frozen_accounts_account_id,
             amount,
             currency,
+            initiated_by,
         }: UnfreezeAccountParams,
     ) -> Self {
         let mut params = Self::default();
@@ -77,6 +84,12 @@ impl From<UnfreezeAccountParams> for Params {
         params.insert("account_id", account_id);
         params.insert("frozen_accounts_account_id", frozen_accounts_account_id);
         params.insert("effective", crate::time::now().date_naive());
+        params.insert(
+            "meta",
+            serde_json::json!({
+                "initiated_by": initiated_by,
+            }),
+        );
         params
     }
 }
@@ -91,6 +104,7 @@ impl UnfreezeAccount {
             .journal_id("params.journal_id")
             .description("'Unfreeze a deposit account'")
             .effective("params.effective")
+            .metadata("params.meta")
             .build()
             .expect("Couldn't build TxInput");
 
