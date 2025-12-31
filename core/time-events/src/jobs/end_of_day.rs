@@ -8,28 +8,24 @@ use tokio::select;
 
 use domain_config::DomainConfigs;
 
-use crate::{
-    ClosingSchedule,
-    config::{ClosingTimeConfig, TimezoneConfig},
-    event::CoreTimeEvent,
-};
+use crate::{ClosingSchedule, config::TimeEventsConfigSpec, event::CoreTimeEvent};
 
 #[derive(Deserialize, Serialize)]
-pub struct EndOfDayJobConfig<E>
+pub struct EndOfDayBroadcastJobConfig<E>
 where
     E: OutboxEventMarker<CoreTimeEvent>,
 {
     pub _phantom: std::marker::PhantomData<E>,
 }
 
-impl<E> JobConfig for EndOfDayJobConfig<E>
+impl<E> JobConfig for EndOfDayBroadcastJobConfig<E>
 where
     E: OutboxEventMarker<CoreTimeEvent>,
 {
-    type Initializer = EndOfDayJobInit<E>;
+    type Initializer = EndOfDayBroadcastJobInit<E>;
 }
 
-pub struct EndOfDayJobInit<E>
+pub struct EndOfDayBroadcastJobInit<E>
 where
     E: OutboxEventMarker<CoreTimeEvent>,
 {
@@ -37,7 +33,7 @@ where
     domain_configs: DomainConfigs,
 }
 
-impl<E> EndOfDayJobInit<E>
+impl<E> EndOfDayBroadcastJobInit<E>
 where
     E: OutboxEventMarker<CoreTimeEvent>,
 {
@@ -49,18 +45,19 @@ where
     }
 }
 
-pub const END_OF_DAY_JOB: JobType = JobType::new("cron.core-time-event.end-of-day");
+pub const END_OF_DAY_BROADCAST_JOB: JobType =
+    JobType::new("cron.core-time-event.end-of-day-broadcast");
 
-impl<E> JobInitializer for EndOfDayJobInit<E>
+impl<E> JobInitializer for EndOfDayBroadcastJobInit<E>
 where
     E: OutboxEventMarker<CoreTimeEvent>,
 {
     fn job_type() -> JobType {
-        END_OF_DAY_JOB
+        END_OF_DAY_BROADCAST_JOB
     }
 
     fn init(&self, _job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(EndOfDayJobRunner {
+        Ok(Box::new(EndOfDayBroadcastJobRunner {
             outbox: self.outbox.clone(),
             domain_configs: self.domain_configs.clone(),
         }))
@@ -71,7 +68,7 @@ where
     }
 }
 
-pub struct EndOfDayJobRunner<E>
+pub struct EndOfDayBroadcastJobRunner<E>
 where
     E: OutboxEventMarker<CoreTimeEvent>,
 {
@@ -80,7 +77,7 @@ where
 }
 
 #[async_trait]
-impl<E> JobRunner for EndOfDayJobRunner<E>
+impl<E> JobRunner for EndOfDayBroadcastJobRunner<E>
 where
     E: OutboxEventMarker<CoreTimeEvent>,
 {
@@ -88,18 +85,14 @@ where
         &self,
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        // include these queries in the loop?
-        let tz_config = self
+        // TODO: include these queries in the loop once past date issue resolved
+        let time_events_config = self
             .domain_configs
-            .get_or_default::<TimezoneConfig>()
+            .get_or_default::<TimeEventsConfigSpec>()
             .await?;
 
-        let closing_time_config = self
-            .domain_configs
-            .get_or_default::<ClosingTimeConfig>()
-            .await?;
-
-        let schedule = ClosingSchedule::new(tz_config.timezone, closing_time_config.closing_time);
+        let schedule =
+            ClosingSchedule::new(time_events_config.timezone, time_events_config.closing_time);
 
         loop {
             let current_time = crate::time::now();
@@ -107,11 +100,11 @@ where
 
             let duration_until_close = match (closing_time - current_time).to_std() {
                 Ok(duration) => duration,
-                // sleep or continue if past date returned/make it impossible to return past dates?
+                // TODO: either sleep or continue if past date returned/make it impossible to return past dates?
                 Err(err) => {
                     tracing::warn!(
                         job_id = %current_job.id(),
-                        job_type = %END_OF_DAY_JOB,
+                        job_type = %END_OF_DAY_BROADCAST_JOB,
                         current_time = %current_time,
                         closing_time = %closing_time,
                         error = %err,
@@ -127,7 +120,7 @@ where
                 _ = current_job.shutdown_requested() => {
                     tracing::info!(
                         job_id = %current_job.id(),
-                        job_type = %END_OF_DAY_JOB,
+                        job_type = %END_OF_DAY_BROADCAST_JOB,
                         "Shutdown signal received"
                     );
                     return Ok(JobCompletion::RescheduleNow);
@@ -143,7 +136,7 @@ where
 
                     tracing::info!(
                         job_id = %current_job.id(),
-                        job_type = %END_OF_DAY_JOB,
+                        job_type = %END_OF_DAY_BROADCAST_JOB,
                         closing_time = %closing_time,
                         "End of day event published"
                     );

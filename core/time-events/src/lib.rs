@@ -49,8 +49,8 @@ impl<T: Now> TimeEvents<T> {
         E: OutboxEventMarker<CoreTimeEvent>,
     {
         jobs.add_initializer_and_spawn_unique(
-            jobs::end_of_day::EndOfDayJobInit::<E>::new(outbox, domain_configs),
-            jobs::end_of_day::EndOfDayJobConfig::<E> {
+            jobs::end_of_day::EndOfDayBroadcastJobInit::<E>::new(outbox, domain_configs),
+            jobs::end_of_day::EndOfDayBroadcastJobConfig::<E> {
                 _phantom: std::marker::PhantomData,
             },
         )

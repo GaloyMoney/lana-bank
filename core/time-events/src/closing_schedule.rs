@@ -31,7 +31,6 @@ impl ClosingSchedule {
             // if from_utc < closing_time and both lie in ambiguous window, we get the past/earliest/dt1 closing time
             // even if called for time in second occurrence, which will probably change, also shown in test
             chrono::LocalResult::Ambiguous(dt1, _) => dt1,
-            // pick earliest
             chrono::LocalResult::None => self
                 .timezone
                 .from_local_datetime(&(closing_naive_dt + chrono::Duration::hours(1)))

@@ -2,30 +2,29 @@ use chrono::NaiveTime;
 use chrono_tz::Tz;
 use serde::{Deserialize, Serialize};
 
-use domain_config::{DomainConfigError, DomainConfigKey, DomainConfigValue};
+use domain_config::{Complex, ConfigSpec, DomainConfigError, DomainConfigKey, Visibility};
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
-pub struct TimezoneConfig {
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct TimeEventsConfig {
     pub timezone: Tz,
-}
-
-impl DomainConfigValue for TimezoneConfig {
-    const KEY: DomainConfigKey = DomainConfigKey::new("timezone");
-
-    fn validate(&self) -> Result<(), DomainConfigError> {
-        Ok(())
-    }
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
-pub struct ClosingTimeConfig {
     pub closing_time: NaiveTime,
 }
 
-impl DomainConfigValue for ClosingTimeConfig {
-    const KEY: DomainConfigKey = DomainConfigKey::new("closing-time");
+pub struct TimeEventsConfigSpec;
 
-    fn validate(&self) -> Result<(), DomainConfigError> {
+impl ConfigSpec for TimeEventsConfigSpec {
+    const KEY: DomainConfigKey = DomainConfigKey::new("time-events");
+    const VISIBILITY: Visibility = Visibility::Internal;
+    type Kind = Complex<TimeEventsConfig>;
+
+    fn default_value() -> Option<TimeEventsConfig> {
+        Some(TimeEventsConfig {
+            timezone: Tz::default(),
+            closing_time: NaiveTime::default(),
+        })
+    }
+
+    fn validate(_value: &TimeEventsConfig) -> Result<(), DomainConfigError> {
         Ok(())
     }
 }
