@@ -5,7 +5,6 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-use audit::SystemSubject;
 use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
 
 pub use cala_ledger::{
@@ -69,11 +68,11 @@ impl EntityRef {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum LedgerTransactionInitiator {
-    User { id: uuid::Uuid },
     System,
+    User { id: uuid::Uuid },
 }
 
 #[derive(Debug, Error)]
@@ -86,54 +85,27 @@ pub enum LedgerTransactionInitiatorParseError {
 
 impl ErrorSeverity for LedgerTransactionInitiatorParseError {
     fn severity(&self) -> Level {
-        Level::WARN
-    }
-}
-
-impl std::fmt::Display for LedgerTransactionInitiator {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::User { id } => write!(f, "user:{id}"),
-            Self::System => write!(f, "system"),
-        }
-    }
-}
-
-impl FromStr for LedgerTransactionInitiator {
-    type Err = LedgerTransactionInitiatorParseError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if let Some(id_str) = s.strip_prefix("user:") {
-            let id = uuid::Uuid::parse_str(id_str)
-                .map_err(|_| LedgerTransactionInitiatorParseError::InvalidUserId)?;
-            return Ok(Self::User { id });
-        }
-        if s == "system" {
-            return Ok(Self::System);
-        }
-        Err(LedgerTransactionInitiatorParseError::UnknownInitiator)
+        Level::ERROR
     }
 }
 
 impl LedgerTransactionInitiator {
-    pub fn user(id: uuid::Uuid) -> Self {
-        Self::User { id }
-    }
-
-    pub fn system() -> Self {
-        Self::System
-    }
-
     pub fn try_from_subject<S>(subject: &S) -> Result<Self, LedgerTransactionInitiatorParseError>
     where
-        S: std::fmt::Display + SystemSubject,
+        S: std::fmt::Display + audit::SystemSubject,
     {
         let raw = subject.to_string();
         if raw == S::system().to_string() {
             return Ok(Self::System);
         }
 
-        raw.parse()
+        if let Some(id_str) = raw.strip_prefix("user:") {
+            let id = uuid::Uuid::parse_str(id_str)
+                .map_err(|_| LedgerTransactionInitiatorParseError::InvalidUserId)?;
+            return Ok(Self::User { id });
+        }
+
+        Err(LedgerTransactionInitiatorParseError::UnknownInitiator)
     }
 }
 

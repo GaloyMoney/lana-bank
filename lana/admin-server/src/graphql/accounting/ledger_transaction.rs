@@ -87,11 +87,7 @@ impl LedgerTransaction {
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<LedgerTransactionInitiator> {
-        let Some(ref initiated_by) = self.entity.initiated_by else {
-            return Ok(LedgerTransactionInitiator::System(System::system()));
-        };
-
-        match initiated_by {
+        match &self.entity.initiated_by {
             DomainLedgerTransactionInitiator::User { id } => {
                 let loader = ctx.data_unchecked::<LanaDataLoader>();
                 match loader.load_one(UserId::from(*id)).await? {
@@ -100,7 +96,7 @@ impl LedgerTransaction {
                 }
             }
             DomainLedgerTransactionInitiator::System => {
-                Ok(LedgerTransactionInitiator::System(System::system()))
+                Ok(LedgerTransactionInitiator::System(System::lana()))
             }
         }
     }

@@ -8,18 +8,12 @@ use super::{access::User, loader::*};
 
 #[derive(SimpleObject)]
 pub struct System {
-    name: String,
+    name: &'static str,
 }
 
 impl System {
-    pub const SYSTEM_NAME: &'static str = "lana";
-
-    pub fn new(name: impl Into<String>) -> Self {
-        Self { name: name.into() }
-    }
-
-    pub fn system() -> Self {
-        Self::new(Self::SYSTEM_NAME)
+    pub fn lana() -> Self {
+        Self { name: "lana" }
     }
 }
 
@@ -56,7 +50,7 @@ impl AuditEntry {
                     Some(user) => Ok(AuditSubject::User(user)),
                 }
             }
-            DomainSubject::System => Ok(AuditSubject::System(System::system())),
+            DomainSubject::System => Ok(AuditSubject::System(System::lana())),
             DomainSubject::Customer(_) => {
                 panic!("Whoops - have we gone live yet?");
             }

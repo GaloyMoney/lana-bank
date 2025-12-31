@@ -12,13 +12,13 @@ pub struct LedgerTransaction {
     pub description: Option<String>,
     pub effective: chrono::NaiveDate,
     pub entity_ref: Option<EntityRef>,
-    pub initiated_by: Option<LedgerTransactionInitiator>,
+    pub initiated_by: LedgerTransactionInitiator,
 }
 
 #[derive(serde::Deserialize)]
 struct ExtractMetadata {
     entity_ref: Option<EntityRef>,
-    initiated_by: Option<String>,
+    initiated_by: LedgerTransactionInitiator,
 }
 impl
     TryFrom<(
@@ -39,17 +39,12 @@ impl
             .map(JournalEntry::try_from)
             .collect::<Result<_, _>>()?;
 
-        let extracted = tx.metadata::<ExtractMetadata>().unwrap_or(None);
-        let (entity_ref, initiated_by) = match extracted {
-            Some(meta) => {
-                let initiated_by = meta
-                    .initiated_by
-                    .as_deref()
-                    .and_then(|raw| raw.parse::<LedgerTransactionInitiator>().ok());
-                (meta.entity_ref, initiated_by)
-            }
-            None => (None, None),
-        };
+        let ExtractMetadata {
+            entity_ref,
+            initiated_by,
+        } = tx
+            .metadata::<ExtractMetadata>()?
+            .ok_or(super::error::LedgerTransactionError::MissingMetadata)?;
 
         Ok(Self {
             id: tx.id,

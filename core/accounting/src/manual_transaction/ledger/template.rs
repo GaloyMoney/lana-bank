@@ -108,7 +108,7 @@ impl From<ManualTransactionParams> for Params {
         params.insert(
             "meta",
             serde_json::json!({
-                "initiated_by": input_params.initiated_by.to_string(),
+                "initiated_by": input_params.initiated_by,
             }),
         );
 
