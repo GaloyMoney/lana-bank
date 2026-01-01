@@ -19,16 +19,29 @@ pub struct CreditFacilityLedgerAccountIds {
     pub disbursed_receivable_due_account_id: CalaAccountId,
     pub disbursed_receivable_overdue_account_id: CalaAccountId,
     pub disbursed_defaulted_account_id: CalaAccountId,
+
+    /// Holds BTC collateral for this credit facility.
     pub collateral_account_id: CalaAccountId,
+
+    /// Holds BTC collateral for this credit facility, that is being
+    /// liquidated.
     pub collateral_in_liquidation_account_id: CalaAccountId,
+
+    /// Holds BTC collateral for this credit facility, that has
+    /// already been liquidated.
     pub liquidated_collateral_account_id: CalaAccountId,
-    pub liquidation_payment_receivable_account_id: CalaAccountId,
+
+    /// Holds funds received from liquidation.
+    pub liquidation_in_holding_account_id: CalaAccountId,
+
     pub interest_receivable_not_yet_due_account_id: CalaAccountId,
     pub interest_receivable_due_account_id: CalaAccountId,
     pub interest_receivable_overdue_account_id: CalaAccountId,
     pub interest_defaulted_account_id: CalaAccountId,
     pub interest_income_account_id: CalaAccountId,
     pub fee_income_account_id: CalaAccountId,
+
+    /// Holds funds meant for payment allocation.
     pub payment_holding_account_id: CalaAccountId,
 }
 
@@ -45,7 +58,7 @@ impl CreditFacilityLedgerAccountIds {
             collateral_account_id: CalaAccountId::new(),
             collateral_in_liquidation_account_id: CalaAccountId::new(),
             liquidated_collateral_account_id: CalaAccountId::new(),
-            liquidation_payment_receivable_account_id: CalaAccountId::new(),
+            liquidation_in_holding_account_id: CalaAccountId::new(),
             interest_receivable_not_yet_due_account_id: CalaAccountId::new(),
             interest_receivable_due_account_id: CalaAccountId::new(),
             interest_receivable_overdue_account_id: CalaAccountId::new(),
@@ -68,7 +81,7 @@ impl From<PendingCreditFacilityAccountIds> for CreditFacilityLedgerAccountIds {
             collateral_account_id: proposal_ids.collateral_account_id,
             collateral_in_liquidation_account_id: CalaAccountId::new(),
             liquidated_collateral_account_id: CalaAccountId::new(),
-            liquidation_payment_receivable_account_id: CalaAccountId::new(),
+            liquidation_in_holding_account_id: CalaAccountId::new(),
             interest_receivable_not_yet_due_account_id: CalaAccountId::new(),
             interest_receivable_due_account_id: CalaAccountId::new(),
             interest_receivable_overdue_account_id: CalaAccountId::new(),

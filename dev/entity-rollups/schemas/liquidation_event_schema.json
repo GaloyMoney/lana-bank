@@ -30,6 +30,10 @@
           "format": "uuid",
           "type": "string"
         },
+        "facility_payment_holding_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
         "id": {
           "format": "uuid",
           "type": "string"
@@ -44,15 +48,11 @@
           "format": "uuid",
           "type": "string"
         },
-        "liquidation_payment_receivable_account_id": {
+        "liquidation_in_holding_account_id": {
           "format": "uuid",
           "type": "string"
         },
-        "omnibus_account_id": {
-          "format": "uuid",
-          "type": "string"
-        },
-        "payment_holding_account_id": {
+        "liquidation_omnibus_account_id": {
           "format": "uuid",
           "type": "string"
         },
@@ -68,9 +68,9 @@
         "type",
         "id",
         "credit_facility_id",
-        "omnibus_account_id",
-        "payment_holding_account_id",
-        "liquidation_payment_receivable_account_id",
+        "liquidation_omnibus_account_id",
+        "liquidation_in_holding_account_id",
+        "facility_payment_holding_account_id",
         "collateral_account_id",
         "collateral_in_liquidation_account_id",
         "liquidated_collateral_account_id",

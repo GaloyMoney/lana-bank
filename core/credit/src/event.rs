@@ -122,7 +122,6 @@ pub enum CoreCreditEvent {
         liquidation_id: LiquidationId,
         credit_facility_id: CreditFacilityId,
         customer_id: CustomerId,
-        payment_holding_account_id: CalaAccountId,
         trigger_price: PriceOfOneBTC,
         initially_expected_to_receive: UsdCents,
         initially_estimated_to_liquidate: Satoshis,

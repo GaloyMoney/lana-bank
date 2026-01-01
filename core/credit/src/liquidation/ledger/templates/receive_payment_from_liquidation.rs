@@ -28,8 +28,8 @@ pub const RECEIVE_PAYMENT_FROM_LIQUIDATION: &str = "RECEIVE_PAYMENT_FROM_LIQUIDA
 #[derive(Debug)]
 pub struct ReceivePaymentFromLiquidationParams {
     pub journal_id: JournalId,
-    pub fiat_omnibus_account_id: CalaAccountId,
-    pub fiat_facility_holding_account_id: CalaAccountId,
+    pub fiat_liquidation_omnibus_account_id: CalaAccountId,
+    pub fiat_liquidation_in_holding_account_id: CalaAccountId,
     pub amount_received: UsdCents,
     pub currency: Currency,
     pub btc_in_liquidation_account_id: CalaAccountId,
@@ -52,7 +52,7 @@ impl ReceivePaymentFromLiquidationParams {
                 .build()
                 .expect("Could not build param definition"),
             NewParamDefinition::builder()
-                .name("facility_holding_account_id")
+                .name("in_holding_account_id")
                 .r#type(ParamDataType::Uuid)
                 .build()
                 .expect("Could not build param definition"),
@@ -94,8 +94,8 @@ impl From<ReceivePaymentFromLiquidationParams> for Params {
     fn from(
         ReceivePaymentFromLiquidationParams {
             journal_id,
-            fiat_omnibus_account_id,
-            fiat_facility_holding_account_id,
+            fiat_liquidation_omnibus_account_id,
+            fiat_liquidation_in_holding_account_id,
             amount_received,
             currency,
             btc_in_liquidation_account_id,
@@ -106,10 +106,10 @@ impl From<ReceivePaymentFromLiquidationParams> for Params {
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
-        params.insert("omnibus_account_id", fiat_omnibus_account_id);
+        params.insert("omnibus_account_id", fiat_liquidation_omnibus_account_id);
         params.insert(
-            "facility_holding_account_id",
-            fiat_facility_holding_account_id,
+            "in_holding_account_id",
+            fiat_liquidation_in_holding_account_id,
         );
         params.insert("amount_received", amount_received.to_usd());
         params.insert("currency", currency);
@@ -148,7 +148,7 @@ impl ReceivePaymentFromLiquidation {
             NewTxTemplateEntry::builder()
                 .entry_type("'RECEIVE_PAYMENT_FROM_LIQUIDATION_CR'")
                 .currency("params.currency")
-                .account_id("params.facility_holding_account_id")
+                .account_id("params.in_holding_account_id")
                 .direction("CREDIT")
                 .layer("SETTLED")
                 .units("params.amount_received")
