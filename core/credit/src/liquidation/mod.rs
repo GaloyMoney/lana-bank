@@ -106,7 +106,7 @@ where
                 .create_in_op(
                     db,
                     new_liquidation
-                        .omnibus_account_id(self.omnibus_account_ids.account_id)
+                        .liquidation_omnibus_account_id(self.omnibus_account_ids.account_id)
                         .build()
                         .expect("Could not build new liquidation"),
                 )
@@ -185,8 +185,8 @@ where
             )
             .await?;
 
-        let mut liquidation = self.repo.find_by_id(liquidation_id).await?;
         let mut db = self.repo.begin_op().await?;
+        let mut liquidation = self.repo.find_by_id_in_op(&mut db, liquidation_id).await?;
 
         let tx_id = CalaTransactionId::new();
 
@@ -303,8 +303,8 @@ where
 
 #[derive(Clone, Debug)]
 pub struct RecordPaymentFromLiquidationData {
-    pub omnibus_account_id: CalaAccountId,
-    pub facility_holding_account_id: CalaAccountId,
+    pub liquidation_omnibus_account_id: CalaAccountId,
+    pub liquidation_in_holding_account_id: CalaAccountId,
     pub amount_received: UsdCents,
     pub collateral_in_liquidation_account_id: CalaAccountId,
     pub liquidated_collateral_account_id: CalaAccountId,
