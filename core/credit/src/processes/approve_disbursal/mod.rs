@@ -2,7 +2,6 @@ mod job;
 
 use std::sync::Arc;
 
-use ::job::Jobs;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use governance::{
@@ -32,7 +31,6 @@ where
 {
     disbursals: Arc<Disbursals<Perms, E>>,
     credit_facilities: Arc<CreditFacilities<Perms, E>>,
-    jobs: Arc<Jobs>,
     governance: Arc<Governance<Perms, E>>,
     ledger: Arc<CreditLedger>,
 }
@@ -48,7 +46,6 @@ where
         Self {
             disbursals: self.disbursals.clone(),
             credit_facilities: self.credit_facilities.clone(),
-            jobs: self.jobs.clone(),
             governance: self.governance.clone(),
             ledger: self.ledger.clone(),
         }
@@ -69,14 +66,12 @@ where
     pub fn new(
         disbursals: Arc<Disbursals<Perms, E>>,
         credit_facilities: Arc<CreditFacilities<Perms, E>>,
-        jobs: Arc<Jobs>,
         governance: Arc<Governance<Perms, E>>,
         ledger: Arc<CreditLedger>,
     ) -> Self {
         Self {
             disbursals,
             credit_facilities,
-            jobs,
             governance,
             ledger,
         }

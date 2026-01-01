@@ -14,7 +14,6 @@ use obix::out::OutboxEventMarker;
 use public_id::PublicIds;
 
 use crate::{
-    Jobs,
     credit_facility::CreditFacilities,
     disbursal::Disbursals,
     error::CoreCreditError,
@@ -36,7 +35,6 @@ where
     disbursals: Arc<Disbursals<Perms, E>>,
     ledger: Arc<CreditLedger>,
     price: Arc<Price>,
-    jobs: Arc<Jobs>,
     audit: Arc<Perms::Audit>,
     public_ids: Arc<PublicIds>,
 }
@@ -54,7 +52,6 @@ where
             disbursals: self.disbursals.clone(),
             ledger: self.ledger.clone(),
             price: self.price.clone(),
-            jobs: self.jobs.clone(),
             audit: self.audit.clone(),
             public_ids: self.public_ids.clone(),
         }
@@ -76,7 +73,6 @@ where
         disbursals: Arc<Disbursals<Perms, E>>,
         ledger: Arc<CreditLedger>,
         price: Arc<Price>,
-        jobs: Arc<Jobs>,
         audit: Arc<Perms::Audit>,
         public_ids: Arc<PublicIds>,
     ) -> Self {
@@ -85,7 +81,6 @@ where
             disbursals,
             ledger,
             price,
-            jobs,
             audit,
             public_ids,
         }

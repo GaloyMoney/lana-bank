@@ -9,7 +9,6 @@ use authz::PermissionCheck;
 use core_custody::{CoreCustody, CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use core_price::Price;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
-use job::Jobs;
 use obix::out::OutboxEventMarker;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
@@ -52,7 +51,6 @@ where
     custody: Arc<CoreCustody<Perms, E>>,
     collaterals: Arc<Collaterals<Perms, E>>,
     authz: Arc<Perms>,
-    jobs: Arc<Jobs>,
     price: Arc<Price>,
     ledger: Arc<CreditLedger>,
     governance: Arc<Governance<Perms, E>>,
@@ -71,7 +69,6 @@ where
             custody: self.custody.clone(),
             collaterals: self.collaterals.clone(),
             authz: self.authz.clone(),
-            jobs: self.jobs.clone(),
             price: self.price.clone(),
             ledger: self.ledger.clone(),
             governance: self.governance.clone(),
@@ -96,7 +93,6 @@ where
         custody: Arc<CoreCustody<Perms, E>>,
         collaterals: Arc<Collaterals<Perms, E>>,
         authz: Arc<Perms>,
-        jobs: Arc<Jobs>,
         ledger: Arc<CreditLedger>,
         price: Arc<Price>,
         publisher: &crate::CreditFacilityPublisher<E>,
@@ -110,7 +106,6 @@ where
             custody,
             collaterals,
             authz,
-            jobs,
             price,
             ledger,
             governance,
