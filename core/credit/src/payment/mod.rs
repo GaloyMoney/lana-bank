@@ -7,6 +7,7 @@ use std::sync::Arc;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use core_accounting::LedgerTransactionInitiator;
 
 use crate::{ledger::CreditLedger, primitives::*};
 
@@ -80,6 +81,7 @@ where
         payment_source_account_id: PaymentSourceAccountId,
         amount: UsdCents,
         effective: chrono::NaiveDate,
+        initiated_by: LedgerTransactionInitiator,
     ) -> Result<Option<Payment>, PaymentError> {
         let new_payment = NewPayment::builder()
             .id(payment_id)
@@ -96,7 +98,9 @@ where
             Ok(None)
         } else {
             let payment = self.repo.create_in_op(db, new_payment).await?;
-            self.ledger.record_payment(db, &payment).await?;
+            self.ledger
+                .record_payment(db, &payment, initiated_by)
+                .await?;
             Ok(Some(payment))
         }
     }

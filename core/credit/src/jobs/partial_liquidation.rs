@@ -236,6 +236,7 @@ where
                     crate::primitives::CalaAccountId::new(),
                 );
 
+                let initiated_by = LedgerTransactionInitiator::System;
                 let effective = crate::time::now().date_naive();
                 if let Some(payment) = self
                     .payments
@@ -247,6 +248,7 @@ where
                         facility_liquidation_account.into(),
                         *amount,
                         effective,
+                        initiated_by,
                     )
                     .await?
                 {
@@ -255,7 +257,7 @@ where
                         .await?;
 
                     self.obligations
-                        .allocate_payment_in_op(db, &payment)
+                        .allocate_payment_in_op(db, &payment, initiated_by)
                         .await?;
                 }
 

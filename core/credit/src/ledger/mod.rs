@@ -1355,6 +1355,7 @@ impl CreditLedger {
             effective,
             ..
         }: &Payment,
+        initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), CreditLedgerError> {
         let params = templates::RecordPaymentParams {
             journal_id: self.journal_id,
@@ -1364,6 +1365,7 @@ impl CreditLedger {
             payment_holding_account_id: *payment_holding_account_id,
             tx_ref: payment.tx_ref(),
             effective: *effective,
+            initiated_by,
         };
         self.cala
             .post_transaction_in_op(op, *ledger_tx_id, templates::RECORD_PAYMENT_CODE, params)

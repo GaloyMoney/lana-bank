@@ -225,6 +225,7 @@ where
             credit_facility_id,
             ..
         }: &Payment,
+        initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), ObligationError> {
         let span = Span::current();
         let mut obligations = self.facility_obligations(*credit_facility_id).await?;

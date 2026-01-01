@@ -20,6 +20,7 @@ pub struct RecordPaymentParams {
     pub payment_holding_account_id: CalaAccountId,
     pub tx_ref: String,
     pub effective: chrono::NaiveDate,
+    pub initiated_by: core_accounting::LedgerTransactionInitiator,
 }
 
 impl RecordPaymentParams {
@@ -60,6 +61,11 @@ impl RecordPaymentParams {
                 .r#type(ParamDataType::Date)
                 .build()
                 .unwrap(),
+            NewParamDefinition::builder()
+                .name("meta")
+                .r#type(ParamDataType::Json)
+                .build()
+                .unwrap(),
         ]
     }
 }
@@ -73,6 +79,7 @@ impl From<RecordPaymentParams> for Params {
             payment_holding_account_id,
             tx_ref,
             effective,
+            initiated_by,
         }: RecordPaymentParams,
     ) -> Self {
         let mut params = Self::default();
@@ -83,6 +90,12 @@ impl From<RecordPaymentParams> for Params {
         params.insert("payment_source_account_id", payment_source_account_id);
         params.insert("payment_holding_account_id", payment_holding_account_id);
         params.insert("effective", effective);
+        params.insert(
+            "meta",
+            serde_json::json!({
+                "initiated_by": initiated_by,
+            }),
+        );
 
         params
     }
@@ -98,6 +111,7 @@ impl RecordPayment {
             .journal_id("params.journal_id")
             .effective("params.effective")
             .external_id("params.external_id")
+            .metadata("params.meta")
             .description("'Record a payment received'")
             .build()
             .expect("Couldn't build TxInput");

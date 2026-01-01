@@ -915,6 +915,7 @@ where
 
         let payment_id = PaymentId::new();
         let effective = crate::time::now().date_naive();
+        let initiated_by = LedgerTransactionInitiator::try_from_subject(sub)?;
         if let Some(payment) = self
             .payments
             .record_in_op(
@@ -925,11 +926,12 @@ where
                 payment_source_account_id,
                 amount,
                 effective,
+                initiated_by,
             )
             .await?
         {
             self.obligations
-                .allocate_payment_in_op(&mut db, &payment)
+                .allocate_payment_in_op(&mut db, &payment, initiated_by)
                 .await?;
 
             db.commit().await?;
@@ -980,6 +982,7 @@ where
         let mut db = self.facilities.begin_op().await?;
 
         let payment_id = PaymentId::new();
+        let initiated_by = LedgerTransactionInitiator::try_from_subject(sub)?;
         if let Some(payment) = self
             .payments
             .record_in_op(
@@ -990,12 +993,12 @@ where
                 payment_source_account_id,
                 amount,
                 effective.into(),
-                LedgerTransactionInitiator::try_from_subject(sub)?,
+                initiated_by,
             )
             .await?
         {
             self.obligations
-                .allocate_payment_in_op(&mut db, &payment)
+                .allocate_payment_in_op(&mut db, &payment, initiated_by)
                 .await?;
             db.commit().await?;
         }
