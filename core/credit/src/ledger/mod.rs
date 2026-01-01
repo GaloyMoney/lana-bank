@@ -130,7 +130,7 @@ pub struct LiquidationAccountSets {
 
     /// Groups accounts tracking payments received from
     /// liquidations.
-    pub payment_receivable: InternalAccountSetDetails,
+    pub liquidation_in_holding: InternalAccountSetDetails,
 }
 
 #[derive(Clone, Copy)]
@@ -156,7 +156,7 @@ impl CreditFacilityInternalAccountSets {
                 LiquidationAccountSets {
                     collateral_in_liquidation,
                     liquidated_collateral,
-                    payment_receivable: liquidation_payment_receivable,
+                    liquidation_in_holding: liquidation_payment_receivable,
                 },
             interest_income,
             fee_income,
@@ -234,7 +234,6 @@ impl CreditLedger {
         templates::InitiateDisbursal::init(cala).await?;
         templates::CancelDisbursal::init(cala).await?;
         templates::ConfirmDisbursal::init(cala).await?;
-        templates::ReserveForLiquidation::init(cala).await?;
         templates::CreateCreditFacilityProposal::init(cala).await?;
         templates::InitialDisbursal::init(cala).await?;
 
@@ -851,7 +850,7 @@ impl CreditLedger {
                 id: liquidated_collateral_account_set_id,
                 normal_balance_type: liquidated_collateral_normal_balance_type,
             },
-            payment_receivable: InternalAccountSetDetails {
+            liquidation_in_holding: InternalAccountSetDetails {
                 id: liquidation_payment_receivable_account_set_id,
                 normal_balance_type: liquidation_payment_receivable_normal_balance_type,
             },
@@ -1107,7 +1106,7 @@ impl CreditLedger {
             interest_income_account_id: _,
             payment_holding_account_id: _,
             collateral_in_liquidation_account_id: _,
-            liquidation_payment_receivable_account_id: _,
+            liquidation_in_holding_account_id: _,
             liquidated_collateral_account_id: _,
         }: CreditFacilityLedgerAccountIds,
     ) -> Result<CreditFacilityBalanceSummary, CreditLedgerError> {
@@ -2076,7 +2075,7 @@ impl CreditLedger {
             interest_income_account_id,
             fee_income_account_id,
             payment_holding_account_id,
-            liquidation_payment_receivable_account_id,
+            liquidation_in_holding_account_id,
             collateral_in_liquidation_account_id,
             liquidated_collateral_account_id,
 
@@ -2290,18 +2289,20 @@ impl CreditLedger {
         )
         .await?;
 
-        let liquidation_payment_receivable_reference =
-            &format!("credit-facility-liquidation-payment-receivable:{credit_facility_id}");
-        let liquidation_payment_receivable_name = &format!(
-            "Liquidation Payment Receivable Account for Credit Facility {credit_facility_id}"
+        let liquidation_in_holding_reference =
+            &format!("credit-facility-liquidation-in-holding:{credit_facility_id}");
+        let liquidation_in_holding_name = &format!(
+            "Liquidation Funds In Holding Account for Credit Facility {credit_facility_id}"
         );
         self.create_account_in_op(
             op,
-            liquidation_payment_receivable_account_id,
-            self.internal_account_sets.liquidation.payment_receivable,
-            liquidation_payment_receivable_reference,
-            liquidation_payment_receivable_name,
-            liquidation_payment_receivable_name,
+            liquidation_in_holding_account_id,
+            self.internal_account_sets
+                .liquidation
+                .liquidation_in_holding,
+            liquidation_in_holding_reference,
+            liquidation_in_holding_name,
+            liquidation_in_holding_name,
             entity_ref,
         )
         .await?;

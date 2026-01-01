@@ -259,7 +259,7 @@ impl CreditFacility {
             liquidation_payment_receivable_account_id: self
                 .entity
                 .account_ids
-                .liquidation_payment_receivable_account_id
+                .liquidation_in_holding_account_id
                 .into(),
             interest_receivable_not_yet_due_account_id: self
                 .entity

@@ -242,7 +242,6 @@ where
             event @ CoreCreditEvent::PartialLiquidationInitiated {
                 liquidation_id,
                 credit_facility_id,
-                payment_holding_account_id,
                 trigger_price,
                 initially_expected_to_receive,
                 initially_estimated_to_liquidate,
@@ -259,9 +258,10 @@ where
                 .await?;
             let CreditFacilityLedgerAccountIds {
                 collateral_account_id,
-                liquidation_payment_receivable_account_id,
                 collateral_in_liquidation_account_id,
                 liquidated_collateral_account_id,
+                liquidation_in_holding_account_id,
+                payment_holding_account_id,
                 ..
             } = credit_facility.account_ids;
 
@@ -273,10 +273,8 @@ where
                     NewLiquidation::builder()
                         .id(*liquidation_id)
                         .credit_facility_id(*credit_facility_id)
-                        .payment_holding_account_id(*payment_holding_account_id)
-                        .liquidation_payment_receivable_account_id(
-                            liquidation_payment_receivable_account_id,
-                        )
+                        .liquidation_in_holding_account_id(liquidation_in_holding_account_id)
+                        .facility_payment_holding_account_id(payment_holding_account_id)
                         .collateral_account_id(collateral_account_id)
                         .collateral_in_liquidation_account_id(collateral_in_liquidation_account_id)
                         .liquidated_collateral_account_id(liquidated_collateral_account_id)
