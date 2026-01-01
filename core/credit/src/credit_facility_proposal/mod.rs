@@ -8,7 +8,6 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_custody::CustodianId;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
-use job::Jobs;
 use obix::out::OutboxEventMarker;
 use tracing::{Span, instrument};
 use tracing_macros::record_error_severity;
@@ -39,7 +38,6 @@ where
 {
     repo: Arc<CreditFacilityProposalRepo<E>>,
     authz: Arc<Perms>,
-    jobs: Arc<Jobs>,
     governance: Arc<Governance<Perms, E>>,
 }
 impl<Perms, E> Clone for CreditFacilityProposals<Perms, E>
@@ -51,7 +49,6 @@ where
         Self {
             repo: self.repo.clone(),
             authz: self.authz.clone(),
-            jobs: self.jobs.clone(),
             governance: self.governance.clone(),
         }
     }
@@ -69,7 +66,6 @@ where
     pub async fn init(
         pool: &sqlx::PgPool,
         authz: Arc<Perms>,
-        jobs: Arc<Jobs>,
         publisher: &crate::CreditFacilityPublisher<E>,
         governance: Arc<Governance<Perms, E>>,
     ) -> Result<Self, CreditFacilityProposalError> {
@@ -87,7 +83,6 @@ where
 
         Ok(Self {
             repo: Arc::new(repo),
-            jobs,
             authz,
             governance,
         })

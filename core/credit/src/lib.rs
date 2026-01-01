@@ -221,7 +221,6 @@ where
         let credit_facility_proposals = CreditFacilityProposals::init(
             pool,
             authz_arc.clone(),
-            jobs_arc.clone(),
             &publisher,
             governance_arc.clone(),
         )
@@ -237,7 +236,6 @@ where
             custody_arc.clone(),
             collaterals_arc.clone(),
             authz_arc.clone(),
-            jobs_arc.clone(),
             ledger_arc.clone(),
             price_arc.clone(),
             &publisher,
@@ -284,7 +282,6 @@ where
         let approve_disbursal = ApproveDisbursal::new(
             disbursals_arc.clone(),
             facilities_arc.clone(),
-            jobs_arc.clone(),
             governance_arc.clone(),
             ledger_arc.clone(),
         );
@@ -303,7 +300,6 @@ where
             disbursals_arc.clone(),
             ledger_arc.clone(),
             price_arc.clone(),
-            jobs_arc.clone(),
             audit_arc.clone(),
             public_ids_arc.clone(),
         );
