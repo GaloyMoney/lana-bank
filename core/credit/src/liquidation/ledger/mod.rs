@@ -1,17 +1,17 @@
 mod error;
 mod templates;
 
-use core_money::{Satoshis, UsdCents};
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 use cala_ledger::{
     AccountId as CalaAccountId, CalaLedger, Currency, JournalId, TransactionId as CalaTransactionId,
 };
-use tracing_macros::record_error_severity;
+use core_money::Satoshis;
 
 pub use error::LiquidationLedgerError;
 
-use crate::LiquidationCompletedData;
+use super::RecordPaymentFromLiquidationData;
 
 #[derive(Clone)]
 pub struct LiquidationLedger {
@@ -76,9 +76,7 @@ impl LiquidationLedger {
         &self,
         db: &mut es_entity::DbOp<'_>,
         tx_id: CalaTransactionId,
-        amount: UsdCents,
-        omnibus_account_id: CalaAccountId,
-        receivable_account_id: CalaAccountId,
+        data: RecordPaymentFromLiquidationData,
     ) -> Result<(), LiquidationLedgerError> {
         self.cala
             .post_transaction_in_op(
@@ -86,39 +84,14 @@ impl LiquidationLedger {
                 tx_id,
                 templates::RECEIVE_PAYMENT_FROM_LIQUIDATION,
                 templates::ReceivePaymentFromLiquidationParams {
-                    amount,
                     journal_id: self.journal_id,
-                    omnibus_account_id,
-                    receivable_account_id,
-                    effective: crate::time::now().date_naive(),
+                    fiat_omnibus_account_id: data.omnibus_account_id,
+                    fiat_facility_holding_account_id: data.facility_holding_account_id,
+                    amount_received: data.amount_received,
                     currency: Currency::USD,
-                },
-            )
-            .await?;
-
-        Ok(())
-    }
-
-    #[record_error_severity]
-    #[instrument(
-        name = "core_credit.liquidation.ledger.complete_liquidation_in_op",
-        skip(self, db)
-    )]
-    pub async fn complete_liquidation_in_op(
-        &self,
-        db: &mut es_entity::DbOp<'_>,
-        data: LiquidationCompletedData,
-    ) -> Result<(), LiquidationLedgerError> {
-        self.cala
-            .post_transaction_in_op(
-                db,
-                CalaTransactionId::new(),
-                templates::COMPLETE_LIQUIDATION,
-                templates::CompleteLiquidationParams {
-                    amount: data.sent_total,
-                    journal_id: self.journal_id,
-                    collateral_in_liquidation_account_id: data.collateral_in_liquidation_account_id,
-                    liquidated_collateral_account_id: data.liquidated_collateral_account_id,
+                    btc_in_liquidation_account_id: data.collateral_in_liquidation_account_id,
+                    btc_liquidated_account_id: data.liquidated_collateral_account_id,
+                    amount_liquidated: data.amount_liquidated,
                     effective: crate::time::now().date_naive(),
                 },
             )

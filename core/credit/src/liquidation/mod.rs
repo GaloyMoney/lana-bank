@@ -21,8 +21,8 @@ use crate::{
     CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId, LedgerOmnibusAccountIds,
     LiquidationId, PaymentId,
 };
-pub use entity::NewLiquidation;
-pub use entity::{Liquidation, LiquidationEvent};
+use entity::NewLiquidationBuilder;
+pub use entity::{Liquidation, LiquidationEvent, NewLiquidation};
 use error::LiquidationError;
 use ledger::LiquidationLedger;
 pub(crate) use repo::LiquidationRepo;
@@ -87,7 +87,7 @@ where
         &self,
         db: &mut DbOp<'_>,
         credit_facility_id: CreditFacilityId,
-        new_liquidation: NewLiquidation,
+        new_liquidation: &mut NewLiquidationBuilder,
     ) -> Result<Option<Liquidation>, LiquidationError> {
         let existing_liquidation = self
             .repo
@@ -101,7 +101,16 @@ where
             .record("existing_liquidation_found", existing_liquidation.is_some());
 
         if existing_liquidation.is_none() {
-            let liquidation = self.repo.create_in_op(db, new_liquidation).await?;
+            let liquidation = self
+                .repo
+                .create_in_op(
+                    db,
+                    new_liquidation
+                        .omnibus_account_id(self.omnibus_account_ids.account_id)
+                        .build()
+                        .expect("Could not build new liquidation"),
+                )
+                .await?;
             Ok(Some(liquidation))
         } else {
             Ok(None)
@@ -166,7 +175,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         liquidation_id: LiquidationId,
-        amount: UsdCents,
+        amount_received: UsdCents,
     ) -> Result<Liquidation, LiquidationError> {
         self.authz
             .enforce_permission(
@@ -181,19 +190,14 @@ where
 
         let tx_id = CalaTransactionId::new();
 
-        if liquidation
-            .record_repayment_from_liquidation(amount, PaymentId::new(), tx_id)?
-            .did_execute()
-        {
+        if let Idempotent::Executed(data) = liquidation.record_repayment_from_liquidation(
+            amount_received,
+            PaymentId::new(),
+            tx_id,
+        )? {
             self.repo.update_in_op(&mut db, &mut liquidation).await?;
             self.ledger
-                .record_payment_from_liquidation_in_op(
-                    &mut db,
-                    tx_id,
-                    amount,
-                    self.omnibus_account_ids.account_id,
-                    liquidation.receivable_account_id,
-                )
+                .record_payment_from_liquidation_in_op(&mut db, tx_id, data)
                 .await?;
         }
 
@@ -211,9 +215,8 @@ where
     ) -> Result<(), LiquidationError> {
         let mut liquidation = self.repo.find_by_id(liquidation_id).await?;
 
-        if let Idempotent::Executed(data) = liquidation.complete(payment_id) {
+        if liquidation.complete(payment_id).did_execute() {
             self.repo.update_in_op(db, &mut liquidation).await?;
-            self.ledger.complete_liquidation_in_op(db, data).await?;
         }
 
         Ok(())
@@ -299,8 +302,11 @@ where
 }
 
 #[derive(Clone, Debug)]
-pub struct LiquidationCompletedData {
-    pub sent_total: Satoshis,
+pub struct RecordPaymentFromLiquidationData {
+    pub omnibus_account_id: CalaAccountId,
+    pub facility_holding_account_id: CalaAccountId,
+    pub amount_received: UsdCents,
     pub collateral_in_liquidation_account_id: CalaAccountId,
     pub liquidated_collateral_account_id: CalaAccountId,
+    pub amount_liquidated: Satoshis,
 }

@@ -236,6 +236,7 @@ where
                 );
 
                 let effective = crate::time::now().date_naive();
+
                 if let Some(payment) = self
                     .payments
                     .record_in_op(
@@ -249,12 +250,12 @@ where
                     )
                     .await?
                 {
-                    self.liquidations
-                        .complete_in_op(db, self.config.liquidation_id, *payment_id)
-                        .await?;
-
                     self.obligations
                         .allocate_payment_in_op(db, &payment)
+                        .await?;
+
+                    self.liquidations
+                        .complete_in_op(db, self.config.liquidation_id, *payment_id)
                         .await?;
                 }
 

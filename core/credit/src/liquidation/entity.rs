@@ -6,9 +6,9 @@ use serde::{Deserialize, Serialize};
 use cala_ledger::AccountId as CalaAccountId;
 use es_entity::*;
 
-use crate::{LiquidationCompletedData, primitives::*};
+use crate::primitives::*;
 
-use super::error::LiquidationError;
+use super::{RecordPaymentFromLiquidationData, error::LiquidationError};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -18,6 +18,7 @@ pub enum LiquidationEvent {
     Initialized {
         id: LiquidationId,
         credit_facility_id: CreditFacilityId,
+        omnibus_account_id: CalaAccountId,
         payment_holding_account_id: CalaAccountId,
         liquidation_payment_receivable_account_id: CalaAccountId,
         collateral_account_id: CalaAccountId,
@@ -55,6 +56,7 @@ pub struct Liquidation {
     pub expected_to_receive: UsdCents,
     pub sent_total: Satoshis,
     pub received_total: UsdCents,
+    pub omnibus_account_id: CalaAccountId,
     pub payment_holding_account_id: CalaAccountId,
     pub receivable_account_id: CalaAccountId,
     pub collateral_account_id: CalaAccountId,
@@ -98,7 +100,7 @@ impl Liquidation {
         amount_received: UsdCents,
         payment_id: PaymentId,
         ledger_tx_id: LedgerTxId,
-    ) -> Result<Idempotent<()>, LiquidationError> {
+    ) -> Result<Idempotent<RecordPaymentFromLiquidationData>, LiquidationError> {
         idempotency_guard!(
             self.events.iter_all(),
             LiquidationEvent::RepaymentAmountReceived {
@@ -114,10 +116,17 @@ impl Liquidation {
             ledger_tx_id,
         });
 
-        Ok(Idempotent::Executed(()))
+        Ok(Idempotent::Executed(RecordPaymentFromLiquidationData {
+            omnibus_account_id: self.omnibus_account_id,
+            facility_holding_account_id: self.payment_holding_account_id,
+            amount_received: self.received_total,
+            collateral_in_liquidation_account_id: self.collateral_in_liquidation_account_id,
+            liquidated_collateral_account_id: self.liquidated_collateral_account_id,
+            amount_liquidated: self.sent_total,
+        }))
     }
 
-    pub fn complete(&mut self, payment_id: PaymentId) -> Idempotent<LiquidationCompletedData> {
+    pub fn complete(&mut self, payment_id: PaymentId) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             LiquidationEvent::Completed { .. }
@@ -125,11 +134,7 @@ impl Liquidation {
 
         self.events.push(LiquidationEvent::Completed { payment_id });
 
-        Idempotent::Executed(LiquidationCompletedData {
-            sent_total: self.sent_total,
-            collateral_in_liquidation_account_id: self.collateral_in_liquidation_account_id,
-            liquidated_collateral_account_id: self.liquidated_collateral_account_id,
-        })
+        Idempotent::Executed(())
     }
 
     pub fn is_completed(&self) -> bool {
@@ -179,6 +184,7 @@ impl TryFromEvents<LiquidationEvent> for Liquidation {
                 LiquidationEvent::Initialized {
                     id,
                     credit_facility_id,
+                    omnibus_account_id,
                     payment_holding_account_id,
                     liquidation_payment_receivable_account_id: receivable_account_id,
                     collateral_account_id,
@@ -190,6 +196,7 @@ impl TryFromEvents<LiquidationEvent> for Liquidation {
                     builder = builder
                         .id(*id)
                         .credit_facility_id(*credit_facility_id)
+                        .omnibus_account_id(*omnibus_account_id)
                         .payment_holding_account_id(*payment_holding_account_id)
                         .receivable_account_id(*receivable_account_id)
                         .collateral_account_id(*collateral_account_id)
@@ -225,6 +232,7 @@ pub struct NewLiquidation {
     pub(crate) id: LiquidationId,
     #[builder(setter(into))]
     pub(crate) credit_facility_id: CreditFacilityId,
+    pub(crate) omnibus_account_id: CalaAccountId,
     pub(crate) payment_holding_account_id: CalaAccountId,
     pub(crate) liquidation_payment_receivable_account_id: CalaAccountId,
     pub(crate) collateral_account_id: CalaAccountId,
@@ -248,6 +256,7 @@ impl IntoEvents<LiquidationEvent> for NewLiquidation {
             [LiquidationEvent::Initialized {
                 id: self.id,
                 credit_facility_id: self.credit_facility_id,
+                omnibus_account_id: self.omnibus_account_id,
                 payment_holding_account_id: self.payment_holding_account_id,
                 liquidation_payment_receivable_account_id: self
                     .liquidation_payment_receivable_account_id,

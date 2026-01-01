@@ -1,3 +1,13 @@
+//! Template _Receive Payment From Liquidation_ records that (1) the
+//! part of collateral that was in liquidation has already been
+//! liquidated, and (2) fiat payment was received from liquidator.
+//!
+//! # Accounts in play
+//!
+//! - **fiat omnibus account**: source of all payments from liquidations
+//! - **fiat facility holding account**: holds the payment from facility's liquidation until its allocation
+//! - **btc in liquidation account**: tracks part of facility's collateral that is currently being liquidated
+//! - **btc liquidated account**: tracks part of facility's collateral that has already been liquidated
 use chrono::NaiveDate;
 use tracing::instrument;
 
@@ -8,7 +18,7 @@ use cala_ledger::{
     },
     velocity::{NewParamDefinition, ParamDataType, Params},
 };
-use core_money::UsdCents;
+use core_money::{Satoshis, UsdCents};
 use tracing_macros::record_error_severity;
 
 use crate::liquidation::ledger::LiquidationLedgerError;
@@ -18,10 +28,13 @@ pub const RECEIVE_PAYMENT_FROM_LIQUIDATION: &str = "RECEIVE_PAYMENT_FROM_LIQUIDA
 #[derive(Debug)]
 pub struct ReceivePaymentFromLiquidationParams {
     pub journal_id: JournalId,
-    pub amount: UsdCents,
+    pub fiat_omnibus_account_id: CalaAccountId,
+    pub fiat_facility_holding_account_id: CalaAccountId,
+    pub amount_received: UsdCents,
     pub currency: Currency,
-    pub omnibus_account_id: CalaAccountId,
-    pub receivable_account_id: CalaAccountId,
+    pub btc_in_liquidation_account_id: CalaAccountId,
+    pub btc_liquidated_account_id: CalaAccountId,
+    pub amount_liquidated: Satoshis,
     pub effective: NaiveDate,
 }
 
@@ -34,7 +47,17 @@ impl ReceivePaymentFromLiquidationParams {
                 .build()
                 .expect("Could not build param definition"),
             NewParamDefinition::builder()
-                .name("amount")
+                .name("omnibus_account_id")
+                .r#type(ParamDataType::Uuid)
+                .build()
+                .expect("Could not build param definition"),
+            NewParamDefinition::builder()
+                .name("facility_holding_account_id")
+                .r#type(ParamDataType::Uuid)
+                .build()
+                .expect("Could not build param definition"),
+            NewParamDefinition::builder()
+                .name("amount_received")
                 .r#type(ParamDataType::Decimal)
                 .build()
                 .expect("Could not build param definition"),
@@ -44,13 +67,18 @@ impl ReceivePaymentFromLiquidationParams {
                 .build()
                 .expect("Could not build param definition"),
             NewParamDefinition::builder()
-                .name("omnibus_account_id")
+                .name("in_liquidation_account_id")
                 .r#type(ParamDataType::Uuid)
                 .build()
                 .expect("Could not build param definition"),
             NewParamDefinition::builder()
-                .name("receivable_account_id")
+                .name("liquidated_account_id")
                 .r#type(ParamDataType::Uuid)
+                .build()
+                .expect("Could not build param definition"),
+            NewParamDefinition::builder()
+                .name("amount_liquidated")
+                .r#type(ParamDataType::Decimal)
                 .build()
                 .expect("Could not build param definition"),
             NewParamDefinition::builder()
@@ -65,20 +93,29 @@ impl ReceivePaymentFromLiquidationParams {
 impl From<ReceivePaymentFromLiquidationParams> for Params {
     fn from(
         ReceivePaymentFromLiquidationParams {
-            amount,
-            currency,
-            receivable_account_id,
             journal_id,
+            fiat_omnibus_account_id,
+            fiat_facility_holding_account_id,
+            amount_received,
+            currency,
+            btc_in_liquidation_account_id,
+            btc_liquidated_account_id,
+            amount_liquidated,
             effective,
-            omnibus_account_id,
         }: ReceivePaymentFromLiquidationParams,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
+        params.insert("omnibus_account_id", fiat_omnibus_account_id);
+        params.insert(
+            "facility_holding_account_id",
+            fiat_facility_holding_account_id,
+        );
+        params.insert("amount_received", amount_received.to_usd());
         params.insert("currency", currency);
-        params.insert("amount", amount.to_usd());
-        params.insert("omnibus_account_id", omnibus_account_id);
-        params.insert("receivable_account_id", receivable_account_id);
+        params.insert("in_liquidation_account_id", btc_in_liquidation_account_id);
+        params.insert("liquidated_account_id", btc_liquidated_account_id);
+        params.insert("amount_liquidated", amount_liquidated.to_btc());
         params.insert("effective", effective);
 
         params
@@ -94,7 +131,7 @@ impl ReceivePaymentFromLiquidation {
         let transaction = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")
-            .description("'Send collateral to liquidation'")
+            .description("'Record received payment from liquidation and collateral liquidated'")
             .build()
             .expect("Could not build new template transaction");
 
@@ -105,16 +142,34 @@ impl ReceivePaymentFromLiquidation {
                 .account_id("params.omnibus_account_id")
                 .direction("DEBIT")
                 .layer("SETTLED")
-                .units("params.amount")
+                .units("params.amount_received")
                 .build()
                 .expect("Could not build entry"),
             NewTxTemplateEntry::builder()
                 .entry_type("'RECEIVE_PAYMENT_FROM_LIQUIDATION_CR'")
                 .currency("params.currency")
-                .account_id("params.receivable_account_id")
+                .account_id("params.facility_holding_account_id")
                 .direction("CREDIT")
                 .layer("SETTLED")
-                .units("params.amount")
+                .units("params.amount_received")
+                .build()
+                .expect("Could not build entry"),
+            NewTxTemplateEntry::builder()
+                .entry_type("'RECORD_COLLATERAL_LIQUIDATED_DR'")
+                .currency("'BTC'")
+                .account_id("params.in_liquidation_account_id")
+                .direction("DEBIT")
+                .layer("SETTLED")
+                .units("params.amount_liquidated")
+                .build()
+                .expect("Could not build entry"),
+            NewTxTemplateEntry::builder()
+                .entry_type("'RECORD_COLLATERAL_LIQUIDATED_CR'")
+                .currency("'BTC'")
+                .account_id("params.liquidated_account_id")
+                .direction("CREDIT")
+                .layer("SETTLED")
+                .units("params.amount_liquidated")
                 .build()
                 .expect("Could not build entry"),
         ];
