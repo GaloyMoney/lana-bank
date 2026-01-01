@@ -113,7 +113,7 @@ where
                         disbursal.id,
                         disbursal.disbursal_credit_account_id,
                         obligation,
-                        credit_facility.account_ids.facility_account_id,
+                        credit_facility.account_ids,
                     )
                     .await?;
                 op.commit().await?;
@@ -131,7 +131,7 @@ where
                         disbursal.id,
                         disbursal.initiated_tx_id,
                         disbursal.amount,
-                        credit_facility.account_ids.facility_account_id,
+                        credit_facility.account_ids,
                     )
                     .await?;
                 op.commit().await?;

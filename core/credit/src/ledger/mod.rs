@@ -128,6 +128,7 @@ pub struct CreditFacilityInternalAccountSets {
     pub interest_defaulted: InternalAccountSetDetails,
     pub interest_income: InternalAccountSetDetails,
     pub fee_income: InternalAccountSetDetails,
+    pub uncovered_outstanding: InternalAccountSetDetails,
     pub payment_holding: InternalAccountSetDetails,
 }
 
@@ -139,6 +140,7 @@ impl CreditFacilityInternalAccountSets {
             in_liquidation,
             interest_income,
             fee_income,
+            uncovered_outstanding,
             payment_holding,
 
             disbursed_receivable:
@@ -162,6 +164,7 @@ impl CreditFacilityInternalAccountSets {
             in_liquidation.id,
             interest_income.id,
             fee_income.id,
+            uncovered_outstanding.id,
             payment_holding.id,
             disbursed_defaulted.id,
             interest_defaulted.id,
@@ -186,6 +189,8 @@ pub struct CreditLedger {
     journal_id: JournalId,
     facility_omnibus_account_ids: LedgerOmnibusAccountIds,
     collateral_omnibus_account_ids: LedgerOmnibusAccountIds,
+    interest_added_to_obligations_omnibus_account_ids: LedgerOmnibusAccountIds,
+    payments_omnibus_account_ids: LedgerOmnibusAccountIds,
     in_liquidation_omnibus_account_ids: LedgerOmnibusAccountIds,
     internal_account_sets: CreditFacilityInternalAccountSets,
     credit_facility_control_id: VelocityControlId,
@@ -223,6 +228,31 @@ impl CreditLedger {
             format!("{journal_id}:{CREDIT_COLLATERAL_OMNIBUS_ACCOUNT_REF}"),
             CREDIT_COLLATERAL_OMNIBUS_ACCOUNT_SET_NAME.to_string(),
             collateral_omnibus_normal_balance_type,
+        )
+        .await?;
+
+        let interest_added_to_obligations_omnibus_normal_balance_type = DebitOrCredit::Debit;
+        let interest_added_to_obligations_omnibus_account_ids =
+            Self::find_or_create_omnibus_account(
+                cala,
+                journal_id,
+                format!(
+                    "{journal_id}:{CREDIT_INTEREST_ADDED_TO_OBLIGATIONS_OMNIBUS_ACCOUNT_SET_REF}"
+                ),
+                format!("{journal_id}:{CREDIT_INTEREST_ADDED_TO_OBLIGATIONS_OMNIBUS_ACCOUNT_REF}"),
+                CREDIT_INTEREST_ADDED_TO_OBLIGATIONS_OMNIBUS_ACCOUNT_SET_NAME.to_string(),
+                interest_added_to_obligations_omnibus_normal_balance_type,
+            )
+            .await?;
+
+        let payments_omnibus_normal_balance_type = DebitOrCredit::Credit;
+        let payments_omnibus_account_ids = Self::find_or_create_omnibus_account(
+            cala,
+            journal_id,
+            format!("{journal_id}:{CREDIT_PAYMENTS_OMNIBUS_ACCOUNT_SET_REF}"),
+            format!("{journal_id}:{CREDIT_PAYMENTS_OMNIBUS_ACCOUNT_REF}"),
+            CREDIT_PAYMENTS_OMNIBUS_ACCOUNT_SET_NAME.to_string(),
+            payments_omnibus_normal_balance_type,
         )
         .await?;
 
@@ -630,6 +660,16 @@ impl CreditLedger {
         )
         .await?;
 
+        let uncovered_outstanding_normal_balance_type = DebitOrCredit::Credit;
+        let uncovered_outstanding_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{CREDIT_UNCOVERED_OUTSTANDING_ACCOUNT_SET_REF}"),
+            CREDIT_UNCOVERED_OUTSTANDING_ACCOUNT_SET_NAME.to_string(),
+            uncovered_outstanding_normal_balance_type,
+        )
+        .await?;
+
         let payment_holding_normal_balance_type = DebitOrCredit::Credit;
         let payment_holding_account_set_id = Self::find_or_create_account_set(
             cala,
@@ -827,6 +867,10 @@ impl CreditLedger {
                 id: fee_income_account_set_id,
                 normal_balance_type: fee_income_normal_balance_type,
             },
+            uncovered_outstanding: InternalAccountSetDetails {
+                id: uncovered_outstanding_account_set_id,
+                normal_balance_type: uncovered_outstanding_normal_balance_type,
+            },
             payment_holding: InternalAccountSetDetails {
                 id: payment_holding_account_set_id,
                 normal_balance_type: payment_holding_normal_balance_type,
@@ -852,6 +896,8 @@ impl CreditLedger {
             journal_id,
             facility_omnibus_account_ids,
             collateral_omnibus_account_ids,
+            interest_added_to_obligations_omnibus_account_ids,
+            payments_omnibus_account_ids,
             in_liquidation_omnibus_account_ids,
             internal_account_sets,
             credit_facility_control_id,
@@ -1048,6 +1094,7 @@ impl CreditLedger {
             in_liquidation_account_id: _,
             fee_income_account_id: _,
             interest_income_account_id: _,
+            uncovered_outstanding_account_id: _,
             payment_holding_account_id: _,
         }: CreditFacilityLedgerAccountIds,
     ) -> Result<CreditFacilityBalanceSummary, CreditLedgerError> {
@@ -1566,7 +1613,7 @@ impl CreditLedger {
             amount,
         }: InitialDisbursalOnActivation,
         account_ids: CreditFacilityLedgerAccountIds,
-        debit_account_id: CalaAccountId,
+        disbursed_into_account_id: CalaAccountId,
     ) -> Result<(), CreditLedgerError> {
         let tx_id = disbursal_id.into();
         self.cala
@@ -1576,11 +1623,12 @@ impl CreditLedger {
                 templates::INITIAL_DISBURSAL_CODE,
                 templates::InitialDisbursalParams {
                     journal_id: self.journal_id,
-                    credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
+                    facility_uncovered_outstanding_account: account_ids
+                        .uncovered_outstanding_account_id,
                     credit_facility_account: account_ids.facility_account_id,
                     facility_disbursed_receivable_account: account_ids
                         .disbursed_receivable_not_yet_due_account_id,
-                    debit_account_id,
+                    disbursed_into_account_id,
                     disbursed_amount: amount.to_usd(),
                     currency: self.usd,
                     external_id: format!("{}-initial-disbursal", disbursal_id),
@@ -1715,7 +1763,7 @@ impl CreditLedger {
         entity_id: DisbursalId,
         tx_id: LedgerTxId,
         amount: UsdCents,
-        facility_account_id: CalaAccountId,
+        account_ids: CreditFacilityLedgerAccountIds,
     ) -> Result<(), CreditLedgerError> {
         self.cala
             .post_transaction_in_op(
@@ -1725,8 +1773,9 @@ impl CreditLedger {
                 templates::InitiateDisbursalParams {
                     entity_id: entity_id.into(),
                     journal_id: self.journal_id,
-                    credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
-                    credit_facility_account: facility_account_id,
+                    facility_uncovered_outstanding_account: account_ids
+                        .uncovered_outstanding_account_id,
+                    credit_facility_account: account_ids.facility_account_id,
                     disbursed_amount: amount.to_usd(),
                 },
             )
@@ -1740,7 +1789,7 @@ impl CreditLedger {
         entity_id: DisbursalId,
         tx_id: LedgerTxId,
         amount: UsdCents,
-        facility_account_id: CalaAccountId,
+        account_ids: CreditFacilityLedgerAccountIds,
     ) -> Result<(), CreditLedgerError> {
         self.cala
             .post_transaction_in_op(
@@ -1750,8 +1799,9 @@ impl CreditLedger {
                 templates::CancelDisbursalParams {
                     entity_id: entity_id.into(),
                     journal_id: self.journal_id,
-                    credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
-                    credit_facility_account: facility_account_id,
+                    facility_uncovered_outstanding_account: account_ids
+                        .uncovered_outstanding_account_id,
+                    credit_facility_account: account_ids.facility_account_id,
                     disbursed_amount: amount.to_usd(),
                 },
             )
@@ -1765,7 +1815,7 @@ impl CreditLedger {
         entity_id: DisbursalId,
         disbursed_into_account_id: CalaAccountId,
         obligation: Obligation,
-        facility_account_id: CalaAccountId,
+        account_ids: CreditFacilityLedgerAccountIds,
     ) -> Result<(), CreditLedgerError> {
         let facility_disbursed_receivable_account = obligation.receivable_accounts().not_yet_due;
         let Obligation {
@@ -1783,8 +1833,9 @@ impl CreditLedger {
                 templates::ConfirmDisbursalParams {
                     entity_id: entity_id.into(),
                     journal_id: self.journal_id,
-                    credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
-                    credit_facility_account: facility_account_id,
+                    facility_uncovered_outstanding_account: account_ids
+                        .uncovered_outstanding_account_id,
+                    credit_facility_account: account_ids.facility_account_id,
                     facility_disbursed_receivable_account,
                     disbursed_into_account_id,
                     disbursed_amount: amount.to_usd(),
@@ -2016,6 +2067,7 @@ impl CreditLedger {
             interest_defaulted_account_id,
             interest_income_account_id,
             fee_income_account_id,
+            uncovered_outstanding_account_id,
             payment_holding_account_id,
 
             // these accounts are created during proposal creation
@@ -2196,6 +2248,21 @@ impl CreditLedger {
         )
         .await?;
 
+        let uncovered_outstanding_reference =
+            &format!("credit-facility-uncovered-outstanding:{credit_facility_id}");
+        let uncovered_outstanding_name =
+            &format!("Uncovered Outstanding Account for Credit Facility {credit_facility_id}");
+        self.create_account_in_op(
+            op,
+            uncovered_outstanding_account_id,
+            self.internal_account_sets.uncovered_outstanding,
+            uncovered_outstanding_reference,
+            uncovered_outstanding_name,
+            uncovered_outstanding_name,
+            entity_ref.clone(),
+        )
+        .await?;
+
         let payment_holding_reference =
             &format!("credit-facility-payment-holding:{credit_facility_id}");
         let payment_holding_name =
@@ -2289,6 +2356,9 @@ impl CreditLedger {
             collateral_omnibus_account_ids,
             in_liquidation_omnibus_account_ids,
             internal_account_sets,
+
+            interest_added_to_obligations_omnibus_account_ids: _, // TODO: add to chart
+            payments_omnibus_account_ids: _,                      // TODO: add to chart
 
             cala: _,
             journal_id: _,
