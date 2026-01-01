@@ -244,6 +244,7 @@
           nano
           python313Packages.black
           python313Packages.isort
+          python313Packages.sqlfmt
           podman
           podman-compose
           cachix
@@ -582,12 +583,14 @@
             nativeBuildInputs = [
               pkgs.python313Packages.black
               pkgs.python313Packages.isort
+              pkgs.python313Packages.sqlfmt
             ];
 
             buildPhase = ''
               cd dagster
               black --check --diff src
               isort --check-only src
+              sqlfmt --check src/dbt_lana_dw/models
             '';
 
             installPhase = ''
