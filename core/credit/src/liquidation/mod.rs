@@ -7,6 +7,7 @@ use std::sync::Arc;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use serde::{Deserialize, Serialize};
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
@@ -19,7 +20,7 @@ use obix::out::OutboxEventMarker;
 
 use crate::{
     CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId, LedgerOmnibusAccountIds,
-    LiquidationId, PaymentId,
+    LiquidationId, PaymentId, PaymentSourceAccountId,
 };
 use entity::NewLiquidationBuilder;
 pub use entity::{Liquidation, LiquidationEvent, NewLiquidation};
@@ -304,9 +305,42 @@ where
 #[derive(Clone, Debug)]
 pub struct RecordPaymentFromLiquidationData {
     pub liquidation_omnibus_account_id: CalaAccountId,
-    pub liquidation_in_holding_account_id: CalaAccountId,
+    pub liquidation_in_holding_account_id: FacilityLiquidationInHoldingAccount,
     pub amount_received: UsdCents,
     pub collateral_in_liquidation_account_id: CalaAccountId,
     pub liquidated_collateral_account_id: CalaAccountId,
     pub amount_liquidated: Satoshis,
+}
+
+#[derive(Clone, Debug, Copy, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+#[serde(transparent)]
+pub struct FacilityLiquidationInHoldingAccount(CalaAccountId);
+
+impl FacilityLiquidationInHoldingAccount {
+    pub fn new() -> Self {
+        Self(CalaAccountId::new())
+    }
+
+    pub const fn into_inner(self) -> CalaAccountId {
+        self.0
+    }
+}
+
+impl Default for FacilityLiquidationInHoldingAccount {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl From<FacilityLiquidationInHoldingAccount> for PaymentSourceAccountId {
+    fn from(account: FacilityLiquidationInHoldingAccount) -> Self {
+        Self::new(account.0)
+    }
+}
+
+impl From<FacilityLiquidationInHoldingAccount> for CalaAccountId {
+    fn from(account: FacilityLiquidationInHoldingAccount) -> Self {
+        account.0
+    }
 }

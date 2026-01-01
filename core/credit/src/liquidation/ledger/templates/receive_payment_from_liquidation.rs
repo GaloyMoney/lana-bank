@@ -21,7 +21,7 @@ use cala_ledger::{
 use core_money::{Satoshis, UsdCents};
 use tracing_macros::record_error_severity;
 
-use crate::liquidation::ledger::LiquidationLedgerError;
+use crate::{FacilityLiquidationInHoldingAccount, liquidation::ledger::LiquidationLedgerError};
 
 pub const RECEIVE_PAYMENT_FROM_LIQUIDATION: &str = "RECEIVE_PAYMENT_FROM_LIQUIDATION";
 
@@ -29,7 +29,7 @@ pub const RECEIVE_PAYMENT_FROM_LIQUIDATION: &str = "RECEIVE_PAYMENT_FROM_LIQUIDA
 pub struct ReceivePaymentFromLiquidationParams {
     pub journal_id: JournalId,
     pub fiat_liquidation_omnibus_account_id: CalaAccountId,
-    pub fiat_liquidation_in_holding_account_id: CalaAccountId,
+    pub fiat_liquidation_in_holding_account_id: FacilityLiquidationInHoldingAccount,
     pub amount_received: UsdCents,
     pub currency: Currency,
     pub btc_in_liquidation_account_id: CalaAccountId,
@@ -109,7 +109,7 @@ impl From<ReceivePaymentFromLiquidationParams> for Params {
         params.insert("omnibus_account_id", fiat_liquidation_omnibus_account_id);
         params.insert(
             "in_holding_account_id",
-            fiat_liquidation_in_holding_account_id,
+            fiat_liquidation_in_holding_account_id.into_inner(),
         );
         params.insert("amount_received", amount_received.to_usd());
         params.insert("currency", currency);

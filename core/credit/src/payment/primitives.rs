@@ -14,7 +14,7 @@ impl From<PaymentSourceAccountId> for CalaAccountId {
 }
 
 impl PaymentSourceAccountId {
-    pub fn new(account_id: CalaAccountId) -> Self {
+    pub const fn new(account_id: CalaAccountId) -> Self {
         Self(account_id)
     }
 }
