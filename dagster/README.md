@@ -23,8 +23,8 @@ You can also start with automations deactivated and then activate them yourself 
 From the repo root, rely on the shared Makefile + flake tooling:
 
 ```bash
-make dagster-fmt        # apply black and isort
-make dagster-fmt-check  # just verify
+make dagster-fmt        # apply black, isort, and sqlfmt
+make dagster-fmt-check  # verify formatting (black/isort/sqlfmt)
 ```
 
 ## Env vars
