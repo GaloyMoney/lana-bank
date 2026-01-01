@@ -282,9 +282,7 @@ where
                         .liquidated_collateral_account_id(liquidated_collateral_account_id)
                         .trigger_price(*trigger_price)
                         .initially_expected_to_receive(*initially_expected_to_receive)
-                        .initially_estimated_to_liquidate(*initially_estimated_to_liquidate)
-                        .build()
-                        .expect("Could not build new liquidation"),
+                        .initially_estimated_to_liquidate(*initially_estimated_to_liquidate),
                 )
                 .await?;
 
