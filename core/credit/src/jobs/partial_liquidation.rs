@@ -13,7 +13,6 @@ use job::*;
 use obix::EventSequence;
 use obix::out::*;
 
-use crate::PaymentSourceAccountId;
 use crate::{
     CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId, LiquidationId,
     Obligations, Payments, liquidation::Liquidations,
@@ -224,19 +223,21 @@ where
                     amount,
                     credit_facility_id,
                     payment_id,
-                    payment_holding_account_id,
+                    facility_payment_holding_account_id,
+                    facility_liquidation_in_holding_account_id,
                     ..
                 },
             ) if *credit_facility_id == self.config.credit_facility_id => {
                 Span::current().record("handled", true);
                 Span::current().record("event_type", event.as_ref());
 
+                let initiated_by = LedgerTransactionInitiator::System;
+
                 // TODO: replace with actual account from Liquidation entity
                 let facility_liquidation_account = PlaceholderFacilityLiquidationHoldingAccount(
                     crate::primitives::CalaAccountId::new(),
                 );
 
-                let initiated_by = LedgerTransactionInitiator::System;
                 let effective = crate::time::now().date_naive();
 
                 if let Some(payment) = self
@@ -245,8 +246,8 @@ where
                         db,
                         *payment_id,
                         *credit_facility_id,
-                        *payment_holding_account_id,
-                        facility_liquidation_account.into(),
+                        *facility_payment_holding_account_id,
+                        *facility_liquidation_in_holding_account_id,
                         *amount,
                         effective,
                         initiated_by,
@@ -266,13 +267,5 @@ where
             }
             _ => Ok(ControlFlow::Continue(())),
         }
-    }
-}
-
-struct PlaceholderFacilityLiquidationHoldingAccount(crate::primitives::CalaAccountId);
-
-impl From<PlaceholderFacilityLiquidationHoldingAccount> for PaymentSourceAccountId {
-    fn from(account_id: PlaceholderFacilityLiquidationHoldingAccount) -> Self {
-        Self::new(account_id.0)
     }
 }
