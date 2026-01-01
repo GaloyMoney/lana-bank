@@ -16,6 +16,7 @@ CREATE TABLE core_liquidation_events_rollup (
   ledger_tx_id UUID,
   liquidated_collateral_account_id UUID,
   liquidation_payment_receivable_account_id UUID,
+  omnibus_account_id UUID,
   outstanding BIGINT,
   payment_holding_account_id UUID,
   payment_id UUID,
@@ -70,6 +71,7 @@ BEGIN
     new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
     new_row.liquidated_collateral_account_id := (NEW.event ->> 'liquidated_collateral_account_id')::UUID;
     new_row.liquidation_payment_receivable_account_id := (NEW.event ->> 'liquidation_payment_receivable_account_id')::UUID;
+    new_row.omnibus_account_id := (NEW.event ->> 'omnibus_account_id')::UUID;
     new_row.outstanding := (NEW.event ->> 'outstanding')::BIGINT;
     new_row.payment_holding_account_id := (NEW.event ->> 'payment_holding_account_id')::UUID;
     new_row.payment_id := (NEW.event ->> 'payment_id')::UUID;
@@ -89,6 +91,7 @@ BEGIN
     new_row.ledger_tx_id := current_row.ledger_tx_id;
     new_row.liquidated_collateral_account_id := current_row.liquidated_collateral_account_id;
     new_row.liquidation_payment_receivable_account_id := current_row.liquidation_payment_receivable_account_id;
+    new_row.omnibus_account_id := current_row.omnibus_account_id;
     new_row.outstanding := current_row.outstanding;
     new_row.payment_holding_account_id := current_row.payment_holding_account_id;
     new_row.payment_id := current_row.payment_id;
@@ -106,6 +109,7 @@ BEGIN
       new_row.initially_expected_to_receive := (NEW.event ->> 'initially_expected_to_receive')::BIGINT;
       new_row.liquidated_collateral_account_id := (NEW.event ->> 'liquidated_collateral_account_id')::UUID;
       new_row.liquidation_payment_receivable_account_id := (NEW.event ->> 'liquidation_payment_receivable_account_id')::UUID;
+      new_row.omnibus_account_id := (NEW.event ->> 'omnibus_account_id')::UUID;
       new_row.payment_holding_account_id := (NEW.event ->> 'payment_holding_account_id')::UUID;
       new_row.trigger_price := (NEW.event -> 'trigger_price');
     WHEN 'updated' THEN
@@ -142,6 +146,7 @@ BEGIN
     ledger_tx_id,
     liquidated_collateral_account_id,
     liquidation_payment_receivable_account_id,
+    omnibus_account_id,
     outstanding,
     payment_holding_account_id,
     payment_id,
@@ -165,6 +170,7 @@ BEGIN
     new_row.ledger_tx_id,
     new_row.liquidated_collateral_account_id,
     new_row.liquidation_payment_receivable_account_id,
+    new_row.omnibus_account_id,
     new_row.outstanding,
     new_row.payment_holding_account_id,
     new_row.payment_id,
