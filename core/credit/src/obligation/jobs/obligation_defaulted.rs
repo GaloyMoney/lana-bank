@@ -16,7 +16,7 @@ use crate::{
 };
 
 #[derive(Serialize, Deserialize)]
-pub(crate) struct ObligationDefaultedJobConfig<Perms, E> {
+pub struct ObligationDefaultedJobConfig<Perms, E> {
     pub obligation_id: ObligationId,
     pub effective: chrono::NaiveDate,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,

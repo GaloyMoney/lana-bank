@@ -203,7 +203,7 @@ where
         let authz_arc = Arc::new(authz.clone());
         let governance_arc = Arc::new(governance.clone());
         let jobs_arc = Arc::new(jobs.clone());
-        let new_jobs_arc = Arc::new(job_new.clone());
+        // let mut new_jobs_arc = Arc::new(job_new.clone());
         let price_arc = Arc::new(price.clone());
         let public_ids_arc = Arc::new(public_ids.clone());
         let customer_arc = Arc::new(customer.clone());
@@ -219,7 +219,7 @@ where
             pool,
             authz_arc.clone(),
             ledger_arc.clone(),
-            new_jobs_arc,
+            &mut job_new,
             &publisher,
         );
         let obligations_arc = Arc::new(obligations);
@@ -377,11 +377,6 @@ where
             facilities_arc.as_ref(),
             jobs,
             authz.audit(),
-        ));
-        jobs.add_initializer(obligation_due::ObligationDueInit::<Perms, E>::new(
-            ledger_arc.as_ref(),
-            obligations_arc.as_ref(),
-            jobs,
         ));
         jobs.add_initializer(
             partial_liquidation::PartialLiquidationInit::<Perms, E>::new(

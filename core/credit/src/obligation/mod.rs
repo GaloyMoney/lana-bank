@@ -17,7 +17,6 @@ use obix::out::OutboxEventMarker;
 
 use crate::{
     event::CoreCreditEvent,
-    jobs::obligation_due,
     ledger::CreditLedger,
     payment::Payment,
     payment_allocation::{PaymentAllocation, PaymentAllocationRepo},
@@ -29,7 +28,7 @@ use crate::{
 };
 
 pub use entity::Obligation;
-use jobs::{obligation_defaulted, obligation_overdue};
+use jobs::{obligation_defaulted, obligation_due, obligation_overdue};
 
 #[cfg(feature = "json-schema")]
 pub use entity::ObligationEvent;
@@ -48,6 +47,7 @@ where
     repo: Arc<ObligationRepo<E>>,
     payment_allocation_repo: Arc<PaymentAllocationRepo<E>>,
     ledger: Arc<CreditLedger>,
+    obligation_due_job_spawner: obligation_due::ObligationDueJobSpawner<Perms, E>,
 }
 
 impl<Perms, E> Clone for Obligations<Perms, E>
@@ -61,6 +61,7 @@ where
             repo: self.repo.clone(),
             payment_allocation_repo: self.payment_allocation_repo.clone(),
             ledger: self.ledger.clone(),
+            obligation_due_job_spawner: self.obligation_due_job_spawner.clone(),
         }
     }
 }
@@ -76,7 +77,7 @@ where
         pool: &sqlx::PgPool,
         authz: Arc<Perms>,
         ledger: Arc<CreditLedger>,
-        jobs: Arc<job_new::Jobs>,
+        jobs: &mut job_new::Jobs,
         publisher: &CreditFacilityPublisher<E>,
     ) -> Self {
         let obligation_repo_arc = Arc::new(ObligationRepo::new(pool, publisher));
@@ -95,6 +96,15 @@ where
                 ledger.clone(),
                 obligation_repo_arc.clone(),
                 authz.clone(),
+                obligation_defaulted_job_spawner.clone(),
+            ));
+
+        let obligation_due_job_spawner =
+            jobs.add_initializer(obligation_due::ObligationDueInit::new(
+                ledger.clone(),
+                obligation_repo_arc.clone(),
+                authz.clone(),
+                obligation_overdue_job_spawner,
                 obligation_defaulted_job_spawner,
             ));
 
@@ -103,6 +113,7 @@ where
             repo: obligation_repo_arc,
             ledger,
             payment_allocation_repo: Arc::new(payment_allocation_repo),
+            obligation_due_job_spawner,
         }
     }
 
@@ -116,18 +127,18 @@ where
         new_obligation: NewObligation,
     ) -> Result<Obligation, ObligationError> {
         let obligation = self.repo.create_in_op(&mut *op, new_obligation).await?;
-        // self.jobs
-        //     .create_and_spawn_at_in_op(
-        //         op,
-        //         JobId::new(),
-        //         obligation_due::ObligationDueJobConfig::<Perms, E> {
-        //             obligation_id: obligation.id,
-        //             effective: obligation.due_at().date_naive(),
-        //             _phantom: std::marker::PhantomData,
-        //         },
-        //         obligation.due_at(),
-        //     )
-        //     .await?;
+        self.obligation_due_job_spawner
+            .spawn_at_in_op(
+                op,
+                job_new::JobId::new(),
+                obligation_due::ObligationDueJobConfig::<Perms, E> {
+                    obligation_id: obligation.id,
+                    effective: obligation.due_at().date_naive(),
+                    _phantom: std::marker::PhantomData,
+                },
+                obligation.due_at(),
+            )
+            .await?;
 
         Ok(obligation)
     }
