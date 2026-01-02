@@ -379,7 +379,11 @@ where
         deposit_account_id: impl Into<DepositAccountId> + std::fmt::Debug,
         amount: UsdCents,
         reference: Option<String>,
-    ) -> Result<Deposit, CoreDepositError> {
+    ) -> Result<Deposit, CoreDepositError>
+    where
+        for<'a> LedgerTransactionInitiator:
+            From<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
+    {
         let deposit_account_id = deposit_account_id.into();
         self.authz
             .enforce_permission(
@@ -411,7 +415,7 @@ where
                 deposit_id,
                 amount,
                 deposit_account_id,
-                LedgerTransactionInitiator::try_from_subject(sub)?,
+                LedgerTransactionInitiator::from(sub),
             )
             .await?;
         op.commit().await?;
@@ -426,7 +430,11 @@ where
         deposit_account_id: impl Into<DepositAccountId> + std::fmt::Debug,
         amount: UsdCents,
         reference: Option<String>,
-    ) -> Result<Withdrawal, CoreDepositError> {
+    ) -> Result<Withdrawal, CoreDepositError>
+    where
+        for<'a> LedgerTransactionInitiator:
+            From<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
+    {
         let deposit_account_id = deposit_account_id.into();
         self.authz
             .enforce_permission(
@@ -471,7 +479,7 @@ where
                 withdrawal_id,
                 amount,
                 deposit_account_id,
-                LedgerTransactionInitiator::try_from_subject(sub)?,
+                LedgerTransactionInitiator::from(sub),
             )
             .await?;
 
@@ -486,7 +494,11 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         deposit_id: impl Into<DepositId> + std::fmt::Debug,
-    ) -> Result<Deposit, CoreDepositError> {
+    ) -> Result<Deposit, CoreDepositError>
+    where
+        for<'a> LedgerTransactionInitiator:
+            From<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
+    {
         let id = deposit_id.into();
         self.authz
             .enforce_permission(
@@ -507,7 +519,7 @@ where
                 .revert_deposit(
                     &mut op,
                     deposit_reversal_data,
-                    LedgerTransactionInitiator::try_from_subject(sub)?,
+                    LedgerTransactionInitiator::from(sub),
                 )
                 .await?;
             op.commit().await?;
@@ -522,7 +534,11 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         withdrawal_id: impl Into<WithdrawalId> + std::fmt::Debug,
-    ) -> Result<Withdrawal, CoreDepositError> {
+    ) -> Result<Withdrawal, CoreDepositError>
+    where
+        for<'a> LedgerTransactionInitiator:
+            From<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
+    {
         let id = withdrawal_id.into();
         self.authz
             .enforce_permission(
@@ -546,7 +562,7 @@ where
                 .revert_withdrawal(
                     &mut op,
                     withdrawal_reversal_data,
-                    LedgerTransactionInitiator::try_from_subject(sub)?,
+                    LedgerTransactionInitiator::from(sub),
                 )
                 .await?;
             op.commit().await?;
@@ -561,7 +577,11 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         withdrawal_id: impl Into<WithdrawalId> + std::fmt::Debug,
-    ) -> Result<Withdrawal, CoreDepositError> {
+    ) -> Result<Withdrawal, CoreDepositError>
+    where
+        for<'a> LedgerTransactionInitiator:
+            From<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
+    {
         let id = withdrawal_id.into();
         self.authz
             .enforce_permission(
@@ -588,7 +608,7 @@ where
                 withdrawal.amount,
                 withdrawal.deposit_account_id,
                 format!("lana:withdraw:{}:confirm", withdrawal.id),
-                LedgerTransactionInitiator::try_from_subject(sub)?,
+                LedgerTransactionInitiator::from(sub),
             )
             .await?;
 
@@ -603,7 +623,11 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         withdrawal_id: impl Into<WithdrawalId> + std::fmt::Debug,
-    ) -> Result<Withdrawal, CoreDepositError> {
+    ) -> Result<Withdrawal, CoreDepositError>
+    where
+        for<'a> LedgerTransactionInitiator:
+            From<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
+    {
         let id = withdrawal_id.into();
         self.authz
             .enforce_permission(
@@ -627,7 +651,7 @@ where
                 tx_id,
                 withdrawal.amount,
                 withdrawal.deposit_account_id,
-                LedgerTransactionInitiator::try_from_subject(sub)?,
+                LedgerTransactionInitiator::from(sub),
             )
             .await?;
         op.commit().await?;
@@ -640,7 +664,11 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         account_id: impl Into<DepositAccountId> + std::fmt::Debug,
-    ) -> Result<DepositAccount, CoreDepositError> {
+    ) -> Result<DepositAccount, CoreDepositError>
+    where
+        for<'a> LedgerTransactionInitiator:
+            From<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
+    {
         let account_id = account_id.into();
         self.authz
             .enforce_permission(
@@ -659,11 +687,7 @@ where
                 .update_in_op(&mut op, &mut account)
                 .await?;
             self.ledger
-                .freeze_account_in_op(
-                    &mut op,
-                    &account,
-                    LedgerTransactionInitiator::try_from_subject(sub)?,
-                )
+                .freeze_account_in_op(&mut op, &account, LedgerTransactionInitiator::from(sub))
                 .await?;
 
             op.commit().await?;
@@ -678,7 +702,11 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         account_id: impl Into<DepositAccountId> + std::fmt::Debug,
-    ) -> Result<DepositAccount, CoreDepositError> {
+    ) -> Result<DepositAccount, CoreDepositError>
+    where
+        for<'a> LedgerTransactionInitiator:
+            From<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
+    {
         let account_id = account_id.into();
         self.authz
             .enforce_permission(
@@ -697,11 +725,7 @@ where
                 .update_in_op(&mut op, &mut account)
                 .await?;
             self.ledger
-                .unfreeze_account_in_op(
-                    &mut op,
-                    &account,
-                    LedgerTransactionInitiator::try_from_subject(sub)?,
-                )
+                .unfreeze_account_in_op(&mut op, &account, LedgerTransactionInitiator::from(sub))
                 .await?;
 
             op.commit().await?;

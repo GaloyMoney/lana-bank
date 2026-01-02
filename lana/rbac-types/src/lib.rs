@@ -184,6 +184,16 @@ impl std::fmt::Display for Subject {
     }
 }
 
+impl From<&Subject> for core_accounting::LedgerTransactionInitiator {
+    fn from(value: &Subject) -> Self {
+        match value {
+            Subject::System => Self::System,
+            Subject::User(id) => Self::User { id: (*id).into() },
+            Subject::Customer(id) => Self::Customer { id: (*id).into() },
+        }
+    }
+}
+
 impl TryFrom<&Subject> for core_deposit::DepositAccountHolderId {
     type Error = &'static str;
 

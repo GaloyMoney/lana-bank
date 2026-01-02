@@ -7,6 +7,7 @@ edition = "2024"
 fail-on-warnings = []
 graphql = [ "dep:async-graphql" ]
 json-schema = ["dep:schemars", "es-entity/json-schema", "cala-ledger/json-schema", "document-storage/json-schema"]
+test-dummy = ["authz/test-dummy"]
 
 [dependencies]
 audit = { workspace = true }

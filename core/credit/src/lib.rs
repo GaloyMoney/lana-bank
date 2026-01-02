@@ -664,7 +664,11 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
-    ) -> Result<Disbursal, CoreCreditError> {
+    ) -> Result<Disbursal, CoreCreditError>
+    where
+        for<'a> LedgerTransactionInitiator:
+            From<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
+    {
         self.subject_can_initiate_disbursal(sub, true)
             .await?
             .expect("audit info missing");
@@ -736,7 +740,7 @@ where
                 disbursal.initiated_tx_id,
                 disbursal.amount,
                 facility.account_ids.facility_account_id,
-                LedgerTransactionInitiator::try_from_subject(sub)?,
+                LedgerTransactionInitiator::from(sub),
             )
             .await?;
 
@@ -769,7 +773,11 @@ where
         pending_credit_facility_id: impl Into<PendingCreditFacilityId> + std::fmt::Debug + Copy,
         updated_collateral: Satoshis,
         effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
-    ) -> Result<PendingCreditFacility, CoreCreditError> {
+    ) -> Result<PendingCreditFacility, CoreCreditError>
+    where
+        for<'a> LedgerTransactionInitiator:
+            From<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
+    {
         let effective = effective.into();
 
         self.subject_can_update_collateral(sub, true)
@@ -808,7 +816,7 @@ where
                 &mut db,
                 collateral_update,
                 pending_facility.account_ids,
-                LedgerTransactionInitiator::try_from_subject(sub)?,
+                LedgerTransactionInitiator::from(sub),
             )
             .await?;
 
@@ -825,7 +833,11 @@ where
         credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug + Copy,
         updated_collateral: Satoshis,
         effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
-    ) -> Result<CreditFacility, CoreCreditError> {
+    ) -> Result<CreditFacility, CoreCreditError>
+    where
+        for<'a> LedgerTransactionInitiator:
+            From<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
+    {
         let credit_facility_id = credit_facility_id.into();
         let effective = effective.into();
 
@@ -859,7 +871,7 @@ where
                 &mut db,
                 collateral_update,
                 credit_facility.account_ids.collateral_account_id,
-                LedgerTransactionInitiator::try_from_subject(sub)?,
+                LedgerTransactionInitiator::from(sub),
             )
             .await?;
 
@@ -893,7 +905,11 @@ where
         credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug + Copy,
         payment_source_account_id: impl Into<PaymentSourceAccountId> + std::fmt::Debug + Copy,
         amount: UsdCents,
-    ) -> Result<CreditFacility, CoreCreditError> {
+    ) -> Result<CreditFacility, CoreCreditError>
+    where
+        for<'a> LedgerTransactionInitiator:
+            From<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
+    {
         self.subject_can_record_payment(sub, true)
             .await?
             .expect("audit info missing");
@@ -915,7 +931,7 @@ where
 
         let payment_id = PaymentId::new();
         let effective = crate::time::now().date_naive();
-        let initiated_by = LedgerTransactionInitiator::try_from_subject(sub)?;
+        let initiated_by = LedgerTransactionInitiator::from(sub);
         if let Some(payment) = self
             .payments
             .record_in_op(
@@ -966,7 +982,11 @@ where
         payment_source_account_id: impl Into<PaymentSourceAccountId> + std::fmt::Debug + Copy,
         amount: UsdCents,
         effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
-    ) -> Result<CreditFacility, CoreCreditError> {
+    ) -> Result<CreditFacility, CoreCreditError>
+    where
+        for<'a> LedgerTransactionInitiator:
+            From<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
+    {
         self.subject_can_record_payment_with_date(sub, true)
             .await?
             .expect("audit info missing");
@@ -982,7 +1002,7 @@ where
         let mut db = self.facilities.begin_op().await?;
 
         let payment_id = PaymentId::new();
-        let initiated_by = LedgerTransactionInitiator::try_from_subject(sub)?;
+        let initiated_by = LedgerTransactionInitiator::from(sub);
         if let Some(payment) = self
             .payments
             .record_in_op(
@@ -1029,7 +1049,11 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug + Copy,
-    ) -> Result<CreditFacility, CoreCreditError> {
+    ) -> Result<CreditFacility, CoreCreditError>
+    where
+        for<'a> LedgerTransactionInitiator:
+            From<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
+    {
         let id = credit_facility_id.into();
 
         self.subject_can_complete(sub, true)
@@ -1059,7 +1083,7 @@ where
                     .complete_credit_facility(
                         &mut db,
                         completion,
-                        LedgerTransactionInitiator::try_from_subject(sub)?,
+                        LedgerTransactionInitiator::from(sub),
                     )
                     .await?;
                 db.commit().await?;
