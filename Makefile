@@ -138,7 +138,9 @@ black_status=0; \
 black dagster/src || black_status=$$?; \
 isort_status=0; \
 isort dagster/src || isort_status=$$?; \
-if [[ $$black_status -ne 0 || $$isort_status -ne 0 ]]; then exit 1; fi \
+sqlfmt_status=0; \
+sqlfmt dagster/src/dbt_lana_dw/models || sqlfmt_status=$$?; \
+if [[ $$black_status -ne 0 || $$isort_status -ne 0 || $$sqlfmt_status -ne 0 ]]; then exit 1; fi \
 '
 
 dagster-fmt-check:
@@ -147,7 +149,9 @@ black_status=0; \
 black --check --diff dagster/src || black_status=$$?; \
 isort_status=0; \
 isort --check-only dagster/src || isort_status=$$?; \
-if [[ $$black_status -ne 0 || $$isort_status -ne 0 ]]; then exit 1; fi \
+sqlfmt_status=0; \
+sqlfmt --check dagster/src/dbt_lana_dw/models || sqlfmt_status=$$?; \
+if [[ $$black_status -ne 0 || $$isort_status -ne 0 || $$sqlfmt_status -ne 0 ]]; then exit 1; fi \
 '
 
 # misc
