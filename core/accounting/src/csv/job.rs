@@ -18,15 +18,6 @@ pub struct GenerateAccountingCsvConfig<Perms> {
     pub _phantom: std::marker::PhantomData<Perms>,
 }
 
-impl<Perms> JobConfig for GenerateAccountingCsvConfig<Perms>
-where
-    Perms: authz::PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
-{
-    type Initializer = GenerateAccountingCsvInit<Perms>;
-}
-
 pub struct GenerateAccountingCsvInit<Perms>
 where
     Perms: authz::PermissionCheck,
@@ -62,7 +53,9 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
 {
-    fn job_type() -> JobType
+    type Config = GenerateAccountingCsvConfig<Perms>;
+
+    fn job_type(&self) -> JobType
     where
         Self: Sized,
     {

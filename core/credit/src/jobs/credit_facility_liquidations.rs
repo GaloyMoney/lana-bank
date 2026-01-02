@@ -27,17 +27,14 @@ pub struct CreditFacilityLiquidationsJobConfig<Perms, E> {
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
 
-impl<Perms, E> JobConfig for CreditFacilityLiquidationsJobConfig<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
-    E: OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
-{
-    type Initializer = CreditFacilityLiquidationsInit<Perms, E>;
+impl<Perms, E> Clone for CreditFacilityLiquidationsJobConfig<Perms, E> {
+    fn clone(&self) -> Self {
+        Self {
+            _phantom: std::marker::PhantomData,
+        }
+    }
 }
+
 
 pub struct CreditFacilityLiquidationsInit<Perms, E>
 where
@@ -47,12 +44,8 @@ where
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
 {
     outbox: Outbox<E>,
-    jobs: Jobs,
     liquidations: Liquidations<Perms, E>,
 }
 
@@ -64,14 +57,10 @@ where
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
 {
-    pub fn new(outbox: &Outbox<E>, jobs: &Jobs, liquidations: &Liquidations<Perms, E>) -> Self {
+    pub fn new(outbox: &Outbox<E>, liquidations: &Liquidations<Perms, E>) -> Self {
         Self {
             outbox: outbox.clone(),
-            jobs: jobs.clone(),
             liquidations: liquidations.clone(),
         }
     }
@@ -91,17 +80,15 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
 {
-    fn job_type() -> JobType
-    where
-        Self: Sized,
-    {
+    type Config = CreditFacilityLiquidationsJobConfig<Perms, E>;
+
+    fn job_type(&self) -> JobType {
         CREDIT_FACILITY_LIQUIDATIONS_JOB
     }
 
     fn init(&self, _job: &job::Job) -> Result<Box<dyn job::JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(CreditFacilityLiquidationsJobRunner::<Perms, E> {
             outbox: self.outbox.clone(),
-            jobs: self.jobs.clone(),
             liquidations: self.liquidations.clone(),
         }))
     }
@@ -115,12 +102,8 @@ where
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
 {
     outbox: Outbox<E>,
-    jobs: Jobs,
     liquidations: Liquidations<Perms, E>,
 }
 
@@ -230,18 +213,12 @@ where
                 )
                 .await?;
 
-            if let Some(liquidation) = maybe_new_liqudation {
-                self.jobs
-                    .create_and_spawn_in_op(
-                        db,
-                        JobId::new(),
-                        partial_liquidation::PartialLiquidationJobConfig::<Perms, E> {
-                            liquidation_id: liquidation.id,
-                            credit_facility_id: *credit_facility_id,
-                            _phantom: std::marker::PhantomData,
-                        },
-                    )
-                    .await?;
+            if let Some(_liquidation) = maybe_new_liqudation {
+                // The partial liquidation job will be spawned by the liquidation system
+                tracing::info!(
+                    credit_facility_id = %credit_facility_id,
+                    "New liquidation created"
+                );
             }
         }
         Ok(())

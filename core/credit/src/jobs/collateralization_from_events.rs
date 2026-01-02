@@ -22,21 +22,6 @@ use crate::{credit_facility::CreditFacilities, event::CoreCreditEvent, primitive
 pub struct CreditFacilityCollateralizationFromEventsJobConfig<Perms, E> {
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
-impl<Perms, E> JobConfig for CreditFacilityCollateralizationFromEventsJobConfig<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
-    E: OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
-{
-    type Initializer = CreditFacilityCollateralizationFromEventsInit<Perms, E>;
-}
-
 pub struct CreditFacilityCollateralizationFromEventsInit<Perms, E>
 where
     Perms: PermissionCheck,
@@ -88,7 +73,9 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
-    fn job_type() -> JobType
+    type Config = CreditFacilityCollateralizationFromEventsJobConfig<Perms, E>;
+
+    fn job_type(&self) -> JobType
     where
         Self: Sized,
     {
@@ -105,7 +92,7 @@ where
         }))
     }
 
-    fn retry_on_error_settings() -> RetrySettings
+    fn retry_on_error_settings(&self) -> RetrySettings
     where
         Self: Sized,
     {

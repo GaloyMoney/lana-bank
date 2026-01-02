@@ -11,25 +11,21 @@ use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 
 use crate::{credit_facility::CreditFacilities, event::CoreCreditEvent, ledger::*, primitives::*};
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub(crate) struct InterestAccrualJobConfig<Perms, E> {
     pub credit_facility_id: CreditFacilityId,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
 
-impl<Perms, E> JobConfig for InterestAccrualJobConfig<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
-    E: OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
-{
-    type Initializer = InterestAccrualInit<Perms, E>;
+impl<Perms, E> Clone for InterestAccrualJobConfig<Perms, E> {
+    fn clone(&self) -> Self {
+        Self {
+            credit_facility_id: self.credit_facility_id,
+            _phantom: std::marker::PhantomData,
+        }
+    }
 }
+
 
 pub struct InterestAccrualInit<Perms, E>
 where
@@ -40,7 +36,6 @@ where
 {
     ledger: CreditLedger,
     credit_facilities: CreditFacilities<Perms, E>,
-    jobs: Jobs,
 }
 
 impl<Perms, E> InterestAccrualInit<Perms, E>
@@ -57,12 +52,10 @@ where
     pub fn new(
         ledger: &CreditLedger,
         credit_facilities: &CreditFacilities<Perms, E>,
-        jobs: &Jobs,
     ) -> Self {
         Self {
             ledger: ledger.clone(),
             credit_facilities: credit_facilities.clone(),
-            jobs: jobs.clone(),
         }
     }
 }
@@ -79,10 +72,9 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
-    fn job_type() -> JobType
-    where
-        Self: Sized,
-    {
+    type Config = InterestAccrualJobConfig<Perms, E>;
+
+    fn job_type(&self) -> JobType {
         INTEREST_ACCRUAL_JOB
     }
 
@@ -91,7 +83,6 @@ where
             config: job.config()?,
             credit_facilities: self.credit_facilities.clone(),
             ledger: self.ledger.clone(),
-            jobs: self.jobs.clone(),
         }))
     }
 }
@@ -106,7 +97,6 @@ where
     config: InterestAccrualJobConfig<Perms, E>,
     credit_facilities: CreditFacilities<Perms, E>,
     ledger: CreditLedger,
-    jobs: Jobs,
 }
 
 #[async_trait]
@@ -137,26 +127,15 @@ where
             .confirm_interest_accrual_in_op(&mut db, self.config.credit_facility_id)
             .await?;
 
+        self.ledger
+            .record_interest_accrual(&mut db, interest_accrual)
+            .await?;
+
         if let Some(period) = next_accrual_period {
-            self.ledger
-                .record_interest_accrual(&mut db, interest_accrual)
-                .await?;
             Ok(JobCompletion::RescheduleAtWithOp(db, period.end))
         } else {
-            self.jobs
-                .create_and_spawn_in_op(
-                    &mut db,
-                    uuid::Uuid::new_v4(),
-                    super::interest_accrual_cycles::InterestAccrualCycleJobConfig::<Perms, E> {
-                        credit_facility_id: self.config.credit_facility_id,
-                        _phantom: std::marker::PhantomData,
-                    },
-                )
-                .await?;
-            self.ledger
-                .record_interest_accrual(&mut db, interest_accrual)
-                .await?;
-
+            // The interest accrual cycle job will be spawned by credit_facilities
+            // when the cycle completes
             tracing::info!(
                 accrued_count = %accrued_count,
                 accrual_idx = %accrual_idx,

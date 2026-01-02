@@ -74,11 +74,9 @@ where
         customers: &Customers<Perms, E>,
         sumsub_client: SumsubClient,
     ) -> Result<Self, DepositSyncError> {
-        jobs.add_initializer_and_spawn_unique(
-            SumsubExportInit::new(outbox, sumsub_client, deposits, customers),
-            SumsubExportJobConfig::<Perms, E>::new(),
-        )
-        .await?;
+        jobs.add_initializer(SumsubExportInit::new(outbox, sumsub_client, deposits, customers))
+            .spawn_unique(JobId::new(), SumsubExportJobConfig::<Perms, E>::new())
+            .await?;
 
         Ok(Self {
             _phantom: std::marker::PhantomData,

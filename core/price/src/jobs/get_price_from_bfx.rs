@@ -21,19 +21,23 @@ where
     pub _phantom: std::marker::PhantomData<E>,
 }
 
-impl<E> JobConfig for GetPriceFromClientJobConfig<E>
-where
-    E: OutboxEventMarker<CorePriceEvent> + Send + Sync + 'static,
-{
-    type Initializer = GetPriceFromClientJobInit<E>;
-}
-
 pub struct GetPriceFromClientJobInit<E>
 where
     E: OutboxEventMarker<CorePriceEvent> + Send + Sync + 'static,
 {
     bfx_client: Arc<BfxClient>,
     outbox: Outbox<E>,
+}
+
+impl<E> GetPriceFromClientJobConfig<E>
+where
+    E: OutboxEventMarker<CorePriceEvent> + Send + Sync + 'static,
+{
+    pub fn new() -> Self {
+        Self {
+            _phantom: std::marker::PhantomData,
+        }
+    }
 }
 
 impl<E> GetPriceFromClientJobInit<E>
@@ -54,7 +58,9 @@ impl<E> JobInitializer for GetPriceFromClientJobInit<E>
 where
     E: OutboxEventMarker<CorePriceEvent> + Send + Sync + 'static,
 {
-    fn job_type() -> JobType {
+    type Config = GetPriceFromClientJobConfig<E>;
+
+    fn job_type(&self) -> JobType {
         GET_PRICE_FROM_CLIENT_JOB_TYPE
     }
 
@@ -65,7 +71,10 @@ where
         }))
     }
 
-    fn retry_on_error_settings() -> RetrySettings {
+    fn retry_on_error_settings(&self) -> RetrySettings
+    where
+        Self: Sized,
+    {
         RetrySettings::repeat_indefinitely()
     }
 }

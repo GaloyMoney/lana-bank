@@ -11,25 +11,21 @@ use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 
 use crate::{credit_facility::CreditFacilities, event::CoreCreditEvent, primitives::*};
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct CreditFacilityMaturityJobConfig<Perms, E> {
     pub credit_facility_id: CreditFacilityId,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
 
-impl<Perms, E> JobConfig for CreditFacilityMaturityJobConfig<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
-    E: OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
-{
-    type Initializer = CreditFacilityMaturityInit<Perms, E>;
+impl<Perms, E> Clone for CreditFacilityMaturityJobConfig<Perms, E> {
+    fn clone(&self) -> Self {
+        Self {
+            credit_facility_id: self.credit_facility_id,
+            _phantom: std::marker::PhantomData,
+        }
+    }
 }
+
 
 pub struct CreditFacilityMaturityInit<Perms, E>
 where
@@ -71,10 +67,9 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
-    fn job_type() -> JobType
-    where
-        Self: Sized,
-    {
+    type Config = CreditFacilityMaturityJobConfig<Perms, E>;
+
+    fn job_type(&self) -> JobType {
         CREDIT_FACILITY_MATURITY_JOB
     }
 

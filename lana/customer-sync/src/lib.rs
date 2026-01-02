@@ -73,32 +73,22 @@ where
     ) -> Result<Self, CustomerSyncError> {
         let keycloak_client = keycloak_client::KeycloakClient::new(config.keycloak.clone());
 
-        jobs.add_initializer_and_spawn_unique(
-            CreateKeycloakUserInit::new(outbox, keycloak_client.clone()),
-            CreateKeycloakUserJobConfig::new(),
-        )
-        .await?;
-        jobs.add_initializer_and_spawn_unique(
-            SyncEmailInit::new(outbox, keycloak_client),
-            SyncEmailJobConfig::new(),
-        )
-        .await?;
-        jobs.add_initializer_and_spawn_unique(
-            CustomerActiveSyncInit::new(outbox, deposit, config.clone()),
-            CustomerActiveSyncJobConfig::new(),
-        )
-        .await?;
-        jobs.add_initializer_and_spawn_unique(
-            UpdateLastActivityDateInit::new(outbox, customers, deposit),
-            UpdateLastActivityDateConfig::new(),
-        )
-        .await?;
+        jobs.add_initializer(CreateKeycloakUserInit::new(outbox, keycloak_client.clone()))
+            .spawn_unique(::job::JobId::new(), CreateKeycloakUserJobConfig::new())
+            .await?;
+        jobs.add_initializer(SyncEmailInit::new(outbox, keycloak_client))
+            .spawn_unique(::job::JobId::new(), SyncEmailJobConfig::new())
+            .await?;
+        jobs.add_initializer(CustomerActiveSyncInit::new(outbox, deposit, config.clone()))
+            .spawn_unique(::job::JobId::new(), CustomerActiveSyncJobConfig::new())
+            .await?;
+        jobs.add_initializer(UpdateLastActivityDateInit::new(outbox, customers, deposit))
+            .spawn_unique(::job::JobId::new(), UpdateLastActivityDateConfig::new())
+            .await?;
 
-        jobs.add_initializer_and_spawn_unique(
-            UpdateCustomerActivityStatusInit::new(customers, config),
-            UpdateCustomerActivityStatusJobConfig::new(),
-        )
-        .await?;
+        jobs.add_initializer(UpdateCustomerActivityStatusInit::new(customers, config))
+            .spawn_unique(::job::JobId::new(), UpdateCustomerActivityStatusJobConfig::new())
+            .await?;
         Ok(Self {
             _phantom: std::marker::PhantomData,
             _outbox: outbox.clone(),

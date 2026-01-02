@@ -23,34 +23,35 @@ struct PartialLiquidationJobData {
     sequence: EventSequence,
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub(crate) struct PartialLiquidationJobConfig<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
 {
     pub liquidation_id: LiquidationId,
     pub credit_facility_id: CreditFacilityId,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
 
-impl<Perms, E> JobConfig for PartialLiquidationJobConfig<Perms, E>
+impl<Perms, E> Clone for PartialLiquidationJobConfig<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
 {
-    type Initializer = PartialLiquidationInit<Perms, E>;
+    fn clone(&self) -> Self {
+        Self {
+            liquidation_id: self.liquidation_id,
+            credit_facility_id: self.credit_facility_id,
+            _phantom: std::marker::PhantomData,
+        }
+    }
 }
+
 
 pub struct PartialLiquidationInit<Perms, E>
 where
@@ -104,10 +105,9 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
 {
-    fn job_type() -> JobType
-    where
-        Self: Sized,
-    {
+    type Config = PartialLiquidationJobConfig<Perms, E>;
+
+    fn job_type(&self) -> JobType {
         PARTIAL_LIQUIDATION_JOB
     }
 

@@ -17,23 +17,19 @@ use crate::{
     obligation::Obligations,
 };
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub(crate) struct InterestAccrualCycleJobConfig<Perms, E> {
     pub credit_facility_id: CreditFacilityId,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
-impl<Perms, E> JobConfig for InterestAccrualCycleJobConfig<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
-    E: OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
-{
-    type Initializer = InterestAccrualCycleInit<Perms, E>;
+
+impl<Perms, E> Clone for InterestAccrualCycleJobConfig<Perms, E> {
+    fn clone(&self) -> Self {
+        Self {
+            credit_facility_id: self.credit_facility_id,
+            _phantom: std::marker::PhantomData,
+        }
+    }
 }
 
 pub(crate) struct InterestAccrualCycleInit<Perms, E>
@@ -46,7 +42,6 @@ where
     ledger: CreditLedger,
     obligations: Obligations<Perms, E>,
     credit_facilities: CreditFacilities<Perms, E>,
-    jobs: Jobs,
     audit: Perms::Audit,
 }
 
@@ -65,14 +60,12 @@ where
         ledger: &CreditLedger,
         obligations: &Obligations<Perms, E>,
         credit_facilities: &CreditFacilities<Perms, E>,
-        jobs: &Jobs,
         audit: &Perms::Audit,
     ) -> Self {
         Self {
             ledger: ledger.clone(),
             obligations: obligations.clone(),
             credit_facilities: credit_facilities.clone(),
-            jobs: jobs.clone(),
             audit: audit.clone(),
         }
     }
@@ -91,10 +84,9 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
-    fn job_type() -> JobType
-    where
-        Self: Sized,
-    {
+    type Config = InterestAccrualCycleJobConfig<Perms, E>;
+
+    fn job_type(&self) -> JobType {
         INTEREST_ACCRUAL_CYCLE_JOB
     }
 
@@ -104,7 +96,6 @@ where
             obligations: self.obligations.clone(),
             credit_facilities: self.credit_facilities.clone(),
             ledger: self.ledger.clone(),
-            jobs: self.jobs.clone(),
             audit: self.audit.clone(),
         }))
     }
@@ -121,7 +112,6 @@ where
     obligations: Obligations<Perms, E>,
     credit_facilities: CreditFacilities<Perms, E>,
     ledger: CreditLedger,
-    jobs: Jobs,
     audit: Perms::Audit,
 }
 
@@ -171,30 +161,20 @@ where
             )
             .await?;
 
-        if let Some(new_cycle_data) = new_cycle_data {
-            let NewInterestAccrualCycleData {
-                id: new_accrual_cycle_id,
-                first_accrual_end_date,
-            } = new_cycle_data;
-
-            self.jobs
-                .create_and_spawn_at_in_op(
-                    &mut op,
-                    new_accrual_cycle_id,
-                    interest_accruals::InterestAccrualJobConfig::<Perms, E> {
-                        credit_facility_id: self.config.credit_facility_id,
-                        _phantom: std::marker::PhantomData,
-                    },
-                    first_accrual_end_date,
-                )
-                .await?;
+        if new_cycle_data.is_some() {
+            // The interest accrual job will be spawned by credit_facilities
+            // when the new cycle starts
+            tracing::info!(
+                credit_facility_id = %self.config.credit_facility_id,
+                "Interest accrual cycle completed, new cycle started"
+            );
         } else {
             tracing::info!(
                 credit_facility_id = %self.config.credit_facility_id,
                 "All interest accrual cycles completed for {}",
                 self.config.credit_facility_id
             );
-        };
+        }
 
         self.ledger
             .record_interest_accrual_cycle(&mut op, facility_accrual_cycle_data)

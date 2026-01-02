@@ -204,10 +204,9 @@ impl<E> JobInitializer for RepaymentPlanProjectionInit<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    fn job_type() -> JobType
-    where
-        Self: Sized,
-    {
+    type Config = RepaymentPlanProjectionConfig<E>;
+
+    fn job_type(&self) -> JobType {
         REPAYMENT_PLAN_PROJECTION
     }
 
@@ -218,10 +217,7 @@ where
         }))
     }
 
-    fn retry_on_error_settings() -> RetrySettings
-    where
-        Self: Sized,
-    {
+    fn retry_on_error_settings(&self) -> RetrySettings {
         RetrySettings::repeat_indefinitely()
     }
 }
@@ -229,10 +225,4 @@ where
 #[derive(Serialize, Deserialize)]
 pub(crate) struct RepaymentPlanProjectionConfig<E> {
     pub _phantom: std::marker::PhantomData<E>,
-}
-impl<E> JobConfig for RepaymentPlanProjectionConfig<E>
-where
-    E: OutboxEventMarker<CoreCreditEvent>,
-{
-    type Initializer = RepaymentPlanProjectionInit<E>;
 }

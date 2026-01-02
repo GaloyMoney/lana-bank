@@ -40,17 +40,15 @@ where
     #[record_error_severity]
     #[tracing::instrument(name = "user_onboarding.init", skip_all)]
     pub async fn init(
-        jobs: &::job::Jobs,
+        jobs: &mut ::job::Jobs,
         outbox: &Outbox<E>,
         config: UserOnboardingConfig,
     ) -> Result<Self, UserOnboardingError> {
         let keycloak_client = keycloak_client::KeycloakClient::new(config.keycloak);
 
-        jobs.add_initializer_and_spawn_unique(
-            UserOnboardingInit::new(outbox, keycloak_client),
-            UserOnboardingJobConfig::new(),
-        )
-        .await?;
+        let spawner = jobs.add_initializer(UserOnboardingInit::new(outbox, keycloak_client));
+        spawner.spawn_unique(::job::JobId::new(), UserOnboardingJobConfig::new()).await?;
+
         Ok(Self {
             _phantom: std::marker::PhantomData,
             _outbox: outbox.clone(),

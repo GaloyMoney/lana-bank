@@ -8,20 +8,21 @@ use obix::out::OutboxEventMarker;
 
 use crate::{event::CoreCreditEvent, ledger::CreditLedger, obligation::Obligations, primitives::*};
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub(crate) struct ObligationDefaultedJobConfig<Perms, E> {
     pub obligation_id: ObligationId,
     pub effective: chrono::NaiveDate,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
-impl<Perms, E> JobConfig for ObligationDefaultedJobConfig<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
-    E: OutboxEventMarker<CoreCreditEvent>,
-{
-    type Initializer = ObligationDefaultedInit<Perms, E>;
+
+impl<Perms, E> Clone for ObligationDefaultedJobConfig<Perms, E> {
+    fn clone(&self) -> Self {
+        Self {
+            obligation_id: self.obligation_id,
+            effective: self.effective,
+            _phantom: std::marker::PhantomData,
+        }
+    }
 }
 pub(crate) struct ObligationDefaultedInit<Perms, E>
 where
@@ -55,10 +56,9 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    fn job_type() -> JobType
-    where
-        Self: Sized,
-    {
+    type Config = ObligationDefaultedJobConfig<Perms, E>;
+
+    fn job_type(&self) -> JobType {
         OBLIGATION_DEFAULTED_JOB
     }
 

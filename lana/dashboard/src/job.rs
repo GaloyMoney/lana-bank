@@ -10,9 +10,6 @@ use crate::{Outbox, repo::DashboardRepo, values::*};
 
 #[derive(serde::Serialize)]
 pub struct DashboardProjectionJobConfig;
-impl JobConfig for DashboardProjectionJobConfig {
-    type Initializer = DashboardProjectionInit;
-}
 
 pub struct DashboardProjectionInit {
     outbox: Outbox,
@@ -30,10 +27,9 @@ impl DashboardProjectionInit {
 
 const DASHBOARD_PROJECTION_JOB: JobType = JobType::new("outbox.dashboard-projection");
 impl JobInitializer for DashboardProjectionInit {
-    fn job_type() -> JobType
-    where
-        Self: Sized,
-    {
+    type Config = DashboardProjectionJobConfig;
+
+    fn job_type(&self) -> JobType {
         DASHBOARD_PROJECTION_JOB
     }
 
@@ -44,10 +40,7 @@ impl JobInitializer for DashboardProjectionInit {
         }))
     }
 
-    fn retry_on_error_settings() -> RetrySettings
-    where
-        Self: Sized,
-    {
+    fn retry_on_error_settings(&self) -> RetrySettings {
         RetrySettings::repeat_indefinitely()
     }
 }

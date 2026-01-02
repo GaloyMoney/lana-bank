@@ -26,7 +26,7 @@ use cala_ledger::CalaLedger;
 use core_accounting::Chart;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerObject, Customers};
 use governance::{Governance, GovernanceEvent};
-use job::Jobs;
+use job::{JobId, Jobs};
 use obix::out::{Outbox, OutboxEventMarker};
 use public_id::PublicIds;
 
@@ -120,7 +120,7 @@ where
         authz: &Perms,
         outbox: &Outbox<E>,
         governance: &Governance<Perms, E>,
-        jobs: &Jobs,
+        jobs: &mut Jobs,
         cala: &CalaLedger,
         journal_id: CalaJournalId,
         public_ids: &PublicIds,
@@ -136,11 +136,9 @@ where
         let approve_withdrawal =
             ApproveWithdrawal::new(&withdrawals, authz.audit(), governance, &ledger);
 
-        jobs.add_initializer_and_spawn_unique(
-            WithdrawApprovalInit::new(outbox, &approve_withdrawal),
-            WithdrawApprovalJobConfig::<Perms, E>::new(),
-        )
-        .await?;
+        jobs.add_initializer(WithdrawApprovalInit::new(outbox, &approve_withdrawal))
+            .spawn_unique(JobId::new(), WithdrawApprovalJobConfig::<Perms, E>::new())
+            .await?;
 
         match governance.init_policy(APPROVE_WITHDRAWAL_PROCESS).await {
             Err(governance::error::GovernanceError::PolicyError(

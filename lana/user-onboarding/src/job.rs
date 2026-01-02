@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use core_access::CoreAccessEvent;
+use serde::{Deserialize, Serialize};
 use tokio::select;
 use tracing::{Span, instrument};
 
@@ -11,7 +12,7 @@ use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use keycloak_client::KeycloakClient;
 
-#[derive(serde::Serialize)]
+#[derive(Deserialize, Serialize)]
 pub struct UserOnboardingJobConfig<E> {
     _phantom: std::marker::PhantomData<E>,
 }
@@ -21,12 +22,6 @@ impl<E> UserOnboardingJobConfig<E> {
             _phantom: std::marker::PhantomData,
         }
     }
-}
-impl<E> JobConfig for UserOnboardingJobConfig<E>
-where
-    E: OutboxEventMarker<CoreAccessEvent>,
-{
-    type Initializer = UserOnboardingInit<E>;
 }
 
 pub struct UserOnboardingInit<E>
@@ -54,7 +49,9 @@ impl<E> JobInitializer for UserOnboardingInit<E>
 where
     E: OutboxEventMarker<CoreAccessEvent>,
 {
-    fn job_type() -> JobType
+    type Config = UserOnboardingJobConfig<E>;
+
+    fn job_type(&self) -> JobType
     where
         Self: Sized,
     {
@@ -68,7 +65,7 @@ where
         }))
     }
 
-    fn retry_on_error_settings() -> RetrySettings
+    fn retry_on_error_settings(&self) -> RetrySettings
     where
         Self: Sized,
     {

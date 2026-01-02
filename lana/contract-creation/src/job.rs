@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use audit::AuditSvc;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerObject};
 use document_storage::{DocumentId, DocumentStorage};
-use job::{CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType};
+use job::{CurrentJob, Job, JobCompletion, JobInitializer, JobRunner, JobType};
 use obix::out::OutboxEventMarker;
 use tracing_macros::record_error_severity;
 
@@ -25,14 +25,17 @@ where
     pub phantom: PhantomData<(Perms, E)>,
 }
 
-impl<Perms, E> JobConfig for GenerateLoanAgreementConfig<Perms, E>
+impl<Perms, E> Clone for GenerateLoanAgreementConfig<Perms, E>
 where
-    Perms: PermissionCheck + Send + Sync,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
-    E: OutboxEventMarker<CoreCustomerEvent> + Send + Sync,
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCustomerEvent>,
 {
-    type Initializer = GenerateLoanAgreementJobInitializer<Perms, E>;
+    fn clone(&self) -> Self {
+        Self {
+            customer_id: self.customer_id,
+            phantom: PhantomData,
+        }
+    }
 }
 
 pub struct GenerateLoanAgreementJobInitializer<Perms, E>
@@ -82,10 +85,9 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
     E: OutboxEventMarker<CoreCustomerEvent> + Send + Sync,
 {
-    fn job_type() -> JobType
-    where
-        Self: Sized,
-    {
+    type Config = GenerateLoanAgreementConfig<Perms, E>;
+
+    fn job_type(&self) -> JobType {
         GENERATE_LOAN_AGREEMENT_JOB
     }
 

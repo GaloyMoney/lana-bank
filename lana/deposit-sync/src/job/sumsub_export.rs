@@ -55,21 +55,6 @@ impl<Perms, E> SumsubExportJobConfig<Perms, E> {
     }
 }
 
-impl<Perms, E> JobConfig for SumsubExportJobConfig<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreDepositAction> + From<CoreCustomerAction> + From<GovernanceAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreDepositObject> + From<CustomerObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<LanaEvent>
-        + std::fmt::Debug,
-{
-    type Initializer = SumsubExportInit<Perms, E>;
-}
 
 pub struct SumsubExportInit<Perms, E>
 where
@@ -123,10 +108,9 @@ where
         + OutboxEventMarker<LanaEvent>
         + std::fmt::Debug,
 {
-    fn job_type() -> JobType
-    where
-        Self: Sized,
-    {
+    type Config = SumsubExportJobConfig<Perms, E>;
+
+    fn job_type(&self) -> JobType {
         SUMSUB_EXPORT_JOB
     }
 
@@ -139,10 +123,7 @@ where
         }))
     }
 
-    fn retry_on_error_settings() -> RetrySettings
-    where
-        Self: Sized,
-    {
+    fn retry_on_error_settings(&self) -> RetrySettings {
         RetrySettings::repeat_indefinitely()
     }
 }

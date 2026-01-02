@@ -34,7 +34,7 @@ where
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
     document_storage: DocumentStorage,
-    jobs: Jobs,
+    spawner: ::job::JobSpawner<GenerateLoanAgreementConfig<Perms, E>>,
     authz: Perms,
     _phantom: std::marker::PhantomData<(Perms, E)>,
 }
@@ -47,7 +47,7 @@ where
     fn clone(&self) -> Self {
         Self {
             document_storage: self.document_storage.clone(),
-            jobs: self.jobs.clone(),
+            spawner: self.spawner.clone(),
             authz: self.authz.clone(),
             _phantom: self._phantom,
         }
@@ -67,14 +67,13 @@ where
         customers: &Customers<Perms, E>,
         applicants: &Applicants<Perms, E>,
         document_storage: &DocumentStorage,
-        jobs: &Jobs,
+        jobs: &mut Jobs,
         authz: &Perms,
     ) -> Self {
         let renderer = rendering::Renderer::new();
         let contract_templates = templates::ContractTemplates::new();
 
-        // Initialize the job system for contract creation
-        jobs.add_initializer(GenerateLoanAgreementJobInitializer::new(
+        let spawner = jobs.add_initializer(GenerateLoanAgreementJobInitializer::new(
             customers,
             applicants,
             document_storage,
@@ -84,7 +83,7 @@ where
 
         Self {
             document_storage: document_storage.clone(),
-            jobs: jobs.clone(),
+            spawner,
             authz: authz.clone(),
             _phantom: std::marker::PhantomData,
         }
@@ -121,8 +120,8 @@ where
             )
             .await?;
 
-        self.jobs
-            .create_and_spawn_in_op::<GenerateLoanAgreementConfig<Perms, E>>(
+        self.spawner
+            .spawn_in_op(
                 &mut db,
                 JobId::from(uuid::Uuid::from(document.id)),
                 GenerateLoanAgreementConfig::<Perms, E> {

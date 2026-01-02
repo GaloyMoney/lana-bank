@@ -14,7 +14,7 @@ use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 
 use crate::{Collaterals, CoreCreditAction, CoreCreditEvent, CoreCreditObject};
 
-#[derive(serde::Serialize)]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub(crate) struct WalletCollateralSyncJobConfig<Perms, E> {
     _phantom: std::marker::PhantomData<(Perms, E)>,
 }
@@ -32,19 +32,6 @@ impl<Perms, E> Default for WalletCollateralSyncJobConfig<Perms, E> {
     }
 }
 
-impl<Perms, E> JobConfig for WalletCollateralSyncJobConfig<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
-    E: OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<GovernanceEvent>,
-{
-    type Initializer = WalletCollateralSyncInit<Perms, E>;
-}
 
 #[derive(Default, Clone, Copy, serde::Deserialize, serde::Serialize)]
 struct WalletCollateralSyncJobData {
@@ -204,10 +191,9 @@ where
         + OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    fn job_type() -> JobType
-    where
-        Self: Sized,
-    {
+    type Config = WalletCollateralSyncJobConfig<Perms, E>;
+
+    fn job_type(&self) -> JobType {
         WALLET_COLLATERAL_SYNC_JOB
     }
 
@@ -218,10 +204,7 @@ where
         }))
     }
 
-    fn retry_on_error_settings() -> RetrySettings
-    where
-        Self: Sized,
-    {
+    fn retry_on_error_settings(&self) -> RetrySettings {
         RetrySettings::repeat_indefinitely()
     }
 }

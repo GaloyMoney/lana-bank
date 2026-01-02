@@ -15,9 +15,6 @@ pub struct EmailSenderConfig {
     pub email_type: EmailType,
 }
 
-impl JobConfig for EmailSenderConfig {
-    type Initializer = EmailSenderInit;
-}
 
 pub struct EmailSenderInit {
     smtp_client: SmtpClient,
@@ -42,7 +39,9 @@ impl EmailSenderInit {
 const EMAIL_SENDER_JOB: JobType = JobType::new("task.email-sender");
 
 impl JobInitializer for EmailSenderInit {
-    fn job_type() -> JobType {
+    type Config = EmailSenderConfig;
+
+    fn job_type(&self) -> JobType {
         EMAIL_SENDER_JOB
     }
 

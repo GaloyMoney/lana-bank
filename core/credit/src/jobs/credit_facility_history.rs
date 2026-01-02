@@ -217,10 +217,9 @@ impl<E> JobInitializer for HistoryProjectionInit<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    fn job_type() -> JobType
-    where
-        Self: Sized,
-    {
+    type Config = HistoryProjectionConfig<E>;
+
+    fn job_type(&self) -> JobType {
         HISTORY_PROJECTION
     }
 
@@ -231,10 +230,7 @@ where
         }))
     }
 
-    fn retry_on_error_settings() -> RetrySettings
-    where
-        Self: Sized,
-    {
+    fn retry_on_error_settings(&self) -> RetrySettings {
         RetrySettings::repeat_indefinitely()
     }
 }
@@ -242,10 +238,4 @@ where
 #[derive(Serialize, Deserialize)]
 pub(crate) struct HistoryProjectionConfig<E> {
     pub _phantom: std::marker::PhantomData<E>,
-}
-impl<E> JobConfig for HistoryProjectionConfig<E>
-where
-    E: OutboxEventMarker<CoreCreditEvent>,
-{
-    type Initializer = HistoryProjectionInit<E>;
 }

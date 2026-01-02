@@ -10,7 +10,6 @@ use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use job::{JobId, Jobs};
 use obix::out::OutboxEventMarker;
 
 use crate::{
@@ -45,7 +44,6 @@ where
     repo: Arc<ObligationRepo<E>>,
     payment_allocation_repo: Arc<PaymentAllocationRepo<E>>,
     ledger: Arc<CreditLedger>,
-    jobs: Arc<Jobs>,
 }
 
 impl<Perms, E> Clone for Obligations<Perms, E>
@@ -59,7 +57,6 @@ where
             repo: self.repo.clone(),
             payment_allocation_repo: self.payment_allocation_repo.clone(),
             ledger: self.ledger.clone(),
-            jobs: self.jobs.clone(),
         }
     }
 }
@@ -75,15 +72,15 @@ where
         pool: &sqlx::PgPool,
         authz: Arc<Perms>,
         ledger: Arc<CreditLedger>,
-        jobs: Arc<Jobs>,
+        jobs: &mut job::Jobs,
         publisher: &CreditFacilityPublisher<E>,
     ) -> Self {
         let obligation_repo = ObligationRepo::new(pool, publisher);
         let payment_allocation_repo = PaymentAllocationRepo::new(pool, publisher);
+
         Self {
             authz,
             repo: Arc::new(obligation_repo),
-            jobs,
             ledger,
             payment_allocation_repo: Arc::new(payment_allocation_repo),
         }
@@ -99,18 +96,18 @@ where
         new_obligation: NewObligation,
     ) -> Result<Obligation, ObligationError> {
         let obligation = self.repo.create_in_op(&mut *op, new_obligation).await?;
-        self.jobs
-            .create_and_spawn_at_in_op(
-                op,
-                JobId::new(),
-                obligation_due::ObligationDueJobConfig::<Perms, E> {
-                    obligation_id: obligation.id,
-                    effective: obligation.due_at().date_naive(),
-                    _phantom: std::marker::PhantomData,
-                },
-                obligation.due_at(),
-            )
-            .await?;
+        // self.obligation_due_spawner
+        //     .spawn_at_in_op(
+        //         op,
+        //         JobId::new(),
+        //         obligation_due::ObligationDueJobConfig::<Perms, E> {
+        //             obligation_id: obligation.id,
+        //             effective: obligation.due_at().date_naive(),
+        //             _phantom: std::marker::PhantomData,
+        //         },
+        //         obligation.due_at(),
+        //     )
+        //     .await?;
 
         Ok(obligation)
     }

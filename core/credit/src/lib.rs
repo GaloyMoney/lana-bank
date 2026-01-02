@@ -181,7 +181,7 @@ where
         pool: &sqlx::PgPool,
         config: CreditConfig,
         governance: &Governance<Perms, E>,
-        jobs: &Jobs,
+        jobs: &mut Jobs,
         authz: &Perms,
         customer: &Customers<Perms, E>,
         custody: &CoreCustody<Perms, E>,
@@ -210,7 +210,7 @@ where
             pool,
             authz_arc.clone(),
             ledger_arc.clone(),
-            jobs_arc.clone(),
+            jobs,
             &publisher,
         );
         let obligations_arc = Arc::new(obligations);
@@ -312,28 +312,33 @@ where
         let terms_templates = TermsTemplates::new(pool, authz_arc.clone());
         let terms_templates_arc = Arc::new(terms_templates);
 
-        jobs
-            .add_initializer_and_spawn_unique(
+        let pending_credit_facility_collateralization_job_spawner =  jobs
+            .add_initializer(
                 collateralization_from_events_for_pending_facility::PendingCreditFacilityCollateralizationFromEventsInit::<
                     Perms,
                     E,
                 >::new(outbox, pending_credit_facilities_arc.as_ref()),
-                collateralization_from_events_for_pending_facility::PendingCreditFacilityCollateralizationFromEventsJobConfig {
-                    _phantom: std::marker::PhantomData,
-                },
-            )
-            .await?;
-        jobs
-            .add_initializer_and_spawn_unique(
+            );
+        pending_credit_facility_collateralization_job_spawner.spawn_unique(job::JobId::new(), pending_credit_facility_collateralization_job_spawner::PendingCreditFacilityCollateralizationFromEventsJobConfig {
+            _phantom: std::marker::PhantomData
+        }).await?;
+
+        let credit_facility_collateralization_job_spawner =
+            jobs.add_initializerer(
                 collateralization_from_events::CreditFacilityCollateralizationFromEventsInit::<
                     Perms,
                     E,
                 >::new(outbox, facilities_arc.as_ref()),
+            );
+        credit_facility_collateralization_job_spawner
+            .spawn_unique(
+                job::JobId::new(),
                 collateralization_from_events::CreditFacilityCollateralizationFromEventsJobConfig {
                     _phantom: std::marker::PhantomData,
                 },
             )
             .await?;
+
         jobs.add_initializer_and_spawn_unique(
             credit_facility_history::HistoryProjectionInit::<E>::new(
                 outbox,
@@ -357,34 +362,34 @@ where
         jobs.add_initializer(interest_accruals::InterestAccrualInit::<Perms, E>::new(
             ledger_arc.as_ref(),
             facilities_arc.as_ref(),
-            jobs,
         ));
         jobs.add_initializer(
             interest_accrual_cycles::InterestAccrualCycleInit::<Perms, E>::new(
                 ledger_arc.as_ref(),
                 obligations_arc.as_ref(),
                 facilities_arc.as_ref(),
-                jobs,
                 authz.audit(),
             ),
         );
-        jobs.add_initializer(obligation_due::ObligationDueInit::<Perms, E>::new(
-            ledger_arc.as_ref(),
-            obligations_arc.as_ref(),
-            jobs,
-        ));
-        jobs.add_initializer(obligation_overdue::ObligationOverdueInit::<Perms, E>::new(
-            ledger_arc.as_ref(),
-            obligations_arc.as_ref(),
-            jobs,
-        ));
-        jobs.add_initializer(
+
+        let obligation_due_spawner =
+            jobs.add_initializer(obligation_due::ObligationDueInit::<Perms, E>::new(
+                ledger_arc.as_ref(),
+                obligations_arc.as_ref(),
+            ));
+        let obligation_overdue_spawner =
+            jobs.add_initializer(obligation_overdue::ObligationOverdueInit::<Perms, E>::new(
+                ledger_arc.as_ref(),
+                obligations_arc.as_ref(),
+            ));
+        let obligation_defaulted_spawner = jobs.add_initializer(
             obligation_defaulted::ObligationDefaultedInit::<Perms, E>::new(
                 ledger_arc.as_ref(),
                 obligations_arc.as_ref(),
             ),
         );
-        jobs.add_initializer(
+
+        let partial_liquidation_job_spawner = jobs.add_initializer(
             partial_liquidation::PartialLiquidationInit::<Perms, E>::new(
                 outbox,
                 liquidations_arc.as_ref(),
@@ -392,42 +397,64 @@ where
                 obligations_arc.as_ref(),
             ),
         );
-        jobs.add_initializer_and_spawn_unique(
+        let liquidations_job_spawner = jobs.add_initializer(
             credit_facility_liquidations::CreditFacilityLiquidationsInit::<Perms, E>::new(
                 outbox,
-                jobs,
                 liquidations_arc.as_ref(),
             ),
-            credit_facility_liquidations::CreditFacilityLiquidationsJobConfig::<Perms, E> {
-                _phantom: std::marker::PhantomData,
-            },
-        )
-        .await?;
-        jobs.add_initializer(credit_facility_maturity::CreditFacilityMaturityInit::<
-            Perms,
-            E,
-        >::new(facilities_arc.as_ref()));
-        jobs.add_initializer_and_spawn_unique(
-            DisbursalApprovalInit::new(outbox, approve_disbursal_arc.as_ref()),
-            DisbursalApprovalJobConfig::<Perms, E>::new(),
-        )
-        .await?;
-        jobs.add_initializer_and_spawn_unique(
-            CreditFacilityActivationInit::new(outbox, activate_credit_facility_arc.as_ref()),
-            CreditFacilityActivationJobConfig::<Perms, E>::new(),
-        )
-        .await?;
-        jobs.add_initializer_and_spawn_unique(
-            CreditFacilityProposalApprovalInit::new(outbox, approve_proposal_arc.as_ref()),
-            CreditFacilityProposalApprovalJobConfig::<Perms, E>::new(),
-        )
-        .await?;
+        );
+        liquidations_job_spawner
+            .spawn_unique(
+                job::JobId::new(),
+                credit_facility_liquidations::CreditFacilityLiquidationsJobConfig::<Perms, E> {
+                    _phantom: std::marker::PhantomData,
+                },
+            )
+            .await?;
 
-        jobs.add_initializer_and_spawn_unique(
+        let credit_facility_maturity_job_spawner =
+            jobs.add_initializer(credit_facility_maturity::CreditFacilityMaturityInit::<
+                Perms,
+                E,
+            >::new(facilities_arc.as_ref()));
+
+        let disbursal_approval_job_spawner = jobs.add_initializer(DisbursalApprovalInit::new(
+            outbox,
+            approve_disbursal_arc.as_ref(),
+        ));
+        disbursal_approval_job_spawner
+            .spawn_unique(job::JobId::new(), DisbursalApprovalJobConfig::new())
+            .await?;
+
+        let credit_facility_activation_job_spawner = jobs.add_initializer(
+            CreditFacilityActivationInit::new(outbox, activate_credit_facility_arc.as_ref()),
+        );
+        credit_facility_activation_job_spawner
+            .spawn_unique(
+                job::JobId::new(),
+                CreditFacilityActivationJobConfig::<Perms, E>::new(),
+            )
+            .await?;
+
+        let credit_facility_proposal_approval_job_spawner = jobs.add_initializer(
+            CreditFacilityProposalApprovalInit::new(outbox, approve_proposal_arc.as_ref()),
+        );
+        credit_facility_proposal_approval_job_spawner
+            .spawn_unique(
+                job::JobId::new(),
+                CreditFacilityProposalApprovalJobConfig::<Perms, E>::new(),
+            )
+            .await?;
+
+        let wallet_collateral_sync_job_spawner = jobs.add_initializer(
             wallet_collateral_sync::WalletCollateralSyncInit::new(outbox, collaterals_arc.as_ref()),
-            wallet_collateral_sync::WalletCollateralSyncJobConfig::<Perms, E>::new(),
-        )
-        .await?;
+        );
+        wallet_collateral_sync_job_spawner
+            .spawn_unique(
+                job::JobId::new(),
+                wallet_collateral_sync::WalletCollateralSyncJobConfig::<Perms, E>::new(),
+            )
+            .await?;
 
         Ok(Self {
             authz: authz_arc,

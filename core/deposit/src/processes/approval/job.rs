@@ -14,8 +14,8 @@ use crate::{CoreDepositAction, CoreDepositEvent, CoreDepositObject};
 
 use super::ApproveWithdrawal;
 
-#[derive(serde::Serialize)]
-pub(crate) struct WithdrawApprovalJobConfig<Perms, E> {
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
+pub struct WithdrawApprovalJobConfig<Perms, E> {
     _phantom: std::marker::PhantomData<(Perms, E)>,
 }
 impl<Perms, E> WithdrawApprovalJobConfig<Perms, E> {
@@ -25,18 +25,6 @@ impl<Perms, E> WithdrawApprovalJobConfig<Perms, E> {
         }
     }
 }
-impl<Perms, E> JobConfig for WithdrawApprovalJobConfig<Perms, E>
-where
-    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreDepositEvent>,
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreDepositAction> + From<GovernanceAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreDepositObject> + From<GovernanceObject>,
-{
-    type Initializer = WithdrawApprovalInit<Perms, E>;
-}
-
 pub struct WithdrawApprovalInit<Perms, E>
 where
     E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreDepositEvent>,
@@ -77,10 +65,9 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CoreDepositObject> + From<GovernanceObject>,
 {
-    fn job_type() -> JobType
-    where
-        Self: Sized,
-    {
+    type Config = WithdrawApprovalJobConfig<Perms, E>;
+
+    fn job_type(&self) -> JobType {
         WITHDRAW_APPROVE_JOB
     }
 
@@ -91,10 +78,7 @@ where
         }))
     }
 
-    fn retry_on_error_settings() -> RetrySettings
-    where
-        Self: Sized,
-    {
+    fn retry_on_error_settings(&self) -> RetrySettings {
         RetrySettings::repeat_indefinitely()
     }
 }

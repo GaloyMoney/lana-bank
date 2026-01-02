@@ -22,12 +22,6 @@ impl<E> SyncEmailJobConfig<E> {
     }
 }
 
-impl<E> JobConfig for SyncEmailJobConfig<E>
-where
-    E: OutboxEventMarker<CoreCustomerEvent>,
-{
-    type Initializer = SyncEmailInit<E>;
-}
 
 pub struct SyncEmailInit<E>
 where
@@ -54,10 +48,9 @@ impl<E> JobInitializer for SyncEmailInit<E>
 where
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
-    fn job_type() -> JobType
-    where
-        Self: Sized,
-    {
+    type Config = SyncEmailJobConfig<E>;
+
+    fn job_type(&self) -> JobType {
         SYNC_EMAIL_JOB
     }
 
@@ -68,10 +61,7 @@ where
         }))
     }
 
-    fn retry_on_error_settings() -> RetrySettings
-    where
-        Self: Sized,
-    {
+    fn retry_on_error_settings(&self) -> RetrySettings {
         RetrySettings::repeat_indefinitely()
     }
 }

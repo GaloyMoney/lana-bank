@@ -15,7 +15,7 @@ use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use job::*;
 
-use crate::config::*;
+use crate::{config::*, job::UpdateCustomerActivityStatusJobConfig};
 
 #[derive(serde::Serialize)]
 pub struct CustomerActiveSyncJobConfig<Perms, E> {
@@ -27,19 +27,6 @@ impl<Perms, E> CustomerActiveSyncJobConfig<Perms, E> {
             _phantom: std::marker::PhantomData,
         }
     }
-}
-impl<Perms, E> JobConfig for CustomerActiveSyncJobConfig<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCustomerAction> + From<CoreDepositAction> + From<GovernanceAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
-{
-    type Initializer = CustomerActiveSyncInit<Perms, E>;
 }
 
 pub struct CustomerActiveSyncInit<Perms, E>
@@ -86,7 +73,9 @@ where
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    fn job_type() -> JobType
+    type Config = UpdateCustomerActivityStatusJobConfig<E>;
+
+    fn job_type(&self) -> JobType
     where
         Self: Sized,
     {
@@ -101,7 +90,7 @@ where
         }))
     }
 
-    fn retry_on_error_settings() -> RetrySettings
+    fn retry_on_error_settings(&self) -> RetrySettings
     where
         Self: Sized,
     {

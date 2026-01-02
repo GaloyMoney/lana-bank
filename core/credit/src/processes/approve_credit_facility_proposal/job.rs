@@ -16,7 +16,7 @@ use crate::{CoreCreditAction, CoreCreditEvent, CoreCreditObject};
 
 use super::ApproveCreditFacilityProposal;
 
-#[derive(serde::Serialize)]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub(crate) struct CreditFacilityProposalApprovalJobConfig<Perms, E> {
     _phantom: std::marker::PhantomData<(Perms, E)>,
 }
@@ -34,19 +34,6 @@ impl<Perms, E> Default for CreditFacilityProposalApprovalJobConfig<Perms, E> {
     }
 }
 
-impl<Perms, E> JobConfig for CreditFacilityProposalApprovalJobConfig<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
-    E: OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
-{
-    type Initializer = CreditFacilityProposalApprovalInit<Perms, E>;
-}
 
 pub(crate) struct CreditFacilityProposalApprovalInit<Perms, E>
 where
@@ -95,10 +82,9 @@ where
         + OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
-    fn job_type() -> JobType
-    where
-        Self: Sized,
-    {
+    type Config = CreditFacilityProposalApprovalJobConfig<Perms, E>;
+
+    fn job_type(&self) -> JobType {
         CREDIT_FACILITY_PROPOSAL_APPROVE_JOB
     }
 
@@ -109,10 +95,7 @@ where
         }))
     }
 
-    fn retry_on_error_settings() -> RetrySettings
-    where
-        Self: Sized,
-    {
+    fn retry_on_error_settings(&self) -> RetrySettings {
         RetrySettings::repeat_indefinitely()
     }
 }

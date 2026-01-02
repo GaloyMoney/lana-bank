@@ -35,20 +35,6 @@ impl<Perms, E> Default for UpdateCustomerActivityStatusJobConfig<Perms, E> {
     }
 }
 
-impl<Perms, E> JobConfig for UpdateCustomerActivityStatusJobConfig<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCustomerAction> + From<CoreDepositAction> + From<GovernanceAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<LanaEvent>
-        + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
-{
-    type Initializer = UpdateCustomerActivityStatusInit<Perms, E>;
-}
 
 pub struct UpdateCustomerActivityStatusInit<Perms, E>
 where
@@ -93,10 +79,9 @@ where
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    fn job_type() -> JobType
-    where
-        Self: Sized,
-    {
+    type Config = UpdateCustomerActivityStatusJobConfig<Perms, E>;
+
+    fn job_type(&self) -> JobType {
         UPDATE_CUSTOMER_ACTIVITY_STATUS
     }
 
@@ -107,10 +92,7 @@ where
         }))
     }
 
-    fn retry_on_error_settings() -> RetrySettings
-    where
-        Self: Sized,
-    {
+    fn retry_on_error_settings(&self) -> RetrySettings {
         RetrySettings::repeat_indefinitely()
     }
 }

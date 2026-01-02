@@ -16,15 +16,7 @@ pub(crate) struct ObligationDueJobConfig<Perms, E> {
     pub effective: chrono::NaiveDate,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
-impl<Perms, E> JobConfig for ObligationDueJobConfig<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
-    E: OutboxEventMarker<CoreCreditEvent>,
-{
-    type Initializer = ObligationDueInit<Perms, E>;
-}
+
 pub struct ObligationDueInit<Perms, E>
 where
     Perms: PermissionCheck,
@@ -59,7 +51,8 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    fn job_type() -> JobType
+    type Config = ObligationDueJobConfig<Perms, E>;
+    fn job_type(&self) -> JobType
     where
         Self: Sized,
     {

@@ -16,7 +16,7 @@ use crate::{CoreCreditAction, CoreCreditEvent, CoreCreditObject};
 
 use super::ApproveDisbursal;
 
-#[derive(serde::Serialize)]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub(crate) struct DisbursalApprovalJobConfig<Perms, E> {
     _phantom: std::marker::PhantomData<(Perms, E)>,
 }
@@ -31,19 +31,6 @@ impl<Perms, E> Default for DisbursalApprovalJobConfig<Perms, E> {
     fn default() -> Self {
         Self::new()
     }
-}
-impl<Perms, E> JobConfig for DisbursalApprovalJobConfig<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
-    E: OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
-{
-    type Initializer = DisbursalApprovalInit<Perms, E>;
 }
 
 pub(crate) struct DisbursalApprovalInit<Perms, E>
@@ -92,10 +79,9 @@ where
         + OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
-    fn job_type() -> JobType
-    where
-        Self: Sized,
-    {
+    type Config = DisbursalApprovalJobConfig<Perms, E>;
+
+    fn job_type(&self) -> JobType {
         DISBURSAL_APPROVE_JOB
     }
 
@@ -106,10 +92,7 @@ where
         }))
     }
 
-    fn retry_on_error_settings() -> RetrySettings
-    where
-        Self: Sized,
-    {
+    fn retry_on_error_settings(&self) -> RetrySettings {
         RetrySettings::repeat_indefinitely()
     }
 }

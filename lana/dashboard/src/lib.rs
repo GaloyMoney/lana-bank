@@ -56,11 +56,9 @@ where
         outbox: &Outbox,
     ) -> Result<Self, DashboardError> {
         let repo = DashboardRepo::new(pool);
-        jobs.add_initializer_and_spawn_unique(
-            DashboardProjectionInit::new(outbox, &repo),
-            DashboardProjectionJobConfig,
-        )
-        .await?;
+        jobs.add_initializer(DashboardProjectionInit::new(outbox, &repo))
+            .spawn_unique(::job::JobId::new(), DashboardProjectionJobConfig)
+            .await?;
         Ok(Self {
             _outbox: outbox.clone(),
             authz: authz.clone(),

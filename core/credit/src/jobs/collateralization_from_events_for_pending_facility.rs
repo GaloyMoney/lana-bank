@@ -24,20 +24,6 @@ use crate::{
 pub struct PendingCreditFacilityCollateralizationFromEventsJobConfig<Perms, E> {
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
-impl<Perms, E> JobConfig for PendingCreditFacilityCollateralizationFromEventsJobConfig<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
-    E: OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
-{
-    type Initializer = PendingCreditFacilityCollateralizationFromEventsInit<Perms, E>;
-}
 
 pub struct PendingCreditFacilityCollateralizationFromEventsInit<Perms, E>
 where
@@ -92,10 +78,9 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
-    fn job_type() -> JobType
-    where
-        Self: Sized,
-    {
+    type Config = PendingCreditFacilityCollateralizationFromEventsJobConfig<Perms, E>;
+
+    fn job_type(&self) -> JobType {
         PENDING_CREDIT_FACILITY_COLLATERALIZATION_FROM_EVENTS_JOB
     }
 
@@ -108,10 +93,7 @@ where
         ))
     }
 
-    fn retry_on_error_settings() -> RetrySettings
-    where
-        Self: Sized,
-    {
+    fn retry_on_error_settings(&self) -> RetrySettings {
         RetrySettings::repeat_indefinitely()
     }
 }

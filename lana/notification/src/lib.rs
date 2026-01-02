@@ -92,11 +92,9 @@ where
         )
         .await?;
 
-        jobs.add_initializer_and_spawn_unique(
-            EmailEventListenerInit::new(outbox, &email),
-            EmailEventListenerConfig::default(),
-        )
-        .await?;
+        jobs.add_initializer(EmailEventListenerInit::new(outbox, &email))
+            .spawn_unique(::job::JobId::new(), EmailEventListenerConfig::default())
+            .await?;
 
         Ok(Self {
             authz: authz.clone(),

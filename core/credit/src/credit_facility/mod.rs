@@ -11,7 +11,7 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_price::Price;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
-use job::{JobId, Jobs};
+use job::JobId;
 use obix::out::OutboxEventMarker;
 
 use crate::{
@@ -54,9 +54,13 @@ where
     authz: Arc<Perms>,
     ledger: Arc<CreditLedger>,
     price: Arc<Price>,
-    jobs: Arc<Jobs>,
     governance: Arc<Governance<Perms, E>>,
     public_ids: Arc<PublicIds>,
+    maturity_spawner: ::job::JobSpawner<
+        super::jobs::credit_facility_maturity::CreditFacilityMaturityJobConfig<Perms, E>,
+    >,
+    interest_accrual_spawner:
+        ::job::JobSpawner<super::jobs::interest_accruals::InterestAccrualJobConfig<Perms, E>>,
 }
 
 impl<Perms, E> Clone for CreditFacilities<Perms, E>
@@ -75,9 +79,10 @@ where
             authz: self.authz.clone(),
             ledger: self.ledger.clone(),
             price: self.price.clone(),
-            jobs: self.jobs.clone(),
             governance: self.governance.clone(),
             public_ids: self.public_ids.clone(),
+            maturity_spawner: self.maturity_spawner.clone(),
+            interest_accrual_spawner: self.interest_accrual_spawner.clone(),
         }
     }
 }
@@ -114,10 +119,11 @@ where
         disbursals: Arc<Disbursals<Perms, E>>,
         ledger: Arc<CreditLedger>,
         price: Arc<Price>,
-        jobs: Arc<Jobs>,
         publisher: &crate::CreditFacilityPublisher<E>,
         governance: Arc<Governance<Perms, E>>,
         public_ids: Arc<PublicIds>,
+        // maturity_spawner: ::job::JobSpawner<super::jobs::credit_facility_maturity::CreditFacilityMaturityJobConfig<Perms, E>>,
+        // interest_accrual_spawner: ::job::JobSpawner<super::jobs::interest_accruals::InterestAccrualJobConfig<Perms, E>>,
     ) -> Self {
         let repo = CreditFacilityRepo::new(pool, publisher);
 
@@ -129,9 +135,10 @@ where
             authz,
             ledger,
             price,
-            jobs,
             governance,
             public_ids,
+            maturity_spawner,
+            interest_accrual_spawner,
         }
     }
 
@@ -190,8 +197,8 @@ where
             .update_in_op(&mut db, &mut credit_facility)
             .await?;
 
-        self.jobs
-            .create_and_spawn_at_in_op(
+        self.maturity_spawner
+            .spawn_at_in_op(
                 &mut db,
                 JobId::new(),
                 // FIXME: I don't think this is updated if/when the facility is updated
@@ -209,8 +216,8 @@ where
             .expect("First accrual not found")
             .id;
 
-        self.jobs
-            .create_and_spawn_at_in_op(
+        self.interest_accrual_spawner
+            .spawn_at_in_op(
                 &mut db,
                 accrual_id,
                 interest_accruals::InterestAccrualJobConfig::<Perms, E> {

@@ -21,12 +21,6 @@ impl<E> CreateKeycloakUserJobConfig<E> {
         }
     }
 }
-impl<E> JobConfig for CreateKeycloakUserJobConfig<E>
-where
-    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
-{
-    type Initializer = CreateKeycloakUserInit<E>;
-}
 
 pub struct CreateKeycloakUserInit<E>
 where
@@ -54,10 +48,9 @@ impl<E> JobInitializer for CreateKeycloakUserInit<E>
 where
     E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
-    fn job_type() -> JobType
-    where
-        Self: Sized,
-    {
+    type Config = CreateKeycloakUserJobConfig<E>;
+
+    fn job_type(&self) -> JobType {
         CUSTOMER_SYNC_CREATE_KEYCLOAK_USER
     }
 
@@ -68,10 +61,7 @@ where
         }))
     }
 
-    fn retry_on_error_settings() -> RetrySettings
-    where
-        Self: Sized,
-    {
+    fn retry_on_error_settings(&self) -> RetrySettings {
         RetrySettings::repeat_indefinitely()
     }
 }
