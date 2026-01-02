@@ -22,8 +22,10 @@ pub enum ObligationError {
     PaymentAllocationError(#[from] crate::payment_allocation::error::PaymentAllocationError),
     #[error("ObligationError - PaymentAmountGreaterThanOutstandingObligations")]
     PaymentAmountGreaterThanOutstandingObligations,
-    #[error("CoreCreditError - ObligationError: {0}")]
+    #[error("ObligationError - ObligationError: {0}")]
     CreditLedgerError(#[from] crate::ledger::error::CreditLedgerError),
+    #[error("ObligationError - JobError: {0}")]
+    NewJobError(#[from] job_new::error::JobError),
 }
 
 impl ErrorSeverity for ObligationError {
@@ -39,6 +41,7 @@ impl ErrorSeverity for ObligationError {
             Self::PaymentAllocationError(e) => e.severity(),
             Self::PaymentAmountGreaterThanOutstandingObligations => Level::WARN,
             Self::CreditLedgerError(e) => e.severity(),
+            Self::NewJobError(_) => Level::ERROR,
         }
     }
 }

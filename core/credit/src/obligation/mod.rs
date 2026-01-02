@@ -12,7 +12,7 @@ use tracing_macros::record_error_severity;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_accounting::LedgerTransactionInitiator;
-use job::{JobId, Jobs};
+// use job::{JobId, Jobs};
 use obix::out::OutboxEventMarker;
 
 use crate::{
@@ -29,7 +29,7 @@ use crate::{
 };
 
 pub use entity::Obligation;
-use jobs::obligation_defaulted;
+use jobs::{obligation_defaulted, obligation_overdue};
 
 #[cfg(feature = "json-schema")]
 pub use entity::ObligationEvent;
@@ -79,18 +79,28 @@ where
         jobs: Arc<job_new::Jobs>,
         publisher: &CreditFacilityPublisher<E>,
     ) -> Self {
-        let obligation_repo = ObligationRepo::new(pool, publisher);
+        let obligation_repo_arc = Arc::new(ObligationRepo::new(pool, publisher));
+
         let payment_allocation_repo = PaymentAllocationRepo::new(pool, publisher);
-        // let record_overdue = RecordOverdue::new(); <- dynamically initialized use case container
-        let spawner = jobs.add_initializer(
+        let obligation_defaulted_job_spawner = jobs.add_initializer(
             obligation_defaulted::ObligationDefaultedInit::<Perms, E>::new(
                 ledger.clone(),
-                // record_overdue_in_op <-
+                obligation_repo_arc.clone(),
+                authz.clone(),
             ),
         );
+
+        let obligation_overdue_job_spawner =
+            jobs.add_initializer(obligation_overdue::ObligationOverdueInit::new(
+                ledger.clone(),
+                obligation_repo_arc.clone(),
+                authz.clone(),
+                obligation_defaulted_job_spawner,
+            ));
+
         Self {
             authz,
-            repo: Arc::new(obligation_repo),
+            repo: obligation_repo_arc,
             ledger,
             payment_allocation_repo: Arc::new(payment_allocation_repo),
         }

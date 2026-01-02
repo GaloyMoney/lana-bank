@@ -383,11 +383,6 @@ where
             obligations_arc.as_ref(),
             jobs,
         ));
-        jobs.add_initializer(obligation_overdue::ObligationOverdueInit::<Perms, E>::new(
-            ledger_arc.as_ref(),
-            obligations_arc.as_ref(),
-            jobs,
-        ));
         jobs.add_initializer(
             partial_liquidation::PartialLiquidationInit::<Perms, E>::new(
                 outbox,
