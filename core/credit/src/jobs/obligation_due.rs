@@ -139,7 +139,13 @@ where
                 .await?;
         }
 
-        self.ledger.record_obligation_due(&mut db, due).await?;
+        self.ledger
+            .record_obligation_due(
+                &mut db,
+                due,
+                core_accounting::LedgerTransactionInitiator::System,
+            )
+            .await?;
 
         Ok(JobCompletion::CompleteWithOp(db))
     }

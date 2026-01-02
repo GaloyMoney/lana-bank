@@ -31,6 +31,7 @@ use std::sync::Arc;
 use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
+use core_accounting::LedgerTransactionInitiator;
 use core_custody::{
     CoreCustody, CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject, CustodianId,
 };
@@ -731,6 +732,7 @@ where
                 disbursal.initiated_tx_id,
                 disbursal.amount,
                 facility.account_ids.facility_account_id,
+                LedgerTransactionInitiator::try_from_subject(sub)?,
             )
             .await?;
 
@@ -802,6 +804,7 @@ where
                 &mut db,
                 collateral_update,
                 pending_facility.account_ids,
+                LedgerTransactionInitiator::try_from_subject(sub)?,
             )
             .await?;
 
@@ -852,6 +855,7 @@ where
                 &mut db,
                 collateral_update,
                 credit_facility.account_ids.collateral_account_id,
+                LedgerTransactionInitiator::try_from_subject(sub)?,
             )
             .await?;
 
@@ -907,6 +911,7 @@ where
 
         let payment_id = PaymentId::new();
         let effective = crate::time::now().date_naive();
+        let initiated_by = LedgerTransactionInitiator::try_from_subject(sub)?;
         if let Some(payment) = self
             .payments
             .record_in_op(
@@ -917,11 +922,12 @@ where
                 payment_source_account_id,
                 amount,
                 effective,
+                initiated_by,
             )
             .await?
         {
             self.obligations
-                .allocate_payment_in_op(&mut db, &payment)
+                .allocate_payment_in_op(&mut db, &payment, initiated_by)
                 .await?;
 
             db.commit().await?;
@@ -972,6 +978,7 @@ where
         let mut db = self.facilities.begin_op().await?;
 
         let payment_id = PaymentId::new();
+        let initiated_by = LedgerTransactionInitiator::try_from_subject(sub)?;
         if let Some(payment) = self
             .payments
             .record_in_op(
@@ -982,11 +989,12 @@ where
                 payment_source_account_id,
                 amount,
                 effective.into(),
+                initiated_by,
             )
             .await?
         {
             self.obligations
-                .allocate_payment_in_op(&mut db, &payment)
+                .allocate_payment_in_op(&mut db, &payment, initiated_by)
                 .await?;
             db.commit().await?;
         }
@@ -1044,7 +1052,11 @@ where
                     .await?;
 
                 self.ledger
-                    .complete_credit_facility(&mut db, completion)
+                    .complete_credit_facility(
+                        &mut db,
+                        completion,
+                        LedgerTransactionInitiator::try_from_subject(sub)?,
+                    )
                     .await?;
                 db.commit().await?;
 

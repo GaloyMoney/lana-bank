@@ -1563,6 +1563,7 @@ export type LedgerTransaction = {
   entity?: Maybe<LedgerTransactionEntity>;
   entries: Array<JournalEntry>;
   id: Scalars['ID']['output'];
+  initiatedBy: LedgerTransactionInitiator;
   ledgerTransactionId: Scalars['UUID']['output'];
 };
 
@@ -1586,6 +1587,8 @@ export type LedgerTransactionEdge = {
 };
 
 export type LedgerTransactionEntity = CreditFacilityDisbursal | Deposit | Withdrawal;
+
+export type LedgerTransactionInitiator = System | User;
 
 export type Liquidation = {
   __typename?: 'Liquidation';
@@ -4066,7 +4069,10 @@ export type LedgerTransactionQueryVariables = Exact<{
 }>;
 
 
-export type LedgerTransactionQuery = { __typename?: 'Query', ledgerTransaction?: { __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: any, description?: string | null, effective: any, entity?:
+export type LedgerTransactionQuery = { __typename?: 'Query', ledgerTransaction?: { __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: any, description?: string | null, effective: any, initiatedBy:
+      | { __typename: 'System', name: string }
+      | { __typename: 'User', userId: string, email: string }
+    , entity?:
       | { __typename: 'CreditFacilityDisbursal', publicId: any }
       | { __typename: 'Deposit', publicId: any }
       | { __typename: 'Withdrawal', publicId: any }
@@ -9319,6 +9325,16 @@ export const LedgerTransactionDocument = gql`
     createdAt
     description
     effective
+    initiatedBy {
+      __typename
+      ... on User {
+        userId
+        email
+      }
+      ... on System {
+        name
+      }
+    }
     entity {
       __typename
       ... on Deposit {

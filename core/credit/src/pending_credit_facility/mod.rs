@@ -184,7 +184,11 @@ where
                     .await?;
 
                 self.ledger
-                    .handle_pending_facility_creation(&mut db, &pending_credit_facility)
+                    .handle_pending_facility_creation(
+                        &mut db,
+                        &pending_credit_facility,
+                        core_accounting::LedgerTransactionInitiator::System,
+                    )
                     .await?;
 
                 db.commit().await?;

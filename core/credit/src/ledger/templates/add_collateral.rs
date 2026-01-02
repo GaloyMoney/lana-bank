@@ -19,6 +19,7 @@ pub struct AddCollateralParams {
     pub collateral_account_id: CalaAccountId,
     pub bank_collateral_account_id: CalaAccountId,
     pub effective: chrono::NaiveDate,
+    pub initiated_by: core_accounting::LedgerTransactionInitiator,
 }
 
 impl AddCollateralParams {
@@ -54,6 +55,11 @@ impl AddCollateralParams {
                 .r#type(ParamDataType::Date)
                 .build()
                 .unwrap(),
+            NewParamDefinition::builder()
+                .name("meta")
+                .r#type(ParamDataType::Json)
+                .build()
+                .unwrap(),
         ]
     }
 }
@@ -67,6 +73,7 @@ impl From<AddCollateralParams> for Params {
             collateral_account_id,
             bank_collateral_account_id,
             effective,
+            initiated_by,
         }: AddCollateralParams,
     ) -> Self {
         let mut params = Self::default();
@@ -76,6 +83,12 @@ impl From<AddCollateralParams> for Params {
         params.insert("collateral_account_id", collateral_account_id);
         params.insert("bank_collateral_account_id", bank_collateral_account_id);
         params.insert("effective", effective);
+        params.insert(
+            "meta",
+            serde_json::json!({
+                "initiated_by": initiated_by,
+            }),
+        );
 
         params
     }
@@ -90,6 +103,7 @@ impl AddCollateral {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")
+            .metadata("params.meta")
             .description("'Record a deposit'")
             .build()
             .expect("Couldn't build TxInput");

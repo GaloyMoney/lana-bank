@@ -3,6 +3,7 @@ use async_graphql::*;
 pub use lana_app::{
     accounting::ledger_transaction::{
         LedgerTransaction as DomainLedgerTransaction, LedgerTransactionCursor,
+        LedgerTransactionInitiator as DomainLedgerTransactionInitiator,
     },
     credit::DISBURSAL_TRANSACTION_ENTITY_TYPE,
     deposit::{DEPOSIT_TRANSACTION_ENTITY_TYPE, WITHDRAWAL_TRANSACTION_ENTITY_TYPE},
@@ -10,8 +11,8 @@ pub use lana_app::{
 
 use crate::{
     graphql::{
-        credit_facility::CreditFacilityDisbursal, deposit::Deposit, loader::*,
-        withdrawal::Withdrawal,
+        access::User, audit::System, credit_facility::CreditFacilityDisbursal, deposit::Deposit,
+        loader::*, withdrawal::Withdrawal,
     },
     primitives::*,
 };
@@ -33,6 +34,12 @@ pub enum LedgerTransactionEntity {
     Deposit(Deposit),
     Withdrawal(Withdrawal),
     Disbursal(CreditFacilityDisbursal),
+}
+
+#[derive(Union)]
+pub enum LedgerTransactionInitiator {
+    User(User),
+    System(System),
 }
 
 #[ComplexObject]
@@ -74,6 +81,24 @@ impl LedgerTransaction {
             _ => None,
         };
         Ok(res)
+    }
+
+    async fn initiated_by(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<LedgerTransactionInitiator> {
+        match &self.entity.initiated_by {
+            DomainLedgerTransactionInitiator::User { id } => {
+                let loader = ctx.data_unchecked::<LanaDataLoader>();
+                match loader.load_one(UserId::from(*id)).await? {
+                    Some(user) => Ok(LedgerTransactionInitiator::User(user)),
+                    None => Err("Initiator user not found".into()),
+                }
+            }
+            DomainLedgerTransactionInitiator::System => {
+                Ok(LedgerTransactionInitiator::System(System::lana()))
+            }
+        }
     }
 
     async fn entries(&self) -> Vec<JournalEntry> {

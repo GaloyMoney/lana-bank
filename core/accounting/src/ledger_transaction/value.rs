@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 
 use crate::{
     journal::JournalEntry,
-    primitives::{EntityRef, LedgerTransactionId},
+    primitives::{EntityRef, LedgerTransactionId, LedgerTransactionInitiator},
 };
 
 pub struct LedgerTransaction {
@@ -12,11 +12,13 @@ pub struct LedgerTransaction {
     pub description: Option<String>,
     pub effective: chrono::NaiveDate,
     pub entity_ref: Option<EntityRef>,
+    pub initiated_by: LedgerTransactionInitiator,
 }
 
 #[derive(serde::Deserialize)]
-struct ExtractEntityRef {
+struct ExtractMetadata {
     entity_ref: Option<EntityRef>,
+    initiated_by: LedgerTransactionInitiator,
 }
 impl
     TryFrom<(
@@ -37,13 +39,17 @@ impl
             .map(JournalEntry::try_from)
             .collect::<Result<_, _>>()?;
 
-        let extracted = tx
-            .metadata::<ExtractEntityRef>()
-            .expect("Could not extract entity_ref");
+        let ExtractMetadata {
+            entity_ref,
+            initiated_by,
+        } = tx
+            .metadata::<ExtractMetadata>()?
+            .expect("Could not extract metadata");
 
         Ok(Self {
             id: tx.id,
-            entity_ref: extracted.and_then(|e| e.entity_ref),
+            entity_ref,
+            initiated_by,
             entries,
             created_at: tx.created_at(),
             effective: tx.effective(),

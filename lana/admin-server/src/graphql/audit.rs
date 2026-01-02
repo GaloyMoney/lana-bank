@@ -11,6 +11,12 @@ pub struct System {
     name: &'static str,
 }
 
+impl System {
+    pub fn lana() -> Self {
+        Self { name: "lana" }
+    }
+}
+
 #[derive(Union)]
 enum AuditSubject {
     User(User),
@@ -44,10 +50,7 @@ impl AuditEntry {
                     Some(user) => Ok(AuditSubject::User(user)),
                 }
             }
-            DomainSubject::System => {
-                let system = System { name: "lana" };
-                Ok(AuditSubject::System(system))
-            }
+            DomainSubject::System => Ok(AuditSubject::System(System::lana())),
             DomainSubject::Customer(_) => {
                 panic!("Whoops - have we gone live yet?");
             }

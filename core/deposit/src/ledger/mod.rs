@@ -4,7 +4,7 @@ use tracing::instrument;
 use tracing_macros::record_error_severity;
 
 use audit::AuditInfo;
-use core_accounting::EntityRef;
+use core_accounting::{EntityRef, LedgerTransactionInitiator};
 
 mod deposit_accounts;
 pub mod error;
@@ -501,6 +501,7 @@ impl DepositLedger {
         entity_id: DepositId,
         amount: UsdCents,
         credit_account_id: impl Into<AccountId>,
+        initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), DepositLedgerError> {
         let tx_id = entity_id.into();
         tracing::Span::current().record("entity_id", tracing::field::debug(&entity_id));
@@ -517,6 +518,7 @@ impl DepositLedger {
             amount: amount.to_usd(),
             deposit_omnibus_account_id: self.deposit_omnibus_account_ids.account_id,
             credit_account_id,
+            initiated_by,
         };
         self.cala
             .post_transaction_in_op(op, tx_id, templates::RECORD_DEPOSIT_CODE, params)
@@ -536,6 +538,7 @@ impl DepositLedger {
         entity_id: WithdrawalId,
         amount: UsdCents,
         credit_account_id: impl Into<AccountId>,
+        initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), DepositLedgerError> {
         let tx_id = entity_id.into();
         tracing::Span::current().record("entity_id", tracing::field::debug(&entity_id));
@@ -552,6 +555,7 @@ impl DepositLedger {
             credit_account_id,
             amount: amount.to_usd(),
             currency: self.usd,
+            initiated_by,
         };
 
         self.cala
@@ -574,6 +578,7 @@ impl DepositLedger {
         tx_id: impl Into<TransactionId>,
         amount: UsdCents,
         credit_account_id: impl Into<AccountId>,
+        initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), DepositLedgerError> {
         let tx_id = tx_id.into();
         tracing::Span::current().record("entity_id", tracing::field::debug(&entity_id));
@@ -591,6 +596,7 @@ impl DepositLedger {
             credit_account_id,
             amount: amount.to_usd(),
             currency: self.usd,
+            initiated_by,
         };
 
         self.cala
@@ -606,6 +612,7 @@ impl DepositLedger {
         &self,
         op: &mut es_entity::DbOp<'_>,
         reversal_data: WithdrawalReversalData,
+        initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), DepositLedgerError> {
         let params = templates::RevertWithdrawParams {
             entity_id: reversal_data.entity_id.into(),
@@ -616,6 +623,7 @@ impl DepositLedger {
             currency: self.usd,
             correlation_id: reversal_data.correlation_id,
             external_id: reversal_data.external_id,
+            initiated_by,
         };
 
         self.cala
@@ -636,6 +644,7 @@ impl DepositLedger {
         &self,
         op: &mut es_entity::DbOp<'_>,
         reversal_data: DepositReversalData,
+        initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), DepositLedgerError> {
         let params = templates::RevertDepositParams {
             entity_id: reversal_data.entity_id.into(),
@@ -646,6 +655,7 @@ impl DepositLedger {
             external_id: reversal_data.external_id,
             amount: reversal_data.amount.to_usd(),
             currency: self.usd,
+            initiated_by,
         };
 
         self.cala
@@ -674,6 +684,7 @@ impl DepositLedger {
         &self,
         op: &mut es_entity::DbOp<'_>,
         account: &DepositAccount,
+        initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), DepositLedgerError> {
         let balance = self.balance(account.id).await?;
 
@@ -684,6 +695,7 @@ impl DepositLedger {
                 frozen_accounts_account_id: account.account_ids.frozen_deposit_account_id,
                 amount: balance.settled.to_usd(),
                 currency: self.usd,
+                initiated_by,
             };
 
             self.cala
@@ -718,6 +730,7 @@ impl DepositLedger {
         &self,
         op: &mut es_entity::DbOp<'_>,
         account: &DepositAccount,
+        initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), DepositLedgerError> {
         let frozen_balance = self
             .balance(account.account_ids.frozen_deposit_account_id)
@@ -735,6 +748,7 @@ impl DepositLedger {
                 frozen_accounts_account_id: account.account_ids.frozen_deposit_account_id,
                 amount: frozen_balance.settled.to_usd(),
                 currency: self.usd,
+                initiated_by,
             };
 
             self.cala
@@ -777,6 +791,7 @@ impl DepositLedger {
         amount: UsdCents,
         credit_account_id: impl Into<AccountId>,
         external_id: String,
+        initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), DepositLedgerError> {
         let tx_id = tx_id.into();
         tracing::Span::current().record("entity_id", tracing::field::debug(&entity_id));
@@ -796,6 +811,7 @@ impl DepositLedger {
             credit_account_id,
             correlation_id,
             external_id,
+            initiated_by,
         };
 
         self.cala
@@ -817,6 +833,7 @@ impl DepositLedger {
         tx_id: impl Into<TransactionId>,
         amount: UsdCents,
         credit_account_id: impl Into<AccountId>,
+        initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), DepositLedgerError> {
         let tx_id = tx_id.into();
         tracing::Span::current().record("entity_id", tracing::field::debug(&entity_id));
@@ -834,6 +851,7 @@ impl DepositLedger {
             amount: amount.to_usd(),
             credit_account_id,
             deposit_omnibus_account_id: self.deposit_omnibus_account_ids.account_id,
+            initiated_by,
         };
 
         self.cala

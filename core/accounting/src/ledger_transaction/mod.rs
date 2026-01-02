@@ -13,6 +13,7 @@ use tracing_macros::record_error_severity;
 
 use crate::primitives::{CoreAccountingAction, CoreAccountingObject, LedgerTransactionId};
 
+pub use crate::primitives::LedgerTransactionInitiator;
 pub use cursor::LedgerTransactionCursor;
 use error::*;
 pub use value::*;

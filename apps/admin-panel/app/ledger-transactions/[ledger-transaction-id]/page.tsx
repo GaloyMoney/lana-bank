@@ -30,6 +30,16 @@ gql`
       createdAt
       description
       effective
+      initiatedBy {
+        __typename
+        ... on User {
+          userId
+          email
+        }
+        ... on System {
+          name
+        }
+      }
       entity {
         __typename
         ... on Deposit {
@@ -86,6 +96,7 @@ const LedgerTransactionPage: React.FC<LedgerTransactionPageProps> = ({ params })
   })
 
   const entityUrl = getEntityforTransaction(data?.ledgerTransaction?.entity, t)
+  const initiatedBy = getInitiatedByDisplay(data?.ledgerTransaction?.initiatedBy, t)
   const footerContent = entityUrl ? (
     <Button variant="outline" key="entity" asChild>
       <Link href={entityUrl.url}>
@@ -115,6 +126,11 @@ const LedgerTransactionPage: React.FC<LedgerTransactionPageProps> = ({ params })
             value: formatDate(data?.ledgerTransaction?.effective, {
               includeTime: false,
             }),
+          },
+          {
+            label: t("details.initiatedBy"),
+            value: initiatedBy?.value,
+            href: initiatedBy?.href,
           },
         ]}
         footerContent={footerContent}
@@ -225,4 +241,29 @@ const getEntityforTransaction = (
   }
   const exhaustiveCheck: never = entity
   return exhaustiveCheck
+}
+
+const getInitiatedByDisplay = (
+  initiatedBy:
+    | NonNullable<LedgerTransactionQuery["ledgerTransaction"]>["initiatedBy"]
+    | undefined,
+  t: (key: string) => string,
+): { value: string; href?: string } | null => {
+  if (!initiatedBy) return null
+
+  switch (initiatedBy.__typename) {
+    case "User":
+      return {
+        value: initiatedBy.email,
+        href: `/users/${initiatedBy.userId}`,
+      }
+    case "System":
+      return {
+        value: t("system"),
+      }
+    default: {
+      const exhaustiveCheck: never = initiatedBy
+      return exhaustiveCheck
+    }
+  }
 }

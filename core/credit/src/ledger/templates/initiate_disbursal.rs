@@ -20,6 +20,7 @@ pub struct InitiateDisbursalParams {
     pub credit_omnibus_account: CalaAccountId,
     pub credit_facility_account: CalaAccountId,
     pub disbursed_amount: Decimal,
+    pub initiated_by: core_accounting::LedgerTransactionInitiator,
 }
 
 impl InitiateDisbursalParams {
@@ -68,6 +69,7 @@ impl From<InitiateDisbursalParams> for Params {
             credit_facility_account,
             disbursed_amount,
             credit_omnibus_account,
+            initiated_by,
         }: InitiateDisbursalParams,
     ) -> Self {
         let mut params = Self::default();
@@ -78,7 +80,13 @@ impl From<InitiateDisbursalParams> for Params {
         params.insert("effective", crate::time::now().date_naive());
         let entity_ref =
             core_accounting::EntityRef::new(DISBURSAL_TRANSACTION_ENTITY_TYPE, entity_id);
-        params.insert("meta", serde_json::json!({"entity_ref":entity_ref}));
+        params.insert(
+            "meta",
+            serde_json::json!({
+                "entity_ref": entity_ref,
+                "initiated_by": initiated_by,
+            }),
+        );
         params
     }
 }

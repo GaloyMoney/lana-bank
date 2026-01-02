@@ -197,7 +197,11 @@ where
         };
 
         self.ledger
-            .record_interest_accrual_cycle(&mut op, facility_accrual_cycle_data)
+            .record_interest_accrual_cycle(
+                &mut op,
+                facility_accrual_cycle_data,
+                core_accounting::LedgerTransactionInitiator::System,
+            )
             .await?;
 
         return Ok(JobCompletion::CompleteWithOp(op));

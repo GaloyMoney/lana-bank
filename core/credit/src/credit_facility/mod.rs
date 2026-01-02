@@ -248,7 +248,11 @@ where
         };
 
         self.ledger
-            .handle_activation(&mut db, activation_data)
+            .handle_activation(
+                &mut db,
+                activation_data,
+                core_accounting::LedgerTransactionInitiator::System,
+            )
             .await?;
         db.commit().await?;
 

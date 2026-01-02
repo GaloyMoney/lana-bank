@@ -6,6 +6,7 @@ use tracing::instrument;
 use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
+use core_accounting::LedgerTransactionInitiator;
 use governance::Governance;
 use obix::out::OutboxEventMarker;
 
@@ -100,6 +101,7 @@ where
                         denied_tx_id,
                         withdraw.amount,
                         withdraw.deposit_account_id,
+                        LedgerTransactionInitiator::System,
                     )
                     .await?;
                 op.commit().await?;

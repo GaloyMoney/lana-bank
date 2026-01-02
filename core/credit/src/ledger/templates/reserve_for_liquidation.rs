@@ -18,6 +18,7 @@ pub struct ReserveForLiquidationParams {
     pub liquidation_omnibus_account_id: CalaAccountId,
     pub facility_liquidation_account_id: CalaAccountId,
     pub effective: chrono::NaiveDate,
+    pub initiated_by: core_accounting::LedgerTransactionInitiator,
 }
 
 impl ReserveForLiquidationParams {
@@ -48,6 +49,11 @@ impl ReserveForLiquidationParams {
                 .r#type(ParamDataType::Date)
                 .build()
                 .unwrap(),
+            NewParamDefinition::builder()
+                .name("meta")
+                .r#type(ParamDataType::Json)
+                .build()
+                .unwrap(),
         ]
     }
 }
@@ -59,6 +65,7 @@ impl From<ReserveForLiquidationParams> for Params {
             liquidation_omnibus_account_id,
             facility_liquidation_account_id,
             effective,
+            initiated_by,
         }: ReserveForLiquidationParams,
     ) -> Self {
         let mut params = Self::default();
@@ -73,6 +80,12 @@ impl From<ReserveForLiquidationParams> for Params {
             facility_liquidation_account_id,
         );
         params.insert("effective", effective);
+        params.insert(
+            "meta",
+            serde_json::json!({
+                "initiated_by": initiated_by,
+            }),
+        );
 
         params
     }
@@ -87,6 +100,7 @@ impl ReserveForLiquidation {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")
+            .metadata("params.meta")
             .description("'Reserve an outstanding amount to be repaid via liquidation'")
             .build()
             .expect("Couldn't build TxInput");

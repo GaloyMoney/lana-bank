@@ -1555,6 +1555,7 @@ type LedgerTransaction {
 	effective: Date!
 	description: String
 	entity: LedgerTransactionEntity
+	initiatedBy: LedgerTransactionInitiator!
 	entries: [JournalEntry!]!
 }
 
@@ -1588,6 +1589,8 @@ type LedgerTransactionEdge {
 }
 
 union LedgerTransactionEntity = Deposit | Withdrawal | CreditFacilityDisbursal
+
+union LedgerTransactionInitiator = User | System
 
 type Liquidation {
 	id: ID!

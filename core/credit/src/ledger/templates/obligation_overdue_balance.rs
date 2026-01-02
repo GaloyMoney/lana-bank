@@ -18,6 +18,7 @@ pub struct RecordObligationOverdueBalanceParams {
     pub receivable_due_account_id: CalaAccountId,
     pub receivable_overdue_account_id: CalaAccountId,
     pub effective: chrono::NaiveDate,
+    pub initiated_by: core_accounting::LedgerTransactionInitiator,
 }
 
 impl RecordObligationOverdueBalanceParams {
@@ -48,6 +49,11 @@ impl RecordObligationOverdueBalanceParams {
                 .r#type(ParamDataType::Date)
                 .build()
                 .unwrap(),
+            NewParamDefinition::builder()
+                .name("meta")
+                .r#type(ParamDataType::Json)
+                .build()
+                .unwrap(),
         ]
     }
 }
@@ -59,6 +65,7 @@ impl From<RecordObligationOverdueBalanceParams> for Params {
             receivable_due_account_id,
             receivable_overdue_account_id,
             effective,
+            initiated_by,
         }: RecordObligationOverdueBalanceParams,
     ) -> Self {
         let mut params = Self::default();
@@ -70,6 +77,12 @@ impl From<RecordObligationOverdueBalanceParams> for Params {
             receivable_overdue_account_id,
         );
         params.insert("effective", effective);
+        params.insert(
+            "meta",
+            serde_json::json!({
+                "initiated_by": initiated_by,
+            }),
+        );
 
         params
     }
@@ -84,6 +97,7 @@ impl RecordObligationOverdueBalance {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")
+            .metadata("params.meta")
             .description("'Record an overdue obligation balance'")
             .build()
             .expect("Couldn't build TxInput");

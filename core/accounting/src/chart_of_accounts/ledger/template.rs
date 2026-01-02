@@ -9,6 +9,7 @@ use cala_ledger::{
 };
 
 use super::closing_metadata::AccountingClosingMetadata;
+use crate::primitives::LedgerTransactionInitiator;
 
 #[derive(Debug, Builder)]
 pub struct EntryParams {
@@ -88,6 +89,7 @@ pub(super) struct ClosingTransactionParams {
     pub(super) description: String,
     pub(super) effective: chrono::NaiveDate,
     pub(super) entries_params: Vec<EntryParams>,
+    pub(super) initiated_by: LedgerTransactionInitiator,
 }
 
 impl From<ClosingTransactionParams> for Params {
@@ -96,10 +98,10 @@ impl From<ClosingTransactionParams> for Params {
         params.insert("journal_id", input_params.journal_id);
         params.insert("description", input_params.description);
         params.insert("effective", input_params.effective);
-        params.insert(
-            "meta",
-            AccountingClosingMetadata::closing_tx_metadata_json(),
-        );
+        let mut meta = AccountingClosingMetadata::closing_tx_metadata_json();
+        meta["initiated_by"] =
+            serde_json::to_value(input_params.initiated_by).expect("initiated_by should serialize");
+        params.insert("meta", meta);
 
         for (n, entry) in input_params.entries_params.into_iter().enumerate() {
             entry.populate_params(&mut params, n);
@@ -115,12 +117,14 @@ impl ClosingTransactionParams {
         description: String,
         effective: NaiveDate,
         entries_params: Vec<EntryParams>,
+        initiated_by: LedgerTransactionInitiator,
     ) -> ClosingTransactionParams {
         Self {
             journal_id,
             description,
             effective,
             entries_params,
+            initiated_by,
         }
     }
 

@@ -20,6 +20,7 @@ pub struct CreditFacilityPostAccruedInterestParams {
     pub interest_amount: Decimal,
     pub external_id: String,
     pub effective: chrono::NaiveDate,
+    pub initiated_by: core_accounting::LedgerTransactionInitiator,
 }
 
 impl CreditFacilityPostAccruedInterestParams {
@@ -55,6 +56,11 @@ impl CreditFacilityPostAccruedInterestParams {
                 .r#type(ParamDataType::Date)
                 .build()
                 .unwrap(),
+            NewParamDefinition::builder()
+                .name("meta")
+                .r#type(ParamDataType::Json)
+                .build()
+                .unwrap(),
         ]
     }
 }
@@ -68,6 +74,7 @@ impl From<CreditFacilityPostAccruedInterestParams> for Params {
             interest_amount,
             external_id,
             effective,
+            initiated_by,
         }: CreditFacilityPostAccruedInterestParams,
     ) -> Self {
         let mut params = Self::default();
@@ -83,6 +90,12 @@ impl From<CreditFacilityPostAccruedInterestParams> for Params {
         params.insert("interest_amount", interest_amount);
         params.insert("external_id", external_id);
         params.insert("effective", effective);
+        params.insert(
+            "meta",
+            serde_json::json!({
+                "initiated_by": initiated_by,
+            }),
+        );
         params
     }
 }
@@ -97,6 +110,7 @@ impl CreditFacilityPostAccruedInterest {
             .journal_id("params.journal_id")
             .effective("params.effective")
             .external_id("params.external_id")
+            .metadata("params.meta")
             .description("'Post accrued interest from accrual cycle for credit facility'")
             .build()
             .expect("Couldn't build TxInput");

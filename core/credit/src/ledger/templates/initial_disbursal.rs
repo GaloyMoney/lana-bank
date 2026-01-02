@@ -7,12 +7,16 @@ use cala_ledger::{
     *,
 };
 
-use crate::{ledger::error::*, primitives::CalaAccountId};
+use crate::{
+    ledger::error::*,
+    primitives::{CalaAccountId, DISBURSAL_TRANSACTION_ENTITY_TYPE},
+};
 
 pub const INITIAL_DISBURSAL_CODE: &str = "INITIAL_DISBURSAL";
 
 #[derive(Debug)]
 pub struct InitialDisbursalParams {
+    pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
     pub credit_omnibus_account: CalaAccountId,
     pub credit_facility_account: CalaAccountId,
@@ -21,6 +25,7 @@ pub struct InitialDisbursalParams {
     pub disbursed_amount: Decimal,
     pub currency: Currency,
     pub external_id: String,
+    pub initiated_by: core_accounting::LedgerTransactionInitiator,
 }
 
 impl InitialDisbursalParams {
@@ -71,6 +76,11 @@ impl InitialDisbursalParams {
                 .r#type(ParamDataType::Date)
                 .build()
                 .unwrap(),
+            NewParamDefinition::builder()
+                .name("meta")
+                .r#type(ParamDataType::Json)
+                .build()
+                .unwrap(),
         ]
     }
 }
@@ -78,6 +88,7 @@ impl InitialDisbursalParams {
 impl From<InitialDisbursalParams> for Params {
     fn from(
         InitialDisbursalParams {
+            entity_id,
             journal_id,
             credit_omnibus_account,
             credit_facility_account,
@@ -86,6 +97,7 @@ impl From<InitialDisbursalParams> for Params {
             disbursed_amount,
             currency,
             external_id,
+            initiated_by,
         }: InitialDisbursalParams,
     ) -> Self {
         let mut params = Self::default();
@@ -101,6 +113,15 @@ impl From<InitialDisbursalParams> for Params {
         params.insert("currency", currency);
         params.insert("external_id", external_id);
         params.insert("effective", crate::time::now().date_naive());
+        let entity_ref =
+            core_accounting::EntityRef::new(DISBURSAL_TRANSACTION_ENTITY_TYPE, entity_id);
+        params.insert(
+            "meta",
+            serde_json::json!({
+                "entity_ref": entity_ref,
+                "initiated_by": initiated_by,
+            }),
+        );
         params
     }
 }
@@ -115,6 +136,7 @@ impl InitialDisbursal {
             .journal_id("params.journal_id")
             .effective("params.effective")
             .external_id("params.external_id")
+            .metadata("params.meta")
             .description("'Initial disbursal'")
             .build()
             .expect("Couldn't build TxInput");
