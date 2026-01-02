@@ -123,8 +123,9 @@ where
 {
     async fn run(
         &self,
-        _current_job: CurrentJob,
+        current_job: CurrentJob<Config>,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+        // current_job.spawn_self(config)
         let mut db = self.credit_facilities.begin_op().await?;
 
         let crate::ConfirmedAccrual {

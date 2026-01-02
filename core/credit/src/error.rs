@@ -60,6 +60,8 @@ pub enum CoreCreditError {
     GovernanceError(#[from] governance::error::GovernanceError),
     #[error("CoreCreditError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
+    #[error("CoreCreditError - JobError: {0}")]
+    NewJobError(#[from] job_new::error::JobError),
     #[error("CoreCreditError - CustomerMismatchForCreditFacility")]
     CustomerMismatchForCreditFacility,
     #[error("CoreCreditError - SubjectIsNotCustomer")]
@@ -98,6 +100,7 @@ impl ErrorSeverity for CoreCreditError {
             Self::PriceError(e) => e.severity(),
             Self::GovernanceError(e) => e.severity(),
             Self::JobError(_) => Level::ERROR,
+            Self::NewJobError(_) => Level::ERROR,
             Self::CustomerMismatchForCreditFacility => Level::ERROR,
             Self::SubjectIsNotCustomer => Level::WARN,
             Self::CustomerNotVerified => Level::WARN,
