@@ -144,14 +144,6 @@
       "label": "Governance Writer",
       "description": "Can create and manage committees and policies, and control approval processes (create, approve, deny, conclude)"
     },
-    "notification_email_config_viewer": {
-      "label": "Notification Email Config Viewer",
-      "description": "Can view notification email configuration"
-    },
-    "notification_email_config_writer": {
-      "label": "Notification Email Config Writer",
-      "description": "Can configure notification email settings, including sender identity"
-    },
     "custody_viewer": {
       "label": "Custody Viewer",
       "description": "Can view custodian configurations"
@@ -180,6 +172,31 @@
       "saveSuccess": "Notification email settings updated",
       "saveError": "Could not update notification email settings",
       "saveErrorWithReason": "Could not update notification email settings: {error}"
+    },
+    "exposedConfigs": {
+      "title": "Exposed configs",
+      "description": "Manage domain configuration values that are safe to edit in the admin app.",
+      "empty": "No exposed configs yet.",
+      "valueLabel": "Value",
+      "save": "Save",
+      "reset": "Reset",
+      "saveSuccess": "Configuration updated",
+      "saveError": "Could not update configuration",
+      "saveErrorWithReason": "Could not update configuration: {error}",
+      "loadError": "Could not load exposed configurations",
+      "invalidInt": "Enter a valid integer",
+      "invalidUint": "Enter a valid non-negative integer",
+      "invalidDecimal": "Enter a decimal value",
+      "invalidJson": "Enter valid JSON",
+      "invalidValue": "Enter a valid value"
+    },
+    "notification-email-from-email": {
+      "title": "Notification from email",
+      "description": "From address used for outgoing notification emails."
+    },
+    "notification-email-from-name": {
+      "title": "Notification from name",
+      "description": "From name shown on outgoing notification emails."
     }
   },
   "interestInterval": {

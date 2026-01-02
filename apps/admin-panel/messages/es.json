@@ -144,14 +144,6 @@
       "label": "Editor de gobernanza",
       "description": "Puede crear y gestionar comités y políticas, y controlar procesos de aprobación (crear, aprobar, denegar, concluir)"
     },
-    "notification_email_config_viewer": {
-      "label": "Visualizador de configuración de correo de notificaciones",
-      "description": "Puede ver la configuración de correo para notificaciones"
-    },
-    "notification_email_config_writer": {
-      "label": "Editor de configuración de correo de notificaciones",
-      "description": "Puede configurar el correo de notificaciones, incluida la identidad del remitente"
-    },
     "custody_viewer": {
       "label": "Visualizador de custodia",
       "description": "Puede ver configuraciones de custodios"
@@ -180,6 +172,31 @@
       "saveSuccess": "Configuración de correo de notificación actualizada",
       "saveError": "No se pudo actualizar la configuración de correo de notificación",
       "saveErrorWithReason": "No se pudo actualizar la configuración de correo de notificación: {error}"
+    },
+    "exposedConfigs": {
+      "title": "Configuraciones expuestas",
+      "description": "Administra valores de configuración de dominio que se pueden editar en el panel de administración.",
+      "empty": "No hay configuraciones expuestas.",
+      "valueLabel": "Valor",
+      "save": "Guardar",
+      "reset": "Restablecer",
+      "saveSuccess": "Configuración actualizada",
+      "saveError": "No se pudo actualizar la configuración",
+      "saveErrorWithReason": "No se pudo actualizar la configuración: {error}",
+      "loadError": "No se pudieron cargar las configuraciones expuestas",
+      "invalidInt": "Ingresa un número entero válido",
+      "invalidUint": "Ingresa un número entero no negativo válido",
+      "invalidDecimal": "Ingresa un valor decimal",
+      "invalidJson": "Ingresa un JSON válido",
+      "invalidValue": "Ingresa un valor válido"
+    },
+    "notification-email-from-email": {
+      "title": "Correo del remitente de notificaciones",
+      "description": "Dirección usada como remitente en los correos de notificación."
+    },
+    "notification-email-from-name": {
+      "title": "Nombre del remitente de notificaciones",
+      "description": "Nombre mostrado como remitente en los correos de notificación."
     }
   },
   "interestInterval": {

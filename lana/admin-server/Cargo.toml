@@ -11,6 +11,7 @@ sumsub-testing = ["lana-app/sumsub-testing"]
 
 [dependencies]
 lana-app = { workspace = true }
+domain-config = { workspace = true }
 
 audit = { workspace = true }
 tracing-utils = { workspace = true, features = ["http"] }
@@ -32,4 +33,5 @@ tokio = { workspace = true }
 rust_decimal = { workspace = true }
 anyhow = { workspace = true }
 thiserror = { workspace = true }
+futures = { workspace = true }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
