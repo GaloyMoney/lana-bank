@@ -587,6 +587,11 @@
             ];
 
             buildPhase = ''
+              # Nix builders default HOME to /homeless-shelter (not writable). sqlfmt writes a cache.
+              export HOME="${TMPDIR:-/tmp}/home"
+              export XDG_CACHE_HOME="$HOME/.cache"
+              mkdir -p "$XDG_CACHE_HOME"
+
               cd dagster
               black --check --diff src
               isort --check-only src
