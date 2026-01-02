@@ -2007,7 +2007,7 @@ export const mockLedgerTransaction = (overrides?: Partial<LedgerTransaction>, _r
         entity: overrides && overrides.hasOwnProperty('entity') ? overrides.entity! : relationshipsToOmit.has('CreditFacilityDisbursal') ? {} as CreditFacilityDisbursal : mockCreditFacilityDisbursal({}, relationshipsToOmit),
         entries: overrides && overrides.hasOwnProperty('entries') ? overrides.entries! : [relationshipsToOmit.has('JournalEntry') ? {} as JournalEntry : mockJournalEntry({}, relationshipsToOmit)],
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
-        initiatedBy: overrides && overrides.hasOwnProperty('initiatedBy') ? overrides.initiatedBy! : relationshipsToOmit.has('System') ? {} as System : mockSystem({}, relationshipsToOmit),
+        initiatedBy: overrides && overrides.hasOwnProperty('initiatedBy') ? overrides.initiatedBy! : relationshipsToOmit.has('Customer') ? {} as Customer : mockCustomer({}, relationshipsToOmit),
         ledgerTransactionId: overrides && overrides.hasOwnProperty('ledgerTransactionId') ? overrides.ledgerTransactionId! : generateMockValue.uuid(),
     };
 };

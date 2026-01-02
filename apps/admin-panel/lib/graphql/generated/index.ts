@@ -1588,7 +1588,7 @@ export type LedgerTransactionEdge = {
 
 export type LedgerTransactionEntity = CreditFacilityDisbursal | Deposit | Withdrawal;
 
-export type LedgerTransactionInitiator = System | User;
+export type LedgerTransactionInitiator = Customer | System | User;
 
 export type Liquidation = {
   __typename?: 'Liquidation';
@@ -4070,6 +4070,7 @@ export type LedgerTransactionQueryVariables = Exact<{
 
 
 export type LedgerTransactionQuery = { __typename?: 'Query', ledgerTransaction?: { __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: any, description?: string | null, effective: any, initiatedBy:
+      | { __typename: 'Customer' }
       | { __typename: 'System', name: string }
       | { __typename: 'User', userId: string, email: string }
     , entity?:
