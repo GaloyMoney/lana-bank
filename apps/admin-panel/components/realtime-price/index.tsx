@@ -14,12 +14,16 @@ gql`
 `
 
 const RealtimePriceUpdates = () => {
-  useGetRealtimePriceUpdatesQuery({
+  const { error }= useGetRealtimePriceUpdatesQuery({
     fetchPolicy: "network-only",
     pollInterval: 5000,
   })
 
-  return <></>
+   if (error) {
+    console.error("Failed to fetch realtime price updates:", error)
+  }
+
+  return null
 }
 
 export { RealtimePriceUpdates }
