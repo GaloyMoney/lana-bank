@@ -44,7 +44,7 @@ impl
             initiated_by,
         } = tx
             .metadata::<ExtractMetadata>()?
-            .ok_or(super::error::LedgerTransactionError::MissingMetadata)?;
+            .expect("Could not extract metadata");
 
         Ok(Self {
             id: tx.id,

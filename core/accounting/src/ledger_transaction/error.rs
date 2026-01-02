@@ -20,8 +20,6 @@ pub enum LedgerTransactionError {
     JournalError(#[from] crate::journal::error::JournalError),
     #[error("LedgerTransactionError - Metadata: {0}")]
     MetadataError(#[from] serde_json::Error),
-    #[error("LedgerTransactionError - MissingMetadata")]
-    MissingMetadata,
 }
 
 impl ErrorSeverity for LedgerTransactionError {
@@ -35,7 +33,6 @@ impl ErrorSeverity for LedgerTransactionError {
             Self::AuthorizationError(e) => e.severity(),
             Self::JournalError(e) => e.severity(),
             Self::MetadataError(_) => Level::ERROR,
-            Self::MissingMetadata => Level::ERROR,
         }
     }
 }
