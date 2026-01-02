@@ -88,7 +88,11 @@ where
         OBLIGATION_DUE_JOB
     }
 
-    fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
+    fn init(
+        &self,
+        job: &Job,
+        _: JobSpawner<Self::Config>,
+    ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(ObligationDueJobRunner::<Perms, E> {
             config: job.config()?,
             repo: self.repo.clone(),
