@@ -118,6 +118,8 @@ where
     terms_templates: Arc<TermsTemplates<Perms>>,
     public_ids: Arc<PublicIds>,
     liquidations: Arc<Liquidations<Perms, E>>,
+    // Keep around during migration for the poller to stay active
+    jobs: job_new::Jobs,
 }
 
 impl<Perms, E> Clone for CoreCredit<Perms, E>
@@ -155,6 +157,7 @@ where
             terms_templates: self.terms_templates.clone(),
             public_ids: self.public_ids.clone(),
             liquidations: self.liquidations.clone(),
+            jobs: self.jobs.clone(),
         }
     }
 }
@@ -192,10 +195,18 @@ where
         journal_id: cala_ledger::JournalId,
         public_ids: &PublicIds,
     ) -> Result<Self, CoreCreditError> {
+        let mut job_new = job_new::Jobs::init(
+            job_new::JobSvcConfig::builder()
+                .pool(pool.clone())
+                .build()
+                .expect("Couldn't build JobSvcConfig"),
+        )
+        .await?;
         // Create Arc-wrapped versions of parameters once
         let authz_arc = Arc::new(authz.clone());
         let governance_arc = Arc::new(governance.clone());
         let jobs_arc = Arc::new(jobs.clone());
+        // let mut new_jobs_arc = Arc::new(job_new.clone());
         let price_arc = Arc::new(price.clone());
         let public_ids_arc = Arc::new(public_ids.clone());
         let customer_arc = Arc::new(customer.clone());
@@ -211,7 +222,7 @@ where
             pool,
             authz_arc.clone(),
             ledger_arc.clone(),
-            jobs_arc.clone(),
+            &mut job_new,
             &publisher,
         );
         let obligations_arc = Arc::new(obligations);
@@ -369,22 +380,6 @@ where
                 authz.audit(),
             ),
         );
-        jobs.add_initializer(obligation_due::ObligationDueInit::<Perms, E>::new(
-            ledger_arc.as_ref(),
-            obligations_arc.as_ref(),
-            jobs,
-        ));
-        jobs.add_initializer(obligation_overdue::ObligationOverdueInit::<Perms, E>::new(
-            ledger_arc.as_ref(),
-            obligations_arc.as_ref(),
-            jobs,
-        ));
-        jobs.add_initializer(
-            obligation_defaulted::ObligationDefaultedInit::<Perms, E>::new(
-                ledger_arc.as_ref(),
-                obligations_arc.as_ref(),
-            ),
-        );
         jobs.add_initializer(
             partial_liquidation::PartialLiquidationInit::<Perms, E>::new(
                 outbox,
@@ -430,6 +425,7 @@ where
         )
         .await?;
 
+        job_new.start_poll().await?;
         Ok(Self {
             authz: authz_arc,
             customer: customer_arc,
@@ -455,6 +451,7 @@ where
             terms_templates: terms_templates_arc,
             public_ids: public_ids_arc,
             liquidations: liquidations_arc,
+            jobs: job_new,
         })
     }
 
