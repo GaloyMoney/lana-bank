@@ -6,6 +6,5 @@ pub mod credit_facility_maturity;
 pub mod credit_facility_repayment_plan;
 pub mod interest_accrual_cycles;
 pub mod interest_accruals;
-pub mod obligation_due;
 pub mod partial_liquidation;
 pub mod wallet_collateral_sync;
