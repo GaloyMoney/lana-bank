@@ -354,14 +354,6 @@ CREATE TABLE core_custodian_events (
   UNIQUE(id, sequence)
 );
 
-CREATE TABLE core_custodian_webhook_notifications (
-  custodian_id UUID NULL REFERENCES core_custodians(id),
-  uri VARCHAR NOT NULL,
-  headers JSONB NOT NULL,
-  payload JSONB NOT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
 CREATE TABLE core_obligations (
   id UUID PRIMARY KEY,
   credit_facility_id UUID NOT NULL REFERENCES core_credit_facilities(id),
