@@ -11,7 +11,6 @@ use core_deposit::CoreDepositObject;
 use core_report::ReportObject;
 use dashboard::DashboardModuleObject;
 use governance::GovernanceObject;
-use notification::NotificationObject;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
@@ -28,7 +27,6 @@ pub enum LanaObject {
     Dashboard(DashboardModuleObject),
     Report(ReportObject),
     Contract(ContractModuleObject),
-    Notification(NotificationObject),
 }
 
 impl From<AuditObject> for LanaObject {
@@ -89,12 +87,6 @@ impl From<ContractModuleObject> for LanaObject {
     }
 }
 
-impl From<NotificationObject> for LanaObject {
-    fn from(object: NotificationObject) -> Self {
-        LanaObject::Notification(object)
-    }
-}
-
 impl Display for LanaObject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}/", LanaObjectDiscriminants::from(self))?;
@@ -111,7 +103,6 @@ impl Display for LanaObject {
             Dashboard(object) => object.fmt(f),
             Report(object) => object.fmt(f),
             Contract(object) => object.fmt(f),
-            Notification(object) => object.fmt(f),
         }
     }
 }
@@ -142,7 +133,6 @@ impl FromStr for LanaObject {
                     .parse::<ContractModuleObject>()
                     .map_err(|_| "could not parse ContractModuleObject")?,
             ),
-            Notification => LanaObject::from(object.parse::<NotificationObject>()?),
         };
         Ok(res)
     }

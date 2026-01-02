@@ -10,7 +10,6 @@ fail-on-warnings = []
 [dependencies]
 dashboard = { workspace = true }
 contract-creation = { workspace = true }
-notification = { workspace = true }
 
 governance = { workspace = true }
 core-access = { workspace = true }

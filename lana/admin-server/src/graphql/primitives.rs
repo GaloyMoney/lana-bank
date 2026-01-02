@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 #[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum SortDirection {
@@ -28,5 +29,25 @@ impl From<rust_decimal::Decimal> for Decimal {
 impl From<Decimal> for rust_decimal::Decimal {
     fn from(value: Decimal) -> Self {
         value.0
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+#[serde(transparent)]
+pub struct Json(Value);
+async_graphql::scalar!(Json);
+impl From<Value> for Json {
+    fn from(value: Value) -> Self {
+        Self(value)
+    }
+}
+impl From<Json> for Value {
+    fn from(value: Json) -> Self {
+        value.0
+    }
+}
+impl Json {
+    pub fn into_inner(self) -> Value {
+        self.0
     }
 }

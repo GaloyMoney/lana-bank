@@ -1,6 +1,7 @@
-query notificationEmailConfig {
-  notificationEmailConfig {
-    fromEmail
-    fromName
+query ListExposedConfigs {
+  listExposedConfigs {
+    key
+    value
+    isSet
   }
 }

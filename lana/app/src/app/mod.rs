@@ -45,6 +45,7 @@ use error::ApplicationError;
 #[derive(Clone)]
 pub struct LanaApp {
     _pool: PgPool,
+    domain_configs: DomainConfigs,
     jobs: Jobs,
     audit: Audit,
     authz: Authorization,
@@ -65,7 +66,6 @@ pub struct LanaApp {
     _user_onboarding: UserOnboarding,
     _customer_sync: CustomerSync,
     _deposit_sync: DepositSync,
-    notification: Notification,
 }
 
 impl LanaApp {
@@ -186,14 +186,13 @@ impl LanaApp {
         let contract_creation =
             ContractCreation::new(&customers, &applicants, &documents, &jobs, &authz);
 
-        let notification = Notification::init(
+        Notification::init(
             config.notification,
             &jobs,
             &outbox,
             access.users(),
             &credit,
             &customers,
-            &authz,
             &domain_configs,
         )
         .await?;
@@ -205,6 +204,7 @@ impl LanaApp {
 
         Ok(Self {
             _pool: pool,
+            domain_configs,
             jobs,
             audit,
             authz,
@@ -225,12 +225,15 @@ impl LanaApp {
             _user_onboarding: user_onboarding,
             _customer_sync: customer_sync,
             _deposit_sync: deposit_sync,
-            notification,
         })
     }
 
     pub fn dashboard(&self) -> &Dashboard {
         &self.dashboard
+    }
+
+    pub fn domain_configs(&self) -> &DomainConfigs {
+        &self.domain_configs
     }
 
     pub fn governance(&self) -> &Governance {
@@ -307,10 +310,6 @@ impl LanaApp {
 
     pub fn contract_creation(&self) -> &ContractCreation {
         &self.contract_creation
-    }
-
-    pub fn notification(&self) -> &Notification {
-        &self.notification
     }
 
     pub async fn get_visible_nav_items(

@@ -80,6 +80,10 @@ impl DomainConfigKey {
         DomainConfigKey(Cow::Borrowed(key))
     }
 
+    pub fn as_str(&self) -> &str {
+        self.0.as_ref()
+    }
+
     fn from_owned(key: String) -> Self {
         DomainConfigKey(Cow::Owned(key))
     }

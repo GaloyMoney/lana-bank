@@ -13,7 +13,6 @@ use core_deposit::CoreDepositAction;
 use core_report::CoreReportAction;
 use dashboard::DashboardModuleAction;
 use governance::GovernanceAction;
-use notification::NotificationAction;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]
@@ -30,7 +29,6 @@ pub enum LanaAction {
     Custody(CoreCustodyAction),
     Report(CoreReportAction),
     Contract(ContractModuleAction),
-    Notification(NotificationAction),
 }
 
 impl LanaAction {
@@ -48,7 +46,6 @@ impl LanaAction {
             CoreCustodyAction::actions(),
             CoreReportAction::actions(),
             ContractModuleAction::actions(),
-            NotificationAction::actions(),
         ]
         .concat()
     }
@@ -110,12 +107,6 @@ impl From<ContractModuleAction> for LanaAction {
     }
 }
 
-impl From<NotificationAction> for LanaAction {
-    fn from(action: NotificationAction) -> Self {
-        LanaAction::Notification(action)
-    }
-}
-
 impl Display for LanaAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}:", LanaActionDiscriminants::from(self))?;
@@ -132,7 +123,6 @@ impl Display for LanaAction {
             Custody(action) => action.fmt(f),
             Report(action) => action.fmt(f),
             Contract(action) => action.fmt(f),
-            Notification(action) => action.fmt(f),
         }
     }
 }
@@ -155,7 +145,6 @@ impl FromStr for LanaAction {
             Custody => LanaAction::from(action.parse::<CoreCustodyAction>()?),
             Report => LanaAction::from(action.parse::<CoreReportAction>()?),
             Contract => LanaAction::from(action.parse::<ContractModuleAction>()?),
-            Notification => LanaAction::from(action.parse::<NotificationAction>()?),
         };
         Ok(res)
     }
