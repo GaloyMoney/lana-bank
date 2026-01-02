@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import { gql } from "@apollo/client"
+import { useEffect, useState } from "react"
 import { useTranslations } from "next-intl"
 import { LoaderCircle } from "lucide-react"
 import { toast } from "sonner"
@@ -17,28 +17,32 @@ import {
 import { Button } from "@lana/web/ui/button"
 import { Input } from "@lana/web/ui/input"
 import { Label } from "@lana/web/ui/label"
+import { Checkbox } from "@lana/web/ui/checkbox"
 
 import {
-  NotificationEmailConfigDocument,
-  useNotificationEmailConfigQuery,
-  useNotificationEmailConfigUpdateMutation,
+  ConfigType,
+  type ExposedConfigItem,
+  useListExposedConfigsQuery,
+  useUpdateExposedConfigMutation,
 } from "@/lib/graphql/generated"
 
 gql`
-  query notificationEmailConfig {
-    notificationEmailConfig {
-      fromEmail
-      fromName
+  query ListExposedConfigs {
+    listExposedConfigs {
+      key
+      configType
+      value
+      isSet
     }
   }
-`
 
-gql`
-  mutation notificationEmailConfigUpdate($input: NotificationEmailConfigInput!) {
-    notificationEmailConfigUpdate(input: $input) {
-      notificationEmailConfig {
-        fromEmail
-        fromName
+  mutation UpdateExposedConfig($input: ExposedConfigUpdateInput!) {
+    updateExposedConfig(input: $input) {
+      exposedConfig {
+        key
+        configType
+        value
+        isSet
       }
     }
   }
@@ -47,136 +51,301 @@ gql`
 export default function ConfigurationsPage() {
   const t = useTranslations("Configurations")
 
-  const [senderForm, setSenderForm] = useState({ fromEmail: "", fromName: "" })
+  const [exposedDrafts, setExposedDrafts] = useState<
+    Record<string, string | boolean>
+  >({})
+  const [savingKey, setSavingKey] = useState<string | null>(null)
 
   const {
-    data: senderConfig,
-    loading: senderConfigLoading,
-  } = useNotificationEmailConfigQuery()
+    data: exposedConfigData,
+    loading: exposedConfigLoading,
+    error: exposedConfigError,
+  } = useListExposedConfigsQuery()
 
-  const senderConfigData = senderConfig?.notificationEmailConfig
+  const [updateExposedConfig] = useUpdateExposedConfigMutation()
 
-  const [updateSenderConfig, { loading: senderConfigSaving }] =
-    useNotificationEmailConfigUpdateMutation({
-      refetchQueries: [NotificationEmailConfigDocument],
-    })
-
-  const isBusy = senderConfigLoading || senderConfigSaving
+  const exposedConfigs = exposedConfigData?.listExposedConfigs ?? []
+  const visibleConfigs = exposedConfigs.filter(
+    (config) => config.configType !== ConfigType.Complex,
+  )
 
   useEffect(() => {
-    setSenderForm({
-      fromEmail: senderConfigData?.fromEmail || "",
-      fromName: senderConfigData?.fromName || "",
-    })
-  }, [senderConfigData?.fromEmail, senderConfigData?.fromName])
+    if (visibleConfigs.length === 0) {
+      setExposedDrafts({})
+      return
+    }
 
-  const handleSenderSave = async () => {
+    const nextDrafts: Record<string, string | boolean> = {}
+    for (const config of visibleConfigs) {
+      nextDrafts[config.key] = formatExposedValue(config)
+    }
+    setExposedDrafts(nextDrafts)
+  }, [visibleConfigs])
+
+  const handleExposedSave = async (config: ExposedConfigItem) => {
+    const draft = exposedDrafts[config.key]
+    const parsed = parseExposedDraft(config, draft)
+
+    if ("errorKey" in parsed) {
+      toast.error(t(parsed.errorKey))
+      return
+    }
+
+    setSavingKey(config.key)
     try {
-      const result = await updateSenderConfig({
+      const result = await updateExposedConfig({
         variables: {
           input: {
-            fromEmail: senderForm.fromEmail,
-            fromName: senderForm.fromName,
+            key: config.key,
+            value: parsed.value,
           },
         },
       })
 
-      const updatedConfig = result.data?.notificationEmailConfigUpdate.notificationEmailConfig
+      const updated = result.data?.updateExposedConfig.exposedConfig
 
-      if (!updatedConfig) {
-        toast.error(t("notificationEmail.saveError"))
+      if (!updated) {
+        toast.error(t("exposedConfigs.saveError"))
         return
       }
 
-      toast.success(t("notificationEmail.saveSuccess"))
-      setSenderForm({
-        fromEmail: updatedConfig.fromEmail,
-        fromName: updatedConfig.fromName, 
-      })
+      toast.success(t("exposedConfigs.saveSuccess"))
+      setExposedDrafts((prev) => ({
+        ...prev,
+        [config.key]: formatExposedValue(updated),
+      }))
     } catch (error) {
-      console.error("Failed to update notification email configuration:", error)
+      console.error("Failed to update exposed configuration:", error)
 
       const errorMessage = error instanceof Error ? error.message : null
 
       toast.error(
         errorMessage
-          ? t("notificationEmail.saveErrorWithReason", { error: errorMessage })
-          : t("notificationEmail.saveError"),
+          ? t("exposedConfigs.saveErrorWithReason", { error: errorMessage })
+          : t("exposedConfigs.saveError"),
       )
+    } finally {
+      setSavingKey(null)
     }
   }
 
-  const handleReset = () => {
-    setSenderForm({
-      fromEmail: senderConfigData?.fromEmail || "",
-      fromName: senderConfigData?.fromName || "",
-    })
+  const handleExposedReset = (config: ExposedConfigItem) => {
+    setExposedDrafts((prev) => ({
+      ...prev,
+      [config.key]: formatExposedValue(config),
+    }))
   }
 
   return (
     <div className="space-y-3">
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("notificationEmail.title")}</CardTitle>
-          <CardDescription>{t("notificationEmail.description")}</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4">
-          {senderConfigLoading ? (
-            <LoaderCircle className="animate-spin" />
-          ) : (
-            <>
-              <div className="grid gap-2">
-                <Label htmlFor="fromEmail">{t("notificationEmail.fromEmail")}</Label>
-                <Input
-                  id="fromEmail"
-                  type="email"
-                  value={senderForm.fromEmail}
-                  disabled={isBusy}
-                  onChange={(e) =>
-                    setSenderForm((prev) => ({ ...prev, fromEmail: e.target.value }))
-                  }
-                  required
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="fromName">{t("notificationEmail.fromName")}</Label>
-                <Input
-                  id="fromName"
-                  value={senderForm.fromName}
-                  disabled={isBusy}
-                  required
-                  onChange={(e) =>
-                    setSenderForm((prev) => ({ ...prev, fromName: e.target.value }))
-                  }
-                />
-              </div>
-            </>
-          )}
-        </CardContent>
-        <CardFooter className="justify-end gap-2">
-          <Button
-            variant="outline"
-            onClick={handleReset}
-            disabled={isBusy}
-          >
-            {t("notificationEmail.reset")}
-          </Button>
-          <Button
-            onClick={handleSenderSave}
-            disabled={
-              isBusy ||
-              senderForm.fromEmail.trim().length === 0 ||
-              senderForm.fromName.trim().length === 0
-            }
-          >
-            {senderConfigSaving ? (
-              <LoaderCircle className="animate-spin" />
-            ) : (
-              t("notificationEmail.save")
-            )}
-          </Button>
-        </CardFooter>
-      </Card>
+      {exposedConfigLoading ? (
+        <LoaderCircle className="animate-spin" />
+      ) : exposedConfigError ? (
+        <p className="text-sm text-destructive">
+          {t("exposedConfigs.loadError")}
+        </p>
+      ) : visibleConfigs.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          {t("exposedConfigs.empty")}
+        </p>
+      ) : (
+        <div className="space-y-3">
+          {visibleConfigs.map((config) => {
+            const inputId = `exposed-${config.key}`
+            const isSaving = savingKey === config.key
+            const isDisabled = exposedConfigLoading || isSaving
+
+            return (
+              <Card key={config.key}>
+                <CardHeader>
+                  <CardTitle>{t(`${config.key}.title`)}</CardTitle>
+                  <CardDescription>{t(`${config.key}.description`)}</CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-4">
+                  {renderExposedInput({
+                    config,
+                    inputId,
+                    value: exposedDrafts[config.key],
+                    disabled: isDisabled,
+                    onChange: (nextValue) =>
+                      setExposedDrafts((prev) => ({
+                        ...prev,
+                        [config.key]: nextValue,
+                      })),
+                    label: t("exposedConfigs.valueLabel"),
+                  })}
+                </CardContent>
+                <CardFooter className="justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => handleExposedReset(config)}
+                    disabled={isDisabled}
+                  >
+                    {t("exposedConfigs.reset")}
+                  </Button>
+                  <Button
+                    onClick={() => handleExposedSave(config)}
+                    disabled={isDisabled}
+                  >
+                    {isSaving ? (
+                      <LoaderCircle className="animate-spin" />
+                    ) : (
+                      t("exposedConfigs.save")
+                    )}
+                  </Button>
+                </CardFooter>
+              </Card>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
+}
+
+const formatExposedValue = (config: ExposedConfigItem): string | boolean => {
+  switch (config.configType) {
+    case ConfigType.Bool:
+      return config.value === true
+    case ConfigType.String:
+      return typeof config.value === "string" ? config.value : ""
+    case ConfigType.Int:
+    case ConfigType.Uint:
+      if (typeof config.value === "number") {
+        return config.value.toString()
+      }
+      return typeof config.value === "string" ? config.value : ""
+    case ConfigType.Decimal:
+      return typeof config.value === "string" ? config.value : ""
+    default:
+      return ""
+  }
+}
+
+const parseExposedDraft = (
+  config: ExposedConfigItem,
+  draft: string | boolean | undefined,
+):
+  | { value: unknown }
+  | {
+      errorKey: string
+    } => {
+  switch (config.configType) {
+    case ConfigType.Bool:
+      return { value: draft === true }
+    case ConfigType.String:
+      return { value: typeof draft === "string" ? draft : "" }
+    case ConfigType.Int: {
+      const text = typeof draft === "string" ? draft.trim() : ""
+      const parsed = Number(text)
+
+      if (text.length === 0) {
+        return { errorKey: "exposedConfigs.invalidInt" }
+      }
+
+      if (!Number.isInteger(parsed)) {
+        return { errorKey: "exposedConfigs.invalidInt" }
+      }
+
+      return { value: parsed }
+    }
+    case ConfigType.Uint: {
+      const text = typeof draft === "string" ? draft.trim() : ""
+      const parsed = Number(text)
+
+      if (text.length === 0) {
+        return { errorKey: "exposedConfigs.invalidUint" }
+      }
+
+      if (!Number.isInteger(parsed) || parsed < 0) {
+        return { errorKey: "exposedConfigs.invalidUint" }
+      }
+
+      return { value: parsed }
+    }
+    case ConfigType.Decimal: {
+      const text = typeof draft === "string" ? draft.trim() : ""
+
+      if (text.length === 0) {
+        return { errorKey: "exposedConfigs.invalidDecimal" }
+      }
+
+      return { value: text }
+    }
+    default:
+      return { errorKey: "exposedConfigs.invalidValue" }
+  }
+}
+
+type RenderExposedInputArgs = {
+  config: ExposedConfigItem
+  inputId: string
+  value: string | boolean | undefined
+  disabled: boolean
+  onChange: (value: string | boolean) => void
+  label: string
+}
+
+const renderExposedInput = ({
+  config,
+  inputId,
+  value,
+  disabled,
+  onChange,
+  label,
+}: RenderExposedInputArgs) => {
+  switch (config.configType) {
+    case ConfigType.Bool:
+      return (
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id={inputId}
+            checked={value === true}
+            disabled={disabled}
+            onCheckedChange={(checked) => onChange(checked === true)}
+          />
+          <Label htmlFor={inputId}>{label}</Label>
+        </div>
+      )
+    case ConfigType.Int:
+    case ConfigType.Uint:
+      return (
+        <div className="grid gap-2">
+          <Label htmlFor={inputId}>{label}</Label>
+          <Input
+            id={inputId}
+            type="number"
+            value={typeof value === "string" ? value : ""}
+            disabled={disabled}
+            onChange={(event) => onChange(event.target.value)}
+          />
+        </div>
+      )
+    case ConfigType.Decimal:
+      return (
+        <div className="grid gap-2">
+          <Label htmlFor={inputId}>{label}</Label>
+          <Input
+            id={inputId}
+            inputMode="decimal"
+            value={typeof value === "string" ? value : ""}
+            disabled={disabled}
+            onChange={(event) => onChange(event.target.value)}
+          />
+        </div>
+      )
+    case ConfigType.String:
+    default:
+      return (
+        <div className="grid gap-2">
+          <Label htmlFor={inputId}>{label}</Label>
+          <Input
+            id={inputId}
+            value={typeof value === "string" ? value : ""}
+            disabled={disabled}
+            onChange={(event) => onChange(event.target.value)}
+          />
+        </div>
+      )
+  }
 }

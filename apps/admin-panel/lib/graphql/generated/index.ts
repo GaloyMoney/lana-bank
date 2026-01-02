@@ -27,6 +27,7 @@ export type Scalars = {
   CVLPctValue: { input: any; output: any; }
   Date: { input: any; output: any; }
   Decimal: { input: any; output: any; }
+  Json: { input: any; output: any; }
   OneTimeFeeRatePct: { input: any; output: any; }
   PublicId: { input: any; output: any; }
   Satoshis: { input: Satoshis; output: Satoshis; }
@@ -389,6 +390,15 @@ export type CommitteeThreshold = {
   committee: Committee;
   threshold: Scalars['Int']['output'];
 };
+
+export enum ConfigType {
+  Bool = 'BOOL',
+  Complex = 'COMPLEX',
+  Decimal = 'DECIMAL',
+  Int = 'INT',
+  String = 'STRING',
+  Uint = 'UINT'
+}
 
 export type CreditFacilitiesFilter = {
   collateralizationState?: InputMaybe<CollateralizationState>;
@@ -1334,6 +1344,24 @@ export type DurationInput = {
   units: Scalars['Int']['input'];
 };
 
+export type ExposedConfigItem = {
+  __typename?: 'ExposedConfigItem';
+  configType: ConfigType;
+  isSet: Scalars['Boolean']['output'];
+  key: Scalars['String']['output'];
+  value: Scalars['Json']['output'];
+};
+
+export type ExposedConfigUpdateInput = {
+  key: Scalars['String']['input'];
+  value: Scalars['Json']['input'];
+};
+
+export type ExposedConfigUpdatePayload = {
+  __typename?: 'ExposedConfigUpdatePayload';
+  exposedConfig: ExposedConfigItem;
+};
+
 export type FacilityRemaining = {
   __typename?: 'FacilityRemaining';
   usdBalance: Scalars['UsdCents']['output'];
@@ -1768,7 +1796,6 @@ export type Mutation = {
   loanAgreementDownloadLinkGenerate: LoanAgreementDownloadLinksGeneratePayload;
   loanAgreementGenerate: LoanAgreementGeneratePayload;
   manualTransactionExecute: ManualTransactionExecutePayload;
-  notificationEmailConfigUpdate: NotificationEmailConfigPayload;
   pendingCreditFacilityCollateralUpdate: PendingCreditFacilityCollateralUpdatePayload;
   policyAssignCommittee: PolicyAssignCommitteePayload;
   profitAndLossStatementConfigure: ProfitAndLossStatementModuleConfigurePayload;
@@ -1780,6 +1807,7 @@ export type Mutation = {
   termsTemplateCreate: TermsTemplateCreatePayload;
   termsTemplateUpdate: TermsTemplateUpdatePayload;
   triggerReportRun: ReportRunCreatePayload;
+  updateExposedConfig: ExposedConfigUpdatePayload;
   userCreate: UserCreatePayload;
   userUpdateRole: UserUpdateRolePayload;
   withdrawalCancel: WithdrawalCancelPayload;
@@ -2010,11 +2038,6 @@ export type MutationManualTransactionExecuteArgs = {
 };
 
 
-export type MutationNotificationEmailConfigUpdateArgs = {
-  input: NotificationEmailConfigInput;
-};
-
-
 export type MutationPendingCreditFacilityCollateralUpdateArgs = {
   input: PendingCreditFacilityCollateralUpdateInput;
 };
@@ -2065,6 +2088,11 @@ export type MutationTermsTemplateUpdateArgs = {
 };
 
 
+export type MutationUpdateExposedConfigArgs = {
+  input: ExposedConfigUpdateInput;
+};
+
+
 export type MutationUserCreateArgs = {
   input: UserCreateInput;
 };
@@ -2092,22 +2120,6 @@ export type MutationWithdrawalInitiateArgs = {
 
 export type MutationWithdrawalRevertArgs = {
   input: WithdrawalRevertInput;
-};
-
-export type NotificationEmailConfig = {
-  __typename?: 'NotificationEmailConfig';
-  fromEmail: Scalars['String']['output'];
-  fromName: Scalars['String']['output'];
-};
-
-export type NotificationEmailConfigInput = {
-  fromEmail: Scalars['String']['input'];
-  fromName: Scalars['String']['input'];
-};
-
-export type NotificationEmailConfigPayload = {
-  __typename?: 'NotificationEmailConfigPayload';
-  notificationEmailConfig: NotificationEmailConfig;
 };
 
 export type Outstanding = {
@@ -2254,8 +2266,6 @@ export enum PermissionSetName {
   DepositWriter = 'DEPOSIT_WRITER',
   GovernanceViewer = 'GOVERNANCE_VIEWER',
   GovernanceWriter = 'GOVERNANCE_WRITER',
-  NotificationEmailConfigViewer = 'NOTIFICATION_EMAIL_CONFIG_VIEWER',
-  NotificationEmailConfigWriter = 'NOTIFICATION_EMAIL_CONFIG_WRITER',
   ReportViewer = 'REPORT_VIEWER',
   ReportWriter = 'REPORT_WRITER'
 }
@@ -2370,9 +2380,9 @@ export type Query = {
   ledgerTransactionsForTemplateCode: LedgerTransactionConnection;
   liquidation?: Maybe<Liquidation>;
   liquidations: LiquidationConnection;
+  listExposedConfigs: Array<ExposedConfigItem>;
   loanAgreement?: Maybe<LoanAgreement>;
   me: Me;
-  notificationEmailConfig: NotificationEmailConfig;
   pendingCreditFacilities: PendingCreditFacilityConnection;
   pendingCreditFacility?: Maybe<PendingCreditFacility>;
   permissionSets: PermissionSetConnection;
@@ -3317,17 +3327,17 @@ export type CommitteeRemoveUserMutationVariables = Exact<{
 
 export type CommitteeRemoveUserMutation = { __typename?: 'Mutation', committeeRemoveUser: { __typename?: 'CommitteeRemoveUserPayload', committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } }> } } };
 
-export type NotificationEmailConfigQueryVariables = Exact<{ [key: string]: never; }>;
+export type ListExposedConfigsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type NotificationEmailConfigQuery = { __typename?: 'Query', notificationEmailConfig: { __typename?: 'NotificationEmailConfig', fromEmail: string, fromName: string } };
+export type ListExposedConfigsQuery = { __typename?: 'Query', listExposedConfigs: Array<{ __typename?: 'ExposedConfigItem', key: string, configType: ConfigType, value: any, isSet: boolean }> };
 
-export type NotificationEmailConfigUpdateMutationVariables = Exact<{
-  input: NotificationEmailConfigInput;
+export type UpdateExposedConfigMutationVariables = Exact<{
+  input: ExposedConfigUpdateInput;
 }>;
 
 
-export type NotificationEmailConfigUpdateMutation = { __typename?: 'Mutation', notificationEmailConfigUpdate: { __typename?: 'NotificationEmailConfigPayload', notificationEmailConfig: { __typename?: 'NotificationEmailConfig', fromEmail: string, fromName: string } } };
+export type UpdateExposedConfigMutation = { __typename?: 'Mutation', updateExposedConfig: { __typename?: 'ExposedConfigUpdatePayload', exposedConfig: { __typename?: 'ExposedConfigItem', key: string, configType: ConfigType, value: any, isSet: boolean } } };
 
 export type DisbursalOnFacilityPageFragment = { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, publicId: any, amount: UsdCents, status: DisbursalStatus, createdAt: any };
 
@@ -6341,85 +6351,89 @@ export function useCommitteeRemoveUserMutation(baseOptions?: Apollo.MutationHook
 export type CommitteeRemoveUserMutationHookResult = ReturnType<typeof useCommitteeRemoveUserMutation>;
 export type CommitteeRemoveUserMutationResult = Apollo.MutationResult<CommitteeRemoveUserMutation>;
 export type CommitteeRemoveUserMutationOptions = Apollo.BaseMutationOptions<CommitteeRemoveUserMutation, CommitteeRemoveUserMutationVariables>;
-export const NotificationEmailConfigDocument = gql`
-    query notificationEmailConfig {
-  notificationEmailConfig {
-    fromEmail
-    fromName
+export const ListExposedConfigsDocument = gql`
+    query ListExposedConfigs {
+  listExposedConfigs {
+    key
+    configType
+    value
+    isSet
   }
 }
     `;
 
 /**
- * __useNotificationEmailConfigQuery__
+ * __useListExposedConfigsQuery__
  *
- * To run a query within a React component, call `useNotificationEmailConfigQuery` and pass it any options that fit your needs.
- * When your component renders, `useNotificationEmailConfigQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useListExposedConfigsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useListExposedConfigsQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useNotificationEmailConfigQuery({
+ * const { data, loading, error } = useListExposedConfigsQuery({
  *   variables: {
  *   },
  * });
  */
-export function useNotificationEmailConfigQuery(baseOptions?: Apollo.QueryHookOptions<NotificationEmailConfigQuery, NotificationEmailConfigQueryVariables>) {
+export function useListExposedConfigsQuery(baseOptions?: Apollo.QueryHookOptions<ListExposedConfigsQuery, ListExposedConfigsQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<NotificationEmailConfigQuery, NotificationEmailConfigQueryVariables>(NotificationEmailConfigDocument, options);
+        return Apollo.useQuery<ListExposedConfigsQuery, ListExposedConfigsQueryVariables>(ListExposedConfigsDocument, options);
       }
-export function useNotificationEmailConfigLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<NotificationEmailConfigQuery, NotificationEmailConfigQueryVariables>) {
+export function useListExposedConfigsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ListExposedConfigsQuery, ListExposedConfigsQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<NotificationEmailConfigQuery, NotificationEmailConfigQueryVariables>(NotificationEmailConfigDocument, options);
+          return Apollo.useLazyQuery<ListExposedConfigsQuery, ListExposedConfigsQueryVariables>(ListExposedConfigsDocument, options);
         }
 // @ts-ignore
-export function useNotificationEmailConfigSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<NotificationEmailConfigQuery, NotificationEmailConfigQueryVariables>): Apollo.UseSuspenseQueryResult<NotificationEmailConfigQuery, NotificationEmailConfigQueryVariables>;
-export function useNotificationEmailConfigSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<NotificationEmailConfigQuery, NotificationEmailConfigQueryVariables>): Apollo.UseSuspenseQueryResult<NotificationEmailConfigQuery | undefined, NotificationEmailConfigQueryVariables>;
-export function useNotificationEmailConfigSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<NotificationEmailConfigQuery, NotificationEmailConfigQueryVariables>) {
+export function useListExposedConfigsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ListExposedConfigsQuery, ListExposedConfigsQueryVariables>): Apollo.UseSuspenseQueryResult<ListExposedConfigsQuery, ListExposedConfigsQueryVariables>;
+export function useListExposedConfigsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ListExposedConfigsQuery, ListExposedConfigsQueryVariables>): Apollo.UseSuspenseQueryResult<ListExposedConfigsQuery | undefined, ListExposedConfigsQueryVariables>;
+export function useListExposedConfigsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ListExposedConfigsQuery, ListExposedConfigsQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<NotificationEmailConfigQuery, NotificationEmailConfigQueryVariables>(NotificationEmailConfigDocument, options);
+          return Apollo.useSuspenseQuery<ListExposedConfigsQuery, ListExposedConfigsQueryVariables>(ListExposedConfigsDocument, options);
         }
-export type NotificationEmailConfigQueryHookResult = ReturnType<typeof useNotificationEmailConfigQuery>;
-export type NotificationEmailConfigLazyQueryHookResult = ReturnType<typeof useNotificationEmailConfigLazyQuery>;
-export type NotificationEmailConfigSuspenseQueryHookResult = ReturnType<typeof useNotificationEmailConfigSuspenseQuery>;
-export type NotificationEmailConfigQueryResult = Apollo.QueryResult<NotificationEmailConfigQuery, NotificationEmailConfigQueryVariables>;
-export const NotificationEmailConfigUpdateDocument = gql`
-    mutation notificationEmailConfigUpdate($input: NotificationEmailConfigInput!) {
-  notificationEmailConfigUpdate(input: $input) {
-    notificationEmailConfig {
-      fromEmail
-      fromName
+export type ListExposedConfigsQueryHookResult = ReturnType<typeof useListExposedConfigsQuery>;
+export type ListExposedConfigsLazyQueryHookResult = ReturnType<typeof useListExposedConfigsLazyQuery>;
+export type ListExposedConfigsSuspenseQueryHookResult = ReturnType<typeof useListExposedConfigsSuspenseQuery>;
+export type ListExposedConfigsQueryResult = Apollo.QueryResult<ListExposedConfigsQuery, ListExposedConfigsQueryVariables>;
+export const UpdateExposedConfigDocument = gql`
+    mutation UpdateExposedConfig($input: ExposedConfigUpdateInput!) {
+  updateExposedConfig(input: $input) {
+    exposedConfig {
+      key
+      configType
+      value
+      isSet
     }
   }
 }
     `;
-export type NotificationEmailConfigUpdateMutationFn = Apollo.MutationFunction<NotificationEmailConfigUpdateMutation, NotificationEmailConfigUpdateMutationVariables>;
+export type UpdateExposedConfigMutationFn = Apollo.MutationFunction<UpdateExposedConfigMutation, UpdateExposedConfigMutationVariables>;
 
 /**
- * __useNotificationEmailConfigUpdateMutation__
+ * __useUpdateExposedConfigMutation__
  *
- * To run a mutation, you first call `useNotificationEmailConfigUpdateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useNotificationEmailConfigUpdateMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useUpdateExposedConfigMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateExposedConfigMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [notificationEmailConfigUpdateMutation, { data, loading, error }] = useNotificationEmailConfigUpdateMutation({
+ * const [updateExposedConfigMutation, { data, loading, error }] = useUpdateExposedConfigMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useNotificationEmailConfigUpdateMutation(baseOptions?: Apollo.MutationHookOptions<NotificationEmailConfigUpdateMutation, NotificationEmailConfigUpdateMutationVariables>) {
+export function useUpdateExposedConfigMutation(baseOptions?: Apollo.MutationHookOptions<UpdateExposedConfigMutation, UpdateExposedConfigMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<NotificationEmailConfigUpdateMutation, NotificationEmailConfigUpdateMutationVariables>(NotificationEmailConfigUpdateDocument, options);
+        return Apollo.useMutation<UpdateExposedConfigMutation, UpdateExposedConfigMutationVariables>(UpdateExposedConfigDocument, options);
       }
-export type NotificationEmailConfigUpdateMutationHookResult = ReturnType<typeof useNotificationEmailConfigUpdateMutation>;
-export type NotificationEmailConfigUpdateMutationResult = Apollo.MutationResult<NotificationEmailConfigUpdateMutation>;
-export type NotificationEmailConfigUpdateMutationOptions = Apollo.BaseMutationOptions<NotificationEmailConfigUpdateMutation, NotificationEmailConfigUpdateMutationVariables>;
+export type UpdateExposedConfigMutationHookResult = ReturnType<typeof useUpdateExposedConfigMutation>;
+export type UpdateExposedConfigMutationResult = Apollo.MutationResult<UpdateExposedConfigMutation>;
+export type UpdateExposedConfigMutationOptions = Apollo.BaseMutationOptions<UpdateExposedConfigMutation, UpdateExposedConfigMutationVariables>;
 export const GetCreditFacilityDisbursalsDocument = gql`
     query GetCreditFacilityDisbursals($publicId: PublicId!) {
   creditFacilityByPublicId(id: $publicId) {

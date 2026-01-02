@@ -1,12 +1,12 @@
 use async_trait::async_trait;
-use domain_config::{ConfigSpec, DomainConfigs};
+use domain_config::{DomainConfigError, DomainConfigs};
 use job::{CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType};
 use serde::{Deserialize, Serialize};
 use smtp_client::SmtpClient;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-use crate::email::config::NotificationEmailConfigSpec;
+use crate::email::config::{NotificationFromEmailConfigSpec, NotificationFromNameConfigSpec};
 use crate::email::templates::{EmailTemplate, EmailType};
 
 #[derive(Serialize, Deserialize)]
@@ -71,23 +71,37 @@ impl JobRunner for EmailSenderRunner {
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let notification_email_conf = self
+        let from_email = match self
             .domain_configs
-            .get_or_default::<NotificationEmailConfigSpec>()
-            .await?;
-
-        if let Err(err) =
-            <NotificationEmailConfigSpec as ConfigSpec>::validate(&notification_email_conf)
+            .get::<NotificationFromEmailConfigSpec>()
+            .await
         {
-            tracing::warn!(error = ?err, "invalid notification email config; skipping email");
-            return Ok(JobCompletion::Complete);
-        }
+            Ok(email) => email,
+            Err(DomainConfigError::NotConfigured) => {
+                tracing::warn!("no configured notification from email; skipping email");
+                return Ok(JobCompletion::Complete);
+            }
+            Err(e) => return Err(e.into()),
+        };
+
+        let from_name = match self
+            .domain_configs
+            .get::<NotificationFromNameConfigSpec>()
+            .await
+        {
+            Ok(name) => name,
+            Err(DomainConfigError::NotConfigured) => {
+                tracing::warn!("no configured notification from name; skipping email");
+                return Ok(JobCompletion::Complete);
+            }
+            Err(e) => return Err(e.into()),
+        };
 
         let (subject, body) = self.template.render_email(&self.config.email_type)?;
         self.smtp_client
             .send_email(
-                &notification_email_conf.from_email,
-                Some(&notification_email_conf.from_name),
+                &from_email,
+                Some(&from_name),
                 &self.config.recipient,
                 &subject,
                 body,
