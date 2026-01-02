@@ -15,9 +15,9 @@ use error::NotificationError;
 use job::Jobs;
 use lana_events::LanaEvent;
 
-use email::job::{EmailEventListenerConfig, EmailEventListenerInit};
-use email::EmailNotification;
 pub use config::NotificationConfig;
+use email::EmailNotification;
+use email::job::{EmailEventListenerConfig, EmailEventListenerInit};
 pub use email::{NotificationFromEmailConfigSpec, NotificationFromNameConfigSpec};
 
 pub struct Notification<AuthzType>
