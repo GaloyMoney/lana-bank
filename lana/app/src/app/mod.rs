@@ -26,6 +26,7 @@ use crate::{
     deposit::Deposits,
     deposit_sync::DepositSync,
     document::DocumentStorage,
+    domain_config::DomainConfigs,
     governance::Governance,
     job::Jobs,
     notification::Notification,
@@ -35,9 +36,9 @@ use crate::{
     public_id::PublicIds,
     report::Reports,
     storage::Storage,
+    time_events::{RealNow, TimeEvents},
     user_onboarding::UserOnboarding,
 };
-use domain_config::DomainConfigs;
 
 pub use config::*;
 use error::ApplicationError;
@@ -65,6 +66,7 @@ pub struct LanaApp {
     _user_onboarding: UserOnboarding,
     _customer_sync: CustomerSync,
     _deposit_sync: DepositSync,
+    _time_events: TimeEvents<RealNow>,
     notification: Notification,
 }
 
@@ -100,6 +102,8 @@ impl LanaApp {
                 .expect("Couldn't build JobSvcConfig"),
         )
         .await?;
+
+        let _time_events = TimeEvents::init(&domain_configs, RealNow, &jobs, &outbox).await?;
 
         let dashboard = Dashboard::init(&pool, &authz, &jobs, &outbox).await?;
         let governance = Governance::new(&pool, &authz, &outbox);
@@ -225,6 +229,7 @@ impl LanaApp {
             _user_onboarding: user_onboarding,
             _customer_sync: customer_sync,
             _deposit_sync: deposit_sync,
+            _time_events,
             notification,
         })
     }
