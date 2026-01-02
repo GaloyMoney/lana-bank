@@ -1590,7 +1590,7 @@ type LedgerTransactionEdge {
 
 union LedgerTransactionEntity = Deposit | Withdrawal | CreditFacilityDisbursal
 
-union LedgerTransactionInitiator = User | System
+union LedgerTransactionInitiator = User | Customer | System
 
 type Liquidation {
 	id: ID!

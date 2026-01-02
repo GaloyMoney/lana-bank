@@ -127,7 +127,11 @@ where
         description: String,
         effective: chrono::NaiveDate,
         entries: Vec<ManualEntryInput>,
-    ) -> Result<ManualTransaction, ManualTransactionError> {
+    ) -> Result<ManualTransaction, ManualTransactionError>
+    where
+        for<'a> LedgerTransactionInitiator:
+            From<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
+    {
         self.authz
             .enforce_permission(
                 sub,
@@ -138,7 +142,7 @@ where
 
         let ledger_tx_id = CalaTxId::new();
         let manual_tx_id = ManualTransactionId::new();
-        let initiated_by = LedgerTransactionInitiator::try_from_subject(sub)?;
+        let initiated_by = LedgerTransactionInitiator::from(sub);
 
         let new_tx = NewManualTransaction::builder()
             .id(manual_tx_id)

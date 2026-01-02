@@ -11,8 +11,8 @@ pub use lana_app::{
 
 use crate::{
     graphql::{
-        access::User, audit::System, credit_facility::CreditFacilityDisbursal, deposit::Deposit,
-        loader::*, withdrawal::Withdrawal,
+        access::User, audit::System, credit_facility::CreditFacilityDisbursal, customer::Customer,
+        deposit::Deposit, loader::*, withdrawal::Withdrawal,
     },
     primitives::*,
 };
@@ -39,6 +39,7 @@ pub enum LedgerTransactionEntity {
 #[derive(Union)]
 pub enum LedgerTransactionInitiator {
     User(User),
+    Customer(Customer),
     System(System),
 }
 
@@ -93,6 +94,13 @@ impl LedgerTransaction {
                 match loader.load_one(UserId::from(*id)).await? {
                     Some(user) => Ok(LedgerTransactionInitiator::User(user)),
                     None => Err("Initiator user not found".into()),
+                }
+            }
+            DomainLedgerTransactionInitiator::Customer { id } => {
+                let loader = ctx.data_unchecked::<LanaDataLoader>();
+                match loader.load_one(CustomerId::from(*id)).await? {
+                    Some(customer) => Ok(LedgerTransactionInitiator::Customer(customer)),
+                    None => Err("Initiator customer not found".into()),
                 }
             }
             DomainLedgerTransactionInitiator::System => {

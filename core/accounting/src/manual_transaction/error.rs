@@ -18,10 +18,6 @@ pub enum ManualTransactionError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("ManualTransactionError - ChartOfAccounts: {0}")]
     ChartOfAccountsError(#[from] chart_of_accounts::error::ChartOfAccountsError),
-    #[error("ManualTransactionError - LedgerTransactionInitiatorParseError: {0}")]
-    LedgerTransactionInitiatorParseError(
-        #[from] crate::primitives::LedgerTransactionInitiatorParseError,
-    ),
 }
 
 es_entity::from_es_entity_error!(ManualTransactionError);
@@ -35,7 +31,6 @@ impl ErrorSeverity for ManualTransactionError {
             Self::ManualTransactionLedgerError(e) => e.severity(),
             Self::AuthorizationError(e) => e.severity(),
             Self::ChartOfAccountsError(e) => e.severity(),
-            Self::LedgerTransactionInitiatorParseError(e) => e.severity(),
         }
     }
 }

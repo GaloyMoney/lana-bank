@@ -248,7 +248,11 @@ where
         description: String,
         effective: Option<chrono::NaiveDate>,
         entries: Vec<ManualEntryInput>,
-    ) -> Result<LedgerTransaction, CoreAccountingError> {
+    ) -> Result<LedgerTransaction, CoreAccountingError>
+    where
+        for<'a> LedgerTransactionInitiator:
+            From<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
+    {
         let tx = self
             .manual_transactions
             .execute(
