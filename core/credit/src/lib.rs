@@ -192,10 +192,18 @@ where
         journal_id: cala_ledger::JournalId,
         public_ids: &PublicIds,
     ) -> Result<Self, CoreCreditError> {
+        let mut job_new = job_new::Jobs::init(
+            job_new::JobSvcConfig::builder()
+                .pool(pool.clone())
+                .build()
+                .expect("Couldn't build JobSvcConfig"),
+        )
+        .await?;
         // Create Arc-wrapped versions of parameters once
         let authz_arc = Arc::new(authz.clone());
         let governance_arc = Arc::new(governance.clone());
         let jobs_arc = Arc::new(jobs.clone());
+        let new_jobs_arc = Arc::new(job_new.clone());
         let price_arc = Arc::new(price.clone());
         let public_ids_arc = Arc::new(public_ids.clone());
         let customer_arc = Arc::new(customer.clone());
@@ -211,7 +219,7 @@ where
             pool,
             authz_arc.clone(),
             ledger_arc.clone(),
-            jobs_arc.clone(),
+            new_jobs_arc,
             &publisher,
         );
         let obligations_arc = Arc::new(obligations);
@@ -380,12 +388,6 @@ where
             obligations_arc.as_ref(),
             jobs,
         ));
-        jobs.add_initializer(
-            obligation_defaulted::ObligationDefaultedInit::<Perms, E>::new(
-                ledger_arc.as_ref(),
-                obligations_arc.as_ref(),
-            ),
-        );
         jobs.add_initializer(
             partial_liquidation::PartialLiquidationInit::<Perms, E>::new(
                 outbox,

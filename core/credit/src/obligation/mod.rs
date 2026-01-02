@@ -1,5 +1,6 @@
 mod entity;
 pub mod error;
+mod jobs;
 mod primitives;
 mod repo;
 
@@ -28,6 +29,7 @@ use crate::{
 };
 
 pub use entity::Obligation;
+use jobs::obligation_defaulted;
 
 #[cfg(feature = "json-schema")]
 pub use entity::ObligationEvent;
@@ -46,7 +48,6 @@ where
     repo: Arc<ObligationRepo<E>>,
     payment_allocation_repo: Arc<PaymentAllocationRepo<E>>,
     ledger: Arc<CreditLedger>,
-    jobs: Arc<Jobs>,
 }
 
 impl<Perms, E> Clone for Obligations<Perms, E>
@@ -60,7 +61,6 @@ where
             repo: self.repo.clone(),
             payment_allocation_repo: self.payment_allocation_repo.clone(),
             ledger: self.ledger.clone(),
-            jobs: self.jobs.clone(),
         }
     }
 }
@@ -76,15 +76,21 @@ where
         pool: &sqlx::PgPool,
         authz: Arc<Perms>,
         ledger: Arc<CreditLedger>,
-        jobs: Arc<Jobs>,
+        jobs: Arc<job_new::Jobs>,
         publisher: &CreditFacilityPublisher<E>,
     ) -> Self {
         let obligation_repo = ObligationRepo::new(pool, publisher);
         let payment_allocation_repo = PaymentAllocationRepo::new(pool, publisher);
+        // let record_overdue = RecordOverdue::new(); <- dynamically initialized use case container
+        let spawner = jobs.add_initializer(
+            obligation_defaulted::ObligationDefaultedInit::<Perms, E>::new(
+                ledger.clone(),
+                // record_overdue_in_op <-
+            ),
+        );
         Self {
             authz,
             repo: Arc::new(obligation_repo),
-            jobs,
             ledger,
             payment_allocation_repo: Arc::new(payment_allocation_repo),
         }
@@ -100,18 +106,18 @@ where
         new_obligation: NewObligation,
     ) -> Result<Obligation, ObligationError> {
         let obligation = self.repo.create_in_op(&mut *op, new_obligation).await?;
-        self.jobs
-            .create_and_spawn_at_in_op(
-                op,
-                JobId::new(),
-                obligation_due::ObligationDueJobConfig::<Perms, E> {
-                    obligation_id: obligation.id,
-                    effective: obligation.due_at().date_naive(),
-                    _phantom: std::marker::PhantomData,
-                },
-                obligation.due_at(),
-            )
-            .await?;
+        // self.jobs
+        //     .create_and_spawn_at_in_op(
+        //         op,
+        //         JobId::new(),
+        //         obligation_due::ObligationDueJobConfig::<Perms, E> {
+        //             obligation_id: obligation.id,
+        //             effective: obligation.due_at().date_naive(),
+        //             _phantom: std::marker::PhantomData,
+        //         },
+        //         obligation.due_at(),
+        //     )
+        //     .await?;
 
         Ok(obligation)
     }
@@ -172,36 +178,6 @@ where
         };
 
         Ok((obligation, data))
-    }
-
-    pub async fn record_defaulted_in_op(
-        &self,
-        op: &mut es_entity::DbOp<'_>,
-        id: ObligationId,
-        effective: chrono::NaiveDate,
-    ) -> Result<Option<ObligationDefaultedReallocationData>, ObligationError> {
-        let mut obligation = self.repo.find_by_id(id).await?;
-
-        self.authz
-            .audit()
-            .record_system_entry_in_tx(
-                op,
-                CoreCreditObject::obligation(id),
-                CoreCreditAction::OBLIGATION_UPDATE_STATUS,
-            )
-            .await
-            .map_err(authz::error::AuthorizationError::from)?;
-
-        let data = if let es_entity::Idempotent::Executed(defaulted) =
-            obligation.record_defaulted(effective)?
-        {
-            self.repo.update_in_op(op, &mut obligation).await?;
-            Some(defaulted)
-        } else {
-            None
-        };
-
-        Ok(data)
     }
 
     pub async fn find_by_id_without_audit(
