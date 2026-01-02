@@ -1707,7 +1707,7 @@ impl Mutation {
                 chart_of_account_facility_omnibus_parent_code.parse()?,
             chart_of_account_collateral_omnibus_parent_code:
                 chart_of_account_collateral_omnibus_parent_code.parse()?,
-            chart_of_account_liquidation_payment_receivable_omnibus_parent_code:
+            chart_of_account_liquidation_payment_omnibus_parent_code:
                 chart_of_account_in_liquidation_omnibus_parent_code.parse()?,
             chart_of_account_facility_parent_code: chart_of_account_facility_parent_code.parse()?,
             chart_of_account_collateral_parent_code: chart_of_account_collateral_parent_code

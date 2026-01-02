@@ -37,7 +37,7 @@ where
     repo: LiquidationRepo<E>,
     authz: Arc<Perms>,
     ledger: LiquidationLedger,
-    omnibus_account_ids: LedgerOmnibusAccountIds,
+    payment_omnibus_account_ids: LedgerOmnibusAccountIds,
 }
 
 impl<Perms, E> Clone for Liquidations<Perms, E>
@@ -50,7 +50,7 @@ where
             repo: self.repo.clone(),
             authz: self.authz.clone(),
             ledger: self.ledger.clone(),
-            omnibus_account_ids: self.omnibus_account_ids.clone(),
+            payment_omnibus_account_ids: self.payment_omnibus_account_ids.clone(),
         }
     }
 }
@@ -66,7 +66,7 @@ where
         pool: &sqlx::PgPool,
         journal_id: JournalId,
         cala: &CalaLedger,
-        omnibus_account_ids: &LedgerOmnibusAccountIds,
+        payment_omnibus_account_ids: &LedgerOmnibusAccountIds,
         authz: Arc<Perms>,
         publisher: &crate::CreditFacilityPublisher<E>,
     ) -> Result<Self, LiquidationError> {
@@ -74,7 +74,7 @@ where
             repo: LiquidationRepo::new(pool, publisher),
             authz,
             ledger: LiquidationLedger::init(cala, journal_id).await?,
-            omnibus_account_ids: omnibus_account_ids.clone(),
+            payment_omnibus_account_ids: payment_omnibus_account_ids.clone(),
         })
     }
 
@@ -107,7 +107,9 @@ where
                 .create_in_op(
                     db,
                     new_liquidation
-                        .liquidation_omnibus_account_id(self.omnibus_account_ids.account_id)
+                        .liquidation_payment_omnibus_account_id(
+                            self.payment_omnibus_account_ids.account_id,
+                        )
                         .build()
                         .expect("Could not build new liquidation"),
                 )
@@ -304,7 +306,7 @@ where
 
 #[derive(Clone, Debug)]
 pub struct RecordPaymentFromLiquidationData {
-    pub liquidation_omnibus_account_id: CalaAccountId,
+    pub liquidation_payment_omnibus_account_id: CalaAccountId,
     pub liquidation_in_holding_account_id: FacilityLiquidationInHoldingAccount,
     pub amount_received: UsdCents,
     pub collateral_in_liquidation_account_id: CalaAccountId,

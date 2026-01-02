@@ -14,7 +14,7 @@ use rbac_types::Subject;
 struct CreditConfigData {
     facility_omnibus_parent_code: String,
     collateral_omnibus_parent_code: String,
-    liquidation_payment_receivable_omnibus_parent_code: String,
+    liquidation_payment_omnibus_parent_code: String,
     facility_parent_code: String,
     collateral_parent_code: String,
     collateral_in_liquidation_parent_code: String,
@@ -67,7 +67,7 @@ pub(in crate::accounting_init::seed) async fn credit_module_configure(
     let CreditConfigData {
         facility_omnibus_parent_code,
         collateral_omnibus_parent_code,
-        liquidation_payment_receivable_omnibus_parent_code,
+        liquidation_payment_omnibus_parent_code,
         facility_parent_code,
         collateral_parent_code,
         collateral_in_liquidation_parent_code,
@@ -115,8 +115,8 @@ pub(in crate::accounting_init::seed) async fn credit_module_configure(
         chart_of_accounts_id: chart.id,
         chart_of_account_facility_omnibus_parent_code: facility_omnibus_parent_code.parse()?,
         chart_of_account_collateral_omnibus_parent_code: collateral_omnibus_parent_code.parse()?,
-        chart_of_account_liquidation_payment_receivable_omnibus_parent_code:
-            liquidation_payment_receivable_omnibus_parent_code.parse()?,
+        chart_of_account_liquidation_payment_omnibus_parent_code:
+            liquidation_payment_omnibus_parent_code.parse()?,
         chart_of_account_facility_parent_code: facility_parent_code.parse()?,
         chart_of_account_collateral_parent_code: collateral_parent_code.parse()?,
         chart_of_account_collateral_in_liquidation_parent_code:

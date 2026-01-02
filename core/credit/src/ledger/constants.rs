@@ -8,12 +8,12 @@ pub const CREDIT_FACILITY_OMNIBUS_ACCOUNT_SET_NAME: &str = "Credit Facility Omni
 pub const CREDIT_FACILITY_OMNIBUS_ACCOUNT_SET_REF: &str = "credit-facility-omnibus-account-set";
 pub const CREDIT_FACILITY_OMNIBUS_ACCOUNT_REF: &str = "credit-facility-omnibus-account";
 
-pub const CREDIT_FACILITY_LIQUIDATION_PAYMENT_RECEIVABLE_OMNIBUS_ACCOUNT_SET_NAME: &str =
-    "Credit Facility Liquidation Payment Receivable Omnibus Account Set";
-pub const CREDIT_FACILITY_LIQUIDATION_PAYMENT_RECEIVABLE_OMNIBUS_ACCOUNT_SET_REF: &str =
-    "credit-facility-liquidation-payment-receivable-omnibus-account-set";
-pub const CREDIT_FACILITY_LIQUIDATION_PAYMENT_RECEIVABLE_OMNIBUS_ACCOUNT_REF: &str =
-    "credit-facility-liquidation-payment-receivable-omnibus-account";
+pub const CREDIT_FACILITY_LIQUIDATION_PAYMENT_OMNIBUS_ACCOUNT_SET_NAME: &str =
+    "Credit Facility Liquidation Payment Omnibus Account Set";
+pub const CREDIT_FACILITY_LIQUIDATION_PAYMENT_OMNIBUS_ACCOUNT_SET_REF: &str =
+    "credit-facility-liquidation-payment-omnibus-account-set";
+pub const CREDIT_FACILITY_LIQUIDATION_PAYMENT_OMNIBUS_ACCOUNT_REF: &str =
+    "credit-facility-liquidation-payment-omnibus-account";
 
 // Summary Accounts
 pub const CREDIT_FACILITY_REMAINING_ACCOUNT_SET_NAME: &str =
@@ -31,10 +31,10 @@ pub const CREDIT_FACILITY_LIQUIDATED_COLLATERAL_ACCOUNT_SET_NAME: &str =
     "Credit Facility Liquidated Collateral Account Set";
 pub const CREDIT_FACILITY_LIQUIDATED_COLLATERAL_ACCOUNT_SET_REF: &str =
     "credit-facility-liquidated-collateral-account-set";
-pub const CREDIT_FACILITY_LIQUIDATION_PAYMENT_RECEIVABLE_ACCOUNT_SET_NAME: &str =
-    "Credit Facility Liquidation Payment Receivable Account Set";
-pub const CREDIT_FACILITY_LIQUIDATION_PAYMENT_RECEIVABLE_ACCOUNT_SET_REF: &str =
-    "credit-facility-liquidation-payment-receivable-account-set";
+pub const CREDIT_FACILITY_LIQUIDATION_IN_HOLDING_ACCOUNT_SET_NAME: &str =
+    "Credit Facility Liquidation In Holding Account Set";
+pub const CREDIT_FACILITY_LIQUIDATION_IN_HOLDING_ACCOUNT_SET_REF: &str =
+    "credit-facility-liquidation-in-holding-account-set";
 
 pub const SHORT_TERM_CREDIT_INDIVIDUAL_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME: &str =
     "Short Term Credit Individual Disbursed Receivable Account Set";

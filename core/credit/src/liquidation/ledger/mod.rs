@@ -85,7 +85,8 @@ impl LiquidationLedger {
                 templates::RECEIVE_PAYMENT_FROM_LIQUIDATION,
                 templates::ReceivePaymentFromLiquidationParams {
                     journal_id: self.journal_id,
-                    fiat_liquidation_omnibus_account_id: data.liquidation_omnibus_account_id,
+                    fiat_liquidation_payment_omnibus_account_id: data
+                        .liquidation_payment_omnibus_account_id,
                     fiat_liquidation_in_holding_account_id: data.liquidation_in_holding_account_id,
                     amount_received: data.amount_received,
                     currency: Currency::USD,

@@ -28,7 +28,7 @@ pub const RECEIVE_PAYMENT_FROM_LIQUIDATION: &str = "RECEIVE_PAYMENT_FROM_LIQUIDA
 #[derive(Debug)]
 pub struct ReceivePaymentFromLiquidationParams {
     pub journal_id: JournalId,
-    pub fiat_liquidation_omnibus_account_id: CalaAccountId,
+    pub fiat_liquidation_payment_omnibus_account_id: CalaAccountId,
     pub fiat_liquidation_in_holding_account_id: FacilityLiquidationInHoldingAccount,
     pub amount_received: UsdCents,
     pub currency: Currency,
@@ -94,7 +94,7 @@ impl From<ReceivePaymentFromLiquidationParams> for Params {
     fn from(
         ReceivePaymentFromLiquidationParams {
             journal_id,
-            fiat_liquidation_omnibus_account_id,
+            fiat_liquidation_payment_omnibus_account_id,
             fiat_liquidation_in_holding_account_id,
             amount_received,
             currency,
@@ -106,7 +106,10 @@ impl From<ReceivePaymentFromLiquidationParams> for Params {
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
-        params.insert("omnibus_account_id", fiat_liquidation_omnibus_account_id);
+        params.insert(
+            "omnibus_account_id",
+            fiat_liquidation_payment_omnibus_account_id,
+        );
         params.insert(
             "in_holding_account_id",
             fiat_liquidation_in_holding_account_id.into_inner(),
