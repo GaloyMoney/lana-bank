@@ -20,7 +20,7 @@ pub enum LiquidationEvent {
     Initialized {
         id: LiquidationId,
         credit_facility_id: CreditFacilityId,
-        liquidation_omnibus_account_id: CalaAccountId,
+        liquidation_payment_omnibus_account_id: CalaAccountId,
         facility_liquidation_in_holding_account_id: FacilityLiquidationInHoldingAccount,
         facility_payment_holding_account_id: CalaAccountId,
         collateral_account_id: CalaAccountId,
@@ -58,7 +58,7 @@ pub struct Liquidation {
     pub expected_to_receive: UsdCents,
     pub sent_total: Satoshis,
     pub received_total: UsdCents,
-    pub liquidation_omnibus_account_id: CalaAccountId,
+    pub liquidation_payment_omnibus_account_id: CalaAccountId,
 
     /// Holds payments received from liquidator for the connected
     /// facility.
@@ -133,7 +133,7 @@ impl Liquidation {
         });
 
         Ok(Idempotent::Executed(RecordPaymentFromLiquidationData {
-            liquidation_omnibus_account_id: self.liquidation_omnibus_account_id,
+            liquidation_payment_omnibus_account_id: self.liquidation_payment_omnibus_account_id,
             liquidation_in_holding_account_id: self.facility_liquidation_in_holding_account_id,
             amount_received: self.received_total,
             collateral_in_liquidation_account_id: self.collateral_in_liquidation_account_id,
@@ -200,7 +200,7 @@ impl TryFromEvents<LiquidationEvent> for Liquidation {
                 LiquidationEvent::Initialized {
                     id,
                     credit_facility_id,
-                    liquidation_omnibus_account_id,
+                    liquidation_payment_omnibus_account_id,
                     facility_liquidation_in_holding_account_id,
                     facility_payment_holding_account_id,
                     collateral_account_id,
@@ -212,7 +212,9 @@ impl TryFromEvents<LiquidationEvent> for Liquidation {
                     builder = builder
                         .id(*id)
                         .credit_facility_id(*credit_facility_id)
-                        .liquidation_omnibus_account_id(*liquidation_omnibus_account_id)
+                        .liquidation_payment_omnibus_account_id(
+                            *liquidation_payment_omnibus_account_id,
+                        )
                         .facility_liquidation_in_holding_account_id(
                             *facility_liquidation_in_holding_account_id,
                         )
@@ -250,7 +252,7 @@ pub struct NewLiquidation {
     pub(crate) id: LiquidationId,
     #[builder(setter(into))]
     pub(crate) credit_facility_id: CreditFacilityId,
-    pub(crate) liquidation_omnibus_account_id: CalaAccountId,
+    pub(crate) liquidation_payment_omnibus_account_id: CalaAccountId,
     pub(crate) facility_liquidation_in_holding_account_id: FacilityLiquidationInHoldingAccount,
     pub(crate) facility_payment_holding_account_id: CalaAccountId,
     pub(crate) collateral_account_id: CalaAccountId,
@@ -274,7 +276,7 @@ impl IntoEvents<LiquidationEvent> for NewLiquidation {
             [LiquidationEvent::Initialized {
                 id: self.id,
                 credit_facility_id: self.credit_facility_id,
-                liquidation_omnibus_account_id: self.liquidation_omnibus_account_id,
+                liquidation_payment_omnibus_account_id: self.liquidation_payment_omnibus_account_id,
                 facility_liquidation_in_holding_account_id: self
                     .facility_liquidation_in_holding_account_id,
                 facility_payment_holding_account_id: self.facility_payment_holding_account_id,

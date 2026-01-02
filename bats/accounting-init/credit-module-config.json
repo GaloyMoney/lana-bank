@@ -1,7 +1,7 @@
 {
     "facility_omnibus_parent_code": "81.01",
     "collateral_omnibus_parent_code": "81.02",
-    "liquidation_payment_receivable_omnibus_parent_code": "81.03",
+    "liquidation_payment_omnibus_parent_code": "81.03",
     "facility_parent_code": "81.01",
     "collateral_parent_code": "81.02",
     "collateral_in_liquidation_parent_code": "81.03",
