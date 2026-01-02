@@ -31,7 +31,6 @@ dependencies = [
  "chrono",
  "domain-config",
  "es-entity",
- "futures",
  "jwks-utils",
  "lana-app",
  "rust_decimal",
