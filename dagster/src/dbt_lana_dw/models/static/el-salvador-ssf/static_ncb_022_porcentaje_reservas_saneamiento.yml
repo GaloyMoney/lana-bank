@@ -1,0 +1,9 @@
+version: 2
+
+models:
+  - name: static_ncb_022_porcentaje_reservas_saneamiento
+    description: '{{ doc("static_ncb_022_porcentaje_reservas_saneamiento") }}'
+
+    columns:
+      - name: category
+        description: This is a unique identifier for the event
