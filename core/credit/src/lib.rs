@@ -118,6 +118,8 @@ where
     terms_templates: Arc<TermsTemplates<Perms>>,
     public_ids: Arc<PublicIds>,
     liquidations: Arc<Liquidations<Perms, E>>,
+    // Keep around during migration for the poller to stay active
+    jobs: job_new::Jobs,
 }
 
 impl<Perms, E> Clone for CoreCredit<Perms, E>
@@ -155,6 +157,7 @@ where
             terms_templates: self.terms_templates.clone(),
             public_ids: self.public_ids.clone(),
             liquidations: self.liquidations.clone(),
+            jobs: self.jobs.clone(),
         }
     }
 }
@@ -425,6 +428,7 @@ where
         )
         .await?;
 
+        job_new.start_poll().await?;
         Ok(Self {
             authz: authz_arc,
             customer: customer_arc,
@@ -450,6 +454,7 @@ where
             terms_templates: terms_templates_arc,
             public_ids: public_ids_arc,
             liquidations: liquidations_arc,
+            jobs: job_new,
         })
     }
 
