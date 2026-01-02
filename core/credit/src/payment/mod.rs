@@ -77,7 +77,7 @@ where
         payment_id: PaymentId,
         credit_facility_id: CreditFacilityId,
         payment_holding_account_id: CalaAccountId,
-        payment_source_account_id: PaymentSourceAccountId,
+        payment_source_account_id: impl Into<PaymentSourceAccountId>,
         amount: UsdCents,
         effective: chrono::NaiveDate,
     ) -> Result<Option<Payment>, PaymentError> {

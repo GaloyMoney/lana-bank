@@ -23,7 +23,6 @@ CREATE TABLE core_credit_facility_events_rollup (
   liquidation_id UUID,
   maturity_date VARCHAR,
   outstanding JSONB,
-  payment_holding_account_id UUID,
   pending_credit_facility_id UUID,
   price JSONB,
   public_id VARCHAR,
@@ -112,7 +111,6 @@ BEGIN
      END
 ;
     new_row.outstanding := (NEW.event -> 'outstanding');
-    new_row.payment_holding_account_id := (NEW.event ->> 'payment_holding_account_id')::UUID;
     new_row.pending_credit_facility_id := (NEW.event ->> 'pending_credit_facility_id')::UUID;
     new_row.price := (NEW.event -> 'price');
     new_row.public_id := (NEW.event ->> 'public_id');
@@ -145,7 +143,6 @@ BEGIN
     new_row.maturity_date := current_row.maturity_date;
     new_row.obligation_ids := current_row.obligation_ids;
     new_row.outstanding := current_row.outstanding;
-    new_row.payment_holding_account_id := current_row.payment_holding_account_id;
     new_row.pending_credit_facility_id := current_row.pending_credit_facility_id;
     new_row.price := current_row.price;
     new_row.public_id := current_row.public_id;
@@ -190,7 +187,6 @@ BEGIN
       new_row.initially_estimated_to_liquidate := (NEW.event ->> 'initially_estimated_to_liquidate')::BIGINT;
       new_row.initially_expected_to_receive := (NEW.event ->> 'initially_expected_to_receive')::BIGINT;
       new_row.liquidation_id := (NEW.event ->> 'liquidation_id')::UUID;
-      new_row.payment_holding_account_id := (NEW.event ->> 'payment_holding_account_id')::UUID;
       new_row.trigger_price := (NEW.event -> 'trigger_price');
     WHEN 'partial_liquidation_completed' THEN
       new_row.liquidated := (NEW.event ->> 'liquidated')::BIGINT;
@@ -232,7 +228,6 @@ BEGIN
     maturity_date,
     obligation_ids,
     outstanding,
-    payment_holding_account_id,
     pending_credit_facility_id,
     price,
     public_id,
@@ -269,7 +264,6 @@ BEGIN
     new_row.maturity_date,
     new_row.obligation_ids,
     new_row.outstanding,
-    new_row.payment_holding_account_id,
     new_row.pending_credit_facility_id,
     new_row.price,
     new_row.public_id,
