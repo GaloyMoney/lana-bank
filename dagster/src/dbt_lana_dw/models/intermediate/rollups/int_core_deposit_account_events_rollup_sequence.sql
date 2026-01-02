@@ -1,33 +1,31 @@
-with source as (
-    select
-        deposit_account_id,
-        version,
-        created_at,
-        modified_at,
-        account_holder_id,
-        account_ids,
-        public_id,
-        status,
-        loaded_to_dw_at
-    from {{ ref('stg_core_deposit_account_events_rollup') }} as s
-)
+with
+    source as (
+        select
+            deposit_account_id,
+            version,
+            created_at,
+            modified_at,
+            account_holder_id,
+            account_ids,
+            public_id,
+            status,
+            loaded_to_dw_at
+        from {{ ref("stg_core_deposit_account_events_rollup") }} as s
+    ),
+    transformed as (
+        select
+            deposit_account_id,
+            account_holder_id as customer_id,
+            created_at as deposit_account_created_at,
+            modified_at as deposit_account_modified_at,
 
-
-, transformed as (
-    select
-        deposit_account_id,
-        account_holder_id as customer_id,
-        created_at as deposit_account_created_at,
-        modified_at as deposit_account_modified_at,
-
-        version,
-        account_ids,
-        public_id,
-        status,
-        loaded_to_dw_at
-    from source
-)
-
+            version,
+            account_ids,
+            public_id,
+            status,
+            loaded_to_dw_at
+        from source
+    )
 
 select
     deposit_account_id,
