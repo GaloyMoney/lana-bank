@@ -36,6 +36,8 @@ checksums:
     LedgerTransactions/details/description: e17686a22ffad04cc7bb70524ed4478b
     LedgerTransactions/details/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
     LedgerTransactions/details/effective: f65ce5261a855b444b343dda7e395ed3
+    LedgerTransactions/details/initiatedBy: 49eb6c7c11b9bdb5ec5ece6de153606c
+    LedgerTransactions/system: 803281c327a02a2feba182f4a2b38311
     LedgerTransactions/table/headers/transactionId: 74529016d49a203243eff308e1d312d3
     LedgerTransactions/table/headers/description: e17686a22ffad04cc7bb70524ed4478b
     LedgerTransactions/table/headers/effectiveDate: aab6741517742a24eb46f529ebb94bf6

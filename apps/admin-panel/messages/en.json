@@ -39,8 +39,10 @@
     "details": {
       "description": "Description",
       "createdAt": "Created At",
-      "effective": "Effective"
+      "effective": "Effective",
+      "initiatedBy": "Initiated By"
     },
+    "system": "System",
     "table": {
       "headers": {
         "transactionId": "Transaction ID",

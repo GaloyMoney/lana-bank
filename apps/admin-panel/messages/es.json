@@ -39,8 +39,10 @@
     "details": {
       "description": "Descripción",
       "createdAt": "Fecha de registro",
-      "effective": "Fecha valor"
+      "effective": "Fecha valor",
+      "initiatedBy": "Iniciado por"
     },
+    "system": "Sistema",
     "table": {
       "headers": {
         "transactionId": "ID de transacción",
