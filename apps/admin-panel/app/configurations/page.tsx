@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { useTranslations } from "next-intl"
 import { LoaderCircle } from "lucide-react"
 import { toast } from "sonner"
@@ -44,9 +44,8 @@ export default function ConfigurationsPage() {
   const [updateExposedConfig] = useUpdateExposedConfigMutation()
 
   const exposedConfigs = exposedConfigData?.listExposedConfigs ?? []
-  const visibleConfigs = useMemo(
-    () => exposedConfigs.filter((config) => config.configType !== ConfigType.Complex),
-    [exposedConfigs],
+  const visibleConfigs = exposedConfigs.filter(
+    (config) => config.configType !== ConfigType.Complex,
   )
 
   useEffect(() => {
