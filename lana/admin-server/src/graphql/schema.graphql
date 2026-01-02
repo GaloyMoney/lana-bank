@@ -579,7 +579,7 @@ type CreditFacilityLedgerAccounts {
 	disbursedDefaultedAccountId: UUID!
 	collateralAccountId: UUID!
 	collateralInLiquidationAccountId: UUID!
-	liquidationPaymentReceivableAccountId: UUID!
+	liquidationInHoldingAccountId: UUID!
 	interestReceivableNotYetDueAccountId: UUID!
 	interestReceivableDueAccountId: UUID!
 	interestReceivableOverdueAccountId: UUID!
@@ -593,7 +593,7 @@ type CreditFacilityLedgerAccounts {
 	disbursedDefaultedAccount: LedgerAccount!
 	collateralAccount: LedgerAccount!
 	collateralInLiquidationAccount: LedgerAccount!
-	liquidationPaymentReceivableAccount: LedgerAccount!
+	liquidationInHoldingAccount: LedgerAccount!
 	interestReceivableNotYetDueAccount: LedgerAccount!
 	interestReceivableDueAccount: LedgerAccount!
 	interestReceivableOverdueAccount: LedgerAccount!
