@@ -11,38 +11,31 @@ use obix::out::OutboxEventMarker;
 use crate::{
     event::CoreCreditEvent,
     ledger::CreditLedger,
-    obligation::{ObligationRepo, error::ObligationError},
+    obligation::{ObligationError, ObligationRepo},
     primitives::*,
 };
 
-#[derive(Serialize, Deserialize)]
-pub(crate) struct ObligationDefaultedJobConfig<Perms, E> {
+use super::obligation_defaulted::{ObligationDefaultedJobConfig, ObligationDefaultedJobSpawner};
+
+#[derive(Clone, Serialize, Deserialize)]
+pub(crate) struct ObligationOverdueJobConfig<Perms, E> {
     pub obligation_id: ObligationId,
     pub effective: chrono::NaiveDate,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
 
-impl<Perms, E> Clone for ObligationDefaultedJobConfig<Perms, E> {
-    fn clone(&self) -> Self {
-        Self {
-            obligation_id: self.obligation_id,
-            effective: self.effective,
-            _phantom: std::marker::PhantomData,
-        }
-    }
-}
-
-pub(crate) struct ObligationDefaultedInit<Perms, E>
+pub struct ObligationOverdueInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     repo: Arc<ObligationRepo<E>>,
-    authz: Arc<Perms>,
     ledger: Arc<CreditLedger>,
+    authz: Arc<Perms>,
+    obligation_defaulted_job_spawner: ObligationDefaultedJobSpawner<Perms, E>,
 }
 
-impl<Perms, E> ObligationDefaultedInit<Perms, E>
+impl<Perms, E> ObligationOverdueInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
@@ -53,54 +46,59 @@ where
         ledger: Arc<CreditLedger>,
         obligation_repo: Arc<ObligationRepo<E>>,
         authz: Arc<Perms>,
+        obligation_defaulted_job_spawner: ObligationDefaultedJobSpawner<Perms, E>,
     ) -> Self {
         Self {
             ledger,
             authz,
             repo: obligation_repo,
+            obligation_defaulted_job_spawner,
         }
     }
 }
 
-const OBLIGATION_DEFAULTED_JOB: JobType = JobType::new("task.obligation-defaulted");
-impl<Perms, E> JobInitializer for ObligationDefaultedInit<Perms, E>
+const OBLIGATION_OVERDUE_JOB: JobType = JobType::new("task.obligation-overdue");
+impl<Perms, E> JobInitializer for ObligationOverdueInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    type Config = ObligationDefaultedJobConfig<Perms, E>;
+    type Config = ObligationOverdueJobConfig<Perms, E>;
+
     fn job_type(&self) -> JobType
     where
         Self: Sized,
     {
-        OBLIGATION_DEFAULTED_JOB
+        OBLIGATION_OVERDUE_JOB
     }
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(ObligationDefaultedJobRunner::<Perms, E> {
+        Ok(Box::new(ObligationOverdueJobRunner::<Perms, E> {
             config: job.config()?,
             repo: self.repo.clone(),
-            authz: self.authz.clone(),
             ledger: self.ledger.clone(),
+            authz: self.authz.clone(),
+            obligation_defaulted_job_spawner: self.obligation_defaulted_job_spawner.clone(),
         }))
     }
 }
 
-pub struct ObligationDefaultedJobRunner<Perms, E>
+pub struct ObligationOverdueJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    config: ObligationDefaultedJobConfig<Perms, E>,
+    config: ObligationOverdueJobConfig<Perms, E>,
     repo: Arc<ObligationRepo<E>>,
-    authz: Arc<Perms>,
     ledger: Arc<CreditLedger>,
+    authz: Arc<Perms>,
+    obligation_defaulted_job_spawner: ObligationDefaultedJobSpawner<Perms, E>,
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for ObligationDefaultedJobRunner<Perms, E>
+impl<Perms, E> JobRunner for ObligationOverdueJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
@@ -111,28 +109,28 @@ where
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        self.record_defaulted(self.config.obligation_id, self.config.effective)
+        self.record_overdue(self.config.obligation_id, self.config.effective)
             .await?;
 
         Ok(JobCompletion::Complete)
     }
 }
 
-impl<Perms, E> ObligationDefaultedJobRunner<Perms, E>
+impl<Perms, E> ObligationOverdueJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    pub async fn record_defaulted(
+    pub async fn record_overdue(
         &self,
         id: ObligationId,
         effective: chrono::NaiveDate,
     ) -> Result<(), ObligationError> {
-        let mut op = self.repo.begin_op().await?;
+        let mut obligation = self.repo.find_by_id(id).await?;
 
-        let mut obligation = self.repo.find_by_id_in_op(&mut op, id).await?;
+        let mut op = self.repo.begin_op().await?;
 
         self.authz
             .audit()
@@ -144,23 +142,34 @@ where
             .await
             .map_err(authz::error::AuthorizationError::from)?;
 
-        if let es_entity::Idempotent::Executed(defaulted) =
-            obligation.record_defaulted(effective)?
-        {
+        if let es_entity::Idempotent::Executed(data) = obligation.record_overdue(effective)? {
             self.repo.update_in_op(&mut op, &mut obligation).await?;
 
+            if let Some(defaulted_at) = obligation.defaulted_at() {
+                self.obligation_defaulted_job_spawner
+                    .spawn_at_in_op(
+                        &mut op,
+                        JobId::new(),
+                        ObligationDefaultedJobConfig::<Perms, E> {
+                            obligation_id: obligation.id,
+                            effective: defaulted_at.date_naive(),
+                            _phantom: std::marker::PhantomData,
+                        },
+                        defaulted_at,
+                    )
+                    .await?;
+            }
+
             self.ledger
-                .record_obligation_defaulted(
+                .record_obligation_overdue(
                     &mut op,
-                    defaulted,
+                    data,
                     core_accounting::LedgerTransactionInitiator::System,
                 )
                 .await?;
+
             op.commit().await?;
-        };
+        }
         Ok(())
     }
 }
-
-pub type ObligationDefaultedJobSpawner<Perms, E> =
-    JobSpawner<ObligationDefaultedJobConfig<Perms, E>>;
