@@ -124,6 +124,7 @@ pub struct InterestAccrualCycleLedgerAccountIds {
     receivable_overdue_account_id: CalaAccountId,
     defaulted_account_id: CalaAccountId,
     interest_income_account_id: CalaAccountId,
+    uncovered_outstanding_account_id: CalaAccountId,
 }
 
 impl From<CreditFacilityLedgerAccountIds> for InterestAccrualCycleLedgerAccountIds {
@@ -137,6 +138,8 @@ impl From<CreditFacilityLedgerAccountIds> for InterestAccrualCycleLedgerAccountI
                 .interest_receivable_overdue_account_id,
             defaulted_account_id: credit_facility_account_ids.interest_defaulted_account_id,
             interest_income_account_id: credit_facility_account_ids.interest_income_account_id,
+            uncovered_outstanding_account_id: credit_facility_account_ids
+                .uncovered_outstanding_account_id,
         }
     }
 }
@@ -162,6 +165,7 @@ impl From<InterestAccrualCycleLedgerAccountIds> for InterestPostingAccountIds {
         Self {
             receivable_not_yet_due: account_ids.receivable_not_yet_due_account_id,
             income: account_ids.interest_income_account_id,
+            uncovered_outstanding: account_ids.uncovered_outstanding_account_id,
         }
     }
 }
@@ -170,6 +174,7 @@ impl From<InterestAccrualCycleLedgerAccountIds> for InterestPostingAccountIds {
 pub struct InterestPostingAccountIds {
     pub receivable_not_yet_due: CalaAccountId,
     pub income: CalaAccountId,
+    pub uncovered_outstanding: CalaAccountId,
 }
 
 #[derive(Debug, Clone)]

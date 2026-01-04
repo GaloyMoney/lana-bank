@@ -1809,6 +1809,7 @@ impl CreditLedger {
         let InterestPostingAccountIds {
             receivable_not_yet_due,
             income,
+            ..
         } = account_ids.into();
         self.cala
             .post_transaction_in_op(
@@ -1845,6 +1846,7 @@ impl CreditLedger {
         let InterestPostingAccountIds {
             receivable_not_yet_due,
             income,
+            uncovered_outstanding,
         } = account_ids.into();
         self.cala
             .post_transaction_in_op(
@@ -1856,6 +1858,10 @@ impl CreditLedger {
 
                     credit_facility_interest_receivable_account: receivable_not_yet_due,
                     credit_facility_interest_income_account: income,
+                    interest_added_to_obligations_omnibus_account: self
+                        .interest_added_to_obligations_omnibus_account_ids
+                        .account_id,
+                    credit_facility_uncovered_outstanding_account: uncovered_outstanding,
                     interest_amount: interest.to_usd(),
                     external_id: tx_ref,
                     effective,
