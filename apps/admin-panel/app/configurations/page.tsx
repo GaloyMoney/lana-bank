@@ -48,6 +48,8 @@ gql`
   }
 `
 
+const EMPTY_CONFIGS: ExposedConfigItem[] = []
+
 export default function ConfigurationsPage() {
   const t = useTranslations("Configurations")
 
@@ -64,23 +66,35 @@ export default function ConfigurationsPage() {
 
   const [updateExposedConfig] = useUpdateExposedConfigMutation()
 
-  const exposedConfigs = exposedConfigData?.listExposedConfigs ?? []
+  const exposedConfigs = exposedConfigData?.listExposedConfigs ?? EMPTY_CONFIGS
   const visibleConfigs = exposedConfigs.filter(
     (config) => config.configType !== ConfigType.Complex,
   )
 
   useEffect(() => {
-    if (visibleConfigs.length === 0) {
+    const nextVisibleConfigs = exposedConfigs.filter(
+      (config) => config.configType !== ConfigType.Complex,
+    )
+
+    if (nextVisibleConfigs.length === 0) {
       setExposedDrafts({})
       return
     }
 
     const nextDrafts: Record<string, string | boolean> = {}
-    for (const config of visibleConfigs) {
+    for (const config of nextVisibleConfigs) {
       nextDrafts[config.key] = formatExposedValue(config)
     }
     setExposedDrafts(nextDrafts)
-  }, [visibleConfigs])
+  }, [exposedConfigs])
+
+  const getMessage = (key: string) => {
+    try {
+      return t(key)
+    } catch {
+      return key
+    }
+  }
 
   const handleExposedSave = async (config: ExposedConfigItem) => {
     const draft = exposedDrafts[config.key]
@@ -100,6 +114,7 @@ export default function ConfigurationsPage() {
             value: parsed.value,
           },
         },
+        refetchQueries: ["ListExposedConfigs"],
       })
 
       const updated = result.data?.updateExposedConfig.exposedConfig
@@ -129,13 +144,6 @@ export default function ConfigurationsPage() {
     }
   }
 
-  const handleExposedReset = (config: ExposedConfigItem) => {
-    setExposedDrafts((prev) => ({
-      ...prev,
-      [config.key]: formatExposedValue(config),
-    }))
-  }
-
   return (
     <div className="space-y-3">
       {exposedConfigLoading ? (
@@ -158,8 +166,10 @@ export default function ConfigurationsPage() {
             return (
               <Card key={config.key}>
                 <CardHeader>
-                  <CardTitle>{t(`${config.key}.title`)}</CardTitle>
-                  <CardDescription>{t(`${config.key}.description`)}</CardDescription>
+                  <CardTitle>{getMessage(`${config.key}.title`)}</CardTitle>
+                  <CardDescription>
+                    {getMessage(`${config.key}.description`)}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-4">
                   {renderExposedInput({
@@ -175,14 +185,7 @@ export default function ConfigurationsPage() {
                     label: t("exposedConfigs.valueLabel"),
                   })}
                 </CardContent>
-                <CardFooter className="justify-end gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => handleExposedReset(config)}
-                    disabled={isDisabled}
-                  >
-                    {t("exposedConfigs.reset")}
-                  </Button>
+                <CardFooter className="justify-end">
                   <Button
                     onClick={() => handleExposedSave(config)}
                     disabled={isDisabled}

@@ -179,7 +179,6 @@
       "empty": "No exposed configs yet.",
       "valueLabel": "Value",
       "save": "Save",
-      "reset": "Reset",
       "saveSuccess": "Configuration updated",
       "saveError": "Could not update configuration",
       "saveErrorWithReason": "Could not update configuration: {error}",

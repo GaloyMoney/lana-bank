@@ -179,7 +179,6 @@
       "empty": "No hay configuraciones expuestas.",
       "valueLabel": "Valor",
       "save": "Guardar",
-      "reset": "Restablecer",
       "saveSuccess": "Configuración actualizada",
       "saveError": "No se pudo actualizar la configuración",
       "saveErrorWithReason": "No se pudo actualizar la configuración: {error}",
