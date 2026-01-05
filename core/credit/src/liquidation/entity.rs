@@ -22,7 +22,7 @@ pub enum LiquidationEvent {
         id: LiquidationId,
         credit_facility_id: CreditFacilityId,
         liquidation_proceeds_omnibus_account_id: CalaAccountId,
-        facility_liquidation_in_holding_account_id: FacilityProceedsFromLiquidationAccount,
+        facility_proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccount,
         facility_payment_holding_account_id: CalaAccountId,
         collateral_account_id: CalaAccountId,
         collateral_in_liquidation_account_id: CalaAccountId,
@@ -63,7 +63,7 @@ pub struct Liquidation {
 
     /// Holds proceeds received from liquidator for the connected
     /// facility.
-    pub facility_liquidation_in_holding_account_id: FacilityProceedsFromLiquidationAccount,
+    pub facility_proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccount,
 
     /// Holds funds meant for payments on the connected facility.
     pub facility_payment_holding_account_id: CalaAccountId,
@@ -136,7 +136,8 @@ impl Liquidation {
 
         Ok(Idempotent::Executed(RecordProceedsFromLiquidationData {
             liquidation_proceeds_omnibus_account_id: self.liquidation_proceeds_omnibus_account_id,
-            proceeds_from_liquidation_account_id: self.facility_liquidation_in_holding_account_id,
+            proceeds_from_liquidation_account_id: self
+                .facility_proceeds_from_liquidation_account_id,
             amount_received: self.received_total,
             collateral_in_liquidation_account_id: self.collateral_in_liquidation_account_id,
             liquidated_collateral_account_id: self.liquidated_collateral_account_id,
@@ -203,7 +204,7 @@ impl TryFromEvents<LiquidationEvent> for Liquidation {
                     id,
                     credit_facility_id,
                     liquidation_proceeds_omnibus_account_id,
-                    facility_liquidation_in_holding_account_id,
+                    facility_proceeds_from_liquidation_account_id,
                     facility_payment_holding_account_id,
                     collateral_account_id,
                     collateral_in_liquidation_account_id,
@@ -217,8 +218,8 @@ impl TryFromEvents<LiquidationEvent> for Liquidation {
                         .liquidation_proceeds_omnibus_account_id(
                             *liquidation_proceeds_omnibus_account_id,
                         )
-                        .facility_liquidation_in_holding_account_id(
-                            *facility_liquidation_in_holding_account_id,
+                        .facility_proceeds_from_liquidation_account_id(
+                            *facility_proceeds_from_liquidation_account_id,
                         )
                         .facility_payment_holding_account_id(*facility_payment_holding_account_id)
                         .collateral_account_id(*collateral_account_id)
@@ -255,7 +256,8 @@ pub struct NewLiquidation {
     #[builder(setter(into))]
     pub(crate) credit_facility_id: CreditFacilityId,
     pub(crate) liquidation_proceeds_omnibus_account_id: CalaAccountId,
-    pub(crate) facility_liquidation_in_holding_account_id: FacilityProceedsFromLiquidationAccount,
+    pub(crate) facility_proceeds_from_liquidation_account_id:
+        FacilityProceedsFromLiquidationAccount,
     pub(crate) facility_payment_holding_account_id: CalaAccountId,
     pub(crate) collateral_account_id: CalaAccountId,
     pub(crate) collateral_in_liquidation_account_id: CalaAccountId,
@@ -280,8 +282,8 @@ impl IntoEvents<LiquidationEvent> for NewLiquidation {
                 credit_facility_id: self.credit_facility_id,
                 liquidation_proceeds_omnibus_account_id: self
                     .liquidation_proceeds_omnibus_account_id,
-                facility_liquidation_in_holding_account_id: self
-                    .facility_liquidation_in_holding_account_id,
+                facility_proceeds_from_liquidation_account_id: self
+                    .facility_proceeds_from_liquidation_account_id,
                 facility_payment_holding_account_id: self.facility_payment_holding_account_id,
                 trigger_price: self.trigger_price,
                 initially_expected_to_receive: self.initially_expected_to_receive,

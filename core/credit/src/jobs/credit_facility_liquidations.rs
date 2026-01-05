@@ -273,7 +273,7 @@ where
                     NewLiquidation::builder()
                         .id(*liquidation_id)
                         .credit_facility_id(*credit_facility_id)
-                        .facility_liquidation_in_holding_account_id(
+                        .facility_proceeds_from_liquidation_account_id(
                             proceeds_from_liquidation_account_id,
                         )
                         .facility_payment_holding_account_id(payment_holding_account_id)

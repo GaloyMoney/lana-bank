@@ -30,11 +30,11 @@
           "format": "uuid",
           "type": "string"
         },
-        "facility_liquidation_in_holding_account_id": {
+        "facility_payment_holding_account_id": {
           "format": "uuid",
           "type": "string"
         },
-        "facility_payment_holding_account_id": {
+        "facility_proceeds_from_liquidation_account_id": {
           "format": "uuid",
           "type": "string"
         },
@@ -69,7 +69,7 @@
         "id",
         "credit_facility_id",
         "liquidation_proceeds_omnibus_account_id",
-        "facility_liquidation_in_holding_account_id",
+        "facility_proceeds_from_liquidation_account_id",
         "facility_payment_holding_account_id",
         "collateral_account_id",
         "collateral_in_liquidation_account_id",
