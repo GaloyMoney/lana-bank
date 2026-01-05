@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import List
 
 import dlt
@@ -12,6 +11,12 @@ from src.resources import (
     RESOURCE_KEY_LANA_CORE_PG,
     BigQueryResource,
     PostgresResource,
+)
+from src.utils import (
+    create_empty_table,
+    get_postgres_table_schema,
+    postgres_schema_to_bigquery_schema,
+    table_exists,
 )
 
 LANA_EL_TABLE_NAMES = (
@@ -80,7 +85,6 @@ def lana_to_dw_el_protoassets() -> List[Protoasset]:
 
     return lana_el_protoassets
 
-
 def build_lana_to_dw_el_protoasset(table_name) -> Protoasset:
 
     def lana_to_dw_el_asset(
@@ -97,8 +101,19 @@ def build_lana_to_dw_el_protoasset(table_name) -> Protoasset:
         )
         load_info = runnable_pipeline()
 
-        context.log.info(f"Pipeline completed.")
+        context.log.info("Pipeline completed.")
         context.log.info(load_info)
+
+        # Why wouldn't a table exist?
+        # Because if the source table has no data, dlt won't even create the 
+        # destination table.
+        ensure_target_table_exists(
+            context=context,
+            lana_core_pg=lana_core_pg,
+            dw_bq=dw_bq,
+            table_name=table_name,
+        )
+
         return load_info
 
     lana_to_dw_protoasset = Protoasset(
@@ -116,6 +131,55 @@ def build_lana_to_dw_el_protoasset(table_name) -> Protoasset:
     )
 
     return lana_to_dw_protoasset
+
+
+def ensure_target_table_exists(
+    context: dg.AssetExecutionContext,
+    lana_core_pg: PostgresResource,
+    dw_bq: BigQueryResource,
+    table_name: str,
+) -> None:
+    """
+    Ensure the target BigQuery table exists.
+
+    If the table doesn't exist (because DLT didn't create it due to empty source),
+    create it with schema inferred from the Postgres source table.
+    """
+    bq_dataset = dw_bq.get_target_dataset()
+    bq_client = dw_bq.get_client()
+
+    if table_exists(bq_client, bq_dataset, table_name):
+        context.log.info(f"Target table {table_name} already exists in BigQuery.")
+        return
+
+    context.log.info(
+        f"Target table {table_name} does not exist. Creating from Postgres schema..."
+    )
+
+    pg_columns = get_postgres_table_schema(
+        connection_string=lana_core_pg.get_connection_string(),
+        table_name=table_name,
+    )
+
+    if not pg_columns:
+        context.log.warning(
+            f"Could not get schema for table {table_name} from Postgres."
+        )
+        return
+
+    bq_schema = postgres_schema_to_bigquery_schema(pg_columns)
+
+    create_empty_table(
+        client=bq_client,
+        dataset=bq_dataset,
+        table_name=table_name,
+        schema=bq_schema,
+    )
+
+    context.log.info(
+        f"Created empty table {table_name} in BigQuery with {len(bq_schema)} columns."
+    )
+
 
 
 def prepare_lana_el_pipeline(lana_core_pg, dw_bq, table_name):
