@@ -61,12 +61,12 @@ has_bigquery_credentials() {
   }')
   
   exec_dagster_graphql "launch_run" "$variables"
-  dagster_validate_json || skip "Dagster GraphQL did not return JSON"
+  dagster_validate_json
   
   run_id=$(echo "$output" | jq -r '.data.launchRun.run.runId // empty')
   [ -n "$run_id" ] || { echo "$output"; return 1; }
   
-  dagster_poll_run_status "$run_id" 60 2 || return 1
+  dagster_poll_run_status "$run_id" 60 3 || return 1
   
   asset_vars=$(jq -n '{
     assetKey: { path: ["iris_dataset_size"] }
