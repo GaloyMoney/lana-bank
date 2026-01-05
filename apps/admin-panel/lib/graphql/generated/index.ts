@@ -1598,7 +1598,7 @@ export type Liquidation = {
   expectedToReceive: Scalars['UsdCents']['output'];
   id: Scalars['ID']['output'];
   liquidationId: Scalars['UUID']['output'];
-  receivedPayment: Array<LiquidationPaymentReceived>;
+  receivedProceeds: Array<LiquidationProceedsReceived>;
   receivedTotal: Scalars['UsdCents']['output'];
   sentCollateral: Array<LiquidationCollateralSent>;
   sentTotal: Scalars['Satoshis']['output'];
@@ -1629,8 +1629,8 @@ export type LiquidationEdge = {
   node: Liquidation;
 };
 
-export type LiquidationPaymentReceived = {
-  __typename?: 'LiquidationPaymentReceived';
+export type LiquidationProceedsReceived = {
+  __typename?: 'LiquidationProceedsReceived';
   amount: Scalars['UsdCents']['output'];
   ledgerTxId: Scalars['UUID']['output'];
 };
@@ -1645,13 +1645,13 @@ export type LiquidationRecordCollateralSentPayload = {
   liquidation: Liquidation;
 };
 
-export type LiquidationRecordPaymentReceivedInput = {
+export type LiquidationRecordProceedsReceivedInput = {
   amount: Scalars['UsdCents']['input'];
   liquidationId: Scalars['UUID']['input'];
 };
 
-export type LiquidationRecordPaymentReceivedPayload = {
-  __typename?: 'LiquidationRecordPaymentReceivedPayload';
+export type LiquidationRecordProceedsReceivedPayload = {
+  __typename?: 'LiquidationRecordProceedsReceivedPayload';
   liquidation: Liquidation;
 };
 
@@ -1763,7 +1763,7 @@ export type Mutation = {
   fiscalYearOpenNext: FiscalYearOpenNextPayload;
   ledgerAccountCsvCreate: LedgerAccountCsvCreatePayload;
   liquidationRecordCollateralSent: LiquidationRecordCollateralSentPayload;
-  liquidationRecordPaymentReceived: LiquidationRecordPaymentReceivedPayload;
+  liquidationRecordProceedsReceived: LiquidationRecordProceedsReceivedPayload;
   loanAgreementDownloadLinkGenerate: LoanAgreementDownloadLinksGeneratePayload;
   loanAgreementGenerate: LoanAgreementGeneratePayload;
   manualTransactionExecute: ManualTransactionExecutePayload;
@@ -1989,8 +1989,8 @@ export type MutationLiquidationRecordCollateralSentArgs = {
 };
 
 
-export type MutationLiquidationRecordPaymentReceivedArgs = {
-  input: LiquidationRecordPaymentReceivedInput;
+export type MutationLiquidationRecordProceedsReceivedArgs = {
+  input: LiquidationRecordProceedsReceivedInput;
 };
 
 
@@ -4089,7 +4089,7 @@ export type LedgerTransactionExistsByIdQuery = { __typename?: 'Query', ledgerTra
 
 export type LiquidationCollateralSentFragmentFragment = { __typename?: 'LiquidationCollateralSent', amount: Satoshis, ledgerTxId: string };
 
-export type LiquidationPaymentReceivedFragmentFragment = { __typename?: 'LiquidationPaymentReceived', amount: UsdCents, ledgerTxId: string };
+export type LiquidationProceedsReceivedFragmentFragment = { __typename?: 'LiquidationProceedsReceived', amount: UsdCents, ledgerTxId: string };
 
 export type LiquidationDetailsFragment = { __typename?: 'Liquidation', id: string, liquidationId: string, creditFacilityId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, receivedTotal: UsdCents, createdAt: any, completed: boolean, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, publicId: any, status: CreditFacilityStatus, collateralizationState: CollateralizationState, facilityAmount: UsdCents, activatedAt: any, maturesAt: any, currentCvl:
       | { __typename: 'FiniteCVLPct', value: any }
@@ -4097,7 +4097,7 @@ export type LiquidationDetailsFragment = { __typename?: 'Liquidation', id: strin
     , creditFacilityTerms: { __typename?: 'TermValues', liquidationCvl:
         | { __typename: 'FiniteCVLPct', value: any }
         | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
-       }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string } }, sentCollateral: Array<{ __typename?: 'LiquidationCollateralSent', amount: Satoshis, ledgerTxId: string }>, receivedPayment: Array<{ __typename?: 'LiquidationPaymentReceived', amount: UsdCents, ledgerTxId: string }> };
+       }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string } }, sentCollateral: Array<{ __typename?: 'LiquidationCollateralSent', amount: Satoshis, ledgerTxId: string }>, receivedProceeds: Array<{ __typename?: 'LiquidationProceedsReceived', amount: UsdCents, ledgerTxId: string }> };
 
 export type GetLiquidationDetailsQueryVariables = Exact<{
   liquidationId: Scalars['UUID']['input'];
@@ -4110,7 +4110,7 @@ export type GetLiquidationDetailsQuery = { __typename?: 'Query', liquidation?: {
       , creditFacilityTerms: { __typename?: 'TermValues', liquidationCvl:
           | { __typename: 'FiniteCVLPct', value: any }
           | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
-         }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string } }, sentCollateral: Array<{ __typename?: 'LiquidationCollateralSent', amount: Satoshis, ledgerTxId: string }>, receivedPayment: Array<{ __typename?: 'LiquidationPaymentReceived', amount: UsdCents, ledgerTxId: string }> } | null };
+         }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string } }, sentCollateral: Array<{ __typename?: 'LiquidationCollateralSent', amount: Satoshis, ledgerTxId: string }>, receivedProceeds: Array<{ __typename?: 'LiquidationProceedsReceived', amount: UsdCents, ledgerTxId: string }> } | null };
 
 export type LiquidationRecordCollateralSentMutationVariables = Exact<{
   input: LiquidationRecordCollateralSentInput;
@@ -4123,20 +4123,20 @@ export type LiquidationRecordCollateralSentMutation = { __typename?: 'Mutation',
         , creditFacilityTerms: { __typename?: 'TermValues', liquidationCvl:
             | { __typename: 'FiniteCVLPct', value: any }
             | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
-           }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string } }, sentCollateral: Array<{ __typename?: 'LiquidationCollateralSent', amount: Satoshis, ledgerTxId: string }>, receivedPayment: Array<{ __typename?: 'LiquidationPaymentReceived', amount: UsdCents, ledgerTxId: string }> } } };
+           }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string } }, sentCollateral: Array<{ __typename?: 'LiquidationCollateralSent', amount: Satoshis, ledgerTxId: string }>, receivedProceeds: Array<{ __typename?: 'LiquidationProceedsReceived', amount: UsdCents, ledgerTxId: string }> } } };
 
-export type LiquidationRecordPaymentReceivedMutationVariables = Exact<{
-  input: LiquidationRecordPaymentReceivedInput;
+export type LiquidationRecordProceedsReceivedMutationVariables = Exact<{
+  input: LiquidationRecordProceedsReceivedInput;
 }>;
 
 
-export type LiquidationRecordPaymentReceivedMutation = { __typename?: 'Mutation', liquidationRecordPaymentReceived: { __typename?: 'LiquidationRecordPaymentReceivedPayload', liquidation: { __typename?: 'Liquidation', id: string, liquidationId: string, creditFacilityId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, receivedTotal: UsdCents, createdAt: any, completed: boolean, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, publicId: any, status: CreditFacilityStatus, collateralizationState: CollateralizationState, facilityAmount: UsdCents, activatedAt: any, maturesAt: any, currentCvl:
+export type LiquidationRecordProceedsReceivedMutation = { __typename?: 'Mutation', liquidationRecordProceedsReceived: { __typename?: 'LiquidationRecordProceedsReceivedPayload', liquidation: { __typename?: 'Liquidation', id: string, liquidationId: string, creditFacilityId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, receivedTotal: UsdCents, createdAt: any, completed: boolean, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, publicId: any, status: CreditFacilityStatus, collateralizationState: CollateralizationState, facilityAmount: UsdCents, activatedAt: any, maturesAt: any, currentCvl:
           | { __typename: 'FiniteCVLPct', value: any }
           | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
         , creditFacilityTerms: { __typename?: 'TermValues', liquidationCvl:
             | { __typename: 'FiniteCVLPct', value: any }
             | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
-           }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string } }, sentCollateral: Array<{ __typename?: 'LiquidationCollateralSent', amount: Satoshis, ledgerTxId: string }>, receivedPayment: Array<{ __typename?: 'LiquidationPaymentReceived', amount: UsdCents, ledgerTxId: string }> } } };
+           }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string } }, sentCollateral: Array<{ __typename?: 'LiquidationCollateralSent', amount: Satoshis, ledgerTxId: string }>, receivedProceeds: Array<{ __typename?: 'LiquidationProceedsReceived', amount: UsdCents, ledgerTxId: string }> } } };
 
 export type LiquidationListFieldsFragment = { __typename?: 'Liquidation', id: string, liquidationId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, receivedTotal: UsdCents, createdAt: any, completed: boolean, creditFacility: { __typename?: 'CreditFacility', publicId: any } };
 
@@ -5318,8 +5318,8 @@ export const LiquidationCollateralSentFragmentFragmentDoc = gql`
   ledgerTxId
 }
     `;
-export const LiquidationPaymentReceivedFragmentFragmentDoc = gql`
-    fragment LiquidationPaymentReceivedFragment on LiquidationPaymentReceived {
+export const LiquidationProceedsReceivedFragmentFragmentDoc = gql`
+    fragment LiquidationProceedsReceivedFragment on LiquidationProceedsReceived {
   amount
   ledgerTxId
 }
@@ -5381,12 +5381,12 @@ export const LiquidationDetailsFragmentDoc = gql`
   sentCollateral {
     ...LiquidationCollateralSentFragment
   }
-  receivedPayment {
-    ...LiquidationPaymentReceivedFragment
+  receivedProceeds {
+    ...LiquidationProceedsReceivedFragment
   }
 }
     ${LiquidationCollateralSentFragmentFragmentDoc}
-${LiquidationPaymentReceivedFragmentFragmentDoc}`;
+${LiquidationProceedsReceivedFragmentFragmentDoc}`;
 export const LiquidationListFieldsFragmentDoc = gql`
     fragment LiquidationListFields on Liquidation {
   id
@@ -9524,41 +9524,41 @@ export function useLiquidationRecordCollateralSentMutation(baseOptions?: Apollo.
 export type LiquidationRecordCollateralSentMutationHookResult = ReturnType<typeof useLiquidationRecordCollateralSentMutation>;
 export type LiquidationRecordCollateralSentMutationResult = Apollo.MutationResult<LiquidationRecordCollateralSentMutation>;
 export type LiquidationRecordCollateralSentMutationOptions = Apollo.BaseMutationOptions<LiquidationRecordCollateralSentMutation, LiquidationRecordCollateralSentMutationVariables>;
-export const LiquidationRecordPaymentReceivedDocument = gql`
-    mutation LiquidationRecordPaymentReceived($input: LiquidationRecordPaymentReceivedInput!) {
-  liquidationRecordPaymentReceived(input: $input) {
+export const LiquidationRecordProceedsReceivedDocument = gql`
+    mutation LiquidationRecordProceedsReceived($input: LiquidationRecordProceedsReceivedInput!) {
+  liquidationRecordProceedsReceived(input: $input) {
     liquidation {
       ...LiquidationDetails
     }
   }
 }
     ${LiquidationDetailsFragmentDoc}`;
-export type LiquidationRecordPaymentReceivedMutationFn = Apollo.MutationFunction<LiquidationRecordPaymentReceivedMutation, LiquidationRecordPaymentReceivedMutationVariables>;
+export type LiquidationRecordProceedsReceivedMutationFn = Apollo.MutationFunction<LiquidationRecordProceedsReceivedMutation, LiquidationRecordProceedsReceivedMutationVariables>;
 
 /**
- * __useLiquidationRecordPaymentReceivedMutation__
+ * __useLiquidationRecordProceedsReceivedMutation__
  *
- * To run a mutation, you first call `useLiquidationRecordPaymentReceivedMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useLiquidationRecordPaymentReceivedMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useLiquidationRecordProceedsReceivedMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useLiquidationRecordProceedsReceivedMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [liquidationRecordPaymentReceivedMutation, { data, loading, error }] = useLiquidationRecordPaymentReceivedMutation({
+ * const [liquidationRecordProceedsReceivedMutation, { data, loading, error }] = useLiquidationRecordProceedsReceivedMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useLiquidationRecordPaymentReceivedMutation(baseOptions?: Apollo.MutationHookOptions<LiquidationRecordPaymentReceivedMutation, LiquidationRecordPaymentReceivedMutationVariables>) {
+export function useLiquidationRecordProceedsReceivedMutation(baseOptions?: Apollo.MutationHookOptions<LiquidationRecordProceedsReceivedMutation, LiquidationRecordProceedsReceivedMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<LiquidationRecordPaymentReceivedMutation, LiquidationRecordPaymentReceivedMutationVariables>(LiquidationRecordPaymentReceivedDocument, options);
+        return Apollo.useMutation<LiquidationRecordProceedsReceivedMutation, LiquidationRecordProceedsReceivedMutationVariables>(LiquidationRecordProceedsReceivedDocument, options);
       }
-export type LiquidationRecordPaymentReceivedMutationHookResult = ReturnType<typeof useLiquidationRecordPaymentReceivedMutation>;
-export type LiquidationRecordPaymentReceivedMutationResult = Apollo.MutationResult<LiquidationRecordPaymentReceivedMutation>;
-export type LiquidationRecordPaymentReceivedMutationOptions = Apollo.BaseMutationOptions<LiquidationRecordPaymentReceivedMutation, LiquidationRecordPaymentReceivedMutationVariables>;
+export type LiquidationRecordProceedsReceivedMutationHookResult = ReturnType<typeof useLiquidationRecordProceedsReceivedMutation>;
+export type LiquidationRecordProceedsReceivedMutationResult = Apollo.MutationResult<LiquidationRecordProceedsReceivedMutation>;
+export type LiquidationRecordProceedsReceivedMutationOptions = Apollo.BaseMutationOptions<LiquidationRecordProceedsReceivedMutation, LiquidationRecordProceedsReceivedMutationVariables>;
 export const LiquidationsDocument = gql`
     query Liquidations($first: Int!, $after: String) {
   liquidations(first: $first, after: $after) {
