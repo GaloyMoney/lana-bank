@@ -143,7 +143,7 @@ pub enum CoreCreditEvent {
         amount: UsdCents,
         payment_id: PaymentId,
         facility_payment_holding_account_id: CalaAccountId,
-        facility_liquidation_in_holding_account_id: FacilityProceedsFromLiquidationAccount,
+        facility_proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccount,
         ledger_tx_id: LedgerTxId,
         recorded_at: DateTime<Utc>,
         effective: chrono::NaiveDate,

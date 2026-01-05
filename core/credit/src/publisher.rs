@@ -424,7 +424,7 @@ where
                     amount: *amount,
                     payment_id: *payment_id,
                     facility_payment_holding_account_id: entity.facility_payment_holding_account_id,
-                    facility_liquidation_in_holding_account_id: entity
+                    facility_proceeds_from_liquidation_account_id: entity
                         .facility_proceeds_from_liquidation_account_id,
                     ledger_tx_id: *ledger_tx_id,
                     recorded_at: event.recorded_at,
