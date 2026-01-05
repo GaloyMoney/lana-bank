@@ -56,7 +56,6 @@ export default function ConfigurationsPage() {
   const [exposedDrafts, setExposedDrafts] = useState<
     Record<string, string | boolean>
   >({})
-  const [savingKey, setSavingKey] = useState<string | null>(null)
 
   const {
     data: exposedConfigData,
@@ -64,7 +63,8 @@ export default function ConfigurationsPage() {
     error: exposedConfigError,
   } = useListExposedConfigsQuery()
 
-  const [updateExposedConfig] = useUpdateExposedConfigMutation()
+  const [updateExposedConfig, { loading: updateExposedConfigLoading }] =
+    useUpdateExposedConfigMutation()
 
   const exposedConfigs = exposedConfigData?.listExposedConfigs ?? EMPTY_CONFIGS
   const visibleConfigs = exposedConfigs.filter(
@@ -81,11 +81,19 @@ export default function ConfigurationsPage() {
       return
     }
 
-    const nextDrafts: Record<string, string | boolean> = {}
-    for (const config of nextVisibleConfigs) {
-      nextDrafts[config.key] = formatExposedValue(config)
-    }
-    setExposedDrafts(nextDrafts)
+    setExposedDrafts((prev) => {
+      const nextDrafts: Record<string, string | boolean> = {}
+
+      for (const config of nextVisibleConfigs) {
+        if (prev[config.key] !== undefined) {
+          nextDrafts[config.key] = prev[config.key]
+        } else {
+          nextDrafts[config.key] = formatExposedValue(config)
+        }
+      }
+
+      return nextDrafts
+    })
   }, [exposedConfigs])
 
   const getMessage = (key: string) => {
@@ -105,7 +113,6 @@ export default function ConfigurationsPage() {
       return
     }
 
-    setSavingKey(config.key)
     try {
       const result = await updateExposedConfig({
         variables: {
@@ -139,8 +146,6 @@ export default function ConfigurationsPage() {
           ? t("exposedConfigs.saveErrorWithReason", { error: errorMessage })
           : t("exposedConfigs.saveError"),
       )
-    } finally {
-      setSavingKey(null)
     }
   }
 
@@ -160,8 +165,8 @@ export default function ConfigurationsPage() {
         <div className="space-y-3">
           {visibleConfigs.map((config) => {
             const inputId = `exposed-${config.key}`
-            const isSaving = savingKey === config.key
-            const isDisabled = exposedConfigLoading || isSaving
+            const isDisabled =
+              exposedConfigLoading || updateExposedConfigLoading
 
             return (
               <Card key={config.key}>
@@ -190,7 +195,7 @@ export default function ConfigurationsPage() {
                     onClick={() => handleExposedSave(config)}
                     disabled={isDisabled}
                   >
-                    {isSaving ? (
+                    {updateExposedConfigLoading ? (
                       <LoaderCircle className="animate-spin" />
                     ) : (
                       t("exposedConfigs.save")
