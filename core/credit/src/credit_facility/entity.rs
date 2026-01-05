@@ -7,7 +7,6 @@ use serde::{Deserialize, Serialize};
 use es_entity::*;
 
 use crate::{
-    PaymentSourceAccountId,
     ledger::*,
     obligation::{NewObligation, ObligationsAmounts},
     primitives::*,
@@ -231,10 +230,6 @@ impl CreditFacility {
 
     pub fn payment_holding_account_id(&self) -> CalaAccountId {
         self.account_ids.payment_holding_account_id
-    }
-
-    pub fn payment_source_from_liquidations_account_id(&self) -> PaymentSourceAccountId {
-        self.account_ids.liquidation_in_holding_account_id.into()
     }
 
     fn structuring_fee_on_activation(&self) -> Option<StructuringFeeOnActivation> {

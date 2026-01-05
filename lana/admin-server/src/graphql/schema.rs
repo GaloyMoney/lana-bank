@@ -1979,24 +1979,6 @@ impl Mutation {
         )
     }
 
-    pub async fn credit_facility_partial_payment_from_liquidation_proceeds_record(
-        &self,
-        ctx: &Context<'_>,
-        input: CreditFacilityPartialPaymentRecordInput,
-    ) -> async_graphql::Result<CreditFacilityPartialPaymentRecordPayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        exec_mutation!(
-            CreditFacilityPartialPaymentRecordPayload,
-            CreditFacility,
-            ctx,
-            app.credit().record_payment_from_liquidation_proceeds(
-                sub,
-                input.credit_facility_id,
-                input.amount,
-            )
-        )
-    }
-
     pub async fn credit_facility_disbursal_initiate(
         &self,
         ctx: &Context<'_>,

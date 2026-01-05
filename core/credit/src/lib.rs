@@ -1024,26 +1024,6 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "credit.record_payment_from_liquidation_proceeds", skip(self))]
-    pub async fn record_payment_from_liquidation_proceeds(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug + Copy,
-        amount: UsdCents,
-    ) -> Result<CreditFacility, CoreCreditError> {
-        let facility = self.find_credit_facility(credit_facility_id).await?;
-
-        Ok(self
-            .record_payment(
-                sub,
-                credit_facility_id,
-                facility.payment_source_from_liquidations_account_id(),
-                amount,
-            )
-            .await?)
-    }
-
-    #[record_error_severity]
     #[instrument(name = "credit.complete_facility", skip(self))]
     #[es_entity::retry_on_concurrent_modification(any_error = true, max_retries = 15)]
     pub async fn complete_facility(
