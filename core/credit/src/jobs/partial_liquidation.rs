@@ -235,11 +235,6 @@ where
 
                 let initiated_by = LedgerTransactionInitiator::System;
 
-                // TODO: replace with actual account from Liquidation entity
-                let facility_liquidation_account = PlaceholderFacilityLiquidationHoldingAccount(
-                    crate::primitives::CalaAccountId::new(),
-                );
-
                 let effective = crate::time::now().date_naive();
 
                 if let Some(payment) = self
