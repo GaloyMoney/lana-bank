@@ -2370,6 +2370,7 @@ export type Query = {
   disbursal?: Maybe<CreditFacilityDisbursal>;
   disbursalByPublicId?: Maybe<CreditFacilityDisbursal>;
   disbursals: CreditFacilityDisbursalConnection;
+  exposedConfigs: Array<ExposedConfigItem>;
   fiscalYear?: Maybe<FiscalYear>;
   fiscalYearByYear?: Maybe<FiscalYear>;
   fiscalYears: FiscalYearConnection;
@@ -2380,7 +2381,6 @@ export type Query = {
   ledgerTransactionsForTemplateCode: LedgerTransactionConnection;
   liquidation?: Maybe<Liquidation>;
   liquidations: LiquidationConnection;
-  listExposedConfigs: Array<ExposedConfigItem>;
   loanAgreement?: Maybe<LoanAgreement>;
   me: Me;
   pendingCreditFacilities: PendingCreditFacilityConnection;
@@ -3327,10 +3327,10 @@ export type CommitteeRemoveUserMutationVariables = Exact<{
 
 export type CommitteeRemoveUserMutation = { __typename?: 'Mutation', committeeRemoveUser: { __typename?: 'CommitteeRemoveUserPayload', committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } }> } } };
 
-export type ListExposedConfigsQueryVariables = Exact<{ [key: string]: never; }>;
+export type ExposedConfigsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ListExposedConfigsQuery = { __typename?: 'Query', listExposedConfigs: Array<{ __typename?: 'ExposedConfigItem', key: string, configType: ConfigType, value: any, isSet: boolean }> };
+export type ExposedConfigsQuery = { __typename?: 'Query', exposedConfigs: Array<{ __typename?: 'ExposedConfigItem', key: string, configType: ConfigType, value: any, isSet: boolean }> };
 
 export type UpdateExposedConfigMutationVariables = Exact<{
   input: ExposedConfigUpdateInput;
@@ -6351,9 +6351,9 @@ export function useCommitteeRemoveUserMutation(baseOptions?: Apollo.MutationHook
 export type CommitteeRemoveUserMutationHookResult = ReturnType<typeof useCommitteeRemoveUserMutation>;
 export type CommitteeRemoveUserMutationResult = Apollo.MutationResult<CommitteeRemoveUserMutation>;
 export type CommitteeRemoveUserMutationOptions = Apollo.BaseMutationOptions<CommitteeRemoveUserMutation, CommitteeRemoveUserMutationVariables>;
-export const ListExposedConfigsDocument = gql`
-    query ListExposedConfigs {
-  listExposedConfigs {
+export const ExposedConfigsDocument = gql`
+    query ExposedConfigs {
+  exposedConfigs {
     key
     configType
     value
@@ -6363,39 +6363,39 @@ export const ListExposedConfigsDocument = gql`
     `;
 
 /**
- * __useListExposedConfigsQuery__
+ * __useExposedConfigsQuery__
  *
- * To run a query within a React component, call `useListExposedConfigsQuery` and pass it any options that fit your needs.
- * When your component renders, `useListExposedConfigsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useExposedConfigsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useExposedConfigsQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useListExposedConfigsQuery({
+ * const { data, loading, error } = useExposedConfigsQuery({
  *   variables: {
  *   },
  * });
  */
-export function useListExposedConfigsQuery(baseOptions?: Apollo.QueryHookOptions<ListExposedConfigsQuery, ListExposedConfigsQueryVariables>) {
+export function useExposedConfigsQuery(baseOptions?: Apollo.QueryHookOptions<ExposedConfigsQuery, ExposedConfigsQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<ListExposedConfigsQuery, ListExposedConfigsQueryVariables>(ListExposedConfigsDocument, options);
+        return Apollo.useQuery<ExposedConfigsQuery, ExposedConfigsQueryVariables>(ExposedConfigsDocument, options);
       }
-export function useListExposedConfigsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ListExposedConfigsQuery, ListExposedConfigsQueryVariables>) {
+export function useExposedConfigsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ExposedConfigsQuery, ExposedConfigsQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<ListExposedConfigsQuery, ListExposedConfigsQueryVariables>(ListExposedConfigsDocument, options);
+          return Apollo.useLazyQuery<ExposedConfigsQuery, ExposedConfigsQueryVariables>(ExposedConfigsDocument, options);
         }
 // @ts-ignore
-export function useListExposedConfigsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ListExposedConfigsQuery, ListExposedConfigsQueryVariables>): Apollo.UseSuspenseQueryResult<ListExposedConfigsQuery, ListExposedConfigsQueryVariables>;
-export function useListExposedConfigsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ListExposedConfigsQuery, ListExposedConfigsQueryVariables>): Apollo.UseSuspenseQueryResult<ListExposedConfigsQuery | undefined, ListExposedConfigsQueryVariables>;
-export function useListExposedConfigsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ListExposedConfigsQuery, ListExposedConfigsQueryVariables>) {
+export function useExposedConfigsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ExposedConfigsQuery, ExposedConfigsQueryVariables>): Apollo.UseSuspenseQueryResult<ExposedConfigsQuery, ExposedConfigsQueryVariables>;
+export function useExposedConfigsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ExposedConfigsQuery, ExposedConfigsQueryVariables>): Apollo.UseSuspenseQueryResult<ExposedConfigsQuery | undefined, ExposedConfigsQueryVariables>;
+export function useExposedConfigsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ExposedConfigsQuery, ExposedConfigsQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<ListExposedConfigsQuery, ListExposedConfigsQueryVariables>(ListExposedConfigsDocument, options);
+          return Apollo.useSuspenseQuery<ExposedConfigsQuery, ExposedConfigsQueryVariables>(ExposedConfigsDocument, options);
         }
-export type ListExposedConfigsQueryHookResult = ReturnType<typeof useListExposedConfigsQuery>;
-export type ListExposedConfigsLazyQueryHookResult = ReturnType<typeof useListExposedConfigsLazyQuery>;
-export type ListExposedConfigsSuspenseQueryHookResult = ReturnType<typeof useListExposedConfigsSuspenseQuery>;
-export type ListExposedConfigsQueryResult = Apollo.QueryResult<ListExposedConfigsQuery, ListExposedConfigsQueryVariables>;
+export type ExposedConfigsQueryHookResult = ReturnType<typeof useExposedConfigsQuery>;
+export type ExposedConfigsLazyQueryHookResult = ReturnType<typeof useExposedConfigsLazyQuery>;
+export type ExposedConfigsSuspenseQueryHookResult = ReturnType<typeof useExposedConfigsSuspenseQuery>;
+export type ExposedConfigsQueryResult = Apollo.QueryResult<ExposedConfigsQuery, ExposedConfigsQueryVariables>;
 export const UpdateExposedConfigDocument = gql`
     mutation UpdateExposedConfig($input: ExposedConfigUpdateInput!) {
   updateExposedConfig(input: $input) {
