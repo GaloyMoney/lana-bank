@@ -1,19 +1,19 @@
 with
 
-credit_facilities as (
-    select
-        customer_id,
-        sum(total_collateral_amount_usd) as sum_total_collateral_amount_usd
-    from {{ ref('int_approved_credit_facilities') }}
-    group by customer_id
-),
+    credit_facilities as (
+        select
+            customer_id,
+            sum(total_collateral_amount_usd) as sum_total_collateral_amount_usd
+        from {{ ref("int_approved_credit_facilities") }}
+        group by customer_id
+    ),
 
-customers as (
-    select *
-    from {{ ref('int_core_customer_events_rollup') }}
-    left join {{ ref('int_customer_identities') }} using (customer_id)
-    left join credit_facilities using (customer_id)
-)
+    customers as (
+        select *
+        from {{ ref("int_core_customer_events_rollup") }}
+        left join {{ ref("int_customer_identities") }} using (customer_id)
+        left join credit_facilities using (customer_id)
+    )
 
 select
     customer_public_ids.id as `NIU`,
@@ -40,13 +40,13 @@ select
     gender as `Género`,
     marital_status as `Estado civil`,
     '{{ npb4_17_03_tipos_de_categorias_de_riesgo("Deudores normales") }}'
-        as `Clasificación de Riesgo`,
+    as `Clasificación de Riesgo`,
     relationship_to_bank as `Tipo de relación`,
     cast(null as string) as `Agencia`,
-    least(sum_total_collateral_amount_usd, {{ var('deposits_coverage_limit') }})
-        as `Saldo garantizado`
-from
-    customers
+    least(
+        sum_total_collateral_amount_usd, {{ var("deposits_coverage_limit") }}
+    ) as `Saldo garantizado`
+from customers
 left join
-    {{ ref('stg_core_public_ids') }} as customer_public_ids
+    {{ ref("stg_core_public_ids") }} as customer_public_ids
     on customer_id = customer_public_ids.target_id

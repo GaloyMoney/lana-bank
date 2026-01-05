@@ -1,28 +1,22 @@
 with
 
-customers as (
-    select *
-    from {{ ref('int_core_customer_events_rollup') }}
-    left join {{ ref('int_customer_identities') }} using (customer_id)
-    where customer_type = 'NoType' and 1 = 0
+    customers as (
+        select *
+        from {{ ref("int_core_customer_events_rollup") }}
+        left join {{ ref("int_customer_identities") }} using (customer_id)
+        where customer_type = 'NoType' and 1 = 0
     -- customer_type in (
-    --  'Individual',
-    --  'GovernmentEntity',
-    --  'PrivateCompany',
-    --  'Bank',
-    --  'FinancialInstitution',
-    --  'ForeignAgencyOrSubsidiary',
-    --  'NonDomiciledCompany',
+    -- 'Individual',
+    -- 'GovernmentEntity',
+    -- 'PrivateCompany',
+    -- 'Bank',
+    -- 'FinancialInstitution',
+    -- 'ForeignAgencyOrSubsidiary',
+    -- 'NonDomiciledCompany',
     -- )
+    ),
 
-)
-,
-
-final as (
-
-    select *
-    from customers
-)
+    final as (select * from customers)
 
 select
     7060 as `Correlativo`,
@@ -40,5 +34,4 @@ select
     split(first_name, ' ')[safe_offset(1)] as `Segundo Nombre`,
     split(last_name, ' ')[safe_offset(0)] as `Primer Apellido`,
     split(last_name, ' ')[safe_offset(1)] as `Segundo Apellido`
-from
-    final
+from final

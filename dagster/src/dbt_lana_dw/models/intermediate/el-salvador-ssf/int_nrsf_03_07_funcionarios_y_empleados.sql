@@ -1,11 +1,11 @@
 with
 
-customers as (
-    select *
-    from {{ ref('int_core_customer_events_rollup') }}
-    left join {{ ref('int_customer_identities') }} using (customer_id)
-    where customer_type = 'BankEmployee' and 1 = 0
-)
+    customers as (
+        select *
+        from {{ ref("int_core_customer_events_rollup") }}
+        left join {{ ref("int_customer_identities") }} using (customer_id)
+        where customer_type = 'BankEmployee' and 1 = 0
+    )
 
 select
     married_name as `Apellido de casada`,
@@ -21,5 +21,4 @@ select
     split(last_name, ' ')[safe_offset(0)] as `Primer Apellido`,
     split(last_name, ' ')[safe_offset(1)] as `Segundo Apellido`,
     left(replace(customer_id, '-', ''), 14) as `NIU`
-from
-    customers
+from customers

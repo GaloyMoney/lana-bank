@@ -1,25 +1,22 @@
-{{ config(
-    unique_key = ['customer_id', 'version'],
-) }}
+{{
+    config(
+        unique_key=["customer_id", "version"],
+    )
+}}
 
 
-with source as (
-    select s.*
-    from {{ ref('stg_core_customer_events_rollup') }} as s
-),
+with
+    source as (select s.* from {{ ref("stg_core_customer_events_rollup") }} as s),
 
-transformed as (
-    select
-        * except (
+    transformed as (
+        select
+            * except (customer_id, created_at, modified_at),
             customer_id,
-            created_at,
-            modified_at
-        ),
-        customer_id,
-        created_at as customer_created_at,
+            created_at as customer_created_at,
 
-        modified_at as customer_modified_at
-    from source
-)
+            modified_at as customer_modified_at
+        from source
+    )
 
-select * from transformed
+select *
+from transformed
