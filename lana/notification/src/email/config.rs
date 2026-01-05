@@ -53,6 +53,10 @@ impl ConfigSpec for NotificationEmailConfigSpec {
     }
 
     fn validate(value: &NotificationEmailConfig) -> Result<(), DomainConfigError> {
+        // DomainConfigError is smelly here
+        // we're looking at if an email exist and is well formatted
+        // this has nothing to do with DomainConfig really
+        // it's proper business logic to the notification email
         if value.from_email.trim().is_empty() {
             return Err(DomainConfigError::InvalidState(
                 "from_email is required".to_string(),
@@ -60,6 +64,11 @@ impl ConfigSpec for NotificationEmailConfigSpec {
         }
 
         if value.from_name.trim().is_empty() {
+            // from name can be as long as one want and create
+            // some burden to postgres
+            //
+            // the default implementation is overridden here
+            // those function are not additional, it's this one OR the default.
             return Err(DomainConfigError::InvalidState(
                 "from_name is required".to_string(),
             ));
