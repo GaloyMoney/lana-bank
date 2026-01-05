@@ -219,7 +219,7 @@ where
             pool,
             journal_id,
             cala_arc.as_ref(),
-            ledger_arc.liquidation_payment_omnibus_account_ids(),
+            ledger_arc.liquidation_proceeds_omnibus_account_ids(),
             authz_arc.clone(),
             &publisher,
         )

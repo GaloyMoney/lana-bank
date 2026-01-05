@@ -37,7 +37,7 @@ where
     repo: LiquidationRepo<E>,
     authz: Arc<Perms>,
     ledger: LiquidationLedger,
-    payment_omnibus_account_ids: LedgerOmnibusAccountIds,
+    proceeds_omnibus_account_ids: LedgerOmnibusAccountIds,
 }
 
 impl<Perms, E> Clone for Liquidations<Perms, E>
@@ -50,7 +50,7 @@ where
             repo: self.repo.clone(),
             authz: self.authz.clone(),
             ledger: self.ledger.clone(),
-            payment_omnibus_account_ids: self.payment_omnibus_account_ids.clone(),
+            proceeds_omnibus_account_ids: self.proceeds_omnibus_account_ids.clone(),
         }
     }
 }
@@ -66,7 +66,7 @@ where
         pool: &sqlx::PgPool,
         journal_id: JournalId,
         cala: &CalaLedger,
-        payment_omnibus_account_ids: &LedgerOmnibusAccountIds,
+        proceeds_omnibus_account_ids: &LedgerOmnibusAccountIds,
         authz: Arc<Perms>,
         publisher: &crate::CreditFacilityPublisher<E>,
     ) -> Result<Self, LiquidationError> {
@@ -74,7 +74,7 @@ where
             repo: LiquidationRepo::new(pool, publisher),
             authz,
             ledger: LiquidationLedger::init(cala, journal_id).await?,
-            payment_omnibus_account_ids: payment_omnibus_account_ids.clone(),
+            proceeds_omnibus_account_ids: proceeds_omnibus_account_ids.clone(),
         })
     }
 
@@ -107,8 +107,8 @@ where
                 .create_in_op(
                     db,
                     new_liquidation
-                        .liquidation_payment_omnibus_account_id(
-                            self.payment_omnibus_account_ids.account_id,
+                        .liquidation_proceeds_omnibus_account_id(
+                            self.proceeds_omnibus_account_ids.account_id,
                         )
                         .build()
                         .expect("Could not build new liquidation"),
