@@ -57,3 +57,5 @@ vendor/
 # python
 
 **/__pycache__/
+
+notes/

@@ -1,0 +1,11 @@
+version: 2
+
+models:
+  - name: int_nrp_41_07_garantia_pignorada
+    columns:
+      - name: identificacion_garantia
+        tests:
+          - not_null_quoted
+      - name: nit_depositante
+        tests:
+          - not_null_quoted

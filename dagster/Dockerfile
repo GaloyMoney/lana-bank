@@ -30,9 +30,10 @@ RUN pip install \
 
 # Install lana specific packages
 RUN pip install \
+    dbt-core~=1.10.3 \
+    dbt-bigquery~=1.10.3 \
     dlt[bigquery]~=1.18.1 \
     dagster-dlt~=${DAGSTER_EXT_VERSION} \
-    dbt-bigquery~=1.10.3 \
     pandas
 
 # Add our project specific code
