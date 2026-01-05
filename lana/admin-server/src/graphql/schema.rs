@@ -969,8 +969,8 @@ impl Query {
         ctx: &Context<'_>,
     ) -> async_graphql::Result<Vec<ExposedConfigItem>> {
         let (app, _sub) = app_and_sub_from_ctx!(ctx);
-        let configs = super::exposed_config::list_exposed_configs(app.domain_configs()).await?;
-        Ok(configs)
+        let configs = app.exposed_configs().list().await?;
+        Ok(configs.into_iter().map(ExposedConfigItem::from).collect())
     }
 
     async fn credit_config(
@@ -1308,14 +1308,14 @@ impl Mutation {
         input: ExposedConfigUpdateInput,
     ) -> async_graphql::Result<ExposedConfigUpdatePayload> {
         let (app, _sub) = app_and_sub_from_ctx!(ctx);
-        let updated = super::exposed_config::update_exposed_config(
-            app.domain_configs(),
-            input.key,
-            input.value.into_inner(),
-        )
-        .await?;
+        let updated = app
+            .exposed_configs()
+            .update(input.key, input.value.into_inner())
+            .await?;
 
-        Ok(ExposedConfigUpdatePayload::from(updated))
+        Ok(ExposedConfigUpdatePayload::from(ExposedConfigItem::from(
+            updated,
+        )))
     }
 
     async fn deposit_module_configure(

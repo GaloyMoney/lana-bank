@@ -3,6 +3,7 @@
 
 pub mod accounting_init;
 pub mod app;
+pub mod exposed_config;
 
 pub mod applicant {
     pub use core_applicant::*;
