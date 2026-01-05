@@ -1,5 +1,6 @@
 mod entity;
 pub mod error;
+mod jobs;
 mod repo;
 
 use std::collections::HashMap;
@@ -9,12 +10,13 @@ use tracing::instrument;
 use tracing_macros::record_error_severity;
 
 use authz::PermissionCheck;
-use obix::out::OutboxEventMarker;
+use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{CreditFacilityPublisher, CreditLedger, event::CoreCreditEvent, primitives::*};
 
 pub use entity::Collateral;
 pub(super) use entity::*;
+use jobs::wallet_collateral_sync;
 
 #[cfg(feature = "json-schema")]
 pub use entity::CollateralEvent;
@@ -48,19 +50,37 @@ where
 impl<Perms, E> Collaterals<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<core_custody::CoreCustodyEvent>,
 {
-    pub fn new(
+    pub async fn init(
         pool: &sqlx::PgPool,
         authz: Arc<Perms>,
         publisher: &CreditFacilityPublisher<E>,
         ledger: Arc<CreditLedger>,
-    ) -> Self {
-        Self {
+        outbox: &Outbox<E>,
+        jobs: &mut job_new::Jobs,
+    ) -> Result<Self, CollateralError> {
+        let repo_arc = Arc::new(CollateralRepo::new(pool, publisher));
+
+        let wallet_collateral_sync_job_spawner =
+            jobs.add_initializer(wallet_collateral_sync::WalletCollateralSyncInit::new(
+                outbox,
+                ledger.clone(),
+                repo_arc.clone(),
+            ));
+
+        wallet_collateral_sync_job_spawner
+            .spawn_unique(
+                job_new::JobId::new(),
+                wallet_collateral_sync::WalletCollateralSyncJobConfig::new(),
+            )
+            .await?;
+
+        Ok(Self {
             authz,
-            repo: Arc::new(CollateralRepo::new(pool, publisher)),
+            repo: repo_arc,
             ledger,
-        }
+        })
     }
 
     pub async fn find_all<T: From<Collateral>>(
@@ -118,43 +138,5 @@ where
         };
 
         Ok(res)
-    }
-
-    #[record_error_severity]
-    #[instrument(
-        name = "collateral.record_collateral_update_via_custodian_sync",
-        fields(updated_collateral = %updated_collateral, effective = %effective),
-        skip(self),
-    )]
-    pub(super) async fn record_collateral_update_via_custodian_sync(
-        &self,
-        custody_wallet_id: CustodyWalletId,
-        updated_collateral: core_money::Satoshis,
-        effective: chrono::NaiveDate,
-    ) -> Result<(), CollateralError> {
-        let mut collateral = self
-            .repo
-            .find_by_custody_wallet_id(Some(custody_wallet_id))
-            .await?;
-
-        if let es_entity::Idempotent::Executed(data) =
-            collateral.record_collateral_update_via_custodian_sync(updated_collateral, effective)
-        {
-            let mut db = self.repo.begin_op().await?;
-
-            self.repo.update_in_op(&mut db, &mut collateral).await?;
-
-            self.ledger
-                .update_credit_facility_collateral(
-                    &mut db,
-                    data,
-                    collateral.account_id,
-                    core_accounting::LedgerTransactionInitiator::System,
-                )
-                .await?;
-            db.commit().await?;
-        }
-
-        Ok(())
     }
 }

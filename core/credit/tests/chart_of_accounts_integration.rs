@@ -44,6 +44,14 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     )
     .await?;
 
+    let mut job_new = job_new::Jobs::init(
+        job_new::JobSvcConfig::builder()
+            .pool(pool.clone())
+            .build()
+            .expect("Couldn't build JobSvcConfig"),
+    )
+    .await?;
+
     let journal_id = helpers::init_journal(&cala).await?;
     let public_ids = PublicIds::new(&pool);
     let price = core_price::Price::init(&jobs, &outbox).await?;
@@ -53,6 +61,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         Default::default(),
         &governance,
         &jobs,
+        &mut job_new,
         &authz,
         &customers,
         &custody,

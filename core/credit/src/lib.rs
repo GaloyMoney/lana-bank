@@ -238,7 +238,15 @@ where
         .await?;
         let proposals_arc = Arc::new(credit_facility_proposals);
 
-        let collaterals = Collaterals::new(pool, authz_arc.clone(), &publisher, ledger_arc.clone());
+        let collaterals = Collaterals::init(
+            pool,
+            authz_arc.clone(),
+            &publisher,
+            ledger_arc.clone(),
+            outbox,
+            job_new,
+        )
+        .await?;
         let collaterals_arc = Arc::new(collaterals);
 
         let pending_credit_facilities = PendingCreditFacilities::init(
@@ -413,12 +421,6 @@ where
         jobs.add_initializer_and_spawn_unique(
             CreditFacilityProposalApprovalInit::new(outbox, approve_proposal_arc.as_ref()),
             CreditFacilityProposalApprovalJobConfig::<Perms, E>::new(),
-        )
-        .await?;
-
-        jobs.add_initializer_and_spawn_unique(
-            wallet_collateral_sync::WalletCollateralSyncInit::new(outbox, collaterals_arc.as_ref()),
-            wallet_collateral_sync::WalletCollateralSyncJobConfig::<Perms, E>::new(),
         )
         .await?;
 
