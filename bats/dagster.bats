@@ -379,7 +379,6 @@ has_bigquery_credentials() {
   
   echo "Launched dbt_seeds_job with run ID: $run_id"
   
-  # Wait for the job to complete (timeout 90s, poll every 2s)
   dagster_poll_run_status "$run_id" 10 30 || return 1
   
   echo "dbt_seeds_job completed successfully"
