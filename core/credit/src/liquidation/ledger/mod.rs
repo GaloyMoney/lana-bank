@@ -28,7 +28,6 @@ impl LiquidationLedger {
     ) -> Result<Self, LiquidationLedgerError> {
         templates::SendCollateralToLiquidation::init(cala).await?;
         templates::ReceivePaymentFromLiquidation::init(cala).await?;
-        templates::CompleteLiquidation::init(cala).await?;
 
         Ok(Self {
             cala: cala.clone(),
