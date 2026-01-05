@@ -1,5 +1,5 @@
-query ListExposedConfigs {
-  listExposedConfigs {
+query ExposedConfigs {
+  exposedConfigs {
     key
     value
     isSet

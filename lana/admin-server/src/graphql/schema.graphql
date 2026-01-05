@@ -2115,7 +2115,7 @@ type Query {
 	realtimePrice: RealtimePrice!
 	audit(first: Int!, after: String): AuditEntryConnection!
 	depositConfig: DepositModuleConfig
-	listExposedConfigs: [ExposedConfigItem!]!
+	exposedConfigs: [ExposedConfigItem!]!
 	creditConfig: CreditModuleConfig
 	balanceSheetConfig: BalanceSheetModuleConfig
 	profitAndLossStatementConfig: ProfitAndLossStatementModuleConfig

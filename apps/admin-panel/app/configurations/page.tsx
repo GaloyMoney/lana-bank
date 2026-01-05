@@ -22,13 +22,13 @@ import { Checkbox } from "@lana/web/ui/checkbox"
 import {
   ConfigType,
   type ExposedConfigItem,
-  useListExposedConfigsQuery,
+  useExposedConfigsQuery,
   useUpdateExposedConfigMutation,
 } from "@/lib/graphql/generated"
 
 gql`
-  query ListExposedConfigs {
-    listExposedConfigs {
+  query ExposedConfigs {
+    exposedConfigs {
       key
       configType
       value
@@ -61,12 +61,12 @@ export default function ConfigurationsPage() {
     data: exposedConfigData,
     loading: exposedConfigLoading,
     error: exposedConfigError,
-  } = useListExposedConfigsQuery()
+  } = useExposedConfigsQuery()
 
   const [updateExposedConfig, { loading: updateExposedConfigLoading }] =
     useUpdateExposedConfigMutation()
 
-  const exposedConfigs = exposedConfigData?.listExposedConfigs ?? EMPTY_CONFIGS
+  const exposedConfigs = exposedConfigData?.exposedConfigs ?? EMPTY_CONFIGS
   const visibleConfigs = exposedConfigs.filter(
     (config) => config.configType !== ConfigType.Complex,
   )
@@ -121,7 +121,7 @@ export default function ConfigurationsPage() {
             value: parsed.value,
           },
         },
-        refetchQueries: ["ListExposedConfigs"],
+        refetchQueries: ["ExposedConfigs"],
       })
 
       const updated = result.data?.updateExposedConfig.exposedConfig

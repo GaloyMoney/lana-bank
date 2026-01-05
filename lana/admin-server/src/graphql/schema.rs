@@ -964,7 +964,7 @@ impl Query {
         Ok(config.map(DepositModuleConfig::from))
     }
 
-    async fn list_exposed_configs(
+    async fn exposed_configs(
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<Vec<ExposedConfigItem>> {

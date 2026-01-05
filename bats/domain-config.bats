@@ -50,8 +50,8 @@ teardown_file() {
   [[ "$updated_name" == "$from_name" ]] || exit 1
 
   exec_admin_graphql 'notification-email-config'
-  current_email=$(graphql_output '.data.listExposedConfigs[] | select(.key == "notification-email-from-email").value')
-  current_name=$(graphql_output '.data.listExposedConfigs[] | select(.key == "notification-email-from-name").value')
+  current_email=$(graphql_output '.data.exposedConfigs[] | select(.key == "notification-email-from-email").value')
+  current_name=$(graphql_output '.data.exposedConfigs[] | select(.key == "notification-email-from-name").value')
   [[ "$current_email" == "$from_email" ]] || exit 1
   [[ "$current_name" == "$from_name" ]] || exit 1
 }
