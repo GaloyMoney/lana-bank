@@ -31,10 +31,10 @@ pub const CREDIT_FACILITY_LIQUIDATED_COLLATERAL_ACCOUNT_SET_NAME: &str =
     "Credit Facility Liquidated Collateral Account Set";
 pub const CREDIT_FACILITY_LIQUIDATED_COLLATERAL_ACCOUNT_SET_REF: &str =
     "credit-facility-liquidated-collateral-account-set";
-pub const CREDIT_FACILITY_LIQUIDATION_IN_HOLDING_ACCOUNT_SET_NAME: &str =
-    "Credit Facility Liquidation In Holding Account Set";
-pub const CREDIT_FACILITY_LIQUIDATION_IN_HOLDING_ACCOUNT_SET_REF: &str =
-    "credit-facility-liquidation-in-holding-account-set";
+pub const CREDIT_FACILITY_PROCEEDS_FROM_LIQUIDATION_ACCOUNT_SET_NAME: &str =
+    "Credit Facility Proceeds From Liquidation Account Set";
+pub const CREDIT_FACILITY_PROCEEDS_FROM_LIQUIDATION_ACCOUNT_SET_REF: &str =
+    "credit-facility-proceeds-from-liquidation-account-set";
 
 pub const SHORT_TERM_CREDIT_INDIVIDUAL_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME: &str =
     "Short Term Credit Individual Disbursed Receivable Account Set";
