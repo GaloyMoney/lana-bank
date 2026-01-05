@@ -259,14 +259,14 @@ impl CreditLedger {
         )
         .await?;
 
-        let liquidation_payment_omnibus_normal_balance_type = DebitOrCredit::Debit;
+        let liquidation_proceeds_omnibus_normal_balance_type = DebitOrCredit::Debit;
         let liquidation_proceeds_omnibus_account_ids = Self::find_or_create_omnibus_account(
             cala,
             journal_id,
             format!("{journal_id}:{CREDIT_FACILITY_LIQUIDATION_PROCEEDS_OMNIBUS_ACCOUNT_SET_REF}"),
             format!("{journal_id}:{CREDIT_FACILITY_LIQUIDATION_PROCEEDS_OMNIBUS_ACCOUNT_REF}"),
             CREDIT_FACILITY_LIQUIDATION_PROCEEDS_OMNIBUS_ACCOUNT_SET_NAME.to_string(),
-            liquidation_payment_omnibus_normal_balance_type,
+            liquidation_proceeds_omnibus_normal_balance_type,
         )
         .await?;
 
@@ -2471,7 +2471,7 @@ impl CreditLedger {
 
             facility_omnibus_parent_account_set_id,
             collateral_omnibus_parent_account_set_id,
-            liquidation_payment_omnibus_parent_account_set_id,
+            liquidation_proceeds_omnibus_parent_account_set_id,
             facility_parent_account_set_id,
             collateral_parent_account_set_id,
             collateral_in_liquidation_parent_account_set_id,
@@ -2509,9 +2509,9 @@ impl CreditLedger {
             &mut op,
             &mut account_sets,
             self.liquidation_proceeds_omnibus_account_ids.account_set_id,
-            *liquidation_payment_omnibus_parent_account_set_id,
+            *liquidation_proceeds_omnibus_parent_account_set_id,
             &charts_integration_meta,
-            |meta| meta.liquidation_payment_omnibus_parent_account_set_id,
+            |meta| meta.liquidation_proceeds_omnibus_parent_account_set_id,
         )
         .await?;
 
@@ -3253,7 +3253,7 @@ pub struct ChartOfAccountsIntegrationMeta {
 
     pub facility_omnibus_parent_account_set_id: CalaAccountSetId,
     pub collateral_omnibus_parent_account_set_id: CalaAccountSetId,
-    pub liquidation_payment_omnibus_parent_account_set_id: CalaAccountSetId,
+    pub liquidation_proceeds_omnibus_parent_account_set_id: CalaAccountSetId,
     pub facility_parent_account_set_id: CalaAccountSetId,
     pub collateral_parent_account_set_id: CalaAccountSetId,
     pub collateral_in_liquidation_parent_account_set_id: CalaAccountSetId,

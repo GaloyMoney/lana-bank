@@ -90,7 +90,7 @@ impl From<DomainChartOfAccountsIntegrationConfig> for CreditModuleConfig {
             ),
             chart_of_account_in_liquidation_omnibus_parent_code: Some(
                 values
-                    .chart_of_account_liquidation_payment_omnibus_parent_code
+                    .chart_of_account_liquidation_proceeds_omnibus_parent_code
                     .to_string(),
             ),
             chart_of_account_facility_parent_code: Some(
