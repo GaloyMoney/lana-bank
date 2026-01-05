@@ -48,6 +48,7 @@ pub struct LanaApp {
     _pool: PgPool,
     domain_configs: DomainConfigs,
     jobs: Jobs,
+    job_new: job_new::Jobs,
     audit: Audit,
     authz: Authorization,
     accounting: Accounting,
@@ -97,6 +98,14 @@ impl LanaApp {
             job::JobSvcConfig::builder()
                 .pool(pool.clone())
                 .poller_config(config.job_poller)
+                .build()
+                .expect("Couldn't build JobSvcConfig"),
+        )
+        .await?;
+
+        let mut job_new = job_new::Jobs::init(
+            job_new::JobSvcConfig::builder()
+                .pool(pool.clone())
                 .build()
                 .expect("Couldn't build JobSvcConfig"),
         )
@@ -173,6 +182,7 @@ impl LanaApp {
             config.credit,
             &governance,
             &jobs,
+            &mut job_new,
             &authz,
             &customers,
             &custody,
@@ -203,10 +213,12 @@ impl LanaApp {
 
         jobs.start_poll().await?;
 
+        job_new.start_poll().await?;
         Ok(Self {
             _pool: pool,
             domain_configs,
             jobs,
+            job_new,
             audit,
             authz,
             accounting,
@@ -331,6 +343,7 @@ impl LanaApp {
         tracing::info!("app.shutdown");
 
         self.jobs.shutdown().await?;
+        self.job_new.shutdown().await?;
 
         // Shutdown tracer to flush all pending spans
         tracing_utils::shutdown_tracer()?;

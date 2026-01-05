@@ -46,6 +46,7 @@ document-storage = { workspace = true, features = ["graphql"] }
 public-id = { workspace = true, features = ["graphql"] }
 audit = { workspace = true }
 job = { workspace = true }
+job_new = { version = "0.6.0", package = "job" }
 obix = { workspace = true }
 authz = { workspace = true }
 domain-config = { workspace = true }

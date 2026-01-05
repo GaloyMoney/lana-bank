@@ -3623,6 +3623,7 @@ dependencies = [
  "es-entity",
  "governance",
  "job 0.4.0",
+ "job 0.6.0",
  "lana-events",
  "lana-ids",
  "notification",

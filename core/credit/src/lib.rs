@@ -118,8 +118,6 @@ where
     terms_templates: Arc<TermsTemplates<Perms>>,
     public_ids: Arc<PublicIds>,
     liquidations: Arc<Liquidations<Perms, E>>,
-    // Keep around during migration for the poller to stay active
-    jobs: job_new::Jobs,
 }
 
 impl<Perms, E> Clone for CoreCredit<Perms, E>
@@ -157,7 +155,6 @@ where
             terms_templates: self.terms_templates.clone(),
             public_ids: self.public_ids.clone(),
             liquidations: self.liquidations.clone(),
-            jobs: self.jobs.clone(),
         }
     }
 }
@@ -186,6 +183,7 @@ where
         config: CreditConfig,
         governance: &Governance<Perms, E>,
         jobs: &Jobs,
+        job_new: &mut job_new::Jobs,
         authz: &Perms,
         customer: &Customers<Perms, E>,
         custody: &CoreCustody<Perms, E>,
@@ -195,13 +193,6 @@ where
         journal_id: cala_ledger::JournalId,
         public_ids: &PublicIds,
     ) -> Result<Self, CoreCreditError> {
-        let mut job_new = job_new::Jobs::init(
-            job_new::JobSvcConfig::builder()
-                .pool(pool.clone())
-                .build()
-                .expect("Couldn't build JobSvcConfig"),
-        )
-        .await?;
         // Create Arc-wrapped versions of parameters once
         let authz_arc = Arc::new(authz.clone());
         let governance_arc = Arc::new(governance.clone());
@@ -222,7 +213,7 @@ where
             pool,
             authz_arc.clone(),
             ledger_arc.clone(),
-            &mut job_new,
+            job_new,
             &publisher,
         );
         let obligations_arc = Arc::new(obligations);
@@ -260,7 +251,7 @@ where
             price_arc.clone(),
             &publisher,
             governance_arc.clone(),
-            &mut job_new,
+            job_new,
             outbox,
         )
         .await?;
@@ -431,7 +422,6 @@ where
         )
         .await?;
 
-        job_new.start_poll().await?;
         Ok(Self {
             authz: authz_arc,
             customer: customer_arc,
@@ -457,7 +447,6 @@ where
             terms_templates: terms_templates_arc,
             public_ids: public_ids_arc,
             liquidations: liquidations_arc,
-            jobs: job_new,
         })
     }
 
