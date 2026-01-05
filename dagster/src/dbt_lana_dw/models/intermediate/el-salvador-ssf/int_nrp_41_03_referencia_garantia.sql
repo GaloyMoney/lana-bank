@@ -1,15 +1,4 @@
 with loans_and_credit_facilities as (
-    /* TODO:
-    SELECT total_collateral,
-    loan_id AS reference_id,
-    principal AS loan_amount,
-
-    FROM { ref('int_approved_loans') }
-
-    WHERE NOT matured
-
-    UNION ALL
-    */
     select
         collateral_amount_usd,
         disbursal_id as reference_id,
