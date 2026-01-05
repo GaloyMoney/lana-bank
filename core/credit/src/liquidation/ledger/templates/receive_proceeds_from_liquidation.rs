@@ -21,7 +21,7 @@ use cala_ledger::{
 use core_money::{Satoshis, UsdCents};
 use tracing_macros::record_error_severity;
 
-use crate::{FacilityLiquidationInHoldingAccount, liquidation::ledger::LiquidationLedgerError};
+use crate::{FacilityProceedsFromLiquidationAccount, liquidation::ledger::LiquidationLedgerError};
 
 pub const RECEIVE_PROCEEDS_FROM_LIQUIDATION: &str = "RECEIVE_PROCEEDS_FROM_LIQUIDATION";
 
@@ -29,7 +29,7 @@ pub const RECEIVE_PROCEEDS_FROM_LIQUIDATION: &str = "RECEIVE_PROCEEDS_FROM_LIQUI
 pub struct ReceiveProceedsFromLiquidationParams {
     pub journal_id: JournalId,
     pub fiat_liquidation_proceeds_omnibus_account_id: CalaAccountId,
-    pub fiat_liquidation_in_holding_account_id: FacilityLiquidationInHoldingAccount,
+    pub fiat_liquidation_in_holding_account_id: FacilityProceedsFromLiquidationAccount,
     pub amount_received: UsdCents,
     pub currency: Currency,
     pub btc_in_liquidation_account_id: CalaAccountId,

@@ -260,7 +260,7 @@ where
                 collateral_account_id,
                 collateral_in_liquidation_account_id,
                 liquidated_collateral_account_id,
-                liquidation_in_holding_account_id,
+                proceeds_from_liquidation_account_id,
                 payment_holding_account_id,
                 ..
             } = credit_facility.account_ids;
@@ -274,7 +274,7 @@ where
                         .id(*liquidation_id)
                         .credit_facility_id(*credit_facility_id)
                         .facility_liquidation_in_holding_account_id(
-                            liquidation_in_holding_account_id,
+                            proceeds_from_liquidation_account_id,
                         )
                         .facility_payment_holding_account_id(payment_holding_account_id)
                         .collateral_account_id(collateral_account_id)

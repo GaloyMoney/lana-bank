@@ -9,7 +9,8 @@ use es_entity::*;
 use crate::primitives::*;
 
 use super::{
-    FacilityLiquidationInHoldingAccount, RecordProceedsFromLiquidationData, error::LiquidationError,
+    FacilityProceedsFromLiquidationAccount, RecordProceedsFromLiquidationData,
+    error::LiquidationError,
 };
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -21,7 +22,7 @@ pub enum LiquidationEvent {
         id: LiquidationId,
         credit_facility_id: CreditFacilityId,
         liquidation_proceeds_omnibus_account_id: CalaAccountId,
-        facility_liquidation_in_holding_account_id: FacilityLiquidationInHoldingAccount,
+        facility_liquidation_in_holding_account_id: FacilityProceedsFromLiquidationAccount,
         facility_payment_holding_account_id: CalaAccountId,
         collateral_account_id: CalaAccountId,
         collateral_in_liquidation_account_id: CalaAccountId,
@@ -62,7 +63,7 @@ pub struct Liquidation {
 
     /// Holds proceeds received from liquidator for the connected
     /// facility.
-    pub facility_liquidation_in_holding_account_id: FacilityLiquidationInHoldingAccount,
+    pub facility_liquidation_in_holding_account_id: FacilityProceedsFromLiquidationAccount,
 
     /// Holds funds meant for payments on the connected facility.
     pub facility_payment_holding_account_id: CalaAccountId,
@@ -135,7 +136,7 @@ impl Liquidation {
 
         Ok(Idempotent::Executed(RecordProceedsFromLiquidationData {
             liquidation_proceeds_omnibus_account_id: self.liquidation_proceeds_omnibus_account_id,
-            liquidation_in_holding_account_id: self.facility_liquidation_in_holding_account_id,
+            proceeds_from_liquidation_account_id: self.facility_liquidation_in_holding_account_id,
             amount_received: self.received_total,
             collateral_in_liquidation_account_id: self.collateral_in_liquidation_account_id,
             liquidated_collateral_account_id: self.liquidated_collateral_account_id,
@@ -254,7 +255,7 @@ pub struct NewLiquidation {
     #[builder(setter(into))]
     pub(crate) credit_facility_id: CreditFacilityId,
     pub(crate) liquidation_proceeds_omnibus_account_id: CalaAccountId,
-    pub(crate) facility_liquidation_in_holding_account_id: FacilityLiquidationInHoldingAccount,
+    pub(crate) facility_liquidation_in_holding_account_id: FacilityProceedsFromLiquidationAccount,
     pub(crate) facility_payment_holding_account_id: CalaAccountId,
     pub(crate) collateral_account_id: CalaAccountId,
     pub(crate) collateral_in_liquidation_account_id: CalaAccountId,

@@ -1103,7 +1103,7 @@ impl CreditLedger {
             interest_income_account_id: _,
             payment_holding_account_id: _,
             collateral_in_liquidation_account_id: _,
-            liquidation_in_holding_account_id: _,
+            proceeds_from_liquidation_account_id: _,
             liquidated_collateral_account_id: _,
         }: CreditFacilityLedgerAccountIds,
     ) -> Result<CreditFacilityBalanceSummary, CreditLedgerError> {
@@ -2136,7 +2136,7 @@ impl CreditLedger {
             interest_income_account_id,
             fee_income_account_id,
             payment_holding_account_id,
-            liquidation_in_holding_account_id: proceeds_from_liquidation_account_id,
+            proceeds_from_liquidation_account_id,
             collateral_in_liquidation_account_id,
             liquidated_collateral_account_id,
 

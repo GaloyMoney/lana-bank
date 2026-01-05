@@ -123,13 +123,13 @@
           "format": "uuid",
           "type": "string"
         },
-        "liquidation_in_holding_account_id": {
-          "description": "Holds funds received from liquidation.",
+        "payment_holding_account_id": {
+          "description": "Holds funds meant for payment allocation.",
           "format": "uuid",
           "type": "string"
         },
-        "payment_holding_account_id": {
-          "description": "Holds funds meant for payment allocation.",
+        "proceeds_from_liquidation_account_id": {
+          "description": "Holds funds received from liquidation.",
           "format": "uuid",
           "type": "string"
         }
@@ -143,7 +143,7 @@
         "collateral_account_id",
         "collateral_in_liquidation_account_id",
         "liquidated_collateral_account_id",
-        "liquidation_in_holding_account_id",
+        "proceeds_from_liquidation_account_id",
         "interest_receivable_not_yet_due_account_id",
         "interest_receivable_due_account_id",
         "interest_receivable_overdue_account_id",
