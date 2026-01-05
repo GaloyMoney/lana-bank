@@ -10,14 +10,14 @@ import { GetLiquidationDetailsQuery } from "@/lib/graphql/generated"
 
 type PaymentReceived = NonNullable<
   GetLiquidationDetailsQuery["liquidation"]
->["receivedPayment"][number]
+>["receivedProceeds"][number]
 
-type LiquidationPaymentReceivedTableProps = {
+type LiquidationProceedsReceivedTableProps = {
   paymentsReceived: PaymentReceived[]
 }
 
-export const LiquidationPaymentReceivedTable: React.FC<
-  LiquidationPaymentReceivedTableProps
+export const LiquidationProceedsReceivedTable: React.FC<
+  LiquidationProceedsReceivedTableProps
 > = ({ paymentsReceived }) => {
   const t = useTranslations("Liquidations.LiquidationDetails.PaymentReceived")
 

@@ -28,11 +28,11 @@ pub struct LiquidationRecordCollateralSentInput {
 crate::mutation_payload! { LiquidationRecordCollateralSentPayload, liquidation: Liquidation }
 
 #[derive(InputObject)]
-pub struct LiquidationRecordPaymentReceivedInput {
+pub struct LiquidationRecordProceedsReceivedInput {
     pub liquidation_id: UUID,
     pub amount: UsdCents,
 }
-crate::mutation_payload! { LiquidationRecordPaymentReceivedPayload, liquidation: Liquidation }
+crate::mutation_payload! { LiquidationRecordProceedsReceivedPayload, liquidation: Liquidation }
 
 impl From<DomainLiquidation> for Liquidation {
     fn from(liquidation: DomainLiquidation) -> Self {
@@ -57,7 +57,7 @@ pub struct LiquidationCollateralSent {
 }
 
 #[derive(SimpleObject)]
-pub struct LiquidationPaymentReceived {
+pub struct LiquidationProceedsReceived {
     amount: UsdCents,
     ledger_tx_id: UUID,
 }
@@ -87,11 +87,11 @@ impl Liquidation {
             .collect()
     }
 
-    async fn received_payment(&self) -> Vec<LiquidationPaymentReceived> {
+    async fn received_proceeds(&self) -> Vec<LiquidationProceedsReceived> {
         self.entity
-            .repayment_amounts_received()
+            .proceeds_received()
             .into_iter()
-            .map(|(amount, ledger_tx_id)| LiquidationPaymentReceived {
+            .map(|(amount, ledger_tx_id)| LiquidationProceedsReceived {
                 amount,
                 ledger_tx_id: ledger_tx_id.into(),
             })

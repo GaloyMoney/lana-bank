@@ -17,7 +17,7 @@ CREATE TABLE core_liquidation_events_rollup (
   initially_expected_to_receive BIGINT,
   ledger_tx_id UUID,
   liquidated_collateral_account_id UUID,
-  liquidation_payment_omnibus_account_id UUID,
+  liquidation_proceeds_omnibus_account_id UUID,
   outstanding BIGINT,
   payment_id UUID,
   to_liquidate_at_current_price BIGINT,
@@ -47,7 +47,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'updated', 'collateral_sent_out', 'repayment_amount_received', 'completed') THEN
+  IF event_type NOT IN ('initialized', 'updated', 'collateral_sent_out', 'proceeds_from_liquidation_received', 'completed') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -72,7 +72,7 @@ BEGIN
     new_row.is_completed := false;
     new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
     new_row.liquidated_collateral_account_id := (NEW.event ->> 'liquidated_collateral_account_id')::UUID;
-    new_row.liquidation_payment_omnibus_account_id := (NEW.event ->> 'liquidation_payment_omnibus_account_id')::UUID;
+    new_row.liquidation_proceeds_omnibus_account_id := (NEW.event ->> 'liquidation_proceeds_omnibus_account_id')::UUID;
     new_row.outstanding := (NEW.event ->> 'outstanding')::BIGINT;
     new_row.payment_id := (NEW.event ->> 'payment_id')::UUID;
     new_row.to_liquidate_at_current_price := (NEW.event ->> 'to_liquidate_at_current_price')::BIGINT;
@@ -92,7 +92,7 @@ BEGIN
     new_row.is_completed := current_row.is_completed;
     new_row.ledger_tx_id := current_row.ledger_tx_id;
     new_row.liquidated_collateral_account_id := current_row.liquidated_collateral_account_id;
-    new_row.liquidation_payment_omnibus_account_id := current_row.liquidation_payment_omnibus_account_id;
+    new_row.liquidation_proceeds_omnibus_account_id := current_row.liquidation_proceeds_omnibus_account_id;
     new_row.outstanding := current_row.outstanding;
     new_row.payment_id := current_row.payment_id;
     new_row.to_liquidate_at_current_price := current_row.to_liquidate_at_current_price;
@@ -110,7 +110,7 @@ BEGIN
       new_row.initially_estimated_to_liquidate := (NEW.event ->> 'initially_estimated_to_liquidate')::BIGINT;
       new_row.initially_expected_to_receive := (NEW.event ->> 'initially_expected_to_receive')::BIGINT;
       new_row.liquidated_collateral_account_id := (NEW.event ->> 'liquidated_collateral_account_id')::UUID;
-      new_row.liquidation_payment_omnibus_account_id := (NEW.event ->> 'liquidation_payment_omnibus_account_id')::UUID;
+      new_row.liquidation_proceeds_omnibus_account_id := (NEW.event ->> 'liquidation_proceeds_omnibus_account_id')::UUID;
       new_row.trigger_price := (NEW.event -> 'trigger_price');
     WHEN 'updated' THEN
       new_row.current_price := (NEW.event -> 'current_price');
@@ -120,7 +120,7 @@ BEGIN
     WHEN 'collateral_sent_out' THEN
       new_row.amount := (NEW.event ->> 'amount')::BIGINT;
       new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
-    WHEN 'repayment_amount_received' THEN
+    WHEN 'proceeds_from_liquidation_received' THEN
       new_row.amount := (NEW.event ->> 'amount')::BIGINT;
       new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
       new_row.payment_id := (NEW.event ->> 'payment_id')::UUID;
@@ -147,7 +147,7 @@ BEGIN
     is_completed,
     ledger_tx_id,
     liquidated_collateral_account_id,
-    liquidation_payment_omnibus_account_id,
+    liquidation_proceeds_omnibus_account_id,
     outstanding,
     payment_id,
     to_liquidate_at_current_price,
@@ -171,7 +171,7 @@ BEGIN
     new_row.is_completed,
     new_row.ledger_tx_id,
     new_row.liquidated_collateral_account_id,
-    new_row.liquidation_payment_omnibus_account_id,
+    new_row.liquidation_proceeds_omnibus_account_id,
     new_row.outstanding,
     new_row.payment_id,
     new_row.to_liquidate_at_current_price,

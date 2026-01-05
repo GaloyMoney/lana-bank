@@ -414,11 +414,11 @@ where
                         payment_id: *payment_id,
                     })
                 }
-                RepaymentAmountReceived {
+                ProceedsFromLiquidationReceived {
                     amount,
                     ledger_tx_id,
                     payment_id,
-                } => Some(CoreCreditEvent::PartialLiquidationRepaymentAmountReceived {
+                } => Some(CoreCreditEvent::PartialLiquidationProceedsReceived {
                     liquidation_id: entity.id,
                     credit_facility_id: entity.credit_facility_id,
                     amount: *amount,

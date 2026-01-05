@@ -137,7 +137,7 @@ pub enum CoreCreditEvent {
         recorded_at: DateTime<Utc>,
         effective: chrono::NaiveDate,
     },
-    PartialLiquidationRepaymentAmountReceived {
+    PartialLiquidationProceedsReceived {
         liquidation_id: LiquidationId,
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,

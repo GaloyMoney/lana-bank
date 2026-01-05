@@ -1,9 +1,9 @@
-mutation LiquidationRecordPaymentReceived($input: LiquidationRecordPaymentReceivedInput!) {
-  liquidationRecordPaymentReceived(input: $input) {
+mutation LiquidationRecordProceedsReceived($input: LiquidationRecordProceedsReceivedInput!) {
+  liquidationRecordProceedsReceived(input: $input) {
     liquidation {
       liquidationId
       receivedTotal
-      receivedPayment {
+      receivedProceeds {
         amount
       }
     }
