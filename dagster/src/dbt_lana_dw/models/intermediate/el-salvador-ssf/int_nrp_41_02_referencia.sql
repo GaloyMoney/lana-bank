@@ -95,9 +95,9 @@ select
     disbursement_public_ids.id as disbursal_id,
     disbursement_public_ids.id as reference_id,
     customer_public_ids.id as `nit_deudor`,
-    '{{ npb4_17_01_tipos_de_cartera('Cartera propia Ley Acceso al Crédito (19)') }}'
+    '{{ npb4_17_01_tipos_de_cartera("Cartera propia Ley Acceso al Crédito (19)") }}'
         as `cod_cartera`,
-    '{{ npb4_17_02_tipos_de_activos_de_riesgo('Préstamos') }}' as `cod_activo`,
+    '{{ npb4_17_02_tipos_de_activos_de_riesgo("Préstamos") }}' as `cod_activo`,
     disbursement_public_ids.id as `num_referencia`,
     loan_amount_usd as `monto_referencia`,
     remaining_balance_usd,
@@ -110,7 +110,7 @@ select
     date(disbursal_approved_recorded_at) as `fecha_otorgamiento`,
     date(disbursal_end_date) as `fecha_vencimiento`,
     cast(null as date) as `fecha_castigo`,
-    '{{ npb4_17_07_estados_de_la_referencia('Vigente') }}' as `estado_credito`,
+    '{{ npb4_17_07_estados_de_la_referencia("Vigente") }}' as `estado_credito`,
     cast(null as numeric) as `saldo_mora_k`,
     cast(null as numeric) as `saldo_mora_i`,
     capital_overdue_days as `dias_mora_k`,
@@ -120,13 +120,13 @@ select
     case
         when
             accrual_cycle_interval = 'end_of_month'
-            then '{{ npb4_17_08_formas_de_pago('Anual') }}'
+            then '{{ npb4_17_08_formas_de_pago("Anual") }}'
     end
         as `pago_capital`,
     case
         when
             accrual_cycle_interval = 'end_of_month'
-            then '{{ npb4_17_08_formas_de_pago('Mensual') }}'
+            then '{{ npb4_17_08_formas_de_pago("Mensual") }}'
     end
         as `pago_interes`,
     cast(null as int64) as `periodo_gracia_k`,
@@ -141,7 +141,7 @@ select
     -- or new loan_destination_economic_sector field? required!
     '010101' as `destino`,
 
-    '{{ npb4_17_17_monedas('Dólares') }}' as `codigo_moneda`,
+    '{{ npb4_17_17_monedas("Dólares") }}' as `codigo_moneda`,
 
     -- Interest rate in effect for the reported month.
     cast(annual_rate as numeric) as `tasa_interes`,
@@ -161,9 +161,9 @@ select
     -- "A" for adjustable, "F" for fixed
     'F' as `tipo_tasa_interes`,
 
-    '{{ npb4_17_18_tipos_de_prestamos('Crédito decreciente') }}'
+    '{{ npb4_17_18_tipos_de_prestamos("Crédito decreciente") }}'
         as `tipo_prestamo`,
-    '{{ npb4_17_21_fuentes_de_recursos('Recursos propios de la entidad') }}'
+    '{{ npb4_17_21_fuentes_de_recursos("Recursos propios de la entidad") }}'
         as `codigo_recurso`,
     cast(null as date) as `ultima_fecha_venc`,
     cast(null as numeric) as `dias_prorroga`,

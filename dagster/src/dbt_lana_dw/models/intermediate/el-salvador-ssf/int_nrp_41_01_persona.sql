@@ -44,7 +44,7 @@ select
     0.0 as `reserva`,
 
     -- codified risk category assigned to the debtor depending of the status of the loan
-    '{{ npb4_17_03_tipos_de_categorias_de_riesgo('Deudores normales') }}' as `categoria_riesgo`,
+    '{{ npb4_17_03_tipos_de_categorias_de_riesgo("Deudores normales") }}' as `categoria_riesgo`,
 
     customer_public_ids.id as `numero_cliente`,
 

@@ -39,7 +39,7 @@ select
     date_of_birth as `Fecha de Nacimiento`,
     gender as `Género`,
     marital_status as `Estado civil`,
-    '{{ npb4_17_03_tipos_de_categorias_de_riesgo('Deudores normales') }}'
+    '{{ npb4_17_03_tipos_de_categorias_de_riesgo("Deudores normales") }}'
         as `Clasificación de Riesgo`,
     relationship_to_bank as `Tipo de relación`,
     cast(null as string) as `Agencia`,
