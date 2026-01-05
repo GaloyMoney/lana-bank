@@ -40,7 +40,7 @@ pub enum LiquidationEvent {
         amount: Satoshis,
         ledger_tx_id: LedgerTxId,
     },
-    RepaymentAmountReceived {
+    ProceedsFromLiquidationReceived {
         amount: UsdCents,
         payment_id: PaymentId,
         ledger_tx_id: LedgerTxId,
@@ -119,18 +119,19 @@ impl Liquidation {
     ) -> Result<Idempotent<RecordProceedsFromLiquidationData>, LiquidationError> {
         idempotency_guard!(
             self.events.iter_all(),
-            LiquidationEvent::RepaymentAmountReceived {
+            LiquidationEvent::ProceedsFromLiquidationReceived {
                 payment_id: id,..
             } if payment_id == *id
         );
 
         self.received_total += amount_received;
 
-        self.events.push(LiquidationEvent::RepaymentAmountReceived {
-            amount: amount_received,
-            payment_id,
-            ledger_tx_id,
-        });
+        self.events
+            .push(LiquidationEvent::ProceedsFromLiquidationReceived {
+                amount: amount_received,
+                payment_id,
+                ledger_tx_id,
+            });
 
         Ok(Idempotent::Executed(RecordProceedsFromLiquidationData {
             liquidation_proceeds_omnibus_account_id: self.liquidation_proceeds_omnibus_account_id,
@@ -173,11 +174,11 @@ impl Liquidation {
             .collect()
     }
 
-    pub fn repayment_amounts_received(&self) -> Vec<(UsdCents, LedgerTxId)> {
+    pub fn proceeds_received(&self) -> Vec<(UsdCents, LedgerTxId)> {
         self.events
             .iter_all()
             .filter_map(|e| match e {
-                LiquidationEvent::RepaymentAmountReceived {
+                LiquidationEvent::ProceedsFromLiquidationReceived {
                     amount,
                     ledger_tx_id,
                     ..
@@ -227,7 +228,7 @@ impl TryFromEvents<LiquidationEvent> for Liquidation {
                 LiquidationEvent::CollateralSentOut { amount, .. } => {
                     amount_sent += *amount;
                 }
-                LiquidationEvent::RepaymentAmountReceived { amount, .. } => {
+                LiquidationEvent::ProceedsFromLiquidationReceived { amount, .. } => {
                     amount_received += *amount;
                 }
                 LiquidationEvent::Completed { .. } => {}

@@ -73,7 +73,7 @@ pub struct CollateralSentOut {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct RepaymentAmountReceived {
+pub struct ProceedsFromLiquidationReceived {
     pub cents: UsdCents,
     pub recorded_at: DateTime<Utc>,
     pub effective: chrono::NaiveDate,
@@ -89,7 +89,7 @@ pub enum CreditFacilityHistoryEntry {
     Approved(CreditFacilityApproved),
     Collateral(CollateralUpdated),
     Liquidation(CollateralSentOut),
-    Repayment(RepaymentAmountReceived),
+    Repayment(ProceedsFromLiquidationReceived),
     Collateralization(CollateralizationUpdated),
     PendingCreditFacilityCollateralization(PendingCreditFacilityCollateralizationUpdated),
     Payment(IncrementalPayment),

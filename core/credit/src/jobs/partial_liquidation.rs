@@ -218,7 +218,7 @@ where
 
         match &message.as_event() {
             Some(
-                event @ PartialLiquidationRepaymentAmountReceived {
+                event @ PartialLiquidationProceedsReceived {
                     amount,
                     credit_facility_id,
                     payment_id,

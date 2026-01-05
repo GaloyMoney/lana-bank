@@ -89,7 +89,7 @@ impl Liquidation {
 
     async fn received_payment(&self) -> Vec<LiquidationPaymentReceived> {
         self.entity
-            .repayment_amounts_received()
+            .proceeds_received()
             .into_iter()
             .map(|(amount, ledger_tx_id)| LiquidationPaymentReceived {
                 amount,
