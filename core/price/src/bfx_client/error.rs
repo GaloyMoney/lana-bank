@@ -36,7 +36,13 @@ impl From<(String, u32, String)> for BfxClientError {
 impl ErrorSeverity for BfxClientError {
     fn severity(&self) -> Level {
         match self {
-            Self::Reqwest(_) => Level::ERROR,
+            Self::Reqwest(err) => {
+                if err.is_timeout() || err.is_connect() {
+                    Level::WARN
+                } else {
+                    Level::ERROR
+                }
+            }
             Self::Deserialization(_) => Level::ERROR,
             Self::ConversionError(e) => e.severity(),
             Self::UnexpectedResponse { .. } => Level::ERROR,
