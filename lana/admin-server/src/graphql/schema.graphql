@@ -1632,7 +1632,7 @@ type Liquidation {
 	completed: Boolean!
 	creditFacility: CreditFacility!
 	sentCollateral: [LiquidationCollateralSent!]!
-	receivedPayment: [LiquidationPaymentReceived!]!
+	receivedProceeds: [LiquidationProceedsReceived!]!
 }
 
 type LiquidationCollateralSent {
@@ -1669,7 +1669,7 @@ type LiquidationEdge {
 	cursor: String!
 }
 
-type LiquidationPaymentReceived {
+type LiquidationProceedsReceived {
 	amount: UsdCents!
 	ledgerTxId: UUID!
 }
@@ -1683,12 +1683,12 @@ type LiquidationRecordCollateralSentPayload {
 	liquidation: Liquidation!
 }
 
-input LiquidationRecordPaymentReceivedInput {
+input LiquidationRecordProceedsReceivedInput {
 	liquidationId: UUID!
 	amount: UsdCents!
 }
 
-type LiquidationRecordPaymentReceivedPayload {
+type LiquidationRecordProceedsReceivedPayload {
 	liquidation: Liquidation!
 }
 
@@ -1784,7 +1784,7 @@ type Mutation {
 	creditFacilityDisbursalInitiate(input: CreditFacilityDisbursalInitiateInput!): CreditFacilityDisbursalInitiatePayload!
 	creditFacilityComplete(input: CreditFacilityCompleteInput!): CreditFacilityCompletePayload!
 	liquidationRecordCollateralSent(input: LiquidationRecordCollateralSentInput!): LiquidationRecordCollateralSentPayload!
-	liquidationRecordPaymentReceived(input: LiquidationRecordPaymentReceivedInput!): LiquidationRecordPaymentReceivedPayload!
+	liquidationRecordProceedsReceived(input: LiquidationRecordProceedsReceivedInput!): LiquidationRecordProceedsReceivedPayload!
 	custodianCreate(input: CustodianCreateInput!): CustodianCreatePayload!
 	custodianConfigUpdate(input: CustodianConfigUpdateInput!): CustodianConfigUpdatePayload!
 	committeeCreate(input: CommitteeCreateInput!): CommitteeCreatePayload!

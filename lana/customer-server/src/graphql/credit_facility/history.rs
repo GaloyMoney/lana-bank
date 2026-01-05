@@ -228,8 +228,10 @@ impl From<lana_app::credit::CollateralSentOut> for CreditFacilityCollateralSentO
     }
 }
 
-impl From<lana_app::credit::RepaymentAmountReceived> for CreditFacilityRepaymentAmountReceived {
-    fn from(repayment: lana_app::credit::RepaymentAmountReceived) -> Self {
+impl From<lana_app::credit::ProceedsFromLiquidationReceived>
+    for CreditFacilityRepaymentAmountReceived
+{
+    fn from(repayment: lana_app::credit::ProceedsFromLiquidationReceived) -> Self {
         Self {
             cents: repayment.cents,
             recorded_at: repayment.recorded_at.into(),

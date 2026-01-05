@@ -2027,21 +2027,19 @@ impl Mutation {
         )
     }
 
-    async fn liquidation_record_payment_received(
+    async fn liquidation_record_proceeds_received(
         &self,
         ctx: &Context<'_>,
-        input: LiquidationRecordPaymentReceivedInput,
-    ) -> async_graphql::Result<LiquidationRecordPaymentReceivedPayload> {
+        input: LiquidationRecordProceedsReceivedInput,
+    ) -> async_graphql::Result<LiquidationRecordProceedsReceivedPayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         exec_mutation!(
-            LiquidationRecordPaymentReceivedPayload,
+            LiquidationRecordProceedsReceivedPayload,
             Liquidation,
             ctx,
-            app.credit().liquidations().record_payment_from_liquidation(
-                sub,
-                input.liquidation_id.into(),
-                input.amount
-            )
+            app.credit()
+                .liquidations()
+                .record_proceeds_from_liquidation(sub, input.liquidation_id.into(), input.amount)
         )
     }
 

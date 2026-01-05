@@ -111,7 +111,7 @@ where
                 },
             )
             | Some(
-                event @ PartialLiquidationRepaymentAmountReceived {
+                event @ PartialLiquidationProceedsReceived {
                     credit_facility_id: id,
                     ..
                 },

@@ -52,7 +52,7 @@
           "format": "uuid",
           "type": "string"
         },
-        "liquidation_payment_omnibus_account_id": {
+        "liquidation_proceeds_omnibus_account_id": {
           "format": "uuid",
           "type": "string"
         },
@@ -68,7 +68,7 @@
         "type",
         "id",
         "credit_facility_id",
-        "liquidation_payment_omnibus_account_id",
+        "liquidation_proceeds_omnibus_account_id",
         "facility_liquidation_in_holding_account_id",
         "facility_payment_holding_account_id",
         "collateral_account_id",
@@ -143,7 +143,7 @@
           "type": "string"
         },
         "type": {
-          "const": "repayment_amount_received",
+          "const": "proceeds_from_liquidation_received",
           "type": "string"
         }
       },

@@ -11,7 +11,7 @@ use core_money::Satoshis;
 
 pub use error::LiquidationLedgerError;
 
-use super::RecordPaymentFromLiquidationData;
+use super::RecordProceedsFromLiquidationData;
 
 #[derive(Clone)]
 pub struct LiquidationLedger {
@@ -27,7 +27,7 @@ impl LiquidationLedger {
         journal_id: JournalId,
     ) -> Result<Self, LiquidationLedgerError> {
         templates::SendCollateralToLiquidation::init(cala).await?;
-        templates::ReceivePaymentFromLiquidation::init(cala).await?;
+        templates::ReceiveProceedsFromLiquidation::init(cala).await?;
 
         Ok(Self {
             cala: cala.clone(),
@@ -68,24 +68,24 @@ impl LiquidationLedger {
 
     #[record_error_severity]
     #[instrument(
-        name = "core_credit.liquidation.ledger.record_payment_from_liquidation_in_op",
+        name = "core_credit.liquidation.ledger.record_proceeds_from_liquidation_in_op",
         skip(self, db)
     )]
-    pub async fn record_payment_from_liquidation_in_op(
+    pub async fn record_proceeds_from_liquidation_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
         tx_id: CalaTransactionId,
-        data: RecordPaymentFromLiquidationData,
+        data: RecordProceedsFromLiquidationData,
     ) -> Result<(), LiquidationLedgerError> {
         self.cala
             .post_transaction_in_op(
                 db,
                 tx_id,
-                templates::RECEIVE_PAYMENT_FROM_LIQUIDATION,
-                templates::ReceivePaymentFromLiquidationParams {
+                templates::RECEIVE_PROCEEDS_FROM_LIQUIDATION,
+                templates::ReceiveProceedsFromLiquidationParams {
                     journal_id: self.journal_id,
-                    fiat_liquidation_payment_omnibus_account_id: data
-                        .liquidation_payment_omnibus_account_id,
+                    fiat_liquidation_proceeds_omnibus_account_id: data
+                        .liquidation_proceeds_omnibus_account_id,
                     fiat_liquidation_in_holding_account_id: data.liquidation_in_holding_account_id,
                     amount_received: data.amount_received,
                     currency: Currency::USD,

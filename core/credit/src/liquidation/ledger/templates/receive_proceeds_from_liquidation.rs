@@ -1,11 +1,11 @@
-//! Template _Receive Payment From Liquidation_ records that (1) the
+//! Template _Receive Proceeds From Liquidation_ records that (1) the
 //! part of collateral that was in liquidation has already been
-//! liquidated, and (2) fiat payment was received from liquidator.
+//! liquidated, and (2) fiat proceeds was received from liquidator.
 //!
 //! # Accounts in play
 //!
-//! - **fiat omnibus account**: source of all payments from liquidations
-//! - **fiat facility holding account**: holds the payment from facility's liquidation until its allocation
+//! - **fiat omnibus account**: source of all proceeds from liquidations
+//! - **fiat facility holding account**: holds the proceeds from facility's liquidation until its allocation
 //! - **btc in liquidation account**: tracks part of facility's collateral that is currently being liquidated
 //! - **btc liquidated account**: tracks part of facility's collateral that has already been liquidated
 use chrono::NaiveDate;
@@ -23,12 +23,12 @@ use tracing_macros::record_error_severity;
 
 use crate::{FacilityLiquidationInHoldingAccount, liquidation::ledger::LiquidationLedgerError};
 
-pub const RECEIVE_PAYMENT_FROM_LIQUIDATION: &str = "RECEIVE_PAYMENT_FROM_LIQUIDATION";
+pub const RECEIVE_PROCEEDS_FROM_LIQUIDATION: &str = "RECEIVE_PROCEEDS_FROM_LIQUIDATION";
 
 #[derive(Debug)]
-pub struct ReceivePaymentFromLiquidationParams {
+pub struct ReceiveProceedsFromLiquidationParams {
     pub journal_id: JournalId,
-    pub fiat_liquidation_payment_omnibus_account_id: CalaAccountId,
+    pub fiat_liquidation_proceeds_omnibus_account_id: CalaAccountId,
     pub fiat_liquidation_in_holding_account_id: FacilityLiquidationInHoldingAccount,
     pub amount_received: UsdCents,
     pub currency: Currency,
@@ -38,7 +38,7 @@ pub struct ReceivePaymentFromLiquidationParams {
     pub effective: NaiveDate,
 }
 
-impl ReceivePaymentFromLiquidationParams {
+impl ReceiveProceedsFromLiquidationParams {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -90,11 +90,11 @@ impl ReceivePaymentFromLiquidationParams {
     }
 }
 
-impl From<ReceivePaymentFromLiquidationParams> for Params {
+impl From<ReceiveProceedsFromLiquidationParams> for Params {
     fn from(
-        ReceivePaymentFromLiquidationParams {
+        ReceiveProceedsFromLiquidationParams {
             journal_id,
-            fiat_liquidation_payment_omnibus_account_id,
+            fiat_liquidation_proceeds_omnibus_account_id,
             fiat_liquidation_in_holding_account_id,
             amount_received,
             currency,
@@ -102,13 +102,13 @@ impl From<ReceivePaymentFromLiquidationParams> for Params {
             btc_liquidated_account_id,
             amount_liquidated,
             effective,
-        }: ReceivePaymentFromLiquidationParams,
+        }: ReceiveProceedsFromLiquidationParams,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
         params.insert(
             "omnibus_account_id",
-            fiat_liquidation_payment_omnibus_account_id,
+            fiat_liquidation_proceeds_omnibus_account_id,
         );
         params.insert(
             "in_holding_account_id",
@@ -125,22 +125,22 @@ impl From<ReceivePaymentFromLiquidationParams> for Params {
     }
 }
 
-pub struct ReceivePaymentFromLiquidation;
+pub struct ReceiveProceedsFromLiquidation;
 
-impl ReceivePaymentFromLiquidation {
+impl ReceiveProceedsFromLiquidation {
     #[record_error_severity]
     #[instrument(name = "core_credit.liquidation.ledger.templates.init", skip_all)]
     pub async fn init(ledger: &CalaLedger) -> Result<(), LiquidationLedgerError> {
         let transaction = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")
-            .description("'Record received payment from liquidation and collateral liquidated'")
+            .description("'Record received proceeds from liquidation and collateral liquidated'")
             .build()
             .expect("Could not build new template transaction");
 
         let entries = vec![
             NewTxTemplateEntry::builder()
-                .entry_type("'RECEIVE_PAYMENT_FROM_LIQUIDATION_DR'")
+                .entry_type("'RECEIVE_PROCEEDS_FROM_LIQUIDATION_DR'")
                 .currency("params.currency")
                 .account_id("params.omnibus_account_id")
                 .direction("DEBIT")
@@ -149,7 +149,7 @@ impl ReceivePaymentFromLiquidation {
                 .build()
                 .expect("Could not build entry"),
             NewTxTemplateEntry::builder()
-                .entry_type("'RECEIVE_PAYMENT_FROM_LIQUIDATION_CR'")
+                .entry_type("'RECEIVE_PROCEEDS_FROM_LIQUIDATION_CR'")
                 .currency("params.currency")
                 .account_id("params.in_holding_account_id")
                 .direction("CREDIT")
@@ -177,11 +177,11 @@ impl ReceivePaymentFromLiquidation {
                 .expect("Could not build entry"),
         ];
 
-        let params = ReceivePaymentFromLiquidationParams::defs();
+        let params = ReceiveProceedsFromLiquidationParams::defs();
 
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
-            .code(RECEIVE_PAYMENT_FROM_LIQUIDATION)
+            .code(RECEIVE_PROCEEDS_FROM_LIQUIDATION)
             .transaction(transaction)
             .entries(entries)
             .params(params)
