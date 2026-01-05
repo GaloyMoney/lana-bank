@@ -379,7 +379,7 @@ has_bigquery_credentials() {
   
   echo "Launched dbt_seeds_job with run ID: $run_id"
   
-  dagster_poll_run_status "$run_id" 10 30 || return 1
+  dagster_poll_run_status "$run_id" 300 1 || return 1
   
   echo "dbt_seeds_job completed successfully"
 }
