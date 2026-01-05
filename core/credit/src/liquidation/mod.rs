@@ -170,11 +170,11 @@ where
     }
 
     #[instrument(
-        name = "credit.liquidation.record_payment_from_liquidation",
+        name = "credit.liquidation.record_proceeds_from_liquidation",
         skip(self, sub),
         err
     )]
-    pub async fn record_payment_from_liquidation(
+    pub async fn record_proceeds_from_liquidation(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         liquidation_id: LiquidationId,
@@ -193,14 +193,14 @@ where
 
         let tx_id = CalaTransactionId::new();
 
-        if let Idempotent::Executed(data) = liquidation.record_repayment_from_liquidation(
+        if let Idempotent::Executed(data) = liquidation.record_proceeds_from_liquidation(
             amount_received,
             PaymentId::new(),
             tx_id,
         )? {
             self.repo.update_in_op(&mut db, &mut liquidation).await?;
             self.ledger
-                .record_payment_from_liquidation_in_op(&mut db, tx_id, data)
+                .record_proceeds_from_liquidation_in_op(&mut db, tx_id, data)
                 .await?;
         }
 
@@ -305,8 +305,8 @@ where
 }
 
 #[derive(Clone, Debug)]
-pub struct RecordPaymentFromLiquidationData {
-    pub liquidation_payment_omnibus_account_id: CalaAccountId,
+pub struct RecordProceedsFromLiquidationData {
+    pub liquidation_proceeds_omnibus_account_id: CalaAccountId,
     pub liquidation_in_holding_account_id: FacilityLiquidationInHoldingAccount,
     pub amount_received: UsdCents,
     pub collateral_in_liquidation_account_id: CalaAccountId,

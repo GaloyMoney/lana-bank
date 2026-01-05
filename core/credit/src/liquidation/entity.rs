@@ -9,7 +9,7 @@ use es_entity::*;
 use crate::primitives::*;
 
 use super::{
-    FacilityLiquidationInHoldingAccount, RecordPaymentFromLiquidationData, error::LiquidationError,
+    FacilityLiquidationInHoldingAccount, RecordProceedsFromLiquidationData, error::LiquidationError,
 };
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -111,12 +111,12 @@ impl Liquidation {
         Ok(Idempotent::Executed(()))
     }
 
-    pub fn record_repayment_from_liquidation(
+    pub fn record_proceeds_from_liquidation(
         &mut self,
         amount_received: UsdCents,
         payment_id: PaymentId,
         ledger_tx_id: LedgerTxId,
-    ) -> Result<Idempotent<RecordPaymentFromLiquidationData>, LiquidationError> {
+    ) -> Result<Idempotent<RecordProceedsFromLiquidationData>, LiquidationError> {
         idempotency_guard!(
             self.events.iter_all(),
             LiquidationEvent::RepaymentAmountReceived {
@@ -132,8 +132,8 @@ impl Liquidation {
             ledger_tx_id,
         });
 
-        Ok(Idempotent::Executed(RecordPaymentFromLiquidationData {
-            liquidation_payment_omnibus_account_id: self.liquidation_payment_omnibus_account_id,
+        Ok(Idempotent::Executed(RecordProceedsFromLiquidationData {
+            liquidation_proceeds_omnibus_account_id: self.liquidation_payment_omnibus_account_id,
             liquidation_in_holding_account_id: self.facility_liquidation_in_holding_account_id,
             amount_received: self.received_total,
             collateral_in_liquidation_account_id: self.collateral_in_liquidation_account_id,

@@ -2037,11 +2037,9 @@ impl Mutation {
             LiquidationRecordPaymentReceivedPayload,
             Liquidation,
             ctx,
-            app.credit().liquidations().record_payment_from_liquidation(
-                sub,
-                input.liquidation_id.into(),
-                input.amount
-            )
+            app.credit()
+                .liquidations()
+                .record_proceeds_from_liquidation(sub, input.liquidation_id.into(), input.amount)
         )
     }
 
