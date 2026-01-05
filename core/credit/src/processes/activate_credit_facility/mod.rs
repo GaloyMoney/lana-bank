@@ -8,7 +8,7 @@ use tracing_macros::record_error_severity;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
-use core_price::Price;
+use core_price::{CorePriceEvent, Price};
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use obix::out::OutboxEventMarker;
 use public_id::PublicIds;
@@ -29,7 +29,8 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     credit_facilities: Arc<CreditFacilities<Perms, E>>,
     disbursals: Arc<Disbursals<Perms, E>>,
@@ -44,7 +45,8 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -66,7 +68,8 @@ where
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     pub fn new(
         credit_facilities: Arc<CreditFacilities<Perms, E>>,

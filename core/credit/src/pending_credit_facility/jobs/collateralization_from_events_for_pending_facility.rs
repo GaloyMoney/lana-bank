@@ -1,67 +1,59 @@
+use futures::StreamExt;
 use serde::{Deserialize, Serialize};
 use tokio::select;
 use tracing::{Span, instrument};
+use tracing_macros::record_error_severity;
 
-use futures::StreamExt;
+use std::sync::Arc;
 
-use audit::AuditSvc;
-use authz::PermissionCheck;
-use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
-use job::*;
+use governance::GovernanceEvent;
+use job_new::*;
 use obix::EventSequence;
 use obix::out::{
     EphemeralOutboxEvent, Outbox, OutboxEvent, OutboxEventMarker, PersistentOutboxEvent,
 };
 
-use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
-use core_price::CorePriceEvent;
+use core_custody::CoreCustodyEvent;
+use core_price::{CorePriceEvent, Price};
 
 use crate::{
-    event::CoreCreditEvent, pending_credit_facility::PendingCreditFacilities, primitives::*,
+    event::CoreCreditEvent,
+    ledger::*,
+    pending_credit_facility::{
+        PendingCreditFacilitiesByCollateralizationRatioCursor, PendingCreditFacility,
+        PendingCreditFacilityError, PendingCreditFacilityRepo,
+    },
+    primitives::*,
 };
 
 #[derive(Serialize, Deserialize)]
-pub struct PendingCreditFacilityCollateralizationFromEventsJobConfig<Perms, E> {
-    pub _phantom: std::marker::PhantomData<(Perms, E)>,
-}
-impl<Perms, E> JobConfig for PendingCreditFacilityCollateralizationFromEventsJobConfig<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
-    E: OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>,
-{
-    type Initializer = PendingCreditFacilityCollateralizationFromEventsInit<Perms, E>;
+pub struct PendingCreditFacilityCollateralizationFromEventsJobConfig<E> {
+    pub _phantom: std::marker::PhantomData<E>,
 }
 
-pub struct PendingCreditFacilityCollateralizationFromEventsInit<Perms, E>
+impl<E> Clone for PendingCreditFacilityCollateralizationFromEventsJobConfig<E> {
+    fn clone(&self) -> Self {
+        Self {
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+
+pub struct PendingCreditFacilityCollateralizationFromEventsInit<E>
 where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
     outbox: Outbox<E>,
-    pending_credit_facilities: PendingCreditFacilities<Perms, E>,
+    repo: Arc<PendingCreditFacilityRepo<E>>,
+    price: Arc<Price>,
+    ledger: Arc<CreditLedger>,
 }
 
-impl<Perms, E> PendingCreditFacilityCollateralizationFromEventsInit<Perms, E>
+impl<E> PendingCreditFacilityCollateralizationFromEventsInit<E>
 where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
@@ -69,46 +61,52 @@ where
 {
     pub fn new(
         outbox: &Outbox<E>,
-        pending_credit_facilities: &PendingCreditFacilities<Perms, E>,
+        repo: Arc<PendingCreditFacilityRepo<E>>,
+        price: Arc<Price>,
+        ledger: Arc<CreditLedger>,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
-            pending_credit_facilities: pending_credit_facilities.clone(),
+            repo,
+            price,
+            ledger,
         }
     }
 }
 
 const PENDING_CREDIT_FACILITY_COLLATERALIZATION_FROM_EVENTS_JOB: JobType =
     JobType::new("outbox.pending-credit-facility-collateralization-from-events");
-impl<Perms, E> JobInitializer for PendingCreditFacilityCollateralizationFromEventsInit<Perms, E>
+impl<E> JobInitializer for PendingCreditFacilityCollateralizationFromEventsInit<E>
 where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
-    fn job_type() -> JobType
+    type Config = PendingCreditFacilityCollateralizationFromEventsJobConfig<E>;
+    fn job_type(&self) -> JobType
     where
         Self: Sized,
     {
         PENDING_CREDIT_FACILITY_COLLATERALIZATION_FROM_EVENTS_JOB
     }
 
-    fn init(&self, _job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
+    fn init(
+        &self,
+        _job: &Job,
+        _: JobSpawner<Self::Config>,
+    ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(
-            PendingCreditFacilityCollateralizationFromEventsRunner::<Perms, E> {
+            PendingCreditFacilityCollateralizationFromEventsRunner::<E> {
                 outbox: self.outbox.clone(),
-                pending_credit_facility: self.pending_credit_facilities.clone(),
+                repo: self.repo.clone(),
+                price: self.price.clone(),
+                ledger: self.ledger.clone(),
             },
         ))
     }
 
-    fn retry_on_error_settings() -> RetrySettings
+    fn retry_on_error_settings(&self) -> RetrySettings
     where
         Self: Sized,
     {
@@ -123,25 +121,21 @@ struct PendingCreditFacilityCollateralizationFromEventsData {
     sequence: EventSequence,
 }
 
-pub struct PendingCreditFacilityCollateralizationFromEventsRunner<Perms, E>
+pub struct PendingCreditFacilityCollateralizationFromEventsRunner<E>
 where
-    Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
     outbox: Outbox<E>,
-    pending_credit_facility: PendingCreditFacilities<Perms, E>,
+    repo: Arc<PendingCreditFacilityRepo<E>>,
+    price: Arc<Price>,
+    ledger: Arc<CreditLedger>,
 }
 
-impl<Perms, E> PendingCreditFacilityCollateralizationFromEventsRunner<Perms, E>
+impl<E> PendingCreditFacilityCollateralizationFromEventsRunner<E>
 where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
@@ -165,9 +159,7 @@ where
                 Span::current().record("event_type", event.as_ref());
                 Span::current().record("pending_credit_facility_id", tracing::field::display(id));
 
-                self.pending_credit_facility
-                    .update_collateralization_from_events(*id)
-                    .await?;
+                self.update_collateralization_from_events(*id).await?;
             }
             _ => {}
         }
@@ -186,24 +178,119 @@ where
                 Span::current().record("handled", true);
                 Span::current().record("event_type", tracing::field::display(&message.event_type));
 
-                self.pending_credit_facility
-                    .update_collateralization_from_price_event(*price)
+                self.update_collateralization_from_price_event(*price)
                     .await?;
             }
             _ => {}
         }
         Ok(())
     }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "credit.pending_credit_facility.update_collateralization_from_events",
+        skip(self)
+    )]
+    #[es_entity::retry_on_concurrent_modification(any_error = true)]
+    pub(super) async fn update_collateralization_from_events(
+        &self,
+        id: PendingCreditFacilityId,
+    ) -> Result<PendingCreditFacility, PendingCreditFacilityError> {
+        let mut op = self.repo.begin_op().await?;
+        let mut pending_facility = self.repo.find_by_id_in_op(&mut op, id).await?;
+
+        tracing::Span::current().record(
+            "pending_credit_facility_id",
+            pending_facility.id.to_string(),
+        );
+
+        let balances = self
+            .ledger
+            .get_pending_credit_facility_balance(pending_facility.account_ids)
+            .await?;
+
+        let price = self.price.usd_cents_per_btc().await;
+
+        if pending_facility
+            .update_collateralization(price, balances)
+            .did_execute()
+        {
+            self.repo
+                .update_in_op(&mut op, &mut pending_facility)
+                .await?;
+
+            op.commit().await?;
+        }
+        Ok(pending_facility)
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "credit.credit_facility.update_collateralization_from_price_event",
+        skip(self)
+    )]
+    pub(super) async fn update_collateralization_from_price_event(
+        &self,
+        price: PriceOfOneBTC,
+    ) -> Result<(), PendingCreditFacilityError> {
+        let mut has_next_page = true;
+        let mut after: Option<PendingCreditFacilitiesByCollateralizationRatioCursor> = None;
+        while has_next_page {
+            let mut pending_credit_facilities = self
+                .repo
+                .list_by_collateralization_ratio(
+                    es_entity::PaginatedQueryArgs::<
+                        PendingCreditFacilitiesByCollateralizationRatioCursor,
+                    > {
+                        first: 10,
+                        after,
+                    },
+                    Default::default(),
+                )
+                .await?;
+            (after, has_next_page) = (
+                pending_credit_facilities.end_cursor,
+                pending_credit_facilities.has_next_page,
+            );
+            let mut op = self.repo.begin_op().await?;
+
+            let mut at_least_one = false;
+
+            for pending_facility in pending_credit_facilities.entities.iter_mut() {
+                tracing::Span::current().record(
+                    "pending_credit_facility_id",
+                    pending_facility.id.to_string(),
+                );
+
+                if pending_facility.status() == PendingCreditFacilityStatus::Completed {
+                    continue;
+                }
+                let balances = self
+                    .ledger
+                    .get_pending_credit_facility_balance(pending_facility.account_ids)
+                    .await?;
+                if pending_facility
+                    .update_collateralization(price, balances)
+                    .did_execute()
+                {
+                    self.repo.update_in_op(&mut op, pending_facility).await?;
+                    at_least_one = true;
+                }
+            }
+
+            if at_least_one {
+                op.commit().await?;
+            } else {
+                break;
+            }
+        }
+        Ok(())
+    }
 }
 
 #[async_trait::async_trait]
-impl<Perms, E> JobRunner for PendingCreditFacilityCollateralizationFromEventsRunner<Perms, E>
+impl<E> JobRunner for PendingCreditFacilityCollateralizationFromEventsRunner<E>
 where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>

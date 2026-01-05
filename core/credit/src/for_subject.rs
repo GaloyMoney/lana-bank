@@ -4,6 +4,7 @@ use es_entity::{PaginatedQueryArgs, PaginatedQueryRet};
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
+use core_price::CorePriceEvent;
 
 use super::*;
 use crate::history::CreditFacilityHistoryEntry;
@@ -13,7 +14,8 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     customer_id: CustomerId,
     subject: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -35,7 +37,8 @@ where
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     pub(super) fn new(
         subject: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

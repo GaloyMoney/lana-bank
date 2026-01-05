@@ -11,6 +11,7 @@ use job::*;
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
+use core_price::CorePriceEvent;
 
 use crate::{Collaterals, CoreCreditAction, CoreCreditEvent, CoreCreditObject};
 
@@ -41,7 +42,8 @@ where
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     type Initializer = WalletCollateralSyncInit<Perms, E>;
 }
@@ -60,7 +62,8 @@ where
         From<CoreCreditObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     collaterals: Collaterals<Perms, E>,
     outbox: Outbox<E>,
@@ -75,7 +78,8 @@ where
         From<CoreCreditObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     #[instrument(name = "core_credit.wallet_collateral_sync_job.process_message", parent = None, skip(self, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn process_message(
@@ -119,7 +123,8 @@ where
         From<CoreCreditObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     async fn run(
         &self,
@@ -167,7 +172,9 @@ where
         From<CoreCreditAction> + From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CoreCreditObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     outbox: Outbox<E>,
     collaterals: Collaterals<Perms, E>,
@@ -182,7 +189,8 @@ where
         From<CoreCreditObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     pub fn new(outbox: &Outbox<E>, collaterals: &Collaterals<Perms, E>) -> Self {
         Self {
@@ -202,7 +210,8 @@ where
         From<CoreCreditObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     fn job_type() -> JobType
     where

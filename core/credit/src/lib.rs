@@ -250,7 +250,7 @@ where
         let collaterals = Collaterals::new(pool, authz_arc.clone(), &publisher, ledger_arc.clone());
         let collaterals_arc = Arc::new(collaterals);
 
-        let pending_credit_facilities = PendingCreditFacilities::new(
+        let pending_credit_facilities = PendingCreditFacilities::init(
             pool,
             proposals_arc.clone(),
             custody_arc.clone(),
@@ -260,7 +260,10 @@ where
             price_arc.clone(),
             &publisher,
             governance_arc.clone(),
-        );
+            &mut job_new,
+            outbox,
+        )
+        .await?;
         let pending_credit_facilities_arc = Arc::new(pending_credit_facilities);
 
         let disbursals = Disbursals::init(
@@ -332,17 +335,17 @@ where
         let terms_templates = TermsTemplates::new(pool, authz_arc.clone());
         let terms_templates_arc = Arc::new(terms_templates);
 
-        jobs
-            .add_initializer_and_spawn_unique(
-                collateralization_from_events_for_pending_facility::PendingCreditFacilityCollateralizationFromEventsInit::<
-                    Perms,
-                    E,
-                >::new(outbox, pending_credit_facilities_arc.as_ref()),
-                collateralization_from_events_for_pending_facility::PendingCreditFacilityCollateralizationFromEventsJobConfig {
-                    _phantom: std::marker::PhantomData,
-                },
-            )
-            .await?;
+        //         jobs
+        //             .add_initializer_and_spawn_unique(
+        //                 collateralization_from_events_for_pending_facility::PendingCreditFacilityCollateralizationFromEventsInit::<
+        //                     Perms,
+        //                     E,
+        //                 >::new(outbox, pending_credit_facilities_arc.as_ref()),
+        //                 collateralization_from_events_for_pending_facility::PendingCreditFacilityCollateralizationFromEventsJobConfig {
+        //                     _phantom: std::marker::PhantomData,
+        //                 },
+        //             )
+        //             .await?;
         jobs
             .add_initializer_and_spawn_unique(
                 collateralization_from_events::CreditFacilityCollateralizationFromEventsInit::<
