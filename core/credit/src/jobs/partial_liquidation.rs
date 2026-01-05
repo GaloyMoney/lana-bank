@@ -185,11 +185,13 @@ where
 
                             let next = self.process_message(&mut db, message.as_ref()).await?;
 
+                            db.commit().await?;
+
                             if next.is_break() {
+                                // If the partial liquidation has been completed,
+                                // terminate the job, too.
                                 return Ok(JobCompletion::Complete);
                             }
-
-                            db.commit().await?;
                         }
                         None => return Ok(JobCompletion::RescheduleNow)
                     }
