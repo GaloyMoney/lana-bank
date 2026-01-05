@@ -27,4 +27,3 @@ def create_empty_table(
     table_id = f"{client.project}.{dataset}.{table_name}"
     table = bigquery.Table(table_id, schema=schema)
     client.create_table(table)
-

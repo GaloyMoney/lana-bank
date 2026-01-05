@@ -163,4 +163,3 @@ def postgres_schema_to_bigquery_schema(
     bq_schema.append(bigquery.SchemaField("_dlt_id", "STRING", mode="REQUIRED"))
 
     return bq_schema
-

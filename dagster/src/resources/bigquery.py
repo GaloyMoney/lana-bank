@@ -1,8 +1,9 @@
 import json
 
-import dagster as dg
 from google.cloud import bigquery
 from google.oauth2 import service_account
+
+import dagster as dg
 
 RESOURCE_KEY_DW_BQ = "dw_bq"
 

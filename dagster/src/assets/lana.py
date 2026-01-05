@@ -85,6 +85,7 @@ def lana_to_dw_el_protoassets() -> List[Protoasset]:
 
     return lana_el_protoassets
 
+
 def build_lana_to_dw_el_protoasset(table_name) -> Protoasset:
 
     def lana_to_dw_el_asset(
@@ -105,7 +106,7 @@ def build_lana_to_dw_el_protoasset(table_name) -> Protoasset:
         context.log.info(load_info)
 
         # Why wouldn't a table exist?
-        # Because if the source table has no data, dlt won't even create the 
+        # Because if the source table has no data, dlt won't even create the
         # destination table.
         ensure_target_table_exists(
             context=context,
@@ -179,7 +180,6 @@ def ensure_target_table_exists(
     context.log.info(
         f"Created empty table {table_name} in BigQuery with {len(bq_schema)} columns."
     )
-
 
 
 def prepare_lana_el_pipeline(lana_core_pg, dw_bq, table_name):

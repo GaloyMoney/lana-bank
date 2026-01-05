@@ -30,7 +30,8 @@ def get_postgres_table_schema(
     url = url.set(drivername="postgresql")
     engine = create_engine(url)
 
-    query = text("""
+    query = text(
+        """
         SELECT
             column_name,
             data_type,
@@ -41,7 +42,8 @@ def get_postgres_table_schema(
         FROM information_schema.columns
         WHERE table_schema = :schema AND table_name = :table_name
         ORDER BY ordinal_position
-    """)
+    """
+    )
 
     with engine.connect() as conn:
         result = conn.execute(query, {"schema": schema, "table_name": table_name})
