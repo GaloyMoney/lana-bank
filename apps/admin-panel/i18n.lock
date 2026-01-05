@@ -115,7 +115,6 @@ checksums:
     Configurations/exposedConfigs/empty: 2acc247ffad9f7fdf024b951c23274b9
     Configurations/exposedConfigs/valueLabel: 34b0eaa85808b15cbc4be94c64d0146b
     Configurations/exposedConfigs/save: f7a2929f33bc420195e59ac5a8bcd454
-    Configurations/exposedConfigs/reset: c19c53a05e21c7f3b395247809a14b51
     Configurations/exposedConfigs/saveSuccess: d6fc2167f58b418d86d5091a88fcb631
     Configurations/exposedConfigs/saveError: a73f95f838799d69b5d91867e4bc7c3d
     Configurations/exposedConfigs/saveErrorWithReason: 841f7f0327d5bf82d4148fa3af2ff3d4
