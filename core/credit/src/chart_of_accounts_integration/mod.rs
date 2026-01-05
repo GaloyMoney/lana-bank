@@ -17,7 +17,7 @@ pub struct ChartOfAccountsIntegrationConfig {
     pub chart_of_accounts_id: ChartId,
     pub chart_of_account_facility_omnibus_parent_code: AccountCode,
     pub chart_of_account_collateral_omnibus_parent_code: AccountCode,
-    pub chart_of_account_liquidation_payment_omnibus_parent_code: AccountCode,
+    pub chart_of_account_liquidation_proceeds_omnibus_parent_code: AccountCode,
     pub chart_of_account_facility_parent_code: AccountCode,
     pub chart_of_account_collateral_parent_code: AccountCode,
     pub chart_of_account_collateral_in_liquidation_parent_code: AccountCode,
@@ -134,8 +134,8 @@ where
             .account_set_id_from_code(&config.chart_of_account_facility_omnibus_parent_code)?;
         let collateral_omnibus_parent_account_set_id = chart
             .account_set_id_from_code(&config.chart_of_account_collateral_omnibus_parent_code)?;
-        let liquidation_payment_omnibus_parent_account_set_id = chart.account_set_id_from_code(
-            &config.chart_of_account_liquidation_payment_omnibus_parent_code,
+        let liquidation_proceeds_omnibus_parent_account_set_id = chart.account_set_id_from_code(
+            &config.chart_of_account_liquidation_proceeds_omnibus_parent_code,
         )?;
         let facility_parent_account_set_id =
             chart.account_set_id_from_code(&config.chart_of_account_facility_parent_code)?;
@@ -329,7 +329,7 @@ where
 
             facility_omnibus_parent_account_set_id,
             collateral_omnibus_parent_account_set_id,
-            liquidation_payment_omnibus_parent_account_set_id,
+            liquidation_proceeds_omnibus_parent_account_set_id,
             facility_parent_account_set_id,
             collateral_parent_account_set_id,
             collateral_in_liquidation_parent_account_set_id,

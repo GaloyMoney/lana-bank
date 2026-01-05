@@ -837,8 +837,8 @@ export const mockCreditFacilityLedgerAccounts = (overrides?: Partial<CreditFacil
         interestReceivableNotYetDueAccountId: overrides && overrides.hasOwnProperty('interestReceivableNotYetDueAccountId') ? overrides.interestReceivableNotYetDueAccountId! : generateMockValue.uuid(),
         interestReceivableOverdueAccount: overrides && overrides.hasOwnProperty('interestReceivableOverdueAccount') ? overrides.interestReceivableOverdueAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
         interestReceivableOverdueAccountId: overrides && overrides.hasOwnProperty('interestReceivableOverdueAccountId') ? overrides.interestReceivableOverdueAccountId! : generateMockValue.uuid(),
-        liquidationInHoldingAccount: overrides && overrides.hasOwnProperty('liquidationInHoldingAccount') ? overrides.liquidationInHoldingAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
-        liquidationInHoldingAccountId: overrides && overrides.hasOwnProperty('liquidationInHoldingAccountId') ? overrides.liquidationInHoldingAccountId! : generateMockValue.uuid(),
+        proceedsFromLiquidationAccount: overrides && overrides.hasOwnProperty('proceedsFromLiquidationAccount') ? overrides.proceedsFromLiquidationAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
+        proceedsFromLiquidationAccountId: overrides && overrides.hasOwnProperty('proceedsFromLiquidationAccountId') ? overrides.proceedsFromLiquidationAccountId! : generateMockValue.uuid(),
     };
 };
 

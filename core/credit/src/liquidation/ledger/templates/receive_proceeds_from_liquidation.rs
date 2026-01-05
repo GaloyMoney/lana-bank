@@ -21,7 +21,7 @@ use cala_ledger::{
 use core_money::{Satoshis, UsdCents};
 use tracing_macros::record_error_severity;
 
-use crate::{FacilityLiquidationInHoldingAccount, liquidation::ledger::LiquidationLedgerError};
+use crate::{FacilityProceedsFromLiquidationAccount, liquidation::ledger::LiquidationLedgerError};
 
 pub const RECEIVE_PROCEEDS_FROM_LIQUIDATION: &str = "RECEIVE_PROCEEDS_FROM_LIQUIDATION";
 
@@ -29,7 +29,7 @@ pub const RECEIVE_PROCEEDS_FROM_LIQUIDATION: &str = "RECEIVE_PROCEEDS_FROM_LIQUI
 pub struct ReceiveProceedsFromLiquidationParams {
     pub journal_id: JournalId,
     pub fiat_liquidation_proceeds_omnibus_account_id: CalaAccountId,
-    pub fiat_liquidation_in_holding_account_id: FacilityLiquidationInHoldingAccount,
+    pub fiat_proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccount,
     pub amount_received: UsdCents,
     pub currency: Currency,
     pub btc_in_liquidation_account_id: CalaAccountId,
@@ -52,7 +52,7 @@ impl ReceiveProceedsFromLiquidationParams {
                 .build()
                 .expect("Could not build param definition"),
             NewParamDefinition::builder()
-                .name("in_holding_account_id")
+                .name("proceeds_account_id")
                 .r#type(ParamDataType::Uuid)
                 .build()
                 .expect("Could not build param definition"),
@@ -95,7 +95,7 @@ impl From<ReceiveProceedsFromLiquidationParams> for Params {
         ReceiveProceedsFromLiquidationParams {
             journal_id,
             fiat_liquidation_proceeds_omnibus_account_id,
-            fiat_liquidation_in_holding_account_id,
+            fiat_proceeds_from_liquidation_account_id,
             amount_received,
             currency,
             btc_in_liquidation_account_id,
@@ -111,8 +111,8 @@ impl From<ReceiveProceedsFromLiquidationParams> for Params {
             fiat_liquidation_proceeds_omnibus_account_id,
         );
         params.insert(
-            "in_holding_account_id",
-            fiat_liquidation_in_holding_account_id.into_inner(),
+            "proceeds_account_id",
+            fiat_proceeds_from_liquidation_account_id.into_inner(),
         );
         params.insert("amount_received", amount_received.to_usd());
         params.insert("currency", currency);
@@ -151,7 +151,7 @@ impl ReceiveProceedsFromLiquidation {
             NewTxTemplateEntry::builder()
                 .entry_type("'RECEIVE_PROCEEDS_FROM_LIQUIDATION_CR'")
                 .currency("params.currency")
-                .account_id("params.in_holding_account_id")
+                .account_id("params.proceeds_account_id")
                 .direction("CREDIT")
                 .layer("SETTLED")
                 .units("params.amount_received")

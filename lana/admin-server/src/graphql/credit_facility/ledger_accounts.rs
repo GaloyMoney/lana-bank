@@ -14,7 +14,7 @@ pub(super) struct CreditFacilityLedgerAccounts {
     pub disbursed_defaulted_account_id: UUID,
     pub collateral_account_id: UUID,
     pub collateral_in_liquidation_account_id: UUID,
-    pub liquidation_in_holding_account_id: UUID,
+    pub proceeds_from_liquidation_account_id: UUID,
     pub interest_receivable_not_yet_due_account_id: UUID,
     pub interest_receivable_due_account_id: UUID,
     pub interest_receivable_overdue_account_id: UUID,
@@ -95,15 +95,15 @@ impl CreditFacilityLedgerAccounts {
             .expect("Ledger account not found");
         Ok(collateral_in_liquidation_account)
     }
-    async fn liquidation_in_holding_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
+    async fn proceeds_from_liquidation_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
-        let liquidation_in_holding_account = loader
+        let proceeds_from_liquidation_account = loader
             .load_one(LedgerAccountId::from(
-                self.liquidation_in_holding_account_id,
+                self.proceeds_from_liquidation_account_id,
             ))
             .await?
             .expect("Ledger account not found");
-        Ok(liquidation_in_holding_account)
+        Ok(proceeds_from_liquidation_account)
     }
     async fn interest_receivable_not_yet_due_account(
         &self,

@@ -256,10 +256,10 @@ impl CreditFacility {
                 .account_ids
                 .collateral_in_liquidation_account_id
                 .into(),
-            liquidation_in_holding_account_id: self
+            proceeds_from_liquidation_account_id: self
                 .entity
                 .account_ids
-                .liquidation_in_holding_account_id
+                .proceeds_from_liquidation_account_id
                 .into_inner()
                 .into(),
             interest_receivable_not_yet_due_account_id: self

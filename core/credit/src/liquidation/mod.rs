@@ -307,7 +307,7 @@ where
 #[derive(Clone, Debug)]
 pub struct RecordProceedsFromLiquidationData {
     pub liquidation_proceeds_omnibus_account_id: CalaAccountId,
-    pub liquidation_in_holding_account_id: FacilityLiquidationInHoldingAccount,
+    pub proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccount,
     pub amount_received: UsdCents,
     pub collateral_in_liquidation_account_id: CalaAccountId,
     pub liquidated_collateral_account_id: CalaAccountId,
@@ -317,9 +317,9 @@ pub struct RecordProceedsFromLiquidationData {
 #[derive(Clone, Debug, Copy, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(transparent)]
-pub struct FacilityLiquidationInHoldingAccount(CalaAccountId);
+pub struct FacilityProceedsFromLiquidationAccount(CalaAccountId);
 
-impl FacilityLiquidationInHoldingAccount {
+impl FacilityProceedsFromLiquidationAccount {
     pub fn new() -> Self {
         Self(CalaAccountId::new())
     }
@@ -329,20 +329,20 @@ impl FacilityLiquidationInHoldingAccount {
     }
 }
 
-impl Default for FacilityLiquidationInHoldingAccount {
+impl Default for FacilityProceedsFromLiquidationAccount {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl From<FacilityLiquidationInHoldingAccount> for PaymentSourceAccountId {
-    fn from(account: FacilityLiquidationInHoldingAccount) -> Self {
+impl From<FacilityProceedsFromLiquidationAccount> for PaymentSourceAccountId {
+    fn from(account: FacilityProceedsFromLiquidationAccount) -> Self {
         Self::new(account.0)
     }
 }
 
-impl From<FacilityLiquidationInHoldingAccount> for CalaAccountId {
-    fn from(account: FacilityLiquidationInHoldingAccount) -> Self {
+impl From<FacilityProceedsFromLiquidationAccount> for CalaAccountId {
+    fn from(account: FacilityProceedsFromLiquidationAccount) -> Self {
         account.0
     }
 }

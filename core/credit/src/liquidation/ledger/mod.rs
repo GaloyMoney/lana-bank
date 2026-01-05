@@ -86,7 +86,8 @@ impl LiquidationLedger {
                     journal_id: self.journal_id,
                     fiat_liquidation_proceeds_omnibus_account_id: data
                         .liquidation_proceeds_omnibus_account_id,
-                    fiat_liquidation_in_holding_account_id: data.liquidation_in_holding_account_id,
+                    fiat_proceeds_from_liquidation_account_id: data
+                        .proceeds_from_liquidation_account_id,
                     amount_received: data.amount_received,
                     currency: Currency::USD,
                     btc_in_liquidation_account_id: data.collateral_in_liquidation_account_id,

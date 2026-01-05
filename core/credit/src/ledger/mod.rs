@@ -128,9 +128,9 @@ pub struct LiquidationAccountSets {
     /// payments have already been received.
     pub liquidated_collateral: InternalAccountSetDetails,
 
-    /// Groups accounts tracking payments received from
+    /// Groups accounts tracking proceeds received from
     /// liquidations.
-    pub liquidation_in_holding: InternalAccountSetDetails,
+    pub proceeds_from_liquidation: InternalAccountSetDetails,
 }
 
 #[derive(Clone, Copy)]
@@ -156,7 +156,7 @@ impl CreditFacilityInternalAccountSets {
                 LiquidationAccountSets {
                     collateral_in_liquidation,
                     liquidated_collateral,
-                    liquidation_in_holding,
+                    proceeds_from_liquidation,
                 },
             interest_income,
             fee_income,
@@ -182,7 +182,7 @@ impl CreditFacilityInternalAccountSets {
             collateral.id,
             collateral_in_liquidation.id,
             liquidated_collateral.id,
-            liquidation_in_holding.id,
+            proceeds_from_liquidation.id,
             interest_income.id,
             fee_income.id,
             payment_holding.id,
@@ -259,14 +259,14 @@ impl CreditLedger {
         )
         .await?;
 
-        let liquidation_payment_omnibus_normal_balance_type = DebitOrCredit::Debit;
+        let liquidation_proceeds_omnibus_normal_balance_type = DebitOrCredit::Debit;
         let liquidation_proceeds_omnibus_account_ids = Self::find_or_create_omnibus_account(
             cala,
             journal_id,
             format!("{journal_id}:{CREDIT_FACILITY_LIQUIDATION_PROCEEDS_OMNIBUS_ACCOUNT_SET_REF}"),
             format!("{journal_id}:{CREDIT_FACILITY_LIQUIDATION_PROCEEDS_OMNIBUS_ACCOUNT_REF}"),
             CREDIT_FACILITY_LIQUIDATION_PROCEEDS_OMNIBUS_ACCOUNT_SET_NAME.to_string(),
-            liquidation_payment_omnibus_normal_balance_type,
+            liquidation_proceeds_omnibus_normal_balance_type,
         )
         .await?;
 
@@ -310,13 +310,13 @@ impl CreditLedger {
         )
         .await?;
 
-        let liquidation_in_holding_normal_balance_type = DebitOrCredit::Credit;
-        let liquidation_in_holding_account_set_id = Self::find_or_create_account_set(
+        let proceeds_from_liquidation_normal_balance_type = DebitOrCredit::Credit;
+        let proceeds_from_liquidation_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            format!("{journal_id}:{CREDIT_FACILITY_LIQUIDATION_IN_HOLDING_ACCOUNT_SET_REF}"),
-            CREDIT_FACILITY_LIQUIDATION_IN_HOLDING_ACCOUNT_SET_NAME.to_string(),
-            liquidation_in_holding_normal_balance_type,
+            format!("{journal_id}:{CREDIT_FACILITY_PROCEEDS_FROM_LIQUIDATION_ACCOUNT_SET_REF}"),
+            CREDIT_FACILITY_PROCEEDS_FROM_LIQUIDATION_ACCOUNT_SET_NAME.to_string(),
+            proceeds_from_liquidation_normal_balance_type,
         )
         .await?;
 
@@ -847,9 +847,9 @@ impl CreditLedger {
                 id: liquidated_collateral_account_set_id,
                 normal_balance_type: liquidated_collateral_normal_balance_type,
             },
-            liquidation_in_holding: InternalAccountSetDetails {
-                id: liquidation_in_holding_account_set_id,
-                normal_balance_type: liquidation_in_holding_normal_balance_type,
+            proceeds_from_liquidation: InternalAccountSetDetails {
+                id: proceeds_from_liquidation_account_set_id,
+                normal_balance_type: proceeds_from_liquidation_normal_balance_type,
             },
         };
 
@@ -1103,7 +1103,7 @@ impl CreditLedger {
             interest_income_account_id: _,
             payment_holding_account_id: _,
             collateral_in_liquidation_account_id: _,
-            liquidation_in_holding_account_id: _,
+            proceeds_from_liquidation_account_id: _,
             liquidated_collateral_account_id: _,
         }: CreditFacilityLedgerAccountIds,
     ) -> Result<CreditFacilityBalanceSummary, CreditLedgerError> {
@@ -2136,7 +2136,7 @@ impl CreditLedger {
             interest_income_account_id,
             fee_income_account_id,
             payment_holding_account_id,
-            liquidation_in_holding_account_id,
+            proceeds_from_liquidation_account_id,
             collateral_in_liquidation_account_id,
             liquidated_collateral_account_id,
 
@@ -2350,20 +2350,19 @@ impl CreditLedger {
         )
         .await?;
 
-        let liquidation_in_holding_reference =
-            &format!("credit-facility-liquidation-in-holding:{credit_facility_id}");
-        let liquidation_in_holding_name = &format!(
-            "Liquidation Funds In Holding Account for Credit Facility {credit_facility_id}"
-        );
+        let proceeds_from_liquidation_reference =
+            &format!("credit-facility-proceeds-from-liquidation:{credit_facility_id}");
+        let proceeds_from_liquidation_name =
+            &format!("Proceeds From Liquidation Account for Credit Facility {credit_facility_id}");
         self.create_account_in_op(
             op,
-            liquidation_in_holding_account_id,
+            proceeds_from_liquidation_account_id,
             self.internal_account_sets
                 .liquidation
-                .liquidation_in_holding,
-            liquidation_in_holding_reference,
-            liquidation_in_holding_name,
-            liquidation_in_holding_name,
+                .proceeds_from_liquidation,
+            proceeds_from_liquidation_reference,
+            proceeds_from_liquidation_name,
+            proceeds_from_liquidation_name,
             entity_ref,
         )
         .await?;
@@ -2472,7 +2471,7 @@ impl CreditLedger {
 
             facility_omnibus_parent_account_set_id,
             collateral_omnibus_parent_account_set_id,
-            liquidation_payment_omnibus_parent_account_set_id,
+            liquidation_proceeds_omnibus_parent_account_set_id,
             facility_parent_account_set_id,
             collateral_parent_account_set_id,
             collateral_in_liquidation_parent_account_set_id,
@@ -2510,9 +2509,9 @@ impl CreditLedger {
             &mut op,
             &mut account_sets,
             self.liquidation_proceeds_omnibus_account_ids.account_set_id,
-            *liquidation_payment_omnibus_parent_account_set_id,
+            *liquidation_proceeds_omnibus_parent_account_set_id,
             &charts_integration_meta,
-            |meta| meta.liquidation_payment_omnibus_parent_account_set_id,
+            |meta| meta.liquidation_proceeds_omnibus_parent_account_set_id,
         )
         .await?;
 
@@ -3254,7 +3253,7 @@ pub struct ChartOfAccountsIntegrationMeta {
 
     pub facility_omnibus_parent_account_set_id: CalaAccountSetId,
     pub collateral_omnibus_parent_account_set_id: CalaAccountSetId,
-    pub liquidation_payment_omnibus_parent_account_set_id: CalaAccountSetId,
+    pub liquidation_proceeds_omnibus_parent_account_set_id: CalaAccountSetId,
     pub facility_parent_account_set_id: CalaAccountSetId,
     pub collateral_parent_account_set_id: CalaAccountSetId,
     pub collateral_in_liquidation_parent_account_set_id: CalaAccountSetId,
