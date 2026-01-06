@@ -115,7 +115,7 @@ impl LanaApp {
         let governance = Governance::new(&pool, &authz, &outbox);
         let storage = Storage::new(&config.storage);
         let reports = Reports::init(&pool, &authz, config.report, &outbox, &jobs, &storage).await?;
-        let price = Price::init(&jobs, &outbox).await?;
+        let price = Price::init(&mut job_new, &outbox).await?;
         let documents = DocumentStorage::new(&pool, &storage);
         let public_ids = PublicIds::new(&pool);
 

@@ -61,7 +61,9 @@ impl BfxClient {
 
 #[record_error_severity]
 #[instrument(name = "core.price.bfx_client.fetch_price", skip(client))]
-pub async fn fetch_price(client: &BfxClient) -> Result<PriceOfOneBTC, BfxClientError> {
+pub async fn fetch_price(
+    client: std::sync::Arc<BfxClient>,
+) -> Result<PriceOfOneBTC, BfxClientError> {
     let tick = client.btc_usd_tick().await?;
     let usd_cents =
         UsdCents::try_from_usd(tick.last_price).map_err(BfxClientError::ConversionError)?;

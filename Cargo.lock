@@ -1597,7 +1597,7 @@ dependencies = [
  "chrono",
  "core-money",
  "futures",
- "job 0.4.0",
+ "job 0.6.0",
  "obix",
  "rand 0.9.2",
  "reqwest",
