@@ -426,6 +426,8 @@ where
                     facility_payment_holding_account_id: entity.facility_payment_holding_account_id,
                     facility_proceeds_from_liquidation_account_id: entity
                         .facility_proceeds_from_liquidation_account_id,
+                    facility_uncovered_outstanding_account_id: entity
+                        .facility_uncovered_outstanding_account_id,
                     ledger_tx_id: *ledger_tx_id,
                     recorded_at: event.recorded_at,
                     effective: event.recorded_at.date_naive(),

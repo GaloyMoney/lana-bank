@@ -21,15 +21,19 @@
           "format": "date",
           "type": "string"
         },
+        "facility_payment_holding_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "facility_uncovered_outstanding_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
         "id": {
           "format": "uuid",
           "type": "string"
         },
         "ledger_tx_id": {
-          "format": "uuid",
-          "type": "string"
-        },
-        "payment_holding_account_id": {
           "format": "uuid",
           "type": "string"
         },
@@ -47,7 +51,8 @@
         "id",
         "ledger_tx_id",
         "credit_facility_id",
-        "payment_holding_account_id",
+        "facility_payment_holding_account_id",
+        "facility_uncovered_outstanding_account_id",
         "payment_source_account_id",
         "amount",
         "effective"

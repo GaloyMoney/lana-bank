@@ -236,6 +236,10 @@ impl CreditFacility {
         self.account_ids.payment_holding_account_id
     }
 
+    pub fn uncovered_outstanding_account_id(&self) -> CalaAccountId {
+        self.account_ids.uncovered_outstanding_account_id
+    }
+
     fn structuring_fee_on_activation(&self) -> Option<StructuringFeeOnActivation> {
         let tx_id = self.structuring_fee_tx_id?;
 

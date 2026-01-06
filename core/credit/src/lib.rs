@@ -921,8 +921,13 @@ where
                 &mut db,
                 payment_id,
                 credit_facility_id,
-                credit_facility.payment_holding_account_id(),
-                payment_source_account_id,
+                PaymentLedgerAccountIds {
+                    facility_payment_holding_account_id: credit_facility
+                        .payment_holding_account_id(),
+                    facility_uncovered_outstanding_account_id: credit_facility
+                        .uncovered_outstanding_account_id(),
+                    payment_source_account_id,
+                },
                 amount,
                 effective,
                 initiated_by,
@@ -988,8 +993,13 @@ where
                 &mut db,
                 payment_id,
                 credit_facility_id,
-                credit_facility.payment_holding_account_id(),
-                payment_source_account_id,
+                PaymentLedgerAccountIds {
+                    facility_payment_holding_account_id: credit_facility
+                        .payment_holding_account_id(),
+                    facility_uncovered_outstanding_account_id: credit_facility
+                        .uncovered_outstanding_account_id(),
+                    payment_source_account_id,
+                },
                 amount,
                 effective.into(),
                 initiated_by,

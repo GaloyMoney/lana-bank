@@ -342,8 +342,8 @@ impl Default for FacilityProceedsFromLiquidationAccountId {
     }
 }
 
-impl From<FacilityProceedsFromLiquidationAccountId> for PaymentSourceAccountId {
-    fn from(account: FacilityProceedsFromLiquidationAccountId) -> Self {
+impl From<&FacilityProceedsFromLiquidationAccountId> for PaymentSourceAccountId {
+    fn from(account: &FacilityProceedsFromLiquidationAccountId) -> Self {
         Self::new(account.0)
     }
 }

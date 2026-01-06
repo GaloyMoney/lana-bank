@@ -18,6 +18,8 @@ pub struct RecordPaymentParams {
     pub amount: Decimal,
     pub payment_source_account_id: CalaAccountId,
     pub payment_holding_account_id: CalaAccountId,
+    pub uncovered_outstanding_account_id: CalaAccountId,
+    pub payments_made_omnibus_account_id: CalaAccountId,
     pub tx_ref: String,
     pub effective: chrono::NaiveDate,
     pub initiated_by: core_accounting::LedgerTransactionInitiator,
@@ -57,6 +59,16 @@ impl RecordPaymentParams {
                 .build()
                 .unwrap(),
             NewParamDefinition::builder()
+                .name("uncovered_outstanding_account_id")
+                .r#type(ParamDataType::Uuid)
+                .build()
+                .unwrap(),
+            NewParamDefinition::builder()
+                .name("payments_made_omnibus_account_id")
+                .r#type(ParamDataType::Uuid)
+                .build()
+                .unwrap(),
+            NewParamDefinition::builder()
                 .name("effective")
                 .r#type(ParamDataType::Date)
                 .build()
@@ -77,6 +89,8 @@ impl From<RecordPaymentParams> for Params {
             amount,
             payment_source_account_id,
             payment_holding_account_id,
+            uncovered_outstanding_account_id,
+            payments_made_omnibus_account_id,
             tx_ref,
             effective,
             initiated_by,
@@ -89,6 +103,14 @@ impl From<RecordPaymentParams> for Params {
         params.insert("amount", amount);
         params.insert("payment_source_account_id", payment_source_account_id);
         params.insert("payment_holding_account_id", payment_holding_account_id);
+        params.insert(
+            "uncovered_outstanding_account_id",
+            uncovered_outstanding_account_id,
+        );
+        params.insert(
+            "payments_made_omnibus_account_id",
+            payments_made_omnibus_account_id,
+        );
         params.insert("effective", effective);
         params.insert(
             "meta",
@@ -129,6 +151,24 @@ impl RecordPayment {
                 .entry_type("'RECORD_PAYMENT_CR'")
                 .currency("params.currency")
                 .account_id("params.payment_holding_account_id")
+                .direction("CREDIT")
+                .layer("SETTLED")
+                .units("params.amount")
+                .build()
+                .expect("Couldn't build entry"),
+            NewTxTemplateEntry::builder()
+                .entry_type("'RECORD_UNCOVERED_DRAWDOWN_FROM_PAYMENT_DR'")
+                .currency("params.currency")
+                .account_id("params.uncovered_outstanding_account_id")
+                .direction("DEBIT")
+                .layer("SETTLED")
+                .units("params.amount")
+                .build()
+                .expect("Couldn't build entry"),
+            NewTxTemplateEntry::builder()
+                .entry_type("'RECORD_UNCOVERED_DRAWDOWN_FROM_PAYMENT_CR'")
+                .currency("params.currency")
+                .account_id("params.payments_made_omnibus_account_id")
                 .direction("CREDIT")
                 .layer("SETTLED")
                 .units("params.amount")
