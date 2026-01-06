@@ -745,10 +745,10 @@ type CreditModuleConfig {
 	chartOfAccountsId: UUID
 	chartOfAccountFacilityOmnibusParentCode: String
 	chartOfAccountCollateralOmnibusParentCode: String
-	chartOfAccountInLiquidationOmnibusParentCode: String
+	chartOfAccountLiquidationProceedsOmnibusParentCode: String
 	chartOfAccountFacilityParentCode: String
 	chartOfAccountCollateralParentCode: String
-	chartOfAccountInLiquidationParentCode: String
+	chartOfAccountCollateralInLiquidationParentCode: String
 	chartOfAccountInterestIncomeParentCode: String
 	chartOfAccountFeeIncomeParentCode: String
 	chartOfAccountPaymentHoldingParentCode: String
@@ -792,10 +792,10 @@ type CreditModuleConfig {
 input CreditModuleConfigureInput {
 	chartOfAccountFacilityOmnibusParentCode: String!
 	chartOfAccountCollateralOmnibusParentCode: String!
-	chartOfAccountInLiquidationOmnibusParentCode: String!
+	chartOfAccountLiquidationProceedsOmnibusParentCode: String!
 	chartOfAccountFacilityParentCode: String!
 	chartOfAccountCollateralParentCode: String!
-	chartOfAccountInLiquidationParentCode: String!
+	chartOfAccountCollateralInLiquidationParentCode: String!
 	chartOfAccountInterestIncomeParentCode: String!
 	chartOfAccountFeeIncomeParentCode: String!
 	chartOfAccountPaymentHoldingParentCode: String!

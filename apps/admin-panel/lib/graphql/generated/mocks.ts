@@ -993,14 +993,14 @@ export const mockCreditModuleConfig = (overrides?: Partial<CreditModuleConfig>, 
     relationshipsToOmit.add('CreditModuleConfig');
     return {
         __typename: 'CreditModuleConfig',
+        chartOfAccountCollateralInLiquidationParentCode: overrides && overrides.hasOwnProperty('chartOfAccountCollateralInLiquidationParentCode') ? overrides.chartOfAccountCollateralInLiquidationParentCode! : faker.lorem.word(),
         chartOfAccountCollateralOmnibusParentCode: overrides && overrides.hasOwnProperty('chartOfAccountCollateralOmnibusParentCode') ? overrides.chartOfAccountCollateralOmnibusParentCode! : faker.lorem.word(),
         chartOfAccountCollateralParentCode: overrides && overrides.hasOwnProperty('chartOfAccountCollateralParentCode') ? overrides.chartOfAccountCollateralParentCode! : faker.lorem.word(),
         chartOfAccountFacilityOmnibusParentCode: overrides && overrides.hasOwnProperty('chartOfAccountFacilityOmnibusParentCode') ? overrides.chartOfAccountFacilityOmnibusParentCode! : faker.lorem.word(),
         chartOfAccountFacilityParentCode: overrides && overrides.hasOwnProperty('chartOfAccountFacilityParentCode') ? overrides.chartOfAccountFacilityParentCode! : faker.lorem.word(),
         chartOfAccountFeeIncomeParentCode: overrides && overrides.hasOwnProperty('chartOfAccountFeeIncomeParentCode') ? overrides.chartOfAccountFeeIncomeParentCode! : faker.lorem.word(),
-        chartOfAccountInLiquidationOmnibusParentCode: overrides && overrides.hasOwnProperty('chartOfAccountInLiquidationOmnibusParentCode') ? overrides.chartOfAccountInLiquidationOmnibusParentCode! : faker.lorem.word(),
-        chartOfAccountInLiquidationParentCode: overrides && overrides.hasOwnProperty('chartOfAccountInLiquidationParentCode') ? overrides.chartOfAccountInLiquidationParentCode! : faker.lorem.word(),
         chartOfAccountInterestIncomeParentCode: overrides && overrides.hasOwnProperty('chartOfAccountInterestIncomeParentCode') ? overrides.chartOfAccountInterestIncomeParentCode! : faker.lorem.word(),
+        chartOfAccountLiquidationProceedsOmnibusParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLiquidationProceedsOmnibusParentCode') ? overrides.chartOfAccountLiquidationProceedsOmnibusParentCode! : faker.lorem.word(),
         chartOfAccountLongTermBankDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLongTermBankDisbursedReceivableParentCode') ? overrides.chartOfAccountLongTermBankDisbursedReceivableParentCode! : faker.lorem.word(),
         chartOfAccountLongTermBankInterestReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLongTermBankInterestReceivableParentCode') ? overrides.chartOfAccountLongTermBankInterestReceivableParentCode! : faker.lorem.word(),
         chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode') ? overrides.chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode! : faker.lorem.word(),
@@ -1045,14 +1045,14 @@ export const mockCreditModuleConfigureInput = (overrides?: Partial<CreditModuleC
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CreditModuleConfigureInput');
     return {
+        chartOfAccountCollateralInLiquidationParentCode: overrides && overrides.hasOwnProperty('chartOfAccountCollateralInLiquidationParentCode') ? overrides.chartOfAccountCollateralInLiquidationParentCode! : faker.lorem.word(),
         chartOfAccountCollateralOmnibusParentCode: overrides && overrides.hasOwnProperty('chartOfAccountCollateralOmnibusParentCode') ? overrides.chartOfAccountCollateralOmnibusParentCode! : faker.lorem.word(),
         chartOfAccountCollateralParentCode: overrides && overrides.hasOwnProperty('chartOfAccountCollateralParentCode') ? overrides.chartOfAccountCollateralParentCode! : faker.lorem.word(),
         chartOfAccountFacilityOmnibusParentCode: overrides && overrides.hasOwnProperty('chartOfAccountFacilityOmnibusParentCode') ? overrides.chartOfAccountFacilityOmnibusParentCode! : faker.lorem.word(),
         chartOfAccountFacilityParentCode: overrides && overrides.hasOwnProperty('chartOfAccountFacilityParentCode') ? overrides.chartOfAccountFacilityParentCode! : faker.lorem.word(),
         chartOfAccountFeeIncomeParentCode: overrides && overrides.hasOwnProperty('chartOfAccountFeeIncomeParentCode') ? overrides.chartOfAccountFeeIncomeParentCode! : faker.lorem.word(),
-        chartOfAccountInLiquidationOmnibusParentCode: overrides && overrides.hasOwnProperty('chartOfAccountInLiquidationOmnibusParentCode') ? overrides.chartOfAccountInLiquidationOmnibusParentCode! : faker.lorem.word(),
-        chartOfAccountInLiquidationParentCode: overrides && overrides.hasOwnProperty('chartOfAccountInLiquidationParentCode') ? overrides.chartOfAccountInLiquidationParentCode! : faker.lorem.word(),
         chartOfAccountInterestIncomeParentCode: overrides && overrides.hasOwnProperty('chartOfAccountInterestIncomeParentCode') ? overrides.chartOfAccountInterestIncomeParentCode! : faker.lorem.word(),
+        chartOfAccountLiquidationProceedsOmnibusParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLiquidationProceedsOmnibusParentCode') ? overrides.chartOfAccountLiquidationProceedsOmnibusParentCode! : faker.lorem.word(),
         chartOfAccountLongTermBankDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLongTermBankDisbursedReceivableParentCode') ? overrides.chartOfAccountLongTermBankDisbursedReceivableParentCode! : faker.lorem.word(),
         chartOfAccountLongTermBankInterestReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLongTermBankInterestReceivableParentCode') ? overrides.chartOfAccountLongTermBankInterestReceivableParentCode! : faker.lorem.word(),
         chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode') ? overrides.chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode! : faker.lorem.word(),
