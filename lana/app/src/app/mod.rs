@@ -152,7 +152,7 @@ impl LanaApp {
             &authz,
             &outbox,
             &governance,
-            &jobs,
+            &mut job_new,
             &cala,
             journal_init.journal_id,
             &public_ids,
