@@ -22,6 +22,7 @@ import { Checkbox } from "@lana/web/ui/checkbox"
 import {
   ConfigType,
   type ExposedConfigItem,
+  ExposedConfigsDocument,
   useExposedConfigsQuery,
   useUpdateExposedConfigMutation,
 } from "@/lib/graphql/generated"
@@ -121,7 +122,7 @@ export default function ConfigurationsPage() {
             value: parsed.value,
           },
         },
-        refetchQueries: ["ExposedConfigs"],
+        refetchQueries: [ExposedConfigsDocument],
       })
 
       const updated = result.data?.updateExposedConfig.exposedConfig
