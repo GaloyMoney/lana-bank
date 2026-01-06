@@ -13,19 +13,12 @@ use crate::{
 
 const PRICE_UPDATE_INTERVAL: Duration = Duration::from_secs(60);
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct GetPriceFromClientJobConfig<E>
 where
     E: OutboxEventMarker<CorePriceEvent> + Send + Sync + 'static,
 {
     pub _phantom: std::marker::PhantomData<E>,
-}
-
-impl<E> JobConfig for GetPriceFromClientJobConfig<E>
-where
-    E: OutboxEventMarker<CorePriceEvent> + Send + Sync + 'static,
-{
-    type Initializer = GetPriceFromClientJobInit<E>;
 }
 
 pub struct GetPriceFromClientJobInit<E>
@@ -54,18 +47,23 @@ impl<E> JobInitializer for GetPriceFromClientJobInit<E>
 where
     E: OutboxEventMarker<CorePriceEvent> + Send + Sync + 'static,
 {
-    fn job_type() -> JobType {
+    type Config = GetPriceFromClientJobConfig<E>;
+    fn job_type(&self) -> JobType {
         GET_PRICE_FROM_CLIENT_JOB_TYPE
     }
 
-    fn init(&self, _job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
+    fn init(
+        &self,
+        _job: &Job,
+        _: JobSpawner<Self::Config>,
+    ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(GetPriceFromBfxJobRunner::<E> {
             bfx_client: self.bfx_client.clone(),
             outbox: self.outbox.clone(),
         }))
     }
 
-    fn retry_on_error_settings() -> RetrySettings {
+    fn retry_on_error_settings(&self) -> RetrySettings {
         RetrySettings::repeat_indefinitely()
     }
 }
@@ -87,13 +85,9 @@ where
         &self,
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let outbox = self.outbox.clone();
-        let bfx_client = self.bfx_client.clone();
-
         loop {
-            let price: PriceOfOneBTC = bfx_client::fetch_price(bfx_client.as_ref()).await?;
-
-            outbox
+            let price: PriceOfOneBTC = bfx_client::fetch_price(self.bfx_client.clone()).await?;
+            self.outbox
                 .publish_ephemeral(
                     PRICE_UPDATED_EVENT_TYPE,
                     CorePriceEvent::PriceUpdated {

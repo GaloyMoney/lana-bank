@@ -17,6 +17,7 @@ use tracing::Span;
 use error::PriceError;
 
 pub use event::*;
+use jobs::get_price_from_bfx;
 pub use primitives::*;
 
 #[derive(Clone)]
@@ -27,18 +28,22 @@ pub struct Price {
 
 impl Price {
     #[tracing::instrument(name = "core.price.init", skip(jobs, outbox), err)]
-    pub async fn init<E>(jobs: &Jobs, outbox: &Outbox<E>) -> Result<Self, PriceError>
+    pub async fn init<E>(jobs: &mut Jobs, outbox: &Outbox<E>) -> Result<Self, PriceError>
     where
         E: OutboxEventMarker<CorePriceEvent> + Send + Sync + 'static,
     {
-        jobs.add_initializer_and_spawn_unique(
-            jobs::get_price_from_bfx::GetPriceFromClientJobInit::<E>::new(outbox),
-            jobs::get_price_from_bfx::GetPriceFromClientJobConfig::<E> {
-                _phantom: std::marker::PhantomData,
-            },
-        )
-        .await
-        .map_err(PriceError::JobError)?;
+        let get_price_from_client_job_spawner =
+            jobs.add_initializer(get_price_from_bfx::GetPriceFromClientJobInit::new(outbox));
+        get_price_from_client_job_spawner
+            .spawn_unique(
+                job::JobId::new(),
+                get_price_from_bfx::GetPriceFromClientJobConfig::<E> {
+                    _phantom: std::marker::PhantomData,
+                },
+            )
+            .await
+            .map_err(PriceError::JobError)?;
+
         let (tx, rx) = watch::channel(None);
 
         let handle = Self::spawn_price_listener(tx, outbox.clone());
