@@ -1,0 +1,7 @@
+{
+    "revenue_account_code": "4",
+    "cost_of_revenue_account_code": "5",
+    "expenses_account_code": "6",
+    "equity_retained_earnings_gain_account_code": "32.01",
+    "equity_retained_earnings_loss_account_code": "32.02"
+}
