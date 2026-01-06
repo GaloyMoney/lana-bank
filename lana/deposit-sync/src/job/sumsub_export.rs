@@ -42,7 +42,7 @@ impl std::fmt::Display for SumsubTransactionDirection {
     }
 }
 
-#[derive(serde::Serialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct SumsubExportJobConfig<Perms, E> {
     _phantom: std::marker::PhantomData<(Perms, E)>,
 }
@@ -53,22 +53,6 @@ impl<Perms, E> SumsubExportJobConfig<Perms, E> {
             _phantom: std::marker::PhantomData,
         }
     }
-}
-
-impl<Perms, E> JobConfig for SumsubExportJobConfig<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreDepositAction> + From<CoreCustomerAction> + From<GovernanceAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreDepositObject> + From<CustomerObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<LanaEvent>
-        + std::fmt::Debug,
-{
-    type Initializer = SumsubExportInit<Perms, E>;
 }
 
 pub struct SumsubExportInit<Perms, E>
@@ -123,14 +107,19 @@ where
         + OutboxEventMarker<LanaEvent>
         + std::fmt::Debug,
 {
-    fn job_type() -> JobType
+    type Config = SumsubExportJobConfig<Perms, E>;
+    fn job_type(&self) -> JobType
     where
         Self: Sized,
     {
         SUMSUB_EXPORT_JOB
     }
 
-    fn init(&self, _job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
+    fn init(
+        &self,
+        _job: &Job,
+        _: JobSpawner<Self::Config>,
+    ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(SumsubExportJobRunner {
             outbox: self.outbox.clone(),
             sumsub_client: self.sumsub_client.clone(),
@@ -139,7 +128,7 @@ where
         }))
     }
 
-    fn retry_on_error_settings() -> RetrySettings
+    fn retry_on_error_settings(&self) -> RetrySettings
     where
         Self: Sized,
     {
