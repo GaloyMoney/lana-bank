@@ -14,8 +14,6 @@ pub enum ReportError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("ReportError - AuditError: ${0}")]
     AuditError(#[from] audit::error::AuditError),
-    #[error("ReportError - JobError: {0}")]
-    JobError(#[from] job::error::JobError),
     #[error("ReportError - StorageError: {0}")]
     StorageError(#[from] cloud_storage::error::StorageError),
     #[error("ReportError - ReportError: {0}")]
@@ -38,7 +36,6 @@ impl ErrorSeverity for ReportError {
             Self::CursorDestructureError(_) => Level::ERROR,
             Self::AuthorizationError(e) => e.severity(),
             Self::AuditError(e) => e.severity(),
-            Self::JobError(_) => Level::ERROR,
             Self::StorageError(e) => e.severity(),
             Self::ReportError(e) => e.severity(),
             Self::ReportRunError(e) => e.severity(),
