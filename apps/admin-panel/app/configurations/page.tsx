@@ -97,14 +97,6 @@ export default function ConfigurationsPage() {
     })
   }, [exposedConfigs])
 
-  const getMessage = (key: string) => {
-    try {
-      return t(key)
-    } catch {
-      return key
-    }
-  }
-
   const handleExposedSave = async (config: ExposedConfigItem) => {
     const draft = exposedDrafts[config.key]
     const parsed = parseExposedDraft(config, draft)
@@ -171,9 +163,9 @@ export default function ConfigurationsPage() {
             return (
               <Card key={config.key}>
                 <CardHeader>
-                  <CardTitle>{getMessage(`${config.key}.title`)}</CardTitle>
+                  <CardTitle>{t(`${config.key}.title`)}</CardTitle>
                   <CardDescription>
-                    {getMessage(`${config.key}.description`)}
+                    {t(`${config.key}.description`)}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-4">
