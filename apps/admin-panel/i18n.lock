@@ -584,7 +584,7 @@ checksums:
     CreditFacilities/CreditFacilityDetails/Liquidations/columns/status: 4e1fcce15854d824919b4a582c697c90
     CreditFacilities/CreditFacilityDetails/Liquidations/columns/expectedToReceive: 3fa01e9ae94c919fae9fc0f46d49b9cc
     CreditFacilities/CreditFacilityDetails/Liquidations/columns/sentTotal: fc40b27969deda2caeab3853a49a3593
-    CreditFacilities/CreditFacilityDetails/Liquidations/columns/receivedTotal: 0e4f52c9fe1b61dc834294d7af823356
+    CreditFacilities/CreditFacilityDetails/Liquidations/columns/amountReceived: 0e4f52c9fe1b61dc834294d7af823356
     CreditFacilities/CreditFacilityDetails/Liquidations/columns/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
     CreditFacilities/CreditFacilityDetails/Liquidations/status/completed: 0e4bbce9985f25eb673d9a054c8d5334
     CreditFacilities/CreditFacilityDetails/Liquidations/status/inProgress: 3de9afebcb9d4ce8ac42e14995f79ffd
@@ -698,7 +698,7 @@ checksums:
     Liquidations/table/headers/status: 4e1fcce15854d824919b4a582c697c90
     Liquidations/table/headers/expectedToReceive: 3fa01e9ae94c919fae9fc0f46d49b9cc
     Liquidations/table/headers/sentTotal: fc40b27969deda2caeab3853a49a3593
-    Liquidations/table/headers/receivedTotal: 0e4f52c9fe1b61dc834294d7af823356
+    Liquidations/table/headers/amountReceived: 0e4f52c9fe1b61dc834294d7af823356
     Liquidations/table/headers/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
     Liquidations/status/completed: 0e4bbce9985f25eb673d9a054c8d5334
     Liquidations/status/inProgress: 3de9afebcb9d4ce8ac42e14995f79ffd
@@ -708,7 +708,7 @@ checksums:
     Liquidations/LiquidationDetails/DetailsCard/details/status: 4e1fcce15854d824919b4a582c697c90
     Liquidations/LiquidationDetails/DetailsCard/details/expectedToReceive: 3fa01e9ae94c919fae9fc0f46d49b9cc
     Liquidations/LiquidationDetails/DetailsCard/details/sentTotal: fc40b27969deda2caeab3853a49a3593
-    Liquidations/LiquidationDetails/DetailsCard/details/receivedTotal: 0e4f52c9fe1b61dc834294d7af823356
+    Liquidations/LiquidationDetails/DetailsCard/details/amountReceived: 0e4f52c9fe1b61dc834294d7af823356
     Liquidations/LiquidationDetails/DetailsCard/details/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
     Liquidations/LiquidationDetails/DetailsCard/buttons/recordCollateralSent: 4ccb2caa89e295615e642f43999c285f
     Liquidations/LiquidationDetails/DetailsCard/buttons/recordPaymentReceived: 3bd2bb18bcccd58281d50a1c27e2c48e
