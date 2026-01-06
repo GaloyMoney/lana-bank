@@ -14,7 +14,7 @@ json-schema = ["dep:schemars", "es-entity/json-schema"]
 
 [dependencies]
 obix = { workspace = true }
-job = { workspace = true }
+job = { version = "0.6.0" }
 core-customer = { workspace = true }
 
 authz = { workspace = true }

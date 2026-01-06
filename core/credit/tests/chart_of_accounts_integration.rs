@@ -46,7 +46,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
 
     let journal_id = helpers::init_journal(&cala).await?;
     let public_ids = PublicIds::new(&pool);
-    let price = core_price::Price::init(&jobs, &outbox).await?;
+    let price = core_price::Price::init(&mut job_new, &outbox).await?;
 
     let credit = CoreCredit::init(
         &pool,

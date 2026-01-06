@@ -1,5 +1,7 @@
 mod helpers;
 
+use std::sync::Arc;
+
 use rand::Rng;
 use rust_decimal_macros::dec;
 
@@ -11,7 +13,7 @@ use obix::out::Outbox;
 #[tokio::test]
 async fn get_price_from_client() {
     let client = BfxClient::new();
-    let price = fetch_price(&client).await;
+    let price = fetch_price(Arc::new(client)).await;
     assert!(price.is_ok());
 }
 

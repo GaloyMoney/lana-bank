@@ -68,7 +68,7 @@ cala-ledger = "0.13.3"
 job = { version = "0.4.0", features = ["es-entity"] }
 sim-time = "0.10"
 cala-cel-interpreter = "0.13.3"
-obix = { version = "0.2.3", features = ["tracing"] }
+obix = { version = "0.2.6", features = ["tracing"] }
 
 aes = "0.8"
 anyhow = "1.0.100"
