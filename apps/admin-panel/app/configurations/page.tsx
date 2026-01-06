@@ -165,8 +165,7 @@ export default function ConfigurationsPage() {
         <div className="space-y-3">
           {visibleConfigs.map((config) => {
             const inputId = `exposed-${config.key}`
-            const isDisabled =
-              exposedConfigLoading || updateExposedConfigLoading
+            const isDisabled = exposedConfigLoading
 
             return (
               <Card key={config.key}>
@@ -194,12 +193,9 @@ export default function ConfigurationsPage() {
                   <Button
                     onClick={() => handleExposedSave(config)}
                     disabled={isDisabled}
+                    loading={updateExposedConfigLoading}
                   >
-                    {updateExposedConfigLoading ? (
-                      <LoaderCircle className="animate-spin" />
-                    ) : (
-                      t("exposedConfigs.save")
-                    )}
+                    {t("exposedConfigs.save")}
                   </Button>
                 </CardFooter>
               </Card>
