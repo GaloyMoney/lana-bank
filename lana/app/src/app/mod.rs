@@ -134,7 +134,7 @@ impl LanaApp {
             &cala,
             journal_init.journal_id,
             documents.clone(),
-            &jobs,
+            &mut job_new,
             &domain_configs,
         );
 
