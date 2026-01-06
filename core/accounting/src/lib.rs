@@ -105,7 +105,7 @@ where
         cala: &CalaLedger,
         journal_id: CalaJournalId,
         document_storage: DocumentStorage,
-        jobs: &Jobs,
+        jobs: &mut Jobs,
         domain_configs: &DomainConfigs,
     ) -> Self {
         let chart_of_accounts = ChartOfAccounts::new(pool, authz, cala, journal_id);

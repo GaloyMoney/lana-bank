@@ -34,7 +34,7 @@ where
     Perms: PermissionCheck,
 {
     authz: Perms,
-    jobs: Jobs,
+    generate_accounting_csv_job_spawner: GenerateAccountingCsvJobSpawner<Perms>,
     document_storage: DocumentStorage,
 }
 
@@ -46,18 +46,17 @@ where
 {
     pub fn new(
         authz: &Perms,
-        jobs: &Jobs,
+        jobs: &mut Jobs,
         document_storage: DocumentStorage,
         ledger_accounts: &LedgerAccounts<Perms>,
     ) -> Self {
-        jobs.add_initializer(GenerateAccountingCsvInit::new(
-            &document_storage,
-            ledger_accounts,
-        ));
+        let generate_accounting_csv_job_spawner = jobs.add_initializer(
+            GenerateAccountingCsvInit::new(&document_storage, ledger_accounts),
+        );
 
         Self {
             authz: authz.clone(),
-            jobs: jobs.clone(),
+            generate_accounting_csv_job_spawner,
             document_storage,
         }
     }
@@ -91,8 +90,8 @@ where
             )
             .await?;
 
-        self.jobs
-            .create_and_spawn_in_op::<GenerateAccountingCsvConfig<Perms>>(
+        self.generate_accounting_csv_job_spawner
+            .spawn_in_op(
                 &mut db,
                 JobId::from(uuid::Uuid::from(document.id)),
                 GenerateAccountingCsvConfig {
