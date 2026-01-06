@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use authz::PermissionCheck;
+use serde::{Deserialize, Serialize};
 use tokio::select;
 use tracing::{Span, instrument};
 
@@ -14,8 +15,8 @@ use crate::{CoreDepositAction, CoreDepositEvent, CoreDepositObject};
 
 use super::ApproveWithdrawal;
 
-#[derive(serde::Serialize)]
-pub(crate) struct WithdrawApprovalJobConfig<Perms, E> {
+#[derive(Clone, Serialize, Deserialize)]
+pub struct WithdrawApprovalJobConfig<Perms, E> {
     _phantom: std::marker::PhantomData<(Perms, E)>,
 }
 impl<Perms, E> WithdrawApprovalJobConfig<Perms, E> {
@@ -24,17 +25,6 @@ impl<Perms, E> WithdrawApprovalJobConfig<Perms, E> {
             _phantom: std::marker::PhantomData,
         }
     }
-}
-impl<Perms, E> JobConfig for WithdrawApprovalJobConfig<Perms, E>
-where
-    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreDepositEvent>,
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreDepositAction> + From<GovernanceAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreDepositObject> + From<GovernanceObject>,
-{
-    type Initializer = WithdrawApprovalInit<Perms, E>;
 }
 
 pub struct WithdrawApprovalInit<Perms, E>
@@ -77,21 +67,26 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CoreDepositObject> + From<GovernanceObject>,
 {
-    fn job_type() -> JobType
+    type Config = WithdrawApprovalJobConfig<Perms, E>;
+    fn job_type(&self) -> JobType
     where
         Self: Sized,
     {
         WITHDRAW_APPROVE_JOB
     }
 
-    fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
+    fn init(
+        &self,
+        _: &Job,
+        _: JobSpawner<Self::Config>,
+    ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(WithdrawApprovalJobRunner {
             outbox: self.outbox.clone(),
             process: self.process.clone(),
         }))
     }
 
-    fn retry_on_error_settings() -> RetrySettings
+    fn retry_on_error_settings(&self) -> RetrySettings
     where
         Self: Sized,
     {

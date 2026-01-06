@@ -27,7 +27,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .exec_migrations(false)
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
-    let jobs = job::Jobs::init(
+    let mut jobs = job::Jobs::init(
         job::JobSvcConfig::builder()
             .pool(pool.clone())
             .build()
@@ -53,7 +53,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         &authz,
         &outbox,
         &governance,
-        &jobs,
+        &mut jobs,
         &cala,
         journal_id,
         &public_ids,
@@ -70,7 +70,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         &cala,
         journal_id,
         document_storage,
-        &jobs,
+        &mut jobs,
         &domain_configs,
     );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));

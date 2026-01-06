@@ -258,7 +258,7 @@ async fn setup_test() -> anyhow::Result<Test> {
 
     let storage = Storage::new(&StorageConfig::default());
     let document_storage = DocumentStorage::new(&pool, &storage);
-    let jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
+    let mut jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
 
     let fiscal_year_repo = FiscalYearRepo::new(&pool);
     let accounting = CoreAccounting::new(
@@ -267,7 +267,7 @@ async fn setup_test() -> anyhow::Result<Test> {
         &cala,
         journal_id,
         document_storage,
-        &jobs,
+        &mut jobs,
         &domain_configs,
     );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));

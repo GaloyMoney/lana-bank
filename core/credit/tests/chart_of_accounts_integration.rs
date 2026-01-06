@@ -80,7 +80,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         &cala,
         journal_id,
         accounting_document_storage,
-        &jobs,
+        &mut job_new,
         &domain_configs,
     );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
