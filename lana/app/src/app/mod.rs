@@ -164,7 +164,7 @@ impl LanaApp {
             CustomerSync::init(&jobs, &outbox, &customers, &deposits, config.customer_sync).await?;
 
         let applicants =
-            Applicants::new(&pool, &config.sumsub, &authz, &customers, &mut jobs).await?;
+            Applicants::new(&pool, &config.sumsub, &authz, &customers, &mut job_new).await?;
 
         let deposit_sync = DepositSync::init(
             &jobs,

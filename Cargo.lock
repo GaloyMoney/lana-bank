@@ -1391,7 +1391,7 @@ dependencies = [
  "authz",
  "core-customer",
  "es-entity",
- "job 0.4.0",
+ "job 0.6.0",
  "obix",
  "schemars 1.1.0",
  "serde",
@@ -4170,16 +4170,16 @@ dependencies = [
 
 [[package]]
 name = "obix"
-version = "0.2.3"
+version = "0.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e93f10a0d91a88ee569d027310dcb40f9b4be53f4cba2b0654920c4ef0250ebf"
+checksum = "7640b553ea1872fcf0f777afa3c5b3a3a893973ed115d93922673a322d9aaaad"
 dependencies = [
  "async-trait",
  "chrono",
  "es-entity",
  "futures",
  "im",
- "job 0.4.0",
+ "job 0.6.0",
  "obix-macros",
  "serde",
  "serde_json",
@@ -4191,9 +4191,9 @@ dependencies = [
 
 [[package]]
 name = "obix-macros"
-version = "0.2.3"
+version = "0.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f12021fab6bda9f370ad6a9028762e1142109e8191bfe93fc29f9ad1b3c16452"
+checksum = "16834455e76b7620e3e4fbfb824c57a43e0b5de33b4554e883a52e8d669cd931"
 dependencies = [
  "darling 0.23.0",
  "proc-macro2",
