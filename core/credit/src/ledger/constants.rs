@@ -4,6 +4,19 @@ pub const CREDIT_COLLATERAL_OMNIBUS_ACCOUNT_SET_NAME: &str =
 pub const CREDIT_COLLATERAL_OMNIBUS_ACCOUNT_SET_REF: &str = "credit-collateral-omnibus-account-set";
 pub const CREDIT_COLLATERAL_OMNIBUS_ACCOUNT_REF: &str = "credit-collateral-omnibus-account";
 
+pub const CREDIT_INTEREST_ADDED_TO_OBLIGATIONS_OMNIBUS_ACCOUNT_SET_NAME: &str =
+    "Credit Interest Added to Obligations Omnibus Account Set";
+pub const CREDIT_INTEREST_ADDED_TO_OBLIGATIONS_OMNIBUS_ACCOUNT_SET_REF: &str =
+    "credit-interest-added-to-obligations-omnibus-account-set";
+pub const CREDIT_INTEREST_ADDED_TO_OBLIGATIONS_OMNIBUS_ACCOUNT_REF: &str =
+    "credit-interest-added-to-obligations-omnibus-account";
+
+pub const CREDIT_PAYMENTS_MADE_OMNIBUS_ACCOUNT_SET_NAME: &str =
+    "Credit Payments Made Omnibus Account Set";
+pub const CREDIT_PAYMENTS_MADE_OMNIBUS_ACCOUNT_SET_REF: &str =
+    "credit-payments-made-omnibus-account-set";
+pub const CREDIT_PAYMENTS_MADE_OMNIBUS_ACCOUNT_REF: &str = "credit-payments-made-omnibus-account";
+
 pub const CREDIT_FACILITY_OMNIBUS_ACCOUNT_SET_NAME: &str = "Credit Facility Omnibus Account Set";
 pub const CREDIT_FACILITY_OMNIBUS_ACCOUNT_SET_REF: &str = "credit-facility-omnibus-account-set";
 pub const CREDIT_FACILITY_OMNIBUS_ACCOUNT_REF: &str = "credit-facility-omnibus-account";

@@ -213,6 +213,8 @@ pub struct CreditLedger {
     facility_omnibus_account_ids: LedgerOmnibusAccountIds,
     collateral_omnibus_account_ids: LedgerOmnibusAccountIds,
     liquidation_proceeds_omnibus_account_ids: LedgerOmnibusAccountIds,
+    interest_added_to_obligations_omnibus_account_ids: LedgerOmnibusAccountIds,
+    payments_made_omnibus_account_ids: LedgerOmnibusAccountIds,
     internal_account_sets: CreditFacilityInternalAccountSets,
     credit_facility_control_id: VelocityControlId,
     usd: Currency,
@@ -248,6 +250,31 @@ impl CreditLedger {
             format!("{journal_id}:{CREDIT_COLLATERAL_OMNIBUS_ACCOUNT_REF}"),
             CREDIT_COLLATERAL_OMNIBUS_ACCOUNT_SET_NAME.to_string(),
             collateral_omnibus_normal_balance_type,
+        )
+        .await?;
+
+        let interest_added_to_obligations_omnibus_normal_balance_type = DebitOrCredit::Debit;
+        let interest_added_to_obligations_omnibus_account_ids =
+            Self::find_or_create_omnibus_account(
+                cala,
+                journal_id,
+                format!(
+                    "{journal_id}:{CREDIT_INTEREST_ADDED_TO_OBLIGATIONS_OMNIBUS_ACCOUNT_SET_REF}"
+                ),
+                format!("{journal_id}:{CREDIT_INTEREST_ADDED_TO_OBLIGATIONS_OMNIBUS_ACCOUNT_REF}"),
+                CREDIT_INTEREST_ADDED_TO_OBLIGATIONS_OMNIBUS_ACCOUNT_SET_NAME.to_string(),
+                interest_added_to_obligations_omnibus_normal_balance_type,
+            )
+            .await?;
+
+        let payments_made_omnibus_normal_balance_type = DebitOrCredit::Credit;
+        let payments_made_omnibus_account_ids = Self::find_or_create_omnibus_account(
+            cala,
+            journal_id,
+            format!("{journal_id}:{CREDIT_PAYMENTS_MADE_OMNIBUS_ACCOUNT_SET_REF}"),
+            format!("{journal_id}:{CREDIT_PAYMENTS_MADE_OMNIBUS_ACCOUNT_REF}"),
+            CREDIT_PAYMENTS_MADE_OMNIBUS_ACCOUNT_SET_NAME.to_string(),
+            payments_made_omnibus_normal_balance_type,
         )
         .await?;
 
@@ -924,6 +951,8 @@ impl CreditLedger {
             facility_omnibus_account_ids,
             collateral_omnibus_account_ids,
             liquidation_proceeds_omnibus_account_ids,
+            interest_added_to_obligations_omnibus_account_ids,
+            payments_made_omnibus_account_ids,
             internal_account_sets,
             credit_facility_control_id,
             usd: Currency::USD,
@@ -2479,6 +2508,9 @@ impl CreditLedger {
             collateral_omnibus_account_ids,
             liquidation_proceeds_omnibus_account_ids,
             internal_account_sets,
+
+            interest_added_to_obligations_omnibus_account_ids: _, // TODO: add to chart
+            payments_made_omnibus_account_ids: _,                 // TODO: add to chart
 
             cala: _,
             journal_id: _,
