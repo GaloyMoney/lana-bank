@@ -57,7 +57,6 @@ pub enum CreditFacilityEvent {
     },
     PartialLiquidationInitiated {
         liquidation_id: LiquidationId,
-        payment_holding_account_id: CalaAccountId,
         trigger_price: PriceOfOneBTC,
         initially_expected_to_receive: UsdCents,
         initially_estimated_to_liquidate: Satoshis,
@@ -297,7 +296,6 @@ impl CreditFacility {
         self.events
             .push(CreditFacilityEvent::PartialLiquidationInitiated {
                 liquidation_id: LiquidationId::new(),
-                payment_holding_account_id: self.payment_holding_account_id(),
                 trigger_price: price,
                 initially_expected_to_receive: repay_amount,
                 initially_estimated_to_liquidate: liquidate_btc,

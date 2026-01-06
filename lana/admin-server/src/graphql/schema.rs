@@ -1652,10 +1652,10 @@ impl Mutation {
         let CreditModuleConfigureInput {
             chart_of_account_facility_omnibus_parent_code,
             chart_of_account_collateral_omnibus_parent_code,
-            chart_of_account_in_liquidation_omnibus_parent_code,
+            chart_of_account_liquidation_proceeds_omnibus_parent_code,
             chart_of_account_facility_parent_code,
             chart_of_account_collateral_parent_code,
-            chart_of_account_in_liquidation_parent_code,
+            chart_of_account_collateral_in_liquidation_parent_code,
             chart_of_account_interest_income_parent_code,
             chart_of_account_fee_income_parent_code,
             chart_of_account_payment_holding_parent_code,
@@ -1707,13 +1707,13 @@ impl Mutation {
                 chart_of_account_facility_omnibus_parent_code.parse()?,
             chart_of_account_collateral_omnibus_parent_code:
                 chart_of_account_collateral_omnibus_parent_code.parse()?,
-            chart_of_account_in_liquidation_omnibus_parent_code:
-                chart_of_account_in_liquidation_omnibus_parent_code.parse()?,
+            chart_of_account_liquidation_proceeds_omnibus_parent_code:
+                chart_of_account_liquidation_proceeds_omnibus_parent_code.parse()?,
             chart_of_account_facility_parent_code: chart_of_account_facility_parent_code.parse()?,
             chart_of_account_collateral_parent_code: chart_of_account_collateral_parent_code
                 .parse()?,
-            chart_of_account_in_liquidation_parent_code:
-                chart_of_account_in_liquidation_parent_code.parse()?,
+            chart_of_account_collateral_in_liquidation_parent_code:
+                chart_of_account_collateral_in_liquidation_parent_code.parse()?,
             chart_of_account_interest_income_parent_code:
                 chart_of_account_interest_income_parent_code.parse()?,
             chart_of_account_fee_income_parent_code: chart_of_account_fee_income_parent_code
@@ -2027,21 +2027,19 @@ impl Mutation {
         )
     }
 
-    async fn liquidation_record_payment_received(
+    async fn liquidation_record_proceeds_received(
         &self,
         ctx: &Context<'_>,
-        input: LiquidationRecordPaymentReceivedInput,
-    ) -> async_graphql::Result<LiquidationRecordPaymentReceivedPayload> {
+        input: LiquidationRecordProceedsReceivedInput,
+    ) -> async_graphql::Result<LiquidationRecordProceedsReceivedPayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         exec_mutation!(
-            LiquidationRecordPaymentReceivedPayload,
+            LiquidationRecordProceedsReceivedPayload,
             Liquidation,
             ctx,
-            app.credit().liquidations().record_payment_from_liquidation(
-                sub,
-                input.liquidation_id.into(),
-                input.amount
-            )
+            app.credit()
+                .liquidations()
+                .record_proceeds_from_liquidation(sub, input.liquidation_id.into(), input.amount)
         )
     }
 

@@ -924,7 +924,7 @@
           "status": "Status",
           "expectedToReceive": "Expected to Receive",
           "sentTotal": "Sent Total",
-          "receivedTotal": "Received Total",
+          "amountReceived": "Received Total",
           "createdAt": "Created At"
         },
         "status": {
@@ -1155,7 +1155,7 @@
         "status": "Status",
         "expectedToReceive": "Expected to Receive",
         "sentTotal": "Sent Total",
-        "receivedTotal": "Received Total",
+        "amountReceived": "Received Total",
         "createdAt": "Created At"
       }
     },
@@ -1174,7 +1174,7 @@
           "status": "Status",
           "expectedToReceive": "Expected to Receive",
           "sentTotal": "Sent Total",
-          "receivedTotal": "Received Total",
+          "amountReceived": "Received Total",
           "createdAt": "Created At"
         },
         "buttons": {
@@ -2332,10 +2332,10 @@
       "chartOfAccountsId": "Chart of Accounts ID",
       "chartOfAccountFacilityOmnibusParentCode": "Facility Omnibus Parent Code",
       "chartOfAccountCollateralOmnibusParentCode": "Collateral Omnibus Parent Code",
-      "chartOfAccountInLiquidationOmnibusParentCode": "In-Liquidation Omnibus Parent Code",
+      "chartOfAccountLiquidationProceedsOmnibusParentCode": "Liquidation Proceeds Omnibus Parent Code",
       "chartOfAccountFacilityParentCode": "Facility Parent Code",
       "chartOfAccountCollateralParentCode": "Collateral Parent Code",
-      "chartOfAccountInLiquidationParentCode": "In-Liquidation Parent Code",
+      "chartOfAccountCollateralInLiquidationParentCode": "Collateral In Liquidation Parent Code",
       "chartOfAccountInterestIncomeParentCode": "Interest Income Parent Code",
       "chartOfAccountFeeIncomeParentCode": "Fee Income Parent Code",
       "chartOfAccountPaymentHoldingParentCode": "Payment Holding Parent Code",

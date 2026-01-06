@@ -6,14 +6,19 @@ CREATE TABLE core_liquidation_events_rollup (
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
   amount BIGINT,
+  collateral_account_id UUID,
+  collateral_in_liquidation_account_id UUID,
   credit_facility_id UUID,
   current_price JSONB,
   expected_to_receive BIGINT,
+  facility_payment_holding_account_id UUID,
+  facility_proceeds_from_liquidation_account_id UUID,
   initially_estimated_to_liquidate BIGINT,
   initially_expected_to_receive BIGINT,
   ledger_tx_id UUID,
+  liquidated_collateral_account_id UUID,
+  liquidation_proceeds_omnibus_account_id UUID,
   outstanding BIGINT,
-  payment_holding_account_id UUID,
   payment_id UUID,
   to_liquidate_at_current_price BIGINT,
   trigger_price JSONB,
@@ -42,7 +47,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'updated', 'collateral_sent_out', 'repayment_amount_received', 'completed') THEN
+  IF event_type NOT IN ('initialized', 'updated', 'collateral_sent_out', 'proceeds_from_liquidation_received', 'completed') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -55,30 +60,40 @@ BEGIN
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
     new_row.amount := (NEW.event ->> 'amount')::BIGINT;
+    new_row.collateral_account_id := (NEW.event ->> 'collateral_account_id')::UUID;
+    new_row.collateral_in_liquidation_account_id := (NEW.event ->> 'collateral_in_liquidation_account_id')::UUID;
     new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
     new_row.current_price := (NEW.event -> 'current_price');
     new_row.expected_to_receive := (NEW.event ->> 'expected_to_receive')::BIGINT;
+    new_row.facility_payment_holding_account_id := (NEW.event ->> 'facility_payment_holding_account_id')::UUID;
+    new_row.facility_proceeds_from_liquidation_account_id := (NEW.event ->> 'facility_proceeds_from_liquidation_account_id')::UUID;
     new_row.initially_estimated_to_liquidate := (NEW.event ->> 'initially_estimated_to_liquidate')::BIGINT;
     new_row.initially_expected_to_receive := (NEW.event ->> 'initially_expected_to_receive')::BIGINT;
     new_row.is_completed := false;
     new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
+    new_row.liquidated_collateral_account_id := (NEW.event ->> 'liquidated_collateral_account_id')::UUID;
+    new_row.liquidation_proceeds_omnibus_account_id := (NEW.event ->> 'liquidation_proceeds_omnibus_account_id')::UUID;
     new_row.outstanding := (NEW.event ->> 'outstanding')::BIGINT;
-    new_row.payment_holding_account_id := (NEW.event ->> 'payment_holding_account_id')::UUID;
     new_row.payment_id := (NEW.event ->> 'payment_id')::UUID;
     new_row.to_liquidate_at_current_price := (NEW.event ->> 'to_liquidate_at_current_price')::BIGINT;
     new_row.trigger_price := (NEW.event -> 'trigger_price');
   ELSE
     -- Default all fields to current values
     new_row.amount := current_row.amount;
+    new_row.collateral_account_id := current_row.collateral_account_id;
+    new_row.collateral_in_liquidation_account_id := current_row.collateral_in_liquidation_account_id;
     new_row.credit_facility_id := current_row.credit_facility_id;
     new_row.current_price := current_row.current_price;
     new_row.expected_to_receive := current_row.expected_to_receive;
+    new_row.facility_payment_holding_account_id := current_row.facility_payment_holding_account_id;
+    new_row.facility_proceeds_from_liquidation_account_id := current_row.facility_proceeds_from_liquidation_account_id;
     new_row.initially_estimated_to_liquidate := current_row.initially_estimated_to_liquidate;
     new_row.initially_expected_to_receive := current_row.initially_expected_to_receive;
     new_row.is_completed := current_row.is_completed;
     new_row.ledger_tx_id := current_row.ledger_tx_id;
+    new_row.liquidated_collateral_account_id := current_row.liquidated_collateral_account_id;
+    new_row.liquidation_proceeds_omnibus_account_id := current_row.liquidation_proceeds_omnibus_account_id;
     new_row.outstanding := current_row.outstanding;
-    new_row.payment_holding_account_id := current_row.payment_holding_account_id;
     new_row.payment_id := current_row.payment_id;
     new_row.to_liquidate_at_current_price := current_row.to_liquidate_at_current_price;
     new_row.trigger_price := current_row.trigger_price;
@@ -87,10 +102,15 @@ BEGIN
   -- Update only the fields that are modified by the specific event
   CASE event_type
     WHEN 'initialized' THEN
+      new_row.collateral_account_id := (NEW.event ->> 'collateral_account_id')::UUID;
+      new_row.collateral_in_liquidation_account_id := (NEW.event ->> 'collateral_in_liquidation_account_id')::UUID;
       new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
+      new_row.facility_payment_holding_account_id := (NEW.event ->> 'facility_payment_holding_account_id')::UUID;
+      new_row.facility_proceeds_from_liquidation_account_id := (NEW.event ->> 'facility_proceeds_from_liquidation_account_id')::UUID;
       new_row.initially_estimated_to_liquidate := (NEW.event ->> 'initially_estimated_to_liquidate')::BIGINT;
       new_row.initially_expected_to_receive := (NEW.event ->> 'initially_expected_to_receive')::BIGINT;
-      new_row.payment_holding_account_id := (NEW.event ->> 'payment_holding_account_id')::UUID;
+      new_row.liquidated_collateral_account_id := (NEW.event ->> 'liquidated_collateral_account_id')::UUID;
+      new_row.liquidation_proceeds_omnibus_account_id := (NEW.event ->> 'liquidation_proceeds_omnibus_account_id')::UUID;
       new_row.trigger_price := (NEW.event -> 'trigger_price');
     WHEN 'updated' THEN
       new_row.current_price := (NEW.event -> 'current_price');
@@ -100,7 +120,7 @@ BEGIN
     WHEN 'collateral_sent_out' THEN
       new_row.amount := (NEW.event ->> 'amount')::BIGINT;
       new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
-    WHEN 'repayment_amount_received' THEN
+    WHEN 'proceeds_from_liquidation_received' THEN
       new_row.amount := (NEW.event ->> 'amount')::BIGINT;
       new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
       new_row.payment_id := (NEW.event ->> 'payment_id')::UUID;
@@ -115,15 +135,20 @@ BEGIN
     created_at,
     modified_at,
     amount,
+    collateral_account_id,
+    collateral_in_liquidation_account_id,
     credit_facility_id,
     current_price,
     expected_to_receive,
+    facility_payment_holding_account_id,
+    facility_proceeds_from_liquidation_account_id,
     initially_estimated_to_liquidate,
     initially_expected_to_receive,
     is_completed,
     ledger_tx_id,
+    liquidated_collateral_account_id,
+    liquidation_proceeds_omnibus_account_id,
     outstanding,
-    payment_holding_account_id,
     payment_id,
     to_liquidate_at_current_price,
     trigger_price
@@ -134,15 +159,20 @@ BEGIN
     new_row.created_at,
     new_row.modified_at,
     new_row.amount,
+    new_row.collateral_account_id,
+    new_row.collateral_in_liquidation_account_id,
     new_row.credit_facility_id,
     new_row.current_price,
     new_row.expected_to_receive,
+    new_row.facility_payment_holding_account_id,
+    new_row.facility_proceeds_from_liquidation_account_id,
     new_row.initially_estimated_to_liquidate,
     new_row.initially_expected_to_receive,
     new_row.is_completed,
     new_row.ledger_tx_id,
+    new_row.liquidated_collateral_account_id,
+    new_row.liquidation_proceeds_omnibus_account_id,
     new_row.outstanding,
-    new_row.payment_holding_account_id,
     new_row.payment_id,
     new_row.to_liquidate_at_current_price,
     new_row.trigger_price

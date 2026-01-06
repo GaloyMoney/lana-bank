@@ -584,7 +584,7 @@ checksums:
     CreditFacilities/CreditFacilityDetails/Liquidations/columns/status: 4e1fcce15854d824919b4a582c697c90
     CreditFacilities/CreditFacilityDetails/Liquidations/columns/expectedToReceive: 3fa01e9ae94c919fae9fc0f46d49b9cc
     CreditFacilities/CreditFacilityDetails/Liquidations/columns/sentTotal: fc40b27969deda2caeab3853a49a3593
-    CreditFacilities/CreditFacilityDetails/Liquidations/columns/receivedTotal: 0e4f52c9fe1b61dc834294d7af823356
+    CreditFacilities/CreditFacilityDetails/Liquidations/columns/amountReceived: 0e4f52c9fe1b61dc834294d7af823356
     CreditFacilities/CreditFacilityDetails/Liquidations/columns/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
     CreditFacilities/CreditFacilityDetails/Liquidations/status/completed: 0e4bbce9985f25eb673d9a054c8d5334
     CreditFacilities/CreditFacilityDetails/Liquidations/status/inProgress: 3de9afebcb9d4ce8ac42e14995f79ffd
@@ -698,7 +698,7 @@ checksums:
     Liquidations/table/headers/status: 4e1fcce15854d824919b4a582c697c90
     Liquidations/table/headers/expectedToReceive: 3fa01e9ae94c919fae9fc0f46d49b9cc
     Liquidations/table/headers/sentTotal: fc40b27969deda2caeab3853a49a3593
-    Liquidations/table/headers/receivedTotal: 0e4f52c9fe1b61dc834294d7af823356
+    Liquidations/table/headers/amountReceived: 0e4f52c9fe1b61dc834294d7af823356
     Liquidations/table/headers/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
     Liquidations/status/completed: 0e4bbce9985f25eb673d9a054c8d5334
     Liquidations/status/inProgress: 3de9afebcb9d4ce8ac42e14995f79ffd
@@ -708,7 +708,7 @@ checksums:
     Liquidations/LiquidationDetails/DetailsCard/details/status: 4e1fcce15854d824919b4a582c697c90
     Liquidations/LiquidationDetails/DetailsCard/details/expectedToReceive: 3fa01e9ae94c919fae9fc0f46d49b9cc
     Liquidations/LiquidationDetails/DetailsCard/details/sentTotal: fc40b27969deda2caeab3853a49a3593
-    Liquidations/LiquidationDetails/DetailsCard/details/receivedTotal: 0e4f52c9fe1b61dc834294d7af823356
+    Liquidations/LiquidationDetails/DetailsCard/details/amountReceived: 0e4f52c9fe1b61dc834294d7af823356
     Liquidations/LiquidationDetails/DetailsCard/details/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
     Liquidations/LiquidationDetails/DetailsCard/buttons/recordCollateralSent: 4ccb2caa89e295615e642f43999c285f
     Liquidations/LiquidationDetails/DetailsCard/buttons/recordPaymentReceived: 3bd2bb18bcccd58281d50a1c27e2c48e
@@ -1364,10 +1364,10 @@ checksums:
     Modules/credit/chartOfAccountsId: 608a35070a1a88b6f113b5c9f4a59300
     Modules/credit/chartOfAccountFacilityOmnibusParentCode: bf703671363e0e235a983fe5a867859f
     Modules/credit/chartOfAccountCollateralOmnibusParentCode: 1ef5f1593be70bd9c306b0dc7144cf69
-    Modules/credit/chartOfAccountInLiquidationOmnibusParentCode: 52decb13e4f1db4da664dfa01805fdb7
+    Modules/credit/chartOfAccountLiquidationProceedsOmnibusParentCode: ef70f76a815549bff69e550e145f515c
     Modules/credit/chartOfAccountFacilityParentCode: 2f989fd7b573d6c58697bc7f3584bd6c
     Modules/credit/chartOfAccountCollateralParentCode: 0369fcbe2714bbef2ad97d2dcb74d021
-    Modules/credit/chartOfAccountInLiquidationParentCode: deadf79836cb89df6ef5cca2bf794fec
+    Modules/credit/chartOfAccountCollateralInLiquidationParentCode: 7f9de94d851accfb663db254ad1e7b96
     Modules/credit/chartOfAccountInterestIncomeParentCode: 6f7bc91587039fec7e07edc8214be0b1
     Modules/credit/chartOfAccountFeeIncomeParentCode: 41eb6f093aee01175ddc0a61cb612efd
     Modules/credit/chartOfAccountPaymentHoldingParentCode: ca6f787a282ddad6b86f2eb24d50959a

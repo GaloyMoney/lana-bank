@@ -22,7 +22,7 @@ gql`
     liquidationId
     expectedToReceive
     sentTotal
-    receivedTotal
+    amountReceived
     createdAt
     completed
     creditFacility {
@@ -79,8 +79,8 @@ const LiquidationsList = () => {
       render: (amount) => <Balance amount={amount} currency="btc" />,
     },
     {
-      key: "receivedTotal",
-      label: t("table.headers.receivedTotal"),
+      key: "amountReceived",
+      label: t("table.headers.amountReceived"),
       render: (amount) => <Balance amount={amount} currency="usd" />,
     },
     {

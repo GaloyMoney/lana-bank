@@ -230,7 +230,6 @@ impl CreditFacility {
     async fn ledger_accounts(&self) -> CreditFacilityLedgerAccounts {
         CreditFacilityLedgerAccounts {
             facility_account_id: self.entity.account_ids.facility_account_id.into(),
-            in_liquidation_account_id: self.entity.account_ids.in_liquidation_account_id.into(),
             disbursed_receivable_not_yet_due_account_id: self
                 .entity
                 .account_ids
@@ -252,6 +251,17 @@ impl CreditFacility {
                 .disbursed_defaulted_account_id
                 .into(),
             collateral_account_id: self.entity.account_ids.collateral_account_id.into(),
+            collateral_in_liquidation_account_id: self
+                .entity
+                .account_ids
+                .collateral_in_liquidation_account_id
+                .into(),
+            proceeds_from_liquidation_account_id: self
+                .entity
+                .account_ids
+                .proceeds_from_liquidation_account_id
+                .into_inner()
+                .into(),
             interest_receivable_not_yet_due_account_id: self
                 .entity
                 .account_ids

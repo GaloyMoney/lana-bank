@@ -13,7 +13,7 @@ gql`
     liquidationId
     expectedToReceive
     sentTotal
-    receivedTotal
+    amountReceived
     createdAt
     completed
   }

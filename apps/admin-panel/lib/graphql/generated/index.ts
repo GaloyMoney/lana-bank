@@ -609,6 +609,8 @@ export type CreditFacilityLedgerAccounts = {
   __typename?: 'CreditFacilityLedgerAccounts';
   collateralAccount: LedgerAccount;
   collateralAccountId: Scalars['UUID']['output'];
+  collateralInLiquidationAccount: LedgerAccount;
+  collateralInLiquidationAccountId: Scalars['UUID']['output'];
   disbursedDefaultedAccount: LedgerAccount;
   disbursedDefaultedAccountId: Scalars['UUID']['output'];
   disbursedReceivableDueAccount: LedgerAccount;
@@ -621,8 +623,6 @@ export type CreditFacilityLedgerAccounts = {
   facilityAccountId: Scalars['UUID']['output'];
   feeIncomeAccount: LedgerAccount;
   feeIncomeAccountId: Scalars['UUID']['output'];
-  inLiquidationAccount: LedgerAccount;
-  inLiquidationAccountId: Scalars['UUID']['output'];
   interestDefaultedAccount: LedgerAccount;
   interestDefaultedAccountId: Scalars['UUID']['output'];
   interestIncomeAccount: LedgerAccount;
@@ -633,6 +633,8 @@ export type CreditFacilityLedgerAccounts = {
   interestReceivableNotYetDueAccountId: Scalars['UUID']['output'];
   interestReceivableOverdueAccount: LedgerAccount;
   interestReceivableOverdueAccountId: Scalars['UUID']['output'];
+  proceedsFromLiquidationAccount: LedgerAccount;
+  proceedsFromLiquidationAccountId: Scalars['UUID']['output'];
 };
 
 export type CreditFacilityPartialPaymentRecordInput = {
@@ -765,14 +767,14 @@ export enum CreditFacilityStatus {
 
 export type CreditModuleConfig = {
   __typename?: 'CreditModuleConfig';
+  chartOfAccountCollateralInLiquidationParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountCollateralOmnibusParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountCollateralParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountFacilityOmnibusParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountFacilityParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountFeeIncomeParentCode?: Maybe<Scalars['String']['output']>;
-  chartOfAccountInLiquidationOmnibusParentCode?: Maybe<Scalars['String']['output']>;
-  chartOfAccountInLiquidationParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountInterestIncomeParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountLiquidationProceedsOmnibusParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountLongTermBankDisbursedReceivableParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountLongTermBankInterestReceivableParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode?: Maybe<Scalars['String']['output']>;
@@ -813,14 +815,14 @@ export type CreditModuleConfig = {
 };
 
 export type CreditModuleConfigureInput = {
+  chartOfAccountCollateralInLiquidationParentCode: Scalars['String']['input'];
   chartOfAccountCollateralOmnibusParentCode: Scalars['String']['input'];
   chartOfAccountCollateralParentCode: Scalars['String']['input'];
   chartOfAccountFacilityOmnibusParentCode: Scalars['String']['input'];
   chartOfAccountFacilityParentCode: Scalars['String']['input'];
   chartOfAccountFeeIncomeParentCode: Scalars['String']['input'];
-  chartOfAccountInLiquidationOmnibusParentCode: Scalars['String']['input'];
-  chartOfAccountInLiquidationParentCode: Scalars['String']['input'];
   chartOfAccountInterestIncomeParentCode: Scalars['String']['input'];
+  chartOfAccountLiquidationProceedsOmnibusParentCode: Scalars['String']['input'];
   chartOfAccountLongTermBankDisbursedReceivableParentCode: Scalars['String']['input'];
   chartOfAccountLongTermBankInterestReceivableParentCode: Scalars['String']['input'];
   chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode: Scalars['String']['input'];
@@ -1620,6 +1622,7 @@ export type LedgerTransactionInitiator = System | User;
 
 export type Liquidation = {
   __typename?: 'Liquidation';
+  amountReceived: Scalars['UsdCents']['output'];
   completed: Scalars['Boolean']['output'];
   createdAt: Scalars['Timestamp']['output'];
   creditFacility: CreditFacility;
@@ -1627,8 +1630,7 @@ export type Liquidation = {
   expectedToReceive: Scalars['UsdCents']['output'];
   id: Scalars['ID']['output'];
   liquidationId: Scalars['UUID']['output'];
-  receivedPayment: Array<LiquidationPaymentReceived>;
-  receivedTotal: Scalars['UsdCents']['output'];
+  receivedProceeds: Array<LiquidationProceedsReceived>;
   sentCollateral: Array<LiquidationCollateralSent>;
   sentTotal: Scalars['Satoshis']['output'];
 };
@@ -1658,8 +1660,8 @@ export type LiquidationEdge = {
   node: Liquidation;
 };
 
-export type LiquidationPaymentReceived = {
-  __typename?: 'LiquidationPaymentReceived';
+export type LiquidationProceedsReceived = {
+  __typename?: 'LiquidationProceedsReceived';
   amount: Scalars['UsdCents']['output'];
   ledgerTxId: Scalars['UUID']['output'];
 };
@@ -1674,13 +1676,13 @@ export type LiquidationRecordCollateralSentPayload = {
   liquidation: Liquidation;
 };
 
-export type LiquidationRecordPaymentReceivedInput = {
+export type LiquidationRecordProceedsReceivedInput = {
   amount: Scalars['UsdCents']['input'];
   liquidationId: Scalars['UUID']['input'];
 };
 
-export type LiquidationRecordPaymentReceivedPayload = {
-  __typename?: 'LiquidationRecordPaymentReceivedPayload';
+export type LiquidationRecordProceedsReceivedPayload = {
+  __typename?: 'LiquidationRecordProceedsReceivedPayload';
   liquidation: Liquidation;
 };
 
@@ -1792,7 +1794,7 @@ export type Mutation = {
   fiscalYearOpenNext: FiscalYearOpenNextPayload;
   ledgerAccountCsvCreate: LedgerAccountCsvCreatePayload;
   liquidationRecordCollateralSent: LiquidationRecordCollateralSentPayload;
-  liquidationRecordPaymentReceived: LiquidationRecordPaymentReceivedPayload;
+  liquidationRecordProceedsReceived: LiquidationRecordProceedsReceivedPayload;
   loanAgreementDownloadLinkGenerate: LoanAgreementDownloadLinksGeneratePayload;
   loanAgreementGenerate: LoanAgreementGeneratePayload;
   manualTransactionExecute: ManualTransactionExecutePayload;
@@ -2018,8 +2020,8 @@ export type MutationLiquidationRecordCollateralSentArgs = {
 };
 
 
-export type MutationLiquidationRecordPaymentReceivedArgs = {
-  input: LiquidationRecordPaymentReceivedInput;
+export type MutationLiquidationRecordProceedsReceivedArgs = {
+  input: LiquidationRecordProceedsReceivedInput;
 };
 
 
@@ -3394,9 +3396,6 @@ export type CreditFacilityLedgerAccountsQueryVariables = Exact<{
 export type CreditFacilityLedgerAccountsQuery = { __typename?: 'Query', creditFacilityByPublicId?: { __typename?: 'CreditFacility', id: string, ledgerAccounts: { __typename?: 'CreditFacilityLedgerAccounts', facilityAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
           | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
           | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
-         }, inLiquidationAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
-          | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
-          | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
          }, disbursedReceivableNotYetDueAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
           | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
           | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
@@ -3410,6 +3409,12 @@ export type CreditFacilityLedgerAccountsQuery = { __typename?: 'Query', creditFa
           | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
           | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
          }, collateralAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
+          | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
+          | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
+         }, collateralInLiquidationAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
+          | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
+          | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
+         }, proceedsFromLiquidationAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
           | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
           | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
          }, interestReceivableNotYetDueAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
@@ -3432,14 +3437,14 @@ export type CreditFacilityLedgerAccountsQuery = { __typename?: 'Query', creditFa
           | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
          } } } | null };
 
-export type LiquidationOnFacilityPageFragment = { __typename?: 'Liquidation', id: string, liquidationId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, receivedTotal: UsdCents, createdAt: any, completed: boolean };
+export type LiquidationOnFacilityPageFragment = { __typename?: 'Liquidation', id: string, liquidationId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: any, completed: boolean };
 
 export type GetCreditFacilityLiquidationsQueryVariables = Exact<{
   publicId: Scalars['PublicId']['input'];
 }>;
 
 
-export type GetCreditFacilityLiquidationsQuery = { __typename?: 'Query', creditFacilityByPublicId?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, liquidations: Array<{ __typename?: 'Liquidation', id: string, liquidationId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, receivedTotal: UsdCents, createdAt: any, completed: boolean }> } | null };
+export type GetCreditFacilityLiquidationsQuery = { __typename?: 'Query', creditFacilityByPublicId?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, liquidations: Array<{ __typename?: 'Liquidation', id: string, liquidationId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: any, completed: boolean }> } | null };
 
 export type CreditFacilityHistoryFragmentFragment = { __typename?: 'CreditFacility', id: string, creditFacilityId: string, history: Array<
     | { __typename?: 'CreditFacilityApproved', cents: UsdCents, recordedAt: any, txId: string, effective: any }
@@ -4100,56 +4105,56 @@ export type LedgerTransactionExistsByIdQuery = { __typename?: 'Query', ledgerTra
 
 export type LiquidationCollateralSentFragmentFragment = { __typename?: 'LiquidationCollateralSent', amount: Satoshis, ledgerTxId: string };
 
-export type LiquidationPaymentReceivedFragmentFragment = { __typename?: 'LiquidationPaymentReceived', amount: UsdCents, ledgerTxId: string };
+export type LiquidationProceedsReceivedFragmentFragment = { __typename?: 'LiquidationProceedsReceived', amount: UsdCents, ledgerTxId: string };
 
-export type LiquidationDetailsFragment = { __typename?: 'Liquidation', id: string, liquidationId: string, creditFacilityId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, receivedTotal: UsdCents, createdAt: any, completed: boolean, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, publicId: any, status: CreditFacilityStatus, collateralizationState: CollateralizationState, facilityAmount: UsdCents, activatedAt: any, maturesAt: any, currentCvl:
+export type LiquidationDetailsFragment = { __typename?: 'Liquidation', id: string, liquidationId: string, creditFacilityId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: any, completed: boolean, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, publicId: any, status: CreditFacilityStatus, collateralizationState: CollateralizationState, facilityAmount: UsdCents, activatedAt: any, maturesAt: any, currentCvl:
       | { __typename: 'FiniteCVLPct', value: any }
       | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
     , creditFacilityTerms: { __typename?: 'TermValues', liquidationCvl:
         | { __typename: 'FiniteCVLPct', value: any }
         | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
-       }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string } }, sentCollateral: Array<{ __typename?: 'LiquidationCollateralSent', amount: Satoshis, ledgerTxId: string }>, receivedPayment: Array<{ __typename?: 'LiquidationPaymentReceived', amount: UsdCents, ledgerTxId: string }> };
+       }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string } }, sentCollateral: Array<{ __typename?: 'LiquidationCollateralSent', amount: Satoshis, ledgerTxId: string }>, receivedProceeds: Array<{ __typename?: 'LiquidationProceedsReceived', amount: UsdCents, ledgerTxId: string }> };
 
 export type GetLiquidationDetailsQueryVariables = Exact<{
   liquidationId: Scalars['UUID']['input'];
 }>;
 
 
-export type GetLiquidationDetailsQuery = { __typename?: 'Query', liquidation?: { __typename?: 'Liquidation', id: string, liquidationId: string, creditFacilityId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, receivedTotal: UsdCents, createdAt: any, completed: boolean, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, publicId: any, status: CreditFacilityStatus, collateralizationState: CollateralizationState, facilityAmount: UsdCents, activatedAt: any, maturesAt: any, currentCvl:
+export type GetLiquidationDetailsQuery = { __typename?: 'Query', liquidation?: { __typename?: 'Liquidation', id: string, liquidationId: string, creditFacilityId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: any, completed: boolean, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, publicId: any, status: CreditFacilityStatus, collateralizationState: CollateralizationState, facilityAmount: UsdCents, activatedAt: any, maturesAt: any, currentCvl:
         | { __typename: 'FiniteCVLPct', value: any }
         | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
       , creditFacilityTerms: { __typename?: 'TermValues', liquidationCvl:
           | { __typename: 'FiniteCVLPct', value: any }
           | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
-         }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string } }, sentCollateral: Array<{ __typename?: 'LiquidationCollateralSent', amount: Satoshis, ledgerTxId: string }>, receivedPayment: Array<{ __typename?: 'LiquidationPaymentReceived', amount: UsdCents, ledgerTxId: string }> } | null };
+         }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string } }, sentCollateral: Array<{ __typename?: 'LiquidationCollateralSent', amount: Satoshis, ledgerTxId: string }>, receivedProceeds: Array<{ __typename?: 'LiquidationProceedsReceived', amount: UsdCents, ledgerTxId: string }> } | null };
 
 export type LiquidationRecordCollateralSentMutationVariables = Exact<{
   input: LiquidationRecordCollateralSentInput;
 }>;
 
 
-export type LiquidationRecordCollateralSentMutation = { __typename?: 'Mutation', liquidationRecordCollateralSent: { __typename?: 'LiquidationRecordCollateralSentPayload', liquidation: { __typename?: 'Liquidation', id: string, liquidationId: string, creditFacilityId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, receivedTotal: UsdCents, createdAt: any, completed: boolean, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, publicId: any, status: CreditFacilityStatus, collateralizationState: CollateralizationState, facilityAmount: UsdCents, activatedAt: any, maturesAt: any, currentCvl:
+export type LiquidationRecordCollateralSentMutation = { __typename?: 'Mutation', liquidationRecordCollateralSent: { __typename?: 'LiquidationRecordCollateralSentPayload', liquidation: { __typename?: 'Liquidation', id: string, liquidationId: string, creditFacilityId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: any, completed: boolean, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, publicId: any, status: CreditFacilityStatus, collateralizationState: CollateralizationState, facilityAmount: UsdCents, activatedAt: any, maturesAt: any, currentCvl:
           | { __typename: 'FiniteCVLPct', value: any }
           | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
         , creditFacilityTerms: { __typename?: 'TermValues', liquidationCvl:
             | { __typename: 'FiniteCVLPct', value: any }
             | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
-           }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string } }, sentCollateral: Array<{ __typename?: 'LiquidationCollateralSent', amount: Satoshis, ledgerTxId: string }>, receivedPayment: Array<{ __typename?: 'LiquidationPaymentReceived', amount: UsdCents, ledgerTxId: string }> } } };
+           }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string } }, sentCollateral: Array<{ __typename?: 'LiquidationCollateralSent', amount: Satoshis, ledgerTxId: string }>, receivedProceeds: Array<{ __typename?: 'LiquidationProceedsReceived', amount: UsdCents, ledgerTxId: string }> } } };
 
-export type LiquidationRecordPaymentReceivedMutationVariables = Exact<{
-  input: LiquidationRecordPaymentReceivedInput;
+export type LiquidationRecordProceedsReceivedMutationVariables = Exact<{
+  input: LiquidationRecordProceedsReceivedInput;
 }>;
 
 
-export type LiquidationRecordPaymentReceivedMutation = { __typename?: 'Mutation', liquidationRecordPaymentReceived: { __typename?: 'LiquidationRecordPaymentReceivedPayload', liquidation: { __typename?: 'Liquidation', id: string, liquidationId: string, creditFacilityId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, receivedTotal: UsdCents, createdAt: any, completed: boolean, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, publicId: any, status: CreditFacilityStatus, collateralizationState: CollateralizationState, facilityAmount: UsdCents, activatedAt: any, maturesAt: any, currentCvl:
+export type LiquidationRecordProceedsReceivedMutation = { __typename?: 'Mutation', liquidationRecordProceedsReceived: { __typename?: 'LiquidationRecordProceedsReceivedPayload', liquidation: { __typename?: 'Liquidation', id: string, liquidationId: string, creditFacilityId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: any, completed: boolean, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, publicId: any, status: CreditFacilityStatus, collateralizationState: CollateralizationState, facilityAmount: UsdCents, activatedAt: any, maturesAt: any, currentCvl:
           | { __typename: 'FiniteCVLPct', value: any }
           | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
         , creditFacilityTerms: { __typename?: 'TermValues', liquidationCvl:
             | { __typename: 'FiniteCVLPct', value: any }
             | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
-           }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string } }, sentCollateral: Array<{ __typename?: 'LiquidationCollateralSent', amount: Satoshis, ledgerTxId: string }>, receivedPayment: Array<{ __typename?: 'LiquidationPaymentReceived', amount: UsdCents, ledgerTxId: string }> } } };
+           }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string } }, sentCollateral: Array<{ __typename?: 'LiquidationCollateralSent', amount: Satoshis, ledgerTxId: string }>, receivedProceeds: Array<{ __typename?: 'LiquidationProceedsReceived', amount: UsdCents, ledgerTxId: string }> } } };
 
-export type LiquidationListFieldsFragment = { __typename?: 'Liquidation', id: string, liquidationId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, receivedTotal: UsdCents, createdAt: any, completed: boolean, creditFacility: { __typename?: 'CreditFacility', publicId: any } };
+export type LiquidationListFieldsFragment = { __typename?: 'Liquidation', id: string, liquidationId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: any, completed: boolean, creditFacility: { __typename?: 'CreditFacility', publicId: any } };
 
 export type LiquidationsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -4157,7 +4162,7 @@ export type LiquidationsQueryVariables = Exact<{
 }>;
 
 
-export type LiquidationsQuery = { __typename?: 'Query', liquidations: { __typename?: 'LiquidationConnection', edges: Array<{ __typename?: 'LiquidationEdge', cursor: string, node: { __typename?: 'Liquidation', id: string, liquidationId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, receivedTotal: UsdCents, createdAt: any, completed: boolean, creditFacility: { __typename?: 'CreditFacility', publicId: any } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type LiquidationsQuery = { __typename?: 'Query', liquidations: { __typename?: 'LiquidationConnection', edges: Array<{ __typename?: 'LiquidationEdge', cursor: string, node: { __typename?: 'Liquidation', id: string, liquidationId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: any, completed: boolean, creditFacility: { __typename?: 'CreditFacility', publicId: any } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type BalanceSheetConfigureMutationVariables = Exact<{
   input: BalanceSheetModuleConfigureInput;
@@ -4188,7 +4193,7 @@ export type DepositConfigQuery = { __typename?: 'Query', depositConfig?: { __typ
 export type CreditConfigQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type CreditConfigQuery = { __typename?: 'Query', creditConfig?: { __typename?: 'CreditModuleConfig', chartOfAccountFacilityOmnibusParentCode?: string | null, chartOfAccountCollateralOmnibusParentCode?: string | null, chartOfAccountInLiquidationOmnibusParentCode?: string | null, chartOfAccountFacilityParentCode?: string | null, chartOfAccountCollateralParentCode?: string | null, chartOfAccountInLiquidationParentCode?: string | null, chartOfAccountInterestIncomeParentCode?: string | null, chartOfAccountFeeIncomeParentCode?: string | null, chartOfAccountPaymentHoldingParentCode?: string | null, chartOfAccountShortTermIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermBankDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermBankDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermIndividualInterestReceivableParentCode?: string | null, chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode?: string | null, chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode?: string | null, chartOfAccountShortTermBankInterestReceivableParentCode?: string | null, chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode?: string | null, chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode?: string | null, chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode?: string | null, chartOfAccountLongTermIndividualInterestReceivableParentCode?: string | null, chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode?: string | null, chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode?: string | null, chartOfAccountLongTermBankInterestReceivableParentCode?: string | null, chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode?: string | null, chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode?: string | null, chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode?: string | null, chartOfAccountOverdueIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueBankDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode?: string | null } | null };
+export type CreditConfigQuery = { __typename?: 'Query', creditConfig?: { __typename?: 'CreditModuleConfig', chartOfAccountFacilityOmnibusParentCode?: string | null, chartOfAccountCollateralOmnibusParentCode?: string | null, chartOfAccountLiquidationProceedsOmnibusParentCode?: string | null, chartOfAccountFacilityParentCode?: string | null, chartOfAccountCollateralParentCode?: string | null, chartOfAccountCollateralInLiquidationParentCode?: string | null, chartOfAccountInterestIncomeParentCode?: string | null, chartOfAccountFeeIncomeParentCode?: string | null, chartOfAccountPaymentHoldingParentCode?: string | null, chartOfAccountShortTermIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermBankDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermBankDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermIndividualInterestReceivableParentCode?: string | null, chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode?: string | null, chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode?: string | null, chartOfAccountShortTermBankInterestReceivableParentCode?: string | null, chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode?: string | null, chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode?: string | null, chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode?: string | null, chartOfAccountLongTermIndividualInterestReceivableParentCode?: string | null, chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode?: string | null, chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode?: string | null, chartOfAccountLongTermBankInterestReceivableParentCode?: string | null, chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode?: string | null, chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode?: string | null, chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode?: string | null, chartOfAccountOverdueIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueBankDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode?: string | null } | null };
 
 export type BalanceSheetConfigQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -4892,7 +4897,7 @@ export const LiquidationOnFacilityPageFragmentDoc = gql`
   liquidationId
   expectedToReceive
   sentTotal
-  receivedTotal
+  amountReceived
   createdAt
   completed
 }
@@ -5329,8 +5334,8 @@ export const LiquidationCollateralSentFragmentFragmentDoc = gql`
   ledgerTxId
 }
     `;
-export const LiquidationPaymentReceivedFragmentFragmentDoc = gql`
-    fragment LiquidationPaymentReceivedFragment on LiquidationPaymentReceived {
+export const LiquidationProceedsReceivedFragmentFragmentDoc = gql`
+    fragment LiquidationProceedsReceivedFragment on LiquidationProceedsReceived {
   amount
   ledgerTxId
 }
@@ -5342,7 +5347,7 @@ export const LiquidationDetailsFragmentDoc = gql`
   creditFacilityId
   expectedToReceive
   sentTotal
-  receivedTotal
+  amountReceived
   createdAt
   completed
   creditFacility {
@@ -5392,19 +5397,19 @@ export const LiquidationDetailsFragmentDoc = gql`
   sentCollateral {
     ...LiquidationCollateralSentFragment
   }
-  receivedPayment {
-    ...LiquidationPaymentReceivedFragment
+  receivedProceeds {
+    ...LiquidationProceedsReceivedFragment
   }
 }
     ${LiquidationCollateralSentFragmentFragmentDoc}
-${LiquidationPaymentReceivedFragmentFragmentDoc}`;
+${LiquidationProceedsReceivedFragmentFragmentDoc}`;
 export const LiquidationListFieldsFragmentDoc = gql`
     fragment LiquidationListFields on Liquidation {
   id
   liquidationId
   expectedToReceive
   sentTotal
-  receivedTotal
+  amountReceived
   createdAt
   completed
   creditFacility {
@@ -6532,9 +6537,6 @@ export const CreditFacilityLedgerAccountsDocument = gql`
       facilityAccount {
         ...LedgerAccountInfo
       }
-      inLiquidationAccount {
-        ...LedgerAccountInfo
-      }
       disbursedReceivableNotYetDueAccount {
         ...LedgerAccountInfo
       }
@@ -6548,6 +6550,12 @@ export const CreditFacilityLedgerAccountsDocument = gql`
         ...LedgerAccountInfo
       }
       collateralAccount {
+        ...LedgerAccountInfo
+      }
+      collateralInLiquidationAccount {
+        ...LedgerAccountInfo
+      }
+      proceedsFromLiquidationAccount {
         ...LedgerAccountInfo
       }
       interestReceivableNotYetDueAccount {
@@ -9546,41 +9554,41 @@ export function useLiquidationRecordCollateralSentMutation(baseOptions?: Apollo.
 export type LiquidationRecordCollateralSentMutationHookResult = ReturnType<typeof useLiquidationRecordCollateralSentMutation>;
 export type LiquidationRecordCollateralSentMutationResult = Apollo.MutationResult<LiquidationRecordCollateralSentMutation>;
 export type LiquidationRecordCollateralSentMutationOptions = Apollo.BaseMutationOptions<LiquidationRecordCollateralSentMutation, LiquidationRecordCollateralSentMutationVariables>;
-export const LiquidationRecordPaymentReceivedDocument = gql`
-    mutation LiquidationRecordPaymentReceived($input: LiquidationRecordPaymentReceivedInput!) {
-  liquidationRecordPaymentReceived(input: $input) {
+export const LiquidationRecordProceedsReceivedDocument = gql`
+    mutation LiquidationRecordProceedsReceived($input: LiquidationRecordProceedsReceivedInput!) {
+  liquidationRecordProceedsReceived(input: $input) {
     liquidation {
       ...LiquidationDetails
     }
   }
 }
     ${LiquidationDetailsFragmentDoc}`;
-export type LiquidationRecordPaymentReceivedMutationFn = Apollo.MutationFunction<LiquidationRecordPaymentReceivedMutation, LiquidationRecordPaymentReceivedMutationVariables>;
+export type LiquidationRecordProceedsReceivedMutationFn = Apollo.MutationFunction<LiquidationRecordProceedsReceivedMutation, LiquidationRecordProceedsReceivedMutationVariables>;
 
 /**
- * __useLiquidationRecordPaymentReceivedMutation__
+ * __useLiquidationRecordProceedsReceivedMutation__
  *
- * To run a mutation, you first call `useLiquidationRecordPaymentReceivedMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useLiquidationRecordPaymentReceivedMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useLiquidationRecordProceedsReceivedMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useLiquidationRecordProceedsReceivedMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [liquidationRecordPaymentReceivedMutation, { data, loading, error }] = useLiquidationRecordPaymentReceivedMutation({
+ * const [liquidationRecordProceedsReceivedMutation, { data, loading, error }] = useLiquidationRecordProceedsReceivedMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useLiquidationRecordPaymentReceivedMutation(baseOptions?: Apollo.MutationHookOptions<LiquidationRecordPaymentReceivedMutation, LiquidationRecordPaymentReceivedMutationVariables>) {
+export function useLiquidationRecordProceedsReceivedMutation(baseOptions?: Apollo.MutationHookOptions<LiquidationRecordProceedsReceivedMutation, LiquidationRecordProceedsReceivedMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<LiquidationRecordPaymentReceivedMutation, LiquidationRecordPaymentReceivedMutationVariables>(LiquidationRecordPaymentReceivedDocument, options);
+        return Apollo.useMutation<LiquidationRecordProceedsReceivedMutation, LiquidationRecordProceedsReceivedMutationVariables>(LiquidationRecordProceedsReceivedDocument, options);
       }
-export type LiquidationRecordPaymentReceivedMutationHookResult = ReturnType<typeof useLiquidationRecordPaymentReceivedMutation>;
-export type LiquidationRecordPaymentReceivedMutationResult = Apollo.MutationResult<LiquidationRecordPaymentReceivedMutation>;
-export type LiquidationRecordPaymentReceivedMutationOptions = Apollo.BaseMutationOptions<LiquidationRecordPaymentReceivedMutation, LiquidationRecordPaymentReceivedMutationVariables>;
+export type LiquidationRecordProceedsReceivedMutationHookResult = ReturnType<typeof useLiquidationRecordProceedsReceivedMutation>;
+export type LiquidationRecordProceedsReceivedMutationResult = Apollo.MutationResult<LiquidationRecordProceedsReceivedMutation>;
+export type LiquidationRecordProceedsReceivedMutationOptions = Apollo.BaseMutationOptions<LiquidationRecordProceedsReceivedMutation, LiquidationRecordProceedsReceivedMutationVariables>;
 export const LiquidationsDocument = gql`
     query Liquidations($first: Int!, $after: String) {
   liquidations(first: $first, after: $after) {
@@ -9819,10 +9827,10 @@ export const CreditConfigDocument = gql`
   creditConfig {
     chartOfAccountFacilityOmnibusParentCode
     chartOfAccountCollateralOmnibusParentCode
-    chartOfAccountInLiquidationOmnibusParentCode
+    chartOfAccountLiquidationProceedsOmnibusParentCode
     chartOfAccountFacilityParentCode
     chartOfAccountCollateralParentCode
-    chartOfAccountInLiquidationParentCode
+    chartOfAccountCollateralInLiquidationParentCode
     chartOfAccountInterestIncomeParentCode
     chartOfAccountFeeIncomeParentCode
     chartOfAccountPaymentHoldingParentCode

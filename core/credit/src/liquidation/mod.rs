@@ -1,25 +1,31 @@
 mod entity;
 pub mod error;
+mod ledger;
 mod repo;
 
 use std::sync::Arc;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use serde::{Deserialize, Serialize};
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-use cala_ledger::TransactionId as CalaTransactionId;
+use cala_ledger::{
+    AccountId as CalaAccountId, CalaLedger, JournalId, TransactionId as CalaTransactionId,
+};
 use core_money::{Satoshis, UsdCents};
-use es_entity::DbOp;
+use es_entity::{DbOp, Idempotent};
 use obix::out::OutboxEventMarker;
 
 use crate::{
-    CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId, LiquidationId, PaymentId,
+    CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId, LedgerOmnibusAccountIds,
+    LiquidationId, PaymentId, PaymentSourceAccountId,
 };
-pub use entity::NewLiquidation;
-pub use entity::{Liquidation, LiquidationEvent};
+use entity::NewLiquidationBuilder;
+pub use entity::{Liquidation, LiquidationEvent, NewLiquidation};
 use error::LiquidationError;
+use ledger::LiquidationLedger;
 pub(crate) use repo::LiquidationRepo;
 pub use repo::liquidation_cursor;
 
@@ -30,6 +36,8 @@ where
 {
     repo: LiquidationRepo<E>,
     authz: Arc<Perms>,
+    ledger: LiquidationLedger,
+    proceeds_omnibus_account_ids: LedgerOmnibusAccountIds,
 }
 
 impl<Perms, E> Clone for Liquidations<Perms, E>
@@ -41,6 +49,8 @@ where
         Self {
             repo: self.repo.clone(),
             authz: self.authz.clone(),
+            ledger: self.ledger.clone(),
+            proceeds_omnibus_account_ids: self.proceeds_omnibus_account_ids.clone(),
         }
     }
 }
@@ -52,15 +62,20 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    pub fn new(
+    pub async fn init(
         pool: &sqlx::PgPool,
+        journal_id: JournalId,
+        cala: &CalaLedger,
+        proceeds_omnibus_account_ids: &LedgerOmnibusAccountIds,
         authz: Arc<Perms>,
         publisher: &crate::CreditFacilityPublisher<E>,
-    ) -> Self {
-        Self {
+    ) -> Result<Self, LiquidationError> {
+        Ok(Self {
             repo: LiquidationRepo::new(pool, publisher),
             authz,
-        }
+            ledger: LiquidationLedger::init(cala, journal_id).await?,
+            proceeds_omnibus_account_ids: proceeds_omnibus_account_ids.clone(),
+        })
     }
 
     #[instrument(
@@ -73,7 +88,7 @@ where
         &self,
         db: &mut DbOp<'_>,
         credit_facility_id: CreditFacilityId,
-        new_liquidation: NewLiquidation,
+        new_liquidation: &mut NewLiquidationBuilder,
     ) -> Result<Option<Liquidation>, LiquidationError> {
         let existing_liquidation = self
             .repo
@@ -87,7 +102,18 @@ where
             .record("existing_liquidation_found", existing_liquidation.is_some());
 
         if existing_liquidation.is_none() {
-            let liquidation = self.repo.create_in_op(db, new_liquidation).await?;
+            let liquidation = self
+                .repo
+                .create_in_op(
+                    db,
+                    new_liquidation
+                        .liquidation_proceeds_omnibus_account_id(
+                            self.proceeds_omnibus_account_ids.account_id,
+                        )
+                        .build()
+                        .expect("Could not build new liquidation"),
+                )
+                .await?;
             Ok(Some(liquidation))
         } else {
             Ok(None)
@@ -116,9 +142,9 @@ where
                 CoreCreditAction::LIQUIDATION_RECORD_COLLATERAL_SENT,
             )
             .await?;
-
-        let mut liquidation = self.repo.find_by_id(liquidation_id).await?;
         let mut db = self.repo.begin_op().await?;
+
+        let mut liquidation = self.repo.find_by_id_in_op(&mut db, liquidation_id).await?;
 
         let tx_id = CalaTransactionId::new();
 
@@ -127,7 +153,15 @@ where
             .did_execute()
         {
             self.repo.update_in_op(&mut db, &mut liquidation).await?;
-            // TODO: ledger send collateral for liquidation
+            self.ledger
+                .record_collateral_sent_in_op(
+                    &mut db,
+                    tx_id,
+                    amount,
+                    liquidation.collateral_account_id,
+                    liquidation.collateral_in_liquidation_account_id,
+                )
+                .await?;
         }
 
         db.commit().await?;
@@ -136,15 +170,15 @@ where
     }
 
     #[instrument(
-        name = "credit.liquidation.record_payment_from_liquidation",
+        name = "credit.liquidation.record_proceeds_from_liquidation",
         skip(self, sub),
         err
     )]
-    pub async fn record_payment_from_liquidation(
+    pub async fn record_proceeds_from_liquidation(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         liquidation_id: LiquidationId,
-        amount: UsdCents,
+        amount_received: UsdCents,
     ) -> Result<Liquidation, LiquidationError> {
         self.authz
             .enforce_permission(
@@ -154,17 +188,20 @@ where
             )
             .await?;
 
-        let mut liquidation = self.repo.find_by_id(liquidation_id).await?;
         let mut db = self.repo.begin_op().await?;
+        let mut liquidation = self.repo.find_by_id_in_op(&mut db, liquidation_id).await?;
 
-        // TODO: post transaction in op
         let tx_id = CalaTransactionId::new();
 
-        if liquidation
-            .record_repayment_from_liquidation(amount, PaymentId::new(), tx_id)?
-            .did_execute()
-        {
+        if let Idempotent::Executed(data) = liquidation.record_proceeds_from_liquidation(
+            amount_received,
+            PaymentId::new(),
+            tx_id,
+        )? {
             self.repo.update_in_op(&mut db, &mut liquidation).await?;
+            self.ledger
+                .record_proceeds_from_liquidation_in_op(&mut db, tx_id, data)
+                .await?;
         }
 
         db.commit().await?;
@@ -264,5 +301,48 @@ where
         self.repo
             .list_by_id(query, es_entity::ListDirection::Descending)
             .await
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct RecordProceedsFromLiquidationData {
+    pub liquidation_proceeds_omnibus_account_id: CalaAccountId,
+    pub proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccountId,
+    pub amount_received: UsdCents,
+    pub collateral_in_liquidation_account_id: CalaAccountId,
+    pub liquidated_collateral_account_id: CalaAccountId,
+    pub amount_liquidated: Satoshis,
+}
+
+#[derive(Clone, Debug, Copy, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+#[serde(transparent)]
+pub struct FacilityProceedsFromLiquidationAccountId(CalaAccountId);
+
+impl FacilityProceedsFromLiquidationAccountId {
+    pub fn new() -> Self {
+        Self(CalaAccountId::new())
+    }
+
+    pub const fn into_inner(self) -> CalaAccountId {
+        self.0
+    }
+}
+
+impl Default for FacilityProceedsFromLiquidationAccountId {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl From<FacilityProceedsFromLiquidationAccountId> for PaymentSourceAccountId {
+    fn from(account: FacilityProceedsFromLiquidationAccountId) -> Self {
+        Self::new(account.0)
+    }
+}
+
+impl From<FacilityProceedsFromLiquidationAccountId> for CalaAccountId {
+    fn from(account: FacilityProceedsFromLiquidationAccountId) -> Self {
+        account.0
     }
 }

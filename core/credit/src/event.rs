@@ -6,7 +6,10 @@ use schemars::JsonSchema;
 
 use core_money::{Satoshis, UsdCents};
 
-use crate::{CollateralizationState, CreditFacilityReceivable, TermValues, terms::InterestPeriod};
+use crate::{
+    CollateralizationState, CreditFacilityReceivable, FacilityProceedsFromLiquidationAccountId,
+    TermValues, terms::InterestPeriod,
+};
 
 use super::primitives::*;
 
@@ -122,7 +125,6 @@ pub enum CoreCreditEvent {
         liquidation_id: LiquidationId,
         credit_facility_id: CreditFacilityId,
         customer_id: CustomerId,
-        payment_holding_account_id: CalaAccountId,
         trigger_price: PriceOfOneBTC,
         initially_expected_to_receive: UsdCents,
         initially_estimated_to_liquidate: Satoshis,
@@ -135,12 +137,13 @@ pub enum CoreCreditEvent {
         recorded_at: DateTime<Utc>,
         effective: chrono::NaiveDate,
     },
-    PartialLiquidationRepaymentAmountReceived {
+    PartialLiquidationProceedsReceived {
         liquidation_id: LiquidationId,
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
         payment_id: PaymentId,
-        payment_holding_account_id: CalaAccountId,
+        facility_payment_holding_account_id: CalaAccountId,
+        facility_proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccountId,
         ledger_tx_id: LedgerTxId,
         recorded_at: DateTime<Utc>,
         effective: chrono::NaiveDate,

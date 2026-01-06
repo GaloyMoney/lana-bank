@@ -8,7 +8,7 @@ import { useTranslations } from "next-intl"
 import { LiquidationDetailsCard } from "./details"
 import { LiquidationCreditFacilityCard } from "./credit-facility-card"
 import { LiquidationCollateralSentTable } from "./collateral-sent-table"
-import { LiquidationPaymentReceivedTable } from "./payment-received-table"
+import { LiquidationProceedsReceivedTable } from "./payment-received-table"
 
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 import { useGetLiquidationDetailsQuery } from "@/lib/graphql/generated"
@@ -19,7 +19,7 @@ gql`
     ledgerTxId
   }
 
-  fragment LiquidationPaymentReceivedFragment on LiquidationPaymentReceived {
+  fragment LiquidationProceedsReceivedFragment on LiquidationProceedsReceived {
     amount
     ledgerTxId
   }
@@ -30,7 +30,7 @@ gql`
     creditFacilityId
     expectedToReceive
     sentTotal
-    receivedTotal
+    amountReceived
     createdAt
     completed
     creditFacility {
@@ -80,8 +80,8 @@ gql`
     sentCollateral {
       ...LiquidationCollateralSentFragment
     }
-    receivedPayment {
-      ...LiquidationPaymentReceivedFragment
+    receivedProceeds {
+      ...LiquidationProceedsReceivedFragment
     }
   }
 
@@ -119,8 +119,8 @@ function LiquidationPage({
         <LiquidationCollateralSentTable
           collateralSent={data.liquidation.sentCollateral}
         />
-        <LiquidationPaymentReceivedTable
-          paymentsReceived={data.liquidation.receivedPayment}
+        <LiquidationProceedsReceivedTable
+          paymentsReceived={data.liquidation.receivedProceeds}
         />
       </div>
     </main>

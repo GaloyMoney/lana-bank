@@ -8,12 +8,12 @@ pub const CREDIT_FACILITY_OMNIBUS_ACCOUNT_SET_NAME: &str = "Credit Facility Omni
 pub const CREDIT_FACILITY_OMNIBUS_ACCOUNT_SET_REF: &str = "credit-facility-omnibus-account-set";
 pub const CREDIT_FACILITY_OMNIBUS_ACCOUNT_REF: &str = "credit-facility-omnibus-account";
 
-pub const CREDIT_FACILITY_IN_LIQUIDATION_OMNIBUS_ACCOUNT_SET_NAME: &str =
-    "Credit Facility In-Liquidation Omnibus Account Set";
-pub const CREDIT_FACILITY_IN_LIQUIDATION_OMNIBUS_ACCOUNT_SET_REF: &str =
-    "credit-facility-in-liquidation-omnibus-account-set";
-pub const CREDIT_FACILITY_IN_LIQUIDATION_OMNIBUS_ACCOUNT_REF: &str =
-    "credit-facility-in-liquidation-omnibus-account";
+pub const CREDIT_FACILITY_LIQUIDATION_PROCEEDS_OMNIBUS_ACCOUNT_SET_NAME: &str =
+    "Credit Facility Liquidation Proceeds Omnibus Account Set";
+pub const CREDIT_FACILITY_LIQUIDATION_PROCEEDS_OMNIBUS_ACCOUNT_SET_REF: &str =
+    "credit-facility-liquidation-proceeds-omnibus-account-set";
+pub const CREDIT_FACILITY_LIQUIDATION_PROCEEDS_OMNIBUS_ACCOUNT_REF: &str =
+    "credit-facility-liquidation-proceeds-omnibus-account";
 
 // Summary Accounts
 pub const CREDIT_FACILITY_REMAINING_ACCOUNT_SET_NAME: &str =
@@ -23,10 +23,18 @@ pub const CREDIT_FACILITY_REMAINING_ACCOUNT_SET_REF: &str = "credit-facility-rem
 pub const CREDIT_COLLATERAL_ACCOUNT_SET_NAME: &str = "Credit Collateral Account Set";
 pub const CREDIT_COLLATERAL_ACCOUNT_SET_REF: &str = "credit-collateral-account-set";
 
-pub const CREDIT_FACILITY_IN_LIQUIDATION_ACCOUNT_SET_NAME: &str =
-    "Credit Facility In-Liquidation Account Set";
-pub const CREDIT_FACILITY_IN_LIQUIDATION_ACCOUNT_SET_REF: &str =
-    "credit-facility-in-liquidation-account-set";
+pub const CREDIT_FACILITY_COLLATERAL_IN_LIQUIDATION_ACCOUNT_SET_NAME: &str =
+    "Credit Facility Collateral In-Liquidation Account Set";
+pub const CREDIT_FACILITY_COLLATERAL_IN_LIQUIDATION_ACCOUNT_SET_REF: &str =
+    "credit-facility-collateral-in-liquidation-account-set";
+pub const CREDIT_FACILITY_LIQUIDATED_COLLATERAL_ACCOUNT_SET_NAME: &str =
+    "Credit Facility Liquidated Collateral Account Set";
+pub const CREDIT_FACILITY_LIQUIDATED_COLLATERAL_ACCOUNT_SET_REF: &str =
+    "credit-facility-liquidated-collateral-account-set";
+pub const CREDIT_FACILITY_PROCEEDS_FROM_LIQUIDATION_ACCOUNT_SET_NAME: &str =
+    "Credit Facility Proceeds From Liquidation Account Set";
+pub const CREDIT_FACILITY_PROCEEDS_FROM_LIQUIDATION_ACCOUNT_SET_REF: &str =
+    "credit-facility-proceeds-from-liquidation-account-set";
 
 pub const SHORT_TERM_CREDIT_INDIVIDUAL_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME: &str =
     "Short Term Credit Individual Disbursed Receivable Account Set";

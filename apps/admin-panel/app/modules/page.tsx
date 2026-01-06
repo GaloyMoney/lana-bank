@@ -54,10 +54,10 @@ gql`
     creditConfig {
       chartOfAccountFacilityOmnibusParentCode
       chartOfAccountCollateralOmnibusParentCode
-      chartOfAccountInLiquidationOmnibusParentCode
+      chartOfAccountLiquidationProceedsOmnibusParentCode
       chartOfAccountFacilityParentCode
       chartOfAccountCollateralParentCode
-      chartOfAccountInLiquidationParentCode
+      chartOfAccountCollateralInLiquidationParentCode
       chartOfAccountInterestIncomeParentCode
       chartOfAccountFeeIncomeParentCode
       chartOfAccountPaymentHoldingParentCode

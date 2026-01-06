@@ -582,12 +582,13 @@ type CreditFacilityInterestAccrued {
 
 type CreditFacilityLedgerAccounts {
 	facilityAccountId: UUID!
-	inLiquidationAccountId: UUID!
 	disbursedReceivableNotYetDueAccountId: UUID!
 	disbursedReceivableDueAccountId: UUID!
 	disbursedReceivableOverdueAccountId: UUID!
 	disbursedDefaultedAccountId: UUID!
 	collateralAccountId: UUID!
+	collateralInLiquidationAccountId: UUID!
+	proceedsFromLiquidationAccountId: UUID!
 	interestReceivableNotYetDueAccountId: UUID!
 	interestReceivableDueAccountId: UUID!
 	interestReceivableOverdueAccountId: UUID!
@@ -595,12 +596,13 @@ type CreditFacilityLedgerAccounts {
 	interestIncomeAccountId: UUID!
 	feeIncomeAccountId: UUID!
 	facilityAccount: LedgerAccount!
-	inLiquidationAccount: LedgerAccount!
 	disbursedReceivableNotYetDueAccount: LedgerAccount!
 	disbursedReceivableDueAccount: LedgerAccount!
 	disbursedReceivableOverdueAccount: LedgerAccount!
 	disbursedDefaultedAccount: LedgerAccount!
 	collateralAccount: LedgerAccount!
+	collateralInLiquidationAccount: LedgerAccount!
+	proceedsFromLiquidationAccount: LedgerAccount!
 	interestReceivableNotYetDueAccount: LedgerAccount!
 	interestReceivableDueAccount: LedgerAccount!
 	interestReceivableOverdueAccount: LedgerAccount!
@@ -743,10 +745,10 @@ type CreditModuleConfig {
 	chartOfAccountsId: UUID
 	chartOfAccountFacilityOmnibusParentCode: String
 	chartOfAccountCollateralOmnibusParentCode: String
-	chartOfAccountInLiquidationOmnibusParentCode: String
+	chartOfAccountLiquidationProceedsOmnibusParentCode: String
 	chartOfAccountFacilityParentCode: String
 	chartOfAccountCollateralParentCode: String
-	chartOfAccountInLiquidationParentCode: String
+	chartOfAccountCollateralInLiquidationParentCode: String
 	chartOfAccountInterestIncomeParentCode: String
 	chartOfAccountFeeIncomeParentCode: String
 	chartOfAccountPaymentHoldingParentCode: String
@@ -790,10 +792,10 @@ type CreditModuleConfig {
 input CreditModuleConfigureInput {
 	chartOfAccountFacilityOmnibusParentCode: String!
 	chartOfAccountCollateralOmnibusParentCode: String!
-	chartOfAccountInLiquidationOmnibusParentCode: String!
+	chartOfAccountLiquidationProceedsOmnibusParentCode: String!
 	chartOfAccountFacilityParentCode: String!
 	chartOfAccountCollateralParentCode: String!
-	chartOfAccountInLiquidationParentCode: String!
+	chartOfAccountCollateralInLiquidationParentCode: String!
 	chartOfAccountInterestIncomeParentCode: String!
 	chartOfAccountFeeIncomeParentCode: String!
 	chartOfAccountPaymentHoldingParentCode: String!
@@ -1625,12 +1627,12 @@ type Liquidation {
 	creditFacilityId: UUID!
 	expectedToReceive: UsdCents!
 	sentTotal: Satoshis!
-	receivedTotal: UsdCents!
+	amountReceived: UsdCents!
 	createdAt: Timestamp!
 	completed: Boolean!
 	creditFacility: CreditFacility!
 	sentCollateral: [LiquidationCollateralSent!]!
-	receivedPayment: [LiquidationPaymentReceived!]!
+	receivedProceeds: [LiquidationProceedsReceived!]!
 }
 
 type LiquidationCollateralSent {
@@ -1667,7 +1669,7 @@ type LiquidationEdge {
 	cursor: String!
 }
 
-type LiquidationPaymentReceived {
+type LiquidationProceedsReceived {
 	amount: UsdCents!
 	ledgerTxId: UUID!
 }
@@ -1681,12 +1683,12 @@ type LiquidationRecordCollateralSentPayload {
 	liquidation: Liquidation!
 }
 
-input LiquidationRecordPaymentReceivedInput {
+input LiquidationRecordProceedsReceivedInput {
 	liquidationId: UUID!
 	amount: UsdCents!
 }
 
-type LiquidationRecordPaymentReceivedPayload {
+type LiquidationRecordProceedsReceivedPayload {
 	liquidation: Liquidation!
 }
 
@@ -1782,7 +1784,7 @@ type Mutation {
 	creditFacilityDisbursalInitiate(input: CreditFacilityDisbursalInitiateInput!): CreditFacilityDisbursalInitiatePayload!
 	creditFacilityComplete(input: CreditFacilityCompleteInput!): CreditFacilityCompletePayload!
 	liquidationRecordCollateralSent(input: LiquidationRecordCollateralSentInput!): LiquidationRecordCollateralSentPayload!
-	liquidationRecordPaymentReceived(input: LiquidationRecordPaymentReceivedInput!): LiquidationRecordPaymentReceivedPayload!
+	liquidationRecordProceedsReceived(input: LiquidationRecordProceedsReceivedInput!): LiquidationRecordProceedsReceivedPayload!
 	custodianCreate(input: CustodianCreateInput!): CustodianCreatePayload!
 	custodianConfigUpdate(input: CustodianConfigUpdateInput!): CustodianConfigUpdatePayload!
 	committeeCreate(input: CommitteeCreateInput!): CommitteeCreatePayload!

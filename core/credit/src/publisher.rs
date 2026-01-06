@@ -99,7 +99,6 @@ where
                 }),
                 PartialLiquidationInitiated {
                     liquidation_id,
-                    payment_holding_account_id,
                     trigger_price,
                     initially_expected_to_receive,
                     initially_estimated_to_liquidate,
@@ -107,7 +106,6 @@ where
                     credit_facility_id: entity.id,
                     liquidation_id: *liquidation_id,
                     customer_id: entity.customer_id,
-                    payment_holding_account_id: *payment_holding_account_id,
                     trigger_price: *trigger_price,
                     initially_expected_to_receive: *initially_expected_to_receive,
                     initially_estimated_to_liquidate: *initially_estimated_to_liquidate,
@@ -416,16 +414,18 @@ where
                         payment_id: *payment_id,
                     })
                 }
-                RepaymentAmountReceived {
+                ProceedsFromLiquidationReceived {
                     amount,
                     ledger_tx_id,
                     payment_id,
-                } => Some(CoreCreditEvent::PartialLiquidationRepaymentAmountReceived {
+                } => Some(CoreCreditEvent::PartialLiquidationProceedsReceived {
                     liquidation_id: entity.id,
                     credit_facility_id: entity.credit_facility_id,
                     amount: *amount,
                     payment_id: *payment_id,
-                    payment_holding_account_id: entity.payment_holding_account_id,
+                    facility_payment_holding_account_id: entity.facility_payment_holding_account_id,
+                    facility_proceeds_from_liquidation_account_id: entity
+                        .facility_proceeds_from_liquidation_account_id,
                     ledger_tx_id: *ledger_tx_id,
                     recorded_at: event.recorded_at,
                     effective: event.recorded_at.date_naive(),

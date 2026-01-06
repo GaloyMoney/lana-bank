@@ -65,6 +65,12 @@
     "CreditFacilityLedgerAccountIds": {
       "properties": {
         "collateral_account_id": {
+          "description": "Holds BTC collateral for this credit facility.",
+          "format": "uuid",
+          "type": "string"
+        },
+        "collateral_in_liquidation_account_id": {
+          "description": "Holds BTC collateral for this credit facility, that is being\nliquidated.",
           "format": "uuid",
           "type": "string"
         },
@@ -92,10 +98,6 @@
           "format": "uuid",
           "type": "string"
         },
-        "in_liquidation_account_id": {
-          "format": "uuid",
-          "type": "string"
-        },
         "interest_defaulted_account_id": {
           "format": "uuid",
           "type": "string"
@@ -116,19 +118,32 @@
           "format": "uuid",
           "type": "string"
         },
+        "liquidated_collateral_account_id": {
+          "description": "Holds BTC collateral for this credit facility, that has\nalready been liquidated.",
+          "format": "uuid",
+          "type": "string"
+        },
         "payment_holding_account_id": {
+          "description": "Holds funds meant for payment allocation.",
+          "format": "uuid",
+          "type": "string"
+        },
+        "proceeds_from_liquidation_account_id": {
+          "description": "Holds funds received from liquidation.",
           "format": "uuid",
           "type": "string"
         }
       },
       "required": [
         "facility_account_id",
-        "in_liquidation_account_id",
         "disbursed_receivable_not_yet_due_account_id",
         "disbursed_receivable_due_account_id",
         "disbursed_receivable_overdue_account_id",
         "disbursed_defaulted_account_id",
         "collateral_account_id",
+        "collateral_in_liquidation_account_id",
+        "liquidated_collateral_account_id",
+        "proceeds_from_liquidation_account_id",
         "interest_receivable_not_yet_due_account_id",
         "interest_receivable_due_account_id",
         "interest_receivable_overdue_account_id",
@@ -550,10 +565,6 @@
           "format": "uuid",
           "type": "string"
         },
-        "payment_holding_account_id": {
-          "format": "uuid",
-          "type": "string"
-        },
         "trigger_price": {
           "$ref": "#/$defs/PriceOfOneBTC"
         },
@@ -565,7 +576,6 @@
       "required": [
         "type",
         "liquidation_id",
-        "payment_holding_account_id",
         "trigger_price",
         "initially_expected_to_receive",
         "initially_estimated_to_liquidate"
