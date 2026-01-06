@@ -34,9 +34,8 @@ where
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
     document_storage: DocumentStorage,
-    jobs: Jobs,
+    generate_loan_agreement_job_spawner: GenerateLoanAgreementJobSpawner<Perms, E>,
     authz: Perms,
-    _phantom: std::marker::PhantomData<(Perms, E)>,
 }
 
 impl<Perms: PermissionCheck, E> Clone for ContractCreation<Perms, E>
@@ -47,9 +46,8 @@ where
     fn clone(&self) -> Self {
         Self {
             document_storage: self.document_storage.clone(),
-            jobs: self.jobs.clone(),
+            generate_loan_agreement_job_spawner: self.generate_loan_agreement_job_spawner.clone(),
             authz: self.authz.clone(),
-            _phantom: self._phantom,
         }
     }
 }
@@ -67,26 +65,26 @@ where
         customers: &Customers<Perms, E>,
         applicants: &Applicants<Perms, E>,
         document_storage: &DocumentStorage,
-        jobs: &Jobs,
+        jobs: &mut Jobs,
         authz: &Perms,
     ) -> Self {
         let renderer = rendering::Renderer::new();
         let contract_templates = templates::ContractTemplates::new();
 
         // Initialize the job system for contract creation
-        jobs.add_initializer(GenerateLoanAgreementJobInitializer::new(
-            customers,
-            applicants,
-            document_storage,
-            contract_templates,
-            renderer.clone(),
-        ));
+        let generate_loan_agreement_job_spawner =
+            jobs.add_initializer(GenerateLoanAgreementJobInitializer::new(
+                customers,
+                applicants,
+                document_storage,
+                contract_templates,
+                renderer.clone(),
+            ));
 
         Self {
             document_storage: document_storage.clone(),
-            jobs: jobs.clone(),
+            generate_loan_agreement_job_spawner,
             authz: authz.clone(),
-            _phantom: std::marker::PhantomData,
         }
     }
 
@@ -121,8 +119,8 @@ where
             )
             .await?;
 
-        self.jobs
-            .create_and_spawn_in_op::<GenerateLoanAgreementConfig<Perms, E>>(
+        self.generate_loan_agreement_job_spawner
+            .spawn_in_op(
                 &mut db,
                 JobId::from(uuid::Uuid::from(document.id)),
                 GenerateLoanAgreementConfig::<Perms, E> {

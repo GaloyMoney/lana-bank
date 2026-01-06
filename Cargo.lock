@@ -1295,7 +1295,7 @@ dependencies = [
  "document-storage",
  "es-entity",
  "handlebars",
- "job 0.4.0",
+ "job 0.6.0",
  "obix",
  "rendering",
  "schemars 1.1.0",
