@@ -111,7 +111,7 @@ impl LanaApp {
         )
         .await?;
 
-        let dashboard = Dashboard::init(&pool, &authz, &jobs, &outbox).await?;
+        let dashboard = Dashboard::init(&pool, &authz, &mut job_new, &outbox).await?;
         let governance = Governance::new(&pool, &authz, &outbox);
         let storage = Storage::new(&config.storage);
         let reports = Reports::init(&pool, &authz, config.report, &outbox, &storage).await?;
