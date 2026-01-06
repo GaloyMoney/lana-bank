@@ -7,7 +7,7 @@ mod job;
 use error::*;
 use job::*;
 
-use ::job::Jobs;
+use ::job::{JobId, Jobs};
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
@@ -68,17 +68,22 @@ where
     #[record_error_severity]
     #[tracing::instrument(name = "deposit_sync.init", skip_all)]
     pub async fn init(
-        jobs: &Jobs,
+        jobs: &mut Jobs,
         outbox: &Outbox<E>,
         deposits: &CoreDeposit<Perms, E>,
         customers: &Customers<Perms, E>,
         sumsub_client: SumsubClient,
     ) -> Result<Self, DepositSyncError> {
-        jobs.add_initializer_and_spawn_unique(
-            SumsubExportInit::new(outbox, sumsub_client, deposits, customers),
-            SumsubExportJobConfig::<Perms, E>::new(),
-        )
-        .await?;
+        let sumsub_export_job_spawner = jobs.add_initializer(SumsubExportInit::new(
+            outbox,
+            sumsub_client,
+            deposits,
+            customers,
+        ));
+
+        sumsub_export_job_spawner
+            .spawn_unique(JobId::new(), SumsubExportJobConfig::new())
+            .await?;
 
         Ok(Self {
             _phantom: std::marker::PhantomData,
