@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from dagster_dbt import DbtCliResource
@@ -8,5 +9,6 @@ dbt_resource = DbtCliResource(project_dir=Path("/lana-dw/src/dbt_lana_dw/"))
 dbt_parse_invocation = dbt_resource.cli(["parse"], manifest={}).wait()
 DBT_MANIFEST_PATH = dbt_parse_invocation.target_path.joinpath("manifest.json")
 
-# Run UDF creation once at startup (instead of on-run-start hook on every model run)
-dbt_resource.cli(["run-operation", "create_udfs"]).wait()
+# Set SKIP_BIGQUERY_UDFS=true in environments without BigQuery access (e.g., smoketests)
+if os.environ.get("SKIP_BIGQUERY_UDFS", "").lower() != "true":
+    dbt_resource.cli(["run-operation", "create_udfs"]).wait()
