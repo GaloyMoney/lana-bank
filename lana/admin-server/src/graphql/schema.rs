@@ -15,7 +15,7 @@ use crate::primitives::*;
 use super::{
     access::*, accounting::*, approval_process::*, audit::*, balance_sheet_config::*, committee::*,
     contract_creation::*, credit_config::*, credit_facility::*, custody::*, customer::*,
-    dashboard::*, deposit::*, deposit_config::*, document::*, loader::*, me::*, notification::*,
+    dashboard::*, deposit::*, deposit_config::*, document::*, exposed_config::*, loader::*, me::*,
     policy::*, price::*, profit_and_loss_config::*, public_id::*, reports::*, sumsub::*,
     terms_template::*, withdrawal::*,
 };
@@ -964,13 +964,13 @@ impl Query {
         Ok(config.map(DepositModuleConfig::from))
     }
 
-    async fn notification_email_config(
+    async fn exposed_configs(
         &self,
         ctx: &Context<'_>,
-    ) -> async_graphql::Result<NotificationEmailConfig> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let config = app.notification().get_email_config(sub).await?;
-        Ok(NotificationEmailConfig::from(config))
+    ) -> async_graphql::Result<Vec<ExposedConfigItem>> {
+        let (app, _sub) = app_and_sub_from_ctx!(ctx);
+        let configs = app.exposed_configs().list().await?;
+        Ok(configs.into_iter().map(ExposedConfigItem::from).collect())
     }
 
     async fn credit_config(
@@ -1302,20 +1302,20 @@ impl Mutation {
         )
     }
 
-    async fn notification_email_config_update(
+    async fn update_exposed_config(
         &self,
         ctx: &Context<'_>,
-        input: NotificationEmailConfigInput,
-    ) -> async_graphql::Result<NotificationEmailConfigPayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        input: ExposedConfigUpdateInput,
+    ) -> async_graphql::Result<ExposedConfigUpdatePayload> {
+        let (app, _sub) = app_and_sub_from_ctx!(ctx);
         let updated = app
-            .notification()
-            .update_email_config(sub, input.into())
+            .exposed_configs()
+            .update(input.key, input.value.into_inner())
             .await?;
 
-        Ok(NotificationEmailConfigPayload::from(
-            NotificationEmailConfig::from(updated),
-        ))
+        Ok(ExposedConfigUpdatePayload::from(ExposedConfigItem::from(
+            updated,
+        )))
     }
 
     async fn deposit_module_configure(

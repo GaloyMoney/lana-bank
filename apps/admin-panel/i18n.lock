@@ -93,10 +93,6 @@ checksums:
     Permissions/governance_viewer/description: 84a7ff7991222611fe8a7d55bd61aacc
     Permissions/governance_writer/label: b9dd0624ee128d1ece7da289d0c28eb5
     Permissions/governance_writer/description: 56c0335d078338288795e0cd66062197
-    Permissions/notification_email_config_viewer/label: 04a7848c3529d9347a3f47084102ac6c
-    Permissions/notification_email_config_viewer/description: 4f00a2c98c96adbcc6e06198f5606faf
-    Permissions/notification_email_config_writer/label: f1fcc74d45a6b0ba8017e188b27cb1ec
-    Permissions/notification_email_config_writer/description: fe822d3d451d1d69dd430f76e2ad3944
     Permissions/custody_viewer/label: 0367a13b223d99c79edcac6d4bc69d38
     Permissions/custody_viewer/description: 5be32922e339e74936937610f32d03d4
     Permissions/custody_writer/label: d7d4513c6a80a74f28e925ad18a81fc1
@@ -114,6 +110,24 @@ checksums:
     Configurations/notificationEmail/saveSuccess: af7f32e1027ffb939cbe97a98f69fe6e
     Configurations/notificationEmail/saveError: 82584a6533562246393c38fb93c7b2da
     Configurations/notificationEmail/saveErrorWithReason: 5308e02e10c0e633d7436b602ca685ae
+    Configurations/exposedConfigs/title: 5edd48eb0ec1ff93f78c1b4c157eeb3d
+    Configurations/exposedConfigs/description: 6d27809d8e4e8dd4eaf2d1ce2cfffb15
+    Configurations/exposedConfigs/empty: 2acc247ffad9f7fdf024b951c23274b9
+    Configurations/exposedConfigs/valueLabel: 34b0eaa85808b15cbc4be94c64d0146b
+    Configurations/exposedConfigs/save: f7a2929f33bc420195e59ac5a8bcd454
+    Configurations/exposedConfigs/saveSuccess: d6fc2167f58b418d86d5091a88fcb631
+    Configurations/exposedConfigs/saveError: a73f95f838799d69b5d91867e4bc7c3d
+    Configurations/exposedConfigs/saveErrorWithReason: 841f7f0327d5bf82d4148fa3af2ff3d4
+    Configurations/exposedConfigs/loadError: 715058d754fd3760f7a3961442df591f
+    Configurations/exposedConfigs/invalidInt: c042e286aaeb6f16f5aaa7b3cd2db3b7
+    Configurations/exposedConfigs/invalidUint: 2d56c5a2c1c81303a1458c98ac6dc453
+    Configurations/exposedConfigs/invalidDecimal: 94b1923cb4c5452baa0459f9fc37e0cc
+    Configurations/exposedConfigs/invalidJson: a842443a1a3b3cd7a3d3d2ec70907f38
+    Configurations/exposedConfigs/invalidValue: 21206cbd8203dc76136faaf1e986309e
+    Configurations/notification-email-from-email/title: 52f3f83e83a55f5e81d17f1990c2cf5c
+    Configurations/notification-email-from-email/description: 1a4d3315fff2155c42d63353d05fabe4
+    Configurations/notification-email-from-name/title: 71cc11e03f84091d642c0ff7f31de611
+    Configurations/notification-email-from-name/description: 3c76bee2031652a6201c9e46f3ec61d4
     interestInterval/endOfDay: 24234805a9fd10dfe74eaeafec362699
     interestInterval/endOfMonth: df268ce61af23ae591e0a727f34ad13f
     period/days: 47648cd60fc313bc3f05b70357a1d675

@@ -3,6 +3,7 @@
 
 pub mod accounting_init;
 pub mod app;
+pub mod exposed_config;
 
 pub mod applicant {
     pub use core_applicant::*;
@@ -43,7 +44,7 @@ pub mod notification {
     pub type Notification = notification::Notification<crate::authorization::Authorization>;
     pub type EmailNotification =
         notification::email::EmailNotification<crate::authorization::Authorization>;
-    pub use notification::NotificationEmailConfig;
+    pub use notification::{NotificationFromEmailConfigSpec, NotificationFromNameConfigSpec};
 }
 
 pub mod rbac {
