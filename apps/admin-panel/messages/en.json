@@ -924,7 +924,7 @@
           "status": "Status",
           "expectedToReceive": "Expected to Receive",
           "sentTotal": "Sent Total",
-          "receivedTotal": "Received Total",
+          "amountReceived": "Received Total",
           "createdAt": "Created At"
         },
         "status": {
@@ -1155,7 +1155,7 @@
         "status": "Status",
         "expectedToReceive": "Expected to Receive",
         "sentTotal": "Sent Total",
-        "receivedTotal": "Received Total",
+        "amountReceived": "Received Total",
         "createdAt": "Created At"
       }
     },
@@ -1174,7 +1174,7 @@
           "status": "Status",
           "expectedToReceive": "Expected to Receive",
           "sentTotal": "Sent Total",
-          "receivedTotal": "Received Total",
+          "amountReceived": "Received Total",
           "createdAt": "Created At"
         },
         "buttons": {

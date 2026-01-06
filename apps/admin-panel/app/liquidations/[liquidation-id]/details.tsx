@@ -51,8 +51,8 @@ export const LiquidationDetailsCard: React.FC<LiquidationDetailsProps> = ({
       value: <Balance amount={liquidation.sentTotal} currency="btc" />,
     },
     {
-      label: t("details.receivedTotal"),
-      value: <Balance amount={liquidation.receivedTotal} currency="usd" />,
+      label: t("details.amountReceived"),
+      value: <Balance amount={liquidation.amountReceived} currency="usd" />,
     },
   ]
 

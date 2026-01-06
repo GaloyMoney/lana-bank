@@ -12,7 +12,7 @@ pub struct Liquidation {
     credit_facility_id: UUID,
     expected_to_receive: UsdCents,
     sent_total: Satoshis,
-    received_total: UsdCents,
+    amount_received: UsdCents,
     created_at: Timestamp,
     completed: bool,
 
@@ -42,7 +42,7 @@ impl From<DomainLiquidation> for Liquidation {
             credit_facility_id: UUID::from(liquidation.credit_facility_id),
             expected_to_receive: liquidation.expected_to_receive,
             sent_total: liquidation.sent_total,
-            received_total: liquidation.received_total,
+            amount_received: liquidation.amount_received,
             created_at: liquidation.created_at().into(),
             completed: liquidation.is_completed(),
             entity: Arc::new(liquidation),

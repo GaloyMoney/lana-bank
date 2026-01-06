@@ -2,7 +2,7 @@ mutation LiquidationRecordProceedsReceived($input: LiquidationRecordProceedsRece
   liquidationRecordProceedsReceived(input: $input) {
     liquidation {
       liquidationId
-      receivedTotal
+      amountReceived
       receivedProceeds {
         amount
       }

@@ -30,7 +30,7 @@ gql`
     creditFacilityId
     expectedToReceive
     sentTotal
-    receivedTotal
+    amountReceived
     createdAt
     completed
     creditFacility {

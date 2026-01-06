@@ -53,9 +53,9 @@ export const CreditFacilityLiquidations: React.FC<CreditFacilityLiquidationsProp
       ),
     },
     {
-      key: "receivedTotal",
-      header: t("columns.receivedTotal"),
-      render: (amount: Liquidation["receivedTotal"]) => (
+      key: "amountReceived",
+      header: t("columns.amountReceived"),
+      render: (amount: Liquidation["amountReceived"]) => (
         <Balance amount={amount} currency="usd" />
       ),
     },

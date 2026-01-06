@@ -1627,7 +1627,7 @@ type Liquidation {
 	creditFacilityId: UUID!
 	expectedToReceive: UsdCents!
 	sentTotal: Satoshis!
-	receivedTotal: UsdCents!
+	amountReceived: UsdCents!
 	createdAt: Timestamp!
 	completed: Boolean!
 	creditFacility: CreditFacility!

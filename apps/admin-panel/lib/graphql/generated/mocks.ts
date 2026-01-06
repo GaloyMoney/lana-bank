@@ -2070,6 +2070,7 @@ export const mockLiquidation = (overrides?: Partial<Liquidation>, _relationships
     relationshipsToOmit.add('Liquidation');
     return {
         __typename: 'Liquidation',
+        amountReceived: overrides && overrides.hasOwnProperty('amountReceived') ? overrides.amountReceived! : generateMockValue.usdCents(),
         completed: overrides && overrides.hasOwnProperty('completed') ? overrides.completed! : faker.datatype.boolean(),
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
         creditFacility: overrides && overrides.hasOwnProperty('creditFacility') ? overrides.creditFacility! : relationshipsToOmit.has('CreditFacility') ? {} as CreditFacility : mockCreditFacility({}, relationshipsToOmit),
@@ -2078,7 +2079,6 @@ export const mockLiquidation = (overrides?: Partial<Liquidation>, _relationships
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         liquidationId: overrides && overrides.hasOwnProperty('liquidationId') ? overrides.liquidationId! : generateMockValue.uuid(),
         receivedProceeds: overrides && overrides.hasOwnProperty('receivedProceeds') ? overrides.receivedProceeds! : [relationshipsToOmit.has('LiquidationProceedsReceived') ? {} as LiquidationProceedsReceived : mockLiquidationProceedsReceived({}, relationshipsToOmit)],
-        receivedTotal: overrides && overrides.hasOwnProperty('receivedTotal') ? overrides.receivedTotal! : generateMockValue.usdCents(),
         sentCollateral: overrides && overrides.hasOwnProperty('sentCollateral') ? overrides.sentCollateral! : [relationshipsToOmit.has('LiquidationCollateralSent') ? {} as LiquidationCollateralSent : mockLiquidationCollateralSent({}, relationshipsToOmit)],
         sentTotal: overrides && overrides.hasOwnProperty('sentTotal') ? overrides.sentTotal! : generateMockValue.satoshis(),
     };

@@ -924,7 +924,7 @@
           "status": "Estado",
           "expectedToReceive": "Esperado a recibir",
           "sentTotal": "Total enviado",
-          "receivedTotal": "Total recibido",
+          "amountReceived": "Total recibido",
           "createdAt": "Fecha de registro"
         },
         "status": {
@@ -1155,7 +1155,7 @@
         "status": "Estado",
         "expectedToReceive": "Esperado a recibir",
         "sentTotal": "Total enviado",
-        "receivedTotal": "Total recibido",
+        "amountReceived": "Total recibido",
         "createdAt": "Fecha de registro"
       }
     },
@@ -1174,7 +1174,7 @@
           "status": "Estado",
           "expectedToReceive": "Esperado a recibir",
           "sentTotal": "Total enviado",
-          "receivedTotal": "Total recibido",
+          "amountReceived": "Total recibido",
           "createdAt": "Fecha de registro"
         },
         "buttons": {

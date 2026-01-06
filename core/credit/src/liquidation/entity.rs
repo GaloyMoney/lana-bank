@@ -58,7 +58,7 @@ pub struct Liquidation {
     pub credit_facility_id: CreditFacilityId,
     pub expected_to_receive: UsdCents,
     pub sent_total: Satoshis,
-    pub received_total: UsdCents,
+    pub amount_received: UsdCents,
     pub liquidation_proceeds_omnibus_account_id: CalaAccountId,
 
     /// Holds proceeds received from liquidator for the connected
@@ -120,12 +120,10 @@ impl Liquidation {
     ) -> Result<Idempotent<RecordProceedsFromLiquidationData>, LiquidationError> {
         idempotency_guard!(
             self.events.iter_all(),
-            LiquidationEvent::ProceedsFromLiquidationReceived {
-                payment_id: id,..
-            } if payment_id == *id
+            LiquidationEvent::ProceedsFromLiquidationReceived { .. }
         );
 
-        self.received_total += amount_received;
+        self.amount_received = amount_received;
 
         self.events
             .push(LiquidationEvent::ProceedsFromLiquidationReceived {
@@ -138,7 +136,7 @@ impl Liquidation {
             liquidation_proceeds_omnibus_account_id: self.liquidation_proceeds_omnibus_account_id,
             proceeds_from_liquidation_account_id: self
                 .facility_proceeds_from_liquidation_account_id,
-            amount_received: self.received_total,
+            amount_received: self.amount_received,
             collateral_in_liquidation_account_id: self.collateral_in_liquidation_account_id,
             liquidated_collateral_account_id: self.liquidated_collateral_account_id,
             amount_liquidated: self.sent_total,
@@ -231,7 +229,7 @@ impl TryFromEvents<LiquidationEvent> for Liquidation {
                     amount_sent += *amount;
                 }
                 LiquidationEvent::ProceedsFromLiquidationReceived { amount, .. } => {
-                    amount_received += *amount;
+                    amount_received = *amount;
                 }
                 LiquidationEvent::Completed { .. } => {}
                 LiquidationEvent::Updated {
@@ -242,7 +240,7 @@ impl TryFromEvents<LiquidationEvent> for Liquidation {
         }
 
         builder
-            .received_total(amount_received)
+            .amount_received(amount_received)
             .sent_total(amount_sent)
             .events(events)
             .build()
