@@ -1,4 +1,4 @@
-mod config;
+pub mod config;
 mod entity;
 pub mod error;
 mod repo;
@@ -15,16 +15,17 @@ use tracing_macros::record_error_severity;
 use crate::{
     FiscalYearId,
     chart_of_accounts::ChartOfAccounts,
+    fiscal_year::config::FiscalYearConfigSpec,
     primitives::{ChartId, CoreAccountingAction, CoreAccountingObject},
 };
 
+pub use config::FiscalYearConfig;
 #[cfg(feature = "json-schema")]
 pub use entity::FiscalYearEvent;
 pub(super) use entity::*;
 pub use entity::{FiscalMonthClosure, FiscalYear};
 use error::*;
 pub use repo::{fiscal_year_cursor::FiscalYearsByCreatedAtCursor, *};
-
 pub struct FiscalYears<Perms>
 where
     Perms: PermissionCheck,
@@ -303,5 +304,24 @@ where
             .await?;
 
         Ok(result.entities.into_iter().next())
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "core_accounting.fiscal_year.configure", skip(self))]
+    pub async fn configure(&self, cfg: FiscalYearConfig) -> Result<(), FiscalYearError> {
+        if self
+            .domain_configs
+            .get::<FiscalYearConfigSpec>()
+            .await
+            .is_ok()
+        {
+            return Err(FiscalYearError::FiscalYearConfigAlreadyExists);
+        }
+
+        self.domain_configs
+            .create::<FiscalYearConfigSpec>(cfg)
+            .await?;
+
+        Ok(())
     }
 }

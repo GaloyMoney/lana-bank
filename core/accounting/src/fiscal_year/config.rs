@@ -13,7 +13,6 @@ pub struct FiscalYearConfig {
     pub equity_retained_losses_account_code: String,
 }
 
-#[allow(dead_code)]
 pub struct FiscalYearConfigSpec;
 
 impl ConfigSpec for FiscalYearConfigSpec {

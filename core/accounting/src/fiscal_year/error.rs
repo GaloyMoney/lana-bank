@@ -34,6 +34,8 @@ pub enum FiscalYearError {
     FiscalYearWithInvalidOpenedAsOf(NaiveDate),
     #[error("FiscalYearError - InvalidYearString: {0}")]
     InvalidYearString(String),
+    #[error("FiscalYearError - FiscalYearConfigAlreadyExists")]
+    FiscalYearConfigAlreadyExists,
 }
 
 es_entity::from_es_entity_error!(FiscalYearError);
@@ -55,6 +57,7 @@ impl ErrorSeverity for FiscalYearError {
             Self::FiscalYearWithInvalidOpenedAsOf(_) => Level::ERROR,
             Self::InvalidYearString(_) => Level::WARN,
             Self::MonthHasNotEnded => Level::ERROR,
+            Self::FiscalYearConfigAlreadyExists => Level::ERROR,
         }
     }
 }

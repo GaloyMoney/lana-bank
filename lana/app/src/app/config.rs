@@ -53,4 +53,6 @@ pub struct AccountingInitConfig {
     pub balance_sheet_config_path: Option<PathBuf>,
     #[serde(default)]
     pub profit_and_loss_config_path: Option<PathBuf>,
+    #[serde(default)]
+    pub fiscal_year_config_path: Option<PathBuf>,
 }
