@@ -22,10 +22,11 @@ select
     questionnaires[safe_offset(0)].second_nationality as second_nationality,
     id_documents[safe_offset(0)].number as passport_number
 
-from {{ ref('int_sumsub_applicants') }}
-left join {{ ref('static_npb4_17_31_codigos_de_paises_o_territorios') }} as countries
-    on
-        countries.iso_alpha_3_code
-        = questionnaires[safe_offset(0)].country_of_residence_iso_alpha_3_code
-left join {{ ref('static_npb4_17_31_codigos_de_paises_o_territorios') }} as nationalities
+from {{ ref("int_sumsub_applicants") }}
+left join
+    {{ ref("static_npb4_17_31_codigos_de_paises_o_territorios") }} as countries
+    on countries.iso_alpha_3_code
+    = questionnaires[safe_offset(0)].country_of_residence_iso_alpha_3_code
+left join
+    {{ ref("static_npb4_17_31_codigos_de_paises_o_territorios") }} as nationalities
     on nationalities.iso_alpha_3_code = nationality_iso_alpha_3_code

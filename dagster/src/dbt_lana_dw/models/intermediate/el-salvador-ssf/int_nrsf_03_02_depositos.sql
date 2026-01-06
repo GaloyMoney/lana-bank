@@ -1,49 +1,32 @@
 with
 
-deposit_balances as (
-    select *
-    from
-        {{ ref('int_deposit_balances') }}
-)
-,
+    deposit_balances as (select * from {{ ref("int_deposit_balances") }}),
 
-deposit_accounts as (
-    select *
-    from
-        {{ ref('int_core_deposit_account_events_rollup') }}
-)
-,
+    deposit_accounts as (
+        select * from {{ ref("int_core_deposit_account_events_rollup") }}
+    ),
 
-customers as (
-    select *
-    from
-        {{ ref('int_core_customer_events_rollup') }}
-)
-,
+    customers as (select * from {{ ref("int_core_customer_events_rollup") }}),
 
-approved_credit_facilities as (
-    select *
-    from
-        {{ ref('int_approved_credit_facilities') }}
-)
-,
+    approved_credit_facilities as (
+        select * from {{ ref("int_approved_credit_facilities") }}
+    ),
 
-btc_price as (
+    btc_price as (
 
-    select any_value(last_price_usd having max requested_at) as last_price_usd
-    from {{ ref('stg_bitfinex_ticker_price') }}
+        select any_value(last_price_usd having max requested_at) as last_price_usd
+        from {{ ref("stg_bitfinex_ticker_price") }}
 
-)
-,
+    ),
 
-final as (
+    final as (
 
-    select *
-    from deposit_balances
-    left join deposit_accounts using (deposit_account_id)
-    left join customers using (customer_id)
-    left join approved_credit_facilities using (customer_id)
-)
+        select *
+        from deposit_balances
+        left join deposit_accounts using (deposit_account_id)
+        left join customers using (customer_id)
+        left join approved_credit_facilities using (customer_id)
+    )
 
 select
     'BTCL' as `Código del Producto`,
@@ -83,5 +66,4 @@ select
         safe_divide(deposit_account_balance_usd, 100000000.0),
         (select last_price_usd from btc_price)
     ) as `Saldo de capital`
-from
-    final
+from final
