@@ -1626,7 +1626,6 @@ dependencies = [
  "cloud-storage",
  "derive_builder",
  "es-entity",
- "job 0.4.0",
  "obix",
  "schemars 1.1.0",
  "serde",

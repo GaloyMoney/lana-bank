@@ -8,13 +8,11 @@ pub mod config;
 pub mod error;
 pub mod event;
 
-mod jobs;
 mod primitives;
 mod publisher;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use job::Jobs;
 use obix::out::{Outbox, OutboxEventMarker};
 use tracing_macros::*;
 
@@ -45,7 +43,6 @@ where
     reports: ReportRepo<E>,
     report_runs: ReportRunRepo<E>,
     storage: Storage,
-    jobs: Jobs,
     config: ReportConfig,
 }
 
@@ -60,7 +57,6 @@ where
             reports: self.reports.clone(),
             report_runs: self.report_runs.clone(),
             storage: self.storage.clone(),
-            jobs: self.jobs.clone(),
             config: self.config.clone(),
         }
     }
@@ -80,7 +76,6 @@ where
         authz: &Perms,
         config: ReportConfig,
         outbox: &Outbox<E>,
-        jobs: &Jobs,
         storage: &Storage,
     ) -> Result<Self, ReportError> {
         let publisher = ReportPublisher::new(outbox);
@@ -92,7 +87,6 @@ where
             storage: storage.clone(),
             reports: report_repo,
             report_runs: report_run_repo,
-            jobs: jobs.clone(),
             config: config.clone(),
         })
     }
