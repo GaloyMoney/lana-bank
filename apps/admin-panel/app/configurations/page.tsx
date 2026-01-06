@@ -1,7 +1,7 @@
 "use client"
 
 import { gql } from "@apollo/client"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useTranslations } from "next-intl"
 import { LoaderCircle } from "lucide-react"
 import { toast } from "sonner"
@@ -68,16 +68,13 @@ export default function ConfigurationsPage() {
     useUpdateExposedConfigMutation()
 
   const exposedConfigs = exposedConfigData?.exposedConfigs ?? EMPTY_CONFIGS
-  const visibleConfigs = exposedConfigs.filter(
-    (config) => config.configType !== ConfigType.Complex,
+  const visibleConfigs = useMemo(
+    () => exposedConfigs.filter((config) => config.configType !== ConfigType.Complex),
+    [exposedConfigs],
   )
 
   useEffect(() => {
-    const nextVisibleConfigs = exposedConfigs.filter(
-      (config) => config.configType !== ConfigType.Complex,
-    )
-
-    if (nextVisibleConfigs.length === 0) {
+    if (visibleConfigs.length === 0) {
       setExposedDrafts({})
       return
     }
@@ -85,7 +82,7 @@ export default function ConfigurationsPage() {
     setExposedDrafts((prev) => {
       const nextDrafts: Record<string, string | boolean> = {}
 
-      for (const config of nextVisibleConfigs) {
+      for (const config of visibleConfigs) {
         if (prev[config.key] !== undefined) {
           nextDrafts[config.key] = prev[config.key]
         } else {
@@ -95,7 +92,7 @@ export default function ConfigurationsPage() {
 
       return nextDrafts
     })
-  }, [exposedConfigs])
+  }, [visibleConfigs])
 
   const handleExposedSave = async (config: ExposedConfigItem) => {
     const draft = exposedDrafts[config.key]
