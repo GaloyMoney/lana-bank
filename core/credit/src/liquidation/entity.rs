@@ -9,7 +9,7 @@ use es_entity::*;
 use crate::primitives::*;
 
 use super::{
-    FacilityProceedsFromLiquidationAccount, RecordProceedsFromLiquidationData,
+    FacilityProceedsFromLiquidationAccountId, RecordProceedsFromLiquidationData,
     error::LiquidationError,
 };
 
@@ -22,7 +22,7 @@ pub enum LiquidationEvent {
         id: LiquidationId,
         credit_facility_id: CreditFacilityId,
         liquidation_proceeds_omnibus_account_id: CalaAccountId,
-        facility_proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccount,
+        facility_proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccountId,
         facility_payment_holding_account_id: CalaAccountId,
         collateral_account_id: CalaAccountId,
         collateral_in_liquidation_account_id: CalaAccountId,
@@ -63,7 +63,7 @@ pub struct Liquidation {
 
     /// Holds proceeds received from liquidator for the connected
     /// facility.
-    pub facility_proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccount,
+    pub facility_proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccountId,
 
     /// Holds funds meant for payments on the connected facility.
     pub facility_payment_holding_account_id: CalaAccountId,
@@ -257,7 +257,7 @@ pub struct NewLiquidation {
     pub(crate) credit_facility_id: CreditFacilityId,
     pub(crate) liquidation_proceeds_omnibus_account_id: CalaAccountId,
     pub(crate) facility_proceeds_from_liquidation_account_id:
-        FacilityProceedsFromLiquidationAccount,
+        FacilityProceedsFromLiquidationAccountId,
     pub(crate) facility_payment_holding_account_id: CalaAccountId,
     pub(crate) collateral_account_id: CalaAccountId,
     pub(crate) collateral_in_liquidation_account_id: CalaAccountId,

@@ -7,7 +7,7 @@ use schemars::JsonSchema;
 use core_money::{Satoshis, UsdCents};
 
 use crate::{
-    CollateralizationState, CreditFacilityReceivable, FacilityProceedsFromLiquidationAccount,
+    CollateralizationState, CreditFacilityReceivable, FacilityProceedsFromLiquidationAccountId,
     TermValues, terms::InterestPeriod,
 };
 
@@ -143,7 +143,7 @@ pub enum CoreCreditEvent {
         amount: UsdCents,
         payment_id: PaymentId,
         facility_payment_holding_account_id: CalaAccountId,
-        facility_proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccount,
+        facility_proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccountId,
         ledger_tx_id: LedgerTxId,
         recorded_at: DateTime<Utc>,
         effective: chrono::NaiveDate,
