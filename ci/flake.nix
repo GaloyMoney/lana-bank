@@ -123,6 +123,38 @@
         fi
       '';
 
+      next-rc-version = pkgs.writeShellScriptBin "next-rc-version" ''
+        set -euo pipefail
+
+        # Get the latest version including prereleases
+        LAST_PRERELEASE=$(${pkgs.cocogitto}/bin/cog get-version --include-prereleases 2>/dev/null || echo "")
+
+        # Handle case where no versions exist
+        if [ -z "$LAST_PRERELEASE" ]; then
+          ${pkgs.coreutils}/bin/echo -n "0.1.0-rc.1"
+          exit 0
+        fi
+
+        if ${pkgs.coreutils}/bin/echo "$LAST_PRERELEASE" | ${pkgs.gnugrep}/bin/grep -q '-'; then
+          LAST_PRERELEASE_BASE=$(${pkgs.coreutils}/bin/echo "$LAST_PRERELEASE" | ${pkgs.gnused}/bin/sed 's/-.*$//')
+
+          NEXT_BASE=$(${pkgs.cocogitto}/bin/cog bump --auto --dry-run 2>/dev/null || echo "")
+
+          if [ "$NEXT_BASE" = "$LAST_PRERELEASE_BASE" ]; then
+            # increment RC
+            RC_NUM=$(${pkgs.coreutils}/bin/echo "$LAST_PRERELEASE" | ${pkgs.gnused}/bin/sed 's/.*-rc\.//')
+            NEXT_RC=$((RC_NUM + 1))
+            ${pkgs.coreutils}/bin/echo -n "$LAST_PRERELEASE_BASE-rc.$NEXT_RC"
+          else
+            # new version, cut rc.1
+            ${pkgs.coreutils}/bin/echo -n "$NEXT_BASE-rc.1"
+          fi
+        else
+          # No previous prerelease exists, cut rc.1 on new version
+          ${pkgs.cocogitto}/bin/cog bump --auto --pre rc.1 --dry-run | ${pkgs.coreutils}/bin/tr -d '\n'
+        fi
+      '';
+
       wait-cachix-paths = pkgs.writeShellScriptBin "wait-cachix-paths" ''
         set +e  # Don't exit on non-zero return codes
 
@@ -497,6 +529,10 @@
         type = "app";
         program = "${next-version}/bin/next-version";
       };
+      apps.next-rc-version = {
+        type = "app";
+        program = "${next-rc-version}/bin/next-rc-version";
+      };
       apps.wait-cachix-paths = {
         type = "app";
         program = "${wait-cachix-paths}/bin/wait-cachix-paths";
@@ -510,6 +546,7 @@
       # For convenience, also provide as packages
       packages.check-latest-commit = check-latest-commit;
       packages.next-version = next-version;
+      packages.next-rc-version = next-rc-version;
       packages.wait-cachix-paths = wait-cachix-paths;
       packages.rebuild-nix-cache = rebuild-nix-cache;
       formatter = pkgs.alejandra;
