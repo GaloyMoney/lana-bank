@@ -432,7 +432,7 @@ impl CreditFacility {
             None => return Ok(None),
         };
         let now = crate::time::now();
-        if accrual_cycle_period.start > now {
+        if accrual_cycle_period.start > now + chrono::Duration::seconds(1) {
             return Err(CreditFacilityError::InterestAccrualCycleWithInvalidFutureStartDate);
         }
 
