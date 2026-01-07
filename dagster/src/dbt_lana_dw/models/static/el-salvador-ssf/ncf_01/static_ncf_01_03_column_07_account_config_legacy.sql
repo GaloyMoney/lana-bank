@@ -59,9 +59,11 @@ with
 
     ),
 
-    column as (select * from {{ ref("static_ncf_01_03_column_config") }})
+    column as (select * from {{ ref("static_ncf_01_03_column_config_legacy") }})
 
 select *
 from titles
-left join column on eng_column_title = 'Share Capital'
+left join
+    column
+    on eng_column_title = 'Other Comprehensive Income from Previous Financial Years'
 order by order_by

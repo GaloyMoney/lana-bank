@@ -1,4 +1,4 @@
-{% docs static_ncb_022_porcentaje_reservas_saneamiento %}
+{% docs static_ncb_022_porcentaje_reservas_saneamiento_legacy %}
 
 # This table contains the classifications and mappings defined in NCB-022 norm
 for the calculation of the Sanitation Reserves (Reservas de Saneamiento)

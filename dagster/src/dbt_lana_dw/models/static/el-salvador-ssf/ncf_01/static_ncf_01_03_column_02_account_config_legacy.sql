@@ -59,7 +59,7 @@ with
 
     ),
 
-    column as (select * from {{ ref("static_ncf_01_03_column_config") }})
+    column as (select * from {{ ref("static_ncf_01_03_column_config_legacy") }})
 
 select *
 from titles
