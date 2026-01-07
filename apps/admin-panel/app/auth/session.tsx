@@ -51,7 +51,10 @@ export const Authenticated: React.FC<Props> = ({ children }) => {
 
   const client = useMemo(() => {
     if (initialized && authenticated) {
-      return makeClient({ coreAdminGqlUrl: "/graphql" })
+      return makeClient({
+        coreAdminGqlUrl: "/graphql",
+        coreAdminSseUrl: "/graphql/stream",
+      })
     }
     return null
   }, [initialized, authenticated])

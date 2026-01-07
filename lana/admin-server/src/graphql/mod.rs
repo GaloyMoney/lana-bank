@@ -24,6 +24,7 @@ mod primitives;
 mod profit_and_loss_config;
 mod public_id;
 mod reports;
+mod subscription;
 mod sumsub;
 mod terms;
 mod terms_template;
@@ -38,12 +39,13 @@ use async_graphql::*;
 
 use loader::LanaLoader;
 pub use schema::*;
+pub use subscription::Subscription;
 
 use lana_app::app::LanaApp;
 
-pub fn schema(app: Option<LanaApp>) -> Schema<Query, Mutation, EmptySubscription> {
+pub fn schema(app: Option<LanaApp>) -> Schema<Query, Mutation, Subscription> {
     let mut schema_builder =
-        Schema::build(Query, Mutation, EmptySubscription).extension(extensions::Tracing);
+        Schema::build(Query, Mutation, Subscription).extension(extensions::Tracing);
 
     if let Some(app) = app {
         schema_builder = schema_builder.data(LanaLoader::new(&app)).data(app);

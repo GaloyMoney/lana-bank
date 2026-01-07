@@ -2917,6 +2917,16 @@ export enum SortDirection {
   Desc = 'DESC'
 }
 
+export type Subscription = {
+  __typename?: 'Subscription';
+  testPing: TestPingEvent;
+};
+
+
+export type SubscriptionTestPingArgs = {
+  message: Scalars['String']['input'];
+};
+
 export type SumsubPermalinkCreateInput = {
   customerId: Scalars['UUID']['input'];
 };
@@ -3014,6 +3024,12 @@ export type TermsTemplateUpdateInput = {
 export type TermsTemplateUpdatePayload = {
   __typename?: 'TermsTemplateUpdatePayload';
   termsTemplate: TermsTemplate;
+};
+
+export type TestPingEvent = {
+  __typename?: 'TestPingEvent';
+  message: Scalars['String']['output'];
+  timestamp: Scalars['String']['output'];
 };
 
 export type Total = {
@@ -3274,6 +3290,13 @@ export type AllActionsQuery = { __typename?: 'Query', approvalProcesses: { __typ
           | { __typename: 'CreditFacilityProposal', creditFacilityProposalId: string, customer: { __typename?: 'Customer', email: string } }
           | { __typename: 'Withdrawal', withdrawalId: string, publicId: any, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', email: string } } }
          } }> } };
+
+export type TestPingSubscriptionVariables = Exact<{
+  message: Scalars['String']['input'];
+}>;
+
+
+export type TestPingSubscription = { __typename?: 'Subscription', testPing: { __typename?: 'TestPingEvent', message: string, timestamp: string } };
 
 export type AuditLogsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -5877,6 +5900,37 @@ export type AllActionsQueryHookResult = ReturnType<typeof useAllActionsQuery>;
 export type AllActionsLazyQueryHookResult = ReturnType<typeof useAllActionsLazyQuery>;
 export type AllActionsSuspenseQueryHookResult = ReturnType<typeof useAllActionsSuspenseQuery>;
 export type AllActionsQueryResult = Apollo.QueryResult<AllActionsQuery, AllActionsQueryVariables>;
+export const TestPingDocument = gql`
+    subscription TestPing($message: String!) {
+  testPing(message: $message) {
+    message
+    timestamp
+  }
+}
+    `;
+
+/**
+ * __useTestPingSubscription__
+ *
+ * To run a query within a React component, call `useTestPingSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useTestPingSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTestPingSubscription({
+ *   variables: {
+ *      message: // value for 'message'
+ *   },
+ * });
+ */
+export function useTestPingSubscription(baseOptions: Apollo.SubscriptionHookOptions<TestPingSubscription, TestPingSubscriptionVariables> & ({ variables: TestPingSubscriptionVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<TestPingSubscription, TestPingSubscriptionVariables>(TestPingDocument, options);
+      }
+export type TestPingSubscriptionHookResult = ReturnType<typeof useTestPingSubscription>;
+export type TestPingSubscriptionResult = Apollo.SubscriptionResult<TestPingSubscription>;
 export const AuditLogsDocument = gql`
     query AuditLogs($first: Int!, $after: String) {
   audit(first: $first, after: $after) {
