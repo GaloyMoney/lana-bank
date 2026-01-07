@@ -40,6 +40,14 @@ RUN pip install \
 RUN mkdir -p /lana-dw
 COPY src/ /lana-dw/src/
 
+# Pre-generate dbt manifest at build time (local-only, no BQ connection needed)
+# Dummy env vars required for profiles.yml Jinja evaluation - values don't matter
+# since dbt parse doesn't actually connect to BigQuery
+RUN DBT_BIGQUERY_PROJECT=build-placeholder \
+    DBT_BIGQUERY_DATASET=build-placeholder \
+    DBT_BIGQUERY_CREDENTIALS_JSON='{"type":"service_account","project_id":"x"}' \
+    dbt parse --project-dir /lana-dw/src/dbt_lana_dw --profiles-dir /lana-dw/src/dbt_lana_dw
+
 EXPOSE 4000
 
 CMD ["dagster", "api", "grpc", "-h", "0.0.0.0", "-p", "4000", "-f", "/lana-dw/src/definitions.py", "-d", "/lana-dw"]
