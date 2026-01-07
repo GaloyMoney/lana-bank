@@ -4,12 +4,15 @@
 mod config;
 pub mod graphql;
 mod primitives;
-
+mod sse;
 mod webhooks;
 
 use async_graphql::*;
 use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
-use axum::{Extension, Router, middleware, routing::get};
+use axum::{
+    Extension, Router, middleware,
+    routing::{get, post},
+};
 use serde::{Deserialize, Serialize};
 use tower_http::cors::CorsLayer;
 use tracing::{info, instrument};
@@ -43,6 +46,7 @@ where
 
     let app = Router::new()
         .route("/health", get(health_check))
+        .route("/graphql/stream", post(sse::graphql_sse_post))
         .route(
             "/graphql",
             get(playground).post(axum::routing::post(graphql_handler)),
@@ -91,7 +95,7 @@ pub struct AdminJwtClaims {
 )]
 #[es_entity::es_event_context]
 pub async fn graphql_handler(
-    schema: Extension<Schema<graphql::Query, graphql::Mutation, EmptySubscription>>,
+    schema: Extension<Schema<graphql::Query, graphql::Mutation, graphql::Subscription>>,
     Claims(jwt_claims): Claims<AdminJwtClaims>,
     req: GraphQLRequest,
 ) -> GraphQLResponse {

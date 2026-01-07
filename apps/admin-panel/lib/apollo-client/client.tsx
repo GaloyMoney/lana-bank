@@ -1,9 +1,20 @@
 "use client"
 
-import { Resolvers, ApolloClient, InMemoryCache } from "@apollo/client"
-import { relayStylePagination } from "@apollo/client/utilities"
+import {
+  Resolvers,
+  ApolloClient,
+  InMemoryCache,
+  split,
+  ApolloLink,
+  Observable,
+  FetchResult,
+  Operation,
+} from "@apollo/client"
+import { relayStylePagination, getMainDefinition } from "@apollo/client/utilities"
 import { setContext } from "@apollo/client/link/context"
 import createUploadLink from "apollo-upload-client/createUploadLink.mjs"
+import { createClient } from "graphql-sse"
+import { print } from "graphql"
 
 import { getToken } from "@/app/auth/keycloak"
 
@@ -18,7 +29,49 @@ import {
 
 import { CENTS_PER_USD, SATS_PER_BTC } from "@/lib/utils"
 
-export const makeClient = ({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) => {
+class SSELink extends ApolloLink {
+  private client: ReturnType<typeof createClient>
+
+  constructor(url: string) {
+    super()
+    this.client = createClient({
+      url,
+      headers: (): Record<string, string> => {
+        const token = getToken()
+        return token ? { Authorization: `Bearer ${token}` } : {}
+      },
+    })
+  }
+
+  public request(operation: Operation) {
+    return new Observable<FetchResult>((observer) => {
+      const { query, variables, operationName } = operation
+
+      const unsubscribe = this.client.subscribe(
+        {
+          query: print(query),
+          variables,
+          operationName,
+        },
+        {
+          next: (data) => observer.next?.(data as FetchResult),
+          error: (err) => observer.error?.(err),
+          complete: () => observer.complete?.(),
+        },
+      )
+
+      return () => unsubscribe()
+    })
+  }
+}
+
+export const makeClient = ({
+  coreAdminGqlUrl,
+  coreAdminSseUrl,
+}: {
+  coreAdminGqlUrl: string
+  coreAdminSseUrl: string
+}) => {
   const uploadLink = createUploadLink({
     uri: coreAdminGqlUrl,
     credentials: "include",
@@ -33,7 +86,20 @@ export const makeClient = ({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) => 
     }
   })
 
-  const link = authLink.concat(uploadLink)
+  const httpLink = authLink.concat(uploadLink)
+  const sseLink = new SSELink(coreAdminSseUrl)
+
+  const link = split(
+    ({ query }) => {
+      const definition = getMainDefinition(query)
+      return (
+        definition.kind === "OperationDefinition" &&
+        definition.operation === "subscription"
+      )
+    },
+    sseLink,
+    httpLink,
+  )
 
   const cache = new InMemoryCache({
     typePolicies: {

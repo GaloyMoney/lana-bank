@@ -2288,6 +2288,10 @@ enum SortDirection {
 	DESC
 }
 
+type Subscription {
+	testPing(message: String!): TestPingEvent!
+}
+
 input SumsubPermalinkCreateInput {
 	customerId: UUID!
 }
@@ -2378,6 +2382,11 @@ input TermsTemplateUpdateInput {
 
 type TermsTemplateUpdatePayload {
 	termsTemplate: TermsTemplate!
+}
+
+type TestPingEvent {
+	message: String!
+	timestamp: String!
 }
 
 scalar Timestamp
@@ -2629,4 +2638,5 @@ directive @specifiedBy(url: String!) on SCALAR
 schema {
 	query: Query
 	mutation: Mutation
+	subscription: Subscription
 }
