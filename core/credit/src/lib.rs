@@ -321,6 +321,16 @@ where
         let terms_templates = TermsTemplates::new(pool, authz_arc.clone());
         let terms_templates_arc = Arc::new(terms_templates);
 
+        jobs.add_initializer_and_spawn_unique(
+            interest_accrual_cycle_initiated::InterestAccrualCycleInitiatedInit::<Perms, E>::new(
+                outbox, jobs, pool,
+            ),
+            interest_accrual_cycle_initiated::InterestAccrualCycleInitiatedJobConfig {
+                _phantom: std::marker::PhantomData,
+            },
+        )
+        .await?;
+
         jobs
             .add_initializer_and_spawn_unique(
                 collateralization_from_events_for_pending_facility::PendingCreditFacilityCollateralizationFromEventsInit::<

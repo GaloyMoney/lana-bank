@@ -107,7 +107,7 @@ impl CreditFacilityReceivable {
 
 #[derive(Debug)]
 pub(crate) struct NewAccrualPeriods {
-    pub(crate) accrual: InterestPeriod,
+    pub(crate) _accrual: InterestPeriod,
 }
 
 struct InterestAccrualCycleInCreditFacility {
@@ -414,7 +414,7 @@ impl CreditFacility {
             .build()
             .expect("could not build new interest accrual");
         Ok(Some(NewAccrualPeriods {
-            accrual: self
+            _accrual: self
                 .interest_accruals
                 .add_new(new_accrual)
                 .first_accrual_cycle_period(),

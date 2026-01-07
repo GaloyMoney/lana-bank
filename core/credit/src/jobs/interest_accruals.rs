@@ -17,6 +17,15 @@ pub(crate) struct InterestAccrualJobConfig<Perms, E> {
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
 
+impl<Perms, E> InterestAccrualJobConfig<Perms, E> {
+    pub fn new(credit_facility_id: CreditFacilityId) -> Self {
+        Self {
+            credit_facility_id,
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+
 impl<Perms, E> JobConfig for InterestAccrualJobConfig<Perms, E>
 where
     Perms: PermissionCheck,

@@ -181,6 +181,7 @@ impl CreditFacilityHistory {
                     tx_id: *ledger_tx_id,
                 },
             )),
+            InterestAccrualCycleInitiated { .. } => {}
             PartialLiquidationCompleted { .. } => {}
             ObligationCompleted { .. } => {}
         }

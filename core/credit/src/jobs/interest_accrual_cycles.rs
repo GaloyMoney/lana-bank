@@ -11,10 +11,7 @@ use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 
 use crate::{
     CompletedAccrualCycle, CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId,
-    credit_facility::{CreditFacilities, interest_accrual_cycle::NewInterestAccrualCycleData},
-    interest_accruals,
-    ledger::*,
-    obligation::Obligations,
+    credit_facility::CreditFacilities, ledger::*, obligation::Obligations,
 };
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -121,6 +118,7 @@ where
     obligations: Obligations<Perms, E>,
     credit_facilities: CreditFacilities<Perms, E>,
     ledger: CreditLedger,
+    #[allow(dead_code)]
     jobs: Jobs,
     audit: Perms::Audit,
 }
@@ -162,7 +160,7 @@ where
 
         let CompletedAccrualCycle {
             facility_accrual_cycle_data,
-            new_cycle_data,
+            new_cycle_started,
         } = self
             .credit_facilities
             .complete_interest_cycle_and_maybe_start_new_cycle(
@@ -171,30 +169,13 @@ where
             )
             .await?;
 
-        if let Some(new_cycle_data) = new_cycle_data {
-            let NewInterestAccrualCycleData {
-                id: new_accrual_cycle_id,
-                first_accrual_end_date,
-            } = new_cycle_data;
-
-            self.jobs
-                .create_and_spawn_at_in_op(
-                    &mut op,
-                    new_accrual_cycle_id,
-                    interest_accruals::InterestAccrualJobConfig::<Perms, E> {
-                        credit_facility_id: self.config.credit_facility_id,
-                        _phantom: std::marker::PhantomData,
-                    },
-                    first_accrual_end_date,
-                )
-                .await?;
-        } else {
+        if !new_cycle_started {
             tracing::info!(
                 credit_facility_id = %self.config.credit_facility_id,
                 "All interest accrual cycles completed for {}",
                 self.config.credit_facility_id
             );
-        };
+        }
 
         self.ledger
             .record_interest_accrual_cycle(

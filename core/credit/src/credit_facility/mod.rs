@@ -18,7 +18,7 @@ use crate::{
     PublicIds,
     disbursal::Disbursals,
     event::CoreCreditEvent,
-    jobs::{credit_facility_maturity, interest_accruals},
+    jobs::credit_facility_maturity,
     ledger::{CreditFacilityInterestAccrual, CreditFacilityInterestAccrualCycle, CreditLedger},
     obligation::Obligations,
     pending_credit_facility::{PendingCreditFacilities, PendingCreditFacilityCompletionOutcome},
@@ -30,7 +30,6 @@ use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 
 pub use entity::CreditFacility;
 pub(crate) use entity::*;
-use interest_accrual_cycle::NewInterestAccrualCycleData;
 
 #[cfg(feature = "json-schema")]
 pub use entity::CreditFacilityEvent;
@@ -182,7 +181,7 @@ where
 
         let mut credit_facility = self.repo.create_in_op(&mut db, new_credit_facility).await?;
 
-        let periods = credit_facility
+        let _periods = credit_facility
             .start_interest_accrual_cycle()?
             .expect("first accrual");
 
@@ -201,23 +200,6 @@ where
                     _phantom: std::marker::PhantomData,
                 },
                 credit_facility.matures_at(),
-            )
-            .await?;
-
-        let accrual_id = credit_facility
-            .interest_accrual_cycle_in_progress()
-            .expect("First accrual not found")
-            .id;
-
-        self.jobs
-            .create_and_spawn_at_in_op(
-                &mut db,
-                accrual_id,
-                interest_accruals::InterestAccrualJobConfig::<Perms, E> {
-                    credit_facility_id,
-                    _phantom: std::marker::PhantomData,
-                },
-                periods.accrual.end,
             )
             .await?;
 
@@ -371,21 +353,11 @@ where
         let res = credit_facility.start_interest_accrual_cycle()?;
         self.repo.update_in_op(db, &mut credit_facility).await?;
 
-        let new_cycle_data = res.map(|periods| {
-            let new_accrual_cycle_id = credit_facility
-                .interest_accrual_cycle_in_progress()
-                .expect("First accrual cycle not found")
-                .id;
-
-            NewInterestAccrualCycleData {
-                id: new_accrual_cycle_id,
-                first_accrual_end_date: periods.accrual.end,
-            }
-        });
+        let new_cycle_started = res.is_some();
 
         Ok(CompletedAccrualCycle {
             facility_accrual_cycle_data: (accrual_cycle_data, credit_facility.account_ids).into(),
-            new_cycle_data,
+            new_cycle_started,
         })
     }
 
@@ -747,5 +719,5 @@ where
 
 pub(crate) struct CompletedAccrualCycle {
     pub(crate) facility_accrual_cycle_data: CreditFacilityInterestAccrualCycle,
-    pub(crate) new_cycle_data: Option<NewInterestAccrualCycleData>,
+    pub(crate) new_cycle_started: bool,
 }

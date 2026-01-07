@@ -89,6 +89,11 @@ pub enum CoreCreditEvent {
         recorded_at: DateTime<Utc>,
         effective: chrono::NaiveDate,
     },
+    InterestAccrualCycleInitiated {
+        credit_facility_id: CreditFacilityId,
+        interest_accrual_cycle_id: InterestAccrualCycleId,
+        first_accrual_end_date: DateTime<Utc>,
+    },
     ObligationCreated {
         id: ObligationId,
         obligation_type: ObligationType,
