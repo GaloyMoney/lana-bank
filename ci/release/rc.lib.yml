@@ -1,0 +1,178 @@
+#@ load("@ytt:data", "data")
+
+#@ def nix_flake_cachix_image_config():
+type: registry-image
+source:
+  repository: ghcr.io/nix-community/docker-nixpkgs/cachix-flakes
+  tag: latest-x86_64-linux
+#@ end
+
+#@ def next_rc_version_task(resource_name="repo"):
+name: set-next-rc-version
+serial: true
+plan:
+  - in_parallel:
+      - get: repo-rc
+        trigger: true
+      - get: version-rc
+  - task: next-rc-version
+    config:
+      platform: linux
+      image_resource: #@ nix_flake_cachix_image_config()
+      inputs:
+      - name: repo-rc
+        path: repo
+      outputs:
+      - name: version
+      params:
+        CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+        CACHIX_CACHE_NAME: #@ data.values.cachix_cache_name
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          set -euo pipefail
+          cachix use $CACHIX_CACHE_NAME
+          cd repo
+          nix run ./ci#next-rc-version > ../version/version
+          echo "NEXT_RC_VERSION: $(cat ../version/version)"
+  - put: version-rc
+    params:
+      file: version/version
+#@ end
+
+#@ def await_rc_binary_task(resource_name="repo"):
+name: await-rc-binary
+serial: true
+plan:
+- in_parallel:
+  - get: repo-rc
+    trigger: true
+    passed: [ set-next-rc-version ]
+  - get: version-rc
+    passed: [ set-next-rc-version ]
+- task: await-rc-binary
+  config:
+    platform: linux
+    image_resource: #@ nix_flake_cachix_image_config()
+    inputs:
+    - name: repo-rc
+      path: repo
+    - name: version-rc
+      path: version
+    params:
+      CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+      CACHIX_CACHE_NAME: #@ data.values.cachix_cache_name
+    run:
+      path: sh
+      args:
+      - -exc
+      - |
+        set -euo pipefail
+        cd repo
+
+        cachix use $CACHIX_CACHE_NAME
+        export RELEASE_BUILD_VERSION=$(cat ../version/version)
+        
+        nix build --impure .#lana-cli-release --dry-run --json | \
+          nix run nixpkgs#jq -- -r '.[].outputs.out' \
+          > nix-checks-paths.txt
+        echo "Checks to wait for:"
+        cat nix-checks-paths.txt
+
+        nix run ./ci#wait-cachix-paths -- \
+          -p ./nix-checks-paths.txt \
+          -c galoymoney \
+          -a 300 \
+          -d 10
+#@ end
+
+#@ def test_integration_rc_task(resource_name="repo"):
+name: test-integration-rc
+serial: true
+plan:
+  - in_parallel:
+      - get: repo-rc
+        trigger: true
+      - { get: pipeline-tasks }
+  - task: run-nextest
+    privileged: true
+    config:
+      platform: linux
+      image_resource: #@ nix_flake_cachix_image_config()
+      inputs:
+      - name: repo-rc
+        path: repo
+      params:
+        CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+        CACHIX_CACHE_NAME: #@ data.values.cachix_cache_name
+      run:
+        path: sh
+        args:
+          - -exc
+          - |
+            set -euo pipefail
+            cd repo
+            cachix use $CACHIX_CACHE_NAME
+            nix run .#nextest
+#@ end
+
+#@ def test_bats_rc_task(resource_name="repo"):
+name: test-bats-rc
+serial: true
+plan:
+  - in_parallel:
+      - get: repo-rc
+        trigger: true
+      - { get: pipeline-tasks }
+  - task: run-bats
+    privileged: true
+    attempts: 2
+    config:
+      platform: linux
+      image_resource: #@ nix_flake_cachix_image_config()
+      inputs:
+      - name: repo-rc
+        path: repo
+      params:
+        CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+        CACHIX_CACHE_NAME: #@ data.values.cachix_cache_name
+      run:
+        path: sh
+        args:
+          - -exc
+          - |
+            set -euo pipefail
+            cd repo
+            cachix use $CACHIX_CACHE_NAME
+            DAGSTER=false nix run .#bats
+#@ end
+
+#@ def flake_check_task_rc(resource_name="repo"):
+name: flake-check-rc
+serial: true
+plan:
+- get: repo-rc
+  trigger: true
+- task: nix-flake-check
+  config:
+    platform: linux
+    image_resource: #@ nix_flake_cachix_image_config()
+    inputs:
+    - name: repo-rc
+      path: repo
+    params:
+      CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+      CACHIX_CACHE_NAME: #@ data.values.cachix_cache_name
+    run:
+      path: sh
+      args:
+        - -exc
+        - |
+          set -euo pipefail
+          cd repo
+          cachix use $CACHIX_CACHE_NAME
+
+          nix flake check
+#@ end

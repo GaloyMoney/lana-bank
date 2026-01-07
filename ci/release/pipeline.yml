@@ -15,6 +15,14 @@
 #@   "nix_task_image_config"
 #@ )
 
+#@ load("rc.lib.yml",
+#@   "next_rc_version_task",
+#@   "test_integration_rc_task",
+#@   "test_bats_rc_task",
+#@   "flake_check_task_rc",
+#@   "await_rc_binary_task"
+#@ )
+
 #@ load("app-template.lib.yml",
 #@   "app_src_resource",
 #@   "app_src_resource_name",
@@ -43,6 +51,13 @@ groups:
       -  #@ build_app_edge_image_name("customer-portal")
       - await-release-binary
       - build-dagster-edge-image
+  - name: lana-bank-dev
+    jobs:
+      - set-next-rc-version
+      - test-integration-rc
+      - test-bats-rc
+      - flake-check-rc
+      - await-rc-binary
 
 jobs:
   - name: auto-bump-patch
@@ -580,6 +595,12 @@ jobs:
         params:
           image: image/image.tar
 
+  - #@ next_rc_version_task()
+  - #@ test_integration_rc_task()
+  - #@ test_bats_rc_task()
+  - #@ flake_check_task_rc()
+  - #@ await_rc_binary_task()
+
 resources:
   - name: repo
     type: git
@@ -590,6 +611,18 @@ resources:
       fetch_tags: true
       uri: #@ data.values.git_uri
       branch: #@ data.values.git_branch
+      private_key: #@ data.values.github_private_key
+    webhook_token: ((webhook.secret))
+
+  - name: repo-rc
+    type: git
+    source:
+      ignore_paths:
+        - "ci/*[^mdx]"
+        - apps/**/*
+      fetch_tags: true
+      uri: #@ data.values.git_uri
+      branch: ci--rc
       private_key: #@ data.values.github_private_key
     webhook_token: ((webhook.secret))
 
@@ -624,6 +657,16 @@ resources:
       username: #@ data.values.gar_registry_user
       password: #@ data.values.gar_registry_password
       repository: #@ public_gar_registry() + "/dagster-code-location-lana-dw"
+
+  - name: version-rc
+    type: semver
+    source:
+      initial_version: 0.0.0
+      driver: git
+      file: version
+      uri: #@ data.values.git_uri
+      branch: rc-version
+      private_key: #@ data.values.github_private_key
 
   -  #@ pipeline_tasks_resource()
   -  #@ version_resource()
