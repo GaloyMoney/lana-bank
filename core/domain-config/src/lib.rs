@@ -8,6 +8,7 @@ mod repo;
 mod spec;
 
 use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 pub use entity::{DomainConfig, DomainConfigEvent, NewDomainConfig};
 pub use error::DomainConfigError;
@@ -33,7 +34,8 @@ impl DomainConfigs {
         Self { repo }
     }
 
-    #[instrument(name = "domain_config.get", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "domain_config.get", skip(self))]
     pub async fn get<C>(&self) -> Result<<C::Kind as ValueKind>::Value, DomainConfigError>
     where
         C: ConfigSpec,
@@ -45,7 +47,8 @@ impl DomainConfigs {
         }
     }
 
-    #[instrument(name = "domain_config.get_or_default", skip(self), err)]
+    #[record_error_severity]
+    #[instrument(name = "domain_config.get_or_default", skip(self))]
     pub async fn get_or_default<C>(
         &self,
     ) -> Result<<C::Kind as ValueKind>::Value, DomainConfigError>
@@ -61,7 +64,8 @@ impl DomainConfigs {
         }
     }
 
-    #[instrument(name = "domain_config.create", skip(self, value), err)]
+    #[record_error_severity]
+    #[instrument(name = "domain_config.create", skip(self, value))]
     pub async fn create<C>(
         &self,
         value: <C::Kind as ValueKind>::Value,
@@ -79,7 +83,8 @@ impl DomainConfigs {
         Ok(())
     }
 
-    #[instrument(name = "domain_config.update", skip(self, value), err)]
+    #[record_error_severity]
+    #[instrument(name = "domain_config.update", skip(self, value))]
     pub async fn update<C>(
         &self,
         value: <C::Kind as ValueKind>::Value,
@@ -95,7 +100,8 @@ impl DomainConfigs {
         Ok(())
     }
 
-    #[instrument(name = "domain_config.upsert", skip(self, value), err)]
+    #[record_error_severity]
+    #[instrument(name = "domain_config.upsert", skip(self, value))]
     pub async fn upsert<C>(
         &self,
         value: <C::Kind as ValueKind>::Value,

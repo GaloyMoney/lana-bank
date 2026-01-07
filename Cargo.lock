@@ -2112,6 +2112,7 @@ dependencies = [
  "sqlx",
  "thiserror 2.0.17",
  "tracing",
+ "tracing-macros",
  "tracing-utils",
  "workspace-hack",
 ]
