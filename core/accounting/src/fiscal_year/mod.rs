@@ -162,22 +162,23 @@ where
         let now = crate::time::now();
 
         match fiscal_year.close(now)? {
-            Idempotent::Executed(_tx_details) => {
+            Idempotent::Executed(tx_details) => {
                 let mut op = self.repo.begin_op().await?;
                 self.repo.update_in_op(&mut op, &mut fiscal_year).await?;
 
-                // TODO: Operate on ledger via `chart_of_accounts`.
-                // let fiscal_year_conf = self.domain_configs.get::<config::FiscalYearConfigSpec>().await?;
+                let fiscal_year_conf = self
+                    .domain_configs
+                    .get::<config::FiscalYearConfigSpec>()
+                    .await?;
 
-                // self.chart_of_accounts
-                //     .post_closing_transaction(
-                //         op,
-                //         fiscal_year.chart_id,
-                //         &fiscal_year_conf,
-                //         tx_details,
-                //     )
-                //     .await?;
-                op.commit().await?;
+                self.chart_of_accounts
+                    .post_closing_transaction(
+                        op,
+                        fiscal_year.chart_id,
+                        &fiscal_year_conf,
+                        tx_details,
+                    )
+                    .await?;
 
                 Ok(fiscal_year)
             }
