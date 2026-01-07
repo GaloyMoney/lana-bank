@@ -746,12 +746,15 @@ type CreditModuleConfig {
 	chartOfAccountFacilityOmnibusParentCode: String
 	chartOfAccountCollateralOmnibusParentCode: String
 	chartOfAccountLiquidationProceedsOmnibusParentCode: String
+	chartOfAccountPaymentsMadeOmnibusParentCode: String
+	chartOfAccountInterestAddedToObligationsOmnibusParentCode: String
 	chartOfAccountFacilityParentCode: String
 	chartOfAccountCollateralParentCode: String
 	chartOfAccountCollateralInLiquidationParentCode: String
 	chartOfAccountInterestIncomeParentCode: String
 	chartOfAccountFeeIncomeParentCode: String
 	chartOfAccountPaymentHoldingParentCode: String
+	chartOfAccountUncoveredOutstandingParentCode: String
 	chartOfAccountShortTermIndividualDisbursedReceivableParentCode: String
 	chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode: String
 	chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode: String
@@ -793,12 +796,15 @@ input CreditModuleConfigureInput {
 	chartOfAccountFacilityOmnibusParentCode: String!
 	chartOfAccountCollateralOmnibusParentCode: String!
 	chartOfAccountLiquidationProceedsOmnibusParentCode: String!
+	chartOfAccountPaymentsMadeOmnibusParentCode: String!
+	chartOfAccountInterestAddedToObligationsOmnibusParentCode: String!
 	chartOfAccountFacilityParentCode: String!
 	chartOfAccountCollateralParentCode: String!
 	chartOfAccountCollateralInLiquidationParentCode: String!
 	chartOfAccountInterestIncomeParentCode: String!
 	chartOfAccountFeeIncomeParentCode: String!
 	chartOfAccountPaymentHoldingParentCode: String!
+	chartOfAccountUncoveredOutstandingParentCode: String!
 	chartOfAccountShortTermIndividualDisbursedReceivableParentCode: String!
 	chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode: String!
 	chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode: String!

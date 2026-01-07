@@ -100,6 +100,9 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         9,Payment Holding Parent
         10,Liquidation Proceeds Omnibus Parent
         11,Collateral In Liquidation Parent
+        12,Uncovered Outstanding Parent
+        13,Payments Made Omnibus Parent
+        14,Interest Added To Obligations Omnibus Parent
         "#
     .to_string();
     let (chart, _) = accounting
@@ -123,12 +126,15 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
                 chart_of_account_facility_omnibus_parent_code: "1".parse().unwrap(),
                 chart_of_account_collateral_omnibus_parent_code: "2".parse().unwrap(),
                 chart_of_account_liquidation_proceeds_omnibus_parent_code: "10".parse().unwrap(),
+                chart_of_account_payments_made_omnibus_parent_code: "13".parse().unwrap(),
+                chart_of_account_interest_added_to_obligations_omnibus_parent_code: "14".parse().unwrap(),
                 chart_of_account_facility_parent_code: "3".parse().unwrap(),
                 chart_of_account_collateral_parent_code: "4".parse().unwrap(),
                 chart_of_account_collateral_in_liquidation_parent_code: "11".parse().unwrap(),
                 chart_of_account_interest_income_parent_code: "7".parse().unwrap(),
                 chart_of_account_fee_income_parent_code: "8".parse().unwrap(),
                 chart_of_account_payment_holding_parent_code: "9".parse().unwrap(),
+                chart_of_account_uncovered_outstanding_parent_code: "12".parse().unwrap(),
                 chart_of_account_short_term_individual_disbursed_receivable_parent_code: "5".parse().unwrap(),
                 chart_of_account_short_term_government_entity_disbursed_receivable_parent_code:
                     "5".parse().unwrap(),
@@ -223,6 +229,9 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         9,Other Payment Holding Parent
         10,Other Liquidation Proceeds Omnibus Parent
         11,Other Collateral In Liquidation Parent
+        12,Other Uncovered Outstanding Parent
+        13,Other Payments Made Omnibus Parent
+        14,Other Interest Added To Obligations Omnibus Parent
         "#
     .to_string();
     let (chart, _) = accounting
@@ -239,12 +248,15 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
                 chart_of_account_facility_omnibus_parent_code: "1".parse().unwrap(),
                 chart_of_account_collateral_omnibus_parent_code: "2".parse().unwrap(),
                 chart_of_account_liquidation_proceeds_omnibus_parent_code: "10".parse().unwrap(),
+                chart_of_account_payments_made_omnibus_parent_code: "13".parse().unwrap(),
+                chart_of_account_interest_added_to_obligations_omnibus_parent_code: "14".parse().unwrap(),
                 chart_of_account_facility_parent_code: "3".parse().unwrap(),
                 chart_of_account_collateral_parent_code: "4".parse().unwrap(),
                 chart_of_account_collateral_in_liquidation_parent_code: "11".parse().unwrap(),
                 chart_of_account_interest_income_parent_code: "7".parse().unwrap(),
                 chart_of_account_fee_income_parent_code: "8".parse().unwrap(),
                 chart_of_account_payment_holding_parent_code: "9".parse().unwrap(),
+                chart_of_account_uncovered_outstanding_parent_code: "12".parse().unwrap(),
                 chart_of_account_short_term_individual_disbursed_receivable_parent_code: "5".parse().unwrap(),
                 chart_of_account_short_term_government_entity_disbursed_receivable_parent_code:
                     "5".parse().unwrap(),
