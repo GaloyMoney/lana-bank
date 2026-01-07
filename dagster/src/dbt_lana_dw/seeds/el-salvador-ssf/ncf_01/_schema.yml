@@ -1,0 +1,125 @@
+version: 2
+
+seeds:
+  - name: static_ncf_01_01_account_config_seed
+    description: >
+      NCF-01-01 Balance sheet line item configuration.
+      Contains account mappings stored as JSON arrays to be parsed by wrapper model.
+    columns:
+      - name: order_by
+        description: Display order for the line item
+        data_tests:
+          - unique
+          - not_null
+      - name: title
+        description: Line item title in Spanish
+      - name: eng_title
+        description: Line item title in English
+      - name: source_account_codes
+        description: JSON array of source account codes
+
+  - name: static_ncf_01_02_account_config_seed
+    description: >
+      NCF-01-02 Income statement line item configuration.
+      Contains account mappings stored as JSON arrays to be parsed by wrapper model.
+    columns:
+      - name: order_by
+        description: Display order for the line item
+        data_tests:
+          - unique
+          - not_null
+      - name: title
+        description: Line item title in Spanish
+      - name: eng_title
+        description: Line item title in English
+      - name: source_account_spaced_codes
+        description: JSON array of source account codes (with spaces)
+
+  - name: static_ncf_01_03_column_config_seed
+    description: >
+      NCF-01-03 Equity statement column definitions.
+      Defines the 10 columns for changes in equity reporting.
+    columns:
+      - name: column_order_by
+        description: Display order for the column
+        data_tests:
+          - unique
+          - not_null
+      - name: column_title
+        description: Column title in Spanish
+      - name: eng_column_title
+        description: Column title in English
+        data_tests:
+          - unique
+
+  - name: static_ncf_01_03_row_titles_seed
+    description: >
+      NCF-01-03 Equity statement row titles.
+      Used by column wrapper models to generate equity statement configurations.
+    columns:
+      - name: order_by
+        description: Display order for the row
+        data_tests:
+          - unique
+          - not_null
+      - name: title
+        description: Row title in Spanish (with {YEAR} placeholder)
+      - name: eng_title
+        description: Row title in English (with {YEAR} placeholder)
+      - name: source_account_codes
+        description: JSON array of source account codes (empty for equity rows)
+
+  - name: static_ncf_01_04_account_config_seed
+    description: >
+      NCF-01-04 Cash flow statement line item configuration.
+      Contains operating, investing, and financing activity line items.
+    columns:
+      - name: order_by
+        description: Display order for the line item
+        data_tests:
+          - unique
+          - not_null
+      - name: title
+        description: Line item title in Spanish
+      - name: eng_title
+        description: Line item title in English
+      - name: source_account_codes
+        description: JSON array of source account codes (empty for cash flow template)
+
+  - name: static_nrp_28_01_account_config_seed
+    description: >
+      NRP-28-01 Liquidity reserve requirement line item configuration.
+      Defines deposit categories and their reserve calculation rules.
+    columns:
+      - name: order_by
+        description: Display order for the line item
+        data_tests:
+          - unique
+          - not_null
+      - name: title
+        description: Line item title in Spanish
+      - name: eng_title
+        description: Line item title in English
+      - name: sum_account_codes
+        description: JSON array of account codes to add for this line item
+      - name: diff_account_codes
+        description: JSON array of account codes to subtract for this line item
+
+  - name: static_nrp_28_01_liquidity_coefficients
+    description: >
+      NRP-28-01 Liquidity reserve coefficients by account type.
+      Maps account codes to their required liquidity reserve percentages.
+    columns:
+      - name: account_code
+        description: Accounting system account code
+        data_tests:
+          - unique
+          - not_null
+      - name: account_name
+        description: Account name in Spanish
+      - name: eng_account_name
+        description: Account name in English
+      - name: coefficient
+        description: Required liquidity reserve coefficient (e.g., 0.18 = 18%)
+        data_tests:
+          - not_null

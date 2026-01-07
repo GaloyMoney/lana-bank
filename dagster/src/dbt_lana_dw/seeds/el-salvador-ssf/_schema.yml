@@ -1,0 +1,65 @@
+version: 2
+
+seeds:
+  - name: static_ncb_022_porcentaje_reservas_saneamiento
+    description: >
+      Risk category classifications and reserve percentages defined in NCB-022 norm
+      for the calculation of Sanitation Reserves (Reservas de Saneamiento).
+    columns:
+      - name: category
+        description: Risk category identifier (A1, A2, B, C1, C2, D1, D2, E)
+        data_tests:
+          - unique
+          - not_null
+      - name: reserve_percentage
+        description: Required reserve percentage for the risk category (0.00 to 1.00)
+        data_tests:
+          - not_null
+      - name: consumer_calendar_ge_days
+        description: Minimum days past due for consumer loans in this category
+      - name: consumer_calendar_le_days
+        description: Maximum days past due for consumer loans in this category
+
+  - name: static_npb4_17_31_codigos_de_paises_o_territorios
+    description: >
+      Country and territory codes as defined in NPB4-17-31 regulation.
+      Contains nationality names, country names in Spanish, and ISO Alpha-3 codes.
+    columns:
+      - name: code
+        description: Numeric country/territory code
+        data_tests:
+          - unique
+          - not_null
+      - name: nationality
+        description: Nationality name in Spanish
+        data_tests:
+          - not_null
+      - name: country
+        description: Country or territory name in Spanish
+        data_tests:
+          - not_null
+      - name: iso_alpha_3_code
+        description: ISO 3166-1 alpha-3 country code (may be null for historical/non-standard entries)
+
+  - name: static_nrp_41_estados_del_prestamo
+    description: >
+      Loan status definitions as defined in NRP-41 regulation.
+      Maps loan states between Spanish and English with calendar day thresholds.
+    columns:
+      - name: estado
+        description: Loan status in Spanish
+        data_tests:
+          - not_null
+      - name: explicación
+        description: Status explanation in Spanish
+      - name: status
+        description: Loan status in English
+        data_tests:
+          - unique
+          - not_null
+      - name: explanation
+        description: Status explanation in English
+      - name: consumer_calendar_ge_days
+        description: Minimum days past due for this status
+      - name: consumer_calendar_le_days
+        description: Maximum days past due for this status
