@@ -278,11 +278,12 @@ where
                     id,
                     facility_id,
                     period,
+                    terms,
                     ..
                 } => Some(CoreCreditEvent::InterestAccrualCycleInitiated {
                     credit_facility_id: *facility_id,
                     interest_accrual_cycle_id: *id,
-                    first_accrual_end_date: period.end,
+                    first_accrual_end_date: terms.accrual_interval.period_from(period.start).end,
                 }),
                 InterestAccrualsPosted {
                     total,
