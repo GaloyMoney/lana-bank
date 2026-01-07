@@ -1441,6 +1441,28 @@ export type FiscalYearInitPayload = {
   fiscalYear: FiscalYear;
 };
 
+export type FiscalYearModuleConfig = {
+  __typename?: 'FiscalYearModuleConfig';
+  costOfRevenueAccountCode: Scalars['String']['output'];
+  equityRetainedEarningsAccountCode: Scalars['String']['output'];
+  equityRetainedLossesAccountCode: Scalars['String']['output'];
+  expensesAccountCode: Scalars['String']['output'];
+  revenueAccountCode: Scalars['String']['output'];
+};
+
+export type FiscalYearModuleConfigureInput = {
+  costOfRevenueAccountCode: Scalars['String']['input'];
+  equityRetainedEarningsAccountCode: Scalars['String']['input'];
+  equityRetainedLossesAccountCode: Scalars['String']['input'];
+  expensesAccountCode: Scalars['String']['input'];
+  revenueAccountCode: Scalars['String']['input'];
+};
+
+export type FiscalYearModuleConfigurePayload = {
+  __typename?: 'FiscalYearModuleConfigurePayload';
+  fiscalYearConfig: FiscalYearModuleConfig;
+};
+
 export type FiscalYearOpenNextInput = {
   fiscalYearId: Scalars['UUID']['input'];
 };
@@ -1790,6 +1812,7 @@ export type Mutation = {
   depositRevert: DepositRevertPayload;
   fiscalYearClose: FiscalYearClosePayload;
   fiscalYearCloseMonth: FiscalYearCloseMonthPayload;
+  fiscalYearConfigure: FiscalYearModuleConfigurePayload;
   fiscalYearInit: FiscalYearInitPayload;
   fiscalYearOpenNext: FiscalYearOpenNextPayload;
   ledgerAccountCsvCreate: LedgerAccountCsvCreatePayload;
@@ -1997,6 +2020,11 @@ export type MutationFiscalYearCloseArgs = {
 
 export type MutationFiscalYearCloseMonthArgs = {
   input: FiscalYearCloseMonthInput;
+};
+
+
+export type MutationFiscalYearConfigureArgs = {
+  input: FiscalYearModuleConfigureInput;
 };
 
 

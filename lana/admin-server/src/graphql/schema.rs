@@ -15,9 +15,9 @@ use crate::primitives::*;
 use super::{
     access::*, accounting::*, approval_process::*, audit::*, balance_sheet_config::*, committee::*,
     contract_creation::*, credit_config::*, credit_facility::*, custody::*, customer::*,
-    dashboard::*, deposit::*, deposit_config::*, document::*, exposed_config::*, loader::*, me::*,
-    policy::*, price::*, profit_and_loss_config::*, public_id::*, reports::*, sumsub::*,
-    terms_template::*, withdrawal::*,
+    dashboard::*, deposit::*, deposit_config::*, document::*, exposed_config::*,
+    fiscal_year_config::*, loader::*, me::*, policy::*, price::*, profit_and_loss_config::*,
+    public_id::*, reports::*, sumsub::*, terms_template::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -2425,6 +2425,39 @@ impl Mutation {
             .await?;
         Ok(ProfitAndLossStatementModuleConfigurePayload::from(
             ProfitAndLossStatementModuleConfig::from(config),
+        ))
+    }
+
+    async fn fiscal_year_configure(
+        &self,
+        ctx: &Context<'_>,
+        input: FiscalYearModuleConfigureInput,
+    ) -> async_graphql::Result<FiscalYearModuleConfigurePayload> {
+        let (app, _sub) = app_and_sub_from_ctx!(ctx);
+
+        let FiscalYearModuleConfigureInput {
+            revenue_account_code,
+            cost_of_revenue_account_code,
+            expenses_account_code,
+            equity_retained_earnings_account_code,
+            equity_retained_losses_account_code,
+        } = input;
+
+        let config = lana_app::fiscal_year::FiscalYearConfig {
+            revenue_account_code,
+            cost_of_revenue_account_code,
+            expenses_account_code,
+            equity_retained_earnings_account_code,
+            equity_retained_losses_account_code,
+        };
+
+        app.accounting()
+            .fiscal_year()
+            .configure(config.clone())
+            .await?;
+
+        Ok(FiscalYearModuleConfigurePayload::from(
+            FiscalYearModuleConfig::from(config),
         ))
     }
 
