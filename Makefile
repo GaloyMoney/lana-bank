@@ -132,6 +132,17 @@ dagster-stop:
 dagster-down:
 	docker compose -f docker-compose.dagster.yml down
 
+# Usage: make dbt ARGS="run -s my_model"
+dbt:
+	docker compose -f docker-compose.dagster.yml run --rm --no-deps \
+	  --user "$$(id -u):$$(id -g)" \
+	  -e HOME=/tmp \
+	  -e DBT_PROFILES_DIR=/lana-dw/src/dbt_lana_dw \
+	  -v "$$(pwd)/dagster/src/dbt_lana_dw:/lana-dw/src/dbt_lana_dw" \
+	  --workdir /lana-dw/src/dbt_lana_dw \
+	  dagster-code-location-lana-dw \
+	  dbt $(ARGS)
+
 dagster-fmt:
 	@bash -c '\
 black_status=0; \

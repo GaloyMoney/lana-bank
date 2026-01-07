@@ -27,6 +27,18 @@ make dagster-fmt        # apply black, isort, and sqlfmt
 make dagster-fmt-check  # verify formatting (black/isort/sqlfmt)
 ```
 
+## Running dbt locally
+
+If you just want to run a single dbt model (or any other dbt command), use the `make dbt` wrapper which runs dbt inside the Dagster code location image:
+
+```bash
+make dbt ARGS="run -s my_model_name"
+make dbt ARGS="build -s +my_model_name"
+make dbt ARGS="test -s my_model_name"
+```
+
+This mounts `dagster/src/dbt_lana_dw` into the container so your local model changes are picked up immediately.
+
 ## Env vars
 
 Env vars are the preferred way to:
