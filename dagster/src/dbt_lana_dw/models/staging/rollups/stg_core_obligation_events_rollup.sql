@@ -16,15 +16,12 @@ with
             defaulted_account_id,
             defaulted_amount,
             defaulted_date,
-            due_accounts,
             due_amount,
             due_date,
             effective,
             liquidation_date,
-            not_yet_due_accounts,
             payment_allocation_amount,
             obligation_type,
-            overdue_accounts,
             overdue_amount,
             overdue_date,
             payment_id,
@@ -37,6 +34,7 @@ with
             is_overdue_recorded,
             liquidation_date__v_text,
             overdue_date__v_text,
+            receivable_account_ids,
             _dlt_load_id,
             _dlt_id
         from {{ source("lana", "core_obligation_events_rollup") }}
@@ -51,15 +49,12 @@ select
     defaulted_account_id,
     defaulted_amount,
     defaulted_date,
-    due_accounts,
     due_amount,
     due_date,
     effective,
     liquidation_date,
-    not_yet_due_accounts,
     payment_allocation_amount,
     obligation_type,
-    overdue_accounts,
     overdue_amount,
     overdue_date,
     payment_id,
@@ -72,6 +67,7 @@ select
     is_overdue_recorded,
     liquidation_date__v_text,
     overdue_date__v_text,
+    receivable_account_ids,
     timestamp_micros(
         cast(cast(_dlt_load_id as decimal) * 1e6 as int64)
     ) as loaded_to_dw_at
