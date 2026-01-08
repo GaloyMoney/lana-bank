@@ -63,8 +63,6 @@ pub enum CreditFacilityEvent {
     },
     PartialLiquidationCompleted {
         liquidation_id: LiquidationId,
-        liquidated: Satoshis,
-        received: UsdCents,
     },
     Matured {},
     Completed {},
@@ -302,6 +300,50 @@ impl CreditFacility {
             });
 
         Idempotent::Executed(())
+    }
+
+    /// Marks a Liquidation with `liquidation_id`, currently running
+    /// in this Credit Facility, as completed. No threshold conditions
+    /// are checked during this operation, however the facility can
+    /// enter new Liquidation next time the conditions are checked.
+    ///
+    /// # Errors
+    ///
+    /// Throws `NoSuchLiquidationInitiated` if no Liquidation is
+    /// running or different Liquidation is running.
+    pub(crate) fn complete_liquidation(
+        &mut self,
+        liquidation_id: LiquidationId,
+    ) -> Result<Idempotent<()>, CreditFacilityError> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            CreditFacilityEvent::PartialLiquidationCompleted {
+                liquidation_id: existing,
+                ..
+            } if *existing == liquidation_id,
+            => CreditFacilityEvent::PartialLiquidationInitiated { .. }
+        );
+
+        let liquidation_initiated = self.events.iter_all().rev().any(|e| {
+            matches!(
+                e,
+                CreditFacilityEvent::PartialLiquidationInitiated {
+                    liquidation_id: existing,
+                    ..
+                } if *existing == liquidation_id
+            )
+        });
+
+        if liquidation_initiated {
+            self.events
+                .push(CreditFacilityEvent::PartialLiquidationCompleted { liquidation_id });
+
+            Ok(Idempotent::Executed(()))
+        } else {
+            Err(CreditFacilityError::NoSuchLiquidationInitiated(
+                liquidation_id,
+            ))
+        }
     }
 
     pub(crate) fn mature(&mut self) -> Idempotent<()> {
@@ -974,8 +1016,7 @@ mod test {
     mod partial_liquidation {
         use super::*;
 
-        #[test]
-        fn liquidation_initiated_when_below_liquidation_threshold() {
+        fn collateralized_facility() -> (CreditFacility, CreditFacilityBalanceSummary) {
             let mut credit_facility = facility_from(initial_events());
 
             let balances = CreditFacilityBalanceSummary {
@@ -1012,10 +1053,18 @@ mod test {
                 credit_facility
                     .events
                     .iter_all()
+                    .rev()
                     .all(|e| !matches!(e, CreditFacilityEvent::PartialLiquidationInitiated { .. }))
             );
 
-            // Price dropped so that CVL (100) is below threshold
+            (credit_facility, balances)
+        }
+
+        fn initiate_liquidation(
+            credit_facility: &mut CreditFacility,
+            balances: CreditFacilityBalanceSummary,
+        ) -> LiquidationId {
+            // Price so that CVL (100) is below threshold
             let price = PriceOfOneBTC::new(UsdCents::from(5000000));
             let state_update = credit_facility.update_collateralization(
                 price,
@@ -1027,12 +1076,94 @@ mod test {
                 state_update.unwrap(),
                 Some(CollateralizationState::UnderLiquidationThreshold)
             );
-            assert!(
+
+            let liquidation_id = credit_facility
+                .events
+                .iter_all()
+                .rev()
+                .find_map(|e| match e {
+                    CreditFacilityEvent::PartialLiquidationInitiated { liquidation_id, .. } => {
+                        Some(*liquidation_id)
+                    }
+                    _ => None,
+                });
+
+            assert!(liquidation_id.is_some());
+
+            liquidation_id.unwrap()
+        }
+
+        #[test]
+        fn liquidation_initiated_when_below_liquidation_threshold() {
+            let (mut credit_facility, balances) = collateralized_facility();
+            initiate_liquidation(&mut credit_facility, balances);
+        }
+
+        #[test]
+        fn liquidation_can_be_completed() {
+            let (mut credit_facility, balances) = collateralized_facility();
+
+            let liquidation_id = initiate_liquidation(&mut credit_facility, balances);
+
+            // Complete liquidation
+            assert!(matches!(
+                credit_facility.complete_liquidation(liquidation_id),
+                Ok(Idempotent::Executed(()))
+            ));
+        }
+
+        #[test]
+        fn another_liquidation_can_be_initiated() {
+            let (mut credit_facility, balances) = collateralized_facility();
+
+            let liquidation_id = initiate_liquidation(&mut credit_facility, balances);
+
+            // Price so that CVL (200) is back over threshold
+            let price = PriceOfOneBTC::new(UsdCents::from(10000000));
+            let state_update = credit_facility.update_collateralization(
+                price,
+                default_upgrade_buffer_cvl_pct(),
+                balances,
+            );
+            assert!(state_update.did_execute());
+            assert_eq!(
+                state_update.unwrap(),
+                Some(CollateralizationState::FullyCollateralized)
+            );
+
+            // Complete liquidation
+            assert!(matches!(
+                credit_facility.complete_liquidation(liquidation_id),
+                Ok(Idempotent::Executed(()))
+            ));
+
+            // Price so that CVL (100) is back under threshold once again
+            let price = PriceOfOneBTC::new(UsdCents::from(5000000));
+            let state_update = credit_facility.update_collateralization(
+                price,
+                default_upgrade_buffer_cvl_pct(),
+                balances,
+            );
+            assert!(state_update.did_execute());
+            assert_eq!(
+                state_update.unwrap(),
+                Some(CollateralizationState::UnderLiquidationThreshold)
+            );
+
+            // Second liquidation (with different ID) is initiated
+            let second_liquidation_id =
                 credit_facility
                     .events
                     .iter_all()
-                    .any(|e| matches!(e, CreditFacilityEvent::PartialLiquidationInitiated { .. }))
-            );
+                    .rev()
+                    .find_map(|e| match e {
+                        CreditFacilityEvent::PartialLiquidationInitiated {
+                            liquidation_id, ..
+                        } => Some(*liquidation_id),
+                        _ => None,
+                    });
+            assert!(second_liquidation_id.is_some());
+            assert_ne!(second_liquidation_id.unwrap(), liquidation_id);
         }
     }
 
