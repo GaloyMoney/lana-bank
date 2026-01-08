@@ -46,20 +46,6 @@ resource "google_bigquery_dataset_iam_member" "dbt_additional_owners" {
   member     = "user:${each.value}"
 }
 
-resource "google_project_iam_member" "additional_owners_jobuser" {
-  for_each = toset(local.additional_owners)
-  project  = local.gcp_project
-  role     = "roles/bigquery.jobUser"
-  member   = "user:${each.value}"
-}
-
-resource "google_project_iam_member" "additional_owners_resourceviewer" {
-  for_each = toset(local.additional_owners)
-  project  = local.gcp_project
-  role     = "roles/bigquery.resourceViewer"
-  member   = "user:${each.value}"
-}
-
 resource "google_bigquery_dataset_access" "view_access" {
   dataset_id = google_bigquery_dataset.dataset.dataset_id
   project    = local.gcp_project
