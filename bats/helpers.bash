@@ -140,7 +140,7 @@ gql_dagster_query() {
 }
 
 gql_dagster_file() {
-  echo "${REPO_ROOT}/bats/dagster-qgl/$1.gql"
+  echo "${REPO_ROOT}/bats/dagster-gql/$1.gql"
 }
 
 gql_dagster_operation_name() {
