@@ -363,20 +363,13 @@ where
             },
         )
         .await?;
-        jobs.add_initializer(interest_accruals::InterestAccrualInit::<Perms, E>::new(
+        jobs.add_initializer(interest_accrual::InterestAccrualJobInit::<Perms, E>::new(
             ledger_arc.as_ref(),
+            obligations_arc.as_ref(),
             facilities_arc.as_ref(),
             jobs,
+            authz.audit(),
         ));
-        jobs.add_initializer(
-            interest_accrual_cycles::InterestAccrualCycleInit::<Perms, E>::new(
-                ledger_arc.as_ref(),
-                obligations_arc.as_ref(),
-                facilities_arc.as_ref(),
-                jobs,
-                authz.audit(),
-            ),
-        );
         jobs.add_initializer(obligation_due::ObligationDueInit::<Perms, E>::new(
             ledger_arc.as_ref(),
             obligations_arc.as_ref(),

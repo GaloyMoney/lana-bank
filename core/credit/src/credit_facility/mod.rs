@@ -18,7 +18,7 @@ use crate::{
     PublicIds,
     disbursal::Disbursals,
     event::CoreCreditEvent,
-    jobs::{credit_facility_maturity, interest_accruals},
+    jobs::{credit_facility_maturity, interest_accrual},
     ledger::{CreditFacilityInterestAccrual, CreditFacilityInterestAccrualCycle, CreditLedger},
     obligation::Obligations,
     pending_credit_facility::{PendingCreditFacilities, PendingCreditFacilityCompletionOutcome},
@@ -213,7 +213,7 @@ where
             .create_and_spawn_at_in_op(
                 &mut db,
                 accrual_id,
-                interest_accruals::InterestAccrualJobConfig::<Perms, E> {
+                interest_accrual::InterestAccrualJobConfig::<Perms, E> {
                     credit_facility_id,
                     _phantom: std::marker::PhantomData,
                 },
