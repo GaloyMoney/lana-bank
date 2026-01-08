@@ -9,6 +9,7 @@ use tracing::{Span, instrument};
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_accounting::LedgerTransactionInitiator;
+use core_price::CorePriceEvent;
 use job::*;
 use obix::EventSequence;
 use obix::out::*;
@@ -35,7 +36,8 @@ where
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     pub liquidation_id: LiquidationId,
     pub credit_facility_id: CreditFacilityId,
@@ -51,7 +53,8 @@ where
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     type Initializer = PartialLiquidationInit<Perms, E>;
 }
@@ -65,7 +68,8 @@ where
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     outbox: Outbox<E>,
     liquidations: Liquidations<Perms, E>,
@@ -83,7 +87,8 @@ where
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     pub fn new(
         outbox: &Outbox<E>,
@@ -112,7 +117,8 @@ where
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     fn job_type() -> JobType
     where
@@ -142,7 +148,8 @@ where
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     config: PartialLiquidationJobConfig<Perms, E>,
     outbox: Outbox<E>,
@@ -162,7 +169,8 @@ where
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     async fn run(
         &self,
@@ -224,7 +232,8 @@ where
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     #[instrument(name = "outbox.core_credit.partial_liquidation.process_message", parent = None, skip(self, message, db), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn process_message(
