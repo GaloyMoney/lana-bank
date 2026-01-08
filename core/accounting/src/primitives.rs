@@ -423,6 +423,17 @@ impl AccountSpec {
     }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+pub struct AccountingBaseConfig {
+    pub assets_code: AccountCode,
+    pub liabilities_code: AccountCode,
+    pub equity_code: AccountCode,
+    pub revenue_code: AccountCode,
+    pub cost_of_revenue_code: AccountCode,
+    pub expenses_code: AccountCode,
+}
+
 #[derive(Debug, Clone)]
 pub struct ClosingAccountCodes {
     pub revenue: AccountCode,
