@@ -2290,6 +2290,7 @@ enum SortDirection {
 
 type Subscription {
 	testPing(message: String!): TestPingEvent!
+	pendingCreditFacilityCollateralizationUpdated(pendingCreditFacilityId: UUID!): PendingCreditFacilityCollateralizationUpdated!
 }
 
 input SumsubPermalinkCreateInput {
