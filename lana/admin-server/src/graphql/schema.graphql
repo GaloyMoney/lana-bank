@@ -1436,6 +1436,26 @@ type FiscalYearInitPayload {
 	fiscalYear: FiscalYear!
 }
 
+type FiscalYearModuleConfig {
+	revenueAccountCode: String!
+	costOfRevenueAccountCode: String!
+	expensesAccountCode: String!
+	equityRetainedEarningsAccountCode: String!
+	equityRetainedLossesAccountCode: String!
+}
+
+input FiscalYearModuleConfigureInput {
+	revenueAccountCode: String!
+	costOfRevenueAccountCode: String!
+	expensesAccountCode: String!
+	equityRetainedEarningsAccountCode: String!
+	equityRetainedLossesAccountCode: String!
+}
+
+type FiscalYearModuleConfigurePayload {
+	fiscalYearConfig: FiscalYearModuleConfig!
+}
+
 input FiscalYearOpenNextInput {
 	fiscalYearId: UUID!
 }
@@ -1805,6 +1825,7 @@ type Mutation {
 	chartOfAccountsAddChildNode(input: ChartOfAccountsAddChildNodeInput!): ChartOfAccountsAddChildNodePayload!
 	balanceSheetConfigure(input: BalanceSheetModuleConfigureInput!): BalanceSheetModuleConfigurePayload!
 	profitAndLossStatementConfigure(input: ProfitAndLossModuleConfigureInput!): ProfitAndLossStatementModuleConfigurePayload!
+	fiscalYearConfigure(input: FiscalYearModuleConfigureInput!): FiscalYearModuleConfigurePayload!
 	ledgerAccountCsvCreate(input: LedgerAccountCsvCreateInput!): LedgerAccountCsvCreatePayload!
 	accountingCsvDownloadLinkGenerate(input: AccountingCsvDownloadLinkGenerateInput!): AccountingCsvDownloadLinkGeneratePayload!
 	loanAgreementGenerate(input: LoanAgreementGenerateInput!): LoanAgreementGeneratePayload!

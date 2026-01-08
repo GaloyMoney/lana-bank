@@ -16,6 +16,7 @@ mod deposit_account_history;
 mod deposit_config;
 mod document;
 mod exposed_config;
+mod fiscal_year_config;
 mod loader;
 mod me;
 mod price;

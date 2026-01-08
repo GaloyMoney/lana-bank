@@ -33,7 +33,8 @@ pub use chart_of_accounts::{Chart, ChartOfAccounts, error as chart_of_accounts_e
 pub use csv::AccountingCsvExports;
 use error::CoreAccountingError;
 pub use fiscal_year::{
-    FiscalYear, FiscalYears, FiscalYearsByCreatedAtCursor, error as fiscal_year_error,
+    FiscalYear, FiscalYearConfig, FiscalYears, FiscalYearsByCreatedAtCursor,
+    error as fiscal_year_error,
 };
 pub use journal::{Journal, error as journal_error};
 pub use ledger_account::{LedgerAccount, LedgerAccountChildrenCursor, LedgerAccounts};

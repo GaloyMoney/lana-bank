@@ -2,7 +2,9 @@ use crate::accounting_init::{constants::*, *};
 
 use rbac_types::Subject;
 
-use super::module_config::{balance_sheet::*, credit::*, deposit::*, profit_and_loss::*};
+use super::module_config::{
+    balance_sheet::*, credit::*, deposit::*, fiscal_year::*, profit_and_loss::*,
+};
 
 pub(crate) async fn init(
     chart_of_accounts: &ChartOfAccounts,
@@ -28,6 +30,7 @@ pub(crate) async fn init(
         deposit,
         balance_sheet,
         profit_and_loss,
+        fiscal_year,
         accounting_init_config,
     )
     .await?;
@@ -40,6 +43,11 @@ async fn create_chart_of_accounts(
     fiscal_year: &FiscalYears,
     accounting_init_config: AccountingInitConfig,
 ) -> Result<(), AccountingInitError> {
+    let opening_date = accounting_init_config
+        .chart_of_accounts_opening_date
+        .ok_or_else(|| {
+            AccountingInitError::MissingConfig("chart_of_accounts_opening_date".to_string())
+        })?;
     if chart_of_accounts
         .maybe_find_by_reference(CHART_REF)
         .await?
@@ -53,11 +61,9 @@ async fn create_chart_of_accounts(
             )
             .await?;
 
-        if let Some(opening_date) = accounting_init_config.chart_of_accounts_opening_date {
-            fiscal_year
-                .init_for_chart(&Subject::System, opening_date, chart.id)
-                .await?;
-        }
+        fiscal_year
+            .init_for_chart(&Subject::System, opening_date, chart.id)
+            .await?;
     }
 
     Ok(())
@@ -70,6 +76,7 @@ async fn seed_chart_of_accounts(
     deposit: &Deposits,
     balance_sheet: &BalanceSheets,
     profit_and_loss: &ProfitAndLossStatements,
+    fiscal_year: &FiscalYears,
     accounting_init_config: AccountingInitConfig,
 ) -> Result<(), AccountingInitError> {
     let AccountingInitConfig {
@@ -79,7 +86,7 @@ async fn seed_chart_of_accounts(
         deposit_config_path,
         balance_sheet_config_path,
         profit_and_loss_config_path,
-
+        fiscal_year_config_path,
         chart_of_accounts_opening_date: _,
     } = accounting_init_config;
 
@@ -129,6 +136,14 @@ async fn seed_chart_of_accounts(
 
     if let Some(config_path) = profit_and_loss_config_path {
         profit_and_loss_module_configure(profit_and_loss, &chart, config_path)
+            .await
+            .unwrap_or_else(|e| {
+                dbg!(&e); // TODO: handle the un-returned error differently
+            });
+    }
+
+    if let Some(config_path) = fiscal_year_config_path {
+        fiscal_year_module_configure(fiscal_year, config_path)
             .await
             .unwrap_or_else(|e| {
                 dbg!(&e); // TODO: handle the un-returned error differently
