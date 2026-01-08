@@ -22,6 +22,7 @@ pub struct SendCollateralToLiquidationParams {
     pub collateral_account_id: CalaAccountId,
     pub collateral_in_liquidation_account_id: CalaAccountId,
     pub effective: NaiveDate,
+    pub initiated_by: core_accounting::LedgerTransactionInitiator,
 }
 
 impl SendCollateralToLiquidationParams {
@@ -57,6 +58,11 @@ impl SendCollateralToLiquidationParams {
                 .r#type(ParamDataType::Date)
                 .build()
                 .expect("Could not build param definition"),
+            NewParamDefinition::builder()
+                .name("meta")
+                .r#type(ParamDataType::Json)
+                .build()
+                .unwrap(),
         ]
     }
 }
@@ -69,6 +75,7 @@ impl From<SendCollateralToLiquidationParams> for Params {
             collateral_account_id,
             collateral_in_liquidation_account_id,
             effective,
+            initiated_by,
         }: SendCollateralToLiquidationParams,
     ) -> Self {
         let mut params = Self::default();
@@ -81,6 +88,12 @@ impl From<SendCollateralToLiquidationParams> for Params {
             collateral_in_liquidation_account_id,
         );
         params.insert("effective", effective);
+        params.insert(
+            "meta",
+            serde_json::json!({
+                "initiated_by": initiated_by,
+            }),
+        );
 
         params
     }
@@ -95,6 +108,7 @@ impl SendCollateralToLiquidation {
         let transaction = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")
+            .metadata("params.meta")
             .description("'Send collateral to liquidation'")
             .build()
             .expect("Could not build new template transaction");

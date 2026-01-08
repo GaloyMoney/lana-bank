@@ -16,6 +16,10 @@ pub enum LiquidationError {
     AlreadySatisfied,
     #[error("LiquidationError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
+    #[error("CoreCreditError - LedgerTransactionInitiatorParseError: {0}")]
+    LedgerTransactionInitiatorParseError(
+        #[from] core_accounting::LedgerTransactionInitiatorParseError,
+    ),
 }
 
 es_entity::from_es_entity_error!(LiquidationError);
@@ -29,6 +33,7 @@ impl ErrorSeverity for LiquidationError {
             Self::LedgerError(e) => e.severity(),
             Self::AlreadySatisfied => Level::WARN,
             Self::AuthorizationError(e) => e.severity(),
+            Self::LedgerTransactionInitiatorParseError(e) => e.severity(),
         }
     }
 }

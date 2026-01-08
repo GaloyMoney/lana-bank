@@ -5,15 +5,16 @@ mod repo;
 
 use std::sync::Arc;
 
-use audit::AuditSvc;
-use authz::PermissionCheck;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
+use audit::AuditSvc;
+use authz::PermissionCheck;
 use cala_ledger::{
     AccountId as CalaAccountId, CalaLedger, JournalId, TransactionId as CalaTransactionId,
 };
+use core_accounting::LedgerTransactionInitiator;
 use core_money::{Satoshis, UsdCents};
 use es_entity::{DbOp, Idempotent};
 use obix::out::OutboxEventMarker;
@@ -160,6 +161,7 @@ where
                     amount,
                     liquidation.collateral_account_id,
                     liquidation.collateral_in_liquidation_account_id,
+                    LedgerTransactionInitiator::try_from_subject(sub)?,
                 )
                 .await?;
         }
@@ -200,7 +202,12 @@ where
         )? {
             self.repo.update_in_op(&mut db, &mut liquidation).await?;
             self.ledger
-                .record_proceeds_from_liquidation_in_op(&mut db, tx_id, data)
+                .record_proceeds_from_liquidation_in_op(
+                    &mut db,
+                    tx_id,
+                    data,
+                    LedgerTransactionInitiator::try_from_subject(sub)?,
+                )
                 .await?;
         }
 
