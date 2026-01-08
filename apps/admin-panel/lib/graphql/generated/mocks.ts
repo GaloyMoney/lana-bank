@@ -2887,6 +2887,7 @@ export const mockSubscription = (overrides?: Partial<Subscription>, _relationshi
     relationshipsToOmit.add('Subscription');
     return {
         __typename: 'Subscription',
+        pendingCreditFacilityCollateralizationUpdated: overrides && overrides.hasOwnProperty('pendingCreditFacilityCollateralizationUpdated') ? overrides.pendingCreditFacilityCollateralizationUpdated! : relationshipsToOmit.has('PendingCreditFacilityCollateralizationUpdated') ? {} as PendingCreditFacilityCollateralizationUpdated : mockPendingCreditFacilityCollateralizationUpdated({}, relationshipsToOmit),
         testPing: overrides && overrides.hasOwnProperty('testPing') ? overrides.testPing! : relationshipsToOmit.has('TestPingEvent') ? {} as TestPingEvent : mockTestPingEvent({}, relationshipsToOmit),
     };
 };

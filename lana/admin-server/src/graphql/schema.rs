@@ -1,6 +1,10 @@
-use async_graphql::{Context, Object, types::connection::*};
+use async_graphql::{Context, Object, SimpleObject, Subscription, types::connection::*};
 
 use std::io::Read;
+use std::time::Duration;
+
+use futures::StreamExt;
+use futures::stream::Stream;
 
 use lana_app::{
     accounting_init::constants::{
@@ -2554,4 +2558,43 @@ impl Mutation {
             .await?;
         Ok(ReportFileGenerateDownloadLinkPayload { url })
     }
+}
+
+pub struct Subscription;
+
+#[Subscription]
+impl Subscription {
+    async fn test_ping(&self, message: String) -> impl Stream<Item = TestPingEvent> {
+        tokio_stream::wrappers::IntervalStream::new(tokio::time::interval(Duration::from_secs(1)))
+            .map(move |_| TestPingEvent {
+                message: message.clone(),
+                timestamp: chrono::Utc::now().to_rfc3339(),
+            })
+    }
+
+    async fn pending_credit_facility_collateralization_updated(
+        &self,
+        ctx: &Context<'_>,
+        pending_credit_facility_id: UUID,
+    ) -> async_graphql::Result<impl Stream<Item = PendingCreditFacilityCollateralizationUpdated>>
+    {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let pending_credit_facility_id = PendingCreditFacilityId::from(pending_credit_facility_id);
+
+        let stream = app
+            .credit()
+            .subscribe_pending_credit_facility_collateralization_updates(
+                sub,
+                pending_credit_facility_id,
+            )
+            .await?;
+
+        Ok(stream.map(Into::into))
+    }
+}
+
+#[derive(SimpleObject)]
+pub struct TestPingEvent {
+    pub message: String,
+    pub timestamp: String,
 }

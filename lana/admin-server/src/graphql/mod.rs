@@ -24,7 +24,6 @@ mod primitives;
 mod profit_and_loss_config;
 mod public_id;
 mod reports;
-mod subscription;
 mod sumsub;
 mod terms;
 mod terms_template;
@@ -39,7 +38,6 @@ use async_graphql::*;
 
 use loader::LanaLoader;
 pub use schema::*;
-pub use subscription::Subscription;
 
 use lana_app::app::LanaApp;
 

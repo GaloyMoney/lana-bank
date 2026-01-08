@@ -11,7 +11,10 @@ import { PendingCreditFacilityTermsCard } from "./terms-card"
 
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 
-import { useGetPendingCreditFacilityLayoutDetailsQuery } from "@/lib/graphql/generated"
+import {
+  useGetPendingCreditFacilityLayoutDetailsQuery,
+  usePendingCreditFacilityCollateralizationUpdatedSubscription,
+} from "@/lib/graphql/generated"
 
 gql`
   fragment PendingCreditFacilityLayoutFragment on PendingCreditFacility {
@@ -89,6 +92,20 @@ gql`
       ...PendingCreditFacilityLayoutFragment
     }
   }
+
+  subscription PendingCreditFacilityCollateralizationUpdated(
+    $pendingCreditFacilityId: UUID!
+  ) {
+    pendingCreditFacilityCollateralizationUpdated(
+      pendingCreditFacilityId: $pendingCreditFacilityId
+    ) {
+      state
+      collateral
+      price
+      recordedAt
+      effective
+    }
+  }
 `
 
 export default function PendingCreditFacilityLayout({
@@ -101,8 +118,15 @@ export default function PendingCreditFacilityLayout({
   const { "pending-credit-facility-id": pendingId } = use(params)
   const commonT = useTranslations("Common")
 
-  const { data, loading, error } = useGetPendingCreditFacilityLayoutDetailsQuery({
+  const { data, loading, error, refetch } = useGetPendingCreditFacilityLayoutDetailsQuery(
+    {
+      variables: { pendingCreditFacilityId: pendingId },
+    },
+  )
+
+  usePendingCreditFacilityCollateralizationUpdatedSubscription({
     variables: { pendingCreditFacilityId: pendingId },
+    onData: () => refetch(),
   })
 
   if (loading && !data) return <DetailsPageSkeleton detailItems={4} tabs={2} />

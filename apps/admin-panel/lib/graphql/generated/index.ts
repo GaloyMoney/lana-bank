@@ -2919,7 +2919,13 @@ export enum SortDirection {
 
 export type Subscription = {
   __typename?: 'Subscription';
+  pendingCreditFacilityCollateralizationUpdated: PendingCreditFacilityCollateralizationUpdated;
   testPing: TestPingEvent;
+};
+
+
+export type SubscriptionPendingCreditFacilityCollateralizationUpdatedArgs = {
+  pendingCreditFacilityId: Scalars['UUID']['input'];
 };
 
 
@@ -4325,6 +4331,13 @@ export type GetPendingCreditFacilityLayoutDetailsQuery = { __typename?: 'Query',
         | { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } }> } }
         | { __typename?: 'SystemApproval', autoApprove: boolean }
       , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } } }> } } | null };
+
+export type PendingCreditFacilityCollateralizationUpdatedSubscriptionVariables = Exact<{
+  pendingCreditFacilityId: Scalars['UUID']['input'];
+}>;
+
+
+export type PendingCreditFacilityCollateralizationUpdatedSubscription = { __typename?: 'Subscription', pendingCreditFacilityCollateralizationUpdated: { __typename?: 'PendingCreditFacilityCollateralizationUpdated', state: PendingCreditFacilityCollateralizationState, collateral: Satoshis, price: UsdCents, recordedAt: any, effective: any } };
 
 export type GetPendingCreditFacilityRepaymentPlanQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -10201,6 +10214,42 @@ export type GetPendingCreditFacilityLayoutDetailsQueryHookResult = ReturnType<ty
 export type GetPendingCreditFacilityLayoutDetailsLazyQueryHookResult = ReturnType<typeof useGetPendingCreditFacilityLayoutDetailsLazyQuery>;
 export type GetPendingCreditFacilityLayoutDetailsSuspenseQueryHookResult = ReturnType<typeof useGetPendingCreditFacilityLayoutDetailsSuspenseQuery>;
 export type GetPendingCreditFacilityLayoutDetailsQueryResult = Apollo.QueryResult<GetPendingCreditFacilityLayoutDetailsQuery, GetPendingCreditFacilityLayoutDetailsQueryVariables>;
+export const PendingCreditFacilityCollateralizationUpdatedDocument = gql`
+    subscription PendingCreditFacilityCollateralizationUpdated($pendingCreditFacilityId: UUID!) {
+  pendingCreditFacilityCollateralizationUpdated(
+    pendingCreditFacilityId: $pendingCreditFacilityId
+  ) {
+    state
+    collateral
+    price
+    recordedAt
+    effective
+  }
+}
+    `;
+
+/**
+ * __usePendingCreditFacilityCollateralizationUpdatedSubscription__
+ *
+ * To run a query within a React component, call `usePendingCreditFacilityCollateralizationUpdatedSubscription` and pass it any options that fit your needs.
+ * When your component renders, `usePendingCreditFacilityCollateralizationUpdatedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = usePendingCreditFacilityCollateralizationUpdatedSubscription({
+ *   variables: {
+ *      pendingCreditFacilityId: // value for 'pendingCreditFacilityId'
+ *   },
+ * });
+ */
+export function usePendingCreditFacilityCollateralizationUpdatedSubscription(baseOptions: Apollo.SubscriptionHookOptions<PendingCreditFacilityCollateralizationUpdatedSubscription, PendingCreditFacilityCollateralizationUpdatedSubscriptionVariables> & ({ variables: PendingCreditFacilityCollateralizationUpdatedSubscriptionVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<PendingCreditFacilityCollateralizationUpdatedSubscription, PendingCreditFacilityCollateralizationUpdatedSubscriptionVariables>(PendingCreditFacilityCollateralizationUpdatedDocument, options);
+      }
+export type PendingCreditFacilityCollateralizationUpdatedSubscriptionHookResult = ReturnType<typeof usePendingCreditFacilityCollateralizationUpdatedSubscription>;
+export type PendingCreditFacilityCollateralizationUpdatedSubscriptionResult = Apollo.SubscriptionResult<PendingCreditFacilityCollateralizationUpdatedSubscription>;
 export const GetPendingCreditFacilityRepaymentPlanDocument = gql`
     query GetPendingCreditFacilityRepaymentPlan($id: UUID!) {
   pendingCreditFacility(id: $id) {
