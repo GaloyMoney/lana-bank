@@ -1,3 +1,33 @@
+//! Interest Accrual Job - State Machine
+//!
+//! This job manages the complete interest accrual lifecycle for a credit facility.
+//! It operates as a state machine with the following states and transitions:
+//!
+//! ```text
+//! ┌─────────────────────────────────────────────────────────────────────────┐
+//! │                         InterestAccrualState                             │
+//! ├─────────────────────────────────────────────────────────────────────────┤
+//! │  AccruePeriod                                                            │
+//! │    • Calculate interest for current accrual period                       │
+//! │    • Record accrual to ledger                                            │
+//! │    → more periods remaining: RescheduleAt(next_period.end)               │
+//! │    → cycle complete: transition to AwaitObligationsSync                  │
+//! ├─────────────────────────────────────────────────────────────────────────┤
+//! │  AwaitObligationsSync                                                    │
+//! │    • Wait for all facility obligations to reach current status           │
+//! │    • Required before cycle completion to ensure consistent state         │
+//! │    → not ready: RescheduleIn(5 min)                                      │
+//! │    → ready: transition to CompleteCycle                                  │
+//! ├─────────────────────────────────────────────────────────────────────────┤
+//! │  CompleteCycle                                                           │
+//! │    • Finalize the interest accrual cycle                                 │
+//! │    • Create interest obligation (if accrued amount > 0)                  │
+//! │    • Record cycle completion to ledger                                   │
+//! │    → new cycle exists: spawn new job in AccruePeriod state               │
+//! │    → facility matured: complete                                          │
+//! └─────────────────────────────────────────────────────────────────────────┘
+//! ```
+
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
@@ -16,19 +46,48 @@ use crate::{
     obligation::Obligations,
 };
 
+/// State machine states for the interest accrual job.
+///
+/// Each state represents a discrete domain process in the interest accrual lifecycle.
 #[derive(Clone, Serialize, Deserialize, Debug)]
-pub enum InterestAccrualPhase {
-    /// Accrue interest for the current period within a cycle
-    AccrueInterest,
-    /// Complete the current cycle and potentially start a new one
+pub enum InterestAccrualState {
+    /// Calculate and record interest for the current accrual period.
+    ///
+    /// This state handles individual period accruals within a cycle.
+    /// A cycle may contain multiple periods (e.g., daily accruals within a monthly cycle).
+    AccruePeriod,
+
+    /// Wait for facility obligations to be synchronized.
+    ///
+    /// Before completing a cycle, we must ensure all obligations have their
+    /// status updated. This prevents race conditions where an obligation's
+    /// status change could affect the cycle completion logic.
+    AwaitObligationsSync,
+
+    /// Complete the current interest accrual cycle.
+    ///
+    /// This finalizes the cycle by:
+    /// - Creating an interest obligation for the total accrued amount
+    /// - Recording the cycle completion to the ledger
+    /// - Initiating the next cycle if the facility hasn't matured
     CompleteCycle,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct InterestAccrualJobConfig<Perms, E> {
     pub credit_facility_id: CreditFacilityId,
-    pub phase: InterestAccrualPhase,
+    pub state: InterestAccrualState,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
+}
+
+impl<Perms, E> InterestAccrualJobConfig<Perms, E> {
+    fn transition_to(&self, new_state: InterestAccrualState) -> Self {
+        Self {
+            credit_facility_id: self.credit_facility_id,
+            state: new_state,
+            _phantom: std::marker::PhantomData,
+        }
+    }
 }
 
 impl<Perms, E> JobConfig for InterestAccrualJobConfig<Perms, E>
@@ -119,7 +178,7 @@ where
     }
 }
 
-pub struct InterestAccrualJobRunner<Perms, E>
+struct InterestAccrualJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
@@ -146,13 +205,22 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
+    #[tracing::instrument(
+        name = "interest_accrual.run",
+        skip(self, _current_job),
+        fields(
+            credit_facility_id = %self.config.credit_facility_id,
+            state = ?self.config.state
+        )
+    )]
     async fn run(
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        match &self.config.phase {
-            InterestAccrualPhase::AccrueInterest => self.run_accrue_interest().await,
-            InterestAccrualPhase::CompleteCycle => self.run_complete_cycle().await,
+        match &self.config.state {
+            InterestAccrualState::AccruePeriod => self.accrue_period().await,
+            InterestAccrualState::AwaitObligationsSync => self.await_obligations_sync().await,
+            InterestAccrualState::CompleteCycle => self.complete_cycle().await,
         }
     }
 }
@@ -168,12 +236,18 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
-    async fn run_accrue_interest(&self) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+    /// State: AccruePeriod
+    ///
+    /// Calculates interest for the current period and records it to the ledger.
+    /// Transitions:
+    /// - If more periods remain in the cycle: reschedule at next period end
+    /// - If cycle is complete: transition to AwaitObligationsSync
+    async fn accrue_period(&self) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut db = self.credit_facilities.begin_op().await?;
 
         let crate::ConfirmedAccrual {
             accrual: interest_accrual,
-            next_period: next_accrual_period,
+            next_period,
             accrual_idx,
             accrued_count,
         } = self
@@ -189,44 +263,80 @@ where
             )
             .await?;
 
-        if let Some(period) = next_accrual_period {
-            Ok(JobCompletion::RescheduleAtWithOp(db, period.end))
-        } else {
-            // All accruals in this cycle complete - spawn cycle completion phase
-            self.jobs
-                .create_and_spawn_in_op(
-                    &mut db,
-                    uuid::Uuid::new_v4(),
-                    InterestAccrualJobConfig::<Perms, E> {
-                        credit_facility_id: self.config.credit_facility_id,
-                        phase: InterestAccrualPhase::CompleteCycle,
-                        _phantom: std::marker::PhantomData,
-                    },
-                )
-                .await?;
-
-            tracing::info!(
-                accrued_count = %accrued_count,
-                accrual_idx = %accrual_idx,
-                credit_facility_id = %self.config.credit_facility_id,
-                "All accruals completed for period"
-            );
-            Ok(JobCompletion::CompleteWithOp(db))
+        match next_period {
+            Some(period) => {
+                // More periods in this cycle - reschedule for next period
+                tracing::debug!(
+                    accrual_idx = %accrual_idx,
+                    next_period_end = %period.end,
+                    "Period accrued, scheduling next period"
+                );
+                Ok(JobCompletion::RescheduleAtWithOp(db, period.end))
+            }
+            None => {
+                // Cycle complete - transition to await obligations sync
+                tracing::info!(
+                    accrued_count = %accrued_count,
+                    accrual_idx = %accrual_idx,
+                    "All periods accrued, transitioning to await obligations sync"
+                );
+                self.jobs
+                    .create_and_spawn_in_op(
+                        &mut db,
+                        uuid::Uuid::new_v4(),
+                        self.config
+                            .transition_to(InterestAccrualState::AwaitObligationsSync),
+                    )
+                    .await?;
+                Ok(JobCompletion::CompleteWithOp(db))
+            }
         }
     }
 
-    async fn run_complete_cycle(&self) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        if !self
+    /// State: AwaitObligationsSync
+    ///
+    /// Waits for all facility obligations to have their status updated.
+    /// This is required before cycle completion to ensure consistent state.
+    /// Transitions:
+    /// - If obligations not synced: reschedule in 5 minutes
+    /// - If obligations synced: transition to CompleteCycle
+    async fn await_obligations_sync(&self) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+        let obligations_synced = self
             .obligations
             .check_facility_obligations_status_updated(self.config.credit_facility_id)
-            .await?
-        {
+            .await?;
+
+        if !obligations_synced {
+            tracing::debug!("Obligations not yet synced, rescheduling");
             return Ok(JobCompletion::RescheduleIn(std::time::Duration::from_secs(
                 5 * 60,
             )));
         }
 
+        tracing::debug!("Obligations synced, transitioning to complete cycle");
+
+        let mut db = self.credit_facilities.begin_op().await?;
+        self.jobs
+            .create_and_spawn_in_op(
+                &mut db,
+                uuid::Uuid::new_v4(),
+                self.config
+                    .transition_to(InterestAccrualState::CompleteCycle),
+            )
+            .await?;
+        Ok(JobCompletion::CompleteWithOp(db))
+    }
+
+    /// State: CompleteCycle
+    ///
+    /// Finalizes the interest accrual cycle:
+    /// - Records audit entry
+    /// - Completes the cycle (creates interest obligation if amount > 0)
+    /// - Records cycle completion to ledger
+    /// - Spawns new job for next cycle if facility hasn't matured
+    async fn complete_cycle(&self) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut op = self.credit_facilities.begin_op().await?;
+
         self.audit
             .record_system_entry_in_tx(
                 &mut op,
@@ -246,32 +356,6 @@ where
             )
             .await?;
 
-        if let Some(new_cycle_data) = new_cycle_data {
-            let NewInterestAccrualCycleData {
-                id: new_accrual_cycle_id,
-                first_accrual_end_date,
-            } = new_cycle_data;
-
-            self.jobs
-                .create_and_spawn_at_in_op(
-                    &mut op,
-                    new_accrual_cycle_id,
-                    InterestAccrualJobConfig::<Perms, E> {
-                        credit_facility_id: self.config.credit_facility_id,
-                        phase: InterestAccrualPhase::AccrueInterest,
-                        _phantom: std::marker::PhantomData,
-                    },
-                    first_accrual_end_date,
-                )
-                .await?;
-        } else {
-            tracing::info!(
-                credit_facility_id = %self.config.credit_facility_id,
-                "All interest accrual cycles completed for {}",
-                self.config.credit_facility_id
-            );
-        };
-
         self.ledger
             .record_interest_accrual_cycle(
                 &mut op,
@@ -279,6 +363,34 @@ where
                 core_accounting::LedgerTransactionInitiator::System,
             )
             .await?;
+
+        match new_cycle_data {
+            Some(NewInterestAccrualCycleData {
+                id: new_accrual_cycle_id,
+                first_accrual_end_date,
+            }) => {
+                tracing::info!(
+                    new_cycle_id = %new_accrual_cycle_id,
+                    first_accrual_end = %first_accrual_end_date,
+                    "Cycle completed, starting new cycle"
+                );
+                self.jobs
+                    .create_and_spawn_at_in_op(
+                        &mut op,
+                        new_accrual_cycle_id,
+                        InterestAccrualJobConfig::<Perms, E> {
+                            credit_facility_id: self.config.credit_facility_id,
+                            state: InterestAccrualState::AccruePeriod,
+                            _phantom: std::marker::PhantomData,
+                        },
+                        first_accrual_end_date,
+                    )
+                    .await?;
+            }
+            None => {
+                tracing::info!("All interest accrual cycles completed - facility matured");
+            }
+        }
 
         Ok(JobCompletion::CompleteWithOp(op))
     }
