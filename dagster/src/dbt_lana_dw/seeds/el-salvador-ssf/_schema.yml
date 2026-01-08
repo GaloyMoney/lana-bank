@@ -5,6 +5,12 @@ seeds:
     description: >
       Risk category classifications and reserve percentages defined in NCB-022 norm
       for the calculation of Sanitation Reserves (Reservas de Saneamiento).
+    config:
+      column_types:
+        category: STRING
+        reserve_percentage: BIGNUMERIC
+        consumer_calendar_ge_days: INT64
+        consumer_calendar_le_days: INT64
     columns:
       - name: category
         description: Risk category identifier (A1, A2, B, C1, C2, D1, D2, E)
@@ -24,6 +30,12 @@ seeds:
     description: >
       Country and territory codes as defined in NPB4-17-31 regulation.
       Contains nationality names, country names in Spanish, and ISO Alpha-3 codes.
+    config:
+      column_types:
+        code: INT64
+        nationality: STRING
+        country: STRING
+        iso_alpha_3_code: STRING
     columns:
       - name: code
         description: Numeric country/territory code
@@ -45,6 +57,14 @@ seeds:
     description: >
       Loan status definitions as defined in NRP-41 regulation.
       Maps loan states between Spanish and English with calendar day thresholds.
+    config:
+      column_types:
+        estado: STRING
+        "explicación": STRING
+        status: STRING
+        explanation: STRING
+        consumer_calendar_ge_days: INT64
+        consumer_calendar_le_days: INT64
     columns:
       - name: estado
         description: Loan status in Spanish

@@ -5,6 +5,12 @@ seeds:
     description: >
       NCF-01-01 Balance sheet line item configuration.
       Contains account mappings stored as JSON arrays to be parsed by wrapper model.
+    config:
+      column_types:
+        order_by: INT64
+        title: STRING
+        eng_title: STRING
+        source_account_codes: STRING
     columns:
       - name: order_by
         description: Display order for the line item
@@ -22,6 +28,12 @@ seeds:
     description: >
       NCF-01-02 Income statement line item configuration.
       Contains account mappings stored as JSON arrays to be parsed by wrapper model.
+    config:
+      column_types:
+        order_by: INT64
+        title: STRING
+        eng_title: STRING
+        source_account_spaced_codes: STRING
     columns:
       - name: order_by
         description: Display order for the line item
@@ -39,6 +51,11 @@ seeds:
     description: >
       NCF-01-03 Equity statement column definitions.
       Defines the 10 columns for changes in equity reporting.
+    config:
+      column_types:
+        column_order_by: INT64
+        column_title: STRING
+        eng_column_title: STRING
     columns:
       - name: column_order_by
         description: Display order for the column
@@ -56,6 +73,12 @@ seeds:
     description: >
       NCF-01-03 Equity statement row titles.
       Used by column wrapper models to generate equity statement configurations.
+    config:
+      column_types:
+        order_by: INT64
+        title: STRING
+        eng_title: STRING
+        source_account_codes: STRING
     columns:
       - name: order_by
         description: Display order for the row
@@ -73,6 +96,12 @@ seeds:
     description: >
       NCF-01-04 Cash flow statement line item configuration.
       Contains operating, investing, and financing activity line items.
+    config:
+      column_types:
+        order_by: INT64
+        title: STRING
+        eng_title: STRING
+        source_account_codes: STRING
     columns:
       - name: order_by
         description: Display order for the line item
@@ -90,6 +119,13 @@ seeds:
     description: >
       NRP-28-01 Liquidity reserve requirement line item configuration.
       Defines deposit categories and their reserve calculation rules.
+    config:
+      column_types:
+        order_by: INT64
+        title: STRING
+        eng_title: STRING
+        sum_account_codes: STRING
+        diff_account_codes: STRING
     columns:
       - name: order_by
         description: Display order for the line item
@@ -109,6 +145,12 @@ seeds:
     description: >
       NRP-28-01 Liquidity reserve coefficients by account type.
       Maps account codes to their required liquidity reserve percentages.
+    config:
+      column_types:
+        account_code: STRING
+        account_name: STRING
+        eng_account_name: STRING
+        coefficient: BIGNUMERIC
     columns:
       - name: account_code
         description: Accounting system account code
