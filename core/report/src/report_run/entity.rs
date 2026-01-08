@@ -158,7 +158,7 @@ impl NewReportRun {
 
         let mut builder = NewReportRunBuilder::default();
         builder.id(report_run_id);
-        builder.execution_date(Utc::now());
+        builder.execution_date(crate::time::now());
         builder.state(ReportRunState::Queued);
         builder.run_type(ReportRunType::Manual);
         builder
