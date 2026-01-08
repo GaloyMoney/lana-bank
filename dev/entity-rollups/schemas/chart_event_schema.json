@@ -1,4 +1,62 @@
 {
+  "$defs": {
+    "AccountCode": {
+      "properties": {
+        "sections": {
+          "items": {
+            "$ref": "#/$defs/AccountCodeSection"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "sections"
+      ],
+      "type": "object"
+    },
+    "AccountCodeSection": {
+      "properties": {
+        "code": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code"
+      ],
+      "type": "object"
+    },
+    "AccountingBaseConfig": {
+      "properties": {
+        "assets_code": {
+          "$ref": "#/$defs/AccountCode"
+        },
+        "cost_of_revenue_code": {
+          "$ref": "#/$defs/AccountCode"
+        },
+        "equity_code": {
+          "$ref": "#/$defs/AccountCode"
+        },
+        "expenses_code": {
+          "$ref": "#/$defs/AccountCode"
+        },
+        "liabilities_code": {
+          "$ref": "#/$defs/AccountCode"
+        },
+        "revenue_code": {
+          "$ref": "#/$defs/AccountCode"
+        }
+      },
+      "required": [
+        "assets_code",
+        "liabilities_code",
+        "equity_code",
+        "revenue_code",
+        "cost_of_revenue_code",
+        "expenses_code"
+      ],
+      "type": "object"
+    }
+  },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "oneOf": [
     {
@@ -28,6 +86,22 @@
         "account_set_id",
         "name",
         "reference"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "base_config": {
+          "$ref": "#/$defs/AccountingBaseConfig"
+        },
+        "type": {
+          "const": "base_config_set",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "base_config"
       ],
       "type": "object"
     },
