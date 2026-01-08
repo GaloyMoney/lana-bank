@@ -218,5 +218,7 @@ pub const CREDIT_PAYMENT_HOLDING_ACCOUNT_SET_NAME: &str = "Credit Payment Holdin
 pub const CREDIT_PAYMENT_HOLDING_ACCOUNT_SET_REF: &str = "credit-payment-holding-account-set";
 
 // Velocity Controls
-pub(super) const CREDIT_FACILITY_VELOCITY_CONTROL_ID: uuid::Uuid =
+pub(super) const DISBURSAL_VELOCITY_CONTROL_ID: uuid::Uuid =
     uuid::uuid!("00000000-0000-0000-0000-000000000002");
+pub(super) const UNCOVERED_OUTSTANDING_VELOCITY_CONTROL_ID: uuid::Uuid =
+    uuid::uuid!("00000000-0000-0000-0000-000000000003");

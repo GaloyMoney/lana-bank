@@ -216,7 +216,7 @@ pub struct CreditLedger {
     interest_added_to_obligations_omnibus_account_ids: LedgerOmnibusAccountIds,
     payments_made_omnibus_account_ids: LedgerOmnibusAccountIds,
     internal_account_sets: CreditFacilityInternalAccountSets,
-    credit_facility_control_id: VelocityControlId,
+    credit_facility_control_ids: CreditVelocityControlIds,
     usd: Currency,
     btc: Currency,
 }
@@ -932,12 +932,30 @@ impl CreditLedger {
         };
 
         let disbursal_limit_id = velocity::DisbursalLimit::init(cala).await?;
+        let uncovered_outstanding_limit_id =
+            velocity::UncoveredOutstandingLimit::init(cala).await?;
 
-        let credit_facility_control_id = Self::create_credit_facility_control(cala).await?;
-
+        let disbursal_control_id =
+            Self::create_credit_facility_control(cala, DISBURSAL_VELOCITY_CONTROL_ID).await?;
         match cala
             .velocities()
-            .add_limit_to_control(credit_facility_control_id, disbursal_limit_id)
+            .add_limit_to_control(disbursal_control_id, disbursal_limit_id)
+            .await
+        {
+            Ok(_)
+            | Err(cala_ledger::velocity::error::VelocityError::LimitAlreadyAddedToControl) => {}
+            Err(e) => return Err(e.into()),
+        }
+
+        let uncovered_outstanding_control_id =
+            Self::create_credit_facility_control(cala, UNCOVERED_OUTSTANDING_VELOCITY_CONTROL_ID)
+                .await?;
+        match cala
+            .velocities()
+            .add_limit_to_control(
+                uncovered_outstanding_control_id,
+                uncovered_outstanding_limit_id,
+            )
             .await
         {
             Ok(_)
@@ -954,7 +972,10 @@ impl CreditLedger {
             interest_added_to_obligations_omnibus_account_ids,
             payments_made_omnibus_account_ids,
             internal_account_sets,
-            credit_facility_control_id,
+            credit_facility_control_ids: CreditVelocityControlIds {
+                disbursal: disbursal_control_id,
+                uncovered_outstanding: uncovered_outstanding_control_id,
+            },
             usd: Currency::USD,
             btc: Currency::BTC,
         })
@@ -1672,6 +1693,13 @@ impl CreditLedger {
         )
         .await?;
 
+        self.add_credit_facility_control_to_account(
+            op,
+            account_ids.uncovered_outstanding_account_id,
+            self.credit_facility_control_ids.uncovered_outstanding,
+        )
+        .await?;
+
         self.activate_credit_facility(
             op,
             tx_id,
@@ -1972,18 +2000,18 @@ impl CreditLedger {
 
     pub async fn create_credit_facility_control(
         cala: &CalaLedger,
+        id: impl Into<VelocityControlId>,
     ) -> Result<VelocityControlId, CreditLedgerError> {
+        let id = id.into();
         let control = NewVelocityControl::builder()
-            .id(CREDIT_FACILITY_VELOCITY_CONTROL_ID)
+            .id(id)
             .name("Credit Facility Control")
-            .description("Velocity Control for Deposits")
+            .description("Velocity Control")
             .build()
             .expect("build control");
 
         match cala.velocities().create_control(control).await {
-            Err(cala_ledger::velocity::error::VelocityError::ControlIdAlreadyExists) => {
-                Ok(CREDIT_FACILITY_VELOCITY_CONTROL_ID.into())
-            }
+            Err(cala_ledger::velocity::error::VelocityError::ControlIdAlreadyExists) => Ok(id),
             Err(e) => Err(e.into()),
             Ok(control) => Ok(control.id()),
         }
@@ -1991,14 +2019,15 @@ impl CreditLedger {
 
     async fn add_credit_facility_control_to_account(
         &self,
-        op: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         account_id: impl Into<CalaAccountId>,
+        control_id: VelocityControlId,
     ) -> Result<(), CreditLedgerError> {
         self.cala
             .velocities()
             .attach_control_to_account_in_op(
                 op,
-                self.credit_facility_control_id,
+                control_id,
                 account_id.into(),
                 cala_ledger::tx_template::Params::default(),
             )
@@ -2119,6 +2148,7 @@ impl CreditLedger {
         self.add_credit_facility_control_to_account(
             op,
             pending_credit_facility.account_ids.facility_account_id,
+            self.credit_facility_control_ids.disbursal,
         )
         .await?;
 
@@ -2527,7 +2557,7 @@ impl CreditLedger {
 
             cala: _,
             journal_id: _,
-            credit_facility_control_id: _,
+            credit_facility_control_ids: _,
             usd: _,
             btc: _,
         } = self;
@@ -3257,6 +3287,12 @@ impl CreditLedger {
     pub fn liquidation_proceeds_omnibus_account_ids(&self) -> &LedgerOmnibusAccountIds {
         &self.liquidation_proceeds_omnibus_account_ids
     }
+}
+
+#[derive(Debug, Clone)]
+struct CreditVelocityControlIds {
+    disbursal: VelocityControlId,
+    uncovered_outstanding: VelocityControlId,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
