@@ -2,6 +2,7 @@ mutation($executionParams: ExecutionParams!) {
   launchRun(executionParams: $executionParams) {
     __typename
     ... on LaunchRunSuccess { run { runId } }
+    ... on InvalidSubsetError { message }
     ... on PythonError { message }
     ... on RunConfigValidationInvalid { errors { message } }
   }
