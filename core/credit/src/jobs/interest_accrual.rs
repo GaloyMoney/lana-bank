@@ -382,7 +382,11 @@ where
                     .await?;
             }
             None => {
-                tracing::info!("All interest accrual cycles completed - facility matured");
+                tracing::info!(
+                    credit_facility_id = %self.config.credit_facility_id,
+                    "All interest accrual cycles completed for {}",
+                    self.config.credit_facility_id
+                );
             }
         }
 
