@@ -23,7 +23,7 @@ where
     credit_facilities: &'a CreditFacilities<Perms, E>,
     obligations: &'a Obligations<Perms, E>,
     disbursals: &'a Disbursals<Perms, E>,
-    histories: &'a HistoryRepo,
+    histories: &'a Histories<Perms>,
     repayment_plans: &'a RepaymentPlanRepo,
     ledger: &'a CreditLedger,
 }
@@ -47,7 +47,7 @@ where
         credit_facilities: &'a CreditFacilities<Perms, E>,
         obligations: &'a Obligations<Perms, E>,
         disbursals: &'a Disbursals<Perms, E>,
-        history: &'a HistoryRepo,
+        history: &'a Histories<Perms>,
         repayment_plans: &'a RepaymentPlanRepo,
         ledger: &'a CreditLedger,
     ) -> Self {
@@ -89,7 +89,12 @@ where
             CoreCreditAction::CREDIT_FACILITY_READ,
         )
         .await?;
-        let history = self.histories.load(id).await?;
+
+        let history = self
+            .histories
+            .find_for_credit_facility_id_without_audit(id)
+            .await?;
+
         Ok(history.into_iter().map(T::from).collect())
     }
 
