@@ -1,4 +1,3 @@
-pub mod collateralization_from_events;
 pub mod credit_facility_history;
 pub mod credit_facility_liquidations;
 pub mod credit_facility_maturity;

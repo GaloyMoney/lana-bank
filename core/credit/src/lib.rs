@@ -287,7 +287,10 @@ where
             &publisher,
             governance_arc.clone(),
             public_ids_arc.clone(),
-        );
+            job_new,
+            outbox,
+        )
+        .await?;
         let facilities_arc = Arc::new(credit_facilities);
 
         let payments = Payments::new(pool, authz_arc.clone(), ledger_arc.clone());
@@ -334,28 +337,6 @@ where
         let terms_templates = TermsTemplates::new(pool, authz_arc.clone());
         let terms_templates_arc = Arc::new(terms_templates);
 
-        //         jobs
-        //             .add_initializer_and_spawn_unique(
-        //                 collateralization_from_events_for_pending_facility::PendingCreditFacilityCollateralizationFromEventsInit::<
-        //                     Perms,
-        //                     E,
-        //                 >::new(outbox, pending_credit_facilities_arc.as_ref()),
-        //                 collateralization_from_events_for_pending_facility::PendingCreditFacilityCollateralizationFromEventsJobConfig {
-        //                     _phantom: std::marker::PhantomData,
-        //                 },
-        //             )
-        //             .await?;
-        jobs
-            .add_initializer_and_spawn_unique(
-                collateralization_from_events::CreditFacilityCollateralizationFromEventsInit::<
-                    Perms,
-                    E,
-                >::new(outbox, facilities_arc.as_ref()),
-                collateralization_from_events::CreditFacilityCollateralizationFromEventsJobConfig {
-                    _phantom: std::marker::PhantomData,
-                },
-            )
-            .await?;
         jobs.add_initializer_and_spawn_unique(
             credit_facility_history::HistoryProjectionInit::<E>::new(
                 outbox,

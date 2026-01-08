@@ -76,6 +76,8 @@ pub enum CreditFacilityError {
     PaymentAllocationError(#[from] crate::payment_allocation::error::PaymentAllocationError),
     #[error("CreditFacilityError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
+    #[error("CreditFacilityError - NewJobError: {0}")]
+    NewJobError(#[from] job_new::error::JobError),
     #[error("CreditFacilityError - CreditFacilityProposalError: {0}")]
     CreditFacilityProposalError(
         #[from] crate::pending_credit_facility::error::PendingCreditFacilityError,
@@ -117,6 +119,7 @@ impl ErrorSeverity for CreditFacilityError {
             Self::PublicIdError(e) => e.severity(),
             Self::PaymentAllocationError(e) => e.severity(),
             Self::JobError(_) => Level::ERROR,
+            Self::NewJobError(_) => Level::ERROR,
             Self::CreditFacilityProposalError(e) => e.severity(),
         }
     }
