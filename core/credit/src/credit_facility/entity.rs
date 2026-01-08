@@ -1113,7 +1113,7 @@ mod test {
         }
 
         #[test]
-        fn another_liquidation_can_initiated() {
+        fn another_liquidation_can_be_initiated() {
             let (mut credit_facility, balances) = collateralized_facility();
 
             let liquidation_id = initiate_liquidation(&mut credit_facility, balances);
@@ -1137,7 +1137,7 @@ mod test {
                 Ok(Idempotent::Executed(()))
             ));
 
-            // Price so that CVL (100) is back under threshold once xagain
+            // Price so that CVL (100) is back under threshold once again
             let price = PriceOfOneBTC::new(UsdCents::from(5000000));
             let state_update = credit_facility.update_collateralization(
                 price,
