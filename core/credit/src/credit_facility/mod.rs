@@ -215,7 +215,6 @@ where
                 accrual_id,
                 interest_accrual::InterestAccrualJobConfig::<Perms, E> {
                     credit_facility_id,
-                    state: interest_accrual::InterestAccrualState::AccruePeriod,
                     _phantom: std::marker::PhantomData,
                 },
                 periods.accrual.end,
