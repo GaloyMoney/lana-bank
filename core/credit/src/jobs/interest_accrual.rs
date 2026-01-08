@@ -264,7 +264,6 @@ where
 
         match next_period {
             Some(period) => {
-                // More periods in this cycle - reschedule for next period (same state)
                 tracing::debug!(
                     accrual_idx = %accrual_idx,
                     next_period_end = %period.end,
@@ -273,14 +272,16 @@ where
                 Ok(JobCompletion::RescheduleAtWithOp(db, period.end))
             }
             None => {
-                // Cycle complete - transition to await obligations sync
                 tracing::info!(
                     accrued_count = %accrued_count,
                     accrual_idx = %accrual_idx,
                     "All periods accrued, transitioning to await obligations sync"
                 );
                 current_job
-                    .update_execution_state_in_op(&mut db, &InterestAccrualState::AwaitObligationsSync)
+                    .update_execution_state_in_op(
+                        &mut db,
+                        &InterestAccrualState::AwaitObligationsSync,
+                    )
                     .await?;
                 db.commit().await?;
                 self.await_obligations_sync(current_job).await
@@ -363,7 +364,6 @@ where
                 id: new_accrual_cycle_id,
                 first_accrual_end_date,
             }) => {
-                // New cycle - spawn a new job starting in AccruePeriod state
                 tracing::info!(
                     new_cycle_id = %new_accrual_cycle_id,
                     first_accrual_end = %first_accrual_end_date,
