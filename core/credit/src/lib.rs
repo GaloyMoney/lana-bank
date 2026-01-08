@@ -375,10 +375,6 @@ where
             },
         )
         .await?;
-        jobs.add_initializer(credit_facility_maturity::CreditFacilityMaturityInit::<
-            Perms,
-            E,
-        >::new(facilities_arc.as_ref()));
         jobs.add_initializer_and_spawn_unique(
             DisbursalApprovalInit::new(outbox, approve_disbursal_arc.as_ref()),
             DisbursalApprovalJobConfig::<Perms, E>::new(),

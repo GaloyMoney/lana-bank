@@ -12,14 +12,14 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_price::{CorePriceEvent, Price};
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
-use job::{JobId, Jobs};
+use job::Jobs;
 use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{
     PublicIds,
     disbursal::Disbursals,
     event::CoreCreditEvent,
-    jobs::{credit_facility_maturity, interest_accrual},
+    jobs::interest_accrual,
     ledger::{CreditFacilityInterestAccrual, CreditFacilityInterestAccrualCycle, CreditLedger},
     obligation::Obligations,
     pending_credit_facility::{PendingCreditFacilities, PendingCreditFacilityCompletionOutcome},
@@ -59,6 +59,8 @@ where
     jobs: Arc<Jobs>,
     governance: Arc<Governance<Perms, E>>,
     public_ids: Arc<PublicIds>,
+    credit_facility_maturity_job_spawner:
+        jobs::credit_facility_maturity::CreditFacilityMaturityJobSpawner<E>,
 }
 
 impl<Perms, E> Clone for CreditFacilities<Perms, E>
@@ -81,6 +83,7 @@ where
             jobs: self.jobs.clone(),
             governance: self.governance.clone(),
             public_ids: self.public_ids.clone(),
+            credit_facility_maturity_job_spawner: self.credit_facility_maturity_job_spawner.clone(),
         }
     }
 }
@@ -150,6 +153,10 @@ where
             )
             .await?;
 
+        let credit_facility_maturity_job_spawner = job_new.add_initializer(
+            jobs::credit_facility_maturity::CreditFacilityMaturityInit::new(repo_arc.clone()),
+        );
+
         Ok(Self {
             repo: repo_arc,
             obligations,
@@ -161,6 +168,7 @@ where
             jobs,
             governance,
             public_ids,
+            credit_facility_maturity_job_spawner,
         })
     }
 
@@ -219,13 +227,13 @@ where
             .update_in_op(&mut db, &mut credit_facility)
             .await?;
 
-        self.jobs
-            .create_and_spawn_at_in_op(
+        self.credit_facility_maturity_job_spawner
+            .spawn_at_in_op(
                 &mut db,
-                JobId::new(),
+                job_new::JobId::new(),
                 // FIXME: I don't think this is updated if/when the facility is updated
                 // if the credit product is closed earlier than expected or if is liquidated
-                credit_facility_maturity::CreditFacilityMaturityJobConfig::<Perms, E> {
+                jobs::credit_facility_maturity::CreditFacilityMaturityJobConfig::<E> {
                     credit_facility_id: credit_facility.id,
                     _phantom: std::marker::PhantomData,
                 },
@@ -471,25 +479,6 @@ where
             .await?;
 
         self.repo.maybe_find_by_id(id).await
-    }
-
-    #[record_error_severity]
-    #[instrument(
-        name = "credit.credit_facility.mark_as_matured",
-        skip(self),
-        fields(credit_facility_id = %credit_facility_id)
-    )]
-    pub(super) async fn mark_facility_as_matured(
-        &self,
-        credit_facility_id: CreditFacilityId,
-    ) -> Result<(), CreditFacilityError> {
-        let mut facility = self.repo.find_by_id(credit_facility_id).await?;
-
-        if facility.mature().did_execute() {
-            self.repo.update(&mut facility).await?;
-        }
-
-        Ok(())
     }
 
     #[record_error_severity]
