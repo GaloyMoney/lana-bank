@@ -6,7 +6,6 @@ import { DetailsCard, DetailItemProps } from "@/components/details"
 import {
   CreditFacilityStatus,
   CvlPctDataFragment,
-  DisbursalStatus,
   GetCreditFacilityLayoutDetailsQuery,
   useGetRealtimePriceUpdatesQuery,
 } from "@/lib/graphql/generated"
@@ -61,7 +60,7 @@ export const CreditFacilityCollateral: React.FC<CreditFacilityOverviewProps> = (
 }) => {
   const t = useTranslations("CreditFacilities.CreditFacilityDetails.CollateralCard")
 
-  const basisAmountInCents = calculateBaseAmountInCents(creditFacility)
+  const basisAmountInCents = creditFacility.balance.outstanding.usdBalance
   const MarginCallPrice = calculatePrice({
     cvlPercentage: getCvlValue(creditFacility.creditFacilityTerms.marginCallCvl),
     basisAmountInCents,
@@ -172,25 +171,4 @@ const calculatePrice = ({
   const priceUsd = (cvlDecimal * basisAmountUsd) / collateralBtc
   const priceInCents = priceUsd * CENTS_PER_USD
   return priceInCents
-}
-
-export const calculateBaseAmountInCents = ({
-  status,
-  facilityAmount,
-  disbursals,
-  balance,
-}: {
-  status: CreditFacilityStatus
-  facilityAmount: number
-  disbursals: { status: DisbursalStatus }[]
-  balance: { outstanding: { usdBalance: number } }
-}) => {
-  if (status === CreditFacilityStatus.Active) {
-    const hasApprovedDisbursals = disbursals.some(
-      (d) => d.status === DisbursalStatus.Approved,
-    )
-    return hasApprovedDisbursals ? balance.outstanding.usdBalance : facilityAmount
-  }
-
-  return 0
 }
