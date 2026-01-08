@@ -7,6 +7,7 @@ use tracing_macros::record_error_severity;
 use cala_ledger::{
     AccountId as CalaAccountId, CalaLedger, Currency, JournalId, TransactionId as CalaTransactionId,
 };
+use core_accounting::LedgerTransactionInitiator;
 use core_money::Satoshis;
 
 pub use error::LiquidationLedgerError;
@@ -47,6 +48,7 @@ impl LiquidationLedger {
         amount: Satoshis,
         collateral_account_id: CalaAccountId,
         collateral_in_liquidation_account_id: CalaAccountId,
+        initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), LiquidationLedgerError> {
         self.cala
             .post_transaction_in_op(
@@ -59,6 +61,7 @@ impl LiquidationLedger {
                     collateral_account_id,
                     collateral_in_liquidation_account_id,
                     effective: crate::time::now().date_naive(),
+                    initiated_by,
                 },
             )
             .await?;
@@ -76,6 +79,7 @@ impl LiquidationLedger {
         db: &mut es_entity::DbOp<'_>,
         tx_id: CalaTransactionId,
         data: RecordProceedsFromLiquidationData,
+        initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), LiquidationLedgerError> {
         self.cala
             .post_transaction_in_op(
@@ -94,6 +98,7 @@ impl LiquidationLedger {
                     btc_liquidated_account_id: data.liquidated_collateral_account_id,
                     amount_liquidated: data.amount_liquidated,
                     effective: crate::time::now().date_naive(),
+                    initiated_by,
                 },
             )
             .await?;

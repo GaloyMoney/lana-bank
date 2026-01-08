@@ -38,6 +38,7 @@ pub struct ReceiveProceedsFromLiquidationParams {
     pub btc_liquidated_account_id: CalaAccountId,
     pub amount_liquidated: Satoshis,
     pub effective: NaiveDate,
+    pub initiated_by: core_accounting::LedgerTransactionInitiator,
 }
 
 impl ReceiveProceedsFromLiquidationParams {
@@ -88,6 +89,11 @@ impl ReceiveProceedsFromLiquidationParams {
                 .r#type(ParamDataType::Date)
                 .build()
                 .expect("Could not build param definition"),
+            NewParamDefinition::builder()
+                .name("meta")
+                .r#type(ParamDataType::Json)
+                .build()
+                .unwrap(),
         ]
     }
 }
@@ -104,6 +110,7 @@ impl From<ReceiveProceedsFromLiquidationParams> for Params {
             btc_liquidated_account_id,
             amount_liquidated,
             effective,
+            initiated_by,
         }: ReceiveProceedsFromLiquidationParams,
     ) -> Self {
         let mut params = Self::default();
@@ -122,6 +129,12 @@ impl From<ReceiveProceedsFromLiquidationParams> for Params {
         params.insert("liquidated_account_id", btc_liquidated_account_id);
         params.insert("amount_liquidated", amount_liquidated.to_btc());
         params.insert("effective", effective);
+        params.insert(
+            "meta",
+            serde_json::json!({
+                "initiated_by": initiated_by,
+            }),
+        );
 
         params
     }
@@ -136,6 +149,7 @@ impl ReceiveProceedsFromLiquidation {
         let transaction = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")
+            .metadata("params.meta")
             .description("'Record received proceeds from liquidation and collateral liquidated'")
             .build()
             .expect("Could not build new template transaction");
