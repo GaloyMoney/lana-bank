@@ -214,14 +214,16 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
 {
-    fn job_type() -> JobType
-    where
-        Self: Sized,
-    {
+    type Config = UpdateLastActivityDateConfig<Perms, E>;
+    fn job_type(&self) -> JobType {
         UPDATE_LAST_ACTIVITY_DATE
     }
 
-    fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
+    fn init(
+        &self,
+        _: &Job,
+        _: JobSpawner<Self::Config>,
+    ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(UpdateLastActivityDateJobRunner::new(
             &self.outbox,
             &self.customers,
@@ -229,10 +231,7 @@ where
         )))
     }
 
-    fn retry_on_error_settings() -> RetrySettings
-    where
-        Self: Sized,
-    {
+    fn retry_on_error_settings(&self) -> RetrySettings {
         RetrySettings::repeat_indefinitely()
     }
 }
@@ -250,23 +249,10 @@ impl<Perms, E> UpdateLastActivityDateConfig<Perms, E> {
     }
 }
 
-impl<Perms, E> Default for UpdateLastActivityDateConfig<Perms, E> {
-    fn default() -> Self {
-        Self::new()
+impl<Perms, E> Clone for UpdateLastActivityDateConfig<Perms, E> {
+    fn clone(&self) -> Self {
+        Self {
+            _phantom: std::marker::PhantomData,
+        }
     }
-}
-
-impl<Perms, E> JobConfig for UpdateLastActivityDateConfig<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCustomerAction> + From<CoreDepositAction> + From<GovernanceAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<LanaEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustomerEvent>,
-{
-    type Initializer = UpdateLastActivityDateInit<Perms, E>;
 }

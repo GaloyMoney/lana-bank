@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use serde::{Deserialize, Serialize};
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
@@ -16,7 +17,7 @@ use obix::out::OutboxEventMarker;
 use crate::config::CustomerSyncConfig;
 use job::*;
 
-#[derive(serde::Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct UpdateCustomerActivityStatusJobConfig<Perms, E> {
     _phantom: std::marker::PhantomData<(Perms, E)>,
 }
@@ -29,25 +30,12 @@ impl<Perms, E> UpdateCustomerActivityStatusJobConfig<Perms, E> {
     }
 }
 
-impl<Perms, E> Default for UpdateCustomerActivityStatusJobConfig<Perms, E> {
-    fn default() -> Self {
-        Self::new()
+impl<Perms, E> Clone for UpdateCustomerActivityStatusJobConfig<Perms, E> {
+    fn clone(&self) -> Self {
+        Self {
+            _phantom: std::marker::PhantomData,
+        }
     }
-}
-
-impl<Perms, E> JobConfig for UpdateCustomerActivityStatusJobConfig<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCustomerAction> + From<CoreDepositAction> + From<GovernanceAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<LanaEvent>
-        + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
-{
-    type Initializer = UpdateCustomerActivityStatusInit<Perms, E>;
 }
 
 pub struct UpdateCustomerActivityStatusInit<Perms, E>
@@ -93,24 +81,23 @@ where
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    fn job_type() -> JobType
-    where
-        Self: Sized,
-    {
+    type Config = UpdateCustomerActivityStatusJobConfig<Perms, E>;
+    fn job_type(&self) -> JobType {
         UPDATE_CUSTOMER_ACTIVITY_STATUS
     }
 
-    fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
+    fn init(
+        &self,
+        _: &Job,
+        _: JobSpawner<Self::Config>,
+    ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(UpdateCustomerActivityStatusJobRunner {
             customers: self.customers.clone(),
             config: self.config.clone(),
         }))
     }
 
-    fn retry_on_error_settings() -> RetrySettings
-    where
-        Self: Sized,
-    {
+    fn retry_on_error_settings(&self) -> RetrySettings {
         RetrySettings::repeat_indefinitely()
     }
 }

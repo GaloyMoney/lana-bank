@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 use futures::StreamExt;
 use keycloak_client::KeycloakClient;
+use serde::{Deserialize, Serialize};
 use tokio::select;
 use tracing::{Span, instrument};
 
@@ -10,22 +11,25 @@ use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use job::*;
 
-#[derive(serde::Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct CreateKeycloakUserJobConfig<E> {
     _phantom: std::marker::PhantomData<E>,
 }
+
+impl<E> Clone for CreateKeycloakUserJobConfig<E> {
+    fn clone(&self) -> Self {
+        Self {
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+
 impl<E> CreateKeycloakUserJobConfig<E> {
     pub fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
         }
     }
-}
-impl<E> JobConfig for CreateKeycloakUserJobConfig<E>
-where
-    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
-{
-    type Initializer = CreateKeycloakUserInit<E>;
 }
 
 pub struct CreateKeycloakUserInit<E>
@@ -54,24 +58,23 @@ impl<E> JobInitializer for CreateKeycloakUserInit<E>
 where
     E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
-    fn job_type() -> JobType
-    where
-        Self: Sized,
-    {
+    type Config = CreateKeycloakUserJobConfig<E>;
+    fn job_type(&self) -> JobType {
         CUSTOMER_SYNC_CREATE_KEYCLOAK_USER
     }
 
-    fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
+    fn init(
+        &self,
+        _: &Job,
+        _: JobSpawner<Self::Config>,
+    ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(CreateKeycloakUserJobRunner::<E> {
             outbox: self.outbox.clone(),
             keycloak_client: self.keycloak_client.clone(),
         }))
     }
 
-    fn retry_on_error_settings() -> RetrySettings
-    where
-        Self: Sized,
-    {
+    fn retry_on_error_settings(&self) -> RetrySettings {
         RetrySettings::repeat_indefinitely()
     }
 }

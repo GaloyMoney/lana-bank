@@ -48,6 +48,7 @@ pub struct LanaApp {
     _pool: PgPool,
     domain_configs: DomainConfigs,
     jobs: Jobs,
+    job_new: job_new::Jobs,
     audit: Audit,
     authz: Authorization,
     accounting: Accounting,
@@ -101,8 +102,15 @@ impl LanaApp {
                 .expect("Couldn't build JobSvcConfig"),
         )
         .await?;
+        let mut job_new = job_new::Jobs::init(
+            job_new::JobSvcConfig::builder()
+                .pool(pool.clone())
+                .build()
+                .expect("Couldn't build JobSvcConfig"),
+        )
+        .await?;
 
-        let dashboard = Dashboard::init(&pool, &authz, &jobs, &outbox).await?;
+        let dashboard = Dashboard::init(&pool, &authz, &mut job_new, &outbox).await?;
         let governance = Governance::new(&pool, &authz, &outbox);
         let storage = Storage::new(&config.storage);
         let reports = Reports::init(&pool, &authz, config.report, &outbox, &jobs, &storage).await?;
@@ -110,7 +118,8 @@ impl LanaApp {
         let documents = DocumentStorage::new(&pool, &storage);
         let public_ids = PublicIds::new(&pool);
 
-        let user_onboarding = UserOnboarding::init(&jobs, &outbox, config.user_onboarding).await?;
+        let user_onboarding =
+            UserOnboarding::init(&mut job_new, &outbox, config.user_onboarding).await?;
 
         let cala_config = cala_ledger::CalaLedgerConfig::builder()
             .pool(pool.clone())
@@ -151,14 +160,20 @@ impl LanaApp {
             config.deposit,
         )
         .await?;
-        let customer_sync =
-            CustomerSync::init(&jobs, &outbox, &customers, &deposits, config.customer_sync).await?;
+        let customer_sync = CustomerSync::init(
+            &mut job_new,
+            &outbox,
+            &customers,
+            &deposits,
+            config.customer_sync,
+        )
+        .await?;
 
         let applicants =
             Applicants::new(&pool, &config.sumsub, &authz, &customers, &mut jobs).await?;
 
         let deposit_sync = DepositSync::init(
-            &jobs,
+            &mut job_new,
             &outbox,
             &deposits,
             &customers,
@@ -185,11 +200,11 @@ impl LanaApp {
         .await?;
 
         let contract_creation =
-            ContractCreation::new(&customers, &applicants, &documents, &jobs, &authz);
+            ContractCreation::new(&customers, &applicants, &documents, &mut job_new, &authz);
 
         Notification::init(
             config.notification,
-            &jobs,
+            &mut job_new,
             &outbox,
             access.users(),
             &credit,
@@ -202,11 +217,13 @@ impl LanaApp {
             .await?;
 
         jobs.start_poll().await?;
+        job_new.start_poll().await?;
 
         Ok(Self {
             _pool: pool,
             domain_configs,
             jobs,
+            job_new,
             audit,
             authz,
             accounting,
@@ -331,6 +348,7 @@ impl LanaApp {
         tracing::info!("app.shutdown");
 
         self.jobs.shutdown().await?;
+        self.job_new.shutdown().await?;
 
         // Shutdown tracer to flush all pending spans
         tracing_utils::shutdown_tracer()?;

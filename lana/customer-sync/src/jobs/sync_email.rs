@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use futures::StreamExt;
+use serde::{Deserialize, Serialize};
 use tokio::select;
 use tracing::{Span, instrument};
 
@@ -9,7 +10,7 @@ use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use job::*;
 
-#[derive(serde::Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct SyncEmailJobConfig<E> {
     _phantom: std::marker::PhantomData<E>,
 }
@@ -22,11 +23,12 @@ impl<E> SyncEmailJobConfig<E> {
     }
 }
 
-impl<E> JobConfig for SyncEmailJobConfig<E>
-where
-    E: OutboxEventMarker<CoreCustomerEvent>,
-{
-    type Initializer = SyncEmailInit<E>;
+impl<E> Clone for SyncEmailJobConfig<E> {
+    fn clone(&self) -> Self {
+        Self {
+            _phantom: std::marker::PhantomData,
+        }
+    }
 }
 
 pub struct SyncEmailInit<E>
@@ -54,21 +56,23 @@ impl<E> JobInitializer for SyncEmailInit<E>
 where
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
-    fn job_type() -> JobType
-    where
-        Self: Sized,
-    {
+    type Config = SyncEmailJobConfig<E>;
+    fn job_type(&self) -> JobType {
         SYNC_EMAIL_JOB
     }
 
-    fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
+    fn init(
+        &self,
+        _: &Job,
+        _: JobSpawner<Self::Config>,
+    ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(SyncEmailJobRunner::<E> {
             outbox: self.outbox.clone(),
             keycloak_client: self.keycloak_client.clone(),
         }))
     }
 
-    fn retry_on_error_settings() -> RetrySettings
+    fn retry_on_error_settings(&self) -> RetrySettings
     where
         Self: Sized,
     {

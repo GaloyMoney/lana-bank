@@ -52,15 +52,17 @@ where
     pub async fn init(
         pool: &PgPool,
         authz: &Perms,
-        jobs: &::job::Jobs,
+        jobs: &mut ::job::Jobs,
         outbox: &Outbox,
     ) -> Result<Self, DashboardError> {
         let repo = DashboardRepo::new(pool);
-        jobs.add_initializer_and_spawn_unique(
-            DashboardProjectionInit::new(outbox, &repo),
-            DashboardProjectionJobConfig,
-        )
-        .await?;
+        let dashboard_projection_job_spawner =
+            jobs.add_initializer(DashboardProjectionInit::new(outbox, &repo));
+
+        dashboard_projection_job_spawner
+            .spawn_unique(::job::JobId::new(), DashboardProjectionJobConfig)
+            .await?;
+
         Ok(Self {
             _outbox: outbox.clone(),
             authz: authz.clone(),

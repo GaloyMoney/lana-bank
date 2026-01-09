@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use futures::StreamExt;
+use serde::{Deserialize, Serialize};
 use tokio::select;
 use tracing::{Span, instrument};
 
@@ -8,11 +9,8 @@ use obix::out::PersistentOutboxEvent;
 
 use crate::{Outbox, repo::DashboardRepo, values::*};
 
-#[derive(serde::Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct DashboardProjectionJobConfig;
-impl JobConfig for DashboardProjectionJobConfig {
-    type Initializer = DashboardProjectionInit;
-}
 
 pub struct DashboardProjectionInit {
     outbox: Outbox,
@@ -30,24 +28,23 @@ impl DashboardProjectionInit {
 
 const DASHBOARD_PROJECTION_JOB: JobType = JobType::new("outbox.dashboard-projection");
 impl JobInitializer for DashboardProjectionInit {
-    fn job_type() -> JobType
-    where
-        Self: Sized,
-    {
+    type Config = DashboardProjectionJobConfig;
+    fn job_type(&self) -> JobType {
         DASHBOARD_PROJECTION_JOB
     }
 
-    fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
+    fn init(
+        &self,
+        _: &Job,
+        _: JobSpawner<Self::Config>,
+    ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(DashboardProjectionJobRunner {
             outbox: self.outbox.clone(),
             repo: self.repo.clone(),
         }))
     }
 
-    fn retry_on_error_settings() -> RetrySettings
-    where
-        Self: Sized,
-    {
+    fn retry_on_error_settings(&self) -> RetrySettings {
         RetrySettings::repeat_indefinitely()
     }
 }
