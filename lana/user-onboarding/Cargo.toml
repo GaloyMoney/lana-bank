@@ -14,7 +14,7 @@ fail-on-warnings = []
 core-access = { workspace = true }
 
 obix = { workspace = true }
-job = { version = "0.6.0" }
+job = { version = "0.5.1" }
 keycloak-client = { workspace = true }
 
 es-entity = { workspace = true, features = ["graphql"] }
