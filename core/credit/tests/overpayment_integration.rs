@@ -157,6 +157,10 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
     let mut jobs = job::Jobs::init(
         job::JobSvcConfig::builder()
             .pool(pool.clone())
+            .poller_config(job::JobPollerConfig {
+                job_lost_interval: std::time::Duration::from_secs(2),
+                ..Default::default()
+            })
             .build()
             .unwrap(),
     )
