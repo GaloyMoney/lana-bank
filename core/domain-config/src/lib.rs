@@ -3,18 +3,28 @@
 
 mod entity;
 pub mod error;
+mod macros;
 mod primitives;
+pub mod registry;
 mod repo;
 mod spec;
+mod view;
 
+use std::collections::{HashMap, HashSet};
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-pub use entity::{DomainConfig, DomainConfigEvent, NewDomainConfig};
+pub use entity::DomainConfig;
+pub use entity::DomainConfigEvent;
 pub use error::DomainConfigError;
+#[doc(hidden)]
+pub use inventory;
 pub use primitives::{ConfigType, DomainConfigId, DomainConfigKey, Visibility};
 pub use repo::domain_config_cursor::DomainConfigsByKeyCursor;
 pub use spec::{Complex, ConfigSpec, Simple, ValueKind};
+pub use view::ConfigView;
+
+use entity::NewDomainConfig;
 
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
@@ -36,32 +46,23 @@ impl DomainConfigs {
 
     #[record_error_severity]
     #[instrument(name = "domain_config.get", skip(self))]
-    pub async fn get<C>(&self) -> Result<<C::Kind as ValueKind>::Value, DomainConfigError>
+    pub async fn get<C>(&self) -> Result<ConfigView<C>, DomainConfigError>
     where
         C: ConfigSpec,
     {
-        let maybe_config = self.repo.maybe_find_by_key(C::KEY).await?;
-        match maybe_config {
-            Some(config) => config.current_value::<C>(),
-            None => Err(DomainConfigError::NotConfigured),
-        }
+        let config = self.repo.find_by_key(C::KEY).await?;
+        ConfigView::new(config)
     }
 
     #[record_error_severity]
-    #[instrument(name = "domain_config.get_or_default", skip(self))]
-    pub async fn get_or_default<C>(
+    #[instrument(name = "domain_config.find_all_exposed", skip(self))]
+    pub async fn find_all_exposed<T: From<DomainConfig>>(
         &self,
-    ) -> Result<<C::Kind as ValueKind>::Value, DomainConfigError>
-    where
-        C: ConfigSpec,
-    {
-        let maybe_config = self.repo.maybe_find_by_key(C::KEY).await?;
-        match maybe_config {
-            Some(config) => config.current_value::<C>(),
-            None => {
-                C::default_value().ok_or_else(|| DomainConfigError::NoDefault(C::KEY.to_string()))
-            }
-        }
+        ids: &[DomainConfigId],
+    ) -> Result<HashMap<DomainConfigId, T>, DomainConfigError> {
+        self.repo
+            .find_all_by_visibility(ids, Visibility::Exposed)
+            .await
     }
 
     #[record_error_severity]
@@ -101,6 +102,32 @@ impl DomainConfigs {
     }
 
     #[record_error_severity]
+    #[instrument(name = "domain_config.update_exposed_from_json", skip(self, value))]
+    pub async fn update_exposed_from_json(
+        &self,
+        id: impl Into<DomainConfigId> + std::fmt::Debug,
+        value: serde_json::Value,
+    ) -> Result<DomainConfig, DomainConfigError> {
+        let id = id.into();
+        let mut config = self.repo.find_by_id(id).await?;
+        let entry = registry::maybe_find_by_key(config.key.as_str()).ok_or_else(|| {
+            DomainConfigError::InvalidKey(format!(
+                "Registry entry missing for config key: {}",
+                config.key
+            ))
+        })?;
+
+        if config
+            .apply_exposed_update_from_json(entry, value)?
+            .did_execute()
+        {
+            self.repo.update(&mut config).await?;
+        }
+
+        Ok(config)
+    }
+
+    #[record_error_severity]
     #[instrument(name = "domain_config.upsert", skip(self, value))]
     pub async fn upsert<C>(
         &self,
@@ -117,5 +144,50 @@ impl DomainConfigs {
             }
             Err(e) => Err(e),
         }
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "domain_config.list_exposed_configs", skip(self))]
+    pub async fn list_exposed_configs(
+        &self,
+        query: es_entity::PaginatedQueryArgs<DomainConfigsByKeyCursor>,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<DomainConfig, DomainConfigsByKeyCursor>,
+        DomainConfigError,
+    > {
+        self.repo
+            .list_for_visibility_by_key(
+                Visibility::Exposed,
+                query,
+                es_entity::ListDirection::Ascending,
+            )
+            .await
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "domain_config.seed_registered", skip(self))]
+    pub async fn seed_registered(&self) -> Result<(), DomainConfigError> {
+        let mut seen = HashSet::new();
+        for spec in registry::all_specs() {
+            if !seen.insert(spec.key) {
+                return Err(DomainConfigError::InvalidKey(format!(
+                    "Duplicate domain config key: {}",
+                    spec.key
+                )));
+            }
+
+            let key = DomainConfigKey::new(spec.key);
+            if self.repo.maybe_find_by_key(key.clone()).await?.is_some() {
+                continue;
+            }
+
+            let config_id = DomainConfigId::new();
+            let new = NewDomainConfig::builder()
+                .seed(config_id, key, spec.config_type, spec.visibility)
+                .build()?;
+            self.repo.create(new).await?;
+        }
+
+        Ok(())
     }
 }

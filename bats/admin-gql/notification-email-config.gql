@@ -1,7 +1,12 @@
 query ExposedConfigs {
-  exposedConfigs {
-    key
-    value
-    isSet
+  exposedConfigs(first: 100) {
+    edges {
+      node {
+        exposedConfigId
+        key
+        value
+        isSet
+      }
+    }
   }
 }

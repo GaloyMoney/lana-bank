@@ -32,6 +32,8 @@ pub enum ApplicationError {
     UserOnboardingError(#[from] user_onboarding::error::UserOnboardingError),
     #[error("ApplicationError - AuthorizationError: {0}")]
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
+    #[error("ApplicationError - DomainConfigError: {0}")]
+    DomainConfigError(#[from] domain_config::DomainConfigError),
     #[error("ApplicationError - AuditError: {0}")]
     AuditError(#[from] crate::audit::error::AuditError),
     #[error("ApplicationError - PriceError: {0}")]
@@ -85,6 +87,7 @@ impl ErrorSeverity for ApplicationError {
             Self::CoreAccessError(e) => e.severity(),
             Self::UserOnboardingError(e) => e.severity(),
             Self::AuthorizationError(e) => e.severity(),
+            Self::DomainConfigError(e) => e.severity(),
             Self::AuditError(e) => e.severity(),
             Self::PriceError(e) => e.severity(),
             Self::AccountingInitError(e) => e.severity(),

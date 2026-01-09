@@ -1,6 +1,7 @@
-mutation UpdateExposedConfig($input: ExposedConfigUpdateInput!) {
-  updateExposedConfig(input: $input) {
+mutation ExposedConfigUpdate($input: ExposedConfigUpdateInput!) {
+  exposedConfigUpdate(input: $input) {
     exposedConfig {
+      exposedConfigId
       key
       value
       isSet

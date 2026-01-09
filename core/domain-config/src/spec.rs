@@ -142,6 +142,20 @@ pub trait ConfigSpec {
     fn validate(_: &<Self::Kind as ValueKind>::Value) -> Result<(), DomainConfigError> {
         Ok(())
     }
+
+    fn validate_json(value: &serde_json::Value) -> Result<(), DomainConfigError> {
+        if value.is_null() {
+            return Err(DomainConfigError::InvalidState(format!(
+                "Expected non-null value for {}",
+                Self::KEY.as_str()
+            )));
+        }
+
+        let decoded = <Self::Kind as ValueKind>::decode(value.clone())?;
+        Self::validate(&decoded)?;
+
+        Ok(())
+    }
 }
 
 fn json_value_type(value: &serde_json::Value) -> &'static str {

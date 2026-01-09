@@ -3,6 +3,7 @@ use tracing::instrument;
 
 use std::collections::HashMap;
 
+use domain_config::{DomainConfigError, DomainConfigId};
 use lana_app::{
     access::{error::CoreAccessError, user::error::UserError},
     accounting::{
@@ -25,8 +26,8 @@ use crate::primitives::*;
 
 use super::{
     access::*, accounting::*, approval_process::*, committee::*, credit_facility::*, custody::*,
-    customer::*, deposit::*, deposit_account::*, document::*, policy::*, reports::*,
-    terms_template::*, withdrawal::*,
+    customer::*, deposit::*, deposit_account::*, document::*, exposed_config::*, policy::*,
+    reports::*, terms_template::*, withdrawal::*,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -182,6 +183,23 @@ impl Loader<CustomerId> for LanaLoader {
         keys: &[CustomerId],
     ) -> Result<HashMap<CustomerId, Customer>, Self::Error> {
         self.app.customers().find_all(keys).await.map_err(Arc::new)
+    }
+}
+
+impl Loader<DomainConfigId> for LanaLoader {
+    type Value = ExposedConfig;
+    type Error = Arc<DomainConfigError>;
+
+    #[instrument(name = "loader.exposed_configs", skip(self), fields(count = keys.len()), err)]
+    async fn load(
+        &self,
+        keys: &[DomainConfigId],
+    ) -> Result<HashMap<DomainConfigId, ExposedConfig>, Self::Error> {
+        self.app
+            .domain_configs()
+            .find_all_exposed(keys)
+            .await
+            .map_err(Arc::new)
     }
 }
 

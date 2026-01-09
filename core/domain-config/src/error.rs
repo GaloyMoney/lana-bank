@@ -2,8 +2,12 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
+use crate::entity::NewDomainConfigBuilderError;
+
 #[derive(Error, Debug)]
 pub enum DomainConfigError {
+    #[error("DomainConfigError - Invalid Key: {0}")]
+    InvalidKey(String),
     #[error("DomainConfigError - Invalid State: {0}")]
     InvalidState(String),
     #[error("DomainConfigError - Not Configured")]
@@ -20,6 +24,8 @@ pub enum DomainConfigError {
     EsEntityError(es_entity::EsEntityError),
     #[error("DomainConfigError - CursorDestructureError: {0}")]
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
+    #[error("DomainConfigError - NewDomainConfigBuilderError: {0}")]
+    BuildError(#[from] NewDomainConfigBuilderError),
 }
 
 es_entity::from_es_entity_error!(DomainConfigError);
@@ -27,6 +33,7 @@ es_entity::from_es_entity_error!(DomainConfigError);
 impl ErrorSeverity for DomainConfigError {
     fn severity(&self) -> Level {
         match self {
+            Self::InvalidKey(_) => Level::ERROR,
             Self::InvalidState(_) => Level::ERROR,
             Self::NotConfigured => Level::WARN,
             Self::NoDefault(_) => Level::WARN,
@@ -35,6 +42,7 @@ impl ErrorSeverity for DomainConfigError {
             Self::Sqlx(_) => Level::ERROR,
             Self::EsEntityError(e) => e.severity(),
             Self::CursorDestructureError(_) => Level::ERROR,
+            Self::BuildError(_) => Level::ERROR,
         }
     }
 }

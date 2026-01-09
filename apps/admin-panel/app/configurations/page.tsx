@@ -21,25 +21,35 @@ import { Checkbox } from "@lana/web/ui/checkbox"
 
 import {
   ConfigType,
-  type ExposedConfigItem,
+  type ExposedConfig,
   ExposedConfigsDocument,
   useExposedConfigsQuery,
-  useUpdateExposedConfigMutation,
+  useExposedConfigUpdateMutation,
 } from "@/lib/graphql/generated"
 
 gql`
-  query ExposedConfigs {
-    exposedConfigs {
-      key
-      configType
-      value
-      isSet
+  query ExposedConfigs($first: Int!, $after: String) {
+    exposedConfigs(first: $first, after: $after) {
+      nodes {
+        id
+        exposedConfigId
+        key
+        configType
+        value
+        isSet
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
     }
   }
 
-  mutation UpdateExposedConfig($input: ExposedConfigUpdateInput!) {
-    updateExposedConfig(input: $input) {
+  mutation ExposedConfigUpdate($input: ExposedConfigUpdateInput!) {
+    exposedConfigUpdate(input: $input) {
       exposedConfig {
+        id
+        exposedConfigId
         key
         configType
         value
@@ -49,7 +59,8 @@ gql`
   }
 `
 
-const EMPTY_CONFIGS: ExposedConfigItem[] = []
+const EXPOSED_CONFIG_PAGE_SIZE = 100
+const EMPTY_CONFIGS: ExposedConfig[] = []
 
 export default function ConfigurationsPage() {
   const t = useTranslations("Configurations")
@@ -62,12 +73,16 @@ export default function ConfigurationsPage() {
     data: exposedConfigData,
     loading: exposedConfigLoading,
     error: exposedConfigError,
-  } = useExposedConfigsQuery()
+  } = useExposedConfigsQuery({
+    variables: {
+      first: EXPOSED_CONFIG_PAGE_SIZE,
+    },
+  })
 
-  const [updateExposedConfig, { loading: updateExposedConfigLoading }] =
-    useUpdateExposedConfigMutation()
+  const [exposedConfigUpdate, { loading: exposedConfigUpdateLoading }] =
+    useExposedConfigUpdateMutation()
 
-  const exposedConfigs = exposedConfigData?.exposedConfigs ?? EMPTY_CONFIGS
+  const exposedConfigs = exposedConfigData?.exposedConfigs.nodes ?? EMPTY_CONFIGS
   const visibleConfigs = useMemo(
     () => exposedConfigs.filter((config) => config.configType !== ConfigType.Complex),
     [exposedConfigs],
@@ -94,7 +109,7 @@ export default function ConfigurationsPage() {
     })
   }, [visibleConfigs])
 
-  const handleExposedSave = async (config: ExposedConfigItem) => {
+  const handleExposedSave = async (config: ExposedConfig) => {
     const draft = exposedDrafts[config.key]
     const parsed = parseExposedDraft(config, draft)
 
@@ -104,17 +119,22 @@ export default function ConfigurationsPage() {
     }
 
     try {
-      const result = await updateExposedConfig({
+      const result = await exposedConfigUpdate({
         variables: {
           input: {
-            key: config.key,
+            exposedConfigId: config.exposedConfigId,
             value: parsed.value,
           },
         },
-        refetchQueries: [ExposedConfigsDocument],
+        refetchQueries: [
+          {
+            query: ExposedConfigsDocument,
+            variables: { first: EXPOSED_CONFIG_PAGE_SIZE },
+          },
+        ],
       })
 
-      const updated = result.data?.updateExposedConfig.exposedConfig
+      const updated = result.data?.exposedConfigUpdate.exposedConfig
 
       if (!updated) {
         toast.error(t("exposedConfigs.saveError"))
@@ -183,7 +203,7 @@ export default function ConfigurationsPage() {
                   <Button
                     onClick={() => handleExposedSave(config)}
                     disabled={isDisabled}
-                    loading={updateExposedConfigLoading}
+                    loading={exposedConfigUpdateLoading}
                   >
                     {t("exposedConfigs.save")}
                   </Button>
@@ -197,7 +217,7 @@ export default function ConfigurationsPage() {
   )
 }
 
-const formatExposedValue = (config: ExposedConfigItem): string | boolean => {
+const formatExposedValue = (config: ExposedConfig): string | boolean => {
   switch (config.configType) {
     case ConfigType.Bool:
       return config.value === true
@@ -217,7 +237,7 @@ const formatExposedValue = (config: ExposedConfigItem): string | boolean => {
 }
 
 const parseExposedDraft = (
-  config: ExposedConfigItem,
+  config: ExposedConfig,
   draft: string | boolean | undefined,
 ):
   | { value: unknown }
@@ -272,7 +292,7 @@ const parseExposedDraft = (
 }
 
 type RenderExposedInputArgs = {
-  config: ExposedConfigItem
+  config: ExposedConfig
   inputId: string
   value: string | boolean | undefined
   disabled: boolean

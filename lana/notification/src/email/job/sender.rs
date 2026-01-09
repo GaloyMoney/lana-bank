@@ -1,12 +1,12 @@
 use async_trait::async_trait;
-use domain_config::{DomainConfigError, DomainConfigs};
+use domain_config::DomainConfigs;
 use job::*;
 use serde::{Deserialize, Serialize};
 use smtp_client::SmtpClient;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-use crate::email::config::{NotificationFromEmailConfigSpec, NotificationFromNameConfigSpec};
+use crate::email::config::{NotificationFromEmail, NotificationFromName};
 use crate::email::templates::{EmailTemplate, EmailType};
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -72,31 +72,19 @@ impl JobRunner for EmailSenderRunner {
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let from_email = match self
-            .domain_configs
-            .get::<NotificationFromEmailConfigSpec>()
-            .await
-        {
-            Ok(email) => email,
-            Err(DomainConfigError::NotConfigured) => {
-                tracing::warn!("no configured notification from email; skipping email");
-                return Ok(JobCompletion::Complete);
-            }
-            Err(e) => return Err(e.into()),
-        };
+        let from_email_config = self.domain_configs.get::<NotificationFromEmail>().await?;
+        if !from_email_config.is_configured() {
+            tracing::warn!("no configured notification from email; skipping email");
+            return Ok(JobCompletion::Complete);
+        }
+        let from_email = from_email_config.value()?;
 
-        let from_name = match self
-            .domain_configs
-            .get::<NotificationFromNameConfigSpec>()
-            .await
-        {
-            Ok(name) => name,
-            Err(DomainConfigError::NotConfigured) => {
-                tracing::warn!("no configured notification from name; skipping email");
-                return Ok(JobCompletion::Complete);
-            }
-            Err(e) => return Err(e.into()),
-        };
+        let from_name_config = self.domain_configs.get::<NotificationFromName>().await?;
+        if !from_name_config.is_configured() {
+            tracing::warn!("no configured notification from name; skipping email");
+            return Ok(JobCompletion::Complete);
+        }
+        let from_name = from_name_config.value()?;
 
         let (subject, body) = self.template.render_email(&self.config.email_type)?;
         self.smtp_client

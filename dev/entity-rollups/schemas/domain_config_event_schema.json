@@ -37,7 +37,6 @@
           "const": "initialized",
           "type": "string"
         },
-        "value": true,
         "visibility": {
           "$ref": "#/$defs/Visibility"
         }
@@ -47,8 +46,7 @@
         "id",
         "key",
         "config_type",
-        "visibility",
-        "value"
+        "visibility"
       ],
       "type": "object"
     },

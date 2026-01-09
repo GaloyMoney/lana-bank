@@ -60,7 +60,6 @@ BEGIN
     WHEN 'initialized' THEN
       new_row.config_type := (NEW.event ->> 'config_type');
       new_row.key := (NEW.event ->> 'key');
-      new_row.value := (NEW.event -> 'value');
       new_row.visibility := (NEW.event ->> 'visibility');
     WHEN 'updated' THEN
       new_row.value := (NEW.event -> 'value');

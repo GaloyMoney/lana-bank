@@ -1340,20 +1340,51 @@ input DurationInput {
 	units: Int!
 }
 
-type ExposedConfigItem {
+type ExposedConfig {
+	id: ID!
+	exposedConfigId: UUID!
 	key: String!
 	configType: ConfigType!
 	value: Json!
 	isSet: Boolean!
 }
 
+type ExposedConfigConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [ExposedConfigEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [ExposedConfig!]!
+}
+
+"""
+An edge in a connection.
+"""
+type ExposedConfigEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: ExposedConfig!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
 input ExposedConfigUpdateInput {
-	key: String!
+	exposedConfigId: UUID!
 	value: Json!
 }
 
 type ExposedConfigUpdatePayload {
-	exposedConfig: ExposedConfigItem!
+	exposedConfig: ExposedConfig!
 }
 
 type FacilityRemaining {
@@ -1779,7 +1810,7 @@ type Mutation {
 	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
 	customerTelegramIdUpdate(input: CustomerTelegramIdUpdateInput!): CustomerTelegramIdUpdatePayload!
 	customerEmailUpdate(input: CustomerEmailUpdateInput!): CustomerEmailUpdatePayload!
-	updateExposedConfig(input: ExposedConfigUpdateInput!): ExposedConfigUpdatePayload!
+	exposedConfigUpdate(input: ExposedConfigUpdateInput!): ExposedConfigUpdatePayload!
 	depositModuleConfigure(input: DepositModuleConfigureInput!): DepositModuleConfigurePayload!
 	manualTransactionExecute(input: ManualTransactionExecuteInput!): ManualTransactionExecutePayload!
 	depositRecord(input: DepositRecordInput!): DepositRecordPayload!
@@ -2138,7 +2169,7 @@ type Query {
 	realtimePrice: RealtimePrice!
 	audit(first: Int!, after: String): AuditEntryConnection!
 	depositConfig: DepositModuleConfig
-	exposedConfigs: [ExposedConfigItem!]!
+	exposedConfigs(first: Int!, after: String): ExposedConfigConnection!
 	creditConfig: CreditModuleConfig
 	balanceSheetConfig: BalanceSheetModuleConfig
 	profitAndLossStatementConfig: ProfitAndLossStatementModuleConfig

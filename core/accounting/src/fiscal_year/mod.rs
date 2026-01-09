@@ -15,7 +15,6 @@ use tracing_macros::record_error_severity;
 use crate::{
     FiscalYearId,
     chart_of_accounts::ChartOfAccounts,
-    fiscal_year::config::FiscalYearConfigSpec,
     primitives::{ChartId, CoreAccountingAction, CoreAccountingObject},
 };
 
@@ -168,8 +167,10 @@ where
 
                 let fiscal_year_conf = self
                     .domain_configs
-                    .get::<config::FiscalYearConfigSpec>()
-                    .await?;
+                    .get::<config::FiscalYearConfig>()
+                    .await?
+                    .value()
+                    .ok_or(domain_config::DomainConfigError::NotConfigured)?;
 
                 self.chart_of_accounts
                     .post_closing_transaction(
@@ -312,7 +313,7 @@ where
     pub async fn configure(&self, cfg: FiscalYearConfig) -> Result<(), FiscalYearError> {
         if self
             .domain_configs
-            .get::<FiscalYearConfigSpec>()
+            .get::<FiscalYearConfig>()
             .await
             .is_ok()
         {
@@ -320,7 +321,7 @@ where
         }
 
         self.domain_configs
-            .create::<FiscalYearConfigSpec>(cfg)
+            .create::<FiscalYearConfig>(cfg)
             .await?;
 
         Ok(())

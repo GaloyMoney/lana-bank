@@ -1,69 +1,68 @@
 use serde::{Deserialize, Serialize};
 
-use domain_config::{Complex, ConfigSpec, DomainConfigError, DomainConfigKey, Visibility};
+use domain_config::{DomainConfigError, define_internal_config};
 
 use crate::{ClosingAccountCodes, primitives::AccountCode};
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub struct FiscalYearConfig {
-    pub revenue_account_code: String,
-    pub cost_of_revenue_account_code: String,
-    pub expenses_account_code: String,
-    pub equity_retained_earnings_account_code: String,
-    pub equity_retained_losses_account_code: String,
-}
+define_internal_config! {
+    #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+    pub struct FiscalYearConfig {
+        pub revenue_account_code: String,
+        pub cost_of_revenue_account_code: String,
+        pub expenses_account_code: String,
+        pub equity_retained_earnings_account_code: String,
+        pub equity_retained_losses_account_code: String,
+    }
 
-pub struct FiscalYearConfigSpec;
+    spec {
+        key: "fiscal-year";
+        validate: |value: &Self| {
+            if value.revenue_account_code.parse::<AccountCode>().is_err() {
+                return Err(DomainConfigError::InvalidState(
+                    "revenue_account_code should be a valid account code".to_string(),
+                ));
+            }
 
-impl ConfigSpec for FiscalYearConfigSpec {
-    const KEY: DomainConfigKey = DomainConfigKey::new("fiscal-year");
-    const VISIBILITY: Visibility = Visibility::Internal;
-    type Kind = Complex<FiscalYearConfig>;
+            if value
+                .cost_of_revenue_account_code
+                .parse::<AccountCode>()
+                .is_err()
+            {
+                return Err(DomainConfigError::InvalidState(
+                    "cost_of_revenue_account_code should be a valid account code".to_string(),
+                ));
+            }
 
-    fn validate(value: &FiscalYearConfig) -> Result<(), DomainConfigError> {
-        if value.revenue_account_code.parse::<AccountCode>().is_err() {
-            return Err(DomainConfigError::InvalidState(
-                "revenue_account_code should be a valid account code".to_string(),
-            ));
-        }
+            if value.expenses_account_code.parse::<AccountCode>().is_err() {
+                return Err(DomainConfigError::InvalidState(
+                    "expenses_account_code should be a valid account code".to_string(),
+                ));
+            }
 
-        if value
-            .cost_of_revenue_account_code
-            .parse::<AccountCode>()
-            .is_err()
-        {
-            return Err(DomainConfigError::InvalidState(
-                "cost_of_revenue_account_code should be a valid account code".to_string(),
-            ));
-        }
+            if value
+                .equity_retained_earnings_account_code
+                .parse::<AccountCode>()
+                .is_err()
+            {
+                return Err(DomainConfigError::InvalidState(
+                    "equity_retained_earnings_account_code should be a valid account code"
+                        .to_string(),
+                ));
+            }
 
-        if value.expenses_account_code.parse::<AccountCode>().is_err() {
-            return Err(DomainConfigError::InvalidState(
-                "expenses_account_code should be a valid account code".to_string(),
-            ));
-        }
+            if value
+                .equity_retained_losses_account_code
+                .parse::<AccountCode>()
+                .is_err()
+            {
+                return Err(DomainConfigError::InvalidState(
+                    "equity_retained_losses_account_code should be a valid account code"
+                        .to_string(),
+                ));
+            }
 
-        if value
-            .equity_retained_earnings_account_code
-            .parse::<AccountCode>()
-            .is_err()
-        {
-            return Err(DomainConfigError::InvalidState(
-                "equity_retained_earnings_account_code should be a valid account code".to_string(),
-            ));
-        }
-
-        if value
-            .equity_retained_losses_account_code
-            .parse::<AccountCode>()
-            .is_err()
-        {
-            return Err(DomainConfigError::InvalidState(
-                "equity_retained_losses_account_code should be a valid account code".to_string(),
-            ));
-        }
-
-        Ok(())
+            Ok(())
+        };
     }
 }
 

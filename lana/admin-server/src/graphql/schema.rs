@@ -967,10 +967,26 @@ impl Query {
     async fn exposed_configs(
         &self,
         ctx: &Context<'_>,
-    ) -> async_graphql::Result<Vec<ExposedConfigItem>> {
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<DomainConfigsByKeyCursor, ExposedConfig, EmptyFields, EmptyFields>,
+    > {
         let (app, _sub) = app_and_sub_from_ctx!(ctx);
-        let configs = app.exposed_configs().list().await?;
-        Ok(configs.into_iter().map(ExposedConfigItem::from).collect())
+        list_with_cursor!(
+            DomainConfigsByKeyCursor,
+            ExposedConfig,
+            ctx,
+            after,
+            first,
+            |query: es_entity::PaginatedQueryArgs<DomainConfigsByKeyCursor>| {
+                let query = es_entity::PaginatedQueryArgs {
+                    first: query.first,
+                    after: query.after.map(DomainConfigsByKeyCursor::into_domain),
+                };
+                async move { app.domain_configs().list_exposed_configs(query).await }
+            }
+        )
     }
 
     async fn credit_config(
@@ -1302,20 +1318,19 @@ impl Mutation {
         )
     }
 
-    async fn update_exposed_config(
+    async fn exposed_config_update(
         &self,
         ctx: &Context<'_>,
         input: ExposedConfigUpdateInput,
     ) -> async_graphql::Result<ExposedConfigUpdatePayload> {
         let (app, _sub) = app_and_sub_from_ctx!(ctx);
-        let updated = app
-            .exposed_configs()
-            .update(input.key, input.value.into_inner())
-            .await?;
-
-        Ok(ExposedConfigUpdatePayload::from(ExposedConfigItem::from(
-            updated,
-        )))
+        exec_mutation!(
+            ExposedConfigUpdatePayload,
+            ExposedConfig,
+            ctx,
+            app.domain_configs()
+                .update_exposed_from_json(input.exposed_config_id, input.value.into_inner())
+        )
     }
 
     async fn deposit_module_configure(
