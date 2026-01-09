@@ -979,13 +979,7 @@ impl Query {
             ctx,
             after,
             first,
-            |query: es_entity::PaginatedQueryArgs<DomainConfigsByKeyCursor>| {
-                let query = es_entity::PaginatedQueryArgs {
-                    first: query.first,
-                    after: query.after.map(DomainConfigsByKeyCursor::into_domain),
-                };
-                async move { app.domain_configs().list_exposed_configs(query).await }
-            }
+            |query| app.domain_configs().list_exposed_configs(query)
         )
     }
 

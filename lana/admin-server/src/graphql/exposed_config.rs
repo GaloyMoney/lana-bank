@@ -1,13 +1,12 @@
-use async_graphql::connection::CursorType;
 use async_graphql::*;
-use serde::{Deserialize, Serialize};
 
 use domain_config::{
     ConfigType as DomainConfigType, DomainConfig,
-    DomainConfigsByKeyCursor as DomainConfigsByKeyCursorDomain,
 };
 
 use crate::{graphql::primitives::Json, primitives::*};
+
+pub use domain_config::DomainConfigsByKeyCursor;
 
 #[derive(Enum, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ConfigType {
@@ -65,41 +64,6 @@ impl ExposedConfig {
 
     async fn value(&self) -> Json {
         Json::from(self.entity.current_json_value().clone())
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(transparent)]
-pub struct DomainConfigsByKeyCursor(DomainConfigsByKeyCursorDomain);
-
-impl DomainConfigsByKeyCursor {
-    pub(crate) fn into_domain(self) -> DomainConfigsByKeyCursorDomain {
-        self.0
-    }
-}
-
-impl From<&DomainConfig> for DomainConfigsByKeyCursor {
-    fn from(config: &DomainConfig) -> Self {
-        Self(DomainConfigsByKeyCursorDomain::from(config))
-    }
-}
-
-impl CursorType for DomainConfigsByKeyCursor {
-    type Error = String;
-
-    fn encode_cursor(&self) -> String {
-        use base64::{Engine as _, engine::general_purpose};
-        let json = serde_json::to_string(&self).expect("could not serialize cursor");
-        general_purpose::STANDARD_NO_PAD.encode(json.as_bytes())
-    }
-
-    fn decode_cursor(s: &str) -> Result<Self, Self::Error> {
-        use base64::{Engine as _, engine::general_purpose};
-        let bytes = general_purpose::STANDARD_NO_PAD
-            .decode(s.as_bytes())
-            .map_err(|e| e.to_string())?;
-        let json = String::from_utf8(bytes).map_err(|e| e.to_string())?;
-        serde_json::from_str(&json).map_err(|e| e.to_string())
     }
 }
 
