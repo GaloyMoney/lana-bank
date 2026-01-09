@@ -34,7 +34,13 @@ impl ErrorSeverity for ProfitAndLossStatementLedgerError {
         match self {
             Self::Sqlx(_) => Level::ERROR,
             Self::CalaLedger(_) => Level::ERROR,
-            Self::CalaAccountSet(_) => Level::ERROR,
+            Self::CalaAccountSet(_) => {
+                if self.account_set_exists() {
+                    Level::INFO
+                } else {
+                    Level::ERROR
+                }
+            }
             Self::CalaBalance(_) => Level::ERROR,
             Self::NonAccountSetMemberTypeFound => Level::ERROR,
             Self::NotFound(_) => Level::WARN,
