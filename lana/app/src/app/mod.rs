@@ -94,6 +94,13 @@ impl LanaApp {
         )
         .await?;
 
+        let new_job_poller_config = job_new::JobPollerConfig {
+            job_lost_interval: config.job_poller.job_lost_interval,
+            shutdown_timeout: config.job_poller.shutdown_timeout,
+            max_jobs_per_process: config.job_poller.max_jobs_per_process,
+            min_jobs_per_process: config.job_poller.min_jobs_per_process,
+        };
+
         let mut jobs = Jobs::init(
             job::JobSvcConfig::builder()
                 .pool(pool.clone())
@@ -105,6 +112,7 @@ impl LanaApp {
         let mut job_new = job_new::Jobs::init(
             job_new::JobSvcConfig::builder()
                 .pool(pool.clone())
+                .poller_config(new_job_poller_config)
                 .build()
                 .expect("Couldn't build JobSvcConfig"),
         )
