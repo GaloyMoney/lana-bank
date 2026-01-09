@@ -165,12 +165,10 @@ where
                 let mut op = self.repo.begin_op().await?;
                 self.repo.update_in_op(&mut op, &mut fiscal_year).await?;
 
-                let fiscal_year_conf = self
-                    .domain_configs
-                    .get::<config::FiscalYearConfig>()
-                    .await?
-                    .value()
-                    .ok_or(domain_config::DomainConfigError::NotConfigured)?;
+                let config = self.domain_configs.get::<config::FiscalYearConfig>().await?;
+                let Some(fiscal_year_conf) = config.value() else {
+                    return Err(domain_config::DomainConfigError::NotConfigured.into());
+                };
 
                 self.chart_of_accounts
                     .post_closing_transaction(
@@ -311,11 +309,12 @@ where
     #[record_error_severity]
     #[instrument(name = "core_accounting.fiscal_year.configure", skip(self))]
     pub async fn configure(&self, cfg: FiscalYearConfig) -> Result<(), FiscalYearError> {
-        if self.domain_configs.get::<FiscalYearConfig>().await.is_ok() {
+        let config = self.domain_configs.get::<FiscalYearConfig>().await?;
+        if config.value().is_some() {
             return Err(FiscalYearError::FiscalYearConfigAlreadyExists);
         }
 
-        self.domain_configs.create::<FiscalYearConfig>(cfg).await?;
+        self.domain_configs.update::<FiscalYearConfig>(cfg).await?;
 
         Ok(())
     }
