@@ -19,9 +19,7 @@ use templates::{
     PartialLiquidationInitiatedEmailData, RoleCreatedEmailData, UnderMarginCallEmailData,
 };
 
-pub use config::{
-    EmailInfraConfig, NotificationFromEmailConfigSpec, NotificationFromNameConfigSpec,
-};
+pub use config::{EmailInfraConfig, NotificationFromEmail, NotificationFromName};
 pub use error::EmailError;
 
 #[derive(Clone)]

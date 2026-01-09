@@ -26,7 +26,6 @@ use crate::{
     deposit::Deposits,
     deposit_sync::DepositSync,
     document::DocumentStorage,
-    exposed_config::ExposedConfigs,
     governance::Governance,
     job::Jobs,
     notification::Notification,
@@ -83,6 +82,7 @@ impl LanaApp {
         let outbox = Outbox::init(&pool, obix::MailboxConfig::default()).await?;
         let authz = Authorization::init(&pool, &audit).await?;
         let domain_configs = DomainConfigs::new(&pool);
+        domain_configs.seed_registered().await?;
 
         let access = Access::init(
             &pool,
@@ -252,10 +252,6 @@ impl LanaApp {
 
     pub fn domain_configs(&self) -> &DomainConfigs {
         &self.domain_configs
-    }
-
-    pub fn exposed_configs(&self) -> ExposedConfigs {
-        ExposedConfigs::new(&self.domain_configs)
     }
 
     pub fn governance(&self) -> &Governance {

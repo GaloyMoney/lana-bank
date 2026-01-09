@@ -173,16 +173,16 @@
       "saveError": "Could not update notification email settings",
       "saveErrorWithReason": "Could not update notification email settings: {error}"
     },
-    "exposedConfigs": {
-      "title": "Exposed configs",
-      "description": "Manage domain configuration values that are safe to edit in the admin app.",
-      "empty": "No exposed configs yet.",
+    "domainConfigs": {
+      "title": "Domain configs",
+      "description": "Manage domain configuration values in the admin app.",
+      "empty": "No domain configs yet.",
       "valueLabel": "Value",
       "save": "Save",
       "saveSuccess": "Configuration updated",
       "saveError": "Could not update configuration",
       "saveErrorWithReason": "Could not update configuration: {error}",
-      "loadError": "Could not load exposed configurations",
+      "loadError": "Could not load domain configurations",
       "invalidInt": "Enter a valid integer",
       "invalidUint": "Enter a valid non-negative integer",
       "invalidDecimal": "Enter a decimal value",

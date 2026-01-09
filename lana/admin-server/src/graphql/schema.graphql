@@ -1330,6 +1330,52 @@ enum DocumentStatus {
 	DELETED
 }
 
+type DomainConfig {
+	id: ID!
+	domainConfigId: UUID!
+	configType: ConfigType!
+	key: String!
+	value: Json!
+}
+
+type DomainConfigConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [DomainConfigEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [DomainConfig!]!
+}
+
+"""
+An edge in a connection.
+"""
+type DomainConfigEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: DomainConfig!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
+input DomainConfigUpdateInput {
+	domainConfigId: UUID!
+	value: Json!
+}
+
+type DomainConfigUpdatePayload {
+	domainConfig: DomainConfig!
+}
+
 type Duration {
 	period: Period!
 	units: Int!
@@ -1338,22 +1384,6 @@ type Duration {
 input DurationInput {
 	period: Period!
 	units: Int!
-}
-
-type ExposedConfigItem {
-	key: String!
-	configType: ConfigType!
-	value: Json!
-	isSet: Boolean!
-}
-
-input ExposedConfigUpdateInput {
-	key: String!
-	value: Json!
-}
-
-type ExposedConfigUpdatePayload {
-	exposedConfig: ExposedConfigItem!
 }
 
 type FacilityRemaining {
@@ -1779,7 +1809,7 @@ type Mutation {
 	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
 	customerTelegramIdUpdate(input: CustomerTelegramIdUpdateInput!): CustomerTelegramIdUpdatePayload!
 	customerEmailUpdate(input: CustomerEmailUpdateInput!): CustomerEmailUpdatePayload!
-	updateExposedConfig(input: ExposedConfigUpdateInput!): ExposedConfigUpdatePayload!
+	domainConfigUpdate(input: DomainConfigUpdateInput!): DomainConfigUpdatePayload!
 	depositModuleConfigure(input: DepositModuleConfigureInput!): DepositModuleConfigurePayload!
 	manualTransactionExecute(input: ManualTransactionExecuteInput!): ManualTransactionExecutePayload!
 	depositRecord(input: DepositRecordInput!): DepositRecordPayload!
@@ -2138,7 +2168,7 @@ type Query {
 	realtimePrice: RealtimePrice!
 	audit(first: Int!, after: String): AuditEntryConnection!
 	depositConfig: DepositModuleConfig
-	exposedConfigs: [ExposedConfigItem!]!
+	domainConfigs(first: Int!, after: String): DomainConfigConnection!
 	creditConfig: CreditModuleConfig
 	balanceSheetConfig: BalanceSheetModuleConfig
 	profitAndLossStatementConfig: ProfitAndLossStatementModuleConfig

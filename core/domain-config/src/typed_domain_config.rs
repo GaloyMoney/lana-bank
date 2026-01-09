@@ -1,0 +1,40 @@
+use std::marker::PhantomData;
+
+use crate::{ConfigSpec, ConfigType, DomainConfigError, DomainConfigKey, ValueKind, Visibility};
+
+use crate::entity::DomainConfig;
+
+pub struct TypedDomainConfig<C: ConfigSpec> {
+    entity: DomainConfig,
+    _marker: PhantomData<C>,
+}
+
+impl<C: ConfigSpec> TypedDomainConfig<C> {
+    pub(crate) fn new(entity: DomainConfig) -> Result<Self, DomainConfigError> {
+        entity.ensure::<C>()?;
+        Ok(Self {
+            entity,
+            _marker: PhantomData,
+        })
+    }
+
+    pub fn value(&self) -> Option<<C::Kind as ValueKind>::Value> {
+        self.entity.current_value::<C>().or_else(C::default_value)
+    }
+
+    pub fn default_value(&self) -> Option<<C::Kind as ValueKind>::Value> {
+        C::default_value()
+    }
+
+    pub fn key(&self) -> DomainConfigKey {
+        self.entity.key.clone()
+    }
+
+    pub fn visibility(&self) -> Visibility {
+        self.entity.visibility
+    }
+
+    pub fn config_type(&self) -> ConfigType {
+        self.entity.config_type
+    }
+}

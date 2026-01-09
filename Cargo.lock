@@ -2102,8 +2102,10 @@ dependencies = [
 name = "domain-config"
 version = "0.0.0"
 dependencies = [
+ "async-graphql",
  "derive_builder",
  "es-entity",
+ "inventory",
  "rust_decimal",
  "rust_decimal_macros",
  "schemars 1.1.0",

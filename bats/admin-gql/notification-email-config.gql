@@ -1,7 +1,11 @@
-query ExposedConfigs {
-  exposedConfigs {
-    key
-    value
-    isSet
+query DomainConfigs {
+  domainConfigs(first: 100) {
+    edges {
+      node {
+        domainConfigId
+        key
+        value
+      }
+    }
   }
 }

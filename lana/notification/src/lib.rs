@@ -18,7 +18,7 @@ use lana_events::LanaEvent;
 pub use config::NotificationConfig;
 use email::EmailNotification;
 use email::job::{EmailEventListenerConfig, EmailEventListenerInit};
-pub use email::{NotificationFromEmailConfigSpec, NotificationFromNameConfigSpec};
+pub use email::{NotificationFromEmail, NotificationFromName};
 
 pub struct Notification<AuthzType>
 where

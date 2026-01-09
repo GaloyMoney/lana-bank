@@ -21,72 +21,85 @@ import { Checkbox } from "@lana/web/ui/checkbox"
 
 import {
   ConfigType,
-  type ExposedConfigItem,
-  ExposedConfigsDocument,
-  useExposedConfigsQuery,
-  useUpdateExposedConfigMutation,
+  type DomainConfig,
+  DomainConfigsDocument,
+  useDomainConfigsQuery,
+  useDomainConfigUpdateMutation,
 } from "@/lib/graphql/generated"
 
 gql`
-  query ExposedConfigs {
-    exposedConfigs {
-      key
-      configType
-      value
-      isSet
-    }
-  }
-
-  mutation UpdateExposedConfig($input: ExposedConfigUpdateInput!) {
-    updateExposedConfig(input: $input) {
-      exposedConfig {
+  query DomainConfigs($first: Int!, $after: String) {
+    domainConfigs(first: $first, after: $after) {
+      nodes {
+        id
+        domainConfigId
         key
         configType
         value
-        isSet
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+
+  mutation DomainConfigUpdate($input: DomainConfigUpdateInput!) {
+    domainConfigUpdate(input: $input) {
+      domainConfig {
+        id
+        domainConfigId
+        key
+        configType
+        value
       }
     }
   }
 `
 
-const EMPTY_CONFIGS: ExposedConfigItem[] = []
+const DOMAIN_CONFIG_PAGE_SIZE = 100
+const EMPTY_CONFIGS: DomainConfig[] = []
 
 export default function ConfigurationsPage() {
   const t = useTranslations("Configurations")
 
-  const [exposedDrafts, setExposedDrafts] = useState<
+  const [domainDrafts, setDomainDrafts] = useState<
     Record<string, string | boolean>
   >({})
 
   const {
-    data: exposedConfigData,
-    loading: exposedConfigLoading,
-    error: exposedConfigError,
-  } = useExposedConfigsQuery()
+    data: domainConfigData,
+    loading: domainConfigLoading,
+    error: domainConfigError,
+  } = useDomainConfigsQuery({
+    variables: {
+      first: DOMAIN_CONFIG_PAGE_SIZE,
+    },
+  })
 
-  const [updateExposedConfig, { loading: updateExposedConfigLoading }] =
-    useUpdateExposedConfigMutation()
+  const [domainConfigUpdate, { loading: domainConfigUpdateLoading }] =
+    useDomainConfigUpdateMutation()
 
-  const exposedConfigs = exposedConfigData?.exposedConfigs ?? EMPTY_CONFIGS
+  const domainConfigs = domainConfigData?.domainConfigs.nodes ?? EMPTY_CONFIGS
   const visibleConfigs = useMemo(
-    () => exposedConfigs.filter((config) => config.configType !== ConfigType.Complex),
-    [exposedConfigs],
+    () => domainConfigs.filter((config) => config.configType !== ConfigType.Complex),
+    [domainConfigs],
   )
 
   useEffect(() => {
     if (visibleConfigs.length === 0) {
-      setExposedDrafts({})
+      setDomainDrafts({})
       return
     }
 
-    setExposedDrafts((prev) => {
+    setDomainDrafts((prev) => {
       const nextDrafts: Record<string, string | boolean> = {}
 
       for (const config of visibleConfigs) {
         if (prev[config.key] !== undefined) {
           nextDrafts[config.key] = prev[config.key]
         } else {
-          nextDrafts[config.key] = formatExposedValue(config)
+          nextDrafts[config.key] = formatDomainValue(config)
         }
       }
 
@@ -94,9 +107,9 @@ export default function ConfigurationsPage() {
     })
   }, [visibleConfigs])
 
-  const handleExposedSave = async (config: ExposedConfigItem) => {
-    const draft = exposedDrafts[config.key]
-    const parsed = parseExposedDraft(config, draft)
+  const handleDomainSave = async (config: DomainConfig) => {
+    const draft = domainDrafts[config.key]
+    const parsed = parseDomainDraft(config, draft)
 
     if ("errorKey" in parsed) {
       toast.error(t(parsed.errorKey))
@@ -104,58 +117,63 @@ export default function ConfigurationsPage() {
     }
 
     try {
-      const result = await updateExposedConfig({
+      const result = await domainConfigUpdate({
         variables: {
           input: {
-            key: config.key,
+            domainConfigId: config.domainConfigId,
             value: parsed.value,
           },
         },
-        refetchQueries: [ExposedConfigsDocument],
+        refetchQueries: [
+          {
+            query: DomainConfigsDocument,
+            variables: { first: DOMAIN_CONFIG_PAGE_SIZE },
+          },
+        ],
       })
 
-      const updated = result.data?.updateExposedConfig.exposedConfig
+      const updated = result.data?.domainConfigUpdate.domainConfig
 
       if (!updated) {
-        toast.error(t("exposedConfigs.saveError"))
+        toast.error(t("domainConfigs.saveError"))
         return
       }
 
-      toast.success(t("exposedConfigs.saveSuccess"))
-      setExposedDrafts((prev) => ({
+      toast.success(t("domainConfigs.saveSuccess"))
+      setDomainDrafts((prev) => ({
         ...prev,
-        [config.key]: formatExposedValue(updated),
+        [config.key]: formatDomainValue(updated),
       }))
     } catch (error) {
-      console.error("Failed to update exposed configuration:", error)
+      console.error("Failed to update domain configuration:", error)
 
       const errorMessage = error instanceof Error ? error.message : null
 
       toast.error(
         errorMessage
-          ? t("exposedConfigs.saveErrorWithReason", { error: errorMessage })
-          : t("exposedConfigs.saveError"),
+          ? t("domainConfigs.saveErrorWithReason", { error: errorMessage })
+          : t("domainConfigs.saveError"),
       )
     }
   }
 
   return (
     <div className="space-y-3">
-      {exposedConfigLoading ? (
+      {domainConfigLoading ? (
         <LoaderCircle className="animate-spin" />
-      ) : exposedConfigError ? (
+      ) : domainConfigError ? (
         <p className="text-sm text-destructive">
-          {t("exposedConfigs.loadError")}
+          {t("domainConfigs.loadError")}
         </p>
       ) : visibleConfigs.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          {t("exposedConfigs.empty")}
+          {t("domainConfigs.empty")}
         </p>
       ) : (
         <div className="space-y-3">
           {visibleConfigs.map((config) => {
-            const inputId = `exposed-${config.key}`
-            const isDisabled = exposedConfigLoading
+            const inputId = `domain-${config.key}`
+            const isDisabled = domainConfigLoading
 
             return (
               <Card key={config.key}>
@@ -166,26 +184,26 @@ export default function ConfigurationsPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-4">
-                  {renderExposedInput({
+                  {renderDomainInput({
                     config,
                     inputId,
-                    value: exposedDrafts[config.key],
+                    value: domainDrafts[config.key],
                     disabled: isDisabled,
                     onChange: (nextValue) =>
-                      setExposedDrafts((prev) => ({
+                      setDomainDrafts((prev) => ({
                         ...prev,
                         [config.key]: nextValue,
                       })),
-                    label: t("exposedConfigs.valueLabel"),
+                    label: t("domainConfigs.valueLabel"),
                   })}
                 </CardContent>
                 <CardFooter className="justify-end">
                   <Button
-                    onClick={() => handleExposedSave(config)}
+                    onClick={() => handleDomainSave(config)}
                     disabled={isDisabled}
-                    loading={updateExposedConfigLoading}
+                    loading={domainConfigUpdateLoading}
                   >
-                    {t("exposedConfigs.save")}
+                    {t("domainConfigs.save")}
                   </Button>
                 </CardFooter>
               </Card>
@@ -197,7 +215,7 @@ export default function ConfigurationsPage() {
   )
 }
 
-const formatExposedValue = (config: ExposedConfigItem): string | boolean => {
+const formatDomainValue = (config: DomainConfig): string | boolean => {
   switch (config.configType) {
     case ConfigType.Bool:
       return config.value === true
@@ -216,8 +234,8 @@ const formatExposedValue = (config: ExposedConfigItem): string | boolean => {
   }
 }
 
-const parseExposedDraft = (
-  config: ExposedConfigItem,
+const parseDomainDraft = (
+  config: DomainConfig,
   draft: string | boolean | undefined,
 ):
   | { value: unknown }
@@ -234,11 +252,11 @@ const parseExposedDraft = (
       const parsed = Number(text)
 
       if (text.length === 0) {
-        return { errorKey: "exposedConfigs.invalidInt" }
+        return { errorKey: "domainConfigs.invalidInt" }
       }
 
       if (!Number.isInteger(parsed)) {
-        return { errorKey: "exposedConfigs.invalidInt" }
+        return { errorKey: "domainConfigs.invalidInt" }
       }
 
       return { value: parsed }
@@ -248,11 +266,11 @@ const parseExposedDraft = (
       const parsed = Number(text)
 
       if (text.length === 0) {
-        return { errorKey: "exposedConfigs.invalidUint" }
+        return { errorKey: "domainConfigs.invalidUint" }
       }
 
       if (!Number.isInteger(parsed) || parsed < 0) {
-        return { errorKey: "exposedConfigs.invalidUint" }
+        return { errorKey: "domainConfigs.invalidUint" }
       }
 
       return { value: parsed }
@@ -261,18 +279,18 @@ const parseExposedDraft = (
       const text = typeof draft === "string" ? draft.trim() : ""
 
       if (text.length === 0) {
-        return { errorKey: "exposedConfigs.invalidDecimal" }
+        return { errorKey: "domainConfigs.invalidDecimal" }
       }
 
       return { value: text }
     }
     default:
-      return { errorKey: "exposedConfigs.invalidValue" }
+      return { errorKey: "domainConfigs.invalidValue" }
   }
 }
 
-type RenderExposedInputArgs = {
-  config: ExposedConfigItem
+type RenderDomainInputArgs = {
+  config: DomainConfig
   inputId: string
   value: string | boolean | undefined
   disabled: boolean
@@ -280,14 +298,14 @@ type RenderExposedInputArgs = {
   label: string
 }
 
-const renderExposedInput = ({
+const renderDomainInput = ({
   config,
   inputId,
   value,
   disabled,
   onChange,
   label,
-}: RenderExposedInputArgs) => {
+}: RenderDomainInputArgs) => {
   switch (config.configType) {
     case ConfigType.Bool:
       return (

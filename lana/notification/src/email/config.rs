@@ -1,7 +1,7 @@
 use lettre::address::Address;
 use serde::{Deserialize, Serialize};
 
-use domain_config::{ConfigSpec, DomainConfigError, DomainConfigKey, Simple, Visibility};
+use domain_config::{DomainConfigError, define_exposed_config};
 
 #[derive(Clone, Debug, Deserialize, Serialize, Default)]
 #[serde(deny_unknown_fields)]
@@ -32,58 +32,58 @@ impl EmailInfraConfig {
     }
 }
 
-pub struct NotificationFromEmailConfigSpec;
-impl ConfigSpec for NotificationFromEmailConfigSpec {
-    const KEY: DomainConfigKey = DomainConfigKey::new("notification-email-from-email");
-    const VISIBILITY: Visibility = Visibility::Exposed;
-    type Kind = Simple<String>;
+define_exposed_config! {
+    pub struct NotificationFromEmail(String);
+    spec {
+        key: "notification-email-from-email";
+        validate: |value: &String| {
+            if value.trim().is_empty() {
+                return Err(DomainConfigError::InvalidState(
+                    "from_email is required".to_string(),
+                ));
+            }
 
-    fn validate(value: &String) -> Result<(), DomainConfigError> {
-        if value.trim().is_empty() {
-            return Err(DomainConfigError::InvalidState(
-                "from_email is required".to_string(),
-            ));
-        }
+            value.parse::<Address>().map_err(|e| {
+                DomainConfigError::InvalidState(format!("from_email is invalid: {e}"))
+            })?;
 
-        value
-            .parse::<Address>()
-            .map_err(|e| DomainConfigError::InvalidState(format!("from_email is invalid: {e}")))?;
-
-        Ok(())
+            Ok(())
+        };
     }
 }
 
-pub struct NotificationFromNameConfigSpec;
-impl ConfigSpec for NotificationFromNameConfigSpec {
-    const KEY: DomainConfigKey = DomainConfigKey::new("notification-email-from-name");
-    const VISIBILITY: Visibility = Visibility::Exposed;
-    type Kind = Simple<String>;
+define_exposed_config! {
+    pub struct NotificationFromName(String);
+    spec {
+        key: "notification-email-from-name";
+        validate: |value: &String| {
+            if value.trim().is_empty() {
+                return Err(DomainConfigError::InvalidState(
+                    "from_name is required".to_string(),
+                ));
+            }
 
-    fn validate(value: &String) -> Result<(), DomainConfigError> {
-        if value.trim().is_empty() {
-            return Err(DomainConfigError::InvalidState(
-                "from_name is required".to_string(),
-            ));
-        }
-
-        Ok(())
+            Ok(())
+        };
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use domain_config::ConfigSpec;
+
     use super::*;
 
     #[test]
     fn validate_from_email_accepts_valid_address() {
         let config = "notifications@example.com".to_string();
-        assert!(<NotificationFromEmailConfigSpec as ConfigSpec>::validate(&config).is_ok());
+        assert!(<NotificationFromEmail as ConfigSpec>::validate(&config).is_ok());
     }
 
     #[test]
     fn validate_from_email_rejects_empty_address() {
         let config = "   ".to_string();
-        let result = <NotificationFromEmailConfigSpec as ConfigSpec>::validate(&config);
+        let result = <NotificationFromEmail as ConfigSpec>::validate(&config);
 
         assert!(matches!(
             result,
@@ -94,7 +94,7 @@ mod tests {
     #[test]
     fn validate_from_email_rejects_invalid_address() {
         let config = "invalid-email".to_string();
-        let result = <NotificationFromEmailConfigSpec as ConfigSpec>::validate(&config);
+        let result = <NotificationFromEmail as ConfigSpec>::validate(&config);
 
         assert!(matches!(
             result,
@@ -106,7 +106,7 @@ mod tests {
     #[test]
     fn validate_from_name_rejects_empty_from_name() {
         let config = "   ".to_string();
-        let result = <NotificationFromNameConfigSpec as ConfigSpec>::validate(&config);
+        let result = <NotificationFromName as ConfigSpec>::validate(&config);
 
         assert!(matches!(
             result,

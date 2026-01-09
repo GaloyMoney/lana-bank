@@ -3,8 +3,12 @@ name = "domain-config"
 edition = "2024"
 license = "BUSL-1.1"
 
+[package.metadata.cargo-machete]
+ignored = ["async-graphql"]
+
 [features]
 fail-on-warnings = []
+graphql = ["es-entity/graphql", "dep:async-graphql"]
 json-schema = ["dep:schemars", "es-entity/json-schema"]
 
 [dependencies]
@@ -12,12 +16,14 @@ es-entity = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 derive_builder = { workspace = true }
 serde_json = { workspace = true }
+inventory = { workspace = true }
 sqlx = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 tracing-macros = { workspace = true }
 tracing-utils = { workspace = true }
 rust_decimal = { workspace = true }
+async-graphql = { workspace = true, optional = true }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 schemars = { workspace = true, optional = true }
 

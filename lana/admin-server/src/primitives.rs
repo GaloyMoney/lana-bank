@@ -3,6 +3,8 @@
 use async_graphql::*;
 use serde::{Deserialize, Serialize};
 
+use domain_config::DomainConfigId;
+
 pub use lana_app::{
     accounting::LedgerAccountId,
     primitives::{
@@ -132,5 +134,6 @@ impl_to_global_id! {
     PublicId,
     EntryId,
     LedgerAccountId,
-    FiscalYearId
+    FiscalYearId,
+    DomainConfigId
 }
