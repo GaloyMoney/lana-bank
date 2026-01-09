@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use core_access::CoreAccessEvent;
+use serde::{Deserialize, Serialize};
 use tokio::select;
 use tracing::{Span, instrument};
 
@@ -11,7 +12,7 @@ use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use keycloak_client::KeycloakClient;
 
-#[derive(serde::Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct UserOnboardingJobConfig<E> {
     _phantom: std::marker::PhantomData<E>,
 }
@@ -22,11 +23,13 @@ impl<E> UserOnboardingJobConfig<E> {
         }
     }
 }
-impl<E> JobConfig for UserOnboardingJobConfig<E>
-where
-    E: OutboxEventMarker<CoreAccessEvent>,
-{
-    type Initializer = UserOnboardingInit<E>;
+
+impl<E> Clone for UserOnboardingJobConfig<E> {
+    fn clone(&self) -> Self {
+        Self {
+            _phantom: std::marker::PhantomData,
+        }
+    }
 }
 
 pub struct UserOnboardingInit<E>
@@ -54,21 +57,26 @@ impl<E> JobInitializer for UserOnboardingInit<E>
 where
     E: OutboxEventMarker<CoreAccessEvent>,
 {
-    fn job_type() -> JobType
+    type Config = UserOnboardingJobConfig<E>;
+    fn job_type(&self) -> JobType
     where
         Self: Sized,
     {
         USER_ONBOARDING_JOB
     }
 
-    fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
+    fn init(
+        &self,
+        _: &Job,
+        _: JobSpawner<Self::Config>,
+    ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(UserOnboardingJobRunner::<E> {
             outbox: self.outbox.clone(),
             keycloak_client: self.keycloak_client.clone(),
         }))
     }
 
-    fn retry_on_error_settings() -> RetrySettings
+    fn retry_on_error_settings(&self) -> RetrySettings
     where
         Self: Sized,
     {
