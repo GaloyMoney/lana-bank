@@ -18,10 +18,6 @@ impl<C: ConfigSpec> ConfigView<C> {
         })
     }
 
-    pub fn is_configured(&self) -> bool {
-        self.entity.is_configured()
-    }
-
     pub fn value(&self) -> Option<<C::Kind as ValueKind>::Value> {
         self.entity.current_value::<C>().or_else(C::default_value)
     }

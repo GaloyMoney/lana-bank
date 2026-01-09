@@ -36,7 +36,6 @@ gql`
         key
         configType
         value
-        isSet
       }
       pageInfo {
         hasNextPage
@@ -53,7 +52,6 @@ gql`
         key
         configType
         value
-        isSet
       }
     }
   }

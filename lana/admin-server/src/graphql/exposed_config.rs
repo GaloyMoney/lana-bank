@@ -39,7 +39,6 @@ pub struct ExposedConfig {
     pub key: String,
     pub config_type: ConfigType,
     pub value: Json,
-    pub is_set: bool,
 
     #[graphql(skip)]
     pub(crate) entity: Arc<DomainConfig>,
@@ -48,17 +47,13 @@ pub struct ExposedConfig {
 impl From<DomainConfig> for ExposedConfig {
     fn from(config: DomainConfig) -> Self {
         let key = config.key.clone();
-        let value = config
-            .current_json_value()
-            .cloned()
-            .unwrap_or(serde_json::Value::Null);
+        let value = config.current_json_value().clone();
         Self {
             id: config.id.to_global_id(),
             exposed_config_id: UUID::from(config.id),
             key: key.to_string(),
             config_type: config.config_type.into(),
             value: value.into(),
-            is_set: config.is_configured(),
             entity: Arc::new(config),
         }
     }

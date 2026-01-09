@@ -36,16 +36,15 @@ pub struct DomainConfig {
 }
 
 impl DomainConfig {
-    pub fn is_configured(&self) -> bool {
-        self.current_json_value().is_some()
-    }
-
     pub(super) fn current_value<C>(&self) -> Option<<C::Kind as ValueKind>::Value>
     where
         C: ConfigSpec,
     {
         self.ensure::<C>().ok()?;
-        let value = self.current_json_value()?;
+        let value = self.current_json_value();
+        if value.is_null() {
+            return None;
+        }
         <C::Kind as ValueKind>::decode(value.clone()).ok()
     }
 
@@ -98,11 +97,7 @@ impl DomainConfig {
         &mut self,
         new_value: serde_json::Value,
     ) -> Result<Idempotent<()>, DomainConfigError> {
-        if self
-            .current_json_value()
-            .map(|current| current == &new_value)
-            .unwrap_or(false)
-        {
+        if self.current_json_value() == &new_value {
             return Ok(Idempotent::AlreadyApplied);
         }
 
@@ -112,17 +107,14 @@ impl DomainConfig {
         Ok(Idempotent::Executed(()))
     }
 
-    pub fn current_json_value(&self) -> Option<&serde_json::Value> {
+    pub fn current_json_value(&self) -> &serde_json::Value {
+        const NULL_JSON_VALUE: serde_json::Value = serde_json::Value::Null;
         let value = self.events.iter_all().rev().find_map(|event| match event {
             DomainConfigEvent::Updated { value } => Some(value),
             _ => None,
         });
 
-        match value {
-            Some(value) if value.is_null() => None,
-            Some(value) => Some(value),
-            None => None,
-        }
+        value.unwrap_or(&NULL_JSON_VALUE)
     }
 
     pub(crate) fn ensure<C: ConfigSpec>(&self) -> Result<(), DomainConfigError> {
