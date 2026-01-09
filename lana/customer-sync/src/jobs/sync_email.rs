@@ -1,44 +1,47 @@
 use async_trait::async_trait;
 use futures::StreamExt;
-use keycloak_client::KeycloakClient;
+use serde::{Deserialize, Serialize};
 use tokio::select;
 use tracing::{Span, instrument};
 
 use core_customer::CoreCustomerEvent;
-use core_deposit::CoreDepositEvent;
+use keycloak_client::KeycloakClient;
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use job::*;
 
-#[derive(serde::Serialize)]
-pub struct CreateKeycloakUserJobConfig<E> {
+#[derive(Serialize, Deserialize)]
+pub struct SyncEmailJobConfig<E> {
     _phantom: std::marker::PhantomData<E>,
 }
-impl<E> CreateKeycloakUserJobConfig<E> {
+
+impl<E> SyncEmailJobConfig<E> {
     pub fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
         }
     }
 }
-impl<E> JobConfig for CreateKeycloakUserJobConfig<E>
-where
-    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
-{
-    type Initializer = CreateKeycloakUserInit<E>;
+
+impl<E> Clone for SyncEmailJobConfig<E> {
+    fn clone(&self) -> Self {
+        Self {
+            _phantom: std::marker::PhantomData,
+        }
+    }
 }
 
-pub struct CreateKeycloakUserInit<E>
+pub struct SyncEmailInit<E>
 where
-    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent>,
 {
     outbox: Outbox<E>,
     keycloak_client: KeycloakClient,
 }
 
-impl<E> CreateKeycloakUserInit<E>
+impl<E> SyncEmailInit<E>
 where
-    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent>,
 {
     pub fn new(outbox: &Outbox<E>, keycloak_client: KeycloakClient) -> Self {
         Self {
@@ -48,27 +51,31 @@ where
     }
 }
 
-const CUSTOMER_SYNC_CREATE_KEYCLOAK_USER: JobType =
-    JobType::new("outbox.customer-sync-create-keycloak-user");
-impl<E> JobInitializer for CreateKeycloakUserInit<E>
+const SYNC_EMAIL_JOB: JobType = JobType::new("outbox.sync-email-job");
+impl<E> JobInitializer for SyncEmailInit<E>
 where
-    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent>,
 {
-    fn job_type() -> JobType
+    type Config = SyncEmailJobConfig<E>;
+    fn job_type(&self) -> JobType
     where
         Self: Sized,
     {
-        CUSTOMER_SYNC_CREATE_KEYCLOAK_USER
+        SYNC_EMAIL_JOB
     }
 
-    fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(CreateKeycloakUserJobRunner::<E> {
+    fn init(
+        &self,
+        _: &Job,
+        _: JobSpawner<Self::Config>,
+    ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
+        Ok(Box::new(SyncEmailJobRunner::<E> {
             outbox: self.outbox.clone(),
             keycloak_client: self.keycloak_client.clone(),
         }))
     }
 
-    fn retry_on_error_settings() -> RetrySettings
+    fn retry_on_error_settings(&self) -> RetrySettings
     where
         Self: Sized,
     {
@@ -77,36 +84,36 @@ where
 }
 
 #[derive(Default, Clone, serde::Deserialize, serde::Serialize)]
-struct CreateKeycloakUserJobData {
+struct SyncEmailJobData {
     sequence: obix::EventSequence,
 }
 
-pub struct CreateKeycloakUserJobRunner<E>
+pub struct SyncEmailJobRunner<E>
 where
-    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent>,
 {
     outbox: Outbox<E>,
     keycloak_client: KeycloakClient,
 }
 
-impl<E> CreateKeycloakUserJobRunner<E>
+impl<E> SyncEmailJobRunner<E>
 where
-    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent>,
 {
-    #[instrument(name = "customer_sync.create_keycloak_user_job.process_message", parent = None, skip(self, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
+    #[instrument(name = "customer_sync.sync_email_job.process_message", parent = None, skip(self, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
     #[allow(clippy::single_match)]
     async fn process_message(
         &self,
         message: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         match message.as_event() {
-            Some(event @ CoreCustomerEvent::CustomerCreated { id, email, .. }) => {
+            Some(event @ CoreCustomerEvent::CustomerEmailUpdated { id, email }) => {
                 message.inject_trace_parent();
                 Span::current().record("handled", true);
                 Span::current().record("event_type", event.as_ref());
 
                 self.keycloak_client
-                    .create_user(email.clone(), id.into())
+                    .update_user_email((*id).into(), email.clone())
                     .await?;
             }
             _ => {}
@@ -116,16 +123,16 @@ where
 }
 
 #[async_trait]
-impl<E> JobRunner for CreateKeycloakUserJobRunner<E>
+impl<E> JobRunner for SyncEmailJobRunner<E>
 where
-    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent>,
 {
     async fn run(
         &self,
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut state = current_job
-            .execution_state::<CreateKeycloakUserJobData>()?
+            .execution_state::<SyncEmailJobData>()?
             .unwrap_or_default();
         let mut stream = self.outbox.listen_persisted(Some(state.sequence));
 
@@ -136,7 +143,7 @@ where
                 _ = current_job.shutdown_requested() => {
                     tracing::info!(
                         job_id = %current_job.id(),
-                        job_type = %CUSTOMER_SYNC_CREATE_KEYCLOAK_USER,
+                        job_type = %SYNC_EMAIL_JOB,
                         last_sequence = %state.sequence,
                         "Shutdown signal received"
                     );

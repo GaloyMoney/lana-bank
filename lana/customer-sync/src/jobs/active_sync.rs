@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use futures::StreamExt;
+use serde::{Deserialize, Serialize};
 use tokio::select;
 use tracing::{Span, instrument};
 
@@ -17,7 +18,7 @@ use job::*;
 
 use crate::config::*;
 
-#[derive(serde::Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct CustomerActiveSyncJobConfig<Perms, E> {
     _phantom: std::marker::PhantomData<(Perms, E)>,
 }
@@ -27,19 +28,6 @@ impl<Perms, E> CustomerActiveSyncJobConfig<Perms, E> {
             _phantom: std::marker::PhantomData,
         }
     }
-}
-impl<Perms, E> JobConfig for CustomerActiveSyncJobConfig<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCustomerAction> + From<CoreDepositAction> + From<GovernanceAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
-{
-    type Initializer = CustomerActiveSyncInit<Perms, E>;
 }
 
 pub struct CustomerActiveSyncInit<Perms, E>
@@ -86,14 +74,19 @@ where
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    fn job_type() -> JobType
+    type Config = CustomerActiveSyncJobConfig<Perms, E>;
+    fn job_type(&self) -> JobType
     where
         Self: Sized,
     {
         CUSTOMER_ACTIVE_SYNC
     }
 
-    fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
+    fn init(
+        &self,
+        _: &Job,
+        _: JobSpawner<Self::Config>,
+    ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(CustomerActiveSyncJobRunner {
             outbox: self.outbox.clone(),
             deposit: self.deposit.clone(),
@@ -101,7 +94,7 @@ where
         }))
     }
 
-    fn retry_on_error_settings() -> RetrySettings
+    fn retry_on_error_settings(&self) -> RetrySettings
     where
         Self: Sized,
     {

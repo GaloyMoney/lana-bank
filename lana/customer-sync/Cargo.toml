@@ -13,7 +13,7 @@ core-deposit = { workspace = true }
 governance = { workspace = true }
 
 obix = { workspace = true }
-job = { workspace = true }
+job = {  version = "0.6.0" }
 audit = { workspace = true }
 authz = { workspace = true }
 
