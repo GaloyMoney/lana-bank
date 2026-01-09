@@ -70,6 +70,13 @@ where
         }
     }
 
+    pub(super) async fn find_by_id(
+        &self,
+        payment_id: PaymentId,
+    ) -> Result<Option<Payment>, PaymentError> {
+        self.repo.maybe_find_by_id(payment_id).await
+    }
+
     /// Attempts to create new Payment entity with `payment_id` linked
     /// to `credit_facility_id`. Upon successful creation, the Payment
     /// is recorded in ledger by transferring `amount` from
