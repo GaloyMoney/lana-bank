@@ -65,7 +65,8 @@ pub use payment_allocation::*;
 pub use pending_credit_facility::*;
 pub use primitives::*;
 pub use processes::{
-    activate_credit_facility::*, approve_credit_facility_proposal::*, approve_disbursal::*,
+    activate_credit_facility::*, allocate_credit_facility_payment::*,
+    approve_credit_facility_proposal::*, approve_disbursal::*,
 };
 use publisher::CreditFacilityPublisher;
 pub use repayment_plan::*;
@@ -336,6 +337,25 @@ where
             public_ids_arc.clone(),
         );
         let activate_credit_facility_arc = Arc::new(activate_credit_facility);
+
+        let allocate_credit_facility_payment = AllocateCreditFacilityPayment::new(
+            payments_arc.clone(),
+            obligations_arc.clone(),
+            clock.clone(),
+        );
+        let allocate_credit_facility_payment_arc = Arc::new(allocate_credit_facility_payment);
+
+        let allocate_payment_job_spawner =
+            jobs.add_initializer(AllocateCreditFacilityPaymentInit::new(
+                outbox,
+                allocate_credit_facility_payment_arc.as_ref(),
+            ));
+        allocate_payment_job_spawner
+            .spawn_unique(
+                job::JobId::new(),
+                AllocateCreditFacilityPaymentJobConfig::<Perms, E>::new(),
+            )
+            .await?;
 
         let chart_of_accounts_integrations =
             ChartOfAccountsIntegrations::new(authz_arc.clone(), ledger_arc.clone());
