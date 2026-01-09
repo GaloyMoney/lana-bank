@@ -62,7 +62,7 @@ impl DomainConfig {
         self.update_json_value(value_json)
     }
 
-    pub fn apply_exposed_update_from_json(
+    pub(super) fn apply_exposed_update_from_json(
         &mut self,
         entry: &crate::registry::ConfigSpecEntry,
         new_value: serde_json::Value,
@@ -117,7 +117,7 @@ impl DomainConfig {
         value.unwrap_or(&NULL_JSON_VALUE)
     }
 
-    pub(crate) fn ensure<C: ConfigSpec>(&self) -> Result<(), DomainConfigError> {
+    pub(super) fn ensure<C: ConfigSpec>(&self) -> Result<(), DomainConfigError> {
         let expected_type = <C::Kind as ValueKind>::TYPE;
         if self.config_type != expected_type {
             return Err(DomainConfigError::InvalidType(format!(
