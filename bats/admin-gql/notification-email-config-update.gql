@@ -4,7 +4,6 @@ mutation DomainConfigUpdate($input: DomainConfigUpdateInput!) {
       domainConfigId
       key
       value
-      isSet
     }
   }
 }

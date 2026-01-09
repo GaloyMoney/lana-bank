@@ -5,7 +5,6 @@ query DomainConfigs {
         domainConfigId
         key
         value
-        isSet
       }
     }
   }
