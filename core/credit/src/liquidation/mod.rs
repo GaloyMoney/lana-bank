@@ -89,7 +89,7 @@ where
         let repo_arc = Arc::new(LiquidationRepo::new(pool, publisher));
 
         // Create repos needed for partial liquidation job
-        let payment_repo = Arc::new(crate::payment::PaymentRepo::new(pool));
+        let payment_repo = Arc::new(crate::payment::PaymentRepo::new(pool, publisher));
         let obligation_repo = Arc::new(crate::obligation::ObligationRepo::new(pool, publisher));
         let payment_allocation_repo = Arc::new(
             crate::payment_allocation::PaymentAllocationRepo::new(pool, publisher),

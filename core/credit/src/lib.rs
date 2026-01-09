@@ -98,7 +98,7 @@ where
     pending_credit_facilities: Arc<PendingCreditFacilities<Perms, E>>,
     facilities: Arc<CreditFacilities<Perms, E>>,
     disbursals: Arc<Disbursals<Perms, E>>,
-    payments: Arc<Payments<Perms>>,
+    payments: Arc<Payments<Perms, E>>,
     repayment_plans: Arc<RepaymentPlans<Perms>>,
     governance: Arc<Governance<Perms, E>>,
     customer: Arc<Customers<Perms, E>>,
@@ -300,7 +300,7 @@ where
         .await?;
         let facilities_arc = Arc::new(credit_facilities);
 
-        let payments = Payments::new(pool, authz_arc.clone(), ledger_arc.clone());
+        let payments = Payments::new(pool, authz_arc.clone(), ledger_arc.clone(), &publisher);
         let payments_arc = Arc::new(payments);
 
         let histories_arc = Arc::new(Histories::init(pool, outbox, jobs, authz_arc.clone()).await?);
@@ -432,7 +432,7 @@ where
         self.facilities.as_ref()
     }
 
-    pub fn payments(&self) -> &Payments<Perms> {
+    pub fn payments(&self) -> &Payments<Perms, E> {
         self.payments.as_ref()
     }
 
