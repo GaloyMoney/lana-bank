@@ -205,14 +205,11 @@ where
 
         let import_data = import_data.as_ref().to_string();
         let account_specs = CsvParser::new(import_data).account_specs()?;
-
         let BulkImportResult {
             new_account_sets,
             new_account_set_ids,
             new_connections,
         } = BulkAccountImport::new(&mut chart, self.journal_id).import(account_specs);
-
-        // Set the base config after importing accounts (validates codes exist)
         let _ = chart.set_base_config(base_config)?;
 
         let mut op = self.repo.begin_op().await?;
