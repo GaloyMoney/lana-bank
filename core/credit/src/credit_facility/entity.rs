@@ -113,6 +113,12 @@ struct InterestAccrualCycleInCreditFacility {
     period: InterestPeriod,
 }
 
+impl InterestAccrualCycleInCreditFacility {
+    fn next_period_start(&self) -> DateTime<Utc> {
+        self.period.next().start
+    }
+}
+
 impl From<(InterestAccrualData, CreditFacilityLedgerAccountIds)> for CreditFacilityInterestAccrual {
     fn from(data: (InterestAccrualData, CreditFacilityLedgerAccountIds)) -> Self {
         let (
@@ -433,7 +439,7 @@ impl CreditFacility {
         };
 
         if let Some(last_cycle) = self.last_started_accrual_cycle()
-            && accrual_cycle_period.start > last_cycle.period.next().start
+            && accrual_cycle_period.start > last_cycle.next_period_start()
         {
             return Err(CreditFacilityError::InterestAccrualCycleWithInvalidFutureStartDate);
         }
