@@ -29,35 +29,32 @@ impl From<DomainConfigType> for ConfigType {
     }
 }
 
-#[derive(Clone)]
+#[derive(SimpleObject, Clone)]
+#[graphql(complex)]
 pub struct DomainConfig {
+    id: ID,
+    domain_config_id: UUID,
+    config_type: ConfigType,
+
+    #[graphql(skip)]
     pub(crate) entity: Arc<DomainConfigEntity>,
 }
 
 impl From<DomainConfigEntity> for DomainConfig {
     fn from(config: DomainConfigEntity) -> Self {
         Self {
+            id: config.id.to_global_id(),
+            domain_config_id: UUID::from(config.id),
+            config_type: config.config_type.into(),
             entity: Arc::new(config),
         }
     }
 }
 
-#[Object]
+#[ComplexObject]
 impl DomainConfig {
-    async fn id(&self) -> ID {
-        self.entity.id.to_global_id()
-    }
-
-    async fn domain_config_id(&self) -> UUID {
-        UUID::from(self.entity.id)
-    }
-
     async fn key(&self) -> &str {
         self.entity.key.as_str()
-    }
-
-    async fn config_type(&self) -> ConfigType {
-        self.entity.config_type.into()
     }
 
     async fn value(&self) -> Json {
