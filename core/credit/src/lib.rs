@@ -67,6 +67,7 @@ pub use payment_allocation::*;
 pub use pending_credit_facility::*;
 pub use primitives::*;
 use processes::activate_credit_facility::*;
+use processes::allocate_credit_facility_payment::*;
 pub use processes::{approve_credit_facility_proposal::*, approve_disbursal::*};
 use publisher::CreditFacilityPublisher;
 pub use repayment_plan::*;
@@ -314,6 +315,10 @@ where
         );
         let activate_credit_facility_arc = Arc::new(activate_credit_facility);
 
+        let allocate_credit_facility_payment =
+            AllocateCreditFacilityPayment::new(payments_arc.clone(), obligations_arc.clone());
+        let allocate_credit_facility_payment_arc = Arc::new(allocate_credit_facility_payment);
+
         let chart_of_accounts_integrations =
             ChartOfAccountsIntegrations::new(authz_arc.clone(), ledger_arc.clone());
         let chart_of_accounts_integrations_arc = Arc::new(chart_of_accounts_integrations);
@@ -424,6 +429,14 @@ where
         jobs.add_initializer_and_spawn_unique(
             CreditFacilityProposalApprovalInit::new(outbox, approve_proposal_arc.as_ref()),
             CreditFacilityProposalApprovalJobConfig::<Perms, E>::new(),
+        )
+        .await?;
+        jobs.add_initializer_and_spawn_unique(
+            AllocateCreditFacilityPaymentInit::new(
+                outbox,
+                allocate_credit_facility_payment_arc.as_ref(),
+            ),
+            AllocateCreditFacilityPaymentJobConfig::<Perms, E>::new(),
         )
         .await?;
 

@@ -12,8 +12,7 @@ use core_accounting::LedgerTransactionInitiator;
 use obix::out::OutboxEventMarker;
 
 use crate::{
-    event::CoreCreditEvent, ledger::CreditLedger, primitives::*,
-    publisher::CreditFacilityPublisher,
+    event::CoreCreditEvent, ledger::CreditLedger, primitives::*, publisher::CreditFacilityPublisher,
 };
 
 pub use entity::Payment;
@@ -69,6 +68,13 @@ where
             authz,
             ledger,
         }
+    }
+
+    pub(super) async fn find_by_id(
+        &self,
+        payment_id: PaymentId,
+    ) -> Result<Option<Payment>, PaymentError> {
+        self.repo.maybe_find_by_id(payment_id).await
     }
 
     /// Attempts to create new Payment entity with `payment_id` linked
