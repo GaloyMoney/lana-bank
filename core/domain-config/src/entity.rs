@@ -98,12 +98,6 @@ impl DomainConfig {
         &mut self,
         new_value: serde_json::Value,
     ) -> Result<Idempotent<()>, DomainConfigError> {
-        if new_value.is_null() {
-            return Err(DomainConfigError::InvalidState(
-                "Expected non-null value".to_string(),
-            ));
-        }
-
         if self
             .current_json_value()
             .map(|current| current == &new_value)
