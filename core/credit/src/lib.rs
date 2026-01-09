@@ -99,7 +99,7 @@ where
     pending_credit_facilities: Arc<PendingCreditFacilities<Perms, E>>,
     facilities: Arc<CreditFacilities<Perms, E>>,
     disbursals: Arc<Disbursals<Perms, E>>,
-    payments: Arc<Payments<Perms>>,
+    payments: Arc<Payments<Perms, E>>,
     history_repo: Arc<HistoryRepo>,
     repayment_plan_repo: Arc<RepaymentPlanRepo>,
     governance: Arc<Governance<Perms, E>>,
@@ -277,7 +277,7 @@ where
         );
         let facilities_arc = Arc::new(credit_facilities);
 
-        let payments = Payments::new(pool, authz_arc.clone(), ledger_arc.clone());
+        let payments = Payments::new(pool, authz_arc.clone(), ledger_arc.clone(), &publisher);
         let payments_arc = Arc::new(payments);
 
         let history_repo = HistoryRepo::new(pool);
@@ -489,7 +489,7 @@ where
         self.facilities.as_ref()
     }
 
-    pub fn payments(&self) -> &Payments<Perms> {
+    pub fn payments(&self) -> &Payments<Perms, E> {
         self.payments.as_ref()
     }
 

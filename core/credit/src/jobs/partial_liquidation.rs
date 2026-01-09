@@ -69,7 +69,7 @@ where
 {
     outbox: Outbox<E>,
     liquidations: Liquidations<Perms, E>,
-    payments: Payments<Perms>,
+    payments: Payments<Perms, E>,
     obligations: Obligations<Perms, E>,
     facilities: CreditFacilities<Perms, E>,
 }
@@ -88,7 +88,7 @@ where
     pub fn new(
         outbox: &Outbox<E>,
         liquidations: &Liquidations<Perms, E>,
-        payments: &Payments<Perms>,
+        payments: &Payments<Perms, E>,
         obligations: &Obligations<Perms, E>,
         facilities: &CreditFacilities<Perms, E>,
     ) -> Self {
@@ -147,7 +147,7 @@ where
     config: PartialLiquidationJobConfig<Perms, E>,
     outbox: Outbox<E>,
     liquidations: Liquidations<Perms, E>,
-    payments: Payments<Perms>,
+    payments: Payments<Perms, E>,
     obligations: Obligations<Perms, E>,
     facilities: CreditFacilities<Perms, E>,
 }

@@ -27,6 +27,7 @@ impl CreditFacilityHistory {
         match event {
             FacilityProposalCreated { .. } => {}
             FacilityProposalApproved { .. } => {}
+            FacilityPaymentReceived { .. } => {}
             FacilityActivated {
                 activation_tx_id,
                 activated_at,
