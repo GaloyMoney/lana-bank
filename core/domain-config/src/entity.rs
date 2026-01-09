@@ -40,17 +40,13 @@ impl DomainConfig {
         self.current_json_value().is_some()
     }
 
-    pub(super) fn current_value<C>(
-        &self,
-    ) -> Result<<C::Kind as ValueKind>::Value, DomainConfigError>
+    pub(super) fn current_value<C>(&self) -> Option<<C::Kind as ValueKind>::Value>
     where
         C: ConfigSpec,
     {
-        self.ensure::<C>()?;
-        let value = self
-            .current_json_value()
-            .ok_or(DomainConfigError::NotConfigured)?;
-        <C::Kind as ValueKind>::decode(value.clone())
+        self.ensure::<C>().ok()?;
+        let value = self.current_json_value()?;
+        <C::Kind as ValueKind>::decode(value.clone()).ok()
     }
 
     pub(super) fn update_value<C>(
@@ -545,11 +541,8 @@ mod tests {
             .into_events();
         let config = DomainConfig::try_from_events(events).unwrap();
 
-        let read_type_error = config.current_value::<SampleComplexConfig>();
-        assert!(matches!(
-            read_type_error,
-            Err(DomainConfigError::InvalidType(message)) if message.contains("config type")
-        ));
+        let read_type = config.current_value::<SampleComplexConfig>();
+        assert!(read_type.is_none());
     }
 
     #[test]
@@ -562,11 +555,8 @@ mod tests {
             .into_events();
         let config = DomainConfig::try_from_events(events).unwrap();
 
-        let read_visibility_error = config.current_value::<SampleExposedBool>();
-        assert!(matches!(
-            read_visibility_error,
-            Err(DomainConfigError::InvalidType(message)) if message.contains("visibility")
-        ));
+        let read_visibility = config.current_value::<SampleExposedBool>();
+        assert!(read_visibility.is_none());
     }
 
     #[test]

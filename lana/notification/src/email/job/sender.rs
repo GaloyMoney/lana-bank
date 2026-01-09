@@ -73,18 +73,22 @@ impl JobRunner for EmailSenderRunner {
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let from_email_config = self.domain_configs.get::<NotificationFromEmail>().await?;
-        if !from_email_config.is_configured() {
-            tracing::warn!("no configured notification from email; skipping email");
-            return Ok(JobCompletion::Complete);
-        }
-        let from_email = from_email_config.value()?;
+        let from_email = match from_email_config.value() {
+            Some(from_email) => from_email,
+            None => {
+                tracing::warn!("no configured notification from email; skipping email");
+                return Ok(JobCompletion::Complete);
+            }
+        };
 
         let from_name_config = self.domain_configs.get::<NotificationFromName>().await?;
-        if !from_name_config.is_configured() {
-            tracing::warn!("no configured notification from name; skipping email");
-            return Ok(JobCompletion::Complete);
-        }
-        let from_name = from_name_config.value()?;
+        let from_name = match from_name_config.value() {
+            Some(from_name) => from_name,
+            None => {
+                tracing::warn!("no configured notification from name; skipping email");
+                return Ok(JobCompletion::Complete);
+            }
+        };
 
         let (subject, body) = self.template.render_email(&self.config.email_type)?;
         self.smtp_client

@@ -22,16 +22,8 @@ impl<C: ConfigSpec> ConfigView<C> {
         self.entity.is_configured()
     }
 
-    pub fn value(&self) -> Result<<C::Kind as ValueKind>::Value, DomainConfigError> {
-        self.entity.current_value::<C>()
-    }
-
-    pub fn value_or_default(&self) -> Result<<C::Kind as ValueKind>::Value, DomainConfigError> {
-        if self.is_configured() {
-            self.value()
-        } else {
-            C::default_value().ok_or_else(|| DomainConfigError::NoDefault(C::KEY.to_string()))
-        }
+    pub fn value(&self) -> Option<<C::Kind as ValueKind>::Value> {
+        self.entity.current_value::<C>().or_else(C::default_value)
     }
 
     pub fn default_value(&self) -> Option<<C::Kind as ValueKind>::Value> {
