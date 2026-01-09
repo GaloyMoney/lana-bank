@@ -50,11 +50,11 @@ pub enum CoreCreditEvent {
         id: CreditFacilityId,
         completed_at: DateTime<Utc>,
     },
-    FacilityRepaymentRecorded {
+    FacilityPaymentAllocated {
         credit_facility_id: CreditFacilityId,
         obligation_id: ObligationId,
         obligation_type: ObligationType,
-        payment_id: PaymentAllocationId,
+        allocation_id: PaymentAllocationId,
         amount: UsdCents,
         recorded_at: DateTime<Utc>,
         effective: chrono::NaiveDate,

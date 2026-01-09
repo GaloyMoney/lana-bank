@@ -335,11 +335,11 @@ where
                     amount,
                     effective,
                     ..
-                } => CoreCreditEvent::FacilityRepaymentRecorded {
+                } => CoreCreditEvent::FacilityPaymentAllocated {
                     credit_facility_id: entity.credit_facility_id,
                     obligation_id: *obligation_id,
                     obligation_type: *obligation_type,
-                    payment_id: *id,
+                    allocation_id: *id,
                     amount: *amount,
                     recorded_at: event.recorded_at,
                     effective: *effective,
