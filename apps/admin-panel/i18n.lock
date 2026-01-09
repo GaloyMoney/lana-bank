@@ -110,20 +110,20 @@ checksums:
     Configurations/notificationEmail/saveSuccess: af7f32e1027ffb939cbe97a98f69fe6e
     Configurations/notificationEmail/saveError: 82584a6533562246393c38fb93c7b2da
     Configurations/notificationEmail/saveErrorWithReason: 5308e02e10c0e633d7436b602ca685ae
-    Configurations/exposedConfigs/title: 5edd48eb0ec1ff93f78c1b4c157eeb3d
-    Configurations/exposedConfigs/description: 6d27809d8e4e8dd4eaf2d1ce2cfffb15
-    Configurations/exposedConfigs/empty: 2acc247ffad9f7fdf024b951c23274b9
-    Configurations/exposedConfigs/valueLabel: 34b0eaa85808b15cbc4be94c64d0146b
-    Configurations/exposedConfigs/save: f7a2929f33bc420195e59ac5a8bcd454
-    Configurations/exposedConfigs/saveSuccess: d6fc2167f58b418d86d5091a88fcb631
-    Configurations/exposedConfigs/saveError: a73f95f838799d69b5d91867e4bc7c3d
-    Configurations/exposedConfigs/saveErrorWithReason: 841f7f0327d5bf82d4148fa3af2ff3d4
-    Configurations/exposedConfigs/loadError: 715058d754fd3760f7a3961442df591f
-    Configurations/exposedConfigs/invalidInt: c042e286aaeb6f16f5aaa7b3cd2db3b7
-    Configurations/exposedConfigs/invalidUint: 2d56c5a2c1c81303a1458c98ac6dc453
-    Configurations/exposedConfigs/invalidDecimal: 94b1923cb4c5452baa0459f9fc37e0cc
-    Configurations/exposedConfigs/invalidJson: a842443a1a3b3cd7a3d3d2ec70907f38
-    Configurations/exposedConfigs/invalidValue: 21206cbd8203dc76136faaf1e986309e
+    Configurations/domainConfigs/title: 274577a7a07e37cb368d1b426346d6c8
+    Configurations/domainConfigs/description: 01d02941d2040c0f4b0df2c09ca1670f
+    Configurations/domainConfigs/empty: 751db313156148db08af4d0486945404
+    Configurations/domainConfigs/valueLabel: 34b0eaa85808b15cbc4be94c64d0146b
+    Configurations/domainConfigs/save: f7a2929f33bc420195e59ac5a8bcd454
+    Configurations/domainConfigs/saveSuccess: d6fc2167f58b418d86d5091a88fcb631
+    Configurations/domainConfigs/saveError: a73f95f838799d69b5d91867e4bc7c3d
+    Configurations/domainConfigs/saveErrorWithReason: 841f7f0327d5bf82d4148fa3af2ff3d4
+    Configurations/domainConfigs/loadError: 2c0b7d21904ad317027f309fd47ac7b5
+    Configurations/domainConfigs/invalidInt: c042e286aaeb6f16f5aaa7b3cd2db3b7
+    Configurations/domainConfigs/invalidUint: 2d56c5a2c1c81303a1458c98ac6dc453
+    Configurations/domainConfigs/invalidDecimal: 94b1923cb4c5452baa0459f9fc37e0cc
+    Configurations/domainConfigs/invalidJson: a842443a1a3b3cd7a3d3d2ec70907f38
+    Configurations/domainConfigs/invalidValue: 21206cbd8203dc76136faaf1e986309e
     Configurations/notification-email-from-email/title: 52f3f83e83a55f5e81d17f1990c2cf5c
     Configurations/notification-email-from-email/description: 1a4d3315fff2155c42d63353d05fabe4
     Configurations/notification-email-from-name/title: 71cc11e03f84091d642c0ff7f31de611
