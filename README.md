@@ -145,7 +145,7 @@ We use Honeycomb for observability and tracing. To set up dashboards locally:
 ### Prerequisites
 
 Set your Honeycomb API key TF_VAR_honeycomb_api_key in your .env.
-Note: this needs to be a `Configuration API Key`, not an `Ingest API Key`
+Note: this needs to be a `Configuration API Keys`, not an `Ingest API Keys`
 
 ### Create Dashboards
 
