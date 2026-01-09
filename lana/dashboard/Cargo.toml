@@ -17,7 +17,7 @@ core-money = { workspace = true }
 authz = { workspace = true }
 audit = { workspace = true }
 obix = { workspace = true }
-job = { version = "0.5.1" }
+job = { version = "0.6.0" }
 
 es-entity = { workspace = true, features = ["graphql"] }
 schemars = { workspace = true, optional = true }
