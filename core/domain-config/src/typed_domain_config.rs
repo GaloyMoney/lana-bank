@@ -4,12 +4,12 @@ use crate::{ConfigSpec, ConfigType, DomainConfigError, DomainConfigKey, ValueKin
 
 use crate::entity::DomainConfig;
 
-pub struct ConfigView<C: ConfigSpec> {
+pub struct TypedDomainConfig<C: ConfigSpec> {
     entity: DomainConfig,
     _marker: PhantomData<C>,
 }
 
-impl<C: ConfigSpec> ConfigView<C> {
+impl<C: ConfigSpec> TypedDomainConfig<C> {
     pub(crate) fn new(entity: DomainConfig) -> Result<Self, DomainConfigError> {
         entity.ensure::<C>()?;
         Ok(Self {

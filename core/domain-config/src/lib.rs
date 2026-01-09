@@ -8,7 +8,7 @@ mod primitives;
 pub mod registry;
 mod repo;
 mod spec;
-mod view;
+mod typed_domain_config;
 
 use std::collections::{HashMap, HashSet};
 use tracing::instrument;
@@ -22,7 +22,7 @@ pub use inventory;
 pub use primitives::{ConfigType, DomainConfigId, DomainConfigKey, Visibility};
 pub use repo::domain_config_cursor::DomainConfigsByKeyCursor;
 pub use spec::{Complex, ConfigSpec, Simple, ValueKind};
-pub use view::ConfigView;
+pub use typed_domain_config::TypedDomainConfig;
 
 use entity::NewDomainConfig;
 
@@ -46,12 +46,12 @@ impl DomainConfigs {
 
     #[record_error_severity]
     #[instrument(name = "domain_config.get", skip(self))]
-    pub async fn get<C>(&self) -> Result<ConfigView<C>, DomainConfigError>
+    pub async fn get<C>(&self) -> Result<TypedDomainConfig<C>, DomainConfigError>
     where
         C: ConfigSpec,
     {
         let config = self.repo.find_by_key(C::KEY).await?;
-        ConfigView::new(config)
+        TypedDomainConfig::new(config)
     }
 
     #[record_error_severity]
