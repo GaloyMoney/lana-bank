@@ -175,15 +175,15 @@ impl DomainConfigs {
             }
 
             let key = DomainConfigKey::new(spec.key);
-            if self.repo.maybe_find_by_key(key.clone()).await?.is_some() {
-                continue;
-            }
-
             let config_id = DomainConfigId::new();
             let new = NewDomainConfig::builder()
                 .seed(config_id, key, spec.config_type, spec.visibility)
                 .build()?;
-            self.repo.create(new).await?;
+            match self.repo.create(new).await {
+                Ok(_) => {}
+                Err(DomainConfigError::DuplicateKey) => continue,
+                Err(err) => return Err(err),
+            }
         }
 
         Ok(())
