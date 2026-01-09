@@ -118,7 +118,7 @@ where
             Some(event @ FacilityActivated { id, .. })
             | Some(event @ FacilityCompleted { id, .. })
             | Some(
-                event @ FacilityRepaymentRecorded {
+                event @ FacilityPaymentAllocated {
                     credit_facility_id: id,
                     ..
                 },

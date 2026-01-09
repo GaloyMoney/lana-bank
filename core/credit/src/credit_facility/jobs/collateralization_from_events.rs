@@ -174,7 +174,7 @@ where
                 },
             )
             | Some(
-                event @ CoreCreditEvent::FacilityRepaymentRecorded {
+                event @ CoreCreditEvent::FacilityPaymentAllocated {
                     credit_facility_id: id,
                     ..
                 },

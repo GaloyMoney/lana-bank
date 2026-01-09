@@ -95,8 +95,8 @@ impl CreditFacilityHistory {
                         },
                     ));
             }
-            FacilityRepaymentRecorded {
-                payment_id,
+            FacilityPaymentAllocated {
+                allocation_id,
                 amount,
                 recorded_at,
                 effective,
@@ -107,7 +107,7 @@ impl CreditFacilityHistory {
                         recorded_at: *recorded_at,
                         effective: *effective,
                         cents: *amount,
-                        payment_id: *payment_id,
+                        payment_id: *allocation_id,
                     }));
             }
             DisbursalSettled {
