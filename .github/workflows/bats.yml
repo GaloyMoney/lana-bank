@@ -19,6 +19,8 @@ jobs:
           skipPush: true
       - name: Run BATS tests
         run: nix run .#bats
+        env:
+          DAGSTER: "false"
           
       - name: Rename bats log
         if: always()
