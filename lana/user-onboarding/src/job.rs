@@ -58,10 +58,7 @@ where
     E: OutboxEventMarker<CoreAccessEvent>,
 {
     type Config = UserOnboardingJobConfig<E>;
-    fn job_type(&self) -> JobType
-    where
-        Self: Sized,
-    {
+    fn job_type(&self) -> JobType {
         USER_ONBOARDING_JOB
     }
 
@@ -76,10 +73,7 @@ where
         }))
     }
 
-    fn retry_on_error_settings(&self) -> RetrySettings
-    where
-        Self: Sized,
-    {
+    fn retry_on_error_settings(&self) -> RetrySettings {
         RetrySettings::repeat_indefinitely()
     }
 }

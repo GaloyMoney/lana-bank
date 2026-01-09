@@ -57,10 +57,7 @@ where
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
     type Config = SyncEmailJobConfig<E>;
-    fn job_type(&self) -> JobType
-    where
-        Self: Sized,
-    {
+    fn job_type(&self) -> JobType {
         SYNC_EMAIL_JOB
     }
 

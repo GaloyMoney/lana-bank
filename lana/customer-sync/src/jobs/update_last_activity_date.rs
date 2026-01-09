@@ -215,10 +215,7 @@ where
         + OutboxEventMarker<CoreCustomerEvent>,
 {
     type Config = UpdateLastActivityDateConfig<Perms, E>;
-    fn job_type(&self) -> JobType
-    where
-        Self: Sized,
-    {
+    fn job_type(&self) -> JobType {
         UPDATE_LAST_ACTIVITY_DATE
     }
 
@@ -234,10 +231,7 @@ where
         )))
     }
 
-    fn retry_on_error_settings(&self) -> RetrySettings
-    where
-        Self: Sized,
-    {
+    fn retry_on_error_settings(&self) -> RetrySettings {
         RetrySettings::repeat_indefinitely()
     }
 }

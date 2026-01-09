@@ -108,10 +108,7 @@ where
         + std::fmt::Debug,
 {
     type Config = SumsubExportJobConfig<Perms, E>;
-    fn job_type(&self) -> JobType
-    where
-        Self: Sized,
-    {
+    fn job_type(&self) -> JobType {
         SUMSUB_EXPORT_JOB
     }
 
@@ -128,10 +125,7 @@ where
         }))
     }
 
-    fn retry_on_error_settings(&self) -> RetrySettings
-    where
-        Self: Sized,
-    {
+    fn retry_on_error_settings(&self) -> RetrySettings {
         RetrySettings::repeat_indefinitely()
     }
 }

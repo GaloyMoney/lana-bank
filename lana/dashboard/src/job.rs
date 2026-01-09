@@ -29,10 +29,7 @@ impl DashboardProjectionInit {
 const DASHBOARD_PROJECTION_JOB: JobType = JobType::new("outbox.dashboard-projection");
 impl JobInitializer for DashboardProjectionInit {
     type Config = DashboardProjectionJobConfig;
-    fn job_type(&self) -> JobType
-    where
-        Self: Sized,
-    {
+    fn job_type(&self) -> JobType {
         DASHBOARD_PROJECTION_JOB
     }
 
@@ -47,10 +44,7 @@ impl JobInitializer for DashboardProjectionInit {
         }))
     }
 
-    fn retry_on_error_settings(&self) -> RetrySettings
-    where
-        Self: Sized,
-    {
+    fn retry_on_error_settings(&self) -> RetrySettings {
         RetrySettings::repeat_indefinitely()
     }
 }

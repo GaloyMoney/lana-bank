@@ -75,10 +75,7 @@ where
         + OutboxEventMarker<GovernanceEvent>,
 {
     type Config = CustomerActiveSyncJobConfig<Perms, E>;
-    fn job_type(&self) -> JobType
-    where
-        Self: Sized,
-    {
+    fn job_type(&self) -> JobType {
         CUSTOMER_ACTIVE_SYNC
     }
 
@@ -94,10 +91,7 @@ where
         }))
     }
 
-    fn retry_on_error_settings(&self) -> RetrySettings
-    where
-        Self: Sized,
-    {
+    fn retry_on_error_settings(&self) -> RetrySettings {
         RetrySettings::repeat_indefinitely()
     }
 }

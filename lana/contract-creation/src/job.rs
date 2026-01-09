@@ -86,10 +86,7 @@ where
     E: OutboxEventMarker<CoreCustomerEvent> + Send + Sync,
 {
     type Config = GenerateLoanAgreementConfig<Perms, E>;
-    fn job_type(&self) -> JobType
-    where
-        Self: Sized,
-    {
+    fn job_type(&self) -> JobType {
         GENERATE_LOAN_AGREEMENT_JOB
     }
 

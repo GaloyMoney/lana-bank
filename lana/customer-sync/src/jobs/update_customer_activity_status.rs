@@ -82,10 +82,7 @@ where
         + OutboxEventMarker<GovernanceEvent>,
 {
     type Config = UpdateCustomerActivityStatusJobConfig<Perms, E>;
-    fn job_type(&self) -> JobType
-    where
-        Self: Sized,
-    {
+    fn job_type(&self) -> JobType {
         UPDATE_CUSTOMER_ACTIVITY_STATUS
     }
 
@@ -100,10 +97,7 @@ where
         }))
     }
 
-    fn retry_on_error_settings(&self) -> RetrySettings
-    where
-        Self: Sized,
-    {
+    fn retry_on_error_settings(&self) -> RetrySettings {
         RetrySettings::repeat_indefinitely()
     }
 }
