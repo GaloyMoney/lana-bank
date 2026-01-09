@@ -1,0 +1,11 @@
+version: 2
+
+models:
+  - name: report_other_calculo_de_riesgo_neto
+    columns:
+      - name: "Línea de crédito"
+        tests:
+          - not_null_quoted
+      - name: "Número de desembolso"
+        tests:
+          - not_null_quoted
