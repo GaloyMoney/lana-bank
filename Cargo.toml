@@ -72,17 +72,17 @@ obix = { version = "0.2.3", features = ["tracing"] }
 
 aes = "0.8"
 anyhow = "1.0.100"
-async-graphql = { version = "7.0.17", default-features = false, features = [
+async-graphql = { version = "7.1.0", default-features = false, features = [
   "dataloader",
   "chrono",
   "playground",
   "tempfile",
   "tracing",
 ] }
-async-graphql-axum = "7.0.17"
+async-graphql-axum = "7.1.0"
 async-trait = "0.1.89"
-axum = { version = "0.8.7", features = ["macros"] }
-axum-extra = { version = "0.12.2", default-features = false, features = [
+axum = { version = "0.8.8", features = ["macros"] }
+axum-extra = { version = "0.12.5", default-features = false, features = [
   "tracing",
   "typed-header",
 ] }
@@ -107,9 +107,9 @@ sqlx = { version = "0.8", features = [
 thiserror = "2.0.17"
 uuid = { version = "1.19", features = ["serde", "v4"] }
 log = "0.4"
-tracing = "0.1.41"
+tracing = "0.1.44"
 tracing-opentelemetry = "0.32.0"
-tracing-subscriber = { version = "0.3.20", features = ["env-filter", "json"] }
+tracing-subscriber = { version = "0.3.22", features = ["env-filter", "json"] }
 opentelemetry = { version = "0.31.0" }
 opentelemetry_sdk = { version = "0.31.0", features = ["rt-tokio"] }
 opentelemetry-otlp = { version = "0.31.0", default-features = false, features = [
@@ -133,7 +133,7 @@ console-subscriber = "0.5"
 strum = { version = "0.27", features = ["derive"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_yaml = "0.9.32"
-serde_json = "1.0.145"
+serde_json = "1.0.148"
 serde_with = "3.16.1"
 futures = "0.3.29"
 http = "1.4"
@@ -162,10 +162,10 @@ google-cloud-storage = { version = "0.24.0", default-features = false, features 
 rand = "0.9"
 serial_test = { version = "3.2.0", features = ["file_locks"] }
 chacha20poly1305 = "0.10.1"
-handlebars = "6.3.2"
+handlebars = "6.4.0"
 inventory = "0.3.15"
-schemars = { version = "1.1.0", features = ["derive", "chrono04", "rust_decimal1"] }
-tempfile = "3.23.0"
+schemars = { version = "1.2.0", features = ["derive", "chrono04", "rust_decimal1"] }
+tempfile = "3.24.0"
 p256 = "0.13.2"
 pbkdf2 = "0.12"
 pkcs8 = { version = "0.10.2", features = ["encryption"] }

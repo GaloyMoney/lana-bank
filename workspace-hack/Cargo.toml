@@ -48,7 +48,8 @@ futures-task = { version = "0.3" }
 futures-util = { version = "0.3", features = ["channel", "io", "sink"] }
 generic-array = { version = "0.14", default-features = false, features = ["more_lengths", "zeroize"] }
 group = { version = "0.13", default-features = false, features = ["alloc"] }
-hashbrown = { version = "0.14" }
+hashbrown-582f2526e08bb6a0 = { package = "hashbrown", version = "0.14" }
+hashbrown-986da7b5efc2b80e = { package = "hashbrown", version = "0.16" }
 hyper = { version = "1", features = ["client", "http1", "http2", "server"] }
 hyper-util = { version = "0.1", features = ["client-legacy", "server-auto", "service"] }
 idna = { version = "1" }
@@ -130,7 +131,8 @@ futures-task = { version = "0.3" }
 futures-util = { version = "0.3", features = ["channel", "io", "sink"] }
 generic-array = { version = "0.14", default-features = false, features = ["more_lengths", "zeroize"] }
 group = { version = "0.13", default-features = false, features = ["alloc"] }
-hashbrown = { version = "0.14" }
+hashbrown-582f2526e08bb6a0 = { package = "hashbrown", version = "0.14" }
+hashbrown-986da7b5efc2b80e = { package = "hashbrown", version = "0.16" }
 hyper = { version = "1", features = ["client", "http1", "http2", "server"] }
 hyper-util = { version = "0.1", features = ["client-legacy", "server-auto", "service"] }
 idna = { version = "1" }
@@ -227,6 +229,7 @@ ignored = [
     "hashbrown",
     "hashbrown-3575ec1268b04181",
     "hashbrown-582f2526e08bb6a0",
+    "hashbrown-986da7b5efc2b80e",
     "hmac",
     "hyper",
     "hyper-util",
