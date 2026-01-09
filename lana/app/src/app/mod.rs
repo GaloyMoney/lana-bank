@@ -48,6 +48,7 @@ pub struct LanaApp {
     _pool: PgPool,
     domain_configs: DomainConfigs,
     jobs: Jobs,
+    job_new: job_new::Jobs,
     audit: Audit,
     authz: Authorization,
     accounting: Accounting,
@@ -97,6 +98,13 @@ impl LanaApp {
             job::JobSvcConfig::builder()
                 .pool(pool.clone())
                 .poller_config(config.job_poller)
+                .build()
+                .expect("Couldn't build JobSvcConfig"),
+        )
+        .await?;
+        let mut job_new = job_new::Jobs::init(
+            job_new::JobSvcConfig::builder()
+                .pool(pool.clone())
                 .build()
                 .expect("Couldn't build JobSvcConfig"),
         )
@@ -202,11 +210,13 @@ impl LanaApp {
             .await?;
 
         jobs.start_poll().await?;
+        job_new.start_poll().await?;
 
         Ok(Self {
             _pool: pool,
             domain_configs,
             jobs,
+            job_new,
             audit,
             authz,
             accounting,
