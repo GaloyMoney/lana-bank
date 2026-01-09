@@ -51,7 +51,7 @@ where
 {
     outbox: Outbox<E>,
     liquidation_repo: Arc<LiquidationRepo<E>>,
-    payment_repo: Arc<PaymentRepo>,
+    payment_repo: Arc<PaymentRepo<E>>,
     obligation_repo: Arc<ObligationRepo<E>>,
     payment_allocation_repo: Arc<PaymentAllocationRepo<E>>,
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
@@ -67,7 +67,7 @@ where
     pub fn new(
         outbox: &Outbox<E>,
         liquidation_repo: Arc<LiquidationRepo<E>>,
-        payment_repo: Arc<PaymentRepo>,
+        payment_repo: Arc<PaymentRepo<E>>,
         obligation_repo: Arc<ObligationRepo<E>>,
         payment_allocation_repo: Arc<PaymentAllocationRepo<E>>,
         credit_facility_repo: Arc<CreditFacilityRepo<E>>,
@@ -127,7 +127,7 @@ where
     config: PartialLiquidationJobConfig<E>,
     outbox: Outbox<E>,
     liquidation_repo: Arc<LiquidationRepo<E>>,
-    payment_repo: Arc<PaymentRepo>,
+    payment_repo: Arc<PaymentRepo<E>>,
     obligation_repo: Arc<ObligationRepo<E>>,
     payment_allocation_repo: Arc<PaymentAllocationRepo<E>>,
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
