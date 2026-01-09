@@ -67,3 +67,4 @@ authz = { workspace = true, features = ["test-dummy"] }
 anyhow = { workspace = true }
 rand = { workspace = true }
 serde_yaml = { workspace = true }
+core-deposit = { workspace = true }
