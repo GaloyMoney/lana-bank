@@ -173,16 +173,16 @@
       "saveError": "No se pudo actualizar la configuración de correo de notificación",
       "saveErrorWithReason": "No se pudo actualizar la configuración de correo de notificación: {error}"
     },
-    "exposedConfigs": {
-      "title": "Configuraciones expuestas",
-      "description": "Administra valores de configuración de dominio que se pueden editar en el panel de administración.",
-      "empty": "No hay configuraciones expuestas.",
+    "domainConfigs": {
+      "title": "Configuraciones de dominio",
+      "description": "Administra valores de configuración de dominio en el panel de administración.",
+      "empty": "No hay configuraciones de dominio.",
       "valueLabel": "Valor",
       "save": "Guardar",
       "saveSuccess": "Configuración actualizada",
       "saveError": "No se pudo actualizar la configuración",
       "saveErrorWithReason": "No se pudo actualizar la configuración: {error}",
-      "loadError": "No se pudieron cargar las configuraciones expuestas",
+      "loadError": "No se pudieron cargar las configuraciones de dominio",
       "invalidInt": "Ingresa un número entero válido",
       "invalidUint": "Ingresa un número entero no negativo válido",
       "invalidDecimal": "Ingresa un valor decimal",
