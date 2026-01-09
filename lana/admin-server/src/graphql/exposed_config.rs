@@ -32,30 +32,39 @@ impl From<DomainConfigType> for ConfigType {
     }
 }
 
-#[derive(SimpleObject, Clone)]
+#[derive(Clone)]
 pub struct ExposedConfig {
-    id: ID,
-    exposed_config_id: UUID,
-    pub key: String,
-    pub config_type: ConfigType,
-    pub value: Json,
-
-    #[graphql(skip)]
     pub(crate) entity: Arc<DomainConfig>,
 }
 
 impl From<DomainConfig> for ExposedConfig {
     fn from(config: DomainConfig) -> Self {
-        let key = config.key.clone();
-        let value = config.current_json_value().clone();
         Self {
-            id: config.id.to_global_id(),
-            exposed_config_id: UUID::from(config.id),
-            key: key.to_string(),
-            config_type: config.config_type.into(),
-            value: value.into(),
             entity: Arc::new(config),
         }
+    }
+}
+
+#[Object]
+impl ExposedConfig {
+    async fn id(&self) -> ID {
+        self.entity.id.to_global_id()
+    }
+
+    async fn exposed_config_id(&self) -> UUID {
+        UUID::from(self.entity.id)
+    }
+
+    async fn key(&self) -> &str {
+        self.entity.key.as_str()
+    }
+
+    async fn config_type(&self) -> ConfigType {
+        self.entity.config_type.into()
+    }
+
+    async fn value(&self) -> Json {
+        Json::from(self.entity.current_json_value().clone())
     }
 }
 
