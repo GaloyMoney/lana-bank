@@ -60,7 +60,7 @@ where
     #[tracing::instrument(name = "notification.init", skip_all)]
     pub async fn init(
         config: NotificationConfig,
-        jobs: &Jobs,
+        jobs: &mut Jobs,
         outbox: &obix::Outbox<LanaEvent>,
         users: &Users<AuthzType::Audit, LanaEvent>,
         credit: &CoreCredit<AuthzType, LanaEvent>,
@@ -77,11 +77,12 @@ where
         )
         .await?;
 
-        jobs.add_initializer_and_spawn_unique(
-            EmailEventListenerInit::new(outbox, &email),
-            EmailEventListenerConfig::default(),
-        )
-        .await?;
+        let email_event_listener_job_spawner =
+            jobs.add_initializer(EmailEventListenerInit::new(outbox, &email));
+
+        email_event_listener_job_spawner
+            .spawn_unique(job::JobId::new(), EmailEventListenerConfig::default())
+            .await?;
 
         Ok(Self {
             _authz: std::marker::PhantomData,

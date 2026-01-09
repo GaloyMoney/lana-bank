@@ -206,7 +206,7 @@ impl LanaApp {
 
         Notification::init(
             config.notification,
-            &jobs,
+            &mut job_new,
             &outbox,
             access.users(),
             &credit,

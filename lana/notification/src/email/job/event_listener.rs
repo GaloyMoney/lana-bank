@@ -4,74 +4,48 @@ use serde::{Deserialize, Serialize};
 use tokio::select;
 use tracing::{Span, instrument};
 
-use job::{
-    CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType, RetrySettings,
-};
+use job::*;
 use lana_events::{CoreAccessEvent, CoreCreditEvent, CoreDepositEvent, LanaEvent};
 use obix::out::{Outbox, PersistentOutboxEvent};
 
 use crate::email::EmailNotification;
 
 #[derive(Serialize, Deserialize)]
-pub struct EmailEventListenerConfig<AuthzType>(std::marker::PhantomData<AuthzType>);
+pub struct EmailEventListenerConfig<Perms>(std::marker::PhantomData<Perms>);
 
-impl<AuthzType> Default for EmailEventListenerConfig<AuthzType> {
+impl<Perms> Default for EmailEventListenerConfig<Perms> {
     fn default() -> Self {
         Self(std::marker::PhantomData)
     }
 }
 
-impl<AuthzType> JobConfig for EmailEventListenerConfig<AuthzType>
+pub struct EmailEventListenerInit<Perms>
 where
-    AuthzType: authz::PermissionCheck + Clone + Send + Sync + 'static,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
-        + From<core_customer::CoreCustomerAction>
-        + From<core_access::CoreAccessAction>
-        + From<core_deposit::CoreDepositAction>
-        + From<governance::GovernanceAction>
-        + From<core_custody::CoreCustodyAction>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
-        + From<core_customer::CustomerObject>
-        + From<core_access::CoreAccessObject>
-        + From<core_deposit::CoreDepositObject>
-        + From<governance::GovernanceObject>
-        + From<core_custody::CoreCustodyObject>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
-        From<core_access::UserId>,
-{
-    type Initializer = EmailEventListenerInit<AuthzType>;
-}
-
-pub struct EmailEventListenerInit<AuthzType>
-where
-    AuthzType: authz::PermissionCheck,
+    Perms: authz::PermissionCheck,
 {
     outbox: Outbox<LanaEvent>,
-    email_notification: EmailNotification<AuthzType>,
+    email_notification: EmailNotification<Perms>,
 }
 
-impl<AuthzType> EmailEventListenerInit<AuthzType>
+impl<Perms> EmailEventListenerInit<Perms>
 where
-    AuthzType: authz::PermissionCheck + Clone + Send + Sync + 'static,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
+    Perms: authz::PermissionCheck + Clone + Send + Sync + 'static,
+    <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
         + From<core_customer::CoreCustomerAction>
         + From<core_access::CoreAccessAction>
         + From<core_deposit::CoreDepositAction>
         + From<governance::GovernanceAction>
         + From<core_custody::CoreCustodyAction>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
+    <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
         + From<core_customer::CustomerObject>
         + From<core_access::CoreAccessObject>
         + From<core_deposit::CoreDepositObject>
         + From<governance::GovernanceObject>
         + From<core_custody::CoreCustodyObject>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
+    <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
         From<core_access::UserId>,
 {
-    pub fn new(
-        outbox: &Outbox<LanaEvent>,
-        email_notification: &EmailNotification<AuthzType>,
-    ) -> Self {
+    pub fn new(outbox: &Outbox<LanaEvent>, email_notification: &EmailNotification<Perms>) -> Self {
         Self {
             outbox: outbox.clone(),
             email_notification: email_notification.clone(),
@@ -80,36 +54,41 @@ where
 }
 
 const EMAIL_LISTENER_JOB: JobType = JobType::new("outbox.email-listener");
-impl<AuthzType> JobInitializer for EmailEventListenerInit<AuthzType>
+impl<Perms> JobInitializer for EmailEventListenerInit<Perms>
 where
-    AuthzType: authz::PermissionCheck + Clone + Send + Sync + 'static,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
+    Perms: authz::PermissionCheck + Clone + Send + Sync + 'static,
+    <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
         + From<core_customer::CoreCustomerAction>
         + From<core_access::CoreAccessAction>
         + From<core_deposit::CoreDepositAction>
         + From<governance::GovernanceAction>
         + From<core_custody::CoreCustodyAction>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
+    <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
         + From<core_customer::CustomerObject>
         + From<core_access::CoreAccessObject>
         + From<core_deposit::CoreDepositObject>
         + From<governance::GovernanceObject>
         + From<core_custody::CoreCustodyObject>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
+    <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
         From<core_access::UserId>,
 {
-    fn job_type() -> JobType {
+    type Config = EmailEventListenerConfig<Perms>;
+    fn job_type(&self) -> JobType {
         EMAIL_LISTENER_JOB
     }
 
-    fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
+    fn init(
+        &self,
+        _: &Job,
+        _: JobSpawner<Self::Config>,
+    ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(EmailEventListenerRunner {
             outbox: self.outbox.clone(),
             email_notification: self.email_notification.clone(),
         }))
     }
 
-    fn retry_on_error_settings() -> RetrySettings {
+    fn retry_on_error_settings(&self) -> RetrySettings {
         RetrySettings::repeat_indefinitely()
     }
 }
@@ -119,30 +98,30 @@ struct EmailEventListenerJobData {
     sequence: obix::EventSequence,
 }
 
-pub struct EmailEventListenerRunner<AuthzType>
+pub struct EmailEventListenerRunner<Perms>
 where
-    AuthzType: authz::PermissionCheck,
+    Perms: authz::PermissionCheck,
 {
     outbox: Outbox<LanaEvent>,
-    email_notification: EmailNotification<AuthzType>,
+    email_notification: EmailNotification<Perms>,
 }
 
-impl<AuthzType> EmailEventListenerRunner<AuthzType>
+impl<Perms> EmailEventListenerRunner<Perms>
 where
-    AuthzType: authz::PermissionCheck + Clone + Send + Sync + 'static,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
+    Perms: authz::PermissionCheck + Clone + Send + Sync + 'static,
+    <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
         + From<core_customer::CoreCustomerAction>
         + From<core_access::CoreAccessAction>
         + From<core_deposit::CoreDepositAction>
         + From<governance::GovernanceAction>
         + From<core_custody::CoreCustodyAction>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
+    <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
         + From<core_customer::CustomerObject>
         + From<core_access::CoreAccessObject>
         + From<core_deposit::CoreDepositObject>
         + From<governance::GovernanceObject>
         + From<core_custody::CoreCustodyObject>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
+    <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
         From<core_access::UserId>,
 {
     #[instrument(name = "notification.email_listener_job.process_message", parent = None, skip(self, message, op), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
@@ -251,22 +230,22 @@ where
 }
 
 #[async_trait]
-impl<AuthzType> JobRunner for EmailEventListenerRunner<AuthzType>
+impl<Perms> JobRunner for EmailEventListenerRunner<Perms>
 where
-    AuthzType: authz::PermissionCheck + Clone + Send + Sync + 'static,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
+    Perms: authz::PermissionCheck + Clone + Send + Sync + 'static,
+    <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
         + From<core_customer::CoreCustomerAction>
         + From<core_access::CoreAccessAction>
         + From<core_deposit::CoreDepositAction>
         + From<governance::GovernanceAction>
         + From<core_custody::CoreCustodyAction>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
+    <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
         + From<core_customer::CustomerObject>
         + From<core_access::CoreAccessObject>
         + From<core_deposit::CoreDepositObject>
         + From<governance::GovernanceObject>
         + From<core_custody::CoreCustodyObject>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
+    <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
         From<core_access::UserId>,
 {
     async fn run(

@@ -10,7 +10,7 @@ use core_credit::{
 };
 use core_customer::Customers;
 use domain_config::DomainConfigs;
-use job::{EmailSenderConfig, EmailSenderInit};
+use job::{EmailSenderConfig, EmailSenderInit, EmailSenderJobSpawner};
 use lana_events::LanaEvent;
 use smtp_client::SmtpClient;
 
@@ -25,56 +25,57 @@ pub use config::{
 pub use error::EmailError;
 
 #[derive(Clone)]
-pub struct EmailNotification<AuthzType>
+pub struct EmailNotification<Perms>
 where
-    AuthzType: authz::PermissionCheck,
+    Perms: authz::PermissionCheck,
 {
-    jobs: Jobs,
-    users: Users<AuthzType::Audit, LanaEvent>,
-    credit: CoreCredit<AuthzType, LanaEvent>,
-    customers: Customers<AuthzType, LanaEvent>,
-    _authz: std::marker::PhantomData<AuthzType>,
+    users: Users<Perms::Audit, LanaEvent>,
+    credit: CoreCredit<Perms, LanaEvent>,
+    customers: Customers<Perms, LanaEvent>,
+    email_sender_job_spawner: EmailSenderJobSpawner,
+    _authz: std::marker::PhantomData<Perms>,
 }
 
-impl<AuthzType> EmailNotification<AuthzType>
+impl<Perms> EmailNotification<Perms>
 where
-    AuthzType: authz::PermissionCheck + Clone + Send + Sync + 'static,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
+    Perms: authz::PermissionCheck + Clone + Send + Sync + 'static,
+    <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
         + From<core_customer::CoreCustomerAction>
         + From<core_access::CoreAccessAction>
         + From<core_deposit::CoreDepositAction>
         + From<governance::GovernanceAction>
         + From<core_custody::CoreCustodyAction>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
+    <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
         + From<core_customer::CustomerObject>
         + From<core_access::CoreAccessObject>
         + From<core_deposit::CoreDepositObject>
         + From<governance::GovernanceObject>
         + From<core_custody::CoreCustodyObject>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
+    <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
         From<core_access::UserId>,
 {
     pub async fn init(
-        jobs: &Jobs,
+        jobs: &mut Jobs,
         domain_configs: &DomainConfigs,
         infra_config: EmailInfraConfig,
-        users: &Users<AuthzType::Audit, LanaEvent>,
-        credit: &CoreCredit<AuthzType, LanaEvent>,
-        customers: &Customers<AuthzType, LanaEvent>,
+        users: &Users<Perms::Audit, LanaEvent>,
+        credit: &CoreCredit<Perms, LanaEvent>,
+        customers: &Customers<Perms, LanaEvent>,
     ) -> Result<Self, EmailError> {
         let template = EmailTemplate::new(infra_config.admin_panel_url.clone())?;
         let smtp_client = SmtpClient::init(infra_config.to_smtp_config())?;
 
-        jobs.add_initializer(EmailSenderInit::new(
+        let email_sender_job_spawner = jobs.add_initializer(EmailSenderInit::new(
             smtp_client,
             template,
             domain_configs.clone(),
         ));
+
         Ok(Self {
-            jobs: jobs.clone(),
             users: users.clone(),
             credit: credit.clone(),
             customers: customers.clone(),
+            email_sender_job_spawner,
             _authz: std::marker::PhantomData,
         })
     }
@@ -138,8 +139,8 @@ where
                     recipient: user.email,
                     email_type: EmailType::OverduePayment(email_data.clone()),
                 };
-                self.jobs
-                    .create_and_spawn_in_op(op, JobId::new(), email_config)
+                self.email_sender_job_spawner
+                    .spawn_in_op(op, JobId::new(), email_config)
                     .await?;
             }
         }
@@ -188,8 +189,8 @@ where
                     recipient: user.email,
                     email_type: EmailType::PartialLiquidationInitiated(email_data.clone()),
                 };
-                self.jobs
-                    .create_and_spawn_in_op(op, JobId::new(), email_config)
+                self.email_sender_job_spawner
+                    .spawn_in_op(op, JobId::new(), email_config)
                     .await?;
             }
         }
@@ -199,8 +200,8 @@ where
             email_type: EmailType::PartialLiquidationInitiated(email_data),
         };
 
-        self.jobs
-            .create_and_spawn_in_op(op, JobId::new(), email_config)
+        self.email_sender_job_spawner
+            .spawn_in_op(op, JobId::new(), email_config)
             .await?;
         Ok(())
     }
@@ -237,8 +238,8 @@ where
             email_type: EmailType::UnderMarginCall(email_data),
         };
 
-        self.jobs
-            .create_and_spawn_in_op(op, JobId::new(), email_config)
+        self.email_sender_job_spawner
+            .spawn_in_op(op, JobId::new(), email_config)
             .await?;
         Ok(())
     }
@@ -262,8 +263,8 @@ where
             email_type: EmailType::DepositAccountCreated(email_data),
         };
 
-        self.jobs
-            .create_and_spawn_in_op(op, JobId::new(), email_config)
+        self.email_sender_job_spawner
+            .spawn_in_op(op, JobId::new(), email_config)
             .await?;
 
         Ok(())
@@ -302,8 +303,8 @@ where
                     recipient: user.email,
                     email_type: EmailType::RoleCreated(email_data.clone()),
                 };
-                self.jobs
-                    .create_and_spawn_in_op(op, JobId::new(), email_config)
+                self.email_sender_job_spawner
+                    .spawn_in_op(op, JobId::new(), email_config)
                     .await?;
             }
         }

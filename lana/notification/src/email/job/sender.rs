@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use domain_config::{DomainConfigError, DomainConfigs};
-use job::{CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType};
+use job::*;
 use serde::{Deserialize, Serialize};
 use smtp_client::SmtpClient;
 use tracing::instrument;
@@ -9,14 +9,10 @@ use tracing_macros::record_error_severity;
 use crate::email::config::{NotificationFromEmailConfigSpec, NotificationFromNameConfigSpec};
 use crate::email::templates::{EmailTemplate, EmailType};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct EmailSenderConfig {
     pub recipient: String,
     pub email_type: EmailType,
-}
-
-impl JobConfig for EmailSenderConfig {
-    type Initializer = EmailSenderInit;
 }
 
 pub struct EmailSenderInit {
@@ -42,11 +38,16 @@ impl EmailSenderInit {
 const EMAIL_SENDER_JOB: JobType = JobType::new("task.email-sender");
 
 impl JobInitializer for EmailSenderInit {
-    fn job_type() -> JobType {
+    type Config = EmailSenderConfig;
+    fn job_type(&self) -> JobType {
         EMAIL_SENDER_JOB
     }
 
-    fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
+    fn init(
+        &self,
+        job: &Job,
+        _: JobSpawner<Self::Config>,
+    ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(EmailSenderRunner {
             config: job.config()?,
             smtp_client: self.smtp_client.clone(),
@@ -110,3 +111,5 @@ impl JobRunner for EmailSenderRunner {
         Ok(JobCompletion::Complete)
     }
 }
+
+pub type EmailSenderJobSpawner = JobSpawner<EmailSenderConfig>;
