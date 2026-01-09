@@ -1,0 +1,26 @@
+version: 2
+
+seeds:
+  - name: seed_bank_address
+    description: "Seed data containing bank address information with geographic identifiers"
+    config:
+      column_types:
+        full_address: string
+        town_id: string
+        region_id: string
+    columns:
+      - name: full_address
+        description: "Complete physical address of the bank location"
+        data_type: string
+        tests:
+          - not_null
+      - name: town_id
+        description: "Unique identifier for the town/city where the bank is located"
+        data_type: string
+        tests:
+          - not_null
+      - name: region_id
+        description: "Unique identifier for the region/state where the bank is located"
+        data_type: string
+        tests:
+          - not_null
