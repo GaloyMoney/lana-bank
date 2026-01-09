@@ -263,6 +263,10 @@ impl AccountCode {
         self.len_sections() - 1
     }
 
+    pub fn is_financial_statement_category_code(&self) -> bool {
+        matches!(self.sections.as_slice(), [section] if section.code.chars().count() == 1)
+    }
+
     pub fn section(&self, idx: usize) -> Option<&AccountCodeSection> {
         self.sections.get(idx)
     }
@@ -423,6 +427,23 @@ impl AccountSpec {
     }
 }
 
+#[derive(Error, Debug)]
+pub enum AccountingBaseConfigError {
+    #[error("AccountingBaseConfigError - DuplicateAccountCode: {0}")]
+    DuplicateAccountCode(String),
+    #[error("AccountingBaseConfigError - AccountCodeNotTopLevel: {0}")]
+    AccountCodeNotTopLevel(String),
+}
+
+impl ErrorSeverity for AccountingBaseConfigError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::DuplicateAccountCode(_) => Level::ERROR,
+            Self::AccountCodeNotTopLevel(_) => Level::WARN,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub struct AccountingBaseConfig {
@@ -432,6 +453,36 @@ pub struct AccountingBaseConfig {
     pub revenue_code: AccountCode,
     pub cost_of_revenue_code: AccountCode,
     pub expenses_code: AccountCode,
+}
+
+impl AccountingBaseConfig {
+    pub fn validate(&self) -> Result<(), AccountingBaseConfigError> {
+        let codes = [
+            &self.assets_code,
+            &self.liabilities_code,
+            &self.equity_code,
+            &self.revenue_code,
+            &self.cost_of_revenue_code,
+            &self.expenses_code,
+        ];
+        if let Some(code) = codes
+            .iter()
+            .copied()
+            .find(|c| !c.is_financial_statement_category_code())
+        {
+            return Err(AccountingBaseConfigError::AccountCodeNotTopLevel(
+                code.to_string(),
+            ));
+        }
+
+        let mut seen = std::collections::HashSet::with_capacity(codes.len());
+        if let Some(code) = codes.iter().copied().find(|c| !seen.insert(*c)) {
+            return Err(AccountingBaseConfigError::DuplicateAccountCode(
+                code.to_string(),
+            ));
+        }
+        Ok(())
+    }
 }
 
 #[derive(Debug, Clone)]

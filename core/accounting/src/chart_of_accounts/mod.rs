@@ -17,9 +17,9 @@ use tracing_macros::record_error_severity;
 use cala_ledger::{CalaLedger, account::Account};
 
 use crate::primitives::{
-    AccountCode, AccountIdOrCode, AccountName, AccountSpec, AccountingBaseConfig,
-    CalaAccountSetId, CalaJournalId, ChartId, ClosingAccountCodes, ClosingTxDetails,
-    CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
+    AccountCode, AccountIdOrCode, AccountName, AccountSpec, AccountingBaseConfig, CalaAccountSetId,
+    CalaJournalId, ChartId, ClosingAccountCodes, ClosingTxDetails, CoreAccountingAction,
+    CoreAccountingObject, LedgerAccountId,
 };
 
 #[cfg(feature = "json-schema")]
@@ -208,7 +208,6 @@ where
             new_connections,
         } = BulkAccountImport::new(&mut chart, self.journal_id).import(account_specs);
 
-        // Set the base config after importing accounts (validates codes exist)
         let _ = chart.set_base_config(base_config)?;
 
         let mut op = self.repo.begin_op().await?;
