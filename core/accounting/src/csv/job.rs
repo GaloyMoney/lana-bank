@@ -54,10 +54,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
 {
     type Config = GenerateAccountingCsvConfig<Perms>;
-    fn job_type(&self) -> JobType
-    where
-        Self: Sized,
-    {
+    fn job_type(&self) -> JobType {
         GENERATE_ACCOUNTING_CSV_JOB
     }
 

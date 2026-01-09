@@ -68,10 +68,7 @@ where
         From<CoreDepositObject> + From<GovernanceObject>,
 {
     type Config = WithdrawApprovalJobConfig<Perms, E>;
-    fn job_type(&self) -> JobType
-    where
-        Self: Sized,
-    {
+    fn job_type(&self) -> JobType {
         WITHDRAW_APPROVE_JOB
     }
 
@@ -86,10 +83,7 @@ where
         }))
     }
 
-    fn retry_on_error_settings(&self) -> RetrySettings
-    where
-        Self: Sized,
-    {
+    fn retry_on_error_settings(&self) -> RetrySettings {
         RetrySettings::repeat_indefinitely()
     }
 }
