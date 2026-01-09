@@ -119,7 +119,8 @@ impl LanaApp {
         let documents = DocumentStorage::new(&pool, &storage);
         let public_ids = PublicIds::new(&pool);
 
-        let user_onboarding = UserOnboarding::init(&jobs, &outbox, config.user_onboarding).await?;
+        let user_onboarding =
+            UserOnboarding::init(&mut job_new, &outbox, config.user_onboarding).await?;
 
         let cala_config = cala_ledger::CalaLedgerConfig::builder()
             .pool(pool.clone())
