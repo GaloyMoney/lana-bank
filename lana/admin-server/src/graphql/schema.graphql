@@ -1333,8 +1333,8 @@ enum DocumentStatus {
 type DomainConfig {
 	id: ID!
 	domainConfigId: UUID!
-	key: String!
 	configType: ConfigType!
+	key: String!
 	value: Json!
 }
 
