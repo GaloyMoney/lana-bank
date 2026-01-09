@@ -19,7 +19,6 @@ use crate::{
     PublicIds,
     disbursal::Disbursals,
     event::CoreCreditEvent,
-    jobs::interest_accrual,
     ledger::{CreditFacilityInterestAccrual, CreditFacilityInterestAccrualCycle, CreditLedger},
     obligation::Obligations,
     pending_credit_facility::{PendingCreditFacilities, PendingCreditFacilityCompletionOutcome},
@@ -61,6 +60,7 @@ where
     public_ids: Arc<PublicIds>,
     credit_facility_maturity_job_spawner:
         jobs::credit_facility_maturity::CreditFacilityMaturityJobSpawner<E>,
+    interest_accrual_job_spawner: jobs::interest_accrual::InterestAccrualJobSpawner<Perms, E>,
 }
 
 impl<Perms, E> Clone for CreditFacilities<Perms, E>
@@ -84,6 +84,7 @@ where
             governance: self.governance.clone(),
             public_ids: self.public_ids.clone(),
             credit_facility_maturity_job_spawner: self.credit_facility_maturity_job_spawner.clone(),
+            interest_accrual_job_spawner: self.interest_accrual_job_spawner.clone(),
         }
     }
 }
@@ -91,14 +92,6 @@ where
 pub(super) enum CompletionOutcome {
     AlreadyApplied(CreditFacility),
     Completed((CreditFacility, crate::CreditFacilityCompletion)),
-}
-
-#[derive(Clone)]
-pub(super) struct ConfirmedAccrual {
-    pub(super) accrual: CreditFacilityInterestAccrual,
-    pub(super) next_period: Option<InterestPeriod>,
-    pub(super) accrual_idx: InterestAccrualCycleIdx,
-    pub(super) accrued_count: usize,
 }
 
 impl<Perms, E> CreditFacilities<Perms, E>
@@ -157,6 +150,15 @@ where
             jobs::credit_facility_maturity::CreditFacilityMaturityInit::new(repo_arc.clone()),
         );
 
+        let interest_accrual_job_spawner = job_new.add_initializer(
+            jobs::interest_accrual::InterestAccrualJobInit::<Perms, E>::new(
+                ledger.clone(),
+                obligations.clone(),
+                repo_arc.clone(),
+                authz.clone(),
+            ),
+        );
+
         Ok(Self {
             repo: repo_arc,
             obligations,
@@ -169,6 +171,7 @@ where
             governance,
             public_ids,
             credit_facility_maturity_job_spawner,
+            interest_accrual_job_spawner,
         })
     }
 
@@ -246,11 +249,11 @@ where
             .expect("First accrual not found")
             .id;
 
-        self.jobs
-            .create_and_spawn_at_in_op(
+        self.interest_accrual_job_spawner
+            .spawn_at_in_op(
                 &mut db,
                 accrual_id,
-                interest_accrual::InterestAccrualJobConfig::<Perms, E> {
+                jobs::interest_accrual::InterestAccrualJobConfig::<Perms, E> {
                     credit_facility_id,
                     _phantom: std::marker::PhantomData,
                 },
@@ -294,51 +297,6 @@ where
         db.commit().await?;
 
         Ok(())
-    }
-
-    #[record_error_severity]
-    #[instrument(
-        name = "credit.credit_facility.confirm_interest_accrual_in_op",
-        skip(self, op),
-        fields(credit_facility_id = %credit_facility_id)
-    )]
-    pub(super) async fn confirm_interest_accrual_in_op(
-        &self,
-        op: &mut impl es_entity::AtomicOperation,
-        credit_facility_id: CreditFacilityId,
-    ) -> Result<ConfirmedAccrual, CreditFacilityError> {
-        self.authz
-            .audit()
-            .record_system_entry_in_tx(
-                op,
-                CoreCreditObject::all_credit_facilities(),
-                CoreCreditAction::CREDIT_FACILITY_RECORD_INTEREST,
-            )
-            .await?;
-
-        let mut credit_facility = self.repo.find_by_id(credit_facility_id).await?;
-
-        let confirmed_accrual = {
-            let account_ids = credit_facility.account_ids;
-            let balances = self.ledger.get_credit_facility_balance(account_ids).await?;
-
-            let accrual = credit_facility
-                .interest_accrual_cycle_in_progress_mut()
-                .expect("Accrual in progress should exist for scheduled job");
-
-            let interest_accrual = accrual.record_accrual(balances.disbursed_outstanding());
-
-            ConfirmedAccrual {
-                accrual: (interest_accrual, account_ids).into(),
-                next_period: accrual.next_accrual_period(),
-                accrual_idx: accrual.idx,
-                accrued_count: accrual.count_accrued(),
-            }
-        };
-
-        self.repo.update_in_op(op, &mut credit_facility).await?;
-
-        Ok(confirmed_accrual)
     }
 
     #[record_error_severity]
@@ -397,57 +355,6 @@ where
         }
 
         Ok(())
-    }
-
-    #[record_error_severity]
-    #[instrument(
-        name = "credit.facility.complete_interest_cycle_and_maybe_start_new_cycle",
-        skip(self, db)
-        fields(credit_facility_id = %credit_facility_id),
-    )]
-    pub(super) async fn complete_interest_cycle_and_maybe_start_new_cycle(
-        &self,
-        db: &mut es_entity::DbOp<'_>,
-        credit_facility_id: CreditFacilityId,
-    ) -> Result<CompletedAccrualCycle, CreditFacilityError> {
-        let mut credit_facility = self.repo.find_by_id(credit_facility_id).await?;
-
-        let (accrual_cycle_data, new_obligation) = if let es_entity::Idempotent::Executed(res) =
-            credit_facility.record_interest_accrual_cycle()?
-        {
-            res
-        } else {
-            unreachable!(
-                "record_interest_accrual_cycle returned Idempotent::AlreadyApplied, \
-                 but this should only execute when there is an accrual cycle to record"
-            );
-        };
-
-        if let Some(new_obligation) = new_obligation {
-            self.obligations
-                .create_with_jobs_in_op(db, new_obligation)
-                .await?;
-        };
-
-        let res = credit_facility.start_interest_accrual_cycle()?;
-        self.repo.update_in_op(db, &mut credit_facility).await?;
-
-        let new_cycle_data = res.map(|periods| {
-            let new_accrual_cycle_id = credit_facility
-                .interest_accrual_cycle_in_progress()
-                .expect("First accrual cycle not found")
-                .id;
-
-            NewInterestAccrualCycleData {
-                id: new_accrual_cycle_id,
-                first_accrual_end_date: periods.accrual.end,
-            }
-        });
-
-        Ok(CompletedAccrualCycle {
-            facility_accrual_cycle_data: (accrual_cycle_data, credit_facility.account_ids).into(),
-            new_cycle_data,
-        })
     }
 
     pub async fn find_by_id_without_audit(
@@ -666,6 +573,14 @@ where
             .await?;
         Ok(balances.any_outstanding_or_defaulted())
     }
+}
+
+#[derive(Clone)]
+pub(crate) struct ConfirmedAccrual {
+    pub(super) accrual: CreditFacilityInterestAccrual,
+    pub(super) next_period: Option<InterestPeriod>,
+    pub(super) accrual_idx: InterestAccrualCycleIdx,
+    pub(super) accrued_count: usize,
 }
 
 pub(crate) struct CompletedAccrualCycle {

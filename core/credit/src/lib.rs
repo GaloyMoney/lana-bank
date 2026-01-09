@@ -347,13 +347,7 @@ where
             },
         )
         .await?;
-        jobs.add_initializer(interest_accrual::InterestAccrualJobInit::<Perms, E>::new(
-            ledger_arc.as_ref(),
-            obligations_arc.as_ref(),
-            facilities_arc.as_ref(),
-            jobs,
-            authz.audit(),
-        ));
+
         jobs.add_initializer(
             partial_liquidation::PartialLiquidationInit::<Perms, E>::new(
                 outbox,

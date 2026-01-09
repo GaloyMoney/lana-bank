@@ -52,7 +52,7 @@ es_entity::entity_id! {
     DisbursalId => governance::ApprovalProcessId,
 
     CreditFacilityId => job::JobId,
-    InterestAccrualCycleId => job::JobId,
+    InterestAccrualCycleId => job_new::JobId,
     ObligationId => job::JobId,
 
     DisbursalId => LedgerTxId,

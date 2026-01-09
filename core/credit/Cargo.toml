@@ -32,7 +32,7 @@ authz = { workspace = true }
 obix = { workspace = true }
 domain-config = { workspace = true }
 job = { workspace = true }
-job_new = { version = "0.6.0", package = "job" }
+job_new = { version = "0.6.0", package = "job", features = [ "es-entity" ] }
 cloud-storage = { workspace = true }
 public-id = { workspace = true }
 
