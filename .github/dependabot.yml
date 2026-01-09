@@ -15,9 +15,6 @@ updates:
     all-dependencies:
       patterns:
         - "*"
-  ignore:
-    - dependency-name: "tracing"
-    - dependency-name: "tracing-subscriber"
 
 - package-ecosystem: "npm"
   directory: "/"
