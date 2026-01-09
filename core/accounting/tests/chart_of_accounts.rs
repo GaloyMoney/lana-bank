@@ -5,7 +5,8 @@ use cala_ledger::{CalaLedger, CalaLedgerConfig};
 use cloud_storage::{Storage, config::StorageConfig};
 use core_accounting::CoreAccounting;
 use document_storage::DocumentStorage;
-use domain_config::DomainConfigs;
+use domain_config::InternalDomainConfigs;
+use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 use helpers::{action, object};
 use job::{JobSvcConfig, Jobs};
 
@@ -14,18 +15,19 @@ async fn import_from_csv_creates_accounts() -> anyhow::Result<()> {
     use rand::Rng;
 
     let pool = helpers::init_pool().await?;
+    let (clock, _) = ClockHandle::artificial(ArtificialClockConfig::manual());
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
         .exec_migrations(false)
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
-    let domain_configs = DomainConfigs::new(&pool);
+    let domain_configs = InternalDomainConfigs::new(&pool);
     let journal_id = helpers::init_journal(&cala).await?;
 
     let storage = Storage::new(&StorageConfig::default());
-    let document_storage = DocumentStorage::new(&pool, &storage);
-    let jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
+    let document_storage = DocumentStorage::new(&pool, &storage, clock.clone());
+    let mut jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
 
     let accounting = CoreAccounting::new(
         &pool,
@@ -33,7 +35,7 @@ async fn import_from_csv_creates_accounts() -> anyhow::Result<()> {
         &cala,
         journal_id,
         document_storage,
-        &jobs,
+        &mut jobs,
         &domain_configs,
     );
 
@@ -70,18 +72,19 @@ async fn import_from_csv_with_base_config_creates_accounts() -> anyhow::Result<(
     use rand::Rng;
 
     let pool = helpers::init_pool().await?;
+    let (clock, _) = ClockHandle::artificial(ArtificialClockConfig::manual());
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
         .exec_migrations(false)
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
-    let domain_configs = DomainConfigs::new(&pool);
+    let domain_configs = InternalDomainConfigs::new(&pool);
     let journal_id = helpers::init_journal(&cala).await?;
 
     let storage = Storage::new(&StorageConfig::default());
-    let document_storage = DocumentStorage::new(&pool, &storage);
-    let jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
+    let document_storage = DocumentStorage::new(&pool, &storage, clock.clone());
+    let mut jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
 
     let accounting = CoreAccounting::new(
         &pool,
@@ -89,7 +92,7 @@ async fn import_from_csv_with_base_config_creates_accounts() -> anyhow::Result<(
         &cala,
         journal_id,
         document_storage,
-        &jobs,
+        &mut jobs,
         &domain_configs,
     );
 

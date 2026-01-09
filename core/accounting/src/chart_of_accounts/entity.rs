@@ -305,19 +305,47 @@ impl Chart {
             return Ok(Idempotent::AlreadyApplied);
         }
 
-        // Validate that all codes exist in the chart
-        self.account_set_id_from_code(&base_config.assets_code)?;
-        self.account_set_id_from_code(&base_config.liabilities_code)?;
-        self.account_set_id_from_code(&base_config.equity_code)?;
-        self.account_set_id_from_code(&base_config.revenue_code)?;
-        self.account_set_id_from_code(&base_config.cost_of_revenue_code)?;
-        self.account_set_id_from_code(&base_config.expenses_code)?;
+        self.validate_accounting_base_config_against_chart(&base_config)?;
 
         self.events.push(ChartEvent::BaseConfigSet {
             base_config: base_config.clone(),
         });
         self.base_config = Some(base_config);
         Ok(Idempotent::Executed(()))
+    }
+
+    fn validate_accounting_base_config_against_chart(
+        &self,
+        base_config: &AccountingBaseConfig,
+    ) -> Result<(), ChartOfAccountsError> {
+        base_config.validate()?;
+
+        self.validate_accounting_account_code(&base_config.assets_code)?;
+        self.validate_accounting_account_code(&base_config.liabilities_code)?;
+        self.validate_accounting_account_code(&base_config.equity_code)?;
+        self.validate_accounting_account_code(&base_config.revenue_code)?;
+        self.validate_accounting_account_code(&base_config.cost_of_revenue_code)?;
+        self.validate_accounting_account_code(&base_config.expenses_code)?;
+        // TODO: Validate that EquityCode is parent of RetainedEarningsCodes (x2).
+
+        Ok(())
+    }
+
+    fn validate_accounting_account_code(
+        &self,
+        code: &AccountCode,
+    ) -> Result<(), ChartOfAccountsError> {
+        let details = self
+            .find_node_details_by_code(code)
+            .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))?;
+
+        if details.spec.parent.is_some() {
+            return Err(ChartOfAccountsError::BaseConfigAccountCodeHasParent(
+                code.to_string(),
+            ));
+        }
+
+        Ok(())
     }
 
     pub(super) fn close_as_of(&mut self, closed_as_of: NaiveDate) -> Idempotent<NaiveDate> {
