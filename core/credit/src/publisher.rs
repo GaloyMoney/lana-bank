@@ -19,6 +19,7 @@ use crate::{
     event::*,
     liquidation::{Liquidation, LiquidationEvent, error::LiquidationError},
     obligation::{Obligation, ObligationEvent, error::ObligationError},
+    payment::{Payment, PaymentEvent, error::PaymentError},
     payment_allocation::{
         PaymentAllocation, PaymentAllocationEvent, error::PaymentAllocationError,
     },
@@ -309,6 +310,38 @@ where
                 }),
 
                 _ => None,
+            })
+            .collect::<Vec<_>>();
+        self.outbox
+            .publish_all_persisted(op, publish_events)
+            .await?;
+        Ok(())
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "credit.publisher.publish_payment", skip_all)]
+    pub async fn publish_payment(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        _entity: &Payment,
+        new_events: es_entity::LastPersisted<'_, PaymentEvent>,
+    ) -> Result<(), PaymentError> {
+        use PaymentEvent::*;
+        let publish_events = new_events
+            .map(|event| match &event.event {
+                Initialized {
+                    id,
+                    credit_facility_id,
+                    amount,
+                    effective,
+                    ..
+                } => CoreCreditEvent::FacilityPaymentReceived {
+                    payment_id: *id,
+                    credit_facility_id: *credit_facility_id,
+                    amount: *amount,
+                    recorded_at: event.recorded_at,
+                    effective: *effective,
+                },
             })
             .collect::<Vec<_>>();
         self.outbox

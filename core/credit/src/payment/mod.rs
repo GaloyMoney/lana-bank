@@ -9,8 +9,12 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_accounting::LedgerTransactionInitiator;
+use obix::out::OutboxEventMarker;
 
-use crate::{ledger::CreditLedger, primitives::*};
+use crate::{
+    event::CoreCreditEvent, ledger::CreditLedger, primitives::*,
+    publisher::CreditFacilityPublisher,
+};
 
 pub use entity::Payment;
 pub use primitives::PaymentSourceAccountId;
@@ -21,18 +25,20 @@ pub(super) use entity::*;
 use error::PaymentError;
 pub(crate) use repo::PaymentRepo;
 
-pub struct Payments<Perms>
+pub struct Payments<Perms, E>
 where
     Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCreditEvent>,
 {
-    repo: Arc<PaymentRepo>,
+    repo: Arc<PaymentRepo<E>>,
     authz: Arc<Perms>,
     ledger: Arc<CreditLedger>,
 }
 
-impl<Perms> Clone for Payments<Perms>
+impl<Perms, E> Clone for Payments<Perms, E>
 where
     Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCreditEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -43,14 +49,20 @@ where
     }
 }
 
-impl<Perms> Payments<Perms>
+impl<Perms, E> Payments<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    E: OutboxEventMarker<CoreCreditEvent>,
 {
-    pub fn new(pool: &sqlx::PgPool, authz: Arc<Perms>, ledger: Arc<CreditLedger>) -> Self {
-        let repo = PaymentRepo::new(pool);
+    pub fn new(
+        pool: &sqlx::PgPool,
+        authz: Arc<Perms>,
+        ledger: Arc<CreditLedger>,
+        publisher: &CreditFacilityPublisher<E>,
+    ) -> Self {
+        let repo = PaymentRepo::new(pool, publisher);
 
         Self {
             repo: Arc::new(repo),
