@@ -2,7 +2,6 @@
 
 import { usePathname } from "next/navigation"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@lana/web/ui/sidebar"
-import { gql } from "@apollo/client"
 
 import { CommandMenu } from "./command-menu"
 import CreateButton, { CreateContextProvider } from "./create"
@@ -13,25 +12,13 @@ import { RealtimePriceUpdates } from "@/components/realtime-price"
 import { SearchAndCommand } from "@/components/search-and-command"
 
 import { useCommandMenu } from "@/hooks/use-command-menu"
-import { useTestPingSubscription } from "@/lib/graphql/generated"
 import { env } from "@/env"
-
-gql`
-  subscription TestPing($message: String!) {
-    testPing(message: $message) {
-      message
-      timestamp
-    }
-  }
-`
 
 export const AppLayout = ({ children }: Readonly<{ children: React.ReactNode }>) => {
   const appVersion = env.NEXT_PUBLIC_APP_VERSION
   const { open, setOpen, openCommandMenu } = useCommandMenu()
   const pathname = usePathname()
   const isJournalPage = pathname === "/journal"
-
-  useTestPingSubscription({ variables: { message: "admin-panel" } })
 
   return (
     <CreateContextProvider>

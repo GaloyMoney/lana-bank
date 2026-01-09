@@ -683,6 +683,46 @@ where
         Ok(updates.boxed())
     }
 
+    pub async fn subscribe_credit_facility_collateralization_updates(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        credit_facility_id: CreditFacilityId,
+    ) -> Result<BoxStream<'static, CollateralizationUpdated>, CoreCreditError> {
+        let _ = self
+            .facilities()
+            .find_by_id(sub, credit_facility_id)
+            .await?;
+
+        let stream = self.outbox.listen_persisted(None);
+        let updates = stream.filter_map(move |event| async move {
+            let payload = event.payload.as_ref()?;
+            let event: &CoreCreditEvent = payload.as_event()?;
+            match event {
+                CoreCreditEvent::FacilityCollateralizationChanged {
+                    id,
+                    state,
+                    recorded_at,
+                    effective,
+                    collateral,
+                    outstanding,
+                    price,
+                    ..
+                } if *id == credit_facility_id => Some(CollateralizationUpdated {
+                    state: *state,
+                    collateral: *collateral,
+                    outstanding_interest: outstanding.interest,
+                    outstanding_disbursal: outstanding.disbursed,
+                    recorded_at: *recorded_at,
+                    effective: *effective,
+                    price: *price,
+                }),
+                _ => None,
+            }
+        });
+
+        Ok(updates.boxed())
+    }
+
     pub async fn subject_can_initiate_disbursal(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
