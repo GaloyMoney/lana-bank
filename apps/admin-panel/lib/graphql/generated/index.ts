@@ -35,6 +35,7 @@ export type Scalars = {
   SignedUsdCents: { input: SignedUsdCents; output: SignedUsdCents; }
   Timestamp: { input: any; output: any; }
   UUID: { input: string; output: string; }
+  /** A multipart file upload */
   Upload: { input: any; output: any; }
   UsdCents: { input: UsdCents; output: UsdCents; }
 };
