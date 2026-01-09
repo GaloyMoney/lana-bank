@@ -165,7 +165,10 @@ where
                 let mut op = self.repo.begin_op().await?;
                 self.repo.update_in_op(&mut op, &mut fiscal_year).await?;
 
-                let config = self.domain_configs.get::<config::FiscalYearConfig>().await?;
+                let config = self
+                    .domain_configs
+                    .get::<config::FiscalYearConfig>()
+                    .await?;
                 let Some(fiscal_year_conf) = config.value() else {
                     return Err(domain_config::DomainConfigError::NotConfigured.into());
                 };
