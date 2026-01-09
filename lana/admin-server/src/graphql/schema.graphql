@@ -1330,23 +1330,12 @@ enum DocumentStatus {
 	DELETED
 }
 
-type Duration {
-	period: Period!
-	units: Int!
-}
-
-input DurationInput {
-	period: Period!
-	units: Int!
-}
-
 type DomainConfig {
 	id: ID!
 	domainConfigId: UUID!
 	key: String!
 	configType: ConfigType!
 	value: Json!
-	isSet: Boolean!
 }
 
 type DomainConfigConnection {
@@ -1385,6 +1374,16 @@ input DomainConfigUpdateInput {
 
 type DomainConfigUpdatePayload {
 	domainConfig: DomainConfig!
+}
+
+type Duration {
+	period: Period!
+	units: Int!
+}
+
+input DurationInput {
+	period: Period!
+	units: Int!
 }
 
 type FacilityRemaining {

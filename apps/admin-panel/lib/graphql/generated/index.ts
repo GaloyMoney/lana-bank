@@ -1335,6 +1335,44 @@ export enum DocumentStatus {
   New = 'NEW'
 }
 
+export type DomainConfig = {
+  __typename?: 'DomainConfig';
+  configType: ConfigType;
+  domainConfigId: Scalars['UUID']['output'];
+  id: Scalars['ID']['output'];
+  key: Scalars['String']['output'];
+  value: Scalars['Json']['output'];
+};
+
+export type DomainConfigConnection = {
+  __typename?: 'DomainConfigConnection';
+  /** A list of edges. */
+  edges: Array<DomainConfigEdge>;
+  /** A list of nodes. */
+  nodes: Array<DomainConfig>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+/** An edge in a connection. */
+export type DomainConfigEdge = {
+  __typename?: 'DomainConfigEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: DomainConfig;
+};
+
+export type DomainConfigUpdateInput = {
+  domainConfigId: Scalars['UUID']['input'];
+  value: Scalars['Json']['input'];
+};
+
+export type DomainConfigUpdatePayload = {
+  __typename?: 'DomainConfigUpdatePayload';
+  domainConfig: DomainConfig;
+};
+
 export type Duration = {
   __typename?: 'Duration';
   period: Period;
@@ -1344,24 +1382,6 @@ export type Duration = {
 export type DurationInput = {
   period: Period;
   units: Scalars['Int']['input'];
-};
-
-export type ExposedConfigItem = {
-  __typename?: 'ExposedConfigItem';
-  configType: ConfigType;
-  isSet: Scalars['Boolean']['output'];
-  key: Scalars['String']['output'];
-  value: Scalars['Json']['output'];
-};
-
-export type ExposedConfigUpdateInput = {
-  key: Scalars['String']['input'];
-  value: Scalars['Json']['input'];
-};
-
-export type ExposedConfigUpdatePayload = {
-  __typename?: 'ExposedConfigUpdatePayload';
-  exposedConfig: ExposedConfigItem;
 };
 
 export type FacilityRemaining = {
@@ -1810,6 +1830,7 @@ export type Mutation = {
   depositModuleConfigure: DepositModuleConfigurePayload;
   depositRecord: DepositRecordPayload;
   depositRevert: DepositRevertPayload;
+  domainConfigUpdate: DomainConfigUpdatePayload;
   fiscalYearClose: FiscalYearClosePayload;
   fiscalYearCloseMonth: FiscalYearCloseMonthPayload;
   fiscalYearConfigure: FiscalYearModuleConfigurePayload;
@@ -1832,7 +1853,6 @@ export type Mutation = {
   termsTemplateCreate: TermsTemplateCreatePayload;
   termsTemplateUpdate: TermsTemplateUpdatePayload;
   triggerReportRun: ReportRunCreatePayload;
-  updateExposedConfig: ExposedConfigUpdatePayload;
   userCreate: UserCreatePayload;
   userUpdateRole: UserUpdateRolePayload;
   withdrawalCancel: WithdrawalCancelPayload;
@@ -2013,6 +2033,11 @@ export type MutationDepositRevertArgs = {
 };
 
 
+export type MutationDomainConfigUpdateArgs = {
+  input: DomainConfigUpdateInput;
+};
+
+
 export type MutationFiscalYearCloseArgs = {
   input: FiscalYearCloseInput;
 };
@@ -2115,11 +2140,6 @@ export type MutationTermsTemplateCreateArgs = {
 
 export type MutationTermsTemplateUpdateArgs = {
   input: TermsTemplateUpdateInput;
-};
-
-
-export type MutationUpdateExposedConfigArgs = {
-  input: ExposedConfigUpdateInput;
 };
 
 
@@ -2400,7 +2420,7 @@ export type Query = {
   disbursal?: Maybe<CreditFacilityDisbursal>;
   disbursalByPublicId?: Maybe<CreditFacilityDisbursal>;
   disbursals: CreditFacilityDisbursalConnection;
-  exposedConfigs: Array<ExposedConfigItem>;
+  domainConfigs: DomainConfigConnection;
   fiscalYear?: Maybe<FiscalYear>;
   fiscalYearByYear?: Maybe<FiscalYear>;
   fiscalYears: FiscalYearConnection;
@@ -2583,6 +2603,12 @@ export type QueryDisbursalByPublicIdArgs = {
 
 
 export type QueryDisbursalsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
+};
+
+
+export type QueryDomainConfigsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
 };
@@ -3357,17 +3383,20 @@ export type CommitteeRemoveUserMutationVariables = Exact<{
 
 export type CommitteeRemoveUserMutation = { __typename?: 'Mutation', committeeRemoveUser: { __typename?: 'CommitteeRemoveUserPayload', committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } }> } } };
 
-export type ExposedConfigsQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type ExposedConfigsQuery = { __typename?: 'Query', exposedConfigs: Array<{ __typename?: 'ExposedConfigItem', key: string, configType: ConfigType, value: any, isSet: boolean }> };
-
-export type UpdateExposedConfigMutationVariables = Exact<{
-  input: ExposedConfigUpdateInput;
+export type DomainConfigsQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
-export type UpdateExposedConfigMutation = { __typename?: 'Mutation', updateExposedConfig: { __typename?: 'ExposedConfigUpdatePayload', exposedConfig: { __typename?: 'ExposedConfigItem', key: string, configType: ConfigType, value: any, isSet: boolean } } };
+export type DomainConfigsQuery = { __typename?: 'Query', domainConfigs: { __typename?: 'DomainConfigConnection', nodes: Array<{ __typename?: 'DomainConfig', id: string, domainConfigId: string, key: string, configType: ConfigType, value: any }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } };
+
+export type DomainConfigUpdateMutationVariables = Exact<{
+  input: DomainConfigUpdateInput;
+}>;
+
+
+export type DomainConfigUpdateMutation = { __typename?: 'Mutation', domainConfigUpdate: { __typename?: 'DomainConfigUpdatePayload', domainConfig: { __typename?: 'DomainConfig', id: string, domainConfigId: string, key: string, configType: ConfigType, value: any } } };
 
 export type DisbursalOnFacilityPageFragment = { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, publicId: any, amount: UsdCents, status: DisbursalStatus, createdAt: any };
 
@@ -6384,89 +6413,99 @@ export function useCommitteeRemoveUserMutation(baseOptions?: Apollo.MutationHook
 export type CommitteeRemoveUserMutationHookResult = ReturnType<typeof useCommitteeRemoveUserMutation>;
 export type CommitteeRemoveUserMutationResult = Apollo.MutationResult<CommitteeRemoveUserMutation>;
 export type CommitteeRemoveUserMutationOptions = Apollo.BaseMutationOptions<CommitteeRemoveUserMutation, CommitteeRemoveUserMutationVariables>;
-export const ExposedConfigsDocument = gql`
-    query ExposedConfigs {
-  exposedConfigs {
-    key
-    configType
-    value
-    isSet
+export const DomainConfigsDocument = gql`
+    query DomainConfigs($first: Int!, $after: String) {
+  domainConfigs(first: $first, after: $after) {
+    nodes {
+      id
+      domainConfigId
+      key
+      configType
+      value
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
   }
 }
     `;
 
 /**
- * __useExposedConfigsQuery__
+ * __useDomainConfigsQuery__
  *
- * To run a query within a React component, call `useExposedConfigsQuery` and pass it any options that fit your needs.
- * When your component renders, `useExposedConfigsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useDomainConfigsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useDomainConfigsQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useExposedConfigsQuery({
+ * const { data, loading, error } = useDomainConfigsQuery({
  *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
  *   },
  * });
  */
-export function useExposedConfigsQuery(baseOptions?: Apollo.QueryHookOptions<ExposedConfigsQuery, ExposedConfigsQueryVariables>) {
+export function useDomainConfigsQuery(baseOptions: Apollo.QueryHookOptions<DomainConfigsQuery, DomainConfigsQueryVariables> & ({ variables: DomainConfigsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<ExposedConfigsQuery, ExposedConfigsQueryVariables>(ExposedConfigsDocument, options);
+        return Apollo.useQuery<DomainConfigsQuery, DomainConfigsQueryVariables>(DomainConfigsDocument, options);
       }
-export function useExposedConfigsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ExposedConfigsQuery, ExposedConfigsQueryVariables>) {
+export function useDomainConfigsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<DomainConfigsQuery, DomainConfigsQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<ExposedConfigsQuery, ExposedConfigsQueryVariables>(ExposedConfigsDocument, options);
+          return Apollo.useLazyQuery<DomainConfigsQuery, DomainConfigsQueryVariables>(DomainConfigsDocument, options);
         }
 // @ts-ignore
-export function useExposedConfigsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ExposedConfigsQuery, ExposedConfigsQueryVariables>): Apollo.UseSuspenseQueryResult<ExposedConfigsQuery, ExposedConfigsQueryVariables>;
-export function useExposedConfigsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ExposedConfigsQuery, ExposedConfigsQueryVariables>): Apollo.UseSuspenseQueryResult<ExposedConfigsQuery | undefined, ExposedConfigsQueryVariables>;
-export function useExposedConfigsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ExposedConfigsQuery, ExposedConfigsQueryVariables>) {
+export function useDomainConfigsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<DomainConfigsQuery, DomainConfigsQueryVariables>): Apollo.UseSuspenseQueryResult<DomainConfigsQuery, DomainConfigsQueryVariables>;
+export function useDomainConfigsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<DomainConfigsQuery, DomainConfigsQueryVariables>): Apollo.UseSuspenseQueryResult<DomainConfigsQuery | undefined, DomainConfigsQueryVariables>;
+export function useDomainConfigsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<DomainConfigsQuery, DomainConfigsQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<ExposedConfigsQuery, ExposedConfigsQueryVariables>(ExposedConfigsDocument, options);
+          return Apollo.useSuspenseQuery<DomainConfigsQuery, DomainConfigsQueryVariables>(DomainConfigsDocument, options);
         }
-export type ExposedConfigsQueryHookResult = ReturnType<typeof useExposedConfigsQuery>;
-export type ExposedConfigsLazyQueryHookResult = ReturnType<typeof useExposedConfigsLazyQuery>;
-export type ExposedConfigsSuspenseQueryHookResult = ReturnType<typeof useExposedConfigsSuspenseQuery>;
-export type ExposedConfigsQueryResult = Apollo.QueryResult<ExposedConfigsQuery, ExposedConfigsQueryVariables>;
-export const UpdateExposedConfigDocument = gql`
-    mutation UpdateExposedConfig($input: ExposedConfigUpdateInput!) {
-  updateExposedConfig(input: $input) {
-    exposedConfig {
+export type DomainConfigsQueryHookResult = ReturnType<typeof useDomainConfigsQuery>;
+export type DomainConfigsLazyQueryHookResult = ReturnType<typeof useDomainConfigsLazyQuery>;
+export type DomainConfigsSuspenseQueryHookResult = ReturnType<typeof useDomainConfigsSuspenseQuery>;
+export type DomainConfigsQueryResult = Apollo.QueryResult<DomainConfigsQuery, DomainConfigsQueryVariables>;
+export const DomainConfigUpdateDocument = gql`
+    mutation DomainConfigUpdate($input: DomainConfigUpdateInput!) {
+  domainConfigUpdate(input: $input) {
+    domainConfig {
+      id
+      domainConfigId
       key
       configType
       value
-      isSet
     }
   }
 }
     `;
-export type UpdateExposedConfigMutationFn = Apollo.MutationFunction<UpdateExposedConfigMutation, UpdateExposedConfigMutationVariables>;
+export type DomainConfigUpdateMutationFn = Apollo.MutationFunction<DomainConfigUpdateMutation, DomainConfigUpdateMutationVariables>;
 
 /**
- * __useUpdateExposedConfigMutation__
+ * __useDomainConfigUpdateMutation__
  *
- * To run a mutation, you first call `useUpdateExposedConfigMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateExposedConfigMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useDomainConfigUpdateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDomainConfigUpdateMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [updateExposedConfigMutation, { data, loading, error }] = useUpdateExposedConfigMutation({
+ * const [domainConfigUpdateMutation, { data, loading, error }] = useDomainConfigUpdateMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useUpdateExposedConfigMutation(baseOptions?: Apollo.MutationHookOptions<UpdateExposedConfigMutation, UpdateExposedConfigMutationVariables>) {
+export function useDomainConfigUpdateMutation(baseOptions?: Apollo.MutationHookOptions<DomainConfigUpdateMutation, DomainConfigUpdateMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UpdateExposedConfigMutation, UpdateExposedConfigMutationVariables>(UpdateExposedConfigDocument, options);
+        return Apollo.useMutation<DomainConfigUpdateMutation, DomainConfigUpdateMutationVariables>(DomainConfigUpdateDocument, options);
       }
-export type UpdateExposedConfigMutationHookResult = ReturnType<typeof useUpdateExposedConfigMutation>;
-export type UpdateExposedConfigMutationResult = Apollo.MutationResult<UpdateExposedConfigMutation>;
-export type UpdateExposedConfigMutationOptions = Apollo.BaseMutationOptions<UpdateExposedConfigMutation, UpdateExposedConfigMutationVariables>;
+export type DomainConfigUpdateMutationHookResult = ReturnType<typeof useDomainConfigUpdateMutation>;
+export type DomainConfigUpdateMutationResult = Apollo.MutationResult<DomainConfigUpdateMutation>;
+export type DomainConfigUpdateMutationOptions = Apollo.BaseMutationOptions<DomainConfigUpdateMutation, DomainConfigUpdateMutationVariables>;
 export const GetCreditFacilityDisbursalsDocument = gql`
     query GetCreditFacilityDisbursals($publicId: PublicId!) {
   creditFacilityByPublicId(id: $publicId) {
