@@ -9,7 +9,7 @@ fail-on-warnings = []
 
 [dependencies]
 obix = { workspace = true }
-job = { workspace = true }
+job = { version = "0.6.0" }
 lana-events = { workspace = true }
 core-access = { workspace = true }
 core-credit = { workspace = true }
