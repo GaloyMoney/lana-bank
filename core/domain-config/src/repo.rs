@@ -33,16 +33,14 @@ impl DomainConfigRepo {
         Self { pool: pool.clone() }
     }
 
-    pub async fn find_all_by_visibility<Out: From<DomainConfig>>(
+    pub async fn find_all_exposed<Out: From<DomainConfig>>(
         &self,
         ids: &[DomainConfigId],
-        visibility: Visibility,
     ) -> Result<HashMap<DomainConfigId, Out>, DomainConfigError> {
         let (entities, _) = es_entity::es_query!(
             tbl_prefix = "core",
-            "SELECT id FROM core_domain_configs WHERE id = ANY($1) AND visibility = $2",
+            "SELECT id FROM core_domain_configs WHERE id = ANY($1) AND visibility = 'exposed'",
             ids as &[DomainConfigId],
-            visibility as Visibility,
         )
         .fetch_n(self.pool(), ids.len())
         .await?;

@@ -60,9 +60,7 @@ impl DomainConfigs {
         &self,
         ids: &[DomainConfigId],
     ) -> Result<HashMap<DomainConfigId, T>, DomainConfigError> {
-        self.repo
-            .find_all_by_visibility(ids, Visibility::Exposed)
-            .await
+        self.repo.find_all_exposed(ids).await
     }
 
     #[record_error_severity]
