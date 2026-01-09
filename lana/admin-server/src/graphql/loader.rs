@@ -26,7 +26,7 @@ use crate::primitives::*;
 
 use super::{
     access::*, accounting::*, approval_process::*, committee::*, credit_facility::*, custody::*,
-    customer::*, deposit::*, deposit_account::*, document::*, exposed_config::*, policy::*,
+    customer::*, deposit::*, deposit_account::*, document::*, domain_config::*, policy::*,
     reports::*, terms_template::*, withdrawal::*,
 };
 

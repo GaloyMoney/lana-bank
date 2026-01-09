@@ -311,18 +311,11 @@ where
     #[record_error_severity]
     #[instrument(name = "core_accounting.fiscal_year.configure", skip(self))]
     pub async fn configure(&self, cfg: FiscalYearConfig) -> Result<(), FiscalYearError> {
-        if self
-            .domain_configs
-            .get::<FiscalYearConfig>()
-            .await
-            .is_ok()
-        {
+        if self.domain_configs.get::<FiscalYearConfig>().await.is_ok() {
             return Err(FiscalYearError::FiscalYearConfigAlreadyExists);
         }
 
-        self.domain_configs
-            .create::<FiscalYearConfig>(cfg)
-            .await?;
+        self.domain_configs.create::<FiscalYearConfig>(cfg).await?;
 
         Ok(())
     }

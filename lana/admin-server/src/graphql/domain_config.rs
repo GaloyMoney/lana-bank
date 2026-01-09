@@ -1,8 +1,6 @@
 use async_graphql::*;
 
-use domain_config::{
-    ConfigType as DomainConfigType, DomainConfig as DomainConfigEntity,
-};
+use domain_config::{ConfigType as DomainConfigType, DomainConfig as DomainConfigEntity};
 
 use crate::{graphql::primitives::Json, primitives::*};
 

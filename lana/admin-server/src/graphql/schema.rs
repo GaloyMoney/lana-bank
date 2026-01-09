@@ -15,7 +15,7 @@ use crate::primitives::*;
 use super::{
     access::*, accounting::*, approval_process::*, audit::*, balance_sheet_config::*, committee::*,
     contract_creation::*, credit_config::*, credit_facility::*, custody::*, customer::*,
-    dashboard::*, deposit::*, deposit_config::*, document::*, exposed_config::*,
+    dashboard::*, deposit::*, deposit_config::*, document::*, domain_config::*,
     fiscal_year_config::*, loader::*, me::*, policy::*, price::*, profit_and_loss_config::*,
     public_id::*, reports::*, sumsub::*, terms_template::*, withdrawal::*,
 };
