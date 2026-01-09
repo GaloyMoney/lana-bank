@@ -46,7 +46,7 @@ where
 
     let app = Router::new()
         .route("/health", get(health_check))
-        .route("/graphql/stream", post(sse::graphql_sse_post))
+        .route("/graphql/stream", post(sse::graphql_sse))
         .route(
             "/graphql",
             get(playground).post(axum::routing::post(graphql_handler)),
