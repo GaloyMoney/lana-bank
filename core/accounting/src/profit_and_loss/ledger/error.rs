@@ -36,7 +36,7 @@ impl ErrorSeverity for ProfitAndLossStatementLedgerError {
             Self::CalaLedger(_) => Level::ERROR,
             Self::CalaAccountSet(_) => {
                 if self.account_set_exists() {
-                    Level::WARN
+                    Level::INFO
                 } else {
                     Level::ERROR
                 }
