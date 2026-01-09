@@ -1,7 +1,7 @@
 use async_graphql::*;
 
 use domain_config::{
-    ConfigType as DomainConfigType, DomainConfig,
+    ConfigType as DomainConfigType, DomainConfig as DomainConfigEntity,
 };
 
 use crate::{graphql::primitives::Json, primitives::*};
@@ -32,12 +32,12 @@ impl From<DomainConfigType> for ConfigType {
 }
 
 #[derive(Clone)]
-pub struct ExposedConfig {
-    pub(crate) entity: Arc<DomainConfig>,
+pub struct DomainConfig {
+    pub(crate) entity: Arc<DomainConfigEntity>,
 }
 
-impl From<DomainConfig> for ExposedConfig {
-    fn from(config: DomainConfig) -> Self {
+impl From<DomainConfigEntity> for DomainConfig {
+    fn from(config: DomainConfigEntity) -> Self {
         Self {
             entity: Arc::new(config),
         }
@@ -45,12 +45,12 @@ impl From<DomainConfig> for ExposedConfig {
 }
 
 #[Object]
-impl ExposedConfig {
+impl DomainConfig {
     async fn id(&self) -> ID {
         self.entity.id.to_global_id()
     }
 
-    async fn exposed_config_id(&self) -> UUID {
+    async fn domain_config_id(&self) -> UUID {
         UUID::from(self.entity.id)
     }
 
@@ -68,8 +68,8 @@ impl ExposedConfig {
 }
 
 #[derive(InputObject)]
-pub struct ExposedConfigUpdateInput {
-    pub exposed_config_id: UUID,
+pub struct DomainConfigUpdateInput {
+    pub domain_config_id: UUID,
     pub value: Json,
 }
-crate::mutation_payload! { ExposedConfigUpdatePayload, exposed_config: ExposedConfig }
+crate::mutation_payload! { DomainConfigUpdatePayload, domain_config: DomainConfig }

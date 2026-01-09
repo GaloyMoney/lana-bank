@@ -1340,16 +1340,16 @@ input DurationInput {
 	units: Int!
 }
 
-type ExposedConfig {
+type DomainConfig {
 	id: ID!
-	exposedConfigId: UUID!
+	domainConfigId: UUID!
 	key: String!
 	configType: ConfigType!
 	value: Json!
 	isSet: Boolean!
 }
 
-type ExposedConfigConnection {
+type DomainConfigConnection {
 	"""
 	Information to aid in pagination.
 	"""
@@ -1357,34 +1357,34 @@ type ExposedConfigConnection {
 	"""
 	A list of edges.
 	"""
-	edges: [ExposedConfigEdge!]!
+	edges: [DomainConfigEdge!]!
 	"""
 	A list of nodes.
 	"""
-	nodes: [ExposedConfig!]!
+	nodes: [DomainConfig!]!
 }
 
 """
 An edge in a connection.
 """
-type ExposedConfigEdge {
+type DomainConfigEdge {
 	"""
 	The item at the end of the edge
 	"""
-	node: ExposedConfig!
+	node: DomainConfig!
 	"""
 	A cursor for use in pagination
 	"""
 	cursor: String!
 }
 
-input ExposedConfigUpdateInput {
-	exposedConfigId: UUID!
+input DomainConfigUpdateInput {
+	domainConfigId: UUID!
 	value: Json!
 }
 
-type ExposedConfigUpdatePayload {
-	exposedConfig: ExposedConfig!
+type DomainConfigUpdatePayload {
+	domainConfig: DomainConfig!
 }
 
 type FacilityRemaining {
@@ -1810,7 +1810,7 @@ type Mutation {
 	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
 	customerTelegramIdUpdate(input: CustomerTelegramIdUpdateInput!): CustomerTelegramIdUpdatePayload!
 	customerEmailUpdate(input: CustomerEmailUpdateInput!): CustomerEmailUpdatePayload!
-	exposedConfigUpdate(input: ExposedConfigUpdateInput!): ExposedConfigUpdatePayload!
+	domainConfigUpdate(input: DomainConfigUpdateInput!): DomainConfigUpdatePayload!
 	depositModuleConfigure(input: DepositModuleConfigureInput!): DepositModuleConfigurePayload!
 	manualTransactionExecute(input: ManualTransactionExecuteInput!): ManualTransactionExecutePayload!
 	depositRecord(input: DepositRecordInput!): DepositRecordPayload!
@@ -2169,7 +2169,7 @@ type Query {
 	realtimePrice: RealtimePrice!
 	audit(first: Int!, after: String): AuditEntryConnection!
 	depositConfig: DepositModuleConfig
-	exposedConfigs(first: Int!, after: String): ExposedConfigConnection!
+	domainConfigs(first: Int!, after: String): DomainConfigConnection!
 	creditConfig: CreditModuleConfig
 	balanceSheetConfig: BalanceSheetModuleConfig
 	profitAndLossStatementConfig: ProfitAndLossStatementModuleConfig

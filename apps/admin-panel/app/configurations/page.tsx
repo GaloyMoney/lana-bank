@@ -21,18 +21,18 @@ import { Checkbox } from "@lana/web/ui/checkbox"
 
 import {
   ConfigType,
-  type ExposedConfig,
-  ExposedConfigsDocument,
-  useExposedConfigsQuery,
-  useExposedConfigUpdateMutation,
+  type DomainConfig,
+  DomainConfigsDocument,
+  useDomainConfigsQuery,
+  useDomainConfigUpdateMutation,
 } from "@/lib/graphql/generated"
 
 gql`
-  query ExposedConfigs($first: Int!, $after: String) {
-    exposedConfigs(first: $first, after: $after) {
+  query DomainConfigs($first: Int!, $after: String) {
+    domainConfigs(first: $first, after: $after) {
       nodes {
         id
-        exposedConfigId
+        domainConfigId
         key
         configType
         value
@@ -44,11 +44,11 @@ gql`
     }
   }
 
-  mutation ExposedConfigUpdate($input: ExposedConfigUpdateInput!) {
-    exposedConfigUpdate(input: $input) {
-      exposedConfig {
+  mutation DomainConfigUpdate($input: DomainConfigUpdateInput!) {
+    domainConfigUpdate(input: $input) {
+      domainConfig {
         id
-        exposedConfigId
+        domainConfigId
         key
         configType
         value
@@ -58,7 +58,7 @@ gql`
 `
 
 const EXPOSED_CONFIG_PAGE_SIZE = 100
-const EMPTY_CONFIGS: ExposedConfig[] = []
+const EMPTY_CONFIGS: DomainConfig[] = []
 
 export default function ConfigurationsPage() {
   const t = useTranslations("Configurations")
@@ -71,16 +71,16 @@ export default function ConfigurationsPage() {
     data: exposedConfigData,
     loading: exposedConfigLoading,
     error: exposedConfigError,
-  } = useExposedConfigsQuery({
+  } = useDomainConfigsQuery({
     variables: {
       first: EXPOSED_CONFIG_PAGE_SIZE,
     },
   })
 
   const [exposedConfigUpdate, { loading: exposedConfigUpdateLoading }] =
-    useExposedConfigUpdateMutation()
+    useDomainConfigUpdateMutation()
 
-  const exposedConfigs = exposedConfigData?.exposedConfigs.nodes ?? EMPTY_CONFIGS
+  const exposedConfigs = exposedConfigData?.domainConfigs.nodes ?? EMPTY_CONFIGS
   const visibleConfigs = useMemo(
     () => exposedConfigs.filter((config) => config.configType !== ConfigType.Complex),
     [exposedConfigs],
@@ -107,7 +107,7 @@ export default function ConfigurationsPage() {
     })
   }, [visibleConfigs])
 
-  const handleExposedSave = async (config: ExposedConfig) => {
+  const handleExposedSave = async (config: DomainConfig) => {
     const draft = exposedDrafts[config.key]
     const parsed = parseExposedDraft(config, draft)
 
@@ -120,19 +120,19 @@ export default function ConfigurationsPage() {
       const result = await exposedConfigUpdate({
         variables: {
           input: {
-            exposedConfigId: config.exposedConfigId,
+            domainConfigId: config.domainConfigId,
             value: parsed.value,
           },
         },
         refetchQueries: [
           {
-            query: ExposedConfigsDocument,
+            query: DomainConfigsDocument,
             variables: { first: EXPOSED_CONFIG_PAGE_SIZE },
           },
         ],
       })
 
-      const updated = result.data?.exposedConfigUpdate.exposedConfig
+      const updated = result.data?.domainConfigUpdate.domainConfig
 
       if (!updated) {
         toast.error(t("exposedConfigs.saveError"))
@@ -215,7 +215,7 @@ export default function ConfigurationsPage() {
   )
 }
 
-const formatExposedValue = (config: ExposedConfig): string | boolean => {
+const formatExposedValue = (config: DomainConfig): string | boolean => {
   switch (config.configType) {
     case ConfigType.Bool:
       return config.value === true
@@ -235,7 +235,7 @@ const formatExposedValue = (config: ExposedConfig): string | boolean => {
 }
 
 const parseExposedDraft = (
-  config: ExposedConfig,
+  config: DomainConfig,
   draft: string | boolean | undefined,
 ):
   | { value: unknown }
@@ -290,7 +290,7 @@ const parseExposedDraft = (
 }
 
 type RenderExposedInputArgs = {
-  config: ExposedConfig
+  config: DomainConfig
   inputId: string
   value: string | boolean | undefined
   disabled: boolean

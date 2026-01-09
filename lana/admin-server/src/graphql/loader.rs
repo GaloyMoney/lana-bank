@@ -187,14 +187,14 @@ impl Loader<CustomerId> for LanaLoader {
 }
 
 impl Loader<DomainConfigId> for LanaLoader {
-    type Value = ExposedConfig;
+    type Value = DomainConfig;
     type Error = Arc<DomainConfigError>;
 
-    #[instrument(name = "loader.exposed_configs", skip(self), fields(count = keys.len()), err)]
+    #[instrument(name = "loader.domain_configs", skip(self), fields(count = keys.len()), err)]
     async fn load(
         &self,
         keys: &[DomainConfigId],
-    ) -> Result<HashMap<DomainConfigId, ExposedConfig>, Self::Error> {
+    ) -> Result<HashMap<DomainConfigId, DomainConfig>, Self::Error> {
         self.app
             .domain_configs()
             .find_all_exposed(keys)

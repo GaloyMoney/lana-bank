@@ -964,18 +964,18 @@ impl Query {
         Ok(config.map(DepositModuleConfig::from))
     }
 
-    async fn exposed_configs(
+    async fn domain_configs(
         &self,
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
     ) -> async_graphql::Result<
-        Connection<DomainConfigsByKeyCursor, ExposedConfig, EmptyFields, EmptyFields>,
+        Connection<DomainConfigsByKeyCursor, DomainConfig, EmptyFields, EmptyFields>,
     > {
         let (app, _sub) = app_and_sub_from_ctx!(ctx);
         list_with_cursor!(
             DomainConfigsByKeyCursor,
-            ExposedConfig,
+            DomainConfig,
             ctx,
             after,
             first,
@@ -1312,18 +1312,18 @@ impl Mutation {
         )
     }
 
-    async fn exposed_config_update(
+    async fn domain_config_update(
         &self,
         ctx: &Context<'_>,
-        input: ExposedConfigUpdateInput,
-    ) -> async_graphql::Result<ExposedConfigUpdatePayload> {
+        input: DomainConfigUpdateInput,
+    ) -> async_graphql::Result<DomainConfigUpdatePayload> {
         let (app, _sub) = app_and_sub_from_ctx!(ctx);
         exec_mutation!(
-            ExposedConfigUpdatePayload,
-            ExposedConfig,
+            DomainConfigUpdatePayload,
+            DomainConfig,
             ctx,
             app.domain_configs()
-                .update_exposed_from_json(input.exposed_config_id, input.value.into_inner())
+                .update_exposed_from_json(input.domain_config_id, input.value.into_inner())
         )
     }
 

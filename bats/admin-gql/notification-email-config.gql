@@ -1,8 +1,8 @@
-query ExposedConfigs {
-  exposedConfigs(first: 100) {
+query DomainConfigs {
+  domainConfigs(first: 100) {
     edges {
       node {
-        exposedConfigId
+        domainConfigId
         key
         value
         isSet
