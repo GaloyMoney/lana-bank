@@ -5,7 +5,7 @@ use cala_ledger::{CalaLedger, CalaLedgerConfig};
 use cloud_storage::{Storage, config::StorageConfig};
 use rust_decimal_macros::dec;
 
-use core_credit::*;
+use core_credit::{ledger::error::CreditLedgerError, *};
 use core_deposit::DepositAccountId;
 use document_storage::DocumentStorage;
 use helpers::{action, event, object};
@@ -249,8 +249,10 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
     assert!(
         matches!(
             result,
-            Err(CoreCreditError::ObligationError(
-                ObligationError::PaymentAmountGreaterThanOutstandingObligations,
+            Err(CoreCreditError::PaymentError(
+                PaymentError::CreditLedgerError(
+                    CreditLedgerError::PaymentAmountGreaterThanOutstandingObligations,
+                )
             )),
         ),
         "{}",

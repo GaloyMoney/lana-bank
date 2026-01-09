@@ -62,7 +62,7 @@ use jobs::*;
 pub use ledger::*;
 pub use liquidation::{liquidation_cursor::*, *};
 pub use obligation::{error::*, obligation_cursor::*, *};
-pub use payment::*;
+pub use payment::{error::*, *};
 pub use payment_allocation::*;
 pub use pending_credit_facility::*;
 pub use primitives::*;

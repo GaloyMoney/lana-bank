@@ -20,8 +20,6 @@ pub enum ObligationError {
     InvalidStatusTransitionToDefaulted,
     #[error("ObligationError - PaymentAllocationError: {0}")]
     PaymentAllocationError(#[from] crate::payment_allocation::error::PaymentAllocationError),
-    #[error("ObligationError - PaymentAmountGreaterThanOutstandingObligations")]
-    PaymentAmountGreaterThanOutstandingObligations,
     #[error("CoreCreditError - ObligationError: {0}")]
     CreditLedgerError(#[from] crate::ledger::error::CreditLedgerError),
 }
@@ -37,7 +35,6 @@ impl ErrorSeverity for ObligationError {
             Self::InvalidStatusTransitionToOverdue => Level::ERROR,
             Self::InvalidStatusTransitionToDefaulted => Level::ERROR,
             Self::PaymentAllocationError(e) => e.severity(),
-            Self::PaymentAmountGreaterThanOutstandingObligations => Level::WARN,
             Self::CreditLedgerError(e) => e.severity(),
         }
     }

@@ -5,7 +5,7 @@ use cala_ledger::{velocity::*, *};
 
 pub struct UncoveredOutstandingLimit;
 
-const UNCOVERED_OUTSTANDING_LIMIT_ID: uuid::Uuid =
+pub const UNCOVERED_OUTSTANDING_LIMIT_ID: uuid::Uuid =
     uuid::uuid!("00000000-0000-0000-0000-000000000003");
 
 impl UncoveredOutstandingLimit {

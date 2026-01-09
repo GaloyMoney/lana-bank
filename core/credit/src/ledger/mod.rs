@@ -19,12 +19,17 @@ use cala_ledger::{
     CalaLedger, Currency, DebitOrCredit, JournalId,
     account::NewAccount,
     account_set::{AccountSet, AccountSetMemberId, AccountSetUpdate, NewAccountSet},
-    velocity::{NewVelocityControl, VelocityControlId},
+    error::LedgerError,
+    velocity::{
+        NewVelocityControl, VelocityControlId,
+        error::{LimitExceededError, VelocityError},
+    },
 };
 use tracing_macros::record_error_severity;
 
 use crate::{
     chart_of_accounts_integration::ChartOfAccountsIntegrationConfig,
+    ledger::velocity::UNCOVERED_OUTSTANDING_LIMIT_ID,
     obligation::{
         Obligation, ObligationDefaultedReallocationData, ObligationDueReallocationData,
         ObligationOverdueReallocationData,
@@ -1494,9 +1499,21 @@ impl CreditLedger {
             effective: *effective,
             initiated_by,
         };
-        self.cala
+
+        match self
+            .cala
             .post_transaction_in_op(op, *ledger_tx_id, templates::RECORD_PAYMENT_CODE, params)
-            .await?;
+            .await
+        {
+            Err(LedgerError::VelocityError(VelocityError::Enforcement(LimitExceededError {
+                limit_id,
+                ..
+            }))) if limit_id == UNCOVERED_OUTSTANDING_LIMIT_ID.into() => {
+                return Err(CreditLedgerError::PaymentAmountGreaterThanOutstandingObligations);
+            }
+            Err(e) => return Err(e.into()),
+            _ => (),
+        };
 
         Ok(())
     }
