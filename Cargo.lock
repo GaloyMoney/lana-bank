@@ -5885,7 +5885,6 @@ dependencies = [
 name = "sim-bootstrap"
 version = "0.0.0"
 dependencies = [
- "anyhow",
  "es-entity",
  "futures",
  "lana-app",

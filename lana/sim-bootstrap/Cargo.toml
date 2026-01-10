@@ -15,7 +15,7 @@ lana-events = { workspace = true }
 sim-time = { workspace = true }
 es-entity = { workspace = true }
 obix = { workspace = true }
-anyhow = { workspace = true }
+
 rust_decimal = { workspace = true }
 rust_decimal_macros = { workspace = true }
 serde = { workspace = true }

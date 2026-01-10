@@ -168,7 +168,7 @@ async fn do_timely_payments(
     app: LanaApp,
     id: CreditFacilityId,
     mut obligation_amount_rx: mpsc::Receiver<UsdCents>,
-) -> anyhow::Result<()> {
+) -> Result<(), SimBootstrapError> {
     let one_month = std::time::Duration::from_secs(30 * 24 * 60 * 60);
     let mut month_num = 0;
 
@@ -186,7 +186,8 @@ async fn do_timely_payments(
             .credit()
             .facilities()
             .has_outstanding_obligations(&sub, id)
-            .await?
+            .await
+            .map_err(CoreCreditError::from)?
         {
             break;
         }
