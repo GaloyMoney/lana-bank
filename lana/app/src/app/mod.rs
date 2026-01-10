@@ -40,7 +40,7 @@ use crate::{
 use domain_config::DomainConfigs;
 
 pub use config::*;
-use error::ApplicationError;
+pub use error::ApplicationError;
 
 #[derive(Clone)]
 pub struct LanaApp {

@@ -1,11 +1,12 @@
 use futures::StreamExt;
-use lana_app::{app::LanaApp, primitives::*};
+use lana_app::{app::LanaApp, credit::error::CoreCreditError, primitives::*};
 use lana_events::{CoreCreditEvent, LanaEvent};
 use obix::out::PersistentOutboxEvent;
 use rust_decimal_macros::dec;
 use tokio::sync::mpsc;
 use tracing::{Instrument, Span, instrument};
 
+use crate::error::SimBootstrapError;
 use crate::helpers;
 
 // Scenario 4: A credit facility that has multiple disbursals making timely payments
@@ -17,7 +18,7 @@ use crate::helpers;
 pub async fn disbursal_different_months_scenario(
     sub: Subject,
     app: &LanaApp,
-) -> anyhow::Result<()> {
+) -> Result<(), SimBootstrapError> {
     let (customer_id, _) =
         helpers::create_customer(&sub, app, "4-disbursal-different-months").await?;
 
@@ -34,7 +35,8 @@ pub async fn disbursal_different_months_scenario(
         .credit()
         .proposals()
         .conclude_customer_approval(&sub, cf_proposal.id, true)
-        .await?;
+        .await
+        .map_err(CoreCreditError::from)?;
 
     let mut stream = app.outbox().listen_persisted(None);
     while let Some(msg) = stream.next().await {
@@ -74,7 +76,8 @@ pub async fn disbursal_different_months_scenario(
         .credit()
         .facilities()
         .find_by_id(&sub, cf_proposal.id)
-        .await?
+        .await
+        .map_err(CoreCreditError::from)?
         .expect("cf exists");
     assert_eq!(cf.status(), CreditFacilityStatus::Closed);
 
@@ -87,7 +90,7 @@ async fn process_activation_message(
     sub: &Subject,
     app: &LanaApp,
     cf_proposal: &lana_app::credit::CreditFacilityProposal,
-) -> anyhow::Result<bool> {
+) -> Result<bool, SimBootstrapError> {
     match &message.payload {
         Some(LanaEvent::Credit(event @ CoreCreditEvent::FacilityProposalApproved { id, .. }))
             if cf_proposal.id == *id =>
@@ -128,7 +131,7 @@ async fn process_obligation_message(
     message: &PersistentOutboxEvent<LanaEvent>,
     cf_proposal: &lana_app::credit::CreditFacilityProposal,
     tx: &mpsc::Sender<UsdCents>,
-) -> anyhow::Result<bool> {
+) -> Result<bool, SimBootstrapError> {
     match &message.payload {
         Some(LanaEvent::Credit(
             event @ CoreCreditEvent::ObligationDue {
@@ -166,7 +169,7 @@ async fn do_disbursal_in_different_months(
     sub: Subject,
     app: LanaApp,
     id: CreditFacilityId,
-) -> anyhow::Result<()> {
+) -> Result<(), SimBootstrapError> {
     let one_month = std::time::Duration::from_secs(30 * 24 * 60 * 60);
 
     // there is already one disbursal in month 1
@@ -197,7 +200,7 @@ async fn do_timely_payments(
     app: LanaApp,
     id: CreditFacilityId,
     mut obligation_amount_rx: mpsc::Receiver<UsdCents>,
-) -> anyhow::Result<()> {
+) -> Result<(), SimBootstrapError> {
     while let Some(amount) = obligation_amount_rx.recv().await {
         app.record_payment_with_date(&sub, id, amount, sim_time::now().date_naive())
             .await?;
@@ -206,7 +209,8 @@ async fn do_timely_payments(
             .credit()
             .facilities()
             .has_outstanding_obligations(&sub, id)
-            .await?
+            .await
+            .map_err(CoreCreditError::from)?
         {
             break;
         }

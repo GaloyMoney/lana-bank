@@ -5895,8 +5895,11 @@ dependencies = [
  "rust_decimal_macros",
  "serde",
  "sim-time",
+ "thiserror 2.0.17",
  "tokio",
  "tracing",
+ "tracing-macros",
+ "tracing-utils",
  "workspace-hack",
 ]
 

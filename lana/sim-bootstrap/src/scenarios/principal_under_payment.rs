@@ -1,12 +1,13 @@
 use es_entity::prelude::chrono::Utc;
 use futures::StreamExt;
-use lana_app::{app::LanaApp, primitives::*};
+use lana_app::{app::LanaApp, credit::error::CoreCreditError, primitives::*};
 use lana_events::{CoreCreditEvent, LanaEvent, ObligationType};
 use obix::out::PersistentOutboxEvent;
 use rust_decimal_macros::dec;
 use tokio::sync::mpsc;
 use tracing::{Instrument, Span, instrument};
 
+use crate::error::SimBootstrapError;
 use crate::helpers;
 
 // Scenario 6: A fresh credit facility with interests paid out (principal under payment)
@@ -15,7 +16,10 @@ use crate::helpers;
     skip(app),
     err
 )]
-pub async fn principal_under_payment_scenario(sub: Subject, app: &LanaApp) -> anyhow::Result<()> {
+pub async fn principal_under_payment_scenario(
+    sub: Subject,
+    app: &LanaApp,
+) -> Result<(), SimBootstrapError> {
     let (customer_id, _) = helpers::create_customer(&sub, app, "6-principal-under-payment").await?;
 
     let deposit_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
@@ -37,7 +41,8 @@ pub async fn principal_under_payment_scenario(sub: Subject, app: &LanaApp) -> an
         .credit()
         .proposals()
         .conclude_customer_approval(&sub, cf_proposal.id, true)
-        .await?;
+        .await
+        .map_err(CoreCreditError::from)?;
 
     let mut stream = app.outbox().listen_persisted(None);
     while let Some(msg) = stream.next().await {
@@ -72,7 +77,7 @@ async fn process_activation_message(
     sub: &Subject,
     app: &LanaApp,
     cf_proposal: &lana_app::credit::CreditFacilityProposal,
-) -> anyhow::Result<bool> {
+) -> Result<bool, SimBootstrapError> {
     match &message.payload {
         Some(LanaEvent::Credit(event @ CoreCreditEvent::FacilityProposalApproved { id, .. }))
             if *id == cf_proposal.id =>
@@ -109,7 +114,7 @@ async fn process_obligation_message(
     message: &PersistentOutboxEvent<LanaEvent>,
     cf_proposal: &lana_app::credit::CreditFacilityProposal,
     tx: &mpsc::Sender<(ObligationType, UsdCents)>,
-) -> anyhow::Result<bool> {
+) -> Result<bool, SimBootstrapError> {
     match &message.payload {
         Some(LanaEvent::Credit(
             event @ CoreCreditEvent::ObligationDue {
@@ -151,7 +156,7 @@ async fn do_principal_under_payment(
     app: LanaApp,
     id: CreditFacilityId,
     mut obligation_amount_rx: mpsc::Receiver<(ObligationType, UsdCents)>,
-) -> anyhow::Result<()> {
+) -> Result<(), SimBootstrapError> {
     let mut principal_remaining = UsdCents::ZERO;
 
     while let Some((obligation_type, amount)) = obligation_amount_rx.recv().await {
@@ -166,7 +171,8 @@ async fn do_principal_under_payment(
             .credit()
             .facilities()
             .find_by_id(&sub, id)
-            .await?
+            .await
+            .map_err(CoreCreditError::from)?
             .unwrap();
         let total_outstanding = app.credit().outstanding(&facility).await?;
         if total_outstanding == principal_remaining {
