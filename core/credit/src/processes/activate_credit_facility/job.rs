@@ -158,6 +158,11 @@ where
             Span::current().record("pending_credit_facility_id", tracing::field::display(id));
             Span::current().record("event_type", event.as_ref());
 
+            // SAFETY: activation is idempotent; retries are expected 
+        if self.process.is_credit_facility_active(*id).await? {
+                tracing::info!( pending_credit_facility_id = %id, "Credit facility already active; skipping activation" ); 
+                return Ok(()); 
+            }
             self.process.execute_activate_credit_facility(*id).await?;
         }
         Ok(())
@@ -196,6 +201,8 @@ where
                         last_sequence = %state.sequence,
                         "Shutdown signal received"
                     );
+                    // Persist progress before rescheduling 
+                    current_job.update_execution_state(&state).await?;
                     return Ok(JobCompletion::RescheduleNow);
                 }
                 message = stream.next() => {
