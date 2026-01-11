@@ -8003,6 +8003,7 @@ dependencies = [
  "indexmap 2.12.0",
  "inout",
  "job 0.4.0",
+ "job 0.6.0",
  "lalrpop-util",
  "log",
  "memchr",
