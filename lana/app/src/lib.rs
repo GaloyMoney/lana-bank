@@ -90,7 +90,8 @@ pub mod governance {
     pub use core_deposit::APPROVE_WITHDRAWAL_PROCESS;
     pub use governance::{
         ApprovalProcess, ApprovalProcessStatus, ApprovalProcessType, ApprovalRules, Committee,
-        CommitteeId, Policy, approval_process_cursor, committee_cursor, error, policy_cursor,
+        CommitteeId, GovernanceEvent, Policy, approval_process_cursor, committee_cursor, error,
+        policy_cursor,
     };
 }
 

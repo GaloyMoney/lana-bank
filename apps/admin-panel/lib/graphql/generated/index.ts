@@ -95,6 +95,16 @@ export type ApprovalProcessApprovePayload = {
   approvalProcess: ApprovalProcess;
 };
 
+export type ApprovalProcessConcludedPayload = {
+  __typename?: 'ApprovalProcessConcludedPayload';
+  approvalProcess: ApprovalProcess;
+  approvalProcessId: Scalars['UUID']['output'];
+  approved: Scalars['Boolean']['output'];
+  deniedReason?: Maybe<Scalars['String']['output']>;
+  processType: ApprovalProcessType;
+  targetRef: Scalars['String']['output'];
+};
+
 export type ApprovalProcessConnection = {
   __typename?: 'ApprovalProcessConnection';
   /** A list of edges. */
@@ -496,6 +506,18 @@ export type CreditFacilityCollateralUpdated = {
   recordedAt: Scalars['Timestamp']['output'];
   satoshis: Scalars['Satoshis']['output'];
   txId: Scalars['UUID']['output'];
+};
+
+export type CreditFacilityCollateralizationPayload = {
+  __typename?: 'CreditFacilityCollateralizationPayload';
+  collateral: Scalars['Satoshis']['output'];
+  creditFacility: CreditFacility;
+  effective: Scalars['Date']['output'];
+  outstandingDisbursal: Scalars['UsdCents']['output'];
+  outstandingInterest: Scalars['UsdCents']['output'];
+  price: Scalars['UsdCents']['output'];
+  recordedAt: Scalars['Timestamp']['output'];
+  state: CollateralizationState;
 };
 
 export type CreditFacilityCollateralizationUpdated = {
@@ -2226,6 +2248,16 @@ export type PendingCreditFacilityCollateralUpdatePayload = {
   pendingCreditFacility: PendingCreditFacility;
 };
 
+export type PendingCreditFacilityCollateralizationPayload = {
+  __typename?: 'PendingCreditFacilityCollateralizationPayload';
+  collateral: Scalars['Satoshis']['output'];
+  effective: Scalars['Date']['output'];
+  pendingCreditFacility: PendingCreditFacility;
+  price: Scalars['UsdCents']['output'];
+  recordedAt: Scalars['Timestamp']['output'];
+  state: PendingCreditFacilityCollateralizationState;
+};
+
 export enum PendingCreditFacilityCollateralizationState {
   FullyCollateralized = 'FULLY_COLLATERALIZED',
   UnderCollateralized = 'UNDER_COLLATERALIZED'
@@ -2919,8 +2951,14 @@ export enum SortDirection {
 
 export type Subscription = {
   __typename?: 'Subscription';
-  creditFacilityCollateralizationUpdated: CreditFacilityCollateralizationUpdated;
-  pendingCreditFacilityCollateralizationUpdated: PendingCreditFacilityCollateralizationUpdated;
+  approvalProcessConcluded: ApprovalProcessConcludedPayload;
+  creditFacilityCollateralizationUpdated: CreditFacilityCollateralizationPayload;
+  pendingCreditFacilityCollateralizationUpdated: PendingCreditFacilityCollateralizationPayload;
+};
+
+
+export type SubscriptionApprovalProcessConcludedArgs = {
+  approvalProcessId: Scalars['UUID']['input'];
 };
 
 
@@ -4324,7 +4362,7 @@ export type PendingCreditFacilityCollateralizationUpdatedSubscriptionVariables =
 }>;
 
 
-export type PendingCreditFacilityCollateralizationUpdatedSubscription = { __typename?: 'Subscription', pendingCreditFacilityCollateralizationUpdated: { __typename?: 'PendingCreditFacilityCollateralizationUpdated', state: PendingCreditFacilityCollateralizationState, collateral: Satoshis, price: UsdCents, recordedAt: any, effective: any } };
+export type PendingCreditFacilityCollateralizationUpdatedSubscription = { __typename?: 'Subscription', pendingCreditFacilityCollateralizationUpdated: { __typename?: 'PendingCreditFacilityCollateralizationPayload', state: PendingCreditFacilityCollateralizationState, collateral: Satoshis, price: UsdCents, recordedAt: any, effective: any } };
 
 export type GetPendingCreditFacilityRepaymentPlanQueryVariables = Exact<{
   id: Scalars['UUID']['input'];

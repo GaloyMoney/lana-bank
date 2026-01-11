@@ -236,3 +236,25 @@ pub struct ApprovalProcessDenyInput {
     pub process_id: UUID,
 }
 crate::mutation_payload! { ApprovalProcessDenyPayload, approval_process: ApprovalProcess }
+
+#[derive(SimpleObject)]
+#[graphql(complex)]
+pub struct ApprovalProcessConcludedPayload {
+    pub approval_process_id: UUID,
+    pub process_type: ApprovalProcessType,
+    pub approved: bool,
+    pub denied_reason: Option<String>,
+    pub target_ref: String,
+}
+
+#[ComplexObject]
+impl ApprovalProcessConcludedPayload {
+    async fn approval_process(&self, ctx: &Context<'_>) -> async_graphql::Result<ApprovalProcess> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let approval_process = loader
+            .load_one(ApprovalProcessId::from(self.approval_process_id))
+            .await?
+            .expect("approval process not found");
+        Ok(approval_process)
+    }
+}

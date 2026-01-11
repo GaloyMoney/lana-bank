@@ -30,6 +30,7 @@ dependencies = [
  "futures",
  "jwks-utils",
  "lana-app",
+ "obix",
  "rust_decimal",
  "serde",
  "serde_json",

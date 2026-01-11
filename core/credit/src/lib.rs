@@ -37,7 +37,6 @@ use core_custody::{
 };
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
 use core_price::{CorePriceEvent, Price};
-use futures::{StreamExt, stream::BoxStream};
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
 use obix::out::{Outbox, OutboxEventMarker};
@@ -119,7 +118,6 @@ where
     terms_templates: Arc<TermsTemplates<Perms>>,
     public_ids: Arc<PublicIds>,
     liquidations: Arc<Liquidations<Perms, E>>,
-    outbox: Outbox<E>,
 }
 
 impl<Perms, E> Clone for CoreCredit<Perms, E>
@@ -157,7 +155,6 @@ where
             terms_templates: self.terms_templates.clone(),
             public_ids: self.public_ids.clone(),
             liquidations: self.liquidations.clone(),
-            outbox: self.outbox.clone(),
         }
     }
 }
@@ -461,7 +458,6 @@ where
             terms_templates: terms_templates_arc,
             public_ids: public_ids_arc,
             liquidations: liquidations_arc,
-            outbox: outbox.clone(),
         })
     }
 
@@ -642,85 +638,6 @@ where
             .await?;
         let repayment_plan = self.repayment_plan_repo.load(id).await?;
         Ok(repayment_plan.entries.into_iter().map(T::from).collect())
-    }
-
-    pub async fn subscribe_pending_credit_facility_collateralization_updates(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        pending_credit_facility_id: PendingCreditFacilityId,
-    ) -> Result<BoxStream<'static, PendingCreditFacilityCollateralizationUpdated>, CoreCreditError>
-    {
-        let _ = self
-            .pending_credit_facilities()
-            .find_by_id(sub, pending_credit_facility_id)
-            .await?;
-
-        let stream = self.outbox.listen_persisted(None);
-        let updates = stream.filter_map(move |event| async move {
-            let payload = event.payload.as_ref()?;
-            let event: &CoreCreditEvent = payload.as_event()?;
-            match event {
-                CoreCreditEvent::PendingCreditFacilityCollateralizationChanged {
-                    id,
-                    state,
-                    collateral,
-                    price,
-                    recorded_at,
-                    effective,
-                } if *id == pending_credit_facility_id => {
-                    Some(PendingCreditFacilityCollateralizationUpdated {
-                        state: *state,
-                        collateral: *collateral,
-                        price: *price,
-                        recorded_at: *recorded_at,
-                        effective: *effective,
-                    })
-                }
-                _ => None,
-            }
-        });
-
-        Ok(updates.boxed())
-    }
-
-    pub async fn subscribe_credit_facility_collateralization_updates(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        credit_facility_id: CreditFacilityId,
-    ) -> Result<BoxStream<'static, CollateralizationUpdated>, CoreCreditError> {
-        let _ = self
-            .facilities()
-            .find_by_id(sub, credit_facility_id)
-            .await?;
-
-        let stream = self.outbox.listen_persisted(None);
-        let updates = stream.filter_map(move |event| async move {
-            let payload = event.payload.as_ref()?;
-            let event: &CoreCreditEvent = payload.as_event()?;
-            match event {
-                CoreCreditEvent::FacilityCollateralizationChanged {
-                    id,
-                    state,
-                    recorded_at,
-                    effective,
-                    collateral,
-                    outstanding,
-                    price,
-                    ..
-                } if *id == credit_facility_id => Some(CollateralizationUpdated {
-                    state: *state,
-                    collateral: *collateral,
-                    outstanding_interest: outstanding.interest,
-                    outstanding_disbursal: outstanding.disbursed,
-                    recorded_at: *recorded_at,
-                    effective: *effective,
-                    price: *price,
-                }),
-                _ => None,
-            }
-        });
-
-        Ok(updates.boxed())
     }
 
     pub async fn subject_can_initiate_disbursal(

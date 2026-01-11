@@ -52,6 +52,15 @@ type ApprovalProcessApprovePayload {
 	approvalProcess: ApprovalProcess!
 }
 
+type ApprovalProcessConcludedPayload {
+	approvalProcessId: UUID!
+	processType: ApprovalProcessType!
+	approved: Boolean!
+	deniedReason: String
+	targetRef: String!
+	approvalProcess: ApprovalProcess!
+}
+
 type ApprovalProcessConnection {
 	"""
 	Information to aid in pagination.
@@ -457,6 +466,17 @@ type CreditFacilityCollateralUpdated {
 	effective: Date!
 	action: CollateralAction!
 	txId: UUID!
+}
+
+type CreditFacilityCollateralizationPayload {
+	state: CollateralizationState!
+	collateral: Satoshis!
+	outstandingInterest: UsdCents!
+	outstandingDisbursal: UsdCents!
+	recordedAt: Timestamp!
+	effective: Date!
+	price: UsdCents!
+	creditFacility: CreditFacility!
 }
 
 type CreditFacilityCollateralizationUpdated {
@@ -1923,6 +1943,15 @@ type PendingCreditFacilityCollateralUpdatePayload {
 	pendingCreditFacility: PendingCreditFacility!
 }
 
+type PendingCreditFacilityCollateralizationPayload {
+	state: PendingCreditFacilityCollateralizationState!
+	collateral: Satoshis!
+	price: UsdCents!
+	recordedAt: Timestamp!
+	effective: Date!
+	pendingCreditFacility: PendingCreditFacility!
+}
+
 enum PendingCreditFacilityCollateralizationState {
 	FULLY_COLLATERALIZED
 	UNDER_COLLATERALIZED
@@ -2340,8 +2369,9 @@ enum SortDirection {
 }
 
 type Subscription {
-	pendingCreditFacilityCollateralizationUpdated(pendingCreditFacilityId: UUID!): PendingCreditFacilityCollateralizationUpdated!
-	creditFacilityCollateralizationUpdated(creditFacilityId: UUID!): CreditFacilityCollateralizationUpdated!
+	pendingCreditFacilityCollateralizationUpdated(pendingCreditFacilityId: UUID!): PendingCreditFacilityCollateralizationPayload!
+	creditFacilityCollateralizationUpdated(creditFacilityId: UUID!): CreditFacilityCollateralizationPayload!
+	approvalProcessConcluded(approvalProcessId: UUID!): ApprovalProcessConcludedPayload!
 }
 
 input SumsubPermalinkCreateInput {

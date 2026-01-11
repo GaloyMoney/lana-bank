@@ -4,7 +4,10 @@ use std::io::Read;
 
 use futures::StreamExt;
 use futures::stream::Stream;
+use obix::out::OutboxEventMarker;
 
+use lana_app::credit::CoreCreditEvent;
+use lana_app::governance::GovernanceEvent;
 use lana_app::{
     accounting_init::constants::{
         BALANCE_SHEET_NAME, PROFIT_AND_LOSS_STATEMENT_NAME, TRIAL_BALANCE_STATEMENT_NAME,
@@ -2567,35 +2570,127 @@ impl Subscription {
         &self,
         ctx: &Context<'_>,
         pending_credit_facility_id: UUID,
-    ) -> async_graphql::Result<impl Stream<Item = PendingCreditFacilityCollateralizationUpdated>>
+    ) -> async_graphql::Result<impl Stream<Item = PendingCreditFacilityCollateralizationPayload>>
     {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let pending_credit_facility_id = PendingCreditFacilityId::from(pending_credit_facility_id);
 
-        let stream = app
-            .credit()
-            .subscribe_pending_credit_facility_collateralization_updates(
-                sub,
-                pending_credit_facility_id,
-            )
+        app.credit()
+            .pending_credit_facilities()
+            .find_by_id(sub, pending_credit_facility_id)
             .await?;
 
-        Ok(stream.map(Into::into))
+        let stream = app.outbox().listen_persisted(None);
+        let updates = stream.filter_map(move |event| async move {
+            let payload = event.payload.as_ref()?;
+            let event: &CoreCreditEvent = payload.as_event()?;
+            match event {
+                CoreCreditEvent::PendingCreditFacilityCollateralizationChanged {
+                    id,
+                    state,
+                    collateral,
+                    price,
+                    recorded_at,
+                    effective,
+                } if *id == pending_credit_facility_id => {
+                    Some(PendingCreditFacilityCollateralizationPayload {
+                        pending_credit_facility_id,
+                        update: PendingCreditFacilityCollateralizationUpdated {
+                            state: *state,
+                            collateral: *collateral,
+                            price: price.into_inner(),
+                            recorded_at: (*recorded_at).into(),
+                            effective: (*effective).into(),
+                        },
+                    })
+                }
+                _ => None,
+            }
+        });
+
+        Ok(updates)
     }
 
     async fn credit_facility_collateralization_updated(
         &self,
         ctx: &Context<'_>,
         credit_facility_id: UUID,
-    ) -> async_graphql::Result<impl Stream<Item = CreditFacilityCollateralizationUpdated>> {
+    ) -> async_graphql::Result<impl Stream<Item = CreditFacilityCollateralizationPayload>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let credit_facility_id = CreditFacilityId::from(credit_facility_id);
 
-        let stream = app
-            .credit()
-            .subscribe_credit_facility_collateralization_updates(sub, credit_facility_id)
+        app.credit()
+            .facilities()
+            .find_by_id(sub, credit_facility_id)
             .await?;
 
-        Ok(stream.map(Into::into))
+        let stream = app.outbox().listen_persisted(None);
+        let updates = stream.filter_map(move |event| async move {
+            let payload = event.payload.as_ref()?;
+            let event: &CoreCreditEvent = payload.as_event()?;
+            match event {
+                CoreCreditEvent::FacilityCollateralizationChanged {
+                    id,
+                    state,
+                    recorded_at,
+                    effective,
+                    collateral,
+                    outstanding,
+                    price,
+                    ..
+                } if *id == credit_facility_id => Some(CreditFacilityCollateralizationPayload {
+                    credit_facility_id,
+                    update: CreditFacilityCollateralizationUpdated {
+                        state: *state,
+                        collateral: *collateral,
+                        outstanding_interest: outstanding.interest,
+                        outstanding_disbursal: outstanding.disbursed,
+                        recorded_at: (*recorded_at).into(),
+                        effective: (*effective).into(),
+                        price: price.into_inner(),
+                    },
+                }),
+                _ => None,
+            }
+        });
+
+        Ok(updates)
+    }
+
+    async fn approval_process_concluded(
+        &self,
+        ctx: &Context<'_>,
+        approval_process_id: UUID,
+    ) -> async_graphql::Result<impl Stream<Item = ApprovalProcessConcludedPayload>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let approval_process_id = ApprovalProcessId::from(approval_process_id);
+
+        app.governance()
+            .find_approval_process_by_id(sub, approval_process_id)
+            .await?;
+
+        let stream = app.outbox().listen_persisted(None);
+        let updates = stream.filter_map(move |event| async move {
+            let payload = event.payload.as_ref()?;
+            let event: &GovernanceEvent = payload.as_event()?;
+            match event {
+                GovernanceEvent::ApprovalProcessConcluded {
+                    id,
+                    process_type,
+                    approved,
+                    denied_reason,
+                    target_ref,
+                } if *id == approval_process_id => Some(ApprovalProcessConcludedPayload {
+                    approval_process_id: approval_process_id.into(),
+                    process_type: process_type.into(),
+                    approved: *approved,
+                    denied_reason: denied_reason.clone(),
+                    target_ref: target_ref.clone(),
+                }),
+                _ => None,
+            }
+        });
+
+        Ok(updates)
     }
 }

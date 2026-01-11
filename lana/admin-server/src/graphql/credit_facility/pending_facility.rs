@@ -5,7 +5,10 @@ use crate::{
     primitives::*,
 };
 
-use super::{ApprovalProcess, CollateralBalance, CreditFacilityRepaymentPlanEntry};
+use super::{
+    ApprovalProcess, CollateralBalance, CreditFacilityRepaymentPlanEntry,
+    PendingCreditFacilityCollateralizationUpdated,
+};
 
 pub use lana_app::credit::{
     PendingCreditFacilitiesByCreatedAtCursor, PendingCreditFacility as DomainPendingCreditFacility,
@@ -112,3 +115,27 @@ pub struct PendingCreditFacilityCollateralUpdateInput {
     pub effective: Date,
 }
 crate::mutation_payload! { PendingCreditFacilityCollateralUpdatePayload, pending_credit_facility: PendingCreditFacility }
+
+#[derive(SimpleObject)]
+#[graphql(complex)]
+pub struct PendingCreditFacilityCollateralizationPayload {
+    #[graphql(flatten)]
+    pub update: PendingCreditFacilityCollateralizationUpdated,
+    #[graphql(skip)]
+    pub pending_credit_facility_id: PendingCreditFacilityId,
+}
+
+#[ComplexObject]
+impl PendingCreditFacilityCollateralizationPayload {
+    async fn pending_credit_facility(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<PendingCreditFacility> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let facility = loader
+            .load_one(self.pending_credit_facility_id)
+            .await?
+            .expect("pending credit facility not found");
+        Ok(facility)
+    }
+}
