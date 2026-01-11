@@ -18,15 +18,6 @@ pub struct GenerateAccountingCsvConfig<Perms> {
     pub _phantom: std::marker::PhantomData<Perms>,
 }
 
-impl<Perms> JobConfig for GenerateAccountingCsvConfig<Perms>
-where
-    Perms: authz::PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
-{
-    type Initializer = GenerateAccountingCsvInit<Perms>;
-}
-
 pub struct GenerateAccountingCsvInit<Perms>
 where
     Perms: authz::PermissionCheck,
@@ -62,14 +53,16 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
 {
-    fn job_type() -> JobType
-    where
-        Self: Sized,
-    {
+    type Config = GenerateAccountingCsvConfig<Perms>;
+    fn job_type(&self) -> JobType {
         GENERATE_ACCOUNTING_CSV_JOB
     }
 
-    fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
+    fn init(
+        &self,
+        job: &Job,
+        _: JobSpawner<Self::Config>,
+    ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(GenerateAccountingCsvExportJobRunner {
             config: job.config()?,
             document_storage: self.document_storage.clone(),
@@ -115,3 +108,5 @@ where
         Ok(JobCompletion::Complete)
     }
 }
+
+pub type GenerateAccountingCsvJobSpawner<Perms> = JobSpawner<GenerateAccountingCsvConfig<Perms>>;

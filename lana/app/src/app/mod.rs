@@ -94,6 +94,13 @@ impl LanaApp {
         )
         .await?;
 
+        let new_job_poller_config = job_new::JobPollerConfig {
+            job_lost_interval: config.job_poller.job_lost_interval,
+            shutdown_timeout: config.job_poller.shutdown_timeout,
+            max_jobs_per_process: config.job_poller.max_jobs_per_process,
+            min_jobs_per_process: config.job_poller.min_jobs_per_process,
+        };
+
         let mut jobs = Jobs::init(
             job::JobSvcConfig::builder()
                 .pool(pool.clone())
@@ -105,6 +112,7 @@ impl LanaApp {
         let mut job_new = job_new::Jobs::init(
             job_new::JobSvcConfig::builder()
                 .pool(pool.clone())
+                .poller_config(new_job_poller_config)
                 .build()
                 .expect("Couldn't build JobSvcConfig"),
         )
@@ -113,8 +121,8 @@ impl LanaApp {
         let dashboard = Dashboard::init(&pool, &authz, &mut job_new, &outbox).await?;
         let governance = Governance::new(&pool, &authz, &outbox);
         let storage = Storage::new(&config.storage);
-        let reports = Reports::init(&pool, &authz, config.report, &outbox, &jobs, &storage).await?;
-        let price = Price::init(&jobs, &outbox).await?;
+        let reports = Reports::init(&pool, &authz, config.report, &outbox, &storage).await?;
+        let price = Price::init(&mut job_new, &outbox).await?;
         let documents = DocumentStorage::new(&pool, &storage);
         let public_ids = PublicIds::new(&pool);
 
@@ -134,7 +142,7 @@ impl LanaApp {
             &cala,
             journal_init.journal_id,
             documents.clone(),
-            &jobs,
+            &mut job_new,
             &domain_configs,
         );
 
@@ -152,7 +160,7 @@ impl LanaApp {
             &authz,
             &outbox,
             &governance,
-            &jobs,
+            &mut job_new,
             &cala,
             journal_init.journal_id,
             &public_ids,
@@ -170,7 +178,7 @@ impl LanaApp {
         .await?;
 
         let applicants =
-            Applicants::new(&pool, &config.sumsub, &authz, &customers, &mut jobs).await?;
+            Applicants::new(&pool, &config.sumsub, &authz, &customers, &mut job_new).await?;
 
         let deposit_sync = DepositSync::init(
             &mut job_new,

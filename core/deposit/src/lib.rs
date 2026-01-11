@@ -120,7 +120,7 @@ where
         authz: &Perms,
         outbox: &Outbox<E>,
         governance: &Governance<Perms, E>,
-        jobs: &Jobs,
+        jobs: &mut Jobs,
         cala: &CalaLedger,
         journal_id: CalaJournalId,
         public_ids: &PublicIds,
@@ -136,11 +136,15 @@ where
         let approve_withdrawal =
             ApproveWithdrawal::new(&withdrawals, authz.audit(), governance, &ledger);
 
-        jobs.add_initializer_and_spawn_unique(
-            WithdrawApprovalInit::new(outbox, &approve_withdrawal),
-            WithdrawApprovalJobConfig::<Perms, E>::new(),
-        )
-        .await?;
+        let approve_withdrawal_job_spawner =
+            jobs.add_initializer(WithdrawApprovalInit::new(outbox, &approve_withdrawal));
+
+        approve_withdrawal_job_spawner
+            .spawn_unique(
+                job::JobId::new(),
+                WithdrawApprovalJobConfig::<Perms, E>::new(),
+            )
+            .await?;
 
         match governance.init_policy(APPROVE_WITHDRAWAL_PROCESS).await {
             Err(governance::error::GovernanceError::PolicyError(

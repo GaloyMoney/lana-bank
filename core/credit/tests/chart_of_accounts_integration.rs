@@ -44,9 +44,17 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     )
     .await?;
 
+    let mut job_new = job_new::Jobs::init(
+        job_new::JobSvcConfig::builder()
+            .pool(pool.clone())
+            .build()
+            .unwrap(),
+    )
+    .await?;
+
     let journal_id = helpers::init_journal(&cala).await?;
     let public_ids = PublicIds::new(&pool);
-    let price = core_price::Price::init(&jobs, &outbox).await?;
+    let price = core_price::Price::init(&mut job_new, &outbox).await?;
 
     let credit = CoreCredit::init(
         &pool,
@@ -71,7 +79,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         &cala,
         journal_id,
         accounting_document_storage,
-        &jobs,
+        &mut job_new,
         &domain_configs,
     );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));

@@ -1,5 +1,7 @@
 mod helpers;
 
+use std::sync::Arc;
+
 use rand::Rng;
 use rust_decimal_macros::dec;
 
@@ -11,7 +13,7 @@ use obix::out::Outbox;
 #[tokio::test]
 async fn get_price_from_client() {
     let client = BfxClient::new();
-    let price = fetch_price(&client).await;
+    let price = fetch_price(Arc::new(client)).await;
     assert!(price.is_ok());
 }
 
@@ -20,7 +22,7 @@ async fn update_price() -> anyhow::Result<()> {
     let pool = init_pool().await?;
 
     let outbox = Outbox::<DummyEvent>::init(&pool, Default::default()).await?;
-    let jobs = job::Jobs::init(
+    let mut jobs = job::Jobs::init(
         job::JobSvcConfig::builder()
             .pool(pool.clone())
             .build()
@@ -28,7 +30,7 @@ async fn update_price() -> anyhow::Result<()> {
     )
     .await?;
 
-    let price = Price::init(&jobs, &outbox).await?;
+    let price = Price::init(&mut jobs, &outbox).await?;
 
     let initial_price_cents = rand::rng().random_range(1_000_000..10_000_000);
     let initial_price = PriceOfOneBTC::new(UsdCents::from(initial_price_cents));

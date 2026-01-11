@@ -25,7 +25,7 @@ async fn deposit() -> anyhow::Result<()> {
         .exec_migrations(false)
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
-    let jobs = job::Jobs::init(
+    let mut jobs = job::Jobs::init(
         job::JobSvcConfig::builder()
             .pool(pool.clone())
             .build()
@@ -51,7 +51,7 @@ async fn deposit() -> anyhow::Result<()> {
         &authz,
         &outbox,
         &governance,
-        &jobs,
+        &mut jobs,
         &cala,
         journal_id,
         &public_ids,
@@ -106,7 +106,7 @@ async fn revert_deposit() -> anyhow::Result<()> {
         .exec_migrations(false)
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
-    let jobs = job::Jobs::init(
+    let mut jobs = job::Jobs::init(
         job::JobSvcConfig::builder()
             .pool(pool.clone())
             .build()
@@ -132,7 +132,7 @@ async fn revert_deposit() -> anyhow::Result<()> {
         &authz,
         &outbox,
         &governance,
-        &jobs,
+        &mut jobs,
         &cala,
         journal_id,
         &public_ids,

@@ -12,7 +12,7 @@ sim-time = ["dep:sim-time"]
 [dependencies]
 core-money = { workspace = true }
 
-job = { workspace = true }
+job = { version  = "0.6.0" }
 obix = { workspace = true }
 async-trait = { workspace = true }
 futures = { workspace = true }

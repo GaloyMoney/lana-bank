@@ -16,7 +16,6 @@ json-schema = [
 audit = { workspace = true }
 authz = { workspace = true }
 obix = { workspace = true }
-job = { workspace = true }
 cloud-storage = { workspace = true }
 
 es-entity = { workspace = true }
