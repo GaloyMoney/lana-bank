@@ -12,6 +12,10 @@ resource "google_bigquery_dataset_iam_member" "dataset_owner_sa" {
   dataset_id = google_bigquery_dataset.dataset.dataset_id
   role       = "roles/bigquery.dataOwner"
   member     = "serviceAccount:${google_service_account.bq_access_sa.email}"
+
+  lifecycle {
+    replace_triggered_by = [google_bigquery_dataset.dataset.id]
+  }
 }
 
 resource "google_bigquery_dataset_iam_member" "dataset_additional_owners" {
@@ -20,6 +24,10 @@ resource "google_bigquery_dataset_iam_member" "dataset_additional_owners" {
   dataset_id = google_bigquery_dataset.dataset.dataset_id
   role       = "roles/bigquery.dataOwner"
   member     = "user:${each.value}"
+
+  lifecycle {
+    replace_triggered_by = [google_bigquery_dataset.dataset.id]
+  }
 }
 
 resource "google_bigquery_dataset" "dbt" {
@@ -36,6 +44,10 @@ resource "google_bigquery_dataset_iam_member" "dbt_owner" {
   dataset_id = google_bigquery_dataset.dbt.dataset_id
   role       = "roles/bigquery.dataOwner"
   member     = "serviceAccount:${google_service_account.bq_access_sa.email}"
+
+  lifecycle {
+    replace_triggered_by = [google_bigquery_dataset.dbt.id]
+  }
 }
 
 resource "google_bigquery_dataset_iam_member" "dbt_additional_owners" {
@@ -44,6 +56,10 @@ resource "google_bigquery_dataset_iam_member" "dbt_additional_owners" {
   dataset_id = google_bigquery_dataset.dbt.dataset_id
   role       = "roles/bigquery.dataOwner"
   member     = "user:${each.value}"
+
+  lifecycle {
+    replace_triggered_by = [google_bigquery_dataset.dbt.id]
+  }
 }
 
 resource "google_bigquery_dataset_access" "view_access" {
@@ -55,5 +71,12 @@ resource "google_bigquery_dataset_access" "view_access" {
       dataset_id = google_bigquery_dataset.dbt.dataset_id
     }
     target_types = ["VIEWS"]
+  }
+
+  lifecycle {
+    replace_triggered_by = [
+      google_bigquery_dataset.dataset.id,
+      google_bigquery_dataset.dbt.id
+    ]
   }
 }
