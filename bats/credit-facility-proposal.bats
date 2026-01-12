@@ -97,6 +97,26 @@ wait_for_dashboard_disbursed() {
   [[ "$after" -eq "$expected_after" ]] || exit 1
 }
 
+wait_for_payment() {
+  credit_facility_id=$1
+  outstanding_before=$2
+  payment_amount=$3
+
+  expected_after="$(( $outstanding_before - $payment_amount ))"
+
+  variables=$(
+    jq -n \
+      --arg creditFacilityId "$credit_facility_id" \
+    '{ id: $creditFacilityId }'
+  )
+  exec_admin_graphql 'find-credit-facility' "$variables"
+
+  balance=$(graphql_output '.data.creditFacility.balance')
+  after=$(echo $balance | jq -r '.outstanding.usdBalance')
+
+  [[ "$after" -eq "$expected_after" ]] || exit 1
+}
+
 wait_for_dashboard_payment() {
   before=$1
   payment_amount=$2
@@ -286,7 +306,15 @@ ymd() {
     }'
   )
   exec_admin_graphql 'credit-facility-partial-payment-record' "$variables"
-  updated_balance=$(graphql_output '.data.creditFacilityPartialPaymentRecord.creditFacility.balance')
+  retry 30 2 wait_for_payment "$credit_facility_id" "$total_outstanding" "$amount"
+
+  variables=$(
+    jq -n \
+      --arg creditFacilityId "$credit_facility_id" \
+    '{ id: $creditFacilityId }'
+  )
+  exec_admin_graphql 'find-credit-facility' "$variables"
+  updated_balance=$(graphql_output '.data.creditFacility.balance')
 
   updated_interest=$(echo $updated_balance | jq -r '.interest.total.usdBalance')
   [[ "$interest" -eq "$updated_interest" ]] || exit 1
