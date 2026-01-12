@@ -310,7 +310,7 @@ has_bigquery_credentials() {
 
   echo "Launched dbt_seeds_job with run ID: $run_id"
 
-  dagster_poll_run_status "$run_id" 240 2 || return 1
+  dagster_poll_run_status "$run_id" 480 2 || return 1
 
   asset_vars=$(jq -n --argjson path "$seed_asset_path" '{
     assetKey: { path: $path }
