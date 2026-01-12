@@ -1,0 +1,9 @@
+category,reserve_percentage,consumer_calendar_ge_days,consumer_calendar_le_days
+A1,0.00,0,7
+A2,0.01,8,30
+B,0.05,31,60
+C1,0.15,61,90
+C2,0.25,91,120
+D1,0.50,121,150
+D2,0.75,151,180
+E,1.00,181,50000

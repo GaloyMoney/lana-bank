@@ -1,0 +1,4 @@
+estado,explicación,status,explanation,consumer_calendar_ge_days,consumer_calendar_le_days
+Vigente - al día,Préstamo sin retrasos,Current - current,Loan with no delays,-50000,0
+Vigente - en mora,Préstamo con mora hasta 90 días,Current - past due,Loan up to 90 days past due,1,90
+Vencido,Préstamo con mora de 91 días o más,Passed,Loan 91 days or more past due,91,50000

@@ -249,7 +249,7 @@ has_bigquery_credentials() {
   echo "Downstream dbt asset automatically started (run ID: $new_run_id) after upstream completion"
 }
 
-@test "dagster: verify dbt seed asset exists" {
+@test "dagster: verify dbt seed asset static_ncf_01_03_row_titles_seed exists" {
   if [[ "${DAGSTER}" != "true" ]]; then
     skip "Skipping dagster tests"
   fi
@@ -260,16 +260,16 @@ has_bigquery_credentials() {
   exec_dagster_graphql "assets"
   dagster_validate_json || return 1
 
-  # Check if the test seed asset exists
-  if ! echo "$output" | jq -e '.data.assetsOrError.nodes[]?.key.path | select(.[0] == "dbt_lana_dw" and .[-1] == "_TEST_DO_NOT_USE_example_seed")' >/dev/null; then
-    echo "dbt seed asset _TEST_DO_NOT_USE_example_seed not found in Dagster assets"
-    echo "Available dbt_lana_dw assets:"
-    echo "$output" | jq '.data.assetsOrError.nodes[]?.key.path | select(.[0] == "dbt_lana_dw")'
+  seed_asset_path=$(echo "$output" | jq -c '[.data.assetsOrError.nodes[]?.key.path | select(.[0] == "dbt_lana_dw" and .[-1] == "static_ncf_01_03_row_titles_seed")][0] // empty')
+  if [ -z "$seed_asset_path" ]; then
+    echo "dbt seed asset static_ncf_01_03_row_titles_seed not found in Dagster assets"
+    echo "Available dbt_lana_dw assets matching static_ncf_01_03:*"
+    echo "$output" | jq '.data.assetsOrError.nodes[]?.key.path | select(.[0] == "dbt_lana_dw" and (.[-1] | contains("static_ncf_01_03")))'
     return 1
   fi
 }
 
-@test "dagster: run dbt_seeds_job and verify success" {
+@test "dagster: materialize dbt seed static_ncf_01_03_row_titles_seed and verify success" {
   if [[ "${DAGSTER}" != "true" ]]; then
     skip "Skipping dagster tests"
   fi
@@ -277,36 +277,59 @@ has_bigquery_credentials() {
     skip "Skipping - requires BigQuery credentials"
   fi
 
-  # Launch the dbt_seeds_job
-  variables=$(jq -n '{
+  exec_dagster_graphql "assets"
+  dagster_validate_json || return 1
+
+  seed_asset_path=$(echo "$output" | jq -c '[.data.assetsOrError.nodes[]?.key.path | select(.[0] == "dbt_lana_dw" and .[-1] == "static_ncf_01_03_row_titles_seed")][0] // empty')
+  if [ -z "$seed_asset_path" ]; then
+    echo "dbt seed asset static_ncf_01_03_row_titles_seed not found in Dagster assets"
+    echo "Response: $output"
+    return 1
+  fi
+
+  variables=$(jq -n --argjson path "$seed_asset_path" '{
     executionParams: {
       selector: {
         repositoryLocationName: "Lana DW",
         repositoryName: "__repository__",
-        jobName: "dbt_seeds_job"
+        jobName: "__ASSET_JOB",
+        assetSelection: [
+          { path: $path }
+        ]
       },
       runConfigData: {}
     }
   }')
-  
+
   exec_dagster_graphql "launch_run" "$variables"
   dagster_check_launch_run_errors || return 1
 
   run_id=$(echo "$output" | jq -r '.data.launchRun.run.runId // empty')
   if [ -z "$run_id" ]; then
-    echo "Failed to launch dbt_seeds_job - no runId returned"
+    echo "Failed to launch seed materialization - no runId returned"
     echo "Response: $output"
     return 1
   fi
-  
-  echo "Launched dbt_seeds_job with run ID: $run_id"
-  
-  dagster_poll_run_status "$run_id" 300 1 || return 1
-  
-  echo "dbt_seeds_job completed successfully"
+
+  echo "Launched seed materialization with run ID: $run_id"
+
+  dagster_poll_run_status "$run_id" 120 2 || return 1
+
+  asset_vars=$(jq -n --argjson path "$seed_asset_path" '{
+    assetKey: { path: $path }
+  }')
+  exec_dagster_graphql "asset_materializations" "$asset_vars"
+
+  dagster_validate_json || return 1
+
+  asset_type=$(echo "$output" | jq -r '.data.assetOrError.__typename // empty')
+  [ "$asset_type" = "Asset" ] || { echo "Asset not found: $output"; return 1; }
+
+  recent_run_id=$(echo "$output" | jq -r '.data.assetOrError.assetMaterializations[0].runId // empty')
+  [ "$recent_run_id" = "$run_id" ] || { echo "Expected run ID $run_id, got $recent_run_id"; return 1; }
 }
 
-@test "dagster: verify model depends on seed" {
+@test "dagster: verify static_ncf_01_03_column_01_account_config depends on static_ncf_01_03_row_titles_seed" {
   if [[ "${DAGSTER}" != "true" ]]; then
     skip "Skipping dagster tests"
   fi
@@ -314,25 +337,42 @@ has_bigquery_credentials() {
     skip "Skipping - requires BigQuery credentials"
   fi
 
-  # Query dependencies of the test model that consumes the seed
-  model_asset_vars=$(jq -n '{
-    assetKey: { path: ["dbt_lana_dw", "staging", "_TEST_DO_NOT_USE_seed_consumer"] }
-  }')
-  exec_dagster_graphql "asset_dependencies" "$model_asset_vars"
-  
+  exec_dagster_graphql "assets"
   dagster_validate_json || return 1
-  
-  # Check if the asset node exists
-  asset_node=$(echo "$output" | jq -e '.data.assetNodes[0] // empty')
-  [ -n "$asset_node" ] || { echo "Asset _TEST_DO_NOT_USE_seed_consumer not found: $output"; return 1; }
-  
-  # Check if the seed is in the dependencies
-  if ! echo "$output" | jq -e '.data.assetNodes[0].dependencies[]?.asset.assetKey.path | select(. == ["dbt_lana_dw", "seeds", "_TEST_DO_NOT_USE_example_seed"])' >/dev/null; then
-    echo "_TEST_DO_NOT_USE_seed_consumer does not depend on seed"
-    echo "Dependencies found:"
-    echo "$output" | jq '.data.assetNodes[0].dependencies[].asset.assetKey.path'
+
+  seed_asset_path=$(echo "$output" | jq -c '[.data.assetsOrError.nodes[]?.key.path | select(.[0] == "dbt_lana_dw" and .[-1] == "static_ncf_01_03_row_titles_seed")][0] // empty')
+  model_asset_path=$(echo "$output" | jq -c '[.data.assetsOrError.nodes[]?.key.path | select(.[0] == "dbt_lana_dw" and .[-1] == "static_ncf_01_03_column_01_account_config")][0] // empty')
+
+  if [ -z "$model_asset_path" ]; then
+    echo "Model static_ncf_01_03_column_01_account_config not found in Dagster assets"
+    echo "Available dbt_lana_dw assets matching static_ncf_01_03:*"
+    echo "$output" | jq '.data.assetsOrError.nodes[]?.key.path | select(.[0] == "dbt_lana_dw" and (.[-1] | contains("static_ncf_01_03")))'
     return 1
   fi
-  
+
+  if [ -z "$seed_asset_path" ]; then
+    echo "Seed static_ncf_01_03_row_titles_seed not found in Dagster assets"
+    echo "Available dbt_lana_dw assets matching static_ncf_01_03:*"
+    echo "$output" | jq '.data.assetsOrError.nodes[]?.key.path | select(.[0] == "dbt_lana_dw" and (.[-1] | contains("static_ncf_01_03")))'
+    return 1
+  fi
+
+  model_asset_vars=$(jq -n --argjson path "$model_asset_path" '{
+    assetKey: { path: $path }
+  }')
+  exec_dagster_graphql "asset_dependencies" "$model_asset_vars"
+
+  dagster_validate_json || return 1
+
+  asset_node=$(echo "$output" | jq -e '.data.assetNodes[0] // empty')
+  [ -n "$asset_node" ] || { echo "Asset static_ncf_01_03_column_01_account_config not found: $output"; return 1; }
+
+  if ! echo "$output" | jq -e --argjson seedPath "$seed_asset_path" '.data.assetNodes[0].dependencies[]?.asset.assetKey.path | select(. == $seedPath)' >/dev/null; then
+    echo "static_ncf_01_03_column_01_account_config does not depend on static_ncf_01_03_row_titles_seed"
+    echo "Dependencies found:"
+    echo "$output" | jq '.data.assetNodes[0].dependencies[]?.asset.assetKey.path'
+    return 1
+  fi
+
   echo "Model correctly depends on seed asset"
 }
