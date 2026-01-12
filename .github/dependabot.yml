@@ -19,8 +19,7 @@ updates:
     - dependency-name: "job"
     - dependency-name: "obix"
     - dependency-name: "es-entity"
-    - dependency-name: "cala-ledger"
-    - dependency-name: "cala-cel-interpreter"
+    - dependency-name: "cala-*"
     - dependency-name: "sim-time"
 
 - package-ecosystem: "npm"
