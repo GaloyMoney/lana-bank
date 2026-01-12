@@ -239,7 +239,7 @@ where
                     .await?;
 
                 self.liquidations
-                    .complete_in_op(db, self.config.liquidation_id, *payment_id)
+                    .complete_in_op(db, self.config.liquidation_id)
                     .await?;
 
                 Ok(ControlFlow::Break(()))

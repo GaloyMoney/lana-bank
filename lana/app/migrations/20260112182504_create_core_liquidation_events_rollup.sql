@@ -130,7 +130,6 @@ BEGIN
       new_row.payment_id := (NEW.event ->> 'payment_id')::UUID;
     WHEN 'completed' THEN
       new_row.is_completed := true;
-      new_row.payment_id := (NEW.event ->> 'payment_id')::UUID;
   END CASE;
 
   INSERT INTO core_liquidation_events_rollup (
