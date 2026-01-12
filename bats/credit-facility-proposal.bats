@@ -292,6 +292,10 @@ ymd() {
   total_outstanding=$(echo $balance | jq -r '.outstanding.usdBalance')
   [[ "$total_outstanding" -eq "$(( $interest_outstanding + $disbursed_outstanding ))" ]] || exit 1
 
+  payments_unapplied=$(echo $balance | jq -r '.paymentsUnapplied.usdBalance')
+  [[ "$payments_unapplied" != "null" ]] || exit 1
+  [[ "$payments_unapplied" -eq 0 ]] || exit 1
+
   disbursed_payment=25000
   amount="$(( $disbursed_payment + $interest_outstanding ))"
   variables=$(
@@ -306,6 +310,10 @@ ymd() {
     }'
   )
   exec_admin_graphql 'credit-facility-partial-payment-record' "$variables"
+  balance_after_payment=$(graphql_output '.data.creditFacilityPartialPaymentRecord.creditFacility.balance')
+  payments_unapplied_after=$(echo $balance_after_payment | jq -r '.paymentsUnapplied.usdBalance')
+  [[ "$payments_unapplied_after" -gt 0 ]] || exit 1
+
   retry 30 2 wait_for_payment "$credit_facility_id" "$total_outstanding" "$amount"
 
   variables=$(
