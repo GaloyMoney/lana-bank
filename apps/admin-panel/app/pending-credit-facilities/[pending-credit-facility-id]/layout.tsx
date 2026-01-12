@@ -12,8 +12,10 @@ import { PendingCreditFacilityTermsCard } from "./terms-card"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 
 import {
+  PendingCreditFacilityStatus,
   useGetPendingCreditFacilityLayoutDetailsQuery,
   usePendingCreditFacilityCollateralizationUpdatedSubscription,
+  usePendingCreditFacilityCompletedSubscription,
 } from "@/lib/graphql/generated"
 
 gql`
@@ -99,11 +101,17 @@ gql`
     pendingCreditFacilityCollateralizationUpdated(
       pendingCreditFacilityId: $pendingCreditFacilityId
     ) {
-      state
-      collateral
-      price
-      recordedAt
-      effective
+      pendingCreditFacility {
+        ...PendingCreditFacilityLayoutFragment
+      }
+    }
+  }
+
+  subscription pendingCreditFacilityCompleted($pendingCreditFacilityId: UUID!) {
+    pendingCreditFacilityCompleted(pendingCreditFacilityId: $pendingCreditFacilityId) {
+      pendingCreditFacility {
+        ...PendingCreditFacilityLayoutFragment
+      }
     }
   }
 `
@@ -118,15 +126,17 @@ export default function PendingCreditFacilityLayout({
   const { "pending-credit-facility-id": pendingId } = use(params)
   const commonT = useTranslations("Common")
 
-  const { data, loading, error, refetch } = useGetPendingCreditFacilityLayoutDetailsQuery(
-    {
-      variables: { pendingCreditFacilityId: pendingId },
-    },
-  )
+  const { data, loading, error } = useGetPendingCreditFacilityLayoutDetailsQuery({
+    variables: { pendingCreditFacilityId: pendingId },
+  })
 
   usePendingCreditFacilityCollateralizationUpdatedSubscription({
     variables: { pendingCreditFacilityId: pendingId },
-    onData: () => refetch(),
+  })
+
+  usePendingCreditFacilityCompletedSubscription({
+    variables: { pendingCreditFacilityId: pendingId },
+    skip: data?.pendingCreditFacility?.status === PendingCreditFacilityStatus.Completed,
   })
 
   if (loading && !data) return <DetailsPageSkeleton detailItems={4} tabs={2} />

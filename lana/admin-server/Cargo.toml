@@ -34,7 +34,6 @@ rust_decimal = { workspace = true }
 anyhow = { workspace = true }
 thiserror = { workspace = true }
 
-tokio-stream = { workspace = true }
 futures = { workspace = true }
 
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }

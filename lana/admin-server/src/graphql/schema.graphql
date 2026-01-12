@@ -52,15 +52,6 @@ type ApprovalProcessApprovePayload {
 	approvalProcess: ApprovalProcess!
 }
 
-type ApprovalProcessConcludedPayload {
-	approvalProcessId: UUID!
-	processType: ApprovalProcessType!
-	approved: Boolean!
-	deniedReason: String
-	targetRef: String!
-	approvalProcess: ApprovalProcess!
-}
-
 type ApprovalProcessConnection {
 	"""
 	Information to aid in pagination.
@@ -2378,7 +2369,6 @@ type Subscription {
 	pendingCreditFacilityCollateralizationUpdated(pendingCreditFacilityId: UUID!): PendingCreditFacilityCollateralizationPayload!
 	pendingCreditFacilityCompleted(pendingCreditFacilityId: UUID!): PendingCreditFacilityCompletedPayload!
 	creditFacilityCollateralizationUpdated(creditFacilityId: UUID!): CreditFacilityCollateralizationPayload!
-	approvalProcessConcluded(approvalProcessId: UUID!): ApprovalProcessConcludedPayload!
 }
 
 input SumsubPermalinkCreateInput {

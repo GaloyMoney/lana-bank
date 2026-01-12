@@ -7,7 +7,6 @@ use futures::stream::Stream;
 use obix::out::OutboxEventMarker;
 
 use lana_app::credit::CoreCreditEvent;
-use lana_app::governance::GovernanceEvent;
 use lana_app::{
     accounting_init::constants::{
         BALANCE_SHEET_NAME, PROFIT_AND_LOSS_STATEMENT_NAME, TRIAL_BALANCE_STATEMENT_NAME,
@@ -2687,43 +2686,6 @@ impl Subscription {
                         effective: (*effective).into(),
                         price: price.into_inner(),
                     },
-                }),
-                _ => None,
-            }
-        });
-
-        Ok(updates)
-    }
-
-    async fn approval_process_concluded(
-        &self,
-        ctx: &Context<'_>,
-        approval_process_id: UUID,
-    ) -> async_graphql::Result<impl Stream<Item = ApprovalProcessConcludedPayload>> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let approval_process_id = ApprovalProcessId::from(approval_process_id);
-
-        app.governance()
-            .find_approval_process_by_id(sub, approval_process_id)
-            .await?;
-
-        let stream = app.outbox().listen_persisted(None);
-        let updates = stream.filter_map(move |event| async move {
-            let payload = event.payload.as_ref()?;
-            let event: &GovernanceEvent = payload.as_event()?;
-            match event {
-                GovernanceEvent::ApprovalProcessConcluded {
-                    id,
-                    process_type,
-                    approved,
-                    denied_reason,
-                    target_ref,
-                } if *id == approval_process_id => Some(ApprovalProcessConcludedPayload {
-                    approval_process_id: approval_process_id.into(),
-                    process_type: process_type.into(),
-                    approved: *approved,
-                    denied_reason: denied_reason.clone(),
-                    target_ref: target_ref.clone(),
                 }),
                 _ => None,
             }

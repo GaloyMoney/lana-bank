@@ -165,7 +165,7 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
                   loading={loading}
                   data-testid="confirm-update-button"
                 >
-                  {loading ? t("form.buttons.updating") : t("form.buttons.confirm")}
+                  {t("form.buttons.confirm")}
                 </Button>
               </DialogFooter>
             </form>
