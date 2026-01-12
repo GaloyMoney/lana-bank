@@ -5,7 +5,7 @@ from generate_es_reports.constants import DEFAULT_REPORTS_YAML_PATH
 from generate_es_reports.domain.report import BaseFileOutputConfig, ReportJobDefinition
 from generate_es_reports.generator import generate_single_report
 from generate_es_reports.io import BigQueryTableFetcher, load_report_jobs_from_yaml
-from src.assets.dbt import _load_dbt_manifest, _get_dbt_asset_key
+from src.assets.dbt import _get_dbt_asset_key, _load_dbt_manifest
 from src.core import Protoasset
 from src.resources import (
     RESOURCE_KEY_DW_BQ,
