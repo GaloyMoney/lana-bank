@@ -844,15 +844,11 @@ where
             .find_by_id_without_audit(credit_facility_id)
             .await?;
 
-        let mut db = self.facilities.begin_op_with_clock(&self.clock).await?;
-
         let payment_id = PaymentId::new();
         let effective = self.clock.today();
         let initiated_by = LedgerTransactionInitiator::try_from_subject(sub)?;
-        if let Some(payment) = self
-            .payments
-            .record_in_op(
-                &mut db,
+        self.payments
+            .record(
                 payment_id,
                 credit_facility_id,
                 PaymentLedgerAccountIds {
@@ -866,14 +862,7 @@ where
                 effective,
                 initiated_by,
             )
-            .await?
-        {
-            self.obligations
-                .allocate_payment_in_op(&mut db, &payment, initiated_by)
-                .await?;
-
-            db.commit().await?;
-        }
+            .await?;
 
         Ok(credit_facility)
     }
@@ -917,14 +906,10 @@ where
             .find_by_id_without_audit(credit_facility_id)
             .await?;
 
-        let mut db = self.facilities.begin_op_with_clock(&self.clock).await?;
-
         let payment_id = PaymentId::new();
         let initiated_by = LedgerTransactionInitiator::try_from_subject(sub)?;
-        if let Some(payment) = self
-            .payments
-            .record_in_op(
-                &mut db,
+        self.payments
+            .record(
                 payment_id,
                 credit_facility_id,
                 PaymentLedgerAccountIds {
@@ -938,13 +923,7 @@ where
                 effective.into(),
                 initiated_by,
             )
-            .await?
-        {
-            self.obligations
-                .allocate_payment_in_op(&mut db, &payment, initiated_by)
-                .await?;
-            db.commit().await?;
-        }
+            .await?;
 
         Ok(credit_facility)
     }

@@ -8,7 +8,7 @@ use tracing::{Span, instrument};
 
 use core_accounting::LedgerTransactionInitiator;
 use core_custody::CoreCustodyEvent;
-use es_entity::{DbOp, Idempotent};
+use es_entity::DbOp;
 use governance::GovernanceEvent;
 use job::*;
 use obix::EventSequence;
@@ -17,8 +17,7 @@ use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 use crate::{
     CoreCreditEvent, CreditFacilityId, LiquidationId, NewPayment, PaymentLedgerAccountIds,
     credit_facility::CreditFacilityRepo, ledger::CreditLedger, liquidation::LiquidationRepo,
-    obligation::ObligationRepo, payment::PaymentRepo, payment_allocation::PaymentAllocationRepo,
-    primitives::*,
+    payment::PaymentRepo, primitives::*,
 };
 
 #[derive(Default, Clone, Deserialize, Serialize)]
@@ -52,8 +51,6 @@ where
     outbox: Outbox<E>,
     liquidation_repo: Arc<LiquidationRepo<E>>,
     payment_repo: Arc<PaymentRepo<E>>,
-    obligation_repo: Arc<ObligationRepo<E>>,
-    payment_allocation_repo: Arc<PaymentAllocationRepo<E>>,
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
     ledger: Arc<CreditLedger>,
 }
@@ -68,8 +65,6 @@ where
         outbox: &Outbox<E>,
         liquidation_repo: Arc<LiquidationRepo<E>>,
         payment_repo: Arc<PaymentRepo<E>>,
-        obligation_repo: Arc<ObligationRepo<E>>,
-        payment_allocation_repo: Arc<PaymentAllocationRepo<E>>,
         credit_facility_repo: Arc<CreditFacilityRepo<E>>,
         ledger: Arc<CreditLedger>,
     ) -> Self {
@@ -77,8 +72,6 @@ where
             outbox: outbox.clone(),
             liquidation_repo,
             payment_repo,
-            obligation_repo,
-            payment_allocation_repo,
             credit_facility_repo,
             ledger,
         }
@@ -110,8 +103,6 @@ where
             outbox: self.outbox.clone(),
             liquidation_repo: self.liquidation_repo.clone(),
             payment_repo: self.payment_repo.clone(),
-            obligation_repo: self.obligation_repo.clone(),
-            payment_allocation_repo: self.payment_allocation_repo.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
             ledger: self.ledger.clone(),
         }))
@@ -128,8 +119,6 @@ where
     outbox: Outbox<E>,
     liquidation_repo: Arc<LiquidationRepo<E>>,
     payment_repo: Arc<PaymentRepo<E>>,
-    obligation_repo: Arc<ObligationRepo<E>>,
-    payment_allocation_repo: Arc<PaymentAllocationRepo<E>>,
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
     ledger: Arc<CreditLedger>,
 }
@@ -237,61 +226,6 @@ where
         Ok(Some(payment))
     }
 
-    async fn allocate_payment(
-        &self,
-        db: &mut DbOp<'_>,
-        payment: &crate::payment::Payment,
-        credit_facility_id: CreditFacilityId,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        let mut obligations = Vec::new();
-        let mut query = Default::default();
-
-        loop {
-            let mut res = self
-                .obligation_repo
-                .list_for_credit_facility_id_by_created_at(
-                    credit_facility_id,
-                    query,
-                    es_entity::ListDirection::Ascending,
-                )
-                .await?;
-
-            obligations.append(&mut res.entities);
-            if let Some(q) = res.into_next_query() {
-                query = q;
-            } else {
-                break;
-            }
-        }
-        obligations.sort();
-
-        let mut remaining = payment.amount;
-        let mut new_allocations = Vec::new();
-
-        for obligation in obligations.iter_mut() {
-            if let Idempotent::Executed(new_allocation) =
-                obligation.allocate_payment(remaining, payment)
-            {
-                self.obligation_repo.update_in_op(db, obligation).await?;
-                remaining -= new_allocation.amount;
-                new_allocations.push(new_allocation);
-                if remaining == UsdCents::ZERO {
-                    break;
-                }
-            }
-        }
-
-        let allocations = self
-            .payment_allocation_repo
-            .create_all_in_op(db, new_allocations)
-            .await?;
-        self.ledger
-            .record_payment_allocations(db, allocations, LedgerTransactionInitiator::System)
-            .await?;
-
-        Ok(())
-    }
-
     async fn complete_facility_liquidation(
         &self,
         db: &mut DbOp<'_>,
@@ -376,14 +310,14 @@ where
                         clock,
                     )
                     .await?;
-
-                if let Some(payment) = payment_opt {
-                    self.allocate_payment(db, &payment, *credit_facility_id)
-                        .await?;
-                    self.complete_facility_liquidation(db, *credit_facility_id)
-                        .await?;
-                    self.complete_liquidation(db, *payment_id).await?;
+                if payment_opt.is_none() {
+                    return Ok(ControlFlow::Break(()));
                 }
+
+                self.complete_facility_liquidation(db, *credit_facility_id)
+                    .await?;
+
+                self.complete_liquidation(db, *payment_id).await?;
 
                 Ok(ControlFlow::Break(()))
             }
