@@ -4,11 +4,28 @@ import io
 import sys
 import xml.etree.ElementTree as ET
 from datetime import datetime
-from typing import Dict, List, Literal, TypedDict
+from typing import Dict, List, Literal, Optional, TypedDict
 
 import dagster as dg
+from src.assets.dbt import _load_dbt_manifest, _get_dbt_asset_key
 from src.core import Protoasset
 from src.resources import RESOURCE_KEY_FILE_REPORTS_BUCKET, GCSResource
+
+
+def get_dbt_asset_key_for_table(table_name: str) -> Optional[dg.AssetKey]:
+    """Get the dbt asset key for a given table name.
+
+    Searches the dbt manifest for a model matching the table name and returns
+    its asset key based on the model's fqn (fully qualified name).
+    """
+    manifest = _load_dbt_manifest()
+
+    for node_id, node in manifest["nodes"].items():
+        if node.get("resource_type") == "model" and node["name"] == table_name:
+            asset_key_path = _get_dbt_asset_key(manifest, node_id)
+            return dg.AssetKey(asset_key_path)
+
+    return None
 
 
 class ReportFile(TypedDict):
