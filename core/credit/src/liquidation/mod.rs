@@ -88,7 +88,7 @@ where
     ) -> Result<Self, LiquidationError> {
         let repo_arc = Arc::new(LiquidationRepo::new(pool, publisher));
 
-        // Create repos needed for partial liquidation job
+        // Create repos needed for jobs
         let payment_repo = Arc::new(crate::payment::PaymentRepo::new(pool, publisher));
         let credit_facility_repo = Arc::new(crate::credit_facility::CreditFacilityRepo::new(
             pool, publisher,
@@ -100,10 +100,12 @@ where
             jobs.add_initializer(jobs::partial_liquidation::PartialLiquidationInit::new(
                 outbox,
                 repo_arc.clone(),
-                payment_repo,
                 credit_facility_repo,
-                ledger,
             ));
+
+        let liquidation_payment_job_spawner = jobs.add_initializer(
+            jobs::liquidation_payment::LiquidationPaymentInit::new(outbox, payment_repo, ledger),
+        );
 
         let credit_facility_liquidations_job_spawner = jobs.add_initializer(
             jobs::credit_facility_liquidations::CreditFacilityLiquidationsInit::new(
@@ -111,6 +113,7 @@ where
                 repo_arc.clone(),
                 proceeds_omnibus_account_ids,
                 partial_liquidation_job_spawner,
+                liquidation_payment_job_spawner,
             ),
         );
 
