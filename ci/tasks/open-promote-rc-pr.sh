@@ -6,6 +6,7 @@ VERSION=$(cat version/version)
 echo "Promoting to version: $VERSION"
 
 pushd rc-version-repo
+cat version
 
 cat <<EOF >> ../body.md
 # Promote RC to ${VERSION}
