@@ -17,7 +17,7 @@ use crate::CreditFacilities;
 use crate::{
     CoreCreditAction, CoreCreditEvent, CoreCreditObject, CoreCustodyAction, CoreCustodyEvent,
     CoreCustodyObject, CreditFacilityId, GovernanceAction, GovernanceEvent, GovernanceObject,
-    LiquidationId, Obligations, Payments, liquidation::Liquidations,
+    LiquidationId, Payments, liquidation::Liquidations,
 };
 
 #[derive(Default, Clone, Deserialize, Serialize)]
@@ -70,7 +70,6 @@ where
     outbox: Outbox<E>,
     liquidations: Liquidations<Perms, E>,
     payments: Payments<Perms, E>,
-    obligations: Obligations<Perms, E>,
     facilities: CreditFacilities<Perms, E>,
 }
 
@@ -89,14 +88,12 @@ where
         outbox: &Outbox<E>,
         liquidations: &Liquidations<Perms, E>,
         payments: &Payments<Perms, E>,
-        obligations: &Obligations<Perms, E>,
         facilities: &CreditFacilities<Perms, E>,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
             liquidations: liquidations.clone(),
             payments: payments.clone(),
-            obligations: obligations.clone(),
             facilities: facilities.clone(),
         }
     }
@@ -127,7 +124,6 @@ where
             outbox: self.outbox.clone(),
             liquidations: self.liquidations.clone(),
             payments: self.payments.clone(),
-            obligations: self.obligations.clone(),
             facilities: self.facilities.clone(),
         }))
     }
@@ -148,7 +144,6 @@ where
     outbox: Outbox<E>,
     liquidations: Liquidations<Perms, E>,
     payments: Payments<Perms, E>,
-    obligations: Obligations<Perms, E>,
     facilities: CreditFacilities<Perms, E>,
 }
 
@@ -255,7 +250,7 @@ where
 
                 let effective = crate::time::now().date_naive();
 
-                if let Some(payment) = self
+                let res = self
                     .payments
                     .record_in_op(
                         db,
@@ -273,24 +268,18 @@ where
                         effective,
                         initiated_by,
                     )
-                    .await?
-                {
-                    self.obligations
-                        .allocate_payment_in_op(db, &payment, initiated_by)
-                        .await?;
-
-                    self.facilities
-                        .complete_liquidation_in_op(
-                            db,
-                            *credit_facility_id,
-                            self.config.liquidation_id,
-                        )
-                        .await?;
-
-                    self.liquidations
-                        .complete_in_op(db, self.config.liquidation_id, *payment_id)
-                        .await?;
+                    .await?;
+                if res.is_none() {
+                    return Ok(ControlFlow::Break(()));
                 }
+
+                self.facilities
+                    .complete_liquidation_in_op(db, *credit_facility_id, self.config.liquidation_id)
+                    .await?;
+
+                self.liquidations
+                    .complete_in_op(db, self.config.liquidation_id, *payment_id)
+                    .await?;
 
                 Ok(ControlFlow::Break(()))
             }
