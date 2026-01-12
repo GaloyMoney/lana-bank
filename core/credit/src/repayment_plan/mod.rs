@@ -1055,7 +1055,8 @@ mod tests {
         };
 
         // First processing should apply the payment
-        let first_result = plan.process_event(Default::default(), &payment_event);
+        let first_result =
+            plan.process_event(Default::default(), &payment_event, default_start_date());
         assert!(first_result);
 
         let outstanding_after_first = plan
@@ -1074,7 +1075,8 @@ mod tests {
         assert_eq!(outstanding_after_first, UsdCents::ZERO);
 
         // Second processing (replay) should be idempotent - no overflow, no change
-        let second_result = plan.process_event(Default::default(), &payment_event);
+        let second_result =
+            plan.process_event(Default::default(), &payment_event, default_start_date());
         assert!(!second_result);
 
         let outstanding_after_second = plan
@@ -1107,7 +1109,7 @@ mod tests {
             activated_at: default_start_date(),
             amount: default_facility_amount(),
         };
-        plan.process_event(Default::default(), &activate_event);
+        plan.process_event(Default::default(), &activate_event, default_start_date());
 
         let obligation_event = CoreCreditEvent::ObligationCreated {
             id: obligation_id,
@@ -1122,7 +1124,8 @@ mod tests {
         };
 
         // First processing should create the obligation entry
-        let first_result = plan.process_event(Default::default(), &obligation_event);
+        let first_result =
+            plan.process_event(Default::default(), &obligation_event, default_start_date());
         assert!(first_result);
 
         let count_after_first = plan
@@ -1133,7 +1136,8 @@ mod tests {
         assert_eq!(count_after_first, 1);
 
         // Second processing (replay) should be idempotent - no duplicate entry
-        let second_result = plan.process_event(Default::default(), &obligation_event);
+        let second_result =
+            plan.process_event(Default::default(), &obligation_event, default_start_date());
         assert!(!second_result);
 
         let count_after_second = plan
@@ -1154,7 +1158,7 @@ mod tests {
             activated_at: default_start_date(),
             amount: default_facility_amount(),
         };
-        plan.process_event(Default::default(), &activate_event);
+        plan.process_event(Default::default(), &activate_event, default_start_date());
 
         let period = InterestInterval::EndOfMonth.period_from(default_start_date());
         let accrual_event = CoreCreditEvent::AccrualPosted {
@@ -1168,7 +1172,8 @@ mod tests {
         };
 
         // First processing should create the accrual entry
-        let first_result = plan.process_event(Default::default(), &accrual_event);
+        let first_result =
+            plan.process_event(Default::default(), &accrual_event, default_start_date());
         assert!(first_result);
 
         let count_after_first = plan
@@ -1183,7 +1188,8 @@ mod tests {
         assert_eq!(count_after_first, 1);
 
         // Second processing (replay) should be idempotent - no duplicate entry
-        let second_result = plan.process_event(Default::default(), &accrual_event);
+        let second_result =
+            plan.process_event(Default::default(), &accrual_event, default_start_date());
         assert!(!second_result);
 
         let count_after_second = plan
@@ -1196,5 +1202,156 @@ mod tests {
             })
             .count();
         assert_eq!(count_after_second, 1);
+    }
+
+    #[test]
+    fn replayed_facility_proposal_created_is_idempotent() {
+        let mut plan = CreditFacilityRepaymentPlan::default();
+
+        let proposal_event = CoreCreditEvent::FacilityProposalCreated {
+            id: CreditFacilityProposalId::new(),
+            amount: UsdCents::from(100_000_00),
+            terms: terms(0),
+            created_at: default_start_date(),
+        };
+
+        // First processing
+        let first_result =
+            plan.process_event(Default::default(), &proposal_event, default_start_date());
+        assert!(first_result);
+        assert_eq!(plan.facility_amount, UsdCents::from(100_000_00));
+
+        // Second processing (replay) - naturally idempotent, sets same values
+        let second_result =
+            plan.process_event(Default::default(), &proposal_event, default_start_date());
+        assert!(second_result);
+        assert_eq!(plan.facility_amount, UsdCents::from(100_000_00));
+    }
+
+    #[test]
+    fn replayed_facility_activated_is_idempotent() {
+        let mut plan = initial_plan();
+        let activated_at = default_start_date();
+
+        let activate_event = CoreCreditEvent::FacilityActivated {
+            id: CreditFacilityId::new(),
+            activation_tx_id: LedgerTxId::new(),
+            activated_at,
+            amount: default_facility_amount(),
+        };
+
+        // First processing
+        let first_result =
+            plan.process_event(Default::default(), &activate_event, default_start_date());
+        assert!(first_result);
+        assert_eq!(plan.activated_at, Some(activated_at));
+
+        // Second processing (replay) - naturally idempotent, sets same value
+        let second_result =
+            plan.process_event(Default::default(), &activate_event, default_start_date());
+        assert!(second_result);
+        assert_eq!(plan.activated_at, Some(activated_at));
+    }
+
+    #[test]
+    fn replayed_obligation_status_changes_are_idempotent() {
+        let obligation_id = ObligationId::new();
+        let mut plan = initial_plan();
+        let recorded_at = default_start_date();
+
+        // Setup: activate and create obligation
+        let events = vec![
+            CoreCreditEvent::FacilityActivated {
+                id: CreditFacilityId::new(),
+                activation_tx_id: LedgerTxId::new(),
+                activated_at: default_start_date(),
+                amount: default_facility_amount(),
+            },
+            CoreCreditEvent::ObligationCreated {
+                id: obligation_id,
+                obligation_type: ObligationType::Disbursal,
+                credit_facility_id: CreditFacilityId::new(),
+                amount: UsdCents::from(100_000_00),
+                due_at: EffectiveDate::from(recorded_at),
+                overdue_at: None,
+                defaulted_at: None,
+                recorded_at,
+                effective: recorded_at.date_naive(),
+            },
+        ];
+        process_events(&mut plan, events);
+
+        // Test ObligationDue replay
+        let due_event = CoreCreditEvent::ObligationDue {
+            id: obligation_id,
+            credit_facility_id: CreditFacilityId::new(),
+            obligation_type: ObligationType::Disbursal,
+            amount: UsdCents::from(100_000_00),
+        };
+        plan.process_event(Default::default(), &due_event, default_start_date());
+        let status_after_first = plan
+            .entries
+            .iter()
+            .find(|e| e.obligation_id == Some(obligation_id))
+            .unwrap()
+            .status;
+        assert_eq!(status_after_first, RepaymentStatus::Due);
+
+        // Replay - naturally idempotent
+        plan.process_event(Default::default(), &due_event, default_start_date());
+        let status_after_second = plan
+            .entries
+            .iter()
+            .find(|e| e.obligation_id == Some(obligation_id))
+            .unwrap()
+            .status;
+        assert_eq!(status_after_second, RepaymentStatus::Due);
+
+        // Test ObligationOverdue replay
+        let overdue_event = CoreCreditEvent::ObligationOverdue {
+            id: obligation_id,
+            credit_facility_id: CreditFacilityId::new(),
+            amount: UsdCents::from(100_000_00),
+        };
+        plan.process_event(Default::default(), &overdue_event, default_start_date());
+        plan.process_event(Default::default(), &overdue_event, default_start_date());
+        let status = plan
+            .entries
+            .iter()
+            .find(|e| e.obligation_id == Some(obligation_id))
+            .unwrap()
+            .status;
+        assert_eq!(status, RepaymentStatus::Overdue);
+
+        // Test ObligationDefaulted replay
+        let defaulted_event = CoreCreditEvent::ObligationDefaulted {
+            id: obligation_id,
+            credit_facility_id: CreditFacilityId::new(),
+            amount: UsdCents::from(100_000_00),
+        };
+        plan.process_event(Default::default(), &defaulted_event, default_start_date());
+        plan.process_event(Default::default(), &defaulted_event, default_start_date());
+        let status = plan
+            .entries
+            .iter()
+            .find(|e| e.obligation_id == Some(obligation_id))
+            .unwrap()
+            .status;
+        assert_eq!(status, RepaymentStatus::Defaulted);
+
+        // Test ObligationCompleted replay
+        let completed_event = CoreCreditEvent::ObligationCompleted {
+            id: obligation_id,
+            credit_facility_id: CreditFacilityId::new(),
+        };
+        plan.process_event(Default::default(), &completed_event, default_start_date());
+        plan.process_event(Default::default(), &completed_event, default_start_date());
+        let status = plan
+            .entries
+            .iter()
+            .find(|e| e.obligation_id == Some(obligation_id))
+            .unwrap()
+            .status;
+        assert_eq!(status, RepaymentStatus::Paid);
     }
 }
