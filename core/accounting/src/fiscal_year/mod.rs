@@ -9,7 +9,7 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use domain_config::DomainConfigs;
-use es_entity::{Idempotent, PaginatedQueryArgs};
+use es_entity::{Idempotent, PaginatedQueryArgs, clock::Clock};
 use tracing_macros::record_error_severity;
 
 use crate::{
@@ -134,7 +134,7 @@ where
                 CoreAccountingAction::FISCAL_YEAR_CREATE,
             )
             .await?;
-        let now = crate::time::now();
+        let now = Clock::now();
 
         let fiscal_year = self.repo.find_by_id(id).await?;
         let new_fiscal_year = fiscal_year.next(now)?;
@@ -158,7 +158,7 @@ where
             )
             .await?;
         let mut fiscal_year = self.repo.find_by_id(id).await?;
-        let now = crate::time::now();
+        let now = Clock::now();
 
         match fiscal_year.close(now)? {
             Idempotent::Executed(tx_details) => {
@@ -203,7 +203,7 @@ where
                 CoreAccountingAction::FISCAL_YEAR_CLOSE_MONTH,
             )
             .await?;
-        let now = crate::time::now();
+        let now = Clock::now();
 
         let mut fiscal_year = self.repo.find_by_id(id).await?;
         if let Idempotent::Executed(date) = fiscal_year.close_next_sequential_month(now)? {

@@ -79,7 +79,13 @@ impl LanaApp {
             .await?;
 
         let audit = Audit::new(&pool);
-        let outbox = Outbox::init(&pool, obix::MailboxConfig::default()).await?;
+        let outbox = Outbox::init(
+            &pool,
+            obix::MailboxConfig::builder()
+                .build()
+                .expect("Couldn't build MailboxConfig"),
+        )
+        .await?;
         let authz = Authorization::init(&pool, &audit).await?;
         let domain_configs = DomainConfigs::new(&pool);
         domain_configs.seed_registered().await?;

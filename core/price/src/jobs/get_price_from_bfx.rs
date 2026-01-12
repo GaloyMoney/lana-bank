@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use tokio::{select, time::Duration};
 
+use es_entity::clock::Clock;
 use job::*;
 use obix::out::{Outbox, OutboxEventMarker};
 use std::sync::Arc;
@@ -92,7 +93,7 @@ where
                     PRICE_UPDATED_EVENT_TYPE,
                     CorePriceEvent::PriceUpdated {
                         price,
-                        timestamp: crate::time::now(),
+                        timestamp: Clock::now(),
                     },
                 )
                 .await?;

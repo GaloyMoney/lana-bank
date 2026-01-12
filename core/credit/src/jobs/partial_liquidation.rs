@@ -9,6 +9,7 @@ use tracing::{Span, instrument};
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_accounting::LedgerTransactionInitiator;
+use es_entity::clock::Clock;
 use job::*;
 use obix::EventSequence;
 use obix::out::*;
@@ -250,7 +251,7 @@ where
 
                 let initiated_by = LedgerTransactionInitiator::System;
 
-                let effective = crate::time::now().date_naive();
+                let effective = Clock::now().date_naive();
 
                 if let Some(payment) = self
                     .payments

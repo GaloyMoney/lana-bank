@@ -16,8 +16,13 @@ use helpers::{action, event, object};
 async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
 
-    let outbox =
-        obix::Outbox::<event::DummyEvent>::init(&pool, obix::MailboxConfig::default()).await?;
+    let outbox = obix::Outbox::<event::DummyEvent>::init(
+        &pool,
+        obix::MailboxConfig::builder()
+            .build()
+            .expect("Couldn't build MailboxConfig"),
+    )
+    .await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
     let governance = governance::Governance::new(&pool, &authz, &outbox);
 

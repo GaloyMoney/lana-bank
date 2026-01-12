@@ -5,7 +5,6 @@ pub mod error;
 mod event;
 pub mod jobs;
 mod primitives;
-pub mod time;
 
 use futures::StreamExt;
 use job::Jobs;

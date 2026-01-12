@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use cala_ledger::velocity::VelocityLimit;
+use es_entity::clock::Clock;
 
 pub(super) struct AccountClosingLimits {
     pub(super) debit_settled: VelocityLimit,
@@ -28,7 +29,7 @@ impl AccountingClosingMetadata {
         let closing_metadata = serde_json::json!({
             period: {
                 Self::CLOSING_DATE_KEY: closed_as_of,
-                "closed_at": crate::time::now(),
+                "closed_at": Clock::now(),
             }
         });
 

@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use es_entity::clock::Clock;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 use tracing_macros::record_error_severity;
@@ -133,9 +134,8 @@ where
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let now = crate::time::now();
         self.customers
-            .perform_customer_activity_status_update(now)
+            .perform_customer_activity_status_update(Clock::now())
             .await?;
         Ok(JobCompletion::RescheduleIn(
             self.config.activity_update_job_interval,

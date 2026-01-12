@@ -4,7 +4,7 @@ use derive_builder::Builder;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use es_entity::*;
+use es_entity::{clock::Clock, *};
 
 use crate::{
     credit_facility::NewCreditFacilityBuilder,
@@ -207,7 +207,7 @@ impl PendingCreditFacility {
             .collateral_id(self.collateral_id)
             .terms(self.terms)
             .amount(self.amount)
-            .activated_at(crate::time::now())
+            .activated_at(Clock::now())
             .maturity_date(maturity_date);
 
         let initial_disbursal = if self.is_single_disbursal() || !self.structuring_fee().is_zero() {
@@ -430,7 +430,7 @@ mod test {
             let mut facility_proposal = proposal_from(events);
 
             assert!(matches!(
-                facility_proposal.complete(default_balances(), default_price(), crate::time::now()),
+                facility_proposal.complete(default_balances(), default_price(), Clock::now()),
                 Err(PendingCreditFacilityError::BelowMarginLimit)
             ));
         }
@@ -447,7 +447,7 @@ mod test {
                         Satoshis::from(1_000)
                     ),
                     default_price(),
-                    crate::time::now()
+                    Clock::now()
                 ),
                 Err(PendingCreditFacilityError::BelowMarginLimit)
             ));
@@ -460,7 +460,7 @@ mod test {
             let mut facility_proposal = proposal_from(events);
 
             assert!(matches!(
-                facility_proposal.complete(default_balances(), default_price(), crate::time::now()),
+                facility_proposal.complete(default_balances(), default_price(), Clock::now()),
                 Ok(Idempotent::AlreadyApplied)
             ));
         }
@@ -478,7 +478,7 @@ mod test {
                             Satoshis::from(1_000_000)
                         ),
                         default_price(),
-                        crate::time::now()
+                        Clock::now()
                     )
                     .is_ok()
             );

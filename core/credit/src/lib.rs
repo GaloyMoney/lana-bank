@@ -24,7 +24,6 @@ mod publisher;
 mod repayment_plan;
 mod terms;
 mod terms_template;
-mod time;
 
 use std::sync::Arc;
 
@@ -37,6 +36,7 @@ use core_custody::{
 };
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
 use core_price::{CorePriceEvent, Price};
+use es_entity::clock::Clock;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
 use obix::out::{Outbox, OutboxEventMarker};
@@ -679,7 +679,7 @@ where
             return Err(CoreCreditError::CustomerNotVerified);
         }
 
-        let now = crate::time::now();
+        let now = Clock::now();
         if facility.is_single_disbursal() {
             return Err(CreditFacilityError::OnlyOneDisbursalAllowed.into());
         }
@@ -913,7 +913,7 @@ where
         let mut db = self.facilities.begin_op().await?;
 
         let payment_id = PaymentId::new();
-        let effective = crate::time::now().date_naive();
+        let effective = Clock::now().date_naive();
         let initiated_by = LedgerTransactionInitiator::try_from_subject(sub)?;
         if let Some(payment) = self
             .payments
@@ -1050,7 +1050,7 @@ where
                         &mut db,
                         facility.collateral_id,
                         Satoshis::ZERO,
-                        crate::time::now().date_naive(),
+                        Clock::now().date_naive(),
                     )
                     .await?;
 

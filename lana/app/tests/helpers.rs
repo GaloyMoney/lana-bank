@@ -18,7 +18,13 @@ pub async fn init_access(
     authz: &Authorization,
 ) -> anyhow::Result<(Access, Subject)> {
     let superuser_email = "superuser@test.io".to_string();
-    let outbox = Outbox::init(pool, obix::MailboxConfig::default()).await?;
+    let outbox = Outbox::init(
+        pool,
+        obix::MailboxConfig::builder()
+            .build()
+            .expect("Couldn't build MailboxConfig"),
+    )
+    .await?;
 
     let config = AccessConfig {
         superuser_email: Some(superuser_email.clone()),

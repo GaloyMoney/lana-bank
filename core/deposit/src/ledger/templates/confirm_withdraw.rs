@@ -7,6 +7,7 @@ use cala_ledger::{
     tx_template::{Params, error::TxTemplateError, *},
     *,
 };
+use es_entity::clock::Clock;
 
 use crate::{
     ledger::error::*,
@@ -102,7 +103,7 @@ impl From<ConfirmWithdrawParams> for Params {
         params.insert("credit_account_id", credit_account_id);
         params.insert("correlation_id", correlation_id);
         params.insert("external_id", external_id);
-        params.insert("effective", crate::time::now().date_naive());
+        params.insert("effective", Clock::now().date_naive());
         let entity_ref =
             core_accounting::EntityRef::new(WITHDRAWAL_TRANSACTION_ENTITY_TYPE, entity_id);
         params.insert(

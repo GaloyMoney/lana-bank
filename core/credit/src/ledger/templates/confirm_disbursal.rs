@@ -2,6 +2,7 @@ use cala_ledger::{
     tx_template::{Params, error::TxTemplateError, *},
     *,
 };
+use es_entity::clock::Clock;
 use rust_decimal::Decimal;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
@@ -103,7 +104,7 @@ impl From<ConfirmDisbursalParams> for Params {
         params.insert("disbursed_into_account_id", disbursed_into_account_id);
         params.insert("disbursed_amount", disbursed_amount);
         params.insert("external_id", external_id);
-        params.insert("effective", crate::time::now().date_naive());
+        params.insert("effective", Clock::now().date_naive());
         let entity_ref =
             core_accounting::EntityRef::new(DISBURSAL_TRANSACTION_ENTITY_TYPE, entity_id);
         params.insert(

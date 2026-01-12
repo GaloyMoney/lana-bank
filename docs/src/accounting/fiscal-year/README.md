@@ -15,7 +15,7 @@ There are 2 ways to initialize the first `FiscalYear`:
 
 ### Closing Months of a `FiscalYear`
 
-Monthly closes lock the entire ledger against transactions with an `effective_date` before `month_closed_as_of`. To execute this entity command, the precondition that the month has past (according to `crate::time::now()`) must be satisfied. The command applies to the oldest, unclosed month of the `FiscalYear`.
+Monthly closes lock the entire ledger against transactions with an `effective_date` before `month_closed_as_of`. To execute this entity command, the precondition that the month has past (according to `Clock::now()`) must be satisfied. The command applies to the oldest, unclosed month of the `FiscalYear`.
 
 ### Closing the `FiscalYear`
 

@@ -6,6 +6,7 @@ use cala_ledger::{
     tx_template::{Params, error::TxTemplateError, *},
     *,
 };
+use es_entity::clock::Clock;
 
 use crate::{ledger::error::*, primitives::CalaAccountId};
 
@@ -88,7 +89,7 @@ impl From<ActivateCreditFacilityParams> for Params {
         params.insert("facility_amount", facility_amount);
         params.insert("currency", currency);
         params.insert("external_id", external_id);
-        params.insert("effective", crate::time::now().date_naive());
+        params.insert("effective", Clock::now().date_naive());
         params.insert(
             "meta",
             serde_json::json!({

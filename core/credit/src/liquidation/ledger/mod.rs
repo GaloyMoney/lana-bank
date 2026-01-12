@@ -9,6 +9,7 @@ use cala_ledger::{
 };
 use core_accounting::LedgerTransactionInitiator;
 use core_money::Satoshis;
+use es_entity::clock::Clock;
 
 pub use error::LiquidationLedgerError;
 
@@ -60,7 +61,7 @@ impl LiquidationLedger {
                     journal_id: self.journal_id,
                     collateral_account_id,
                     collateral_in_liquidation_account_id,
-                    effective: crate::time::now().date_naive(),
+                    effective: Clock::now().date_naive(),
                     initiated_by,
                 },
             )
@@ -97,7 +98,7 @@ impl LiquidationLedger {
                     btc_in_liquidation_account_id: data.collateral_in_liquidation_account_id,
                     btc_liquidated_account_id: data.liquidated_collateral_account_id,
                     amount_liquidated: data.amount_liquidated,
-                    effective: crate::time::now().date_naive(),
+                    effective: Clock::now().date_naive(),
                     initiated_by,
                 },
             )

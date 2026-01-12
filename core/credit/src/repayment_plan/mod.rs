@@ -3,6 +3,7 @@ pub mod error;
 mod repo;
 
 use chrono::{DateTime, Utc};
+use es_entity::clock::Clock;
 use serde::{Deserialize, Serialize};
 
 use obix::EventSequence;
@@ -25,7 +26,7 @@ pub struct CreditFacilityRepaymentPlan {
 
 impl CreditFacilityRepaymentPlan {
     fn activated_at(&self) -> DateTime<Utc> {
-        self.activated_at.unwrap_or(crate::time::now())
+        self.activated_at.unwrap_or(Clock::now())
     }
 
     fn existing_obligations(&self) -> Vec<CreditFacilityRepaymentPlanEntry> {

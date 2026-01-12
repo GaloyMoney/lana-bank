@@ -830,12 +830,13 @@ checksum = "ade8366b8bd5ba243f0a58f036cc0ca8a2f069cff1a2351ef1cac6b083e16fc0"
 
 [[package]]
 name = "cala-cel-interpreter"
-version = "0.13.3"
+version = "0.13.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ee2f135fe568ea4eeb52d22550e4cf517461b035f482e3fb72c946780f79e936"
+checksum = "e363991563cdd207553b786330b7200c4234b6228a6c37dd953a99aa2a35ebc3"
 dependencies = [
  "cala-cel-parser",
  "chrono",
+ "es-entity",
  "lazy_static",
  "rust_decimal",
  "schemars 1.2.0",
@@ -860,9 +861,9 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger"
-version = "0.13.3"
+version = "0.13.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6757be95f2b349a49c60dbebafdba8ef9386081eb41c9f8c6bad318898ee7c48"
+checksum = "ad92e2a758c07e966d018f6167aaade5078d87901a08ff564683a176e8585ee5"
 dependencies = [
  "async-graphql",
  "base64 0.22.1",
@@ -874,7 +875,7 @@ dependencies = [
  "derive_builder",
  "es-entity",
  "futures",
- "job 0.4.0",
+ "job 0.6.0",
  "obix",
  "opentelemetry",
  "prost 0.13.5",
@@ -899,9 +900,9 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger-core-types"
-version = "0.13.3"
+version = "0.13.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "85bceb5eaaaa68327756e3756845e191d55c18b0212b863b1cbbe4e6088b235f"
+checksum = "630417557f8174a9fa53176d3dcff026874320b71dd5264bff01b6f66b7c1ed5"
 dependencies = [
  "async-graphql",
  "cala-cel-interpreter",
@@ -921,9 +922,9 @@ dependencies = [
 
 [[package]]
 name = "cala-tracing"
-version = "0.13.3"
+version = "0.13.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4418436d350cf992a99393cb2985ef0f47e82258a6208bee136943c20deaabaa"
+checksum = "02d382f926dded9dcf335fa0a6a6ef7adcab4819ae1a1288b974ba90735d7f38"
 dependencies = [
  "anyhow",
  "axum-extra 0.10.3",
@@ -1376,7 +1377,6 @@ dependencies = [
  "schemars 1.2.0",
  "serde",
  "serde_json",
- "sim-time",
  "sqlx",
  "strum",
  "thiserror 2.0.17",
@@ -1449,7 +1449,6 @@ dependencies = [
  "serde_json",
  "serde_with",
  "serde_yaml",
- "sim-time",
  "sqlx",
  "strum",
  "thiserror 2.0.17",
@@ -1551,7 +1550,6 @@ dependencies = [
  "schemars 1.2.0",
  "serde",
  "serde_json",
- "sim-time",
  "sqlx",
  "strum",
  "thiserror 2.0.17",
@@ -1602,6 +1600,7 @@ dependencies = [
  "async-trait",
  "chrono",
  "core-money",
+ "es-entity",
  "futures",
  "job 0.6.0",
  "obix",
@@ -1612,7 +1611,6 @@ dependencies = [
  "schemars 1.2.0",
  "serde",
  "serde_json",
- "sim-time",
  "sqlx",
  "thiserror 2.0.17",
  "tokio",
@@ -1789,9 +1787,9 @@ dependencies = [
  "async-trait",
  "audit",
  "authz",
- "chrono",
  "core-customer",
  "core-deposit",
+ "es-entity",
  "futures",
  "governance",
  "job 0.6.0",
@@ -1800,7 +1798,6 @@ dependencies = [
  "obix",
  "serde",
  "serde_with",
- "sim-time",
  "thiserror 2.0.17",
  "tokio",
  "tracing",
@@ -2346,9 +2343,9 @@ dependencies = [
 
 [[package]]
 name = "es-entity"
-version = "0.10.8"
+version = "0.10.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fa4c521892ec66e1b0d0c8e729217fbac3c83d06d662bab460cb3754eee20341"
+checksum = "0cf97f02dd6299e6e28a8ed4722b8a9638baa832a103c77de50e13cf0d79f756"
 dependencies = [
  "async-graphql",
  "base64 0.22.1",
@@ -2358,13 +2355,14 @@ dependencies = [
  "im",
  "opentelemetry",
  "opentelemetry_sdk",
+ "parking_lot",
  "pin-project",
  "schemars 1.2.0",
  "serde",
  "serde_json",
- "sim-time",
  "sqlx",
  "thiserror 2.0.17",
+ "tokio",
  "tracing",
  "tracing-opentelemetry",
  "uuid",
@@ -2372,9 +2370,9 @@ dependencies = [
 
 [[package]]
 name = "es-entity-macros"
-version = "0.10.8"
+version = "0.10.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6f5077b4080ef9a394b752627ce63200e0b991d8b463f99045cab33ebccfacdf"
+checksum = "45f141d09697717e0b146cd069f6f3bf34c88ccf1388939baaf0dd29e54253b0"
 dependencies = [
  "convert_case",
  "darling 0.23.0",
@@ -3398,7 +3396,6 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_with",
- "sim-time",
  "sqlx",
  "thiserror 2.0.17",
  "tokio",
@@ -3654,7 +3651,6 @@ dependencies = [
  "serde",
  "serde_json",
  "serial_test",
- "sim-time",
  "sqlx",
  "thiserror 2.0.17",
  "tokio",
@@ -3683,7 +3679,6 @@ dependencies = [
  "serde",
  "serde_yaml",
  "sim-bootstrap",
- "sim-time",
  "sqlx",
  "tokio",
  "tracing-utils",
@@ -4188,12 +4183,13 @@ dependencies = [
 
 [[package]]
 name = "obix"
-version = "0.2.6"
+version = "0.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7640b553ea1872fcf0f777afa3c5b3a3a893973ed115d93922673a322d9aaaad"
+checksum = "09ea06830a6a40266e6cbbd31a610451b944aa9705006209a2e0592af3a6c6bb"
 dependencies = [
  "async-trait",
  "chrono",
+ "derive_builder",
  "es-entity",
  "futures",
  "im",
@@ -4209,9 +4205,9 @@ dependencies = [
 
 [[package]]
 name = "obix-macros"
-version = "0.2.7"
+version = "0.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d20b02a1df14b9bd7b3213681d87641a08f1dc710d2c9925d07ccccc29069440"
+checksum = "0e9920a4ec79427224b597e0bfb98b1be152fe07d0037e9995e2a95492430ae3"
 dependencies = [
  "darling 0.23.0",
  "proc-macro2",
@@ -5895,22 +5891,9 @@ dependencies = [
  "rust_decimal",
  "rust_decimal_macros",
  "serde",
- "sim-time",
  "tokio",
  "tracing",
  "workspace-hack",
-]
-
-[[package]]
-name = "sim-time"
-version = "0.10.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d4c63ecacf591bd4aa4316c92a5493d904ea9776f093abe3720c6ea1c0e63ffd"
-dependencies = [
- "chrono",
- "serde",
- "serde_with",
- "tokio",
 ]
 
 [[package]]

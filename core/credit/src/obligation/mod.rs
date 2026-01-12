@@ -5,6 +5,7 @@ mod repo;
 
 use std::sync::Arc;
 
+use es_entity::clock::Clock;
 use tracing::{Span, instrument};
 use tracing_macros::record_error_severity;
 
@@ -310,7 +311,7 @@ where
     ) -> Result<bool, ObligationError> {
         let obligations = self.facility_obligations(credit_facility_id).await?;
         for obligation in obligations.iter() {
-            if !obligation.is_status_up_to_date(crate::time::now()) {
+            if !obligation.is_status_up_to_date(Clock::now()) {
                 return Ok(false);
             }
         }

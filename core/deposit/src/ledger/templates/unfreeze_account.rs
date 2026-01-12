@@ -9,6 +9,7 @@ use cala_ledger::{
         ParamDataType, Params, error::TxTemplateError,
     },
 };
+use es_entity::clock::Clock;
 
 use crate::ledger::error::DepositLedgerError;
 
@@ -83,7 +84,7 @@ impl From<UnfreezeAccountParams> for Params {
         params.insert("amount", amount);
         params.insert("account_id", account_id);
         params.insert("frozen_accounts_account_id", frozen_accounts_account_id);
-        params.insert("effective", crate::time::now().date_naive());
+        params.insert("effective", Clock::now().date_naive());
         params.insert(
             "meta",
             serde_json::json!({

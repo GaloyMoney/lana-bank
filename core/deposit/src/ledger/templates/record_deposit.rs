@@ -6,6 +6,7 @@ use cala_ledger::{
     tx_template::{Params, error::TxTemplateError, *},
     *,
 };
+use es_entity::clock::Clock;
 
 use crate::{
     ledger::error::*,
@@ -85,7 +86,7 @@ impl From<RecordDepositParams> for Params {
         params.insert("amount", amount);
         params.insert("deposit_omnibus_account_id", deposit_omnibus_account_id);
         params.insert("credit_account_id", credit_account_id);
-        params.insert("effective", crate::time::now().date_naive());
+        params.insert("effective", Clock::now().date_naive());
         let entity_ref =
             core_accounting::EntityRef::new(DEPOSIT_TRANSACTION_ENTITY_TYPE, entity_id);
         params.insert(
