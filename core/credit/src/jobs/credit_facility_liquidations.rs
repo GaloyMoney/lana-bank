@@ -13,7 +13,7 @@ use job::*;
 use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
-use crate::jobs::partial_liquidation;
+use crate::jobs::{liquidation_payment, partial_liquidation};
 use crate::liquidation::{Liquidations, NewLiquidation};
 use crate::{
     CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilities,
@@ -294,6 +294,17 @@ where
                         db,
                         JobId::new(),
                         partial_liquidation::PartialLiquidationJobConfig::<Perms, E> {
+                            liquidation_id: liquidation.id,
+                            credit_facility_id: *credit_facility_id,
+                            _phantom: std::marker::PhantomData,
+                        },
+                    )
+                    .await?;
+                self.jobs
+                    .create_and_spawn_in_op(
+                        db,
+                        JobId::new(),
+                        liquidation_payment::LiquidationPaymentJobConfig::<Perms, E> {
                             liquidation_id: liquidation.id,
                             credit_facility_id: *credit_facility_id,
                             _phantom: std::marker::PhantomData,

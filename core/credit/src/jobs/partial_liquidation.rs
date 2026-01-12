@@ -8,7 +8,6 @@ use tracing::{Span, instrument};
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_accounting::LedgerTransactionInitiator;
 use job::*;
 use obix::EventSequence;
 use obix::out::*;
@@ -17,7 +16,7 @@ use crate::CreditFacilities;
 use crate::{
     CoreCreditAction, CoreCreditEvent, CoreCreditObject, CoreCustodyAction, CoreCustodyEvent,
     CoreCustodyObject, CreditFacilityId, GovernanceAction, GovernanceEvent, GovernanceObject,
-    LiquidationId, Payments, liquidation::Liquidations,
+    LiquidationId, liquidation::Liquidations,
 };
 
 #[derive(Default, Clone, Deserialize, Serialize)]
@@ -69,7 +68,6 @@ where
 {
     outbox: Outbox<E>,
     liquidations: Liquidations<Perms, E>,
-    payments: Payments<Perms, E>,
     facilities: CreditFacilities<Perms, E>,
 }
 
@@ -87,13 +85,11 @@ where
     pub fn new(
         outbox: &Outbox<E>,
         liquidations: &Liquidations<Perms, E>,
-        payments: &Payments<Perms, E>,
         facilities: &CreditFacilities<Perms, E>,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
             liquidations: liquidations.clone(),
-            payments: payments.clone(),
             facilities: facilities.clone(),
         }
     }
@@ -123,7 +119,6 @@ where
             config: job.config()?,
             outbox: self.outbox.clone(),
             liquidations: self.liquidations.clone(),
-            payments: self.payments.clone(),
             facilities: self.facilities.clone(),
         }))
     }
@@ -143,7 +138,6 @@ where
     config: PartialLiquidationJobConfig<Perms, E>,
     outbox: Outbox<E>,
     liquidations: Liquidations<Perms, E>,
-    payments: Payments<Perms, E>,
     facilities: CreditFacilities<Perms, E>,
 }
 
@@ -197,8 +191,6 @@ where
                             db.commit().await?;
 
                             if next.is_break() {
-                                // If the partial liquidation has been completed,
-                                // terminate the job, too.
                                 return Ok(JobCompletion::Complete);
                             }
                         }
@@ -232,46 +224,15 @@ where
         match &message.as_event() {
             Some(
                 event @ PartialLiquidationProceedsReceived {
-                    amount,
                     credit_facility_id,
                     liquidation_id,
                     payment_id,
-                    facility_payment_holding_account_id,
-                    facility_proceeds_from_liquidation_account_id,
-                    facility_uncovered_outstanding_account_id,
                     ..
                 },
             ) if *liquidation_id == self.config.liquidation_id => {
                 Span::current().record("handled", true);
                 Span::current().record("event_type", event.as_ref());
                 Span::current().record("payment_id", tracing::field::display(payment_id));
-
-                let initiated_by = LedgerTransactionInitiator::System;
-
-                let effective = crate::time::now().date_naive();
-
-                let res = self
-                    .payments
-                    .record_in_op(
-                        db,
-                        *payment_id,
-                        *credit_facility_id,
-                        crate::PaymentLedgerAccountIds {
-                            facility_payment_holding_account_id:
-                                *facility_payment_holding_account_id,
-                            facility_uncovered_outstanding_account_id:
-                                *facility_uncovered_outstanding_account_id,
-                            payment_source_account_id:
-                                facility_proceeds_from_liquidation_account_id.into(),
-                        },
-                        *amount,
-                        effective,
-                        initiated_by,
-                    )
-                    .await?;
-                if res.is_none() {
-                    return Ok(ControlFlow::Break(()));
-                }
 
                 self.facilities
                     .complete_liquidation_in_op(db, *credit_facility_id, self.config.liquidation_id)
