@@ -4,12 +4,20 @@ import io
 import sys
 import xml.etree.ElementTree as ET
 from datetime import datetime
-from typing import Dict, List, Literal, Optional, TypedDict
+from typing import Callable, Dict, List, Literal, Optional, TypedDict
 
 import dagster as dg
+from generate_es_reports.domain.report import BaseFileOutputConfig, ReportJobDefinition
+from generate_es_reports.generator import generate_single_report
+from generate_es_reports.io import BigQueryTableFetcher
 from src.assets.dbt import _load_dbt_manifest, _get_dbt_asset_key
 from src.core import Protoasset
-from src.resources import RESOURCE_KEY_FILE_REPORTS_BUCKET, GCSResource
+from src.resources import (
+    RESOURCE_KEY_DW_BQ,
+    RESOURCE_KEY_FILE_REPORTS_BUCKET,
+    BigQueryResource,
+    GCSResource,
+)
 
 
 def get_dbt_asset_key_for_table(table_name: str) -> Optional[dg.AssetKey]:
@@ -26,6 +34,52 @@ def get_dbt_asset_key_for_table(table_name: str) -> Optional[dg.AssetKey]:
             return dg.AssetKey(asset_key_path)
 
     return None
+
+
+def create_file_report_callable(
+    report_job: ReportJobDefinition,
+    file_config: BaseFileOutputConfig,
+) -> Callable:
+    """Create a callable that generates and uploads a single report file.
+    """
+
+    def _report_callable(
+        context: dg.AssetExecutionContext,
+        dw_bq: BigQueryResource,
+        file_reports_bucket: GCSResource,
+    ) -> None:
+        table_fetcher = BigQueryTableFetcher(
+            credentials_dict=dw_bq.get_credentials_dict(),
+            dataset=dw_bq.get_target_dataset(),
+        )
+
+        def fetch_table(table_name: str):
+            contents = table_fetcher.fetch_table_contents(table_name)
+            return contents.fields, contents.records
+
+        result = generate_single_report(
+            fetch_table=fetch_table,
+            upload_file=file_reports_bucket.upload_file,
+            table_name=report_job.source_table_name,
+            norm=report_job.norm,
+            friendly_name=report_job.friendly_name,
+            file_output_config=file_config,
+            run_id=context.run_id,
+            log=context.log.info,
+        )
+
+        # Add metadata for tracking
+        context.add_output_metadata(
+            {
+                "norm": result["norm"],
+                "friendly_name": result["friendly_name"],
+                "file_type": result["file_type"],
+                "gcs_path": result["gcs_path"],
+                "row_count": result["row_count"],
+            }
+        )
+
+    return _report_callable
 
 
 class ReportFile(TypedDict):
