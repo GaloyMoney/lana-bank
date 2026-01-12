@@ -3,6 +3,8 @@ pub mod error;
 mod jobs;
 mod repo;
 
+use std::collections::HashSet;
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -30,6 +32,9 @@ pub struct CreditFacilityRepaymentPlan {
     last_updated_on_sequence: EventSequence,
 
     pub entries: Vec<CreditFacilityRepaymentPlanEntry>,
+
+    #[serde(default)]
+    applied_allocations: HashSet<PaymentAllocationId>,
 }
 
 impl CreditFacilityRepaymentPlan {
@@ -224,9 +229,14 @@ impl CreditFacilityRepaymentPlan {
             }
             CoreCreditEvent::FacilityPaymentAllocated {
                 obligation_id,
+                allocation_id,
                 amount,
                 ..
             } => {
+                if !self.applied_allocations.insert(*allocation_id) {
+                    return false;
+                }
+
                 if let Some(entry) = existing_obligations.iter_mut().find_map(|entry| {
                     (entry.obligation_id == Some(*obligation_id)).then_some(entry)
                 }) {
