@@ -53,15 +53,15 @@ impl ActionMapping {
 #[macro_export]
 macro_rules! map_action {
     ($module:ident, $discriminant:expr, $action_type:ty) => {{
-        // Compile-time check: module name matches crate or is a known module
+        // Normalize identifier-style module names to kebab-case for action strings.
         const MODULE_NAME: &'static str = stringify!($module);
+        let module_str = MODULE_NAME.replace('_', "-");
 
-        // Generate mappings with validated module name
         let entity_str = $discriminant.to_string();
         <$action_type as strum::VariantArray>::VARIANTS
             .iter()
             .map(|variant| {
-                ActionMapping::new(MODULE_NAME, &entity_str, variant, variant.permission_set())
+                ActionMapping::new(&module_str, &entity_str, variant, variant.permission_set())
             })
             .collect::<Vec<ActionMapping>>()
     }};
