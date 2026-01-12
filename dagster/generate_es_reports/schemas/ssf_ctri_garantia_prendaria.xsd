@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xs:schema 
+   elementFormDefault="qualified"
+   targetNamespace="http://validador.ssf.gob.sv/ctri/garantia_prendaria"
+   xmlns:xs="http://www.w3.org/2001/XMLSchema"
+   xmlns:tns="http://validador.ssf.gob.sv/ctri/garantia_prendaria">
+   <xs:element name="ctri">
+      <xs:complexType>
+         <xs:sequence maxOccurs="unbounded" minOccurs="1">
+            <xs:element name="garantia_prendaria">
+               <xs:complexType>
+                  <xs:all maxOccurs="1" minOccurs="1">
+                     <xs:element name="identificacion_garantia">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Identificación de la Garantía
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:maxLength value="20"/>
+                             <xs:minLength value="1"/>
+                             <xs:whiteSpace value="collapse"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="numero_registro" nillable="true">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Número de Registro
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:maxLength value="40"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="nit_propietario">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Nit Propietario
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:maxLength value="14"/>
+                             <xs:minLength value="1"/>
+                             <xs:whiteSpace value="collapse"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="fecha_registro" nillable="true">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Fecha de Registro
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:date">
+                             <xs:minInclusive value="1800-01-01"/>
+                             <xs:maxInclusive value="9999-12-31"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="estado">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Estado Garantía
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:length value="1"/>
+                             <xs:whiteSpace value="collapse"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="cod_ubicacion">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Código Ubicación
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:maxLength value="4"/>
+                             <xs:minLength value="1"/>
+                             <xs:whiteSpace value="collapse"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="descripcion" nillable="true">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Descripción
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:maxLength value="60"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="fecha_valuo" nillable="true">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Fecha de Valúo
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:date">
+                             <xs:minInclusive value="1800-01-01"/>
+                             <xs:maxInclusive value="9999-12-31"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="valor_pericial">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Valor Pericial
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:decimal">
+                             <xs:totalDigits value="12"/>
+                             <xs:fractionDigits value="2"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="valor_contractual">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Valor Contractual
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:decimal">
+                             <xs:totalDigits value="12"/>
+                             <xs:fractionDigits value="2"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="valor_mercado">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Valor de Mercado
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:decimal">
+                             <xs:totalDigits value="12"/>
+                             <xs:fractionDigits value="2"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="grado_hipoteca" nillable="true">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Grado de Hipoteca
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:short">
+                             <xs:minInclusive value="1"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="direccion_gtia" nillable="true">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Dirección de la Garantía
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:maxLength value="60"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="cod_perito" nillable="true">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Código de Perito Valuador
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:maxLength value="10"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="nombre_perito" nillable="true">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Nombre del Perito Valuador
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:maxLength value="70"/>
+                             <xs:whiteSpace value="collapse"/>
+                             <xs:pattern value="([A-Z0-9\s.,&amp;\-\(\)ÑÁÉÍÓÚ])*"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="tipo_perito" nillable="true">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Tipo de Perito Valuador
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:length value="1"/>
+                             <xs:whiteSpace value="collapse"/>
+                             <xs:enumeration value="I"/>
+                             <xs:enumeration value="E"/>
+                             <xs:enumeration value="A"/>
+                             <xs:enumeration value="" />
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                  </xs:all>
+               </xs:complexType>
+            </xs:element>
+         </xs:sequence>
+      </xs:complexType>
+   </xs:element>
+</xs:schema>
