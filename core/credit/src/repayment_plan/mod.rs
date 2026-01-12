@@ -179,6 +179,14 @@ impl CreditFacilityRepaymentPlan {
                 effective,
                 ..
             } => {
+                // Skip if already processed (idempotent for replay)
+                if existing_obligations
+                    .iter()
+                    .any(|e| e.obligation_id == Some(*id))
+                {
+                    return false;
+                }
+
                 let entry = CreditFacilityRepaymentPlanEntry {
                     repayment_type: obligation_type.into(),
                     obligation_id: Some(*id),
