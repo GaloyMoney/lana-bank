@@ -70,6 +70,10 @@ where
         }
     }
 
+    pub async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, PaymentError> {
+        Ok(self.repo.begin_op().await?)
+    }
+
     pub(super) async fn find_by_id(
         &self,
         payment_id: PaymentId,
