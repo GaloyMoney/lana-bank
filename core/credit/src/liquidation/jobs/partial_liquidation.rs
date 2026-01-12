@@ -15,7 +15,7 @@ use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use crate::{
     CoreCreditEvent, CreditFacilityId, LiquidationId, credit_facility::CreditFacilityRepo,
-    liquidation::LiquidationRepo, primitives::*,
+    liquidation::LiquidationRepo,
 };
 
 #[derive(Default, Clone, Deserialize, Serialize)]
@@ -203,14 +203,13 @@ where
     async fn complete_liquidation(
         &self,
         db: &mut DbOp<'_>,
-        payment_id: PaymentId,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let mut liquidation = self
             .liquidation_repo
             .find_by_id(self.config.liquidation_id)
             .await?;
 
-        if liquidation.complete(payment_id).did_execute() {
+        if liquidation.complete().did_execute() {
             self.liquidation_repo
                 .update_in_op(db, &mut liquidation)
                 .await?;
@@ -244,7 +243,7 @@ where
                 self.complete_facility_liquidation(db, *credit_facility_id)
                     .await?;
 
-                self.complete_liquidation(db, *payment_id).await?;
+                self.complete_liquidation(db).await?;
 
                 Ok(ControlFlow::Break(()))
             }

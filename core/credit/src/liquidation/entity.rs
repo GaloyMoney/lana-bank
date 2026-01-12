@@ -47,9 +47,7 @@ pub enum LiquidationEvent {
         payment_id: PaymentId,
         ledger_tx_id: LedgerTxId,
     },
-    Completed {
-        payment_id: PaymentId,
-    },
+    Completed {},
 }
 
 #[derive(EsEntity, Builder)]
@@ -147,13 +145,13 @@ impl Liquidation {
         }))
     }
 
-    pub fn complete(&mut self, payment_id: PaymentId) -> Idempotent<()> {
+    pub fn complete(&mut self) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             LiquidationEvent::Completed { .. }
         );
 
-        self.events.push(LiquidationEvent::Completed { payment_id });
+        self.events.push(LiquidationEvent::Completed {});
 
         Idempotent::Executed(())
     }

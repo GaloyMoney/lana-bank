@@ -231,11 +231,10 @@ where
         &self,
         db: &mut es_entity::DbOp<'_>,
         liquidation_id: LiquidationId,
-        payment_id: PaymentId,
     ) -> Result<(), LiquidationError> {
         let mut liquidation = self.repo.find_by_id(liquidation_id).await?;
 
-        if liquidation.complete(payment_id).did_execute() {
+        if liquidation.complete().did_execute() {
             self.repo.update_in_op(db, &mut liquidation).await?;
         }
 

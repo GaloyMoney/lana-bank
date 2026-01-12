@@ -162,18 +162,13 @@
     },
     {
       "properties": {
-        "payment_id": {
-          "format": "uuid",
-          "type": "string"
-        },
         "type": {
           "const": "completed",
           "type": "string"
         }
       },
       "required": [
-        "type",
-        "payment_id"
+        "type"
       ],
       "type": "object"
     }
