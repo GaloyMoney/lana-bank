@@ -459,13 +459,10 @@ where
         let publish_events = new_events
             .filter_map(|event| match &event.event {
                 Initialized { .. } => None,
-                Completed { payment_id, .. } => {
-                    Some(CoreCreditEvent::PartialLiquidationCompleted {
-                        liquidation_id: entity.id,
-                        credit_facility_id: entity.credit_facility_id,
-                        payment_id: *payment_id,
-                    })
-                }
+                Completed { .. } => Some(CoreCreditEvent::PartialLiquidationCompleted {
+                    liquidation_id: entity.id,
+                    credit_facility_id: entity.credit_facility_id,
+                }),
                 ProceedsFromLiquidationReceived {
                     amount,
                     ledger_tx_id,

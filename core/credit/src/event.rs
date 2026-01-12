@@ -171,6 +171,5 @@ pub enum CoreCreditEvent {
     PartialLiquidationCompleted {
         liquidation_id: LiquidationId,
         credit_facility_id: CreditFacilityId,
-        payment_id: PaymentId,
     },
 }
