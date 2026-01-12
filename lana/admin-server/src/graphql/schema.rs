@@ -2388,7 +2388,7 @@ impl Mutation {
             chart_of_accounts_expenses_code,
         } = input;
 
-        let config_values = lana_app::balance_sheet::ChartOfAccountsIntegrationConfig {
+        let _config_values = lana_app::balance_sheet::ChartOfAccountsIntegrationConfig {
             chart_of_accounts_id: chart.id,
             chart_of_accounts_assets_code: chart_of_accounts_assets_code.parse()?,
             chart_of_accounts_liabilities_code: chart_of_accounts_liabilities_code.parse()?,
@@ -2406,7 +2406,6 @@ impl Mutation {
                 sub,
                 BALANCE_SHEET_NAME.to_string(),
                 chart.as_ref(),
-                config_values,
             )
             .await?;
         Ok(BalanceSheetModuleConfigurePayload::from(
@@ -2433,7 +2432,7 @@ impl Mutation {
             chart_of_accounts_expenses_code,
         } = input;
 
-        let config_values = lana_app::profit_and_loss::ChartOfAccountsIntegrationConfig {
+        let _config_values = lana_app::profit_and_loss::ChartOfAccountsIntegrationConfig {
             chart_of_accounts_id: chart.id,
             chart_of_accounts_revenue_code: chart_of_accounts_revenue_code.parse()?,
             chart_of_accounts_cost_of_revenue_code: chart_of_accounts_cost_of_revenue_code
@@ -2448,7 +2447,6 @@ impl Mutation {
                 sub,
                 PROFIT_AND_LOSS_STATEMENT_NAME.to_string(),
                 chart.as_ref(),
-                config_values,
             )
             .await?;
         Ok(ProfitAndLossStatementModuleConfigurePayload::from(
