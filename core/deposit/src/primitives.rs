@@ -404,6 +404,7 @@ pub enum DepositAccountType {
     Bank,
     FinancialInstitution,
     NonDomiciledCompany,
+    ForeignAgencyOrSubsidiary,
 }
 
 impl From<CustomerType> for DepositAccountType {
@@ -415,7 +416,9 @@ impl From<CustomerType> for DepositAccountType {
             CustomerType::Bank => DepositAccountType::Bank,
             CustomerType::FinancialInstitution => DepositAccountType::FinancialInstitution,
             CustomerType::NonDomiciledCompany => DepositAccountType::NonDomiciledCompany,
-            _ => panic!("Invalid customer type"),
+            CustomerType::ForeignAgencyOrSubsidiary => {
+                DepositAccountType::ForeignAgencyOrSubsidiary
+            }
         }
     }
 }
