@@ -47,6 +47,9 @@ query creditFacility($id: UUID!) {
           usdBalance
         }
       }
+      paymentsUnapplied {
+        usdBalance
+      }
     }
     liquidations {
       liquidationId
