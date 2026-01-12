@@ -21,6 +21,7 @@ updates:
     - dependency-name: "es-entity"
     - dependency-name: "cala-ledger"
     - dependency-name: "cala-cel-interpreter"
+    - dependency-name: "cala-ledger-core-types"
     - dependency-name: "sim-time"
 
 - package-ecosystem: "npm"
