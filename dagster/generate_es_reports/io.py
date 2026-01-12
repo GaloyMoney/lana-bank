@@ -5,12 +5,15 @@ import base64
 import re
 
 import yaml
+from google.cloud import bigquery
+from google.oauth2 import service_account
 from xmlschema import XMLSchema
 
 from generate_es_reports.constants import DEFAULT_XML_SCHEMAS_PATH, DEFAULT_REPORTS_YAML_PATH
 from generate_es_reports.domain.report import (
     CSVFileOutputConfig,
     ReportJobDefinition,
+    TabularReportContents,
     TXTFileOutputConfig,
     XMLFileOutputConfig,
     StorableReportOutput,
@@ -44,6 +47,65 @@ class BaseReportStorer(ABC):
             report (StorableReport): a storable report specifying contents and their types.
         """
         pass
+
+
+class BaseTableFetcher(ABC):
+    """Interface for fetching tabular data from a data source."""
+
+    @abstractmethod
+    def fetch_table_contents(self, table_name: str) -> TabularReportContents:
+        """Fetch table contents and return them as TabularReportContents.
+
+        Args:
+            table_name: Name of the table to fetch.
+
+        Returns:
+            TabularReportContents with field names and records.
+        """
+        pass
+
+
+class BigQueryTableFetcher(BaseTableFetcher):
+    """Fetches records from a BigQuery dataset.
+
+    Naively gets all contents of specified tables: all fields, all records.
+    Not suitable for very large tables.
+    """
+
+    def __init__(self, credentials_dict: dict, dataset: str):
+        """Initialize BigQuery table fetcher.
+
+        Args:
+            credentials_dict: Service account credentials as a dictionary.
+            dataset: BigQuery dataset name.
+        """
+        self.dataset = dataset
+        self.project_id = credentials_dict["project_id"]
+
+        credentials = service_account.Credentials.from_service_account_info(
+            credentials_dict
+        )
+        self._bq_client = bigquery.Client(
+            project=self.project_id, credentials=credentials
+        )
+
+    def fetch_table_contents(self, table_name: str) -> TabularReportContents:
+        """Fetch all rows from a BigQuery table.
+
+        Args:
+            table_name: Name of the table (without dataset prefix).
+
+        Returns:
+            TabularReportContents with field names and records.
+        """
+        query = f"SELECT * FROM `{self.project_id}.{self.dataset}.{table_name}`;"
+        query_job = self._bq_client.query(query)
+        rows = query_job.result()
+
+        field_names = tuple(field.name for field in rows.schema)
+        records = [{name: row[name] for name in field_names} for row in rows]
+
+        return TabularReportContents(field_names=field_names, records=records)
 
 
 def encode_gcs_path(path: str) -> str:
