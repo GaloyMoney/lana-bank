@@ -51,7 +51,7 @@ def create_file_report_callable(
     ) -> None:
         table_fetcher = BigQueryTableFetcher(
             credentials_dict=dw_bq.get_credentials_dict(),
-            dataset=dw_bq.get_target_dataset(),
+            dataset=dw_bq.get_dbt_dataset(),
         )
 
         def fetch_table(table_name: str):
@@ -360,12 +360,11 @@ def generated_file_report_protoassets() -> List[Protoasset]:
 
     for report_job in report_jobs:
         for file_config in report_job.file_output_configs:
-            # Asset key: file_report/<table_name>/<format>
+            # Asset key: file_report/<table_name>_<format>
             asset_key = dg.AssetKey(
                 [
                     "file_report",
-                    report_job.source_table_name,
-                    file_config.file_extension,
+                    f"{report_job.source_table_name}_{file_config.file_extension}",
                 ]
             )
 
