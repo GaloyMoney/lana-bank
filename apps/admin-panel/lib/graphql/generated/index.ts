@@ -2272,6 +2272,13 @@ export type PendingCreditFacilityCollateralizationUpdated = {
   state: PendingCreditFacilityCollateralizationState;
 };
 
+export type PendingCreditFacilityCompletedPayload = {
+  __typename?: 'PendingCreditFacilityCompletedPayload';
+  pendingCreditFacility: PendingCreditFacility;
+  recordedAt: Scalars['Timestamp']['output'];
+  status: PendingCreditFacilityStatus;
+};
+
 export type PendingCreditFacilityConnection = {
   __typename?: 'PendingCreditFacilityConnection';
   /** A list of edges. */
@@ -2954,6 +2961,7 @@ export type Subscription = {
   approvalProcessConcluded: ApprovalProcessConcludedPayload;
   creditFacilityCollateralizationUpdated: CreditFacilityCollateralizationPayload;
   pendingCreditFacilityCollateralizationUpdated: PendingCreditFacilityCollateralizationPayload;
+  pendingCreditFacilityCompleted: PendingCreditFacilityCompletedPayload;
 };
 
 
@@ -2968,6 +2976,11 @@ export type SubscriptionCreditFacilityCollateralizationUpdatedArgs = {
 
 
 export type SubscriptionPendingCreditFacilityCollateralizationUpdatedArgs = {
+  pendingCreditFacilityId: Scalars['UUID']['input'];
+};
+
+
+export type SubscriptionPendingCreditFacilityCompletedArgs = {
   pendingCreditFacilityId: Scalars['UUID']['input'];
 };
 

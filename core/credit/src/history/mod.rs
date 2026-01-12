@@ -147,6 +147,7 @@ impl CreditFacilityHistory {
                     },
                 ),
             ),
+            PendingCreditFacilityCompleted { .. } => {}
             FacilityCompleted { .. } => {}
             ObligationCreated { .. } => {}
             ObligationDue { .. } => {}

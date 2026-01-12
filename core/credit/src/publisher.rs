@@ -179,6 +179,11 @@ where
                         effective: event.recorded_at.date_naive(),
                     },
                 ),
+                Completed { .. } => Some(CoreCreditEvent::PendingCreditFacilityCompleted {
+                    id: entity.id,
+                    status: entity.status(),
+                    recorded_at: event.recorded_at,
+                }),
                 _ => None,
             })
             .collect::<Vec<_>>();

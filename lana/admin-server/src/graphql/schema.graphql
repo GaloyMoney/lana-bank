@@ -1965,6 +1965,12 @@ type PendingCreditFacilityCollateralizationUpdated {
 	effective: Date!
 }
 
+type PendingCreditFacilityCompletedPayload {
+	status: PendingCreditFacilityStatus!
+	recordedAt: Timestamp!
+	pendingCreditFacility: PendingCreditFacility!
+}
+
 type PendingCreditFacilityConnection {
 	"""
 	Information to aid in pagination.
@@ -2370,6 +2376,7 @@ enum SortDirection {
 
 type Subscription {
 	pendingCreditFacilityCollateralizationUpdated(pendingCreditFacilityId: UUID!): PendingCreditFacilityCollateralizationPayload!
+	pendingCreditFacilityCompleted(pendingCreditFacilityId: UUID!): PendingCreditFacilityCompletedPayload!
 	creditFacilityCollateralizationUpdated(creditFacilityId: UUID!): CreditFacilityCollateralizationPayload!
 	approvalProcessConcluded(approvalProcessId: UUID!): ApprovalProcessConcludedPayload!
 }

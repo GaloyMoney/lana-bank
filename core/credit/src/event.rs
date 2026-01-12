@@ -34,6 +34,11 @@ pub enum CoreCreditEvent {
         recorded_at: DateTime<Utc>,
         effective: chrono::NaiveDate,
     },
+    PendingCreditFacilityCompleted {
+        id: PendingCreditFacilityId,
+        status: PendingCreditFacilityStatus,
+        recorded_at: DateTime<Utc>,
+    },
     FacilityActivated {
         id: CreditFacilityId,
         activation_tx_id: LedgerTxId,
