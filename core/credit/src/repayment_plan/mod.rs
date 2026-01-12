@@ -1135,4 +1135,58 @@ mod tests {
             .count();
         assert_eq!(count_after_second, 1);
     }
+
+    #[test]
+    fn replayed_zero_accrual_posted_is_idempotent() {
+        let mut plan = initial_plan_no_structuring_fee();
+
+        let activate_event = CoreCreditEvent::FacilityActivated {
+            id: CreditFacilityId::new(),
+            activation_tx_id: LedgerTxId::new(),
+            activated_at: default_start_date(),
+            amount: default_facility_amount(),
+        };
+        plan.process_event(Default::default(), &activate_event);
+
+        let period = InterestInterval::EndOfMonth.period_from(default_start_date());
+        let accrual_event = CoreCreditEvent::AccrualPosted {
+            credit_facility_id: CreditFacilityId::new(),
+            ledger_tx_id: LedgerTxId::new(),
+            amount: UsdCents::ZERO,
+            period,
+            due_at: EffectiveDate::from(period.end),
+            recorded_at: period.end,
+            effective: period.end.date_naive(),
+        };
+
+        // First processing should create the accrual entry
+        let first_result = plan.process_event(Default::default(), &accrual_event);
+        assert!(first_result);
+
+        let count_after_first = plan
+            .entries
+            .iter()
+            .filter(|e| {
+                e.repayment_type == RepaymentType::Interest
+                    && e.status == RepaymentStatus::Paid
+                    && e.obligation_id.is_none()
+            })
+            .count();
+        assert_eq!(count_after_first, 1);
+
+        // Second processing (replay) should be idempotent - no duplicate entry
+        let second_result = plan.process_event(Default::default(), &accrual_event);
+        assert!(!second_result);
+
+        let count_after_second = plan
+            .entries
+            .iter()
+            .filter(|e| {
+                e.repayment_type == RepaymentType::Interest
+                    && e.status == RepaymentStatus::Paid
+                    && e.obligation_id.is_none()
+            })
+            .count();
+        assert_eq!(count_after_second, 1);
+    }
 }
