@@ -3,6 +3,7 @@ use std::{fmt::Display, str::FromStr};
 use authz::action_description::*;
 
 use crate::audit_action::AuditAction;
+use crate::domain_config_action::DomainConfigAction;
 use contract_creation::ContractModuleAction;
 use core_access::CoreAccessAction;
 use core_accounting::CoreAccountingAction;
@@ -19,6 +20,8 @@ use governance::GovernanceAction;
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum LanaAction {
     Audit(AuditAction),
+    #[strum_discriminants(strum(serialize = "domain_config"))]
+    DomainConfig(DomainConfigAction),
     Governance(GovernanceAction),
     Access(CoreAccessAction),
     Customer(CoreCustomerAction),
@@ -36,6 +39,7 @@ impl LanaAction {
     pub fn action_descriptions() -> Vec<ActionMapping> {
         [
             AuditAction::actions(),
+            DomainConfigAction::actions(),
             GovernanceAction::actions(),
             CoreAccessAction::actions(),
             CoreCustomerAction::actions(),
@@ -54,6 +58,11 @@ impl LanaAction {
 impl From<AuditAction> for LanaAction {
     fn from(action: AuditAction) -> Self {
         LanaAction::Audit(action)
+    }
+}
+impl From<DomainConfigAction> for LanaAction {
+    fn from(action: DomainConfigAction) -> Self {
+        LanaAction::DomainConfig(action)
     }
 }
 impl From<DashboardModuleAction> for LanaAction {
@@ -113,6 +122,7 @@ impl Display for LanaAction {
         use LanaAction::*;
         match self {
             Audit(action) => action.fmt(f),
+            DomainConfig(action) => action.fmt(f),
             Governance(action) => action.fmt(f),
             Access(action) => action.fmt(f),
             Customer(action) => action.fmt(f),
@@ -135,6 +145,7 @@ impl FromStr for LanaAction {
         use LanaActionDiscriminants::*;
         let res = match module.parse()? {
             Audit => LanaAction::from(action.parse::<AuditAction>()?),
+            DomainConfig => LanaAction::from(action.parse::<DomainConfigAction>()?),
             Governance => LanaAction::from(action.parse::<GovernanceAction>()?),
             Access => LanaAction::from(action.parse::<CoreAccessAction>()?),
             Customer => LanaAction::from(action.parse::<CoreCustomerAction>()?),

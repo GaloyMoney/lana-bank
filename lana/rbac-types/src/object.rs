@@ -1,6 +1,7 @@
 use std::{fmt::Display, str::FromStr};
 
 use crate::audit_object::AuditObject;
+use crate::domain_config_object::DomainConfigObject;
 use contract_creation::ContractModuleObject;
 use core_access::CoreAccessObject;
 use core_accounting::CoreAccountingObject;
@@ -17,6 +18,8 @@ use governance::GovernanceObject;
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum LanaObject {
     Audit(AuditObject),
+    #[strum_discriminants(strum(serialize = "domain_config"))]
+    DomainConfig(DomainConfigObject),
     Governance(GovernanceObject),
     Access(CoreAccessObject),
     Customer(CustomerObject),
@@ -32,6 +35,11 @@ pub enum LanaObject {
 impl From<AuditObject> for LanaObject {
     fn from(object: AuditObject) -> Self {
         LanaObject::Audit(object)
+    }
+}
+impl From<DomainConfigObject> for LanaObject {
+    fn from(object: DomainConfigObject) -> Self {
+        LanaObject::DomainConfig(object)
     }
 }
 impl From<DashboardModuleObject> for LanaObject {
@@ -93,6 +101,7 @@ impl Display for LanaObject {
         use LanaObject::*;
         match self {
             Audit(object) => object.fmt(f),
+            DomainConfig(object) => object.fmt(f),
             Governance(object) => object.fmt(f),
             Access(object) => object.fmt(f),
             Customer(object) => object.fmt(f),
@@ -115,6 +124,7 @@ impl FromStr for LanaObject {
         use LanaObjectDiscriminants::*;
         let res = match module.parse().expect("invalid module") {
             Audit => LanaObject::from(object.parse::<AuditObject>()?),
+            DomainConfig => LanaObject::from(object.parse::<DomainConfigObject>()?),
             Governance => LanaObject::from(object.parse::<GovernanceObject>()?),
             Access => LanaObject::from(object.parse::<CoreAccessObject>()?),
             Customer => LanaObject::from(object.parse::<CustomerObject>()?),
