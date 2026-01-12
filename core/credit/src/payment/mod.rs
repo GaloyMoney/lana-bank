@@ -6,6 +6,8 @@ mod repo;
 use std::sync::Arc;
 use tracing::instrument;
 
+use es_entity::clock::ClockHandle;
+
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_accounting::LedgerTransactionInitiator;
@@ -32,6 +34,7 @@ where
     repo: Arc<PaymentRepo<E>>,
     authz: Arc<Perms>,
     ledger: Arc<CreditLedger>,
+    clock: ClockHandle,
 }
 
 impl<Perms, E> Clone for Payments<Perms, E>
@@ -44,6 +47,7 @@ where
             repo: self.repo.clone(),
             authz: self.authz.clone(),
             ledger: self.ledger.clone(),
+            clock: self.clock.clone(),
         }
     }
 }
@@ -59,6 +63,7 @@ where
         pool: &sqlx::PgPool,
         authz: Arc<Perms>,
         ledger: Arc<CreditLedger>,
+        clock: ClockHandle,
         publisher: &CreditFacilityPublisher<E>,
     ) -> Self {
         let repo = PaymentRepo::new(pool, publisher);
@@ -67,6 +72,7 @@ where
             repo: Arc::new(repo),
             authz,
             ledger,
+            clock: clock.clone(),
         }
     }
 
@@ -118,13 +124,41 @@ where
             .await?
             .is_some()
         {
-            Ok(None)
-        } else {
-            let payment = self.repo.create_in_op(db, new_payment).await?;
-            self.ledger
-                .record_payment(db, &payment, initiated_by)
-                .await?;
-            Ok(Some(payment))
+            return Ok(None);
         }
+
+        let payment = self.repo.create_in_op(db, new_payment).await?;
+
+        self.ledger
+            .record_payment(db, &payment, initiated_by)
+            .await?;
+
+        Ok(Some(payment))
+    }
+
+    pub(super) async fn record(
+        &self,
+        payment_id: PaymentId,
+        credit_facility_id: CreditFacilityId,
+        payment_ledger_account_ids: PaymentLedgerAccountIds,
+        amount: UsdCents,
+        effective: chrono::NaiveDate,
+        initiated_by: LedgerTransactionInitiator,
+    ) -> Result<Option<Payment>, PaymentError> {
+        let mut db = self.repo.begin_op_with_clock(&self.clock).await?;
+        let res = self
+            .record_in_op(
+                &mut db,
+                payment_id,
+                credit_facility_id,
+                payment_ledger_account_ids,
+                amount,
+                effective,
+                initiated_by,
+            )
+            .await?;
+        db.commit().await?;
+
+        Ok(res)
     }
 }
