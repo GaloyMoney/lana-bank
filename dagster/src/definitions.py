@@ -7,6 +7,7 @@ import dagster as dg
 from src.assets import (
     bitfinex_protoassets,
     file_report_protoassets,
+    generated_file_report_protoassets,
     inform_lana_protoasset,
     iris_dataset_size,
     lana_dbt_protoassets,
@@ -201,6 +202,9 @@ file_reports_job = definition_builder.add_job_from_assets(
     job_name="file_reports_generation", assets=tuple(report_generation_assets)
 )
 definition_builder.add_job_schedule(job=file_reports_job, cron_expression="0 */2 * * *")
+
+for generated_report_protoasset in generated_file_report_protoassets():
+    definition_builder.add_asset_from_protoasset(generated_report_protoasset)
 
 inform_lana_asset = definition_builder.add_asset_from_protoasset(
     inform_lana_protoasset()
