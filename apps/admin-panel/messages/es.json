@@ -136,6 +136,14 @@
       "label": "Descongelación de depósito",
       "description": "Puede descongelar cuentas de depósito"
     },
+    "exposed_configs_viewer": {
+      "label": "Visualizador de configuraciones expuestas",
+      "description": "Puede ver valores de configuración expuestos"
+    },
+    "exposed_configs_writer": {
+      "label": "Editor de configuraciones expuestas",
+      "description": "Puede actualizar valores de configuración expuestos"
+    },
     "governance_viewer": {
       "label": "Visualizador de gobernanza",
       "description": "Puede ver comités de gobernanza, políticas y procesos de aprobación"

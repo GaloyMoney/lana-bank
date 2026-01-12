@@ -978,14 +978,14 @@ impl Query {
     ) -> async_graphql::Result<
         Connection<DomainConfigsByKeyCursor, DomainConfig, EmptyFields, EmptyFields>,
     > {
-        let (app, _sub) = app_and_sub_from_ctx!(ctx);
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
         list_with_cursor!(
             DomainConfigsByKeyCursor,
             DomainConfig,
             ctx,
             after,
             first,
-            |query| app.domain_configs().list_exposed_configs(query)
+            |query| app.list_exposed_domain_configs(sub, query)
         )
     }
 
@@ -1323,13 +1323,12 @@ impl Mutation {
         ctx: &Context<'_>,
         input: DomainConfigUpdateInput,
     ) -> async_graphql::Result<DomainConfigUpdatePayload> {
-        let (app, _sub) = app_and_sub_from_ctx!(ctx);
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
         exec_mutation!(
             DomainConfigUpdatePayload,
             DomainConfig,
             ctx,
-            app.domain_configs()
-                .update_exposed_from_json(input.domain_config_id, input.value.into_inner())
+            app.update_exposed_domain_config(sub, input.domain_config_id, input.value.into_inner())
         )
     }
 

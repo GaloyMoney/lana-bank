@@ -2350,6 +2350,8 @@ export enum PermissionSetName {
   DepositUnfreeze = 'DEPOSIT_UNFREEZE',
   DepositViewer = 'DEPOSIT_VIEWER',
   DepositWriter = 'DEPOSIT_WRITER',
+  ExposedConfigsViewer = 'EXPOSED_CONFIGS_VIEWER',
+  ExposedConfigsWriter = 'EXPOSED_CONFIGS_WRITER',
   GovernanceViewer = 'GOVERNANCE_VIEWER',
   GovernanceWriter = 'GOVERNANCE_WRITER',
   ReportViewer = 'REPORT_VIEWER',

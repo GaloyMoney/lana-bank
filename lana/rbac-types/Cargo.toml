@@ -21,6 +21,7 @@ core-accounting = { workspace = true }
 core-report = { workspace = true }
 audit = { workspace = true }
 authz = { workspace = true }
+domain-config = { workspace = true }
 
 async-graphql = { workspace = true }
 strum = { workspace = true }

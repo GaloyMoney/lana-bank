@@ -5046,6 +5046,7 @@ dependencies = [
  "core-deposit",
  "core-report",
  "dashboard",
+ "domain-config",
  "governance",
  "serde",
  "strum",

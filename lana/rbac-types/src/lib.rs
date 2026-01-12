@@ -4,6 +4,8 @@
 mod action;
 mod audit_action;
 mod audit_object;
+mod domain_config_action;
+mod domain_config_object;
 mod object;
 
 use serde::{Deserialize, Serialize};
@@ -17,6 +19,8 @@ use core_customer::CustomerId;
 pub use action::*;
 pub use audit_action::*;
 pub use audit_object::*;
+pub use domain_config_action::*;
+pub use domain_config_object::*;
 pub use object::*;
 
 const SYSTEM_SUBJECT_ID: Uuid = uuid!("00000000-0000-0000-0000-000000000000");
@@ -44,6 +48,8 @@ pub enum PermissionSetName {
     DepositWriter,
     DepositFreeze,
     DepositUnfreeze,
+    ExposedConfigsViewer,
+    ExposedConfigsWriter,
     GovernanceViewer,
     GovernanceWriter,
     ReportViewer,
@@ -80,6 +86,9 @@ impl std::str::FromStr for PermissionSetName {
             core_deposit::PERMISSION_SET_DEPOSIT_WRITER => Ok(DepositWriter),
             core_deposit::PERMISSION_SET_DEPOSIT_FREEZE => Ok(DepositFreeze),
             core_deposit::PERMISSION_SET_DEPOSIT_UNFREEZE => Ok(DepositUnfreeze),
+
+            PERMISSION_SET_EXPOSED_CONFIGS_VIEWER => Ok(ExposedConfigsViewer),
+            PERMISSION_SET_EXPOSED_CONFIGS_WRITER => Ok(ExposedConfigsWriter),
 
             governance::PERMISSION_SET_GOVERNANCE_VIEWER => Ok(GovernanceViewer),
             governance::PERMISSION_SET_GOVERNANCE_WRITER => Ok(GovernanceWriter),

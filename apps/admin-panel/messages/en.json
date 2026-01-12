@@ -136,6 +136,14 @@
       "label": "Deposit Unfreeze",
       "description": "Can unfreeze deposit accounts"
     },
+    "exposed_configs_viewer": {
+      "label": "Exposed Configs Viewer",
+      "description": "Can view exposed configuration values"
+    },
+    "exposed_configs_writer": {
+      "label": "Exposed Configs Writer",
+      "description": "Can update exposed configuration values"
+    },
     "governance_viewer": {
       "label": "Governance Viewer",
       "description": "Can view governance committees, policies, and approval processes"
