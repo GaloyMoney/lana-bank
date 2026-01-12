@@ -1076,4 +1076,55 @@ mod tests {
             .unwrap();
         assert_eq!(outstanding_after_second, UsdCents::ZERO);
     }
+
+    #[test]
+    fn replayed_obligation_created_is_idempotent() {
+        let obligation_id = ObligationId::new();
+
+        let mut plan = initial_plan();
+
+        let recorded_at = default_start_date();
+
+        let activate_event = CoreCreditEvent::FacilityActivated {
+            id: CreditFacilityId::new(),
+            activation_tx_id: LedgerTxId::new(),
+            activated_at: default_start_date(),
+            amount: default_facility_amount(),
+        };
+        plan.process_event(Default::default(), &activate_event);
+
+        let obligation_event = CoreCreditEvent::ObligationCreated {
+            id: obligation_id,
+            obligation_type: ObligationType::Disbursal,
+            credit_facility_id: CreditFacilityId::new(),
+            amount: UsdCents::from(100_000_00),
+            due_at: EffectiveDate::from(recorded_at),
+            overdue_at: None,
+            defaulted_at: None,
+            recorded_at,
+            effective: recorded_at.date_naive(),
+        };
+
+        // First processing should create the obligation entry
+        let first_result = plan.process_event(Default::default(), &obligation_event);
+        assert!(first_result);
+
+        let count_after_first = plan
+            .entries
+            .iter()
+            .filter(|e| e.obligation_id == Some(obligation_id))
+            .count();
+        assert_eq!(count_after_first, 1);
+
+        // Second processing (replay) should be idempotent - no duplicate entry
+        let second_result = plan.process_event(Default::default(), &obligation_event);
+        assert!(!second_result);
+
+        let count_after_second = plan
+            .entries
+            .iter()
+            .filter(|e| e.obligation_id == Some(obligation_id))
+            .count();
+        assert_eq!(count_after_second, 1);
+    }
 }
