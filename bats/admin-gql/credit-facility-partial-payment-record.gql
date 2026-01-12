@@ -31,6 +31,9 @@ mutation creditFacilityPartialPaymentRecord(
             usdBalance
           }
         }
+        paymentsUnapplied {
+          usdBalance
+        }
       }
     }
   }

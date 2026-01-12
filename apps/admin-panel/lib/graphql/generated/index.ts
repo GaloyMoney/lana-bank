@@ -468,6 +468,7 @@ export type CreditFacilityBalance = {
   interest: Interest;
   outstanding: Outstanding;
   outstandingPayable: Outstanding;
+  paymentsUnapplied: PaymentsUnapplied;
 };
 
 export type CreditFacilityCollateralSentOut = {
@@ -2219,6 +2220,11 @@ export type PaymentEntry = {
   __typename?: 'PaymentEntry';
   payment: CreditFacilityPaymentAllocation;
   recordedAt: Scalars['Timestamp']['output'];
+};
+
+export type PaymentsUnapplied = {
+  __typename?: 'PaymentsUnapplied';
+  usdBalance: Scalars['UsdCents']['output'];
 };
 
 export type PendingCreditFacility = {
