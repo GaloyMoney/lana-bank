@@ -134,10 +134,14 @@ export default function PendingCreditFacilityLayout({
     variables: { pendingCreditFacilityId: pendingId },
   })
 
-  usePendingCreditFacilityCompletedSubscription({
-    variables: { pendingCreditFacilityId: pendingId },
-    skip: data?.pendingCreditFacility?.status === PendingCreditFacilityStatus.Completed,
-  })
+  const completed =
+    data?.pendingCreditFacility?.status === PendingCreditFacilityStatus.Completed
+
+  usePendingCreditFacilityCompletedSubscription(
+    data?.pendingCreditFacility && !completed
+      ? { variables: { pendingCreditFacilityId: pendingId } }
+      : { skip: true },
+  )
 
   if (loading && !data) return <DetailsPageSkeleton detailItems={4} tabs={2} />
   if (error) return <div className="text-destructive">{error.message}</div>
