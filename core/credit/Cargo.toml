@@ -31,8 +31,8 @@ audit = { workspace = true }
 authz = { workspace = true }
 obix = { workspace = true }
 domain-config = { workspace = true }
-job = { workspace = true }
-job_new = { version = "=0.6.0", package = "job" }
+job = { version = "0.4.0", features = [ "es-entity" ] }
+job_new = { version = "0.6.0", package = "job" }
 cloud-storage = { workspace = true }
 public-id = { workspace = true }
 

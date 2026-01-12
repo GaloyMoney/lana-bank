@@ -67,7 +67,7 @@ pub enum ApplicationError {
     #[error("ApplicationError - ClosedOrFrozenAccount")]
     ClosedOrFrozenAccount,
     #[error("ApplicationError - JobError: {0}")]
-    NewJobError(#[from] job_new::error::JobError),
+    OldJobError(#[from] job_old::error::JobError),
 }
 
 impl ErrorSeverity for ApplicationError {
@@ -104,7 +104,7 @@ impl ErrorSeverity for ApplicationError {
             Self::TracingError(e) => e.severity(),
             Self::CanNotCreateProposalForClosedOrFrozenAccount => Level::WARN,
             Self::ClosedOrFrozenAccount => Level::WARN,
-            Self::NewJobError(_) => Level::ERROR,
+            Self::OldJobError(_) => Level::ERROR,
         }
     }
 }

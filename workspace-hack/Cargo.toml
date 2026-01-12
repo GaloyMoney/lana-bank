@@ -55,8 +55,8 @@ hyper-util = { version = "0.1", features = ["client-legacy", "server-auto", "ser
 idna = { version = "1" }
 indexmap = { version = "2", features = ["serde"] }
 inout = { version = "0.1", default-features = false, features = ["block-padding"] }
-job-3b31131e45eafb45 = { package = "job", version = "0.6", default-features = false, features = ["json-schema"] }
-job-9fbad63c4bcf4a8f = { package = "job", version = "0.4", default-features = false, features = ["json-schema", "sim-time"] }
+job-3b31131e45eafb45 = { package = "job", version = "0.6", default-features = false, features = ["json-schema", "sim-time"] }
+job-9fbad63c4bcf4a8f = { package = "job", version = "0.4", default-features = false, features = ["json-schema"] }
 lalrpop-util = { version = "0.22", features = ["lexer"] }
 log = { version = "0.4", default-features = false, features = ["std"] }
 memchr = { version = "2" }
@@ -139,8 +139,8 @@ hyper-util = { version = "0.1", features = ["client-legacy", "server-auto", "ser
 idna = { version = "1" }
 indexmap = { version = "2", features = ["serde"] }
 inout = { version = "0.1", default-features = false, features = ["block-padding"] }
-job-3b31131e45eafb45 = { package = "job", version = "0.6", default-features = false, features = ["json-schema"] }
-job-9fbad63c4bcf4a8f = { package = "job", version = "0.4", default-features = false, features = ["json-schema", "sim-time"] }
+job-3b31131e45eafb45 = { package = "job", version = "0.6", default-features = false, features = ["json-schema", "sim-time"] }
+job-9fbad63c4bcf4a8f = { package = "job", version = "0.4", default-features = false, features = ["json-schema"] }
 lalrpop-util = { version = "0.22", features = ["lexer"] }
 log = { version = "0.4", default-features = false, features = ["std"] }
 memchr = { version = "2" }
