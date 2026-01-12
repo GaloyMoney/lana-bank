@@ -35,6 +35,8 @@ pub struct CreditFacilityRepaymentPlan {
 
     #[serde(default)]
     applied_allocations: HashSet<PaymentAllocationId>,
+    #[serde(default)]
+    applied_accruals: HashSet<LedgerTxId>,
 }
 
 impl CreditFacilityRepaymentPlan {
@@ -209,12 +211,18 @@ impl CreditFacilityRepaymentPlan {
                 existing_obligations.push(entry);
             }
             CoreCreditEvent::AccrualPosted {
+                ledger_tx_id,
                 amount,
                 due_at,
                 effective,
                 recorded_at,
                 ..
             } if amount.is_zero() => {
+                // Skip if already processed (idempotent for replay)
+                if !self.applied_accruals.insert(*ledger_tx_id) {
+                    return false;
+                }
+
                 let entry = CreditFacilityRepaymentPlanEntry {
                     repayment_type: RepaymentType::Interest,
                     obligation_id: None,
