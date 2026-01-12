@@ -12,12 +12,11 @@ use cala_ledger::{
 };
 use tracing_macros::record_error_severity;
 
-use crate::primitives::{BalanceRange, CalaBalanceRange};
+use crate::primitives::{AccountingBaseConfig, BalanceRange, CalaBalanceRange};
 
 use super::{
-    ASSETS_NAME, BalanceSheet, BalanceSheetIds, COST_OF_REVENUE_NAME,
-    ChartOfAccountsIntegrationConfig, EQUITY_NAME, EXPENSES_NAME, LIABILITIES_NAME,
-    NET_INCOME_NAME, REVENUE_NAME,
+    ASSETS_NAME, BalanceSheet, BalanceSheetIds, COST_OF_REVENUE_NAME, EQUITY_NAME, EXPENSES_NAME,
+    LIABILITIES_NAME, NET_INCOME_NAME, REVENUE_NAME,
 };
 
 use error::*;
@@ -303,7 +302,7 @@ impl BalanceSheetLedger {
     pub async fn get_chart_of_accounts_integration_config(
         &self,
         reference: String,
-    ) -> Result<Option<ChartOfAccountsIntegrationConfig>, BalanceSheetLedgerError> {
+    ) -> Result<Option<AccountingBaseConfig>, BalanceSheetLedgerError> {
         let account_set_id = self
             .get_ids_from_reference(reference)
             .await?
@@ -476,7 +475,7 @@ impl BalanceSheetLedger {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct ChartOfAccountsIntegrationMeta {
-    pub config: ChartOfAccountsIntegrationConfig,
+    pub config: AccountingBaseConfig,
     pub audit_info: AuditInfo,
 
     pub assets_child_account_set_id_from_chart: AccountSetId,

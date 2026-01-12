@@ -20,6 +20,8 @@ pub enum ProfitAndLossStatementError {
     ProfitAndLossStatementConfigAlreadyExists,
     #[error("ProfitAndLossStatementError - ChartIdMismatch")]
     ChartIdMismatch,
+    #[error("ProfitAndLossStatementError - AccountingBaseConfigNotFound")]
+    AccountingBaseConfigNotFound,
 }
 
 impl ErrorSeverity for ProfitAndLossStatementError {
@@ -32,6 +34,7 @@ impl ErrorSeverity for ProfitAndLossStatementError {
             Self::ChartOfAccountsError(e) => e.severity(),
             Self::ProfitAndLossStatementConfigAlreadyExists => Level::WARN,
             Self::ChartIdMismatch => Level::ERROR,
+            Self::AccountingBaseConfigNotFound => Level::ERROR,
         }
     }
 }
