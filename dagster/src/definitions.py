@@ -6,7 +6,6 @@ from typing import List, Tuple, Union
 import dagster as dg
 from src.assets import (
     bitfinex_protoassets,
-    file_report_protoassets,
     generated_file_report_protoassets,
     inform_lana_protoasset,
     iris_dataset_size,
@@ -192,19 +191,17 @@ dbt_seeds_job = definition_builder.add_job_from_assets(
 )
 definition_builder.add_job_schedule(job=dbt_seeds_job, cron_expression="0 0 * * *")
 
-report_protoassets = file_report_protoassets()
+# File reports generated from reports.yml configuration
+file_report_protoassets_list = generated_file_report_protoassets()
 
-report_generation_assets = [
+file_report_assets = [
     definition_builder.add_asset_from_protoasset(protoasset)
-    for protoasset in report_protoassets.values()
+    for protoasset in file_report_protoassets_list
 ]
 file_reports_job = definition_builder.add_job_from_assets(
-    job_name="file_reports_generation", assets=tuple(report_generation_assets)
+    job_name="file_reports_generation", assets=tuple(file_report_assets)
 )
 definition_builder.add_job_schedule(job=file_reports_job, cron_expression="0 */2 * * *")
-
-for generated_report_protoasset in generated_file_report_protoassets():
-    definition_builder.add_asset_from_protoasset(generated_report_protoasset)
 
 inform_lana_asset = definition_builder.add_asset_from_protoasset(
     inform_lana_protoasset()
