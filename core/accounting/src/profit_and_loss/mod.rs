@@ -11,7 +11,7 @@ use cala_ledger::CalaLedger;
 use tracing_macros::record_error_severity;
 
 use crate::{
-    LedgerAccountId,
+    AccountingBaseConfig, LedgerAccountId,
     chart_of_accounts::Chart,
     primitives::{BalanceRange, CalaAccountSetId, CoreAccountingAction, CoreAccountingObject},
 };
@@ -115,7 +115,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         reference: String,
-    ) -> Result<Option<ChartOfAccountsIntegrationConfig>, ProfitAndLossStatementError> {
+    ) -> Result<Option<AccountingBaseConfig>, ProfitAndLossStatementError> {
         self.authz
             .enforce_permission(
                 sub,
@@ -139,12 +139,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         reference: String,
         chart: &Chart,
-        config: ChartOfAccountsIntegrationConfig,
-    ) -> Result<ChartOfAccountsIntegrationConfig, ProfitAndLossStatementError> {
-        if chart.id != config.chart_of_accounts_id {
-            return Err(ProfitAndLossStatementError::ChartIdMismatch);
-        }
-
+    ) -> Result<AccountingBaseConfig, ProfitAndLossStatementError> {
         let audit_info = self
             .authz
             .enforce_permission(
@@ -163,12 +158,17 @@ where
             return Err(ProfitAndLossStatementError::ProfitAndLossStatementConfigAlreadyExists);
         }
 
+        let config = match chart.find_accounting_base_config() {
+            Some(config) => config,
+            None => return Err(ProfitAndLossStatementError::AccountingBaseConfigNotFound),
+        };
+
         let revenue_child_account_set_id_from_chart =
-            chart.account_set_id_from_code(&config.chart_of_accounts_revenue_code)?;
+            chart.account_set_id_from_code(&config.revenue_code)?;
         let cost_of_revenue_child_account_set_id_from_chart =
-            chart.account_set_id_from_code(&config.chart_of_accounts_cost_of_revenue_code)?;
+            chart.account_set_id_from_code(&config.cost_of_revenue_code)?;
         let expenses_child_account_set_id_from_chart =
-            chart.account_set_id_from_code(&config.chart_of_accounts_expenses_code)?;
+            chart.account_set_id_from_code(&config.expenses_code)?;
 
         let charts_integration_meta = ChartOfAccountsIntegrationMeta {
             audit_info,

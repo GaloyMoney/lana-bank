@@ -35,7 +35,7 @@ pub(in crate::accounting_init::seed) async fn balance_sheet_module_configure(
         expenses_code,
     } = serde_json::from_str(&data)?;
 
-    let config_values = ChartOfAccountsIntegrationConfig {
+    let _config_values = ChartOfAccountsIntegrationConfig {
         chart_of_accounts_id: chart.id,
         chart_of_accounts_assets_code: assets_code.parse()?,
         chart_of_accounts_liabilities_code: liabilities_code.parse()?,
@@ -50,7 +50,6 @@ pub(in crate::accounting_init::seed) async fn balance_sheet_module_configure(
             &Subject::System,
             BALANCE_SHEET_NAME.to_string(),
             chart,
-            config_values,
         )
         .await
     {
