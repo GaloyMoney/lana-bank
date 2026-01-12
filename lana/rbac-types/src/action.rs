@@ -20,7 +20,6 @@ use governance::GovernanceAction;
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum LanaAction {
     Audit(AuditAction),
-    #[strum_discriminants(strum(serialize = "domain_config"))]
     DomainConfig(DomainConfigAction),
     Governance(GovernanceAction),
     Access(CoreAccessAction),

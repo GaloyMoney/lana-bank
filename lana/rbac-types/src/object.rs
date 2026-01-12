@@ -18,7 +18,6 @@ use governance::GovernanceObject;
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum LanaObject {
     Audit(AuditObject),
-    #[strum_discriminants(strum(serialize = "domain_config"))]
     DomainConfig(DomainConfigObject),
     Governance(GovernanceObject),
     Access(CoreAccessObject),
