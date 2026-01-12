@@ -1,0 +1,27 @@
+FROM alpine:latest as base
+
+RUN apk add --no-cache \
+    font-liberation \
+    fontconfig
+
+FROM gcr.io/distroless/static
+
+# Copy the pre-built binary from build context
+COPY --chmod=0755 binaries/lana-cli /bin/lana-cli
+
+# Copy Liberation fonts and FontConfig configuration
+COPY --from=base /usr/share/fonts/liberation /usr/share/fonts/liberation
+COPY --from=base /etc/fonts/fonts.conf /etc/fonts/fonts.conf
+
+USER 1000
+
+ARG VERSION
+ARG BUILDTIME
+ARG COMMITHASH
+ENV VERSION="$VERSION" \
+    BUILDTIME="$BUILDTIME" \
+    COMMITHASH="$COMMITHASH" \
+    LANA_HOME=/lana
+
+CMD ["lana-cli"]
+
