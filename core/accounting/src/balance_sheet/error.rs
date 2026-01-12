@@ -18,6 +18,8 @@ pub enum BalanceSheetError {
     BalanceSheetConfigAlreadyExists,
     #[error("BalanceSheetError - ChartIdMismatch")]
     ChartIdMismatch,
+    #[error("BalanceSheetError - AccountingBaseConfigNotFound")]
+    AccountingBaseConfigNotFound,
 }
 
 impl ErrorSeverity for BalanceSheetError {
@@ -30,6 +32,7 @@ impl ErrorSeverity for BalanceSheetError {
             Self::ChartOfAccountsError(e) => e.severity(),
             Self::BalanceSheetConfigAlreadyExists => Level::WARN,
             Self::ChartIdMismatch => Level::ERROR,
+            Self::AccountingBaseConfigNotFound => Level::ERROR,
         }
     }
 }

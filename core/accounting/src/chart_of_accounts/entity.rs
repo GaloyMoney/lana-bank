@@ -297,6 +297,10 @@ impl Chart {
         tree::project_from_nodes(self.id, &self.name, self.chart_nodes.iter_persisted())
     }
 
+    pub fn find_accounting_base_config(&self) -> Option<AccountingBaseConfig> {
+        self.base_config.clone()
+    }
+
     pub(super) fn set_base_config(
         &mut self,
         base_config: AccountingBaseConfig,

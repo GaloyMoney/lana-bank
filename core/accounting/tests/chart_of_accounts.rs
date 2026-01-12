@@ -25,7 +25,7 @@ async fn import_from_csv_creates_accounts() -> anyhow::Result<()> {
 
     let storage = Storage::new(&StorageConfig::default());
     let document_storage = DocumentStorage::new(&pool, &storage);
-    let jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
+    let mut jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
 
     let accounting = CoreAccounting::new(
         &pool,
@@ -33,7 +33,7 @@ async fn import_from_csv_creates_accounts() -> anyhow::Result<()> {
         &cala,
         journal_id,
         document_storage,
-        &jobs,
+        &mut jobs,
         &domain_configs,
     );
 
@@ -81,7 +81,7 @@ async fn import_from_csv_with_base_config_creates_accounts() -> anyhow::Result<(
 
     let storage = Storage::new(&StorageConfig::default());
     let document_storage = DocumentStorage::new(&pool, &storage);
-    let jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
+    let mut jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
 
     let accounting = CoreAccounting::new(
         &pool,
@@ -89,7 +89,7 @@ async fn import_from_csv_with_base_config_creates_accounts() -> anyhow::Result<(
         &cala,
         journal_id,
         document_storage,
-        &jobs,
+        &mut jobs,
         &domain_configs,
     );
 
