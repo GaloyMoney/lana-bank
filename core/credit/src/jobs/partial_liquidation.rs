@@ -226,7 +226,7 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    #[instrument(name = "outbox.core_credit.partial_liquidation.process_message", parent = None, skip(self, message, db), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
+    #[instrument(name = "outbox.core_credit.partial_liquidation.process_message", parent = None, skip(self, message, db), fields(payment_id, seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn process_message(
         &self,
         db: &mut es_entity::DbOp<'_>,
@@ -239,14 +239,16 @@ where
                 event @ PartialLiquidationProceedsReceived {
                     amount,
                     credit_facility_id,
+                    liquidation_id,
                     payment_id,
                     facility_payment_holding_account_id,
                     facility_proceeds_from_liquidation_account_id,
                     ..
                 },
-            ) if *credit_facility_id == self.config.credit_facility_id => {
+            ) if *liquidation_id == self.config.liquidation_id => {
                 Span::current().record("handled", true);
                 Span::current().record("event_type", event.as_ref());
+                Span::current().record("payment_id", tracing::field::display(payment_id));
 
                 let initiated_by = LedgerTransactionInitiator::System;
 

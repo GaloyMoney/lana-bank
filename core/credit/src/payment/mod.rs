@@ -4,6 +4,7 @@ mod primitives;
 mod repo;
 
 use std::sync::Arc;
+use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -72,13 +73,14 @@ where
     /// # Idempotency
     ///
     /// Idempotent via `payment_id`.
+    #[instrument(name = "core.credit.payment.record_in_op", skip(self, db))]
     pub(super) async fn record_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
         payment_id: PaymentId,
         credit_facility_id: CreditFacilityId,
         payment_holding_account_id: CalaAccountId,
-        payment_source_account_id: impl Into<PaymentSourceAccountId>,
+        payment_source_account_id: impl Into<PaymentSourceAccountId> + std::fmt::Debug,
         amount: UsdCents,
         effective: chrono::NaiveDate,
         initiated_by: LedgerTransactionInitiator,
@@ -94,7 +96,12 @@ where
             .build()
             .expect("could not build new payment");
 
-        if self.repo.maybe_find_by_id(payment_id).await?.is_some() {
+        if self
+            .repo
+            .maybe_find_by_id_in_op(&mut *db, payment_id)
+            .await?
+            .is_some()
+        {
             Ok(None)
         } else {
             let payment = self.repo.create_in_op(db, new_payment).await?;
