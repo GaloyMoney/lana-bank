@@ -975,4 +975,95 @@ mod tests {
             }
         );
     }
+
+    #[test]
+    fn replayed_payment_allocation_is_idempotent() {
+        let interest_obligation_id = ObligationId::new();
+        let allocation_id = PaymentAllocationId::new();
+
+        let mut plan = initial_plan();
+
+        let disbursal_recorded_at = default_start_date();
+        let interest_recorded_at = default_start_date_with_days(30);
+
+        let events = vec![
+            CoreCreditEvent::FacilityActivated {
+                id: CreditFacilityId::new(),
+                activation_tx_id: LedgerTxId::new(),
+                activated_at: default_start_date(),
+                amount: default_facility_amount(),
+            },
+            CoreCreditEvent::ObligationCreated {
+                id: ObligationId::new(),
+                obligation_type: ObligationType::Disbursal,
+                credit_facility_id: CreditFacilityId::new(),
+                amount: UsdCents::from(100_000_00),
+                due_at: EffectiveDate::from(disbursal_recorded_at),
+                overdue_at: None,
+                defaulted_at: None,
+                recorded_at: disbursal_recorded_at,
+                effective: disbursal_recorded_at.date_naive(),
+            },
+            CoreCreditEvent::ObligationCreated {
+                id: interest_obligation_id,
+                obligation_type: ObligationType::Interest,
+                credit_facility_id: CreditFacilityId::new(),
+                amount: UsdCents::from(1_000_00),
+                due_at: EffectiveDate::from(interest_recorded_at),
+                overdue_at: None,
+                defaulted_at: None,
+                recorded_at: interest_recorded_at,
+                effective: interest_recorded_at.date_naive(),
+            },
+        ];
+        process_events(&mut plan, events);
+
+        let payment_event = CoreCreditEvent::FacilityPaymentAllocated {
+            credit_facility_id: CreditFacilityId::new(),
+            obligation_id: interest_obligation_id,
+            obligation_type: ObligationType::Interest,
+            allocation_id,
+            amount: UsdCents::from(1_000_00),
+            recorded_at: interest_recorded_at,
+            effective: interest_recorded_at.date_naive(),
+        };
+
+        // First processing should apply the payment
+        let first_result = plan.process_event(Default::default(), &payment_event);
+        assert!(first_result);
+
+        let outstanding_after_first = plan
+            .entries
+            .iter()
+            .find_map(|e| match e {
+                CreditFacilityRepaymentPlanEntry {
+                    repayment_type: RepaymentType::Interest,
+                    obligation_id: Some(_),
+                    outstanding,
+                    ..
+                } => Some(*outstanding),
+                _ => None,
+            })
+            .unwrap();
+        assert_eq!(outstanding_after_first, UsdCents::ZERO);
+
+        // Second processing (replay) should be idempotent - no overflow, no change
+        let second_result = plan.process_event(Default::default(), &payment_event);
+        assert!(!second_result);
+
+        let outstanding_after_second = plan
+            .entries
+            .iter()
+            .find_map(|e| match e {
+                CreditFacilityRepaymentPlanEntry {
+                    repayment_type: RepaymentType::Interest,
+                    obligation_id: Some(_),
+                    outstanding,
+                    ..
+                } => Some(*outstanding),
+                _ => None,
+            })
+            .unwrap();
+        assert_eq!(outstanding_after_second, UsdCents::ZERO);
+    }
 }
