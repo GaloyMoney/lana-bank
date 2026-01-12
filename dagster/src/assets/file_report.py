@@ -7,9 +7,10 @@ from datetime import datetime
 from typing import Callable, Dict, List, Literal, Optional, TypedDict
 
 import dagster as dg
+from generate_es_reports.constants import DEFAULT_REPORTS_YAML_PATH
 from generate_es_reports.domain.report import BaseFileOutputConfig, ReportJobDefinition
 from generate_es_reports.generator import generate_single_report
-from generate_es_reports.io import BigQueryTableFetcher
+from generate_es_reports.io import BigQueryTableFetcher, load_report_jobs_from_yaml
 from src.assets.dbt import _load_dbt_manifest, _get_dbt_asset_key
 from src.core import Protoasset
 from src.resources import (
@@ -346,6 +347,52 @@ def file_report_protoassets() -> Dict[str, Protoasset]:
         )
 
     return report_protoassets
+
+
+def generated_file_report_protoassets() -> List[Protoasset]:
+    """Create protoassets for all enabled file reports from reports.yml.
+
+    Each report job + file format combination becomes a separate asset.
+    Assets depend on their corresponding dbt model.
+    """
+    protoassets = []
+    report_jobs = load_report_jobs_from_yaml(DEFAULT_REPORTS_YAML_PATH)
+
+    for report_job in report_jobs:
+        for file_config in report_job.file_output_configs:
+            # Asset key: file_report/<table_name>/<format>
+            asset_key = dg.AssetKey(
+                [
+                    "file_report",
+                    report_job.source_table_name,
+                    file_config.file_extension,
+                ]
+            )
+
+            # Get dbt model dependency
+            dbt_dep = get_dbt_asset_key_for_table(report_job.source_table_name)
+            deps = [dbt_dep] if dbt_dep else []
+
+            # Create protoasset
+            protoassets.append(
+                Protoasset(
+                    key=asset_key,
+                    callable=create_file_report_callable(report_job, file_config),
+                    deps=deps,
+                    required_resource_keys={
+                        RESOURCE_KEY_FILE_REPORTS_BUCKET,
+                        RESOURCE_KEY_DW_BQ,
+                    },
+                    automation_condition=None,
+                    tags={
+                        "category": "file_report",
+                        "norm": report_job.norm,
+                        "format": file_config.file_extension,
+                    },
+                )
+            )
+
+    return protoassets
 
 
 def inform_lana_protoasset() -> Protoasset:
