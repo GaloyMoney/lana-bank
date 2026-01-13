@@ -2369,6 +2369,7 @@ type Subscription {
 	pendingCreditFacilityCollateralizationUpdated(pendingCreditFacilityId: UUID!): PendingCreditFacilityCollateralizationPayload!
 	pendingCreditFacilityCompleted(pendingCreditFacilityId: UUID!): PendingCreditFacilityCompletedPayload!
 	creditFacilityCollateralizationUpdated(creditFacilityId: UUID!): CreditFacilityCollateralizationPayload!
+	realtimePriceUpdated: RealtimePrice!
 }
 
 input SumsubPermalinkCreateInput {
