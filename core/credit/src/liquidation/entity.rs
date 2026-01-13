@@ -24,6 +24,7 @@ pub enum LiquidationEvent {
         liquidation_proceeds_omnibus_account_id: CalaAccountId,
         facility_proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccountId,
         facility_payment_holding_account_id: CalaAccountId,
+        facility_uncovered_outstanding_account_id: CalaAccountId,
         collateral_account_id: CalaAccountId,
         collateral_in_liquidation_account_id: CalaAccountId,
         liquidated_collateral_account_id: CalaAccountId,
@@ -67,6 +68,9 @@ pub struct Liquidation {
 
     /// Holds funds meant for payments on the connected facility.
     pub facility_payment_holding_account_id: CalaAccountId,
+
+    /// Holds outstanding not yet covered by an unallocated payment.
+    pub facility_uncovered_outstanding_account_id: CalaAccountId,
 
     /// Holds collateral of the connected facility.
     pub collateral_account_id: CalaAccountId,
@@ -204,6 +208,7 @@ impl TryFromEvents<LiquidationEvent> for Liquidation {
                     liquidation_proceeds_omnibus_account_id,
                     facility_proceeds_from_liquidation_account_id,
                     facility_payment_holding_account_id,
+                    facility_uncovered_outstanding_account_id,
                     collateral_account_id,
                     collateral_in_liquidation_account_id,
                     liquidated_collateral_account_id,
@@ -220,6 +225,9 @@ impl TryFromEvents<LiquidationEvent> for Liquidation {
                             *facility_proceeds_from_liquidation_account_id,
                         )
                         .facility_payment_holding_account_id(*facility_payment_holding_account_id)
+                        .facility_uncovered_outstanding_account_id(
+                            *facility_uncovered_outstanding_account_id,
+                        )
                         .collateral_account_id(*collateral_account_id)
                         .collateral_in_liquidation_account_id(*collateral_in_liquidation_account_id)
                         .liquidated_collateral_account_id(*liquidated_collateral_account_id)
@@ -253,12 +261,20 @@ pub struct NewLiquidation {
     pub(crate) id: LiquidationId,
     #[builder(setter(into))]
     pub(crate) credit_facility_id: CreditFacilityId,
+    #[builder(setter(into))]
     pub(crate) liquidation_proceeds_omnibus_account_id: CalaAccountId,
+    #[builder(setter(into))]
     pub(crate) facility_proceeds_from_liquidation_account_id:
         FacilityProceedsFromLiquidationAccountId,
+    #[builder(setter(into))]
     pub(crate) facility_payment_holding_account_id: CalaAccountId,
+    #[builder(setter(into))]
+    pub(crate) facility_uncovered_outstanding_account_id: CalaAccountId,
+    #[builder(setter(into))]
     pub(crate) collateral_account_id: CalaAccountId,
+    #[builder(setter(into))]
     pub(crate) collateral_in_liquidation_account_id: CalaAccountId,
+    #[builder(setter(into))]
     pub(crate) liquidated_collateral_account_id: CalaAccountId,
     pub(crate) trigger_price: PriceOfOneBTC,
     pub(crate) initially_expected_to_receive: UsdCents,
@@ -283,6 +299,8 @@ impl IntoEvents<LiquidationEvent> for NewLiquidation {
                 facility_proceeds_from_liquidation_account_id: self
                     .facility_proceeds_from_liquidation_account_id,
                 facility_payment_holding_account_id: self.facility_payment_holding_account_id,
+                facility_uncovered_outstanding_account_id: self
+                    .facility_uncovered_outstanding_account_id,
                 trigger_price: self.trigger_price,
                 initially_expected_to_receive: self.initially_expected_to_receive,
                 initially_estimated_to_liquidate: self.initially_estimated_to_liquidate,

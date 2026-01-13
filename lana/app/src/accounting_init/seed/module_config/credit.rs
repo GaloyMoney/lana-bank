@@ -15,12 +15,15 @@ struct CreditConfigData {
     facility_omnibus_parent_code: String,
     collateral_omnibus_parent_code: String,
     liquidation_proceeds_omnibus_parent_code: String,
+    payments_made_omnibus_parent_code: String,
+    interest_added_to_obligations_omnibus_parent_code: String,
     facility_parent_code: String,
     collateral_parent_code: String,
     collateral_in_liquidation_parent_code: String,
     interest_income_parent_code: String,
     fee_income_parent_code: String,
     payment_holding_parent_code: String,
+    uncovered_outstanding_parent_code: String,
     short_term_individual_interest_receivable_parent_code: String,
     short_term_government_entity_interest_receivable_parent_code: String,
     short_term_private_company_interest_receivable_parent_code: String,
@@ -68,12 +71,15 @@ pub(in crate::accounting_init::seed) async fn credit_module_configure(
         facility_omnibus_parent_code,
         collateral_omnibus_parent_code,
         liquidation_proceeds_omnibus_parent_code,
+        payments_made_omnibus_parent_code,
+        interest_added_to_obligations_omnibus_parent_code,
         facility_parent_code,
         collateral_parent_code,
         collateral_in_liquidation_parent_code,
         interest_income_parent_code,
         fee_income_parent_code,
         payment_holding_parent_code,
+        uncovered_outstanding_parent_code,
         short_term_individual_interest_receivable_parent_code,
         short_term_government_entity_interest_receivable_parent_code,
         short_term_private_company_interest_receivable_parent_code,
@@ -117,6 +123,10 @@ pub(in crate::accounting_init::seed) async fn credit_module_configure(
         chart_of_account_collateral_omnibus_parent_code: collateral_omnibus_parent_code.parse()?,
         chart_of_account_liquidation_proceeds_omnibus_parent_code:
             liquidation_proceeds_omnibus_parent_code.parse()?,
+        chart_of_account_payments_made_omnibus_parent_code: payments_made_omnibus_parent_code
+            .parse()?,
+        chart_of_account_interest_added_to_obligations_omnibus_parent_code:
+            interest_added_to_obligations_omnibus_parent_code.parse()?,
         chart_of_account_facility_parent_code: facility_parent_code.parse()?,
         chart_of_account_collateral_parent_code: collateral_parent_code.parse()?,
         chart_of_account_collateral_in_liquidation_parent_code:
@@ -124,6 +134,8 @@ pub(in crate::accounting_init::seed) async fn credit_module_configure(
         chart_of_account_interest_income_parent_code: interest_income_parent_code.parse()?,
         chart_of_account_fee_income_parent_code: fee_income_parent_code.parse()?,
         chart_of_account_payment_holding_parent_code: payment_holding_parent_code.parse()?,
+        chart_of_account_uncovered_outstanding_parent_code: uncovered_outstanding_parent_code
+            .parse()?,
         chart_of_account_short_term_individual_interest_receivable_parent_code:
             short_term_individual_interest_receivable_parent_code.parse()?,
         chart_of_account_short_term_government_entity_interest_receivable_parent_code:

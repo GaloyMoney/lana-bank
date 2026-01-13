@@ -1431,6 +1431,7 @@ dependencies = [
  "core-accounting",
  "core-custody",
  "core-customer",
+ "core-deposit",
  "core-money",
  "core-price",
  "derive_builder",

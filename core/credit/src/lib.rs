@@ -62,7 +62,7 @@ use jobs::*;
 pub use ledger::*;
 pub use liquidation::{liquidation_cursor::*, *};
 pub use obligation::{error::*, obligation_cursor::*, *};
-pub use payment::*;
+pub use payment::{error::*, *};
 pub use payment_allocation::*;
 pub use pending_credit_facility::*;
 pub use primitives::*;
@@ -734,7 +734,7 @@ where
                 disbursal.id,
                 disbursal.initiated_tx_id,
                 disbursal.amount,
-                facility.account_ids.facility_account_id,
+                facility.account_ids,
                 LedgerTransactionInitiator::try_from_subject(sub)?,
             )
             .await?;
@@ -921,8 +921,13 @@ where
                 &mut db,
                 payment_id,
                 credit_facility_id,
-                credit_facility.payment_holding_account_id(),
-                payment_source_account_id,
+                PaymentLedgerAccountIds {
+                    facility_payment_holding_account_id: credit_facility
+                        .payment_holding_account_id(),
+                    facility_uncovered_outstanding_account_id: credit_facility
+                        .uncovered_outstanding_account_id(),
+                    payment_source_account_id,
+                },
                 amount,
                 effective,
                 initiated_by,
@@ -988,8 +993,13 @@ where
                 &mut db,
                 payment_id,
                 credit_facility_id,
-                credit_facility.payment_holding_account_id(),
-                payment_source_account_id,
+                PaymentLedgerAccountIds {
+                    facility_payment_holding_account_id: credit_facility
+                        .payment_holding_account_id(),
+                    facility_uncovered_outstanding_account_id: credit_facility
+                        .uncovered_outstanding_account_id(),
+                    payment_source_account_id,
+                },
                 amount,
                 effective.into(),
                 initiated_by,

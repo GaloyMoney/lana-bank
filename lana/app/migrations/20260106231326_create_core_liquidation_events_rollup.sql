@@ -13,6 +13,7 @@ CREATE TABLE core_liquidation_events_rollup (
   expected_to_receive BIGINT,
   facility_payment_holding_account_id UUID,
   facility_proceeds_from_liquidation_account_id UUID,
+  facility_uncovered_outstanding_account_id UUID,
   initially_estimated_to_liquidate BIGINT,
   initially_expected_to_receive BIGINT,
   ledger_tx_id UUID,
@@ -67,6 +68,7 @@ BEGIN
     new_row.expected_to_receive := (NEW.event ->> 'expected_to_receive')::BIGINT;
     new_row.facility_payment_holding_account_id := (NEW.event ->> 'facility_payment_holding_account_id')::UUID;
     new_row.facility_proceeds_from_liquidation_account_id := (NEW.event ->> 'facility_proceeds_from_liquidation_account_id')::UUID;
+    new_row.facility_uncovered_outstanding_account_id := (NEW.event ->> 'facility_uncovered_outstanding_account_id')::UUID;
     new_row.initially_estimated_to_liquidate := (NEW.event ->> 'initially_estimated_to_liquidate')::BIGINT;
     new_row.initially_expected_to_receive := (NEW.event ->> 'initially_expected_to_receive')::BIGINT;
     new_row.is_completed := false;
@@ -87,6 +89,7 @@ BEGIN
     new_row.expected_to_receive := current_row.expected_to_receive;
     new_row.facility_payment_holding_account_id := current_row.facility_payment_holding_account_id;
     new_row.facility_proceeds_from_liquidation_account_id := current_row.facility_proceeds_from_liquidation_account_id;
+    new_row.facility_uncovered_outstanding_account_id := current_row.facility_uncovered_outstanding_account_id;
     new_row.initially_estimated_to_liquidate := current_row.initially_estimated_to_liquidate;
     new_row.initially_expected_to_receive := current_row.initially_expected_to_receive;
     new_row.is_completed := current_row.is_completed;
@@ -107,6 +110,7 @@ BEGIN
       new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
       new_row.facility_payment_holding_account_id := (NEW.event ->> 'facility_payment_holding_account_id')::UUID;
       new_row.facility_proceeds_from_liquidation_account_id := (NEW.event ->> 'facility_proceeds_from_liquidation_account_id')::UUID;
+      new_row.facility_uncovered_outstanding_account_id := (NEW.event ->> 'facility_uncovered_outstanding_account_id')::UUID;
       new_row.initially_estimated_to_liquidate := (NEW.event ->> 'initially_estimated_to_liquidate')::BIGINT;
       new_row.initially_expected_to_receive := (NEW.event ->> 'initially_expected_to_receive')::BIGINT;
       new_row.liquidated_collateral_account_id := (NEW.event ->> 'liquidated_collateral_account_id')::UUID;
@@ -142,6 +146,7 @@ BEGIN
     expected_to_receive,
     facility_payment_holding_account_id,
     facility_proceeds_from_liquidation_account_id,
+    facility_uncovered_outstanding_account_id,
     initially_estimated_to_liquidate,
     initially_expected_to_receive,
     is_completed,
@@ -166,6 +171,7 @@ BEGIN
     new_row.expected_to_receive,
     new_row.facility_payment_holding_account_id,
     new_row.facility_proceeds_from_liquidation_account_id,
+    new_row.facility_uncovered_outstanding_account_id,
     new_row.initially_estimated_to_liquidate,
     new_row.initially_expected_to_receive,
     new_row.is_completed,

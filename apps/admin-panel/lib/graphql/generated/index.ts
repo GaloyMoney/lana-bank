@@ -786,6 +786,7 @@ export type CreditModuleConfig = {
   chartOfAccountFacilityOmnibusParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountFacilityParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountFeeIncomeParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountInterestAddedToObligationsOmnibusParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountInterestIncomeParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountLiquidationProceedsOmnibusParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountLongTermBankDisbursedReceivableParentCode?: Maybe<Scalars['String']['output']>;
@@ -810,6 +811,7 @@ export type CreditModuleConfig = {
   chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountPaymentHoldingParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountPaymentsMadeOmnibusParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountShortTermBankDisbursedReceivableParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountShortTermBankInterestReceivableParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode?: Maybe<Scalars['String']['output']>;
@@ -824,6 +826,7 @@ export type CreditModuleConfig = {
   chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountUncoveredOutstandingParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountsId?: Maybe<Scalars['UUID']['output']>;
 };
 
@@ -834,6 +837,7 @@ export type CreditModuleConfigureInput = {
   chartOfAccountFacilityOmnibusParentCode: Scalars['String']['input'];
   chartOfAccountFacilityParentCode: Scalars['String']['input'];
   chartOfAccountFeeIncomeParentCode: Scalars['String']['input'];
+  chartOfAccountInterestAddedToObligationsOmnibusParentCode: Scalars['String']['input'];
   chartOfAccountInterestIncomeParentCode: Scalars['String']['input'];
   chartOfAccountLiquidationProceedsOmnibusParentCode: Scalars['String']['input'];
   chartOfAccountLongTermBankDisbursedReceivableParentCode: Scalars['String']['input'];
@@ -858,6 +862,7 @@ export type CreditModuleConfigureInput = {
   chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode: Scalars['String']['input'];
   chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode: Scalars['String']['input'];
   chartOfAccountPaymentHoldingParentCode: Scalars['String']['input'];
+  chartOfAccountPaymentsMadeOmnibusParentCode: Scalars['String']['input'];
   chartOfAccountShortTermBankDisbursedReceivableParentCode: Scalars['String']['input'];
   chartOfAccountShortTermBankInterestReceivableParentCode: Scalars['String']['input'];
   chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode: Scalars['String']['input'];
@@ -872,6 +877,7 @@ export type CreditModuleConfigureInput = {
   chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode: Scalars['String']['input'];
   chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode: Scalars['String']['input'];
   chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountUncoveredOutstandingParentCode: Scalars['String']['input'];
 };
 
 export type CreditModuleConfigurePayload = {

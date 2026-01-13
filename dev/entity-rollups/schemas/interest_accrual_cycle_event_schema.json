@@ -80,6 +80,10 @@
         "receivable_overdue_account_id": {
           "format": "uuid",
           "type": "string"
+        },
+        "uncovered_outstanding_account_id": {
+          "format": "uuid",
+          "type": "string"
         }
       },
       "required": [
@@ -87,7 +91,8 @@
         "receivable_due_account_id",
         "receivable_overdue_account_id",
         "defaulted_account_id",
-        "interest_income_account_id"
+        "interest_income_account_id",
+        "uncovered_outstanding_account_id"
       ],
       "type": "object"
     },

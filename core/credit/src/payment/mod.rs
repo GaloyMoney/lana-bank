@@ -79,8 +79,7 @@ where
         db: &mut es_entity::DbOp<'_>,
         payment_id: PaymentId,
         credit_facility_id: CreditFacilityId,
-        payment_holding_account_id: CalaAccountId,
-        payment_source_account_id: impl Into<PaymentSourceAccountId> + std::fmt::Debug,
+        payment_ledger_account_ids: PaymentLedgerAccountIds,
         amount: UsdCents,
         effective: chrono::NaiveDate,
         initiated_by: LedgerTransactionInitiator,
@@ -90,8 +89,7 @@ where
             .ledger_tx_id(payment_id)
             .amount(amount)
             .credit_facility_id(credit_facility_id)
-            .payment_holding_account_id(payment_holding_account_id)
-            .payment_source_account_id(payment_source_account_id)
+            .payment_ledger_account_ids(payment_ledger_account_ids)
             .effective(effective)
             .build()
             .expect("could not build new payment");

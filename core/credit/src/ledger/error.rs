@@ -28,6 +28,8 @@ pub enum CreditLedgerError {
     NonAccountMemberFoundInAccountSet(String),
     #[error("CreditLedgerError - JournalIdMismatch: Account sets have wrong JournalId")]
     JournalIdMismatch,
+    #[error("CreditLedgerError - PaymentAmountGreaterThanOutstandingObligations")]
+    PaymentAmountGreaterThanOutstandingObligations,
 }
 
 impl ErrorSeverity for CreditLedgerError {
@@ -44,6 +46,7 @@ impl ErrorSeverity for CreditLedgerError {
             Self::ChartOfAccountsError(e) => e.severity(),
             Self::NonAccountMemberFoundInAccountSet(_) => Level::ERROR,
             Self::JournalIdMismatch => Level::ERROR,
+            Self::PaymentAmountGreaterThanOutstandingObligations => Level::WARN,
         }
     }
 }

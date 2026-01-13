@@ -17,7 +17,7 @@ pub const CONFIRM_DISBURSAL_CODE: &str = "CONFIRM_DISBURSAL";
 pub struct ConfirmDisbursalParams {
     pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
-    pub credit_omnibus_account: CalaAccountId,
+    pub facility_uncovered_outstanding_account: CalaAccountId,
     pub credit_facility_account: CalaAccountId,
     pub facility_disbursed_receivable_account: CalaAccountId,
     pub disbursed_into_account_id: CalaAccountId,
@@ -35,7 +35,7 @@ impl ConfirmDisbursalParams {
                 .build()
                 .unwrap(),
             NewParamDefinition::builder()
-                .name("credit_omnibus_account")
+                .name("facility_uncovered_outstanding_account")
                 .r#type(ParamDataType::Uuid)
                 .build()
                 .unwrap(),
@@ -83,7 +83,7 @@ impl From<ConfirmDisbursalParams> for Params {
         ConfirmDisbursalParams {
             entity_id,
             journal_id,
-            credit_omnibus_account,
+            facility_uncovered_outstanding_account,
             credit_facility_account,
             facility_disbursed_receivable_account,
             disbursed_into_account_id,
@@ -94,7 +94,10 @@ impl From<ConfirmDisbursalParams> for Params {
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
-        params.insert("credit_omnibus_account", credit_omnibus_account);
+        params.insert(
+            "facility_uncovered_outstanding_account",
+            facility_uncovered_outstanding_account,
+        );
         params.insert("credit_facility_account", credit_facility_account);
         params.insert(
             "facility_disbursed_receivable_account",
@@ -145,7 +148,7 @@ impl ConfirmDisbursal {
             NewTxTemplateEntry::builder()
                 .entry_type("'CONFIRM_DISBURSAL_DRAWDOWN_PENDING_CR'")
                 .currency("'USD'")
-                .account_id("params.credit_omnibus_account")
+                .account_id("params.facility_uncovered_outstanding_account")
                 .direction("CREDIT")
                 .layer("PENDING")
                 .units("params.disbursed_amount")

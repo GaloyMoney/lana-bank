@@ -260,9 +260,6 @@ where
             "amount_allocated",
             tracing::field::display(amount_allocated),
         );
-        if !remaining.is_zero() {
-            return Err(ObligationError::PaymentAmountGreaterThanOutstandingObligations);
-        }
 
         self.ledger
             .record_payment_allocations(op, allocations, initiated_by)

@@ -17,6 +17,8 @@ pub struct CreditFacilityPostAccruedInterestParams {
     pub journal_id: JournalId,
     pub credit_facility_interest_receivable_account: CalaAccountId,
     pub credit_facility_interest_income_account: CalaAccountId,
+    pub interest_added_to_obligations_omnibus_account: CalaAccountId,
+    pub credit_facility_uncovered_outstanding_account: CalaAccountId,
     pub interest_amount: Decimal,
     pub external_id: String,
     pub effective: chrono::NaiveDate,
@@ -38,6 +40,16 @@ impl CreditFacilityPostAccruedInterestParams {
                 .unwrap(),
             NewParamDefinition::builder()
                 .name("credit_facility_interest_income_account")
+                .r#type(ParamDataType::Uuid)
+                .build()
+                .unwrap(),
+            NewParamDefinition::builder()
+                .name("interest_added_to_obligations_omnibus_account")
+                .r#type(ParamDataType::Uuid)
+                .build()
+                .unwrap(),
+            NewParamDefinition::builder()
+                .name("credit_facility_uncovered_outstanding_account")
                 .r#type(ParamDataType::Uuid)
                 .build()
                 .unwrap(),
@@ -71,6 +83,8 @@ impl From<CreditFacilityPostAccruedInterestParams> for Params {
             journal_id,
             credit_facility_interest_receivable_account,
             credit_facility_interest_income_account,
+            interest_added_to_obligations_omnibus_account,
+            credit_facility_uncovered_outstanding_account,
             interest_amount,
             external_id,
             effective,
@@ -86,6 +100,14 @@ impl From<CreditFacilityPostAccruedInterestParams> for Params {
         params.insert(
             "credit_facility_interest_income_account",
             credit_facility_interest_income_account,
+        );
+        params.insert(
+            "interest_added_to_obligations_omnibus_account",
+            interest_added_to_obligations_omnibus_account,
+        );
+        params.insert(
+            "credit_facility_uncovered_outstanding_account",
+            credit_facility_uncovered_outstanding_account,
         );
         params.insert("interest_amount", interest_amount);
         params.insert("external_id", external_id);
@@ -150,6 +172,24 @@ impl CreditFacilityPostAccruedInterest {
                 .units("params.interest_amount")
                 .currency("'USD'")
                 .entry_type("'POST_ACCRUED_INTEREST_SETTLED_CR'")
+                .direction("CREDIT")
+                .layer("SETTLED")
+                .build()
+                .expect("Couldn't build entry"),
+            NewTxTemplateEntry::builder()
+                .account_id("params.interest_added_to_obligations_omnibus_account")
+                .units("params.interest_amount")
+                .currency("'USD'")
+                .entry_type("'RECORD_INTEREST_UNCOVERED_OBLIGATION_SETTLED_DR'")
+                .direction("DEBIT")
+                .layer("SETTLED")
+                .build()
+                .expect("Couldn't build entry"),
+            NewTxTemplateEntry::builder()
+                .account_id("params.credit_facility_uncovered_outstanding_account")
+                .units("params.interest_amount")
+                .currency("'USD'")
+                .entry_type("'RECORD_INTEREST_UNCOVERED_OBLIGATION_SETTLED_CR'")
                 .direction("CREDIT")
                 .layer("SETTLED")
                 .build()

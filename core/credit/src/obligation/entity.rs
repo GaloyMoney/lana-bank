@@ -318,7 +318,7 @@ impl Obligation {
         amount: UsdCents,
         Payment {
             id: payment_id,
-            payment_holding_account_id,
+            facility_payment_holding_account_id,
             effective,
             ..
         }: &Payment,
@@ -333,7 +333,7 @@ impl Obligation {
         }
 
         let payment_id = *payment_id;
-        let payment_holding_account_id = *payment_holding_account_id;
+        let payment_holding_account_id = *facility_payment_holding_account_id;
         let effective = *effective;
 
         let payment_amount = std::cmp::min(pre_payment_outstanding, amount);
@@ -567,8 +567,9 @@ mod test {
                 id,
                 ledger_tx_id: LedgerTxId::new(),
                 credit_facility_id: CreditFacilityId::new(),
-                payment_holding_account_id: CalaAccountId::new(),
+                facility_payment_holding_account_id: CalaAccountId::new(),
                 payment_source_account_id: CalaAccountId::new(),
+                facility_uncovered_outstanding_account_id: CalaAccountId::new(),
                 amount: UsdCents::ONE,
                 effective: Utc::now().date_naive(),
             }],

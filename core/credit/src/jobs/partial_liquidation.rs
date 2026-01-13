@@ -243,6 +243,7 @@ where
                     payment_id,
                     facility_payment_holding_account_id,
                     facility_proceeds_from_liquidation_account_id,
+                    facility_uncovered_outstanding_account_id,
                     ..
                 },
             ) if *liquidation_id == self.config.liquidation_id => {
@@ -260,8 +261,14 @@ where
                         db,
                         *payment_id,
                         *credit_facility_id,
-                        *facility_payment_holding_account_id,
-                        *facility_proceeds_from_liquidation_account_id,
+                        crate::PaymentLedgerAccountIds {
+                            facility_payment_holding_account_id:
+                                *facility_payment_holding_account_id,
+                            facility_uncovered_outstanding_account_id:
+                                *facility_uncovered_outstanding_account_id,
+                            payment_source_account_id:
+                                facility_proceeds_from_liquidation_account_id.into(),
+                        },
                         *amount,
                         effective,
                         initiated_by,

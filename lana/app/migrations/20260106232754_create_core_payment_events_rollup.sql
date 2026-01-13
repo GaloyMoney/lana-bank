@@ -8,8 +8,9 @@ CREATE TABLE core_payment_events_rollup (
   amount BIGINT,
   credit_facility_id UUID,
   effective VARCHAR,
+  facility_payment_holding_account_id UUID,
+  facility_uncovered_outstanding_account_id UUID,
   ledger_tx_id UUID,
-  payment_holding_account_id UUID,
   payment_source_account_id UUID
 ,
   PRIMARY KEY (id, version)
@@ -48,16 +49,18 @@ BEGIN
     new_row.amount := (NEW.event ->> 'amount')::BIGINT;
     new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
     new_row.effective := (NEW.event ->> 'effective');
+    new_row.facility_payment_holding_account_id := (NEW.event ->> 'facility_payment_holding_account_id')::UUID;
+    new_row.facility_uncovered_outstanding_account_id := (NEW.event ->> 'facility_uncovered_outstanding_account_id')::UUID;
     new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
-    new_row.payment_holding_account_id := (NEW.event ->> 'payment_holding_account_id')::UUID;
     new_row.payment_source_account_id := (NEW.event ->> 'payment_source_account_id')::UUID;
   ELSE
     -- Default all fields to current values
     new_row.amount := current_row.amount;
     new_row.credit_facility_id := current_row.credit_facility_id;
     new_row.effective := current_row.effective;
+    new_row.facility_payment_holding_account_id := current_row.facility_payment_holding_account_id;
+    new_row.facility_uncovered_outstanding_account_id := current_row.facility_uncovered_outstanding_account_id;
     new_row.ledger_tx_id := current_row.ledger_tx_id;
-    new_row.payment_holding_account_id := current_row.payment_holding_account_id;
     new_row.payment_source_account_id := current_row.payment_source_account_id;
   END IF;
 
@@ -67,8 +70,9 @@ BEGIN
       new_row.amount := (NEW.event ->> 'amount')::BIGINT;
       new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
       new_row.effective := (NEW.event ->> 'effective');
+      new_row.facility_payment_holding_account_id := (NEW.event ->> 'facility_payment_holding_account_id')::UUID;
+      new_row.facility_uncovered_outstanding_account_id := (NEW.event ->> 'facility_uncovered_outstanding_account_id')::UUID;
       new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
-      new_row.payment_holding_account_id := (NEW.event ->> 'payment_holding_account_id')::UUID;
       new_row.payment_source_account_id := (NEW.event ->> 'payment_source_account_id')::UUID;
   END CASE;
 
@@ -80,8 +84,9 @@ BEGIN
     amount,
     credit_facility_id,
     effective,
+    facility_payment_holding_account_id,
+    facility_uncovered_outstanding_account_id,
     ledger_tx_id,
-    payment_holding_account_id,
     payment_source_account_id
   )
   VALUES (
@@ -92,8 +97,9 @@ BEGIN
     new_row.amount,
     new_row.credit_facility_id,
     new_row.effective,
+    new_row.facility_payment_holding_account_id,
+    new_row.facility_uncovered_outstanding_account_id,
     new_row.ledger_tx_id,
-    new_row.payment_holding_account_id,
     new_row.payment_source_account_id
   );
 
