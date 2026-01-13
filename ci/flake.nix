@@ -135,7 +135,7 @@
         VERSION="$1"
         CHANGELOG_FILE="CHANGELOG.md"
 
-        LAST_RELEASE=$(git tag --merged ci--rc | sort -V | tail -1)
+        LAST_RELEASE=$(${pkgs.cocogitto}/bin/cog get-version)
 
         # Generate new changelog content
         CHANGELOG_BODY=$(${pkgs.cocogitto}/bin/cog changelog $LAST_RELEASE.. | tail -n +2)
