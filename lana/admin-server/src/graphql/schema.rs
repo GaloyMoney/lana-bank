@@ -2462,26 +2462,9 @@ impl Mutation {
     ) -> async_graphql::Result<FiscalYearModuleConfigurePayload> {
         let (app, _sub) = app_and_sub_from_ctx!(ctx);
 
-        let FiscalYearModuleConfigureInput {
-            revenue_account_code,
-            cost_of_revenue_account_code,
-            expenses_account_code,
-            equity_retained_earnings_account_code,
-            equity_retained_losses_account_code,
-        } = input;
+        let FiscalYearModuleConfigureInput { chart_id } = input;
 
-        let config = lana_app::fiscal_year::FiscalYearConfig {
-            revenue_account_code,
-            cost_of_revenue_account_code,
-            expenses_account_code,
-            equity_retained_earnings_account_code,
-            equity_retained_losses_account_code,
-        };
-
-        app.accounting()
-            .fiscal_year()
-            .configure(config.clone())
-            .await?;
+        let config = app.accounting().fiscal_year().configure(chart_id).await?;
 
         Ok(FiscalYearModuleConfigurePayload::from(
             FiscalYearModuleConfig::from(config),
