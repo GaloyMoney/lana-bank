@@ -393,6 +393,7 @@ where
                 payments_arc.as_ref(),
                 obligations_arc.as_ref(),
                 facilities_arc.as_ref(),
+                collaterals_arc.as_ref(),
             ),
         );
         jobs.add_initializer_and_spawn_unique(
@@ -401,6 +402,7 @@ where
                 jobs,
                 liquidations_arc.as_ref(),
                 facilities_arc.as_ref(),
+                collaterals_arc.as_ref(),
             ),
             credit_facility_liquidations::CreditFacilityLiquidationsJobConfig::<Perms, E> {
                 _phantom: std::marker::PhantomData,

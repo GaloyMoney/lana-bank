@@ -12,7 +12,7 @@ use crate::primitives::{
     LiquidationId, PendingCreditFacilityId, Satoshis,
 };
 
-use super::CollateralUpdate;
+use super::{CollateralUpdate, error::CollateralError};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -75,19 +75,59 @@ impl Collateral {
             .expect("entity_first_persisted_at not found")
     }
 
-    pub fn enter_liquidation(&mut self, liquidation_id: LiquidationId) -> Idempotent<()> {
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            CollateralEvent::EnteredLiquidation { liquidation_id: existing } if *existing == liquidation_id,
-            => CollateralEvent::ExitedLiquidation { .. });
-
+    /// Attemps to record that this Collateral has entered a
+    /// liquidation with `liquidation_id`.
+    ///
+    /// # Errors
+    ///
+    /// Returns `AlreadyInLiquidation` if the Collateral already is in
+    /// another liquidation.
+    pub fn enter_liquidation(
+        &mut self,
+        liquidation_id: LiquidationId,
+    ) -> Result<Idempotent<()>, CollateralError> {
         match self.current_liquidation_id {
-            Some(_) => todo!(),
+            Some(existing) if existing == liquidation_id => Ok(Idempotent::AlreadyApplied),
+            Some(existing) => Err(CollateralError::AlreadyInLiquidation(existing)),
             None => {
                 self.events
                     .push(CollateralEvent::EnteredLiquidation { liquidation_id });
-                Idempotent::Executed(())
+
+                self.current_liquidation_id = Some(liquidation_id);
+
+                Ok(Idempotent::Executed(()))
             }
+        }
+    }
+
+    /// Attempts to record that this Collateral has exited a
+    /// liquidation with `liquidation_id`.
+    ///
+    /// # Errors
+    ///
+    /// - `InAnotherLiquidation` if this Collateral is in different liquidation than `liquidation_id`
+    /// - `NotInLiquidation` if this Collateral is not in any liquidation
+    pub fn exit_liquidation(
+        &mut self,
+        liquidation_id: LiquidationId,
+    ) -> Result<Idempotent<()>, CollateralError> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            CollateralEvent::ExitedLiquidation { liquidation_id: existing } if *existing == liquidation_id,
+            => CollateralEvent::EnteredLiquidation { .. }
+        );
+
+        match self.current_liquidation_id {
+            Some(existing) if existing == liquidation_id => {
+                self.events
+                    .push(CollateralEvent::ExitedLiquidation { liquidation_id });
+
+                self.current_liquidation_id = None;
+
+                Ok(Idempotent::Executed(()))
+            }
+            Some(existing) => Err(CollateralError::InAnotherLiquidation(existing)),
+            None => Err(CollateralError::NotInLiquidation),
         }
     }
 
