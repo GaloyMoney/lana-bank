@@ -311,14 +311,26 @@ where
 
     #[record_error_severity]
     #[instrument(name = "core_accounting.fiscal_year.configure", skip(self))]
-    pub async fn configure(&self, cfg: FiscalYearConfig) -> Result<(), FiscalYearError> {
+    pub async fn configure(
+        &self,
+        chart_id: impl Into<ChartId> + std::fmt::Debug,
+    ) -> Result<FiscalYearConfig, FiscalYearError> {
         let config = self.domain_configs.get::<FiscalYearConfig>().await?;
         if config.value().is_some() {
             return Err(FiscalYearError::FiscalYearConfigAlreadyExists);
         }
 
-        self.domain_configs.update::<FiscalYearConfig>(cfg).await?;
+        let accounting_base_config = self
+            .chart_of_accounts
+            .maybe_find_accounting_base_config_by_chart_id(chart_id.into())
+            .await?
+            .ok_or(FiscalYearError::AccountingBaseConfigNotFound)?;
 
-        Ok(())
+        let fiscal_year_config = FiscalYearConfig::from(&accounting_base_config);
+        self.domain_configs
+            .update::<FiscalYearConfig>(fiscal_year_config.clone())
+            .await?;
+
+        Ok(fiscal_year_config)
     }
 }

@@ -236,6 +236,20 @@ where
     }
 
     #[record_error_severity]
+    #[instrument(
+        name = "core_accounting.chart_of_accounts.maybe_find_accounting_base_config_by_chart_id",
+        skip(self)
+    )]
+    pub async fn maybe_find_accounting_base_config_by_chart_id(
+        &self,
+        chart_id: ChartId,
+    ) -> Result<Option<AccountingBaseConfig>, ChartOfAccountsError> {
+        let chart = self.find_by_id(chart_id).await?;
+        let base_config = chart.find_accounting_base_config();
+        Ok(base_config)
+    }
+
+    #[record_error_severity]
     #[instrument(name = "core_accounting.chart_of_accounts.add_root_node", skip(self,))]
     pub async fn add_root_node(
         &self,

@@ -450,6 +450,8 @@ pub struct AccountingBaseConfig {
     pub assets_code: AccountCode,
     pub liabilities_code: AccountCode,
     pub equity_code: AccountCode,
+    pub equity_retained_earnings_gain_code: AccountCode,
+    pub equity_retained_earnings_loss_code: AccountCode,
     pub revenue_code: AccountCode,
     pub cost_of_revenue_code: AccountCode,
     pub expenses_code: AccountCode,

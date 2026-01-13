@@ -117,6 +117,8 @@ async fn import_from_csv_with_base_config_creates_accounts() -> anyhow::Result<(
                 assets_code: "1".parse()?,
                 liabilities_code: "2".parse()?,
                 equity_code: "3".parse()?,
+                equity_retained_earnings_gain_code: "32.01".parse()?,
+                equity_retained_earnings_loss_code: "32.02".parse()?,
                 revenue_code: "4".parse()?,
                 cost_of_revenue_code: "5".parse()?,
                 expenses_code: "6".parse()?,
