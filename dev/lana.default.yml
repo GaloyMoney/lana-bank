@@ -40,9 +40,7 @@ app:
     chart_of_accounts_seed_path: null
     deposit_config_path: null
     credit_config_path: null
-    balance_sheet_config_path: null
-    profit_and_loss_config_path: null
-    fiscal_year_config_path: null
+    chart_of_accounts_integration_config_path: null
   custody:
     custody_providers:
       komainu_directory:
