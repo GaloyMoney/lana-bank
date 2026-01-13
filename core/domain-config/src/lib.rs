@@ -11,6 +11,9 @@ mod spec;
 mod typed_domain_config;
 
 use std::collections::{HashMap, HashSet};
+
+use audit::AuditSvc;
+use authz::PermissionCheck;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
@@ -19,7 +22,11 @@ pub use entity::DomainConfigEvent;
 pub use error::DomainConfigError;
 #[doc(hidden)]
 pub use inventory;
-pub use primitives::{ConfigType, DomainConfigId, DomainConfigKey, Visibility};
+pub use primitives::{
+    ConfigType, DomainConfigAction, DomainConfigEntityAction, DomainConfigId, DomainConfigKey,
+    DomainConfigObject, ExposedConfigAllOrOne, PERMISSION_SET_EXPOSED_CONFIGS_VIEWER,
+    PERMISSION_SET_EXPOSED_CONFIGS_WRITER, Visibility,
+};
 pub use repo::domain_config_cursor::DomainConfigsByKeyCursor;
 pub use spec::{Complex, ConfigSpec, Simple, ValueKind};
 pub use typed_domain_config::TypedDomainConfig;
@@ -39,8 +46,12 @@ pub struct InternalDomainConfigs {
 }
 
 #[derive(Clone)]
-pub struct ExposedDomainConfigs {
+pub struct ExposedDomainConfigs<Perms>
+where
+    Perms: PermissionCheck,
+{
     repo: DomainConfigRepo,
+    authz: Perms,
 }
 
 fn ensure_visibility<C: ConfigSpec>(expected: Visibility) -> Result<(), DomainConfigError> {
@@ -144,18 +155,58 @@ impl InternalDomainConfigs {
     }
 }
 
-impl ExposedDomainConfigs {
-    pub fn new(pool: &sqlx::PgPool) -> Self {
+impl<Perms> ExposedDomainConfigs<Perms>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<DomainConfigAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<DomainConfigObject>,
+{
+    pub fn new(pool: &sqlx::PgPool, authz: &Perms) -> Self {
         let repo = DomainConfigRepo::new(pool);
-        Self { repo }
+        Self {
+            repo,
+            authz: authz.clone(),
+        }
+    }
+
+    async fn ensure_exposed_read(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+    ) -> Result<(), DomainConfigError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                DomainConfigObject::all_exposed_configs(),
+                DomainConfigAction::EXPOSED_CONFIG_READ,
+            )
+            .await?;
+        Ok(())
+    }
+
+    async fn ensure_exposed_write(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+    ) -> Result<(), DomainConfigError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                DomainConfigObject::all_exposed_configs(),
+                DomainConfigAction::EXPOSED_CONFIG_WRITE,
+            )
+            .await?;
+        Ok(())
     }
 
     #[record_error_severity]
-    #[instrument(name = "domain_config.get", skip(self))]
-    pub async fn get<C>(&self) -> Result<TypedDomainConfig<C>, DomainConfigError>
+    #[instrument(name = "domain_config.get", skip(self), fields(subject = %sub))]
+    pub async fn get<C>(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+    ) -> Result<TypedDomainConfig<C>, DomainConfigError>
     where
         C: ConfigSpec,
     {
+        self.ensure_exposed_read(sub).await?;
         ensure_exposed::<C>()?;
         let config = self.repo.find_by_key(C::KEY).await?;
         TypedDomainConfig::new(config)
@@ -171,14 +222,16 @@ impl ExposedDomainConfigs {
     }
 
     #[record_error_severity]
-    #[instrument(name = "domain_config.create", skip(self, value))]
+    #[instrument(name = "domain_config.create", skip(self, value), fields(subject = %sub))]
     pub async fn create<C>(
         &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         value: <C::Kind as ValueKind>::Value,
     ) -> Result<(), DomainConfigError>
     where
         C: ConfigSpec,
     {
+        self.ensure_exposed_write(sub).await?;
         ensure_exposed::<C>()?;
         let domain_config_id = DomainConfigId::new();
         let new = NewDomainConfig::builder()
@@ -191,14 +244,16 @@ impl ExposedDomainConfigs {
     }
 
     #[record_error_severity]
-    #[instrument(name = "domain_config.update", skip(self, value))]
+    #[instrument(name = "domain_config.update", skip(self, value), fields(subject = %sub))]
     pub async fn update<C>(
         &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         value: <C::Kind as ValueKind>::Value,
     ) -> Result<(), DomainConfigError>
     where
         C: ConfigSpec,
     {
+        self.ensure_exposed_write(sub).await?;
         ensure_exposed::<C>()?;
         let mut config = self.repo.find_by_key(C::KEY).await?;
         if config.update_value::<C>(value)?.did_execute() {
@@ -209,12 +264,14 @@ impl ExposedDomainConfigs {
     }
 
     #[record_error_severity]
-    #[instrument(name = "domain_config.update_exposed_from_json", skip(self, value))]
+    #[instrument(name = "domain_config.update_exposed_from_json", skip(self, value), fields(subject = %sub))]
     pub async fn update_exposed_from_json(
         &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         id: impl Into<DomainConfigId> + std::fmt::Debug,
         value: serde_json::Value,
     ) -> Result<DomainConfig, DomainConfigError> {
+        self.ensure_exposed_write(sub).await?;
         let id = id.into();
         let mut config = self.repo.find_by_id(id).await?;
         let entry = registry::maybe_find_by_key(config.key.as_str()).ok_or_else(|| {
@@ -235,33 +292,36 @@ impl ExposedDomainConfigs {
     }
 
     #[record_error_severity]
-    #[instrument(name = "domain_config.upsert", skip(self, value))]
+    #[instrument(name = "domain_config.upsert", skip(self, value), fields(subject = %sub))]
     pub async fn upsert<C>(
         &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         value: <C::Kind as ValueKind>::Value,
     ) -> Result<(), DomainConfigError>
     where
         C: ConfigSpec,
         <C::Kind as ValueKind>::Value: Clone,
     {
-        match self.update::<C>(value.clone()).await {
+        match self.update::<C>(sub, value.clone()).await {
             Ok(()) => Ok(()),
             Err(DomainConfigError::EsEntityError(es_entity::EsEntityError::NotFound)) => {
-                self.create::<C>(value).await
+                self.create::<C>(sub, value).await
             }
             Err(e) => Err(e),
         }
     }
 
     #[record_error_severity]
-    #[instrument(name = "domain_config.list_exposed_configs", skip(self))]
+    #[instrument(name = "domain_config.list_exposed_configs", skip(self, query), fields(subject = %sub))]
     pub async fn list_exposed_configs(
         &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         query: es_entity::PaginatedQueryArgs<DomainConfigsByKeyCursor>,
     ) -> Result<
         es_entity::PaginatedQueryRet<DomainConfig, DomainConfigsByKeyCursor>,
         DomainConfigError,
     > {
+        self.ensure_exposed_read(sub).await?;
         self.repo
             .list_for_visibility_by_key(
                 Visibility::Exposed,

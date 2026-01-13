@@ -2112,6 +2112,8 @@ name = "domain-config"
 version = "0.0.0"
 dependencies = [
  "async-graphql",
+ "audit",
+ "authz",
  "derive_builder",
  "es-entity",
  "inventory",
@@ -2121,6 +2123,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sqlx",
+ "strum",
  "thiserror 2.0.17",
  "tracing",
  "tracing-macros",

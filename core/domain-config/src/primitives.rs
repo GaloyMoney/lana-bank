@@ -1,3 +1,4 @@
+pub use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -112,5 +113,113 @@ impl FromStr for DomainConfigKey {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(DomainConfigKey::from_owned(s.to_owned()))
+    }
+}
+
+pub const PERMISSION_SET_EXPOSED_CONFIGS_VIEWER: &str = "exposed_configs_viewer";
+pub const PERMISSION_SET_EXPOSED_CONFIGS_WRITER: &str = "exposed_configs_writer";
+
+pub type ExposedConfigAllOrOne = AllOrOne<DomainConfigId>;
+
+#[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
+#[strum_discriminants(derive(strum::Display, strum::EnumString))]
+#[strum_discriminants(strum(serialize_all = "kebab-case"))]
+pub enum DomainConfigObject {
+    ExposedConfig(ExposedConfigAllOrOne),
+}
+
+impl DomainConfigObject {
+    pub const fn all_exposed_configs() -> Self {
+        Self::ExposedConfig(AllOrOne::All)
+    }
+}
+
+impl fmt::Display for DomainConfigObject {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let discriminant = DomainConfigObjectDiscriminants::from(self);
+        match self {
+            Self::ExposedConfig(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+        }
+    }
+}
+
+impl FromStr for DomainConfigObject {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let (entity, id) = s.split_once('/').expect("missing slash");
+        use DomainConfigObjectDiscriminants::*;
+        let res = match entity.parse().expect("invalid entity") {
+            ExposedConfig => {
+                let obj_ref = id
+                    .parse()
+                    .map_err(|_| "could not parse DomainConfigObject")?;
+                Self::ExposedConfig(obj_ref)
+            }
+        };
+        Ok(res)
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
+#[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]
+#[strum_discriminants(strum(serialize_all = "kebab-case"))]
+pub enum DomainConfigAction {
+    ExposedConfig(DomainConfigEntityAction),
+}
+
+impl DomainConfigAction {
+    pub const EXPOSED_CONFIG_READ: Self =
+        DomainConfigAction::ExposedConfig(DomainConfigEntityAction::Read);
+    pub const EXPOSED_CONFIG_WRITE: Self =
+        DomainConfigAction::ExposedConfig(DomainConfigEntityAction::Write);
+
+    pub fn actions() -> Vec<ActionMapping> {
+        use DomainConfigActionDiscriminants::*;
+        map_action!(domain_config, ExposedConfig, DomainConfigEntityAction)
+    }
+}
+
+impl fmt::Display for DomainConfigAction {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}:", DomainConfigActionDiscriminants::from(self))?;
+        match self {
+            DomainConfigAction::ExposedConfig(action) => action.fmt(f),
+        }
+    }
+}
+
+impl FromStr for DomainConfigAction {
+    type Err = strum::ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let (entity, action) = s.split_once(':').expect("missing colon");
+        use DomainConfigActionDiscriminants::*;
+        let res = match entity.parse()? {
+            ExposedConfig => DomainConfigAction::from(action.parse::<DomainConfigEntityAction>()?),
+        };
+        Ok(res)
+    }
+}
+
+#[derive(Clone, PartialEq, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
+#[strum(serialize_all = "kebab-case")]
+pub enum DomainConfigEntityAction {
+    Read,
+    Write,
+}
+
+impl ActionPermission for DomainConfigEntityAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Read => PERMISSION_SET_EXPOSED_CONFIGS_VIEWER,
+            Self::Write => PERMISSION_SET_EXPOSED_CONFIGS_WRITER,
+        }
+    }
+}
+
+impl From<DomainConfigEntityAction> for DomainConfigAction {
+    fn from(action: DomainConfigEntityAction) -> Self {
+        DomainConfigAction::ExposedConfig(action)
     }
 }

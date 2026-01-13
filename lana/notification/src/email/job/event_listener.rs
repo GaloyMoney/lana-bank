@@ -35,15 +35,17 @@ where
         + From<core_access::CoreAccessAction>
         + From<core_deposit::CoreDepositAction>
         + From<governance::GovernanceAction>
-        + From<core_custody::CoreCustodyAction>,
+        + From<core_custody::CoreCustodyAction>
+        + From<domain_config::DomainConfigAction>,
     <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
         + From<core_customer::CustomerObject>
         + From<core_access::CoreAccessObject>
         + From<core_deposit::CoreDepositObject>
         + From<governance::GovernanceObject>
-        + From<core_custody::CoreCustodyObject>,
+        + From<core_custody::CoreCustodyObject>
+        + From<domain_config::DomainConfigObject>,
     <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
-        From<core_access::UserId>,
+        From<core_access::UserId> + audit::SystemSubject,
 {
     pub fn new(outbox: &Outbox<LanaEvent>, email_notification: &EmailNotification<Perms>) -> Self {
         Self {
@@ -62,15 +64,17 @@ where
         + From<core_access::CoreAccessAction>
         + From<core_deposit::CoreDepositAction>
         + From<governance::GovernanceAction>
-        + From<core_custody::CoreCustodyAction>,
+        + From<core_custody::CoreCustodyAction>
+        + From<domain_config::DomainConfigAction>,
     <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
         + From<core_customer::CustomerObject>
         + From<core_access::CoreAccessObject>
         + From<core_deposit::CoreDepositObject>
         + From<governance::GovernanceObject>
-        + From<core_custody::CoreCustodyObject>,
+        + From<core_custody::CoreCustodyObject>
+        + From<domain_config::DomainConfigObject>,
     <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
-        From<core_access::UserId>,
+        From<core_access::UserId> + audit::SystemSubject,
 {
     type Config = EmailEventListenerConfig<Perms>;
     fn job_type(&self) -> JobType {
@@ -114,15 +118,17 @@ where
         + From<core_access::CoreAccessAction>
         + From<core_deposit::CoreDepositAction>
         + From<governance::GovernanceAction>
-        + From<core_custody::CoreCustodyAction>,
+        + From<core_custody::CoreCustodyAction>
+        + From<domain_config::DomainConfigAction>,
     <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
         + From<core_customer::CustomerObject>
         + From<core_access::CoreAccessObject>
         + From<core_deposit::CoreDepositObject>
         + From<governance::GovernanceObject>
-        + From<core_custody::CoreCustodyObject>,
+        + From<core_custody::CoreCustodyObject>
+        + From<domain_config::DomainConfigObject>,
     <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
-        From<core_access::UserId>,
+        From<core_access::UserId> + audit::SystemSubject,
 {
     #[instrument(name = "notification.email_listener_job.process_message", parent = None, skip(self, message, op), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn process_message(
@@ -238,15 +244,17 @@ where
         + From<core_access::CoreAccessAction>
         + From<core_deposit::CoreDepositAction>
         + From<governance::GovernanceAction>
-        + From<core_custody::CoreCustodyAction>,
+        + From<core_custody::CoreCustodyAction>
+        + From<domain_config::DomainConfigAction>,
     <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
         + From<core_customer::CustomerObject>
         + From<core_access::CoreAccessObject>
         + From<core_deposit::CoreDepositObject>
         + From<governance::GovernanceObject>
-        + From<core_custody::CoreCustodyObject>,
+        + From<core_custody::CoreCustodyObject>
+        + From<domain_config::DomainConfigObject>,
     <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
-        From<core_access::UserId>,
+        From<core_access::UserId> + audit::SystemSubject,
 {
     async fn run(
         &self,

@@ -3,7 +3,6 @@ use std::{fmt::Display, str::FromStr};
 use authz::action_description::*;
 
 use crate::audit_action::AuditAction;
-use crate::domain_config_action::DomainConfigAction;
 use contract_creation::ContractModuleAction;
 use core_access::CoreAccessAction;
 use core_accounting::CoreAccountingAction;
@@ -13,6 +12,7 @@ use core_customer::CoreCustomerAction;
 use core_deposit::CoreDepositAction;
 use core_report::CoreReportAction;
 use dashboard::DashboardModuleAction;
+use domain_config::DomainConfigAction;
 use governance::GovernanceAction;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
