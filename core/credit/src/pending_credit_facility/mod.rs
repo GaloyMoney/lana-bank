@@ -1,5 +1,6 @@
 mod entity;
 pub mod error;
+mod jobs;
 mod repo;
 
 use std::sync::Arc;
@@ -7,9 +8,9 @@ use std::sync::Arc;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_custody::{CoreCustody, CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
-use core_price::Price;
+use core_price::{CorePriceEvent, Price};
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
-use obix::out::OutboxEventMarker;
+use obix::out::{Outbox, OutboxEventMarker};
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
@@ -44,7 +45,8 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     repo: Arc<PendingCreditFacilityRepo<E>>,
     proposals: Arc<CreditFacilityProposals<Perms, E>>,
@@ -60,7 +62,8 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -85,9 +88,10 @@ where
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
-    pub fn new(
+    pub async fn init(
         pool: &sqlx::PgPool,
         proposals: Arc<CreditFacilityProposals<Perms, E>>,
         custody: Arc<CoreCustody<Perms, E>>,
@@ -97,11 +101,19 @@ where
         price: Arc<Price>,
         publisher: &crate::CreditFacilityPublisher<E>,
         governance: Arc<Governance<Perms, E>>,
-    ) -> Self {
-        let repo = PendingCreditFacilityRepo::new(pool, publisher);
+        jobs: &mut job::Jobs,
+        outbox: &Outbox<E>,
+    ) -> Result<Self, PendingCreditFacilityError> {
+        let repo_arc = Arc::new(PendingCreditFacilityRepo::new(pool, publisher));
 
-        Self {
-            repo: Arc::new(repo),
+        let spawner = jobs.add_initializer(jobs::collateralization_from_events_for_pending_facility::PendingCreditFacilityCollateralizationFromEventsInit::new(outbox, repo_arc.clone(), price.clone(), ledger.clone()));
+
+        spawner.spawn_unique(job::JobId::new(), jobs::collateralization_from_events_for_pending_facility::PendingCreditFacilityCollateralizationFromEventsJobConfig::<E>{
+            _phantom: std::marker::PhantomData
+        }).await?;
+
+        Ok(Self {
+            repo: repo_arc,
             proposals,
             custody,
             collaterals,
@@ -109,7 +121,7 @@ where
             price,
             ledger,
             governance,
-        }
+        })
     }
 
     pub(super) async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, PendingCreditFacilityError> {
@@ -235,107 +247,6 @@ where
             }
             Err(e) => Err(e),
         }
-    }
-
-    #[record_error_severity]
-    #[instrument(
-        name = "credit.pending_credit_facility.update_collateralization_from_events",
-        skip(self)
-    )]
-    #[es_entity::retry_on_concurrent_modification(any_error = true)]
-    pub(super) async fn update_collateralization_from_events(
-        &self,
-        id: PendingCreditFacilityId,
-    ) -> Result<PendingCreditFacility, PendingCreditFacilityError> {
-        let mut op = self.repo.begin_op().await?;
-        let mut pending_facility = self.repo.find_by_id_in_op(&mut op, id).await?;
-
-        tracing::Span::current().record(
-            "pending_credit_facility_id",
-            pending_facility.id.to_string(),
-        );
-
-        let balances = self
-            .ledger
-            .get_pending_credit_facility_balance(pending_facility.account_ids)
-            .await?;
-
-        let price = self.price.usd_cents_per_btc().await;
-
-        if pending_facility
-            .update_collateralization(price, balances)
-            .did_execute()
-        {
-            self.repo
-                .update_in_op(&mut op, &mut pending_facility)
-                .await?;
-
-            op.commit().await?;
-        }
-        Ok(pending_facility)
-    }
-
-    #[record_error_severity]
-    #[instrument(
-        name = "credit.credit_facility.update_collateralization_from_price_event",
-        skip(self)
-    )]
-    pub(super) async fn update_collateralization_from_price_event(
-        &self,
-        price: PriceOfOneBTC,
-    ) -> Result<(), PendingCreditFacilityError> {
-        let mut has_next_page = true;
-        let mut after: Option<PendingCreditFacilitiesByCollateralizationRatioCursor> = None;
-        while has_next_page {
-            let mut pending_credit_facilities = self
-                .repo
-                .list_by_collateralization_ratio(
-                    es_entity::PaginatedQueryArgs::<
-                        PendingCreditFacilitiesByCollateralizationRatioCursor,
-                    > {
-                        first: 10,
-                        after,
-                    },
-                    Default::default(),
-                )
-                .await?;
-            (after, has_next_page) = (
-                pending_credit_facilities.end_cursor,
-                pending_credit_facilities.has_next_page,
-            );
-            let mut op = self.repo.begin_op().await?;
-
-            let mut at_least_one = false;
-
-            for pending_facility in pending_credit_facilities.entities.iter_mut() {
-                tracing::Span::current().record(
-                    "pending_credit_facility_id",
-                    pending_facility.id.to_string(),
-                );
-
-                if pending_facility.status() == PendingCreditFacilityStatus::Completed {
-                    continue;
-                }
-                let balances = self
-                    .ledger
-                    .get_pending_credit_facility_balance(pending_facility.account_ids)
-                    .await?;
-                if pending_facility
-                    .update_collateralization(price, balances)
-                    .did_execute()
-                {
-                    self.repo.update_in_op(&mut op, pending_facility).await?;
-                    at_least_one = true;
-                }
-            }
-
-            if at_least_one {
-                op.commit().await?;
-            } else {
-                break;
-            }
-        }
-        Ok(())
     }
 
     #[record_error_severity]

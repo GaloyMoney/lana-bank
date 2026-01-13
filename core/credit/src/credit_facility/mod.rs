@@ -1,6 +1,7 @@
 mod entity;
 pub mod error;
 pub mod interest_accrual_cycle;
+mod jobs;
 mod repo;
 
 use std::sync::Arc;
@@ -9,16 +10,15 @@ use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_price::Price;
+use core_price::{CorePriceEvent, Price};
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
-use job::{JobId, Jobs};
-use obix::out::OutboxEventMarker;
+use job::*;
+use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{
     PublicIds,
     disbursal::Disbursals,
     event::CoreCreditEvent,
-    jobs::{credit_facility_maturity, interest_accrual},
     ledger::{CreditFacilityInterestAccrual, CreditFacilityInterestAccrualCycle, CreditLedger},
     obligation::Obligations,
     pending_credit_facility::{PendingCreditFacilities, PendingCreditFacilityCompletionOutcome},
@@ -45,7 +45,8 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     pending_credit_facilities: Arc<PendingCreditFacilities<Perms, E>>,
     repo: Arc<CreditFacilityRepo<E>>,
@@ -57,6 +58,9 @@ where
     jobs: Arc<Jobs>,
     governance: Arc<Governance<Perms, E>>,
     public_ids: Arc<PublicIds>,
+    credit_facility_maturity_job_spawner:
+        jobs::credit_facility_maturity::CreditFacilityMaturityJobSpawner<E>,
+    interest_accrual_job_spawner: jobs::interest_accrual::InterestAccrualJobSpawner<Perms, E>,
 }
 
 impl<Perms, E> Clone for CreditFacilities<Perms, E>
@@ -64,7 +68,8 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -78,6 +83,8 @@ where
             jobs: self.jobs.clone(),
             governance: self.governance.clone(),
             public_ids: self.public_ids.clone(),
+            credit_facility_maturity_job_spawner: self.credit_facility_maturity_job_spawner.clone(),
+            interest_accrual_job_spawner: self.interest_accrual_job_spawner.clone(),
         }
     }
 }
@@ -85,14 +92,6 @@ where
 pub(super) enum CompletionOutcome {
     AlreadyApplied(CreditFacility),
     Completed((CreditFacility, crate::CreditFacilityCompletion)),
-}
-
-#[derive(Clone)]
-pub(super) struct ConfirmedAccrual {
-    pub(super) accrual: CreditFacilityInterestAccrual,
-    pub(super) next_period: Option<InterestPeriod>,
-    pub(super) accrual_idx: InterestAccrualCycleIdx,
-    pub(super) accrued_count: usize,
 }
 
 impl<Perms, E> CreditFacilities<Perms, E>
@@ -104,9 +103,10 @@ where
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
-    pub fn new(
+    pub async fn new(
         pool: &sqlx::PgPool,
         authz: Arc<Perms>,
         obligations: Arc<Obligations<Perms, E>>,
@@ -118,11 +118,48 @@ where
         publisher: &crate::CreditFacilityPublisher<E>,
         governance: Arc<Governance<Perms, E>>,
         public_ids: Arc<PublicIds>,
-    ) -> Self {
+        outbox: &Outbox<E>,
+    ) -> Result<Self, CreditFacilityError> {
         let repo = CreditFacilityRepo::new(pool, publisher);
+        let repo_arc = Arc::new(repo);
 
-        Self {
-            repo: Arc::new(repo),
+        let collateralization_from_events_spawner = jobs.add_initializer(
+            jobs::collateralization_from_events::CreditFacilityCollateralizationFromEventsInit::<
+                Perms,
+                E,
+            >::new(
+                outbox,
+                repo_arc.clone(),
+                price.clone(),
+                ledger.clone(),
+                authz.clone(),
+            ),
+        );
+
+        collateralization_from_events_spawner
+            .spawn_unique(
+                job::JobId::new(),
+                jobs::collateralization_from_events::CreditFacilityCollateralizationFromEventsJobConfig::<E> {
+                    _phantom: std::marker::PhantomData,
+                },
+            )
+            .await?;
+
+        let credit_facility_maturity_job_spawner = jobs.add_initializer(
+            jobs::credit_facility_maturity::CreditFacilityMaturityInit::new(repo_arc.clone()),
+        );
+
+        let interest_accrual_job_spawner = jobs.add_initializer(
+            jobs::interest_accrual::InterestAccrualJobInit::<Perms, E>::new(
+                ledger.clone(),
+                obligations.clone(),
+                repo_arc.clone(),
+                authz.clone(),
+            ),
+        );
+
+        Ok(Self {
+            repo: repo_arc,
             obligations,
             pending_credit_facilities,
             disbursals,
@@ -132,7 +169,9 @@ where
             jobs,
             governance,
             public_ids,
-        }
+            credit_facility_maturity_job_spawner,
+            interest_accrual_job_spawner,
+        })
     }
 
     pub(super) async fn begin_op(&self) -> Result<es_entity::DbOp<'static>, CreditFacilityError> {
@@ -190,13 +229,13 @@ where
             .update_in_op(&mut db, &mut credit_facility)
             .await?;
 
-        self.jobs
-            .create_and_spawn_at_in_op(
+        self.credit_facility_maturity_job_spawner
+            .spawn_at_in_op(
                 &mut db,
                 JobId::new(),
                 // FIXME: I don't think this is updated if/when the facility is updated
                 // if the credit product is closed earlier than expected or if is liquidated
-                credit_facility_maturity::CreditFacilityMaturityJobConfig::<Perms, E> {
+                jobs::credit_facility_maturity::CreditFacilityMaturityJobConfig::<E> {
                     credit_facility_id: credit_facility.id,
                     _phantom: std::marker::PhantomData,
                 },
@@ -209,11 +248,11 @@ where
             .expect("First accrual not found")
             .id;
 
-        self.jobs
-            .create_and_spawn_at_in_op(
+        self.interest_accrual_job_spawner
+            .spawn_at_in_op(
                 &mut db,
                 accrual_id,
-                interest_accrual::InterestAccrualJobConfig::<Perms, E> {
+                jobs::interest_accrual::InterestAccrualJobConfig::<Perms, E> {
                     credit_facility_id,
                     _phantom: std::marker::PhantomData,
                 },
@@ -257,51 +296,6 @@ where
         db.commit().await?;
 
         Ok(())
-    }
-
-    #[record_error_severity]
-    #[instrument(
-        name = "credit.credit_facility.confirm_interest_accrual_in_op",
-        skip(self, op),
-        fields(credit_facility_id = %credit_facility_id)
-    )]
-    pub(super) async fn confirm_interest_accrual_in_op(
-        &self,
-        op: &mut impl es_entity::AtomicOperation,
-        credit_facility_id: CreditFacilityId,
-    ) -> Result<ConfirmedAccrual, CreditFacilityError> {
-        self.authz
-            .audit()
-            .record_system_entry_in_tx(
-                op,
-                CoreCreditObject::all_credit_facilities(),
-                CoreCreditAction::CREDIT_FACILITY_RECORD_INTEREST,
-            )
-            .await?;
-
-        let mut credit_facility = self.repo.find_by_id(credit_facility_id).await?;
-
-        let confirmed_accrual = {
-            let account_ids = credit_facility.account_ids;
-            let balances = self.ledger.get_credit_facility_balance(account_ids).await?;
-
-            let accrual = credit_facility
-                .interest_accrual_cycle_in_progress_mut()
-                .expect("Accrual in progress should exist for scheduled job");
-
-            let interest_accrual = accrual.record_accrual(balances.disbursed_outstanding());
-
-            ConfirmedAccrual {
-                accrual: (interest_accrual, account_ids).into(),
-                next_period: accrual.next_accrual_period(),
-                accrual_idx: accrual.idx,
-                accrued_count: accrual.count_accrued(),
-            }
-        };
-
-        self.repo.update_in_op(op, &mut credit_facility).await?;
-
-        Ok(confirmed_accrual)
     }
 
     #[record_error_severity]
@@ -362,57 +356,6 @@ where
         Ok(())
     }
 
-    #[record_error_severity]
-    #[instrument(
-        name = "credit.facility.complete_interest_cycle_and_maybe_start_new_cycle",
-        skip(self, db)
-        fields(credit_facility_id = %credit_facility_id),
-    )]
-    pub(super) async fn complete_interest_cycle_and_maybe_start_new_cycle(
-        &self,
-        db: &mut es_entity::DbOp<'_>,
-        credit_facility_id: CreditFacilityId,
-    ) -> Result<CompletedAccrualCycle, CreditFacilityError> {
-        let mut credit_facility = self.repo.find_by_id(credit_facility_id).await?;
-
-        let (accrual_cycle_data, new_obligation) = if let es_entity::Idempotent::Executed(res) =
-            credit_facility.record_interest_accrual_cycle()?
-        {
-            res
-        } else {
-            unreachable!(
-                "record_interest_accrual_cycle returned Idempotent::AlreadyApplied, \
-                 but this should only execute when there is an accrual cycle to record"
-            );
-        };
-
-        if let Some(new_obligation) = new_obligation {
-            self.obligations
-                .create_with_jobs_in_op(db, new_obligation)
-                .await?;
-        };
-
-        let res = credit_facility.start_interest_accrual_cycle()?;
-        self.repo.update_in_op(db, &mut credit_facility).await?;
-
-        let new_cycle_data = res.map(|periods| {
-            let new_accrual_cycle_id = credit_facility
-                .interest_accrual_cycle_in_progress()
-                .expect("First accrual cycle not found")
-                .id;
-
-            NewInterestAccrualCycleData {
-                id: new_accrual_cycle_id,
-                first_accrual_end_date: periods.accrual.end,
-            }
-        });
-
-        Ok(CompletedAccrualCycle {
-            facility_accrual_cycle_data: (accrual_cycle_data, credit_facility.account_ids).into(),
-            new_cycle_data,
-        })
-    }
-
     pub async fn find_by_id_without_audit(
         &self,
         id: impl Into<CreditFacilityId> + std::fmt::Debug,
@@ -446,25 +389,6 @@ where
 
     #[record_error_severity]
     #[instrument(
-        name = "credit.credit_facility.mark_as_matured",
-        skip(self),
-        fields(credit_facility_id = %credit_facility_id)
-    )]
-    pub(super) async fn mark_facility_as_matured(
-        &self,
-        credit_facility_id: CreditFacilityId,
-    ) -> Result<(), CreditFacilityError> {
-        let mut facility = self.repo.find_by_id(credit_facility_id).await?;
-
-        if facility.mature().did_execute() {
-            self.repo.update(&mut facility).await?;
-        }
-
-        Ok(())
-    }
-
-    #[record_error_severity]
-    #[instrument(
         name = "credit.credit_facility.find_by_public_id",
         skip(self, public_id),
         fields(public_id = tracing::field::Empty)
@@ -485,125 +409,6 @@ where
             .await?;
 
         self.repo.maybe_find_by_public_id(public_id).await
-    }
-
-    #[record_error_severity]
-    #[instrument(
-        name = "credit.credit_facility.update_collateralization_from_price_event",
-        skip(self)
-    )]
-    pub(super) async fn update_collateralization_from_price_event(
-        &self,
-        upgrade_buffer_cvl_pct: CVLPct,
-        price: PriceOfOneBTC,
-    ) -> Result<(), CreditFacilityError> {
-        let mut has_next_page = true;
-        let mut after: Option<CreditFacilitiesByCollateralizationRatioCursor> = None;
-        while has_next_page {
-            let mut credit_facilities =
-                self
-                    .list_by_collateralization_ratio_without_audit(
-                        es_entity::PaginatedQueryArgs::<
-                            CreditFacilitiesByCollateralizationRatioCursor,
-                        > {
-                            first: 10,
-                            after,
-                        },
-                        es_entity::ListDirection::Ascending,
-                    )
-                    .await?;
-            (after, has_next_page) = (
-                credit_facilities.end_cursor,
-                credit_facilities.has_next_page,
-            );
-            let mut op = self.repo.begin_op().await?;
-            self.authz
-                .audit()
-                .record_system_entry_in_tx(
-                    &mut op,
-                    CoreCreditObject::all_credit_facilities(),
-                    CoreCreditAction::CREDIT_FACILITY_UPDATE_COLLATERALIZATION_STATE,
-                )
-                .await?;
-
-            let mut at_least_one = false;
-
-            for facility in credit_facilities.entities.iter_mut() {
-                tracing::Span::current().record("credit_facility_id", facility.id.to_string());
-
-                if facility.status() == CreditFacilityStatus::Closed {
-                    continue;
-                }
-                let balances = self
-                    .ledger
-                    .get_credit_facility_balance(facility.account_ids)
-                    .await?;
-                if facility
-                    .update_collateralization(price, upgrade_buffer_cvl_pct, balances)
-                    .did_execute()
-                {
-                    self.repo.update_in_op(&mut op, facility).await?;
-                    at_least_one = true;
-                }
-            }
-
-            if at_least_one {
-                op.commit().await?;
-            } else {
-                break;
-            }
-        }
-        Ok(())
-    }
-
-    #[record_error_severity]
-    #[instrument(
-        name = "credit.credit_facility.update_collateralization_from_events",
-        skip(self),
-        fields(credit_facility_id = %credit_facility_id),
-    )]
-    #[es_entity::retry_on_concurrent_modification]
-    pub(super) async fn update_collateralization_from_events(
-        &self,
-        credit_facility_id: CreditFacilityId,
-        upgrade_buffer_cvl_pct: CVLPct,
-    ) -> Result<(), CreditFacilityError> {
-        let mut op = self.repo.begin_op().await?;
-        // if the pending facility is not collateralized enough to be activated there will be no
-        // credit facility to update the collateralization state for
-        let Some(mut credit_facility) = self.repo.maybe_find_by_id(credit_facility_id).await?
-        else {
-            return Ok(());
-        };
-
-        self.authz
-            .audit()
-            .record_system_entry_in_tx(
-                &mut op,
-                CoreCreditObject::all_credit_facilities(),
-                CoreCreditAction::CREDIT_FACILITY_UPDATE_COLLATERALIZATION_STATE,
-            )
-            .await?;
-
-        tracing::Span::current().record("credit_facility_id", credit_facility.id.to_string());
-
-        let balances = self
-            .ledger
-            .get_credit_facility_balance(credit_facility.account_ids)
-            .await?;
-        let price = self.price.usd_cents_per_btc().await;
-
-        if credit_facility
-            .update_collateralization(price, upgrade_buffer_cvl_pct, balances)
-            .did_execute()
-        {
-            self.repo
-                .update_in_op(&mut op, &mut credit_facility)
-                .await?;
-
-            op.commit().await?;
-        }
-        Ok(())
     }
 
     #[record_error_severity]
@@ -767,6 +572,14 @@ where
             .await?;
         Ok(balances.any_outstanding_or_defaulted())
     }
+}
+
+#[derive(Clone)]
+pub(crate) struct ConfirmedAccrual {
+    pub(super) accrual: CreditFacilityInterestAccrual,
+    pub(super) next_period: Option<InterestPeriod>,
+    pub(super) accrual_idx: InterestAccrualCycleIdx,
+    pub(super) accrued_count: usize,
 }
 
 pub(crate) struct CompletedAccrualCycle {
