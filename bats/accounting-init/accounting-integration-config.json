@@ -4,5 +4,7 @@
     "equity_code": "3",
     "revenue_code": "4",
     "cost_of_revenue_code": "5",
-    "expenses_code": "6"
+    "expenses_code": "6",
+    "equity_retained_earnings_code": "32.01",
+    "equity_retained_losses_code": "32.02"
 }

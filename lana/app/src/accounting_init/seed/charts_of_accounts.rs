@@ -1,5 +1,6 @@
 use crate::accounting_init::{constants::*, *};
 
+use core_accounting::AccountingBaseConfig;
 use rbac_types::Subject;
 
 use super::module_config::{
@@ -81,12 +82,9 @@ async fn seed_chart_of_accounts(
 ) -> Result<(), AccountingInitError> {
     let AccountingInitConfig {
         chart_of_accounts_seed_path: seed_path,
-
+        chart_of_accounts_integration_config_path: chart_integration_config_path,
         credit_config_path,
         deposit_config_path,
-        balance_sheet_config_path,
-        profit_and_loss_config_path,
-        fiscal_year_config_path,
         chart_of_accounts_opening_date: _,
     } = accounting_init_config;
 
@@ -95,8 +93,21 @@ async fn seed_chart_of_accounts(
         None => return Ok(()),
     };
 
+    let accounting_integration_config: AccountingBaseConfig = match chart_integration_config_path {
+        Some(chart_integration_config_path) => {
+            let config_data = std::fs::read_to_string(chart_integration_config_path)?;
+            serde_json::from_str(&config_data)?
+        }
+        None => return Ok(()),
+    };
+
     let chart = if let (chart, Some(new_account_set_ids)) = chart_of_accounts
-        .import_from_csv(&Subject::System, CHART_REF, data)
+        .import_from_csv_with_base_config(
+            &Subject::System,
+            CHART_REF,
+            data,
+            accounting_integration_config,
+        )
         .await?
     {
         trial_balances
@@ -110,6 +121,10 @@ async fn seed_chart_of_accounts(
         return Ok(());
     };
 
+    balance_sheet_module_configure(balance_sheet, &chart).await?;
+    profit_and_loss_module_configure(profit_and_loss, &chart).await?;
+    fiscal_year_module_configure(fiscal_year, &chart).await?;
+
     if let Some(config_path) = credit_config_path {
         credit_module_configure(credit, &chart, config_path)
             .await
@@ -120,30 +135,6 @@ async fn seed_chart_of_accounts(
 
     if let Some(config_path) = deposit_config_path {
         deposit_module_configure(deposit, &chart, config_path)
-            .await
-            .unwrap_or_else(|e| {
-                dbg!(&e); // TODO: handle the un-returned error differently
-            });
-    }
-
-    if let Some(config_path) = balance_sheet_config_path {
-        balance_sheet_module_configure(balance_sheet, &chart, config_path)
-            .await
-            .unwrap_or_else(|e| {
-                dbg!(&e); // TODO: handle the un-returned error differently
-            });
-    }
-
-    if let Some(config_path) = profit_and_loss_config_path {
-        profit_and_loss_module_configure(profit_and_loss, &chart, config_path)
-            .await
-            .unwrap_or_else(|e| {
-                dbg!(&e); // TODO: handle the un-returned error differently
-            });
-    }
-
-    if let Some(config_path) = fiscal_year_config_path {
-        fiscal_year_module_configure(fiscal_year, &chart, config_path)
             .await
             .unwrap_or_else(|e| {
                 dbg!(&e); // TODO: handle the un-returned error differently
