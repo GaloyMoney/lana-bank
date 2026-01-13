@@ -10,6 +10,7 @@ use crate::{
 
 use rbac_types::Subject;
 
+// TODO: Remove un-needed config.
 #[derive(Deserialize)]
 struct BalanceSheetConfigData {
     assets_code: String,
@@ -25,6 +26,7 @@ pub(in crate::accounting_init::seed) async fn balance_sheet_module_configure(
     chart: &Chart,
     config_path: PathBuf,
 ) -> Result<(), AccountingInitError> {
+    // TODO: Remove un-needed config.
     let data = fs::read_to_string(config_path)?;
     let BalanceSheetConfigData {
         assets_code,

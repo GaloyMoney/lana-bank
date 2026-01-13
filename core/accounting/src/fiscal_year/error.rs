@@ -36,6 +36,8 @@ pub enum FiscalYearError {
     InvalidYearString(String),
     #[error("FiscalYearError - FiscalYearConfigAlreadyExists")]
     FiscalYearConfigAlreadyExists,
+    #[error("FiscalYearError - AccountingBaseConfigNotFound")]
+    AccountingBaseConfigNotFound,
 }
 
 es_entity::from_es_entity_error!(FiscalYearError);
@@ -58,6 +60,7 @@ impl ErrorSeverity for FiscalYearError {
             Self::InvalidYearString(_) => Level::WARN,
             Self::MonthHasNotEnded => Level::ERROR,
             Self::FiscalYearConfigAlreadyExists => Level::ERROR,
+            Self::AccountingBaseConfigNotFound => Level::ERROR,
         }
     }
 }
