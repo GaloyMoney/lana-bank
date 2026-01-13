@@ -39,6 +39,10 @@ RUN pip install \
 # Add our project specific code
 RUN mkdir -p /lana-dw
 COPY src/ /lana-dw/src/
+COPY generate_es_reports/ /lana-dw/generate_es_reports/
+
+# Install generate_es_reports package
+RUN pip install /lana-dw/generate_es_reports/
 
 # Pre-generate dbt manifest at build time (local-only, no BQ connection needed)
 # Dummy env vars required for profiles.yml Jinja evaluation - values don't matter

@@ -12,6 +12,8 @@ extend-exclude = [
 	"dagster/src/dbt_lana_dw/models/*/el-salvador-ssf/*",
 	"dagster/src/dbt_lana_dw/models/*/uif/*",
 	"dagster/src/dbt_lana_dw/models/outputs/non-regulatory/*",
+	"dagster/generate_es_reports/schemas/*",
+	"dagster/generate_es_reports/reports.yml",
 	"dev/keycloak/internal-realm.json",
 	"dev/keycloak/customer-realm.json",
 	"docs/mermaid-init.js",

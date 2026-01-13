@@ -22,6 +22,10 @@ class BigQueryResource(dg.ConfigurableResource):
     def get_target_dataset(self) -> str:
         return dg.EnvVar("TARGET_BIGQUERY_DATASET").get_value()
 
+    def get_dbt_dataset(self) -> str:
+        """Get the dataset where dbt writes its output models."""
+        return dg.EnvVar("DBT_BIGQUERY_DATASET").get_value()
+
     def get_client(self) -> bigquery.Client:
         """Create a BigQuery client from credentials."""
         credentials_dict = self.get_credentials_dict()
