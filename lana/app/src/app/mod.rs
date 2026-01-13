@@ -39,7 +39,7 @@ use crate::{
     storage::Storage,
     user_onboarding::UserOnboarding,
 };
-use domain_config::DomainConfigs;
+use domain_config::{ExposedDomainConfigs, InternalDomainConfigs};
 
 pub use config::*;
 use error::ApplicationError;
@@ -47,7 +47,8 @@ use error::ApplicationError;
 #[derive(Clone)]
 pub struct LanaApp {
     _pool: PgPool,
-    domain_configs: DomainConfigs,
+    internal_domain_configs: InternalDomainConfigs,
+    exposed_domain_configs: ExposedDomainConfigs,
     jobs: Jobs,
     job_new: job_new::Jobs,
     audit: Audit,
@@ -83,8 +84,10 @@ impl LanaApp {
         let audit = Audit::new(&pool);
         let outbox = Outbox::init(&pool, obix::MailboxConfig::default()).await?;
         let authz = Authorization::init(&pool, &audit).await?;
-        let domain_configs = DomainConfigs::new(&pool);
-        domain_configs.seed_registered().await?;
+        let internal_domain_configs = InternalDomainConfigs::new(&pool);
+        let exposed_domain_configs = ExposedDomainConfigs::new(&pool);
+        internal_domain_configs.seed_registered().await?;
+        exposed_domain_configs.seed_registered().await?;
 
         let access = Access::init(
             &pool,
@@ -145,7 +148,7 @@ impl LanaApp {
             journal_init.journal_id,
             documents.clone(),
             &mut job_new,
-            &domain_configs,
+            &internal_domain_configs,
         );
 
         StatementsInit::statements(&accounting).await?;
@@ -219,7 +222,7 @@ impl LanaApp {
             access.users(),
             &credit,
             &customers,
-            &domain_configs,
+            &exposed_domain_configs,
         )
         .await?;
 
@@ -231,7 +234,8 @@ impl LanaApp {
 
         Ok(Self {
             _pool: pool,
-            domain_configs,
+            internal_domain_configs,
+            exposed_domain_configs,
             jobs,
             job_new,
             audit,
@@ -260,8 +264,12 @@ impl LanaApp {
         &self.dashboard
     }
 
-    pub fn domain_configs(&self) -> &DomainConfigs {
-        &self.domain_configs
+    pub fn internal_domain_configs(&self) -> &InternalDomainConfigs {
+        &self.internal_domain_configs
+    }
+
+    pub fn exposed_domain_configs(&self) -> &ExposedDomainConfigs {
+        &self.exposed_domain_configs
     }
 
     pub fn governance(&self) -> &Governance {
@@ -329,7 +337,7 @@ impl LanaApp {
             )
             .await?;
 
-        self.domain_configs
+        self.exposed_domain_configs
             .list_exposed_configs(query)
             .await
             .map_err(ApplicationError::from)
@@ -351,7 +359,7 @@ impl LanaApp {
             )
             .await?;
 
-        self.domain_configs
+        self.exposed_domain_configs
             .update_exposed_from_json(id, value)
             .await
             .map_err(ApplicationError::from)

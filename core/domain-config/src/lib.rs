@@ -34,11 +34,36 @@ pub mod event_schema {
 use repo::DomainConfigRepo;
 
 #[derive(Clone)]
-pub struct DomainConfigs {
+pub struct InternalDomainConfigs {
     repo: DomainConfigRepo,
 }
 
-impl DomainConfigs {
+#[derive(Clone)]
+pub struct ExposedDomainConfigs {
+    repo: DomainConfigRepo,
+}
+
+fn ensure_visibility<C: ConfigSpec>(expected: Visibility) -> Result<(), DomainConfigError> {
+    if C::VISIBILITY != expected {
+        return Err(DomainConfigError::InvalidState(format!(
+            "Config {key} is {found}, expected {expected}",
+            key = C::KEY,
+            found = C::VISIBILITY,
+            expected = expected,
+        )));
+    }
+    Ok(())
+}
+
+fn ensure_internal<C: ConfigSpec>() -> Result<(), DomainConfigError> {
+    ensure_visibility::<C>(Visibility::Internal)
+}
+
+fn ensure_exposed<C: ConfigSpec>() -> Result<(), DomainConfigError> {
+    ensure_visibility::<C>(Visibility::Exposed)
+}
+
+impl InternalDomainConfigs {
     pub fn new(pool: &sqlx::PgPool) -> Self {
         let repo = DomainConfigRepo::new(pool);
         Self { repo }
@@ -50,6 +75,88 @@ impl DomainConfigs {
     where
         C: ConfigSpec,
     {
+        ensure_internal::<C>()?;
+        let config = self.repo.find_by_key(C::KEY).await?;
+        TypedDomainConfig::new(config)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "domain_config.create", skip(self, value))]
+    pub async fn create<C>(
+        &self,
+        value: <C::Kind as ValueKind>::Value,
+    ) -> Result<(), DomainConfigError>
+    where
+        C: ConfigSpec,
+    {
+        ensure_internal::<C>()?;
+        let domain_config_id = DomainConfigId::new();
+        let new = NewDomainConfig::builder()
+            .with_value::<C>(domain_config_id, value)?
+            .build()
+            .expect("Could not build NewDomainConfig");
+        self.repo.create(new).await?;
+
+        Ok(())
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "domain_config.update", skip(self, value))]
+    pub async fn update<C>(
+        &self,
+        value: <C::Kind as ValueKind>::Value,
+    ) -> Result<(), DomainConfigError>
+    where
+        C: ConfigSpec,
+    {
+        ensure_internal::<C>()?;
+        let mut config = self.repo.find_by_key(C::KEY).await?;
+        if config.update_value::<C>(value)?.did_execute() {
+            self.repo.update(&mut config).await?;
+        }
+
+        Ok(())
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "domain_config.upsert", skip(self, value))]
+    pub async fn upsert<C>(
+        &self,
+        value: <C::Kind as ValueKind>::Value,
+    ) -> Result<(), DomainConfigError>
+    where
+        C: ConfigSpec,
+        <C::Kind as ValueKind>::Value: Clone,
+    {
+        match self.update::<C>(value.clone()).await {
+            Ok(()) => Ok(()),
+            Err(DomainConfigError::EsEntityError(es_entity::EsEntityError::NotFound)) => {
+                self.create::<C>(value).await
+            }
+            Err(e) => Err(e),
+        }
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "domain_config.seed_registered", skip(self))]
+    pub async fn seed_registered(&self) -> Result<(), DomainConfigError> {
+        seed_registered_for_visibility(&self.repo, Visibility::Internal).await
+    }
+}
+
+impl ExposedDomainConfigs {
+    pub fn new(pool: &sqlx::PgPool) -> Self {
+        let repo = DomainConfigRepo::new(pool);
+        Self { repo }
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "domain_config.get", skip(self))]
+    pub async fn get<C>(&self) -> Result<TypedDomainConfig<C>, DomainConfigError>
+    where
+        C: ConfigSpec,
+    {
+        ensure_exposed::<C>()?;
         let config = self.repo.find_by_key(C::KEY).await?;
         TypedDomainConfig::new(config)
     }
@@ -72,6 +179,7 @@ impl DomainConfigs {
     where
         C: ConfigSpec,
     {
+        ensure_exposed::<C>()?;
         let domain_config_id = DomainConfigId::new();
         let new = NewDomainConfig::builder()
             .with_value::<C>(domain_config_id, value)?
@@ -91,6 +199,7 @@ impl DomainConfigs {
     where
         C: ConfigSpec,
     {
+        ensure_exposed::<C>()?;
         let mut config = self.repo.find_by_key(C::KEY).await?;
         if config.update_value::<C>(value)?.did_execute() {
             self.repo.update(&mut config).await?;
@@ -165,27 +274,38 @@ impl DomainConfigs {
     #[record_error_severity]
     #[instrument(name = "domain_config.seed_registered", skip(self))]
     pub async fn seed_registered(&self) -> Result<(), DomainConfigError> {
-        let mut seen = HashSet::new();
-        for spec in registry::all_specs() {
-            if !seen.insert(spec.key) {
-                return Err(DomainConfigError::InvalidKey(format!(
-                    "Duplicate domain config key: {}",
-                    spec.key
-                )));
-            }
+        seed_registered_for_visibility(&self.repo, Visibility::Exposed).await
+    }
+}
 
-            let key = DomainConfigKey::new(spec.key);
-            let config_id = DomainConfigId::new();
-            let new = NewDomainConfig::builder()
-                .seed(config_id, key, spec.config_type, spec.visibility)
-                .build()?;
-            match self.repo.create(new).await {
-                Ok(_) => {}
-                Err(DomainConfigError::DuplicateKey) => continue,
-                Err(err) => return Err(err),
-            }
+async fn seed_registered_for_visibility(
+    repo: &DomainConfigRepo,
+    visibility: Visibility,
+) -> Result<(), DomainConfigError> {
+    let mut seen = HashSet::new();
+    for spec in registry::all_specs() {
+        if !seen.insert(spec.key) {
+            return Err(DomainConfigError::InvalidKey(format!(
+                "Duplicate domain config key: {}",
+                spec.key
+            )));
         }
 
-        Ok(())
+        if spec.visibility != visibility {
+            continue;
+        }
+
+        let key = DomainConfigKey::new(spec.key);
+        let config_id = DomainConfigId::new();
+        let new = NewDomainConfig::builder()
+            .seed(config_id, key, spec.config_type, spec.visibility)
+            .build()?;
+        match repo.create(new).await {
+            Ok(_) => {}
+            Err(DomainConfigError::DuplicateKey) => continue,
+            Err(err) => return Err(err),
+        }
     }
+
+    Ok(())
 }

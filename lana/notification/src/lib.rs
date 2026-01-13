@@ -10,7 +10,7 @@ use tracing_macros::record_error_severity;
 use core_access::user::Users;
 use core_credit::CoreCredit;
 use core_customer::Customers;
-use domain_config::DomainConfigs;
+use domain_config::ExposedDomainConfigs;
 use error::NotificationError;
 use job::Jobs;
 use lana_events::LanaEvent;
@@ -65,7 +65,7 @@ where
         users: &Users<AuthzType::Audit, LanaEvent>,
         credit: &CoreCredit<AuthzType, LanaEvent>,
         customers: &Customers<AuthzType, LanaEvent>,
-        domain_configs: &DomainConfigs,
+        domain_configs: &ExposedDomainConfigs,
     ) -> Result<Self, NotificationError> {
         let email = EmailNotification::init(
             jobs,

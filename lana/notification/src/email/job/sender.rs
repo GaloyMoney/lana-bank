@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use domain_config::DomainConfigs;
+use domain_config::ExposedDomainConfigs;
 use job::*;
 use serde::{Deserialize, Serialize};
 use smtp_client::SmtpClient;
@@ -18,14 +18,14 @@ pub struct EmailSenderConfig {
 pub struct EmailSenderInit {
     smtp_client: SmtpClient,
     template: EmailTemplate,
-    domain_configs: DomainConfigs,
+    domain_configs: ExposedDomainConfigs,
 }
 
 impl EmailSenderInit {
     pub fn new(
         smtp_client: SmtpClient,
         template: EmailTemplate,
-        domain_configs: DomainConfigs,
+        domain_configs: ExposedDomainConfigs,
     ) -> Self {
         Self {
             smtp_client,
@@ -61,7 +61,7 @@ pub struct EmailSenderRunner {
     config: EmailSenderConfig,
     smtp_client: SmtpClient,
     template: EmailTemplate,
-    domain_configs: DomainConfigs,
+    domain_configs: ExposedDomainConfigs,
 }
 
 #[async_trait]
