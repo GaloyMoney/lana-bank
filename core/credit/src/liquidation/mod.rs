@@ -93,18 +93,23 @@ where
         let credit_facility_repo = Arc::new(crate::credit_facility::CreditFacilityRepo::new(
             pool, publisher,
         ));
+        let collateral_repo = Arc::new(crate::collateral::CollateralRepo::new(pool, publisher));
 
         let clock = jobs.clock().clone();
 
-        let partial_liquidation_job_spawner = jobs.add_initializer(
-            jobs::partial_liquidation::PartialLiquidationInit::new(outbox, repo_arc.clone()),
-        );
+        let partial_liquidation_job_spawner =
+            jobs.add_initializer(jobs::partial_liquidation::PartialLiquidationInit::new(
+                outbox,
+                repo_arc.clone(),
+                credit_facility_repo.clone(),
+                collateral_repo.clone(),
+            ));
 
         let liquidation_payment_job_spawner =
             jobs.add_initializer(jobs::liquidation_payment::LiquidationPaymentInit::new(
                 outbox,
                 payment_repo,
-                credit_facility_repo,
+                credit_facility_repo.clone(),
                 ledger,
             ));
 
@@ -112,6 +117,8 @@ where
             jobs::credit_facility_liquidations::CreditFacilityLiquidationsInit::new(
                 outbox,
                 repo_arc.clone(),
+                credit_facility_repo,
+                collateral_repo,
                 proceeds_omnibus_account_ids,
                 partial_liquidation_job_spawner,
                 liquidation_payment_job_spawner,

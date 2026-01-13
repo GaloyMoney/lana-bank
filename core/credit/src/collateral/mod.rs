@@ -21,7 +21,7 @@ use jobs::wallet_collateral_sync;
 #[cfg(feature = "json-schema")]
 pub use entity::CollateralEvent;
 use error::CollateralError;
-use repo::CollateralRepo;
+pub use repo::CollateralRepo;
 
 pub struct Collaterals<Perms, E>
 where
