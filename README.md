@@ -1,4 +1,4 @@
- Lana: Digital Asset-Backed Lending for Financial Institutions
+# Lana: Digital Asset-Backed Lending for Financial Institutions
 
 **Lana** is a Bitcoin-backed lending platform that enables financial institutions of all sizes to offer fiat loans secured by Bitcoin collateral. Designed for easy integration, Lana streamlines the complex operational workflows associated with loan origination, collateral management, and liquidation.
 
