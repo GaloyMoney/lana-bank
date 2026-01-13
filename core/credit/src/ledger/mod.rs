@@ -1338,118 +1338,62 @@ impl CreditLedger {
         })
     }
 
-    pub async fn update_pending_credit_facility_collateral(
-        &self,
-        op: &mut es_entity::DbOp<'_>,
-        CollateralUpdate {
-            tx_id,
-            abs_diff,
-            action,
-            effective,
-        }: CollateralUpdate,
-        credit_facility_proposal_account_ids: PendingCreditFacilityAccountIds,
-        initiated_by: LedgerTransactionInitiator,
-    ) -> Result<(), CreditLedgerError> {
-        match action {
-            CollateralAction::Add => {
-                self.cala
-                    .post_transaction_in_op(
-                        op,
-                        tx_id,
-                        templates::ADD_COLLATERAL_CODE,
-                        templates::AddCollateralParams {
-                            journal_id: self.journal_id,
-                            currency: self.btc,
-                            amount: abs_diff.to_btc(),
-                            collateral_account_id: credit_facility_proposal_account_ids
-                                .collateral_account_id,
-                            bank_collateral_account_id: self
-                                .collateral_omnibus_account_ids
-                                .account_id,
-                            effective,
-                            initiated_by,
-                        },
-                    )
-                    .await
-            }
-            CollateralAction::Remove => {
-                self.cala
-                    .post_transaction_in_op(
-                        op,
-                        tx_id,
-                        templates::REMOVE_COLLATERAL_CODE,
-                        templates::RemoveCollateralParams {
-                            journal_id: self.journal_id,
-                            currency: self.btc,
-                            amount: abs_diff.to_btc(),
-                            collateral_account_id: credit_facility_proposal_account_ids
-                                .collateral_account_id,
-                            bank_collateral_account_id: self
-                                .collateral_omnibus_account_ids
-                                .account_id,
-                            effective,
-                            initiated_by,
-                        },
-                    )
-                    .await
-            }
-        }?;
-        Ok(())
-    }
-
     pub async fn update_credit_facility_collateral(
         &self,
         op: &mut es_entity::DbOp<'_>,
-        CollateralUpdate {
-            tx_id,
-            abs_diff,
-            action,
-            effective,
-        }: CollateralUpdate,
+        collateral_update: CollateralUpdate,
         collateral_account_id: CalaAccountId,
         initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), CreditLedgerError> {
-        match action {
-            CollateralAction::Add => {
-                self.cala
-                    .post_transaction_in_op(
-                        op,
-                        tx_id,
-                        templates::ADD_COLLATERAL_CODE,
-                        templates::AddCollateralParams {
-                            journal_id: self.journal_id,
-                            currency: self.btc,
-                            amount: abs_diff.to_btc(),
-                            collateral_account_id,
-                            bank_collateral_account_id: self
-                                .collateral_omnibus_account_ids
-                                .account_id,
-                            effective,
-                            initiated_by,
-                        },
-                    )
-                    .await
-            }
-            CollateralAction::Remove => {
-                self.cala
-                    .post_transaction_in_op(
-                        op,
-                        tx_id,
-                        templates::REMOVE_COLLATERAL_CODE,
-                        templates::RemoveCollateralParams {
-                            journal_id: self.journal_id,
-                            currency: self.btc,
-                            amount: abs_diff.to_btc(),
-                            collateral_account_id,
-                            bank_collateral_account_id: self
-                                .collateral_omnibus_account_ids
-                                .account_id,
-                            effective,
-                            initiated_by,
-                        },
-                    )
-                    .await
-            }
+        match collateral_update {
+            CollateralUpdate::Update {
+                tx_id,
+                abs_diff,
+                action,
+                effective,
+            } => match action {
+                CollateralAction::Add => {
+                    self.cala
+                        .post_transaction_in_op(
+                            op,
+                            tx_id,
+                            templates::ADD_COLLATERAL_CODE,
+                            templates::AddCollateralParams {
+                                journal_id: self.journal_id,
+                                currency: self.btc,
+                                amount: abs_diff.to_btc(),
+                                collateral_account_id,
+                                bank_collateral_account_id: self
+                                    .collateral_omnibus_account_ids
+                                    .account_id,
+                                effective,
+                                initiated_by,
+                            },
+                        )
+                        .await
+                }
+                CollateralAction::Remove => {
+                    self.cala
+                        .post_transaction_in_op(
+                            op,
+                            tx_id,
+                            templates::REMOVE_COLLATERAL_CODE,
+                            templates::RemoveCollateralParams {
+                                journal_id: self.journal_id,
+                                currency: self.btc,
+                                amount: abs_diff.to_btc(),
+                                collateral_account_id,
+                                bank_collateral_account_id: self
+                                    .collateral_omnibus_account_ids
+                                    .account_id,
+                                effective,
+                                initiated_by,
+                            },
+                        )
+                        .await
+                }
+            },
+            CollateralUpdate::Liquidation { amount, effective } => todo!(),
         }?;
         Ok(())
     }

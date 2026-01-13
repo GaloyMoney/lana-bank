@@ -743,10 +743,10 @@ where
         };
 
         self.ledger
-            .update_pending_credit_facility_collateral(
+            .update_credit_facility_collateral(
                 &mut db,
                 collateral_update,
-                pending_facility.account_ids,
+                pending_facility.account_ids.collateral_account_id,
                 LedgerTransactionInitiator::try_from_subject(sub)?,
             )
             .await?;
