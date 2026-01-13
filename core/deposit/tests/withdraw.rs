@@ -9,6 +9,7 @@ use cloud_storage::{Storage, config::StorageConfig};
 use core_customer::{CustomerType, Customers};
 use core_deposit::*;
 use document_storage::DocumentStorage;
+use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 
 use helpers::{action, event, object};
 
@@ -17,7 +18,8 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
 
     let outbox =
-        obix::Outbox::<event::DummyEvent>::init(&pool, obix::MailboxConfig::default()).await?;
+        obix::Outbox::<event::DummyEvent>::init(&pool, obix::MailboxConfig::builder().build()?)
+            .await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
     let governance = governance::Governance::new(&pool, &authz, &outbox);
 
@@ -47,8 +49,11 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
         public_ids.clone(),
     );
 
+    let (clock, _ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual());
+
     let deposit = CoreDeposit::init(
         &pool,
+        clock,
         &authz,
         &outbox,
         &governance,

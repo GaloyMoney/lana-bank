@@ -22,6 +22,7 @@ pub struct FreezeAccountParams {
     pub amount: Decimal,
     pub currency: Currency,
     pub initiated_by: core_accounting::LedgerTransactionInitiator,
+    pub effective_date: chrono::NaiveDate,
 }
 
 impl FreezeAccountParams {
@@ -75,6 +76,7 @@ impl From<FreezeAccountParams> for Params {
             amount,
             currency,
             initiated_by,
+            effective_date,
         }: FreezeAccountParams,
     ) -> Self {
         let mut params = Self::default();
@@ -83,7 +85,7 @@ impl From<FreezeAccountParams> for Params {
         params.insert("amount", amount);
         params.insert("account_id", account_id);
         params.insert("frozen_accounts_account_id", frozen_accounts_account_id);
-        params.insert("effective", crate::time::now().date_naive());
+        params.insert("effective", effective_date);
         params.insert(
             "meta",
             serde_json::json!({

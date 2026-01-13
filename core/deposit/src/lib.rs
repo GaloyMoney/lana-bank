@@ -14,7 +14,6 @@ mod ledger;
 mod primitives;
 mod processes;
 mod publisher;
-mod time;
 mod withdrawal;
 
 use tracing::instrument;
@@ -117,6 +116,7 @@ where
     #[tracing::instrument(name = "deposit.init", skip_all, fields(journal_id = %journal_id))]
     pub async fn init(
         pool: &sqlx::PgPool,
+        clock: es_entity::clock::ClockHandle,
         authz: &Perms,
         outbox: &Outbox<E>,
         governance: &Governance<Perms, E>,
@@ -131,7 +131,7 @@ where
         let accounts = DepositAccountRepo::new(pool, &publisher);
         let deposits = DepositRepo::new(pool, &publisher);
         let withdrawals = WithdrawalRepo::new(pool, &publisher);
-        let ledger = DepositLedger::init(cala, journal_id).await?;
+        let ledger = DepositLedger::init(cala, journal_id, clock).await?;
 
         let approve_withdrawal =
             ApproveWithdrawal::new(&withdrawals, authz.audit(), governance, &ledger);

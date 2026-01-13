@@ -18,7 +18,8 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
 
     let outbox =
-        obix::Outbox::<event::DummyEvent>::init(&pool, obix::MailboxConfig::default()).await?;
+        obix::Outbox::<event::DummyEvent>::init(&pool, obix::MailboxConfig::builder().build()?)
+            .await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
     let domain_configs = InternalDomainConfigs::new(&pool);
     let storage = Storage::new(&StorageConfig::default());
