@@ -164,22 +164,12 @@ type BalanceSheet {
 }
 
 type BalanceSheetModuleConfig {
-	chartOfAccountsId: UUID
 	chartOfAccountsAssetsCode: String
 	chartOfAccountsLiabilitiesCode: String
 	chartOfAccountsEquityCode: String
 	chartOfAccountsRevenueCode: String
 	chartOfAccountsCostOfRevenueCode: String
 	chartOfAccountsExpensesCode: String
-}
-
-input BalanceSheetModuleConfigureInput {
-	chartOfAccountsAssetsCode: String!
-	chartOfAccountsLiabilitiesCode: String!
-	chartOfAccountsEquityCode: String!
-	chartOfAccountsRevenueCode: String!
-	chartOfAccountsCostOfRevenueCode: String!
-	chartOfAccountsExpensesCode: String!
 }
 
 type BalanceSheetModuleConfigurePayload {
@@ -1475,11 +1465,7 @@ type FiscalYearModuleConfig {
 }
 
 input FiscalYearModuleConfigureInput {
-	revenueAccountCode: String!
-	costOfRevenueAccountCode: String!
-	expensesAccountCode: String!
-	equityRetainedEarningsAccountCode: String!
-	equityRetainedLossesAccountCode: String!
+	chartId: UUID!
 }
 
 type FiscalYearModuleConfigurePayload {
@@ -1853,8 +1839,8 @@ type Mutation {
 	fiscalYearClose(input: FiscalYearCloseInput!): FiscalYearClosePayload!
 	chartOfAccountsAddRootNode(input: ChartOfAccountsAddRootNodeInput!): ChartOfAccountsAddRootNodePayload!
 	chartOfAccountsAddChildNode(input: ChartOfAccountsAddChildNodeInput!): ChartOfAccountsAddChildNodePayload!
-	balanceSheetConfigure(input: BalanceSheetModuleConfigureInput!): BalanceSheetModuleConfigurePayload!
-	profitAndLossStatementConfigure(input: ProfitAndLossModuleConfigureInput!): ProfitAndLossStatementModuleConfigurePayload!
+	balanceSheetConfigure: BalanceSheetModuleConfigurePayload!
+	profitAndLossStatementConfigure: ProfitAndLossStatementModuleConfigurePayload!
 	fiscalYearConfigure(input: FiscalYearModuleConfigureInput!): FiscalYearModuleConfigurePayload!
 	ledgerAccountCsvCreate(input: LedgerAccountCsvCreateInput!): LedgerAccountCsvCreatePayload!
 	accountingCsvDownloadLinkGenerate(input: AccountingCsvDownloadLinkGenerateInput!): AccountingCsvDownloadLinkGeneratePayload!
@@ -2082,12 +2068,6 @@ type PolicyEdge {
 	cursor: String!
 }
 
-input ProfitAndLossModuleConfigureInput {
-	chartOfAccountsRevenueCode: String!
-	chartOfAccountsCostOfRevenueCode: String!
-	chartOfAccountsExpensesCode: String!
-}
-
 type ProfitAndLossStatement {
 	name: String!
 	total: LedgerAccountBalanceRangeByCurrency!
@@ -2095,7 +2075,6 @@ type ProfitAndLossStatement {
 }
 
 type ProfitAndLossStatementModuleConfig {
-	chartOfAccountsId: UUID
 	chartOfAccountsRevenueCode: String
 	chartOfAccountsCostOfRevenueCode: String
 	chartOfAccountsExpensesCode: String

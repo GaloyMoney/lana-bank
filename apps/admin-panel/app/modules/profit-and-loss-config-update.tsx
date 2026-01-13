@@ -12,20 +12,18 @@ import {
 import { Label } from "@lana/web/ui/label"
 import { Input } from "@lana/web/ui/input"
 import { useTranslations } from "next-intl"
-import { FormEvent, useEffect, useState } from "react"
+import { FormEvent } from "react"
 
 import {
   ProfitAndLossStatementConfigDocument,
   ProfitAndLossStatementModuleConfig,
-  ProfitAndLossModuleConfigureInput,
   useProfitAndLossStatementConfigureMutation,
 } from "@/lib/graphql/generated"
 
 gql`
-  mutation ProfitAndLossStatementConfigure($input: ProfitAndLossModuleConfigureInput!) {
-    profitAndLossStatementConfigure(input: $input) {
+  mutation ProfitAndLossStatementConfigure {
+    profitAndLossStatementConfigure {
       profitAndLossConfig {
-        chartOfAccountsId
         chartOfAccountsRevenueCode
         chartOfAccountsCostOfRevenueCode
         chartOfAccountsExpensesCode
@@ -40,18 +38,6 @@ type ProfitAndLossConfigUpdateDialogProps = {
   profitAndLossConfig?: ProfitAndLossStatementModuleConfig
 }
 
-const initialFormData: ProfitAndLossModuleConfigureInput = {
-  chartOfAccountsRevenueCode: "",
-  chartOfAccountsCostOfRevenueCode: "",
-  chartOfAccountsExpensesCode: "",
-}
-
-const pnlAccountCodes = {
-  chartOfAccountsRevenueCode: "6",
-  chartOfAccountsCostOfRevenueCode: "7",
-  chartOfAccountsExpensesCode: "8",
-}
-
 export const ProfitAndLossConfigUpdateDialog: React.FC<
   ProfitAndLossConfigUpdateDialogProps
 > = ({ open, setOpen, profitAndLossConfig }) => {
@@ -62,39 +48,16 @@ export const ProfitAndLossConfigUpdateDialog: React.FC<
     useProfitAndLossStatementConfigureMutation({
       refetchQueries: [ProfitAndLossStatementConfigDocument],
     })
-  const [formData, setFormData] =
-    useState<ProfitAndLossModuleConfigureInput>(initialFormData)
 
   const close = () => {
     reset()
     setOpen(false)
-    setFormData(initialFormData)
   }
-
-  useEffect(() => {
-    if (
-      profitAndLossConfig &&
-      profitAndLossConfig.chartOfAccountsRevenueCode &&
-      profitAndLossConfig.chartOfAccountsCostOfRevenueCode &&
-      profitAndLossConfig.chartOfAccountsExpensesCode
-    ) {
-      setFormData({
-        chartOfAccountsRevenueCode: profitAndLossConfig.chartOfAccountsRevenueCode,
-        chartOfAccountsCostOfRevenueCode:
-          profitAndLossConfig.chartOfAccountsCostOfRevenueCode,
-        chartOfAccountsExpensesCode: profitAndLossConfig.chartOfAccountsExpensesCode,
-      })
-    }
-  }, [profitAndLossConfig])
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
-    await updateProfitAndLossConfig({ variables: { input: formData } })
+    await updateProfitAndLossConfig()
     close()
-  }
-
-  const autoPopulate = () => {
-    setFormData(pnlAccountCodes)
   }
 
   return (
@@ -104,29 +67,20 @@ export const ProfitAndLossConfigUpdateDialog: React.FC<
           <DialogTitle>{t("profitAndLoss.setTitle")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={submit}>
-          <div className="flex flex-col space-y-2 w-full">
-            {Object.entries(formData).map(([key, value]) => (
-              <div key={key}>
-                <Label htmlFor={key}>{t(`profitAndLoss.${key}`)}</Label>
-                <Input
-                  id={key}
-                  value={value}
-                  required
-                  onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
-                />
-              </div>
-            ))}
+        <div className="flex flex-col space-y-2 w-full">
+            {profitAndLossConfig &&
+              Object.entries(profitAndLossConfig).map(
+                ([key, value]) =>
+                  key !== "__typename" && (
+                    <div key={key}>
+                      <Label htmlFor={key}>{t(`profitAndLoss.${key}`)}</Label>
+                      <Input id={key} value={value || ""} disabled />
+                    </div>
+                  ),
+              )}
             {error && <div className="text-destructive">{error.message}</div>}
           </div>
           <DialogFooter className="mt-4">
-            <Button
-              variant="outline"
-              type="button"
-              onClick={autoPopulate}
-              className="mr-auto"
-            >
-              {t("autoPopulate")}
-            </Button>
             <Button variant="outline" type="button" onClick={close}>
               {tCommon("cancel")}
             </Button>
