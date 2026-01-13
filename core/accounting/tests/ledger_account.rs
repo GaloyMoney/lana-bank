@@ -9,7 +9,7 @@ use cala_ledger::{
 use cloud_storage::{Storage, config::StorageConfig};
 use core_accounting::CoreAccounting;
 use document_storage::DocumentStorage;
-use domain_config::DomainConfigs;
+use domain_config::InternalDomainConfigs;
 use helpers::{action, object};
 use job::{JobSvcConfig, Jobs};
 
@@ -23,7 +23,7 @@ async fn ledger_account_ancestors() -> anyhow::Result<()> {
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
-    let domain_configs = DomainConfigs::new(&pool);
+    let domain_configs = InternalDomainConfigs::new(&pool);
     let journal_id = helpers::init_journal(&cala).await?;
 
     let storage = Storage::new(&StorageConfig::default());
@@ -156,7 +156,7 @@ async fn ledger_account_children() -> anyhow::Result<()> {
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
-    let domain_configs = DomainConfigs::new(&pool);
+    let domain_configs = InternalDomainConfigs::new(&pool);
     let journal_id = helpers::init_journal(&cala).await?;
 
     let storage = Storage::new(&StorageConfig::default());
@@ -258,7 +258,7 @@ async fn internal_account_contains_coa_account() -> anyhow::Result<()> {
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
-    let domain_configs = DomainConfigs::new(&pool);
+    let domain_configs = InternalDomainConfigs::new(&pool);
     let journal_id = helpers::init_journal(&cala).await?;
     let storage = Storage::new(&StorageConfig::default());
     let document_storage = DocumentStorage::new(&pool, &storage);

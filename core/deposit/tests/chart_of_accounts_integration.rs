@@ -7,7 +7,7 @@ use core_accounting::CoreAccounting;
 use core_customer::Customers;
 use core_deposit::*;
 use document_storage::DocumentStorage;
-use domain_config::DomainConfigs;
+use domain_config::InternalDomainConfigs;
 use helpers::{action, event, object};
 
 #[tokio::test]
@@ -19,7 +19,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let outbox =
         obix::Outbox::<event::DummyEvent>::init(&pool, obix::MailboxConfig::default()).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
-    let domain_configs = DomainConfigs::new(&pool);
+    let domain_configs = InternalDomainConfigs::new(&pool);
     let governance = governance::Governance::new(&pool, &authz, &outbox);
 
     let cala_config = CalaLedgerConfig::builder()

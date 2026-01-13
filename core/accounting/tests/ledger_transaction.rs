@@ -3,7 +3,7 @@ mod helpers;
 use authz::dummy::{DummyPerms, DummySubject};
 use cloud_storage::{Storage, config::StorageConfig};
 use document_storage::DocumentStorage;
-use domain_config::DomainConfigs;
+use domain_config::InternalDomainConfigs;
 use job::{JobSvcConfig, Jobs};
 
 use cala_ledger::{
@@ -194,7 +194,7 @@ async fn prepare_test() -> anyhow::Result<(
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
-    let domain_configs = DomainConfigs::new(&pool);
+    let domain_configs = InternalDomainConfigs::new(&pool);
     let journal_id = helpers::init_journal(&cala).await?;
 
     let storage = Storage::new(&StorageConfig::default());

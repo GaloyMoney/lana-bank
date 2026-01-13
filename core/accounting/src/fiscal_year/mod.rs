@@ -8,7 +8,7 @@ use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use domain_config::DomainConfigs;
+use domain_config::InternalDomainConfigs;
 use es_entity::{Idempotent, PaginatedQueryArgs};
 use tracing_macros::record_error_severity;
 
@@ -31,7 +31,7 @@ where
 {
     repo: FiscalYearRepo,
     authz: Perms,
-    domain_configs: DomainConfigs,
+    domain_configs: InternalDomainConfigs,
     chart_of_accounts: ChartOfAccounts<Perms>,
 }
 
@@ -58,7 +58,7 @@ where
     pub fn new(
         pool: &sqlx::PgPool,
         authz: &Perms,
-        domain_configs: &DomainConfigs,
+        domain_configs: &InternalDomainConfigs,
         chart_of_accounts: &ChartOfAccounts<Perms>,
     ) -> Self {
         Self {

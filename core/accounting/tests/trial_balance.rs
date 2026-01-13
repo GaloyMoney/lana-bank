@@ -5,7 +5,7 @@ use cala_ledger::{CalaLedger, CalaLedgerConfig};
 use chrono::Utc;
 use cloud_storage::{Storage, config::StorageConfig};
 use document_storage::DocumentStorage;
-use domain_config::DomainConfigs;
+use domain_config::InternalDomainConfigs;
 use job::{JobSvcConfig, Jobs};
 
 use core_accounting::*;
@@ -22,7 +22,7 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
-    let domain_configs = DomainConfigs::new(&pool);
+    let domain_configs = InternalDomainConfigs::new(&pool);
     let journal_id = helpers::init_journal(&cala).await?;
 
     let storage = Storage::new(&StorageConfig::default());

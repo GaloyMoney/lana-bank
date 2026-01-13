@@ -9,7 +9,7 @@ use core_credit::{
     CoreCredit, CreditFacilityId, CustomerId, ObligationId, ObligationType, PriceOfOneBTC,
 };
 use core_customer::Customers;
-use domain_config::DomainConfigs;
+use domain_config::ExposedDomainConfigs;
 use job::{EmailSenderConfig, EmailSenderInit, EmailSenderJobSpawner};
 use lana_events::LanaEvent;
 use smtp_client::SmtpClient;
@@ -54,7 +54,7 @@ where
 {
     pub async fn init(
         jobs: &mut Jobs,
-        domain_configs: &DomainConfigs,
+        domain_configs: &ExposedDomainConfigs,
         infra_config: EmailInfraConfig,
         users: &Users<Perms::Audit, LanaEvent>,
         credit: &CoreCredit<Perms, LanaEvent>,
