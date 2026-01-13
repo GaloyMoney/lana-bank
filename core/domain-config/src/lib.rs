@@ -28,7 +28,7 @@ pub use primitives::{
     PERMISSION_SET_EXPOSED_CONFIGS_WRITER, Visibility,
 };
 pub use repo::domain_config_cursor::DomainConfigsByKeyCursor;
-pub use spec::{Complex, ConfigSpec, Simple, ValueKind};
+pub use spec::{Complex, ConfigSpec, ExposedConfig, InternalConfig, Simple, ValueKind};
 pub use typed_domain_config::TypedDomainConfig;
 
 use entity::NewDomainConfig;
@@ -54,26 +54,6 @@ where
     authz: Perms,
 }
 
-fn ensure_visibility<C: ConfigSpec>(expected: Visibility) -> Result<(), DomainConfigError> {
-    if C::VISIBILITY != expected {
-        return Err(DomainConfigError::InvalidState(format!(
-            "Config {key} is {found}, expected {expected}",
-            key = C::KEY,
-            found = C::VISIBILITY,
-            expected = expected,
-        )));
-    }
-    Ok(())
-}
-
-fn ensure_internal<C: ConfigSpec>() -> Result<(), DomainConfigError> {
-    ensure_visibility::<C>(Visibility::Internal)
-}
-
-fn ensure_exposed<C: ConfigSpec>() -> Result<(), DomainConfigError> {
-    ensure_visibility::<C>(Visibility::Exposed)
-}
-
 impl InternalDomainConfigs {
     pub fn new(pool: &sqlx::PgPool) -> Self {
         let repo = DomainConfigRepo::new(pool);
@@ -84,9 +64,8 @@ impl InternalDomainConfigs {
     #[instrument(name = "domain_config.get", skip(self))]
     pub async fn get<C>(&self) -> Result<TypedDomainConfig<C>, DomainConfigError>
     where
-        C: ConfigSpec,
+        C: InternalConfig,
     {
-        ensure_internal::<C>()?;
         let config = self.repo.find_by_key(C::KEY).await?;
         TypedDomainConfig::new(config)
     }
@@ -98,9 +77,8 @@ impl InternalDomainConfigs {
         value: <C::Kind as ValueKind>::Value,
     ) -> Result<(), DomainConfigError>
     where
-        C: ConfigSpec,
+        C: InternalConfig,
     {
-        ensure_internal::<C>()?;
         let domain_config_id = DomainConfigId::new();
         let new = NewDomainConfig::builder()
             .with_value::<C>(domain_config_id, value)?
@@ -118,9 +96,8 @@ impl InternalDomainConfigs {
         value: <C::Kind as ValueKind>::Value,
     ) -> Result<(), DomainConfigError>
     where
-        C: ConfigSpec,
+        C: InternalConfig,
     {
-        ensure_internal::<C>()?;
         let mut config = self.repo.find_by_key(C::KEY).await?;
         if config.update_value::<C>(value)?.did_execute() {
             self.repo.update(&mut config).await?;
@@ -136,7 +113,7 @@ impl InternalDomainConfigs {
         value: <C::Kind as ValueKind>::Value,
     ) -> Result<(), DomainConfigError>
     where
-        C: ConfigSpec,
+        C: InternalConfig,
         <C::Kind as ValueKind>::Value: Clone,
     {
         match self.update::<C>(value.clone()).await {
@@ -204,10 +181,9 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
     ) -> Result<TypedDomainConfig<C>, DomainConfigError>
     where
-        C: ConfigSpec,
+        C: ExposedConfig,
     {
         self.ensure_exposed_read(sub).await?;
-        ensure_exposed::<C>()?;
         let config = self.repo.find_by_key(C::KEY).await?;
         TypedDomainConfig::new(config)
     }
@@ -229,10 +205,9 @@ where
         value: <C::Kind as ValueKind>::Value,
     ) -> Result<(), DomainConfigError>
     where
-        C: ConfigSpec,
+        C: ExposedConfig,
     {
         self.ensure_exposed_write(sub).await?;
-        ensure_exposed::<C>()?;
         let domain_config_id = DomainConfigId::new();
         let new = NewDomainConfig::builder()
             .with_value::<C>(domain_config_id, value)?
@@ -251,10 +226,9 @@ where
         value: <C::Kind as ValueKind>::Value,
     ) -> Result<(), DomainConfigError>
     where
-        C: ConfigSpec,
+        C: ExposedConfig,
     {
         self.ensure_exposed_write(sub).await?;
-        ensure_exposed::<C>()?;
         let mut config = self.repo.find_by_key(C::KEY).await?;
         if config.update_value::<C>(value)?.did_execute() {
             self.repo.update(&mut config).await?;
@@ -299,7 +273,7 @@ where
         value: <C::Kind as ValueKind>::Value,
     ) -> Result<(), DomainConfigError>
     where
-        C: ConfigSpec,
+        C: ExposedConfig,
         <C::Kind as ValueKind>::Value: Clone,
     {
         match self.update::<C>(sub, value.clone()).await {
