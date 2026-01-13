@@ -110,10 +110,14 @@ where
         jobs: &mut Jobs,
         domain_configs: &InternalDomainConfigs,
     ) -> Self {
-        let chart_of_accounts =
-            ChartOfAccounts::new(pool, clock.clone(), authz, cala, journal_id);
-        let fiscal_year =
-            FiscalYears::new(pool, clock.clone(), authz, domain_configs, &chart_of_accounts);
+        let chart_of_accounts = ChartOfAccounts::new(pool, clock.clone(), authz, cala, journal_id);
+        let fiscal_year = FiscalYears::new(
+            pool,
+            clock.clone(),
+            authz,
+            domain_configs,
+            &chart_of_accounts,
+        );
         let journal = Journal::new(authz, cala, journal_id);
         let ledger_accounts = LedgerAccounts::new(authz, cala, journal_id);
         let manual_transactions =
