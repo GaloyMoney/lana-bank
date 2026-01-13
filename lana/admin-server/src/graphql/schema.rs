@@ -7,6 +7,7 @@ use futures::stream::Stream;
 use obix::out::OutboxEventMarker;
 
 use lana_app::credit::CoreCreditEvent;
+use lana_app::price::CorePriceEvent;
 use lana_app::{
     accounting_init::constants::{
         BALANCE_SHEET_NAME, PROFIT_AND_LOSS_STATEMENT_NAME, TRIAL_BALANCE_STATEMENT_NAME,
@@ -2688,6 +2689,23 @@ impl Subscription {
                     },
                 }),
                 _ => None,
+            }
+        });
+
+        Ok(updates)
+    }
+
+    async fn realtime_price_updated(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<impl Stream<Item = RealtimePrice>> {
+        let app = ctx.data_unchecked::<LanaApp>();
+
+        let stream = app.outbox().listen_ephemeral();
+        let updates = stream.filter_map(move |event| async move {
+            let event: &CorePriceEvent = event.payload.as_event()?;
+            match event {
+                CorePriceEvent::PriceUpdated { price, .. } => Some(RealtimePrice::from(*price)),
             }
         });
 

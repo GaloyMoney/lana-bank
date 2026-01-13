@@ -2951,6 +2951,7 @@ export type Subscription = {
   creditFacilityCollateralizationUpdated: CreditFacilityCollateralizationPayload;
   pendingCreditFacilityCollateralizationUpdated: PendingCreditFacilityCollateralizationPayload;
   pendingCreditFacilityCompleted: PendingCreditFacilityCompletedPayload;
+  realtimePriceUpdated: RealtimePrice;
 };
 
 
@@ -4772,6 +4773,11 @@ export type GetRealtimePriceUpdatesQueryVariables = Exact<{ [key: string]: never
 
 
 export type GetRealtimePriceUpdatesQuery = { __typename?: 'Query', realtimePrice: { __typename?: 'RealtimePrice', usdCentsPerBtc: UsdCents } };
+
+export type RealtimePriceUpdatedSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type RealtimePriceUpdatedSubscription = { __typename?: 'Subscription', realtimePriceUpdated: { __typename?: 'RealtimePrice', usdCentsPerBtc: UsdCents } };
 
 export type LoanAgreementGenerateMutationVariables = Exact<{
   input: LoanAgreementGenerateInput;
@@ -12004,6 +12010,35 @@ export type GetRealtimePriceUpdatesQueryHookResult = ReturnType<typeof useGetRea
 export type GetRealtimePriceUpdatesLazyQueryHookResult = ReturnType<typeof useGetRealtimePriceUpdatesLazyQuery>;
 export type GetRealtimePriceUpdatesSuspenseQueryHookResult = ReturnType<typeof useGetRealtimePriceUpdatesSuspenseQuery>;
 export type GetRealtimePriceUpdatesQueryResult = Apollo.QueryResult<GetRealtimePriceUpdatesQuery, GetRealtimePriceUpdatesQueryVariables>;
+export const RealtimePriceUpdatedDocument = gql`
+    subscription RealtimePriceUpdated {
+  realtimePriceUpdated {
+    usdCentsPerBtc
+  }
+}
+    `;
+
+/**
+ * __useRealtimePriceUpdatedSubscription__
+ *
+ * To run a query within a React component, call `useRealtimePriceUpdatedSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useRealtimePriceUpdatedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useRealtimePriceUpdatedSubscription({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useRealtimePriceUpdatedSubscription(baseOptions?: Apollo.SubscriptionHookOptions<RealtimePriceUpdatedSubscription, RealtimePriceUpdatedSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<RealtimePriceUpdatedSubscription, RealtimePriceUpdatedSubscriptionVariables>(RealtimePriceUpdatedDocument, options);
+      }
+export type RealtimePriceUpdatedSubscriptionHookResult = ReturnType<typeof useRealtimePriceUpdatedSubscription>;
+export type RealtimePriceUpdatedSubscriptionResult = Apollo.SubscriptionResult<RealtimePriceUpdatedSubscription>;
 export const LoanAgreementGenerateDocument = gql`
     mutation LoanAgreementGenerate($input: LoanAgreementGenerateInput!) {
   loanAgreementGenerate(input: $input) {

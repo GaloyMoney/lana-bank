@@ -2931,6 +2931,7 @@ export const mockSubscription = (overrides?: Partial<Subscription>, _relationshi
         creditFacilityCollateralizationUpdated: overrides && overrides.hasOwnProperty('creditFacilityCollateralizationUpdated') ? overrides.creditFacilityCollateralizationUpdated! : relationshipsToOmit.has('CreditFacilityCollateralizationPayload') ? {} as CreditFacilityCollateralizationPayload : mockCreditFacilityCollateralizationPayload({}, relationshipsToOmit),
         pendingCreditFacilityCollateralizationUpdated: overrides && overrides.hasOwnProperty('pendingCreditFacilityCollateralizationUpdated') ? overrides.pendingCreditFacilityCollateralizationUpdated! : relationshipsToOmit.has('PendingCreditFacilityCollateralizationPayload') ? {} as PendingCreditFacilityCollateralizationPayload : mockPendingCreditFacilityCollateralizationPayload({}, relationshipsToOmit),
         pendingCreditFacilityCompleted: overrides && overrides.hasOwnProperty('pendingCreditFacilityCompleted') ? overrides.pendingCreditFacilityCompleted! : relationshipsToOmit.has('PendingCreditFacilityCompletedPayload') ? {} as PendingCreditFacilityCompletedPayload : mockPendingCreditFacilityCompletedPayload({}, relationshipsToOmit),
+        realtimePriceUpdated: overrides && overrides.hasOwnProperty('realtimePriceUpdated') ? overrides.realtimePriceUpdated! : relationshipsToOmit.has('RealtimePrice') ? {} as RealtimePrice : mockRealtimePrice({}, relationshipsToOmit),
     };
 };
 
