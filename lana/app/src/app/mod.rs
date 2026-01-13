@@ -45,7 +45,6 @@ use error::ApplicationError;
 #[derive(Clone)]
 pub struct LanaApp {
     _pool: PgPool,
-    internal_domain_configs: InternalDomainConfigs,
     exposed_domain_configs: ExposedDomainConfigs<Authorization>,
     jobs: Jobs,
     job_new: job_new::Jobs,
@@ -232,7 +231,6 @@ impl LanaApp {
 
         Ok(Self {
             _pool: pool,
-            internal_domain_configs,
             exposed_domain_configs,
             jobs,
             job_new,
@@ -260,10 +258,6 @@ impl LanaApp {
 
     pub fn dashboard(&self) -> &Dashboard {
         &self.dashboard
-    }
-
-    pub fn internal_domain_configs(&self) -> &InternalDomainConfigs {
-        &self.internal_domain_configs
     }
 
     pub fn exposed_domain_configs(&self) -> &ExposedDomainConfigs<Authorization> {
