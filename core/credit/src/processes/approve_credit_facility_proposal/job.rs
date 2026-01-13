@@ -1,24 +1,32 @@
 use async_trait::async_trait;
+use futures::StreamExt;
+use serde::{Deserialize, Serialize};
 use tokio::select;
 use tracing::{Span, instrument};
 
-use futures::StreamExt;
+use job::*;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
-use job::*;
-use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
-
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
+use core_price::CorePriceEvent;
+use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
+use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use crate::{CoreCreditAction, CoreCreditEvent, CoreCreditObject};
 
 use super::ApproveCreditFacilityProposal;
 
-#[derive(serde::Serialize)]
-pub(crate) struct CreditFacilityProposalApprovalJobConfig<Perms, E> {
+#[derive(Serialize, Deserialize)]
+pub struct CreditFacilityProposalApprovalJobConfig<Perms, E> {
     _phantom: std::marker::PhantomData<(Perms, E)>,
+}
+impl<Perms, E> Clone for CreditFacilityProposalApprovalJobConfig<Perms, E> {
+    fn clone(&self) -> Self {
+        Self {
+            _phantom: std::marker::PhantomData,
+        }
+    }
 }
 impl<Perms, E> CreditFacilityProposalApprovalJobConfig<Perms, E> {
     pub fn new() -> Self {
@@ -34,20 +42,6 @@ impl<Perms, E> Default for CreditFacilityProposalApprovalJobConfig<Perms, E> {
     }
 }
 
-impl<Perms, E> JobConfig for CreditFacilityProposalApprovalJobConfig<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
-    E: OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
-{
-    type Initializer = CreditFacilityProposalApprovalInit<Perms, E>;
-}
-
 pub(crate) struct CreditFacilityProposalApprovalInit<Perms, E>
 where
     Perms: PermissionCheck,
@@ -57,7 +51,8 @@ where
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     outbox: Outbox<E>,
     process: ApproveCreditFacilityProposal<Perms, E>,
@@ -72,7 +67,8 @@ where
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     pub fn new(outbox: &Outbox<E>, process: &ApproveCreditFacilityProposal<Perms, E>) -> Self {
         Self {
@@ -93,26 +89,26 @@ where
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
-    fn job_type() -> JobType
-    where
-        Self: Sized,
-    {
+    type Config = CreditFacilityProposalApprovalJobConfig<Perms, E>;
+    fn job_type(&self) -> JobType {
         CREDIT_FACILITY_PROPOSAL_APPROVE_JOB
     }
 
-    fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
+    fn init(
+        &self,
+        _: &Job,
+        _: JobSpawner<Self::Config>,
+    ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(CreditFacilityProposalApprovalJobRunner {
             outbox: self.outbox.clone(),
             process: self.process.clone(),
         }))
     }
 
-    fn retry_on_error_settings() -> RetrySettings
-    where
-        Self: Sized,
-    {
+    fn retry_on_error_settings(&self) -> RetrySettings {
         RetrySettings::repeat_indefinitely()
     }
 }
@@ -127,7 +123,8 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     outbox: Outbox<E>,
     process: ApproveCreditFacilityProposal<Perms, E>,
@@ -142,7 +139,8 @@ where
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     #[instrument(name = "core_credit.credit_facility_proposal_approval_job.process_message", parent = None, skip(self, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty, process_type = tracing::field::Empty, credit_facility_proposal_id = tracing::field::Empty))]
     async fn process_message(
@@ -184,7 +182,8 @@ where
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     async fn run(
         &self,

@@ -97,7 +97,11 @@ impl CreditFacility {
     ) -> async_graphql::Result<Vec<CreditFacilityHistoryEntry>> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
 
-        Ok(app.credit().history(sub, self.entity.id).await?)
+        Ok(app
+            .credit()
+            .histories()
+            .find_for_credit_facility_id(sub, self.entity.id)
+            .await?)
     }
 
     async fn repayment_plan(

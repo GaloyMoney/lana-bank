@@ -58,7 +58,7 @@ use error::*;
 pub use event::*;
 use for_subject::CreditFacilitiesForSubject;
 pub use history::*;
-use jobs::*;
+// use jobs::*;
 pub use ledger::*;
 pub use liquidation::{liquidation_cursor::*, *};
 pub use obligation::{error::*, obligation_cursor::*, *};
@@ -100,7 +100,6 @@ where
     facilities: Arc<CreditFacilities<Perms, E>>,
     disbursals: Arc<Disbursals<Perms, E>>,
     payments: Arc<Payments<Perms>>,
-    history_repo: Arc<HistoryRepo>,
     repayment_plan_repo: Arc<RepaymentPlanRepo>,
     governance: Arc<Governance<Perms, E>>,
     customer: Arc<Customers<Perms, E>>,
@@ -118,6 +117,7 @@ where
     terms_templates: Arc<TermsTemplates<Perms>>,
     public_ids: Arc<PublicIds>,
     liquidations: Arc<Liquidations<Perms, E>>,
+    histories: Arc<Histories<Perms>>,
 }
 
 impl<Perms, E> Clone for CoreCredit<Perms, E>
@@ -140,7 +140,7 @@ where
             custody: self.custody.clone(),
             disbursals: self.disbursals.clone(),
             payments: self.payments.clone(),
-            history_repo: self.history_repo.clone(),
+            histories: self.histories.clone(),
             repayment_plan_repo: self.repayment_plan_repo.clone(),
             governance: self.governance.clone(),
             customer: self.customer.clone(),
@@ -195,7 +195,7 @@ where
         // Create Arc-wrapped versions of parameters once
         let authz_arc = Arc::new(authz.clone());
         let governance_arc = Arc::new(governance.clone());
-        let jobs_arc = Arc::new(jobs.clone());
+        // let jobs_arc = Arc::new(jobs.clone());
         let price_arc = Arc::new(price.clone());
         let public_ids_arc = Arc::new(public_ids.clone());
         let customer_arc = Arc::new(customer.clone());
@@ -211,7 +211,7 @@ where
             pool,
             authz_arc.clone(),
             ledger_arc.clone(),
-            jobs_arc.clone(),
+            jobs,
             &publisher,
         );
         let obligations_arc = Arc::new(obligations);
@@ -236,10 +236,18 @@ where
         .await?;
         let proposals_arc = Arc::new(credit_facility_proposals);
 
-        let collaterals = Collaterals::new(pool, authz_arc.clone(), &publisher, ledger_arc.clone());
+        let collaterals = Collaterals::init(
+            pool,
+            authz_arc.clone(),
+            &publisher,
+            ledger_arc.clone(),
+            outbox,
+            jobs,
+        )
+        .await?;
         let collaterals_arc = Arc::new(collaterals);
 
-        let pending_credit_facilities = PendingCreditFacilities::new(
+        let pending_credit_facilities = PendingCreditFacilities::init(
             pool,
             proposals_arc.clone(),
             custody_arc.clone(),
@@ -249,7 +257,10 @@ where
             price_arc.clone(),
             &publisher,
             governance_arc.clone(),
-        );
+            jobs,
+            &outbox,
+        )
+        .await?;
         let pending_credit_facilities_arc = Arc::new(pending_credit_facilities);
 
         let disbursals = Disbursals::init(
@@ -262,7 +273,7 @@ where
         .await?;
         let disbursals_arc = Arc::new(disbursals);
 
-        let credit_facilities = CreditFacilities::new(
+        let credit_facilities = CreditFacilities::init(
             pool,
             authz_arc.clone(),
             obligations_arc.clone(),
@@ -270,18 +281,19 @@ where
             disbursals_arc.clone(),
             ledger_arc.clone(),
             price_arc.clone(),
-            jobs_arc.clone(),
+            jobs,
             &publisher,
             governance_arc.clone(),
             public_ids_arc.clone(),
-        );
+            &outbox,
+        )
+        .await?;
         let facilities_arc = Arc::new(credit_facilities);
 
         let payments = Payments::new(pool, authz_arc.clone(), ledger_arc.clone());
         let payments_arc = Arc::new(payments);
 
-        let history_repo = HistoryRepo::new(pool);
-        let history_repo_arc = Arc::new(history_repo);
+        let histories_arc = Arc::new(Histories::init(pool, outbox, jobs, authz_arc.clone()).await?);
 
         let repayment_plan_repo = RepaymentPlanRepo::new(pool);
         let repayment_plan_repo_arc = Arc::new(repayment_plan_repo);
@@ -322,16 +334,6 @@ where
         let terms_templates_arc = Arc::new(terms_templates);
 
         // jobs.add_initializer_and_spawn_unique(
-        //     credit_facility_history::HistoryProjectionInit::<E>::new(
-        //         outbox,
-        //         history_repo_arc.as_ref(),
-        //     ),
-        //     credit_facility_history::HistoryProjectionConfig {
-        //         _phantom: std::marker::PhantomData,
-        //     },
-        // )
-        // .await?;
-        // jobs.add_initializer_and_spawn_unique(
         //     credit_facility_repayment_plan::RepaymentPlanProjectionInit::<E>::new(
         //         outbox,
         //         repayment_plan_repo_arc.as_ref(),
@@ -341,22 +343,6 @@ where
         //     },
         // )
         // .await?;
-        // jobs.add_initializer(obligation_due::ObligationDueInit::<Perms, E>::new(
-        //     ledger_arc.as_ref(),
-        //     obligations_arc.as_ref(),
-        //     jobs,
-        // ));
-        // jobs.add_initializer(obligation_overdue::ObligationOverdueInit::<Perms, E>::new(
-        //     ledger_arc.as_ref(),
-        //     obligations_arc.as_ref(),
-        //     jobs,
-        // ));
-        // jobs.add_initializer(
-        //     obligation_defaulted::ObligationDefaultedInit::<Perms, E>::new(
-        //         ledger_arc.as_ref(),
-        //         obligations_arc.as_ref(),
-        //     ),
-        // );
         // jobs.add_initializer(
         //     partial_liquidation::PartialLiquidationInit::<Perms, E>::new(
         //         outbox,
@@ -389,12 +375,6 @@ where
         // )
         // .await?;
 
-        // jobs.add_initializer_and_spawn_unique(
-        //     wallet_collateral_sync::WalletCollateralSyncInit::new(outbox, collaterals_arc.as_ref()),
-        //     wallet_collateral_sync::WalletCollateralSyncJobConfig::<Perms, E>::new(),
-        // )
-        // .await?;
-
         Ok(Self {
             authz: authz_arc,
             customer: customer_arc,
@@ -406,7 +386,7 @@ where
             custody: custody_arc,
             disbursals: disbursals_arc,
             payments: payments_arc,
-            history_repo: history_repo_arc,
+            histories: histories_arc,
             repayment_plan_repo: repayment_plan_repo_arc,
             governance: governance_arc,
             ledger: ledger_arc,
@@ -463,6 +443,10 @@ where
         self.terms_templates.as_ref()
     }
 
+    pub fn histories(&self) -> &Histories<Perms> {
+        self.histories.as_ref()
+    }
+
     pub async fn subject_can_create(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -495,7 +479,7 @@ where
             &self.facilities,
             &self.obligations,
             &self.disbursals,
-            &self.history_repo,
+            &self.histories,
             &self.repayment_plan_repo,
             &self.ledger,
         ))
@@ -560,27 +544,6 @@ where
         db.commit().await?;
 
         Ok(credit_facility_proposal)
-    }
-
-    #[record_error_severity]
-    #[instrument(name = "credit.history", skip(self, credit_facility_id), fields(credit_facility_id = tracing::field::Empty))]
-    pub async fn history<T: From<CreditFacilityHistoryEntry>>(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug,
-    ) -> Result<Vec<T>, CoreCreditError> {
-        let id = credit_facility_id.into();
-        tracing::Span::current().record("credit_facility_id", tracing::field::display(id));
-
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreCreditObject::credit_facility(id),
-                CoreCreditAction::CREDIT_FACILITY_READ,
-            )
-            .await?;
-        let history = self.history_repo.load(id).await?;
-        Ok(history.into_iter().map(T::from).collect())
     }
 
     #[record_error_severity]

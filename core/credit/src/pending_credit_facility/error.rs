@@ -32,6 +32,8 @@ pub enum PendingCreditFacilityError {
     ),
     #[error("PendingCreditFacilityError - AuditError: ${0}")]
     AuditError(#[from] audit::error::AuditError),
+    #[error("CoreCreditError - JobError: {0}")]
+    JobError(#[from] job::error::JobError),
 }
 
 impl ErrorSeverity for PendingCreditFacilityError {
@@ -50,6 +52,7 @@ impl ErrorSeverity for PendingCreditFacilityError {
             Self::CollateralError(e) => e.severity(),
             Self::CreditFacilityProposalError(e) => e.severity(),
             Self::AuditError(e) => e.severity(),
+            Self::JobError(_) => Level::ERROR,
         }
     }
 }

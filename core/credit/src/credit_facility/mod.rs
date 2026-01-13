@@ -55,7 +55,6 @@ where
     authz: Arc<Perms>,
     ledger: Arc<CreditLedger>,
     price: Arc<Price>,
-    jobs: Arc<Jobs>,
     governance: Arc<Governance<Perms, E>>,
     public_ids: Arc<PublicIds>,
     credit_facility_maturity_job_spawner:
@@ -80,7 +79,6 @@ where
             authz: self.authz.clone(),
             ledger: self.ledger.clone(),
             price: self.price.clone(),
-            jobs: self.jobs.clone(),
             governance: self.governance.clone(),
             public_ids: self.public_ids.clone(),
             credit_facility_maturity_job_spawner: self.credit_facility_maturity_job_spawner.clone(),
@@ -106,7 +104,7 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>,
 {
-    pub async fn new(
+    pub async fn init(
         pool: &sqlx::PgPool,
         authz: Arc<Perms>,
         obligations: Arc<Obligations<Perms, E>>,
@@ -114,7 +112,7 @@ where
         disbursals: Arc<Disbursals<Perms, E>>,
         ledger: Arc<CreditLedger>,
         price: Arc<Price>,
-        jobs: Arc<Jobs>,
+        jobs: &mut Jobs,
         publisher: &crate::CreditFacilityPublisher<E>,
         governance: Arc<Governance<Perms, E>>,
         public_ids: Arc<PublicIds>,
@@ -166,7 +164,6 @@ where
             authz,
             ledger,
             price,
-            jobs,
             governance,
             public_ids,
             credit_facility_maturity_job_spawner,

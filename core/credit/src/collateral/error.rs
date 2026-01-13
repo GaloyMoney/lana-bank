@@ -13,6 +13,8 @@ pub enum CollateralError {
     CreditLedgerError(#[from] crate::ledger::error::CreditLedgerError),
     #[error("CollateralError - ManualUpdateError: Cannot update collateral with a custodian")]
     ManualUpdateError,
+    #[error("CollateralError - JobError: {0}")]
+    JobError(#[from] job::error::JobError),
 }
 
 impl ErrorSeverity for CollateralError {
@@ -23,6 +25,7 @@ impl ErrorSeverity for CollateralError {
             Self::CursorDestructureError(_) => Level::ERROR,
             Self::CreditLedgerError(e) => e.severity(),
             Self::ManualUpdateError => Level::WARN,
+            Self::JobError(_) => Level::ERROR,
         }
     }
 }
