@@ -6,7 +6,7 @@ use tracing_macros::record_error_severity;
 use std::sync::Arc;
 
 use governance::GovernanceEvent;
-use job::*; 
+use job::*;
 use obix::out::OutboxEventMarker;
 
 use core_custody::CoreCustodyEvent;

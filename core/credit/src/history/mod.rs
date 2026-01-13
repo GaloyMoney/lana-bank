@@ -1,10 +1,24 @@
 mod entry;
 pub mod error;
+mod jobs;
 mod repo;
 
-use crate::event::CoreCreditEvent;
+use std::sync::Arc;
+
+use obix::out::{Outbox, OutboxEventMarker};
+
+use audit::AuditSvc;
+use authz::PermissionCheck;
+use tracing::instrument;
+use tracing_macros::record_error_severity;
+
+use crate::{
+    CoreCreditAction, CoreCreditObject, event::CoreCreditEvent, primitives::CreditFacilityId,
+};
 pub use entry::*;
-pub use repo::HistoryRepo;
+use error::CreditFacilityHistoryError;
+use jobs::*;
+use repo::HistoryRepo;
 
 #[derive(Default, serde::Deserialize, serde::Serialize)]
 pub struct CreditFacilityHistory {
@@ -185,5 +199,88 @@ impl CreditFacilityHistory {
             PartialLiquidationCompleted { .. } => {}
             ObligationCompleted { .. } => {}
         }
+    }
+}
+
+pub struct Histories<Perms>
+where
+    Perms: PermissionCheck,
+{
+    repo: Arc<HistoryRepo>,
+    authz: Arc<Perms>,
+}
+
+impl<Perms> Clone for Histories<Perms>
+where
+    Perms: PermissionCheck,
+{
+    fn clone(&self) -> Self {
+        Self {
+            repo: self.repo.clone(),
+            authz: self.authz.clone(),
+        }
+    }
+}
+
+impl<Perms> Histories<Perms>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+{
+    pub async fn init<E>(
+        pool: &sqlx::PgPool,
+        outbox: &Outbox<E>,
+        job: &mut job::Jobs,
+        authz: Arc<Perms>,
+    ) -> Result<Self, error::CreditFacilityHistoryError>
+    where
+        E: OutboxEventMarker<CoreCreditEvent>,
+    {
+        let repo = Arc::new(HistoryRepo::new(pool));
+
+        let job_init = credit_facility_history::HistoryProjectionInit::new(outbox, repo.clone());
+
+        let spawner = job.add_initializer(job_init);
+
+        spawner
+            .spawn_unique(
+                job::JobId::new(),
+                credit_facility_history::HistoryProjectionConfig {
+                    _phantom: std::marker::PhantomData,
+                },
+            )
+            .await?;
+
+        Ok(Self { repo, authz })
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "credit.history", skip(self, credit_facility_id), fields(credit_facility_id = tracing::field::Empty))]
+    pub async fn find_for_credit_facility_id<T: From<CreditFacilityHistoryEntry>>(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug,
+    ) -> Result<Vec<T>, CreditFacilityHistoryError> {
+        let id = credit_facility_id.into();
+        tracing::Span::current().record("credit_facility_id", tracing::field::display(id));
+
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::credit_facility(id),
+                CoreCreditAction::CREDIT_FACILITY_READ,
+            )
+            .await?;
+        let history = self.repo.load(id).await?;
+        Ok(history.into_iter().map(T::from).collect())
+    }
+
+    pub(crate) async fn find_for_credit_facility_id_without_audit(
+        &self,
+        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug,
+    ) -> Result<Vec<CreditFacilityHistoryEntry>, CreditFacilityHistoryError> {
+        let history = self.repo.load(credit_facility_id.into()).await?;
+        Ok(history.into_iter().collect())
     }
 }

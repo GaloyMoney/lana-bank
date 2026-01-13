@@ -9,7 +9,7 @@ use std::sync::Arc;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use governance::GovernanceEvent;
-use job::*; 
+use job::*;
 use obix::EventSequence;
 use obix::out::{
     EphemeralOutboxEvent, Outbox, OutboxEvent, OutboxEventMarker, PersistentOutboxEvent,
