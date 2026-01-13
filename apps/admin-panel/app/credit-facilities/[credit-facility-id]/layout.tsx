@@ -18,6 +18,7 @@ import { PublicIdBadge } from "@/components/public-id-badge"
 import {
   CreditFacility,
   useGetCreditFacilityLayoutDetailsQuery,
+  useCreditFacilityCollateralizationUpdatedSubscription,
 } from "@/lib/graphql/generated"
 import { useCreateContext } from "@/app/create"
 
@@ -145,6 +146,14 @@ gql`
       ...CreditFacilityLayoutFragment
     }
   }
+
+  subscription creditFacilityCollateralizationUpdated($creditFacilityId: UUID!) {
+    creditFacilityCollateralizationUpdated(creditFacilityId: $creditFacilityId) {
+      creditFacility {
+        ...CreditFacilityLayoutFragment
+      }
+    }
+  }
 `
 
 export default function CreditFacilityLayout({
@@ -175,6 +184,11 @@ export default function CreditFacilityLayout({
     variables: { publicId },
     fetchPolicy: "cache-and-network",
   })
+
+  const creditFacilityId = data?.creditFacilityByPublicId?.creditFacilityId
+  useCreditFacilityCollateralizationUpdatedSubscription(
+    creditFacilityId ? { variables: { creditFacilityId } } : { skip: true },
+  )
 
   useEffect(() => {
     data?.creditFacilityByPublicId &&

@@ -367,3 +367,24 @@ pub struct CreditFacilitiesFilter {
     pub status: Option<CreditFacilityStatus>,
     pub collateralization_state: Option<CollateralizationState>,
 }
+
+#[derive(SimpleObject)]
+#[graphql(complex)]
+pub struct CreditFacilityCollateralizationPayload {
+    #[graphql(flatten)]
+    pub update: CreditFacilityCollateralizationUpdated,
+    #[graphql(skip)]
+    pub credit_facility_id: CreditFacilityId,
+}
+
+#[ComplexObject]
+impl CreditFacilityCollateralizationPayload {
+    async fn credit_facility(&self, ctx: &Context<'_>) -> async_graphql::Result<CreditFacility> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let facility = loader
+            .load_one(self.credit_facility_id)
+            .await?
+            .expect("credit facility not found");
+        Ok(facility)
+    }
+}

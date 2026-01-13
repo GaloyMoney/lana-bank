@@ -14,6 +14,21 @@
       config:
         claims: '{"aud": ["https://admin-api/graphql"], "subject": {{ print .Extra.lanaId | toJson }} }'
 
+- id: admin-api-sse # lana/admin-server SSE subscriptions
+  upstream:
+    url: http://host.containers.internal:5253
+  match:
+    url: <(http|https)>://<admin.localhost:4455>/graphql/stream
+    methods: [GET, POST, OPTIONS]
+  authenticators:
+    - handler: jwt
+  authorizer:
+    handler: allow
+  mutators:
+    - handler: id_token
+      config:
+        claims: '{"aud": ["https://admin-api/graphql"], "subject": {{ print .Extra.lanaId | toJson }} }'
+
 - id: admin-panel-ui # apps/admin-panel
   upstream:
     url: http://host.containers.internal:3001

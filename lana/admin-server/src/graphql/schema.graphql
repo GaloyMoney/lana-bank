@@ -459,6 +459,17 @@ type CreditFacilityCollateralUpdated {
 	txId: UUID!
 }
 
+type CreditFacilityCollateralizationPayload {
+	state: CollateralizationState!
+	collateral: Satoshis!
+	outstandingInterest: UsdCents!
+	outstandingDisbursal: UsdCents!
+	recordedAt: Timestamp!
+	effective: Date!
+	price: UsdCents!
+	creditFacility: CreditFacility!
+}
+
 type CreditFacilityCollateralizationUpdated {
 	state: CollateralizationState!
 	collateral: Satoshis!
@@ -1923,6 +1934,15 @@ type PendingCreditFacilityCollateralUpdatePayload {
 	pendingCreditFacility: PendingCreditFacility!
 }
 
+type PendingCreditFacilityCollateralizationPayload {
+	state: PendingCreditFacilityCollateralizationState!
+	collateral: Satoshis!
+	price: UsdCents!
+	recordedAt: Timestamp!
+	effective: Date!
+	pendingCreditFacility: PendingCreditFacility!
+}
+
 enum PendingCreditFacilityCollateralizationState {
 	FULLY_COLLATERALIZED
 	UNDER_COLLATERALIZED
@@ -1934,6 +1954,12 @@ type PendingCreditFacilityCollateralizationUpdated {
 	price: UsdCents!
 	recordedAt: Timestamp!
 	effective: Date!
+}
+
+type PendingCreditFacilityCompletedPayload {
+	status: PendingCreditFacilityStatus!
+	recordedAt: Timestamp!
+	pendingCreditFacility: PendingCreditFacility!
 }
 
 type PendingCreditFacilityConnection {
@@ -2339,6 +2365,12 @@ enum SortDirection {
 	DESC
 }
 
+type Subscription {
+	pendingCreditFacilityCollateralizationUpdated(pendingCreditFacilityId: UUID!): PendingCreditFacilityCollateralizationPayload!
+	pendingCreditFacilityCompleted(pendingCreditFacilityId: UUID!): PendingCreditFacilityCompletedPayload!
+	creditFacilityCollateralizationUpdated(creditFacilityId: UUID!): CreditFacilityCollateralizationPayload!
+}
+
 input SumsubPermalinkCreateInput {
 	customerId: UUID!
 }
@@ -2683,4 +2715,5 @@ directive @specifiedBy(url: String!) on SCALAR
 schema {
 	query: Query
 	mutation: Mutation
+	subscription: Subscription
 }

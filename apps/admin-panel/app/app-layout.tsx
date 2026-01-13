@@ -12,7 +12,6 @@ import { RealtimePriceUpdates } from "@/components/realtime-price"
 import { SearchAndCommand } from "@/components/search-and-command"
 
 import { useCommandMenu } from "@/hooks/use-command-menu"
-
 import { env } from "@/env"
 
 export const AppLayout = ({ children }: Readonly<{ children: React.ReactNode }>) => {

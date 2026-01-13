@@ -11,7 +11,12 @@ import { PendingCreditFacilityTermsCard } from "./terms-card"
 
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 
-import { useGetPendingCreditFacilityLayoutDetailsQuery } from "@/lib/graphql/generated"
+import {
+  PendingCreditFacilityStatus,
+  useGetPendingCreditFacilityLayoutDetailsQuery,
+  usePendingCreditFacilityCollateralizationUpdatedSubscription,
+  usePendingCreditFacilityCompletedSubscription,
+} from "@/lib/graphql/generated"
 
 gql`
   fragment PendingCreditFacilityLayoutFragment on PendingCreditFacility {
@@ -89,6 +94,26 @@ gql`
       ...PendingCreditFacilityLayoutFragment
     }
   }
+
+  subscription PendingCreditFacilityCollateralizationUpdated(
+    $pendingCreditFacilityId: UUID!
+  ) {
+    pendingCreditFacilityCollateralizationUpdated(
+      pendingCreditFacilityId: $pendingCreditFacilityId
+    ) {
+      pendingCreditFacility {
+        ...PendingCreditFacilityLayoutFragment
+      }
+    }
+  }
+
+  subscription pendingCreditFacilityCompleted($pendingCreditFacilityId: UUID!) {
+    pendingCreditFacilityCompleted(pendingCreditFacilityId: $pendingCreditFacilityId) {
+      pendingCreditFacility {
+        ...PendingCreditFacilityLayoutFragment
+      }
+    }
+  }
 `
 
 export default function PendingCreditFacilityLayout({
@@ -104,6 +129,19 @@ export default function PendingCreditFacilityLayout({
   const { data, loading, error } = useGetPendingCreditFacilityLayoutDetailsQuery({
     variables: { pendingCreditFacilityId: pendingId },
   })
+
+  usePendingCreditFacilityCollateralizationUpdatedSubscription({
+    variables: { pendingCreditFacilityId: pendingId },
+  })
+
+  const completed =
+    data?.pendingCreditFacility?.status === PendingCreditFacilityStatus.Completed
+
+  usePendingCreditFacilityCompletedSubscription(
+    data?.pendingCreditFacility && !completed
+      ? { variables: { pendingCreditFacilityId: pendingId } }
+      : { skip: true },
+  )
 
   if (loading && !data) return <DetailsPageSkeleton detailItems={4} tabs={2} />
   if (error) return <div className="text-destructive">{error.message}</div>
