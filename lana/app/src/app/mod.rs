@@ -8,9 +8,7 @@ use tracing_macros::record_error_severity;
 
 use authz::PermissionCheck;
 
-use rbac_types::{
-    AuditAction, AuditEntityAction, AuditObject, DomainConfigAction, DomainConfigObject,
-};
+use rbac_types::{AuditAction, AuditEntityAction, AuditObject};
 
 use crate::{
     access::Access,
@@ -48,7 +46,7 @@ use error::ApplicationError;
 pub struct LanaApp {
     _pool: PgPool,
     internal_domain_configs: InternalDomainConfigs,
-    exposed_domain_configs: ExposedDomainConfigs,
+    exposed_domain_configs: ExposedDomainConfigs<Authorization>,
     jobs: Jobs,
     job_new: job_new::Jobs,
     audit: Audit,
@@ -85,7 +83,7 @@ impl LanaApp {
         let outbox = Outbox::init(&pool, obix::MailboxConfig::default()).await?;
         let authz = Authorization::init(&pool, &audit).await?;
         let internal_domain_configs = InternalDomainConfigs::new(&pool);
-        let exposed_domain_configs = ExposedDomainConfigs::new(&pool);
+        let exposed_domain_configs = ExposedDomainConfigs::new(&pool, &authz);
         internal_domain_configs.seed_registered().await?;
         exposed_domain_configs.seed_registered().await?;
 
@@ -268,7 +266,7 @@ impl LanaApp {
         &self.internal_domain_configs
     }
 
-    pub fn exposed_domain_configs(&self) -> &ExposedDomainConfigs {
+    pub fn exposed_domain_configs(&self) -> &ExposedDomainConfigs<Authorization> {
         &self.exposed_domain_configs
     }
 
@@ -314,55 +312,6 @@ impl LanaApp {
             .await?;
 
         self.audit.list(query).await.map_err(ApplicationError::from)
-    }
-
-    #[record_error_severity]
-    #[instrument(name = "lana.domain_config.list_exposed_configs", skip(self))]
-    pub async fn list_exposed_domain_configs(
-        &self,
-        sub: &Subject,
-        query: es_entity::PaginatedQueryArgs<domain_config::DomainConfigsByKeyCursor>,
-    ) -> Result<
-        es_entity::PaginatedQueryRet<
-            domain_config::DomainConfig,
-            domain_config::DomainConfigsByKeyCursor,
-        >,
-        ApplicationError,
-    > {
-        self.authz
-            .enforce_permission(
-                sub,
-                DomainConfigObject::all_exposed_configs(),
-                DomainConfigAction::EXPOSED_CONFIG_READ,
-            )
-            .await?;
-
-        self.exposed_domain_configs
-            .list_exposed_configs(query)
-            .await
-            .map_err(ApplicationError::from)
-    }
-
-    #[record_error_severity]
-    #[instrument(name = "lana.domain_config.update_exposed_config", skip(self, value))]
-    pub async fn update_exposed_domain_config(
-        &self,
-        sub: &Subject,
-        id: impl Into<domain_config::DomainConfigId> + std::fmt::Debug,
-        value: serde_json::Value,
-    ) -> Result<domain_config::DomainConfig, ApplicationError> {
-        self.authz
-            .enforce_permission(
-                sub,
-                DomainConfigObject::all_exposed_configs(),
-                DomainConfigAction::EXPOSED_CONFIG_WRITE,
-            )
-            .await?;
-
-        self.exposed_domain_configs
-            .update_exposed_from_json(id, value)
-            .await
-            .map_err(ApplicationError::from)
     }
 
     pub fn accounting(&self) -> &Accounting {

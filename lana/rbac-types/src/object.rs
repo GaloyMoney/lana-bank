@@ -1,7 +1,6 @@
 use std::{fmt::Display, str::FromStr};
 
 use crate::audit_object::AuditObject;
-use crate::domain_config_object::DomainConfigObject;
 use contract_creation::ContractModuleObject;
 use core_access::CoreAccessObject;
 use core_accounting::CoreAccountingObject;
@@ -11,6 +10,7 @@ use core_customer::CustomerObject;
 use core_deposit::CoreDepositObject;
 use core_report::ReportObject;
 use dashboard::DashboardModuleObject;
+use domain_config::DomainConfigObject;
 use governance::GovernanceObject;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]

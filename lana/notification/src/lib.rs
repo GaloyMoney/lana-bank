@@ -46,15 +46,17 @@ where
         + From<core_access::CoreAccessAction>
         + From<core_deposit::CoreDepositAction>
         + From<governance::GovernanceAction>
-        + From<core_custody::CoreCustodyAction>,
+        + From<core_custody::CoreCustodyAction>
+        + From<domain_config::DomainConfigAction>,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
         + From<core_customer::CustomerObject>
         + From<core_access::CoreAccessObject>
         + From<core_deposit::CoreDepositObject>
         + From<governance::GovernanceObject>
-        + From<core_custody::CoreCustodyObject>,
+        + From<core_custody::CoreCustodyObject>
+        + From<domain_config::DomainConfigObject>,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
-        From<core_access::UserId>,
+        From<core_access::UserId> + audit::SystemSubject,
 {
     #[record_error_severity]
     #[tracing::instrument(name = "notification.init", skip_all)]
@@ -65,7 +67,7 @@ where
         users: &Users<AuthzType::Audit, LanaEvent>,
         credit: &CoreCredit<AuthzType, LanaEvent>,
         customers: &Customers<AuthzType, LanaEvent>,
-        domain_configs: &ExposedDomainConfigs,
+        domain_configs: &ExposedDomainConfigs<AuthzType>,
     ) -> Result<Self, NotificationError> {
         let email = EmailNotification::init(
             jobs,
