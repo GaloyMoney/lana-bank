@@ -92,7 +92,7 @@ where
                     PRICE_UPDATED_EVENT_TYPE,
                     CorePriceEvent::PriceUpdated {
                         price,
-                        timestamp: crate::time::now(),
+                        timestamp: current_job.clock().now(),
                     },
                 )
                 .await?;
