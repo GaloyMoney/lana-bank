@@ -41,7 +41,7 @@
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
     "tailwindcss-animate": "^1.0.7",
-    "zod": "^4.3.4"
+    "zod": "^4.3.5"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^4.1.2",
@@ -61,7 +61,7 @@
     "@types/node": "20",
     "@types/react": "19.2.7",
     "@types/react-dom": "19.2.3",
-    "@typescript-eslint/eslint-plugin": "^8.51.0",
+    "@typescript-eslint/eslint-plugin": "^8.52.0",
     "cypress": "^15.8.1",
     "eslint": "^9.39.2",
     "eslint-config-next": "16.1.1",
