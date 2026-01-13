@@ -30,6 +30,13 @@ resource "google_bigquery_dataset_iam_member" "dataset_additional_owners" {
   }
 }
 
+resource "google_project_iam_member" "additional_owners_jobuser" {
+  for_each = toset(local.additional_owners)
+  project  = local.gcp_project
+  role     = "roles/bigquery.jobUser"
+  member   = "user:${each.value}"
+}
+
 resource "google_bigquery_dataset" "dbt" {
   project                    = local.gcp_project
   dataset_id                 = local.dbt_dataset_name
