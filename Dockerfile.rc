@@ -24,4 +24,3 @@ ENV VERSION="$VERSION" \
     LANA_HOME=/lana
 
 CMD ["lana-cli"]
-

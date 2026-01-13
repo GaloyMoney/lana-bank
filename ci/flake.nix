@@ -123,6 +123,35 @@
         fi
       '';
 
+      update-changelog = pkgs.writeShellScriptBin "update-changelog" ''
+        set -euo pipefail
+
+        if [ -z "''${1:-}" ]; then
+          echo "Usage: update-changelog <version>"
+          echo "Example: update-changelog 1.2.3"
+          exit 1
+        fi
+
+        VERSION="$1"
+        CHANGELOG_FILE="CHANGELOG.md"
+
+        LAST_RELEASE=$(git tag --merged ci--rc | sort -V | tail -1)
+
+        # Generate new changelog content
+        CHANGELOG_BODY=$(${pkgs.cocogitto}/bin/cog changelog $LAST_RELEASE.. | tail -n +2)
+        NEW_CONTENT=$(printf "## %s\n%s\n\n" "$VERSION" "$CHANGELOG_BODY")
+
+        # Prepend new content to existing CHANGELOG.md
+        if [ -f "$CHANGELOG_FILE" ]; then
+          EXISTING_CONTENT=$(cat "$CHANGELOG_FILE")
+          printf "%s\n%s" "$NEW_CONTENT" "$EXISTING_CONTENT" > "$CHANGELOG_FILE"
+        else
+          printf "%s" "$NEW_CONTENT" > "$CHANGELOG_FILE"
+        fi
+
+        echo "Updated $CHANGELOG_FILE with version $VERSION"
+      '';
+
       next-rc-version = pkgs.writeShellScriptBin "next-rc-version" ''
         set -euo pipefail
 
@@ -549,6 +578,7 @@
       packages.next-rc-version = next-rc-version;
       packages.wait-cachix-paths = wait-cachix-paths;
       packages.rebuild-nix-cache = rebuild-nix-cache;
+      packages.update-changelog = update-changelog;
       formatter = pkgs.alejandra;
     });
 }
