@@ -8,7 +8,10 @@ use serde::{Deserialize, Serialize};
 use es_entity::*;
 
 use super::chart_node::*;
-use crate::{chart_of_accounts::ledger::ClosingTxParentIdsAndDetails, primitives::*};
+use crate::{
+    chart_of_accounts::ledger::ClosingTxParentIdsAndDetails,
+    primitives::{AccountingBaseConfig, *},
+};
 
 use super::{error::*, tree};
 
@@ -22,6 +25,9 @@ pub enum ChartEvent {
         account_set_id: CalaAccountSetId,
         name: String,
         reference: String,
+    },
+    BaseConfigSet {
+        base_config: AccountingBaseConfig,
     },
     ClosedAsOf {
         closed_as_of: NaiveDate,
@@ -38,6 +44,8 @@ pub struct Chart {
     pub account_set_id: CalaAccountSetId,
     pub reference: String,
     pub name: String,
+    #[builder(default)]
+    pub base_config: Option<AccountingBaseConfig>,
 
     events: EntityEvents<ChartEvent>,
 
@@ -289,6 +297,60 @@ impl Chart {
         tree::project_from_nodes(self.id, &self.name, self.chart_nodes.iter_persisted())
     }
 
+    pub fn find_accounting_base_config(&self) -> Option<AccountingBaseConfig> {
+        self.base_config.clone()
+    }
+
+    pub(super) fn set_base_config(
+        &mut self,
+        base_config: AccountingBaseConfig,
+    ) -> Result<Idempotent<()>, ChartOfAccountsError> {
+        if self.base_config.is_some() {
+            return Ok(Idempotent::AlreadyApplied);
+        }
+
+        self.validate_accounting_base_config(&base_config)?;
+
+        self.events.push(ChartEvent::BaseConfigSet {
+            base_config: base_config.clone(),
+        });
+        self.base_config = Some(base_config);
+        Ok(Idempotent::Executed(()))
+    }
+
+    fn validate_accounting_base_config(
+        &self,
+        base_config: &AccountingBaseConfig,
+    ) -> Result<(), ChartOfAccountsError> {
+        base_config.validate()?;
+
+        self.validate_accounting_account_code(&base_config.assets_code)?;
+        self.validate_accounting_account_code(&base_config.liabilities_code)?;
+        self.validate_accounting_account_code(&base_config.equity_code)?;
+        self.validate_accounting_account_code(&base_config.revenue_code)?;
+        self.validate_accounting_account_code(&base_config.cost_of_revenue_code)?;
+        self.validate_accounting_account_code(&base_config.expenses_code)?;
+
+        Ok(())
+    }
+
+    fn validate_accounting_account_code(
+        &self,
+        code: &AccountCode,
+    ) -> Result<(), ChartOfAccountsError> {
+        let details = self
+            .find_node_details_by_code(code)
+            .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))?;
+
+        if details.spec.parent.is_some() {
+            return Err(ChartOfAccountsError::BaseConfigAccountCodeHasParent(
+                code.to_string(),
+            ));
+        }
+
+        Ok(())
+    }
+
     pub(super) fn close_as_of(&mut self, closed_as_of: NaiveDate) -> Idempotent<NaiveDate> {
         idempotency_guard!(
             self.events.iter_all().rev(),
@@ -356,6 +418,9 @@ impl TryFromEvents<ChartEvent> for Chart {
                         .account_set_id(*account_set_id)
                         .reference(reference.to_string())
                         .name(name.to_string());
+                }
+                ChartEvent::BaseConfigSet { base_config } => {
+                    builder = builder.base_config(Some(base_config.clone()));
                 }
                 ChartEvent::ClosedAsOf { .. } => {}
                 ChartEvent::ClosingTransactionPosted { .. } => {}

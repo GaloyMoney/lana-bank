@@ -17,9 +17,9 @@ use tracing_macros::record_error_severity;
 use cala_ledger::{CalaLedger, account::Account};
 
 use crate::primitives::{
-    AccountCode, AccountIdOrCode, AccountName, AccountSpec, CalaAccountSetId, CalaJournalId,
-    ChartId, ClosingAccountCodes, ClosingTxDetails, CoreAccountingAction, CoreAccountingObject,
-    LedgerAccountId,
+    AccountCode, AccountIdOrCode, AccountName, AccountSpec, AccountingBaseConfig, CalaAccountSetId,
+    CalaJournalId, ChartId, ClosingAccountCodes, ClosingTxDetails, CoreAccountingAction,
+    CoreAccountingObject, LedgerAccountId,
 };
 
 #[cfg(feature = "json-schema")]
@@ -152,6 +152,63 @@ where
             new_account_set_ids,
             new_connections,
         } = BulkAccountImport::new(&mut chart, self.journal_id).import(account_specs);
+
+        let mut op = self.repo.begin_op().await?;
+        self.repo.update_in_op(&mut op, &mut chart).await?;
+
+        let mut op = op.with_db_time().await?;
+        self.cala
+            .account_sets()
+            .create_all_in_op(&mut op, new_account_sets)
+            .await?;
+
+        for (parent, child) in new_connections {
+            self.cala
+                .account_sets()
+                .add_member_in_op(&mut op, parent, child)
+                .await?;
+        }
+
+        op.commit().await?;
+
+        let new_account_set_ids = &chart
+            .trial_balance_account_ids_from_new_accounts(&new_account_set_ids)
+            .collect::<Vec<_>>();
+
+        Ok((chart, Some(new_account_set_ids.clone())))
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "core_accounting.chart_of_accounts.import_from_csv_with_base_config",
+        skip(self, import_data)
+    )]
+    pub async fn import_from_csv_with_base_config(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_ref: &str,
+        import_data: impl AsRef<str>,
+        base_config: AccountingBaseConfig,
+    ) -> Result<(Chart, Option<Vec<CalaAccountSetId>>), ChartOfAccountsError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_charts(),
+                CoreAccountingAction::CHART_IMPORT_ACCOUNTS,
+            )
+            .await?;
+        let mut chart = self.find_by_reference(chart_ref).await?;
+
+        let import_data = import_data.as_ref().to_string();
+        let account_specs = CsvParser::new(import_data).account_specs()?;
+
+        let BulkImportResult {
+            new_account_sets,
+            new_account_set_ids,
+            new_connections,
+        } = BulkAccountImport::new(&mut chart, self.journal_id).import(account_specs);
+
+        let _ = chart.set_base_config(base_config)?;
 
         let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;

@@ -388,7 +388,7 @@ async fn setup_test() -> anyhow::Result<Test> {
         .balance_sheets()
         .create_balance_sheet(balance_sheet_name.clone())
         .await?;
-    let balance_sheet_config = BalanceSheetConfig {
+    let _balance_sheet_config = BalanceSheetConfig {
         chart_of_accounts_id: chart.id,
         chart_of_accounts_assets_code: ASSETS.parse().unwrap(),
         chart_of_accounts_liabilities_code: LIABILITIES.parse().unwrap(),
@@ -399,19 +399,14 @@ async fn setup_test() -> anyhow::Result<Test> {
     };
     accounting
         .balance_sheets()
-        .set_chart_of_accounts_integration_config(
-            &DummySubject,
-            balance_sheet_name,
-            &chart,
-            balance_sheet_config,
-        )
+        .set_chart_of_accounts_integration_config(&DummySubject, balance_sheet_name, &chart)
         .await?;
 
     accounting
         .profit_and_loss()
         .create_pl_statement(pl_statement_name.clone())
         .await?;
-    let pl_statement_config = ProfitAndLossConfig {
+    let _pl_statement_config = ProfitAndLossConfig {
         chart_of_accounts_id: chart.id,
         chart_of_accounts_revenue_code: REVENUES.parse().unwrap(),
         chart_of_accounts_cost_of_revenue_code: COSTS.parse().unwrap(),
@@ -419,12 +414,7 @@ async fn setup_test() -> anyhow::Result<Test> {
     };
     accounting
         .profit_and_loss()
-        .set_chart_of_accounts_integration_config(
-            &DummySubject,
-            pl_statement_name.clone(),
-            &chart,
-            pl_statement_config,
-        )
+        .set_chart_of_accounts_integration_config(&DummySubject, pl_statement_name.clone(), &chart)
         .await?;
 
     Ok(Test {
