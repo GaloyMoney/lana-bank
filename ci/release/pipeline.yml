@@ -16,11 +16,13 @@
 #@ )
 
 #@ load("rc.lib.yml",
-#@   "next_rc_version_task",
 #@   "test_integration_rc_task",
 #@   "test_bats_rc_task",
 #@   "flake_check_task_rc",
-#@   "await_rc_binary_task"
+#@   "build_rc",
+#@   "release_rc",
+#@   "open_promote_rc_pr_task",
+#@   "bump_image_in_chart_rc_task"
 #@ )
 
 #@ load("app-template.lib.yml",
@@ -53,11 +55,13 @@ groups:
       - build-dagster-edge-image
   - name: lana-bank-dev
     jobs:
-      - set-next-rc-version
       - test-integration-rc
       - test-bats-rc
       - flake-check-rc
-      - await-rc-binary
+      - build-rc
+      - release-rc
+      - open-promote-rc-pr
+      - bump-image-in-chart-rc
 
 jobs:
   - name: auto-bump-patch
@@ -595,11 +599,13 @@ jobs:
         params:
           image: image/image.tar
 
-  - #@ next_rc_version_task()
   - #@ test_integration_rc_task()
   - #@ test_bats_rc_task()
   - #@ flake_check_task_rc()
-  - #@ await_rc_binary_task()
+  - #@ build_rc()
+  - #@ release_rc()
+  - #@ open_promote_rc_pr_task()
+  - #@ bump_image_in_chart_rc_task()
 
 resources:
   - name: repo
@@ -618,11 +624,19 @@ resources:
     type: git
     source:
       ignore_paths:
-        - "ci/*[^mdx]"
+        - "ci/*[^mdxk]"
         - apps/**/*
       fetch_tags: true
       uri: #@ data.values.git_uri
       branch: ci--rc
+      private_key: #@ data.values.github_private_key
+    webhook_token: ((webhook.secret))
+
+  - name: repo-bot-branch
+    type: git
+    source:
+      uri: #@ data.values.git_uri
+      branch: bot-promote-rc
       private_key: #@ data.values.github_private_key
     webhook_token: ((webhook.secret))
 
@@ -666,6 +680,46 @@ resources:
       file: version
       uri: #@ data.values.git_uri
       branch: rc-version
+      private_key: #@ data.values.github_private_key
+
+  - name: pipeline-tasks-rc
+    type: git
+    source:
+      branch: ci--rc
+      paths:
+      - ci/vendor/*
+      - ci/tasks/*
+      - ci/config/*
+      - Makefile
+      private_key: #@ data.values.github_private_key
+      uri: #@ data.values.git_uri
+
+  - name: charts-repo-bot-branch-rc 
+    type: git
+    source:
+      uri: #@ data.values.git_charts_uri
+      branch: bot-bump-lana-bank-image-rc
+      private_key: #@ data.values.github_private_key
+
+  - name: latest-rc-image
+    type: registry-image
+    source:
+      username: #@ data.values.gar_registry_user
+      password: #@ data.values.gar_registry_password
+      repository: #@ private_gar_registry() + "/" + data.values.folder_registry_image
+ 
+  - name: gh-release-rc
+    type: github-release
+    source:
+      access_token: #@ data.values.github_token
+      owner: #@ data.values.gh_org
+      repository: #@ data.values.gh_repository
+
+  - name: charts-repo-rc
+    type: git
+    source:
+      uri: #@ data.values.git_charts_uri
+      branch: rc
       private_key: #@ data.values.github_private_key
 
   -  #@ pipeline_tasks_resource()
