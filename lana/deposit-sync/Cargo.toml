@@ -15,7 +15,7 @@ governance = { workspace = true }
 
 sumsub = { workspace = true }
 obix = { workspace = true }
-job = { version = "0.6.0" }
+job = { workspace = true }
 audit = { workspace = true }
 authz = { workspace = true }
 

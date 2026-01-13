@@ -13,7 +13,7 @@ use es_entity::{Idempotent, PaginatedQueryArgs};
 use tracing_macros::record_error_severity;
 
 use crate::{
-    FiscalYearId,
+    ClockHandle, FiscalYearId,
     chart_of_accounts::ChartOfAccounts,
     primitives::{ChartId, CoreAccountingAction, CoreAccountingObject},
 };
@@ -29,6 +29,7 @@ pub struct FiscalYears<Perms>
 where
     Perms: PermissionCheck,
 {
+    clock: ClockHandle,
     repo: FiscalYearRepo,
     authz: Perms,
     domain_configs: InternalDomainConfigs,
@@ -41,6 +42,7 @@ where
 {
     fn clone(&self) -> Self {
         Self {
+            clock: self.clock.clone(),
             repo: self.repo.clone(),
             authz: self.authz.clone(),
             domain_configs: self.domain_configs.clone(),
@@ -57,11 +59,13 @@ where
 {
     pub fn new(
         pool: &sqlx::PgPool,
+        clock: ClockHandle,
         authz: &Perms,
         domain_configs: &InternalDomainConfigs,
         chart_of_accounts: &ChartOfAccounts<Perms>,
     ) -> Self {
         Self {
+            clock,
             repo: FiscalYearRepo::new(pool),
             authz: authz.clone(),
             domain_configs: domain_configs.clone(),
@@ -134,7 +138,7 @@ where
                 CoreAccountingAction::FISCAL_YEAR_CREATE,
             )
             .await?;
-        let now = crate::time::now();
+        let now = self.clock.now();
 
         let fiscal_year = self.repo.find_by_id(id).await?;
         let new_fiscal_year = fiscal_year.next(now)?;
@@ -158,7 +162,7 @@ where
             )
             .await?;
         let mut fiscal_year = self.repo.find_by_id(id).await?;
-        let now = crate::time::now();
+        let now = self.clock.now();
 
         match fiscal_year.close(now)? {
             Idempotent::Executed(tx_details) => {
@@ -203,7 +207,7 @@ where
                 CoreAccountingAction::FISCAL_YEAR_CLOSE_MONTH,
             )
             .await?;
-        let now = crate::time::now();
+        let now = self.clock.now();
 
         let mut fiscal_year = self.repo.find_by_id(id).await?;
         if let Idempotent::Executed(date) = fiscal_year.close_next_sequential_month(now)? {

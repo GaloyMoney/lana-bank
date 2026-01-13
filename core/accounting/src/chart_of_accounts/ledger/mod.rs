@@ -24,17 +24,19 @@ use closing_metadata::*;
 use error::*;
 use template::*;
 
-use crate::{Chart, ClosingTxDetails, LedgerTransactionInitiator};
+use crate::{Chart, ClockHandle, ClosingTxDetails, LedgerTransactionInitiator};
 
 #[derive(Clone)]
 pub struct ChartLedger {
+    clock: ClockHandle,
     cala: CalaLedger,
     journal_id: JournalId,
 }
 
 impl ChartLedger {
-    pub fn new(cala: &CalaLedger, journal_id: JournalId) -> Self {
+    pub fn new(clock: ClockHandle, cala: &CalaLedger, journal_id: JournalId) -> Self {
         Self {
+            clock,
             cala: cala.clone(),
             journal_id,
         }
@@ -102,6 +104,7 @@ impl ChartLedger {
         AccountingClosingMetadata::update_with_monthly_closing(
             &mut account_set_metadata,
             closed_as_of,
+            self.clock.now(),
         );
 
         let mut update_values = AccountSetUpdate::default();

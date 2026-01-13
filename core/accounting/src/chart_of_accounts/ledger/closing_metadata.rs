@@ -24,11 +24,12 @@ impl AccountingClosingMetadata {
         period: &str,
         metadata: &mut serde_json::Value,
         closed_as_of: chrono::NaiveDate,
+        closed_at: chrono::DateTime<chrono::Utc>,
     ) {
         let closing_metadata = serde_json::json!({
             period: {
                 Self::CLOSING_DATE_KEY: closed_as_of,
-                "closed_at": crate::time::now(),
+                "closed_at": closed_at,
             }
         });
 
@@ -64,8 +65,9 @@ impl AccountingClosingMetadata {
     pub(super) fn update_with_monthly_closing(
         metadata: &mut serde_json::Value,
         closed_as_of: chrono::NaiveDate,
+        closed_at: chrono::DateTime<chrono::Utc>,
     ) {
-        Self::update_with_period_closing(Self::MONTHLY, metadata, closed_as_of)
+        Self::update_with_period_closing(Self::MONTHLY, metadata, closed_as_of, closed_at)
     }
 
     pub(super) fn monthly_cel_conditions() -> String {
@@ -260,17 +262,25 @@ mod tests {
     }
 
     mod update_with_monthly_closing {
-        use chrono::{DateTime, NaiveDate, Utc};
+        use chrono::{DateTime, NaiveDate, TimeZone, Utc};
         use serde_json::json;
 
         use super::*;
+
+        fn test_closed_at() -> DateTime<Utc> {
+            Utc.with_ymd_and_hms(2024, 1, 31, 18, 0, 0).unwrap()
+        }
 
         #[test]
         fn can_update_with_monthly_closing_with_empty_metadata() {
             let mut metadata = json!({});
             let closed_as_of = "2024-01-31".parse::<NaiveDate>().unwrap();
 
-            AccountingClosingMetadata::update_with_monthly_closing(&mut metadata, closed_as_of);
+            AccountingClosingMetadata::update_with_monthly_closing(
+                &mut metadata,
+                closed_as_of,
+                test_closed_at(),
+            );
 
             assert_eq!(
                 metadata["closing"]["monthly"]["closed_as_of"],
@@ -297,7 +307,11 @@ mod tests {
             );
 
             let new_date = "2024-01-31".parse::<NaiveDate>().unwrap();
-            AccountingClosingMetadata::update_with_monthly_closing(&mut metadata, new_date);
+            AccountingClosingMetadata::update_with_monthly_closing(
+                &mut metadata,
+                new_date,
+                test_closed_at(),
+            );
 
             assert_eq!(
                 metadata["closing"]["monthly"]["closed_as_of"],
@@ -313,7 +327,11 @@ mod tests {
             });
             let closed_as_of = "2024-01-31".parse::<NaiveDate>().unwrap();
 
-            AccountingClosingMetadata::update_with_monthly_closing(&mut metadata, closed_as_of);
+            AccountingClosingMetadata::update_with_monthly_closing(
+                &mut metadata,
+                closed_as_of,
+                test_closed_at(),
+            );
 
             assert_eq!(metadata.get("other_field").unwrap(), "value");
             assert_eq!(metadata.get("another_field").unwrap(), 123);

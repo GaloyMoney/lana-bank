@@ -16,7 +16,7 @@ json-schema = [
     "core-price/json-schema",
     "public-id/json-schema",
 ]
-sim-time = ["dep:sim-time", "es-entity/sim-time"]
+sim-time = ["dep:sim-time"]
 mock-custodian = ["core-custody/mock-custodian"]
 
 [dependencies]
@@ -32,7 +32,6 @@ authz = { workspace = true }
 obix = { workspace = true }
 domain-config = { workspace = true }
 job = { workspace = true }
-job_new = { version = "=0.6.0", package = "job" }
 cloud-storage = { workspace = true }
 public-id = { workspace = true }
 

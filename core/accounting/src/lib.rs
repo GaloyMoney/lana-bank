@@ -12,7 +12,6 @@ pub mod ledger_transaction;
 pub mod manual_transaction;
 mod primitives;
 pub mod profit_and_loss;
-mod time;
 pub mod transaction_templates;
 pub mod trial_balance;
 
@@ -57,6 +56,7 @@ pub struct CoreAccounting<Perms>
 where
     Perms: PermissionCheck,
 {
+    clock: ClockHandle,
     authz: Perms,
     chart_of_accounts: ChartOfAccounts<Perms>,
     journal: Journal<Perms>,
@@ -77,6 +77,7 @@ where
 {
     fn clone(&self) -> Self {
         Self {
+            clock: self.clock.clone(),
             authz: self.authz.clone(),
             chart_of_accounts: self.chart_of_accounts.clone(),
             journal: self.journal.clone(),
@@ -101,6 +102,7 @@ where
 {
     pub fn new(
         pool: &sqlx::PgPool,
+        clock: ClockHandle,
         authz: &Perms,
         cala: &CalaLedger,
         journal_id: CalaJournalId,
@@ -108,8 +110,10 @@ where
         jobs: &mut Jobs,
         domain_configs: &InternalDomainConfigs,
     ) -> Self {
-        let chart_of_accounts = ChartOfAccounts::new(pool, authz, cala, journal_id);
-        let fiscal_year = FiscalYears::new(pool, authz, domain_configs, &chart_of_accounts);
+        let chart_of_accounts =
+            ChartOfAccounts::new(pool, clock.clone(), authz, cala, journal_id);
+        let fiscal_year =
+            FiscalYears::new(pool, clock.clone(), authz, domain_configs, &chart_of_accounts);
         let journal = Journal::new(authz, cala, journal_id);
         let ledger_accounts = LedgerAccounts::new(authz, cala, journal_id);
         let manual_transactions =
@@ -121,6 +125,7 @@ where
         let csvs = AccountingCsvExports::new(authz, jobs, document_storage, &ledger_accounts);
         let trial_balances = TrialBalances::new(pool, authz, cala, journal_id);
         Self {
+            clock,
             authz: authz.clone(),
             chart_of_accounts,
             journal,
@@ -257,7 +262,7 @@ where
                 chart_ref,
                 reference,
                 description,
-                effective.unwrap_or_else(|| chrono::Utc::now().date_naive()),
+                effective.unwrap_or_else(|| self.clock.now().date_naive()),
                 entries,
             )
             .await?;

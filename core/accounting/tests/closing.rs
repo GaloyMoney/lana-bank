@@ -22,6 +22,8 @@ use core_accounting::{
     fiscal_year::FiscalYearRepo,
     profit_and_loss::ChartOfAccountsIntegrationConfig as ProfitAndLossConfig,
 };
+use chrono::{TimeZone, Utc};
+use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 
 use helpers::{action, object};
 
@@ -260,9 +262,14 @@ async fn setup_test() -> anyhow::Result<Test> {
     let document_storage = DocumentStorage::new(&pool, &storage);
     let mut jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
 
+    // Use artificial clock set to 2024, so hardcoded 2021 dates are in the past
+    let start_time = Utc.with_ymd_and_hms(2024, 6, 15, 12, 0, 0).unwrap();
+    let (clock, _ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual_at(start_time));
+
     let fiscal_year_repo = FiscalYearRepo::new(&pool);
     let accounting = CoreAccounting::new(
         &pool,
+        clock,
         &authz,
         &cala,
         journal_id,

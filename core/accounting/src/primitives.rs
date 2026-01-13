@@ -1220,6 +1220,8 @@ impl BalanceRange {
     }
 }
 
+pub use es_entity::clock::ClockHandle;
+
 #[cfg(test)]
 mod tests {
     use super::*;

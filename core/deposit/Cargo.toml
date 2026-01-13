@@ -7,7 +7,7 @@ edition = "2024"
 
 fail-on-warnings = []
 graphql = ["dep:async-graphql", "cala-ledger/graphql"]
-sim-time = ["dep:sim-time", "es-entity/sim-time"]
+sim-time = ["dep:sim-time"]
 json-schema = [
     "dep:schemars",
     "es-entity/json-schema",
@@ -28,7 +28,7 @@ audit = { workspace = true }
 authz = { workspace = true }
 obix = { workspace = true }
 domain-config = { workspace = true }
-job = { version = "0.6.0" }
+job = { workspace = true }
 cloud-storage = { workspace = true }
 
 cala-ledger = { workspace = true }

@@ -2,10 +2,11 @@ mod helpers;
 
 use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
-use chrono::Utc;
+use chrono::{TimeZone, Utc};
 use cloud_storage::{Storage, config::StorageConfig};
 use document_storage::DocumentStorage;
 use domain_config::InternalDomainConfigs;
+use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 use job::{JobSvcConfig, Jobs};
 
 use core_accounting::*;
@@ -29,8 +30,12 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
     let document_storage = DocumentStorage::new(&pool, &storage);
     let mut jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
 
+    let start_time = Utc.with_ymd_and_hms(2024, 6, 15, 12, 0, 0).unwrap();
+    let (clock, _ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual_at(start_time));
+
     let accounting = CoreAccounting::new(
         &pool,
+        clock.clone(),
         &authz,
         &cala,
         journal_id,
@@ -68,13 +73,9 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
         .create_trial_balance_statement(trial_balance_name.to_string())
         .await?;
 
+    let today = clock.now().date_naive();
     let accounts = accounting
-        .list_all_account_flattened(
-            &DummySubject,
-            &chart_ref,
-            Utc::now().date_naive(),
-            Some(Utc::now().date_naive()),
-        )
+        .list_all_account_flattened(&DummySubject, &chart_ref, today, Some(today))
         .await?;
     assert_eq!(accounts.len(), 0);
 
@@ -86,13 +87,7 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
     let chart = accounting.chart_of_accounts().find_by_id(chart_id).await?;
     let accounts = accounting
         .ledger_accounts()
-        .list_all_account_flattened(
-            &DummySubject,
-            &chart,
-            Utc::now().date_naive(),
-            Some(Utc::now().date_naive()),
-            false,
-        )
+        .list_all_account_flattened(&DummySubject, &chart, today, Some(today), false)
         .await?;
     assert_eq!(accounts.len(), 6);
 

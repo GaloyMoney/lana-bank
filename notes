@@ -1,0 +1,7 @@
+config and lib of cli remaining
+why new folder for jobs
+https://github.com/GaloyMoney/lana-bank/pull/3298/files#r2671891314
+jobs/ files have jobconfig trait
+credit init copied without job_new has interface issues
+
+/// obligations 3 jobs: wallet collateral sync job, history folder
