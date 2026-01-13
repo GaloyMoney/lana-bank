@@ -25,11 +25,4 @@ impl From<DomainAccountingBaseConfig> for ProfitAndLossStatementModuleConfig {
     }
 }
 
-#[derive(InputObject)]
-pub struct ProfitAndLossModuleConfigureInput {
-    pub chart_of_accounts_revenue_code: String,
-    pub chart_of_accounts_cost_of_revenue_code: String,
-    pub chart_of_accounts_expenses_code: String,
-}
-
 crate::mutation_payload! { ProfitAndLossStatementModuleConfigurePayload, profit_and_loss_config: ProfitAndLossStatementModuleConfig }

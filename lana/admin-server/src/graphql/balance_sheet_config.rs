@@ -32,13 +32,4 @@ impl From<DomainAccountingBaseConfig> for BalanceSheetModuleConfig {
     }
 }
 
-#[derive(InputObject)]
-pub struct BalanceSheetModuleConfigureInput {
-    pub chart_of_accounts_assets_code: String,
-    pub chart_of_accounts_liabilities_code: String,
-    pub chart_of_accounts_equity_code: String,
-    pub chart_of_accounts_revenue_code: String,
-    pub chart_of_accounts_cost_of_revenue_code: String,
-    pub chart_of_accounts_expenses_code: String,
-}
 crate::mutation_payload! { BalanceSheetModuleConfigurePayload, balance_sheet_config: BalanceSheetModuleConfig }
