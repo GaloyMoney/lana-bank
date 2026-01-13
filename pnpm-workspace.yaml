@@ -1,6 +1,7 @@
 packages:
   - apps/*
   - lib/js/*
+  - docs
   - .
 ignoredBuiltDependencies:
   - unrs-resolver

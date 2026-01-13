@@ -1,0 +1,1039 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Lana Bank Documentation</title>
+        <meta name="robots" content="noindex">
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Lana Bank Documentation</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="lana-bank-documentation"><a class="header" href="#lana-bank-documentation">Lana Bank Documentation</a></h1>
+<p>Welcome to the Lana Bank technical documentation.</p>
+<p>This documentation covers the core components of the Lana Bank system:</p>
+<ul>
+<li><strong>Lana Core</strong>: The main banking system with entity relationship diagrams</li>
+<li><strong>Cala Ledger</strong>: The underlying ledger system for transaction processing</li>
+<li><strong>Credit System</strong>: Documentation for credit facilities and related processes</li>
+</ul>
+<h2 id="getting-started"><a class="header" href="#getting-started">Getting Started</a></h2>
+<p>Navigate through the documentation using the sidebar menu or the links above.</p>
+<h2 id="architecture-overview"><a class="header" href="#architecture-overview">Architecture Overview</a></h2>
+<p>Lana Bank follows a hexagonal architecture pattern with clear separation between:</p>
+<ul>
+<li>Core domain logic</li>
+<li>Application services</li>
+<li>Infrastructure adapters</li>
+</ul>
+<p>For detailed technical specifications, see the individual component documentation.</p>
+<div style="break-before: page; page-break-before: always;"></div><h2 id="credit-module-lifecycle"><a class="header" href="#credit-module-lifecycle">Credit Module Lifecycle</a></h2>
+<pre class="mermaid">flowchart LR
+    %% Loan = Credit Facility (n1) + Disbursal (S_D)
+    subgraph Loan[&quot;Loan&quot;]
+    direction LR
+        n1[&quot;Credit Facility &lt;br/&gt;&amp;lt;InterestAccrualCycle&amp;gt;&quot;]
+
+        subgraph S_D[&quot;Disbursal&quot;]
+        direction LR
+            d1[&quot;Disbursal 1&quot;]:::small
+            d2[&quot;Disbursal 2&quot;]:::small
+        end
+    end
+
+    subgraph S_O[&quot;Obligation&quot;]
+    direction LR
+        o1[&quot;Obligation 1&quot;]:::small
+        o2[&quot;Obligation 2&quot;]:::small
+        o3[&quot;Obligation 3&quot;]:::small
+    end
+
+    subgraph S_R[&quot;.&quot;]
+    direction LR
+        subgraph S_R1[&quot;Payment 1&quot;]
+        direction LR
+            r1[&quot;PaymentAllocation 1&quot;]:::small
+            r2[&quot;PaymentAllocation 2&quot;]:::small
+        end
+        subgraph S_R2[&quot;Payment 2&quot;]
+        direction LR
+            r3[&quot;PaymentAllocation 3&quot;]:::small
+        end
+        r3[&quot;PaymentAllocation 3&quot;]:::small
+    end
+
+    n1 --&gt; S_D --&gt; S_O
+
+    o1 --&gt; r1
+    o2 --&gt; r2
+    o2 --&gt; r3
+    o3 --&gt; r3
+
+    classDef small stroke:#999,stroke-width:1px;
+    style Loan stroke:#666,stroke-width:2px,stroke-dasharray:6 3,fill:none;
+</pre>
+<blockquote>
+<p>A <a href="credit/./facility/"><code>CreditFacility</code></a> advances funds to a borrower through one or more <a href="credit/./disbursal/"><code>Disbursals</code></a>.
+Each disbursal creates corresponding <a href="credit/./obligation/"><code>Obligations</code></a> (for <em>Principal</em> or any <em>Accrued Interest</em>) that the borrower must repay.
+When the borrower makes a <a href="credit/./payment/"><code>Payment</code></a>, it is allocated to specific obligations via <a href="credit/./payment/#payment-allocation"><code>PaymentAllocation</code></a> records.
+<a href="credit/./terms/"><code>Terms</code></a> define the interest rates, schedules and other rules that govern the facility and its obligations.
+Once every obligation is fully satisfied, the credit facility is automatically closed.</p>
+</blockquote>
+<div style="break-before: page; page-break-before: always;"></div><h2 id="credit-facility"><a class="header" href="#credit-facility">Credit Facility</a></h2>
+<p>A <code>CreditFacility</code> is a legally binding lending agreement between a bank and a customer that establishes a maximum credit limit the bank is willing to extend.</p>
+<p>It specifies:</p>
+<ol>
+<li><strong>Credit Limit</strong> - The <em>maximum</em> amount of credit available to the customer.</li>
+<li><strong>Loan Terms</strong> - Details such as interest rates, fees, and risk parameters.</li>
+<li><strong>Maturity Provisions</strong> - Details when the credit facility will mature or expire.</li>
+<li><strong>Repayment Schedule</strong> - The timeline and conditions under which the customer must repay the borrowed amount and any accrued interest.</li>
+</ol>
+<p>In our domain model, a <code>CreditFacility</code> is the central entity that manages the lifecycle of credit, including disbursals, obligations, and payments.
+We have <code>InterestAccrualCycle</code> to manage the interest accrual process, which is crucial for calculating the interest on the disbursed amounts.</p>
+<h4 id="facility-approval--activation"><a class="header" href="#facility-approval--activation">Facility Approval &amp; Activation</a></h4>
+<pre class="mermaid">sequenceDiagram
+    participant BankManager
+    participant CreditFacility
+    participant Governance
+
+    BankManager-&gt;&gt;CreditFacility: createFacility(terms, customer)
+    par ApprovalProcess
+        CreditFacility--&gt;&gt;Governance: createApprovalProcess()
+        Note right of Governance: Sufficient number &lt;br /&gt;of BankManagers&lt;br /&gt;approve or system &lt;br /&gt;auto-approved
+        Governance--&gt;&gt;CreditFacility: approve()
+    end
+
+    BankManager--&gt;&gt;CreditFacility: updateCollateral()
+
+    par ActivationProcess
+        Note right of CreditFacility: Approved and&lt;br /&gt;collateral posted&lt;br /&gt;with CVL &gt;= Initial&lt;br /&gt;CVL in credit's terms
+        CreditFacility--&gt;&gt;CreditFacility: activate()
+    end
+</pre>
+<p>A <code>CreditFacility</code> goes through an approval process where it is created by a bank manager and then submitted to governance module. The governance module defines the rules for approval, which can be manual (requiring a certain number of approvals from bank users) or automatic (system auto-approved).</p>
+<p>Activation of a <code>CreditFacility</code> can happen only after <code>Collateral</code> for the Facility has been posted and the <code>CreditFacility</code> is approved by the governance process.
+Collateral's CVL should be more than initial CVL as defined in the <code>CreditFacility</code> terms for the facility to activate.</p>
+<p>Upon activation of the facility, <code>InterestAccrualCycle</code> is initialized to start accruing interest on disbursed amounts.</p>
+<div style="break-before: page; page-break-before: always;"></div><h2 id="disbursal"><a class="header" href="#disbursal">Disbursal</a></h2>
+<p>Disbursals are the <strong>principal amounts</strong> sent to the customer.
+Each disbursal records the amount released, links it to the facility and emits events that create new obligations.
+Those obligations track the principal (and any fees) that must be repaid according to the facility terms.</p>
+<div style="break-before: page; page-break-before: always;"></div><h2 id="obligation"><a class="header" href="#obligation">Obligation</a></h2>
+<p>Tracks amounts the borrower owes to the facility.
+Obligations are created from disbursals and accrue interest until satisfied by payments or liquidation.
+They record balances, due dates and status, providing the basis for repayment schedules.</p>
+<div style="break-before: page; page-break-before: always;"></div><h2 id="payment"><a class="header" href="#payment">Payment</a></h2>
+<p>Captures funds remitted by the borrower toward a facility.
+Each payment breaks down into one or more allocations that settle specific obligations in priority order.
+Events emitted from payments update repayment plans, balances and close obligations once fully covered.</p>
+<div style="break-before: page; page-break-before: always;"></div><h2 id="terms"><a class="header" href="#terms">Terms</a></h2>
+<p>Terms is a <strong>value object</strong> that captures the parameters under which a credit facility operates.
+It is copied into a facility when the facility is created and does not change thereafter.</p>
+<h3 id="fields"><a class="header" href="#fields">Fields</a></h3>
+<p>The <code>TermValues</code> structure contains the following fields:</p>
+<ul>
+<li><code>annual_rate</code> – interest rate charged on outstanding principal.</li>
+<li><code>duration</code> – total length of the facility.</li>
+<li><code>interest_due_duration_from_accrual</code> – time from interest accrual to when that interest becomes due.</li>
+<li><code>obligation_overdue_duration_from_due</code> – optional grace period before a due obligation becomes overdue.</li>
+<li><code>obligation_liquidation_duration_from_due</code> – optional buffer before an overdue obligation is eligible for liquidation.</li>
+<li><code>accrual_cycle_interval</code> – cadence at which new interest obligations are generated.</li>
+<li><code>accrual_interval</code> – frequency used to calculate accrued interest within a cycle.</li>
+<li><code>one_time_fee_rate</code> – percentage fee taken at disbursal.</li>
+<li><code>liquidation_cvl</code> – collateral value limit that triggers liquidation.</li>
+<li><code>margin_call_cvl</code> – collateral value limit that triggers a margin call.</li>
+<li><code>initial_cvl</code> – collateral value limit required at facility creation.</li>
+</ul>
+<h3 id="terms-templates"><a class="header" href="#terms-templates">Terms Templates</a></h3>
+<p><code>TermsTemplate</code> is an entity used to persist a reusable set of term values.
+Credit facilities are <strong>not</strong> linked to templates; instead, a template’s values are
+copied into the facility at creation time.</p>
+<div style="break-before: page; page-break-before: always;"></div><h2 id="interest-process"><a class="header" href="#interest-process">Interest Process</a></h2>
+<p>Interest on a credit facility accrues periodically and is captured as new obligations.
+The process is orchestrated by a pair of jobs:</p>
+<ol>
+<li>
+<p><strong>Interest Accrual Job (<code>interest-accrual</code>)</strong> – confirms accrued interest for the current period.
+It records a ledger entry for the accrued amount and reschedules itself for the next
+accrual period. After the final period in a cycle, it spawns the cycle job.</p>
+</li>
+<li>
+<p><strong>Interest Accrual Cycle Job (<code>interest-accrual-cycle</code>)</strong> – posts the confirmed
+accruals for the completed cycle. This job creates an <code>Obligation</code> of type
+<em>Interest</em> and schedules the first accrual of the next cycle.</p>
+</li>
+</ol>
+<p>Each interest obligation is linked back to the facility so that when a borrower makes a
+<code>Payment</code>, <code>PaymentAllocation</code> records can reduce the outstanding interest balance.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="accounting"><a class="header" href="#accounting">Accounting</a></h1>
+<h2 id="chartofaccounts"><a class="header" href="#chartofaccounts"><code>ChartOfAccounts</code></a></h2>
+<h3 id="chartofaccountsintegrationconfig"><a class="header" href="#chartofaccountsintegrationconfig"><code>ChartOfAccountsIntegrationConfig</code></a></h3>
+<h2 id="fiscalyear"><a class="header" href="#fiscalyear"><code>FiscalYear</code></a></h2>
+<h3 id="financial-statements"><a class="header" href="#financial-statements">Financial Statements</a></h3>
+<h4 id="profitandlossstatement"><a class="header" href="#profitandlossstatement"><code>ProfitAndLossStatement</code></a></h4>
+<h4 id="balancesheet"><a class="header" href="#balancesheet"><code>BalanceSheet</code></a></h4>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="closing---transfer-net-income-from-profitandlossstatement-to-balancesheet"><a class="header" href="#closing---transfer-net-income-from-profitandlossstatement-to-balancesheet">Closing - Transfer Net Income from <code>ProfitAndLossStatement</code> to <code>BalanceSheet</code></a></h1>
+<h2 id="offsetting-effective-balances-of-profitandlossstatement-accounts"><a class="header" href="#offsetting-effective-balances-of-profitandlossstatement-accounts">Offsetting Effective Balances of <code>ProfitAndLossStatement</code> <code>Account</code>s</a></h2>
+<h3 id="negative-normal-balance-types"><a class="header" href="#negative-normal-balance-types">Negative Normal Balance Types</a></h3>
+<p>Cala effective balances can be negative. Offsetting negative normal balances with a closing transaction entry works different than a positive normal balance type.</p>
+<ul>
+<li>Code Site:</li>
+</ul>
+<pre><code>    pub fn settled(&amp;self) -&gt; Decimal {
+        if self.direction == DebitOrCredit::Credit {
+            self.details.settled.cr_balance - self.details.settled.dr_balance
+        } else {
+            self.details.settled.dr_balance - self.details.settled.cr_balance
+        }
+    }
+
+</code></pre>
+<h3 id="contra-accounts"><a class="header" href="#contra-accounts">Contra-Accounts</a></h3>
+<p>A contra-account is an <code>Account</code> of an <code>AccountSet</code> on the <code>ChartOfAccounts</code>, that has a different normal balance-type than its parent.</p>
+<p>Example, <code>lana-bank</code> operator accounts with a loan-loss provision. On a given month, the realized loan-losses were less than provision for a period. An Accountant/CFO, will make a manual transaction with an entry crediting a credit-normal <code>Expense</code> account - reducing the realized</p>
+<div style="break-before: page; page-break-before: always;"></div><h2 id="fiscalyear-1"><a class="header" href="#fiscalyear-1"><code>FiscalYear</code></a></h2>
+<h3 id="important-assumptions"><a class="header" href="#important-assumptions">Important Assumptions</a></h3>
+<ul>
+<li><code>ProfitAndLossStatement</code> accounts deal in USD only.</li>
+</ul>
+<h3 id="initialization"><a class="header" href="#initialization">Initialization</a></h3>
+<p>No transactions can be posted until the first <code>FiscalYear</code> entity has been initialized. An account set metadata update made to the root account set of the <code>Chart</code> the <code>FiscalYear</code> relates to enables velocity controls to be satisfied.</p>
+<p>There are 2 ways to initialize the first <code>FiscalYear</code>:</p>
+<ul>
+<li>
+<p>On initial startup if <code>accounting_init</code> has a <code>chart_of_accounts_opening_date</code> set in YAML.</p>
+</li>
+<li>
+<p>Via GraphQL mutation.</p>
+</li>
+</ul>
+<h3 id="closing-months-of-a-fiscalyear"><a class="header" href="#closing-months-of-a-fiscalyear">Closing Months of a <code>FiscalYear</code></a></h3>
+<p>Monthly closes lock the entire ledger against transactions with an <code>effective_date</code> before <code>month_closed_as_of</code>. To execute this entity command, the precondition that the month has past (according to <code>crate::time::now()</code>) must be satisfied. The command applies to the oldest, unclosed month of the <code>FiscalYear</code>.</p>
+<h3 id="closing-the-fiscalyear"><a class="header" href="#closing-the-fiscalyear">Closing the <code>FiscalYear</code></a></h3>
+<p>If the last month of a <code>FiscalYear</code> has been closed, the <code>FiscalYear</code> lifecycle can be completed. This posts a transaction to the ledger, with an <code>effective_date</code> set to the <code>FiscalYear</code>'s <code>closed_as_of</code>.</p>
+<p>The accounting significance of this transaction is to transfer net income for the <code>FiscalYear</code> from the <code>ProfitAndLossStatement</code> to the <code>BalanceSheet</code>.</p>
+<h3 id="open-the-next-fiscalyear"><a class="header" href="#open-the-next-fiscalyear">Open the next <code>FiscalYear</code></a></h3>
+<p>Required as an explicit action.</p>
+<div style="break-before: page; page-break-before: always;"></div><p>Entity Relationship Diagrams</p>
+<ul>
+<li><a href="erds/./cala.html">Cala</a></li>
+<li><a href="erds/./lana.html">Lana</a></li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="cala-ledger-erd"><a class="header" href="#cala-ledger-erd">Cala Ledger ERD</a></h1>
+<pre class="mermaid">erDiagram
+    cala_accounts {
+        UUID id PK
+        VARCHAR code UK
+        VARCHAR name
+        VARCHAR external_id UK
+        UUID data_source_id
+        DebitOrCredit normal_balance_type
+        BOOLEAN eventually_consistent
+        JSONB latest_values
+        TIMESTAMPTZ created_at
+    }
+
+    cala_account_events {
+        UUID id FK
+        INT sequence
+        VARCHAR event_type
+        JSONB event
+        TIMESTAMPTZ recorded_at
+    }
+
+    cala_journals {
+        UUID id PK
+        VARCHAR name
+        VARCHAR code UK
+        UUID data_source_id
+        TIMESTAMPTZ created_at
+    }
+
+    cala_journal_events {
+        UUID id FK
+        INT sequence
+        VARCHAR event_type
+        JSONB event
+        TIMESTAMPTZ recorded_at
+    }
+
+    cala_account_sets {
+        UUID id PK,FK
+        UUID journal_id FK
+        VARCHAR name
+        VARCHAR external_id UK
+        UUID data_source_id
+        TIMESTAMPTZ created_at
+    }
+
+    cala_account_set_events {
+        UUID id FK
+        INT sequence
+        VARCHAR event_type
+        JSONB event
+        TIMESTAMPTZ recorded_at
+    }
+
+    cala_account_set_member_accounts {
+        UUID account_set_id FK
+        UUID member_account_id FK
+        BOOLEAN transitive
+        TIMESTAMPTZ created_at
+    }
+
+    cala_account_set_member_account_sets {
+        UUID account_set_id FK
+        UUID member_account_set_id FK
+        TIMESTAMPTZ created_at
+    }
+
+    cala_tx_templates {
+        UUID id PK
+        UUID data_source_id
+        VARCHAR code UK
+        TIMESTAMPTZ created_at
+    }
+
+    cala_tx_template_events {
+        UUID id FK
+        INT sequence
+        VARCHAR event_type
+        JSONB event
+        TIMESTAMPTZ recorded_at
+    }
+
+    cala_transactions {
+        UUID id PK
+        UUID data_source_id
+        UUID journal_id FK
+        UUID tx_template_id FK
+        VARCHAR external_id UK
+        VARCHAR correlation_id
+        TIMESTAMPTZ created_at
+    }
+
+    cala_transaction_events {
+        UUID id FK
+        INT sequence
+        VARCHAR event_type
+        JSONB event
+        TIMESTAMPTZ recorded_at
+    }
+
+    cala_entries {
+        UUID id PK
+        UUID journal_id FK
+        UUID account_id FK
+        UUID transaction_id
+        UUID data_source_id
+        TIMESTAMPTZ created_at
+    }
+
+    cala_entry_events {
+        UUID id FK
+        INT sequence
+        VARCHAR event_type
+        JSONB event
+        TIMESTAMPTZ recorded_at
+    }
+
+    cala_current_balances {
+        UUID journal_id FK
+        UUID account_id FK
+        VARCHAR currency
+        INT latest_version
+        TIMESTAMPTZ created_at
+    }
+
+    cala_balance_history {
+        UUID journal_id
+        UUID account_id
+        UUID latest_entry_id FK
+        VARCHAR currency
+        INT version
+        JSONB values
+        TIMESTAMPTZ recorded_at
+    }
+
+    cala_velocity_limits {
+        UUID id PK
+        VARCHAR name
+        UUID data_source_id
+        TIMESTAMPTZ created_at
+    }
+
+    cala_velocity_limit_events {
+        UUID id FK
+        INT sequence
+        VARCHAR event_type
+        JSONB event
+        TIMESTAMPTZ recorded_at
+    }
+
+    cala_velocity_controls {
+        UUID id PK
+        VARCHAR name
+        UUID data_source_id
+        TIMESTAMPTZ created_at
+    }
+
+    cala_velocity_control_events {
+        UUID id FK
+        INT sequence
+        VARCHAR event_type
+        JSONB event
+        TIMESTAMPTZ recorded_at
+    }
+
+    cala_velocity_control_limits {
+        UUID velocity_control_id FK
+        UUID velocity_limit_id FK
+        TIMESTAMPTZ created_at
+    }
+
+    cala_velocity_account_controls {
+        UUID account_id FK
+        UUID velocity_control_id FK
+        JSONB values
+        TIMESTAMPTZ created_at
+    }
+
+    cala_velocity_current_balances {
+        UUID journal_id FK
+        UUID account_id FK
+        VARCHAR currency
+        UUID velocity_control_id FK
+        UUID velocity_limit_id FK
+        JSONB partition_window
+        INT latest_version
+        TIMESTAMPTZ created_at
+    }
+
+    cala_velocity_balance_history {
+        UUID journal_id
+        UUID account_id
+        VARCHAR currency
+        UUID velocity_control_id
+        UUID velocity_limit_id
+        JSONB partition_window
+        UUID latest_entry_id FK
+        INT version
+        JSONB values
+        TIMESTAMPTZ recorded_at
+    }
+
+    cala_outbox_events {
+        UUID id PK
+        BIGSERIAL sequence
+        JSONB payload
+        TIMESTAMPTZ recorded_at
+        TIMESTAMPTZ seen_at
+    }
+
+    %% Relationships
+    cala_accounts ||--o{ cala_account_events : &quot;has&quot;
+    cala_journals ||--o{ cala_journal_events : &quot;has&quot;
+    cala_accounts ||--o| cala_account_sets : &quot;is&quot;
+    cala_journals ||--o{ cala_account_sets : &quot;has&quot;
+    cala_account_sets ||--o{ cala_account_set_events : &quot;has&quot;
+    cala_account_sets ||--o{ cala_account_set_member_accounts : &quot;has&quot;
+    cala_accounts ||--o{ cala_account_set_member_accounts : &quot;belongs to&quot;
+    cala_account_sets ||--o{ cala_account_set_member_account_sets : &quot;has&quot;
+    cala_account_sets ||--o{ cala_account_set_member_account_sets : &quot;belongs to&quot;
+    cala_tx_templates ||--o{ cala_tx_template_events : &quot;has&quot;
+    cala_journals ||--o{ cala_transactions : &quot;has&quot;
+    cala_tx_templates ||--o{ cala_transactions : &quot;used in&quot;
+    cala_transactions ||--o{ cala_transaction_events : &quot;has&quot;
+    cala_journals ||--o{ cala_entries : &quot;has&quot;
+    cala_accounts ||--o{ cala_entries : &quot;has&quot;
+    cala_entries ||--o{ cala_entry_events : &quot;has&quot;
+    cala_journals ||--o{ cala_current_balances : &quot;has&quot;
+    cala_accounts ||--o{ cala_current_balances : &quot;has&quot;
+    cala_current_balances ||--o{ cala_balance_history : &quot;has&quot;
+    cala_entries ||--o{ cala_balance_history : &quot;latest entry&quot;
+    cala_velocity_limits ||--o{ cala_velocity_limit_events : &quot;has&quot;
+    cala_velocity_controls ||--o{ cala_velocity_control_events : &quot;has&quot;
+    cala_velocity_controls ||--o{ cala_velocity_control_limits : &quot;has&quot;
+    cala_velocity_limits ||--o{ cala_velocity_control_limits : &quot;used in&quot;
+    cala_accounts ||--o{ cala_velocity_account_controls : &quot;has&quot;
+    cala_velocity_controls ||--o{ cala_velocity_account_controls : &quot;applied to&quot;
+    cala_journals ||--o{ cala_velocity_current_balances : &quot;has&quot;
+    cala_accounts ||--o{ cala_velocity_current_balances : &quot;has&quot;
+    cala_velocity_controls ||--o{ cala_velocity_current_balances : &quot;applied to&quot;
+    cala_velocity_limits ||--o{ cala_velocity_current_balances : &quot;applied to&quot;
+    cala_velocity_current_balances ||--o{ cala_velocity_balance_history : &quot;has&quot;
+    cala_entries ||--o{ cala_velocity_balance_history : &quot;latest entry&quot;
+</pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="lana-core-erd"><a class="header" href="#lana-core-erd">Lana Core ERD</a></h1>
+<pre class="mermaid">erDiagram
+    committees {
+        UUID id PK
+        VARCHAR name UK
+        TIMESTAMPTZ created_at
+    }
+
+    committee_events {
+        UUID id FK
+        INT sequence
+        VARCHAR event_type
+        JSONB event
+        TIMESTAMPTZ recorded_at
+    }
+
+    policies {
+        UUID id PK
+        UUID committee_id FK
+        VARCHAR process_type UK
+        TIMESTAMPTZ created_at
+    }
+
+    policy_events {
+        UUID id FK
+        INT sequence
+        VARCHAR event_type
+        JSONB event
+        TIMESTAMPTZ recorded_at
+    }
+
+    approval_processes {
+        UUID id PK
+        UUID policy_id FK
+        UUID committee_id FK
+        VARCHAR process_type
+        TIMESTAMPTZ created_at
+    }
+
+    approval_process_events {
+        UUID id FK
+        INT sequence
+        VARCHAR event_type
+        JSONB event
+        TIMESTAMPTZ recorded_at
+    }
+
+    core_charts {
+        UUID id PK
+        VARCHAR reference UK
+        TIMESTAMPTZ created_at
+    }
+
+    core_chart_events {
+        UUID id FK
+        INT sequence
+        VARCHAR event_type
+        JSONB event
+        TIMESTAMPTZ recorded_at
+    }
+
+    core_deposit_configs {
+        UUID id PK
+        TIMESTAMPTZ created_at
+    }
+
+    core_deposit_config_events {
+        UUID id FK
+        INT sequence
+        VARCHAR event_type
+        JSONB event
+        TIMESTAMPTZ recorded_at
+    }
+
+    core_deposit_accounts {
+        UUID id PK
+        UUID account_holder_id
+        TIMESTAMPTZ created_at
+    }
+
+    core_deposit_account_events {
+        UUID id FK
+        INT sequence
+        VARCHAR event_type
+        JSONB event
+        TIMESTAMPTZ recorded_at
+    }
+
+    core_deposits {
+        UUID id PK
+        UUID deposit_account_id FK
+        VARCHAR reference UK
+        TIMESTAMPTZ created_at
+    }
+
+    core_deposit_events {
+        UUID id FK
+        INT sequence
+        VARCHAR event_type
+        JSONB event
+        TIMESTAMPTZ recorded_at
+    }
+
+    core_withdrawals {
+        UUID id PK
+        UUID deposit_account_id FK
+        UUID approval_process_id FK
+        UUID cancelled_tx_id
+        VARCHAR reference UK
+        TIMESTAMPTZ created_at
+    }
+
+    core_withdrawal_events {
+        UUID id FK
+        INT sequence
+        VARCHAR event_type
+        JSONB event
+        TIMESTAMPTZ recorded_at
+    }
+
+    customers {
+        UUID id PK
+        VARCHAR email UK
+        VARCHAR telegram_id UK
+        VARCHAR status
+        TIMESTAMPTZ created_at
+    }
+
+    customer_events {
+        UUID id FK
+        INT sequence
+        VARCHAR event_type
+        JSONB event
+        TIMESTAMPTZ recorded_at
+    }
+
+    terms_templates {
+        UUID id PK
+        VARCHAR name UK
+        TIMESTAMPTZ created_at
+    }
+
+    terms_template_events {
+        UUID id FK
+        INT sequence
+        VARCHAR event_type
+        JSONB event
+        TIMESTAMPTZ recorded_at
+    }
+
+    users {
+        UUID id PK
+        VARCHAR email UK
+        TIMESTAMPTZ created_at
+    }
+
+    user_events {
+        UUID id FK
+        INT sequence
+        VARCHAR event_type
+        JSONB event
+        TIMESTAMPTZ recorded_at
+    }
+
+    core_credit_facilities {
+        UUID id PK
+        UUID customer_id FK
+        UUID approval_process_id FK
+        NUMERIC collateralization_ratio
+        VARCHAR collateralization_state
+        VARCHAR status
+        TIMESTAMPTZ created_at
+    }
+
+    core_credit_facility_events {
+        UUID id FK
+        INT sequence
+        VARCHAR event_type
+        JSONB event
+        TIMESTAMPTZ recorded_at
+    }
+
+    core_payments {
+        UUID id PK
+        UUID credit_facility_id FK
+        TIMESTAMPTZ created_at
+    }
+
+    core_payment_events {
+        UUID id FK
+        INT sequence
+        VARCHAR event_type
+        JSONB event
+        TIMESTAMPTZ recorded_at
+    }
+
+    core_disbursals {
+        UUID id PK
+        UUID credit_facility_id FK
+        UUID approval_process_id FK
+        UUID concluded_tx_id
+        INT idx
+        TIMESTAMPTZ created_at
+    }
+
+    core_disbursal_events {
+        UUID id FK
+        INT sequence
+        VARCHAR event_type
+        JSONB event
+        TIMESTAMPTZ recorded_at
+    }
+
+    core_interest_accruals {
+        UUID id PK
+        UUID credit_facility_id FK
+        INT idx
+        TIMESTAMPTZ created_at
+    }
+
+    core_interest_accrual_events {
+        UUID id FK
+        INT sequence
+        VARCHAR event_type
+        JSONB event
+        TIMESTAMPTZ recorded_at
+    }
+
+    documents {
+        UUID id PK
+        BOOLEAN deleted
+        UUID customer_id FK
+        TIMESTAMPTZ created_at
+    }
+
+    document_events {
+        UUID id FK
+        INT sequence
+        VARCHAR event_type
+        JSONB event
+        TIMESTAMPTZ recorded_at
+    }
+
+    reports {
+        UUID id PK
+        TIMESTAMPTZ created_at
+    }
+
+    report_events {
+        UUID id FK
+        INT sequence
+        VARCHAR event_type
+        JSONB event
+        TIMESTAMPTZ recorded_at
+    }
+
+    jobs {
+        UUID id PK
+        BOOLEAN unique_per_type
+        VARCHAR job_type
+        TIMESTAMPTZ created_at
+    }
+
+    job_events {
+        UUID id FK
+        INT sequence
+        VARCHAR event_type
+        JSONB event
+        TIMESTAMPTZ recorded_at
+    }
+
+    job_executions {
+        UUID id FK
+        INT attempt_index
+        JobExecutionState state
+        JSONB execution_state_json
+        TIMESTAMPTZ reschedule_after
+        TIMESTAMPTZ created_at
+    }
+
+    casbin_rule {
+        SERIAL id PK
+        VARCHAR ptype
+        VARCHAR v0
+        VARCHAR v1
+        VARCHAR v2
+        VARCHAR v3
+        VARCHAR v4
+        VARCHAR v5
+    }
+
+    audit_entries {
+        BIGSERIAL id PK
+        VARCHAR subject
+        VARCHAR object
+        VARCHAR action
+        BOOLEAN authorized
+        TIMESTAMPTZ recorded_at
+    }
+
+    dashboards {
+        UUID id PK
+        JSONB dashboard_json
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ modified_at
+    }
+
+    sumsub_callbacks {
+        BIGSERIAL id PK
+        UUID customer_id
+        JSONB content
+        TIMESTAMPTZ recorded_at
+    }
+
+    persistent_outbox_events {
+        UUID id PK
+        BIGSERIAL sequence
+        JSONB payload
+        JSONB tracing_context
+        TIMESTAMPTZ recorded_at
+        TIMESTAMPTZ seen_at
+    }
+
+    %% Relationships
+    committees ||--o{ committee_events : &quot;has&quot;
+    committees ||--o{ policies : &quot;has&quot;
+    policies ||--o{ policy_events : &quot;has&quot;
+    policies ||--o{ approval_processes : &quot;guides&quot;
+    committees ||--o{ approval_processes : &quot;approves&quot;
+    approval_processes ||--o{ approval_process_events : &quot;has&quot;
+    core_charts ||--o{ core_chart_events : &quot;has&quot;
+    core_deposit_configs ||--o{ core_deposit_config_events : &quot;has&quot;
+    core_deposit_accounts ||--o{ core_deposit_account_events : &quot;has&quot;
+    core_deposit_accounts ||--o{ core_deposits : &quot;has&quot;
+    core_deposits ||--o{ core_deposit_events : &quot;has&quot;
+    core_deposit_accounts ||--o{ core_withdrawals : &quot;has&quot;
+    approval_processes ||--o{ core_withdrawals : &quot;approves&quot;
+    core_withdrawals ||--o{ core_withdrawal_events : &quot;has&quot;
+    customers ||--o{ customer_events : &quot;has&quot;
+    terms_templates ||--o{ terms_template_events : &quot;has&quot;
+    users ||--o{ user_events : &quot;has&quot;
+    customers ||--o{ core_credit_facilities : &quot;has&quot;
+    approval_processes ||--o{ core_credit_facilities : &quot;approves&quot;
+    core_credit_facilities ||--o{ core_credit_facility_events : &quot;has&quot;
+    core_credit_facilities ||--o{ core_payments : &quot;receives&quot;
+    core_payments ||--o{ core_payment_events : &quot;has&quot;
+    core_credit_facilities ||--o{ core_disbursals : &quot;has&quot;
+    approval_processes ||--o{ core_disbursals : &quot;approves&quot;
+    core_disbursals ||--o{ core_disbursal_events : &quot;has&quot;
+    core_credit_facilities ||--o{ core_interest_accruals : &quot;has&quot;
+    core_interest_accruals ||--o{ core_interest_accrual_events : &quot;has&quot;
+    customers ||--o{ documents : &quot;has&quot;
+    documents ||--o{ document_events : &quot;has&quot;
+    reports ||--o{ report_events : &quot;has&quot;
+    jobs ||--o{ job_events : &quot;has&quot;
+    jobs ||--|| job_executions : &quot;has&quot;
+    customers ||--o{ sumsub_callbacks : &quot;has&quot;
+</pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="mermaid.min.js"></script>
+        <script src="mermaid-init.js"></script>
+
+        <script>
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+
+
+    </div>
+    </body>
+</html>
