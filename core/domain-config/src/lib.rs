@@ -1,3 +1,101 @@
+//! # Domain Config
+//!
+//! Type-safe, event-sourced configuration management for domain-specific settings.
+//!
+//! ## Quick Start
+//!
+//! Define a configuration using one of the two macros:
+//!
+//! ### Exposed Configs (modifiable via API/UI)
+//!
+//! ```ignore
+//! use domain_config::{define_exposed_config, DomainConfigError};
+//!
+//! define_exposed_config! {
+//!     pub struct MyEmailConfig(String);
+//!     spec {
+//!         key: "my-email-config";
+//!         validate: |value: &String| {
+//!             if value.is_empty() {
+//!                 return Err(DomainConfigError::InvalidState("cannot be empty".into()));
+//!             }
+//!             Ok(())
+//!         };
+//!     }
+//! }
+//! ```
+//!
+//! ### Internal Configs (programmatic access only)
+//!
+//! For simple values:
+//! ```ignore
+//! use domain_config::define_internal_config;
+//!
+//! define_internal_config! {
+//!     pub struct MaxRetries(u64);
+//!     spec {
+//!         key: "max-retries";
+//!         default: || Some(3);
+//!     }
+//! }
+//! ```
+//!
+//! For complex structs (must derive `Serialize` + `Deserialize`):
+//! ```ignore
+//! use domain_config::define_internal_config;
+//! use serde::{Serialize, Deserialize};
+//!
+//! define_internal_config! {
+//!     #[derive(Clone, Debug, Serialize, Deserialize)]
+//!     pub struct FeatureFlags {
+//!         pub enable_notifications: bool,
+//!         pub max_batch_size: u64,
+//!     }
+//!     spec {
+//!         key: "feature-flags";
+//!     }
+//! }
+//! ```
+//!
+//! ## Reading and Writing Configs
+//!
+//! ```ignore
+//! let configs = DomainConfigs::new(&pool);
+//!
+//! // Create initial value
+//! configs.create::<MaxRetries>(5).await?;
+//!
+//! // Update existing value
+//! configs.update::<MaxRetries>(10).await?;
+//!
+//! // Create or update (upsert)
+//! configs.upsert::<MaxRetries>(10).await?;
+//!
+//! // Read config (returns default if not set but default exists)
+//! let config = configs.get::<MaxRetries>().await?;
+//! let value: Option<u64> = config.value();
+//! ```
+//!
+//! ## Spec Options
+//!
+//! Both macros support these optional spec fields:
+//! - `key`: (required) Unique string identifier for the config
+//! - `default`: Optional closure returning `Option<T>` for default value
+//! - `validate`: Optional closure for validation, returns `Result<(), DomainConfigError>`
+//!
+//! ## Visibility Difference
+//!
+//! | Macro | Visibility | Use Case |
+//! |-------|------------|----------|
+//! | `define_exposed_config!` | `Exposed` | Settings modifiable by users via API/UI |
+//! | `define_internal_config!` | `Internal` | System settings, only changed programmatically |
+//!
+//! ## Supported Simple Types
+//!
+//! For tuple-struct configs: `bool`, `String`, `i64`, `u64`, `rust_decimal::Decimal`
+//!
+//! For complex configs (struct form): Any type implementing `Serialize + DeserializeOwned`
+
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 

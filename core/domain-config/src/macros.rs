@@ -1,3 +1,7 @@
+//! Macros for defining domain configurations.
+//!
+//! See the crate-level documentation for usage examples.
+
 #[macro_export]
 #[doc(hidden)]
 macro_rules! __define_config_spec {
@@ -32,6 +36,26 @@ macro_rules! __define_config_spec {
     };
 }
 
+/// Define an exposed configuration (modifiable via API/UI).
+///
+/// Creates a tuple struct wrapping a simple type with `Visibility::Exposed`.
+/// Only supports simple types: `bool`, `String`, `i64`, `u64`, `Decimal`.
+///
+/// # Example
+/// ```ignore
+/// define_exposed_config! {
+///     pub struct NotificationEmail(String);
+///     spec {
+///         key: "notification-email";
+///         validate: |value: &String| {
+///             if value.is_empty() {
+///                 return Err(DomainConfigError::InvalidState("required".into()));
+///             }
+///             Ok(())
+///         };
+///     }
+/// }
+/// ```
 #[macro_export]
 macro_rules! define_exposed_config {
     (
@@ -58,6 +82,35 @@ macro_rules! define_exposed_config {
     };
 }
 
+/// Define an internal configuration (programmatic access only).
+///
+/// Supports two forms:
+///
+/// **Simple form** - tuple struct with a simple type:
+/// ```ignore
+/// define_internal_config! {
+///     pub struct MaxRetries(u64);
+///     spec {
+///         key: "max-retries";
+///         default: || Some(3);
+///     }
+/// }
+/// ```
+///
+/// **Complex form** - struct with multiple fields (requires `Serialize + Deserialize`):
+/// ```ignore
+/// define_internal_config! {
+///     #[derive(Clone, Serialize, Deserialize)]
+///     pub struct FiscalYearConfig {
+///         pub revenue_account: String,
+///         pub expense_account: String,
+///     }
+///     spec {
+///         key: "fiscal-year";
+///         validate: |value: &Self| { /* ... */ Ok(()) };
+///     }
+/// }
+/// ```
 #[macro_export]
 macro_rules! define_internal_config {
     (
