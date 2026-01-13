@@ -2,7 +2,7 @@
 
 **Lana** is a Bitcoin-backed lending platform that enables financial institutions of all sizes to offer fiat loans secured by Bitcoin collateral. Designed for easy integration, Lana streamlines the complex operational workflows associated with loan origination, collateral management, and liquidation.
 
-## Key Features
+# Key Features
 
 - **Rapid Deployment** – Reduce time to market from months to weeks with Lana's modular architecture
 - **Loan Origination & Management** – Automate loan creation, fee collection, and margin call management
