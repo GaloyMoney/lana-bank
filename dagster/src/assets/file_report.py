@@ -1,4 +1,4 @@
-from typing import Callable, List, Optional
+from typing import Callable, List, Literal, Optional, TypedDict
 
 import dagster as dg
 from generate_es_reports.constants import DEFAULT_REPORTS_YAML_PATH
@@ -13,6 +13,21 @@ from src.resources import (
     BigQueryResource,
     GCSResource,
 )
+
+
+class ReportFile(TypedDict):
+    """Represents a single file in a report."""
+
+    type: Literal["csv", "txt", "xml"]
+    path_in_bucket: str
+
+
+class Report(TypedDict):
+    """Represents a report with its metadata and associated files."""
+
+    name: str
+    norm: str
+    files: List[ReportFile]
 
 
 def get_dbt_asset_key_for_table(table_name: str) -> Optional[dg.AssetKey]:
@@ -62,13 +77,18 @@ def create_file_report_callable(
             log=context.log.info,
         )
 
+        report_file: ReportFile = {
+            "type": result["file_type"],
+            "path_in_bucket": result["gcs_path"],
+        }
+
         context.add_output_metadata(
             {
                 "norm": result["norm"],
                 "friendly_name": result["friendly_name"],
                 "file_type": result["file_type"],
-                "gcs_path": result["gcs_path"],
                 "row_count": result["row_count"],
+                "report_file": report_file,
             }
         )
 
@@ -137,7 +157,8 @@ def inform_lana_of_new_reports(context: dg.AssetExecutionContext) -> None:
 
     context.log.info(f"Checking {len(file_report_keys)} file report assets...")
 
-    reports_info = []
+    reports_by_name: dict[str, Report] = {}
+
     for asset_key in file_report_keys:
         materialization = context.instance.get_latest_materialization_event(asset_key)
 
@@ -147,30 +168,40 @@ def inform_lana_of_new_reports(context: dg.AssetExecutionContext) -> None:
 
         metadata = materialization.asset_materialization.metadata
 
-        report_info = {
-            "asset_key": "/".join(asset_key.path),
-            "norm": _extract_metadata_value(metadata, "norm"),
-            "friendly_name": _extract_metadata_value(metadata, "friendly_name"),
-            "file_type": _extract_metadata_value(metadata, "file_type"),
-            "gcs_path": _extract_metadata_value(metadata, "gcs_path"),
-            "row_count": _extract_metadata_value(metadata, "row_count"),
-        }
-        reports_info.append(report_info)
+        friendly_name = _extract_metadata_value(metadata, "friendly_name")
+        norm = _extract_metadata_value(metadata, "norm")
+        report_file = _extract_metadata_value(metadata, "report_file")
 
+        if not report_file:
+            context.log.warning(f"No report_file metadata found for {asset_key}")
+            continue
+
+        if friendly_name not in reports_by_name:
+            reports_by_name[friendly_name] = Report(
+                name=friendly_name,
+                norm=norm,
+                files=[],
+            )
+
+        reports_by_name[friendly_name]["files"].append(report_file)
+
+    all_reports: List[Report] = list(reports_by_name.values())
+
+    context.log.info(f"Total reports collected: {len(all_reports)}")
+    for report in all_reports:
+        file_types = [f["type"] for f in report["files"]]
         context.log.info(
-            f"Report: {report_info['friendly_name']} "
-            f"(norm={report_info['norm']}, type={report_info['file_type']}, "
-            f"rows={report_info['row_count']})"
+            f"Report: name={report['name']}, "
+            f"norm={report['norm']}, "
+            f"files={len(report['files'])} ({', '.join(file_types)})"
         )
-        context.log.info(f"  GCS path: {report_info['gcs_path']}")
 
-    context.log.info(f"Total reports collected: {len(reports_info)}")
     context.log.info("TODO: Notification would be sent to Lana system here.")
 
     context.add_output_metadata(
         {
-            "reports_count": len(reports_info),
-            "reports": reports_info,
+            "reports_count": len(all_reports),
+            "reports": all_reports,
         }
     )
 
