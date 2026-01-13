@@ -269,7 +269,7 @@ has_bigquery_credentials() {
   fi
 }
 
-@test "dagster: materialize dbt seed static_ncf_01_03_row_titles_seed and verify success" {
+@test "dagster: materialize dbt seeds and verify success" {
   if [[ "${DAGSTER}" != "true" ]]; then
     skip "Skipping dagster tests"
   fi
@@ -287,15 +287,12 @@ has_bigquery_credentials() {
     return 1
   fi
 
-  variables=$(jq -n --argjson path "$seed_asset_path" '{
+  variables=$(jq -n '{
     executionParams: {
       selector: {
         repositoryLocationName: "Lana DW",
         repositoryName: "__repository__",
-        jobName: "__ASSET_JOB",
-        assetSelection: [
-          { path: $path }
-        ]
+        jobName: "dbt_seeds_job"
       },
       runConfigData: {}
     }
@@ -306,14 +303,14 @@ has_bigquery_credentials() {
 
   run_id=$(echo "$output" | jq -r '.data.launchRun.run.runId // empty')
   if [ -z "$run_id" ]; then
-    echo "Failed to launch seed materialization - no runId returned"
+    echo "Failed to launch dbt_seeds_job - no runId returned"
     echo "Response: $output"
     return 1
   fi
 
-  echo "Launched seed materialization with run ID: $run_id"
+  echo "Launched dbt_seeds_job with run ID: $run_id"
 
-  dagster_poll_run_status "$run_id" 120 2 || return 1
+  dagster_poll_run_status "$run_id" 480 2 || return 1
 
   asset_vars=$(jq -n --argjson path "$seed_asset_path" '{
     assetKey: { path: $path }
