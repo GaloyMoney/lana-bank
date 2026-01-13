@@ -245,20 +245,6 @@ export const mockBalanceSheetModuleConfig = (overrides?: Partial<BalanceSheetMod
         chartOfAccountsCostOfRevenueCode: overrides && overrides.hasOwnProperty('chartOfAccountsCostOfRevenueCode') ? overrides.chartOfAccountsCostOfRevenueCode! : faker.lorem.word(),
         chartOfAccountsEquityCode: overrides && overrides.hasOwnProperty('chartOfAccountsEquityCode') ? overrides.chartOfAccountsEquityCode! : faker.lorem.word(),
         chartOfAccountsExpensesCode: overrides && overrides.hasOwnProperty('chartOfAccountsExpensesCode') ? overrides.chartOfAccountsExpensesCode! : faker.lorem.word(),
-        chartOfAccountsId: overrides && overrides.hasOwnProperty('chartOfAccountsId') ? overrides.chartOfAccountsId! : generateMockValue.uuid(),
-        chartOfAccountsLiabilitiesCode: overrides && overrides.hasOwnProperty('chartOfAccountsLiabilitiesCode') ? overrides.chartOfAccountsLiabilitiesCode! : faker.lorem.word(),
-        chartOfAccountsRevenueCode: overrides && overrides.hasOwnProperty('chartOfAccountsRevenueCode') ? overrides.chartOfAccountsRevenueCode! : faker.lorem.word(),
-    };
-};
-
-export const mockBalanceSheetModuleConfigureInput = (overrides?: Partial<BalanceSheetModuleConfigureInput>, _relationshipsToOmit: Set<string> = new Set()): BalanceSheetModuleConfigureInput => {
-    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
-    relationshipsToOmit.add('BalanceSheetModuleConfigureInput');
-    return {
-        chartOfAccountsAssetsCode: overrides && overrides.hasOwnProperty('chartOfAccountsAssetsCode') ? overrides.chartOfAccountsAssetsCode! : faker.lorem.word(),
-        chartOfAccountsCostOfRevenueCode: overrides && overrides.hasOwnProperty('chartOfAccountsCostOfRevenueCode') ? overrides.chartOfAccountsCostOfRevenueCode! : faker.lorem.word(),
-        chartOfAccountsEquityCode: overrides && overrides.hasOwnProperty('chartOfAccountsEquityCode') ? overrides.chartOfAccountsEquityCode! : faker.lorem.word(),
-        chartOfAccountsExpensesCode: overrides && overrides.hasOwnProperty('chartOfAccountsExpensesCode') ? overrides.chartOfAccountsExpensesCode! : faker.lorem.word(),
         chartOfAccountsLiabilitiesCode: overrides && overrides.hasOwnProperty('chartOfAccountsLiabilitiesCode') ? overrides.chartOfAccountsLiabilitiesCode! : faker.lorem.word(),
         chartOfAccountsRevenueCode: overrides && overrides.hasOwnProperty('chartOfAccountsRevenueCode') ? overrides.chartOfAccountsRevenueCode! : faker.lorem.word(),
     };
@@ -1951,11 +1937,7 @@ export const mockFiscalYearModuleConfigureInput = (overrides?: Partial<FiscalYea
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('FiscalYearModuleConfigureInput');
     return {
-        costOfRevenueAccountCode: overrides && overrides.hasOwnProperty('costOfRevenueAccountCode') ? overrides.costOfRevenueAccountCode! : faker.lorem.word(),
-        equityRetainedEarningsAccountCode: overrides && overrides.hasOwnProperty('equityRetainedEarningsAccountCode') ? overrides.equityRetainedEarningsAccountCode! : faker.lorem.word(),
-        equityRetainedLossesAccountCode: overrides && overrides.hasOwnProperty('equityRetainedLossesAccountCode') ? overrides.equityRetainedLossesAccountCode! : faker.lorem.word(),
-        expensesAccountCode: overrides && overrides.hasOwnProperty('expensesAccountCode') ? overrides.expensesAccountCode! : faker.lorem.word(),
-        revenueAccountCode: overrides && overrides.hasOwnProperty('revenueAccountCode') ? overrides.revenueAccountCode! : faker.lorem.word(),
+        chartId: overrides && overrides.hasOwnProperty('chartId') ? overrides.chartId! : generateMockValue.uuid(),
     };
 };
 
@@ -2664,16 +2646,6 @@ export const mockPolicyEdge = (overrides?: Partial<PolicyEdge>, _relationshipsTo
     };
 };
 
-export const mockProfitAndLossModuleConfigureInput = (overrides?: Partial<ProfitAndLossModuleConfigureInput>, _relationshipsToOmit: Set<string> = new Set()): ProfitAndLossModuleConfigureInput => {
-    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
-    relationshipsToOmit.add('ProfitAndLossModuleConfigureInput');
-    return {
-        chartOfAccountsCostOfRevenueCode: overrides && overrides.hasOwnProperty('chartOfAccountsCostOfRevenueCode') ? overrides.chartOfAccountsCostOfRevenueCode! : faker.lorem.word(),
-        chartOfAccountsExpensesCode: overrides && overrides.hasOwnProperty('chartOfAccountsExpensesCode') ? overrides.chartOfAccountsExpensesCode! : faker.lorem.word(),
-        chartOfAccountsRevenueCode: overrides && overrides.hasOwnProperty('chartOfAccountsRevenueCode') ? overrides.chartOfAccountsRevenueCode! : faker.lorem.word(),
-    };
-};
-
 export const mockProfitAndLossStatement = (overrides?: Partial<ProfitAndLossStatement>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'ProfitAndLossStatement' } & ProfitAndLossStatement => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('ProfitAndLossStatement');
@@ -2692,7 +2664,6 @@ export const mockProfitAndLossStatementModuleConfig = (overrides?: Partial<Profi
         __typename: 'ProfitAndLossStatementModuleConfig',
         chartOfAccountsCostOfRevenueCode: overrides && overrides.hasOwnProperty('chartOfAccountsCostOfRevenueCode') ? overrides.chartOfAccountsCostOfRevenueCode! : faker.lorem.word(),
         chartOfAccountsExpensesCode: overrides && overrides.hasOwnProperty('chartOfAccountsExpensesCode') ? overrides.chartOfAccountsExpensesCode! : faker.lorem.word(),
-        chartOfAccountsId: overrides && overrides.hasOwnProperty('chartOfAccountsId') ? overrides.chartOfAccountsId! : generateMockValue.uuid(),
         chartOfAccountsRevenueCode: overrides && overrides.hasOwnProperty('chartOfAccountsRevenueCode') ? overrides.chartOfAccountsRevenueCode! : faker.lorem.word(),
     };
 };

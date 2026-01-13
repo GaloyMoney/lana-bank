@@ -2370,7 +2370,6 @@ impl Mutation {
     async fn balance_sheet_configure(
         &self,
         ctx: &Context<'_>,
-        input: BalanceSheetModuleConfigureInput,
     ) -> async_graphql::Result<BalanceSheetModuleConfigurePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
@@ -2379,26 +2378,6 @@ impl Mutation {
             .load_one(CHART_REF)
             .await?
             .unwrap_or_else(|| panic!("Chart of accounts not found for ref {CHART_REF:?}"));
-
-        let BalanceSheetModuleConfigureInput {
-            chart_of_accounts_assets_code,
-            chart_of_accounts_liabilities_code,
-            chart_of_accounts_equity_code,
-            chart_of_accounts_revenue_code,
-            chart_of_accounts_cost_of_revenue_code,
-            chart_of_accounts_expenses_code,
-        } = input;
-
-        let _config_values = lana_app::balance_sheet::ChartOfAccountsIntegrationConfig {
-            chart_of_accounts_id: chart.id,
-            chart_of_accounts_assets_code: chart_of_accounts_assets_code.parse()?,
-            chart_of_accounts_liabilities_code: chart_of_accounts_liabilities_code.parse()?,
-            chart_of_accounts_equity_code: chart_of_accounts_equity_code.parse()?,
-            chart_of_accounts_revenue_code: chart_of_accounts_revenue_code.parse()?,
-            chart_of_accounts_cost_of_revenue_code: chart_of_accounts_cost_of_revenue_code
-                .parse()?,
-            chart_of_accounts_expenses_code: chart_of_accounts_expenses_code.parse()?,
-        };
 
         let config = app
             .accounting()
@@ -2417,7 +2396,6 @@ impl Mutation {
     async fn profit_and_loss_statement_configure(
         &self,
         ctx: &Context<'_>,
-        input: ProfitAndLossModuleConfigureInput,
     ) -> async_graphql::Result<ProfitAndLossStatementModuleConfigurePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
@@ -2426,20 +2404,6 @@ impl Mutation {
             .load_one(CHART_REF)
             .await?
             .unwrap_or_else(|| panic!("Chart of accounts not found for ref {CHART_REF:?}"));
-
-        let ProfitAndLossModuleConfigureInput {
-            chart_of_accounts_revenue_code,
-            chart_of_accounts_cost_of_revenue_code,
-            chart_of_accounts_expenses_code,
-        } = input;
-
-        let _config_values = lana_app::profit_and_loss::ChartOfAccountsIntegrationConfig {
-            chart_of_accounts_id: chart.id,
-            chart_of_accounts_revenue_code: chart_of_accounts_revenue_code.parse()?,
-            chart_of_accounts_cost_of_revenue_code: chart_of_accounts_cost_of_revenue_code
-                .parse()?,
-            chart_of_accounts_expenses_code: chart_of_accounts_expenses_code.parse()?,
-        };
 
         let config = app
             .accounting()
