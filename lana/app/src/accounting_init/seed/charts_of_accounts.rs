@@ -143,7 +143,7 @@ async fn seed_chart_of_accounts(
     }
 
     if let Some(config_path) = fiscal_year_config_path {
-        fiscal_year_module_configure(fiscal_year, config_path)
+        fiscal_year_module_configure(fiscal_year, &chart, config_path)
             .await
             .unwrap_or_else(|e| {
                 dbg!(&e); // TODO: handle the un-returned error differently
