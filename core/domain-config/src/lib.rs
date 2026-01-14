@@ -24,8 +24,8 @@ pub use error::DomainConfigError;
 pub use inventory;
 pub use primitives::{
     ConfigType, DomainConfigAction, DomainConfigEntityAction, DomainConfigId, DomainConfigKey,
-    DomainConfigObject, ExposedConfigAllOrOne, PERMISSION_SET_EXPOSED_CONFIGS_VIEWER,
-    PERMISSION_SET_EXPOSED_CONFIGS_WRITER, Visibility,
+    DomainConfigObject, ExposedConfigAllOrOne, PERMISSION_SET_EXPOSED_CONFIG_VIEWER,
+    PERMISSION_SET_EXPOSED_CONFIG_WRITER, Visibility,
 };
 pub use repo::domain_config_cursor::DomainConfigsByKeyCursor;
 pub use spec::{Complex, ConfigSpec, ExposedConfig, InternalConfig, Simple, ValueKind};

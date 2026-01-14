@@ -116,8 +116,8 @@ impl FromStr for DomainConfigKey {
     }
 }
 
-pub const PERMISSION_SET_EXPOSED_CONFIGS_VIEWER: &str = "exposed_configs_viewer";
-pub const PERMISSION_SET_EXPOSED_CONFIGS_WRITER: &str = "exposed_configs_writer";
+pub const PERMISSION_SET_EXPOSED_CONFIG_VIEWER: &str = "exposed_config_viewer";
+pub const PERMISSION_SET_EXPOSED_CONFIG_WRITER: &str = "exposed_config_writer";
 
 pub type ExposedConfigAllOrOne = AllOrOne<DomainConfigId>;
 
@@ -212,8 +212,8 @@ pub enum DomainConfigEntityAction {
 impl ActionPermission for DomainConfigEntityAction {
     fn permission_set(&self) -> &'static str {
         match self {
-            Self::Read => PERMISSION_SET_EXPOSED_CONFIGS_VIEWER,
-            Self::Write => PERMISSION_SET_EXPOSED_CONFIGS_WRITER,
+            Self::Read => PERMISSION_SET_EXPOSED_CONFIG_VIEWER,
+            Self::Write => PERMISSION_SET_EXPOSED_CONFIG_WRITER,
         }
     }
 }

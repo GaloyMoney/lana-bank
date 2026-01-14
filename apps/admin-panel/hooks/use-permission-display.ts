@@ -97,15 +97,15 @@ export function usePermissionDisplay() {
           label: t("deposit_unfreeze.label"),
           description: t("deposit_unfreeze.description"),
         }
-      case PermissionSetName.ExposedConfigsViewer:
+      case PermissionSetName.ExposedConfigViewer:
         return {
-          label: t("exposed_configs_viewer.label"),
-          description: t("exposed_configs_viewer.description"),
+          label: t("exposed_config_viewer.label"),
+          description: t("exposed_config_viewer.description"),
         }
-      case PermissionSetName.ExposedConfigsWriter:
+      case PermissionSetName.ExposedConfigWriter:
         return {
-          label: t("exposed_configs_writer.label"),
-          description: t("exposed_configs_writer.description"),
+          label: t("exposed_config_writer.label"),
+          description: t("exposed_config_writer.description"),
         }
       case PermissionSetName.GovernanceViewer:
         return {
