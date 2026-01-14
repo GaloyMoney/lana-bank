@@ -98,6 +98,29 @@ impl From<DomainCreditFacilityProposal> for CreditFacilityProposal {
     }
 }
 
+#[derive(SimpleObject)]
+#[graphql(complex)]
+pub struct CreditFacilityProposalConcludedPayload {
+    pub status: CreditFacilityProposalStatus,
+    #[graphql(skip)]
+    pub credit_facility_proposal_id: CreditFacilityProposalId,
+}
+
+#[ComplexObject]
+impl CreditFacilityProposalConcludedPayload {
+    async fn credit_facility_proposal(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<CreditFacilityProposal> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let proposal = loader
+            .load_one(self.credit_facility_proposal_id)
+            .await?
+            .expect("credit facility proposal not found");
+        Ok(proposal)
+    }
+}
+
 #[derive(InputObject)]
 pub struct CreditFacilityProposalCreateInput {
     pub customer_id: UUID,

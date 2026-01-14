@@ -129,24 +129,30 @@ where
         new_events: es_entity::LastPersisted<'_, CreditFacilityProposalEvent>,
     ) -> Result<(), CreditFacilityProposalError> {
         use CreditFacilityProposalEvent::*;
-        let publish_events = new_events
-            .filter_map(|event| match &event.event {
+        let mut publish_events = Vec::new();
+        for event in new_events {
+            match &event.event {
                 Initialized { amount, terms, .. } => {
-                    Some(CoreCreditEvent::FacilityProposalCreated {
+                    publish_events.push(CoreCreditEvent::FacilityProposalCreated {
                         id: entity.id,
                         terms: *terms,
                         amount: *amount,
                         created_at: entity.created_at(),
-                    })
+                    });
                 }
-                ApprovalProcessConcluded { status, .. }
-                    if *status == CreditFacilityProposalStatus::Approved =>
-                {
-                    Some(CoreCreditEvent::FacilityProposalApproved { id: entity.id })
+                ApprovalProcessConcluded { status, .. } => {
+                    if *status == CreditFacilityProposalStatus::Approved {
+                        publish_events
+                            .push(CoreCreditEvent::FacilityProposalApproved { id: entity.id });
+                    }
+                    publish_events.push(CoreCreditEvent::FacilityProposalConcluded {
+                        id: entity.id,
+                        status: *status,
+                    });
                 }
-                _ => None,
-            })
-            .collect::<Vec<_>>();
+                _ => {}
+            }
+        }
 
         self.outbox
             .publish_all_persisted(op, publish_events)

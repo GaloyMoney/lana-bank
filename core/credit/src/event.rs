@@ -26,6 +26,10 @@ pub enum CoreCreditEvent {
     FacilityProposalApproved {
         id: CreditFacilityProposalId,
     },
+    FacilityProposalConcluded {
+        id: CreditFacilityProposalId,
+        status: CreditFacilityProposalStatus,
+    },
     PendingCreditFacilityCollateralizationChanged {
         id: PendingCreditFacilityId,
         state: PendingCreditFacilityCollateralizationState,

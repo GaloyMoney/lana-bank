@@ -2661,6 +2661,40 @@ impl Subscription {
         Ok(updates)
     }
 
+    async fn credit_facility_proposal_concluded(
+        &self,
+        ctx: &Context<'_>,
+        credit_facility_proposal_id: UUID,
+    ) -> async_graphql::Result<impl Stream<Item = CreditFacilityProposalConcludedPayload>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let credit_facility_proposal_id =
+            CreditFacilityProposalId::from(credit_facility_proposal_id);
+
+        app.credit()
+            .proposals()
+            .find_by_id(sub, credit_facility_proposal_id)
+            .await?;
+
+        let stream = app.outbox().listen_persisted(None);
+        let updates = stream.filter_map(move |event| async move {
+            let payload = event.payload.as_ref()?;
+            let event: &CoreCreditEvent = payload.as_event()?;
+            match event {
+                CoreCreditEvent::FacilityProposalConcluded { id, status }
+                    if *id == credit_facility_proposal_id =>
+                {
+                    Some(CreditFacilityProposalConcludedPayload {
+                        credit_facility_proposal_id,
+                        status: *status,
+                    })
+                }
+                _ => None,
+            }
+        });
+
+        Ok(updates)
+    }
+
     async fn credit_facility_collateralization_updated(
         &self,
         ctx: &Context<'_>,
