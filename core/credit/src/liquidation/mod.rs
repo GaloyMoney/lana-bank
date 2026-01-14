@@ -95,6 +95,8 @@ where
             pool, publisher,
         ));
 
+        let clock = jobs.clock().clone();
+
         let partial_liquidation_job_spawner =
             jobs.add_initializer(jobs::partial_liquidation::PartialLiquidationInit::new(
                 outbox,
@@ -127,7 +129,7 @@ where
         Ok(Self {
             repo: repo_arc,
             authz,
-            ledger: LiquidationLedger::init(cala, journal_id).await?,
+            ledger: LiquidationLedger::init(cala, journal_id, clock).await?,
             proceeds_omnibus_account_ids: proceeds_omnibus_account_ids.clone(),
         })
     }

@@ -229,7 +229,7 @@ where
             .get_pending_credit_facility_balance(pending_facility.account_ids)
             .await?;
 
-        match pending_facility.complete(balances, price, crate::time::now()) {
+        match pending_facility.complete(balances, price, self.ledger.clock.now()) {
             Ok(es_entity::Idempotent::Executed(NewCreditFacilityWithInitialDisbursal {
                 new_credit_facility,
                 initial_disbursal,
