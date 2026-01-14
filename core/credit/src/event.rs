@@ -134,6 +134,12 @@ pub enum CoreCreditEvent {
         trigger_price: PriceOfOneBTC,
         initially_expected_to_receive: UsdCents,
         initially_estimated_to_liquidate: Satoshis,
+        collateral_account_id: CalaAccountId,
+        collateral_in_liquidation_account_id: CalaAccountId,
+        liquidated_collateral_account_id: CalaAccountId,
+        proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccountId,
+        payment_holding_account_id: CalaAccountId,
+        uncovered_outstanding_account_id: CalaAccountId,
     },
     PartialLiquidationCollateralSentOut {
         liquidation_id: LiquidationId,

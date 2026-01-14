@@ -1,5 +1,6 @@
 mod entity;
 pub mod error;
+mod jobs;
 mod ledger;
 mod repo;
 
@@ -15,8 +16,10 @@ use cala_ledger::{
     AccountId as CalaAccountId, CalaLedger, JournalId, TransactionId as CalaTransactionId,
 };
 use core_accounting::LedgerTransactionInitiator;
+use core_custody::CoreCustodyEvent;
 use core_money::{Satoshis, UsdCents};
-use es_entity::{DbOp, Idempotent};
+use es_entity::Idempotent;
+use governance::GovernanceEvent;
 use obix::out::OutboxEventMarker;
 
 use crate::{
@@ -33,9 +36,11 @@ pub use repo::liquidation_cursor;
 pub struct Liquidations<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
-    repo: LiquidationRepo<E>,
+    repo: Arc<LiquidationRepo<E>>,
     authz: Arc<Perms>,
     ledger: LiquidationLedger,
     proceeds_omnibus_account_ids: LedgerOmnibusAccountIds,
@@ -44,7 +49,9 @@ where
 impl<Perms, E> Clone for Liquidations<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -61,7 +68,9 @@ where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     pub async fn init(
         pool: &sqlx::PgPool,
@@ -70,55 +79,25 @@ where
         proceeds_omnibus_account_ids: &LedgerOmnibusAccountIds,
         authz: Arc<Perms>,
         publisher: &crate::CreditFacilityPublisher<E>,
+        jobs: &mut job::Jobs,
+        outbox: &obix::Outbox<E>,
     ) -> Result<Self, LiquidationError> {
+        let repo_arc = Arc::new(LiquidationRepo::new(pool, publisher));
+
+        let _credit_facility_liquidations_job_spawner = jobs.add_initializer(
+            jobs::credit_facility_liquidations::CreditFacilityLiquidationsInit::new(
+                outbox,
+                repo_arc.clone(),
+                proceeds_omnibus_account_ids,
+            ),
+        );
+
         Ok(Self {
-            repo: LiquidationRepo::new(pool, publisher),
+            repo: repo_arc,
             authz,
             ledger: LiquidationLedger::init(cala, journal_id).await?,
             proceeds_omnibus_account_ids: proceeds_omnibus_account_ids.clone(),
         })
-    }
-
-    #[instrument(
-        name = "credit.liquidation.create_if_not_exist_for_facility_in_op",
-        skip(self, db, new_liquidation),
-        fields(existing_liquidation_found),
-        err
-    )]
-    pub async fn create_if_not_exist_for_facility_in_op(
-        &self,
-        db: &mut DbOp<'_>,
-        credit_facility_id: CreditFacilityId,
-        new_liquidation: &mut NewLiquidationBuilder,
-    ) -> Result<Option<Liquidation>, LiquidationError> {
-        let existing_liquidation = self
-            .repo
-            .maybe_find_active_liquidation_for_credit_facility_id_in_op(
-                &mut *db,
-                credit_facility_id,
-            )
-            .await?;
-
-        tracing::Span::current()
-            .record("existing_liquidation_found", existing_liquidation.is_some());
-
-        if existing_liquidation.is_none() {
-            let liquidation = self
-                .repo
-                .create_in_op(
-                    db,
-                    new_liquidation
-                        .liquidation_proceeds_omnibus_account_id(
-                            self.proceeds_omnibus_account_ids.account_id,
-                        )
-                        .build()
-                        .expect("Could not build new liquidation"),
-                )
-                .await?;
-            Ok(Some(liquidation))
-        } else {
-            Ok(None)
-        }
     }
 
     pub(super) async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, LiquidationError> {

@@ -58,7 +58,6 @@ use error::*;
 pub use event::*;
 use for_subject::CreditFacilitiesForSubject;
 pub use history::*;
-// use jobs::*;
 pub use ledger::*;
 pub use liquidation::{liquidation_cursor::*, *};
 pub use obligation::{error::*, obligation_cursor::*, *};
@@ -223,6 +222,8 @@ where
             ledger_arc.liquidation_proceeds_omnibus_account_ids(),
             authz_arc.clone(),
             &publisher,
+            jobs,
+            outbox,
         )
         .await?;
         let liquidations_arc = Arc::new(liquidations);
