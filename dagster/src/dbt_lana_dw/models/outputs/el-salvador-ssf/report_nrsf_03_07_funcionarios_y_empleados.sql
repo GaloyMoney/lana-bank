@@ -12,5 +12,4 @@ select
     left(`Número Telefónico`, 10) as `Número Telefónico`,
     left(`Departamento`, 25) as `Departamento`,
     left(`Relacionado por administración`, 1) as `Relacionado por administración`
-from
-    {{ ref('int_nrsf_03_07_funcionarios_y_empleados') }}
+from {{ ref("int_nrsf_03_07_funcionarios_y_empleados") }}

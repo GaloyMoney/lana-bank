@@ -26,5 +26,4 @@ select
     left(`Tipo de relación`, 1) as `Tipo de relación`,
     left(`Agencia`, 7) as `Agencia`,
     cast(round(`Saldo garantizado`, 2) as string) as `Saldo garantizado`
-from
-    {{ ref('int_nrsf_03_01_cliente') }}
+from {{ ref("int_nrsf_03_01_cliente") }}

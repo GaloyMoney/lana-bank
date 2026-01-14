@@ -14,5 +14,4 @@ select
     cast(`Saldo de capital` as string) as `Saldo de capital`,
     cast(round(`Saldo de intereses`, 2) as string) as `Saldo de intereses`,
     cast(`Saldo garantizado` as string) as `Saldo garantizado`
-from
-    {{ ref('int_nrsf_03_08_resumen_de_depositos_garantizados') }}
+from {{ ref("int_nrsf_03_08_resumen_de_depositos_garantizados") }}
