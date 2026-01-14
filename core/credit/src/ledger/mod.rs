@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
 use audit::AuditInfo;
-use core_accounting::{EntityRef, LedgerTransactionInitiator};
+use core_accounting::{CalaAccountSetId, EntityRef, LedgerTransactionInitiator};
 
 mod balance;
 mod constants;
@@ -33,8 +33,8 @@ use crate::{
     payment_allocation::PaymentAllocation,
     primitives::{
         COLLATERAL_ENTITY_TYPE, CREDIT_FACILITY_ENTITY_TYPE, CREDIT_FACILITY_PROPOSAL_ENTITY_TYPE,
-        CalaAccountId, CalaAccountSetId, CollateralAction, CollateralId, CollateralUpdate,
-        CreditFacilityId, CustomerType, DisbursalId, DisbursedReceivableAccountCategory,
+        CalaAccountId, CollateralAction, CollateralId, CollateralUpdate, CreditFacilityId,
+        CustomerType, DisbursalId, DisbursedReceivableAccountCategory,
         DisbursedReceivableAccountType, InterestReceivableAccountType, LedgerOmnibusAccountIds,
         LedgerTxId, PendingCreditFacilityId, Satoshis, UsdCents,
     },

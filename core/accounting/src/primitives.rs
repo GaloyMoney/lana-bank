@@ -439,7 +439,7 @@ impl ErrorSeverity for AccountingBaseConfigError {
     fn severity(&self) -> Level {
         match self {
             Self::DuplicateAccountCode(_) => Level::ERROR,
-            Self::AccountCodeNotTopLevel(_) => Level::WARN,
+            Self::AccountCodeNotTopLevel(_) => Level::ERROR,
         }
     }
 }
@@ -484,6 +484,41 @@ impl AccountingBaseConfig {
             ));
         }
         Ok(())
+    }
+
+    pub fn is_assets_account_set_member(&self, code: &AccountCode) -> bool {
+        self.assets_code.is_parent_of(&code.sections)
+    }
+
+    pub fn is_liabilities_account_set_member(&self, code: &AccountCode) -> bool {
+        self.liabilities_code.is_parent_of(&code.sections)
+    }
+
+    pub fn is_equity_account_set_member(&self, code: &AccountCode) -> bool {
+        self.equity_code.is_parent_of(&code.sections)
+    }
+
+    pub fn is_revenue_account_set_member(&self, code: &AccountCode) -> bool {
+        self.revenue_code.is_parent_of(&code.sections)
+    }
+
+    pub fn is_off_balance_sheet_account_set_member(&self, code: &AccountCode) -> bool {
+        let on_balance_sheet_categories = [
+            &self.assets_code,
+            &self.liabilities_code,
+            &self.equity_code,
+            &self.revenue_code,
+            &self.cost_of_revenue_code,
+            &self.expenses_code,
+        ];
+
+        for category in on_balance_sheet_categories {
+            if category.is_parent_of(&code.sections) {
+                return false;
+            }
+        }
+
+        true
     }
 }
 
