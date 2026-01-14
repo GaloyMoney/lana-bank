@@ -1,13 +1,18 @@
 mod entry;
 pub mod error;
+mod jobs;
 mod repo;
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 
 use obix::EventSequence;
+use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{event::CoreCreditEvent, primitives::*, terms::TermValues};
+use error::CreditFacilityRepaymentPlanError;
+use jobs::credit_facility_repayment_plan;
 
 pub use entry::*;
 pub use repo::RepaymentPlanRepo;
@@ -139,7 +144,7 @@ impl CreditFacilityRepaymentPlan {
         planned_interest_entries
     }
 
-    pub(super) fn process_event(
+    pub(crate) fn process_event(
         &mut self,
         sequence: EventSequence,
         event: &CoreCreditEvent,
@@ -273,6 +278,47 @@ impl CreditFacilityRepaymentPlan {
         self.entries.sort();
 
         true
+    }
+}
+
+pub struct RepaymentPlans {
+    repo: Arc<RepaymentPlanRepo>,
+}
+
+impl Clone for RepaymentPlans {
+    fn clone(&self) -> Self {
+        Self {
+            repo: self.repo.clone(),
+        }
+    }
+}
+
+impl RepaymentPlans {
+    pub async fn init<E>(
+        pool: &sqlx::PgPool,
+        outbox: &Outbox<E>,
+        jobs: &mut job::Jobs,
+    ) -> Result<Self, CreditFacilityRepaymentPlanError>
+    where
+        E: OutboxEventMarker<CoreCreditEvent>,
+    {
+        let repo = Arc::new(RepaymentPlanRepo::new(pool));
+
+        let job_init =
+            credit_facility_repayment_plan::RepaymentPlanProjectionInit::new(outbox, repo.clone());
+
+        let spawner = jobs.add_initializer(job_init);
+
+        spawner
+            .spawn_unique(
+                job::JobId::new(),
+                credit_facility_repayment_plan::RepaymentPlanProjectionConfig {
+                    _phantom: std::marker::PhantomData,
+                },
+            )
+            .await?;
+
+        Ok(Self { repo })
     }
 }
 

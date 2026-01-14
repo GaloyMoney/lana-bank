@@ -106,7 +106,7 @@ where
 
                 let facility_id: crate::primitives::CreditFacilityId = (*id).into();
                 let mut repayment_plan = self.repo.load(facility_id).await?;
-x                repayment_plan.process_event(sequence, event);
+                repayment_plan.process_event(sequence, event);
                 self.repo
                     .persist_in_tx(db, facility_id, repayment_plan)
                     .await?;

@@ -299,6 +299,7 @@ where
 
         let repayment_plan_repo = RepaymentPlanRepo::new(pool);
         let repayment_plan_repo_arc = Arc::new(repayment_plan_repo);
+        // let repayment_plans_arc = Arc::new(RepaymentPlans::init(pool, outbox, jobs).await?);
 
         let audit_arc = Arc::new(authz.audit().clone());
 
