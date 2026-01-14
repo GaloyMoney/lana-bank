@@ -75,7 +75,7 @@ impl Collateral {
             .expect("entity_first_persisted_at not found")
     }
 
-    /// Attemps to record that this Collateral has entered a
+    /// Attempts to record that this Collateral has entered a
     /// liquidation with `liquidation_id`.
     ///
     /// # Errors
@@ -188,6 +188,8 @@ impl Collateral {
             Idempotent::Executed(CollateralUpdate::Liquidation {
                 amount: abs_diff,
                 effective,
+                tx_id,
+                collateral_in_liquidation_account_id: todo!(),
             })
         } else {
             self.events.push(CollateralEvent::UpdatedViaManualInput {

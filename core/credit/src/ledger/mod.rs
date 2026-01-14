@@ -206,6 +206,7 @@ impl CreditFacilityInternalAccountSets {
 #[derive(Clone)]
 pub struct CreditLedger {
     cala: CalaLedger,
+    liquidation_ledger: crate::LiquidationLedger,
     journal_id: JournalId,
     facility_omnibus_account_ids: LedgerOmnibusAccountIds,
     collateral_omnibus_account_ids: LedgerOmnibusAccountIds,
@@ -219,7 +220,11 @@ pub struct CreditLedger {
 impl CreditLedger {
     #[record_error_severity]
     #[instrument(name = "credit_ledger.init", skip_all)]
-    pub async fn init(cala: &CalaLedger, journal_id: JournalId) -> Result<Self, CreditLedgerError> {
+    pub async fn init(
+        cala: &CalaLedger,
+        liquidation_ledger: &crate::LiquidationLedger,
+        journal_id: JournalId,
+    ) -> Result<Self, CreditLedgerError> {
         templates::AddCollateral::init(cala).await?;
         templates::AddStructuringFee::init(cala).await?;
         templates::ActivateCreditFacility::init(cala).await?;
@@ -903,6 +908,7 @@ impl CreditLedger {
 
         Ok(Self {
             cala: cala.clone(),
+            liquidation_ledger: liquidation_ledger.clone(),
             journal_id,
             facility_omnibus_account_ids,
             collateral_omnibus_account_ids,
@@ -1251,7 +1257,7 @@ impl CreditLedger {
 
     pub async fn update_credit_facility_collateral(
         &self,
-        op: &mut es_entity::DbOp<'_>,
+        db: &mut es_entity::DbOp<'_>,
         collateral_update: CollateralUpdate,
         collateral_account_id: CalaAccountId,
         initiated_by: LedgerTransactionInitiator,
@@ -1266,7 +1272,7 @@ impl CreditLedger {
                 CollateralAction::Add => {
                     self.cala
                         .post_transaction_in_op(
-                            op,
+                            db,
                             tx_id,
                             templates::ADD_COLLATERAL_CODE,
                             templates::AddCollateralParams {
@@ -1281,12 +1287,12 @@ impl CreditLedger {
                                 initiated_by,
                             },
                         )
-                        .await
+                        .await?;
                 }
                 CollateralAction::Remove => {
                     self.cala
                         .post_transaction_in_op(
-                            op,
+                            db,
                             tx_id,
                             templates::REMOVE_COLLATERAL_CODE,
                             templates::RemoveCollateralParams {
@@ -1301,11 +1307,27 @@ impl CreditLedger {
                                 initiated_by,
                             },
                         )
-                        .await
+                        .await?;
                 }
             },
-            CollateralUpdate::Liquidation { amount, effective } => todo!(),
-        }?;
+            CollateralUpdate::Liquidation {
+                amount,
+                effective,
+                tx_id,
+                collateral_in_liquidation_account_id,
+            } => {
+                self.liquidation_ledger
+                    .record_collateral_sent_in_op(
+                        db,
+                        tx_id,
+                        amount,
+                        collateral_account_id,
+                        collateral_in_liquidation_account_id,
+                        initiated_by,
+                    )
+                    .await?;
+            }
+        };
         Ok(())
     }
 
@@ -2391,6 +2413,7 @@ impl CreditLedger {
             internal_account_sets,
 
             cala: _,
+            liquidation_ledger: _,
             journal_id: _,
             credit_facility_control_id: _,
             usd: _,
