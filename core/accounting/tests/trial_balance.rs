@@ -35,7 +35,6 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
 
     let accounting = CoreAccounting::new(
         &pool,
-        clock.clone(),
         &authz,
         &cala,
         journal_id,

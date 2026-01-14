@@ -13,7 +13,6 @@ use public_id::PublicIds;
 
 use core_credit::error::CoreCreditError;
 use core_money::{Satoshis, UsdCents};
-use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 
 fn random_email() -> String {
     format!("{}@integrationtest.com", uuid::Uuid::new_v4())
@@ -182,10 +181,8 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
     let journal_id = helpers::init_journal(&cala).await?;
     let credit_public_ids = PublicIds::new(&pool);
     let price = core_price::Price::init(&mut jobs, &outbox).await?;
-    let (clock, _ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual());
     let credit = CoreCredit::init(
         &pool,
-        clock.clone(),
         CreditConfig {
             customer_active_check_enabled: false,
             ..Default::default()
@@ -205,7 +202,6 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
     let deposit_public_ids = PublicIds::new(&pool);
     let deposit = core_deposit::CoreDeposit::init(
         &pool,
-        clock.clone(),
         &authz,
         &outbox,
         &governance,

@@ -116,7 +116,6 @@ where
     #[tracing::instrument(name = "deposit.init", skip_all, fields(journal_id = %journal_id))]
     pub async fn init(
         pool: &sqlx::PgPool,
-        clock: es_entity::clock::ClockHandle,
         authz: &Perms,
         outbox: &Outbox<E>,
         governance: &Governance<Perms, E>,
@@ -127,6 +126,8 @@ where
         customers: &Customers<Perms, E>,
         config: DepositConfig,
     ) -> Result<Self, CoreDepositError> {
+        let clock = jobs.clock().clone();
+
         let publisher = DepositPublisher::new(outbox);
         let accounts = DepositAccountRepo::new(pool, &publisher);
         let deposits = DepositRepo::new(pool, &publisher);

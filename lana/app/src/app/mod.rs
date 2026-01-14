@@ -133,7 +133,6 @@ impl LanaApp {
         let journal_init = JournalInit::journal(&cala).await?;
         let accounting = Accounting::new(
             &pool,
-            clock.clone(),
             &authz,
             &cala,
             journal_init.journal_id,
@@ -153,7 +152,6 @@ impl LanaApp {
         );
         let deposits = Deposits::init(
             &pool,
-            clock.clone(),
             &authz,
             &outbox,
             &governance,
@@ -190,7 +188,6 @@ impl LanaApp {
 
         let credit = Credit::init(
             &pool,
-            clock.clone(),
             config.credit,
             &governance,
             &mut jobs,

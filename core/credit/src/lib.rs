@@ -184,7 +184,6 @@ where
     #[instrument(name = "credit.init", skip_all, fields(journal_id = %journal_id))]
     pub async fn init(
         pool: &sqlx::PgPool,
-        clock: ClockHandle,
         config: CreditConfig,
         governance: &Governance<Perms, E>,
         jobs: &mut Jobs,
@@ -197,6 +196,8 @@ where
         journal_id: cala_ledger::JournalId,
         public_ids: &PublicIds,
     ) -> Result<Self, CoreCreditError> {
+        let clock = jobs.clock().clone();
+
         // Create Arc-wrapped versions of parameters once
         let authz_arc = Arc::new(authz.clone());
         let governance_arc = Arc::new(governance.clone());

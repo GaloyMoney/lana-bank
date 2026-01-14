@@ -102,7 +102,6 @@ where
 {
     pub fn new(
         pool: &sqlx::PgPool,
-        clock: ClockHandle,
         authz: &Perms,
         cala: &CalaLedger,
         journal_id: CalaJournalId,
@@ -110,6 +109,7 @@ where
         jobs: &mut Jobs,
         domain_configs: &InternalDomainConfigs,
     ) -> Self {
+        let clock = jobs.clock().clone();
         let chart_of_accounts = ChartOfAccounts::new(pool, clock.clone(), authz, cala, journal_id);
         let fiscal_year = FiscalYears::new(
             pool,

@@ -8,7 +8,6 @@ use core_customer::Customers;
 use core_deposit::*;
 use document_storage::DocumentStorage;
 use domain_config::InternalDomainConfigs;
-use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 use helpers::{action, event, object};
 
 #[tokio::test]
@@ -50,11 +49,8 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         public_ids.clone(),
     );
 
-    let (clock, _ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual());
-
     let deposit = CoreDeposit::init(
         &pool,
-        clock.clone(),
         &authz,
         &outbox,
         &governance,
@@ -71,7 +67,6 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
 
     let accounting = CoreAccounting::new(
         &pool,
-        clock,
         &authz,
         &cala,
         journal_id,

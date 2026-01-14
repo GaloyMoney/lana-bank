@@ -6,12 +6,10 @@ use cala_ledger::{
     account::NewAccount,
     account_set::{AccountSetMemberId, NewAccountSet},
 };
-use chrono::{TimeZone, Utc};
 use cloud_storage::{Storage, config::StorageConfig};
 use core_accounting::CoreAccounting;
 use document_storage::DocumentStorage;
 use domain_config::InternalDomainConfigs;
-use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 use helpers::{action, object};
 use job::{JobSvcConfig, Jobs};
 
@@ -32,12 +30,8 @@ async fn ledger_account_ancestors() -> anyhow::Result<()> {
     let document_storage = DocumentStorage::new(&pool, &storage);
     let mut jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
 
-    let start_time = Utc.with_ymd_and_hms(2024, 6, 15, 12, 0, 0).unwrap();
-    let (clock, _ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual_at(start_time));
-
     let accounting = CoreAccounting::new(
         &pool,
-        clock,
         &authz,
         &cala,
         journal_id,
@@ -169,12 +163,8 @@ async fn ledger_account_children() -> anyhow::Result<()> {
     let document_storage = DocumentStorage::new(&pool, &storage);
     let mut jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
 
-    let start_time = Utc.with_ymd_and_hms(2024, 6, 15, 12, 0, 0).unwrap();
-    let (clock, _ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual_at(start_time));
-
     let accounting = CoreAccounting::new(
         &pool,
-        clock,
         &authz,
         &cala,
         journal_id,
@@ -274,12 +264,8 @@ async fn internal_account_contains_coa_account() -> anyhow::Result<()> {
     let document_storage = DocumentStorage::new(&pool, &storage);
     let mut jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
 
-    let start_time = Utc.with_ymd_and_hms(2024, 6, 15, 12, 0, 0).unwrap();
-    let (clock, _ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual_at(start_time));
-
     let accounting = CoreAccounting::new(
         &pool,
-        clock,
         &authz,
         &cala,
         journal_id,

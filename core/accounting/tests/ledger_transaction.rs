@@ -10,7 +10,6 @@ use cala_ledger::{
     CalaLedger, CalaLedgerConfig, Currency, DebitOrCredit, error::LedgerError,
     velocity::error::VelocityError,
 };
-use chrono::{TimeZone, Utc};
 use core_accounting::{
     AccountIdOrCode, Chart, CoreAccounting, ManualEntryInput,
     error::CoreAccountingError,
@@ -18,7 +17,6 @@ use core_accounting::{
         error::ManualTransactionError, ledger::error::ManualTransactionLedgerError,
     },
 };
-use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 use helpers::{action, object};
 use rust_decimal_macros::dec;
 
@@ -203,13 +201,8 @@ async fn prepare_test() -> anyhow::Result<(
     let document_storage = DocumentStorage::new(&pool, &storage);
     let mut jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
 
-    // Use artificial clock set to 2024, so hardcoded 2021 dates are in the past
-    let start_time = Utc.with_ymd_and_hms(2024, 6, 15, 12, 0, 0).unwrap();
-    let (clock, _ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual_at(start_time));
-
     let accounting = CoreAccounting::new(
         &pool,
-        clock,
         &authz,
         &cala,
         journal_id,

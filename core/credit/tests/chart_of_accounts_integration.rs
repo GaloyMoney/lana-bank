@@ -10,7 +10,6 @@ use domain_config::InternalDomainConfigs;
 use core_accounting::CoreAccounting;
 use core_credit::*;
 use document_storage::DocumentStorage;
-use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 use helpers::{action, event, object};
 use public_id::PublicIds;
 
@@ -50,11 +49,9 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let journal_id = helpers::init_journal(&cala).await?;
     let public_ids = PublicIds::new(&pool);
     let price = core_price::Price::init(&mut jobs, &outbox).await?;
-    let (clock, _ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual());
 
     let credit = CoreCredit::init(
         &pool,
-        clock.clone(),
         Default::default(),
         &governance,
         &mut jobs,
@@ -72,7 +69,6 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let accounting_document_storage = DocumentStorage::new(&pool, &storage);
     let accounting = CoreAccounting::new(
         &pool,
-        clock.clone(),
         &authz,
         &cala,
         journal_id,

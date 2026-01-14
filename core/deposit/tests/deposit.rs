@@ -9,7 +9,6 @@ use cloud_storage::{Storage, config::StorageConfig};
 use core_customer::{CustomerType, Customers};
 use core_deposit::*;
 use document_storage::DocumentStorage;
-use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 use helpers::{action, event, object};
 
 #[tokio::test]
@@ -48,11 +47,8 @@ async fn deposit() -> anyhow::Result<()> {
         public_ids.clone(),
     );
 
-    let (clock, _ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual());
-
     let deposit = CoreDeposit::init(
         &pool,
-        clock,
         &authz,
         &outbox,
         &governance,
@@ -133,11 +129,8 @@ async fn revert_deposit() -> anyhow::Result<()> {
         public_ids.clone(),
     );
 
-    let (clock, _ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual());
-
     let deposit = CoreDeposit::init(
         &pool,
-        clock,
         &authz,
         &outbox,
         &governance,
