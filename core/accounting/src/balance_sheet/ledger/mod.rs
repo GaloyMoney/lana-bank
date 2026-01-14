@@ -235,6 +235,40 @@ impl BalanceSheetLedger {
     }
 
     #[record_error_severity]
+    #[instrument(name = "bs_ledger.is_configured", skip(self), fields(reference = %reference))]
+    pub async fn is_configured(
+        &self,
+        reference: String,
+    ) -> Result<bool, BalanceSheetLedgerError> {
+        // Try to find the statement account set by external_id
+        let statement = match self
+            .cala
+            .account_sets()
+            .find_by_external_id(reference)
+            .await
+        {
+            Ok(s) => s,
+            Err(e) if e.was_not_found() => return Ok(false),
+            Err(e) => return Err(e.into()),
+        };
+
+        // Check if assets account set has any chart members (indicates configured)
+        let statement_members = self.get_member_account_set_ids_and_names(statement.id).await?;
+        let assets_id = match statement_members.get(ASSETS_NAME) {
+            Some(id) => *id,
+            None => return Ok(false),
+        };
+
+        let members = self
+            .cala
+            .account_sets()
+            .list_members_by_created_at(assets_id, Default::default())
+            .await?;
+
+        Ok(!members.entities.is_empty())
+    }
+
+    #[record_error_severity]
     #[instrument(name = "balance_sheet.get_ids_from_reference", skip(self), fields(reference = %reference))]
     pub async fn get_ids_from_reference(
         &self,

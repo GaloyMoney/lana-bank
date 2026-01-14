@@ -1001,10 +1001,21 @@ impl Query {
         ctx: &Context<'_>,
     ) -> async_graphql::Result<Option<BalanceSheetModuleConfig>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let chart = loader
+            .load_one(CHART_REF)
+            .await?
+            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {CHART_REF:?}"));
+
         let config = app
             .accounting()
             .balance_sheets()
-            .get_chart_of_accounts_integration_config(sub, BALANCE_SHEET_NAME.to_string())
+            .get_chart_of_accounts_integration_config(
+                sub,
+                BALANCE_SHEET_NAME.to_string(),
+                chart.as_ref(),
+            )
             .await?;
         Ok(config.map(BalanceSheetModuleConfig::from))
     }

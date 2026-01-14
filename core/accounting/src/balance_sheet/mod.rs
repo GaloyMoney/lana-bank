@@ -1,9 +1,6 @@
 mod chart_of_accounts_integration;
-mod config;
 pub mod error;
 pub mod ledger;
-
-pub use config::BalanceSheetConfig;
 
 use tracing::instrument;
 
@@ -11,7 +8,6 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use chrono::NaiveDate;
-use domain_config::DomainConfigs;
 use tracing_macros::record_error_severity;
 
 use crate::{
@@ -61,7 +57,6 @@ where
 {
     pool: sqlx::PgPool,
     authz: Perms,
-    domain_configs: DomainConfigs,
     balance_sheet_ledger: BalanceSheetLedger,
 }
 
@@ -74,7 +69,6 @@ where
     pub fn new(
         pool: &sqlx::PgPool,
         authz: &Perms,
-        domain_configs: &DomainConfigs,
         cala: &CalaLedger,
         journal_id: cala_ledger::JournalId,
     ) -> Self {
@@ -84,7 +78,6 @@ where
             pool: pool.clone(),
             balance_sheet_ledger,
             authz: authz.clone(),
-            domain_configs: domain_configs.clone(),
         }
     }
 
@@ -115,12 +108,13 @@ where
     #[record_error_severity]
     #[instrument(
         name = "core_accounting.balance_sheet.get_integration_config",
-        skip(self)
+        skip(self, chart)
     )]
     pub async fn get_chart_of_accounts_integration_config(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        _reference: String,
+        reference: String,
+        chart: &Chart,
     ) -> Result<Option<AccountingBaseConfig>, BalanceSheetError> {
         self.authz
             .enforce_permission(
@@ -129,8 +123,17 @@ where
                 CoreAccountingAction::BALANCE_SHEET_CONFIGURATION_READ,
             )
             .await?;
-        let config = self.domain_configs.get::<BalanceSheetConfig>().await?;
-        Ok(config.value().map(|c| AccountingBaseConfig::from(&c)))
+
+        let is_configured = self
+            .balance_sheet_ledger
+            .is_configured(reference)
+            .await?;
+
+        if is_configured {
+            Ok(chart.find_accounting_base_config())
+        } else {
+            Ok(None)
+        }
     }
 
     #[record_error_severity]
@@ -144,16 +147,18 @@ where
         reference: String,
         chart: &Chart,
     ) -> Result<AccountingBaseConfig, BalanceSheetError> {
-        // Check idempotency via domain-configs
-        let existing_config = self.domain_configs.get::<BalanceSheetConfig>().await?;
-        if existing_config.value().is_some() {
+        // Check if already configured via Cala state
+        let is_configured = self
+            .balance_sheet_ledger
+            .is_configured(reference.clone())
+            .await?;
+        if is_configured {
             return Err(BalanceSheetError::BalanceSheetConfigAlreadyExists);
         }
 
-        let config = match chart.find_accounting_base_config() {
-            Some(config) => config,
-            None => return Err(BalanceSheetError::AccountingBaseConfigNotFound),
-        };
+        let config = chart
+            .find_accounting_base_config()
+            .ok_or(BalanceSheetError::AccountingBaseConfigNotFound)?;
 
         // Resolve account codes to Cala account set IDs
         let chart_account_set_ids = ChartAccountSetIds {
@@ -165,7 +170,6 @@ where
             expenses: chart.account_set_id_from_code(&config.expenses_code)?,
         };
 
-        // Enforce permission (audit trail is automatically handled by domain-configs)
         self.authz
             .enforce_permission(
                 sub,
@@ -174,13 +178,7 @@ where
             )
             .await?;
 
-        // Store config in domain-configs
-        let balance_sheet_config = BalanceSheetConfig::from(&config);
-        self.domain_configs
-            .update::<BalanceSheetConfig>(balance_sheet_config)
-            .await?;
-
-        // Attach chart account sets as members to internal balance sheet account sets
+        // Attach chart account sets as members (only side effect)
         self.balance_sheet_ledger
             .attach_chart_of_accounts_account_sets(reference, chart_account_set_ids)
             .await?;

@@ -117,7 +117,7 @@ where
         let ledger_transactions = LedgerTransactions::new(authz, cala);
         let profit_and_loss = ProfitAndLossStatements::new(pool, authz, cala, journal_id);
         let transaction_templates = TransactionTemplates::new(authz, cala);
-        let balance_sheets = BalanceSheets::new(pool, authz, domain_configs, cala, journal_id);
+        let balance_sheets = BalanceSheets::new(pool, authz, cala, journal_id);
         let csvs = AccountingCsvExports::new(authz, jobs, document_storage, &ledger_accounts);
         let trial_balances = TrialBalances::new(pool, authz, cala, journal_id);
         Self {
