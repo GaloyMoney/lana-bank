@@ -219,7 +219,6 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
     )
     .await?;
     jobs.start_poll().await?;
-    jobs.start_poll().await?;
 
     // Create active facility
     let facility_amount = UsdCents::from(100_000); // $1,000
