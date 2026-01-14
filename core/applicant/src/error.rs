@@ -16,14 +16,8 @@ pub enum ApplicantError {
     UnhandledLevelType,
     #[error("ApplicantError - MissingExternalUserId: {0}")]
     MissingExternalUserId(String),
-    #[error("ApplicantError - UuidError: {0}")]
-    UuidError(#[from] uuid::Error),
-    #[error("ApplicantError - JobError: {0}")]
-    JobError(#[from] job::error::JobError),
     #[error("ApplicantError - InboxError: {0}")]
     InboxError(#[from] obix::inbox::InboxError),
-    #[error("ApplicantError - CustomerIdNotFound: {0}")]
-    CustomerIdNotFound(String),
     #[error("ApplicantError - SumsubVerificationLevelParseError: Could not parse '{0}'")]
     SumsubVerificationLevelParseError(String),
     #[error("ApplicantError - ReviewAnswerParseError: Could not parse '{0}'")]
@@ -43,10 +37,7 @@ impl ErrorSeverity for ApplicantError {
             Self::UnhandledCallbackType => Level::ERROR,
             Self::UnhandledLevelType => Level::ERROR,
             Self::MissingExternalUserId(_) => Level::WARN,
-            Self::UuidError(_) => Level::ERROR,
-            Self::JobError(_) => Level::ERROR,
             Self::InboxError(_) => Level::ERROR,
-            Self::CustomerIdNotFound(_) => Level::WARN,
             Self::SumsubVerificationLevelParseError(_) => Level::ERROR,
             Self::ReviewAnswerParseError(_) => Level::ERROR,
             Self::SumsubError(_) => Level::ERROR,
