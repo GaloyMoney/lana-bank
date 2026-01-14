@@ -142,7 +142,7 @@ where
 
     #[record_error_severity]
     #[instrument(name = "domain_config.list_exposed_configs", skip(self, query), fields(subject = %sub))]
-    pub async fn list_exposed_configs(
+    pub async fn list(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         query: es_entity::PaginatedQueryArgs<DomainConfigsByKeyCursor>,
@@ -166,7 +166,7 @@ where
     /// GraphQL field loading, which doesn’t carry subject into the loader.
     #[record_error_severity]
     #[instrument(name = "domain_config.find_all_exposed", skip(self))]
-    pub async fn find_all_exposed<T: From<DomainConfig>>(
+    pub async fn find_all<T: From<DomainConfig>>(
         &self,
         ids: &[DomainConfigId],
     ) -> Result<HashMap<DomainConfigId, T>, DomainConfigError> {
@@ -175,7 +175,7 @@ where
 
     #[record_error_severity]
     #[instrument(name = "domain_config.update_exposed_from_json", skip(self, value), fields(subject = %sub))]
-    pub async fn update_exposed_from_json(
+    pub async fn update_from_json(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         id: impl Into<DomainConfigId> + std::fmt::Debug,

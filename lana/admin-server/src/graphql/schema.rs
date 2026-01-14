@@ -985,9 +985,7 @@ impl Query {
             ctx,
             after,
             first,
-            |query| app
-                .exposed_domain_configs()
-                .list_exposed_configs(sub, query)
+            |query| app.exposed_domain_configs().list(sub, query)
         )
     }
 
@@ -1330,7 +1328,7 @@ impl Mutation {
             DomainConfigUpdatePayload,
             DomainConfig,
             ctx,
-            app.exposed_domain_configs().update_exposed_from_json(
+            app.exposed_domain_configs().update_from_json(
                 sub,
                 input.domain_config_id,
                 input.value.into_inner(),
