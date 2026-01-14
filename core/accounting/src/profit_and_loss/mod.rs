@@ -109,12 +109,13 @@ where
     #[record_error_severity]
     #[instrument(
         name = "core_accounting.profit_and_loss.get_chart_of_accounts_integration_config",
-        skip(self)
+        skip(self, chart)
     )]
     pub async fn get_chart_of_accounts_integration_config(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         reference: String,
+        chart: &Chart,
     ) -> Result<Option<AccountingBaseConfig>, ProfitAndLossStatementError> {
         self.authz
             .enforce_permission(
@@ -123,10 +124,17 @@ where
                 CoreAccountingAction::PROFIT_AND_LOSS_CONFIGURATION_READ,
             )
             .await?;
-        Ok(self
+
+        let is_configured = self
             .pl_statement_ledger
-            .get_chart_of_accounts_integration_config(reference)
-            .await?)
+            .is_configured(reference)
+            .await?;
+
+        if is_configured {
+            Ok(chart.find_accounting_base_config())
+        } else {
+            Ok(None)
+        }
     }
 
     #[record_error_severity]
@@ -149,19 +157,18 @@ where
             )
             .await?;
 
-        if self
+        // Check if already configured via Cala state
+        let is_configured = self
             .pl_statement_ledger
-            .get_chart_of_accounts_integration_config(reference.to_string())
-            .await?
-            .is_some()
-        {
+            .is_configured(reference.clone())
+            .await?;
+        if is_configured {
             return Err(ProfitAndLossStatementError::ProfitAndLossStatementConfigAlreadyExists);
         }
 
-        let config = match chart.find_accounting_base_config() {
-            Some(config) => config,
-            None => return Err(ProfitAndLossStatementError::AccountingBaseConfigNotFound),
-        };
+        let config = chart
+            .find_accounting_base_config()
+            .ok_or(ProfitAndLossStatementError::AccountingBaseConfigNotFound)?;
 
         let revenue_child_account_set_id_from_chart =
             chart.account_set_id_from_code(&config.revenue_code)?;

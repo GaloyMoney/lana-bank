@@ -351,24 +351,37 @@ impl ProfitAndLossStatementLedger {
     }
 
     #[record_error_severity]
-    #[instrument(name = "pl_ledger.get_chart_of_accounts_integration_config", skip(self), fields(reference = %reference))]
-    pub async fn get_chart_of_accounts_integration_config(
+    #[instrument(name = "pl_ledger.is_configured", skip(self), fields(reference = %reference))]
+    pub async fn is_configured(
         &self,
         reference: String,
-    ) -> Result<Option<AccountingBaseConfig>, ProfitAndLossStatementLedgerError> {
-        let account_set_id = self
-            .get_ids_from_reference(reference)
-            .await?
-            .account_set_id_for_config();
+    ) -> Result<bool, ProfitAndLossStatementLedgerError> {
+        // Try to find the statement account set by external_id
+        let statement = match self
+            .cala
+            .account_sets()
+            .find_by_external_id(reference)
+            .await
+        {
+            Ok(s) => s,
+            Err(e) if e.was_not_found() => return Ok(false),
+            Err(e) => return Err(e.into()),
+        };
 
-        let account_set = self.cala.account_sets().find(account_set_id).await?;
-        if let Some(meta) = account_set.values().metadata.as_ref() {
-            let meta: ChartOfAccountsIntegrationMeta =
-                serde_json::from_value(meta.clone()).expect("Could not deserialize metadata");
-            Ok(Some(meta.config))
-        } else {
-            Ok(None)
-        }
+        // Check if revenue account set has any chart members (indicates configured)
+        let statement_members = self.get_member_account_set_ids_and_names(statement.id).await?;
+        let revenue_id = match statement_members.get(REVENUE_NAME) {
+            Some(id) => *id,
+            None => return Ok(false),
+        };
+
+        let members = self
+            .cala
+            .account_sets()
+            .list_members_by_created_at(revenue_id, Default::default())
+            .await?;
+
+        Ok(!members.entities.is_empty())
     }
 
     #[record_error_severity]

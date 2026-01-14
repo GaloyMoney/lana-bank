@@ -1025,12 +1025,20 @@ impl Query {
         ctx: &Context<'_>,
     ) -> async_graphql::Result<Option<ProfitAndLossStatementModuleConfig>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let chart = loader
+            .load_one(CHART_REF)
+            .await?
+            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {CHART_REF:?}"));
+
         let config = app
             .accounting()
             .profit_and_loss()
             .get_chart_of_accounts_integration_config(
                 sub,
                 PROFIT_AND_LOSS_STATEMENT_NAME.to_string(),
+                chart.as_ref(),
             )
             .await?;
         Ok(config.map(ProfitAndLossStatementModuleConfig::from))
