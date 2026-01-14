@@ -13,6 +13,7 @@ use public_id::PublicIds;
 
 use core_credit::error::CoreCreditError;
 use core_money::{Satoshis, UsdCents};
+use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 
 fn random_email() -> String {
     format!("{}@integrationtest.com", uuid::Uuid::new_v4())
@@ -146,8 +147,13 @@ async fn create_active_facility(
 async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
     // Infrastructure setup
     let pool = helpers::init_pool().await?;
-    let outbox =
-        obix::Outbox::<event::DummyEvent>::init(&pool, obix::MailboxConfig::default()).await?;
+    let outbox = obix::Outbox::<event::DummyEvent>::init(
+        &pool,
+        obix::MailboxConfig::builder()
+            .build()
+            .expect("Couldn't build MailboxConfig"),
+    )
+    .await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
     let storage = Storage::new(&StorageConfig::default());
     let document_storage = DocumentStorage::new(&pool, &storage);
@@ -173,16 +179,9 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
             .unwrap(),
     )
     .await?;
-    let mut jobs_new = job_new::Jobs::init(
-        job_new::JobSvcConfig::builder()
-            .pool(pool.clone())
-            .build()
-            .unwrap(),
-    )
-    .await?;
     let journal_id = helpers::init_journal(&cala).await?;
     let credit_public_ids = PublicIds::new(&pool);
-    let price = core_price::Price::init(&mut jobs_new, &outbox).await?;
+    let price = core_price::Price::init(&mut jobs, &outbox).await?;
     let credit = CoreCredit::init(
         &pool,
         CreditConfig {
@@ -190,7 +189,7 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
             ..Default::default()
         },
         &governance,
-        &jobs,
+        &mut jobs,
         &authz,
         &customers,
         &custody,
@@ -202,12 +201,14 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
     )
     .await?;
     let deposit_public_ids = PublicIds::new(&pool);
+    let (clock, _ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual());
     let deposit = core_deposit::CoreDeposit::init(
         &pool,
+        clock.clone(),
         &authz,
         &outbox,
         &governance,
-        &mut jobs_new,
+        &mut jobs,
         &cala,
         journal_id,
         &deposit_public_ids,
@@ -218,7 +219,7 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
     )
     .await?;
     jobs.start_poll().await?;
-    jobs_new.start_poll().await?;
+    jobs.start_poll().await?;
 
     // Create active facility
     let facility_amount = UsdCents::from(100_000); // $1,000

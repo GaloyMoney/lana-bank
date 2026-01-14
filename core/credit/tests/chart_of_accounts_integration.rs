@@ -10,6 +10,7 @@ use domain_config::InternalDomainConfigs;
 use core_accounting::CoreAccounting;
 use core_credit::*;
 use document_storage::DocumentStorage;
+use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 use helpers::{action, event, object};
 use public_id::PublicIds;
 
@@ -37,16 +38,9 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .exec_migrations(false)
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
-    let jobs = job::Jobs::init(
-        job::JobSvcConfig::builder()
-            .pool(pool.clone())
-            .build()
-            .unwrap(),
-    )
-    .await?;
 
-    let mut job_new = job_new::Jobs::init(
-        job_new::JobSvcConfig::builder()
+    let mut jobs = job::Jobs::init(
+        job::JobSvcConfig::builder()
             .pool(pool.clone())
             .build()
             .unwrap(),
@@ -55,13 +49,13 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
 
     let journal_id = helpers::init_journal(&cala).await?;
     let public_ids = PublicIds::new(&pool);
-    let price = core_price::Price::init(&mut job_new, &outbox).await?;
+    let price = core_price::Price::init(&mut jobs, &outbox).await?;
 
     let credit = CoreCredit::init(
         &pool,
         Default::default(),
         &governance,
-        &jobs,
+        &mut jobs,
         &authz,
         &customers,
         &custody,
@@ -74,13 +68,15 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     .await?;
 
     let accounting_document_storage = DocumentStorage::new(&pool, &storage);
+    let (clock, _ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual());
     let accounting = CoreAccounting::new(
         &pool,
+        clock.clone(),
         &authz,
         &cala,
         journal_id,
         accounting_document_storage,
-        &mut job_new,
+        &mut jobs,
         &domain_configs,
     );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
