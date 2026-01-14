@@ -1,6 +1,9 @@
 mod chart_of_accounts_integration;
+mod config;
 pub mod error;
 pub mod ledger;
+
+pub use config::BalanceSheetConfig;
 
 use tracing::instrument;
 
@@ -8,6 +11,7 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use chrono::NaiveDate;
+use domain_config::DomainConfigs;
 use tracing_macros::record_error_severity;
 
 use crate::{
@@ -19,6 +23,16 @@ use crate::{
 pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
 use error::*;
 use ledger::*;
+
+/// Resolved account set IDs from the Chart of Accounts for linking
+pub(crate) struct ChartAccountSetIds {
+    pub assets: CalaAccountSetId,
+    pub liabilities: CalaAccountSetId,
+    pub equity: CalaAccountSetId,
+    pub revenue: CalaAccountSetId,
+    pub cost_of_revenue: CalaAccountSetId,
+    pub expenses: CalaAccountSetId,
+}
 
 pub(crate) const ASSETS_NAME: &str = "Assets";
 pub(crate) const LIABILITIES_NAME: &str = "Liabilities";
@@ -39,33 +53,6 @@ pub struct BalanceSheetIds {
     pub expenses: CalaAccountSetId,
 }
 
-impl BalanceSheetIds {
-    fn internal_ids(&self) -> Vec<CalaAccountSetId> {
-        let Self {
-            id: _id,
-
-            assets,
-            liabilities,
-            equity,
-            revenue,
-            cost_of_revenue,
-            expenses,
-        } = self;
-
-        vec![
-            *assets,
-            *liabilities,
-            *equity,
-            *revenue,
-            *cost_of_revenue,
-            *expenses,
-        ]
-    }
-
-    fn account_set_id_for_config(&self) -> CalaAccountSetId {
-        self.revenue
-    }
-}
 
 #[derive(Clone)]
 pub struct BalanceSheets<Perms>
@@ -74,6 +61,7 @@ where
 {
     pool: sqlx::PgPool,
     authz: Perms,
+    domain_configs: DomainConfigs,
     balance_sheet_ledger: BalanceSheetLedger,
 }
 
@@ -86,6 +74,7 @@ where
     pub fn new(
         pool: &sqlx::PgPool,
         authz: &Perms,
+        domain_configs: &DomainConfigs,
         cala: &CalaLedger,
         journal_id: cala_ledger::JournalId,
     ) -> Self {
@@ -95,6 +84,7 @@ where
             pool: pool.clone(),
             balance_sheet_ledger,
             authz: authz.clone(),
+            domain_configs: domain_configs.clone(),
         }
     }
 
@@ -130,7 +120,7 @@ where
     pub async fn get_chart_of_accounts_integration_config(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        reference: String,
+        _reference: String,
     ) -> Result<Option<AccountingBaseConfig>, BalanceSheetError> {
         self.authz
             .enforce_permission(
@@ -139,10 +129,8 @@ where
                 CoreAccountingAction::BALANCE_SHEET_CONFIGURATION_READ,
             )
             .await?;
-        Ok(self
-            .balance_sheet_ledger
-            .get_chart_of_accounts_integration_config(reference)
-            .await?)
+        let config = self.domain_configs.get::<BalanceSheetConfig>().await?;
+        Ok(config.value().map(|c| AccountingBaseConfig::from(&c)))
     }
 
     #[record_error_severity]
@@ -155,14 +143,10 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         reference: String,
         chart: &Chart,
-        // config: ChartOfAccountsIntegrationConfig,
     ) -> Result<AccountingBaseConfig, BalanceSheetError> {
-        if self
-            .balance_sheet_ledger
-            .get_chart_of_accounts_integration_config(reference.to_string())
-            .await?
-            .is_some()
-        {
+        // Check idempotency via domain-configs
+        let existing_config = self.domain_configs.get::<BalanceSheetConfig>().await?;
+        if existing_config.value().is_some() {
             return Err(BalanceSheetError::BalanceSheetConfigAlreadyExists);
         }
 
@@ -171,21 +155,18 @@ where
             None => return Err(BalanceSheetError::AccountingBaseConfigNotFound),
         };
 
-        let assets_child_account_set_id_from_chart =
-            chart.account_set_id_from_code(&config.assets_code)?;
-        let liabilities_child_account_set_id_from_chart =
-            chart.account_set_id_from_code(&config.liabilities_code)?;
-        let equity_child_account_set_id_from_chart =
-            chart.account_set_id_from_code(&config.equity_code)?;
-        let revenue_child_account_set_id_from_chart =
-            chart.account_set_id_from_code(&config.revenue_code)?;
-        let cost_of_revenue_child_account_set_id_from_chart =
-            chart.account_set_id_from_code(&config.cost_of_revenue_code)?;
-        let expenses_child_account_set_id_from_chart =
-            chart.account_set_id_from_code(&config.expenses_code)?;
+        // Resolve account codes to Cala account set IDs
+        let chart_account_set_ids = ChartAccountSetIds {
+            assets: chart.account_set_id_from_code(&config.assets_code)?,
+            liabilities: chart.account_set_id_from_code(&config.liabilities_code)?,
+            equity: chart.account_set_id_from_code(&config.equity_code)?,
+            revenue: chart.account_set_id_from_code(&config.revenue_code)?,
+            cost_of_revenue: chart.account_set_id_from_code(&config.cost_of_revenue_code)?,
+            expenses: chart.account_set_id_from_code(&config.expenses_code)?,
+        };
 
-        let audit_info = self
-            .authz
+        // Enforce permission (audit trail is automatically handled by domain-configs)
+        self.authz
             .enforce_permission(
                 sub,
                 CoreAccountingObject::all_balance_sheet_configuration(),
@@ -193,20 +174,15 @@ where
             )
             .await?;
 
-        let charts_integration_meta = ChartOfAccountsIntegrationMeta {
-            audit_info,
-            config: config.clone(),
+        // Store config in domain-configs
+        let balance_sheet_config = BalanceSheetConfig::from(&config);
+        self.domain_configs
+            .update::<BalanceSheetConfig>(balance_sheet_config)
+            .await?;
 
-            assets_child_account_set_id_from_chart,
-            liabilities_child_account_set_id_from_chart,
-            equity_child_account_set_id_from_chart,
-            revenue_child_account_set_id_from_chart,
-            cost_of_revenue_child_account_set_id_from_chart,
-            expenses_child_account_set_id_from_chart,
-        };
-
+        // Attach chart account sets as members to internal balance sheet account sets
         self.balance_sheet_ledger
-            .attach_chart_of_accounts_account_sets(reference, charts_integration_meta)
+            .attach_chart_of_accounts_account_sets(reference, chart_account_set_ids)
             .await?;
 
         Ok(config)

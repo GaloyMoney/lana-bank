@@ -1,22 +1,20 @@
 pub mod error;
 
 use chrono::NaiveDate;
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tracing::instrument;
 
-use audit::AuditInfo;
 use cala_ledger::{
     AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId,
-    account_set::{AccountSet, AccountSetMemberId, AccountSetUpdate, NewAccountSet},
+    account_set::{AccountSet, AccountSetMemberId, NewAccountSet},
 };
 use tracing_macros::record_error_severity;
 
-use crate::primitives::{AccountingBaseConfig, BalanceRange, CalaBalanceRange};
+use crate::primitives::{BalanceRange, CalaBalanceRange};
 
 use super::{
-    ASSETS_NAME, BalanceSheet, BalanceSheetIds, COST_OF_REVENUE_NAME, EQUITY_NAME, EXPENSES_NAME,
-    LIABILITIES_NAME, NET_INCOME_NAME, REVENUE_NAME,
+    ASSETS_NAME, BalanceSheet, BalanceSheetIds, ChartAccountSetIds, COST_OF_REVENUE_NAME,
+    EQUITY_NAME, EXPENSES_NAME, LIABILITIES_NAME, NET_INCOME_NAME, REVENUE_NAME,
 };
 
 use error::*;
@@ -299,155 +297,45 @@ impl BalanceSheetLedger {
         })
     }
 
-    pub async fn get_chart_of_accounts_integration_config(
+    pub(crate) async fn attach_chart_of_accounts_account_sets(
         &self,
         reference: String,
-    ) -> Result<Option<AccountingBaseConfig>, BalanceSheetLedgerError> {
-        let account_set_id = self
-            .get_ids_from_reference(reference)
-            .await?
-            .account_set_id_for_config();
-
-        let account_set = self.cala.account_sets().find(account_set_id).await?;
-        if let Some(meta) = account_set.values().metadata.as_ref() {
-            let meta: ChartOfAccountsIntegrationMeta =
-                serde_json::from_value(meta.clone()).expect("Could not deserialize metadata");
-            Ok(Some(meta.config))
-        } else {
-            Ok(None)
-        }
-    }
-
-    async fn attach_charts_account_set<F>(
-        &self,
-        op: &mut es_entity::DbOpWithTime<'_>,
-        account_sets: &mut HashMap<AccountSetId, AccountSet>,
-        internal_account_set_id: AccountSetId,
-        child_account_set_id_from_chart: AccountSetId,
-        new_meta: &ChartOfAccountsIntegrationMeta,
-        old_parent_id_getter: F,
-    ) -> Result<(), BalanceSheetLedgerError>
-    where
-        F: FnOnce(ChartOfAccountsIntegrationMeta) -> AccountSetId,
-    {
-        let mut internal_account_set = account_sets
-            .remove(&internal_account_set_id)
-            .expect("internal account set not found");
-
-        if let Some(old_meta) = internal_account_set.values().metadata.as_ref() {
-            let old_meta: ChartOfAccountsIntegrationMeta =
-                serde_json::from_value(old_meta.clone()).expect("Could not deserialize metadata");
-            let old_child_account_set_id_from_chart = old_parent_id_getter(old_meta);
-            if old_child_account_set_id_from_chart != child_account_set_id_from_chart {
-                self.cala
-                    .account_sets()
-                    .remove_member_in_op(
-                        op,
-                        internal_account_set_id,
-                        old_child_account_set_id_from_chart,
-                    )
-                    .await?;
-            }
-        }
-
-        self.cala
-            .account_sets()
-            .add_member_in_op(op, internal_account_set_id, child_account_set_id_from_chart)
-            .await?;
-        let mut update = AccountSetUpdate::default();
-        update
-            .metadata(new_meta)
-            .expect("Could not update metadata");
-        if internal_account_set.update(update).did_execute() {
-            self.cala
-                .account_sets()
-                .persist_in_op(op, &mut internal_account_set)
-                .await?;
-        }
-
-        Ok(())
-    }
-
-    pub async fn attach_chart_of_accounts_account_sets(
-        &self,
-        reference: String,
-        charts_integration_meta: ChartOfAccountsIntegrationMeta,
+        chart_ids: ChartAccountSetIds,
     ) -> Result<(), BalanceSheetLedgerError> {
         let mut op = self.cala.begin_operation().await?;
 
         let account_set_ids = self.get_ids_from_reference(reference).await?;
-        let mut account_sets = self
-            .cala
+
+        // Add chart account sets as members to the internal balance sheet account sets
+        self.cala
             .account_sets()
-            .find_all_in_op::<AccountSet>(&mut op, &account_set_ids.internal_ids())
+            .add_member_in_op(&mut op, account_set_ids.assets, chart_ids.assets)
+            .await?;
+        self.cala
+            .account_sets()
+            .add_member_in_op(&mut op, account_set_ids.liabilities, chart_ids.liabilities)
+            .await?;
+        self.cala
+            .account_sets()
+            .add_member_in_op(&mut op, account_set_ids.equity, chart_ids.equity)
+            .await?;
+        self.cala
+            .account_sets()
+            .add_member_in_op(&mut op, account_set_ids.revenue, chart_ids.revenue)
+            .await?;
+        self.cala
+            .account_sets()
+            .add_member_in_op(
+                &mut op,
+                account_set_ids.cost_of_revenue,
+                chart_ids.cost_of_revenue,
+            )
+            .await?;
+        self.cala
+            .account_sets()
+            .add_member_in_op(&mut op, account_set_ids.expenses, chart_ids.expenses)
             .await?;
 
-        let ChartOfAccountsIntegrationMeta {
-            config: _,
-            audit_info: _,
-
-            assets_child_account_set_id_from_chart,
-            liabilities_child_account_set_id_from_chart,
-            equity_child_account_set_id_from_chart,
-            revenue_child_account_set_id_from_chart,
-            cost_of_revenue_child_account_set_id_from_chart,
-            expenses_child_account_set_id_from_chart,
-        } = &charts_integration_meta;
-
-        self.attach_charts_account_set(
-            &mut op,
-            &mut account_sets,
-            account_set_ids.assets,
-            *assets_child_account_set_id_from_chart,
-            &charts_integration_meta,
-            |meta| meta.assets_child_account_set_id_from_chart,
-        )
-        .await?;
-        self.attach_charts_account_set(
-            &mut op,
-            &mut account_sets,
-            account_set_ids.liabilities,
-            *liabilities_child_account_set_id_from_chart,
-            &charts_integration_meta,
-            |meta| meta.liabilities_child_account_set_id_from_chart,
-        )
-        .await?;
-        self.attach_charts_account_set(
-            &mut op,
-            &mut account_sets,
-            account_set_ids.equity,
-            *equity_child_account_set_id_from_chart,
-            &charts_integration_meta,
-            |meta| meta.equity_child_account_set_id_from_chart,
-        )
-        .await?;
-        self.attach_charts_account_set(
-            &mut op,
-            &mut account_sets,
-            account_set_ids.revenue,
-            *revenue_child_account_set_id_from_chart,
-            &charts_integration_meta,
-            |meta| meta.revenue_child_account_set_id_from_chart,
-        )
-        .await?;
-        self.attach_charts_account_set(
-            &mut op,
-            &mut account_sets,
-            account_set_ids.cost_of_revenue,
-            *cost_of_revenue_child_account_set_id_from_chart,
-            &charts_integration_meta,
-            |meta| meta.cost_of_revenue_child_account_set_id_from_chart,
-        )
-        .await?;
-        self.attach_charts_account_set(
-            &mut op,
-            &mut account_sets,
-            account_set_ids.expenses,
-            *expenses_child_account_set_id_from_chart,
-            &charts_integration_meta,
-            |meta| meta.expenses_child_account_set_id_from_chart,
-        )
-        .await?;
         op.commit().await?;
         Ok(())
     }
@@ -471,19 +359,6 @@ impl BalanceSheetLedger {
 
         Ok(BalanceSheet::from((account, balances, ids)))
     }
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct ChartOfAccountsIntegrationMeta {
-    pub config: AccountingBaseConfig,
-    pub audit_info: AuditInfo,
-
-    pub assets_child_account_set_id_from_chart: AccountSetId,
-    pub liabilities_child_account_set_id_from_chart: AccountSetId,
-    pub equity_child_account_set_id_from_chart: AccountSetId,
-    pub revenue_child_account_set_id_from_chart: AccountSetId,
-    pub cost_of_revenue_child_account_set_id_from_chart: AccountSetId,
-    pub expenses_child_account_set_id_from_chart: AccountSetId,
 }
 
 impl
