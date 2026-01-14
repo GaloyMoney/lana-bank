@@ -19,7 +19,7 @@ pub use primitives::PaymentSourceAccountId;
 pub use entity::PaymentEvent;
 pub(super) use entity::*;
 use error::PaymentError;
-pub(super) use repo::*;
+pub(crate) use repo::PaymentRepo;
 
 pub struct Payments<Perms>
 where

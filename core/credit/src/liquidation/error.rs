@@ -20,6 +20,8 @@ pub enum LiquidationError {
     LedgerTransactionInitiatorParseError(
         #[from] core_accounting::LedgerTransactionInitiatorParseError,
     ),
+    #[error("LiquidationError - JobError: {0}")]
+    JobError(#[from] job::error::JobError),
 }
 
 es_entity::from_es_entity_error!(LiquidationError);
@@ -34,6 +36,7 @@ impl ErrorSeverity for LiquidationError {
             Self::AlreadySatisfied => Level::WARN,
             Self::AuthorizationError(e) => e.severity(),
             Self::LedgerTransactionInitiatorParseError(e) => e.severity(),
+            Self::JobError(_) => Level::ERROR,
         }
     }
 }

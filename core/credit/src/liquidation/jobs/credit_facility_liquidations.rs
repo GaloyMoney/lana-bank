@@ -15,7 +15,11 @@ use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use crate::{
     CoreCreditEvent, CreditFacilityId, LedgerOmnibusAccountIds, LiquidationRepo, NewLiquidation,
-    liquidation::{NewLiquidationBuilder, error::LiquidationError},
+    liquidation::{
+        NewLiquidationBuilder,
+        error::LiquidationError,
+        jobs::partial_liquidation::{PartialLiquidationJobConfig, PartialLiquidationJobSpawner},
+    },
 };
 
 #[derive(Default, Clone, Deserialize, Serialize)]
@@ -37,6 +41,7 @@ where
     outbox: Outbox<E>,
     repo: Arc<LiquidationRepo<E>>,
     proceeds_omnibus_account_ids: LedgerOmnibusAccountIds,
+    partial_liquidation_job_spawner: PartialLiquidationJobSpawner<E>,
 }
 
 impl<E> CreditFacilityLiquidationsInit<E>
@@ -49,11 +54,13 @@ where
         outbox: &Outbox<E>,
         liquidation_repo: Arc<LiquidationRepo<E>>,
         proceeds_omnibus_account_ids: &LedgerOmnibusAccountIds,
+        partial_liquidation_job_spawner: PartialLiquidationJobSpawner<E>,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
             repo: liquidation_repo,
             proceeds_omnibus_account_ids: proceeds_omnibus_account_ids.clone(),
+            partial_liquidation_job_spawner,
         }
     }
 }
@@ -80,6 +87,7 @@ where
             outbox: self.outbox.clone(),
             repo: self.repo.clone(),
             proceeds_omnibus_account_ids: self.proceeds_omnibus_account_ids.clone(),
+            partial_liquidation_job_spawner: self.partial_liquidation_job_spawner.clone(),
         }))
     }
 }
@@ -93,6 +101,7 @@ where
     outbox: Outbox<E>,
     repo: Arc<LiquidationRepo<E>>,
     proceeds_omnibus_account_ids: LedgerOmnibusAccountIds,
+    partial_liquidation_job_spawner: PartialLiquidationJobSpawner<E>,
 }
 
 #[async_trait]
@@ -236,17 +245,18 @@ where
                         .expect("Could not build new liquidation"),
                 )
                 .await?;
-            // self.jobs
-            //     .create_and_spawn_in_op(
-            //         db,
-            //         JobId::new(),
-            //         partial_liquidation::PartialLiquidationJobConfig::<Perms, E> {
-            //             liquidation_id: liquidation.id,
-            //             credit_facility_id: *credit_facility_id,
-            //             _phantom: std::marker::PhantomData,
-            //         },
-            //     )
-            //     .await?;
+
+            self.partial_liquidation_job_spawner
+                .spawn_in_op(
+                    db,
+                    JobId::new(),
+                    PartialLiquidationJobConfig::<E> {
+                        liquidation_id: _liquidation.id,
+                        credit_facility_id,
+                        _phantom: std::marker::PhantomData,
+                    },
+                )
+                .await?;
         }
         Ok(())
     }

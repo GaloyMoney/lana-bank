@@ -34,8 +34,8 @@ pub use entity::ObligationEvent;
 pub(crate) use entity::*;
 use error::ObligationError;
 pub use primitives::*;
+pub(crate) use repo::ObligationRepo;
 pub use repo::obligation_cursor;
-use repo::*;
 
 pub struct Obligations<Perms, E>
 where

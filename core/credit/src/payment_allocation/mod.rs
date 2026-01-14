@@ -7,4 +7,4 @@ pub use entity::PaymentAllocation;
 #[cfg(feature = "json-schema")]
 pub use entity::PaymentAllocationEvent;
 pub(super) use entity::*;
-pub(super) use repo::*;
+pub(crate) use repo::PaymentAllocationRepo;

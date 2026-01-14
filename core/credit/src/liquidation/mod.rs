@@ -81,16 +81,48 @@ where
         publisher: &crate::CreditFacilityPublisher<E>,
         jobs: &mut job::Jobs,
         outbox: &obix::Outbox<E>,
+        ledger: Arc<crate::CreditLedger>,
     ) -> Result<Self, LiquidationError> {
         let repo_arc = Arc::new(LiquidationRepo::new(pool, publisher));
 
-        let _credit_facility_liquidations_job_spawner = jobs.add_initializer(
+        // Create repos needed for partial liquidation job
+        let payment_repo = Arc::new(crate::payment::PaymentRepo::new(pool));
+        let obligation_repo = Arc::new(crate::obligation::ObligationRepo::new(pool, publisher));
+        let payment_allocation_repo = Arc::new(
+            crate::payment_allocation::PaymentAllocationRepo::new(pool, publisher),
+        );
+        let credit_facility_repo = Arc::new(crate::credit_facility::CreditFacilityRepo::new(
+            pool, publisher,
+        ));
+
+        let partial_liquidation_job_spawner =
+            jobs.add_initializer(jobs::partial_liquidation::PartialLiquidationInit::new(
+                outbox,
+                repo_arc.clone(),
+                payment_repo,
+                obligation_repo,
+                payment_allocation_repo,
+                credit_facility_repo,
+                ledger,
+            ));
+
+        let credit_facility_liquidations_job_spawner = jobs.add_initializer(
             jobs::credit_facility_liquidations::CreditFacilityLiquidationsInit::new(
                 outbox,
                 repo_arc.clone(),
                 proceeds_omnibus_account_ids,
+                partial_liquidation_job_spawner,
             ),
         );
+
+        credit_facility_liquidations_job_spawner
+            .spawn_unique(
+                job::JobId::new(),
+                jobs::credit_facility_liquidations::CreditFacilityLiquidationsJobConfig {
+                    _phantom: std::marker::PhantomData,
+                },
+            )
+            .await?;
 
         Ok(Self {
             repo: repo_arc,

@@ -224,6 +224,7 @@ where
             &publisher,
             jobs,
             outbox,
+            ledger_arc.clone(),
         )
         .await?;
         let liquidations_arc = Arc::new(liquidations);
@@ -344,27 +345,7 @@ where
         //     },
         // )
         // .await?;
-        // jobs.add_initializer(
-        //     partial_liquidation::PartialLiquidationInit::<Perms, E>::new(
-        //         outbox,
-        //         liquidations_arc.as_ref(),
-        //         payments_arc.as_ref(),
-        //         obligations_arc.as_ref(),
-        //         facilities_arc.as_ref(),
-        //     ),
-        // );
-        // jobs.add_initializer_and_spawn_unique(
-        //     credit_facility_liquidations::CreditFacilityLiquidationsInit::<Perms, E>::new(
-        //         outbox,
-        //         jobs,
-        //         liquidations_arc.as_ref(),
-        //         facilities_arc.as_ref(),
-        //     ),
-        //     credit_facility_liquidations::CreditFacilityLiquidationsJobConfig::<Perms, E> {
-        //         _phantom: std::marker::PhantomData,
-        //     },
-        // )
-        // .await?;
+        //
         // jobs.add_initializer_and_spawn_unique(
         //     CreditFacilityActivationInit::new(outbox, activate_credit_facility_arc.as_ref()),
         //     CreditFacilityActivationJobConfig::<Perms, E>::new(),
