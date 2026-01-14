@@ -30,6 +30,16 @@ jobs:
 
       - uses: actions/checkout@v4
 
+      - uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: false
+          docker-images: true
+          swap-storage: true
+
       - name: Build book
         run: |
           cd docs
