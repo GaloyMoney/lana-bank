@@ -101,16 +101,17 @@ impl LanaApp {
         )
         .await?;
 
+        let clock = es_entity::clock::ClockHandle::realtime();
+
         let mut jobs = Jobs::init(
             job::JobSvcConfig::builder()
                 .pool(pool.clone())
+                .clock(clock.clone())
                 .poller_config(config.job_poller)
                 .build()
                 .expect("Couldn't build JobSvcConfig"),
         )
         .await?;
-
-        let clock = es_entity::clock::ClockHandle::realtime();
 
         let dashboard = Dashboard::init(&pool, &authz, &mut jobs, &outbox).await?;
         let governance = Governance::new(&pool, &authz, &outbox);

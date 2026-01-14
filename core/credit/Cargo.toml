@@ -16,7 +16,6 @@ json-schema = [
     "core-price/json-schema",
     "public-id/json-schema",
 ]
-sim-time = ["dep:sim-time"]
 mock-custodian = ["core-custody/mock-custodian"]
 
 [dependencies]
@@ -56,7 +55,6 @@ async-trait = { workspace = true }
 futures = { workspace = true }
 tokio = { workspace = true }
 async-graphql = { workspace = true, optional = true }
-sim-time = { workspace = true, optional = true }
 schemars = { workspace = true, optional = true }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 

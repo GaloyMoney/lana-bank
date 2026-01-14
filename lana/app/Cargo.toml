@@ -47,7 +47,6 @@ tracing-utils = { workspace = true }
 
 cala-ledger = { workspace = true, features = ["graphql"] }
 es-entity = { workspace = true, features = ["graphql"] }
-sim-time = { workspace = true, optional = true }
 
 anyhow = { workspace = true }
 async-graphql = { workspace = true }

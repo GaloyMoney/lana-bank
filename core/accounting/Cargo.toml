@@ -36,7 +36,6 @@ tracing-utils = { workspace = true }
 uuid = { workspace = true }
 async-graphql = { workspace = true, optional = true }
 async-trait = { workspace = true }
-sim-time = { workspace = true, optional = true }
 schemars = { workspace = true, optional = true }
 
 tokio = { workspace = true }
