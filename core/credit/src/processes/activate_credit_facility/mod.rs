@@ -13,6 +13,8 @@ use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use obix::out::OutboxEventMarker;
 use public_id::PublicIds;
 
+pub use job::*;
+
 use crate::{
     credit_facility::CreditFacilities,
     disbursal::Disbursals,

@@ -65,8 +65,9 @@ pub use payment::{error::*, *};
 pub use payment_allocation::*;
 pub use pending_credit_facility::*;
 pub use primitives::*;
-use processes::activate_credit_facility::*;
-pub use processes::{approve_credit_facility_proposal::*, approve_disbursal::*};
+pub use processes::{
+    activate_credit_facility::*, approve_credit_facility_proposal::*, approve_disbursal::*,
+};
 use publisher::CreditFacilityPublisher;
 pub use repayment_plan::*;
 pub use terms::*;
@@ -262,7 +263,7 @@ where
             &publisher,
             governance_arc.clone(),
             jobs,
-            &outbox,
+            outbox,
         )
         .await?;
         let pending_credit_facilities_arc = Arc::new(pending_credit_facilities);
@@ -289,7 +290,7 @@ where
             &publisher,
             governance_arc.clone(),
             public_ids_arc.clone(),
-            &outbox,
+            outbox,
         )
         .await?;
         let facilities_arc = Arc::new(credit_facilities);
@@ -338,16 +339,36 @@ where
         let terms_templates = TermsTemplates::new(pool, authz_arc.clone());
         let terms_templates_arc = Arc::new(terms_templates);
 
-        // jobs.add_initializer_and_spawn_unique(
-        //     CreditFacilityActivationInit::new(outbox, activate_credit_facility_arc.as_ref()),
-        //     CreditFacilityActivationJobConfig::<Perms, E>::new(),
-        // )
-        // .await?;
-        // jobs.add_initializer_and_spawn_unique(
-        //     CreditFacilityProposalApprovalInit::new(outbox, approve_proposal_arc.as_ref()),
-        //     CreditFacilityProposalApprovalJobConfig::<Perms, E>::new(),
-        // )
-        // .await?;
+        let approve_disbursal_job_spawner = jobs.add_initializer(DisbursalApprovalInit::new(
+            outbox,
+            approve_disbursal_arc.as_ref(),
+        ));
+        approve_disbursal_job_spawner
+            .spawn_unique(
+                job::JobId::new(),
+                DisbursalApprovalJobConfig::<Perms, E>::new(),
+            )
+            .await?;
+
+        let credit_facility_activation_job_spawner = jobs.add_initializer(
+            CreditFacilityActivationInit::new(outbox, activate_credit_facility_arc.as_ref()),
+        );
+        credit_facility_activation_job_spawner
+            .spawn_unique(
+                job::JobId::new(),
+                CreditFacilityActivationJobConfig::<Perms, E>::new(),
+            )
+            .await?;
+
+        let credit_facility_proposal_approval_job_spawner = jobs.add_initializer(
+            CreditFacilityProposalApprovalInit::new(outbox, approve_proposal_arc.as_ref()),
+        );
+        credit_facility_proposal_approval_job_spawner
+            .spawn_unique(
+                job::JobId::new(),
+                CreditFacilityProposalApprovalJobConfig::<Perms, E>::new(),
+            )
+            .await?;
 
         Ok(Self {
             authz: authz_arc,

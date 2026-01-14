@@ -132,10 +132,6 @@ where
         })
     }
 
-    pub(super) async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, LiquidationError> {
-        Ok(self.repo.begin_op().await?)
-    }
-
     #[instrument(
         name = "credit.liquidation.record_collateral_sent",
         skip(self, sub),

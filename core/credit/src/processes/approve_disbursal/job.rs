@@ -17,7 +17,7 @@ use crate::{CoreCreditAction, CoreCreditEvent, CoreCreditObject};
 
 use super::ApproveDisbursal;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Default)]
 pub struct DisbursalApprovalJobConfig<Perms, E> {
     _phantom: std::marker::PhantomData<(Perms, E)>,
 }
@@ -33,11 +33,6 @@ impl<Perms, E> Clone for DisbursalApprovalJobConfig<Perms, E> {
         Self {
             _phantom: std::marker::PhantomData,
         }
-    }
-}
-impl<Perms, E> Default for DisbursalApprovalJobConfig<Perms, E> {
-    fn default() -> Self {
-        Self::new()
     }
 }
 
