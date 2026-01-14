@@ -4,7 +4,8 @@ use core_accounting::AccountingBaseConfig;
 use rbac_types::Subject;
 
 use super::module_config::{
-    balance_sheet::*, credit::*, deposit::*, fiscal_year::*, profit_and_loss::*,
+    balance_sheet::*, chart_integration_config::*, credit::*, deposit::*, fiscal_year::*,
+    profit_and_loss::*,
 };
 
 pub(crate) async fn init(
@@ -94,10 +95,7 @@ async fn seed_chart_of_accounts(
     };
 
     let accounting_integration_config: AccountingBaseConfig = match chart_integration_config_path {
-        Some(chart_integration_config_path) => {
-            let config_data = std::fs::read_to_string(chart_integration_config_path)?;
-            serde_json::from_str(&config_data)?
-        }
+        Some(config_path) => load_chart_integration_config_from_path(config_path)?,
         None => return Ok(()),
     };
 
