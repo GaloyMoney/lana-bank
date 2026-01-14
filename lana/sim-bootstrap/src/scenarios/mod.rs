@@ -8,19 +8,22 @@ mod timely_payments;
 use futures::StreamExt;
 use rust_decimal_macros::dec;
 use tracing::{Span, instrument};
+use tracing_macros::record_error_severity;
 
-use lana_app::{app::LanaApp, primitives::*};
+use lana_app::{app::LanaApp, credit::error::CoreCreditError, primitives::*};
 use lana_events::*;
 use obix::out::PersistentOutboxEvent;
 use tokio::task::JoinHandle;
 
+use super::error::SimBootstrapError;
 use super::helpers;
 
+#[record_error_severity]
 #[instrument(name = "sim_bootstrap.scenarios.run", skip(app), err)]
 pub async fn run(
     sub: &Subject,
     app: &LanaApp,
-) -> anyhow::Result<Vec<JoinHandle<Result<(), anyhow::Error>>>> {
+) -> Result<Vec<JoinHandle<Result<(), SimBootstrapError>>>, SimBootstrapError> {
     let mut handles = Vec::new();
     let sub = *sub;
 
@@ -70,7 +73,7 @@ pub async fn process_facility_lifecycle(
     app: LanaApp,
     customer_id: CustomerId,
     deposit_account_id: DepositAccountId,
-) -> anyhow::Result<()> {
+) -> Result<(), SimBootstrapError> {
     let terms = helpers::std_terms();
 
     let mut stream = app.outbox().listen_persisted(None);
@@ -91,7 +94,8 @@ pub async fn process_facility_lifecycle(
         .credit()
         .proposals()
         .conclude_customer_approval(&sub, cf_proposal.id, true)
-        .await?;
+        .await
+        .map_err(CoreCreditError::from)?;
 
     while let Some(msg) = stream.next().await {
         if process_facility_message(&msg, &sub, &app, &cf_proposal).await? {
@@ -108,7 +112,7 @@ async fn process_facility_message(
     sub: &Subject,
     app: &LanaApp,
     cf_proposal: &lana_app::credit::CreditFacilityProposal,
-) -> anyhow::Result<bool> {
+) -> Result<bool, SimBootstrapError> {
     match &message.payload {
         Some(LanaEvent::Credit(event @ CoreCreditEvent::FacilityProposalApproved { id, .. }))
             if cf_proposal.id == *id =>
@@ -155,7 +159,8 @@ async fn process_facility_message(
                 .credit()
                 .facilities()
                 .find_by_id(sub, *id)
-                .await?
+                .await
+                .map_err(CoreCreditError::from)?
                 .expect("cf exists");
             if facility.interest_accrual_cycle_in_progress().is_none() {
                 let total_outstanding_amount = app.credit().outstanding(&facility).await?;

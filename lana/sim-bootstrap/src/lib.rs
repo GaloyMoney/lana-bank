@@ -2,24 +2,27 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
 mod config;
+pub mod error;
 mod helpers;
 mod scenarios;
 
 use std::collections::HashSet;
 
+use lana_app::{app::LanaApp, primitives::*};
 use rust_decimal_macros::dec;
 use tracing::{Instrument, Span, info, instrument};
-
-use lana_app::{app::LanaApp, primitives::*};
+use tracing_macros::record_error_severity;
 
 pub use config::*;
+use error::SimBootstrapError;
 
+#[record_error_severity]
 #[instrument(name = "sim_bootstrap.run", skip(app, config), fields(num_customers = config.num_customers, num_facilities = config.num_facilities), err)]
 pub async fn run(
     superuser_email: String,
     app: &LanaApp,
     config: BootstrapConfig,
-) -> anyhow::Result<()> {
+) -> Result<(), SimBootstrapError> {
     if !config.active {
         return Ok(());
     }
@@ -74,7 +77,7 @@ pub async fn run(
 }
 
 #[instrument(name = "sim_bootstrap.create_term_templates", skip(sub, app))]
-async fn create_term_templates(sub: &Subject, app: &LanaApp) -> anyhow::Result<()> {
+async fn create_term_templates(sub: &Subject, app: &LanaApp) -> Result<(), SimBootstrapError> {
     let term_values = helpers::std_terms();
     app.credit()
         .terms_templates()
@@ -89,7 +92,7 @@ async fn create_customers(
     sub: &Subject,
     app: &LanaApp,
     config: &BootstrapConfig,
-) -> anyhow::Result<HashSet<(CustomerId, DepositAccountId)>> {
+) -> Result<HashSet<(CustomerId, DepositAccountId)>, SimBootstrapError> {
     let mut customers = HashSet::new();
 
     for i in 1..=config.num_customers {
@@ -107,7 +110,7 @@ async fn make_deposits(
     app: &LanaApp,
     customer_ids: &Vec<CustomerId>,
     config: &BootstrapConfig,
-) -> anyhow::Result<()> {
+) -> Result<(), SimBootstrapError> {
     let usd_cents = UsdCents::try_from_usd(
         rust_decimal::Decimal::from(config.num_facilities) * dec!(10_000_000),
     )?;
@@ -124,7 +127,10 @@ async fn make_deposits(
     skip(app),
     fields(superuser_email)
 )]
-async fn superuser_subject(superuser_email: &String, app: &LanaApp) -> anyhow::Result<Subject> {
+async fn superuser_subject(
+    superuser_email: &String,
+    app: &LanaApp,
+) -> Result<Subject, SimBootstrapError> {
     let superuser = app
         .access()
         .users()

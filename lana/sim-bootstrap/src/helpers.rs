@@ -1,3 +1,4 @@
+use super::error::SimBootstrapError;
 use lana_app::{
     app::LanaApp,
     customer::{CustomerId, CustomerType},
@@ -11,7 +12,7 @@ pub async fn create_customer(
     sub: &Subject,
     app: &LanaApp,
     suffix: &str,
-) -> anyhow::Result<(CustomerId, DepositAccountId)> {
+) -> Result<(CustomerId, DepositAccountId), SimBootstrapError> {
     let customer_email = format!("customer{suffix}@example.com");
     let telegram = format!("customer{suffix}");
     let customer_type = CustomerType::Individual;
@@ -55,7 +56,7 @@ pub async fn make_deposit(
     app: &LanaApp,
     customer_id: &CustomerId,
     usd_cents: UsdCents,
-) -> anyhow::Result<()> {
+) -> Result<(), SimBootstrapError> {
     let deposit_account_id = app
         .deposits()
         .list_accounts_by_created_at_for_account_holder(

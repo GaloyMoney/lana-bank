@@ -1,16 +1,20 @@
 use es_entity::prelude::chrono::Utc;
 use futures::StreamExt;
-use lana_app::{app::LanaApp, primitives::*};
+use lana_app::{app::LanaApp, credit::error::CoreCreditError, primitives::*};
 use lana_events::{CoreCreditEvent, LanaEvent};
 use obix::out::PersistentOutboxEvent;
 use rust_decimal_macros::dec;
 use tracing::{Span, instrument};
 
+use crate::error::SimBootstrapError;
 use crate::helpers;
 
 // Scenario 5: A fresh credit facility with no previous payments (interest under payment)
 #[tracing::instrument(name = "sim_bootstrap.interest_under_payment_scenario", skip(app), err)]
-pub async fn interest_under_payment_scenario(sub: Subject, app: &LanaApp) -> anyhow::Result<()> {
+pub async fn interest_under_payment_scenario(
+    sub: Subject,
+    app: &LanaApp,
+) -> Result<(), SimBootstrapError> {
     let (customer_id, _) = helpers::create_customer(&sub, app, "5-interest-under-payment").await?;
 
     let deposit_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
@@ -32,7 +36,8 @@ pub async fn interest_under_payment_scenario(sub: Subject, app: &LanaApp) -> any
         .credit()
         .proposals()
         .conclude_customer_approval(&sub, cf_proposal.id, true)
-        .await?;
+        .await
+        .map_err(CoreCreditError::from)?;
 
     let mut stream = app.outbox().listen_persisted(None);
     while let Some(msg) = stream.next().await {
@@ -50,7 +55,7 @@ async fn process_activation_message(
     sub: &Subject,
     app: &LanaApp,
     cf_proposal: &lana_app::credit::CreditFacilityProposal,
-) -> anyhow::Result<bool> {
+) -> Result<bool, SimBootstrapError> {
     match &message.payload {
         Some(LanaEvent::Credit(event @ CoreCreditEvent::FacilityProposalApproved { id, .. }))
             if cf_proposal.id == *id =>
