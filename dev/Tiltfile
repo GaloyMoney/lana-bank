@@ -27,6 +27,9 @@ if os.getenv("DAGSTER", "false") == "true":
             "service_name": "dagster_postgres"
         },
         {
+            "service_name": "dagster-init"
+        },
+        {
             "service_name": "dagster-code-location-lana-dw"
         },
     ]
