@@ -30,7 +30,7 @@ pub struct CreditFacilityRepaymentPlan {
 
 impl CreditFacilityRepaymentPlan {
     fn activated_at(&self) -> DateTime<Utc> {
-        self.activated_at.unwrap_or(crate::time::now())
+        self.activated_at.unwrap_or(es_entity::clock::Clock::now())
     }
 
     fn existing_obligations(&self) -> Vec<CreditFacilityRepaymentPlanEntry> {

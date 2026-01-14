@@ -182,8 +182,10 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
     let journal_id = helpers::init_journal(&cala).await?;
     let credit_public_ids = PublicIds::new(&pool);
     let price = core_price::Price::init(&mut jobs, &outbox).await?;
+    let (clock, _ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual());
     let credit = CoreCredit::init(
         &pool,
+        clock.clone(),
         CreditConfig {
             customer_active_check_enabled: false,
             ..Default::default()
@@ -201,7 +203,6 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
     )
     .await?;
     let deposit_public_ids = PublicIds::new(&pool);
-    let (clock, _ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual());
     let deposit = core_deposit::CoreDeposit::init(
         &pool,
         clock.clone(),

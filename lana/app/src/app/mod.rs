@@ -189,6 +189,7 @@ impl LanaApp {
 
         let credit = Credit::init(
             &pool,
+            clock.clone(),
             config.credit,
             &governance,
             &mut jobs,
