@@ -5,6 +5,7 @@ macro_rules! __define_config_spec {
         name: $name:ident,
         key: $key:literal,
         visibility: $visibility:path,
+        visibility_marker: $marker:path,
         kind: $kind:ty,
         value_ty: $value_ty:ty,
         $(default: $default:expr;)?
@@ -20,6 +21,8 @@ macro_rules! __define_config_spec {
                 ($validate)(value)
             })?
         }
+
+        impl $marker for $name {}
 
         $crate::inventory::submit! {
             $crate::registry::ConfigSpecEntry {
@@ -50,6 +53,7 @@ macro_rules! define_exposed_config {
             name: $name,
             key: $key,
             visibility: $crate::Visibility::Exposed,
+            visibility_marker: $crate::ExposedConfig,
             kind: $crate::Simple<$inner>,
             value_ty: $inner,
             $(default: $default;)?
@@ -76,6 +80,7 @@ macro_rules! define_internal_config {
             name: $name,
             key: $key,
             visibility: $crate::Visibility::Internal,
+            visibility_marker: $crate::InternalConfig,
             kind: $crate::Simple<$inner>,
             value_ty: $inner,
             $(default: $default;)?
@@ -98,6 +103,7 @@ macro_rules! define_internal_config {
             name: $name,
             key: $key,
             visibility: $crate::Visibility::Internal,
+            visibility_marker: $crate::InternalConfig,
             kind: $crate::Complex<$name>,
             value_ty: $name,
             $(default: $default;)?

@@ -196,8 +196,8 @@ impl Loader<DomainConfigId> for LanaLoader {
         keys: &[DomainConfigId],
     ) -> Result<HashMap<DomainConfigId, DomainConfig>, Self::Error> {
         self.app
-            .domain_configs()
-            .find_all_exposed(keys)
+            .exposed_domain_configs()
+            .find_all(keys)
             .await
             .map_err(Arc::new)
     }

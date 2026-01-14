@@ -89,6 +89,10 @@ checksums:
     Permissions/deposit_freeze/description: 4b13716322f1d78b3ad976a5498c9f1d
     Permissions/deposit_unfreeze/label: 73920e216b0740056752eed0d09a8022
     Permissions/deposit_unfreeze/description: 66f2ed38234469d5aef3b536a62539c9
+    Permissions/exposed_config_viewer/label: 1e7fa415f3f0c0d28c98d3483082a47f
+    Permissions/exposed_config_viewer/description: 809fca576f2e7dcf28a24ae9cfab3f5b
+    Permissions/exposed_config_writer/label: 74330c81e4df63525f7a2f066bfec1ac
+    Permissions/exposed_config_writer/description: d6ba621e02e5d15b8db61a840536b866
     Permissions/governance_viewer/label: bfcc6123d91209cf8ca012200b6cd556
     Permissions/governance_viewer/description: 84a7ff7991222611fe8a7d55bd61aacc
     Permissions/governance_writer/label: b9dd0624ee128d1ece7da289d0c28eb5

@@ -5,7 +5,7 @@ use rand::Rng;
 use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
 use cloud_storage::{Storage, config::StorageConfig};
-use domain_config::DomainConfigs;
+use domain_config::InternalDomainConfigs;
 
 use core_accounting::CoreAccounting;
 use core_credit::*;
@@ -20,7 +20,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let outbox =
         obix::Outbox::<event::DummyEvent>::init(&pool, obix::MailboxConfig::default()).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
-    let domain_configs = DomainConfigs::new(&pool);
+    let domain_configs = InternalDomainConfigs::new(&pool);
     let storage = Storage::new(&StorageConfig::default());
     let document_storage = DocumentStorage::new(&pool, &storage);
 

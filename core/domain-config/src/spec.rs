@@ -158,6 +158,14 @@ pub trait ConfigSpec {
     }
 }
 
+/// Marker trait for configs with Internal visibility.
+/// Implemented automatically by `define_internal_config!` macro.
+pub trait InternalConfig: ConfigSpec {}
+
+/// Marker trait for configs with Exposed visibility.
+/// Implemented automatically by `define_exposed_config!` macro.
+pub trait ExposedConfig: ConfigSpec {}
+
 fn json_value_type(value: &serde_json::Value) -> &'static str {
     match value {
         serde_json::Value::Null => "null",
