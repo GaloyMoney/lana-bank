@@ -4,5 +4,4 @@ select
     left(`Pais`, 20) as `Pais`,
     left(`categoria`, 2) as `categoria`,
     cast(round(`valor_aval_fianza`, 2) as string) as `valor_aval_fianza`
-from
-    {{ ref('int_nrp_51_06_aval_garantizado') }}
+from {{ ref("int_nrp_51_06_aval_garantizado") }}

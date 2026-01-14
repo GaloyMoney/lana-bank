@@ -13,5 +13,4 @@ select
     cast(round(`octubre`, 2) as string) as `octubre`,
     cast(round(`noviembre`, 2) as string) as `noviembre`,
     cast(round(`diciembre`, 2) as string) as `diciembre`
-from
-    {{ ref('int_nrp_51_08_balance_proyectado') }}
+from {{ ref("int_nrp_51_08_balance_proyectado") }}
