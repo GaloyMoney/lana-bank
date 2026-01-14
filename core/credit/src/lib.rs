@@ -24,7 +24,6 @@ mod publisher;
 mod repayment_plan;
 mod terms;
 mod terms_template;
-mod time;
 
 use std::sync::Arc;
 
@@ -32,6 +31,7 @@ use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use core_accounting::LedgerTransactionInitiator;
+use es_entity::clock::ClockHandle;
 use core_custody::{
     CoreCustody, CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject, CustodianId,
 };
@@ -94,6 +94,7 @@ where
         + OutboxEventMarker<CorePriceEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
 {
+    clock: ClockHandle,
     authz: Arc<Perms>,
     credit_facility_proposals: Arc<CreditFacilityProposals<Perms, E>>,
     pending_credit_facilities: Arc<PendingCreditFacilities<Perms, E>>,
@@ -132,6 +133,7 @@ where
 {
     fn clone(&self) -> Self {
         Self {
+            clock: self.clock.clone(),
             authz: self.authz.clone(),
             credit_facility_proposals: self.credit_facility_proposals.clone(),
             pending_credit_facilities: self.pending_credit_facilities.clone(),
@@ -182,6 +184,7 @@ where
     #[instrument(name = "credit.init", skip_all, fields(journal_id = %journal_id))]
     pub async fn init(
         pool: &sqlx::PgPool,
+        clock: ClockHandle,
         config: CreditConfig,
         governance: &Governance<Perms, E>,
         jobs: &mut Jobs,
@@ -206,7 +209,7 @@ where
         let config_arc = Arc::new(config);
 
         let publisher = CreditFacilityPublisher::new(outbox);
-        let ledger = CreditLedger::init(cala, journal_id).await?;
+        let ledger = CreditLedger::init(cala, journal_id, clock.clone()).await?;
         let ledger_arc = Arc::new(ledger);
 
         let obligations = Obligations::new(
@@ -371,6 +374,7 @@ where
             .await?;
 
         Ok(Self {
+            clock,
             authz: authz_arc,
             customer: customer_arc,
             credit_facility_proposals: proposals_arc,
@@ -600,7 +604,7 @@ where
             return Err(CoreCreditError::CustomerNotVerified);
         }
 
-        let now = crate::time::now();
+        let now = self.clock.now();
         if facility.is_single_disbursal() {
             return Err(CreditFacilityError::OnlyOneDisbursalAllowed.into());
         }
@@ -834,7 +838,7 @@ where
         let mut db = self.facilities.begin_op().await?;
 
         let payment_id = PaymentId::new();
-        let effective = crate::time::now().date_naive();
+        let effective = self.clock.now().date_naive();
         let initiated_by = LedgerTransactionInitiator::try_from_subject(sub)?;
         if let Some(payment) = self
             .payments
@@ -981,7 +985,7 @@ where
                         &mut db,
                         facility.collateral_id,
                         Satoshis::ZERO,
-                        crate::time::now().date_naive(),
+                        self.clock.now().date_naive(),
                     )
                     .await?;
 

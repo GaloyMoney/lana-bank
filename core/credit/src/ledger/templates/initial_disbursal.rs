@@ -25,6 +25,7 @@ pub struct InitialDisbursalParams {
     pub disbursed_amount: Decimal,
     pub currency: Currency,
     pub external_id: String,
+    pub effective: chrono::NaiveDate,
     pub initiated_by: core_accounting::LedgerTransactionInitiator,
 }
 
@@ -97,6 +98,7 @@ impl From<InitialDisbursalParams> for Params {
             disbursed_amount,
             currency,
             external_id,
+            effective,
             initiated_by,
         }: InitialDisbursalParams,
     ) -> Self {
@@ -115,7 +117,7 @@ impl From<InitialDisbursalParams> for Params {
         params.insert("disbursed_amount", disbursed_amount);
         params.insert("currency", currency);
         params.insert("external_id", external_id);
-        params.insert("effective", crate::time::now().date_naive());
+        params.insert("effective", effective);
         let entity_ref =
             core_accounting::EntityRef::new(DISBURSAL_TRANSACTION_ENTITY_TYPE, entity_id);
         params.insert(
