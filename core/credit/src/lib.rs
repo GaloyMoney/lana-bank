@@ -100,6 +100,7 @@ where
     disbursals: Arc<Disbursals<Perms, E>>,
     payments: Arc<Payments<Perms>>,
     repayment_plan_repo: Arc<RepaymentPlanRepo>,
+    repayment_plans: Arc<RepaymentPlans>,
     governance: Arc<Governance<Perms, E>>,
     customer: Arc<Customers<Perms, E>>,
     ledger: Arc<CreditLedger>,
@@ -141,6 +142,7 @@ where
             payments: self.payments.clone(),
             histories: self.histories.clone(),
             repayment_plan_repo: self.repayment_plan_repo.clone(),
+            repayment_plans: self.repayment_plans.clone(),
             governance: self.governance.clone(),
             customer: self.customer.clone(),
             ledger: self.ledger.clone(),
@@ -299,7 +301,7 @@ where
 
         let repayment_plan_repo = RepaymentPlanRepo::new(pool);
         let repayment_plan_repo_arc = Arc::new(repayment_plan_repo);
-        // let repayment_plans_arc = Arc::new(RepaymentPlans::init(pool, outbox, jobs).await?);
+        let repayment_plans_arc = Arc::new(RepaymentPlans::init(pool, outbox, jobs).await?);
 
         let audit_arc = Arc::new(authz.audit().clone());
 
@@ -337,17 +339,6 @@ where
         let terms_templates_arc = Arc::new(terms_templates);
 
         // jobs.add_initializer_and_spawn_unique(
-        //     credit_facility_repayment_plan::RepaymentPlanProjectionInit::<E>::new(
-        //         outbox,
-        //         repayment_plan_repo_arc.as_ref(),
-        //     ),
-        //     credit_facility_repayment_plan::RepaymentPlanProjectionConfig {
-        //         _phantom: std::marker::PhantomData,
-        //     },
-        // )
-        // .await?;
-        //
-        // jobs.add_initializer_and_spawn_unique(
         //     CreditFacilityActivationInit::new(outbox, activate_credit_facility_arc.as_ref()),
         //     CreditFacilityActivationJobConfig::<Perms, E>::new(),
         // )
@@ -371,6 +362,7 @@ where
             payments: payments_arc,
             histories: histories_arc,
             repayment_plan_repo: repayment_plan_repo_arc,
+            repayment_plans: repayment_plans_arc,
             governance: governance_arc,
             ledger: ledger_arc,
             price: price_arc,
