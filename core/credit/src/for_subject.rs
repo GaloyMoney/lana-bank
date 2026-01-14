@@ -24,7 +24,7 @@ where
     obligations: &'a Obligations<Perms, E>,
     disbursals: &'a Disbursals<Perms, E>,
     histories: &'a Histories<Perms>,
-    repayment_plans: &'a RepaymentPlanRepo,
+    repayment_plans: &'a RepaymentPlans<Perms>,
     ledger: &'a CreditLedger,
 }
 
@@ -48,7 +48,7 @@ where
         obligations: &'a Obligations<Perms, E>,
         disbursals: &'a Disbursals<Perms, E>,
         history: &'a Histories<Perms>,
-        repayment_plans: &'a RepaymentPlanRepo,
+        repayment_plans: &'a RepaymentPlans<Perms>,
         ledger: &'a CreditLedger,
     ) -> Self {
         Self {
@@ -111,8 +111,11 @@ where
             CoreCreditAction::CREDIT_FACILITY_READ,
         )
         .await?;
-        let repayment_plan = self.repayment_plans.load(id).await?;
-        Ok(repayment_plan.entries.into_iter().map(T::from).collect())
+        let repayment_plan = self
+            .repayment_plans
+            .find_for_credit_facility_id_without_audit(id)
+            .await?;
+        Ok(repayment_plan.into_iter().map(T::from).collect())
     }
 
     pub async fn balance(

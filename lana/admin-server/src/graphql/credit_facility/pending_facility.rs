@@ -77,7 +77,11 @@ impl PendingCreditFacility {
         ctx: &Context<'_>,
     ) -> async_graphql::Result<Vec<CreditFacilityRepaymentPlanEntry>> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        Ok(app.credit().repayment_plan(sub, self.entity.id).await?)
+        Ok(app
+            .credit()
+            .repayment_plans()
+            .find_for_credit_facility_id(sub, self.entity.id)
+            .await?)
     }
 
     async fn approval_process(&self, ctx: &Context<'_>) -> async_graphql::Result<ApprovalProcess> {

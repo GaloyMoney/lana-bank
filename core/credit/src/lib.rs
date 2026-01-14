@@ -101,8 +101,7 @@ where
     facilities: Arc<CreditFacilities<Perms, E>>,
     disbursals: Arc<Disbursals<Perms, E>>,
     payments: Arc<Payments<Perms>>,
-    repayment_plan_repo: Arc<RepaymentPlanRepo>,
-    repayment_plans: Arc<RepaymentPlans>,
+    repayment_plans: Arc<RepaymentPlans<Perms>>,
     governance: Arc<Governance<Perms, E>>,
     customer: Arc<Customers<Perms, E>>,
     ledger: Arc<CreditLedger>,
@@ -144,7 +143,6 @@ where
             disbursals: self.disbursals.clone(),
             payments: self.payments.clone(),
             histories: self.histories.clone(),
-            repayment_plan_repo: self.repayment_plan_repo.clone(),
             repayment_plans: self.repayment_plans.clone(),
             governance: self.governance.clone(),
             customer: self.customer.clone(),
@@ -304,9 +302,8 @@ where
 
         let histories_arc = Arc::new(Histories::init(pool, outbox, jobs, authz_arc.clone()).await?);
 
-        let repayment_plan_repo = RepaymentPlanRepo::new(pool);
-        let repayment_plan_repo_arc = Arc::new(repayment_plan_repo);
-        let repayment_plans_arc = Arc::new(RepaymentPlans::init(pool, outbox, jobs).await?);
+        let repayment_plans_arc =
+            Arc::new(RepaymentPlans::init(pool, outbox, jobs, authz_arc.clone()).await?);
 
         let audit_arc = Arc::new(authz.audit().clone());
 
@@ -387,7 +384,6 @@ where
             disbursals: disbursals_arc,
             payments: payments_arc,
             histories: histories_arc,
-            repayment_plan_repo: repayment_plan_repo_arc,
             repayment_plans: repayment_plans_arc,
             governance: governance_arc,
             ledger: ledger_arc,
@@ -448,6 +444,10 @@ where
         self.histories.as_ref()
     }
 
+    pub fn repayment_plans(&self) -> &RepaymentPlans<Perms> {
+        self.repayment_plans.as_ref()
+    }
+
     pub async fn subject_can_create(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -481,7 +481,7 @@ where
             &self.obligations,
             &self.disbursals,
             &self.histories,
-            &self.repayment_plan_repo,
+            &self.repayment_plans,
             &self.ledger,
         ))
     }
@@ -545,25 +545,6 @@ where
         db.commit().await?;
 
         Ok(credit_facility_proposal)
-    }
-
-    #[record_error_severity]
-    #[instrument(name = "credit.repayment_plan", skip(self))]
-    pub async fn repayment_plan<T: From<CreditFacilityRepaymentPlanEntry>>(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug,
-    ) -> Result<Vec<T>, CoreCreditError> {
-        let id = credit_facility_id.into();
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreCreditObject::credit_facility(id),
-                CoreCreditAction::CREDIT_FACILITY_READ,
-            )
-            .await?;
-        let repayment_plan = self.repayment_plan_repo.load(id).await?;
-        Ok(repayment_plan.entries.into_iter().map(T::from).collect())
     }
 
     pub async fn subject_can_initiate_disbursal(

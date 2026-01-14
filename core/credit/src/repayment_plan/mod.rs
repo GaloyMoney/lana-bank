@@ -11,8 +11,12 @@ use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{event::CoreCreditEvent, primitives::*, terms::TermValues};
+use audit::AuditSvc;
+use authz::PermissionCheck;
 use error::CreditFacilityRepaymentPlanError;
 use jobs::credit_facility_repayment_plan;
+use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 pub use entry::*;
 pub use repo::RepaymentPlanRepo;
@@ -281,23 +285,34 @@ impl CreditFacilityRepaymentPlan {
     }
 }
 
-pub struct RepaymentPlans {
+pub struct RepaymentPlans<Perms> {
     repo: Arc<RepaymentPlanRepo>,
+    authz: Arc<Perms>,
 }
 
-impl Clone for RepaymentPlans {
+impl<Perms> Clone for RepaymentPlans<Perms>
+where
+    Perms: PermissionCheck,
+{
     fn clone(&self) -> Self {
         Self {
             repo: self.repo.clone(),
+            authz: self.authz.clone(),
         }
     }
 }
 
-impl RepaymentPlans {
+impl<Perms> RepaymentPlans<Perms>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+{
     pub async fn init<E>(
         pool: &sqlx::PgPool,
         outbox: &Outbox<E>,
         jobs: &mut job::Jobs,
+        authz: Arc<Perms>,
     ) -> Result<Self, CreditFacilityRepaymentPlanError>
     where
         E: OutboxEventMarker<CoreCreditEvent>,
@@ -318,7 +333,36 @@ impl RepaymentPlans {
             )
             .await?;
 
-        Ok(Self { repo })
+        Ok(Self { repo, authz })
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "credit.repayment_plan", skip(self, credit_facility_id), fields(credit_facility_id = tracing::field::Empty))]
+    pub async fn find_for_credit_facility_id<T: From<CreditFacilityRepaymentPlanEntry>>(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug,
+    ) -> Result<Vec<T>, CreditFacilityRepaymentPlanError> {
+        let id = credit_facility_id.into();
+        tracing::Span::current().record("credit_facility_id", tracing::field::display(id));
+
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::credit_facility(id),
+                CoreCreditAction::CREDIT_FACILITY_READ,
+            )
+            .await?;
+        let repayment_plan = self.repo.load(id).await?;
+        Ok(repayment_plan.entries.into_iter().map(T::from).collect())
+    }
+
+    pub(crate) async fn find_for_credit_facility_id_without_audit(
+        &self,
+        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug,
+    ) -> Result<Vec<CreditFacilityRepaymentPlanEntry>, CreditFacilityRepaymentPlanError> {
+        let repayment_plan = self.repo.load(credit_facility_id.into()).await?;
+        Ok(repayment_plan.entries.into_iter().collect())
     }
 }
 
