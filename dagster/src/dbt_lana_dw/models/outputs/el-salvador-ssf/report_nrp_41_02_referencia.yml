@@ -1,0 +1,258 @@
+version: 2
+models:
+  - name: report_nrp_41_02_referencia
+    description: Regulatory output model for referencia.xml (Archivo 2) under El Salvador’s Central Risk System (NRP-41). Each row represents a credit reference for a debtor.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [num_referencia, cod_cartera, cod_activo]
+    columns:
+      - name: nit_deudor
+        description: Debtor identifier (NIT, NIU, or 9-digit DUI-NIT replacement) without hyphens; key used to link to persona.xml.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('report_nrp_41_01_persona')
+              field: nit_persona
+              config:
+                severity: warn
+      - name: cod_cartera
+        description: Portfolio type code per Annex B Table 1.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30','32','33','98','99']
+      - name: cod_activo
+        description: Risk asset type per Annex B Table 2 (e.g., PD loans, CC letters of credit).
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['PD','CP','CC','FA','PR','SN']
+      - name: num_referencia
+        description: Reference number for the obligation (left-justified, up to 20 chars).
+        tests:
+          - not_null
+      - name: monto_referencia
+        description: Original granted amount or credit limit (TC). Two-decimal string.
+      - name: saldo_referencia
+        description: Total outstanding balance of the reference as of cut-off. Two-decimal string.
+      - name: saldo_vigente_k
+        description: Current (non-overdue) principal balance. Two-decimal string.
+      - name: saldo_vencido_k
+        description: Overdue principal balance (e.g., >90 days or judicial). Two-decimal string.
+      - name: saldo_vigente_i
+        description: Current (non-overdue) interest balance. Two-decimal string.
+      - name: saldo_vencido_i
+        description: Overdue interest balance. Two-decimal string.
+      - name: abono_deposito
+        description: Unapplied payments or deposits (including deposits for letters of credit). Two-decimal string.
+      - name: fecha_otorgamiento
+        description: Original granting date (YYYY-MM-DD).
+      - name: fecha_vencimiento
+        description: Original maturity date (YYYY-MM-DD).
+      - name: fecha_castigo
+        description: Write-off date when moved to off-balance (YYYY-MM-DD).
+      - name: estado_credito
+        description: Credit status code (1 Vigente, 2 Vencido, 3 Cancelado, 4 Saneado, 5 Vía Judicial) per Annex B Table 7.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['1','2','3','4','5']
+      - name: saldo_mora_k
+        description: Principal in arrears (from 1 day; keep cumulative if >90 days). Two-decimal string.
+      - name: saldo_mora_i
+        description: Interest in arrears (1–90 days). Two-decimal string.
+      - name: dias_mora_k
+        description: Days of delinquency for principal (stringified integer).
+      - name: dias_mora_i
+        description: Days of delinquency for interest (stringified integer).
+      - name: fecha_inicio_mora_k
+        description: Start date of principal delinquency (YYYY-MM-DD).
+      - name: fecha_inicio_mora_i
+        description: Start date of interest delinquency (YYYY-MM-DD).
+      - name: pago_capital
+        description: Capital payment frequency code per Annex B Table 8.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['A','E','T','B','M','Q','S','D','V','P','O']
+      - name: pago_interes
+        description: Interest payment frequency code per Annex B Table 8.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['A','E','T','B','M','Q','S','D','V','P','O']
+      - name: periodo_gracia_k
+        description: Grace period for principal (days; stringified integer).
+      - name: periodo_gracia_i
+        description: Grace period for interest (days; stringified integer).
+      - name: garante
+        description: Pledger/guarantor code for pledged portfolio (Annex B Table 10), when applicable.
+      - name: "emisión"
+        description: Security issuance name when references back investment certificates (required with garante SV01).
+      - name: pais_destino_credito
+        description: Country code of credit destination (Annex B Table 31).
+      - name: destino
+        description: Economic destination code per the credit destination manual (Annex E/F, Table 24), 6 chars.
+      - name: codigo_moneda
+        description: Currency code (1 USD, 2 Other) per Annex B Table 17.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['1','2']
+      - name: tasa_interes
+        description: Current interest rate for the month reported (percentage as two-decimal string).
+        tests:
+          - not_null
+      - name: tasa_contractual
+        description: Contract (nominal) rate agreed (percentage as two-decimal string).
+        tests:
+          - not_null
+      - name: tasa_referencia
+        description: Published reference rate in effect at contracting (percentage as two-decimal string).
+        tests:
+          - not_null
+      - name: tasa_efectiva
+        description: Effective rate charged to the client (percentage as two-decimal string).
+        tests:
+          - not_null
+      - name: tipo_tasa_interes
+        description: Nominal rate type (A adjustable, F fixed).
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['A','F']
+      - name: tipo_prestamo
+        description: Loan subtype per Annex B Table 18 (e.g., CD, CR, NR, TC, etc.).
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['CD','CR','NR','TC','CI','DI','CT','NA','SA','SO','CU']
+      - name: codigo_recurso
+        description: Funding source code per Annex B Table 21.
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['01','02','03','04','05','06','07','08','09','10','11','12','13','99']
+      - name: ultima_fecha_venc
+        description: Latest maturity date if an extension was granted (YYYY-MM-DD).
+      - name: dias_prorroga
+        description: Days of last extension (stringified integer; required if ultima_fecha_venc is populated).
+      - name: monto_desembolsado
+        description: Amount disbursed within the reporting month (two-decimal string; TC includes monthly charges).
+      - name: tipo_credito
+        description: Credit type (refinancing/restructuring/consolidation/etc.) per Annex B Table 30.
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['RF','RR','RE','CO','RT','RP','SG','FC','CF','CR','CE','CC','CT','CP','CG','CV','PF','PR','PE','PT','PP']
+      - name: fecha_ultimo_pago_k
+        description: Date of last covered principal payment (YYYY-MM-DD).
+      - name: fecha_ultimo_pago_i
+        description: Date of last covered interest payment (YYYY-MM-DD).
+      - name: dia_pago_k
+        description: Scheduled principal payment day of month (stringified integer 1–31).
+      - name: dia_pago_i
+        description: Scheduled interest payment day of month (stringified integer 1–31).
+      - name: cuota_mora_k
+        description: Number of principal installments in arrears (stringified integer).
+      - name: cuota_mora_i
+        description: Number of interest installments in arrears (stringified integer).
+      - name: monto_cuota
+        description: Installment amount (capital + interest) or minimum payment for TC. Two-decimal string.
+      - name: cuenta_contable_k
+        description: GL account for principal per Annex C mapping (12 chars).
+      - name: cuenta_contable_i
+        description: GL account for interest per Annex C mapping (12 chars).
+      - name: fecha_cancelacion
+        description: Cancellation date of the reference (YYYY-MM-DD; send only in month of cancellation).
+      - name: adelanto_capital
+        description: Prepaid principal amount. Two-decimal string.
+      - name: riesgo_neto
+        description: Net risk = saldo_referencia minus proportional guarantees (not below zero). Two-decimal string.
+      - name: saldo_seguro
+        description: Outstanding credit insurance balance. Two-decimal string.
+      - name: saldo_costas_procesales
+        description: Outstanding legal costs balance. Two-decimal string.
+      - name: tipo_tarjeta_credito
+        description: Credit card type (1 local, 2 international).
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['1','2']
+      - name: clase_tarjeta_credito
+        description: Card network/class (1 VISA, 2 MasterCard, 3 American Express, 4 Other) per Annex B Table 28.
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['1','2','3','4']
+      - name: producto_tarjeta_credito
+        description: Card product name (e.g., Classic, Platinum).
+      - name: valor_garantia_cons
+        description: Consolidated sum of proportional guarantee values covering the reference. Two-decimal string.
+      - name: distrito_otorgamiento
+        description: District code where the credit was granted (Annex B Table 14).
+      - name: reserva_referencia
+        description: Loss reserve for the reference as per applicable norms. Two-decimal string.
+      - name: etapa_judicial
+        description: Judicial process stage per Annex B Table 29 (1–6).
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['1','2','3','4','5','6']
+      - name: fecha_demanda
+        description: Date the lawsuit was filed (YYYY-MM-DD).
+      - name: plazo_credito
+        description: Credit term in months (stringified integer).
+      - name: orden_descuento
+        description: Whether granted with payroll/discount order (CO) or without (SO) where applicable.
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['CO','SO']
+      - name: categoria_riesgo_ref
+        description: Risk category assigned to the reference per Annex B Table 3.
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['A1','A2','B','C1','C2','D1','D2','E','E1','E2','E3']
+          - relationships:
+              to: ref('static_ncb_022_porcentaje_reservas_saneamiento')
+              field: category
+      - name: reserva_constituir
+        description: Accumulated reserve pending constitution for COVID credits (graduality). Two-decimal string.
+      - name: porcentaje_reserva
+        description: Percent of reserve constituted for COVID credits per graduality (two-decimal percentage string).
+      - name: pago_cuota
+        description: Amount paid toward the installment in the reported month (sum if multiple). Two-decimal string.
+      - name: fecha_pago
+        description: Date of the last installment payment in the reported month (YYYY-MM-DD).
+      - name: porcenta_reserva_descon
+        description: Percent of reserve to discount for agricultural credits (NRP-26). Two-decimal percentage string.
+      - name: porcenta_adiciona_descon
+        description: Additional percent to discount for agricultural credits (NRP-26). Two-decimal percentage string.
+      - name: depto_destino_credito
+        description: Department code of credit destination (Annex B Table 11).
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['01','02','03','04','05','06','07','08','09','10','11','12','13','14']
+      - name: porc_reserva_referencia
+        description: Reserve percentage applied to the reference (two-decimal percentage string).
+      - name: calculo_brecha
+        description: Breach (gap) calculation of sanitation reserve (COVID/program revocation). Two-decimal string.
+      - name: ajuste_brecha
+        description: Monthly adjustment of the brecha calculation. Two-decimal string.
+      - name: programa_asist_cafe
+        description: Coffee sector assistance program code (Annex B Table 32).
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['1','2','3','4','5']
+      - name: fecha_cump_cafe
+        description: Date of last compliance letter under the coffee assistance program (YYYY-MM-DD).

@@ -1,0 +1,59 @@
+version: 2
+
+models:
+  - name: report_nrp_41_03_referencia_garantia
+    description: Association between credit references and guarantees required by NRP-41 (Anexo A, Archivo 3 referencia_garantia.xml). For each reference (num_referencia, cod_cartera, cod_activo) it records the guarantee identifier, guarantee type, and the proportional value of the guarantee that covers the reference.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - num_referencia
+            - cod_cartera
+            - cod_activo
+            - identificacion_garantia
+            - tipo_garantia
+    columns:
+      - name: num_referencia
+        description: Credit reference number of the exposure (referencia.xml 2.4), left-trimmed to 20 characters; used with cod_cartera and cod_activo to relate to the reference.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('report_nrp_41_02_referencia')
+              field: num_referencia
+
+      - name: cod_cartera
+        description: Portfolio type code of the reference (referencia.xml 2.2) per Table 1; two-character code.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30','32','33','98','99']
+
+      - name: cod_activo
+        description: Risk asset type code of the reference (referencia.xml 2.3) per Table 2; two-character code.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['PD','CP','CC','FA','PR','SN']
+
+      - name: identificacion_garantia
+        description: Unique identifier of the guarantee associated to the reference (referencia_garantia.xml 3.4); used to relate to the corresponding guarantee file (e.g., hipotecaria, pignorada, prenda, bono, póliza, fondo).
+        tests:
+          - not_null
+          - relationships:
+              to: ref('report_nrp_41_07_garantia_pignorada')
+              field: identificacion_garantia
+              where: "tipo_garantia = 'PI'"
+
+      - name: tipo_garantia
+        description: Guarantee type code (referencia_garantia.xml 3.5) per Table 9; two-character code.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['HA','HC','FI','PR','PI','FG','FB','CC','AV','BP','PD','VR','PO','PV']
+
+      - name: valor_garantia_proporcional
+        description: Proportional value of the guarantee that covers the reference (referencia_garantia.xml 3.6); monetary amount with two decimals per Art. 9. In this model it is formatted to two decimals.
+        tests:
+          - not_null
