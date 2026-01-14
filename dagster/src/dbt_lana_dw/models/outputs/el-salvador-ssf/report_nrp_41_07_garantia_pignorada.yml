@@ -1,0 +1,54 @@
+version: 2
+models:
+  - name: report_nrp_41_07_garantia_pignorada
+    description: >
+      Output table for NRP-41 (Anexo A, Archivo 7: garantia_pignorada.xml). It reports pledged deposits used as
+      collateral to the Central de Riesgos, aligned to the regulator’s field definitions.
+    columns:
+      - name: tipo_deposito
+        description: >
+          Deposit type code per Anexo C 7.6: CD = certificate of deposit; DE = cash deposit pledged. Sourced
+          directly from the intermediate model.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['CD', 'DE']
+      - name: cod_banco
+        description: >
+          Issuing bank code (Anexo C 7.7; Tabla 15). Required when tipo_deposito = 'CD'. Must be null for cash
+          deposits (tipo_deposito = 'DE') per Anexo D (errores 459 y 461).
+        tests:
+          - not_null:
+              where: "tipo_deposito = 'CD'"
+      - name: identificacion_garantia
+        description: >
+          Certificate or account number that identifies the pledged deposit (Anexo C 7.1). Truncated to 20
+          characters to meet the XML limit. Intended to be unique within the file.
+        tests:
+          - not_null
+          - unique
+      - name: nit_depositante
+        description: >
+          Owner’s NIT (Anexo C 7.2). Hyphens are removed and the value is trimmed to 14 characters, per Art. 10
+          and the XML constraint.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('report_nrp_41_01_persona')
+              field: nit_persona
+              config:
+                severity: warn
+      - name: fecha_deposito
+        description: >
+          Deposit opening date (Anexo C 7.3), formatted as YYYY-MM-DD.
+        tests:
+          - not_null
+      - name: fecha_vencimiento
+        description: >
+          Deposit maturity date (Anexo C 7.4), formatted as YYYY-MM-DD. May be null when not applicable.
+      - name: valor_deposito
+        description: >
+          Deposit amount in USD with two decimals (Anexo C 7.5). Rounded and formatted to two decimal places.
+        tests:
+          - not_null
