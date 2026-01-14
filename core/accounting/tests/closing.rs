@@ -17,8 +17,8 @@ use cala_ledger::{
     account::NewAccount,
 };
 use core_accounting::{
-    AccountCode, AccountIdOrCode, CalaTxId, Chart, ClosingAccountCodes, ClosingTxDetails,
-    CoreAccounting, LedgerAccountId, ManualEntryInput, ProfitAndLossStatement,
+    AccountCode, AccountIdOrCode, AccountingBaseConfig, CalaTxId, Chart, ClosingAccountCodes,
+    ClosingTxDetails, CoreAccounting, LedgerAccountId, ManualEntryInput, ProfitAndLossStatement,
     balance_sheet::ChartOfAccountsIntegrationConfig as BalanceSheetConfig, fiscal_year::FiscalYear,
     fiscal_year::FiscalYearRepo,
     profit_and_loss::ChartOfAccountsIntegrationConfig as ProfitAndLossConfig,
@@ -379,9 +379,19 @@ async fn setup_test() -> anyhow::Result<Test> {
 ,,,,,
 ,,0101,Regulatory Fees,,
         "#;
+    let base_config = AccountingBaseConfig {
+        assets_code: ASSETS.parse().unwrap(),
+        liabilities_code: LIABILITIES.parse().unwrap(),
+        equity_code: EQUITY.parse().unwrap(),
+        equity_retained_earnings_gain_code: RETAINED_EARNINGS_GAIN.parse().unwrap(),
+        equity_retained_earnings_loss_code: RETAINED_EARNINGS_LOSS.parse().unwrap(),
+        revenue_code: REVENUES.parse().unwrap(),
+        cost_of_revenue_code: COSTS.parse().unwrap(),
+        expenses_code: EXPENSES.parse().unwrap(),
+    };
     let (chart, _) = accounting
         .chart_of_accounts()
-        .import_from_csv(&DummySubject, &chart.reference, import)
+        .import_from_csv_with_base_config(&DummySubject, &chart.reference, import, base_config)
         .await?;
     let opened_as_of: NaiveDate = "2021-01-01".parse::<NaiveDate>().unwrap();
     let fiscal_year = accounting
