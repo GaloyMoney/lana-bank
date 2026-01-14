@@ -723,7 +723,9 @@ pub enum CollateralUpdate {
         effective: chrono::NaiveDate,
     },
     Liquidation {
+        tx_id: LedgerTxId,
         amount: Satoshis,
+        collateral_in_liquidation_account_id: CalaAccountId,
         effective: chrono::NaiveDate,
     },
 }

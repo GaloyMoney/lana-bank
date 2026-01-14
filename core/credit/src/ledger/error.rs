@@ -30,6 +30,8 @@ pub enum CreditLedgerError {
     JournalIdMismatch,
     #[error("CreditLedgerError - PaymentAmountGreaterThanOutstandingObligations")]
     PaymentAmountGreaterThanOutstandingObligations,
+    #[error("CreditLedgerErrir - LiquidationLedgerError: {0}")]
+    LiquidationLedgerError(#[from] crate::liquidation::LiquidationLedgerError),
 }
 
 impl ErrorSeverity for CreditLedgerError {
@@ -47,6 +49,7 @@ impl ErrorSeverity for CreditLedgerError {
             Self::NonAccountMemberFoundInAccountSet(_) => Level::ERROR,
             Self::JournalIdMismatch => Level::ERROR,
             Self::PaymentAmountGreaterThanOutstandingObligations => Level::WARN,
+            Self::LiquidationLedgerError(_) => Level::ERROR,
         }
     }
 }

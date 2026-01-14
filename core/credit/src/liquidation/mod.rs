@@ -30,7 +30,7 @@ use crate::{
 use entity::NewLiquidationBuilder;
 pub use entity::{Liquidation, LiquidationEvent, NewLiquidation};
 use error::LiquidationError;
-use ledger::LiquidationLedger;
+pub(crate) use ledger::{LiquidationLedger, LiquidationLedgerError};
 pub(crate) use repo::LiquidationRepo;
 pub use repo::liquidation_cursor;
 
