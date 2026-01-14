@@ -71,10 +71,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     type Config = ObligationDefaultedJobConfig<Perms, E>;
-    fn job_type(&self) -> JobType
-    where
-        Self: Sized,
-    {
+    fn job_type(&self) -> JobType {
         OBLIGATION_DEFAULTED_JOB
     }
 

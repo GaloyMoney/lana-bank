@@ -83,10 +83,7 @@ where
 {
     type Config = WalletCollateralSyncJobConfig<E>;
 
-    fn job_type(&self) -> JobType
-    where
-        Self: Sized,
-    {
+    fn job_type(&self) -> JobType {
         WALLET_COLLATERAL_SYNC_JOB
     }
 

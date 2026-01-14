@@ -84,10 +84,7 @@ where
         + OutboxEventMarker<CorePriceEvent>,
 {
     type Config = PendingCreditFacilityCollateralizationFromEventsJobConfig<E>;
-    fn job_type(&self) -> JobType
-    where
-        Self: Sized,
-    {
+    fn job_type(&self) -> JobType {
         PENDING_CREDIT_FACILITY_COLLATERALIZATION_FROM_EVENTS_JOB
     }
 

@@ -241,10 +241,7 @@ where
 {
     type Config = HistoryProjectionConfig<E>;
 
-    fn job_type(&self) -> JobType
-    where
-        Self: Sized,
-    {
+    fn job_type(&self) -> JobType {
         HISTORY_PROJECTION
     }
 

@@ -81,10 +81,7 @@ where
 {
     type Config = ObligationDueJobConfig<Perms, E>;
 
-    fn job_type(&self) -> JobType
-    where
-        Self: Sized,
-    {
+    fn job_type(&self) -> JobType {
         OBLIGATION_DUE_JOB
     }
 

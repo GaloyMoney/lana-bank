@@ -95,10 +95,7 @@ where
 {
     type Config = CreditFacilityCollateralizationFromEventsJobConfig<E>;
 
-    fn job_type(&self) -> JobType
-    where
-        Self: Sized,
-    {
+    fn job_type(&self) -> JobType {
         CREDIT_FACILITY_COLLATERALIZATION_FROM_EVENTS_JOB
     }
 

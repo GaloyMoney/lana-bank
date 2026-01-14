@@ -155,10 +155,7 @@ where
         + OutboxEventMarker<CorePriceEvent>,
 {
     type Config = InterestAccrualJobConfig<Perms, E>;
-    fn job_type(&self) -> JobType
-    where
-        Self: Sized,
-    {
+    fn job_type(&self) -> JobType {
         INTEREST_ACCRUAL_JOB
     }
 

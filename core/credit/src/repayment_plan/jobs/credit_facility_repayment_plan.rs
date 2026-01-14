@@ -48,10 +48,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     type Config = RepaymentPlanProjectionConfig<E>;
-    fn job_type(&self) -> JobType
-    where
-        Self: Sized,
-    {
+    fn job_type(&self) -> JobType {
         REPAYMENT_PLAN_PROJECTION
     }
 

@@ -66,10 +66,7 @@ where
         + OutboxEventMarker<CorePriceEvent>,
 {
     type Config = CreditFacilityMaturityJobConfig<E>;
-    fn job_type(&self) -> JobType
-    where
-        Self: Sized,
-    {
+    fn job_type(&self) -> JobType {
         CREDIT_FACILITY_MATURITY_JOB
     }
 
