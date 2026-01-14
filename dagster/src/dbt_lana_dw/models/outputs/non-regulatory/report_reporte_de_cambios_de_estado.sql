@@ -25,4 +25,4 @@ select
     previous_equity_account as `Cuenta contable Capital anterior`,
     new_equity_account as `Cuenta contable Capital nueva`,
     new_interest_account as `Cuenta contable Interes nueva`
-from {{ ref('int_loan_status_change') }}
+from {{ ref("int_loan_status_change") }}

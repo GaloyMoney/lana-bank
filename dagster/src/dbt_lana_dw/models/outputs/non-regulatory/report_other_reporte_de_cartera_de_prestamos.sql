@@ -24,13 +24,13 @@ select
     reserve_amount as `Monto de Reserva`,
     capital_account as `Cuenta contable Capital`,
     interest_account as `Cuenta contable Interes`
-from {{ ref('int_loan_portfolio') }}
+from {{ ref("int_loan_portfolio") }}
 left join
-    {{ ref('stg_core_public_ids') }} as credit_facility_public_ids
+    {{ ref("stg_core_public_ids") }} as credit_facility_public_ids
     on line_of_credit_no = credit_facility_public_ids.target_id
 left join
-    {{ ref('stg_core_public_ids') }} as disbursement_public_ids
+    {{ ref("stg_core_public_ids") }} as disbursement_public_ids
     on disbursement_number = disbursement_public_ids.target_id
 left join
-    {{ ref('stg_core_public_ids') }} as customer_public_ids
+    {{ ref("stg_core_public_ids") }} as customer_public_ids
     on customer_code = customer_public_ids.target_id

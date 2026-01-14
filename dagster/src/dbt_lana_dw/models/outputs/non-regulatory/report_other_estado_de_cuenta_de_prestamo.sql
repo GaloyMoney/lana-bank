@@ -15,11 +15,11 @@ select
     total_transaction as `Total transacción`,
     principal_balance as `Saldo Principal`,
     coalesce(estado, 'Cancelado') as `Estado`
-from {{ ref('int_loan_statements') }}
+from {{ ref("int_loan_statements") }}
 left join
-    {{ ref('stg_core_public_ids') }} as credit_facility_public_ids
+    {{ ref("stg_core_public_ids") }} as credit_facility_public_ids
     on line_of_credit = credit_facility_public_ids.target_id
 left join
-    {{ ref('stg_core_public_ids') }} as disbursement_public_ids
+    {{ ref("stg_core_public_ids") }} as disbursement_public_ids
     on disbursement_number = disbursement_public_ids.target_id
 order by date_and_time
