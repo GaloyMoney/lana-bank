@@ -18,7 +18,17 @@ const config = {
 
   i18n: {
     defaultLocale: "en",
-    locales: ["en"],
+    locales: ["en", "es"],
+    localeConfigs: {
+      en: {
+        label: "English",
+        htmlLang: "en-US",
+      },
+      es: {
+        label: "Español",
+        htmlLang: "es-ES",
+      },
+    },
   },
 
   markdown: {
@@ -55,6 +65,10 @@ const config = {
             sidebarId: "docsSidebar",
             position: "left",
             label: "Documentation",
+          },
+          {
+            type: "localeDropdown",
+            position: "right",
           },
           {
             href: "https://github.com/lana-bank/lana-bank",
