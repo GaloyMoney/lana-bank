@@ -18,8 +18,12 @@ select
     format('%.2f', round(`saldo_mora_i`, 2)) as `saldo_mora_i`,
     cast(`dias_mora_k` as string) as `dias_mora_k`,
     cast(`dias_mora_i` as string) as `dias_mora_i`,
-    format_date('%Y-%m-%d', cast(`fecha_inicio_mora_k` as date)) as `fecha_inicio_mora_k`,
-    format_date('%Y-%m-%d', cast(`fecha_inicio_mora_i` as date)) as `fecha_inicio_mora_i`,
+    format_date(
+        '%Y-%m-%d', cast(`fecha_inicio_mora_k` as date)
+    ) as `fecha_inicio_mora_k`,
+    format_date(
+        '%Y-%m-%d', cast(`fecha_inicio_mora_i` as date)
+    ) as `fecha_inicio_mora_i`,
     left(`pago_capital`, 1) as `pago_capital`,
     left(`pago_interes`, 1) as `pago_interes`,
     cast(`periodo_gracia_k` as string) as `periodo_gracia_k`,
@@ -40,8 +44,12 @@ select
     cast(`dias_prorroga` as string) as `dias_prorroga`,
     format('%.2f', round(`monto_desembolsado`, 2)) as `monto_desembolsado`,
     left(`tipo_credito`, 2) as `tipo_credito`,
-    format_date('%Y-%m-%d', cast(`fecha_ultimo_pago_k` as date)) as `fecha_ultimo_pago_k`,
-    format_date('%Y-%m-%d', cast(`fecha_ultimo_pago_i` as date)) as `fecha_ultimo_pago_i`,
+    format_date(
+        '%Y-%m-%d', cast(`fecha_ultimo_pago_k` as date)
+    ) as `fecha_ultimo_pago_k`,
+    format_date(
+        '%Y-%m-%d', cast(`fecha_ultimo_pago_i` as date)
+    ) as `fecha_ultimo_pago_i`,
     cast(`dia_pago_k` as string) as `dia_pago_k`,
     cast(`dia_pago_i` as string) as `dia_pago_i`,
     cast(`cuota_mora_k` as string) as `cuota_mora_k`,
@@ -77,5 +85,4 @@ select
     format('%.2f', round(`ajuste_brecha`, 2)) as `ajuste_brecha`,
     left(`programa_asist_cafe`, 2) as `programa_asist_cafe`,
     format_date('%Y-%m-%d', cast(`fecha_cump_cafe` as date)) as `fecha_cump_cafe`
-from
-    {{ ref('int_nrp_41_02_referencia') }}
+from {{ ref("int_nrp_41_02_referencia") }}

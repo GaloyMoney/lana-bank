@@ -7,4 +7,4 @@ select
     format_date('%Y-%m-%d', cast(`fecha_vencimiento` as date)) as `fecha_vencimiento`,
     format('%.2f', round(`valor_deposito`, 2)) as `valor_deposito`
 
-from {{ ref('int_nrp_41_07_garantia_pignorada') }}
+from {{ ref("int_nrp_41_07_garantia_pignorada") }}

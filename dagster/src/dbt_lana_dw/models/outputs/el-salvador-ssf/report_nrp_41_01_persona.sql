@@ -31,5 +31,4 @@ select
     left(`tipo_ident_anterior`, 1) as `tipo_ident_anterior`,
     left(`distrito_residencia`, 4) as `distrito_residencia`
 
-from
-    {{ ref('int_nrp_41_01_persona') }}
+from {{ ref("int_nrp_41_01_persona") }}
