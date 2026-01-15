@@ -322,8 +322,6 @@ impl Chart {
         &self,
         base_config: &AccountingBaseConfig,
     ) -> Result<(), ChartOfAccountsError> {
-        base_config.validate()?;
-
         self.validate_accounting_account_code(&base_config.assets_code)?;
         self.validate_accounting_account_code(&base_config.liabilities_code)?;
         self.validate_accounting_account_code(&base_config.equity_code)?;
