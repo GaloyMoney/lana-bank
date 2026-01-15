@@ -155,7 +155,6 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         reference: String,
         chart: &Chart,
-        // config: ChartOfAccountsIntegrationConfig,
     ) -> Result<AccountingBaseConfig, BalanceSheetError> {
         if self
             .balance_sheet_ledger

@@ -471,16 +471,6 @@ impl AccountingBaseConfig {
         cost_of_revenue_code: AccountCode,
         expenses_code: AccountCode,
     ) -> Result<Self, AccountingBaseConfigError> {
-        if !equity_code.is_parent_of(&equity_retained_earnings_gain_code.sections)
-            || !equity_code.is_parent_of(&equity_retained_earnings_loss_code.sections)
-        {
-            return Err(
-                AccountingBaseConfigError::RetainedEarningsCodeNotChildOfEquity(
-                    equity_code.to_string(),
-                ),
-            );
-        }
-
         let config = Self {
             assets_code,
             liabilities_code,
@@ -514,6 +504,20 @@ impl AccountingBaseConfig {
             return Err(AccountingBaseConfigError::DuplicateAccountCode(
                 code.to_string(),
             ));
+        }
+
+        if !self
+            .equity_code
+            .is_parent_of(&self.equity_retained_earnings_gain_code.sections)
+            || !self
+                .equity_code
+                .is_parent_of(&self.equity_retained_earnings_loss_code.sections)
+        {
+            return Err(
+                AccountingBaseConfigError::RetainedEarningsCodeNotChildOfEquity(
+                    self.equity_code.to_string(),
+                ),
+            );
         }
         Ok(())
     }
