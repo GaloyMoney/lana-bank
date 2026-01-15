@@ -165,6 +165,7 @@ pub mod event {
     use core_customer::CoreCustomerEvent;
     use core_deposit::CoreDepositEvent;
     use core_price::CorePriceEvent;
+    use document_storage::CoreDocumentStorageEvent;
     use governance::GovernanceEvent;
 
     #[derive(Debug, Serialize, Deserialize)]
@@ -174,6 +175,7 @@ pub mod event {
         CoreCustody(CoreCustodyEvent),
         CoreCustomer(CoreCustomerEvent),
         CoreDeposit(CoreDepositEvent),
+        DocumentStorage(CoreDocumentStorageEvent),
         Governance(GovernanceEvent),
         Price(CorePriceEvent),
     }
@@ -201,5 +203,6 @@ pub mod event {
     impl_event_marker!(CoreCustodyEvent, CoreCustody);
     impl_event_marker!(CoreCustomerEvent, CoreCustomer);
     impl_event_marker!(CoreDepositEvent, CoreDeposit);
+    impl_event_marker!(CoreDocumentStorageEvent, DocumentStorage);
     impl_event_marker!(CorePriceEvent, Price);
 }

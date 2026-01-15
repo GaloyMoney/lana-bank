@@ -17,6 +17,11 @@ use job::{JobSvcConfig, Jobs};
 async fn ledger_account_ancestors() -> anyhow::Result<()> {
     use rand::Rng;
     let pool = helpers::init_pool().await?;
+    let outbox = obix::Outbox::<document_storage::CoreDocumentStorageEvent>::init(
+        &pool,
+        obix::MailboxConfig::default(),
+    )
+    .await?;
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
         .exec_migrations(false)
@@ -27,7 +32,7 @@ async fn ledger_account_ancestors() -> anyhow::Result<()> {
     let journal_id = helpers::init_journal(&cala).await?;
 
     let storage = Storage::new(&StorageConfig::default());
-    let document_storage = DocumentStorage::new(&pool, &storage);
+    let document_storage = DocumentStorage::new(&pool, &storage, &outbox);
     let mut jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
 
     let accounting = CoreAccounting::new(
@@ -150,6 +155,11 @@ async fn ledger_account_ancestors() -> anyhow::Result<()> {
 async fn ledger_account_children() -> anyhow::Result<()> {
     use rand::Rng;
     let pool = helpers::init_pool().await?;
+    let outbox = obix::Outbox::<document_storage::CoreDocumentStorageEvent>::init(
+        &pool,
+        obix::MailboxConfig::default(),
+    )
+    .await?;
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
         .exec_migrations(false)
@@ -160,7 +170,7 @@ async fn ledger_account_children() -> anyhow::Result<()> {
     let journal_id = helpers::init_journal(&cala).await?;
 
     let storage = Storage::new(&StorageConfig::default());
-    let document_storage = DocumentStorage::new(&pool, &storage);
+    let document_storage = DocumentStorage::new(&pool, &storage, &outbox);
     let mut jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
 
     let accounting = CoreAccounting::new(
@@ -252,6 +262,11 @@ async fn ledger_account_children() -> anyhow::Result<()> {
 async fn internal_account_contains_coa_account() -> anyhow::Result<()> {
     use rand::Rng;
     let pool = helpers::init_pool().await?;
+    let outbox = obix::Outbox::<document_storage::CoreDocumentStorageEvent>::init(
+        &pool,
+        obix::MailboxConfig::default(),
+    )
+    .await?;
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
         .exec_migrations(false)
@@ -261,7 +276,7 @@ async fn internal_account_contains_coa_account() -> anyhow::Result<()> {
     let domain_configs = InternalDomainConfigs::new(&pool);
     let journal_id = helpers::init_journal(&cala).await?;
     let storage = Storage::new(&StorageConfig::default());
-    let document_storage = DocumentStorage::new(&pool, &storage);
+    let document_storage = DocumentStorage::new(&pool, &storage, &outbox);
     let mut jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
 
     let accounting = CoreAccounting::new(

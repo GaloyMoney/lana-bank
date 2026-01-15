@@ -22,7 +22,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
     let domain_configs = InternalDomainConfigs::new(&pool);
     let storage = Storage::new(&StorageConfig::default());
-    let document_storage = DocumentStorage::new(&pool, &storage);
+    let document_storage = DocumentStorage::new(&pool, &storage, &outbox);
 
     let governance = governance::Governance::new(&pool, &authz, &outbox);
     let public_ids = public_id::PublicIds::new(&pool);
@@ -72,7 +72,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     )
     .await?;
 
-    let accounting_document_storage = DocumentStorage::new(&pool, &storage);
+    let accounting_document_storage = DocumentStorage::new(&pool, &storage, &outbox);
     let accounting = CoreAccounting::new(
         &pool,
         &authz,

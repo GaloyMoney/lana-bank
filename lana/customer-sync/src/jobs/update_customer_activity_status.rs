@@ -5,7 +5,9 @@ use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
+use core_customer::{
+    CoreCustomerAction, CoreCustomerEvent, CoreDocumentStorageEvent, CustomerObject, Customers,
+};
 use core_deposit::{
     CoreDepositAction, CoreDepositEvent, CoreDepositObject, GovernanceAction, GovernanceObject,
 };
@@ -44,7 +46,8 @@ where
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     customers: Customers<Perms, E>,
     config: CustomerSyncConfig,
@@ -56,7 +59,8 @@ where
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     pub fn new(customers: &Customers<Perms, E>, config: CustomerSyncConfig) -> Self {
         Self {
@@ -79,7 +83,8 @@ where
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     type Config = UpdateCustomerActivityStatusJobConfig<Perms, E>;
     fn job_type(&self) -> JobType {
@@ -108,7 +113,8 @@ where
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     customers: Customers<Perms, E>,
     config: CustomerSyncConfig,
@@ -125,7 +131,8 @@ where
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     #[record_error_severity]
     #[instrument(name = "update_customer_activity_status.run", skip(self, _current_job))]

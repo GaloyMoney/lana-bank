@@ -20,7 +20,7 @@ use obix::out::{Outbox, OutboxEventMarker};
 use sumsub::SumsubClient;
 use tracing_macros::record_error_severity;
 
-use lana_events::LanaEvent;
+use lana_events::{CoreDocumentStorageEvent, LanaEvent};
 
 pub struct DepositSync<Perms, E>
 where
@@ -29,6 +29,7 @@ where
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<LanaEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>
         + std::fmt::Debug,
 {
     _phantom: std::marker::PhantomData<(Perms, E)>,
@@ -42,6 +43,7 @@ where
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<LanaEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>
         + std::fmt::Debug,
 {
     fn clone(&self) -> Self {
@@ -63,6 +65,7 @@ where
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<LanaEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>
         + std::fmt::Debug,
 {
     #[record_error_severity]

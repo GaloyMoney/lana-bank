@@ -246,6 +246,11 @@ async fn post_closing_tx_with_loss() -> Result<()> {
 async fn setup_test() -> anyhow::Result<Test> {
     use rand::Rng;
     let pool = helpers::init_pool().await?;
+    let outbox = obix::Outbox::<document_storage::CoreDocumentStorageEvent>::init(
+        &pool,
+        obix::MailboxConfig::default(),
+    )
+    .await?;
 
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
@@ -257,7 +262,7 @@ async fn setup_test() -> anyhow::Result<Test> {
     let journal_id = helpers::init_journal(&cala).await?;
 
     let storage = Storage::new(&StorageConfig::default());
-    let document_storage = DocumentStorage::new(&pool, &storage);
+    let document_storage = DocumentStorage::new(&pool, &storage, &outbox);
     let mut jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
 
     let fiscal_year_repo = FiscalYearRepo::new(&pool);
@@ -440,7 +445,10 @@ async fn setup_test() -> anyhow::Result<Test> {
 
 struct Test {
     pub cala: CalaLedger,
-    pub accounting: CoreAccounting<DummyPerms<action::DummyAction, object::DummyObject>>,
+    pub accounting: CoreAccounting<
+        DummyPerms<action::DummyAction, object::DummyObject>,
+        document_storage::CoreDocumentStorageEvent,
+    >,
     pub chart: Chart,
     pub fiscal_year: FiscalYear,
     pub fiscal_year_repo: FiscalYearRepo,

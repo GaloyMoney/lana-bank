@@ -14,8 +14,9 @@ pub struct GeneratedDocumentDownloadLink {
     pub link: String,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub enum DocumentStatus {
     New,
     Failed,

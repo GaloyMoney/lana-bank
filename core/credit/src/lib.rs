@@ -35,7 +35,9 @@ use core_accounting::LedgerTransactionInitiator;
 use core_custody::{
     CoreCustody, CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject, CustodianId,
 };
-use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
+use core_customer::{
+    CoreCustomerAction, CoreCustomerEvent, CoreDocumentStorageEvent, CustomerObject, Customers,
+};
 use core_price::{CorePriceEvent, Price};
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
@@ -92,7 +94,8 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>
-        + OutboxEventMarker<CoreCustomerEvent>,
+        + OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     authz: Arc<Perms>,
     credit_facility_proposals: Arc<CreditFacilityProposals<Perms, E>>,
@@ -127,7 +130,8 @@ where
         + OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>
-        + OutboxEventMarker<CoreCustomerEvent>,
+        + OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -174,7 +178,8 @@ where
         + OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CorePriceEvent>
-        + OutboxEventMarker<CoreCustomerEvent>,
+        + OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     #[record_error_severity]
     #[instrument(name = "credit.init", skip_all, fields(journal_id = %journal_id))]

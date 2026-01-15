@@ -18,10 +18,10 @@ pub mod storage {
 
 pub mod document {
     pub use document_storage::{
-        Document, DocumentId, DocumentRepo, DocumentStatus, DocumentType,
+        CoreDocumentStorageEvent, Document, DocumentId, DocumentRepo, DocumentStatus, DocumentType,
         DocumentsByCreatedAtCursor, GeneratedDocumentDownloadLink, NewDocument, ReferenceId, error,
     };
-    pub type DocumentStorage = document_storage::DocumentStorage;
+    pub type DocumentStorage = document_storage::DocumentStorage<lana_events::LanaEvent>;
 }
 
 pub mod outbox {
@@ -127,7 +127,10 @@ pub mod accounting {
         transaction_templates, {Chart, tree},
     };
 
-    pub type Accounting = core_accounting::CoreAccounting<crate::authorization::Authorization>;
+    pub type Accounting = core_accounting::CoreAccounting<
+        crate::authorization::Authorization,
+        lana_events::LanaEvent,
+    >;
     pub type ChartOfAccounts =
         core_accounting::ChartOfAccounts<crate::authorization::Authorization>;
 }

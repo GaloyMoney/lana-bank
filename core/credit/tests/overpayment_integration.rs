@@ -142,7 +142,7 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
         obix::Outbox::<event::DummyEvent>::init(&pool, obix::MailboxConfig::default()).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
     let storage = Storage::new(&StorageConfig::default());
-    let document_storage = DocumentStorage::new(&pool, &storage);
+    let document_storage = DocumentStorage::new(&pool, &storage, &outbox);
     let governance = governance::Governance::new(&pool, &authz, &outbox);
     let public_ids = public_id::PublicIds::new(&pool);
     let customers =

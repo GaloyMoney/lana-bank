@@ -6,7 +6,9 @@ use tracing::{Span, instrument};
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
+use core_customer::{
+    CoreCustomerAction, CoreCustomerEvent, CoreDocumentStorageEvent, CustomerObject, Customers,
+};
 use core_deposit::{CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject};
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
@@ -30,7 +32,8 @@ where
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustomerEvent>,
+        + OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     outbox: Outbox<E>,
     deposits: CoreDeposit<Perms, E>,
@@ -47,7 +50,8 @@ where
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustomerEvent>,
+        + OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     #[instrument(name = "customer_sync.update_last_activity_date_job.process_message", parent = None, skip(self, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
     #[allow(clippy::single_match)]
@@ -117,7 +121,8 @@ where
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustomerEvent>,
+        + OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     async fn run(
         &self,
@@ -168,7 +173,8 @@ where
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustomerEvent>,
+        + OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     outbox: Outbox<E>,
     customers: Customers<Perms, E>,
@@ -185,7 +191,8 @@ where
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustomerEvent>,
+        + OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     pub fn new(
         outbox: &Outbox<E>,
@@ -212,7 +219,8 @@ where
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustomerEvent>,
+        + OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     type Config = UpdateLastActivityDateConfig<Perms, E>;
     fn job_type(&self) -> JobType {

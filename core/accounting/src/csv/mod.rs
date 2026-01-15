@@ -9,9 +9,10 @@ use ::job::JobId;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use document_storage::{
-    Document, DocumentId, DocumentStorage, DocumentType, DocumentsByCreatedAtCursor,
-    GeneratedDocumentDownloadLink, ReferenceId,
+    CoreDocumentStorageEvent, Document, DocumentId, DocumentStorage, DocumentType,
+    DocumentsByCreatedAtCursor, GeneratedDocumentDownloadLink, ReferenceId,
 };
+use obix::out::OutboxEventMarker;
 use tracing_macros::record_error_severity;
 
 use crate::Jobs;
@@ -28,26 +29,41 @@ pub use primitives::*;
 
 pub const LEDGER_ACCOUNT_CSV: DocumentType = DocumentType::new("ledger_account_csv");
 
-#[derive(Clone)]
-pub struct AccountingCsvExports<Perms>
+pub struct AccountingCsvExports<Perms, E>
 where
     Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     authz: Perms,
     generate_accounting_csv_job_spawner: GenerateAccountingCsvJobSpawner<Perms>,
-    document_storage: DocumentStorage,
+    document_storage: DocumentStorage<E>,
 }
 
-impl<Perms> AccountingCsvExports<Perms>
+impl<Perms, E> Clone for AccountingCsvExports<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreDocumentStorageEvent>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            authz: self.authz.clone(),
+            generate_accounting_csv_job_spawner: self.generate_accounting_csv_job_spawner.clone(),
+            document_storage: self.document_storage.clone(),
+        }
+    }
+}
+
+impl<Perms, E> AccountingCsvExports<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
+    E: OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     pub fn new(
         authz: &Perms,
         jobs: &mut Jobs,
-        document_storage: DocumentStorage,
+        document_storage: DocumentStorage<E>,
         ledger_accounts: &LedgerAccounts<Perms>,
     ) -> Self {
         let generate_accounting_csv_job_spawner = jobs.add_initializer(

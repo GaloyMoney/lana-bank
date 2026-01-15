@@ -7,6 +7,7 @@ use futures::stream::Stream;
 use obix::out::OutboxEventMarker;
 
 use lana_app::credit::CoreCreditEvent;
+use lana_app::document::CoreDocumentStorageEvent;
 use lana_app::price::CorePriceEvent;
 use lana_app::{
     accounting_init::constants::{
@@ -2718,6 +2719,36 @@ impl Subscription {
             let event: &CorePriceEvent = event.payload.as_event()?;
             match event {
                 CorePriceEvent::PriceUpdated { price, .. } => Some(RealtimePrice::from(*price)),
+            }
+        });
+
+        Ok(updates)
+    }
+
+    async fn document_status_updated(
+        &self,
+        ctx: &Context<'_>,
+        document_id: UUID,
+    ) -> async_graphql::Result<impl Stream<Item = DocumentStatusUpdatedPayload>> {
+        let (app, _sub) = app_and_sub_from_ctx!(ctx);
+        let document_id = DocumentId::from(document_id);
+
+        let stream = app.outbox().listen_persisted(None);
+        let updates = stream.filter_map(move |event| async move {
+            let payload = event.payload.as_ref()?;
+            let event: &CoreDocumentStorageEvent = payload.as_event()?;
+            match event {
+                CoreDocumentStorageEvent::DocumentStatusChanged {
+                    document_id: id,
+                    status,
+                    recorded_at,
+                    ..
+                } if *id == document_id => Some(DocumentStatusUpdatedPayload {
+                    document_id: UUID::from(*id),
+                    status: *status,
+                    recorded_at: (*recorded_at).into(),
+                }),
+                _ => None,
             }
         });
 

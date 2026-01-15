@@ -13,7 +13,7 @@ use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_customer::{CoreCustomerEvent, CustomerId, Customers};
+use core_customer::{CoreCustomerEvent, CoreDocumentStorageEvent, CustomerId, Customers};
 use obix::inbox::{Inbox, InboxConfig, InboxEvent, InboxHandler, InboxResult};
 use obix::out::OutboxEventMarker;
 
@@ -163,7 +163,7 @@ pub struct ReviewResult {
 struct SumsubCallbackHandler<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCustomerEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     customers: Customers<Perms, E>,
 }
@@ -171,7 +171,7 @@ where
 impl<Perms, E> Clone for SumsubCallbackHandler<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCustomerEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -183,7 +183,10 @@ where
 impl<Perms, E> InboxHandler for SumsubCallbackHandler<Perms, E>
 where
     Perms: PermissionCheck + Send + Sync,
-    E: OutboxEventMarker<CoreCustomerEvent> + Send + Sync,
+    E: OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>
+        + Send
+        + Sync,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
         From<core_customer::CoreCustomerAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<core_customer::CustomerObject>,
@@ -214,7 +217,7 @@ where
 impl<Perms, E> SumsubCallbackHandler<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCustomerEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDocumentStorageEvent>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
         From<core_customer::CoreCustomerAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<core_customer::CustomerObject>,
@@ -371,7 +374,7 @@ const APPLICANTS_INBOX_JOB: job::JobType = job::JobType::new("applicants-inbox")
 pub struct Applicants<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCustomerEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     authz: Perms,
     sumsub_client: SumsubClient,
@@ -382,7 +385,7 @@ where
 impl<Perms, E> Clone for Applicants<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCustomerEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -397,7 +400,7 @@ where
 impl<Perms, E> Applicants<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCustomerEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDocumentStorageEvent>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
         From<core_customer::CoreCustomerAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<core_customer::CustomerObject>,

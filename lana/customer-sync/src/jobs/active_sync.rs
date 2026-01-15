@@ -6,7 +6,10 @@ use tracing::{Span, instrument};
 
 use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
-use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, KycVerification};
+use core_customer::{
+    CoreCustomerAction, CoreCustomerEvent, CoreDocumentStorageEvent, CustomerObject,
+    KycVerification,
+};
 use core_deposit::{
     CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject,
     DepositAccountHolderStatus, GovernanceAction, GovernanceObject,
@@ -35,7 +38,8 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     outbox: Outbox<E>,
     deposit: CoreDeposit<Perms, E>,
@@ -47,7 +51,8 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     pub fn new(
         outbox: &Outbox<E>,
@@ -72,7 +77,8 @@ where
         From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     type Config = CustomerActiveSyncJobConfig<Perms, E>;
     fn job_type(&self) -> JobType {
@@ -106,7 +112,8 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     outbox: Outbox<E>,
     deposit: CoreDeposit<Perms, E>,
@@ -122,7 +129,8 @@ where
         From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     #[instrument(name = "customer_sync.active_sync_job.process_message", parent = None, skip(self, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
     #[allow(clippy::single_match)]
@@ -184,7 +192,8 @@ where
         From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     async fn run(
         &self,

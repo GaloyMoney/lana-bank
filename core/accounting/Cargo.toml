@@ -14,6 +14,7 @@ authz = { workspace = true }
 domain-config = { workspace = true }
 core-money = { workspace = true }
 document-storage = { workspace = true }
+obix = { workspace = true }
 job = { version = "0.6.0" }
 cloud-storage = { workspace = true }
 

@@ -25,6 +25,7 @@ use public_id::PublicIds;
 
 pub use config::*;
 pub use customer_activity_repo::CustomerActivityRepo;
+pub use document_storage::CoreDocumentStorageEvent;
 pub use entity::Customer;
 use entity::*;
 use error::*;
@@ -45,12 +46,13 @@ pub struct Customers<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>,
+    E: OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     authz: Perms,
     outbox: Outbox<E>,
     repo: CustomerRepo<E>,
     customer_activity_repo: CustomerActivityRepo,
-    document_storage: DocumentStorage,
+    document_storage: DocumentStorage<E>,
     public_ids: PublicIds,
     config: CustomerConfig,
 }
@@ -59,6 +61,7 @@ impl<Perms, E> Clone for Customers<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>,
+    E: OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -79,12 +82,13 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
     E: OutboxEventMarker<CoreCustomerEvent>,
+    E: OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     pub fn new(
         pool: &sqlx::PgPool,
         authz: &Perms,
         outbox: &Outbox<E>,
-        document_storage: DocumentStorage,
+        document_storage: DocumentStorage<E>,
         public_id_service: PublicIds,
     ) -> Self {
         let publisher = CustomerPublisher::new(outbox);

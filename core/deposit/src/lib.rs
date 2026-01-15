@@ -24,7 +24,10 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use core_accounting::{Chart, LedgerTransactionInitiator};
-use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerObject, Customers};
+use core_customer::{
+    CoreCustomerAction, CoreCustomerEvent, CoreDocumentStorageEvent, CustomerId, CustomerObject,
+    Customers,
+};
 use governance::{Governance, GovernanceEvent};
 use job::Jobs;
 use obix::out::{Outbox, OutboxEventMarker};
@@ -61,7 +64,8 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustomerEvent>,
+        + OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     deposit_accounts: DepositAccountRepo<E>,
     deposits: DepositRepo<E>,
@@ -82,7 +86,8 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustomerEvent>,
+        + OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -111,7 +116,8 @@ where
         From<CoreDepositObject> + From<GovernanceObject> + From<CustomerObject>,
     E: OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustomerEvent>,
+        + OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     #[record_error_severity]
     #[tracing::instrument(name = "deposit.init", skip_all, fields(journal_id = %journal_id))]

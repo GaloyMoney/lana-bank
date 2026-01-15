@@ -3,8 +3,9 @@ use async_trait::async_trait;
 use authz::PermissionCheck;
 
 use audit::AuditSvc;
-use document_storage::{DocumentId, DocumentStorage};
+use document_storage::{CoreDocumentStorageEvent, DocumentId, DocumentStorage};
 use job::*;
+use obix::out::OutboxEventMarker;
 use serde::{Deserialize, Serialize};
 
 use crate::{ledger_account::LedgerAccounts, primitives::LedgerAccountId};
@@ -18,24 +19,26 @@ pub struct GenerateAccountingCsvConfig<Perms> {
     pub _phantom: std::marker::PhantomData<Perms>,
 }
 
-pub struct GenerateAccountingCsvInit<Perms>
+pub struct GenerateAccountingCsvInit<Perms, E>
 where
     Perms: authz::PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
+    E: OutboxEventMarker<CoreDocumentStorageEvent>,
 {
-    document_storage: DocumentStorage,
+    document_storage: DocumentStorage<E>,
     ledger_accounts: LedgerAccounts<Perms>,
 }
 
-impl<Perms> GenerateAccountingCsvInit<Perms>
+impl<Perms, E> GenerateAccountingCsvInit<Perms, E>
 where
     Perms: authz::PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
+    E: OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     pub fn new(
-        document_storage: &DocumentStorage,
+        document_storage: &DocumentStorage<E>,
         ledger_accounts: &LedgerAccounts<Perms>,
     ) -> Self {
         Self {
@@ -47,11 +50,12 @@ where
 
 pub const GENERATE_ACCOUNTING_CSV_JOB: JobType = JobType::new("task.generate-accounting-csv");
 
-impl<Perms> JobInitializer for GenerateAccountingCsvInit<Perms>
+impl<Perms, E> JobInitializer for GenerateAccountingCsvInit<Perms, E>
 where
     Perms: authz::PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
+    E: OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     type Config = GenerateAccountingCsvConfig<Perms>;
     fn job_type(&self) -> JobType {
@@ -71,23 +75,25 @@ where
     }
 }
 
-pub struct GenerateAccountingCsvExportJobRunner<Perms>
+pub struct GenerateAccountingCsvExportJobRunner<Perms, E>
 where
     Perms: authz::PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
+    E: OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     config: GenerateAccountingCsvConfig<Perms>,
-    document_storage: DocumentStorage,
+    document_storage: DocumentStorage<E>,
     generator: GenerateCsvExport<Perms>,
 }
 
 #[async_trait]
-impl<Perms> JobRunner for GenerateAccountingCsvExportJobRunner<Perms>
+impl<Perms, E> JobRunner for GenerateAccountingCsvExportJobRunner<Perms, E>
 where
     Perms: authz::PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
+    E: OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     async fn run(
         &self,

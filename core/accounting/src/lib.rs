@@ -21,10 +21,11 @@ use std::collections::HashMap;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
-use document_storage::DocumentStorage;
+use document_storage::{CoreDocumentStorageEvent, DocumentStorage};
 use domain_config::InternalDomainConfigs;
 use job::Jobs;
 use manual_transaction::ManualTransactions;
+use obix::out::OutboxEventMarker;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
@@ -53,9 +54,10 @@ pub mod event_schema {
     pub use crate::manual_transaction::ManualTransactionEvent;
 }
 
-pub struct CoreAccounting<Perms>
+pub struct CoreAccounting<Perms, E>
 where
     Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     authz: Perms,
     chart_of_accounts: ChartOfAccounts<Perms>,
@@ -66,14 +68,15 @@ where
     profit_and_loss: ProfitAndLossStatements<Perms>,
     transaction_templates: TransactionTemplates<Perms>,
     balance_sheets: BalanceSheets<Perms>,
-    csvs: AccountingCsvExports<Perms>,
+    csvs: AccountingCsvExports<Perms, E>,
     trial_balances: TrialBalances<Perms>,
     fiscal_year: FiscalYears<Perms>,
 }
 
-impl<Perms> Clone for CoreAccounting<Perms>
+impl<Perms, E> Clone for CoreAccounting<Perms, E>
 where
     Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -93,18 +96,19 @@ where
     }
 }
 
-impl<Perms> CoreAccounting<Perms>
+impl<Perms, E> CoreAccounting<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
+    E: OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     pub fn new(
         pool: &sqlx::PgPool,
         authz: &Perms,
         cala: &CalaLedger,
         journal_id: CalaJournalId,
-        document_storage: DocumentStorage,
+        document_storage: DocumentStorage<E>,
         jobs: &mut Jobs,
         domain_configs: &InternalDomainConfigs,
     ) -> Self {
@@ -160,7 +164,7 @@ where
         &self.profit_and_loss
     }
 
-    pub fn csvs(&self) -> &AccountingCsvExports<Perms> {
+    pub fn csvs(&self) -> &AccountingCsvExports<Perms, E> {
         &self.csvs
     }
 

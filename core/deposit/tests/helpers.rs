@@ -119,6 +119,7 @@ pub mod event {
 
     use core_customer::CoreCustomerEvent;
     use core_deposit::CoreDepositEvent;
+    use document_storage::CoreDocumentStorageEvent;
     use governance::GovernanceEvent;
 
     #[derive(Debug, Serialize, Deserialize)]
@@ -126,6 +127,7 @@ pub mod event {
     pub enum DummyEvent {
         CoreDeposit(CoreDepositEvent),
         CoreCustomer(CoreCustomerEvent),
+        DocumentStorage(CoreDocumentStorageEvent),
         Governance(GovernanceEvent),
     }
 
@@ -150,4 +152,5 @@ pub mod event {
     impl_event_marker!(GovernanceEvent, Governance);
     impl_event_marker!(CoreDepositEvent, CoreDeposit);
     impl_event_marker!(CoreCustomerEvent, CoreCustomer);
+    impl_event_marker!(CoreDocumentStorageEvent, DocumentStorage);
 }

@@ -1347,6 +1347,12 @@ enum DocumentStatus {
 	DELETED
 }
 
+type DocumentStatusUpdatedPayload {
+	documentId: UUID!
+	status: DocumentStatus!
+	recordedAt: Timestamp!
+}
+
 type DomainConfig {
 	id: ID!
 	domainConfigId: UUID!
@@ -2378,6 +2384,7 @@ type Subscription {
 	pendingCreditFacilityCompleted(pendingCreditFacilityId: UUID!): PendingCreditFacilityCompletedPayload!
 	creditFacilityCollateralizationUpdated(creditFacilityId: UUID!): CreditFacilityCollateralizationPayload!
 	realtimePriceUpdated: RealtimePrice!
+	documentStatusUpdated(documentId: UUID!): DocumentStatusUpdatedPayload!
 }
 
 input SumsubPermalinkCreateInput {

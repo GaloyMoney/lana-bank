@@ -183,11 +183,19 @@ async fn ledger_transactions_by_template_code() -> anyhow::Result<()> {
 }
 
 async fn prepare_test() -> anyhow::Result<(
-    CoreAccounting<DummyPerms<action::DummyAction, object::DummyObject>>,
+    CoreAccounting<
+        DummyPerms<action::DummyAction, object::DummyObject>,
+        document_storage::CoreDocumentStorageEvent,
+    >,
     Chart,
 )> {
     use rand::Rng;
     let pool = helpers::init_pool().await?;
+    let outbox = obix::Outbox::<document_storage::CoreDocumentStorageEvent>::init(
+        &pool,
+        obix::MailboxConfig::default(),
+    )
+    .await?;
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
         .exec_migrations(false)
@@ -198,7 +206,7 @@ async fn prepare_test() -> anyhow::Result<(
     let journal_id = helpers::init_journal(&cala).await?;
 
     let storage = Storage::new(&StorageConfig::default());
-    let document_storage = DocumentStorage::new(&pool, &storage);
+    let document_storage = DocumentStorage::new(&pool, &storage, &outbox);
     let mut jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
 
     let accounting = CoreAccounting::new(

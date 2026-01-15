@@ -5,7 +5,9 @@ use tokio::select;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
+use core_customer::{
+    CoreCustomerAction, CoreCustomerEvent, CoreDocumentStorageEvent, CustomerObject, Customers,
+};
 use core_deposit::{
     CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, DepositAccountId,
     DepositId, GovernanceAction, GovernanceObject, UsdCents, WithdrawalId,
@@ -62,6 +64,7 @@ where
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<LanaEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>
         + std::fmt::Debug,
 {
     outbox: Outbox<E>,
@@ -77,6 +80,7 @@ where
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<LanaEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>
         + std::fmt::Debug,
 {
     pub fn new(
@@ -105,6 +109,7 @@ where
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<LanaEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>
         + std::fmt::Debug,
 {
     type Config = SumsubExportJobConfig<Perms, E>;
@@ -142,6 +147,7 @@ where
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<LanaEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>
         + std::fmt::Debug,
 {
     outbox: Outbox<E>,
@@ -161,6 +167,7 @@ where
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<LanaEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>
         + std::fmt::Debug,
 {
     #[instrument(name = "deposit_sync.sumsub_export_job.process_message", parent = None, skip(self, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
@@ -294,6 +301,7 @@ where
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<LanaEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>
         + std::fmt::Debug,
 {
     async fn run(

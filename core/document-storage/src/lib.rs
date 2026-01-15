@@ -3,31 +3,43 @@
 
 mod entity;
 pub mod error;
+mod event;
 mod primitives;
+mod publisher;
 mod repo;
 
 use cloud_storage::Storage;
 use es_entity::ListDirection;
+use obix::out::{Outbox, OutboxEventMarker};
 use std::collections::HashMap;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
 pub use entity::{Document, DocumentStatus, GeneratedDocumentDownloadLink, NewDocument};
 use error::*;
+pub use event::CoreDocumentStorageEvent;
 pub use primitives::*;
+use publisher::DocumentPublisher;
 pub use repo::{DocumentRepo, document_cursor::DocumentsByCreatedAtCursor};
 
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
     pub use crate::entity::DocumentEvent;
+    pub use crate::event::CoreDocumentStorageEvent;
 }
 
-pub struct DocumentStorage {
-    repo: DocumentRepo,
+pub struct DocumentStorage<E>
+where
+    E: OutboxEventMarker<CoreDocumentStorageEvent>,
+{
+    repo: DocumentRepo<E>,
     storage: Storage,
 }
 
-impl Clone for DocumentStorage {
+impl<E> Clone for DocumentStorage<E>
+where
+    E: OutboxEventMarker<CoreDocumentStorageEvent>,
+{
     fn clone(&self) -> Self {
         Self {
             repo: self.repo.clone(),
@@ -36,9 +48,13 @@ impl Clone for DocumentStorage {
     }
 }
 
-impl DocumentStorage {
-    pub fn new(pool: &sqlx::PgPool, storage: &Storage) -> Self {
-        let repo = DocumentRepo::new(pool);
+impl<E> DocumentStorage<E>
+where
+    E: OutboxEventMarker<CoreDocumentStorageEvent>,
+{
+    pub fn new(pool: &sqlx::PgPool, storage: &Storage, outbox: &Outbox<E>) -> Self {
+        let publisher = DocumentPublisher::new(outbox);
+        let repo = DocumentRepo::new(pool, &publisher);
         Self {
             repo,
             storage: storage.clone(),

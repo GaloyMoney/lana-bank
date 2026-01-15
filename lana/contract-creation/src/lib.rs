@@ -6,7 +6,7 @@ use authz::PermissionCheck;
 use core_applicant::Applicants;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerObject, Customers};
 use document_storage::{
-    Document, DocumentId, DocumentStatus, DocumentStorage, DocumentType,
+    CoreDocumentStorageEvent, Document, DocumentId, DocumentStatus, DocumentStorage, DocumentType,
     GeneratedDocumentDownloadLink, ReferenceId,
 };
 use obix::out::OutboxEventMarker;
@@ -31,9 +31,9 @@ const LOAN_AGREEMENT_DOCUMENT_TYPE: DocumentType = DocumentType::new("loan_agree
 pub struct ContractCreation<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCustomerEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
-    document_storage: DocumentStorage,
+    document_storage: DocumentStorage<E>,
     generate_loan_agreement_job_spawner: GenerateLoanAgreementJobSpawner<Perms, E>,
     authz: Perms,
 }
@@ -41,7 +41,7 @@ where
 impl<Perms: PermissionCheck, E> Clone for ContractCreation<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCustomerEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -55,7 +55,7 @@ where
 impl<Perms, E> ContractCreation<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCustomerEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDocumentStorageEvent>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
         From<ContractModuleAction> + From<CoreCustomerAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
@@ -64,7 +64,7 @@ where
     pub fn new(
         customers: &Customers<Perms, E>,
         applicants: &Applicants<Perms, E>,
-        document_storage: &DocumentStorage,
+        document_storage: &DocumentStorage<E>,
         jobs: &mut Jobs,
         authz: &Perms,
     ) -> Self {

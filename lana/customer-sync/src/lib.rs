@@ -18,7 +18,7 @@ use core_deposit::{
     GovernanceObject,
 };
 use governance::GovernanceEvent;
-use lana_events::LanaEvent;
+use lana_events::{CoreDocumentStorageEvent, LanaEvent};
 use obix::out::{Outbox, OutboxEventMarker};
 use tracing_macros::record_error_severity;
 
@@ -28,7 +28,8 @@ where
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     _phantom: std::marker::PhantomData<(Perms, E)>,
     _outbox: Outbox<E>,
@@ -40,7 +41,8 @@ where
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -60,7 +62,8 @@ where
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     #[record_error_severity]
     #[tracing::instrument(name = "customer_sync.init", skip_all)]

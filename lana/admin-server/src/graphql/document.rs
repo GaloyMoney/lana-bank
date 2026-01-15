@@ -17,6 +17,13 @@ pub struct CustomerDocument {
     pub(super) entity: Arc<DomainDocument>,
 }
 
+#[derive(SimpleObject)]
+pub struct DocumentStatusUpdatedPayload {
+    pub document_id: UUID,
+    pub status: DocumentStatus,
+    pub recorded_at: Timestamp,
+}
+
 impl CustomerDocument {
     pub fn customer_document_id(&self) -> CustomerDocumentId {
         CustomerDocumentId::from(self.entity.id)

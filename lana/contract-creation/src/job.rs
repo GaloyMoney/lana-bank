@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use audit::AuditSvc;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerObject};
-use document_storage::{DocumentId, DocumentStorage};
+use document_storage::{CoreDocumentStorageEvent, DocumentId, DocumentStorage};
 use job::*;
 use obix::out::OutboxEventMarker;
 use tracing_macros::record_error_severity;
@@ -18,7 +18,7 @@ use crate::{Applicants, Customers};
 pub struct GenerateLoanAgreementConfig<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCustomerEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     pub customer_id: CustomerId,
     #[serde(skip)]
@@ -28,7 +28,7 @@ where
 impl<Perms, E> Clone for GenerateLoanAgreementConfig<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCustomerEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -43,11 +43,11 @@ where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
-    E: OutboxEventMarker<CoreCustomerEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     customers: Customers<Perms, E>,
     applicants: Applicants<Perms, E>,
-    document_storage: DocumentStorage,
+    document_storage: DocumentStorage<E>,
     contract_templates: ContractTemplates,
     renderer: rendering::Renderer,
 }
@@ -57,12 +57,12 @@ where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
-    E: OutboxEventMarker<CoreCustomerEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     pub fn new(
         customers: &Customers<Perms, E>,
         applicants: &Applicants<Perms, E>,
-        document_storage: &DocumentStorage,
+        document_storage: &DocumentStorage<E>,
         contract_templates: ContractTemplates,
         renderer: rendering::Renderer,
     ) -> Self {
@@ -83,7 +83,10 @@ where
     Perms: PermissionCheck + Send + Sync,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
-    E: OutboxEventMarker<CoreCustomerEvent> + Send + Sync,
+    E: OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>
+        + Send
+        + Sync,
 {
     type Config = GenerateLoanAgreementConfig<Perms, E>;
     fn job_type(&self) -> JobType {
@@ -111,12 +114,12 @@ where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
-    E: OutboxEventMarker<CoreCustomerEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     config: GenerateLoanAgreementConfig<Perms, E>,
     customers: Customers<Perms, E>,
     applicants: Applicants<Perms, E>,
-    document_storage: DocumentStorage,
+    document_storage: DocumentStorage<E>,
     contract_templates: ContractTemplates,
     renderer: rendering::Renderer,
 }
@@ -127,7 +130,10 @@ where
     Perms: PermissionCheck + Send + Sync,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
-    E: OutboxEventMarker<CoreCustomerEvent> + Send + Sync,
+    E: OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<CoreDocumentStorageEvent>
+        + Send
+        + Sync,
 {
     #[record_error_severity]
     #[tracing::instrument(

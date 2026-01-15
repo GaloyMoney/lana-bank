@@ -125,7 +125,7 @@ impl LanaApp {
         let storage = Storage::new(&config.storage);
         let reports = Reports::init(&pool, &authz, config.report, &outbox, &storage).await?;
         let price = Price::init(&mut job_new, &outbox).await?;
-        let documents = DocumentStorage::new(&pool, &storage);
+        let documents = DocumentStorage::new(&pool, &storage, &outbox);
         let public_ids = PublicIds::new(&pool);
 
         let user_onboarding =
