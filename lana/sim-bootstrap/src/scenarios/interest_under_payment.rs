@@ -1,4 +1,5 @@
 use es_entity::clock::ClockHandle;
+use es_entity::prelude::chrono::Utc;
 use futures::StreamExt;
 use lana_app::{app::LanaApp, primitives::*};
 use lana_events::{CoreCreditEvent, LanaEvent};
@@ -23,6 +24,12 @@ pub async fn interest_under_payment_scenario(
 
     let deposit_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
     helpers::make_deposit(&sub, app, &customer_id, deposit_amount).await?;
+
+    // Wait till 2 months before now
+    let one_month = std::time::Duration::from_secs(30 * 24 * 60 * 60);
+    while clock.now() < Utc::now() - es_entity::prelude::chrono::Duration::days(60) {
+        clock.sleep(one_month).await;
+    }
 
     let cf_terms = helpers::std_terms();
     let cf_amount = UsdCents::try_from_usd(dec!(10_000_000))?;

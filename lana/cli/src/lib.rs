@@ -168,40 +168,32 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
         .clone()
         .expect("super user");
 
-    let app = match config.time {
-        config::TimeConfig::Realtime => {
-            let clock = es_entity::clock::ClockHandle::realtime();
-            lana_app::app::LanaApp::init(pool.clone(), config.app, clock)
-                .await
-                .context("Failed to initialize Lana app")?
-        }
+    let (clock, clock_ctrl) = match config.time {
+        config::TimeConfig::Realtime => (es_entity::clock::ClockHandle::realtime(), None),
         config::TimeConfig::Artificial(clock_config) => {
-            dbg!(&clock_config);
-            let (clock, clock_ctrl) = es_entity::clock::ClockHandle::artificial(clock_config);
-            dbg!(&clock.now());
-
-            let app = lana_app::app::LanaApp::init(pool.clone(), config.app, clock.clone())
-                .await
-                .context("Failed to initialize Lana app")?;
-
-            #[cfg(feature = "sim-bootstrap")]
-            {
-                let _ = sim_bootstrap::run(
-                    superuser_email.to_string(),
-                    &app,
-                    config.bootstrap,
-                    clock,
-                    clock_ctrl,
-                )
-                .await;
-            }
-
-            #[cfg(not(feature = "sim-bootstrap"))]
-            drop(clock_ctrl);
-
-            app
+            let (clock, ctrl) = es_entity::clock::ClockHandle::artificial(clock_config);
+            (clock, Some(ctrl))
         }
     };
+
+    let app = lana_app::app::LanaApp::init(pool.clone(), config.app, clock.clone())
+        .await
+        .context("Failed to initialize Lana app")?;
+
+    #[cfg(feature = "sim-bootstrap")]
+    if let Some(ctrl) = clock_ctrl {
+        let _ = sim_bootstrap::run(
+            superuser_email.to_string(),
+            &app,
+            config.bootstrap,
+            clock,
+            ctrl,
+        )
+        .await;
+    }
+
+    #[cfg(not(feature = "sim-bootstrap"))]
+    drop(clock_ctrl);
 
     let admin_error_send = error_send.clone();
     let admin_app = app.clone();

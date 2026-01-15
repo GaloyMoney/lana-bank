@@ -41,16 +41,18 @@ pub async fn principal_late_scenario(
     }
 
     let (tx, rx) = mpsc::channel::<(ObligationType, UsdCents)>(32);
-    let sim_app = app.clone();
-    let sim_clock = clock.clone();
-    tokio::spawn(
-        async move {
-            do_principal_late(sub, sim_app, cf_proposal.id.into(), rx, sim_clock)
-                .await
-                .expect("principal late failed");
-        }
-        .instrument(Span::current()),
-    );
+    {
+        let app = app.clone();
+        let clock = clock.clone();
+        tokio::spawn(
+            async move {
+                do_principal_late(sub, app, cf_proposal.id.into(), rx, clock)
+                    .await
+                    .expect("principal late failed");
+            }
+            .instrument(Span::current()),
+        );
+    }
 
     while let Some(msg) = stream.next().await {
         if process_obligation_message(&msg, &cf_proposal, &tx).await? {
@@ -158,9 +160,17 @@ async fn do_principal_late(
     mut obligation_amount_rx: mpsc::Receiver<(ObligationType, UsdCents)>,
     clock: ClockHandle,
 ) -> anyhow::Result<()> {
+    let one_month = std::time::Duration::from_secs(30 * 24 * 60 * 60);
+    let mut month_num = 0;
     let mut principal_remaining = UsdCents::ZERO;
 
     while let Some((obligation_type, amount)) = obligation_amount_rx.recv().await {
+        // 3 months of interest payments should be delayed by a month
+        if month_num < 3 {
+            month_num += 1;
+            clock.sleep(one_month).await;
+        }
+
         if obligation_type == ObligationType::Interest {
             app.record_payment_with_date(&sub, id, amount, clock.now().date_naive())
                 .await?;
@@ -180,6 +190,8 @@ async fn do_principal_late(
         }
     }
 
+    // Delaying payment of principal by one more month
+    clock.sleep(one_month).await;
     app.record_payment_with_date(&sub, id, principal_remaining, clock.now().date_naive())
         .await?;
 

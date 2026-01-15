@@ -41,16 +41,18 @@ pub async fn interest_late_scenario(
     }
 
     let (tx, rx) = mpsc::channel::<(ObligationType, UsdCents)>(32);
-    let sim_app = app.clone();
-    let sim_clock = clock.clone();
-    tokio::spawn(
-        async move {
-            do_interest_late(sub, sim_app, cf_proposal.id.into(), rx, sim_clock)
-                .await
-                .expect("interest late failed");
-        }
-        .instrument(Span::current()),
-    );
+    {
+        let app = app.clone();
+        let clock = clock.clone();
+        tokio::spawn(
+            async move {
+                do_interest_late(sub, app, cf_proposal.id.into(), rx, clock)
+                    .await
+                    .expect("interest late failed");
+            }
+            .instrument(Span::current()),
+        );
+    }
 
     while let Some(msg) = stream.next().await {
         if process_obligation_message(&msg, &cf_proposal, &tx).await? {
@@ -158,9 +160,16 @@ async fn do_interest_late(
     mut obligation_amount_rx: mpsc::Receiver<(ObligationType, UsdCents)>,
     clock: ClockHandle,
 ) -> anyhow::Result<()> {
+    let one_month = std::time::Duration::from_secs(30 * 24 * 60 * 60);
+    let mut month_num = 0;
     let mut first_interest = UsdCents::ZERO;
 
     while let Some((obligation_type, amount)) = obligation_amount_rx.recv().await {
+        if month_num < 3 {
+            month_num += 1;
+            clock.sleep(one_month).await;
+        }
+
         if obligation_type == ObligationType::Interest && first_interest.is_zero() {
             first_interest = amount;
             continue;
@@ -180,6 +189,9 @@ async fn do_interest_late(
             break;
         }
     }
+
+    // Delay first payment by 1 more month
+    clock.sleep(one_month).await;
 
     app.record_payment_with_date(&sub, id, first_interest, clock.now().date_naive())
         .await?;

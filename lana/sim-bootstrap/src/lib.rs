@@ -23,7 +23,6 @@ pub async fn run(
     clock: ClockHandle,
     clock_ctrl: ClockController,
 ) -> anyhow::Result<()> {
-    dbg!(&clock.now());
     if !config.active {
         return Ok(());
     }
@@ -52,17 +51,17 @@ pub async fn run(
     let mut handles = Vec::new();
     for (customer_id, deposit_account_id) in customers {
         for _ in 0..config.num_facilities {
-            let spawned_app = app.clone();
-            let spawned_clock = clock.clone();
+            let app = app.clone();
+            let clock = clock.clone();
 
             let handle = tokio::spawn(
                 async move {
                     scenarios::process_facility_lifecycle(
                         sub,
-                        spawned_app,
+                        app,
                         customer_id,
                         deposit_account_id,
-                        spawned_clock,
+                        clock,
                     )
                     .await
                 }

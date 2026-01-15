@@ -41,16 +41,18 @@ pub async fn timely_payments_scenario(
     }
 
     let (tx, rx) = mpsc::channel::<UsdCents>(32);
-    let sim_app = app.clone();
-    let sim_clock = clock.clone();
-    tokio::spawn(
-        async move {
-            do_timely_payments(sub, sim_app, cf_proposal.id.into(), rx, sim_clock)
-                .await
-                .expect("timely payments failed");
-        }
-        .instrument(Span::current()),
-    );
+    {
+        let app = app.clone();
+        let clock = clock.clone();
+        tokio::spawn(
+            async move {
+                do_timely_payments(sub, app, cf_proposal.id.into(), rx, clock)
+                    .await
+                    .expect("timely payments failed");
+            }
+            .instrument(Span::current()),
+        );
+    }
 
     while let Some(msg) = stream.next().await {
         if process_obligation_message(&msg, &cf_proposal, &tx).await? {

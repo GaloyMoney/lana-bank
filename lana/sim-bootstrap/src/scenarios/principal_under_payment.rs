@@ -1,4 +1,5 @@
 use es_entity::clock::ClockHandle;
+use es_entity::prelude::chrono::Utc;
 use futures::StreamExt;
 use lana_app::{app::LanaApp, primitives::*};
 use lana_events::{CoreCreditEvent, LanaEvent, ObligationType};
@@ -25,6 +26,12 @@ pub async fn principal_under_payment_scenario(
     let deposit_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
     helpers::make_deposit(&sub, app, &customer_id, deposit_amount).await?;
 
+    // Wait till 8 months before now
+    let one_month = std::time::Duration::from_secs(30 * 24 * 60 * 60);
+    while clock.now() < Utc::now() - es_entity::prelude::chrono::Duration::days(240) {
+        clock.sleep(one_month).await;
+    }
+
     let cf_terms = helpers::std_terms_with_liquidation();
     let cf_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
     let cf_proposal = app
@@ -45,16 +52,18 @@ pub async fn principal_under_payment_scenario(
     }
 
     let (tx, rx) = mpsc::channel::<(ObligationType, UsdCents)>(32);
-    let sim_app = app.clone();
-    let sim_clock = clock.clone();
-    tokio::spawn(
-        async move {
-            do_principal_under_payment(sub, sim_app, cf_proposal.id.into(), rx, sim_clock)
-                .await
-                .expect("principal under payment failed");
-        }
-        .instrument(Span::current()),
-    );
+    {
+        let app = app.clone();
+        let clock = clock.clone();
+        tokio::spawn(
+            async move {
+                do_principal_under_payment(sub, app, cf_proposal.id.into(), rx, clock)
+                    .await
+                    .expect("principal under payment failed");
+            }
+            .instrument(Span::current()),
+        );
+    }
 
     while let Some(msg) = stream.next().await {
         if process_obligation_message(&msg, &cf_proposal, &tx).await? {

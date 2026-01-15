@@ -45,27 +45,32 @@ pub async fn disbursal_different_months_scenario(
         }
     }
 
-    let sim_app = app.clone();
-    tokio::spawn(
-        async move {
-            do_disbursal_in_different_months(sub, sim_app, cf_proposal.id.into())
-                .await
-                .expect("disbursal different months failed");
-        }
-        .instrument(Span::current()),
-    );
+    {
+        let app = app.clone();
+        let clock = clock.clone();
+        tokio::spawn(
+            async move {
+                do_disbursal_in_different_months(sub, app, cf_proposal.id.into(), clock)
+                    .await
+                    .expect("disbursal different months failed");
+            }
+            .instrument(Span::current()),
+        );
+    }
 
     let (tx, rx) = mpsc::channel::<UsdCents>(32);
-    let sim_app = app.clone();
-    let sim_clock = clock.clone();
-    tokio::spawn(
-        async move {
-            do_timely_payments(sub, sim_app, cf_proposal.id.into(), rx, sim_clock)
-                .await
-                .expect("disbursal different months timely payments failed");
-        }
-        .instrument(Span::current()),
-    );
+    {
+        let app = app.clone();
+        let clock = clock.clone();
+        tokio::spawn(
+            async move {
+                do_timely_payments(sub, app, cf_proposal.id.into(), rx, clock)
+                    .await
+                    .expect("disbursal different months timely payments failed");
+            }
+            .instrument(Span::current()),
+        );
+    }
 
     while let Some(msg) = stream.next().await {
         if process_obligation_message(&msg, &cf_proposal, &tx).await? {
@@ -166,18 +171,26 @@ async fn process_obligation_message(
 
 #[tracing::instrument(
     name = "sim_bootstrap.do_disbursal_in_different_months",
-    skip(app),
+    skip(app, clock),
     err
 )]
 async fn do_disbursal_in_different_months(
     sub: Subject,
     app: LanaApp,
     id: CreditFacilityId,
+    clock: ClockHandle,
 ) -> anyhow::Result<()> {
+    let one_month = std::time::Duration::from_secs(30 * 24 * 60 * 60);
+
+    // there is already one disbursal in month 1
+    clock.sleep(one_month).await;
+
     // disbursal in month 2
     app.credit()
         .initiate_disbursal(&sub, id, UsdCents::try_from_usd(dec!(2_000_000))?)
         .await?;
+
+    clock.sleep(one_month * 2).await;
 
     // disbursal in month 3
     app.credit()
