@@ -1427,6 +1427,7 @@ dependencies = [
  "cala-ledger",
  "chrono",
  "cloud-storage",
+ "core-access",
  "core-accounting",
  "core-custody",
  "core-customer",
