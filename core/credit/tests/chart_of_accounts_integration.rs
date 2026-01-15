@@ -28,21 +28,27 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let public_ids = public_id::PublicIds::new(&pool);
     let customers =
         core_customer::Customers::new(&pool, &authz, &outbox, document_storage, public_ids);
-    let custody =
-        core_custody::CoreCustody::init(&pool, &authz, helpers::custody_config(), &outbox).await?;
-
-    let cala_config = CalaLedgerConfig::builder()
-        .pool(pool.clone())
-        .exec_migrations(false)
-        .build()?;
-    let cala = CalaLedger::init(cala_config).await?;
-    let jobs = job::Jobs::init(
+    let mut jobs = job::Jobs::init(
         job::JobSvcConfig::builder()
             .pool(pool.clone())
             .build()
             .unwrap(),
     )
     .await?;
+    let custody = core_custody::CoreCustody::init(
+        &pool,
+        &authz,
+        helpers::custody_config(),
+        &outbox,
+        &mut jobs,
+    )
+    .await?;
+
+    let cala_config = CalaLedgerConfig::builder()
+        .pool(pool.clone())
+        .exec_migrations(false)
+        .build()?;
+    let cala = CalaLedger::init(cala_config).await?;
 
     let mut job_new = job_new::Jobs::init(
         job_new::JobSvcConfig::builder()
