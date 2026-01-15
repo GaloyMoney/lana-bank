@@ -19,9 +19,7 @@ gql`
         node {
           id
           reportRunId
-          executionDate
-          startDate
-          endDate
+          startTime
           runType
           state
         }
@@ -48,11 +46,10 @@ const AvailableReportRuns: React.FC = () => {
 
   const columns: Column<ReportRun>[] = [
     {
-      key: "startDate",
+      key: "startTime",
       label: t("listHeaders.generatedAt"),
-      render: (_, reportRun) => {
-        const date = reportRun.startDate || reportRun.executionDate
-        return date ? formatDate(date) : t("starting")
+      render: (startTime) => {
+        return startTime ? formatDate(startTime) : t("starting")
       },
     },
     {

@@ -2845,13 +2845,11 @@ export type ReportFileGenerateDownloadLinkPayload = {
 
 export type ReportRun = {
   __typename?: 'ReportRun';
-  endDate?: Maybe<Scalars['Timestamp']['output']>;
-  executionDate: Scalars['Timestamp']['output'];
   id: Scalars['ID']['output'];
   reportRunId: Scalars['UUID']['output'];
   reports: Array<Report>;
   runType: ReportRunType;
-  startDate?: Maybe<Scalars['Timestamp']['output']>;
+  startTime?: Maybe<Scalars['Timestamp']['output']>;
   state: ReportRunState;
 };
 
@@ -2867,7 +2865,7 @@ export type ReportRunConnection = {
 
 export type ReportRunCreatePayload = {
   __typename?: 'ReportRunCreatePayload';
-  jobId: Scalars['String']['output'];
+  runId?: Maybe<Scalars['String']['output']>;
 };
 
 /** An edge in a connection. */
@@ -4504,7 +4502,7 @@ export type ReportRunByIdQueryVariables = Exact<{
 }>;
 
 
-export type ReportRunByIdQuery = { __typename?: 'Query', reportRun?: { __typename?: 'ReportRun', id: string, reportRunId: string, state: ReportRunState, runType: ReportRunType, executionDate: any, startDate?: any | null, endDate?: any | null, reports: Array<{ __typename?: 'Report', id: string, reportId: string, externalId: string, name: string, norm: string, files: Array<{ __typename?: 'ReportFile', extension: string }> }> } | null };
+export type ReportRunByIdQuery = { __typename?: 'Query', reportRun?: { __typename?: 'ReportRun', id: string, reportRunId: string, state: ReportRunState, runType: ReportRunType, startTime?: any | null, reports: Array<{ __typename?: 'Report', id: string, reportId: string, externalId: string, name: string, norm: string, files: Array<{ __typename?: 'ReportFile', extension: string }> }> } | null };
 
 export type ReportFileGenerateDownloadLinkMutationVariables = Exact<{
   input: ReportFileGenerateDownloadLinkInput;
@@ -4516,7 +4514,7 @@ export type ReportFileGenerateDownloadLinkMutation = { __typename?: 'Mutation', 
 export type ReportGenerateMutationVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ReportGenerateMutation = { __typename?: 'Mutation', triggerReportRun: { __typename?: 'ReportRunCreatePayload', jobId: string } };
+export type ReportGenerateMutation = { __typename?: 'Mutation', triggerReportRun: { __typename?: 'ReportRunCreatePayload', runId?: string | null } };
 
 export type ReportRunsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -4524,7 +4522,7 @@ export type ReportRunsQueryVariables = Exact<{
 }>;
 
 
-export type ReportRunsQuery = { __typename?: 'Query', reportRuns: { __typename?: 'ReportRunConnection', edges: Array<{ __typename?: 'ReportRunEdge', cursor: string, node: { __typename?: 'ReportRun', id: string, reportRunId: string, executionDate: any, startDate?: any | null, endDate?: any | null, runType: ReportRunType, state: ReportRunState } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type ReportRunsQuery = { __typename?: 'Query', reportRuns: { __typename?: 'ReportRunConnection', edges: Array<{ __typename?: 'ReportRunEdge', cursor: string, node: { __typename?: 'ReportRun', id: string, reportRunId: string, startTime?: any | null, runType: ReportRunType, state: ReportRunState } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type RoleAddPermissionSetsMutationVariables = Exact<{
   input: RoleAddPermissionSetsInput;
@@ -10777,9 +10775,7 @@ export const ReportRunByIdDocument = gql`
     reportRunId
     state
     runType
-    executionDate
-    startDate
-    endDate
+    startTime
     reports {
       id
       reportId
@@ -10865,7 +10861,7 @@ export type ReportFileGenerateDownloadLinkMutationOptions = Apollo.BaseMutationO
 export const ReportGenerateDocument = gql`
     mutation ReportGenerate {
   triggerReportRun {
-    jobId
+    runId
   }
 }
     `;
@@ -10902,9 +10898,7 @@ export const ReportRunsDocument = gql`
       node {
         id
         reportRunId
-        executionDate
-        startDate
-        endDate
+        startTime
         runType
         state
       }

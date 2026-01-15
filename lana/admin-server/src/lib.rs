@@ -52,6 +52,7 @@ where
             get(playground).post(axum::routing::post(graphql_handler)),
         )
         .merge(webhooks::custodians::routes())
+        .merge(webhooks::reports::routes())
         .merge(webhooks::sumsub::routes())
         .with_state(JwtDecoderState {
             decoder: jwks_decoder,
