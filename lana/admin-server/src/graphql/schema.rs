@@ -1,4 +1,4 @@
-use async_graphql::{Context, Object, Subscription, types::connection::*};
+use async_graphql::{Context, Error, Object, Subscription, types::connection::*};
 
 use std::io::Read;
 
@@ -2673,7 +2673,8 @@ impl Subscription {
         app.credit()
             .proposals()
             .find_by_id(sub, credit_facility_proposal_id)
-            .await?;
+            .await?
+            .ok_or_else(|| Error::new("Credit facility proposal not found"))?;
 
         let stream = app.outbox().listen_persisted(None);
         let updates = stream.filter_map(move |event| async move {
