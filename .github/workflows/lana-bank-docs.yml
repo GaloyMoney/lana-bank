@@ -4,10 +4,10 @@ on:
   push:
     branches: ["main"]
     paths:
-      - "docs/**"
+      - "docs-site/**"
   pull_request:
     paths:
-      - "docs/**"
+      - "docs-site/**"
 
 permissions:
   contents: read
@@ -42,13 +42,12 @@ jobs:
 
       - name: Build book
         run: |
-          cd docs
-          nix develop -c mdbook build
+          nix develop -c bash -lc "cd docs-site && npm ci && npm run build"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./docs/book
+          path: ./docs-site/build
 
   deploy:
     if: github.ref == 'refs/heads/main'
