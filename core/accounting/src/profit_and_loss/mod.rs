@@ -31,23 +31,6 @@ pub struct ProfitAndLossStatementIds {
     pub expenses: CalaAccountSetId,
 }
 
-impl ProfitAndLossStatementIds {
-    fn internal_ids(&self) -> Vec<CalaAccountSetId> {
-        let Self {
-            id: _id,
-            revenue,
-            cost_of_revenue,
-            expenses,
-        } = self;
-
-        vec![*revenue, *cost_of_revenue, *expenses]
-    }
-
-    fn account_set_id_for_config(&self) -> CalaAccountSetId {
-        self.revenue
-    }
-}
-
 #[derive(Clone)]
 pub struct ProfitAndLossStatements<Perms>
 where
@@ -114,7 +97,6 @@ where
     pub async fn get_chart_of_accounts_integration_config(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        reference: String,
         chart: &Chart,
     ) -> Result<Option<AccountingBaseConfig>, ProfitAndLossStatementError> {
         self.authz
@@ -125,16 +107,8 @@ where
             )
             .await?;
 
-        let is_configured = self
-            .pl_statement_ledger
-            .is_configured(reference)
-            .await?;
-
-        if is_configured {
-            Ok(chart.find_accounting_base_config())
-        } else {
-            Ok(None)
-        }
+        // Config is now sourced directly from the Chart entity
+        Ok(chart.find_accounting_base_config())
     }
 
     #[record_error_severity]
@@ -148,8 +122,18 @@ where
         reference: String,
         chart: &Chart,
     ) -> Result<AccountingBaseConfig, ProfitAndLossStatementError> {
-        let audit_info = self
-            .authz
+        let config = chart
+            .find_accounting_base_config()
+            .ok_or(ProfitAndLossStatementError::AccountingBaseConfigNotFound)?;
+
+        // Resolve account codes to Cala account set IDs
+        let chart_account_set_ids = ledger::ChartAccountSetIds {
+            revenue: chart.account_set_id_from_code(&config.revenue_code)?,
+            cost_of_revenue: chart.account_set_id_from_code(&config.cost_of_revenue_code)?,
+            expenses: chart.account_set_id_from_code(&config.expenses_code)?,
+        };
+
+        self.authz
             .enforce_permission(
                 sub,
                 CoreAccountingObject::all_profit_and_loss_configuration(),
@@ -157,37 +141,9 @@ where
             )
             .await?;
 
-        // Check if already configured via Cala state
-        let is_configured = self
-            .pl_statement_ledger
-            .is_configured(reference.clone())
-            .await?;
-        if is_configured {
-            return Err(ProfitAndLossStatementError::ProfitAndLossStatementConfigAlreadyExists);
-        }
-
-        let config = chart
-            .find_accounting_base_config()
-            .ok_or(ProfitAndLossStatementError::AccountingBaseConfigNotFound)?;
-
-        let revenue_child_account_set_id_from_chart =
-            chart.account_set_id_from_code(&config.revenue_code)?;
-        let cost_of_revenue_child_account_set_id_from_chart =
-            chart.account_set_id_from_code(&config.cost_of_revenue_code)?;
-        let expenses_child_account_set_id_from_chart =
-            chart.account_set_id_from_code(&config.expenses_code)?;
-
-        let charts_integration_meta = ChartOfAccountsIntegrationMeta {
-            audit_info,
-            config: config.clone(),
-
-            revenue_child_account_set_id_from_chart,
-            cost_of_revenue_child_account_set_id_from_chart,
-            expenses_child_account_set_id_from_chart,
-        };
-
+        // Attach chart account sets as members (idempotent operation)
         self.pl_statement_ledger
-            .attach_chart_of_accounts_account_sets(reference, charts_integration_meta)
+            .attach_chart_of_accounts_account_sets(reference, chart_account_set_ids)
             .await?;
 
         Ok(config)

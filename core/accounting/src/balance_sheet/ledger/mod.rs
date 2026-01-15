@@ -235,40 +235,6 @@ impl BalanceSheetLedger {
     }
 
     #[record_error_severity]
-    #[instrument(name = "bs_ledger.is_configured", skip(self), fields(reference = %reference))]
-    pub async fn is_configured(
-        &self,
-        reference: String,
-    ) -> Result<bool, BalanceSheetLedgerError> {
-        // Try to find the statement account set by external_id
-        let statement = match self
-            .cala
-            .account_sets()
-            .find_by_external_id(reference)
-            .await
-        {
-            Ok(s) => s,
-            Err(e) if e.was_not_found() => return Ok(false),
-            Err(e) => return Err(e.into()),
-        };
-
-        // Check if assets account set has any chart members (indicates configured)
-        let statement_members = self.get_member_account_set_ids_and_names(statement.id).await?;
-        let assets_id = match statement_members.get(ASSETS_NAME) {
-            Some(id) => *id,
-            None => return Ok(false),
-        };
-
-        let members = self
-            .cala
-            .account_sets()
-            .list_members_by_created_at(assets_id, Default::default())
-            .await?;
-
-        Ok(!members.entities.is_empty())
-    }
-
-    #[record_error_severity]
     #[instrument(name = "balance_sheet.get_ids_from_reference", skip(self), fields(reference = %reference))]
     pub async fn get_ids_from_reference(
         &self,
@@ -336,39 +302,35 @@ impl BalanceSheetLedger {
         reference: String,
         chart_ids: ChartAccountSetIds,
     ) -> Result<(), BalanceSheetLedgerError> {
+        use cala_ledger::account_set::error::AccountSetError;
+
         let mut op = self.cala.begin_operation().await?;
 
         let account_set_ids = self.get_ids_from_reference(reference).await?;
 
         // Add chart account sets as members to the internal balance sheet account sets
-        self.cala
-            .account_sets()
-            .add_member_in_op(&mut op, account_set_ids.assets, chart_ids.assets)
-            .await?;
-        self.cala
-            .account_sets()
-            .add_member_in_op(&mut op, account_set_ids.liabilities, chart_ids.liabilities)
-            .await?;
-        self.cala
-            .account_sets()
-            .add_member_in_op(&mut op, account_set_ids.equity, chart_ids.equity)
-            .await?;
-        self.cala
-            .account_sets()
-            .add_member_in_op(&mut op, account_set_ids.revenue, chart_ids.revenue)
-            .await?;
-        self.cala
-            .account_sets()
-            .add_member_in_op(
-                &mut op,
-                account_set_ids.cost_of_revenue,
-                chart_ids.cost_of_revenue,
-            )
-            .await?;
-        self.cala
-            .account_sets()
-            .add_member_in_op(&mut op, account_set_ids.expenses, chart_ids.expenses)
-            .await?;
+        // Handle MemberAlreadyAdded gracefully to make this operation idempotent
+        let pairs = [
+            (account_set_ids.assets, chart_ids.assets),
+            (account_set_ids.liabilities, chart_ids.liabilities),
+            (account_set_ids.equity, chart_ids.equity),
+            (account_set_ids.revenue, chart_ids.revenue),
+            (account_set_ids.cost_of_revenue, chart_ids.cost_of_revenue),
+            (account_set_ids.expenses, chart_ids.expenses),
+        ];
+
+        for (parent, child) in pairs {
+            match self
+                .cala
+                .account_sets()
+                .add_member_in_op(&mut op, parent, child)
+                .await
+            {
+                Ok(_) => {}
+                Err(AccountSetError::MemberAlreadyAdded) => {}
+                Err(e) => return Err(e.into()),
+            }
+        }
 
         op.commit().await?;
         Ok(())

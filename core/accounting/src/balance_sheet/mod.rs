@@ -113,7 +113,6 @@ where
     pub async fn get_chart_of_accounts_integration_config(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        reference: String,
         chart: &Chart,
     ) -> Result<Option<AccountingBaseConfig>, BalanceSheetError> {
         self.authz
@@ -124,16 +123,8 @@ where
             )
             .await?;
 
-        let is_configured = self
-            .balance_sheet_ledger
-            .is_configured(reference)
-            .await?;
-
-        if is_configured {
-            Ok(chart.find_accounting_base_config())
-        } else {
-            Ok(None)
-        }
+        // Config is now sourced directly from the Chart entity
+        Ok(chart.find_accounting_base_config())
     }
 
     #[record_error_severity]
@@ -147,15 +138,6 @@ where
         reference: String,
         chart: &Chart,
     ) -> Result<AccountingBaseConfig, BalanceSheetError> {
-        // Check if already configured via Cala state
-        let is_configured = self
-            .balance_sheet_ledger
-            .is_configured(reference.clone())
-            .await?;
-        if is_configured {
-            return Err(BalanceSheetError::BalanceSheetConfigAlreadyExists);
-        }
-
         let config = chart
             .find_accounting_base_config()
             .ok_or(BalanceSheetError::AccountingBaseConfigNotFound)?;
@@ -178,7 +160,7 @@ where
             )
             .await?;
 
-        // Attach chart account sets as members (only side effect)
+        // Attach chart account sets as members (idempotent operation)
         self.balance_sheet_ledger
             .attach_chart_of_accounts_account_sets(reference, chart_account_set_ids)
             .await?;
