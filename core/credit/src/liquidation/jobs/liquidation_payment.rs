@@ -117,8 +117,8 @@ where
     #[instrument(name = "outbox.core_credit.liquidation_payment.process_message", parent = None, skip(self, message, db), fields(payment_id, seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn process_message(
         &self,
-        message: &PersistentOutboxEvent<E>,
         db: &mut es_entity::DbOp<'_>,
+        message: &PersistentOutboxEvent<E>,
     ) -> Result<ControlFlow<()>, Box<dyn std::error::Error>> {
         use CoreCreditEvent::*;
 
@@ -224,7 +224,7 @@ where
                                 .update_execution_state_in_op(&mut db, &state)
                                 .await?;
 
-                            let next = self.process_message(&message, &mut db).await?;
+                            let next = self.process_message(&mut db, &message).await?;
 
                             db.commit().await?;
 
