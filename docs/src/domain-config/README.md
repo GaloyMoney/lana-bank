@@ -2,6 +2,12 @@
 
 Domain Config provides type-safe, persistent configuration storage with two visibility levels.
 
+## Supported Types
+
+Simple types: `bool`, `i64`, `u64`, `String`, `Decimal`.
+
+Complex structs (internal configs only): Any struct implementing `Serialize` and `Deserialize`.
+
 ## Visibility Levels
 
 ### Internal Configs
@@ -22,12 +28,6 @@ Exposed configs automatically appear in the admin app's Configurations page for 
 Use exposed configs for general settings that don't require custom authorization logic.
 
 Exposed configs only support simple types.
-
-## Supported Types
-
-Simple types: `bool`, `i64`, `u64`, `String`, `Decimal`.
-
-Complex structs (internal configs only): Any struct implementing `Serialize` and `Deserialize`.
 
 ## Config Lifecycle
 
