@@ -216,15 +216,8 @@ where
         );
         let obligations_arc = Arc::new(obligations);
 
-        let liquidations = Liquidations::init(
-            pool,
-            journal_id,
-            cala_arc.as_ref(),
-            ledger_arc.liquidation_proceeds_omnibus_account_ids(),
-            authz_arc.clone(),
-            &publisher,
-        )
-        .await?;
+        let liquidations =
+            Liquidations::init(pool, ledger_arc.as_ref(), authz_arc.clone(), &publisher).await?;
         let liquidations_arc = Arc::new(liquidations);
 
         let credit_facility_proposals = CreditFacilityProposals::init(

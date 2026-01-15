@@ -11,7 +11,7 @@ use cala_ledger::{
 use core_money::Satoshis;
 use tracing_macros::record_error_severity;
 
-use crate::liquidation::ledger::LiquidationLedgerError;
+use crate::ledger::error::CreditLedgerError;
 
 pub const SEND_COLLATERAL_TO_LIQUIDATION: &str = "SEND_COLLATERAL_TO_LIQUIDATION";
 
@@ -104,7 +104,7 @@ pub struct SendCollateralToLiquidation;
 impl SendCollateralToLiquidation {
     #[record_error_severity]
     #[instrument(name = "core_credit.liquidation.ledger.templates.init", skip_all)]
-    pub async fn init(ledger: &CalaLedger) -> Result<(), LiquidationLedgerError> {
+    pub async fn init(ledger: &CalaLedger) -> Result<(), CreditLedgerError> {
         let transaction = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")

@@ -1,6 +1,5 @@
 mod entity;
 pub mod error;
-mod ledger;
 mod repo;
 
 use std::sync::Arc;
@@ -11,22 +10,19 @@ use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use cala_ledger::{
-    AccountId as CalaAccountId, CalaLedger, JournalId, TransactionId as CalaTransactionId,
-};
+use cala_ledger::{AccountId as CalaAccountId, TransactionId as CalaTransactionId};
 use core_accounting::LedgerTransactionInitiator;
 use core_money::{Satoshis, UsdCents};
 use es_entity::{DbOp, Idempotent};
 use obix::out::OutboxEventMarker;
 
 use crate::{
-    CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId, LedgerOmnibusAccountIds,
+    CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId, CreditLedger,
     LiquidationId, PaymentId, PaymentSourceAccountId,
 };
 use entity::NewLiquidationBuilder;
 pub use entity::{Liquidation, LiquidationEvent, NewLiquidation};
 use error::LiquidationError;
-pub(crate) use ledger::{LiquidationLedger, LiquidationLedgerError};
 pub(crate) use repo::LiquidationRepo;
 pub use repo::liquidation_cursor;
 
@@ -37,8 +33,7 @@ where
 {
     repo: LiquidationRepo<E>,
     authz: Arc<Perms>,
-    ledger: LiquidationLedger,
-    proceeds_omnibus_account_ids: LedgerOmnibusAccountIds,
+    ledger: CreditLedger,
 }
 
 impl<Perms, E> Clone for Liquidations<Perms, E>
@@ -51,7 +46,6 @@ where
             repo: self.repo.clone(),
             authz: self.authz.clone(),
             ledger: self.ledger.clone(),
-            proceeds_omnibus_account_ids: self.proceeds_omnibus_account_ids.clone(),
         }
     }
 }
@@ -65,17 +59,14 @@ where
 {
     pub async fn init(
         pool: &sqlx::PgPool,
-        journal_id: JournalId,
-        cala: &CalaLedger,
-        proceeds_omnibus_account_ids: &LedgerOmnibusAccountIds,
+        ledger: &CreditLedger,
         authz: Arc<Perms>,
         publisher: &crate::CreditFacilityPublisher<E>,
     ) -> Result<Self, LiquidationError> {
         Ok(Self {
             repo: LiquidationRepo::new(pool, publisher),
             authz,
-            ledger: LiquidationLedger::init(cala, journal_id).await?,
-            proceeds_omnibus_account_ids: proceeds_omnibus_account_ids.clone(),
+            ledger: ledger.clone(),
         })
     }
 
@@ -109,7 +100,9 @@ where
                     db,
                     new_liquidation
                         .liquidation_proceeds_omnibus_account_id(
-                            self.proceeds_omnibus_account_ids.account_id,
+                            self.ledger
+                                .liquidation_proceeds_omnibus_account_ids()
+                                .account_id,
                         )
                         .build()
                         .expect("Could not build new liquidation"),
