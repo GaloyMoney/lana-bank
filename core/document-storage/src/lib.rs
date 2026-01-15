@@ -48,10 +48,6 @@ impl DocumentStorage {
         }
     }
 
-    pub async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, sqlx::Error> {
-        self.repo.begin_op().await
-    }
-
     pub async fn begin_op_with_clock(&self) -> Result<es_entity::DbOp<'_>, sqlx::Error> {
         self.repo.begin_op_with_clock(&self.clock).await
     }
