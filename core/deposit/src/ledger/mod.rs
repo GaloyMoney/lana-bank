@@ -116,7 +116,7 @@ impl DepositAccountSets {
 #[derive(Clone)]
 pub struct DepositLedger {
     cala: CalaLedger,
-    pub(crate) clock: ClockHandle,
+    clock: ClockHandle,
     journal_id: JournalId,
     deposit_account_sets: DepositAccountSets,
     frozen_deposit_account_sets: DepositAccountSets,

@@ -40,7 +40,7 @@ pub struct ChartOfAccounts<Perms>
 where
     Perms: PermissionCheck,
 {
-    pub(crate) clock: ClockHandle,
+    clock: ClockHandle,
     repo: ChartRepo,
     chart_ledger: ChartLedger,
     cala: CalaLedger,

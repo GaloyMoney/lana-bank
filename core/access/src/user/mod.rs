@@ -2,7 +2,7 @@ mod entity;
 pub mod error;
 mod repo;
 
-use es_entity::{DbOp, Idempotent};
+use es_entity::{DbOp, Idempotent, clock::ClockHandle};
 use std::collections::HashMap;
 use tracing::instrument;
 
@@ -31,7 +31,7 @@ where
 {
     authz: Authorization<Audit, AuthRoleToken>,
     repo: UserRepo<E>,
-    pub(crate) clock: es_entity::clock::ClockHandle,
+    clock: ClockHandle,
 }
 
 impl<Audit, E> Clone for Users<Audit, E>

@@ -19,6 +19,7 @@ use core_accounting::LedgerTransactionInitiator;
 use core_custody::CoreCustodyEvent;
 use core_money::{Satoshis, UsdCents};
 use es_entity::Idempotent;
+use es_entity::clock::ClockHandle;
 use governance::GovernanceEvent;
 use obix::out::OutboxEventMarker;
 
@@ -44,6 +45,7 @@ where
     authz: Arc<Perms>,
     ledger: LiquidationLedger,
     proceeds_omnibus_account_ids: LedgerOmnibusAccountIds,
+    clock: ClockHandle,
 }
 
 impl<Perms, E> Clone for Liquidations<Perms, E>
@@ -59,6 +61,7 @@ where
             authz: self.authz.clone(),
             ledger: self.ledger.clone(),
             proceeds_omnibus_account_ids: self.proceeds_omnibus_account_ids.clone(),
+            clock: self.clock.clone(),
         }
     }
 }
@@ -129,8 +132,9 @@ where
         Ok(Self {
             repo: repo_arc,
             authz,
-            ledger: LiquidationLedger::init(cala, journal_id, clock).await?,
+            ledger: LiquidationLedger::init(cala, journal_id, clock.clone()).await?,
             proceeds_omnibus_account_ids: proceeds_omnibus_account_ids.clone(),
+            clock,
         })
     }
 
@@ -152,7 +156,7 @@ where
                 CoreCreditAction::LIQUIDATION_RECORD_COLLATERAL_SENT,
             )
             .await?;
-        let mut db = self.repo.begin_op_with_clock(&self.ledger.clock).await?;
+        let mut db = self.repo.begin_op_with_clock(&self.clock).await?;
 
         let mut liquidation = self.repo.find_by_id_in_op(&mut db, liquidation_id).await?;
 
@@ -199,7 +203,7 @@ where
             )
             .await?;
 
-        let mut db = self.repo.begin_op_with_clock(&self.ledger.clock).await?;
+        let mut db = self.repo.begin_op_with_clock(&self.clock).await?;
         let mut liquidation = self.repo.find_by_id_in_op(&mut db, liquidation_id).await?;
 
         let tx_id = CalaTransactionId::new();

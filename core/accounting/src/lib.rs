@@ -120,8 +120,14 @@ where
         );
         let journal = Journal::new(authz, cala, journal_id);
         let ledger_accounts = LedgerAccounts::new(authz, cala, journal_id);
-        let manual_transactions =
-            ManualTransactions::new(pool, authz, &chart_of_accounts, cala, journal_id);
+        let manual_transactions = ManualTransactions::new(
+            pool,
+            authz,
+            &chart_of_accounts,
+            cala,
+            journal_id,
+            clock.clone(),
+        );
         let ledger_transactions = LedgerTransactions::new(authz, cala);
         let profit_and_loss = ProfitAndLossStatements::new(pool, authz, cala, journal_id);
         let transaction_templates = TransactionTemplates::new(authz, cala);

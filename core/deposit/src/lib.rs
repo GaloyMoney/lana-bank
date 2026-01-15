@@ -24,6 +24,7 @@ use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use core_accounting::{Chart, LedgerTransactionInitiator};
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerObject, Customers};
+use es_entity::clock::ClockHandle;
 use governance::{Governance, GovernanceEvent};
 use job::Jobs;
 use obix::out::{Outbox, OutboxEventMarker};
@@ -74,6 +75,7 @@ where
     public_ids: PublicIds,
     customers: Customers<Perms, E>,
     config: DepositConfig,
+    clock: ClockHandle,
 }
 
 impl<Perms, E> Clone for CoreDeposit<Perms, E>
@@ -97,6 +99,7 @@ where
             public_ids: self.public_ids.clone(),
             customers: self.customers.clone(),
             config: self.config.clone(),
+            clock: self.clock.clone(),
         }
     }
 }
@@ -132,10 +135,15 @@ where
         let accounts = DepositAccountRepo::new(pool, &publisher);
         let deposits = DepositRepo::new(pool, &publisher);
         let withdrawals = WithdrawalRepo::new(pool, &publisher);
-        let ledger = DepositLedger::init(cala, journal_id, clock).await?;
+        let ledger = DepositLedger::init(cala, journal_id, clock.clone()).await?;
 
-        let approve_withdrawal =
-            ApproveWithdrawal::new(&withdrawals, authz.audit(), governance, &ledger);
+        let approve_withdrawal = ApproveWithdrawal::new(
+            &withdrawals,
+            authz.audit(),
+            governance,
+            &ledger,
+            clock.clone(),
+        );
 
         let approve_withdrawal_job_spawner =
             jobs.add_initializer(WithdrawApprovalInit::new(outbox, &approve_withdrawal));
@@ -168,6 +176,7 @@ where
             public_ids: public_ids.clone(),
             customers: customers.clone(),
             config,
+            clock,
         };
         Ok(res)
     }
@@ -221,7 +230,7 @@ where
 
         let mut op = self
             .deposit_accounts
-            .begin_op_with_clock(&self.ledger.clock)
+            .begin_op_with_clock(&self.clock)
             .await?;
 
         let public_id = self
@@ -325,7 +334,7 @@ where
             .await?;
         let mut op = self
             .deposit_accounts
-            .begin_op_with_clock(&self.ledger.clock)
+            .begin_op_with_clock(&self.clock)
             .await?;
 
         for mut account in accounts.entities.into_iter() {
@@ -401,10 +410,7 @@ where
             .await?;
         self.check_account_active(deposit_account_id).await?;
         let deposit_id = DepositId::new();
-        let mut op = self
-            .deposits
-            .begin_op_with_clock(&self.ledger.clock)
-            .await?;
+        let mut op = self.deposits.begin_op_with_clock(&self.clock).await?;
         let public_id = self
             .public_ids
             .create_in_op(&mut op, DEPOSIT_REF_TARGET, deposit_id)
@@ -451,10 +457,7 @@ where
             .await?;
         self.check_account_active(deposit_account_id).await?;
         let withdrawal_id = WithdrawalId::new();
-        let mut op = self
-            .withdrawals
-            .begin_op_with_clock(&self.ledger.clock)
-            .await?;
+        let mut op = self.withdrawals.begin_op_with_clock(&self.clock).await?;
         let public_id = self
             .public_ids
             .create_in_op(&mut op, WITHDRAWAL_REF_TARGET, withdrawal_id)
@@ -518,10 +521,7 @@ where
             .await?;
 
         if let es_entity::Idempotent::Executed(deposit_reversal_data) = deposit.revert() {
-            let mut op = self
-                .deposits
-                .begin_op_with_clock(&self.ledger.clock)
-                .await?;
+            let mut op = self.deposits.begin_op_with_clock(&self.clock).await?;
             self.deposits.update_in_op(&mut op, &mut deposit).await?;
             self.ledger
                 .revert_deposit(
@@ -558,10 +558,7 @@ where
             .await?;
 
         if let Ok(es_entity::Idempotent::Executed(withdrawal_reversal_data)) = withdrawal.revert() {
-            let mut op = self
-                .withdrawals
-                .begin_op_with_clock(&self.ledger.clock)
-                .await?;
+            let mut op = self.withdrawals.begin_op_with_clock(&self.clock).await?;
             self.withdrawals
                 .update_in_op(&mut op, &mut withdrawal)
                 .await?;
@@ -596,10 +593,7 @@ where
         let mut withdrawal = self.withdrawals.find_by_id(id).await?;
         self.check_account_active(withdrawal.deposit_account_id)
             .await?;
-        let mut op = self
-            .withdrawals
-            .begin_op_with_clock(&self.ledger.clock)
-            .await?;
+        let mut op = self.withdrawals.begin_op_with_clock(&self.clock).await?;
         let tx_id = withdrawal.confirm()?;
         self.withdrawals
             .update_in_op(&mut op, &mut withdrawal)
@@ -641,10 +635,7 @@ where
         let mut withdrawal = self.withdrawals.find_by_id(id).await?;
         self.check_account_active(withdrawal.deposit_account_id)
             .await?;
-        let mut op = self
-            .withdrawals
-            .begin_op_with_clock(&self.ledger.clock)
-            .await?;
+        let mut op = self.withdrawals.begin_op_with_clock(&self.clock).await?;
         let tx_id = withdrawal.cancel()?;
         self.withdrawals
             .update_in_op(&mut op, &mut withdrawal)
@@ -684,7 +675,7 @@ where
         if account.freeze()?.did_execute() {
             let mut op = self
                 .deposit_accounts
-                .begin_op_with_clock(&self.ledger.clock)
+                .begin_op_with_clock(&self.clock)
                 .await?;
 
             self.deposit_accounts
@@ -725,7 +716,7 @@ where
         if account.unfreeze()?.did_execute() {
             let mut op = self
                 .deposit_accounts
-                .begin_op_with_clock(&self.ledger.clock)
+                .begin_op_with_clock(&self.clock)
                 .await?;
 
             self.deposit_accounts
@@ -770,7 +761,7 @@ where
         if account.close()?.did_execute() {
             let mut op = self
                 .deposit_accounts
-                .begin_op_with_clock(&self.ledger.clock)
+                .begin_op_with_clock(&self.clock)
                 .await?;
 
             self.deposit_accounts

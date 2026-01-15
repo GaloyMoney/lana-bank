@@ -11,6 +11,7 @@ use std::collections::HashMap;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::{CalaLedger, JournalId};
+use es_entity::clock::ClockHandle;
 use ledger::{EntryParams, ManualTransactionLedger, ManualTransactionParams};
 use tracing_macros::record_error_severity;
 
@@ -41,6 +42,7 @@ where
     chart_of_accounts: ChartOfAccounts<Perms>,
     journal_id: JournalId,
     repo: ManualTransactionRepo,
+    clock: ClockHandle,
 }
 
 impl<Perms> ManualTransactions<Perms>
@@ -55,6 +57,7 @@ where
         chart_of_accounts: &ChartOfAccounts<Perms>,
         cala: &CalaLedger,
         journal_id: JournalId,
+        clock: ClockHandle,
     ) -> Self {
         let repo = ManualTransactionRepo::new(pool);
         Self {
@@ -63,6 +66,7 @@ where
             authz: authz.clone(),
             journal_id,
             repo,
+            clock,
         }
     }
 
@@ -148,10 +152,7 @@ where
             .build()
             .expect("Couldn't build new manual transaction");
 
-        let mut db = self
-            .repo
-            .begin_op_with_clock(&self.chart_of_accounts.clock)
-            .await?;
+        let mut db = self.repo.begin_op_with_clock(&self.clock).await?;
         let manual_transaction = self.repo.create_in_op(&mut db, new_tx).await?;
 
         let mut entry_params = vec![];
