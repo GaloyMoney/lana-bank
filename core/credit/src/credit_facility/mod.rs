@@ -11,6 +11,7 @@ use tracing_macros::record_error_severity;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_price::{CorePriceEvent, Price};
+use es_entity::clock::ClockHandle;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
 use obix::out::{Outbox, OutboxEventMarker};
@@ -60,6 +61,7 @@ where
     credit_facility_maturity_job_spawner:
         jobs::credit_facility_maturity::CreditFacilityMaturityJobSpawner<E>,
     interest_accrual_job_spawner: jobs::interest_accrual::InterestAccrualJobSpawner<Perms, E>,
+    clock: ClockHandle,
 }
 
 impl<Perms, E> Clone for CreditFacilities<Perms, E>
@@ -83,6 +85,7 @@ where
             public_ids: self.public_ids.clone(),
             credit_facility_maturity_job_spawner: self.credit_facility_maturity_job_spawner.clone(),
             interest_accrual_job_spawner: self.interest_accrual_job_spawner.clone(),
+            clock: self.clock.clone(),
         }
     }
 }
@@ -117,6 +120,7 @@ where
         governance: Arc<Governance<Perms, E>>,
         public_ids: Arc<PublicIds>,
         outbox: &Outbox<E>,
+        clock: ClockHandle,
     ) -> Result<Self, CreditFacilityError> {
         let repo = CreditFacilityRepo::new(pool, publisher);
         let repo_arc = Arc::new(repo);
@@ -168,6 +172,7 @@ where
             public_ids,
             credit_facility_maturity_job_spawner,
             interest_accrual_job_spawner,
+            clock,
         })
     }
 
@@ -186,7 +191,7 @@ where
     ) -> Result<(), CreditFacilityError> {
         let mut db = self
             .repo
-            .begin_op_with_clock(&self.ledger.clock)
+            .begin_op_with_clock(&self.clock)
             .await?
             .with_db_time()
             .await?;

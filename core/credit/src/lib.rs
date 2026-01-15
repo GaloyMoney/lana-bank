@@ -94,7 +94,6 @@ where
         + OutboxEventMarker<CorePriceEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
 {
-    clock: ClockHandle,
     authz: Arc<Perms>,
     credit_facility_proposals: Arc<CreditFacilityProposals<Perms, E>>,
     pending_credit_facilities: Arc<PendingCreditFacilities<Perms, E>>,
@@ -119,6 +118,7 @@ where
     public_ids: Arc<PublicIds>,
     liquidations: Arc<Liquidations<Perms, E>>,
     histories: Arc<Histories<Perms>>,
+    clock: ClockHandle,
 }
 
 impl<Perms, E> Clone for CoreCredit<Perms, E>
@@ -217,6 +217,7 @@ where
             ledger_arc.clone(),
             jobs,
             &publisher,
+            clock.clone(),
         );
         let obligations_arc = Arc::new(obligations);
 
@@ -267,6 +268,7 @@ where
             governance_arc.clone(),
             jobs,
             outbox,
+            clock.clone(),
         )
         .await?;
         let pending_credit_facilities_arc = Arc::new(pending_credit_facilities);
@@ -294,6 +296,7 @@ where
             governance_arc.clone(),
             public_ids_arc.clone(),
             outbox,
+            clock.clone(),
         )
         .await?;
         let facilities_arc = Arc::new(credit_facilities);
@@ -313,6 +316,7 @@ where
             facilities_arc.clone(),
             governance_arc.clone(),
             ledger_arc.clone(),
+            clock.clone(),
         );
         let approve_disbursal_arc = Arc::new(approve_disbursal);
 

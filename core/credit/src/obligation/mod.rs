@@ -12,6 +12,7 @@ use tracing_macros::record_error_severity;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_accounting::LedgerTransactionInitiator;
+use es_entity::clock::ClockHandle;
 use obix::out::OutboxEventMarker;
 
 use crate::{
@@ -47,6 +48,7 @@ where
     payment_allocation_repo: Arc<PaymentAllocationRepo<E>>,
     ledger: Arc<CreditLedger>,
     obligation_due_job_spawner: obligation_due::ObligationDueJobSpawner<Perms, E>,
+    clock: ClockHandle,
 }
 
 impl<Perms, E> Clone for Obligations<Perms, E>
@@ -61,6 +63,7 @@ where
             payment_allocation_repo: self.payment_allocation_repo.clone(),
             ledger: self.ledger.clone(),
             obligation_due_job_spawner: self.obligation_due_job_spawner.clone(),
+            clock: self.clock.clone(),
         }
     }
 }
@@ -78,6 +81,7 @@ where
         ledger: Arc<CreditLedger>,
         jobs: &mut job::Jobs,
         publisher: &CreditFacilityPublisher<E>,
+        clock: ClockHandle,
     ) -> Self {
         let obligation_repo_arc = Arc::new(ObligationRepo::new(pool, publisher));
         let payment_allocation_repo = PaymentAllocationRepo::new(pool, publisher);
@@ -111,6 +115,7 @@ where
             ledger,
             payment_allocation_repo: Arc::new(payment_allocation_repo),
             obligation_due_job_spawner,
+            clock,
         }
     }
 
@@ -304,7 +309,7 @@ where
     ) -> Result<bool, ObligationError> {
         let obligations = self.facility_obligations(credit_facility_id).await?;
         for obligation in obligations.iter() {
-            if !obligation.is_status_up_to_date(self.ledger.clock.now()) {
+            if !obligation.is_status_up_to_date(self.clock.now()) {
                 return Ok(false);
             }
         }

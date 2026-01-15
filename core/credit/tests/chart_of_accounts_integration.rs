@@ -17,7 +17,7 @@ use public_id::PublicIds;
 #[tokio::test]
 async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
-    let (clock, ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual());
+    let (clock, _ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual());
     let outbox =
         obix::Outbox::<event::DummyEvent>::init(&pool, obix::MailboxConfig::builder().build()?)
             .await?;

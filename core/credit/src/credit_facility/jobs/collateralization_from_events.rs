@@ -158,6 +158,7 @@ where
     async fn process_persistent_message(
         &self,
         message: &PersistentOutboxEvent<E>,
+        clock: &ClockHandle,
     ) -> Result<(), Box<dyn std::error::Error>> {
         match message.as_event() {
             Some(
@@ -183,7 +184,8 @@ where
                 Span::current().record("event_type", event.as_ref());
                 Span::current().record("credit_facility_id", tracing::field::display(id));
 
-                self.update_collateralization_from_events(*id).await?;
+                self.update_collateralization_from_events(*id, clock)
+                    .await?;
             }
             _ => {}
         }
@@ -195,6 +197,7 @@ where
     async fn process_ephemeral_message(
         &self,
         message: &EphemeralOutboxEvent<E>,
+        clock: &es_entity::clock::ClockHandle,
     ) -> Result<(), Box<dyn std::error::Error>> {
         match message.payload.as_event() {
             Some(CorePriceEvent::PriceUpdated { price, .. }) => {
@@ -202,7 +205,7 @@ where
                 Span::current().record("handled", true);
                 Span::current().record("event_type", tracing::field::display(&message.event_type));
 
-                self.update_collateralization_from_price_event(*price)
+                self.update_collateralization_from_price_event(*price, clock)
                     .await?;
             }
             _ => {}
@@ -220,8 +223,9 @@ where
     pub(super) async fn update_collateralization_from_events(
         &self,
         credit_facility_id: CreditFacilityId,
+        clock: &ClockHandle,
     ) -> Result<(), crate::credit_facility::error::CreditFacilityError> {
-        let mut op = self.repo.begin_op_with_clock(&self.ledger.clock).await?;
+        let mut op = self.repo.begin_op_with_clock(clock).await?;
         // if the pending facility is not collateralized enough to be activated there will be no
         // credit facility to update the collateralization state for
         let Some(mut credit_facility) = self.repo.maybe_find_by_id(credit_facility_id).await?
@@ -267,6 +271,7 @@ where
     pub(super) async fn update_collateralization_from_price_event(
         &self,
         price: PriceOfOneBTC,
+        clock: &es_entity::clock::ClockHandle,
     ) -> Result<(), crate::credit_facility::error::CreditFacilityError> {
         let mut has_next_page = true;
         let mut after: Option<CreditFacilitiesByCollateralizationRatioCursor> = None;
@@ -287,7 +292,7 @@ where
                 credit_facilities.end_cursor,
                 credit_facilities.has_next_page,
             );
-            let mut op = self.repo.begin_op_with_clock(&self.ledger.clock).await?;
+            let mut op = self.repo.begin_op_with_clock(clock).await?;
             self.authz
                 .audit()
                 .record_system_entry_in_tx(
@@ -366,12 +371,12 @@ where
                         Some(event) => {
                             match event {
                                 OutboxEvent::Persistent(e) => {
-                                    self.process_persistent_message(&e).await?;
+                                    self.process_persistent_message(&e, current_job.clock()).await?;
                                     state.sequence = e.sequence;
                                     current_job.update_execution_state(state).await?;
                                 }
                                 OutboxEvent::Ephemeral(e) => {
-                                    self.process_ephemeral_message(e.as_ref()).await?;
+                                    self.process_ephemeral_message(e.as_ref(), current_job.clock()).await?;
                                 }
                             }
                         } None => {

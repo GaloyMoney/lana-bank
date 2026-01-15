@@ -14,6 +14,8 @@ use obix::out::{Outbox, OutboxEventMarker};
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
+use es_entity::clock::ClockHandle;
+
 use crate::{
     Collaterals, CreditFacilityProposals,
     credit_facility::NewCreditFacilityBuilder,
@@ -56,6 +58,7 @@ where
     price: Arc<Price>,
     ledger: Arc<CreditLedger>,
     governance: Arc<Governance<Perms, E>>,
+    clock: ClockHandle,
 }
 impl<Perms, E> Clone for PendingCreditFacilities<Perms, E>
 where
@@ -75,6 +78,7 @@ where
             price: self.price.clone(),
             ledger: self.ledger.clone(),
             governance: self.governance.clone(),
+            clock: self.clock.clone(),
         }
     }
 }
@@ -103,6 +107,7 @@ where
         governance: Arc<Governance<Perms, E>>,
         jobs: &mut job::Jobs,
         outbox: &Outbox<E>,
+        clock: ClockHandle,
     ) -> Result<Self, PendingCreditFacilityError> {
         let repo_arc = Arc::new(PendingCreditFacilityRepo::new(pool, publisher));
 
@@ -121,6 +126,7 @@ where
             price,
             ledger,
             governance,
+            clock,
         })
     }
 
@@ -142,7 +148,7 @@ where
         credit_facility_proposal_id: impl Into<CreditFacilityProposalId> + std::fmt::Debug,
         approved: bool,
     ) -> Result<Option<CreditFacilityProposal>, PendingCreditFacilityError> {
-        let mut db = self.repo.begin_op_with_clock(&self.ledger.clock).await?;
+        let mut db = self.repo.begin_op_with_clock(&self.clock).await?;
 
         let id = credit_facility_proposal_id.into();
         tracing::Span::current()
@@ -232,7 +238,7 @@ where
             .get_pending_credit_facility_balance(pending_facility.account_ids)
             .await?;
 
-        match pending_facility.complete(balances, price, self.ledger.clock.now()) {
+        match pending_facility.complete(balances, price, self.clock.now()) {
             Ok(es_entity::Idempotent::Executed(NewCreditFacilityWithInitialDisbursal {
                 new_credit_facility,
                 initial_disbursal,

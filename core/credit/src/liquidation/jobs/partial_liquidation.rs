@@ -169,7 +169,7 @@ where
                         Some(message) => {
                             let mut db = self
                                 .liquidation_repo
-                                .begin_op_with_clock(&self.ledger.clock)
+                                .begin_op_with_clock(current_job.clock())
                                 .await?;
 
                             state.sequence = message.sequence;
@@ -177,7 +177,7 @@ where
                                 .update_execution_state_in_op(&mut db, &state)
                                 .await?;
 
-                            let next = self.process_message(&mut db, message.as_ref()).await?;
+                            let next = self.process_message(&mut db, message.as_ref(), current_job.clock()).await?;
 
                             db.commit().await?;
 
@@ -208,6 +208,7 @@ where
         amount: UsdCents,
         credit_facility_id: CreditFacilityId,
         payment_ledger_account_ids: PaymentLedgerAccountIds,
+        clock: &es_entity::clock::ClockHandle,
     ) -> Result<Option<crate::payment::Payment>, Box<dyn std::error::Error>> {
         if self
             .payment_repo
@@ -224,7 +225,7 @@ where
             .amount(amount)
             .credit_facility_id(credit_facility_id)
             .payment_ledger_account_ids(payment_ledger_account_ids)
-            .effective(self.ledger.clock.today())
+            .effective(clock.today())
             .build()
             .expect("could not build new payment");
 
@@ -337,6 +338,7 @@ where
         &self,
         db: &mut DbOp<'_>,
         message: &PersistentOutboxEvent<E>,
+        clock: &es_entity::clock::ClockHandle,
     ) -> Result<ControlFlow<()>, Box<dyn std::error::Error>> {
         use CoreCreditEvent::*;
 
@@ -371,6 +373,7 @@ where
                         *amount,
                         *credit_facility_id,
                         payment_ledger_account_ids,
+                        clock,
                     )
                     .await?;
 

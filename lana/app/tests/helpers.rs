@@ -24,6 +24,7 @@ pub async fn init_access(
         superuser_email: Some(superuser_email.clone()),
     };
 
+    let clock = es_entity::clock::ClockHandle::realtime();
     let access = Access::init(
         pool,
         config,
@@ -31,6 +32,7 @@ pub async fn init_access(
         seed::PREDEFINED_ROLES,
         authz,
         &outbox,
+        clock,
     )
     .await?;
 

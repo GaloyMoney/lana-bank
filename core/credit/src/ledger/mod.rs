@@ -215,7 +215,7 @@ impl CreditFacilityInternalAccountSets {
 #[derive(Clone)]
 pub struct CreditLedger {
     cala: CalaLedger,
-    pub(crate) clock: ClockHandle,
+    clock: ClockHandle,
     journal_id: JournalId,
     facility_omnibus_account_ids: LedgerOmnibusAccountIds,
     collateral_omnibus_account_ids: LedgerOmnibusAccountIds,
