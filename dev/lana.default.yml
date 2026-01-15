@@ -60,6 +60,7 @@ app:
   report: {}
   deposit:
     require_verified_customer_for_account: true
+  time: null
 tracing:
   service_name: lana-dev
 time:

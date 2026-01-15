@@ -101,7 +101,12 @@ impl LanaApp {
         )
         .await?;
 
-        let clock = es_entity::clock::ClockHandle::realtime();
+        let clock = if let Some(clock_config) = config.time {
+            let (clock, _ctrl) = es_entity::clock::ClockHandle::artificial(clock_config);
+            clock
+        } else {
+            es_entity::clock::ClockHandle::realtime()
+        };
 
         let mut jobs = Jobs::init(
             job::JobSvcConfig::builder()
