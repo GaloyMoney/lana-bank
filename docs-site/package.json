@@ -12,7 +12,7 @@
     "serve": "docusaurus serve",
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids",
-    "generate-api-docs": "docusaurus graphql-to-doc:admin && docusaurus graphql-to-doc:customer",
+    "generate-api-docs": "docusaurus graphql-to-doc:admin && docusaurus graphql-to-doc:customer && node scripts/fix-category-keys.js",
     "generate-api-docs:admin": "docusaurus graphql-to-doc:admin",
     "generate-api-docs:customer": "docusaurus graphql-to-doc:customer",
     "prebuild": "npm run generate-api-docs"
@@ -31,7 +31,8 @@
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.7.0",
-    "@docusaurus/types": "^3.7.0"
+    "@docusaurus/types": "^3.7.0",
+    "js-yaml": "^4.1.0"
   },
   "browserslist": {
     "production": [

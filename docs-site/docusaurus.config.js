@@ -14,7 +14,6 @@ const config = {
   projectName: "lana-bank",
 
   onBrokenLinks: "throw",
-  onBrokenMarkdownLinks: "warn",
 
   i18n: {
     defaultLocale: "en",
@@ -33,6 +32,9 @@ const config = {
 
   markdown: {
     mermaid: true,
+    hooks: {
+      onBrokenMarkdownLinks: "warn",
+    },
   },
 
   themes: ["@docusaurus/theme-mermaid"],
@@ -52,6 +54,9 @@ const config = {
         loaders: {
           GraphQLFileLoader: "@graphql-tools/graphql-file-loader",
         },
+        sidebar: {
+          sidebarId: "docsSidebar",
+        },
       },
     ],
     [
@@ -67,6 +72,9 @@ const config = {
         },
         loaders: {
           GraphQLFileLoader: "@graphql-tools/graphql-file-loader",
+        },
+        sidebar: {
+          sidebarId: "docsSidebar",
         },
       },
     ],
