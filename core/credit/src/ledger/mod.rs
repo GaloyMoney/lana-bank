@@ -29,6 +29,7 @@ use cala_ledger::{
 use tracing_macros::record_error_severity;
 
 use crate::{
+    RecordProceedsFromLiquidationData,
     chart_of_accounts_integration::ChartOfAccountsIntegrationConfig,
     ledger::velocity::UNCOVERED_OUTSTANDING_LIMIT_ID,
     obligation::{
@@ -216,7 +217,6 @@ impl CreditFacilityInternalAccountSets {
 pub struct CreditLedger {
     cala: CalaLedger,
     clock: ClockHandle,
-    liquidation_ledger: crate::LiquidationLedger,
     journal_id: JournalId,
     facility_omnibus_account_ids: LedgerOmnibusAccountIds,
     collateral_omnibus_account_ids: LedgerOmnibusAccountIds,
@@ -236,7 +236,6 @@ impl CreditLedger {
         cala: &CalaLedger,
         journal_id: JournalId,
         clock: ClockHandle,
-        liquidation_ledger: &crate::LiquidationLedger,
     ) -> Result<Self, CreditLedgerError> {
         templates::AddCollateral::init(cala).await?;
         templates::AddStructuringFee::init(cala).await?;
@@ -254,6 +253,8 @@ impl CreditLedger {
         templates::ConfirmDisbursal::init(cala).await?;
         templates::CreateCreditFacilityProposal::init(cala).await?;
         templates::InitialDisbursal::init(cala).await?;
+        templates::SendCollateralToLiquidation::init(cala).await?;
+        templates::ReceiveProceedsFromLiquidation::init(cala).await?;
 
         let collateral_omnibus_normal_balance_type = DebitOrCredit::Debit;
         let collateral_omnibus_account_ids = Self::find_or_create_omnibus_account(
@@ -979,7 +980,6 @@ impl CreditLedger {
         Ok(Self {
             cala: cala.clone(),
             clock,
-            liquidation_ledger: liquidation_ledger.clone(),
             journal_id,
             facility_omnibus_account_ids,
             collateral_omnibus_account_ids,
@@ -1402,14 +1402,19 @@ impl CreditLedger {
                 tx_id,
                 collateral_in_liquidation_account_id,
             } => {
-                self.liquidation_ledger
-                    .record_collateral_sent_in_op(
+                self.cala
+                    .post_transaction_in_op(
                         db,
                         tx_id,
-                        amount,
-                        collateral_account_id,
-                        collateral_in_liquidation_account_id,
-                        initiated_by,
+                        templates::SEND_COLLATERAL_TO_LIQUIDATION,
+                        templates::SendCollateralToLiquidationParams {
+                            amount,
+                            journal_id: self.journal_id,
+                            collateral_account_id,
+                            collateral_in_liquidation_account_id,
+                            effective,
+                            initiated_by,
+                        },
                     )
                     .await?;
             }
@@ -1728,6 +1733,38 @@ impl CreditLedger {
             )
             .await?;
         }
+        Ok(())
+    }
+
+    pub async fn record_proceeds_from_liquidation_in_op(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        tx_id: LedgerTxId,
+        data: RecordProceedsFromLiquidationData,
+        initiated_by: LedgerTransactionInitiator,
+    ) -> Result<(), CreditLedgerError> {
+        self.cala
+            .post_transaction_in_op(
+                db,
+                tx_id,
+                templates::RECEIVE_PROCEEDS_FROM_LIQUIDATION,
+                templates::ReceiveProceedsFromLiquidationParams {
+                    journal_id: self.journal_id,
+                    fiat_liquidation_proceeds_omnibus_account_id: data
+                        .liquidation_proceeds_omnibus_account_id,
+                    fiat_proceeds_from_liquidation_account_id: data
+                        .proceeds_from_liquidation_account_id,
+                    amount_received: data.amount_received,
+                    currency: Currency::USD,
+                    btc_in_liquidation_account_id: data.collateral_in_liquidation_account_id,
+                    btc_liquidated_account_id: data.liquidated_collateral_account_id,
+                    amount_liquidated: data.amount_liquidated,
+                    effective: self.clock.today(),
+                    initiated_by,
+                },
+            )
+            .await?;
+
         Ok(())
     }
 
@@ -2560,7 +2597,6 @@ impl CreditLedger {
 
             cala: _,
             clock: _,
-            liquidation_ledger: _,
             journal_id: _,
             credit_facility_control_ids: _,
             usd: _,

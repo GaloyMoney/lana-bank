@@ -1,7 +1,6 @@
 mod entity;
 pub mod error;
 mod jobs;
-mod ledger;
 mod repo;
 
 use std::sync::Arc;
@@ -12,9 +11,7 @@ use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use cala_ledger::{
-    AccountId as CalaAccountId, CalaLedger, JournalId, TransactionId as CalaTransactionId,
-};
+use cala_ledger::{AccountId as CalaAccountId, TransactionId as CalaTransactionId};
 use core_accounting::LedgerTransactionInitiator;
 use core_custody::CoreCustodyEvent;
 use core_money::{Satoshis, UsdCents};
@@ -24,13 +21,12 @@ use governance::GovernanceEvent;
 use obix::out::OutboxEventMarker;
 
 use crate::{
-    CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId, LedgerOmnibusAccountIds,
-    LiquidationId, PaymentId, PaymentSourceAccountId,
+    CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId, CreditLedger,
+    LedgerOmnibusAccountIds, LiquidationId, PaymentId, PaymentSourceAccountId,
 };
 use entity::NewLiquidationBuilder;
 pub use entity::{Liquidation, LiquidationEvent, NewLiquidation};
 use error::LiquidationError;
-pub(crate) use ledger::{LiquidationLedger, LiquidationLedgerError};
 pub(crate) use repo::LiquidationRepo;
 pub use repo::liquidation_cursor;
 
@@ -43,9 +39,8 @@ where
 {
     repo: Arc<LiquidationRepo<E>>,
     authz: Arc<Perms>,
-    ledger: LiquidationLedger,
-    proceeds_omnibus_account_ids: LedgerOmnibusAccountIds,
     clock: ClockHandle,
+    ledger: Arc<CreditLedger>,
 }
 
 impl<Perms, E> Clone for Liquidations<Perms, E>
@@ -60,7 +55,6 @@ where
             repo: self.repo.clone(),
             authz: self.authz.clone(),
             ledger: self.ledger.clone(),
-            proceeds_omnibus_account_ids: self.proceeds_omnibus_account_ids.clone(),
             clock: self.clock.clone(),
         }
     }
@@ -77,8 +71,6 @@ where
 {
     pub async fn init(
         pool: &sqlx::PgPool,
-        journal_id: JournalId,
-        cala: &CalaLedger,
         proceeds_omnibus_account_ids: &LedgerOmnibusAccountIds,
         authz: Arc<Perms>,
         publisher: &crate::CreditFacilityPublisher<E>,
@@ -110,7 +102,7 @@ where
                 outbox,
                 payment_repo,
                 credit_facility_repo.clone(),
-                ledger,
+                ledger.clone(),
             ));
 
         let credit_facility_liquidations_job_spawner = jobs.add_initializer(
@@ -137,8 +129,7 @@ where
         Ok(Self {
             repo: repo_arc,
             authz,
-            ledger: LiquidationLedger::init(cala, journal_id, clock.clone()).await?,
-            proceeds_omnibus_account_ids: proceeds_omnibus_account_ids.clone(),
+            ledger: ledger.clone(),
             clock,
         })
     }

@@ -21,9 +21,7 @@ use cala_ledger::{
 use core_money::{Satoshis, UsdCents};
 use tracing_macros::record_error_severity;
 
-use crate::{
-    FacilityProceedsFromLiquidationAccountId, liquidation::ledger::LiquidationLedgerError,
-};
+use crate::{FacilityProceedsFromLiquidationAccountId, ledger::error::CreditLedgerError};
 
 pub const RECEIVE_PROCEEDS_FROM_LIQUIDATION: &str = "RECEIVE_PROCEEDS_FROM_LIQUIDATION";
 
@@ -145,7 +143,7 @@ pub struct ReceiveProceedsFromLiquidation;
 impl ReceiveProceedsFromLiquidation {
     #[record_error_severity]
     #[instrument(name = "core_credit.liquidation.ledger.templates.init", skip_all)]
-    pub async fn init(ledger: &CalaLedger) -> Result<(), LiquidationLedgerError> {
+    pub async fn init(ledger: &CalaLedger) -> Result<(), CreditLedgerError> {
         let transaction = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")

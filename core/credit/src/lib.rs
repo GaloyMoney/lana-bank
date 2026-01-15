@@ -223,8 +223,6 @@ where
 
         let liquidations = Liquidations::init(
             pool,
-            journal_id,
-            cala_arc.as_ref(),
             ledger_arc.liquidation_proceeds_omnibus_account_ids(),
             authz_arc.clone(),
             &publisher,

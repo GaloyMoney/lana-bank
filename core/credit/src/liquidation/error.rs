@@ -10,8 +10,8 @@ pub enum LiquidationError {
     EsEntityError(es_entity::EsEntityError),
     #[error("LiquidationError - CursorDestructureError: {0}")]
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
-    #[error("LiquidationError - Ledger: {0}")]
-    LedgerError(#[from] super::ledger::LiquidationLedgerError),
+    #[error("LiquidationError - LedgerError: {0}")]
+    LedgerError(#[from] crate::ledger::error::CreditLedgerError),
     #[error("LiquidationError - AlreadySatifissed")]
     AlreadySatisfied,
     #[error("LiquidationError - AuthorizationError: {0}")]
