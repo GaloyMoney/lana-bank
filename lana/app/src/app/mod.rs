@@ -71,7 +71,11 @@ pub struct LanaApp {
 impl LanaApp {
     #[record_error_severity]
     #[instrument(name = "lana_app.init", skip_all)]
-    pub async fn init(pool: PgPool, config: AppConfig) -> Result<Self, ApplicationError> {
+    pub async fn init(
+        pool: PgPool,
+        config: AppConfig,
+        clock: es_entity::clock::ClockHandle,
+    ) -> Result<Self, ApplicationError> {
         sqlx::migrate!()
             .run(&pool)
             .instrument(tracing::info_span!("lana_app.migrations"))
@@ -100,13 +104,6 @@ impl LanaApp {
             &outbox,
         )
         .await?;
-
-        let clock = if let Some(clock_config) = config.time {
-            let (clock, _ctrl) = es_entity::clock::ClockHandle::artificial(clock_config);
-            clock
-        } else {
-            es_entity::clock::ClockHandle::realtime()
-        };
 
         let mut jobs = Jobs::init(
             job::JobSvcConfig::builder()

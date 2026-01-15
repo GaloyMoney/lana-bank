@@ -3652,13 +3652,13 @@ dependencies = [
  "chrono",
  "clap",
  "customer-server",
+ "es-entity",
  "hex",
  "lana-app",
  "log",
  "serde",
  "serde_yaml",
  "sim-bootstrap",
- "sim-time",
  "sqlx",
  "tokio",
  "tracing-utils",
@@ -5872,22 +5872,9 @@ dependencies = [
  "rust_decimal",
  "rust_decimal_macros",
  "serde",
- "sim-time",
  "tokio",
  "tracing",
  "workspace-hack",
-]
-
-[[package]]
-name = "sim-time"
-version = "0.10.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d4c63ecacf591bd4aa4316c92a5493d904ea9776f093abe3720c6ea1c0e63ffd"
-dependencies = [
- "chrono",
- "serde",
- "serde_with",
- "tokio",
 ]
 
 [[package]]

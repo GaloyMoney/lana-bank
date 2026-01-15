@@ -155,11 +155,6 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
     // Setup GCP credentials from SA_CREDS_BASE64 environment variable
     setup_gcp_credentials()?;
 
-    #[cfg(feature = "sim-time")]
-    {
-        sim_time::init(config.time);
-    }
-
     let (error_send, mut error_recv) = tokio::sync::mpsc::channel(1);
     let (shutdown_send, shutdown_recv) = tokio::sync::broadcast::channel(1);
     let mut server_handles = Vec::new();
@@ -173,14 +168,40 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
         .clone()
         .expect("super user");
 
-    let app = lana_app::app::LanaApp::init(pool.clone(), config.app)
-        .await
-        .context("Failed to initialize Lana app")?;
+    let app = match config.time {
+        config::TimeConfig::Realtime => {
+            let clock = es_entity::clock::ClockHandle::realtime();
+            lana_app::app::LanaApp::init(pool.clone(), config.app, clock)
+                .await
+                .context("Failed to initialize Lana app")?
+        }
+        config::TimeConfig::Artificial(clock_config) => {
+            dbg!(&clock_config);
+            let (clock, clock_ctrl) = es_entity::clock::ClockHandle::artificial(clock_config);
+            dbg!(&clock.now());
 
-    #[cfg(feature = "sim-bootstrap")]
-    {
-        let _ = sim_bootstrap::run(superuser_email.to_string(), &app, config.bootstrap).await;
-    }
+            let app = lana_app::app::LanaApp::init(pool.clone(), config.app, clock.clone())
+                .await
+                .context("Failed to initialize Lana app")?;
+
+            #[cfg(feature = "sim-bootstrap")]
+            {
+                let _ = sim_bootstrap::run(
+                    superuser_email.to_string(),
+                    &app,
+                    config.bootstrap,
+                    clock,
+                    clock_ctrl,
+                )
+                .await;
+            }
+
+            #[cfg(not(feature = "sim-bootstrap"))]
+            drop(clock_ctrl);
+
+            app
+        }
+    };
 
     let admin_error_send = error_send.clone();
     let admin_app = app.clone();

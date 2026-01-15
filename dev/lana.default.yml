@@ -60,16 +60,10 @@ app:
   report: {}
   deposit:
     require_verified_customer_for_account: true
-  time: null
 tracing:
   service_name: lana-dev
 time:
-  realtime: true
-  simulation:
-    start_at: 2021-01-01T00:00:00Z
-    tick_interval_ms: 1
-    tick_duration_secs: 1000
-    transform_to_realtime: false
+  type: realtime
 bootstrap:
   active: false
   num_facilities: 0

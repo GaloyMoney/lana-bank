@@ -1,3 +1,4 @@
+use es_entity::clock::ClockHandle;
 use futures::StreamExt;
 use lana_app::{app::LanaApp, primitives::*};
 use lana_events::{CoreCreditEvent, LanaEvent};
@@ -9,8 +10,12 @@ use tracing::{Instrument, Span, event, instrument};
 use crate::helpers;
 
 // Scenario 1: A credit facility that made timely payments and was paid off all according to the initial payment plan
-#[tracing::instrument(name = "sim_bootstrap.timely_payments_scenario", skip(app), err)]
-pub async fn timely_payments_scenario(sub: Subject, app: &LanaApp) -> anyhow::Result<()> {
+#[tracing::instrument(name = "sim_bootstrap.timely_payments_scenario", skip(app, clock), err)]
+pub async fn timely_payments_scenario(
+    sub: Subject,
+    app: &LanaApp,
+    clock: ClockHandle,
+) -> anyhow::Result<()> {
     let (customer_id, _) = helpers::create_customer(&sub, app, "1-timely-paid").await?;
 
     let deposit_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
@@ -30,16 +35,17 @@ pub async fn timely_payments_scenario(sub: Subject, app: &LanaApp) -> anyhow::Re
 
     let mut stream = app.outbox().listen_persisted(None);
     while let Some(msg) = stream.next().await {
-        if process_activation_message(&msg, &sub, app, &cf_proposal).await? {
+        if process_activation_message(&msg, &sub, app, &cf_proposal, &clock).await? {
             break;
         }
     }
 
     let (tx, rx) = mpsc::channel::<UsdCents>(32);
     let sim_app = app.clone();
+    let sim_clock = clock.clone();
     tokio::spawn(
         async move {
-            do_timely_payments(sub, sim_app, cf_proposal.id.into(), rx)
+            do_timely_payments(sub, sim_app, cf_proposal.id.into(), rx, sim_clock)
                 .await
                 .expect("timely payments failed");
         }
@@ -80,12 +86,13 @@ pub async fn timely_payments_scenario(sub: Subject, app: &LanaApp) -> anyhow::Re
     Ok(())
 }
 
-#[instrument(name = "sim_bootstrap.timely_payments.process_activation_message", skip(message, sub, app, cf_proposal), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
+#[instrument(name = "sim_bootstrap.timely_payments.process_activation_message", skip(message, sub, app, cf_proposal, clock), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
 async fn process_activation_message(
     message: &PersistentOutboxEvent<LanaEvent>,
     sub: &Subject,
     app: &LanaApp,
     cf_proposal: &lana_app::credit::CreditFacilityProposal,
+    clock: &ClockHandle,
 ) -> anyhow::Result<bool> {
     match &message.payload {
         Some(LanaEvent::Credit(
@@ -103,7 +110,7 @@ async fn process_activation_message(
                     sub,
                     *id,
                     Satoshis::try_from_btc(dec!(230))?,
-                    sim_time::now().date_naive(),
+                    clock.now().date_naive(),
                 )
                 .await?;
         }
@@ -157,7 +164,7 @@ async fn process_obligation_message(
 
 #[tracing::instrument(
     name = "sim_bootstrap.timely_payments.do_timely_payments",
-    skip(app, obligation_amount_rx),
+    skip(app, obligation_amount_rx, clock),
     err
 )]
 async fn do_timely_payments(
@@ -165,18 +172,10 @@ async fn do_timely_payments(
     app: LanaApp,
     id: CreditFacilityId,
     mut obligation_amount_rx: mpsc::Receiver<UsdCents>,
+    clock: ClockHandle,
 ) -> anyhow::Result<()> {
-    let one_month = std::time::Duration::from_secs(30 * 24 * 60 * 60);
-    let mut month_num = 0;
-
     while let Some(amount) = obligation_amount_rx.recv().await {
-        // 3 months of interest payments should be delayed by a month
-        if month_num < 3 {
-            month_num += 1;
-            sim_time::sleep(one_month).await;
-        }
-
-        app.record_payment_with_date(&sub, id, amount, sim_time::now().date_naive())
+        app.record_payment_with_date(&sub, id, amount, clock.now().date_naive())
             .await?;
 
         if !app

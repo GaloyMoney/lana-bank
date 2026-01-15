@@ -2,8 +2,6 @@ use serde::{Deserialize, Serialize};
 
 use std::path::PathBuf;
 
-use es_entity::clock::ArtificialClockConfig;
-
 use crate::{
     access::config::AccessConfig, applicant::SumsubConfig, credit::CreditConfig,
     custody::CustodyConfig, customer_sync::CustomerSyncConfig, deposit::DepositConfig,
@@ -39,8 +37,6 @@ pub struct AppConfig {
     pub report: ReportConfig,
     #[serde(default)]
     pub deposit: DepositConfig,
-    #[serde(default)]
-    pub time: Option<ArtificialClockConfig>,
 }
 
 #[derive(Clone, Default, Debug, Deserialize, Serialize)]

@@ -5,6 +5,7 @@ mod principal_late;
 mod principal_under_payment;
 mod timely_payments;
 
+use es_entity::clock::ClockHandle;
 use futures::StreamExt;
 use rust_decimal_macros::dec;
 use tracing::{Span, instrument};
@@ -16,60 +17,68 @@ use tokio::task::JoinHandle;
 
 use super::helpers;
 
-#[instrument(name = "sim_bootstrap.scenarios.run", skip(app), err)]
+#[instrument(name = "sim_bootstrap.scenarios.run", skip(app, clock), err)]
 pub async fn run(
     sub: &Subject,
     app: &LanaApp,
+    clock: ClockHandle,
 ) -> anyhow::Result<Vec<JoinHandle<Result<(), anyhow::Error>>>> {
     let mut handles = Vec::new();
     let sub = *sub;
 
     {
         let app = app.clone();
+        let clock = clock.clone();
         handles.push(tokio::spawn(async move {
-            timely_payments::timely_payments_scenario(sub, &app).await
+            timely_payments::timely_payments_scenario(sub, &app, clock).await
         }));
     }
     {
         let app = app.clone();
+        let clock = clock.clone();
         handles.push(tokio::spawn(async move {
-            interest_late::interest_late_scenario(sub, &app).await
+            interest_late::interest_late_scenario(sub, &app, clock).await
         }));
     }
     {
         let app = app.clone();
+        let clock = clock.clone();
         handles.push(tokio::spawn(async move {
-            principal_late::principal_late_scenario(sub, &app).await
+            principal_late::principal_late_scenario(sub, &app, clock).await
         }));
     }
     {
         let app = app.clone();
+        let clock = clock.clone();
         handles.push(tokio::spawn(async move {
-            disbursal_different_months::disbursal_different_months_scenario(sub, &app).await
+            disbursal_different_months::disbursal_different_months_scenario(sub, &app, clock).await
         }));
     }
     {
         let app = app.clone();
+        let clock = clock.clone();
         handles.push(tokio::spawn(async move {
-            interest_under_payment::interest_under_payment_scenario(sub, &app).await
+            interest_under_payment::interest_under_payment_scenario(sub, &app, clock).await
         }));
     }
     {
         let app = app.clone();
+        let clock = clock.clone();
         handles.push(tokio::spawn(async move {
-            principal_under_payment::principal_under_payment_scenario(sub, &app).await
+            principal_under_payment::principal_under_payment_scenario(sub, &app, clock).await
         }));
     }
 
     Ok(handles)
 }
 
-#[instrument(name = "sim_bootstrap.process_facility_lifecycle", skip(sub, app), fields(customer_id = %customer_id, deposit_account_id = %deposit_account_id, proposal_id = tracing::field::Empty))]
+#[instrument(name = "sim_bootstrap.process_facility_lifecycle", skip(sub, app, clock), fields(customer_id = %customer_id, deposit_account_id = %deposit_account_id, proposal_id = tracing::field::Empty))]
 pub async fn process_facility_lifecycle(
     sub: Subject,
     app: LanaApp,
     customer_id: CustomerId,
     deposit_account_id: DepositAccountId,
+    clock: ClockHandle,
 ) -> anyhow::Result<()> {
     let terms = helpers::std_terms();
 
@@ -94,7 +103,7 @@ pub async fn process_facility_lifecycle(
         .await?;
 
     while let Some(msg) = stream.next().await {
-        if process_facility_message(&msg, &sub, &app, &cf_proposal).await? {
+        if process_facility_message(&msg, &sub, &app, &cf_proposal, &clock).await? {
             break;
         }
     }
@@ -102,12 +111,13 @@ pub async fn process_facility_lifecycle(
     Ok(())
 }
 
-#[instrument(name = "sim_bootstrap.process_facility_message", skip(message, sub, app, cf_proposal), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
+#[instrument(name = "sim_bootstrap.process_facility_message", skip(message, sub, app, cf_proposal, clock), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
 async fn process_facility_message(
     message: &PersistentOutboxEvent<LanaEvent>,
     sub: &Subject,
     app: &LanaApp,
     cf_proposal: &lana_app::credit::CreditFacilityProposal,
+    clock: &ClockHandle,
 ) -> anyhow::Result<bool> {
     match &message.payload {
         Some(LanaEvent::Credit(
@@ -125,7 +135,7 @@ async fn process_facility_message(
                     sub,
                     cf_proposal.id,
                     Satoshis::try_from_btc(dec!(230))?,
-                    sim_time::now().date_naive(),
+                    clock.now().date_naive(),
                 )
                 .await?;
         }
@@ -152,7 +162,7 @@ async fn process_facility_message(
             Span::current().record("event_type", event.as_ref());
 
             let _ = app
-                .record_payment_with_date(sub, *id, *amount, sim_time::now().date_naive())
+                .record_payment_with_date(sub, *id, *amount, clock.now().date_naive())
                 .await;
             let facility = app
                 .credit()
@@ -166,7 +176,7 @@ async fn process_facility_message(
                     sub,
                     facility.id,
                     total_outstanding_amount,
-                    sim_time::now().date_naive(),
+                    clock.now().date_naive(),
                 )
                 .await?;
                 app.credit().complete_facility(sub, facility.id).await?;

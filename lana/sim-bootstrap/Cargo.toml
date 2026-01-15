@@ -12,7 +12,6 @@ fail-on-warnings = []
 lana-app = { workspace = true }
 lana-events = { workspace = true }
 
-sim-time = { workspace = true }
 es-entity = { workspace = true }
 obix = { workspace = true }
 anyhow = { workspace = true }

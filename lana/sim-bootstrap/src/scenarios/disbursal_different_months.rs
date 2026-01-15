@@ -1,3 +1,4 @@
+use es_entity::clock::ClockHandle;
 use futures::StreamExt;
 use lana_app::{app::LanaApp, primitives::*};
 use lana_events::{CoreCreditEvent, LanaEvent};
@@ -11,12 +12,13 @@ use crate::helpers;
 // Scenario 4: A credit facility that has multiple disbursals making timely payments
 #[tracing::instrument(
     name = "sim_bootstrap.disbursal_different_months_scenario",
-    skip(app),
+    skip(app, clock),
     err
 )]
 pub async fn disbursal_different_months_scenario(
     sub: Subject,
     app: &LanaApp,
+    clock: ClockHandle,
 ) -> anyhow::Result<()> {
     let (customer_id, _) =
         helpers::create_customer(&sub, app, "4-disbursal-different-months").await?;
@@ -38,7 +40,7 @@ pub async fn disbursal_different_months_scenario(
 
     let mut stream = app.outbox().listen_persisted(None);
     while let Some(msg) = stream.next().await {
-        if process_activation_message(&msg, &sub, app, &cf_proposal).await? {
+        if process_activation_message(&msg, &sub, app, &cf_proposal, &clock).await? {
             break;
         }
     }
@@ -55,9 +57,10 @@ pub async fn disbursal_different_months_scenario(
 
     let (tx, rx) = mpsc::channel::<UsdCents>(32);
     let sim_app = app.clone();
+    let sim_clock = clock.clone();
     tokio::spawn(
         async move {
-            do_timely_payments(sub, sim_app, cf_proposal.id.into(), rx)
+            do_timely_payments(sub, sim_app, cf_proposal.id.into(), rx, sim_clock)
                 .await
                 .expect("disbursal different months timely payments failed");
         }
@@ -81,12 +84,13 @@ pub async fn disbursal_different_months_scenario(
     Ok(())
 }
 
-#[instrument(name = "sim_bootstrap.disbursal_different_months.process_activation_message", skip(message, sub, app, cf_proposal), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
+#[instrument(name = "sim_bootstrap.disbursal_different_months.process_activation_message", skip(message, sub, app, cf_proposal, clock), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
 async fn process_activation_message(
     message: &PersistentOutboxEvent<LanaEvent>,
     sub: &Subject,
     app: &LanaApp,
     cf_proposal: &lana_app::credit::CreditFacilityProposal,
+    clock: &ClockHandle,
 ) -> anyhow::Result<bool> {
     match &message.payload {
         Some(LanaEvent::Credit(
@@ -104,7 +108,7 @@ async fn process_activation_message(
                     sub,
                     cf_proposal.id,
                     Satoshis::try_from_btc(dec!(230))?,
-                    sim_time::now().date_naive(),
+                    clock.now().date_naive(),
                 )
                 .await?;
         }
@@ -170,17 +174,10 @@ async fn do_disbursal_in_different_months(
     app: LanaApp,
     id: CreditFacilityId,
 ) -> anyhow::Result<()> {
-    let one_month = std::time::Duration::from_secs(30 * 24 * 60 * 60);
-
-    // there is already one disbursal in month 1
-    sim_time::sleep(one_month).await;
-
     // disbursal in month 2
     app.credit()
         .initiate_disbursal(&sub, id, UsdCents::try_from_usd(dec!(2_000_000))?)
         .await?;
-
-    sim_time::sleep(one_month * 2).await;
 
     // disbursal in month 3
     app.credit()
@@ -192,7 +189,7 @@ async fn do_disbursal_in_different_months(
 
 #[tracing::instrument(
     name = "sim_bootstrap.disbursal_different_months.do_timely_payments",
-    skip(app, obligation_amount_rx),
+    skip(app, obligation_amount_rx, clock),
     err
 )]
 async fn do_timely_payments(
@@ -200,9 +197,10 @@ async fn do_timely_payments(
     app: LanaApp,
     id: CreditFacilityId,
     mut obligation_amount_rx: mpsc::Receiver<UsdCents>,
+    clock: ClockHandle,
 ) -> anyhow::Result<()> {
     while let Some(amount) = obligation_amount_rx.recv().await {
-        app.record_payment_with_date(&sub, id, amount, sim_time::now().date_naive())
+        app.record_payment_with_date(&sub, id, amount, clock.now().date_naive())
             .await?;
 
         if !app

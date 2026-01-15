@@ -1,3 +1,4 @@
+use es_entity::clock::ClockHandle;
 use futures::StreamExt;
 use lana_app::{app::LanaApp, primitives::*};
 use lana_events::{CoreCreditEvent, LanaEvent, ObligationType};
@@ -9,8 +10,12 @@ use tracing::{Instrument, Span, instrument};
 use crate::helpers;
 
 // Scenario 2: A credit facility with an interest payment >90 days late
-#[tracing::instrument(name = "sim_bootstrap.interest_late_scenario", skip(app), err)]
-pub async fn interest_late_scenario(sub: Subject, app: &LanaApp) -> anyhow::Result<()> {
+#[tracing::instrument(name = "sim_bootstrap.interest_late_scenario", skip(app, clock), err)]
+pub async fn interest_late_scenario(
+    sub: Subject,
+    app: &LanaApp,
+    clock: ClockHandle,
+) -> anyhow::Result<()> {
     let (customer_id, _) = helpers::create_customer(&sub, app, "2-interest-late").await?;
 
     let deposit_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
@@ -30,16 +35,17 @@ pub async fn interest_late_scenario(sub: Subject, app: &LanaApp) -> anyhow::Resu
 
     let mut stream = app.outbox().listen_persisted(None);
     while let Some(msg) = stream.next().await {
-        if process_activation_message(&msg, &sub, app, &cf_proposal).await? {
+        if process_activation_message(&msg, &sub, app, &cf_proposal, &clock).await? {
             break;
         }
     }
 
     let (tx, rx) = mpsc::channel::<(ObligationType, UsdCents)>(32);
     let sim_app = app.clone();
+    let sim_clock = clock.clone();
     tokio::spawn(
         async move {
-            do_interest_late(sub, sim_app, cf_proposal.id.into(), rx)
+            do_interest_late(sub, sim_app, cf_proposal.id.into(), rx, sim_clock)
                 .await
                 .expect("interest late failed");
         }
@@ -63,12 +69,13 @@ pub async fn interest_late_scenario(sub: Subject, app: &LanaApp) -> anyhow::Resu
     Ok(())
 }
 
-#[instrument(name = "sim_bootstrap.interest_late.process_activation_message", skip(message, sub, app, cf_proposal), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
+#[instrument(name = "sim_bootstrap.interest_late.process_activation_message", skip(message, sub, app, cf_proposal, clock), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
 async fn process_activation_message(
     message: &PersistentOutboxEvent<LanaEvent>,
     sub: &Subject,
     app: &LanaApp,
     cf_proposal: &lana_app::credit::CreditFacilityProposal,
+    clock: &ClockHandle,
 ) -> anyhow::Result<bool> {
     match &message.payload {
         Some(LanaEvent::Credit(
@@ -86,7 +93,7 @@ async fn process_activation_message(
                     sub,
                     *id,
                     Satoshis::try_from_btc(dec!(230))?,
-                    sim_time::now().date_naive(),
+                    clock.now().date_naive(),
                 )
                 .await?;
         }
@@ -141,7 +148,7 @@ async fn process_obligation_message(
 
 #[tracing::instrument(
     name = "sim_bootstrap.do_interest_late",
-    skip(app, obligation_amount_rx),
+    skip(app, obligation_amount_rx, clock),
     err
 )]
 async fn do_interest_late(
@@ -149,23 +156,17 @@ async fn do_interest_late(
     app: LanaApp,
     id: CreditFacilityId,
     mut obligation_amount_rx: mpsc::Receiver<(ObligationType, UsdCents)>,
+    clock: ClockHandle,
 ) -> anyhow::Result<()> {
-    let one_month = std::time::Duration::from_secs(30 * 24 * 60 * 60);
-    let mut month_num = 0;
     let mut first_interest = UsdCents::ZERO;
 
     while let Some((obligation_type, amount)) = obligation_amount_rx.recv().await {
-        if month_num < 3 {
-            month_num += 1;
-            sim_time::sleep(one_month).await;
-        }
-
         if obligation_type == ObligationType::Interest && first_interest.is_zero() {
             first_interest = amount;
             continue;
         }
 
-        app.record_payment_with_date(&sub, id, amount, sim_time::now().date_naive())
+        app.record_payment_with_date(&sub, id, amount, clock.now().date_naive())
             .await?;
 
         let facility = app
@@ -180,10 +181,7 @@ async fn do_interest_late(
         }
     }
 
-    // Delay first payment by 1 more month
-    sim_time::sleep(one_month).await;
-
-    app.record_payment_with_date(&sub, id, first_interest, sim_time::now().date_naive())
+    app.record_payment_with_date(&sub, id, first_interest, clock.now().date_naive())
         .await?;
 
     if app
@@ -193,7 +191,7 @@ async fn do_interest_late(
         .await?
     {
         while let Some((_, amount)) = obligation_amount_rx.recv().await {
-            app.record_payment_with_date(&sub, id, amount, sim_time::now().date_naive())
+            app.record_payment_with_date(&sub, id, amount, clock.now().date_naive())
                 .await?;
 
             if !app
