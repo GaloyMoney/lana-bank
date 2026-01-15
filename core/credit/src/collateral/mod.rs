@@ -5,6 +5,7 @@ mod repo;
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use es_entity::DbOp;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
@@ -153,6 +154,40 @@ where
                 )
                 .await?;
             db.commit().await?;
+        }
+
+        Ok(())
+    }
+
+    pub(super) async fn enter_liquidation_op(
+        &self,
+        db: &mut DbOp<'_>,
+        collateral_id: CollateralId,
+        collateral_in_liquidation_account_id: CalaAccountId,
+        liquidation_id: LiquidationId,
+    ) -> Result<(), CollateralError> {
+        let mut collateral = self.repo.find_by_id_in_op(&mut *db, collateral_id).await?;
+
+        if collateral
+            .enter_liquidation(liquidation_id, collateral_in_liquidation_account_id)?
+            .did_execute()
+        {
+            self.repo.update_in_op(&mut *db, &mut collateral).await?;
+        }
+
+        Ok(())
+    }
+
+    pub(super) async fn exit_liquidation_in_op(
+        &self,
+        db: &mut DbOp<'_>,
+        collateral_id: CollateralId,
+        liquidation_id: LiquidationId,
+    ) -> Result<(), CollateralError> {
+        let mut collateral = self.repo.find_by_id_in_op(&mut *db, collateral_id).await?;
+
+        if collateral.exit_liquidation(liquidation_id)?.did_execute() {
+            self.repo.update_in_op(&mut *db, &mut collateral).await?;
         }
 
         Ok(())

@@ -13,6 +13,7 @@ use job::*;
 use obix::EventSequence;
 use obix::out::*;
 
+use crate::Collaterals;
 use crate::CreditFacilities;
 use crate::{
     CoreCreditAction, CoreCreditEvent, CoreCreditObject, CoreCustodyAction, CoreCustodyEvent,
@@ -72,6 +73,7 @@ where
     payments: Payments<Perms>,
     obligations: Obligations<Perms, E>,
     facilities: CreditFacilities<Perms, E>,
+    collaterals: Collaterals<Perms, E>,
 }
 
 impl<Perms, E> PartialLiquidationInit<Perms, E>
@@ -91,6 +93,7 @@ where
         payments: &Payments<Perms>,
         obligations: &Obligations<Perms, E>,
         facilities: &CreditFacilities<Perms, E>,
+        collaterals: &Collaterals<Perms, E>,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
@@ -98,6 +101,7 @@ where
             payments: payments.clone(),
             obligations: obligations.clone(),
             facilities: facilities.clone(),
+            collaterals: collaterals.clone(),
         }
     }
 }
@@ -129,6 +133,7 @@ where
             payments: self.payments.clone(),
             obligations: self.obligations.clone(),
             facilities: self.facilities.clone(),
+            collaterals: self.collaterals.clone(),
         }))
     }
 }
@@ -150,6 +155,7 @@ where
     payments: Payments<Perms>,
     obligations: Obligations<Perms, E>,
     facilities: CreditFacilities<Perms, E>,
+    collaterals: Collaterals<Perms, E>,
 }
 
 #[async_trait]
@@ -279,10 +285,23 @@ where
                         .allocate_payment_in_op(db, &payment, initiated_by)
                         .await?;
 
+                    let credit_facility = self
+                        .facilities
+                        .find_by_id_without_audit(*credit_facility_id)
+                        .await?;
+
                     self.facilities
                         .complete_liquidation_in_op(
                             db,
                             *credit_facility_id,
+                            self.config.liquidation_id,
+                        )
+                        .await?;
+
+                    self.collaterals
+                        .exit_liquidation_in_op(
+                            db,
+                            credit_facility.collateral_id,
                             self.config.liquidation_id,
                         )
                         .await?;

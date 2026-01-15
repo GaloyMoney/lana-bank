@@ -1,6 +1,5 @@
 mod entity;
 pub mod error;
-mod ledger;
 mod repo;
 
 use std::sync::Arc;
@@ -11,22 +10,19 @@ use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use cala_ledger::{
-    AccountId as CalaAccountId, CalaLedger, JournalId, TransactionId as CalaTransactionId,
-};
+use cala_ledger::{AccountId as CalaAccountId, TransactionId as CalaTransactionId};
 use core_accounting::LedgerTransactionInitiator;
 use core_money::{Satoshis, UsdCents};
 use es_entity::{DbOp, Idempotent};
 use obix::out::OutboxEventMarker;
 
 use crate::{
-    CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId, LedgerOmnibusAccountIds,
+    CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId, CreditLedger,
     LiquidationId, PaymentId, PaymentSourceAccountId,
 };
 use entity::NewLiquidationBuilder;
 pub use entity::{Liquidation, LiquidationEvent, NewLiquidation};
 use error::LiquidationError;
-use ledger::LiquidationLedger;
 pub(crate) use repo::LiquidationRepo;
 pub use repo::liquidation_cursor;
 
@@ -37,8 +33,7 @@ where
 {
     repo: LiquidationRepo<E>,
     authz: Arc<Perms>,
-    ledger: LiquidationLedger,
-    proceeds_omnibus_account_ids: LedgerOmnibusAccountIds,
+    ledger: CreditLedger,
 }
 
 impl<Perms, E> Clone for Liquidations<Perms, E>
@@ -51,7 +46,6 @@ where
             repo: self.repo.clone(),
             authz: self.authz.clone(),
             ledger: self.ledger.clone(),
-            proceeds_omnibus_account_ids: self.proceeds_omnibus_account_ids.clone(),
         }
     }
 }
@@ -65,17 +59,14 @@ where
 {
     pub async fn init(
         pool: &sqlx::PgPool,
-        journal_id: JournalId,
-        cala: &CalaLedger,
-        proceeds_omnibus_account_ids: &LedgerOmnibusAccountIds,
+        ledger: &CreditLedger,
         authz: Arc<Perms>,
         publisher: &crate::CreditFacilityPublisher<E>,
     ) -> Result<Self, LiquidationError> {
         Ok(Self {
             repo: LiquidationRepo::new(pool, publisher),
             authz,
-            ledger: LiquidationLedger::init(cala, journal_id).await?,
-            proceeds_omnibus_account_ids: proceeds_omnibus_account_ids.clone(),
+            ledger: ledger.clone(),
         })
     }
 
@@ -109,7 +100,9 @@ where
                     db,
                     new_liquidation
                         .liquidation_proceeds_omnibus_account_id(
-                            self.proceeds_omnibus_account_ids.account_id,
+                            self.ledger
+                                .liquidation_proceeds_omnibus_account_ids()
+                                .account_id,
                         )
                         .build()
                         .expect("Could not build new liquidation"),
@@ -123,52 +116,6 @@ where
 
     pub(super) async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, LiquidationError> {
         Ok(self.repo.begin_op().await?)
-    }
-
-    #[instrument(
-        name = "credit.liquidation.record_collateral_sent",
-        skip(self, sub),
-        err
-    )]
-    pub async fn record_collateral_sent(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        liquidation_id: LiquidationId,
-        amount: Satoshis,
-    ) -> Result<Liquidation, LiquidationError> {
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreCreditObject::liquidation(liquidation_id),
-                CoreCreditAction::LIQUIDATION_RECORD_COLLATERAL_SENT,
-            )
-            .await?;
-        let mut db = self.repo.begin_op().await?;
-
-        let mut liquidation = self.repo.find_by_id_in_op(&mut db, liquidation_id).await?;
-
-        let tx_id = CalaTransactionId::new();
-
-        if liquidation
-            .record_collateral_sent_out(amount, tx_id)?
-            .did_execute()
-        {
-            self.repo.update_in_op(&mut db, &mut liquidation).await?;
-            self.ledger
-                .record_collateral_sent_in_op(
-                    &mut db,
-                    tx_id,
-                    amount,
-                    liquidation.collateral_account_id,
-                    liquidation.collateral_in_liquidation_account_id,
-                    LedgerTransactionInitiator::try_from_subject(sub)?,
-                )
-                .await?;
-        }
-
-        db.commit().await?;
-
-        Ok(liquidation)
     }
 
     #[instrument(

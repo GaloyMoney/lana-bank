@@ -715,11 +715,19 @@ pub enum PendingCreditFacilityCollateralizationState {
     UnderCollateralized,
 }
 
-pub struct CollateralUpdate {
-    pub tx_id: LedgerTxId,
-    pub abs_diff: Satoshis,
-    pub action: CollateralAction,
-    pub effective: chrono::NaiveDate,
+pub enum CollateralUpdate {
+    Update {
+        tx_id: LedgerTxId,
+        abs_diff: Satoshis,
+        action: CollateralAction,
+        effective: chrono::NaiveDate,
+    },
+    Liquidation {
+        tx_id: LedgerTxId,
+        amount: Satoshis,
+        collateral_in_liquidation_account_id: CalaAccountId,
+        effective: chrono::NaiveDate,
+    },
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]

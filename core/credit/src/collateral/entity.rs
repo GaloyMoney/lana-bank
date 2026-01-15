@@ -9,10 +9,10 @@ use es_entity::*;
 
 use crate::primitives::{
     CalaAccountId, CollateralAction, CollateralId, CreditFacilityId, CustodyWalletId, LedgerTxId,
-    PendingCreditFacilityId, Satoshis,
+    LiquidationId, PendingCreditFacilityId, Satoshis,
 };
 
-use super::CollateralUpdate;
+use super::{CollateralUpdate, error::CollateralError};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -38,6 +38,23 @@ pub enum CollateralEvent {
         abs_diff: Satoshis,
         action: CollateralAction,
     },
+
+    /// This Collateral has become subject of liquidation with
+    /// `liquidation_id`. It will renmain such until
+    /// `ExitedLiquidation` event is emitted.
+    EnteredLiquidation {
+        liquidation_id: LiquidationId,
+        collateral_in_liquidation_account_id: CalaAccountId,
+    },
+
+    /// Portion of this Collateral was sent to a liquidation with
+    /// `liquidation_id`.
+    SentToLiquidationViaManualInput { liquidation_id: LiquidationId },
+
+    /// This Collateral that has previously been subject of
+    /// liquidation with `liquidation_id` is no longer subject of the
+    /// liquidation.
+    ExitedLiquidation { liquidation_id: LiquidationId },
 }
 
 #[derive(EsEntity, Builder)]
@@ -49,6 +66,7 @@ pub struct Collateral {
     pub pending_credit_facility_id: PendingCreditFacilityId,
     pub custody_wallet_id: Option<CustodyWalletId>,
     pub amount: Satoshis,
+    current_liquidation: Option<CurrentLiquidation>,
 
     events: EntityEvents<CollateralEvent>,
 }
@@ -58,6 +76,74 @@ impl Collateral {
         self.events
             .entity_first_persisted_at()
             .expect("entity_first_persisted_at not found")
+    }
+
+    /// Attempts to record that this Collateral has entered a
+    /// liquidation with `liquidation_id`.
+    ///
+    /// # Errors
+    ///
+    /// Returns `AlreadyInLiquidation` if the Collateral already is in
+    /// another liquidation.
+    pub fn enter_liquidation(
+        &mut self,
+        liquidation_id: LiquidationId,
+        collateral_in_liquidation_account_id: CalaAccountId,
+    ) -> Result<Idempotent<()>, CollateralError> {
+        match self.current_liquidation {
+            Some(current) if current.liquidation_id == liquidation_id => {
+                Ok(Idempotent::AlreadyApplied)
+            }
+            Some(current) => Err(CollateralError::AlreadyInLiquidation(
+                current.liquidation_id,
+            )),
+            None => {
+                self.events.push(CollateralEvent::EnteredLiquidation {
+                    liquidation_id,
+                    collateral_in_liquidation_account_id,
+                });
+
+                self.current_liquidation = Some(CurrentLiquidation {
+                    liquidation_id,
+                    collateral_in_liquidation_account_id,
+                });
+
+                Ok(Idempotent::Executed(()))
+            }
+        }
+    }
+
+    /// Attempts to record that this Collateral has exited a
+    /// liquidation with `liquidation_id`.
+    ///
+    /// # Errors
+    ///
+    /// - `InAnotherLiquidation` if this Collateral is in different liquidation than `liquidation_id`
+    /// - `NotInLiquidation` if this Collateral is not in any liquidation
+    pub fn exit_liquidation(
+        &mut self,
+        liquidation_id: LiquidationId,
+    ) -> Result<Idempotent<()>, CollateralError> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            CollateralEvent::ExitedLiquidation { liquidation_id: existing } if *existing == liquidation_id,
+            => CollateralEvent::EnteredLiquidation { .. }
+        );
+
+        match self.current_liquidation {
+            Some(current) if current.liquidation_id == liquidation_id => {
+                self.events
+                    .push(CollateralEvent::ExitedLiquidation { liquidation_id });
+
+                self.current_liquidation = None;
+
+                Ok(Idempotent::Executed(()))
+            }
+            Some(current) => Err(CollateralError::InAnotherLiquidation(
+                current.liquidation_id,
+            )),
+            None => Err(CollateralError::NotInLiquidation),
+        }
     }
 
     pub fn record_collateral_update_via_custodian_sync(
@@ -84,7 +170,7 @@ impl Collateral {
 
         self.amount = new_amount;
 
-        Idempotent::Executed(CollateralUpdate {
+        Idempotent::Executed(CollateralUpdate::Update {
             tx_id,
             abs_diff,
             action,
@@ -106,22 +192,38 @@ impl Collateral {
         };
 
         let tx_id = LedgerTxId::new();
-
-        self.events.push(CollateralEvent::UpdatedViaManualInput {
-            ledger_tx_id: tx_id,
-            abs_diff,
-            collateral_amount: new_amount,
-            action,
-        });
-
         self.amount = new_amount;
 
-        Idempotent::Executed(CollateralUpdate {
-            tx_id,
-            abs_diff,
-            action,
-            effective,
-        })
+        if action == CollateralAction::Remove
+            && let Some(CurrentLiquidation {
+                liquidation_id,
+                collateral_in_liquidation_account_id,
+            }) = self.current_liquidation
+        {
+            self.events
+                .push(CollateralEvent::SentToLiquidationViaManualInput { liquidation_id });
+
+            Idempotent::Executed(CollateralUpdate::Liquidation {
+                amount: abs_diff,
+                effective,
+                tx_id,
+                collateral_in_liquidation_account_id,
+            })
+        } else {
+            self.events.push(CollateralEvent::UpdatedViaManualInput {
+                ledger_tx_id: tx_id,
+                abs_diff,
+                collateral_amount: new_amount,
+                action,
+            });
+
+            Idempotent::Executed(CollateralUpdate::Update {
+                tx_id,
+                abs_diff,
+                action,
+                effective,
+            })
+        }
     }
 }
 
@@ -176,6 +278,19 @@ impl TryFromEvents<CollateralEvent> for Collateral {
                 } => {
                     builder = builder.amount(*new_value);
                 }
+                CollateralEvent::EnteredLiquidation {
+                    liquidation_id,
+                    collateral_in_liquidation_account_id,
+                } => {
+                    builder = builder.current_liquidation(Some(CurrentLiquidation {
+                        liquidation_id: *liquidation_id,
+                        collateral_in_liquidation_account_id: *collateral_in_liquidation_account_id,
+                    }));
+                }
+                CollateralEvent::ExitedLiquidation { .. } => {
+                    builder = builder.current_liquidation(None);
+                }
+                CollateralEvent::SentToLiquidationViaManualInput { .. } => {}
             }
         }
         builder.events(events).build()
@@ -195,4 +310,10 @@ impl IntoEvents<CollateralEvent> for NewCollateral {
             }],
         )
     }
+}
+
+#[derive(Copy, Clone)]
+struct CurrentLiquidation {
+    liquidation_id: LiquidationId,
+    collateral_in_liquidation_account_id: CalaAccountId,
 }

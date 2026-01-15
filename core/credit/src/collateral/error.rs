@@ -13,6 +13,12 @@ pub enum CollateralError {
     CreditLedgerError(#[from] crate::ledger::error::CreditLedgerError),
     #[error("CollateralError - ManualUpdateError: Cannot update collateral with a custodian")]
     ManualUpdateError,
+    #[error("CollateralError - AlreadyInLiquidation: The collateral is already in liquidation $0")]
+    AlreadyInLiquidation(crate::LiquidationId),
+    #[error("CollateralError - InAnotherLiquidation: The collateral is in another liquidation $0")]
+    InAnotherLiquidation(crate::LiquidationId),
+    #[error("CollateralError - NotInLiquidation: The collateral is not in liquidation")]
+    NotInLiquidation,
 }
 
 impl ErrorSeverity for CollateralError {
@@ -23,6 +29,9 @@ impl ErrorSeverity for CollateralError {
             Self::CursorDestructureError(_) => Level::ERROR,
             Self::CreditLedgerError(e) => e.severity(),
             Self::ManualUpdateError => Level::WARN,
+            Self::AlreadyInLiquidation(_) => Level::WARN,
+            Self::InAnotherLiquidation(_) => Level::WARN,
+            Self::NotInLiquidation => Level::WARN,
         }
     }
 }

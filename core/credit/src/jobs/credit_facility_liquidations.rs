@@ -16,7 +16,7 @@ use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 use crate::jobs::partial_liquidation;
 use crate::liquidation::{Liquidations, NewLiquidation};
 use crate::{
-    CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilities,
+    Collaterals, CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilities,
     CreditFacilityLedgerAccountIds,
 };
 
@@ -66,6 +66,7 @@ where
     jobs: Jobs,
     liquidations: Liquidations<Perms, E>,
     facilities: CreditFacilities<Perms, E>,
+    collaterals: Collaterals<Perms, E>,
 }
 
 impl<Perms, E> CreditFacilityLiquidationsInit<Perms, E>
@@ -89,12 +90,14 @@ where
         jobs: &Jobs,
         liquidations: &Liquidations<Perms, E>,
         facilities: &CreditFacilities<Perms, E>,
+        collaterals: &Collaterals<Perms, E>,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
             jobs: jobs.clone(),
             liquidations: liquidations.clone(),
             facilities: facilities.clone(),
+            collaterals: collaterals.clone(),
         }
     }
 }
@@ -130,6 +133,7 @@ where
             jobs: self.jobs.clone(),
             liquidations: self.liquidations.clone(),
             facilities: self.facilities.clone(),
+            collaterals: self.collaterals.clone(),
         }))
     }
 }
@@ -154,6 +158,7 @@ where
     jobs: Jobs,
     liquidations: Liquidations<Perms, E>,
     facilities: CreditFacilities<Perms, E>,
+    collaterals: Collaterals<Perms, E>,
 }
 
 #[async_trait]
@@ -289,6 +294,15 @@ where
                 .await?;
 
             if let Some(liquidation) = maybe_new_liqudation {
+                self.collaterals
+                    .enter_liquidation_op(
+                        db,
+                        credit_facility.collateral_id,
+                        collateral_in_liquidation_account_id,
+                        liquidation.id,
+                    )
+                    .await?;
+
                 self.jobs
                     .create_and_spawn_in_op(
                         db,
