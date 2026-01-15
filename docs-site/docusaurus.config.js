@@ -152,6 +152,10 @@ const config = {
                 label: "Customer API",
                 to: "/api/customer",
               },
+              {
+                label: "Domain Events",
+                to: "/api/events",
+              },
             ],
           },
         ],
