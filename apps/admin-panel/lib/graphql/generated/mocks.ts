@@ -60,6 +60,21 @@ import { AccountingCsvDocument, AccountingCsvDownloadLink, AccountingCsvDownload
 
 faker.seed(0);
 
+export const mockAccountingBaseConfigInput = (overrides?: Partial<AccountingBaseConfigInput>, _relationshipsToOmit: Set<string> = new Set()): AccountingBaseConfigInput => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('AccountingBaseConfigInput');
+    return {
+        assetsCode: overrides && overrides.hasOwnProperty('assetsCode') ? overrides.assetsCode! : faker.lorem.word(),
+        costOfRevenueCode: overrides && overrides.hasOwnProperty('costOfRevenueCode') ? overrides.costOfRevenueCode! : faker.lorem.word(),
+        equityCode: overrides && overrides.hasOwnProperty('equityCode') ? overrides.equityCode! : faker.lorem.word(),
+        equityRetainedEarningsGainCode: overrides && overrides.hasOwnProperty('equityRetainedEarningsGainCode') ? overrides.equityRetainedEarningsGainCode! : faker.lorem.word(),
+        equityRetainedEarningsLossCode: overrides && overrides.hasOwnProperty('equityRetainedEarningsLossCode') ? overrides.equityRetainedEarningsLossCode! : faker.lorem.word(),
+        expensesCode: overrides && overrides.hasOwnProperty('expensesCode') ? overrides.expensesCode! : faker.lorem.word(),
+        liabilitiesCode: overrides && overrides.hasOwnProperty('liabilitiesCode') ? overrides.liabilitiesCode! : faker.lorem.word(),
+        revenueCode: overrides && overrides.hasOwnProperty('revenueCode') ? overrides.revenueCode! : faker.lorem.word(),
+    };
+};
+
 export const mockAccountingCsvDocument = (overrides?: Partial<AccountingCsvDocument>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'AccountingCsvDocument' } & AccountingCsvDocument => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('AccountingCsvDocument');
@@ -399,6 +414,24 @@ export const mockChartOfAccountsCsvImportPayload = (overrides?: Partial<ChartOfA
     relationshipsToOmit.add('ChartOfAccountsCsvImportPayload');
     return {
         __typename: 'ChartOfAccountsCsvImportPayload',
+        chartOfAccounts: overrides && overrides.hasOwnProperty('chartOfAccounts') ? overrides.chartOfAccounts! : relationshipsToOmit.has('ChartOfAccounts') ? {} as ChartOfAccounts : mockChartOfAccounts({}, relationshipsToOmit),
+    };
+};
+
+export const mockChartOfAccountsCsvImportWithBaseConfigInput = (overrides?: Partial<ChartOfAccountsCsvImportWithBaseConfigInput>, _relationshipsToOmit: Set<string> = new Set()): ChartOfAccountsCsvImportWithBaseConfigInput => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('ChartOfAccountsCsvImportWithBaseConfigInput');
+    return {
+        baseConfig: overrides && overrides.hasOwnProperty('baseConfig') ? overrides.baseConfig! : relationshipsToOmit.has('AccountingBaseConfigInput') ? {} as AccountingBaseConfigInput : mockAccountingBaseConfigInput({}, relationshipsToOmit),
+        file: overrides && overrides.hasOwnProperty('file') ? overrides.file! : faker.lorem.word(),
+    };
+};
+
+export const mockChartOfAccountsCsvImportWithBaseConfigPayload = (overrides?: Partial<ChartOfAccountsCsvImportWithBaseConfigPayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'ChartOfAccountsCsvImportWithBaseConfigPayload' } & ChartOfAccountsCsvImportWithBaseConfigPayload => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('ChartOfAccountsCsvImportWithBaseConfigPayload');
+    return {
+        __typename: 'ChartOfAccountsCsvImportWithBaseConfigPayload',
         chartOfAccounts: overrides && overrides.hasOwnProperty('chartOfAccounts') ? overrides.chartOfAccounts! : relationshipsToOmit.has('ChartOfAccounts') ? {} as ChartOfAccounts : mockChartOfAccounts({}, relationshipsToOmit),
     };
 };
@@ -2363,6 +2396,7 @@ export const mockMutation = (overrides?: Partial<Mutation>, _relationshipsToOmit
         chartOfAccountsAddChildNode: overrides && overrides.hasOwnProperty('chartOfAccountsAddChildNode') ? overrides.chartOfAccountsAddChildNode! : relationshipsToOmit.has('ChartOfAccountsAddChildNodePayload') ? {} as ChartOfAccountsAddChildNodePayload : mockChartOfAccountsAddChildNodePayload({}, relationshipsToOmit),
         chartOfAccountsAddRootNode: overrides && overrides.hasOwnProperty('chartOfAccountsAddRootNode') ? overrides.chartOfAccountsAddRootNode! : relationshipsToOmit.has('ChartOfAccountsAddRootNodePayload') ? {} as ChartOfAccountsAddRootNodePayload : mockChartOfAccountsAddRootNodePayload({}, relationshipsToOmit),
         chartOfAccountsCsvImport: overrides && overrides.hasOwnProperty('chartOfAccountsCsvImport') ? overrides.chartOfAccountsCsvImport! : relationshipsToOmit.has('ChartOfAccountsCsvImportPayload') ? {} as ChartOfAccountsCsvImportPayload : mockChartOfAccountsCsvImportPayload({}, relationshipsToOmit),
+        chartOfAccountsCsvImportWithBaseConfig: overrides && overrides.hasOwnProperty('chartOfAccountsCsvImportWithBaseConfig') ? overrides.chartOfAccountsCsvImportWithBaseConfig! : relationshipsToOmit.has('ChartOfAccountsCsvImportWithBaseConfigPayload') ? {} as ChartOfAccountsCsvImportWithBaseConfigPayload : mockChartOfAccountsCsvImportWithBaseConfigPayload({}, relationshipsToOmit),
         committeeAddUser: overrides && overrides.hasOwnProperty('committeeAddUser') ? overrides.committeeAddUser! : relationshipsToOmit.has('CommitteeAddUserPayload') ? {} as CommitteeAddUserPayload : mockCommitteeAddUserPayload({}, relationshipsToOmit),
         committeeCreate: overrides && overrides.hasOwnProperty('committeeCreate') ? overrides.committeeCreate! : relationshipsToOmit.has('CommitteeCreatePayload') ? {} as CommitteeCreatePayload : mockCommitteeCreatePayload({}, relationshipsToOmit),
         committeeRemoveUser: overrides && overrides.hasOwnProperty('committeeRemoveUser') ? overrides.committeeRemoveUser! : relationshipsToOmit.has('CommitteeRemoveUserPayload') ? {} as CommitteeRemoveUserPayload : mockCommitteeRemoveUserPayload({}, relationshipsToOmit),
