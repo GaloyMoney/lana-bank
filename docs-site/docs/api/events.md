@@ -34,7 +34,7 @@ Events related to user and role management.
 
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `UserCreated` | A new user was created | `id`, `email`, `role_id` |
+| `UserCreated` | A new user was created | `email`, `id`, `role_id` |
 | `UserRemoved` | A user was removed | `id` |
 | `UserUpdatedRole` | A user's role was changed | `id`, `role_id` |
 | `RoleCreated` | A new role was created | `id`, `name` |
@@ -51,45 +51,46 @@ Events related to credit facility lifecycle and operations.
 
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `FacilityProposalCreated` | A credit facility proposal was created | `id`, `terms`, `amount`, `created_at` |
+| `FacilityProposalCreated` | A credit facility proposal was created | `amount`, `created_at`, `id`, `terms` |
 | `FacilityProposalApproved` | A proposal was approved | `id` |
-| `FacilityActivated` | A credit facility was activated | `id`, `activation_tx_id`, `activated_at`, `amount` |
-| `FacilityCompleted` | A credit facility was fully repaid and closed | `id`, `completed_at` |
+| `FacilityActivated` | A credit facility was activated | `activated_at`, `activation_tx_id`, `amount`, `id` |
+| `FacilityCompleted` | A credit facility was fully repaid and closed | `completed_at`, `id` |
 
 ### Collateral Events
 
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `PendingCreditFacilityCollateralizationChanged` | Collateralization state changed for pending facility | `id`, `state`, `collateral`, `price`, `recorded_at`, `effective` |
-| `FacilityCollateralUpdated` | Collateral amount was updated | `credit_facility_id`, `pending_credit_facility_id`, `ledger_tx_id`, `new_amount`, `abs_diff`, `action`, `recorded_at`, `effective` |
-| `FacilityCollateralizationChanged` | Collateralization state changed for active facility | `id`, `customer_id`, `state`, `recorded_at`, `effective`, `collateral`, `outstanding`, `price` |
+| `PendingCreditFacilityCollateralizationChanged` | Collateralization state changed for pending facility | `collateral`, `effective`, `id`, `price`, `recorded_at`, `state` |
+| `FacilityCollateralUpdated` | Collateral amount was updated | `abs_diff`, `action`, `credit_facility_id`, `effective`, `ledger_tx_id`, `new_amount`, `pending_credit_facility_id`, `recorded_at` |
+| `FacilityCollateralizationChanged` | Collateralization state changed for active facility | `collateral`, `customer_id`, `effective`, `id`, `outstanding`, `price`, `recorded_at`, `state` |
 
 ### Payment Events
 
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `FacilityRepaymentRecorded` | A repayment was recorded | `credit_facility_id`, `obligation_id`, `obligation_type`, `payment_id`, `amount`, `recorded_at`, `effective` |
-| `DisbursalSettled` | A disbursal was settled | `credit_facility_id`, `ledger_tx_id`, `amount`, `recorded_at`, `effective` |
-| `AccrualPosted` | Interest accrual was posted | `credit_facility_id`, `ledger_tx_id`, `amount`, `period`, `due_at`, `recorded_at`, `effective` |
+| `FacilityRepaymentRecorded` | A repayment was recorded | `amount`, `credit_facility_id`, `effective`, `obligation_id`, `obligation_type`, `payment_id`, `recorded_at` |
+| `DisbursalSettled` | A disbursal was settled | `amount`, `credit_facility_id`, `effective`, `ledger_tx_id`, `recorded_at` |
+| `AccrualPosted` | Interest accrual was posted | `amount`, `credit_facility_id`, `due_at`, `effective`, `ledger_tx_id`, `period`, `recorded_at` |
 
 ### Obligation Events
 
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `ObligationCreated` | A new obligation was created | `id`, `obligation_type`, `credit_facility_id`, `amount`, `due_at`, `overdue_at`, `defaulted_at`, `recorded_at`, `effective` |
-| `ObligationDue` | An obligation became due | `id`, `credit_facility_id`, `obligation_type`, `amount` |
-| `ObligationOverdue` | An obligation became overdue | `id`, `credit_facility_id`, `amount` |
-| `ObligationDefaulted` | An obligation defaulted | `id`, `credit_facility_id`, `amount` |
-| `ObligationCompleted` | An obligation was fully paid | `id`, `credit_facility_id` |
+| `ObligationCreated` | A new obligation was created | `amount`, `credit_facility_id`, `defaulted_at`, `due_at`, `effective`, `id`, `obligation_type`, `overdue_at`, `recorded_at` |
+| `ObligationDue` | An obligation became due | `amount`, `credit_facility_id`, `id`, `obligation_type` |
+| `ObligationOverdue` | An obligation became overdue | `amount`, `credit_facility_id`, `id` |
+| `ObligationDefaulted` | An obligation defaulted | `amount`, `credit_facility_id`, `id` |
+| `ObligationCompleted` | An obligation was fully paid | `credit_facility_id`, `id` |
 
 ### Liquidation Events
 
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `PartialLiquidationInitiated` | A partial liquidation was initiated | `liquidation_id`, `credit_facility_id`, `customer_id`, `trigger_price`, `initially_expected_to_receive`, `initially_estimated_to_liquidate` |
-| `PartialLiquidationCollateralSentOut` | Collateral was sent for liquidation | `liquidation_id`, `credit_facility_id`, `amount`, `ledger_tx_id`, `recorded_at`, `effective` |
-| `PartialLiquidationProceedsReceived` | Liquidation proceeds were received | `liquidation_id`, `credit_facility_id`, `amount`, `payment_id`, `ledger_tx_id`, `recorded_at`, `effective` |
-| `PartialLiquidationCompleted` | Liquidation was completed | `liquidation_id`, `credit_facility_id`, `payment_id` |
+| `PartialLiquidationInitiated` | A partial liquidation was initiated | `credit_facility_id`, `customer_id`, `initially_estimated_to_liquidate`, `initially_expected_to_receive`, `liquidation_id`, `trigger_price` |
+| `PartialLiquidationCollateralSentOut` | Collateral was sent for liquidation | `amount`, `credit_facility_id`, `effective`, `ledger_tx_id`, `liquidation_id`, `recorded_at` |
+| `PartialLiquidationProceedsReceived` | Liquidation proceeds were received | `amount`, `credit_facility_id`, `effective`, `facility_payment_holding_account_id`, `facility_proceeds_from_liquidation_account_id`, `ledger_tx_id`, `liquidation_id`, `payment_id`, `recorded_at` |
+| `PartialLiquidationCompleted` | Liquidation was completed | `credit_facility_id`, `liquidation_id`, `payment_id` |
+
 
 ---
 
@@ -99,7 +100,7 @@ Events related to Bitcoin custody and wallet management.
 
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `WalletBalanceChanged` | A wallet balance changed | `id`, `new_balance`, `changed_at` |
+| `WalletBalanceChanged` | A wallet balance changed | `changed_at`, `id`, `new_balance` |
 
 ---
 
@@ -109,9 +110,9 @@ Events related to customer lifecycle and KYC.
 
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `CustomerCreated` | A new customer was created | `id`, `email`, `customer_type` |
-| `CustomerAccountKycVerificationUpdated` | KYC verification status changed | `id`, `kyc_verification`, `customer_type` |
-| `CustomerEmailUpdated` | Customer email was updated | `id`, `email` |
+| `CustomerCreated` | A new customer was created | `customer_type`, `email`, `id` |
+| `CustomerAccountKycVerificationUpdated` | KYC verification status changed | `customer_type`, `id`, `kyc_verification` |
+| `CustomerEmailUpdated` | Customer email was updated | `email`, `id` |
 
 ---
 
@@ -121,11 +122,11 @@ Events related to deposit accounts and transactions.
 
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `DepositAccountCreated` | A deposit account was created | `id`, `account_holder_id` |
-| `DepositInitialized` | A deposit was initialized | `id`, `deposit_account_id`, `amount` |
-| `WithdrawalConfirmed` | A withdrawal was confirmed | `id`, `deposit_account_id`, `amount` |
-| `DepositReverted` | A deposit was reverted | `id`, `deposit_account_id`, `amount` |
-| `DepositAccountFrozen` | A deposit account was frozen | `id`, `account_holder_id` |
+| `DepositAccountCreated` | A deposit account was created | `account_holder_id`, `id` |
+| `DepositInitialized` | A deposit was initialized | `amount`, `deposit_account_id`, `id` |
+| `WithdrawalConfirmed` | A withdrawal was confirmed | `amount`, `deposit_account_id`, `id` |
+| `DepositReverted` | A deposit was reverted | `amount`, `deposit_account_id`, `id` |
+| `DepositAccountFrozen` | A deposit account was frozen | `account_holder_id`, `id` |
 
 ---
 
@@ -136,8 +137,6 @@ Events related to BTC/USD price updates.
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
 | `PriceUpdated` | BTC/USD price was updated | `price`, `timestamp` |
-
-**Event Type:** `core.price.price-updated` (ephemeral event)
 
 ---
 
@@ -159,7 +158,7 @@ Events related to approval workflows.
 
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `ApprovalProcessConcluded` | An approval process was concluded | `id`, `process_type`, `approved`, `denied_reason`, `target_ref` |
+| `ApprovalProcessConcluded` | An approval process was concluded | `approved`, `denied_reason`, `id`, `process_type`, `target_ref` |
 
 ---
 

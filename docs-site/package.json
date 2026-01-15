@@ -15,6 +15,7 @@
     "generate-api-docs": "docusaurus graphql-to-doc:admin && docusaurus graphql-to-doc:customer && node scripts/fix-category-keys.js",
     "generate-api-docs:admin": "docusaurus graphql-to-doc:admin",
     "generate-api-docs:customer": "docusaurus graphql-to-doc:customer",
+    "generate-events-docs": "node scripts/generate-events-docs.js",
     "prebuild": "npm run generate-api-docs"
   },
   "dependencies": {

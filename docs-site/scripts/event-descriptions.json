@@ -1,0 +1,133 @@
+{
+  "_translations": {
+    "title": "Domain Events",
+    "description": "Public domain events published by Lana Bank",
+    "intro": "Lana Bank publishes domain events via the transactional outbox pattern. These events can be consumed by external systems for integration, analytics, and audit purposes.",
+    "serialization_note": "All events are serialized as JSON and include metadata for tracing and ordering.",
+    "event_structure": "Event Structure",
+    "event_structure_intro": "Each event is wrapped in an envelope with the following structure:",
+    "event_types_reference": "Event Types Reference",
+    "event_types_intro": "All event types follow the naming convention:",
+    "module": "Module",
+    "event_type_prefix": "Event Type Prefix",
+    "consuming_events": "Consuming Events",
+    "consuming_intro": "Events are published via the transactional outbox and can be consumed through:",
+    "direct_polling": "Direct database polling",
+    "direct_polling_desc": "Query the outbox table",
+    "event_streaming": "Event streaming",
+    "event_streaming_desc": "Integration with message queues (implementation dependent)",
+    "etl_pipelines": "ETL pipelines",
+    "etl_pipelines_desc": "Via Meltano extraction",
+    "contact_note": "For integration details, contact the platform team."
+  },
+  "CoreAccessEvent": {
+    "module_description": "Events related to user and role management.",
+    "events": {
+      "UserCreated": "A new user was created",
+      "UserRemoved": "A user was removed",
+      "UserUpdatedRole": "A user's role was changed",
+      "RoleCreated": "A new role was created",
+      "RoleGainedPermissionSet": "A role gained permissions",
+      "RoleLostPermissionSet": "A role lost permissions"
+    }
+  },
+  "CoreCreditEvent": {
+    "module_description": "Events related to credit facility lifecycle and operations.",
+    "subsections": {
+      "Facility Lifecycle": [
+        "FacilityProposalCreated",
+        "FacilityProposalApproved",
+        "FacilityActivated",
+        "FacilityCompleted"
+      ],
+      "Collateral Events": [
+        "PendingCreditFacilityCollateralizationChanged",
+        "FacilityCollateralUpdated",
+        "FacilityCollateralizationChanged"
+      ],
+      "Payment Events": [
+        "FacilityRepaymentRecorded",
+        "DisbursalSettled",
+        "AccrualPosted"
+      ],
+      "Obligation Events": [
+        "ObligationCreated",
+        "ObligationDue",
+        "ObligationOverdue",
+        "ObligationDefaulted",
+        "ObligationCompleted"
+      ],
+      "Liquidation Events": [
+        "PartialLiquidationInitiated",
+        "PartialLiquidationCollateralSentOut",
+        "PartialLiquidationProceedsReceived",
+        "PartialLiquidationCompleted"
+      ]
+    },
+    "events": {
+      "FacilityProposalCreated": "A credit facility proposal was created",
+      "FacilityProposalApproved": "A proposal was approved",
+      "FacilityActivated": "A credit facility was activated",
+      "FacilityCompleted": "A credit facility was fully repaid and closed",
+      "PendingCreditFacilityCollateralizationChanged": "Collateralization state changed for pending facility",
+      "FacilityCollateralUpdated": "Collateral amount was updated",
+      "FacilityCollateralizationChanged": "Collateralization state changed for active facility",
+      "FacilityRepaymentRecorded": "A repayment was recorded",
+      "DisbursalSettled": "A disbursal was settled",
+      "AccrualPosted": "Interest accrual was posted",
+      "ObligationCreated": "A new obligation was created",
+      "ObligationDue": "An obligation became due",
+      "ObligationOverdue": "An obligation became overdue",
+      "ObligationDefaulted": "An obligation defaulted",
+      "ObligationCompleted": "An obligation was fully paid",
+      "PartialLiquidationInitiated": "A partial liquidation was initiated",
+      "PartialLiquidationCollateralSentOut": "Collateral was sent for liquidation",
+      "PartialLiquidationProceedsReceived": "Liquidation proceeds were received",
+      "PartialLiquidationCompleted": "Liquidation was completed"
+    }
+  },
+  "CoreCustodyEvent": {
+    "module_description": "Events related to Bitcoin custody and wallet management.",
+    "events": {
+      "WalletBalanceChanged": "A wallet balance changed"
+    }
+  },
+  "CoreCustomerEvent": {
+    "module_description": "Events related to customer lifecycle and KYC.",
+    "events": {
+      "CustomerCreated": "A new customer was created",
+      "CustomerAccountKycVerificationUpdated": "KYC verification status changed",
+      "CustomerEmailUpdated": "Customer email was updated"
+    }
+  },
+  "CoreDepositEvent": {
+    "module_description": "Events related to deposit accounts and transactions.",
+    "events": {
+      "DepositAccountCreated": "A deposit account was created",
+      "DepositInitialized": "A deposit was initialized",
+      "WithdrawalConfirmed": "A withdrawal was confirmed",
+      "DepositReverted": "A deposit was reverted",
+      "DepositAccountFrozen": "A deposit account was frozen"
+    }
+  },
+  "CorePriceEvent": {
+    "module_description": "Events related to BTC/USD price updates.",
+    "events": {
+      "PriceUpdated": "BTC/USD price was updated"
+    }
+  },
+  "CoreReportEvent": {
+    "module_description": "Events related to report generation.",
+    "events": {
+      "ReportCreated": "A new report was created",
+      "ReportRunCreated": "A report run was initiated",
+      "ReportRunStateUpdated": "A report run state changed"
+    }
+  },
+  "GovernanceEvent": {
+    "module_description": "Events related to approval workflows.",
+    "events": {
+      "ApprovalProcessConcluded": "An approval process was concluded"
+    }
+  }
+}
