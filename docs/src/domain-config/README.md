@@ -14,7 +14,10 @@ Internal configs support both simple types and complex structs.
 
 ### Exposed Configs
 
-Exposed configs automatically appear in the admin app's Configurations page for authorized users. They use standard domain-config authorization (viewer/writer permission sets).
+Exposed configs automatically appear in the admin app's Configurations page for authorized users. The roles required for reading and writing these configs are:
+
+- `PERMISSION_SET_EXPOSED_CONFIG_VIEWER`
+- `PERMISSION_SET_EXPOSED_CONFIG_WRITER`
 
 Use exposed configs for general settings that don't require custom authorization logic.
 
