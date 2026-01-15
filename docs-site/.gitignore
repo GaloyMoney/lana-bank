@@ -8,6 +8,10 @@
 .docusaurus
 .cache-loader
 
+# Generated API documentation (regenerated from GraphQL schemas)
+/docs/api/admin
+/docs/api/customer
+
 # Misc
 .DS_Store
 .env.local
