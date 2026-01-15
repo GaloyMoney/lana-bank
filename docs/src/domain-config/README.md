@@ -41,8 +41,19 @@ All registered configs are seeded at application startup via `seed_registered()`
 
 ### Reading Values
 
-When reading a config, the `value()` method returns an `Option`:
+To read a config, call `get::<YourConfig>()` on the appropriate service:
 
-- `Some(value)` if the config has been explicitly set
-- `Some(default)` if no value is set but a default was specified
-- `None` if no value is set and no default exists
+```rust
+// Internal config (no auth subject needed)
+let typed_config: TypedDomainConfig<MyConfig> = internal_configs.get::<MyConfig>().await?;
+
+// Exposed config (requires auth subject)
+let typed_config: TypedDomainConfig<MyConfig> = exposed_configs.get::<MyConfig>(&subject).await?;
+```
+
+The `get()` method returns a `TypedDomainConfig<C>` wrapper. Call `.value()` on it to get the resolved value as a standard `Option<T>`:
+
+- `Some(value)` - the resolved value (either from the database or the default)
+- `None` - no value exists and no default was defined
+
+The caller doesn't need to know whether the value came from an explicit database entry or from the default defined at registration.
