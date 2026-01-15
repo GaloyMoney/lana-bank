@@ -163,11 +163,15 @@ where
         &self,
         db: &mut DbOp<'_>,
         collateral_id: CollateralId,
+        collateral_in_liquidation_account_id: CalaAccountId,
         liquidation_id: LiquidationId,
     ) -> Result<(), CollateralError> {
         let mut collateral = self.repo.find_by_id_in_op(&mut *db, collateral_id).await?;
 
-        if collateral.enter_liquidation(liquidation_id)?.did_execute() {
+        if collateral
+            .enter_liquidation(liquidation_id, collateral_in_liquidation_account_id)?
+            .did_execute()
+        {
             self.repo.update_in_op(&mut *db, &mut collateral).await?;
         }
 

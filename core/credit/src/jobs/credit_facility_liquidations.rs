@@ -293,7 +293,12 @@ where
 
             if let Some(liquidation) = maybe_new_liqudation {
                 self.collaterals
-                    .enter_liquidation_op(db, credit_facility.collateral_id, liquidation.id)
+                    .enter_liquidation_op(
+                        db,
+                        credit_facility.collateral_id,
+                        collateral_in_liquidation_account_id,
+                        liquidation.id,
+                    )
                     .await?;
 
                 self.jobs
