@@ -5,7 +5,8 @@ mod config;
 mod helpers;
 mod scenarios;
 
-use std::collections::HashSet;
+use futures::future::join_all;
+use std::{collections::HashSet, time::Duration};
 
 use es_entity::clock::{ClockController, ClockHandle};
 use rust_decimal_macros::dec;
@@ -32,7 +33,7 @@ pub async fn run(
     create_term_templates(&sub, app).await?;
 
     // keep the scenarios tokio handles
-    let _ = scenarios::run(&sub, app, clock.clone()).await?;
+    let mut handles = scenarios::run(&sub, app, clock.clone()).await?;
 
     // Bootstrapped test users
     let customers = create_customers(&sub, app, &config).await?;
@@ -47,8 +48,6 @@ pub async fn run(
         &config,
     )
     .await?;
-
-    let mut handles = Vec::new();
     for (customer_id, deposit_account_id) in customers {
         for _ in 0..config.num_facilities {
             let app = app.clone();
@@ -68,6 +67,24 @@ pub async fn run(
                 .instrument(Span::current()),
             );
             handles.push(handle);
+        }
+    }
+
+    let timeout_duration = Duration::from_secs(120);
+    match tokio::time::timeout(timeout_duration, join_all(handles)).await {
+        Ok(results) => {
+            for result in results.into_iter().flatten() {
+                if let Err(e) = result {
+                    tracing::warn!("bootstrap task failed: {:?}", e);
+                }
+            }
+            info!("all bootstrap tasks completed");
+        }
+        Err(_) => {
+            tracing::warn!(
+                "timeout waiting for bootstrap tasks after {:?}, proceeding anyway",
+                timeout_duration
+            );
         }
     }
 
