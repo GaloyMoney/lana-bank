@@ -35,7 +35,12 @@ where
 
         match message.as_event() {
             Some(event @ FacilityProposalCreated { id, .. })
-            | Some(event @ FacilityProposalApproved { id, .. }) => {
+            | Some(
+                event @ FacilityProposalConcluded {
+                    id,
+                    status: crate::primitives::CreditFacilityProposalStatus::Approved,
+                },
+            ) => {
                 message.inject_trace_parent();
                 Span::current().record("handled", true);
                 Span::current().record("event_type", event.as_ref());

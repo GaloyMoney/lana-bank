@@ -74,9 +74,12 @@ async fn process_activation_message(
     cf_proposal: &lana_app::credit::CreditFacilityProposal,
 ) -> anyhow::Result<bool> {
     match &message.payload {
-        Some(LanaEvent::Credit(event @ CoreCreditEvent::FacilityProposalApproved { id, .. }))
-            if *id == cf_proposal.id =>
-        {
+        Some(LanaEvent::Credit(
+            event @ CoreCreditEvent::FacilityProposalConcluded {
+                id,
+                status: CreditFacilityProposalStatus::Approved,
+            },
+        )) if *id == cf_proposal.id => {
             message.inject_trace_parent();
             Span::current().record("handled", true);
             Span::current().record("event_type", event.as_ref());

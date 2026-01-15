@@ -35,7 +35,12 @@ where
 
         match message.as_event() {
             Some(event @ FacilityProposalCreated { id, .. })
-            | Some(event @ FacilityProposalApproved { id, .. }) => {
+            | Some(
+                event @ FacilityProposalConcluded {
+                    id,
+                    status: crate::primitives::CreditFacilityProposalStatus::Approved,
+                },
+            ) => {
                 self.handle_event(db, message, event, *id).await?;
             }
             Some(event @ PendingCreditFacilityCollateralizationChanged { id, .. }) => {

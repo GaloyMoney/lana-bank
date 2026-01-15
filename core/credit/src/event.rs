@@ -23,9 +23,6 @@ pub enum CoreCreditEvent {
         amount: UsdCents,
         created_at: DateTime<Utc>,
     },
-    FacilityProposalApproved {
-        id: CreditFacilityProposalId,
-    },
     FacilityProposalConcluded {
         id: CreditFacilityProposalId,
         status: CreditFacilityProposalStatus,

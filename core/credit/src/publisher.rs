@@ -25,7 +25,6 @@ use crate::{
     pending_credit_facility::{
         PendingCreditFacility, PendingCreditFacilityEvent, error::PendingCreditFacilityError,
     },
-    primitives::CreditFacilityProposalStatus,
 };
 
 pub struct CreditFacilityPublisher<E>
@@ -129,30 +128,25 @@ where
         new_events: es_entity::LastPersisted<'_, CreditFacilityProposalEvent>,
     ) -> Result<(), CreditFacilityProposalError> {
         use CreditFacilityProposalEvent::*;
-        let mut publish_events = Vec::new();
-        for event in new_events {
-            match &event.event {
+        let publish_events = new_events
+            .filter_map(|event| match &event.event {
                 Initialized { amount, terms, .. } => {
-                    publish_events.push(CoreCreditEvent::FacilityProposalCreated {
+                    Some(CoreCreditEvent::FacilityProposalCreated {
                         id: entity.id,
                         terms: *terms,
                         amount: *amount,
                         created_at: entity.created_at(),
-                    });
+                    })
                 }
                 ApprovalProcessConcluded { status, .. } => {
-                    if *status == CreditFacilityProposalStatus::Approved {
-                        publish_events
-                            .push(CoreCreditEvent::FacilityProposalApproved { id: entity.id });
-                    }
-                    publish_events.push(CoreCreditEvent::FacilityProposalConcluded {
+                    Some(CoreCreditEvent::FacilityProposalConcluded {
                         id: entity.id,
                         status: *status,
-                    });
+                    })
                 }
-                _ => {}
-            }
-        }
+                _ => None,
+            })
+            .collect::<Vec<_>>();
 
         self.outbox
             .publish_all_persisted(op, publish_events)
