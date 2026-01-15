@@ -823,8 +823,8 @@ where
     pub async fn record_payment(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug + Copy,
-        payment_source_account_id: impl Into<PaymentSourceAccountId> + std::fmt::Debug + Copy,
+        credit_facility_id: impl es_entity::RetryableInto<CreditFacilityId>,
+        payment_source_account_id: impl es_entity::RetryableInto<PaymentSourceAccountId>,
         amount: UsdCents,
     ) -> Result<CreditFacility, CoreCreditError> {
         self.subject_can_record_payment(sub, true)
@@ -889,10 +889,10 @@ where
     pub async fn record_payment_with_date(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug + Copy,
-        payment_source_account_id: impl Into<PaymentSourceAccountId> + std::fmt::Debug + Copy,
+        credit_facility_id: impl es_entity::RetryableInto<CreditFacilityId>,
+        payment_source_account_id: impl es_entity::RetryableInto<PaymentSourceAccountId>,
         amount: UsdCents,
-        effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
+        effective: impl es_entity::RetryableInto<chrono::NaiveDate>,
     ) -> Result<CreditFacility, CoreCreditError> {
         self.subject_can_record_payment_with_date(sub, true)
             .await?
@@ -950,7 +950,7 @@ where
     pub async fn complete_facility(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug + Copy,
+        credit_facility_id: impl es_entity::RetryableInto<CreditFacilityId>,
     ) -> Result<CreditFacility, CoreCreditError> {
         let id = credit_facility_id.into();
 
