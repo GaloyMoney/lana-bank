@@ -309,7 +309,7 @@ impl Chart {
             return Ok(Idempotent::AlreadyApplied);
         }
 
-        self.validate_accounting_base_config_against_chart(&base_config)?;
+        self.accounting_account_codes_exist_in_chart(&base_config)?;
 
         self.events.push(ChartEvent::BaseConfigSet {
             base_config: base_config.clone(),
@@ -318,22 +318,34 @@ impl Chart {
         Ok(Idempotent::Executed(()))
     }
 
-    fn validate_accounting_base_config_against_chart(
+    fn accounting_account_codes_exist_in_chart(
         &self,
         base_config: &AccountingBaseConfig,
     ) -> Result<(), ChartOfAccountsError> {
-        self.validate_accounting_account_code(&base_config.assets_code)?;
-        self.validate_accounting_account_code(&base_config.liabilities_code)?;
-        self.validate_accounting_account_code(&base_config.equity_code)?;
-        self.validate_accounting_account_code(&base_config.revenue_code)?;
-        self.validate_accounting_account_code(&base_config.cost_of_revenue_code)?;
-        self.validate_accounting_account_code(&base_config.expenses_code)?;
-        // TODO: Validate that EquityCode is parent of RetainedEarningsCodes (x2).
+        self.check_accounting_account_code(&base_config.assets_code)?;
+        self.check_accounting_account_code(&base_config.liabilities_code)?;
+        self.check_accounting_account_code(&base_config.equity_code)?;
+        self.check_accounting_account_code(&base_config.revenue_code)?;
+        self.check_accounting_account_code(&base_config.cost_of_revenue_code)?;
+        self.check_accounting_account_code(&base_config.expenses_code)?;
+
+        self.find_node_details_by_code(&base_config.equity_retained_earnings_gain_code)
+            .ok_or_else(|| {
+                ChartOfAccountsError::CodeNotFoundInChart(
+                    base_config.equity_retained_earnings_gain_code.clone(),
+                )
+            })?;
+        self.find_node_details_by_code(&base_config.equity_retained_earnings_loss_code)
+            .ok_or_else(|| {
+                ChartOfAccountsError::CodeNotFoundInChart(
+                    base_config.equity_retained_earnings_loss_code.clone(),
+                )
+            })?;
 
         Ok(())
     }
 
-    fn validate_accounting_account_code(
+    fn check_accounting_account_code(
         &self,
         code: &AccountCode,
     ) -> Result<(), ChartOfAccountsError> {
