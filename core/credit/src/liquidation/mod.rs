@@ -135,52 +135,6 @@ where
     }
 
     #[instrument(
-        name = "credit.liquidation.record_collateral_sent",
-        skip(self, sub),
-        err
-    )]
-    pub async fn record_collateral_sent(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        liquidation_id: LiquidationId,
-        amount: Satoshis,
-    ) -> Result<Liquidation, LiquidationError> {
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreCreditObject::liquidation(liquidation_id),
-                CoreCreditAction::LIQUIDATION_RECORD_COLLATERAL_SENT,
-            )
-            .await?;
-        let mut db = self.repo.begin_op_with_clock(&self.clock).await?;
-
-        // let mut liquidation = self.repo.find_by_id_in_op(&mut db, liquidation_id).await?;
-
-        // let tx_id = CalaTransactionId::new();
-
-        // if liquidation
-        //     .record_collateral_sent_out(amount, tx_id)?
-        //     .did_execute()
-        // {
-        //     self.repo.update_in_op(&mut db, &mut liquidation).await?;
-        //     self.ledger
-        //         .record_collateral_sent_in_op(
-        //             &mut db,
-        //             tx_id,
-        //             amount,
-        //             liquidation.collateral_account_id,
-        //             liquidation.collateral_in_liquidation_account_id,
-        //             LedgerTransactionInitiator::try_from_subject(sub)?,
-        //         )
-        //         .await?;
-        // }
-
-        db.commit().await?;
-
-        Ok(todo!())
-    }
-
-    #[instrument(
         name = "credit.liquidation.record_proceeds_from_liquidation",
         skip(self, sub),
         err

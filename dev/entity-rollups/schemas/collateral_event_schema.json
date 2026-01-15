@@ -111,6 +111,65 @@
         "action"
       ],
       "type": "object"
+    },
+    {
+      "description": "This Collateral has become subject of liquidation with\n`liquidation_id`. It will renmain such until\n`ExitedLiquidation` event is emitted.",
+      "properties": {
+        "collateral_in_liquidation_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "liquidation_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "const": "entered_liquidation",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "liquidation_id",
+        "collateral_in_liquidation_account_id"
+      ],
+      "type": "object"
+    },
+    {
+      "description": "Portion of this Collateral was sent to a liquidation with\n`liquidation_id`.",
+      "properties": {
+        "liquidation_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "const": "sent_to_liquidation_via_manual_input",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "liquidation_id"
+      ],
+      "type": "object"
+    },
+    {
+      "description": "This Collateral that has previously been subject of\nliquidation with `liquidation_id` is no longer subject of the\nliquidation.",
+      "properties": {
+        "liquidation_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "const": "exited_liquidation",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "liquidation_id"
+      ],
+      "type": "object"
     }
   ],
   "title": "CollateralEvent"

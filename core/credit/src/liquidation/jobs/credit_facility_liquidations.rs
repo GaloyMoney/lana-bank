@@ -14,7 +14,8 @@ use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use crate::{
-    CoreCreditEvent, CreditFacilityId, LedgerOmnibusAccountIds, LiquidationRepo, NewLiquidation,
+    CalaAccountId, CoreCreditEvent, CreditFacilityId, LedgerOmnibusAccountIds, LiquidationRepo,
+    NewLiquidation,
     collateral::CollateralRepo,
     credit_facility::CreditFacilityRepo,
     liquidation::{
@@ -232,8 +233,13 @@ where
                 )
                 .await?
             {
-                self.enter_collateral_liquidation(db, *credit_facility_id, liquidation_id)
-                    .await?;
+                self.enter_collateral_liquidation(
+                    db,
+                    *credit_facility_id,
+                    *collateral_in_liquidation_account_id,
+                    liquidation_id,
+                )
+                .await?;
 
                 self.partial_liquidation_job_spawner
                     .spawn_in_op(
@@ -255,6 +261,7 @@ where
         &self,
         db: &mut DbOp<'_>,
         credit_facility_id: CreditFacilityId,
+        collateral_in_liquidation_account_id: CalaAccountId,
         liquidation_id: LiquidationId,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let credit_facility = self
@@ -266,7 +273,10 @@ where
             .find_by_id_in_op(&mut *db, credit_facility.collateral_id)
             .await?;
 
-        if collateral.enter_liquidation(liquidation_id)?.did_execute() {
+        if collateral
+            .enter_liquidation(liquidation_id, collateral_in_liquidation_account_id)?
+            .did_execute()
+        {
             self.collateral_repo
                 .update_in_op(&mut *db, &mut collateral)
                 .await?;
