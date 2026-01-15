@@ -7,10 +7,12 @@ edition = "2024"
 fail-on-warnings = []
 json-schema = ["schemars"]
 graphql = ["async-graphql"]
+avro = ["apache-avro"]
 
 [dependencies]
 
 serde = { workspace = true }
+apache-avro = { workspace = true, optional = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 tracing-utils = { workspace = true }

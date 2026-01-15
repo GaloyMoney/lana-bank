@@ -11,6 +11,9 @@ use tracing_utils::ErrorSeverity;
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 
+#[cfg(feature = "avro")]
+use apache_avro::{schema::Schema as AvroSchemaType, AvroSchema};
+
 use std::fmt;
 
 pub const SATS_PER_BTC: Decimal = dec!(100_000_000);
@@ -19,6 +22,13 @@ pub const CENTS_PER_USD: Decimal = dec!(100);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct SignedSatoshis(i64);
+
+#[cfg(feature = "avro")]
+impl AvroSchema for SignedSatoshis {
+    fn get_schema() -> AvroSchemaType {
+        AvroSchemaType::Long
+    }
+}
 
 #[cfg(feature = "graphql")]
 async_graphql::scalar!(SignedSatoshis);
@@ -102,6 +112,13 @@ impl ErrorSeverity for ConversionError {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct Satoshis(u64);
+
+#[cfg(feature = "avro")]
+impl AvroSchema for Satoshis {
+    fn get_schema() -> AvroSchemaType {
+        AvroSchemaType::Long
+    }
+}
 
 #[cfg(feature = "graphql")]
 async_graphql::scalar!(Satoshis);
@@ -190,6 +207,13 @@ impl TryFrom<SignedSatoshis> for Satoshis {
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct SignedUsdCents(i64);
 
+#[cfg(feature = "avro")]
+impl AvroSchema for SignedUsdCents {
+    fn get_schema() -> AvroSchemaType {
+        AvroSchemaType::Long
+    }
+}
+
 #[cfg(feature = "graphql")]
 async_graphql::scalar!(SignedUsdCents);
 
@@ -245,6 +269,13 @@ impl std::ops::Sub<SignedUsdCents> for SignedUsdCents {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct UsdCents(u64);
+
+#[cfg(feature = "avro")]
+impl AvroSchema for UsdCents {
+    fn get_schema() -> AvroSchemaType {
+        AvroSchemaType::Long
+    }
+}
 
 #[cfg(feature = "graphql")]
 async_graphql::scalar!(UsdCents);
