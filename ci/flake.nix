@@ -143,10 +143,9 @@
 
         # Prepend new content to existing CHANGELOG.md
         if [ -f "$CHANGELOG_FILE" ]; then
-          EXISTING_CONTENT=$(cat "$CHANGELOG_FILE")
-          printf "%s\n%s" "$NEW_CONTENT" "$EXISTING_CONTENT" > "$CHANGELOG_FILE"
+          ${pkgs.git-cliff}/bin/git-cliff --ignore-tags ".*rc.*" $LAST_RELEASE.. --tag $VERSION --prepend $CHANGELOG_FILE
         else
-          printf "%s" "$NEW_CONTENT" > "$CHANGELOG_FILE"
+          ${pkgs.git-cliff}/bin/git-cliff -o --tag $VERSION
         fi
 
         echo "Updated $CHANGELOG_FILE with version $VERSION"
