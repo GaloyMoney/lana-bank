@@ -52,18 +52,16 @@ pub async fn principal_under_payment_scenario(
     }
 
     let (tx, rx) = mpsc::channel::<(ObligationType, UsdCents)>(32);
-    {
-        let app = app.clone();
-        let clock = clock.clone();
-        tokio::spawn(
-            async move {
-                do_principal_under_payment(sub, app, cf_proposal.id.into(), rx, clock)
-                    .await
-                    .expect("principal under payment failed");
-            }
-            .instrument(Span::current()),
-        );
-    }
+    let sim_app = app.clone();
+    let sim_clock = clock.clone();
+    tokio::spawn(
+        async move {
+            do_principal_under_payment(sub, sim_app, cf_proposal.id.into(), rx, sim_clock)
+                .await
+                .expect("principal under payment failed");
+        }
+        .instrument(Span::current()),
+    );
 
     while let Some(msg) = stream.next().await {
         if process_obligation_message(&msg, &cf_proposal, &tx).await? {

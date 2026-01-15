@@ -41,18 +41,16 @@ pub async fn principal_late_scenario(
     }
 
     let (tx, rx) = mpsc::channel::<(ObligationType, UsdCents)>(32);
-    {
-        let app = app.clone();
-        let clock = clock.clone();
-        tokio::spawn(
-            async move {
-                do_principal_late(sub, app, cf_proposal.id.into(), rx, clock)
-                    .await
-                    .expect("principal late failed");
-            }
-            .instrument(Span::current()),
-        );
-    }
+    let sim_app = app.clone();
+    let sim_clock = clock.clone();
+    tokio::spawn(
+        async move {
+            do_principal_late(sub, sim_app, cf_proposal.id.into(), rx, sim_clock)
+                .await
+                .expect("principal late failed");
+        }
+        .instrument(Span::current()),
+    );
 
     while let Some(msg) = stream.next().await {
         if process_obligation_message(&msg, &cf_proposal, &tx).await? {
