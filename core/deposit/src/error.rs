@@ -6,6 +6,8 @@ use tracing_utils::ErrorSeverity;
 pub enum CoreDepositError {
     #[error("CoreDepositError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
+    #[error("CoreDepositError - EsEntityError: {0}")]
+    EsEntityError(es_entity::EsEntityError),
     #[error("CoreDepositError - AuditError: {0}")]
     AuditError(#[from] audit::error::AuditError),
     #[error("CoreDepositError - AuthorizationError: {0}")]
@@ -58,6 +60,8 @@ pub enum CoreDepositError {
     CustomerNotVerified,
 }
 
+es_entity::from_es_entity_error!(CoreDepositError);
+
 impl CoreDepositError {
     pub fn is_account_already_exists(&self) -> bool {
         matches!(
@@ -73,6 +77,7 @@ impl ErrorSeverity for CoreDepositError {
     fn severity(&self) -> Level {
         match self {
             Self::Sqlx(_) => Level::ERROR,
+            Self::EsEntityError(e) => e.severity(),
             Self::AuditError(e) => e.severity(),
             Self::AuthorizationError(e) => e.severity(),
             Self::DepositAccountError(e) => e.severity(),
