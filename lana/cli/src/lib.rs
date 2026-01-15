@@ -168,20 +168,14 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
         .clone()
         .expect("super user");
 
-    let (clock, clock_ctrl) = match config.time {
-        config::TimeConfig::Realtime => (es_entity::clock::ClockHandle::realtime(), None),
-        config::TimeConfig::Artificial(clock_config) => {
-            let (clock, ctrl) = es_entity::clock::ClockHandle::artificial(clock_config);
-            (clock, Some(ctrl))
-        }
-    };
+    let (clock, _clock_ctrl) = config.time.into_clock();
 
     let app = lana_app::app::LanaApp::init(pool.clone(), config.app, clock.clone())
         .await
         .context("Failed to initialize Lana app")?;
 
     #[cfg(feature = "sim-bootstrap")]
-    if let Some(ctrl) = clock_ctrl {
+    if let Some(ctrl) = _clock_ctrl {
         let _ = sim_bootstrap::run(
             superuser_email.to_string(),
             &app,
@@ -191,9 +185,6 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
         )
         .await;
     }
-
-    #[cfg(not(feature = "sim-bootstrap"))]
-    drop(clock_ctrl);
 
     let admin_error_send = error_send.clone();
     let admin_app = app.clone();
@@ -208,6 +199,7 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
             .context("Admin server error"),
         );
     }));
+
     let customer_error_send = error_send.clone();
     let customer_app = app.clone();
     let mut customer_shutdown = shutdown_recv.resubscribe();

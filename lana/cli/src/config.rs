@@ -1,6 +1,6 @@
 use anyhow::Context;
 
-use es_entity::clock::ArtificialClockConfig;
+use es_entity::clock::{ArtificialClockConfig, ClockController, ClockHandle};
 use serde::{Deserialize, Serialize};
 use tracing_utils::TracingConfig;
 
@@ -23,6 +23,18 @@ pub enum TimeConfig {
     Realtime,
     /// Use artificial/simulated time with configurable behavior
     Artificial(ArtificialClockConfig),
+}
+
+impl TimeConfig {
+    pub(super) fn into_clock(self) -> (ClockHandle, Option<ClockController>) {
+        match self {
+            Self::Realtime => (ClockHandle::realtime(), None),
+            Self::Artificial(cfg) => {
+                let (clock, ctrl) = ClockHandle::artificial(cfg);
+                (clock, Some(ctrl))
+            }
+        }
+    }
 }
 
 /// Main configuration structure for the Lana banking application
