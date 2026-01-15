@@ -266,7 +266,7 @@ where
                 chart_ref,
                 reference,
                 description,
-                effective.unwrap_or_else(|| self.clock.now().date_naive()),
+                effective.unwrap_or_else(|| self.clock.today()),
                 entries,
             )
             .await?;

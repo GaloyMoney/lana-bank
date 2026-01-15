@@ -1651,7 +1651,7 @@ impl CreditLedger {
                     amount: collateral.to_btc(),
                     collateral_account_id: credit_facility_account_ids.collateral_account_id,
                     bank_collateral_account_id: self.collateral_omnibus_account_ids.account_id,
-                    effective: self.clock.now().date_naive(),
+                    effective: self.clock.today(),
                     initiated_by,
                 },
             )
@@ -1683,7 +1683,7 @@ impl CreditLedger {
                     facility_amount: facility_amount.to_usd(),
                     currency: self.usd,
                     external_id: tx_ref,
-                    effective: self.clock.now().date_naive(),
+                    effective: self.clock.today(),
                     initiated_by,
                 },
             )
@@ -1788,7 +1788,7 @@ impl CreditLedger {
                     disbursed_amount: amount.to_usd(),
                     currency: self.usd,
                     external_id: format!("{}-initial-disbursal", disbursal_id),
-                    effective: self.clock.now().date_naive(),
+                    effective: self.clock.today(),
                     initiated_by,
                 },
             )
@@ -1817,7 +1817,7 @@ impl CreditLedger {
                     facility_amount: facility_amount.to_usd(),
                     currency: self.usd,
                     external_id,
-                    effective: self.clock.now().date_naive(),
+                    effective: self.clock.today(),
                     initiated_by,
                 },
             )
@@ -1845,7 +1845,7 @@ impl CreditLedger {
                     structuring_fee_amount: amount.to_usd(),
                     currency: self.usd,
                     external_id: format!("{}-structuring-fee", tx_id),
-                    effective: self.clock.now().date_naive(),
+                    effective: self.clock.today(),
                     initiated_by,
                 },
             )
@@ -1952,7 +1952,7 @@ impl CreditLedger {
                         .uncovered_outstanding_account_id,
                     credit_facility_account: account_ids.facility_account_id,
                     disbursed_amount: amount.to_usd(),
-                    effective: self.clock.now().date_naive(),
+                    effective: self.clock.today(),
                     initiated_by,
                 },
             )
@@ -1981,7 +1981,7 @@ impl CreditLedger {
                         .uncovered_outstanding_account_id,
                     credit_facility_account: account_ids.facility_account_id,
                     disbursed_amount: amount.to_usd(),
-                    effective: self.clock.now().date_naive(),
+                    effective: self.clock.today(),
                     initiated_by,
                 },
             )
@@ -2021,7 +2021,7 @@ impl CreditLedger {
                     disbursed_into_account_id,
                     disbursed_amount: amount.to_usd(),
                     external_id,
-                    effective: self.clock.now().date_naive(),
+                    effective: self.clock.today(),
                     initiated_by,
                 },
             )

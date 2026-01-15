@@ -77,7 +77,7 @@ async fn process_activation_message(
                     sub,
                     *id,
                     Satoshis::try_from_btc(dec!(230))?,
-                    clock.now().date_naive(),
+                    clock.today(),
                 )
                 .await?;
         }

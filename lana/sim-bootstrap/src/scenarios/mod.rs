@@ -135,7 +135,7 @@ async fn process_facility_message(
                     sub,
                     cf_proposal.id,
                     Satoshis::try_from_btc(dec!(230))?,
-                    clock.now().date_naive(),
+                    clock.today(),
                 )
                 .await?;
         }
@@ -162,7 +162,7 @@ async fn process_facility_message(
             Span::current().record("event_type", event.as_ref());
 
             let _ = app
-                .record_payment_with_date(sub, *id, *amount, clock.now().date_naive())
+                .record_payment_with_date(sub, *id, *amount, clock.today())
                 .await;
             let facility = app
                 .credit()
@@ -176,7 +176,7 @@ async fn process_facility_message(
                     sub,
                     facility.id,
                     total_outstanding_amount,
-                    clock.now().date_naive(),
+                    clock.today(),
                 )
                 .await?;
                 app.credit().complete_facility(sub, facility.id).await?;

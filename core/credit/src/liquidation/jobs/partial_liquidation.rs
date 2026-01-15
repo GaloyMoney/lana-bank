@@ -221,7 +221,7 @@ where
             .amount(amount)
             .credit_facility_id(credit_facility_id)
             .payment_ledger_account_ids(payment_ledger_account_ids)
-            .effective(self.ledger.clock.now().date_naive())
+            .effective(self.ledger.clock.today())
             .build()
             .expect("could not build new payment");
 

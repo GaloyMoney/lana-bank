@@ -113,7 +113,7 @@ async fn process_activation_message(
                     sub,
                     cf_proposal.id,
                     Satoshis::try_from_btc(dec!(230))?,
-                    clock.now().date_naive(),
+                    clock.today(),
                 )
                 .await?;
         }
@@ -213,7 +213,7 @@ async fn do_timely_payments(
     clock: ClockHandle,
 ) -> anyhow::Result<()> {
     while let Some(amount) = obligation_amount_rx.recv().await {
-        app.record_payment_with_date(&sub, id, amount, clock.now().date_naive())
+        app.record_payment_with_date(&sub, id, amount, clock.today())
             .await?;
 
         if !app

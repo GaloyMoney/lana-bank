@@ -72,7 +72,7 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
         .create_trial_balance_statement(trial_balance_name.to_string())
         .await?;
 
-    let today = clock.now().date_naive();
+    let today = clock.today();
     let accounts = accounting
         .list_all_account_flattened(&DummySubject, &chart_ref, today, Some(today))
         .await?;

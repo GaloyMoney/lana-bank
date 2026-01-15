@@ -95,7 +95,7 @@ async fn process_activation_message(
                     sub,
                     *id,
                     Satoshis::try_from_btc(dec!(230))?,
-                    clock.now().date_naive(),
+                    clock.today(),
                 )
                 .await?;
         }
@@ -172,7 +172,7 @@ async fn do_principal_late(
         }
 
         if obligation_type == ObligationType::Interest {
-            app.record_payment_with_date(&sub, id, amount, clock.now().date_naive())
+            app.record_payment_with_date(&sub, id, amount, clock.today())
                 .await?;
         } else {
             principal_remaining += amount;
@@ -192,7 +192,7 @@ async fn do_principal_late(
 
     // Delaying payment of principal by one more month
     clock.sleep(one_month).await;
-    app.record_payment_with_date(&sub, id, principal_remaining, clock.now().date_naive())
+    app.record_payment_with_date(&sub, id, principal_remaining, clock.today())
         .await?;
 
     if app
@@ -202,7 +202,7 @@ async fn do_principal_late(
         .await?
     {
         while let Some((_, amount)) = obligation_amount_rx.recv().await {
-            app.record_payment_with_date(&sub, id, amount, clock.now().date_naive())
+            app.record_payment_with_date(&sub, id, amount, clock.today())
                 .await?;
 
             if !app

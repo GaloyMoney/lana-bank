@@ -95,7 +95,7 @@ async fn process_activation_message(
                     sub,
                     *id,
                     Satoshis::try_from_btc(dec!(230))?,
-                    clock.now().date_naive(),
+                    clock.today(),
                 )
                 .await?;
         }
@@ -175,7 +175,7 @@ async fn do_interest_late(
             continue;
         }
 
-        app.record_payment_with_date(&sub, id, amount, clock.now().date_naive())
+        app.record_payment_with_date(&sub, id, amount, clock.today())
             .await?;
 
         let facility = app
@@ -193,7 +193,7 @@ async fn do_interest_late(
     // Delay first payment by 1 more month
     clock.sleep(one_month).await;
 
-    app.record_payment_with_date(&sub, id, first_interest, clock.now().date_naive())
+    app.record_payment_with_date(&sub, id, first_interest, clock.today())
         .await?;
 
     if app
@@ -203,7 +203,7 @@ async fn do_interest_late(
         .await?
     {
         while let Some((_, amount)) = obligation_amount_rx.recv().await {
-            app.record_payment_with_date(&sub, id, amount, clock.now().date_naive())
+            app.record_payment_with_date(&sub, id, amount, clock.today())
                 .await?;
 
             if !app

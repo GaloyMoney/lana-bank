@@ -820,7 +820,7 @@ where
         let mut db = self.facilities.begin_op().await?;
 
         let payment_id = PaymentId::new();
-        let effective = self.clock.now().date_naive();
+        let effective = self.clock.today();
         let initiated_by = LedgerTransactionInitiator::try_from_subject(sub)?;
         if let Some(payment) = self
             .payments
@@ -967,7 +967,7 @@ where
                         &mut db,
                         facility.collateral_id,
                         Satoshis::ZERO,
-                        self.clock.now().date_naive(),
+                        self.clock.today(),
                     )
                     .await?;
 
