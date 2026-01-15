@@ -3,6 +3,7 @@ mod helpers;
 use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
 use cloud_storage::{Storage, config::StorageConfig};
+use core_accounting::AccountingBaseConfig;
 use core_accounting::CoreAccounting;
 use core_customer::Customers;
 use core_deposit::*;
@@ -80,19 +81,33 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .await?
         .id;
     let import = r#"
-        2,Omnibus Parent
-        1,Individual Deposit Accounts
-        7,Government Entity Deposit Accounts
-        3,Private Company Deposit Accounts
-        4,Bank Deposit Accounts
-        5,Financial Institution Deposit Accounts
-        6,Non Domiciled Individual Deposit Accounts
-        8,Frozen Deposit Accounts
-        "#
+1,,,Assets,Debit,
+11,,,Omnibus,,
+2,,,Liabilities,Credit,
+21,,,Deposit Accounts,,
+22,,,Frozen Deposit Accounts,,
+3,,,Equity,Credit,
+32,,,Retained Earnings,,
+,01,,Current Year Earnings,,
+,02,,Prior Years Earnings,,
+4,,,Revenue,Credit,
+5,,,Cost of Revenue,Debit,
+6,,,Expenses,Debit,
+"#
     .to_string();
+    let base_config = AccountingBaseConfig {
+        assets_code: "1".parse().unwrap(),
+        liabilities_code: "2".parse().unwrap(),
+        equity_code: "3".parse().unwrap(),
+        equity_retained_earnings_gain_code: "32.01".parse().unwrap(),
+        equity_retained_earnings_loss_code: "32.02".parse().unwrap(),
+        revenue_code: "4".parse().unwrap(),
+        cost_of_revenue_code: "5".parse().unwrap(),
+        expenses_code: "6".parse().unwrap(),
+    };
     let (chart, _) = accounting
         .chart_of_accounts()
-        .import_from_csv(&DummySubject, &chart_ref, import)
+        .import_from_csv_with_base_config(&DummySubject, &chart_ref, import, base_config.clone())
         .await?;
 
     let code = "1".parse::<core_accounting::AccountCode>().unwrap();
@@ -108,33 +123,35 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
             &chart,
             ChartOfAccountsIntegrationConfig {
                 chart_of_accounts_id: chart_id,
-                chart_of_accounts_omnibus_parent_code: "2".parse().unwrap(),
-                chart_of_accounts_individual_deposit_accounts_parent_code: "1".parse().unwrap(),
-                chart_of_accounts_government_entity_deposit_accounts_parent_code: "7"
+                chart_of_accounts_omnibus_parent_code: "11".parse().unwrap(),
+                chart_of_accounts_individual_deposit_accounts_parent_code: "21".parse().unwrap(),
+                chart_of_accounts_government_entity_deposit_accounts_parent_code: "21"
                     .parse()
                     .unwrap(),
-                chart_of_account_private_company_deposit_accounts_parent_code: "3".parse().unwrap(),
-                chart_of_account_bank_deposit_accounts_parent_code: "4".parse().unwrap(),
-                chart_of_account_financial_institution_deposit_accounts_parent_code: "5"
+                chart_of_account_private_company_deposit_accounts_parent_code: "21"
                     .parse()
                     .unwrap(),
-                chart_of_account_non_domiciled_individual_deposit_accounts_parent_code: "6"
+                chart_of_account_bank_deposit_accounts_parent_code: "21".parse().unwrap(),
+                chart_of_account_financial_institution_deposit_accounts_parent_code: "21"
                     .parse()
                     .unwrap(),
-                chart_of_accounts_frozen_individual_deposit_accounts_parent_code: "8"
+                chart_of_account_non_domiciled_individual_deposit_accounts_parent_code: "21"
                     .parse()
                     .unwrap(),
-                chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code: "8"
+                chart_of_accounts_frozen_individual_deposit_accounts_parent_code: "22"
                     .parse()
                     .unwrap(),
-                chart_of_account_frozen_private_company_deposit_accounts_parent_code: "8"
+                chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code: "22"
                     .parse()
                     .unwrap(),
-                chart_of_account_frozen_bank_deposit_accounts_parent_code: "8".parse().unwrap(),
-                chart_of_account_frozen_financial_institution_deposit_accounts_parent_code: "8"
+                chart_of_account_frozen_private_company_deposit_accounts_parent_code: "22"
                     .parse()
                     .unwrap(),
-                chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code: "8"
+                chart_of_account_frozen_bank_deposit_accounts_parent_code: "22".parse().unwrap(),
+                chart_of_account_frozen_financial_institution_deposit_accounts_parent_code: "22"
+                    .parse()
+                    .unwrap(),
+                chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code: "22"
                     .parse()
                     .unwrap(),
             },
@@ -158,21 +175,24 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         )
         .await?
         .id;
-
     let import = r#"
-        2,Other Omnibus Parent
-        1,Other Individual Deposit Accounts
-        7,Other Government Entity Deposit 
-        3,Other Private Company Deposit Accounts
-        4,Other Bank Deposit Accounts
-        5,Other Financial Institution Deposit Accounts
-        6,Other Non Domiciled Individual Deposit Accounts
-        8,Other Frozen Deposit Accounts
-        "#
+1,,,Assets,Debit,
+11,,,Omnibus,,
+2,,,Liabilities,Credit,
+21,,,Deposit Accounts,,
+22,,,Frozen Deposit Accounts,,
+3,,,Equity,Credit,
+32,,,Retained Earnings,,
+,01,,Current Year Earnings,,
+,02,,Prior Years Earnings,,
+4,,,Revenue,Credit,
+5,,,Cost of Revenue,Debit,
+6,,,Expenses,Debit,
+"#
     .to_string();
     let (chart, _) = accounting
         .chart_of_accounts()
-        .import_from_csv(&DummySubject, &chart_ref, import)
+        .import_from_csv_with_base_config(&DummySubject, &chart_ref, import, base_config)
         .await?;
 
     let res = deposit

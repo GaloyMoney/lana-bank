@@ -1107,56 +1107,6 @@ where
             return Err(CoreDepositError::DepositConfigAlreadyExists);
         }
 
-        let individual_deposit_accounts_parent_account_set_id = chart.account_set_id_from_code(
-            &config.chart_of_accounts_individual_deposit_accounts_parent_code,
-        )?;
-        let government_entity_deposit_accounts_parent_account_set_id = chart
-            .account_set_id_from_code(
-                &config.chart_of_accounts_government_entity_deposit_accounts_parent_code,
-            )?;
-        let private_company_deposit_accounts_parent_account_set_id = chart
-            .account_set_id_from_code(
-                &config.chart_of_account_private_company_deposit_accounts_parent_code,
-            )?;
-        let bank_deposit_accounts_parent_account_set_id = chart
-            .account_set_id_from_code(&config.chart_of_account_bank_deposit_accounts_parent_code)?;
-        let financial_institution_deposit_accounts_parent_account_set_id = chart
-            .account_set_id_from_code(
-                &config.chart_of_account_financial_institution_deposit_accounts_parent_code,
-            )?;
-        let non_domiciled_individual_deposit_accounts_parent_account_set_id = chart
-            .account_set_id_from_code(
-                &config.chart_of_account_non_domiciled_individual_deposit_accounts_parent_code,
-            )?;
-
-        let frozen_individual_deposit_accounts_parent_account_set_id = chart
-            .account_set_id_from_code(
-                &config.chart_of_accounts_frozen_individual_deposit_accounts_parent_code,
-            )?;
-        let frozen_government_entity_deposit_accounts_parent_account_set_id = chart
-            .account_set_id_from_code(
-                &config.chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code,
-            )?;
-        let frozen_private_company_deposit_accounts_parent_account_set_id = chart
-            .account_set_id_from_code(
-                &config.chart_of_account_frozen_private_company_deposit_accounts_parent_code,
-            )?;
-        let frozen_bank_deposit_accounts_parent_account_set_id = chart.account_set_id_from_code(
-            &config.chart_of_account_frozen_bank_deposit_accounts_parent_code,
-        )?;
-        let frozen_financial_institution_deposit_accounts_parent_account_set_id = chart
-            .account_set_id_from_code(
-                &config.chart_of_account_frozen_financial_institution_deposit_accounts_parent_code,
-            )?;
-        let frozen_non_domiciled_individual_deposit_accounts_parent_account_set_id = chart
-            .account_set_id_from_code(
-                &config
-                    .chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code,
-            )?;
-
-        let omnibus_parent_account_set_id =
-            chart.account_set_id_from_code(&config.chart_of_accounts_omnibus_parent_code)?;
-
         let audit_info = self
             .authz
             .enforce_permission(
@@ -1166,23 +1116,7 @@ where
             )
             .await?;
 
-        let charts_integration_meta = ChartOfAccountsIntegrationMeta {
-            audit_info,
-            config: config.clone(),
-            omnibus_parent_account_set_id,
-            individual_deposit_accounts_parent_account_set_id,
-            government_entity_deposit_accounts_parent_account_set_id,
-            private_company_deposit_accounts_parent_account_set_id,
-            bank_deposit_accounts_parent_account_set_id,
-            financial_institution_deposit_accounts_parent_account_set_id,
-            non_domiciled_individual_deposit_accounts_parent_account_set_id,
-            frozen_individual_deposit_accounts_parent_account_set_id,
-            frozen_government_entity_deposit_accounts_parent_account_set_id,
-            frozen_private_company_deposit_accounts_parent_account_set_id,
-            frozen_bank_deposit_accounts_parent_account_set_id,
-            frozen_financial_institution_deposit_accounts_parent_account_set_id,
-            frozen_non_domiciled_individual_deposit_accounts_parent_account_set_id,
-        };
+        let charts_integration_meta = config.try_into_meta(chart, audit_info)?;
 
         self.ledger
             .attach_chart_of_accounts_account_sets(charts_integration_meta)

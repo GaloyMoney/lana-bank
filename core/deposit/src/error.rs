@@ -56,6 +56,10 @@ pub enum CoreDepositError {
     PublicIdError(#[from] public_id::PublicIdError),
     #[error("CoreDepositError - CustomerNotVerified")]
     CustomerNotVerified,
+    #[error("CoreDepositError - AccountingBaseConfigNotFound")]
+    AccountingBaseConfigNotFound,
+    #[error("CoreDepositError - InvalidAccountingAccountSetParent: {0}")]
+    InvalidAccountingAccountSetParent(String),
 }
 
 impl CoreDepositError {
@@ -96,6 +100,8 @@ impl ErrorSeverity for CoreDepositError {
             Self::DepositBuilderError(_) => Level::ERROR,
             Self::PublicIdError(e) => e.severity(),
             Self::CustomerNotVerified => Level::WARN,
+            Self::AccountingBaseConfigNotFound => Level::ERROR,
+            Self::InvalidAccountingAccountSetParent(_) => Level::ERROR,
         }
     }
 }
