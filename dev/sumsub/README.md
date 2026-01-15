@@ -5,8 +5,8 @@ for webhook (opt):
 on one terminal:
 `python3 webhook.py`
 
-on another one, launch ngrok:
-`ngrok http 5253`
+on another one, launch tmole:
+`npx tmole 5253`
 
 the webhook needs to now be updated from sumsub interface here
 https://cockpit.sumsub.com/checkus#/devSpace/webhooks/webhookManager
@@ -14,9 +14,9 @@ https://cockpit.sumsub.com/checkus#/devSpace/webhooks/webhookManager
 it won't work with staging, so the staging webhook needs to be deactivated if errors arise
 
 
-if ngrok give this:  https://0f5c-190-150-67-13.ngrok-free.app -> http://localhost:5253 
+if tmole give this:  https://spylwl-ip-12-123-12-123.tunnelmole.net -> http://localhost:5253 
 
-add `https://0f5c-190-150-67-13.ngrok-free.app/sumsub/callback` to sumsub callback api
+add `https://spylwl-ip-12-123-12-123.tunnelmole.net/webhook/sumsub` to sumsub callback api
 
 ## for applicant
 

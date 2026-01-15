@@ -43,6 +43,12 @@ pub enum CustomerEvent {
     ActivityUpdated {
         activity: Activity,
     },
+    ProfileDataUpdated {
+        first_name: Option<String>,
+        last_name: Option<String>,
+        date_of_birth: Option<String>,
+        country: Option<String>,
+    },
 }
 
 #[derive(EsEntity, Builder)]
@@ -60,6 +66,8 @@ pub struct Customer {
     #[builder(setter(strip_option, into), default)]
     pub applicant_id: Option<String>,
     pub public_id: PublicId,
+    #[builder(default)]
+    pub profile_data: ProfileData,
     events: EntityEvents<CustomerEvent>,
 }
 
@@ -180,6 +188,36 @@ impl Customer {
         self.email = new_email;
         Idempotent::Executed(())
     }
+
+    pub fn update_profile_data(
+        &mut self,
+        first_name: Option<String>,
+        last_name: Option<String>,
+        date_of_birth: Option<String>,
+        country: Option<String>,
+    ) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            CustomerEvent::ProfileDataUpdated {
+                first_name: existing_first_name,
+                last_name: existing_last_name,
+                date_of_birth: existing_dob,
+                country: existing_country,
+            } if existing_first_name == &first_name
+                && existing_last_name == &last_name
+                && existing_dob == &date_of_birth
+                && existing_country == &country
+        );
+
+        self.events.push(CustomerEvent::ProfileDataUpdated {
+            first_name: first_name.clone(),
+            last_name: last_name.clone(),
+            date_of_birth: date_of_birth.clone(),
+            country: country.clone(),
+        });
+        self.profile_data = ProfileData::new(first_name, last_name, date_of_birth, country);
+        Idempotent::Executed(())
+    }
 }
 
 impl TryFromEvents<CustomerEvent> for Customer {
@@ -230,6 +268,19 @@ impl TryFromEvents<CustomerEvent> for Customer {
                 }
                 CustomerEvent::ActivityUpdated { activity, .. } => {
                     builder = builder.activity(*activity);
+                }
+                CustomerEvent::ProfileDataUpdated {
+                    first_name,
+                    last_name,
+                    date_of_birth,
+                    country,
+                } => {
+                    builder = builder.profile_data(ProfileData::new(
+                        first_name.clone(),
+                        last_name.clone(),
+                        date_of_birth.clone(),
+                        country.clone(),
+                    ));
                 }
             }
         }

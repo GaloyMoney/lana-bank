@@ -409,6 +409,80 @@ where
     }
 
     #[record_error_severity]
+    #[instrument(name = "customer.update_profile_data_from_sumsub", skip(self))]
+    pub async fn update_profile_data_from_sumsub(
+        &self,
+        customer_id: CustomerId,
+        first_name: Option<String>,
+        last_name: Option<String>,
+        date_of_birth: Option<String>,
+        country: Option<String>,
+    ) -> Result<Customer, CustomerError> {
+        let mut customer = self.repo.find_by_id(customer_id).await?;
+
+        self.authz
+            .audit()
+            .record_system_entry(
+                CustomerObject::customer(customer.id),
+                CoreCustomerAction::CUSTOMER_UPDATE_PROFILE_DATA,
+            )
+            .await?;
+
+        if customer
+            .update_profile_data(first_name, last_name, date_of_birth, country)
+            .did_execute()
+        {
+            self.repo.update(&mut customer).await?;
+        }
+
+        Ok(customer)
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "customer.update_profile_data_from_sumsub_if_exists",
+        skip(self)
+    )]
+    pub async fn update_profile_data_from_sumsub_if_exists(
+        &self,
+        customer_id: CustomerId,
+        first_name: Option<String>,
+        last_name: Option<String>,
+        date_of_birth: Option<String>,
+        country: Option<String>,
+    ) -> Result<Option<Customer>, CustomerError> {
+        let Some(mut customer) = self.repo.maybe_find_by_id(customer_id).await? else {
+            return Ok(None);
+        };
+
+        self.authz
+            .audit()
+            .record_system_entry(
+                CustomerObject::customer(customer.id),
+                CoreCustomerAction::CUSTOMER_UPDATE_PROFILE_DATA,
+            )
+            .await?;
+
+        if customer
+            .update_profile_data(first_name, last_name, date_of_birth, country)
+            .did_execute()
+        {
+            self.repo.update(&mut customer).await?;
+        }
+
+        Ok(Some(customer))
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "customer.find_by_applicant_id", skip(self))]
+    pub async fn find_by_applicant_id(
+        &self,
+        applicant_id: &str,
+    ) -> Result<Option<Customer>, CustomerError> {
+        self.repo.maybe_find_by_applicant_id(applicant_id).await
+    }
+
+    #[record_error_severity]
     #[instrument(name = "customer.find_all", skip(self))]
     pub async fn find_all<T: From<Customer>>(
         &self,

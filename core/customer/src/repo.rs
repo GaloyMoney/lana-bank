@@ -61,6 +61,29 @@ where
     ) -> Result<(), CustomerError> {
         self.publisher.publish(db, entity, new_events).await
     }
+
+    pub async fn maybe_find_by_applicant_id(
+        &self,
+        applicant_id: &str,
+    ) -> Result<Option<Customer>, CustomerError> {
+        let row: Option<(CustomerId,)> = sqlx::query_as(
+            r#"
+            SELECT id
+            FROM core_customer_events_rollup
+            WHERE applicant_id = $1
+            ORDER BY version DESC
+            LIMIT 1
+            "#,
+        )
+        .bind(applicant_id)
+        .fetch_optional(&self.pool)
+        .await?;
+
+        match row {
+            Some((id,)) => self.maybe_find_by_id(id).await,
+            None => Ok(None),
+        }
+    }
 }
 
 mod account_status_sqlx {

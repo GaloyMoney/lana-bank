@@ -388,12 +388,15 @@
           "nonDomiciledCompany": "Empresa no domiciliada"
         },
         "labels": {
+          "fullName": "Nombre Completo",
           "email": "Correo electrónico",
           "createdOn": "Fecha de registro",
           "telegram": "Telegram",
           "status": "Estado",
           "customerType": "Tipo",
-          "publicId": "ID Público"
+          "publicId": "ID Público",
+          "dateOfBirth": "Fecha de Nacimiento",
+          "country": "País"
         },
         "status": {
           "active": "Activo",

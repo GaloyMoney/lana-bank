@@ -117,6 +117,40 @@ impl From<CustomerType> for String {
     }
 }
 
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+pub struct ProfileData {
+    pub first_name: Option<String>,
+    pub last_name: Option<String>,
+    pub date_of_birth: Option<String>,
+    pub country: Option<String>,
+}
+
+impl ProfileData {
+    pub fn new(
+        first_name: Option<String>,
+        last_name: Option<String>,
+        date_of_birth: Option<String>,
+        country: Option<String>,
+    ) -> Self {
+        Self {
+            first_name,
+            last_name,
+            date_of_birth,
+            country,
+        }
+    }
+
+    pub fn full_name(&self) -> Option<String> {
+        match (&self.first_name, &self.last_name) {
+            (Some(first), Some(last)) => Some(format!("{first} {last}")),
+            (Some(first), None) => Some(first.clone()),
+            (None, Some(last)) => Some(last.clone()),
+            (None, None) => None,
+        }
+    }
+}
+
 pub type CustomerAllOrOne = AllOrOne<CustomerId>;
 pub type CustomerDocumentAllOrOne = AllOrOne<CustomerDocumentId>;
 
@@ -205,6 +239,8 @@ impl CoreCustomerAction {
         CoreCustomerAction::Customer(CustomerEntityAction::ApproveKyc);
     pub const CUSTOMER_DECLINE_KYC: Self =
         CoreCustomerAction::Customer(CustomerEntityAction::DeclineKyc);
+    pub const CUSTOMER_UPDATE_PROFILE_DATA: Self =
+        CoreCustomerAction::Customer(CustomerEntityAction::UpdateProfileData);
     pub const CUSTOMER_DOCUMENT_CREATE: Self =
         CoreCustomerAction::CustomerDocument(CustomerDocumentEntityAction::Create);
     pub const CUSTOMER_DOCUMENT_READ: Self =
@@ -242,6 +278,7 @@ pub enum CustomerEntityAction {
     StartKyc,
     ApproveKyc,
     DeclineKyc,
+    UpdateProfileData,
 }
 
 impl ActionPermission for CustomerEntityAction {
@@ -250,9 +287,12 @@ impl ActionPermission for CustomerEntityAction {
             Self::Read | Self::List => PERMISSION_SET_CUSTOMER_VIEWER,
 
             // All other operations use WRITER permission
-            Self::Create | Self::Update | Self::StartKyc | Self::ApproveKyc | Self::DeclineKyc => {
-                PERMISSION_SET_CUSTOMER_WRITER
-            }
+            Self::Create
+            | Self::Update
+            | Self::StartKyc
+            | Self::ApproveKyc
+            | Self::DeclineKyc
+            | Self::UpdateProfileData => PERMISSION_SET_CUSTOMER_WRITER,
         }
     }
 }

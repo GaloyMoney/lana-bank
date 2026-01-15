@@ -388,12 +388,15 @@
           "nonDomiciledCompany": "Non-Domiciled Company"
         },
         "labels": {
+          "fullName": "Full Name",
           "email": "Email",
           "createdOn": "Created on",
           "telegram": "Telegram",
           "status": "Status",
           "customerType": "Type",
-          "publicId": "Public ID"
+          "publicId": "Public ID",
+          "dateOfBirth": "Date of Birth",
+          "country": "Country"
         },
         "status": {
           "active": "Active",
