@@ -270,20 +270,6 @@ where
             )
             .await?;
 
-        self.jobs
-            .create_and_spawn_in_op(
-                &mut db,
-                JobId::new(),
-                credit_facility_payment_allocation::CreditFacilityPaymentAllocationJobConfig::<
-                    Perms,
-                    E,
-                > {
-                    credit_facility_id,
-                    _phantom: std::marker::PhantomData,
-                },
-            )
-            .await?;
-
         let activation_data = if let Some(mut new_disbursal_builder) = initial_disbursal {
             let public_id = self
                 .public_ids
