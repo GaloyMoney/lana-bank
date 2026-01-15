@@ -36,6 +36,12 @@
         "equity_code": {
           "$ref": "#/$defs/AccountCode"
         },
+        "equity_retained_earnings_gain_code": {
+          "$ref": "#/$defs/AccountCode"
+        },
+        "equity_retained_earnings_loss_code": {
+          "$ref": "#/$defs/AccountCode"
+        },
         "expenses_code": {
           "$ref": "#/$defs/AccountCode"
         },
@@ -50,6 +56,8 @@
         "assets_code",
         "liabilities_code",
         "equity_code",
+        "equity_retained_earnings_gain_code",
+        "equity_retained_earnings_loss_code",
         "revenue_code",
         "cost_of_revenue_code",
         "expenses_code"
