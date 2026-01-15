@@ -40,7 +40,7 @@ pub struct ChartOfAccounts<Perms>
 where
     Perms: PermissionCheck,
 {
-    clock: ClockHandle,
+    pub(crate) clock: ClockHandle,
     repo: ChartRepo,
     chart_ledger: ChartLedger,
     cala: CalaLedger,
@@ -100,7 +100,7 @@ where
     ) -> Result<Chart, ChartOfAccountsError> {
         let id = ChartId::new();
 
-        let mut op = self.repo.begin_op().await?;
+        let mut op = self.repo.begin_op_with_clock(&self.clock).await?;
         self.authz
             .enforce_permission(
                 sub,
@@ -157,7 +157,7 @@ where
             new_connections,
         } = BulkAccountImport::new(&mut chart, self.journal_id).import(account_specs);
 
-        let mut op = self.repo.begin_op().await?;
+        let mut op = self.repo.begin_op_with_clock(&self.clock).await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
         let mut op = op.with_db_time().await?;
@@ -210,7 +210,7 @@ where
         };
         let account_set_id = new_account_set.id;
 
-        let mut op = self.repo.begin_op().await?;
+        let mut op = self.repo.begin_op_with_clock(&self.clock).await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
         let mut op = op.with_db_time().await?;
@@ -257,7 +257,7 @@ where
         };
         let account_set_id = new_account_set.id;
 
-        let mut op = self.repo.begin_op().await?;
+        let mut op = self.repo.begin_op_with_clock(&self.clock).await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
         let mut op = op.with_db_time().await?;
@@ -421,7 +421,7 @@ where
         {
             ManualAccountFromChart::IdInChart(id) | ManualAccountFromChart::NonChartId(id) => id,
             ManualAccountFromChart::NewAccount((account_set_id, new_account)) => {
-                let mut op = self.repo.begin_op().await?;
+                let mut op = self.repo.begin_op_with_clock(&self.clock).await?;
                 self.repo.update_in_op(&mut op, &mut chart).await?;
 
                 let mut op = op.with_db_time().await?;

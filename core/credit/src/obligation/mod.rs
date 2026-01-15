@@ -114,8 +114,11 @@ where
         }
     }
 
-    pub async fn begin_op(&self) -> Result<es_entity::DbOp<'static>, ObligationError> {
-        Ok(self.repo.begin_op().await?)
+    pub async fn begin_op_with_clock(
+        &self,
+        clock: &es_entity::clock::ClockHandle,
+    ) -> Result<es_entity::DbOp<'static>, ObligationError> {
+        Ok(self.repo.begin_op_with_clock(clock).await?)
     }
 
     pub async fn create_with_jobs_in_op(

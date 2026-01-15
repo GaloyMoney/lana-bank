@@ -94,7 +94,12 @@ where
         id: impl es_entity::RetryableInto<DisbursalId>,
         approved: bool,
     ) -> Result<Disbursal, CoreCreditError> {
-        let mut op = self.disbursals.begin_op().await?.with_db_time().await?;
+        let mut op = self
+            .disbursals
+            .begin_op_with_clock(&self.ledger.clock)
+            .await?
+            .with_db_time()
+            .await?;
 
         let disbursal = match self
             .disbursals

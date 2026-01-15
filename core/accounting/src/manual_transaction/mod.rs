@@ -148,7 +148,10 @@ where
             .build()
             .expect("Couldn't build new manual transaction");
 
-        let mut db = self.repo.begin_op().await?;
+        let mut db = self
+            .repo
+            .begin_op_with_clock(&self.chart_of_accounts.clock)
+            .await?;
         let manual_transaction = self.repo.create_in_op(&mut db, new_tx).await?;
 
         let mut entry_params = vec![];

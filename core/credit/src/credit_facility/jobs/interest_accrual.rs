@@ -251,7 +251,10 @@ where
         &self,
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let mut db = self.credit_facility_repo.begin_op().await?;
+        let mut db = self
+            .credit_facility_repo
+            .begin_op_with_clock(current_job.clock())
+            .await?;
 
         let ConfirmedAccrual {
             accrual: interest_accrual,
@@ -386,9 +389,12 @@ where
     /// - Spawns new job for next cycle if facility hasn't matured
     async fn complete_cycle(
         &self,
-        _current_job: CurrentJob,
+        current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let mut op = self.credit_facility_repo.begin_op().await?;
+        let mut op = self
+            .credit_facility_repo
+            .begin_op_with_clock(current_job.clock())
+            .await?;
 
         self.authz
             .audit()

@@ -221,7 +221,7 @@ where
         &self,
         credit_facility_id: CreditFacilityId,
     ) -> Result<(), crate::credit_facility::error::CreditFacilityError> {
-        let mut op = self.repo.begin_op().await?;
+        let mut op = self.repo.begin_op_with_clock(&self.ledger.clock).await?;
         // if the pending facility is not collateralized enough to be activated there will be no
         // credit facility to update the collateralization state for
         let Some(mut credit_facility) = self.repo.maybe_find_by_id(credit_facility_id).await?
@@ -287,7 +287,7 @@ where
                 credit_facilities.end_cursor,
                 credit_facilities.has_next_page,
             );
-            let mut op = self.repo.begin_op().await?;
+            let mut op = self.repo.begin_op_with_clock(&self.ledger.clock).await?;
             self.authz
                 .audit()
                 .record_system_entry_in_tx(

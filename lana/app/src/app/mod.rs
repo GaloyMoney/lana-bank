@@ -102,6 +102,7 @@ impl LanaApp {
             seed::PREDEFINED_ROLES,
             &authz,
             &outbox,
+            clock.clone(),
         )
         .await?;
 
@@ -116,11 +117,11 @@ impl LanaApp {
         .await?;
 
         let dashboard = Dashboard::init(&pool, &authz, &mut jobs, &outbox).await?;
-        let governance = Governance::new(&pool, &authz, &outbox);
+        let governance = Governance::new(&pool, &authz, &outbox, clock.clone());
         let storage = Storage::new(&config.storage);
         let reports = Reports::init(&pool, &authz, config.report, &outbox, &storage).await?;
         let price = Price::init(&mut jobs, &outbox).await?;
-        let documents = DocumentStorage::new(&pool, &storage);
+        let documents = DocumentStorage::new(&pool, &storage, clock.clone());
         let public_ids = PublicIds::new(&pool);
 
         let user_onboarding =
@@ -151,6 +152,7 @@ impl LanaApp {
             &outbox,
             documents.clone(),
             public_ids.clone(),
+            clock.clone(),
         );
         let deposits = Deposits::init(
             &pool,
@@ -186,7 +188,7 @@ impl LanaApp {
         )
         .await?;
 
-        let custody = Custody::init(&pool, &authz, config.custody, &outbox).await?;
+        let custody = Custody::init(&pool, &authz, config.custody, &outbox, clock.clone()).await?;
 
         let credit = Credit::init(
             &pool,

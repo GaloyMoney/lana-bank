@@ -110,7 +110,7 @@ where
             .build()
             .expect("Could not build new FiscalYear");
 
-        let mut op = self.repo.begin_op().await?;
+        let mut op = self.repo.begin_op_with_clock(&self.clock).await?;
         let fiscal_year = self.repo.create_in_op(&mut op, new_fiscal_year).await?;
         let close_ledger_as_of = opened_as_of
             .pred_opt()
@@ -166,7 +166,7 @@ where
 
         match fiscal_year.close(now)? {
             Idempotent::Executed(tx_details) => {
-                let mut op = self.repo.begin_op().await?;
+                let mut op = self.repo.begin_op_with_clock(&self.clock).await?;
                 self.repo.update_in_op(&mut op, &mut fiscal_year).await?;
 
                 let config = self
@@ -211,7 +211,7 @@ where
 
         let mut fiscal_year = self.repo.find_by_id(id).await?;
         if let Idempotent::Executed(date) = fiscal_year.close_next_sequential_month(now)? {
-            let mut op = self.repo.begin_op().await?;
+            let mut op = self.repo.begin_op_with_clock(&self.clock).await?;
             self.repo.update_in_op(&mut op, &mut fiscal_year).await?;
             self.chart_of_accounts
                 .close_as_of_in_op(&mut op, sub, fiscal_year.chart_id, date)

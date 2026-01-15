@@ -3,6 +3,7 @@ mod helpers;
 use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
 use cloud_storage::{Storage, config::StorageConfig};
+use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 use rust_decimal_macros::dec;
 
 use core_credit::{ledger::error::CreditLedgerError, *};
@@ -146,6 +147,7 @@ async fn create_active_facility(
 async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
     // Infrastructure setup
     let pool = helpers::init_pool().await?;
+    let (clock, _) = ClockHandle::artificial(ArtificialClockConfig::manual());
     let outbox = obix::Outbox::<event::DummyEvent>::init(
         &pool,
         obix::MailboxConfig::builder()
@@ -155,13 +157,25 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
     .await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
     let storage = Storage::new(&StorageConfig::default());
-    let document_storage = DocumentStorage::new(&pool, &storage);
-    let governance = governance::Governance::new(&pool, &authz, &outbox);
+    let document_storage = DocumentStorage::new(&pool, &storage, clock.clone());
+    let governance = governance::Governance::new(&pool, &authz, &outbox, clock.clone());
     let public_ids = public_id::PublicIds::new(&pool);
-    let customers =
-        core_customer::Customers::new(&pool, &authz, &outbox, document_storage, public_ids);
-    let custody =
-        core_custody::CoreCustody::init(&pool, &authz, helpers::custody_config(), &outbox).await?;
+    let customers = core_customer::Customers::new(
+        &pool,
+        &authz,
+        &outbox,
+        document_storage,
+        public_ids,
+        clock.clone(),
+    );
+    let custody = core_custody::CoreCustody::init(
+        &pool,
+        &authz,
+        helpers::custody_config(),
+        &outbox,
+        clock.clone(),
+    )
+    .await?;
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
         .exec_migrations(false)

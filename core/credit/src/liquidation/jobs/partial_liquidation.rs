@@ -167,7 +167,10 @@ where
                 message = stream.next() => {
                     match message {
                         Some(message) => {
-                            let mut db = self.liquidation_repo.begin_op().await?;
+                            let mut db = self
+                                .liquidation_repo
+                                .begin_op_with_clock(&self.ledger.clock)
+                                .await?;
 
                             state.sequence = message.sequence;
                             current_job

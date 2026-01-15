@@ -145,7 +145,7 @@ where
         id: ObligationId,
         effective: chrono::NaiveDate,
     ) -> Result<(), ObligationError> {
-        let mut op = self.repo.begin_op().await?;
+        let mut op = self.repo.begin_op_with_clock(&self.ledger.clock).await?;
 
         let mut obligation = self.repo.find_by_id_in_op(&mut op, id).await?;
 

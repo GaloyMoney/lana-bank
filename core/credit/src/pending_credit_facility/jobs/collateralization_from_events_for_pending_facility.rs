@@ -193,7 +193,7 @@ where
         &self,
         id: PendingCreditFacilityId,
     ) -> Result<PendingCreditFacility, PendingCreditFacilityError> {
-        let mut op = self.repo.begin_op().await?;
+        let mut op = self.repo.begin_op_with_clock(&self.ledger.clock).await?;
         let mut pending_facility = self.repo.find_by_id_in_op(&mut op, id).await?;
 
         tracing::Span::current().record(
@@ -249,7 +249,7 @@ where
                 pending_credit_facilities.end_cursor,
                 pending_credit_facilities.has_next_page,
             );
-            let mut op = self.repo.begin_op().await?;
+            let mut op = self.repo.begin_op_with_clock(&self.ledger.clock).await?;
 
             let mut at_least_one = false;
 

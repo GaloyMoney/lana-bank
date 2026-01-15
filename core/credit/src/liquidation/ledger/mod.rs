@@ -18,7 +18,7 @@ use super::RecordProceedsFromLiquidationData;
 #[derive(Clone)]
 pub struct LiquidationLedger {
     cala: CalaLedger,
-    clock: ClockHandle,
+    pub(crate) clock: ClockHandle,
     journal_id: JournalId,
 }
 

@@ -9,18 +9,20 @@ use cloud_storage::{Storage, config::StorageConfig};
 use core_customer::{CustomerType, Customers};
 use core_deposit::*;
 use document_storage::DocumentStorage;
+use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 
 use helpers::{action, event, object};
 
 #[tokio::test]
 async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
+    let (clock, _) = ClockHandle::artificial(ArtificialClockConfig::manual());
 
     let outbox =
         obix::Outbox::<event::DummyEvent>::init(&pool, obix::MailboxConfig::builder().build()?)
             .await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
-    let governance = governance::Governance::new(&pool, &authz, &outbox);
+    let governance = governance::Governance::new(&pool, &authz, &outbox, clock.clone());
 
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
@@ -36,7 +38,7 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
     .await?;
 
     let storage = Storage::new(&StorageConfig::default());
-    let document_storage = DocumentStorage::new(&pool, &storage);
+    let document_storage = DocumentStorage::new(&pool, &storage, clock.clone());
     let journal_id = helpers::init_journal(&cala).await?;
     let public_ids = public_id::PublicIds::new(&pool);
 
@@ -46,6 +48,7 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
         &outbox,
         document_storage.clone(),
         public_ids.clone(),
+        clock.clone(),
     );
 
     let deposit = CoreDeposit::init(

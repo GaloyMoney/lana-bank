@@ -64,8 +64,9 @@ where
         predefined_roles: &'static [(&'static str, &'static [&'static str])],
         authz: &Authorization<Audit, AuthRoleToken>,
         outbox: &Outbox<E>,
+        clock: es_entity::clock::ClockHandle,
     ) -> Result<Self, CoreAccessError> {
-        let users = Users::init(pool, authz, outbox).await?;
+        let users = Users::init(pool, authz, outbox, clock).await?;
         let publisher = UserPublisher::new(outbox);
         let role_repo = RoleRepo::new(pool, &publisher);
         let permission_set_repo = PermissionSetRepo::new(pool);

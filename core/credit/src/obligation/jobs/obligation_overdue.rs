@@ -141,7 +141,7 @@ where
     ) -> Result<(), ObligationError> {
         let mut obligation = self.repo.find_by_id(id).await?;
 
-        let mut op = self.repo.begin_op().await?;
+        let mut op = self.repo.begin_op_with_clock(&self.ledger.clock).await?;
 
         self.authz
             .audit()

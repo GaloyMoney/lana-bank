@@ -52,7 +52,10 @@ where
         all_actions: Vec<ActionMapping>,
         predefined_roles: &[(&'static str, &[&'static str])],
     ) -> Result<(), CoreAccessError> {
-        let mut db = self.role_repo.begin_op().await?;
+        let mut db = self
+            .role_repo
+            .begin_op_with_clock(&self.users.clock)
+            .await?;
 
         let permission_sets = self
             .bootstrap_permission_sets(&mut db, &all_actions)

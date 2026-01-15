@@ -8,6 +8,7 @@ use authz::dummy::{DummyPerms, DummySubject};
 use cloud_storage::{Storage, config::StorageConfig};
 use document_storage::DocumentStorage;
 use domain_config::InternalDomainConfigs;
+use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 use job::{JobSvcConfig, Jobs};
 
 use cala_ledger::{
@@ -246,6 +247,7 @@ async fn post_closing_tx_with_loss() -> Result<()> {
 async fn setup_test() -> anyhow::Result<Test> {
     use rand::Rng;
     let pool = helpers::init_pool().await?;
+    let (clock, _) = ClockHandle::artificial(ArtificialClockConfig::manual());
 
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
@@ -257,7 +259,7 @@ async fn setup_test() -> anyhow::Result<Test> {
     let journal_id = helpers::init_journal(&cala).await?;
 
     let storage = Storage::new(&StorageConfig::default());
-    let document_storage = DocumentStorage::new(&pool, &storage);
+    let document_storage = DocumentStorage::new(&pool, &storage, clock.clone());
     let mut jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
 
     let fiscal_year_repo = FiscalYearRepo::new(&pool);

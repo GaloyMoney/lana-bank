@@ -171,8 +171,11 @@ where
         })
     }
 
-    pub(super) async fn begin_op(&self) -> Result<es_entity::DbOp<'static>, CreditFacilityError> {
-        Ok(self.repo.begin_op().await?)
+    pub(super) async fn begin_op_with_clock(
+        &self,
+        clock: &es_entity::clock::ClockHandle,
+    ) -> Result<es_entity::DbOp<'static>, CreditFacilityError> {
+        Ok(self.repo.begin_op_with_clock(clock).await?)
     }
 
     #[record_error_severity]
@@ -181,7 +184,12 @@ where
         &self,
         credit_facility_id: CreditFacilityId,
     ) -> Result<(), CreditFacilityError> {
-        let mut db = self.repo.begin_op().await?.with_db_time().await?;
+        let mut db = self
+            .repo
+            .begin_op_with_clock(&self.ledger.clock)
+            .await?
+            .with_db_time()
+            .await?;
 
         self.authz
             .audit()

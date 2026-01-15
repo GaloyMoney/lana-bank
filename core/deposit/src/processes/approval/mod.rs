@@ -83,7 +83,7 @@ where
         if withdraw.is_approved_or_denied().is_some() {
             return Ok(withdraw);
         }
-        let mut op = self.repo.begin_op().await?;
+        let mut op = self.repo.begin_op_with_clock(&self.ledger.clock).await?;
         self.audit
             .record_system_entry_in_tx(
                 &mut op,

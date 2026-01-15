@@ -152,7 +152,7 @@ where
                 CoreCreditAction::LIQUIDATION_RECORD_COLLATERAL_SENT,
             )
             .await?;
-        let mut db = self.repo.begin_op().await?;
+        let mut db = self.repo.begin_op_with_clock(&self.ledger.clock).await?;
 
         let mut liquidation = self.repo.find_by_id_in_op(&mut db, liquidation_id).await?;
 
@@ -199,7 +199,7 @@ where
             )
             .await?;
 
-        let mut db = self.repo.begin_op().await?;
+        let mut db = self.repo.begin_op_with_clock(&self.ledger.clock).await?;
         let mut liquidation = self.repo.find_by_id_in_op(&mut db, liquidation_id).await?;
 
         let tx_id = CalaTransactionId::new();

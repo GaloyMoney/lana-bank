@@ -167,7 +167,7 @@ where
             .find_by_custody_wallet_id(Some(custody_wallet_id))
             .await?;
 
-        let mut db = self.repo.begin_op().await?;
+        let mut db = self.repo.begin_op_with_clock(&self.ledger.clock).await?;
 
         if let es_entity::Idempotent::Executed(data) =
             collateral.record_collateral_update_via_custodian_sync(updated_collateral, effective)

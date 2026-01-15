@@ -239,6 +239,7 @@ where
             authz_arc.clone(),
             &publisher,
             governance_arc.clone(),
+            clock.clone(),
         )
         .await?;
         let proposals_arc = Arc::new(credit_facility_proposals);
@@ -524,7 +525,10 @@ where
             tracing::field::display(proposal_id),
         );
 
-        let mut db = self.pending_credit_facilities.begin_op().await?;
+        let mut db = self
+            .pending_credit_facilities
+            .begin_op_with_clock(&self.clock)
+            .await?;
 
         let new_facility_proposal = NewCreditFacilityProposal::builder()
             .id(proposal_id)
@@ -603,7 +607,7 @@ where
             return Err(CreditFacilityError::BelowMarginLimit.into());
         }
 
-        let mut db = self.facilities.begin_op().await?;
+        let mut db = self.facilities.begin_op_with_clock(&self.clock).await?;
         let disbursal_id = DisbursalId::new();
         let due_date = facility.maturity_date;
         let overdue_date = facility
@@ -692,7 +696,7 @@ where
             tracing::field::display(pending_facility.id),
         );
 
-        let mut db = self.facilities.begin_op().await?;
+        let mut db = self.facilities.begin_op_with_clock(&self.clock).await?;
 
         let collateral_update = if let Some(collateral_update) = self
             .collaterals
@@ -744,7 +748,7 @@ where
             .find_by_id_without_audit(credit_facility_id)
             .await?;
 
-        let mut db = self.facilities.begin_op().await?;
+        let mut db = self.facilities.begin_op_with_clock(&self.clock).await?;
 
         let collateral_update = if let Some(collateral_update) = self
             .collaterals
@@ -817,7 +821,7 @@ where
             .find_by_id_without_audit(credit_facility_id)
             .await?;
 
-        let mut db = self.facilities.begin_op().await?;
+        let mut db = self.facilities.begin_op_with_clock(&self.clock).await?;
 
         let payment_id = PaymentId::new();
         let effective = self.clock.today();
@@ -890,7 +894,7 @@ where
             .find_by_id_without_audit(credit_facility_id)
             .await?;
 
-        let mut db = self.facilities.begin_op().await?;
+        let mut db = self.facilities.begin_op_with_clock(&self.clock).await?;
 
         let payment_id = PaymentId::new();
         let initiated_by = LedgerTransactionInitiator::try_from_subject(sub)?;
@@ -952,7 +956,7 @@ where
             .await?
             .expect("audit info missing");
 
-        let mut db = self.facilities.begin_op().await?;
+        let mut db = self.facilities.begin_op_with_clock(&self.clock).await?;
 
         let credit_facility = match self
             .facilities

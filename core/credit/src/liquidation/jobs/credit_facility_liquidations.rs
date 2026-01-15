@@ -138,7 +138,10 @@ where
                     match message {
                         Some(message) => {
 
-                            let mut db = self.repo.begin_op().await?;
+                            let mut db = self
+                                .repo
+                                .begin_op_with_clock(current_job.clock())
+                                .await?;
                             self.process_message(&mut db, message.as_ref()).await?;
                             state.sequence = message.sequence;
                             current_job

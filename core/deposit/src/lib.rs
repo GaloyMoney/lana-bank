@@ -219,7 +219,10 @@ where
 
         let account_id = DepositAccountId::new();
 
-        let mut op = self.deposit_accounts.begin_op().await?;
+        let mut op = self
+            .deposit_accounts
+            .begin_op_with_clock(&self.ledger.clock)
+            .await?;
 
         let public_id = self
             .public_ids
@@ -320,7 +323,10 @@ where
             .deposit_accounts
             .list_for_account_holder_id_by_id(holder_id, Default::default(), Default::default())
             .await?;
-        let mut op = self.deposit_accounts.begin_op().await?;
+        let mut op = self
+            .deposit_accounts
+            .begin_op_with_clock(&self.ledger.clock)
+            .await?;
 
         for mut account in accounts.entities.into_iter() {
             match account.update_status_via_holder(status) {
@@ -395,7 +401,10 @@ where
             .await?;
         self.check_account_active(deposit_account_id).await?;
         let deposit_id = DepositId::new();
-        let mut op = self.deposits.begin_op().await?;
+        let mut op = self
+            .deposits
+            .begin_op_with_clock(&self.ledger.clock)
+            .await?;
         let public_id = self
             .public_ids
             .create_in_op(&mut op, DEPOSIT_REF_TARGET, deposit_id)
@@ -442,7 +451,10 @@ where
             .await?;
         self.check_account_active(deposit_account_id).await?;
         let withdrawal_id = WithdrawalId::new();
-        let mut op = self.withdrawals.begin_op().await?;
+        let mut op = self
+            .withdrawals
+            .begin_op_with_clock(&self.ledger.clock)
+            .await?;
         let public_id = self
             .public_ids
             .create_in_op(&mut op, WITHDRAWAL_REF_TARGET, withdrawal_id)
@@ -506,7 +518,10 @@ where
             .await?;
 
         if let es_entity::Idempotent::Executed(deposit_reversal_data) = deposit.revert() {
-            let mut op = self.deposits.begin_op().await?;
+            let mut op = self
+                .deposits
+                .begin_op_with_clock(&self.ledger.clock)
+                .await?;
             self.deposits.update_in_op(&mut op, &mut deposit).await?;
             self.ledger
                 .revert_deposit(
@@ -543,7 +558,10 @@ where
             .await?;
 
         if let Ok(es_entity::Idempotent::Executed(withdrawal_reversal_data)) = withdrawal.revert() {
-            let mut op = self.withdrawals.begin_op().await?;
+            let mut op = self
+                .withdrawals
+                .begin_op_with_clock(&self.ledger.clock)
+                .await?;
             self.withdrawals
                 .update_in_op(&mut op, &mut withdrawal)
                 .await?;
@@ -578,7 +596,10 @@ where
         let mut withdrawal = self.withdrawals.find_by_id(id).await?;
         self.check_account_active(withdrawal.deposit_account_id)
             .await?;
-        let mut op = self.withdrawals.begin_op().await?;
+        let mut op = self
+            .withdrawals
+            .begin_op_with_clock(&self.ledger.clock)
+            .await?;
         let tx_id = withdrawal.confirm()?;
         self.withdrawals
             .update_in_op(&mut op, &mut withdrawal)
@@ -620,7 +641,10 @@ where
         let mut withdrawal = self.withdrawals.find_by_id(id).await?;
         self.check_account_active(withdrawal.deposit_account_id)
             .await?;
-        let mut op = self.withdrawals.begin_op().await?;
+        let mut op = self
+            .withdrawals
+            .begin_op_with_clock(&self.ledger.clock)
+            .await?;
         let tx_id = withdrawal.cancel()?;
         self.withdrawals
             .update_in_op(&mut op, &mut withdrawal)
@@ -658,7 +682,10 @@ where
         let mut account = self.deposit_accounts.find_by_id(account_id).await?;
 
         if account.freeze()?.did_execute() {
-            let mut op = self.deposit_accounts.begin_op().await?;
+            let mut op = self
+                .deposit_accounts
+                .begin_op_with_clock(&self.ledger.clock)
+                .await?;
 
             self.deposit_accounts
                 .update_in_op(&mut op, &mut account)
@@ -696,7 +723,10 @@ where
         let mut account = self.deposit_accounts.find_by_id(account_id).await?;
 
         if account.unfreeze()?.did_execute() {
-            let mut op = self.deposit_accounts.begin_op().await?;
+            let mut op = self
+                .deposit_accounts
+                .begin_op_with_clock(&self.ledger.clock)
+                .await?;
 
             self.deposit_accounts
                 .update_in_op(&mut op, &mut account)
@@ -738,7 +768,10 @@ where
         let mut account = self.deposit_accounts.find_by_id(account_id).await?;
 
         if account.close()?.did_execute() {
-            let mut op = self.deposit_accounts.begin_op().await?;
+            let mut op = self
+                .deposit_accounts
+                .begin_op_with_clock(&self.ledger.clock)
+                .await?;
 
             self.deposit_accounts
                 .update_in_op(&mut op, &mut account)

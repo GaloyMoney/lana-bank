@@ -8,6 +8,7 @@ use core_customer::Customers;
 use core_deposit::*;
 use document_storage::DocumentStorage;
 use domain_config::InternalDomainConfigs;
+use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 use helpers::{action, event, object};
 
 #[tokio::test]
@@ -15,13 +16,14 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     use rand::Rng;
 
     let pool = helpers::init_pool().await?;
+    let (clock, _) = ClockHandle::artificial(ArtificialClockConfig::manual());
 
     let outbox =
         obix::Outbox::<event::DummyEvent>::init(&pool, obix::MailboxConfig::builder().build()?)
             .await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
     let domain_configs = InternalDomainConfigs::new(&pool);
-    let governance = governance::Governance::new(&pool, &authz, &outbox);
+    let governance = governance::Governance::new(&pool, &authz, &outbox, clock.clone());
 
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
@@ -37,7 +39,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     .await?;
 
     let storage = Storage::new(&StorageConfig::default());
-    let document_storage = DocumentStorage::new(&pool, &storage);
+    let document_storage = DocumentStorage::new(&pool, &storage, clock.clone());
     let journal_id = helpers::init_journal(&cala).await?;
     let public_ids = public_id::PublicIds::new(&pool);
 
@@ -47,6 +49,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         &outbox,
         document_storage.clone(),
         public_ids.clone(),
+        clock.clone(),
     );
 
     let deposit = CoreDeposit::init(
