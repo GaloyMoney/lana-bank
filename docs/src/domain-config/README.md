@@ -6,9 +6,9 @@ Domain Config provides type-safe, persistent configuration storage with two visi
 
 ### Internal Configs
 
-Internal configs are fully owned by another core crate. The owning crate exposes methods to read and update the config, and defines its own authorization rules specific to that config. They do not appear in the generic "Configurations" page.
+Internal configs are fully owned by another core crate. The owning crate exposes methods to read and update the config, and defines its own authorization rules specific to that config.
 
-Developers can build custom UIs to manage internal configs, but should integrate through the owning crate's API rather than directly with domain-config.
+UI related topics for internal configs needs to be manage by the crate that owns it directly, as internal config do not appear in the generic "Configurations" page.
 
 Internal configs support both simple types and complex structs.
 
