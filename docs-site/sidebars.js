@@ -72,6 +72,7 @@ const sidebars = {
             },
           ],
         },
+        "api/events",
       ],
     },
   ],

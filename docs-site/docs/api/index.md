@@ -39,6 +39,20 @@ The **Customer API** is designed for customer-facing applications like the Custo
 
 [View Customer API Documentation →](/api/customer)
 
+## Domain Events
+
+The system publishes **domain events** via the transactional outbox pattern for integration with external systems. These events cover:
+
+- Access and user management
+- Credit facility lifecycle (proposals, activation, payments, liquidations)
+- Custody and wallet operations
+- Customer onboarding and KYC
+- Deposit and withdrawal operations
+- Price updates
+- Governance and approvals
+
+[View Domain Events Documentation →](/api/events)
+
 ---
 
 ## Authentication
