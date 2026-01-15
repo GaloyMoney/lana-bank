@@ -5,6 +5,7 @@ use tracing::{Span, instrument};
 use futures::StreamExt;
 use std::sync::Arc;
 
+use es_entity::clock::ClockHandle;
 use job::*;
 use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
@@ -85,12 +86,13 @@ impl<E> RepaymentPlanProjectionJobRunner<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    #[instrument(name = "outbox.core_credit.repayment_plan_projection_job.process_message", parent = None, skip(self, message, db, sequence), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
+    #[instrument(name = "outbox.core_credit.repayment_plan_projection_job.process_message", parent = None, skip(self, message, db, sequence, clock), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn process_message(
         &self,
         message: &PersistentOutboxEvent<E>,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         sequence: EventSequence,
+        clock: &ClockHandle,
     ) -> Result<(), Box<dyn std::error::Error>> {
         use CoreCreditEvent::*;
 
@@ -103,7 +105,7 @@ where
 
                 let facility_id: crate::primitives::CreditFacilityId = (*id).into();
                 let mut repayment_plan = self.repo.load(facility_id).await?;
-                repayment_plan.process_event(sequence, event);
+                repayment_plan.process_event(sequence, event, clock.now());
                 self.repo
                     .persist_in_tx(db, facility_id, repayment_plan)
                     .await?;
@@ -182,7 +184,7 @@ where
                 Span::current().record("event_type", event.as_ref());
 
                 let mut repayment_plan = self.repo.load(*id).await?;
-                repayment_plan.process_event(sequence, event);
+                repayment_plan.process_event(sequence, event, clock.now());
                 self.repo.persist_in_tx(db, *id, repayment_plan).await?;
             }
             _ => {}
@@ -223,7 +225,7 @@ where
                     match message {
                         Some(message) => {
                             let mut db = self.repo.begin().await?;
-                            self.process_message(&message, &mut db, state.sequence)
+                            self.process_message(&message, &mut db, state.sequence, current_job.clock())
                                 .await?;
 
                             state.sequence = message.sequence;

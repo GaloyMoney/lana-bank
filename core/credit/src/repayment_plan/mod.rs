@@ -33,10 +33,6 @@ pub struct CreditFacilityRepaymentPlan {
 }
 
 impl CreditFacilityRepaymentPlan {
-    fn activated_at(&self) -> DateTime<Utc> {
-        self.activated_at.unwrap_or(es_entity::clock::Clock::now())
-    }
-
     fn existing_obligations(&self) -> Vec<CreditFacilityRepaymentPlanEntry> {
         self.entries
             .iter()
@@ -45,12 +41,12 @@ impl CreditFacilityRepaymentPlan {
             .collect()
     }
 
-    fn planned_disbursals(&self) -> Vec<CreditFacilityRepaymentPlanEntry> {
+    fn planned_disbursals(&self, now: DateTime<Utc>) -> Vec<CreditFacilityRepaymentPlanEntry> {
         let terms = self.terms.expect("Missing FacilityCreated event");
         let facility_amount = self.facility_amount;
         let structuring_fee = terms.one_time_fee_rate.apply(facility_amount);
 
-        let activated_at = self.activated_at();
+        let activated_at = self.activated_at.unwrap_or(now);
         let maturity_date = terms.maturity_date(activated_at);
 
         let mut disbursals = vec![];
@@ -91,9 +87,10 @@ impl CreditFacilityRepaymentPlan {
     fn planned_interest_accruals(
         &self,
         updated_entries: &[CreditFacilityRepaymentPlanEntry],
+        now: DateTime<Utc>,
     ) -> Vec<CreditFacilityRepaymentPlanEntry> {
         let terms = self.terms.expect("Missing FacilityCreated event");
-        let activated_at = self.activated_at();
+        let activated_at = self.activated_at.unwrap_or(now);
 
         let maturity_date = terms.maturity_date(activated_at);
         let mut next_interest_period =
@@ -152,6 +149,7 @@ impl CreditFacilityRepaymentPlan {
         &mut self,
         sequence: EventSequence,
         event: &CoreCreditEvent,
+        now: DateTime<Utc>,
     ) -> bool {
         self.last_updated_on_sequence = sequence;
 
@@ -270,10 +268,10 @@ impl CreditFacilityRepaymentPlan {
         let updated_entries = if !existing_obligations.is_empty() {
             existing_obligations
         } else {
-            self.planned_disbursals()
+            self.planned_disbursals(now)
         };
 
-        let planned_interest_entries = self.planned_interest_accruals(&updated_entries);
+        let planned_interest_entries = self.planned_interest_accruals(&updated_entries, now);
 
         self.entries = updated_entries
             .into_iter()
@@ -429,6 +427,7 @@ mod tests {
                 amount: default_facility_amount(),
                 created_at: default_start_date(),
             },
+            default_start_date(),
         );
 
         plan
@@ -444,7 +443,7 @@ mod tests {
 
     fn process_events(plan: &mut CreditFacilityRepaymentPlan, events: Vec<CoreCreditEvent>) {
         for event in events {
-            plan.process_event(Default::default(), &event);
+            plan.process_event(Default::default(), &event, default_start_date());
         }
     }
 
@@ -871,6 +870,7 @@ mod tests {
                 id: interest_obligation_id,
                 credit_facility_id: CreditFacilityId::new(),
             },
+            default_start_date(),
         );
         let interest_entry_status = plan
             .entries
