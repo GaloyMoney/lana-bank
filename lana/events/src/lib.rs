@@ -3,6 +3,9 @@
 
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "json-schema")]
+use schemars::JsonSchema;
+
 pub use core_access::CoreAccessEvent;
 pub use core_credit::{CollateralAction, CoreCreditEvent, ObligationStatus, ObligationType};
 pub use core_custody::CoreCustodyEvent;
@@ -14,6 +17,7 @@ pub use governance::GovernanceEvent;
 pub use obix::out::OutboxEventMarker;
 
 #[derive(Debug, Serialize, Deserialize, strum::AsRefStr)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "module")]
 pub enum LanaEvent {
     Governance(GovernanceEvent),

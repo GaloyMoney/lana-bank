@@ -1,0 +1,20 @@
+[package]
+name = "public-events-schema"
+version = "0.1.0"
+license = "BUSL-1.1"
+edition = "2024"
+
+[features]
+fail-on-warnings = []
+json-schema = ["lana-events/json-schema"]
+
+[[bin]]
+name = "public-events-schema"
+path = "src/main.rs"
+
+[dependencies]
+lana-events = { path = "../../lana/events" }
+
+schemars = { workspace = true }
+serde_json = { workspace = true }
+workspace-hack = { version = "0.1", path = "../../workspace-hack" }

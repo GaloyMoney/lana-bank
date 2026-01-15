@@ -6,6 +6,7 @@ members = [
   "lib/*",
   "dev/entity-rollups",
   "dev/check-dependency-dag",
+  "dev/public-events-schema",
   "workspace-hack",
 ]
 
