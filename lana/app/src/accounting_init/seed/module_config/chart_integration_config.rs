@@ -21,16 +21,16 @@ impl TryFrom<AccountingBaseConfigData> for AccountingBaseConfig {
     type Error = AccountingInitError;
 
     fn try_from(data: AccountingBaseConfigData) -> Result<Self, Self::Error> {
-        Ok(AccountingBaseConfig {
-            assets_code: data.assets_code.parse()?,
-            liabilities_code: data.liabilities_code.parse()?,
-            equity_code: data.equity_code.parse()?,
-            equity_retained_earnings_gain_code: data.equity_retained_earnings_gain_code.parse()?,
-            equity_retained_earnings_loss_code: data.equity_retained_earnings_loss_code.parse()?,
-            revenue_code: data.revenue_code.parse()?,
-            cost_of_revenue_code: data.cost_of_revenue_code.parse()?,
-            expenses_code: data.expenses_code.parse()?,
-        })
+        Ok(AccountingBaseConfig::try_new(
+            data.assets_code.parse()?,
+            data.liabilities_code.parse()?,
+            data.equity_code.parse()?,
+            data.equity_retained_earnings_gain_code.parse()?,
+            data.equity_retained_earnings_loss_code.parse()?,
+            data.revenue_code.parse()?,
+            data.cost_of_revenue_code.parse()?,
+            data.expenses_code.parse()?,
+        )?)
     }
 }
 

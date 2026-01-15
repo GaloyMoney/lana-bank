@@ -433,13 +433,16 @@ pub enum AccountingBaseConfigError {
     DuplicateAccountCode(String),
     #[error("AccountingBaseConfigError - AccountCodeNotTopLevel: {0}")]
     AccountCodeNotTopLevel(String),
+    #[error("AccountingBaseConfigError - RetainedEarningsCodeNotChildOfEquity: {0}")]
+    RetainedEarningsCodeNotChildOfEquity(String),
 }
 
 impl ErrorSeverity for AccountingBaseConfigError {
     fn severity(&self) -> Level {
         match self {
             Self::DuplicateAccountCode(_) => Level::ERROR,
-            Self::AccountCodeNotTopLevel(_) => Level::WARN,
+            Self::AccountCodeNotTopLevel(_) => Level::ERROR,
+            Self::RetainedEarningsCodeNotChildOfEquity(_) => Level::ERROR,
         }
     }
 }
@@ -458,7 +461,40 @@ pub struct AccountingBaseConfig {
 }
 
 impl AccountingBaseConfig {
-    pub fn validate(&self) -> Result<(), AccountingBaseConfigError> {
+    pub fn try_new(
+        assets_code: AccountCode,
+        liabilities_code: AccountCode,
+        equity_code: AccountCode,
+        equity_retained_earnings_gain_code: AccountCode,
+        equity_retained_earnings_loss_code: AccountCode,
+        revenue_code: AccountCode,
+        cost_of_revenue_code: AccountCode,
+        expenses_code: AccountCode,
+    ) -> Result<Self, AccountingBaseConfigError> {
+        if !equity_code.is_parent_of(&equity_retained_earnings_gain_code.sections)
+            || !equity_code.is_parent_of(&equity_retained_earnings_loss_code.sections)
+        {
+            return Err(
+                AccountingBaseConfigError::RetainedEarningsCodeNotChildOfEquity(
+                    equity_code.to_string(),
+                ),
+            );
+        }
+
+        let config = Self {
+            assets_code,
+            liabilities_code,
+            equity_code,
+            equity_retained_earnings_gain_code,
+            equity_retained_earnings_loss_code,
+            revenue_code,
+            cost_of_revenue_code,
+            expenses_code,
+        };
+        config.validate()?;
+        Ok(config)
+    }
+    fn validate(&self) -> Result<(), AccountingBaseConfigError> {
         let codes = [
             &self.assets_code,
             &self.liabilities_code,
