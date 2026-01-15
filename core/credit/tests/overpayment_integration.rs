@@ -87,8 +87,9 @@ async fn create_active_facility(
         .conclude_customer_approval(&DummySubject, proposal.id, true)
         .await?;
 
-    // Wait for governance approval
-    loop {
+    // Wait for governance approval (max 10 seconds)
+    let max_retries = 100;
+    for attempt in 0..max_retries {
         if let Some(prop) = credit
             .proposals()
             .find_by_id(&DummySubject, proposal.id)
@@ -96,6 +97,9 @@ async fn create_active_facility(
             && prop.status() == CreditFacilityProposalStatus::Approved
         {
             break;
+        }
+        if attempt == max_retries - 1 {
+            panic!("Timed out waiting for governance approval after 10 seconds");
         }
         tokio::time::sleep(std::time::Duration::from_millis(100)).await;
     }
@@ -112,9 +116,10 @@ async fn create_active_facility(
         )
         .await?;
 
-    // Wait for facility activation
+    // Wait for facility activation (max 10 seconds)
     let facility_id: CreditFacilityId = proposal.id.into();
-    loop {
+    let max_retries = 100;
+    for attempt in 0..max_retries {
         if let Some(facility) = credit
             .facilities()
             .find_by_id(&DummySubject, facility_id)
@@ -122,6 +127,9 @@ async fn create_active_facility(
             && facility.status() == CreditFacilityStatus::Active
         {
             break;
+        }
+        if attempt == max_retries - 1 {
+            panic!("Timed out waiting for facility activation after 10 seconds");
         }
         tokio::time::sleep(std::time::Duration::from_millis(100)).await;
     }
