@@ -619,10 +619,11 @@ where
 
     #[record_error_severity]
     #[instrument(name = "deposit.cancel_withdrawal", skip(self))]
+    #[es_entity::retry_on_concurrent_modification]
     pub async fn cancel_withdrawal(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        withdrawal_id: impl Into<WithdrawalId> + std::fmt::Debug,
+        withdrawal_id: impl es_entity::RetryableInto<WithdrawalId>,
     ) -> Result<Withdrawal, CoreDepositError> {
         let id = withdrawal_id.into();
         self.authz
