@@ -1452,6 +1452,26 @@ impl Mutation {
         )
     }
 
+    pub async fn deposit_record_async(
+        &self,
+        ctx: &Context<'_>,
+        input: DepositRecordAsyncInput,
+    ) -> async_graphql::Result<DepositRecordPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        exec_mutation!(
+            DepositRecordPayload,
+            Deposit,
+            ctx,
+            app.deposits().record_deposit_async(
+                sub,
+                input.deposit_account_id,
+                input.amount,
+                input.reference
+            )
+        )
+    }
+
     pub async fn withdrawal_initiate(
         &self,
         ctx: &Context<'_>,

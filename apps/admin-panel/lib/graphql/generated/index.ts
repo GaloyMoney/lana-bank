@@ -1302,6 +1302,12 @@ export type DepositModuleConfigurePayload = {
   depositConfig: DepositModuleConfig;
 };
 
+export type DepositRecordAsyncInput = {
+  amount: Scalars['UsdCents']['input'];
+  depositAccountId: Scalars['UUID']['input'];
+  reference?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type DepositRecordInput = {
   amount: Scalars['UsdCents']['input'];
   depositAccountId: Scalars['UUID']['input'];
@@ -1854,6 +1860,7 @@ export type Mutation = {
   depositAccountUnfreeze: DepositAccountUnfreezePayload;
   depositModuleConfigure: DepositModuleConfigurePayload;
   depositRecord: DepositRecordPayload;
+  depositRecordAsync: DepositRecordPayload;
   depositRevert: DepositRevertPayload;
   domainConfigUpdate: DomainConfigUpdatePayload;
   fiscalYearClose: FiscalYearClosePayload;
@@ -2050,6 +2057,11 @@ export type MutationDepositModuleConfigureArgs = {
 
 export type MutationDepositRecordArgs = {
   input: DepositRecordInput;
+};
+
+
+export type MutationDepositRecordAsyncArgs = {
+  input: DepositRecordAsyncInput;
 };
 
 
@@ -4033,12 +4045,12 @@ export type DepositRevertMutationVariables = Exact<{
 
 export type DepositRevertMutation = { __typename?: 'Mutation', depositRevert: { __typename?: 'DepositRevertPayload', deposit: { __typename?: 'Deposit', id: string, depositId: string, publicId: any, amount: UsdCents, createdAt: any, reference: string, status: DepositStatus, ledgerTransactions: Array<{ __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: any, effective: any, description?: string | null }>, account: { __typename?: 'DepositAccount', id: string, publicId: any, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } } } };
 
-export type CreateDepositMutationVariables = Exact<{
-  input: DepositRecordInput;
+export type CreateDepositAsyncMutationVariables = Exact<{
+  input: DepositRecordAsyncInput;
 }>;
 
 
-export type CreateDepositMutation = { __typename?: 'Mutation', depositRecord: { __typename?: 'DepositRecordPayload', deposit: { __typename?: 'Deposit', id: string, depositId: string, publicId: any, reference: string, createdAt: any, amount: UsdCents, status: DepositStatus, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, email: string, depositAccount?: { __typename?: 'DepositAccount', id: string, deposits: Array<{ __typename?: 'Deposit', id: string, depositId: string, publicId: any, reference: string, createdAt: any, amount: UsdCents, status: DepositStatus, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', customerId: string, email: string } } }>, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } } } };
+export type CreateDepositAsyncMutation = { __typename?: 'Mutation', depositRecordAsync: { __typename?: 'DepositRecordPayload', deposit: { __typename?: 'Deposit', id: string, depositId: string, publicId: any, reference: string, createdAt: any, amount: UsdCents, status: DepositStatus, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, email: string, depositAccount?: { __typename?: 'DepositAccount', id: string, deposits: Array<{ __typename?: 'Deposit', id: string, depositId: string, publicId: any, reference: string, createdAt: any, amount: UsdCents, status: DepositStatus, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', customerId: string, email: string } } }>, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } } } };
 
 export type DepositFieldsFragment = { __typename?: 'Deposit', id: string, depositId: string, publicId: any, reference: string, createdAt: any, amount: UsdCents, status: DepositStatus, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', customerId: string, email: string } } };
 
@@ -8671,9 +8683,9 @@ export function useDepositRevertMutation(baseOptions?: Apollo.MutationHookOption
 export type DepositRevertMutationHookResult = ReturnType<typeof useDepositRevertMutation>;
 export type DepositRevertMutationResult = Apollo.MutationResult<DepositRevertMutation>;
 export type DepositRevertMutationOptions = Apollo.BaseMutationOptions<DepositRevertMutation, DepositRevertMutationVariables>;
-export const CreateDepositDocument = gql`
-    mutation CreateDeposit($input: DepositRecordInput!) {
-  depositRecord(input: $input) {
+export const CreateDepositAsyncDocument = gql`
+    mutation CreateDepositAsync($input: DepositRecordAsyncInput!) {
+  depositRecordAsync(input: $input) {
     deposit {
       ...DepositFields
       account {
@@ -8699,32 +8711,32 @@ export const CreateDepositDocument = gql`
   }
 }
     ${DepositFieldsFragmentDoc}`;
-export type CreateDepositMutationFn = Apollo.MutationFunction<CreateDepositMutation, CreateDepositMutationVariables>;
+export type CreateDepositAsyncMutationFn = Apollo.MutationFunction<CreateDepositAsyncMutation, CreateDepositAsyncMutationVariables>;
 
 /**
- * __useCreateDepositMutation__
+ * __useCreateDepositAsyncMutation__
  *
- * To run a mutation, you first call `useCreateDepositMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreateDepositMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useCreateDepositAsyncMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateDepositAsyncMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [createDepositMutation, { data, loading, error }] = useCreateDepositMutation({
+ * const [createDepositAsyncMutation, { data, loading, error }] = useCreateDepositAsyncMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useCreateDepositMutation(baseOptions?: Apollo.MutationHookOptions<CreateDepositMutation, CreateDepositMutationVariables>) {
+export function useCreateDepositAsyncMutation(baseOptions?: Apollo.MutationHookOptions<CreateDepositAsyncMutation, CreateDepositAsyncMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<CreateDepositMutation, CreateDepositMutationVariables>(CreateDepositDocument, options);
+        return Apollo.useMutation<CreateDepositAsyncMutation, CreateDepositAsyncMutationVariables>(CreateDepositAsyncDocument, options);
       }
-export type CreateDepositMutationHookResult = ReturnType<typeof useCreateDepositMutation>;
-export type CreateDepositMutationResult = Apollo.MutationResult<CreateDepositMutation>;
-export type CreateDepositMutationOptions = Apollo.BaseMutationOptions<CreateDepositMutation, CreateDepositMutationVariables>;
+export type CreateDepositAsyncMutationHookResult = ReturnType<typeof useCreateDepositAsyncMutation>;
+export type CreateDepositAsyncMutationResult = Apollo.MutationResult<CreateDepositAsyncMutation>;
+export type CreateDepositAsyncMutationOptions = Apollo.BaseMutationOptions<CreateDepositAsyncMutation, CreateDepositAsyncMutationVariables>;
 export const DepositsDocument = gql`
     query Deposits($first: Int!, $after: String) {
   deposits(first: $first, after: $after) {

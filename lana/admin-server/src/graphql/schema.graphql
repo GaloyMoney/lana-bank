@@ -1298,6 +1298,12 @@ type DepositModuleConfigurePayload {
 	depositConfig: DepositModuleConfig!
 }
 
+input DepositRecordAsyncInput {
+	depositAccountId: UUID!
+	amount: UsdCents!
+	reference: String
+}
+
 input DepositRecordInput {
 	depositAccountId: UUID!
 	amount: UsdCents!
@@ -1835,6 +1841,7 @@ type Mutation {
 	depositModuleConfigure(input: DepositModuleConfigureInput!): DepositModuleConfigurePayload!
 	manualTransactionExecute(input: ManualTransactionExecuteInput!): ManualTransactionExecutePayload!
 	depositRecord(input: DepositRecordInput!): DepositRecordPayload!
+	depositRecordAsync(input: DepositRecordAsyncInput!): DepositRecordPayload!
 	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
 	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!
 	withdrawalCancel(input: WithdrawalCancelInput!): WithdrawalCancelPayload!
