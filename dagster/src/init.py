@@ -15,7 +15,7 @@ def main():
 
     print("Creating BigQuery UDFs...")
     dbt_resource = DbtCliResource(project_dir=DBT_PROJECT_DIR)
-    dbt_resource.cli(["run-operation", "create_udfs"]).wait()
+    # dbt_resource.cli(["run-operation", "create_udfs"]).wait()
     print("BigQuery UDFs created successfully")
 
 

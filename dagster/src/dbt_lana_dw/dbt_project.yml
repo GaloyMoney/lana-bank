@@ -5,10 +5,6 @@
 name: 'dbt_lana_dw'
 version: '1.0.0'
 
-# UDFs are created once at Dagster startup (see resources/dbt.py)
-# on-run-start:
-# - '{{create_udfs()}}'
-
 vars:
   sats_per_bitcoin: '100000000'
   cents_per_usd: '100'
