@@ -4,9 +4,32 @@ title: Referencia de API
 description: Documentación de la API GraphQL para Lana Bank
 ---
 
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+
+export const ApolloSandboxLink = ({endpoint, label}) => {
+  const sandboxUrl = `https://studio.apollographql.com/sandbox/explorer?endpoint=${encodeURIComponent(endpoint)}`;
+  return (
+    <a href={sandboxUrl} target="_blank" rel="noopener noreferrer" style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '0.5rem',
+      padding: '0.5rem 1rem',
+      backgroundColor: 'var(--ifm-color-primary)',
+      color: 'white',
+      borderRadius: '4px',
+      textDecoration: 'none',
+      fontWeight: 500,
+      fontSize: '0.9rem',
+      marginTop: '0.5rem',
+    }}>
+      {label} ↗
+    </a>
+  );
+};
+
 # Referencia de API
 
-Lana Bank expone dos APIs GraphQL para diferentes casos de uso:
+Lana Bank expone dos APIs GraphQL para diferentes casos de uso.
 
 ## API de Administración
 
@@ -25,6 +48,8 @@ La **API de Administración** está diseñada para operadores y administradores 
 
 [Ver Documentación de API de Administración →](/api/admin)
 
+<ApolloSandboxLink endpoint="http://admin.localhost:4455/graphql" label="Abrir en Apollo Sandbox" />
+
 ## API de Cliente
 
 La **API de Cliente** está diseñada para aplicaciones orientadas al cliente, como el Portal del Cliente. Proporciona a los clientes acceso a sus propios datos:
@@ -38,6 +63,8 @@ La **API de Cliente** está diseñada para aplicaciones orientadas al cliente, c
 **Endpoint**: `/customer/graphql`
 
 [Ver Documentación de API de Cliente →](/api/customer)
+
+<ApolloSandboxLink endpoint="http://app.localhost:4455/graphql" label="Abrir en Apollo Sandbox" />
 
 ## Eventos de Dominio
 
@@ -62,3 +89,25 @@ Ambas APIs requieren autenticación mediante tokens JWT obtenidos de Keycloak. E
 ```
 Authorization: Bearer <token>
 ```
+
+### Uso de Apollo Sandbox
+
+Para usar el explorador interactivo Apollo Sandbox con nuestras APIs:
+
+1. **Obtener un token JWT** de Keycloak:
+   - Para **API de Administración**: Inicia sesión en el Panel de Administración y extrae el token desde las DevTools del navegador (pestaña Network → cualquier solicitud GraphQL → Request Headers → `Authorization`)
+   - Para **API de Cliente**: Inicia sesión en el Portal del Cliente y extrae el token de manera similar
+
+2. **Abrir Apollo Sandbox** usando uno de los enlaces anteriores
+
+3. **Agregar el encabezado Authorization** en Apollo Sandbox:
+   - Haz clic en la pestaña **Headers** en la parte inferior del panel de Operación
+   - Agrega un nuevo encabezado:
+     - **Key**: `Authorization`
+     - **Value**: `Bearer <tu-token-jwt>`
+
+4. **Comenzar a explorar**: Ahora puedes ejecutar consultas y mutaciones contra la API
+
+:::tip Expiración del Token
+Los tokens JWT expiran después de un período de tiempo. Si recibes errores de autenticación, obtén un token nuevo iniciando sesión nuevamente en la aplicación.
+:::

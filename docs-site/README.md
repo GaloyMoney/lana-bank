@@ -40,3 +40,14 @@ Serve the production build locally:
 npm run serve
 ```
 
+### Search
+
+The site uses local search (`@easyops-cn/docusaurus-search-local`) which supports both English and Spanish.
+
+**Note:** Search is only available after running `npm run build`. It does not work in dev mode (`npm run start`). To test search functionality, use:
+
+```bash
+npm run build && npm run serve
+```
+
+**TODO:** Switch to [Algolia DocSearch](https://docsearch.algolia.com/) for the production site.
