@@ -79,7 +79,7 @@
 //!     // Enforce your custom authorization here before accessing the config
 //!     let configs = domain_config::InternalDomainConfigs::new(pool);
 //!     let value = configs.get::<MyInternalFlag>().await?.value();
-//!     configs.upsert::<MyInternalFlag>(true).await?;
+//!     configs.update::<MyInternalFlag>(true).await?;
 //! #     Ok(())
 //! # }
 //! ```
@@ -105,7 +105,7 @@
 //! # {
 //!     let configs = domain_config::ExposedDomainConfigs::new(pool, authz);
 //!     let value = configs.get::<MyExposedSetting>(subject).await?.value();
-//!     configs.upsert::<MyExposedSetting>(subject, "new-value".into()).await?;
+//!     configs.update::<MyExposedSetting>(subject, "new-value".into()).await?;
 //! #     Ok(())
 //! # }
 //! ```
@@ -119,7 +119,7 @@
 //! this automatic seeding, `get` always succeeds for all configs.
 //!
 //! The `value()` method returns `Option<T>`:
-//! - `Some(value)` if the config has been explicitly set via `upsert`/`update`
+//! - `Some(value)` if the config has been explicitly set via `update`
 //! - `Some(default)` if no value is set but a `default:` clause was specified
 //! - `None` if no value is set and no default exists
 
