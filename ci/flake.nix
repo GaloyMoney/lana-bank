@@ -137,15 +137,11 @@
 
         LAST_RELEASE=$(${pkgs.cocogitto}/bin/cog get-version)
 
-        # Generate new changelog content
-        CHANGELOG_BODY=$(${pkgs.cocogitto}/bin/cog changelog $LAST_RELEASE.. | tail -n +2)
-        NEW_CONTENT=$(printf "## %s\n%s\n\n" "$VERSION" "$CHANGELOG_BODY")
-
         # Prepend new content to existing CHANGELOG.md
         if [ -f "$CHANGELOG_FILE" ]; then
           ${pkgs.git-cliff}/bin/git-cliff --ignore-tags ".*rc.*" $LAST_RELEASE.. --tag $VERSION --prepend $CHANGELOG_FILE
         else
-          ${pkgs.git-cliff}/bin/git-cliff -o --tag $VERSION
+          ${pkgs.git-cliff}/bin/git-cliff -o --tag $VERSION --ignore-tags ".*rc.*"
         fi
 
         echo "Updated $CHANGELOG_FILE with version $VERSION"
