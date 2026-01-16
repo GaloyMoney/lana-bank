@@ -304,7 +304,7 @@ jobs:
           params:
             CONTEXT: repo
             BUILD_ARGS_FILE: repo/.env
-            DOCKERFILE: repo/Dockerfile.release
+            DOCKERFILE: repo/Dockerfile.rc
           run:
             path: build
       - put: latest-image
@@ -498,6 +498,12 @@ jobs:
             params:
               image: customer-portal-image/image.tar
               additional_tags: version/version
+      - put: gh-release
+        params:
+          name: artifacts/gh-release-name
+          tag: artifacts/gh-release-tag
+          body: artifacts/gh-release-notes.md
+          globs: [binaries/*]
       - task: prepare-docker-build
         config:
           platform: linux
@@ -506,7 +512,6 @@ jobs:
             - name: pipeline-tasks
             - name: repo
             - name: version
-            - name: binaries
           outputs:
             - name: repo
           run:
@@ -541,12 +546,6 @@ jobs:
           tag: artifacts/gh-release-tag
           only_tag: true
           repository: repo
-      - put: gh-release
-        params:
-          name: artifacts/gh-release-name
-          tag: artifacts/gh-release-tag
-          body: artifacts/gh-release-notes.md
-          globs: [binaries/*]
   
   - name: bump-image-in-chart
     plan:
