@@ -15,7 +15,8 @@ yq -i e '.lanaBank.image.digest = strenv(digest)' ./charts/${CHARTS_SUBDIR}/valu
 yq -i e '.lanaBank.adminPanel.image.digest = strenv(admin_panel_image_digest)' ./charts/${CHARTS_SUBDIR}/values.yaml
 yq -i e '.lanaBank.customerPortal.image.digest = strenv(customer_portal_image_digest)' ./charts/${CHARTS_SUBDIR}/values.yaml
 yq -i e '.dagster.dagster-user-deployments.deployments[0].image.digest = strenv(dagster_image_digest)' ./charts/${CHARTS_SUBDIR}/values.yaml
-yq -i e '.dagster.dagster-user-deployments.deployments[0].initContainers[0].image.digest = strenv(dagster_image_digest)' ./charts/${CHARTS_SUBDIR}/values.yaml
+# Temporarily disabled because there's bug in the private chart and Pablo can't manage it right now, so stop bumping for a bit
+#yq -i e '.dagster.dagster-user-deployments.deployments[0].initContainers[0].image.digest = strenv(dagster_image_digest)' ./charts/${CHARTS_SUBDIR}/values.yaml
 sed -i "s|\(digest: \"${digest}\"\).*$|\1 # METADATA:: repository=https://github.com/GaloyMoney/${CHARTS_SUBDIR};commit_ref=${ref};app=${CHARTS_SUBDIR};|g" "./charts/${CHARTS_SUBDIR}/values.yaml"
 
 yq -i e '.lanaBank.appVersion = strenv(app_version)' ./charts/${CHARTS_SUBDIR}/values.yaml
