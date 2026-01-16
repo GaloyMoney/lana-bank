@@ -1,7 +1,7 @@
 "use client"
 
 import { gql } from "@apollo/client"
-import { use, useEffect } from "react"
+import { use } from "react"
 import { useTranslations } from "next-intl"
 
 import CreditFacilityProposalDetailsCard from "./details"
@@ -13,6 +13,7 @@ import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 import {
   useGetCreditFacilityProposalLayoutDetailsQuery,
   CreditFacilityProposalStatus,
+  useCreditFacilityProposalConcludedSubscription,
 } from "@/lib/graphql/generated"
 
 gql`
@@ -80,6 +81,15 @@ gql`
       ...CreditFacilityProposalLayoutFragment
     }
   }
+
+  subscription creditFacilityProposalConcluded($creditFacilityProposalId: UUID!) {
+    creditFacilityProposalConcluded(creditFacilityProposalId: $creditFacilityProposalId) {
+      status
+      creditFacilityProposal {
+        ...CreditFacilityProposalLayoutFragment
+      }
+    }
+  }
 `
 
 export default function CreditFacilityProposalLayout({
@@ -92,26 +102,17 @@ export default function CreditFacilityProposalLayout({
   const { "credit-facility-proposal-id": proposalId } = use(params)
   const commonT = useTranslations("Common")
 
-  const { data, loading, error, startPolling, stopPolling } =
-    useGetCreditFacilityProposalLayoutDetailsQuery({
-      variables: { creditFacilityProposalId: proposalId },
-      notifyOnNetworkStatusChange: false,
-    })
+  const { data, loading, error } = useGetCreditFacilityProposalLayoutDetailsQuery({
+    variables: { creditFacilityProposalId: proposalId },
+  })
 
-  useEffect(() => {
-    const proposal = data?.creditFacilityProposal
-    const isPendingApproval =
-      proposal?.status === CreditFacilityProposalStatus.PendingApproval
-    const isSystemApproval =
-      proposal?.approvalProcess?.rules?.__typename === "SystemApproval"
-    if (isPendingApproval && isSystemApproval) {
-      startPolling(1000)
-    } else {
-      stopPolling()
-    }
-
-    return () => stopPolling()
-  }, [data?.creditFacilityProposal, startPolling, stopPolling])
+  useCreditFacilityProposalConcludedSubscription(
+    data?.creditFacilityProposal &&
+      data?.creditFacilityProposal?.status ===
+        CreditFacilityProposalStatus.PendingApproval
+      ? { variables: { creditFacilityProposalId: proposalId } }
+      : { skip: true },
+  )
 
   if (loading && !data) return <DetailsPageSkeleton detailItems={4} tabs={2} />
   if (error) return <div className="text-destructive">{error.message}</div>

@@ -1,4 +1,4 @@
-use async_graphql::{Context, Object, Subscription, types::connection::*};
+use async_graphql::{Context, Error, Object, Subscription, types::connection::*};
 
 use std::io::Read;
 
@@ -2652,6 +2652,41 @@ impl Subscription {
                             status: *status,
                             recorded_at: (*recorded_at).into(),
                         },
+                    })
+                }
+                _ => None,
+            }
+        });
+
+        Ok(updates)
+    }
+
+    async fn credit_facility_proposal_concluded(
+        &self,
+        ctx: &Context<'_>,
+        credit_facility_proposal_id: UUID,
+    ) -> async_graphql::Result<impl Stream<Item = CreditFacilityProposalConcludedPayload>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let credit_facility_proposal_id =
+            CreditFacilityProposalId::from(credit_facility_proposal_id);
+
+        app.credit()
+            .proposals()
+            .find_by_id(sub, credit_facility_proposal_id)
+            .await?
+            .ok_or_else(|| Error::new("Credit facility proposal not found"))?;
+
+        let stream = app.outbox().listen_persisted(None);
+        let updates = stream.filter_map(move |event| async move {
+            let payload = event.payload.as_ref()?;
+            let event: &CoreCreditEvent = payload.as_event()?;
+            match event {
+                CoreCreditEvent::FacilityProposalConcluded { id, status }
+                    if *id == credit_facility_proposal_id =>
+                {
+                    Some(CreditFacilityProposalConcludedPayload {
+                        credit_facility_proposal_id,
+                        status: *status,
                     })
                 }
                 _ => None,

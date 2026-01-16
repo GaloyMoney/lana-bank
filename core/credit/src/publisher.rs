@@ -25,7 +25,6 @@ use crate::{
     pending_credit_facility::{
         PendingCreditFacility, PendingCreditFacilityEvent, error::PendingCreditFacilityError,
     },
-    primitives::CreditFacilityProposalStatus,
 };
 
 pub struct CreditFacilityPublisher<E>
@@ -139,10 +138,11 @@ where
                         created_at: entity.created_at(),
                     })
                 }
-                ApprovalProcessConcluded { status, .. }
-                    if *status == CreditFacilityProposalStatus::Approved =>
-                {
-                    Some(CoreCreditEvent::FacilityProposalApproved { id: entity.id })
+                ApprovalProcessConcluded { status, .. } => {
+                    Some(CoreCreditEvent::FacilityProposalConcluded {
+                        id: entity.id,
+                        status: *status,
+                    })
                 }
                 _ => None,
             })

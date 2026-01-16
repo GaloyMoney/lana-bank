@@ -691,6 +691,12 @@ export type CreditFacilityProposal = {
   status: CreditFacilityProposalStatus;
 };
 
+export type CreditFacilityProposalConcludedPayload = {
+  __typename?: 'CreditFacilityProposalConcludedPayload';
+  creditFacilityProposal: CreditFacilityProposal;
+  status: CreditFacilityProposalStatus;
+};
+
 export type CreditFacilityProposalConnection = {
   __typename?: 'CreditFacilityProposalConnection';
   /** A list of edges. */
@@ -2957,6 +2963,7 @@ export enum SortDirection {
 export type Subscription = {
   __typename?: 'Subscription';
   creditFacilityCollateralizationUpdated: CreditFacilityCollateralizationPayload;
+  creditFacilityProposalConcluded: CreditFacilityProposalConcludedPayload;
   pendingCreditFacilityCollateralizationUpdated: PendingCreditFacilityCollateralizationPayload;
   pendingCreditFacilityCompleted: PendingCreditFacilityCompletedPayload;
   realtimePriceUpdated: RealtimePrice;
@@ -2965,6 +2972,11 @@ export type Subscription = {
 
 export type SubscriptionCreditFacilityCollateralizationUpdatedArgs = {
   creditFacilityId: Scalars['UUID']['input'];
+};
+
+
+export type SubscriptionCreditFacilityProposalConcludedArgs = {
+  creditFacilityProposalId: Scalars['UUID']['input'];
 };
 
 
@@ -3781,6 +3793,25 @@ export type GetCreditFacilityProposalLayoutDetailsQuery = { __typename?: 'Query'
         | { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } }> } }
         | { __typename?: 'SystemApproval', autoApprove: boolean }
       , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } } }> } | null } | null };
+
+export type CreditFacilityProposalConcludedSubscriptionVariables = Exact<{
+  creditFacilityProposalId: Scalars['UUID']['input'];
+}>;
+
+
+export type CreditFacilityProposalConcludedSubscription = { __typename?: 'Subscription', creditFacilityProposalConcluded: { __typename?: 'CreditFacilityProposalConcludedPayload', status: CreditFacilityProposalStatus, creditFacilityProposal: { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, approvalProcessId?: string | null, createdAt: any, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, custodian?: { __typename?: 'Custodian', name: string } | null, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+          | { __typename: 'FiniteCVLPct', value: any }
+          | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
+        , marginCallCvl:
+          | { __typename: 'FiniteCVLPct', value: any }
+          | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
+        , initialCvl:
+          | { __typename: 'FiniteCVLPct', value: any }
+          | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
+         }, approvalProcess?: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+          | { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } }> } }
+          | { __typename?: 'SystemApproval', autoApprove: boolean }
+        , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } } }> } | null } } };
 
 export type GetCreditFacilityProposalRepaymentPlanQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -7257,6 +7288,41 @@ export type GetCreditFacilityProposalLayoutDetailsQueryHookResult = ReturnType<t
 export type GetCreditFacilityProposalLayoutDetailsLazyQueryHookResult = ReturnType<typeof useGetCreditFacilityProposalLayoutDetailsLazyQuery>;
 export type GetCreditFacilityProposalLayoutDetailsSuspenseQueryHookResult = ReturnType<typeof useGetCreditFacilityProposalLayoutDetailsSuspenseQuery>;
 export type GetCreditFacilityProposalLayoutDetailsQueryResult = Apollo.QueryResult<GetCreditFacilityProposalLayoutDetailsQuery, GetCreditFacilityProposalLayoutDetailsQueryVariables>;
+export const CreditFacilityProposalConcludedDocument = gql`
+    subscription creditFacilityProposalConcluded($creditFacilityProposalId: UUID!) {
+  creditFacilityProposalConcluded(
+    creditFacilityProposalId: $creditFacilityProposalId
+  ) {
+    status
+    creditFacilityProposal {
+      ...CreditFacilityProposalLayoutFragment
+    }
+  }
+}
+    ${CreditFacilityProposalLayoutFragmentFragmentDoc}`;
+
+/**
+ * __useCreditFacilityProposalConcludedSubscription__
+ *
+ * To run a query within a React component, call `useCreditFacilityProposalConcludedSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useCreditFacilityProposalConcludedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCreditFacilityProposalConcludedSubscription({
+ *   variables: {
+ *      creditFacilityProposalId: // value for 'creditFacilityProposalId'
+ *   },
+ * });
+ */
+export function useCreditFacilityProposalConcludedSubscription(baseOptions: Apollo.SubscriptionHookOptions<CreditFacilityProposalConcludedSubscription, CreditFacilityProposalConcludedSubscriptionVariables> & ({ variables: CreditFacilityProposalConcludedSubscriptionVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<CreditFacilityProposalConcludedSubscription, CreditFacilityProposalConcludedSubscriptionVariables>(CreditFacilityProposalConcludedDocument, options);
+      }
+export type CreditFacilityProposalConcludedSubscriptionHookResult = ReturnType<typeof useCreditFacilityProposalConcludedSubscription>;
+export type CreditFacilityProposalConcludedSubscriptionResult = Apollo.SubscriptionResult<CreditFacilityProposalConcludedSubscription>;
 export const GetCreditFacilityProposalRepaymentPlanDocument = gql`
     query GetCreditFacilityProposalRepaymentPlan($id: UUID!) {
   creditFacilityProposal(id: $id) {
