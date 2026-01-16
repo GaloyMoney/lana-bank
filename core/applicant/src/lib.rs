@@ -166,6 +166,7 @@ where
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
     customers: Customers<Perms, E>,
+    sumsub_client: SumsubClient,
 }
 
 impl<Perms, E> Clone for SumsubCallbackHandler<Perms, E>
@@ -176,6 +177,7 @@ where
     fn clone(&self) -> Self {
         Self {
             customers: self.customers.clone(),
+            sumsub_client: self.sumsub_client.clone(),
         }
     }
 }
@@ -219,10 +221,61 @@ where
         From<core_customer::CoreCustomerAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<core_customer::CustomerObject>,
 {
-    fn new(customers: &Customers<Perms, E>) -> Self {
+    fn new(customers: &Customers<Perms, E>, sumsub_client: &SumsubClient) -> Self {
         Self {
             customers: customers.clone(),
+            sumsub_client: sumsub_client.clone(),
         }
+    }
+
+    async fn sync_profile_data(
+        &self,
+        customer_id: CustomerId,
+        sandbox: bool,
+    ) -> Result<(), ApplicantError> {
+        let applicant_details: sumsub::ApplicantDetails<CustomerId> = self
+            .sumsub_client
+            .get_applicant_details(customer_id)
+            .await?;
+
+        // Prefer fixed_info (verified data) if it has data, otherwise use info
+        let info = if applicant_details.fixed_info.first_name.is_some()
+            || applicant_details.fixed_info.last_name.is_some()
+            || applicant_details.fixed_info.dob.is_some()
+        {
+            &applicant_details.fixed_info
+        } else {
+            &applicant_details.info
+        };
+
+        let first_name = info.first_name.clone();
+        let last_name = info.last_name.clone();
+        let date_of_birth = info.dob.clone();
+        let country = info.nationality().map(|s| s.to_string());
+
+        if sandbox {
+            self.customers
+                .update_profile_data_from_sumsub_if_exists(
+                    customer_id,
+                    first_name,
+                    last_name,
+                    date_of_birth,
+                    country,
+                )
+                .await?;
+        } else {
+            self.customers
+                .update_profile_data_from_sumsub(
+                    customer_id,
+                    first_name,
+                    last_name,
+                    date_of_birth,
+                    country,
+                )
+                .await?;
+        }
+
+        Ok(())
     }
 
     #[record_error_severity]
@@ -328,13 +381,18 @@ where
                         .customers
                         .handle_kyc_approved_if_exists(external_user_id, applicant_id)
                         .await?;
-                    if res.is_none() {
+                    if res.is_some() {
+                        // Sync profile data after approval
+                        self.sync_profile_data(external_user_id, sandbox).await?;
+                    } else {
                         tracing::Span::current().record("ignore_for_sandbox", true);
                     }
                 } else {
                     self.customers
                         .handle_kyc_approved(external_user_id, applicant_id)
                         .await?;
+                    // Sync profile data after approval
+                    self.sync_profile_data(external_user_id, sandbox).await?;
                 }
             }
             SumsubCallbackPayload::ApplicantPending {
@@ -352,10 +410,17 @@ where
                 sandbox_mode,
                 ..
             } => {
-                // No-op: we don't need to process personal info changes
+                let sandbox = sandbox_mode.unwrap_or(false);
                 tracing::Span::current().record("callback_type", "ApplicantPersonalInfoChanged");
-                tracing::Span::current().record("sandbox_mode", sandbox_mode.unwrap_or(false));
+                tracing::Span::current().record("sandbox_mode", sandbox);
                 tracing::Span::current().record("applicant_id", applicant_id.as_str());
+
+                // Find customer by applicant_id and sync profile data
+                if let Some(customer) = self.customers.find_by_applicant_id(&applicant_id).await? {
+                    tracing::Span::current()
+                        .record("customer_id", customer.id.to_string().as_str());
+                    self.sync_profile_data(customer.id, sandbox).await?;
+                }
             }
             SumsubCallbackPayload::Unknown => {
                 tracing::Span::current().record("callback_type", "Unknown");
@@ -410,7 +475,7 @@ where
         jobs: &mut job::Jobs,
     ) -> Result<Self, ApplicantError> {
         let sumsub_client = SumsubClient::new(config);
-        let handler = SumsubCallbackHandler::new(customers);
+        let handler = SumsubCallbackHandler::new(customers, &sumsub_client);
 
         let inbox_config = InboxConfig::new(APPLICANTS_INBOX_JOB);
         let inbox = Inbox::new(pool, jobs, inbox_config, handler);

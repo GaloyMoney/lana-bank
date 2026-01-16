@@ -65,6 +65,26 @@ impl Customer {
         self.entity.applicant_id.as_deref()
     }
 
+    async fn first_name(&self) -> Option<&str> {
+        self.entity.profile_data.first_name.as_deref()
+    }
+
+    async fn last_name(&self) -> Option<&str> {
+        self.entity.profile_data.last_name.as_deref()
+    }
+
+    async fn date_of_birth(&self) -> Option<&str> {
+        self.entity.profile_data.date_of_birth.as_deref()
+    }
+
+    async fn country(&self) -> Option<&str> {
+        self.entity.profile_data.country.as_deref()
+    }
+
+    async fn full_name(&self) -> Option<String> {
+        self.entity.profile_data.full_name()
+    }
+
     async fn deposit_account(
         &self,
         ctx: &Context<'_>,

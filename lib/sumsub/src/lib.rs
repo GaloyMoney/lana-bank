@@ -94,6 +94,25 @@ impl SumsubClient {
             .await
     }
 
+    /// Get applicant details by Sumsub's internal applicant ID
+    pub async fn get_applicant_details_by_id<T>(
+        &self,
+        applicant_id: &str,
+    ) -> Result<ApplicantDetails<T>, SumsubError>
+    where
+        T: serde::de::DeserializeOwned,
+    {
+        let method = "GET";
+        let url = format!("/resources/applicants/{applicant_id}");
+        let full_url = self.base_url.join(&url).expect("valid URL");
+
+        let headers = self.get_headers(method, &url, None)?;
+        let response = self.client.get(full_url).headers(headers).send().await?;
+
+        self.handle_api_response(response, "Failed to get applicant details by id")
+            .await
+    }
+
     /// Submit a financial transaction for monitoring
     pub async fn submit_finance_transaction<T>(
         &self,

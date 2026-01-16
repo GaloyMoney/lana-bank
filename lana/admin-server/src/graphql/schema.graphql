@@ -933,6 +933,11 @@ type Customer {
 	telegramId: String!
 	publicId: PublicId!
 	applicantId: String
+	firstName: String
+	lastName: String
+	dateOfBirth: String
+	country: String
+	fullName: String
 	depositAccount: DepositAccount
 	creditFacilities: [CreditFacility!]!
 	pendingCreditFacilities: [PendingCreditFacility!]!

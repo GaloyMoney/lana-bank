@@ -48,6 +48,9 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ custom
   }
 
   const details: DetailItemProps[] = [
+    ...(customer.fullName
+      ? [{ label: t("labels.fullName"), value: customer.fullName }]
+      : []),
     {
       label: (
         <Label className="flex items-center font-semibold">
@@ -76,6 +79,12 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ custom
       ),
       value: customer.telegramId,
     },
+    ...(customer.dateOfBirth
+      ? [{ label: t("labels.dateOfBirth"), value: customer.dateOfBirth }]
+      : []),
+    ...(customer.country
+      ? [{ label: t("labels.country"), value: customer.country }]
+      : []),
     { label: t("labels.createdOn"), value: formatDate(customer.createdAt) },
     {
       label: t("labels.status"),

@@ -33,6 +33,11 @@ gql`
     customerType
     createdAt
     publicId
+    firstName
+    lastName
+    dateOfBirth
+    country
+    fullName
     depositAccount {
       id
       status
