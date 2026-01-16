@@ -18,7 +18,10 @@ use crate::{
     liquidation::{
         NewLiquidationBuilder,
         error::LiquidationError,
-        jobs::partial_liquidation::{PartialLiquidationJobConfig, PartialLiquidationJobSpawner},
+        jobs::{
+            liquidation_payment::{LiquidationPaymentJobConfig, LiquidationPaymentJobSpawner},
+            partial_liquidation::{PartialLiquidationJobConfig, PartialLiquidationJobSpawner},
+        },
     },
 };
 
@@ -42,6 +45,7 @@ where
     repo: Arc<LiquidationRepo<E>>,
     proceeds_omnibus_account_ids: LedgerOmnibusAccountIds,
     partial_liquidation_job_spawner: PartialLiquidationJobSpawner<E>,
+    liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,
 }
 
 impl<E> CreditFacilityLiquidationsInit<E>
@@ -55,12 +59,14 @@ where
         liquidation_repo: Arc<LiquidationRepo<E>>,
         proceeds_omnibus_account_ids: &LedgerOmnibusAccountIds,
         partial_liquidation_job_spawner: PartialLiquidationJobSpawner<E>,
+        liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
             repo: liquidation_repo,
             proceeds_omnibus_account_ids: proceeds_omnibus_account_ids.clone(),
             partial_liquidation_job_spawner,
+            liquidation_payment_job_spawner,
         }
     }
 }
@@ -88,6 +94,7 @@ where
             repo: self.repo.clone(),
             proceeds_omnibus_account_ids: self.proceeds_omnibus_account_ids.clone(),
             partial_liquidation_job_spawner: self.partial_liquidation_job_spawner.clone(),
+            liquidation_payment_job_spawner: self.liquidation_payment_job_spawner.clone(),
         }))
     }
 }
@@ -102,6 +109,7 @@ where
     repo: Arc<LiquidationRepo<E>>,
     proceeds_omnibus_account_ids: LedgerOmnibusAccountIds,
     partial_liquidation_job_spawner: PartialLiquidationJobSpawner<E>,
+    liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,
 }
 
 #[async_trait]
@@ -236,7 +244,7 @@ where
             .record("existing_liquidation_found", existing_liquidation.is_some());
 
         if existing_liquidation.is_none() {
-            let _liquidation = self
+            let liquidation = self
                 .repo
                 .create_in_op(
                     db,
@@ -254,7 +262,19 @@ where
                     db,
                     JobId::new(),
                     PartialLiquidationJobConfig::<E> {
-                        liquidation_id: _liquidation.id,
+                        liquidation_id: liquidation.id,
+                        credit_facility_id,
+                        _phantom: std::marker::PhantomData,
+                    },
+                )
+                .await?;
+
+            self.liquidation_payment_job_spawner
+                .spawn_in_op(
+                    db,
+                    JobId::new(),
+                    LiquidationPaymentJobConfig::<E> {
+                        liquidation_id: liquidation.id,
                         credit_facility_id,
                         _phantom: std::marker::PhantomData,
                     },

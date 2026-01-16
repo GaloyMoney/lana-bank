@@ -21,22 +21,20 @@ pub struct AllocateCreditFacilityPaymentJobConfig<Perms, E> {
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
 
-impl<Perms, E> AllocateCreditFacilityPaymentJobConfig<Perms, E> {
-    pub fn new() -> Self {
+impl<Perms, E> Clone for AllocateCreditFacilityPaymentJobConfig<Perms, E> {
+    fn clone(&self) -> Self {
         Self {
             _phantom: std::marker::PhantomData,
         }
     }
 }
 
-impl<Perms, E> JobConfig for AllocateCreditFacilityPaymentJobConfig<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
-    E: OutboxEventMarker<CoreCreditEvent>,
-{
-    type Initializer = AllocateCreditFacilityPaymentInit<Perms, E>;
+impl<Perms, E> AllocateCreditFacilityPaymentJobConfig<Perms, E> {
+    pub fn new() -> Self {
+        Self {
+            _phantom: std::marker::PhantomData,
+        }
+    }
 }
 
 pub struct AllocateCreditFacilityPaymentInit<Perms, E>
@@ -73,21 +71,26 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    fn job_type() -> JobType
+    type Config = AllocateCreditFacilityPaymentJobConfig<Perms, E>;
+    fn job_type(&self) -> JobType
     where
         Self: Sized,
     {
         ALLOCATE_CREDIT_FACILITY_PAYMENT
     }
 
-    fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
+    fn init(
+        &self,
+        _: &Job,
+        _: JobSpawner<Self::Config>,
+    ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(AllocateCreditFacilityPaymentJobRunner {
             outbox: self.outbox.clone(),
             process: self.process.clone(),
         }))
     }
 
-    fn retry_on_error_settings() -> RetrySettings
+    fn retry_on_error_settings(&self) -> RetrySettings
     where
         Self: Sized,
     {

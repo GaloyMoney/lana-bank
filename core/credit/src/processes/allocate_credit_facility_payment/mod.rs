@@ -53,7 +53,7 @@ where
     }
 
     pub(super) async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, CoreCreditError> {
-        Ok(self.obligations.begin_op().await?)
+        Ok(self.payments.begin_op().await?)
     }
 
     #[instrument(

@@ -64,10 +64,10 @@ pub use payment::{error::*, *};
 pub use payment_allocation::*;
 pub use pending_credit_facility::*;
 pub use primitives::*;
+use processes::allocate_credit_facility_payment::*;
 pub use processes::{
     activate_credit_facility::*, approve_credit_facility_proposal::*, approve_disbursal::*,
 };
-use processes::allocate_credit_facility_payment::*;
 use publisher::CreditFacilityPublisher;
 pub use repayment_plan::*;
 pub use terms::*;
@@ -380,12 +380,11 @@ where
             )
             .await?;
 
-        let allocate_credit_facility_payment_job_spawner = jobs.add_initializer(
-            AllocateCreditFacilityPaymentInit::new(
+        let allocate_credit_facility_payment_job_spawner =
+            jobs.add_initializer(AllocateCreditFacilityPaymentInit::new(
                 outbox,
                 allocate_credit_facility_payment_arc.as_ref(),
-            ),
-        );
+            ));
         allocate_credit_facility_payment_job_spawner
             .spawn_unique(
                 job::JobId::new(),
