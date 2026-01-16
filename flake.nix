@@ -105,7 +105,7 @@
 
       cargoArtifacts = craneLib.buildDepsOnly (commonArgs
         // {
-          cargoExtraArgs = "--features sim-time,mock-custodian,sumsub-testing";
+          cargoExtraArgs = "--features mock-custodian,sumsub-testing";
         });
 
       # Get the default version from Cargo.toml
@@ -130,7 +130,7 @@
         individualCrateArgs
         // {
           pname = "lana-cli-debug";
-          cargoExtraArgs = "-p lana-cli --features sim-time,mock-custodian,sumsub-testing";
+          cargoExtraArgs = "-p lana-cli --features mock-custodian,sumsub-testing";
           src = rustSource;
         }
       );
@@ -158,7 +158,7 @@
           CARGO_PROFILE = "release";
           SQLX_OFFLINE = true;
           CARGO_BUILD_TARGET = rustTarget;
-          cargoExtraArgs = "-p lana-cli --features sim-time,sim-bootstrap --target ${rustTarget}";
+          cargoExtraArgs = "-p lana-cli --features sim-bootstrap --target ${rustTarget}";
 
           RELEASE_BUILD_VERSION = cliVersion;
 

@@ -5,6 +5,7 @@ use tracing_macros::record_error_severity;
 
 use audit::AuditInfo;
 use core_accounting::{EntityRef, LedgerTransactionInitiator};
+use es_entity::clock::ClockHandle;
 
 mod deposit_accounts;
 pub mod error;
@@ -115,6 +116,7 @@ impl DepositAccountSets {
 #[derive(Clone)]
 pub struct DepositLedger {
     cala: CalaLedger,
+    clock: ClockHandle,
     journal_id: JournalId,
     deposit_account_sets: DepositAccountSets,
     frozen_deposit_account_sets: DepositAccountSets,
@@ -129,6 +131,7 @@ impl DepositLedger {
     pub async fn init(
         cala: &CalaLedger,
         journal_id: JournalId,
+        clock: ClockHandle,
     ) -> Result<Self, DepositLedgerError> {
         templates::RecordDeposit::init(cala).await?;
         templates::InitiateWithdraw::init(cala).await?;
@@ -274,6 +277,7 @@ impl DepositLedger {
             Err(e) => return Err(e.into()),
         }
         Ok(Self {
+            clock,
             cala: cala.clone(),
             journal_id,
             deposit_account_sets: DepositAccountSets {
@@ -519,6 +523,7 @@ impl DepositLedger {
             deposit_omnibus_account_id: self.deposit_omnibus_account_ids.account_id,
             credit_account_id,
             initiated_by,
+            effective_date: self.clock.today(),
         };
         self.cala
             .post_transaction_in_op(op, tx_id, templates::RECORD_DEPOSIT_CODE, params)
@@ -556,6 +561,7 @@ impl DepositLedger {
             amount: amount.to_usd(),
             currency: self.usd,
             initiated_by,
+            effective_date: self.clock.today(),
         };
 
         self.cala
@@ -597,6 +603,7 @@ impl DepositLedger {
             amount: amount.to_usd(),
             currency: self.usd,
             initiated_by,
+            effective_date: self.clock.today(),
         };
 
         self.cala
@@ -624,6 +631,7 @@ impl DepositLedger {
             correlation_id: reversal_data.correlation_id,
             external_id: reversal_data.external_id,
             initiated_by,
+            effective_date: self.clock.today(),
         };
 
         self.cala
@@ -656,6 +664,7 @@ impl DepositLedger {
             amount: reversal_data.amount.to_usd(),
             currency: self.usd,
             initiated_by,
+            effective_date: self.clock.today(),
         };
 
         self.cala
@@ -696,6 +705,7 @@ impl DepositLedger {
                 amount: balance.settled.to_usd(),
                 currency: self.usd,
                 initiated_by,
+                effective_date: self.clock.today(),
             };
 
             self.cala
@@ -749,6 +759,7 @@ impl DepositLedger {
                 amount: frozen_balance.settled.to_usd(),
                 currency: self.usd,
                 initiated_by,
+                effective_date: self.clock.today(),
             };
 
             self.cala
@@ -812,6 +823,7 @@ impl DepositLedger {
             correlation_id,
             external_id,
             initiated_by,
+            effective_date: self.clock.today(),
         };
 
         self.cala
@@ -852,6 +864,7 @@ impl DepositLedger {
             credit_account_id,
             deposit_omnibus_account_id: self.deposit_omnibus_account_ids.account_id,
             initiated_by,
+            effective_date: self.clock.today(),
         };
 
         self.cala

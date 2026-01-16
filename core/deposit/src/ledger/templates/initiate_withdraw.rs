@@ -23,6 +23,7 @@ pub struct InitiateWithdrawParams {
     pub amount: Decimal,
     pub currency: Currency,
     pub initiated_by: core_accounting::LedgerTransactionInitiator,
+    pub effective_date: chrono::NaiveDate,
 }
 
 impl InitiateWithdrawParams {
@@ -77,6 +78,7 @@ impl From<InitiateWithdrawParams> for Params {
             amount,
             currency,
             initiated_by,
+            effective_date,
         }: InitiateWithdrawParams,
     ) -> Self {
         let mut params = Self::default();
@@ -86,7 +88,7 @@ impl From<InitiateWithdrawParams> for Params {
         params.insert("amount", amount);
         params.insert("deposit_omnibus_account_id", deposit_omnibus_account_id);
         params.insert("credit_account_id", credit_account_id);
-        params.insert("effective", crate::time::now().date_naive());
+        params.insert("effective", effective_date);
         let entity_ref =
             core_accounting::EntityRef::new(WITHDRAWAL_TRANSACTION_ENTITY_TYPE, entity_id);
         params.insert(

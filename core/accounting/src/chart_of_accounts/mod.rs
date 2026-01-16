@@ -18,8 +18,8 @@ use cala_ledger::{CalaLedger, account::Account};
 
 use crate::primitives::{
     AccountCode, AccountIdOrCode, AccountName, AccountSpec, CalaAccountSetId, CalaJournalId,
-    ChartId, ClosingAccountCodes, ClosingTxDetails, CoreAccountingAction, CoreAccountingObject,
-    LedgerAccountId,
+    ChartId, ClockHandle, ClosingAccountCodes, ClosingTxDetails, CoreAccountingAction,
+    CoreAccountingObject, LedgerAccountId,
 };
 
 #[cfg(feature = "json-schema")]
@@ -40,6 +40,7 @@ pub struct ChartOfAccounts<Perms>
 where
     Perms: PermissionCheck,
 {
+    clock: ClockHandle,
     repo: ChartRepo,
     chart_ledger: ChartLedger,
     cala: CalaLedger,
@@ -53,6 +54,7 @@ where
 {
     fn clone(&self) -> Self {
         Self {
+            clock: self.clock.clone(),
             repo: self.repo.clone(),
             chart_ledger: self.chart_ledger.clone(),
             cala: self.cala.clone(),
@@ -70,14 +72,16 @@ where
 {
     pub fn new(
         pool: &sqlx::PgPool,
+        clock: ClockHandle,
         authz: &Perms,
         cala: &CalaLedger,
         journal_id: CalaJournalId,
     ) -> Self {
         let chart_of_account = ChartRepo::new(pool);
-        let chart_ledger = ChartLedger::new(cala, journal_id);
+        let chart_ledger = ChartLedger::new(clock.clone(), cala, journal_id);
 
         Self {
+            clock,
             repo: chart_of_account,
             chart_ledger,
             cala: cala.clone(),
@@ -96,7 +100,7 @@ where
     ) -> Result<Chart, ChartOfAccountsError> {
         let id = ChartId::new();
 
-        let mut op = self.repo.begin_op().await?;
+        let mut op = self.repo.begin_op_with_clock(&self.clock).await?;
         self.authz
             .enforce_permission(
                 sub,
@@ -153,7 +157,7 @@ where
             new_connections,
         } = BulkAccountImport::new(&mut chart, self.journal_id).import(account_specs);
 
-        let mut op = self.repo.begin_op().await?;
+        let mut op = self.repo.begin_op_with_clock(&self.clock).await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
         let mut op = op.with_db_time().await?;
@@ -206,7 +210,7 @@ where
         };
         let account_set_id = new_account_set.id;
 
-        let mut op = self.repo.begin_op().await?;
+        let mut op = self.repo.begin_op_with_clock(&self.clock).await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
         let mut op = op.with_db_time().await?;
@@ -253,7 +257,7 @@ where
         };
         let account_set_id = new_account_set.id;
 
-        let mut op = self.repo.begin_op().await?;
+        let mut op = self.repo.begin_op_with_clock(&self.clock).await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
         let mut op = op.with_db_time().await?;
@@ -417,7 +421,7 @@ where
         {
             ManualAccountFromChart::IdInChart(id) | ManualAccountFromChart::NonChartId(id) => id,
             ManualAccountFromChart::NewAccount((account_set_id, new_account)) => {
-                let mut op = self.repo.begin_op().await?;
+                let mut op = self.repo.begin_op_with_clock(&self.clock).await?;
                 self.repo.update_in_op(&mut op, &mut chart).await?;
 
                 let mut op = op.with_db_time().await?;

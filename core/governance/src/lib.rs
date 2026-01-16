@@ -8,6 +8,7 @@ mod event;
 mod policy;
 mod primitives;
 
+use es_entity::clock::ClockHandle;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
@@ -41,6 +42,7 @@ where
     process_repo: ApprovalProcessRepo,
     authz: Perms,
     outbox: Outbox<E>,
+    clock: ClockHandle,
 }
 
 impl<Perms, E> Clone for Governance<Perms, E>
@@ -55,6 +57,7 @@ where
             process_repo: self.process_repo.clone(),
             authz: self.authz.clone(),
             outbox: self.outbox.clone(),
+            clock: self.clock.clone(),
         }
     }
 }
@@ -66,7 +69,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<GovernanceObject>,
     E: OutboxEventMarker<GovernanceEvent>,
 {
-    pub fn new(pool: &sqlx::PgPool, authz: &Perms, outbox: &Outbox<E>) -> Self {
+    pub fn new(pool: &sqlx::PgPool, authz: &Perms, outbox: &Outbox<E>, clock: ClockHandle) -> Self {
         let committee_repo = CommitteeRepo::new(pool);
         let policy_repo = PolicyRepo::new(pool);
         let process_repo = ApprovalProcessRepo::new(pool);
@@ -77,6 +80,7 @@ where
             process_repo,
             authz: authz.clone(),
             outbox: outbox.clone(),
+            clock,
         }
     }
 
@@ -86,7 +90,7 @@ where
         &self,
         process_type: ApprovalProcessType,
     ) -> Result<Policy, GovernanceError> {
-        let mut db = self.policy_repo.begin_op().await?;
+        let mut db = self.policy_repo.begin_op_with_clock(&self.clock).await?;
         self.authz
             .audit()
             .record_system_entry_in_tx(
@@ -181,7 +185,7 @@ where
             .assign_committee(committee.id, committee.n_members(), threshold)?
             .did_execute()
         {
-            let mut db_tx = self.policy_repo.begin_op().await?;
+            let mut db_tx = self.policy_repo.begin_op_with_clock(&self.clock).await?;
             self.policy_repo
                 .update_in_op(&mut db_tx, &mut policy)
                 .await?;
@@ -254,7 +258,7 @@ where
         let eligible = self.eligible_voters_for_process(&process).await?;
 
         if process.approve(&eligible, member_id).did_execute() {
-            let mut db = self.policy_repo.begin_op().await?;
+            let mut db = self.policy_repo.begin_op_with_clock(&self.clock).await?;
             self.maybe_fire_concluded_event(&mut db, eligible, &mut process)
                 .await?;
             self.process_repo
@@ -298,7 +302,7 @@ where
             HashSet::new()
         };
         if process.deny(&eligible, member_id, reason).did_execute() {
-            let mut db = self.policy_repo.begin_op().await?;
+            let mut db = self.policy_repo.begin_op_with_clock(&self.clock).await?;
             self.maybe_fire_concluded_event(&mut db, eligible, &mut process)
                 .await?;
             self.process_repo
@@ -331,7 +335,7 @@ where
             .build()
             .expect("Could not build new committee");
 
-        let mut db = self.committee_repo.begin_op().await?;
+        let mut db = self.committee_repo.begin_op_with_clock(&self.clock).await?;
         let committee = self
             .committee_repo
             .create_in_op(&mut db, new_committee)

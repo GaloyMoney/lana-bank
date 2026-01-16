@@ -26,6 +26,7 @@ pub struct ConfirmWithdrawParams {
     pub correlation_id: String,
     pub external_id: String,
     pub initiated_by: core_accounting::LedgerTransactionInitiator,
+    pub effective_date: chrono::NaiveDate,
 }
 
 impl ConfirmWithdrawParams {
@@ -92,6 +93,7 @@ impl From<ConfirmWithdrawParams> for Params {
             external_id,
             credit_account_id,
             initiated_by,
+            effective_date,
         }: ConfirmWithdrawParams,
     ) -> Self {
         let mut params = Self::default();
@@ -102,7 +104,7 @@ impl From<ConfirmWithdrawParams> for Params {
         params.insert("credit_account_id", credit_account_id);
         params.insert("correlation_id", correlation_id);
         params.insert("external_id", external_id);
-        params.insert("effective", crate::time::now().date_naive());
+        params.insert("effective", effective_date);
         let entity_ref =
             core_accounting::EntityRef::new(WITHDRAWAL_TRANSACTION_ENTITY_TYPE, entity_id);
         params.insert(

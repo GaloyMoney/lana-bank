@@ -23,6 +23,7 @@ pub struct ConfirmDisbursalParams {
     pub disbursed_into_account_id: CalaAccountId,
     pub disbursed_amount: Decimal,
     pub external_id: String,
+    pub effective: chrono::NaiveDate,
     pub initiated_by: core_accounting::LedgerTransactionInitiator,
 }
 
@@ -89,6 +90,7 @@ impl From<ConfirmDisbursalParams> for Params {
             disbursed_into_account_id,
             disbursed_amount,
             external_id,
+            effective,
             initiated_by,
         }: ConfirmDisbursalParams,
     ) -> Self {
@@ -106,7 +108,7 @@ impl From<ConfirmDisbursalParams> for Params {
         params.insert("disbursed_into_account_id", disbursed_into_account_id);
         params.insert("disbursed_amount", disbursed_amount);
         params.insert("external_id", external_id);
-        params.insert("effective", crate::time::now().date_naive());
+        params.insert("effective", effective);
         let entity_ref =
             core_accounting::EntityRef::new(DISBURSAL_TRANSACTION_ENTITY_TYPE, entity_id);
         params.insert(

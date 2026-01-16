@@ -15,6 +15,7 @@ use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::{Authorization, PermissionCheck as _};
+use es_entity::clock::ClockHandle;
 use obix::out::{Outbox, OutboxEventMarker};
 use permission_set::{PermissionSet, PermissionSetRepo, PermissionSetsByIdCursor};
 use tracing_macros::record_error_severity;
@@ -64,15 +65,16 @@ where
         predefined_roles: &'static [(&'static str, &'static [&'static str])],
         authz: &Authorization<Audit, AuthRoleToken>,
         outbox: &Outbox<E>,
+        clock: ClockHandle,
     ) -> Result<Self, CoreAccessError> {
-        let users = Users::init(pool, authz, outbox).await?;
+        let users = Users::init(pool, authz, outbox, clock.clone()).await?;
         let publisher = UserPublisher::new(outbox);
         let role_repo = RoleRepo::new(pool, &publisher);
         let permission_set_repo = PermissionSetRepo::new(pool);
 
         if let Some(email) = config.superuser_email {
             let bootstrap =
-                bootstrap::Bootstrap::new(authz, &role_repo, &users, &permission_set_repo);
+                bootstrap::Bootstrap::new(authz, &role_repo, &users, &permission_set_repo, clock);
             bootstrap
                 .bootstrap_access_control(email, all_actions, predefined_roles)
                 .await?;

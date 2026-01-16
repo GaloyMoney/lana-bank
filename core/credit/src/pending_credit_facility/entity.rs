@@ -207,7 +207,7 @@ impl PendingCreditFacility {
             .collateral_id(self.collateral_id)
             .terms(self.terms)
             .amount(self.amount)
-            .activated_at(crate::time::now())
+            .activated_at(time)
             .maturity_date(maturity_date);
 
         let initial_disbursal = if self.is_single_disbursal() || !self.structuring_fee().is_zero() {
@@ -359,6 +359,7 @@ pub struct NewCreditFacilityWithInitialDisbursal {
 
 #[cfg(test)]
 mod test {
+    use es_entity::clock::{ArtificialClockConfig, ClockHandle};
     use rust_decimal_macros::dec;
 
     use crate::{
@@ -421,6 +422,10 @@ mod test {
         .unwrap()
     }
 
+    fn clock_now() -> ClockHandle {
+        let (clock, _ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual());
+        clock
+    }
     mod complete {
         use super::*;
 
@@ -428,15 +433,16 @@ mod test {
         fn errors_if_no_collateral() {
             let events = initial_events();
             let mut facility_proposal = proposal_from(events);
-
+            let clock = clock_now();
             assert!(matches!(
-                facility_proposal.complete(default_balances(), default_price(), crate::time::now()),
+                facility_proposal.complete(default_balances(), default_price(), clock.now()),
                 Err(PendingCreditFacilityError::BelowMarginLimit)
             ));
         }
 
         #[test]
         fn errors_if_collateral_below_margin() {
+            let clock = clock_now();
             let events = initial_events();
             let mut facility_proposal = proposal_from(events);
 
@@ -447,7 +453,7 @@ mod test {
                         Satoshis::from(1_000)
                     ),
                     default_price(),
-                    crate::time::now()
+                    clock.now()
                 ),
                 Err(PendingCreditFacilityError::BelowMarginLimit)
             ));
@@ -455,18 +461,20 @@ mod test {
 
         #[test]
         fn ignored_if_already_completed() {
+            let clock = clock_now();
             let mut events = initial_events();
             events.extend([PendingCreditFacilityEvent::Completed {}]);
             let mut facility_proposal = proposal_from(events);
 
             assert!(matches!(
-                facility_proposal.complete(default_balances(), default_price(), crate::time::now()),
+                facility_proposal.complete(default_balances(), default_price(), clock.now()),
                 Ok(Idempotent::AlreadyApplied)
             ));
         }
 
         #[test]
         fn can_activate() {
+            let clock = clock_now();
             let events = initial_events();
             let mut facility_proposal = proposal_from(events);
 
@@ -478,7 +486,7 @@ mod test {
                             Satoshis::from(1_000_000)
                         ),
                         default_price(),
-                        crate::time::now()
+                        clock.now()
                     )
                     .is_ok()
             );

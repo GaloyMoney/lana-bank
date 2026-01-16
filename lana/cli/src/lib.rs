@@ -155,11 +155,6 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
     // Setup GCP credentials from SA_CREDS_BASE64 environment variable
     setup_gcp_credentials()?;
 
-    #[cfg(feature = "sim-time")]
-    {
-        sim_time::init(config.time);
-    }
-
     let (error_send, mut error_recv) = tokio::sync::mpsc::channel(1);
     let (shutdown_send, shutdown_recv) = tokio::sync::broadcast::channel(1);
     let mut server_handles = Vec::new();
@@ -173,13 +168,22 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
         .clone()
         .expect("super user");
 
-    let app = lana_app::app::LanaApp::init(pool.clone(), config.app)
+    let (clock, _clock_ctrl) = config.time.into_clock();
+
+    let app = lana_app::app::LanaApp::init(pool.clone(), config.app, clock.clone())
         .await
         .context("Failed to initialize Lana app")?;
 
     #[cfg(feature = "sim-bootstrap")]
-    {
-        let _ = sim_bootstrap::run(superuser_email.to_string(), &app, config.bootstrap).await;
+    if let Some(ctrl) = _clock_ctrl {
+        let _ = sim_bootstrap::run(
+            superuser_email.to_string(),
+            &app,
+            config.bootstrap,
+            clock,
+            ctrl,
+        )
+        .await;
     }
 
     let admin_error_send = error_send.clone();
@@ -195,6 +199,7 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
             .context("Admin server error"),
         );
     }));
+
     let customer_error_send = error_send.clone();
     let customer_app = app.clone();
     let mut customer_shutdown = shutdown_recv.resubscribe();

@@ -19,6 +19,7 @@ pub struct AddStructuringFeeParams {
     pub structuring_fee_amount: Decimal,
     pub currency: Currency,
     pub external_id: String,
+    pub effective: chrono::NaiveDate,
     pub initiated_by: core_accounting::LedgerTransactionInitiator,
 }
 
@@ -78,6 +79,7 @@ impl From<AddStructuringFeeParams> for Params {
             structuring_fee_amount,
             currency,
             external_id,
+            effective,
             initiated_by,
         }: AddStructuringFeeParams,
     ) -> Self {
@@ -88,7 +90,7 @@ impl From<AddStructuringFeeParams> for Params {
         params.insert("structuring_fee_amount", structuring_fee_amount);
         params.insert("currency", currency);
         params.insert("external_id", external_id);
-        params.insert("effective", crate::time::now().date_naive());
+        params.insert("effective", effective);
         params.insert(
             "meta",
             serde_json::json!({

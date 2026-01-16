@@ -5,8 +5,10 @@ mod config;
 mod helpers;
 mod scenarios;
 
+use futures::future::join_all;
 use std::collections::HashSet;
 
+use es_entity::clock::{ClockController, ClockHandle};
 use rust_decimal_macros::dec;
 use tracing::{Instrument, Span, info, instrument};
 
@@ -14,11 +16,13 @@ use lana_app::{app::LanaApp, primitives::*};
 
 pub use config::*;
 
-#[instrument(name = "sim_bootstrap.run", skip(app, config), fields(num_customers = config.num_customers, num_facilities = config.num_facilities), err)]
+#[instrument(name = "sim_bootstrap.run", skip(app, config, clock, clock_ctrl), fields(num_customers = config.num_customers, num_facilities = config.num_facilities), err)]
 pub async fn run(
     superuser_email: String,
     app: &LanaApp,
     config: BootstrapConfig,
+    clock: ClockHandle,
+    clock_ctrl: ClockController,
 ) -> anyhow::Result<()> {
     if !config.active {
         return Ok(());
@@ -29,7 +33,7 @@ pub async fn run(
     create_term_templates(&sub, app).await?;
 
     // keep the scenarios tokio handles
-    let _ = scenarios::run(&sub, app).await?;
+    let mut handles = scenarios::run(&sub, app, clock.clone()).await?;
 
     // Bootstrapped test users
     let customers = create_customers(&sub, app, &config).await?;
@@ -44,19 +48,19 @@ pub async fn run(
         &config,
     )
     .await?;
-
-    let mut handles = Vec::new();
     for (customer_id, deposit_account_id) in customers {
         for _ in 0..config.num_facilities {
-            let spawned_app = app.clone();
+            let app = app.clone();
+            let clock = clock.clone();
 
             let handle = tokio::spawn(
                 async move {
                     scenarios::process_facility_lifecycle(
                         sub,
-                        spawned_app,
+                        app,
                         customer_id,
                         deposit_account_id,
+                        clock,
                     )
                     .await
                 }
@@ -65,10 +69,10 @@ pub async fn run(
             handles.push(handle);
         }
     }
+    join_all(handles).await;
 
-    info!("waiting for real time");
-    sim_time::wait_until_realtime().await;
-    info!("switching to real time");
+    info!("transitioning to realtime");
+    clock_ctrl.transition_to_realtime();
 
     Ok(())
 }

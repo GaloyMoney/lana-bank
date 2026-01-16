@@ -1,5 +1,6 @@
 mod helpers;
 
+use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 use rand::Rng;
 
 use authz::dummy::DummySubject;
@@ -16,36 +17,42 @@ use public_id::PublicIds;
 #[tokio::test]
 async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
-
+    let (clock, _ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual());
     let outbox =
-        obix::Outbox::<event::DummyEvent>::init(&pool, obix::MailboxConfig::default()).await?;
+        obix::Outbox::<event::DummyEvent>::init(&pool, obix::MailboxConfig::builder().build()?)
+            .await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
     let domain_configs = InternalDomainConfigs::new(&pool);
     let storage = Storage::new(&StorageConfig::default());
-    let document_storage = DocumentStorage::new(&pool, &storage);
+    let document_storage = DocumentStorage::new(&pool, &storage, clock.clone());
 
-    let governance = governance::Governance::new(&pool, &authz, &outbox);
+    let governance = governance::Governance::new(&pool, &authz, &outbox, clock.clone());
     let public_ids = public_id::PublicIds::new(&pool);
-    let customers =
-        core_customer::Customers::new(&pool, &authz, &outbox, document_storage, public_ids);
-    let custody =
-        core_custody::CoreCustody::init(&pool, &authz, helpers::custody_config(), &outbox).await?;
+    let customers = core_customer::Customers::new(
+        &pool,
+        &authz,
+        &outbox,
+        document_storage,
+        public_ids,
+        clock.clone(),
+    );
+    let custody = core_custody::CoreCustody::init(
+        &pool,
+        &authz,
+        helpers::custody_config(),
+        &outbox,
+        clock.clone(),
+    )
+    .await?;
 
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
         .exec_migrations(false)
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
-    let jobs = job::Jobs::init(
-        job::JobSvcConfig::builder()
-            .pool(pool.clone())
-            .build()
-            .unwrap(),
-    )
-    .await?;
 
-    let mut job_new = job_new::Jobs::init(
-        job_new::JobSvcConfig::builder()
+    let mut jobs = job::Jobs::init(
+        job::JobSvcConfig::builder()
             .pool(pool.clone())
             .build()
             .unwrap(),
@@ -54,13 +61,13 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
 
     let journal_id = helpers::init_journal(&cala).await?;
     let public_ids = PublicIds::new(&pool);
-    let price = core_price::Price::init(&mut job_new, &outbox).await?;
+    let price = core_price::Price::init(&mut jobs, &outbox).await?;
 
     let credit = CoreCredit::init(
         &pool,
         Default::default(),
         &governance,
-        &jobs,
+        &mut jobs,
         &authz,
         &customers,
         &custody,
@@ -72,14 +79,14 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     )
     .await?;
 
-    let accounting_document_storage = DocumentStorage::new(&pool, &storage);
+    let accounting_document_storage = DocumentStorage::new(&pool, &storage, clock.clone());
     let accounting = CoreAccounting::new(
         &pool,
         &authz,
         &cala,
         journal_id,
         accounting_document_storage,
-        &mut job_new,
+        &mut jobs,
         &domain_configs,
     );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));

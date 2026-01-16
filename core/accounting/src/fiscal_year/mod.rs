@@ -13,7 +13,7 @@ use es_entity::{Idempotent, PaginatedQueryArgs};
 use tracing_macros::record_error_severity;
 
 use crate::{
-    FiscalYearId,
+    ClockHandle, FiscalYearId,
     chart_of_accounts::ChartOfAccounts,
     primitives::{ChartId, CoreAccountingAction, CoreAccountingObject},
 };
@@ -29,6 +29,7 @@ pub struct FiscalYears<Perms>
 where
     Perms: PermissionCheck,
 {
+    clock: ClockHandle,
     repo: FiscalYearRepo,
     authz: Perms,
     domain_configs: InternalDomainConfigs,
@@ -41,6 +42,7 @@ where
 {
     fn clone(&self) -> Self {
         Self {
+            clock: self.clock.clone(),
             repo: self.repo.clone(),
             authz: self.authz.clone(),
             domain_configs: self.domain_configs.clone(),
@@ -57,11 +59,13 @@ where
 {
     pub fn new(
         pool: &sqlx::PgPool,
+        clock: ClockHandle,
         authz: &Perms,
         domain_configs: &InternalDomainConfigs,
         chart_of_accounts: &ChartOfAccounts<Perms>,
     ) -> Self {
         Self {
+            clock,
             repo: FiscalYearRepo::new(pool),
             authz: authz.clone(),
             domain_configs: domain_configs.clone(),
@@ -106,7 +110,7 @@ where
             .build()
             .expect("Could not build new FiscalYear");
 
-        let mut op = self.repo.begin_op().await?;
+        let mut op = self.repo.begin_op_with_clock(&self.clock).await?;
         let fiscal_year = self.repo.create_in_op(&mut op, new_fiscal_year).await?;
         let close_ledger_as_of = opened_as_of
             .pred_opt()
@@ -134,7 +138,7 @@ where
                 CoreAccountingAction::FISCAL_YEAR_CREATE,
             )
             .await?;
-        let now = crate::time::now();
+        let now = self.clock.now();
 
         let fiscal_year = self.repo.find_by_id(id).await?;
         let new_fiscal_year = fiscal_year.next(now)?;
@@ -158,11 +162,11 @@ where
             )
             .await?;
         let mut fiscal_year = self.repo.find_by_id(id).await?;
-        let now = crate::time::now();
+        let now = self.clock.now();
 
         match fiscal_year.close(now)? {
             Idempotent::Executed(tx_details) => {
-                let mut op = self.repo.begin_op().await?;
+                let mut op = self.repo.begin_op_with_clock(&self.clock).await?;
                 self.repo.update_in_op(&mut op, &mut fiscal_year).await?;
 
                 let config = self
@@ -203,11 +207,11 @@ where
                 CoreAccountingAction::FISCAL_YEAR_CLOSE_MONTH,
             )
             .await?;
-        let now = crate::time::now();
+        let now = self.clock.now();
 
         let mut fiscal_year = self.repo.find_by_id(id).await?;
         if let Idempotent::Executed(date) = fiscal_year.close_next_sequential_month(now)? {
-            let mut op = self.repo.begin_op().await?;
+            let mut op = self.repo.begin_op_with_clock(&self.clock).await?;
             self.repo.update_in_op(&mut op, &mut fiscal_year).await?;
             self.chart_of_accounts
                 .close_as_of_in_op(&mut op, sub, fiscal_year.chart_id, date)

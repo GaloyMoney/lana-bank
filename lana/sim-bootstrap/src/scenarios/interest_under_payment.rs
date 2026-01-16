@@ -1,3 +1,4 @@
+use es_entity::clock::ClockHandle;
 use es_entity::prelude::chrono::Utc;
 use futures::StreamExt;
 use lana_app::{app::LanaApp, primitives::*};
@@ -9,8 +10,16 @@ use tracing::{Span, instrument};
 use crate::helpers;
 
 // Scenario 5: A fresh credit facility with no previous payments (interest under payment)
-#[tracing::instrument(name = "sim_bootstrap.interest_under_payment_scenario", skip(app), err)]
-pub async fn interest_under_payment_scenario(sub: Subject, app: &LanaApp) -> anyhow::Result<()> {
+#[tracing::instrument(
+    name = "sim_bootstrap.interest_under_payment_scenario",
+    skip(app, clock),
+    err
+)]
+pub async fn interest_under_payment_scenario(
+    sub: Subject,
+    app: &LanaApp,
+    clock: ClockHandle,
+) -> anyhow::Result<()> {
     let (customer_id, _) = helpers::create_customer(&sub, app, "5-interest-under-payment").await?;
 
     let deposit_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
@@ -18,8 +27,8 @@ pub async fn interest_under_payment_scenario(sub: Subject, app: &LanaApp) -> any
 
     // Wait till 2 months before now
     let one_month = std::time::Duration::from_secs(30 * 24 * 60 * 60);
-    while sim_time::now() < Utc::now() - one_month * 2 {
-        sim_time::sleep(one_month).await;
+    while clock.now() < Utc::now() - es_entity::prelude::chrono::Duration::days(60) {
+        clock.sleep(one_month).await;
     }
 
     let cf_terms = helpers::std_terms();
@@ -36,7 +45,7 @@ pub async fn interest_under_payment_scenario(sub: Subject, app: &LanaApp) -> any
 
     let mut stream = app.outbox().listen_persisted(None);
     while let Some(msg) = stream.next().await {
-        if process_activation_message(&msg, &sub, app, &cf_proposal).await? {
+        if process_activation_message(&msg, &sub, app, &cf_proposal, &clock).await? {
             break;
         }
     }
@@ -44,12 +53,13 @@ pub async fn interest_under_payment_scenario(sub: Subject, app: &LanaApp) -> any
     Ok(())
 }
 
-#[instrument(name = "sim_bootstrap.interest_under_payment.process_activation_message", skip(message, sub, app, cf_proposal), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
+#[instrument(name = "sim_bootstrap.interest_under_payment.process_activation_message", skip(message, sub, app, cf_proposal, clock), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
 async fn process_activation_message(
     message: &PersistentOutboxEvent<LanaEvent>,
     sub: &Subject,
     app: &LanaApp,
     cf_proposal: &lana_app::credit::CreditFacilityProposal,
+    clock: &ClockHandle,
 ) -> anyhow::Result<bool> {
     match &message.payload {
         Some(LanaEvent::Credit(
@@ -67,7 +77,7 @@ async fn process_activation_message(
                     sub,
                     *id,
                     Satoshis::try_from_btc(dec!(230))?,
-                    sim_time::now().date_naive(),
+                    clock.today(),
                 )
                 .await?;
         }

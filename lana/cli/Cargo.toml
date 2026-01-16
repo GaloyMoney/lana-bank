@@ -5,10 +5,7 @@ edition = "2024"
 build = "build.rs"
 
 [features]
-sim-time = [
-  "dep:sim-time",
-  "lana-app/sim-time"
-]
+
 sim-bootstrap = ["dep:sim-bootstrap"]
 mock-custodian = ["admin-server/mock-custodian"]
 sumsub-testing = ["lana-app/sumsub-testing", "admin-server/sumsub-testing"]
@@ -27,7 +24,7 @@ sim-bootstrap = { workspace = true, optional = true }
 
 tracing-utils = { workspace = true, features = ["http"] }
 
-sim-time = { workspace = true, optional = true }
+es-entity = { workspace = true }
 
 anyhow = { workspace = true }
 base64 = { workspace = true }

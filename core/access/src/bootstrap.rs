@@ -19,6 +19,7 @@ where
     role_repo: RoleRepo<E>,
     permission_set_repo: PermissionSetRepo,
     users: Users<Audit, E>,
+    clock: ClockHandle,
 }
 
 impl<Audit, E> Bootstrap<Audit, E>
@@ -34,12 +35,14 @@ where
         role_repo: &RoleRepo<E>,
         users: &Users<Audit, E>,
         permission_set_repo: &PermissionSetRepo,
+        clock: ClockHandle,
     ) -> Self {
         Self {
             authz: authz.clone(),
             role_repo: role_repo.clone(),
             permission_set_repo: permission_set_repo.clone(),
             users: users.clone(),
+            clock,
         }
     }
 
@@ -52,7 +55,7 @@ where
         all_actions: Vec<ActionMapping>,
         predefined_roles: &[(&'static str, &[&'static str])],
     ) -> Result<(), CoreAccessError> {
-        let mut db = self.role_repo.begin_op().await?;
+        let mut db = self.role_repo.begin_op_with_clock(&self.clock).await?;
 
         let permission_sets = self
             .bootstrap_permission_sets(&mut db, &all_actions)

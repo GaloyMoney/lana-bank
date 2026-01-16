@@ -3,12 +3,15 @@ use tokio::select;
 use tracing::{Span, instrument};
 
 use futures::StreamExt;
+use std::sync::Arc;
 
 use job::*;
 use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
-use crate::{event::CoreCreditEvent, history::*, primitives::CreditFacilityId};
+use crate::{event::CoreCreditEvent, primitives::CreditFacilityId};
+
+use super::super::repo::HistoryRepo;
 
 #[derive(Default, Clone, Deserialize, Serialize)]
 struct HistoryProjectionJobData {
@@ -17,7 +20,7 @@ struct HistoryProjectionJobData {
 
 pub struct HistoryProjectionJobRunner<E: OutboxEventMarker<CoreCreditEvent>> {
     outbox: Outbox<E>,
-    repo: HistoryRepo,
+    repo: Arc<HistoryRepo>,
 }
 
 impl<E> HistoryProjectionJobRunner<E>
@@ -202,55 +205,61 @@ where
 
 pub struct HistoryProjectionInit<E: OutboxEventMarker<CoreCreditEvent>> {
     outbox: Outbox<E>,
-    repo: HistoryRepo,
+    repo: Arc<HistoryRepo>,
 }
 
 impl<E> HistoryProjectionInit<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    pub fn new(outbox: &Outbox<E>, repo: &HistoryRepo) -> Self {
+    pub fn new(outbox: &Outbox<E>, repo: Arc<HistoryRepo>) -> Self {
         Self {
             outbox: outbox.clone(),
-            repo: repo.clone(),
+            repo,
         }
     }
 }
 
 const HISTORY_PROJECTION: JobType = JobType::new("outbox.credit-facility-history-projection");
+
+#[derive(Serialize, Deserialize)]
+pub struct HistoryProjectionConfig<E> {
+    pub _phantom: std::marker::PhantomData<E>,
+}
+
+impl<E> Clone for HistoryProjectionConfig<E> {
+    fn clone(&self) -> Self {
+        Self {
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+
 impl<E> JobInitializer for HistoryProjectionInit<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    fn job_type() -> JobType
-    where
-        Self: Sized,
-    {
+    type Config = HistoryProjectionConfig<E>;
+
+    fn job_type(&self) -> JobType {
         HISTORY_PROJECTION
     }
 
-    fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
+    fn init(
+        &self,
+        _: &Job,
+        _: JobSpawner<Self::Config>,
+    ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(HistoryProjectionJobRunner {
             outbox: self.outbox.clone(),
             repo: self.repo.clone(),
         }))
     }
 
-    fn retry_on_error_settings() -> RetrySettings
+    fn retry_on_error_settings(&self) -> RetrySettings
     where
         Self: Sized,
     {
         RetrySettings::repeat_indefinitely()
     }
-}
-
-#[derive(Serialize, Deserialize)]
-pub(crate) struct HistoryProjectionConfig<E> {
-    pub _phantom: std::marker::PhantomData<E>,
-}
-impl<E> JobConfig for HistoryProjectionConfig<E>
-where
-    E: OutboxEventMarker<CoreCreditEvent>,
-{
-    type Initializer = HistoryProjectionInit<E>;
 }

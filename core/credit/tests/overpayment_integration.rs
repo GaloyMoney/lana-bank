@@ -3,6 +3,7 @@ mod helpers;
 use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
 use cloud_storage::{Storage, config::StorageConfig};
+use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 use rust_decimal_macros::dec;
 
 use core_credit::{ledger::error::CreditLedgerError, *};
@@ -146,17 +147,35 @@ async fn create_active_facility(
 async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
     // Infrastructure setup
     let pool = helpers::init_pool().await?;
-    let outbox =
-        obix::Outbox::<event::DummyEvent>::init(&pool, obix::MailboxConfig::default()).await?;
+    let (clock, _) = ClockHandle::artificial(ArtificialClockConfig::manual());
+    let outbox = obix::Outbox::<event::DummyEvent>::init(
+        &pool,
+        obix::MailboxConfig::builder()
+            .build()
+            .expect("Couldn't build MailboxConfig"),
+    )
+    .await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
     let storage = Storage::new(&StorageConfig::default());
-    let document_storage = DocumentStorage::new(&pool, &storage);
-    let governance = governance::Governance::new(&pool, &authz, &outbox);
+    let document_storage = DocumentStorage::new(&pool, &storage, clock.clone());
+    let governance = governance::Governance::new(&pool, &authz, &outbox, clock.clone());
     let public_ids = public_id::PublicIds::new(&pool);
-    let customers =
-        core_customer::Customers::new(&pool, &authz, &outbox, document_storage, public_ids);
-    let custody =
-        core_custody::CoreCustody::init(&pool, &authz, helpers::custody_config(), &outbox).await?;
+    let customers = core_customer::Customers::new(
+        &pool,
+        &authz,
+        &outbox,
+        document_storage,
+        public_ids,
+        clock.clone(),
+    );
+    let custody = core_custody::CoreCustody::init(
+        &pool,
+        &authz,
+        helpers::custody_config(),
+        &outbox,
+        clock.clone(),
+    )
+    .await?;
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
         .exec_migrations(false)
@@ -173,16 +192,9 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
             .unwrap(),
     )
     .await?;
-    let mut jobs_new = job_new::Jobs::init(
-        job_new::JobSvcConfig::builder()
-            .pool(pool.clone())
-            .build()
-            .unwrap(),
-    )
-    .await?;
     let journal_id = helpers::init_journal(&cala).await?;
     let credit_public_ids = PublicIds::new(&pool);
-    let price = core_price::Price::init(&mut jobs_new, &outbox).await?;
+    let price = core_price::Price::init(&mut jobs, &outbox).await?;
     let credit = CoreCredit::init(
         &pool,
         CreditConfig {
@@ -190,7 +202,7 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
             ..Default::default()
         },
         &governance,
-        &jobs,
+        &mut jobs,
         &authz,
         &customers,
         &custody,
@@ -207,7 +219,7 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
         &authz,
         &outbox,
         &governance,
-        &mut jobs_new,
+        &mut jobs,
         &cala,
         journal_id,
         &deposit_public_ids,
@@ -218,7 +230,6 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
     )
     .await?;
     jobs.start_poll().await?;
-    jobs_new.start_poll().await?;
 
     // Create active facility
     let facility_amount = UsdCents::from(100_000); // $1,000

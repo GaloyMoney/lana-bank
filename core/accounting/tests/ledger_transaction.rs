@@ -4,6 +4,7 @@ use authz::dummy::{DummyPerms, DummySubject};
 use cloud_storage::{Storage, config::StorageConfig};
 use document_storage::DocumentStorage;
 use domain_config::InternalDomainConfigs;
+use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 use job::{JobSvcConfig, Jobs};
 
 use cala_ledger::{
@@ -188,6 +189,7 @@ async fn prepare_test() -> anyhow::Result<(
 )> {
     use rand::Rng;
     let pool = helpers::init_pool().await?;
+    let (clock, _) = ClockHandle::artificial(ArtificialClockConfig::manual());
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
         .exec_migrations(false)
@@ -198,7 +200,7 @@ async fn prepare_test() -> anyhow::Result<(
     let journal_id = helpers::init_journal(&cala).await?;
 
     let storage = Storage::new(&StorageConfig::default());
-    let document_storage = DocumentStorage::new(&pool, &storage);
+    let document_storage = DocumentStorage::new(&pool, &storage, clock.clone());
     let mut jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
 
     let accounting = CoreAccounting::new(

@@ -20,6 +20,7 @@ pub struct CancelWithdrawParams {
     pub deposit_omnibus_account_id: AccountId,
     pub credit_account_id: AccountId,
     pub initiated_by: core_accounting::LedgerTransactionInitiator,
+    pub effective_date: chrono::NaiveDate,
 }
 
 impl CancelWithdrawParams {
@@ -74,6 +75,7 @@ impl From<CancelWithdrawParams> for Params {
             deposit_omnibus_account_id,
             credit_account_id,
             initiated_by,
+            effective_date,
         }: CancelWithdrawParams,
     ) -> Self {
         let mut params = Self::default();
@@ -82,7 +84,7 @@ impl From<CancelWithdrawParams> for Params {
         params.insert("amount", amount);
         params.insert("deposit_omnibus_account_id", deposit_omnibus_account_id);
         params.insert("credit_account_id", credit_account_id);
-        params.insert("effective", crate::time::now().date_naive());
+        params.insert("effective", effective_date);
         let entity_ref =
             core_accounting::EntityRef::new(WITHDRAWAL_TRANSACTION_ENTITY_TYPE, entity_id);
         params.insert(

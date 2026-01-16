@@ -2,7 +2,7 @@ mod entity;
 pub mod error;
 mod repo;
 
-use es_entity::{DbOp, Idempotent};
+use es_entity::{DbOp, Idempotent, clock::ClockHandle};
 use std::collections::HashMap;
 use tracing::instrument;
 
@@ -31,6 +31,7 @@ where
 {
     authz: Authorization<Audit, AuthRoleToken>,
     repo: UserRepo<E>,
+    clock: ClockHandle,
 }
 
 impl<Audit, E> Clone for Users<Audit, E>
@@ -42,6 +43,7 @@ where
         Self {
             authz: self.authz.clone(),
             repo: self.repo.clone(),
+            clock: self.clock.clone(),
         }
     }
 }
@@ -58,6 +60,7 @@ where
         pool: &sqlx::PgPool,
         authz: &Authorization<Audit, AuthRoleToken>,
         outbox: &Outbox<E>,
+        clock: es_entity::clock::ClockHandle,
     ) -> Result<Self, UserError> {
         let publisher = UserPublisher::new(outbox);
         let repo = UserRepo::new(pool, &publisher);
@@ -65,6 +68,7 @@ where
         Ok(Self {
             repo,
             authz: authz.clone(),
+            clock,
         })
     }
 
@@ -98,7 +102,7 @@ where
 
         let email = email.into();
 
-        let mut db = self.repo.begin_op().await?;
+        let mut db = self.repo.begin_op_with_clock(&self.clock).await?;
 
         let new_user = NewUser::builder()
             .email(email.clone())

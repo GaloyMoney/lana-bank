@@ -1,3 +1,4 @@
+use es_entity::clock::ClockHandle;
 use es_entity::prelude::chrono::Utc;
 use futures::StreamExt;
 use lana_app::{app::LanaApp, primitives::*};
@@ -12,10 +13,14 @@ use crate::helpers;
 // Scenario 6: A fresh credit facility with interests paid out (principal under payment)
 #[tracing::instrument(
     name = "sim_bootstrap.principal_under_payment_scenario",
-    skip(app),
+    skip(app, clock),
     err
 )]
-pub async fn principal_under_payment_scenario(sub: Subject, app: &LanaApp) -> anyhow::Result<()> {
+pub async fn principal_under_payment_scenario(
+    sub: Subject,
+    app: &LanaApp,
+    clock: ClockHandle,
+) -> anyhow::Result<()> {
     let (customer_id, _) = helpers::create_customer(&sub, app, "6-principal-under-payment").await?;
 
     let deposit_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
@@ -23,8 +28,8 @@ pub async fn principal_under_payment_scenario(sub: Subject, app: &LanaApp) -> an
 
     // Wait till 8 months before now
     let one_month = std::time::Duration::from_secs(30 * 24 * 60 * 60);
-    while sim_time::now() < Utc::now() - one_month * 8 {
-        sim_time::sleep(one_month).await;
+    while clock.now() < Utc::now() - es_entity::prelude::chrono::Duration::days(240) {
+        clock.sleep(one_month).await;
     }
 
     let cf_terms = helpers::std_terms_with_liquidation();
@@ -41,16 +46,17 @@ pub async fn principal_under_payment_scenario(sub: Subject, app: &LanaApp) -> an
 
     let mut stream = app.outbox().listen_persisted(None);
     while let Some(msg) = stream.next().await {
-        if process_activation_message(&msg, &sub, app, &cf_proposal).await? {
+        if process_activation_message(&msg, &sub, app, &cf_proposal, &clock).await? {
             break;
         }
     }
 
     let (tx, rx) = mpsc::channel::<(ObligationType, UsdCents)>(32);
     let sim_app = app.clone();
+    let sim_clock = clock.clone();
     tokio::spawn(
         async move {
-            do_principal_under_payment(sub, sim_app, cf_proposal.id.into(), rx)
+            do_principal_under_payment(sub, sim_app, cf_proposal.id.into(), rx, sim_clock)
                 .await
                 .expect("principal under payment failed");
         }
@@ -66,12 +72,13 @@ pub async fn principal_under_payment_scenario(sub: Subject, app: &LanaApp) -> an
     Ok(())
 }
 
-#[instrument(name = "sim_bootstrap.principal_under_payment.process_activation_message", skip(message, sub, app, cf_proposal), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
+#[instrument(name = "sim_bootstrap.principal_under_payment.process_activation_message", skip(message, sub, app, cf_proposal, clock), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
 async fn process_activation_message(
     message: &PersistentOutboxEvent<LanaEvent>,
     sub: &Subject,
     app: &LanaApp,
     cf_proposal: &lana_app::credit::CreditFacilityProposal,
+    clock: &ClockHandle,
 ) -> anyhow::Result<bool> {
     match &message.payload {
         Some(LanaEvent::Credit(
@@ -89,7 +96,7 @@ async fn process_activation_message(
                     sub,
                     *id,
                     Satoshis::try_from_btc(dec!(230))?,
-                    sim_time::now().date_naive(),
+                    clock.today(),
                 )
                 .await?;
         }
@@ -146,7 +153,7 @@ async fn process_obligation_message(
 
 #[tracing::instrument(
     name = "sim_bootstrap.do_principal_under_payment",
-    skip(app, obligation_amount_rx),
+    skip(app, obligation_amount_rx, clock),
     err
 )]
 async fn do_principal_under_payment(
@@ -154,12 +161,13 @@ async fn do_principal_under_payment(
     app: LanaApp,
     id: CreditFacilityId,
     mut obligation_amount_rx: mpsc::Receiver<(ObligationType, UsdCents)>,
+    clock: ClockHandle,
 ) -> anyhow::Result<()> {
     let mut principal_remaining = UsdCents::ZERO;
 
     while let Some((obligation_type, amount)) = obligation_amount_rx.recv().await {
         if obligation_type == ObligationType::Interest {
-            app.record_payment_with_date(&sub, id, amount, sim_time::now().date_naive())
+            app.record_payment_with_date(&sub, id, amount, clock.today())
                 .await?;
         } else {
             principal_remaining += amount;

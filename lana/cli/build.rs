@@ -14,8 +14,6 @@ fn main() {
 
     // Capture enabled features (deterministic based on build configuration)
     let features: Vec<&str> = vec![
-        #[cfg(feature = "sim-time")]
-        "sim-time",
         #[cfg(feature = "sim-bootstrap")]
         "sim-bootstrap",
         #[cfg(feature = "sumsub-testing")]

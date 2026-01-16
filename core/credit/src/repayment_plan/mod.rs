@@ -1,13 +1,22 @@
 mod entry;
 pub mod error;
+mod jobs;
 mod repo;
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 
 use obix::EventSequence;
+use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{event::CoreCreditEvent, primitives::*, terms::TermValues};
+use audit::AuditSvc;
+use authz::PermissionCheck;
+use error::CreditFacilityRepaymentPlanError;
+use jobs::credit_facility_repayment_plan;
+use tracing::instrument;
+use tracing_macros::record_error_severity;
 
 pub use entry::*;
 pub use repo::RepaymentPlanRepo;
@@ -24,10 +33,6 @@ pub struct CreditFacilityRepaymentPlan {
 }
 
 impl CreditFacilityRepaymentPlan {
-    fn activated_at(&self) -> DateTime<Utc> {
-        self.activated_at.unwrap_or(crate::time::now())
-    }
-
     fn existing_obligations(&self) -> Vec<CreditFacilityRepaymentPlanEntry> {
         self.entries
             .iter()
@@ -36,12 +41,12 @@ impl CreditFacilityRepaymentPlan {
             .collect()
     }
 
-    fn planned_disbursals(&self) -> Vec<CreditFacilityRepaymentPlanEntry> {
+    fn planned_disbursals(&self, now: DateTime<Utc>) -> Vec<CreditFacilityRepaymentPlanEntry> {
         let terms = self.terms.expect("Missing FacilityCreated event");
         let facility_amount = self.facility_amount;
         let structuring_fee = terms.one_time_fee_rate.apply(facility_amount);
 
-        let activated_at = self.activated_at();
+        let activated_at = self.activated_at.unwrap_or(now);
         let maturity_date = terms.maturity_date(activated_at);
 
         let mut disbursals = vec![];
@@ -82,9 +87,10 @@ impl CreditFacilityRepaymentPlan {
     fn planned_interest_accruals(
         &self,
         updated_entries: &[CreditFacilityRepaymentPlanEntry],
+        now: DateTime<Utc>,
     ) -> Vec<CreditFacilityRepaymentPlanEntry> {
         let terms = self.terms.expect("Missing FacilityCreated event");
-        let activated_at = self.activated_at();
+        let activated_at = self.activated_at.unwrap_or(now);
 
         let maturity_date = terms.maturity_date(activated_at);
         let mut next_interest_period =
@@ -139,10 +145,11 @@ impl CreditFacilityRepaymentPlan {
         planned_interest_entries
     }
 
-    pub(super) fn process_event(
+    pub(crate) fn process_event(
         &mut self,
         sequence: EventSequence,
         event: &CoreCreditEvent,
+        now: DateTime<Utc>,
     ) -> bool {
         self.last_updated_on_sequence = sequence;
 
@@ -261,10 +268,10 @@ impl CreditFacilityRepaymentPlan {
         let updated_entries = if !existing_obligations.is_empty() {
             existing_obligations
         } else {
-            self.planned_disbursals()
+            self.planned_disbursals(now)
         };
 
-        let planned_interest_entries = self.planned_interest_accruals(&updated_entries);
+        let planned_interest_entries = self.planned_interest_accruals(&updated_entries, now);
 
         self.entries = updated_entries
             .into_iter()
@@ -273,6 +280,87 @@ impl CreditFacilityRepaymentPlan {
         self.entries.sort();
 
         true
+    }
+}
+
+pub struct RepaymentPlans<Perms> {
+    repo: Arc<RepaymentPlanRepo>,
+    authz: Arc<Perms>,
+}
+
+impl<Perms> Clone for RepaymentPlans<Perms>
+where
+    Perms: PermissionCheck,
+{
+    fn clone(&self) -> Self {
+        Self {
+            repo: self.repo.clone(),
+            authz: self.authz.clone(),
+        }
+    }
+}
+
+impl<Perms> RepaymentPlans<Perms>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+{
+    pub async fn init<E>(
+        pool: &sqlx::PgPool,
+        outbox: &Outbox<E>,
+        jobs: &mut job::Jobs,
+        authz: Arc<Perms>,
+    ) -> Result<Self, CreditFacilityRepaymentPlanError>
+    where
+        E: OutboxEventMarker<CoreCreditEvent>,
+    {
+        let repo = Arc::new(RepaymentPlanRepo::new(pool));
+
+        let job_init =
+            credit_facility_repayment_plan::RepaymentPlanProjectionInit::new(outbox, repo.clone());
+
+        let spawner = jobs.add_initializer(job_init);
+
+        spawner
+            .spawn_unique(
+                job::JobId::new(),
+                credit_facility_repayment_plan::RepaymentPlanProjectionConfig {
+                    _phantom: std::marker::PhantomData,
+                },
+            )
+            .await?;
+
+        Ok(Self { repo, authz })
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "credit.repayment_plan", skip(self, credit_facility_id), fields(credit_facility_id = tracing::field::Empty))]
+    pub async fn find_for_credit_facility_id<T: From<CreditFacilityRepaymentPlanEntry>>(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug,
+    ) -> Result<Vec<T>, CreditFacilityRepaymentPlanError> {
+        let id = credit_facility_id.into();
+        tracing::Span::current().record("credit_facility_id", tracing::field::display(id));
+
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::credit_facility(id),
+                CoreCreditAction::CREDIT_FACILITY_READ,
+            )
+            .await?;
+        let repayment_plan = self.repo.load(id).await?;
+        Ok(repayment_plan.entries.into_iter().map(T::from).collect())
+    }
+
+    pub(crate) async fn find_for_credit_facility_id_without_audit(
+        &self,
+        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug,
+    ) -> Result<Vec<CreditFacilityRepaymentPlanEntry>, CreditFacilityRepaymentPlanError> {
+        let repayment_plan = self.repo.load(credit_facility_id.into()).await?;
+        Ok(repayment_plan.entries.into_iter().collect())
     }
 }
 
@@ -339,6 +427,7 @@ mod tests {
                 amount: default_facility_amount(),
                 created_at: default_start_date(),
             },
+            default_start_date(),
         );
 
         plan
@@ -354,7 +443,7 @@ mod tests {
 
     fn process_events(plan: &mut CreditFacilityRepaymentPlan, events: Vec<CoreCreditEvent>) {
         for event in events {
-            plan.process_event(Default::default(), &event);
+            plan.process_event(Default::default(), &event, default_start_date());
         }
     }
 
@@ -781,6 +870,7 @@ mod tests {
                 id: interest_obligation_id,
                 credit_facility_id: CreditFacilityId::new(),
             },
+            default_start_date(),
         );
         let interest_entry_status = plan
             .entries

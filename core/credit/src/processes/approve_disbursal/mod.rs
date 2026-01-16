@@ -4,6 +4,7 @@ use std::sync::Arc;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use es_entity::clock::ClockHandle;
 use governance::{
     ApprovalProcessType, Governance, GovernanceAction, GovernanceEvent, GovernanceObject,
 };
@@ -14,6 +15,7 @@ use obix::out::OutboxEventMarker;
 
 use core_accounting::LedgerTransactionInitiator;
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
+use core_price::CorePriceEvent;
 
 use crate::{
     CoreCreditAction, CoreCreditError, CoreCreditEvent, CoreCreditObject, Disbursal, Disbursals,
@@ -28,12 +30,14 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     disbursals: Arc<Disbursals<Perms, E>>,
     credit_facilities: Arc<CreditFacilities<Perms, E>>,
     governance: Arc<Governance<Perms, E>>,
     ledger: Arc<CreditLedger>,
+    clock: ClockHandle,
 }
 
 impl<Perms, E> Clone for ApproveDisbursal<Perms, E>
@@ -41,7 +45,8 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -49,6 +54,7 @@ where
             credit_facilities: self.credit_facilities.clone(),
             governance: self.governance.clone(),
             ledger: self.ledger.clone(),
+            clock: self.clock.clone(),
         }
     }
 }
@@ -62,19 +68,22 @@ where
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCustodyEvent>,
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>,
 {
     pub fn new(
         disbursals: Arc<Disbursals<Perms, E>>,
         credit_facilities: Arc<CreditFacilities<Perms, E>>,
         governance: Arc<Governance<Perms, E>>,
         ledger: Arc<CreditLedger>,
+        clock: ClockHandle,
     ) -> Self {
         Self {
             disbursals,
             credit_facilities,
             governance,
             ledger,
+            clock,
         }
     }
 
@@ -90,7 +99,12 @@ where
         id: impl es_entity::RetryableInto<DisbursalId>,
         approved: bool,
     ) -> Result<Disbursal, CoreCreditError> {
-        let mut op = self.disbursals.begin_op().await?.with_db_time().await?;
+        let mut op = self
+            .disbursals
+            .begin_op_with_clock(&self.clock)
+            .await?
+            .with_db_time()
+            .await?;
 
         let disbursal = match self
             .disbursals

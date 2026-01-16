@@ -1,3 +1,4 @@
+use es_entity::clock::ClockHandle;
 use futures::StreamExt;
 use lana_app::{app::LanaApp, primitives::*};
 use lana_events::{CoreCreditEvent, LanaEvent, ObligationType};
@@ -9,8 +10,12 @@ use tracing::{Instrument, Span, instrument};
 use crate::helpers;
 
 // Scenario 3: A credit facility with an principal payment >90 days late
-#[tracing::instrument(name = "sim_bootstrap.principal_late_scenario", skip(app), err)]
-pub async fn principal_late_scenario(sub: Subject, app: &LanaApp) -> anyhow::Result<()> {
+#[tracing::instrument(name = "sim_bootstrap.principal_late_scenario", skip(app, clock), err)]
+pub async fn principal_late_scenario(
+    sub: Subject,
+    app: &LanaApp,
+    clock: ClockHandle,
+) -> anyhow::Result<()> {
     let (customer_id, _) = helpers::create_customer(&sub, app, "3-principal-late").await?;
 
     let deposit_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
@@ -30,16 +35,17 @@ pub async fn principal_late_scenario(sub: Subject, app: &LanaApp) -> anyhow::Res
 
     let mut stream = app.outbox().listen_persisted(None);
     while let Some(msg) = stream.next().await {
-        if process_activation_message(&msg, &sub, app, &cf_proposal).await? {
+        if process_activation_message(&msg, &sub, app, &cf_proposal, &clock).await? {
             break;
         }
     }
 
     let (tx, rx) = mpsc::channel::<(ObligationType, UsdCents)>(32);
     let sim_app = app.clone();
+    let sim_clock = clock.clone();
     tokio::spawn(
         async move {
-            do_principal_late(sub, sim_app, cf_proposal.id.into(), rx)
+            do_principal_late(sub, sim_app, cf_proposal.id.into(), rx, sim_clock)
                 .await
                 .expect("principal late failed");
         }
@@ -63,12 +69,13 @@ pub async fn principal_late_scenario(sub: Subject, app: &LanaApp) -> anyhow::Res
     Ok(())
 }
 
-#[instrument(name = "sim_bootstrap.principal_late.process_activation_message", skip(message, sub, app, cf_proposal), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
+#[instrument(name = "sim_bootstrap.principal_late.process_activation_message", skip(message, sub, app, cf_proposal, clock), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
 async fn process_activation_message(
     message: &PersistentOutboxEvent<LanaEvent>,
     sub: &Subject,
     app: &LanaApp,
     cf_proposal: &lana_app::credit::CreditFacilityProposal,
+    clock: &ClockHandle,
 ) -> anyhow::Result<bool> {
     match &message.payload {
         Some(LanaEvent::Credit(
@@ -86,7 +93,7 @@ async fn process_activation_message(
                     sub,
                     *id,
                     Satoshis::try_from_btc(dec!(230))?,
-                    sim_time::now().date_naive(),
+                    clock.today(),
                 )
                 .await?;
         }
@@ -141,7 +148,7 @@ async fn process_obligation_message(
 
 #[tracing::instrument(
     name = "sim_bootstrap.do_principal_late",
-    skip(app, obligation_amount_rx),
+    skip(app, obligation_amount_rx, clock),
     err
 )]
 async fn do_principal_late(
@@ -149,6 +156,7 @@ async fn do_principal_late(
     app: LanaApp,
     id: CreditFacilityId,
     mut obligation_amount_rx: mpsc::Receiver<(ObligationType, UsdCents)>,
+    clock: ClockHandle,
 ) -> anyhow::Result<()> {
     let one_month = std::time::Duration::from_secs(30 * 24 * 60 * 60);
     let mut month_num = 0;
@@ -158,11 +166,11 @@ async fn do_principal_late(
         // 3 months of interest payments should be delayed by a month
         if month_num < 3 {
             month_num += 1;
-            sim_time::sleep(one_month).await;
+            clock.sleep(one_month).await;
         }
 
         if obligation_type == ObligationType::Interest {
-            app.record_payment_with_date(&sub, id, amount, sim_time::now().date_naive())
+            app.record_payment_with_date(&sub, id, amount, clock.today())
                 .await?;
         } else {
             principal_remaining += amount;
@@ -181,8 +189,8 @@ async fn do_principal_late(
     }
 
     // Delaying payment of principal by one more month
-    sim_time::sleep(one_month).await;
-    app.record_payment_with_date(&sub, id, principal_remaining, sim_time::now().date_naive())
+    clock.sleep(one_month).await;
+    app.record_payment_with_date(&sub, id, principal_remaining, clock.today())
         .await?;
 
     if app
@@ -192,7 +200,7 @@ async fn do_principal_late(
         .await?
     {
         while let Some((_, amount)) = obligation_amount_rx.recv().await {
-            app.record_payment_with_date(&sub, id, amount, sim_time::now().date_naive())
+            app.record_payment_with_date(&sub, id, amount, clock.today())
                 .await?;
 
             if !app

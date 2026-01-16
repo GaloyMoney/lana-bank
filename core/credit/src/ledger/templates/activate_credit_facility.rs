@@ -19,6 +19,7 @@ pub struct ActivateCreditFacilityParams {
     pub facility_amount: Decimal,
     pub currency: Currency,
     pub external_id: String,
+    pub effective: chrono::NaiveDate,
     pub initiated_by: core_accounting::LedgerTransactionInitiator,
 }
 
@@ -78,6 +79,7 @@ impl From<ActivateCreditFacilityParams> for Params {
             facility_amount,
             currency,
             external_id,
+            effective,
             initiated_by,
         }: ActivateCreditFacilityParams,
     ) -> Self {
@@ -88,7 +90,7 @@ impl From<ActivateCreditFacilityParams> for Params {
         params.insert("facility_amount", facility_amount);
         params.insert("currency", currency);
         params.insert("external_id", external_id);
-        params.insert("effective", crate::time::now().date_naive());
+        params.insert("effective", effective);
         params.insert(
             "meta",
             serde_json::json!({

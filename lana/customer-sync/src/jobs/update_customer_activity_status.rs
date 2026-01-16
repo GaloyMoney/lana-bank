@@ -128,12 +128,12 @@ where
         + OutboxEventMarker<GovernanceEvent>,
 {
     #[record_error_severity]
-    #[instrument(name = "update_customer_activity_status.run", skip(self, _current_job))]
+    #[instrument(name = "update_customer_activity_status.run", skip_all)]
     async fn run(
         &self,
-        _current_job: CurrentJob,
+        current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let now = crate::time::now();
+        let now = current_job.clock().now();
         self.customers
             .perform_customer_activity_status_update(now)
             .await?;

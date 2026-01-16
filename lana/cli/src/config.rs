@@ -1,10 +1,8 @@
 use anyhow::Context;
 
+use es_entity::clock::{ArtificialClockConfig, ClockController, ClockHandle};
 use serde::{Deserialize, Serialize};
 use tracing_utils::TracingConfig;
-
-#[cfg(feature = "sim-time")]
-use sim_time::TimeConfig;
 
 #[cfg(feature = "sim-bootstrap")]
 use sim_bootstrap::BootstrapConfig;
@@ -15,6 +13,29 @@ use super::db::*;
 use admin_server::AdminServerConfig;
 use customer_server::CustomerServerConfig;
 use lana_app::app::AppConfig;
+
+/// Time configuration for the application clock
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum TimeConfig {
+    /// Use real system time
+    #[default]
+    Realtime,
+    /// Use artificial/simulated time with configurable behavior
+    Artificial(ArtificialClockConfig),
+}
+
+impl TimeConfig {
+    pub(super) fn into_clock(self) -> (ClockHandle, Option<ClockController>) {
+        match self {
+            Self::Realtime => (ClockHandle::realtime(), None),
+            Self::Artificial(cfg) => {
+                let (clock, ctrl) = ClockHandle::artificial(cfg);
+                (clock, Some(ctrl))
+            }
+        }
+    }
+}
 
 /// Main configuration structure for the Lana banking application
 #[derive(Clone, Default, Serialize, Deserialize)]
@@ -35,9 +56,7 @@ pub struct Config {
     /// OpenTelemetry tracing configuration for observability
     #[serde(default)]
     pub tracing: TracingConfig,
-
-    /// Simulated time configuration (only available in sim-time feature)
-    #[cfg(feature = "sim-time")]
+    /// Time configuration (realtime or artificial)
     #[serde(default)]
     pub time: TimeConfig,
 

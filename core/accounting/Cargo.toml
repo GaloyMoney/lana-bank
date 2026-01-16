@@ -14,7 +14,7 @@ authz = { workspace = true }
 domain-config = { workspace = true }
 core-money = { workspace = true }
 document-storage = { workspace = true }
-job = { version = "0.6.0" }
+job = { workspace = true }
 cloud-storage = { workspace = true }
 
 cala-ledger = { workspace = true }
@@ -36,7 +36,6 @@ tracing-utils = { workspace = true }
 uuid = { workspace = true }
 async-graphql = { workspace = true, optional = true }
 async-trait = { workspace = true }
-sim-time = { workspace = true, optional = true }
 schemars = { workspace = true, optional = true }
 
 tokio = { workspace = true }

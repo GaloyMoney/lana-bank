@@ -5,6 +5,7 @@ use tracing::instrument;
 
 use audit::AuditInfo;
 use core_accounting::{EntityRef, LedgerTransactionInitiator};
+use es_entity::clock::ClockHandle;
 
 mod balance;
 mod constants;
@@ -214,6 +215,7 @@ impl CreditFacilityInternalAccountSets {
 #[derive(Clone)]
 pub struct CreditLedger {
     cala: CalaLedger,
+    clock: ClockHandle,
     journal_id: JournalId,
     facility_omnibus_account_ids: LedgerOmnibusAccountIds,
     collateral_omnibus_account_ids: LedgerOmnibusAccountIds,
@@ -229,7 +231,11 @@ pub struct CreditLedger {
 impl CreditLedger {
     #[record_error_severity]
     #[instrument(name = "credit_ledger.init", skip_all)]
-    pub async fn init(cala: &CalaLedger, journal_id: JournalId) -> Result<Self, CreditLedgerError> {
+    pub async fn init(
+        cala: &CalaLedger,
+        journal_id: JournalId,
+        clock: ClockHandle,
+    ) -> Result<Self, CreditLedgerError> {
         templates::AddCollateral::init(cala).await?;
         templates::AddStructuringFee::init(cala).await?;
         templates::ActivateCreditFacility::init(cala).await?;
@@ -970,6 +976,7 @@ impl CreditLedger {
 
         Ok(Self {
             cala: cala.clone(),
+            clock,
             journal_id,
             facility_omnibus_account_ids,
             collateral_omnibus_account_ids,
@@ -1644,7 +1651,7 @@ impl CreditLedger {
                     amount: collateral.to_btc(),
                     collateral_account_id: credit_facility_account_ids.collateral_account_id,
                     bank_collateral_account_id: self.collateral_omnibus_account_ids.account_id,
-                    effective: crate::time::now().date_naive(),
+                    effective: self.clock.today(),
                     initiated_by,
                 },
             )
@@ -1676,6 +1683,7 @@ impl CreditLedger {
                     facility_amount: facility_amount.to_usd(),
                     currency: self.usd,
                     external_id: tx_ref,
+                    effective: self.clock.today(),
                     initiated_by,
                 },
             )
@@ -1780,6 +1788,7 @@ impl CreditLedger {
                     disbursed_amount: amount.to_usd(),
                     currency: self.usd,
                     external_id: format!("{}-initial-disbursal", disbursal_id),
+                    effective: self.clock.today(),
                     initiated_by,
                 },
             )
@@ -1808,6 +1817,7 @@ impl CreditLedger {
                     facility_amount: facility_amount.to_usd(),
                     currency: self.usd,
                     external_id,
+                    effective: self.clock.today(),
                     initiated_by,
                 },
             )
@@ -1835,6 +1845,7 @@ impl CreditLedger {
                     structuring_fee_amount: amount.to_usd(),
                     currency: self.usd,
                     external_id: format!("{}-structuring-fee", tx_id),
+                    effective: self.clock.today(),
                     initiated_by,
                 },
             )
@@ -1941,6 +1952,7 @@ impl CreditLedger {
                         .uncovered_outstanding_account_id,
                     credit_facility_account: account_ids.facility_account_id,
                     disbursed_amount: amount.to_usd(),
+                    effective: self.clock.today(),
                     initiated_by,
                 },
             )
@@ -1969,6 +1981,7 @@ impl CreditLedger {
                         .uncovered_outstanding_account_id,
                     credit_facility_account: account_ids.facility_account_id,
                     disbursed_amount: amount.to_usd(),
+                    effective: self.clock.today(),
                     initiated_by,
                 },
             )
@@ -2008,6 +2021,7 @@ impl CreditLedger {
                     disbursed_into_account_id,
                     disbursed_amount: amount.to_usd(),
                     external_id,
+                    effective: self.clock.today(),
                     initiated_by,
                 },
             )
@@ -2573,6 +2587,7 @@ impl CreditLedger {
             payments_made_omnibus_account_ids: _,                 // TODO: add to chart
 
             cala: _,
+            clock: _,
             journal_id: _,
             credit_facility_control_ids: _,
             usd: _,

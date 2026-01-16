@@ -21,7 +21,7 @@ async fn get_price_from_client() {
 async fn update_price() -> anyhow::Result<()> {
     let pool = init_pool().await?;
 
-    let outbox = Outbox::<DummyEvent>::init(&pool, Default::default()).await?;
+    let outbox = Outbox::<DummyEvent>::init(&pool, obix::MailboxConfig::builder().build()?).await?;
     let mut jobs = job::Jobs::init(
         job::JobSvcConfig::builder()
             .pool(pool.clone())

@@ -23,6 +23,7 @@ pub struct RecordDepositParams {
     pub deposit_omnibus_account_id: CalaAccountId,
     pub credit_account_id: CalaAccountId,
     pub initiated_by: core_accounting::LedgerTransactionInitiator,
+    pub effective_date: chrono::NaiveDate,
 }
 
 impl RecordDepositParams {
@@ -77,6 +78,7 @@ impl From<RecordDepositParams> for Params {
             deposit_omnibus_account_id,
             credit_account_id,
             initiated_by,
+            effective_date,
         }: RecordDepositParams,
     ) -> Self {
         let mut params = Self::default();
@@ -85,7 +87,7 @@ impl From<RecordDepositParams> for Params {
         params.insert("amount", amount);
         params.insert("deposit_omnibus_account_id", deposit_omnibus_account_id);
         params.insert("credit_account_id", credit_account_id);
-        params.insert("effective", crate::time::now().date_naive());
+        params.insert("effective", effective_date);
         let entity_ref =
             core_accounting::EntityRef::new(DEPOSIT_TRANSACTION_ENTITY_TYPE, entity_id);
         params.insert(
