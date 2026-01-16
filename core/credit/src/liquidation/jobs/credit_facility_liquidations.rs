@@ -244,7 +244,7 @@ where
             .record("existing_liquidation_found", existing_liquidation.is_some());
 
         if existing_liquidation.is_none() {
-            let _liquidation = self
+            let liquidation = self
                 .repo
                 .create_in_op(
                     db,
@@ -262,7 +262,7 @@ where
                     db,
                     JobId::new(),
                     PartialLiquidationJobConfig::<E> {
-                        liquidation_id: _liquidation.id,
+                        liquidation_id: liquidation.id,
                         credit_facility_id,
                         _phantom: std::marker::PhantomData,
                     },
@@ -273,7 +273,7 @@ where
                     db,
                     JobId::new(),
                     LiquidationPaymentJobConfig::<E> {
-                        liquidation_id: _liquidation.id,
+                        liquidation_id: liquidation.id,
                         credit_facility_id,
                         _phantom: std::marker::PhantomData,
                     },
