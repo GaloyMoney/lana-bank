@@ -1375,6 +1375,9 @@ checksums:
     Modules/credit/chartOfAccountInterestIncomeParentCode: 6f7bc91587039fec7e07edc8214be0b1
     Modules/credit/chartOfAccountFeeIncomeParentCode: 41eb6f093aee01175ddc0a61cb612efd
     Modules/credit/chartOfAccountPaymentHoldingParentCode: ca6f787a282ddad6b86f2eb24d50959a
+    Modules/credit/chartOfAccountPaymentsMadeOmnibusParentCode: 01a4e7ece6ed80b3e65431f10928086d
+    Modules/credit/chartOfAccountInterestAddedToObligationsOmnibusParentCode: d0b0446fc53ce13a53b91f028d36968c
+    Modules/credit/chartOfAccountUncoveredOutstandingParentCode: 19d8294c2131a66ffed0f3f4f106ff3a
     Modules/credit/chartOfAccountShortTermIndividualInterestReceivableParentCode: 0ccd48b3ce1d6660158061b98833f6cb
     Modules/credit/chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode: 4a90bcdd6a1a8d57a4c80c18914c5c3c
     Modules/credit/chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode: df5d335adeb84083d130420018874fa8
