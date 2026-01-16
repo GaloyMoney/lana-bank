@@ -42,7 +42,7 @@
           });
         })
         (self: super: {
-          python311 = super.python311.override {
+          python313 = super.python313.override {
             packageOverrides = pySelf: pySuper: let
               lib = super.lib;
 
