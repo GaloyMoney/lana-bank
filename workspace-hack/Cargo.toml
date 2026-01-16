@@ -41,7 +41,6 @@ either = { version = "1", features = ["serde", "use_std"] }
 elliptic-curve = { version = "0.13", default-features = false, features = ["digest", "hazmat", "pem", "std"] }
 es-entity = { version = "0.10", default-features = false, features = ["event-context", "graphql", "instrument", "json-schema", "tracing-context"] }
 ff = { version = "0.13", default-features = false, features = ["alloc"] }
-fixedbitset = { version = "0.4" }
 form_urlencoded = { version = "1" }
 futures-channel = { version = "0.3", features = ["sink"] }
 futures-sink = { version = "0.3" }
@@ -65,7 +64,6 @@ obix = { version = "0.2", features = ["tracing"] }
 once_cell = { version = "1", features = ["portable-atomic"] }
 opentelemetry-http = { version = "0.31", features = ["reqwest-rustls-webpki-roots"] }
 opentelemetry-otlp = { version = "0.31", default-features = false, features = ["grpc-tonic", "http-proto", "reqwest-client", "reqwest-rustls-webpki-roots"] }
-petgraph = { version = "0.6" }
 pkcs8 = { version = "0.10", default-features = false, features = ["encryption", "pem", "std"] }
 prost = { version = "0.13", features = ["prost-derive"] }
 rand = { version = "0.9" }
@@ -96,6 +94,7 @@ tokio-util = { version = "0.7", features = ["codec", "compat", "io"] }
 tonic = { version = "0.14" }
 tower = { version = "0.5", default-features = false, features = ["balance", "buffer", "limit", "load-shed", "log"] }
 tracing-core = { version = "0.1" }
+url = { version = "2", features = ["serde"] }
 uuid = { version = "1", features = ["serde", "v4", "v7"] }
 
 [build-dependencies]
@@ -126,7 +125,6 @@ elliptic-curve = { version = "0.13", default-features = false, features = ["dige
 es-entity = { version = "0.10", default-features = false, features = ["event-context", "graphql", "instrument", "json-schema", "tracing-context"] }
 es-entity-macros = { version = "0.10", default-features = false, features = ["event-context", "graphql", "instrument"] }
 ff = { version = "0.13", default-features = false, features = ["alloc"] }
-fixedbitset = { version = "0.4" }
 form_urlencoded = { version = "1" }
 futures-channel = { version = "0.3", features = ["sink"] }
 futures-sink = { version = "0.3" }
@@ -151,7 +149,6 @@ obix-macros = { version = "0.2", default-features = false, features = ["tracing"
 once_cell = { version = "1", features = ["portable-atomic"] }
 opentelemetry-http = { version = "0.31", features = ["reqwest-rustls-webpki-roots"] }
 opentelemetry-otlp = { version = "0.31", default-features = false, features = ["grpc-tonic", "http-proto", "reqwest-client", "reqwest-rustls-webpki-roots"] }
-petgraph = { version = "0.6" }
 pkcs8 = { version = "0.10", default-features = false, features = ["encryption", "pem", "std"] }
 prost = { version = "0.13", features = ["prost-derive"] }
 rand = { version = "0.9" }
@@ -185,6 +182,7 @@ tokio-util = { version = "0.7", features = ["codec", "compat", "io"] }
 tonic = { version = "0.14" }
 tower = { version = "0.5", default-features = false, features = ["balance", "buffer", "limit", "load-shed", "log"] }
 tracing-core = { version = "0.1" }
+url = { version = "2", features = ["serde"] }
 uuid = { version = "1", features = ["serde", "v4", "v7"] }
 
 ### END HAKARI SECTION

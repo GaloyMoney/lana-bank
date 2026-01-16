@@ -92,7 +92,7 @@ chrono = { version = "0.4.42", features = [
   "clock",
   "serde",
 ], default-features = false }
-clap = { version = "4.5.53", features = ["derive", "env"] }
+clap = { version = "4.5.54", features = ["derive", "env"] }
 derive_builder = "0.20.0"
 graphql_client = { version = "0.14.0", features = ["reqwest-rustls"] }
 sqlx = { version = "0.8", features = [
@@ -119,7 +119,7 @@ opentelemetry-otlp = { version = "0.31.0", default-features = false, features = 
 ] }
 opentelemetry-http = "0.31.0"
 opentelemetry-semantic-conventions = { version = "0.31.0", features = ["semconv_experimental"] }
-tokio = { version = "1.48.0", features = [
+tokio = { version = "1.49.0", features = [
   "rt-multi-thread",
   "macros",
   "time",
@@ -127,12 +127,12 @@ tokio = { version = "1.48.0", features = [
   "signal",
   "tracing",
 ] }
-tokio-stream = { version = "0.1.16", features = ["sync"] }
+tokio-stream = { version = "0.1.17", features = ["sync"] }
 console-subscriber = "0.5"
 strum = { version = "0.27", features = ["derive"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_yaml = "0.9.32"
-serde_json = "1.0.148"
+serde_json = "1.0.149"
 serde_with = "3.16.1"
 futures = "0.3.29"
 http = "1.4"
@@ -159,7 +159,7 @@ google-cloud-storage = { version = "0.24.0", default-features = false, features 
   "auth",
 ] }
 rand = "0.9"
-serial_test = { version = "3.2.0", features = ["file_locks"] }
+serial_test = { version = "3.3.1", features = ["file_locks"] }
 chacha20poly1305 = "0.10.1"
 handlebars = "6.4.0"
 inventory = "0.3.15"
