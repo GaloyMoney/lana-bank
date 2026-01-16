@@ -11,7 +11,6 @@ pub mod error;
 mod event;
 mod for_subject;
 mod history;
-mod jobs;
 pub mod ledger;
 mod liquidation;
 mod obligation;
