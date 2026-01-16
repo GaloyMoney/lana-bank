@@ -297,7 +297,7 @@ impl Chart {
         tree::project_from_nodes(self.id, &self.name, self.chart_nodes.iter_persisted())
     }
 
-    pub fn find_accounting_base_config(&self) -> Option<AccountingBaseConfig> {
+    pub fn accounting_base_config(&self) -> Option<AccountingBaseConfig> {
         self.base_config.clone()
     }
 
@@ -309,7 +309,7 @@ impl Chart {
             return Ok(Idempotent::AlreadyApplied);
         }
 
-        self.accounting_account_codes_exist_in_chart(&base_config)?;
+        self.check_base_config_exists_in_chart(&base_config)?;
 
         self.events.push(ChartEvent::BaseConfigSet {
             base_config: base_config.clone(),
@@ -318,16 +318,16 @@ impl Chart {
         Ok(Idempotent::Executed(()))
     }
 
-    fn accounting_account_codes_exist_in_chart(
+    fn check_base_config_exists_in_chart(
         &self,
         base_config: &AccountingBaseConfig,
     ) -> Result<(), ChartOfAccountsError> {
-        self.check_accounting_account_code(&base_config.assets_code)?;
-        self.check_accounting_account_code(&base_config.liabilities_code)?;
-        self.check_accounting_account_code(&base_config.equity_code)?;
-        self.check_accounting_account_code(&base_config.revenue_code)?;
-        self.check_accounting_account_code(&base_config.cost_of_revenue_code)?;
-        self.check_accounting_account_code(&base_config.expenses_code)?;
+        self.check_top_level_account_code(&base_config.assets_code)?;
+        self.check_top_level_account_code(&base_config.liabilities_code)?;
+        self.check_top_level_account_code(&base_config.equity_code)?;
+        self.check_top_level_account_code(&base_config.revenue_code)?;
+        self.check_top_level_account_code(&base_config.cost_of_revenue_code)?;
+        self.check_top_level_account_code(&base_config.expenses_code)?;
 
         self.find_node_details_by_code(&base_config.equity_retained_earnings_gain_code)
             .ok_or_else(|| {
@@ -345,10 +345,7 @@ impl Chart {
         Ok(())
     }
 
-    fn check_accounting_account_code(
-        &self,
-        code: &AccountCode,
-    ) -> Result<(), ChartOfAccountsError> {
+    fn check_top_level_account_code(&self, code: &AccountCode) -> Result<(), ChartOfAccountsError> {
         let details = self
             .find_node_details_by_code(code)
             .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))?;
@@ -837,5 +834,28 @@ mod test {
         let invalid_closing_date = "2025-02-01".parse::<NaiveDate>().unwrap();
         let invalid_close_date = chart.close_as_of(invalid_closing_date);
         assert!(invalid_close_date.was_already_applied());
+    }
+
+    #[test]
+    fn set_base_config_fails_when_code_not_in_chart() {
+        let mut chart = default_chart().0;
+
+        let base_config = AccountingBaseConfig::try_new(
+            code("2"),
+            code("3"),
+            code("4"),
+            code("4.1"),
+            code("4.2"),
+            code("5"),
+            code("6"),
+            code("7"),
+        )
+        .unwrap();
+
+        let res = chart.set_base_config(base_config);
+        assert!(matches!(
+            res,
+            Err(ChartOfAccountsError::CodeNotFoundInChart(_))
+        ));
     }
 }
