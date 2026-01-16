@@ -11,6 +11,7 @@ pub(super) struct CreditFacilityBalance {
     outstanding_payable: Outstanding,
     due_outstanding: Outstanding,
     collateral: CollateralBalance,
+    payments_unapplied: PaymentsUnapplied,
 }
 
 impl From<lana_app::credit::CreditFacilityBalanceSummary> for CreditFacilityBalance {
@@ -53,6 +54,9 @@ impl From<lana_app::credit::CreditFacilityBalanceSummary> for CreditFacilityBala
             collateral: CollateralBalance {
                 btc_balance: balance.collateral(),
             },
+            payments_unapplied: PaymentsUnapplied {
+                usd_balance: balance.payments_unapplied(),
+            },
         }
     }
 }
@@ -89,4 +93,9 @@ pub struct Interest {
     pub total: Total,
     pub outstanding: Outstanding,
     pub outstanding_payable: Outstanding,
+}
+
+#[derive(SimpleObject)]
+pub struct PaymentsUnapplied {
+    pub usd_balance: UsdCents,
 }

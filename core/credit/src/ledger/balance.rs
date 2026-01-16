@@ -25,6 +25,7 @@ pub struct CreditFacilityBalanceSummary {
     pub(super) due_interest_outstanding: UsdCents,
     pub(super) overdue_interest_outstanding: UsdCents,
     pub(super) interest_defaulted: UsdCents,
+    pub(super) payments_unapplied: UsdCents,
 }
 
 // For testing we want to be able to construct the struct
@@ -45,6 +46,7 @@ pub struct CreditFacilityBalanceSummary {
     pub due_interest_outstanding: UsdCents,
     pub overdue_interest_outstanding: UsdCents,
     pub interest_defaulted: UsdCents,
+    pub payments_unapplied: UsdCents,
 }
 
 impl CreditFacilityBalanceSummary {
@@ -95,6 +97,11 @@ impl CreditFacilityBalanceSummary {
     pub fn collateral(&self) -> Satoshis {
         self.collateral
     }
+
+    pub fn payments_unapplied(&self) -> UsdCents {
+        self.payments_unapplied
+    }
+
     pub fn total_outstanding_payable(&self) -> UsdCents {
         self.disbursed_outstanding_payable() + self.interest_outstanding_payable()
     }
@@ -226,6 +233,7 @@ mod test {
 
             facility_remaining: UsdCents::from(1),
             interest_posted: UsdCents::from(1),
+            payments_unapplied: UsdCents::ZERO,
         };
 
         let price = PriceOfOneBTC::new(UsdCents::from(100_000_00));
@@ -250,6 +258,7 @@ mod test {
 
             facility_remaining: UsdCents::from(1),
             interest_posted: UsdCents::from(1),
+            payments_unapplied: UsdCents::ZERO,
         };
 
         let price = PriceOfOneBTC::new(UsdCents::from(100_000_00));
@@ -275,6 +284,7 @@ mod test {
 
             facility_remaining: UsdCents::from(1),
             interest_posted: UsdCents::from(1),
+            payments_unapplied: UsdCents::ZERO,
         };
 
         let price = PriceOfOneBTC::new(UsdCents::from(100_000_00));
@@ -299,6 +309,7 @@ mod test {
 
             facility_remaining: UsdCents::from(1),
             interest_posted: UsdCents::from(1),
+            payments_unapplied: UsdCents::ZERO,
         };
 
         assert_eq!(
@@ -325,6 +336,7 @@ mod test {
 
             facility_remaining: UsdCents::from(1),
             interest_posted: UsdCents::from(1),
+            payments_unapplied: UsdCents::ZERO,
         };
 
         let collateral = Decimal::from(balances.collateral().into_inner());

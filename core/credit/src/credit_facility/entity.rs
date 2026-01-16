@@ -1046,6 +1046,7 @@ mod test {
                 facility_remaining: UsdCents::ZERO,
                 disbursed: UsdCents::from(10000000),
                 interest_posted: UsdCents::ZERO,
+                payments_unapplied: UsdCents::ZERO,
             };
 
             // Price high enough to keep CVL (200) above thresholds
@@ -1214,6 +1215,7 @@ mod test {
                         facility_remaining: UsdCents::from(1),
                         disbursed: UsdCents::from(1),
                         interest_posted: UsdCents::from(1),
+                        payments_unapplied: UsdCents::ZERO,
                     },
                 )
                 .unwrap();
@@ -1244,6 +1246,7 @@ mod test {
                     facility_remaining: UsdCents::from(1),
                     disbursed: UsdCents::from(1),
                     interest_posted: UsdCents::from(1),
+                    payments_unapplied: UsdCents::ZERO,
                 },
             );
             assert!(matches!(
@@ -1270,6 +1273,7 @@ mod test {
                     facility_remaining: UsdCents::from(1),
                     disbursed: UsdCents::from(1),
                     interest_posted: UsdCents::from(1),
+                    payments_unapplied: UsdCents::ZERO,
                 },
             );
             assert!(matches!(
@@ -1301,6 +1305,7 @@ mod test {
                     facility_remaining: UsdCents::from(1),
                     disbursed: UsdCents::from(1),
                     interest_posted: UsdCents::from(1),
+                    payments_unapplied: UsdCents::ZERO,
                 },
             );
             assert!(matches!(
@@ -1327,6 +1332,7 @@ mod test {
                     facility_remaining: UsdCents::from(1),
                     disbursed: UsdCents::from(1),
                     interest_posted: UsdCents::from(1),
+                    payments_unapplied: UsdCents::ZERO,
                 },
             );
             assert!(matches!(
@@ -1358,6 +1364,7 @@ mod test {
                     facility_remaining: UsdCents::from(1),
                     disbursed: UsdCents::from(1),
                     interest_posted: UsdCents::from(1),
+                    payments_unapplied: UsdCents::ZERO,
                 },
             );
             assert!(matches!(
@@ -1384,6 +1391,7 @@ mod test {
                     facility_remaining: UsdCents::from(1),
                     disbursed: UsdCents::from(1),
                     interest_posted: UsdCents::from(1),
+                    payments_unapplied: UsdCents::ZERO,
                 },
             );
             assert!(matches!(
@@ -1415,6 +1423,7 @@ mod test {
                     facility_remaining: UsdCents::from(1),
                     disbursed: UsdCents::from(1),
                     interest_posted: UsdCents::from(1),
+                    payments_unapplied: UsdCents::ZERO,
                 },
             );
             assert!(matches!(
@@ -1441,6 +1450,7 @@ mod test {
                     facility_remaining: UsdCents::from(1),
                     disbursed: UsdCents::from(1),
                     interest_posted: UsdCents::from(1),
+                    payments_unapplied: UsdCents::ZERO,
                 },
             );
             assert!(matches!(

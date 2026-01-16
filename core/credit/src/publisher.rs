@@ -19,6 +19,7 @@ use crate::{
     event::*,
     liquidation::{Liquidation, LiquidationEvent, error::LiquidationError},
     obligation::{Obligation, ObligationEvent, error::ObligationError},
+    payment::{Payment, PaymentEvent, error::PaymentError},
     payment_allocation::{
         PaymentAllocation, PaymentAllocationEvent, error::PaymentAllocationError,
     },
@@ -318,6 +319,38 @@ where
     }
 
     #[record_error_severity]
+    #[instrument(name = "credit.publisher.publish_payment", skip_all)]
+    pub async fn publish_payment(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        _entity: &Payment,
+        new_events: es_entity::LastPersisted<'_, PaymentEvent>,
+    ) -> Result<(), PaymentError> {
+        use PaymentEvent::*;
+        let publish_events = new_events
+            .map(|event| match &event.event {
+                Initialized {
+                    id,
+                    credit_facility_id,
+                    amount,
+                    effective,
+                    ..
+                } => CoreCreditEvent::FacilityPaymentReceived {
+                    payment_id: *id,
+                    credit_facility_id: *credit_facility_id,
+                    amount: *amount,
+                    recorded_at: event.recorded_at,
+                    effective: *effective,
+                },
+            })
+            .collect::<Vec<_>>();
+        self.outbox
+            .publish_all_persisted(op, publish_events)
+            .await?;
+        Ok(())
+    }
+
+    #[record_error_severity]
     #[instrument(name = "credit.publisher.publish_payment_allocation", skip_all)]
     pub async fn publish_payment_allocation(
         &self,
@@ -335,11 +368,11 @@ where
                     amount,
                     effective,
                     ..
-                } => CoreCreditEvent::FacilityRepaymentRecorded {
+                } => CoreCreditEvent::FacilityPaymentAllocated {
                     credit_facility_id: entity.credit_facility_id,
                     obligation_id: *obligation_id,
                     obligation_type: *obligation_type,
-                    payment_id: *id,
+                    allocation_id: *id,
                     amount: *amount,
                     recorded_at: event.recorded_at,
                     effective: *effective,
@@ -426,13 +459,10 @@ where
         let publish_events = new_events
             .filter_map(|event| match &event.event {
                 Initialized { .. } => None,
-                Completed { payment_id, .. } => {
-                    Some(CoreCreditEvent::PartialLiquidationCompleted {
-                        liquidation_id: entity.id,
-                        credit_facility_id: entity.credit_facility_id,
-                        payment_id: *payment_id,
-                    })
-                }
+                Completed { .. } => Some(CoreCreditEvent::PartialLiquidationCompleted {
+                    liquidation_id: entity.id,
+                    credit_facility_id: entity.credit_facility_id,
+                }),
                 ProceedsFromLiquidationReceived {
                     amount,
                     ledger_tx_id,

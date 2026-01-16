@@ -9,8 +9,11 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_accounting::LedgerTransactionInitiator;
+use obix::out::OutboxEventMarker;
 
-use crate::{ledger::CreditLedger, primitives::*};
+use crate::{
+    event::CoreCreditEvent, ledger::CreditLedger, primitives::*, publisher::CreditFacilityPublisher,
+};
 
 pub use entity::Payment;
 pub use primitives::PaymentSourceAccountId;
@@ -21,18 +24,20 @@ pub(super) use entity::*;
 use error::PaymentError;
 pub(crate) use repo::PaymentRepo;
 
-pub struct Payments<Perms>
+pub struct Payments<Perms, E>
 where
     Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCreditEvent>,
 {
-    repo: Arc<PaymentRepo>,
+    repo: Arc<PaymentRepo<E>>,
     authz: Arc<Perms>,
     ledger: Arc<CreditLedger>,
 }
 
-impl<Perms> Clone for Payments<Perms>
+impl<Perms, E> Clone for Payments<Perms, E>
 where
     Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCreditEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -43,20 +48,37 @@ where
     }
 }
 
-impl<Perms> Payments<Perms>
+impl<Perms, E> Payments<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    E: OutboxEventMarker<CoreCreditEvent>,
 {
-    pub fn new(pool: &sqlx::PgPool, authz: Arc<Perms>, ledger: Arc<CreditLedger>) -> Self {
-        let repo = PaymentRepo::new(pool);
+    pub fn new(
+        pool: &sqlx::PgPool,
+        authz: Arc<Perms>,
+        ledger: Arc<CreditLedger>,
+        publisher: &CreditFacilityPublisher<E>,
+    ) -> Self {
+        let repo = PaymentRepo::new(pool, publisher);
 
         Self {
             repo: Arc::new(repo),
             authz,
             ledger,
         }
+    }
+
+    pub async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, PaymentError> {
+        Ok(self.repo.begin_op().await?)
+    }
+
+    pub(super) async fn find_by_id(
+        &self,
+        payment_id: PaymentId,
+    ) -> Result<Option<Payment>, PaymentError> {
+        self.repo.maybe_find_by_id(payment_id).await
     }
 
     /// Attempts to create new Payment entity with `payment_id` linked
@@ -100,13 +122,41 @@ where
             .await?
             .is_some()
         {
-            Ok(None)
-        } else {
-            let payment = self.repo.create_in_op(db, new_payment).await?;
-            self.ledger
-                .record_payment(db, &payment, initiated_by)
-                .await?;
-            Ok(Some(payment))
+            return Ok(None);
         }
+
+        let payment = self.repo.create_in_op(db, new_payment).await?;
+
+        self.ledger
+            .record_payment(db, &payment, initiated_by)
+            .await?;
+
+        Ok(Some(payment))
+    }
+
+    pub(super) async fn record(
+        &self,
+        payment_id: PaymentId,
+        credit_facility_id: CreditFacilityId,
+        payment_ledger_account_ids: PaymentLedgerAccountIds,
+        amount: UsdCents,
+        effective: chrono::NaiveDate,
+        initiated_by: LedgerTransactionInitiator,
+    ) -> Result<Option<Payment>, PaymentError> {
+        let mut db = self.repo.begin_op().await?;
+        let res = self
+            .record_in_op(
+                &mut db,
+                payment_id,
+                credit_facility_id,
+                payment_ledger_account_ids,
+                amount,
+                effective,
+                initiated_by,
+            )
+            .await?;
+        db.commit().await?;
+
+        Ok(res)
     }
 }

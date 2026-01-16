@@ -886,6 +886,7 @@ mod test {
             due_interest_outstanding: UsdCents::ZERO,
             overdue_interest_outstanding: UsdCents::ZERO,
             interest_defaulted: UsdCents::ZERO,
+            payments_unapplied: UsdCents::ZERO,
         }
     }
 
