@@ -1001,10 +1001,16 @@ impl Query {
         ctx: &Context<'_>,
     ) -> async_graphql::Result<Option<BalanceSheetModuleConfig>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let Some(chart) = loader.load_one(CHART_REF).await? else {
+            return Ok(None);
+        };
+
         let config = app
             .accounting()
             .balance_sheets()
-            .get_chart_of_accounts_integration_config(sub, BALANCE_SHEET_NAME.to_string())
+            .get_chart_of_accounts_integration_config(sub, chart.as_ref())
             .await?;
         Ok(config.map(BalanceSheetModuleConfig::from))
     }
@@ -1014,13 +1020,16 @@ impl Query {
         ctx: &Context<'_>,
     ) -> async_graphql::Result<Option<ProfitAndLossStatementModuleConfig>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let Some(chart) = loader.load_one(CHART_REF).await? else {
+            return Ok(None);
+        };
+
         let config = app
             .accounting()
             .profit_and_loss()
-            .get_chart_of_accounts_integration_config(
-                sub,
-                PROFIT_AND_LOSS_STATEMENT_NAME.to_string(),
-            )
+            .get_chart_of_accounts_integration_config(sub, chart.as_ref())
             .await?;
         Ok(config.map(ProfitAndLossStatementModuleConfig::from))
     }
