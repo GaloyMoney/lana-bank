@@ -176,6 +176,7 @@ where
             full_name,
             address,
             country,
+            current_job.clock().now(),
         );
 
         let content = self
