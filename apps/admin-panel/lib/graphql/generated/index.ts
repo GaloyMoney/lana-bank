@@ -40,17 +40,6 @@ export type Scalars = {
   UsdCents: { input: UsdCents; output: UsdCents; }
 };
 
-export type AccountingBaseConfigInput = {
-  assetsCode: Scalars['String']['input'];
-  costOfRevenueCode: Scalars['String']['input'];
-  equityCode: Scalars['String']['input'];
-  equityRetainedEarningsGainCode: Scalars['String']['input'];
-  equityRetainedEarningsLossCode: Scalars['String']['input'];
-  expensesCode: Scalars['String']['input'];
-  liabilitiesCode: Scalars['String']['input'];
-  revenueCode: Scalars['String']['input'];
-};
-
 export type AccountingCsvDocument = {
   __typename?: 'AccountingCsvDocument';
   createdAt: Scalars['Timestamp']['output'];
@@ -299,16 +288,6 @@ export type ChartOfAccountsCsvImportInput = {
 
 export type ChartOfAccountsCsvImportPayload = {
   __typename?: 'ChartOfAccountsCsvImportPayload';
-  chartOfAccounts: ChartOfAccounts;
-};
-
-export type ChartOfAccountsCsvImportWithBaseConfigInput = {
-  baseConfig: AccountingBaseConfigInput;
-  file: Scalars['Upload']['input'];
-};
-
-export type ChartOfAccountsCsvImportWithBaseConfigPayload = {
-  __typename?: 'ChartOfAccountsCsvImportWithBaseConfigPayload';
   chartOfAccounts: ChartOfAccounts;
 };
 
@@ -1841,7 +1820,6 @@ export type Mutation = {
   chartOfAccountsAddChildNode: ChartOfAccountsAddChildNodePayload;
   chartOfAccountsAddRootNode: ChartOfAccountsAddRootNodePayload;
   chartOfAccountsCsvImport: ChartOfAccountsCsvImportPayload;
-  chartOfAccountsCsvImportWithBaseConfig: ChartOfAccountsCsvImportWithBaseConfigPayload;
   committeeAddUser: CommitteeAddUserPayload;
   committeeCreate: CommitteeCreatePayload;
   committeeRemoveUser: CommitteeRemoveUserPayload;
@@ -1929,11 +1907,6 @@ export type MutationChartOfAccountsAddRootNodeArgs = {
 
 export type MutationChartOfAccountsCsvImportArgs = {
   input: ChartOfAccountsCsvImportInput;
-};
-
-
-export type MutationChartOfAccountsCsvImportWithBaseConfigArgs = {
-  input: ChartOfAccountsCsvImportWithBaseConfigInput;
 };
 
 

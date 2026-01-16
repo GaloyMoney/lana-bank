@@ -165,7 +165,7 @@ where
             return Err(BalanceSheetError::BalanceSheetConfigAlreadyExists);
         }
 
-        let config = match chart.find_accounting_base_config() {
+        let config = match chart.accounting_base_config() {
             Some(config) => config,
             None => return Err(BalanceSheetError::AccountingBaseConfigNotFound),
         };
