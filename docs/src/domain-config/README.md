@@ -44,7 +44,7 @@ All registered configs are seeded at application startup via `seed_registered()`
 To read a config, call `get::<YourConfig>()` on the appropriate service:
 
 ```rust
-// Internal config (no auth subject needed)
+// Internal config (enforce your own authorization before this call)
 let typed_config: TypedDomainConfig<MyConfig> = internal_configs.get::<MyConfig>().await?;
 
 // Exposed config (requires auth subject)

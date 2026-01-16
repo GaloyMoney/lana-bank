@@ -66,7 +66,8 @@
 //!
 //! ## Using Configs
 //!
-//! Use [`InternalDomainConfigs`] for internal configs (no auth required):
+//! Use [`InternalDomainConfigs`] for internal configs. The owning crate is responsible
+//! for enforcing authorization before calling these methods:
 //! ```no_run
 //! # domain_config::define_internal_config! {
 //! #     pub struct MyInternalFlag(bool);
@@ -75,6 +76,7 @@
 //! #     }
 //! # }
 //! # async fn example(pool: &sqlx::PgPool) -> Result<(), domain_config::DomainConfigError> {
+//!     // Enforce your custom authorization here before accessing the config
 //!     let configs = domain_config::InternalDomainConfigs::new(pool);
 //!     let value = configs.get::<MyInternalFlag>().await?.value();
 //!     configs.upsert::<MyInternalFlag>(true).await?;
