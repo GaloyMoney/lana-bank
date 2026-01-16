@@ -79,11 +79,11 @@ pub struct RunTag {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct RunResult {
-    #[serde(rename = "runId")]
     pub run_id: String,
     pub status: RunStatus,
-    #[serde(rename = "startTime", with = "ts_float_seconds_option")]
+    #[serde(with = "ts_float_seconds_option")]
     pub start_time: Option<DateTime<Utc>>,
     pub tags: Vec<RunTag>,
 }
@@ -110,8 +110,8 @@ pub enum RunsOrError {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct FileReportsRunsData {
-    #[serde(rename = "runsOrError")]
     pub runs_or_error: RunsOrError,
 }
 
@@ -120,53 +120,12 @@ pub struct FileReportsRunsResponse {
     pub data: FileReportsRunsData,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct JsonMetadataEntry {
-    #[serde(rename = "jsonString")]
-    pub json_string: String,
-}
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(tag = "__typename")]
-pub enum Event {
-    MaterializationEvent {
-        #[serde(rename = "metadataEntries")]
-        metadata_entries: Vec<JsonMetadataEntry>,
-    },
-    #[serde(other)]
-    Other,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct EventConnection {
-    pub events: Vec<Event>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum LogsForRunResult {
-    EventConnection(EventConnection),
-    Error { message: String },
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct GetLogsForRunData {
-    #[serde(rename = "logsForRun")]
-    pub logs_for_run: LogsForRunResult,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct GetLogsForRunResponse {
-    pub data: GetLogsForRunData,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct PipelineSelector {
-    #[serde(rename = "pipelineName")]
     pub pipeline_name: String,
-    #[serde(rename = "repositoryLocationName")]
     pub repository_location_name: String,
-    #[serde(rename = "repositoryName")]
     pub repository_name: String,
 }
 
@@ -178,23 +137,20 @@ pub struct ExecutionParams {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "__typename")]
 pub enum LaunchPipelineResult {
-    LaunchRunSuccess {
-        #[serde(rename = "run")]
-        run: Option<LaunchRunDetails>,
-    },
+    LaunchRunSuccess { run: Option<LaunchRunDetails> },
     #[serde(other)]
     Error,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct LaunchRunDetails {
-    #[serde(rename = "runId")]
     pub run_id: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct LaunchPipelineData {
-    #[serde(rename = "launchPipelineExecution")]
     pub launch_pipeline_execution: LaunchPipelineResult,
 }
 
@@ -289,6 +245,7 @@ query GetLogsForRun($runId: ID!) {
         __typename
         ... on MaterializationEvent {
           metadataEntries {
+            __typename
             ... on JsonMetadataEntry {
               jsonString
             }
@@ -320,16 +277,24 @@ query GetLogsForRun($runId: ID!) {
             return Err(DagsterError::ApiError);
         }
 
-        let response_data: GetLogsForRunResponse = response.json().await?;
+        let response_data: serde_json::Value = response.json().await?;
 
         let mut reports = Vec::new();
+        let empty = vec![];
 
-        if let LogsForRunResult::EventConnection(event_conn) = response_data.data.logs_for_run {
-            for event in event_conn.events {
-                if let Event::MaterializationEvent { metadata_entries } = event {
-                    for entry in metadata_entries {
-                        let parsed: Vec<Report> = serde_json::from_str(&entry.json_string)?;
-                        reports.extend(parsed);
+        let events = response_data["data"]["logsForRun"]["events"]
+            .as_array()
+            .unwrap_or(&empty);
+
+        for event in events {
+            if event["__typename"] == "MaterializationEvent" {
+                let entries = event["metadataEntries"].as_array().unwrap_or(&empty);
+                for entry in entries {
+                    if entry["__typename"] == "JsonMetadataEntry" {
+                        if let Some(json_string) = entry["jsonString"].as_str() {
+                            let parsed: Report = serde_json::from_str(json_string)?;
+                            reports.push(parsed);
+                        }
                     }
                 }
             }
