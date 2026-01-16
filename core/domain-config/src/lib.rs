@@ -112,8 +112,11 @@
 //!
 //! ## Config Lifecycle
 //!
-//! All registered configs are seeded at app startup via `seed_registered()`, which creates
-//! database entries for configs that don't yet exist. This means `get` always succeeds.
+//! Using the `define_internal_config!` or `define_exposed_config!` macros automatically
+//! registers your config for seeding. At application startup, all registered configs are
+//! seeded to the database. Developers defining new configs do not need to call any seeding
+//! functions manually - just use the macro and the config will be available. Because of
+//! this automatic seeding, `get` always succeeds for all configs.
 //!
 //! The `value()` method returns `Option<T>`:
 //! - `Some(value)` if the config has been explicitly set via `upsert`/`update`
