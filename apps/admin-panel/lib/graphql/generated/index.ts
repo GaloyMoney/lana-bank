@@ -194,18 +194,8 @@ export type BalanceSheetModuleConfig = {
   chartOfAccountsCostOfRevenueCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountsEquityCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountsExpensesCode?: Maybe<Scalars['String']['output']>;
-  chartOfAccountsId?: Maybe<Scalars['UUID']['output']>;
   chartOfAccountsLiabilitiesCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountsRevenueCode?: Maybe<Scalars['String']['output']>;
-};
-
-export type BalanceSheetModuleConfigureInput = {
-  chartOfAccountsAssetsCode: Scalars['String']['input'];
-  chartOfAccountsCostOfRevenueCode: Scalars['String']['input'];
-  chartOfAccountsEquityCode: Scalars['String']['input'];
-  chartOfAccountsExpensesCode: Scalars['String']['input'];
-  chartOfAccountsLiabilitiesCode: Scalars['String']['input'];
-  chartOfAccountsRevenueCode: Scalars['String']['input'];
 };
 
 export type BalanceSheetModuleConfigurePayload = {
@@ -1496,11 +1486,7 @@ export type FiscalYearModuleConfig = {
 };
 
 export type FiscalYearModuleConfigureInput = {
-  costOfRevenueAccountCode: Scalars['String']['input'];
-  equityRetainedEarningsAccountCode: Scalars['String']['input'];
-  equityRetainedLossesAccountCode: Scalars['String']['input'];
-  expensesAccountCode: Scalars['String']['input'];
-  revenueAccountCode: Scalars['String']['input'];
+  chartId: Scalars['UUID']['input'];
 };
 
 export type FiscalYearModuleConfigurePayload = {
@@ -1903,11 +1889,6 @@ export type MutationApprovalProcessDenyArgs = {
 };
 
 
-export type MutationBalanceSheetConfigureArgs = {
-  input: BalanceSheetModuleConfigureInput;
-};
-
-
 export type MutationChartOfAccountsAddChildNodeArgs = {
   input: ChartOfAccountsAddChildNodeInput;
 };
@@ -2125,11 +2106,6 @@ export type MutationPendingCreditFacilityCollateralUpdateArgs = {
 
 export type MutationPolicyAssignCommitteeArgs = {
   input: PolicyAssignCommitteeInput;
-};
-
-
-export type MutationProfitAndLossStatementConfigureArgs = {
-  input: ProfitAndLossModuleConfigureInput;
 };
 
 
@@ -2402,12 +2378,6 @@ export type PolicyEdge = {
   node: Policy;
 };
 
-export type ProfitAndLossModuleConfigureInput = {
-  chartOfAccountsCostOfRevenueCode: Scalars['String']['input'];
-  chartOfAccountsExpensesCode: Scalars['String']['input'];
-  chartOfAccountsRevenueCode: Scalars['String']['input'];
-};
-
 export type ProfitAndLossStatement = {
   __typename?: 'ProfitAndLossStatement';
   categories: Array<LedgerAccount>;
@@ -2419,7 +2389,6 @@ export type ProfitAndLossStatementModuleConfig = {
   __typename?: 'ProfitAndLossStatementModuleConfig';
   chartOfAccountsCostOfRevenueCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountsExpensesCode?: Maybe<Scalars['String']['output']>;
-  chartOfAccountsId?: Maybe<Scalars['UUID']['output']>;
   chartOfAccountsRevenueCode?: Maybe<Scalars['String']['output']>;
 };
 
@@ -4332,12 +4301,10 @@ export type LiquidationsQueryVariables = Exact<{
 
 export type LiquidationsQuery = { __typename?: 'Query', liquidations: { __typename?: 'LiquidationConnection', edges: Array<{ __typename?: 'LiquidationEdge', cursor: string, node: { __typename?: 'Liquidation', id: string, liquidationId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: any, completed: boolean, creditFacility: { __typename?: 'CreditFacility', publicId: any } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
-export type BalanceSheetConfigureMutationVariables = Exact<{
-  input: BalanceSheetModuleConfigureInput;
-}>;
+export type BalanceSheetConfigureMutationVariables = Exact<{ [key: string]: never; }>;
 
 
-export type BalanceSheetConfigureMutation = { __typename?: 'Mutation', balanceSheetConfigure: { __typename?: 'BalanceSheetModuleConfigurePayload', balanceSheetConfig: { __typename?: 'BalanceSheetModuleConfig', chartOfAccountsId?: string | null, chartOfAccountsAssetsCode?: string | null, chartOfAccountsLiabilitiesCode?: string | null, chartOfAccountsEquityCode?: string | null, chartOfAccountsRevenueCode?: string | null, chartOfAccountsCostOfRevenueCode?: string | null, chartOfAccountsExpensesCode?: string | null } } };
+export type BalanceSheetConfigureMutation = { __typename?: 'Mutation', balanceSheetConfigure: { __typename?: 'BalanceSheetModuleConfigurePayload', balanceSheetConfig: { __typename?: 'BalanceSheetModuleConfig', chartOfAccountsAssetsCode?: string | null, chartOfAccountsLiabilitiesCode?: string | null, chartOfAccountsEquityCode?: string | null, chartOfAccountsRevenueCode?: string | null, chartOfAccountsCostOfRevenueCode?: string | null, chartOfAccountsExpensesCode?: string | null } } };
 
 export type CreditModuleConfigureMutationVariables = Exact<{
   input: CreditModuleConfigureInput;
@@ -4373,12 +4340,10 @@ export type ProfitAndLossStatementConfigQueryVariables = Exact<{ [key: string]: 
 
 export type ProfitAndLossStatementConfigQuery = { __typename?: 'Query', profitAndLossStatementConfig?: { __typename?: 'ProfitAndLossStatementModuleConfig', chartOfAccountsRevenueCode?: string | null, chartOfAccountsCostOfRevenueCode?: string | null, chartOfAccountsExpensesCode?: string | null } | null };
 
-export type ProfitAndLossStatementConfigureMutationVariables = Exact<{
-  input: ProfitAndLossModuleConfigureInput;
-}>;
+export type ProfitAndLossStatementConfigureMutationVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ProfitAndLossStatementConfigureMutation = { __typename?: 'Mutation', profitAndLossStatementConfigure: { __typename?: 'ProfitAndLossStatementModuleConfigurePayload', profitAndLossConfig: { __typename?: 'ProfitAndLossStatementModuleConfig', chartOfAccountsId?: string | null, chartOfAccountsRevenueCode?: string | null, chartOfAccountsCostOfRevenueCode?: string | null, chartOfAccountsExpensesCode?: string | null } } };
+export type ProfitAndLossStatementConfigureMutation = { __typename?: 'Mutation', profitAndLossStatementConfigure: { __typename?: 'ProfitAndLossStatementModuleConfigurePayload', profitAndLossConfig: { __typename?: 'ProfitAndLossStatementModuleConfig', chartOfAccountsRevenueCode?: string | null, chartOfAccountsCostOfRevenueCode?: string | null, chartOfAccountsExpensesCode?: string | null } } };
 
 export type PendingCreditFacilityLayoutFragmentFragment = { __typename?: 'PendingCreditFacility', id: string, pendingCreditFacilityId: string, approvalProcessId: string, createdAt: any, status: PendingCreditFacilityStatus, facilityAmount: UsdCents, collateralizationState: PendingCreditFacilityCollateralizationState, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
       | { __typename: 'FiniteCVLPct', value: any }
@@ -9933,10 +9898,9 @@ export type LiquidationsLazyQueryHookResult = ReturnType<typeof useLiquidationsL
 export type LiquidationsSuspenseQueryHookResult = ReturnType<typeof useLiquidationsSuspenseQuery>;
 export type LiquidationsQueryResult = Apollo.QueryResult<LiquidationsQuery, LiquidationsQueryVariables>;
 export const BalanceSheetConfigureDocument = gql`
-    mutation BalanceSheetConfigure($input: BalanceSheetModuleConfigureInput!) {
-  balanceSheetConfigure(input: $input) {
+    mutation BalanceSheetConfigure {
+  balanceSheetConfigure {
     balanceSheetConfig {
-      chartOfAccountsId
       chartOfAccountsAssetsCode
       chartOfAccountsLiabilitiesCode
       chartOfAccountsEquityCode
@@ -9962,7 +9926,6 @@ export type BalanceSheetConfigureMutationFn = Apollo.MutationFunction<BalanceShe
  * @example
  * const [balanceSheetConfigureMutation, { data, loading, error }] = useBalanceSheetConfigureMutation({
  *   variables: {
- *      input: // value for 'input'
  *   },
  * });
  */
@@ -10287,10 +10250,9 @@ export type ProfitAndLossStatementConfigLazyQueryHookResult = ReturnType<typeof 
 export type ProfitAndLossStatementConfigSuspenseQueryHookResult = ReturnType<typeof useProfitAndLossStatementConfigSuspenseQuery>;
 export type ProfitAndLossStatementConfigQueryResult = Apollo.QueryResult<ProfitAndLossStatementConfigQuery, ProfitAndLossStatementConfigQueryVariables>;
 export const ProfitAndLossStatementConfigureDocument = gql`
-    mutation ProfitAndLossStatementConfigure($input: ProfitAndLossModuleConfigureInput!) {
-  profitAndLossStatementConfigure(input: $input) {
+    mutation ProfitAndLossStatementConfigure {
+  profitAndLossStatementConfigure {
     profitAndLossConfig {
-      chartOfAccountsId
       chartOfAccountsRevenueCode
       chartOfAccountsCostOfRevenueCode
       chartOfAccountsExpensesCode
@@ -10313,7 +10275,6 @@ export type ProfitAndLossStatementConfigureMutationFn = Apollo.MutationFunction<
  * @example
  * const [profitAndLossStatementConfigureMutation, { data, loading, error }] = useProfitAndLossStatementConfigureMutation({
  *   variables: {
- *      input: // value for 'input'
  *   },
  * });
  */

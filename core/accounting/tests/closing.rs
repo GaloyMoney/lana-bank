@@ -17,8 +17,8 @@ use cala_ledger::{
     account::NewAccount,
 };
 use core_accounting::{
-    AccountCode, AccountIdOrCode, CalaTxId, Chart, ClosingAccountCodes, ClosingTxDetails,
-    CoreAccounting, LedgerAccountId, ManualEntryInput, ProfitAndLossStatement,
+    AccountCode, AccountIdOrCode, AccountingBaseConfig, CalaTxId, Chart, ClosingAccountCodes,
+    ClosingTxDetails, CoreAccounting, LedgerAccountId, ManualEntryInput, ProfitAndLossStatement,
     balance_sheet::ChartOfAccountsIntegrationConfig as BalanceSheetConfig, fiscal_year::FiscalYear,
     fiscal_year::FiscalYearRepo,
     profit_and_loss::ChartOfAccountsIntegrationConfig as ProfitAndLossConfig,
@@ -377,9 +377,19 @@ async fn setup_test() -> anyhow::Result<Test> {
 ,,,,,
 ,,0101,Regulatory Fees,,
         "#;
+    let base_config = AccountingBaseConfig {
+        assets_code: ASSETS.parse().unwrap(),
+        liabilities_code: LIABILITIES.parse().unwrap(),
+        equity_code: EQUITY.parse().unwrap(),
+        equity_retained_earnings_gain_code: RETAINED_EARNINGS_GAIN.parse().unwrap(),
+        equity_retained_earnings_loss_code: RETAINED_EARNINGS_LOSS.parse().unwrap(),
+        revenue_code: REVENUES.parse().unwrap(),
+        cost_of_revenue_code: COSTS.parse().unwrap(),
+        expenses_code: EXPENSES.parse().unwrap(),
+    };
     let (chart, _) = accounting
         .chart_of_accounts()
-        .import_from_csv(&DummySubject, &chart.reference, import)
+        .import_from_csv_with_base_config(&DummySubject, &chart.reference, import, base_config)
         .await?;
     let opened_as_of: NaiveDate = "2021-01-01".parse::<NaiveDate>().unwrap();
     let fiscal_year = accounting
@@ -390,7 +400,7 @@ async fn setup_test() -> anyhow::Result<Test> {
         .balance_sheets()
         .create_balance_sheet(balance_sheet_name.clone())
         .await?;
-    let balance_sheet_config = BalanceSheetConfig {
+    let _balance_sheet_config = BalanceSheetConfig {
         chart_of_accounts_id: chart.id,
         chart_of_accounts_assets_code: ASSETS.parse().unwrap(),
         chart_of_accounts_liabilities_code: LIABILITIES.parse().unwrap(),
@@ -401,19 +411,14 @@ async fn setup_test() -> anyhow::Result<Test> {
     };
     accounting
         .balance_sheets()
-        .set_chart_of_accounts_integration_config(
-            &DummySubject,
-            balance_sheet_name,
-            &chart,
-            balance_sheet_config,
-        )
+        .set_chart_of_accounts_integration_config(&DummySubject, balance_sheet_name, &chart)
         .await?;
 
     accounting
         .profit_and_loss()
         .create_pl_statement(pl_statement_name.clone())
         .await?;
-    let pl_statement_config = ProfitAndLossConfig {
+    let _pl_statement_config = ProfitAndLossConfig {
         chart_of_accounts_id: chart.id,
         chart_of_accounts_revenue_code: REVENUES.parse().unwrap(),
         chart_of_accounts_cost_of_revenue_code: COSTS.parse().unwrap(),
@@ -421,12 +426,7 @@ async fn setup_test() -> anyhow::Result<Test> {
     };
     accounting
         .profit_and_loss()
-        .set_chart_of_accounts_integration_config(
-            &DummySubject,
-            pl_statement_name.clone(),
-            &chart,
-            pl_statement_config,
-        )
+        .set_chart_of_accounts_integration_config(&DummySubject, pl_statement_name.clone(), &chart)
         .await?;
 
     Ok(Test {

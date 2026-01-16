@@ -263,6 +263,10 @@ impl AccountCode {
         self.len_sections() - 1
     }
 
+    pub fn is_top_level_chart_code(&self) -> bool {
+        self.sections.len() == 1 && self.sections.first().is_some_and(|s| s.code.len() == 1)
+    }
+
     pub fn section(&self, idx: usize) -> Option<&AccountCodeSection> {
         self.sections.get(idx)
     }
@@ -420,6 +424,102 @@ impl AccountSpec {
 
     pub fn has_parent(&self) -> bool {
         self.parent.is_some()
+    }
+}
+
+#[derive(Error, Debug)]
+pub enum AccountingBaseConfigError {
+    #[error("AccountingBaseConfigError - DuplicateAccountCode: {0}")]
+    DuplicateAccountCode(String),
+    #[error("AccountingBaseConfigError - AccountCodeNotTopLevel: {0}")]
+    AccountCodeNotTopLevel(String),
+    #[error("AccountingBaseConfigError - RetainedEarningsCodeNotChildOfEquity: {0}")]
+    RetainedEarningsCodeNotChildOfEquity(String),
+}
+
+impl ErrorSeverity for AccountingBaseConfigError {
+    fn severity(&self) -> Level {
+        match self {
+            Self::DuplicateAccountCode(_) => Level::ERROR,
+            Self::AccountCodeNotTopLevel(_) => Level::ERROR,
+            Self::RetainedEarningsCodeNotChildOfEquity(_) => Level::ERROR,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+pub struct AccountingBaseConfig {
+    pub assets_code: AccountCode,
+    pub liabilities_code: AccountCode,
+    pub equity_code: AccountCode,
+    pub equity_retained_earnings_gain_code: AccountCode,
+    pub equity_retained_earnings_loss_code: AccountCode,
+    pub revenue_code: AccountCode,
+    pub cost_of_revenue_code: AccountCode,
+    pub expenses_code: AccountCode,
+}
+
+impl AccountingBaseConfig {
+    pub fn try_new(
+        assets_code: AccountCode,
+        liabilities_code: AccountCode,
+        equity_code: AccountCode,
+        equity_retained_earnings_gain_code: AccountCode,
+        equity_retained_earnings_loss_code: AccountCode,
+        revenue_code: AccountCode,
+        cost_of_revenue_code: AccountCode,
+        expenses_code: AccountCode,
+    ) -> Result<Self, AccountingBaseConfigError> {
+        let config = Self {
+            assets_code,
+            liabilities_code,
+            equity_code,
+            equity_retained_earnings_gain_code,
+            equity_retained_earnings_loss_code,
+            revenue_code,
+            cost_of_revenue_code,
+            expenses_code,
+        };
+        config.validate()?;
+        Ok(config)
+    }
+    fn validate(&self) -> Result<(), AccountingBaseConfigError> {
+        let codes = [
+            &self.assets_code,
+            &self.liabilities_code,
+            &self.equity_code,
+            &self.revenue_code,
+            &self.cost_of_revenue_code,
+            &self.expenses_code,
+        ];
+        if let Some(code) = codes.iter().copied().find(|c| !c.is_top_level_chart_code()) {
+            return Err(AccountingBaseConfigError::AccountCodeNotTopLevel(
+                code.to_string(),
+            ));
+        }
+
+        let mut seen = std::collections::HashSet::with_capacity(codes.len());
+        if let Some(code) = codes.iter().copied().find(|c| !seen.insert(*c)) {
+            return Err(AccountingBaseConfigError::DuplicateAccountCode(
+                code.to_string(),
+            ));
+        }
+
+        if !self
+            .equity_code
+            .is_parent_of(&self.equity_retained_earnings_gain_code.sections)
+            || !self
+                .equity_code
+                .is_parent_of(&self.equity_retained_earnings_loss_code.sections)
+        {
+            return Err(
+                AccountingBaseConfigError::RetainedEarningsCodeNotChildOfEquity(
+                    self.equity_code.to_string(),
+                ),
+            );
+        }
+        Ok(())
     }
 }
 
