@@ -514,6 +514,9 @@ jobs:
             - name: version
           outputs:
             - name: repo
+          params:
+            GH_APP_ID: #@ data.values.github_app_id
+            GH_APP_PRIVATE_KEY: #@ data.values.github_app_private_key
           run:
             path: pipeline-tasks/ci/tasks/prep-docker-build-env.sh
       - task: build-docker-image
