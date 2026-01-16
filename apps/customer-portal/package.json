@@ -41,7 +41,7 @@
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
     "tailwindcss-animate": "^1.0.7",
-    "zod": "^4.3.4"
+    "zod": "^4.3.5"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^4.1.2",
@@ -50,7 +50,7 @@
     "@graphql-codegen/introspection": "5.0.0",
     "@graphql-codegen/typescript": "^5.0.7",
     "@graphql-codegen/typescript-operations": "^5.0.7",
-    "@graphql-codegen/typescript-react-apollo": "^4.3.4",
+    "@graphql-codegen/typescript-react-apollo": "^4.4.0",
     "@storybook/addon-essentials": "^8.6.14",
     "@storybook/addon-interactions": "^8.6.14",
     "@storybook/addon-links": "^10.1.11",
@@ -61,8 +61,8 @@
     "@types/node": "20",
     "@types/react": "19.2.7",
     "@types/react-dom": "19.2.3",
-    "@typescript-eslint/eslint-plugin": "^8.51.0",
-    "cypress": "^15.8.1",
+    "@typescript-eslint/eslint-plugin": "^8.52.0",
+    "cypress": "^15.8.2",
     "eslint": "^9.39.2",
     "eslint-config-next": "16.1.1",
     "eslint-config-prettier": "^10.1.8",
