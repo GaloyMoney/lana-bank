@@ -12,7 +12,7 @@ Complex structs (internal configs only): Any struct implementing `Serialize` and
 
 ### Internal Configs
 
-Internal configs are fully owned by another core crate. The owning crate exposes methods to read and update the config, and defines its own authorization rules specific to that config.
+Internal configs should be fully owned by another core crate. That means that the owning crate should be the only one to read and update the config, and defines its own authorization rules specific to that config. However, the domain-config crate still owns the persistence. The point is just that the "owner" crate should be the only code which interacts with this internal config directly.
 
 UI-related topics for internal configs need to be managed by the crate that owns them directly, as internal configs do not appear in the generic "Configurations" page.
 
