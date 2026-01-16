@@ -4,7 +4,7 @@ set -eu
 export digest=$(cat ./latest-image/digest)
 export admin_panel_image_digest=$(cat ./admin-panel-latest-image/digest)
 export customer_portal_image_digest=$(cat ./customer-portal-latest-image/digest)
-export dagster_image_digest=$(cat ./dagster-latest-image/digest)
+export dagster_image_digest=$(cat ./dagster-image/digest)
 
 export ref=$(cat ./repo/.git/short_ref)
 export app_version=$(cat version/version)

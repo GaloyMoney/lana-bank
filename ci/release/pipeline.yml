@@ -218,7 +218,7 @@ jobs:
             passed:
               -  build-customer-portal-edge-image
           - get: dagster-edge-image
-            params: { skip_download: true }
+            params: { format: oci }
             passed:
               - build-dagster-edge-image
       - task: prep-release-apps
@@ -368,6 +368,10 @@ jobs:
             params:
               image: customer-portal-image/image.tar
               additional_tags: version/version
+      - put: dagster-edge-image
+        params:
+          image: dagster-edge-image/image.tar
+          additional_tags: version/version
 
   - name: release
     serial: true
@@ -389,9 +393,8 @@ jobs:
             passed:
               -  #@ build_app_edge_image_name("customer-portal")
           - get: dagster-edge-image
-            params: { skip_download: true }
-            passed:
-              - build-dagster-edge-image
+            params: { format: oci }
+            passed: [ build-rc ]
       - in_parallel:
         - do:
           - task: prep-release
@@ -537,10 +540,15 @@ jobs:
             DOCKERFILE: repo/Dockerfile.release
           run:
             path: build
-      - put: latest-image
-        params:
-          image: image/image.tar
-          additional_tags: version/version
+      - in_parallel:
+        - put: latest-image
+          params:
+            image: image/image.tar
+            additional_tags: version/version
+        - put: dagster-latest-image
+          params:
+            image: dagster-edge-image/image.tar
+            additional_tags: version/version
       - put: version
         params:
           file: version/version
@@ -580,6 +588,7 @@ jobs:
             - name: #@ app_latest_image_resource_name("admin-panel")
             - name: #@ app_latest_image_resource_name("customer-portal")
             - name: dagster-latest-image
+              path: dagster-image
             - name: pipeline-tasks
             - name: charts-repo
             - name: version
@@ -620,7 +629,7 @@ jobs:
             params: { skip_download: true }
           - get: #@ app_latest_image_resource_name("admin-panel")
           - get: #@ app_latest_image_resource_name("customer-portal")
-          - get: dagster-latest-image
+          - get: dagster-edge-image
             passed: [build-rc]
             params: { skip_download: true }
           - get: repo
@@ -641,7 +650,8 @@ jobs:
             - name: latest-image
             - name: #@ app_latest_image_resource_name("admin-panel")
             - name: #@ app_latest_image_resource_name("customer-portal")
-            - name: dagster-latest-image
+            - name: dagster-edge-image
+              path: dagster-image
             - name: pipeline-tasks
             - name: charts-repo
             - name: version
