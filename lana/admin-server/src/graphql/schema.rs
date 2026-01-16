@@ -2258,32 +2258,6 @@ impl Mutation {
         )
     }
 
-    async fn chart_of_accounts_csv_import_with_base_config(
-        &self,
-        ctx: &Context<'_>,
-        input: ChartOfAccountsCsvImportWithBaseConfigInput,
-    ) -> async_graphql::Result<ChartOfAccountsCsvImportWithBaseConfigPayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-
-        let mut file = input.file.value(ctx)?.content;
-        let mut data = String::new();
-        file.read_to_string(&mut data)?;
-
-        exec_mutation!(
-            ChartOfAccountsCsvImportWithBaseConfigPayload,
-            ChartOfAccounts,
-            ChartId,
-            ctx,
-            app.accounting().import_csv_with_base_config(
-                sub,
-                CHART_REF.0,
-                data,
-                input.base_config.try_into()?,
-                TRIAL_BALANCE_STATEMENT_NAME
-            )
-        )
-    }
-
     async fn fiscal_year_init(
         &self,
         ctx: &Context<'_>,

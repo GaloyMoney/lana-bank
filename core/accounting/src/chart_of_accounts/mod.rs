@@ -247,7 +247,7 @@ where
         chart_id: ChartId,
     ) -> Result<Option<AccountingBaseConfig>, ChartOfAccountsError> {
         let chart = self.find_by_id(chart_id).await?;
-        let base_config = chart.find_accounting_base_config();
+        let base_config = chart.accounting_base_config();
         Ok(base_config)
     }
 
