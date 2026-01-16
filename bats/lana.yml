@@ -33,7 +33,7 @@ app:
     fiscal_year_config_path: "./bats/accounting-init/fiscal-year-module-config.json"
 time:
   type: artificial
-  start_at: 2021-01-01T00:00:00Z
+  start_at: 2024-01-01T00:00:00Z
   mode:
     type: auto_advance
-    time_scale: 500000.00
+    time_scale: 1000000.00

@@ -6,7 +6,7 @@ mod helpers;
 mod scenarios;
 
 use futures::future::join_all;
-use std::{collections::HashSet, time::Duration};
+use std::collections::HashSet;
 
 use es_entity::clock::{ClockController, ClockHandle};
 use rust_decimal_macros::dec;
@@ -69,24 +69,7 @@ pub async fn run(
             handles.push(handle);
         }
     }
-
-    let timeout_duration = Duration::from_secs(120);
-    match tokio::time::timeout(timeout_duration, join_all(handles)).await {
-        Ok(results) => {
-            for result in results.into_iter().flatten() {
-                if let Err(e) = result {
-                    tracing::warn!("bootstrap task failed: {:?}", e);
-                }
-            }
-            info!("all bootstrap tasks completed");
-        }
-        Err(_) => {
-            tracing::warn!(
-                "timeout waiting for bootstrap tasks after {:?}, proceeding anyway",
-                timeout_duration
-            );
-        }
-    }
+    join_all(handles).await;
 
     info!("transitioning to realtime");
     clock_ctrl.transition_to_realtime();
