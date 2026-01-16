@@ -42,23 +42,28 @@
           });
         })
         (self: super: {
-          python311 = super.python311.override {
+          python313 = super.python313.override {
             packageOverrides = pySelf: pySuper: let
-              lib = super.lib;
-
               disableTests = pkg:
-                pkg.overrideAttrs (_: {
+                pkg.overrideAttrs (old: {
                   doCheck = false;
                   doInstallCheck = false;
                 });
+              # Only disable tests for specific packages that need it
+              packagesToDisableTests = [
+                "black"
+                "isort"
+                "sqlfmt"
+                "weasyprint"
+              ];
             in
-              lib.mapAttrs (
-                name: pkg:
-                  if lib.isDerivation pkg && builtins.hasAttr "overrideAttrs" pkg
-                  then disableTests pkg
-                  else pkg
-              )
-              pySuper;
+              builtins.listToAttrs (
+                map (name: {
+                  inherit name;
+                  value = disableTests pySuper.${name};
+                })
+                (builtins.filter (name: builtins.hasAttr name pySuper) packagesToDisableTests)
+              );
           };
         })
       ];
