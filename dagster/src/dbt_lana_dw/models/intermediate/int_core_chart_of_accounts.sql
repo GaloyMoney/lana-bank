@@ -2,7 +2,15 @@ with
     nodes as (
         select
             json_value(event, "$.chart_id") as chart_id,
-            array(select string(code) from unnest (json_query_array(json_query((event), "lax $.spec.code.sections.code"), "$")) as code) as code_array,
+            array(
+                select string(code)
+                from
+                    unnest(
+                        json_query_array(
+                            json_query((event), "lax $.spec.code.sections.code"), "$"
+                        )
+                    ) as code
+            ) as code_array,
             json_value(event, "$.spec.name.name") as node_name,
             json_value(event, "$.ledger_account_set_id") as account_set_id
         from {{ ref("stg_core_chart_node_events") }}
