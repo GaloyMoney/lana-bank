@@ -178,14 +178,17 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
-    async fn complete_facility_liquidation(
+    #[instrument(
+        name = "outbox.core_credit.partial_liquidation.complete_credit_facility_liquidation",
+        skip(self, db)
+    )]
+    async fn complete_credit_facility_liquidation(
         &self,
         db: &mut DbOp<'_>,
-        credit_facility_id: CreditFacilityId,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let mut credit_facility = self
             .credit_facility_repo
-            .find_by_id_in_op(db, credit_facility_id)
+            .find_by_id_in_op(db, self.config.credit_facility_id)
             .await?;
 
         if credit_facility
@@ -200,6 +203,10 @@ where
         Ok(())
     }
 
+    #[instrument(
+        name = "outbox.core_credit.partial_liquidation.complete_liquidation",
+        skip(self, db)
+    )]
     async fn complete_liquidation(
         &self,
         db: &mut DbOp<'_>,
@@ -230,7 +237,6 @@ where
         match &message.as_event() {
             Some(
                 event @ PartialLiquidationProceedsReceived {
-                    credit_facility_id,
                     liquidation_id,
                     payment_id,
                     ..
@@ -240,8 +246,7 @@ where
                 Span::current().record("event_type", event.as_ref());
                 Span::current().record("payment_id", tracing::field::display(payment_id));
 
-                self.complete_facility_liquidation(db, *credit_facility_id)
-                    .await?;
+                self.complete_credit_facility_liquidation(db).await?;
 
                 self.complete_liquidation(db).await?;
 
