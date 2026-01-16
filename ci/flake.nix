@@ -110,17 +110,59 @@
       '';
 
       next-version = pkgs.writeShellScriptBin "next-version" ''
-        # Try to get version from auto bump
-        OUTPUT=$(${pkgs.cocogitto}/bin/cog bump --auto --dry-run 2>&1 || true)
+        set -euo pipefail
 
-        # Check if output is a valid semver (e.g., 1.2.3)
-        if ${pkgs.coreutils}/bin/echo "$OUTPUT" | ${pkgs.gnugrep}/bin/grep -qE "^[0-9]+\.[0-9]+\.[0-9]+$"; then
-          # Output the auto bump result (it's a valid version)
-          ${pkgs.coreutils}/bin/echo "$OUTPUT" | ${pkgs.coreutils}/bin/tr -d '\n'
-        else
-          # Output is not a semver, default to patch bump
-          ${pkgs.cocogitto}/bin/cog bump --patch --dry-run | ${pkgs.coreutils}/bin/tr -d '\n'
+        # Get the latest version including prereleases
+        LAST_PRERELEASE=$(${pkgs.cocogitto}/bin/cog get-version --include-prereleases 2>/dev/null || echo "")
+
+        # Handle case where no versions exist
+        if [ -z "$LAST_PRERELEASE" ]; then
+          ${pkgs.coreutils}/bin/echo -n "0.1.0-rc.1"
+          exit 0
         fi
+
+        if ${pkgs.coreutils}/bin/echo "$LAST_PRERELEASE" | ${pkgs.gnugrep}/bin/grep -q '-'; then
+          LAST_PRERELEASE_BASE=$(${pkgs.coreutils}/bin/echo "$LAST_PRERELEASE" | ${pkgs.gnused}/bin/sed 's/-.*$//')
+
+          NEXT_BASE=$(${pkgs.cocogitto}/bin/cog bump --auto --dry-run 2>/dev/null || echo "")
+
+          if [ "$NEXT_BASE" = "$LAST_PRERELEASE_BASE" ]; then
+            # increment RC
+            RC_NUM=$(${pkgs.coreutils}/bin/echo "$LAST_PRERELEASE" | ${pkgs.gnused}/bin/sed 's/.*-rc\.//')
+            NEXT_RC=$((RC_NUM + 1))
+            ${pkgs.coreutils}/bin/echo -n "$LAST_PRERELEASE_BASE-rc.$NEXT_RC"
+          else
+            # new version, cut rc.1
+            ${pkgs.coreutils}/bin/echo -n "$NEXT_BASE-rc.1"
+          fi
+        else
+          # No previous prerelease exists, cut rc.1 on new version
+          ${pkgs.cocogitto}/bin/cog bump --auto --pre rc.1 --dry-run | ${pkgs.coreutils}/bin/tr -d '\n'
+        fi
+      '';
+
+      update-changelog = pkgs.writeShellScriptBin "update-changelog" ''
+        set -euo pipefail
+
+        if [ -z "''${1:-}" ]; then
+          echo "Usage: update-changelog <version>"
+          echo "Example: update-changelog 1.2.3"
+          exit 1
+        fi
+
+        VERSION="$1"
+        CHANGELOG_FILE="CHANGELOG.md"
+
+        LAST_RELEASE=$(${pkgs.cocogitto}/bin/cog get-version)
+
+        # Prepend new content to existing CHANGELOG.md
+        if [ -f "$CHANGELOG_FILE" ]; then
+          ${pkgs.git-cliff}/bin/git-cliff --ignore-tags ".*rc.*" $LAST_RELEASE.. --tag $VERSION --prepend $CHANGELOG_FILE
+        else
+          ${pkgs.git-cliff}/bin/git-cliff -o --tag $VERSION --ignore-tags ".*rc.*"
+        fi
+
+        echo "Updated $CHANGELOG_FILE with version $VERSION"
       '';
 
       wait-cachix-paths = pkgs.writeShellScriptBin "wait-cachix-paths" ''
@@ -512,6 +554,7 @@
       packages.next-version = next-version;
       packages.wait-cachix-paths = wait-cachix-paths;
       packages.rebuild-nix-cache = rebuild-nix-cache;
+      packages.update-changelog = update-changelog;
       formatter = pkgs.alejandra;
     });
 }

@@ -21,9 +21,9 @@ COPY --from=load --chown=1000:0 --chmod=755 /lana-home /lana
 # Copy Liberation fonts and FontConfig configuration
 COPY --from=load /usr/share/fonts/liberation /usr/share/fonts/liberation
 COPY --from=load /etc/fonts/fonts.conf /etc/fonts/fonts.conf
-  
+
 USER 1000
-  
+
 ARG VERSION
 ARG BUILDTIME
 ARG COMMITHASH
@@ -31,5 +31,5 @@ ENV VERSION="$VERSION" \
     BUILDTIME="$BUILDTIME" \
     COMMITHASH="$COMMITHASH" \
     LANA_HOME=/lana
-  
+
 CMD ["lana-cli"]
