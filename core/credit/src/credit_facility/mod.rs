@@ -17,7 +17,7 @@ use job::*;
 use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{
-    Payments, PublicIds,
+    PublicIds,
     disbursal::Disbursals,
     event::CoreCreditEvent,
     ledger::{CreditFacilityInterestAccrual, CreditFacilityInterestAccrualCycle, CreditLedger},
@@ -61,11 +61,6 @@ where
     credit_facility_maturity_job_spawner:
         jobs::credit_facility_maturity::CreditFacilityMaturityJobSpawner<E>,
     interest_accrual_job_spawner: jobs::interest_accrual::InterestAccrualJobSpawner<Perms, E>,
-    payment_allocation_job_spawner:
-        jobs::credit_facility_payment_allocation::CreditFacilityPaymentAllocationJobSpawner<
-            Perms,
-            E,
-        >,
     clock: ClockHandle,
 }
 
@@ -90,7 +85,6 @@ where
             public_ids: self.public_ids.clone(),
             credit_facility_maturity_job_spawner: self.credit_facility_maturity_job_spawner.clone(),
             interest_accrual_job_spawner: self.interest_accrual_job_spawner.clone(),
-            payment_allocation_job_spawner: self.payment_allocation_job_spawner.clone(),
             clock: self.clock.clone(),
         }
     }
@@ -119,7 +113,6 @@ where
         obligations: Arc<Obligations<Perms, E>>,
         pending_credit_facilities: Arc<PendingCreditFacilities<Perms, E>>,
         disbursals: Arc<Disbursals<Perms, E>>,
-        payments: Arc<Payments<Perms, E>>,
         ledger: Arc<CreditLedger>,
         price: Arc<Price>,
         jobs: &mut Jobs,
@@ -167,15 +160,6 @@ where
             ),
         );
 
-        let payment_allocation_job_spawner = jobs.add_initializer(
-            jobs::credit_facility_payment_allocation::CreditFacilityPaymentAllocationInit::new(
-                outbox,
-                payments,
-                obligations.clone(),
-                clock.clone(),
-            ),
-        );
-
         Ok(Self {
             repo: repo_arc,
             obligations,
@@ -188,7 +172,6 @@ where
             public_ids,
             credit_facility_maturity_job_spawner,
             interest_accrual_job_spawner,
-            payment_allocation_job_spawner,
             clock,
         })
     }
@@ -284,20 +267,6 @@ where
                     _phantom: std::marker::PhantomData,
                 },
                 periods.accrual.end,
-            )
-            .await?;
-
-        self.payment_allocation_job_spawner
-            .spawn_in_op(
-                &mut db,
-                JobId::new(),
-                jobs::credit_facility_payment_allocation::CreditFacilityPaymentAllocationJobConfig::<
-                    Perms,
-                    E,
-                > {
-                    credit_facility_id,
-                    _phantom: std::marker::PhantomData,
-                },
             )
             .await?;
 
