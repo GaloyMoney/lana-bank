@@ -40,9 +40,17 @@ jobs:
           docker-images: true
           swap-storage: true
 
-      - name: Build book
+      - name: Install dependencies
         run: |
-          nix develop -c bash -lc "cd docs-site && npm ci && npm run build"
+          nix develop -c bash -lc "cd docs-site && npm ci"
+
+      - name: Validate API descriptions
+        run: |
+          nix develop -c bash -lc "cd docs-site && npm run validate-api-descriptions"
+
+      - name: Build docs site
+        run: |
+          nix develop -c bash -lc "cd docs-site && npm run build"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
