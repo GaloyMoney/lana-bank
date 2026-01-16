@@ -37,7 +37,7 @@ Configs are defined using the `define_internal_config!` or `define_exposed_confi
 
 ### Seeding
 
-All registered configs are seeded at application startup via `seed_registered()`. This creates database entries for any configs that don't yet exist. Because of seeding, fetching a config always succeeds.
+Using the `define_internal_config!` or `define_exposed_config!` macros automatically registers your config for seeding. At application startup, all registered configs are seeded to the database. Developers defining new configs do not need to call any seeding functions manually - just use the macro and the config will be available. Because of this automatic seeding, `get` always succeeds for all configs.
 
 ### Reading Values
 
