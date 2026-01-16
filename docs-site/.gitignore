@@ -11,6 +11,8 @@
 # Generated API documentation (regenerated from GraphQL schemas)
 /docs/api/admin
 /docs/api/customer
+/i18n/es/docusaurus-plugin-content-docs/current/api/admin/operations
+/i18n/es/docusaurus-plugin-content-docs/current/api/customer/operations
 
 # Misc
 .DS_Store
