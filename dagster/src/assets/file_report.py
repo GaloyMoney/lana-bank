@@ -85,15 +85,13 @@ def create_file_report_callable(
             "path_in_bucket": result["gcs_path"],
         }
 
-        context.add_output_metadata(
-            {
-                "norm": result["norm"],
-                "friendly_name": result["friendly_name"],
-                "file_type": result["file_type"],
-                "row_count": result["row_count"],
-                "report_file": report_file,
-            }
-        )
+        report: Report = {
+            "name": result["friendly_name"],
+            "norm": result["norm"],
+            "files": [report_file],
+        }
+
+        context.add_output_metadata({"report": dg.MetadataValue.json(report)})
 
     return _report_callable
 
@@ -156,40 +154,6 @@ def _extract_metadata_value(metadata: dict, key: str):
 
 def inform_lana_of_new_reports(context: dg.AssetExecutionContext) -> None:
     """Collect metadata from all generated file reports and notify Lana system."""
-    file_report_keys = _get_file_report_asset_keys()
-
-    context.log.info(f"Checking {len(file_report_keys)} file report assets...")
-
-    reports_by_name: dict[str, Report] = {}
-
-    for asset_key in file_report_keys:
-        materialization = context.instance.get_latest_materialization_event(asset_key)
-
-        if not (materialization and materialization.asset_materialization):
-            context.log.warning(f"No materialization found for {asset_key}")
-            continue
-
-        metadata = materialization.asset_materialization.metadata
-
-        friendly_name = _extract_metadata_value(metadata, "friendly_name")
-        norm = _extract_metadata_value(metadata, "norm")
-        report_file = _extract_metadata_value(metadata, "report_file")
-
-        if not report_file:
-            context.log.warning(f"No report_file metadata found for {asset_key}")
-            continue
-
-        if friendly_name not in reports_by_name:
-            reports_by_name[friendly_name] = Report(
-                name=friendly_name,
-                norm=norm,
-                files=[],
-            )
-
-        reports_by_name[friendly_name]["files"].append(report_file)
-
-    all_reports: List[Report] = list(reports_by_name.values())
-
     admin_server_url = dg.EnvVar("LANA_ADMIN_SERVER_URL").get_value()
     if not admin_server_url:
         raise ValueError(
@@ -214,13 +178,6 @@ def inform_lana_of_new_reports(context: dg.AssetExecutionContext) -> None:
     except requests.exceptions.RequestException as e:
         context.log.error(f"Failed to notify Lana system: {e}")
         raise
-
-    context.add_output_metadata(
-        {
-            "reports_count": len(all_reports),
-            "reports": all_reports,
-        }
-    )
 
 
 def inform_lana_protoasset() -> Protoasset:
