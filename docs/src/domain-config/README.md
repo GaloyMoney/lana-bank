@@ -14,7 +14,7 @@ Complex structs (internal configs only): Any struct implementing `Serialize` and
 
 Internal configs are fully owned by another core crate. The owning crate exposes methods to read and update the config, and defines its own authorization rules specific to that config.
 
-UI related topics for internal configs needs to be manage by the crate that owns it directly, as internal config do not appear in the generic "Configurations" page.
+UI-related topics for internal configs need to be managed by the crate that owns them directly, as internal configs do not appear in the generic "Configurations" page.
 
 Internal configs support both simple types and complex structs.
 
