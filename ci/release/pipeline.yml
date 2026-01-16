@@ -30,52 +30,50 @@
 groups:
   - name: lana-bank
     jobs:
-      - set-next-version
-      - auto-bump-patch
+      #! - auto-bump-patch
       - test-bats
       - test-integration
+      - build-rc
       - release
       - flake-check
-      - release-docker
-      #! - set-dev-version
+      - open-promote-rc-pr
       - bump-image-in-chart
+      - bump-image-in-chart-rc
       -  #@ build_app_edge_image_name("admin-panel")
       -  #@ build_app_edge_image_name("customer-portal")
-      - await-release-binary
       - build-dagster-edge-image
-
 jobs:
-  - name: auto-bump-patch
-    serial: true
-    plan:
-      - get: repo
-        trigger: true
-        passed: [ release ]
-      - get: version
-        passed: [ release ]
-      - task: next-version
-        config:
-          platform: linux
-          image_resource: #@ nix_flake_cachix_image_config()
-          inputs:
-          - name: repo
-          outputs:
-          - name: version
-          params:
-            CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
-            CACHIX_CACHE_NAME: #@ data.values.cachix_cache_name
-          run:
-            path: sh
-            args:
-            - -exc
-            - |
-              set -euo pipefail
-              cachix use $CACHIX_CACHE_NAME
-              cd repo
-              nix run ./ci#next-version > ../version/version
-      - put: version
-        params:
-          bump: patch
+  #! - name: auto-bump-patch
+  #!   serial: true
+  #!   plan:
+  #!     - get: repo
+  #!       trigger: true
+  #!       passed: [ release ]
+  #!     - get: version
+  #!       passed: [ release ]
+  #!     - task: next-version
+  #!       config:
+  #!         platform: linux
+  #!         image_resource: #@ nix_flake_cachix_image_config()
+  #!         inputs:
+  #!         - name: repo
+  #!         outputs:
+  #!         - name: version
+  #!         params:
+  #!           CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+  #!           CACHIX_CACHE_NAME: #@ data.values.cachix_cache_name
+  #!         run:
+  #!           path: sh
+  #!           args:
+  #!           - -exc
+  #!           - |
+  #!             set -euo pipefail
+  #!             cachix use $CACHIX_CACHE_NAME
+  #!             cd repo
+  #!             nix run ./ci#next-version > ../version/version
+  #!     - put: version
+  #!       params:
+  #!         bump: patch
 
   - name: test-integration
     serial: true
@@ -103,12 +101,6 @@ jobs:
                 cd repo
                 cachix use $CACHIX_CACHE_NAME
                 nix run .#nextest
-    on_failure:
-      do:
-        - get: release-lock
-          passed: [set-next-version]
-        - put: release-lock
-          params: { release: release-lock }
 
   - name: test-bats
     serial: true
@@ -137,12 +129,6 @@ jobs:
                 cd repo
                 cachix use $CACHIX_CACHE_NAME
                 DAGSTER=false nix run .#bats
-    on_failure:
-      do:
-        - get: release-lock
-          passed: [set-next-version]
-        - put: release-lock
-          params: { release: release-lock }
 
   - name: flake-check
     serial: true
@@ -169,30 +155,113 @@ jobs:
               cachix use $CACHIX_CACHE_NAME
 
               nix flake check
-    on_failure:
-      do:
-        - get: release-lock
-          passed: [set-next-version]
-        - put: release-lock
-          params: { release: release-lock }
 
-  - name: set-next-version
+  #! - name: await-release-binary
+  #!   serial: true
+  #!   serial_groups: [release]
+  #!   plan:
+  #!   - in_parallel:
+  #!     - get: repo
+  #!       trigger: true
+  #!       passed: [ set-next-version ]
+  #!     - get: version
+  #!       passed: [ set-next-version ]
+  #!   - task: await-release-binary
+  #!     config:
+  #!       platform: linux
+  #!       image_resource: #@ nix_flake_cachix_image_config()
+  #!       inputs:
+  #!       - name: repo
+  #!       - name: version
+  #!       params:
+  #!         CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+  #!         CACHIX_CACHE_NAME: #@ data.values.cachix_cache_name
+  #!       run:
+  #!         path: sh
+  #!         args:
+  #!         - -exc
+  #!         - |
+  #!           set -euo pipefail
+  #!           cd repo
+  #!
+  #!           cachix use $CACHIX_CACHE_NAME
+  #!           export RELEASE_BUILD_VERSION=$(cat ../version/version)
+  #!           
+  #!           nix build --impure .#lana-cli-release --dry-run --json | \
+  #!             nix run nixpkgs#jq -- -r '.[].outputs.out' \
+  #!             > nix-checks-paths.txt
+  #!           echo "Checks to wait for:"
+  #!           cat nix-checks-paths.txt
+  #!
+  #!           nix run ./ci#wait-cachix-paths -- \
+  #!             -p ./nix-checks-paths.txt \
+  #!             -c galoymoney \
+  #!             -a 300 \
+  #!             -d 10
+
+  - name: build-rc
     serial: true
     plan:
-      - put: release-lock
-        params: { claim: release }
       - in_parallel:
-         - get: repo
-           trigger: true
-         - get: version
+          - get: repo
+            passed: 
+              - flake-check
+              - test-bats
+              - test-integration
+            trigger: true
+          - get: pipeline-tasks
+          - get: version
+          - get: admin-panel-src
+            passed:
+              -  build-admin-panel-edge-image
+          - get: customer-portal-src
+            passed:
+              -  build-customer-portal-edge-image
+          - get: dagster-edge-image
+            params: { skip_download: true }
+            passed:
+              - build-dagster-edge-image
+      - task: prep-release-apps
+        config:
+          platform: linux
+          image_resource: #@ release_task_image_config()
+          inputs:
+            - name: pipeline-tasks
+            - name: version
+            - name: admin-panel-src
+            - name: customer-portal-src
+          outputs:
+            - name: admin-panel-src
+            - name: customer-portal-src
+          run:
+            path: pipeline-tasks/ci/tasks/prep-release-apps.sh
       - task: next-version
         config:
           platform: linux
           image_resource: #@ nix_flake_cachix_image_config()
           inputs:
+          - name: version
           - name: repo
           outputs:
           - name: version
+          run:
+            path: sh
+            args:
+            - -exc
+            - |
+              set -euo pipefail
+              cd repo
+              nix run ci/.#next-version > ../version/version
+      - task: nix-build-release
+        attempts: 2
+        config:
+          platform: linux
+          image_resource: #@ nix_flake_cachix_image_config()
+          inputs:
+          - name: repo
+          - name: version
+          outputs:
+          - name: binaries
           params:
             CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
             CACHIX_CACHE_NAME: #@ data.values.cachix_cache_name
@@ -204,79 +273,115 @@ jobs:
               set -euo pipefail
               cachix use $CACHIX_CACHE_NAME
               cd repo
-              nix run ./ci#next-version > ../version/version
+              export RELEASE_BUILD_VERSION=$(cat ../version/version)
+              nix build --impure .#lana-cli-release
+              cp result/bin/lana-cli ../binaries/
+      - task: prepare-docker-build
+        config:
+          platform: linux
+          image_resource: #@ rust_task_image_config()
+          inputs:
+            - name: pipeline-tasks
+            - name: repo
+            - name: version
+            - name: binaries
+          outputs:
+            - name: repo
+          run:
+            path: pipeline-tasks/ci/tasks/prep-docker-build-env.sh
+      - task: build-docker-image
+        privileged: true
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: concourse/oci-build-task
+          inputs:
+            - name: repo
+          outputs:
+            - name: image
+          params:
+            CONTEXT: repo
+            BUILD_ARGS_FILE: repo/.env
+            DOCKERFILE: repo/Dockerfile.release
+          run:
+            path: build
+      - put: latest-image
+        params:
+          image: image/image.tar
+          additional_tags: version/version
       - put: version
         params:
           file: version/version
-    on_failure:
-      put: release-lock
-      params: { release: release-lock }
-
-
-  - name: await-release-binary
-    serial: true
-    serial_groups: [release]
-    plan:
-    - get: release-lock
-      passed: [ set-next-version ]
-    - in_parallel:
-      - get: repo
-        trigger: true
-        passed: [ set-next-version ]
-      - get: version
-        passed: [ set-next-version ]
-    - task: await-release-binary
-      config:
-        platform: linux
-        image_resource: #@ nix_flake_cachix_image_config()
-        inputs:
-        - name: repo
-        - name: version
+      - put: repo
         params:
-          CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
-          CACHIX_CACHE_NAME: #@ data.values.cachix_cache_name
-        run:
-          path: sh
-          args:
-          - -exc
-          - |
-            set -euo pipefail
-            cd repo
-
-            cachix use $CACHIX_CACHE_NAME
-            export RELEASE_BUILD_VERSION=$(cat ../version/version)
-            
-            nix build --impure .#lana-cli-release --dry-run --json | \
-              nix run nixpkgs#jq -- -r '.[].outputs.out' \
-              > nix-checks-paths.txt
-            echo "Checks to wait for:"
-            cat nix-checks-paths.txt
-
-            nix run ./ci#wait-cachix-paths -- \
-              -p ./nix-checks-paths.txt \
-              -c galoymoney \
-              -a 300 \
-              -d 10
-    on_failure:
-      put: release-lock
-      params: { release: release-lock }
+          tag: version/version
+          only_tag: true
+          repository: repo
+      - in_parallel:
+        - do:
+          - task: build-admin-panel-release
+            attempts: 2
+            privileged: true
+            config:
+              platform: linux
+              image_resource:
+                type: registry-image
+                source:
+                  repository: concourse/oci-build-task
+              inputs:
+                - name: admin-panel-src
+              outputs:
+                - name: admin-panel-image
+                  path: image
+              params:
+                CONTEXT: admin-panel-src
+                DOCKERFILE: admin-panel-src/apps/admin-panel/Dockerfile
+              run:
+                path: build
+          - put: admin-panel-latest-image
+            params:
+              image: admin-panel-image/image.tar
+              additional_tags: version/version
+        - do:
+          - task: build-customer-portal-release
+            attempts: 2
+            privileged: true
+            config:
+              platform: linux
+              image_resource:
+                type: registry-image
+                source:
+                  repository: concourse/oci-build-task
+              inputs:
+                - name: customer-portal-src
+              outputs:
+                - name: customer-portal-image
+                  path: image
+              params:
+                CONTEXT: customer-portal-src
+                DOCKERFILE: customer-portal-src/apps/customer-portal/Dockerfile
+              run:
+                path: build
+          - put: customer-portal-latest-image
+            params:
+              image: customer-portal-image/image.tar
+              additional_tags: version/version
 
   - name: release
     serial: true
     plan:
-      - get: release-lock
-        passed: [ await-release-binary ]
       - in_parallel:
           - get: repo
             passed: 
               - flake-check
               - test-bats
               - test-integration
-              - await-release-binary
-            trigger: true
           - get: pipeline-tasks
           - get: version
-            passed: [ await-release-binary ]
+            passed: [ build-rc ]
+            params: { bump: final }
           - get: #@ app_src_resource_name("admin-panel")
             passed:
               -  #@ build_app_edge_image_name("admin-panel")
@@ -393,70 +498,20 @@ jobs:
             params:
               image: customer-portal-image/image.tar
               additional_tags: version/version
-      - put: repo
-        params:
-          tag: artifacts/gh-release-tag
-          only_tag: true
-          repository: repo
-      - put: release-lock
-        params: { release: release-lock }
-      - task: github-release
-        config:
-          image_resource: #@ rust_task_image_config()
-          platform: linux
-          inputs:
-            - name: binaries
-            - name: version
-            - name: pipeline-tasks
-            - name: artifacts
-          outputs:
-            - name: artifacts
-          params:
-            BRANCH: #@ data.values.git_branch
-          run:
-            path: pipeline-tasks/ci/tasks/github-release.sh
-      - put: gh-release
-        params:
-          name: artifacts/gh-release-name
-          tag: artifacts/gh-release-tag
-          body: artifacts/gh-release-notes.md
-          globs: [artifacts/binaries/*]
-    on_failure:
-      put: release-lock
-      params: { release: release-lock }
-  - name: release-docker
-    serial: true
-    plan:
-      - in_parallel:
-          - get: repo
-            passed:
-              - release
-          - get: version
-            passed:
-              - release
-            trigger: true
-          - get: pipeline-tasks
-          - get: dagster-edge-image
-            passed:
-              - release
-            params:
-              format: oci
       - task: prepare-docker-build
         config:
           platform: linux
           image_resource: #@ rust_task_image_config()
           inputs:
             - name: pipeline-tasks
-            - name: version
             - name: repo
+            - name: version
+            - name: binaries
           outputs:
             - name: repo
-          params:
-            GH_APP_ID: #@ data.values.github_app_id
-            GH_APP_PRIVATE_KEY: #@ data.values.github_app_private_key
           run:
             path: pipeline-tasks/ci/tasks/prep-docker-build-env.sh
-      - task: build
+      - task: build-docker-image
         privileged: true
         config:
           platform: linux
@@ -471,35 +526,107 @@ jobs:
           params:
             CONTEXT: repo
             BUILD_ARGS_FILE: repo/.env
-            DOCKERFILE: "repo/Dockerfile.release"
+            DOCKERFILE: repo/Dockerfile.release
           run:
             path: build
-      - in_parallel:
-          - put: latest-image
-            params:
-              image: image/image.tar
-              additional_tags: version/version
-          - put: dagster-latest-image
-            params:
-              image: dagster-edge-image/image.tar
-              additional_tags: version/version
+      - put: latest-image
+        params:
+          image: image/image.tar
+          additional_tags: version/version
+      - put: version
+        params:
+          file: version/version
+      - put: repo
+        params:
+          tag: artifacts/gh-release-tag
+          only_tag: true
+          repository: repo
+      - put: gh-release
+        params:
+          name: artifacts/gh-release-name
+          tag: artifacts/gh-release-tag
+          body: artifacts/gh-release-notes.md
+          globs: [binaries/*]
+  
   - name: bump-image-in-chart
     plan:
       - in_parallel:
           - get: latest-image
-            passed: [release-docker]
+            passed: [release]
             params: { skip_download: true }
           - get: #@ app_latest_image_resource_name("admin-panel")
           - get: #@ app_latest_image_resource_name("customer-portal")
           - get: dagster-latest-image
-            passed: [release-docker]
+            passed: [release]
             params: { skip_download: true }
           - get: repo
             trigger: true
-            passed: [release-docker]
+            passed: [release]
           - get: version
             trigger: true
-            passed: [release-docker]
+            passed: [release]
+          - get: charts-repo
+            params: { skip_download: true }
+          - get: pipeline-tasks
+      - task: bump-image-digest-in-values
+        config:
+          platform: linux
+          image_resource: #@ rust_task_image_config()
+          inputs:
+            - name: repo
+            - name: latest-image
+            - name: #@ app_latest_image_resource_name("admin-panel")
+            - name: #@ app_latest_image_resource_name("customer-portal")
+            - name: dagster-latest-image
+            - name: pipeline-tasks
+            - name: charts-repo
+            - name: version
+          outputs:
+            - name: charts-repo
+          params:
+            BRANCH: #@ data.values.git_charts_branch
+            CHARTS_SUBDIR: lana-bank
+          run:
+            path: pipeline-tasks/ci/tasks/bump-image-digest.sh
+      - put: charts-repo-bot-branch
+        params:
+          repository: charts-repo
+          force: true
+      - task: open-charts-pr
+        config:
+          platform: linux
+          image_resource: #@ rust_task_image_config()
+          inputs:
+            - name: pipeline-tasks
+            - name: latest-image
+            - name: charts-repo
+            - name: repo
+          params:
+            GH_APP_ID: #@ data.values.github_app_id
+            GH_APP_PRIVATE_KEY: #@ data.values.github_app_private_key
+            BRANCH: #@ data.values.git_charts_branch
+            BOT_BRANCH: #@ data.values.git_charts_bot_branch
+            CHARTS_SUBDIR: lana-bank
+          run:
+            path: pipeline-tasks/ci/tasks/chart-open-charts-pr.sh
+
+  - name: bump-image-in-chart-rc
+    plan:
+      - in_parallel:
+          - get: latest-image
+            passed: [build-rc]
+            params: { skip_download: true }
+          - get: #@ app_latest_image_resource_name("admin-panel")
+          - get: #@ app_latest_image_resource_name("customer-portal")
+          - get: dagster-latest-image
+            passed: [build-rc]
+            params: { skip_download: true }
+          - get: repo
+            trigger: true
+            passed: [build-rc]
+          - get: version
+            trigger: true
+            passed: [build-rc]
           - get: charts-repo
             params: { skip_download: true }
           - get: pipeline-tasks
@@ -580,12 +707,73 @@ jobs:
         params:
           image: image/image.tar
 
+  - name: open-promote-rc-pr
+    plan:
+      - in_parallel:
+          - get: version
+            passed: [build-rc]
+            params: { bump: final }
+            trigger: true
+          - get: pipeline-tasks
+          - get: repo
+            passed: [build-rc]
+      - task: update-changelog
+        config:
+          platform: linux
+          image_resource: #@ nix_flake_cachix_image_config()
+          inputs:
+            - name: version
+            - name: repo
+          outputs:
+            - name: repo
+          params:
+            CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+            CACHIX_CACHE_NAME: #@ data.values.cachix_cache_name
+          run:
+            path: /bin/bash
+            args:
+              - -exc
+              - |
+                set -euo pipefail
+                cd repo
+                cachix use $CACHIX_CACHE_NAME
+                VERSION=$(cat ../version/version)
+                nix run ci/.#update-changelog $VERSION
+                if [[ -z $(git config --global user.email) ]]; then
+                  git config --global user.email "bot@galoy.io"
+                fi
+                if [[ -z $(git config --global user.name) ]]; then
+                  git config --global user.name "CI Bot"
+                fi
+                git add CHANGELOG.md
+                git commit -m "chore: release ${VERSION}"
+      - put: repo-bot-branch
+        params:
+          repository: repo
+          branch: #@ data.values.git_promote_rc_branch
+          force: true
+      - task: open-promote-pr
+        config:
+          platform: linux
+          image_resource: #@ rust_task_image_config()
+          inputs:
+            - name: pipeline-tasks
+            - name: version
+            - name: repo
+          params:
+            GH_APP_ID: #@ data.values.github_app_id
+            GH_APP_PRIVATE_KEY: #@ data.values.github_app_private_key
+            BRANCH: #@ data.values.git_branch
+            BOT_BRANCH: #@ data.values.git_promote_rc_branch
+          run:
+            path: pipeline-tasks/ci/tasks/open-promote-rc-pr.sh
+
 resources:
   - name: repo
     type: git
     source:
       ignore_paths:
-        - "ci/*[^md]"
+        - "ci/*[^mdxk]"
         - apps/**/*
       fetch_tags: true
       uri: #@ data.values.git_uri
@@ -593,13 +781,13 @@ resources:
       private_key: #@ data.values.github_private_key
     webhook_token: ((webhook.secret))
 
-  - name: release-lock
-    type: pool
+  - name: repo-bot-branch
+    type: git
     source:
-      uri: #@ data.values.concourse_locks_git_uri
-      branch: main
-      pool: lana-bank
+      uri: #@ data.values.git_uri
+      branch: #@ data.values.git_promote_rc_branch
       private_key: #@ data.values.github_private_key
+    webhook_token: ((webhook.secret))
 
   - name: latest-image
     type: registry-image

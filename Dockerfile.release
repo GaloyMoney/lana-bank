@@ -1,29 +1,20 @@
-FROM alpine:latest as load
+FROM alpine:latest as base
 
 RUN apk add --no-cache \
-    github-cli \
     font-liberation \
     fontconfig
 
-ARG GH_TOKEN
-ENV GH_TOKEN ${GH_TOKEN}
-
-ARG VERSION
-ENV VERSION ${VERSION}
-RUN mkdir lana-home && mkdir lana && cd lana \
-  && gh release download --repo GaloyMoney/lana-bank ${VERSION} \
-  && mv lana-cli /usr/local/bin && cd ../ && rm -rf ./lana
-
 FROM gcr.io/distroless/static
 
-COPY --from=load --chmod=0755 /usr/local/bin/lana-cli /bin/lana-cli
-COPY --from=load --chown=1000:0 --chmod=755 /lana-home /lana
+# Copy the pre-built binary from build context
+COPY --chmod=0755 binaries/lana-cli /bin/lana-cli
+
 # Copy Liberation fonts and FontConfig configuration
-COPY --from=load /usr/share/fonts/liberation /usr/share/fonts/liberation
-COPY --from=load /etc/fonts/fonts.conf /etc/fonts/fonts.conf
-  
+COPY --from=base /usr/share/fonts/liberation /usr/share/fonts/liberation
+COPY --from=base /etc/fonts/fonts.conf /etc/fonts/fonts.conf
+
 USER 1000
-  
+
 ARG VERSION
 ARG BUILDTIME
 ARG COMMITHASH
@@ -31,5 +22,5 @@ ENV VERSION="$VERSION" \
     BUILDTIME="$BUILDTIME" \
     COMMITHASH="$COMMITHASH" \
     LANA_HOME=/lana
-  
+
 CMD ["lana-cli"]

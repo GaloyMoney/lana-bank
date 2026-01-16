@@ -2,6 +2,7 @@
 ---
 git_uri: git@github.com:GaloyMoney/lana-bank.git
 git_branch: main
+git_promote_rc_branch: bot-promote-rc
 github_private_key: ((github.private_key))
 github_token: ((github.api_token))
 github_app_id: ((github.github_app_id))
