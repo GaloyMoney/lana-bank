@@ -1,10 +1,4 @@
-# Docker, Podman and Tilt
-dev-up:
-	cd dev && tilt up
-
-dev-down:
-	cd dev && tilt down
-
+# Docker and Podman
 podman-service-start:
 	@./dev/bin/podman-service-start.sh
 
