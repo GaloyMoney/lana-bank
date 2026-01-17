@@ -153,12 +153,13 @@ pub struct NewReportRun {
 }
 
 impl NewReportRun {
-    pub fn builder() -> NewReportRunBuilder {
+    // pass in time via clock
+    pub fn builder(now: DateTime<Utc>) -> NewReportRunBuilder {
         let report_run_id = ReportRunId::new();
 
         let mut builder = NewReportRunBuilder::default();
         builder.id(report_run_id);
-        builder.execution_date(Utc::now());
+        builder.execution_date(now);
         builder.state(ReportRunState::Queued);
         builder.run_type(ReportRunType::Manual);
         builder

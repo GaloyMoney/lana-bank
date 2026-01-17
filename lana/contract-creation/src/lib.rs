@@ -3,6 +3,7 @@ use std::marker::PhantomData;
 use ::job::{JobId, Jobs};
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use chrono::{DateTime, Utc};
 use core_applicant::Applicants;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerObject, Customers};
 use document_storage::{
@@ -226,8 +227,9 @@ impl LoanAgreementData {
         full_name: String,
         address: Option<String>,
         country: Option<String>,
+        now: DateTime<Utc>,
     ) -> Self {
-        let date = chrono::Utc::now().format("%Y-%m-%d").to_string();
+        let date = now.format("%Y-%m-%d").to_string();
 
         Self {
             email,

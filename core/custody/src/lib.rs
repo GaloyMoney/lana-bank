@@ -359,7 +359,7 @@ where
         if let Ok(custodian) = custodian
             && let Some(notification) = custodian
                 .custodian_client(self.config.encryption.key, &self.config.custody_providers)?
-                .process_webhook(&headers, payload)
+                .process_webhook(&headers, payload, self.clock.now())
                 .await?
         {
             match notification {
