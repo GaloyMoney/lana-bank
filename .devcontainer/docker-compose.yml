@@ -9,6 +9,8 @@ services:
       - nix-store:/nix
       # Persist user's Nix profile for faster subsequent starts
       - nix-profile:/home/vscode/.nix-profile
+      # Use a volume for Cargo target dir to avoid permission issues with host mount
+      - cargo-target:/workspaces/lana-bank/target
     working_dir: /workspaces/lana-bank
     command: sleep infinity
     environment:
@@ -28,14 +30,17 @@ services:
       - NIX_CONFIG=experimental-features = nix-command flakes
       # Add Nix to PATH
       - PATH=/home/vscode/.nix-profile/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    userns_mode: keep-id
     cap_add:
       - SYS_PTRACE
     security_opt:
       - seccomp:unconfined
 
-# Named volumes to persist Nix store across container rebuilds
+# Named volumes to persist data across container rebuilds
 volumes:
   nix-store:
     name: lana-bank-nix-store
   nix-profile:
     name: lana-bank-nix-profile
+  cargo-target:
+    name: lana-bank-cargo-target
