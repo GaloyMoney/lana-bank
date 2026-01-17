@@ -135,6 +135,7 @@ serde_yaml = "0.9.32"
 serde_json = "1.0.149"
 serde_with = "3.16.1"
 futures = "0.3.29"
+pastey = "0.1"
 http = "1.4"
 reqwest = { version = "0.12.26", default-features = false, features = ["json", "rustls-tls", "charset", "http2", "macos-system-configuration", "multipart"] }
 url = { version = "2.5", features = ["serde"] }

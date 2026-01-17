@@ -17,6 +17,7 @@ use crate::{
     applicant::Applicants,
     audit::{Audit, AuditCursor, AuditEntry},
     authorization::{Authorization, seed},
+    command_inbox::CommandInbox,
     contract_creation::ContractCreation,
     credit::Credit,
     custody::Custody,
@@ -63,6 +64,7 @@ pub struct LanaApp {
     public_ids: PublicIds,
     contract_creation: ContractCreation,
     reports: Reports,
+    command_inbox: CommandInbox,
     _user_onboarding: UserOnboarding,
     _customer_sync: CustomerSync,
     _deposit_sync: DepositSync,
@@ -223,6 +225,8 @@ impl LanaApp {
         ChartsInit::charts_of_accounts(&accounting, &credit, &deposits, config.accounting_init)
             .await?;
 
+        let command_inbox = CommandInbox::init(&pool, &mut jobs, &customers, &deposits).await?;
+
         jobs.start_poll().await?;
 
         Ok(Self {
@@ -245,6 +249,7 @@ impl LanaApp {
             public_ids,
             contract_creation,
             reports,
+            command_inbox,
             _user_onboarding: user_onboarding,
             _customer_sync: customer_sync,
             _deposit_sync: deposit_sync,
@@ -333,6 +338,10 @@ impl LanaApp {
 
     pub fn contract_creation(&self) -> &ContractCreation {
         &self.contract_creation
+    }
+
+    pub fn command_inbox(&self) -> &CommandInbox {
+        &self.command_inbox
     }
 
     pub async fn get_visible_nav_items(

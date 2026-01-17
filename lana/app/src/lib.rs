@@ -3,6 +3,10 @@
 
 pub mod accounting_init;
 pub mod app;
+mod command_inbox;
+
+pub use command_inbox::{CommandInbox, CommandInboxError, CommandInboxPayload};
+
 pub mod applicant {
     pub use core_applicant::*;
     pub type Applicants =

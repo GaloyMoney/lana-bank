@@ -176,6 +176,13 @@ pub struct CustomerCreateInput {
 crate::mutation_payload! { CustomerCreatePayload, customer: Customer }
 
 #[derive(InputObject)]
+pub struct CustomerCreateAsyncInput {
+    pub email: String,
+    pub telegram_id: String,
+    pub customer_type: CustomerType,
+}
+
+#[derive(InputObject)]
 pub struct CustomerTelegramIdUpdateInput {
     pub customer_id: UUID,
     pub telegram_id: String,

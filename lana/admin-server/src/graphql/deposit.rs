@@ -113,3 +113,17 @@ pub struct DepositAccountCloseInput {
     pub deposit_account_id: UUID,
 }
 crate::mutation_payload! { DepositAccountClosePayload, account: DepositAccount }
+
+#[derive(InputObject)]
+pub struct DepositRecordAsyncInput {
+    pub deposit_account_id: UUID,
+    pub amount: UsdCents,
+    pub reference: Option<String>,
+}
+
+#[derive(InputObject)]
+pub struct WithdrawalInitiateAsyncInput {
+    pub deposit_account_id: UUID,
+    pub amount: UsdCents,
+    pub reference: Option<String>,
+}

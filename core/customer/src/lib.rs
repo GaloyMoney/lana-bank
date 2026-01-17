@@ -161,6 +161,51 @@ where
         Ok(customer)
     }
 
+    /// Create a customer with a pre-generated ID (for inbox pattern).
+    /// No authorization check - should only be called from inbox handlers.
+    #[record_error_severity]
+    #[instrument(name = "customer.create_with_id", skip(self))]
+    pub async fn create_with_id(
+        &self,
+        customer_id: CustomerId,
+        email: impl Into<String> + std::fmt::Debug,
+        telegram_id: impl Into<String> + std::fmt::Debug,
+        customer_type: impl Into<CustomerType> + std::fmt::Debug,
+    ) -> Result<Customer, CustomerError> {
+        let mut db = self.repo.begin_op_with_clock(&self.clock).await?;
+
+        let public_id = self
+            .public_ids
+            .create_in_op(&mut db, CUSTOMER_REF_TARGET, customer_id)
+            .await?;
+
+        let new_customer = NewCustomer::builder()
+            .id(customer_id)
+            .email(email.into())
+            .telegram_id(telegram_id.into())
+            .customer_type(customer_type)
+            .public_id(public_id.id)
+            .build()
+            .expect("Could not build customer");
+
+        let customer = self.repo.create_in_op(&mut db, new_customer).await?;
+
+        db.commit().await?;
+
+        Ok(customer)
+    }
+
+    /// Find a customer by ID for internal use (inbox handlers).
+    /// Returns an error if not found.
+    #[record_error_severity]
+    #[instrument(name = "customer.find_by_id_internal", skip(self))]
+    pub async fn find_by_id_internal(
+        &self,
+        id: impl Into<CustomerId> + std::fmt::Debug,
+    ) -> Result<Customer, CustomerError> {
+        self.repo.find_by_id(id.into()).await
+    }
+
     #[record_error_severity]
     #[instrument(name = "customer.find_for_subject", skip(self))]
     pub async fn find_for_subject(
