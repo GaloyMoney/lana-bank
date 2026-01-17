@@ -255,7 +255,6 @@
           cachix
           ps
           curl
-          tilt
           procps
           poppler-utils
           keycloak
