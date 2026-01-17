@@ -37,14 +37,16 @@ RUN . /home/vscode/.nix-profile/etc/profile.d/nix.sh && \
     nix profile install nixpkgs#nix-direnv
 
 # ─────────────────────────────────────────────────────────────
-# 5. Shell helpers
+# 5. Shell helpers and git configuration
 # ─────────────────────────────────────────────────────────────
 RUN echo '. /home/vscode/.nix-profile/etc/profile.d/nix.sh' >> ~/.bashrc && \
     mkdir -p ~/.config/direnv && \
     echo 'source $HOME/.nix-profile/share/nix-direnv/direnvrc' > ~/.config/direnv/direnvrc && \
     echo 'eval "$(direnv hook bash)"' >> ~/.bashrc && \
     echo 'umask 022' >> ~/.bashrc && \
-    echo 'cd /workspaces/lana-bank 2>/dev/null || true' >> ~/.bashrc
+    echo 'cd /workspaces/lana-bank 2>/dev/null || true' >> ~/.bashrc && \
+    # Mark workspace as safe for git (needed for volume-mounted repos)
+    git config --global --add safe.directory /workspaces/lana-bank
 
 # ─────────────────────────────────────────────────────────────
 # 6. Workspace

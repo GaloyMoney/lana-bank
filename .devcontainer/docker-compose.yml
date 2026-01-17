@@ -5,7 +5,10 @@ services:
       dockerfile: .devcontainer/Dockerfile
     volumes:
       - ../..:/workspaces:cached
-      - /var/run/docker.sock:/var/run/docker-host.sock
+      # Persist the Nix store to avoid re-downloading packages on container restart
+      - nix-store:/nix
+      # Persist user's Nix profile for faster subsequent starts
+      - nix-profile:/home/vscode/.nix-profile
     working_dir: /workspaces/lana-bank
     command: sleep infinity
     environment:
@@ -29,3 +32,10 @@ services:
       - SYS_PTRACE
     security_opt:
       - seccomp:unconfined
+
+# Named volumes to persist Nix store across container rebuilds
+volumes:
+  nix-store:
+    name: lana-bank-nix-store
+  nix-profile:
+    name: lana-bank-nix-profile
