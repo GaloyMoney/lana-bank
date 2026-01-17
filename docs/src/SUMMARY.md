@@ -11,6 +11,7 @@
 - [Accounting](accounting/README.md)
   - [Closing](accounting/closing/README.md)
   - [FiscalYear](accounting/fiscal-year/README.md)
+- [Domain Config](domain-config/README.md)
 - [ERDs](erds/README.md)
   - [Cala](erds/cala.md)
   - [Lana](erds/lana.md)
