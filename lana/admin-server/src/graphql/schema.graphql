@@ -956,6 +956,12 @@ type CustomerConnection {
 	nodes: [Customer!]!
 }
 
+input CustomerCreateAsyncInput {
+	email: String!
+	telegramId: String!
+	customerType: CustomerType!
+}
+
 input CustomerCreateInput {
 	email: String!
 	telegramId: String!
@@ -1835,6 +1841,7 @@ type Mutation {
 	roleAddPermissionSets(input: RoleAddPermissionSetsInput!): RoleAddPermissionSetsPayload!
 	roleRemovePermissionSets(input: RoleRemovePermissionSetsInput!): RoleRemovePermissionSetsPayload!
 	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
+	customerCreateAsync(input: CustomerCreateAsyncInput!): CustomerCreatePayload!
 	customerTelegramIdUpdate(input: CustomerTelegramIdUpdateInput!): CustomerTelegramIdUpdatePayload!
 	customerEmailUpdate(input: CustomerEmailUpdateInput!): CustomerEmailUpdatePayload!
 	domainConfigUpdate(input: DomainConfigUpdateInput!): DomainConfigUpdatePayload!
@@ -1843,6 +1850,7 @@ type Mutation {
 	depositRecord(input: DepositRecordInput!): DepositRecordPayload!
 	depositRecordAsync(input: DepositRecordAsyncInput!): DepositRecordPayload!
 	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
+	withdrawalInitiateAsync(input: WithdrawalInitiateAsyncInput!): WithdrawalInitiatePayload!
 	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!
 	withdrawalCancel(input: WithdrawalCancelInput!): WithdrawalCancelPayload!
 	withdrawalRevert(input: WithdrawalRevertInput!): WithdrawalRevertPayload!
@@ -2689,6 +2697,12 @@ type WithdrawalEdge {
 type WithdrawalEntry {
 	recordedAt: Timestamp!
 	withdrawal: Withdrawal!
+}
+
+input WithdrawalInitiateAsyncInput {
+	depositAccountId: UUID!
+	amount: UsdCents!
+	reference: String
 }
 
 input WithdrawalInitiateInput {
