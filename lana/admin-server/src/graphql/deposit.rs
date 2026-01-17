@@ -120,3 +120,10 @@ pub struct DepositRecordAsyncInput {
     pub amount: UsdCents,
     pub reference: Option<String>,
 }
+
+#[derive(InputObject)]
+pub struct WithdrawalInitiateAsyncInput {
+    pub deposit_account_id: UUID,
+    pub amount: UsdCents,
+    pub reference: Option<String>,
+}

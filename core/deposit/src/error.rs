@@ -6,8 +6,6 @@ use tracing_utils::ErrorSeverity;
 pub enum CoreDepositError {
     #[error("CoreDepositError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("CoreDepositError - InboxError: {0}")]
-    InboxError(#[from] obix::inbox::InboxError),
     #[error("CoreDepositError - AuditError: {0}")]
     AuditError(#[from] audit::error::AuditError),
     #[error("CoreDepositError - AuthorizationError: {0}")]
@@ -58,10 +56,6 @@ pub enum CoreDepositError {
     PublicIdError(#[from] public_id::PublicIdError),
     #[error("CoreDepositError - CustomerNotVerified")]
     CustomerNotVerified,
-    #[error("CoreDepositError - DuplicateIdempotencyKey")]
-    DuplicateIdempotencyKey,
-    #[error("CoreDepositError - DepositNotFoundAfterProcessing")]
-    DepositNotFoundAfterProcessing,
 }
 
 impl CoreDepositError {
@@ -79,7 +73,6 @@ impl ErrorSeverity for CoreDepositError {
     fn severity(&self) -> Level {
         match self {
             Self::Sqlx(_) => Level::ERROR,
-            Self::InboxError(_) => Level::ERROR,
             Self::AuditError(e) => e.severity(),
             Self::AuthorizationError(e) => e.severity(),
             Self::DepositAccountError(e) => e.severity(),
@@ -103,8 +96,6 @@ impl ErrorSeverity for CoreDepositError {
             Self::DepositBuilderError(_) => Level::ERROR,
             Self::PublicIdError(e) => e.severity(),
             Self::CustomerNotVerified => Level::WARN,
-            Self::DuplicateIdempotencyKey => Level::WARN,
-            Self::DepositNotFoundAfterProcessing => Level::ERROR,
         }
     }
 }

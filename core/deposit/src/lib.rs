@@ -16,11 +16,10 @@ mod processes;
 mod publisher;
 mod withdrawal;
 
-use serde::{Deserialize, Serialize};
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-use audit::AuditSvc;
+use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use core_accounting::{Chart, LedgerTransactionInitiator};
@@ -28,7 +27,6 @@ use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerO
 use es_entity::clock::ClockHandle;
 use governance::{Governance, GovernanceEvent};
 use job::Jobs;
-use obix::inbox::{Inbox, InboxConfig, InboxEvent, InboxHandler, InboxResult};
 use obix::out::{Outbox, OutboxEventMarker};
 use public_id::PublicIds;
 
@@ -58,154 +56,6 @@ pub mod event_schema {
     pub use crate::withdrawal::WithdrawalEvent;
 }
 
-const DEPOSIT_INBOX_JOB: job::JobType = job::JobType::new("deposit-inbox");
-
-/// Payload type for async deposit commands processed via the inbox
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "snake_case")]
-pub enum DepositInboxPayload {
-    RecordDeposit {
-        deposit_id: DepositId,
-        deposit_account_id: DepositAccountId,
-        amount: UsdCents,
-        reference: Option<String>,
-    },
-}
-
-/// Handler that processes deposit inbox events
-struct DepositInboxHandler<E>
-where
-    E: OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustomerEvent>,
-{
-    deposit_accounts: DepositAccountRepo<E>,
-    deposits: DepositRepo<E>,
-    ledger: DepositLedger,
-    public_ids: PublicIds,
-    clock: ClockHandle,
-}
-
-impl<E> Clone for DepositInboxHandler<E>
-where
-    E: OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustomerEvent>,
-{
-    fn clone(&self) -> Self {
-        Self {
-            deposit_accounts: self.deposit_accounts.clone(),
-            deposits: self.deposits.clone(),
-            ledger: self.ledger.clone(),
-            public_ids: self.public_ids.clone(),
-            clock: self.clock.clone(),
-        }
-    }
-}
-
-impl<E> InboxHandler for DepositInboxHandler<E>
-where
-    E: OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustomerEvent>
-        + Send
-        + Sync,
-{
-    async fn handle(
-        &self,
-        event: &InboxEvent,
-    ) -> Result<InboxResult, Box<dyn std::error::Error + Send + Sync>> {
-        let payload: DepositInboxPayload = event.payload()?;
-        match payload {
-            DepositInboxPayload::RecordDeposit {
-                deposit_id,
-                deposit_account_id,
-                amount,
-                reference,
-            } => {
-                self.record_deposit_internal(deposit_id, deposit_account_id, amount, reference)
-                    .await?;
-            }
-        }
-        Ok(InboxResult::Complete)
-    }
-}
-
-impl<E> DepositInboxHandler<E>
-where
-    E: OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustomerEvent>,
-{
-    fn new(
-        deposit_accounts: &DepositAccountRepo<E>,
-        deposits: &DepositRepo<E>,
-        ledger: &DepositLedger,
-        public_ids: &PublicIds,
-        clock: ClockHandle,
-    ) -> Self {
-        Self {
-            deposit_accounts: deposit_accounts.clone(),
-            deposits: deposits.clone(),
-            ledger: ledger.clone(),
-            public_ids: public_ids.clone(),
-            clock,
-        }
-    }
-
-    #[record_error_severity]
-    #[instrument(name = "deposit.inbox.record_deposit_internal", skip(self))]
-    async fn record_deposit_internal(
-        &self,
-        deposit_id: DepositId,
-        deposit_account_id: DepositAccountId,
-        amount: UsdCents,
-        reference: Option<String>,
-    ) -> Result<Deposit, CoreDepositError> {
-        self.check_account_active(deposit_account_id).await?;
-
-        let mut op = self.deposits.begin_op_with_clock(&self.clock).await?;
-        let public_id = self
-            .public_ids
-            .create_in_op(&mut op, DEPOSIT_REF_TARGET, deposit_id)
-            .await?;
-
-        let new_deposit = NewDeposit::builder()
-            .id(deposit_id)
-            .ledger_transaction_id(deposit_id)
-            .deposit_account_id(deposit_account_id)
-            .amount(amount)
-            .public_id(public_id.id)
-            .reference(reference)
-            .build()?;
-        let deposit = self.deposits.create_in_op(&mut op, new_deposit).await?;
-        self.ledger
-            .record_deposit(
-                &mut op,
-                deposit_id,
-                amount,
-                deposit_account_id,
-                LedgerTransactionInitiator::System,
-            )
-            .await?;
-        op.commit().await?;
-        Ok(deposit)
-    }
-
-    async fn check_account_active(
-        &self,
-        deposit_account_id: DepositAccountId,
-    ) -> Result<(), CoreDepositError> {
-        let account = self.deposit_accounts.find_by_id(deposit_account_id).await?;
-        match account.status {
-            DepositAccountStatus::Inactive => Err(CoreDepositError::DepositAccountInactive),
-            DepositAccountStatus::Frozen => Err(CoreDepositError::DepositAccountFrozen),
-            DepositAccountStatus::Closed => Err(CoreDepositError::DepositAccountClosed),
-            DepositAccountStatus::Active => Ok(()),
-        }
-    }
-}
-
 pub struct CoreDeposit<Perms, E>
 where
     Perms: PermissionCheck,
@@ -226,7 +76,6 @@ where
     customers: Customers<Perms, E>,
     config: DepositConfig,
     clock: ClockHandle,
-    inbox: Inbox,
 }
 
 impl<Perms, E> Clone for CoreDeposit<Perms, E>
@@ -251,7 +100,6 @@ where
             customers: self.customers.clone(),
             config: self.config.clone(),
             clock: self.clock.clone(),
-            inbox: self.inbox.clone(),
         }
     }
 }
@@ -315,16 +163,6 @@ where
             _ => (),
         }
 
-        let inbox_handler = DepositInboxHandler::new(
-            &accounts,
-            &deposits,
-            &ledger,
-            public_ids,
-            clock.clone(),
-        );
-        let inbox_config = InboxConfig::new(DEPOSIT_INBOX_JOB);
-        let inbox = Inbox::new(pool, jobs, inbox_config, inbox_handler);
-
         let res = Self {
             deposit_accounts: accounts,
             deposits,
@@ -339,7 +177,6 @@ where
             customers: customers.clone(),
             config,
             clock,
-            inbox,
         };
         Ok(res)
     }
@@ -599,82 +436,6 @@ where
             .await?;
         op.commit().await?;
         Ok(deposit)
-    }
-
-    /// Record a deposit asynchronously using the inbox pattern.
-    /// Waits for the inbox job to complete and returns the created deposit.
-    #[record_error_severity]
-    #[instrument(name = "deposit.record_deposit_async", skip(self))]
-    pub async fn record_deposit_async(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        deposit_account_id: impl Into<DepositAccountId> + std::fmt::Debug,
-        amount: UsdCents,
-        reference: Option<String>,
-    ) -> Result<Deposit, CoreDepositError> {
-        let deposit_account_id = deposit_account_id.into();
-
-        // Auth check happens before persisting to inbox
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreDepositObject::all_deposits(),
-                CoreDepositAction::DEPOSIT_CREATE,
-            )
-            .await?;
-
-        // Generate deposit ID upfront so we can poll for it after job completes
-        let deposit_id = DepositId::new();
-
-        // Generate idempotency key using the deposit ID for uniqueness
-        let idempotency_key = format!("deposit:{}", deposit_id);
-
-        let payload = DepositInboxPayload::RecordDeposit {
-            deposit_id,
-            deposit_account_id,
-            amount,
-            reference,
-        };
-
-        let result = self
-            .inbox
-            .persist_and_process(&idempotency_key, payload)
-            .await?;
-
-        match result {
-            es_entity::Idempotent::Executed(_) => {}
-            es_entity::Idempotent::AlreadyApplied => {
-                // This shouldn't happen since we use a unique deposit_id
-                // but handle it gracefully by returning an error
-                return Err(CoreDepositError::DuplicateIdempotencyKey);
-            }
-        };
-
-        // Poll for the deposit to be created by the inbox job
-        let deposit = self
-            .poll_for_deposit(deposit_id, std::time::Duration::from_millis(100), 50)
-            .await?;
-
-        Ok(deposit)
-    }
-
-    /// Poll for a deposit to exist, with configurable interval and max attempts
-    async fn poll_for_deposit(
-        &self,
-        deposit_id: DepositId,
-        interval: std::time::Duration,
-        max_attempts: u32,
-    ) -> Result<Deposit, CoreDepositError> {
-        for _ in 0..max_attempts {
-            match self.deposits.find_by_id(deposit_id).await {
-                Ok(deposit) => return Ok(deposit),
-                Err(_) => {
-                    // Deposit not found yet, wait and retry
-                    tokio::time::sleep(interval).await;
-                }
-            }
-        }
-        Err(CoreDepositError::DepositNotFoundAfterProcessing)
     }
 
     #[record_error_severity]
@@ -1466,5 +1227,158 @@ where
             DepositAccountStatus::Closed => Err(CoreDepositError::DepositAccountClosed),
             DepositAccountStatus::Active => Ok(()),
         }
+    }
+
+    /// Check if subject can record a deposit (for authorization before inbox)
+    pub async fn subject_can_record_deposit(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        enforce: bool,
+    ) -> Result<Option<AuditInfo>, CoreDepositError> {
+        Ok(self
+            .authz
+            .evaluate_permission(
+                sub,
+                CoreDepositObject::all_deposits(),
+                CoreDepositAction::DEPOSIT_CREATE,
+                enforce,
+            )
+            .await?)
+    }
+
+    /// Check if subject can initiate a withdrawal (for authorization before inbox)
+    pub async fn subject_can_initiate_withdrawal(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        enforce: bool,
+    ) -> Result<Option<AuditInfo>, CoreDepositError> {
+        Ok(self
+            .authz
+            .evaluate_permission(
+                sub,
+                CoreDepositObject::all_withdrawals(),
+                CoreDepositAction::WITHDRAWAL_INITIATE,
+                enforce,
+            )
+            .await?)
+    }
+
+    /// Record a deposit with a pre-generated ID (for inbox handler).
+    /// No authorization check - should only be called from inbox handlers.
+    #[record_error_severity]
+    #[instrument(name = "deposit.record_deposit_with_id", skip(self))]
+    pub async fn record_deposit_with_id(
+        &self,
+        deposit_id: DepositId,
+        deposit_account_id: DepositAccountId,
+        amount: UsdCents,
+        reference: Option<String>,
+    ) -> Result<Deposit, CoreDepositError> {
+        self.check_account_active(deposit_account_id).await?;
+
+        let mut op = self.deposits.begin_op_with_clock(&self.clock).await?;
+        let public_id = self
+            .public_ids
+            .create_in_op(&mut op, DEPOSIT_REF_TARGET, deposit_id)
+            .await?;
+
+        let new_deposit = NewDeposit::builder()
+            .id(deposit_id)
+            .ledger_transaction_id(deposit_id)
+            .deposit_account_id(deposit_account_id)
+            .amount(amount)
+            .public_id(public_id.id)
+            .reference(reference)
+            .build()?;
+        let deposit = self.deposits.create_in_op(&mut op, new_deposit).await?;
+        self.ledger
+            .record_deposit(
+                &mut op,
+                deposit_id,
+                amount,
+                deposit_account_id,
+                LedgerTransactionInitiator::System,
+            )
+            .await?;
+        op.commit().await?;
+        Ok(deposit)
+    }
+
+    /// Initiate a withdrawal with a pre-generated ID (for inbox handler).
+    /// No authorization check - should only be called from inbox handlers.
+    #[record_error_severity]
+    #[instrument(name = "deposit.initiate_withdrawal_with_id", skip(self))]
+    pub async fn initiate_withdrawal_with_id(
+        &self,
+        withdrawal_id: WithdrawalId,
+        deposit_account_id: DepositAccountId,
+        amount: UsdCents,
+        reference: Option<String>,
+    ) -> Result<Withdrawal, CoreDepositError> {
+        self.check_account_active(deposit_account_id).await?;
+
+        let mut op = self.withdrawals.begin_op_with_clock(&self.clock).await?;
+        let public_id = self
+            .public_ids
+            .create_in_op(&mut op, WITHDRAWAL_REF_TARGET, withdrawal_id)
+            .await?;
+
+        let new_withdrawal = NewWithdrawal::builder()
+            .id(withdrawal_id)
+            .deposit_account_id(deposit_account_id)
+            .amount(amount)
+            .approval_process_id(withdrawal_id)
+            .public_id(public_id.id)
+            .reference(reference)
+            .build()?;
+
+        self.governance
+            .start_process(
+                &mut op,
+                withdrawal_id,
+                withdrawal_id.to_string(),
+                APPROVE_WITHDRAWAL_PROCESS,
+            )
+            .await?;
+        let withdrawal = self
+            .withdrawals
+            .create_in_op(&mut op, new_withdrawal)
+            .await?;
+
+        self.ledger
+            .initiate_withdrawal(
+                &mut op,
+                withdrawal_id,
+                amount,
+                deposit_account_id,
+                LedgerTransactionInitiator::System,
+            )
+            .await?;
+
+        op.commit().await?;
+
+        Ok(withdrawal)
+    }
+
+    /// Find a deposit by ID for internal use (inbox handlers).
+    /// Returns an error if not found.
+    #[record_error_severity]
+    #[instrument(name = "deposit.find_deposit_by_id_internal", skip(self))]
+    pub async fn find_deposit_by_id_internal(
+        &self,
+        deposit_id: DepositId,
+    ) -> Result<Deposit, CoreDepositError> {
+        Ok(self.deposits.find_by_id(deposit_id).await?)
+    }
+
+    /// Find a withdrawal by ID for internal use (inbox handlers).
+    /// Returns an error if not found.
+    #[record_error_severity]
+    #[instrument(name = "deposit.find_withdrawal_by_id_internal", skip(self))]
+    pub async fn find_withdrawal_by_id_internal(
+        &self,
+        withdrawal_id: WithdrawalId,
+    ) -> Result<Withdrawal, CoreDepositError> {
+        Ok(self.withdrawals.find_by_id(withdrawal_id).await?)
     }
 }
