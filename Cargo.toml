@@ -19,6 +19,7 @@ version = "0.0.0"
 # Internal dependencies
 # Lib dependencies
 audit = { path = "lib/audit" }
+avro-derive = { path = "lib/avro-derive" }
 authz = { path = "lib/authz" }
 bitgo = { path = "lib/bitgo" }
 cloud-storage = { path = "lib/cloud-storage" }
@@ -171,6 +172,7 @@ pkcs8 = { version = "0.10.2", features = ["encryption"] }
 markdown2pdf = { version = "0.1.9", features = ["rustls-tls"], default-features = false }
 bytes = "1.11"
 keycloak = "26.4.0"
+apache-avro = { version = "0.17", features = ["derive"] }
 
 [profile.dev]
 debug = "line-tables-only"
