@@ -78,7 +78,7 @@ where
     ) -> Result<(), CoreCreditError> {
         if let Some(payment) = self.payments.find_by_id(payment_id).await? {
             self.obligations
-                .allocate_payment_in_op(db, &payment, initiated_by)
+                .allocate_payment_in_op(db, payment.into(), initiated_by)
                 .await?;
         }
         Ok(())

@@ -18,11 +18,10 @@ use obix::out::OutboxEventMarker;
 use crate::{
     event::CoreCreditEvent,
     ledger::CreditLedger,
-    payment::Payment,
     payment_allocation::{PaymentAllocation, PaymentAllocationRepo},
     primitives::{
         CoreCreditAction, CoreCreditObject, CreditFacilityId, ObligationId, PaymentAllocationId,
-        UsdCents,
+        PaymentDetailsForAllocation, UsdCents,
     },
     publisher::CreditFacilityPublisher,
 };
@@ -216,30 +215,39 @@ where
     #[record_error_severity]
     #[instrument(
         name = "credit.obligation.allocate_payment_in_op",
-        skip(self, op, payment),
-        fields(n_new_allocations, n_facility_obligations, amount_allocated, credit_facility_id = %credit_facility_id)
+        skip(self, op),
+        fields(
+            n_new_allocations,
+            n_facility_obligations,
+            amount_allocated,
+            credit_facility_id
+        )
     )]
     pub async fn allocate_payment_in_op(
         &self,
         op: &mut es_entity::DbOp<'_>,
-        payment @ Payment {
-            amount,
+        payment_details @ PaymentDetailsForAllocation {
             credit_facility_id,
+            amount,
             ..
-        }: &Payment,
+        }: PaymentDetailsForAllocation,
         initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), ObligationError> {
         let span = Span::current();
-        let mut obligations = self.facility_obligations(*credit_facility_id).await?;
+        span.record(
+            "credit_facility_id",
+            tracing::field::display(credit_facility_id),
+        );
+        let mut obligations = self.facility_obligations(credit_facility_id).await?;
         span.record("n_facility_obligations", obligations.len());
 
         obligations.sort();
 
-        let mut remaining = *amount;
+        let mut remaining = amount;
         let mut new_allocations = Vec::new();
         for obligation in obligations.iter_mut() {
             if let es_entity::Idempotent::Executed(new_allocation) =
-                obligation.allocate_payment(remaining, payment)
+                obligation.allocate_payment(remaining, payment_details)
             {
                 self.repo.update_in_op(op, obligation).await?;
                 remaining -= new_allocation.amount;

@@ -722,6 +722,15 @@ pub struct CollateralUpdate {
     pub effective: chrono::NaiveDate,
 }
 
+#[derive(Debug, Clone, Copy)]
+pub struct PaymentDetailsForAllocation {
+    pub payment_id: PaymentId,
+    pub amount: UsdCents,
+    pub credit_facility_id: CreditFacilityId,
+    pub facility_payment_holding_account_id: CalaAccountId,
+    pub effective: chrono::NaiveDate,
+}
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub enum DisbursedReceivableAccountType {
