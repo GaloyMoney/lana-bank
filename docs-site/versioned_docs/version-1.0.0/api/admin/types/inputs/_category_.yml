@@ -1,8 +1,0 @@
-label: Inputs
-position: 1
-link:
-  type: generated-index
-  title: Inputs overview
-collapsible: true
-collapsed: true
-key: api-admin-types-inputs

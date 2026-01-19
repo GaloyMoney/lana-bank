@@ -14,6 +14,12 @@
 /i18n/es/docusaurus-plugin-content-docs/current/api/admin/operations
 /i18n/es/docusaurus-plugin-content-docs/current/api/customer/operations
 
+# Versioned API documentation (also auto-generated)
+/versioned_docs/*/api/admin
+/versioned_docs/*/api/customer
+/i18n/es/docusaurus-plugin-content-docs/version-*/api/admin
+/i18n/es/docusaurus-plugin-content-docs/version-*/api/customer
+
 # Misc
 .DS_Store
 .env.local
