@@ -2447,26 +2447,22 @@
     "exportCsv": {
       "title": "Exportar datos de cuenta",
       "description": "Generar y descargar exportaciones CSV de esta cuenta contable",
-      "existingExports": "Exportaciones existentes",
+      "existingExports": "Última exportación",
       "createNew": "Crear nueva exportación",
-      "selectExport": "Seleccionar una exportación",
       "noCsvs": "No hay exportaciones disponibles para esta cuenta",
-      "createDescription": "Generar una nueva exportación CSV de los datos de esta cuenta contable. Esto puede tardar un momento en completarse.",
-      "processing": "Procesando, por favor espere...",
       "csvCreating": "La exportación CSV se está generando",
-      "csvReady": "La exportación CSV está lista para descargar",
-      "csvFailed": "La generación de la exportación CSV ha fallado",
       "createNewDescription": "Genera una nueva exportación CSV que contiene todos los datos desde la creación de la cuenta hasta el momento actual. Cuando creas esta exportación, capturará una instantánea de tus datos tal como existen ahora mismo.",
       "status": {
-        "pending": "Procesando",
-        "completed": "Listo",
-        "failed": "Fallido"
+        "new": "Procesando",
+        "active": "Listo",
+        "failed": "Fallido",
+        "archived": "Archivado",
+        "deleted": "Eliminado"
       },
       "buttons": {
         "export": "Exportar CSV",
         "generate": "Generar nuevo CSV",
         "generating": "Generando...",
-        "getLink": "Obtener enlace de descarga",
         "download": "Descargar"
       },
       "errors": {

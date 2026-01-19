@@ -22,10 +22,6 @@ type AccountingCsvDownloadLinkGeneratePayload {
 	link: AccountingCsvDownloadLink!
 }
 
-type LedgerAccountCsvExportUploadedPayload {
-	documentId: UUID!
-}
-
 enum Activity {
 	INACTIVE
 	ACTIVE
@@ -1649,6 +1645,10 @@ input LedgerAccountCsvCreateInput {
 
 type LedgerAccountCsvCreatePayload {
 	accountingCsvDocument: AccountingCsvDocument!
+}
+
+type LedgerAccountCsvExportUploadedPayload {
+	documentId: UUID!
 }
 
 union LedgerAccountEntity = DepositAccount | CreditFacility | Collateral
