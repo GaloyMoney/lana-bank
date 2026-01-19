@@ -1,6 +1,4 @@
 use obix::out::{Outbox, OutboxEventMarker};
-use tracing::instrument;
-use tracing_macros::record_error_severity;
 
 use crate::{
     event::CoreAccountingEvent,

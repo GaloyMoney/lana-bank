@@ -2,6 +2,7 @@ pub mod error;
 mod generate;
 mod job;
 mod primitives;
+mod publisher;
 
 use tracing::instrument;
 
@@ -12,46 +13,65 @@ use document_storage::{
     Document, DocumentId, DocumentStorage, DocumentType, DocumentsByCreatedAtCursor,
     GeneratedDocumentDownloadLink, ReferenceId,
 };
+use obix::out::{Outbox, OutboxEventMarker};
 use tracing_macros::record_error_severity;
 
-use crate::Jobs;
+use crate::{Jobs, event::CoreAccountingEvent};
 
 use super::{
     CoreAccountingAction, CoreAccountingObject, ledger_account::LedgerAccounts,
     primitives::LedgerAccountId,
 };
 
+use self::job::{
+    GenerateAccountingCsvConfig, GenerateAccountingCsvInit, GenerateAccountingCsvJobSpawner,
+};
 use error::*;
 use es_entity::PaginatedQueryArgs;
-use job::*;
 pub use primitives::*;
 
 pub const LEDGER_ACCOUNT_CSV: DocumentType = DocumentType::new("ledger_account_csv");
 
-#[derive(Clone)]
-pub struct AccountingCsvExports<Perms>
+pub struct AccountingCsvExports<Perms, E>
 where
     Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreAccountingEvent>,
 {
     authz: Perms,
-    generate_accounting_csv_job_spawner: GenerateAccountingCsvJobSpawner<Perms>,
+    generate_accounting_csv_job_spawner: GenerateAccountingCsvJobSpawner<Perms, E>,
     document_storage: DocumentStorage,
 }
 
-impl<Perms> AccountingCsvExports<Perms>
+impl<Perms, E> Clone for AccountingCsvExports<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreAccountingEvent>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            authz: self.authz.clone(),
+            generate_accounting_csv_job_spawner: self.generate_accounting_csv_job_spawner.clone(),
+            document_storage: self.document_storage.clone(),
+        }
+    }
+}
+
+impl<Perms, E> AccountingCsvExports<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
+    E: OutboxEventMarker<CoreAccountingEvent>,
 {
     pub fn new(
         authz: &Perms,
         jobs: &mut Jobs,
         document_storage: DocumentStorage,
         ledger_accounts: &LedgerAccounts<Perms>,
+        outbox: &Outbox<E>,
     ) -> Self {
         let generate_accounting_csv_job_spawner = jobs.add_initializer(
-            GenerateAccountingCsvInit::new(&document_storage, ledger_accounts),
+            GenerateAccountingCsvInit::new(&document_storage, ledger_accounts, outbox),
         );
 
         Self {

@@ -61,6 +61,11 @@ impl From<GeneratedDocumentDownloadLink> for AccountingCsvDownloadLink {
     }
 }
 
+#[derive(SimpleObject)]
+pub struct LedgerAccountCsvExportUploadedPayload {
+    pub document_id: UUID,
+}
+
 #[derive(InputObject)]
 pub struct LedgerAccountCsvCreateInput {
     pub ledger_account_id: UUID,

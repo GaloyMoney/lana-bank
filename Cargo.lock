@@ -1373,6 +1373,7 @@ dependencies = [
  "domain-config",
  "es-entity",
  "job",
+ "obix",
  "rand 0.9.2",
  "rust_decimal",
  "rust_decimal_macros",
@@ -3670,6 +3671,7 @@ name = "lana-events"
 version = "0.0.0"
 dependencies = [
  "core-access",
+ "core-accounting",
  "core-credit",
  "core-custody",
  "core-customer",

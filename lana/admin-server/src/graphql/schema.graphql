@@ -22,6 +22,10 @@ type AccountingCsvDownloadLinkGeneratePayload {
 	link: AccountingCsvDownloadLink!
 }
 
+type LedgerAccountCsvExportUploadedPayload {
+	documentId: UUID!
+}
+
 enum Activity {
 	INACTIVE
 	ACTIVE
@@ -2383,6 +2387,7 @@ type Subscription {
 	pendingCreditFacilityCompleted(pendingCreditFacilityId: UUID!): PendingCreditFacilityCompletedPayload!
 	creditFacilityProposalConcluded(creditFacilityProposalId: UUID!): CreditFacilityProposalConcludedPayload!
 	creditFacilityCollateralizationUpdated(creditFacilityId: UUID!): CreditFacilityCollateralizationPayload!
+	ledgerAccountCsvExportUploaded(ledgerAccountId: UUID!): LedgerAccountCsvExportUploadedPayload!
 	realtimePriceUpdated: RealtimePrice!
 }
 

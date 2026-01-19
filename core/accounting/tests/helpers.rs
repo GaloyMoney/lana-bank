@@ -1,9 +1,15 @@
 use cala_ledger::CalaLedger;
+use obix::out::Outbox;
 
 pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
     let pg_con = std::env::var("PG_CON").unwrap();
     let pool = sqlx::PgPool::connect(&pg_con).await?;
     Ok(pool)
+}
+
+pub async fn init_outbox(pool: &sqlx::PgPool) -> anyhow::Result<Outbox<event::TestEvent>> {
+    let outbox = Outbox::init(pool, obix::MailboxConfig::builder().build()?).await?;
+    Ok(outbox)
 }
 
 pub async fn init_journal(cala: &CalaLedger) -> anyhow::Result<cala_ledger::JournalId> {
@@ -72,6 +78,32 @@ pub mod object {
 
         fn from_str(_: &str) -> Result<Self, Self::Err> {
             Ok(DummyObject)
+        }
+    }
+}
+
+pub mod event {
+    use core_accounting::CoreAccountingEvent;
+    use obix::out::OutboxEventMarker;
+    use serde::{Deserialize, Serialize};
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    #[serde(tag = "type")]
+    pub enum TestEvent {
+        Accounting(CoreAccountingEvent),
+    }
+
+    impl OutboxEventMarker<CoreAccountingEvent> for TestEvent {
+        fn as_event(&self) -> Option<&CoreAccountingEvent> {
+            match self {
+                TestEvent::Accounting(e) => Some(e),
+            }
+        }
+    }
+
+    impl From<CoreAccountingEvent> for TestEvent {
+        fn from(e: CoreAccountingEvent) -> Self {
+            TestEvent::Accounting(e)
         }
     }
 }

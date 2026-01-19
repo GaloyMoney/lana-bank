@@ -15,11 +15,21 @@ use crate::{ledger_account::LedgerAccounts, primitives::LedgerAccountId};
 use super::publisher::AccountingCsvPublisher;
 use super::{CoreAccountingAction, CoreAccountingObject, generate::GenerateCsvExport};
 
-#[derive(Clone, Serialize, Deserialize)]
-pub struct GenerateAccountingCsvConfig<Perms> {
+#[derive(Serialize, Deserialize)]
+pub struct GenerateAccountingCsvConfig<Perms, E> {
     pub document_id: DocumentId,
     pub ledger_account_id: LedgerAccountId,
-    pub _phantom: std::marker::PhantomData<Perms>,
+    pub _phantom: std::marker::PhantomData<(Perms, E)>,
+}
+
+impl<Perms, E> Clone for GenerateAccountingCsvConfig<Perms, E> {
+    fn clone(&self) -> Self {
+        Self {
+            document_id: self.document_id,
+            ledger_account_id: self.ledger_account_id,
+            _phantom: std::marker::PhantomData,
+        }
+    }
 }
 
 pub struct GenerateAccountingCsvInit<Perms, E>
@@ -59,7 +69,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
     E: OutboxEventMarker<CoreAccountingEvent>,
 {
-    type Config = GenerateAccountingCsvConfig<Perms>;
+    type Config = GenerateAccountingCsvConfig<Perms, E>;
     fn job_type(&self) -> JobType {
         GENERATE_ACCOUNTING_CSV_JOB
     }
@@ -81,9 +91,11 @@ where
 pub struct GenerateAccountingCsvExportJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
     E: OutboxEventMarker<CoreAccountingEvent>,
 {
-    config: GenerateAccountingCsvConfig<Perms>,
+    config: GenerateAccountingCsvConfig<Perms, E>,
     document_storage: DocumentStorage,
     generator: GenerateCsvExport<Perms>,
     publisher: AccountingCsvPublisher<E>,
@@ -124,4 +136,5 @@ where
     }
 }
 
-pub type GenerateAccountingCsvJobSpawner<Perms> = JobSpawner<GenerateAccountingCsvConfig<Perms>>;
+pub type GenerateAccountingCsvJobSpawner<Perms, E> =
+    JobSpawner<GenerateAccountingCsvConfig<Perms, E>>;

@@ -11,6 +11,7 @@ fail-on-warnings = []
 [dependencies]
 governance = { workspace = true }
 core-access = { workspace = true }
+core-accounting = { workspace = true }
 core-custody = { workspace = true }
 core-customer = { workspace = true }
 core-credit = { workspace = true }

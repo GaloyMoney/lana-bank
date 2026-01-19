@@ -1650,6 +1650,11 @@ export type LedgerAccountCsvCreatePayload = {
   accountingCsvDocument: AccountingCsvDocument;
 };
 
+export type LedgerAccountCsvExportUploadedPayload = {
+  __typename?: 'LedgerAccountCsvExportUploadedPayload';
+  documentId: Scalars['UUID']['output'];
+};
+
 export type LedgerAccountEntity = Collateral | CreditFacility | DepositAccount;
 
 export type LedgerTransaction = {
@@ -2964,6 +2969,7 @@ export type Subscription = {
   __typename?: 'Subscription';
   creditFacilityCollateralizationUpdated: CreditFacilityCollateralizationPayload;
   creditFacilityProposalConcluded: CreditFacilityProposalConcludedPayload;
+  ledgerAccountCsvExportUploaded: LedgerAccountCsvExportUploadedPayload;
   pendingCreditFacilityCollateralizationUpdated: PendingCreditFacilityCollateralizationPayload;
   pendingCreditFacilityCompleted: PendingCreditFacilityCompletedPayload;
   realtimePriceUpdated: RealtimePrice;
@@ -2977,6 +2983,11 @@ export type SubscriptionCreditFacilityCollateralizationUpdatedArgs = {
 
 export type SubscriptionCreditFacilityProposalConcludedArgs = {
   creditFacilityProposalId: Scalars['UUID']['input'];
+};
+
+
+export type SubscriptionLedgerAccountCsvExportUploadedArgs = {
+  ledgerAccountId: Scalars['UUID']['input'];
 };
 
 
@@ -4182,6 +4193,13 @@ export type AccountingCsvDownloadLinkGenerateMutationVariables = Exact<{
 
 
 export type AccountingCsvDownloadLinkGenerateMutation = { __typename?: 'Mutation', accountingCsvDownloadLinkGenerate: { __typename?: 'AccountingCsvDownloadLinkGeneratePayload', link: { __typename?: 'AccountingCsvDownloadLink', url: string, csvId: string } } };
+
+export type LedgerAccountCsvExportUploadedSubscriptionVariables = Exact<{
+  ledgerAccountId: Scalars['UUID']['input'];
+}>;
+
+
+export type LedgerAccountCsvExportUploadedSubscription = { __typename?: 'Subscription', ledgerAccountCsvExportUploaded: { __typename?: 'LedgerAccountCsvExportUploadedPayload', documentId: string } };
 
 export type LedgerAccountDetailsFragment = { __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: any | null, entity?:
     | { __typename: 'Collateral', creditFacility: { __typename?: 'CreditFacility', publicId: any } }
@@ -9451,6 +9469,36 @@ export function useAccountingCsvDownloadLinkGenerateMutation(baseOptions?: Apoll
 export type AccountingCsvDownloadLinkGenerateMutationHookResult = ReturnType<typeof useAccountingCsvDownloadLinkGenerateMutation>;
 export type AccountingCsvDownloadLinkGenerateMutationResult = Apollo.MutationResult<AccountingCsvDownloadLinkGenerateMutation>;
 export type AccountingCsvDownloadLinkGenerateMutationOptions = Apollo.BaseMutationOptions<AccountingCsvDownloadLinkGenerateMutation, AccountingCsvDownloadLinkGenerateMutationVariables>;
+export const LedgerAccountCsvExportUploadedDocument = gql`
+    subscription LedgerAccountCsvExportUploaded($ledgerAccountId: UUID!) {
+  ledgerAccountCsvExportUploaded(ledgerAccountId: $ledgerAccountId) {
+    documentId
+  }
+}
+    `;
+
+/**
+ * __useLedgerAccountCsvExportUploadedSubscription__
+ *
+ * To run a query within a React component, call `useLedgerAccountCsvExportUploadedSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useLedgerAccountCsvExportUploadedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useLedgerAccountCsvExportUploadedSubscription({
+ *   variables: {
+ *      ledgerAccountId: // value for 'ledgerAccountId'
+ *   },
+ * });
+ */
+export function useLedgerAccountCsvExportUploadedSubscription(baseOptions: Apollo.SubscriptionHookOptions<LedgerAccountCsvExportUploadedSubscription, LedgerAccountCsvExportUploadedSubscriptionVariables> & ({ variables: LedgerAccountCsvExportUploadedSubscriptionVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<LedgerAccountCsvExportUploadedSubscription, LedgerAccountCsvExportUploadedSubscriptionVariables>(LedgerAccountCsvExportUploadedDocument, options);
+      }
+export type LedgerAccountCsvExportUploadedSubscriptionHookResult = ReturnType<typeof useLedgerAccountCsvExportUploadedSubscription>;
+export type LedgerAccountCsvExportUploadedSubscriptionResult = Apollo.SubscriptionResult<LedgerAccountCsvExportUploadedSubscription>;
 export const LedgerAccountByCodeDocument = gql`
     query LedgerAccountByCode($code: String!, $first: Int!, $after: String) {
   ledgerAccountByCode(code: $code) {
