@@ -1,17 +1,4 @@
 services:
-  dagster-init:
-    build:
-      context: ./dagster
-      dockerfile: Dockerfile
-    image: dagster-code-location-lana-dw:latest
-    container_name: dagster-init
-    command: ["python", "/lana-dw/src/init.py"]
-    environment:
-      DBT_BIGQUERY_CREDENTIALS_JSON: ${DBT_BIGQUERY_CREDENTIALS_JSON:-}
-      DBT_BIGQUERY_PROJECT: ${DBT_BIGQUERY_PROJECT:-}
-      DBT_BIGQUERY_DATASET: ${DBT_BIGQUERY_DATASET:-}
-      DAGSTER_INIT_MODE: ${DAGSTER_INIT_MODE:-}
-
   dagster-code-location-lana-dw:
     build:
       context: ./dagster
@@ -19,9 +6,6 @@ services:
     image: dagster-code-location-lana-dw:latest
     container_name: dagster-code-location-lana-dw
     restart: always
-    depends_on:
-      dagster-init:
-        condition: service_completed_successfully
     environment:
       DAGSTER_POSTGRES_USER: 'postgres_user'
       DAGSTER_POSTGRES_PASSWORD: 'postgres_password'
