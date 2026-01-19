@@ -19,14 +19,12 @@ CREATE TABLE core_credit_facility_events_rollup (
   initially_expected_to_receive BIGINT,
   interest_accrual_cycle_idx INTEGER,
   interest_period JSONB,
-  liquidated BIGINT,
   liquidation_id UUID,
   maturity_date VARCHAR,
   outstanding JSONB,
   pending_credit_facility_id UUID,
   price JSONB,
   public_id VARCHAR,
-  received BIGINT,
   structuring_fee_tx_id UUID,
   terms JSONB,
   trigger_price JSONB,
@@ -61,7 +59,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'interest_accrual_cycle_started', 'interest_accrual_cycle_concluded', 'collateralization_state_changed', 'collateralization_ratio_changed', 'partial_liquidation_initiated', 'partial_liquidation_completed', 'matured', 'completed', 'activated') THEN
+  IF event_type NOT IN ('initialized', 'interest_accrual_cycle_started', 'interest_accrual_cycle_concluded', 'collateralization_state_changed', 'collateralization_ratio_changed', 'partial_liquidation_initiated', 'proceeds_from_partial_liquidation_applied', 'matured', 'completed', 'activated') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -101,7 +99,6 @@ BEGIN
        ELSE ARRAY[]::UUID[]
      END
 ;
-    new_row.liquidated := (NEW.event ->> 'liquidated')::BIGINT;
     new_row.liquidation_id := (NEW.event ->> 'liquidation_id')::UUID;
     new_row.maturity_date := (NEW.event ->> 'maturity_date');
     new_row.obligation_ids := CASE
@@ -114,7 +111,6 @@ BEGIN
     new_row.pending_credit_facility_id := (NEW.event ->> 'pending_credit_facility_id')::UUID;
     new_row.price := (NEW.event -> 'price');
     new_row.public_id := (NEW.event ->> 'public_id');
-    new_row.received := (NEW.event ->> 'received')::BIGINT;
     new_row.structuring_fee_tx_id := (NEW.event ->> 'structuring_fee_tx_id')::UUID;
     new_row.terms := (NEW.event -> 'terms');
     new_row.trigger_price := (NEW.event -> 'trigger_price');
@@ -138,7 +134,6 @@ BEGIN
     new_row.is_completed := current_row.is_completed;
     new_row.is_matured := current_row.is_matured;
     new_row.ledger_tx_ids := current_row.ledger_tx_ids;
-    new_row.liquidated := current_row.liquidated;
     new_row.liquidation_id := current_row.liquidation_id;
     new_row.maturity_date := current_row.maturity_date;
     new_row.obligation_ids := current_row.obligation_ids;
@@ -146,7 +141,6 @@ BEGIN
     new_row.pending_credit_facility_id := current_row.pending_credit_facility_id;
     new_row.price := current_row.price;
     new_row.public_id := current_row.public_id;
-    new_row.received := current_row.received;
     new_row.structuring_fee_tx_id := current_row.structuring_fee_tx_id;
     new_row.terms := current_row.terms;
     new_row.trigger_price := current_row.trigger_price;
@@ -188,10 +182,8 @@ BEGIN
       new_row.initially_expected_to_receive := (NEW.event ->> 'initially_expected_to_receive')::BIGINT;
       new_row.liquidation_id := (NEW.event ->> 'liquidation_id')::UUID;
       new_row.trigger_price := (NEW.event -> 'trigger_price');
-    WHEN 'partial_liquidation_completed' THEN
-      new_row.liquidated := (NEW.event ->> 'liquidated')::BIGINT;
+    WHEN 'proceeds_from_partial_liquidation_applied' THEN
       new_row.liquidation_id := (NEW.event ->> 'liquidation_id')::UUID;
-      new_row.received := (NEW.event ->> 'received')::BIGINT;
     WHEN 'matured' THEN
       new_row.is_matured := true;
     WHEN 'completed' THEN
@@ -223,7 +215,6 @@ BEGIN
     is_completed,
     is_matured,
     ledger_tx_ids,
-    liquidated,
     liquidation_id,
     maturity_date,
     obligation_ids,
@@ -231,7 +222,6 @@ BEGIN
     pending_credit_facility_id,
     price,
     public_id,
-    received,
     structuring_fee_tx_id,
     terms,
     trigger_price
@@ -259,7 +249,6 @@ BEGIN
     new_row.is_completed,
     new_row.is_matured,
     new_row.ledger_tx_ids,
-    new_row.liquidated,
     new_row.liquidation_id,
     new_row.maturity_date,
     new_row.obligation_ids,
@@ -267,7 +256,6 @@ BEGIN
     new_row.pending_credit_facility_id,
     new_row.price,
     new_row.public_id,
-    new_row.received,
     new_row.structuring_fee_tx_id,
     new_row.terms,
     new_row.trigger_price

@@ -13,10 +13,7 @@ use job::*;
 use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
-use crate::{
-    CoreCreditEvent, CreditFacilityId, LiquidationId, credit_facility::CreditFacilityRepo,
-    liquidation::LiquidationRepo,
-};
+use crate::{CoreCreditEvent, CreditFacilityId, LiquidationId, liquidation::LiquidationRepo};
 
 #[derive(Default, Clone, Deserialize, Serialize)]
 struct PartialLiquidationJobData {
@@ -48,7 +45,6 @@ where
 {
     outbox: Outbox<E>,
     liquidation_repo: Arc<LiquidationRepo<E>>,
-    credit_facility_repo: Arc<CreditFacilityRepo<E>>,
 }
 
 impl<E> PartialLiquidationInit<E>
@@ -57,15 +53,10 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
-    pub fn new(
-        outbox: &Outbox<E>,
-        liquidation_repo: Arc<LiquidationRepo<E>>,
-        credit_facility_repo: Arc<CreditFacilityRepo<E>>,
-    ) -> Self {
+    pub fn new(outbox: &Outbox<E>, liquidation_repo: Arc<LiquidationRepo<E>>) -> Self {
         Self {
             outbox: outbox.clone(),
             liquidation_repo,
-            credit_facility_repo,
         }
     }
 }
@@ -94,7 +85,6 @@ where
             config,
             outbox: self.outbox.clone(),
             liquidation_repo: self.liquidation_repo.clone(),
-            credit_facility_repo: self.credit_facility_repo.clone(),
         }))
     }
 }
@@ -108,7 +98,6 @@ where
     config: PartialLiquidationJobConfig<E>,
     outbox: Outbox<E>,
     liquidation_repo: Arc<LiquidationRepo<E>>,
-    credit_facility_repo: Arc<CreditFacilityRepo<E>>,
 }
 
 #[async_trait]
@@ -179,31 +168,6 @@ where
         + OutboxEventMarker<CoreCustodyEvent>,
 {
     #[instrument(
-        name = "outbox.core_credit.partial_liquidation.complete_credit_facility_liquidation",
-        skip(self, db)
-    )]
-    async fn complete_credit_facility_liquidation(
-        &self,
-        db: &mut DbOp<'_>,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        let mut credit_facility = self
-            .credit_facility_repo
-            .find_by_id_in_op(db, self.config.credit_facility_id)
-            .await?;
-
-        if credit_facility
-            .complete_liquidation(self.config.liquidation_id)?
-            .did_execute()
-        {
-            self.credit_facility_repo
-                .update_in_op(db, &mut credit_facility)
-                .await?;
-        }
-
-        Ok(())
-    }
-
-    #[instrument(
         name = "outbox.core_credit.partial_liquidation.complete_liquidation",
         skip(self, db)
     )]
@@ -245,8 +209,6 @@ where
                 Span::current().record("handled", true);
                 Span::current().record("event_type", event.as_ref());
                 Span::current().record("payment_id", tracing::field::display(payment_id));
-
-                self.complete_credit_facility_liquidation(db).await?;
 
                 self.complete_liquidation(db).await?;
 

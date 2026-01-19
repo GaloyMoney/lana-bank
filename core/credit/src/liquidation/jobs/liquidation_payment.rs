@@ -13,6 +13,7 @@ use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use crate::{
+    credit_facility::CreditFacilityRepo,
     event::CoreCreditEvent,
     ledger::CreditLedger,
     payment::PaymentRepo,
@@ -48,6 +49,7 @@ where
 {
     outbox: Outbox<E>,
     payment_repo: Arc<PaymentRepo<E>>,
+    credit_facility_repo: Arc<CreditFacilityRepo<E>>,
     ledger: Arc<CreditLedger>,
 }
 
@@ -58,11 +60,13 @@ where
     pub fn new(
         outbox: &Outbox<E>,
         payment_repo: Arc<PaymentRepo<E>>,
+        credit_facility_repo: Arc<CreditFacilityRepo<E>>,
         ledger: Arc<CreditLedger>,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
             payment_repo,
+            credit_facility_repo,
             ledger,
         }
     }
@@ -88,6 +92,7 @@ where
             config: job.config()?,
             outbox: self.outbox.clone(),
             payment_repo: self.payment_repo.clone(),
+            credit_facility_repo: self.credit_facility_repo.clone(),
             ledger: self.ledger.clone(),
         }))
     }
@@ -100,6 +105,7 @@ where
     config: LiquidationPaymentJobConfig<E>,
     outbox: Outbox<E>,
     payment_repo: Arc<PaymentRepo<E>>,
+    credit_facility_repo: Arc<CreditFacilityRepo<E>>,
     ledger: Arc<CreditLedger>,
 }
 
@@ -107,6 +113,31 @@ impl<E> LiquidationPaymentJobRunner<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
+    #[instrument(
+        name = "outbox.core_credit.partial_liquidation.acknowledge_payment_in_credit_facility",
+        skip(self, db)
+    )]
+    async fn acknowledge_payment_in_credit_facility(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let mut credit_facility = self
+            .credit_facility_repo
+            .find_by_id_in_op(db, self.config.credit_facility_id)
+            .await?;
+
+        if credit_facility
+            .acknowledge_payment_from_liquidation(self.config.liquidation_id)?
+            .did_execute()
+        {
+            self.credit_facility_repo
+                .update_in_op(db, &mut credit_facility)
+                .await?;
+        }
+
+        Ok(())
+    }
+
     async fn record_payment(
         &self,
         db: &mut es_entity::DbOp<'_>,
@@ -186,6 +217,8 @@ where
                     clock,
                 )
                 .await?;
+
+                self.acknowledge_payment_in_credit_facility(db).await?;
 
                 Ok(ControlFlow::Break(()))
             }

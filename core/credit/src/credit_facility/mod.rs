@@ -342,30 +342,6 @@ where
         Ok(CompletionOutcome::Completed((credit_facility, completion)))
     }
 
-    #[record_error_severity]
-    #[instrument(
-        name = "credit.credit_facility.complete_liquidation_in_op",
-        skip(self, db),
-        fields(credit_facility_id = %credit_facility_id, liquidation_id = %liquidation_id)
-    )]
-    pub(super) async fn complete_liquidation_in_op(
-        &self,
-        db: &mut es_entity::DbOp<'_>,
-        credit_facility_id: CreditFacilityId,
-        liquidation_id: LiquidationId,
-    ) -> Result<(), CreditFacilityError> {
-        let mut credit_facility = self.repo.find_by_id_in_op(db, credit_facility_id).await?;
-
-        if credit_facility
-            .complete_liquidation(liquidation_id)?
-            .did_execute()
-        {
-            self.repo.update_in_op(db, &mut credit_facility).await?;
-        }
-
-        Ok(())
-    }
-
     pub async fn find_by_id_without_audit(
         &self,
         id: impl Into<CreditFacilityId> + std::fmt::Debug,

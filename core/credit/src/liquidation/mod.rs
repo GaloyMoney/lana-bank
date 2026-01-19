@@ -96,16 +96,17 @@ where
 
         let clock = jobs.clock().clone();
 
-        let partial_liquidation_job_spawner =
-            jobs.add_initializer(jobs::partial_liquidation::PartialLiquidationInit::new(
-                outbox,
-                repo_arc.clone(),
-                credit_facility_repo,
-            ));
-
-        let liquidation_payment_job_spawner = jobs.add_initializer(
-            jobs::liquidation_payment::LiquidationPaymentInit::new(outbox, payment_repo, ledger),
+        let partial_liquidation_job_spawner = jobs.add_initializer(
+            jobs::partial_liquidation::PartialLiquidationInit::new(outbox, repo_arc.clone()),
         );
+
+        let liquidation_payment_job_spawner =
+            jobs.add_initializer(jobs::liquidation_payment::LiquidationPaymentInit::new(
+                outbox,
+                payment_repo,
+                credit_facility_repo,
+                ledger,
+            ));
 
         let credit_facility_liquidations_job_spawner = jobs.add_initializer(
             jobs::credit_facility_liquidations::CreditFacilityLiquidationsInit::new(
