@@ -619,7 +619,7 @@ where
 
     #[record_error_severity]
     #[instrument(name = "deposit.cancel_withdrawal", skip(self))]
-    #[es_entity::retry_on_concurrent_modification]
+    #[es_entity::retry_on_concurrent_modification(any_error = true)]
     pub async fn cancel_withdrawal(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
