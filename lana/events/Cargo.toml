@@ -18,6 +18,7 @@ core-credit = { workspace = true }
 core-deposit = { workspace = true }
 core-report = { workspace = true }
 core-price = { workspace = true }
+core-time-events = { workspace = true }
 obix = { workspace = true }
 
 serde = { workspace = true }
