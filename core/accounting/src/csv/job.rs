@@ -99,7 +99,7 @@ where
 {
     async fn run(
         &self,
-        _current_job: CurrentJob,
+        current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let csv_result = self
             .generator
@@ -109,7 +109,7 @@ where
         let document_id = self.config.document_id;
         let mut document = self.document_storage.find_by_id(document_id).await?;
 
-        let mut op = self.document_storage.begin_op_with_clock().await?;
+        let mut op = current_job.begin_op().await?;
         self.document_storage
             .upload_in_op(csv_result, &mut document, &mut op)
             .await?;
