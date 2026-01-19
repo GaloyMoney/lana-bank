@@ -293,15 +293,6 @@ export type ChartOfAccountsAddRootNodePayload = {
   chartOfAccounts: ChartOfAccounts;
 };
 
-export type ChartOfAccountsCsvImportInput = {
-  file: Scalars['Upload']['input'];
-};
-
-export type ChartOfAccountsCsvImportPayload = {
-  __typename?: 'ChartOfAccountsCsvImportPayload';
-  chartOfAccounts: ChartOfAccounts;
-};
-
 export type ChartOfAccountsCsvImportWithBaseConfigInput = {
   baseConfig: AccountingBaseConfigInput;
   file: Scalars['Upload']['input'];
@@ -1846,7 +1837,6 @@ export type Mutation = {
   balanceSheetConfigure: BalanceSheetModuleConfigurePayload;
   chartOfAccountsAddChildNode: ChartOfAccountsAddChildNodePayload;
   chartOfAccountsAddRootNode: ChartOfAccountsAddRootNodePayload;
-  chartOfAccountsCsvImport: ChartOfAccountsCsvImportPayload;
   chartOfAccountsCsvImportWithBaseConfig: ChartOfAccountsCsvImportWithBaseConfigPayload;
   committeeAddUser: CommitteeAddUserPayload;
   committeeCreate: CommitteeCreatePayload;
@@ -1930,11 +1920,6 @@ export type MutationChartOfAccountsAddChildNodeArgs = {
 
 export type MutationChartOfAccountsAddRootNodeArgs = {
   input: ChartOfAccountsAddRootNodeInput;
-};
-
-
-export type MutationChartOfAccountsCsvImportArgs = {
-  input: ChartOfAccountsCsvImportInput;
 };
 
 
@@ -3434,12 +3419,12 @@ export type ChartOfAccountsQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type ChartOfAccountsQuery = { __typename?: 'Query', chartOfAccounts: { __typename?: 'ChartOfAccounts', id: string, chartId: string, name: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any }> }> }> }> }> }> }> }> }> }> }> }> }> }> } };
 
-export type ChartOfAccountsCsvImportMutationVariables = Exact<{
-  input: ChartOfAccountsCsvImportInput;
+export type ChartOfAccountsCsvImportWithBaseConfigMutationVariables = Exact<{
+  input: ChartOfAccountsCsvImportWithBaseConfigInput;
 }>;
 
 
-export type ChartOfAccountsCsvImportMutation = { __typename?: 'Mutation', chartOfAccountsCsvImport: { __typename?: 'ChartOfAccountsCsvImportPayload', chartOfAccounts: { __typename?: 'ChartOfAccounts', chartId: string } } };
+export type ChartOfAccountsCsvImportWithBaseConfigMutation = { __typename?: 'Mutation', chartOfAccountsCsvImportWithBaseConfig: { __typename?: 'ChartOfAccountsCsvImportWithBaseConfigPayload', chartOfAccounts: { __typename?: 'ChartOfAccounts', chartId: string } } };
 
 export type GetCommitteeDetailsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -6356,41 +6341,41 @@ export type ChartOfAccountsQueryHookResult = ReturnType<typeof useChartOfAccount
 export type ChartOfAccountsLazyQueryHookResult = ReturnType<typeof useChartOfAccountsLazyQuery>;
 export type ChartOfAccountsSuspenseQueryHookResult = ReturnType<typeof useChartOfAccountsSuspenseQuery>;
 export type ChartOfAccountsQueryResult = Apollo.QueryResult<ChartOfAccountsQuery, ChartOfAccountsQueryVariables>;
-export const ChartOfAccountsCsvImportDocument = gql`
-    mutation ChartOfAccountsCsvImport($input: ChartOfAccountsCsvImportInput!) {
-  chartOfAccountsCsvImport(input: $input) {
+export const ChartOfAccountsCsvImportWithBaseConfigDocument = gql`
+    mutation ChartOfAccountsCsvImportWithBaseConfig($input: ChartOfAccountsCsvImportWithBaseConfigInput!) {
+  chartOfAccountsCsvImportWithBaseConfig(input: $input) {
     chartOfAccounts {
       chartId
     }
   }
 }
     `;
-export type ChartOfAccountsCsvImportMutationFn = Apollo.MutationFunction<ChartOfAccountsCsvImportMutation, ChartOfAccountsCsvImportMutationVariables>;
+export type ChartOfAccountsCsvImportWithBaseConfigMutationFn = Apollo.MutationFunction<ChartOfAccountsCsvImportWithBaseConfigMutation, ChartOfAccountsCsvImportWithBaseConfigMutationVariables>;
 
 /**
- * __useChartOfAccountsCsvImportMutation__
+ * __useChartOfAccountsCsvImportWithBaseConfigMutation__
  *
- * To run a mutation, you first call `useChartOfAccountsCsvImportMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useChartOfAccountsCsvImportMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useChartOfAccountsCsvImportWithBaseConfigMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useChartOfAccountsCsvImportWithBaseConfigMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [chartOfAccountsCsvImportMutation, { data, loading, error }] = useChartOfAccountsCsvImportMutation({
+ * const [chartOfAccountsCsvImportWithBaseConfigMutation, { data, loading, error }] = useChartOfAccountsCsvImportWithBaseConfigMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useChartOfAccountsCsvImportMutation(baseOptions?: Apollo.MutationHookOptions<ChartOfAccountsCsvImportMutation, ChartOfAccountsCsvImportMutationVariables>) {
+export function useChartOfAccountsCsvImportWithBaseConfigMutation(baseOptions?: Apollo.MutationHookOptions<ChartOfAccountsCsvImportWithBaseConfigMutation, ChartOfAccountsCsvImportWithBaseConfigMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<ChartOfAccountsCsvImportMutation, ChartOfAccountsCsvImportMutationVariables>(ChartOfAccountsCsvImportDocument, options);
+        return Apollo.useMutation<ChartOfAccountsCsvImportWithBaseConfigMutation, ChartOfAccountsCsvImportWithBaseConfigMutationVariables>(ChartOfAccountsCsvImportWithBaseConfigDocument, options);
       }
-export type ChartOfAccountsCsvImportMutationHookResult = ReturnType<typeof useChartOfAccountsCsvImportMutation>;
-export type ChartOfAccountsCsvImportMutationResult = Apollo.MutationResult<ChartOfAccountsCsvImportMutation>;
-export type ChartOfAccountsCsvImportMutationOptions = Apollo.BaseMutationOptions<ChartOfAccountsCsvImportMutation, ChartOfAccountsCsvImportMutationVariables>;
+export type ChartOfAccountsCsvImportWithBaseConfigMutationHookResult = ReturnType<typeof useChartOfAccountsCsvImportWithBaseConfigMutation>;
+export type ChartOfAccountsCsvImportWithBaseConfigMutationResult = Apollo.MutationResult<ChartOfAccountsCsvImportWithBaseConfigMutation>;
+export type ChartOfAccountsCsvImportWithBaseConfigMutationOptions = Apollo.BaseMutationOptions<ChartOfAccountsCsvImportWithBaseConfigMutation, ChartOfAccountsCsvImportWithBaseConfigMutationVariables>;
 export const GetCommitteeDetailsDocument = gql`
     query GetCommitteeDetails($id: UUID!) {
   committee(id: $id) {

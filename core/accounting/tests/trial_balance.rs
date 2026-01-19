@@ -10,7 +10,7 @@ use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 use job::{JobSvcConfig, Jobs};
 
 use core_accounting::*;
-use helpers::{action, object};
+use helpers::{BASE_ACCOUNTS_CSV, action, default_accounting_base_config, object};
 
 #[tokio::test]
 async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
@@ -51,18 +51,20 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
         .id;
     let rand_ref = format!("{:05}", rand::rng().random_range(0..100000));
     let import = format!(
-        r#"
-        {rand_ref},,,Assets
-        {rand_ref}1,,,Assets
-        ,01,,Cash
-        ,,0101,Central Office,
-        ,02,,Payables
-        ,,0101,Central Office,
-        "#
+        r#"{base}
+    1{rand_ref},,,Current Assets,,
+    ,01,,Cash,,
+    ,,0101,Central Office,,
+    ,02,,Payables,,
+    ,,0101,Central Office,,
+    "#,
+        base = BASE_ACCOUNTS_CSV,
+        rand_ref = rand_ref,
     );
+    let base_config = default_accounting_base_config();
     let new_account_set_ids = accounting
         .chart_of_accounts()
-        .import_from_csv(&DummySubject, &chart_ref, import)
+        .import_from_csv_with_base_config(&DummySubject, &chart_ref, import, base_config)
         .await?
         .1
         .unwrap();
@@ -89,7 +91,7 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
         .ledger_accounts()
         .list_all_account_flattened(&DummySubject, &chart, today, Some(today), false)
         .await?;
-    assert_eq!(accounts.len(), 6);
+    assert_eq!(accounts.len(), 9 + 5);
 
     Ok(())
 }

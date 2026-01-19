@@ -401,23 +401,6 @@ export const mockChartOfAccountsAddRootNodePayload = (overrides?: Partial<ChartO
     };
 };
 
-export const mockChartOfAccountsCsvImportInput = (overrides?: Partial<ChartOfAccountsCsvImportInput>, _relationshipsToOmit: Set<string> = new Set()): ChartOfAccountsCsvImportInput => {
-    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
-    relationshipsToOmit.add('ChartOfAccountsCsvImportInput');
-    return {
-        file: overrides && overrides.hasOwnProperty('file') ? overrides.file! : faker.lorem.word(),
-    };
-};
-
-export const mockChartOfAccountsCsvImportPayload = (overrides?: Partial<ChartOfAccountsCsvImportPayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'ChartOfAccountsCsvImportPayload' } & ChartOfAccountsCsvImportPayload => {
-    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
-    relationshipsToOmit.add('ChartOfAccountsCsvImportPayload');
-    return {
-        __typename: 'ChartOfAccountsCsvImportPayload',
-        chartOfAccounts: overrides && overrides.hasOwnProperty('chartOfAccounts') ? overrides.chartOfAccounts! : relationshipsToOmit.has('ChartOfAccounts') ? {} as ChartOfAccounts : mockChartOfAccounts({}, relationshipsToOmit),
-    };
-};
-
 export const mockChartOfAccountsCsvImportWithBaseConfigInput = (overrides?: Partial<ChartOfAccountsCsvImportWithBaseConfigInput>, _relationshipsToOmit: Set<string> = new Set()): ChartOfAccountsCsvImportWithBaseConfigInput => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('ChartOfAccountsCsvImportWithBaseConfigInput');
@@ -2395,7 +2378,6 @@ export const mockMutation = (overrides?: Partial<Mutation>, _relationshipsToOmit
         balanceSheetConfigure: overrides && overrides.hasOwnProperty('balanceSheetConfigure') ? overrides.balanceSheetConfigure! : relationshipsToOmit.has('BalanceSheetModuleConfigurePayload') ? {} as BalanceSheetModuleConfigurePayload : mockBalanceSheetModuleConfigurePayload({}, relationshipsToOmit),
         chartOfAccountsAddChildNode: overrides && overrides.hasOwnProperty('chartOfAccountsAddChildNode') ? overrides.chartOfAccountsAddChildNode! : relationshipsToOmit.has('ChartOfAccountsAddChildNodePayload') ? {} as ChartOfAccountsAddChildNodePayload : mockChartOfAccountsAddChildNodePayload({}, relationshipsToOmit),
         chartOfAccountsAddRootNode: overrides && overrides.hasOwnProperty('chartOfAccountsAddRootNode') ? overrides.chartOfAccountsAddRootNode! : relationshipsToOmit.has('ChartOfAccountsAddRootNodePayload') ? {} as ChartOfAccountsAddRootNodePayload : mockChartOfAccountsAddRootNodePayload({}, relationshipsToOmit),
-        chartOfAccountsCsvImport: overrides && overrides.hasOwnProperty('chartOfAccountsCsvImport') ? overrides.chartOfAccountsCsvImport! : relationshipsToOmit.has('ChartOfAccountsCsvImportPayload') ? {} as ChartOfAccountsCsvImportPayload : mockChartOfAccountsCsvImportPayload({}, relationshipsToOmit),
         chartOfAccountsCsvImportWithBaseConfig: overrides && overrides.hasOwnProperty('chartOfAccountsCsvImportWithBaseConfig') ? overrides.chartOfAccountsCsvImportWithBaseConfig! : relationshipsToOmit.has('ChartOfAccountsCsvImportWithBaseConfigPayload') ? {} as ChartOfAccountsCsvImportWithBaseConfigPayload : mockChartOfAccountsCsvImportWithBaseConfigPayload({}, relationshipsToOmit),
         committeeAddUser: overrides && overrides.hasOwnProperty('committeeAddUser') ? overrides.committeeAddUser! : relationshipsToOmit.has('CommitteeAddUserPayload') ? {} as CommitteeAddUserPayload : mockCommitteeAddUserPayload({}, relationshipsToOmit),
         committeeCreate: overrides && overrides.hasOwnProperty('committeeCreate') ? overrides.committeeCreate! : relationshipsToOmit.has('CommitteeCreatePayload') ? {} as CommitteeCreatePayload : mockCommitteeCreatePayload({}, relationshipsToOmit),

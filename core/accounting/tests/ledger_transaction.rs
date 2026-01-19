@@ -18,7 +18,7 @@ use core_accounting::{
         error::ManualTransactionError, ledger::error::ManualTransactionLedgerError,
     },
 };
-use helpers::{action, object};
+use helpers::{action, default_accounting_base_config, object};
 use rust_decimal_macros::dec;
 
 #[tokio::test]
@@ -219,13 +219,15 @@ async fn prepare_test() -> anyhow::Result<(
         .chart_of_accounts()
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())
         .await?;
-    let import = r#"
-        1,,Assets
-        2,,Liabilities
-        "#;
+    let base_config = default_accounting_base_config();
     accounting
         .chart_of_accounts()
-        .import_from_csv(&DummySubject, &chart_ref, import)
+        .import_from_csv_with_base_config(
+            &DummySubject,
+            &chart_ref,
+            helpers::BASE_ACCOUNTS_CSV,
+            base_config,
+        )
         .await?;
 
     Ok((accounting, chart))
