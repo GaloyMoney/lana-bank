@@ -35,6 +35,7 @@ use crate::{
     public_id::PublicIds,
     report::Reports,
     storage::Storage,
+    time_events::TimeEvents,
     user_onboarding::UserOnboarding,
 };
 use domain_config::{ExposedDomainConfigs, InternalDomainConfigs};
@@ -63,6 +64,7 @@ pub struct LanaApp {
     public_ids: PublicIds,
     contract_creation: ContractCreation,
     reports: Reports,
+    _time_events: TimeEvents,
     _user_onboarding: UserOnboarding,
     _customer_sync: CustomerSync,
     _deposit_sync: DepositSync,
@@ -122,6 +124,7 @@ impl LanaApp {
         let reports =
             Reports::init(&pool, &authz, config.report, &outbox, &storage, &mut jobs).await?;
         let price = Price::init(&mut jobs, &outbox).await?;
+        let _time_events = TimeEvents::init(&exposed_domain_configs, &mut jobs, &outbox).await?;
         let documents = DocumentStorage::new(&pool, &storage, clock.clone());
         let public_ids = PublicIds::new(&pool);
 
@@ -247,6 +250,7 @@ impl LanaApp {
             public_ids,
             contract_creation,
             reports,
+            _time_events,
             _user_onboarding: user_onboarding,
             _customer_sync: customer_sync,
             _deposit_sync: deposit_sync,

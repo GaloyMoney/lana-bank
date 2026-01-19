@@ -14,6 +14,7 @@ pub use core_customer::CoreCustomerEvent;
 pub use core_deposit::CoreDepositEvent;
 pub use core_price::CorePriceEvent;
 pub use core_report::CoreReportEvent;
+pub use core_time_events::CoreTimeEvent;
 pub use governance::GovernanceEvent;
 pub use obix::out::OutboxEventMarker;
 
@@ -30,6 +31,7 @@ pub enum LanaEvent {
     Custody(CoreCustodyEvent),
     Report(CoreReportEvent),
     Price(CorePriceEvent),
+    Time(CoreTimeEvent),
 }
 
 macro_rules! impl_event_marker {
@@ -59,3 +61,4 @@ impl_event_marker!(CoreCustomerEvent, Customer);
 impl_event_marker!(CoreCustodyEvent, Custody);
 impl_event_marker!(CoreReportEvent, Report);
 impl_event_marker!(CorePriceEvent, Price);
+impl_event_marker!(CoreTimeEvent, Time);

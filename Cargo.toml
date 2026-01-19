@@ -44,6 +44,7 @@ core-deposit = { path = "core/deposit" }
 core-money = { path = "core/money" }
 core-price = { path = "core/price" }
 core-report = { path = "core/report" }
+core-time-events = { path = "core/time-events" }
 document-storage = { path = "core/document-storage" }
 governance = { path = "core/governance" }
 public-id = { path = "core/public-id" }
@@ -94,6 +95,7 @@ chrono = { version = "0.4.42", features = [
   "clock",
   "serde",
 ], default-features = false }
+chrono-tz = "0.10.4"
 clap = { version = "4.5.54", features = ["derive", "env"] }
 derive_builder = "0.20.0"
 graphql_client = { version = "0.14.0", features = ["reqwest-rustls"] }
