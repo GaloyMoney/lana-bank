@@ -1,0 +1,126 @@
+---
+id: terms-template-update-input
+title: TermsTemplateUpdateInput
+---
+
+
+
+
+export const Bullet = () => <><span style={{ fontWeight: 'normal', fontSize: '.5em', color: 'var(--ifm-color-secondary-darkest)' }}>&nbsp;●&nbsp;</span></>
+
+export const SpecifiedBy = (props) => <>Specification<a className="link" style={{ fontSize:'1.5em', paddingLeft:'4px' }} target="_blank" href={props.url} title={'Specified by ' + props.url}>⎘</a></>
+
+export const Badge = (props) => <><span className={props.class}>{props.text}</span></>
+
+import { useState } from 'react';
+
+export const Details = ({ dataOpen, dataClose, children, startOpen = false }) => {
+  const [open, setOpen] = useState(startOpen);
+  return (
+    <details {...(open ? { open: true } : {})} className="details" style={{ border:'none', boxShadow:'none', background:'var(--ifm-background-color)' }}>
+      <summary
+        onClick={(e) => {
+          e.preventDefault();
+          setOpen((open) => !open);
+        }}
+        style={{ listStyle:'none' }}
+      >
+      {open ? dataOpen : dataClose}
+      </summary>
+      {open && children}
+    </details>
+  );
+};
+
+
+
+
+
+
+
+
+No description
+
+
+```graphql
+input TermsTemplateUpdateInput {
+  id: UUID!
+  annualRate: AnnualRatePct!
+  accrualInterval: InterestInterval!
+  accrualCycleInterval: InterestInterval!
+  oneTimeFeeRate: OneTimeFeeRatePct!
+  disbursalPolicy: DisbursalPolicy!
+  liquidationCvl: CVLPctValue!
+  duration: DurationInput!
+  interestDueDurationFromAccrual: DurationInput!
+  obligationOverdueDurationFromDue: DurationInput!
+  obligationLiquidationDurationFromDue: DurationInput!
+  marginCallCvl: CVLPctValue!
+  initialCvl: CVLPctValue!
+}
+```
+
+
+
+
+### Fields
+
+#### [<code style={{ fontWeight: 'normal' }}>TermsTemplateUpdateInput.<b>id</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>UUID!</b></code>](/api/admin/types/scalars/uuid.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>TermsTemplateUpdateInput.<b>annualRate</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>AnnualRatePct!</b></code>](/api/admin/types/scalars/annual-rate-pct.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>TermsTemplateUpdateInput.<b>accrualInterval</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>InterestInterval!</b></code>](/api/admin/types/enums/interest-interval.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="enum"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>TermsTemplateUpdateInput.<b>accrualCycleInterval</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>InterestInterval!</b></code>](/api/admin/types/enums/interest-interval.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="enum"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>TermsTemplateUpdateInput.<b>oneTimeFeeRate</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>OneTimeFeeRatePct!</b></code>](/api/admin/types/scalars/one-time-fee-rate-pct.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>TermsTemplateUpdateInput.<b>disbursalPolicy</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>DisbursalPolicy!</b></code>](/api/admin/types/enums/disbursal-policy.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="enum"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>TermsTemplateUpdateInput.<b>liquidationCvl</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>CVLPctValue!</b></code>](/api/admin/types/scalars/cvlpct-value.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>TermsTemplateUpdateInput.<b>duration</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>DurationInput!</b></code>](/api/admin/types/inputs/duration-input.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="input"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>TermsTemplateUpdateInput.<b>interestDueDurationFromAccrual</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>DurationInput!</b></code>](/api/admin/types/inputs/duration-input.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="input"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>TermsTemplateUpdateInput.<b>obligationOverdueDurationFromDue</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>DurationInput!</b></code>](/api/admin/types/inputs/duration-input.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="input"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>TermsTemplateUpdateInput.<b>obligationLiquidationDurationFromDue</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>DurationInput!</b></code>](/api/admin/types/inputs/duration-input.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="input"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>TermsTemplateUpdateInput.<b>marginCallCvl</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>CVLPctValue!</b></code>](/api/admin/types/scalars/cvlpct-value.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>TermsTemplateUpdateInput.<b>initialCvl</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>CVLPctValue!</b></code>](/api/admin/types/scalars/cvlpct-value.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+
+
+
+
+### Member Of
+
+[`termsTemplateUpdate`](/api/admin/operations/mutations/terms-template-update.mdx)  <Badge class="badge badge--secondary badge--relation" text="mutation"/>

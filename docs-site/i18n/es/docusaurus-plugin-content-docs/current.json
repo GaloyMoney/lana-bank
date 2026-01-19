@@ -1,4 +1,8 @@
 {
+  "sidebar.docsSidebar.category.Architecture": {
+    "message": "Arquitectura",
+    "description": "The label for category 'Architecture' in sidebar 'docsSidebar'"
+  },
   "sidebar.docsSidebar.category.Credit": {
     "message": "Crédito",
     "description": "The label for category 'Credit' in sidebar 'docsSidebar'"

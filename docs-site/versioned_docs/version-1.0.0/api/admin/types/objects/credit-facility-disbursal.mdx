@@ -1,0 +1,114 @@
+---
+id: credit-facility-disbursal
+title: CreditFacilityDisbursal
+---
+
+
+
+
+export const Bullet = () => <><span style={{ fontWeight: 'normal', fontSize: '.5em', color: 'var(--ifm-color-secondary-darkest)' }}>&nbsp;●&nbsp;</span></>
+
+export const SpecifiedBy = (props) => <>Specification<a className="link" style={{ fontSize:'1.5em', paddingLeft:'4px' }} target="_blank" href={props.url} title={'Specified by ' + props.url}>⎘</a></>
+
+export const Badge = (props) => <><span className={props.class}>{props.text}</span></>
+
+import { useState } from 'react';
+
+export const Details = ({ dataOpen, dataClose, children, startOpen = false }) => {
+  const [open, setOpen] = useState(startOpen);
+  return (
+    <details {...(open ? { open: true } : {})} className="details" style={{ border:'none', boxShadow:'none', background:'var(--ifm-background-color)' }}>
+      <summary
+        onClick={(e) => {
+          e.preventDefault();
+          setOpen((open) => !open);
+        }}
+        style={{ listStyle:'none' }}
+      >
+      {open ? dataOpen : dataClose}
+      </summary>
+      {open && children}
+    </details>
+  );
+};
+
+
+
+
+
+
+
+
+No description
+
+
+```graphql
+type CreditFacilityDisbursal {
+  id: ID!
+  disbursalId: UUID!
+  amount: UsdCents!
+  status: DisbursalStatus!
+  createdAt: Timestamp!
+  publicId: PublicId!
+  creditFacility: CreditFacility!
+  approvalProcess: ApprovalProcess!
+  ledgerTransactions: [LedgerTransaction!]!
+}
+```
+
+
+
+
+### Fields
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityDisbursal.<b>id</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>ID!</b></code>](/api/admin/types/scalars/id.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityDisbursal.<b>disbursalId</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>UUID!</b></code>](/api/admin/types/scalars/uuid.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityDisbursal.<b>amount</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>UsdCents!</b></code>](/api/admin/types/scalars/usd-cents.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityDisbursal.<b>status</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>DisbursalStatus!</b></code>](/api/admin/types/enums/disbursal-status.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="enum"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityDisbursal.<b>createdAt</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>Timestamp!</b></code>](/api/admin/types/scalars/timestamp.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityDisbursal.<b>publicId</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>PublicId!</b></code>](/api/admin/types/scalars/public-id.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityDisbursal.<b>creditFacility</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>CreditFacility!</b></code>](/api/admin/types/objects/credit-facility.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="object"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityDisbursal.<b>approvalProcess</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>ApprovalProcess!</b></code>](/api/admin/types/objects/approval-process.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="object"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityDisbursal.<b>ledgerTransactions</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>[LedgerTransaction!]!</b></code>](/api/admin/types/objects/ledger-transaction.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="object"/> 
+
+
+
+
+
+
+
+### Returned By
+
+[`disbursal`](/api/admin/operations/queries/disbursal.mdx)  <Badge class="badge badge--secondary badge--relation" text="query"/><Bullet />[`disbursalByPublicId`](/api/admin/operations/queries/disbursal-by-public-id.mdx)  <Badge class="badge badge--secondary badge--relation" text="query"/>
+
+### Member Of
+
+[`CreditFacility`](/api/admin/types/objects/credit-facility.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CreditFacilityDisbursalConnection`](/api/admin/types/objects/credit-facility-disbursal-connection.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CreditFacilityDisbursalEdge`](/api/admin/types/objects/credit-facility-disbursal-edge.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CreditFacilityDisbursalInitiatePayload`](/api/admin/types/objects/credit-facility-disbursal-initiate-payload.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`DisbursalEntry`](/api/admin/types/objects/disbursal-entry.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/>
+
+### Implemented By
+
+[`ApprovalProcessTarget`](/api/admin/types/unions/approval-process-target.mdx)  <Badge class="badge badge--secondary badge--relation" text="union"/><Bullet />[`LedgerTransactionEntity`](/api/admin/types/unions/ledger-transaction-entity.mdx)  <Badge class="badge badge--secondary badge--relation" text="union"/><Bullet />[`PublicIdTarget`](/api/admin/types/unions/public-id-target.mdx)  <Badge class="badge badge--secondary badge--relation" text="union"/>

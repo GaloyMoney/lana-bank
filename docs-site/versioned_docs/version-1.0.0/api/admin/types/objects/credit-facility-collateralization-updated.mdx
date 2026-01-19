@@ -1,0 +1,96 @@
+---
+id: credit-facility-collateralization-updated
+title: CreditFacilityCollateralizationUpdated
+---
+
+
+
+
+export const Bullet = () => <><span style={{ fontWeight: 'normal', fontSize: '.5em', color: 'var(--ifm-color-secondary-darkest)' }}>&nbsp;●&nbsp;</span></>
+
+export const SpecifiedBy = (props) => <>Specification<a className="link" style={{ fontSize:'1.5em', paddingLeft:'4px' }} target="_blank" href={props.url} title={'Specified by ' + props.url}>⎘</a></>
+
+export const Badge = (props) => <><span className={props.class}>{props.text}</span></>
+
+import { useState } from 'react';
+
+export const Details = ({ dataOpen, dataClose, children, startOpen = false }) => {
+  const [open, setOpen] = useState(startOpen);
+  return (
+    <details {...(open ? { open: true } : {})} className="details" style={{ border:'none', boxShadow:'none', background:'var(--ifm-background-color)' }}>
+      <summary
+        onClick={(e) => {
+          e.preventDefault();
+          setOpen((open) => !open);
+        }}
+        style={{ listStyle:'none' }}
+      >
+      {open ? dataOpen : dataClose}
+      </summary>
+      {open && children}
+    </details>
+  );
+};
+
+
+
+
+
+
+
+
+No description
+
+
+```graphql
+type CreditFacilityCollateralizationUpdated {
+  state: CollateralizationState!
+  collateral: Satoshis!
+  outstandingInterest: UsdCents!
+  outstandingDisbursal: UsdCents!
+  recordedAt: Timestamp!
+  effective: Date!
+  price: UsdCents!
+}
+```
+
+
+
+
+### Fields
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityCollateralizationUpdated.<b>state</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>CollateralizationState!</b></code>](/api/admin/types/enums/collateralization-state.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="enum"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityCollateralizationUpdated.<b>collateral</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>Satoshis!</b></code>](/api/admin/types/scalars/satoshis.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityCollateralizationUpdated.<b>outstandingInterest</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>UsdCents!</b></code>](/api/admin/types/scalars/usd-cents.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityCollateralizationUpdated.<b>outstandingDisbursal</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>UsdCents!</b></code>](/api/admin/types/scalars/usd-cents.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityCollateralizationUpdated.<b>recordedAt</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>Timestamp!</b></code>](/api/admin/types/scalars/timestamp.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityCollateralizationUpdated.<b>effective</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>Date!</b></code>](/api/admin/types/scalars/date.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityCollateralizationUpdated.<b>price</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>UsdCents!</b></code>](/api/admin/types/scalars/usd-cents.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+
+
+
+
+### Implemented By
+
+[`CreditFacilityHistoryEntry`](/api/admin/types/unions/credit-facility-history-entry.mdx)  <Badge class="badge badge--secondary badge--relation" text="union"/>

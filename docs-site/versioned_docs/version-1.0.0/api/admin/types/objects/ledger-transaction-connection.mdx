@@ -1,0 +1,76 @@
+---
+id: ledger-transaction-connection
+title: LedgerTransactionConnection
+---
+
+
+
+
+export const Bullet = () => <><span style={{ fontWeight: 'normal', fontSize: '.5em', color: 'var(--ifm-color-secondary-darkest)' }}>&nbsp;●&nbsp;</span></>
+
+export const SpecifiedBy = (props) => <>Specification<a className="link" style={{ fontSize:'1.5em', paddingLeft:'4px' }} target="_blank" href={props.url} title={'Specified by ' + props.url}>⎘</a></>
+
+export const Badge = (props) => <><span className={props.class}>{props.text}</span></>
+
+import { useState } from 'react';
+
+export const Details = ({ dataOpen, dataClose, children, startOpen = false }) => {
+  const [open, setOpen] = useState(startOpen);
+  return (
+    <details {...(open ? { open: true } : {})} className="details" style={{ border:'none', boxShadow:'none', background:'var(--ifm-background-color)' }}>
+      <summary
+        onClick={(e) => {
+          e.preventDefault();
+          setOpen((open) => !open);
+        }}
+        style={{ listStyle:'none' }}
+      >
+      {open ? dataOpen : dataClose}
+      </summary>
+      {open && children}
+    </details>
+  );
+};
+
+
+
+
+
+
+
+
+No description
+
+
+```graphql
+type LedgerTransactionConnection {
+  pageInfo: PageInfo!
+  edges: [LedgerTransactionEdge!]!
+  nodes: [LedgerTransaction!]!
+}
+```
+
+
+
+
+### Fields
+
+#### [<code style={{ fontWeight: 'normal' }}>LedgerTransactionConnection.<b>pageInfo</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>PageInfo!</b></code>](/api/admin/types/objects/page-info.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="object"/> 
+Information to aid in pagination.
+
+
+#### [<code style={{ fontWeight: 'normal' }}>LedgerTransactionConnection.<b>edges</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>[LedgerTransactionEdge!]!</b></code>](/api/admin/types/objects/ledger-transaction-edge.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="object"/> 
+A list of edges.
+
+
+#### [<code style={{ fontWeight: 'normal' }}>LedgerTransactionConnection.<b>nodes</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>[LedgerTransaction!]!</b></code>](/api/admin/types/objects/ledger-transaction.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="object"/> 
+A list of nodes.
+
+
+
+
+
+
+### Returned By
+
+[`ledgerTransactionsForTemplateCode`](/api/admin/operations/queries/ledger-transactions-for-template-code.mdx)  <Badge class="badge badge--secondary badge--relation" text="query"/>

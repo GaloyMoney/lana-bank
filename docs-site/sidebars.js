@@ -4,6 +4,15 @@ const sidebars = {
     "intro",
     {
       type: "category",
+      label: "Architecture",
+      link: {
+        type: "doc",
+        id: "architecture/index",
+      },
+      items: ["architecture/functional-architecture"],
+    },
+    {
+      type: "category",
       label: "Credit",
       link: {
         type: "doc",

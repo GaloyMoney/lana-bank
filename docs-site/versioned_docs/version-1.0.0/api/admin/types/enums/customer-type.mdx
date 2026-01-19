@@ -1,0 +1,96 @@
+---
+id: customer-type
+title: CustomerType
+---
+
+
+
+
+export const Bullet = () => <><span style={{ fontWeight: 'normal', fontSize: '.5em', color: 'var(--ifm-color-secondary-darkest)' }}>&nbsp;●&nbsp;</span></>
+
+export const SpecifiedBy = (props) => <>Specification<a className="link" style={{ fontSize:'1.5em', paddingLeft:'4px' }} target="_blank" href={props.url} title={'Specified by ' + props.url}>⎘</a></>
+
+export const Badge = (props) => <><span className={props.class}>{props.text}</span></>
+
+import { useState } from 'react';
+
+export const Details = ({ dataOpen, dataClose, children, startOpen = false }) => {
+  const [open, setOpen] = useState(startOpen);
+  return (
+    <details {...(open ? { open: true } : {})} className="details" style={{ border:'none', boxShadow:'none', background:'var(--ifm-background-color)' }}>
+      <summary
+        onClick={(e) => {
+          e.preventDefault();
+          setOpen((open) => !open);
+        }}
+        style={{ listStyle:'none' }}
+      >
+      {open ? dataOpen : dataClose}
+      </summary>
+      {open && children}
+    </details>
+  );
+};
+
+
+
+
+
+
+
+
+No description
+
+
+```graphql
+enum CustomerType {
+  INDIVIDUAL
+  GOVERNMENT_ENTITY
+  PRIVATE_COMPANY
+  BANK
+  FINANCIAL_INSTITUTION
+  FOREIGN_AGENCY_OR_SUBSIDIARY
+  NON_DOMICILED_COMPANY
+}
+```
+
+
+
+
+### Values
+
+#### [<code style={{ fontWeight: 'normal' }}>CustomerType.<b>INDIVIDUAL</b></code>](#)  
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CustomerType.<b>GOVERNMENT&#x005F;ENTITY</b></code>](#)  
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CustomerType.<b>PRIVATE&#x005F;COMPANY</b></code>](#)  
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CustomerType.<b>BANK</b></code>](#)  
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CustomerType.<b>FINANCIAL&#x005F;INSTITUTION</b></code>](#)  
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CustomerType.<b>FOREIGN&#x005F;AGENCY&#x005F;OR&#x005F;SUBSIDIARY</b></code>](#)  
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CustomerType.<b>NON&#x005F;DOMICILED&#x005F;COMPANY</b></code>](#)  
+
+
+
+
+
+
+
+### Member Of
+
+[`Customer`](/api/admin/types/objects/customer.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CustomerCreateInput`](/api/admin/types/inputs/customer-create-input.mdx)  <Badge class="badge badge--secondary badge--relation" text="input"/>

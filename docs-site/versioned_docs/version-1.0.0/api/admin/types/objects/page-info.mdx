@@ -1,0 +1,81 @@
+---
+id: page-info
+title: PageInfo
+---
+
+
+
+
+export const Bullet = () => <><span style={{ fontWeight: 'normal', fontSize: '.5em', color: 'var(--ifm-color-secondary-darkest)' }}>&nbsp;●&nbsp;</span></>
+
+export const SpecifiedBy = (props) => <>Specification<a className="link" style={{ fontSize:'1.5em', paddingLeft:'4px' }} target="_blank" href={props.url} title={'Specified by ' + props.url}>⎘</a></>
+
+export const Badge = (props) => <><span className={props.class}>{props.text}</span></>
+
+import { useState } from 'react';
+
+export const Details = ({ dataOpen, dataClose, children, startOpen = false }) => {
+  const [open, setOpen] = useState(startOpen);
+  return (
+    <details {...(open ? { open: true } : {})} className="details" style={{ border:'none', boxShadow:'none', background:'var(--ifm-background-color)' }}>
+      <summary
+        onClick={(e) => {
+          e.preventDefault();
+          setOpen((open) => !open);
+        }}
+        style={{ listStyle:'none' }}
+      >
+      {open ? dataOpen : dataClose}
+      </summary>
+      {open && children}
+    </details>
+  );
+};
+
+
+
+
+
+
+
+
+Information about pagination in a connection
+
+
+```graphql
+type PageInfo {
+  hasPreviousPage: Boolean!
+  hasNextPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+```
+
+
+
+
+### Fields
+
+#### [<code style={{ fontWeight: 'normal' }}>PageInfo.<b>hasPreviousPage</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>Boolean!</b></code>](/api/admin/types/scalars/boolean.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+When paginating backwards, are there more items?
+
+
+#### [<code style={{ fontWeight: 'normal' }}>PageInfo.<b>hasNextPage</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>Boolean!</b></code>](/api/admin/types/scalars/boolean.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+When paginating forwards, are there more items?
+
+
+#### [<code style={{ fontWeight: 'normal' }}>PageInfo.<b>startCursor</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>String</b></code>](/api/admin/types/scalars/string.mdx) <Badge class="badge badge--secondary " text="scalar"/> 
+When paginating backwards, the cursor to continue.
+
+
+#### [<code style={{ fontWeight: 'normal' }}>PageInfo.<b>endCursor</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>String</b></code>](/api/admin/types/scalars/string.mdx) <Badge class="badge badge--secondary " text="scalar"/> 
+When paginating forwards, the cursor to continue.
+
+
+
+
+
+
+### Member Of
+
+[`ApprovalProcessConnection`](/api/admin/types/objects/approval-process-connection.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`AuditEntryConnection`](/api/admin/types/objects/audit-entry-connection.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CommitteeConnection`](/api/admin/types/objects/committee-connection.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CreditFacilityConnection`](/api/admin/types/objects/credit-facility-connection.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CreditFacilityDisbursalConnection`](/api/admin/types/objects/credit-facility-disbursal-connection.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CreditFacilityProposalConnection`](/api/admin/types/objects/credit-facility-proposal-connection.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CustodianConnection`](/api/admin/types/objects/custodian-connection.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CustomerConnection`](/api/admin/types/objects/customer-connection.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`DepositAccountConnection`](/api/admin/types/objects/deposit-account-connection.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`DepositAccountHistoryEntryConnection`](/api/admin/types/objects/deposit-account-history-entry-connection.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`DepositConnection`](/api/admin/types/objects/deposit-connection.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`DomainConfigConnection`](/api/admin/types/objects/domain-config-connection.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`FiscalYearConnection`](/api/admin/types/objects/fiscal-year-connection.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`JournalEntryConnection`](/api/admin/types/objects/journal-entry-connection.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`LedgerTransactionConnection`](/api/admin/types/objects/ledger-transaction-connection.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`LiquidationConnection`](/api/admin/types/objects/liquidation-connection.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`PendingCreditFacilityConnection`](/api/admin/types/objects/pending-credit-facility-connection.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`PermissionSetConnection`](/api/admin/types/objects/permission-set-connection.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`PolicyConnection`](/api/admin/types/objects/policy-connection.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`ReportRunConnection`](/api/admin/types/objects/report-run-connection.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`RoleConnection`](/api/admin/types/objects/role-connection.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`TransactionTemplateConnection`](/api/admin/types/objects/transaction-template-connection.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`WithdrawalConnection`](/api/admin/types/objects/withdrawal-connection.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/>

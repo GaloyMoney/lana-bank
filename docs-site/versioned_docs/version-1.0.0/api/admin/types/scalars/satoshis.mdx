@@ -1,0 +1,58 @@
+---
+id: satoshis
+title: Satoshis
+---
+
+
+
+
+export const Bullet = () => <><span style={{ fontWeight: 'normal', fontSize: '.5em', color: 'var(--ifm-color-secondary-darkest)' }}>&nbsp;●&nbsp;</span></>
+
+export const SpecifiedBy = (props) => <>Specification<a className="link" style={{ fontSize:'1.5em', paddingLeft:'4px' }} target="_blank" href={props.url} title={'Specified by ' + props.url}>⎘</a></>
+
+export const Badge = (props) => <><span className={props.class}>{props.text}</span></>
+
+import { useState } from 'react';
+
+export const Details = ({ dataOpen, dataClose, children, startOpen = false }) => {
+  const [open, setOpen] = useState(startOpen);
+  return (
+    <details {...(open ? { open: true } : {})} className="details" style={{ border:'none', boxShadow:'none', background:'var(--ifm-background-color)' }}>
+      <summary
+        onClick={(e) => {
+          e.preventDefault();
+          setOpen((open) => !open);
+        }}
+        style={{ listStyle:'none' }}
+      >
+      {open ? dataOpen : dataClose}
+      </summary>
+      {open && children}
+    </details>
+  );
+};
+
+
+
+
+
+
+
+
+No description
+
+
+```graphql
+scalar Satoshis
+```
+
+
+
+
+
+
+
+
+### Member Of
+
+[`BtcAmount`](/api/admin/types/objects/btc-amount.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`BtcBalanceDetails`](/api/admin/types/objects/btc-balance-details.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CollateralBalance`](/api/admin/types/objects/collateral-balance.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CreditFacilityCollateralizationUpdated`](/api/admin/types/objects/credit-facility-collateralization-updated.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CreditFacilityCollateralSentOut`](/api/admin/types/objects/credit-facility-collateral-sent-out.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CreditFacilityCollateralUpdated`](/api/admin/types/objects/credit-facility-collateral-updated.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CreditFacilityCollateralUpdateInput`](/api/admin/types/inputs/credit-facility-collateral-update-input.mdx)  <Badge class="badge badge--secondary badge--relation" text="input"/><Bullet />[`Dashboard`](/api/admin/types/objects/dashboard.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`Liquidation`](/api/admin/types/objects/liquidation.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`LiquidationCollateralSent`](/api/admin/types/objects/liquidation-collateral-sent.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`LiquidationRecordCollateralSentInput`](/api/admin/types/inputs/liquidation-record-collateral-sent-input.mdx)  <Badge class="badge badge--secondary badge--relation" text="input"/><Bullet />[`PendingCreditFacilityCollateralizationUpdated`](/api/admin/types/objects/pending-credit-facility-collateralization-updated.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`PendingCreditFacilityCollateralUpdateInput`](/api/admin/types/inputs/pending-credit-facility-collateral-update-input.mdx)  <Badge class="badge badge--secondary badge--relation" text="input"/>

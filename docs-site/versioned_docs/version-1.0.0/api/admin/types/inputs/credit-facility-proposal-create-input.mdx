@@ -1,0 +1,81 @@
+---
+id: credit-facility-proposal-create-input
+title: CreditFacilityProposalCreateInput
+---
+
+
+
+
+export const Bullet = () => <><span style={{ fontWeight: 'normal', fontSize: '.5em', color: 'var(--ifm-color-secondary-darkest)' }}>&nbsp;●&nbsp;</span></>
+
+export const SpecifiedBy = (props) => <>Specification<a className="link" style={{ fontSize:'1.5em', paddingLeft:'4px' }} target="_blank" href={props.url} title={'Specified by ' + props.url}>⎘</a></>
+
+export const Badge = (props) => <><span className={props.class}>{props.text}</span></>
+
+import { useState } from 'react';
+
+export const Details = ({ dataOpen, dataClose, children, startOpen = false }) => {
+  const [open, setOpen] = useState(startOpen);
+  return (
+    <details {...(open ? { open: true } : {})} className="details" style={{ border:'none', boxShadow:'none', background:'var(--ifm-background-color)' }}>
+      <summary
+        onClick={(e) => {
+          e.preventDefault();
+          setOpen((open) => !open);
+        }}
+        style={{ listStyle:'none' }}
+      >
+      {open ? dataOpen : dataClose}
+      </summary>
+      {open && children}
+    </details>
+  );
+};
+
+
+
+
+
+
+
+
+No description
+
+
+```graphql
+input CreditFacilityProposalCreateInput {
+  customerId: UUID!
+  facility: UsdCents!
+  terms: TermsInput!
+  custodianId: UUID
+}
+```
+
+
+
+
+### Fields
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityProposalCreateInput.<b>customerId</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>UUID!</b></code>](/api/admin/types/scalars/uuid.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityProposalCreateInput.<b>facility</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>UsdCents!</b></code>](/api/admin/types/scalars/usd-cents.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityProposalCreateInput.<b>terms</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>TermsInput!</b></code>](/api/admin/types/inputs/terms-input.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="input"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacilityProposalCreateInput.<b>custodianId</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>UUID</b></code>](/api/admin/types/scalars/uuid.mdx) <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+
+
+
+
+### Member Of
+
+[`creditFacilityProposalCreate`](/api/admin/operations/mutations/credit-facility-proposal-create.mdx)  <Badge class="badge badge--secondary badge--relation" text="mutation"/>

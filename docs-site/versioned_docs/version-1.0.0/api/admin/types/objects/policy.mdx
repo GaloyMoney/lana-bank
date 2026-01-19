@@ -1,0 +1,85 @@
+---
+id: policy
+title: Policy
+---
+
+
+
+
+export const Bullet = () => <><span style={{ fontWeight: 'normal', fontSize: '.5em', color: 'var(--ifm-color-secondary-darkest)' }}>&nbsp;●&nbsp;</span></>
+
+export const SpecifiedBy = (props) => <>Specification<a className="link" style={{ fontSize:'1.5em', paddingLeft:'4px' }} target="_blank" href={props.url} title={'Specified by ' + props.url}>⎘</a></>
+
+export const Badge = (props) => <><span className={props.class}>{props.text}</span></>
+
+import { useState } from 'react';
+
+export const Details = ({ dataOpen, dataClose, children, startOpen = false }) => {
+  const [open, setOpen] = useState(startOpen);
+  return (
+    <details {...(open ? { open: true } : {})} className="details" style={{ border:'none', boxShadow:'none', background:'var(--ifm-background-color)' }}>
+      <summary
+        onClick={(e) => {
+          e.preventDefault();
+          setOpen((open) => !open);
+        }}
+        style={{ listStyle:'none' }}
+      >
+      {open ? dataOpen : dataClose}
+      </summary>
+      {open && children}
+    </details>
+  );
+};
+
+
+
+
+
+
+
+
+No description
+
+
+```graphql
+type Policy {
+  id: ID!
+  policyId: UUID!
+  approvalProcessType: ApprovalProcessType!
+  rules: ApprovalRules!
+}
+```
+
+
+
+
+### Fields
+
+#### [<code style={{ fontWeight: 'normal' }}>Policy.<b>id</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>ID!</b></code>](/api/admin/types/scalars/id.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>Policy.<b>policyId</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>UUID!</b></code>](/api/admin/types/scalars/uuid.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>Policy.<b>approvalProcessType</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>ApprovalProcessType!</b></code>](/api/admin/types/enums/approval-process-type.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="enum"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>Policy.<b>rules</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>ApprovalRules!</b></code>](/api/admin/types/unions/approval-rules.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="union"/> 
+
+
+
+
+
+
+
+### Returned By
+
+[`policy`](/api/admin/operations/queries/policy.mdx)  <Badge class="badge badge--secondary badge--relation" text="query"/>
+
+### Member Of
+
+[`ApprovalProcess`](/api/admin/types/objects/approval-process.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`PolicyAssignCommitteePayload`](/api/admin/types/objects/policy-assign-committee-payload.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`PolicyConnection`](/api/admin/types/objects/policy-connection.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`PolicyEdge`](/api/admin/types/objects/policy-edge.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/>

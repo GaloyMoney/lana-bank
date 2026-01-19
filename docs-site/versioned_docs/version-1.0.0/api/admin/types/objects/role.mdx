@@ -1,0 +1,90 @@
+---
+id: role
+title: Role
+---
+
+
+
+
+export const Bullet = () => <><span style={{ fontWeight: 'normal', fontSize: '.5em', color: 'var(--ifm-color-secondary-darkest)' }}>&nbsp;●&nbsp;</span></>
+
+export const SpecifiedBy = (props) => <>Specification<a className="link" style={{ fontSize:'1.5em', paddingLeft:'4px' }} target="_blank" href={props.url} title={'Specified by ' + props.url}>⎘</a></>
+
+export const Badge = (props) => <><span className={props.class}>{props.text}</span></>
+
+import { useState } from 'react';
+
+export const Details = ({ dataOpen, dataClose, children, startOpen = false }) => {
+  const [open, setOpen] = useState(startOpen);
+  return (
+    <details {...(open ? { open: true } : {})} className="details" style={{ border:'none', boxShadow:'none', background:'var(--ifm-background-color)' }}>
+      <summary
+        onClick={(e) => {
+          e.preventDefault();
+          setOpen((open) => !open);
+        }}
+        style={{ listStyle:'none' }}
+      >
+      {open ? dataOpen : dataClose}
+      </summary>
+      {open && children}
+    </details>
+  );
+};
+
+
+
+
+
+
+
+
+No description
+
+
+```graphql
+type Role {
+  id: ID!
+  roleId: UUID!
+  createdAt: Timestamp!
+  name: String!
+  permissionSets: [PermissionSet!]!
+}
+```
+
+
+
+
+### Fields
+
+#### [<code style={{ fontWeight: 'normal' }}>Role.<b>id</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>ID!</b></code>](/api/admin/types/scalars/id.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>Role.<b>roleId</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>UUID!</b></code>](/api/admin/types/scalars/uuid.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>Role.<b>createdAt</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>Timestamp!</b></code>](/api/admin/types/scalars/timestamp.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>Role.<b>name</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>String!</b></code>](/api/admin/types/scalars/string.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>Role.<b>permissionSets</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>[PermissionSet!]!</b></code>](/api/admin/types/objects/permission-set.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="object"/> 
+
+
+
+
+
+
+
+### Returned By
+
+[`role`](/api/admin/operations/queries/role.mdx)  <Badge class="badge badge--secondary badge--relation" text="query"/>
+
+### Member Of
+
+[`RoleAddPermissionSetsPayload`](/api/admin/types/objects/role-add-permission-sets-payload.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`RoleConnection`](/api/admin/types/objects/role-connection.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`RoleCreatePayload`](/api/admin/types/objects/role-create-payload.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`RoleEdge`](/api/admin/types/objects/role-edge.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`RoleRemovePermissionSetsPayload`](/api/admin/types/objects/role-remove-permission-sets-payload.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`User`](/api/admin/types/objects/user.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/>

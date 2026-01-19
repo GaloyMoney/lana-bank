@@ -141,6 +141,10 @@ const config = {
             position: "left",
           },
           {
+            type: "docsVersionDropdown",
+            position: "right",
+          },
+          {
             type: "localeDropdown",
             position: "right",
           },

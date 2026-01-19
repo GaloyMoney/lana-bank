@@ -1,0 +1,130 @@
+---
+id: credit-facility
+title: CreditFacility
+---
+
+
+
+
+export const Bullet = () => <><span style={{ fontWeight: 'normal', fontSize: '.5em', color: 'var(--ifm-color-secondary-darkest)' }}>&nbsp;●&nbsp;</span></>
+
+export const SpecifiedBy = (props) => <>Specification<a className="link" style={{ fontSize:'1.5em', paddingLeft:'4px' }} target="_blank" href={props.url} title={'Specified by ' + props.url}>⎘</a></>
+
+export const Badge = (props) => <><span className={props.class}>{props.text}</span></>
+
+import { useState } from 'react';
+
+export const Details = ({ dataOpen, dataClose, children, startOpen = false }) => {
+  const [open, setOpen] = useState(startOpen);
+  return (
+    <details {...(open ? { open: true } : {})} className="details" style={{ border:'none', boxShadow:'none', background:'var(--ifm-background-color)' }}>
+      <summary
+        onClick={(e) => {
+          e.preventDefault();
+          setOpen((open) => !open);
+        }}
+        style={{ listStyle:'none' }}
+      >
+      {open ? dataOpen : dataClose}
+      </summary>
+      {open && children}
+    </details>
+  );
+};
+
+
+
+
+
+
+
+
+No description
+
+
+```graphql
+type CreditFacility {
+  id: ID!
+  creditFacilityId: UUID!
+  facilityAmount: UsdCents!
+  collateralizationState: CollateralizationState!
+  status: CreditFacilityStatus!
+  activatedAt: Timestamp!
+  maturesAt: Timestamp!
+  creditFacilityTerms: TermValues!
+  balance: CreditFacilityBalance!
+  currentCvl: CVLPct!
+  history: [CreditFacilityHistoryEntry!]!
+  disbursals: [CreditFacilityDisbursal!]!
+  repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
+}
+```
+
+
+
+
+### Fields
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacility.<b>id</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>ID!</b></code>](/api/customer/types/scalars/id.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacility.<b>creditFacilityId</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>UUID!</b></code>](/api/customer/types/scalars/uuid.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacility.<b>facilityAmount</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>UsdCents!</b></code>](/api/customer/types/scalars/usd-cents.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacility.<b>collateralizationState</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>CollateralizationState!</b></code>](/api/customer/types/enums/collateralization-state.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="enum"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacility.<b>status</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>CreditFacilityStatus!</b></code>](/api/customer/types/enums/credit-facility-status.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="enum"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacility.<b>activatedAt</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>Timestamp!</b></code>](/api/customer/types/scalars/timestamp.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacility.<b>maturesAt</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>Timestamp!</b></code>](/api/customer/types/scalars/timestamp.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacility.<b>creditFacilityTerms</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>TermValues!</b></code>](/api/customer/types/objects/term-values.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="object"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacility.<b>balance</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>CreditFacilityBalance!</b></code>](/api/customer/types/objects/credit-facility-balance.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="object"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacility.<b>currentCvl</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>CVLPct!</b></code>](/api/customer/types/scalars/cvlpct.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="scalar"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacility.<b>history</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>[CreditFacilityHistoryEntry!]!</b></code>](/api/customer/types/unions/credit-facility-history-entry.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="union"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacility.<b>disbursals</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>[CreditFacilityDisbursal!]!</b></code>](/api/customer/types/objects/credit-facility-disbursal.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="object"/> 
+
+
+
+#### [<code style={{ fontWeight: 'normal' }}>CreditFacility.<b>repaymentPlan</b></code>](#)<Bullet />[<code style={{ fontWeight: 'normal' }}><b>[CreditFacilityRepaymentPlanEntry!]!</b></code>](/api/customer/types/objects/credit-facility-repayment-plan-entry.mdx) <Badge class="badge badge--secondary badge--non_null" text="non-null"/> <Badge class="badge badge--secondary " text="object"/> 
+
+
+
+
+
+
+
+### Returned By
+
+[`creditFacility`](/api/customer/operations/queries/credit-facility.mdx)  <Badge class="badge badge--secondary badge--relation" text="query"/>
+
+### Member Of
+
+[`CreditFacilityPaymentAllocation`](/api/customer/types/objects/credit-facility-payment-allocation.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`Customer`](/api/customer/types/objects/customer.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/>

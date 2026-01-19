@@ -1,0 +1,58 @@
+---
+id: timestamp
+title: Timestamp
+---
+
+
+
+
+export const Bullet = () => <><span style={{ fontWeight: 'normal', fontSize: '.5em', color: 'var(--ifm-color-secondary-darkest)' }}>&nbsp;●&nbsp;</span></>
+
+export const SpecifiedBy = (props) => <>Specification<a className="link" style={{ fontSize:'1.5em', paddingLeft:'4px' }} target="_blank" href={props.url} title={'Specified by ' + props.url}>⎘</a></>
+
+export const Badge = (props) => <><span className={props.class}>{props.text}</span></>
+
+import { useState } from 'react';
+
+export const Details = ({ dataOpen, dataClose, children, startOpen = false }) => {
+  const [open, setOpen] = useState(startOpen);
+  return (
+    <details {...(open ? { open: true } : {})} className="details" style={{ border:'none', boxShadow:'none', background:'var(--ifm-background-color)' }}>
+      <summary
+        onClick={(e) => {
+          e.preventDefault();
+          setOpen((open) => !open);
+        }}
+        style={{ listStyle:'none' }}
+      >
+      {open ? dataOpen : dataClose}
+      </summary>
+      {open && children}
+    </details>
+  );
+};
+
+
+
+
+
+
+
+
+No description
+
+
+```graphql
+scalar Timestamp
+```
+
+
+
+
+
+
+
+
+### Member Of
+
+[`CancelledWithdrawalEntry`](/api/customer/types/objects/cancelled-withdrawal-entry.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CreditFacility`](/api/customer/types/objects/credit-facility.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CreditFacilityApproved`](/api/customer/types/objects/credit-facility-approved.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CreditFacilityCollateralizationUpdated`](/api/customer/types/objects/credit-facility-collateralization-updated.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CreditFacilityCollateralSentOut`](/api/customer/types/objects/credit-facility-collateral-sent-out.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CreditFacilityCollateralUpdated`](/api/customer/types/objects/credit-facility-collateral-updated.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CreditFacilityDisbursal`](/api/customer/types/objects/credit-facility-disbursal.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CreditFacilityDisbursalExecuted`](/api/customer/types/objects/credit-facility-disbursal-executed.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CreditFacilityIncrementalPayment`](/api/customer/types/objects/credit-facility-incremental-payment.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CreditFacilityInterestAccrued`](/api/customer/types/objects/credit-facility-interest-accrued.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CreditFacilityPaymentAllocation`](/api/customer/types/objects/credit-facility-payment-allocation.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CreditFacilityRepaymentAmountReceived`](/api/customer/types/objects/credit-facility-repayment-amount-received.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`CreditFacilityRepaymentPlanEntry`](/api/customer/types/objects/credit-facility-repayment-plan-entry.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`Customer`](/api/customer/types/objects/customer.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`Deposit`](/api/customer/types/objects/deposit.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`DepositAccount`](/api/customer/types/objects/deposit-account.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`DepositEntry`](/api/customer/types/objects/deposit-entry.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`DisbursalEntry`](/api/customer/types/objects/disbursal-entry.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`FreezeEntry`](/api/customer/types/objects/freeze-entry.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`PaymentEntry`](/api/customer/types/objects/payment-entry.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`PendingCreditFacilityCollateralizationUpdated`](/api/customer/types/objects/pending-credit-facility-collateralization-updated.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`UnfreezeEntry`](/api/customer/types/objects/unfreeze-entry.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`UnknownEntry`](/api/customer/types/objects/unknown-entry.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`Withdrawal`](/api/customer/types/objects/withdrawal.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/><Bullet />[`WithdrawalEntry`](/api/customer/types/objects/withdrawal-entry.mdx)  <Badge class="badge badge--secondary badge--relation" text="object"/>
