@@ -314,6 +314,7 @@ where
         Ok(chart)
     }
 
+
     #[record_error_severity]
     #[instrument(name = "core_accounting.init_fiscal_year_for_chart", skip(self))]
     pub async fn init_fiscal_year_for_chart(
