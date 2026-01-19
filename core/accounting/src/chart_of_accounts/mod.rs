@@ -212,7 +212,7 @@ where
         } = BulkAccountImport::new(&mut chart, self.journal_id).import(account_specs);
         let _ = chart.set_base_config(base_config)?;
 
-        let mut op = self.repo.begin_op().await?;
+        let mut op = self.repo.begin_op_with_clock(&self.clock).await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
         let mut op = op.with_db_time().await?;
