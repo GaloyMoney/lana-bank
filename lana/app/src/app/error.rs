@@ -60,6 +60,8 @@ pub enum ApplicationError {
     ContractCreationError(#[from] crate::contract_creation::ContractCreationError),
     #[error("ApplicationError - ReportError: {0}")]
     ReportError(#[from] crate::report::error::ReportError),
+    #[error("ApplicationError - CommandInboxError: {0}")]
+    CommandInboxError(#[from] crate::command_inbox::CommandInboxError),
     #[error("ApplicationError - TracingError: {0}")]
     TracingError(#[from] tracing_utils::TracingError),
     #[error("ApplicationError - CanNotCreateProposalForClosedOrFrozenAccount")]
@@ -99,6 +101,7 @@ impl ErrorSeverity for ApplicationError {
             Self::CustodyError(e) => e.severity(),
             Self::ContractCreationError(e) => e.severity(),
             Self::ReportError(e) => e.severity(),
+            Self::CommandInboxError(e) => e.severity(),
             Self::TracingError(e) => e.severity(),
             Self::CanNotCreateProposalForClosedOrFrozenAccount => Level::WARN,
             Self::ClosedOrFrozenAccount => Level::WARN,

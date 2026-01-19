@@ -1,7 +1,7 @@
 # LANA Bank - Code Guidelines
 
 ## Build/Lint/Test Commands
-- `make check-code` - Verify backend code (fmt, check, clippy, audit)
+- `make check-code-rust` - Verify backend code (fmt, check, clippy, audit)
 - `make check-code-apps` - Verify frontend code (lint, type check, build)
 - `cargo nextest run` - Run all tests
 - `cargo nextest run package::module::test_name` - Run single test

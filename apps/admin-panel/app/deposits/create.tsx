@@ -20,13 +20,13 @@ import { Label } from "@lana/web/ui/label"
 
 import {
   GetCustomerBasicDetailsDocument,
-  useCreateDepositMutation,
+  useCreateDepositAsyncMutation,
 } from "@/lib/graphql/generated"
 import { currencyConverter } from "@/lib/utils"
 
 gql`
-  mutation CreateDeposit($input: DepositRecordInput!) {
-    depositRecord(input: $input) {
+  mutation CreateDepositAsync($input: DepositRecordAsyncInput!) {
+    depositRecordAsync(input: $input) {
       deposit {
         ...DepositFields
         account {
@@ -65,7 +65,7 @@ export const CreateDepositDialog: React.FC<CreateDepositDialogProps> = ({
   depositAccountId,
 }) => {
   const t = useTranslations("Deposits.CreateDepositDialog")
-  const [createDeposit, { loading, reset }] = useCreateDepositMutation({
+  const [createDepositAsync, { loading, reset }] = useCreateDepositAsyncMutation({
     update: (cache) => {
       cache.modify({
         fields: {
@@ -84,8 +84,9 @@ export const CreateDepositDialog: React.FC<CreateDepositDialogProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+
     try {
-      const result = await createDeposit({
+      const result = await createDepositAsync({
         variables: {
           input: {
             depositAccountId,
@@ -98,13 +99,13 @@ export const CreateDepositDialog: React.FC<CreateDepositDialogProps> = ({
         await client.query({
           query: GetCustomerBasicDetailsDocument,
           variables: {
-            id: result.data.depositRecord.deposit.account.customer.customerId,
+            id: result.data.depositRecordAsync.deposit.account.customer.customerId,
           },
           fetchPolicy: "network-only",
         })
         toast.success(t("success"))
         handleCloseDialog()
-        router.push(`/deposits/${result.data.depositRecord.deposit.publicId}`)
+        router.push(`/deposits/${result.data.depositRecordAsync.deposit.publicId}`)
       } else {
         throw new Error(t("errors.noData"))
       }

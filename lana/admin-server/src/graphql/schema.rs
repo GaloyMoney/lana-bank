@@ -1288,6 +1288,25 @@ impl Mutation {
         )
     }
 
+    async fn customer_create_async(
+        &self,
+        ctx: &Context<'_>,
+        input: CustomerCreateAsyncInput,
+    ) -> async_graphql::Result<CustomerCreatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            CustomerCreatePayload,
+            Customer,
+            ctx,
+            app.command_inbox().create_customer_async(
+                sub,
+                input.email,
+                input.telegram_id,
+                input.customer_type
+            )
+        )
+    }
+
     async fn customer_telegram_id_update(
         &self,
         ctx: &Context<'_>,
@@ -1452,6 +1471,26 @@ impl Mutation {
         )
     }
 
+    pub async fn deposit_record_async(
+        &self,
+        ctx: &Context<'_>,
+        input: DepositRecordAsyncInput,
+    ) -> async_graphql::Result<DepositRecordPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        exec_mutation!(
+            DepositRecordPayload,
+            Deposit,
+            ctx,
+            app.command_inbox().record_deposit_async(
+                sub,
+                input.deposit_account_id.into(),
+                input.amount,
+                input.reference
+            )
+        )
+    }
+
     pub async fn withdrawal_initiate(
         &self,
         ctx: &Context<'_>,
@@ -1465,6 +1504,25 @@ impl Mutation {
             app.deposits().initiate_withdrawal(
                 sub,
                 input.deposit_account_id,
+                input.amount,
+                input.reference
+            )
+        )
+    }
+
+    pub async fn withdrawal_initiate_async(
+        &self,
+        ctx: &Context<'_>,
+        input: WithdrawalInitiateAsyncInput,
+    ) -> async_graphql::Result<WithdrawalInitiatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            WithdrawalInitiatePayload,
+            Withdrawal,
+            ctx,
+            app.command_inbox().initiate_withdrawal_async(
+                sub,
+                input.deposit_account_id.into(),
                 input.amount,
                 input.reference
             )

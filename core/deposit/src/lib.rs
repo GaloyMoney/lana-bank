@@ -19,7 +19,7 @@ mod withdrawal;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-use audit::AuditSvc;
+use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use core_accounting::{Chart, LedgerTransactionInitiator};
@@ -1227,5 +1227,158 @@ where
             DepositAccountStatus::Closed => Err(CoreDepositError::DepositAccountClosed),
             DepositAccountStatus::Active => Ok(()),
         }
+    }
+
+    /// Check if subject can record a deposit (for authorization before inbox)
+    pub async fn subject_can_record_deposit(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        enforce: bool,
+    ) -> Result<Option<AuditInfo>, CoreDepositError> {
+        Ok(self
+            .authz
+            .evaluate_permission(
+                sub,
+                CoreDepositObject::all_deposits(),
+                CoreDepositAction::DEPOSIT_CREATE,
+                enforce,
+            )
+            .await?)
+    }
+
+    /// Check if subject can initiate a withdrawal (for authorization before inbox)
+    pub async fn subject_can_initiate_withdrawal(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        enforce: bool,
+    ) -> Result<Option<AuditInfo>, CoreDepositError> {
+        Ok(self
+            .authz
+            .evaluate_permission(
+                sub,
+                CoreDepositObject::all_withdrawals(),
+                CoreDepositAction::WITHDRAWAL_INITIATE,
+                enforce,
+            )
+            .await?)
+    }
+
+    /// Record a deposit with a pre-generated ID (for inbox handler).
+    /// No authorization check - should only be called from inbox handlers.
+    #[record_error_severity]
+    #[instrument(name = "deposit.record_deposit_with_id", skip(self))]
+    pub async fn record_deposit_with_id(
+        &self,
+        deposit_id: DepositId,
+        deposit_account_id: DepositAccountId,
+        amount: UsdCents,
+        reference: Option<String>,
+    ) -> Result<Deposit, CoreDepositError> {
+        self.check_account_active(deposit_account_id).await?;
+
+        let mut op = self.deposits.begin_op_with_clock(&self.clock).await?;
+        let public_id = self
+            .public_ids
+            .create_in_op(&mut op, DEPOSIT_REF_TARGET, deposit_id)
+            .await?;
+
+        let new_deposit = NewDeposit::builder()
+            .id(deposit_id)
+            .ledger_transaction_id(deposit_id)
+            .deposit_account_id(deposit_account_id)
+            .amount(amount)
+            .public_id(public_id.id)
+            .reference(reference)
+            .build()?;
+        let deposit = self.deposits.create_in_op(&mut op, new_deposit).await?;
+        self.ledger
+            .record_deposit(
+                &mut op,
+                deposit_id,
+                amount,
+                deposit_account_id,
+                LedgerTransactionInitiator::System,
+            )
+            .await?;
+        op.commit().await?;
+        Ok(deposit)
+    }
+
+    /// Initiate a withdrawal with a pre-generated ID (for inbox handler).
+    /// No authorization check - should only be called from inbox handlers.
+    #[record_error_severity]
+    #[instrument(name = "deposit.initiate_withdrawal_with_id", skip(self))]
+    pub async fn initiate_withdrawal_with_id(
+        &self,
+        withdrawal_id: WithdrawalId,
+        deposit_account_id: DepositAccountId,
+        amount: UsdCents,
+        reference: Option<String>,
+    ) -> Result<Withdrawal, CoreDepositError> {
+        self.check_account_active(deposit_account_id).await?;
+
+        let mut op = self.withdrawals.begin_op_with_clock(&self.clock).await?;
+        let public_id = self
+            .public_ids
+            .create_in_op(&mut op, WITHDRAWAL_REF_TARGET, withdrawal_id)
+            .await?;
+
+        let new_withdrawal = NewWithdrawal::builder()
+            .id(withdrawal_id)
+            .deposit_account_id(deposit_account_id)
+            .amount(amount)
+            .approval_process_id(withdrawal_id)
+            .public_id(public_id.id)
+            .reference(reference)
+            .build()?;
+
+        self.governance
+            .start_process(
+                &mut op,
+                withdrawal_id,
+                withdrawal_id.to_string(),
+                APPROVE_WITHDRAWAL_PROCESS,
+            )
+            .await?;
+        let withdrawal = self
+            .withdrawals
+            .create_in_op(&mut op, new_withdrawal)
+            .await?;
+
+        self.ledger
+            .initiate_withdrawal(
+                &mut op,
+                withdrawal_id,
+                amount,
+                deposit_account_id,
+                LedgerTransactionInitiator::System,
+            )
+            .await?;
+
+        op.commit().await?;
+
+        Ok(withdrawal)
+    }
+
+    /// Find a deposit by ID for internal use (inbox handlers).
+    /// Returns an error if not found.
+    #[record_error_severity]
+    #[instrument(name = "deposit.find_deposit_by_id_internal", skip(self))]
+    pub async fn find_deposit_by_id_internal(
+        &self,
+        deposit_id: DepositId,
+    ) -> Result<Deposit, CoreDepositError> {
+        Ok(self.deposits.find_by_id(deposit_id).await?)
+    }
+
+    /// Find a withdrawal by ID for internal use (inbox handlers).
+    /// Returns an error if not found.
+    #[record_error_severity]
+    #[instrument(name = "deposit.find_withdrawal_by_id_internal", skip(self))]
+    pub async fn find_withdrawal_by_id_internal(
+        &self,
+        withdrawal_id: WithdrawalId,
+    ) -> Result<Withdrawal, CoreDepositError> {
+        Ok(self.withdrawals.find_by_id(withdrawal_id).await?)
     }
 }
