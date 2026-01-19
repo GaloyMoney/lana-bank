@@ -82,7 +82,7 @@ mod tests {
 
     #[test]
     fn next_closing_with_est_offset() {
-        // UtC - 5 in winters
+        // UTC - 5 in winters
         let schedule = ClosingSchedule::new(
             "America/New_York".parse().unwrap(),
             NaiveTime::from_hms_opt(13, 15, 0).unwrap(),
@@ -96,7 +96,7 @@ mod tests {
 
     #[test]
     fn next_closing_with_edt_offset() {
-        // UtC - 4 in summer
+        // UTC - 4 in summer
         let schedule = ClosingSchedule::new(
             "America/New_York".parse().unwrap(),
             NaiveTime::from_hms_opt(13, 15, 0).unwrap(),
