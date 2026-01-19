@@ -1,5 +1,16 @@
 scalar AccountCode
 
+input AccountingBaseConfigInput {
+	assetsCode: String!
+	liabilitiesCode: String!
+	equityCode: String!
+	equityRetainedEarningsGainCode: String!
+	equityRetainedEarningsLossCode: String!
+	revenueCode: String!
+	costOfRevenueCode: String!
+	expensesCode: String!
+}
+
 type AccountingCsvDocument {
 	id: ID!
 	documentId: UUID!
@@ -253,6 +264,15 @@ input ChartOfAccountsCsvImportInput {
 }
 
 type ChartOfAccountsCsvImportPayload {
+	chartOfAccounts: ChartOfAccounts!
+}
+
+input ChartOfAccountsCsvImportWithBaseConfigInput {
+	file: Upload!
+	baseConfig: AccountingBaseConfigInput!
+}
+
+type ChartOfAccountsCsvImportWithBaseConfigPayload {
 	chartOfAccounts: ChartOfAccounts!
 }
 
@@ -1860,6 +1880,7 @@ type Mutation {
 	customerDocumentDelete(input: CustomerDocumentDeleteInput!): CustomerDocumentDeletePayload!
 	customerDocumentArchive(input: CustomerDocumentArchiveInput!): CustomerDocumentArchivePayload!
 	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
+	chartOfAccountsCsvImportWithBaseConfig(input: ChartOfAccountsCsvImportWithBaseConfigInput!): ChartOfAccountsCsvImportWithBaseConfigPayload!
 	fiscalYearInit(input: FiscalYearInitInput!): FiscalYearInitPayload!
 	fiscalYearCloseMonth(input: FiscalYearCloseMonthInput!): FiscalYearCloseMonthPayload!
 	fiscalYearOpenNext(input: FiscalYearOpenNextInput!): FiscalYearOpenNextPayload!
