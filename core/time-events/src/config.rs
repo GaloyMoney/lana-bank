@@ -6,6 +6,7 @@ use domain_config::{
     Complex, ConfigSpec, DomainConfigError, DomainConfigKey, ExposedConfig, Visibility,
 };
 
+// TODO: Need to rethink use of domain configs for this, current implementation is crude and also misses seeding these
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TimezoneConfig {
     pub value: Tz,
