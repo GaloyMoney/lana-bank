@@ -11,7 +11,7 @@ use core_accounting::CoreAccounting;
 use document_storage::DocumentStorage;
 use domain_config::InternalDomainConfigs;
 use es_entity::clock::{ArtificialClockConfig, ClockHandle};
-use helpers::{action, object};
+use helpers::{action, default_accounting_base_config, object};
 use job::{JobSvcConfig, Jobs};
 
 #[tokio::test]
@@ -48,14 +48,23 @@ async fn ledger_account_ancestors() -> anyhow::Result<()> {
         .chart_of_accounts()
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())
         .await?;
-    let import = r#"
-        1,,Root
-        11,,Child
-        11,1,Grandchild
-        "#;
+    // let import_children = r#"
+    // 1,1,,Child,,
+    // ,,1,Grandchild,,
+    // "#;
+    // import_chart_of_accounts(&accounting, &chart_ref, Some(import_children)).await?;
+    let import = format!(
+        "{}{}",
+        helpers::BASE_ACCOUNTS_CSV,
+        r#"
+    11,,,Child,,
+    ,1,,Grandchild,,
+    "#
+    );
+    let base_config = default_accounting_base_config();
     accounting
         .chart_of_accounts()
-        .import_from_csv(&DummySubject, &chart_ref, import)
+        .import_from_csv_with_base_config(&DummySubject, &chart_ref, import, base_config)
         .await?;
 
     let root = accounting
@@ -184,16 +193,19 @@ async fn ledger_account_children() -> anyhow::Result<()> {
         .chart_of_accounts()
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())
         .await?;
-    let import = r#"
-        1,,Root
-        11,,Child
-        11,1,Grandchild
-        "#;
+    let import = format!(
+        "{}{}",
+        helpers::BASE_ACCOUNTS_CSV,
+        r#"
+    11,,,Child,,
+    ,1,,Grandchild,,
+    "#
+    );
+    let base_config = default_accounting_base_config();
     accounting
         .chart_of_accounts()
-        .import_from_csv(&DummySubject, &chart_ref, import)
+        .import_from_csv_with_base_config(&DummySubject, &chart_ref, import, base_config)
         .await?;
-
     let root = accounting
         .find_ledger_account_by_code(&DummySubject, &chart_ref, "1".to_string())
         .await?
@@ -288,16 +300,20 @@ async fn internal_account_contains_coa_account() -> anyhow::Result<()> {
         .chart_of_accounts()
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())
         .await?;
-    let import = r#"
-        1,,Root
-        11,,Child
-        11,1,Grandchild
-        "#;
+
+    let import = format!(
+        "{}{}",
+        helpers::BASE_ACCOUNTS_CSV,
+        r#"
+    11,,,Child,,
+    ,1,,Grandchild,,
+    "#
+    );
+    let base_config = default_accounting_base_config();
     accounting
         .chart_of_accounts()
-        .import_from_csv(&DummySubject, &chart_ref, import)
+        .import_from_csv_with_base_config(&DummySubject, &chart_ref, import, base_config)
         .await?;
-
     let root = accounting
         .find_ledger_account_by_code(&DummySubject, &chart_ref, "1".to_string())
         .await?

@@ -1,6 +1,7 @@
 #![allow(dead_code)] // Helper functions may not be used in all tests
 
 use cala_ledger::CalaLedger;
+use core_accounting::AccountingBaseConfig;
 use core_custody::{CustodyConfig, EncryptionConfig};
 
 pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
@@ -31,6 +32,33 @@ pub async fn init_journal(cala: &CalaLedger) -> anyhow::Result<cala_ledger::Jour
     let journal = cala.journals().create(new).await?;
     Ok(journal.id)
 }
+
+pub fn default_accounting_base_config() -> AccountingBaseConfig {
+    AccountingBaseConfig::try_new(
+        "1".parse().unwrap(),
+        "2".parse().unwrap(),
+        "3".parse().unwrap(),
+        "32.01".parse().unwrap(),
+        "32.02".parse().unwrap(),
+        "4".parse().unwrap(),
+        "5".parse().unwrap(),
+        "6".parse().unwrap(),
+    )
+    .unwrap()
+}
+
+pub const BASE_ACCOUNTS_CSV: &str = r#"
+1,,,Assets,Debit,
+2,,,Liabilities,Credit,
+3,,,Equity,Credit,
+32,,,Retained Earnings,,
+,01,,Annual Gains,,
+,02,,Annual Losses,,
+4,,,Revenue,Credit,
+5,,,Cost of Revenue,Debit,
+6,,,Expenses,Debit,
+8,,,Off Balance Sheet,Credit,
+"#;
 
 pub mod action {
     use core_accounting::CoreAccountingAction;

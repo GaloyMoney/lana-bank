@@ -17,14 +17,14 @@ use cala_ledger::{
     account::NewAccount,
 };
 use core_accounting::{
-    AccountCode, AccountIdOrCode, AccountingBaseConfig, CalaTxId, Chart, ClosingAccountCodes,
-    ClosingTxDetails, CoreAccounting, LedgerAccountId, ManualEntryInput, ProfitAndLossStatement,
+    AccountCode, AccountIdOrCode, CalaTxId, Chart, ClosingAccountCodes, ClosingTxDetails,
+    CoreAccounting, LedgerAccountId, ManualEntryInput, ProfitAndLossStatement,
     balance_sheet::ChartOfAccountsIntegrationConfig as BalanceSheetConfig, fiscal_year::FiscalYear,
     fiscal_year::FiscalYearRepo,
     profit_and_loss::ChartOfAccountsIntegrationConfig as ProfitAndLossConfig,
 };
 
-use helpers::{action, object};
+use helpers::{action, default_accounting_base_config, object};
 
 const ASSETS: &str = "1";
 const LIABILITIES: &str = "2";
@@ -35,24 +35,26 @@ const REVENUES: &str = "4";
 const COSTS: &str = "5";
 const EXPENSES: &str = "6";
 
+const CHILD_ACCOUNT_SETS_CSV: &str = r#"
+11,,,Current Assets,,
+,01,,Cash and Equivalents,,
+,,0101,Operating Cash,,
+"#;
+
 #[tokio::test]
 async fn post_closing_tx_with_gain() -> Result<()> {
     const EXPECTED_CREDIT_NORMAL_NET_INCOME: i32 = 100;
     let mut test = setup_test().await?;
 
     // Revenues
-    test.add_account_with_balance("41.01.0101", 400, Credit)
-        .await;
-    test.add_account_with_balance("41.01.0102", 100, Credit)
-        .await;
+    test.add_account_with_balance("4", 400, Credit).await;
+    test.add_account_with_balance("4", 100, Credit).await;
 
     // Costs
-    test.add_account_with_balance("51.01.0101", 200, Debit)
-        .await;
+    test.add_account_with_balance("5", 200, Debit).await;
 
     // Expenses
-    test.add_account_with_balance("61.01.0101", 200, Debit)
-        .await;
+    test.add_account_with_balance("6", 200, Debit).await;
 
     assert_eq!(test.balance(REVENUES).await?, Decimal::from(400 + 100));
     assert_eq!(test.balance(COSTS).await?, Decimal::from(200));
@@ -147,20 +149,15 @@ async fn post_closing_tx_with_loss() -> Result<()> {
     let mut test = setup_test().await?;
 
     // Revenues
-    test.add_account_with_balance("41.01.0101", 300, Credit)
-        .await;
-    test.add_account_with_balance("41.01.0102", 200, Credit)
-        .await;
+    test.add_account_with_balance("4", 300, Credit).await;
+    test.add_account_with_balance("4", 200, Credit).await;
 
     // Costs
-    test.add_account_with_balance("51.01.0101", 250, Debit)
-        .await;
-    test.add_account_with_balance("51.01.0101", 250, Debit)
-        .await;
+    test.add_account_with_balance("5", 250, Debit).await;
+    test.add_account_with_balance("5", 250, Debit).await;
 
     // Expenses
-    test.add_account_with_balance("61.01.0101", 100, Debit)
-        .await;
+    test.add_account_with_balance("6", 100, Debit).await;
 
     assert_eq!(test.balance(REVENUES).await?, Decimal::from(300 + 200));
     assert_eq!(test.balance(COSTS).await?, Decimal::from(250 + 250));
@@ -280,118 +277,16 @@ async fn setup_test() -> anyhow::Result<Test> {
         "Test Profit & Loss Statement #{}",
         rand::rng().random_range(0..10000)
     );
-    let chart = accounting
+    let _ = accounting
         .chart_of_accounts()
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())
         .await?;
-    let import = r#"
-1,,,Assets,Debit,
-,,,,,
-11,,,Current Assets,,
-,,,,,
-,01,,Cash and Equivalents,,
-,,,,,
-,,0101,Operating Cash,,
-,,,,,
-,,0102,Petty Cash,,
-,,,,,
-,02,,Receivables,,
-,,,,,
-,,0201,Interest Receivable,,
-,,,,,
-,,0202,Loans Receivable,,
-,,,,,
-,,0203,Overdue Loans Receivable,,
-,,,,,
-,03,,Inventory,,
-,,,,,
-,,0301,Raw Materials,,
-,,,,,
-,,0302,Work In Progress,,
-,,,,,
-,,0303,Finished Goods,,
-,,,,,
-12,,,Non-Current Assets,,
-,,,,,
-,01,,Property and Equipment,,
-,,,,,
-,,0101,Land,,
-,,,,,
-,,0102,Buildings,,
-,,,,,
-,,0103,Equipment,,
-,,,,,
-,02,,Intangible Assets,,
-,,,,,
-,,0201,Goodwill,,
-,,,,,
-,,0202,Intellectual Property,,
-,,,,,
-2,,,Liabilities,Debit,
-,,,,,
-21,,,Current Liabilities,,
-,,,,,
-,01,,Accounts Payable,,
-,,,,,
-3,,,Equity,Credit,
-,,,,,
-31,,,Contributed Capital,,
-,,,,,
-,01,,Common Stock,,
-,,,,,
-,02,,Preferred Stock,,
-,,,,,
-32,,,Retained Earnings,,
-,,,,,
-,01,,Annual Gains,,
-,,,,,
-,02,,Annual Losses,,
-,,,,,
-4,,,Revenue,Credit,
-,,,,,
-41,,,Operating Revenue,,
-,,,,,
-,01,,Sales Revenue,,
-,,,,,
-,,0101,Product A Sales,,
-,,,,,
-,,0102,Product B Sales,,
-,,,,,
-,02,,Service Revenue,,
-,,,,,
-,,0201,Consulting Services,,
-,,,,,
-,,0202,Maintenance Services,,
-,,,,,
-5,,,Cost of Revenue,Debit,
-,,,,,
-51,,,Capital Cost,,
-,,,,,
-,01,,Custody,,
-,,,,,
-,,0101,Custodian Fees,,
-,,,,,
-6,,,Expenses,Debit,
-,,,,,
-61,,,Fixed Expenses,,
-,,,,,
-,01,,Regulatory,,
-,,,,,
-,,0101,Regulatory Fees,,
-        "#;
-    let base_config = AccountingBaseConfig {
-        assets_code: ASSETS.parse().unwrap(),
-        liabilities_code: LIABILITIES.parse().unwrap(),
-        equity_code: EQUITY.parse().unwrap(),
-        equity_retained_earnings_gain_code: RETAINED_EARNINGS_GAIN.parse().unwrap(),
-        equity_retained_earnings_loss_code: RETAINED_EARNINGS_LOSS.parse().unwrap(),
-        revenue_code: REVENUES.parse().unwrap(),
-        cost_of_revenue_code: COSTS.parse().unwrap(),
-        expenses_code: EXPENSES.parse().unwrap(),
-    };
+
+    let import = format!("{}{}", helpers::BASE_ACCOUNTS_CSV, CHILD_ACCOUNT_SETS_CSV);
+    let base_config = default_accounting_base_config();
     let (chart, _) = accounting
         .chart_of_accounts()
-        .import_from_csv_with_base_config(&DummySubject, &chart.reference, import, base_config)
+        .import_from_csv_with_base_config(&DummySubject, &chart_ref, import, base_config)
         .await?;
     let opened_as_of: NaiveDate = "2021-01-01".parse::<NaiveDate>().unwrap();
     let fiscal_year = accounting
