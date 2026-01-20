@@ -1,4 +1,3 @@
-use audit::AuditInfo;
 use chrono::{DateTime, Utc};
 use es_entity::PersistedEvent;
 use serde::{Deserialize, Serialize};
@@ -24,15 +23,7 @@ impl From<(&User, &PersistedEvent<UserEvent>)> for PublicUser {
             email: entity.email.clone(),
             role_id: entity.current_role(),
             created_at: event.recorded_at,
-            created_by: extract_created_by(&event.context),
+            created_by: super::extract_created_by(&event.context),
         }
     }
-}
-
-fn extract_created_by(context: &Option<es_entity::ContextData>) -> String {
-    context
-        .as_ref()
-        .and_then(|ctx| ctx.lookup::<AuditInfo>("audit_info").ok().flatten())
-        .map(|info| info.sub)
-        .unwrap_or_else(|| "unknown".to_string())
 }
