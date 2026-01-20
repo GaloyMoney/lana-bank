@@ -132,6 +132,10 @@ checksums:
     Configurations/notification-email-from-email/description: 1a4d3315fff2155c42d63353d05fabe4
     Configurations/notification-email-from-name/title: 71cc11e03f84091d642c0ff7f31de611
     Configurations/notification-email-from-name/description: 3c76bee2031652a6201c9e46f3ec61d4
+    Configurations/timezone/title: 370780b854bdbef55320f977a4fb9ddb
+    Configurations/timezone/description: d59613cf10efadb65fe77f331257bc79
+    Configurations/closing-time/title: 498cd8314aac5f5cc766276362da32dc
+    Configurations/closing-time/description: cd22420db68001b8b474dc55821f5d3c
     interestInterval/endOfDay: 24234805a9fd10dfe74eaeafec362699
     interestInterval/endOfMonth: df268ce61af23ae591e0a727f34ad13f
     period/days: 47648cd60fc313bc3f05b70357a1d675
