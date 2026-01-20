@@ -2037,6 +2037,24 @@ impl Mutation {
         )
     }
 
+    async fn liquidation_record_collateral_sent(
+        &self,
+        ctx: &Context<'_>,
+        input: LiquidationRecordCollateralSentInput,
+    ) -> async_graphql::Result<LiquidationRecordCollateralSentPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            LiquidationRecordCollateralSentPayload,
+            Liquidation,
+            ctx,
+            app.credit().send_collateral_to_liquidation(
+                sub,
+                input.liquidation_id.into(),
+                input.amount
+            )
+        )
+    }
+
     async fn liquidation_record_proceeds_received(
         &self,
         ctx: &Context<'_>,

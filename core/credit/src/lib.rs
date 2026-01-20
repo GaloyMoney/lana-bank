@@ -755,6 +755,44 @@ where
     }
 
     #[record_error_severity]
+    #[instrument(name = "credit.send_collateral_to_liquidation", skip(self))]
+    pub async fn send_collateral_to_liquidation(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        liquidation_id: LiquidationId,
+        amount_sent: Satoshis,
+    ) -> Result<Liquidation, CoreCreditError> {
+        let liquidation = self
+            .liquidations
+            .find_by_id(sub, liquidation_id)
+            .await?
+            .unwrap();
+
+        let facility = self
+            .facilities
+            .find_by_id_without_audit(liquidation.credit_facility_id)
+            .await?;
+
+        let balances = self
+            .ledger
+            .get_credit_facility_balance(facility.account_ids)
+            .await?;
+
+        let updated_collateral = balances.collateral() - amount_sent;
+
+        self.update_collateral(sub, facility.id, updated_collateral, self.clock.today())
+            .await?;
+
+        let liquidation = self
+            .liquidations
+            .find_by_id(sub, liquidation_id)
+            .await?
+            .unwrap();
+
+        Ok(liquidation)
+    }
+
+    #[record_error_severity]
     #[instrument(name = "credit.update_collateral", skip(self))]
     pub async fn update_collateral(
         &self,
