@@ -45,6 +45,10 @@ impl KeycloakClient {
         )
     }
 
+    /// Creates a user in Keycloak with the given email and lanaId attribute.
+    ///
+    /// This operation is idempotent: if a user with the given `lana_id` already exists,
+    /// returns the existing user's Keycloak ID instead of creating a duplicate.
     #[record_error_severity]
     #[instrument(name = "keycloak.create_user", skip(self))]
     pub async fn create_user(
@@ -52,6 +56,22 @@ impl KeycloakClient {
         email: String,
         lana_id: Uuid,
     ) -> Result<Uuid, KeycloakClientError> {
+        // Check if user already exists (idempotency check)
+        let existing_users = self
+            .query_users_by_attribute("lanaId", &lana_id.to_string())
+            .await?;
+
+        if let Some(user) = existing_users.first() {
+            let user_id_str = user.id.as_ref().ok_or_else(|| {
+                KeycloakClientError::ParseError(
+                    "User ID not found in user representation".to_string(),
+                )
+            })?;
+            let uuid = user_id_str.parse::<Uuid>()?;
+            tracing::info!(%lana_id, %uuid, "User already exists in Keycloak, skipping creation");
+            return Ok(uuid);
+        }
+
         use std::collections::HashMap;
 
         let mut attributes: HashMap<String, Vec<String>> = HashMap::new();
