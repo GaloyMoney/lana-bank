@@ -32,8 +32,8 @@ pub enum ChartOfAccountsError {
     ParentAccountNotFound(String),
     #[error("ChartOfAccountsError - ChartOfAccountsNotFoundByReference: {0}")]
     ChartOfAccountsNotFoundByReference(String),
-    #[error("ChartOfAccountsError - BaseConfigAccountCodeHasParent: {0}")]
-    BaseConfigAccountCodeHasParent(String),
+    #[error("ChartOfAccountsError - AccountCodeHasInvalidParent: {0}")]
+    AccountCodeHasInvalidParent(String),
     #[error("ChartOfAccountsError - AccountingBaseConfigError: {0}")]
     AccountingBaseConfigError(#[from] crate::primitives::AccountingBaseConfigError),
 }
@@ -57,7 +57,7 @@ impl ErrorSeverity for ChartOfAccountsError {
             Self::NonLeafAccount(_) => Level::WARN,
             Self::ParentAccountNotFound(_) => Level::ERROR,
             Self::ChartOfAccountsNotFoundByReference(_) => Level::ERROR,
-            Self::BaseConfigAccountCodeHasParent(_) => Level::WARN,
+            Self::AccountCodeHasInvalidParent(_) => Level::ERROR,
             Self::AccountingBaseConfigError(e) => e.severity(),
         }
     }

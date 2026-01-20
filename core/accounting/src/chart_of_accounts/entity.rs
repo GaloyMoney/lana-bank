@@ -351,7 +351,7 @@ impl Chart {
             .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))?;
 
         if details.spec.parent.is_some() {
-            return Err(ChartOfAccountsError::BaseConfigAccountCodeHasParent(
+            return Err(ChartOfAccountsError::AccountCodeHasInvalidParent(
                 code.to_string(),
             ));
         }
