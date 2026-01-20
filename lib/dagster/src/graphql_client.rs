@@ -120,7 +120,6 @@ pub struct FileReportsRunsResponse {
     pub data: FileReportsRunsData,
 }
 
-
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PipelineSelector {
@@ -137,7 +136,9 @@ pub struct ExecutionParams {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "__typename")]
 pub enum LaunchPipelineResult {
-    LaunchRunSuccess { run: Option<LaunchRunDetails> },
+    LaunchRunSuccess {
+        run: Option<LaunchRunDetails>,
+    },
     #[serde(other)]
     Error,
 }
@@ -290,11 +291,12 @@ query GetLogsForRun($runId: ID!) {
             if event["__typename"] == "MaterializationEvent" {
                 let entries = event["metadataEntries"].as_array().unwrap_or(&empty);
                 for entry in entries {
-                    if entry["__typename"] == "JsonMetadataEntry" {
-                        if let Some(json_string) = entry["jsonString"].as_str() {
-                            let parsed: Report = serde_json::from_str(json_string)?;
-                            reports.push(parsed);
-                        }
+                    if let Some(json_string) = entry["jsonString"]
+                        .as_str()
+                        .filter(|_| entry["__typename"] == "JsonMetadataEntry")
+                    {
+                        let parsed: Report = serde_json::from_str(json_string)?;
+                        reports.push(parsed);
                     }
                 }
             }
