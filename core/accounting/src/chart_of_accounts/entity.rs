@@ -929,4 +929,71 @@ mod test {
             Err(ChartOfAccountsError::CodeNotFoundInChart(_))
         ));
     }
+
+    #[test]
+    fn import_accounts_creates_multiple_root_accounts() {
+        let mut chart = chart_from(initial_events());
+        let journal_id = CalaJournalId::new();
+        let specs = vec![
+            AccountSpec {
+                name: "Assets".parse().unwrap(),
+                parent: None,
+                code: "1".parse().unwrap(),
+                normal_balance_type: DebitOrCredit::Credit,
+            },
+            AccountSpec {
+                name: "Liabilities".parse().unwrap(),
+                parent: None,
+                code: "2".parse().unwrap(),
+                normal_balance_type: DebitOrCredit::Credit,
+            },
+        ];
+        let result = chart.import_accounts(specs, journal_id);
+        assert_eq!(result.new_account_sets.len(), 2);
+        assert_eq!(result.new_account_set_ids.len(), 2);
+        assert_eq!(result.new_connections.len(), 2);
+    }
+
+    #[test]
+    fn import_accounts_creates_hierarchical_structure() {
+        let mut chart = chart_from(initial_events());
+        let journal_id = CalaJournalId::new();
+
+        let specs = vec![
+            AccountSpec {
+                name: "Assets".parse().unwrap(),
+                parent: None,
+                code: "1".parse().unwrap(),
+                normal_balance_type: DebitOrCredit::Credit,
+            },
+            AccountSpec {
+                name: "Current Assets".parse().unwrap(),
+                parent: Some("1".parse().unwrap()),
+                code: "1.1".parse().unwrap(),
+                normal_balance_type: DebitOrCredit::Credit,
+            },
+            AccountSpec {
+                name: "Cash".parse().unwrap(),
+                parent: Some("1.1".parse().unwrap()),
+                code: "1.1.1".parse().unwrap(),
+                normal_balance_type: DebitOrCredit::Credit,
+            },
+            AccountSpec {
+                name: "Liabilities".parse().unwrap(),
+                parent: None,
+                code: "2".parse().unwrap(),
+                normal_balance_type: DebitOrCredit::Credit,
+            },
+            AccountSpec {
+                name: "Current Liabilities".parse().unwrap(),
+                parent: Some("2".parse().unwrap()),
+                code: "2.1".parse().unwrap(),
+                normal_balance_type: DebitOrCredit::Credit,
+            },
+        ];
+        let result = chart.import_accounts(specs, journal_id);
+        assert_eq!(result.new_account_sets.len(), 5);
+        assert_eq!(result.new_account_set_ids.len(), 5);
+        assert_eq!(result.new_connections.len(), 5);
+    }
 }
