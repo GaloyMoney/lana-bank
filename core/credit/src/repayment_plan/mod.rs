@@ -222,7 +222,7 @@ impl CreditFacilityRepaymentPlan {
 
                 existing_obligations.push(entry);
             }
-            CoreCreditEvent::FacilityRepaymentRecorded {
+            CoreCreditEvent::FacilityPaymentAllocated {
                 obligation_id,
                 amount,
                 ..
@@ -744,11 +744,11 @@ mod tests {
                 recorded_at: interest_recorded_at,
                 effective: interest_recorded_at.date_naive(),
             },
-            CoreCreditEvent::FacilityRepaymentRecorded {
+            CoreCreditEvent::FacilityPaymentAllocated {
                 credit_facility_id: CreditFacilityId::new(),
                 obligation_id: interest_obligation_id,
                 obligation_type: ObligationType::Interest,
-                payment_id: PaymentAllocationId::new(),
+                allocation_id: PaymentAllocationId::new(),
                 amount: UsdCents::from(400_00),
                 recorded_at: interest_recorded_at,
                 effective: interest_recorded_at.date_naive(),
@@ -822,11 +822,11 @@ mod tests {
                 recorded_at: interest_recorded_at,
                 effective: interest_recorded_at.date_naive(),
             },
-            CoreCreditEvent::FacilityRepaymentRecorded {
+            CoreCreditEvent::FacilityPaymentAllocated {
                 credit_facility_id: CreditFacilityId::new(),
                 obligation_id: interest_obligation_id,
                 obligation_type: ObligationType::Interest,
-                payment_id: PaymentAllocationId::new(),
+                allocation_id: PaymentAllocationId::new(),
                 amount: UsdCents::from(1_000_00),
                 recorded_at: interest_recorded_at,
                 effective: interest_recorded_at.date_naive(),

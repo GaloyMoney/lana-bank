@@ -89,8 +89,8 @@ where
     #[instrument(name = "outbox.core_credit.repayment_plan_projection_job.process_message", parent = None, skip(self, message, db, sequence, clock), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn process_message(
         &self,
-        message: &PersistentOutboxEvent<E>,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        message: &PersistentOutboxEvent<E>,
         sequence: EventSequence,
         clock: &ClockHandle,
     ) -> Result<(), Box<dyn std::error::Error>> {
@@ -118,7 +118,7 @@ where
             Some(event @ FacilityActivated { id, .. })
             | Some(event @ FacilityCompleted { id, .. })
             | Some(
-                event @ FacilityRepaymentRecorded {
+                event @ FacilityPaymentAllocated {
                     credit_facility_id: id,
                     ..
                 },
@@ -230,7 +230,7 @@ where
                     match message {
                         Some(message) => {
                             let mut db = self.repo.begin().await?;
-                            self.process_message(&message, &mut db, state.sequence, current_job.clock())
+                            self.process_message(&mut db, &message, state.sequence, current_job.clock())
                                 .await?;
 
                             state.sequence = message.sequence;

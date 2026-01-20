@@ -6,20 +6,14 @@ use serde::{Deserialize, Serialize};
 use tokio::select;
 use tracing::{Span, instrument};
 
-use core_accounting::LedgerTransactionInitiator;
 use core_custody::CoreCustodyEvent;
-use es_entity::{DbOp, Idempotent};
+use es_entity::DbOp;
 use governance::GovernanceEvent;
 use job::*;
 use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
-use crate::{
-    CoreCreditEvent, CreditFacilityId, LiquidationId, NewPayment, PaymentLedgerAccountIds,
-    credit_facility::CreditFacilityRepo, ledger::CreditLedger, liquidation::LiquidationRepo,
-    obligation::ObligationRepo, payment::PaymentRepo, payment_allocation::PaymentAllocationRepo,
-    primitives::*,
-};
+use crate::{CoreCreditEvent, CreditFacilityId, LiquidationId, liquidation::LiquidationRepo};
 
 #[derive(Default, Clone, Deserialize, Serialize)]
 struct PartialLiquidationJobData {
@@ -51,11 +45,6 @@ where
 {
     outbox: Outbox<E>,
     liquidation_repo: Arc<LiquidationRepo<E>>,
-    payment_repo: Arc<PaymentRepo>,
-    obligation_repo: Arc<ObligationRepo<E>>,
-    payment_allocation_repo: Arc<PaymentAllocationRepo<E>>,
-    credit_facility_repo: Arc<CreditFacilityRepo<E>>,
-    ledger: Arc<CreditLedger>,
 }
 
 impl<E> PartialLiquidationInit<E>
@@ -64,23 +53,10 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
-    pub fn new(
-        outbox: &Outbox<E>,
-        liquidation_repo: Arc<LiquidationRepo<E>>,
-        payment_repo: Arc<PaymentRepo>,
-        obligation_repo: Arc<ObligationRepo<E>>,
-        payment_allocation_repo: Arc<PaymentAllocationRepo<E>>,
-        credit_facility_repo: Arc<CreditFacilityRepo<E>>,
-        ledger: Arc<CreditLedger>,
-    ) -> Self {
+    pub fn new(outbox: &Outbox<E>, liquidation_repo: Arc<LiquidationRepo<E>>) -> Self {
         Self {
             outbox: outbox.clone(),
             liquidation_repo,
-            payment_repo,
-            obligation_repo,
-            payment_allocation_repo,
-            credit_facility_repo,
-            ledger,
         }
     }
 }
@@ -109,11 +85,6 @@ where
             config,
             outbox: self.outbox.clone(),
             liquidation_repo: self.liquidation_repo.clone(),
-            payment_repo: self.payment_repo.clone(),
-            obligation_repo: self.obligation_repo.clone(),
-            payment_allocation_repo: self.payment_allocation_repo.clone(),
-            credit_facility_repo: self.credit_facility_repo.clone(),
-            ledger: self.ledger.clone(),
         }))
     }
 }
@@ -127,11 +98,6 @@ where
     config: PartialLiquidationJobConfig<E>,
     outbox: Outbox<E>,
     liquidation_repo: Arc<LiquidationRepo<E>>,
-    payment_repo: Arc<PaymentRepo>,
-    obligation_repo: Arc<ObligationRepo<E>>,
-    payment_allocation_repo: Arc<PaymentAllocationRepo<E>>,
-    credit_facility_repo: Arc<CreditFacilityRepo<E>>,
-    ledger: Arc<CreditLedger>,
 }
 
 #[async_trait]
@@ -201,130 +167,20 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
-    async fn record_payment(
-        &self,
-        db: &mut DbOp<'_>,
-        payment_id: PaymentId,
-        amount: UsdCents,
-        credit_facility_id: CreditFacilityId,
-        payment_ledger_account_ids: PaymentLedgerAccountIds,
-        clock: &es_entity::clock::ClockHandle,
-    ) -> Result<Option<crate::payment::Payment>, Box<dyn std::error::Error>> {
-        if self
-            .payment_repo
-            .maybe_find_by_id_in_op(&mut *db, payment_id)
-            .await?
-            .is_some()
-        {
-            return Ok(None);
-        }
-
-        let new_payment = NewPayment::builder()
-            .id(payment_id)
-            .ledger_tx_id(payment_id)
-            .amount(amount)
-            .credit_facility_id(credit_facility_id)
-            .payment_ledger_account_ids(payment_ledger_account_ids)
-            .effective(clock.today())
-            .build()
-            .expect("could not build new payment");
-
-        let payment = self.payment_repo.create_in_op(db, new_payment).await?;
-        self.ledger
-            .record_payment(db, &payment, LedgerTransactionInitiator::System)
-            .await?;
-
-        Ok(Some(payment))
-    }
-
-    async fn allocate_payment(
-        &self,
-        db: &mut DbOp<'_>,
-        payment: &crate::payment::Payment,
-        credit_facility_id: CreditFacilityId,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        let mut obligations = Vec::new();
-        let mut query = Default::default();
-
-        loop {
-            let mut res = self
-                .obligation_repo
-                .list_for_credit_facility_id_by_created_at(
-                    credit_facility_id,
-                    query,
-                    es_entity::ListDirection::Ascending,
-                )
-                .await?;
-
-            obligations.append(&mut res.entities);
-            if let Some(q) = res.into_next_query() {
-                query = q;
-            } else {
-                break;
-            }
-        }
-        obligations.sort();
-
-        let mut remaining = payment.amount;
-        let mut new_allocations = Vec::new();
-
-        for obligation in obligations.iter_mut() {
-            if let Idempotent::Executed(new_allocation) =
-                obligation.allocate_payment(remaining, payment)
-            {
-                self.obligation_repo.update_in_op(db, obligation).await?;
-                remaining -= new_allocation.amount;
-                new_allocations.push(new_allocation);
-                if remaining == UsdCents::ZERO {
-                    break;
-                }
-            }
-        }
-
-        let allocations = self
-            .payment_allocation_repo
-            .create_all_in_op(db, new_allocations)
-            .await?;
-        self.ledger
-            .record_payment_allocations(db, allocations, LedgerTransactionInitiator::System)
-            .await?;
-
-        Ok(())
-    }
-
-    async fn complete_facility_liquidation(
-        &self,
-        db: &mut DbOp<'_>,
-        credit_facility_id: CreditFacilityId,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        let mut credit_facility = self
-            .credit_facility_repo
-            .find_by_id_in_op(db, credit_facility_id)
-            .await?;
-
-        if credit_facility
-            .complete_liquidation(self.config.liquidation_id)?
-            .did_execute()
-        {
-            self.credit_facility_repo
-                .update_in_op(db, &mut credit_facility)
-                .await?;
-        }
-
-        Ok(())
-    }
-
+    #[instrument(
+        name = "outbox.core_credit.partial_liquidation.complete_liquidation",
+        skip(self, db)
+    )]
     async fn complete_liquidation(
         &self,
         db: &mut DbOp<'_>,
-        payment_id: PaymentId,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let mut liquidation = self
             .liquidation_repo
             .find_by_id(self.config.liquidation_id)
             .await?;
 
-        if liquidation.complete(payment_id).did_execute() {
+        if liquidation.complete().did_execute() {
             self.liquidation_repo
                 .update_in_op(db, &mut liquidation)
                 .await?;
@@ -345,13 +201,8 @@ where
         match &message.as_event() {
             Some(
                 event @ PartialLiquidationProceedsReceived {
-                    amount,
-                    credit_facility_id,
                     liquidation_id,
                     payment_id,
-                    facility_payment_holding_account_id,
-                    facility_proceeds_from_liquidation_account_id,
-                    facility_uncovered_outstanding_account_id,
                     ..
                 },
             ) if *liquidation_id == self.config.liquidation_id => {
@@ -359,31 +210,7 @@ where
                 Span::current().record("event_type", event.as_ref());
                 Span::current().record("payment_id", tracing::field::display(payment_id));
 
-                let payment_ledger_account_ids = PaymentLedgerAccountIds {
-                    facility_payment_holding_account_id: *facility_payment_holding_account_id,
-                    facility_uncovered_outstanding_account_id:
-                        *facility_uncovered_outstanding_account_id,
-                    payment_source_account_id: facility_proceeds_from_liquidation_account_id.into(),
-                };
-
-                let payment_opt = self
-                    .record_payment(
-                        db,
-                        *payment_id,
-                        *amount,
-                        *credit_facility_id,
-                        payment_ledger_account_ids,
-                        clock,
-                    )
-                    .await?;
-
-                if let Some(payment) = payment_opt {
-                    self.allocate_payment(db, &payment, *credit_facility_id)
-                        .await?;
-                    self.complete_facility_liquidation(db, *credit_facility_id)
-                        .await?;
-                    self.complete_liquidation(db, *payment_id).await?;
-                }
+                self.complete_liquidation(db).await?;
 
                 Ok(ControlFlow::Break(()))
             }

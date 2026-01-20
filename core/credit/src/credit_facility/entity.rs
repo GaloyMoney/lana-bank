@@ -61,7 +61,7 @@ pub enum CreditFacilityEvent {
         initially_expected_to_receive: UsdCents,
         initially_estimated_to_liquidate: Satoshis,
     },
-    PartialLiquidationCompleted {
+    ProceedsFromPartialLiquidationApplied {
         liquidation_id: LiquidationId,
     },
     Matured {},
@@ -283,7 +283,7 @@ impl CreditFacility {
         idempotency_guard!(
             self.events.iter_all().rev(),
             CreditFacilityEvent::PartialLiquidationInitiated { .. },
-            => CreditFacilityEvent::PartialLiquidationCompleted { .. }
+            => CreditFacilityEvent::ProceedsFromPartialLiquidationApplied { .. }
         );
 
         if balances.total_outstanding().is_zero() {
@@ -321,13 +321,13 @@ impl CreditFacility {
     ///
     /// Throws `NoSuchLiquidationInitiated` if no Liquidation is
     /// running or different Liquidation is running.
-    pub(crate) fn complete_liquidation(
+    pub(crate) fn acknowledge_payment_from_liquidation(
         &mut self,
         liquidation_id: LiquidationId,
     ) -> Result<Idempotent<()>, CreditFacilityError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            CreditFacilityEvent::PartialLiquidationCompleted {
+            CreditFacilityEvent::ProceedsFromPartialLiquidationApplied {
                 liquidation_id: existing,
                 ..
             } if *existing == liquidation_id,
@@ -346,7 +346,9 @@ impl CreditFacility {
 
         if liquidation_initiated {
             self.events
-                .push(CreditFacilityEvent::PartialLiquidationCompleted { liquidation_id });
+                .push(CreditFacilityEvent::ProceedsFromPartialLiquidationApplied {
+                    liquidation_id,
+                });
 
             Ok(Idempotent::Executed(()))
         } else {
@@ -696,7 +698,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                 CreditFacilityEvent::Matured { .. } => (),
                 CreditFacilityEvent::Completed { .. } => (),
                 CreditFacilityEvent::PartialLiquidationInitiated { .. } => {}
-                CreditFacilityEvent::PartialLiquidationCompleted { .. } => {}
+                CreditFacilityEvent::ProceedsFromPartialLiquidationApplied { .. } => {}
             }
         }
         builder.events(events).build()
@@ -1046,6 +1048,7 @@ mod test {
                 facility_remaining: UsdCents::ZERO,
                 disbursed: UsdCents::from(10000000),
                 interest_posted: UsdCents::ZERO,
+                payments_unapplied: UsdCents::ZERO,
             };
 
             // Price high enough to keep CVL (200) above thresholds
@@ -1112,14 +1115,14 @@ mod test {
         }
 
         #[test]
-        fn liquidation_can_be_completed() {
+        fn liquidation_payment_can_be_acknowledge() {
             let (mut credit_facility, balances) = collateralized_facility();
 
             let liquidation_id = initiate_liquidation(&mut credit_facility, balances);
 
             // Complete liquidation
             assert!(matches!(
-                credit_facility.complete_liquidation(liquidation_id),
+                credit_facility.acknowledge_payment_from_liquidation(liquidation_id),
                 Ok(Idempotent::Executed(()))
             ));
         }
@@ -1143,9 +1146,9 @@ mod test {
                 Some(CollateralizationState::FullyCollateralized)
             );
 
-            // Complete liquidation
+            // Acknowledge liquidation payment
             assert!(matches!(
-                credit_facility.complete_liquidation(liquidation_id),
+                credit_facility.acknowledge_payment_from_liquidation(liquidation_id),
                 Ok(Idempotent::Executed(()))
             ));
 
@@ -1214,6 +1217,7 @@ mod test {
                         facility_remaining: UsdCents::from(1),
                         disbursed: UsdCents::from(1),
                         interest_posted: UsdCents::from(1),
+                        payments_unapplied: UsdCents::ZERO,
                     },
                 )
                 .unwrap();
@@ -1244,6 +1248,7 @@ mod test {
                     facility_remaining: UsdCents::from(1),
                     disbursed: UsdCents::from(1),
                     interest_posted: UsdCents::from(1),
+                    payments_unapplied: UsdCents::ZERO,
                 },
             );
             assert!(matches!(
@@ -1270,6 +1275,7 @@ mod test {
                     facility_remaining: UsdCents::from(1),
                     disbursed: UsdCents::from(1),
                     interest_posted: UsdCents::from(1),
+                    payments_unapplied: UsdCents::ZERO,
                 },
             );
             assert!(matches!(
@@ -1301,6 +1307,7 @@ mod test {
                     facility_remaining: UsdCents::from(1),
                     disbursed: UsdCents::from(1),
                     interest_posted: UsdCents::from(1),
+                    payments_unapplied: UsdCents::ZERO,
                 },
             );
             assert!(matches!(
@@ -1327,6 +1334,7 @@ mod test {
                     facility_remaining: UsdCents::from(1),
                     disbursed: UsdCents::from(1),
                     interest_posted: UsdCents::from(1),
+                    payments_unapplied: UsdCents::ZERO,
                 },
             );
             assert!(matches!(
@@ -1358,6 +1366,7 @@ mod test {
                     facility_remaining: UsdCents::from(1),
                     disbursed: UsdCents::from(1),
                     interest_posted: UsdCents::from(1),
+                    payments_unapplied: UsdCents::ZERO,
                 },
             );
             assert!(matches!(
@@ -1384,6 +1393,7 @@ mod test {
                     facility_remaining: UsdCents::from(1),
                     disbursed: UsdCents::from(1),
                     interest_posted: UsdCents::from(1),
+                    payments_unapplied: UsdCents::ZERO,
                 },
             );
             assert!(matches!(
@@ -1415,6 +1425,7 @@ mod test {
                     facility_remaining: UsdCents::from(1),
                     disbursed: UsdCents::from(1),
                     interest_posted: UsdCents::from(1),
+                    payments_unapplied: UsdCents::ZERO,
                 },
             );
             assert!(matches!(
@@ -1441,6 +1452,7 @@ mod test {
                     facility_remaining: UsdCents::from(1),
                     disbursed: UsdCents::from(1),
                     interest_posted: UsdCents::from(1),
+                    payments_unapplied: UsdCents::ZERO,
                 },
             );
             assert!(matches!(

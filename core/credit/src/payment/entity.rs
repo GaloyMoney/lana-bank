@@ -91,6 +91,18 @@ impl Payment {
     }
 }
 
+impl From<Payment> for PaymentDetailsForAllocation {
+    fn from(payment: Payment) -> Self {
+        Self {
+            payment_id: payment.id,
+            amount: payment.amount,
+            credit_facility_id: payment.credit_facility_id,
+            facility_payment_holding_account_id: payment.facility_payment_holding_account_id,
+            effective: payment.effective,
+        }
+    }
+}
+
 #[derive(Debug, Builder)]
 pub struct NewPayment {
     #[builder(setter(into))]

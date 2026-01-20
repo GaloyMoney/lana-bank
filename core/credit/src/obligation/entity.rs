@@ -8,8 +8,7 @@ use std::cmp::Ordering;
 use es_entity::*;
 
 use crate::{
-    ledger::ObligationReceivableAccountIds, payment::Payment,
-    payment_allocation::NewPaymentAllocation, primitives::*,
+    ledger::ObligationReceivableAccountIds, payment_allocation::NewPaymentAllocation, primitives::*,
 };
 
 use super::{error::ObligationError, primitives::*};
@@ -316,25 +315,21 @@ impl Obligation {
     pub(crate) fn allocate_payment(
         &mut self,
         amount: UsdCents,
-        Payment {
-            id: payment_id,
-            facility_payment_holding_account_id,
+        PaymentDetailsForAllocation {
+            payment_id,
+            facility_payment_holding_account_id: payment_holding_account_id,
             effective,
             ..
-        }: &Payment,
+        }: PaymentDetailsForAllocation,
     ) -> Idempotent<NewPaymentAllocation> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            ObligationEvent::PaymentAllocated {payment_id: id, .. }  if id == payment_id
+            ObligationEvent::PaymentAllocated {payment_id: id, .. }  if *id == payment_id
         );
         let pre_payment_outstanding = self.outstanding();
         if pre_payment_outstanding.is_zero() {
             return Idempotent::AlreadyApplied;
         }
-
-        let payment_id = *payment_id;
-        let payment_holding_account_id = *facility_payment_holding_account_id;
-        let effective = *effective;
 
         let payment_amount = std::cmp::min(pre_payment_outstanding, amount);
         let allocation_id = PaymentAllocationId::new();
@@ -532,9 +527,6 @@ impl From<ObligationLifecycleDates> for ObligationLifecycleTimestamps {
 
 #[cfg(test)]
 mod test {
-
-    use crate::PaymentEvent;
-
     use super::*;
 
     fn obligation_from(events: Vec<ObligationEvent>) -> Obligation {
@@ -559,22 +551,14 @@ mod test {
         }]
     }
 
-    fn dummy_payment() -> Payment {
-        let id = PaymentId::new();
-        let events = EntityEvents::init(
-            id,
-            [PaymentEvent::Initialized {
-                id,
-                ledger_tx_id: LedgerTxId::new(),
-                credit_facility_id: CreditFacilityId::new(),
-                facility_payment_holding_account_id: CalaAccountId::new(),
-                payment_source_account_id: CalaAccountId::new(),
-                facility_uncovered_outstanding_account_id: CalaAccountId::new(),
-                amount: UsdCents::ONE,
-                effective: Utc::now().date_naive(),
-            }],
-        );
-        Payment::try_from_events(events).unwrap()
+    fn dummy_payment_details() -> PaymentDetailsForAllocation {
+        PaymentDetailsForAllocation {
+            payment_id: PaymentId::new(),
+            amount: UsdCents::ONE,
+            credit_facility_id: CreditFacilityId::new(),
+            facility_payment_holding_account_id: CalaAccountId::new(),
+            effective: Utc::now().date_naive(),
+        }
     }
 
     #[test]
@@ -711,12 +695,12 @@ mod test {
     fn completes_on_final_payment_allocation() {
         let mut obligation = obligation_from(initial_events());
         obligation
-            .allocate_payment(UsdCents::ONE, &dummy_payment())
+            .allocate_payment(UsdCents::ONE, dummy_payment_details())
             .unwrap();
         assert_eq!(obligation.status(), ObligationStatus::NotYetDue);
 
         obligation
-            .allocate_payment(obligation.outstanding(), &dummy_payment())
+            .allocate_payment(obligation.outstanding(), dummy_payment_details())
             .unwrap();
         assert_eq!(obligation.status(), ObligationStatus::Paid);
     }

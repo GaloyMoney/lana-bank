@@ -595,7 +595,7 @@
           "type": "string"
         },
         "type": {
-          "const": "partial_liquidation_completed",
+          "const": "proceeds_from_partial_liquidation_applied",
           "type": "string"
         }
       },

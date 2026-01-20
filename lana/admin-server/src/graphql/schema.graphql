@@ -432,6 +432,7 @@ type CreditFacilityBalance {
 	outstandingPayable: Outstanding!
 	dueOutstanding: Outstanding!
 	collateral: CollateralBalance!
+	paymentsUnapplied: PaymentsUnapplied!
 }
 
 type CreditFacilityCollateralSentOut {
@@ -1921,6 +1922,10 @@ type PageInfo {
 type PaymentEntry {
 	recordedAt: Timestamp!
 	payment: CreditFacilityPaymentAllocation!
+}
+
+type PaymentsUnapplied {
+	usdBalance: UsdCents!
 }
 
 type PendingCreditFacility {

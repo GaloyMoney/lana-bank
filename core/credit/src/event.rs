@@ -50,11 +50,18 @@ pub enum CoreCreditEvent {
         id: CreditFacilityId,
         completed_at: DateTime<Utc>,
     },
-    FacilityRepaymentRecorded {
+    FacilityPaymentReceived {
+        payment_id: PaymentId,
+        credit_facility_id: CreditFacilityId,
+        amount: UsdCents,
+        recorded_at: DateTime<Utc>,
+        effective: chrono::NaiveDate,
+    },
+    FacilityPaymentAllocated {
         credit_facility_id: CreditFacilityId,
         obligation_id: ObligationId,
         obligation_type: ObligationType,
-        payment_id: PaymentAllocationId,
+        allocation_id: PaymentAllocationId,
         amount: UsdCents,
         recorded_at: DateTime<Utc>,
         effective: chrono::NaiveDate,
@@ -164,6 +171,5 @@ pub enum CoreCreditEvent {
     PartialLiquidationCompleted {
         liquidation_id: LiquidationId,
         credit_facility_id: CreditFacilityId,
-        payment_id: PaymentId,
     },
 }

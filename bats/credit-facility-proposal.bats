@@ -97,6 +97,26 @@ wait_for_dashboard_disbursed() {
   [[ "$after" -eq "$expected_after" ]] || exit 1
 }
 
+wait_for_payment() {
+  credit_facility_id=$1
+  outstanding_before=$2
+  payment_amount=$3
+
+  expected_after="$(( $outstanding_before - $payment_amount ))"
+
+  variables=$(
+    jq -n \
+      --arg creditFacilityId "$credit_facility_id" \
+    '{ id: $creditFacilityId }'
+  )
+  exec_admin_graphql 'find-credit-facility' "$variables"
+
+  balance=$(graphql_output '.data.creditFacility.balance')
+  after=$(echo $balance | jq -r '.outstanding.usdBalance')
+
+  [[ "$after" -eq "$expected_after" ]] || exit 1
+}
+
 wait_for_dashboard_payment() {
   before=$1
   payment_amount=$2
@@ -272,6 +292,10 @@ ymd() {
   total_outstanding=$(echo $balance | jq -r '.outstanding.usdBalance')
   [[ "$total_outstanding" -eq "$(( $interest_outstanding + $disbursed_outstanding ))" ]] || exit 1
 
+  payments_unapplied=$(echo $balance | jq -r '.paymentsUnapplied.usdBalance')
+  [[ "$payments_unapplied" != "null" ]] || exit 1
+  [[ "$payments_unapplied" -eq 0 ]] || exit 1
+
   disbursed_payment=25000
   amount="$(( $disbursed_payment + $interest_outstanding ))"
   variables=$(
@@ -286,7 +310,19 @@ ymd() {
     }'
   )
   exec_admin_graphql 'credit-facility-partial-payment-record' "$variables"
-  updated_balance=$(graphql_output '.data.creditFacilityPartialPaymentRecord.creditFacility.balance')
+  balance_after_payment=$(graphql_output '.data.creditFacilityPartialPaymentRecord.creditFacility.balance')
+  payments_unapplied_after=$(echo $balance_after_payment | jq -r '.paymentsUnapplied.usdBalance')
+  [[ "$payments_unapplied_after" -gt 0 ]] || exit 1
+
+  retry 30 2 wait_for_payment "$credit_facility_id" "$total_outstanding" "$amount"
+
+  variables=$(
+    jq -n \
+      --arg creditFacilityId "$credit_facility_id" \
+    '{ id: $creditFacilityId }'
+  )
+  exec_admin_graphql 'find-credit-facility' "$variables"
+  updated_balance=$(graphql_output '.data.creditFacility.balance')
 
   updated_interest=$(echo $updated_balance | jq -r '.interest.total.usdBalance')
   [[ "$interest" -eq "$updated_interest" ]] || exit 1

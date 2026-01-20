@@ -65,7 +65,8 @@ pub use payment_allocation::*;
 pub use pending_credit_facility::*;
 pub use primitives::*;
 pub use processes::{
-    activate_credit_facility::*, approve_credit_facility_proposal::*, approve_disbursal::*,
+    activate_credit_facility::*, allocate_credit_facility_payment::*,
+    approve_credit_facility_proposal::*, approve_disbursal::*,
 };
 use publisher::CreditFacilityPublisher;
 pub use repayment_plan::*;
@@ -98,7 +99,7 @@ where
     pending_credit_facilities: Arc<PendingCreditFacilities<Perms, E>>,
     facilities: Arc<CreditFacilities<Perms, E>>,
     disbursals: Arc<Disbursals<Perms, E>>,
-    payments: Arc<Payments<Perms>>,
+    payments: Arc<Payments<Perms, E>>,
     repayment_plans: Arc<RepaymentPlans<Perms>>,
     governance: Arc<Governance<Perms, E>>,
     customer: Arc<Customers<Perms, E>>,
@@ -300,7 +301,13 @@ where
         .await?;
         let facilities_arc = Arc::new(credit_facilities);
 
-        let payments = Payments::new(pool, authz_arc.clone(), ledger_arc.clone());
+        let payments = Payments::new(
+            pool,
+            authz_arc.clone(),
+            ledger_arc.clone(),
+            clock.clone(),
+            &publisher,
+        );
         let payments_arc = Arc::new(payments);
 
         let histories_arc = Arc::new(Histories::init(pool, outbox, jobs, authz_arc.clone()).await?);
@@ -336,6 +343,25 @@ where
             public_ids_arc.clone(),
         );
         let activate_credit_facility_arc = Arc::new(activate_credit_facility);
+
+        let allocate_credit_facility_payment = AllocateCreditFacilityPayment::new(
+            payments_arc.clone(),
+            obligations_arc.clone(),
+            clock.clone(),
+        );
+        let allocate_credit_facility_payment_arc = Arc::new(allocate_credit_facility_payment);
+
+        let allocate_payment_job_spawner =
+            jobs.add_initializer(AllocateCreditFacilityPaymentInit::new(
+                outbox,
+                allocate_credit_facility_payment_arc.as_ref(),
+            ));
+        allocate_payment_job_spawner
+            .spawn_unique(
+                job::JobId::new(),
+                AllocateCreditFacilityPaymentJobConfig::<Perms, E>::new(),
+            )
+            .await?;
 
         let chart_of_accounts_integrations =
             ChartOfAccountsIntegrations::new(authz_arc.clone(), ledger_arc.clone());
@@ -432,7 +458,7 @@ where
         self.facilities.as_ref()
     }
 
-    pub fn payments(&self) -> &Payments<Perms> {
+    pub fn payments(&self) -> &Payments<Perms, E> {
         self.payments.as_ref()
     }
 
@@ -803,8 +829,8 @@ where
     pub async fn record_payment(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug + Copy,
-        payment_source_account_id: impl Into<PaymentSourceAccountId> + std::fmt::Debug + Copy,
+        credit_facility_id: impl es_entity::RetryableInto<CreditFacilityId>,
+        payment_source_account_id: impl es_entity::RetryableInto<PaymentSourceAccountId>,
         amount: UsdCents,
     ) -> Result<CreditFacility, CoreCreditError> {
         self.subject_can_record_payment(sub, true)
@@ -824,15 +850,11 @@ where
             .find_by_id_without_audit(credit_facility_id)
             .await?;
 
-        let mut db = self.facilities.begin_op_with_clock(&self.clock).await?;
-
         let payment_id = PaymentId::new();
         let effective = self.clock.today();
         let initiated_by = LedgerTransactionInitiator::try_from_subject(sub)?;
-        if let Some(payment) = self
-            .payments
-            .record_in_op(
-                &mut db,
+        self.payments
+            .record(
                 payment_id,
                 credit_facility_id,
                 PaymentLedgerAccountIds {
@@ -846,14 +868,7 @@ where
                 effective,
                 initiated_by,
             )
-            .await?
-        {
-            self.obligations
-                .allocate_payment_in_op(&mut db, &payment, initiated_by)
-                .await?;
-
-            db.commit().await?;
-        }
+            .await?;
 
         Ok(credit_facility)
     }
@@ -880,10 +895,10 @@ where
     pub async fn record_payment_with_date(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug + Copy,
-        payment_source_account_id: impl Into<PaymentSourceAccountId> + std::fmt::Debug + Copy,
+        credit_facility_id: impl es_entity::RetryableInto<CreditFacilityId>,
+        payment_source_account_id: impl es_entity::RetryableInto<PaymentSourceAccountId>,
         amount: UsdCents,
-        effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
+        effective: impl es_entity::RetryableInto<chrono::NaiveDate>,
     ) -> Result<CreditFacility, CoreCreditError> {
         self.subject_can_record_payment_with_date(sub, true)
             .await?
@@ -897,14 +912,10 @@ where
             .find_by_id_without_audit(credit_facility_id)
             .await?;
 
-        let mut db = self.facilities.begin_op_with_clock(&self.clock).await?;
-
         let payment_id = PaymentId::new();
         let initiated_by = LedgerTransactionInitiator::try_from_subject(sub)?;
-        if let Some(payment) = self
-            .payments
-            .record_in_op(
-                &mut db,
+        self.payments
+            .record(
                 payment_id,
                 credit_facility_id,
                 PaymentLedgerAccountIds {
@@ -918,13 +929,7 @@ where
                 effective.into(),
                 initiated_by,
             )
-            .await?
-        {
-            self.obligations
-                .allocate_payment_in_op(&mut db, &payment, initiated_by)
-                .await?;
-            db.commit().await?;
-        }
+            .await?;
 
         Ok(credit_facility)
     }
@@ -951,7 +956,7 @@ where
     pub async fn complete_facility(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug + Copy,
+        credit_facility_id: impl es_entity::RetryableInto<CreditFacilityId>,
     ) -> Result<CreditFacility, CoreCreditError> {
         let id = credit_facility_id.into();
 
