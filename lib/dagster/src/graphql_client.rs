@@ -2,7 +2,6 @@ use chrono::{DateTime, Utc};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use url::Url;
 
 use tracing_macros::record_error_severity;
 
@@ -163,14 +162,14 @@ pub struct LaunchPipelineResponse {
 #[derive(Clone)]
 pub struct GraphqlClient {
     http: Client,
-    url: Url,
+    config: DagsterConfig,
 }
 
 impl GraphqlClient {
     pub fn new(config: DagsterConfig) -> Self {
         Self {
             http: Client::new(),
-            url: config.uri,
+            config,
         }
     }
 
@@ -182,11 +181,11 @@ impl GraphqlClient {
         cursor: Option<String>,
     ) -> Result<FileReportsRunsResponse, DagsterError> {
         let query = r#"
-query FileReportsRuns($limit: Int!, $cursor: String) {
+query FileReportsRuns($limit: Int!, $cursor: String, $pipelineName: String) {
   runsOrError(
     limit: $limit
     cursor: $cursor
-    filter: {pipelineName: "file_reports_generation"}
+    filter: {pipelineName: $pipelineName}
   ) {
     ... on Runs {
       count
@@ -207,11 +206,13 @@ query FileReportsRuns($limit: Int!, $cursor: String) {
         let variables = if let Some(cursor) = cursor {
             json!({
                 "limit": limit,
-                "cursor": cursor
+                "cursor": cursor,
+                "pipelineName": &self.config.pipeline_name_for_report_generation
             })
         } else {
             json!({
-                "limit": limit
+                "limit": limit,
+                "pipelineName": &self.config.pipeline_name_for_report_generation
             })
         };
 
@@ -222,7 +223,7 @@ query FileReportsRuns($limit: Int!, $cursor: String) {
 
         let response = self
             .http
-            .post(self.url.clone())
+            .post(self.config.uri.clone())
             .json(&request)
             .send()
             .await?;
@@ -269,7 +270,7 @@ query GetLogsForRun($runId: ID!) {
 
         let response = self
             .http
-            .post(self.url.clone())
+            .post(self.config.uri.clone())
             .json(&request)
             .send()
             .await?;
@@ -323,9 +324,9 @@ mutation LaunchPipeline($executionParams: ExecutionParams!) {
 
         let execution_params = ExecutionParams {
             selector: PipelineSelector {
-                pipeline_name: "file_reports_generation".to_string(),
-                repository_location_name: "Lana DW".to_string(),
-                repository_name: "__repository__".to_string(),
+                pipeline_name: self.config.pipeline_name_for_report_generation.clone(),
+                repository_location_name: self.config.repository_location_name.clone(),
+                repository_name: self.config.repository_name.clone(),
             },
         };
 
@@ -340,7 +341,7 @@ mutation LaunchPipeline($executionParams: ExecutionParams!) {
 
         let response = self
             .http
-            .post(self.url.clone())
+            .post(self.config.uri.clone())
             .json(&request)
             .send()
             .await?;
