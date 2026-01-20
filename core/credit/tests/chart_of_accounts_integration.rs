@@ -246,23 +246,6 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .await?
         .id;
 
-    // let import = r#"
-    //     81,,,Other Facility Omnibus Parent,,
-    //     82,,,Other Collateral Omnibus Parent,,
-    //     83,,,Other Facility Parent,,
-    //     84,,,Other Collateral Parent,,
-    //     11,,,Other Disbursed Receivable Parent,,
-    //     12,,,Other Interest Receivable Parent,,
-    //     41,,,Other Interest Income Parent,,
-    //     42,,,Other Fee Income Parent,,
-    //     13,,,Other Payment Holding Parent,,
-    //     85,,,Other Liquidation Proceeds Omnibus Parent,,
-    //     86,,,Other Collateral In Liquidation Parent,,
-    //     87,,,Other Uncovered Outstanding Parent,,
-    //     88,,,Other Payments Made Omnibus Parent,,
-    //     89,,,Other Interest Added To Obligations Omnibus Parent,,
-    //     "#
-    // .to_string();
     let import = format!(
         "{}{}",
         BASE_ACCOUNTS_CSV,
