@@ -151,7 +151,10 @@ where
                     return Ok(JobCompletion::RescheduleNow);
                 }
 
-                // TODO: Bring in some special buffer logic, like sleeping less/publishing early
+                // TODO: Bring in some special buffer logic as it evolves, like:
+                // 1. Consumer uses the time_stamp from this event, not its own clock for processing EndOfDay tasks
+                // 2. Current sleep can wake early and does a loop of find-grained sleeps to publish "on time" and can even publish event early
+                // making the consumer prioritize this
                 _ = clock.sleep(duration_until_close) => {
                     tracing::debug!(job_id = %current_job.id(), "Sleep completed, continuing");
                     let mut op = current_job.begin_op().await?;
