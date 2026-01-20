@@ -6,15 +6,15 @@ use core_accounting::AccountingBaseConfig;
 use crate::accounting_init::error::AccountingInitError;
 
 #[derive(Debug, Clone, Deserialize)]
-pub struct AccountingBaseConfigData {
-    pub assets_code: String,
-    pub liabilities_code: String,
-    pub equity_code: String,
-    pub equity_retained_earnings_gain_code: String,
-    pub equity_retained_earnings_loss_code: String,
-    pub revenue_code: String,
-    pub cost_of_revenue_code: String,
-    pub expenses_code: String,
+struct AccountingBaseConfigData {
+    assets_code: String,
+    liabilities_code: String,
+    equity_code: String,
+    equity_retained_earnings_gain_code: String,
+    equity_retained_earnings_loss_code: String,
+    revenue_code: String,
+    cost_of_revenue_code: String,
+    expenses_code: String,
 }
 
 impl TryFrom<AccountingBaseConfigData> for AccountingBaseConfig {
