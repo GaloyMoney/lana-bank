@@ -1,6 +1,128 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+//! # Domain Config
+//!
+//! Type-safe, persistent configuration storage with two visibility levels.
+//!
+//! Supported simple types: `bool`, `i64`, `u64`, `String`, `Decimal`.
+//! Internal configs also support complex structs. Exposed configs only support simple types.
+//!
+//! ## Defining Configs
+//!
+//! **Internal** configs are owned by another crate which defines custom authorization:
+//! ```
+//! domain_config::define_internal_config! {
+//!     pub struct MyInternalFlag(bool);
+//!     spec {
+//!         key: "my-internal-flag";
+//!     }
+//! }
+//! ```
+//!
+//! Complex structs are also supported for internal configs:
+//! ```
+//! use serde::{Serialize, Deserialize};
+//!
+//! domain_config::define_internal_config! {
+//!     #[derive(Clone, Debug, Serialize, Deserialize)]
+//!     pub struct MyComplexConfig {
+//!         pub limit: u32,
+//!     }
+//!     spec {
+//!         key: "my-complex-config";
+//!     }
+//! }
+//! ```
+//!
+//! **Exposed** configs use standard domain-config authorization and automatically
+//! appear in the admin app's Configurations page:
+//! ```
+//! domain_config::define_exposed_config! {
+//!     pub struct MyExposedSetting(String);
+//!     spec {
+//!         key: "my-exposed-setting";
+//!     }
+//! }
+//! ```
+//!
+//! Both macros support optional `default:` and `validate:` clauses:
+//! ```
+//! domain_config::define_internal_config! {
+//!     pub struct MaxRetries(u64);
+//!     spec {
+//!         key: "max-retries";
+//!         default: || Some(3);
+//!         validate: |v: &u64| if *v > 0 && *v <= 100 {
+//!             Ok(())
+//!         } else {
+//!             Err(domain_config::DomainConfigError::InvalidState(
+//!                 "max-retries must be between 1 and 100".into()
+//!             ))
+//!         };
+//!     }
+//! }
+//! ```
+//!
+//! ## Using Configs
+//!
+//! Use [`InternalDomainConfigs`] for internal configs. The owning crate is responsible
+//! for enforcing authorization before calling these methods:
+//! ```no_run
+//! # domain_config::define_internal_config! {
+//! #     pub struct MyInternalFlag(bool);
+//! #     spec {
+//! #         key: "my-internal-flag";
+//! #     }
+//! # }
+//! # async fn example(pool: &sqlx::PgPool) -> Result<(), domain_config::DomainConfigError> {
+//!     // Enforce your custom authorization here before accessing the config
+//!     let configs = domain_config::InternalDomainConfigs::new(pool);
+//!     let value = configs.get::<MyInternalFlag>().await?.value();
+//!     configs.update::<MyInternalFlag>(true).await?;
+//! #     Ok(())
+//! # }
+//! ```
+//!
+//! Use [`ExposedDomainConfigs`] for exposed configs (requires auth subject):
+//! ```no_run
+//! # domain_config::define_exposed_config! {
+//! #     pub struct MyExposedSetting(String);
+//! #     spec {
+//! #         key: "my-exposed-setting";
+//! #     }
+//! # }
+//! # async fn example<P: authz::PermissionCheck>(
+//! #     pool: &sqlx::PgPool,
+//! #     authz: &P,
+//! #     subject: &<P::Audit as audit::AuditSvc>::Subject,
+//! # ) -> Result<(), domain_config::DomainConfigError>
+//! # where
+//! #     <<P as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
+//! #         From<domain_config::DomainConfigAction>,
+//! #     <<P as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
+//! #         From<domain_config::DomainConfigObject>,
+//! # {
+//!     let configs = domain_config::ExposedDomainConfigs::new(pool, authz);
+//!     let value = configs.get::<MyExposedSetting>(subject).await?.value();
+//!     configs.update::<MyExposedSetting>(subject, "new-value".into()).await?;
+//! #     Ok(())
+//! # }
+//! ```
+//!
+//! ## Config Lifecycle
+//!
+//! Using the `define_internal_config!` or `define_exposed_config!` macros automatically
+//! registers your config for seeding. At application startup, all registered configs are
+//! seeded to the database. Developers defining new configs do not need to call any seeding
+//! functions manually - just use the macro and the config will be available. Because of
+//! this automatic seeding, `get` always succeeds for all configs.
+//!
+//! The `value()` method returns `Option<T>`:
+//! - `Some(value)` if the config has been explicitly set via `update`
+//! - `Some(default)` if no value is set but a `default:` clause was specified
+//! - `None` if no value is set and no default exists
+
 mod entity;
 pub mod error;
 mod macros;
