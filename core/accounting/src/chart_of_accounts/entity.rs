@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use cala_ledger::{account::NewAccount, account_set::NewAccountSet};
 use chrono::NaiveDate;
 use derive_builder::Builder;
@@ -132,6 +134,69 @@ impl Chart {
         journal_id: CalaJournalId,
     ) -> Idempotent<NewChartAccountDetails> {
         self.create_node_without_verifying_parent(spec, journal_id)
+    }
+
+    pub(super) fn import_accounts(
+        &mut self,
+        account_specs: Vec<AccountSpec>,
+        journal_id: CalaJournalId,
+    ) -> BulkImportResult {
+        let mut new_account_sets = Vec::new();
+        let mut new_account_set_ids = Vec::new();
+        let mut new_connections = Vec::new();
+
+        let mut parent_code_to_children_ids: HashMap<AccountCode, Vec<ChartNodeId>> =
+            HashMap::new();
+        let mut node_id_to_account_set_id: HashMap<ChartNodeId, CalaAccountSetId> = HashMap::new();
+
+        let mut sorted_specs = account_specs;
+        sorted_specs.sort_by_key(|spec| spec.code.clone());
+
+        // Sort in reverse so that children appear before parents.
+        // This relies on the hierarchical structure being encoded in the account codes:
+        // e.g., "1", "1.1", "1.1.1". In this scheme "1.1" is a child of "1",
+        // and reverse lexical ordering ensures all parents come after their descendants.
+        sorted_specs.reverse();
+
+        for spec in sorted_specs {
+            let children_node_ids = parent_code_to_children_ids
+                .remove(&spec.code)
+                .unwrap_or_default();
+
+            if let Idempotent::Executed(NewAccountSetWithNodeId {
+                new_account_set,
+                node_id,
+            }) = self.create_node_with_existing_children(&spec, journal_id, children_node_ids.clone())
+            {
+                for child_node_id in children_node_ids {
+                    new_connections.push((
+                        new_account_set.id,
+                        *node_id_to_account_set_id
+                            .get(&child_node_id)
+                            .expect("Child node should exist"),
+                    ));
+                }
+
+                if let Some(parent_code) = spec.parent {
+                    parent_code_to_children_ids
+                        .entry(parent_code)
+                        .or_default()
+                        .push(node_id);
+                } else {
+                    new_connections.push((self.account_set_id, new_account_set.id));
+                }
+                node_id_to_account_set_id.insert(node_id, new_account_set.id);
+
+                new_account_set_ids.push(new_account_set.id);
+                new_account_sets.push(new_account_set);
+            }
+        }
+
+        BulkImportResult {
+            new_account_sets,
+            new_account_set_ids,
+            new_connections,
+        }
     }
 
     pub(super) fn create_child_node(
@@ -484,6 +549,12 @@ pub struct NewChartAccountDetails {
 pub struct NewAccountSetWithNodeId {
     pub new_account_set: NewAccountSet,
     pub node_id: ChartNodeId,
+}
+
+pub struct BulkImportResult {
+    pub new_account_sets: Vec<NewAccountSet>,
+    pub new_account_set_ids: Vec<CalaAccountSetId>,
+    pub new_connections: Vec<(CalaAccountSetId, CalaAccountSetId)>,
 }
 
 pub struct ChartNodeDetails {
