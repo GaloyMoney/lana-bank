@@ -204,7 +204,15 @@
     "notification-email-from-name": {
       "title": "Notification from name",
       "description": "From name shown on outgoing notification emails."
-    }
+    },
+    "timezone": {                                                                                                                                            
+      "title": "Timezone",                                                                                                                                   
+      "description": "Timezone for end-of-day processing"                                                                                                    
+    },                                                                                                                                                       
+    "closing-time": {                                                                                                                                        
+      "title": "Closing Time",                                                                                                                               
+      "description": "Time when end-of-day processing runs (HH:MM:SS)"                                                                                       
+    }   
   },
   "interestInterval": {
     "endOfDay": "End of Day",

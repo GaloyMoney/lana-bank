@@ -204,6 +204,14 @@
     "notification-email-from-name": {
       "title": "Nombre del remitente de notificaciones",
       "description": "Nombre mostrado como remitente en los correos de notificación."
+    },
+    "timezone": {
+      "title": "Zona horaria",
+      "description": "Zona horaria para el procesamiento de fin de día"
+    },
+    "closing-time": {
+      "title": "Hora de cierre",
+      "description": "Hora en que se ejecuta el procesamiento de fin de día (HH:MM:SS)"
     }
   },
   "interestInterval": {

@@ -12,7 +12,7 @@ use domain_config::ExposedDomainConfigs;
 
 use crate::{
     ClosingSchedule,
-    config::{ClosingTimeConfig, TimezoneConfig},
+    config::{ClosingTime, Timezone},
     event::CoreTimeEvent,
 };
 
@@ -108,16 +108,16 @@ where
         let system_sub = <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system();
 
         loop {
-            let closing_time_config = self
-                .domain_configs
-                .get::<ClosingTimeConfig>(&system_sub)
-                .await?;
-            let timezone_config = self
-                .domain_configs
-                .get::<TimezoneConfig>(&system_sub)
-                .await?;
-            let closing_time = closing_time_config.value().expect("has default").value;
-            let timezone = timezone_config.value().expect("has default").value;
+            let closing_time_config = self.domain_configs.get::<ClosingTime>(&system_sub).await?;
+            let timezone_config = self.domain_configs.get::<Timezone>(&system_sub).await?;
+            let closing_time = closing_time_config
+                .value()
+                .expect("closing time must have a default")
+                .parse::<chrono::NaiveTime>()?;
+            let timezone = timezone_config
+                .value()
+                .expect("timezone must have a default")
+                .parse::<chrono_tz::Tz>()?;
 
             let schedule = ClosingSchedule::new(timezone, closing_time);
             let current_time = current_job.clock().now();
@@ -125,7 +125,7 @@ where
 
             let duration_until_close = match (closing_time - current_time).to_std() {
                 Ok(duration) => duration,
-                // continue if past date returned and recalculate, not likely
+                // continue if past date returned and recalculate
                 Err(err) => {
                     tracing::warn!(
                         job_id = %current_job.id(),
