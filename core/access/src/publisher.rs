@@ -1,7 +1,7 @@
 use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{
-    CoreAccessEvent,
+    CoreAccessEvent, PublicRole, PublicUser,
     role::{Role, RoleEvent, error::RoleError},
     user::{User, UserEvent, error::UserError},
 };
@@ -46,9 +46,11 @@ where
                 Initialized {
                     id, email, role_id, ..
                 } => Some(CoreAccessEvent::UserCreated {
-                    id: *id,
-                    email: email.clone(),
-                    role_id: *role_id,
+                    entity: PublicUser {
+                        id: *id,
+                        email: email.clone(),
+                        role_id: *role_id,
+                    },
                 }),
                 RoleUpdated { .. } => None,
             })
@@ -69,8 +71,10 @@ where
         let events = new_events
             .filter_map(|event| match &event.event {
                 Initialized { id, name, .. } => Some(CoreAccessEvent::RoleCreated {
-                    id: *id,
-                    name: name.clone(),
+                    entity: PublicRole {
+                        id: *id,
+                        name: name.clone(),
+                    },
                 }),
                 PermissionSetAdded { .. } => None,
                 PermissionSetRemoved { .. } => None,
