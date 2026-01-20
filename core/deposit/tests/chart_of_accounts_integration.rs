@@ -7,7 +7,6 @@ use core_accounting::CoreAccounting;
 use core_customer::Customers;
 use core_deposit::*;
 use document_storage::DocumentStorage;
-use domain_config::InternalDomainConfigs;
 use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 use helpers::{BASE_ACCOUNTS_CSV, action, default_accounting_base_config, event, object};
 
@@ -33,7 +32,6 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         obix::Outbox::<event::DummyEvent>::init(&pool, obix::MailboxConfig::builder().build()?)
             .await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
-    let domain_configs = InternalDomainConfigs::new(&pool);
     let governance = governance::Governance::new(&pool, &authz, &outbox, clock.clone());
 
     let cala_config = CalaLedgerConfig::builder()
@@ -86,7 +84,6 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         journal_id,
         document_storage,
         &mut jobs,
-        &domain_configs,
         &outbox,
     );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
