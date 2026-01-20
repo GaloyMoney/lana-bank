@@ -489,7 +489,7 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "custody.handle_webhook", skip(self, headers, payload))]
+    #[instrument(name = "custody.handle_webhook", skip(self))]
     pub async fn handle_webhook(
         &self,
         provider: String,
@@ -497,6 +497,8 @@ where
         headers: http::HeaderMap,
         payload: bytes::Bytes,
     ) -> Result<(), CoreCustodyError> {
+        let idempotency_key = Self::extract_idempotency_key(&provider, &headers);
+
         let headers_map: HashMap<String, String> = headers
             .iter()
             .map(|(name, value)| {
@@ -514,15 +516,37 @@ where
             payload,
         };
 
-        // NOTE: This needs to be changed !
-        let idempotency_key = uuid::Uuid::new_v4().to_string();
-
         let _res = self
             .inbox
             .persist_and_process(&idempotency_key, webhook_payload)
             .await?;
 
         Ok(())
+    }
+
+    fn extract_idempotency_key(provider: &str, headers: &http::HeaderMap) -> String {
+        if let Some(value) = match provider.to_lowercase().as_str() {
+            "bitgo" => Some("idempotency-key"),
+            "komainu" => Some("x-komainu-signature"),
+            _ => None,
+        }
+        .and_then(|h| headers.get(h)?.to_str().ok())
+        {
+            return value.to_owned();
+        }
+
+        // Fallback: hash all headers
+        use sha2::{Digest, Sha256};
+        let mut hasher = Sha256::new();
+        let mut sorted_headers: Vec<_> = headers
+            .iter()
+            .map(|(k, v)| (k.as_str(), v.to_str().unwrap_or("")))
+            .collect();
+        sorted_headers.sort_by_key(|(k, _)| *k);
+        for (key, value) in sorted_headers {
+            hasher.update(format!("{key}:{value}\n"));
+        }
+        format!("{:x}", hasher.finalize())
     }
 }
 

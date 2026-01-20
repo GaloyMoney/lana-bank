@@ -168,11 +168,19 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
         public_ids,
         clock.clone(),
     );
+    let mut jobs = job::Jobs::init(
+        job::JobSvcConfig::builder()
+            .pool(pool.clone())
+            .build()
+            .unwrap(),
+    )
+    .await?;
     let custody = core_custody::CoreCustody::init(
         &pool,
         &authz,
         helpers::custody_config(),
         &outbox,
+        &mut jobs,
         clock.clone(),
     )
     .await?;
