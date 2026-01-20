@@ -51,6 +51,18 @@ export type AccountingBaseConfigInput = {
   revenueCode: Scalars['String']['input'];
 };
 
+export type AccountingBaseConfigOutput = {
+  __typename?: 'AccountingBaseConfigOutput';
+  assetsCode: Scalars['String']['output'];
+  costOfRevenueCode: Scalars['String']['output'];
+  equityCode: Scalars['String']['output'];
+  equityRetainedEarningsGainCode: Scalars['String']['output'];
+  equityRetainedEarningsLossCode: Scalars['String']['output'];
+  expensesCode: Scalars['String']['output'];
+  liabilitiesCode: Scalars['String']['output'];
+  revenueCode: Scalars['String']['output'];
+};
+
 export type AccountingCsvDocument = {
   __typename?: 'AccountingCsvDocument';
   createdAt: Scalars['Timestamp']['output'];
@@ -199,21 +211,6 @@ export type BalanceSheet = {
   name: Scalars['String']['output'];
 };
 
-export type BalanceSheetModuleConfig = {
-  __typename?: 'BalanceSheetModuleConfig';
-  chartOfAccountsAssetsCode?: Maybe<Scalars['String']['output']>;
-  chartOfAccountsCostOfRevenueCode?: Maybe<Scalars['String']['output']>;
-  chartOfAccountsEquityCode?: Maybe<Scalars['String']['output']>;
-  chartOfAccountsExpensesCode?: Maybe<Scalars['String']['output']>;
-  chartOfAccountsLiabilitiesCode?: Maybe<Scalars['String']['output']>;
-  chartOfAccountsRevenueCode?: Maybe<Scalars['String']['output']>;
-};
-
-export type BalanceSheetModuleConfigurePayload = {
-  __typename?: 'BalanceSheetModuleConfigurePayload';
-  balanceSheetConfig: BalanceSheetModuleConfig;
-};
-
 export type BitgoConfig = {
   enterpriseId: Scalars['String']['input'];
   longLivedToken: Scalars['String']['input'];
@@ -265,6 +262,7 @@ export type ChartNode = {
 
 export type ChartOfAccounts = {
   __typename?: 'ChartOfAccounts';
+  accountingBaseConfig?: Maybe<AccountingBaseConfigOutput>;
   chartId: Scalars['UUID']['output'];
   children: Array<ChartNode>;
   id: Scalars['ID']['output'];
@@ -1489,24 +1487,6 @@ export type FiscalYearInitPayload = {
   fiscalYear: FiscalYear;
 };
 
-export type FiscalYearModuleConfig = {
-  __typename?: 'FiscalYearModuleConfig';
-  costOfRevenueAccountCode: Scalars['String']['output'];
-  equityRetainedEarningsAccountCode: Scalars['String']['output'];
-  equityRetainedLossesAccountCode: Scalars['String']['output'];
-  expensesAccountCode: Scalars['String']['output'];
-  revenueAccountCode: Scalars['String']['output'];
-};
-
-export type FiscalYearModuleConfigureInput = {
-  chartId: Scalars['UUID']['input'];
-};
-
-export type FiscalYearModuleConfigurePayload = {
-  __typename?: 'FiscalYearModuleConfigurePayload';
-  fiscalYearConfig: FiscalYearModuleConfig;
-};
-
 export type FiscalYearOpenNextInput = {
   fiscalYearId: Scalars['UUID']['input'];
 };
@@ -1828,7 +1808,6 @@ export type Mutation = {
   accountingCsvDownloadLinkGenerate: AccountingCsvDownloadLinkGeneratePayload;
   approvalProcessApprove: ApprovalProcessApprovePayload;
   approvalProcessDeny: ApprovalProcessDenyPayload;
-  balanceSheetConfigure: BalanceSheetModuleConfigurePayload;
   chartOfAccountsAddChildNode: ChartOfAccountsAddChildNodePayload;
   chartOfAccountsAddRootNode: ChartOfAccountsAddRootNodePayload;
   chartOfAccountsCsvImportWithBaseConfig: ChartOfAccountsCsvImportWithBaseConfigPayload;
@@ -1862,7 +1841,6 @@ export type Mutation = {
   domainConfigUpdate: DomainConfigUpdatePayload;
   fiscalYearClose: FiscalYearClosePayload;
   fiscalYearCloseMonth: FiscalYearCloseMonthPayload;
-  fiscalYearConfigure: FiscalYearModuleConfigurePayload;
   fiscalYearInit: FiscalYearInitPayload;
   fiscalYearOpenNext: FiscalYearOpenNextPayload;
   ledgerAccountCsvCreate: LedgerAccountCsvCreatePayload;
@@ -1873,7 +1851,6 @@ export type Mutation = {
   manualTransactionExecute: ManualTransactionExecutePayload;
   pendingCreditFacilityCollateralUpdate: PendingCreditFacilityCollateralUpdatePayload;
   policyAssignCommittee: PolicyAssignCommitteePayload;
-  profitAndLossStatementConfigure: ProfitAndLossStatementModuleConfigurePayload;
   reportFileGenerateDownloadLink: ReportFileGenerateDownloadLinkPayload;
   roleAddPermissionSets: RoleAddPermissionSetsPayload;
   roleCreate: RoleCreatePayload;
@@ -2069,11 +2046,6 @@ export type MutationFiscalYearCloseArgs = {
 
 export type MutationFiscalYearCloseMonthArgs = {
   input: FiscalYearCloseMonthInput;
-};
-
-
-export type MutationFiscalYearConfigureArgs = {
-  input: FiscalYearModuleConfigureInput;
 };
 
 
@@ -2408,18 +2380,6 @@ export type ProfitAndLossStatement = {
   total: LedgerAccountBalanceRangeByCurrency;
 };
 
-export type ProfitAndLossStatementModuleConfig = {
-  __typename?: 'ProfitAndLossStatementModuleConfig';
-  chartOfAccountsCostOfRevenueCode?: Maybe<Scalars['String']['output']>;
-  chartOfAccountsExpensesCode?: Maybe<Scalars['String']['output']>;
-  chartOfAccountsRevenueCode?: Maybe<Scalars['String']['output']>;
-};
-
-export type ProfitAndLossStatementModuleConfigurePayload = {
-  __typename?: 'ProfitAndLossStatementModuleConfigurePayload';
-  profitAndLossConfig: ProfitAndLossStatementModuleConfig;
-};
-
 export type PublicIdTarget = CreditFacility | CreditFacilityDisbursal | Customer | Deposit | DepositAccount | Withdrawal;
 
 export type Query = {
@@ -2429,7 +2389,6 @@ export type Query = {
   approvalProcesses: ApprovalProcessConnection;
   audit: AuditEntryConnection;
   balanceSheet: BalanceSheet;
-  balanceSheetConfig?: Maybe<BalanceSheetModuleConfig>;
   chartOfAccounts: ChartOfAccounts;
   committee?: Maybe<Committee>;
   committees: CommitteeConnection;
@@ -2475,7 +2434,6 @@ export type Query = {
   policies: PolicyConnection;
   policy?: Maybe<Policy>;
   profitAndLossStatement: ProfitAndLossStatement;
-  profitAndLossStatementConfig?: Maybe<ProfitAndLossStatementModuleConfig>;
   publicIdTarget?: Maybe<PublicIdTarget>;
   realtimePrice: RealtimePrice;
   reportRun?: Maybe<ReportRun>;
@@ -4337,11 +4295,6 @@ export type LiquidationsQueryVariables = Exact<{
 
 export type LiquidationsQuery = { __typename?: 'Query', liquidations: { __typename?: 'LiquidationConnection', edges: Array<{ __typename?: 'LiquidationEdge', cursor: string, node: { __typename?: 'Liquidation', id: string, liquidationId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: any, completed: boolean, creditFacility: { __typename?: 'CreditFacility', publicId: any } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
-export type BalanceSheetConfigureMutationVariables = Exact<{ [key: string]: never; }>;
-
-
-export type BalanceSheetConfigureMutation = { __typename?: 'Mutation', balanceSheetConfigure: { __typename?: 'BalanceSheetModuleConfigurePayload', balanceSheetConfig: { __typename?: 'BalanceSheetModuleConfig', chartOfAccountsAssetsCode?: string | null, chartOfAccountsLiabilitiesCode?: string | null, chartOfAccountsEquityCode?: string | null, chartOfAccountsRevenueCode?: string | null, chartOfAccountsCostOfRevenueCode?: string | null, chartOfAccountsExpensesCode?: string | null } } };
-
 export type CreditModuleConfigureMutationVariables = Exact<{
   input: CreditModuleConfigureInput;
 }>;
@@ -4366,20 +4319,10 @@ export type CreditConfigQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type CreditConfigQuery = { __typename?: 'Query', creditConfig?: { __typename?: 'CreditModuleConfig', chartOfAccountFacilityOmnibusParentCode?: string | null, chartOfAccountCollateralOmnibusParentCode?: string | null, chartOfAccountLiquidationProceedsOmnibusParentCode?: string | null, chartOfAccountFacilityParentCode?: string | null, chartOfAccountCollateralParentCode?: string | null, chartOfAccountCollateralInLiquidationParentCode?: string | null, chartOfAccountInterestIncomeParentCode?: string | null, chartOfAccountFeeIncomeParentCode?: string | null, chartOfAccountPaymentHoldingParentCode?: string | null, chartOfAccountShortTermIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermBankDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermBankDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountShortTermIndividualInterestReceivableParentCode?: string | null, chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode?: string | null, chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode?: string | null, chartOfAccountShortTermBankInterestReceivableParentCode?: string | null, chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode?: string | null, chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode?: string | null, chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode?: string | null, chartOfAccountLongTermIndividualInterestReceivableParentCode?: string | null, chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode?: string | null, chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode?: string | null, chartOfAccountLongTermBankInterestReceivableParentCode?: string | null, chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode?: string | null, chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode?: string | null, chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode?: string | null, chartOfAccountOverdueIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueBankDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode?: string | null } | null };
 
-export type BalanceSheetConfigQueryVariables = Exact<{ [key: string]: never; }>;
+export type ChartAccountingBaseConfigQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type BalanceSheetConfigQuery = { __typename?: 'Query', balanceSheetConfig?: { __typename?: 'BalanceSheetModuleConfig', chartOfAccountsAssetsCode?: string | null, chartOfAccountsLiabilitiesCode?: string | null, chartOfAccountsEquityCode?: string | null, chartOfAccountsRevenueCode?: string | null, chartOfAccountsCostOfRevenueCode?: string | null, chartOfAccountsExpensesCode?: string | null } | null };
-
-export type ProfitAndLossStatementConfigQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type ProfitAndLossStatementConfigQuery = { __typename?: 'Query', profitAndLossStatementConfig?: { __typename?: 'ProfitAndLossStatementModuleConfig', chartOfAccountsRevenueCode?: string | null, chartOfAccountsCostOfRevenueCode?: string | null, chartOfAccountsExpensesCode?: string | null } | null };
-
-export type ProfitAndLossStatementConfigureMutationVariables = Exact<{ [key: string]: never; }>;
-
-
-export type ProfitAndLossStatementConfigureMutation = { __typename?: 'Mutation', profitAndLossStatementConfigure: { __typename?: 'ProfitAndLossStatementModuleConfigurePayload', profitAndLossConfig: { __typename?: 'ProfitAndLossStatementModuleConfig', chartOfAccountsRevenueCode?: string | null, chartOfAccountsCostOfRevenueCode?: string | null, chartOfAccountsExpensesCode?: string | null } } };
+export type ChartAccountingBaseConfigQuery = { __typename?: 'Query', chartOfAccounts: { __typename?: 'ChartOfAccounts', id: string, name: string, accountingBaseConfig?: { __typename?: 'AccountingBaseConfigOutput', assetsCode: string, liabilitiesCode: string, equityCode: string, equityRetainedEarningsGainCode: string, equityRetainedEarningsLossCode: string, revenueCode: string, costOfRevenueCode: string, expensesCode: string } | null } };
 
 export type PendingCreditFacilityLayoutFragmentFragment = { __typename?: 'PendingCreditFacility', id: string, pendingCreditFacilityId: string, approvalProcessId: string, createdAt: any, status: PendingCreditFacilityStatus, facilityAmount: UsdCents, collateralizationState: PendingCreditFacilityCollateralizationState, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
       | { __typename: 'FiniteCVLPct', value: any }
@@ -9963,45 +9906,6 @@ export type LiquidationsQueryHookResult = ReturnType<typeof useLiquidationsQuery
 export type LiquidationsLazyQueryHookResult = ReturnType<typeof useLiquidationsLazyQuery>;
 export type LiquidationsSuspenseQueryHookResult = ReturnType<typeof useLiquidationsSuspenseQuery>;
 export type LiquidationsQueryResult = Apollo.QueryResult<LiquidationsQuery, LiquidationsQueryVariables>;
-export const BalanceSheetConfigureDocument = gql`
-    mutation BalanceSheetConfigure {
-  balanceSheetConfigure {
-    balanceSheetConfig {
-      chartOfAccountsAssetsCode
-      chartOfAccountsLiabilitiesCode
-      chartOfAccountsEquityCode
-      chartOfAccountsRevenueCode
-      chartOfAccountsCostOfRevenueCode
-      chartOfAccountsExpensesCode
-    }
-  }
-}
-    `;
-export type BalanceSheetConfigureMutationFn = Apollo.MutationFunction<BalanceSheetConfigureMutation, BalanceSheetConfigureMutationVariables>;
-
-/**
- * __useBalanceSheetConfigureMutation__
- *
- * To run a mutation, you first call `useBalanceSheetConfigureMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useBalanceSheetConfigureMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [balanceSheetConfigureMutation, { data, loading, error }] = useBalanceSheetConfigureMutation({
- *   variables: {
- *   },
- * });
- */
-export function useBalanceSheetConfigureMutation(baseOptions?: Apollo.MutationHookOptions<BalanceSheetConfigureMutation, BalanceSheetConfigureMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<BalanceSheetConfigureMutation, BalanceSheetConfigureMutationVariables>(BalanceSheetConfigureDocument, options);
-      }
-export type BalanceSheetConfigureMutationHookResult = ReturnType<typeof useBalanceSheetConfigureMutation>;
-export type BalanceSheetConfigureMutationResult = Apollo.MutationResult<BalanceSheetConfigureMutation>;
-export type BalanceSheetConfigureMutationOptions = Apollo.BaseMutationOptions<BalanceSheetConfigureMutation, BalanceSheetConfigureMutationVariables>;
 export const CreditModuleConfigureDocument = gql`
     mutation CreditModuleConfigure($input: CreditModuleConfigureInput!) {
   creditModuleConfigure(input: $input) {
@@ -10224,133 +10128,59 @@ export type CreditConfigQueryHookResult = ReturnType<typeof useCreditConfigQuery
 export type CreditConfigLazyQueryHookResult = ReturnType<typeof useCreditConfigLazyQuery>;
 export type CreditConfigSuspenseQueryHookResult = ReturnType<typeof useCreditConfigSuspenseQuery>;
 export type CreditConfigQueryResult = Apollo.QueryResult<CreditConfigQuery, CreditConfigQueryVariables>;
-export const BalanceSheetConfigDocument = gql`
-    query BalanceSheetConfig {
-  balanceSheetConfig {
-    chartOfAccountsAssetsCode
-    chartOfAccountsLiabilitiesCode
-    chartOfAccountsEquityCode
-    chartOfAccountsRevenueCode
-    chartOfAccountsCostOfRevenueCode
-    chartOfAccountsExpensesCode
-  }
-}
-    `;
-
-/**
- * __useBalanceSheetConfigQuery__
- *
- * To run a query within a React component, call `useBalanceSheetConfigQuery` and pass it any options that fit your needs.
- * When your component renders, `useBalanceSheetConfigQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useBalanceSheetConfigQuery({
- *   variables: {
- *   },
- * });
- */
-export function useBalanceSheetConfigQuery(baseOptions?: Apollo.QueryHookOptions<BalanceSheetConfigQuery, BalanceSheetConfigQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<BalanceSheetConfigQuery, BalanceSheetConfigQueryVariables>(BalanceSheetConfigDocument, options);
-      }
-export function useBalanceSheetConfigLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<BalanceSheetConfigQuery, BalanceSheetConfigQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<BalanceSheetConfigQuery, BalanceSheetConfigQueryVariables>(BalanceSheetConfigDocument, options);
-        }
-// @ts-ignore
-export function useBalanceSheetConfigSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<BalanceSheetConfigQuery, BalanceSheetConfigQueryVariables>): Apollo.UseSuspenseQueryResult<BalanceSheetConfigQuery, BalanceSheetConfigQueryVariables>;
-export function useBalanceSheetConfigSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<BalanceSheetConfigQuery, BalanceSheetConfigQueryVariables>): Apollo.UseSuspenseQueryResult<BalanceSheetConfigQuery | undefined, BalanceSheetConfigQueryVariables>;
-export function useBalanceSheetConfigSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<BalanceSheetConfigQuery, BalanceSheetConfigQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<BalanceSheetConfigQuery, BalanceSheetConfigQueryVariables>(BalanceSheetConfigDocument, options);
-        }
-export type BalanceSheetConfigQueryHookResult = ReturnType<typeof useBalanceSheetConfigQuery>;
-export type BalanceSheetConfigLazyQueryHookResult = ReturnType<typeof useBalanceSheetConfigLazyQuery>;
-export type BalanceSheetConfigSuspenseQueryHookResult = ReturnType<typeof useBalanceSheetConfigSuspenseQuery>;
-export type BalanceSheetConfigQueryResult = Apollo.QueryResult<BalanceSheetConfigQuery, BalanceSheetConfigQueryVariables>;
-export const ProfitAndLossStatementConfigDocument = gql`
-    query ProfitAndLossStatementConfig {
-  profitAndLossStatementConfig {
-    chartOfAccountsRevenueCode
-    chartOfAccountsCostOfRevenueCode
-    chartOfAccountsExpensesCode
-  }
-}
-    `;
-
-/**
- * __useProfitAndLossStatementConfigQuery__
- *
- * To run a query within a React component, call `useProfitAndLossStatementConfigQuery` and pass it any options that fit your needs.
- * When your component renders, `useProfitAndLossStatementConfigQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useProfitAndLossStatementConfigQuery({
- *   variables: {
- *   },
- * });
- */
-export function useProfitAndLossStatementConfigQuery(baseOptions?: Apollo.QueryHookOptions<ProfitAndLossStatementConfigQuery, ProfitAndLossStatementConfigQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<ProfitAndLossStatementConfigQuery, ProfitAndLossStatementConfigQueryVariables>(ProfitAndLossStatementConfigDocument, options);
-      }
-export function useProfitAndLossStatementConfigLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ProfitAndLossStatementConfigQuery, ProfitAndLossStatementConfigQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<ProfitAndLossStatementConfigQuery, ProfitAndLossStatementConfigQueryVariables>(ProfitAndLossStatementConfigDocument, options);
-        }
-// @ts-ignore
-export function useProfitAndLossStatementConfigSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ProfitAndLossStatementConfigQuery, ProfitAndLossStatementConfigQueryVariables>): Apollo.UseSuspenseQueryResult<ProfitAndLossStatementConfigQuery, ProfitAndLossStatementConfigQueryVariables>;
-export function useProfitAndLossStatementConfigSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ProfitAndLossStatementConfigQuery, ProfitAndLossStatementConfigQueryVariables>): Apollo.UseSuspenseQueryResult<ProfitAndLossStatementConfigQuery | undefined, ProfitAndLossStatementConfigQueryVariables>;
-export function useProfitAndLossStatementConfigSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ProfitAndLossStatementConfigQuery, ProfitAndLossStatementConfigQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<ProfitAndLossStatementConfigQuery, ProfitAndLossStatementConfigQueryVariables>(ProfitAndLossStatementConfigDocument, options);
-        }
-export type ProfitAndLossStatementConfigQueryHookResult = ReturnType<typeof useProfitAndLossStatementConfigQuery>;
-export type ProfitAndLossStatementConfigLazyQueryHookResult = ReturnType<typeof useProfitAndLossStatementConfigLazyQuery>;
-export type ProfitAndLossStatementConfigSuspenseQueryHookResult = ReturnType<typeof useProfitAndLossStatementConfigSuspenseQuery>;
-export type ProfitAndLossStatementConfigQueryResult = Apollo.QueryResult<ProfitAndLossStatementConfigQuery, ProfitAndLossStatementConfigQueryVariables>;
-export const ProfitAndLossStatementConfigureDocument = gql`
-    mutation ProfitAndLossStatementConfigure {
-  profitAndLossStatementConfigure {
-    profitAndLossConfig {
-      chartOfAccountsRevenueCode
-      chartOfAccountsCostOfRevenueCode
-      chartOfAccountsExpensesCode
+export const ChartAccountingBaseConfigDocument = gql`
+    query ChartAccountingBaseConfig {
+  chartOfAccounts {
+    id
+    name
+    accountingBaseConfig {
+      assetsCode
+      liabilitiesCode
+      equityCode
+      equityRetainedEarningsGainCode
+      equityRetainedEarningsLossCode
+      revenueCode
+      costOfRevenueCode
+      expensesCode
     }
   }
 }
     `;
-export type ProfitAndLossStatementConfigureMutationFn = Apollo.MutationFunction<ProfitAndLossStatementConfigureMutation, ProfitAndLossStatementConfigureMutationVariables>;
 
 /**
- * __useProfitAndLossStatementConfigureMutation__
+ * __useChartAccountingBaseConfigQuery__
  *
- * To run a mutation, you first call `useProfitAndLossStatementConfigureMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useProfitAndLossStatementConfigureMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
+ * To run a query within a React component, call `useChartAccountingBaseConfigQuery` and pass it any options that fit your needs.
+ * When your component renders, `useChartAccountingBaseConfigQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
  *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const [profitAndLossStatementConfigureMutation, { data, loading, error }] = useProfitAndLossStatementConfigureMutation({
+ * const { data, loading, error } = useChartAccountingBaseConfigQuery({
  *   variables: {
  *   },
  * });
  */
-export function useProfitAndLossStatementConfigureMutation(baseOptions?: Apollo.MutationHookOptions<ProfitAndLossStatementConfigureMutation, ProfitAndLossStatementConfigureMutationVariables>) {
+export function useChartAccountingBaseConfigQuery(baseOptions?: Apollo.QueryHookOptions<ChartAccountingBaseConfigQuery, ChartAccountingBaseConfigQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<ProfitAndLossStatementConfigureMutation, ProfitAndLossStatementConfigureMutationVariables>(ProfitAndLossStatementConfigureDocument, options);
+        return Apollo.useQuery<ChartAccountingBaseConfigQuery, ChartAccountingBaseConfigQueryVariables>(ChartAccountingBaseConfigDocument, options);
       }
-export type ProfitAndLossStatementConfigureMutationHookResult = ReturnType<typeof useProfitAndLossStatementConfigureMutation>;
-export type ProfitAndLossStatementConfigureMutationResult = Apollo.MutationResult<ProfitAndLossStatementConfigureMutation>;
-export type ProfitAndLossStatementConfigureMutationOptions = Apollo.BaseMutationOptions<ProfitAndLossStatementConfigureMutation, ProfitAndLossStatementConfigureMutationVariables>;
+export function useChartAccountingBaseConfigLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ChartAccountingBaseConfigQuery, ChartAccountingBaseConfigQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ChartAccountingBaseConfigQuery, ChartAccountingBaseConfigQueryVariables>(ChartAccountingBaseConfigDocument, options);
+        }
+// @ts-ignore
+export function useChartAccountingBaseConfigSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ChartAccountingBaseConfigQuery, ChartAccountingBaseConfigQueryVariables>): Apollo.UseSuspenseQueryResult<ChartAccountingBaseConfigQuery, ChartAccountingBaseConfigQueryVariables>;
+export function useChartAccountingBaseConfigSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ChartAccountingBaseConfigQuery, ChartAccountingBaseConfigQueryVariables>): Apollo.UseSuspenseQueryResult<ChartAccountingBaseConfigQuery | undefined, ChartAccountingBaseConfigQueryVariables>;
+export function useChartAccountingBaseConfigSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ChartAccountingBaseConfigQuery, ChartAccountingBaseConfigQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ChartAccountingBaseConfigQuery, ChartAccountingBaseConfigQueryVariables>(ChartAccountingBaseConfigDocument, options);
+        }
+export type ChartAccountingBaseConfigQueryHookResult = ReturnType<typeof useChartAccountingBaseConfigQuery>;
+export type ChartAccountingBaseConfigLazyQueryHookResult = ReturnType<typeof useChartAccountingBaseConfigLazyQuery>;
+export type ChartAccountingBaseConfigSuspenseQueryHookResult = ReturnType<typeof useChartAccountingBaseConfigSuspenseQuery>;
+export type ChartAccountingBaseConfigQueryResult = Apollo.QueryResult<ChartAccountingBaseConfigQuery, ChartAccountingBaseConfigQueryVariables>;
 export const GetPendingCreditFacilityLayoutDetailsDocument = gql`
     query GetPendingCreditFacilityLayoutDetails($pendingCreditFacilityId: UUID!) {
   pendingCreditFacility(id: $pendingCreditFacilityId) {
