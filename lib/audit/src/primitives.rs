@@ -46,6 +46,8 @@ pub struct AuditEntry<S, O, A> {
     pub recorded_at: DateTime<Utc>,
 }
 
+const CONTEXT_KEY: &str = "audit_info";
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct AuditInfo {
@@ -57,7 +59,13 @@ impl AuditInfo {
     pub fn from_context(context: &Option<es_entity::ContextData>) -> Option<Self> {
         context
             .as_ref()
-            .and_then(|ctx| ctx.lookup::<Self>("audit_info").ok().flatten())
+            .and_then(|ctx| ctx.lookup::<Self>(CONTEXT_KEY).ok().flatten())
+    }
+
+    pub(crate) fn inject_into_event_context(&self) {
+        es_entity::EventContext::current()
+            .insert(CONTEXT_KEY, self)
+            .expect("Could not add AuditInfo to context");
     }
 }
 

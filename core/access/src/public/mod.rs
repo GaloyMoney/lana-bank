@@ -8,7 +8,7 @@ pub use user::*;
 
 use audit::AuditInfo;
 
-fn extract_created_by(context: &Option<es_entity::ContextData>) -> String {
+fn extract_sub(context: &Option<es_entity::ContextData>) -> String {
     AuditInfo::from_context(context)
         .map(|info| info.sub)
         .unwrap_or_else(|| "unknown".to_string())

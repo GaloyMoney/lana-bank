@@ -21,7 +21,7 @@ impl From<(&Role, &PersistedEvent<RoleEvent>)> for PublicRole {
             id: entity.id,
             name: entity.name.clone(),
             created_at: event.recorded_at,
-            created_by: super::extract_created_by(&event.context),
+            created_by: super::extract_sub(&event.context),
         }
     }
 }

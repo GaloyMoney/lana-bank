@@ -23,7 +23,7 @@ impl From<(&User, &PersistedEvent<UserEvent>)> for PublicUser {
             email: entity.email.clone(),
             role_id: entity.current_role(),
             created_at: event.recorded_at,
-            created_by: super::extract_created_by(&event.context),
+            created_by: super::extract_sub(&event.context),
         }
     }
 }
