@@ -57,7 +57,12 @@ app:
       port: 0
       insecure: false
       admin_panel_url: ''
-  report: {}
+  report:
+    dagster:
+      uri: http://localhost:3000/graphql
+      pipeline_name_for_report_generation: file_reports_generation
+      repository_location_name: Lana DW
+      repository_name: __repository__
   deposit:
     require_verified_customer_for_account: true
 tracing:

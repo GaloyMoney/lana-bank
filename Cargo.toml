@@ -19,6 +19,7 @@ version = "0.0.0"
 # Internal dependencies
 # Lib dependencies
 audit = { path = "lib/audit" }
+dagster = { path = "lib/dagster" }
 authz = { path = "lib/authz" }
 bitgo = { path = "lib/bitgo" }
 cloud-storage = { path = "lib/cloud-storage" }

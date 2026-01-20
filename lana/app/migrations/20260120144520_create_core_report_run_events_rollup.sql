@@ -5,11 +5,9 @@ CREATE TABLE core_report_run_events_rollup (
   created_at TIMESTAMPTZ NOT NULL,
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
-  end_date TIMESTAMPTZ,
-  execution_date TIMESTAMPTZ,
   external_id VARCHAR,
   run_type VARCHAR,
-  start_date TIMESTAMPTZ,
+  start_time TIMESTAMPTZ,
   state VARCHAR
 ,
   PRIMARY KEY (id, version)
@@ -45,34 +43,28 @@ BEGIN
 
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
-    new_row.end_date := (NEW.event ->> 'end_date')::TIMESTAMPTZ;
-    new_row.execution_date := (NEW.event ->> 'execution_date')::TIMESTAMPTZ;
     new_row.external_id := (NEW.event ->> 'external_id');
     new_row.run_type := (NEW.event ->> 'run_type');
-    new_row.start_date := (NEW.event ->> 'start_date')::TIMESTAMPTZ;
+    new_row.start_time := (NEW.event ->> 'start_time')::TIMESTAMPTZ;
     new_row.state := (NEW.event ->> 'state');
   ELSE
     -- Default all fields to current values
-    new_row.end_date := current_row.end_date;
-    new_row.execution_date := current_row.execution_date;
     new_row.external_id := current_row.external_id;
     new_row.run_type := current_row.run_type;
-    new_row.start_date := current_row.start_date;
+    new_row.start_time := current_row.start_time;
     new_row.state := current_row.state;
   END IF;
 
   -- Update only the fields that are modified by the specific event
   CASE event_type
     WHEN 'initialized' THEN
-      new_row.execution_date := (NEW.event ->> 'execution_date')::TIMESTAMPTZ;
       new_row.external_id := (NEW.event ->> 'external_id');
       new_row.run_type := (NEW.event ->> 'run_type');
+      new_row.start_time := (NEW.event ->> 'start_time')::TIMESTAMPTZ;
       new_row.state := (NEW.event ->> 'state');
     WHEN 'state_updated' THEN
-      new_row.end_date := (NEW.event ->> 'end_date')::TIMESTAMPTZ;
-      new_row.execution_date := (NEW.event ->> 'execution_date')::TIMESTAMPTZ;
       new_row.run_type := (NEW.event ->> 'run_type');
-      new_row.start_date := (NEW.event ->> 'start_date')::TIMESTAMPTZ;
+      new_row.start_time := (NEW.event ->> 'start_time')::TIMESTAMPTZ;
       new_row.state := (NEW.event ->> 'state');
   END CASE;
 
@@ -81,11 +73,9 @@ BEGIN
     version,
     created_at,
     modified_at,
-    end_date,
-    execution_date,
     external_id,
     run_type,
-    start_date,
+    start_time,
     state
   )
   VALUES (
@@ -93,11 +83,9 @@ BEGIN
     new_row.version,
     new_row.created_at,
     new_row.modified_at,
-    new_row.end_date,
-    new_row.execution_date,
     new_row.external_id,
     new_row.run_type,
-    new_row.start_date,
+    new_row.start_time,
     new_row.state
   );
 
