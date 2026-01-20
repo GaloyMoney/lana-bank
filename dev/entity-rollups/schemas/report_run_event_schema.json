@@ -21,10 +21,6 @@
   "oneOf": [
     {
       "properties": {
-        "execution_date": {
-          "format": "date-time",
-          "type": "string"
-        },
         "external_id": {
           "type": "string"
         },
@@ -34,6 +30,13 @@
         },
         "run_type": {
           "$ref": "#/$defs/ReportRunType"
+        },
+        "start_time": {
+          "format": "date-time",
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "state": {
           "$ref": "#/$defs/ReportRunState"
@@ -47,7 +50,6 @@
         "type",
         "id",
         "external_id",
-        "execution_date",
         "state",
         "run_type"
       ],
@@ -55,23 +57,15 @@
     },
     {
       "properties": {
-        "end_date": {
+        "run_type": {
+          "$ref": "#/$defs/ReportRunType"
+        },
+        "start_time": {
           "format": "date-time",
           "type": [
             "string",
             "null"
           ]
-        },
-        "execution_date": {
-          "format": "date-time",
-          "type": "string"
-        },
-        "run_type": {
-          "$ref": "#/$defs/ReportRunType"
-        },
-        "start_date": {
-          "format": "date-time",
-          "type": "string"
         },
         "state": {
           "$ref": "#/$defs/ReportRunState"
@@ -83,10 +77,8 @@
       },
       "required": [
         "type",
-        "execution_date",
         "state",
-        "run_type",
-        "start_date"
+        "run_type"
       ],
       "type": "object"
     }
