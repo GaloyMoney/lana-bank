@@ -53,6 +53,14 @@ pub struct AuditInfo {
     pub audit_entry_id: AuditEntryId,
 }
 
+impl AuditInfo {
+    pub fn from_context(context: &Option<es_entity::ContextData>) -> Option<Self> {
+        context
+            .as_ref()
+            .and_then(|ctx| ctx.lookup::<Self>("audit_info").ok().flatten())
+    }
+}
+
 impl<T, S> From<(T, S)> for AuditInfo
 where
     T: Into<AuditEntryId>,
