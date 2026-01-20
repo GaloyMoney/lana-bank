@@ -5,9 +5,13 @@ on:
     branches: ["main"]
     paths:
       - "docs-site/**"
+      - "lana/admin-server/src/graphql/schema.graphql"
+      - "lana/customer-server/src/graphql/schema.graphql"
   pull_request:
     paths:
       - "docs-site/**"
+      - "lana/admin-server/src/graphql/schema.graphql"
+      - "lana/customer-server/src/graphql/schema.graphql"
 
 permissions:
   contents: read
@@ -44,9 +48,13 @@ jobs:
         run: |
           nix develop -c bash -lc "cd docs-site && npm ci"
 
-      - name: Generate API docs
+      - name: Generate API docs (current version)
         run: |
           nix develop -c bash -lc "cd docs-site && npm run generate-api-docs"
+
+      - name: Generate API docs (versioned)
+        run: |
+          nix develop -c bash -lc "cd docs-site && npm run generate-versioned-api-docs"
 
       - name: Validate API descriptions
         run: |
@@ -54,7 +62,7 @@ jobs:
 
       - name: Build docs site
         run: |
-          nix develop -c bash -lc "cd docs-site && npm run build"
+          nix develop -c bash -lc "cd docs-site && npx docusaurus build"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
