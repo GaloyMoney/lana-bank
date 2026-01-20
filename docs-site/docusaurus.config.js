@@ -116,13 +116,6 @@ const config = {
     ],
   ],
 
-  customFields: {
-    // GraphQL endpoint URLs for Apollo Sandbox links
-    // Update these when deploying to staging/production
-    adminGraphqlEndpoint: "http://admin.localhost:4455/graphql",
-    customerGraphqlEndpoint: "http://app.localhost:4455/graphql",
-  },
-
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({

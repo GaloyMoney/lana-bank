@@ -63,24 +63,3 @@ Both APIs require authentication via JWT tokens obtained from Keycloak. The toke
 Authorization: Bearer <token>
 ```
 
-### Using Apollo Sandbox
-
-To use the interactive Apollo Sandbox explorer with our APIs:
-
-1. **Obtain a JWT token** from Keycloak:
-   - For **Admin API**: Log in to the Admin Panel and extract the token from browser DevTools (Network tab → any GraphQL request → Request Headers → `Authorization`)
-   - For **Customer API**: Log in to the Customer Portal and extract the token similarly
-
-2. **Open Apollo Sandbox** using one of the links above
-
-3. **Add the Authorization header** in Apollo Sandbox:
-   - Click the **Headers** tab at the bottom of the Operation panel
-   - Add a new header:
-     - **Key**: `Authorization`
-     - **Value**: `Bearer <your-jwt-token>`
-
-4. **Start exploring**: You can now run queries and mutations against the API
-
-:::tip Token Expiration
-JWT tokens expire after a period of time. If you receive authentication errors, obtain a fresh token by logging into the application again.
-:::
