@@ -37,12 +37,16 @@ where
     pub async fn publish_user(
         &self,
         op: &mut impl es_entity::AtomicOperation,
-        _entity: &User,
+        entity: &User,
         new_events: es_entity::LastPersisted<'_, UserEvent>,
     ) -> Result<(), UserError> {
         let events = new_events
-            .filter_map(|event| PublicUser::try_from(event).ok())
-            .map(|entity| CoreAccessEvent::UserCreated { entity })
+            .filter_map(|event| match &event.event {
+                UserEvent::Initialized { .. } => Some(CoreAccessEvent::UserCreated {
+                    entity: PublicUser::from((entity, event)),
+                }),
+                UserEvent::RoleUpdated { .. } => None,
+            })
             .collect::<Vec<_>>();
 
         self.outbox.publish_all_persisted(op, events).await?;
@@ -53,12 +57,17 @@ where
     pub async fn publish_role(
         &self,
         op: &mut impl es_entity::AtomicOperation,
-        _entity: &Role,
+        entity: &Role,
         new_events: es_entity::LastPersisted<'_, RoleEvent>,
     ) -> Result<(), RoleError> {
         let events = new_events
-            .filter_map(|event| PublicRole::try_from(event).ok())
-            .map(|entity| CoreAccessEvent::RoleCreated { entity })
+            .filter_map(|event| match &event.event {
+                RoleEvent::Initialized { .. } => Some(CoreAccessEvent::RoleCreated {
+                    entity: PublicRole::from((entity, event)),
+                }),
+                RoleEvent::PermissionSetAdded { .. } => None,
+                RoleEvent::PermissionSetRemoved { .. } => None,
+            })
             .collect::<Vec<_>>();
 
         self.outbox.publish_all_persisted(op, events).await?;

@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     primitives::{RoleId, UserId},
-    user::UserEvent,
+    user::{User, UserEvent},
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -17,21 +17,14 @@ pub struct PublicUser {
     pub created_by: String,
 }
 
-impl TryFrom<&PersistedEvent<UserEvent>> for PublicUser {
-    type Error = ();
-
-    fn try_from(event: &PersistedEvent<UserEvent>) -> Result<Self, Self::Error> {
-        match &event.event {
-            UserEvent::Initialized {
-                id, email, role_id, ..
-            } => Ok(PublicUser {
-                id: *id,
-                email: email.clone(),
-                role_id: *role_id,
-                created_at: event.recorded_at,
-                created_by: extract_created_by(&event.context),
-            }),
-            _ => Err(()),
+impl From<(&User, &PersistedEvent<UserEvent>)> for PublicUser {
+    fn from((entity, event): (&User, &PersistedEvent<UserEvent>)) -> Self {
+        PublicUser {
+            id: entity.id,
+            email: entity.email.clone(),
+            role_id: entity.current_role(),
+            created_at: event.recorded_at,
+            created_by: extract_created_by(&event.context),
         }
     }
 }

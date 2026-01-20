@@ -3,7 +3,10 @@ use chrono::{DateTime, Utc};
 use es_entity::PersistedEvent;
 use serde::{Deserialize, Serialize};
 
-use crate::{primitives::RoleId, role::RoleEvent};
+use crate::{
+    primitives::RoleId,
+    role::{Role, RoleEvent},
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PublicRole {
@@ -13,18 +16,13 @@ pub struct PublicRole {
     pub created_by: String,
 }
 
-impl TryFrom<&PersistedEvent<RoleEvent>> for PublicRole {
-    type Error = ();
-
-    fn try_from(event: &PersistedEvent<RoleEvent>) -> Result<Self, Self::Error> {
-        match &event.event {
-            RoleEvent::Initialized { id, name, .. } => Ok(PublicRole {
-                id: *id,
-                name: name.clone(),
-                created_at: event.recorded_at,
-                created_by: extract_created_by(&event.context),
-            }),
-            _ => Err(()),
+impl From<(&Role, &PersistedEvent<RoleEvent>)> for PublicRole {
+    fn from((entity, event): (&Role, &PersistedEvent<RoleEvent>)) -> Self {
+        PublicRole {
+            id: entity.id,
+            name: entity.name.clone(),
+            created_at: event.recorded_at,
+            created_by: extract_created_by(&event.context),
         }
     }
 }
