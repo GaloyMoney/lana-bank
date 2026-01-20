@@ -497,7 +497,7 @@ where
         headers: http::HeaderMap,
         payload: bytes::Bytes,
     ) -> Result<(), CoreCustodyError> {
-        let idempotency_key = Self::extract_idempotency_key(&provider, &headers);
+        let idempotency_key = self.extract_idempotency_key(&headers);
 
         let headers_map: HashMap<String, String> = headers
             .iter()
@@ -524,15 +524,17 @@ where
         Ok(())
     }
 
-    fn extract_idempotency_key(provider: &str, headers: &http::HeaderMap) -> String {
-        if let Some(value) = match provider.to_lowercase().as_str() {
-            "bitgo" => Some("idempotency-key"),
-            "komainu" => Some("x-komainu-signature"),
-            _ => None,
-        }
-        .and_then(|h| headers.get(h)?.to_str().ok())
-        {
-            return value.to_owned();
+    fn extract_idempotency_key(&self, headers: &http::HeaderMap) -> String {
+        const IDEMPOTENCY_HEADER_KEYS: &[&str] = &[
+            "idempotency-key",
+            "x-komainu-signature",
+            "x-signature-sha256",
+        ];
+
+        for key in IDEMPOTENCY_HEADER_KEYS {
+            if let Some(value) = headers.get(*key).and_then(|v| v.to_str().ok()) {
+                return value.to_owned();
+            }
         }
 
         // Fallback: hash all headers
