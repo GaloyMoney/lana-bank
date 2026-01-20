@@ -11,7 +11,7 @@ use authz::{Authorization, PermissionCheck};
 use obix::out::{Outbox, OutboxEventMarker};
 use tracing_macros::record_error_severity;
 
-use crate::{Role, event::*, primitives::*, publisher::UserPublisher};
+use crate::{Role, primitives::*, public::*, publisher::UserPublisher};
 
 pub use entity::User;
 use entity::*;
