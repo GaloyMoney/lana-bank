@@ -1,3 +1,4 @@
+use audit::AuditInfo;
 use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{
@@ -45,13 +46,18 @@ where
             .filter_map(|event| match &event.event {
                 Initialized {
                     id, email, role_id, ..
-                } => Some(CoreAccessEvent::UserCreated {
-                    entity: PublicUser {
-                        id: *id,
-                        email: email.clone(),
-                        role_id: *role_id,
-                    },
-                }),
+                } => {
+                    let created_by = extract_created_by(&event.context);
+                    Some(CoreAccessEvent::UserCreated {
+                        entity: PublicUser {
+                            id: *id,
+                            email: email.clone(),
+                            role_id: *role_id,
+                            created_at: event.recorded_at,
+                            created_by,
+                        },
+                    })
+                }
                 RoleUpdated { .. } => None,
             })
             .collect::<Vec<_>>();
@@ -70,12 +76,17 @@ where
         use RoleEvent::*;
         let events = new_events
             .filter_map(|event| match &event.event {
-                Initialized { id, name, .. } => Some(CoreAccessEvent::RoleCreated {
-                    entity: PublicRole {
-                        id: *id,
-                        name: name.clone(),
-                    },
-                }),
+                Initialized { id, name, .. } => {
+                    let created_by = extract_created_by(&event.context);
+                    Some(CoreAccessEvent::RoleCreated {
+                        entity: PublicRole {
+                            id: *id,
+                            name: name.clone(),
+                            created_at: event.recorded_at,
+                            created_by,
+                        },
+                    })
+                }
                 PermissionSetAdded { .. } => None,
                 PermissionSetRemoved { .. } => None,
             })
@@ -85,4 +96,12 @@ where
 
         Ok(())
     }
+}
+
+fn extract_created_by(context: &Option<es_entity::ContextData>) -> String {
+    context
+        .as_ref()
+        .and_then(|ctx| ctx.lookup::<AuditInfo>("audit_info").ok().flatten())
+        .map(|info| info.sub)
+        .unwrap_or_else(|| "unknown".to_string())
 }
