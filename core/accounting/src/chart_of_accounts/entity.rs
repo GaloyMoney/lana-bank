@@ -166,8 +166,11 @@ impl Chart {
             if let Idempotent::Executed(NewAccountSetWithNodeId {
                 new_account_set,
                 node_id,
-            }) = self.create_node_with_existing_children(&spec, journal_id, children_node_ids.clone())
-            {
+            }) = self.create_node_with_existing_children(
+                &spec,
+                journal_id,
+                children_node_ids.clone(),
+            ) {
                 for child_node_id in children_node_ids {
                     new_connections.push((
                         new_account_set.id,
@@ -928,5 +931,72 @@ mod test {
             res,
             Err(ChartOfAccountsError::CodeNotFoundInChart(_))
         ));
+    }
+
+    #[test]
+    fn import_accounts_creates_multiple_root_accounts() {
+        let mut chart = chart_from(initial_events());
+        let journal_id = CalaJournalId::new();
+        let specs = vec![
+            AccountSpec {
+                name: "Assets".parse().unwrap(),
+                parent: None,
+                code: "1".parse().unwrap(),
+                normal_balance_type: DebitOrCredit::Credit,
+            },
+            AccountSpec {
+                name: "Liabilities".parse().unwrap(),
+                parent: None,
+                code: "2".parse().unwrap(),
+                normal_balance_type: DebitOrCredit::Credit,
+            },
+        ];
+        let result = chart.import_accounts(specs, journal_id);
+        assert_eq!(result.new_account_sets.len(), 2);
+        assert_eq!(result.new_account_set_ids.len(), 2);
+        assert_eq!(result.new_connections.len(), 2);
+    }
+
+    #[test]
+    fn import_accounts_creates_hierarchical_structure() {
+        let mut chart = chart_from(initial_events());
+        let journal_id = CalaJournalId::new();
+
+        let specs = vec![
+            AccountSpec {
+                name: "Assets".parse().unwrap(),
+                parent: None,
+                code: "1".parse().unwrap(),
+                normal_balance_type: DebitOrCredit::Credit,
+            },
+            AccountSpec {
+                name: "Current Assets".parse().unwrap(),
+                parent: Some("1".parse().unwrap()),
+                code: "1.1".parse().unwrap(),
+                normal_balance_type: DebitOrCredit::Credit,
+            },
+            AccountSpec {
+                name: "Cash".parse().unwrap(),
+                parent: Some("1.1".parse().unwrap()),
+                code: "1.1.1".parse().unwrap(),
+                normal_balance_type: DebitOrCredit::Credit,
+            },
+            AccountSpec {
+                name: "Liabilities".parse().unwrap(),
+                parent: None,
+                code: "2".parse().unwrap(),
+                normal_balance_type: DebitOrCredit::Credit,
+            },
+            AccountSpec {
+                name: "Current Liabilities".parse().unwrap(),
+                parent: Some("2".parse().unwrap()),
+                code: "2.1".parse().unwrap(),
+                normal_balance_type: DebitOrCredit::Credit,
+            },
+        ];
+        let result = chart.import_accounts(specs, journal_id);
+        assert_eq!(result.new_account_sets.len(), 5);
+        assert_eq!(result.new_account_set_ids.len(), 5);
+        assert_eq!(result.new_connections.len(), 5);
     }
 }
