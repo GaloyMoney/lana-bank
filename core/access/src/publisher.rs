@@ -43,7 +43,7 @@ where
         let events = new_events
             .filter_map(|event| match &event.event {
                 UserEvent::Initialized { .. } => Some(CoreAccessEvent::UserCreated {
-                    entity: PublicUser::from((entity, event)),
+                    entity: PublicUser::from(entity),
                 }),
                 UserEvent::RoleUpdated { .. } => None,
             })
@@ -63,7 +63,7 @@ where
         let events = new_events
             .filter_map(|event| match &event.event {
                 RoleEvent::Initialized { .. } => Some(CoreAccessEvent::RoleCreated {
-                    entity: PublicRole::from((entity, event)),
+                    entity: PublicRole::from(entity),
                 }),
                 RoleEvent::PermissionSetAdded { .. } => None,
                 RoleEvent::PermissionSetRemoved { .. } => None,
