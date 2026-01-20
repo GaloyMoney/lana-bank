@@ -28,11 +28,9 @@ pub use entity::Chart;
 #[cfg(feature = "json-schema")]
 pub use entity::ChartEvent;
 pub(super) use entity::*;
+use entity::BulkImportResult;
 use error::*;
-use import::{
-    BulkAccountImport, BulkImportResult,
-    csv::{CsvParseError, CsvParser},
-};
+use import::csv::{CsvParseError, CsvParser};
 use ledger::*;
 pub(super) use repo::*;
 
@@ -155,7 +153,7 @@ where
             new_account_sets,
             new_account_set_ids,
             new_connections,
-        } = BulkAccountImport::new(&mut chart, self.journal_id).import(account_specs);
+        } = chart.import_accounts(account_specs, self.journal_id);
         let _ = chart.set_base_config(base_config)?;
 
         let mut op = self.repo.begin_op().await?;
