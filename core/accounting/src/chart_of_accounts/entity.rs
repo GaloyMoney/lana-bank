@@ -309,7 +309,7 @@ impl Chart {
             return Ok(Idempotent::AlreadyApplied);
         }
 
-        self.check_base_config_exists_in_chart(&base_config)?;
+        self.check_base_config_codes_exists_in_chart(&base_config)?;
 
         self.events.push(ChartEvent::BaseConfigSet {
             base_config: base_config.clone(),
@@ -318,7 +318,7 @@ impl Chart {
         Ok(Idempotent::Executed(()))
     }
 
-    fn check_base_config_exists_in_chart(
+    fn check_base_config_codes_exists_in_chart(
         &self,
         base_config: &AccountingBaseConfig,
     ) -> Result<(), ChartOfAccountsError> {
