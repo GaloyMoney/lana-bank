@@ -10,6 +10,7 @@ extend-exclude = [
 	"docs-site/scripts/*.es.json",
 	"docs-site/scripts/validate-api-descriptions.js",
 	"docs-site/scripts/fix-category-keys.js",
+	"docs-site/docs/architecture/functional-architecture.md",
 	"/apps/admin-panel/cypress/manuals/*",
 	"dagster/src/dbt_lana_dw/macros/el-salvador-ssf/*",
 	"dagster/src/dbt_lana_dw/seeds/el-salvador-ssf/*",
