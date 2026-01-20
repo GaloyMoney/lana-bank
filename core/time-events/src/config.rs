@@ -3,10 +3,11 @@ use chrono_tz::Tz;
 use serde::{Deserialize, Serialize};
 
 use domain_config::{
-    Complex, ConfigSpec, DomainConfigError, DomainConfigKey, ExposedConfig, Visibility,
+    Complex, ConfigSpec, ConfigType, DomainConfigError, DomainConfigKey, ExposedConfig, Visibility,
+    inventory,
 };
 
-// TODO: Need to rethink use of domain configs for this, current implementation is crude and also misses seeding these
+// TODO: Need to rethink use of domain configs for this, current implementation can be changed
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TimezoneConfig {
     pub value: Tz,
@@ -50,3 +51,21 @@ impl ConfigSpec for ClosingTimeConfig {
 }
 
 impl ExposedConfig for ClosingTimeConfig {}
+
+inventory::submit! {
+    domain_config::registry::ConfigSpecEntry {
+        key: "timezone",
+        visibility: Visibility::Exposed,
+        config_type: ConfigType::Complex,
+        validate_json: <TimezoneConfig as ConfigSpec>::validate_json,
+    }
+}
+
+inventory::submit! {
+    domain_config::registry::ConfigSpecEntry {
+        key: "closing-time",
+        visibility: Visibility::Exposed,
+        config_type: ConfigType::Complex,
+        validate_json: <ClosingTimeConfig as ConfigSpec>::validate_json,
+    }
+}

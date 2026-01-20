@@ -6,7 +6,6 @@ edition = "2024"
 [features]
 
 fail-on-warnings = []
-# schemars?
 
 [dependencies]
 async-trait = { workspace = true }
