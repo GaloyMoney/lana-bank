@@ -891,7 +891,7 @@
           "customer": "Cliente",
           "collateralizationState": "Estado de Colateralización",
           "status": "Estado",
-          "dateOfIssuance": "Fecha de desembolso",
+          "dateOfIssuance": "Fecha de otorgamiento",
           "maturityDate": "Fecha de vencimiento",
           "monthlyPayment": "Cuota mensual",
           "noMonthlyPaymentAvailable": "No hay cuota mensual disponible",
