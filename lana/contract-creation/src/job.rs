@@ -8,17 +8,18 @@ use audit::AuditSvc;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerObject};
 use document_storage::{DocumentId, DocumentStorage};
 use job::*;
-use obix::out::OutboxEventMarker;
+use obix::out::{Outbox, OutboxEventMarker};
 use tracing_macros::record_error_severity;
 
 use super::{LoanAgreementData, templates::ContractTemplates};
-use crate::{Applicants, Customers};
+use crate::publisher::ContractCreationPublisher;
+use crate::{Applicants, ContractCreationEvent, Customers};
 
 #[derive(Serialize, Deserialize)]
 pub struct GenerateLoanAgreementConfig<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCustomerEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<ContractCreationEvent>,
 {
     pub customer_id: CustomerId,
     #[serde(skip)]
@@ -28,7 +29,7 @@ where
 impl<Perms, E> Clone for GenerateLoanAgreementConfig<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCustomerEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<ContractCreationEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -43,13 +44,14 @@ where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
-    E: OutboxEventMarker<CoreCustomerEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<ContractCreationEvent>,
 {
     customers: Customers<Perms, E>,
     applicants: Applicants<Perms, E>,
     document_storage: DocumentStorage,
     contract_templates: ContractTemplates,
     renderer: rendering::Renderer,
+    publisher: ContractCreationPublisher<E>,
 }
 
 impl<Perms, E> GenerateLoanAgreementJobInitializer<Perms, E>
@@ -57,7 +59,7 @@ where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
-    E: OutboxEventMarker<CoreCustomerEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<ContractCreationEvent>,
 {
     pub fn new(
         customers: &Customers<Perms, E>,
@@ -65,6 +67,7 @@ where
         document_storage: &DocumentStorage,
         contract_templates: ContractTemplates,
         renderer: rendering::Renderer,
+        outbox: &Outbox<E>,
     ) -> Self {
         Self {
             customers: customers.clone(),
@@ -72,6 +75,7 @@ where
             document_storage: document_storage.clone(),
             contract_templates,
             renderer,
+            publisher: ContractCreationPublisher::new(outbox),
         }
     }
 }
@@ -83,7 +87,7 @@ where
     Perms: PermissionCheck + Send + Sync,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
-    E: OutboxEventMarker<CoreCustomerEvent> + Send + Sync,
+    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<ContractCreationEvent> + Send + Sync,
 {
     type Config = GenerateLoanAgreementConfig<Perms, E>;
     fn job_type(&self) -> JobType {
@@ -102,6 +106,7 @@ where
             document_storage: self.document_storage.clone(),
             contract_templates: self.contract_templates.clone(),
             renderer: self.renderer.clone(),
+            publisher: self.publisher.clone(),
         }))
     }
 }
@@ -111,7 +116,7 @@ where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
-    E: OutboxEventMarker<CoreCustomerEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<ContractCreationEvent>,
 {
     config: GenerateLoanAgreementConfig<Perms, E>,
     customers: Customers<Perms, E>,
@@ -119,6 +124,7 @@ where
     document_storage: DocumentStorage,
     contract_templates: ContractTemplates,
     renderer: rendering::Renderer,
+    publisher: ContractCreationPublisher<E>,
 }
 
 #[async_trait]
@@ -127,7 +133,7 @@ where
     Perms: PermissionCheck + Send + Sync,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
-    E: OutboxEventMarker<CoreCustomerEvent> + Send + Sync,
+    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<ContractCreationEvent> + Send + Sync,
 {
     #[record_error_severity]
     #[tracing::instrument(
@@ -189,10 +195,15 @@ where
         // Find the document that was created for this job
         let mut document = self.document_storage.find_by_id(document_id).await?;
 
-        // Upload the PDF content to the document
+        // Upload the PDF content and publish event in same transaction
+        let mut op = current_job.begin_op().await?;
         self.document_storage
-            .upload(pdf_bytes, &mut document)
+            .upload_in_op(pdf_bytes, &mut document, &mut op)
             .await?;
+        self.publisher
+            .publish_loan_agreement_generated(&mut op, document_id)
+            .await?;
+        op.commit().await?;
 
         Ok(JobCompletion::Complete)
     }
