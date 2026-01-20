@@ -6,6 +6,7 @@ use futures::StreamExt;
 use futures::stream::Stream;
 use obix::out::OutboxEventMarker;
 
+use lana_app::accounting::CoreAccountingEvent;
 use lana_app::credit::CoreCreditEvent;
 use lana_app::price::CorePriceEvent;
 use lana_app::{
@@ -2735,6 +2736,39 @@ impl Subscription {
                         price: price.into_inner(),
                     },
                 }),
+                _ => None,
+            }
+        });
+
+        Ok(updates)
+    }
+
+    async fn ledger_account_csv_export_uploaded(
+        &self,
+        ctx: &Context<'_>,
+        ledger_account_id: UUID,
+    ) -> async_graphql::Result<impl Stream<Item = LedgerAccountCsvExportUploadedPayload>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let ledger_account_id = LedgerAccountId::from(ledger_account_id);
+
+        app.accounting()
+            .find_ledger_account_by_id(sub, CHART_REF.0, ledger_account_id)
+            .await?
+            .ok_or_else(|| Error::new("Ledger account not found"))?;
+
+        let stream = app.outbox().listen_persisted(None);
+        let updates = stream.filter_map(move |event| async move {
+            let payload = event.payload.as_ref()?;
+            let event: &CoreAccountingEvent = payload.as_event()?;
+            match event {
+                CoreAccountingEvent::LedgerAccountCsvExportUploaded {
+                    id,
+                    ledger_account_id: event_ledger_account_id,
+                } if *event_ledger_account_id == ledger_account_id => {
+                    Some(LedgerAccountCsvExportUploadedPayload {
+                        document_id: UUID::from(*id),
+                    })
+                }
                 _ => None,
             }
         });

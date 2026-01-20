@@ -161,6 +161,7 @@ pub mod event {
     use serde::{Deserialize, Serialize};
 
     use core_access::CoreAccessEvent;
+    use core_accounting::CoreAccountingEvent;
     use core_credit::CoreCreditEvent;
     use core_custody::CoreCustodyEvent;
     use core_customer::CoreCustomerEvent;
@@ -172,6 +173,7 @@ pub mod event {
     #[serde(tag = "module")]
     pub enum DummyEvent {
         Access(CoreAccessEvent),
+        CoreAccounting(CoreAccountingEvent),
         CoreCredit(CoreCreditEvent),
         CoreCustody(CoreCustodyEvent),
         CoreCustomer(CoreCustomerEvent),
@@ -199,6 +201,7 @@ pub mod event {
     }
 
     impl_event_marker!(CoreAccessEvent, Access);
+    impl_event_marker!(CoreAccountingEvent, CoreAccounting);
     impl_event_marker!(GovernanceEvent, Governance);
     impl_event_marker!(CoreCreditEvent, CoreCredit);
     impl_event_marker!(CoreCustodyEvent, CoreCustody);

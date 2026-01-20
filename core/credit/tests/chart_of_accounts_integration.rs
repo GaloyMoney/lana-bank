@@ -88,6 +88,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         accounting_document_storage,
         &mut jobs,
         &domain_configs,
+        &outbox,
     );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
     let chart_id = accounting

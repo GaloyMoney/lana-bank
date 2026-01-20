@@ -257,6 +257,7 @@ async fn setup_test() -> anyhow::Result<Test> {
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
     let domain_configs = InternalDomainConfigs::new(&pool);
     let journal_id = helpers::init_journal(&cala).await?;
+    let outbox = helpers::init_outbox(&pool).await?;
 
     let storage = Storage::new(&StorageConfig::default());
     let document_storage = DocumentStorage::new(&pool, &storage, clock.clone());
@@ -271,6 +272,7 @@ async fn setup_test() -> anyhow::Result<Test> {
         document_storage,
         &mut jobs,
         &domain_configs,
+        &outbox,
     );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
     let balance_sheet_name = format!("Test Balance Sheet #{}", rand::rng().random_range(0..10000));
@@ -442,7 +444,10 @@ async fn setup_test() -> anyhow::Result<Test> {
 
 struct Test {
     pub cala: CalaLedger,
-    pub accounting: CoreAccounting<DummyPerms<action::DummyAction, object::DummyObject>>,
+    pub accounting: CoreAccounting<
+        DummyPerms<action::DummyAction, object::DummyObject>,
+        helpers::event::TestEvent,
+    >,
     pub chart: Chart,
     pub fiscal_year: FiscalYear,
     pub fiscal_year_repo: FiscalYearRepo,

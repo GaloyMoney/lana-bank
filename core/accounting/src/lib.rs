@@ -5,6 +5,7 @@ pub mod balance_sheet;
 pub mod chart_of_accounts;
 pub mod csv;
 pub mod error;
+pub mod event;
 pub mod fiscal_year;
 pub mod journal;
 pub mod ledger_account;
@@ -24,6 +25,7 @@ use document_storage::DocumentStorage;
 use domain_config::InternalDomainConfigs;
 use job::Jobs;
 use manual_transaction::ManualTransactions;
+use obix::out::{Outbox, OutboxEventMarker};
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
@@ -31,6 +33,7 @@ pub use balance_sheet::{BalanceSheet, BalanceSheets};
 pub use chart_of_accounts::{Chart, ChartOfAccounts, error as chart_of_accounts_error, tree};
 pub use csv::AccountingCsvExports;
 use error::CoreAccountingError;
+pub use event::CoreAccountingEvent;
 pub use fiscal_year::{
     FiscalYear, FiscalYearConfig, FiscalYears, FiscalYearsByCreatedAtCursor,
     error as fiscal_year_error,
@@ -52,9 +55,10 @@ pub mod event_schema {
     pub use crate::manual_transaction::ManualTransactionEvent;
 }
 
-pub struct CoreAccounting<Perms>
+pub struct CoreAccounting<Perms, E>
 where
     Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreAccountingEvent>,
 {
     clock: ClockHandle,
     authz: Perms,
@@ -66,14 +70,15 @@ where
     profit_and_loss: ProfitAndLossStatements<Perms>,
     transaction_templates: TransactionTemplates<Perms>,
     balance_sheets: BalanceSheets<Perms>,
-    csvs: AccountingCsvExports<Perms>,
+    csvs: AccountingCsvExports<Perms, E>,
     trial_balances: TrialBalances<Perms>,
     fiscal_year: FiscalYears<Perms>,
 }
 
-impl<Perms> Clone for CoreAccounting<Perms>
+impl<Perms, E> Clone for CoreAccounting<Perms, E>
 where
     Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreAccountingEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -94,11 +99,12 @@ where
     }
 }
 
-impl<Perms> CoreAccounting<Perms>
+impl<Perms, E> CoreAccounting<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
+    E: OutboxEventMarker<CoreAccountingEvent>,
 {
     pub fn new(
         pool: &sqlx::PgPool,
@@ -108,6 +114,7 @@ where
         document_storage: DocumentStorage,
         jobs: &mut Jobs,
         domain_configs: &InternalDomainConfigs,
+        outbox: &Outbox<E>,
     ) -> Self {
         let clock = jobs.clock().clone();
         let chart_of_accounts = ChartOfAccounts::new(pool, clock.clone(), authz, cala, journal_id);
@@ -132,7 +139,8 @@ where
         let profit_and_loss = ProfitAndLossStatements::new(pool, authz, cala, journal_id);
         let transaction_templates = TransactionTemplates::new(authz, cala);
         let balance_sheets = BalanceSheets::new(pool, authz, cala, journal_id);
-        let csvs = AccountingCsvExports::new(authz, jobs, document_storage, &ledger_accounts);
+        let csvs =
+            AccountingCsvExports::new(authz, jobs, document_storage, &ledger_accounts, outbox);
         let trial_balances = TrialBalances::new(pool, authz, cala, journal_id);
         Self {
             clock,
@@ -175,7 +183,7 @@ where
         &self.profit_and_loss
     }
 
-    pub fn csvs(&self) -> &AccountingCsvExports<Perms> {
+    pub fn csvs(&self) -> &AccountingCsvExports<Perms, E> {
         &self.csvs
     }
 

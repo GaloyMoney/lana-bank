@@ -142,6 +142,7 @@ impl LanaApp {
             documents.clone(),
             &mut jobs,
             &internal_domain_configs,
+            &outbox,
         );
 
         StatementsInit::statements(&accounting).await?;

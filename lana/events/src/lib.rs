@@ -4,6 +4,7 @@
 use serde::{Deserialize, Serialize};
 
 pub use core_access::CoreAccessEvent;
+pub use core_accounting::CoreAccountingEvent;
 pub use core_credit::{CollateralAction, CoreCreditEvent, ObligationStatus, ObligationType};
 pub use core_custody::CoreCustodyEvent;
 pub use core_customer::CoreCustomerEvent;
@@ -18,6 +19,7 @@ pub use obix::out::OutboxEventMarker;
 pub enum LanaEvent {
     Governance(GovernanceEvent),
     Access(CoreAccessEvent),
+    Accounting(CoreAccountingEvent),
     Customer(CoreCustomerEvent),
     Credit(CoreCreditEvent),
     Deposit(CoreDepositEvent),
@@ -46,6 +48,7 @@ macro_rules! impl_event_marker {
 
 impl_event_marker!(GovernanceEvent, Governance);
 impl_event_marker!(CoreAccessEvent, Access);
+impl_event_marker!(CoreAccountingEvent, Accounting);
 impl_event_marker!(CoreCreditEvent, Credit);
 impl_event_marker!(CoreDepositEvent, Deposit);
 impl_event_marker!(CoreCustomerEvent, Customer);

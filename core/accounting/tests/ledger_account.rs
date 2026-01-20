@@ -27,6 +27,7 @@ async fn ledger_account_ancestors() -> anyhow::Result<()> {
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
     let domain_configs = InternalDomainConfigs::new(&pool);
     let journal_id = helpers::init_journal(&cala).await?;
+    let outbox = helpers::init_outbox(&pool).await?;
 
     let storage = Storage::new(&StorageConfig::default());
     let document_storage = DocumentStorage::new(&pool, &storage, clock.clone());
@@ -40,6 +41,7 @@ async fn ledger_account_ancestors() -> anyhow::Result<()> {
         document_storage,
         &mut jobs,
         &domain_configs,
+        &outbox,
     );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
     accounting
@@ -161,6 +163,7 @@ async fn ledger_account_children() -> anyhow::Result<()> {
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
     let domain_configs = InternalDomainConfigs::new(&pool);
     let journal_id = helpers::init_journal(&cala).await?;
+    let outbox = helpers::init_outbox(&pool).await?;
 
     let storage = Storage::new(&StorageConfig::default());
     let document_storage = DocumentStorage::new(&pool, &storage, clock.clone());
@@ -174,6 +177,7 @@ async fn ledger_account_children() -> anyhow::Result<()> {
         document_storage,
         &mut jobs,
         &domain_configs,
+        &outbox,
     );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
     accounting
@@ -264,6 +268,7 @@ async fn internal_account_contains_coa_account() -> anyhow::Result<()> {
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
     let domain_configs = InternalDomainConfigs::new(&pool);
     let journal_id = helpers::init_journal(&cala).await?;
+    let outbox = helpers::init_outbox(&pool).await?;
     let storage = Storage::new(&StorageConfig::default());
     let document_storage = DocumentStorage::new(&pool, &storage, clock.clone());
     let mut jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
@@ -276,6 +281,7 @@ async fn internal_account_contains_coa_account() -> anyhow::Result<()> {
         document_storage,
         &mut jobs,
         &domain_configs,
+        &outbox,
     );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
     accounting

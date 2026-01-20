@@ -117,6 +117,7 @@ pub mod object {
 pub mod event {
     use serde::{Deserialize, Serialize};
 
+    use core_accounting::CoreAccountingEvent;
     use core_customer::CoreCustomerEvent;
     use core_deposit::CoreDepositEvent;
     use governance::GovernanceEvent;
@@ -126,6 +127,7 @@ pub mod event {
     pub enum DummyEvent {
         CoreDeposit(CoreDepositEvent),
         CoreCustomer(CoreCustomerEvent),
+        CoreAccounting(CoreAccountingEvent),
         Governance(GovernanceEvent),
     }
 
@@ -150,4 +152,5 @@ pub mod event {
     impl_event_marker!(GovernanceEvent, Governance);
     impl_event_marker!(CoreDepositEvent, CoreDeposit);
     impl_event_marker!(CoreCustomerEvent, CoreCustomer);
+    impl_event_marker!(CoreAccountingEvent, CoreAccounting);
 }

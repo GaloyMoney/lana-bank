@@ -184,7 +184,7 @@ async fn ledger_transactions_by_template_code() -> anyhow::Result<()> {
 }
 
 async fn prepare_test() -> anyhow::Result<(
-    CoreAccounting<DummyPerms<action::DummyAction, object::DummyObject>>,
+    CoreAccounting<DummyPerms<action::DummyAction, object::DummyObject>, helpers::event::TestEvent>,
     Chart,
 )> {
     use rand::Rng;
@@ -198,6 +198,7 @@ async fn prepare_test() -> anyhow::Result<(
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
     let domain_configs = InternalDomainConfigs::new(&pool);
     let journal_id = helpers::init_journal(&cala).await?;
+    let outbox = helpers::init_outbox(&pool).await?;
 
     let storage = Storage::new(&StorageConfig::default());
     let document_storage = DocumentStorage::new(&pool, &storage, clock.clone());
@@ -211,6 +212,7 @@ async fn prepare_test() -> anyhow::Result<(
         document_storage,
         &mut jobs,
         &domain_configs,
+        &outbox,
     );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
     let chart = accounting

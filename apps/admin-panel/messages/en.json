@@ -2447,26 +2447,22 @@
     "exportCsv": {
       "title": "Export Account Data",
       "description": "Generate and download CSV exports of this ledger account",
-      "existingExports": "Existing Exports",
+      "existingExports": "Latest Export",
       "createNew": "Create New Export",
-      "selectExport": "Select an export",
       "noCsvs": "No exports available for this account",
-      "createDescription": "Generate a new CSV export of this ledger account's data. This may take a moment to complete.",
-      "processing": "Processing, please wait...",
       "csvCreating": "CSV export is being generated",
-      "csvReady": "CSV export is ready for download",
-      "csvFailed": "CSV export generation failed",
       "createNewDescription": "Generate a new CSV export containing all data from account creation up to the current time. When you create this export, it will capture a snapshot of your data as it exists right now.",
       "status": {
-        "pending": "Processing",
-        "completed": "Ready",
-        "failed": "Failed"
+        "new": "Processing",
+        "active": "Ready",
+        "failed": "Failed",
+        "archived": "Archived",
+        "deleted": "Deleted"
       },
       "buttons": {
         "export": "Export CSV",
         "generate": "Generate New CSV",
         "generating": "Generating...",
-        "getLink": "Get Download Link",
         "download": "Download"
       },
       "errors": {
