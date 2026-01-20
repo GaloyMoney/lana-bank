@@ -20,10 +20,9 @@ use lana_app::{
 use crate::primitives::*;
 
 use super::{
-    access::*, accounting::*, approval_process::*, audit::*, balance_sheet_config::*, committee::*,
-    contract_creation::*, credit_config::*, credit_facility::*, custody::*, customer::*,
-    dashboard::*, deposit::*, deposit_config::*, document::*, domain_config::*,
-    fiscal_year_config::*, loader::*, me::*, policy::*, price::*, profit_and_loss_config::*,
+    access::*, accounting::*, approval_process::*, audit::*, committee::*, contract_creation::*,
+    credit_config::*, credit_facility::*, custody::*, customer::*, dashboard::*, deposit::*,
+    deposit_config::*, document::*, domain_config::*, loader::*, me::*, policy::*, price::*,
     public_id::*, reports::*, sumsub::*, terms_template::*, withdrawal::*,
 };
 
@@ -1001,35 +1000,6 @@ impl Query {
             .get_config(sub)
             .await?;
         Ok(config.map(CreditModuleConfig::from))
-    }
-
-    async fn balance_sheet_config(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<Option<BalanceSheetModuleConfig>> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let config = app
-            .accounting()
-            .balance_sheets()
-            .get_chart_of_accounts_integration_config(sub, BALANCE_SHEET_NAME.to_string())
-            .await?;
-        Ok(config.map(BalanceSheetModuleConfig::from))
-    }
-
-    async fn profit_and_loss_statement_config(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<Option<ProfitAndLossStatementModuleConfig>> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let config = app
-            .accounting()
-            .profit_and_loss()
-            .get_chart_of_accounts_integration_config(
-                sub,
-                PROFIT_AND_LOSS_STATEMENT_NAME.to_string(),
-            )
-            .await?;
-        Ok(config.map(ProfitAndLossStatementModuleConfig::from))
     }
 
     async fn public_id_target(
@@ -2370,74 +2340,6 @@ impl Mutation {
                 TRIAL_BALANCE_STATEMENT_NAME,
             )
         )
-    }
-
-    async fn balance_sheet_configure(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<BalanceSheetModuleConfigurePayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-
-        let loader = ctx.data_unchecked::<LanaDataLoader>();
-        let chart = loader
-            .load_one(CHART_REF)
-            .await?
-            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {CHART_REF:?}"));
-
-        let config = app
-            .accounting()
-            .balance_sheets()
-            .set_chart_of_accounts_integration_config(
-                sub,
-                BALANCE_SHEET_NAME.to_string(),
-                chart.as_ref(),
-            )
-            .await?;
-        Ok(BalanceSheetModuleConfigurePayload::from(
-            BalanceSheetModuleConfig::from(config),
-        ))
-    }
-
-    async fn profit_and_loss_statement_configure(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<ProfitAndLossStatementModuleConfigurePayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-
-        let loader = ctx.data_unchecked::<LanaDataLoader>();
-        let chart = loader
-            .load_one(CHART_REF)
-            .await?
-            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {CHART_REF:?}"));
-
-        let config = app
-            .accounting()
-            .profit_and_loss()
-            .set_chart_of_accounts_integration_config(
-                sub,
-                PROFIT_AND_LOSS_STATEMENT_NAME.to_string(),
-                chart.as_ref(),
-            )
-            .await?;
-        Ok(ProfitAndLossStatementModuleConfigurePayload::from(
-            ProfitAndLossStatementModuleConfig::from(config),
-        ))
-    }
-
-    async fn fiscal_year_configure(
-        &self,
-        ctx: &Context<'_>,
-        input: FiscalYearModuleConfigureInput,
-    ) -> async_graphql::Result<FiscalYearModuleConfigurePayload> {
-        let (app, _sub) = app_and_sub_from_ctx!(ctx);
-
-        let FiscalYearModuleConfigureInput { chart_id } = input;
-
-        let config = app.accounting().fiscal_year().configure(chart_id).await?;
-
-        Ok(FiscalYearModuleConfigurePayload::from(
-            FiscalYearModuleConfig::from(config),
-        ))
     }
 
     pub async fn ledger_account_csv_create(

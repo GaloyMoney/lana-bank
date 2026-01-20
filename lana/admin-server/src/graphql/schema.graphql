@@ -11,6 +11,17 @@ input AccountingBaseConfigInput {
 	expensesCode: String!
 }
 
+type AccountingBaseConfigOutput {
+	assetsCode: String!
+	liabilitiesCode: String!
+	equityCode: String!
+	equityRetainedEarningsGainCode: String!
+	equityRetainedEarningsLossCode: String!
+	revenueCode: String!
+	costOfRevenueCode: String!
+	expensesCode: String!
+}
+
 type AccountingCsvDocument {
 	id: ID!
 	documentId: UUID!
@@ -174,19 +185,6 @@ type BalanceSheet {
 	categories: [LedgerAccount!]!
 }
 
-type BalanceSheetModuleConfig {
-	chartOfAccountsAssetsCode: String
-	chartOfAccountsLiabilitiesCode: String
-	chartOfAccountsEquityCode: String
-	chartOfAccountsRevenueCode: String
-	chartOfAccountsCostOfRevenueCode: String
-	chartOfAccountsExpensesCode: String
-}
-
-type BalanceSheetModuleConfigurePayload {
-	balanceSheetConfig: BalanceSheetModuleConfig!
-}
-
 input BitgoConfig {
 	name: String!
 	longLivedToken: String!
@@ -237,6 +235,7 @@ type ChartOfAccounts {
 	chartId: UUID!
 	name: String!
 	children: [ChartNode!]!
+	accountingBaseConfig: AccountingBaseConfigOutput
 }
 
 input ChartOfAccountsAddChildNodeInput {
@@ -1491,22 +1490,6 @@ type FiscalYearInitPayload {
 	fiscalYear: FiscalYear!
 }
 
-type FiscalYearModuleConfig {
-	revenueAccountCode: String!
-	costOfRevenueAccountCode: String!
-	expensesAccountCode: String!
-	equityRetainedEarningsAccountCode: String!
-	equityRetainedLossesAccountCode: String!
-}
-
-input FiscalYearModuleConfigureInput {
-	chartId: UUID!
-}
-
-type FiscalYearModuleConfigurePayload {
-	fiscalYearConfig: FiscalYearModuleConfig!
-}
-
 input FiscalYearOpenNextInput {
 	fiscalYearId: UUID!
 }
@@ -1878,9 +1861,6 @@ type Mutation {
 	fiscalYearClose(input: FiscalYearCloseInput!): FiscalYearClosePayload!
 	chartOfAccountsAddRootNode(input: ChartOfAccountsAddRootNodeInput!): ChartOfAccountsAddRootNodePayload!
 	chartOfAccountsAddChildNode(input: ChartOfAccountsAddChildNodeInput!): ChartOfAccountsAddChildNodePayload!
-	balanceSheetConfigure: BalanceSheetModuleConfigurePayload!
-	profitAndLossStatementConfigure: ProfitAndLossStatementModuleConfigurePayload!
-	fiscalYearConfigure(input: FiscalYearModuleConfigureInput!): FiscalYearModuleConfigurePayload!
 	ledgerAccountCsvCreate(input: LedgerAccountCsvCreateInput!): LedgerAccountCsvCreatePayload!
 	accountingCsvDownloadLinkGenerate(input: AccountingCsvDownloadLinkGenerateInput!): AccountingCsvDownloadLinkGeneratePayload!
 	loanAgreementGenerate(input: LoanAgreementGenerateInput!): LoanAgreementGeneratePayload!
@@ -2134,16 +2114,6 @@ type ProfitAndLossStatement {
 	categories: [LedgerAccount!]!
 }
 
-type ProfitAndLossStatementModuleConfig {
-	chartOfAccountsRevenueCode: String
-	chartOfAccountsCostOfRevenueCode: String
-	chartOfAccountsExpensesCode: String
-}
-
-type ProfitAndLossStatementModuleConfigurePayload {
-	profitAndLossConfig: ProfitAndLossStatementModuleConfig!
-}
-
 scalar PublicId
 
 union PublicIdTarget = Customer | DepositAccount | Deposit | Withdrawal | CreditFacility | CreditFacilityDisbursal
@@ -2209,8 +2179,6 @@ type Query {
 	depositConfig: DepositModuleConfig
 	domainConfigs(first: Int!, after: String): DomainConfigConnection!
 	creditConfig: CreditModuleConfig
-	balanceSheetConfig: BalanceSheetModuleConfig
-	profitAndLossStatementConfig: ProfitAndLossStatementModuleConfig
 	publicIdTarget(id: PublicId!): PublicIdTarget
 	loanAgreement(id: UUID!): LoanAgreement
 	accountEntryCsv(ledgerAccountId: UUID!): AccountingCsvDocument

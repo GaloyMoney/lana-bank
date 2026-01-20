@@ -1,0 +1,14 @@
+query AccountingBaseConfig {
+  chartOfAccounts {
+    accountingBaseConfig {
+      assetsCode
+      liabilitiesCode
+      equityCode
+      equityRetainedEarningsGainCode
+      equityRetainedEarningsLossCode
+      revenueCode
+      costOfRevenueCode
+      expensesCode
+    }
+  }
+}

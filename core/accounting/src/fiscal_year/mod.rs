@@ -8,7 +8,6 @@ use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use domain_config::InternalDomainConfigs;
 use es_entity::{Idempotent, PaginatedQueryArgs};
 use tracing_macros::record_error_severity;
 
@@ -32,7 +31,6 @@ where
     clock: ClockHandle,
     repo: FiscalYearRepo,
     authz: Perms,
-    domain_configs: InternalDomainConfigs,
     chart_of_accounts: ChartOfAccounts<Perms>,
 }
 
@@ -45,7 +43,6 @@ where
             clock: self.clock.clone(),
             repo: self.repo.clone(),
             authz: self.authz.clone(),
-            domain_configs: self.domain_configs.clone(),
             chart_of_accounts: self.chart_of_accounts.clone(),
         }
     }
@@ -61,14 +58,12 @@ where
         pool: &sqlx::PgPool,
         clock: ClockHandle,
         authz: &Perms,
-        domain_configs: &InternalDomainConfigs,
         chart_of_accounts: &ChartOfAccounts<Perms>,
     ) -> Self {
         Self {
             clock,
             repo: FiscalYearRepo::new(pool),
             authz: authz.clone(),
-            domain_configs: domain_configs.clone(),
             chart_of_accounts: chart_of_accounts.clone(),
         }
     }
@@ -169,13 +164,12 @@ where
                 let mut op = self.repo.begin_op_with_clock(&self.clock).await?;
                 self.repo.update_in_op(&mut op, &mut fiscal_year).await?;
 
-                let config = self
-                    .domain_configs
-                    .get::<config::FiscalYearConfig>()
-                    .await?;
-                let Some(fiscal_year_conf) = config.value() else {
-                    return Err(domain_config::DomainConfigError::NotConfigured.into());
-                };
+                let accounting_base_config = self
+                    .chart_of_accounts
+                    .maybe_find_accounting_base_config_by_chart_id(fiscal_year.chart_id)
+                    .await?
+                    .ok_or(FiscalYearError::AccountingBaseConfigNotFound)?;
+                let fiscal_year_conf = FiscalYearConfig::from(&accounting_base_config);
 
                 self.chart_of_accounts
                     .post_closing_transaction(
@@ -311,30 +305,5 @@ where
             .await?;
 
         Ok(result.entities.into_iter().next())
-    }
-
-    #[record_error_severity]
-    #[instrument(name = "core_accounting.fiscal_year.configure", skip(self))]
-    pub async fn configure(
-        &self,
-        chart_id: impl Into<ChartId> + std::fmt::Debug,
-    ) -> Result<FiscalYearConfig, FiscalYearError> {
-        let config = self.domain_configs.get::<FiscalYearConfig>().await?;
-        if config.value().is_some() {
-            return Err(FiscalYearError::FiscalYearConfigAlreadyExists);
-        }
-
-        let accounting_base_config = self
-            .chart_of_accounts
-            .maybe_find_accounting_base_config_by_chart_id(chart_id.into())
-            .await?
-            .ok_or(FiscalYearError::AccountingBaseConfigNotFound)?;
-
-        let fiscal_year_config = FiscalYearConfig::from(&accounting_base_config);
-        self.domain_configs
-            .update::<FiscalYearConfig>(fiscal_year_config.clone())
-            .await?;
-
-        Ok(fiscal_year_config)
     }
 }

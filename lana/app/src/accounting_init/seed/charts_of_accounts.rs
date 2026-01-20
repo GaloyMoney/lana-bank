@@ -4,8 +4,7 @@ use core_accounting::AccountingBaseConfig;
 use rbac_types::Subject;
 
 use super::module_config::{
-    balance_sheet::*, chart_integration_config::*, credit::*, deposit::*, fiscal_year::*,
-    profit_and_loss::*,
+    balance_sheet::*, chart_integration_config::*, credit::*, deposit::*, profit_and_loss::*,
 };
 
 pub(crate) async fn init(
@@ -32,7 +31,6 @@ pub(crate) async fn init(
         deposit,
         balance_sheet,
         profit_and_loss,
-        fiscal_year,
         accounting_init_config,
     )
     .await?;
@@ -78,7 +76,6 @@ async fn seed_chart_of_accounts(
     deposit: &Deposits,
     balance_sheet: &BalanceSheets,
     profit_and_loss: &ProfitAndLossStatements,
-    fiscal_year: &FiscalYears,
     accounting_init_config: AccountingInitConfig,
 ) -> Result<(), AccountingInitError> {
     let AccountingInitConfig {
@@ -121,7 +118,6 @@ async fn seed_chart_of_accounts(
 
     balance_sheet_module_configure(balance_sheet, &chart).await?;
     profit_and_loss_module_configure(profit_and_loss, &chart).await?;
-    fiscal_year_module_configure(fiscal_year, &chart).await?;
 
     if let Some(config_path) = credit_config_path {
         credit_module_configure(credit, &chart, config_path)

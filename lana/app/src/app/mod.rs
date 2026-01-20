@@ -141,7 +141,6 @@ impl LanaApp {
             journal_init.journal_id,
             documents.clone(),
             &mut jobs,
-            &internal_domain_configs,
             &outbox,
         );
 

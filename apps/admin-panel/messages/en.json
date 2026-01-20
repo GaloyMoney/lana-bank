@@ -2386,26 +2386,17 @@
       "chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode": "Overdue Disbursed Foreign Agency Or Subsidiary Receivable Parent Code",
       "chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode": "Overdue Disbursed Non-Domiciled Company Receivable Parent Code"
     },
-    "balanceSheet": {
-      "title": "Balance Sheet",
-      "description": "Balance sheet configuration",
-      "setTitle": "Set Balance Sheet Configuration",
-      "chartOfAccountsId": "Chart of Accounts ID",
-      "chartOfAccountsAssetsCode": "Assets Code",
-      "chartOfAccountsLiabilitiesCode": "Liabilities Code",
-      "chartOfAccountsEquityCode": "Equity Code",
-      "chartOfAccountsRevenueCode": "Revenue Code",
-      "chartOfAccountsCostOfRevenueCode": "Cost of Revenue Code",
-      "chartOfAccountsExpensesCode": "Expenses Code"
-    },
-    "profitAndLoss": {
-      "title": "Profit and Loss",
-      "description": "Profit and loss statement configuration",
-      "setTitle": "Set Profit and Loss Configuration",
-      "chartOfAccountsId": "Chart of Accounts ID",
-      "chartOfAccountsRevenueCode": "Revenue Code",
-      "chartOfAccountsCostOfRevenueCode": "Cost of Revenue Code",
-      "chartOfAccountsExpensesCode": "Expenses Code"
+    "accountingBaseConfig": {
+      "title": "Accounting Base Configuration",
+      "description": "Base account codes for balance sheet and profit & loss statements",
+      "assetsCode": "Assets Code",
+      "liabilitiesCode": "Liabilities Code",
+      "equityCode": "Equity Code",
+      "equityRetainedEarningsGainCode": "Retained Earnings Gain Code",
+      "equityRetainedEarningsLossCode": "Retained Earnings Loss Code",
+      "revenueCode": "Revenue Code",
+      "costOfRevenueCode": "Cost of Revenue Code",
+      "expensesCode": "Expenses Code"
     }
   },
   "ChartOfAccountsLedgerAccount": {

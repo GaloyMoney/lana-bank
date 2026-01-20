@@ -99,16 +99,24 @@ teardown_file() {
   [[ "$omnibus_code" == "11.01.0101" ]] || exit 1
 }
 
-@test "accounting: imported balance sheet module config from seed into chart of accounts" {
-  exec_admin_graphql 'balance-sheet-config'
-  omnibus_code=$(graphql_output '.data.balanceSheetConfig.chartOfAccountsRevenueCode')
-  [[ "$omnibus_code" == "4" ]] || exit 1
-}
+@test "accounting: accounting base config is set on chart of accounts" {
+  exec_admin_graphql 'accounting-base-config'
+  config='.data.chartOfAccounts.accountingBaseConfig'
 
-@test "accounting: imported profit and loss module config from seed into chart of accounts" {
-  exec_admin_graphql 'profit-and-loss-config'
-  omnibus_code=$(graphql_output '.data.profitAndLossStatementConfig.chartOfAccountsRevenueCode')
-  [[ "$omnibus_code" == "4" ]] || exit 1
+  assets_code=$(graphql_output "${config}.assetsCode")
+  [[ "$assets_code" == "1" ]] || exit 1
+
+  liabilities_code=$(graphql_output "${config}.liabilitiesCode")
+  [[ "$liabilities_code" == "2" ]] || exit 1
+
+  equity_code=$(graphql_output "${config}.equityCode")
+  [[ "$equity_code" == "3" ]] || exit 1
+
+  revenue_code=$(graphql_output "${config}.revenueCode")
+  [[ "$revenue_code" == "4" ]] || exit 1
+
+  expenses_code=$(graphql_output "${config}.expensesCode")
+  [[ "$expenses_code" == "5" ]] || exit 1
 }
 
 @test "accounting: can import CSV file into chart of accounts" {

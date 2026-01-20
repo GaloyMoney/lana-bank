@@ -9,7 +9,6 @@ use cala_ledger::{
 use cloud_storage::{Storage, config::StorageConfig};
 use core_accounting::CoreAccounting;
 use document_storage::DocumentStorage;
-use domain_config::InternalDomainConfigs;
 use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 use helpers::{action, default_accounting_base_config, object};
 use job::{JobSvcConfig, Jobs};
@@ -25,7 +24,6 @@ async fn ledger_account_ancestors() -> anyhow::Result<()> {
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
-    let domain_configs = InternalDomainConfigs::new(&pool);
     let journal_id = helpers::init_journal(&cala).await?;
     let outbox = helpers::init_outbox(&pool).await?;
 
@@ -40,7 +38,6 @@ async fn ledger_account_ancestors() -> anyhow::Result<()> {
         journal_id,
         document_storage,
         &mut jobs,
-        &domain_configs,
         &outbox,
     );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
@@ -170,7 +167,6 @@ async fn ledger_account_children() -> anyhow::Result<()> {
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
-    let domain_configs = InternalDomainConfigs::new(&pool);
     let journal_id = helpers::init_journal(&cala).await?;
     let outbox = helpers::init_outbox(&pool).await?;
 
@@ -185,7 +181,6 @@ async fn ledger_account_children() -> anyhow::Result<()> {
         journal_id,
         document_storage,
         &mut jobs,
-        &domain_configs,
         &outbox,
     );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
@@ -278,7 +273,6 @@ async fn internal_account_contains_coa_account() -> anyhow::Result<()> {
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
-    let domain_configs = InternalDomainConfigs::new(&pool);
     let journal_id = helpers::init_journal(&cala).await?;
     let outbox = helpers::init_outbox(&pool).await?;
     let storage = Storage::new(&StorageConfig::default());
@@ -292,7 +286,6 @@ async fn internal_account_contains_coa_account() -> anyhow::Result<()> {
         journal_id,
         document_storage,
         &mut jobs,
-        &domain_configs,
         &outbox,
     );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));

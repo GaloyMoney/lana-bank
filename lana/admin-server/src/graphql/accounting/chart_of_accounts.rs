@@ -37,6 +37,39 @@ impl ChartOfAccounts {
             .map(ChartNode::from)
             .collect()
     }
+
+    async fn accounting_base_config(&self) -> Option<AccountingBaseConfigOutput> {
+        self.entity
+            .accounting_base_config()
+            .map(AccountingBaseConfigOutput::from)
+    }
+}
+
+#[derive(SimpleObject)]
+pub struct AccountingBaseConfigOutput {
+    pub assets_code: String,
+    pub liabilities_code: String,
+    pub equity_code: String,
+    pub equity_retained_earnings_gain_code: String,
+    pub equity_retained_earnings_loss_code: String,
+    pub revenue_code: String,
+    pub cost_of_revenue_code: String,
+    pub expenses_code: String,
+}
+
+impl From<AccountingBaseConfig> for AccountingBaseConfigOutput {
+    fn from(config: AccountingBaseConfig) -> Self {
+        Self {
+            assets_code: config.assets_code.to_string(),
+            liabilities_code: config.liabilities_code.to_string(),
+            equity_code: config.equity_code.to_string(),
+            equity_retained_earnings_gain_code: config.equity_retained_earnings_gain_code.to_string(),
+            equity_retained_earnings_loss_code: config.equity_retained_earnings_loss_code.to_string(),
+            revenue_code: config.revenue_code.to_string(),
+            cost_of_revenue_code: config.cost_of_revenue_code.to_string(),
+            expenses_code: config.expenses_code.to_string(),
+        }
+    }
 }
 
 #[derive(SimpleObject)]

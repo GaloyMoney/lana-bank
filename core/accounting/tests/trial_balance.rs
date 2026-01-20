@@ -5,7 +5,6 @@ use cala_ledger::{CalaLedger, CalaLedgerConfig};
 use chrono::{TimeZone, Utc};
 use cloud_storage::{Storage, config::StorageConfig};
 use document_storage::DocumentStorage;
-use domain_config::InternalDomainConfigs;
 use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 use job::{JobSvcConfig, Jobs};
 
@@ -25,7 +24,6 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
-    let domain_configs = InternalDomainConfigs::new(&pool);
     let journal_id = helpers::init_journal(&cala).await?;
     let outbox = helpers::init_outbox(&pool).await?;
 
@@ -40,7 +38,6 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
         journal_id,
         document_storage,
         &mut jobs,
-        &domain_configs,
         &outbox,
     );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));

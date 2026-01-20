@@ -7,7 +7,6 @@ use rust_decimal::Decimal;
 use authz::dummy::{DummyPerms, DummySubject};
 use cloud_storage::{Storage, config::StorageConfig};
 use document_storage::DocumentStorage;
-use domain_config::InternalDomainConfigs;
 use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 use job::{JobSvcConfig, Jobs};
 
@@ -19,16 +18,11 @@ use cala_ledger::{
 use core_accounting::{
     AccountCode, AccountIdOrCode, CalaTxId, Chart, ClosingAccountCodes, ClosingTxDetails,
     CoreAccounting, LedgerAccountId, ManualEntryInput, ProfitAndLossStatement,
-    balance_sheet::ChartOfAccountsIntegrationConfig as BalanceSheetConfig, fiscal_year::FiscalYear,
-    fiscal_year::FiscalYearRepo,
-    profit_and_loss::ChartOfAccountsIntegrationConfig as ProfitAndLossConfig,
+    fiscal_year::FiscalYear, fiscal_year::FiscalYearRepo,
 };
 
 use helpers::{action, default_accounting_base_config, object};
 
-const ASSETS: &str = "1";
-const LIABILITIES: &str = "2";
-const EQUITY: &str = "3";
 const RETAINED_EARNINGS_GAIN: &str = "32.01";
 const RETAINED_EARNINGS_LOSS: &str = "32.02";
 const REVENUES: &str = "4";
@@ -252,7 +246,6 @@ async fn setup_test() -> anyhow::Result<Test> {
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
-    let domain_configs = InternalDomainConfigs::new(&pool);
     let journal_id = helpers::init_journal(&cala).await?;
     let outbox = helpers::init_outbox(&pool).await?;
 
@@ -268,7 +261,6 @@ async fn setup_test() -> anyhow::Result<Test> {
         journal_id,
         document_storage,
         &mut jobs,
-        &domain_configs,
         &outbox,
     );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
@@ -297,33 +289,18 @@ async fn setup_test() -> anyhow::Result<Test> {
         .balance_sheets()
         .create_balance_sheet(balance_sheet_name.clone())
         .await?;
-    let _balance_sheet_config = BalanceSheetConfig {
-        chart_of_accounts_id: chart.id,
-        chart_of_accounts_assets_code: ASSETS.parse().unwrap(),
-        chart_of_accounts_liabilities_code: LIABILITIES.parse().unwrap(),
-        chart_of_accounts_equity_code: EQUITY.parse().unwrap(),
-        chart_of_accounts_revenue_code: REVENUES.parse().unwrap(),
-        chart_of_accounts_cost_of_revenue_code: COSTS.parse().unwrap(),
-        chart_of_accounts_expenses_code: EXPENSES.parse().unwrap(),
-    };
     accounting
         .balance_sheets()
-        .set_chart_of_accounts_integration_config(&DummySubject, balance_sheet_name, &chart)
+        .link_chart_account_sets(&DummySubject, balance_sheet_name, &chart)
         .await?;
 
     accounting
         .profit_and_loss()
         .create_pl_statement(pl_statement_name.clone())
         .await?;
-    let _pl_statement_config = ProfitAndLossConfig {
-        chart_of_accounts_id: chart.id,
-        chart_of_accounts_revenue_code: REVENUES.parse().unwrap(),
-        chart_of_accounts_cost_of_revenue_code: COSTS.parse().unwrap(),
-        chart_of_accounts_expenses_code: EXPENSES.parse().unwrap(),
-    };
     accounting
         .profit_and_loss()
-        .set_chart_of_accounts_integration_config(&DummySubject, pl_statement_name.clone(), &chart)
+        .link_chart_account_sets(&DummySubject, pl_statement_name.clone(), &chart)
         .await?;
 
     Ok(Test {
