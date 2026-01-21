@@ -14,6 +14,7 @@ import { DepositAccount } from "./deposit-account"
 import { useTabNavigation } from "@/hooks/use-tab-navigation"
 import {
   Customer as CustomerType,
+  useCustomerKycUpdatedSubscription,
   useGetCustomerBasicDetailsQuery,
 } from "@/lib/graphql/generated"
 import { useCreateContext } from "@/app/create"
@@ -30,6 +31,7 @@ gql`
     kycVerification
     activity
     level
+    applicantId
     customerType
     createdAt
     publicId
@@ -52,6 +54,14 @@ gql`
   query GetCustomerBasicDetails($id: PublicId!) {
     customerByPublicId(id: $id) {
       ...CustomerDetailsFragment
+    }
+  }
+
+  subscription CustomerKycUpdated($customerId: UUID!) {
+    customerKycUpdated(customerId: $customerId) {
+      customer {
+        ...CustomerDetailsFragment
+      }
     }
   }
 `
@@ -92,6 +102,12 @@ export default function CustomerLayout({
     variables: { id: customerId },
   })
 
+  useCustomerKycUpdatedSubscription(
+    data?.customerByPublicId?.customerId
+      ? { variables: { customerId: data.customerByPublicId.customerId } }
+      : { skip: true },
+  )
+
   useEffect(() => {
     if (data?.customerByPublicId) setCustomer(data.customerByPublicId as CustomerType)
     return () => setCustomer(null)
@@ -125,7 +141,12 @@ export default function CustomerLayout({
     <main className="max-w-7xl m-auto">
       <CustomerDetailsCard customer={data.customerByPublicId} />
       <div className="flex flex-col md:flex-row w-full gap-2 my-2">
-        <KycStatus customerId={data.customerByPublicId.customerId} />
+        <KycStatus
+          customerId={data.customerByPublicId.customerId}
+          kycVerification={data.customerByPublicId.kycVerification}
+          level={data.customerByPublicId.level}
+          applicantId={data.customerByPublicId.applicantId}
+        />
         {data.customerByPublicId.depositAccount ? (
           <DepositAccount
             balance={data.customerByPublicId.depositAccount.balance}
