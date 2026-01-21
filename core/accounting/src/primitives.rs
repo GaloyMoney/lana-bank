@@ -521,6 +521,37 @@ impl AccountingBaseConfig {
         }
         Ok(())
     }
+
+    pub fn is_off_balance_sheet_account_set_member(&self, code: &AccountCode) -> bool {
+        let on_balance_sheet = [
+            &self.assets_code,
+            &self.liabilities_code,
+            &self.equity_code,
+            &self.revenue_code,
+            &self.cost_of_revenue_code,
+            &self.expenses_code,
+        ];
+
+        !on_balance_sheet
+            .iter()
+            .any(|category| *category == code || category.is_parent_of(&code.sections))
+    }
+
+    pub fn is_assets_account_set_member(&self, code: &AccountCode) -> bool {
+        self.assets_code.is_parent_of(&code.sections)
+    }
+
+    pub fn is_liabilities_account_set_member(&self, code: &AccountCode) -> bool {
+        self.liabilities_code.is_parent_of(&code.sections)
+    }
+
+    pub fn is_equity_account_set_member(&self, code: &AccountCode) -> bool {
+        self.equity_code.is_parent_of(&code.sections)
+    }
+
+    pub fn is_revenue_account_set_member(&self, code: &AccountCode) -> bool {
+        self.revenue_code.is_parent_of(&code.sections)
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -1468,6 +1499,123 @@ mod tests {
                 child.check_valid_parent(Some(parent)),
                 Err(AccountCodeError::InvalidParent)
             ));
+        }
+    }
+
+    mod accounting_base_config {
+        use super::*;
+
+        fn default_config() -> AccountingBaseConfig {
+            AccountingBaseConfig::try_new(
+                "1".parse().unwrap(),
+                "2".parse().unwrap(),
+                "3".parse().unwrap(),
+                "32.01".parse().unwrap(),
+                "32.02".parse().unwrap(),
+                "4".parse().unwrap(),
+                "5".parse().unwrap(),
+                "6".parse().unwrap(),
+            )
+            .unwrap()
+        }
+
+        #[test]
+        fn try_new_ok_with_valid_config() {
+            let config = default_config();
+
+            assert!(config.assets_code.is_top_level_chart_code());
+            assert!(
+                config
+                    .equity_code
+                    .is_parent_of(&config.equity_retained_earnings_gain_code.sections)
+            );
+        }
+
+        #[test]
+        fn try_new_err_when_invalid_config_dup_code() {
+            let invalid_config_res = AccountingBaseConfig::try_new(
+                "1".parse().unwrap(),
+                "1".parse().unwrap(),
+                "3".parse().unwrap(),
+                "32.01".parse().unwrap(),
+                "32.02".parse().unwrap(),
+                "4".parse().unwrap(),
+                "5".parse().unwrap(),
+                "6".parse().unwrap(),
+            );
+            assert!(matches!(
+                invalid_config_res,
+                Err(AccountingBaseConfigError::DuplicateAccountCode(_))
+            ))
+        }
+
+        #[test]
+        fn try_new_err_when_invalid_config_not_top_level() {
+            let invalid_config_res = AccountingBaseConfig::try_new(
+                "11".parse().unwrap(),
+                "2".parse().unwrap(),
+                "3".parse().unwrap(),
+                "32.01".parse().unwrap(),
+                "32.02".parse().unwrap(),
+                "4".parse().unwrap(),
+                "5".parse().unwrap(),
+                "6".parse().unwrap(),
+            );
+            assert!(matches!(
+                invalid_config_res,
+                Err(AccountingBaseConfigError::AccountCodeNotTopLevel(_))
+            ))
+        }
+
+        #[test]
+        fn try_new_err_when_invalid_config_retained_earnings_not_child_of_equity() {
+            let invalid_config_res = AccountingBaseConfig::try_new(
+                "1".parse().unwrap(),
+                "2".parse().unwrap(),
+                "3".parse().unwrap(),
+                "92.01".parse().unwrap(),
+                "92.02".parse().unwrap(),
+                "4".parse().unwrap(),
+                "5".parse().unwrap(),
+                "6".parse().unwrap(),
+            );
+            assert!(matches!(
+                invalid_config_res,
+                Err(AccountingBaseConfigError::RetainedEarningsCodeNotChildOfEquity(_))
+            ))
+        }
+
+        #[test]
+        fn is_off_balance_sheet_account_set_member_returns_false_for_configured_codes() {
+            let config = default_config();
+
+            assert!(!config.is_off_balance_sheet_account_set_member(&config.assets_code));
+            assert!(!config.is_off_balance_sheet_account_set_member(&config.liabilities_code));
+            assert!(!config.is_off_balance_sheet_account_set_member(&config.equity_code));
+            assert!(!config.is_off_balance_sheet_account_set_member(&config.revenue_code));
+            assert!(!config.is_off_balance_sheet_account_set_member(&config.cost_of_revenue_code));
+            assert!(!config.is_off_balance_sheet_account_set_member(&config.expenses_code));
+            assert!(!config.is_off_balance_sheet_account_set_member(
+                &config.equity_retained_earnings_gain_code
+            ));
+            assert!(!config.is_off_balance_sheet_account_set_member(
+                &config.equity_retained_earnings_loss_code
+            ));
+        }
+
+        #[test]
+        fn is_off_balance_sheet_account_set_member_returns_true_for_non_configured_top_level_codes()
+        {
+            let config = default_config();
+            let code = "9".parse::<AccountCode>().unwrap();
+            assert!(config.is_off_balance_sheet_account_set_member(&code));
+        }
+
+        #[test]
+        fn is_off_balance_sheet_account_set_member_returns_true_for_non_configured_child_codes() {
+            let config = default_config();
+            let code = "91".parse::<AccountCode>().unwrap();
+            assert!(config.is_off_balance_sheet_account_set_member(&code));
         }
     }
 }
