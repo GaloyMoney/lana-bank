@@ -8,27 +8,17 @@ import { Copy } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
-import { Skeleton } from "@lana/web/ui/skeleton"
-
 import { KycStatusBadge } from "@/app/customers/kyc-status-badge"
 
 import {
-  useGetKycStatusForCustomerQuery,
+  KycLevel,
+  KycVerification,
   useSumsubPermalinkCreateMutation,
 } from "@/lib/graphql/generated"
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import { removeUnderscore } from "@/lib/utils"
 
 gql`
-  query GetKycStatusForCustomer($id: UUID!) {
-    customer(id: $id) {
-      customerId
-      kycVerification
-      level
-      applicantId
-    }
-  }
-
   mutation sumsubPermalinkCreate($input: SumsubPermalinkCreateInput!) {
     sumsubPermalinkCreate(input: $input) {
       url
@@ -38,51 +28,49 @@ gql`
 
 type KycStatusProps = {
   customerId: string
+  kycVerification: KycVerification
+  level: KycLevel
+  applicantId: string | null | undefined
 }
 
-export const KycStatus: React.FC<KycStatusProps> = ({ customerId }) => {
+export const KycStatus: React.FC<KycStatusProps> = ({
+  customerId,
+  kycVerification,
+  level,
+  applicantId,
+}) => {
   const t = useTranslations("Customers.CustomerDetails.kycStatus")
 
-  const { data, loading } = useGetKycStatusForCustomerQuery({
-    variables: {
-      id: customerId,
-    },
-  })
-
-  const sumsubLink = `https://cockpit.sumsub.com/checkus#/applicant/${data?.customer?.applicantId}/client/basicInfo`
+  const sumsubLink = `https://cockpit.sumsub.com/checkus#/applicant/${applicantId}/client/basicInfo`
 
   const [createLink, { data: linkData, loading: linkLoading, error: linkError }] =
     useSumsubPermalinkCreateMutation()
 
   const handleCreateLink = async () => {
-    if (data?.customer?.customerId) {
-      await createLink({
-        variables: {
-          input: {
-            customerId: data.customer.customerId,
-          },
+    await createLink({
+      variables: {
+        input: {
+          customerId,
         },
-      })
-    }
+      },
+    })
   }
-
-  if (loading && !data) return <Skeleton />
 
   const details: DetailItemProps[] = [
     {
       label: t("labels.level"),
-      value: removeUnderscore(data?.customer?.level),
+      value: removeUnderscore(level),
     },
     {
       label: t("labels.kycApplicationLink"),
-      value: data?.customer?.applicantId ? (
+      value: applicantId ? (
         <a
           href={sumsubLink}
           target="_blank"
           rel="noopener noreferrer"
           className="text-blue-500 underline"
         >
-          {data?.customer.applicantId}
+          {applicantId}
         </a>
       ) : (
         <div>
@@ -126,7 +114,7 @@ export const KycStatus: React.FC<KycStatusProps> = ({ customerId }) => {
   return (
     <DetailsCard
       title={t("title")}
-      badge={<KycStatusBadge status={data?.customer?.kycVerification} />}
+      badge={<KycStatusBadge status={kycVerification} />}
       details={details}
       className="w-full md:w-1/4"
       columns={1}

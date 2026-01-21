@@ -240,3 +240,23 @@ pub struct CustomersFilter {
     pub field: CustomersFilterBy,
     pub kyc_verification: Option<KycVerification>,
 }
+
+#[derive(SimpleObject)]
+#[graphql(complex)]
+pub struct CustomerKycUpdatedPayload {
+    pub kyc_verification: KycVerification,
+    #[graphql(skip)]
+    pub customer_id: CustomerId,
+}
+
+#[ComplexObject]
+impl CustomerKycUpdatedPayload {
+    async fn customer(&self, ctx: &Context<'_>) -> async_graphql::Result<Customer> {
+        let loader = ctx.data_unchecked::<super::loader::LanaDataLoader>();
+        let customer = loader
+            .load_one(self.customer_id)
+            .await?
+            .expect("Customer not found");
+        Ok(customer)
+    }
+}

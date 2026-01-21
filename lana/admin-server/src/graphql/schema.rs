@@ -8,6 +8,7 @@ use obix::out::OutboxEventMarker;
 
 use lana_app::accounting::CoreAccountingEvent;
 use lana_app::credit::CoreCreditEvent;
+use lana_app::customer::CoreCustomerEvent;
 use lana_app::price::CorePriceEvent;
 use lana_app::{
     accounting_init::constants::{
@@ -2579,6 +2580,39 @@ pub struct Subscription;
 
 #[Subscription]
 impl Subscription {
+    async fn customer_kyc_updated(
+        &self,
+        ctx: &Context<'_>,
+        customer_id: UUID,
+    ) -> async_graphql::Result<impl Stream<Item = CustomerKycUpdatedPayload>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let customer_id = CustomerId::from(customer_id);
+
+        app.customers()
+            .find_by_id(sub, customer_id)
+            .await?
+            .ok_or_else(|| Error::new("Customer not found"))?;
+
+        let stream = app.outbox().listen_persisted(None);
+        let updates = stream.filter_map(move |event| async move {
+            let payload = event.payload.as_ref()?;
+            let event: &CoreCustomerEvent = payload.as_event()?;
+            match event {
+                CoreCustomerEvent::CustomerAccountKycVerificationUpdated {
+                    id,
+                    kyc_verification,
+                    ..
+                } if *id == customer_id => Some(CustomerKycUpdatedPayload {
+                    customer_id: *id,
+                    kyc_verification: *kyc_verification,
+                }),
+                _ => None,
+            }
+        });
+
+        Ok(updates)
+    }
+
     async fn pending_credit_facility_collateralization_updated(
         &self,
         ctx: &Context<'_>,

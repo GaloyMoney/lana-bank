@@ -169,7 +169,6 @@ describe("Customers", () => {
       expect(response.status).to.eq(200)
     })
 
-    cy.reload()
     cy.contains("Basic").should("be.visible")
     cy.takeScreenshot("16_kyc_status_updated")
   })
