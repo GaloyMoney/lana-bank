@@ -8,7 +8,10 @@ use serde::{Deserialize, Serialize};
 use es_entity::*;
 
 use super::chart_node::*;
-use crate::{chart_of_accounts::ledger::ClosingTxParentIdsAndDetails, primitives::*};
+use crate::{
+    chart_of_accounts::ledger::ClosingTxParentIdsAndDetails,
+    primitives::{AccountingBaseConfig, *},
+};
 
 use super::{error::*, tree};
 
@@ -22,6 +25,9 @@ pub enum ChartEvent {
         account_set_id: CalaAccountSetId,
         name: String,
         reference: String,
+    },
+    BaseConfigSet {
+        base_config: AccountingBaseConfig,
     },
     ClosedAsOf {
         closed_as_of: NaiveDate,
@@ -38,6 +44,8 @@ pub struct Chart {
     pub account_set_id: CalaAccountSetId,
     pub reference: String,
     pub name: String,
+    #[builder(default)]
+    pub base_config: Option<AccountingBaseConfig>,
 
     events: EntityEvents<ChartEvent>,
 
@@ -289,6 +297,68 @@ impl Chart {
         tree::project_from_nodes(self.id, &self.name, self.chart_nodes.iter_persisted())
     }
 
+    pub fn accounting_base_config(&self) -> Option<AccountingBaseConfig> {
+        self.base_config.clone()
+    }
+
+    pub(super) fn set_base_config(
+        &mut self,
+        base_config: AccountingBaseConfig,
+    ) -> Result<Idempotent<()>, ChartOfAccountsError> {
+        if self.base_config.is_some() {
+            return Ok(Idempotent::AlreadyApplied);
+        }
+
+        self.check_base_config_codes_exists_in_chart(&base_config)?;
+
+        self.events.push(ChartEvent::BaseConfigSet {
+            base_config: base_config.clone(),
+        });
+        self.base_config = Some(base_config);
+        Ok(Idempotent::Executed(()))
+    }
+
+    fn check_base_config_codes_exists_in_chart(
+        &self,
+        base_config: &AccountingBaseConfig,
+    ) -> Result<(), ChartOfAccountsError> {
+        self.check_top_level_account_code(&base_config.assets_code)?;
+        self.check_top_level_account_code(&base_config.liabilities_code)?;
+        self.check_top_level_account_code(&base_config.equity_code)?;
+        self.check_top_level_account_code(&base_config.revenue_code)?;
+        self.check_top_level_account_code(&base_config.cost_of_revenue_code)?;
+        self.check_top_level_account_code(&base_config.expenses_code)?;
+
+        self.find_node_details_by_code(&base_config.equity_retained_earnings_gain_code)
+            .ok_or_else(|| {
+                ChartOfAccountsError::CodeNotFoundInChart(
+                    base_config.equity_retained_earnings_gain_code.clone(),
+                )
+            })?;
+        self.find_node_details_by_code(&base_config.equity_retained_earnings_loss_code)
+            .ok_or_else(|| {
+                ChartOfAccountsError::CodeNotFoundInChart(
+                    base_config.equity_retained_earnings_loss_code.clone(),
+                )
+            })?;
+
+        Ok(())
+    }
+
+    fn check_top_level_account_code(&self, code: &AccountCode) -> Result<(), ChartOfAccountsError> {
+        let details = self
+            .find_node_details_by_code(code)
+            .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))?;
+
+        if details.spec.parent.is_some() {
+            return Err(ChartOfAccountsError::AccountCodeHasInvalidParent(
+                code.to_string(),
+            ));
+        }
+
+        Ok(())
+    }
+
     pub(super) fn close_as_of(&mut self, closed_as_of: NaiveDate) -> Idempotent<NaiveDate> {
         idempotency_guard!(
             self.events.iter_all().rev(),
@@ -356,6 +426,9 @@ impl TryFromEvents<ChartEvent> for Chart {
                         .account_set_id(*account_set_id)
                         .reference(reference.to_string())
                         .name(name.to_string());
+                }
+                ChartEvent::BaseConfigSet { base_config } => {
+                    builder = builder.base_config(Some(base_config.clone()));
                 }
                 ChartEvent::ClosedAsOf { .. } => {}
                 ChartEvent::ClosingTransactionPosted { .. } => {}
@@ -761,5 +834,28 @@ mod test {
         let invalid_closing_date = "2025-02-01".parse::<NaiveDate>().unwrap();
         let invalid_close_date = chart.close_as_of(invalid_closing_date);
         assert!(invalid_close_date.was_already_applied());
+    }
+
+    #[test]
+    fn set_base_config_fails_when_code_not_in_chart() {
+        let mut chart = default_chart().0;
+
+        let base_config = AccountingBaseConfig::try_new(
+            code("2"),
+            code("3"),
+            code("4"),
+            code("4.1"),
+            code("4.2"),
+            code("5"),
+            code("6"),
+            code("7"),
+        )
+        .unwrap();
+
+        let res = chart.set_base_config(base_config);
+        assert!(matches!(
+            res,
+            Err(ChartOfAccountsError::CodeNotFoundInChart(_))
+        ));
     }
 }

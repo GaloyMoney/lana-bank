@@ -9,7 +9,18 @@ use core_deposit::*;
 use document_storage::DocumentStorage;
 use domain_config::InternalDomainConfigs;
 use es_entity::clock::{ArtificialClockConfig, ClockHandle};
-use helpers::{action, event, object};
+use helpers::{BASE_ACCOUNTS_CSV, action, default_accounting_base_config, event, object};
+
+const DEPOSIT_ACCOUNTS_CSV: &str = r#"
+11,,,Omnibus Parent,,
+21,,,Individual Deposit Accounts,,
+22,,,Private Company Deposit Accounts,,
+23,,,Bank Deposit Accounts,,
+24,,,Financial Institution Deposit Accounts,,
+25,,,Non Domiciled Individual Deposit Accounts,,
+26,,,Government Entity Deposit Accounts,,
+27,,,Frozen Deposit Accounts,,
+"#;
 
 #[tokio::test]
 async fn chart_of_accounts_integration() -> anyhow::Result<()> {
@@ -84,20 +95,11 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())
         .await?
         .id;
-    let import = r#"
-        2,Omnibus Parent
-        1,Individual Deposit Accounts
-        7,Government Entity Deposit Accounts
-        3,Private Company Deposit Accounts
-        4,Bank Deposit Accounts
-        5,Financial Institution Deposit Accounts
-        6,Non Domiciled Individual Deposit Accounts
-        8,Frozen Deposit Accounts
-        "#
-    .to_string();
+    let import = format!("{}{}", BASE_ACCOUNTS_CSV, DEPOSIT_ACCOUNTS_CSV);
+    let base_config = default_accounting_base_config();
     let (chart, _) = accounting
         .chart_of_accounts()
-        .import_from_csv(&DummySubject, &chart_ref, import)
+        .import_from_csv_with_base_config(&DummySubject, &chart_ref, import, base_config.clone())
         .await?;
 
     let code = "1".parse::<core_accounting::AccountCode>().unwrap();
@@ -113,33 +115,35 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
             &chart,
             ChartOfAccountsIntegrationConfig {
                 chart_of_accounts_id: chart_id,
-                chart_of_accounts_omnibus_parent_code: "2".parse().unwrap(),
-                chart_of_accounts_individual_deposit_accounts_parent_code: "1".parse().unwrap(),
-                chart_of_accounts_government_entity_deposit_accounts_parent_code: "7"
+                chart_of_accounts_omnibus_parent_code: "11".parse().unwrap(),
+                chart_of_accounts_individual_deposit_accounts_parent_code: "21".parse().unwrap(),
+                chart_of_accounts_government_entity_deposit_accounts_parent_code: "26"
                     .parse()
                     .unwrap(),
-                chart_of_account_private_company_deposit_accounts_parent_code: "3".parse().unwrap(),
-                chart_of_account_bank_deposit_accounts_parent_code: "4".parse().unwrap(),
-                chart_of_account_financial_institution_deposit_accounts_parent_code: "5"
+                chart_of_account_private_company_deposit_accounts_parent_code: "22"
                     .parse()
                     .unwrap(),
-                chart_of_account_non_domiciled_individual_deposit_accounts_parent_code: "6"
+                chart_of_account_bank_deposit_accounts_parent_code: "23".parse().unwrap(),
+                chart_of_account_financial_institution_deposit_accounts_parent_code: "24"
                     .parse()
                     .unwrap(),
-                chart_of_accounts_frozen_individual_deposit_accounts_parent_code: "8"
+                chart_of_account_non_domiciled_individual_deposit_accounts_parent_code: "25"
                     .parse()
                     .unwrap(),
-                chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code: "8"
+                chart_of_accounts_frozen_individual_deposit_accounts_parent_code: "27"
                     .parse()
                     .unwrap(),
-                chart_of_account_frozen_private_company_deposit_accounts_parent_code: "8"
+                chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code: "27"
                     .parse()
                     .unwrap(),
-                chart_of_account_frozen_bank_deposit_accounts_parent_code: "8".parse().unwrap(),
-                chart_of_account_frozen_financial_institution_deposit_accounts_parent_code: "8"
+                chart_of_account_frozen_private_company_deposit_accounts_parent_code: "27"
                     .parse()
                     .unwrap(),
-                chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code: "8"
+                chart_of_account_frozen_bank_deposit_accounts_parent_code: "27".parse().unwrap(),
+                chart_of_account_frozen_financial_institution_deposit_accounts_parent_code: "27"
+                    .parse()
+                    .unwrap(),
+                chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code: "27"
                     .parse()
                     .unwrap(),
             },
@@ -163,21 +167,23 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         )
         .await?
         .id;
-
-    let import = r#"
-        2,Other Omnibus Parent
-        1,Other Individual Deposit Accounts
-        7,Other Government Entity Deposit 
-        3,Other Private Company Deposit Accounts
-        4,Other Bank Deposit Accounts
-        5,Other Financial Institution Deposit Accounts
-        6,Other Non Domiciled Individual Deposit Accounts
-        8,Other Frozen Deposit Accounts
-        "#
-    .to_string();
+    let import = format!(
+        "{}{}",
+        BASE_ACCOUNTS_CSV,
+        r#"
+    11,,,Other Omnibus Parent,,
+    21,,,Other Individual Deposit Accounts,,
+    26,,,Other Government Entity Deposit Accounts,,
+    22,,,Other Private Company Deposit Accounts,,
+    23,,,Other Bank Deposit Accounts,,
+    24,,,Other Financial Institution Deposit Accounts,,
+    25,,,Other Non Domiciled Individual Deposit Accounts,,
+    27,,,Other Frozen Deposit Accounts,,
+    "#
+    );
     let (chart, _) = accounting
         .chart_of_accounts()
-        .import_from_csv(&DummySubject, &chart_ref, import)
+        .import_from_csv_with_base_config(&DummySubject, &chart_ref, import, base_config)
         .await?;
 
     let res = deposit
@@ -186,33 +192,35 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
             &chart,
             ChartOfAccountsIntegrationConfig {
                 chart_of_accounts_id: chart_id,
-                chart_of_accounts_omnibus_parent_code: "2".parse().unwrap(),
-                chart_of_accounts_individual_deposit_accounts_parent_code: "1".parse().unwrap(),
-                chart_of_accounts_government_entity_deposit_accounts_parent_code: "7"
+                chart_of_accounts_omnibus_parent_code: "11".parse().unwrap(),
+                chart_of_accounts_individual_deposit_accounts_parent_code: "21".parse().unwrap(),
+                chart_of_accounts_government_entity_deposit_accounts_parent_code: "26"
                     .parse()
                     .unwrap(),
-                chart_of_account_private_company_deposit_accounts_parent_code: "3".parse().unwrap(),
-                chart_of_account_bank_deposit_accounts_parent_code: "4".parse().unwrap(),
-                chart_of_account_financial_institution_deposit_accounts_parent_code: "5"
+                chart_of_account_private_company_deposit_accounts_parent_code: "22"
                     .parse()
                     .unwrap(),
-                chart_of_account_non_domiciled_individual_deposit_accounts_parent_code: "6"
+                chart_of_account_bank_deposit_accounts_parent_code: "23".parse().unwrap(),
+                chart_of_account_financial_institution_deposit_accounts_parent_code: "24"
                     .parse()
                     .unwrap(),
-                chart_of_accounts_frozen_individual_deposit_accounts_parent_code: "8"
+                chart_of_account_non_domiciled_individual_deposit_accounts_parent_code: "25"
                     .parse()
                     .unwrap(),
-                chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code: "8"
+                chart_of_accounts_frozen_individual_deposit_accounts_parent_code: "27"
                     .parse()
                     .unwrap(),
-                chart_of_account_frozen_private_company_deposit_accounts_parent_code: "8"
+                chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code: "27"
                     .parse()
                     .unwrap(),
-                chart_of_account_frozen_bank_deposit_accounts_parent_code: "8".parse().unwrap(),
-                chart_of_account_frozen_financial_institution_deposit_accounts_parent_code: "8"
+                chart_of_account_frozen_private_company_deposit_accounts_parent_code: "27"
                     .parse()
                     .unwrap(),
-                chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code: "8"
+                chart_of_account_frozen_bank_deposit_accounts_parent_code: "27".parse().unwrap(),
+                chart_of_account_frozen_financial_institution_deposit_accounts_parent_code: "27"
+                    .parse()
+                    .unwrap(),
+                chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code: "27"
                     .parse()
                     .unwrap(),
             },

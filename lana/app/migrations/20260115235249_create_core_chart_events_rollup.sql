@@ -6,6 +6,7 @@ CREATE TABLE core_chart_events_rollup (
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
   account_set_id UUID,
+  base_config JSONB,
   closed_as_of VARCHAR,
   name VARCHAR,
   posted_as_of VARCHAR,
@@ -32,7 +33,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'closed_as_of', 'closing_transaction_posted') THEN
+  IF event_type NOT IN ('initialized', 'base_config_set', 'closed_as_of', 'closing_transaction_posted') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -45,6 +46,7 @@ BEGIN
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
     new_row.account_set_id := (NEW.event ->> 'account_set_id')::UUID;
+    new_row.base_config := (NEW.event -> 'base_config');
     new_row.closed_as_of := (NEW.event ->> 'closed_as_of');
     new_row.name := (NEW.event ->> 'name');
     new_row.posted_as_of := (NEW.event ->> 'posted_as_of');
@@ -52,6 +54,7 @@ BEGIN
   ELSE
     -- Default all fields to current values
     new_row.account_set_id := current_row.account_set_id;
+    new_row.base_config := current_row.base_config;
     new_row.closed_as_of := current_row.closed_as_of;
     new_row.name := current_row.name;
     new_row.posted_as_of := current_row.posted_as_of;
@@ -64,6 +67,8 @@ BEGIN
       new_row.account_set_id := (NEW.event ->> 'account_set_id')::UUID;
       new_row.name := (NEW.event ->> 'name');
       new_row.reference := (NEW.event ->> 'reference');
+    WHEN 'base_config_set' THEN
+      new_row.base_config := (NEW.event -> 'base_config');
     WHEN 'closed_as_of' THEN
       new_row.closed_as_of := (NEW.event ->> 'closed_as_of');
     WHEN 'closing_transaction_posted' THEN
@@ -76,6 +81,7 @@ BEGIN
     created_at,
     modified_at,
     account_set_id,
+    base_config,
     closed_as_of,
     name,
     posted_as_of,
@@ -87,6 +93,7 @@ BEGIN
     new_row.created_at,
     new_row.modified_at,
     new_row.account_set_id,
+    new_row.base_config,
     new_row.closed_as_of,
     new_row.name,
     new_row.posted_as_of,

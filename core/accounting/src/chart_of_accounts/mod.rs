@@ -17,9 +17,9 @@ use tracing_macros::record_error_severity;
 use cala_ledger::{CalaLedger, account::Account};
 
 use crate::primitives::{
-    AccountCode, AccountIdOrCode, AccountName, AccountSpec, CalaAccountSetId, CalaJournalId,
-    ChartId, ClockHandle, ClosingAccountCodes, ClosingTxDetails, CoreAccountingAction,
-    CoreAccountingObject, LedgerAccountId,
+    AccountCode, AccountIdOrCode, AccountName, AccountSpec, AccountingBaseConfig, CalaAccountSetId,
+    CalaJournalId, ChartId, ClockHandle, ClosingAccountCodes, ClosingTxDetails,
+    CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
 };
 
 #[cfg(feature = "json-schema")]
@@ -130,14 +130,15 @@ where
 
     #[record_error_severity]
     #[instrument(
-        name = "core_accounting.chart_of_accounts.import_from_csv",
+        name = "core_accounting.chart_of_accounts.import_from_csv_with_base_config",
         skip(self, import_data)
     )]
-    pub async fn import_from_csv(
+    pub async fn import_from_csv_with_base_config(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_ref: &str,
         import_data: impl AsRef<str>,
+        base_config: AccountingBaseConfig,
     ) -> Result<(Chart, Option<Vec<CalaAccountSetId>>), ChartOfAccountsError> {
         self.authz
             .enforce_permission(
@@ -150,12 +151,12 @@ where
 
         let import_data = import_data.as_ref().to_string();
         let account_specs = CsvParser::new(import_data).account_specs()?;
-
         let BulkImportResult {
             new_account_sets,
             new_account_set_ids,
             new_connections,
         } = BulkAccountImport::new(&mut chart, self.journal_id).import(account_specs);
+        let _ = chart.set_base_config(base_config)?;
 
         let mut op = self.repo.begin_op_with_clock(&self.clock).await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
@@ -180,6 +181,20 @@ where
             .collect::<Vec<_>>();
 
         Ok((chart, Some(new_account_set_ids.clone())))
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "core_accounting.chart_of_accounts.maybe_find_accounting_base_config_by_chart_id",
+        skip(self)
+    )]
+    pub async fn maybe_find_accounting_base_config_by_chart_id(
+        &self,
+        chart_id: ChartId,
+    ) -> Result<Option<AccountingBaseConfig>, ChartOfAccountsError> {
+        let chart = self.find_by_id(chart_id).await?;
+        let base_config = chart.accounting_base_config();
+        Ok(base_config)
     }
 
     #[record_error_severity]

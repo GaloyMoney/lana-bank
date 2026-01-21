@@ -13,12 +13,12 @@ import { toast } from "sonner"
 
 import {
   ChartOfAccountsDocument,
-  useChartOfAccountsCsvImportMutation,
+  useChartOfAccountsCsvImportWithBaseConfigMutation,
 } from "@/lib/graphql/generated"
 
 gql`
-  mutation ChartOfAccountsCsvImport($input: ChartOfAccountsCsvImportInput!) {
-    chartOfAccountsCsvImport(input: $input) {
+  mutation ChartOfAccountsCsvImportWithBaseConfig($input: ChartOfAccountsCsvImportWithBaseConfigInput!) {
+    chartOfAccountsCsvImportWithBaseConfig(input: $input) {
       chartOfAccounts {
         chartId
       }
@@ -32,7 +32,7 @@ const ChartOfAccountsUpload = () => {
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
 
-  const [uploadCsv] = useChartOfAccountsCsvImportMutation({
+  const [uploadCsv] = useChartOfAccountsCsvImportWithBaseConfigMutation({
     refetchQueries: [ChartOfAccountsDocument],
   })
 
@@ -59,14 +59,26 @@ const ChartOfAccountsUpload = () => {
     setUploading(true)
     setUploadError(null)
     try {
+      // TODO: baseConfig is stubbed and will cause error in backend; currently not rendered due to the chart of accounts
+      // csv being configured via YML and seeded on startup.
       const result = await uploadCsv({
         variables: {
           input: {
             file: file,
+            baseConfig: {
+              assetsCode: "",
+              liabilitiesCode: "",
+              equityCode: "",
+              equityRetainedEarningsGainCode: "",
+              equityRetainedEarningsLossCode: "",
+              revenueCode: "",
+              costOfRevenueCode: "",
+              expensesCode: ""
+            }
           },
         },
       })
-      if (result.data?.chartOfAccountsCsvImport.chartOfAccounts.chartId) {
+      if (result.data?.chartOfAccountsCsvImportWithBaseConfig.chartOfAccounts.chartId) {
         toast.success(t("successDescription"))
         resetUpload()
       } else {
