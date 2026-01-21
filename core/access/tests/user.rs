@@ -4,8 +4,8 @@ use authz::Authorization;
 use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 
 use core_access::{
-    AuthRoleToken, CoreAccess, CoreAccessAction, CoreAccessEvent, CoreAccessObject, PermissionSetId,
-    RoleId, config::AccessConfig,
+    AuthRoleToken, CoreAccess, CoreAccessAction, CoreAccessEvent, CoreAccessObject,
+    PermissionSetId, RoleId, config::AccessConfig,
 };
 use helpers::{TestAudit, TestSubject, event};
 
@@ -16,7 +16,9 @@ async fn create_user_publishes_event() -> anyhow::Result<()> {
 
     let outbox = obix::Outbox::<event::DummyEvent>::init(
         &pool,
-        obix::MailboxConfig::builder().clock(clock.clone()).build()?,
+        obix::MailboxConfig::builder()
+            .clock(clock.clone())
+            .build()?,
     )
     .await?;
 

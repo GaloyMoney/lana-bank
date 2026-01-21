@@ -183,8 +183,9 @@ pub mod event {
         let event = tokio::time::timeout(Duration::from_secs(5), async {
             loop {
                 let event = listener.next().await.expect("should receive an event");
-                if let Some(extracted) =
-                    event.as_event::<CoreAccessEvent>().and_then(|e| matches(&result, e))
+                if let Some(extracted) = event
+                    .as_event::<CoreAccessEvent>()
+                    .and_then(|e| matches(&result, e))
                 {
                     return extracted;
                 }
