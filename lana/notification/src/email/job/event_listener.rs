@@ -220,7 +220,7 @@ where
                     .send_deposit_account_created_notification(op, id, account_holder_id)
                     .await?;
             }
-            Some(LanaEvent::Access(access_event @ CoreAccessEvent::RoleCreated { entity })) => {
+            Some(LanaEvent::CoreAccess(access_event @ CoreAccessEvent::RoleCreated { entity })) => {
                 message.inject_trace_parent();
                 Span::current().record("handled", true);
                 Span::current().record("event_type", access_event.as_ref());
