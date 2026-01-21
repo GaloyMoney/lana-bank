@@ -66,6 +66,7 @@ pub struct Collateral {
     pub pending_credit_facility_id: PendingCreditFacilityId,
     pub custody_wallet_id: Option<CustodyWalletId>,
     pub amount: Satoshis,
+    #[builder(default)]
     current_liquidation: Option<CurrentLiquidation>,
 
     events: EntityEvents<CollateralEvent>,
