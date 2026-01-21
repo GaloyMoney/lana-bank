@@ -38,6 +38,15 @@ const sidebars = {
     },
     {
       type: "category",
+      label: "Domain Config",
+      link: {
+        type: "doc",
+        id: "domain-config/index",
+      },
+      items: [],
+    },
+    {
+      type: "category",
       label: "ERDs",
       link: {
         type: "doc",
