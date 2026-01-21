@@ -19,16 +19,11 @@ use cala_ledger::{
 use core_accounting::{
     AccountCode, AccountIdOrCode, CalaTxId, Chart, ClosingAccountCodes, ClosingTxDetails,
     CoreAccounting, LedgerAccountId, ManualEntryInput, ProfitAndLossStatement,
-    balance_sheet::ChartOfAccountsIntegrationConfig as BalanceSheetConfig, fiscal_year::FiscalYear,
-    fiscal_year::FiscalYearRepo,
-    profit_and_loss::ChartOfAccountsIntegrationConfig as ProfitAndLossConfig,
+    fiscal_year::FiscalYear, fiscal_year::FiscalYearRepo,
 };
 
 use helpers::{action, default_accounting_base_config, object};
 
-const ASSETS: &str = "1";
-const LIABILITIES: &str = "2";
-const EQUITY: &str = "3";
 const RETAINED_EARNINGS_GAIN: &str = "32.01";
 const RETAINED_EARNINGS_LOSS: &str = "32.02";
 const REVENUES: &str = "4";
