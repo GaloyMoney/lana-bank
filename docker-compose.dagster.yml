@@ -1,5 +1,12 @@
+# Linux-Docker or old Docker-Desktop need this extra_hosts entry.
+# Podman and modern Desktop skip this file and work out of the box.
+x-hostgw: &hostgw
+  extra_hosts:
+    - "host.containers.internal:host-gateway"
+
 services:
   dagster-code-location-lana-dw:
+    <<: *hostgw
     build:
       context: ./dagster
       dockerfile: Dockerfile
@@ -56,6 +63,7 @@ services:
   # This service runs the dagster-daemon process, which is responsible for taking runs
   # off of the queue and launching them, as well as creating runs from schedules or sensors.
   dagster_daemon:
+    <<: *hostgw
     build:
       context: ./dagster
       dockerfile: Dockerfile_dagster
