@@ -52,6 +52,13 @@ jobs:
         with:
           name: videos
           path: apps/admin-panel/cypress/videos/*
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-logs
+          path: |
+            cypress-stack.log
+            admin-panel.log
 
       - run: mkdir -p apps/admin-panel/cypress/manuals/screenshots
       - uses: actions/download-artifact@v4
