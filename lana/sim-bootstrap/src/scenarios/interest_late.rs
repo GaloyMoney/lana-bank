@@ -52,20 +52,18 @@ pub async fn interest_late_scenario(
                     id,
                     status: CreditFacilityProposalStatus::Approved,
                 })) = &msg.payload
+                    && *id == proposal_id
                 {
-                    if *id == proposal_id {
-                        msg.inject_trace_parent();
-                        break;
-                    }
+                    msg.inject_trace_parent();
+                    break;
                 }
                 if let Some(LanaEvent::Credit(CoreCreditEvent::FacilityProposalConcluded {
                     id,
                     status: CreditFacilityProposalStatus::Denied,
                 })) = &msg.payload
+                    && *id == proposal_id
                 {
-                    if *id == proposal_id {
-                        anyhow::bail!("Proposal was denied");
-                    }
+                    anyhow::bail!("Proposal was denied");
                 }
             }
             _ = tokio::time::sleep(EVENT_WAIT_TIMEOUT) => {
@@ -87,12 +85,12 @@ pub async fn interest_late_scenario(
     loop {
         tokio::select! {
             Some(msg) = stream.next() => {
-                if let Some(LanaEvent::Credit(CoreCreditEvent::FacilityActivated { id, .. })) = &msg.payload {
-                    if *id == cf_id {
-                        msg.inject_trace_parent();
-                        activation_date = clock.today();
-                        break;
-                    }
+                if let Some(LanaEvent::Credit(CoreCreditEvent::FacilityActivated { id, .. })) = &msg.payload
+                    && *id == cf_id
+                {
+                    msg.inject_trace_parent();
+                    activation_date = clock.today();
+                    break;
                 }
             }
             _ = tokio::time::sleep(EVENT_WAIT_TIMEOUT) => {
@@ -118,38 +116,38 @@ pub async fn interest_late_scenario(
                     obligation_type,
                     ..
                 })) = &msg.payload
+                    && *credit_facility_id == cf_id
+                    && *amount > UsdCents::ZERO
                 {
-                    if *credit_facility_id == cf_id && *amount > UsdCents::ZERO {
-                        msg.inject_trace_parent();
-                        let current_date = clock.today();
+                    msg.inject_trace_parent();
+                    let current_date = clock.today();
 
-                        if *obligation_type == ObligationType::Interest && first_interest_amount.is_none() {
-                            first_interest_amount = Some(*amount);
-                            first_interest_due_date = Some(current_date);
-                        } else {
-                            let _ = app.record_payment_with_date(&sub, cf_id, *amount, current_date).await;
-                        }
+                    if *obligation_type == ObligationType::Interest && first_interest_amount.is_none() {
+                        first_interest_amount = Some(*amount);
+                        first_interest_due_date = Some(current_date);
+                    } else {
+                        let _ = app.record_payment_with_date(&sub, cf_id, *amount, current_date).await;
                     }
                 }
 
-                if let Some(LanaEvent::Credit(CoreCreditEvent::FacilityCompleted { id, .. })) = &msg.payload {
-                    if *id == cf_id {
-                        msg.inject_trace_parent();
-                        facility_completed = true;
-                    }
+                if let Some(LanaEvent::Credit(CoreCreditEvent::FacilityCompleted { id, .. })) = &msg.payload
+                    && *id == cf_id
+                {
+                    msg.inject_trace_parent();
+                    facility_completed = true;
                 }
             }
             _ = tokio::time::sleep(EVENT_WAIT_TIMEOUT) => {
                 clock_ctrl.advance(ONE_DAY).await;
                 let current_date = clock.today();
 
-                if !first_interest_paid {
-                    if let (Some(amount), Some(due_date)) = (first_interest_amount, first_interest_due_date) {
-                        let days_late = (current_date - due_date).num_days();
-                        if days_late > 90 {
-                            let _ = app.record_payment_with_date(&sub, cf_id, amount, current_date).await;
-                            first_interest_paid = true;
-                        }
+                if !first_interest_paid
+                    && let (Some(amount), Some(due_date)) = (first_interest_amount, first_interest_due_date)
+                {
+                    let days_late = (current_date - due_date).num_days();
+                    if days_late > 90 {
+                        let _ = app.record_payment_with_date(&sub, cf_id, amount, current_date).await;
+                        first_interest_paid = true;
                     }
                 }
 

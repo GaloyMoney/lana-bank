@@ -65,20 +65,18 @@ pub async fn principal_under_payment_scenario(
                     id,
                     status: CreditFacilityProposalStatus::Approved,
                 })) = &msg.payload
+                    && *id == proposal_id
                 {
-                    if *id == proposal_id {
-                        msg.inject_trace_parent();
-                        break;
-                    }
+                    msg.inject_trace_parent();
+                    break;
                 }
                 if let Some(LanaEvent::Credit(CoreCreditEvent::FacilityProposalConcluded {
                     id,
                     status: CreditFacilityProposalStatus::Denied,
                 })) = &msg.payload
+                    && *id == proposal_id
                 {
-                    if *id == proposal_id {
-                        anyhow::bail!("Proposal was denied");
-                    }
+                    anyhow::bail!("Proposal was denied");
                 }
             }
             _ = tokio::time::sleep(EVENT_WAIT_TIMEOUT) => {
@@ -99,11 +97,11 @@ pub async fn principal_under_payment_scenario(
     loop {
         tokio::select! {
             Some(msg) = stream.next() => {
-                if let Some(LanaEvent::Credit(CoreCreditEvent::FacilityActivated { id, .. })) = &msg.payload {
-                    if *id == cf_id {
-                        msg.inject_trace_parent();
-                        break;
-                    }
+                if let Some(LanaEvent::Credit(CoreCreditEvent::FacilityActivated { id, .. })) = &msg.payload
+                    && *id == cf_id
+                {
+                    msg.inject_trace_parent();
+                    break;
                 }
             }
             _ = tokio::time::sleep(EVENT_WAIT_TIMEOUT) => {
@@ -124,15 +122,15 @@ pub async fn principal_under_payment_scenario(
                     obligation_type,
                     ..
                 })) = &msg.payload
+                    && *credit_facility_id == cf_id
+                    && *amount > UsdCents::ZERO
                 {
-                    if *credit_facility_id == cf_id && *amount > UsdCents::ZERO {
-                        msg.inject_trace_parent();
+                    msg.inject_trace_parent();
 
-                        if *obligation_type == ObligationType::Interest {
-                            let _ = app.record_payment_with_date(&sub, cf_id, *amount, clock.today()).await;
-                        } else {
-                            principal_remaining += *amount;
-                        }
+                    if *obligation_type == ObligationType::Interest {
+                        let _ = app.record_payment_with_date(&sub, cf_id, *amount, clock.today()).await;
+                    } else {
+                        principal_remaining += *amount;
                     }
                 }
             }

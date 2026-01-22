@@ -57,20 +57,18 @@ pub async fn disbursal_different_months_scenario(
                     id,
                     status: CreditFacilityProposalStatus::Approved,
                 })) = &msg.payload
+                    && *id == proposal_id
                 {
-                    if *id == proposal_id {
-                        msg.inject_trace_parent();
-                        break;
-                    }
+                    msg.inject_trace_parent();
+                    break;
                 }
                 if let Some(LanaEvent::Credit(CoreCreditEvent::FacilityProposalConcluded {
                     id,
                     status: CreditFacilityProposalStatus::Denied,
                 })) = &msg.payload
+                    && *id == proposal_id
                 {
-                    if *id == proposal_id {
-                        anyhow::bail!("Proposal was denied");
-                    }
+                    anyhow::bail!("Proposal was denied");
                 }
             }
             _ = tokio::time::sleep(EVENT_WAIT_TIMEOUT) => {
@@ -92,17 +90,17 @@ pub async fn disbursal_different_months_scenario(
     loop {
         tokio::select! {
             Some(msg) = stream.next() => {
-                if let Some(LanaEvent::Credit(CoreCreditEvent::FacilityActivated { id, .. })) = &msg.payload {
-                    if *id == cf_id {
-                        msg.inject_trace_parent();
-                        activation_date = clock.today();
+                if let Some(LanaEvent::Credit(CoreCreditEvent::FacilityActivated { id, .. })) = &msg.payload
+                    && *id == cf_id
+                {
+                    msg.inject_trace_parent();
+                    activation_date = clock.today();
 
-                        app.credit()
-                            .initiate_disbursal(&sub, cf_id, UsdCents::try_from_usd(dec!(1_000_000))?)
-                            .await?;
+                    app.credit()
+                        .initiate_disbursal(&sub, cf_id, UsdCents::try_from_usd(dec!(1_000_000))?)
+                        .await?;
 
-                        break;
-                    }
+                    break;
                 }
             }
             _ = tokio::time::sleep(EVENT_WAIT_TIMEOUT) => {
@@ -128,18 +126,18 @@ pub async fn disbursal_different_months_scenario(
                     amount,
                     ..
                 })) = &msg.payload
+                    && *credit_facility_id == cf_id
+                    && *amount > UsdCents::ZERO
                 {
-                    if *credit_facility_id == cf_id && *amount > UsdCents::ZERO {
-                        msg.inject_trace_parent();
-                        let _ = app.record_payment_with_date(&sub, cf_id, *amount, clock.today()).await;
-                    }
+                    msg.inject_trace_parent();
+                    let _ = app.record_payment_with_date(&sub, cf_id, *amount, clock.today()).await;
                 }
 
-                if let Some(LanaEvent::Credit(CoreCreditEvent::FacilityCompleted { id, .. })) = &msg.payload {
-                    if *id == cf_id {
-                        msg.inject_trace_parent();
-                        facility_completed = true;
-                    }
+                if let Some(LanaEvent::Credit(CoreCreditEvent::FacilityCompleted { id, .. })) = &msg.payload
+                    && *id == cf_id
+                {
+                    msg.inject_trace_parent();
+                    facility_completed = true;
                 }
             }
             _ = tokio::time::sleep(EVENT_WAIT_TIMEOUT) => {
