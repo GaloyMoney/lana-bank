@@ -378,11 +378,9 @@ jobs:
     serial: true
     plan:
       - in_parallel:
+          - get: promote-rc-pr
           - get: repo
-            passed: 
-              - flake-check
-              - test-bats
-              - test-integration
+            passed: [ open-promote-rc-pr ]
           - get: pipeline-tasks
           - get: version
             passed: [ open-promote-rc-pr ]
@@ -799,6 +797,17 @@ resources:
       branch: #@ data.values.git_promote_rc_branch
       private_key: #@ data.values.github_private_key
     webhook_token: ((webhook.secret))
+
+  - name: promote-rc-pr
+    type: pull-request
+    source:
+      repository: #@ data.values.gh_org + "/" + data.values.gh_repository
+      access_token: #@ data.values.github_token
+      base_branch: #@ data.values.git_branch
+      disable_forks: true
+      states: [ "MERGED" ]
+      paths: [ "CHANGELOG.md" ]
+      labels: [ "promote-rc" ]
 
   - name: latest-image
     type: registry-image
