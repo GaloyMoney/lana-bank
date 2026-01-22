@@ -972,6 +972,45 @@ mod test {
     }
 
     #[test]
+    fn import_accounts_attaches_to_existing_parent() {
+        let mut chart = chart_from(initial_events());
+        let journal_id = CalaJournalId::new();
+
+        let initial_specs = vec![
+            AccountSpec {
+                name: "Assets".parse().unwrap(),
+                parent: None,
+                code: code("1"),
+                normal_balance_type: DebitOrCredit::Debit,
+            },
+            AccountSpec {
+                name: "Current Assets".parse().unwrap(),
+                parent: Some(code("1")),
+                code: code("1.1"),
+                normal_balance_type: DebitOrCredit::Debit,
+            },
+        ];
+        let _ = chart.import_accounts(initial_specs, journal_id);
+
+        let parent_account_set_id = chart.account_set_id_from_code(&code("1.1")).unwrap();
+
+        let additional_specs = vec![AccountSpec {
+            name: "Cash".parse().unwrap(),
+            parent: Some(code("1.1")),
+            code: code("1.1.1"),
+            normal_balance_type: DebitOrCredit::Debit,
+        }];
+        let result = chart.import_accounts(additional_specs, journal_id);
+
+        assert_eq!(result.new_account_sets.len(), 1);
+        assert_eq!(result.new_connections.len(), 1);
+
+        let (parent_id, child_id) = result.new_connections[0];
+        assert_eq!(parent_id, parent_account_set_id);
+        assert_eq!(child_id, result.new_account_sets[0].id);
+    }
+
+    #[test]
     fn import_accounts_creates_hierarchical_structure() {
         let mut chart = chart_from(initial_events());
         let journal_id = CalaJournalId::new();
