@@ -2893,6 +2893,11 @@ export enum ReportRunType {
   Scheduled = 'SCHEDULED'
 }
 
+export type ReportRunUpdatedPayload = {
+  __typename?: 'ReportRunUpdatedPayload';
+  reportRunId: Scalars['UUID']['output'];
+};
+
 export type Role = {
   __typename?: 'Role';
   createdAt: Scalars['Timestamp']['output'];
@@ -2965,6 +2970,7 @@ export type Subscription = {
   pendingCreditFacilityCollateralizationUpdated: PendingCreditFacilityCollateralizationPayload;
   pendingCreditFacilityCompleted: PendingCreditFacilityCompletedPayload;
   realtimePriceUpdated: RealtimePrice;
+  reportRunUpdated: ReportRunUpdatedPayload;
 };
 
 
@@ -4567,6 +4573,11 @@ export type ReportRunsQueryVariables = Exact<{
 
 
 export type ReportRunsQuery = { __typename?: 'Query', reportRuns: { __typename?: 'ReportRunConnection', edges: Array<{ __typename?: 'ReportRunEdge', cursor: string, node: { __typename?: 'ReportRun', id: string, reportRunId: string, startTime?: any | null, runType: ReportRunType, state: ReportRunState } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+
+export type ReportRunUpdatedSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ReportRunUpdatedSubscription = { __typename?: 'Subscription', reportRunUpdated: { __typename?: 'ReportRunUpdatedPayload', reportRunId: string } };
 
 export type RoleAddPermissionSetsMutationVariables = Exact<{
   input: RoleAddPermissionSetsInput;
@@ -11041,6 +11052,35 @@ export type ReportRunsQueryHookResult = ReturnType<typeof useReportRunsQuery>;
 export type ReportRunsLazyQueryHookResult = ReturnType<typeof useReportRunsLazyQuery>;
 export type ReportRunsSuspenseQueryHookResult = ReturnType<typeof useReportRunsSuspenseQuery>;
 export type ReportRunsQueryResult = Apollo.QueryResult<ReportRunsQuery, ReportRunsQueryVariables>;
+export const ReportRunUpdatedDocument = gql`
+    subscription ReportRunUpdated {
+  reportRunUpdated {
+    reportRunId
+  }
+}
+    `;
+
+/**
+ * __useReportRunUpdatedSubscription__
+ *
+ * To run a query within a React component, call `useReportRunUpdatedSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useReportRunUpdatedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useReportRunUpdatedSubscription({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useReportRunUpdatedSubscription(baseOptions?: Apollo.SubscriptionHookOptions<ReportRunUpdatedSubscription, ReportRunUpdatedSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<ReportRunUpdatedSubscription, ReportRunUpdatedSubscriptionVariables>(ReportRunUpdatedDocument, options);
+      }
+export type ReportRunUpdatedSubscriptionHookResult = ReturnType<typeof useReportRunUpdatedSubscription>;
+export type ReportRunUpdatedSubscriptionResult = Apollo.SubscriptionResult<ReportRunUpdatedSubscription>;
 export const RoleAddPermissionSetsDocument = gql`
     mutation RoleAddPermissionSets($input: RoleAddPermissionSetsInput!) {
   roleAddPermissionSets(input: $input) {

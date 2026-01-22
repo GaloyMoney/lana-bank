@@ -2306,6 +2306,10 @@ enum ReportRunType {
 	MANUAL
 }
 
+type ReportRunUpdatedPayload {
+	reportRunId: UUID!
+}
+
 type Role {
 	id: ID!
 	roleId: UUID!
@@ -2389,6 +2393,7 @@ type Subscription {
 	creditFacilityCollateralizationUpdated(creditFacilityId: UUID!): CreditFacilityCollateralizationPayload!
 	ledgerAccountCsvExportUploaded(ledgerAccountId: UUID!): LedgerAccountCsvExportUploadedPayload!
 	realtimePriceUpdated: RealtimePrice!
+	reportRunUpdated: ReportRunUpdatedPayload!
 }
 
 input SumsubPermalinkCreateInput {

@@ -80,9 +80,18 @@ def create_file_report_callable(
             log=context.log.info,
         )
 
+        # Extract just the path portion from the full GCS URL
+        # gcs_path is "gs://bucket-name/path/to/file", we need just "path/to/file"
+        gcs_path = result["gcs_path"]
+        if gcs_path.startswith("gs://"):
+            # Remove "gs://bucket-name/" prefix to get just the path in bucket
+            path_in_bucket = "/".join(gcs_path.split("/")[3:])
+        else:
+            path_in_bucket = gcs_path
+
         report_file: ReportFile = {
             "type": result["file_type"],
-            "path_in_bucket": result["gcs_path"],
+            "path_in_bucket": path_in_bucket,
         }
 
         report: Report = {
