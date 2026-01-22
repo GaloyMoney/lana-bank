@@ -17,14 +17,14 @@ use crate::{
 };
 
 #[derive(Deserialize, Serialize)]
-pub struct EndOfDayBroadcastJobConfig<E>
+pub struct EndOfDayProducerJobConfig<E>
 where
     E: OutboxEventMarker<CoreTimeEvent>,
 {
     pub _phantom: std::marker::PhantomData<E>,
 }
 
-pub struct EndOfDayBroadcastJobInit<E, Perms>
+pub struct EndOfDayProducerJobInit<E, Perms>
 where
     E: OutboxEventMarker<CoreTimeEvent>,
     Perms: PermissionCheck,
@@ -33,7 +33,7 @@ where
     domain_configs: ExposedDomainConfigs<Perms>,
 }
 
-impl<E, Perms> EndOfDayBroadcastJobInit<E, Perms>
+impl<E, Perms> EndOfDayProducerJobInit<E, Perms>
 where
     E: OutboxEventMarker<CoreTimeEvent>,
     Perms: PermissionCheck,
@@ -49,7 +49,7 @@ where
 pub const END_OF_DAY_PRODUCER_JOB: JobType =
     JobType::new("cron.core-time-event.end-of-day-producer");
 
-impl<E, Perms> JobInitializer for EndOfDayBroadcastJobInit<E, Perms>
+impl<E, Perms> JobInitializer for EndOfDayProducerJobInit<E, Perms>
 where
     E: OutboxEventMarker<CoreTimeEvent>,
     Perms: PermissionCheck,
@@ -59,7 +59,7 @@ where
         From<domain_config::DomainConfigObject>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject: SystemSubject,
 {
-    type Config = EndOfDayBroadcastJobConfig<E>;
+    type Config = EndOfDayProducerJobConfig<E>;
 
     fn job_type(&self) -> JobType {
         END_OF_DAY_PRODUCER_JOB
@@ -70,7 +70,7 @@ where
         _: &Job,
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(EndOfDayBroadcastJobRunner {
+        Ok(Box::new(EndOfDayProducerJobRunner {
             outbox: self.outbox.clone(),
             domain_configs: self.domain_configs.clone(),
         }))
@@ -81,7 +81,7 @@ where
     }
 }
 
-pub struct EndOfDayBroadcastJobRunner<E, Perms>
+pub struct EndOfDayProducerJobRunner<E, Perms>
 where
     E: OutboxEventMarker<CoreTimeEvent>,
     Perms: PermissionCheck,
@@ -91,7 +91,7 @@ where
 }
 
 #[async_trait]
-impl<E, Perms> JobRunner for EndOfDayBroadcastJobRunner<E, Perms>
+impl<E, Perms> JobRunner for EndOfDayProducerJobRunner<E, Perms>
 where
     E: OutboxEventMarker<CoreTimeEvent>,
     Perms: PermissionCheck,
@@ -138,12 +138,12 @@ where
                     continue;
                 }
             };
-            tracing::info!(                                                                                                                                          
-                job_id = %current_job.id(),                                                                                                                          
-                job_type = %END_OF_DAY_PRODUCER_JOB,                                                                                                                 
-                duration_until_close = ?duration_until_close,                                                                                                        
-                "Waiting for end of day"                                                                                                                             
-            );  
+            tracing::info!(
+                job_id = %current_job.id(),
+                job_type = %END_OF_DAY_PRODUCER_JOB,
+                duration_until_close = ?duration_until_close,
+                "Waiting for end of day"
+            );
             let clock = current_job.clock().clone();
             select! {
                 biased;
