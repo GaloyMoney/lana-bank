@@ -218,6 +218,7 @@ jobs:
             passed:
               -  build-customer-portal-edge-image
           - get: dagster-edge-image
+            trigger: true
             params: { format: oci }
             passed:
               - build-dagster-edge-image
