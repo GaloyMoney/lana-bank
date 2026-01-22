@@ -1,3 +1,4 @@
+use es_entity::clock::ClockHandle;
 use sqlx::PgPool;
 
 use es_entity::*;
@@ -18,10 +19,15 @@ use super::{entity::*, error::ChartOfAccountsError};
 struct ChartNodeRepo {
     #[allow(dead_code)]
     pool: PgPool,
+    #[allow(dead_code)]
+    clock: ClockHandle,
 }
 impl ChartNodeRepo {
-    pub fn new(pool: &PgPool) -> Self {
-        Self { pool: pool.clone() }
+    pub fn new(pool: &PgPool, clock: ClockHandle) -> Self {
+        Self {
+            pool: pool.clone(),
+            clock,
+        }
     }
 }
 
@@ -34,16 +40,18 @@ impl ChartNodeRepo {
 )]
 pub struct ChartRepo {
     pool: PgPool,
+    clock: ClockHandle,
 
     #[es_repo(nested)]
     chart_nodes: ChartNodeRepo,
 }
 
 impl ChartRepo {
-    pub fn new(pool: &PgPool) -> Self {
-        let chart_nodes = ChartNodeRepo::new(pool);
+    pub fn new(pool: &PgPool, clock: ClockHandle) -> Self {
+        let chart_nodes = ChartNodeRepo::new(pool, clock.clone());
         Self {
             pool: pool.clone(),
+            clock,
             chart_nodes,
         }
     }

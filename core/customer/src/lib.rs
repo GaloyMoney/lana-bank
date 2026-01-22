@@ -11,7 +11,6 @@ mod publisher;
 mod repo;
 
 use chrono::{DateTime, Utc};
-use es_entity::clock::ClockHandle;
 use std::collections::HashMap;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
@@ -21,6 +20,7 @@ use authz::PermissionCheck;
 use document_storage::{
     Document, DocumentId, DocumentStorage, DocumentType, GeneratedDocumentDownloadLink,
 };
+use es_entity::clock::ClockHandle;
 use obix::out::{Outbox, OutboxEventMarker};
 use public_id::PublicIds;
 
@@ -54,7 +54,6 @@ where
     document_storage: DocumentStorage,
     public_ids: PublicIds,
     config: CustomerConfig,
-    clock: ClockHandle,
 }
 
 impl<Perms, E> Clone for Customers<Perms, E>
@@ -71,7 +70,6 @@ where
             document_storage: self.document_storage.clone(),
             public_ids: self.public_ids.clone(),
             config: self.config.clone(),
-            clock: self.clock.clone(),
         }
     }
 }
@@ -92,7 +90,7 @@ where
         clock: ClockHandle,
     ) -> Self {
         let publisher = CustomerPublisher::new(outbox);
-        let repo = CustomerRepo::new(pool, &publisher);
+        let repo = CustomerRepo::new(pool, &publisher, clock);
         let customer_activity_repo = CustomerActivityRepo::new(pool.clone());
         Self {
             repo,
@@ -102,7 +100,6 @@ where
             document_storage,
             public_ids: public_id_service,
             config: CustomerConfig::default(),
-            clock,
         }
     }
 
@@ -138,7 +135,7 @@ where
         let customer_id = CustomerId::new();
         tracing::Span::current().record("customer_id", customer_id.to_string().as_str());
 
-        let mut db = self.repo.begin_op_with_clock(&self.clock).await?;
+        let mut db = self.repo.begin_op().await?;
 
         let public_id = self
             .public_ids

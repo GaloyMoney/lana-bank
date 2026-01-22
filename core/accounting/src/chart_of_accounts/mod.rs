@@ -77,7 +77,7 @@ where
         cala: &CalaLedger,
         journal_id: CalaJournalId,
     ) -> Self {
-        let chart_of_account = ChartRepo::new(pool);
+        let chart_of_account = ChartRepo::new(pool, clock.clone());
         let chart_ledger = ChartLedger::new(clock.clone(), cala, journal_id);
 
         Self {
@@ -100,7 +100,7 @@ where
     ) -> Result<Chart, ChartOfAccountsError> {
         let id = ChartId::new();
 
-        let mut op = self.repo.begin_op_with_clock(&self.clock).await?;
+        let mut op = self.repo.begin_op().await?;
         self.authz
             .enforce_permission(
                 sub,
@@ -158,7 +158,7 @@ where
         } = BulkAccountImport::new(&mut chart, self.journal_id).import(account_specs);
         let _ = chart.set_base_config(base_config)?;
 
-        let mut op = self.repo.begin_op_with_clock(&self.clock).await?;
+        let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
         let mut op = op.with_db_time().await?;
@@ -225,7 +225,7 @@ where
         };
         let account_set_id = new_account_set.id;
 
-        let mut op = self.repo.begin_op_with_clock(&self.clock).await?;
+        let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
         let mut op = op.with_db_time().await?;
@@ -272,7 +272,7 @@ where
         };
         let account_set_id = new_account_set.id;
 
-        let mut op = self.repo.begin_op_with_clock(&self.clock).await?;
+        let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
         let mut op = op.with_db_time().await?;
@@ -436,7 +436,7 @@ where
         {
             ManualAccountFromChart::IdInChart(id) | ManualAccountFromChart::NonChartId(id) => id,
             ManualAccountFromChart::NewAccount((account_set_id, new_account)) => {
-                let mut op = self.repo.begin_op_with_clock(&self.clock).await?;
+                let mut op = self.repo.begin_op().await?;
                 self.repo.update_in_op(&mut op, &mut chart).await?;
 
                 let mut op = op.with_db_time().await?;

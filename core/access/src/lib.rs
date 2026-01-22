@@ -69,12 +69,12 @@ where
     ) -> Result<Self, CoreAccessError> {
         let users = Users::init(pool, authz, outbox, clock.clone()).await?;
         let publisher = UserPublisher::new(outbox);
-        let role_repo = RoleRepo::new(pool, &publisher);
-        let permission_set_repo = PermissionSetRepo::new(pool);
+        let role_repo = RoleRepo::new(pool, &publisher, clock.clone());
+        let permission_set_repo = PermissionSetRepo::new(pool, clock.clone());
 
         if let Some(email) = config.superuser_email {
             let bootstrap =
-                bootstrap::Bootstrap::new(authz, &role_repo, &users, &permission_set_repo, clock);
+                bootstrap::Bootstrap::new(authz, &role_repo, &users, &permission_set_repo);
             bootstrap
                 .bootstrap_access_control(email, all_actions, predefined_roles)
                 .await?;

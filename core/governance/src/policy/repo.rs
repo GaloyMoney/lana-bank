@@ -1,3 +1,4 @@
+use es_entity::clock::ClockHandle;
 use sqlx::PgPool;
 
 use es_entity::*;
@@ -23,11 +24,15 @@ use super::{entity::*, error::*};
 pub(crate) struct PolicyRepo {
     #[allow(dead_code)]
     pool: PgPool,
+    clock: ClockHandle,
 }
 
 impl PolicyRepo {
-    pub fn new(pool: &PgPool) -> Self {
-        Self { pool: pool.clone() }
+    pub fn new(pool: &PgPool, clock: ClockHandle) -> Self {
+        Self {
+            pool: pool.clone(),
+            clock,
+        }
     }
 }
 
@@ -44,7 +49,8 @@ mod tests {
     #[tokio::test]
     async fn unique_per_process_type() -> anyhow::Result<()> {
         let pool = init_pool().await?;
-        let repo = PolicyRepo::new(&pool);
+        let clock = es_entity::clock::ClockHandle::realtime();
+        let repo = PolicyRepo::new(&pool, clock);
         let process_type = ApprovalProcessType::from_owned(uuid::Uuid::new_v4().to_string());
 
         let new_policy = NewPolicy::builder()

@@ -1,3 +1,4 @@
+use es_entity::clock::ClockHandle;
 use sqlx::PgPool;
 
 use es_entity::*;
@@ -25,6 +26,7 @@ where
 {
     pool: PgPool,
     publisher: CreditFacilityPublisher<E>,
+    clock: ClockHandle,
 }
 
 impl<E> Clone for CreditFacilityProposalRepo<E>
@@ -35,6 +37,7 @@ where
         Self {
             pool: self.pool.clone(),
             publisher: self.publisher.clone(),
+            clock: self.clock.clone(),
         }
     }
 }
@@ -43,10 +46,11 @@ impl<E> CreditFacilityProposalRepo<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    pub fn new(pool: &PgPool, publisher: &CreditFacilityPublisher<E>) -> Self {
+    pub fn new(pool: &PgPool, publisher: &CreditFacilityPublisher<E>, clock: ClockHandle) -> Self {
         Self {
             pool: pool.clone(),
             publisher: publisher.clone(),
+            clock,
         }
     }
 

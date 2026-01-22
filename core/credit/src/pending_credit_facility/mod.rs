@@ -109,7 +109,11 @@ where
         outbox: &Outbox<E>,
         clock: ClockHandle,
     ) -> Result<Self, PendingCreditFacilityError> {
-        let repo_arc = Arc::new(PendingCreditFacilityRepo::new(pool, publisher));
+        let repo_arc = Arc::new(PendingCreditFacilityRepo::new(
+            pool,
+            publisher,
+            clock.clone(),
+        ));
 
         let spawner = jobs.add_initializer(jobs::collateralization_from_events_for_pending_facility::PendingCreditFacilityCollateralizationFromEventsInit::new(outbox, repo_arc.clone(), price.clone(), ledger.clone()));
 

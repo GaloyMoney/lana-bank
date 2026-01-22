@@ -1,3 +1,4 @@
+use es_entity::clock::ClockHandle;
 use sqlx::PgPool;
 
 use es_entity::*;
@@ -15,10 +16,14 @@ use super::{entity::*, error::*};
 )]
 pub struct TermsTemplateRepo {
     pool: PgPool,
+    clock: ClockHandle,
 }
 
 impl TermsTemplateRepo {
-    pub fn new(pool: &PgPool) -> Self {
-        Self { pool: pool.clone() }
+    pub fn new(pool: &PgPool, clock: ClockHandle) -> Self {
+        Self {
+            pool: pool.clone(),
+            clock,
+        }
     }
 }

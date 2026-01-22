@@ -1,3 +1,4 @@
+use es_entity::clock::ClockHandle;
 use sqlx::PgPool;
 
 use es_entity::*;
@@ -16,18 +17,23 @@ use super::{entity::*, error::*};
 )]
 pub struct DocumentRepo {
     pool: PgPool,
+    clock: ClockHandle,
 }
 
 impl Clone for DocumentRepo {
     fn clone(&self) -> Self {
         Self {
             pool: self.pool.clone(),
+            clock: self.clock.clone(),
         }
     }
 }
 
 impl DocumentRepo {
-    pub(super) fn new(pool: &PgPool) -> Self {
-        Self { pool: pool.clone() }
+    pub(super) fn new(pool: &PgPool, clock: ClockHandle) -> Self {
+        Self {
+            pool: pool.clone(),
+            clock,
+        }
     }
 }

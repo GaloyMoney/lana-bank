@@ -60,7 +60,7 @@ where
         outbox: &Outbox<E>,
         jobs: &mut job::Jobs,
     ) -> Result<Self, CollateralError> {
-        let repo_arc = Arc::new(CollateralRepo::new(pool, publisher));
+        let repo_arc = Arc::new(CollateralRepo::new(pool, publisher, jobs.clock().clone()));
 
         let wallet_collateral_sync_job_spawner =
             jobs.add_initializer(wallet_collateral_sync::WalletCollateralSyncInit::new(

@@ -1,3 +1,4 @@
+use es_entity::clock::ClockHandle;
 use sqlx::PgPool;
 
 use es_entity::*;
@@ -18,18 +19,23 @@ use super::{entity::*, error::*};
 )]
 pub struct ManualTransactionRepo {
     pool: PgPool,
+    clock: ClockHandle,
 }
 
 impl Clone for ManualTransactionRepo {
     fn clone(&self) -> Self {
         Self {
             pool: self.pool.clone(),
+            clock: self.clock.clone(),
         }
     }
 }
 
 impl ManualTransactionRepo {
-    pub fn new(pool: &PgPool) -> Self {
-        Self { pool: pool.clone() }
+    pub fn new(pool: &PgPool, clock: ClockHandle) -> Self {
+        Self {
+            pool: pool.clone(),
+            clock,
+        }
     }
 }
