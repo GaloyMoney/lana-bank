@@ -152,3 +152,13 @@ impl From<dagster::graphql_client::ReportFile> for crate::report::ReportFile {
         }
     }
 }
+
+impl From<&dagster::graphql_client::RunResult> for crate::report_run::ReportRunType {
+    fn from(run_result: &dagster::graphql_client::RunResult) -> Self {
+        if run_result.is_scheduled() {
+            crate::report_run::ReportRunType::Scheduled
+        } else {
+            crate::report_run::ReportRunType::Manual
+        }
+    }
+}
