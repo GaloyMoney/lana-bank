@@ -97,7 +97,7 @@ impl ChartOfAccountsIntegrationConfig {
         let off_balance_sheet_account_set_member_parent_id =
             |code: &AccountCode| -> Result<CalaAccountSetId, ChartOfAccountsIntegrationError> {
                 let id = chart.account_set_id_from_code(code)?;
-                if !accounting_base_config.is_off_balance_sheet_account_set_member(code) {
+                if !accounting_base_config.is_off_balance_sheet_account_set_or_account(code) {
                     return Err(
                         ChartOfAccountsIntegrationError::InvalidAccountingAccountSetParent(
                             code.to_string(),
@@ -110,7 +110,7 @@ impl ChartOfAccountsIntegrationConfig {
         let revenue_account_set_member_parent_id =
             |code: &AccountCode| -> Result<CalaAccountSetId, ChartOfAccountsIntegrationError> {
                 let id = chart.account_set_id_from_code(code)?;
-                if !accounting_base_config.is_revenue_account_set_member(code) {
+                if !accounting_base_config.is_revenue_account_set_or_account(code) {
                     return Err(
                         ChartOfAccountsIntegrationError::InvalidAccountingAccountSetParent(
                             code.to_string(),
@@ -123,7 +123,7 @@ impl ChartOfAccountsIntegrationConfig {
         let asset_account_set_member_parent_id =
             |code: &AccountCode| -> Result<CalaAccountSetId, ChartOfAccountsIntegrationError> {
                 let id = chart.account_set_id_from_code(code)?;
-                if !accounting_base_config.is_assets_account_set_member(code) {
+                if !accounting_base_config.is_assets_account_set_or_account(code) {
                     return Err(
                         ChartOfAccountsIntegrationError::InvalidAccountingAccountSetParent(
                             code.to_string(),

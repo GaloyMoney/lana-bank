@@ -522,7 +522,7 @@ impl AccountingBaseConfig {
         Ok(())
     }
 
-    pub fn is_off_balance_sheet_account_set_member(&self, code: &AccountCode) -> bool {
+    pub fn is_off_balance_sheet_account_set_or_account(&self, code: &AccountCode) -> bool {
         let on_balance_sheet = [
             &self.assets_code,
             &self.liabilities_code,
@@ -537,20 +537,20 @@ impl AccountingBaseConfig {
             .any(|category| *category == code || category.is_parent_of(&code.sections))
     }
 
-    pub fn is_assets_account_set_member(&self, code: &AccountCode) -> bool {
-        self.assets_code.is_parent_of(&code.sections)
+    pub fn is_assets_account_set_or_account(&self, code: &AccountCode) -> bool {
+        self.assets_code == *code || self.assets_code.is_parent_of(&code.sections)
     }
 
-    pub fn is_liabilities_account_set_member(&self, code: &AccountCode) -> bool {
-        self.liabilities_code.is_parent_of(&code.sections)
+    pub fn is_liabilities_account_set_or_account(&self, code: &AccountCode) -> bool {
+        self.liabilities_code == *code || self.liabilities_code.is_parent_of(&code.sections)
     }
 
-    pub fn is_equity_account_set_member(&self, code: &AccountCode) -> bool {
-        self.equity_code.is_parent_of(&code.sections)
+    pub fn is_equity_account_set_or_account(&self, code: &AccountCode) -> bool {
+        self.equity_code == *code || self.equity_code.is_parent_of(&code.sections)
     }
 
-    pub fn is_revenue_account_set_member(&self, code: &AccountCode) -> bool {
-        self.revenue_code.is_parent_of(&code.sections)
+    pub fn is_revenue_account_set_or_account(&self, code: &AccountCode) -> bool {
+        self.revenue_code == *code || self.revenue_code.is_parent_of(&code.sections)
     }
 }
 
@@ -1611,60 +1611,61 @@ mod tests {
         }
 
         #[test]
-        fn is_off_balance_sheet_account_set_member_returns_false_for_configured_codes() {
+        fn is_off_balance_sheet_returns_false_for_configured_codes() {
             let config = default_config();
 
-            assert!(!config.is_off_balance_sheet_account_set_member(&config.assets_code));
-            assert!(!config.is_off_balance_sheet_account_set_member(&config.liabilities_code));
-            assert!(!config.is_off_balance_sheet_account_set_member(&config.equity_code));
-            assert!(!config.is_off_balance_sheet_account_set_member(&config.revenue_code));
-            assert!(!config.is_off_balance_sheet_account_set_member(&config.cost_of_revenue_code));
-            assert!(!config.is_off_balance_sheet_account_set_member(&config.expenses_code));
-            assert!(!config.is_off_balance_sheet_account_set_member(
+            assert!(!config.is_off_balance_sheet_account_set_or_account(&config.assets_code));
+            assert!(!config.is_off_balance_sheet_account_set_or_account(&config.liabilities_code));
+            assert!(!config.is_off_balance_sheet_account_set_or_account(&config.equity_code));
+            assert!(!config.is_off_balance_sheet_account_set_or_account(&config.revenue_code));
+            assert!(
+                !config.is_off_balance_sheet_account_set_or_account(&config.cost_of_revenue_code)
+            );
+            assert!(!config.is_off_balance_sheet_account_set_or_account(&config.expenses_code));
+            assert!(!config.is_off_balance_sheet_account_set_or_account(
                 &config.equity_retained_earnings_gain_code
             ));
-            assert!(!config.is_off_balance_sheet_account_set_member(
+            assert!(!config.is_off_balance_sheet_account_set_or_account(
                 &config.equity_retained_earnings_loss_code
             ));
         }
 
         #[test]
-        fn is_off_balance_sheet_account_set_member_returns_true_for_non_configured_top_level_codes()
-        {
+        fn is_off_balance_sheet_returns_true_for_non_configured_top_level_codes() {
             let config = default_config();
             let code = "9".parse::<AccountCode>().unwrap();
-            assert!(config.is_off_balance_sheet_account_set_member(&code));
+            assert!(config.is_off_balance_sheet_account_set_or_account(&code));
         }
 
         #[test]
-        fn is_off_balance_sheet_account_set_member_returns_true_for_non_configured_child_codes() {
+        fn is_off_balance_sheet_returns_true_for_non_configured_child_codes() {
             let config = default_config();
             let code = "91".parse::<AccountCode>().unwrap();
-            assert!(config.is_off_balance_sheet_account_set_member(&code));
+            assert!(config.is_off_balance_sheet_account_set_or_account(&code));
         }
 
         #[test]
-        fn is_assets_account_set_member_returns_true_for_top_level_asset_code() {
+        fn is_assets_returns_true_for_top_level_asset_code() {
             let config = default_config();
-            assert!(config.is_assets_account_set_member(&config.assets_code));
+            assert!(config.is_assets_account_set_or_account(&config.assets_code));
         }
 
         #[test]
-        fn is_assets_account_set_member_returns_true_for_child_account_set_member() {
+        fn is_assets_returns_true_for_child_account_set_member() {
             let config = default_config();
             let top_chart_level_account_code = "11".parse::<AccountCode>().unwrap();
             let child_account_code = "11.1".parse::<AccountCode>().unwrap();
 
-            assert!(config.is_assets_account_set_member(&top_chart_level_account_code));
-            assert!(config.is_assets_account_set_member(&child_account_code));
+            assert!(config.is_assets_account_set_or_account(&top_chart_level_account_code));
+            assert!(config.is_assets_account_set_or_account(&child_account_code));
         }
 
         #[test]
-        fn is_assets_account_set_member_returns_false_for_non_asset_code() {
+        fn is_assets_returns_false_for_non_asset_code() {
             let config = default_config();
             let off_balance_sheet_code = "9".parse::<AccountCode>().unwrap();
-            assert!(!config.is_assets_account_set_member(&off_balance_sheet_code));
-            assert!(!config.is_assets_account_set_member(&config.equity_code));
+            assert!(!config.is_assets_account_set_or_account(&off_balance_sheet_code));
+            assert!(!config.is_assets_account_set_or_account(&config.equity_code));
         }
     }
 }
