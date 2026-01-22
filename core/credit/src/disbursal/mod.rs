@@ -71,6 +71,7 @@ where
         publisher: &crate::CreditFacilityPublisher<E>,
         obligations: Arc<Obligations<Perms, E>>,
         governance: Arc<Governance<Perms, E>>,
+        clock: es_entity::clock::ClockHandle,
     ) -> Result<Self, DisbursalError> {
         match governance
             .init_policy(crate::APPROVE_DISBURSAL_PROCESS)
@@ -84,7 +85,7 @@ where
         }
 
         Ok(Self {
-            repo: Arc::new(DisbursalRepo::new(pool, publisher)),
+            repo: Arc::new(DisbursalRepo::new(pool, publisher, clock)),
             authz,
             obligations,
             governance,

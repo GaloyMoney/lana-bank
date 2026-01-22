@@ -1,3 +1,4 @@
+use es_entity::clock::ClockHandle;
 use sqlx::PgPool;
 
 use es_entity::*;
@@ -22,16 +23,18 @@ where
 {
     pool: PgPool,
     publisher: CustodyPublisher<E>,
+    clock: ClockHandle,
 }
 
 impl<E> WalletRepo<E>
 where
     E: OutboxEventMarker<CoreCustodyEvent>,
 {
-    pub fn new(pool: &PgPool, publisher: &CustodyPublisher<E>) -> Self {
+    pub fn new(pool: &PgPool, publisher: &CustodyPublisher<E>, clock: ClockHandle) -> Self {
         Self {
             pool: pool.clone(),
             publisher: publisher.clone(),
+            clock,
         }
     }
 
@@ -53,6 +56,7 @@ where
         Self {
             pool: self.pool.clone(),
             publisher: self.publisher.clone(),
+            clock: self.clock.clone(),
         }
     }
 }

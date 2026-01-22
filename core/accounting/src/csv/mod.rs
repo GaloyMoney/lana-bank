@@ -98,7 +98,7 @@ where
             )
             .await?;
 
-        let mut db = self.document_storage.begin_op_with_clock().await?;
+        let mut db = self.document_storage.begin_op().await?;
         let document = self
             .document_storage
             .create_in_op(

@@ -33,8 +33,12 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
 {
-    pub fn new(pool: &sqlx::PgPool, authz: Arc<Perms>) -> Self {
-        let repo = TermsTemplateRepo::new(pool);
+    pub fn new(
+        pool: &sqlx::PgPool,
+        authz: Arc<Perms>,
+        clock: es_entity::clock::ClockHandle,
+    ) -> Self {
+        let repo = TermsTemplateRepo::new(pool, clock);
         Self {
             authz,
             repo: Arc::new(repo),

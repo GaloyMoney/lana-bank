@@ -61,7 +61,6 @@ where
     credit_facility_maturity_job_spawner:
         jobs::credit_facility_maturity::CreditFacilityMaturityJobSpawner<E>,
     interest_accrual_job_spawner: jobs::interest_accrual::InterestAccrualJobSpawner<Perms, E>,
-    clock: ClockHandle,
 }
 
 impl<Perms, E> Clone for CreditFacilities<Perms, E>
@@ -85,7 +84,6 @@ where
             public_ids: self.public_ids.clone(),
             credit_facility_maturity_job_spawner: self.credit_facility_maturity_job_spawner.clone(),
             interest_accrual_job_spawner: self.interest_accrual_job_spawner.clone(),
-            clock: self.clock.clone(),
         }
     }
 }
@@ -122,7 +120,7 @@ where
         outbox: &Outbox<E>,
         clock: ClockHandle,
     ) -> Result<Self, CreditFacilityError> {
-        let repo = CreditFacilityRepo::new(pool, publisher);
+        let repo = CreditFacilityRepo::new(pool, publisher, clock);
         let repo_arc = Arc::new(repo);
 
         let collateralization_from_events_spawner = jobs.add_initializer(
@@ -172,7 +170,6 @@ where
             public_ids,
             credit_facility_maturity_job_spawner,
             interest_accrual_job_spawner,
-            clock,
         })
     }
 
@@ -189,12 +186,7 @@ where
         &self,
         credit_facility_id: CreditFacilityId,
     ) -> Result<(), CreditFacilityError> {
-        let mut db = self
-            .repo
-            .begin_op_with_clock(&self.clock)
-            .await?
-            .with_db_time()
-            .await?;
+        let mut db = self.repo.begin_op().await?.with_db_time().await?;
 
         self.authz
             .audit()

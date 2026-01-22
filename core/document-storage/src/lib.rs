@@ -25,7 +25,6 @@ pub mod event_schema {
 pub struct DocumentStorage {
     repo: DocumentRepo,
     storage: Storage,
-    clock: ClockHandle,
 }
 
 impl Clone for DocumentStorage {
@@ -33,23 +32,21 @@ impl Clone for DocumentStorage {
         Self {
             repo: self.repo.clone(),
             storage: self.storage.clone(),
-            clock: self.clock.clone(),
         }
     }
 }
 
 impl DocumentStorage {
     pub fn new(pool: &sqlx::PgPool, storage: &Storage, clock: ClockHandle) -> Self {
-        let repo = DocumentRepo::new(pool);
+        let repo = DocumentRepo::new(pool, clock);
         Self {
             repo,
             storage: storage.clone(),
-            clock,
         }
     }
 
-    pub async fn begin_op_with_clock(&self) -> Result<es_entity::DbOp<'_>, sqlx::Error> {
-        self.repo.begin_op_with_clock(&self.clock).await
+    pub async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, sqlx::Error> {
+        self.repo.begin_op().await
     }
 
     #[record_error_severity]
@@ -112,7 +109,7 @@ impl DocumentStorage {
         content: Vec<u8>,
         document: &mut Document,
     ) -> Result<(), DocumentStorageError> {
-        let mut db = self.begin_op_with_clock().await?;
+        let mut db = self.begin_op().await?;
         self.upload_in_op(content, document, &mut db).await?;
         db.commit().await?;
         Ok(())
@@ -144,7 +141,7 @@ impl DocumentStorage {
             .build()
             .expect("Could not build document");
 
-        let mut db = self.begin_op_with_clock().await?;
+        let mut db = self.begin_op().await?;
         let mut document = self.repo.create_in_op(&mut db, new_document).await?;
 
         self.upload_in_op(content, &mut document, &mut db).await?;
@@ -229,7 +226,7 @@ impl DocumentStorage {
         &self,
         document_id: impl Into<DocumentId> + std::fmt::Debug + Copy,
     ) -> Result<(), DocumentStorageError> {
-        let mut db = self.begin_op_with_clock().await?;
+        let mut db = self.begin_op().await?;
         let mut document = self.repo.find_by_id(document_id.into()).await?;
 
         let document_location = document.path_for_removal();

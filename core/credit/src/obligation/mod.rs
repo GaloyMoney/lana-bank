@@ -82,8 +82,8 @@ where
         publisher: &CreditFacilityPublisher<E>,
         clock: ClockHandle,
     ) -> Self {
-        let obligation_repo_arc = Arc::new(ObligationRepo::new(pool, publisher));
-        let payment_allocation_repo = PaymentAllocationRepo::new(pool, publisher);
+        let obligation_repo_arc = Arc::new(ObligationRepo::new(pool, publisher, clock.clone()));
+        let payment_allocation_repo = PaymentAllocationRepo::new(pool, publisher, clock.clone());
         let obligation_defaulted_job_spawner = jobs.add_initializer(
             obligation_defaulted::ObligationDefaultedInit::<Perms, E>::new(
                 ledger.clone(),

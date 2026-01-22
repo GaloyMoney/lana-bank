@@ -19,7 +19,6 @@ use core_accounting::LedgerTransactionInitiator;
 use core_custody::CoreCustodyEvent;
 use core_money::{Satoshis, UsdCents};
 use es_entity::Idempotent;
-use es_entity::clock::ClockHandle;
 use governance::GovernanceEvent;
 use obix::out::OutboxEventMarker;
 
@@ -45,7 +44,6 @@ where
     authz: Arc<Perms>,
     ledger: LiquidationLedger,
     proceeds_omnibus_account_ids: LedgerOmnibusAccountIds,
-    clock: ClockHandle,
 }
 
 impl<Perms, E> Clone for Liquidations<Perms, E>
@@ -61,7 +59,6 @@ where
             authz: self.authz.clone(),
             ledger: self.ledger.clone(),
             proceeds_omnibus_account_ids: self.proceeds_omnibus_account_ids.clone(),
-            clock: self.clock.clone(),
         }
     }
 }
@@ -86,15 +83,20 @@ where
         outbox: &obix::Outbox<E>,
         ledger: Arc<crate::CreditLedger>,
     ) -> Result<Self, LiquidationError> {
-        let repo_arc = Arc::new(LiquidationRepo::new(pool, publisher));
+        let clock = jobs.clock().clone();
+        let repo_arc = Arc::new(LiquidationRepo::new(pool, publisher, clock.clone()));
 
         // Create repos needed for jobs
-        let payment_repo = Arc::new(crate::payment::PaymentRepo::new(pool, publisher));
-        let credit_facility_repo = Arc::new(crate::credit_facility::CreditFacilityRepo::new(
-            pool, publisher,
+        let payment_repo = Arc::new(crate::payment::PaymentRepo::new(
+            pool,
+            publisher,
+            clock.clone(),
         ));
-
-        let clock = jobs.clock().clone();
+        let credit_facility_repo = Arc::new(crate::credit_facility::CreditFacilityRepo::new(
+            pool,
+            publisher,
+            clock.clone(),
+        ));
 
         let partial_liquidation_job_spawner = jobs.add_initializer(
             jobs::partial_liquidation::PartialLiquidationInit::new(outbox, repo_arc.clone()),
@@ -130,9 +132,8 @@ where
         Ok(Self {
             repo: repo_arc,
             authz,
-            ledger: LiquidationLedger::init(cala, journal_id, clock.clone()).await?,
+            ledger: LiquidationLedger::init(cala, journal_id, clock).await?,
             proceeds_omnibus_account_ids: proceeds_omnibus_account_ids.clone(),
-            clock,
         })
     }
 
@@ -154,7 +155,7 @@ where
                 CoreCreditAction::LIQUIDATION_RECORD_COLLATERAL_SENT,
             )
             .await?;
-        let mut db = self.repo.begin_op_with_clock(&self.clock).await?;
+        let mut db = self.repo.begin_op().await?;
 
         let mut liquidation = self.repo.find_by_id_in_op(&mut db, liquidation_id).await?;
 
@@ -201,7 +202,7 @@ where
             )
             .await?;
 
-        let mut db = self.repo.begin_op_with_clock(&self.clock).await?;
+        let mut db = self.repo.begin_op().await?;
         let mut liquidation = self.repo.find_by_id_in_op(&mut db, liquidation_id).await?;
 
         let tx_id = CalaTransactionId::new();

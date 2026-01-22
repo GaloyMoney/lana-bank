@@ -15,7 +15,8 @@ use strum::IntoDiscriminant as _;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-use es_entity::{DbOp, clock::ClockHandle};
+use es_entity::DbOp;
+use es_entity::clock::ClockHandle;
 pub use event::CoreCustodyEvent;
 use obix::out::{Outbox, OutboxEventMarker};
 pub use publisher::CustodyPublisher;
@@ -50,7 +51,6 @@ where
     wallets: WalletRepo<E>,
     pool: sqlx::PgPool,
     outbox: Outbox<E>,
-    clock: ClockHandle,
 }
 
 impl<Perms, E> CoreCustody<Perms, E>
@@ -71,13 +71,12 @@ where
     ) -> Result<Self, CoreCustodyError> {
         let custody = Self {
             authz: authz.clone(),
-            custodians: CustodianRepo::new(pool),
+            custodians: CustodianRepo::new(pool, clock.clone()),
             webhooks: WebhookNotificationRepo::new(pool),
             config,
-            wallets: WalletRepo::new(pool, &CustodyPublisher::new(outbox)),
+            wallets: WalletRepo::new(pool, &CustodyPublisher::new(outbox), clock),
             pool: pool.clone(),
             outbox: outbox.clone(),
-            clock,
         };
 
         if let Some(deprecated_encryption_key) = custody.config.deprecated_encryption_key.as_ref() {
@@ -195,7 +194,7 @@ where
         custodian_name: impl AsRef<str> + std::fmt::Debug,
         custodian_config: CustodianConfig,
     ) -> Result<Custodian, CoreCustodyError> {
-        let mut db = self.custodians.begin_op_with_clock(&self.clock).await?;
+        let mut db = self.custodians.begin_op().await?;
 
         let custodian = self
             .create_custodian_in_op(&mut db, sub, custodian_name, custodian_config)
@@ -224,7 +223,7 @@ where
 
         custodian.update_custodian_config(config, &self.config.encryption.key);
 
-        let mut op = self.custodians.begin_op_with_clock(&self.clock).await?;
+        let mut op = self.custodians.begin_op().await?;
         self.custodians
             .update_config_in_op(&mut op, &mut custodian)
             .await?;
@@ -247,7 +246,7 @@ where
 
         let mut custodians = self.custodians.list_all().await?;
 
-        let mut op = self.custodians.begin_op_with_clock(&self.clock).await?;
+        let mut op = self.custodians.begin_op().await?;
 
         for custodian in custodians.iter_mut() {
             custodian
@@ -385,7 +384,7 @@ where
         new_balance: Satoshis,
         update_time: DateTime<Utc>,
     ) -> Result<(), CoreCustodyError> {
-        let mut db = self.wallets.begin_op_with_clock(&self.clock).await?;
+        let mut db = self.wallets.begin_op().await?;
 
         let mut wallet = self
             .wallets
@@ -428,7 +427,6 @@ where
             pool: self.pool.clone(),
             config: self.config.clone(),
             outbox: self.outbox.clone(),
-            clock: self.clock.clone(),
         }
     }
 }
