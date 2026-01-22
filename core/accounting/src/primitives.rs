@@ -1617,5 +1617,29 @@ mod tests {
             let code = "91".parse::<AccountCode>().unwrap();
             assert!(config.is_off_balance_sheet_account_set_member(&code));
         }
+
+        #[test]
+        fn is_assets_account_set_member_returns_true_for_top_level_asset_code() {
+            let config = default_config();
+            assert!(config.is_assets_account_set_member(&config.assets_code));
+        }
+
+        #[test]
+        fn is_assets_account_set_member_returns_true_for_child_account_set_member() {
+            let config = default_config();
+            let top_chart_level_account_code = "11".parse::<AccountCode>().unwrap();
+            let child_account_code = "11.1".parse::<AccountCode>().unwrap();
+
+            assert!(config.is_assets_account_set_member(&top_chart_level_account_code));
+            assert!(config.is_assets_account_set_member(&child_account_code));
+        }
+
+        #[test]
+        fn is_assets_account_set_member_returns_false_for_non_asset_code() {
+            let config = default_config();
+            let off_balance_sheet_code = "9".parse::<AccountCode>().unwrap();
+            assert!(!config.is_assets_account_set_member(&off_balance_sheet_code));
+            assert!(!config.is_assets_account_set_member(&config.equity_code));
+        }
     }
 }
