@@ -194,11 +194,20 @@ impl Chart {
                     ));
                 }
 
-                if let Some(parent_code) = spec.parent {
-                    parent_code_to_children_ids
-                        .entry(parent_code)
-                        .or_default()
-                        .push(node_id);
+                if let Some(parent_code) = &spec.parent {
+                    if let Some(existing_parent_node) = self
+                        .chart_nodes
+                        .find_persisted_mut(|n| n.spec.code == *parent_code)
+                    {
+                        let _ = existing_parent_node.add_child_node(node_id);
+                        new_connections
+                            .push((existing_parent_node.account_set_id, new_account_set.id));
+                    } else {
+                        parent_code_to_children_ids
+                            .entry(parent_code.clone())
+                            .or_default()
+                            .push(node_id);
+                    }
                 } else {
                     new_connections.push((self.account_set_id, new_account_set.id));
                 }
@@ -991,7 +1000,7 @@ mod test {
             },
         ];
         let _ = chart.import_accounts(initial_specs, journal_id);
-
+        hydrate_chart_of_accounts(&mut chart);
         let parent_account_set_id = chart.account_set_id_from_code(&code("1.1")).unwrap();
 
         let additional_specs = vec![AccountSpec {
