@@ -16,7 +16,7 @@ use domain_config::ExposedDomainConfigs;
 use crate::{
     closing_schedule::*,
     error::TimeEventsError,
-    jobs::end_of_day::{EndOfDayBroadcastJobConfig, EndOfDayBroadcastJobInit},
+    jobs::end_of_day::{EndOfDayProducerJobConfig, EndOfDayProducerJobInit},
 };
 
 pub use event::*;
@@ -48,12 +48,12 @@ where
     where
         E: OutboxEventMarker<CoreTimeEvent>,
     {
-        let end_of_day_broadcast_job_spawner =
-            jobs.add_initializer(EndOfDayBroadcastJobInit::new(outbox, domain_configs));
-        end_of_day_broadcast_job_spawner
+        let end_of_day_producer_job_spawner =
+            jobs.add_initializer(EndOfDayProducerJobInit::new(outbox, domain_configs));
+        end_of_day_producer_job_spawner
             .spawn_unique(
                 job::JobId::new(),
-                EndOfDayBroadcastJobConfig {
+                EndOfDayProducerJobConfig {
                     _phantom: std::marker::PhantomData,
                 },
             )
