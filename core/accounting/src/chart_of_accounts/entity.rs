@@ -136,7 +136,21 @@ impl Chart {
         self.create_node_without_verifying_parent(spec, journal_id)
     }
 
-    pub(super) fn import_accounts(
+    pub(super) fn configure_accounting_on_initial_account_import(
+        &mut self,
+        account_specs: Vec<AccountSpec>,
+        base_config: AccountingBaseConfig,
+        journal_id: CalaJournalId,
+    ) -> Result<Idempotent<BulkImportResult>, ChartOfAccountsError> {
+        if self.base_config.is_some() {
+            return Ok(Idempotent::AlreadyApplied);
+        }
+        let result = self.import_accounts(account_specs, journal_id);
+        let _ = self.set_base_config(base_config)?;
+        Ok(Idempotent::Executed(result))
+    }
+
+    fn import_accounts(
         &mut self,
         account_specs: Vec<AccountSpec>,
         journal_id: CalaJournalId,
@@ -369,7 +383,7 @@ impl Chart {
         self.base_config.clone()
     }
 
-    pub(super) fn set_base_config(
+    fn set_base_config(
         &mut self,
         base_config: AccountingBaseConfig,
     ) -> Result<Idempotent<()>, ChartOfAccountsError> {
@@ -998,5 +1012,239 @@ mod test {
         assert_eq!(result.new_account_sets.len(), 5);
         assert_eq!(result.new_account_set_ids.len(), 5);
         assert_eq!(result.new_connections.len(), 5);
+    }
+
+    mod chart_of_accounts_import {
+        use super::*;
+
+        fn default_account_specs() -> Vec<AccountSpec> {
+            vec![
+                AccountSpec {
+                    name: "Assets".parse().unwrap(),
+                    parent: None,
+                    code: code("1"),
+                    normal_balance_type: DebitOrCredit::Debit,
+                },
+                AccountSpec {
+                    name: "Liabilities".parse().unwrap(),
+                    parent: None,
+                    code: code("2"),
+                    normal_balance_type: DebitOrCredit::Credit,
+                },
+                AccountSpec {
+                    name: "Equity".parse().unwrap(),
+                    parent: None,
+                    code: code("3"),
+                    normal_balance_type: DebitOrCredit::Credit,
+                },
+                AccountSpec {
+                    name: "Retained Earnings Gain".parse().unwrap(),
+                    parent: Some(code("3")),
+                    code: code("3.1"),
+                    normal_balance_type: DebitOrCredit::Credit,
+                },
+                AccountSpec {
+                    name: "Retained Earnings Loss".parse().unwrap(),
+                    parent: Some(code("3")),
+                    code: code("3.2"),
+                    normal_balance_type: DebitOrCredit::Credit,
+                },
+                AccountSpec {
+                    name: "Revenue".parse().unwrap(),
+                    parent: None,
+                    code: code("4"),
+                    normal_balance_type: DebitOrCredit::Credit,
+                },
+                AccountSpec {
+                    name: "Cost of Revenue".parse().unwrap(),
+                    parent: None,
+                    code: code("5"),
+                    normal_balance_type: DebitOrCredit::Debit,
+                },
+                AccountSpec {
+                    name: "Expenses".parse().unwrap(),
+                    parent: None,
+                    code: code("6"),
+                    normal_balance_type: DebitOrCredit::Debit,
+                },
+            ]
+        }
+
+        fn default_base_config() -> AccountingBaseConfig {
+            AccountingBaseConfig::try_new(
+                code("1"),
+                code("2"),
+                code("3"),
+                code("3.1"),
+                code("3.2"),
+                code("4"),
+                code("5"),
+                code("6"),
+            )
+            .unwrap()
+        }
+
+        #[test]
+        fn configure_accounting_on_initial_account_import_executes() {
+            let mut chart = chart_from(initial_events());
+            let journal_id = CalaJournalId::new();
+
+            let result = chart.configure_accounting_on_initial_account_import(
+                default_account_specs(),
+                default_base_config(),
+                journal_id,
+            );
+
+            assert!(result.is_ok());
+            assert!(result.unwrap().did_execute());
+            assert!(chart.base_config.is_some());
+        }
+
+        #[test]
+        fn configure_accounting_on_initial_account_import_ignored_on_second_call() {
+            let mut chart = chart_from(initial_events());
+            let journal_id = CalaJournalId::new();
+
+            let _ = chart.configure_accounting_on_initial_account_import(
+                default_account_specs(),
+                default_base_config(),
+                journal_id,
+            );
+            let second_result = chart.configure_accounting_on_initial_account_import(
+                default_account_specs(),
+                default_base_config(),
+                journal_id,
+            );
+            assert!(second_result.unwrap().was_already_applied());
+        }
+
+        #[test]
+        fn configure_accounting_on_initial_account_import_fails_with_incomplete_account_specs() {
+            let mut chart = chart_from(initial_events());
+            let journal_id = CalaJournalId::new();
+
+            let incomplete_specs = vec![AccountSpec {
+                name: "Assets".parse().unwrap(),
+                parent: None,
+                code: code("1"),
+                normal_balance_type: DebitOrCredit::Debit,
+            }];
+
+            let result = chart.configure_accounting_on_initial_account_import(
+                incomplete_specs,
+                default_base_config(),
+                journal_id,
+            );
+
+            assert!(matches!(
+                result,
+                Err(ChartOfAccountsError::CodeNotFoundInChart(_))
+            ));
+        }
+
+        #[test]
+        fn configure_accounting_on_initial_account_import_fails_when_config_codes_not_in_specs() {
+            let mut chart = chart_from(initial_events());
+            let journal_id = CalaJournalId::new();
+
+            let accounting_config_not_in_specs = AccountingBaseConfig::try_new(
+                code("9"),
+                code("8"),
+                code("7"),
+                code("7.1"),
+                code("7.2"),
+                code("6"),
+                code("5"),
+                code("4"),
+            )
+            .unwrap();
+
+            let result = chart.configure_accounting_on_initial_account_import(
+                default_account_specs(),
+                accounting_config_not_in_specs,
+                journal_id,
+            );
+
+            assert!(matches!(
+                result,
+                Err(ChartOfAccountsError::CodeNotFoundInChart(_))
+            ));
+            assert!(chart.base_config.is_none());
+        }
+
+        #[test]
+        fn configure_accounting_on_initial_account_import_fails_when_top_level_code_has_parent() {
+            let mut chart = chart_from(initial_events());
+            let journal_id = CalaJournalId::new();
+
+            let specs_with_invalid_hierarchy = vec![
+                AccountSpec {
+                    name: "Root".parse().unwrap(),
+                    parent: None,
+                    code: code("0"),
+                    normal_balance_type: DebitOrCredit::Debit,
+                },
+                AccountSpec {
+                    name: "Assets".parse().unwrap(),
+                    parent: Some(code("0")),
+                    code: code("1"),
+                    normal_balance_type: DebitOrCredit::Debit,
+                }, // WRONG: has parent
+                AccountSpec {
+                    name: "Liabilities".parse().unwrap(),
+                    parent: None,
+                    code: code("2"),
+                    normal_balance_type: DebitOrCredit::Credit,
+                },
+                AccountSpec {
+                    name: "Equity".parse().unwrap(),
+                    parent: None,
+                    code: code("3"),
+                    normal_balance_type: DebitOrCredit::Credit,
+                },
+                AccountSpec {
+                    name: "Retained Gain".parse().unwrap(),
+                    parent: Some(code("3")),
+                    code: code("3.1"),
+                    normal_balance_type: DebitOrCredit::Credit,
+                },
+                AccountSpec {
+                    name: "Retained Loss".parse().unwrap(),
+                    parent: Some(code("3")),
+                    code: code("3.2"),
+                    normal_balance_type: DebitOrCredit::Credit,
+                },
+                AccountSpec {
+                    name: "Revenue".parse().unwrap(),
+                    parent: None,
+                    code: code("4"),
+                    normal_balance_type: DebitOrCredit::Credit,
+                },
+                AccountSpec {
+                    name: "Cost of Revenue".parse().unwrap(),
+                    parent: None,
+                    code: code("5"),
+                    normal_balance_type: DebitOrCredit::Debit,
+                },
+                AccountSpec {
+                    name: "Expenses".parse().unwrap(),
+                    parent: None,
+                    code: code("6"),
+                    normal_balance_type: DebitOrCredit::Debit,
+                },
+            ];
+
+            let result = chart.configure_accounting_on_initial_account_import(
+                specs_with_invalid_hierarchy,
+                default_base_config(),
+                journal_id,
+            );
+
+            assert!(matches!(
+                result,
+                Err(ChartOfAccountsError::AccountCodeHasInvalidParent(_))
+            ));
+            assert!(chart.base_config.is_none());
+        }
     }
 }

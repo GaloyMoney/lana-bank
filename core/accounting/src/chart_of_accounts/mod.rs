@@ -149,12 +149,18 @@ where
 
         let import_data = import_data.as_ref().to_string();
         let account_specs = CsvParser::new(import_data).account_specs()?;
-        let BulkImportResult {
+        let Idempotent::Executed(BulkImportResult {
             new_account_sets,
             new_account_set_ids,
             new_connections,
-        } = chart.import_accounts(account_specs, self.journal_id);
-        let _ = chart.set_base_config(base_config)?;
+        }) = chart.configure_accounting_on_initial_account_import(
+            account_specs,
+            base_config,
+            self.journal_id,
+        )?
+        else {
+            return Ok((chart, None));
+        };
 
         let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
