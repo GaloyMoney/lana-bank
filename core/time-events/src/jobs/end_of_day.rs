@@ -46,8 +46,8 @@ where
     }
 }
 
-pub const END_OF_DAY_BROADCAST_JOB: JobType =
-    JobType::new("cron.core-time-event.end-of-day-broadcast");
+pub const END_OF_DAY_PRODUCER_JOB: JobType =
+    JobType::new("cron.core-time-event.end-of-day-producer");
 
 impl<E, Perms> JobInitializer for EndOfDayBroadcastJobInit<E, Perms>
 where
@@ -62,7 +62,7 @@ where
     type Config = EndOfDayBroadcastJobConfig<E>;
 
     fn job_type(&self) -> JobType {
-        END_OF_DAY_BROADCAST_JOB
+        END_OF_DAY_PRODUCER_JOB
     }
 
     fn init(
@@ -129,7 +129,7 @@ where
                 Err(err) => {
                     tracing::warn!(
                         job_id = %current_job.id(),
-                        job_type = %END_OF_DAY_BROADCAST_JOB,
+                        job_type = %END_OF_DAY_PRODUCER_JOB,
                         current_time = %current_time,
                         closing_time = %closing_time,
                         error = %err,
@@ -138,6 +138,12 @@ where
                     continue;
                 }
             };
+            tracing::info!(                                                                                                                                          
+                job_id = %current_job.id(),                                                                                                                          
+                job_type = %END_OF_DAY_PRODUCER_JOB,                                                                                                                 
+                duration_until_close = ?duration_until_close,                                                                                                        
+                "Waiting for end of day"                                                                                                                             
+            );  
             let clock = current_job.clock().clone();
             select! {
                 biased;
@@ -145,27 +151,23 @@ where
                 _ = current_job.shutdown_requested() => {
                     tracing::info!(
                         job_id = %current_job.id(),
-                        job_type = %END_OF_DAY_BROADCAST_JOB,
+                        job_type = %END_OF_DAY_PRODUCER_JOB,
                         "Shutdown signal received"
                     );
                     return Ok(JobCompletion::RescheduleNow);
                 }
 
-                // TODO: Bring in some special buffer logic as it evolves, like:
-                // 1. Consumer uses the time_stamp from this event, not its own clock for processing EndOfDay tasks
-                // 2. Current sleep can wake early and does a loop of find-grained sleeps to publish "on time" and can even publish event early
-                // making the consumer prioritize this
                 _ = clock.sleep(duration_until_close) => {
-                    tracing::debug!(job_id = %current_job.id(), "Sleep completed, continuing");
+                    let day = closing_time.with_timezone(&timezone).date_naive();
                     let mut op = current_job.begin_op().await?;
                     self.outbox
-                        .publish_persisted_in_op(&mut op, CoreTimeEvent::EndOfDay { closing_time })
+                        .publish_persisted_in_op(&mut op, CoreTimeEvent::EndOfDay { day, closing_time, timezone })
                         .await?;
                     op.commit().await?;
 
                     tracing::info!(
                         job_id = %current_job.id(),
-                        job_type = %END_OF_DAY_BROADCAST_JOB,
+                        job_type = %END_OF_DAY_PRODUCER_JOB,
                         closing_time = %closing_time,
                         "End of day event published"
                     );
