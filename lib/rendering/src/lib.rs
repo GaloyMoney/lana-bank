@@ -11,6 +11,12 @@ pub use error::RenderingError;
 pub use pdf::PdfGenerator;
 pub use template::TemplateRenderer;
 
+/// Configuration for the rendering service
+#[derive(Clone, Debug)]
+pub struct RenderingConfig {
+    pub gotenberg_url: String,
+}
+
 /// Main rendering service that combines template processing and PDF generation
 #[derive(Clone)]
 pub struct Renderer {
@@ -19,9 +25,9 @@ pub struct Renderer {
 }
 
 impl Renderer {
-    pub fn new() -> Self {
+    pub fn new(config: RenderingConfig) -> Self {
         let template_renderer = TemplateRenderer::new();
-        let pdf_generator = PdfGenerator::new();
+        let pdf_generator = PdfGenerator::new(config.gotenberg_url);
 
         Self {
             template_renderer,
@@ -32,8 +38,11 @@ impl Renderer {
     /// Render a handlebars template and convert to PDF
     #[record_error_severity]
     #[tracing::instrument(name = "rendering.render_template_to_pdf", skip_all)]
-    pub fn render_template_to_pdf(&self, content: &str) -> Result<Vec<u8>, RenderingError> {
-        let pdf_bytes = self.pdf_generator.generate_pdf_from_markdown(content)?;
+    pub async fn render_template_to_pdf(&self, content: &str) -> Result<Vec<u8>, RenderingError> {
+        let pdf_bytes = self
+            .pdf_generator
+            .generate_pdf_from_markdown(content)
+            .await?;
         Ok(pdf_bytes)
     }
 
@@ -47,14 +56,8 @@ impl Renderer {
     }
 
     /// Generate PDF from markdown string
-    pub fn markdown_to_pdf(&self, markdown: &str) -> Result<Vec<u8>, RenderingError> {
-        self.pdf_generator.generate_pdf_from_markdown(markdown)
-    }
-}
-
-impl Default for Renderer {
-    fn default() -> Self {
-        Self::new()
+    pub async fn markdown_to_pdf(&self, markdown: &str) -> Result<Vec<u8>, RenderingError> {
+        self.pdf_generator.generate_pdf_from_markdown(markdown).await
     }
 }
 
@@ -62,6 +65,13 @@ impl Default for Renderer {
 mod tests {
     use super::*;
     use serde::Serialize;
+
+    fn test_config() -> RenderingConfig {
+        RenderingConfig {
+            gotenberg_url: std::env::var("GOTENBERG_URL")
+                .unwrap_or_else(|_| "http://localhost:3030".to_string()),
+        }
+    }
 
     #[derive(Serialize)]
     struct TestData {
@@ -79,14 +89,12 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "requires Gotenberg service"]
     async fn test_basic_rendering_functionality() -> Result<(), RenderingError> {
-        // Test with embedded PDF config
         let test_data = TestData::new("test@example.com".to_string());
 
-        // Test the rendering library directly
-        let renderer = Renderer::new();
+        let renderer = Renderer::new(test_config());
 
-        // Test template content (simulate loading from file)
         let template_content = "# Test Document\n\n- **Name:** {{name}}\n- **Email:** {{email}}";
 
         let rendered = renderer.render_template_to_markdown(template_content, &test_data)?;
@@ -94,8 +102,7 @@ mod tests {
         assert!(rendered.contains("test@example.com"));
         assert!(rendered.contains("Test User"));
 
-        // Test PDF generation
-        let pdf_bytes = renderer.markdown_to_pdf(&rendered)?;
+        let pdf_bytes = renderer.markdown_to_pdf(&rendered).await?;
 
         assert!(!pdf_bytes.is_empty());
         assert!(pdf_bytes.starts_with(b"%PDF"));
@@ -104,11 +111,12 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "requires Gotenberg service"]
     async fn test_pdf_generator() -> Result<(), RenderingError> {
-        let renderer = Renderer::new();
+        let renderer = Renderer::new(test_config());
 
         let markdown = "# Test Document\n\nThis is a test.";
-        let pdf_bytes = renderer.markdown_to_pdf(markdown)?;
+        let pdf_bytes = renderer.markdown_to_pdf(markdown).await?;
 
         assert!(!pdf_bytes.is_empty());
         assert!(pdf_bytes.starts_with(b"%PDF"));
@@ -118,7 +126,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_template_renderer() -> Result<(), RenderingError> {
-        let renderer = Renderer::new();
+        let renderer = Renderer::new(test_config());
 
         let template_content = "# Hello {{name}}\n\n- **Email:** {{email}}";
         let test_data = TestData::new("test@example.com".to_string());
@@ -133,10 +141,11 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "requires Gotenberg service"]
     async fn test_template_to_pdf() -> Result<(), RenderingError> {
-        let renderer = Renderer::new();
+        let renderer = Renderer::new(test_config());
         let content = "# Loan Agreement\n\n- **Name:** abc@galoy.io\n";
-        let pdf_bytes = renderer.render_template_to_pdf(content)?;
+        let pdf_bytes = renderer.render_template_to_pdf(content).await?;
 
         assert!(!pdf_bytes.is_empty());
         assert!(pdf_bytes.starts_with(b"%PDF"));

@@ -213,8 +213,14 @@ impl LanaApp {
         )
         .await?;
 
-        let contract_creation =
-            ContractCreation::new(&customers, &applicants, &documents, &mut jobs, &authz);
+        let contract_creation = ContractCreation::new(
+            &customers,
+            &applicants,
+            &documents,
+            &mut jobs,
+            &authz,
+            config.rendering.into(),
+        );
 
         Notification::init(
             config.notification,

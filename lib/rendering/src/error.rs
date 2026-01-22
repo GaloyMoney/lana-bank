@@ -12,6 +12,10 @@ pub enum RenderingError {
     Io(#[from] std::io::Error),
     #[error("Invalid template data: {0}")]
     InvalidTemplateData(String),
+    #[error("HTTP error: {0}")]
+    Http(#[from] reqwest::Error),
+    #[error("Gotenberg error: {0}")]
+    Gotenberg(String),
 }
 
 impl ErrorSeverity for RenderingError {
@@ -21,6 +25,8 @@ impl ErrorSeverity for RenderingError {
             Self::PdfGeneration(_) => Level::ERROR,
             Self::Io(_) => Level::ERROR,
             Self::InvalidTemplateData(_) => Level::ERROR,
+            Self::Http(_) => Level::ERROR,
+            Self::Gotenberg(_) => Level::ERROR,
         }
     }
 }

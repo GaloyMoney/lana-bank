@@ -3687,6 +3687,7 @@ dependencies = [
  "public-id",
  "rand 0.9.2",
  "rbac-types",
+ "rendering",
  "schemars 1.2.0",
  "serde",
  "serde_json",
@@ -5216,6 +5217,7 @@ version = "0.0.0"
 dependencies = [
  "handlebars",
  "markdown2pdf",
+ "reqwest",
  "serde",
  "thiserror 2.0.17",
  "tokio",

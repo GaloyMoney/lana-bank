@@ -67,8 +67,9 @@ where
         document_storage: &DocumentStorage,
         jobs: &mut Jobs,
         authz: &Perms,
+        rendering_config: rendering::RenderingConfig,
     ) -> Self {
-        let renderer = rendering::Renderer::new();
+        let renderer = rendering::Renderer::new(rendering_config);
         let contract_templates = templates::ContractTemplates::new();
 
         // Initialize the job system for contract creation
@@ -261,11 +262,17 @@ pub struct LoanAgreement {
 mod tests {
     use super::*;
 
+    fn test_rendering_config() -> rendering::RenderingConfig {
+        rendering::RenderingConfig {
+            gotenberg_url: std::env::var("GOTENBERG_URL")
+                .unwrap_or_else(|_| "http://localhost:3030".to_string()),
+        }
+    }
+
     #[test]
     fn test_contract_creation_config() -> Result<(), error::ContractCreationError> {
-        // Test that the embedded PDF config works correctly
-        // Verify that renderer can be created with embedded config
-        let _renderer = rendering::Renderer::new();
+        // Test that the renderer can be created with config
+        let _renderer = rendering::Renderer::new(test_rendering_config());
 
         // Test embedded templates
         let contract_templates = templates::ContractTemplates::new();
