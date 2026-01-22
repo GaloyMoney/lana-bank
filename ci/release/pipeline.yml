@@ -385,14 +385,12 @@ jobs:
               - test-integration
           - get: pipeline-tasks
           - get: version
-            passed: [ build-rc ]
+            passed: [ open-promote-rc-pr ]
             params: { bump: final }
           - get: #@ app_src_resource_name("admin-panel")
-            passed:
-              -  #@ build_app_edge_image_name("admin-panel")
+            passed: [ build-rc ]
           - get: #@ app_src_resource_name("customer-portal")
-            passed:
-              -  #@ build_app_edge_image_name("customer-portal")
+            passed: [ build-rc ]
           - get: dagster-edge-image
             params: { format: oci }
             passed: [ build-rc ]
