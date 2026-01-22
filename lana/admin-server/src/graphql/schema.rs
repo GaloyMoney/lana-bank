@@ -10,6 +10,7 @@ use lana_app::accounting::CoreAccountingEvent;
 use lana_app::credit::CoreCreditEvent;
 use lana_app::customer::CoreCustomerEvent;
 use lana_app::price::CorePriceEvent;
+use lana_app::report::CoreReportEvent;
 use lana_app::{
     accounting_init::constants::{
         BALANCE_SHEET_NAME, PROFIT_AND_LOSS_STATEMENT_NAME, TRIAL_BALANCE_STATEMENT_NAME,
@@ -2772,6 +2773,28 @@ impl Subscription {
             let event: &CorePriceEvent = event.payload.as_event()?;
             match event {
                 CorePriceEvent::PriceUpdated { price, .. } => Some(RealtimePrice::from(*price)),
+            }
+        });
+
+        Ok(updates)
+    }
+
+    async fn report_run_updated(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<impl Stream<Item = ReportRunUpdatedPayload>> {
+        let app = ctx.data_unchecked::<LanaApp>();
+
+        let stream = app.outbox().listen_persisted(None);
+        let updates = stream.filter_map(move |event| async move {
+            let payload = event.payload.as_ref()?;
+            let event: &CoreReportEvent = payload.as_event()?;
+            match event {
+                CoreReportEvent::ReportRunCreated { id }
+                | CoreReportEvent::ReportRunStateUpdated { id } => Some(ReportRunUpdatedPayload {
+                    report_run_id: UUID::from(*id),
+                }),
+                _ => None,
             }
         });
 

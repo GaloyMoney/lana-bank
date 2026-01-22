@@ -90,3 +90,8 @@ impl ReportRun {
 pub struct ReportRunCreatePayload {
     pub run_id: Option<String>,
 }
+
+#[derive(SimpleObject)]
+pub struct ReportRunUpdatedPayload {
+    pub report_run_id: UUID,
+}

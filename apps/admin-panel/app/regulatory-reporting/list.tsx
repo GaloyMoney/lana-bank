@@ -1,9 +1,15 @@
+import { useEffect } from "react"
+
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
 import { formatDate } from "@lana/web/utils"
 
-import { ReportRun, useReportRunsQuery } from "@/lib/graphql/generated"
+import {
+  ReportRun,
+  useReportRunsQuery,
+  useReportRunUpdatedSubscription,
+} from "@/lib/graphql/generated"
 
 import PaginatedTable, {
   Column,
@@ -32,17 +38,31 @@ gql`
       }
     }
   }
+
+  subscription ReportRunUpdated {
+    reportRunUpdated {
+      reportRunId
+    }
+  }
 `
 
 const AvailableReportRuns: React.FC = () => {
   const t = useTranslations("Reports")
 
-  const { data, loading, error, fetchMore } = useReportRunsQuery({
+  const { data, loading, error, fetchMore, refetch } = useReportRunsQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
     },
-    pollInterval: 5000,
   })
+
+  const { data: subscriptionData } = useReportRunUpdatedSubscription()
+
+  useEffect(() => {
+    if (!subscriptionData?.reportRunUpdated) {
+      return
+    }
+    refetch()
+  }, [subscriptionData, refetch])
 
   const columns: Column<ReportRun>[] = [
     {
