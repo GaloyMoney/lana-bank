@@ -53,7 +53,7 @@ run-server-nix:
 	nix run . -- --config ./bats/lana.yml 2>&1 | tee .e2e-logs
 
 run-server-with-bootstrap:
-	cargo run --all-features --bin lana-cli -- --config ./bats/lana.yml | tee .e2e-logs
+	cargo run --all-features --bin lana-cli -- --config ./bats/lana-bootstrap.yml | tee .e2e-logs
 
 check-code: check-code-apps
 	nix flake check

@@ -1,3 +1,4 @@
+#![allow(clippy::unused_async)]
 mod disbursal_different_months;
 mod interest_late;
 mod interest_under_payment;
@@ -5,7 +6,7 @@ mod principal_late;
 mod principal_under_payment;
 mod timely_payments;
 
-use es_entity::clock::ClockHandle;
+use es_entity::clock::{ClockController, ClockHandle};
 use futures::StreamExt;
 use rust_decimal_macros::dec;
 use tracing::{Span, instrument};
@@ -17,57 +18,46 @@ use tokio::task::JoinHandle;
 
 use super::helpers;
 
-#[instrument(name = "sim_bootstrap.scenarios.run", skip(app, clock), err)]
+#[instrument(
+    name = "sim_bootstrap.scenarios.run",
+    skip(app, clock, clock_ctrl),
+    err
+)]
 pub async fn run(
     sub: &Subject,
     app: &LanaApp,
     clock: ClockHandle,
+    clock_ctrl: ClockController,
 ) -> anyhow::Result<Vec<JoinHandle<Result<(), anyhow::Error>>>> {
-    let mut handles = Vec::new();
+    let handles = Vec::new();
     let sub = *sub;
 
-    {
-        let app = app.clone();
-        let clock = clock.clone();
-        handles.push(tokio::spawn(async move {
-            timely_payments::timely_payments_scenario(sub, &app, clock).await
-        }));
-    }
-    {
-        let app = app.clone();
-        let clock = clock.clone();
-        handles.push(tokio::spawn(async move {
-            interest_late::interest_late_scenario(sub, &app, clock).await
-        }));
-    }
-    {
-        let app = app.clone();
-        let clock = clock.clone();
-        handles.push(tokio::spawn(async move {
-            principal_late::principal_late_scenario(sub, &app, clock).await
-        }));
-    }
-    {
-        let app = app.clone();
-        let clock = clock.clone();
-        handles.push(tokio::spawn(async move {
-            disbursal_different_months::disbursal_different_months_scenario(sub, &app, clock).await
-        }));
-    }
-    {
-        let app = app.clone();
-        let clock = clock.clone();
-        handles.push(tokio::spawn(async move {
-            interest_under_payment::interest_under_payment_scenario(sub, &app, clock).await
-        }));
-    }
-    {
-        let app = app.clone();
-        let clock = clock.clone();
-        handles.push(tokio::spawn(async move {
-            principal_under_payment::principal_under_payment_scenario(sub, &app, clock).await
-        }));
-    }
+    // Run scenarios sequentially - each uses a cloned clock controller
+    timely_payments::timely_payments_scenario(sub, app, clock.clone(), clock_ctrl.clone()).await?;
+    interest_late::interest_late_scenario(sub, app, clock.clone(), clock_ctrl.clone()).await?;
+    principal_late::principal_late_scenario(sub, app, clock.clone(), clock_ctrl.clone()).await?;
+
+    disbursal_different_months::disbursal_different_months_scenario(
+        sub,
+        app,
+        clock.clone(),
+        clock_ctrl.clone(),
+    )
+    .await?;
+    interest_under_payment::interest_under_payment_scenario(
+        sub,
+        app,
+        clock.clone(),
+        clock_ctrl.clone(),
+    )
+    .await?;
+    principal_under_payment::principal_under_payment_scenario(
+        sub,
+        app,
+        clock.clone(),
+        clock_ctrl.clone(),
+    )
+    .await?;
 
     Ok(handles)
 }
