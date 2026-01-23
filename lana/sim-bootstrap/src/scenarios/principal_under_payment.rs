@@ -34,14 +34,7 @@ pub async fn principal_under_payment_scenario(
     helpers::make_deposit(&sub, app, &customer_id, deposit_amount).await?;
 
     let target_time = Utc::now() - chrono::Duration::days(240);
-    let current_time = clock.now();
-
-    if current_time < target_time {
-        let duration_to_advance = (target_time - current_time)
-            .to_std()
-            .unwrap_or(Duration::ZERO);
-        clock_ctrl.advance(duration_to_advance).await;
-    }
+    clock_ctrl.set_time(target_time);
 
     let mut stream = app.outbox().listen_persisted(None);
 

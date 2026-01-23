@@ -44,14 +44,15 @@ pub async fn run(
         clock_ctrl.clone(),
     )
     .await?;
-    interest_under_payment::interest_under_payment_scenario(
+
+    principal_under_payment::principal_under_payment_scenario(
         sub,
         app,
         clock.clone(),
         clock_ctrl.clone(),
     )
     .await?;
-    principal_under_payment::principal_under_payment_scenario(
+    interest_under_payment::interest_under_payment_scenario(
         sub,
         app,
         clock.clone(),
