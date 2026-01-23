@@ -91,10 +91,11 @@ impl EmailTemplate {
             data.payment_type,
             data.outstanding_amount.formatted_usd()
         );
-        let facility_url = format!(
-            "{}/credit-facilities/{}",
-            self.admin_panel_url, data.public_id
-        );
+        let facility_url = self
+            .admin_panel_url
+            .join(&format!("credit-facilities/{}", data.public_id))
+            .expect("valid URL path")
+            .to_string();
         let data = json!({
             "subject": &subject,
             "payment_type": &data.payment_type,
