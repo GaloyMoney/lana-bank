@@ -4,10 +4,14 @@ on:
   push:
     branches: ["main"]
     paths:
-      - "docs/**"
+      - "docs-site/**"
+      - "lana/admin-server/src/graphql/schema.graphql"
+      - "lana/customer-server/src/graphql/schema.graphql"
   pull_request:
     paths:
-      - "docs/**"
+      - "docs-site/**"
+      - "lana/admin-server/src/graphql/schema.graphql"
+      - "lana/customer-server/src/graphql/schema.graphql"
 
 permissions:
   contents: read
@@ -40,15 +44,30 @@ jobs:
           docker-images: true
           swap-storage: true
 
-      - name: Build book
+      - name: Install dependencies
         run: |
-          cd docs
-          nix develop -c mdbook build
+          nix develop -c bash -lc "cd docs-site && npm ci"
+
+      - name: Generate API docs (current version)
+        run: |
+          nix develop -c bash -lc "cd docs-site && npm run generate-api-docs"
+
+      - name: Generate API docs (versioned)
+        run: |
+          nix develop -c bash -lc "cd docs-site && npm run generate-versioned-api-docs"
+
+      - name: Validate API descriptions
+        run: |
+          nix develop -c bash -lc "cd docs-site && npm run validate-api-descriptions"
+
+      - name: Build docs site
+        run: |
+          nix develop -c bash -lc "cd docs-site && npx docusaurus build"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./docs/book
+          path: ./docs-site/build
 
   deploy:
     if: github.ref == 'refs/heads/main'

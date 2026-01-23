@@ -5,8 +5,19 @@ license = "BUSL-1.1"
 edition = "2024"
 
 [features]
-
 fail-on-warnings = []
+json-schema = [
+    "dep:schemars",
+    "governance/json-schema",
+    "core-access/json-schema",
+    "core-accounting/json-schema",
+    "core-custody/json-schema",
+    "core-customer/json-schema",
+    "core-credit/json-schema",
+    "core-deposit/json-schema",
+    "core-report/json-schema",
+    "core-price/json-schema",
+]
 
 [dependencies]
 governance = { workspace = true }
@@ -22,4 +33,5 @@ obix = { workspace = true }
 
 serde = { workspace = true }
 strum = { workspace = true }
+schemars = { workspace = true, optional = true }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }

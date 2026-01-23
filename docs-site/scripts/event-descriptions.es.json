@@ -1,0 +1,133 @@
+{
+  "_translations": {
+    "title": "Eventos de Dominio",
+    "description": "Eventos de dominio publicos publicados por Lana Bank",
+    "intro": "Lana Bank publica eventos de dominio a traves del patron de outbox transaccional. Estos eventos pueden ser consumidos por sistemas externos para integracion, analitica y auditoria.",
+    "serialization_note": "Todos los eventos se serializan como JSON e incluyen metadatos para trazabilidad y ordenamiento.",
+    "event_structure": "Estructura del Evento",
+    "event_structure_intro": "Cada evento esta envuelto en un sobre con la siguiente estructura:",
+    "event_types_reference": "Referencia de Tipos de Eventos",
+    "event_types_intro": "Todos los tipos de eventos siguen la convencion de nombres:",
+    "module": "Modulo",
+    "event_type_prefix": "Prefijo de Tipo de Evento",
+    "consuming_events": "Consumiendo Eventos",
+    "consuming_intro": "Los eventos se publican a traves del outbox transaccional y se pueden consumir mediante:",
+    "direct_polling": "Consulta directa a la base de datos",
+    "direct_polling_desc": "Consultar la tabla de outbox",
+    "event_streaming": "Streaming de eventos",
+    "event_streaming_desc": "Integracion con colas de mensajes (dependiente de la implementacion)",
+    "etl_pipelines": "Pipelines ETL",
+    "etl_pipelines_desc": "Via extraccion de Meltano",
+    "contact_note": "Para detalles de integracion, contacte al equipo de plataforma."
+  },
+  "CoreAccessEvent": {
+    "module_description": "Eventos relacionados con la gestion de usuarios y roles.",
+    "events": {
+      "UserCreated": "Se creo un nuevo usuario",
+      "UserRemoved": "Se elimino un usuario",
+      "UserUpdatedRole": "Se cambio el rol de un usuario",
+      "RoleCreated": "Se creo un nuevo rol",
+      "RoleGainedPermissionSet": "Un rol obtuvo permisos",
+      "RoleLostPermissionSet": "Un rol perdio permisos"
+    }
+  },
+  "CoreCreditEvent": {
+    "module_description": "Eventos relacionados con el ciclo de vida y operaciones de facilidades de credito.",
+    "subsections": {
+      "Ciclo de Vida de Facilidad": [
+        "FacilityProposalCreated",
+        "FacilityProposalApproved",
+        "FacilityActivated",
+        "FacilityCompleted"
+      ],
+      "Eventos de Colateral": [
+        "PendingCreditFacilityCollateralizationChanged",
+        "FacilityCollateralUpdated",
+        "FacilityCollateralizationChanged"
+      ],
+      "Eventos de Pago": [
+        "FacilityRepaymentRecorded",
+        "DisbursalSettled",
+        "AccrualPosted"
+      ],
+      "Eventos de Obligacion": [
+        "ObligationCreated",
+        "ObligationDue",
+        "ObligationOverdue",
+        "ObligationDefaulted",
+        "ObligationCompleted"
+      ],
+      "Eventos de Liquidacion": [
+        "PartialLiquidationInitiated",
+        "PartialLiquidationCollateralSentOut",
+        "PartialLiquidationProceedsReceived",
+        "PartialLiquidationCompleted"
+      ]
+    },
+    "events": {
+      "FacilityProposalCreated": "Se creo una propuesta de facilidad de credito",
+      "FacilityProposalApproved": "Se aprobo una propuesta",
+      "FacilityActivated": "Se activo una facilidad de credito",
+      "FacilityCompleted": "Una facilidad de credito fue totalmente pagada y cerrada",
+      "PendingCreditFacilityCollateralizationChanged": "Cambio el estado de colateralizacion para facilidad pendiente",
+      "FacilityCollateralUpdated": "Se actualizo el monto del colateral",
+      "FacilityCollateralizationChanged": "Cambio el estado de colateralizacion para facilidad activa",
+      "FacilityRepaymentRecorded": "Se registro un pago",
+      "DisbursalSettled": "Se liquido un desembolso",
+      "AccrualPosted": "Se registro el devengamiento de intereses",
+      "ObligationCreated": "Se creo una nueva obligacion",
+      "ObligationDue": "Una obligacion vencio",
+      "ObligationOverdue": "Una obligacion entro en mora",
+      "ObligationDefaulted": "Una obligacion entro en incumplimiento",
+      "ObligationCompleted": "Una obligacion fue completamente pagada",
+      "PartialLiquidationInitiated": "Se inicio una liquidacion parcial",
+      "PartialLiquidationCollateralSentOut": "Se envio colateral para liquidacion",
+      "PartialLiquidationProceedsReceived": "Se recibieron los ingresos de liquidacion",
+      "PartialLiquidationCompleted": "Se completo la liquidacion"
+    }
+  },
+  "CoreCustodyEvent": {
+    "module_description": "Eventos relacionados con custodia de Bitcoin y gestion de billeteras.",
+    "events": {
+      "WalletBalanceChanged": "Cambio el balance de una billetera"
+    }
+  },
+  "CoreCustomerEvent": {
+    "module_description": "Eventos relacionados con el ciclo de vida del cliente y KYC.",
+    "events": {
+      "CustomerCreated": "Se creo un nuevo cliente",
+      "CustomerAccountKycVerificationUpdated": "Cambio el estado de verificacion KYC",
+      "CustomerEmailUpdated": "Se actualizo el email del cliente"
+    }
+  },
+  "CoreDepositEvent": {
+    "module_description": "Eventos relacionados con cuentas de deposito y transacciones.",
+    "events": {
+      "DepositAccountCreated": "Se creo una cuenta de deposito",
+      "DepositInitialized": "Se inicializo un deposito",
+      "WithdrawalConfirmed": "Se confirmo un retiro",
+      "DepositReverted": "Se revirtio un deposito",
+      "DepositAccountFrozen": "Se congelo una cuenta de deposito"
+    }
+  },
+  "CorePriceEvent": {
+    "module_description": "Eventos relacionados con actualizaciones de precio BTC/USD.",
+    "events": {
+      "PriceUpdated": "Se actualizo el precio BTC/USD"
+    }
+  },
+  "CoreReportEvent": {
+    "module_description": "Eventos relacionados con generacion de reportes.",
+    "events": {
+      "ReportCreated": "Se creo un nuevo reporte",
+      "ReportRunCreated": "Se inicio una ejecucion de reporte",
+      "ReportRunStateUpdated": "Cambio el estado de ejecucion de reporte"
+    }
+  },
+  "GovernanceEvent": {
+    "module_description": "Eventos relacionados con flujos de aprobacion.",
+    "events": {
+      "ApprovalProcessConcluded": "Se concluyo un proceso de aprobacion"
+    }
+  }
+}

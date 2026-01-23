@@ -3704,6 +3704,7 @@ dependencies = [
  "core-report",
  "governance",
  "obix",
+ "schemars 1.2.0",
  "serde",
  "strum",
  "workspace-hack",
@@ -4859,6 +4860,16 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 1.0.109",
+]
+
+[[package]]
+name = "public-events-schema"
+version = "0.1.0"
+dependencies = [
+ "lana-events",
+ "schemars 1.2.0",
+ "serde_json",
+ "workspace-hack",
 ]
 
 [[package]]
