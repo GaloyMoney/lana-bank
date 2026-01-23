@@ -1,6 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::time::Duration;
-use tokio_stream::StreamExt;
 
 use core_customer::CoreCustomerEvent;
 
@@ -83,34 +81,5 @@ pub mod event {
         }
     }
 
-    pub async fn expect_event<R, T, F, Fut, E, P>(
-        outbox: &obix::Outbox<DummyEvent>,
-        use_case: F,
-        matches: P,
-    ) -> anyhow::Result<(R, T)>
-    where
-        F: FnOnce() -> Fut,
-        Fut: std::future::Future<Output = Result<R, E>>,
-        E: std::fmt::Debug,
-        P: Fn(&R, &CoreCustomerEvent) -> Option<T>,
-    {
-        let mut listener = outbox.listen_persisted(None);
-
-        let result = use_case().await.expect("use case should succeed");
-
-        let event = tokio::time::timeout(Duration::from_secs(5), async {
-            loop {
-                let event = listener.next().await.expect("should receive an event");
-                if let Some(extracted) = event
-                    .as_event::<CoreCustomerEvent>()
-                    .and_then(|e| matches(&result, e))
-                {
-                    return extracted;
-                }
-            }
-        })
-        .await?;
-
-        Ok((result, event))
-    }
+    pub use obix::test_utils::expect_event;
 }
