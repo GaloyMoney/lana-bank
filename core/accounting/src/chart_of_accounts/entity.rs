@@ -140,13 +140,17 @@ impl Chart {
         base_config: AccountingBaseConfig,
         journal_id: CalaJournalId,
     ) -> Result<Idempotent<BulkImportResult>, ChartOfAccountsError> {
+        let mut already_applied = true;
+
         let res = BulkAccountImport::new(self, journal_id).import(account_specs);
+        already_applied = already_applied && res.new_account_sets.is_empty();
 
         let config_already_applied = self
             .initialize_base_config(base_config)?
             .was_already_applied();
+        already_applied = already_applied && config_already_applied;
 
-        if config_already_applied && res.new_account_sets.is_empty() {
+        if already_applied {
             Ok(Idempotent::AlreadyApplied)
         } else {
             Ok(Idempotent::Executed(res))
