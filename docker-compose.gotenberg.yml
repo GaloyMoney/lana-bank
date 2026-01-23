@@ -5,4 +5,3 @@ services:
     command:
       - "gotenberg"
       - "--libreoffice-disable-routes"
-      - "--api-disable-health-check-logging"
