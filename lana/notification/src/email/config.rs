@@ -1,9 +1,10 @@
 use lettre::address::Address;
 use serde::{Deserialize, Serialize};
+use url::Url;
 
 use domain_config::{DomainConfigError, define_exposed_config};
 
-#[derive(Clone, Debug, Deserialize, Serialize, Default)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct EmailInfraConfig {
     #[serde(skip)]
@@ -16,8 +17,25 @@ pub struct EmailInfraConfig {
     pub port: u16,
     #[serde(default)]
     pub insecure: bool,
-    #[serde(default)]
-    pub admin_panel_url: String,
+    #[serde(default = "default_admin_panel_url")]
+    pub admin_panel_url: Url,
+}
+
+fn default_admin_panel_url() -> Url {
+    Url::parse("http://localhost:3000").expect("valid default URL")
+}
+
+impl Default for EmailInfraConfig {
+    fn default() -> Self {
+        Self {
+            username: String::new(),
+            password: String::new(),
+            relay: String::new(),
+            port: 0,
+            insecure: false,
+            admin_panel_url: default_admin_panel_url(),
+        }
+    }
 }
 
 impl EmailInfraConfig {

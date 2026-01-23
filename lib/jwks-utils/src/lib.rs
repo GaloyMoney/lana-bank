@@ -13,6 +13,7 @@ use axum_extra::{
 };
 use jsonwebtoken::{Algorithm, DecodingKey, TokenData, Validation, jwk::JwkSet};
 use serde::{Deserialize, de::DeserializeOwned};
+use url::Url;
 
 use std::sync::{Arc, RwLock};
 
@@ -73,7 +74,7 @@ where
 /// It fetches the JWKS from the given URL and caches it for the given duration.
 /// It uses the cached JWKS to decode the JWT tokens.
 pub struct RemoteJwksDecoder {
-    jwks_url: String,
+    jwks_url: Url,
     cache_duration: std::time::Duration,
     keys_cache: RwLock<Vec<(Option<String>, DecodingKey)>>,
     validation: Validation,
@@ -85,7 +86,7 @@ pub struct RemoteJwksDecoder {
 const DEFAULT_CACHE_DURATION: u64 = 30 * 60;
 
 impl RemoteJwksDecoder {
-    pub fn new(jwks_url: String, aud: &str) -> Self {
+    pub fn new(jwks_url: Url, aud: &str) -> Self {
         let mut validation = Validation::new(Algorithm::RS256);
         validation.set_audience(&[aud]);
 
@@ -122,7 +123,7 @@ impl RemoteJwksDecoder {
     async fn refresh_keys_once(&self) -> Result<(), JwksError> {
         let jwks = self
             .client
-            .get(&self.jwks_url)
+            .get(self.jwks_url.clone())
             .send()
             .await?
             .json::<JwkSet>()

@@ -44,11 +44,6 @@ impl BitgoClient {
             directory_config.production_url
         };
 
-        let webhook_url = config
-            .webhook_url
-            .parse()
-            .map_err(|_| BitgoError::InvalidWebhookUrl)?;
-
         Ok(Self {
             http_client: Client::new(),
             long_lived_token: config.long_lived_token,
@@ -57,7 +52,7 @@ impl BitgoClient {
             enterprise_id: config.enterprise_id,
             is_test: config.bitgo_test,
             coin: coin.to_owned(),
-            webhook_url,
+            webhook_url: config.webhook_url,
             webhook_secret: config.webhook_secret,
         })
     }

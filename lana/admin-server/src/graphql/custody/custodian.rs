@@ -1,4 +1,5 @@
 use async_graphql::*;
+use url::Url;
 
 use crate::primitives::*;
 
@@ -82,7 +83,7 @@ impl From<BitgoConfig> for DomainBitgoConfig {
             passphrase: config.passphrase,
             testing_instance: config.testing_instance,
             enterprise_id: config.enterprise_id,
-            webhook_url: config.webhook_url,
+            webhook_url: Url::parse(&config.webhook_url).expect("webhook_url must be a valid URL"),
             webhook_secret: config.webhook_secret,
         }
     }

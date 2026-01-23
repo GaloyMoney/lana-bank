@@ -14,8 +14,6 @@ pub enum BitgoError {
         name: String,
         request_id: String,
     },
-    #[error("BitgoError - InvalidWebhookUrl")]
-    InvalidWebhookUrl,
     #[error("BitgoError - DecryptXprvError: {0}")]
     DecryptXprv(String),
     #[error("BitgoError - MissingWebhookSignature")]
@@ -30,7 +28,6 @@ impl ErrorSeverity for BitgoError {
             Self::ReqwestError(_) => Level::ERROR,
             Self::JsonFormat(_) => Level::ERROR,
             Self::BitgoError { .. } => Level::ERROR,
-            Self::InvalidWebhookUrl => Level::ERROR,
             Self::DecryptXprv(_) => Level::ERROR,
             Self::MissingWebhookSignature => Level::WARN,
             Self::InvalidWebhookSignature(_) => Level::WARN,
