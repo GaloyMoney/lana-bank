@@ -1,29 +1,17 @@
-use domain_config::{DomainConfigError, define_exposed_config};
+use domain_config::define_exposed_config;
 
 define_exposed_config! {
-    pub struct Timezone(String);
+    pub struct Timezone(chrono_tz::Tz);
     spec {
         key: "timezone";
-        default: || Some("UTC".to_string());
-        validate: |value: &String| {
-            value.parse::<chrono_tz::Tz>().map_err(|_| {
-                DomainConfigError::InvalidState(format!("Invalid timezone: {value}"))
-            })?;
-            Ok(())
-        };
+        default: || Some(chrono_tz::UTC);
     }
 }
 
 define_exposed_config! {
-    pub struct ClosingTime(String);
+    pub struct ClosingTime(chrono::NaiveTime);
     spec {
         key: "closing-time";
-        default: || Some("00:00:00".to_string());
-        validate: |value: &String| {
-            value.parse::<chrono::NaiveTime>().map_err(|_| {
-                DomainConfigError::InvalidState(format!("Invalid closing time: {value}"))
-            })?;
-            Ok(())
-        };
+        default: || Some(chrono::NaiveTime::from_hms_opt(0, 0, 0).unwrap());
     }
 }

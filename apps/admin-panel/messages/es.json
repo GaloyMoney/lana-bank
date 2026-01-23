@@ -194,6 +194,8 @@
       "invalidInt": "Ingresa un número entero válido",
       "invalidUint": "Ingresa un número entero no negativo válido",
       "invalidDecimal": "Ingresa un valor decimal",
+      "invalidTimezone": "Ingresa una zona horaria válida (ej., UTC, America/New_York)",
+      "invalidTime": "Ingresa una hora válida en formato HH:MM:SS",
       "invalidJson": "Ingresa un JSON válido",
       "invalidValue": "Ingresa un valor válido"
     },

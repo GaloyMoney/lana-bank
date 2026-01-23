@@ -117,12 +117,10 @@ where
             let timezone_config = self.domain_configs.get::<Timezone>(&system_sub).await?;
             let closing_time = closing_time_config
                 .value()
-                .expect("closing time must have a default")
-                .parse::<chrono::NaiveTime>()?;
+                .expect("closing time must have a default");
             let timezone = timezone_config
                 .value()
-                .expect("timezone must have a default")
-                .parse::<chrono_tz::Tz>()?;
+                .expect("timezone must have a default");
             let clock = current_job.clock().clone();
 
             let schedule = ClosingSchedule::new(timezone, closing_time, &clock);

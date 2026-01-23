@@ -220,6 +220,8 @@ const formatDomainValue = (config: DomainConfig): string | boolean => {
     case ConfigType.Bool:
       return config.value === true
     case ConfigType.String:
+    case ConfigType.Timezone:
+    case ConfigType.Time:
       return typeof config.value === "string" ? config.value : ""
     case ConfigType.Int:
     case ConfigType.Uint:
@@ -247,6 +249,29 @@ const parseDomainDraft = (
       return { value: draft === true }
     case ConfigType.String:
       return { value: typeof draft === "string" ? draft : "" }
+    case ConfigType.Timezone: {
+      const text = typeof draft === "string" ? draft.trim() : ""
+
+      if (text.length === 0) {
+        return { errorKey: "domainConfigs.invalidTimezone" }
+      }
+
+      return { value: text }
+    }
+    case ConfigType.Time: {
+      const text = typeof draft === "string" ? draft.trim() : ""
+
+      if (text.length === 0) {
+        return { errorKey: "domainConfigs.invalidTime" }
+      }
+
+      // Basic format validation for HH:MM:SS
+      if (!/^\d{2}:\d{2}:\d{2}$/.test(text)) {
+        return { errorKey: "domainConfigs.invalidTime" }
+      }
+
+      return { value: text }
+    }
     case ConfigType.Int: {
       const text = typeof draft === "string" ? draft.trim() : ""
       const parsed = Number(text)
@@ -340,6 +365,32 @@ const renderDomainInput = ({
           <Input
             id={inputId}
             inputMode="decimal"
+            value={typeof value === "string" ? value : ""}
+            disabled={disabled}
+            onChange={(event) => onChange(event.target.value)}
+          />
+        </div>
+      )
+    case ConfigType.Timezone:
+      return (
+        <div className="grid gap-2">
+          <Label htmlFor={inputId}>{label}</Label>
+          <Input
+            id={inputId}
+            placeholder="UTC"
+            value={typeof value === "string" ? value : ""}
+            disabled={disabled}
+            onChange={(event) => onChange(event.target.value)}
+          />
+        </div>
+      )
+    case ConfigType.Time:
+      return (
+        <div className="grid gap-2">
+          <Label htmlFor={inputId}>{label}</Label>
+          <Input
+            id={inputId}
+            placeholder="00:00:00"
             value={typeof value === "string" ? value : ""}
             disabled={disabled}
             onChange={(event) => onChange(event.target.value)}
