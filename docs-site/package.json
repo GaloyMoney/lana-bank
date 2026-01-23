@@ -29,7 +29,7 @@
     "prism-react-renderer": "^2.3.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "@docusaurus/theme-mermaid": "^3.7.0",
+    "@docusaurus/theme-mermaid": "^3.9.2",
     "@graphql-markdown/docusaurus": "^1.26.1",
     "@graphql-tools/graphql-file-loader": "^8.0.0"
   },
