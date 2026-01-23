@@ -250,6 +250,7 @@ where
             ledger_arc.clone(),
             outbox,
             jobs,
+            clock.clone(),
         )
         .await?;
         let collaterals_arc = Arc::new(collaterals);
@@ -698,150 +699,149 @@ where
             .await?)
     }
 
-    #[record_error_severity]
-    #[instrument(name = "credit.update_pending_facility_collateral", skip(self, pending_credit_facility_id), fields(pending_credit_facility_id = tracing::field::Empty))]
-    pub async fn update_pending_facility_collateral(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        pending_credit_facility_id: impl Into<PendingCreditFacilityId> + std::fmt::Debug + Copy,
-        updated_collateral: Satoshis,
-        effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
-    ) -> Result<PendingCreditFacility, CoreCreditError> {
-        let effective = effective.into();
+    // #[record_error_severity]
+    // #[instrument(name = "credit.update_pending_facility_collateral", skip(self, pending_credit_facility_id), fields(pending_credit_facility_id = tracing::field::Empty))]
+    // pub async fn update_pending_facility_collateral(
+    //     &self,
+    //     sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+    //     pending_credit_facility_id: impl Into<PendingCreditFacilityId> + std::fmt::Debug + Copy,
+    //     updated_collateral: Satoshis,
+    //     effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
+    // ) -> Result<PendingCreditFacility, CoreCreditError> {
+    //     let effective = effective.into();
 
-        self.subject_can_update_collateral(sub, true)
-            .await?
-            .expect("audit info missing");
+    //     self.subject_can_update_collateral(sub, true)
+    //         .await?
+    //         .expect("audit info missing");
 
-        let pending_facility = self
-            .pending_credit_facilities()
-            .find_by_id_without_audit(pending_credit_facility_id.into())
-            .await?;
+    //     let pending_facility = self
+    //         .pending_credit_facilities()
+    //         .find_by_id_without_audit(pending_credit_facility_id.into())
+    //         .await?;
 
-        tracing::Span::current().record(
-            "pending_credit_facility_id",
-            tracing::field::display(pending_facility.id),
-        );
+    //     tracing::Span::current().record(
+    //         "pending_credit_facility_id",
+    //         tracing::field::display(pending_facility.id),
+    //     );
 
-        let mut db = self.facilities.begin_op_with_clock(&self.clock).await?;
+    //     let mut db = self.facilities.begin_op_with_clock(&self.clock).await?;
 
-        let collateral_update = if let Some(collateral_update) = self
-            .collaterals
-            .record_collateral_update_via_manual_input_in_op(
-                &mut db,
-                pending_facility.collateral_id,
-                updated_collateral,
-                effective,
-            )
-            .await?
-        {
-            collateral_update
-        } else {
-            return Ok(pending_facility);
-        };
+    //     let collateral_update = if let Some(collateral_update) = self
+    //         .collaterals
+    //         .record_collateral_update_via_manual_input_in_op(
+    //             &mut db,
+    //             pending_facility.collateral_id,
+    //             updated_collateral,
+    //             effective,
+    //         )
+    //         .await?
+    //     {
+    //         collateral_update
+    //     } else {
+    //         return Ok(pending_facility);
+    //     };
 
-        self.ledger
-            .update_credit_facility_collateral(
-                &mut db,
-                collateral_update,
-                pending_facility.account_ids.collateral_account_id,
-                LedgerTransactionInitiator::try_from_subject(sub)?,
-            )
-            .await?;
+    //     self.ledger
+    //         .update_credit_facility_collateral(
+    //             &mut db,
+    //             collateral_update,
+    //             pending_facility.account_ids.collateral_account_id,
+    //             LedgerTransactionInitiator::try_from_subject(sub)?,
+    //         )
+    //         .await?;
 
-        db.commit().await?;
+    //     db.commit().await?;
 
-        Ok(pending_facility)
-    }
+    //     Ok(pending_facility)
+    // }
 
-    #[record_error_severity]
-    #[instrument(name = "credit.send_collateral_to_liquidation", skip(self))]
-    pub async fn send_collateral_to_liquidation(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        liquidation_id: LiquidationId,
-        amount_sent: Satoshis,
-    ) -> Result<Liquidation, CoreCreditError> {
-        let liquidation = self
-            .liquidations
-            .find_by_id(sub, liquidation_id)
-            .await?
-            .unwrap();
+    // #[record_error_severity]
+    // #[instrument(name = "credit.send_collateral_to_liquidation", skip(self))]
+    // pub async fn send_collateral_to_liquidation(
+    //     &self,
+    //     sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+    //     liquidation_id: LiquidationId,
+    //     amount_sent: Satoshis,
+    // ) -> Result<Liquidation, CoreCreditError> {
+    //     let liquidation = self
+    //         .liquidations
+    //         .find_by_id(sub, liquidation_id)
+    //         .await?
+    //         .unwrap();
 
-        let facility = self
-            .facilities
-            .find_by_id_without_audit(liquidation.credit_facility_id)
-            .await?;
+    //     let facility = self
+    //         .facilities
+    //         .find_by_id_without_audit(liquidation.credit_facility_id)
+    //         .await?;
 
-        let balances = self
-            .ledger
-            .get_credit_facility_balance(facility.account_ids)
-            .await?;
+    //     let balances = self
+    //         .ledger
+    //         .get_credit_facility_balance(facility.account_ids)
+    //         .await?;
 
-        let updated_collateral = balances.collateral() - amount_sent;
+    //     let updated_collateral = balances.collateral() - amount_sent;
 
-        self.update_collateral(sub, facility.id, updated_collateral, self.clock.today())
-            .await?;
+    //     self.update_collateral(sub, facility.id, updated_collateral, self.clock.today())
+    //         .await?;
 
-        let liquidation = self
-            .liquidations
-            .find_by_id(sub, liquidation_id)
-            .await?
-            .unwrap();
+    //     let liquidation = self
+    //         .liquidations
+    //         .find_by_id(sub, liquidation_id)
+    //         .await?
+    //         .unwrap();
 
-        Ok(liquidation)
-    }
+    //     Ok(liquidation)
+    // }
 
-    #[record_error_severity]
-    #[instrument(name = "credit.update_collateral", skip(self))]
-    pub async fn update_collateral(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug + Copy,
-        updated_collateral: Satoshis,
-        effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
-    ) -> Result<CreditFacility, CoreCreditError> {
-        let credit_facility_id = credit_facility_id.into();
-        let effective = effective.into();
+    // #[record_error_severity]
+    // #[instrument(name = "credit.update_collateral", skip(self))]
+    // pub async fn update_collateral(
+    //     &self,
+    //     sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+    //     collateral_id: CollateralId,
+    //     updated_collateral: Satoshis,
+    //     effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
+    // ) -> Result<CreditFacility, CoreCreditError> {
+    //     let effective = effective.into();
 
-        self.subject_can_update_collateral(sub, true)
-            .await?
-            .expect("audit info missing");
+    //     self.subject_can_update_collateral(sub, true)
+    //         .await?
+    //         .expect("audit info missing");
 
-        let credit_facility = self
-            .facilities
-            .find_by_id_without_audit(credit_facility_id)
-            .await?;
+    //     let credit_facility = self
+    //         .facilities
+    //         .find_by_id_without_audit(credit_facility_id)
+    //         .await?;
 
-        let mut db = self.facilities.begin_op_with_clock(&self.clock).await?;
+    //     let mut db = self.facilities.begin_op_with_clock(&self.clock).await?;
 
-        let collateral_update = if let Some(collateral_update) = self
-            .collaterals
-            .record_collateral_update_via_manual_input_in_op(
-                &mut db,
-                credit_facility.collateral_id,
-                updated_collateral,
-                effective,
-            )
-            .await?
-        {
-            collateral_update
-        } else {
-            return Ok(credit_facility);
-        };
-        self.ledger
-            .update_credit_facility_collateral(
-                &mut db,
-                collateral_update,
-                credit_facility.account_ids.collateral_account_id,
-                LedgerTransactionInitiator::try_from_subject(sub)?,
-            )
-            .await?;
+    //     let collateral_update = if let Some(collateral_update) = self
+    //         .collaterals
+    //         .record_collateral_update_via_manual_input_in_op(
+    //             &mut db,
+    //             credit_facility.collateral_id,
+    //             updated_collateral,
+    //             effective,
+    //         )
+    //         .await?
+    //     {
+    //         collateral_update
+    //     } else {
+    //         return Ok(credit_facility);
+    //     };
+    //     self.ledger
+    //         .update_credit_facility_collateral(
+    //             &mut db,
+    //             collateral_update,
+    //             credit_facility.account_ids.collateral_account_id,
+    //             LedgerTransactionInitiator::try_from_subject(sub)?,
+    //         )
+    //         .await?;
 
-        db.commit().await?;
+    //     db.commit().await?;
 
-        Ok(credit_facility)
-    }
+    //     Ok(credit_facility)
+    // }
 
     pub async fn subject_can_record_payment(
         &self,

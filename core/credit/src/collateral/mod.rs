@@ -1,14 +1,18 @@
 mod entity;
 pub mod error;
 mod jobs;
+mod liquidation;
 mod repo;
 
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use core_accounting::LedgerTransactionInitiator;
+use job::ClockHandle;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
+use audit::*;
 use authz::PermissionCheck;
 use obix::out::{Outbox, OutboxEventMarker};
 
@@ -31,6 +35,7 @@ where
     authz: Arc<Perms>,
     repo: Arc<CollateralRepo<E>>,
     ledger: Arc<CreditLedger>,
+    clock: ClockHandle,
 }
 
 impl<Perms, E> Clone for Collaterals<Perms, E>
@@ -43,6 +48,7 @@ where
             authz: self.authz.clone(),
             repo: self.repo.clone(),
             ledger: self.ledger.clone(),
+            clock: self.clock.clone(),
         }
     }
 }
@@ -59,6 +65,7 @@ where
         ledger: Arc<CreditLedger>,
         outbox: &Outbox<E>,
         jobs: &mut job::Jobs,
+        clock: ClockHandle,
     ) -> Result<Self, CollateralError> {
         let repo_arc = Arc::new(CollateralRepo::new(pool, publisher));
 
@@ -80,6 +87,7 @@ where
             authz,
             repo: repo_arc,
             ledger,
+            clock,
         })
     }
 
@@ -111,32 +119,66 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(
-        name = "collateral.record_collateral_update_via_manual_input_in_op",
-        skip(db, self)
-    )]
-    pub(super) async fn record_collateral_update_via_manual_input_in_op(
+    #[instrument(name = "credit.colateral.send_collateral_to_liquidation", skip(self))]
+    pub async fn send_collateral_to_liquidation(
         &self,
-        db: &mut es_entity::DbOp<'_>,
-        collateral_id: CollateralId,
-        updated_collateral: core_money::Satoshis,
-        effective: chrono::NaiveDate,
-    ) -> Result<Option<CollateralUpdate>, CollateralError> {
-        let mut collateral = self.repo.find_by_id(collateral_id).await?;
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        collateral_id: impl Into<CollateralId> + std::fmt::Debug + Copy,
+        amount_sent: Satoshis,
+    ) -> Result<(), CollateralError> {
+        let collateral_id = collateral_id.into();
+        let collateral = self.repo.find_by_id(collateral_id).await?;
+
+        let updated_collateral = collateral.amount - amount_sent;
+
+        self.update_collateral(sub, collateral_id, updated_collateral, self.clock.today())
+            .await
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "credit.collateral.update_collateral", skip(self))]
+    pub async fn update_collateral(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        collateral_id: impl Into<CollateralId> + std::fmt::Debug + Copy,
+        updated_collateral: Satoshis,
+        effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
+    ) -> Result<(), CollateralError> {
+        let collateral_id = collateral_id.into();
+        let effective = effective.into();
+
+        // self.subject_can_update_collateral(sub, true)
+        // .await?
+        // .expect("audit info missing");
+
+        let mut db = self.repo.begin_op_with_clock(&self.clock).await?;
+
+        let mut collateral = self.repo.find_by_id_in_op(&mut db, collateral_id).await?;
 
         if collateral.custody_wallet_id.is_some() {
             return Err(CollateralError::ManualUpdateError);
         }
 
-        let res = if let es_entity::Idempotent::Executed(data) =
+        let collateral_update = if let es_entity::Idempotent::Executed(data) =
             collateral.record_collateral_update_via_manual_input(updated_collateral, effective)
         {
-            self.repo.update_in_op(db, &mut collateral).await?;
-            Some(data)
+            self.repo.update_in_op(&mut db, &mut collateral).await?;
+            data
         } else {
-            None
+            return Ok(());
         };
 
-        Ok(res)
+        self.ledger
+            .update_credit_facility_collateral(
+                &mut db,
+                collateral_update,
+                collateral.collateral_account_id,
+                LedgerTransactionInitiator::try_from_subject(sub)?,
+            )
+            .await?;
+
+        db.commit().await?;
+
+        Ok(())
     }
 }

@@ -9,6 +9,10 @@ pub enum CollateralError {
     EsEntityError(es_entity::EsEntityError),
     #[error("CollateralError - CursorDestructureError: {0}")]
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
+    #[error("CoreCreditError - LedgerTransactionInitiatorParseError: {0}")]
+    LedgerTransactionInitiatorParseError(
+        #[from] core_accounting::LedgerTransactionInitiatorParseError,
+    ),
     #[error("CollateralError - CreditError: {0}")]
     CreditLedgerError(#[from] crate::ledger::error::CreditLedgerError),
     #[error("CollateralError - ManualUpdateError: Cannot update collateral with a custodian")]
@@ -30,6 +34,7 @@ impl ErrorSeverity for CollateralError {
             Self::EsEntityError(e) => e.severity(),
             Self::CursorDestructureError(_) => Level::ERROR,
             Self::CreditLedgerError(e) => e.severity(),
+            Self::LedgerTransactionInitiatorParseError(e) => e.severity(),
             Self::ManualUpdateError => Level::WARN,
             Self::JobError(_) => Level::ERROR,
             Self::AlreadyInLiquidation(_) => Level::WARN,

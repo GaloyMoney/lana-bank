@@ -1937,7 +1937,7 @@ impl Mutation {
     ) -> async_graphql::Result<CreditFacilityCollateralUpdatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let CreditFacilityCollateralUpdateInput {
-            credit_facility_id,
+            credit_facility_id: collateral_id,
             collateral,
             effective,
         } = input;
@@ -1946,7 +1946,8 @@ impl Mutation {
             CreditFacility,
             ctx,
             app.credit()
-                .update_collateral(sub, credit_facility_id, collateral, effective)
+                .collaterals()
+                .update_collateral(sub, collateral_id, collateral, effective)
         )
     }
 
@@ -2047,7 +2048,7 @@ impl Mutation {
             LiquidationRecordCollateralSentPayload,
             Liquidation,
             ctx,
-            app.credit().send_collateral_to_liquidation(
+            app.credit().collaterals().send_collateral_to_liquidation(
                 sub,
                 input.liquidation_id.into(),
                 input.amount
