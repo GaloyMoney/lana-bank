@@ -181,4 +181,13 @@ where
 
         Ok(())
     }
+
+    pub async fn empty_up_collateral_in_op(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        collateral_id: CollateralId,
+        effective: chrono::NaiveDate,
+    ) -> Result<(), CollateralError> {
+        todo!()
+    }
 }

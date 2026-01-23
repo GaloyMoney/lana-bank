@@ -298,7 +298,7 @@ impl CreditFacility {
 
 #[derive(InputObject)]
 pub struct CreditFacilityCollateralUpdateInput {
-    pub credit_facility_id: UUID,
+    pub collateral_id: UUID,
     pub collateral: Satoshis,
     pub effective: Date,
 }

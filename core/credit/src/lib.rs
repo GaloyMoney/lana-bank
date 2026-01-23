@@ -1011,12 +1011,13 @@ where
 
             CompletionOutcome::Completed((facility, completion)) => {
                 self.collaterals
-                    .record_collateral_update_via_manual_input_in_op(
-                        &mut db,
-                        facility.collateral_id,
-                        Satoshis::ZERO,
-                        self.clock.today(),
-                    )
+                    .empty_up_collateral_in_op(&mut db, facility.collateral_id, self.clock.today())
+                    // .record_collateral_update_via_manual_input_in_op(
+                    // &mut db,
+                    // facility.collateral_id,
+                    // Satoshis::ZERO,
+                    // self.clock.today(),
+                    // )
                     .await?;
 
                 self.ledger

@@ -114,7 +114,7 @@ impl From<DomainPendingCreditFacility> for PendingCreditFacility {
 
 #[derive(InputObject)]
 pub struct PendingCreditFacilityCollateralUpdateInput {
-    pub pending_credit_facility_id: UUID,
+    pub collateral_id: UUID,
     pub collateral: Satoshis,
     pub effective: Date,
 }

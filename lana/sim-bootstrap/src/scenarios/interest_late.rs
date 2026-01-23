@@ -88,10 +88,18 @@ async fn process_activation_message(
             Span::current().record("handled", true);
             Span::current().record("event_type", event.as_ref());
 
+            let pending_cf = app
+                .credit()
+                .pending_credit_facilities()
+                .find_by_id(sub, cf_proposal.id)
+                .await?
+                .expect("Pending credit facility was not created");
+
             app.credit()
-                .update_pending_facility_collateral(
+                .collaterals()
+                .update_collateral(
                     sub,
-                    *id,
+                    pending_cf.collateral_id,
                     Satoshis::try_from_btc(dec!(230))?,
                     clock.today(),
                 )
