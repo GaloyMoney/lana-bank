@@ -3,7 +3,7 @@
 import { gql } from "@apollo/client"
 import { useEffect, useMemo, useState } from "react"
 import { useTranslations } from "next-intl"
-import { LoaderCircle } from "lucide-react"
+import { CheckIcon, ChevronsUpDownIcon, LoaderCircle } from "lucide-react"
 import { toast } from "sonner"
 
 import {
@@ -18,6 +18,16 @@ import { Button } from "@lana/web/ui/button"
 import { Input } from "@lana/web/ui/input"
 import { Label } from "@lana/web/ui/label"
 import { Checkbox } from "@lana/web/ui/checkbox"
+import { Popover, PopoverContent, PopoverTrigger } from "@lana/web/ui/popover"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@lana/web/ui/command"
+import { cn } from "@lana/web/utils"
 
 import {
   ConfigType,
@@ -59,6 +69,9 @@ gql`
 
 const DOMAIN_CONFIG_PAGE_SIZE = 100
 const EMPTY_CONFIGS: DomainConfig[] = []
+
+// Get all IANA timezones from the browser's Intl API
+const ALL_TIMEZONES = Intl.supportedValuesOf("timeZone")
 
 export default function ConfigurationsPage() {
   const t = useTranslations("Configurations")
@@ -212,6 +225,63 @@ export default function ConfigurationsPage() {
         </div>
       )}
     </div>
+  )
+}
+
+type TimezoneComboboxProps = {
+  value: string
+  onChange: (value: string) => void
+  disabled?: boolean
+  id?: string
+}
+
+function TimezoneCombobox({ value, onChange, disabled, id }: TimezoneComboboxProps) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          id={id}
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          disabled={disabled}
+          className="w-full justify-between font-normal"
+        >
+          {value || "Select timezone..."}
+          <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+        <Command>
+          <CommandInput placeholder="Search timezone..." />
+          <CommandList>
+            <CommandEmpty>No timezone found.</CommandEmpty>
+            <CommandGroup>
+              {ALL_TIMEZONES.map((tz) => (
+                <CommandItem
+                  key={tz}
+                  value={tz}
+                  onSelect={(selectedValue) => {
+                    onChange(selectedValue)
+                    setOpen(false)
+                  }}
+                >
+                  <CheckIcon
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      value === tz ? "opacity-100" : "opacity-0",
+                    )}
+                  />
+                  {tz}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   )
 }
 
@@ -379,12 +449,11 @@ const renderDomainInput = ({
       return (
         <div className="grid gap-2">
           <Label htmlFor={inputId}>{label}</Label>
-          <Input
+          <TimezoneCombobox
             id={inputId}
-            placeholder="UTC"
             value={typeof value === "string" ? value : ""}
+            onChange={onChange}
             disabled={disabled}
-            onChange={(event) => onChange(event.target.value)}
           />
         </div>
       )
