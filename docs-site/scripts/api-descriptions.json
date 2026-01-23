@@ -121,7 +121,6 @@
       "customerDocumentDownloadLinkGenerate": "Generates a temporary download link for a customer document",
       "customerDocumentDelete": "Permanently deletes a customer document",
       "customerDocumentArchive": "Archives a customer document",
-      "chartOfAccountsCsvImport": "Imports a chart of accounts from a CSV file",
       "fiscalYearInit": "Initializes a new fiscal year",
       "fiscalYearCloseMonth": "Closes the current month in a fiscal year",
       "fiscalYearOpenNext": "Opens the next fiscal year",
@@ -136,7 +135,8 @@
       "loanAgreementGenerate": "Generates a loan agreement document for a customer",
       "loanAgreementDownloadLinkGenerate": "Generates a download link for a loan agreement document",
       "triggerReportRun": "Triggers a manual report run",
-      "reportFileGenerateDownloadLink": "Generates a download link for a report file"
+      "reportFileGenerateDownloadLink": "Generates a download link for a report file",
+      "chartOfAccountsCsvImportWithBaseConfig": "Imports a chart of accounts from a CSV file with base configuration settings"
     }
   },
   "customer": {
