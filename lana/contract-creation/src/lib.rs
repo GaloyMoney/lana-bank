@@ -263,12 +263,7 @@ mod tests {
     use super::*;
 
     fn test_gotenberg_config() -> gotenberg::GotenbergConfig {
-        gotenberg::GotenbergConfig {
-            url: std::env::var("GOTENBERG_URL")
-                .unwrap_or_else(|_| "http://localhost:3030".to_string())
-                .parse()
-                .expect("valid URL"),
-        }
+        gotenberg::GotenbergConfig::default()
     }
 
     #[test]

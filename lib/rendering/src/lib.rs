@@ -63,12 +63,7 @@ mod tests {
     use serde::Serialize;
 
     fn test_config() -> GotenbergConfig {
-        GotenbergConfig {
-            url: std::env::var("GOTENBERG_URL")
-                .unwrap_or_else(|_| "http://localhost:3030".to_string())
-                .parse()
-                .expect("valid URL"),
-        }
+        GotenbergConfig::default()
     }
 
     #[derive(Serialize)]
