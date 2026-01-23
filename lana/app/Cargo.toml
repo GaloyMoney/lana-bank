@@ -18,7 +18,6 @@ lana-events = { workspace = true }
 lana-ids = { workspace = true, features = ["graphql"] }
 contract-creation = { workspace = true }
 gotenberg = { workspace = true }
-rendering = { workspace = true }
 
 dashboard = { workspace = true }
 user-onboarding = { workspace = true }
