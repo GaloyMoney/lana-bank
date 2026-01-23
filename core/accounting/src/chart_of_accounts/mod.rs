@@ -154,7 +154,7 @@ where
             new_account_sets,
             new_account_set_ids,
             new_connections,
-        } = match chart.import_accounts_and_initialize_config(
+        } = match chart.configure_with_initial_accounts(
             account_specs,
             base_config,
             self.journal_id,
