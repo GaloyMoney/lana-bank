@@ -62,14 +62,14 @@ where
         From<ContractModuleObject> + From<CustomerObject>,
 {
     pub fn new(
+        gotenberg_config: gotenberg::GotenbergConfig,
         customers: &Customers<Perms, E>,
         applicants: &Applicants<Perms, E>,
         document_storage: &DocumentStorage,
         jobs: &mut Jobs,
         authz: &Perms,
-        rendering_config: rendering::RenderingConfig,
     ) -> Self {
-        let renderer = rendering::Renderer::new(rendering_config);
+        let renderer = rendering::Renderer::new(gotenberg_config);
         let contract_templates = templates::ContractTemplates::new();
 
         // Initialize the job system for contract creation
@@ -262,17 +262,19 @@ pub struct LoanAgreement {
 mod tests {
     use super::*;
 
-    fn test_rendering_config() -> rendering::RenderingConfig {
-        rendering::RenderingConfig {
-            gotenberg_url: std::env::var("GOTENBERG_URL")
-                .unwrap_or_else(|_| "http://localhost:3030".to_string()),
+    fn test_gotenberg_config() -> gotenberg::GotenbergConfig {
+        gotenberg::GotenbergConfig {
+            url: std::env::var("GOTENBERG_URL")
+                .unwrap_or_else(|_| "http://localhost:3030".to_string())
+                .parse()
+                .expect("valid URL"),
         }
     }
 
     #[test]
     fn test_contract_creation_config() -> Result<(), error::ContractCreationError> {
         // Test that the renderer can be created with config
-        let _renderer = rendering::Renderer::new(test_rendering_config());
+        let _renderer = rendering::Renderer::new(test_gotenberg_config());
 
         // Test embedded templates
         let contract_templates = templates::ContractTemplates::new();

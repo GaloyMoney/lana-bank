@@ -18,6 +18,7 @@ job = { workspace = true }
 obix = { workspace = true }
 authz = { workspace = true }
 audit = { workspace = true }
+gotenberg = { workspace = true }
 rendering = { workspace = true }
 
 # External dependencies

@@ -214,12 +214,12 @@ impl LanaApp {
         .await?;
 
         let contract_creation = ContractCreation::new(
+            config.gotenberg,
             &customers,
             &applicants,
             &documents,
             &mut jobs,
             &authz,
-            config.rendering.into(),
         );
 
         Notification::init(

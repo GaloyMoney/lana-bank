@@ -1,3 +1,4 @@
+use gotenberg::GotenbergConfig;
 use serde::{Deserialize, Serialize};
 
 use std::path::PathBuf;
@@ -38,34 +39,7 @@ pub struct AppConfig {
     #[serde(default)]
     pub deposit: DepositConfig,
     #[serde(default)]
-    pub rendering: RenderingConfig,
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct RenderingConfig {
-    #[serde(default = "default_gotenberg_url")]
-    pub gotenberg_url: String,
-}
-
-fn default_gotenberg_url() -> String {
-    "http://localhost:3030".to_string()
-}
-
-impl Default for RenderingConfig {
-    fn default() -> Self {
-        Self {
-            gotenberg_url: default_gotenberg_url(),
-        }
-    }
-}
-
-impl From<RenderingConfig> for rendering::RenderingConfig {
-    fn from(config: RenderingConfig) -> Self {
-        rendering::RenderingConfig {
-            gotenberg_url: config.gotenberg_url,
-        }
-    }
+    pub gotenberg: GotenbergConfig,
 }
 
 #[derive(Clone, Default, Debug, Deserialize, Serialize)]

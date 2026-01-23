@@ -1,5 +1,5 @@
 [package]
-name = "rendering"
+name = "gotenberg"
 
 license = "BUSL-1.1"
 edition = "2024"
@@ -8,12 +8,11 @@ edition = "2024"
 fail-on-warnings = []
 
 [dependencies]
-gotenberg = { workspace = true }
-handlebars = { workspace = true }
+reqwest = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
 tracing-macros = { workspace = true }
-tracing-utils = { workspace = true }
+tracing-utils = { workspace = true, features = ["http", "reqwest"] }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
