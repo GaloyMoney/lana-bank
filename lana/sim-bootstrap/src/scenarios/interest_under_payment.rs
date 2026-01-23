@@ -33,8 +33,6 @@ pub async fn interest_under_payment_scenario(
     let deposit_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
     helpers::make_deposit(&sub, app, &customer_id, deposit_amount).await?;
 
-    // Jump to 60 days before real time
-    // Note: Don't clear_pending_wakes() - it would clear essential background jobs
     let target_time = Utc::now() - chrono::Duration::days(60);
     clock_ctrl.set_time(target_time);
 

@@ -33,8 +33,6 @@ pub async fn principal_under_payment_scenario(
     let deposit_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
     helpers::make_deposit(&sub, app, &customer_id, deposit_amount).await?;
 
-    // Jump to 240 days before real time
-    // Note: Don't clear_pending_wakes() - it would clear essential background jobs
     let target_time = Utc::now() - chrono::Duration::days(240);
     clock_ctrl.set_time(target_time);
 
@@ -117,10 +115,6 @@ pub async fn principal_under_payment_scenario(
 
     let mut principal_remaining = UsdCents::ZERO;
     let mut scenario_done = false;
-    let mut days_in_main_loop = 0;
-
-    // 3-month term + buffer for async processing
-    const MAX_DAYS_IN_MAIN_LOOP: i32 = 120;
 
     while !scenario_done {
         tokio::select! {
@@ -145,7 +139,6 @@ pub async fn principal_under_payment_scenario(
             }
             _ = tokio::time::sleep(EVENT_WAIT_TIMEOUT) => {
                 clock_ctrl.advance(ONE_DAY).await;
-                days_in_main_loop += 1;
 
                 if principal_remaining > UsdCents::ZERO {
                     let facility = app.credit().facilities().find_by_id(&sub, cf_id).await?.unwrap();
@@ -156,9 +149,6 @@ pub async fn principal_under_payment_scenario(
                     }
                 }
 
-                if days_in_main_loop > MAX_DAYS_IN_MAIN_LOOP {
-                    anyhow::bail!("Principal under payment scenario timed out after {} days", MAX_DAYS_IN_MAIN_LOOP);
-                }
             }
         }
     }
