@@ -5,12 +5,13 @@ set -eu
 pushd repo
 
 export prev_version=$(cog get-version -f 0.0.0)
+echo $prev_version
 export new_version=$(cat ../version/version)
 
 if [[ $prev_version == "0.0.0" ]]; then
   git cliff --config ../pipeline-tasks/ci/vendor/config/git-cliff.toml > ../artifacts/gh-release-notes.md
 else
-  git cliff --config ../pipeline-tasks/ci/vendor/config/git-cliff.toml --ignore-tags ".*rc.*" $prev_ref.. --tag $new_version > ../artifacts/gh-release-notes.md
+  git cliff --config ../pipeline-tasks/ci/vendor/config/git-cliff.toml --ignore-tags ".*rc.*" $prev_version.. --tag $new_version > ../artifacts/gh-release-notes.md
 fi
 
 popd
