@@ -20,6 +20,7 @@ jwks-utils = { workspace = true }
 es-entity = { workspace = true, features = ["graphql"] }
 
 uuid = { workspace = true }
+url = { workspace = true }
 base64 = { workspace = true }
 async-graphql = { workspace = true }
 async-graphql-axum = { workspace = true }

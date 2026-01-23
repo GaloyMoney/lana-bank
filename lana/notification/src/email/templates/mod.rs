@@ -3,6 +3,7 @@ use core_money::{Satoshis, UsdCents};
 use handlebars::Handlebars;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use url::Url;
 
 use crate::email::error::EmailError;
 
@@ -19,12 +20,12 @@ pub enum EmailType {
 #[derive(Clone)]
 pub struct EmailTemplate {
     handlebars: Handlebars<'static>,
-    admin_panel_url: String,
+    admin_panel_url: Url,
 }
 
 impl EmailTemplate {
     #[allow(clippy::result_large_err)]
-    pub fn new(admin_panel_url: String) -> Result<Self, EmailError> {
+    pub fn new(admin_panel_url: Url) -> Result<Self, EmailError> {
         let mut handlebars = Handlebars::new();
         handlebars.register_template_string("base", include_str!("layouts/base.hbs"))?;
         handlebars.register_template_string("styles", include_str!("partials/styles.hbs"))?;
@@ -90,10 +91,11 @@ impl EmailTemplate {
             data.payment_type,
             data.outstanding_amount.formatted_usd()
         );
-        let facility_url = format!(
-            "{}/credit-facilities/{}",
-            self.admin_panel_url, data.public_id
-        );
+        let facility_url = self
+            .admin_panel_url
+            .join(&format!("credit-facilities/{}", data.public_id))
+            .expect("valid URL path")
+            .to_string();
         let data = json!({
             "subject": &subject,
             "payment_type": &data.payment_type,

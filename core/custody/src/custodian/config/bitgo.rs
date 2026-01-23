@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use url::Url;
 
 pub use bitgo::BitgoDirectoryConfig;
 
@@ -8,7 +9,7 @@ pub struct BitgoConfig {
     pub enterprise_id: String,
     pub passphrase: String,
     pub testing_instance: bool,
-    pub webhook_url: String,
+    pub webhook_url: Url,
     pub webhook_secret: String,
 }
 

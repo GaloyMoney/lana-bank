@@ -7,7 +7,7 @@ pub struct BitgoConfig {
     pub enterprise_id: String,
     pub passphrase: String,
     pub bitgo_test: bool,
-    pub webhook_url: String,
+    pub webhook_url: Url,
     pub webhook_secret: Vec<u8>,
 }
 

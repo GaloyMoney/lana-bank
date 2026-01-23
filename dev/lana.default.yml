@@ -25,13 +25,13 @@ app:
     root_folder: ''
   user_onboarding:
     keycloak:
-      url: http://localhost:8081
+      url: http://localhost:8081/
       client_id: internal-service-account
       realm: internal
   customer_sync:
     customer_status_sync_active: true
     keycloak:
-      url: http://localhost:8081
+      url: http://localhost:8081/
       client_id: customer-service-account
       realm: customer
     activity_update_job_interval: 86400
@@ -54,7 +54,7 @@ app:
       relay: ''
       port: 0
       insecure: false
-      admin_panel_url: ''
+      admin_panel_url: http://localhost:3000/
   report:
     dagster:
       uri: http://localhost:3000/graphql

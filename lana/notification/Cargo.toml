@@ -26,6 +26,7 @@ smtp-client = { workspace = true }
 es-entity = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+url = { workspace = true }
 async-trait = { workspace = true }
 futures = { workspace = true }
 tokio = { workspace = true }

@@ -1,4 +1,4 @@
-use keycloak_client::KeycloakConnectionConfig;
+use keycloak_client::{KeycloakConnectionConfig, Url};
 use serde::{Deserialize, Serialize};
 
 #[serde_with::serde_as]
@@ -26,7 +26,7 @@ impl Default for CustomerSyncConfig {
 
 fn default_keycloak() -> KeycloakConnectionConfig {
     KeycloakConnectionConfig {
-        url: "http://localhost:8081".to_string(),
+        url: Url::parse("http://localhost:8081").expect("valid default URL"),
         client_id: "customer-service-account".to_string(),
         client_secret: "secret".to_string(),
         realm: "customer".to_string(),

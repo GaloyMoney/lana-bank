@@ -39,6 +39,7 @@ dependencies = [
  "tower-http",
  "tracing",
  "tracing-utils",
+ "url",
  "uuid",
  "workspace-hack",
 ]
@@ -1509,6 +1510,7 @@ dependencies = [
  "tracing",
  "tracing-macros",
  "tracing-utils",
+ "url",
  "uuid",
  "workspace-hack",
 ]
@@ -1819,6 +1821,7 @@ dependencies = [
  "tower-http",
  "tracing",
  "tracing-utils",
+ "url",
  "uuid",
  "workspace-hack",
 ]
@@ -3528,6 +3531,7 @@ dependencies = [
  "thiserror 2.0.17",
  "tokio",
  "tracing",
+ "url",
  "workspace-hack",
 ]
 
@@ -3578,6 +3582,7 @@ dependencies = [
  "tracing",
  "tracing-macros",
  "tracing-utils",
+ "url",
  "uuid",
  "workspace-hack",
 ]
@@ -4136,6 +4141,7 @@ dependencies = [
  "tracing",
  "tracing-macros",
  "tracing-utils",
+ "url",
  "workspace-hack",
 ]
 
