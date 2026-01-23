@@ -1673,6 +1673,7 @@ dependencies = [
  "chrono",
  "chrono-tz",
  "domain-config",
+ "es-entity",
  "job",
  "obix",
  "serde",

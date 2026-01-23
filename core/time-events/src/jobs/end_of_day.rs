@@ -6,6 +6,8 @@ use obix::out::{Outbox, OutboxEventMarker};
 use serde::{Deserialize, Serialize};
 use tokio::select;
 
+use std::time::Duration;
+
 use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
 use domain_config::ExposedDomainConfigs;
@@ -15,6 +17,9 @@ use crate::{
     config::{ClosingTime, Timezone},
     event::CoreTimeEvent,
 };
+
+const SLEEP_INTERVAL: Duration = Duration::from_hours(1);
+const DELTA: Duration = Duration::from_mins(5);
 
 #[derive(Deserialize, Serialize)]
 pub struct EndOfDayProducerJobConfig<E>
@@ -118,33 +123,61 @@ where
                 .value()
                 .expect("timezone must have a default")
                 .parse::<chrono_tz::Tz>()?;
+            let clock = current_job.clock().clone();
 
-            let schedule = ClosingSchedule::new(timezone, closing_time);
-            let current_time = current_job.clock().now();
-            let closing_time = schedule.next_closing_from(current_time);
+            let schedule = ClosingSchedule::new(timezone, closing_time, &clock);
 
-            let duration_until_close = match (closing_time - current_time).to_std() {
+            let duration_until_close = match schedule.duration_until_close() {
                 Ok(duration) => duration,
-                // continue if past date returned and recalculate
                 Err(err) => {
+                    // recalculate if past date returned
                     tracing::warn!(
                         job_id = %current_job.id(),
                         job_type = %END_OF_DAY_PRODUCER_JOB,
-                        current_time = %current_time,
-                        closing_time = %closing_time,
+                        closing_time = %schedule.next_closing(),
                         error = %err,
                         "Closing time is in the past, recalculating"
                     );
                     continue;
                 }
             };
+
+            // TODO: Make consumers of this event idempotent
+            let sleep_duration = if duration_until_close <= DELTA {
+                let mut op = current_job.begin_op().await?;
+                self.outbox
+                    .publish_persisted_in_op(
+                        &mut op,
+                        CoreTimeEvent::EndOfDay {
+                            day: schedule.next_closing_day(),
+                            closing_time: schedule.next_closing(),
+                            timezone: schedule.timezone(),
+                        },
+                    )
+                    .await?;
+                op.commit().await?;
+
+                tracing::info!(
+                    job_id = %current_job.id(),
+                    job_type = %END_OF_DAY_PRODUCER_JOB,
+                    day = %schedule.next_closing_day(),
+                    closing_time = %schedule.next_closing(),
+                    "End of day event published"
+                );
+
+                duration_until_close
+            } else {
+                std::cmp::min(SLEEP_INTERVAL, duration_until_close - DELTA)
+            };
+
             tracing::info!(
                 job_id = %current_job.id(),
                 job_type = %END_OF_DAY_PRODUCER_JOB,
-                duration_until_close = ?duration_until_close,
-                "Waiting for end of day"
+                ?sleep_duration,
+                closing_time = %schedule.next_closing(),
+                "Sleeping"
             );
-            let clock = current_job.clock().clone();
+
             select! {
                 biased;
 
@@ -157,21 +190,7 @@ where
                     return Ok(JobCompletion::RescheduleNow);
                 }
 
-                _ = clock.sleep(duration_until_close) => {
-                    let day = closing_time.with_timezone(&timezone).date_naive();
-                    let mut op = current_job.begin_op().await?;
-                    self.outbox
-                        .publish_persisted_in_op(&mut op, CoreTimeEvent::EndOfDay { day, closing_time, timezone })
-                        .await?;
-                    op.commit().await?;
-
-                    tracing::info!(
-                        job_id = %current_job.id(),
-                        job_type = %END_OF_DAY_PRODUCER_JOB,
-                        closing_time = %closing_time,
-                        "End of day event published"
-                    );
-                }
+                _ = clock.sleep(sleep_duration) => {}
             }
         }
     }
