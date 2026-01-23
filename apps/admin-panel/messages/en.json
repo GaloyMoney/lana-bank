@@ -194,6 +194,8 @@
       "invalidInt": "Enter a valid integer",
       "invalidUint": "Enter a valid non-negative integer",
       "invalidDecimal": "Enter a decimal value",
+      "invalidTimezone": "Enter a valid timezone (e.g., UTC, America/New_York)",
+      "invalidTime": "Enter a valid time in HH:MM:SS format",
       "invalidJson": "Enter valid JSON",
       "invalidValue": "Enter a valid value"
     },

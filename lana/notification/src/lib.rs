@@ -10,7 +10,7 @@ use tracing_macros::record_error_severity;
 use core_access::user::Users;
 use core_credit::CoreCredit;
 use core_customer::Customers;
-use domain_config::ExposedDomainConfigs;
+use domain_config::ExposedDomainConfigsReadOnly;
 use error::NotificationError;
 use job::Jobs;
 use lana_events::LanaEvent;
@@ -46,17 +46,15 @@ where
         + From<core_access::CoreAccessAction>
         + From<core_deposit::CoreDepositAction>
         + From<governance::GovernanceAction>
-        + From<core_custody::CoreCustodyAction>
-        + From<domain_config::DomainConfigAction>,
+        + From<core_custody::CoreCustodyAction>,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
         + From<core_customer::CustomerObject>
         + From<core_access::CoreAccessObject>
         + From<core_deposit::CoreDepositObject>
         + From<governance::GovernanceObject>
-        + From<core_custody::CoreCustodyObject>
-        + From<domain_config::DomainConfigObject>,
+        + From<core_custody::CoreCustodyObject>,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
-        From<core_access::UserId> + audit::SystemSubject,
+        From<core_access::UserId>,
 {
     #[record_error_severity]
     #[tracing::instrument(name = "notification.init", skip_all)]
@@ -67,7 +65,7 @@ where
         users: &Users<AuthzType::Audit, LanaEvent>,
         credit: &CoreCredit<AuthzType, LanaEvent>,
         customers: &Customers<AuthzType, LanaEvent>,
-        domain_configs: &ExposedDomainConfigs<AuthzType>,
+        domain_configs: &ExposedDomainConfigsReadOnly,
     ) -> Result<Self, NotificationError> {
         let email = EmailNotification::init(
             jobs,

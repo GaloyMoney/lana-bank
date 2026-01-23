@@ -8,9 +8,7 @@ use tokio::select;
 
 use std::time::Duration;
 
-use audit::{AuditSvc, SystemSubject};
-use authz::PermissionCheck;
-use domain_config::ExposedDomainConfigs;
+use domain_config::ExposedDomainConfigsReadOnly;
 
 use crate::{
     ClosingSchedule,
@@ -29,21 +27,19 @@ where
     pub _phantom: std::marker::PhantomData<E>,
 }
 
-pub struct EndOfDayProducerJobInit<E, Perms>
+pub struct EndOfDayProducerJobInit<E>
 where
     E: OutboxEventMarker<CoreTimeEvent>,
-    Perms: PermissionCheck,
 {
     outbox: Outbox<E>,
-    domain_configs: ExposedDomainConfigs<Perms>,
+    domain_configs: ExposedDomainConfigsReadOnly,
 }
 
-impl<E, Perms> EndOfDayProducerJobInit<E, Perms>
+impl<E> EndOfDayProducerJobInit<E>
 where
     E: OutboxEventMarker<CoreTimeEvent>,
-    Perms: PermissionCheck,
 {
-    pub fn new(outbox: &Outbox<E>, domain_configs: &ExposedDomainConfigs<Perms>) -> Self {
+    pub fn new(outbox: &Outbox<E>, domain_configs: &ExposedDomainConfigsReadOnly) -> Self {
         Self {
             outbox: outbox.clone(),
             domain_configs: domain_configs.clone(),
@@ -54,15 +50,9 @@ where
 pub const END_OF_DAY_PRODUCER_JOB: JobType =
     JobType::new("cron.core-time-event.end-of-day-producer");
 
-impl<E, Perms> JobInitializer for EndOfDayProducerJobInit<E, Perms>
+impl<E> JobInitializer for EndOfDayProducerJobInit<E>
 where
     E: OutboxEventMarker<CoreTimeEvent>,
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<domain_config::DomainConfigAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<domain_config::DomainConfigObject>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject: SystemSubject,
 {
     type Config = EndOfDayProducerJobConfig<E>;
 
@@ -86,43 +76,35 @@ where
     }
 }
 
-pub struct EndOfDayProducerJobRunner<E, Perms>
+pub struct EndOfDayProducerJobRunner<E>
 where
     E: OutboxEventMarker<CoreTimeEvent>,
-    Perms: PermissionCheck,
 {
     outbox: Outbox<E>,
-    domain_configs: ExposedDomainConfigs<Perms>,
+    domain_configs: ExposedDomainConfigsReadOnly,
 }
 
 #[async_trait]
-impl<E, Perms> JobRunner for EndOfDayProducerJobRunner<E, Perms>
+impl<E> JobRunner for EndOfDayProducerJobRunner<E>
 where
     E: OutboxEventMarker<CoreTimeEvent>,
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<domain_config::DomainConfigAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<domain_config::DomainConfigObject>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject: SystemSubject,
 {
     async fn run(
         &self,
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let system_sub = <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system();
-
         loop {
-            let closing_time_config = self.domain_configs.get::<ClosingTime>(&system_sub).await?;
-            let timezone_config = self.domain_configs.get::<Timezone>(&system_sub).await?;
+            let closing_time_config = self
+                .domain_configs
+                .get_without_audit::<ClosingTime>()
+                .await?;
+            let timezone_config = self.domain_configs.get_without_audit::<Timezone>().await?;
             let closing_time = closing_time_config
                 .value()
-                .expect("closing time must have a default")
-                .parse::<chrono::NaiveTime>()?;
+                .expect("closing time must have a default");
             let timezone = timezone_config
                 .value()
-                .expect("timezone must have a default")
-                .parse::<chrono_tz::Tz>()?;
+                .expect("timezone must have a default");
             let clock = current_job.clock().clone();
 
             let schedule = ClosingSchedule::new(timezone, closing_time, &clock);

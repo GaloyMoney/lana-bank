@@ -13,6 +13,8 @@ pub enum ConfigType {
     Int,
     Uint,
     Decimal,
+    Timezone,
+    Time,
     Complex,
 }
 
@@ -24,6 +26,8 @@ impl From<DomainConfigType> for ConfigType {
             DomainConfigType::Int => ConfigType::Int,
             DomainConfigType::Uint => ConfigType::Uint,
             DomainConfigType::Decimal => ConfigType::Decimal,
+            DomainConfigType::Timezone => ConfigType::Timezone,
+            DomainConfigType::Time => ConfigType::Time,
             DomainConfigType::Complex => ConfigType::Complex,
         }
     }

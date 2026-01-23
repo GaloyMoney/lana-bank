@@ -6,12 +6,10 @@ pub mod error;
 mod event;
 mod jobs;
 
-use audit::{AuditSvc, SystemSubject};
-use authz::PermissionCheck;
 use obix::{Outbox, out::OutboxEventMarker};
 use tracing_macros::record_error_severity;
 
-use domain_config::ExposedDomainConfigs;
+use domain_config::ExposedDomainConfigsReadOnly;
 
 use crate::{
     closing_schedule::*,
@@ -22,26 +20,15 @@ use crate::{
 pub use event::*;
 
 #[derive(Clone)]
-pub struct TimeEvents<Perms>
-where
-    Perms: PermissionCheck,
-{
-    _phantom: std::marker::PhantomData<Perms>,
+pub struct TimeEvents {
+    _phantom: std::marker::PhantomData<()>,
 }
 
-impl<Perms> TimeEvents<Perms>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<domain_config::DomainConfigAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<domain_config::DomainConfigObject>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject: SystemSubject,
-{
+impl TimeEvents {
     #[record_error_severity]
     #[tracing::instrument(name = "core_time_events.init", skip_all)]
     pub async fn init<E>(
-        domain_configs: &ExposedDomainConfigs<Perms>,
+        domain_configs: &ExposedDomainConfigsReadOnly,
         jobs: &mut job::Jobs,
         outbox: &Outbox<E>,
     ) -> Result<Self, TimeEventsError>

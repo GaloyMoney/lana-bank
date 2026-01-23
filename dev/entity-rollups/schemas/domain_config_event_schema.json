@@ -7,6 +7,8 @@
         "int",
         "uint",
         "decimal",
+        "timezone",
+        "time",
         "complex"
       ],
       "type": "string"

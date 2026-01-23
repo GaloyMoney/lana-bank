@@ -3,7 +3,7 @@
 import { gql } from "@apollo/client"
 import { useEffect, useMemo, useState } from "react"
 import { useTranslations } from "next-intl"
-import { LoaderCircle } from "lucide-react"
+import { CheckIcon, ChevronsUpDownIcon, LoaderCircle } from "lucide-react"
 import { toast } from "sonner"
 
 import {
@@ -16,8 +16,17 @@ import {
 } from "@lana/web/ui/card"
 import { Button } from "@lana/web/ui/button"
 import { Input } from "@lana/web/ui/input"
-import { Label } from "@lana/web/ui/label"
 import { Checkbox } from "@lana/web/ui/checkbox"
+import { Popover, PopoverContent, PopoverTrigger } from "@lana/web/ui/popover"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@lana/web/ui/command"
+import { cn } from "@lana/web/utils"
 
 import {
   ConfigType,
@@ -59,6 +68,9 @@ gql`
 
 const DOMAIN_CONFIG_PAGE_SIZE = 100
 const EMPTY_CONFIGS: DomainConfig[] = []
+
+// Get all IANA timezones from the browser's Intl API
+const ALL_TIMEZONES = Intl.supportedValuesOf("timeZone")
 
 export default function ConfigurationsPage() {
   const t = useTranslations("Configurations")
@@ -194,7 +206,6 @@ export default function ConfigurationsPage() {
                         ...prev,
                         [config.key]: nextValue,
                       })),
-                    label: t("domainConfigs.valueLabel"),
                   })}
                 </CardContent>
                 <CardFooter className="justify-end">
@@ -215,11 +226,70 @@ export default function ConfigurationsPage() {
   )
 }
 
+type TimezoneComboboxProps = {
+  value: string
+  onChange: (value: string) => void
+  disabled?: boolean
+  id?: string
+}
+
+function TimezoneCombobox({ value, onChange, disabled, id }: TimezoneComboboxProps) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          id={id}
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          disabled={disabled}
+          className="w-full justify-between font-normal"
+        >
+          {value || "Select timezone..."}
+          <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+        <Command>
+          <CommandInput placeholder="Search timezone..." />
+          <CommandList>
+            <CommandEmpty>No timezone found.</CommandEmpty>
+            <CommandGroup>
+              {ALL_TIMEZONES.map((tz) => (
+                <CommandItem
+                  key={tz}
+                  value={tz}
+                  onSelect={(selectedValue) => {
+                    onChange(selectedValue)
+                    setOpen(false)
+                  }}
+                >
+                  <CheckIcon
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      value === tz ? "opacity-100" : "opacity-0",
+                    )}
+                  />
+                  {tz}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  )
+}
+
 const formatDomainValue = (config: DomainConfig): string | boolean => {
   switch (config.configType) {
     case ConfigType.Bool:
       return config.value === true
     case ConfigType.String:
+    case ConfigType.Timezone:
+    case ConfigType.Time:
       return typeof config.value === "string" ? config.value : ""
     case ConfigType.Int:
     case ConfigType.Uint:
@@ -247,6 +317,33 @@ const parseDomainDraft = (
       return { value: draft === true }
     case ConfigType.String:
       return { value: typeof draft === "string" ? draft : "" }
+    case ConfigType.Timezone: {
+      const text = typeof draft === "string" ? draft.trim() : ""
+
+      if (text.length === 0) {
+        return { errorKey: "domainConfigs.invalidTimezone" }
+      }
+
+      return { value: text }
+    }
+    case ConfigType.Time: {
+      const text = typeof draft === "string" ? draft.trim() : ""
+
+      if (text.length === 0) {
+        return { errorKey: "domainConfigs.invalidTime" }
+      }
+
+      // Accept HH:MM or HH:MM:SS, normalize to HH:MM:SS
+      if (/^\d{2}:\d{2}$/.test(text)) {
+        return { value: `${text}:00` }
+      }
+
+      if (/^\d{2}:\d{2}:\d{2}$/.test(text)) {
+        return { value: text }
+      }
+
+      return { errorKey: "domainConfigs.invalidTime" }
+    }
     case ConfigType.Int: {
       const text = typeof draft === "string" ? draft.trim() : ""
       const parsed = Number(text)
@@ -295,7 +392,6 @@ type RenderDomainInputArgs = {
   value: string | boolean | undefined
   disabled: boolean
   onChange: (value: string | boolean) => void
-  label: string
 }
 
 const renderDomainInput = ({
@@ -304,60 +400,67 @@ const renderDomainInput = ({
   value,
   disabled,
   onChange,
-  label,
 }: RenderDomainInputArgs) => {
   switch (config.configType) {
     case ConfigType.Bool:
       return (
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id={inputId}
-            checked={value === true}
-            disabled={disabled}
-            onCheckedChange={(checked) => onChange(checked === true)}
-          />
-          <Label htmlFor={inputId}>{label}</Label>
-        </div>
+        <Checkbox
+          id={inputId}
+          checked={value === true}
+          disabled={disabled}
+          onCheckedChange={(checked) => onChange(checked === true)}
+        />
       )
     case ConfigType.Int:
     case ConfigType.Uint:
       return (
-        <div className="grid gap-2">
-          <Label htmlFor={inputId}>{label}</Label>
-          <Input
-            id={inputId}
-            type="number"
-            value={typeof value === "string" ? value : ""}
-            disabled={disabled}
-            onChange={(event) => onChange(event.target.value)}
-          />
-        </div>
+        <Input
+          id={inputId}
+          type="number"
+          value={typeof value === "string" ? value : ""}
+          disabled={disabled}
+          onChange={(event) => onChange(event.target.value)}
+        />
       )
     case ConfigType.Decimal:
       return (
-        <div className="grid gap-2">
-          <Label htmlFor={inputId}>{label}</Label>
-          <Input
-            id={inputId}
-            inputMode="decimal"
-            value={typeof value === "string" ? value : ""}
-            disabled={disabled}
-            onChange={(event) => onChange(event.target.value)}
-          />
-        </div>
+        <Input
+          id={inputId}
+          inputMode="decimal"
+          value={typeof value === "string" ? value : ""}
+          disabled={disabled}
+          onChange={(event) => onChange(event.target.value)}
+        />
+      )
+    case ConfigType.Timezone:
+      return (
+        <TimezoneCombobox
+          id={inputId}
+          value={typeof value === "string" ? value : ""}
+          onChange={onChange}
+          disabled={disabled}
+        />
+      )
+    case ConfigType.Time:
+      return (
+        <Input
+          id={inputId}
+          type="time"
+          step="1"
+          value={typeof value === "string" ? value : ""}
+          disabled={disabled}
+          onChange={(event) => onChange(event.target.value)}
+        />
       )
     case ConfigType.String:
     default:
       return (
-        <div className="grid gap-2">
-          <Label htmlFor={inputId}>{label}</Label>
-          <Input
-            id={inputId}
-            value={typeof value === "string" ? value : ""}
-            disabled={disabled}
-            onChange={(event) => onChange(event.target.value)}
-          />
-        </div>
+        <Input
+          id={inputId}
+          value={typeof value === "string" ? value : ""}
+          disabled={disabled}
+          onChange={(event) => onChange(event.target.value)}
+        />
       )
   }
 }

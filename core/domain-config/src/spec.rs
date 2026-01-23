@@ -114,6 +114,53 @@ impl ValueKind for Simple<rust_decimal::Decimal> {
     }
 }
 
+impl ValueKind for Simple<chrono_tz::Tz> {
+    type Value = chrono_tz::Tz;
+    const TYPE: ConfigType = ConfigType::Timezone;
+
+    fn encode(value: &Self::Value) -> Result<serde_json::Value, DomainConfigError> {
+        Ok(serde_json::Value::String(value.name().to_string()))
+    }
+
+    fn decode(value: serde_json::Value) -> Result<Self::Value, DomainConfigError> {
+        match &value {
+            serde_json::Value::String(s) => s
+                .parse::<chrono_tz::Tz>()
+                .map_err(|_| DomainConfigError::InvalidType(format!("Invalid timezone: {s}"))),
+            other => Err(DomainConfigError::InvalidType(format!(
+                "Expected timezone string, got {}",
+                json_value_type(other)
+            ))),
+        }
+    }
+}
+
+impl ValueKind for Simple<chrono::NaiveTime> {
+    type Value = chrono::NaiveTime;
+    const TYPE: ConfigType = ConfigType::Time;
+
+    fn encode(value: &Self::Value) -> Result<serde_json::Value, DomainConfigError> {
+        Ok(serde_json::Value::String(
+            value.format("%H:%M:%S").to_string(),
+        ))
+    }
+
+    fn decode(value: serde_json::Value) -> Result<Self::Value, DomainConfigError> {
+        match &value {
+            serde_json::Value::String(s) => chrono::NaiveTime::parse_from_str(s, "%H:%M:%S")
+                .map_err(|_| {
+                    DomainConfigError::InvalidType(format!(
+                        "Invalid time format: {s} (expected HH:MM:SS)"
+                    ))
+                }),
+            other => Err(DomainConfigError::InvalidType(format!(
+                "Expected time string, got {}",
+                json_value_type(other)
+            ))),
+        }
+    }
+}
+
 impl<T> ValueKind for Complex<T>
 where
     T: Serialize + DeserializeOwned + Clone,

@@ -126,6 +126,8 @@ checksums:
     Configurations/domainConfigs/invalidInt: c042e286aaeb6f16f5aaa7b3cd2db3b7
     Configurations/domainConfigs/invalidUint: 2d56c5a2c1c81303a1458c98ac6dc453
     Configurations/domainConfigs/invalidDecimal: 94b1923cb4c5452baa0459f9fc37e0cc
+    Configurations/domainConfigs/invalidTimezone: 27b8f08a8683709aa078f120512294d9
+    Configurations/domainConfigs/invalidTime: 13a174a71c0c65b5362eb0668496bdf4
     Configurations/domainConfigs/invalidJson: a842443a1a3b3cd7a3d3d2ec70907f38
     Configurations/domainConfigs/invalidValue: 21206cbd8203dc76136faaf1e986309e
     Configurations/notification-email-from-email/title: 52f3f83e83a55f5e81d17f1990c2cf5c
