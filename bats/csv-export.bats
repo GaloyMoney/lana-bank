@@ -15,6 +15,18 @@ teardown_file() {
   cp "$LOG_FILE" "$PERSISTED_LOG_FILE"
 }
 
+wait_for_csv_export_completion() {
+  local ledger_account_id=$1
+  variables=$(
+    jq -n \
+      --arg ledgerAccountId "$ledger_account_id" \
+    '{ ledgerAccountId: $ledgerAccountId }'
+  )
+  exec_admin_graphql 'account-entry-csv' "$variables"
+  status=$(graphql_output '.data.accountEntryCsv.status')
+  [[ "$status" == "ACTIVE" ]] || return 1
+}
+
 @test "CSV export: can create and download CSV export" {
   exec_admin_graphql 'chart-of-accounts'
   ledger_account_code=$(graphql_output '.data.chartOfAccounts.children[0].accountCode')
@@ -45,6 +57,9 @@ teardown_file() {
   exec_admin_graphql 'ledger-account-csv-create' "$variables"
   document_id=$(graphql_output '.data.ledgerAccountCsvCreate.accountingCsvDocument.documentId')
   [[ "$document_id" != "null" ]] || exit 1
+
+  # Wait for the async CSV generation job to complete
+  retry 30 1 wait_for_csv_export_completion "$ledger_account_id"
 
   variables=$(
     jq -n \
