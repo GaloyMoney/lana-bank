@@ -159,6 +159,14 @@ impl Chart {
         Ok(Idempotent::Executed(res))
     }
 
+    pub(super) fn import_accounts(
+        &mut self,
+        account_specs: Vec<AccountSpec>,
+        journal_id: CalaJournalId,
+    ) -> BulkImportResult {
+        BulkAccountImport::new(self, journal_id).import(account_specs)
+    }
+
     pub(super) fn create_child_node(
         &mut self,
         parent_code: AccountCode,
