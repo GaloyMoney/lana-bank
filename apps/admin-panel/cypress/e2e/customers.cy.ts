@@ -142,6 +142,9 @@ describe("Customers", () => {
       .and("have.attr", "href", "https://in.sumsub.com/test/link")
     cy.takeScreenshot("15_kyc_link_created")
 
+    const webhookId = `req-${Date.now()}`
+    const createdAtMs = new Date().toISOString()
+
     cy.request({
       method: "POST",
       url: "http://localhost:5253/webhook/sumsub",
@@ -149,9 +152,9 @@ describe("Customers", () => {
         "Content-Type": "application/json",
       },
       body: {
-        applicantId: "5cb56e8e0a975a35f333cb83",
-        inspectionId: "5cb56e8e0a975a35f333cb84",
-        correlationId: "req-a260b669-4f14-4bb5-a4c5-ac0218acb9a4",
+        applicantId: `test-applicant-${webhookId}`,
+        inspectionId: `test-inspection-${webhookId}`,
+        correlationId: webhookId,
         externalUserId: testCustomerId,
         levelName: "basic-kyc-level",
         type: "applicantReviewed",
@@ -159,13 +162,13 @@ describe("Customers", () => {
           reviewAnswer: "GREEN",
         },
         reviewStatus: "completed",
-        createdAtMs: "2020-02-21 13:23:19.321",
+        createdAtMs,
+        sandboxMode: true,
       },
     }).then((response) => {
       expect(response.status).to.eq(200)
     })
 
-    cy.reload()
     cy.contains("Basic").should("be.visible")
     cy.takeScreenshot("16_kyc_status_updated")
   })

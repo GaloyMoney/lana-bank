@@ -41,6 +41,11 @@ where
     }
 }
 
+#[derive(Debug, Default, Serialize, Deserialize)]
+pub struct SyncReportsJobExecutionState {
+    run_id: Option<String>,
+}
+
 pub struct SyncReportsJobInit<E>
 where
     E: OutboxEventMarker<CoreReportEvent>,
@@ -112,17 +117,19 @@ where
     E: OutboxEventMarker<CoreReportEvent> + Send + Sync + 'static,
 {
     #[record_error_severity]
-    #[tracing::instrument(name = "core_reports.job.sync_reports.run", skip(self, _current_job))]
+    #[tracing::instrument(name = "core_reports.job.sync_reports.run", skip(self, current_job))]
     async fn run(
         &self,
-        mut _current_job: CurrentJob,
+        mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let limit = 50;
+        let mut state = current_job
+            .execution_state::<SyncReportsJobExecutionState>()?
+            .unwrap_or_default();
 
         let response = self
             .dagster
             .graphql()
-            .file_reports_runs(limit, None)
+            .file_reports_runs(1, state.run_id.clone())
             .await?;
 
         let runs = match response.data.runs_or_error {
@@ -133,72 +140,11 @@ where
             }
         };
 
-        for run_result in runs.results.iter().rev() {
-            let existing_run = self
-                .report_runs
-                .find_by_external_id(&run_result.run_id)
-                .await;
+        for run_result in runs.results {
+            self.sync_run(&run_result).await?;
 
-            match existing_run {
-                Ok(mut report_run) => {
-                    let state: ReportRunState = run_result.status.clone().into();
-                    let run_id = report_run.id;
-                    if report_run.state != state {
-                        let run_type = if run_result.is_scheduled() {
-                            ReportRunType::Scheduled
-                        } else {
-                            ReportRunType::Manual
-                        };
-
-                        report_run.update_state(state, run_type, run_result.start_time);
-
-                        let mut db = self.report_runs.begin_op().await?;
-                        self.report_runs
-                            .update_in_op(&mut db, &mut report_run)
-                            .await?;
-                        db.commit().await?;
-                    }
-
-                    if run_result.status.is_finished() {
-                        let reports = self
-                            .reports
-                            .list_for_run_id_by_created_at(
-                                run_id,
-                                Default::default(),
-                                es_entity::ListDirection::Descending,
-                            )
-                            .await?;
-
-                        if reports.entities.is_empty() {
-                            self.sync_reports(&run_result.run_id, run_id).await?;
-                        }
-                    }
-                }
-                Err(e) if e.was_not_found() => {
-                    let state: ReportRunState = run_result.status.clone().into();
-                    let run_type = if run_result.is_scheduled() {
-                        ReportRunType::Scheduled
-                    } else {
-                        ReportRunType::Manual
-                    };
-
-                    let new_run = NewReportRun::builder()
-                        .external_id(run_result.run_id.clone())
-                        .state(state)
-                        .run_type(run_type)
-                        .start_time(run_result.start_time)
-                        .build()?;
-
-                    let mut db = self.report_runs.begin_op().await?;
-                    let report_run = self.report_runs.create_in_op(&mut db, new_run).await?;
-                    db.commit().await?;
-
-                    if run_result.status.is_finished() {
-                        self.sync_reports(&run_result.run_id, report_run.id).await?;
-                    }
-                }
-                Err(e) => return Err(e.into()),
-            }
+            state.run_id = Some(run_result.run_id);
+            current_job.update_execution_state(&state).await?;
         }
 
         Ok(JobCompletion::Complete)
@@ -209,24 +155,88 @@ impl<E> SyncReportsJobRunner<E>
 where
     E: OutboxEventMarker<CoreReportEvent> + Send + Sync + 'static,
 {
-    async fn sync_reports(
+    /// Syncs a single Dagster run to the local database.
+    /// Creates or updates the report run record and syncs associated reports if finished.
+    async fn sync_run(
+        &self,
+        run_result: &dagster::graphql_client::RunResult,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let state: ReportRunState = run_result.status.clone().into();
+        let run_type: ReportRunType = run_result.into();
+
+        let existing = self
+            .report_runs
+            .find_by_external_id(&run_result.run_id)
+            .await;
+
+        let run_id = match existing {
+            Ok(mut report_run) => {
+                if report_run.state != state {
+                    report_run.update_state(state, run_type, run_result.start_time);
+
+                    let mut db = self.report_runs.begin_op().await?;
+                    self.report_runs
+                        .update_in_op(&mut db, &mut report_run)
+                        .await?;
+                    db.commit().await?;
+                }
+                report_run.id
+            }
+            Err(e) if e.was_not_found() => {
+                let new_run = NewReportRun::builder()
+                    .external_id(run_result.run_id.clone())
+                    .state(state)
+                    .run_type(run_type)
+                    .start_time(run_result.start_time)
+                    .build()?;
+
+                let mut db = self.report_runs.begin_op().await?;
+                let report_run = self.report_runs.create_in_op(&mut db, new_run).await?;
+                db.commit().await?;
+                report_run.id
+            }
+            Err(e) => return Err(e.into()),
+        };
+
+        if run_result.status.is_finished() {
+            self.sync_reports_if_missing(&run_result.run_id, run_id)
+                .await?;
+        }
+
+        Ok(())
+    }
+
+    async fn sync_reports_if_missing(
         &self,
         external_id: &str,
         run_id: crate::ReportRunId,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        let reports = self
+            .reports
+            .list_for_run_id_by_created_at(
+                run_id,
+                Default::default(),
+                es_entity::ListDirection::Descending,
+            )
+            .await?;
+
+        if !reports.entities.is_empty() {
+            return Ok(());
+        }
+
         let dagster_reports = self.dagster.graphql().get_logs_for_run(external_id).await?;
 
         for dagster_report in dagster_reports {
             let files: Vec<crate::report::ReportFile> =
                 dagster_report.files.into_iter().map(|f| f.into()).collect();
 
-            let external_id = format!(
+            let report_external_id = format!(
                 "{}_{}_{}",
                 external_id, dagster_report.norm, dagster_report.name
             );
 
             let new_report = NewReport::builder()
-                .external_id(external_id)
+                .external_id(report_external_id)
                 .run_id(run_id)
                 .name(dagster_report.name)
                 .norm(dagster_report.norm)

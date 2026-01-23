@@ -65,8 +65,8 @@ where
         chart_of_accounts: &ChartOfAccounts<Perms>,
     ) -> Self {
         Self {
-            clock,
-            repo: FiscalYearRepo::new(pool),
+            clock: clock.clone(),
+            repo: FiscalYearRepo::new(pool, clock),
             authz: authz.clone(),
             domain_configs: domain_configs.clone(),
             chart_of_accounts: chart_of_accounts.clone(),
@@ -110,7 +110,7 @@ where
             .build()
             .expect("Could not build new FiscalYear");
 
-        let mut op = self.repo.begin_op_with_clock(&self.clock).await?;
+        let mut op = self.repo.begin_op().await?;
         let fiscal_year = self.repo.create_in_op(&mut op, new_fiscal_year).await?;
         let close_ledger_as_of = opened_as_of
             .pred_opt()
@@ -166,7 +166,7 @@ where
 
         match fiscal_year.close(now)? {
             Idempotent::Executed(tx_details) => {
-                let mut op = self.repo.begin_op_with_clock(&self.clock).await?;
+                let mut op = self.repo.begin_op().await?;
                 self.repo.update_in_op(&mut op, &mut fiscal_year).await?;
 
                 let config = self
@@ -211,7 +211,7 @@ where
 
         let mut fiscal_year = self.repo.find_by_id(id).await?;
         if let Idempotent::Executed(date) = fiscal_year.close_next_sequential_month(now)? {
-            let mut op = self.repo.begin_op_with_clock(&self.clock).await?;
+            let mut op = self.repo.begin_op().await?;
             self.repo.update_in_op(&mut op, &mut fiscal_year).await?;
             self.chart_of_accounts
                 .close_as_of_in_op(&mut op, sub, fiscal_year.chart_id, date)
@@ -315,14 +315,26 @@ where
 
     #[record_error_severity]
     #[instrument(name = "core_accounting.fiscal_year.configure", skip(self))]
-    pub async fn configure(&self, cfg: FiscalYearConfig) -> Result<(), FiscalYearError> {
+    pub async fn configure(
+        &self,
+        chart_id: impl Into<ChartId> + std::fmt::Debug,
+    ) -> Result<FiscalYearConfig, FiscalYearError> {
         let config = self.domain_configs.get::<FiscalYearConfig>().await?;
         if config.value().is_some() {
             return Err(FiscalYearError::FiscalYearConfigAlreadyExists);
         }
 
-        self.domain_configs.update::<FiscalYearConfig>(cfg).await?;
+        let accounting_base_config = self
+            .chart_of_accounts
+            .maybe_find_accounting_base_config_by_chart_id(chart_id.into())
+            .await?
+            .ok_or(FiscalYearError::AccountingBaseConfigNotFound)?;
 
-        Ok(())
+        let fiscal_year_config = FiscalYearConfig::from(&accounting_base_config);
+        self.domain_configs
+            .update::<FiscalYearConfig>(fiscal_year_config.clone())
+            .await?;
+
+        Ok(fiscal_year_config)
     }
 }

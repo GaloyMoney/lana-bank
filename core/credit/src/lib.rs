@@ -279,6 +279,7 @@ where
             &publisher,
             obligations_arc.clone(),
             governance_arc.clone(),
+            clock.clone(),
         )
         .await?;
         let disbursals_arc = Arc::new(disbursals);
@@ -367,7 +368,7 @@ where
             ChartOfAccountsIntegrations::new(authz_arc.clone(), ledger_arc.clone());
         let chart_of_accounts_integrations_arc = Arc::new(chart_of_accounts_integrations);
 
-        let terms_templates = TermsTemplates::new(pool, authz_arc.clone());
+        let terms_templates = TermsTemplates::new(pool, authz_arc.clone(), clock.clone());
         let terms_templates_arc = Arc::new(terms_templates);
 
         let approve_disbursal_job_spawner = jobs.add_initializer(DisbursalApprovalInit::new(

@@ -1,5 +1,16 @@
 scalar AccountCode
 
+input AccountingBaseConfigInput {
+	assetsCode: String!
+	liabilitiesCode: String!
+	equityCode: String!
+	equityRetainedEarningsGainCode: String!
+	equityRetainedEarningsLossCode: String!
+	revenueCode: String!
+	costOfRevenueCode: String!
+	expensesCode: String!
+}
+
 type AccountingCsvDocument {
 	id: ID!
 	documentId: UUID!
@@ -164,22 +175,12 @@ type BalanceSheet {
 }
 
 type BalanceSheetModuleConfig {
-	chartOfAccountsId: UUID
 	chartOfAccountsAssetsCode: String
 	chartOfAccountsLiabilitiesCode: String
 	chartOfAccountsEquityCode: String
 	chartOfAccountsRevenueCode: String
 	chartOfAccountsCostOfRevenueCode: String
 	chartOfAccountsExpensesCode: String
-}
-
-input BalanceSheetModuleConfigureInput {
-	chartOfAccountsAssetsCode: String!
-	chartOfAccountsLiabilitiesCode: String!
-	chartOfAccountsEquityCode: String!
-	chartOfAccountsRevenueCode: String!
-	chartOfAccountsCostOfRevenueCode: String!
-	chartOfAccountsExpensesCode: String!
 }
 
 type BalanceSheetModuleConfigurePayload {
@@ -258,11 +259,12 @@ type ChartOfAccountsAddRootNodePayload {
 	chartOfAccounts: ChartOfAccounts!
 }
 
-input ChartOfAccountsCsvImportInput {
+input ChartOfAccountsCsvImportWithBaseConfigInput {
 	file: Upload!
+	baseConfig: AccountingBaseConfigInput!
 }
 
-type ChartOfAccountsCsvImportPayload {
+type ChartOfAccountsCsvImportWithBaseConfigPayload {
 	chartOfAccounts: ChartOfAccounts!
 }
 
@@ -1032,6 +1034,11 @@ type CustomerEmailUpdatePayload {
 	customer: Customer!
 }
 
+type CustomerKycUpdatedPayload {
+	kycVerification: KycVerification!
+	customer: Customer!
+}
+
 input CustomerTelegramIdUpdateInput {
 	customerId: UUID!
 	telegramId: String!
@@ -1498,11 +1505,7 @@ type FiscalYearModuleConfig {
 }
 
 input FiscalYearModuleConfigureInput {
-	revenueAccountCode: String!
-	costOfRevenueAccountCode: String!
-	expensesAccountCode: String!
-	equityRetainedEarningsAccountCode: String!
-	equityRetainedLossesAccountCode: String!
+	chartId: UUID!
 }
 
 type FiscalYearModuleConfigurePayload {
@@ -1873,15 +1876,15 @@ type Mutation {
 	customerDocumentDownloadLinkGenerate(input: CustomerDocumentDownloadLinksGenerateInput!): CustomerDocumentDownloadLinksGeneratePayload!
 	customerDocumentDelete(input: CustomerDocumentDeleteInput!): CustomerDocumentDeletePayload!
 	customerDocumentArchive(input: CustomerDocumentArchiveInput!): CustomerDocumentArchivePayload!
-	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
+	chartOfAccountsCsvImportWithBaseConfig(input: ChartOfAccountsCsvImportWithBaseConfigInput!): ChartOfAccountsCsvImportWithBaseConfigPayload!
 	fiscalYearInit(input: FiscalYearInitInput!): FiscalYearInitPayload!
 	fiscalYearCloseMonth(input: FiscalYearCloseMonthInput!): FiscalYearCloseMonthPayload!
 	fiscalYearOpenNext(input: FiscalYearOpenNextInput!): FiscalYearOpenNextPayload!
 	fiscalYearClose(input: FiscalYearCloseInput!): FiscalYearClosePayload!
 	chartOfAccountsAddRootNode(input: ChartOfAccountsAddRootNodeInput!): ChartOfAccountsAddRootNodePayload!
 	chartOfAccountsAddChildNode(input: ChartOfAccountsAddChildNodeInput!): ChartOfAccountsAddChildNodePayload!
-	balanceSheetConfigure(input: BalanceSheetModuleConfigureInput!): BalanceSheetModuleConfigurePayload!
-	profitAndLossStatementConfigure(input: ProfitAndLossModuleConfigureInput!): ProfitAndLossStatementModuleConfigurePayload!
+	balanceSheetConfigure: BalanceSheetModuleConfigurePayload!
+	profitAndLossStatementConfigure: ProfitAndLossStatementModuleConfigurePayload!
 	fiscalYearConfigure(input: FiscalYearModuleConfigureInput!): FiscalYearModuleConfigurePayload!
 	ledgerAccountCsvCreate(input: LedgerAccountCsvCreateInput!): LedgerAccountCsvCreatePayload!
 	accountingCsvDownloadLinkGenerate(input: AccountingCsvDownloadLinkGenerateInput!): AccountingCsvDownloadLinkGeneratePayload!
@@ -2130,12 +2133,6 @@ type PolicyEdge {
 	cursor: String!
 }
 
-input ProfitAndLossModuleConfigureInput {
-	chartOfAccountsRevenueCode: String!
-	chartOfAccountsCostOfRevenueCode: String!
-	chartOfAccountsExpensesCode: String!
-}
-
 type ProfitAndLossStatement {
 	name: String!
 	total: LedgerAccountBalanceRangeByCurrency!
@@ -2143,7 +2140,6 @@ type ProfitAndLossStatement {
 }
 
 type ProfitAndLossStatementModuleConfig {
-	chartOfAccountsId: UUID
 	chartOfAccountsRevenueCode: String
 	chartOfAccountsCostOfRevenueCode: String
 	chartOfAccountsExpensesCode: String
@@ -2310,6 +2306,10 @@ enum ReportRunType {
 	MANUAL
 }
 
+type ReportRunUpdatedPayload {
+	reportRunId: UUID!
+}
+
 type Role {
 	id: ID!
 	roleId: UUID!
@@ -2386,12 +2386,14 @@ enum SortDirection {
 }
 
 type Subscription {
+	customerKycUpdated(customerId: UUID!): CustomerKycUpdatedPayload!
 	pendingCreditFacilityCollateralizationUpdated(pendingCreditFacilityId: UUID!): PendingCreditFacilityCollateralizationPayload!
 	pendingCreditFacilityCompleted(pendingCreditFacilityId: UUID!): PendingCreditFacilityCompletedPayload!
 	creditFacilityProposalConcluded(creditFacilityProposalId: UUID!): CreditFacilityProposalConcludedPayload!
 	creditFacilityCollateralizationUpdated(creditFacilityId: UUID!): CreditFacilityCollateralizationPayload!
 	ledgerAccountCsvExportUploaded(ledgerAccountId: UUID!): LedgerAccountCsvExportUploadedPayload!
 	realtimePriceUpdated: RealtimePrice!
+	reportRunUpdated: ReportRunUpdatedPayload!
 }
 
 input SumsubPermalinkCreateInput {

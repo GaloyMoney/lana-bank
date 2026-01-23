@@ -1,3 +1,4 @@
+use es_entity::clock::ClockHandle;
 use sqlx::PgPool;
 
 use es_entity::*;
@@ -17,11 +18,15 @@ use super::{entity::*, error::*};
 )]
 pub(crate) struct CustodianRepo {
     pool: PgPool,
+    clock: ClockHandle,
 }
 
 impl CustodianRepo {
-    pub(crate) fn new(pool: &PgPool) -> Self {
-        Self { pool: pool.clone() }
+    pub(crate) fn new(pool: &PgPool, clock: ClockHandle) -> Self {
+        Self {
+            pool: pool.clone(),
+            clock,
+        }
     }
 
     pub async fn list_all(&self) -> Result<Vec<Custodian>, CustodianError> {

@@ -44,10 +44,10 @@ export default defineConfig({
     viewportWidth: 1280,
     viewportHeight: 720,
     specPattern: [
+      "cypress/e2e/customers.cy.ts",
       "cypress/e2e/credit-facilities.cy.ts",
       "cypress/e2e/modules.cy.ts",
       "cypress/e2e/user.cy.ts",
-      "cypress/e2e/customers.cy.ts",
       "cypress/e2e/transactions.cy.ts",
       "cypress/e2e/terms-templates.cy.ts",
       "cypress/e2e/governance.cy.ts",

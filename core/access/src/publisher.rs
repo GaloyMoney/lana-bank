@@ -1,7 +1,7 @@
 use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{
-    CoreAccessEvent,
+    CoreAccessEvent, PublicRole, PublicUser,
     role::{Role, RoleEvent, error::RoleError},
     user::{User, UserEvent, error::UserError},
 };
@@ -40,20 +40,12 @@ where
         entity: &User,
         new_events: es_entity::LastPersisted<'_, UserEvent>,
     ) -> Result<(), UserError> {
-        use UserEvent::*;
         let events = new_events
-            .map(|event| match &event.event {
-                Initialized {
-                    id, email, role_id, ..
-                } => CoreAccessEvent::UserCreated {
-                    id: *id,
-                    email: email.clone(),
-                    role_id: *role_id,
-                },
-                RoleUpdated { role_id, .. } => CoreAccessEvent::UserUpdatedRole {
-                    id: entity.id,
-                    role_id: *role_id,
-                },
+            .filter_map(|event| match &event.event {
+                UserEvent::Initialized { .. } => Some(CoreAccessEvent::UserCreated {
+                    entity: PublicUser::from(entity),
+                }),
+                UserEvent::RoleUpdated { .. } => None,
             })
             .collect::<Vec<_>>();
 
@@ -68,25 +60,13 @@ where
         entity: &Role,
         new_events: es_entity::LastPersisted<'_, RoleEvent>,
     ) -> Result<(), RoleError> {
-        use RoleEvent::*;
         let events = new_events
-            .map(|event| match &event.event {
-                Initialized { id, name, .. } => CoreAccessEvent::RoleCreated {
-                    id: *id,
-                    name: name.clone(),
-                },
-                PermissionSetAdded {
-                    permission_set_id, ..
-                } => CoreAccessEvent::RoleGainedPermissionSet {
-                    id: entity.id,
-                    permission_set_id: *permission_set_id,
-                },
-                PermissionSetRemoved {
-                    permission_set_id, ..
-                } => CoreAccessEvent::RoleLostPermissionSet {
-                    id: entity.id,
-                    permission_set_id: *permission_set_id,
-                },
+            .filter_map(|event| match &event.event {
+                RoleEvent::Initialized { .. } => Some(CoreAccessEvent::RoleCreated {
+                    entity: PublicRole::from(entity),
+                }),
+                RoleEvent::PermissionSetAdded { .. } => None,
+                RoleEvent::PermissionSetRemoved { .. } => None,
             })
             .collect::<Vec<_>>();
 

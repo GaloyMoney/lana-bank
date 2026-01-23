@@ -1,3 +1,4 @@
+use es_entity::clock::ClockHandle;
 use sqlx::PgPool;
 
 use es_entity::*;
@@ -44,6 +45,7 @@ where
 {
     pool: PgPool,
     publisher: CreditFacilityPublisher<E>,
+    clock: ClockHandle,
 
     #[es_repo(nested)]
     interest_accruals: InterestAccrualRepo<E>,
@@ -57,6 +59,7 @@ where
         Self {
             pool: self.pool.clone(),
             publisher: self.publisher.clone(),
+            clock: self.clock.clone(),
             interest_accruals: self.interest_accruals.clone(),
         }
     }
@@ -66,11 +69,12 @@ impl<E> CreditFacilityRepo<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    pub fn new(pool: &PgPool, publisher: &CreditFacilityPublisher<E>) -> Self {
-        let interest_accruals = InterestAccrualRepo::new(pool, publisher);
+    pub fn new(pool: &PgPool, publisher: &CreditFacilityPublisher<E>, clock: ClockHandle) -> Self {
+        let interest_accruals = InterestAccrualRepo::new(pool, publisher, clock.clone());
         Self {
             pool: pool.clone(),
             publisher: publisher.clone(),
+            clock,
             interest_accruals,
         }
     }
@@ -124,6 +128,7 @@ where
 {
     pool: PgPool,
     publisher: CreditFacilityPublisher<E>,
+    clock: ClockHandle,
 }
 
 impl<E> Clone for InterestAccrualRepo<E>
@@ -134,6 +139,7 @@ where
         Self {
             pool: self.pool.clone(),
             publisher: self.publisher.clone(),
+            clock: self.clock.clone(),
         }
     }
 }
@@ -142,10 +148,11 @@ impl<E> InterestAccrualRepo<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    pub fn new(pool: &PgPool, publisher: &CreditFacilityPublisher<E>) -> Self {
+    pub fn new(pool: &PgPool, publisher: &CreditFacilityPublisher<E>, clock: ClockHandle) -> Self {
         Self {
             pool: pool.clone(),
             publisher: publisher.clone(),
+            clock,
         }
     }
 

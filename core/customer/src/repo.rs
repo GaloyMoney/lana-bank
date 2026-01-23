@@ -1,3 +1,4 @@
+use es_entity::clock::ClockHandle;
 use sqlx::PgPool;
 
 pub use es_entity::Sort;
@@ -28,6 +29,7 @@ where
 {
     pool: PgPool,
     publisher: CustomerPublisher<E>,
+    clock: ClockHandle,
 }
 
 impl<E> Clone for CustomerRepo<E>
@@ -38,6 +40,7 @@ where
         Self {
             pool: self.pool.clone(),
             publisher: self.publisher.clone(),
+            clock: self.clock.clone(),
         }
     }
 }
@@ -46,10 +49,11 @@ impl<E> CustomerRepo<E>
 where
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
-    pub(super) fn new(pool: &PgPool, publisher: &CustomerPublisher<E>) -> Self {
+    pub(super) fn new(pool: &PgPool, publisher: &CustomerPublisher<E>, clock: ClockHandle) -> Self {
         Self {
             pool: pool.clone(),
             publisher: publisher.clone(),
+            clock,
         }
     }
 

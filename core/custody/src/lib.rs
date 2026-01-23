@@ -17,7 +17,8 @@ use tracing_macros::record_error_severity;
 
 use std::collections::HashMap;
 
-use es_entity::{DbOp, clock::ClockHandle};
+use es_entity::DbOp;
+use es_entity::clock::ClockHandle;
 pub use event::CoreCustodyEvent;
 use obix::inbox::{Inbox, InboxConfig, InboxEvent, InboxHandler, InboxResult};
 use obix::out::{Outbox, OutboxEventMarker};
@@ -101,9 +102,15 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCustodyObject>,
 {
-    fn new(pool: &sqlx::PgPool, authz: &Perms, config: &CustodyConfig, outbox: &Outbox<E>) -> Self {
-        let custodians = CustodianRepo::new(pool);
-        let wallets = WalletRepo::new(pool, &CustodyPublisher::new(outbox));
+    fn new(
+        pool: &sqlx::PgPool,
+        authz: &Perms,
+        config: &CustodyConfig,
+        outbox: &Outbox<E>,
+        clock: ClockHandle,
+    ) -> Self {
+        let custodians = CustodianRepo::new(pool, clock.clone());
+        let wallets = WalletRepo::new(pool, &CustodyPublisher::new(outbox), clock);
         Self {
             authz: authz.clone(),
             config: config.clone(),
@@ -219,16 +226,16 @@ where
         jobs: &mut job::Jobs,
         clock: ClockHandle,
     ) -> Result<Self, CoreCustodyError> {
-        let handler = CustodianWebhookHandler::new(pool, authz, &config, outbox);
+        let handler = CustodianWebhookHandler::new(pool, authz, &config, outbox, clock.clone());
 
         let inbox_config = InboxConfig::new(CUSTODY_INBOX_JOB);
         let inbox = Inbox::new(pool, jobs, inbox_config, handler);
 
         let custody = Self {
             authz: authz.clone(),
-            custodians: CustodianRepo::new(pool),
+            custodians: CustodianRepo::new(pool, clock.clone()),
             config,
-            wallets: WalletRepo::new(pool, &CustodyPublisher::new(outbox)),
+            wallets: WalletRepo::new(pool, &CustodyPublisher::new(outbox), clock.clone()),
             inbox,
             clock,
         };
@@ -348,7 +355,7 @@ where
         custodian_name: impl AsRef<str> + std::fmt::Debug,
         custodian_config: CustodianConfig,
     ) -> Result<Custodian, CoreCustodyError> {
-        let mut db = self.custodians.begin_op_with_clock(&self.clock).await?;
+        let mut db = self.custodians.begin_op().await?;
 
         let custodian = self
             .create_custodian_in_op(&mut db, sub, custodian_name, custodian_config)
@@ -377,7 +384,7 @@ where
 
         custodian.update_custodian_config(config, &self.config.encryption.key);
 
-        let mut op = self.custodians.begin_op_with_clock(&self.clock).await?;
+        let mut op = self.custodians.begin_op().await?;
         self.custodians
             .update_config_in_op(&mut op, &mut custodian)
             .await?;
@@ -400,7 +407,7 @@ where
 
         let mut custodians = self.custodians.list_all().await?;
 
-        let mut op = self.custodians.begin_op_with_clock(&self.clock).await?;
+        let mut op = self.custodians.begin_op().await?;
 
         for custodian in custodians.iter_mut() {
             custodian

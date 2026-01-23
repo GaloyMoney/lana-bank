@@ -1,3 +1,4 @@
+mod bulk_import;
 pub mod chart_node;
 mod entity;
 mod import;
@@ -17,11 +18,12 @@ use tracing_macros::record_error_severity;
 use cala_ledger::{CalaLedger, account::Account};
 
 use crate::primitives::{
-    AccountCode, AccountIdOrCode, AccountName, AccountSpec, CalaAccountSetId, CalaJournalId,
-    ChartId, ClockHandle, ClosingAccountCodes, ClosingTxDetails, CoreAccountingAction,
-    CoreAccountingObject, LedgerAccountId,
+    AccountCode, AccountIdOrCode, AccountName, AccountSpec, AccountingBaseConfig, CalaAccountSetId,
+    CalaJournalId, ChartId, ClockHandle, ClosingAccountCodes, ClosingTxDetails,
+    CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
 };
 
+use bulk_import::BulkImportResult;
 #[cfg(feature = "json-schema")]
 pub use chart_node::ChartNodeEvent;
 pub use entity::Chart;
@@ -29,10 +31,7 @@ pub use entity::Chart;
 pub use entity::ChartEvent;
 pub(super) use entity::*;
 use error::*;
-use import::{
-    BulkAccountImport, BulkImportResult,
-    csv::{CsvParseError, CsvParser},
-};
+use import::csv::{CsvParseError, CsvParser};
 use ledger::*;
 pub(super) use repo::*;
 
@@ -77,7 +76,7 @@ where
         cala: &CalaLedger,
         journal_id: CalaJournalId,
     ) -> Self {
-        let chart_of_account = ChartRepo::new(pool);
+        let chart_of_account = ChartRepo::new(pool, clock.clone());
         let chart_ledger = ChartLedger::new(clock.clone(), cala, journal_id);
 
         Self {
@@ -100,7 +99,7 @@ where
     ) -> Result<Chart, ChartOfAccountsError> {
         let id = ChartId::new();
 
-        let mut op = self.repo.begin_op_with_clock(&self.clock).await?;
+        let mut op = self.repo.begin_op().await?;
         self.authz
             .enforce_permission(
                 sub,
@@ -130,14 +129,15 @@ where
 
     #[record_error_severity]
     #[instrument(
-        name = "core_accounting.chart_of_accounts.import_from_csv",
+        name = "core_accounting.chart_of_accounts.import_from_csv_with_base_config",
         skip(self, import_data)
     )]
-    pub async fn import_from_csv(
+    pub async fn import_from_csv_with_base_config(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_ref: &str,
         import_data: impl AsRef<str>,
+        base_config: AccountingBaseConfig,
     ) -> Result<(Chart, Option<Vec<CalaAccountSetId>>), ChartOfAccountsError> {
         self.authz
             .enforce_permission(
@@ -150,14 +150,20 @@ where
 
         let import_data = import_data.as_ref().to_string();
         let account_specs = CsvParser::new(import_data).account_specs()?;
-
         let BulkImportResult {
             new_account_sets,
             new_account_set_ids,
             new_connections,
-        } = BulkAccountImport::new(&mut chart, self.journal_id).import(account_specs);
+        } = match chart.import_accounts_and_initialize_config(
+            account_specs,
+            base_config,
+            self.journal_id,
+        )? {
+            Idempotent::Executed(res) => res,
+            _ => return Ok((chart, None)),
+        };
 
-        let mut op = self.repo.begin_op_with_clock(&self.clock).await?;
+        let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
         let mut op = op.with_db_time().await?;
@@ -180,6 +186,20 @@ where
             .collect::<Vec<_>>();
 
         Ok((chart, Some(new_account_set_ids.clone())))
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "core_accounting.chart_of_accounts.maybe_find_accounting_base_config_by_chart_id",
+        skip(self)
+    )]
+    pub async fn maybe_find_accounting_base_config_by_chart_id(
+        &self,
+        chart_id: ChartId,
+    ) -> Result<Option<AccountingBaseConfig>, ChartOfAccountsError> {
+        let chart = self.find_by_id(chart_id).await?;
+        let base_config = chart.accounting_base_config();
+        Ok(base_config)
     }
 
     #[record_error_severity]
@@ -210,7 +230,7 @@ where
         };
         let account_set_id = new_account_set.id;
 
-        let mut op = self.repo.begin_op_with_clock(&self.clock).await?;
+        let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
         let mut op = op.with_db_time().await?;
@@ -257,7 +277,7 @@ where
         };
         let account_set_id = new_account_set.id;
 
-        let mut op = self.repo.begin_op_with_clock(&self.clock).await?;
+        let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
         let mut op = op.with_db_time().await?;
@@ -421,7 +441,7 @@ where
         {
             ManualAccountFromChart::IdInChart(id) | ManualAccountFromChart::NonChartId(id) => id,
             ManualAccountFromChart::NewAccount((account_set_id, new_account)) => {
-                let mut op = self.repo.begin_op_with_clock(&self.clock).await?;
+                let mut op = self.repo.begin_op().await?;
                 self.repo.update_in_op(&mut op, &mut chart).await?;
 
                 let mut op = op.with_db_time().await?;

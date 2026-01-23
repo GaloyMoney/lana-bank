@@ -1,9 +1,10 @@
+use es_entity::clock::ClockHandle;
 use sqlx::PgPool;
 
 use es_entity::*;
 use obix::out::OutboxEventMarker;
 
-use crate::{event::CoreAccessEvent, primitives::*, publisher::UserPublisher};
+use crate::{primitives::*, public::CoreAccessEvent, publisher::UserPublisher};
 
 use super::{entity::*, error::*};
 
@@ -21,16 +22,18 @@ where
 {
     pool: PgPool,
     publisher: UserPublisher<E>,
+    clock: ClockHandle,
 }
 
 impl<E> RoleRepo<E>
 where
     E: OutboxEventMarker<CoreAccessEvent>,
 {
-    pub fn new(pool: &PgPool, publisher: &UserPublisher<E>) -> Self {
+    pub fn new(pool: &PgPool, publisher: &UserPublisher<E>, clock: ClockHandle) -> Self {
         Self {
             pool: pool.clone(),
             publisher: publisher.clone(),
+            clock,
         }
     }
 
@@ -52,6 +55,7 @@ where
         Self {
             publisher: self.publisher.clone(),
             pool: self.pool.clone(),
+            clock: self.clock.clone(),
         }
     }
 }

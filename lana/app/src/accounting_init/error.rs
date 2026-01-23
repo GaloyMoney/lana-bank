@@ -34,6 +34,8 @@ pub enum AccountingInitError {
     SeedFileError(#[from] std::io::Error),
     #[error("AccountingInitError - MissingConfig: {0}")]
     MissingConfig(String),
+    #[error("AccountingInitError - AccountingBaseConfigError: {0}")]
+    AccountingBaseConfigError(#[from] core_accounting::AccountingBaseConfigError),
 }
 
 impl ErrorSeverity for AccountingInitError {
@@ -54,6 +56,7 @@ impl ErrorSeverity for AccountingInitError {
             Self::FiscalYearError(e) => e.severity(),
             Self::SeedFileError(_) => Level::ERROR,
             Self::MissingConfig(_) => Level::ERROR,
+            Self::AccountingBaseConfigError(e) => e.severity(),
         }
     }
 }

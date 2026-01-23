@@ -1,0 +1,7 @@
+mutation ChartOfAccountsCsvImportWithBaseConfig($input: ChartOfAccountsCsvImportWithBaseConfigInput!) {
+  chartOfAccountsCsvImportWithBaseConfig(input: $input) {
+    chartOfAccounts {
+      chartId
+    }
+  }
+}

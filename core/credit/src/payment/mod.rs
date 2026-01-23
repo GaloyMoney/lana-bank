@@ -6,11 +6,10 @@ mod repo;
 use std::sync::Arc;
 use tracing::instrument;
 
-use es_entity::clock::ClockHandle;
-
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_accounting::LedgerTransactionInitiator;
+use es_entity::clock::ClockHandle;
 use obix::out::OutboxEventMarker;
 
 use crate::{
@@ -34,7 +33,6 @@ where
     repo: Arc<PaymentRepo<E>>,
     authz: Arc<Perms>,
     ledger: Arc<CreditLedger>,
-    clock: ClockHandle,
 }
 
 impl<Perms, E> Clone for Payments<Perms, E>
@@ -47,7 +45,6 @@ where
             repo: self.repo.clone(),
             authz: self.authz.clone(),
             ledger: self.ledger.clone(),
-            clock: self.clock.clone(),
         }
     }
 }
@@ -66,13 +63,12 @@ where
         clock: ClockHandle,
         publisher: &CreditFacilityPublisher<E>,
     ) -> Self {
-        let repo = PaymentRepo::new(pool, publisher);
+        let repo = PaymentRepo::new(pool, publisher, clock);
 
         Self {
             repo: Arc::new(repo),
             authz,
             ledger,
-            clock: clock.clone(),
         }
     }
 
@@ -145,7 +141,7 @@ where
         effective: chrono::NaiveDate,
         initiated_by: LedgerTransactionInitiator,
     ) -> Result<Option<Payment>, PaymentError> {
-        let mut db = self.repo.begin_op_with_clock(&self.clock).await?;
+        let mut db = self.repo.begin_op().await?;
         let res = self
             .record_in_op(
                 &mut db,

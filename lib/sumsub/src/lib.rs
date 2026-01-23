@@ -94,7 +94,10 @@ impl SumsubClient {
             .await
     }
 
-    /// Submit a financial transaction for monitoring
+    /// Submit a financial transaction for monitoring.
+    ///
+    /// This operation is idempotent: if a transaction with the given `tx_id` already exists,
+    /// the duplicate error is treated as success since the goal (transaction in Sumsub) is achieved.
     pub async fn submit_finance_transaction<T>(
         &self,
         external_user_id: T,
@@ -151,7 +154,8 @@ impl SumsubClient {
             .send()
             .await?;
 
-        if response.status().is_success() {
+        let status = response.status();
+        if status.is_success() {
             tracing::info!(
                 tx_id = %tx_id,
                 tx_type = %tx_type,
@@ -162,8 +166,26 @@ impl SumsubClient {
                 "Submitted finance transaction to Sumsub"
             );
             Ok(())
+        } else if status == reqwest::StatusCode::CONFLICT {
+            // HTTP 409 Conflict with "Entity already exists" indicates duplicate transaction
+            // Treat as success for idempotency - see https://docs.sumsub.com/reference/submit-transaction-for-existing-applicant
+            tracing::warn!(
+                tx_id = %tx_id,
+                customer_id = %external_user_id,
+                "Transaction already exists in Sumsub, skipping (idempotent)"
+            );
+            Ok(())
         } else {
             let response_text = response.text().await?;
+            // Check for "Entity already exists" error in response body (Sumsub's duplicate error format)
+            if response_text.contains("Entity already exists") {
+                tracing::warn!(
+                    tx_id = %tx_id,
+                    customer_id = %external_user_id,
+                    "Transaction already exists in Sumsub, skipping (idempotent)"
+                );
+                return Ok(());
+            }
             Err(self.handle_sumsub_error(&response_text, "Failed to post transaction"))
         }
     }

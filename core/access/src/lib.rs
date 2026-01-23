@@ -4,9 +4,9 @@
 mod bootstrap;
 pub mod config;
 pub mod error;
-pub mod event;
 pub mod permission_set;
 pub mod primitives;
+pub mod public;
 mod publisher;
 pub mod role;
 pub mod user;
@@ -20,8 +20,8 @@ use obix::out::{Outbox, OutboxEventMarker};
 use permission_set::{PermissionSet, PermissionSetRepo, PermissionSetsByIdCursor};
 use tracing_macros::record_error_severity;
 
-pub use event::*;
 pub use primitives::*;
+pub use public::*;
 
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
@@ -69,12 +69,12 @@ where
     ) -> Result<Self, CoreAccessError> {
         let users = Users::init(pool, authz, outbox, clock.clone()).await?;
         let publisher = UserPublisher::new(outbox);
-        let role_repo = RoleRepo::new(pool, &publisher);
-        let permission_set_repo = PermissionSetRepo::new(pool);
+        let role_repo = RoleRepo::new(pool, &publisher, clock.clone());
+        let permission_set_repo = PermissionSetRepo::new(pool, clock.clone());
 
         if let Some(email) = config.superuser_email {
             let bootstrap =
-                bootstrap::Bootstrap::new(authz, &role_repo, &users, &permission_set_repo, clock);
+                bootstrap::Bootstrap::new(authz, &role_repo, &users, &permission_set_repo);
             bootstrap
                 .bootstrap_access_control(email, all_actions, predefined_roles)
                 .await?;

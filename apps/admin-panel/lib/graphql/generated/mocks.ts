@@ -56,9 +56,24 @@ const mockEnums = {
 };
 
 import { fakerEN as faker } from '@faker-js/faker';
-import { AccountingCsvDocument, AccountingCsvDownloadLink, AccountingCsvDownloadLinkGenerateInput, AccountingCsvDownloadLinkGeneratePayload, ApprovalProcess, ApprovalProcessApproveInput, ApprovalProcessApprovePayload, ApprovalProcessConnection, ApprovalProcessDenyInput, ApprovalProcessDenyPayload, ApprovalProcessEdge, ApprovalProcessVoter, AuditEntry, AuditEntryConnection, AuditEntryEdge, BalanceSheet, BalanceSheetModuleConfig, BalanceSheetModuleConfigureInput, BalanceSheetModuleConfigurePayload, BitgoConfig, BtcAmount, BtcBalanceDetails, BtcLedgerAccountBalance, BtcLedgerAccountBalanceRange, CancelledWithdrawalEntry, ChartNode, ChartOfAccounts, ChartOfAccountsAddChildNodeInput, ChartOfAccountsAddChildNodePayload, ChartOfAccountsAddRootNodeInput, ChartOfAccountsAddRootNodePayload, ChartOfAccountsCsvImportInput, ChartOfAccountsCsvImportPayload, Collateral, CollateralBalance, Committee, CommitteeAddUserInput, CommitteeAddUserPayload, CommitteeConnection, CommitteeCreateInput, CommitteeCreatePayload, CommitteeEdge, CommitteeRemoveUserInput, CommitteeRemoveUserPayload, CommitteeThreshold, CreditFacilitiesFilter, CreditFacilitiesSort, CreditFacility, CreditFacilityApproved, CreditFacilityBalance, CreditFacilityCollateralSentOut, CreditFacilityCollateralUpdateInput, CreditFacilityCollateralUpdatePayload, CreditFacilityCollateralUpdated, CreditFacilityCollateralizationPayload, CreditFacilityCollateralizationUpdated, CreditFacilityCompleteInput, CreditFacilityCompletePayload, CreditFacilityConnection, CreditFacilityDisbursal, CreditFacilityDisbursalConnection, CreditFacilityDisbursalEdge, CreditFacilityDisbursalExecuted, CreditFacilityDisbursalInitiateInput, CreditFacilityDisbursalInitiatePayload, CreditFacilityEdge, CreditFacilityIncrementalPayment, CreditFacilityInterestAccrued, CreditFacilityLedgerAccounts, CreditFacilityPartialPaymentRecordInput, CreditFacilityPartialPaymentRecordPayload, CreditFacilityPartialPaymentWithDateRecordInput, CreditFacilityPaymentAllocation, CreditFacilityProposal, CreditFacilityProposalConcludedPayload, CreditFacilityProposalConnection, CreditFacilityProposalCreateInput, CreditFacilityProposalCreatePayload, CreditFacilityProposalCustomerApprovalConcludeInput, CreditFacilityProposalCustomerApprovalConcludePayload, CreditFacilityProposalEdge, CreditFacilityRepaymentAmountReceived, CreditFacilityRepaymentPlanEntry, CreditModuleConfig, CreditModuleConfigureInput, CreditModuleConfigurePayload, Custodian, CustodianConfigInput, CustodianConfigUpdateInput, CustodianConfigUpdatePayload, CustodianConnection, CustodianCreateInput, CustodianCreatePayload, CustodianEdge, Customer, CustomerConnection, CustomerCreateInput, CustomerCreatePayload, CustomerDocument, CustomerDocumentArchiveInput, CustomerDocumentArchivePayload, CustomerDocumentCreateInput, CustomerDocumentCreatePayload, CustomerDocumentDeleteInput, CustomerDocumentDeletePayload, CustomerDocumentDownloadLinksGenerateInput, CustomerDocumentDownloadLinksGeneratePayload, CustomerEdge, CustomerEmailUpdateInput, CustomerEmailUpdatePayload, CustomerTelegramIdUpdateInput, CustomerTelegramIdUpdatePayload, CustomersFilter, CustomersSort, Dashboard, Deposit, DepositAccount, DepositAccountBalance, DepositAccountCloseInput, DepositAccountClosePayload, DepositAccountConnection, DepositAccountCreateInput, DepositAccountCreatePayload, DepositAccountEdge, DepositAccountFreezeInput, DepositAccountFreezePayload, DepositAccountHistoryEntryConnection, DepositAccountHistoryEntryEdge, DepositAccountLedgerAccounts, DepositAccountUnfreezeInput, DepositAccountUnfreezePayload, DepositConnection, DepositEdge, DepositEntry, DepositModuleConfig, DepositModuleConfigureInput, DepositModuleConfigurePayload, DepositRecordInput, DepositRecordPayload, DepositRevertInput, DepositRevertPayload, DisbursalEntry, Disbursed, DomainConfig, DomainConfigConnection, DomainConfigEdge, DomainConfigUpdateInput, DomainConfigUpdatePayload, Duration, DurationInput, FacilityRemaining, FiniteCvlPct, FiscalMonthClosure, FiscalYear, FiscalYearCloseInput, FiscalYearCloseMonthInput, FiscalYearCloseMonthPayload, FiscalYearClosePayload, FiscalYearConnection, FiscalYearEdge, FiscalYearInitInput, FiscalYearInitPayload, FiscalYearModuleConfig, FiscalYearModuleConfigureInput, FiscalYearModuleConfigurePayload, FiscalYearOpenNextInput, FiscalYearOpenNextPayload, FreezeEntry, GovernanceNavigationItems, InfiniteCvlPct, Interest, JournalEntry, JournalEntryConnection, JournalEntryEdge, KomainuConfig, LedgerAccount, LedgerAccountBalanceRangeByCurrency, LedgerAccountCsvCreateInput, LedgerAccountCsvCreatePayload, LedgerAccountCsvExportUploadedPayload, LedgerTransaction, LedgerTransactionConnection, LedgerTransactionEdge, Liquidation, LiquidationCollateralSent, LiquidationConnection, LiquidationEdge, LiquidationProceedsReceived, LiquidationRecordCollateralSentInput, LiquidationRecordCollateralSentPayload, LiquidationRecordProceedsReceivedInput, LiquidationRecordProceedsReceivedPayload, Loan, LoanAgreement, LoanAgreementDownloadLinksGenerateInput, LoanAgreementDownloadLinksGeneratePayload, LoanAgreementGenerateInput, LoanAgreementGeneratePayload, ManualTransactionEntryInput, ManualTransactionExecuteInput, ManualTransactionExecutePayload, Me, Mutation, Outstanding, PageInfo, PaymentEntry, PaymentsUnapplied, PendingCreditFacility, PendingCreditFacilityCollateralUpdateInput, PendingCreditFacilityCollateralUpdatePayload, PendingCreditFacilityCollateralizationPayload, PendingCreditFacilityCollateralizationUpdated, PendingCreditFacilityCompletedPayload, PendingCreditFacilityConnection, PendingCreditFacilityEdge, PermissionSet, PermissionSetConnection, PermissionSetEdge, Policy, PolicyAssignCommitteeInput, PolicyAssignCommitteePayload, PolicyConnection, PolicyEdge, ProfitAndLossModuleConfigureInput, ProfitAndLossStatement, ProfitAndLossStatementModuleConfig, ProfitAndLossStatementModuleConfigurePayload, Query, RealtimePrice, Report, ReportFile, ReportFileGenerateDownloadLinkInput, ReportFileGenerateDownloadLinkPayload, ReportRun, ReportRunConnection, ReportRunCreatePayload, ReportRunEdge, Role, RoleAddPermissionSetsInput, RoleAddPermissionSetsPayload, RoleConnection, RoleCreateInput, RoleCreatePayload, RoleEdge, RoleRemovePermissionSetsInput, RoleRemovePermissionSetsPayload, Subscription, SumsubPermalinkCreateInput, SumsubPermalinkCreatePayload, System, SystemApproval, TermValues, TermsInput, TermsTemplate, TermsTemplateCreateInput, TermsTemplateCreatePayload, TermsTemplateUpdateInput, TermsTemplateUpdatePayload, Total, TransactionTemplate, TransactionTemplateConnection, TransactionTemplateEdge, TrialBalance, UnfreezeEntry, UnknownEntry, UsdAmount, UsdBalanceDetails, UsdLedgerAccountBalance, UsdLedgerAccountBalanceRange, User, UserCreateInput, UserCreatePayload, UserUpdateRoleInput, UserUpdateRolePayload, VisibleNavigationItems, Wallet, Withdrawal, WithdrawalCancelInput, WithdrawalCancelPayload, WithdrawalConfirmInput, WithdrawalConfirmPayload, WithdrawalConnection, WithdrawalEdge, WithdrawalEntry, WithdrawalInitiateInput, WithdrawalInitiatePayload, WithdrawalRevertInput, WithdrawalRevertPayload, Activity, ApprovalProcessStatus, ApprovalProcessType, CollateralAction, CollateralizationState, ConfigType, CreditFacilitiesFilterBy, CreditFacilitiesSortBy, CreditFacilityProposalStatus, CreditFacilityRepaymentStatus, CreditFacilityRepaymentType, CreditFacilityStatus, CustomerType, CustomersFilterBy, CustomersSortBy, DebitOrCredit, DepositAccountStatus, DepositStatus, DisbursalPolicy, DisbursalStatus, DocumentStatus, InterestInterval, KycLevel, KycVerification, Layer, LoanAgreementStatus, PendingCreditFacilityCollateralizationState, PendingCreditFacilityStatus, Period, PermissionSetName, ReportRunState, ReportRunType, SortDirection, WalletNetwork, WithdrawalStatus } from './index';
+import { AccountingBaseConfigInput, AccountingCsvDocument, AccountingCsvDownloadLink, AccountingCsvDownloadLinkGenerateInput, AccountingCsvDownloadLinkGeneratePayload, ApprovalProcess, ApprovalProcessApproveInput, ApprovalProcessApprovePayload, ApprovalProcessConnection, ApprovalProcessDenyInput, ApprovalProcessDenyPayload, ApprovalProcessEdge, ApprovalProcessVoter, AuditEntry, AuditEntryConnection, AuditEntryEdge, BalanceSheet, BalanceSheetModuleConfig, BalanceSheetModuleConfigurePayload, BitgoConfig, BtcAmount, BtcBalanceDetails, BtcLedgerAccountBalance, BtcLedgerAccountBalanceRange, CancelledWithdrawalEntry, ChartNode, ChartOfAccounts, ChartOfAccountsAddChildNodeInput, ChartOfAccountsAddChildNodePayload, ChartOfAccountsAddRootNodeInput, ChartOfAccountsAddRootNodePayload, ChartOfAccountsCsvImportWithBaseConfigInput, ChartOfAccountsCsvImportWithBaseConfigPayload, Collateral, CollateralBalance, Committee, CommitteeAddUserInput, CommitteeAddUserPayload, CommitteeConnection, CommitteeCreateInput, CommitteeCreatePayload, CommitteeEdge, CommitteeRemoveUserInput, CommitteeRemoveUserPayload, CommitteeThreshold, CreditFacilitiesFilter, CreditFacilitiesSort, CreditFacility, CreditFacilityApproved, CreditFacilityBalance, CreditFacilityCollateralSentOut, CreditFacilityCollateralUpdateInput, CreditFacilityCollateralUpdatePayload, CreditFacilityCollateralUpdated, CreditFacilityCollateralizationPayload, CreditFacilityCollateralizationUpdated, CreditFacilityCompleteInput, CreditFacilityCompletePayload, CreditFacilityConnection, CreditFacilityDisbursal, CreditFacilityDisbursalConnection, CreditFacilityDisbursalEdge, CreditFacilityDisbursalExecuted, CreditFacilityDisbursalInitiateInput, CreditFacilityDisbursalInitiatePayload, CreditFacilityEdge, CreditFacilityIncrementalPayment, CreditFacilityInterestAccrued, CreditFacilityLedgerAccounts, CreditFacilityPartialPaymentRecordInput, CreditFacilityPartialPaymentRecordPayload, CreditFacilityPartialPaymentWithDateRecordInput, CreditFacilityPaymentAllocation, CreditFacilityProposal, CreditFacilityProposalConcludedPayload, CreditFacilityProposalConnection, CreditFacilityProposalCreateInput, CreditFacilityProposalCreatePayload, CreditFacilityProposalCustomerApprovalConcludeInput, CreditFacilityProposalCustomerApprovalConcludePayload, CreditFacilityProposalEdge, CreditFacilityRepaymentAmountReceived, CreditFacilityRepaymentPlanEntry, CreditModuleConfig, CreditModuleConfigureInput, CreditModuleConfigurePayload, Custodian, CustodianConfigInput, CustodianConfigUpdateInput, CustodianConfigUpdatePayload, CustodianConnection, CustodianCreateInput, CustodianCreatePayload, CustodianEdge, Customer, CustomerConnection, CustomerCreateInput, CustomerCreatePayload, CustomerDocument, CustomerDocumentArchiveInput, CustomerDocumentArchivePayload, CustomerDocumentCreateInput, CustomerDocumentCreatePayload, CustomerDocumentDeleteInput, CustomerDocumentDeletePayload, CustomerDocumentDownloadLinksGenerateInput, CustomerDocumentDownloadLinksGeneratePayload, CustomerEdge, CustomerEmailUpdateInput, CustomerEmailUpdatePayload, CustomerKycUpdatedPayload, CustomerTelegramIdUpdateInput, CustomerTelegramIdUpdatePayload, CustomersFilter, CustomersSort, Dashboard, Deposit, DepositAccount, DepositAccountBalance, DepositAccountCloseInput, DepositAccountClosePayload, DepositAccountConnection, DepositAccountCreateInput, DepositAccountCreatePayload, DepositAccountEdge, DepositAccountFreezeInput, DepositAccountFreezePayload, DepositAccountHistoryEntryConnection, DepositAccountHistoryEntryEdge, DepositAccountLedgerAccounts, DepositAccountUnfreezeInput, DepositAccountUnfreezePayload, DepositConnection, DepositEdge, DepositEntry, DepositModuleConfig, DepositModuleConfigureInput, DepositModuleConfigurePayload, DepositRecordInput, DepositRecordPayload, DepositRevertInput, DepositRevertPayload, DisbursalEntry, Disbursed, DomainConfig, DomainConfigConnection, DomainConfigEdge, DomainConfigUpdateInput, DomainConfigUpdatePayload, Duration, DurationInput, FacilityRemaining, FiniteCvlPct, FiscalMonthClosure, FiscalYear, FiscalYearCloseInput, FiscalYearCloseMonthInput, FiscalYearCloseMonthPayload, FiscalYearClosePayload, FiscalYearConnection, FiscalYearEdge, FiscalYearInitInput, FiscalYearInitPayload, FiscalYearModuleConfig, FiscalYearModuleConfigureInput, FiscalYearModuleConfigurePayload, FiscalYearOpenNextInput, FiscalYearOpenNextPayload, FreezeEntry, GovernanceNavigationItems, InfiniteCvlPct, Interest, JournalEntry, JournalEntryConnection, JournalEntryEdge, KomainuConfig, LedgerAccount, LedgerAccountBalanceRangeByCurrency, LedgerAccountCsvCreateInput, LedgerAccountCsvCreatePayload, LedgerAccountCsvExportUploadedPayload, LedgerTransaction, LedgerTransactionConnection, LedgerTransactionEdge, Liquidation, LiquidationCollateralSent, LiquidationConnection, LiquidationEdge, LiquidationProceedsReceived, LiquidationRecordCollateralSentInput, LiquidationRecordCollateralSentPayload, LiquidationRecordProceedsReceivedInput, LiquidationRecordProceedsReceivedPayload, Loan, LoanAgreement, LoanAgreementDownloadLinksGenerateInput, LoanAgreementDownloadLinksGeneratePayload, LoanAgreementGenerateInput, LoanAgreementGeneratePayload, ManualTransactionEntryInput, ManualTransactionExecuteInput, ManualTransactionExecutePayload, Me, Mutation, Outstanding, PageInfo, PaymentEntry, PaymentsUnapplied, PendingCreditFacility, PendingCreditFacilityCollateralUpdateInput, PendingCreditFacilityCollateralUpdatePayload, PendingCreditFacilityCollateralizationPayload, PendingCreditFacilityCollateralizationUpdated, PendingCreditFacilityCompletedPayload, PendingCreditFacilityConnection, PendingCreditFacilityEdge, PermissionSet, PermissionSetConnection, PermissionSetEdge, Policy, PolicyAssignCommitteeInput, PolicyAssignCommitteePayload, PolicyConnection, PolicyEdge, ProfitAndLossStatement, ProfitAndLossStatementModuleConfig, ProfitAndLossStatementModuleConfigurePayload, Query, RealtimePrice, Report, ReportFile, ReportFileGenerateDownloadLinkInput, ReportFileGenerateDownloadLinkPayload, ReportRun, ReportRunConnection, ReportRunCreatePayload, ReportRunEdge, ReportRunUpdatedPayload, Role, RoleAddPermissionSetsInput, RoleAddPermissionSetsPayload, RoleConnection, RoleCreateInput, RoleCreatePayload, RoleEdge, RoleRemovePermissionSetsInput, RoleRemovePermissionSetsPayload, Subscription, SumsubPermalinkCreateInput, SumsubPermalinkCreatePayload, System, SystemApproval, TermValues, TermsInput, TermsTemplate, TermsTemplateCreateInput, TermsTemplateCreatePayload, TermsTemplateUpdateInput, TermsTemplateUpdatePayload, Total, TransactionTemplate, TransactionTemplateConnection, TransactionTemplateEdge, TrialBalance, UnfreezeEntry, UnknownEntry, UsdAmount, UsdBalanceDetails, UsdLedgerAccountBalance, UsdLedgerAccountBalanceRange, User, UserCreateInput, UserCreatePayload, UserUpdateRoleInput, UserUpdateRolePayload, VisibleNavigationItems, Wallet, Withdrawal, WithdrawalCancelInput, WithdrawalCancelPayload, WithdrawalConfirmInput, WithdrawalConfirmPayload, WithdrawalConnection, WithdrawalEdge, WithdrawalEntry, WithdrawalInitiateInput, WithdrawalInitiatePayload, WithdrawalRevertInput, WithdrawalRevertPayload, Activity, ApprovalProcessStatus, ApprovalProcessType, CollateralAction, CollateralizationState, ConfigType, CreditFacilitiesFilterBy, CreditFacilitiesSortBy, CreditFacilityProposalStatus, CreditFacilityRepaymentStatus, CreditFacilityRepaymentType, CreditFacilityStatus, CustomerType, CustomersFilterBy, CustomersSortBy, DebitOrCredit, DepositAccountStatus, DepositStatus, DisbursalPolicy, DisbursalStatus, DocumentStatus, InterestInterval, KycLevel, KycVerification, Layer, LoanAgreementStatus, PendingCreditFacilityCollateralizationState, PendingCreditFacilityStatus, Period, PermissionSetName, ReportRunState, ReportRunType, SortDirection, WalletNetwork, WithdrawalStatus } from './index';
 
 faker.seed(0);
+
+export const mockAccountingBaseConfigInput = (overrides?: Partial<AccountingBaseConfigInput>, _relationshipsToOmit: Set<string> = new Set()): AccountingBaseConfigInput => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('AccountingBaseConfigInput');
+    return {
+        assetsCode: overrides && overrides.hasOwnProperty('assetsCode') ? overrides.assetsCode! : faker.lorem.word(),
+        costOfRevenueCode: overrides && overrides.hasOwnProperty('costOfRevenueCode') ? overrides.costOfRevenueCode! : faker.lorem.word(),
+        equityCode: overrides && overrides.hasOwnProperty('equityCode') ? overrides.equityCode! : faker.lorem.word(),
+        equityRetainedEarningsGainCode: overrides && overrides.hasOwnProperty('equityRetainedEarningsGainCode') ? overrides.equityRetainedEarningsGainCode! : faker.lorem.word(),
+        equityRetainedEarningsLossCode: overrides && overrides.hasOwnProperty('equityRetainedEarningsLossCode') ? overrides.equityRetainedEarningsLossCode! : faker.lorem.word(),
+        expensesCode: overrides && overrides.hasOwnProperty('expensesCode') ? overrides.expensesCode! : faker.lorem.word(),
+        liabilitiesCode: overrides && overrides.hasOwnProperty('liabilitiesCode') ? overrides.liabilitiesCode! : faker.lorem.word(),
+        revenueCode: overrides && overrides.hasOwnProperty('revenueCode') ? overrides.revenueCode! : faker.lorem.word(),
+    };
+};
 
 export const mockAccountingCsvDocument = (overrides?: Partial<AccountingCsvDocument>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'AccountingCsvDocument' } & AccountingCsvDocument => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
@@ -245,20 +260,6 @@ export const mockBalanceSheetModuleConfig = (overrides?: Partial<BalanceSheetMod
         chartOfAccountsCostOfRevenueCode: overrides && overrides.hasOwnProperty('chartOfAccountsCostOfRevenueCode') ? overrides.chartOfAccountsCostOfRevenueCode! : faker.lorem.word(),
         chartOfAccountsEquityCode: overrides && overrides.hasOwnProperty('chartOfAccountsEquityCode') ? overrides.chartOfAccountsEquityCode! : faker.lorem.word(),
         chartOfAccountsExpensesCode: overrides && overrides.hasOwnProperty('chartOfAccountsExpensesCode') ? overrides.chartOfAccountsExpensesCode! : faker.lorem.word(),
-        chartOfAccountsId: overrides && overrides.hasOwnProperty('chartOfAccountsId') ? overrides.chartOfAccountsId! : generateMockValue.uuid(),
-        chartOfAccountsLiabilitiesCode: overrides && overrides.hasOwnProperty('chartOfAccountsLiabilitiesCode') ? overrides.chartOfAccountsLiabilitiesCode! : faker.lorem.word(),
-        chartOfAccountsRevenueCode: overrides && overrides.hasOwnProperty('chartOfAccountsRevenueCode') ? overrides.chartOfAccountsRevenueCode! : faker.lorem.word(),
-    };
-};
-
-export const mockBalanceSheetModuleConfigureInput = (overrides?: Partial<BalanceSheetModuleConfigureInput>, _relationshipsToOmit: Set<string> = new Set()): BalanceSheetModuleConfigureInput => {
-    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
-    relationshipsToOmit.add('BalanceSheetModuleConfigureInput');
-    return {
-        chartOfAccountsAssetsCode: overrides && overrides.hasOwnProperty('chartOfAccountsAssetsCode') ? overrides.chartOfAccountsAssetsCode! : faker.lorem.word(),
-        chartOfAccountsCostOfRevenueCode: overrides && overrides.hasOwnProperty('chartOfAccountsCostOfRevenueCode') ? overrides.chartOfAccountsCostOfRevenueCode! : faker.lorem.word(),
-        chartOfAccountsEquityCode: overrides && overrides.hasOwnProperty('chartOfAccountsEquityCode') ? overrides.chartOfAccountsEquityCode! : faker.lorem.word(),
-        chartOfAccountsExpensesCode: overrides && overrides.hasOwnProperty('chartOfAccountsExpensesCode') ? overrides.chartOfAccountsExpensesCode! : faker.lorem.word(),
         chartOfAccountsLiabilitiesCode: overrides && overrides.hasOwnProperty('chartOfAccountsLiabilitiesCode') ? overrides.chartOfAccountsLiabilitiesCode! : faker.lorem.word(),
         chartOfAccountsRevenueCode: overrides && overrides.hasOwnProperty('chartOfAccountsRevenueCode') ? overrides.chartOfAccountsRevenueCode! : faker.lorem.word(),
     };
@@ -400,19 +401,20 @@ export const mockChartOfAccountsAddRootNodePayload = (overrides?: Partial<ChartO
     };
 };
 
-export const mockChartOfAccountsCsvImportInput = (overrides?: Partial<ChartOfAccountsCsvImportInput>, _relationshipsToOmit: Set<string> = new Set()): ChartOfAccountsCsvImportInput => {
+export const mockChartOfAccountsCsvImportWithBaseConfigInput = (overrides?: Partial<ChartOfAccountsCsvImportWithBaseConfigInput>, _relationshipsToOmit: Set<string> = new Set()): ChartOfAccountsCsvImportWithBaseConfigInput => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
-    relationshipsToOmit.add('ChartOfAccountsCsvImportInput');
+    relationshipsToOmit.add('ChartOfAccountsCsvImportWithBaseConfigInput');
     return {
+        baseConfig: overrides && overrides.hasOwnProperty('baseConfig') ? overrides.baseConfig! : relationshipsToOmit.has('AccountingBaseConfigInput') ? {} as AccountingBaseConfigInput : mockAccountingBaseConfigInput({}, relationshipsToOmit),
         file: overrides && overrides.hasOwnProperty('file') ? overrides.file! : faker.lorem.word(),
     };
 };
 
-export const mockChartOfAccountsCsvImportPayload = (overrides?: Partial<ChartOfAccountsCsvImportPayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'ChartOfAccountsCsvImportPayload' } & ChartOfAccountsCsvImportPayload => {
+export const mockChartOfAccountsCsvImportWithBaseConfigPayload = (overrides?: Partial<ChartOfAccountsCsvImportWithBaseConfigPayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'ChartOfAccountsCsvImportWithBaseConfigPayload' } & ChartOfAccountsCsvImportWithBaseConfigPayload => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
-    relationshipsToOmit.add('ChartOfAccountsCsvImportPayload');
+    relationshipsToOmit.add('ChartOfAccountsCsvImportWithBaseConfigPayload');
     return {
-        __typename: 'ChartOfAccountsCsvImportPayload',
+        __typename: 'ChartOfAccountsCsvImportWithBaseConfigPayload',
         chartOfAccounts: overrides && overrides.hasOwnProperty('chartOfAccounts') ? overrides.chartOfAccounts! : relationshipsToOmit.has('ChartOfAccounts') ? {} as ChartOfAccounts : mockChartOfAccounts({}, relationshipsToOmit),
     };
 };
@@ -1377,6 +1379,16 @@ export const mockCustomerEmailUpdatePayload = (overrides?: Partial<CustomerEmail
     };
 };
 
+export const mockCustomerKycUpdatedPayload = (overrides?: Partial<CustomerKycUpdatedPayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CustomerKycUpdatedPayload' } & CustomerKycUpdatedPayload => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('CustomerKycUpdatedPayload');
+    return {
+        __typename: 'CustomerKycUpdatedPayload',
+        customer: overrides && overrides.hasOwnProperty('customer') ? overrides.customer! : relationshipsToOmit.has('Customer') ? {} as Customer : mockCustomer({}, relationshipsToOmit),
+        kycVerification: overrides && overrides.hasOwnProperty('kycVerification') ? overrides.kycVerification! : KycVerification.PendingVerification,
+    };
+};
+
 export const mockCustomerTelegramIdUpdateInput = (overrides?: Partial<CustomerTelegramIdUpdateInput>, _relationshipsToOmit: Set<string> = new Set()): CustomerTelegramIdUpdateInput => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CustomerTelegramIdUpdateInput');
@@ -1941,11 +1953,7 @@ export const mockFiscalYearModuleConfigureInput = (overrides?: Partial<FiscalYea
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('FiscalYearModuleConfigureInput');
     return {
-        costOfRevenueAccountCode: overrides && overrides.hasOwnProperty('costOfRevenueAccountCode') ? overrides.costOfRevenueAccountCode! : faker.lorem.word(),
-        equityRetainedEarningsAccountCode: overrides && overrides.hasOwnProperty('equityRetainedEarningsAccountCode') ? overrides.equityRetainedEarningsAccountCode! : faker.lorem.word(),
-        equityRetainedLossesAccountCode: overrides && overrides.hasOwnProperty('equityRetainedLossesAccountCode') ? overrides.equityRetainedLossesAccountCode! : faker.lorem.word(),
-        expensesAccountCode: overrides && overrides.hasOwnProperty('expensesAccountCode') ? overrides.expensesAccountCode! : faker.lorem.word(),
-        revenueAccountCode: overrides && overrides.hasOwnProperty('revenueAccountCode') ? overrides.revenueAccountCode! : faker.lorem.word(),
+        chartId: overrides && overrides.hasOwnProperty('chartId') ? overrides.chartId! : generateMockValue.uuid(),
     };
 };
 
@@ -2370,7 +2378,7 @@ export const mockMutation = (overrides?: Partial<Mutation>, _relationshipsToOmit
         balanceSheetConfigure: overrides && overrides.hasOwnProperty('balanceSheetConfigure') ? overrides.balanceSheetConfigure! : relationshipsToOmit.has('BalanceSheetModuleConfigurePayload') ? {} as BalanceSheetModuleConfigurePayload : mockBalanceSheetModuleConfigurePayload({}, relationshipsToOmit),
         chartOfAccountsAddChildNode: overrides && overrides.hasOwnProperty('chartOfAccountsAddChildNode') ? overrides.chartOfAccountsAddChildNode! : relationshipsToOmit.has('ChartOfAccountsAddChildNodePayload') ? {} as ChartOfAccountsAddChildNodePayload : mockChartOfAccountsAddChildNodePayload({}, relationshipsToOmit),
         chartOfAccountsAddRootNode: overrides && overrides.hasOwnProperty('chartOfAccountsAddRootNode') ? overrides.chartOfAccountsAddRootNode! : relationshipsToOmit.has('ChartOfAccountsAddRootNodePayload') ? {} as ChartOfAccountsAddRootNodePayload : mockChartOfAccountsAddRootNodePayload({}, relationshipsToOmit),
-        chartOfAccountsCsvImport: overrides && overrides.hasOwnProperty('chartOfAccountsCsvImport') ? overrides.chartOfAccountsCsvImport! : relationshipsToOmit.has('ChartOfAccountsCsvImportPayload') ? {} as ChartOfAccountsCsvImportPayload : mockChartOfAccountsCsvImportPayload({}, relationshipsToOmit),
+        chartOfAccountsCsvImportWithBaseConfig: overrides && overrides.hasOwnProperty('chartOfAccountsCsvImportWithBaseConfig') ? overrides.chartOfAccountsCsvImportWithBaseConfig! : relationshipsToOmit.has('ChartOfAccountsCsvImportWithBaseConfigPayload') ? {} as ChartOfAccountsCsvImportWithBaseConfigPayload : mockChartOfAccountsCsvImportWithBaseConfigPayload({}, relationshipsToOmit),
         committeeAddUser: overrides && overrides.hasOwnProperty('committeeAddUser') ? overrides.committeeAddUser! : relationshipsToOmit.has('CommitteeAddUserPayload') ? {} as CommitteeAddUserPayload : mockCommitteeAddUserPayload({}, relationshipsToOmit),
         committeeCreate: overrides && overrides.hasOwnProperty('committeeCreate') ? overrides.committeeCreate! : relationshipsToOmit.has('CommitteeCreatePayload') ? {} as CommitteeCreatePayload : mockCommitteeCreatePayload({}, relationshipsToOmit),
         committeeRemoveUser: overrides && overrides.hasOwnProperty('committeeRemoveUser') ? overrides.committeeRemoveUser! : relationshipsToOmit.has('CommitteeRemoveUserPayload') ? {} as CommitteeRemoveUserPayload : mockCommitteeRemoveUserPayload({}, relationshipsToOmit),
@@ -2654,16 +2662,6 @@ export const mockPolicyEdge = (overrides?: Partial<PolicyEdge>, _relationshipsTo
     };
 };
 
-export const mockProfitAndLossModuleConfigureInput = (overrides?: Partial<ProfitAndLossModuleConfigureInput>, _relationshipsToOmit: Set<string> = new Set()): ProfitAndLossModuleConfigureInput => {
-    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
-    relationshipsToOmit.add('ProfitAndLossModuleConfigureInput');
-    return {
-        chartOfAccountsCostOfRevenueCode: overrides && overrides.hasOwnProperty('chartOfAccountsCostOfRevenueCode') ? overrides.chartOfAccountsCostOfRevenueCode! : faker.lorem.word(),
-        chartOfAccountsExpensesCode: overrides && overrides.hasOwnProperty('chartOfAccountsExpensesCode') ? overrides.chartOfAccountsExpensesCode! : faker.lorem.word(),
-        chartOfAccountsRevenueCode: overrides && overrides.hasOwnProperty('chartOfAccountsRevenueCode') ? overrides.chartOfAccountsRevenueCode! : faker.lorem.word(),
-    };
-};
-
 export const mockProfitAndLossStatement = (overrides?: Partial<ProfitAndLossStatement>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'ProfitAndLossStatement' } & ProfitAndLossStatement => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('ProfitAndLossStatement');
@@ -2682,7 +2680,6 @@ export const mockProfitAndLossStatementModuleConfig = (overrides?: Partial<Profi
         __typename: 'ProfitAndLossStatementModuleConfig',
         chartOfAccountsCostOfRevenueCode: overrides && overrides.hasOwnProperty('chartOfAccountsCostOfRevenueCode') ? overrides.chartOfAccountsCostOfRevenueCode! : faker.lorem.word(),
         chartOfAccountsExpensesCode: overrides && overrides.hasOwnProperty('chartOfAccountsExpensesCode') ? overrides.chartOfAccountsExpensesCode! : faker.lorem.word(),
-        chartOfAccountsId: overrides && overrides.hasOwnProperty('chartOfAccountsId') ? overrides.chartOfAccountsId! : generateMockValue.uuid(),
         chartOfAccountsRevenueCode: overrides && overrides.hasOwnProperty('chartOfAccountsRevenueCode') ? overrides.chartOfAccountsRevenueCode! : faker.lorem.word(),
     };
 };
@@ -2868,6 +2865,15 @@ export const mockReportRunEdge = (overrides?: Partial<ReportRunEdge>, _relations
     };
 };
 
+export const mockReportRunUpdatedPayload = (overrides?: Partial<ReportRunUpdatedPayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'ReportRunUpdatedPayload' } & ReportRunUpdatedPayload => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('ReportRunUpdatedPayload');
+    return {
+        __typename: 'ReportRunUpdatedPayload',
+        reportRunId: overrides && overrides.hasOwnProperty('reportRunId') ? overrides.reportRunId! : generateMockValue.uuid(),
+    };
+};
+
 export const mockRole = (overrides?: Partial<Role>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'Role' } & Role => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('Role');
@@ -2963,10 +2969,12 @@ export const mockSubscription = (overrides?: Partial<Subscription>, _relationshi
         __typename: 'Subscription',
         creditFacilityCollateralizationUpdated: overrides && overrides.hasOwnProperty('creditFacilityCollateralizationUpdated') ? overrides.creditFacilityCollateralizationUpdated! : relationshipsToOmit.has('CreditFacilityCollateralizationPayload') ? {} as CreditFacilityCollateralizationPayload : mockCreditFacilityCollateralizationPayload({}, relationshipsToOmit),
         creditFacilityProposalConcluded: overrides && overrides.hasOwnProperty('creditFacilityProposalConcluded') ? overrides.creditFacilityProposalConcluded! : relationshipsToOmit.has('CreditFacilityProposalConcludedPayload') ? {} as CreditFacilityProposalConcludedPayload : mockCreditFacilityProposalConcludedPayload({}, relationshipsToOmit),
+        customerKycUpdated: overrides && overrides.hasOwnProperty('customerKycUpdated') ? overrides.customerKycUpdated! : relationshipsToOmit.has('CustomerKycUpdatedPayload') ? {} as CustomerKycUpdatedPayload : mockCustomerKycUpdatedPayload({}, relationshipsToOmit),
         ledgerAccountCsvExportUploaded: overrides && overrides.hasOwnProperty('ledgerAccountCsvExportUploaded') ? overrides.ledgerAccountCsvExportUploaded! : relationshipsToOmit.has('LedgerAccountCsvExportUploadedPayload') ? {} as LedgerAccountCsvExportUploadedPayload : mockLedgerAccountCsvExportUploadedPayload({}, relationshipsToOmit),
         pendingCreditFacilityCollateralizationUpdated: overrides && overrides.hasOwnProperty('pendingCreditFacilityCollateralizationUpdated') ? overrides.pendingCreditFacilityCollateralizationUpdated! : relationshipsToOmit.has('PendingCreditFacilityCollateralizationPayload') ? {} as PendingCreditFacilityCollateralizationPayload : mockPendingCreditFacilityCollateralizationPayload({}, relationshipsToOmit),
         pendingCreditFacilityCompleted: overrides && overrides.hasOwnProperty('pendingCreditFacilityCompleted') ? overrides.pendingCreditFacilityCompleted! : relationshipsToOmit.has('PendingCreditFacilityCompletedPayload') ? {} as PendingCreditFacilityCompletedPayload : mockPendingCreditFacilityCompletedPayload({}, relationshipsToOmit),
         realtimePriceUpdated: overrides && overrides.hasOwnProperty('realtimePriceUpdated') ? overrides.realtimePriceUpdated! : relationshipsToOmit.has('RealtimePrice') ? {} as RealtimePrice : mockRealtimePrice({}, relationshipsToOmit),
+        reportRunUpdated: overrides && overrides.hasOwnProperty('reportRunUpdated') ? overrides.reportRunUpdated! : relationshipsToOmit.has('ReportRunUpdatedPayload') ? {} as ReportRunUpdatedPayload : mockReportRunUpdatedPayload({}, relationshipsToOmit),
     };
 };
 

@@ -72,7 +72,7 @@ where
         governance: Arc<Governance<Perms, E>>,
         clock: es_entity::clock::ClockHandle,
     ) -> Result<Self, CreditFacilityProposalError> {
-        let repo = CreditFacilityProposalRepo::new(pool, publisher);
+        let repo = CreditFacilityProposalRepo::new(pool, publisher, clock.clone());
         match governance
             .init_policy(crate::APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS)
             .await

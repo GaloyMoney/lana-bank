@@ -8,7 +8,9 @@ use obix::out::OutboxEventMarker;
 
 use lana_app::accounting::CoreAccountingEvent;
 use lana_app::credit::CoreCreditEvent;
+use lana_app::customer::CoreCustomerEvent;
 use lana_app::price::CorePriceEvent;
+use lana_app::report::CoreReportEvent;
 use lana_app::{
     accounting_init::constants::{
         BALANCE_SHEET_NAME, PROFIT_AND_LOSS_STATEMENT_NAME, TRIAL_BALANCE_STATEMENT_NAME,
@@ -2237,23 +2239,29 @@ impl Mutation {
         )
     }
 
-    async fn chart_of_accounts_csv_import(
+    async fn chart_of_accounts_csv_import_with_base_config(
         &self,
         ctx: &Context<'_>,
-        input: ChartOfAccountsCsvImportInput,
-    ) -> async_graphql::Result<ChartOfAccountsCsvImportPayload> {
+        input: ChartOfAccountsCsvImportWithBaseConfigInput,
+    ) -> async_graphql::Result<ChartOfAccountsCsvImportWithBaseConfigPayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
         let mut file = input.file.value(ctx)?.content;
         let mut data = String::new();
         file.read_to_string(&mut data)?;
+
         exec_mutation!(
-            ChartOfAccountsCsvImportPayload,
+            ChartOfAccountsCsvImportWithBaseConfigPayload,
             ChartOfAccounts,
             ChartId,
             ctx,
-            app.accounting()
-                .import_csv(sub, CHART_REF.0, data, TRIAL_BALANCE_STATEMENT_NAME)
+            app.accounting().import_csv_with_base_config(
+                sub,
+                CHART_REF.0,
+                data,
+                input.base_config.try_into()?,
+                TRIAL_BALANCE_STATEMENT_NAME
+            )
         )
     }
 
@@ -2369,7 +2377,6 @@ impl Mutation {
     async fn balance_sheet_configure(
         &self,
         ctx: &Context<'_>,
-        input: BalanceSheetModuleConfigureInput,
     ) -> async_graphql::Result<BalanceSheetModuleConfigurePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
@@ -2379,26 +2386,6 @@ impl Mutation {
             .await?
             .unwrap_or_else(|| panic!("Chart of accounts not found for ref {CHART_REF:?}"));
 
-        let BalanceSheetModuleConfigureInput {
-            chart_of_accounts_assets_code,
-            chart_of_accounts_liabilities_code,
-            chart_of_accounts_equity_code,
-            chart_of_accounts_revenue_code,
-            chart_of_accounts_cost_of_revenue_code,
-            chart_of_accounts_expenses_code,
-        } = input;
-
-        let config_values = lana_app::balance_sheet::ChartOfAccountsIntegrationConfig {
-            chart_of_accounts_id: chart.id,
-            chart_of_accounts_assets_code: chart_of_accounts_assets_code.parse()?,
-            chart_of_accounts_liabilities_code: chart_of_accounts_liabilities_code.parse()?,
-            chart_of_accounts_equity_code: chart_of_accounts_equity_code.parse()?,
-            chart_of_accounts_revenue_code: chart_of_accounts_revenue_code.parse()?,
-            chart_of_accounts_cost_of_revenue_code: chart_of_accounts_cost_of_revenue_code
-                .parse()?,
-            chart_of_accounts_expenses_code: chart_of_accounts_expenses_code.parse()?,
-        };
-
         let config = app
             .accounting()
             .balance_sheets()
@@ -2406,7 +2393,6 @@ impl Mutation {
                 sub,
                 BALANCE_SHEET_NAME.to_string(),
                 chart.as_ref(),
-                config_values,
             )
             .await?;
         Ok(BalanceSheetModuleConfigurePayload::from(
@@ -2417,7 +2403,6 @@ impl Mutation {
     async fn profit_and_loss_statement_configure(
         &self,
         ctx: &Context<'_>,
-        input: ProfitAndLossModuleConfigureInput,
     ) -> async_graphql::Result<ProfitAndLossStatementModuleConfigurePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
@@ -2427,20 +2412,6 @@ impl Mutation {
             .await?
             .unwrap_or_else(|| panic!("Chart of accounts not found for ref {CHART_REF:?}"));
 
-        let ProfitAndLossModuleConfigureInput {
-            chart_of_accounts_revenue_code,
-            chart_of_accounts_cost_of_revenue_code,
-            chart_of_accounts_expenses_code,
-        } = input;
-
-        let config_values = lana_app::profit_and_loss::ChartOfAccountsIntegrationConfig {
-            chart_of_accounts_id: chart.id,
-            chart_of_accounts_revenue_code: chart_of_accounts_revenue_code.parse()?,
-            chart_of_accounts_cost_of_revenue_code: chart_of_accounts_cost_of_revenue_code
-                .parse()?,
-            chart_of_accounts_expenses_code: chart_of_accounts_expenses_code.parse()?,
-        };
-
         let config = app
             .accounting()
             .profit_and_loss()
@@ -2448,7 +2419,6 @@ impl Mutation {
                 sub,
                 PROFIT_AND_LOSS_STATEMENT_NAME.to_string(),
                 chart.as_ref(),
-                config_values,
             )
             .await?;
         Ok(ProfitAndLossStatementModuleConfigurePayload::from(
@@ -2463,26 +2433,9 @@ impl Mutation {
     ) -> async_graphql::Result<FiscalYearModuleConfigurePayload> {
         let (app, _sub) = app_and_sub_from_ctx!(ctx);
 
-        let FiscalYearModuleConfigureInput {
-            revenue_account_code,
-            cost_of_revenue_account_code,
-            expenses_account_code,
-            equity_retained_earnings_account_code,
-            equity_retained_losses_account_code,
-        } = input;
+        let FiscalYearModuleConfigureInput { chart_id } = input;
 
-        let config = lana_app::fiscal_year::FiscalYearConfig {
-            revenue_account_code,
-            cost_of_revenue_account_code,
-            expenses_account_code,
-            equity_retained_earnings_account_code,
-            equity_retained_losses_account_code,
-        };
-
-        app.accounting()
-            .fiscal_year()
-            .configure(config.clone())
-            .await?;
+        let config = app.accounting().fiscal_year().configure(chart_id).await?;
 
         Ok(FiscalYearModuleConfigurePayload::from(
             FiscalYearModuleConfig::from(config),
@@ -2579,6 +2532,39 @@ pub struct Subscription;
 
 #[Subscription]
 impl Subscription {
+    async fn customer_kyc_updated(
+        &self,
+        ctx: &Context<'_>,
+        customer_id: UUID,
+    ) -> async_graphql::Result<impl Stream<Item = CustomerKycUpdatedPayload>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let customer_id = CustomerId::from(customer_id);
+
+        app.customers()
+            .find_by_id(sub, customer_id)
+            .await?
+            .ok_or_else(|| Error::new("Customer not found"))?;
+
+        let stream = app.outbox().listen_persisted(None);
+        let updates = stream.filter_map(move |event| async move {
+            let payload = event.payload.as_ref()?;
+            let event: &CoreCustomerEvent = payload.as_event()?;
+            match event {
+                CoreCustomerEvent::CustomerAccountKycVerificationUpdated {
+                    id,
+                    kyc_verification,
+                    ..
+                } if *id == customer_id => Some(CustomerKycUpdatedPayload {
+                    customer_id: *id,
+                    kyc_verification: *kyc_verification,
+                }),
+                _ => None,
+            }
+        });
+
+        Ok(updates)
+    }
+
     async fn pending_credit_facility_collateralization_updated(
         &self,
         ctx: &Context<'_>,
@@ -2787,6 +2773,28 @@ impl Subscription {
             let event: &CorePriceEvent = event.payload.as_event()?;
             match event {
                 CorePriceEvent::PriceUpdated { price, .. } => Some(RealtimePrice::from(*price)),
+            }
+        });
+
+        Ok(updates)
+    }
+
+    async fn report_run_updated(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<impl Stream<Item = ReportRunUpdatedPayload>> {
+        let app = ctx.data_unchecked::<LanaApp>();
+
+        let stream = app.outbox().listen_persisted(None);
+        let updates = stream.filter_map(move |event| async move {
+            let payload = event.payload.as_ref()?;
+            let event: &CoreReportEvent = payload.as_event()?;
+            match event {
+                CoreReportEvent::ReportRunCreated { id }
+                | CoreReportEvent::ReportRunStateUpdated { id } => Some(ReportRunUpdatedPayload {
+                    report_run_id: UUID::from(*id),
+                }),
+                _ => None,
             }
         });
 

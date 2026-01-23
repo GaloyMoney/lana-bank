@@ -40,6 +40,17 @@ export type Scalars = {
   UsdCents: { input: UsdCents; output: UsdCents; }
 };
 
+export type AccountingBaseConfigInput = {
+  assetsCode: Scalars['String']['input'];
+  costOfRevenueCode: Scalars['String']['input'];
+  equityCode: Scalars['String']['input'];
+  equityRetainedEarningsGainCode: Scalars['String']['input'];
+  equityRetainedEarningsLossCode: Scalars['String']['input'];
+  expensesCode: Scalars['String']['input'];
+  liabilitiesCode: Scalars['String']['input'];
+  revenueCode: Scalars['String']['input'];
+};
+
 export type AccountingCsvDocument = {
   __typename?: 'AccountingCsvDocument';
   createdAt: Scalars['Timestamp']['output'];
@@ -194,18 +205,8 @@ export type BalanceSheetModuleConfig = {
   chartOfAccountsCostOfRevenueCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountsEquityCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountsExpensesCode?: Maybe<Scalars['String']['output']>;
-  chartOfAccountsId?: Maybe<Scalars['UUID']['output']>;
   chartOfAccountsLiabilitiesCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountsRevenueCode?: Maybe<Scalars['String']['output']>;
-};
-
-export type BalanceSheetModuleConfigureInput = {
-  chartOfAccountsAssetsCode: Scalars['String']['input'];
-  chartOfAccountsCostOfRevenueCode: Scalars['String']['input'];
-  chartOfAccountsEquityCode: Scalars['String']['input'];
-  chartOfAccountsExpensesCode: Scalars['String']['input'];
-  chartOfAccountsLiabilitiesCode: Scalars['String']['input'];
-  chartOfAccountsRevenueCode: Scalars['String']['input'];
 };
 
 export type BalanceSheetModuleConfigurePayload = {
@@ -292,12 +293,13 @@ export type ChartOfAccountsAddRootNodePayload = {
   chartOfAccounts: ChartOfAccounts;
 };
 
-export type ChartOfAccountsCsvImportInput = {
+export type ChartOfAccountsCsvImportWithBaseConfigInput = {
+  baseConfig: AccountingBaseConfigInput;
   file: Scalars['Upload']['input'];
 };
 
-export type ChartOfAccountsCsvImportPayload = {
-  __typename?: 'ChartOfAccountsCsvImportPayload';
+export type ChartOfAccountsCsvImportWithBaseConfigPayload = {
+  __typename?: 'ChartOfAccountsCsvImportWithBaseConfigPayload';
   chartOfAccounts: ChartOfAccounts;
 };
 
@@ -1051,6 +1053,12 @@ export type CustomerEmailUpdatePayload = {
   customer: Customer;
 };
 
+export type CustomerKycUpdatedPayload = {
+  __typename?: 'CustomerKycUpdatedPayload';
+  customer: Customer;
+  kycVerification: KycVerification;
+};
+
 export type CustomerTelegramIdUpdateInput = {
   customerId: Scalars['UUID']['input'];
   telegramId: Scalars['String']['input'];
@@ -1497,11 +1505,7 @@ export type FiscalYearModuleConfig = {
 };
 
 export type FiscalYearModuleConfigureInput = {
-  costOfRevenueAccountCode: Scalars['String']['input'];
-  equityRetainedEarningsAccountCode: Scalars['String']['input'];
-  equityRetainedLossesAccountCode: Scalars['String']['input'];
-  expensesAccountCode: Scalars['String']['input'];
-  revenueAccountCode: Scalars['String']['input'];
+  chartId: Scalars['UUID']['input'];
 };
 
 export type FiscalYearModuleConfigurePayload = {
@@ -1833,7 +1837,7 @@ export type Mutation = {
   balanceSheetConfigure: BalanceSheetModuleConfigurePayload;
   chartOfAccountsAddChildNode: ChartOfAccountsAddChildNodePayload;
   chartOfAccountsAddRootNode: ChartOfAccountsAddRootNodePayload;
-  chartOfAccountsCsvImport: ChartOfAccountsCsvImportPayload;
+  chartOfAccountsCsvImportWithBaseConfig: ChartOfAccountsCsvImportWithBaseConfigPayload;
   committeeAddUser: CommitteeAddUserPayload;
   committeeCreate: CommitteeCreatePayload;
   committeeRemoveUser: CommitteeRemoveUserPayload;
@@ -1909,11 +1913,6 @@ export type MutationApprovalProcessDenyArgs = {
 };
 
 
-export type MutationBalanceSheetConfigureArgs = {
-  input: BalanceSheetModuleConfigureInput;
-};
-
-
 export type MutationChartOfAccountsAddChildNodeArgs = {
   input: ChartOfAccountsAddChildNodeInput;
 };
@@ -1924,8 +1923,8 @@ export type MutationChartOfAccountsAddRootNodeArgs = {
 };
 
 
-export type MutationChartOfAccountsCsvImportArgs = {
-  input: ChartOfAccountsCsvImportInput;
+export type MutationChartOfAccountsCsvImportWithBaseConfigArgs = {
+  input: ChartOfAccountsCsvImportWithBaseConfigInput;
 };
 
 
@@ -2131,11 +2130,6 @@ export type MutationPendingCreditFacilityCollateralUpdateArgs = {
 
 export type MutationPolicyAssignCommitteeArgs = {
   input: PolicyAssignCommitteeInput;
-};
-
-
-export type MutationProfitAndLossStatementConfigureArgs = {
-  input: ProfitAndLossModuleConfigureInput;
 };
 
 
@@ -2413,12 +2407,6 @@ export type PolicyEdge = {
   node: Policy;
 };
 
-export type ProfitAndLossModuleConfigureInput = {
-  chartOfAccountsCostOfRevenueCode: Scalars['String']['input'];
-  chartOfAccountsExpensesCode: Scalars['String']['input'];
-  chartOfAccountsRevenueCode: Scalars['String']['input'];
-};
-
 export type ProfitAndLossStatement = {
   __typename?: 'ProfitAndLossStatement';
   categories: Array<LedgerAccount>;
@@ -2430,7 +2418,6 @@ export type ProfitAndLossStatementModuleConfig = {
   __typename?: 'ProfitAndLossStatementModuleConfig';
   chartOfAccountsCostOfRevenueCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountsExpensesCode?: Maybe<Scalars['String']['output']>;
-  chartOfAccountsId?: Maybe<Scalars['UUID']['output']>;
   chartOfAccountsRevenueCode?: Maybe<Scalars['String']['output']>;
 };
 
@@ -2906,6 +2893,11 @@ export enum ReportRunType {
   Scheduled = 'SCHEDULED'
 }
 
+export type ReportRunUpdatedPayload = {
+  __typename?: 'ReportRunUpdatedPayload';
+  reportRunId: Scalars['UUID']['output'];
+};
+
 export type Role = {
   __typename?: 'Role';
   createdAt: Scalars['Timestamp']['output'];
@@ -2973,10 +2965,12 @@ export type Subscription = {
   __typename?: 'Subscription';
   creditFacilityCollateralizationUpdated: CreditFacilityCollateralizationPayload;
   creditFacilityProposalConcluded: CreditFacilityProposalConcludedPayload;
+  customerKycUpdated: CustomerKycUpdatedPayload;
   ledgerAccountCsvExportUploaded: LedgerAccountCsvExportUploadedPayload;
   pendingCreditFacilityCollateralizationUpdated: PendingCreditFacilityCollateralizationPayload;
   pendingCreditFacilityCompleted: PendingCreditFacilityCompletedPayload;
   realtimePriceUpdated: RealtimePrice;
+  reportRunUpdated: ReportRunUpdatedPayload;
 };
 
 
@@ -2987,6 +2981,11 @@ export type SubscriptionCreditFacilityCollateralizationUpdatedArgs = {
 
 export type SubscriptionCreditFacilityProposalConcludedArgs = {
   creditFacilityProposalId: Scalars['UUID']['input'];
+};
+
+
+export type SubscriptionCustomerKycUpdatedArgs = {
+  customerId: Scalars['UUID']['input'];
 };
 
 
@@ -3426,12 +3425,12 @@ export type ChartOfAccountsQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type ChartOfAccountsQuery = { __typename?: 'Query', chartOfAccounts: { __typename?: 'ChartOfAccounts', id: string, chartId: string, name: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any }> }> }> }> }> }> }> }> }> }> }> }> }> }> } };
 
-export type ChartOfAccountsCsvImportMutationVariables = Exact<{
-  input: ChartOfAccountsCsvImportInput;
+export type ChartOfAccountsCsvImportWithBaseConfigMutationVariables = Exact<{
+  input: ChartOfAccountsCsvImportWithBaseConfigInput;
 }>;
 
 
-export type ChartOfAccountsCsvImportMutation = { __typename?: 'Mutation', chartOfAccountsCsvImport: { __typename?: 'ChartOfAccountsCsvImportPayload', chartOfAccounts: { __typename?: 'ChartOfAccounts', chartId: string } } };
+export type ChartOfAccountsCsvImportWithBaseConfigMutation = { __typename?: 'Mutation', chartOfAccountsCsvImportWithBaseConfig: { __typename?: 'ChartOfAccountsCsvImportWithBaseConfigPayload', chartOfAccounts: { __typename?: 'ChartOfAccounts', chartId: string } } };
 
 export type GetCommitteeDetailsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -3903,13 +3902,6 @@ export type GetCustomerDocumentsQueryVariables = Exact<{
 
 export type GetCustomerDocumentsQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, customerId: string, documents: Array<{ __typename?: 'CustomerDocument', id: string, filename: string, documentId: string }> } | null };
 
-export type GetKycStatusForCustomerQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
-}>;
-
-
-export type GetKycStatusForCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, kycVerification: KycVerification, level: KycLevel, applicantId?: string | null } | null };
-
 export type SumsubPermalinkCreateMutationVariables = Exact<{
   input: SumsubPermalinkCreateInput;
 }>;
@@ -3917,14 +3909,21 @@ export type SumsubPermalinkCreateMutationVariables = Exact<{
 
 export type SumsubPermalinkCreateMutation = { __typename?: 'Mutation', sumsubPermalinkCreate: { __typename?: 'SumsubPermalinkCreatePayload', url: string } };
 
-export type CustomerDetailsFragmentFragment = { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, kycVerification: KycVerification, activity: Activity, level: KycLevel, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null };
+export type CustomerDetailsFragmentFragment = { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, kycVerification: KycVerification, activity: Activity, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null };
 
 export type GetCustomerBasicDetailsQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
 }>;
 
 
-export type GetCustomerBasicDetailsQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, kycVerification: KycVerification, activity: Activity, level: KycLevel, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null } | null };
+export type GetCustomerBasicDetailsQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, kycVerification: KycVerification, activity: Activity, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null } | null };
+
+export type CustomerKycUpdatedSubscriptionVariables = Exact<{
+  customerId: Scalars['UUID']['input'];
+}>;
+
+
+export type CustomerKycUpdatedSubscription = { __typename?: 'Subscription', customerKycUpdated: { __typename?: 'CustomerKycUpdatedPayload', customer: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, kycVerification: KycVerification, activity: Activity, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null } } };
 
 export type GetCustomerCreditFacilitiesQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
@@ -4020,7 +4019,7 @@ export type DepositAccountCreateMutationVariables = Exact<{
 }>;
 
 
-export type DepositAccountCreateMutation = { __typename?: 'Mutation', depositAccountCreate: { __typename?: 'DepositAccountCreatePayload', account: { __typename?: 'DepositAccount', id: string, customer: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, kycVerification: KycVerification, activity: Activity, level: KycLevel, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null } } } };
+export type DepositAccountCreateMutation = { __typename?: 'Mutation', depositAccountCreate: { __typename?: 'DepositAccountCreatePayload', account: { __typename?: 'DepositAccount', id: string, customer: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, kycVerification: KycVerification, activity: Activity, level: KycLevel, applicantId?: string | null, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null } } } };
 
 export type DepositAccountFieldsFragment = { __typename?: 'DepositAccount', id: string, publicId: any, createdAt: any, status: DepositAccountStatus, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, customer: { __typename?: 'Customer', customerId: string, email: string, publicId: any } };
 
@@ -4354,12 +4353,10 @@ export type LiquidationsQueryVariables = Exact<{
 
 export type LiquidationsQuery = { __typename?: 'Query', liquidations: { __typename?: 'LiquidationConnection', edges: Array<{ __typename?: 'LiquidationEdge', cursor: string, node: { __typename?: 'Liquidation', id: string, liquidationId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: any, completed: boolean, creditFacility: { __typename?: 'CreditFacility', publicId: any } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
-export type BalanceSheetConfigureMutationVariables = Exact<{
-  input: BalanceSheetModuleConfigureInput;
-}>;
+export type BalanceSheetConfigureMutationVariables = Exact<{ [key: string]: never; }>;
 
 
-export type BalanceSheetConfigureMutation = { __typename?: 'Mutation', balanceSheetConfigure: { __typename?: 'BalanceSheetModuleConfigurePayload', balanceSheetConfig: { __typename?: 'BalanceSheetModuleConfig', chartOfAccountsId?: string | null, chartOfAccountsAssetsCode?: string | null, chartOfAccountsLiabilitiesCode?: string | null, chartOfAccountsEquityCode?: string | null, chartOfAccountsRevenueCode?: string | null, chartOfAccountsCostOfRevenueCode?: string | null, chartOfAccountsExpensesCode?: string | null } } };
+export type BalanceSheetConfigureMutation = { __typename?: 'Mutation', balanceSheetConfigure: { __typename?: 'BalanceSheetModuleConfigurePayload', balanceSheetConfig: { __typename?: 'BalanceSheetModuleConfig', chartOfAccountsAssetsCode?: string | null, chartOfAccountsLiabilitiesCode?: string | null, chartOfAccountsEquityCode?: string | null, chartOfAccountsRevenueCode?: string | null, chartOfAccountsCostOfRevenueCode?: string | null, chartOfAccountsExpensesCode?: string | null } } };
 
 export type CreditModuleConfigureMutationVariables = Exact<{
   input: CreditModuleConfigureInput;
@@ -4395,12 +4392,10 @@ export type ProfitAndLossStatementConfigQueryVariables = Exact<{ [key: string]: 
 
 export type ProfitAndLossStatementConfigQuery = { __typename?: 'Query', profitAndLossStatementConfig?: { __typename?: 'ProfitAndLossStatementModuleConfig', chartOfAccountsRevenueCode?: string | null, chartOfAccountsCostOfRevenueCode?: string | null, chartOfAccountsExpensesCode?: string | null } | null };
 
-export type ProfitAndLossStatementConfigureMutationVariables = Exact<{
-  input: ProfitAndLossModuleConfigureInput;
-}>;
+export type ProfitAndLossStatementConfigureMutationVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ProfitAndLossStatementConfigureMutation = { __typename?: 'Mutation', profitAndLossStatementConfigure: { __typename?: 'ProfitAndLossStatementModuleConfigurePayload', profitAndLossConfig: { __typename?: 'ProfitAndLossStatementModuleConfig', chartOfAccountsId?: string | null, chartOfAccountsRevenueCode?: string | null, chartOfAccountsCostOfRevenueCode?: string | null, chartOfAccountsExpensesCode?: string | null } } };
+export type ProfitAndLossStatementConfigureMutation = { __typename?: 'Mutation', profitAndLossStatementConfigure: { __typename?: 'ProfitAndLossStatementModuleConfigurePayload', profitAndLossConfig: { __typename?: 'ProfitAndLossStatementModuleConfig', chartOfAccountsRevenueCode?: string | null, chartOfAccountsCostOfRevenueCode?: string | null, chartOfAccountsExpensesCode?: string | null } } };
 
 export type PendingCreditFacilityLayoutFragmentFragment = { __typename?: 'PendingCreditFacility', id: string, pendingCreditFacilityId: string, approvalProcessId: string, createdAt: any, status: PendingCreditFacilityStatus, facilityAmount: UsdCents, collateralizationState: PendingCreditFacilityCollateralizationState, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, disbursalPolicy: DisbursalPolicy, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
       | { __typename: 'FiniteCVLPct', value: any }
@@ -4578,6 +4573,11 @@ export type ReportRunsQueryVariables = Exact<{
 
 
 export type ReportRunsQuery = { __typename?: 'Query', reportRuns: { __typename?: 'ReportRunConnection', edges: Array<{ __typename?: 'ReportRunEdge', cursor: string, node: { __typename?: 'ReportRun', id: string, reportRunId: string, startTime?: any | null, runType: ReportRunType, state: ReportRunState } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+
+export type ReportRunUpdatedSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ReportRunUpdatedSubscription = { __typename?: 'Subscription', reportRunUpdated: { __typename?: 'ReportRunUpdatedPayload', reportRunId: string } };
 
 export type RoleAddPermissionSetsMutationVariables = Exact<{
   input: RoleAddPermissionSetsInput;
@@ -5344,6 +5344,7 @@ export const CustomerDetailsFragmentFragmentDoc = gql`
   kycVerification
   activity
   level
+  applicantId
   customerType
   createdAt
   publicId
@@ -6351,41 +6352,41 @@ export type ChartOfAccountsQueryHookResult = ReturnType<typeof useChartOfAccount
 export type ChartOfAccountsLazyQueryHookResult = ReturnType<typeof useChartOfAccountsLazyQuery>;
 export type ChartOfAccountsSuspenseQueryHookResult = ReturnType<typeof useChartOfAccountsSuspenseQuery>;
 export type ChartOfAccountsQueryResult = Apollo.QueryResult<ChartOfAccountsQuery, ChartOfAccountsQueryVariables>;
-export const ChartOfAccountsCsvImportDocument = gql`
-    mutation ChartOfAccountsCsvImport($input: ChartOfAccountsCsvImportInput!) {
-  chartOfAccountsCsvImport(input: $input) {
+export const ChartOfAccountsCsvImportWithBaseConfigDocument = gql`
+    mutation ChartOfAccountsCsvImportWithBaseConfig($input: ChartOfAccountsCsvImportWithBaseConfigInput!) {
+  chartOfAccountsCsvImportWithBaseConfig(input: $input) {
     chartOfAccounts {
       chartId
     }
   }
 }
     `;
-export type ChartOfAccountsCsvImportMutationFn = Apollo.MutationFunction<ChartOfAccountsCsvImportMutation, ChartOfAccountsCsvImportMutationVariables>;
+export type ChartOfAccountsCsvImportWithBaseConfigMutationFn = Apollo.MutationFunction<ChartOfAccountsCsvImportWithBaseConfigMutation, ChartOfAccountsCsvImportWithBaseConfigMutationVariables>;
 
 /**
- * __useChartOfAccountsCsvImportMutation__
+ * __useChartOfAccountsCsvImportWithBaseConfigMutation__
  *
- * To run a mutation, you first call `useChartOfAccountsCsvImportMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useChartOfAccountsCsvImportMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useChartOfAccountsCsvImportWithBaseConfigMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useChartOfAccountsCsvImportWithBaseConfigMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [chartOfAccountsCsvImportMutation, { data, loading, error }] = useChartOfAccountsCsvImportMutation({
+ * const [chartOfAccountsCsvImportWithBaseConfigMutation, { data, loading, error }] = useChartOfAccountsCsvImportWithBaseConfigMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useChartOfAccountsCsvImportMutation(baseOptions?: Apollo.MutationHookOptions<ChartOfAccountsCsvImportMutation, ChartOfAccountsCsvImportMutationVariables>) {
+export function useChartOfAccountsCsvImportWithBaseConfigMutation(baseOptions?: Apollo.MutationHookOptions<ChartOfAccountsCsvImportWithBaseConfigMutation, ChartOfAccountsCsvImportWithBaseConfigMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<ChartOfAccountsCsvImportMutation, ChartOfAccountsCsvImportMutationVariables>(ChartOfAccountsCsvImportDocument, options);
+        return Apollo.useMutation<ChartOfAccountsCsvImportWithBaseConfigMutation, ChartOfAccountsCsvImportWithBaseConfigMutationVariables>(ChartOfAccountsCsvImportWithBaseConfigDocument, options);
       }
-export type ChartOfAccountsCsvImportMutationHookResult = ReturnType<typeof useChartOfAccountsCsvImportMutation>;
-export type ChartOfAccountsCsvImportMutationResult = Apollo.MutationResult<ChartOfAccountsCsvImportMutation>;
-export type ChartOfAccountsCsvImportMutationOptions = Apollo.BaseMutationOptions<ChartOfAccountsCsvImportMutation, ChartOfAccountsCsvImportMutationVariables>;
+export type ChartOfAccountsCsvImportWithBaseConfigMutationHookResult = ReturnType<typeof useChartOfAccountsCsvImportWithBaseConfigMutation>;
+export type ChartOfAccountsCsvImportWithBaseConfigMutationResult = Apollo.MutationResult<ChartOfAccountsCsvImportWithBaseConfigMutation>;
+export type ChartOfAccountsCsvImportWithBaseConfigMutationOptions = Apollo.BaseMutationOptions<ChartOfAccountsCsvImportWithBaseConfigMutation, ChartOfAccountsCsvImportWithBaseConfigMutationVariables>;
 export const GetCommitteeDetailsDocument = gql`
     query GetCommitteeDetails($id: UUID!) {
   committee(id: $id) {
@@ -7796,52 +7797,6 @@ export type GetCustomerDocumentsQueryHookResult = ReturnType<typeof useGetCustom
 export type GetCustomerDocumentsLazyQueryHookResult = ReturnType<typeof useGetCustomerDocumentsLazyQuery>;
 export type GetCustomerDocumentsSuspenseQueryHookResult = ReturnType<typeof useGetCustomerDocumentsSuspenseQuery>;
 export type GetCustomerDocumentsQueryResult = Apollo.QueryResult<GetCustomerDocumentsQuery, GetCustomerDocumentsQueryVariables>;
-export const GetKycStatusForCustomerDocument = gql`
-    query GetKycStatusForCustomer($id: UUID!) {
-  customer(id: $id) {
-    customerId
-    kycVerification
-    level
-    applicantId
-  }
-}
-    `;
-
-/**
- * __useGetKycStatusForCustomerQuery__
- *
- * To run a query within a React component, call `useGetKycStatusForCustomerQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetKycStatusForCustomerQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetKycStatusForCustomerQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetKycStatusForCustomerQuery(baseOptions: Apollo.QueryHookOptions<GetKycStatusForCustomerQuery, GetKycStatusForCustomerQueryVariables> & ({ variables: GetKycStatusForCustomerQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetKycStatusForCustomerQuery, GetKycStatusForCustomerQueryVariables>(GetKycStatusForCustomerDocument, options);
-      }
-export function useGetKycStatusForCustomerLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetKycStatusForCustomerQuery, GetKycStatusForCustomerQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetKycStatusForCustomerQuery, GetKycStatusForCustomerQueryVariables>(GetKycStatusForCustomerDocument, options);
-        }
-// @ts-ignore
-export function useGetKycStatusForCustomerSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetKycStatusForCustomerQuery, GetKycStatusForCustomerQueryVariables>): Apollo.UseSuspenseQueryResult<GetKycStatusForCustomerQuery, GetKycStatusForCustomerQueryVariables>;
-export function useGetKycStatusForCustomerSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetKycStatusForCustomerQuery, GetKycStatusForCustomerQueryVariables>): Apollo.UseSuspenseQueryResult<GetKycStatusForCustomerQuery | undefined, GetKycStatusForCustomerQueryVariables>;
-export function useGetKycStatusForCustomerSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetKycStatusForCustomerQuery, GetKycStatusForCustomerQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<GetKycStatusForCustomerQuery, GetKycStatusForCustomerQueryVariables>(GetKycStatusForCustomerDocument, options);
-        }
-export type GetKycStatusForCustomerQueryHookResult = ReturnType<typeof useGetKycStatusForCustomerQuery>;
-export type GetKycStatusForCustomerLazyQueryHookResult = ReturnType<typeof useGetKycStatusForCustomerLazyQuery>;
-export type GetKycStatusForCustomerSuspenseQueryHookResult = ReturnType<typeof useGetKycStatusForCustomerSuspenseQuery>;
-export type GetKycStatusForCustomerQueryResult = Apollo.QueryResult<GetKycStatusForCustomerQuery, GetKycStatusForCustomerQueryVariables>;
 export const SumsubPermalinkCreateDocument = gql`
     mutation sumsubPermalinkCreate($input: SumsubPermalinkCreateInput!) {
   sumsubPermalinkCreate(input: $input) {
@@ -7918,6 +7873,38 @@ export type GetCustomerBasicDetailsQueryHookResult = ReturnType<typeof useGetCus
 export type GetCustomerBasicDetailsLazyQueryHookResult = ReturnType<typeof useGetCustomerBasicDetailsLazyQuery>;
 export type GetCustomerBasicDetailsSuspenseQueryHookResult = ReturnType<typeof useGetCustomerBasicDetailsSuspenseQuery>;
 export type GetCustomerBasicDetailsQueryResult = Apollo.QueryResult<GetCustomerBasicDetailsQuery, GetCustomerBasicDetailsQueryVariables>;
+export const CustomerKycUpdatedDocument = gql`
+    subscription CustomerKycUpdated($customerId: UUID!) {
+  customerKycUpdated(customerId: $customerId) {
+    customer {
+      ...CustomerDetailsFragment
+    }
+  }
+}
+    ${CustomerDetailsFragmentFragmentDoc}`;
+
+/**
+ * __useCustomerKycUpdatedSubscription__
+ *
+ * To run a query within a React component, call `useCustomerKycUpdatedSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useCustomerKycUpdatedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCustomerKycUpdatedSubscription({
+ *   variables: {
+ *      customerId: // value for 'customerId'
+ *   },
+ * });
+ */
+export function useCustomerKycUpdatedSubscription(baseOptions: Apollo.SubscriptionHookOptions<CustomerKycUpdatedSubscription, CustomerKycUpdatedSubscriptionVariables> & ({ variables: CustomerKycUpdatedSubscriptionVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<CustomerKycUpdatedSubscription, CustomerKycUpdatedSubscriptionVariables>(CustomerKycUpdatedDocument, options);
+      }
+export type CustomerKycUpdatedSubscriptionHookResult = ReturnType<typeof useCustomerKycUpdatedSubscription>;
+export type CustomerKycUpdatedSubscriptionResult = Apollo.SubscriptionResult<CustomerKycUpdatedSubscription>;
 export const GetCustomerCreditFacilitiesDocument = gql`
     query GetCustomerCreditFacilities($id: PublicId!) {
   customerByPublicId(id: $id) {
@@ -9985,10 +9972,9 @@ export type LiquidationsLazyQueryHookResult = ReturnType<typeof useLiquidationsL
 export type LiquidationsSuspenseQueryHookResult = ReturnType<typeof useLiquidationsSuspenseQuery>;
 export type LiquidationsQueryResult = Apollo.QueryResult<LiquidationsQuery, LiquidationsQueryVariables>;
 export const BalanceSheetConfigureDocument = gql`
-    mutation BalanceSheetConfigure($input: BalanceSheetModuleConfigureInput!) {
-  balanceSheetConfigure(input: $input) {
+    mutation BalanceSheetConfigure {
+  balanceSheetConfigure {
     balanceSheetConfig {
-      chartOfAccountsId
       chartOfAccountsAssetsCode
       chartOfAccountsLiabilitiesCode
       chartOfAccountsEquityCode
@@ -10014,7 +10000,6 @@ export type BalanceSheetConfigureMutationFn = Apollo.MutationFunction<BalanceShe
  * @example
  * const [balanceSheetConfigureMutation, { data, loading, error }] = useBalanceSheetConfigureMutation({
  *   variables: {
- *      input: // value for 'input'
  *   },
  * });
  */
@@ -10339,10 +10324,9 @@ export type ProfitAndLossStatementConfigLazyQueryHookResult = ReturnType<typeof 
 export type ProfitAndLossStatementConfigSuspenseQueryHookResult = ReturnType<typeof useProfitAndLossStatementConfigSuspenseQuery>;
 export type ProfitAndLossStatementConfigQueryResult = Apollo.QueryResult<ProfitAndLossStatementConfigQuery, ProfitAndLossStatementConfigQueryVariables>;
 export const ProfitAndLossStatementConfigureDocument = gql`
-    mutation ProfitAndLossStatementConfigure($input: ProfitAndLossModuleConfigureInput!) {
-  profitAndLossStatementConfigure(input: $input) {
+    mutation ProfitAndLossStatementConfigure {
+  profitAndLossStatementConfigure {
     profitAndLossConfig {
-      chartOfAccountsId
       chartOfAccountsRevenueCode
       chartOfAccountsCostOfRevenueCode
       chartOfAccountsExpensesCode
@@ -10365,7 +10349,6 @@ export type ProfitAndLossStatementConfigureMutationFn = Apollo.MutationFunction<
  * @example
  * const [profitAndLossStatementConfigureMutation, { data, loading, error }] = useProfitAndLossStatementConfigureMutation({
  *   variables: {
- *      input: // value for 'input'
  *   },
  * });
  */
@@ -11069,6 +11052,35 @@ export type ReportRunsQueryHookResult = ReturnType<typeof useReportRunsQuery>;
 export type ReportRunsLazyQueryHookResult = ReturnType<typeof useReportRunsLazyQuery>;
 export type ReportRunsSuspenseQueryHookResult = ReturnType<typeof useReportRunsSuspenseQuery>;
 export type ReportRunsQueryResult = Apollo.QueryResult<ReportRunsQuery, ReportRunsQueryVariables>;
+export const ReportRunUpdatedDocument = gql`
+    subscription ReportRunUpdated {
+  reportRunUpdated {
+    reportRunId
+  }
+}
+    `;
+
+/**
+ * __useReportRunUpdatedSubscription__
+ *
+ * To run a query within a React component, call `useReportRunUpdatedSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useReportRunUpdatedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useReportRunUpdatedSubscription({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useReportRunUpdatedSubscription(baseOptions?: Apollo.SubscriptionHookOptions<ReportRunUpdatedSubscription, ReportRunUpdatedSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<ReportRunUpdatedSubscription, ReportRunUpdatedSubscriptionVariables>(ReportRunUpdatedDocument, options);
+      }
+export type ReportRunUpdatedSubscriptionHookResult = ReturnType<typeof useReportRunUpdatedSubscription>;
+export type ReportRunUpdatedSubscriptionResult = Apollo.SubscriptionResult<ReportRunUpdatedSubscription>;
 export const RoleAddPermissionSetsDocument = gql`
     mutation RoleAddPermissionSets($input: RoleAddPermissionSetsInput!) {
   roleAddPermissionSets(input: $input) {

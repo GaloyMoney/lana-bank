@@ -2,7 +2,7 @@ mod entity;
 pub mod error;
 mod repo;
 
-use es_entity::{DbOp, Idempotent, clock::ClockHandle};
+use es_entity::{DbOp, Idempotent};
 use std::collections::HashMap;
 use tracing::instrument;
 
@@ -11,7 +11,7 @@ use authz::{Authorization, PermissionCheck};
 use obix::out::{Outbox, OutboxEventMarker};
 use tracing_macros::record_error_severity;
 
-use crate::{Role, event::*, primitives::*, publisher::UserPublisher};
+use crate::{Role, primitives::*, public::*, publisher::UserPublisher};
 
 pub use entity::User;
 use entity::*;
@@ -31,7 +31,6 @@ where
 {
     authz: Authorization<Audit, AuthRoleToken>,
     repo: UserRepo<E>,
-    clock: ClockHandle,
 }
 
 impl<Audit, E> Clone for Users<Audit, E>
@@ -43,7 +42,6 @@ where
         Self {
             authz: self.authz.clone(),
             repo: self.repo.clone(),
-            clock: self.clock.clone(),
         }
     }
 }
@@ -63,12 +61,11 @@ where
         clock: es_entity::clock::ClockHandle,
     ) -> Result<Self, UserError> {
         let publisher = UserPublisher::new(outbox);
-        let repo = UserRepo::new(pool, &publisher);
+        let repo = UserRepo::new(pool, &publisher, clock);
 
         Ok(Self {
             repo,
             authz: authz.clone(),
-            clock,
         })
     }
 
@@ -102,7 +99,7 @@ where
 
         let email = email.into();
 
-        let mut db = self.repo.begin_op_with_clock(&self.clock).await?;
+        let mut db = self.repo.begin_op().await?;
 
         let new_user = NewUser::builder()
             .email(email.clone())

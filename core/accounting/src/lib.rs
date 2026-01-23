@@ -293,24 +293,24 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "core_accounting.import_csv", skip(self))]
-    pub async fn import_csv(
+    #[instrument(name = "core_accounting.import_csv_with_base_config", skip(self))]
+    pub async fn import_csv_with_base_config(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_ref: &str,
         data: String,
+        base_config: AccountingBaseConfig,
         trial_balance_ref: &str,
     ) -> Result<Chart, CoreAccountingError> {
         let (chart, new_account_set_ids) = self
             .chart_of_accounts()
-            .import_from_csv(sub, chart_ref, data)
+            .import_from_csv_with_base_config(sub, chart_ref, data, base_config)
             .await?;
         if let Some(new_account_set_ids) = new_account_set_ids {
             self.trial_balances()
                 .add_new_chart_accounts_to_trial_balance(trial_balance_ref, &new_account_set_ids)
                 .await?;
         }
-
         Ok(chart)
     }
 

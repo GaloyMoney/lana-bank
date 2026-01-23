@@ -218,6 +218,7 @@ jobs:
             passed:
               -  build-customer-portal-edge-image
           - get: dagster-edge-image
+            trigger: true
             params: { format: oci }
             passed:
               - build-dagster-edge-image
@@ -377,21 +378,18 @@ jobs:
     serial: true
     plan:
       - in_parallel:
+          - get: promote-rc-pr
+            trigger: true
           - get: repo
-            passed: 
-              - flake-check
-              - test-bats
-              - test-integration
+            passed: [ open-promote-rc-pr ]
           - get: pipeline-tasks
           - get: version
-            passed: [ build-rc ]
+            passed: [ open-promote-rc-pr ]
             params: { bump: final }
           - get: #@ app_src_resource_name("admin-panel")
-            passed:
-              -  #@ build_app_edge_image_name("admin-panel")
+            passed: [ build-rc ]
           - get: #@ app_src_resource_name("customer-portal")
-            passed:
-              -  #@ build_app_edge_image_name("customer-portal")
+            passed: [ build-rc ]
           - get: dagster-edge-image
             params: { format: oci }
             passed: [ build-rc ]
@@ -408,7 +406,7 @@ jobs:
               outputs:
                 - name: artifacts
               run:
-                path: pipeline-tasks/ci/vendor/tasks/prep-release-src.sh
+                path: pipeline-tasks/ci/tasks/prep-release-src.sh
           - task: prep-release-apps
             config:
               platform: linux
@@ -507,6 +505,7 @@ jobs:
           tag: artifacts/gh-release-tag
           body: artifacts/gh-release-notes.md
           globs: [binaries/*]
+          commitish: repo/.git/commit
       - task: prepare-docker-build
         config:
           platform: linux
@@ -758,7 +757,7 @@ jobs:
                   git config --global user.name "CI Bot"
                 fi
                 git add CHANGELOG.md
-                git commit -m "chore: release ${VERSION}"
+                git commit -m "chore: release ${VERSION} [ci skip]"
       - put: repo-bot-branch
         params:
           repository: repo
@@ -800,6 +799,18 @@ resources:
       branch: #@ data.values.git_promote_rc_branch
       private_key: #@ data.values.github_private_key
     webhook_token: ((webhook.secret))
+
+  - name: promote-rc-pr
+    type: pull-request
+    source:
+      repository: #@ data.values.gh_org + "/" + data.values.gh_repository
+      access_token: #@ data.values.github_token
+      base_branch: #@ data.values.git_branch
+      disable_forks: true
+      disable_ci_skip: true
+      states: [ "MERGED" ]
+      paths: [ "CHANGELOG.md" ]
+      labels: [ "promote-rc" ]
 
   - name: latest-image
     type: registry-image

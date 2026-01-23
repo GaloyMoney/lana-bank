@@ -6,6 +6,7 @@ members = [
   "lib/*",
   "dev/entity-rollups",
   "dev/check-dependency-dag",
+  "dev/public-events-schema",
   "workspace-hack",
 ]
 
@@ -64,7 +65,7 @@ sim-bootstrap = { path = "lana/sim-bootstrap" }
 user-onboarding = { path = "lana/user-onboarding" }
 
 # External dependencies
-es-entity = { version = "0.10.11", features = ["event-context", "tracing-context", "instrument"] }
+es-entity = { version = "0.10.13", features = ["event-context", "tracing-context", "instrument"] }
 cala-ledger = "0.13.8"
 job = { version = "0.6.3", features = ["es-entity"] }
 cala-cel-interpreter = "0.13.8"
