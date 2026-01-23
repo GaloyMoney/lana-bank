@@ -1,3 +1,20 @@
+## [0.37.0] - 2026-01-23
+
+### 🚀 Features
+
+- Sumsub empty table and dep mapping (#3438)
+- Add documentation site using docusaurus (#3370)
+- Introduce eod job and time events (#3406)
+
+### 🐛 Bug Fixes
+
+- Wait for CSV generation job to complete in e2e test (#3450)
+
+### ⚙️ Miscellaneous Tasks
+
+- Bring back all file reports (#3439)
+- Fix release and prep release (#3440)
+- Use `prev_version` in prep release script (#3441)
 ## [0.36.0] - 2026-01-23
 
 ### 🚀 Features
