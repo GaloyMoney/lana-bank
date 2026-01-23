@@ -17,7 +17,6 @@ from src.resources import RESOURCE_KEY_DW_BQ, BigQueryResource
 
 BITFINEX_SYSTEM_NAME = "bitfinex"
 
-# DLT table names (must match dlt resource names in src/dlt_resources/bitfinex.py)
 BITFINEX_TICKER_DLT_TABLE = "bitfinex_ticker_dlt"
 BITFINEX_TRADES_DLT_TABLE = "bitfinex_trades_dlt"
 BITFINEX_ORDER_BOOK_DLT_TABLE = "bitfinex_order_book_dlt"
