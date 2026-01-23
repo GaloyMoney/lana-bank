@@ -4,7 +4,7 @@ Domain Config provides type-safe, persistent configuration storage with two visi
 
 ## Supported Types
 
-Simple types: `bool`, `i64`, `u64`, `String`, `Decimal`.
+Simple types: `bool`, `i64`, `u64`, `String`, `Decimal`, `Timezone`, `Time`.
 
 Complex structs (internal configs only): Any struct implementing `Serialize` and `Deserialize`.
 
@@ -57,3 +57,20 @@ The `get()` method returns a `TypedDomainConfig<C>` wrapper. Call `.value()` on 
 - `None` - no value exists and no default was defined
 
 The caller doesn't need to know whether the value came from an explicit database entry or from the default defined at registration.
+
+### Read-Only Access for Internal Consumers
+
+For background jobs and internal processes that need to read exposed configs without user context, use `ExposedDomainConfigsReadOnly`:
+
+```rust
+let readonly_configs = ExposedDomainConfigsReadOnly::new(&pool);
+let typed_config = readonly_configs.get_without_audit::<MyConfig>().await?;
+```
+
+This service provides read-only access to exposed configs without requiring an authorization subject. Use this pattern when:
+
+- Background jobs need config values during execution
+- Internal processes operate without user context
+- You need to avoid the authorization overhead for read-only internal access
+
+The read-only service only supports reading - config updates still require the standard `ExposedDomainConfigs` service with proper authorization.

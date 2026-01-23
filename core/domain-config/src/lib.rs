@@ -5,7 +5,7 @@
 //!
 //! Type-safe, persistent configuration storage with two visibility levels.
 //!
-//! Supported simple types: `bool`, `i64`, `u64`, `String`, `Decimal`.
+//! Supported simple types: `bool`, `i64`, `u64`, `String`, `Decimal`, `Timezone`, `Time`.
 //! Internal configs also support complex structs. Exposed configs only support simple types.
 //!
 //! ## Defining Configs
@@ -106,6 +106,22 @@
 //!     let configs = domain_config::ExposedDomainConfigs::new(pool, authz);
 //!     let value = configs.get::<MyExposedSetting>(subject).await?.value();
 //!     configs.update::<MyExposedSetting>(subject, "new-value".into()).await?;
+//! #     Ok(())
+//! # }
+//! ```
+//!
+//! Use [`ExposedDomainConfigsReadOnly`] for read-only access without authorization
+//! (for background jobs and internal processes):
+//! ```no_run
+//! # domain_config::define_exposed_config! {
+//! #     pub struct MyExposedSetting(String);
+//! #     spec {
+//! #         key: "my-exposed-setting";
+//! #     }
+//! # }
+//! # async fn example(pool: &sqlx::PgPool) -> Result<(), domain_config::DomainConfigError> {
+//!     let configs = domain_config::ExposedDomainConfigsReadOnly::new(pool);
+//!     let value = configs.get_without_audit::<MyExposedSetting>().await?.value();
 //! #     Ok(())
 //! # }
 //! ```
