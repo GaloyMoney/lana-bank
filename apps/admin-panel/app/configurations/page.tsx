@@ -265,12 +265,16 @@ const parseDomainDraft = (
         return { errorKey: "domainConfigs.invalidTime" }
       }
 
-      // Basic format validation for HH:MM:SS
-      if (!/^\d{2}:\d{2}:\d{2}$/.test(text)) {
-        return { errorKey: "domainConfigs.invalidTime" }
+      // Accept HH:MM or HH:MM:SS, normalize to HH:MM:SS
+      if (/^\d{2}:\d{2}$/.test(text)) {
+        return { value: `${text}:00` }
       }
 
-      return { value: text }
+      if (/^\d{2}:\d{2}:\d{2}$/.test(text)) {
+        return { value: text }
+      }
+
+      return { errorKey: "domainConfigs.invalidTime" }
     }
     case ConfigType.Int: {
       const text = typeof draft === "string" ? draft.trim() : ""
@@ -390,7 +394,8 @@ const renderDomainInput = ({
           <Label htmlFor={inputId}>{label}</Label>
           <Input
             id={inputId}
-            placeholder="00:00:00"
+            type="time"
+            step="1"
             value={typeof value === "string" ? value : ""}
             disabled={disabled}
             onChange={(event) => onChange(event.target.value)}
