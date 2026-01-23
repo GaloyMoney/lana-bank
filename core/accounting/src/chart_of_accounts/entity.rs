@@ -13,7 +13,7 @@ use crate::{
     primitives::{AccountingBaseConfig, *},
 };
 
-use super::{error::*, tree};
+use super::{bulk_import::*, error::*, tree};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -132,6 +132,25 @@ impl Chart {
         journal_id: CalaJournalId,
     ) -> Idempotent<NewChartAccountDetails> {
         self.create_node_without_verifying_parent(spec, journal_id)
+    }
+
+    pub(super) fn import_accounts_and_initialize_config(
+        &mut self,
+        account_specs: Vec<AccountSpec>,
+        base_config: AccountingBaseConfig,
+        journal_id: CalaJournalId,
+    ) -> Result<Idempotent<BulkImportResult>, ChartOfAccountsError> {
+        let res = BulkAccountImport::new(self, journal_id).import(account_specs);
+
+        let config_already_applied = self
+            .initialize_base_config(base_config)?
+            .was_already_applied();
+
+        if config_already_applied && res.new_account_sets.is_empty() {
+            Ok(Idempotent::AlreadyApplied)
+        } else {
+            Ok(Idempotent::Executed(res))
+        }
     }
 
     pub(super) fn create_child_node(
@@ -301,11 +320,14 @@ impl Chart {
         self.base_config.clone()
     }
 
-    pub(super) fn set_base_config(
+    pub(super) fn initialize_base_config(
         &mut self,
         base_config: AccountingBaseConfig,
     ) -> Result<Idempotent<()>, ChartOfAccountsError> {
-        if self.base_config.is_some() {
+        if let Some(existing_config) = self.base_config.as_ref() {
+            if existing_config != &base_config {
+                return Err(ChartOfAccountsError::BaseConfigAlreadyInitializedWithDifferentConfig);
+            }
             return Ok(Idempotent::AlreadyApplied);
         }
 
@@ -837,7 +859,7 @@ mod test {
     }
 
     #[test]
-    fn set_base_config_fails_when_code_not_in_chart() {
+    fn initialize_base_config_fails_when_code_not_in_chart() {
         let mut chart = default_chart().0;
 
         let base_config = AccountingBaseConfig::try_new(
@@ -852,10 +874,184 @@ mod test {
         )
         .unwrap();
 
-        let res = chart.set_base_config(base_config);
+        let res = chart.initialize_base_config(base_config);
         assert!(matches!(
             res,
             Err(ChartOfAccountsError::CodeNotFoundInChart(_))
         ));
+    }
+
+    mod import_accounts_and_initialize_config {
+        use super::*;
+
+        fn account_specs_for_base_config() -> Vec<AccountSpec> {
+            vec![
+                AccountSpec {
+                    name: "Assets".parse().unwrap(),
+                    parent: None,
+                    code: code("1"),
+                    normal_balance_type: DebitOrCredit::Debit,
+                },
+                AccountSpec {
+                    name: "Liabilities".parse().unwrap(),
+                    parent: None,
+                    code: code("2"),
+                    normal_balance_type: DebitOrCredit::Credit,
+                },
+                AccountSpec {
+                    name: "Equity".parse().unwrap(),
+                    parent: None,
+                    code: code("3"),
+                    normal_balance_type: DebitOrCredit::Credit,
+                },
+                AccountSpec {
+                    name: "Retained Earnings Gain".parse().unwrap(),
+                    parent: Some(code("3")),
+                    code: code("3.1"),
+                    normal_balance_type: DebitOrCredit::Credit,
+                },
+                AccountSpec {
+                    name: "Retained Earnings Loss".parse().unwrap(),
+                    parent: Some(code("3")),
+                    code: code("3.2"),
+                    normal_balance_type: DebitOrCredit::Credit,
+                },
+                AccountSpec {
+                    name: "Revenue".parse().unwrap(),
+                    parent: None,
+                    code: code("4"),
+                    normal_balance_type: DebitOrCredit::Credit,
+                },
+                AccountSpec {
+                    name: "Cost of Revenue".parse().unwrap(),
+                    parent: None,
+                    code: code("5"),
+                    normal_balance_type: DebitOrCredit::Debit,
+                },
+                AccountSpec {
+                    name: "Expenses".parse().unwrap(),
+                    parent: None,
+                    code: code("6"),
+                    normal_balance_type: DebitOrCredit::Debit,
+                },
+            ]
+        }
+
+        fn base_config() -> AccountingBaseConfig {
+            AccountingBaseConfig::try_new(
+                code("1"),
+                code("2"),
+                code("3"),
+                code("3.1"),
+                code("3.2"),
+                code("4"),
+                code("5"),
+                code("6"),
+            )
+            .unwrap()
+        }
+
+        #[test]
+        fn first_call_returns_executed() {
+            let mut chart = chart_from(initial_events());
+            let journal_id = CalaJournalId::new();
+            let specs = account_specs_for_base_config();
+            let config = base_config();
+
+            let result = chart
+                .import_accounts_and_initialize_config(specs, config, journal_id)
+                .unwrap();
+
+            assert!(result.did_execute());
+            let bulk_result = result.expect("should be executed");
+            assert_eq!(bulk_result.new_account_sets.len(), 8);
+        }
+
+        #[test]
+        fn second_call_with_same_config_returns_already_applied() {
+            let mut chart = chart_from(initial_events());
+            let journal_id = CalaJournalId::new();
+            let specs = account_specs_for_base_config();
+            let config = base_config();
+
+            let first_result = chart
+                .import_accounts_and_initialize_config(specs.clone(), config.clone(), journal_id)
+                .unwrap();
+            assert!(first_result.did_execute());
+
+            hydrate_chart_of_accounts(&mut chart);
+
+            let second_result = chart
+                .import_accounts_and_initialize_config(specs, config, journal_id)
+                .unwrap();
+
+            assert!(second_result.was_already_applied());
+        }
+
+        #[test]
+        fn errors_when_called_with_different_config() {
+            let mut chart = chart_from(initial_events());
+            let journal_id = CalaJournalId::new();
+            let specs = account_specs_for_base_config();
+            let config = base_config();
+
+            let first_result = chart
+                .import_accounts_and_initialize_config(specs.clone(), config, journal_id)
+                .unwrap();
+            assert!(first_result.did_execute());
+
+            hydrate_chart_of_accounts(&mut chart);
+
+            let different_config = AccountingBaseConfig::try_new(
+                code("1"),
+                code("2"),
+                code("3"),
+                code("3.2"),
+                code("3.1"),
+                code("4"),
+                code("5"),
+                code("6"),
+            )
+            .unwrap();
+
+            let second_result =
+                chart.import_accounts_and_initialize_config(specs, different_config, journal_id);
+
+            assert!(matches!(
+                second_result,
+                Err(ChartOfAccountsError::BaseConfigAlreadyInitializedWithDifferentConfig)
+            ));
+        }
+
+        #[test]
+        fn returns_executed_with_additional_accounts_and_same_config() {
+            let mut chart = chart_from(initial_events());
+            let journal_id = CalaJournalId::new();
+            let specs = account_specs_for_base_config();
+            let config = base_config();
+
+            let first_result = chart
+                .import_accounts_and_initialize_config(specs.clone(), config.clone(), journal_id)
+                .unwrap();
+            assert!(first_result.did_execute());
+
+            hydrate_chart_of_accounts(&mut chart);
+
+            let mut extended_specs = specs;
+            extended_specs.push(AccountSpec {
+                name: "Cash".parse().unwrap(),
+                parent: Some(code("1")),
+                code: code("1.1"),
+                normal_balance_type: DebitOrCredit::Debit,
+            });
+
+            let second_result = chart
+                .import_accounts_and_initialize_config(extended_specs, config, journal_id)
+                .unwrap();
+
+            assert!(second_result.did_execute());
+            let bulk_result = second_result.expect("should be executed");
+            assert_eq!(bulk_result.new_account_sets.len(), 1);
+        }
     }
 }
