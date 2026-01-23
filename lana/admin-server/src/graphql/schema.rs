@@ -1930,41 +1930,20 @@ impl Mutation {
         )
     }
 
-    pub async fn credit_facility_collateral_update(
+    pub async fn collateral_update(
         &self,
         ctx: &Context<'_>,
-        input: CreditFacilityCollateralUpdateInput,
-    ) -> async_graphql::Result<CreditFacilityCollateralUpdatePayload> {
+        input: CollateralUpdateInput,
+    ) -> async_graphql::Result<CollateralUpdatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let CreditFacilityCollateralUpdateInput {
+        let CollateralUpdateInput {
             collateral_id,
             collateral,
             effective,
         } = input;
         exec_mutation!(
-            CreditFacilityCollateralUpdatePayload,
-            CreditFacility,
-            ctx,
-            app.credit()
-                .collaterals()
-                .update_collateral(sub, collateral_id, collateral, effective)
-        )
-    }
-
-    pub async fn pending_credit_facility_collateral_update(
-        &self,
-        ctx: &Context<'_>,
-        input: PendingCreditFacilityCollateralUpdateInput,
-    ) -> async_graphql::Result<PendingCreditFacilityCollateralUpdatePayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let PendingCreditFacilityCollateralUpdateInput {
-            collateral_id,
-            collateral,
-            effective,
-        } = input;
-        exec_mutation!(
-            PendingCreditFacilityCollateralUpdatePayload,
-            PendingCreditFacility,
+            CollateralUpdatePayload,
+            Collateral,
             ctx,
             app.credit()
                 .collaterals()
@@ -2039,15 +2018,15 @@ impl Mutation {
         &self,
         ctx: &Context<'_>,
         input: LiquidationRecordCollateralSentInput,
-    ) -> async_graphql::Result<LiquidationRecordCollateralSentPayload> {
+    ) -> async_graphql::Result<CollateralUpdatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         exec_mutation!(
-            LiquidationRecordCollateralSentPayload,
-            Liquidation,
+            CollateralUpdatePayload,
+            Collateral,
             ctx,
             app.credit().collaterals().send_collateral_to_liquidation(
                 sub,
-                input.liquidation_id.into(),
+                input.collateral_id,
                 input.amount
             )
         )

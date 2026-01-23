@@ -125,7 +125,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         collateral_id: impl Into<CollateralId> + std::fmt::Debug + Copy,
         amount_sent: Satoshis,
-    ) -> Result<(), CollateralError> {
+    ) -> Result<Collateral, CollateralError> {
         let collateral_id = collateral_id.into();
         let collateral = self.repo.find_by_id(collateral_id).await?;
 
@@ -143,7 +143,7 @@ where
         collateral_id: impl Into<CollateralId> + std::fmt::Debug + Copy,
         updated_collateral: Satoshis,
         effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
-    ) -> Result<(), CollateralError> {
+    ) -> Result<Collateral, CollateralError> {
         let collateral_id = collateral_id.into();
         let effective = effective.into();
 
@@ -165,7 +165,7 @@ where
             self.repo.update_in_op(&mut db, &mut collateral).await?;
             data
         } else {
-            return Ok(());
+            return Ok(collateral);
         };
 
         self.ledger
@@ -179,7 +179,7 @@ where
 
         db.commit().await?;
 
-        Ok(())
+        Ok(collateral)
     }
 
     pub async fn empty_up_collateral_in_op(

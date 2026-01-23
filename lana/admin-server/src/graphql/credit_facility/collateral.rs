@@ -15,7 +15,7 @@ pub struct Collateral {
     account_id: UUID,
 
     #[graphql(skip)]
-    entity: Arc<DomainCollateral>,
+    pub(crate) entity: Arc<DomainCollateral>,
 }
 
 impl From<DomainCollateral> for Collateral {

@@ -297,12 +297,12 @@ impl CreditFacility {
 }
 
 #[derive(InputObject)]
-pub struct CreditFacilityCollateralUpdateInput {
+pub struct CollateralUpdateInput {
     pub collateral_id: UUID,
     pub collateral: Satoshis,
     pub effective: Date,
 }
-crate::mutation_payload! { CreditFacilityCollateralUpdatePayload, credit_facility: CreditFacility }
+crate::mutation_payload! { CollateralUpdatePayload, collateral: Collateral }
 
 #[derive(InputObject)]
 pub struct CreditFacilityPartialPaymentRecordInput {
