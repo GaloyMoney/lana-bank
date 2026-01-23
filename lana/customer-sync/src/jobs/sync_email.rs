@@ -104,13 +104,13 @@ where
         message: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         match message.as_event() {
-            Some(event @ CoreCustomerEvent::CustomerEmailUpdated { id, email }) => {
+            Some(event @ CoreCustomerEvent::CustomerEmailUpdated { entity }) => {
                 message.inject_trace_parent();
                 Span::current().record("handled", true);
                 Span::current().record("event_type", event.as_ref());
 
                 self.keycloak_client
-                    .update_user_email((*id).into(), email.clone())
+                    .update_user_email(entity.id.into(), entity.email.clone())
                     .await?;
             }
             _ => {}

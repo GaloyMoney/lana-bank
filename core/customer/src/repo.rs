@@ -5,7 +5,7 @@ pub use es_entity::Sort;
 use es_entity::*;
 use obix::out::OutboxEventMarker;
 
-use crate::{event::CoreCustomerEvent, primitives::*, publisher::*};
+use crate::{primitives::*, public::CoreCustomerEvent, publisher::*};
 
 use super::{entity::*, error::*};
 

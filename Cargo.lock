@@ -1441,10 +1441,12 @@ dependencies = [
 name = "core-customer"
 version = "0.0.0"
 dependencies = [
+ "anyhow",
  "async-graphql",
  "audit",
  "authz",
  "chrono",
+ "cloud-storage",
  "derive_builder",
  "document-storage",
  "es-entity",
@@ -1460,9 +1462,11 @@ dependencies = [
  "sumsub",
  "thiserror 2.0.17",
  "tokio",
+ "tokio-stream",
  "tracing",
  "tracing-macros",
  "tracing-utils",
+ "uuid",
  "workspace-hack",
 ]
 

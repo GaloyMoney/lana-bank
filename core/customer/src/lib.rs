@@ -5,9 +5,9 @@ mod config;
 mod customer_activity_repo;
 mod entity;
 pub mod error;
-mod event;
 pub mod kyc;
 mod primitives;
+pub mod public;
 mod publisher;
 mod repo;
 
@@ -30,7 +30,7 @@ pub use customer_activity_repo::CustomerActivityRepo;
 pub use entity::Customer;
 use entity::*;
 use error::*;
-pub use event::*;
+pub use public::*;
 pub use primitives::*;
 pub use repo::{CustomerRepo, CustomersFilter, CustomersSortBy, Sort, customer_cursor::*};
 
