@@ -18,7 +18,7 @@ impl From<&ObligationType> for RepaymentType {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(tag = "type")]
 pub struct CreditFacilityRepaymentPlanEntry {
     pub repayment_type: RepaymentType,
@@ -37,6 +37,8 @@ pub struct CreditFacilityRepaymentPlanEntry {
 
     #[serde(default)]
     pub accrual_ledger_tx_id: Option<LedgerTxId>,
+    #[serde(default)]
+    pub applied_allocation_ids: Vec<PaymentAllocationId>,
 }
 
 impl PartialOrd for CreditFacilityRepaymentPlanEntry {

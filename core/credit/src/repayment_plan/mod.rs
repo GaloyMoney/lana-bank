@@ -3,8 +3,6 @@ pub mod error;
 mod jobs;
 mod repo;
 
-use std::collections::HashSet;
-
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -32,9 +30,6 @@ pub struct CreditFacilityRepaymentPlan {
     last_updated_on_sequence: EventSequence,
 
     pub entries: Vec<CreditFacilityRepaymentPlanEntry>,
-
-    #[serde(default)]
-    applied_allocations: HashSet<PaymentAllocationId>,
 }
 
 impl CreditFacilityRepaymentPlan {
@@ -71,6 +66,7 @@ impl CreditFacilityRepaymentPlan {
                 effective: activated_at.date_naive(),
 
                 accrual_ledger_tx_id: None,
+                applied_allocation_ids: vec![],
             })
         }
         disbursals.push(CreditFacilityRepaymentPlanEntry {
@@ -88,6 +84,7 @@ impl CreditFacilityRepaymentPlan {
             effective: activated_at.date_naive(),
 
             accrual_ledger_tx_id: None,
+            applied_allocation_ids: vec![],
         });
 
         disbursals
@@ -148,6 +145,7 @@ impl CreditFacilityRepaymentPlan {
                 effective: period.end.date_naive(),
 
                 accrual_ledger_tx_id: None,
+                applied_allocation_ids: vec![],
             });
 
             next_interest_period = period.next().truncate(maturity_date.start_of_day());
@@ -208,6 +206,7 @@ impl CreditFacilityRepaymentPlan {
                     effective: *effective,
 
                     accrual_ledger_tx_id: None,
+                    applied_allocation_ids: vec![],
                 };
                 if *obligation_type == ObligationType::Interest {
                     let effective = EffectiveDate::from(*effective);
@@ -247,6 +246,7 @@ impl CreditFacilityRepaymentPlan {
                     effective: *effective,
 
                     accrual_ledger_tx_id: Some(*ledger_tx_id),
+                    applied_allocation_ids: vec![],
                 };
 
                 let effective = EffectiveDate::from(*effective);
@@ -260,13 +260,14 @@ impl CreditFacilityRepaymentPlan {
                 amount,
                 ..
             } => {
-                if !self.applied_allocations.insert(*allocation_id) {
-                    return false;
-                }
-
                 if let Some(entry) = existing_obligations.iter_mut().find_map(|entry| {
                     (entry.obligation_id == Some(*obligation_id)).then_some(entry)
                 }) {
+                    // Skip if already processed (idempotent for replay)
+                    if entry.applied_allocation_ids.contains(allocation_id) {
+                        return false;
+                    }
+                    entry.applied_allocation_ids.push(*allocation_id);
                     entry.outstanding -= *amount;
                 } else {
                     return false;
