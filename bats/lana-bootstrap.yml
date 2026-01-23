@@ -31,7 +31,7 @@ app:
     chart_of_accounts_integration_config_path: "./bats/accounting-init/accounting-base-config.json"
 time:
   type: artificial
-  start_at: 2024-01-01T00:00:00Z
+  start_at: 2023-01-01T00:00:00Z
   mode:
     type: manual
 bootstrap:

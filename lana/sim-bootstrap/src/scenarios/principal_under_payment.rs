@@ -11,7 +11,7 @@ use tracing::{event, instrument};
 use crate::helpers;
 
 const ONE_DAY: Duration = Duration::from_secs(86400);
-const EVENT_WAIT_TIMEOUT: Duration = Duration::from_millis(50);
+const EVENT_WAIT_TIMEOUT: Duration = Duration::from_millis(100);
 
 #[instrument(
     name = "sim_bootstrap.principal_under_payment_scenario",
@@ -21,8 +21,8 @@ const EVENT_WAIT_TIMEOUT: Duration = Duration::from_millis(50);
 pub async fn principal_under_payment_scenario(
     sub: Subject,
     app: &LanaApp,
-    clock: ClockHandle,
-    clock_ctrl: ClockController,
+    clock: &ClockHandle,
+    clock_ctrl: &ClockController,
 ) -> anyhow::Result<()> {
     event!(
         tracing::Level::INFO,
@@ -33,6 +33,8 @@ pub async fn principal_under_payment_scenario(
     let deposit_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
     helpers::make_deposit(&sub, app, &customer_id, deposit_amount).await?;
 
+    // Jump to 240 days before real time
+    // Note: Don't clear_pending_wakes() - it would clear essential background jobs
     let target_time = Utc::now() - chrono::Duration::days(240);
     clock_ctrl.set_time(target_time);
 

@@ -14,7 +14,6 @@ use tracing::{Span, instrument};
 use lana_app::{app::LanaApp, primitives::*};
 use lana_events::*;
 use obix::out::PersistentOutboxEvent;
-use tokio::task::JoinHandle;
 
 use super::helpers;
 
@@ -28,39 +27,19 @@ pub async fn run(
     app: &LanaApp,
     clock: ClockHandle,
     clock_ctrl: ClockController,
-) -> anyhow::Result<Vec<JoinHandle<Result<(), anyhow::Error>>>> {
-    let handles = Vec::new();
-    let sub = *sub;
+) -> anyhow::Result<(), anyhow::Error> {
+    timely_payments::timely_payments_scenario(*sub, app, &clock, &clock_ctrl).await?;
+    interest_late::interest_late_scenario(*sub, app, &clock, &clock_ctrl).await?;
+    principal_late::principal_late_scenario(*sub, app, &clock, &clock_ctrl).await?;
+    disbursal_different_months::disbursal_different_months_scenario(*sub, app, &clock, &clock_ctrl)
+        .await?;
 
-    // Run scenarios sequentially - each uses a cloned clock controller
-    timely_payments::timely_payments_scenario(sub, app, clock.clone(), clock_ctrl.clone()).await?;
-    interest_late::interest_late_scenario(sub, app, clock.clone(), clock_ctrl.clone()).await?;
-    principal_late::principal_late_scenario(sub, app, clock.clone(), clock_ctrl.clone()).await?;
+    interest_under_payment::interest_under_payment_scenario(*sub, app, &clock, &clock_ctrl).await?;
 
-    disbursal_different_months::disbursal_different_months_scenario(
-        sub,
-        app,
-        clock.clone(),
-        clock_ctrl.clone(),
-    )
-    .await?;
+    principal_under_payment::principal_under_payment_scenario(*sub, app, &clock, &clock_ctrl)
+        .await?;
 
-    principal_under_payment::principal_under_payment_scenario(
-        sub,
-        app,
-        clock.clone(),
-        clock_ctrl.clone(),
-    )
-    .await?;
-    interest_under_payment::interest_under_payment_scenario(
-        sub,
-        app,
-        clock.clone(),
-        clock_ctrl.clone(),
-    )
-    .await?;
-
-    Ok(handles)
+    Ok(())
 }
 
 #[instrument(name = "sim_bootstrap.process_facility_lifecycle", skip(sub, app, clock), fields(customer_id = %customer_id, deposit_account_id = %deposit_account_id, proposal_id = tracing::field::Empty))]

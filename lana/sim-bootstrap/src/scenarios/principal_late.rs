@@ -12,7 +12,7 @@ use tracing::{event, instrument};
 use crate::helpers;
 
 const ONE_DAY: Duration = Duration::from_secs(86400);
-const EVENT_WAIT_TIMEOUT: Duration = Duration::from_millis(50);
+const EVENT_WAIT_TIMEOUT: Duration = Duration::from_millis(100);
 const ONE_MONTH_DAYS: i64 = 30;
 
 #[instrument(
@@ -23,8 +23,8 @@ const ONE_MONTH_DAYS: i64 = 30;
 pub async fn principal_late_scenario(
     sub: Subject,
     app: &LanaApp,
-    clock: ClockHandle,
-    clock_ctrl: ClockController,
+    clock: &ClockHandle,
+    clock_ctrl: &ClockController,
 ) -> anyhow::Result<()> {
     event!(tracing::Level::INFO, "Starting principal late scenario");
 
