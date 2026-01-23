@@ -1016,5 +1016,73 @@ mod test {
                 Err(ChartOfAccountsError::BaseConfigAlreadyInitializedWithDifferentConfig)
             ));
         }
+
+        #[test]
+        fn returns_executed_with_additional_accounts_and_same_config() {
+            let mut chart = chart_from(initial_events());
+            let journal_id = CalaJournalId::new();
+            let specs = account_specs_for_base_config();
+            let config = base_config();
+
+            let first_result = chart
+                .import_accounts_and_initialize_config(specs.clone(), config.clone(), journal_id)
+                .unwrap();
+            assert!(first_result.did_execute());
+
+            hydrate_chart_of_accounts(&mut chart);
+
+            let mut extended_specs = specs;
+            extended_specs.push(AccountSpec {
+                name: "Cash".parse().unwrap(),
+                parent: Some(code("1")),
+                code: code("1.1"),
+                normal_balance_type: DebitOrCredit::Debit,
+            });
+
+            let second_result = chart
+                .import_accounts_and_initialize_config(extended_specs, config, journal_id)
+                .unwrap();
+
+            assert!(second_result.did_execute());
+            let bulk_result = second_result.expect("should be executed");
+            assert_eq!(bulk_result.new_account_sets.len(), 1);
+        }
+
+        #[test]
+        fn import_accounts_and_initialize_config_attaches_to_existing_parent() {
+            let mut chart = chart_from(initial_events());
+            let journal_id = CalaJournalId::new();
+
+            let _ = chart
+                .import_accounts_and_initialize_config(
+                    account_specs_for_base_config(),
+                    base_config(),
+                    journal_id,
+                )
+                .unwrap();
+
+            hydrate_chart_of_accounts(&mut chart);
+
+            let parent_account_set_id = chart.account_set_id_from_code(&code("1")).unwrap();
+
+            let additional_specs = vec![AccountSpec {
+                name: "Current Assets".parse().unwrap(),
+                parent: Some(code("1")),
+                code: code("1.1"),
+                normal_balance_type: DebitOrCredit::Debit,
+            }];
+
+            let bulk_import = chart
+                .import_accounts_and_initialize_config(additional_specs, base_config(), journal_id)
+                .unwrap()
+                .unwrap();
+
+            assert_eq!(bulk_import.new_account_sets.len(), 1);
+            assert_eq!(bulk_import.new_connections.len(), 1);
+
+            let (parent_id, child_id) = bulk_import.new_connections[0];
+            assert_eq!(parent_id, parent_account_set_id);
+            assert_eq!(child_id, bulk_import.new_account_sets[0].id);
+        }
     }
 }
