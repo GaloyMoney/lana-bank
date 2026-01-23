@@ -17,9 +17,9 @@ export GH_TOKEN="$(ghtoken generate -b "${GH_APP_PRIVATE_KEY}" -i "${GH_APP_ID}"
 
 gh pr close ${BOT_BRANCH} || true
 gh pr create \
-  --title "chore: promote RC to ${VERSION} [ci skip]" \
+  --title "chore: promote RC to ${VERSION}" \
   --base ${BRANCH} \
   --body-file ../body.md \
   --head ${BOT_BRANCH} \
-  --label galoybot \
-  --label promote-rc
+  --label promote-rc \
+  --label galoybot
