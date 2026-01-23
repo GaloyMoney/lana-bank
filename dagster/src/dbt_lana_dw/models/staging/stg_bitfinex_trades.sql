@@ -4,7 +4,10 @@
     )
 }}
 
-with raw_bitfinex_trades as (select * from {{ source("bitfinex", "bitfinex_trades_dlt") }})
+with
+    raw_bitfinex_trades as (
+        select * from {{ source("bitfinex", "bitfinex_trades_dlt") }}
+    )
 select
     *,
     timestamp_micros(

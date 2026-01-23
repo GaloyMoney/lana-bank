@@ -2,13 +2,13 @@ import dlt
 from google.cloud import bigquery
 
 import dagster as dg
+from src.assets.lana import LANA_SYSTEM_NAME
 from src.core import Protoasset
 from src.dlt_destinations.bigquery import create_bigquery_destination
 from src.dlt_resources.sumsub import (
     SUMSUB_APPLICANTS_DLT_TABLE,
-    applicants as dlt_sumsub_applicants,
 )
-from src.assets.lana import LANA_SYSTEM_NAME
+from src.dlt_resources.sumsub import applicants as dlt_sumsub_applicants
 
 SUMSUB_SYSTEM_NAME = "sumsub"
 from src.resources import (
@@ -80,9 +80,7 @@ def ensure_sumsub_table_exists(
         table_name=SUMSUB_APPLICANTS_DLT_TABLE,
         schema=SUMSUB_APPLICANTS_DLT_SCHEMA,
     )
-    context.log.info(
-        f"Created empty table {SUMSUB_APPLICANTS_DLT_TABLE} in BigQuery."
-    )
+    context.log.info(f"Created empty table {SUMSUB_APPLICANTS_DLT_TABLE} in BigQuery.")
 
 
 def sumsub_protoasset() -> Protoasset:

@@ -183,7 +183,9 @@ all_el_target_protoassets = (
     + [sumsub_applicants_protoasset]
 )
 
-for dbt_protoasset in lana_dbt_protoassets(source_protoassets=all_el_target_protoassets):
+for dbt_protoasset in lana_dbt_protoassets(
+    source_protoassets=all_el_target_protoassets
+):
     definition_builder.add_asset_from_protoasset(dbt_protoasset)
 
 dbt_automation_sensor = build_dbt_automation_sensor(
