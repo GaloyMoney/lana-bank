@@ -368,6 +368,8 @@ enum ConfigType {
 	INT
 	UINT
 	DECIMAL
+	TIMEZONE
+	TIME
 	COMPLEX
 }
 

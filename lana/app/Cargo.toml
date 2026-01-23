@@ -35,6 +35,7 @@ core-price = { workspace = true }
 core-deposit = { workspace = true, features = ["graphql"] }
 core-accounting = { workspace = true, features = ["graphql"] }
 core-report = { workspace = true, features = ["graphql"] }
+core-time-events = { workspace = true }
 document-storage = { workspace = true, features = ["graphql"] }
 public-id = { workspace = true, features = ["graphql"] }
 audit = { workspace = true }

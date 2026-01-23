@@ -194,6 +194,8 @@
       "invalidInt": "Enter a valid integer",
       "invalidUint": "Enter a valid non-negative integer",
       "invalidDecimal": "Enter a decimal value",
+      "invalidTimezone": "Enter a valid timezone (e.g., UTC, America/New_York)",
+      "invalidTime": "Enter a valid time in HH:MM:SS format",
       "invalidJson": "Enter valid JSON",
       "invalidValue": "Enter a valid value"
     },
@@ -204,7 +206,15 @@
     "notification-email-from-name": {
       "title": "Notification from name",
       "description": "From name shown on outgoing notification emails."
-    }
+    },
+    "timezone": {                                                                                                                                            
+      "title": "Timezone",                                                                                                                                   
+      "description": "Timezone for end-of-day processing"                                                                                                    
+    },                                                                                                                                                       
+    "closing-time": {                                                                                                                                        
+      "title": "Closing Time",                                                                                                                               
+      "description": "Time when end-of-day processing runs (HH:MM:SS)"                                                                                       
+    }   
   },
   "interestInterval": {
     "endOfDay": "End of Day",

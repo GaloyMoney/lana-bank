@@ -5,7 +5,7 @@
 //!
 //! Type-safe, persistent configuration storage with two visibility levels.
 //!
-//! Supported simple types: `bool`, `i64`, `u64`, `String`, `Decimal`.
+//! Supported simple types: `bool`, `i64`, `u64`, `String`, `Decimal`, `Timezone`, `Time`.
 //! Internal configs also support complex structs. Exposed configs only support simple types.
 //!
 //! ## Defining Configs
@@ -110,6 +110,22 @@
 //! # }
 //! ```
 //!
+//! Use [`ExposedDomainConfigsReadOnly`] for read-only access without authorization
+//! (for background jobs and internal processes):
+//! ```no_run
+//! # domain_config::define_exposed_config! {
+//! #     pub struct MyExposedSetting(String);
+//! #     spec {
+//! #         key: "my-exposed-setting";
+//! #     }
+//! # }
+//! # async fn example(pool: &sqlx::PgPool) -> Result<(), domain_config::DomainConfigError> {
+//!     let configs = domain_config::ExposedDomainConfigsReadOnly::new(pool);
+//!     let value = configs.get_without_audit::<MyExposedSetting>().await?.value();
+//! #     Ok(())
+//! # }
+//! ```
+//!
 //! ## Config Lifecycle
 //!
 //! Using the `define_internal_config!` or `define_exposed_config!` macros automatically
@@ -175,6 +191,15 @@ where
     authz: Perms,
 }
 
+/// Read-only access to exposed domain configs without authorization.
+///
+/// Use for internal consumers (jobs, background processes) that need
+/// to read exposed config values without user context.
+#[derive(Clone)]
+pub struct ExposedDomainConfigsReadOnly {
+    repo: DomainConfigRepo,
+}
+
 impl InternalDomainConfigs {
     pub fn new(pool: &sqlx::PgPool) -> Self {
         let repo = DomainConfigRepo::new(pool);
@@ -212,6 +237,23 @@ impl InternalDomainConfigs {
     #[instrument(name = "domain_config.seed_registered", skip(self))]
     pub async fn seed_registered(&self) -> Result<(), DomainConfigError> {
         seed_registered_for_visibility(&self.repo, Visibility::Internal).await
+    }
+}
+
+impl ExposedDomainConfigsReadOnly {
+    pub fn new(pool: &sqlx::PgPool) -> Self {
+        let repo = DomainConfigRepo::new(pool);
+        Self { repo }
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "domain_config.get_without_audit", skip(self))]
+    pub async fn get_without_audit<C>(&self) -> Result<TypedDomainConfig<C>, DomainConfigError>
+    where
+        C: ExposedConfig,
+    {
+        let config = self.repo.find_by_key(C::KEY).await?;
+        TypedDomainConfig::new(config)
     }
 }
 

@@ -38,6 +38,8 @@ pub enum ApplicationError {
     AuditError(#[from] crate::audit::error::AuditError),
     #[error("ApplicationError - PriceError: {0}")]
     PriceError(#[from] crate::price::error::PriceError),
+    #[error("ApplicationError - TimeEventsError: {0}")]
+    TimeEventsError(#[from] crate::time_events::error::TimeEventsError),
     #[error("ApplicationError - AccountingInitError: {0}")]
     AccountingInitError(#[from] crate::accounting_init::error::AccountingInitError),
     #[error("ApplicationError - GovernanceError: {0}")]
@@ -102,6 +104,7 @@ impl ErrorSeverity for ApplicationError {
             Self::TracingError(e) => e.severity(),
             Self::CanNotCreateProposalForClosedOrFrozenAccount => Level::WARN,
             Self::ClosedOrFrozenAccount => Level::WARN,
+            Self::TimeEventsError(e) => e.severity(),
         }
     }
 }

@@ -217,3 +217,8 @@ pub mod contract_creation {
         lana_events::LanaEvent,
     >;
 }
+
+pub mod time_events {
+    pub type TimeEvents = core_time_events::TimeEvents;
+    pub use core_time_events::error;
+}

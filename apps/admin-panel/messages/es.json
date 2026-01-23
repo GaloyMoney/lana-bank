@@ -194,6 +194,8 @@
       "invalidInt": "Ingresa un número entero válido",
       "invalidUint": "Ingresa un número entero no negativo válido",
       "invalidDecimal": "Ingresa un valor decimal",
+      "invalidTimezone": "Ingresa una zona horaria válida (ej., UTC, America/New_York)",
+      "invalidTime": "Ingresa una hora válida en formato HH:MM:SS",
       "invalidJson": "Ingresa un JSON válido",
       "invalidValue": "Ingresa un valor válido"
     },
@@ -204,6 +206,14 @@
     "notification-email-from-name": {
       "title": "Nombre del remitente de notificaciones",
       "description": "Nombre mostrado como remitente en los correos de notificación."
+    },
+    "timezone": {
+      "title": "Zona horaria",
+      "description": "Zona horaria para el procesamiento de fin de día"
+    },
+    "closing-time": {
+      "title": "Hora de cierre",
+      "description": "Hora en que se ejecuta el procesamiento de fin de día (HH:MM:SS)"
     }
   },
   "interestInterval": {

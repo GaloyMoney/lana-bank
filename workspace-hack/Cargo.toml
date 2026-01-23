@@ -28,6 +28,7 @@ cala-cel-interpreter = { version = "0.13", default-features = false, features = 
 cala-ledger = { version = "0.13", default-features = false, features = ["graphql", "json-schema"] }
 cala-ledger-core-types = { version = "0.13", default-features = false, features = ["graphql", "json-schema"] }
 chrono = { version = "0.4", features = ["serde"] }
+chrono-tz = { version = "0.10", features = ["serde"] }
 cipher = { version = "0.4", default-features = false, features = ["block-padding", "zeroize"] }
 clap = { version = "4", features = ["derive", "env"] }
 clap_builder = { version = "4", default-features = false, features = ["color", "env", "help", "std", "suggestions", "usage"] }
@@ -111,6 +112,7 @@ cala-ledger = { version = "0.13", default-features = false, features = ["graphql
 cala-ledger-core-types = { version = "0.13", default-features = false, features = ["graphql", "json-schema"] }
 cc = { version = "1", default-features = false, features = ["parallel"] }
 chrono = { version = "0.4", features = ["serde"] }
+chrono-tz = { version = "0.10", features = ["serde"] }
 cipher = { version = "0.4", default-features = false, features = ["block-padding", "zeroize"] }
 clap = { version = "4", features = ["derive", "env"] }
 clap_builder = { version = "4", default-features = false, features = ["color", "env", "help", "std", "suggestions", "usage"] }
@@ -202,6 +204,7 @@ ignored = [
     "cala-ledger",
     "cala-ledger-core-types",
     "chrono",
+    "chrono-tz",
     "cipher",
     "clap",
     "clap_builder",

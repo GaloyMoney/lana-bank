@@ -19,6 +19,8 @@ pub enum ConfigType {
     Int,
     Uint,
     Decimal,
+    Timezone,
+    Time,
     Complex,
 }
 
@@ -30,6 +32,8 @@ impl ConfigType {
             ConfigType::Int => "int",
             ConfigType::Uint => "uint",
             ConfigType::Decimal => "decimal",
+            ConfigType::Timezone => "timezone",
+            ConfigType::Time => "time",
             ConfigType::Complex => "complex",
         }
     }

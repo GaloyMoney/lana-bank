@@ -400,6 +400,8 @@ export enum ConfigType {
   Decimal = 'DECIMAL',
   Int = 'INT',
   String = 'STRING',
+  Time = 'TIME',
+  Timezone = 'TIMEZONE',
   Uint = 'UINT'
 }
 
