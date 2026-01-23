@@ -51,6 +51,7 @@ pub async fn interest_under_payment_scenario(
         .conclude_customer_approval(&sub, proposal_id, true)
         .await?;
 
+    let mut days_waiting_for_approval = 0;
     loop {
         tokio::select! {
             Some(msg) = stream.next() => {
@@ -74,6 +75,10 @@ pub async fn interest_under_payment_scenario(
             }
             _ = tokio::time::sleep(EVENT_WAIT_TIMEOUT) => {
                 clock_ctrl.advance(ONE_DAY).await;
+                days_waiting_for_approval += 1;
+                if days_waiting_for_approval > 30 {
+                    anyhow::bail!("Proposal approval timed out after 30 days");
+                }
             }
         }
     }
@@ -87,6 +92,7 @@ pub async fn interest_under_payment_scenario(
         )
         .await?;
 
+    let mut days_waiting_for_activation = 0;
     loop {
         tokio::select! {
             Some(msg) = stream.next() => {
@@ -99,6 +105,10 @@ pub async fn interest_under_payment_scenario(
             }
             _ = tokio::time::sleep(EVENT_WAIT_TIMEOUT) => {
                 clock_ctrl.advance(ONE_DAY).await;
+                days_waiting_for_activation += 1;
+                if days_waiting_for_activation > 30 {
+                    anyhow::bail!("Facility activation timed out after 30 days");
+                }
             }
         }
     }

@@ -51,6 +51,7 @@ pub async fn principal_under_payment_scenario(
         .conclude_customer_approval(&sub, proposal_id, true)
         .await?;
 
+    let mut days_waiting_for_approval = 0;
     loop {
         tokio::select! {
             Some(msg) = stream.next() => {
@@ -74,6 +75,10 @@ pub async fn principal_under_payment_scenario(
             }
             _ = tokio::time::sleep(EVENT_WAIT_TIMEOUT) => {
                 clock_ctrl.advance(ONE_DAY).await;
+                days_waiting_for_approval += 1;
+                if days_waiting_for_approval > 30 {
+                    anyhow::bail!("Proposal approval timed out after 30 days");
+                }
             }
         }
     }
@@ -87,6 +92,7 @@ pub async fn principal_under_payment_scenario(
         )
         .await?;
 
+    let mut days_waiting_for_activation = 0;
     loop {
         tokio::select! {
             Some(msg) = stream.next() => {
@@ -99,12 +105,20 @@ pub async fn principal_under_payment_scenario(
             }
             _ = tokio::time::sleep(EVENT_WAIT_TIMEOUT) => {
                 clock_ctrl.advance(ONE_DAY).await;
+                days_waiting_for_activation += 1;
+                if days_waiting_for_activation > 30 {
+                    anyhow::bail!("Facility activation timed out after 30 days");
+                }
             }
         }
     }
 
     let mut principal_remaining = UsdCents::ZERO;
     let mut scenario_done = false;
+    let mut days_in_main_loop = 0;
+
+    // 3-month term + buffer for async processing
+    const MAX_DAYS_IN_MAIN_LOOP: i32 = 120;
 
     while !scenario_done {
         tokio::select! {
@@ -129,6 +143,7 @@ pub async fn principal_under_payment_scenario(
             }
             _ = tokio::time::sleep(EVENT_WAIT_TIMEOUT) => {
                 clock_ctrl.advance(ONE_DAY).await;
+                days_in_main_loop += 1;
 
                 if principal_remaining > UsdCents::ZERO {
                     let facility = app.credit().facilities().find_by_id(&sub, cf_id).await?.unwrap();
@@ -137,6 +152,10 @@ pub async fn principal_under_payment_scenario(
                     if total_outstanding == principal_remaining {
                         scenario_done = true;
                     }
+                }
+
+                if days_in_main_loop > MAX_DAYS_IN_MAIN_LOOP {
+                    anyhow::bail!("Principal under payment scenario timed out after {} days", MAX_DAYS_IN_MAIN_LOOP);
                 }
             }
         }
