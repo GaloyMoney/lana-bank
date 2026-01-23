@@ -1044,10 +1044,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "145052bdd345b87320e369255277e3fb5152762ad123a901ef5c262dd38fe8d2"
 dependencies = [
  "iana-time-zone",
- "js-sys",
  "num-traits",
  "serde",
- "wasm-bindgen",
  "windows-link 0.2.1",
 ]
 
@@ -4874,7 +4872,6 @@ dependencies = [
  "base64 0.22.1",
  "bytes",
  "encoding_rs",
- "futures-channel",
  "futures-core",
  "futures-util",
  "h2",
@@ -5871,15 +5868,6 @@ dependencies = [
  "libc",
  "psm",
  "windows-sys 0.59.0",
-]
-
-[[package]]
-name = "standback"
-version = "0.2.17"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e113fb6f3de07a243d434a56ec6f186dfd51cb08448239fe7bcae73f87ff28ff"
-dependencies = [
- "version_check",
 ]
 
 [[package]]
@@ -7375,7 +7363,6 @@ name = "workspace-hack"
 version = "0.1.0"
 dependencies = [
  "ahash 0.8.12",
- "arrayvec",
  "async-graphql",
  "axum",
  "base16ct",
@@ -7389,12 +7376,9 @@ dependencies = [
  "chrono",
  "chrono-tz",
  "cipher",
- "clap",
- "clap_builder",
  "crossbeam-utils",
  "crypto-common",
  "der",
- "deranged",
  "digest",
  "ecdsa",
  "either",
@@ -7449,10 +7433,8 @@ dependencies = [
  "sqlx-macros",
  "sqlx-macros-core",
  "sqlx-postgres",
- "standback",
  "subtle",
  "syn 2.0.114",
- "time",
  "tokio",
  "tokio-stream",
  "tokio-util",
