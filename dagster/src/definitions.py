@@ -15,6 +15,11 @@ from src.assets import (
     lana_to_dw_el_protoassets,
     sumsub_protoasset,
 )
+from src.assets.bitfinex import (
+    BITFINEX_ORDER_BOOK_DLT_TABLE,
+    BITFINEX_TICKER_DLT_TABLE,
+    BITFINEX_TRADES_DLT_TABLE,
+)
 from src.core import Protoasset, lana_assetifier
 from src.otel import init_telemetry
 from src.resources import get_project_resources
@@ -102,15 +107,15 @@ definition_builder.add_asset_from_protoasset(
     Protoasset(key=dg.AssetKey("iris_dataset_size"), callable=iris_dataset_size)
 )
 
-bitfinex_protoassets = bitfinex_protoassets()
+bitfinex_protoassets_dict = bitfinex_protoassets()
 bitfinex_ticker_asset = definition_builder.add_asset_from_protoasset(
-    bitfinex_protoassets["bitfinex_ticker"]
+    bitfinex_protoassets_dict[BITFINEX_TICKER_DLT_TABLE]
 )
 bitfinex_trades_asset = definition_builder.add_asset_from_protoasset(
-    bitfinex_protoassets["bitfinex_trades"]
+    bitfinex_protoassets_dict[BITFINEX_TRADES_DLT_TABLE]
 )
 bitfinex_order_book_asset = definition_builder.add_asset_from_protoasset(
-    bitfinex_protoassets["bitfinex_order_book"]
+    bitfinex_protoassets_dict[BITFINEX_ORDER_BOOK_DLT_TABLE]
 )
 
 bitfinex_ticker_job = definition_builder.add_job_from_assets(
@@ -172,7 +177,15 @@ lana_to_dw_el_job = definition_builder.add_job_from_assets(
 )
 definition_builder.add_job_schedule(job=lana_to_dw_el_job, cron_expression="0 0 * * *")
 
-for dbt_protoasset in lana_dbt_protoassets(source_protoassets=lana_el_protoassets):
+all_el_target_protoassets = (
+    lana_el_protoassets
+    + list(bitfinex_protoassets_dict.values())
+    + [sumsub_applicants_protoasset]
+)
+
+for dbt_protoasset in lana_dbt_protoassets(
+    source_protoassets=all_el_target_protoassets
+):
     definition_builder.add_asset_from_protoasset(dbt_protoasset)
 
 dbt_automation_sensor = build_dbt_automation_sensor(
