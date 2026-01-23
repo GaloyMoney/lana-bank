@@ -16,7 +16,6 @@ import {
 } from "@lana/web/ui/card"
 import { Button } from "@lana/web/ui/button"
 import { Input } from "@lana/web/ui/input"
-import { Label } from "@lana/web/ui/label"
 import { Checkbox } from "@lana/web/ui/checkbox"
 import { Popover, PopoverContent, PopoverTrigger } from "@lana/web/ui/popover"
 import {
@@ -207,7 +206,6 @@ export default function ConfigurationsPage() {
                         ...prev,
                         [config.key]: nextValue,
                       })),
-                    label: t("domainConfigs.valueLabel"),
                   })}
                 </CardContent>
                 <CardFooter className="justify-end">
@@ -394,7 +392,6 @@ type RenderDomainInputArgs = {
   value: string | boolean | undefined
   disabled: boolean
   onChange: (value: string | boolean) => void
-  label: string
 }
 
 const renderDomainInput = ({
@@ -403,86 +400,67 @@ const renderDomainInput = ({
   value,
   disabled,
   onChange,
-  label,
 }: RenderDomainInputArgs) => {
   switch (config.configType) {
     case ConfigType.Bool:
       return (
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id={inputId}
-            checked={value === true}
-            disabled={disabled}
-            onCheckedChange={(checked) => onChange(checked === true)}
-          />
-          <Label htmlFor={inputId}>{label}</Label>
-        </div>
+        <Checkbox
+          id={inputId}
+          checked={value === true}
+          disabled={disabled}
+          onCheckedChange={(checked) => onChange(checked === true)}
+        />
       )
     case ConfigType.Int:
     case ConfigType.Uint:
       return (
-        <div className="grid gap-2">
-          <Label htmlFor={inputId}>{label}</Label>
-          <Input
-            id={inputId}
-            type="number"
-            value={typeof value === "string" ? value : ""}
-            disabled={disabled}
-            onChange={(event) => onChange(event.target.value)}
-          />
-        </div>
+        <Input
+          id={inputId}
+          type="number"
+          value={typeof value === "string" ? value : ""}
+          disabled={disabled}
+          onChange={(event) => onChange(event.target.value)}
+        />
       )
     case ConfigType.Decimal:
       return (
-        <div className="grid gap-2">
-          <Label htmlFor={inputId}>{label}</Label>
-          <Input
-            id={inputId}
-            inputMode="decimal"
-            value={typeof value === "string" ? value : ""}
-            disabled={disabled}
-            onChange={(event) => onChange(event.target.value)}
-          />
-        </div>
+        <Input
+          id={inputId}
+          inputMode="decimal"
+          value={typeof value === "string" ? value : ""}
+          disabled={disabled}
+          onChange={(event) => onChange(event.target.value)}
+        />
       )
     case ConfigType.Timezone:
       return (
-        <div className="grid gap-2">
-          <Label htmlFor={inputId}>{label}</Label>
-          <TimezoneCombobox
-            id={inputId}
-            value={typeof value === "string" ? value : ""}
-            onChange={onChange}
-            disabled={disabled}
-          />
-        </div>
+        <TimezoneCombobox
+          id={inputId}
+          value={typeof value === "string" ? value : ""}
+          onChange={onChange}
+          disabled={disabled}
+        />
       )
     case ConfigType.Time:
       return (
-        <div className="grid gap-2">
-          <Label htmlFor={inputId}>{label}</Label>
-          <Input
-            id={inputId}
-            type="time"
-            step="1"
-            value={typeof value === "string" ? value : ""}
-            disabled={disabled}
-            onChange={(event) => onChange(event.target.value)}
-          />
-        </div>
+        <Input
+          id={inputId}
+          type="time"
+          step="1"
+          value={typeof value === "string" ? value : ""}
+          disabled={disabled}
+          onChange={(event) => onChange(event.target.value)}
+        />
       )
     case ConfigType.String:
     default:
       return (
-        <div className="grid gap-2">
-          <Label htmlFor={inputId}>{label}</Label>
-          <Input
-            id={inputId}
-            value={typeof value === "string" ? value : ""}
-            disabled={disabled}
-            onChange={(event) => onChange(event.target.value)}
-          />
-        </div>
+        <Input
+          id={inputId}
+          value={typeof value === "string" ? value : ""}
+          disabled={disabled}
+          onChange={(event) => onChange(event.target.value)}
+        />
       )
   }
 }
