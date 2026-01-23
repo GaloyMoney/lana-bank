@@ -16,8 +16,8 @@
     "description": "The label for category 'API Reference' in sidebar 'docsSidebar'"
   },
   "version.label": {
-    "message": "1.0.0",
-    "description": "The label for version 1.0.0"
+    "message": "0.0.1",
+    "description": "The label for version 0.0.1"
   },
   "sidebar.docsSidebar.category.Admin API": {
     "message": "API de Administración",
