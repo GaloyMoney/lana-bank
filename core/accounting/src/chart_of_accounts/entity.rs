@@ -51,7 +51,7 @@ pub struct Chart {
 
     #[es_entity(nested)]
     #[builder(default)]
-    chart_nodes: Nested<ChartNode>,
+    pub(super) chart_nodes: Nested<ChartNode>,
 }
 
 impl Chart {
