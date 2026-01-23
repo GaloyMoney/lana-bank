@@ -113,8 +113,11 @@ def _get_customers_bq(
     return [(row["customer_id"], row["recorded_at"]) for row in rows]
 
 
+SUMSUB_APPLICANTS_DLT_TABLE = "sumsub_applicants_dlt"
+
+
 @dlt.resource(
-    name="sumsub_applicants_dlt",
+    name=SUMSUB_APPLICANTS_DLT_TABLE,
     write_disposition="append",
     primary_key=["customer_id", "recorded_at"],
 )

@@ -15,6 +15,13 @@ from src.dlt_resources.bitfinex import ticker as dlt_ticker
 from src.dlt_resources.bitfinex import trades as dlt_trades
 from src.resources import RESOURCE_KEY_DW_BQ, BigQueryResource
 
+BITFINEX_SYSTEM_NAME = "bitfinex"
+
+# DLT table names (must match dlt resource names in src/dlt_resources/bitfinex.py)
+BITFINEX_TICKER_DLT_TABLE = "bitfinex_ticker_dlt"
+BITFINEX_TRADES_DLT_TABLE = "bitfinex_trades_dlt"
+BITFINEX_ORDER_BOOK_DLT_TABLE = "bitfinex_order_book_dlt"
+
 
 def _run_bitfinex_pipeline(
     context: dg.AssetExecutionContext,
@@ -65,21 +72,24 @@ def bitfinex_order_book(
 
 
 def bitfinex_protoassets() -> Dict[str, Protoasset]:
-    """Return all Bitfinex protoassets keyed by asset key."""
+    """Return all Bitfinex protoassets keyed by DLT table name."""
     return {
-        "bitfinex_ticker": Protoasset(
-            key=dg.AssetKey("bitfinex_ticker"),
+        BITFINEX_TICKER_DLT_TABLE: Protoasset(
+            key=dg.AssetKey([BITFINEX_SYSTEM_NAME, BITFINEX_TICKER_DLT_TABLE]),
             callable=bitfinex_ticker,
             required_resource_keys={RESOURCE_KEY_DW_BQ},
+            tags={"system": BITFINEX_SYSTEM_NAME, "asset_type": "el_target_asset"},
         ),
-        "bitfinex_trades": Protoasset(
-            key=dg.AssetKey("bitfinex_trades"),
+        BITFINEX_TRADES_DLT_TABLE: Protoasset(
+            key=dg.AssetKey([BITFINEX_SYSTEM_NAME, BITFINEX_TRADES_DLT_TABLE]),
             callable=bitfinex_trades,
             required_resource_keys={RESOURCE_KEY_DW_BQ},
+            tags={"system": BITFINEX_SYSTEM_NAME, "asset_type": "el_target_asset"},
         ),
-        "bitfinex_order_book": Protoasset(
-            key=dg.AssetKey("bitfinex_order_book"),
+        BITFINEX_ORDER_BOOK_DLT_TABLE: Protoasset(
+            key=dg.AssetKey([BITFINEX_SYSTEM_NAME, BITFINEX_ORDER_BOOK_DLT_TABLE]),
             callable=bitfinex_order_book,
             required_resource_keys={RESOURCE_KEY_DW_BQ},
+            tags={"system": BITFINEX_SYSTEM_NAME, "asset_type": "el_target_asset"},
         ),
     }

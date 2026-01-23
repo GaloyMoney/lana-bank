@@ -5,14 +5,6 @@ sources:
     dataset: "{{ env_var('TARGET_BIGQUERY_DATASET', '') }}"
     tables:
 
-      - name: bitfinex_order_book_dlt
-
-      - name: bitfinex_order_book_dlt__orders
-
-      - name: bitfinex_ticker_dlt
-
-      - name: bitfinex_trades_dlt
-
       - name: cala_account_set_member_account_sets
 
       - name: cala_account_set_member_accounts
@@ -58,5 +50,21 @@ sources:
       - name: core_chart_events
 
       - name: core_chart_node_events
+
+  - name: bitfinex
+    dataset: "{{ env_var('TARGET_BIGQUERY_DATASET', '') }}"
+    tables:
+
+      - name: bitfinex_order_book_dlt
+
+      - name: bitfinex_order_book_dlt__orders
+
+      - name: bitfinex_ticker_dlt
+
+      - name: bitfinex_trades_dlt
+
+  - name: sumsub
+    dataset: "{{ env_var('TARGET_BIGQUERY_DATASET', '') }}"
+    tables:
 
       - name: sumsub_applicants_dlt

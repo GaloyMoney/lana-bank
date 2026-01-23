@@ -1,6 +1,6 @@
 with
     raw_stg_sumsub_applicants as (
-        select * from {{ source("lana", "sumsub_applicants_dlt") }}
+        select * from {{ source("sumsub", "sumsub_applicants_dlt") }}
     ),
 
     ordered as (

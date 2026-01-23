@@ -4,7 +4,7 @@
     )
 }}
 
-with raw_bitfinex_ticker as (select * from {{ source("lana", "bitfinex_ticker_dlt") }})
+with raw_bitfinex_ticker as (select * from {{ source("bitfinex", "bitfinex_ticker_dlt") }})
 select
     * except (last_price),
     last_price as last_price_usd,
