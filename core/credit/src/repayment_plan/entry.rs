@@ -34,6 +34,9 @@ pub struct CreditFacilityRepaymentPlanEntry {
 
     pub recorded_at: DateTime<Utc>,
     pub effective: chrono::NaiveDate,
+
+    #[serde(default)]
+    pub accrual_ledger_tx_id: Option<LedgerTxId>,
 }
 
 impl PartialOrd for CreditFacilityRepaymentPlanEntry {
