@@ -136,7 +136,8 @@
       "loanAgreementDownloadLinkGenerate": "Generates a download link for a loan agreement document",
       "triggerReportRun": "Triggers a manual report run",
       "reportFileGenerateDownloadLink": "Generates a download link for a report file",
-      "chartOfAccountsCsvImportWithBaseConfig": "Imports a chart of accounts from a CSV file with base configuration settings"
+      "chartOfAccountsCsvImportWithBaseConfig": "Imports a chart of accounts from a CSV file with base configuration settings",
+      "chartOfAccountsCsvImport": "Imports a chart of accounts from a CSV file"
     }
   },
   "customer": {

@@ -4,9 +4,11 @@
  * CI validation script for API descriptions.
  *
  * Validates:
- * 1. No stale descriptions (descriptions for operations that no longer exist)
- * 2. All operations have descriptions in both English and Spanish
- * 3. No descriptions are still using the default placeholder
+ * 1. All current operations have descriptions in both English and Spanish
+ * 2. No descriptions are still using the default placeholder
+ *
+ * Note: Extra descriptions for operations that no longer exist in the current
+ * schema are allowed (warnings only) since they may be needed for versioned docs.
  *
  * Exit codes:
  * 0 - All validations passed
@@ -120,17 +122,18 @@ function validateDescriptions() {
       const enOps = enDescriptions[apiId]?.[typeKey] || {};
       const esOps = esDescriptions[apiId]?.[typeKey] || {};
 
-      // Check for stale English descriptions (operations that no longer exist)
+      // Check for stale English descriptions (operations that no longer exist in current schema)
+      // These are warnings, not errors, since they may be needed for versioned docs
       for (const opName of Object.keys(enOps)) {
         if (!currentOps.has(opName)) {
-          errors.push(`Stale English description: ${apiId}.${typeKey}.${opName} (operation no longer exists)`);
+          warnings.push(`Extra English description: ${apiId}.${typeKey}.${opName} (not in current schema, may be for versioned docs)`);
         }
       }
 
       // Check for stale Spanish descriptions
       for (const opName of Object.keys(esOps)) {
         if (!currentOps.has(opName)) {
-          errors.push(`Stale Spanish description: ${apiId}.${typeKey}.${opName} (operation no longer exists)`);
+          warnings.push(`Extra Spanish description: ${apiId}.${typeKey}.${opName} (not in current schema, may be for versioned docs)`);
         }
       }
 
@@ -180,8 +183,8 @@ function main() {
     }
     console.log(`\n${errors.length} error(s) found.`);
     console.log("\nTo fix:");
-    console.log("  1. For stale descriptions: Remove them from api-descriptions.json and api-descriptions.es.json");
-    console.log("  2. For missing/default descriptions: Add proper descriptions to both JSON files");
+    console.log("  1. For missing descriptions: Add descriptions to both api-descriptions.json and api-descriptions.es.json");
+    console.log("  2. For default descriptions: Replace placeholder text with actual descriptions");
     console.log("  3. Run 'npm run generate-api-docs' to regenerate documentation");
     process.exit(1);
   }
