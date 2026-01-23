@@ -90,7 +90,7 @@ axum-extra = { version = "0.12.5", default-features = false, features = [
 bip32 = "0.5"
 ccm = "0.5"
 csv = "1.4.0"
-chrono = { version = "0.4.42", features = [
+chrono = { version = "0.4.43", features = [
   "clock",
   "serde",
 ], default-features = false }
@@ -109,7 +109,7 @@ thiserror = "2.0.17"
 uuid = { version = "1.19", features = ["serde", "v4"] }
 log = "0.4"
 tracing = "0.1.44"
-tracing-opentelemetry = "0.32.0"
+tracing-opentelemetry = "0.32.1"
 tracing-subscriber = { version = "0.3.22", features = ["env-filter", "json"] }
 opentelemetry = { version = "0.31.0" }
 opentelemetry_sdk = { version = "0.31.0", features = ["rt-tokio"] }
@@ -140,8 +140,8 @@ futures = "0.3.29"
 http = "1.4"
 reqwest = { version = "0.12.26", default-features = false, features = ["json", "rustls-tls", "charset", "http2", "macos-system-configuration", "multipart"] }
 url = { version = "2.5", features = ["serde"] }
-rust_decimal_macros = "1.39.0"
-rust_decimal = "1.38.0"
+rust_decimal_macros = "1.40.0"
+rust_decimal = "1.40.0"
 rusty-money = { version = "0.4", features = ["iso", "crypto"] }
 base64 = { version = "0.22.1" }
 jsonwebtoken = { version = "10.2.0", default-features = false, features = ["aws_lc_rs"] }
