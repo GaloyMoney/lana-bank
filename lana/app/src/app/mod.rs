@@ -195,7 +195,15 @@ impl LanaApp {
         )
         .await?;
 
-        let custody = Custody::init(&pool, &authz, config.custody, &outbox, clock.clone()).await?;
+        let custody = Custody::init(
+            &pool,
+            &authz,
+            config.custody,
+            &outbox,
+            &mut jobs,
+            clock.clone(),
+        )
+        .await?;
 
         let credit = Credit::init(
             &pool,

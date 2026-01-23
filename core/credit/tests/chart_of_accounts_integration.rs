@@ -53,11 +53,19 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         public_ids,
         clock.clone(),
     );
+    let mut jobs = job::Jobs::init(
+        job::JobSvcConfig::builder()
+            .pool(pool.clone())
+            .build()
+            .unwrap(),
+    )
+    .await?;
     let custody = core_custody::CoreCustody::init(
         &pool,
         &authz,
         helpers::custody_config(),
         &outbox,
+        &mut jobs,
         clock.clone(),
     )
     .await?;
@@ -67,14 +75,6 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .exec_migrations(false)
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
-
-    let mut jobs = job::Jobs::init(
-        job::JobSvcConfig::builder()
-            .pool(pool.clone())
-            .build()
-            .unwrap(),
-    )
-    .await?;
 
     let journal_id = helpers::init_journal(&cala).await?;
     let public_ids = PublicIds::new(&pool);
