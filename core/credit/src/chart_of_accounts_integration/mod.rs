@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
-use core_accounting::{AccountCode, CalaAccountSetId, Chart, ChartId};
+use core_accounting::{AccountCode, AccountingBaseConfig, CalaAccountSetId, Chart, ChartId};
 
 use crate::{CoreCreditAction, CoreCreditObject, ledger::*};
 
@@ -85,15 +85,12 @@ pub struct ChartOfAccountsIntegrationConfig {
 }
 
 impl ChartOfAccountsIntegrationConfig {
-    pub(super) fn try_into_meta(
+    pub(super) fn validate_and_transform(
         &self,
         chart: &Chart,
         audit_info: AuditInfo,
+        accounting_base_config: &AccountingBaseConfig,
     ) -> Result<ChartOfAccountsIntegrationMeta, ChartOfAccountsIntegrationError> {
-        let accounting_base_config = chart
-            .accounting_base_config()
-            .ok_or(ChartOfAccountsIntegrationError::AccountingBaseConfigNotFound)?;
-
         let off_balance_sheet_account_set_member_parent_id =
             |code: &AccountCode| -> Result<CalaAccountSetId, ChartOfAccountsIntegrationError> {
                 let id = chart.account_set_id_from_code(code)?;
@@ -283,6 +280,9 @@ where
         {
             return Err(ChartOfAccountsIntegrationError::CreditConfigAlreadyExists);
         }
+        let accounting_base_config = chart
+            .accounting_base_config()
+            .ok_or(ChartOfAccountsIntegrationError::AccountingBaseConfigNotFound)?;
 
         let audit_info = self
             .authz
@@ -293,7 +293,8 @@ where
             )
             .await?;
 
-        let charts_integration_meta = config.try_into_meta(chart, audit_info)?;
+        let charts_integration_meta =
+            config.validate_and_transform(chart, audit_info, &accounting_base_config)?;
         self.ledger
             .attach_chart_of_accounts_account_sets(charts_integration_meta)
             .await?;
