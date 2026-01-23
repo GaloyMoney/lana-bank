@@ -22,10 +22,6 @@ fn extension_for_content_type(content_type: &str) -> &'static str {
     match content_type {
         "application/pdf" => ".pdf",
         "text/csv" => ".csv",
-        "application/json" => ".json",
-        "text/plain" => ".txt",
-        "image/png" => ".png",
-        "image/jpeg" => ".jpg",
         _ => "",
     }
 }
