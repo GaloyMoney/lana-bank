@@ -200,7 +200,7 @@ pub mod event {
     #[derive(Debug, Serialize, Deserialize)]
     #[serde(tag = "module")]
     pub enum DummyEvent {
-        Access(CoreAccessEvent),
+        CoreAccess(CoreAccessEvent),
         CoreAccounting(CoreAccountingEvent),
         CoreCredit(CoreCreditEvent),
         CoreCustody(CoreCustodyEvent),
@@ -228,7 +228,7 @@ pub mod event {
         };
     }
 
-    impl_event_marker!(CoreAccessEvent, Access);
+    impl_event_marker!(CoreAccessEvent, CoreAccess);
     impl_event_marker!(CoreAccountingEvent, CoreAccounting);
     impl_event_marker!(GovernanceEvent, Governance);
     impl_event_marker!(CoreCreditEvent, CoreCredit);

@@ -65,9 +65,7 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
         .await?;
 
         let ret = AuditInfo::from((record.id, sub));
-        es_entity::EventContext::current()
-            .insert("audit_info", &ret)
-            .expect("Could not add AuditInfo to context");
+        ret.inject_into_event_context();
 
         Ok(ret)
     }
@@ -116,9 +114,7 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
         .await?;
 
         let ret = AuditInfo::from((record.id, sub));
-        es_entity::EventContext::current()
-            .insert("audit_info", &ret)
-            .expect("Could not add AuditInfo to context");
+        ret.inject_into_event_context();
 
         Ok(ret)
     }

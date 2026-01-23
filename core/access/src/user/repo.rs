@@ -4,7 +4,7 @@ use sqlx::PgPool;
 use es_entity::*;
 use obix::out::OutboxEventMarker;
 
-use crate::{event::CoreAccessEvent, primitives::*, publisher::UserPublisher};
+use crate::{primitives::*, public::CoreAccessEvent, publisher::UserPublisher};
 
 use super::{entity::*, error::*};
 

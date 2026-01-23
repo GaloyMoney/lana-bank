@@ -18,7 +18,7 @@ pub use obix::out::OutboxEventMarker;
 #[serde(tag = "module")]
 pub enum LanaEvent {
     Governance(GovernanceEvent),
-    Access(CoreAccessEvent),
+    CoreAccess(CoreAccessEvent),
     Accounting(CoreAccountingEvent),
     Customer(CoreCustomerEvent),
     Credit(CoreCreditEvent),
@@ -47,7 +47,7 @@ macro_rules! impl_event_marker {
 }
 
 impl_event_marker!(GovernanceEvent, Governance);
-impl_event_marker!(CoreAccessEvent, Access);
+impl_event_marker!(CoreAccessEvent, CoreAccess);
 impl_event_marker!(CoreAccountingEvent, Accounting);
 impl_event_marker!(CoreCreditEvent, Credit);
 impl_event_marker!(CoreDepositEvent, Deposit);

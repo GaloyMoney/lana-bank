@@ -1333,6 +1333,8 @@ dependencies = [
 name = "core-access"
 version = "0.0.0"
 dependencies = [
+ "anyhow",
+ "async-trait",
  "audit",
  "authz",
  "chrono",
@@ -1346,9 +1348,12 @@ dependencies = [
  "sqlx",
  "strum",
  "thiserror 2.0.17",
+ "tokio",
+ "tokio-stream",
  "tracing",
  "tracing-macros",
  "tracing-utils",
+ "uuid",
  "workspace-hack",
 ]
 
