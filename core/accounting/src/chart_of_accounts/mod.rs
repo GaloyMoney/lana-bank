@@ -1,3 +1,4 @@
+mod bulk_import;
 pub mod chart_node;
 mod entity;
 mod import;
@@ -22,13 +23,13 @@ use crate::primitives::{
     CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
 };
 
+use bulk_import::BulkImportResult;
 #[cfg(feature = "json-schema")]
 pub use chart_node::ChartNodeEvent;
 pub use entity::Chart;
 #[cfg(feature = "json-schema")]
 pub use entity::ChartEvent;
 pub(super) use entity::*;
-use entity::BulkImportResult;
 use error::*;
 use import::csv::{CsvParseError, CsvParser};
 use ledger::*;
@@ -153,8 +154,14 @@ where
             new_account_sets,
             new_account_set_ids,
             new_connections,
-        } = chart.import_accounts(account_specs, self.journal_id);
-        let _ = chart.set_base_config(base_config)?;
+        } = match chart.import_accounts_and_initialize_config(
+            account_specs,
+            base_config,
+            self.journal_id,
+        )? {
+            Idempotent::Executed(res) => res,
+            _ => return Ok((chart, None)),
+        };
 
         let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;

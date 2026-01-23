@@ -447,7 +447,7 @@ impl ErrorSeverity for AccountingBaseConfigError {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub struct AccountingBaseConfig {
     pub assets_code: AccountCode,
