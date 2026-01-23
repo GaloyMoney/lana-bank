@@ -34,12 +34,8 @@ Events related to user and role management.
 
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `UserCreated` | A new user was created | `email`, `id`, `role_id` |
-| `UserRemoved` | A user was removed | `id` |
-| `UserUpdatedRole` | A user's role was changed | `id`, `role_id` |
-| `RoleCreated` | A new role was created | `id`, `name` |
-| `RoleGainedPermissionSet` | A role gained permissions | `id`, `permission_set_id` |
-| `RoleLostPermissionSet` | A role lost permissions | `id`, `permission_set_id` |
+| `UserCreated` | A new user was created | `entity.email`, `entity.id`, `entity.role_id` |
+| `RoleCreated` | A new role was created | `entity.id`, `entity.name` |
 
 ---
 
@@ -52,7 +48,6 @@ Events related to credit facility lifecycle and operations.
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
 | `FacilityProposalCreated` | A credit facility proposal was created | `amount`, `created_at`, `id`, `terms` |
-| `FacilityProposalApproved` | A proposal was approved | `id` |
 | `FacilityActivated` | A credit facility was activated | `activated_at`, `activation_tx_id`, `amount`, `id` |
 | `FacilityCompleted` | A credit facility was fully repaid and closed | `completed_at`, `id` |
 
@@ -68,7 +63,6 @@ Events related to credit facility lifecycle and operations.
 
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `FacilityRepaymentRecorded` | A repayment was recorded | `amount`, `credit_facility_id`, `effective`, `obligation_id`, `obligation_type`, `payment_id`, `recorded_at` |
 | `DisbursalSettled` | A disbursal was settled | `amount`, `credit_facility_id`, `effective`, `ledger_tx_id`, `recorded_at` |
 | `AccrualPosted` | Interest accrual was posted | `amount`, `credit_facility_id`, `due_at`, `effective`, `ledger_tx_id`, `period`, `recorded_at` |
 
@@ -86,11 +80,17 @@ Events related to credit facility lifecycle and operations.
 
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `PartialLiquidationInitiated` | A partial liquidation was initiated | `credit_facility_id`, `customer_id`, `initially_estimated_to_liquidate`, `initially_expected_to_receive`, `liquidation_id`, `trigger_price` |
+| `PartialLiquidationInitiated` | A partial liquidation was initiated | `collateral_account_id`, `collateral_in_liquidation_account_id`, `credit_facility_id`, `customer_id`, `initially_estimated_to_liquidate`, `initially_expected_to_receive`, `liquidated_collateral_account_id`, `liquidation_id`, `payment_holding_account_id`, `proceeds_from_liquidation_account_id`, `trigger_price`, `uncovered_outstanding_account_id` |
 | `PartialLiquidationCollateralSentOut` | Collateral was sent for liquidation | `amount`, `credit_facility_id`, `effective`, `ledger_tx_id`, `liquidation_id`, `recorded_at` |
-| `PartialLiquidationProceedsReceived` | Liquidation proceeds were received | `amount`, `credit_facility_id`, `effective`, `facility_payment_holding_account_id`, `facility_proceeds_from_liquidation_account_id`, `ledger_tx_id`, `liquidation_id`, `payment_id`, `recorded_at` |
-| `PartialLiquidationCompleted` | Liquidation was completed | `credit_facility_id`, `liquidation_id`, `payment_id` |
+| `PartialLiquidationProceedsReceived` | Liquidation proceeds were received | `amount`, `credit_facility_id`, `effective`, `facility_payment_holding_account_id`, `facility_proceeds_from_liquidation_account_id`, `facility_uncovered_outstanding_account_id`, `ledger_tx_id`, `liquidation_id`, `payment_id`, `recorded_at` |
+| `PartialLiquidationCompleted` | Liquidation was completed | `credit_facility_id`, `liquidation_id` |
 
+| Event | Description | Payload Fields |
+|-------|-------------|----------------|
+| `FacilityProposalConcluded` | No description available | `id`, `status` |
+| `PendingCreditFacilityCompleted` | No description available | `id`, `recorded_at`, `status` |
+| `FacilityPaymentReceived` | No description available | `amount`, `credit_facility_id`, `effective`, `payment_id`, `recorded_at` |
+| `FacilityPaymentAllocated` | No description available | `allocation_id`, `amount`, `credit_facility_id`, `effective`, `obligation_id`, `obligation_type`, `recorded_at` |
 
 ---
 

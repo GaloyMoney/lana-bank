@@ -34,12 +34,8 @@ Eventos relacionados con la gestion de usuarios y roles.
 
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `UserCreated` | Se creo un nuevo usuario | `email`, `id`, `role_id` |
-| `UserRemoved` | Se elimino un usuario | `id` |
-| `UserUpdatedRole` | Se cambio el rol de un usuario | `id`, `role_id` |
-| `RoleCreated` | Se creo un nuevo rol | `id`, `name` |
-| `RoleGainedPermissionSet` | Un rol obtuvo permisos | `id`, `permission_set_id` |
-| `RoleLostPermissionSet` | Un rol perdio permisos | `id`, `permission_set_id` |
+| `UserCreated` | Se creo un nuevo usuario | `entity.email`, `entity.id`, `entity.role_id` |
+| `RoleCreated` | Se creo un nuevo rol | `entity.id`, `entity.name` |
 
 ---
 
@@ -52,7 +48,6 @@ Eventos relacionados con el ciclo de vida y operaciones de facilidades de credit
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
 | `FacilityProposalCreated` | Se creo una propuesta de facilidad de credito | `amount`, `created_at`, `id`, `terms` |
-| `FacilityProposalApproved` | Se aprobo una propuesta | `id` |
 | `FacilityActivated` | Se activo una facilidad de credito | `activated_at`, `activation_tx_id`, `amount`, `id` |
 | `FacilityCompleted` | Una facilidad de credito fue totalmente pagada y cerrada | `completed_at`, `id` |
 
@@ -68,7 +63,6 @@ Eventos relacionados con el ciclo de vida y operaciones de facilidades de credit
 
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `FacilityRepaymentRecorded` | Se registro un pago | `amount`, `credit_facility_id`, `effective`, `obligation_id`, `obligation_type`, `payment_id`, `recorded_at` |
 | `DisbursalSettled` | Se liquido un desembolso | `amount`, `credit_facility_id`, `effective`, `ledger_tx_id`, `recorded_at` |
 | `AccrualPosted` | Se registro el devengamiento de intereses | `amount`, `credit_facility_id`, `due_at`, `effective`, `ledger_tx_id`, `period`, `recorded_at` |
 
@@ -86,11 +80,17 @@ Eventos relacionados con el ciclo de vida y operaciones de facilidades de credit
 
 | Event | Description | Payload Fields |
 |-------|-------------|----------------|
-| `PartialLiquidationInitiated` | Se inicio una liquidacion parcial | `credit_facility_id`, `customer_id`, `initially_estimated_to_liquidate`, `initially_expected_to_receive`, `liquidation_id`, `trigger_price` |
+| `PartialLiquidationInitiated` | Se inicio una liquidacion parcial | `collateral_account_id`, `collateral_in_liquidation_account_id`, `credit_facility_id`, `customer_id`, `initially_estimated_to_liquidate`, `initially_expected_to_receive`, `liquidated_collateral_account_id`, `liquidation_id`, `payment_holding_account_id`, `proceeds_from_liquidation_account_id`, `trigger_price`, `uncovered_outstanding_account_id` |
 | `PartialLiquidationCollateralSentOut` | Se envio colateral para liquidacion | `amount`, `credit_facility_id`, `effective`, `ledger_tx_id`, `liquidation_id`, `recorded_at` |
-| `PartialLiquidationProceedsReceived` | Se recibieron los ingresos de liquidacion | `amount`, `credit_facility_id`, `effective`, `facility_payment_holding_account_id`, `facility_proceeds_from_liquidation_account_id`, `ledger_tx_id`, `liquidation_id`, `payment_id`, `recorded_at` |
-| `PartialLiquidationCompleted` | Se completo la liquidacion | `credit_facility_id`, `liquidation_id`, `payment_id` |
+| `PartialLiquidationProceedsReceived` | Se recibieron los ingresos de liquidacion | `amount`, `credit_facility_id`, `effective`, `facility_payment_holding_account_id`, `facility_proceeds_from_liquidation_account_id`, `facility_uncovered_outstanding_account_id`, `ledger_tx_id`, `liquidation_id`, `payment_id`, `recorded_at` |
+| `PartialLiquidationCompleted` | Se completo la liquidacion | `credit_facility_id`, `liquidation_id` |
 
+| Event | Description | Payload Fields |
+|-------|-------------|----------------|
+| `FacilityProposalConcluded` | No description available | `id`, `status` |
+| `PendingCreditFacilityCompleted` | No description available | `id`, `recorded_at`, `status` |
+| `FacilityPaymentReceived` | No description available | `amount`, `credit_facility_id`, `effective`, `payment_id`, `recorded_at` |
+| `FacilityPaymentAllocated` | No description available | `allocation_id`, `amount`, `credit_facility_id`, `effective`, `obligation_id`, `obligation_type`, `recorded_at` |
 
 ---
 

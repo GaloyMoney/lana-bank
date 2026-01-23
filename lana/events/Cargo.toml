@@ -10,6 +10,7 @@ json-schema = [
     "dep:schemars",
     "governance/json-schema",
     "core-access/json-schema",
+    "core-accounting/json-schema",
     "core-custody/json-schema",
     "core-customer/json-schema",
     "core-credit/json-schema",

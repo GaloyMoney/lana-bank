@@ -30,6 +30,20 @@ const MODULE_ORDER = [
 ];
 
 /**
+ * Resolve a $ref to its definition
+ */
+function resolveRef(schema, ref) {
+  if (!ref || !ref.startsWith('#/')) return null;
+  const parts = ref.substring(2).split('/');
+  let current = schema;
+  for (const part of parts) {
+    current = current[part];
+    if (!current) return null;
+  }
+  return current;
+}
+
+/**
  * Extract event variants and their fields from a JSON schema definition
  */
 function extractEventsFromSchema(schema, enumName) {
@@ -71,7 +85,21 @@ function extractEventsFromSchema(schema, enumName) {
     const fields = [];
     for (const [fieldName, fieldDef] of Object.entries(variant.properties || {})) {
       if (fieldName === 'type') continue; // Skip the discriminator
-      fields.push(fieldName);
+
+      // Check if this is a nested entity field with $ref
+      if (fieldName === 'entity' && fieldDef.$ref) {
+        // Resolve the $ref and extract fields from the referenced type
+        const entityDef = resolveRef(schema, fieldDef.$ref);
+        if (entityDef && entityDef.properties) {
+          for (const entityFieldName of Object.keys(entityDef.properties)) {
+            fields.push(`entity.${entityFieldName}`);
+          }
+        } else {
+          fields.push(fieldName);
+        }
+      } else {
+        fields.push(fieldName);
+      }
     }
 
     events.push({
