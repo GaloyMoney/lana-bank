@@ -11,6 +11,7 @@ keycloak = { workspace = true }
 reqwest = { workspace = true }
 serde = { workspace = true }
 uuid = { workspace = true }
+url = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 tracing-macros = { workspace = true }

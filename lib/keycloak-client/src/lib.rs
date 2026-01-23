@@ -6,6 +6,7 @@ mod error;
 
 pub use config::KeycloakConnectionConfig;
 pub use error::KeycloakClientError;
+pub use url::Url;
 
 use keycloak::types::*;
 use keycloak::{KeycloakAdmin, KeycloakServiceAccountAdminTokenRetriever};
@@ -39,7 +40,7 @@ impl KeycloakClient {
             );
 
         KeycloakAdmin::new(
-            &self.connection.url,
+            self.connection.url.as_str(),
             service_account_token_retriever,
             http_client,
         )
