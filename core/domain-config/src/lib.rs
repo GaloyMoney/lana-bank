@@ -175,6 +175,15 @@ where
     authz: Perms,
 }
 
+/// Read-only access to exposed domain configs without authorization.
+///
+/// Use for internal consumers (jobs, background processes) that need
+/// to read exposed config values without user context.
+#[derive(Clone)]
+pub struct ExposedDomainConfigsReadOnly {
+    repo: DomainConfigRepo,
+}
+
 impl InternalDomainConfigs {
     pub fn new(pool: &sqlx::PgPool) -> Self {
         let repo = DomainConfigRepo::new(pool);
@@ -212,6 +221,23 @@ impl InternalDomainConfigs {
     #[instrument(name = "domain_config.seed_registered", skip(self))]
     pub async fn seed_registered(&self) -> Result<(), DomainConfigError> {
         seed_registered_for_visibility(&self.repo, Visibility::Internal).await
+    }
+}
+
+impl ExposedDomainConfigsReadOnly {
+    pub fn new(pool: &sqlx::PgPool) -> Self {
+        let repo = DomainConfigRepo::new(pool);
+        Self { repo }
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "domain_config.get_without_audit", skip(self))]
+    pub async fn get_without_audit<C>(&self) -> Result<TypedDomainConfig<C>, DomainConfigError>
+    where
+        C: ExposedConfig,
+    {
+        let config = self.repo.find_by_key(C::KEY).await?;
+        TypedDomainConfig::new(config)
     }
 }
 

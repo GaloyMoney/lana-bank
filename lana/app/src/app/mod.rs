@@ -38,7 +38,7 @@ use crate::{
     time_events::TimeEvents,
     user_onboarding::UserOnboarding,
 };
-use domain_config::{ExposedDomainConfigs, InternalDomainConfigs};
+use domain_config::{ExposedDomainConfigs, ExposedDomainConfigsReadOnly, InternalDomainConfigs};
 
 pub use config::*;
 use error::ApplicationError;
@@ -94,6 +94,7 @@ impl LanaApp {
         let authz = Authorization::init(&pool, &audit).await?;
         let internal_domain_configs = InternalDomainConfigs::new(&pool);
         let exposed_domain_configs = ExposedDomainConfigs::new(&pool, &authz);
+        let exposed_domain_configs_readonly = ExposedDomainConfigsReadOnly::new(&pool);
         internal_domain_configs.seed_registered().await?;
         exposed_domain_configs.seed_registered().await?;
 
@@ -124,7 +125,8 @@ impl LanaApp {
         let reports =
             Reports::init(&pool, &authz, config.report, &outbox, &storage, &mut jobs).await?;
         let price = Price::init(&mut jobs, &outbox).await?;
-        let _time_events = TimeEvents::init(&exposed_domain_configs, &mut jobs, &outbox).await?;
+        let _time_events =
+            TimeEvents::init(&exposed_domain_configs_readonly, &mut jobs, &outbox).await?;
         let documents = DocumentStorage::new(&pool, &storage, clock.clone());
         let public_ids = PublicIds::new(&pool);
 
@@ -221,7 +223,7 @@ impl LanaApp {
             access.users(),
             &credit,
             &customers,
-            &exposed_domain_configs,
+            &exposed_domain_configs_readonly,
         )
         .await?;
 

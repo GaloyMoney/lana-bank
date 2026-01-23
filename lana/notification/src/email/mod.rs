@@ -9,7 +9,7 @@ use core_credit::{
     CoreCredit, CreditFacilityId, CustomerId, ObligationId, ObligationType, PriceOfOneBTC,
 };
 use core_customer::Customers;
-use domain_config::ExposedDomainConfigs;
+use domain_config::ExposedDomainConfigsReadOnly;
 use job::{EmailSenderConfig, EmailSenderInit, EmailSenderJobSpawner};
 use lana_events::LanaEvent;
 use smtp_client::SmtpClient;
@@ -42,21 +42,19 @@ where
         + From<core_access::CoreAccessAction>
         + From<core_deposit::CoreDepositAction>
         + From<governance::GovernanceAction>
-        + From<core_custody::CoreCustodyAction>
-        + From<domain_config::DomainConfigAction>,
+        + From<core_custody::CoreCustodyAction>,
     <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
         + From<core_customer::CustomerObject>
         + From<core_access::CoreAccessObject>
         + From<core_deposit::CoreDepositObject>
         + From<governance::GovernanceObject>
-        + From<core_custody::CoreCustodyObject>
-        + From<domain_config::DomainConfigObject>,
+        + From<core_custody::CoreCustodyObject>,
     <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
-        From<core_access::UserId> + audit::SystemSubject,
+        From<core_access::UserId>,
 {
     pub async fn init(
         jobs: &mut Jobs,
-        domain_configs: &ExposedDomainConfigs<Perms>,
+        domain_configs: &ExposedDomainConfigsReadOnly,
         infra_config: EmailInfraConfig,
         users: &Users<Perms::Audit, LanaEvent>,
         credit: &CoreCredit<Perms, LanaEvent>,

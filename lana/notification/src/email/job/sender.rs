@@ -1,7 +1,5 @@
 use async_trait::async_trait;
-use audit::{AuditSvc, SystemSubject};
-use authz::PermissionCheck;
-use domain_config::ExposedDomainConfigs;
+use domain_config::ExposedDomainConfigsReadOnly;
 use job::*;
 use serde::{Deserialize, Serialize};
 use smtp_client::SmtpClient;
@@ -17,23 +15,17 @@ pub struct EmailSenderConfig {
     pub email_type: EmailType,
 }
 
-pub struct EmailSenderInit<Perms>
-where
-    Perms: PermissionCheck,
-{
+pub struct EmailSenderInit {
     smtp_client: SmtpClient,
     template: EmailTemplate,
-    domain_configs: ExposedDomainConfigs<Perms>,
+    domain_configs: ExposedDomainConfigsReadOnly,
 }
 
-impl<Perms> EmailSenderInit<Perms>
-where
-    Perms: PermissionCheck,
-{
+impl EmailSenderInit {
     pub fn new(
         smtp_client: SmtpClient,
         template: EmailTemplate,
-        domain_configs: ExposedDomainConfigs<Perms>,
+        domain_configs: ExposedDomainConfigsReadOnly,
     ) -> Self {
         Self {
             smtp_client,
@@ -45,15 +37,7 @@ where
 
 const EMAIL_SENDER_JOB: JobType = JobType::new("task.email-sender");
 
-impl<Perms> JobInitializer for EmailSenderInit<Perms>
-where
-    Perms: PermissionCheck + Clone + Send + Sync + 'static,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<domain_config::DomainConfigAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<domain_config::DomainConfigObject>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject: SystemSubject,
-{
+impl JobInitializer for EmailSenderInit {
     type Config = EmailSenderConfig;
     fn job_type(&self) -> JobType {
         EMAIL_SENDER_JOB
@@ -73,36 +57,24 @@ where
     }
 }
 
-pub struct EmailSenderRunner<Perms>
-where
-    Perms: PermissionCheck,
-{
+pub struct EmailSenderRunner {
     config: EmailSenderConfig,
     smtp_client: SmtpClient,
     template: EmailTemplate,
-    domain_configs: ExposedDomainConfigs<Perms>,
+    domain_configs: ExposedDomainConfigsReadOnly,
 }
 
 #[async_trait]
-impl<Perms> JobRunner for EmailSenderRunner<Perms>
-where
-    Perms: PermissionCheck + Clone + Send + Sync + 'static,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<domain_config::DomainConfigAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<domain_config::DomainConfigObject>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject: SystemSubject,
-{
+impl JobRunner for EmailSenderRunner {
     #[record_error_severity]
     #[instrument(name = "notification.email_sender_job.run", skip(self, _current_job), fields(recipient = %self.config.recipient, email_type = ?self.config.email_type))]
     async fn run(
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let system_sub = <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system();
         let from_email_config = self
             .domain_configs
-            .get::<NotificationFromEmail>(&system_sub)
+            .get_without_audit::<NotificationFromEmail>()
             .await?;
         let from_email = match from_email_config.value() {
             Some(from_email) => from_email,
@@ -114,7 +86,7 @@ where
 
         let from_name_config = self
             .domain_configs
-            .get::<NotificationFromName>(&system_sub)
+            .get_without_audit::<NotificationFromName>()
             .await?;
         let from_name = match from_name_config.value() {
             Some(from_name) => from_name,

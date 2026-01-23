@@ -219,6 +219,6 @@ pub mod contract_creation {
 }
 
 pub mod time_events {
-    pub type TimeEvents = core_time_events::TimeEvents<crate::authorization::Authorization>;
+    pub type TimeEvents = core_time_events::TimeEvents;
     pub use core_time_events::error;
 }
