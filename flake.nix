@@ -409,16 +409,16 @@
                 echo "Starting podman-compose in detached mode..."
                 # Start databases first
                 podman-compose-runner ''${COMPOSE_FILES[@]} up -d core-pg keycloak-pg
-                
+
                 # Wait for both databases to be ready
                 echo "Waiting for PostgreSQL to be ready..."
                 wait4x postgresql "${devEnvVars.PG_CON}" --timeout 120s
                 echo "Waiting for Keycloak PostgreSQL to be ready..."
                 wait4x postgresql "postgresql://dbuser:secret@localhost:5437/default?sslmode=disable" --timeout 120s
-                
-                # Now start Keycloak after databases are confirmed ready
-                echo "Starting Keycloak..."
-                podman-compose-runner ''${COMPOSE_FILES[@]} up -d keycloak
+
+                # Now start remaining services after databases are confirmed ready
+                echo "Starting all other services..."
+                podman-compose-runner ''${COMPOSE_FILES[@]} up -d
 
                 echo "Waiting for Keycloak..."
                 if ! wait4x http http://localhost:8081 --timeout 180s; then
@@ -559,16 +559,16 @@
               echo "Starting deps..."
               # Start databases first
               ${podman-runner.podman-compose-runner}/bin/podman-compose-runner up -d core-pg keycloak-pg
-              
+
               # Wait for both databases to be ready
               echo "Waiting for PostgreSQL to be ready..."
               ${pkgs.wait4x}/bin/wait4x postgresql "$DATABASE_URL" --timeout 120s
               echo "Waiting for Keycloak PostgreSQL to be ready..."
               ${pkgs.wait4x}/bin/wait4x postgresql "postgresql://dbuser:secret@localhost:5437/default?sslmode=disable" --timeout 120s
 
-              # Now start Keycloak after databases are confirmed ready
-              echo "Starting Keycloak..."
-              ${podman-runner.podman-compose-runner}/bin/podman-compose-runner up -d keycloak
+              # Now start remaining services after databases are confirmed ready
+              echo "Starting all other services..."
+              ${podman-runner.podman-compose-runner}/bin/podman-compose-runner up -d
 
               echo "Running database migrations..."
               ${pkgs.sqlx-cli}/bin/sqlx migrate run --source lana/app/migrations
