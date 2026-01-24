@@ -1,22 +1,105 @@
 # LANA Bank - Code Guidelines
 
+## Overview
+Core banking application for bitcoin-backed lending. Uses CALA ledger for double-entry bookkeeping with strong consistency guarantees through custom templates.
+
+## Development Environment
+- Requires Nix flakes - run `nix develop` for shell with all dependencies
+- Includes: Node 20, Rust stable, Python 3.13, pnpm 10
+- `make dev-up` / `make dev-down` - Start/stop full stack with Tilt (interactive development)
+- For AI-driven development, prefer:
+  - `make start-deps` - Start dependencies (databases, Keycloak, etc.)
+  - `make reset-deps` - Clean and restart databases
+  - `make stop-deps` - Stop dependencies
+  - `DAGSTER=true make start-deps` - Start dependencies including Dagster
+
+## Local Development URLs
+| Service | URL/Port |
+|---------|----------|
+| Admin Panel | http://admin.localhost:4455 |
+| Customer Portal | http://app.localhost:4455 |
+| Admin GraphQL | http://admin.localhost:4455/graphql (via Oathkeeper) |
+| Customer GraphQL | http://app.localhost:4455/graphql (via Oathkeeper) |
+| Keycloak | http://localhost:8081 |
+| PostgreSQL (lana) | localhost:5433 |
+
+Note: GraphQL APIs must be accessed through Oathkeeper (port 4455) which handles JWT validation. Direct ports (5253/5254) lack authentication and won't work.
+
 ## Build/Lint/Test Commands
-- `make check-code` - Verify backend code (fmt, check, clippy, audit)
+- `make check-code-rust` - Verify Rust code compiles
 - `make check-code-apps` - Verify frontend code (lint, type check, build)
 - `cargo nextest run` - Run all tests
-- `cargo nextest run package::module::test_name` - Run single test
-- `make e2e` - Run all E2E tests
+- `cargo nextest run -p <crate>` - Run single crate tests
+- `cargo nextest run <crate>::<module>::<test_name>` - Run single test
+- `make e2e` - Run BATS end-to-end tests (configs in `/bats/`)
+- `pnpm cypress:run-headless` - Frontend E2E tests
+- `make sqlx-prepare` - Update .sqlx offline cache (don't edit manually)
+- Prefix direct cargo commands with `SQLX_OFFLINE=true`
+
+## Directory Structure
+| Directory | Purpose |
+|-----------|---------|
+| `/core/` | Rust: Domain logic modules (accounting, credit, customer, deposit) |
+| `/lana/` | Rust: Application layer (admin-server, customer-server, CLI) |
+| `/lib/` | Rust: Shared libraries/adapters (audit, authz, cloud-storage, smtp) |
+| `/apps/` | Next.js frontends (admin-panel, customer-portal) |
+| `/dagster/` | Data pipelines (dbt + Dagster) |
+| `/tf/` | Terraform/OpenTofu infrastructure |
+| `/bats/` | E2E test configurations |
 
 ## Code Style
 - **Rust Architecture**: Hexagonal architecture with adapter/use-case layers
-- **File Naming**: `mod.rs` (interface), `repo.rs` (storage), `entity.rs` (events), `error.rs` (errors)
+- **File Naming**: `mod.rs` (interface), `repo.rs` (storage), `entity.rs` (private events), `error.rs` (errors), `primitives.rs` (value objects), `publisher.rs` (outbox), `job.rs` (async jobs)
+- **Public Events**: `public/` subfolder contains public events shared across module boundaries
 - **Dependencies**: Add to root Cargo.toml with `{ workspace = true }`
-- **GraphQL**: Don't edit schema.graphql manually, use `make sdl-rust`
+- **GraphQL**: Don't edit schema.graphql manually, use `make sdl`
 - **Formatting**: Use Rust fmt, Follow DDD (Domain-Driven Design) pattern
 - **Error Handling**: Module-specific errors in `error.rs`
 - **Frontend**: NextJS with TypeScript, lint with `pnpm lint`
 
 ## Module Structure
 - Core can import lib, lana can import core
-- Entity mutations must be idempotent, command functions use `&mut self`
 - Events flow between module boundaries
+
+## Event Sourcing
+- Uses `es-entity` crate for event-driven architecture
+- Entity files define events and state transitions
+- Events are immutable, state rebuilt from event stream
+- Entity mutations must be idempotent
+- Command methods take `&mut self`, queries take `&self`
+
+## Database
+- Migrations location: `/lana/app/migrations/`
+- Run migrations: `cargo sqlx migrate run`
+- SQLx provides compile-time query verification
+- Run `cargo sqlx prepare` to update offline query cache
+
+## Authentication & Authorization
+- Keycloak for OIDC identity (separate realms for admin/customer)
+- Oathkeeper gateway validates JWTs
+- Casbin for RBAC (policies stored in PostgreSQL)
+- Audit logging for all authorization decisions
+
+## CI/CD
+- PRs trigger: nextest, cypress, bats, check-code-apps
+- Security scanning: cargo audit, cargo deny, pnpm audit, CodeQL
+- Schema changes require `make sdl` before commit
+
+## Common Pitfalls
+- Always regenerate GraphQL schema after Rust changes: `make sdl`
+- SQLx queries are compile-time checked - update offline cache if needed
+- Frontend uses Apollo Client - run codegen after schema changes
+- Don't mix admin/customer Keycloak realms
+
+## Function Naming Conventions
+- `new` - Always succeeds, sync
+- `try_new` - Might fail, sync
+- `init` - Might fail, async
+- `*_without_audit` suffix - Must return `Result<X, XError>`, not `Option`
+
+## Coding Rules
+- Use rustls, not openssl (use `rustls-tls` feature flag)
+- Use Strum library for enum <-> string conversion
+- Use OTEL for debugging, not println (except in tests)
+- Use `#[serde(rename_all = "camelCase")]` instead of manual field renames
+- Don't add `#[allow(dead_code)]`
