@@ -1,3 +1,5 @@
+name: lana-bank
+
 services:
   #! Telemetry
   otel-agent:
