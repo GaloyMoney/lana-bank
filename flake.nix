@@ -411,6 +411,11 @@
 
                 echo "Waiting for PostgreSQL to be ready..."
                 wait4x postgresql "${devEnvVars.PG_CON}" --timeout 120s
+
+                # Wait for Keycloak's PostgreSQL to be ready
+                echo "Waiting for Keycloak PostgreSQL to be ready..."
+                ${pkgs.wait4x}/bin/wait4x postgresql "postgresql://dbuser:secret@localhost:5437/default" --timeout 120s
+
                 echo "Waiting for Keycloak..."
                 ${pkgs.wait4x}/bin/wait4x http http://localhost:8081 --timeout 180s
 
@@ -544,7 +549,7 @@
               trap cleanup EXIT
 
               echo "Starting deps..."
-              ${podman-runner.podman-compose-runner}/bin/podman-compose-runner up -d core-pg keycloak
+              ${podman-runner.podman-compose-runner}/bin/podman-compose-runner up -d core-pg keycloak-pg keycloak
 
               # Wait for PostgreSQL to be ready
               echo "Waiting for PostgreSQL to be ready..."
@@ -552,6 +557,11 @@
 
               echo "Running database migrations..."
               ${pkgs.sqlx-cli}/bin/sqlx migrate run --source lana/app/migrations
+
+              # Wait for Keycloak's PostgreSQL to be ready
+              echo "Waiting for Keycloak PostgreSQL to be ready..."
+              ${pkgs.wait4x}/bin/wait4x postgresql "postgresql://dbuser:secret@localhost:5437/default" --timeout 120s
+
               echo "Waiting for Keycloak..."
               ${pkgs.wait4x}/bin/wait4x http http://localhost:8081 --timeout 180s
 
