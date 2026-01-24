@@ -23,6 +23,7 @@ core-money = { workspace = true }
 core-price = { workspace = true }
 core-customer = { workspace = true }
 core-custody = { workspace = true }
+core-deposit = { workspace = true }
 governance = { workspace = true }
 core-accounting = { workspace = true }
 
@@ -65,4 +66,3 @@ anyhow = { workspace = true }
 rand = { workspace = true }
 serde_yaml = { workspace = true }
 core-access = { workspace = true }
-core-deposit = { workspace = true }

@@ -5,7 +5,6 @@ use core_accounting::AccountingBaseConfig;
 use core_custody::{CustodyConfig, EncryptionConfig};
 use domain_config::{ExposedDomainConfigs, ExposedDomainConfigsReadOnly};
 
-use core_credit::CustomerActiveCheckEnabled;
 use core_deposit::RequireVerifiedCustomerForAccount;
 
 pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
@@ -20,21 +19,8 @@ pub async fn init_domain_configs(
 ) -> anyhow::Result<ExposedDomainConfigsReadOnly> {
     let exposed_configs = ExposedDomainConfigs::new(pool, authz);
     exposed_configs.seed_registered().await?;
-    // Disable the customer active check for tests
+    // Disable the require verified customer check for tests
     // Use retry logic to handle concurrent modification from parallel tests
-    for _ in 0..3 {
-        match exposed_configs
-            .update::<CustomerActiveCheckEnabled>(&authz::dummy::DummySubject, false)
-            .await
-        {
-            Ok(_) => break,
-            Err(domain_config::DomainConfigError::EsEntityError(
-                es_entity::EsEntityError::ConcurrentModification,
-            )) => continue,
-            Err(e) => return Err(e.into()),
-        }
-    }
-    // Disable the require verified customer check for deposit tests
     for _ in 0..3 {
         match exposed_configs
             .update::<RequireVerifiedCustomerForAccount>(&authz::dummy::DummySubject, false)

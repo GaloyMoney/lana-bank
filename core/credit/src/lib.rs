@@ -35,6 +35,7 @@ use core_custody::{
 };
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
 use core_price::{CorePriceEvent, Price};
+use core_deposit::RequireVerifiedCustomerForAccount;
 use domain_config::ExposedDomainConfigsReadOnly;
 use es_entity::clock::ClockHandle;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
@@ -552,7 +553,7 @@ where
         let customer = self.customer.find_by_id_without_audit(customer_id).await?;
         let customer_active_check = self
             .domain_configs
-            .get_without_audit::<config::CustomerActiveCheckEnabled>()
+            .get_without_audit::<RequireVerifiedCustomerForAccount>()
             .await?
             .value()
             .unwrap_or(true);
@@ -629,7 +630,7 @@ where
         let customer = self.customer.find_by_id_without_audit(customer_id).await?;
         let customer_active_check = self
             .domain_configs
-            .get_without_audit::<config::CustomerActiveCheckEnabled>()
+            .get_without_audit::<RequireVerifiedCustomerForAccount>()
             .await?
             .value()
             .unwrap_or(true);
