@@ -3,8 +3,9 @@ use std::marker::PhantomData;
 use ::job::{JobId, Jobs};
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_applicant::Applicants;
-use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerObject, Customers};
+use core_customer::{
+    kyc::CustomerKyc, CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerObject, Customers,
+};
 use document_storage::{
     Document, DocumentId, DocumentStatus, DocumentStorage, DocumentType,
     GeneratedDocumentDownloadLink, ReferenceId,
@@ -64,7 +65,7 @@ where
     pub fn new(
         gotenberg_config: gotenberg::GotenbergConfig,
         customers: &Customers<Perms, E>,
-        applicants: &Applicants<Perms, E>,
+        customer_kyc: &CustomerKyc<Perms, E>,
         document_storage: &DocumentStorage,
         jobs: &mut Jobs,
         authz: &Perms,
@@ -76,7 +77,7 @@ where
         let generate_loan_agreement_job_spawner =
             jobs.add_initializer(GenerateLoanAgreementJobInitializer::new(
                 customers,
-                applicants,
+                customer_kyc,
                 document_storage,
                 contract_templates,
                 renderer.clone(),

@@ -12,7 +12,6 @@ json-schema = ["dep:schemars", "es-entity/json-schema", "audit/json-schema"]
 
 [dependencies]
 core-customer = { workspace = true }
-core-applicant = { workspace = true }
 document-storage = { workspace = true }
 job = { workspace = true }
 obix = { workspace = true }

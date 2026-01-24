@@ -8,7 +8,7 @@ async fn callback(
     Extension(app): Extension<LanaApp>,
     Json(payload): Json<serde_json::Value>,
 ) -> impl IntoResponse {
-    match app.applicants().handle_callback(payload).await {
+    match app.customer_kyc().handle_callback(payload).await {
         Ok(()) => axum::Json("{}").into_response(),
         Err(..) => axum::http::StatusCode::INTERNAL_SERVER_ERROR.into_response(),
     }

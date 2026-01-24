@@ -10,7 +10,7 @@ ignored = ["schemars"]
 
 fail-on-warnings = []
 mock-custodian = ["core-custody/mock-custodian", "core-credit/mock-custodian"]
-sumsub-testing = ["core-applicant/sumsub-testing"]
+sumsub-testing = ["core-customer/sumsub-testing"]
 
 [dependencies]
 rbac-types = { workspace = true }
@@ -28,7 +28,6 @@ notification = { workspace = true }
 governance = { workspace = true, features = ["graphql"] }
 core-money = { workspace = true, features = ["graphql"] }
 core-access = { workspace = true, features = ["graphql"] }
-core-applicant = { workspace = true, features = ["graphql"] }
 core-custody = { workspace = true, features = ["graphql"] }
 core-credit = { workspace = true, features = ["graphql"] }
 core-customer = { workspace = true, features = ["graphql"] }

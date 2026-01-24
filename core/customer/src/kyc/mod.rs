@@ -1,6 +1,4 @@
-#![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
-#![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
-
+pub mod callback;
 pub mod error;
 
 #[cfg(feature = "sumsub-testing")]
@@ -13,45 +11,26 @@ use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_customer::{CoreCustomerEvent, CustomerId, Customers};
 use obix::inbox::{Inbox, InboxConfig, InboxEvent, InboxHandler, InboxResult};
 use obix::out::OutboxEventMarker;
 
-use error::ApplicantError;
-pub use sumsub::SumsubConfig;
+use crate::{
+    CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerObject, CustomerType, Customers,
+};
+use callback::{KycCallbackPayload, ReviewAnswer, ReviewResult};
+use error::KycError;
 
+pub use sumsub::SumsubConfig;
 pub use sumsub::{ApplicantInfo, PermalinkResponse, SumsubClient};
 
 #[cfg(feature = "graphql")]
 use async_graphql::*;
 
-es_entity::entity_id!(ApplicantId);
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, strum::Display)]
-#[serde(rename_all = "UPPERCASE")]
-#[strum(serialize_all = "UPPERCASE")]
-pub enum ReviewAnswer {
-    Green,
-    Red,
-}
-
-impl std::str::FromStr for ReviewAnswer {
-    type Err = ApplicantError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.to_uppercase().as_str() {
-            "GREEN" => Ok(ReviewAnswer::Green),
-            "RED" => Ok(ReviewAnswer::Red),
-            _ => Err(ApplicantError::ReviewAnswerParseError(s.to_string())),
-        }
-    }
-}
-
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, strum::Display)]
 #[cfg_attr(feature = "graphql", derive(Enum))]
 #[serde(rename_all = "kebab-case")]
 #[strum(serialize_all = "kebab-case")]
-pub enum SumsubVerificationLevel {
+pub enum KycLevel {
     #[serde(rename = "basic-kyc-level")]
     #[strum(serialize = "basic-kyc-level")]
     BasicKycLevel,
@@ -61,106 +40,43 @@ pub enum SumsubVerificationLevel {
     Unimplemented,
 }
 
-impl std::str::FromStr for SumsubVerificationLevel {
-    type Err = ApplicantError;
+impl std::str::FromStr for KycLevel {
+    type Err = KycError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "basic-kyc-level" => Ok(SumsubVerificationLevel::BasicKycLevel),
-            "basic-kyb-level" => Ok(SumsubVerificationLevel::BasicKybLevel),
+            "basic-kyc-level" => Ok(KycLevel::BasicKycLevel),
+            "basic-kyb-level" => Ok(KycLevel::BasicKybLevel),
             _ => {
-                tracing::warn!("Unrecognized SumsubVerificationLevel: {}", s);
-                Err(ApplicantError::SumsubVerificationLevelParseError(
-                    s.to_string(),
-                ))
+                tracing::warn!("Unrecognized KycLevel: {}", s);
+                Err(KycError::KycLevelParseError(s.to_string()))
             }
         }
     }
 }
 
-impl From<&core_customer::CustomerType> for SumsubVerificationLevel {
-    fn from(customer_type: &core_customer::CustomerType) -> Self {
+impl From<&CustomerType> for KycLevel {
+    fn from(customer_type: &CustomerType) -> Self {
         match customer_type {
-            core_customer::CustomerType::Individual => SumsubVerificationLevel::BasicKycLevel,
-            // Every company types is tied to the same SumSub verification level
-            core_customer::CustomerType::GovernmentEntity => SumsubVerificationLevel::BasicKybLevel,
-            core_customer::CustomerType::PrivateCompany => SumsubVerificationLevel::BasicKybLevel,
-            core_customer::CustomerType::Bank => SumsubVerificationLevel::BasicKybLevel,
-            core_customer::CustomerType::FinancialInstitution => {
-                SumsubVerificationLevel::BasicKybLevel
-            }
-            core_customer::CustomerType::ForeignAgencyOrSubsidiary => {
-                SumsubVerificationLevel::BasicKybLevel
-            }
-            core_customer::CustomerType::NonDomiciledCompany => {
-                SumsubVerificationLevel::BasicKybLevel
-            }
+            CustomerType::Individual => KycLevel::BasicKycLevel,
+            // Every company types is tied to the same KYC verification level
+            CustomerType::GovernmentEntity => KycLevel::BasicKybLevel,
+            CustomerType::PrivateCompany => KycLevel::BasicKybLevel,
+            CustomerType::Bank => KycLevel::BasicKybLevel,
+            CustomerType::FinancialInstitution => KycLevel::BasicKybLevel,
+            CustomerType::ForeignAgencyOrSubsidiary => KycLevel::BasicKybLevel,
+            CustomerType::NonDomiciledCompany => KycLevel::BasicKybLevel,
         }
     }
 }
 
-impl From<core_customer::CustomerType> for SumsubVerificationLevel {
-    fn from(customer_type: core_customer::CustomerType) -> Self {
+impl From<CustomerType> for KycLevel {
+    fn from(customer_type: CustomerType) -> Self {
         (&customer_type).into()
     }
 }
 
-#[derive(Deserialize, Debug, Serialize)]
-#[serde(tag = "type")]
-pub enum SumsubCallbackPayload {
-    #[serde(rename = "applicantCreated")]
-    #[serde(rename_all = "camelCase")]
-    ApplicantCreated {
-        applicant_id: String,
-        inspection_id: String,
-        correlation_id: String,
-        level_name: String,
-        external_user_id: CustomerId,
-        review_status: String,
-        created_at_ms: String,
-        client_id: Option<String>,
-        sandbox_mode: Option<bool>,
-    },
-    #[serde(rename = "applicantReviewed")]
-    #[serde(rename_all = "camelCase")]
-    ApplicantReviewed {
-        applicant_id: String,
-        inspection_id: String,
-        correlation_id: String,
-        external_user_id: CustomerId,
-        level_name: String,
-        review_result: ReviewResult,
-        review_status: String,
-        created_at_ms: String,
-        sandbox_mode: Option<bool>,
-    },
-    #[serde(rename = "applicantPending")]
-    #[serde(rename_all = "camelCase")]
-    ApplicantPending {
-        applicant_id: String,
-        sandbox_mode: Option<bool>,
-    },
-    #[serde(rename = "applicantPersonalInfoChanged")]
-    #[serde(rename_all = "camelCase")]
-    ApplicantPersonalInfoChanged {
-        applicant_id: String,
-        sandbox_mode: Option<bool>,
-    },
-    #[serde(other)]
-    Unknown,
-}
-
-#[derive(Deserialize, Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ReviewResult {
-    pub review_answer: ReviewAnswer,
-    pub moderation_comment: Option<String>,
-    pub client_comment: Option<String>,
-    pub reject_labels: Option<Vec<String>>,
-    pub review_reject_type: Option<String>,
-}
-
-struct SumsubCallbackHandler<Perms, E>
+struct KycCallbackHandler<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>,
@@ -168,7 +84,7 @@ where
     customers: Customers<Perms, E>,
 }
 
-impl<Perms, E> Clone for SumsubCallbackHandler<Perms, E>
+impl<Perms, E> Clone for KycCallbackHandler<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>,
@@ -180,13 +96,12 @@ where
     }
 }
 
-impl<Perms, E> InboxHandler for SumsubCallbackHandler<Perms, E>
+impl<Perms, E> InboxHandler for KycCallbackHandler<Perms, E>
 where
     Perms: PermissionCheck + Send + Sync,
     E: OutboxEventMarker<CoreCustomerEvent> + Send + Sync,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<core_customer::CoreCustomerAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<core_customer::CustomerObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
 {
     async fn handle(
         &self,
@@ -195,15 +110,15 @@ where
         let payload: serde_json::Value = event.payload()?;
         payload["externalUserId"]
             .as_str()
-            .ok_or_else(|| ApplicantError::MissingExternalUserId(payload.to_string()))?
+            .ok_or_else(|| KycError::MissingExternalUserId(payload.to_string()))?
             .parse::<CustomerId>()?;
 
         match self.process_payload(payload).await {
             Ok(_) => (),
             // Silently ignoring these errors instead of returning,
             // this prevents sumsub from retrying for these unhandled cases
-            Err(ApplicantError::UnhandledCallbackType) => (),
-            Err(ApplicantError::UnhandledLevelType) => (),
+            Err(KycError::UnhandledCallbackType) => (),
+            Err(KycError::UnhandledLevelType) => (),
             Err(e) => return Err(Box::new(e)),
         }
 
@@ -211,13 +126,12 @@ where
     }
 }
 
-impl<Perms, E> SumsubCallbackHandler<Perms, E>
+impl<Perms, E> KycCallbackHandler<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<core_customer::CoreCustomerAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<core_customer::CustomerObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
 {
     fn new(customers: &Customers<Perms, E>) -> Self {
         Self {
@@ -227,13 +141,13 @@ where
 
     #[record_error_severity]
     #[instrument(
-        name = "applicant.process_payload",
+        name = "kyc.process_payload",
         skip(self),
         fields(ignore_for_sandbox = false, callback_type = tracing::field::Empty, sandbox_mode = tracing::field::Empty, applicant_id = tracing::field::Empty, kyc_level = tracing::field::Empty, customer_id = tracing::field::Empty)
     )]
-    async fn process_payload(&self, payload: serde_json::Value) -> Result<(), ApplicantError> {
+    async fn process_payload(&self, payload: serde_json::Value) -> Result<(), KycError> {
         match serde_json::from_value(payload.clone())? {
-            SumsubCallbackPayload::ApplicantCreated {
+            KycCallbackPayload::ApplicantCreated {
                 external_user_id,
                 applicant_id,
                 level_name,
@@ -262,7 +176,7 @@ where
                         .await?;
                 }
             }
-            SumsubCallbackPayload::ApplicantReviewed {
+            KycCallbackPayload::ApplicantReviewed {
                 external_user_id,
                 review_result:
                     ReviewResult {
@@ -296,7 +210,7 @@ where
                         .await?;
                 }
             }
-            SumsubCallbackPayload::ApplicantReviewed {
+            KycCallbackPayload::ApplicantReviewed {
                 external_user_id,
                 review_result:
                     ReviewResult {
@@ -316,10 +230,10 @@ where
                 tracing::Span::current()
                     .record("customer_id", external_user_id.to_string().as_str());
                 // Try to parse the level name, will return error for unrecognized values
-                match level_name.parse::<SumsubVerificationLevel>() {
+                match level_name.parse::<KycLevel>() {
                     Ok(_) => {} // Level is valid, continue
                     Err(_) => {
-                        return Err(ApplicantError::UnhandledLevelType);
+                        return Err(KycError::UnhandledLevelType);
                     }
                 };
 
@@ -337,7 +251,7 @@ where
                         .await?;
                 }
             }
-            SumsubCallbackPayload::ApplicantPending {
+            KycCallbackPayload::ApplicantPending {
                 applicant_id,
                 sandbox_mode,
                 ..
@@ -347,7 +261,7 @@ where
                 tracing::Span::current().record("sandbox_mode", sandbox_mode.unwrap_or(false));
                 tracing::Span::current().record("applicant_id", applicant_id.as_str());
             }
-            SumsubCallbackPayload::ApplicantPersonalInfoChanged {
+            KycCallbackPayload::ApplicantPersonalInfoChanged {
                 applicant_id,
                 sandbox_mode,
                 ..
@@ -357,18 +271,18 @@ where
                 tracing::Span::current().record("sandbox_mode", sandbox_mode.unwrap_or(false));
                 tracing::Span::current().record("applicant_id", applicant_id.as_str());
             }
-            SumsubCallbackPayload::Unknown => {
+            KycCallbackPayload::Unknown => {
                 tracing::Span::current().record("callback_type", "Unknown");
-                return Err(ApplicantError::UnhandledCallbackType);
+                return Err(KycError::UnhandledCallbackType);
             }
         }
         Ok(())
     }
 }
 
-const APPLICANTS_INBOX_JOB: job::JobType = job::JobType::new("applicants-inbox");
+const KYC_INBOX_JOB: job::JobType = job::JobType::new("customer-kyc-inbox");
 
-pub struct Applicants<Perms, E>
+pub struct CustomerKyc<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>,
@@ -379,7 +293,7 @@ where
     inbox: Inbox,
 }
 
-impl<Perms, E> Clone for Applicants<Perms, E>
+impl<Perms, E> Clone for CustomerKyc<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>,
@@ -394,25 +308,24 @@ where
     }
 }
 
-impl<Perms, E> Applicants<Perms, E>
+impl<Perms, E> CustomerKyc<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<core_customer::CoreCustomerAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<core_customer::CustomerObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
 {
-    pub async fn new(
+    pub async fn init(
         pool: &PgPool,
         config: &SumsubConfig,
         authz: &Perms,
         customers: &Customers<Perms, E>,
         jobs: &mut job::Jobs,
-    ) -> Result<Self, ApplicantError> {
+    ) -> Result<Self, KycError> {
         let sumsub_client = SumsubClient::new(config);
-        let handler = SumsubCallbackHandler::new(customers);
+        let handler = KycCallbackHandler::new(customers);
 
-        let inbox_config = InboxConfig::new(APPLICANTS_INBOX_JOB);
+        let inbox_config = InboxConfig::new(KYC_INBOX_JOB);
         let inbox = Inbox::new(pool, jobs, inbox_config, handler);
 
         Ok(Self {
@@ -423,9 +336,13 @@ where
         })
     }
 
+    pub fn sumsub_client(&self) -> &SumsubClient {
+        &self.sumsub_client
+    }
+
     #[record_error_severity]
-    #[instrument(name = "applicant.handle_callback", skip_all)]
-    pub async fn handle_callback(&self, payload: serde_json::Value) -> Result<(), ApplicantError> {
+    #[instrument(name = "kyc.handle_callback", skip_all)]
+    pub async fn handle_callback(&self, payload: serde_json::Value) -> Result<(), KycError> {
         // Extract a unique idempotency key from the payload
         // Use webhook_type + correlationId + createdAtMs if available,
         // otherwise fall back to a hash of the payload
@@ -453,24 +370,24 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "applicant.create_permalink", skip(self))]
-    pub async fn create_permalink(
+    #[instrument(name = "kyc.create_verification_link", skip(self))]
+    pub async fn create_verification_link(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
-    ) -> Result<PermalinkResponse, ApplicantError> {
+    ) -> Result<PermalinkResponse, KycError> {
         let customer_id: CustomerId = customer_id.into();
 
         self.authz
             .enforce_permission(
                 sub,
-                core_customer::CustomerObject::customer(customer_id),
-                core_customer::CoreCustomerAction::CUSTOMER_READ,
+                CustomerObject::customer(customer_id),
+                CoreCustomerAction::CUSTOMER_READ,
             )
             .await?;
 
         let customer = self.customers.find_by_id_without_audit(customer_id).await?;
-        let level: SumsubVerificationLevel = customer.customer_type.into();
+        let level: KycLevel = customer.customer_type.into();
 
         Ok(self
             .sumsub_client
@@ -479,11 +396,11 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "applicant.get_applicant_info_without_audit", skip(self))]
+    #[instrument(name = "kyc.get_applicant_info_without_audit", skip(self))]
     pub async fn get_applicant_info_without_audit(
         &self,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
-    ) -> Result<ApplicantInfo, ApplicantError> {
+    ) -> Result<ApplicantInfo, KycError> {
         let customer_id: CustomerId = customer_id.into();
 
         // will return error if customer not found
@@ -501,16 +418,16 @@ where
     /// This method executes the full KYC flow automatically using predefined test data
     #[cfg(feature = "sumsub-testing")]
     #[record_error_severity]
-    #[instrument(name = "applicant.create_complete_test_applicant", skip(self))]
+    #[instrument(name = "kyc.create_complete_test_applicant", skip(self))]
     pub async fn create_complete_test_applicant(
         &self,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
-    ) -> Result<String, ApplicantError> {
+    ) -> Result<String, KycError> {
         let customer_id: CustomerId = customer_id.into();
 
         // will return error if customer not found
         let customer = self.customers.find_by_id_without_audit(customer_id).await?;
-        let level: SumsubVerificationLevel = customer.customer_type.into();
+        let level: KycLevel = customer.customer_type.into();
 
         tracing::info!(
             customer_id = %customer_id,
@@ -546,7 +463,7 @@ where
         )
         .await
         .map_err(|e| {
-            ApplicantError::SumsubError(sumsub::SumsubError::ApiError {
+            KycError::SumsubError(sumsub::SumsubError::ApiError {
                 description: format!("Failed to load passport image: {e}"),
                 code: 500,
             })
@@ -607,7 +524,7 @@ where
         )
         .await
         .map_err(|e| {
-            ApplicantError::SumsubError(sumsub::SumsubError::ApiError {
+            KycError::SumsubError(sumsub::SumsubError::ApiError {
                 description: format!("Failed to load proof of residence image: {e}"),
                 code: 500,
             })

@@ -6,6 +6,7 @@ mod customer_activity_repo;
 mod entity;
 pub mod error;
 mod event;
+pub mod kyc;
 mod primitives;
 mod publisher;
 mod repo;

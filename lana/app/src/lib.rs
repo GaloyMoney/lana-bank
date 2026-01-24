@@ -3,10 +3,10 @@
 
 pub mod accounting_init;
 pub mod app;
-pub mod applicant {
-    pub use core_applicant::*;
-    pub type Applicants =
-        core_applicant::Applicants<crate::authorization::Authorization, lana_events::LanaEvent>;
+pub mod kyc {
+    pub use core_customer::kyc::*;
+    pub type CustomerKyc =
+        core_customer::kyc::CustomerKyc<crate::authorization::Authorization, lana_events::LanaEvent>;
 }
 
 pub mod authorization;
