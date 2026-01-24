@@ -4,7 +4,7 @@ use ::job::{JobId, Jobs};
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_customer::{
-    kyc::CustomerKyc, CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerObject, Customers,
+    CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerObject, Customers, kyc::CustomerKyc,
 };
 use document_storage::{
     Document, DocumentId, DocumentStatus, DocumentStorage, DocumentType,
