@@ -335,6 +335,7 @@
             podman-runner = pkgs.callPackage ./nix/podman-runner.nix {};
             binPath = pkgs.lib.makeBinPath [
               podman-runner.podman-compose-runner
+              pkgs.podman
               pkgs.wait4x
               pkgs.bats
               pkgs.gnugrep
