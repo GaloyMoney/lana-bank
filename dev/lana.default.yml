@@ -18,8 +18,7 @@ app:
     superuser_email: null
   credit:
     customer_active_check_enabled: true
-    collateralization_from_price_job_interval: 30
-    pending_collateralization_from_price_job_interval: 30
+    price_job_interval: 30
   storage:
     provider: local
     root_folder: ''
