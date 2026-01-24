@@ -385,6 +385,7 @@
                 export ENCRYPTION_KEY="${devEnvVars.ENCRYPTION_KEY}"
                 export DAGSTER="''${DAGSTER:-"true"}"
                 export GOTENBERG="''${GOTENBERG:-"false"}"
+                export MAILCRAB="''${MAILCRAB:-"false"}"
 
                 # Build compose file arguments
                 COMPOSE_FILES=(-f docker-compose.yml)
@@ -393,6 +394,9 @@
                 fi
                 if [[ "''${GOTENBERG:-false}" == "true" ]]; then
                   COMPOSE_FILES+=(-f docker-compose.gotenberg.yml)
+                fi
+                if [[ "''${MAILCRAB:-false}" == "true" ]]; then
+                  COMPOSE_FILES+=(-f docker-compose.mailcrab.yml)
                 fi
 
                 # Function to cleanup on exit

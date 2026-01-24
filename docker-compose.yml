@@ -44,10 +44,6 @@ services:
     volumes: ["./dev/ory:/home/ory"]
     depends_on: [keycloak, otel-agent]
 
-  mailcrab:
-    image: marlonb/mailcrab:latest
-    ports: [1025:1025, 1080:1080]
-
   #! Databases
   core-pg:
     image: postgres:17.5
