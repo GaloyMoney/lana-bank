@@ -43,6 +43,12 @@ sqlx-prepare:
 
 reset-deps: clean-deps start-deps setup-db
 
+gotenberg-up:
+	docker compose -f docker-compose.gotenberg.yml up -d gotenberg
+
+gotenberg-down:
+	docker compose -f docker-compose.gotenberg.yml down
+
 run-server-normal:
 	cargo run --features mock-custodian,sumsub-testing --bin lana-cli -- --config ./bats/lana-normal.yml > >(tee .e2e-logs) 2>&1
 

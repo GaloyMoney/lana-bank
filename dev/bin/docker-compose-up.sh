@@ -4,6 +4,7 @@ set -euo pipefail
 BASE=docker-compose.yml
 OVERRIDE=docker-compose.docker.yml   # contains the extra_hosts entry
 DAGSTER_FILE=docker-compose.dagster.yml
+GOTENBERG_FILE=docker-compose.gotenberg.yml
 
 # ── Pick container engine ───────────────────────────────────────────────────────
 if [[ -n "${ENGINE_DEFAULT:-}" ]]; then            # honour explicit choice
@@ -22,6 +23,9 @@ fi
 FILES=(-f "$BASE")
 if [[ "${DAGSTER:-false}" == "true" ]]; then
     FILES+=(-f "$DAGSTER_FILE")
+fi
+if [[ "${GOTENBERG:-false}" == "true" ]]; then
+    FILES+=(-f "$GOTENBERG_FILE")
 fi
 [[ "$ENGINE" == docker ]] && FILES+=(-f "$OVERRIDE")   # extra_hosts only on Docker
 
@@ -50,4 +54,8 @@ wait4x http http://localhost:9000/health/ready --timeout 120s
 
 if [[ "${DAGSTER:-false}" == "true" ]]; then
   wait4x http http://localhost:3000/graphql --timeout 120s || true
+fi
+
+if [[ "${GOTENBERG:-false}" == "true" ]]; then
+  wait4x http http://localhost:3030/health --timeout 60s || true
 fi

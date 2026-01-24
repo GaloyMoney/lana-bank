@@ -62,13 +62,14 @@ where
         From<ContractModuleObject> + From<CustomerObject>,
 {
     pub fn new(
+        gotenberg_config: gotenberg::GotenbergConfig,
         customers: &Customers<Perms, E>,
         applicants: &Applicants<Perms, E>,
         document_storage: &DocumentStorage,
         jobs: &mut Jobs,
         authz: &Perms,
     ) -> Self {
-        let renderer = rendering::Renderer::new();
+        let renderer = rendering::Renderer::new(gotenberg_config);
         let contract_templates = templates::ContractTemplates::new();
 
         // Initialize the job system for contract creation
@@ -261,11 +262,14 @@ pub struct LoanAgreement {
 mod tests {
     use super::*;
 
+    fn test_gotenberg_config() -> gotenberg::GotenbergConfig {
+        gotenberg::GotenbergConfig::default()
+    }
+
     #[test]
     fn test_contract_creation_config() -> Result<(), error::ContractCreationError> {
-        // Test that the embedded PDF config works correctly
-        // Verify that renderer can be created with embedded config
-        let _renderer = rendering::Renderer::new();
+        // Test that the renderer can be created with config
+        let _renderer = rendering::Renderer::new(test_gotenberg_config());
 
         // Test embedded templates
         let contract_templates = templates::ContractTemplates::new();

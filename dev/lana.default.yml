@@ -63,6 +63,8 @@ app:
       repository_name: __repository__
   deposit:
     require_verified_customer_for_account: true
+  gotenberg:
+    url: http://localhost:3030/
 tracing:
   service_name: lana-dev
 time:

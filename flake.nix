@@ -93,7 +93,7 @@
           || pkgs.lib.hasInfix "/lana/app/migrations/" path
           || pkgs.lib.hasInfix "/lana/notification/src/email/templates/" path
           || pkgs.lib.hasInfix "/lana/contract-creation/src/templates/" path
-          || pkgs.lib.hasInfix "/lib/rendering/config/" path
+          || pkgs.lib.hasInfix "/lib/gotenberg/config/" path
           || pkgs.lib.hasInfix "/lana/admin-server/src/graphql/schema.graphql" path
           || pkgs.lib.hasInfix "/lana/customer-server/src/graphql/schema.graphql" path;
       };
@@ -382,11 +382,15 @@
                 export DATABASE_URL="${devEnvVars.DATABASE_URL}"
                 export ENCRYPTION_KEY="${devEnvVars.ENCRYPTION_KEY}"
                 export DAGSTER="''${DAGSTER:-"true"}"
+                export GOTENBERG="''${GOTENBERG:-"false"}"
 
                 # Build compose file arguments
                 COMPOSE_FILES=(-f docker-compose.yml)
                 if [[ "''${DAGSTER:-false}" == "true" ]]; then
                   COMPOSE_FILES+=(-f docker-compose.dagster.yml)
+                fi
+                if [[ "''${GOTENBERG:-false}" == "true" ]]; then
+                  COMPOSE_FILES+=(-f docker-compose.gotenberg.yml)
                 fi
 
                 # Function to cleanup on exit
@@ -415,6 +419,10 @@
                   ${pkgs.wait4x}/bin/wait4x http http://localhost:3000/graphql --timeout 180s
                 fi
 
+                if [[ "''${GOTENBERG}" == "true" ]]; then
+                  echo "Waiting for Gotenberg to be ready..."
+                  ${pkgs.wait4x}/bin/wait4x http http://localhost:3030/health --timeout 60s
+                fi
 
                 # Set TERM for CI environments
                 export TERM="''${TERM:-dumb}"

@@ -27,6 +27,7 @@ cloud-storage = { path = "lib/cloud-storage" }
 jwks-utils = { path = "lib/jwks-utils" }
 keycloak-client = { path = "lib/keycloak-client" }
 komainu = { path = "lib/komainu" }
+gotenberg = { path = "lib/gotenberg" }
 rendering = { path = "lib/rendering" }
 smtp-client = { path = "lib/smtp-client" }
 sumsub = { path = "lib/sumsub" }
@@ -172,7 +173,6 @@ tempfile = "3.24.0"
 p256 = "0.13.2"
 pbkdf2 = "0.12"
 pkcs8 = { version = "0.10.2", features = ["encryption"] }
-markdown2pdf = { version = "0.1.9", features = ["rustls-tls"], default-features = false }
 bytes = "1.11"
 keycloak = "26.4.0"
 

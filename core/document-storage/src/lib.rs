@@ -17,6 +17,15 @@ use error::*;
 pub use primitives::*;
 pub use repo::{DocumentRepo, document_cursor::DocumentsByCreatedAtCursor};
 
+/// Returns the file extension (including the dot) for a given content type
+fn extension_for_content_type(content_type: &str) -> &'static str {
+    match content_type {
+        "application/pdf" => ".pdf",
+        "text/csv" => ".csv",
+        _ => "",
+    }
+}
+
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
     pub use crate::entity::DocumentEvent;
@@ -61,7 +70,9 @@ impl DocumentStorage {
     ) -> Result<Document, DocumentStorageError> {
         let document_id = DocumentId::new();
         let document_type = document_type.into();
-        let path_in_storage = format!("documents/{document_type}/{document_id}");
+        let content_type: String = content_type.into();
+        let extension = extension_for_content_type(&content_type);
+        let path_in_storage = format!("documents/{document_type}/{document_id}{extension}");
         let storage_identifier = self.storage.identifier();
 
         let new_document = NewDocument::builder()
@@ -127,7 +138,9 @@ impl DocumentStorage {
     ) -> Result<Document, DocumentStorageError> {
         let document_id = DocumentId::new();
         let document_type = document_type.into();
-        let path_in_storage = format!("documents/{document_type}/{document_id}");
+        let content_type: String = content_type.into();
+        let extension = extension_for_content_type(&content_type);
+        let path_in_storage = format!("documents/{document_type}/{document_id}{extension}");
         let storage_identifier = self.storage.identifier();
 
         let new_document = NewDocument::builder()

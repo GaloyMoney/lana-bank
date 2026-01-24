@@ -181,7 +181,7 @@ where
         let content = self
             .contract_templates
             .render_template("loan_agreement", &loan_data)?;
-        let pdf_bytes = self.renderer.render_template_to_pdf(&content)?;
+        let pdf_bytes = self.renderer.render_template_to_pdf(&content).await?;
 
         // Convert job ID to document ID (they should be the same as per the pattern)
         let document_id = DocumentId::from(uuid::Uuid::from(*current_job.id()));

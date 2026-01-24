@@ -1,0 +1,7 @@
+services:
+  gotenberg:
+    image: gotenberg/gotenberg:8
+    ports: [3030:3000]
+    command:
+      - "gotenberg"
+      - "--libreoffice-disable-routes"
