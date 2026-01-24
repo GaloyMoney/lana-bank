@@ -3,9 +3,9 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 use crate::{
-    access::config::AccessConfig, applicant::SumsubConfig, credit::CreditConfig,
-    custody::CustodyConfig, customer_sync::CustomerSyncConfig, deposit::DepositConfig,
-    gotenberg::GotenbergConfig, job::JobPollerConfig, notification::NotificationConfig,
+    access::config::AccessConfig, credit::CreditConfig, custody::CustodyConfig,
+    customer_sync::CustomerSyncConfig, deposit::DepositConfig, gotenberg::GotenbergConfig,
+    job::JobPollerConfig, kyc::SumsubConfig, notification::NotificationConfig,
     report::ReportConfig, storage::config::StorageConfig, user_onboarding::UserOnboardingConfig,
 };
 

@@ -12,7 +12,7 @@ use obix::out::OutboxEventMarker;
 use tracing_macros::record_error_severity;
 
 use super::{LoanAgreementData, templates::ContractTemplates};
-use crate::{Applicants, Customers};
+use crate::{CustomerKyc, Customers};
 
 #[derive(Serialize, Deserialize)]
 pub struct GenerateLoanAgreementConfig<Perms, E>
@@ -46,7 +46,7 @@ where
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
     customers: Customers<Perms, E>,
-    applicants: Applicants<Perms, E>,
+    customer_kyc: CustomerKyc<Perms, E>,
     document_storage: DocumentStorage,
     contract_templates: ContractTemplates,
     renderer: rendering::Renderer,
@@ -61,14 +61,14 @@ where
 {
     pub fn new(
         customers: &Customers<Perms, E>,
-        applicants: &Applicants<Perms, E>,
+        customer_kyc: &CustomerKyc<Perms, E>,
         document_storage: &DocumentStorage,
         contract_templates: ContractTemplates,
         renderer: rendering::Renderer,
     ) -> Self {
         Self {
             customers: customers.clone(),
-            applicants: applicants.clone(),
+            customer_kyc: customer_kyc.clone(),
             document_storage: document_storage.clone(),
             contract_templates,
             renderer,
@@ -98,7 +98,7 @@ where
         Ok(Box::new(GenerateLoanAgreementJobRunner {
             config: job.config()?,
             customers: self.customers.clone(),
-            applicants: self.applicants.clone(),
+            customer_kyc: self.customer_kyc.clone(),
             document_storage: self.document_storage.clone(),
             contract_templates: self.contract_templates.clone(),
             renderer: self.renderer.clone(),
@@ -115,7 +115,7 @@ where
 {
     config: GenerateLoanAgreementConfig<Perms, E>,
     customers: Customers<Perms, E>,
-    applicants: Applicants<Perms, E>,
+    customer_kyc: CustomerKyc<Perms, E>,
     document_storage: DocumentStorage,
     contract_templates: ContractTemplates,
     renderer: rendering::Renderer,
@@ -152,7 +152,7 @@ where
         // Get applicant information from Sumsub if available
         let (full_name, address, country) = if customer.applicant_id.is_some() {
             match self
-                .applicants
+                .customer_kyc
                 .get_applicant_info_without_audit(self.config.customer_id)
                 .await
             {

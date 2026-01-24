@@ -1257,7 +1257,6 @@ dependencies = [
  "audit",
  "authz",
  "chrono",
- "core-applicant",
  "core-customer",
  "document-storage",
  "es-entity",
@@ -1356,31 +1355,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "core-applicant"
-version = "0.0.0"
-dependencies = [
- "async-graphql",
- "audit",
- "authz",
- "core-customer",
- "es-entity",
- "job",
- "obix",
- "schemars 1.2.0",
- "serde",
- "serde_json",
- "sqlx",
- "strum",
- "sumsub",
- "thiserror 2.0.17",
- "tokio",
- "tracing",
- "tracing-macros",
- "tracing-utils",
- "workspace-hack",
-]
-
-[[package]]
 name = "core-credit"
 version = "0.0.0"
 dependencies = [
@@ -1475,13 +1449,17 @@ dependencies = [
  "document-storage",
  "es-entity",
  "governance",
+ "job",
  "obix",
  "public-id",
  "schemars 1.2.0",
  "serde",
+ "serde_json",
  "sqlx",
  "strum",
+ "sumsub",
  "thiserror 2.0.17",
+ "tokio",
  "tracing",
  "tracing-macros",
  "tracing-utils",
@@ -3451,7 +3429,6 @@ dependencies = [
  "contract-creation",
  "core-access",
  "core-accounting",
- "core-applicant",
  "core-credit",
  "core-custody",
  "core-customer",

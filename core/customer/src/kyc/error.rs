@@ -2,33 +2,35 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
+use crate::error::CustomerError;
+
 #[derive(Error, Debug)]
-pub enum ApplicantError {
-    #[error("ApplicantError - Sqlx: {0}")]
+pub enum KycError {
+    #[error("KycError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("ApplicantError - Serde: {0}")]
+    #[error("KycError - Serde: {0}")]
     Serde(#[from] serde_json::Error),
-    #[error("ApplicantError - CustomerError: {0}")]
-    CustomerError(#[from] core_customer::error::CustomerError),
-    #[error("ApplicantError - UnhandledCallbackType")]
+    #[error("KycError - CustomerError: {0}")]
+    CustomerError(#[from] CustomerError),
+    #[error("KycError - UnhandledCallbackType")]
     UnhandledCallbackType,
-    #[error("ApplicantError - UnhandledLevelType")]
+    #[error("KycError - UnhandledLevelType")]
     UnhandledLevelType,
-    #[error("ApplicantError - MissingExternalUserId: {0}")]
+    #[error("KycError - MissingExternalUserId: {0}")]
     MissingExternalUserId(String),
-    #[error("ApplicantError - InboxError: {0}")]
+    #[error("KycError - InboxError: {0}")]
     InboxError(#[from] obix::inbox::InboxError),
-    #[error("ApplicantError - SumsubVerificationLevelParseError: Could not parse '{0}'")]
-    SumsubVerificationLevelParseError(String),
-    #[error("ApplicantError - ReviewAnswerParseError: Could not parse '{0}'")]
+    #[error("KycError - KycLevelParseError: Could not parse '{0}'")]
+    KycLevelParseError(String),
+    #[error("KycError - ReviewAnswerParseError: Could not parse '{0}'")]
     ReviewAnswerParseError(String),
-    #[error("ApplicantError - SumsubError: {0}")]
+    #[error("KycError - SumsubError: {0}")]
     SumsubError(#[from] sumsub::SumsubError),
-    #[error("ApplicantError - AuthorizationError: {0}")]
+    #[error("KycError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
 }
 
-impl ErrorSeverity for ApplicantError {
+impl ErrorSeverity for KycError {
     fn severity(&self) -> Level {
         match self {
             Self::Sqlx(_) => Level::ERROR,
@@ -38,7 +40,7 @@ impl ErrorSeverity for ApplicantError {
             Self::UnhandledLevelType => Level::ERROR,
             Self::MissingExternalUserId(_) => Level::WARN,
             Self::InboxError(_) => Level::ERROR,
-            Self::SumsubVerificationLevelParseError(_) => Level::ERROR,
+            Self::KycLevelParseError(_) => Level::ERROR,
             Self::ReviewAnswerParseError(_) => Level::ERROR,
             Self::SumsubError(_) => Level::ERROR,
             Self::AuthorizationError(e) => e.severity(),

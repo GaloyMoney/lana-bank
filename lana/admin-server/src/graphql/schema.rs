@@ -1167,8 +1167,8 @@ impl Mutation {
     ) -> async_graphql::Result<SumsubPermalinkCreatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let permalink = app
-            .applicants()
-            .create_permalink(
+            .customer_kyc()
+            .create_verification_link(
                 sub,
                 lana_app::primitives::CustomerId::from(input.customer_id),
             )
@@ -1186,7 +1186,7 @@ impl Mutation {
     ) -> async_graphql::Result<SumsubTestApplicantCreatePayload> {
         let (app, _sub) = app_and_sub_from_ctx!(ctx);
         let applicant_id = app
-            .applicants()
+            .customer_kyc()
             .create_complete_test_applicant(lana_app::primitives::CustomerId::from(
                 input.customer_id,
             ))

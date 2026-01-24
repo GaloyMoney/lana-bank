@@ -54,8 +54,8 @@ pub enum ApplicationError {
     DepositError(#[from] crate::deposit::error::CoreDepositError),
     #[error("ApplicationError - StorageError: {0}")]
     StorageError(#[from] crate::storage::error::StorageError),
-    #[error("ApplicationError - ApplicantError: {0}")]
-    ApplicantError(#[from] crate::applicant::error::ApplicantError),
+    #[error("ApplicationError - KycError: {0}")]
+    KycError(#[from] crate::kyc::error::KycError),
     #[error("ApplicationError - CustodyError: {0}")]
     CustodyError(#[from] crate::custody::error::CoreCustodyError),
     #[error("ApplicationError - ContractCreationError: {0}")]
@@ -97,7 +97,7 @@ impl ErrorSeverity for ApplicationError {
             Self::ChartOfAccountsError(e) => e.severity(),
             Self::DepositError(e) => e.severity(),
             Self::StorageError(e) => e.severity(),
-            Self::ApplicantError(e) => e.severity(),
+            Self::KycError(e) => e.severity(),
             Self::CustodyError(e) => e.severity(),
             Self::ContractCreationError(e) => e.severity(),
             Self::ReportError(e) => e.severity(),

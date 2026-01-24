@@ -14,7 +14,6 @@ use crate::{
     access::Access,
     accounting::Accounting,
     accounting_init::{ChartsInit, JournalInit, StatementsInit},
-    applicant::Applicants,
     audit::{Audit, AuditCursor, AuditEntry},
     authorization::{Authorization, seed},
     contract_creation::ContractCreation,
@@ -28,6 +27,7 @@ use crate::{
     document::DocumentStorage,
     governance::Governance,
     job::Jobs,
+    kyc::CustomerKyc,
     notification::Notification,
     outbox::Outbox,
     price::Price,
@@ -53,7 +53,7 @@ pub struct LanaApp {
     accounting: Accounting,
     customers: Customers,
     deposits: Deposits,
-    applicants: Applicants,
+    customer_kyc: CustomerKyc,
     access: Access,
     credit: Credit,
     custody: Custody,
@@ -183,15 +183,15 @@ impl LanaApp {
         )
         .await?;
 
-        let applicants =
-            Applicants::new(&pool, &config.sumsub, &authz, &customers, &mut jobs).await?;
+        let customer_kyc =
+            CustomerKyc::init(&pool, &config.sumsub, &authz, &customers, &mut jobs).await?;
 
         let deposit_sync = DepositSync::init(
             &mut jobs,
             &outbox,
             &deposits,
             &customers,
-            crate::applicant::SumsubClient::new(&config.sumsub),
+            customer_kyc.sumsub_client().clone(),
         )
         .await?;
 
@@ -224,7 +224,7 @@ impl LanaApp {
         let contract_creation = ContractCreation::new(
             config.gotenberg,
             &customers,
-            &applicants,
+            &customer_kyc,
             &documents,
             &mut jobs,
             &authz,
@@ -255,7 +255,7 @@ impl LanaApp {
             accounting,
             customers,
             deposits,
-            applicants,
+            customer_kyc,
             access,
             price,
             credit,
@@ -333,8 +333,8 @@ impl LanaApp {
         &self.deposits
     }
 
-    pub fn applicants(&self) -> &Applicants {
-        &self.applicants
+    pub fn customer_kyc(&self) -> &CustomerKyc {
+        &self.customer_kyc
     }
 
     pub fn custody(&self) -> &Custody {
