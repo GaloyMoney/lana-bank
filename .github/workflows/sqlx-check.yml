@@ -1,0 +1,40 @@
+name: "SQLx Check"
+
+on:
+  pull_request:
+    branches:
+      - main
+      - "feature/**"
+
+jobs:
+  sqlx-check:
+    name: SQLx Prepare Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@v16
+      - uses: cachix/cachix-action@v15
+        with:
+          name: galoymoney
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          skipPush: true
+
+      - name: Start PostgreSQL
+        run: nix develop -c bash -c "podman-compose up -d core-pg"
+
+      - name: Wait for PostgreSQL
+        run: nix develop -c bash -c "wait4x postgresql 'postgres://user:password@127.0.0.1:5433/pg?sslmode=disable' --timeout 120s"
+
+      - name: Run migrations
+        run: nix develop -c bash -c "sqlx migrate run --source lana/app/migrations"
+        env:
+          DATABASE_URL: "postgres://user:password@127.0.0.1:5433/pg?sslmode=disable"
+
+      - name: Check .sqlx is up to date
+        run: nix develop -c bash -c "cargo sqlx prepare --workspace --check"
+        env:
+          DATABASE_URL: "postgres://user:password@127.0.0.1:5433/pg?sslmode=disable"
+
+      - name: Stop PostgreSQL
+        if: always()
+        run: nix develop -c bash -c "podman-compose down" || true
