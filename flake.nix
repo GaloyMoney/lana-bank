@@ -385,6 +385,7 @@
                 export ENCRYPTION_KEY="${devEnvVars.ENCRYPTION_KEY}"
                 export DAGSTER="''${DAGSTER:-"true"}"
                 export GOTENBERG="''${GOTENBERG:-"false"}"
+                export MAILCRAB="''${MAILCRAB:-"false"}"
 
                 # Build compose file arguments
                 COMPOSE_FILES=(-f docker-compose.yml)
@@ -393,6 +394,9 @@
                 fi
                 if [[ "''${GOTENBERG:-false}" == "true" ]]; then
                   COMPOSE_FILES+=(-f docker-compose.gotenberg.yml)
+                fi
+                if [[ "''${MAILCRAB:-false}" == "true" ]]; then
+                  COMPOSE_FILES+=(-f docker-compose.mailcrab.yml)
                 fi
 
                 # Function to cleanup on exit
@@ -426,7 +430,7 @@
                 echo "Waiting for keycloak-pg to be reachable via container network..."
                 for i in {1..1200}; do
                   echo "Attempt $i/1200: Checking keycloak-pg via container network..."
-                  if podman run --rm --network repo_default docker.io/library/postgres:17.5 psql 'postgresql://dbuser:secret@keycloak-pg:5432/default?sslmode=disable' -c 'SELECT 1' 2>&1; then
+                  if podman run --rm --network lana-bank_default docker.io/library/postgres:17.5 psql 'postgresql://dbuser:secret@keycloak-pg:5432/default?sslmode=disable' -c 'SELECT 1' 2>&1; then
                     echo "SUCCESS: keycloak-pg is reachable via container network"
                     break
                   fi
@@ -591,7 +595,7 @@
               echo "Waiting for keycloak-pg to be reachable via container network..."
               for i in {1..1200}; do
                 echo "Attempt $i/1200: Checking keycloak-pg via container network..."
-                if ${pkgs.podman}/bin/podman run --rm --network repo_default docker.io/library/postgres:17.5 psql 'postgresql://dbuser:secret@keycloak-pg:5432/default?sslmode=disable' -c 'SELECT 1' 2>&1; then
+                if ${pkgs.podman}/bin/podman run --rm --network lana-bank_default docker.io/library/postgres:17.5 psql 'postgresql://dbuser:secret@keycloak-pg:5432/default?sslmode=disable' -c 'SELECT 1' 2>&1; then
                   echo "SUCCESS: keycloak-pg is reachable via container network"
                   break
                 fi

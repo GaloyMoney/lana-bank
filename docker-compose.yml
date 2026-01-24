@@ -1,3 +1,5 @@
+name: lana-bank
+
 services:
   #! Telemetry
   otel-agent:
@@ -43,10 +45,6 @@ services:
     command: serve -c /home/ory/oathkeeper.yml --sqa-opt-out
     volumes: ["./dev/ory:/home/ory"]
     depends_on: [keycloak, otel-agent]
-
-  mailcrab:
-    image: marlonb/mailcrab:latest
-    ports: [1025:1025, 1080:1080]
 
   #! Databases
   core-pg:

@@ -1,0 +1,4 @@
+services:
+  mailcrab:
+    image: marlonb/mailcrab:latest
+    ports: [1025:1025, 1080:1080]
