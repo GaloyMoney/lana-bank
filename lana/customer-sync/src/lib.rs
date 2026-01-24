@@ -101,7 +101,7 @@ where
             .await?;
 
         let customer_active_sync_job_spawner =
-            jobs.add_initializer(CustomerActiveSyncInit::new(outbox, deposit, config));
+            jobs.add_initializer(CustomerActiveSyncInit::new(outbox, deposit));
         customer_active_sync_job_spawner
             .spawn_unique(job::JobId::new(), CustomerActiveSyncJobConfig::new())
             .await?;

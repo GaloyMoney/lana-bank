@@ -5,8 +5,6 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct CustomerSyncConfig {
-    #[serde(default = "default_customer_status_sync_active")]
-    pub customer_status_sync_active: bool,
     #[serde(default = "default_keycloak")]
     pub keycloak: KeycloakConnectionConfig,
     #[serde(default = "default_activity_update_job_interval_secs")]
@@ -17,7 +15,6 @@ pub struct CustomerSyncConfig {
 impl Default for CustomerSyncConfig {
     fn default() -> Self {
         Self {
-            customer_status_sync_active: default_customer_status_sync_active(),
             keycloak: default_keycloak(),
             activity_update_job_interval: default_activity_update_job_interval_secs(),
         }
@@ -31,10 +28,6 @@ fn default_keycloak() -> KeycloakConnectionConfig {
         client_secret: "secret".to_string(),
         realm: "customer".to_string(),
     }
-}
-
-fn default_customer_status_sync_active() -> bool {
-    true
 }
 
 fn default_activity_update_job_interval_secs() -> std::time::Duration {

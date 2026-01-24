@@ -21,7 +21,6 @@ app:
       port: 1025
       insecure: true
   customer_sync:
-    customer_status_sync_active: false
     activity_update_job_interval: 31536000 # 1 year
   accounting_init:
     chart_of_accounts_seed_path: "./bats/accounting-init/coa.csv"

@@ -18,8 +18,6 @@ app:
       relay: "localhost"
       port: 1025
       insecure: true
-  customer_sync:
-    customer_status_sync_active: false
   accounting_init:
     chart_of_accounts_seed_path: "./bats/accounting-init/coa.csv"
     chart_of_accounts_opening_date: "2021-01-01"

@@ -29,7 +29,6 @@ app:
       client_id: internal-service-account
       realm: internal
   customer_sync:
-    customer_status_sync_active: true
     keycloak:
       url: http://localhost:8081/
       client_id: customer-service-account
