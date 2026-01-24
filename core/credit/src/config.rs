@@ -2,6 +2,16 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+use domain_config::define_exposed_config;
+
+define_exposed_config! {
+    pub struct CustomerActiveCheckEnabled(bool);
+    spec {
+        key: "customer-active-check-enabled";
+        default: || Some(true);
+    }
+}
+
 #[serde_with::serde_as]
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]

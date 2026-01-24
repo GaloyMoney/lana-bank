@@ -3,11 +3,32 @@
 use cala_ledger::CalaLedger;
 use core_accounting::AccountingBaseConfig;
 use core_custody::{CustodyConfig, EncryptionConfig};
+use domain_config::{ExposedDomainConfigs, ExposedDomainConfigsReadOnly};
+
+use core_credit::CustomerActiveCheckEnabled;
+use core_deposit::RequireVerifiedCustomerForAccount;
 
 pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
     let pg_con = std::env::var("PG_CON").unwrap();
     let pool = sqlx::PgPool::connect(&pg_con).await?;
     Ok(pool)
+}
+
+pub async fn init_domain_configs(
+    pool: &sqlx::PgPool,
+    authz: &authz::dummy::DummyPerms<action::DummyAction, object::DummyObject>,
+) -> anyhow::Result<ExposedDomainConfigsReadOnly> {
+    let exposed_configs = ExposedDomainConfigs::new(pool, authz);
+    exposed_configs.seed_registered().await?;
+    // Disable the customer active check for tests
+    exposed_configs
+        .update::<CustomerActiveCheckEnabled>(&authz::dummy::DummySubject, false)
+        .await?;
+    // Disable the require verified customer check for deposit tests
+    exposed_configs
+        .update::<RequireVerifiedCustomerForAccount>(&authz::dummy::DummySubject, false)
+        .await?;
+    Ok(ExposedDomainConfigsReadOnly::new(pool))
 }
 
 pub fn custody_config() -> CustodyConfig {
@@ -66,6 +87,7 @@ pub mod action {
     use core_custody::CoreCustodyAction;
     use core_customer::CoreCustomerAction;
     use core_deposit::CoreDepositAction;
+    use domain_config::DomainConfigAction;
     use governance::GovernanceAction;
 
     #[derive(Clone, Copy, Debug, PartialEq)]
@@ -107,6 +129,12 @@ pub mod action {
         }
     }
 
+    impl From<DomainConfigAction> for DummyAction {
+        fn from(_: DomainConfigAction) -> Self {
+            Self
+        }
+    }
+
     impl std::fmt::Display for DummyAction {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             write!(f, "dummy")?;
@@ -129,6 +157,7 @@ pub mod object {
     use core_custody::CoreCustodyObject;
     use core_customer::CustomerObject;
     use core_deposit::CoreDepositObject;
+    use domain_config::DomainConfigObject;
     use governance::GovernanceObject;
 
     #[derive(Clone, Copy, Debug, PartialEq)]
@@ -165,6 +194,12 @@ pub mod object {
 
     impl From<CoreDepositObject> for DummyObject {
         fn from(_: CoreDepositObject) -> Self {
+            Self
+        }
+    }
+
+    impl From<DomainConfigObject> for DummyObject {
+        fn from(_: DomainConfigObject) -> Self {
             Self
         }
     }

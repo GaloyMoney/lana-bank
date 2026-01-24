@@ -56,6 +56,8 @@ pub enum CoreDepositError {
     DepositBuilderError(#[from] super::NewDepositBuilderError),
     #[error("CoreDepositError - PublicIdError: {0}")]
     PublicIdError(#[from] public_id::PublicIdError),
+    #[error("CoreDepositError - DomainConfigError: {0}")]
+    DomainConfigError(#[from] domain_config::DomainConfigError),
     #[error("CoreDepositError - CustomerNotVerified")]
     CustomerNotVerified,
 }
@@ -100,6 +102,7 @@ impl ErrorSeverity for CoreDepositError {
             Self::WithdrawalBuilderError(_) => Level::ERROR,
             Self::DepositBuilderError(_) => Level::ERROR,
             Self::PublicIdError(e) => e.severity(),
+            Self::DomainConfigError(e) => e.severity(),
             Self::CustomerNotVerified => Level::WARN,
         }
     }

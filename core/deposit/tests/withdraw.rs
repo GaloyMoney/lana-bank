@@ -51,6 +51,8 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
         clock.clone(),
     );
 
+    let domain_configs = helpers::init_domain_configs(&pool, &authz).await?;
+
     let deposit = CoreDeposit::init(
         &pool,
         &authz,
@@ -61,9 +63,7 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
         journal_id,
         &public_ids,
         &customers,
-        DepositConfig {
-            require_verified_customer_for_account: false,
-        },
+        &domain_configs,
     )
     .await?;
 

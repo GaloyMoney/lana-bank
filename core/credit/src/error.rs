@@ -70,6 +70,8 @@ pub enum CoreCreditError {
     DisbursalBuilderError(#[from] super::NewDisbursalBuilderError),
     #[error("CoreCreditError - PublicIdError: {0}")]
     PublicIdError(#[from] public_id::PublicIdError),
+    #[error("CoreCreditError - DomainConfigError: {0}")]
+    DomainConfigError(#[from] domain_config::DomainConfigError),
 }
 
 impl ErrorSeverity for CoreCreditError {
@@ -103,6 +105,7 @@ impl ErrorSeverity for CoreCreditError {
             Self::CustomerNotVerified => Level::WARN,
             Self::DisbursalBuilderError(_) => Level::ERROR,
             Self::PublicIdError(e) => e.severity(),
+            Self::DomainConfigError(e) => e.severity(),
         }
     }
 }

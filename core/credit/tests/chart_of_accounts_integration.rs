@@ -39,7 +39,6 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         obix::Outbox::<event::DummyEvent>::init(&pool, obix::MailboxConfig::builder().build()?)
             .await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
-    let domain_configs = InternalDomainConfigs::new(&pool);
     let storage = Storage::new(&StorageConfig::default());
     let document_storage = DocumentStorage::new(&pool, &storage, clock.clone());
 
@@ -79,6 +78,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let journal_id = helpers::init_journal(&cala).await?;
     let public_ids = PublicIds::new(&pool);
     let price = core_price::Price::init(&mut jobs, &outbox).await?;
+    let exposed_domain_configs = helpers::init_domain_configs(&pool, &authz).await?;
 
     let credit = CoreCredit::init(
         &pool,
@@ -93,10 +93,12 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         &cala,
         journal_id,
         &public_ids,
+        &exposed_domain_configs,
     )
     .await?;
 
     let accounting_document_storage = DocumentStorage::new(&pool, &storage, clock.clone());
+    let internal_domain_configs = InternalDomainConfigs::new(&pool);
     let accounting = CoreAccounting::new(
         &pool,
         &authz,
@@ -104,7 +106,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         journal_id,
         accounting_document_storage,
         &mut jobs,
-        &domain_configs,
+        &internal_domain_configs,
         &outbox,
     );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));

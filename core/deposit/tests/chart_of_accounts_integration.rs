@@ -63,6 +63,8 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         clock.clone(),
     );
 
+    let exposed_domain_configs = helpers::init_domain_configs(&pool, &authz).await?;
+
     let deposit = CoreDeposit::init(
         &pool,
         &authz,
@@ -73,9 +75,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         journal_id,
         &public_ids,
         &customers,
-        DepositConfig {
-            require_verified_customer_for_account: false,
-        },
+        &exposed_domain_configs,
     )
     .await?;
 

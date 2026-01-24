@@ -35,6 +35,7 @@ use core_custody::{
 };
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
 use core_price::{CorePriceEvent, Price};
+use domain_config::ExposedDomainConfigsReadOnly;
 use es_entity::clock::ClockHandle;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
@@ -106,6 +107,7 @@ where
     ledger: Arc<CreditLedger>,
     price: Arc<Price>,
     config: Arc<CreditConfig>,
+    domain_configs: ExposedDomainConfigsReadOnly,
     approve_disbursal: Arc<ApproveDisbursal<Perms, E>>,
     approve_proposal: Arc<ApproveCreditFacilityProposal<Perms, E>>,
     cala: Arc<CalaLedger>,
@@ -149,6 +151,7 @@ where
             ledger: self.ledger.clone(),
             price: self.price.clone(),
             config: self.config.clone(),
+            domain_configs: self.domain_configs.clone(),
             cala: self.cala.clone(),
             approve_disbursal: self.approve_disbursal.clone(),
             approve_proposal: self.approve_proposal.clone(),
@@ -193,6 +196,7 @@ where
         cala: &CalaLedger,
         journal_id: cala_ledger::JournalId,
         public_ids: &PublicIds,
+        domain_configs: &ExposedDomainConfigsReadOnly,
     ) -> Result<Self, CoreCreditError> {
         let clock = jobs.clock().clone();
 
@@ -420,6 +424,7 @@ where
             ledger: ledger_arc,
             price: price_arc,
             config: config_arc,
+            domain_configs: domain_configs.clone(),
             cala: cala_arc,
             approve_disbursal: approve_disbursal_arc,
             approve_proposal: approve_proposal_arc,
@@ -545,7 +550,13 @@ where
             .expect("audit info missing");
 
         let customer = self.customer.find_by_id_without_audit(customer_id).await?;
-        if self.config.customer_active_check_enabled && !customer.kyc_verification.is_verified() {
+        let customer_active_check = self
+            .domain_configs
+            .get_without_audit::<config::CustomerActiveCheckEnabled>()
+            .await?
+            .value()
+            .unwrap_or(true);
+        if customer_active_check && !customer.kyc_verification.is_verified() {
             return Err(CoreCreditError::CustomerNotVerified);
         }
 
@@ -616,7 +627,13 @@ where
 
         let customer_id = facility.customer_id;
         let customer = self.customer.find_by_id_without_audit(customer_id).await?;
-        if self.config.customer_active_check_enabled && !customer.kyc_verification.is_verified() {
+        let customer_active_check = self
+            .domain_configs
+            .get_without_audit::<config::CustomerActiveCheckEnabled>()
+            .await?
+            .value()
+            .unwrap_or(true);
+        if customer_active_check && !customer.kyc_verification.is_verified() {
             return Err(CoreCreditError::CustomerNotVerified);
         }
 

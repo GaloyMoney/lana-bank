@@ -24,6 +24,7 @@ use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use core_accounting::{Chart, LedgerTransactionInitiator};
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerObject, Customers};
+use domain_config::ExposedDomainConfigsReadOnly;
 use governance::{Governance, GovernanceEvent};
 use job::Jobs;
 use obix::out::{Outbox, OutboxEventMarker};
@@ -32,7 +33,7 @@ use public_id::PublicIds;
 use account::*;
 pub use account::{DepositAccount, DepositAccountsByCreatedAtCursor, error::DepositAccountError};
 pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
-pub use config::DepositConfig;
+pub use config::RequireVerifiedCustomerForAccount;
 use deposit::*;
 pub use deposit::{Deposit, DepositsByCreatedAtCursor};
 pub use deposit_account_balance::DepositAccountBalance;
@@ -73,7 +74,7 @@ where
     outbox: Outbox<E>,
     public_ids: PublicIds,
     customers: Customers<Perms, E>,
-    config: DepositConfig,
+    domain_configs: ExposedDomainConfigsReadOnly,
 }
 
 impl<Perms, E> Clone for CoreDeposit<Perms, E>
@@ -96,7 +97,7 @@ where
             outbox: self.outbox.clone(),
             public_ids: self.public_ids.clone(),
             customers: self.customers.clone(),
-            config: self.config.clone(),
+            domain_configs: self.domain_configs.clone(),
         }
     }
 }
@@ -124,7 +125,7 @@ where
         journal_id: CalaJournalId,
         public_ids: &PublicIds,
         customers: &Customers<Perms, E>,
-        config: DepositConfig,
+        domain_configs: &ExposedDomainConfigsReadOnly,
     ) -> Result<Self, CoreDepositError> {
         let clock = jobs.clock().clone();
 
@@ -172,7 +173,7 @@ where
             ledger,
             public_ids: public_ids.clone(),
             customers: customers.clone(),
-            config,
+            domain_configs: domain_configs.clone(),
         };
         Ok(res)
     }
@@ -216,9 +217,13 @@ where
         let customer_id = CustomerId::from(holder_id.into());
         let customer = self.customers.find_by_id_without_audit(customer_id).await?;
 
-        if self.config.require_verified_customer_for_account
-            && !customer.kyc_verification.is_verified()
-        {
+        let require_verified = self
+            .domain_configs
+            .get_without_audit::<RequireVerifiedCustomerForAccount>()
+            .await?
+            .value()
+            .unwrap_or(true);
+        if require_verified && !customer.kyc_verification.is_verified() {
             return Err(CoreDepositError::CustomerNotVerified);
         }
 
