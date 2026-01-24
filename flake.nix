@@ -420,6 +420,13 @@
                 echo "Starting all other services..."
                 podman-compose-runner ''${COMPOSE_FILES[@]} up -d
 
+                # Verify keycloak-pg is reachable via network DNS (not just localhost)
+                echo "Waiting for keycloak-pg to be reachable via container network..."
+                podman run --rm --network repo_default ${pkgs.wait4x}/bin/wait4x postgresql "postgresql://dbuser:secret@keycloak-pg:5432/default?sslmode=disable" --timeout 30s || {
+                  echo "ERROR: keycloak-pg not reachable via container network DNS"
+                  exit 1
+                }
+
                 echo "Waiting for Keycloak..."
                 if ! wait4x http http://localhost:8081 --timeout 180s; then
                   echo "ERROR: Keycloak failed to start. Dumping logs..."
@@ -569,6 +576,13 @@
               # Now start remaining services after databases are confirmed ready
               echo "Starting all other services..."
               ${podman-runner.podman-compose-runner}/bin/podman-compose-runner up -d
+
+              # Verify keycloak-pg is reachable via network DNS (not just localhost)
+              echo "Waiting for keycloak-pg to be reachable via container network..."
+              ${podman-runner.podman-runner}/bin/podman run --rm --network repo_default ${pkgs.wait4x}/bin/wait4x postgresql "postgresql://dbuser:secret@keycloak-pg:5432/default?sslmode=disable" --timeout 30s || {
+                echo "ERROR: keycloak-pg not reachable via container network DNS"
+                exit 1
+              }
 
               echo "Running database migrations..."
               ${pkgs.sqlx-cli}/bin/sqlx migrate run --source lana/app/migrations
