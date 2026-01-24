@@ -423,10 +423,17 @@
 
                 # Verify keycloak-pg is reachable via network DNS (not just localhost)
                 echo "Waiting for keycloak-pg to be reachable via container network..."
-                podman run --rm --network repo_default docker.io/library/postgres:17.5 psql 'postgresql://dbuser:secret@keycloak-pg:5432/default?sslmode=disable' -c 'SELECT 1' || {
-                  echo "ERROR: keycloak-pg not reachable via container network DNS"
-                  exit 1
-                }
+                for i in {1..30}; do
+                  if podman run --rm --network repo_default docker.io/library/postgres:17.5 psql 'postgresql://dbuser:secret@keycloak-pg:5432/default?sslmode=disable' -c 'SELECT 1' >/dev/null 2>&1; then
+                    echo "keycloak-pg is reachable via container network"
+                    break
+                  fi
+                  if [ $i -eq 30 ]; then
+                    echo "ERROR: keycloak-pg not reachable via container network DNS after 30 attempts"
+                    exit 1
+                  fi
+                  sleep 1
+                done
 
                 echo "Waiting for Keycloak..."
                 if ! wait4x http http://localhost:8081 --timeout 180s; then
@@ -580,10 +587,17 @@
 
               # Verify keycloak-pg is reachable via network DNS (not just localhost)
               echo "Waiting for keycloak-pg to be reachable via container network..."
-              ${pkgs.podman}/bin/podman run --rm --network repo_default docker.io/library/postgres:17.5 psql 'postgresql://dbuser:secret@keycloak-pg:5432/default?sslmode=disable' -c 'SELECT 1' || {
-                echo "ERROR: keycloak-pg not reachable via container network DNS"
-                exit 1
-              }
+              for i in {1..30}; do
+                if ${pkgs.podman}/bin/podman run --rm --network repo_default docker.io/library/postgres:17.5 psql 'postgresql://dbuser:secret@keycloak-pg:5432/default?sslmode=disable' -c 'SELECT 1' >/dev/null 2>&1; then
+                  echo "keycloak-pg is reachable via container network"
+                  break
+                fi
+                if [ $i -eq 30 ]; then
+                  echo "ERROR: keycloak-pg not reachable via container network DNS after 30 attempts"
+                  exit 1
+                fi
+                sleep 1
+              done
 
               echo "Running database migrations..."
               ${pkgs.sqlx-cli}/bin/sqlx migrate run --source lana/app/migrations
