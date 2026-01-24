@@ -423,13 +423,14 @@
 
                 # Verify keycloak-pg is reachable via network DNS (not just localhost)
                 echo "Waiting for keycloak-pg to be reachable via container network..."
-                for i in {1..30}; do
-                  if podman run --rm --network repo_default docker.io/library/postgres:17.5 psql 'postgresql://dbuser:secret@keycloak-pg:5432/default?sslmode=disable' -c 'SELECT 1' >/dev/null 2>&1; then
-                    echo "keycloak-pg is reachable via container network"
+                for i in {1..1200}; do
+                  echo "Attempt $i/1200: Checking keycloak-pg via container network..."
+                  if podman run --rm --network repo_default docker.io/library/postgres:17.5 psql 'postgresql://dbuser:secret@keycloak-pg:5432/default?sslmode=disable' -c 'SELECT 1' 2>&1; then
+                    echo "SUCCESS: keycloak-pg is reachable via container network"
                     break
                   fi
-                  if [ $i -eq 30 ]; then
-                    echo "ERROR: keycloak-pg not reachable via container network DNS after 30 attempts"
+                  if [ $i -eq 1200 ]; then
+                    echo "ERROR: keycloak-pg not reachable via container network DNS after 1200 attempts (1200 seconds)"
                     exit 1
                   fi
                   sleep 1
@@ -587,13 +588,14 @@
 
               # Verify keycloak-pg is reachable via network DNS (not just localhost)
               echo "Waiting for keycloak-pg to be reachable via container network..."
-              for i in {1..30}; do
-                if ${pkgs.podman}/bin/podman run --rm --network repo_default docker.io/library/postgres:17.5 psql 'postgresql://dbuser:secret@keycloak-pg:5432/default?sslmode=disable' -c 'SELECT 1' >/dev/null 2>&1; then
-                  echo "keycloak-pg is reachable via container network"
+              for i in {1..1200}; do
+                echo "Attempt $i/1200: Checking keycloak-pg via container network..."
+                if ${pkgs.podman}/bin/podman run --rm --network repo_default docker.io/library/postgres:17.5 psql 'postgresql://dbuser:secret@keycloak-pg:5432/default?sslmode=disable' -c 'SELECT 1' 2>&1; then
+                  echo "SUCCESS: keycloak-pg is reachable via container network"
                   break
                 fi
-                if [ $i -eq 30 ]; then
-                  echo "ERROR: keycloak-pg not reachable via container network DNS after 30 attempts"
+                if [ $i -eq 1200 ]; then
+                  echo "ERROR: keycloak-pg not reachable via container network DNS after 1200 attempts (1200 seconds)"
                   exit 1
                 fi
                 sleep 1
