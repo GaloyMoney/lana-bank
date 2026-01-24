@@ -422,7 +422,7 @@
 
                 # Verify keycloak-pg is reachable via network DNS (not just localhost)
                 echo "Waiting for keycloak-pg to be reachable via container network..."
-                podman run --rm --network repo_default ${pkgs.wait4x}/bin/wait4x postgresql "postgresql://dbuser:secret@keycloak-pg:5432/default?sslmode=disable" --timeout 30s || {
+                podman run --rm --network repo_default docker.io/library/alpine:latest sh -c "apk add --no-cache postgresql-client && psql 'postgresql://dbuser:secret@keycloak-pg:5432/default?sslmode=disable' -c 'SELECT 1'" || {
                   echo "ERROR: keycloak-pg not reachable via container network DNS"
                   exit 1
                 }
@@ -579,7 +579,7 @@
 
               # Verify keycloak-pg is reachable via network DNS (not just localhost)
               echo "Waiting for keycloak-pg to be reachable via container network..."
-              ${podman-runner.podman-runner}/bin/podman run --rm --network repo_default ${pkgs.wait4x}/bin/wait4x postgresql "postgresql://dbuser:secret@keycloak-pg:5432/default?sslmode=disable" --timeout 30s || {
+              ${pkgs.podman}/bin/podman run --rm --network repo_default ${pkgs.wait4x}/bin/wait4x postgresql "postgresql://dbuser:secret@keycloak-pg:5432/default?sslmode=disable" --timeout 30s || {
                 echo "ERROR: keycloak-pg not reachable via container network DNS"
                 exit 1
               }
