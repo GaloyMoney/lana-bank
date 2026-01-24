@@ -414,7 +414,7 @@
 
                 # Wait for Keycloak's PostgreSQL to be ready
                 echo "Waiting for Keycloak PostgreSQL to be ready..."
-                ${pkgs.wait4x}/bin/wait4x postgresql "postgresql://dbuser:secret@localhost:5437/default" --timeout 120s
+                ${pkgs.wait4x}/bin/wait4x postgresql "postgresql://dbuser:secret@localhost:5437/default?sslmode=disable" --timeout 120s
 
                 echo "Waiting for Keycloak..."
                 ${pkgs.wait4x}/bin/wait4x http http://localhost:8081 --timeout 180s
@@ -560,7 +560,7 @@
 
               # Wait for Keycloak's PostgreSQL to be ready
               echo "Waiting for Keycloak PostgreSQL to be ready..."
-              ${pkgs.wait4x}/bin/wait4x postgresql "postgresql://dbuser:secret@localhost:5437/default" --timeout 120s
+              ${pkgs.wait4x}/bin/wait4x postgresql "postgresql://dbuser:secret@localhost:5437/default?sslmode=disable" --timeout 120s
 
               echo "Waiting for Keycloak..."
               ${pkgs.wait4x}/bin/wait4x http http://localhost:8081 --timeout 180s
