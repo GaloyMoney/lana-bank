@@ -407,26 +407,34 @@
                 trap cleanup EXIT
 
                 echo "Starting podman-compose in detached mode..."
-                podman-compose-runner ''${COMPOSE_FILES[@]} up -d
-
+                # Start databases first
+                podman-compose-runner ''${COMPOSE_FILES[@]} up -d core-pg keycloak-pg
+                
+                # Wait for both databases to be ready
                 echo "Waiting for PostgreSQL to be ready..."
                 wait4x postgresql "${devEnvVars.PG_CON}" --timeout 120s
-
-                # Wait for Keycloak's PostgreSQL to be ready
                 echo "Waiting for Keycloak PostgreSQL to be ready..."
-                ${pkgs.wait4x}/bin/wait4x postgresql "postgresql://dbuser:secret@localhost:5437/default?sslmode=disable" --timeout 120s
+                wait4x postgresql "postgresql://dbuser:secret@localhost:5437/default?sslmode=disable" --timeout 120s
+                
+                # Now start Keycloak after databases are confirmed ready
+                echo "Starting Keycloak..."
+                podman-compose-runner ''${COMPOSE_FILES[@]} up -d keycloak
 
                 echo "Waiting for Keycloak..."
-                ${pkgs.wait4x}/bin/wait4x http http://localhost:8081 --timeout 180s
+                if ! wait4x http http://localhost:8081 --timeout 180s; then
+                  echo "ERROR: Keycloak failed to start. Dumping logs..."
+                  podman-compose-runner ''${COMPOSE_FILES[@]} logs keycloak || true
+                  exit 1
+                fi
 
                 if [[ "''${DAGSTER}" == "true" ]]; then
                   echo "Waiting for Dagster GraphQL endpoint to be ready..."
-                  ${pkgs.wait4x}/bin/wait4x http http://localhost:3000/graphql --timeout 180s
+                  wait4x http http://localhost:3000/graphql --timeout 180s
                 fi
 
                 if [[ "''${GOTENBERG}" == "true" ]]; then
                   echo "Waiting for Gotenberg to be ready..."
-                  ${pkgs.wait4x}/bin/wait4x http http://localhost:3030/health --timeout 60s
+                  wait4x http http://localhost:3030/health --timeout 60s
                 fi
 
                 # Set TERM for CI environments
@@ -549,21 +557,28 @@
               trap cleanup EXIT
 
               echo "Starting deps..."
-              ${podman-runner.podman-compose-runner}/bin/podman-compose-runner up -d core-pg keycloak-pg keycloak
-
-              # Wait for PostgreSQL to be ready
+              # Start databases first
+              ${podman-runner.podman-compose-runner}/bin/podman-compose-runner up -d core-pg keycloak-pg
+              
+              # Wait for both databases to be ready
               echo "Waiting for PostgreSQL to be ready..."
               ${pkgs.wait4x}/bin/wait4x postgresql "$DATABASE_URL" --timeout 120s
+              echo "Waiting for Keycloak PostgreSQL to be ready..."
+              ${pkgs.wait4x}/bin/wait4x postgresql "postgresql://dbuser:secret@localhost:5437/default?sslmode=disable" --timeout 120s
+
+              # Now start Keycloak after databases are confirmed ready
+              echo "Starting Keycloak..."
+              ${podman-runner.podman-compose-runner}/bin/podman-compose-runner up -d keycloak
 
               echo "Running database migrations..."
               ${pkgs.sqlx-cli}/bin/sqlx migrate run --source lana/app/migrations
 
-              # Wait for Keycloak's PostgreSQL to be ready
-              echo "Waiting for Keycloak PostgreSQL to be ready..."
-              ${pkgs.wait4x}/bin/wait4x postgresql "postgresql://dbuser:secret@localhost:5437/default?sslmode=disable" --timeout 120s
-
               echo "Waiting for Keycloak..."
-              ${pkgs.wait4x}/bin/wait4x http http://localhost:8081 --timeout 180s
+              if ! ${pkgs.wait4x}/bin/wait4x http http://localhost:8081 --timeout 180s; then
+                echo "ERROR: Keycloak failed to start. Dumping logs..."
+                ${podman-runner.podman-compose-runner}/bin/podman-compose-runner logs keycloak || true
+                exit 1
+              fi
 
               # Run nextest using pre-built archive
               echo "Running cargo nextest from pre-built archive..."
