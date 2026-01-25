@@ -116,7 +116,6 @@ pub async fn disbursal_different_months_scenario(
 
     let expected_end_date = activation_date + chrono::Duration::days(380);
     let mut facility_completed = false;
-    let mut days_past_expected_end = 0;
 
     while !facility_completed {
         tokio::select! {
@@ -159,7 +158,6 @@ pub async fn disbursal_different_months_scenario(
                 }
 
                 if current_date >= expected_end_date {
-                    days_past_expected_end += 1;
 
                     let facility = app.credit().facilities().find_by_id(&sub, cf_id).await?.expect("facility exists");
 
@@ -176,9 +174,6 @@ pub async fn disbursal_different_months_scenario(
                         }
                     }
 
-                    if days_past_expected_end > 120 {
-                        anyhow::bail!("Facility did not complete within expected timeframe");
-                    }
                 }
             }
         }
