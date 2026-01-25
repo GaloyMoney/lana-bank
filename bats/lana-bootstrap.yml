@@ -10,8 +10,7 @@ app:
     root_folder: ".lana"
   credit:
     customer_active_check_enabled: false
-    collateralization_from_price_job_interval: 31536000 # 1 year
-    pending_collateralization_from_price_job_interval: 31536000 # 1 year
+    price_job_interval: 31536000 # 1 year
   deposit:
     require_verified_customer_for_account: false
   notification:
@@ -20,9 +19,6 @@ app:
       relay: "localhost"
       port: 1025
       insecure: true
-  customer_sync:
-    customer_status_sync_active: false
-    activity_update_job_interval: 31536000 # 1 year
   accounting_init:
     chart_of_accounts_seed_path: "./bats/accounting-init/coa.csv"
     chart_of_accounts_opening_date: "2020-01-01"
