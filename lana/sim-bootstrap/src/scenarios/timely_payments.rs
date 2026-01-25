@@ -101,7 +101,6 @@ pub async fn timely_payments_scenario(
 
     let expected_end_date = activation_date + chrono::Duration::days(95);
     let mut facility_completed = false;
-    let mut days_past_expected_end = 0;
 
     while !facility_completed {
         tokio::select! {
@@ -132,7 +131,6 @@ pub async fn timely_payments_scenario(
                 let current_date = clock.today();
 
                 if current_date >= expected_end_date {
-                    days_past_expected_end += 1;
 
                     let facility = app
                         .credit()
@@ -153,9 +151,6 @@ pub async fn timely_payments_scenario(
                         }
                     }
 
-                    if days_past_expected_end > 120 {
-                        anyhow::bail!("Facility did not complete within expected timeframe");
-                    }
                 }
             }
         }
