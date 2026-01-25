@@ -12,9 +12,9 @@ use obix::out::OutboxEventMarker;
 
 use crate::{
     CoreDepositAction, CoreDepositObject, WithdrawalAction,
-    event::CoreDepositEvent,
     ledger::DepositLedger,
     primitives::WithdrawalId,
+    public::CoreDepositEvent,
     withdrawal::{Withdrawal, error::WithdrawalError, repo::WithdrawalRepo},
 };
 

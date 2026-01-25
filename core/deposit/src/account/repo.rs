@@ -5,8 +5,8 @@ use es_entity::*;
 use obix::out::OutboxEventMarker;
 
 use crate::{
-    event::CoreDepositEvent,
     primitives::{DepositAccountHolderId, DepositAccountId, PublicId},
+    public::CoreDepositEvent,
     publisher::DepositPublisher,
 };
 

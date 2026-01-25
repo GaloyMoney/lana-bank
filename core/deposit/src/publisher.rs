@@ -1,8 +1,7 @@
 use obix::out::{Outbox, OutboxEventMarker};
 
-use super::event::CoreDepositEvent;
 use crate::{
-    DepositAccountStatus,
+    CoreDepositEvent, PublicDeposit, PublicDepositAccount, PublicWithdrawal,
     account::{DepositAccount, DepositAccountEvent, error::DepositAccountError},
     deposit::{Deposit, DepositEvent, error::DepositError},
     withdrawal::{Withdrawal, WithdrawalEvent, error::WithdrawalError},
@@ -46,15 +45,7 @@ where
         let publish_events = new_events
             .filter_map(|event| match &event.event {
                 Initialized { .. } => Some(CoreDepositEvent::DepositAccountCreated {
-                    id: entity.id,
-                    account_holder_id: entity.account_holder_id,
-                }),
-                AccountHolderStatusUpdated {
-                    status: DepositAccountStatus::Frozen,
-                    ..
-                } => Some(CoreDepositEvent::DepositAccountFrozen {
-                    id: entity.id,
-                    account_holder_id: entity.account_holder_id,
+                    entity: PublicDepositAccount::from(entity),
                 }),
                 _ => None,
             })
@@ -75,9 +66,7 @@ where
         let publish_events = new_events
             .filter_map(|event| match &event.event {
                 Confirmed { .. } => Some(CoreDepositEvent::WithdrawalConfirmed {
-                    id: entity.id,
-                    deposit_account_id: entity.deposit_account_id,
-                    amount: entity.amount,
+                    entity: PublicWithdrawal::from(entity),
                 }),
                 _ => None,
             })
@@ -98,14 +87,10 @@ where
         let publish_events = new_events
             .map(|event| match &event.event {
                 Initialized { .. } => CoreDepositEvent::DepositInitialized {
-                    id: entity.id,
-                    deposit_account_id: entity.deposit_account_id,
-                    amount: entity.amount,
+                    entity: PublicDeposit::from(entity),
                 },
                 Reverted { .. } => CoreDepositEvent::DepositReverted {
-                    id: entity.id,
-                    deposit_account_id: entity.deposit_account_id,
-                    amount: entity.amount,
+                    entity: PublicDeposit::from(entity),
                 },
             })
             .collect::<Vec<_>>();

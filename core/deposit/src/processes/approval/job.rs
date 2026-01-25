@@ -11,7 +11,7 @@ use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
 use obix::out::{Outbox, OutboxEventMarker};
 
-use crate::{CoreDepositAction, CoreDepositEvent, CoreDepositObject};
+use crate::{CoreDepositAction, CoreDepositObject, public::CoreDepositEvent};
 
 use super::ApproveWithdrawal;
 

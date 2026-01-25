@@ -11,15 +11,31 @@ use core_deposit::*;
 use document_storage::DocumentStorage;
 use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 use helpers::{action, event, object};
+use obix::test_utils::expect_event;
 
-#[tokio::test]
-async fn deposit() -> anyhow::Result<()> {
+async fn setup() -> anyhow::Result<(
+    CoreDeposit<
+        authz::dummy::DummyPerms<action::DummyAction, object::DummyObject>,
+        event::DummyEvent,
+    >,
+    Customers<
+        authz::dummy::DummyPerms<action::DummyAction, object::DummyObject>,
+        event::DummyEvent,
+    >,
+    obix::Outbox<event::DummyEvent>,
+    job::Jobs,
+)> {
     let pool = helpers::init_pool().await?;
-    let (clock, _) = ClockHandle::artificial(ArtificialClockConfig::manual());
+    let (clock, _time) = ClockHandle::artificial(ArtificialClockConfig::manual());
 
-    let outbox =
-        obix::Outbox::<event::DummyEvent>::init(&pool, obix::MailboxConfig::builder().build()?)
-            .await?;
+    let outbox = obix::Outbox::<event::DummyEvent>::init(
+        &pool,
+        obix::MailboxConfig::builder()
+            .clock(clock.clone())
+            .build()?,
+    )
+    .await?;
+
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
     let governance = governance::Governance::new(&pool, &authz, &outbox, clock.clone());
 
@@ -45,7 +61,7 @@ async fn deposit() -> anyhow::Result<()> {
         &pool,
         &authz,
         &outbox,
-        document_storage.clone(),
+        document_storage,
         public_ids.clone(),
         clock.clone(),
     );
@@ -65,6 +81,15 @@ async fn deposit() -> anyhow::Result<()> {
         &domain_configs,
     )
     .await?;
+
+    jobs.start_poll().await?;
+
+    Ok((deposit, customers, outbox, jobs))
+}
+
+#[tokio::test]
+async fn deposit() -> anyhow::Result<()> {
+    let (deposit, customers, _outbox, _jobs) = setup().await?;
 
     let customer = customers
         .create(
@@ -86,7 +111,6 @@ async fn deposit() -> anyhow::Result<()> {
         )
         .await?;
 
-    // NOTE: test when 0 balance
     let balance = deposit.account_balance(&DummySubject, account.id).await?;
     assert_eq!(
         balance.settled,
@@ -98,57 +122,7 @@ async fn deposit() -> anyhow::Result<()> {
 
 #[tokio::test]
 async fn revert_deposit() -> anyhow::Result<()> {
-    let pool = helpers::init_pool().await?;
-    let (clock, _) = ClockHandle::artificial(ArtificialClockConfig::manual());
-
-    let outbox =
-        obix::Outbox::<event::DummyEvent>::init(&pool, obix::MailboxConfig::builder().build()?)
-            .await?;
-    let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
-    let governance = governance::Governance::new(&pool, &authz, &outbox, clock.clone());
-
-    let cala_config = CalaLedgerConfig::builder()
-        .pool(pool.clone())
-        .exec_migrations(false)
-        .build()?;
-    let cala = CalaLedger::init(cala_config).await?;
-    let mut jobs = job::Jobs::init(
-        job::JobSvcConfig::builder()
-            .pool(pool.clone())
-            .build()
-            .unwrap(),
-    )
-    .await?;
-
-    let storage = Storage::new(&StorageConfig::default());
-    let document_storage = DocumentStorage::new(&pool, &storage, clock.clone());
-    let journal_id = helpers::init_journal(&cala).await?;
-    let public_ids = public_id::PublicIds::new(&pool);
-
-    let customers = Customers::new(
-        &pool,
-        &authz,
-        &outbox,
-        document_storage.clone(),
-        public_ids.clone(),
-        clock.clone(),
-    );
-
-    let domain_configs = helpers::init_domain_configs(&pool, &authz).await?;
-
-    let deposit = CoreDeposit::init(
-        &pool,
-        &authz,
-        &outbox,
-        &governance,
-        &mut jobs,
-        &cala,
-        journal_id,
-        &public_ids,
-        &customers,
-        &domain_configs,
-    )
-    .await?;
+    let (deposit, customers, _outbox, _jobs) = setup().await?;
 
     let customer = customers
         .create(
@@ -170,18 +144,197 @@ async fn revert_deposit() -> anyhow::Result<()> {
         )
         .await?;
 
-    // NOTE: test when 0 balance
     let balance = deposit.account_balance(&DummySubject, account.id).await?;
     assert_eq!(
         balance.settled,
         UsdCents::try_from_usd(dec!(1000000)).unwrap()
     );
 
-    // revert deposit
     deposit.revert_deposit(&DummySubject, res.id).await?;
     let balance = deposit.account_balance(&DummySubject, account.id).await?;
 
     assert_eq!(balance.settled, UsdCents::ZERO);
+
+    Ok(())
+}
+
+/// DepositAccountCreated event is published when `create_account` succeeds.
+///
+/// The event includes the account id and account holder id.
+#[tokio::test]
+async fn deposit_account_created_publishes_event() -> anyhow::Result<()> {
+    let (deposit, customers, outbox, _jobs) = setup().await?;
+
+    let customer = customers
+        .create(
+            &DummySubject,
+            format!("user{}@example.com", Uuid::new_v4()),
+            format!("telegram{}", Uuid::new_v4()),
+            CustomerType::Individual,
+        )
+        .await?;
+
+    let (account, recorded) = expect_event(
+        &outbox,
+        || deposit.create_account(&DummySubject, customer.id),
+        |result, e| match e {
+            CoreDepositEvent::DepositAccountCreated { entity } if entity.id == result.id => {
+                Some(entity.clone())
+            }
+            _ => None,
+        },
+    )
+    .await?;
+
+    assert_eq!(recorded.id, account.id);
+    assert_eq!(recorded.account_holder_id, account.account_holder_id);
+
+    Ok(())
+}
+
+/// DepositInitialized event is published when a deposit is recorded.
+///
+/// The event includes the deposit id, account id, and amount.
+#[tokio::test]
+async fn deposit_initialized_publishes_event() -> anyhow::Result<()> {
+    let (deposit, customers, outbox, _jobs) = setup().await?;
+
+    let customer = customers
+        .create(
+            &DummySubject,
+            format!("user{}@example.com", Uuid::new_v4()),
+            format!("telegram{}", Uuid::new_v4()),
+            CustomerType::Individual,
+        )
+        .await?;
+
+    let account = deposit.create_account(&DummySubject, customer.id).await?;
+    let amount = UsdCents::try_from_usd(dec!(1000000)).unwrap();
+
+    let (deposit_record, recorded) = expect_event(
+        &outbox,
+        || deposit.record_deposit(&DummySubject, account.id, amount, None),
+        |result, e| match e {
+            CoreDepositEvent::DepositInitialized { entity } if entity.id == result.id => {
+                Some(entity.clone())
+            }
+            _ => None,
+        },
+    )
+    .await?;
+
+    assert_eq!(recorded.id, deposit_record.id);
+    assert_eq!(
+        recorded.deposit_account_id,
+        deposit_record.deposit_account_id
+    );
+    assert_eq!(recorded.amount, deposit_record.amount);
+
+    Ok(())
+}
+
+/// WithdrawalConfirmed event is published when a withdrawal is confirmed.
+///
+/// The event includes the withdrawal id, account id, and amount.
+#[tokio::test]
+async fn withdrawal_confirmed_publishes_event() -> anyhow::Result<()> {
+    let (deposit, customers, outbox, _jobs) = setup().await?;
+
+    let customer = customers
+        .create(
+            &DummySubject,
+            format!("user{}@example.com", Uuid::new_v4()),
+            format!("telegram{}", Uuid::new_v4()),
+            CustomerType::Individual,
+        )
+        .await?;
+
+    let account = deposit.create_account(&DummySubject, customer.id).await?;
+    let deposit_amount = UsdCents::try_from_usd(dec!(1000000)).unwrap();
+    deposit
+        .record_deposit(&DummySubject, account.id, deposit_amount, None)
+        .await?;
+
+    let withdrawal_amount = UsdCents::try_from_usd(dec!(500000)).unwrap();
+    let withdrawal = deposit
+        .initiate_withdrawal(&DummySubject, account.id, withdrawal_amount, None)
+        .await?;
+
+    let max_retries = 60;
+    for attempt in 1..=max_retries {
+        let Some(current) = deposit
+            .find_withdrawal_by_id(&DummySubject, withdrawal.id)
+            .await?
+        else {
+            anyhow::bail!("withdrawal not found");
+        };
+        match current.is_approved_or_denied() {
+            Some(true) => break,
+            Some(false) => anyhow::bail!("withdrawal approval was denied"),
+            None => {}
+        }
+        if attempt == max_retries {
+            anyhow::bail!("withdrawal approval not processed in time");
+        }
+        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+    }
+
+    let (confirmed, recorded) = expect_event(
+        &outbox,
+        || deposit.confirm_withdrawal(&DummySubject, withdrawal.id),
+        |result, e| match e {
+            CoreDepositEvent::WithdrawalConfirmed { entity } if entity.id == result.id => {
+                Some(entity.clone())
+            }
+            _ => None,
+        },
+    )
+    .await?;
+
+    assert_eq!(recorded.id, confirmed.id);
+    assert_eq!(recorded.deposit_account_id, confirmed.deposit_account_id);
+    assert_eq!(recorded.amount, confirmed.amount);
+
+    Ok(())
+}
+
+/// DepositReverted event is published when a deposit is reverted.
+///
+/// The event includes the deposit id, account id, and amount.
+#[tokio::test]
+async fn deposit_reverted_publishes_event() -> anyhow::Result<()> {
+    let (deposit, customers, outbox, _jobs) = setup().await?;
+
+    let customer = customers
+        .create(
+            &DummySubject,
+            format!("user{}@example.com", Uuid::new_v4()),
+            format!("telegram{}", Uuid::new_v4()),
+            CustomerType::Individual,
+        )
+        .await?;
+
+    let account = deposit.create_account(&DummySubject, customer.id).await?;
+    let amount = UsdCents::try_from_usd(dec!(1000000)).unwrap();
+    let deposit_record = deposit
+        .record_deposit(&DummySubject, account.id, amount, None)
+        .await?;
+
+    let (reverted, recorded) = expect_event(
+        &outbox,
+        || deposit.revert_deposit(&DummySubject, deposit_record.id),
+        |result, e| match e {
+            CoreDepositEvent::DepositReverted { entity } if entity.id == result.id => {
+                Some(entity.clone())
+            }
+            _ => None,
+        },
+    )
+    .await?;
+
+    assert_eq!(recorded.id, reverted.id);
+    assert_eq!(recorded.deposit_account_id, reverted.deposit_account_id);
+    assert_eq!(recorded.amount, reverted.amount);
 
     Ok(())
 }

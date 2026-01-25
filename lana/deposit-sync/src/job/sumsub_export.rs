@@ -170,32 +170,20 @@ where
         message: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         match message.as_event() {
-            Some(
-                event @ CoreDepositEvent::DepositInitialized {
-                    id,
-                    deposit_account_id,
-                    amount,
-                },
-            ) => {
+            Some(event @ CoreDepositEvent::DepositInitialized { entity }) => {
                 message.inject_trace_parent();
                 Span::current().record("handled", true);
                 Span::current().record("event_type", event.as_ref());
 
-                self.handle_deposit(*id, *deposit_account_id, *amount)
+                self.handle_deposit(entity.id, entity.deposit_account_id, entity.amount)
                     .await?;
             }
-            Some(
-                event @ CoreDepositEvent::WithdrawalConfirmed {
-                    id,
-                    deposit_account_id,
-                    amount,
-                },
-            ) => {
+            Some(event @ CoreDepositEvent::WithdrawalConfirmed { entity }) => {
                 message.inject_trace_parent();
                 Span::current().record("handled", true);
                 Span::current().record("event_type", event.as_ref());
 
-                self.handle_withdrawal(*id, *deposit_account_id, *amount)
+                self.handle_withdrawal(entity.id, entity.deposit_account_id, entity.amount)
                     .await?;
             }
             _ => {}

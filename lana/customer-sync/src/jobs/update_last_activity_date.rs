@@ -56,40 +56,34 @@ where
         message: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         // TODO: Add other events that should update the customer activity
-        match message.as_event() {
-            Some(
-                event @ CoreDepositEvent::DepositInitialized {
-                    deposit_account_id, ..
-                },
-            )
-            | Some(
-                event @ CoreDepositEvent::WithdrawalConfirmed {
-                    deposit_account_id, ..
-                },
-            )
-            | Some(
-                event @ CoreDepositEvent::DepositReverted {
-                    deposit_account_id, ..
-                },
-            ) => {
-                message.inject_trace_parent();
-                Span::current().record("handled", true);
-                Span::current().record("event_type", event.as_ref());
-
-                let account = self
-                    .deposits
-                    .find_account_by_id_without_audit(*deposit_account_id)
-                    .await?;
-
-                let customer_id = account.account_holder_id.into();
-                let activity_date = message.recorded_at;
-
-                self.customers
-                    .record_last_activity_date(customer_id, activity_date)
-                    .await?;
+        let (event, deposit_account_id) = match message.as_event() {
+            Some(event @ CoreDepositEvent::DepositInitialized { entity }) => {
+                (event, entity.deposit_account_id)
             }
-            _ => {}
-        }
+            Some(event @ CoreDepositEvent::WithdrawalConfirmed { entity }) => {
+                (event, entity.deposit_account_id)
+            }
+            Some(event @ CoreDepositEvent::DepositReverted { entity }) => {
+                (event, entity.deposit_account_id)
+            }
+            _ => return Ok(()),
+        };
+
+        message.inject_trace_parent();
+        Span::current().record("handled", true);
+        Span::current().record("event_type", event.as_ref());
+
+        let account = self
+            .deposits
+            .find_account_by_id_without_audit(deposit_account_id)
+            .await?;
+
+        let customer_id = account.account_holder_id.into();
+        let activity_date = message.recorded_at;
+
+        self.customers
+            .record_last_activity_date(customer_id, activity_date)
+            .await?;
         Ok(())
     }
 
