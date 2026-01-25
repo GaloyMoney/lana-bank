@@ -142,10 +142,10 @@ where
         message: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         match message.as_event() {
-            Some(CoreTimeEvent::EndOfDay { closing_time, .. }) => {
+            Some(event @ CoreTimeEvent::EndOfDay { closing_time, .. }) => {
                 message.inject_trace_parent();
                 Span::current().record("handled", true);
-                Span::current().record("event_type", "EndOfDay");
+                Span::current().record("event_type", event.as_ref());
 
                 self.customers
                     .perform_customer_activity_status_update(*closing_time)
