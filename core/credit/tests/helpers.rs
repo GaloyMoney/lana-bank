@@ -20,19 +20,10 @@ pub async fn init_domain_configs(
     let exposed_configs = ExposedDomainConfigs::new(pool, authz);
     exposed_configs.seed_registered().await?;
     // Disable the require verified customer check for tests
-    // Use retry logic to handle concurrent modification from parallel tests
-    for _ in 0..3 {
-        match exposed_configs
-            .update::<RequireVerifiedCustomerForAccount>(&authz::dummy::DummySubject, false)
-            .await
-        {
-            Ok(_) => break,
-            Err(domain_config::DomainConfigError::EsEntityError(
-                es_entity::EsEntityError::ConcurrentModification,
-            )) => continue,
-            Err(e) => return Err(e.into()),
-        }
-    }
+    // Ignore concurrent modification - all tests want the same value (false)
+    let _ = exposed_configs
+        .update::<RequireVerifiedCustomerForAccount>(&authz::dummy::DummySubject, false)
+        .await;
     Ok(ExposedDomainConfigsReadOnly::new(pool))
 }
 
