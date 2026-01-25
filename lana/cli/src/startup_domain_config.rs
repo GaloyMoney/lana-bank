@@ -97,79 +97,78 @@ pub fn list_available_keys() -> String {
         .join("\n")
 }
 
-/// Environment variable name for domain config settings.
-pub const DOMAIN_CONFIG_ENV_VAR: &str = "LANA_DOMAIN_CONFIG";
+/// Environment variable prefix for domain config settings.
+///
+/// Each domain config key can be set via an environment variable with this prefix.
+/// The key is converted from kebab-case to SCREAMING_SNAKE_CASE.
+///
+/// Example:
+/// - Config key: `require-verified-customer-for-account`
+/// - Env var: `LANA_DOMAIN_CONFIG_REQUIRE_VERIFIED_CUSTOMER_FOR_ACCOUNT=false`
+pub const DOMAIN_CONFIG_ENV_PREFIX: &str = "LANA_DOMAIN_CONFIG_";
 
-/// Parse domain config settings from an environment variable.
+/// Parse domain config settings from environment variables.
 ///
-/// The environment variable should contain comma-separated key=value pairs.
-/// Example: `key1=true,key2=42,key3="string value"`
+/// Scans all environment variables for those starting with `LANA_DOMAIN_CONFIG_`
+/// and converts them to domain config settings.
 ///
-/// For values containing commas, use JSON array/object syntax or quote the entire value.
+/// Example:
+/// ```text
+/// LANA_DOMAIN_CONFIG_REQUIRE_VERIFIED_CUSTOMER_FOR_ACCOUNT=false
+/// LANA_DOMAIN_CONFIG_SOME_OTHER_KEY=42
+/// ```
 pub fn parse_from_env() -> Result<Vec<DomainConfigSetting>> {
-    let env_value = match std::env::var(DOMAIN_CONFIG_ENV_VAR) {
-        Ok(val) if !val.is_empty() => val,
-        _ => return Ok(Vec::new()),
-    };
-
-    parse_comma_separated(&env_value)
-        .with_context(|| format!("Failed to parse {} environment variable", DOMAIN_CONFIG_ENV_VAR))
-}
-
-/// Parse comma-separated key=value pairs.
-///
-/// Handles commas inside JSON values (objects/arrays) by tracking bracket depth.
-fn parse_comma_separated(input: &str) -> Result<Vec<DomainConfigSetting>> {
     let mut settings = Vec::new();
-    let mut current = String::new();
-    let mut bracket_depth = 0;
-    let mut in_string = false;
-    let mut escape_next = false;
 
-    for ch in input.chars() {
-        if escape_next {
-            current.push(ch);
-            escape_next = false;
-            continue;
-        }
+    for (env_key, env_value) in std::env::vars() {
+        if let Some(suffix) = env_key.strip_prefix(DOMAIN_CONFIG_ENV_PREFIX) {
+            if suffix.is_empty() {
+                continue;
+            }
 
-        match ch {
-            '\\' if in_string => {
-                current.push(ch);
-                escape_next = true;
-            }
-            '"' => {
-                in_string = !in_string;
-                current.push(ch);
-            }
-            '{' | '[' if !in_string => {
-                bracket_depth += 1;
-                current.push(ch);
-            }
-            '}' | ']' if !in_string => {
-                bracket_depth -= 1;
-                current.push(ch);
-            }
-            ',' if !in_string && bracket_depth == 0 => {
-                let trimmed = current.trim();
-                if !trimmed.is_empty() {
-                    settings.push(DomainConfigSetting::parse(trimmed)?);
-                }
-                current.clear();
-            }
-            _ => {
-                current.push(ch);
-            }
+            // Convert SCREAMING_SNAKE_CASE to kebab-case
+            let config_key = env_var_suffix_to_config_key(suffix);
+
+            // Parse the value as JSON (same logic as CLI parsing)
+            let value = serde_json::from_str(&env_value).unwrap_or_else(|_| {
+                // If it fails, treat it as a bare string
+                serde_json::Value::String(env_value.clone())
+            });
+
+            settings.push(DomainConfigSetting {
+                key: config_key,
+                value,
+            });
         }
     }
 
-    // Don't forget the last segment
-    let trimmed = current.trim();
-    if !trimmed.is_empty() {
-        settings.push(DomainConfigSetting::parse(trimmed)?);
-    }
+    // Sort for consistent ordering
+    settings.sort_by(|a, b| a.key.cmp(&b.key));
 
     Ok(settings)
+}
+
+/// Convert an environment variable suffix from SCREAMING_SNAKE_CASE to kebab-case.
+///
+/// Example: `REQUIRE_VERIFIED_CUSTOMER_FOR_ACCOUNT` -> `require-verified-customer-for-account`
+fn env_var_suffix_to_config_key(suffix: &str) -> String {
+    suffix.to_lowercase().replace('_', "-")
+}
+
+/// Convert a config key from kebab-case to SCREAMING_SNAKE_CASE for env var naming.
+///
+/// Example: `require-verified-customer-for-account` -> `REQUIRE_VERIFIED_CUSTOMER_FOR_ACCOUNT`
+#[cfg(test)]
+fn config_key_to_env_var_suffix(key: &str) -> String {
+    key.to_uppercase().replace('-', "_")
+}
+
+/// Get the full environment variable name for a given config key.
+///
+/// Example: `require-verified-customer-for-account` -> `LANA_DOMAIN_CONFIG_REQUIRE_VERIFIED_CUSTOMER_FOR_ACCOUNT`
+#[cfg(test)]
+fn config_key_to_env_var(key: &str) -> String {
+    format!("{}{}", DOMAIN_CONFIG_ENV_PREFIX, config_key_to_env_var_suffix(key))
 }
 
 /// Collect domain config settings from both environment variable and CLI arguments.
@@ -275,63 +274,32 @@ mod tests {
     }
 
     #[test]
-    fn parse_comma_separated_simple() {
-        let settings = parse_comma_separated("key1=true,key2=42,key3=hello").unwrap();
-        assert_eq!(settings.len(), 3);
-        assert_eq!(settings[0].key, "key1");
-        assert_eq!(settings[0].value, serde_json::json!(true));
-        assert_eq!(settings[1].key, "key2");
-        assert_eq!(settings[1].value, serde_json::json!(42));
-        assert_eq!(settings[2].key, "key3");
-        assert_eq!(settings[2].value, serde_json::json!("hello"));
+    fn env_var_suffix_to_config_key_simple() {
+        assert_eq!(
+            env_var_suffix_to_config_key("REQUIRE_VERIFIED_CUSTOMER"),
+            "require-verified-customer"
+        );
     }
 
     #[test]
-    fn parse_comma_separated_with_spaces() {
-        let settings = parse_comma_separated("key1=true , key2=false").unwrap();
-        assert_eq!(settings.len(), 2);
-        assert_eq!(settings[0].key, "key1");
-        assert_eq!(settings[1].key, "key2");
+    fn env_var_suffix_to_config_key_single_word() {
+        assert_eq!(env_var_suffix_to_config_key("ENABLED"), "enabled");
     }
 
     #[test]
-    fn parse_comma_separated_with_json_object() {
-        let settings =
-            parse_comma_separated(r#"key1=true,complex={"a":1,"b":2},key2=false"#).unwrap();
-        assert_eq!(settings.len(), 3);
-        assert_eq!(settings[0].key, "key1");
-        assert_eq!(settings[1].key, "complex");
-        assert_eq!(settings[1].value, serde_json::json!({"a": 1, "b": 2}));
-        assert_eq!(settings[2].key, "key2");
+    fn config_key_to_env_var_suffix_simple() {
+        assert_eq!(
+            config_key_to_env_var_suffix("require-verified-customer"),
+            "REQUIRE_VERIFIED_CUSTOMER"
+        );
     }
 
     #[test]
-    fn parse_comma_separated_with_json_array() {
-        let settings = parse_comma_separated(r#"key1=true,items=[1,2,3],key2=false"#).unwrap();
-        assert_eq!(settings.len(), 3);
-        assert_eq!(settings[1].key, "items");
-        assert_eq!(settings[1].value, serde_json::json!([1, 2, 3]));
-    }
-
-    #[test]
-    fn parse_comma_separated_with_quoted_string_containing_comma() {
-        let settings = parse_comma_separated(r#"key1=true,msg="hello, world",key2=false"#).unwrap();
-        assert_eq!(settings.len(), 3);
-        assert_eq!(settings[1].key, "msg");
-        assert_eq!(settings[1].value, serde_json::json!("hello, world"));
-    }
-
-    #[test]
-    fn parse_comma_separated_empty() {
-        let settings = parse_comma_separated("").unwrap();
-        assert!(settings.is_empty());
-    }
-
-    #[test]
-    fn parse_comma_separated_single() {
-        let settings = parse_comma_separated("key=value").unwrap();
-        assert_eq!(settings.len(), 1);
-        assert_eq!(settings[0].key, "key");
+    fn config_key_to_env_var_full() {
+        assert_eq!(
+            config_key_to_env_var("require-verified-customer"),
+            "LANA_DOMAIN_CONFIG_REQUIRE_VERIFIED_CUSTOMER"
+        );
     }
 
     #[test]
