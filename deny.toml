@@ -74,11 +74,6 @@ ignore = [
     #{ id = "RUSTSEC-0000-0000", reason = "you can specify a reason the advisory is ignored" },
     #"a-crate-that-is-yanked@0.1.1", # you can also ignore yanked crate versions if you wish
     #{ crate = "a-crate-that-is-yanked@0.1.1", reason = "you can specify why you are ignoring the yanked crate" },
-
-    "RUSTSEC-2021-0153", # encoding crate is unmaintained (via lopdf v0.26.0)
-    "RUSTSEC-2020-0144", # lzw crate is unmaintained (via lopdf v0.26.0)
-    "RUSTSEC-2021-0140", # rusttype crate is unmaintained (via genpdfi)
-    "RUSTSEC-2020-0020", # stb_truetype crate is deprecated (via rusttype)
 ]
 # If this is true, then cargo deny will use the git executable to fetch advisory database.
 # If this is false, then it uses a built-in git library.
