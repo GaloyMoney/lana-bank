@@ -1,9 +1,7 @@
-//! Apply domain config settings at startup via environment variables
+//! Parse domain config settings from environment variables at startup
 
-use anyhow::{Context, Result, anyhow};
-use domain_config::{DomainConfigKey, DomainConfigRepo, registry};
-use sqlx::PgPool;
-use tracing::{info, warn};
+use anyhow::Result;
+use tracing::warn;
 
 /// A domain config setting parsed from an environment variable.
 #[derive(Debug, Clone)]
@@ -69,60 +67,6 @@ pub fn parse_from_env() -> Result<Vec<DomainConfigSetting>> {
     Ok(settings)
 }
 
-/// Apply domain config settings to the database.
-pub async fn apply_settings(pool: &PgPool, settings: &[DomainConfigSetting]) -> Result<()> {
-    let repo = DomainConfigRepo::new(pool);
-
-    for setting in settings {
-        let entry = registry::maybe_find_by_key(&setting.key).ok_or_else(|| {
-            let available_keys = list_available_keys();
-            anyhow!(
-                "Unknown domain config key: '{}'\n\nAvailable keys:\n{}",
-                setting.key,
-                available_keys
-            )
-        })?;
-
-        // Validate the value using the registry's validator
-        (entry.validate_json)(&setting.value)
-            .with_context(|| format!("Invalid value for '{}': {}", setting.key, setting.value))?;
-
-        // Find and update the config
-        let key: DomainConfigKey = setting.key.clone().into();
-        let mut config = repo.find_by_key(key).await.with_context(|| {
-            format!(
-                "Failed to find config '{}' in database. Ensure seeding has completed.",
-                setting.key
-            )
-        })?;
-
-        let idempotent = config
-            .apply_update_from_json(entry, setting.value.clone())
-            .with_context(|| format!("Failed to apply update for '{}'", setting.key))?;
-
-        if idempotent.did_execute() {
-            repo.update(&mut config)
-                .await
-                .with_context(|| format!("Failed to save config '{}'", setting.key))?;
-            info!(key = %setting.key, value = %setting.value, "Applied domain config setting");
-        } else {
-            info!(key = %setting.key, value = %setting.value, "Domain config setting already applied");
-        }
-    }
-
-    Ok(())
-}
-
-/// List all available domain config keys for error messages.
-fn list_available_keys() -> String {
-    let mut keys: Vec<_> = registry::all_specs().map(|spec| spec.key).collect();
-    keys.sort();
-    keys.iter()
-        .map(|k| format!("  - {}", k))
-        .collect::<Vec<_>>()
-        .join("\n")
-}
-
 /// Convert an environment variable suffix from SCREAMING_SNAKE_CASE to kebab-case.
 ///
 /// Example: `REQUIRE_VERIFIED_CUSTOMER_FOR_ACCOUNT` -> `require-verified-customer-for-account`
@@ -158,7 +102,11 @@ mod tests {
     #[test]
     fn config_key_to_env_var_full() {
         let key = "require-verified-customer";
-        let env_var = format!("{}{}", DOMAIN_CONFIG_ENV_PREFIX, key.to_uppercase().replace('-', "_"));
+        let env_var = format!(
+            "{}{}",
+            DOMAIN_CONFIG_ENV_PREFIX,
+            key.to_uppercase().replace('-', "_")
+        );
         assert_eq!(env_var, "LANA_DOMAIN_CONFIG_REQUIRE_VERIFIED_CUSTOMER");
     }
 }

@@ -190,9 +190,18 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
     // Apply domain config settings from env vars after seeding but before starting servers
     let domain_config_settings = startup_domain_config::parse_from_env()?;
     if !domain_config_settings.is_empty() {
-        startup_domain_config::apply_settings(&pool, &domain_config_settings)
-            .await
-            .context("Failed to apply domain config settings")?;
+        let configs = domain_config::InternalDomainConfigs::new(&pool);
+        for setting in &domain_config_settings {
+            let changed = configs
+                .apply_from_json(setting.key.clone(), setting.value.clone())
+                .await
+                .with_context(|| format!("Failed to apply domain config '{}'", setting.key))?;
+            if changed {
+                info!(key = %setting.key, value = %setting.value, "Applied domain config from env var");
+            } else {
+                info!(key = %setting.key, value = %setting.value, "Domain config already set");
+            }
+        }
     }
 
     let admin_error_send = error_send.clone();

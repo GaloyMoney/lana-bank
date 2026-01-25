@@ -241,6 +241,37 @@ impl InternalDomainConfigs {
     pub async fn seed_registered(&self) -> Result<(), DomainConfigError> {
         seed_registered_for_visibility(&self.repo, Visibility::Internal).await
     }
+
+    /// Apply a domain config setting from a key and JSON value.
+    ///
+    /// This is intended for startup/bootstrap scenarios where configs need to be
+    /// set before user context is available. Works for both internal and exposed
+    /// configs since it's an internal operation.
+    ///
+    /// Returns `true` if the value was changed, `false` if already set to this value.
+    #[record_error_severity]
+    #[instrument(name = "domain_config.apply_from_json", skip(self, value))]
+    pub async fn apply_from_json(
+        &self,
+        key: impl Into<DomainConfigKey> + std::fmt::Debug,
+        value: serde_json::Value,
+    ) -> Result<bool, DomainConfigError> {
+        let key = key.into();
+        let entry = registry::maybe_find_by_key(key.as_str()).ok_or_else(|| {
+            DomainConfigError::InvalidKey(format!("Unknown domain config key: {}", key.as_str()))
+        })?;
+
+        (entry.validate_json)(&value)?;
+
+        let mut config = self.repo.find_by_key(key).await?;
+        let changed = config.apply_update_from_json(entry, value)?.did_execute();
+
+        if changed {
+            self.repo.update(&mut config).await?;
+        }
+
+        Ok(changed)
+    }
 }
 
 impl ExposedDomainConfigsReadOnly {
