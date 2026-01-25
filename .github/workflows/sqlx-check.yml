@@ -40,7 +40,14 @@ jobs:
         env:
           DATABASE_URL: "postgres://user:password@127.0.0.1:5433/pg?sslmode=disable"
 
-      - name: Check .sqlx is up to date
-        run: nix develop -c cargo sqlx prepare --workspace --check
+      - name: Generate .sqlx
+        run: nix develop -c cargo sqlx prepare --workspace
         env:
           DATABASE_URL: "postgres://user:password@127.0.0.1:5433/pg?sslmode=disable"
+
+      - name: Check .sqlx is up to date
+        run: |
+          if ! git diff --exit-code .sqlx; then
+            echo "::error::.sqlx is out of date. Please run 'make sqlx-prepare' and commit the changes."
+            exit 1
+          fi
