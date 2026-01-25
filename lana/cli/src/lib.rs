@@ -197,9 +197,9 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
                 .await
                 .with_context(|| format!("Failed to apply domain config '{}'", setting.key))?;
             if changed {
-                info!(key = %setting.key, value = %setting.value, "Applied domain config from env var");
+                info!(key = %setting.key, "Applied domain config from env var");
             } else {
-                info!(key = %setting.key, value = %setting.value, "Domain config already set");
+                info!(key = %setting.key, "Domain config already set");
             }
         }
     }
