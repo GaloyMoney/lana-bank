@@ -11,7 +11,10 @@ use helpers::{action, event, object};
 
 /// Creates a test setup with all required dependencies for customer tests.
 async fn setup() -> anyhow::Result<(
-    Customers<authz::dummy::DummyPerms<action::DummyAction, object::DummyObject>, event::DummyEvent>,
+    Customers<
+        authz::dummy::DummyPerms<action::DummyAction, object::DummyObject>,
+        event::DummyEvent,
+    >,
     obix::Outbox<event::DummyEvent>,
 )> {
     let pool = helpers::init_pool().await?;
@@ -78,7 +81,10 @@ async fn customer_created_event_on_create() -> anyhow::Result<()> {
     assert_eq!(recorded.id, customer.id);
     assert_eq!(recorded.email, email);
     assert_eq!(recorded.customer_type, CustomerType::Individual);
-    assert_eq!(recorded.kyc_verification, KycVerification::PendingVerification);
+    assert_eq!(
+        recorded.kyc_verification,
+        KycVerification::PendingVerification
+    );
 
     Ok(())
 }

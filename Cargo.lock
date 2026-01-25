@@ -7391,7 +7391,6 @@ dependencies = [
  "memchr",
  "num-traits",
  "obix",
- "obix-macros",
  "once_cell",
  "opentelemetry-http",
  "opentelemetry-otlp",

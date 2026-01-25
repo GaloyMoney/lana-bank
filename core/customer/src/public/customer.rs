@@ -1,11 +1,15 @@
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "json-schema")]
+use schemars::JsonSchema;
+
 use crate::{
     entity::Customer,
     primitives::{CustomerId, CustomerType, KycVerification},
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct PublicCustomer {
     pub id: CustomerId,
     pub email: String,

@@ -30,8 +30,8 @@ pub use customer_activity_repo::CustomerActivityRepo;
 pub use entity::Customer;
 use entity::*;
 use error::*;
-pub use public::*;
 pub use primitives::*;
+pub use public::*;
 pub use repo::{CustomerRepo, CustomersFilter, CustomersSortBy, Sort, customer_cursor::*};
 
 pub const CUSTOMER_DOCUMENT: DocumentType = DocumentType::new("customer_document");

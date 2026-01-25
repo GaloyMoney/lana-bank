@@ -525,7 +525,7 @@ where
 
         let _res = self
             .inbox
-            .persist_and_process(&idempotency_key, webhook_payload)
+            .persist_and_queue_job(&idempotency_key, webhook_payload)
             .await?;
 
         Ok(())
