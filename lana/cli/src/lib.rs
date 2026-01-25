@@ -100,11 +100,14 @@ pub async fn run() -> anyhow::Result<()> {
             )?;
 
             // Parse domain config settings from CLI
-            let domain_config_settings: Vec<startup_domain_config::DomainConfigSetting> = cli
+            let cli_settings: Vec<startup_domain_config::DomainConfigSetting> = cli
                 .set_domain_configs
                 .iter()
                 .map(|s| startup_domain_config::DomainConfigSetting::parse(s))
                 .collect::<Result<Vec<_>, _>>()?;
+
+            // Collect settings from both env var and CLI (CLI takes precedence)
+            let domain_config_settings = startup_domain_config::collect_settings(cli_settings)?;
 
             run_cmd(&cli.lana_home, config, domain_config_settings).await?;
         }
