@@ -41,7 +41,7 @@ jobs:
           DATABASE_URL: "postgres://user:password@127.0.0.1:5433/pg?sslmode=disable"
 
       - name: Generate .sqlx
-        run: nix develop -c cargo sqlx prepare --workspace
+        run: nix develop -c make sqlx-prepare
         env:
           DATABASE_URL: "postgres://user:password@127.0.0.1:5433/pg?sslmode=disable"
 
