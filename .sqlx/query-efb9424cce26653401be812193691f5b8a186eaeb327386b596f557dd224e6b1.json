@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT CASE WHEN is_called THEN last_value ELSE 0 END AS \"last_returned!: i64\"\nFROM persistent_outbox_events_sequence_seq",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "last_returned!: i64",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "efb9424cce26653401be812193691f5b8a186eaeb327386b596f557dd224e6b1"
+}
