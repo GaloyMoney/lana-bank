@@ -272,6 +272,27 @@ impl InternalDomainConfigs {
 
         Ok(changed)
     }
+
+    /// Apply multiple domain config settings from key-value pairs.
+    ///
+    /// This is intended for startup/bootstrap scenarios where configs need to be
+    /// set from environment variables before user context is available.
+    #[instrument(name = "domain_config.apply_all_from_json", skip(self, settings))]
+    pub async fn apply_all_from_json<I, K>(&self, settings: I) -> Result<(), DomainConfigError>
+    where
+        I: IntoIterator<Item = (K, serde_json::Value)>,
+        K: Into<DomainConfigKey> + std::fmt::Debug + std::fmt::Display + Clone,
+    {
+        for (key, value) in settings {
+            let changed = self.apply_from_json(key.clone(), value).await?;
+            if changed {
+                tracing::info!(key = %key, "Applied domain config from env var");
+            } else {
+                tracing::info!(key = %key, "Domain config already set");
+            }
+        }
+        Ok(())
+    }
 }
 
 impl ExposedDomainConfigsReadOnly {
