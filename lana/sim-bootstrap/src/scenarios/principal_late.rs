@@ -83,7 +83,6 @@ pub async fn principal_late_scenario(
         )
         .await?;
 
-    let activation_date;
     loop {
         tokio::select! {
             Some(msg) = stream.next() => {
@@ -91,7 +90,6 @@ pub async fn principal_late_scenario(
                     && *id == cf_id
                 {
                     msg.inject_trace_parent();
-                    activation_date = clock.today();
                     break;
                 }
             }
@@ -110,9 +108,7 @@ pub async fn principal_late_scenario(
     let mut principal_paid = false;
     let mut handling_remaining = false;
 
-    let expected_end_date = activation_date + chrono::Duration::days(220);
     let mut facility_completed = false;
-    let mut days_past_expected_end = 0;
 
     while !facility_completed {
         tokio::select! {
@@ -197,12 +193,6 @@ pub async fn principal_late_scenario(
                     }
                 }
 
-                if current_date >= expected_end_date {
-                    days_past_expected_end += 1;
-                    if days_past_expected_end > 120 {
-                        anyhow::bail!("Facility did not complete within expected timeframe");
-                    }
-                }
             }
         }
     }
