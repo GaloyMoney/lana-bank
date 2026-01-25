@@ -550,13 +550,13 @@ where
             .expect("audit info missing");
 
         let customer = self.customer.find_by_id_without_audit(customer_id).await?;
-        let customer_active_check = self
+        let require_verified = self
             .domain_configs
             .get_without_audit::<RequireVerifiedCustomerForAccount>()
             .await?
             .value()
             .unwrap_or(true);
-        if customer_active_check && !customer.kyc_verification.is_verified() {
+        if require_verified && !customer.kyc_verification.is_verified() {
             return Err(CoreCreditError::CustomerNotVerified);
         }
 
@@ -627,13 +627,13 @@ where
 
         let customer_id = facility.customer_id;
         let customer = self.customer.find_by_id_without_audit(customer_id).await?;
-        let customer_active_check = self
+        let require_verified = self
             .domain_configs
             .get_without_audit::<RequireVerifiedCustomerForAccount>()
             .await?
             .value()
             .unwrap_or(true);
-        if customer_active_check && !customer.kyc_verification.is_verified() {
+        if require_verified && !customer.kyc_verification.is_verified() {
             return Err(CoreCreditError::CustomerNotVerified);
         }
 
