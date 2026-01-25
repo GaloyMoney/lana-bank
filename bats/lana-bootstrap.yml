@@ -9,10 +9,7 @@ app:
     provider: local
     root_folder: ".lana"
   credit:
-    customer_active_check_enabled: false
     price_job_interval: 31536000 # 1 year
-  deposit:
-    require_verified_customer_for_account: false
   notification:
     email:
       admin_panel_url: "http://admin.localhost:4455"
