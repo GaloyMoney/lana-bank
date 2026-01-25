@@ -4,7 +4,7 @@ use anyhow::{Context, Result, anyhow};
 use domain_config::{DomainConfigKey, DomainConfigRepo, registry};
 use sqlx::PgPool;
 use std::collections::HashMap;
-use tracing::info;
+use tracing::{info, warn};
 
 /// A domain config setting parsed from CLI input.
 #[derive(Debug, Clone)]
@@ -34,8 +34,14 @@ impl DomainConfigSetting {
         let value_str = value_str.trim();
 
         // Try to parse as JSON first
-        let value = serde_json::from_str(value_str).unwrap_or_else(|_| {
+        let value = serde_json::from_str(value_str).unwrap_or_else(|err| {
             // If it fails, treat it as a bare string
+            warn!(
+                key = %key,
+                value = %value_str,
+                error = %err,
+                "Failed to parse config value as JSON, treating as string"
+            );
             serde_json::Value::String(value_str.to_string())
         });
 
@@ -130,8 +136,14 @@ pub fn parse_from_env() -> Result<Vec<DomainConfigSetting>> {
             let config_key = env_var_suffix_to_config_key(suffix);
 
             // Parse the value as JSON (same logic as CLI parsing)
-            let value = serde_json::from_str(&env_value).unwrap_or_else(|_| {
+            let value = serde_json::from_str(&env_value).unwrap_or_else(|err| {
                 // If it fails, treat it as a bare string
+                warn!(
+                    env_var = %env_key,
+                    value = %env_value,
+                    error = %err,
+                    "Failed to parse env var value as JSON, treating as string"
+                );
                 serde_json::Value::String(env_value.clone())
             });
 
