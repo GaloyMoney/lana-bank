@@ -241,7 +241,6 @@ impl InternalDomainConfigs {
     pub async fn seed_registered(&self) -> Result<(), DomainConfigError> {
         seed_registered_for_visibility(&self.repo, Visibility::Internal).await
     }
-
 }
 
 impl ExposedDomainConfigsReadOnly {
