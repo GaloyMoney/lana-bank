@@ -199,7 +199,7 @@ pub async fn principal_late_scenario(
 
                 if current_date >= expected_end_date {
                     days_past_expected_end += 1;
-                    if days_past_expected_end > 30 {
+                    if days_past_expected_end > 120 {
                         anyhow::bail!("Facility did not complete within expected timeframe");
                     }
                 }

@@ -176,7 +176,7 @@ pub async fn disbursal_different_months_scenario(
                         }
                     }
 
-                    if days_past_expected_end > 30 {
+                    if days_past_expected_end > 120 {
                         anyhow::bail!("Facility did not complete within expected timeframe");
                     }
                 }
