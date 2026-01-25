@@ -145,6 +145,7 @@ mod macros;
 mod primitives;
 pub mod registry;
 mod repo;
+mod shared_config;
 mod spec;
 mod typed_domain_config;
 
@@ -166,6 +167,7 @@ pub use primitives::{
     PERMISSION_SET_EXPOSED_CONFIG_WRITER, Visibility,
 };
 pub use repo::domain_config_cursor::DomainConfigsByKeyCursor;
+pub use shared_config::RequireVerifiedCustomerForAccount;
 pub use spec::{Complex, ConfigSpec, ExposedConfig, InternalConfig, Simple, ValueKind};
 pub use typed_domain_config::TypedDomainConfig;
 

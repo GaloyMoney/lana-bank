@@ -203,12 +203,10 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
     let journal_id = helpers::init_journal(&cala).await?;
     let credit_public_ids = PublicIds::new(&pool);
     let price = core_price::Price::init(&mut jobs, &outbox).await?;
+    let domain_configs = helpers::init_domain_configs(&pool, &authz).await?;
     let credit = CoreCredit::init(
         &pool,
-        CreditConfig {
-            customer_active_check_enabled: false,
-            ..Default::default()
-        },
+        CreditConfig::default(),
         &governance,
         &mut jobs,
         &authz,
@@ -219,6 +217,7 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
         &cala,
         journal_id,
         &credit_public_ids,
+        &domain_configs,
     )
     .await?;
     let deposit_public_ids = PublicIds::new(&pool);
@@ -232,9 +231,7 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
         journal_id,
         &deposit_public_ids,
         &customers,
-        core_deposit::DepositConfig {
-            require_verified_customer_for_account: false,
-        },
+        &domain_configs,
     )
     .await?;
     jobs.start_poll().await?;

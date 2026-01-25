@@ -171,7 +171,7 @@ impl LanaApp {
             journal_init.journal_id,
             &public_ids,
             &customers,
-            config.deposit,
+            &exposed_domain_configs_readonly,
         )
         .await?;
         let customer_sync = CustomerSync::init(
@@ -218,6 +218,7 @@ impl LanaApp {
             &cala,
             journal_init.journal_id,
             &public_ids,
+            &exposed_domain_configs_readonly,
         )
         .await?;
 

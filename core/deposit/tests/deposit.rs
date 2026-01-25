@@ -50,6 +50,8 @@ async fn deposit() -> anyhow::Result<()> {
         clock.clone(),
     );
 
+    let domain_configs = helpers::init_domain_configs(&pool, &authz).await?;
+
     let deposit = CoreDeposit::init(
         &pool,
         &authz,
@@ -60,9 +62,7 @@ async fn deposit() -> anyhow::Result<()> {
         journal_id,
         &public_ids,
         &customers,
-        DepositConfig {
-            require_verified_customer_for_account: false,
-        },
+        &domain_configs,
     )
     .await?;
 
@@ -134,6 +134,8 @@ async fn revert_deposit() -> anyhow::Result<()> {
         clock.clone(),
     );
 
+    let domain_configs = helpers::init_domain_configs(&pool, &authz).await?;
+
     let deposit = CoreDeposit::init(
         &pool,
         &authz,
@@ -144,9 +146,7 @@ async fn revert_deposit() -> anyhow::Result<()> {
         journal_id,
         &public_ids,
         &customers,
-        DepositConfig {
-            require_verified_customer_for_account: false,
-        },
+        &domain_configs,
     )
     .await?;
 

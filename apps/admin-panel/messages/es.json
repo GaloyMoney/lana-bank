@@ -214,6 +214,10 @@
     "closing-time": {
       "title": "Hora de cierre",
       "description": "Hora en que se ejecuta el procesamiento de fin de día (HH:MM:SS)"
+    },
+    "require-verified-customer-for-account": {
+      "title": "Requerir cliente verificado para cuenta",
+      "description": "Cuando está habilitado, los clientes deben estar verificados por KYC antes de crear cuentas de depósito o líneas de crédito."
     }
   },
   "interestInterval": {

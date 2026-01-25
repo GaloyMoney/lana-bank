@@ -17,7 +17,6 @@ app:
   access:
     superuser_email: null
   credit:
-    customer_active_check_enabled: true
     price_job_interval: 30
   storage:
     provider: local
@@ -58,8 +57,6 @@ app:
       pipeline_name_for_report_generation: file_reports_generation
       repository_location_name: Lana DW
       repository_name: __repository__
-  deposit:
-    require_verified_customer_for_account: true
   gotenberg:
     url: http://localhost:3030/
 tracing:
