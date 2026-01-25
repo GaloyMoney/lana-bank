@@ -47,7 +47,9 @@ jobs:
 
       - name: Check .sqlx is up to date
         run: |
-          if ! git diff --exit-code .sqlx; then
+          if [ -n "$(git status --porcelain .sqlx)" ]; then
             echo "::error::.sqlx is out of date. Please run 'make sqlx-prepare' and commit the changes."
+            git status --porcelain .sqlx
+            git diff .sqlx
             exit 1
           fi
