@@ -211,10 +211,14 @@
       "title": "Timezone",                                                                                                                                   
       "description": "Timezone for end-of-day processing"                                                                                                    
     },                                                                                                                                                       
-    "closing-time": {                                                                                                                                        
-      "title": "Closing Time",                                                                                                                               
-      "description": "Time when end-of-day processing runs (HH:MM:SS)"                                                                                       
-    }   
+    "closing-time": {
+      "title": "Closing Time",
+      "description": "Time when end-of-day processing runs (HH:MM:SS)"
+    },
+    "require-verified-customer-for-account": {
+      "title": "Require verified customer for account",
+      "description": "When enabled, customers must be KYC-verified before creating deposit accounts or credit facilities."
+    }
   },
   "interestInterval": {
     "endOfDay": "End of Day",
