@@ -36,7 +36,7 @@ jobs:
           skipPush: true
 
       - name: Run migrations
-        run: nix develop -c sqlx migrate run --source lana/app/migrations
+        run: nix develop -c make setup-db
         env:
           DATABASE_URL: "postgres://user:password@127.0.0.1:5433/pg?sslmode=disable"
 
