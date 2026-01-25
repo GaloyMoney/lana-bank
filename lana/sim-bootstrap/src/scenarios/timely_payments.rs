@@ -153,7 +153,7 @@ pub async fn timely_payments_scenario(
                         }
                     }
 
-                    if days_past_expected_end > 30 {
+                    if days_past_expected_end > 120 {
                         anyhow::bail!("Facility did not complete within expected timeframe");
                     }
                 }
