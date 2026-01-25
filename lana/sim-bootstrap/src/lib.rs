@@ -32,10 +32,9 @@ pub async fn run(
 
     create_term_templates(&sub, app).await?;
 
-    // keep the scenarios tokio handles
-    let mut handles = scenarios::run(&sub, app, clock.clone()).await?;
+    scenarios::run(&sub, app, clock.clone(), clock_ctrl.clone()).await?;
 
-    // Bootstrapped test users
+    let mut handles = Vec::new();
     let customers = create_customers(&sub, app, &config).await?;
 
     make_deposits(

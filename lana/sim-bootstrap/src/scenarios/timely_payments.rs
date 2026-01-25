@@ -1,23 +1,34 @@
-use es_entity::clock::ClockHandle;
+use std::time::Duration;
+
+use es_entity::clock::{ClockController, ClockHandle};
+use es_entity::prelude::chrono;
 use futures::StreamExt;
 use lana_app::{app::LanaApp, primitives::*};
 use lana_events::{CoreCreditEvent, LanaEvent};
-use obix::out::PersistentOutboxEvent;
 use rust_decimal_macros::dec;
-use tokio::sync::mpsc;
-use tracing::{Instrument, Span, event, instrument};
+use tracing::{event, instrument};
 
 use crate::helpers;
 
-// Scenario 1: A credit facility that made timely payments and was paid off all according to the initial payment plan
-#[tracing::instrument(name = "sim_bootstrap.timely_payments_scenario", skip(app, clock), err)]
+const ONE_DAY: Duration = Duration::from_secs(86400);
+const EVENT_WAIT_TIMEOUT: Duration = Duration::from_millis(100);
+
+#[instrument(
+    name = "sim_bootstrap.timely_payments_scenario",
+    skip(app, clock, clock_ctrl),
+    err
+)]
 pub async fn timely_payments_scenario(
     sub: Subject,
     app: &LanaApp,
-    clock: ClockHandle,
+    clock: &ClockHandle,
+    clock_ctrl: &ClockController,
 ) -> anyhow::Result<()> {
-    let (customer_id, _) = helpers::create_customer(&sub, app, "1-timely-paid").await?;
+    event!(tracing::Level::INFO, "Starting timely payments scenario");
 
+    let mut stream = app.outbox().listen_persisted(None);
+
+    let (customer_id, _) = helpers::create_customer(&sub, app, "1-timely-paid").await?;
     let deposit_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
     helpers::make_deposit(&sub, app, &customer_id, deposit_amount).await?;
 
@@ -26,169 +37,143 @@ pub async fn timely_payments_scenario(
     let cf_proposal = app
         .create_facility_proposal(&sub, customer_id, cf_amount, cf_terms, None::<CustodianId>)
         .await?;
+    let proposal_id = cf_proposal.id;
+    let cf_id: CreditFacilityId = proposal_id.into();
 
-    let cf_proposal = app
-        .credit()
+    app.credit()
         .proposals()
-        .conclude_customer_approval(&sub, cf_proposal.id, true)
+        .conclude_customer_approval(&sub, proposal_id, true)
         .await?;
 
-    let mut stream = app.outbox().listen_persisted(None);
-    while let Some(msg) = stream.next().await {
-        if process_activation_message(&msg, &sub, app, &cf_proposal, &clock).await? {
-            break;
+    loop {
+        tokio::select! {
+            Some(msg) = stream.next() => {
+                if let Some(LanaEvent::Credit(CoreCreditEvent::FacilityProposalConcluded {
+                    id,
+                    status: CreditFacilityProposalStatus::Approved,
+                })) = &msg.payload
+                    && *id == proposal_id
+                {
+                    msg.inject_trace_parent();
+                    break;
+                }
+                if let Some(LanaEvent::Credit(CoreCreditEvent::FacilityProposalConcluded {
+                    id,
+                    status: CreditFacilityProposalStatus::Denied,
+                })) = &msg.payload
+                    && *id == proposal_id
+                {
+                    anyhow::bail!("Proposal was denied");
+                }
+            }
+            _ = tokio::time::sleep(EVENT_WAIT_TIMEOUT) => {
+                clock_ctrl.advance(ONE_DAY).await;
+            }
         }
     }
 
-    let (tx, rx) = mpsc::channel::<UsdCents>(32);
-    let sim_app = app.clone();
-    let sim_clock = clock.clone();
-    tokio::spawn(
-        async move {
-            do_timely_payments(sub, sim_app, cf_proposal.id.into(), rx, sim_clock)
-                .await
-                .expect("timely payments failed");
-        }
-        .instrument(Span::current()),
-    );
+    app.credit()
+        .update_pending_facility_collateral(
+            &sub,
+            proposal_id,
+            Satoshis::try_from_btc(dec!(230))?,
+            clock.today(),
+        )
+        .await?;
 
-    while let Some(msg) = stream.next().await {
-        if process_obligation_message(&msg, &cf_proposal, &tx).await? {
-            break;
+    let activation_date;
+    loop {
+        tokio::select! {
+            Some(msg) = stream.next() => {
+                if let Some(LanaEvent::Credit(CoreCreditEvent::FacilityActivated { id, .. })) = &msg.payload
+                    && *id == cf_id
+                {
+                    msg.inject_trace_parent();
+                    activation_date = clock.today();
+                    break;
+                }
+            }
+            _ = tokio::time::sleep(EVENT_WAIT_TIMEOUT) => {
+                clock_ctrl.advance(ONE_DAY).await;
+            }
+        }
+    }
+
+    let expected_end_date = activation_date + chrono::Duration::days(95);
+    let mut facility_completed = false;
+    let mut days_past_expected_end = 0;
+
+    while !facility_completed {
+        tokio::select! {
+            Some(msg) = stream.next() => {
+                if let Some(LanaEvent::Credit(CoreCreditEvent::ObligationDue {
+                    credit_facility_id,
+                    amount,
+                    ..
+                })) = &msg.payload
+                    && *credit_facility_id == cf_id
+                    && *amount > UsdCents::ZERO
+                {
+                    msg.inject_trace_parent();
+                    let _ = app
+                        .record_payment_with_date(&sub, cf_id, *amount, clock.today())
+                        .await;
+                }
+
+                if let Some(LanaEvent::Credit(CoreCreditEvent::FacilityCompleted { id, .. })) = &msg.payload
+                    && *id == cf_id
+                {
+                    msg.inject_trace_parent();
+                    facility_completed = true;
+                }
+            }
+            _ = tokio::time::sleep(EVENT_WAIT_TIMEOUT) => {
+                clock_ctrl.advance(ONE_DAY).await;
+                let current_date = clock.today();
+
+                if current_date >= expected_end_date {
+                    days_past_expected_end += 1;
+
+                    let facility = app
+                        .credit()
+                        .facilities()
+                        .find_by_id(&sub, cf_id)
+                        .await?
+                        .expect("facility exists");
+
+                    if facility.interest_accrual_cycle_in_progress().is_none() {
+                        let total_outstanding = app.credit().outstanding(&facility).await?;
+
+                        if total_outstanding > UsdCents::ZERO {
+                            let _ = app
+                                .record_payment_with_date(&sub, cf_id, total_outstanding, current_date)
+                                .await;
+                        } else {
+                            let _ = app.credit().complete_facility(&sub, cf_id).await;
+                        }
+                    }
+
+                    if days_past_expected_end > 30 {
+                        anyhow::bail!("Facility did not complete within expected timeframe");
+                    }
+                }
+            }
         }
     }
 
     let cf = app
         .credit()
         .facilities()
-        .find_by_id(&sub, cf_proposal.id)
+        .find_by_id(&sub, cf_id)
         .await?
         .expect("cf exists");
+    assert_eq!(cf.status(), CreditFacilityStatus::Closed);
 
-    let actual_status = cf.status();
-    let expected_status = CreditFacilityStatus::Closed;
-
-    if actual_status == expected_status {
-        event!(tracing::Level::INFO,
-            facility_id = %cf_proposal.id,
-            status = ?actual_status,
-            "Timely payments scenario completed successfully"
-        );
-    } else {
-        event!(tracing::Level::ERROR,
-            facility_id = %cf_proposal.id,
-            expected_status = ?expected_status,
-            actual_status = ?actual_status,
-            "Timely payments scenario failed: unexpected facility status"
-        );
-    }
-
-    Ok(())
-}
-
-#[instrument(name = "sim_bootstrap.timely_payments.process_activation_message", skip(message, sub, app, cf_proposal, clock), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
-async fn process_activation_message(
-    message: &PersistentOutboxEvent<LanaEvent>,
-    sub: &Subject,
-    app: &LanaApp,
-    cf_proposal: &lana_app::credit::CreditFacilityProposal,
-    clock: &ClockHandle,
-) -> anyhow::Result<bool> {
-    match &message.payload {
-        Some(LanaEvent::Credit(
-            event @ CoreCreditEvent::FacilityProposalConcluded {
-                id,
-                status: CreditFacilityProposalStatus::Approved,
-            },
-        )) if cf_proposal.id == *id => {
-            message.inject_trace_parent();
-            Span::current().record("handled", true);
-            Span::current().record("event_type", event.as_ref());
-
-            app.credit()
-                .update_pending_facility_collateral(
-                    sub,
-                    *id,
-                    Satoshis::try_from_btc(dec!(230))?,
-                    clock.today(),
-                )
-                .await?;
-        }
-        Some(LanaEvent::Credit(event @ CoreCreditEvent::FacilityActivated { id, .. }))
-            if *id == cf_proposal.id.into() =>
-        {
-            message.inject_trace_parent();
-            Span::current().record("handled", true);
-            Span::current().record("event_type", event.as_ref());
-
-            return Ok(true);
-        }
-        _ => {}
-    }
-    Ok(false)
-}
-
-#[instrument(name = "sim_bootstrap.timely_payments.process_obligation_message", skip(message, cf_proposal, tx), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
-async fn process_obligation_message(
-    message: &PersistentOutboxEvent<LanaEvent>,
-    cf_proposal: &lana_app::credit::CreditFacilityProposal,
-    tx: &mpsc::Sender<UsdCents>,
-) -> anyhow::Result<bool> {
-    match &message.payload {
-        Some(LanaEvent::Credit(
-            event @ CoreCreditEvent::ObligationDue {
-                credit_facility_id: id,
-                amount,
-                ..
-            },
-        )) if { *id == cf_proposal.id.into() && amount > &UsdCents::ZERO } => {
-            message.inject_trace_parent();
-            Span::current().record("handled", true);
-            Span::current().record("event_type", event.as_ref());
-
-            tx.send(*amount).await?;
-        }
-        Some(LanaEvent::Credit(event @ CoreCreditEvent::FacilityCompleted { id, .. })) => {
-            if *id == cf_proposal.id.into() {
-                message.inject_trace_parent();
-                Span::current().record("handled", true);
-                Span::current().record("event_type", event.as_ref());
-
-                return Ok(true);
-            }
-        }
-        _ => {}
-    }
-    Ok(false)
-}
-
-#[tracing::instrument(
-    name = "sim_bootstrap.timely_payments.do_timely_payments",
-    skip(app, obligation_amount_rx, clock),
-    err
-)]
-async fn do_timely_payments(
-    sub: Subject,
-    app: LanaApp,
-    id: CreditFacilityId,
-    mut obligation_amount_rx: mpsc::Receiver<UsdCents>,
-    clock: ClockHandle,
-) -> anyhow::Result<()> {
-    while let Some(amount) = obligation_amount_rx.recv().await {
-        app.record_payment_with_date(&sub, id, amount, clock.today())
-            .await?;
-
-        if !app
-            .credit()
-            .facilities()
-            .has_outstanding_obligations(&sub, id)
-            .await?
-        {
-            break;
-        }
-    }
-
-    app.credit().complete_facility(&sub, id).await?;
+    event!(
+        tracing::Level::INFO,
+        facility_id = %cf_id,
+        "Timely payments scenario completed"
+    );
 
     Ok(())
 }
