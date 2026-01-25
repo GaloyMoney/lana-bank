@@ -1,4 +1,3 @@
-#![allow(clippy::unused_async)]
 mod disbursal_different_months;
 mod interest_late;
 mod interest_under_payment;
@@ -33,11 +32,9 @@ pub async fn run(
     principal_late::principal_late_scenario(*sub, app, &clock, &clock_ctrl).await?;
     disbursal_different_months::disbursal_different_months_scenario(*sub, app, &clock, &clock_ctrl)
         .await?;
-
-    interest_under_payment::interest_under_payment_scenario(*sub, app, &clock, &clock_ctrl).await?;
-
     principal_under_payment::principal_under_payment_scenario(*sub, app, &clock, &clock_ctrl)
         .await?;
+    interest_under_payment::interest_under_payment_scenario(*sub, app, &clock, &clock_ctrl).await?;
 
     Ok(())
 }

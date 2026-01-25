@@ -29,12 +29,12 @@ pub async fn interest_under_payment_scenario(
         "Starting interest under payment scenario"
     );
 
+    let target_time = Utc::now() - chrono::Duration::days(60);
+    clock_ctrl.reset_to(target_time);
+
     let (customer_id, _) = helpers::create_customer(&sub, app, "5-interest-under-payment").await?;
     let deposit_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
     helpers::make_deposit(&sub, app, &customer_id, deposit_amount).await?;
-
-    let target_time = Utc::now() - chrono::Duration::days(60);
-    clock_ctrl.set_time(target_time);
 
     let mut stream = app.outbox().listen_persisted(None);
 
