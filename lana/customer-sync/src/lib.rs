@@ -16,6 +16,7 @@ use core_deposit::{
     CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, GovernanceAction,
     GovernanceObject,
 };
+use core_time_events::CoreTimeEvent;
 use governance::GovernanceEvent;
 use lana_events::LanaEvent;
 use obix::out::{Outbox, OutboxEventMarker};
@@ -27,7 +28,8 @@ where
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreTimeEvent>,
 {
     _phantom: std::marker::PhantomData<(Perms, E)>,
     _outbox: Outbox<E>,
@@ -39,7 +41,8 @@ where
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreTimeEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -59,7 +62,8 @@ where
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreTimeEvent>,
 {
     #[record_error_severity]
     #[tracing::instrument(name = "customer_sync.init", skip_all)]
@@ -90,9 +94,8 @@ where
             .spawn_unique(job::JobId::new(), UpdateLastActivityDateConfig::new())
             .await?;
 
-        let update_customer_activity_status_job_spawner = jobs.add_initializer(
-            UpdateCustomerActivityStatusInit::new(customers, config.clone()),
-        );
+        let update_customer_activity_status_job_spawner =
+            jobs.add_initializer(UpdateCustomerActivityStatusInit::new(outbox, customers));
         update_customer_activity_status_job_spawner
             .spawn_unique(
                 job::JobId::new(),

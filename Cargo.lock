@@ -1761,6 +1761,7 @@ dependencies = [
  "authz",
  "core-customer",
  "core-deposit",
+ "core-time-events",
  "futures",
  "governance",
  "job",
