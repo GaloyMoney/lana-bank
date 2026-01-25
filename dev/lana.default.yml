@@ -32,7 +32,6 @@ app:
       url: http://localhost:8081/
       client_id: customer-service-account
       realm: customer
-    activity_update_job_interval: 86400
   accounting_init:
     chart_of_accounts_opening_date: null
     chart_of_accounts_seed_path: null

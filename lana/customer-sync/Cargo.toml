@@ -10,6 +10,7 @@ fail-on-warnings = []
 
 core-customer = { workspace = true }
 core-deposit = { workspace = true }
+core-time-events = { workspace = true }
 governance = { workspace = true }
 
 obix = { workspace = true }
@@ -21,7 +22,6 @@ tracing = { workspace = true }
 tracing-macros = { workspace = true }
 tracing-utils = { workspace = true }
 serde = { workspace = true }
-serde_with = { workspace = true }
 async-trait = { workspace = true }
 futures = { workspace = true }
 tokio = { workspace = true }
