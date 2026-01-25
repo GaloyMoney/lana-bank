@@ -4,6 +4,7 @@
 pub mod build_info;
 pub(crate) mod config;
 mod db;
+mod startup_domain_config;
 
 use anyhow::Context;
 use chacha20poly1305::{ChaCha20Poly1305, KeyInit, aead::OsRng};
@@ -43,6 +44,10 @@ struct Cli {
     keycloak_customer_client_secret: String,
     #[clap(long, env = "LANA_HOME", default_value = ".lana")]
     lana_home: String,
+    /// Set domain config values at startup (format: key=json_value).
+    /// Can be specified multiple times.
+    #[clap(long = "set-domain-config", value_name = "KEY=VALUE")]
+    set_domain_configs: Vec<String>,
     #[clap(subcommand)]
     command: Option<Commands>,
 }
@@ -94,7 +99,14 @@ pub async fn run() -> anyhow::Result<()> {
                 },
             )?;
 
-            run_cmd(&cli.lana_home, config).await?;
+            // Parse domain config settings from CLI
+            let domain_config_settings: Vec<startup_domain_config::DomainConfigSetting> = cli
+                .set_domain_configs
+                .iter()
+                .map(|s| startup_domain_config::DomainConfigSetting::parse(s))
+                .collect::<Result<Vec<_>, _>>()?;
+
+            run_cmd(&cli.lana_home, config, domain_config_settings).await?;
         }
     }
 
@@ -148,7 +160,11 @@ fn setup_gcp_credentials() -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
+async fn run_cmd(
+    lana_home: &str,
+    config: Config,
+    domain_config_settings: Vec<startup_domain_config::DomainConfigSetting>,
+) -> anyhow::Result<()> {
     tracing_utils::init_tracer(config.tracing)?;
     store_server_pid(lana_home, std::process::id())?;
 
@@ -184,6 +200,13 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
             ctrl,
         )
         .await;
+    }
+
+    // Apply domain config settings from CLI after seeding but before starting servers
+    if !domain_config_settings.is_empty() {
+        startup_domain_config::apply_settings(&pool, &domain_config_settings)
+            .await
+            .context("Failed to apply domain config settings")?;
     }
 
     let admin_error_send = error_send.clone();

@@ -172,7 +172,8 @@ pub use spec::{Complex, ConfigSpec, ExposedConfig, InternalConfig, Simple, Value
 pub use typed_domain_config::TypedDomainConfig;
 
 use entity::NewDomainConfig;
-use repo::DomainConfigRepo;
+
+pub use repo::DomainConfigRepo;
 
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
