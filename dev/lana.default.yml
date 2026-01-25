@@ -17,7 +17,6 @@ app:
   access:
     superuser_email: null
   credit:
-    customer_active_check_enabled: true
     price_job_interval: 30
   storage:
     provider: local
