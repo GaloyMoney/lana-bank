@@ -218,6 +218,14 @@
     "require-verified-customer-for-account": {
       "title": "Require verified customer for account",
       "description": "When enabled, customers must be KYC-verified before creating deposit accounts or credit facilities."
+    },
+    "sumsub-api-key": {
+      "title": "SumSub API Key",
+      "description": "API key for SumSub KYC verification service."
+    },
+    "sumsub-api-secret": {
+      "title": "SumSub API Secret",
+      "description": "API secret for SumSub KYC verification service."
     }
   },
   "interestInterval": {

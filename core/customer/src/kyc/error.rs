@@ -28,6 +28,8 @@ pub enum KycError {
     SumsubError(#[from] sumsub::SumsubError),
     #[error("KycError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
+    #[error("KycError - DomainConfigError: {0}")]
+    DomainConfigError(#[from] domain_config::DomainConfigError),
 }
 
 impl ErrorSeverity for KycError {
@@ -44,6 +46,7 @@ impl ErrorSeverity for KycError {
             Self::ReviewAnswerParseError(_) => Level::ERROR,
             Self::SumsubError(_) => Level::ERROR,
             Self::AuthorizationError(e) => e.severity(),
+            Self::DomainConfigError(_) => Level::ERROR,
         }
     }
 }

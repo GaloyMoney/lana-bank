@@ -68,8 +68,6 @@ pub struct Config {
 
 pub struct EnvSecrets {
     pub pg_con: String,
-    pub sumsub_key: String,
-    pub sumsub_secret: String,
     pub smtp_username: String,
     pub smtp_password: String,
     pub encryption_key: String,
@@ -82,8 +80,6 @@ impl Config {
         path: impl AsRef<Path>,
         EnvSecrets {
             pg_con,
-            sumsub_key,
-            sumsub_secret,
             smtp_username,
             smtp_password,
             encryption_key,
@@ -98,8 +94,6 @@ impl Config {
             serde_yaml::from_str(&config_file).context("Couldn't parse config file")?;
 
         config.db.pg_con.clone_from(&pg_con);
-        config.app.sumsub.sumsub_key = sumsub_key;
-        config.app.sumsub.sumsub_secret = sumsub_secret;
         config.app.notification.email.username = smtp_username;
         config.app.notification.email.password = smtp_password;
         config.app.user_onboarding.keycloak.client_secret = keycloak_internal_client_secret;
