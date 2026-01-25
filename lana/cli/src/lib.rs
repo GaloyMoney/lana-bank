@@ -44,10 +44,6 @@ struct Cli {
     keycloak_customer_client_secret: String,
     #[clap(long, env = "LANA_HOME", default_value = ".lana")]
     lana_home: String,
-    /// Set domain config values at startup (format: key=json_value).
-    /// Can be specified multiple times.
-    #[clap(long = "set-domain-config", value_name = "KEY=VALUE")]
-    set_domain_configs: Vec<String>,
     #[clap(subcommand)]
     command: Option<Commands>,
 }
@@ -99,17 +95,7 @@ pub async fn run() -> anyhow::Result<()> {
                 },
             )?;
 
-            // Parse domain config settings from CLI
-            let cli_settings: Vec<startup_domain_config::DomainConfigSetting> = cli
-                .set_domain_configs
-                .iter()
-                .map(|s| startup_domain_config::DomainConfigSetting::parse(s))
-                .collect::<Result<Vec<_>, _>>()?;
-
-            // Collect settings from both env var and CLI (CLI takes precedence)
-            let domain_config_settings = startup_domain_config::collect_settings(cli_settings)?;
-
-            run_cmd(&cli.lana_home, config, domain_config_settings).await?;
+            run_cmd(&cli.lana_home, config).await?;
         }
     }
 
@@ -163,11 +149,7 @@ fn setup_gcp_credentials() -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn run_cmd(
-    lana_home: &str,
-    config: Config,
-    domain_config_settings: Vec<startup_domain_config::DomainConfigSetting>,
-) -> anyhow::Result<()> {
+async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
     tracing_utils::init_tracer(config.tracing)?;
     store_server_pid(lana_home, std::process::id())?;
 
@@ -205,7 +187,8 @@ async fn run_cmd(
         .await;
     }
 
-    // Apply domain config settings from CLI after seeding but before starting servers
+    // Apply domain config settings from env vars after seeding but before starting servers
+    let domain_config_settings = startup_domain_config::parse_from_env()?;
     if !domain_config_settings.is_empty() {
         startup_domain_config::apply_settings(&pool, &domain_config_settings)
             .await
