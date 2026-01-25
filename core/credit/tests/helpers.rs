@@ -3,9 +3,9 @@
 use cala_ledger::CalaLedger;
 use core_accounting::AccountingBaseConfig;
 use core_custody::{CustodyConfig, EncryptionConfig};
-use domain_config::{ExposedDomainConfigs, ExposedDomainConfigsReadOnly};
-
-use core_deposit::RequireVerifiedCustomerForAccount;
+use domain_config::{
+    ExposedDomainConfigs, ExposedDomainConfigsReadOnly, RequireVerifiedCustomerForAccount,
+};
 
 pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
     let pg_con = std::env::var("PG_CON").unwrap();

@@ -35,8 +35,7 @@ use core_custody::{
 };
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
 use core_price::{CorePriceEvent, Price};
-use core_deposit::RequireVerifiedCustomerForAccount;
-use domain_config::ExposedDomainConfigsReadOnly;
+use domain_config::{ExposedDomainConfigsReadOnly, RequireVerifiedCustomerForAccount};
 use es_entity::clock::ClockHandle;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;

@@ -3,7 +3,6 @@
 
 mod account;
 mod chart_of_accounts_integration;
-mod config;
 mod deposit;
 mod deposit_account_balance;
 pub mod error;
@@ -33,7 +32,7 @@ use public_id::PublicIds;
 use account::*;
 pub use account::{DepositAccount, DepositAccountsByCreatedAtCursor, error::DepositAccountError};
 pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
-pub use config::RequireVerifiedCustomerForAccount;
+pub use domain_config::RequireVerifiedCustomerForAccount;
 use deposit::*;
 pub use deposit::{Deposit, DepositsByCreatedAtCursor};
 pub use deposit_account_balance::DepositAccountBalance;
