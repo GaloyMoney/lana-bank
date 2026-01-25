@@ -138,6 +138,8 @@ checksums:
     Configurations/timezone/description: d59613cf10efadb65fe77f331257bc79
     Configurations/closing-time/title: 498cd8314aac5f5cc766276362da32dc
     Configurations/closing-time/description: cd22420db68001b8b474dc55821f5d3c
+    Configurations/require-verified-customer-for-account/title: 015c054200f31fa6c65b634c7f3623db
+    Configurations/require-verified-customer-for-account/description: ae89027a625701fe82727b185c634d0e
     interestInterval/endOfDay: 24234805a9fd10dfe74eaeafec362699
     interestInterval/endOfMonth: df268ce61af23ae591e0a727f34ad13f
     period/days: 47648cd60fc313bc3f05b70357a1d675
