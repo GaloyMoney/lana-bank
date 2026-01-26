@@ -17,8 +17,8 @@ updates:
         - "*"
   ignore:
     - dependency-name: "job"
-    - dependency-name: "obix"
-    - dependency-name: "es-entity"
+    - dependency-name: "obix*"
+    - dependency-name: "es-entity*"
     - dependency-name: "cala-*"
 
 - package-ecosystem: "npm"
