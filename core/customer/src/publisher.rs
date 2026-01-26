@@ -1,6 +1,6 @@
 use obix::out::{Outbox, OutboxEventMarker};
 
-use super::{entity::*, error::*, event::*};
+use super::{entity::*, error::*, public::*};
 
 pub struct CustomerPublisher<E>
 where
@@ -40,20 +40,13 @@ where
         let publish_events = new_events
             .filter_map(|event| match &event.event {
                 Initialized { .. } => Some(CoreCustomerEvent::CustomerCreated {
-                    id: entity.id,
-                    email: entity.email.clone(),
-                    customer_type: entity.customer_type,
+                    entity: PublicCustomer::from(entity),
                 }),
-                KycVerificationUpdated {
-                    kyc_verification, ..
-                } => Some(CoreCustomerEvent::CustomerAccountKycVerificationUpdated {
-                    id: entity.id,
-                    kyc_verification: *kyc_verification,
-                    customer_type: entity.customer_type,
+                KycVerificationUpdated { .. } => Some(CoreCustomerEvent::CustomerKycUpdated {
+                    entity: PublicCustomer::from(entity),
                 }),
-                EmailUpdated { email, .. } => Some(CoreCustomerEvent::CustomerEmailUpdated {
-                    id: entity.id,
-                    email: email.clone(),
+                EmailUpdated { .. } => Some(CoreCustomerEvent::CustomerEmailUpdated {
+                    entity: PublicCustomer::from(entity),
                 }),
                 _ => None,
             })

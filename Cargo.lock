@@ -1307,7 +1307,6 @@ dependencies = [
  "strum",
  "thiserror 2.0.17",
  "tokio",
- "tokio-stream",
  "tracing",
  "tracing-macros",
  "tracing-utils",
@@ -1441,10 +1440,12 @@ dependencies = [
 name = "core-customer"
 version = "0.0.0"
 dependencies = [
+ "anyhow",
  "async-graphql",
  "audit",
  "authz",
  "chrono",
+ "cloud-storage",
  "derive_builder",
  "document-storage",
  "es-entity",
@@ -1463,6 +1464,7 @@ dependencies = [
  "tracing",
  "tracing-macros",
  "tracing-utils",
+ "uuid",
  "workspace-hack",
 ]
 
@@ -3914,9 +3916,9 @@ dependencies = [
 
 [[package]]
 name = "obix"
-version = "0.2.9"
+version = "0.2.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "18b906e2fe613d17fe22e77215a0fcc100e363e96ac398795328dbb6eb9362b3"
+checksum = "a46fc64a00a3eb29178fff70dbe72b0de73a64181ac657e0fce2b0ed2f6a8f22"
 dependencies = [
  "async-trait",
  "chrono",
@@ -3936,9 +3938,9 @@ dependencies = [
 
 [[package]]
 name = "obix-macros"
-version = "0.2.9"
+version = "0.2.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3752d8d99e39feb9a9926f629c3aec90c5123c10037f2703494a67dedbe74559"
+checksum = "070c1e8b420fff95b867405a3d05ec0cfb622e3a4c2ed27a807b4321c0f3b6e6"
 dependencies = [
  "darling 0.23.0",
  "proc-macro2",
@@ -7389,7 +7391,6 @@ dependencies = [
  "memchr",
  "num-traits",
  "obix",
- "obix-macros",
  "once_cell",
  "opentelemetry-http",
  "opentelemetry-otlp",

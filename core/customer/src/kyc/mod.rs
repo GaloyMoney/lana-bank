@@ -363,7 +363,7 @@ where
 
         let _res = self
             .inbox
-            .persist_and_process(&idempotency_key, payload)
+            .persist_and_queue_job(&idempotency_key, payload)
             .await?;
 
         Ok(())

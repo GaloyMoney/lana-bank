@@ -2550,14 +2550,12 @@ impl Subscription {
             let payload = event.payload.as_ref()?;
             let event: &CoreCustomerEvent = payload.as_event()?;
             match event {
-                CoreCustomerEvent::CustomerAccountKycVerificationUpdated {
-                    id,
-                    kyc_verification,
-                    ..
-                } if *id == customer_id => Some(CustomerKycUpdatedPayload {
-                    customer_id: *id,
-                    kyc_verification: *kyc_verification,
-                }),
+                CoreCustomerEvent::CustomerKycUpdated { entity } if entity.id == customer_id => {
+                    Some(CustomerKycUpdatedPayload {
+                        customer_id: entity.id,
+                        kyc_verification: entity.kyc_verification,
+                    })
+                }
                 _ => None,
             }
         });

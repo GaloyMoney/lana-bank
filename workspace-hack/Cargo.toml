@@ -57,7 +57,7 @@ lalrpop-util = { version = "0.22", features = ["lexer"] }
 log = { version = "0.4", default-features = false, features = ["std"] }
 memchr = { version = "2" }
 num-traits = { version = "0.2", features = ["i128"] }
-obix = { version = "0.2", features = ["tracing"] }
+obix = { version = "0.2", features = ["test-utils", "tracing"] }
 once_cell = { version = "1", features = ["portable-atomic"] }
 opentelemetry-http = { version = "0.31", features = ["reqwest-rustls-webpki-roots"] }
 opentelemetry-otlp = { version = "0.31", default-features = false, features = ["grpc-tonic", "http-proto", "reqwest-client", "reqwest-rustls-webpki-roots"] }
@@ -136,8 +136,7 @@ lalrpop-util = { version = "0.22", features = ["lexer"] }
 log = { version = "0.4", default-features = false, features = ["std"] }
 memchr = { version = "2" }
 num-traits = { version = "0.2", features = ["i128"] }
-obix = { version = "0.2", features = ["tracing"] }
-obix-macros = { version = "0.2", default-features = false, features = ["tracing"] }
+obix = { version = "0.2", features = ["test-utils", "tracing"] }
 once_cell = { version = "1", features = ["portable-atomic"] }
 opentelemetry-http = { version = "0.31", features = ["reqwest-rustls-webpki-roots"] }
 opentelemetry-otlp = { version = "0.31", default-features = false, features = ["grpc-tonic", "http-proto", "reqwest-client", "reqwest-rustls-webpki-roots"] }

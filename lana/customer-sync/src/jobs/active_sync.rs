@@ -121,17 +121,12 @@ where
         message: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         match message.as_event() {
-            Some(
-                event @ CoreCustomerEvent::CustomerAccountKycVerificationUpdated {
-                    id,
-                    kyc_verification,
-                    ..
-                },
-            ) => {
+            Some(event @ CoreCustomerEvent::CustomerKycUpdated { entity }) => {
                 message.inject_trace_parent();
                 Span::current().record("handled", true);
                 Span::current().record("event_type", event.as_ref());
-                self.handle_status_updated(*id, *kyc_verification).await?;
+                self.handle_status_updated(entity.id, entity.kyc_verification)
+                    .await?;
             }
             _ => {}
         }
