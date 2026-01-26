@@ -22,4 +22,5 @@ gh pr create \
   --body-file ../body.md \
   --head ${BOT_BRANCH} \
   --label promote-rc \
-  --label galoybot
+  --label galoybot \
+  --draft
