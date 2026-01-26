@@ -757,7 +757,7 @@ jobs:
                   git config --global user.name "CI Bot"
                 fi
                 git add CHANGELOG.md
-                git commit -m "chore: release ${VERSION} [ci skip]"
+                git commit -m "ci: release ${VERSION} [ci skip]"
       - put: repo-bot-branch
         params:
           repository: repo
