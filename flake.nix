@@ -426,12 +426,6 @@
                 echo "Starting all other services..."
                 podman-compose-runner ''${COMPOSE_FILES[@]} up -d
 
-                # Verify keycloak-pg is reachable via container network DNS
-                echo "Checking keycloak-pg network connectivity..."
-                if ! podman run --rm --network lana-bank_default docker.io/library/postgres:17.5 psql 'postgresql://dbuser:secret@keycloak-pg:5432/default?sslmode=disable' -c 'SELECT 1' >/dev/null 2>&1; then
-                  echo "WARNING: keycloak-pg not immediately reachable via container network, but will retry with Keycloak restarts"
-                fi
-
                 # Wait for Keycloak with retry logic
                 echo "Waiting for Keycloak to be ready..."
                 for attempt in {1..3}; do
@@ -440,13 +434,13 @@
                     echo "SUCCESS: Keycloak is ready"
                     break
                   fi
-                  
+
                   if [ $attempt -eq 3 ]; then
                     echo "ERROR: Keycloak failed to start after 3 attempts. Dumping logs..."
                     podman-compose-runner ''${COMPOSE_FILES[@]} logs keycloak || true
                     exit 1
                   fi
-                  
+
                   echo "Keycloak not ready, restarting (attempt $attempt/3)..."
                   podman-compose-runner ''${COMPOSE_FILES[@]} restart keycloak
                   sleep 5
@@ -595,12 +589,6 @@
               echo "Starting all other services..."
               ${podman-runner.podman-compose-runner}/bin/podman-compose-runner up -d
 
-              # Verify keycloak-pg is reachable via container network DNS
-              echo "Checking keycloak-pg network connectivity..."
-              if ! ${pkgs.podman}/bin/podman run --rm --network lana-bank_default docker.io/library/postgres:17.5 psql 'postgresql://dbuser:secret@keycloak-pg:5432/default?sslmode=disable' -c 'SELECT 1' >/dev/null 2>&1; then
-                echo "WARNING: keycloak-pg not immediately reachable via container network, but will retry with Keycloak restarts"
-              fi
-
               # Wait for Keycloak with retry logic
               echo "Waiting for Keycloak to be ready..."
               for attempt in {1..3}; do
@@ -609,13 +597,13 @@
                   echo "SUCCESS: Keycloak is ready"
                   break
                 fi
-                
+
                 if [ $attempt -eq 3 ]; then
                   echo "ERROR: Keycloak failed to start after 3 attempts. Dumping logs..."
                   ${podman-runner.podman-compose-runner}/bin/podman-compose-runner logs keycloak || true
                   exit 1
                 fi
-                
+
                 echo "Keycloak not ready, restarting (attempt $attempt/3)..."
                 ${podman-runner.podman-compose-runner}/bin/podman-compose-runner restart keycloak
                 sleep 5
