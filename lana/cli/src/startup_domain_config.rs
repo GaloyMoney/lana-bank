@@ -1,7 +1,7 @@
 //! Parse domain config settings from environment variables at startup
 
 use anyhow::Result;
-use tracing::warn;
+use tracing::info;
 
 /// A domain config setting parsed from an environment variable.
 #[derive(Debug, Clone)]
@@ -42,14 +42,12 @@ pub fn parse_from_env() -> Result<Vec<DomainConfigSetting>> {
             // Convert SCREAMING_SNAKE_CASE to kebab-case
             let config_key = env_var_suffix_to_config_key(suffix);
 
-            // Parse the value as JSON
-            let value = serde_json::from_str(&env_value).unwrap_or_else(|err| {
-                // If it fails, treat it as a bare string
-                warn!(
+            // Parse the value as JSON, or treat as string if not valid JSON
+            let value = serde_json::from_str(&env_value).unwrap_or_else(|_| {
+                info!(
                     env_var = %env_key,
                     value = %env_value,
-                    error = %err,
-                    "Failed to parse env var value as JSON, treating as string"
+                    "Env var value is not valid JSON, treating as string"
                 );
                 serde_json::Value::String(env_value.clone())
             });
