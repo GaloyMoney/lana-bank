@@ -18,6 +18,8 @@ pub enum ChartOfAccountsIntegrationError {
     AccountingBaseConfigNotFound,
     #[error("ChartOfAccountIntegrationError - InvalidAccountingAccountSetParent: {0}")]
     InvalidAccountingAccountSetParent(String),
+    #[error("ChartOfAccountIntegrationError - DomainConfigError: {0}")]
+    DomainConfigError(#[from] domain_config::error::DomainConfigError),
 }
 
 impl ErrorSeverity for ChartOfAccountsIntegrationError {
@@ -30,6 +32,7 @@ impl ErrorSeverity for ChartOfAccountsIntegrationError {
             Self::ChartOfAccountsError(e) => e.severity(),
             Self::AccountingBaseConfigNotFound => Level::ERROR,
             Self::InvalidAccountingAccountSetParent(_) => Level::ERROR,
+            Self::DomainConfigError(e) => e.severity(),
         }
     }
 }
