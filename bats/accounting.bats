@@ -130,23 +130,13 @@ teardown_file() {
     jq -n \
     '{
       input: {
-        file: null,
-        baseConfig: {
-          assetsCode: "1",
-          liabilitiesCode: "2",
-          equityCode: "3",
-          equityRetainedEarningsGainCode: "32.01",
-          equityRetainedEarningsLossCode: "32.02",
-          revenueCode: "4",
-          costOfRevenueCode: "5",
-          expensesCode: "6"
-        }
+        file: null
       }
     }'
   )
 
-  response=$(exec_admin_graphql_upload 'chart-of-accounts-csv-import-with-base-config' "$variables" "$temp_file" "input.file")
-  payload_chart_id=$(echo "$response" | jq -r '.data.chartOfAccountsCsvImportWithBaseConfig.chartOfAccounts.chartId')
+  response=$(exec_admin_graphql_upload 'chart-of-accounts-csv-import' "$variables" "$temp_file" "input.file")
+  payload_chart_id=$(echo "$response" | jq -r '.data.chartOfAccountsCsvImport.chartOfAccounts.chartId')
   [[ "$payload_chart_id" == "$chart_id" ]] || exit 1
 
   exec_admin_graphql 'chart-of-accounts'

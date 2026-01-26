@@ -293,6 +293,15 @@ export type ChartOfAccountsAddRootNodePayload = {
   chartOfAccounts: ChartOfAccounts;
 };
 
+export type ChartOfAccountsCsvImportInput = {
+  file: Scalars['Upload']['input'];
+};
+
+export type ChartOfAccountsCsvImportPayload = {
+  __typename?: 'ChartOfAccountsCsvImportPayload';
+  chartOfAccounts: ChartOfAccounts;
+};
+
 export type ChartOfAccountsCsvImportWithBaseConfigInput = {
   baseConfig: AccountingBaseConfigInput;
   file: Scalars['Upload']['input'];
@@ -1843,6 +1852,7 @@ export type Mutation = {
   balanceSheetConfigure: BalanceSheetModuleConfigurePayload;
   chartOfAccountsAddChildNode: ChartOfAccountsAddChildNodePayload;
   chartOfAccountsAddRootNode: ChartOfAccountsAddRootNodePayload;
+  chartOfAccountsCsvImport: ChartOfAccountsCsvImportPayload;
   chartOfAccountsCsvImportWithBaseConfig: ChartOfAccountsCsvImportWithBaseConfigPayload;
   committeeAddUser: CommitteeAddUserPayload;
   committeeCreate: CommitteeCreatePayload;
@@ -1926,6 +1936,11 @@ export type MutationChartOfAccountsAddChildNodeArgs = {
 
 export type MutationChartOfAccountsAddRootNodeArgs = {
   input: ChartOfAccountsAddRootNodeInput;
+};
+
+
+export type MutationChartOfAccountsCsvImportArgs = {
+  input: ChartOfAccountsCsvImportInput;
 };
 
 

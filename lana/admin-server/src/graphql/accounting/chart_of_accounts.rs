@@ -128,3 +128,10 @@ pub struct ChartOfAccountsCsvImportWithBaseConfigInput {
 }
 
 crate::mutation_payload! { ChartOfAccountsCsvImportWithBaseConfigPayload, chart_of_accounts: ChartOfAccounts }
+
+#[derive(InputObject)]
+pub struct ChartOfAccountsCsvImportInput {
+    pub file: Upload,
+}
+
+crate::mutation_payload! { ChartOfAccountsCsvImportPayload, chart_of_accounts: ChartOfAccounts }
