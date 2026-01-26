@@ -9,6 +9,7 @@ use rust_decimal_macros::dec;
 use core_credit::{ledger::error::CreditLedgerError, *};
 use core_deposit::DepositAccountId;
 use document_storage::DocumentStorage;
+use domain_config::InternalDomainConfigs;
 use helpers::{action, event, object};
 use public_id::PublicIds;
 
@@ -200,6 +201,8 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
     let credit_public_ids = PublicIds::new(&pool);
     let price = core_price::Price::init(&mut jobs, &outbox).await?;
     let domain_configs = helpers::init_domain_configs(&pool, &authz).await?;
+    let internal_domain_configs = InternalDomainConfigs::new(&pool);
+    internal_domain_configs.seed_registered().await?;
     let credit = CoreCredit::init(
         &pool,
         CreditConfig::default(),
@@ -214,6 +217,7 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
         journal_id,
         &credit_public_ids,
         &domain_configs,
+        &internal_domain_configs,
     )
     .await?;
     let deposit_public_ids = PublicIds::new(&pool);
