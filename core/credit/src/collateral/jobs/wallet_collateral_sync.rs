@@ -124,7 +124,6 @@ where
     async fn process_message(
         &self,
         message: &PersistentOutboxEvent<E>,
-        clock: &ClockHandle,
     ) -> Result<(), Box<dyn std::error::Error>> {
         #[allow(clippy::single_match)]
         match message.as_event() {
@@ -143,7 +142,6 @@ where
                     *id,
                     *new_balance,
                     changed_at.date_naive(),
-                    clock,
                 )
                 .await?;
             }
@@ -163,14 +161,13 @@ where
         custody_wallet_id: crate::primitives::CustodyWalletId,
         updated_collateral: core_money::Satoshis,
         effective: chrono::NaiveDate,
-        clock: &ClockHandle,
     ) -> Result<(), CollateralError> {
         let mut collateral = self
             .repo
             .find_by_custody_wallet_id(Some(custody_wallet_id))
             .await?;
 
-        let mut db = self.repo.begin_op_with_clock(clock).await?;
+        let mut db = self.repo.begin_op().await?;
 
         if let es_entity::Idempotent::Executed(data) =
             collateral.record_collateral_update_via_custodian_sync(updated_collateral, effective)
@@ -222,7 +219,7 @@ where
                 message = stream.next() => {
                     match message {
                         Some(message) => {
-                            self.process_message(message.as_ref(), current_job.clock()).await?;
+                            self.process_message(message.as_ref()).await?;
                             state.sequence = message.sequence;
                             current_job.update_execution_state(&state).await?;
                         }

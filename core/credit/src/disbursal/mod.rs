@@ -92,11 +92,8 @@ where
         })
     }
 
-    pub async fn begin_op_with_clock(
-        &self,
-        clock: &es_entity::clock::ClockHandle,
-    ) -> Result<es_entity::DbOp<'_>, DisbursalError> {
-        Ok(self.repo.begin_op_with_clock(clock).await?)
+    pub async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, DisbursalError> {
+        Ok(self.repo.begin_op().await?)
     }
 
     pub(super) async fn create_in_op(

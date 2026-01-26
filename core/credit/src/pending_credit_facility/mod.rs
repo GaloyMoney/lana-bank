@@ -134,11 +134,8 @@ where
         })
     }
 
-    pub(super) async fn begin_op_with_clock(
-        &self,
-        clock: &es_entity::clock::ClockHandle,
-    ) -> Result<es_entity::DbOp<'_>, PendingCreditFacilityError> {
-        Ok(self.repo.begin_op_with_clock(clock).await?)
+    pub(super) async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, PendingCreditFacilityError> {
+        Ok(self.repo.begin_op().await?)
     }
 
     #[record_error_severity]
@@ -152,7 +149,7 @@ where
         credit_facility_proposal_id: impl Into<CreditFacilityProposalId> + std::fmt::Debug,
         approved: bool,
     ) -> Result<Option<CreditFacilityProposal>, PendingCreditFacilityError> {
-        let mut db = self.repo.begin_op_with_clock(&self.clock).await?;
+        let mut db = self.repo.begin_op().await?;
 
         let id = credit_facility_proposal_id.into();
         tracing::Span::current()

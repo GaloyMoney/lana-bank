@@ -323,7 +323,6 @@ where
             facilities_arc.clone(),
             governance_arc.clone(),
             ledger_arc.clone(),
-            clock.clone(),
         );
         let approve_disbursal_arc = Arc::new(approve_disbursal);
 
@@ -345,11 +344,8 @@ where
         );
         let activate_credit_facility_arc = Arc::new(activate_credit_facility);
 
-        let allocate_credit_facility_payment = AllocateCreditFacilityPayment::new(
-            payments_arc.clone(),
-            obligations_arc.clone(),
-            clock.clone(),
-        );
+        let allocate_credit_facility_payment =
+            AllocateCreditFacilityPayment::new(payments_arc.clone(), obligations_arc.clone());
         let allocate_credit_facility_payment_arc = Arc::new(allocate_credit_facility_payment);
 
         let allocate_payment_job_spawner =
@@ -555,10 +551,7 @@ where
             tracing::field::display(proposal_id),
         );
 
-        let mut db = self
-            .pending_credit_facilities
-            .begin_op_with_clock(&self.clock)
-            .await?;
+        let mut db = self.pending_credit_facilities.begin_op().await?;
 
         let new_facility_proposal = NewCreditFacilityProposal::builder()
             .id(proposal_id)
@@ -637,7 +630,7 @@ where
             return Err(CreditFacilityError::BelowMarginLimit.into());
         }
 
-        let mut db = self.facilities.begin_op_with_clock(&self.clock).await?;
+        let mut db = self.facilities.begin_op().await?;
         let disbursal_id = DisbursalId::new();
         let due_date = facility.maturity_date;
         let overdue_date = facility
@@ -726,7 +719,7 @@ where
             tracing::field::display(pending_facility.id),
         );
 
-        let mut db = self.facilities.begin_op_with_clock(&self.clock).await?;
+        let mut db = self.facilities.begin_op().await?;
 
         let collateral_update = if let Some(collateral_update) = self
             .collaterals
@@ -778,7 +771,7 @@ where
             .find_by_id_without_audit(credit_facility_id)
             .await?;
 
-        let mut db = self.facilities.begin_op_with_clock(&self.clock).await?;
+        let mut db = self.facilities.begin_op().await?;
 
         let collateral_update = if let Some(collateral_update) = self
             .collaterals
@@ -965,7 +958,7 @@ where
             .await?
             .expect("audit info missing");
 
-        let mut db = self.facilities.begin_op_with_clock(&self.clock).await?;
+        let mut db = self.facilities.begin_op().await?;
 
         let credit_facility = match self
             .facilities

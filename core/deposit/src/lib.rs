@@ -134,13 +134,8 @@ where
         let withdrawals = WithdrawalRepo::new(pool, &publisher, clock.clone());
         let ledger = DepositLedger::init(cala, journal_id, clock.clone()).await?;
 
-        let approve_withdrawal = ApproveWithdrawal::new(
-            &withdrawals,
-            authz.audit(),
-            governance,
-            &ledger,
-            clock.clone(),
-        );
+        let approve_withdrawal =
+            ApproveWithdrawal::new(&withdrawals, authz.audit(), governance, &ledger);
 
         let approve_withdrawal_job_spawner =
             jobs.add_initializer(WithdrawApprovalInit::new(outbox, &approve_withdrawal));

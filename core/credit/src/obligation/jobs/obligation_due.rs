@@ -124,14 +124,10 @@ where
 {
     async fn run(
         &self,
-        current_job: CurrentJob,
+        _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        self.record_due(
-            self.config.obligation_id,
-            self.config.effective,
-            current_job.clock(),
-        )
-        .await?;
+        self.record_due(self.config.obligation_id, self.config.effective)
+            .await?;
 
         Ok(JobCompletion::Complete)
     }
@@ -148,9 +144,8 @@ where
         &self,
         id: ObligationId,
         effective: chrono::NaiveDate,
-        clock: &es_entity::clock::ClockHandle,
     ) -> Result<(), ObligationError> {
-        let mut op = self.repo.begin_op_with_clock(clock).await?;
+        let mut op = self.repo.begin_op().await?;
 
         let mut obligation = self.repo.find_by_id_in_op(&mut op, id).await?;
 

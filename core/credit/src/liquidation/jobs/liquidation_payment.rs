@@ -274,7 +274,7 @@ where
                         Some(message) => {
                             let mut db = self
                                 .payment_repo
-                                .begin_op_with_clock(current_job.clock())
+                                .begin_op()
                                 .await?;
 
                             state.sequence = message.sequence;

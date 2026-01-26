@@ -1,7 +1,6 @@
 mod job;
 
 use authz::PermissionCheck;
-use es_entity::clock::ClockHandle;
 use governance::{ApprovalProcessType, GovernanceAction, GovernanceEvent, GovernanceObject};
 use tracing::instrument;
 use tracing_macros::record_error_severity;
@@ -32,7 +31,6 @@ where
     audit: Perms::Audit,
     governance: Governance<Perms, E>,
     ledger: DepositLedger,
-    clock: ClockHandle,
 }
 impl<Perms, E> Clone for ApproveWithdrawal<Perms, E>
 where
@@ -45,7 +43,6 @@ where
             audit: self.audit.clone(),
             governance: self.governance.clone(),
             ledger: self.ledger.clone(),
-            clock: self.clock.clone(),
         }
     }
 }
@@ -64,14 +61,12 @@ where
         audit: &Perms::Audit,
         governance: &Governance<Perms, E>,
         ledger: &DepositLedger,
-        clock: ClockHandle,
     ) -> Self {
         Self {
             repo: repo.clone(),
             audit: audit.clone(),
             governance: governance.clone(),
             ledger: ledger.clone(),
-            clock,
         }
     }
 
@@ -88,7 +83,7 @@ where
         if withdraw.is_approved_or_denied().is_some() {
             return Ok(withdraw);
         }
-        let mut op = self.repo.begin_op_with_clock(&self.clock).await?;
+        let mut op = self.repo.begin_op().await?;
         self.audit
             .record_system_entry_in_tx(
                 &mut op,
