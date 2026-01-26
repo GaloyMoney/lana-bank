@@ -229,8 +229,6 @@ ignored = [
     "indexmap",
     "inout",
     "job",
-    "job-3b31131e45eafb45",
-    "job-9fbad63c4bcf4a8f",
     "lalrpop-util",
     "log",
     "memchr",
