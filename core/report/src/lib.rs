@@ -6,7 +6,7 @@ pub mod report_run;
 
 pub mod config;
 pub mod error;
-pub mod event;
+pub mod public;
 
 mod jobs;
 mod primitives;
@@ -20,8 +20,8 @@ use tracing_macros::*;
 
 pub use config::*;
 pub use error::ReportError;
-pub use event::*;
 pub use primitives::*;
+pub use public::*;
 
 use cloud_storage::Storage;
 use publisher::ReportPublisher;
@@ -37,7 +37,7 @@ pub use report_run::*;
 
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
-    pub use crate::event::CoreReportEvent;
+    pub use crate::public::CoreReportEvent;
     pub use crate::report::ReportEvent;
     pub use crate::report_run::ReportRunEvent;
 }
@@ -48,7 +48,7 @@ where
     E: OutboxEventMarker<CoreReportEvent>,
 {
     authz: Perms,
-    reports: ReportRepo<E>,
+    reports: ReportRepo,
     report_runs: ReportRunRepo<E>,
     dagster: Dagster,
     storage: Storage,
@@ -95,7 +95,7 @@ where
     ) -> Result<Self, ReportError> {
         let publisher = ReportPublisher::new(outbox);
         let dagster = Dagster::new(config.dagster.clone());
-        let report_repo = ReportRepo::new(pool, &publisher);
+        let report_repo = ReportRepo::new(pool);
         let report_run_repo = ReportRunRepo::new(pool, &publisher);
 
         let sync_reports_spawner = jobs.add_initializer(SyncReportsJobInit::<E>::new(
