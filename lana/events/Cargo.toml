@@ -17,6 +17,7 @@ json-schema = [
     "core-deposit/json-schema",
     "core-report/json-schema",
     "core-price/json-schema",
+    "core-time-events/json-schema",
 ]
 
 [dependencies]
