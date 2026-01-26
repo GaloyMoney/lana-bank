@@ -440,6 +440,8 @@ async fn seed_registered_for_visibility(
 /// This is intended for bootstrap scenarios where configs need to be set
 /// from environment variables before user context is available.
 /// Works for both internal and exposed configs.
+///
+/// All settings are applied atomically within a single transaction.
 #[instrument(name = "domain_config.apply_startup_configs", skip_all)]
 pub async fn apply_startup_configs<I, K>(
     pool: &sqlx::PgPool,
@@ -450,6 +452,7 @@ where
     K: Into<DomainConfigKey> + std::fmt::Display + Clone,
 {
     let repo = DomainConfigRepo::new(pool);
+    let mut db_tx = repo.begin_op().await?;
 
     for (key, value) in settings {
         let domain_key: DomainConfigKey = key.clone().into();
@@ -460,18 +463,17 @@ where
             ))
         })?;
 
-        (entry.validate_json)(&value)?;
-
-        let mut config = repo.find_by_key(domain_key).await?;
+        let mut config = repo.find_by_key_in_op(&mut db_tx, domain_key).await?;
         let changed = config.apply_update_from_json(entry, value)?.did_execute();
 
         if changed {
-            repo.update(&mut config).await?;
+            repo.update_in_op(&mut db_tx, &mut config).await?;
             tracing::info!(key = %key, "Applied domain config at startup");
         } else {
             tracing::info!(key = %key, "Domain config already set");
         }
     }
 
+    db_tx.commit().await?;
     Ok(())
 }
