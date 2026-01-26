@@ -140,6 +140,10 @@ checksums:
     Configurations/closing-time/description: cd22420db68001b8b474dc55821f5d3c
     Configurations/require-verified-customer-for-account/title: 015c054200f31fa6c65b634c7f3623db
     Configurations/require-verified-customer-for-account/description: ae89027a625701fe82727b185c634d0e
+    Configurations/sumsub-api-key/title: dd29a0723bea12971cb2d1ee46136ba9
+    Configurations/sumsub-api-key/description: c07793f938e83089516c7abe29a82a3d
+    Configurations/sumsub-api-secret/title: 804c2c14a63732c2eb2a061c89f31d5d
+    Configurations/sumsub-api-secret/description: 2a8a57a5820fde00d3bd152bd6c12e89
     interestInterval/endOfDay: 24234805a9fd10dfe74eaeafec362699
     interestInterval/endOfMonth: df268ce61af23ae591e0a727f34ad13f
     period/days: 47648cd60fc313bc3f05b70357a1d675
