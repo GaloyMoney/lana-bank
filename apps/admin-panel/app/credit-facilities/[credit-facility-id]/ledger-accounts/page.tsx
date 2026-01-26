@@ -89,6 +89,12 @@ gql`
         feeIncomeAccount {
           ...LedgerAccountInfo
         }
+        paymentHoldingAccount {
+          ...LedgerAccountInfo
+        }
+        uncoveredOutstandingAccount {
+          ...LedgerAccountInfo
+        }
       }
     }
   }
@@ -129,6 +135,8 @@ export default function CreditFacilityLedgerAccountsPage({
     ledgerAccounts.interestReceivableDueAccount,
     ledgerAccounts.interestReceivableNotYetDueAccount,
     ledgerAccounts.interestReceivableOverdueAccount,
+    ledgerAccounts.paymentHoldingAccount,
+    ledgerAccounts.uncoveredOutstandingAccount,
   ]
 
   const columns: Column<LedgerAccountInfoFragment>[] = [

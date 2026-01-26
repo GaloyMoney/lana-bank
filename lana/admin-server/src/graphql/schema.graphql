@@ -611,6 +611,8 @@ type CreditFacilityLedgerAccounts {
 	interestDefaultedAccountId: UUID!
 	interestIncomeAccountId: UUID!
 	feeIncomeAccountId: UUID!
+	paymentHoldingAccountId: UUID!
+	uncoveredOutstandingAccountId: UUID!
 	facilityAccount: LedgerAccount!
 	disbursedReceivableNotYetDueAccount: LedgerAccount!
 	disbursedReceivableDueAccount: LedgerAccount!
@@ -625,6 +627,8 @@ type CreditFacilityLedgerAccounts {
 	interestDefaultedAccount: LedgerAccount!
 	interestIncomeAccount: LedgerAccount!
 	feeIncomeAccount: LedgerAccount!
+	paymentHoldingAccount: LedgerAccount!
+	uncoveredOutstandingAccount: LedgerAccount!
 }
 
 input CreditFacilityPartialPaymentRecordInput {

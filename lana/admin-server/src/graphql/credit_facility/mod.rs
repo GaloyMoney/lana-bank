@@ -292,6 +292,12 @@ impl CreditFacility {
                 .into(),
             interest_income_account_id: self.entity.account_ids.interest_income_account_id.into(),
             fee_income_account_id: self.entity.account_ids.fee_income_account_id.into(),
+            payment_holding_account_id: self.entity.account_ids.payment_holding_account_id.into(),
+            uncovered_outstanding_account_id: self
+                .entity
+                .account_ids
+                .uncovered_outstanding_account_id
+                .into(),
         }
     }
 }

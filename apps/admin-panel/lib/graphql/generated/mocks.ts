@@ -856,8 +856,12 @@ export const mockCreditFacilityLedgerAccounts = (overrides?: Partial<CreditFacil
         interestReceivableNotYetDueAccountId: overrides && overrides.hasOwnProperty('interestReceivableNotYetDueAccountId') ? overrides.interestReceivableNotYetDueAccountId! : generateMockValue.uuid(),
         interestReceivableOverdueAccount: overrides && overrides.hasOwnProperty('interestReceivableOverdueAccount') ? overrides.interestReceivableOverdueAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
         interestReceivableOverdueAccountId: overrides && overrides.hasOwnProperty('interestReceivableOverdueAccountId') ? overrides.interestReceivableOverdueAccountId! : generateMockValue.uuid(),
+        paymentHoldingAccount: overrides && overrides.hasOwnProperty('paymentHoldingAccount') ? overrides.paymentHoldingAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
+        paymentHoldingAccountId: overrides && overrides.hasOwnProperty('paymentHoldingAccountId') ? overrides.paymentHoldingAccountId! : generateMockValue.uuid(),
         proceedsFromLiquidationAccount: overrides && overrides.hasOwnProperty('proceedsFromLiquidationAccount') ? overrides.proceedsFromLiquidationAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
         proceedsFromLiquidationAccountId: overrides && overrides.hasOwnProperty('proceedsFromLiquidationAccountId') ? overrides.proceedsFromLiquidationAccountId! : generateMockValue.uuid(),
+        uncoveredOutstandingAccount: overrides && overrides.hasOwnProperty('uncoveredOutstandingAccount') ? overrides.uncoveredOutstandingAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
+        uncoveredOutstandingAccountId: overrides && overrides.hasOwnProperty('uncoveredOutstandingAccountId') ? overrides.uncoveredOutstandingAccountId! : generateMockValue.uuid(),
     };
 };
 
