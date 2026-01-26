@@ -426,27 +426,25 @@
                 echo "Starting all other services..."
                 podman-compose-runner ''${COMPOSE_FILES[@]} up -d
 
-                # Verify keycloak-pg is reachable via network DNS (not just localhost)
-                echo "Waiting for keycloak-pg to be reachable via container network..."
-                for i in {1..1200}; do
-                  echo "Attempt $i/1200: Checking keycloak-pg via container network..."
-                  if podman run --rm --network lana-bank_default docker.io/library/postgres:17.5 psql 'postgresql://dbuser:secret@keycloak-pg:5432/default?sslmode=disable' -c 'SELECT 1' >/dev/null 2>&1; then
-                    echo "SUCCESS: keycloak-pg is reachable via container network"
+                # Wait for Keycloak with retry logic
+                echo "Waiting for Keycloak to be ready..."
+                for attempt in {1..3}; do
+                  echo "Attempt $attempt/3: Checking Keycloak health..."
+                  if wait4x http http://localhost:8081 --timeout 60s; then
+                    echo "SUCCESS: Keycloak is ready"
                     break
                   fi
-                  if [ $i -eq 1200 ]; then
-                    echo "ERROR: keycloak-pg not reachable via container network DNS after 1200 attempts (1200 seconds)"
+
+                  if [ $attempt -eq 3 ]; then
+                    echo "ERROR: Keycloak failed to start after 3 attempts. Dumping logs..."
+                    podman-compose-runner ''${COMPOSE_FILES[@]} logs keycloak || true
                     exit 1
                   fi
-                  sleep 1
-                done
 
-                echo "Waiting for Keycloak..."
-                if ! wait4x http http://localhost:8081 --timeout 180s; then
-                  echo "ERROR: Keycloak failed to start. Dumping logs..."
-                  podman-compose-runner ''${COMPOSE_FILES[@]} logs keycloak || true
-                  exit 1
-                fi
+                  echo "Keycloak not ready, restarting (attempt $attempt/3)..."
+                  podman-compose-runner ''${COMPOSE_FILES[@]} restart keycloak
+                  sleep 5
+                done
 
                 if [[ "''${DAGSTER}" == "true" ]]; then
                   echo "Waiting for Dagster GraphQL endpoint to be ready..."
@@ -591,30 +589,28 @@
               echo "Starting all other services..."
               ${podman-runner.podman-compose-runner}/bin/podman-compose-runner up -d
 
-              # Verify keycloak-pg is reachable via network DNS (not just localhost)
-              echo "Waiting for keycloak-pg to be reachable via container network..."
-              for i in {1..1200}; do
-                echo "Attempt $i/1200: Checking keycloak-pg via container network..."
-                if ${pkgs.podman}/bin/podman run --rm --network lana-bank_default docker.io/library/postgres:17.5 psql 'postgresql://dbuser:secret@keycloak-pg:5432/default?sslmode=disable' -c 'SELECT 1' >/dev/null 2>&1; then
-                  echo "SUCCESS: keycloak-pg is reachable via container network"
+              # Wait for Keycloak with retry logic
+              echo "Waiting for Keycloak to be ready..."
+              for attempt in {1..3}; do
+                echo "Attempt $attempt/3: Checking Keycloak health..."
+                if ${pkgs.wait4x}/bin/wait4x http http://localhost:8081 --timeout 60s; then
+                  echo "SUCCESS: Keycloak is ready"
                   break
                 fi
-                if [ $i -eq 1200 ]; then
-                  echo "ERROR: keycloak-pg not reachable via container network DNS after 1200 attempts (1200 seconds)"
+
+                if [ $attempt -eq 3 ]; then
+                  echo "ERROR: Keycloak failed to start after 3 attempts. Dumping logs..."
+                  ${podman-runner.podman-compose-runner}/bin/podman-compose-runner logs keycloak || true
                   exit 1
                 fi
-                sleep 1
+
+                echo "Keycloak not ready, restarting (attempt $attempt/3)..."
+                ${podman-runner.podman-compose-runner}/bin/podman-compose-runner restart keycloak
+                sleep 5
               done
 
               echo "Running database migrations..."
               ${pkgs.sqlx-cli}/bin/sqlx migrate run --source lana/app/migrations
-
-              echo "Waiting for Keycloak..."
-              if ! ${pkgs.wait4x}/bin/wait4x http http://localhost:8081 --timeout 180s; then
-                echo "ERROR: Keycloak failed to start. Dumping logs..."
-                ${podman-runner.podman-compose-runner}/bin/podman-compose-runner logs keycloak || true
-                exit 1
-              fi
 
               # Run nextest using pre-built archive
               echo "Running cargo nextest from pre-built archive..."
