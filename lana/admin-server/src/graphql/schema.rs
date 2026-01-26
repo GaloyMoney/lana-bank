@@ -2809,11 +2809,12 @@ impl Subscription {
             let payload = event.payload.as_ref()?;
             let event: &CoreReportEvent = payload.as_event()?;
             match event {
-                CoreReportEvent::ReportRunCreated { id }
-                | CoreReportEvent::ReportRunStateUpdated { id } => Some(ReportRunUpdatedPayload {
-                    report_run_id: UUID::from(*id),
-                }),
-                _ => None,
+                CoreReportEvent::ReportRunCreated { entity }
+                | CoreReportEvent::ReportRunStateUpdated { entity } => {
+                    Some(ReportRunUpdatedPayload {
+                        report_run_id: UUID::from(entity.id),
+                    })
+                }
             }
         });
 
