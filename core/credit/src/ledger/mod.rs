@@ -8,6 +8,7 @@ use core_accounting::{EntityRef, LedgerTransactionInitiator};
 use es_entity::clock::ClockHandle;
 
 mod balance;
+mod collateral_accounts;
 mod constants;
 mod credit_facility_accounts;
 mod disbursal_accounts;
@@ -49,6 +50,7 @@ use crate::{
 };
 
 pub use balance::*;
+pub use collateral_accounts::*;
 use constants::*;
 pub use credit_facility_accounts::*;
 pub use disbursal_accounts::*;
@@ -1185,9 +1187,7 @@ impl CreditLedger {
             fee_income_account_id: _,
             interest_income_account_id: _,
             uncovered_outstanding_account_id: _,
-            collateral_in_liquidation_account_id: _,
             proceeds_from_liquidation_account_id: _,
-            liquidated_collateral_account_id: _,
         }: CreditFacilityLedgerAccountIds,
     ) -> Result<CreditFacilityBalanceSummary, CreditLedgerError> {
         let facility_id = (self.journal_id, facility_account_id, self.usd);
@@ -1756,7 +1756,7 @@ impl CreditLedger {
                         .proceeds_from_liquidation_account_id,
                     amount_received: data.amount_received,
                     currency: Currency::USD,
-                    btc_in_liquidation_account_id: data.collateral_in_liquidation_account_id,
+                    btc_in_liquidation_account_id: todo!(), //data.collateral_in_liquidation_account_id,
                     btc_liquidated_account_id: data.liquidated_collateral_account_id,
                     amount_liquidated: data.amount_liquidated,
                     effective: self.clock.today(),
@@ -2246,6 +2246,57 @@ impl CreditLedger {
         Ok(())
     }
 
+    async fn create_accounts_for_collateral(
+        &self,
+        op: &mut es_entity::DbOpWithTime<'_>,
+        collateral_id: CollateralId,
+        account_ids: CollateralLedgerAccountIds,
+    ) -> Result<(), CreditLedgerError> {
+        let CollateralLedgerAccountIds {
+            collateral_in_liquidation_account_id,
+            liquidated_collateral_account_id,
+
+            // these accounts are created during proposal creation
+            collateral_account_id: _,
+        } = account_ids;
+
+        let entity_ref = EntityRef::new(COLLATERAL_ENTITY_TYPE, collateral_id);
+
+        let collateral_in_liquidation_reference =
+            &format!("collateral-collateral-in-liquidation:{collateral_id}");
+        let collateral_in_liquidation_name =
+            &format!("Collateral in Liquidation Account for Collateral {collateral_id}");
+        self.create_account_in_op(
+            op,
+            collateral_in_liquidation_account_id,
+            self.internal_account_sets
+                .liquidation
+                .collateral_in_liquidation,
+            collateral_in_liquidation_reference,
+            collateral_in_liquidation_name,
+            collateral_in_liquidation_name,
+            entity_ref.clone(),
+        )
+        .await?;
+
+        let liquidated_collateral_reference =
+            &format!("collateral-liquidated-collateral:{collateral_id}");
+        let liquidated_collateral_name =
+            &format!("Liquidated Collateral Account for Collateral {collateral_id}");
+        self.create_account_in_op(
+            op,
+            liquidated_collateral_account_id,
+            self.internal_account_sets.liquidation.liquidated_collateral,
+            liquidated_collateral_reference,
+            liquidated_collateral_name,
+            liquidated_collateral_name,
+            entity_ref.clone(),
+        )
+        .await?;
+
+        Ok(())
+    }
+
     async fn create_accounts_for_credit_facility(
         &self,
         op: &mut es_entity::DbOpWithTime<'_>,
@@ -2268,8 +2319,6 @@ impl CreditLedger {
             uncovered_outstanding_account_id,
             payment_holding_account_id,
             proceeds_from_liquidation_account_id,
-            collateral_in_liquidation_account_id,
-            liquidated_collateral_account_id,
 
             // these accounts are created during proposal creation
             collateral_account_id: _collateral_account_id,
@@ -2460,38 +2509,6 @@ impl CreditLedger {
             payment_holding_reference,
             payment_holding_name,
             payment_holding_name,
-            entity_ref.clone(),
-        )
-        .await?;
-
-        let collateral_in_liquidation_reference =
-            &format!("credit-facility-collateral-in-liquidation:{credit_facility_id}");
-        let collateral_in_liquidation_name =
-            &format!("Collateral in Liquidation Account for Credit Facility {credit_facility_id}");
-        self.create_account_in_op(
-            op,
-            collateral_in_liquidation_account_id,
-            self.internal_account_sets
-                .liquidation
-                .collateral_in_liquidation,
-            collateral_in_liquidation_reference,
-            collateral_in_liquidation_name,
-            collateral_in_liquidation_name,
-            entity_ref.clone(),
-        )
-        .await?;
-
-        let liquidated_collateral_reference =
-            &format!("credit-facility-liquidated-collateral:{credit_facility_id}");
-        let liquidated_collateral_name =
-            &format!("Liquidated Collateral Account for Credit Facility {credit_facility_id}");
-        self.create_account_in_op(
-            op,
-            liquidated_collateral_account_id,
-            self.internal_account_sets.liquidation.liquidated_collateral,
-            liquidated_collateral_reference,
-            liquidated_collateral_name,
-            liquidated_collateral_name,
             entity_ref.clone(),
         )
         .await?;

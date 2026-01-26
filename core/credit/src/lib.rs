@@ -12,7 +12,7 @@ mod event;
 mod for_subject;
 mod history;
 pub mod ledger;
-mod liquidation;
+// mod liquidation;
 mod obligation;
 mod payment;
 mod payment_allocation;
@@ -58,7 +58,6 @@ pub use event::*;
 use for_subject::CreditFacilitiesForSubject;
 pub use history::*;
 pub use ledger::*;
-pub use liquidation::{liquidation_cursor::*, *};
 pub use obligation::{error::*, obligation_cursor::*, *};
 pub use payment::{error::*, *};
 pub use payment_allocation::*;
@@ -78,9 +77,8 @@ pub mod event_schema {
     pub use crate::{
         TermsTemplateEvent, collateral::CollateralEvent, credit_facility::CreditFacilityEvent,
         credit_facility_proposal::CreditFacilityProposalEvent, disbursal::DisbursalEvent,
-        interest_accrual_cycle::InterestAccrualCycleEvent, liquidation::LiquidationEvent,
-        obligation::ObligationEvent, payment::PaymentEvent,
-        payment_allocation::PaymentAllocationEvent,
+        interest_accrual_cycle::InterestAccrualCycleEvent, obligation::ObligationEvent,
+        payment::PaymentEvent, payment_allocation::PaymentAllocationEvent,
         pending_credit_facility::PendingCreditFacilityEvent,
     };
 }
@@ -116,7 +114,7 @@ where
     chart_of_accounts_integrations: Arc<ChartOfAccountsIntegrations<Perms>>,
     terms_templates: Arc<TermsTemplates<Perms>>,
     public_ids: Arc<PublicIds>,
-    liquidations: Arc<Liquidations<Perms, E>>,
+    // liquidations: Arc<Liquidations<Perms, E>>,
     histories: Arc<Histories<Perms>>,
     clock: ClockHandle,
 }
@@ -156,7 +154,7 @@ where
             chart_of_accounts_integrations: self.chart_of_accounts_integrations.clone(),
             terms_templates: self.terms_templates.clone(),
             public_ids: self.public_ids.clone(),
-            liquidations: self.liquidations.clone(),
+            // liquidations: self.liquidations.clone(),
         }
     }
 }
@@ -221,17 +219,17 @@ where
         );
         let obligations_arc = Arc::new(obligations);
 
-        let liquidations = Liquidations::init(
-            pool,
-            ledger_arc.liquidation_proceeds_omnibus_account_ids(),
-            authz_arc.clone(),
-            &publisher,
-            jobs,
-            outbox,
-            ledger_arc.clone(),
-        )
-        .await?;
-        let liquidations_arc = Arc::new(liquidations);
+        // let liquidations = Liquidations::init(
+        //     pool,
+        //     ledger_arc.liquidation_proceeds_omnibus_account_ids(),
+        //     authz_arc.clone(),
+        //     &publisher,
+        //     jobs,
+        //     outbox,
+        //     ledger_arc.clone(),
+        // )
+        // .await?;
+        // let liquidations_arc = Arc::new(liquidations);
 
         let credit_facility_proposals = CreditFacilityProposals::init(
             pool,
@@ -425,7 +423,7 @@ where
             chart_of_accounts_integrations: chart_of_accounts_integrations_arc,
             terms_templates: terms_templates_arc,
             public_ids: public_ids_arc,
-            liquidations: liquidations_arc,
+            // liquidations: liquidations_arc,
         })
     }
 
@@ -441,9 +439,9 @@ where
         self.disbursals.as_ref()
     }
 
-    pub fn liquidations(&self) -> &Liquidations<Perms, E> {
-        self.liquidations.as_ref()
-    }
+    // pub fn liquidations(&self) -> &Liquidations<Perms, E> {
+    //     self.liquidations.as_ref()
+    // }
 
     pub fn proposals(&self) -> &CreditFacilityProposals<Perms, E> {
         self.credit_facility_proposals.as_ref()
@@ -1056,4 +1054,47 @@ where
             .await?;
         Ok(balances.total_outstanding_payable())
     }
+}
+
+#[derive(Clone, Debug, Copy, serde::Serialize, serde::Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+#[serde(transparent)]
+pub struct FacilityProceedsFromLiquidationAccountId(CalaAccountId);
+
+impl FacilityProceedsFromLiquidationAccountId {
+    pub fn new() -> Self {
+        Self(CalaAccountId::new())
+    }
+
+    pub const fn into_inner(self) -> CalaAccountId {
+        self.0
+    }
+}
+
+impl Default for FacilityProceedsFromLiquidationAccountId {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl From<&FacilityProceedsFromLiquidationAccountId> for PaymentSourceAccountId {
+    fn from(account: &FacilityProceedsFromLiquidationAccountId) -> Self {
+        Self::new(account.0)
+    }
+}
+
+impl From<FacilityProceedsFromLiquidationAccountId> for CalaAccountId {
+    fn from(account: FacilityProceedsFromLiquidationAccountId) -> Self {
+        account.0
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct RecordProceedsFromLiquidationData {
+    pub liquidation_proceeds_omnibus_account_id: CalaAccountId,
+    pub proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccountId,
+    pub amount_received: UsdCents,
+    // pub collateral_in_liquidation_account_id: CalaAccountId,
+    pub liquidated_collateral_account_id: CalaAccountId,
+    pub amount_liquidated: Satoshis,
 }

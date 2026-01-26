@@ -56,14 +56,11 @@ pub enum CreditFacilityEvent {
         collateralization_ratio: CollateralizationRatio,
     },
     PartialLiquidationInitiated {
-        liquidation_id: LiquidationId,
         trigger_price: PriceOfOneBTC,
         initially_expected_to_receive: UsdCents,
         initially_estimated_to_liquidate: Satoshis,
     },
-    ProceedsFromPartialLiquidationApplied {
-        liquidation_id: LiquidationId,
-    },
+    ProceedsFromPartialLiquidationApplied {},
     Matured {},
     Completed {},
 }
@@ -303,7 +300,6 @@ impl CreditFacility {
 
         self.events
             .push(CreditFacilityEvent::PartialLiquidationInitiated {
-                liquidation_id: LiquidationId::new(),
                 trigger_price: price,
                 initially_expected_to_receive: repay_amount,
                 initially_estimated_to_liquidate: liquidate_btc,
@@ -323,38 +319,26 @@ impl CreditFacility {
     /// running or different Liquidation is running.
     pub(crate) fn acknowledge_payment_from_liquidation(
         &mut self,
-        liquidation_id: LiquidationId,
     ) -> Result<Idempotent<()>, CreditFacilityError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            CreditFacilityEvent::ProceedsFromPartialLiquidationApplied {
-                liquidation_id: existing,
-                ..
-            } if *existing == liquidation_id,
+            CreditFacilityEvent::ProceedsFromPartialLiquidationApplied { },
             => CreditFacilityEvent::PartialLiquidationInitiated { .. }
         );
 
-        let liquidation_initiated = self.events.iter_all().rev().any(|e| {
-            matches!(
-                e,
-                CreditFacilityEvent::PartialLiquidationInitiated {
-                    liquidation_id: existing,
-                    ..
-                } if *existing == liquidation_id
-            )
-        });
+        let liquidation_initiated = self
+            .events
+            .iter_all()
+            .rev()
+            .any(|e| matches!(e, CreditFacilityEvent::PartialLiquidationInitiated { .. }));
 
         if liquidation_initiated {
             self.events
-                .push(CreditFacilityEvent::ProceedsFromPartialLiquidationApplied {
-                    liquidation_id,
-                });
+                .push(CreditFacilityEvent::ProceedsFromPartialLiquidationApplied {});
 
             Ok(Idempotent::Executed(()))
         } else {
-            Err(CreditFacilityError::NoSuchLiquidationInitiated(
-                liquidation_id,
-            ))
+            todo!()
         }
     }
 

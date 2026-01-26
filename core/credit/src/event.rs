@@ -135,15 +135,15 @@ pub enum CoreCreditEvent {
         credit_facility_id: CreditFacilityId,
     },
     PartialLiquidationInitiated {
-        liquidation_id: LiquidationId,
+        collateral_id: CollateralId,
         credit_facility_id: CreditFacilityId,
         customer_id: CustomerId,
         trigger_price: PriceOfOneBTC,
         initially_expected_to_receive: UsdCents,
         initially_estimated_to_liquidate: Satoshis,
         collateral_account_id: CalaAccountId,
-        collateral_in_liquidation_account_id: CalaAccountId,
-        liquidated_collateral_account_id: CalaAccountId,
+        // collateral_in_liquidation_account_id: CalaAccountId,
+        // liquidated_collateral_account_id: CalaAccountId,
         proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccountId,
         payment_holding_account_id: CalaAccountId,
         uncovered_outstanding_account_id: CalaAccountId,
@@ -157,7 +157,7 @@ pub enum CoreCreditEvent {
         effective: chrono::NaiveDate,
     },
     PartialLiquidationProceedsReceived {
-        liquidation_id: LiquidationId,
+        collateral_id: CollateralId,
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
         payment_id: PaymentId,
@@ -169,7 +169,7 @@ pub enum CoreCreditEvent {
         effective: chrono::NaiveDate,
     },
     PartialLiquidationCompleted {
-        liquidation_id: LiquidationId,
+        collateral_id: CollateralId,
         credit_facility_id: CreditFacilityId,
     },
 }

@@ -24,6 +24,10 @@ pub enum CollateralEvent {
         account_id: CalaAccountId,
         credit_facility_id: CreditFacilityId,
         pending_credit_facility_id: PendingCreditFacilityId,
+
+        /// Holds BTC collateral for this credit facility, that is being
+        /// liquidated.
+        collateral_in_liquidation_account_id: CalaAccountId,
         custody_wallet_id: Option<CustodyWalletId>,
     },
     UpdatedViaManualInput {
@@ -42,19 +46,16 @@ pub enum CollateralEvent {
     /// This Collateral has become subject of liquidation with
     /// `liquidation_id`. It will renmain such until
     /// `ExitedLiquidation` event is emitted.
-    EnteredLiquidation {
-        liquidation_id: LiquidationId,
-        collateral_in_liquidation_account_id: CalaAccountId,
-    },
+    EnteredLiquidation {},
 
     /// Portion of this Collateral was sent to a liquidation with
     /// `liquidation_id`.
-    SentToLiquidationViaManualInput { liquidation_id: LiquidationId },
+    SentToLiquidationViaManualInput {},
 
     /// This Collateral that has previously been subject of
     /// liquidation with `liquidation_id` is no longer subject of the
     /// liquidation.
-    ExitedLiquidation { liquidation_id: LiquidationId },
+    ExitedLiquidation {},
 }
 
 #[derive(EsEntity, Builder)]
@@ -68,7 +69,7 @@ pub struct Collateral {
     pub amount: Satoshis,
 
     /// Ledger account that holds collateral for this entity.
-    pub(super) collateral_account_id: crate::CalaAccountId,
+    pub(super) collateral_account_id: CalaAccountId,
 
     #[es_entity(nested)]
     #[builder(default)]
@@ -95,27 +96,31 @@ impl Collateral {
     ///
     /// Returns `AlreadyInLiquidation` if the Collateral already is in
     /// another liquidation.
-    pub fn enter_liquidation(
-        &mut self,
-        liquidation_id: LiquidationId,
-        collateral_in_liquidation_account_id: CalaAccountId,
-    ) -> Result<Idempotent<()>, CollateralError> {
-        match self.last_liquidation() {
-            Some(liquidation) if liquidation.is_ongoing() && liquidation.id == liquidation_id => {
-                Ok(Idempotent::AlreadyApplied)
-            }
-            Some(liquidation) if liquidation.is_ongoing() => {
-                Err(CollateralError::AlreadyInLiquidation(liquidation.id))
-            }
-            _ => {
-                self.events.push(CollateralEvent::EnteredLiquidation {
-                    liquidation_id,
-                    collateral_in_liquidation_account_id,
-                });
+    pub fn enter_liquidation(&mut self) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            CollateralEvent::EnteredLiquidation { .. },
+            => CollateralEvent::ExitedLiquidation { }
+        );
 
-                Ok(Idempotent::Executed(()))
-            }
-        }
+        self.events.push(CollateralEvent::EnteredLiquidation {});
+
+        let new_liquidation = self
+            .liquidations
+            .add_new(super::liquidation::entity::NewLiquidation {
+                id: todo!(),
+                liquidation_proceeds_omnibus_account_id: todo!(),
+                facility_proceeds_from_liquidation_account_id: todo!(),
+                facility_payment_holding_account_id: todo!(),
+                facility_uncovered_outstanding_account_id: todo!(),
+                collateral_account_id: todo!(),
+                liquidated_collateral_account_id: todo!(),
+                trigger_price: todo!(),
+                initially_expected_to_receive: todo!(),
+                initially_estimated_to_liquidate: todo!(),
+            });
+
+        Idempotent::Executed(())
     }
 
     /// Attempts to record that this Collateral has exited a
@@ -125,25 +130,19 @@ impl Collateral {
     ///
     /// - `InAnotherLiquidation` if this Collateral is in different liquidation than `liquidation_id`
     /// - `NotInLiquidation` if this Collateral is not in any liquidation
-    pub fn exit_liquidation(
-        &mut self,
-        liquidation_id: LiquidationId,
-    ) -> Result<Idempotent<()>, CollateralError> {
+    pub fn exit_liquidation(&mut self) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            CollateralEvent::ExitedLiquidation { liquidation_id: existing } if *existing == liquidation_id,
+            CollateralEvent::ExitedLiquidation { },
             => CollateralEvent::EnteredLiquidation { .. }
         );
 
         match self.last_liquidation() {
-            Some(current) if current.id == liquidation_id => {
-                self.events
-                    .push(CollateralEvent::ExitedLiquidation { liquidation_id });
-
-                Ok(Idempotent::Executed(()))
+            Some(_) => {
+                self.events.push(CollateralEvent::ExitedLiquidation {});
+                Idempotent::Executed(())
             }
-            Some(current) => Err(CollateralError::InAnotherLiquidation(current.id)),
-            None => Err(CollateralError::NotInLiquidation),
+            _ => Idempotent::AlreadyApplied,
         }
     }
 
@@ -282,12 +281,12 @@ impl TryFromEvents<CollateralEvent> for Collateral {
                     builder = builder.amount(*new_value);
                 }
                 CollateralEvent::EnteredLiquidation {
-                    liquidation_id,
-                    collateral_in_liquidation_account_id,
+                    // liquidation_id,
+                    // collateral_in_liquidation_account_id,
                 } => {
                     // builder = builder.current_liquidation(Some(CurrentLiquidation {
-                        // liquidation_id: *liquidation_id,
-                        // collateral_in_liquidation_account_id: *collateral_in_liquidation_account_id,
+                    // liquidation_id: *liquidation_id,
+                    // collateral_in_liquidation_account_id: *collateral_in_liquidation_account_id,
                     // }));
                 }
                 CollateralEvent::ExitedLiquidation { .. } => {
@@ -310,6 +309,7 @@ impl IntoEvents<CollateralEvent> for NewCollateral {
                 credit_facility_id: self.credit_facility_id,
                 pending_credit_facility_id: self.pending_credit_facility_id,
                 custody_wallet_id: self.custody_wallet_id,
+                collateral_in_liquidation_account_id: todo!(),
             }],
         )
     }

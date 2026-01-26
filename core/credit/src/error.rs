@@ -46,8 +46,8 @@ pub enum CoreCreditError {
     PaymentAllocationError(#[from] super::payment_allocation::error::PaymentAllocationError),
     #[error("CoreCreditError - DisbursalError: {0}")]
     DisbursalError(#[from] super::disbursal::error::DisbursalError),
-    #[error("CoreCreditError - LiquidationError: {0}")]
-    LiquidationError(#[from] super::liquidation::error::LiquidationError),
+    // #[error("CoreCreditError - LiquidationError: {0}")]
+    // LiquidationError(#[from] super::liquidation::error::LiquidationError),
     #[error("CoreCreditError - ObligationError: {0}")]
     ObligationError(#[from] super::obligation::error::ObligationError),
     #[error("CoreCreditError - InterestAccrualCycleError: {0}")]
@@ -92,7 +92,7 @@ impl ErrorSeverity for CoreCreditError {
             Self::PaymentError(e) => e.severity(),
             Self::PaymentAllocationError(e) => e.severity(),
             Self::DisbursalError(e) => e.severity(),
-            Self::LiquidationError(e) => e.severity(),
+            // Self::LiquidationError(e) => e.severity(),
             Self::ObligationError(e) => e.severity(),
             Self::InterestAccrualCycleError(e) => e.severity(),
             Self::PriceError(e) => e.severity(),

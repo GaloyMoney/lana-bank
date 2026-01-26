@@ -12,6 +12,7 @@ use job::*;
 use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
+use crate::CollateralId;
 use crate::{
     credit_facility::CreditFacilityRepo,
     event::CoreCreditEvent,
@@ -28,7 +29,7 @@ struct LiquidationPaymentJobData {
 
 #[derive(Serialize, Deserialize)]
 pub struct LiquidationPaymentJobConfig<E> {
-    pub liquidation_id: LiquidationId,
+    pub collateral_id: CollateralId,
     pub credit_facility_id: CreditFacilityId,
     pub _phantom: std::marker::PhantomData<E>,
 }
@@ -36,7 +37,7 @@ pub struct LiquidationPaymentJobConfig<E> {
 impl<E> Clone for LiquidationPaymentJobConfig<E> {
     fn clone(&self) -> Self {
         Self {
-            liquidation_id: self.liquidation_id,
+            collateral_id: self.collateral_id,
             credit_facility_id: self.credit_facility_id,
             _phantom: std::marker::PhantomData,
         }
@@ -127,7 +128,7 @@ where
             .await?;
 
         if credit_facility
-            .acknowledge_payment_from_liquidation(self.config.liquidation_id)?
+            .acknowledge_payment_from_liquidation()?
             .did_execute()
         {
             self.credit_facility_repo
@@ -188,14 +189,14 @@ where
                 event @ PartialLiquidationProceedsReceived {
                     amount,
                     credit_facility_id,
-                    liquidation_id,
+                    collateral_id,
                     payment_id,
                     facility_payment_holding_account_id,
                     facility_proceeds_from_liquidation_account_id,
                     facility_uncovered_outstanding_account_id,
                     ..
                 },
-            ) if *liquidation_id == self.config.liquidation_id => {
+            ) if *collateral_id == self.config.collateral_id => {
                 message.inject_trace_parent();
                 Span::current().record("handled", true);
                 Span::current().record("event_type", event.as_ref());
@@ -222,15 +223,15 @@ where
 
                 Ok(ControlFlow::Break(()))
             }
-            Some(event @ PartialLiquidationCompleted { liquidation_id, .. })
-                if *liquidation_id == self.config.liquidation_id =>
+            Some(event @ PartialLiquidationCompleted { collateral_id, .. })
+                if *collateral_id == self.config.collateral_id =>
             {
                 message.inject_trace_parent();
                 Span::current().record("handled", true);
                 Span::current().record("event_type", event.as_ref());
 
                 tracing::info!(
-                    liquidation_id = %liquidation_id,
+                    collateral_id = %collateral_id,
                     "Liquidation completed, terminating liquidation payment job"
                 );
 

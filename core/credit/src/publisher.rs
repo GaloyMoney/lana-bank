@@ -17,7 +17,7 @@ use crate::{
     },
     disbursal::{Disbursal, DisbursalEvent, error::DisbursalError},
     event::*,
-    liquidation::{Liquidation, LiquidationEvent, error::LiquidationError},
+    // liquidation::error::LiquidationError,
     obligation::{Obligation, ObligationEvent, error::ObligationError},
     payment::{Payment, PaymentEvent, error::PaymentError},
     payment_allocation::{
@@ -98,27 +98,27 @@ where
                     price: *price,
                 }),
                 PartialLiquidationInitiated {
-                    liquidation_id,
                     trigger_price,
                     initially_expected_to_receive,
                     initially_estimated_to_liquidate,
                 } => Some(CoreCreditEvent::PartialLiquidationInitiated {
                     credit_facility_id: entity.id,
-                    liquidation_id: *liquidation_id,
+                    collateral_id: entity.collateral_id,
+                    // liquidation_id: *liquidation_id,
                     customer_id: entity.customer_id,
                     trigger_price: *trigger_price,
                     initially_expected_to_receive: *initially_expected_to_receive,
                     initially_estimated_to_liquidate: *initially_estimated_to_liquidate,
                     collateral_account_id: entity.account_ids.collateral_account_id,
-                    collateral_in_liquidation_account_id: entity
-                        .account_ids
-                        .collateral_in_liquidation_account_id,
+                    // collateral_in_liquidation_account_id: entity
+                    // .account_ids
+                    // .collateral_in_liquidation_account_id,
                     proceeds_from_liquidation_account_id: entity
                         .account_ids
                         .proceeds_from_liquidation_account_id,
-                    liquidated_collateral_account_id: entity
-                        .account_ids
-                        .liquidated_collateral_account_id,
+                    // liquidated_collateral_account_id: entity
+                    // .account_ids
+                    // .liquidated_collateral_account_id,
                     payment_holding_account_id: entity.account_ids.payment_holding_account_id,
                     uncovered_outstanding_account_id: entity
                         .account_ids
@@ -447,58 +447,58 @@ where
         Ok(())
     }
 
-    #[record_error_severity]
-    #[instrument(name = "credit.publisher.publish_liquidation", skip_all)]
-    pub async fn publish_liquidation(
-        &self,
-        op: &mut impl es_entity::AtomicOperation,
-        entity: &Liquidation,
-        new_events: es_entity::LastPersisted<'_, LiquidationEvent>,
-    ) -> Result<(), LiquidationError> {
-        use LiquidationEvent::*;
-        let publish_events = new_events
-            .filter_map(|event| match &event.event {
-                Initialized { .. } => None,
-                Completed { .. } => Some(CoreCreditEvent::PartialLiquidationCompleted {
-                    liquidation_id: entity.id,
-                    credit_facility_id: entity.credit_facility_id,
-                }),
-                ProceedsFromLiquidationReceived {
-                    amount,
-                    ledger_tx_id,
-                    payment_id,
-                } => Some(CoreCreditEvent::PartialLiquidationProceedsReceived {
-                    liquidation_id: entity.id,
-                    credit_facility_id: entity.credit_facility_id,
-                    amount: *amount,
-                    payment_id: *payment_id,
-                    facility_payment_holding_account_id: entity.facility_payment_holding_account_id,
-                    facility_proceeds_from_liquidation_account_id: entity
-                        .facility_proceeds_from_liquidation_account_id,
-                    facility_uncovered_outstanding_account_id: entity
-                        .facility_uncovered_outstanding_account_id,
-                    ledger_tx_id: *ledger_tx_id,
-                    recorded_at: event.recorded_at,
-                    effective: event.recorded_at.date_naive(),
-                }),
-                CollateralSentOut {
-                    amount,
-                    ledger_tx_id,
-                    ..
-                } => Some(CoreCreditEvent::PartialLiquidationCollateralSentOut {
-                    liquidation_id: entity.id,
-                    credit_facility_id: entity.credit_facility_id,
-                    amount: *amount,
-                    ledger_tx_id: *ledger_tx_id,
-                    recorded_at: event.recorded_at,
-                    effective: event.recorded_at.date_naive(),
-                }),
-                Updated { .. } => None,
-            })
-            .collect::<Vec<_>>();
-        self.outbox
-            .publish_all_persisted(op, publish_events)
-            .await?;
-        Ok(())
-    }
+    // #[record_error_severity]
+    // #[instrument(name = "credit.publisher.publish_liquidation", skip_all)]
+    // pub async fn publish_liquidation(
+    //     &self,
+    //     op: &mut impl es_entity::AtomicOperation,
+    //     entity: &Liquidation,
+    //     new_events: es_entity::LastPersisted<'_, LiquidationEvent>,
+    // ) -> Result<(), LiquidationError> {
+    //     use LiquidationEvent::*;
+    //     let publish_events = new_events
+    //         .filter_map(|event| match &event.event {
+    //             Initialized { .. } => None,
+    //             Completed { .. } => Some(CoreCreditEvent::PartialLiquidationCompleted {
+    //                 liquidation_id: entity.id,
+    //                 credit_facility_id: entity.credit_facility_id,
+    //             }),
+    //             ProceedsFromLiquidationReceived {
+    //                 amount,
+    //                 ledger_tx_id,
+    //                 payment_id,
+    //             } => Some(CoreCreditEvent::PartialLiquidationProceedsReceived {
+    //                 liquidation_id: entity.id,
+    //                 credit_facility_id: entity.credit_facility_id,
+    //                 amount: *amount,
+    //                 payment_id: *payment_id,
+    //                 facility_payment_holding_account_id: entity.facility_payment_holding_account_id,
+    //                 facility_proceeds_from_liquidation_account_id: entity
+    //                     .facility_proceeds_from_liquidation_account_id,
+    //                 facility_uncovered_outstanding_account_id: entity
+    //                     .facility_uncovered_outstanding_account_id,
+    //                 ledger_tx_id: *ledger_tx_id,
+    //                 recorded_at: event.recorded_at,
+    //                 effective: event.recorded_at.date_naive(),
+    //             }),
+    //             CollateralSentOut {
+    //                 amount,
+    //                 ledger_tx_id,
+    //                 ..
+    //             } => Some(CoreCreditEvent::PartialLiquidationCollateralSentOut {
+    //                 liquidation_id: entity.id,
+    //                 credit_facility_id: entity.credit_facility_id,
+    //                 amount: *amount,
+    //                 ledger_tx_id: *ledger_tx_id,
+    //                 recorded_at: event.recorded_at,
+    //                 effective: event.recorded_at.date_naive(),
+    //             }),
+    //             Updated { .. } => None,
+    //         })
+    //         .collect::<Vec<_>>();
+    //     self.outbox
+    //         .publish_all_persisted(op, publish_events)
+    //         .await?;
+    //     Ok(())
+    // }
 }

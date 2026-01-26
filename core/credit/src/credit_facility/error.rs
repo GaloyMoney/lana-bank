@@ -54,10 +54,6 @@ pub enum CreditFacilityError {
         "CreditFacilityError - DisbursalAmountTooLarge: amount '{0}' is larger than facility balance '{1}'"
     )]
     DisbursalAmountTooLarge(UsdCents, UsdCents),
-    #[error(
-        "CreditFacilityError - NoSuchLiquidationInitiated: liquidation {0} attempted to complete but has not been initiated"
-    )]
-    NoSuchLiquidationInitiated(crate::LiquidationId),
     #[error("CreditFacilityError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("CreditFacilityError - AuditError: {0}")]
@@ -107,7 +103,6 @@ impl ErrorSeverity for CreditFacilityError {
             Self::InterestAccrualCycleWithInvalidFutureStartDate => Level::ERROR,
             Self::InProgressInterestAccrualCycleNotCompletedYet => Level::WARN,
             Self::DisbursalAmountTooLarge(_, _) => Level::WARN,
-            Self::NoSuchLiquidationInitiated(_) => Level::WARN,
             Self::AuthorizationError(e) => e.severity(),
             Self::AuditError(e) => e.severity(),
             Self::LedgerError(e) => e.severity(),

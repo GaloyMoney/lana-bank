@@ -14,8 +14,7 @@ use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use crate::{
-    CoreCreditEvent, CreditFacilityId, LiquidationId, collateral::CollateralRepo,
-    credit_facility::CreditFacilityRepo, liquidation::LiquidationRepo,
+    CollateralId, CoreCreditEvent, collateral::CollateralRepo, credit_facility::CreditFacilityRepo,
 };
 
 #[derive(Default, Clone, Deserialize, Serialize)]
@@ -25,16 +24,14 @@ struct PartialLiquidationJobData {
 
 #[derive(Serialize, Deserialize)]
 pub struct PartialLiquidationJobConfig<E> {
-    pub liquidation_id: LiquidationId,
-    pub credit_facility_id: CreditFacilityId,
+    pub collateral_id: CollateralId,
     pub _phantom: std::marker::PhantomData<E>,
 }
 
 impl<E> Clone for PartialLiquidationJobConfig<E> {
     fn clone(&self) -> Self {
         Self {
-            liquidation_id: self.liquidation_id,
-            credit_facility_id: self.credit_facility_id,
+            collateral_id: self.collateral_id,
             _phantom: std::marker::PhantomData,
         }
     }
@@ -47,7 +44,6 @@ where
         + OutboxEventMarker<CoreCustodyEvent>,
 {
     outbox: Outbox<E>,
-    liquidation_repo: Arc<LiquidationRepo<E>>,
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
     collateral_repo: Arc<CollateralRepo<E>>,
 }
@@ -60,13 +56,11 @@ where
 {
     pub fn new(
         outbox: &Outbox<E>,
-        liquidation_repo: Arc<LiquidationRepo<E>>,
         credit_facility_repo: Arc<CreditFacilityRepo<E>>,
         collateral_repo: Arc<CollateralRepo<E>>,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
-            liquidation_repo,
             credit_facility_repo,
             collateral_repo,
         }
@@ -96,7 +90,6 @@ where
         Ok(Box::new(PartialLiquidationJobRunner::<E> {
             config,
             outbox: self.outbox.clone(),
-            liquidation_repo: self.liquidation_repo.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
             collateral_repo: self.collateral_repo.clone(),
         }))
@@ -111,7 +104,6 @@ where
 {
     config: PartialLiquidationJobConfig<E>,
     outbox: Outbox<E>,
-    liquidation_repo: Arc<LiquidationRepo<E>>,
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
     collateral_repo: Arc<CollateralRepo<E>>,
 }
@@ -150,7 +142,7 @@ where
                     match message {
                         Some(message) => {
                             let mut db = self
-                                .liquidation_repo
+                                .collateral_repo
                                 .begin_op_with_clock(current_job.clock())
                                 .await?;
 
@@ -183,55 +175,6 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
-    #[instrument(
-        name = "outbox.core_credit.partial_liquidation.complete_liquidation",
-        skip(self, db)
-    )]
-    async fn complete_liquidation(
-        &self,
-        db: &mut DbOp<'_>,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        let mut liquidation = self
-            .liquidation_repo
-            .find_by_id(self.config.liquidation_id)
-            .await?;
-
-        if liquidation.complete().did_execute() {
-            self.liquidation_repo
-                .update_in_op(db, &mut liquidation)
-                .await?;
-        }
-
-        Ok(())
-    }
-
-    async fn exit_collateral_liquidation(
-        &self,
-        db: &mut DbOp<'_>,
-        credit_facility_id: CreditFacilityId,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        let credit_facility = self
-            .credit_facility_repo
-            .find_by_id_in_op(db, credit_facility_id)
-            .await?;
-
-        let mut collateral = self
-            .collateral_repo
-            .find_by_id_in_op(&mut *db, credit_facility.collateral_id)
-            .await?;
-
-        if collateral
-            .exit_liquidation(self.config.liquidation_id)?
-            .did_execute()
-        {
-            self.collateral_repo
-                .update_in_op(db, &mut collateral)
-                .await?;
-        }
-
-        Ok(())
-    }
-
     #[instrument(name = "outbox.core_credit.partial_liquidation.process_message", parent = None, skip(self, message, db), fields(payment_id, seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn process_message(
         &self,
@@ -244,22 +187,28 @@ where
         match &message.as_event() {
             Some(
                 event @ PartialLiquidationProceedsReceived {
-                    liquidation_id,
+                    collateral_id,
                     payment_id,
-                    credit_facility_id,
                     ..
                 },
-            ) if *liquidation_id == self.config.liquidation_id => {
+            ) if *collateral_id == self.config.collateral_id => {
                 Span::current().record("handled", true);
                 Span::current().record("event_type", event.as_ref());
                 Span::current().record("payment_id", tracing::field::display(payment_id));
 
-                self.complete_liquidation(db).await?;
-
-                self.exit_collateral_liquidation(db, *credit_facility_id)
+                let mut collateral = self
+                    .collateral_repo
+                    .find_by_id_in_op(&mut *db, collateral_id)
                     .await?;
 
-                Ok(ControlFlow::Break(()))
+                if collateral.exit_liquidation().did_execute() {
+                    self.collateral_repo
+                        .update_in_op(db, &mut collateral)
+                        .await?;
+                    Ok(ControlFlow::Break(()))
+                } else {
+                    Ok(ControlFlow::Continue(()))
+                }
             }
             _ => Ok(ControlFlow::Continue(())),
         }
