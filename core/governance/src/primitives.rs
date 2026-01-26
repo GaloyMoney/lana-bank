@@ -5,7 +5,8 @@ use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
 es_entity::entity_id! { ApprovalProcessId, CommitteeId, PolicyId, CommitteeMemberId }
 
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub enum ApprovalProcessStatus {
     Approved,
     Denied,
@@ -18,6 +19,10 @@ impl ApprovalProcessStatus {
             self,
             ApprovalProcessStatus::Approved | ApprovalProcessStatus::Denied
         )
+    }
+
+    pub fn is_approved(&self) -> bool {
+        matches!(self, ApprovalProcessStatus::Approved)
     }
 }
 

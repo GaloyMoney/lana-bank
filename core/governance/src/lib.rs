@@ -4,9 +4,9 @@
 mod approval_process;
 mod committee;
 pub mod error;
-mod event;
 mod policy;
 mod primitives;
+pub mod public;
 
 use es_entity::clock::ClockHandle;
 use tracing::instrument;
@@ -21,9 +21,9 @@ use obix::out::{Outbox, OutboxEventMarker};
 pub use approval_process::{error as approval_process_error, *};
 pub use committee::{error as committee_error, *};
 use error::*;
-pub use event::*;
 pub use policy::{error as policy_error, *};
 pub use primitives::*;
+pub use public::*;
 
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
@@ -356,20 +356,10 @@ where
             )
             .await?;
 
-        if let es_entity::Idempotent::Executed((approved, denied_reason)) =
-            process.check_concluded(eligible)
-        {
+        if let es_entity::Idempotent::Executed(_) = process.check_concluded(eligible) {
+            let entity = PublicApprovalProcess::from(&*process);
             self.outbox
-                .publish_all_persisted(
-                    op,
-                    [GovernanceEvent::ApprovalProcessConcluded {
-                        id: process.id,
-                        approved,
-                        denied_reason,
-                        process_type: process.process_type.clone(),
-                        target_ref: process.target_ref().to_string(),
-                    }],
-                )
+                .publish_all_persisted(op, [GovernanceEvent::ApprovalProcessConcluded { entity }])
                 .await?;
 
             return Ok(true);

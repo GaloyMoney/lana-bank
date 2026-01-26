@@ -47,6 +47,10 @@ async fn setup() -> anyhow::Result<(
     let mut jobs = job::Jobs::init(
         job::JobSvcConfig::builder()
             .pool(pool.clone())
+            .poller_config(job::JobPollerConfig {
+                job_lost_interval: std::time::Duration::from_secs(2),
+                ..Default::default()
+            })
             .build()
             .unwrap(),
     )
@@ -260,7 +264,11 @@ async fn withdrawal_confirmed_publishes_event() -> anyhow::Result<()> {
         .initiate_withdrawal(&DummySubject, account.id, withdrawal_amount, None)
         .await?;
 
-    let max_retries = 60;
+    // Withdrawal approval is concluded asynchronously via the governance → outbox → jobs pipeline.
+    // This test wants to validate the WithdrawalConfirmed outbox event, so we must wait until the
+    // approval job has written the ApprovalProcessConcluded event to the withdrawal before we can
+    // successfully call confirm_withdrawal.
+    let max_retries = 100;
     for attempt in 1..=max_retries {
         let Some(current) = deposit
             .find_withdrawal_by_id(&DummySubject, withdrawal.id)
