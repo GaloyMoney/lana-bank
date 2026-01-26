@@ -93,6 +93,34 @@ impl DomainConfig {
         self.update_json_value(new_value)
     }
 
+    /// Apply update from JSON for any config (CLI startup, no auth required).
+    ///
+    /// Unlike `apply_exposed_update_from_json`, this method works for any config
+    /// regardless of visibility, for use during CLI startup before GraphQL is available.
+    pub fn apply_update_from_json(
+        &mut self,
+        entry: &crate::registry::ConfigSpecEntry,
+        new_value: serde_json::Value,
+    ) -> Result<Idempotent<()>, DomainConfigError> {
+        if self.config_type != entry.config_type {
+            return Err(DomainConfigError::InvalidType(format!(
+                "Invalid config type for {}: expected {}, found {}",
+                self.key, entry.config_type, self.config_type
+            )));
+        }
+
+        if self.visibility != entry.visibility {
+            return Err(DomainConfigError::InvalidState(format!(
+                "Invalid visibility for {}: expected {}, found {}",
+                self.key, entry.visibility, self.visibility
+            )));
+        }
+
+        (entry.validate_json)(&new_value)?;
+
+        self.update_json_value(new_value)
+    }
+
     fn update_json_value(
         &mut self,
         new_value: serde_json::Value,

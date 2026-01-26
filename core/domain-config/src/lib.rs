@@ -172,6 +172,7 @@ pub use spec::{Complex, ConfigSpec, ExposedConfig, InternalConfig, Simple, Value
 pub use typed_domain_config::TypedDomainConfig;
 
 use entity::NewDomainConfig;
+
 use repo::DomainConfigRepo;
 
 #[cfg(feature = "json-schema")]
@@ -431,5 +432,48 @@ async fn seed_registered_for_visibility(
         }
     }
 
+    Ok(())
+}
+
+/// Apply domain config settings at startup from key-value pairs.
+///
+/// This is intended for bootstrap scenarios where configs need to be set
+/// from environment variables before user context is available.
+/// Works for both internal and exposed configs.
+///
+/// All settings are applied atomically within a single transaction.
+#[instrument(name = "domain_config.apply_startup_configs", skip_all)]
+pub async fn apply_startup_configs<I, K>(
+    pool: &sqlx::PgPool,
+    settings: I,
+) -> Result<(), DomainConfigError>
+where
+    I: IntoIterator<Item = (K, serde_json::Value)>,
+    K: Into<DomainConfigKey> + std::fmt::Display + Clone,
+{
+    let repo = DomainConfigRepo::new(pool);
+    let mut db_tx = repo.begin_op().await?;
+
+    for (key, value) in settings {
+        let domain_key: DomainConfigKey = key.clone().into();
+        let entry = registry::maybe_find_by_key(domain_key.as_str()).ok_or_else(|| {
+            DomainConfigError::InvalidKey(format!(
+                "Unknown domain config key: {}",
+                domain_key.as_str()
+            ))
+        })?;
+
+        let mut config = repo.find_by_key_in_op(&mut db_tx, domain_key).await?;
+        let changed = config.apply_update_from_json(entry, value)?.did_execute();
+
+        if changed {
+            repo.update_in_op(&mut db_tx, &mut config).await?;
+            tracing::info!(key = %key, "Applied domain config at startup");
+        } else {
+            tracing::info!(key = %key, "Domain config already set");
+        }
+    }
+
+    db_tx.commit().await?;
     Ok(())
 }

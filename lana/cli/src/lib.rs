@@ -4,6 +4,7 @@
 pub mod build_info;
 pub(crate) mod config;
 mod db;
+mod startup_domain_config;
 
 use anyhow::Context;
 use chacha20poly1305::{ChaCha20Poly1305, KeyInit, aead::OsRng};
@@ -184,6 +185,17 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
             ctrl,
         )
         .await;
+    }
+
+    // Apply domain config settings from env vars after seeding but before starting servers
+    let domain_config_settings = startup_domain_config::parse_from_env()?;
+    if !domain_config_settings.is_empty() {
+        domain_config::apply_startup_configs(
+            &pool,
+            domain_config_settings.into_iter().map(|s| (s.key, s.value)),
+        )
+        .await
+        .context("Failed to apply domain config settings from env vars")?;
     }
 
     let admin_error_send = error_send.clone();
