@@ -55,6 +55,9 @@ gql`
       chartOfAccountFacilityOmnibusParentCode
       chartOfAccountCollateralOmnibusParentCode
       chartOfAccountLiquidationProceedsOmnibusParentCode
+      chartOfAccountPaymentsMadeOmnibusParentCode
+      chartOfAccountInterestAddedToObligationsOmnibusParentCode
+      chartOfAccountUncoveredOutstandingParentCode
       chartOfAccountFacilityParentCode
       chartOfAccountCollateralParentCode
       chartOfAccountCollateralInLiquidationParentCode

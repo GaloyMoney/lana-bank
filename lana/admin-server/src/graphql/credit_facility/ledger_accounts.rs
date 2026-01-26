@@ -21,6 +21,8 @@ pub(super) struct CreditFacilityLedgerAccounts {
     pub interest_defaulted_account_id: UUID,
     pub interest_income_account_id: UUID,
     pub fee_income_account_id: UUID,
+    pub payment_holding_account_id: UUID,
+    pub uncovered_outstanding_account_id: UUID,
 }
 
 #[ComplexObject]
@@ -164,5 +166,21 @@ impl CreditFacilityLedgerAccounts {
             .await?
             .expect("Ledger account not found");
         Ok(fee_income_account)
+    }
+    async fn payment_holding_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let payment_holding_account = loader
+            .load_one(LedgerAccountId::from(self.payment_holding_account_id))
+            .await?
+            .expect("Ledger account not found");
+        Ok(payment_holding_account)
+    }
+    async fn uncovered_outstanding_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let uncovered_outstanding_account = loader
+            .load_one(LedgerAccountId::from(self.uncovered_outstanding_account_id))
+            .await?
+            .expect("Ledger account not found");
+        Ok(uncovered_outstanding_account)
     }
 }
