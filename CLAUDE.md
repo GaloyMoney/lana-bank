@@ -103,3 +103,6 @@ Note: GraphQL APIs must be accessed through Oathkeeper (port 4455) which handles
 - Use OTEL for debugging, not println (except in tests)
 - Use `#[serde(rename_all = "camelCase")]` instead of manual field renames
 - Don't add `#[allow(dead_code)]`
+
+## Github
+- When checking github action (gh pr checks), use a timeout of 30m
