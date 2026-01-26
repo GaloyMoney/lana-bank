@@ -473,6 +473,7 @@
               podman-runner.podman-compose-runner
               pkgs.wait4x
               pkgs.gnugrep
+              pkgs.coreutils
             ];
           in
             pkgs.symlinkJoin {
@@ -481,6 +482,7 @@
                 podman-runner.podman-compose-runner
                 pkgs.wait4x
                 pkgs.gnugrep
+                pkgs.coreutils
                 lana-cli-bootstrap
               ];
               postBuild = ''
@@ -492,17 +494,20 @@
                 # Add all tools to PATH
                 export PATH="${binPath}:$PATH"
 
-                # Set environment variables needed by bats tests
+                # Set environment variables needed by simulations
                 export PG_CON="${devEnvVars.PG_CON}"
                 export DATABASE_URL="${devEnvVars.DATABASE_URL}"
                 export ENCRYPTION_KEY="${devEnvVars.ENCRYPTION_KEY}"
-                export RUST_LOG="error"
+                # Use info level to capture both success and error logs
+                export RUST_LOG="info"
 
                 # Function to cleanup on exit
                 cleanup() {
                   echo "Stopping podman-compose..."
                   podman-compose-runner down || true
-                  cat .server.pid | xargs kill || true
+                  if [ -f .server.pid ]; then
+                    kill "$(cat .server.pid)" 2>/dev/null || true
+                  fi
                 }
 
                 # Register cleanup function
@@ -516,18 +521,48 @@
                 wait4x postgresql "${devEnvVars.PG_CON}" --timeout 120s
 
                 echo "Running cli"
-                export LANA_CONFIG="./bats/lana.yml"
+                export LANA_CONFIG="./bats/lana-bootstrap.yml"
                 ${lana-cli-bootstrap}/bin/lana-cli 2>&1 | tee server.log &
                 echo "$!" > .server.pid
 
-                wait4x http http://localhost:5253/health --timeout 30m
+                # Wait for simulation to complete by polling logs
+                # "transitioning to realtime" is logged when sim_bootstrap completes successfully
+                echo "Waiting for simulation to complete..."
+                MAX_WAIT=1800  # 30 minutes max for simulation to complete
+                ELAPSED=0
+                INTERVAL=5
 
-                if grep -q -e "sim_bootstrap" -e "panicked" server.log; then
-                  echo "❌ Simulation failed; dumping last 200 lines of logs:"
-                  tail -n 200 server.log
-                  cat .server.pid | xargs kill || true
-                  exit 1
-                fi
+                while [ $ELAPSED -lt $MAX_WAIT ]; do
+                  # Check for simulation errors first
+                  if grep -q "ERROR sim_bootstrap" server.log; then
+                    echo "❌ Simulation failed with error; dumping last 200 lines of logs:"
+                    tail -n 200 server.log
+                    exit 1
+                  fi
+
+                  # Check for successful completion
+                  if grep -q "transitioning to realtime" server.log; then
+                    echo "✅ Simulation completed successfully!"
+                    # Verify health check is now available
+                    if wait4x http http://localhost:5253/health --timeout 30s; then
+                      echo "✅ Health check passed!"
+                      exit 0
+                    else
+                      echo "⚠️ Simulation completed but health check failed"
+                      tail -n 200 server.log
+                      exit 1
+                    fi
+                  fi
+
+                  sleep $INTERVAL
+                  ELAPSED=$((ELAPSED + INTERVAL))
+                  echo "Still waiting... ($ELAPSED seconds elapsed)"
+                done
+
+                echo "❌ Simulation timed out after $MAX_WAIT seconds"
+                echo "Dumping last 200 lines of logs:"
+                tail -n 200 server.log
+                exit 1
                 EOF
                 chmod +x $out/bin/simulation-runner
               '';
