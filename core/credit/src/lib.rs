@@ -551,7 +551,7 @@ where
             .get_without_audit::<RequireVerifiedCustomerForAccount>()
             .await?
             .value()
-            .unwrap_or(true);
+            .unwrap_or_default();
         if require_verified && !customer.kyc_verification.is_verified() {
             return Err(CoreCreditError::CustomerNotVerified);
         }
@@ -625,7 +625,7 @@ where
             .get_without_audit::<RequireVerifiedCustomerForAccount>()
             .await?
             .value()
-            .unwrap_or(true);
+            .unwrap_or_default();
         if require_verified && !customer.kyc_verification.is_verified() {
             return Err(CoreCreditError::CustomerNotVerified);
         }
