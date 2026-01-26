@@ -692,28 +692,23 @@ jobs:
       - get: dagster-src
         trigger: true
       - task: build
+        privileged: true
         config:
           platform: linux
           image_resource:
             type: registry-image
             source:
-              repository: gcr.io/kaniko-project/executor
-              tag: debug
+              repository: concourse/oci-build-task
           inputs:
           - name: dagster-src
             path: repo
           outputs:
           - name: image
+          params:
+            CONTEXT: repo/dagster
+            DOCKERFILE: repo/dagster/Dockerfile
           run:
-            path: /kaniko/executor
-            args:
-              - --dockerfile=Dockerfile
-              - --context=repo/dagster
-              - --use-new-run
-              - --single-snapshot
-              - --cache=false
-              - --no-push
-              - --tar-path=image/image.tar
+            path: build
       - put: dagster-edge-image
         params:
           image: image/image.tar
