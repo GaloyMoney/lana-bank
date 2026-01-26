@@ -6,7 +6,7 @@ use obix::out::OutboxEventMarker;
 use tracing_macros::record_error_severity;
 
 use crate::{
-    event::CoreReportEvent,
+    CoreReportEvent,
     report::{NewReport, ReportRepo},
     report_run::{NewReportRun, ReportRunRepo, ReportRunState, ReportRunType},
 };
@@ -52,7 +52,7 @@ where
 {
     dagster: dagster::Dagster,
     report_runs: ReportRunRepo<E>,
-    reports: ReportRepo<E>,
+    reports: ReportRepo,
 }
 
 impl<E> SyncReportsJobInit<E>
@@ -62,7 +62,7 @@ where
     pub fn new(
         dagster: dagster::Dagster,
         report_runs: ReportRunRepo<E>,
-        reports: ReportRepo<E>,
+        reports: ReportRepo,
     ) -> Self {
         Self {
             dagster,
@@ -108,7 +108,7 @@ where
 {
     dagster: dagster::Dagster,
     report_runs: ReportRunRepo<E>,
-    reports: ReportRepo<E>,
+    reports: ReportRepo,
 }
 
 #[async_trait]
