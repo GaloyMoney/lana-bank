@@ -173,11 +173,8 @@ where
         })
     }
 
-    pub(super) async fn begin_op_with_clock(
-        &self,
-        clock: &es_entity::clock::ClockHandle,
-    ) -> Result<es_entity::DbOp<'static>, CreditFacilityError> {
-        Ok(self.repo.begin_op_with_clock(clock).await?)
+    pub(super) async fn begin_op(&self) -> Result<es_entity::DbOp<'static>, CreditFacilityError> {
+        Ok(self.repo.begin_op().await?)
     }
 
     #[record_error_severity]

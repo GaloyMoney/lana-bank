@@ -4,7 +4,6 @@ use std::sync::Arc;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use es_entity::clock::ClockHandle;
 use governance::{
     ApprovalProcessType, Governance, GovernanceAction, GovernanceEvent, GovernanceObject,
 };
@@ -37,7 +36,6 @@ where
     credit_facilities: Arc<CreditFacilities<Perms, E>>,
     governance: Arc<Governance<Perms, E>>,
     ledger: Arc<CreditLedger>,
-    clock: ClockHandle,
 }
 
 impl<Perms, E> Clone for ApproveDisbursal<Perms, E>
@@ -54,7 +52,6 @@ where
             credit_facilities: self.credit_facilities.clone(),
             governance: self.governance.clone(),
             ledger: self.ledger.clone(),
-            clock: self.clock.clone(),
         }
     }
 }
@@ -76,14 +73,12 @@ where
         credit_facilities: Arc<CreditFacilities<Perms, E>>,
         governance: Arc<Governance<Perms, E>>,
         ledger: Arc<CreditLedger>,
-        clock: ClockHandle,
     ) -> Self {
         Self {
             disbursals,
             credit_facilities,
             governance,
             ledger,
-            clock,
         }
     }
 
@@ -99,12 +94,7 @@ where
         id: impl es_entity::RetryableInto<DisbursalId>,
         approved: bool,
     ) -> Result<Disbursal, CoreCreditError> {
-        let mut op = self
-            .disbursals
-            .begin_op_with_clock(&self.clock)
-            .await?
-            .with_db_time()
-            .await?;
+        let mut op = self.disbursals.begin_op().await?.with_db_time().await?;
 
         let disbursal = match self
             .disbursals

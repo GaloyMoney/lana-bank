@@ -7,7 +7,6 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_accounting::LedgerTransactionInitiator;
-use es_entity::clock::ClockHandle;
 use obix::out::OutboxEventMarker;
 
 use crate::{
@@ -24,7 +23,6 @@ where
 {
     payments: Arc<Payments<Perms, E>>,
     obligations: Arc<Obligations<Perms, E>>,
-    clock: ClockHandle,
 }
 
 impl<Perms, E> Clone for AllocateCreditFacilityPayment<Perms, E>
@@ -36,7 +34,6 @@ where
         Self {
             payments: self.payments.clone(),
             obligations: self.obligations.clone(),
-            clock: self.clock.clone(),
         }
     }
 }
@@ -48,22 +45,15 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    pub fn new(
-        payments: Arc<Payments<Perms, E>>,
-        obligations: Arc<Obligations<Perms, E>>,
-        clock: ClockHandle,
-    ) -> Self {
+    pub fn new(payments: Arc<Payments<Perms, E>>, obligations: Arc<Obligations<Perms, E>>) -> Self {
         Self {
             payments,
             obligations,
-            clock,
         }
     }
 
-    pub(super) async fn begin_op_with_internal_clock(
-        &self,
-    ) -> Result<es_entity::DbOp<'_>, CoreCreditError> {
-        Ok(self.obligations.begin_op_with_clock(&self.clock).await?)
+    pub(super) async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, CoreCreditError> {
+        Ok(self.obligations.begin_op().await?)
     }
 
     #[instrument(

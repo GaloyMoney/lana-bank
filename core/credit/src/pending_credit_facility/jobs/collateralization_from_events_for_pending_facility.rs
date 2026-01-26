@@ -143,7 +143,6 @@ where
     async fn process_persistent_message(
         &self,
         message: &PersistentOutboxEvent<E>,
-        clock: &es_entity::clock::ClockHandle,
     ) -> Result<(), Box<dyn std::error::Error>> {
         match message.as_event() {
             Some(
@@ -157,8 +156,7 @@ where
                 Span::current().record("event_type", event.as_ref());
                 Span::current().record("pending_credit_facility_id", tracing::field::display(id));
 
-                self.update_collateralization_from_events(*id, clock)
-                    .await?;
+                self.update_collateralization_from_events(*id).await?;
             }
             _ => {}
         }
@@ -170,7 +168,6 @@ where
     async fn process_ephemeral_message(
         &self,
         message: &EphemeralOutboxEvent<E>,
-        clock: &es_entity::clock::ClockHandle,
     ) -> Result<(), Box<dyn std::error::Error>> {
         match message.payload.as_event() {
             Some(CorePriceEvent::PriceUpdated { price, .. }) => {
@@ -178,7 +175,7 @@ where
                 Span::current().record("handled", true);
                 Span::current().record("event_type", tracing::field::display(&message.event_type));
 
-                self.update_collateralization_from_price_event(*price, clock)
+                self.update_collateralization_from_price_event(*price)
                     .await?;
             }
             _ => {}
@@ -195,9 +192,8 @@ where
     pub(super) async fn update_collateralization_from_events(
         &self,
         id: PendingCreditFacilityId,
-        clock: &es_entity::clock::ClockHandle,
     ) -> Result<PendingCreditFacility, PendingCreditFacilityError> {
-        let mut op = self.repo.begin_op_with_clock(clock).await?;
+        let mut op = self.repo.begin_op().await?;
         let mut pending_facility = self.repo.find_by_id_in_op(&mut op, id).await?;
 
         tracing::Span::current().record(
@@ -233,7 +229,6 @@ where
     pub(super) async fn update_collateralization_from_price_event(
         &self,
         price: PriceOfOneBTC,
-        clock: &es_entity::clock::ClockHandle,
     ) -> Result<(), PendingCreditFacilityError> {
         let mut has_next_page = true;
         let mut after: Option<PendingCreditFacilitiesByCollateralizationRatioCursor> = None;
@@ -254,7 +249,7 @@ where
                 pending_credit_facilities.end_cursor,
                 pending_credit_facilities.has_next_page,
             );
-            let mut op = self.repo.begin_op_with_clock(clock).await?;
+            let mut op = self.repo.begin_op().await?;
 
             let mut at_least_one = false;
 
@@ -325,12 +320,12 @@ where
                         Some(event) => {
                             match event {
                                 OutboxEvent::Persistent(e) => {
-                                    self.process_persistent_message(&e, current_job.clock()).await?;
+                                    self.process_persistent_message(&e).await?;
                                     state.sequence = e.sequence;
                                     current_job.update_execution_state(state).await?;
                                 }
                                 OutboxEvent::Ephemeral(e) => {
-                                    self.process_ephemeral_message(e.as_ref(), current_job.clock()).await?;
+                                    self.process_ephemeral_message(e.as_ref()).await?;
                                 }
                             }
                         }

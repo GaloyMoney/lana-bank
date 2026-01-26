@@ -148,7 +148,7 @@ where
 
                             let mut db = self
                                 .repo
-                                .begin_op_with_clock(current_job.clock())
+                                .begin_op()
                                 .await?;
                             self.process_message(&mut db, message.as_ref()).await?;
                             state.sequence = message.sequence;

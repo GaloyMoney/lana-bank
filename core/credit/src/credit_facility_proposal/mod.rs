@@ -39,7 +39,6 @@ where
     repo: Arc<CreditFacilityProposalRepo<E>>,
     authz: Arc<Perms>,
     governance: Arc<Governance<Perms, E>>,
-    clock: es_entity::clock::ClockHandle,
 }
 impl<Perms, E> Clone for CreditFacilityProposals<Perms, E>
 where
@@ -51,7 +50,6 @@ where
             repo: self.repo.clone(),
             authz: self.authz.clone(),
             governance: self.governance.clone(),
-            clock: self.clock.clone(),
         }
     }
 }
@@ -72,7 +70,7 @@ where
         governance: Arc<Governance<Perms, E>>,
         clock: es_entity::clock::ClockHandle,
     ) -> Result<Self, CreditFacilityProposalError> {
-        let repo = CreditFacilityProposalRepo::new(pool, publisher, clock.clone());
+        let repo = CreditFacilityProposalRepo::new(pool, publisher, clock);
         match governance
             .init_policy(crate::APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS)
             .await
@@ -88,7 +86,6 @@ where
             repo: Arc::new(repo),
             authz,
             governance,
-            clock,
         })
     }
 
@@ -133,7 +130,7 @@ where
 
         match proposal.conclude_customer_approval(approved) {
             es_entity::Idempotent::Executed(_) => {
-                let mut db = self.repo.begin_op_with_clock(&self.clock).await?;
+                let mut db = self.repo.begin_op().await?;
 
                 if approved {
                     self.governance

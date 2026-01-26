@@ -135,7 +135,7 @@ where
                         Some(message) => {
                             let mut db = self
                                 .liquidation_repo
-                                .begin_op_with_clock(current_job.clock())
+                                .begin_op()
                                 .await?;
 
                             state.sequence = message.sequence;
@@ -143,7 +143,7 @@ where
                                 .update_execution_state_in_op(&mut db, &state)
                                 .await?;
 
-                            let next = self.process_message(&mut db, message.as_ref(), current_job.clock()).await?;
+                            let next = self.process_message(&mut db, message.as_ref()).await?;
 
                             db.commit().await?;
 
@@ -194,7 +194,6 @@ where
         &self,
         db: &mut DbOp<'_>,
         message: &PersistentOutboxEvent<E>,
-        clock: &es_entity::clock::ClockHandle,
     ) -> Result<ControlFlow<()>, Box<dyn std::error::Error>> {
         use CoreCreditEvent::*;
 

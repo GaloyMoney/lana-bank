@@ -177,7 +177,7 @@ where
                 message = stream.next() => {
                     match message {
                         Some(message) => {
-                            let mut db = self.process.begin_op_with_internal_clock().await?;
+                            let mut db = self.process.begin_op().await?;
                             self.process_message(&mut db, &message).await?;
 
                             state.sequence = message.sequence;
