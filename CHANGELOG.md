@@ -1,3 +1,49 @@
+## [0.37.0] - 2026-01-26
+
+### 🚀 Features
+
+- Sumsub empty table and dep mapping (#3438)
+- Add documentation site using docusaurus (#3370)
+- Introduce eod job and time events (#3406)
+
+### 🐛 Bug Fixes
+
+- Wait for CSV generation job to complete in e2e test (#3450)
+
+### 🚜 Refactor
+
+- *(keycloak-client)* Use Url type for url field validation (#3447)
+- Custody to use inbox (#3285)
+- Removing core applicant crate (#3465)
+- Use EndOfDay event for customer activity status update (#3475)
+- Bootstrap to use clock ctrl (#3430)
+- Move KYC check configs to domain config system (#3469)
+
+### ⚙️ Miscellaneous Tasks
+
+- Bring back all file reports (#3439)
+- Fix release and prep release (#3440)
+- Use `prev_version` in prep release script (#3441)
+- Upgrade lodash (#3452)
+- Upgrade lodash for docusaurus (#3453)
+- Move to gotenberg and remove markdown2pdf for pdf creation (#3446)
+- Attempting to fix non deterministic behavior (#3454)
+- Fix postgres ssl for concourse (#3455)
+- Update claude.md (#3456)
+- New test (#3457)
+- Test 2 (#3458)
+- Test 3 (#3460)
+- Test 4 (#3461)
+- Test 5 (#3462)
+- Test 6 (#3463)
+- Test 7, making mailcrab optional (#3464)
+- Just needing one value for price interval (#3467)
+- Fix test 10 (#3470)
+- Remove unnecessary config option (#3468)
+- Update deny.toml and remove sec warnings (#3474)
+- Increase timeout (#3478)
+- Remove timeout for completion from disbursal_diff month scenario (#3480)
+- Remove timeouts for completion (#3484)
 ## [0.36.0] - 2026-01-23
 
 ### 🚀 Features
