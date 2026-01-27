@@ -5,7 +5,7 @@ use es_entity::*;
 use obix::out::OutboxEventMarker;
 
 use crate::primitives::WalletId;
-use crate::{event::CoreCustodyEvent, publisher::CustodyPublisher};
+use crate::{CoreCustodyEvent, publisher::CustodyPublisher};
 
 use super::{entity::*, error::*};
 

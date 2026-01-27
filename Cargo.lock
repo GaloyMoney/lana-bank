@@ -1404,6 +1404,7 @@ dependencies = [
 name = "core-custody"
 version = "0.0.0"
 dependencies = [
+ "anyhow",
  "async-graphql",
  "async-trait",
  "audit",
@@ -1428,6 +1429,7 @@ dependencies = [
  "sqlx",
  "strum",
  "thiserror 2.0.17",
+ "tokio",
  "tracing",
  "tracing-macros",
  "tracing-utils",

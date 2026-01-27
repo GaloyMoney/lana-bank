@@ -127,21 +127,22 @@ where
     ) -> Result<(), Box<dyn std::error::Error>> {
         #[allow(clippy::single_match)]
         match message.as_event() {
-            Some(
-                event @ CoreCustodyEvent::WalletBalanceChanged {
-                    id,
-                    new_balance,
-                    changed_at,
-                },
-            ) => {
+            Some(event @ CoreCustodyEvent::WalletBalanceUpdated { entity }) => {
                 message.inject_trace_parent();
                 Span::current().record("handled", true);
                 Span::current().record("event_type", event.as_ref());
 
+                let balance = entity
+                    .balance
+                    .expect("WalletBalanceUpdated must have balance");
+                let balance_updated_at = entity
+                    .balance_updated_at
+                    .expect("WalletBalanceUpdated must have balance_updated_at");
+
                 self.record_collateral_update_via_custodian_sync(
-                    *id,
-                    *new_balance,
-                    changed_at.date_naive(),
+                    entity.id,
+                    balance,
+                    balance_updated_at.date_naive(),
                 )
                 .await?;
             }

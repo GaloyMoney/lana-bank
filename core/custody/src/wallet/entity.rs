@@ -60,6 +60,20 @@ impl Wallet {
 
         Idempotent::Executed(())
     }
+
+    pub fn current_balance(&self) -> Option<Satoshis> {
+        self.events.iter_all().rev().find_map(|event| match event {
+            WalletEvent::BalanceChanged { new_balance, .. } => Some(*new_balance),
+            _ => None,
+        })
+    }
+
+    pub fn last_balance_update(&self) -> Option<DateTime<Utc>> {
+        self.events.iter_all().rev().find_map(|event| match event {
+            WalletEvent::BalanceChanged { changed_at, .. } => Some(*changed_at),
+            _ => None,
+        })
+    }
 }
 
 impl TryFromEvents<WalletEvent> for Wallet {
