@@ -76,7 +76,7 @@ impl JobRunner for EmailSenderRunner {
             .domain_configs
             .get_without_audit::<NotificationFromEmail>()
             .await?;
-        let from_email = match from_email_config.value() {
+        let from_email = match from_email_config.maybe_value() {
             Some(from_email) => from_email,
             None => {
                 tracing::warn!("no configured notification from email; skipping email");
@@ -88,7 +88,7 @@ impl JobRunner for EmailSenderRunner {
             .domain_configs
             .get_without_audit::<NotificationFromName>()
             .await?;
-        let from_name = match from_name_config.value() {
+        let from_name = match from_name_config.maybe_value() {
             Some(from_name) => from_name,
             None => {
                 tracing::warn!("no configured notification from name; skipping email");

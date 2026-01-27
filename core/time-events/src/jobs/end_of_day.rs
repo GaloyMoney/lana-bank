@@ -99,12 +99,8 @@ where
                 .get_without_audit::<ClosingTime>()
                 .await?;
             let timezone_config = self.domain_configs.get_without_audit::<Timezone>().await?;
-            let closing_time = closing_time_config
-                .value()
-                .expect("closing time must have a default");
-            let timezone = timezone_config
-                .value()
-                .expect("timezone must have a default");
+            let closing_time = closing_time_config.value();
+            let timezone = timezone_config.value();
             let clock = current_job.clock().clone();
 
             let schedule = ClosingSchedule::new(timezone, closing_time, &clock);

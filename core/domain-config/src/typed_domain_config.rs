@@ -1,6 +1,9 @@
 use std::marker::PhantomData;
 
-use crate::{ConfigSpec, ConfigType, DomainConfigError, DomainConfigKey, ValueKind, Visibility};
+use crate::{
+    ConfigSpec, ConfigType, DefaultedConfig, DomainConfigError, DomainConfigKey, ValueKind,
+    Visibility,
+};
 
 use crate::entity::DomainConfig;
 
@@ -18,7 +21,11 @@ impl<C: ConfigSpec> TypedDomainConfig<C> {
         })
     }
 
-    pub fn value(&self) -> Option<<C::Kind as ValueKind>::Value> {
+    /// Returns the config value as `Option<T>`.
+    ///
+    /// Use this for configs without compile-time defaults, or when you need
+    /// to distinguish between "not set" and "set to default".
+    pub fn maybe_value(&self) -> Option<<C::Kind as ValueKind>::Value> {
         self.entity.current_value::<C>().or_else(C::default_value)
     }
 
@@ -36,5 +43,17 @@ impl<C: ConfigSpec> TypedDomainConfig<C> {
 
     pub fn config_type(&self) -> ConfigType {
         self.entity.config_type
+    }
+}
+
+impl<C: DefaultedConfig> TypedDomainConfig<C> {
+    /// Returns the config value directly.
+    ///
+    /// This method is only available for configs with compile-time defaults
+    /// (those defined with a `default:` clause). The value is guaranteed to
+    /// exist because the default is always available.
+    pub fn value(&self) -> <C::Kind as ValueKind>::Value {
+        self.maybe_value()
+            .expect("DefaultedConfig guarantees a value")
     }
 }

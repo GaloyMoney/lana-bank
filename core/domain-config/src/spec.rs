@@ -213,6 +213,10 @@ pub trait InternalConfig: ConfigSpec {}
 /// Implemented automatically by `define_exposed_config!` macro.
 pub trait ExposedConfig: ConfigSpec {}
 
+/// Marker trait for configs with compile-time defaults.
+/// Implemented automatically by macros when a `default:` clause is provided.
+pub trait DefaultedConfig: ConfigSpec {}
+
 fn json_value_type(value: &serde_json::Value) -> &'static str {
     match value {
         serde_json::Value::Null => "null",

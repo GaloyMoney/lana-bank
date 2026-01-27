@@ -327,13 +327,11 @@ where
         let sumsub_key = exposed_domain_configs
             .get_without_audit::<SumsubApiKey>()
             .await?
-            .value()
-            .unwrap_or_default();
+            .value();
         let sumsub_secret = exposed_domain_configs
             .get_without_audit::<SumsubApiSecret>()
             .await?
-            .value()
-            .unwrap_or_default();
+            .value();
 
         let sumsub_config = SumsubConfig {
             sumsub_key,
