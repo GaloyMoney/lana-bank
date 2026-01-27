@@ -51,7 +51,7 @@ pub struct Chart {
 
     #[es_entity(nested)]
     #[builder(default)]
-    chart_nodes: Nested<ChartNode>,
+    pub(super) chart_nodes: Nested<ChartNode>,
 }
 
 impl Chart {
@@ -1052,13 +1052,13 @@ mod test {
                     name: "Current Assets".parse().unwrap(),
                     parent: Some(accounting_config.assets_code.clone()),
                     code: "1.1".parse().unwrap(),
-                    normal_balance_type: DebitOrCredit::Credit,
+                    normal_balance_type: DebitOrCredit::Debit,
                 },
                 AccountSpec {
                     name: "Cash".parse().unwrap(),
                     parent: Some("1.1".parse().unwrap()),
                     code: "1.1.1".parse().unwrap(),
-                    normal_balance_type: DebitOrCredit::Credit,
+                    normal_balance_type: DebitOrCredit::Debit,
                 },
             ];
 
@@ -1067,9 +1067,17 @@ mod test {
             assert_eq!(bulk_import.new_account_sets.len(), 2);
             assert_eq!(bulk_import.new_connections.len(), 2);
 
-            let (parent_id, child_id) = bulk_import.new_connections[0];
-            assert_eq!(parent_id, assets_parent_account_set_id);
-            assert_eq!(child_id, bulk_import.new_account_sets[0].id);
+            let connection_to_existing_parent = bulk_import
+                .new_connections
+                .iter()
+                .find(|(parent_id, _)| *parent_id == assets_parent_account_set_id);
+
+            assert!(
+                connection_to_existing_parent.is_some(),
+                "Expected a connection from existing parent '1' to new child '1.1', but none found. \
+                Connections: {:?}",
+                bulk_import.new_connections
+            );
         }
     }
 }

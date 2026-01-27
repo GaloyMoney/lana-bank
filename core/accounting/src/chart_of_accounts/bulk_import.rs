@@ -58,11 +58,20 @@ impl<'a> BulkAccountImport<'a> {
                     ));
                 }
 
-                if let Some(parent_code) = spec.parent {
-                    parent_code_to_children_ids
-                        .entry(parent_code)
-                        .or_default()
-                        .push(node_id);
+                if let Some(parent_code) = &spec.parent {
+                    if let Some(parent_node) = self
+                        .chart
+                        .chart_nodes
+                        .find_persisted_mut(|n| n.spec.code == *parent_code)
+                    {
+                        let _ = parent_node.add_child_node(node_id);
+                        new_connections.push((parent_node.account_set_id, new_account_set.id));
+                    } else {
+                        parent_code_to_children_ids
+                            .entry(parent_code.clone())
+                            .or_default()
+                            .push(node_id);
+                    }
                 } else {
                     new_connections.push((self.chart.account_set_id, new_account_set.id));
                 }
