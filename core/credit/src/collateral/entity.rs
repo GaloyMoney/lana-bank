@@ -7,12 +7,15 @@ use std::cmp::Ordering;
 
 use es_entity::*;
 
-use crate::primitives::{
-    CalaAccountId, CollateralAction, CollateralId, CreditFacilityId, CustodyWalletId, LedgerTxId,
-    LiquidationId, PendingCreditFacilityId, Satoshis,
+use crate::{
+    liquidation::{Liquidation, NewLiquidation},
+    primitives::{
+        CalaAccountId, CollateralAction, CollateralId, CreditFacilityId, CustodyWalletId,
+        LedgerTxId, LiquidationId, PendingCreditFacilityId, PriceOfOneBTC, Satoshis, UsdCents,
+    },
 };
 
-use super::CollateralUpdate;
+use super::{CollateralUpdate, error::CollateralError};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -44,6 +47,15 @@ pub enum CollateralEvent {
         abs_diff: Satoshis,
         action: CollateralAction,
     },
+    LiquidationStarted {
+        liquidation_id: LiquidationId,
+        trigger_price: PriceOfOneBTC,
+        initially_expected_to_receive: UsdCents,
+        initially_estimated_to_liquidate: Satoshis,
+    },
+    LiquidationCompleted {
+        liquidation_id: LiquidationId,
+    },
 }
 
 #[derive(EsEntity, Builder)]
@@ -55,6 +67,10 @@ pub struct Collateral {
     pub pending_credit_facility_id: PendingCreditFacilityId,
     pub custody_wallet_id: Option<CustodyWalletId>,
     pub amount: Satoshis,
+
+    #[es_entity(nested)]
+    #[builder(default)]
+    liquidations: Nested<Liquidation>,
 
     events: EntityEvents<CollateralEvent>,
 }
@@ -135,9 +151,16 @@ impl Collateral {
         liquidation_id: LiquidationId,
         amount_sent: Satoshis,
         effective: chrono::NaiveDate,
-    ) -> Idempotent<CollateralUpdate> {
+    ) -> Result<Idempotent<CollateralUpdate>, CollateralError> {
         if amount_sent == Satoshis::ZERO {
-            return Idempotent::AlreadyApplied;
+            return Ok(Idempotent::AlreadyApplied);
+        }
+
+        if amount_sent > self.amount {
+            return Err(CollateralError::InsufficientCollateral {
+                requested: amount_sent,
+                available: self.amount,
+            });
         }
 
         let new_amount = self.amount - amount_sent;
@@ -153,12 +176,112 @@ impl Collateral {
 
         self.amount = new_amount;
 
-        Idempotent::Executed(CollateralUpdate {
+        Ok(Idempotent::Executed(CollateralUpdate {
             tx_id,
             abs_diff: amount_sent,
             action: CollateralAction::Remove,
             effective,
+        }))
+    }
+
+    /// Initiates a new liquidation for this collateral.
+    /// Returns error if there's already an active liquidation or no collateral to liquidate.
+    pub fn initiate_liquidation(
+        &mut self,
+        new_liquidation: NewLiquidation,
+        trigger_price: PriceOfOneBTC,
+        initially_expected_to_receive: UsdCents,
+        initially_estimated_to_liquidate: Satoshis,
+    ) -> Result<Idempotent<()>, CollateralError> {
+        if self.amount == Satoshis::ZERO {
+            return Err(CollateralError::NoCollateralToLiquidate);
+        }
+
+        if self.has_active_liquidation() {
+            return Err(CollateralError::LiquidationAlreadyActive);
+        }
+
+        let liquidation_id = new_liquidation.id;
+
+        self.liquidations.add_new(new_liquidation);
+
+        self.events.push(CollateralEvent::LiquidationStarted {
+            liquidation_id,
+            trigger_price,
+            initially_expected_to_receive,
+            initially_estimated_to_liquidate,
+        });
+
+        Ok(Idempotent::Executed(()))
+    }
+
+    /// Completes the liquidation with the given ID.
+    pub fn complete_liquidation(
+        &mut self,
+        liquidation_id: LiquidationId,
+    ) -> Result<Idempotent<()>, CollateralError> {
+        let liquidation = self
+            .liquidations
+            .get_persisted_mut(&liquidation_id)
+            .ok_or(CollateralError::LiquidationNotFound(liquidation_id))?;
+
+        match liquidation.complete() {
+            Idempotent::AlreadyApplied => return Ok(Idempotent::AlreadyApplied),
+            Idempotent::Executed(()) => {}
+        }
+
+        self.events
+            .push(CollateralEvent::LiquidationCompleted { liquidation_id });
+
+        Ok(Idempotent::Executed(()))
+    }
+
+    /// Returns true if there's an active (uncompleted) liquidation.
+    pub fn has_active_liquidation(&self) -> bool {
+        self.active_liquidation_id().is_some()
+    }
+
+    /// Returns the ID of the active liquidation, if any.
+    fn active_liquidation_id(&self) -> Option<LiquidationId> {
+        self.events
+            .iter_all()
+            .rev()
+            .find_map(|event| match event {
+                CollateralEvent::LiquidationCompleted { .. } => Some(None),
+                CollateralEvent::LiquidationStarted { liquidation_id, .. } => {
+                    Some(Some(*liquidation_id))
+                }
+                _ => None,
+            })
+            .flatten()
+    }
+
+    /// Returns a reference to the active liquidation, if any.
+    pub fn active_liquidation(&self) -> Option<&Liquidation> {
+        self.active_liquidation_id().map(|id| {
+            self.liquidations
+                .get_persisted(&id)
+                .expect("Active liquidation not found in nested entities")
         })
+    }
+
+    /// Returns a mutable reference to the active liquidation, if any.
+    pub fn active_liquidation_mut(&mut self) -> Option<&mut Liquidation> {
+        self.active_liquidation_id().map(|id| {
+            self.liquidations
+                .get_persisted_mut(&id)
+                .expect("Active liquidation not found in nested entities")
+        })
+    }
+
+    /// Returns a reference to a liquidation by ID.
+    pub fn liquidation(&self, liquidation_id: &LiquidationId) -> Option<&Liquidation> {
+        self.liquidations.get_persisted(liquidation_id)
+    }
+
+    /// Returns a mutable reference to a liquidation by ID.
+    pub fn liquidation_mut(&mut self, liquidation_id: &LiquidationId) -> Option<&mut Liquidation> {
+        self.liquidations.get_persisted_mut(liquidation_id)
     }
 }
 
@@ -217,6 +340,8 @@ impl TryFromEvents<CollateralEvent> for Collateral {
                 } => {
                     builder = builder.amount(*new_value);
                 }
+                CollateralEvent::LiquidationStarted { .. } => {}
+                CollateralEvent::LiquidationCompleted { .. } => {}
             }
         }
         builder.events(events).build()

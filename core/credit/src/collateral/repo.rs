@@ -7,6 +7,7 @@ use tracing_macros::record_error_severity;
 
 use crate::{
     event::CoreCreditEvent,
+    liquidation::LiquidationRepo,
     primitives::{CollateralId, CustodyWalletId},
     publisher::CreditFacilityPublisher,
 };
@@ -28,6 +29,9 @@ where
     pool: PgPool,
     publisher: CreditFacilityPublisher<E>,
     clock: ClockHandle,
+
+    #[es_repo(nested)]
+    liquidations: LiquidationRepo<E>,
 }
 
 impl<E> CollateralRepo<E>
@@ -35,10 +39,12 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     pub fn new(pool: &PgPool, publisher: &CreditFacilityPublisher<E>, clock: ClockHandle) -> Self {
+        let liquidations = LiquidationRepo::new(pool, publisher, clock.clone());
         Self {
             pool: pool.clone(),
             publisher: publisher.clone(),
             clock,
+            liquidations,
         }
     }
 
@@ -65,6 +71,7 @@ where
             pool: self.pool.clone(),
             publisher: self.publisher.clone(),
             clock: self.clock.clone(),
+            liquidations: self.liquidations.clone(),
         }
     }
 }
