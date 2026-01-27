@@ -44,7 +44,11 @@ async fn create_chart_of_accounts(
 
         accounting
             .fiscal_year()
-            .init_for_chart(&Subject::System(SystemActor::Bootstrap), opening_date, chart.id)
+            .init_for_chart(
+                &Subject::System(SystemActor::Bootstrap),
+                opening_date,
+                chart.id,
+            )
             .await?;
     }
 
