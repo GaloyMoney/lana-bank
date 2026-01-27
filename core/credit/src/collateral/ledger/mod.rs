@@ -1,5 +1,5 @@
 mod error;
-mod templates;
+pub mod templates;
 
 use tracing::instrument;
 use tracing_macros::record_error_severity;
