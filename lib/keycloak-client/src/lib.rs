@@ -39,11 +39,17 @@ impl KeycloakClient {
                 http_client.clone(),
             );
 
-        KeycloakAdmin::new(
-            self.connection.url.as_str(),
-            service_account_token_retriever,
-            http_client,
-        )
+        // Workaround: Strip trailing slash from URL to avoid double slashes in API paths.
+        //
+        // The `url` crate normalizes "http://host:port" to "http://host:port/" (with trailing slash).
+        // The `keycloak` crate builds paths via `format!("{}/admin/...", url)`, creating "http://host:port//admin/...".
+        // Keycloak 26.4+ rejects paths with double slashes due to stricter URL normalization enforcement.
+        //
+        // See: https://github.com/keycloak/keycloak/issues/44269
+        // See: https://github.com/keycloak/keycloak/issues/43763
+        let url = self.connection.url.as_str().trim_end_matches('/');
+
+        KeycloakAdmin::new(url, service_account_token_retriever, http_client)
     }
 
     /// Creates a user in Keycloak with the given email and lanaId attribute.

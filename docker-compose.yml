@@ -11,7 +11,7 @@ services:
     volumes: ["./dev/otel-agent-config.yaml:/etc/otel-agent-config.yaml"]
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.3.2
+    image: quay.io/keycloak/keycloak:26.5.2
     ports: [8081:8080, 9000:9000]
     environment:
       KC_DB: postgres
