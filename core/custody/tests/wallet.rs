@@ -51,13 +51,12 @@ async fn create_test_wallet(wallets: &WalletRepo<event::DummyEvent>) -> anyhow::
     Ok(wallet)
 }
 
-/// WalletBalanceUpdated event is published when a wallet balance changes.
+/// `WalletBalanceUpdated` is published when a custody wallet balance changes.
 ///
-/// The event contains a snapshot of the wallet, including:
-/// - id: The wallet identifier
-/// - address: The wallet address
-/// - network: The wallet network
-/// - balance: The updated balance snapshot (must be present)
+/// In practice this is triggered when custody processes a custodian balance update (webhook/sync) and records a balance change.
+///
+/// This event is consumed by `core_credit` to sync collateral amounts from custody into the credit facility ledger.
+/// We publish a snapshot of the wallet at the time of the balance change, including `balance` (which must be present for this event).
 #[tokio::test]
 async fn wallet_balance_updated_publishes_event() -> anyhow::Result<()> {
     let (wallets, outbox, clock) = setup().await?;
