@@ -243,11 +243,20 @@ where
         &self,
         credit_facility_id: CreditFacilityId,
     ) -> Result<Collateral, CollateralError> {
-        // The credit_facility_id is stored in the Collateral entity
-        // We need a custom query for this
-        self.repo
-            .find_by_credit_facility_id(credit_facility_id)
-            .await
+        let result = self
+            .repo
+            .list_for_credit_facility_id_by_created_at(
+                credit_facility_id,
+                Default::default(),
+                es_entity::ListDirection::Descending,
+            )
+            .await?;
+
+        result
+            .entities
+            .into_iter()
+            .next()
+            .ok_or_else(|| CollateralError::EsEntityError(es_entity::EsEntityError::NotFound))
     }
 
     /// Checks if a collateral has an active liquidation.
