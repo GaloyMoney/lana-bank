@@ -35,13 +35,13 @@ async fn setup() -> anyhow::Result<(
     Ok((governance, outbox, pool))
 }
 
-/// ApprovalProcessConcluded event is published when a process concludes.
+/// `ApprovalProcessConcluded` is published when an approval process reaches a terminal state.
 ///
-/// The event contains a snapshot including:
-/// - id: The approval process id
-/// - process_type: The process type identifier
-/// - status: The final status (Approved or Denied)
-/// - target_ref: The target reference for the process
+/// This event is consumed by `core_deposit` to finalize withdrawal approvals and by `core_credit` to finalize disbursal approvals and credit facility proposal approvals.
+///
+/// This test uses `Governance::init_policy()` which defaults to system auto-approval, so the process concludes immediately when started.
+///
+/// The event contains a snapshot including the process id, process type, final status, and target reference.
 #[tokio::test]
 async fn approval_process_concluded_publishes_event() -> anyhow::Result<()> {
     let (governance, outbox, pool) = setup().await?;

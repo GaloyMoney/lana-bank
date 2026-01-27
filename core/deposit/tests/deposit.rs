@@ -165,9 +165,12 @@ async fn revert_deposit() -> anyhow::Result<()> {
     Ok(())
 }
 
-/// DepositAccountCreated event is published when `create_account` succeeds.
+/// `DepositAccountCreated` is published when a new deposit account is created via
+/// `CoreDeposit::create_account()`.
 ///
-/// The event includes the account id and account holder id.
+/// This event is consumed by `lana` notifications to send deposit-account-created emails.
+///
+/// The event contains a snapshot with the deposit account id and account holder id.
 #[tokio::test]
 async fn deposit_account_created_publishes_event() -> anyhow::Result<()> {
     let (deposit, customers, outbox, _jobs) = setup().await?;
@@ -199,9 +202,11 @@ async fn deposit_account_created_publishes_event() -> anyhow::Result<()> {
     Ok(())
 }
 
-/// DepositInitialized event is published when a deposit is recorded.
+/// `DepositInitialized` is published when a deposit is recorded via `CoreDeposit::record_deposit()`.
 ///
-/// The event includes the deposit id, account id, and amount.
+/// This event is consumed by `lana` deposit sync (SumSub export) and `lana` customer sync (update last activity date).
+///
+/// The event contains a snapshot with the deposit id, deposit account id, and amount.
 #[tokio::test]
 async fn deposit_initialized_publishes_event() -> anyhow::Result<()> {
     let (deposit, customers, outbox, _jobs) = setup().await?;
@@ -240,9 +245,12 @@ async fn deposit_initialized_publishes_event() -> anyhow::Result<()> {
     Ok(())
 }
 
-/// WithdrawalConfirmed event is published when a withdrawal is confirmed.
+/// `WithdrawalConfirmed` is published when a withdrawal is confirmed via
+/// `CoreDeposit::confirm_withdrawal()`.
 ///
-/// The event includes the withdrawal id, account id, and amount.
+/// This event is consumed by `lana` deposit sync (SumSub export) and `lana` customer sync (update last activity date).
+///
+/// The event contains a snapshot with the withdrawal id, deposit account id, and amount.
 #[tokio::test]
 async fn withdrawal_confirmed_publishes_event() -> anyhow::Result<()> {
     let (deposit, customers, outbox, _jobs) = setup().await?;
@@ -309,9 +317,11 @@ async fn withdrawal_confirmed_publishes_event() -> anyhow::Result<()> {
     Ok(())
 }
 
-/// DepositReverted event is published when a deposit is reverted.
+/// `DepositReverted` is published when a deposit is reverted via `CoreDeposit::revert_deposit()`.
 ///
-/// The event includes the deposit id, account id, and amount.
+/// This event is consumed by `lana` customer sync (update last activity date).
+///
+/// The event contains a snapshot with the deposit id, deposit account id, and amount.
 #[tokio::test]
 async fn deposit_reverted_publishes_event() -> anyhow::Result<()> {
     let (deposit, customers, outbox, _jobs) = setup().await?;
