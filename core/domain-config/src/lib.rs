@@ -479,12 +479,13 @@ where
 
     for (key, value) in settings {
         let domain_key: DomainConfigKey = key.clone().into();
-        let entry = registry::maybe_find_by_key(domain_key.as_str()).ok_or_else(|| {
-            DomainConfigError::InvalidKey(format!(
-                "Unknown domain config key: {}",
-                domain_key.as_str()
-            ))
-        })?;
+        let entry = match registry::maybe_find_by_key(domain_key.as_str()) {
+            Some(entry) => entry,
+            None => {
+                tracing::error!(key = %key, "Unknown domain config key, skipping");
+                continue;
+            }
+        };
 
         let mut config = repo.find_by_key_in_op(&mut db_tx, domain_key).await?;
         let changed = config.apply_update_from_json(entry, value)?.did_execute();
