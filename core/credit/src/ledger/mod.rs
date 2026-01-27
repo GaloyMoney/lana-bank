@@ -2558,12 +2558,15 @@ impl CreditLedger {
             facility_omnibus_parent_account_set_id,
             collateral_omnibus_parent_account_set_id,
             liquidation_proceeds_omnibus_parent_account_set_id,
+            payments_made_omnibus_parent_account_set_id,
+            interest_added_to_obligations_omnibus_parent_account_set_id,
             facility_parent_account_set_id,
             collateral_parent_account_set_id,
             collateral_in_liquidation_parent_account_set_id,
             interest_income_parent_account_set_id,
             fee_income_parent_account_set_id,
             payment_holding_parent_account_set_id,
+            uncovered_outstanding_parent_account_set_id,
             short_term_disbursed_integration_meta,
             long_term_disbursed_integration_meta,
             short_term_interest_integration_meta,
@@ -2589,6 +2592,21 @@ impl CreditLedger {
             op,
             self.liquidation_proceeds_omnibus_account_ids.account_set_id,
             *liquidation_proceeds_omnibus_parent_account_set_id,
+        )
+        .await?;
+
+        self.attach_charts_account_set(
+            op,
+            self.payments_made_omnibus_account_ids.account_set_id,
+            *payments_made_omnibus_parent_account_set_id,
+        )
+        .await?;
+
+        self.attach_charts_account_set(
+            op,
+            self.interest_added_to_obligations_omnibus_account_ids
+                .account_set_id,
+            *interest_added_to_obligations_omnibus_parent_account_set_id,
         )
         .await?;
 
@@ -2629,6 +2647,12 @@ impl CreditLedger {
             op,
             self.internal_account_sets.payment_holding.id,
             *payment_holding_parent_account_set_id,
+        )
+        .await?;
+        self.attach_charts_account_set(
+            op,
+            self.internal_account_sets.uncovered_outstanding.id,
+            *uncovered_outstanding_parent_account_set_id,
         )
         .await?;
 
