@@ -38,6 +38,12 @@ pub enum CollateralEvent {
         abs_diff: Satoshis,
         action: CollateralAction,
     },
+    UpdatedViaLiquidation {
+        liquidation_id: LiquidationId,
+        collateral_amount: Satoshis,
+        abs_diff: Satoshis,
+        action: CollateralAction,
+    },
 }
 
 #[derive(EsEntity, Builder)]
@@ -130,7 +136,29 @@ impl Collateral {
         amount_sent: Satoshis,
         effective: chrono::NaiveDate,
     ) -> Idempotent<CollateralUpdate> {
-        unimplemented!()
+        if amount_sent == Satoshis::ZERO {
+            return Idempotent::AlreadyApplied;
+        }
+
+        let new_amount = self.amount - amount_sent;
+
+        let tx_id = LedgerTxId::new();
+
+        self.events.push(CollateralEvent::UpdatedViaLiquidation {
+            liquidation_id,
+            abs_diff: amount_sent,
+            collateral_amount: new_amount,
+            action: CollateralAction::Remove,
+        });
+
+        self.amount = new_amount;
+
+        Idempotent::Executed(CollateralUpdate {
+            tx_id,
+            abs_diff: amount_sent,
+            action: CollateralAction::Remove,
+            effective,
+        })
     }
 }
 
@@ -180,6 +208,10 @@ impl TryFromEvents<CollateralEvent> for Collateral {
                     ..
                 }
                 | CollateralEvent::UpdatedViaCustodianSync {
+                    collateral_amount: new_value,
+                    ..
+                }
+                | CollateralEvent::UpdatedViaLiquidation {
                     collateral_amount: new_value,
                     ..
                 } => {

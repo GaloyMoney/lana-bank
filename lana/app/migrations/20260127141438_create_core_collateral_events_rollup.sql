@@ -11,6 +11,7 @@ CREATE TABLE core_collateral_events_rollup (
   collateral_amount BIGINT,
   credit_facility_id UUID,
   custody_wallet_id UUID,
+  liquidation_id UUID,
   pending_credit_facility_id UUID,
 
   -- Collection rollups
@@ -37,7 +38,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'updated_via_manual_input', 'updated_via_custodian_sync', 'updated') THEN
+  IF event_type NOT IN ('initialized', 'updated_via_manual_input', 'updated_via_custodian_sync', 'updated_via_liquidation', 'updated') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -61,6 +62,7 @@ BEGIN
        ELSE ARRAY[]::UUID[]
      END
 ;
+    new_row.liquidation_id := (NEW.event ->> 'liquidation_id')::UUID;
     new_row.pending_credit_facility_id := (NEW.event ->> 'pending_credit_facility_id')::UUID;
   ELSE
     -- Default all fields to current values
@@ -71,6 +73,7 @@ BEGIN
     new_row.credit_facility_id := current_row.credit_facility_id;
     new_row.custody_wallet_id := current_row.custody_wallet_id;
     new_row.ledger_tx_ids := current_row.ledger_tx_ids;
+    new_row.liquidation_id := current_row.liquidation_id;
     new_row.pending_credit_facility_id := current_row.pending_credit_facility_id;
   END IF;
 
@@ -89,6 +92,11 @@ BEGIN
       new_row.abs_diff := (NEW.event ->> 'abs_diff')::BIGINT;
       new_row.action := (NEW.event ->> 'action');
       new_row.collateral_amount := (NEW.event ->> 'collateral_amount')::BIGINT;
+    WHEN 'updated_via_liquidation' THEN
+      new_row.abs_diff := (NEW.event ->> 'abs_diff')::BIGINT;
+      new_row.action := (NEW.event ->> 'action');
+      new_row.collateral_amount := (NEW.event ->> 'collateral_amount')::BIGINT;
+      new_row.liquidation_id := (NEW.event ->> 'liquidation_id')::UUID;
     WHEN 'updated' THEN
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
   END CASE;
@@ -105,6 +113,7 @@ BEGIN
     credit_facility_id,
     custody_wallet_id,
     ledger_tx_ids,
+    liquidation_id,
     pending_credit_facility_id
   )
   VALUES (
@@ -119,6 +128,7 @@ BEGIN
     new_row.credit_facility_id,
     new_row.custody_wallet_id,
     new_row.ledger_tx_ids,
+    new_row.liquidation_id,
     new_row.pending_credit_facility_id
   );
 

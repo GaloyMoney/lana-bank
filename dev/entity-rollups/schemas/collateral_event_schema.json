@@ -111,6 +111,35 @@
         "action"
       ],
       "type": "object"
+    },
+    {
+      "properties": {
+        "abs_diff": {
+          "$ref": "#/$defs/Satoshis"
+        },
+        "action": {
+          "$ref": "#/$defs/CollateralAction"
+        },
+        "collateral_amount": {
+          "$ref": "#/$defs/Satoshis"
+        },
+        "liquidation_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "const": "updated_via_liquidation",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "liquidation_id",
+        "collateral_amount",
+        "abs_diff",
+        "action"
+      ],
+      "type": "object"
     }
   ],
   "title": "CollateralEvent"
