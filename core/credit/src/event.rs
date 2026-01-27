@@ -137,6 +137,7 @@ pub enum CoreCreditEvent {
     PartialLiquidationInitiated {
         liquidation_id: LiquidationId,
         credit_facility_id: CreditFacilityId,
+        collateral_id: CollateralId,
         customer_id: CustomerId,
         trigger_price: PriceOfOneBTC,
         initially_expected_to_receive: UsdCents,

@@ -104,6 +104,7 @@ where
                     initially_estimated_to_liquidate,
                 } => Some(CoreCreditEvent::PartialLiquidationInitiated {
                     credit_facility_id: entity.id,
+                    collateral_id: entity.collateral_id,
                     liquidation_id: *liquidation_id,
                     customer_id: entity.customer_id,
                     trigger_price: *trigger_price,
