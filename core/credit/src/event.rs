@@ -149,7 +149,6 @@ pub enum CoreCreditEvent {
         uncovered_outstanding_account_id: CalaAccountId,
     },
     PartialLiquidationCollateralSentOut {
-        liquidation_id: LiquidationId,
         credit_facility_id: CreditFacilityId,
         amount: Satoshis,
         ledger_tx_id: LedgerTxId,
@@ -161,15 +160,12 @@ pub enum CoreCreditEvent {
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
         payment_id: PaymentId,
-        facility_payment_holding_account_id: CalaAccountId,
-        facility_proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccountId,
-        facility_uncovered_outstanding_account_id: CalaAccountId,
         ledger_tx_id: LedgerTxId,
         recorded_at: DateTime<Utc>,
         effective: chrono::NaiveDate,
     },
     PartialLiquidationCompleted {
-        collateral_id: CollateralId,
         credit_facility_id: CreditFacilityId,
+        collateral_id: CollateralId,
     },
 }

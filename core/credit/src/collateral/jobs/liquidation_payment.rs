@@ -12,7 +12,7 @@ use job::*;
 use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
-use crate::CollateralId;
+use crate::{CollateralId, CollateralRepo};
 use crate::{
     credit_facility::CreditFacilityRepo,
     event::CoreCreditEvent,
@@ -51,6 +51,7 @@ where
     outbox: Outbox<E>,
     payment_repo: Arc<PaymentRepo<E>>,
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
+    collateral_repo: Arc<CollateralRepo<E>>,
     ledger: Arc<CreditLedger>,
 }
 
@@ -62,12 +63,14 @@ where
         outbox: &Outbox<E>,
         payment_repo: Arc<PaymentRepo<E>>,
         credit_facility_repo: Arc<CreditFacilityRepo<E>>,
+        collateral_repo: Arc<CollateralRepo<E>>,
         ledger: Arc<CreditLedger>,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
             payment_repo,
             credit_facility_repo,
+            collateral_repo,
             ledger,
         }
     }
@@ -94,6 +97,7 @@ where
             outbox: self.outbox.clone(),
             payment_repo: self.payment_repo.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
+            collateral_repo: self.collateral_repo.clone(),
             ledger: self.ledger.clone(),
         }))
     }
@@ -107,6 +111,7 @@ where
     outbox: Outbox<E>,
     payment_repo: Arc<PaymentRepo<E>>,
     credit_facility_repo: Arc<CreditFacilityRepo<E>>,
+    collateral_repo: Arc<CollateralRepo<E>>,
     ledger: Arc<CreditLedger>,
 }
 
@@ -191,9 +196,6 @@ where
                     credit_facility_id,
                     collateral_id,
                     payment_id,
-                    facility_payment_holding_account_id,
-                    facility_proceeds_from_liquidation_account_id,
-                    facility_uncovered_outstanding_account_id,
                     ..
                 },
             ) if *collateral_id == self.config.collateral_id => {
@@ -202,11 +204,20 @@ where
                 Span::current().record("event_type", event.as_ref());
                 Span::current().record("payment_id", tracing::field::display(payment_id));
 
+                let collateral = self
+                    .collateral_repo
+                    .find_by_id_in_op(&mut *db, collateral_id)
+                    .await?;
+
+                // TODO: Can be assembled elsewhere?
                 let payment_ledger_account_ids = PaymentLedgerAccountIds {
-                    facility_payment_holding_account_id: *facility_payment_holding_account_id,
-                    facility_uncovered_outstanding_account_id:
-                        *facility_uncovered_outstanding_account_id,
-                    payment_source_account_id: facility_proceeds_from_liquidation_account_id.into(),
+                    facility_payment_holding_account_id: collateral
+                        .facility_payment_holding_account_id,
+                    facility_uncovered_outstanding_account_id: collateral
+                        .facility_uncovered_outstanding_account_id,
+                    payment_source_account_id: (&collateral
+                        .facility_proceeds_from_liquidation_account_id)
+                        .into(),
                 };
 
                 self.record_payment(

@@ -10,7 +10,7 @@ use std::cmp::Ordering;
 use es_entity::*;
 
 use crate::{
-    PaymentId, RecordProceedsFromLiquidationData,
+    FacilityProceedsFromLiquidationAccountId, PaymentId, RecordProceedsFromLiquidationData,
     primitives::{
         CalaAccountId, CollateralAction, CollateralId, CreditFacilityId, CustodyWalletId,
         LedgerTxId, LiquidationId, PendingCreditFacilityId, Satoshis,
@@ -51,25 +51,26 @@ pub enum CollateralEvent {
     /// This Collateral has become subject of liquidation with
     /// `liquidation_id`. It will renmain such until
     /// `ExitedLiquidation` event is emitted.
-    EnteredLiquidation {
-        liquidation_id: LiquidationId,
-    },
+    EnteredLiquidation { liquidation_id: LiquidationId },
 
     /// Portion of this Collateral was sent to a liquidation with
     /// `liquidation_id`.
     SentToLiquidationViaManualInput {
         amount: Satoshis,
         liquidation_id: LiquidationId,
+        ledger_tx_id: LedgerTxId,
     },
 
-    ProceedsFromLiquidationReceived {},
+    ProceedsFromLiquidationReceived {
+        amount: UsdCents,
+        ledger_tx_id: LedgerTxId,
+        payment_id: PaymentId,
+    },
 
     /// This Collateral that has previously been subject of
     /// liquidation with `liquidation_id` is no longer subject of the
     /// liquidation.
-    ExitedLiquidation {
-        liquidation_id: LiquidationId,
-    },
+    ExitedLiquidation { liquidation_id: LiquidationId },
 }
 
 #[derive(EsEntity, Builder)]
@@ -93,7 +94,12 @@ pub struct Collateral {
 
     /// Holds proceeds received from liquidator for the connected
     /// facility.
-    facility_proceeds_from_liquidation_account_id: crate::FacilityProceedsFromLiquidationAccountId,
+    pub(crate) facility_proceeds_from_liquidation_account_id:
+        FacilityProceedsFromLiquidationAccountId,
+
+    pub(crate) facility_uncovered_outstanding_account_id: CalaAccountId,
+
+    pub(crate) facility_payment_holding_account_id: CalaAccountId,
 
     /// Holds parts of collateral of the connected facility, that have
     /// already been liquidated.
@@ -197,9 +203,12 @@ impl Collateral {
             .record_proceeds_from_liquidation(amount_received, payment_id, ledger_tx_id)
             .did_execute()
         {
-            // TODO: Is this needed?
             self.events
-                .push(CollateralEvent::ProceedsFromLiquidationReceived {});
+                .push(CollateralEvent::ProceedsFromLiquidationReceived {
+                    amount: amount_received,
+                    ledger_tx_id,
+                    payment_id,
+                });
 
             Idempotent::Executed(RecordProceedsFromLiquidationData {
                 liquidation_proceeds_omnibus_account_id: self
@@ -280,6 +289,7 @@ impl Collateral {
                 .push(CollateralEvent::SentToLiquidationViaManualInput {
                     amount: abs_diff,
                     liquidation_id,
+                    ledger_tx_id: tx_id,
                 });
 
             let _ = self
