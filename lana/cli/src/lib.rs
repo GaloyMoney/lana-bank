@@ -9,8 +9,8 @@ mod startup_domain_config;
 use anyhow::Context;
 use chacha20poly1305::{ChaCha20Poly1305, KeyInit, aead::OsRng};
 use clap::{Parser, Subcommand};
-use std::{fs, path::PathBuf};
-use tracing_utils::{error, info};
+use std::{fs, path::PathBuf, time::Duration};
+use tracing_utils::{error, info, warn};
 
 pub use self::build_info::BuildInfo;
 use self::config::{Config, EnvSecrets};
@@ -248,8 +248,20 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
     info!("Sending shutdown signal to servers");
     let _ = shutdown_send.send(());
 
-    for handle in server_handles {
-        let _ = handle.await;
+    const SERVER_SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(10);
+    let shutdown_all = async {
+        for handle in server_handles {
+            let _ = handle.await;
+        }
+    };
+    if tokio::time::timeout(SERVER_SHUTDOWN_TIMEOUT, shutdown_all)
+        .await
+        .is_err()
+    {
+        warn!(
+            "Server shutdown timed out after {:?}",
+            SERVER_SHUTDOWN_TIMEOUT
+        );
     }
     info!("Server handles finished");
 
