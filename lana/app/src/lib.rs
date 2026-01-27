@@ -228,3 +228,27 @@ pub mod time_events {
     pub type TimeEvents = core_time_events::TimeEvents;
     pub use core_time_events::error;
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_sumsub_configs_are_registered() {
+        // Verify that SumSub configs from core-customer are in the registry
+        let all_keys: Vec<_> = domain_config::registry::all_specs()
+            .map(|s| s.key)
+            .collect();
+
+        println!("Registered config keys: {:?}", all_keys);
+
+        assert!(
+            domain_config::registry::maybe_find_by_key("sumsub-api-key").is_some(),
+            "sumsub-api-key should be registered. Found keys: {:?}",
+            all_keys
+        );
+        assert!(
+            domain_config::registry::maybe_find_by_key("sumsub-api-secret").is_some(),
+            "sumsub-api-secret should be registered. Found keys: {:?}",
+            all_keys
+        );
+    }
+}
