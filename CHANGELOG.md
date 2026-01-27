@@ -1,3 +1,29 @@
+## [0.39.0] - 2026-01-27
+
+### 🚀 Features
+
+- Change RequireVerifiedCustomerForAccount default to true (#3481)
+
+### 🐛 Bug Fixes
+
+- Doc generation (#3501)
+- Gracefully handle unknown domain config keys at startup (#3516)
+- Add timeout to server graceful shutdown (#3499)
+
+### 🚜 Refactor
+
+- Move SumSub credentials to domain config (#3486)
+- Custody public events (#3504)
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 0.38.0 [ci skip] (#3505)
+- Migrate from kaniko to oci-build-task (#3502)
+- Update_in_op for internal domain configs (#3503)
+- Remove redundant put step (#3507)
+- Restructure release job (#3509)
+- Update promote pr prefix (#3500)
+- Update Keycloak to 26.5.2 (#3523)
 ## [0.38.0] - 2026-01-27
 
 ### 🚀 Features
