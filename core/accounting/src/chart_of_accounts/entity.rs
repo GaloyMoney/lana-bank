@@ -624,6 +624,73 @@ mod test {
         s.parse::<AccountCode>().unwrap()
     }
 
+    fn account_specs_for_base_config() -> Vec<AccountSpec> {
+        vec![
+            AccountSpec {
+                name: "Assets".parse().unwrap(),
+                parent: None,
+                code: code("1"),
+                normal_balance_type: DebitOrCredit::Debit,
+            },
+            AccountSpec {
+                name: "Liabilities".parse().unwrap(),
+                parent: None,
+                code: code("2"),
+                normal_balance_type: DebitOrCredit::Credit,
+            },
+            AccountSpec {
+                name: "Equity".parse().unwrap(),
+                parent: None,
+                code: code("3"),
+                normal_balance_type: DebitOrCredit::Credit,
+            },
+            AccountSpec {
+                name: "Retained Earnings Gain".parse().unwrap(),
+                parent: Some(code("3")),
+                code: code("3.1"),
+                normal_balance_type: DebitOrCredit::Credit,
+            },
+            AccountSpec {
+                name: "Retained Earnings Loss".parse().unwrap(),
+                parent: Some(code("3")),
+                code: code("3.2"),
+                normal_balance_type: DebitOrCredit::Credit,
+            },
+            AccountSpec {
+                name: "Revenue".parse().unwrap(),
+                parent: None,
+                code: code("4"),
+                normal_balance_type: DebitOrCredit::Credit,
+            },
+            AccountSpec {
+                name: "Cost of Revenue".parse().unwrap(),
+                parent: None,
+                code: code("5"),
+                normal_balance_type: DebitOrCredit::Debit,
+            },
+            AccountSpec {
+                name: "Expenses".parse().unwrap(),
+                parent: None,
+                code: code("6"),
+                normal_balance_type: DebitOrCredit::Debit,
+            },
+        ]
+    }
+
+    fn base_config() -> AccountingBaseConfig {
+        AccountingBaseConfig::try_new(
+            code("1"),
+            code("2"),
+            code("3"),
+            code("3.1"),
+            code("3.2"),
+            code("4"),
+            code("5"),
+            code("6"),
+        )
+        .unwrap()
+    }
+
     #[test]
     fn errors_for_create_child_node_if_parent_node_does_not_exist() {
         let (mut chart, _) = default_chart();
@@ -878,73 +945,6 @@ mod test {
     mod configure_with_initial_accounts {
         use super::*;
 
-        fn account_specs_for_base_config() -> Vec<AccountSpec> {
-            vec![
-                AccountSpec {
-                    name: "Assets".parse().unwrap(),
-                    parent: None,
-                    code: code("1"),
-                    normal_balance_type: DebitOrCredit::Debit,
-                },
-                AccountSpec {
-                    name: "Liabilities".parse().unwrap(),
-                    parent: None,
-                    code: code("2"),
-                    normal_balance_type: DebitOrCredit::Credit,
-                },
-                AccountSpec {
-                    name: "Equity".parse().unwrap(),
-                    parent: None,
-                    code: code("3"),
-                    normal_balance_type: DebitOrCredit::Credit,
-                },
-                AccountSpec {
-                    name: "Retained Earnings Gain".parse().unwrap(),
-                    parent: Some(code("3")),
-                    code: code("3.1"),
-                    normal_balance_type: DebitOrCredit::Credit,
-                },
-                AccountSpec {
-                    name: "Retained Earnings Loss".parse().unwrap(),
-                    parent: Some(code("3")),
-                    code: code("3.2"),
-                    normal_balance_type: DebitOrCredit::Credit,
-                },
-                AccountSpec {
-                    name: "Revenue".parse().unwrap(),
-                    parent: None,
-                    code: code("4"),
-                    normal_balance_type: DebitOrCredit::Credit,
-                },
-                AccountSpec {
-                    name: "Cost of Revenue".parse().unwrap(),
-                    parent: None,
-                    code: code("5"),
-                    normal_balance_type: DebitOrCredit::Debit,
-                },
-                AccountSpec {
-                    name: "Expenses".parse().unwrap(),
-                    parent: None,
-                    code: code("6"),
-                    normal_balance_type: DebitOrCredit::Debit,
-                },
-            ]
-        }
-
-        fn base_config() -> AccountingBaseConfig {
-            AccountingBaseConfig::try_new(
-                code("1"),
-                code("2"),
-                code("3"),
-                code("3.1"),
-                code("3.2"),
-                code("4"),
-                code("5"),
-                code("6"),
-            )
-            .unwrap()
-        }
-
         #[test]
         fn first_call_returns_executed() {
             let mut chart = chart_from(initial_events());
@@ -1015,6 +1015,61 @@ mod test {
                 second_result,
                 Err(ChartOfAccountsError::BaseConfigAlreadyInitializedWithDifferentConfig)
             ));
+        }
+    }
+
+    mod import_accounts {
+        use super::*;
+
+        fn configured_chart() -> (Chart, CalaJournalId) {
+            let mut chart = chart_from(initial_events());
+            let journal_id = CalaJournalId::new();
+
+            let _ = chart
+                .configure_with_initial_accounts(
+                    account_specs_for_base_config(),
+                    base_config(),
+                    journal_id,
+                )
+                .unwrap();
+
+            hydrate_chart_of_accounts(&mut chart);
+
+            (chart, journal_id)
+        }
+
+        #[test]
+        fn import_accounts_attaches_to_existing_parent_account_set() {
+            let (mut chart, journal_id) = configured_chart();
+
+            let accounting_config = chart.accounting_base_config().unwrap();
+            let assets_parent_account_set_id = chart
+                .account_set_id_from_code(&accounting_config.assets_code)
+                .unwrap();
+
+            let added_account_specs = vec![
+                AccountSpec {
+                    name: "Current Assets".parse().unwrap(),
+                    parent: Some(accounting_config.assets_code.clone()),
+                    code: "1.1".parse().unwrap(),
+                    normal_balance_type: DebitOrCredit::Credit,
+                },
+                AccountSpec {
+                    name: "Cash".parse().unwrap(),
+                    parent: Some("1.1".parse().unwrap()),
+                    code: "1.1.1".parse().unwrap(),
+                    normal_balance_type: DebitOrCredit::Credit,
+                },
+            ];
+
+            let bulk_import = chart.import_accounts(added_account_specs, journal_id);
+
+            assert_eq!(bulk_import.new_account_sets.len(), 2);
+            assert_eq!(bulk_import.new_connections.len(), 2);
+
+            let (parent_id, child_id) = bulk_import.new_connections[0];
+            assert_eq!(parent_id, assets_parent_account_set_id);
+            assert_eq!(child_id, bulk_import.new_account_sets[0].id);
         }
     }
 }
