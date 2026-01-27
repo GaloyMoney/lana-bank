@@ -27,7 +27,7 @@ use jobs::wallet_collateral_sync;
 #[cfg(feature = "json-schema")]
 pub use entity::CollateralEvent;
 use error::CollateralError;
-use repo::CollateralRepo;
+pub(crate) use repo::CollateralRepo;
 
 /// Result of sending collateral to liquidation, containing all data needed for ledger posting.
 #[derive(Debug, Clone)]

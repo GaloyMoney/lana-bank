@@ -14,7 +14,8 @@ use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use crate::{
-    CoreCreditEvent, CreditFacilityId, LedgerOmnibusAccountIds, LiquidationRepo, NewLiquidation,
+    CollateralId, CoreCreditEvent, CreditFacilityId, LedgerOmnibusAccountIds, LiquidationRepo,
+    NewLiquidation,
     liquidation::{
         NewLiquidationBuilder,
         error::LiquidationError,
@@ -201,6 +202,7 @@ where
             self.create_if_not_exist_for_facility_in_op(
                 db,
                 *credit_facility_id,
+                *collateral_id,
                 NewLiquidation::builder()
                     .id(*liquidation_id)
                     .credit_facility_id(*credit_facility_id)
@@ -232,6 +234,7 @@ where
         &self,
         db: &mut DbOp<'_>,
         credit_facility_id: CreditFacilityId,
+        collateral_id: CollateralId,
         new_liquidation: &mut NewLiquidationBuilder,
     ) -> Result<(), LiquidationError> {
         let existing_liquidation = self
@@ -265,6 +268,7 @@ where
                     JobId::new(),
                     PartialLiquidationJobConfig::<E> {
                         liquidation_id: liquidation.id,
+                        collateral_id,
                         credit_facility_id,
                         _phantom: std::marker::PhantomData,
                     },
