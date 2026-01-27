@@ -336,6 +336,27 @@ impl AccountCode {
             Err(AccountCodeError::InvalidParent)
         }
     }
+
+    pub fn direct_parent_code(&self) -> Option<AccountCode> {
+        match self.sections.as_slice() {
+            [] => None,
+
+            [section] => {
+                let mut parent_section = section.clone();
+                parent_section.code.pop()?;
+
+                if parent_section.code.is_empty() {
+                    None
+                } else {
+                    Some(AccountCode::new(vec![parent_section]))
+                }
+            }
+
+            _ => Some(AccountCode::new(
+                self.sections[..self.sections.len() - 1].to_vec(),
+            )),
+        }
+    }
 }
 
 impl FromStr for AccountCode {
@@ -1518,6 +1539,40 @@ mod tests {
             let parent = "1.23".parse::<AccountCode>().unwrap();
             let child = "1.20".parse::<AccountCode>().unwrap();
             assert!(!parent.is_parent_of(&child.sections));
+        }
+    }
+
+    mod direct_parent_code {
+        use super::*;
+
+        #[test]
+        fn empty_sections_returns_none() {
+            let code = AccountCode::new(vec![]);
+            assert!(code.direct_parent_code().is_none());
+        }
+
+        #[test]
+        fn single_char_section_returns_none() {
+            let code = "1".parse::<AccountCode>().unwrap();
+            assert!(code.direct_parent_code().is_none());
+        }
+
+        #[test]
+        fn multi_char_single_section_returns_top_level_code() {
+            let code = "11".parse::<AccountCode>().unwrap();
+            let parent = code.direct_parent_code().unwrap();
+            assert_eq!(parent.to_string(), "1");
+        }
+
+        #[test]
+        fn multiple_sections_removes_last() {
+            let second_level_code = "11.01".parse::<AccountCode>().unwrap();
+            let second_level_parent = second_level_code.direct_parent_code().unwrap();
+            assert_eq!(second_level_parent.to_string(), "11");
+
+            let third_level_code = "11.01.0201".parse::<AccountCode>().unwrap();
+            let third_level_parent = third_level_code.direct_parent_code().unwrap();
+            assert_eq!(third_level_parent.to_string(), "11.01");
         }
     }
 
