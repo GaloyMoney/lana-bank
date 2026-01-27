@@ -220,6 +220,7 @@ where
         let collateral_ledger = collateral::ledger::CollateralLedger::init(
             cala,
             journal_id,
+            clock.clone(),
             ledger_arc.collateral_omnibus_account_ids().clone(),
         )
         .await?;
