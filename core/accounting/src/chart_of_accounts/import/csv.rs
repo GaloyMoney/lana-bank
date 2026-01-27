@@ -220,4 +220,21 @@ mod tests {
         assert_eq!(Some(&specs[2].code), specs[4].parent.as_ref());
         assert_eq!(&specs[4].code.to_string(), "11.01.0102");
     }
+
+    #[test]
+    fn parse_when_parent_does_not_exist_in_import_data() {
+        let data = r#"
+        100001,,,Operating Cash,Debit,
+        "#;
+        let parser = CsvParser::new(data.to_string());
+        let specs = parser.account_specs().unwrap();
+
+        assert_eq!(specs.len(), 1);
+        assert_eq!(specs[0].code.to_string(), "100001");
+
+        assert_eq!(
+            specs[0].parent.as_ref().map(|p| p.to_string()),
+            Some("1".to_string())
+        );
+    }
 }
