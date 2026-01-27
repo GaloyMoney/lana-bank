@@ -1,3 +1,14 @@
+## [0.38.1] - 2026-01-27
+
+### 🐛 Bug Fixes
+
+- Doc generation (#3501)
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 0.38.0 [ci skip] (#3505)
+- Migrate from kaniko to oci-build-task (#3502)
+- Update_in_op for internal domain configs (#3503)
 ## [0.38.0] - 2026-01-27
 
 ### 🚀 Features
