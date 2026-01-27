@@ -121,12 +121,15 @@ pub mod event {
     #[serde(tag = "module")]
     pub enum DummyEvent {
         CoreAccess(CoreAccessEvent),
+        #[serde(other)]
+        Unknown,
     }
 
     impl obix::out::OutboxEventMarker<CoreAccessEvent> for DummyEvent {
         fn as_event(&self) -> Option<&CoreAccessEvent> {
             match self {
                 Self::CoreAccess(event) => Some(event),
+                Self::Unknown => None,
             }
         }
     }

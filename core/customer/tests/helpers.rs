@@ -65,12 +65,15 @@ pub mod event {
     #[serde(tag = "module")]
     pub enum DummyEvent {
         CoreCustomer(CoreCustomerEvent),
+        #[serde(other)]
+        Unknown,
     }
 
     impl obix::out::OutboxEventMarker<CoreCustomerEvent> for DummyEvent {
         fn as_event(&self) -> Option<&CoreCustomerEvent> {
             match self {
                 Self::CoreCustomer(event) => Some(event),
+                Self::Unknown => None,
             }
         }
     }

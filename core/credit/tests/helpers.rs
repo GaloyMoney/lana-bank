@@ -239,6 +239,8 @@ pub mod event {
         CoreDeposit(CoreDepositEvent),
         Governance(GovernanceEvent),
         Price(CorePriceEvent),
+        #[serde(other)]
+        Unknown,
     }
 
     macro_rules! impl_event_marker {

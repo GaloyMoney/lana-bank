@@ -116,15 +116,18 @@ pub mod event {
     use serde::{Deserialize, Serialize};
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
-    #[serde(tag = "type")]
+    #[serde(tag = "module")]
     pub enum TestEvent {
         Accounting(CoreAccountingEvent),
+        #[serde(other)]
+        Unknown,
     }
 
     impl OutboxEventMarker<CoreAccountingEvent> for TestEvent {
         fn as_event(&self) -> Option<&CoreAccountingEvent> {
             match self {
                 TestEvent::Accounting(e) => Some(e),
+                TestEvent::Unknown => None,
             }
         }
     }

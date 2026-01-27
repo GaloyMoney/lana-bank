@@ -189,6 +189,8 @@ pub mod event {
         CoreCustomer(CoreCustomerEvent),
         CoreAccounting(CoreAccountingEvent),
         Governance(GovernanceEvent),
+        #[serde(other)]
+        Unknown,
     }
 
     macro_rules! impl_event_marker {
