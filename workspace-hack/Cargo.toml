@@ -19,7 +19,7 @@ publish = false
 ahash = { version = "0.8", default-features = false, features = ["compile-time-rng", "runtime-rng", "std"] }
 async-graphql = { version = "7", default-features = false, features = ["chrono", "dataloader", "playground", "tempfile", "tracing"] }
 axum = { version = "0.8", features = ["macros"] }
-base16ct = { version = "0.2", default-features = false, features = ["alloc"] }
+base16ct = { version = "1.0", default-features = false, features = ["alloc"] }
 base64 = { version = "0.22" }
 byteorder = { version = "1" }
 bytes = { version = "1", features = ["serde"] }
@@ -51,7 +51,7 @@ hyper = { version = "1", features = ["client", "http1", "http2", "server"] }
 hyper-util = { version = "0.1", features = ["client-legacy", "server-auto", "service"] }
 idna = { version = "1" }
 indexmap = { version = "2", features = ["serde"] }
-inout = { version = "0.1", default-features = false, features = ["block-padding"] }
+inout = { version = "0.2", default-features = false, features = ["block-padding"] }
 job = { version = "0.6", default-features = false, features = ["json-schema"] }
 lalrpop-util = { version = "0.22", features = ["lexer"] }
 log = { version = "0.4", default-features = false, features = ["std"] }
@@ -96,7 +96,7 @@ uuid = { version = "1", features = ["serde", "v4", "v7"] }
 ahash = { version = "0.8", default-features = false, features = ["compile-time-rng", "runtime-rng", "std"] }
 async-graphql = { version = "7", default-features = false, features = ["chrono", "dataloader", "playground", "tempfile", "tracing"] }
 axum = { version = "0.8", features = ["macros"] }
-base16ct = { version = "0.2", default-features = false, features = ["alloc"] }
+base16ct = { version = "1.0", default-features = false, features = ["alloc"] }
 base64 = { version = "0.22" }
 byteorder = { version = "1" }
 bytes = { version = "1", features = ["serde"] }
@@ -130,7 +130,7 @@ hyper = { version = "1", features = ["client", "http1", "http2", "server"] }
 hyper-util = { version = "0.1", features = ["client-legacy", "server-auto", "service"] }
 idna = { version = "1" }
 indexmap = { version = "2", features = ["serde"] }
-inout = { version = "0.1", default-features = false, features = ["block-padding"] }
+inout = { version = "0.2", default-features = false, features = ["block-padding"] }
 job = { version = "0.6", default-features = false, features = ["json-schema"] }
 lalrpop-util = { version = "0.22", features = ["lexer"] }
 log = { version = "0.4", default-features = false, features = ["std"] }
