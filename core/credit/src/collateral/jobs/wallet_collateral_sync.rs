@@ -134,15 +134,13 @@ where
 
                 let balance = entity
                     .balance
+                    .as_ref()
                     .expect("WalletBalanceUpdated must have balance");
-                let balance_updated_at = entity
-                    .balance_updated_at
-                    .expect("WalletBalanceUpdated must have balance_updated_at");
 
                 self.record_collateral_update_via_custodian_sync(
                     entity.id,
-                    balance,
-                    balance_updated_at.date_naive(),
+                    balance.amount,
+                    balance.updated_at.date_naive(),
                 )
                 .await?;
             }

@@ -57,8 +57,7 @@ async fn create_test_wallet(wallets: &WalletRepo<event::DummyEvent>) -> anyhow::
 /// - id: The wallet identifier
 /// - address: The wallet address
 /// - network: The wallet network
-/// - balance: The updated balance (must be present)
-/// - balance_updated_at: The time the balance was updated (must be present)
+/// - balance: The updated balance snapshot (must be present)
 #[tokio::test]
 async fn wallet_balance_updated_publishes_event() -> anyhow::Result<()> {
     let (wallets, outbox, clock) = setup().await?;
@@ -92,11 +91,7 @@ async fn wallet_balance_updated_publishes_event() -> anyhow::Result<()> {
     assert_eq!(recorded.id, updated_wallet.id);
     assert_eq!(recorded.address, updated_wallet.address);
     assert_eq!(recorded.network, updated_wallet.network);
-    assert_eq!(recorded.balance, updated_wallet.current_balance());
-    assert_eq!(
-        recorded.balance_updated_at,
-        updated_wallet.last_balance_update()
-    );
+    assert_eq!(recorded.balance, updated_wallet.balance());
 
     Ok(())
 }

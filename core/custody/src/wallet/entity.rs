@@ -10,6 +10,13 @@ use core_money::Satoshis;
 
 use crate::primitives::{CustodianId, WalletId, WalletNetwork};
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+pub struct WalletBalance {
+    pub amount: Satoshis,
+    pub updated_at: DateTime<Utc>,
+}
+
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -61,16 +68,15 @@ impl Wallet {
         Idempotent::Executed(())
     }
 
-    pub fn current_balance(&self) -> Option<Satoshis> {
+    pub fn balance(&self) -> Option<WalletBalance> {
         self.events.iter_all().rev().find_map(|event| match event {
-            WalletEvent::BalanceChanged { new_balance, .. } => Some(*new_balance),
-            _ => None,
-        })
-    }
-
-    pub fn last_balance_update(&self) -> Option<DateTime<Utc>> {
-        self.events.iter_all().rev().find_map(|event| match event {
-            WalletEvent::BalanceChanged { changed_at, .. } => Some(*changed_at),
+            WalletEvent::BalanceChanged {
+                new_balance,
+                changed_at,
+            } => Some(WalletBalance {
+                amount: *new_balance,
+                updated_at: *changed_at,
+            }),
             _ => None,
         })
     }
