@@ -241,6 +241,29 @@ impl InternalDomainConfigs {
     pub async fn seed_registered(&self) -> Result<(), DomainConfigError> {
         seed_registered_for_visibility(&self.repo, Visibility::Internal).await
     }
+
+    #[record_error_severity]
+    #[instrument(name = "domain_config.begin_op", skip(self))]
+    pub async fn begin_op(&self) -> Result<es_entity::DbOp<'static>, DomainConfigError> {
+        Ok(self.repo.begin_op().await?)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "domain_config.update_in_op", skip(self, op, value))]
+    pub async fn update_in_op<C>(
+        &self,
+        op: &mut es_entity::DbOp<'_>,
+        value: <C::Kind as ValueKind>::Value,
+    ) -> Result<(), DomainConfigError>
+    where
+        C: InternalConfig,
+    {
+        let mut config = self.repo.find_by_key_in_op(&mut *op, C::KEY).await?;
+        if config.update_value::<C>(value)?.did_execute() {
+            self.repo.update_in_op(op, &mut config).await?;
+        }
+        Ok(())
+    }
 }
 
 impl ExposedDomainConfigsReadOnly {
