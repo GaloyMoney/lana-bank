@@ -183,8 +183,14 @@ impl LanaApp {
         )
         .await?;
 
-        let customer_kyc =
-            CustomerKyc::init(&pool, &config.sumsub, &authz, &customers, &mut jobs).await?;
+        let customer_kyc = CustomerKyc::init(
+            &pool,
+            &exposed_domain_configs_readonly,
+            &authz,
+            &customers,
+            &mut jobs,
+        )
+        .await?;
 
         let deposit_sync = DepositSync::init(
             &mut jobs,

@@ -1,4 +1,5 @@
 pub mod callback;
+pub mod config;
 pub mod error;
 
 #[cfg(feature = "sumsub-testing")]
@@ -11,6 +12,7 @@ use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use domain_config::ExposedDomainConfigsReadOnly;
 use obix::inbox::{Inbox, InboxConfig, InboxEvent, InboxHandler, InboxResult};
 use obix::out::OutboxEventMarker;
 
@@ -20,8 +22,8 @@ use crate::{
 use callback::{KycCallbackPayload, ReviewAnswer, ReviewResult};
 use error::KycError;
 
-pub use sumsub::SumsubConfig;
-pub use sumsub::{ApplicantInfo, PermalinkResponse, SumsubClient};
+pub use config::{SumsubApiKey, SumsubApiSecret};
+pub use sumsub::{ApplicantInfo, PermalinkResponse, SumsubClient, SumsubConfig};
 
 #[cfg(feature = "graphql")]
 use async_graphql::*;
@@ -317,12 +319,27 @@ where
 {
     pub async fn init(
         pool: &PgPool,
-        config: &SumsubConfig,
+        exposed_domain_configs: &ExposedDomainConfigsReadOnly,
         authz: &Perms,
         customers: &Customers<Perms, E>,
         jobs: &mut job::Jobs,
     ) -> Result<Self, KycError> {
-        let sumsub_client = SumsubClient::new(config);
+        let sumsub_key = exposed_domain_configs
+            .get_without_audit::<SumsubApiKey>()
+            .await?
+            .value()
+            .unwrap_or_default();
+        let sumsub_secret = exposed_domain_configs
+            .get_without_audit::<SumsubApiSecret>()
+            .await?
+            .value()
+            .unwrap_or_default();
+
+        let sumsub_config = SumsubConfig {
+            sumsub_key,
+            sumsub_secret,
+        };
+        let sumsub_client = SumsubClient::new(&sumsub_config);
         let handler = KycCallbackHandler::new(customers);
 
         let inbox_config = InboxConfig::new(KYC_INBOX_JOB);

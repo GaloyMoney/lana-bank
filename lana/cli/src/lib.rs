@@ -28,10 +28,6 @@ struct Cli {
     config: PathBuf,
     #[clap(env = "PG_CON", default_value = "")]
     pg_con: String,
-    #[clap(env = "SUMSUB_KEY", default_value = "")]
-    sumsub_key: String,
-    #[clap(env = "SUMSUB_SECRET", default_value = "")]
-    sumsub_secret: String,
     #[clap(env = "SMTP_USERNAME", default_value = "")]
     smtp_username: String,
     #[clap(env = "SMTP_PASSWORD", default_value = "")]
@@ -85,8 +81,6 @@ pub async fn run() -> anyhow::Result<()> {
                 cli.config,
                 EnvSecrets {
                     pg_con: cli.pg_con,
-                    sumsub_key: cli.sumsub_key,
-                    sumsub_secret: cli.sumsub_secret,
                     smtp_username: cli.smtp_username,
                     smtp_password: cli.smtp_password,
                     encryption_key: cli.encryption_key,

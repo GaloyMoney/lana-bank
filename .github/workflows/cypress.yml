@@ -39,8 +39,8 @@ jobs:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
           TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
           SA_CREDS_BASE64: ${{ secrets.GOOGLE_SA_BASE64 }}
-          SUMSUB_KEY: ${{ secrets.SUMSUB_KEY }}
-          SUMSUB_SECRET: ${{ secrets.SUMSUB_SECRET }}
+          LANA_DOMAIN_CONFIG_SUMSUB_API_KEY: ${{ secrets.SUMSUB_KEY }}
+          LANA_DOMAIN_CONFIG_SUMSUB_API_SECRET: ${{ secrets.SUMSUB_SECRET }}
           TF_VAR_name_prefix: "gha"
       - run: nix develop -c make test-cypress-in-ci
       - uses: actions/upload-artifact@v4

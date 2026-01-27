@@ -1448,6 +1448,7 @@ dependencies = [
  "cloud-storage",
  "derive_builder",
  "document-storage",
+ "domain-config",
  "es-entity",
  "governance",
  "job",

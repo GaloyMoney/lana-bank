@@ -19,6 +19,7 @@ sumsub-testing = ["sumsub/sumsub-testing"]
 
 audit = { workspace = true }
 authz = { workspace = true }
+domain-config = { workspace = true }
 obix = { workspace = true }
 job = { workspace = true }
 governance = { workspace = true, optional = true }
