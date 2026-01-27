@@ -13,8 +13,19 @@ pub use svc_trait::*;
 
 /// Identifies the specific system actor performing an operation.
 /// Used to differentiate between external integrations, internal jobs, and CLI operations.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[derive(strum::Display, strum::EnumString, strum::AsRefStr)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    Serialize,
+    Deserialize,
+    strum::Display,
+    strum::EnumString,
+    strum::AsRefStr,
+)]
 #[strum(serialize_all = "kebab-case")]
 pub enum SystemActor {
     // External integrations
