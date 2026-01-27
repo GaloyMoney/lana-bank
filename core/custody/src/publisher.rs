@@ -1,7 +1,7 @@
 use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{
-    CoreCustodyEvent,
+    CoreCustodyEvent, PublicWallet,
     wallet::{Wallet, WalletEvent, error::WalletError},
 };
 
@@ -10,6 +10,17 @@ where
     E: OutboxEventMarker<CoreCustodyEvent>,
 {
     outbox: Outbox<E>,
+}
+
+impl<E> Clone for CustodyPublisher<E>
+where
+    E: OutboxEventMarker<CoreCustodyEvent>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            outbox: self.outbox.clone(),
+        }
+    }
 }
 
 impl<E> CustodyPublisher<E>
@@ -32,15 +43,8 @@ where
         let events = new_events
             .filter_map(|event| match &event.event {
                 Initialized { .. } => None,
-
-                BalanceChanged {
-                    new_balance,
-                    changed_at,
-                    ..
-                } => Some(CoreCustodyEvent::WalletBalanceChanged {
-                    id: entity.id,
-                    new_balance: *new_balance,
-                    changed_at: *changed_at,
+                BalanceChanged { .. } => Some(CoreCustodyEvent::WalletBalanceUpdated {
+                    entity: PublicWallet::from(entity),
                 }),
             })
             .collect::<Vec<_>>();
@@ -48,16 +52,5 @@ where
         self.outbox.publish_all_persisted(op, events).await?;
 
         Ok(())
-    }
-}
-
-impl<E> Clone for CustodyPublisher<E>
-where
-    E: OutboxEventMarker<CoreCustodyEvent>,
-{
-    fn clone(&self) -> Self {
-        Self {
-            outbox: self.outbox.clone(),
-        }
     }
 }

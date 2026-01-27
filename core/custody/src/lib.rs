@@ -4,8 +4,8 @@
 mod config;
 pub mod custodian;
 pub mod error;
-mod event;
 mod primitives;
+pub mod public;
 mod publisher;
 pub mod wallet;
 
@@ -19,9 +19,9 @@ use std::collections::HashMap;
 
 use es_entity::DbOp;
 use es_entity::clock::ClockHandle;
-pub use event::CoreCustodyEvent;
 use obix::inbox::{Inbox, InboxConfig, InboxEvent, InboxHandler, InboxResult};
 use obix::out::{Outbox, OutboxEventMarker};
+pub use public::*;
 pub use publisher::CustodyPublisher;
 
 use audit::AuditSvc;
