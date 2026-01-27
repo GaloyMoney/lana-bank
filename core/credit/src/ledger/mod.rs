@@ -3328,6 +3328,10 @@ impl CreditLedger {
     pub fn liquidation_proceeds_omnibus_account_ids(&self) -> &LedgerOmnibusAccountIds {
         &self.liquidation_proceeds_omnibus_account_ids
     }
+
+    pub fn collateral_omnibus_account_ids(&self) -> &LedgerOmnibusAccountIds {
+        &self.collateral_omnibus_account_ids
+    }
 }
 
 #[derive(Debug, Clone)]
