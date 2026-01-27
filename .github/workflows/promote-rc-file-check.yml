@@ -45,7 +45,7 @@ jobs:
             [ -z "$file" ] && continue
 
             # Check if file is CHANGELOG.md or under docs-site/
-            if [[ "$file" == "CHANGELOG.md" ]] || [[ "$file" == docs-site/* ]]; then
+            if [[ "$file" == "CHANGELOG.md" ]] || [[ "$file" =~ ^docs-site/ ]]; then
               echo "✓ Allowed: $file"
             else
               echo "✗ Not allowed: $file"
