@@ -715,6 +715,7 @@ pub enum PendingCreditFacilityCollateralizationState {
     UnderCollateralized,
 }
 
+#[derive(Debug, Clone, Copy)]
 pub struct CollateralUpdate {
     pub tx_id: LedgerTxId,
     pub abs_diff: Satoshis,

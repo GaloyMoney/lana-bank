@@ -29,6 +29,16 @@ pub use entity::CollateralEvent;
 use error::CollateralError;
 use repo::CollateralRepo;
 
+/// Result of sending collateral to liquidation, containing all data needed for ledger posting.
+#[derive(Debug, Clone)]
+pub struct SendCollateralToLiquidationResult {
+    pub ledger_tx_id: LedgerTxId,
+    pub amount: Satoshis,
+    pub collateral_account_id: CalaAccountId,
+    pub collateral_in_liquidation_account_id: CalaAccountId,
+    pub collateral_update: CollateralUpdate,
+}
+
 pub struct Collaterals<Perms, E>
 where
     Perms: PermissionCheck,
@@ -146,34 +156,35 @@ where
         Ok(res)
     }
 
+    /// Sends collateral to liquidation, updating both the nested Liquidation entity
+    /// and the Collateral's own amount, then posts to ledger.
     #[record_error_severity]
     #[instrument(
-        name = "collateral.record_collateral_update_via_liquidation_in_op",
+        name = "collateral.send_collateral_to_liquidation_in_op",
         skip(db, self)
     )]
-    pub(super) async fn record_collateral_update_via_liquidation_in_op(
+    pub(super) async fn send_collateral_to_liquidation_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
         collateral_id: CollateralId,
         liquidation_id: LiquidationId,
-        amount_sent: core_money::Satoshis,
+        amount: Satoshis,
         effective: chrono::NaiveDate,
-        collateral_in_liquidation_account_id: CalaAccountId,
         initiated_by: LedgerTransactionInitiator,
-    ) -> Result<Option<CollateralUpdate>, CollateralError> {
+    ) -> Result<Option<SendCollateralToLiquidationResult>, CollateralError> {
         let mut collateral = self.repo.find_by_id_in_op(&mut *db, collateral_id).await?;
 
-        let res = if let es_entity::Idempotent::Executed(data) = collateral
-            .record_collateral_update_via_liquidation(liquidation_id, amount_sent, effective)?
+        let res = if let es_entity::Idempotent::Executed(data) =
+            collateral.send_collateral_to_liquidation(liquidation_id, amount, effective)?
         {
             self.repo.update_in_op(db, &mut collateral).await?;
             self.ledger
                 .record_collateral_sent_to_liquidation_in_op(
                     db,
-                    data.tx_id,
-                    amount_sent,
-                    collateral.account_id,
-                    collateral_in_liquidation_account_id,
+                    data.ledger_tx_id,
+                    amount,
+                    data.collateral_account_id,
+                    data.collateral_in_liquidation_account_id,
                     initiated_by,
                 )
                 .await?;
@@ -185,8 +196,6 @@ where
         Ok(res)
     }
 
-    /// Creates a new liquidation for the given collateral via the Collateral aggregate.
-    /// This enforces invariants like "no active liquidation already in progress".
     /// Creates a new liquidation for the given collateral via the Collateral aggregate.
     /// This enforces invariants like "no active liquidation already in progress".
     #[record_error_severity]

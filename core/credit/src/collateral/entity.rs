@@ -15,7 +15,7 @@ use crate::{
     },
 };
 
-use super::{CollateralUpdate, error::CollateralError};
+use super::{CollateralUpdate, SendCollateralToLiquidationResult, error::CollateralError};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -146,41 +146,64 @@ impl Collateral {
         })
     }
 
-    pub fn record_collateral_update_via_liquidation(
+    /// Sends collateral to liquidation, updating both the nested Liquidation entity
+    /// and the Collateral's own amount. This is the single entry point for sending
+    /// collateral to liquidation through the Collateral aggregate.
+    ///
+    /// Returns the data needed for ledger posting.
+    pub fn send_collateral_to_liquidation(
         &mut self,
         liquidation_id: LiquidationId,
-        amount_sent: Satoshis,
+        amount: Satoshis,
         effective: chrono::NaiveDate,
-    ) -> Result<Idempotent<CollateralUpdate>, CollateralError> {
-        if amount_sent == Satoshis::ZERO {
+    ) -> Result<Idempotent<SendCollateralToLiquidationResult>, CollateralError> {
+        if amount == Satoshis::ZERO {
             return Ok(Idempotent::AlreadyApplied);
         }
 
-        if amount_sent > self.amount {
+        if amount > self.amount {
             return Err(CollateralError::InsufficientCollateral {
-                requested: amount_sent,
+                requested: amount,
                 available: self.amount,
             });
         }
 
-        let new_amount = self.amount - amount_sent;
+        // Get the nested liquidation
+        let liquidation = self
+            .liquidations
+            .get_persisted_mut(&liquidation_id)
+            .ok_or(CollateralError::LiquidationNotFound(liquidation_id))?;
 
-        let tx_id = LedgerTxId::new();
+        // Generate a single tx_id for both operations
+        let ledger_tx_id = LedgerTxId::new();
 
+        // Update the nested Liquidation entity
+        match liquidation.record_collateral_sent_out(amount, ledger_tx_id)? {
+            Idempotent::AlreadyApplied => return Ok(Idempotent::AlreadyApplied),
+            Idempotent::Executed(()) => {}
+        }
+
+        // Update Collateral's own amount
+        let new_amount = self.amount - amount;
         self.events.push(CollateralEvent::UpdatedViaLiquidation {
             liquidation_id,
-            abs_diff: amount_sent,
+            abs_diff: amount,
             collateral_amount: new_amount,
             action: CollateralAction::Remove,
         });
-
         self.amount = new_amount;
 
-        Ok(Idempotent::Executed(CollateralUpdate {
-            tx_id,
-            abs_diff: amount_sent,
-            action: CollateralAction::Remove,
-            effective,
+        Ok(Idempotent::Executed(SendCollateralToLiquidationResult {
+            ledger_tx_id,
+            amount,
+            collateral_account_id: self.account_id,
+            collateral_in_liquidation_account_id: liquidation.collateral_in_liquidation_account_id,
+            collateral_update: CollateralUpdate {
+                tx_id: ledger_tx_id,
+                abs_diff: amount,
+                action: CollateralAction::Remove,
+                effective,
+            },
         }))
     }
 
