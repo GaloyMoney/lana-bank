@@ -1409,6 +1409,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "core-credit-terms"
+version = "0.0.0"
+dependencies = [
+ "async-graphql",
+ "chrono",
+ "core-money",
+ "core-price",
+ "derive_builder",
+ "es-entity",
+ "rust_decimal",
+ "rust_decimal_macros",
+ "schemars 1.2.0",
+ "serde",
+ "strum",
+ "thiserror 2.0.17",
+]
+
+[[package]]
 name = "core-custody"
 version = "0.0.0"
 dependencies = [

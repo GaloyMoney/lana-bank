@@ -3,11 +3,16 @@ resolver = "2"
 members = [
   "lana/*",
   "core/*",
+  "core/credit/*",
   "lib/*",
   "dev/entity-rollups",
   "dev/custom-lints",
   "dev/public-events-schema",
   "workspace-hack",
+]
+exclude = [
+  "core/credit/src",
+  "core/credit/tests",
 ]
 
 [workspace.lints.rust]
