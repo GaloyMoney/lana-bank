@@ -3034,6 +3034,9 @@ export type SumsubPermalinkCreatePayload = {
 
 export type System = {
   __typename?: 'System';
+  /** The specific system actor that performed this action */
+  actor: Scalars['String']['output'];
+  /** The name of the application */
   name: Scalars['String']['output'];
 };
 
