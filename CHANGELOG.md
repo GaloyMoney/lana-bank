@@ -1,3 +1,36 @@
+## [0.38.0] - 2026-01-27
+
+### 🚀 Features
+
+- Add env var to optionally setup domain config during setup (#3487)
+
+### 🐛 Bug Fixes
+
+- Add missing payment tracking UI elements (#3489)
+- Simulation script on ci (#3488)
+
+### 🚜 Refactor
+
+- Public events in core/customer (#3434)
+- Refactor `chart` command to focus on base configuration (#3443)
+
+### 📚 Documentation
+
+- Update comment for Claude.md
+
+### 🧪 Testing
+
+- Make DummyEvent resilient to concurrent tests
+
+### ⚙️ Miscellaneous Tasks
+
+- Use clock from repo for begin_op (#3490)
+- Remove old job references used for migration (#3492)
+- Ignore all internal crates for dependabot (#3491)
+- Test 11 (#3473)
+- Open promote rc PR as draft (#3497)
+- Release 0.37.0 [ci skip] (#3498)
+- Bump obix
 ## [0.37.0] - 2026-01-26
 
 ### 🚀 Features
