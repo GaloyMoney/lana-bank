@@ -83,18 +83,21 @@ where
             )
             .await?;
 
+        let op = self.domain_configs.begin_op().await?;
+
         let charts_integration_meta = ResolvedChartOfAccountsIntegrationConfig::try_new(
             config,
             chart,
             &accounting_base_config,
         )?;
 
-        self.ledger
-            .attach_chart_of_accounts_account_sets(&charts_integration_meta)
-            .await?;
-
         self.domain_configs
             .update::<ResolvedChartOfAccountsIntegrationConfig>(charts_integration_meta.clone())
+            .await?;
+
+        let mut op = op.with_db_time().await?;
+        self.ledger
+            .attach_chart_of_accounts_account_sets_in_op(&mut op, &charts_integration_meta)
             .await?;
 
         Ok(charts_integration_meta.config)

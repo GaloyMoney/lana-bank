@@ -2413,12 +2413,11 @@ impl CreditLedger {
         Ok(())
     }
 
-    pub async fn attach_chart_of_accounts_account_sets(
+    pub async fn attach_chart_of_accounts_account_sets_in_op(
         &self,
+        op: &mut es_entity::DbOpWithTime<'_>,
         charts_integration_config: &ResolvedChartOfAccountsIntegrationConfig,
     ) -> Result<(), CreditLedgerError> {
-        let mut op = self.cala.begin_operation().await?;
-
         let Self {
             facility_omnibus_account_ids: _,
             collateral_omnibus_account_ids: _,
@@ -2456,40 +2455,40 @@ impl CreditLedger {
         } = &charts_integration_config;
 
         self.attach_charts_account_set(
-            &mut op,
+            op,
             self.facility_omnibus_account_ids.account_set_id,
             *facility_omnibus_parent_account_set_id,
         )
         .await?;
 
         self.attach_charts_account_set(
-            &mut op,
+            op,
             self.collateral_omnibus_account_ids.account_set_id,
             *collateral_omnibus_parent_account_set_id,
         )
         .await?;
 
         self.attach_charts_account_set(
-            &mut op,
+            op,
             self.liquidation_proceeds_omnibus_account_ids.account_set_id,
             *liquidation_proceeds_omnibus_parent_account_set_id,
         )
         .await?;
 
         self.attach_charts_account_set(
-            &mut op,
+            op,
             self.internal_account_sets.facility.id,
             *facility_parent_account_set_id,
         )
         .await?;
         self.attach_charts_account_set(
-            &mut op,
+            op,
             self.internal_account_sets.collateral.id,
             *collateral_parent_account_set_id,
         )
         .await?;
         self.attach_charts_account_set(
-            &mut op,
+            op,
             self.internal_account_sets
                 .liquidation
                 .collateral_in_liquidation
@@ -2498,54 +2497,52 @@ impl CreditLedger {
         )
         .await?;
         self.attach_charts_account_set(
-            &mut op,
+            op,
             self.internal_account_sets.interest_income.id,
             *interest_income_parent_account_set_id,
         )
         .await?;
         self.attach_charts_account_set(
-            &mut op,
+            op,
             self.internal_account_sets.fee_income.id,
             *fee_income_parent_account_set_id,
         )
         .await?;
         self.attach_charts_account_set(
-            &mut op,
+            op,
             self.internal_account_sets.payment_holding.id,
             *payment_holding_parent_account_set_id,
         )
         .await?;
 
         self.attach_short_term_disbursed_receivable_account_sets(
-            &mut op,
+            op,
             short_term_disbursed_integration_meta,
         )
         .await?;
         self.attach_long_term_disbursed_receivable_account_sets(
-            &mut op,
+            op,
             long_term_disbursed_integration_meta,
         )
         .await?;
 
         self.attach_short_term_interest_receivable_account_sets(
-            &mut op,
+            op,
             short_term_interest_integration_meta,
         )
         .await?;
 
         self.attach_long_term_interest_receivable_account_sets(
-            &mut op,
+            op,
             long_term_interest_integration_meta,
         )
         .await?;
 
         self.attach_overdue_disbursed_receivable_account_sets(
-            &mut op,
+            op,
             overdue_disbursed_integration_meta,
         )
         .await?;
-
-        op.commit().await?;
 
         Ok(())
     }
