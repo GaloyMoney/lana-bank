@@ -67,7 +67,7 @@ where
             .domain_configs
             .get::<ResolvedChartOfAccountsIntegrationConfig>()
             .await?;
-        if existing_module_config.value().is_some() {
+        if existing_module_config.maybe_value().is_some() {
             return Err(ChartOfAccountsIntegrationError::CreditConfigAlreadyExists);
         }
 
@@ -83,7 +83,7 @@ where
             )
             .await?;
 
-        let op = self.domain_configs.begin_op().await?;
+        let mut op = self.domain_configs.begin_op().await?;
 
         let charts_integration_meta = ResolvedChartOfAccountsIntegrationConfig::try_new(
             config,
@@ -92,13 +92,17 @@ where
         )?;
 
         self.domain_configs
-            .update::<ResolvedChartOfAccountsIntegrationConfig>(charts_integration_meta.clone())
+            .update_in_op::<ResolvedChartOfAccountsIntegrationConfig>(
+                &mut op,
+                charts_integration_meta.clone(),
+            )
             .await?;
 
         let mut op = op.with_db_time().await?;
         self.ledger
             .attach_chart_of_accounts_account_sets_in_op(&mut op, &charts_integration_meta)
             .await?;
+        op.commit().await?;
 
         Ok(charts_integration_meta.config)
     }
@@ -119,6 +123,6 @@ where
             .domain_configs
             .get::<ResolvedChartOfAccountsIntegrationConfig>()
             .await?;
-        Ok(config.value().map(|meta| meta.config))
+        Ok(config.maybe_value().map(|meta| meta.config))
     }
 }

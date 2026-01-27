@@ -76,10 +76,9 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let journal_id = helpers::init_journal(&cala).await?;
     let public_ids = PublicIds::new(&pool);
     let price = core_price::Price::init(&mut jobs, &outbox).await?;
-    let exposed_domain_configs = helpers::init_domain_configs(&pool, &authz).await?;
-
-    let internal_domain_configs = domain_config::InternalDomainConfigs::new(&pool);
-    internal_domain_configs.seed_registered().await?;
+    let exposed_domain_configs =
+        helpers::init_read_only_exposed_domain_configs(&pool, &authz).await?;
+    let internal_domain_configs = helpers::init_internal_domain_configs(&pool).await?;
     let credit = CoreCredit::init(
         &pool,
         Default::default(),

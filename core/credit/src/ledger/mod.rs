@@ -69,21 +69,6 @@ pub struct DisbursedReceivableAccountSets {
     non_domiciled_company: InternalAccountSetDetails,
 }
 
-impl DisbursedReceivableAccountSets {
-    #[allow(dead_code)]
-    fn account_set_ids(&self) -> Vec<CalaAccountSetId> {
-        vec![
-            self.individual.id,
-            self.government_entity.id,
-            self.private_company.id,
-            self.bank.id,
-            self.financial_institution.id,
-            self.foreign_agency_or_subsidiary.id,
-            self.non_domiciled_company.id,
-        ]
-    }
-}
-
 #[derive(Clone, Copy)]
 pub struct DisbursedReceivable {
     short_term: DisbursedReceivableAccountSets,
@@ -100,21 +85,6 @@ pub struct InterestReceivableAccountSets {
     financial_institution: InternalAccountSetDetails,
     foreign_agency_or_subsidiary: InternalAccountSetDetails,
     non_domiciled_company: InternalAccountSetDetails,
-}
-
-impl InterestReceivableAccountSets {
-    #[allow(dead_code)]
-    fn account_set_ids(&self) -> Vec<CalaAccountSetId> {
-        vec![
-            self.individual.id,
-            self.government_entity.id,
-            self.private_company.id,
-            self.bank.id,
-            self.financial_institution.id,
-            self.foreign_agency_or_subsidiary.id,
-            self.non_domiciled_company.id,
-        ]
-    }
 }
 
 #[derive(Clone, Copy)]
@@ -152,65 +122,6 @@ pub struct CreditFacilityInternalAccountSets {
     pub fee_income: InternalAccountSetDetails,
     pub uncovered_outstanding: InternalAccountSetDetails,
     pub payment_holding: InternalAccountSetDetails,
-}
-
-impl CreditFacilityInternalAccountSets {
-    #[allow(dead_code)]
-    fn account_set_ids(&self) -> Vec<CalaAccountSetId> {
-        let Self {
-            facility,
-            collateral,
-            liquidation:
-                LiquidationAccountSets {
-                    collateral_in_liquidation,
-                    liquidated_collateral,
-                    proceeds_from_liquidation,
-                },
-            interest_income,
-            fee_income,
-            uncovered_outstanding,
-            payment_holding,
-
-            disbursed_receivable:
-                DisbursedReceivable {
-                    short_term: disbursed_short_term,
-                    long_term: disbursed_long_term,
-                    overdue: disbursed_overdue,
-                },
-            disbursed_defaulted,
-            interest_receivable:
-                InterestReceivable {
-                    short_term: interest_short_term,
-                    long_term: interest_long_term,
-                },
-            interest_defaulted,
-        } = self;
-
-        let mut ids = vec![
-            facility.id,
-            collateral.id,
-            collateral_in_liquidation.id,
-            liquidated_collateral.id,
-            proceeds_from_liquidation.id,
-            interest_income.id,
-            fee_income.id,
-            uncovered_outstanding.id,
-            payment_holding.id,
-            disbursed_defaulted.id,
-            interest_defaulted.id,
-        ];
-        ids.extend(
-            disbursed_short_term
-                .account_set_ids()
-                .into_iter()
-                .chain(disbursed_long_term.account_set_ids())
-                .chain(disbursed_overdue.account_set_ids())
-                .chain(interest_short_term.account_set_ids())
-                .chain(interest_long_term.account_set_ids()),
-        );
-
-        ids
-    }
 }
 
 #[derive(Clone)]
@@ -2418,23 +2329,6 @@ impl CreditLedger {
         op: &mut es_entity::DbOpWithTime<'_>,
         charts_integration_config: &ResolvedChartOfAccountsIntegrationConfig,
     ) -> Result<(), CreditLedgerError> {
-        let Self {
-            facility_omnibus_account_ids: _,
-            collateral_omnibus_account_ids: _,
-            liquidation_proceeds_omnibus_account_ids: _,
-            internal_account_sets: _,
-
-            interest_added_to_obligations_omnibus_account_ids: _, // TODO: add to chart
-            payments_made_omnibus_account_ids: _,                 // TODO: add to chart
-
-            cala: _,
-            clock: _,
-            journal_id: _,
-            credit_facility_control_ids: _,
-            usd: _,
-            btc: _,
-        } = self;
-
         let ResolvedChartOfAccountsIntegrationConfig {
             config: _,
 

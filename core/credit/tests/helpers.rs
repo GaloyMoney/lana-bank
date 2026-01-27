@@ -4,7 +4,8 @@ use cala_ledger::CalaLedger;
 use core_accounting::{AccountingBaseConfig, CoreAccounting};
 use core_custody::{CustodyConfig, EncryptionConfig};
 use domain_config::{
-    ExposedDomainConfigs, ExposedDomainConfigsReadOnly, RequireVerifiedCustomerForAccount,
+    ExposedDomainConfigs, ExposedDomainConfigsReadOnly, InternalDomainConfigs,
+    RequireVerifiedCustomerForAccount,
 };
 use rand::Rng;
 
@@ -14,7 +15,7 @@ pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
     Ok(pool)
 }
 
-pub async fn init_domain_configs(
+pub async fn init_read_only_exposed_domain_configs(
     pool: &sqlx::PgPool,
     authz: &authz::dummy::DummyPerms<action::DummyAction, object::DummyObject>,
 ) -> anyhow::Result<ExposedDomainConfigsReadOnly> {
@@ -26,6 +27,14 @@ pub async fn init_domain_configs(
         .update::<RequireVerifiedCustomerForAccount>(&authz::dummy::DummySubject, false)
         .await;
     Ok(ExposedDomainConfigsReadOnly::new(pool))
+}
+
+pub async fn init_internal_domain_configs(
+    pool: &sqlx::PgPool,
+) -> anyhow::Result<InternalDomainConfigs> {
+    let internal_configs = InternalDomainConfigs::new(pool);
+    internal_configs.seed_registered().await?;
+    Ok(internal_configs)
 }
 
 pub fn custody_config() -> CustodyConfig {
