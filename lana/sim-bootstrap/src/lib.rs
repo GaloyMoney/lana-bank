@@ -12,7 +12,7 @@ use es_entity::clock::{ClockController, ClockHandle};
 use rust_decimal_macros::dec;
 use tracing::{Instrument, Span, info, instrument};
 
-use lana_app::{app::LanaApp, primitives::*};
+use lana_app::{app::LanaApp, deposit::RequireVerifiedCustomerForAccount, primitives::*};
 
 pub use config::*;
 
@@ -29,6 +29,11 @@ pub async fn run(
     }
 
     let sub = superuser_subject(&superuser_email, app).await?;
+
+    // Disable KYC requirement to allow creating deposit accounts for unverified customers
+    app.exposed_domain_configs()
+        .update::<RequireVerifiedCustomerForAccount>(&sub, false)
+        .await?;
 
     create_term_templates(&sub, app).await?;
 

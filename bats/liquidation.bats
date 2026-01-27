@@ -6,6 +6,7 @@ PERSISTED_LOG_FILE="liquidation.e2e-logs"
 RUN_LOG_FILE="liquidation.run.e2e-logs"
 
 setup_file() {
+  export LANA_DOMAIN_CONFIG_REQUIRE_VERIFIED_CUSTOMER_FOR_ACCOUNT=false
   start_server
   login_superadmin
   reset_log_files "$PERSISTED_LOG_FILE" "$RUN_LOG_FILE"
