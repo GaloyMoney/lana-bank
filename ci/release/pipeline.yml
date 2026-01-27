@@ -505,7 +505,7 @@ jobs:
           tag: artifacts/gh-release-tag
           body: artifacts/gh-release-notes.md
           globs: [binaries/*]
-          commitish: repo/.git/commit
+          commitish: repo/.git/HEAD
       - task: prepare-docker-build
         config:
           platform: linux
@@ -551,11 +551,6 @@ jobs:
       - put: version
         params:
           file: version/version
-      - put: repo
-        params:
-          tag: artifacts/gh-release-tag
-          only_tag: true
-          repository: repo
   
   - name: bump-image-in-chart
     plan:
