@@ -1,0 +1,64 @@
+name: Promote RC File Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, labeled]
+    branches:
+      - main
+
+jobs:
+  check-changed-files:
+    name: Check promote-rc file changes
+    runs-on: ubuntu-latest
+    if: |
+      github.event.pull_request.user.login == 'galoybot-app[bot]' &&
+      contains(github.event.pull_request.labels.*.name, 'galoybot') &&
+      contains(github.event.pull_request.labels.*.name, 'promote-rc')
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get changed files
+        id: changed-files
+        run: |
+          BASE_SHA=${{ github.event.pull_request.base.sha }}
+          HEAD_SHA=${{ github.event.pull_request.head.sha }}
+
+          echo "Comparing $BASE_SHA to $HEAD_SHA"
+
+          CHANGED_FILES=$(git diff --name-only $BASE_SHA $HEAD_SHA)
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+
+          # Store for next step
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGED_FILES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Check files are allowed
+        run: |
+          FAILED=false
+
+          while IFS= read -r file; do
+            # Skip empty lines
+            [ -z "$file" ] && continue
+
+            # Check if file is CHANGELOG.md or under docs-site/
+            if [[ "$file" == "CHANGELOG.md" ]] || [[ "$file" == docs-site/* ]]; then
+              echo "✓ Allowed: $file"
+            else
+              echo "✗ Not allowed: $file"
+              FAILED=true
+            fi
+          done <<< "${{ steps.changed-files.outputs.files }}"
+
+          if [ "$FAILED" = true ]; then
+            echo ""
+            echo "ERROR: This promote-rc PR contains file changes outside of CHANGELOG.md and docs-site"
+            echo "Only CHANGELOG.md and docs-site/** file changes are allowed in promote-rc PRs."
+            exit 1
+          fi
+
+          echo ""
+          echo "All changed files are allowed."
