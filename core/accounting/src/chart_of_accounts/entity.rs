@@ -181,12 +181,7 @@ impl Chart {
                 parent_code.to_string(),
             ))?;
 
-        let spec = AccountSpec::try_new(
-            Some(parent_code),
-            code.into(),
-            name,
-            parent_normal_balance_type,
-        )?;
+        let spec = AccountSpec::new(code.into(), name, parent_normal_balance_type);
 
         Ok(self.create_node_without_verifying_parent(&spec, journal_id))
     }
@@ -553,13 +548,11 @@ mod test {
             ..
         } = chart
             .create_node_without_verifying_parent(
-                &AccountSpec::try_new(
-                    None,
+                &AccountSpec::new(
                     vec![section("1")],
                     "Assets".parse::<AccountName>().unwrap(),
                     DebitOrCredit::Debit,
-                )
-                .unwrap(),
+                ),
                 CalaJournalId::new(),
             )
             .expect("Already executed");
@@ -569,13 +562,11 @@ mod test {
             ..
         } = chart
             .create_node_without_verifying_parent(
-                &AccountSpec::try_new(
-                    Some(code("1")),
+                &AccountSpec::new(
                     vec![section("1"), section("1")],
                     "Current Assets".parse::<AccountName>().unwrap(),
                     DebitOrCredit::Debit,
-                )
-                .unwrap(),
+                ),
                 CalaJournalId::new(),
             )
             .expect("Already executed");
@@ -585,13 +576,11 @@ mod test {
             ..
         } = chart
             .create_node_without_verifying_parent(
-                &AccountSpec::try_new(
-                    Some(code("1.1")),
+                &AccountSpec::new(
                     vec![section("1"), section("1"), section("1")],
                     "Cash".parse::<AccountName>().unwrap(),
                     DebitOrCredit::Debit,
-                )
-                .unwrap(),
+                ),
                 CalaJournalId::new(),
             )
             .expect("Already executed");
@@ -732,13 +721,11 @@ mod test {
             ..
         } = chart
             .create_node_without_verifying_parent(
-                &AccountSpec::try_new(
-                    None,
+                &AccountSpec::new(
                     vec![section("5")],
                     "Long-term Assets".parse::<AccountName>().unwrap(),
                     DebitOrCredit::Debit,
-                )
-                .unwrap(),
+                ),
                 CalaJournalId::new(),
             )
             .expect("Already executed");

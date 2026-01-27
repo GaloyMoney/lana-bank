@@ -336,6 +336,27 @@ impl AccountCode {
             Err(AccountCodeError::InvalidParent)
         }
     }
+
+    pub fn direct_parent_code(&self) -> Option<AccountCode> {
+        match self.sections.as_slice() {
+            [] => None,
+
+            [section] => {
+                if section.code.len() <= 1 {
+                    None
+                } else {
+                    let top_level_code = section.code.chars().next()?;
+                    Some(AccountCode::new(vec![AccountCodeSection {
+                        code: top_level_code.to_string(),
+                    }]))
+                }
+            }
+
+            _ => Some(AccountCode::new(
+                self.sections[..self.sections.len() - 1].to_vec(),
+            )),
+        }
+    }
 }
 
 impl FromStr for AccountCode {
@@ -405,21 +426,20 @@ pub struct AccountSpec {
 }
 
 impl AccountSpec {
-    pub fn try_new(
-        parent: Option<AccountCode>,
+    pub fn new(
         sections: Vec<AccountCodeSection>,
         name: AccountName,
         normal_balance_type: DebitOrCredit,
-    ) -> Result<Self, AccountCodeError> {
+    ) -> Self {
         let code = AccountCode { sections };
-        code.check_valid_parent(parent.clone())?;
+        let parent = code.direct_parent_code();
 
-        Ok(AccountSpec {
+        AccountSpec {
             parent,
             code,
             name,
             normal_balance_type,
-        })
+        }
     }
 
     pub fn has_parent(&self) -> bool {
@@ -1353,19 +1373,6 @@ mod tests {
         assert!(!account_code.is_equivalent_to_str("110102010"));
     }
 
-    #[test]
-    fn errors_for_new_spec_if_invalid_parent() {
-        let parent = "10".parse::<AccountCode>().unwrap();
-        let child = "11".parse::<AccountCode>().unwrap();
-        let new_spec = AccountSpec::try_new(
-            Some(parent),
-            child.sections,
-            "spec".parse().unwrap(),
-            Default::default(),
-        );
-        assert!(matches!(new_spec, Err(AccountCodeError::InvalidParent)));
-    }
-
     mod is_parent_of {
         use super::*;
 
@@ -1441,6 +1448,44 @@ mod tests {
             let parent = "1.23".parse::<AccountCode>().unwrap();
             let child = "1.20".parse::<AccountCode>().unwrap();
             assert!(!parent.is_parent_of(&child.sections));
+        }
+    }
+
+    mod direct_parent_code {
+        use super::*;
+
+        #[test]
+        fn empty_sections_returns_none() {
+            let code = AccountCode::new(vec![]);
+            assert!(code.direct_parent_code().is_none());
+        }
+
+        #[test]
+        fn single_char_section_returns_none() {
+            let code = "1".parse::<AccountCode>().unwrap();
+            assert!(code.direct_parent_code().is_none());
+        }
+
+        #[test]
+        fn multi_char_single_section_returns_top_level_code() {
+            let code = "11".parse::<AccountCode>().unwrap();
+            let parent = code.direct_parent_code().unwrap();
+            assert_eq!(parent.to_string(), "1");
+
+            let trial_balance_code = "100001".parse::<AccountCode>().unwrap();
+            let trial_balance_parent = trial_balance_code.direct_parent_code().unwrap();
+            assert_eq!(trial_balance_parent.to_string(), "1");
+        }
+
+        #[test]
+        fn multiple_sections_removes_last() {
+            let second_level_code = "11.01".parse::<AccountCode>().unwrap();
+            let second_level_parent = second_level_code.direct_parent_code().unwrap();
+            assert_eq!(second_level_parent.to_string(), "11");
+
+            let third_level_code = "11.01.0201".parse::<AccountCode>().unwrap();
+            let third_level_parent = third_level_code.direct_parent_code().unwrap();
+            assert_eq!(third_level_parent.to_string(), "11.01");
         }
     }
 
