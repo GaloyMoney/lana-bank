@@ -14,6 +14,7 @@ use super::{entity::*, error::*};
     entity = "Liquidation",
     err = "LiquidationError",
     columns(
+        collateral_id(ty = "CollateralId", update(persist = false), list_for, parent),
         credit_facility_id(ty = "CreditFacilityId", list_for, update(persist = false)),
         completed(
             ty = "bool",
