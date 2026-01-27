@@ -2043,7 +2043,7 @@ impl Mutation {
             Liquidation,
             ctx,
             app.credit()
-                .liquidations()
+                .collaterals()
                 .record_proceeds_from_liquidation(sub, input.liquidation_id.into(), input.amount)
         )
     }

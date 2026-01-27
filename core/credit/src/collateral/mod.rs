@@ -8,6 +8,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use core_accounting::LedgerTransactionInitiator;
+use es_entity::Idempotent;
 use job::ClockHandle;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
@@ -17,6 +18,7 @@ use authz::PermissionCheck;
 use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{CreditFacilityPublisher, CreditLedger, event::CoreCreditEvent, primitives::*};
+use cala_ledger::primitives::TransactionId as CalaTransactionId;
 
 pub use entity::Collateral;
 pub(super) use entity::*;
@@ -180,6 +182,45 @@ where
         db.commit().await?;
 
         Ok(collateral)
+    }
+
+    pub async fn record_proceeds_from_liquidation(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        collateral_id: CollateralId,
+        amount_received: UsdCents,
+    ) -> Result<(), CollateralError> {
+        // self.authz
+        //     .enforce_permission(
+        //         sub,
+        //         CoreCreditObject::liquidation(liquidation_id),
+        //         CoreCreditAction::LIQUIDATION_RECORD_PAYMENT_RECEIVED,
+        //     )
+        //     .await?;
+
+        let mut db = self.repo.begin_op_with_clock(&self.clock).await?;
+
+        let mut collateral = self.repo.find_by_id_in_op(&mut db, collateral_id).await?;
+
+        let tx_id = CalaTransactionId::new();
+
+        if let Idempotent::Executed(data) =
+            collateral.record_proceeds_from_liquidation(amount_received, PaymentId::new(), tx_id)
+        {
+            self.repo.update_in_op(&mut db, &mut collateral).await?;
+            self.ledger
+                .record_proceeds_from_liquidation_in_op(
+                    &mut db,
+                    tx_id,
+                    data,
+                    LedgerTransactionInitiator::try_from_subject(sub)?,
+                )
+                .await?;
+        }
+
+        db.commit().await?;
+
+        Ok(())
     }
 
     pub async fn empty_up_collateral_in_op(

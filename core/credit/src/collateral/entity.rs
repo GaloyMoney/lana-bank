@@ -1,4 +1,6 @@
 use chrono::{DateTime, Utc};
+use core_money::UsdCents;
+use core_price::PriceOfOneBTC;
 use derive_builder::Builder;
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
@@ -7,9 +9,12 @@ use std::cmp::Ordering;
 
 use es_entity::*;
 
-use crate::primitives::{
-    CalaAccountId, CollateralAction, CollateralId, CreditFacilityId, CustodyWalletId, LedgerTxId,
-    LiquidationId, PendingCreditFacilityId, Satoshis,
+use crate::{
+    PaymentId, RecordProceedsFromLiquidationData,
+    primitives::{
+        CalaAccountId, CollateralAction, CollateralId, CreditFacilityId, CustodyWalletId,
+        LedgerTxId, LiquidationId, PendingCreditFacilityId, Satoshis,
+    },
 };
 
 use super::{CollateralUpdate, error::CollateralError, liquidation::Liquidation};
@@ -46,16 +51,25 @@ pub enum CollateralEvent {
     /// This Collateral has become subject of liquidation with
     /// `liquidation_id`. It will renmain such until
     /// `ExitedLiquidation` event is emitted.
-    EnteredLiquidation {},
+    EnteredLiquidation {
+        liquidation_id: LiquidationId,
+    },
 
     /// Portion of this Collateral was sent to a liquidation with
     /// `liquidation_id`.
-    SentToLiquidationViaManualInput {},
+    SentToLiquidationViaManualInput {
+        amount: Satoshis,
+        liquidation_id: LiquidationId,
+    },
+
+    ProceedsFromLiquidationReceived {},
 
     /// This Collateral that has previously been subject of
     /// liquidation with `liquidation_id` is no longer subject of the
     /// liquidation.
-    ExitedLiquidation {},
+    ExitedLiquidation {
+        liquidation_id: LiquidationId,
+    },
 }
 
 #[derive(EsEntity, Builder)]
@@ -71,6 +85,20 @@ pub struct Collateral {
     /// Ledger account that holds collateral for this entity.
     pub(super) collateral_account_id: CalaAccountId,
 
+    /// Holds parts of collateral of the connected facility, that are
+    /// being liquidated.
+    collateral_in_liquidation_account_id: CalaAccountId,
+
+    liquidation_proceeds_omnibus_account_id: CalaAccountId,
+
+    /// Holds proceeds received from liquidator for the connected
+    /// facility.
+    facility_proceeds_from_liquidation_account_id: crate::FacilityProceedsFromLiquidationAccountId,
+
+    /// Holds parts of collateral of the connected facility, that have
+    /// already been liquidated.
+    liquidated_collateral_account_id: CalaAccountId,
+
     #[es_entity(nested)]
     #[builder(default)]
     liquidations: Nested<super::liquidation::Liquidation>,
@@ -85,8 +113,12 @@ impl Collateral {
             .expect("entity_first_persisted_at not found")
     }
 
-    pub fn last_liquidation(&self) -> Option<&Liquidation> {
+    fn last_liquidation(&self) -> Option<&Liquidation> {
         self.liquidations.iter_persisted().last()
+    }
+
+    fn current_liquidation(&mut self) -> Option<LiquidationId> {
+        todo!()
     }
 
     /// Attempts to record that this Collateral has entered a
@@ -96,28 +128,29 @@ impl Collateral {
     ///
     /// Returns `AlreadyInLiquidation` if the Collateral already is in
     /// another liquidation.
-    pub fn enter_liquidation(&mut self) -> Idempotent<()> {
+    pub fn enter_liquidation(
+        &mut self,
+        trigger_price: PriceOfOneBTC,
+        initially_expected_to_receive: UsdCents,
+        initially_estimated_to_liquidate: Satoshis,
+    ) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             CollateralEvent::EnteredLiquidation { .. },
-            => CollateralEvent::ExitedLiquidation { }
+            => CollateralEvent::ExitedLiquidation { .. }
         );
 
-        self.events.push(CollateralEvent::EnteredLiquidation {});
+        let liquidation_id = LiquidationId::new();
 
-        let new_liquidation = self
-            .liquidations
+        self.events
+            .push(CollateralEvent::EnteredLiquidation { liquidation_id });
+
+        self.liquidations
             .add_new(super::liquidation::entity::NewLiquidation {
-                id: todo!(),
-                liquidation_proceeds_omnibus_account_id: todo!(),
-                facility_proceeds_from_liquidation_account_id: todo!(),
-                facility_payment_holding_account_id: todo!(),
-                facility_uncovered_outstanding_account_id: todo!(),
-                collateral_account_id: todo!(),
-                liquidated_collateral_account_id: todo!(),
-                trigger_price: todo!(),
-                initially_expected_to_receive: todo!(),
-                initially_estimated_to_liquidate: todo!(),
+                id: liquidation_id,
+                trigger_price,
+                initially_expected_to_receive,
+                initially_estimated_to_liquidate,
             });
 
         Idempotent::Executed(())
@@ -133,16 +166,53 @@ impl Collateral {
     pub fn exit_liquidation(&mut self) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            CollateralEvent::ExitedLiquidation { },
+            CollateralEvent::ExitedLiquidation { .. },
             => CollateralEvent::EnteredLiquidation { .. }
         );
 
-        match self.last_liquidation() {
-            Some(_) => {
-                self.events.push(CollateralEvent::ExitedLiquidation {});
+        match self.current_liquidation() {
+            Some(liquidation_id) => {
+                self.events
+                    .push(CollateralEvent::ExitedLiquidation { liquidation_id });
                 Idempotent::Executed(())
             }
             _ => Idempotent::AlreadyApplied,
+        }
+    }
+
+    pub fn record_proceeds_from_liquidation(
+        &mut self,
+        amount_received: UsdCents,
+        payment_id: PaymentId,
+        ledger_tx_id: LedgerTxId,
+    ) -> Idempotent<RecordProceedsFromLiquidationData> {
+        let liquidation_id = self.current_liquidation().unwrap();
+
+        let mut liquidation = self
+            .liquidations
+            .get_persisted_mut(&liquidation_id)
+            .unwrap();
+
+        if liquidation
+            .record_proceeds_from_liquidation(amount_received, payment_id, ledger_tx_id)
+            .did_execute()
+        {
+            // TODO: Is this needed?
+            self.events
+                .push(CollateralEvent::ProceedsFromLiquidationReceived {});
+
+            Idempotent::Executed(RecordProceedsFromLiquidationData {
+                liquidation_proceeds_omnibus_account_id: self
+                    .liquidation_proceeds_omnibus_account_id,
+                proceeds_from_liquidation_account_id: self
+                    .facility_proceeds_from_liquidation_account_id,
+                amount_received,
+                collateral_in_liquidation_account_id: self.collateral_in_liquidation_account_id,
+                liquidated_collateral_account_id: self.liquidated_collateral_account_id,
+                amount_liquidated: liquidation.sent_total,
+            })
+        } else {
+            Idempotent::AlreadyApplied
         }
     }
 
@@ -178,6 +248,12 @@ impl Collateral {
         })
     }
 
+    /// Records that the current value of this Collateral has been
+    /// updated to `new_amount` with `effective` date and returns
+    /// additional information about this update.
+    ///
+    /// TODO: Consider whether this should be split into two methods
+    /// (liquidation vs. non-liquidation) and branch somewhere higher.
     pub fn record_collateral_update_via_manual_input(
         &mut self,
         new_amount: Satoshis,
@@ -191,41 +267,48 @@ impl Collateral {
             Ordering::Equal => return Idempotent::AlreadyApplied,
         };
 
-        let tx_id = LedgerTxId::new();
         self.amount = new_amount;
+        let tx_id = LedgerTxId::new();
 
-        todo!()
+        if action == CollateralAction::Remove
+            && let Some(liquidation_id) = self.current_liquidation()
+        {
+            // This Collateral is currently in liquidation and portion
+            // of the amount is being sent out for liquidation.
 
-        // if action == CollateralAction::Remove
-        //     && let Some(CurrentLiquidation {
-        //         liquidation_id,
-        //         collateral_in_liquidation_account_id,
-        //     }) = self.current_liquidation
-        // {
-        //     self.events
-        //         .push(CollateralEvent::SentToLiquidationViaManualInput { liquidation_id });
+            self.events
+                .push(CollateralEvent::SentToLiquidationViaManualInput {
+                    amount: abs_diff,
+                    liquidation_id,
+                });
 
-        //     Idempotent::Executed(CollateralUpdate::Liquidation {
-        //         amount: abs_diff,
-        //         effective,
-        //         tx_id,
-        //         collateral_in_liquidation_account_id,
-        //     })
-        // } else {
-        //     self.events.push(CollateralEvent::UpdatedViaManualInput {
-        //         ledger_tx_id: tx_id,
-        //         abs_diff,
-        //         collateral_amount: new_amount,
-        //         action,
-        //     });
+            let _ = self
+                .liquidations
+                .get_persisted_mut(&liquidation_id)
+                .expect("")
+                .record_collateral_sent_out(abs_diff, tx_id);
 
-        //     Idempotent::Executed(CollateralUpdate::Update {
-        //         tx_id,
-        //         abs_diff,
-        //         action,
-        //         effective,
-        //     })
-        // }
+            Idempotent::Executed(CollateralUpdate::Liquidation {
+                amount: abs_diff,
+                effective,
+                tx_id,
+                collateral_in_liquidation_account_id: self.collateral_in_liquidation_account_id,
+            })
+        } else {
+            self.events.push(CollateralEvent::UpdatedViaManualInput {
+                ledger_tx_id: tx_id,
+                abs_diff,
+                collateral_amount: new_amount,
+                action,
+            });
+
+            Idempotent::Executed(CollateralUpdate::Update {
+                tx_id,
+                abs_diff,
+                action,
+                effective,
+            })
+        }
     }
 }
 
@@ -280,7 +363,7 @@ impl TryFromEvents<CollateralEvent> for Collateral {
                 } => {
                     builder = builder.amount(*new_value);
                 }
-                CollateralEvent::EnteredLiquidation {
+                CollateralEvent::EnteredLiquidation { ..
                     // liquidation_id,
                     // collateral_in_liquidation_account_id,
                 } => {

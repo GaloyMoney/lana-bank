@@ -1756,7 +1756,7 @@ impl CreditLedger {
                         .proceeds_from_liquidation_account_id,
                     amount_received: data.amount_received,
                     currency: Currency::USD,
-                    btc_in_liquidation_account_id: todo!(), //data.collateral_in_liquidation_account_id,
+                    btc_in_liquidation_account_id: data.collateral_in_liquidation_account_id,
                     btc_liquidated_account_id: data.liquidated_collateral_account_id,
                     amount_liquidated: data.amount_liquidated,
                     effective: self.clock.today(),

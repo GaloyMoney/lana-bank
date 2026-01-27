@@ -1094,7 +1094,7 @@ pub struct RecordProceedsFromLiquidationData {
     pub liquidation_proceeds_omnibus_account_id: CalaAccountId,
     pub proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccountId,
     pub amount_received: UsdCents,
-    // pub collateral_in_liquidation_account_id: CalaAccountId,
+    pub collateral_in_liquidation_account_id: CalaAccountId,
     pub liquidated_collateral_account_id: CalaAccountId,
     pub amount_liquidated: Satoshis,
 }

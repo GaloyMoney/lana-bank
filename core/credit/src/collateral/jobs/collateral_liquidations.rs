@@ -201,7 +201,14 @@ where
                 .find_by_id_in_op(&mut *db, *collateral_id)
                 .await?;
 
-            if collateral.enter_liquidation().did_execute() {
+            if collateral
+                .enter_liquidation(
+                    *trigger_price,
+                    *initially_expected_to_receive,
+                    *initially_estimated_to_liquidate,
+                )
+                .did_execute()
+            {
                 self.collateral_repo
                     .update_in_op(&mut *db, &mut collateral)
                     .await?;
