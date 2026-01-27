@@ -16,7 +16,7 @@ use std::collections::HashMap;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-use audit::AuditSvc;
+use audit::{AuditSvc, SystemActor};
 use authz::PermissionCheck;
 use document_storage::{
     Document, DocumentId, DocumentStorage, DocumentType, GeneratedDocumentDownloadLink,
@@ -269,6 +269,7 @@ where
         self.authz
             .audit()
             .record_system_entry(
+                SystemActor::Sumsub,
                 CustomerObject::customer(customer.id),
                 CoreCustomerAction::CUSTOMER_START_KYC,
             )
@@ -293,6 +294,7 @@ where
         self.authz
             .audit()
             .record_system_entry(
+                SystemActor::Sumsub,
                 CustomerObject::customer(customer.id),
                 CoreCustomerAction::CUSTOMER_START_KYC,
             )
@@ -319,6 +321,7 @@ where
         self.authz
             .audit()
             .record_system_entry(
+                SystemActor::Sumsub,
                 CustomerObject::customer(customer.id),
                 CoreCustomerAction::CUSTOMER_APPROVE_KYC,
             )
@@ -346,6 +349,7 @@ where
         self.authz
             .audit()
             .record_system_entry(
+                SystemActor::Sumsub,
                 CustomerObject::customer(customer.id),
                 CoreCustomerAction::CUSTOMER_APPROVE_KYC,
             )
@@ -375,6 +379,7 @@ where
         self.authz
             .audit()
             .record_system_entry(
+                SystemActor::Sumsub,
                 CustomerObject::customer(customer.id),
                 CoreCustomerAction::CUSTOMER_DECLINE_KYC,
             )
@@ -399,6 +404,7 @@ where
         self.authz
             .audit()
             .record_system_entry(
+                SystemActor::Sumsub,
                 CustomerObject::customer(customer.id),
                 CoreCustomerAction::CUSTOMER_DECLINE_KYC,
             )

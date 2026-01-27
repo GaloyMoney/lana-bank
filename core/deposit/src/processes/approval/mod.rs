@@ -5,7 +5,7 @@ use governance::{ApprovalProcessType, GovernanceAction, GovernanceEvent, Governa
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-use audit::AuditSvc;
+use audit::{AuditSvc, SystemActor};
 use core_accounting::LedgerTransactionInitiator;
 use governance::Governance;
 use obix::out::OutboxEventMarker;
@@ -87,6 +87,7 @@ where
         self.audit
             .record_system_entry_in_op(
                 &mut op,
+                SystemActor::DepositApproval,
                 CoreDepositObject::withdrawal(id),
                 CoreDepositAction::Withdrawal(WithdrawalAction::ConcludeApprovalProcess),
             )

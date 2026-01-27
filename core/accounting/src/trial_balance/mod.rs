@@ -4,7 +4,7 @@ pub mod ledger;
 use chrono::NaiveDate;
 use tracing::instrument;
 
-use audit::AuditSvc;
+use audit::{AuditSvc, SystemActor};
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use tracing_macros::record_error_severity;
@@ -61,6 +61,7 @@ where
             .audit()
             .record_system_entry_in_op(
                 &mut op,
+                SystemActor::AccountingJob,
                 CoreAccountingObject::all_trial_balance(),
                 CoreAccountingAction::TRIAL_BALANCE_CREATE,
             )
@@ -98,6 +99,7 @@ where
             .audit()
             .record_system_entry_in_op(
                 &mut op,
+                SystemActor::AccountingJob,
                 CoreAccountingObject::all_trial_balance(),
                 CoreAccountingAction::TRIAL_BALANCE_UPDATE,
             )

@@ -92,10 +92,10 @@ impl ErrorSeverity for LedgerTransactionInitiatorParseError {
 impl LedgerTransactionInitiator {
     pub fn try_from_subject<S>(subject: &S) -> Result<Self, LedgerTransactionInitiatorParseError>
     where
-        S: std::fmt::Display + audit::SystemSubject,
+        S: std::fmt::Display,
     {
         let raw = subject.to_string();
-        if raw == S::system().to_string() {
+        if raw.starts_with("system:") {
             return Ok(Self::System);
         }
 

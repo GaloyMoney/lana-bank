@@ -35,15 +35,16 @@ impl<A, O> Default for DummyPerms<A, O> {
 
 #[derive(Debug, Clone, Copy)]
 pub struct DummySubject;
+
 impl audit::SystemSubject for DummySubject {
-    fn system() -> Self {
+    fn system(_actor: audit::SystemActor) -> Self {
         DummySubject
     }
 }
 
 impl fmt::Display for DummySubject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "item")
+        write!(f, "system:unknown")
     }
 }
 
@@ -71,6 +72,7 @@ where
 
     async fn record_system_entry(
         &self,
+        _actor: audit::SystemActor,
         _object: impl Into<Self::Object> + Send,
         _action: impl Into<Self::Action> + Send,
     ) -> Result<AuditInfo, AuditError> {
@@ -90,6 +92,7 @@ where
     async fn record_system_entry_in_op(
         &self,
         _op: &mut impl es_entity::AtomicOperation,
+        _actor: audit::SystemActor,
         _object: impl Into<Self::Object> + Send,
         _action: impl Into<Self::Action> + Send,
     ) -> Result<AuditInfo, AuditError> {

@@ -24,7 +24,7 @@ use obix::out::{Outbox, OutboxEventMarker};
 pub use public::*;
 pub use publisher::CustodyPublisher;
 
-use audit::AuditSvc;
+use audit::{AuditSvc, SystemActor};
 use authz::PermissionCheck;
 use money::Satoshis;
 
@@ -177,6 +177,7 @@ where
             .audit()
             .record_system_entry_in_op(
                 &mut db,
+                SystemActor::CustodyWebhook,
                 CoreCustodyObject::wallet(wallet.id),
                 CoreCustodyAction::WALLET_UPDATE,
             )
@@ -403,6 +404,7 @@ where
         self.authz
             .audit()
             .record_system_entry(
+                SystemActor::Bootstrap,
                 CoreCustodyObject::all_custodians(),
                 CoreCustodyAction::CUSTODIAN_UPDATE,
             )

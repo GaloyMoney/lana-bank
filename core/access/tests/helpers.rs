@@ -39,7 +39,7 @@ impl From<UserId> for TestSubject {
 }
 
 impl audit::SystemSubject for TestSubject {
-    fn system() -> Self {
+    fn system(_actor: audit::SystemActor) -> Self {
         TestSubject
     }
 }
@@ -67,6 +67,7 @@ impl AuditSvc for TestAudit {
 
     async fn record_system_entry(
         &self,
+        _actor: audit::SystemActor,
         _object: impl Into<Self::Object> + Send,
         _action: impl Into<Self::Action> + Send,
     ) -> Result<AuditInfo, AuditError> {
@@ -86,6 +87,7 @@ impl AuditSvc for TestAudit {
     async fn record_system_entry_in_op(
         &self,
         _op: &mut impl es_entity::AtomicOperation,
+        _actor: audit::SystemActor,
         _object: impl Into<Self::Object> + Send,
         _action: impl Into<Self::Action> + Send,
     ) -> Result<AuditInfo, AuditError> {
