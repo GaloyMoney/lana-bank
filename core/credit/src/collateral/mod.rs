@@ -1,6 +1,7 @@
 mod entity;
 pub mod error;
 mod jobs;
+pub mod ledger;
 mod repo;
 
 use std::collections::HashMap;
