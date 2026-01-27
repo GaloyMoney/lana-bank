@@ -1085,17 +1085,14 @@ where
                 liquidation_id,
                 amount,
                 self.clock.today(),
+                liquidation.collateral_in_liquidation_account_id,
+                LedgerTransactionInitiator::try_from_subject(sub)?,
             )
             .await?;
 
         let liquidation = self
             .liquidations
-            .record_collateral_sent_in_op(
-                &mut db,
-                liquidation_id,
-                amount,
-                LedgerTransactionInitiator::try_from_subject(sub)?,
-            )
+            .record_collateral_sent_in_op(&mut db, liquidation_id, amount)
             .await?;
 
         db.commit().await?;
