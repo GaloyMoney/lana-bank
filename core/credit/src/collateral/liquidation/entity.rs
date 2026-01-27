@@ -18,29 +18,43 @@ pub enum LiquidationEvent {
         initially_expected_to_receive: UsdCents,
         initially_estimated_to_liquidate: Satoshis,
     },
-    Updated {
-        outstanding: UsdCents,
-        to_liquidate_at_current_price: Satoshis,
-        current_price: PriceOfOneBTC,
-        expected_to_receive: UsdCents,
-    },
+    // Updated {
+    // outstanding: UsdCents,
+    // to_liquidate_at_current_price: Satoshis,
+    // current_price: PriceOfOneBTC,
+    // expected_to_receive: UsdCents,
+    // },
+    /// Portion of collateral (`amount`) has been sent to
+    /// liquidation. This operation can be repeated multiple
+    /// times. This movement of funds has been recorded on ledger in
+    /// Transaction with `ledger_tx_id`.
     CollateralSentOut {
         amount: Satoshis,
         ledger_tx_id: LedgerTxId,
     },
+
+    /// Proceeds from liquidation has been received and therefore,
+    /// since only one receival of the proceeds is expected, this
+    /// Liquidation has been completed. No other operations on it are
+    /// allowed.
     ProceedsFromLiquidationReceived {
+        /// Amount of fiat received from liquidation.
         amount: UsdCents,
+
+        /// ID of Payment that will be used to further process the
+        /// proceeds.
         payment_id: PaymentId,
+
+        /// ID of Transaction which records this movement of funds.
         ledger_tx_id: LedgerTxId,
     },
-    Completed {},
 }
 
 #[derive(EsEntity, Builder)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Liquidation {
     pub id: LiquidationId,
-    pub expected_to_receive: UsdCents,
+    // pub expected_to_receive: UsdCents,
     pub sent_total: Satoshis,
     pub amount_received: UsdCents,
 
@@ -100,54 +114,54 @@ impl Liquidation {
         Idempotent::Executed(())
     }
 
-    pub fn complete(&mut self) -> Idempotent<()> {
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            LiquidationEvent::Completed { .. }
-        );
+    // pub fn complete(&mut self) -> Idempotent<()> {
+    //     idempotency_guard!(
+    //         self.events.iter_all().rev(),
+    //         LiquidationEvent::Completed { .. }
+    //     );
 
-        self.events.push(LiquidationEvent::Completed {});
+    //     self.events.push(LiquidationEvent::Completed {});
 
-        Idempotent::Executed(())
-    }
+    //     Idempotent::Executed(())
+    // }
 
-    pub fn is_ongoing(&self) -> bool {
-        !self.is_completed()
-    }
+    // pub fn is_ongoing(&self) -> bool {
+    //     !self.is_completed()
+    // }
 
-    pub fn is_completed(&self) -> bool {
-        self.events
-            .iter_all()
-            .rev()
-            .any(|e| matches!(e, LiquidationEvent::Completed { .. }))
-    }
+    // pub fn is_completed(&self) -> bool {
+    //     self.events
+    //         .iter_all()
+    //         .rev()
+    //         .any(|e| matches!(e, LiquidationEvent::Completed { .. }))
+    // }
 
-    pub fn collateral_sent_out(&self) -> Vec<(Satoshis, LedgerTxId)> {
-        self.events
-            .iter_all()
-            .filter_map(|e| match e {
-                LiquidationEvent::CollateralSentOut {
-                    amount,
-                    ledger_tx_id,
-                } => Some((*amount, *ledger_tx_id)),
-                _ => None,
-            })
-            .collect()
-    }
+    // pub fn collateral_sent_out(&self) -> Vec<(Satoshis, LedgerTxId)> {
+    //     self.events
+    //         .iter_all()
+    //         .filter_map(|e| match e {
+    //             LiquidationEvent::CollateralSentOut {
+    //                 amount,
+    //                 ledger_tx_id,
+    //             } => Some((*amount, *ledger_tx_id)),
+    //             _ => None,
+    //         })
+    //         .collect()
+    // }
 
-    pub fn proceeds_received(&self) -> Vec<(UsdCents, LedgerTxId)> {
-        self.events
-            .iter_all()
-            .filter_map(|e| match e {
-                LiquidationEvent::ProceedsFromLiquidationReceived {
-                    amount,
-                    ledger_tx_id,
-                    ..
-                } => Some((*amount, *ledger_tx_id)),
-                _ => None,
-            })
-            .collect()
-    }
+    // pub fn proceeds_received(&self) -> Vec<(UsdCents, LedgerTxId)> {
+    //     self.events
+    //         .iter_all()
+    //         .filter_map(|e| match e {
+    //             LiquidationEvent::ProceedsFromLiquidationReceived {
+    //                 amount,
+    //                 ledger_tx_id,
+    //                 ..
+    //             } => Some((*amount, *ledger_tx_id)),
+    //             _ => None,
+    //         })
+    //         .collect()
+    // }
 }
 
 impl TryFromEvents<LiquidationEvent> for Liquidation {
@@ -161,24 +175,22 @@ impl TryFromEvents<LiquidationEvent> for Liquidation {
             match event {
                 LiquidationEvent::Initialized {
                     id,
-                    initially_expected_to_receive,
+                    // initially_expected_to_receive,
                     ..
                 } => {
-                    builder = builder
-                        .id(*id)
-                        .expected_to_receive(*initially_expected_to_receive)
+                    builder = builder.id(*id)
+                    // .expected_to_receive(*initially_expected_to_receive)
                 }
                 LiquidationEvent::CollateralSentOut { amount, .. } => {
                     amount_sent += *amount;
                 }
                 LiquidationEvent::ProceedsFromLiquidationReceived { amount, .. } => {
                     amount_received = *amount;
-                }
-                LiquidationEvent::Completed { .. } => {}
-                LiquidationEvent::Updated {
-                    expected_to_receive,
-                    ..
-                } => builder = builder.expected_to_receive(*expected_to_receive),
+                } // LiquidationEvent::Completed { .. } => {}
+                  // LiquidationEvent::Updated {
+                  // expected_to_receive,
+                  // ..
+                  // } => builder = builder.expected_to_receive(*expected_to_receive),
             }
         }
 

@@ -97,21 +97,17 @@ impl Collateral {
             .expect("entity_first_persisted_at not found")
     }
 
-    fn last_liquidation(&self) -> Option<&Liquidation> {
-        self.liquidations.iter_persisted().last()
-    }
-
     fn current_liquidation(&mut self) -> Option<LiquidationId> {
         todo!()
     }
 
-    /// Attempts to record that this Collateral has entered a
-    /// liquidation with `liquidation_id`.
+    /// Record that this Collateral has entered a
+    /// liquidation.
     ///
-    /// # Errors
+    /// # Idempotency
     ///
-    /// Returns `AlreadyInLiquidation` if the Collateral already is in
-    /// another liquidation.
+    /// Returns `AlreadyApplied` if the Collateral is already in a
+    /// liquidation.
     pub fn enter_liquidation(
         &mut self,
         trigger_price: PriceOfOneBTC,
@@ -140,13 +136,13 @@ impl Collateral {
         Idempotent::Executed(())
     }
 
-    /// Attempts to record that this Collateral has exited a
-    /// liquidation with `liquidation_id`.
+    /// Records that this Collateral has exited a
+    /// running liquidation.
     ///
-    /// # Errors
+    /// # Idempotency
     ///
-    /// - `InAnotherLiquidation` if this Collateral is in different liquidation than `liquidation_id`
-    /// - `NotInLiquidation` if this Collateral is not in any liquidation
+    /// Returns `AlreadyApplied` if the Collateral is not in a
+    /// liquidation.
     pub fn exit_liquidation(&mut self) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
@@ -154,13 +150,12 @@ impl Collateral {
             => CollateralEvent::EnteredLiquidation { .. }
         );
 
-        match self.current_liquidation() {
-            Some(liquidation_id) => {
-                self.events
-                    .push(CollateralEvent::ExitedLiquidation { liquidation_id });
-                Idempotent::Executed(())
-            }
-            _ => Idempotent::AlreadyApplied,
+        if let Some(liquidation_id) = self.current_liquidation() {
+            self.events
+                .push(CollateralEvent::ExitedLiquidation { liquidation_id });
+            Idempotent::Executed(())
+        } else {
+            Idempotent::AlreadyApplied
         }
     }
 
@@ -187,6 +182,9 @@ impl Collateral {
                     ledger_tx_id,
                     payment_id,
                 });
+
+            self.events
+                .push(CollateralEvent::ExitedLiquidation { liquidation_id });
 
             Idempotent::Executed(RecordProceedsFromLiquidationData {
                 liquidation_proceeds_omnibus_account_id: self
