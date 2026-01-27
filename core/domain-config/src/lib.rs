@@ -430,6 +430,14 @@ async fn seed_registered_for_visibility(
     repo: &DomainConfigRepo,
     visibility: Visibility,
 ) -> Result<(), DomainConfigError> {
+    // Log all registered configs for debugging
+    let all_keys: Vec<_> = registry::all_specs().map(|s| s.key).collect();
+    tracing::info!(
+        registered_config_count = all_keys.len(),
+        registered_configs = ?all_keys,
+        "Domain config registry contents at seed time"
+    );
+
     let mut seen = HashSet::new();
     for spec in registry::all_specs() {
         if !seen.insert(spec.key) {
