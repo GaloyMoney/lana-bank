@@ -139,24 +139,16 @@ where
 
     #[instrument(
         name = "credit.liquidation.record_collateral_sent",
-        skip(self, sub),
+        skip(self, db),
         err
     )]
     pub async fn record_collateral_sent(
         &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        mut db: es_entity::DbOp<'_>,
         liquidation_id: LiquidationId,
         amount: Satoshis,
+        initiated_by: LedgerTransactionInitiator,
     ) -> Result<Liquidation, LiquidationError> {
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreCreditObject::liquidation(liquidation_id),
-                CoreCreditAction::LIQUIDATION_RECORD_COLLATERAL_SENT,
-            )
-            .await?;
-        let mut db = self.repo.begin_op().await?;
-
         let mut liquidation = self.repo.find_by_id_in_op(&mut db, liquidation_id).await?;
 
         let tx_id = CalaTransactionId::new();
@@ -173,7 +165,7 @@ where
                     amount,
                     liquidation.collateral_account_id,
                     liquidation.collateral_in_liquidation_account_id,
-                    LedgerTransactionInitiator::try_from_subject(sub)?,
+                    initiated_by,
                 )
                 .await?;
         }
@@ -289,6 +281,15 @@ where
             .await?;
 
         self.repo.maybe_find_by_id(id).await
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "credit.liquidation.find_by_id_without_audit", skip(self))]
+    pub(super) async fn find_by_id_without_audit(
+        &self,
+        liquidation_id: impl Into<LiquidationId> + std::fmt::Debug,
+    ) -> Result<Liquidation, LiquidationError> {
+        self.repo.find_by_id(liquidation_id.into()).await
     }
 
     pub async fn find_all<T: From<Liquidation>>(
