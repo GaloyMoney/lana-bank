@@ -79,7 +79,11 @@ pub(in crate::accounting_init::seed) async fn deposit_module_configure(
     };
 
     match deposit
-        .set_chart_of_accounts_integration_config(&Subject::System(SystemActor::Bootstrap), chart, config_values)
+        .set_chart_of_accounts_integration_config(
+            &Subject::System(SystemActor::Bootstrap),
+            chart,
+            config_values,
+        )
         .await
     {
         Ok(_) => (),

@@ -148,7 +148,9 @@ where
 
         self.deposit
             .update_account_status_for_holder(
-                &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(SystemActor::CustomerSync),
+                &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(
+                    SystemActor::CustomerSync,
+                ),
                 id,
                 deposit_account_status,
             )
