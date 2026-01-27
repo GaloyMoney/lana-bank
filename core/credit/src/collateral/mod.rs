@@ -33,7 +33,7 @@ where
 {
     authz: Arc<Perms>,
     repo: Arc<CollateralRepo<E>>,
-    ledger: CollateralLedger,
+    ledger: Arc<CollateralLedger>,
 }
 
 impl<Perms, E> Clone for Collaterals<Perms, E>
@@ -59,7 +59,7 @@ where
         pool: &sqlx::PgPool,
         authz: Arc<Perms>,
         publisher: &CreditFacilityPublisher<E>,
-        ledger: CollateralLedger,
+        ledger: Arc<CollateralLedger>,
         outbox: &Outbox<E>,
         jobs: &mut job::Jobs,
     ) -> Result<Self, CollateralError> {

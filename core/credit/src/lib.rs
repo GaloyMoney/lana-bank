@@ -105,7 +105,7 @@ where
     governance: Arc<Governance<Perms, E>>,
     customer: Arc<Customers<Perms, E>>,
     ledger: Arc<CreditLedger>,
-    collateral_ledger: collateral::ledger::CollateralLedger,
+    collateral_ledger: Arc<collateral::ledger::CollateralLedger>,
     price: Arc<Price>,
     config: Arc<CreditConfig>,
     domain_configs: ExposedDomainConfigsReadOnly,
@@ -223,6 +223,7 @@ where
             ledger_arc.collateral_omnibus_account_ids().clone(),
         )
         .await?;
+        let collateral_ledger_arc = Arc::new(collateral_ledger);
 
         let obligations = Obligations::new(
             pool,
@@ -262,7 +263,7 @@ where
             pool,
             authz_arc.clone(),
             &publisher,
-            collateral_ledger.clone(),
+            collateral_ledger_arc.clone(),
             outbox,
             jobs,
         )
@@ -427,7 +428,7 @@ where
             repayment_plans: repayment_plans_arc,
             governance: governance_arc,
             ledger: ledger_arc,
-            collateral_ledger,
+            collateral_ledger: collateral_ledger_arc,
             price: price_arc,
             config: config_arc,
             domain_configs: domain_configs.clone(),

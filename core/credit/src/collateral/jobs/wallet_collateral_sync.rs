@@ -55,7 +55,7 @@ where
 {
     outbox: Outbox<E>,
     repo: Arc<CollateralRepo<E>>,
-    ledger: CollateralLedger,
+    ledger: Arc<CollateralLedger>,
 }
 
 impl<E> WalletCollateralSyncInit<E>
@@ -64,7 +64,7 @@ where
 {
     pub fn new(
         outbox: &Outbox<E>,
-        ledger: CollateralLedger,
+        ledger: Arc<CollateralLedger>,
         collateral_repo: Arc<CollateralRepo<E>>,
     ) -> Self {
         Self {
@@ -111,7 +111,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
 {
     repo: Arc<CollateralRepo<E>>,
-    ledger: CollateralLedger,
+    ledger: Arc<CollateralLedger>,
     outbox: Outbox<E>,
 }
 
