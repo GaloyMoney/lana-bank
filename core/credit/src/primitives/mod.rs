@@ -1,8 +1,6 @@
-mod cvl;
 mod liquidation_payment;
 
-use chrono::{DateTime, TimeZone, Utc};
-use rust_decimal::Decimal;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "json-schema")]
@@ -24,7 +22,14 @@ pub use core_price::PriceOfOneBTC;
 pub use governance::ApprovalProcessId;
 pub use public_id::PublicId;
 
-pub use cvl::*;
+// Re-export from terms crate
+pub use core_credit_terms::{
+    CVLPct, EffectiveDate,
+    collateralization::{
+        CollateralizationRatio, CollateralizationState, PendingCreditFacilityCollateralizationState,
+    },
+};
+
 pub use liquidation_payment::LiquidationPayment;
 
 es_entity::entity_id! {
@@ -653,68 +658,6 @@ pub enum CollateralAction {
     Remove,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub enum CollateralizationRatio {
-    Finite(Decimal),
-    Infinite,
-}
-
-impl Default for CollateralizationRatio {
-    fn default() -> Self {
-        Self::Finite(Decimal::ZERO)
-    }
-}
-
-#[derive(
-    Debug,
-    Default,
-    Clone,
-    Copy,
-    PartialEq,
-    Serialize,
-    Deserialize,
-    Eq,
-    strum::Display,
-    strum::EnumString,
-)]
-#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub enum CollateralizationState {
-    FullyCollateralized,
-    UnderMarginCallThreshold,
-    UnderLiquidationThreshold,
-    #[default]
-    NoCollateral,
-    NoExposure,
-}
-
-impl CollateralizationState {
-    pub const fn is_under_liquidation_threshold(&self) -> bool {
-        matches!(self, Self::UnderLiquidationThreshold)
-    }
-}
-
-#[derive(
-    Debug,
-    Default,
-    Clone,
-    Copy,
-    PartialEq,
-    Serialize,
-    Deserialize,
-    Eq,
-    strum::Display,
-    strum::EnumString,
-)]
-#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub enum PendingCreditFacilityCollateralizationState {
-    FullyCollateralized,
-    #[default]
-    UnderCollateralized,
-}
-
 pub struct CollateralUpdate {
     pub tx_id: LedgerTxId,
     pub abs_diff: Satoshis,
@@ -785,44 +728,4 @@ pub enum DisbursedReceivableAccountCategory {
     LongTerm,
     ShortTerm,
     Overdue,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub struct EffectiveDate(chrono::NaiveDate);
-
-impl From<chrono::NaiveDate> for EffectiveDate {
-    fn from(date: chrono::NaiveDate) -> Self {
-        Self(date)
-    }
-}
-
-impl From<DateTime<Utc>> for EffectiveDate {
-    fn from(date: DateTime<Utc>) -> Self {
-        Self(date.date_naive())
-    }
-}
-
-impl EffectiveDate {
-    pub fn end_of_day(&self) -> DateTime<Utc> {
-        Utc.from_utc_datetime(
-            &self
-                .0
-                .and_hms_opt(23, 59, 59)
-                .expect("23:59:59 was invalid"),
-        )
-    }
-
-    pub fn start_of_day(&self) -> DateTime<Utc> {
-        Utc.from_utc_datetime(
-            &self
-                .0
-                .and_hms_opt(00, 00, 00)
-                .expect("00:00:00 was invalid"),
-        )
-    }
-
-    pub fn checked_add_days(&self, days: chrono::Days) -> Option<Self> {
-        self.0.checked_add_days(days).map(Self)
-    }
 }

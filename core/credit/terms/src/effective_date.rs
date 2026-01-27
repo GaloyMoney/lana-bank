@@ -1,6 +1,9 @@
 use chrono::{DateTime, TimeZone, Utc};
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "json-schema")]
+use schemars::JsonSchema;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct EffectiveDate(chrono::NaiveDate);

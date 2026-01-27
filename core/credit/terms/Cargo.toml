@@ -21,5 +21,6 @@ serde = { workspace = true }
 chrono = { workspace = true }
 rust_decimal = { workspace = true }
 rust_decimal_macros = { workspace = true }
+sqlx = { workspace = true }
 async-graphql = { workspace = true, optional = true }
 schemars = { workspace = true, optional = true }
