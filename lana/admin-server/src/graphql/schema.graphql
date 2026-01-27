@@ -2420,7 +2420,14 @@ type SumsubPermalinkCreatePayload {
 }
 
 type System {
+	"""
+	The name of the application
+	"""
 	name: String!
+	"""
+	The specific system actor that performed this action
+	"""
+	actor: String!
 }
 
 type SystemApproval {
