@@ -394,37 +394,36 @@ jobs:
             params: { format: oci }
             passed: [ build-rc ]
       - in_parallel:
-        - do:
-          - task: prep-release
-            config:
-              platform: linux
-              image_resource: #@ release_task_image_config()
-              inputs:
-                - name: pipeline-tasks
-                - name: repo
-                - name: version
-              outputs:
-                - name: artifacts
-              run:
-                path: pipeline-tasks/ci/tasks/prep-release-src.sh
-          - task: prep-release-apps
-            config:
-              platform: linux
-              image_resource: #@ release_task_image_config()
-              inputs:
-                - name: pipeline-tasks
-                - name: version
-                - name: #@ app_src_resource_name("admin-panel")
-                  path: admin-panel-src
-                - name: #@ app_src_resource_name("customer-portal")
-                  path: customer-portal-src
-              outputs:
-                - name: #@ app_src_resource_name("admin-panel")
-                  path: admin-panel-src
-                - name: #@ app_src_resource_name("customer-portal")
-                  path: customer-portal-src
-              run:
-                path: pipeline-tasks/ci/tasks/prep-release-apps.sh
+        - task: prep-release
+          config:
+            platform: linux
+            image_resource: #@ release_task_image_config()
+            inputs:
+              - name: pipeline-tasks
+              - name: repo
+              - name: version
+            outputs:
+              - name: artifacts
+            run:
+              path: pipeline-tasks/ci/tasks/prep-release-src.sh
+        - task: prep-release-apps
+          config:
+            platform: linux
+            image_resource: #@ release_task_image_config()
+            inputs:
+              - name: pipeline-tasks
+              - name: version
+              - name: #@ app_src_resource_name("admin-panel")
+                path: admin-panel-src
+              - name: #@ app_src_resource_name("customer-portal")
+                path: customer-portal-src
+            outputs:
+              - name: #@ app_src_resource_name("admin-panel")
+                path: admin-panel-src
+              - name: #@ app_src_resource_name("customer-portal")
+                path: customer-portal-src
+            run:
+              path: pipeline-tasks/ci/tasks/prep-release-apps.sh
         - task: nix-build-release
           attempts: 2
           config:
@@ -499,13 +498,6 @@ jobs:
             params:
               image: customer-portal-image/image.tar
               additional_tags: version/version
-      - put: gh-release
-        params:
-          name: artifacts/gh-release-name
-          tag: artifacts/gh-release-tag
-          body: artifacts/gh-release-notes.md
-          globs: [binaries/*]
-          commitish: repo/.git/HEAD
       - task: prepare-docker-build
         config:
           platform: linux
@@ -551,6 +543,13 @@ jobs:
       - put: version
         params:
           file: version/version
+      - put: gh-release
+        params:
+          name: artifacts/gh-release-name
+          tag: artifacts/gh-release-tag
+          body: artifacts/gh-release-notes.md
+          globs: [binaries/*]
+          commitish: repo/.git/HEAD
   
   - name: bump-image-in-chart
     plan:
