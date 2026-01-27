@@ -17,7 +17,7 @@ use crate::{
     },
 };
 
-use super::{CollateralUpdate, error::CollateralError, liquidation::Liquidation};
+use super::{CollateralUpdate, liquidation::Liquidation};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -363,19 +363,10 @@ impl TryFromEvents<CollateralEvent> for Collateral {
                 } => {
                     builder = builder.amount(*new_value);
                 }
-                CollateralEvent::EnteredLiquidation { ..
-                    // liquidation_id,
-                    // collateral_in_liquidation_account_id,
-                } => {
-                    // builder = builder.current_liquidation(Some(CurrentLiquidation {
-                    // liquidation_id: *liquidation_id,
-                    // collateral_in_liquidation_account_id: *collateral_in_liquidation_account_id,
-                    // }));
-                }
-                CollateralEvent::ExitedLiquidation { .. } => {
-                    // builder = builder.current_liquidation(None);
-                }
+                CollateralEvent::EnteredLiquidation { .. } => {}
+                CollateralEvent::ExitedLiquidation { .. } => {}
                 CollateralEvent::SentToLiquidationViaManualInput { .. } => {}
+                CollateralEvent::ProceedsFromLiquidationReceived { .. } => {}
             }
         }
         builder.events(events).build()
@@ -396,10 +387,4 @@ impl IntoEvents<CollateralEvent> for NewCollateral {
             }],
         )
     }
-}
-
-#[derive(Copy, Clone)]
-struct CurrentLiquidation {
-    liquidation_id: LiquidationId,
-    collateral_in_liquidation_account_id: CalaAccountId,
 }
