@@ -14,7 +14,9 @@ use authz::PermissionCheck;
 use core_accounting::LedgerTransactionInitiator;
 use obix::out::{Outbox, OutboxEventMarker};
 
-use crate::{CreditFacilityPublisher, event::CoreCreditEvent, primitives::*};
+use crate::{
+    CreditFacilityPublisher, event::CoreCreditEvent, liquidation::NewLiquidation, primitives::*,
+};
 
 use ledger::CollateralLedger;
 
@@ -181,5 +183,87 @@ where
         };
 
         Ok(res)
+    }
+
+    /// Creates a new liquidation for the given collateral via the Collateral aggregate.
+    /// This enforces invariants like "no active liquidation already in progress".
+    /// Creates a new liquidation for the given collateral via the Collateral aggregate.
+    /// This enforces invariants like "no active liquidation already in progress".
+    #[record_error_severity]
+    #[instrument(name = "collateral.initiate_liquidation_in_op", skip(db, self))]
+    pub(super) async fn initiate_liquidation_in_op(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        collateral_id: CollateralId,
+        new_liquidation: NewLiquidation,
+        trigger_price: PriceOfOneBTC,
+        initially_expected_to_receive: UsdCents,
+        initially_estimated_to_liquidate: Satoshis,
+    ) -> Result<Collateral, CollateralError> {
+        let mut collateral = self.repo.find_by_id(collateral_id).await?;
+
+        if collateral
+            .initiate_liquidation(
+                new_liquidation,
+                trigger_price,
+                initially_expected_to_receive,
+                initially_estimated_to_liquidate,
+            )?
+            .did_execute()
+        {
+            self.repo.update_in_op(db, &mut collateral).await?;
+        }
+
+        Ok(collateral)
+    }
+
+    /// Completes a liquidation via the Collateral aggregate.
+    #[record_error_severity]
+    #[instrument(name = "collateral.complete_liquidation_in_op", skip(db, self))]
+    pub(super) async fn complete_liquidation_in_op(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        collateral_id: CollateralId,
+        liquidation_id: LiquidationId,
+    ) -> Result<(), CollateralError> {
+        let mut collateral = self.repo.find_by_id(collateral_id).await?;
+
+        if collateral
+            .complete_liquidation(liquidation_id)?
+            .did_execute()
+        {
+            self.repo.update_in_op(db, &mut collateral).await?;
+        }
+
+        Ok(())
+    }
+
+    /// Finds a Collateral by its credit_facility_id.
+    pub async fn find_by_credit_facility_id(
+        &self,
+        credit_facility_id: CreditFacilityId,
+    ) -> Result<Collateral, CollateralError> {
+        // The credit_facility_id is stored in the Collateral entity
+        // We need a custom query for this
+        self.repo
+            .find_by_credit_facility_id(credit_facility_id)
+            .await
+    }
+
+    /// Checks if a collateral has an active liquidation.
+    pub async fn has_active_liquidation(
+        &self,
+        collateral_id: CollateralId,
+    ) -> Result<bool, CollateralError> {
+        let collateral = self.repo.find_by_id(collateral_id).await?;
+        Ok(collateral.has_active_liquidation())
+    }
+
+    /// Finds a Collateral by its ID.
+    pub async fn find_by_id(
+        &self,
+        collateral_id: CollateralId,
+    ) -> Result<Collateral, CollateralError> {
+        self.repo.find_by_id(collateral_id).await
     }
 }
