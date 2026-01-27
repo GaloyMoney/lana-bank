@@ -1070,14 +1070,15 @@ where
             .await?
             .expect("audit info missing");
 
-        // Fetch liquidation to get collateral_id before starting transaction
-        let liquidation = self
-            .liquidations
-            .find_by_id_without_audit(liquidation_id)
-            .await?;
-
         let mut db = self.facilities.begin_op().await?;
 
+        // 1. Update liquidation entity first (takes &mut db)
+        let liquidation = self
+            .liquidations
+            .record_collateral_sent_in_op(&mut db, liquidation_id, amount)
+            .await?;
+
+        // 2. Update collateral entity + post to ledger + commit (consumes db)
         self.collaterals
             .record_collateral_update_via_liquidation_in_op(
                 &mut db,
@@ -1088,11 +1089,6 @@ where
                 liquidation.collateral_in_liquidation_account_id,
                 LedgerTransactionInitiator::try_from_subject(sub)?,
             )
-            .await?;
-
-        let liquidation = self
-            .liquidations
-            .record_collateral_sent_in_op(&mut db, liquidation_id, amount)
             .await?;
 
         db.commit().await?;
