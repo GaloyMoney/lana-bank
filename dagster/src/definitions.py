@@ -6,11 +6,11 @@ from typing import List, Tuple, Union
 import dagster as dg
 from src.assets import (
     bitfinex_protoassets,
+    create_dbt_model_assets,
+    create_dbt_seed_assets,
     generated_file_report_protoassets,
     inform_lana_protoasset,
     iris_dataset_size,
-    lana_dbt_protoassets,
-    lana_dbt_seed_protoassets,
     lana_source_protoassets,
     lana_to_dw_el_protoassets,
     sumsub_protoasset,
@@ -177,31 +177,25 @@ lana_to_dw_el_job = definition_builder.add_job_from_assets(
 )
 definition_builder.add_job_schedule(job=lana_to_dw_el_job, cron_expression="0 0 * * *")
 
-all_el_target_protoassets = (
-    lana_el_protoassets
-    + list(bitfinex_protoassets_dict.values())
-    + [sumsub_applicants_protoasset]
-)
-
-for dbt_protoasset in lana_dbt_protoassets(
-    source_protoassets=all_el_target_protoassets
-):
-    definition_builder.add_asset_from_protoasset(dbt_protoasset)
+# Create dbt model assets using official @dbt_assets decorator
+# Dependencies on EL assets are resolved automatically via get_asset_key() mapping
+lana_dbt_models = create_dbt_model_assets()
+definition_builder.assets.append(lana_dbt_models)
 
 dbt_automation_sensor = build_dbt_automation_sensor(
     dagster_automations_active=DAGSTER_AUTOMATIONS_ACTIVE
 )
 definition_builder.add_sensor(dbt_automation_sensor)
 
-dbt_seed_assets = []
-for seed_protoasset in lana_dbt_seed_protoassets():
-    seed_asset = definition_builder.add_asset_from_protoasset(seed_protoasset)
-    dbt_seed_assets.append(seed_asset)
+# Create dbt seed assets using official @dbt_assets decorator
+lana_dbt_seeds = create_dbt_seed_assets()
+definition_builder.assets.append(lana_dbt_seeds)
 
-dbt_seeds_job = definition_builder.add_job_from_assets(
-    job_name="dbt_seeds_job",
-    assets=tuple(dbt_seed_assets),
+dbt_seeds_job = dg.define_asset_job(
+    name="dbt_seeds_job",
+    selection=dg.AssetSelection.assets(lana_dbt_seeds),
 )
+definition_builder.jobs.append(dbt_seeds_job)
 definition_builder.add_job_schedule(job=dbt_seeds_job, cron_expression="0 0 * * *")
 
 # File reports generated from reports.yml configuration

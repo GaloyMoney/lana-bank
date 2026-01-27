@@ -1,6 +1,7 @@
 import os
 import time
 import uuid
+from contextlib import contextmanager
 from typing import Callable, Dict, Optional, Tuple, Union
 
 from opentelemetry import trace
@@ -198,3 +199,45 @@ def _current_span_to_traceparent() -> Optional[str]:
     carrier: Dict[str, str] = {}
     _trace_propagator.inject(carrier)
     return carrier.get("traceparent")
+
+
+@contextmanager
+def trace_dbt_batch(context, batch_name: str, selected_keys: list):
+    """
+    Context manager for tracing a dbt batch execution with OpenTelemetry.
+
+    Creates a span for the batch execution, integrating with the job-level
+    parent span if available.
+
+    Args:
+        context: Dagster AssetExecutionContext
+        batch_name: Name for the span (e.g., "dbt_models_build", "dbt_seeds_build")
+        selected_keys: List of asset key strings being materialized
+
+    Yields:
+        The active span for additional attribute setting if needed
+    """
+    attrs: Dict[str, str] = {
+        "dbt.batch_name": batch_name,
+        "dbt.model_count": str(len(selected_keys)),
+        "dbt.models": ", ".join(selected_keys[:10]),  # Limit to first 10 for readability
+        "run.id": context.run_id,
+    }
+
+    parent_ctx: Optional[Context] = None
+    job_name = _get_job_name(context)
+
+    if job_name and job_name != "__ASSET_JOB":
+        parent_ctx = _ensure_job_parent_context(context, job_name)
+        attrs["job.name"] = job_name
+
+    with tracer.start_as_current_span(batch_name, context=parent_ctx) as span:
+        for key, value in attrs.items():
+            span.set_attribute(key, value)
+
+        try:
+            yield span
+            span.set_status(trace.Status(trace.StatusCode.OK))
+        except Exception as e:
+            span.set_status(trace.Status(trace.StatusCode.ERROR, str(e)))
+            raise
