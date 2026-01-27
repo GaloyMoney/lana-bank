@@ -96,7 +96,7 @@ impl LedgerTransaction {
                 }
             }
             DomainLedgerTransactionInitiator::System => {
-                Ok(LedgerTransactionInitiator::System(System::lana()))
+                Ok(LedgerTransactionInitiator::System(System::unknown()))
             }
         }
     }

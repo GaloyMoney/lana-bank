@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use tokio::select;
 use tracing::{Span, instrument};
 
-use audit::{AuditSvc, SystemSubject};
+use audit::{AuditSvc, SystemActor, SystemSubject};
 use authz::PermissionCheck;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, KycVerification};
 use core_deposit::{
@@ -148,7 +148,7 @@ where
 
         self.deposit
             .update_account_status_for_holder(
-                &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(),
+                &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(SystemActor::CustomerSync),
                 id,
                 deposit_account_status,
             )

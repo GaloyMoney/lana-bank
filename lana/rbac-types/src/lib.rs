@@ -9,7 +9,6 @@ mod object;
 use serde::{Deserialize, Serialize};
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
-use uuid::{Uuid, uuid};
 
 use core_access::UserId;
 use core_customer::CustomerId;
@@ -19,7 +18,9 @@ pub use audit_action::*;
 pub use audit_object::*;
 pub use object::*;
 
-const SYSTEM_SUBJECT_ID: Uuid = uuid!("00000000-0000-0000-0000-000000000000");
+// Re-export SystemActor from audit crate
+pub use audit::SystemActor;
+
 pub const ROLE_NAME_ACCOUNTANT: &str = "accountant";
 pub const ROLE_NAME_ADMIN: &str = "admin";
 pub const ROLE_NAME_BANK_MANAGER: &str = "bank-manager";
@@ -117,12 +118,12 @@ impl std::str::FromStr for PermissionSetName {
 pub enum Subject {
     Customer(CustomerId),
     User(UserId),
-    System,
+    System(SystemActor),
 }
 
 impl audit::SystemSubject for Subject {
-    fn system() -> Self {
-        Subject::System
+    fn system(actor: SystemActor) -> Self {
+        Subject::System(actor)
     }
 }
 
@@ -135,12 +136,22 @@ impl std::str::FromStr for Subject {
             return Err(ParseSubjectError::InvalidSubjectFormat);
         }
 
-        let id: uuid::Uuid = parts[1].parse()?;
         use SubjectDiscriminants::*;
         let res = match SubjectDiscriminants::from_str(parts[0])? {
-            Customer => Subject::Customer(CustomerId::from(id)),
-            User => Subject::User(UserId::from(id)),
-            System => Subject::System,
+            Customer => {
+                let id: uuid::Uuid = parts[1].parse()?;
+                Subject::Customer(CustomerId::from(id))
+            }
+            User => {
+                let id: uuid::Uuid = parts[1].parse()?;
+                Subject::User(UserId::from(id))
+            }
+            System => {
+                // Try to parse as SystemActor first, fallback to Unknown for backward compat
+                // (e.g., old "system:00000000-0000-0000-0000-000000000000" entries)
+                let actor = parts[1].parse::<SystemActor>().unwrap_or(SystemActor::Unknown);
+                Subject::System(actor)
+            }
         };
         Ok(res)
     }
@@ -180,13 +191,19 @@ impl From<CustomerId> for Subject {
 
 impl std::fmt::Display for Subject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let id: uuid::Uuid = match self {
-            Subject::Customer(id) => id.into(),
-            Subject::User(id) => id.into(),
-            Subject::System => SYSTEM_SUBJECT_ID,
-        };
-        write!(f, "{}:{}", SubjectDiscriminants::from(self).as_ref(), id)?;
-        Ok(())
+        match self {
+            Subject::Customer(id) => {
+                let uuid: uuid::Uuid = (*id).into();
+                write!(f, "{}:{}", SubjectDiscriminants::from(self).as_ref(), uuid)
+            }
+            Subject::User(id) => {
+                let uuid: uuid::Uuid = (*id).into();
+                write!(f, "{}:{}", SubjectDiscriminants::from(self).as_ref(), uuid)
+            }
+            Subject::System(actor) => {
+                write!(f, "{}:{}", SubjectDiscriminants::from(self).as_ref(), actor)
+            }
+        }
     }
 }
 
