@@ -149,7 +149,9 @@ impl std::str::FromStr for Subject {
             System => {
                 // Try to parse as SystemActor first, fallback to Unknown for backward compat
                 // (e.g., old "system:00000000-0000-0000-0000-000000000000" entries)
-                let actor = parts[1].parse::<SystemActor>().unwrap_or(SystemActor::Unknown);
+                let actor = parts[1]
+                    .parse::<SystemActor>()
+                    .unwrap_or(SystemActor::Unknown);
                 Subject::System(actor)
             }
         };
