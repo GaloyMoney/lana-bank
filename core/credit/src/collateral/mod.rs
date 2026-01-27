@@ -17,7 +17,10 @@ use audit::*;
 use authz::PermissionCheck;
 use obix::out::{Outbox, OutboxEventMarker};
 
-use crate::{CreditFacilityPublisher, CreditLedger, event::CoreCreditEvent, primitives::*};
+use crate::{
+    CollateralLedgerAccountIds, CreditFacilityPublisher, CreditLedger, event::CoreCreditEvent,
+    primitives::*,
+};
 use cala_ledger::primitives::TransactionId as CalaTransactionId;
 
 pub use entity::Collateral;
@@ -106,13 +109,14 @@ where
         collateral_id: CollateralId,
         pending_credit_facility_id: PendingCreditFacilityId,
         custody_wallet_id: Option<CustodyWalletId>,
-        account_id: CalaAccountId,
+        account_ids: CollateralLedgerAccountIds,
     ) -> Result<Collateral, CollateralError> {
         let new_collateral = NewCollateral::builder()
             .id(collateral_id)
             .credit_facility_id(pending_credit_facility_id)
             .pending_credit_facility_id(pending_credit_facility_id)
-            .account_id(account_id)
+            .account_id(account_ids.collateral_account_id)
+            .account_ids(account_ids)
             .custody_wallet_id(custody_wallet_id)
             .build()
             .expect("all fields for new collateral provided");
@@ -174,7 +178,7 @@ where
             .update_credit_facility_collateral(
                 &mut db,
                 collateral_update,
-                collateral.collateral_account_id,
+                collateral.account_ids.collateral_account_id,
                 LedgerTransactionInitiator::try_from_subject(sub)?,
             )
             .await?;

@@ -86,14 +86,14 @@ impl CreditFacilityLedgerAccounts {
         Ok(collateral_account)
     }
     // async fn collateral_in_liquidation_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
-        // let loader = ctx.data_unchecked::<LanaDataLoader>();
-        // let collateral_in_liquidation_account = loader
-            // .load_one(LedgerAccountId::from(
-                // self.collateral_in_liquidation_account_id,
-            // ))
-            // .await?
-            // .expect("Ledger account not found");
-        // Ok(collateral_in_liquidation_account)
+    // let loader = ctx.data_unchecked::<LanaDataLoader>();
+    // let collateral_in_liquidation_account = loader
+    // .load_one(LedgerAccountId::from(
+    // self.collateral_in_liquidation_account_id,
+    // ))
+    // .await?
+    // .expect("Ledger account not found");
+    // Ok(collateral_in_liquidation_account)
     // }
     async fn proceeds_from_liquidation_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();

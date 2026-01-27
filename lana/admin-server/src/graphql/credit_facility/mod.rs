@@ -260,10 +260,10 @@ impl CreditFacility {
                 .into(),
             collateral_account_id: self.entity.account_ids.collateral_account_id.into(),
             // collateral_in_liquidation_account_id: self
-                // .entity
-                // .account_ids
-                // .collateral_in_liquidation_account_id
-                // .into(),
+            // .entity
+            // .account_ids
+            // .collateral_in_liquidation_account_id
+            // .into(),
             proceeds_from_liquidation_account_id: self
                 .entity
                 .account_ids

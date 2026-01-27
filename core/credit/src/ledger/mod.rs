@@ -1124,6 +1124,7 @@ impl CreditLedger {
         PendingCreditFacilityAccountIds {
             facility_account_id,
             collateral_account_id,
+            ..
         }: PendingCreditFacilityAccountIds,
     ) -> Result<PendingCreditFacilityBalanceSummary, CreditLedgerError> {
         let facility_id = (self.journal_id, facility_account_id, self.usd);
@@ -2175,6 +2176,7 @@ impl CreditLedger {
         &self,
         op: &mut es_entity::DbOp<'_>,
         pending_credit_facility: &crate::PendingCreditFacility,
+        collateral: &crate::Collateral,
         initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), CreditLedgerError> {
         self.create_accounts_for_credit_facility_proposal(
@@ -2184,6 +2186,9 @@ impl CreditLedger {
             pending_credit_facility.account_ids,
         )
         .await?;
+
+        self.create_accounts_for_collateral(op, collateral.id, collateral.account_ids)
+            .await?;
 
         self.add_credit_facility_control_to_account(
             op,
@@ -2212,6 +2217,11 @@ impl CreditLedger {
         let PendingCreditFacilityAccountIds {
             facility_account_id,
             collateral_account_id,
+
+            // These accounts will be created with Credit Facility
+            facility_proceeds_from_liquidation_account_id: _,
+            facility_uncovered_outstanding_account_id: _,
+            facility_payment_holding_account_id: _,
         } = account_ids;
 
         let entity_ref = EntityRef::new(CREDIT_FACILITY_PROPOSAL_ENTITY_TYPE, credit_facility_id);
@@ -2248,7 +2258,7 @@ impl CreditLedger {
 
     async fn create_accounts_for_collateral(
         &self,
-        op: &mut es_entity::DbOpWithTime<'_>,
+        op: &mut es_entity::DbOp<'_>,
         collateral_id: CollateralId,
         account_ids: CollateralLedgerAccountIds,
     ) -> Result<(), CreditLedgerError> {
@@ -2256,8 +2266,14 @@ impl CreditLedger {
             collateral_in_liquidation_account_id,
             liquidated_collateral_account_id,
 
-            // these accounts are created during proposal creation
+            // These accounts are already created
             collateral_account_id: _,
+            liquidation_proceeds_omnibus_account_id: _,
+
+            // These accounts will be created with credit facility
+            facility_proceeds_from_liquidation_account_id: _,
+            facility_uncovered_outstanding_account_id: _,
+            facility_payment_holding_account_id: _,
         } = account_ids;
 
         let entity_ref = EntityRef::new(COLLATERAL_ENTITY_TYPE, collateral_id);

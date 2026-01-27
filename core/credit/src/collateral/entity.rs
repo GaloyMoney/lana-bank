@@ -10,7 +10,8 @@ use std::cmp::Ordering;
 use es_entity::*;
 
 use crate::{
-    FacilityProceedsFromLiquidationAccountId, PaymentId, RecordProceedsFromLiquidationData,
+    CollateralLedgerAccountIds, FacilityProceedsFromLiquidationAccountId, PaymentId,
+    RecordProceedsFromLiquidationData,
     primitives::{
         CalaAccountId, CollateralAction, CollateralId, CreditFacilityId, CustodyWalletId,
         LedgerTxId, LiquidationId, PendingCreditFacilityId, Satoshis,
@@ -29,10 +30,7 @@ pub enum CollateralEvent {
         account_id: CalaAccountId,
         credit_facility_id: CreditFacilityId,
         pending_credit_facility_id: PendingCreditFacilityId,
-
-        /// Holds BTC collateral for this credit facility, that is being
-        /// liquidated.
-        collateral_in_liquidation_account_id: CalaAccountId,
+        account_ids: CollateralLedgerAccountIds,
         custody_wallet_id: Option<CustodyWalletId>,
     },
     UpdatedViaManualInput {
@@ -83,27 +81,7 @@ pub struct Collateral {
     pub custody_wallet_id: Option<CustodyWalletId>,
     pub amount: Satoshis,
 
-    /// Ledger account that holds collateral for this entity.
-    pub(super) collateral_account_id: CalaAccountId,
-
-    /// Holds parts of collateral of the connected facility, that are
-    /// being liquidated.
-    collateral_in_liquidation_account_id: CalaAccountId,
-
-    liquidation_proceeds_omnibus_account_id: CalaAccountId,
-
-    /// Holds proceeds received from liquidator for the connected
-    /// facility.
-    pub(crate) facility_proceeds_from_liquidation_account_id:
-        FacilityProceedsFromLiquidationAccountId,
-
-    pub(crate) facility_uncovered_outstanding_account_id: CalaAccountId,
-
-    pub(crate) facility_payment_holding_account_id: CalaAccountId,
-
-    /// Holds parts of collateral of the connected facility, that have
-    /// already been liquidated.
-    liquidated_collateral_account_id: CalaAccountId,
+    pub(crate) account_ids: CollateralLedgerAccountIds,
 
     #[es_entity(nested)]
     #[builder(default)]
@@ -212,12 +190,16 @@ impl Collateral {
 
             Idempotent::Executed(RecordProceedsFromLiquidationData {
                 liquidation_proceeds_omnibus_account_id: self
+                    .account_ids
                     .liquidation_proceeds_omnibus_account_id,
                 proceeds_from_liquidation_account_id: self
+                    .account_ids
                     .facility_proceeds_from_liquidation_account_id,
                 amount_received,
-                collateral_in_liquidation_account_id: self.collateral_in_liquidation_account_id,
-                liquidated_collateral_account_id: self.liquidated_collateral_account_id,
+                collateral_in_liquidation_account_id: self
+                    .account_ids
+                    .collateral_in_liquidation_account_id,
+                liquidated_collateral_account_id: self.account_ids.liquidated_collateral_account_id,
                 amount_liquidated: liquidation.sent_total,
             })
         } else {
@@ -302,7 +284,9 @@ impl Collateral {
                 amount: abs_diff,
                 effective,
                 tx_id,
-                collateral_in_liquidation_account_id: self.collateral_in_liquidation_account_id,
+                collateral_in_liquidation_account_id: self
+                    .account_ids
+                    .collateral_in_liquidation_account_id,
             })
         } else {
             self.events.push(CollateralEvent::UpdatedViaManualInput {
@@ -334,6 +318,7 @@ pub struct NewCollateral {
     pub(super) pending_credit_facility_id: PendingCreditFacilityId,
     #[builder(default)]
     pub(super) custody_wallet_id: Option<CustodyWalletId>,
+    pub(super) account_ids: CollateralLedgerAccountIds,
 }
 
 impl NewCollateral {
@@ -393,7 +378,7 @@ impl IntoEvents<CollateralEvent> for NewCollateral {
                 credit_facility_id: self.credit_facility_id,
                 pending_credit_facility_id: self.pending_credit_facility_id,
                 custody_wallet_id: self.custody_wallet_id,
-                collateral_in_liquidation_account_id: todo!(),
+                account_ids: self.account_ids,
             }],
         )
     }

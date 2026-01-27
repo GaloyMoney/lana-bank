@@ -212,10 +212,13 @@ where
                 // TODO: Can be assembled elsewhere?
                 let payment_ledger_account_ids = PaymentLedgerAccountIds {
                     facility_payment_holding_account_id: collateral
+                        .account_ids
                         .facility_payment_holding_account_id,
                     facility_uncovered_outstanding_account_id: collateral
+                        .account_ids
                         .facility_uncovered_outstanding_account_id,
                     payment_source_account_id: (&collateral
+                        .account_ids
                         .facility_proceeds_from_liquidation_account_id)
                         .into(),
                 };

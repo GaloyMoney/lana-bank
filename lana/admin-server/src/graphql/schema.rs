@@ -2042,9 +2042,11 @@ impl Mutation {
             LiquidationRecordProceedsReceivedPayload,
             Liquidation,
             ctx,
-            app.credit()
-                .collaterals()
-                .record_proceeds_from_liquidation(sub, input.liquidation_id.into(), input.amount)
+            app.credit().collaterals().record_proceeds_from_liquidation(
+                sub,
+                input.liquidation_id.into(),
+                input.amount
+            )
         )
     }
 

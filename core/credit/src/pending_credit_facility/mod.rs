@@ -185,15 +185,25 @@ where
                     None
                 };
 
-                self.collaterals
-                    .create_in_op(
-                        &mut db,
-                        new_pending_facility.collateral_id,
-                        new_pending_facility.id,
-                        wallet_id,
-                        new_pending_facility.account_ids.collateral_account_id,
-                    )
-                    .await?;
+                let collateral = {
+                    let collateral_account_ids =
+                        CollateralLedgerAccountIds::from_pending_credit_facility_account_ids(
+                            new_pending_facility.account_ids,
+                            self.ledger
+                                .liquidation_proceeds_omnibus_account_ids()
+                                .account_id,
+                        );
+
+                    self.collaterals
+                        .create_in_op(
+                            &mut db,
+                            new_pending_facility.collateral_id,
+                            new_pending_facility.id,
+                            wallet_id,
+                            collateral_account_ids,
+                        )
+                        .await?
+                };
 
                 tracing::Span::current().record(
                     "pending_credit_facility_id",
@@ -208,6 +218,7 @@ where
                     .handle_pending_facility_creation(
                         &mut db,
                         &pending_credit_facility,
+                        &collateral,
                         core_accounting::LedgerTransactionInitiator::System,
                     )
                     .await?;

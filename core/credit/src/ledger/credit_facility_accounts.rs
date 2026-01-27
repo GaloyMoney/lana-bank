@@ -92,6 +92,9 @@ impl From<PendingCreditFacilityAccountIds> for CreditFacilityLedgerAccountIds {
 pub struct PendingCreditFacilityAccountIds {
     pub facility_account_id: CalaAccountId,
     pub collateral_account_id: CalaAccountId,
+    pub facility_proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccountId,
+    pub facility_uncovered_outstanding_account_id: CalaAccountId,
+    pub facility_payment_holding_account_id: CalaAccountId,
 }
 
 impl PendingCreditFacilityAccountIds {
@@ -100,6 +103,10 @@ impl PendingCreditFacilityAccountIds {
         Self {
             collateral_account_id: CalaAccountId::new(),
             facility_account_id: CalaAccountId::new(),
+            facility_proceeds_from_liquidation_account_id:
+                FacilityProceedsFromLiquidationAccountId::new(),
+            facility_uncovered_outstanding_account_id: CalaAccountId::new(),
+            facility_payment_holding_account_id: CalaAccountId::new(),
         }
     }
 }
