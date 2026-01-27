@@ -11,6 +11,7 @@ from typing import Any, Dict, Iterator, List, Optional, Tuple
 import dlt
 from dlt.sources.helpers import requests
 from google.cloud import bigquery
+from requests.exceptions import RequestException
 from google.oauth2 import service_account
 
 REQUEST_TIMEOUT = 60
@@ -163,7 +164,7 @@ def applicants(
                     session, customer_id, sumsub_key, sumsub_secret
                 )
                 resp.raise_for_status()
-            except requests.exceptions.RequestException as e:
+            except RequestException as e:
                 logger.warning(
                     "Applicant fetch failed for customer_id=%s (will retry next run): %s",
                     customer_id,
@@ -194,7 +195,7 @@ def applicants(
                     metadata = _get_document_metadata(
                         session, applicant_id, sumsub_key, sumsub_secret
                     )
-                except requests.exceptions.RequestException as e:
+                except RequestException as e:
                     logger.warning(
                         "Metadata fetch failed for customer_id=%s (continuing without images): %s",
                         customer_id,
@@ -213,7 +214,7 @@ def applicants(
                                 sumsub_key,
                                 sumsub_secret,
                             )
-                        except requests.exceptions.RequestException as e:
+                        except RequestException as e:
                             logger.warning(
                                 "Image download failed for customer_id=%s image_id=%s: %s",
                                 customer_id,
