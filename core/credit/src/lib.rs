@@ -105,6 +105,7 @@ where
     governance: Arc<Governance<Perms, E>>,
     customer: Arc<Customers<Perms, E>>,
     ledger: Arc<CreditLedger>,
+    collateral_ledger: collateral::ledger::CollateralLedger,
     price: Arc<Price>,
     config: Arc<CreditConfig>,
     domain_configs: ExposedDomainConfigsReadOnly,
@@ -149,6 +150,7 @@ where
             governance: self.governance.clone(),
             customer: self.customer.clone(),
             ledger: self.ledger.clone(),
+            collateral_ledger: self.collateral_ledger.clone(),
             price: self.price.clone(),
             config: self.config.clone(),
             domain_configs: self.domain_configs.clone(),
@@ -215,6 +217,13 @@ where
         let ledger = CreditLedger::init(cala, journal_id, clock.clone()).await?;
         let ledger_arc = Arc::new(ledger);
 
+        let collateral_ledger = collateral::ledger::CollateralLedger::init(
+            cala,
+            journal_id,
+            ledger_arc.collateral_omnibus_account_ids().clone(),
+        )
+        .await?;
+
         let obligations = Obligations::new(
             pool,
             authz_arc.clone(),
@@ -253,7 +262,7 @@ where
             pool,
             authz_arc.clone(),
             &publisher,
-            ledger_arc.clone(),
+            collateral_ledger.clone(),
             outbox,
             jobs,
         )
@@ -418,6 +427,7 @@ where
             repayment_plans: repayment_plans_arc,
             governance: governance_arc,
             ledger: ledger_arc,
+            collateral_ledger,
             price: price_arc,
             config: config_arc,
             domain_configs: domain_configs.clone(),
@@ -751,7 +761,7 @@ where
             return Ok(pending_facility);
         };
 
-        self.ledger
+        self.collateral_ledger
             .update_pending_credit_facility_collateral(
                 &mut db,
                 collateral_update,
@@ -802,7 +812,7 @@ where
         } else {
             return Ok(credit_facility);
         };
-        self.ledger
+        self.collateral_ledger
             .update_credit_facility_collateral(
                 &mut db,
                 collateral_update,

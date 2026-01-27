@@ -14,8 +14,7 @@ use core_custody::CoreCustodyEvent;
 
 use crate::{
     CoreCreditEvent,
-    collateral::{CollateralError, CollateralRepo},
-    ledger::CreditLedger,
+    collateral::{CollateralError, CollateralRepo, ledger::CollateralLedger},
 };
 
 #[derive(Serialize, Deserialize)]
@@ -56,7 +55,7 @@ where
 {
     outbox: Outbox<E>,
     repo: Arc<CollateralRepo<E>>,
-    ledger: Arc<CreditLedger>,
+    ledger: CollateralLedger,
 }
 
 impl<E> WalletCollateralSyncInit<E>
@@ -65,7 +64,7 @@ where
 {
     pub fn new(
         outbox: &Outbox<E>,
-        ledger: Arc<CreditLedger>,
+        ledger: CollateralLedger,
         collateral_repo: Arc<CollateralRepo<E>>,
     ) -> Self {
         Self {
@@ -112,7 +111,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
 {
     repo: Arc<CollateralRepo<E>>,
-    ledger: Arc<CreditLedger>,
+    ledger: CollateralLedger,
     outbox: Outbox<E>,
 }
 
