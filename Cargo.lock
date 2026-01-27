@@ -365,6 +365,7 @@ dependencies = [
  "schemars 1.2.0",
  "serde",
  "sqlx",
+ "strum",
  "thiserror 2.0.18",
  "tracing",
  "tracing-macros",

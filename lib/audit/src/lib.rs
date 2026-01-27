@@ -1,6 +1,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+use serde::{Deserialize, Serialize};
 use std::{fmt, marker::PhantomData, str::FromStr};
 
 pub mod error;
@@ -9,6 +10,50 @@ mod svc_trait;
 
 pub use primitives::*;
 pub use svc_trait::*;
+
+/// Identifies the specific system actor performing an operation.
+/// Used to differentiate between external integrations, internal jobs, and CLI operations.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(strum::Display, strum::EnumString, strum::AsRefStr)]
+#[strum(serialize_all = "kebab-case")]
+pub enum SystemActor {
+    // External integrations
+    Sumsub,
+    BitGo,
+    Komainu,
+
+    // Credit module jobs
+    InterestAccrual,
+    ObligationSync,
+    CollateralizationSync,
+    CreditFacilityJob,
+    DisbursalJob,
+
+    // Deposit module
+    DepositSync,
+    DepositApproval,
+
+    // Custody module
+    CustodyWebhook,
+
+    // Customer module
+    KycCallback,
+    CustomerSync,
+
+    // Accounting module
+    AccountingJob,
+
+    // Governance
+    Governance,
+
+    // System operations
+    ReportsSync,
+    Bootstrap,
+    Cli,
+
+    // Backward compatibility for existing audit entries
+    Unknown,
+}
 
 // Re-export pagination types for consumers who need them
 pub use es_entity::{PaginatedQueryArgs, PaginatedQueryRet};
