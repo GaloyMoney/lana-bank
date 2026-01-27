@@ -4,7 +4,7 @@ use crate::{
     profit_and_loss::{ProfitAndLossStatements, error::ProfitAndLossStatementError},
 };
 
-use rbac_types::Subject;
+use rbac_types::{Subject, SystemActor};
 
 pub(in crate::accounting_init::seed) async fn profit_and_loss_module_configure(
     profit_and_loss: &ProfitAndLossStatements,
@@ -12,7 +12,7 @@ pub(in crate::accounting_init::seed) async fn profit_and_loss_module_configure(
 ) -> Result<(), AccountingInitError> {
     match profit_and_loss
         .set_chart_of_accounts_integration_config(
-            &Subject::System,
+            &Subject::System(SystemActor::Bootstrap),
             PROFIT_AND_LOSS_STATEMENT_NAME.to_string(),
             chart,
         )

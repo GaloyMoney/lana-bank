@@ -4,7 +4,7 @@ use crate::{
     balance_sheet::{BalanceSheets, error::BalanceSheetError},
 };
 
-use rbac_types::Subject;
+use rbac_types::{Subject, SystemActor};
 
 pub(in crate::accounting_init::seed) async fn balance_sheet_module_configure(
     balance_sheet: &BalanceSheets,
@@ -12,7 +12,7 @@ pub(in crate::accounting_init::seed) async fn balance_sheet_module_configure(
 ) -> Result<(), AccountingInitError> {
     match balance_sheet
         .set_chart_of_accounts_integration_config(
-            &Subject::System,
+            &Subject::System(SystemActor::Bootstrap),
             BALANCE_SHEET_NAME.to_string(),
             chart,
         )

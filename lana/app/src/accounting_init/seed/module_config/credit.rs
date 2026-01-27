@@ -8,7 +8,7 @@ use crate::{
     credit::{ChartOfAccountsIntegrationConfig, Credit},
 };
 
-use rbac_types::Subject;
+use rbac_types::{Subject, SystemActor};
 
 #[derive(Deserialize)]
 struct CreditConfigData {
@@ -210,7 +210,7 @@ pub(in crate::accounting_init::seed) async fn credit_module_configure(
 
     match credit
         .chart_of_accounts_integrations()
-        .set_config(&Subject::System, chart, config_values)
+        .set_config(&Subject::System(SystemActor::Bootstrap), chart, config_values)
         .await
     {
         Ok(_) => (),
