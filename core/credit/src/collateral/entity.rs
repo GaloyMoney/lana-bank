@@ -9,7 +9,7 @@ use es_entity::*;
 
 use crate::primitives::{
     CalaAccountId, CollateralAction, CollateralId, CreditFacilityId, CustodyWalletId, LedgerTxId,
-    PendingCreditFacilityId, Satoshis,
+    LiquidationId, PendingCreditFacilityId, Satoshis,
 };
 
 use super::CollateralUpdate;
@@ -122,6 +122,15 @@ impl Collateral {
             action,
             effective,
         })
+    }
+
+    pub fn record_collateral_update_via_liquidation(
+        &mut self,
+        liquidation_id: LiquidationId,
+        amount_sent: Satoshis,
+        effective: chrono::NaiveDate,
+    ) -> Idempotent<CollateralUpdate> {
+        unimplemented!()
     }
 }
 

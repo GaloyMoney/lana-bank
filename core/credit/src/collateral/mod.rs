@@ -153,6 +153,17 @@ where
         amount_sent: core_money::Satoshis,
         effective: chrono::NaiveDate,
     ) -> Result<Option<CollateralUpdate>, CollateralError> {
-        unimplemented!()
+        let mut collateral = self.repo.find_by_id_in_op(&mut *db, collateral_id).await?;
+
+        let res = if let es_entity::Idempotent::Executed(data) = collateral
+            .record_collateral_update_via_liquidation(liquidation_id, amount_sent, effective)
+        {
+            self.repo.update_in_op(db, &mut collateral).await?;
+            Some(data)
+        } else {
+            None
+        };
+
+        Ok(res)
     }
 }
