@@ -24,7 +24,7 @@ use obix::out::OutboxEventMarker;
 
 use crate::{
     CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId, LedgerOmnibusAccountIds,
-    LiquidationId, PaymentId, PaymentSourceAccountId,
+    LiquidationId, PaymentId, PaymentSourceAccountId, collateral::CollateralRepo,
 };
 use entity::NewLiquidationBuilder;
 pub use entity::{Liquidation, LiquidationEvent, NewLiquidation};
@@ -97,9 +97,10 @@ where
             publisher,
             clock.clone(),
         ));
+        let collateral_repo = Arc::new(CollateralRepo::new(pool, publisher, clock.clone()));
 
         let partial_liquidation_job_spawner = jobs.add_initializer(
-            jobs::partial_liquidation::PartialLiquidationInit::new(outbox, repo_arc.clone()),
+            jobs::partial_liquidation::PartialLiquidationInit::new(outbox, collateral_repo),
         );
 
         let liquidation_payment_job_spawner =
