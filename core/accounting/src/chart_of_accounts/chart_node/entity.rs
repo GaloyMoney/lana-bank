@@ -195,15 +195,11 @@ mod tests {
 
     #[test]
     fn assign_manual_transaction_account_is_idempotent() {
-        let new_node = new_chart_node(
-            AccountSpec::try_new(
-                None,
-                vec![section("1")],
-                "Assets".parse::<AccountName>().unwrap(),
-                DebitOrCredit::Debit,
-            )
-            .unwrap(),
-        );
+        let new_node = new_chart_node(AccountSpec::new(
+            vec![section("1")],
+            "Assets".parse::<AccountName>().unwrap(),
+            DebitOrCredit::Debit,
+        ));
         let events = new_node.into_events();
         let mut node = ChartNode::try_from_events(events).unwrap();
 
@@ -216,15 +212,11 @@ mod tests {
 
     #[test]
     fn add_child_node_is_idempotent() {
-        let new_node = new_chart_node(
-            AccountSpec::try_new(
-                None,
-                vec![section("1")],
-                "Assets".parse::<AccountName>().unwrap(),
-                DebitOrCredit::Debit,
-            )
-            .unwrap(),
-        );
+        let new_node = new_chart_node(AccountSpec::new(
+            vec![section("1")],
+            "Assets".parse::<AccountName>().unwrap(),
+            DebitOrCredit::Debit,
+        ));
         let events = new_node.into_events();
         let mut node = ChartNode::try_from_events(events).unwrap();
         let child_node_id = ChartNodeId::new();

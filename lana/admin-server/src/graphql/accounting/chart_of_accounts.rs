@@ -120,12 +120,11 @@ impl TryFrom<ChartOfAccountsAddRootNodeInput> for AccountSpec {
             ..
         } = input;
 
-        Ok(Self::try_new(
-            None,
+        Ok(Self::new(
             code.try_into()?,
             name.parse()?,
             normal_balance_type,
-        )?)
+        ))
     }
 }
 

@@ -342,13 +342,13 @@ impl AccountCode {
             [] => None,
 
             [section] => {
-                let mut parent_section = section.clone();
-                parent_section.code.pop()?;
-
-                if parent_section.code.is_empty() {
+                if section.code.len() <= 1 {
                     None
                 } else {
-                    Some(AccountCode::new(vec![parent_section]))
+                    let top_level_code = section.code.chars().next()?;
+                    Some(AccountCode::new(vec![AccountCodeSection {
+                        code: top_level_code.to_string(),
+                    }]))
                 }
             }
 
@@ -426,21 +426,20 @@ pub struct AccountSpec {
 }
 
 impl AccountSpec {
-    pub fn try_new(
-        parent: Option<AccountCode>,
+    pub fn new(
         sections: Vec<AccountCodeSection>,
         name: AccountName,
         normal_balance_type: DebitOrCredit,
-    ) -> Result<Self, AccountCodeError> {
+    ) -> Self {
         let code = AccountCode { sections };
-        code.check_valid_parent(parent.clone())?;
+        let parent = code.direct_parent_code();
 
-        Ok(AccountSpec {
+        AccountSpec {
             parent,
             code,
             name,
             normal_balance_type,
-        })
+        }
     }
 
     pub fn has_parent(&self) -> bool {
@@ -1451,19 +1450,6 @@ mod tests {
         assert!(!account_code.is_equivalent_to_str("110102010"));
     }
 
-    #[test]
-    fn errors_for_new_spec_if_invalid_parent() {
-        let parent = "10".parse::<AccountCode>().unwrap();
-        let child = "11".parse::<AccountCode>().unwrap();
-        let new_spec = AccountSpec::try_new(
-            Some(parent),
-            child.sections,
-            "spec".parse().unwrap(),
-            Default::default(),
-        );
-        assert!(matches!(new_spec, Err(AccountCodeError::InvalidParent)));
-    }
-
     mod is_parent_of {
         use super::*;
 
@@ -1562,6 +1548,10 @@ mod tests {
             let code = "11".parse::<AccountCode>().unwrap();
             let parent = code.direct_parent_code().unwrap();
             assert_eq!(parent.to_string(), "1");
+
+            let trial_balance_code = "100001".parse::<AccountCode>().unwrap();
+            let trial_balance_parent = trial_balance_code.direct_parent_code().unwrap();
+            assert_eq!(trial_balance_parent.to_string(), "1");
         }
 
         #[test]
