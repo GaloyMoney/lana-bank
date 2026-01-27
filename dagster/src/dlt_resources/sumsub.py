@@ -100,6 +100,7 @@ def _get_customers_bq(
             MAX(recorded_at) AS recorded_at
         FROM {table}
         WHERE recorded_at > @since
+          AND JSON_VALUE(payload, '$.externalUserId') IS NOT NULL
         GROUP BY customer_id
       )
       SELECT customer_id, recorded_at
