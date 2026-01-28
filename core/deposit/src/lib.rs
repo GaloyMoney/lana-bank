@@ -147,13 +147,7 @@ where
             )
             .await?;
 
-        match governance.init_policy(APPROVE_WITHDRAWAL_PROCESS).await {
-            Err(governance::error::GovernanceError::PolicyError(
-                governance::policy_error::PolicyError::DuplicateApprovalProcessType,
-            )) => (),
-            Err(e) => return Err(e.into()),
-            _ => (),
-        }
+        governance.init_policy(APPROVE_WITHDRAWAL_PROCESS).await?;
 
         let res = Self {
             deposit_accounts: accounts,

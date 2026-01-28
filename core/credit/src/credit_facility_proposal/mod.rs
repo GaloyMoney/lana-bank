@@ -71,16 +71,9 @@ where
         clock: es_entity::clock::ClockHandle,
     ) -> Result<Self, CreditFacilityProposalError> {
         let repo = CreditFacilityProposalRepo::new(pool, publisher, clock);
-        match governance
+        governance
             .init_policy(crate::APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS)
-            .await
-        {
-            Err(governance::error::GovernanceError::PolicyError(
-                governance::policy_error::PolicyError::DuplicateApprovalProcessType,
-            )) => (),
-            Err(e) => return Err(e.into()),
-            _ => (),
-        }
+            .await?;
 
         Ok(Self {
             repo: Arc::new(repo),

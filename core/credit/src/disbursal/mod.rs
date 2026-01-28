@@ -73,16 +73,9 @@ where
         governance: Arc<Governance<Perms, E>>,
         clock: es_entity::clock::ClockHandle,
     ) -> Result<Self, DisbursalError> {
-        match governance
+        governance
             .init_policy(crate::APPROVE_DISBURSAL_PROCESS)
-            .await
-        {
-            Err(governance::error::GovernanceError::PolicyError(
-                governance::policy_error::PolicyError::DuplicateApprovalProcessType,
-            )) => (),
-            Err(e) => return Err(e.into()),
-            _ => (),
-        }
+            .await?;
 
         Ok(Self {
             repo: Arc::new(DisbursalRepo::new(pool, publisher, clock)),
