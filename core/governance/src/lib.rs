@@ -21,6 +21,7 @@ use obix::out::{Outbox, OutboxEventMarker};
 pub use approval_process::{error as approval_process_error, *};
 pub use committee::{error as committee_error, *};
 use error::*;
+use policy::error::PolicyError;
 pub use policy::{error as policy_error, *};
 pub use primitives::*;
 pub use public::*;
@@ -99,14 +100,22 @@ where
 
         let new_policy = NewPolicy::builder()
             .id(PolicyId::new())
-            .process_type(process_type)
+            .process_type(process_type.clone())
             .rules(ApprovalRules::SystemAutoApprove)
             .build()
             .expect("Could not build new policy");
 
-        let policy = self.policy_repo.create_in_op(&mut db, new_policy).await?;
-        db.commit().await?;
-        Ok(policy)
+        match self.policy_repo.create_in_op(&mut db, new_policy).await {
+            Ok(policy) => {
+                db.commit().await?;
+                Ok(policy)
+            }
+            Err(PolicyError::DuplicateApprovalProcessType) => {
+                let policy = self.policy_repo.find_by_process_type(process_type).await?;
+                Ok(policy)
+            }
+            Err(e) => Err(e.into()),
+        }
     }
 
     #[record_error_severity]
