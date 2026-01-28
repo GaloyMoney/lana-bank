@@ -83,6 +83,16 @@ const AuditLogsList = () => {
       labelClassName: "w-[20%]",
     },
     {
+      key: "authorized",
+      label: t("headers.authorized"),
+      labelClassName: "w-[10%]",
+      render: (authorized) => (
+        <span className={authorized ? "text-green-600" : "text-red-600 font-semibold"}>
+          {authorized ? "Yes" : "No"}
+        </span>
+      ),
+    },
+    {
       key: "recordedAt",
       label: t("headers.recordedAt"),
       labelClassName: "w-[15%]",

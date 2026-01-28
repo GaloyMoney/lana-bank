@@ -2007,6 +2007,7 @@
         "subject": "Sujeto",
         "object": "Objeto",
         "action": "Acción",
+        "authorized": "Autorizado",
         "recordedAt": "Registrado El"
       },
       "error": "Ocurrió un error al obtener los registros de auditoría.",
