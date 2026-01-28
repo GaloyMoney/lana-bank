@@ -552,6 +552,25 @@ impl AccountingBaseConfig {
     pub fn is_revenue_account_set_or_account(&self, code: &AccountCode) -> bool {
         self.revenue_code == *code || self.revenue_code.is_parent_of(&code.sections)
     }
+
+    pub fn is_account_in_category(&self, code: &AccountCode, category: AccountCategory) -> bool {
+        match category {
+            AccountCategory::OffBalanceSheet => self.is_off_balance_sheet_account_set_or_account(code),
+            AccountCategory::Asset => self.is_assets_account_set_or_account(code),
+            AccountCategory::Liability => self.is_liabilities_account_set_or_account(code),
+            AccountCategory::Equity => self.is_equity_account_set_or_account(code),
+            AccountCategory::Revenue => self.is_revenue_account_set_or_account(code),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AccountCategory {
+    OffBalanceSheet,
+    Asset,
+    Liability,
+    Equity,
+    Revenue,
 }
 
 #[derive(Debug, Clone)]
@@ -1641,6 +1660,35 @@ mod tests {
             let off_balance_sheet_code = "9".parse::<AccountCode>().unwrap();
             assert!(!config.is_assets_account_set_or_account(&off_balance_sheet_code));
             assert!(!config.is_assets_account_set_or_account(&config.equity_code));
+        }
+
+        #[test]
+        fn is_account_in_category_delegates_correctly() {
+            let config = default_config();
+            let off_balance_sheet_code = "9".parse::<AccountCode>().unwrap();
+            let asset_child_code = "11".parse::<AccountCode>().unwrap();
+
+            // OffBalanceSheet
+            assert!(config.is_account_in_category(&off_balance_sheet_code, AccountCategory::OffBalanceSheet));
+            assert!(!config.is_account_in_category(&config.assets_code, AccountCategory::OffBalanceSheet));
+
+            // Asset
+            assert!(config.is_account_in_category(&config.assets_code, AccountCategory::Asset));
+            assert!(config.is_account_in_category(&asset_child_code, AccountCategory::Asset));
+            assert!(!config.is_account_in_category(&config.liabilities_code, AccountCategory::Asset));
+
+            // Liability
+            assert!(config.is_account_in_category(&config.liabilities_code, AccountCategory::Liability));
+            assert!(!config.is_account_in_category(&config.assets_code, AccountCategory::Liability));
+
+            // Equity
+            assert!(config.is_account_in_category(&config.equity_code, AccountCategory::Equity));
+            assert!(config.is_account_in_category(&config.equity_retained_earnings_gain_code, AccountCategory::Equity));
+            assert!(!config.is_account_in_category(&config.assets_code, AccountCategory::Equity));
+
+            // Revenue
+            assert!(config.is_account_in_category(&config.revenue_code, AccountCategory::Revenue));
+            assert!(!config.is_account_in_category(&config.assets_code, AccountCategory::Revenue));
         }
     }
 }

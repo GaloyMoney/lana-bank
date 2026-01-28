@@ -38,6 +38,13 @@ pub enum ChartOfAccountsError {
     AccountingBaseConfigError(#[from] crate::primitives::AccountingBaseConfigError),
     #[error("ChartOfAccountsError - BaseConfigAlreadyInitializedWithDifferentValues")]
     BaseConfigAlreadyInitializedWithDifferentConfig,
+    #[error("ChartOfAccountsError - BaseConfigNotInitialized")]
+    BaseConfigNotInitialized,
+    #[error("ChartOfAccountsError - InvalidAccountCategory: code {code} is not in category {category:?}")]
+    InvalidAccountCategory {
+        code: crate::primitives::AccountCode,
+        category: crate::primitives::AccountCategory,
+    },
 }
 
 es_entity::from_es_entity_error!(ChartOfAccountsError);
@@ -62,6 +69,8 @@ impl ErrorSeverity for ChartOfAccountsError {
             Self::AccountCodeHasInvalidParent(_) => Level::ERROR,
             Self::AccountingBaseConfigError(e) => e.severity(),
             Self::BaseConfigAlreadyInitializedWithDifferentConfig => Level::WARN,
+            Self::BaseConfigNotInitialized => Level::ERROR,
+            Self::InvalidAccountCategory { .. } => Level::ERROR,
         }
     }
 }

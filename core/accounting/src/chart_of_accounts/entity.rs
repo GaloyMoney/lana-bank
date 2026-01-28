@@ -10,7 +10,7 @@ use es_entity::*;
 use super::chart_node::*;
 use crate::{
     chart_of_accounts::ledger::ClosingTxParentIdsAndDetails,
-    primitives::{AccountingBaseConfig, *},
+    primitives::{AccountCategory, AccountingBaseConfig, *},
 };
 
 use super::{bulk_import::*, error::*, tree};
@@ -278,6 +278,26 @@ impl Chart {
     pub fn maybe_account_set_id_from_code(&self, code: &AccountCode) -> Option<CalaAccountSetId> {
         self.find_node_details_by_code(code)
             .map(|details| details.account_set_id)
+    }
+
+    pub fn validated_account_set_id(
+        &self,
+        code: &AccountCode,
+        category: AccountCategory,
+    ) -> Result<CalaAccountSetId, ChartOfAccountsError> {
+        let id = self.account_set_id_from_code(code)?;
+        let base_config = self
+            .base_config
+            .as_ref()
+            .ok_or(ChartOfAccountsError::BaseConfigNotInitialized)?;
+
+        if !base_config.is_account_in_category(code, category) {
+            return Err(ChartOfAccountsError::InvalidAccountCategory {
+                code: code.clone(),
+                category,
+            });
+        }
+        Ok(id)
     }
 
     pub fn manual_transaction_account(
@@ -1014,6 +1034,166 @@ mod test {
             assert!(matches!(
                 second_result,
                 Err(ChartOfAccountsError::BaseConfigAlreadyInitializedWithDifferentConfig)
+            ));
+        }
+    }
+
+    mod validated_account_set_id {
+        use super::*;
+
+        fn chart_with_base_config() -> Chart {
+            let mut chart = chart_from(initial_events());
+            let journal_id = CalaJournalId::new();
+
+            let specs = vec![
+                AccountSpec {
+                    name: "Assets".parse().unwrap(),
+                    parent: None,
+                    code: code("1"),
+                    normal_balance_type: DebitOrCredit::Debit,
+                },
+                AccountSpec {
+                    name: "Cash".parse().unwrap(),
+                    parent: Some(code("1")),
+                    code: code("1.1"),
+                    normal_balance_type: DebitOrCredit::Debit,
+                },
+                AccountSpec {
+                    name: "Liabilities".parse().unwrap(),
+                    parent: None,
+                    code: code("2"),
+                    normal_balance_type: DebitOrCredit::Credit,
+                },
+                AccountSpec {
+                    name: "Equity".parse().unwrap(),
+                    parent: None,
+                    code: code("3"),
+                    normal_balance_type: DebitOrCredit::Credit,
+                },
+                AccountSpec {
+                    name: "Retained Earnings Gain".parse().unwrap(),
+                    parent: Some(code("3")),
+                    code: code("3.1"),
+                    normal_balance_type: DebitOrCredit::Credit,
+                },
+                AccountSpec {
+                    name: "Retained Earnings Loss".parse().unwrap(),
+                    parent: Some(code("3")),
+                    code: code("3.2"),
+                    normal_balance_type: DebitOrCredit::Credit,
+                },
+                AccountSpec {
+                    name: "Revenue".parse().unwrap(),
+                    parent: None,
+                    code: code("4"),
+                    normal_balance_type: DebitOrCredit::Credit,
+                },
+                AccountSpec {
+                    name: "Cost of Revenue".parse().unwrap(),
+                    parent: None,
+                    code: code("5"),
+                    normal_balance_type: DebitOrCredit::Debit,
+                },
+                AccountSpec {
+                    name: "Expenses".parse().unwrap(),
+                    parent: None,
+                    code: code("6"),
+                    normal_balance_type: DebitOrCredit::Debit,
+                },
+                AccountSpec {
+                    name: "Off Balance Sheet".parse().unwrap(),
+                    parent: None,
+                    code: code("9"),
+                    normal_balance_type: DebitOrCredit::Debit,
+                },
+            ];
+
+            let base_config = AccountingBaseConfig::try_new(
+                code("1"),
+                code("2"),
+                code("3"),
+                code("3.1"),
+                code("3.2"),
+                code("4"),
+                code("5"),
+                code("6"),
+            )
+            .unwrap();
+
+            let _ = chart
+                .configure_with_initial_accounts(specs, base_config, journal_id)
+                .unwrap();
+            hydrate_chart_of_accounts(&mut chart);
+
+            chart
+        }
+
+        #[test]
+        fn returns_id_for_valid_asset_category() {
+            let chart = chart_with_base_config();
+
+            let result = chart.validated_account_set_id(&code("1"), AccountCategory::Asset);
+            assert!(result.is_ok());
+
+            let result = chart.validated_account_set_id(&code("1.1"), AccountCategory::Asset);
+            assert!(result.is_ok());
+        }
+
+        #[test]
+        fn returns_id_for_valid_off_balance_sheet_category() {
+            let chart = chart_with_base_config();
+
+            let result =
+                chart.validated_account_set_id(&code("9"), AccountCategory::OffBalanceSheet);
+            assert!(result.is_ok());
+        }
+
+        #[test]
+        fn returns_id_for_valid_revenue_category() {
+            let chart = chart_with_base_config();
+
+            let result = chart.validated_account_set_id(&code("4"), AccountCategory::Revenue);
+            assert!(result.is_ok());
+        }
+
+        #[test]
+        fn errors_when_category_mismatch() {
+            let chart = chart_with_base_config();
+
+            let result = chart.validated_account_set_id(&code("1"), AccountCategory::Revenue);
+            assert!(matches!(
+                result,
+                Err(ChartOfAccountsError::InvalidAccountCategory { .. })
+            ));
+
+            let result =
+                chart.validated_account_set_id(&code("4"), AccountCategory::OffBalanceSheet);
+            assert!(matches!(
+                result,
+                Err(ChartOfAccountsError::InvalidAccountCategory { .. })
+            ));
+        }
+
+        #[test]
+        fn errors_when_code_not_found() {
+            let chart = chart_with_base_config();
+
+            let result = chart.validated_account_set_id(&code("99"), AccountCategory::Asset);
+            assert!(matches!(
+                result,
+                Err(ChartOfAccountsError::CodeNotFoundInChart(_))
+            ));
+        }
+
+        #[test]
+        fn errors_when_base_config_not_initialized() {
+            // Use default_chart which has accounts but no base_config
+            let (chart, _) = default_chart();
+
+            let result = chart.validated_account_set_id(&code("1"), AccountCategory::Asset);
+            assert!(matches!(
+                result,
+                Err(ChartOfAccountsError::BaseConfigNotInitialized)
             ));
         }
     }
