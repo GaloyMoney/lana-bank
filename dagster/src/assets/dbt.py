@@ -199,6 +199,6 @@ def create_dbt_seed_assets():
         selected_keys = [key.to_user_string() for key in context.selected_asset_keys]
 
         with trace_dbt_batch(context, "dbt_seeds_build", selected_keys):
-            yield from dbt.cli(["build"], context=context).stream()
+            yield from dbt.cli(["seed"], context=context).stream()
 
     return lana_dbt_seed_assets
