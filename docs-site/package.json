@@ -18,6 +18,7 @@
     "generate-versioned-api-docs": "node scripts/generate-versioned-api-docs.js",
     "generate-events-docs": "node scripts/generate-events-docs.js",
     "validate-api-descriptions": "node scripts/validate-api-descriptions.js",
+    "snapshot-schemas": "node scripts/snapshot-schemas.js",
     "prebuild": "npm run generate-api-docs && npm run generate-versioned-api-docs"
   },
   "dependencies": {
