@@ -82,8 +82,6 @@ async fn setup() -> anyhow::Result<(
     )
     .await?;
 
-    jobs.start_poll().await?;
-
     Ok((deposit, customers, outbox, jobs))
 }
 
@@ -247,9 +245,13 @@ async fn deposit_initialized_publishes_event() -> anyhow::Result<()> {
 /// This event is consumed by `lana` deposit sync (SumSub export) and `lana` customer sync (update last activity date).
 ///
 /// The event contains a snapshot with the withdrawal id, deposit account id, and amount.
+///
+/// This test requires the job poller because withdrawal approval is processed asynchronously
+/// via the governance → outbox → jobs pipeline.
 #[tokio::test]
 async fn withdrawal_confirmed_publishes_event() -> anyhow::Result<()> {
-    let (deposit, customers, outbox, _jobs) = setup().await?;
+    let (deposit, customers, outbox, mut jobs) = setup().await?;
+    jobs.start_poll().await?;
 
     let customer = customers
         .create(
@@ -310,6 +312,7 @@ async fn withdrawal_confirmed_publishes_event() -> anyhow::Result<()> {
     assert_eq!(recorded.deposit_account_id, confirmed.deposit_account_id);
     assert_eq!(recorded.amount, confirmed.amount);
 
+    jobs.shutdown().await?;
     Ok(())
 }
 
