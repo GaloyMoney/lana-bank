@@ -110,10 +110,10 @@ impl CollateralLedger {
 
     #[record_error_severity]
     #[instrument(
-        name = "core_credit.collateral.ledger.record_collateral_sent_to_liquidation_in_op",
+        name = "core_credit.collateral.ledger.record_collateral_sent_to_liquidation",
         skip(self, db)
     )]
-    pub async fn record_collateral_sent_to_liquidation_in_op(
+    pub async fn record_collateral_sent_to_liquidation(
         &self,
         db: &mut es_entity::DbOp<'_>,
         tx_id: CalaTransactionId,

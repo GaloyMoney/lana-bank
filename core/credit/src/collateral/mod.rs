@@ -10,8 +10,12 @@ use std::sync::Arc;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
+use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_accounting::LedgerTransactionInitiator;
+use es_entity::clock::ClockHandle;
+
+use crate::primitives::{CoreCreditAction, CoreCreditObject};
 use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{
@@ -47,6 +51,7 @@ where
     authz: Arc<Perms>,
     repo: Arc<CollateralRepo<E>>,
     ledger: Arc<CollateralLedger>,
+    clock: ClockHandle,
 }
 
 impl<Perms, E> Clone for Collaterals<Perms, E>
@@ -59,6 +64,7 @@ where
             authz: self.authz.clone(),
             repo: self.repo.clone(),
             ledger: self.ledger.clone(),
+            clock: self.clock.clone(),
         }
     }
 }
@@ -96,6 +102,7 @@ where
             authz,
             repo: repo_arc,
             ledger,
+            clock: jobs.clock().clone(),
         })
     }
 
@@ -156,44 +163,64 @@ where
         Ok(res)
     }
 
-    /// Sends collateral to liquidation, updating both the nested Liquidation entity
-    /// and the Collateral's own amount, then posts to ledger.
+    /// Sends collateral to the active liquidation with authorization check.
+    /// Updates both the nested Liquidation entity and the Collateral's own amount,
+    /// then posts to ledger. Returns the updated Collateral entity.
     #[record_error_severity]
-    #[instrument(
-        name = "collateral.send_collateral_to_liquidation_in_op",
-        skip(db, self)
-    )]
-    pub(super) async fn send_collateral_to_liquidation_in_op(
+    #[instrument(name = "collateral.send_collateral_to_liquidation", skip(self, sub))]
+    pub async fn send_collateral_to_liquidation(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         collateral_id: CollateralId,
-        liquidation_id: LiquidationId,
         amount: Satoshis,
-        effective: chrono::NaiveDate,
-        initiated_by: LedgerTransactionInitiator,
-    ) -> Result<Option<SendCollateralToLiquidationResult>, CollateralError> {
-        let mut collateral = self.repo.find_by_id_in_op(&mut *db, collateral_id).await?;
+    ) -> Result<Collateral, CollateralError>
+    where
+        <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+        <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    {
+        let mut collateral = self.repo.find_by_id(collateral_id).await?;
+        let active_liquidation = collateral
+            .active_liquidation()
+            .ok_or(CollateralError::NoActiveLiquidation)?;
+        let liquidation_id = active_liquidation.id;
 
-        let res = if let es_entity::Idempotent::Executed(data) =
+        self.authz
+            .evaluate_permission(
+                sub,
+                CoreCreditObject::liquidation(liquidation_id),
+                CoreCreditAction::LIQUIDATION_RECORD_COLLATERAL_SENT,
+                true,
+            )
+            .await?
+            .expect("audit info missing");
+
+        let mut db = self.repo.begin_op().await?;
+        let effective = self.clock.today();
+        let initiated_by = LedgerTransactionInitiator::try_from_subject(sub)?;
+
+        let data = if let es_entity::Idempotent::Executed(data) =
             collateral.send_collateral_to_liquidation(liquidation_id, amount, effective)?
         {
-            self.repo.update_in_op(db, &mut collateral).await?;
-            self.ledger
-                .record_collateral_sent_to_liquidation_in_op(
-                    db,
-                    data.ledger_tx_id,
-                    amount,
-                    data.collateral_account_id,
-                    data.collateral_in_liquidation_account_id,
-                    initiated_by,
-                )
-                .await?;
-            Some(data)
+            self.repo.update_in_op(&mut db, &mut collateral).await?;
+            data
         } else {
-            None
+            return Ok(collateral);
         };
 
-        Ok(res)
+        self.ledger
+            .record_collateral_sent_to_liquidation(
+                &mut db,
+                data.ledger_tx_id,
+                amount,
+                data.collateral_account_id,
+                data.collateral_in_liquidation_account_id,
+                initiated_by,
+            )
+            .await?;
+
+        db.commit().await?;
+
+        Ok(collateral)
     }
 
     /// Creates a new liquidation for the given collateral via the Collateral aggregate.

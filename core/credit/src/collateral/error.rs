@@ -34,6 +34,14 @@ pub enum CollateralError {
     LiquidationAlreadyActive,
     #[error("CollateralError - LiquidationNotFound: {0}")]
     LiquidationNotFound(LiquidationId),
+    #[error("CollateralError - NoActiveLiquidation: no active liquidation for this collateral")]
+    NoActiveLiquidation,
+    #[error("CollateralError - AuthorizationError: {0}")]
+    AuthorizationError(#[from] authz::error::AuthorizationError),
+    #[error("CollateralError - LedgerTransactionInitiatorParseError: {0}")]
+    LedgerTransactionInitiatorParseError(
+        #[from] core_accounting::LedgerTransactionInitiatorParseError,
+    ),
 }
 
 impl ErrorSeverity for CollateralError {
@@ -50,6 +58,9 @@ impl ErrorSeverity for CollateralError {
             Self::LiquidationAlreadyActive => Level::WARN,
             Self::LiquidationNotFound(_) => Level::ERROR,
             Self::LiquidationError(e) => e.severity(),
+            Self::NoActiveLiquidation => Level::WARN,
+            Self::AuthorizationError(e) => e.severity(),
+            Self::LedgerTransactionInitiatorParseError(e) => e.severity(),
         }
     }
 }
