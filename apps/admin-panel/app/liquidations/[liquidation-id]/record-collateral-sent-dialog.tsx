@@ -25,8 +25,8 @@ gql`
     $input: LiquidationRecordCollateralSentInput!
   ) {
     liquidationRecordCollateralSent(input: $input) {
-      liquidation {
-        ...LiquidationDetails
+      collateral {
+        collateralId
       }
     }
   }
@@ -35,13 +35,13 @@ gql`
 type RecordCollateralSentDialogProps = {
   open: boolean
   onOpenChange: (isOpen: boolean) => void
-  liquidationId: string
+  collateralId: string
 }
 
 export const RecordCollateralSentDialog: React.FC<RecordCollateralSentDialogProps> = ({
   open,
   onOpenChange,
-  liquidationId,
+  collateralId,
 }) => {
   const t = useTranslations("Liquidations.LiquidationDetails.recordCollateralSent")
   const commonT = useTranslations("Common")
@@ -64,7 +64,7 @@ export const RecordCollateralSentDialog: React.FC<RecordCollateralSentDialogProp
       const result = await recordCollateralSent({
         variables: {
           input: {
-            liquidationId,
+            collateralId,
             amount: currencyConverter.btcToSatoshi(Number(amount)),
           },
         },

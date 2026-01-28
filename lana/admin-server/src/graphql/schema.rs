@@ -2017,10 +2017,13 @@ impl Mutation {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         exec_mutation!(
             LiquidationRecordCollateralSentPayload,
-            Liquidation,
+            Collateral,
             ctx,
-            app.credit()
-                .record_collateral_sent(sub, input.liquidation_id.into(), input.amount)
+            app.credit().collaterals().send_collateral_to_liquidation(
+                sub,
+                input.collateral_id.into(),
+                input.amount
+            )
         )
     }
 
