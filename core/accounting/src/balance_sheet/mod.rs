@@ -4,7 +4,7 @@ pub mod ledger;
 
 use tracing::instrument;
 
-use audit::AuditSvc;
+use audit::{AuditSvc, SystemActor};
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use chrono::NaiveDate;
@@ -107,6 +107,7 @@ where
             .audit()
             .record_system_entry_in_tx(
                 &mut op,
+                SystemActor::AccountingJob,
                 CoreAccountingObject::all_balance_sheet(),
                 CoreAccountingAction::BALANCE_SHEET_CREATE,
             )

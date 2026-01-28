@@ -9,7 +9,7 @@ use std::sync::Arc;
 use tracing::{Span, instrument};
 use tracing_macros::record_error_severity;
 
-use audit::AuditSvc;
+use audit::{AuditSvc, SystemActor};
 use authz::PermissionCheck;
 use core_accounting::LedgerTransactionInitiator;
 use es_entity::clock::ClockHandle;
@@ -156,6 +156,7 @@ where
             .audit()
             .record_system_entry_in_tx(
                 op,
+                SystemActor::ObligationSync,
                 CoreCreditObject::obligation(id),
                 CoreCreditAction::OBLIGATION_UPDATE_STATUS,
             )
@@ -186,6 +187,7 @@ where
             .audit()
             .record_system_entry_in_tx(
                 op,
+                SystemActor::ObligationSync,
                 CoreCreditObject::obligation(id),
                 CoreCreditAction::OBLIGATION_UPDATE_STATUS,
             )

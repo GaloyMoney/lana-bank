@@ -3035,6 +3035,9 @@ export type SumsubPermalinkCreatePayload = {
 
 export type System = {
   __typename?: 'System';
+  /** The specific system actor that performed this action */
+  actor: Scalars['String']['output'];
+  /** The name of the application */
   name: Scalars['String']['output'];
 };
 
@@ -3389,7 +3392,7 @@ export type AuditLogsQueryVariables = Exact<{
 
 
 export type AuditLogsQuery = { __typename?: 'Query', audit: { __typename?: 'AuditEntryConnection', edges: Array<{ __typename?: 'AuditEntryEdge', cursor: string, node: { __typename?: 'AuditEntry', id: string, auditEntryId: any, object: string, action: string, authorized: boolean, recordedAt: any, subject:
-          | { __typename?: 'System', name: string }
+          | { __typename?: 'System', name: string, actor: string }
           | { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string } }
          } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
@@ -6099,6 +6102,7 @@ export const AuditLogsDocument = gql`
           }
           ... on System {
             name
+            actor
           }
         }
         object

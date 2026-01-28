@@ -1,7 +1,7 @@
 use crate::accounting_init::{constants::*, *};
 
 use core_accounting::AccountingBaseConfig;
-use rbac_types::Subject;
+use rbac_types::{Subject, SystemActor};
 
 use super::module_config::{
     balance_sheet::*, chart_integration_config::*, credit::*, deposit::*, fiscal_year::*,
@@ -57,14 +57,18 @@ async fn create_chart_of_accounts(
     {
         let chart = chart_of_accounts
             .create_chart(
-                &Subject::System,
+                &Subject::System(SystemActor::Bootstrap),
                 CHART_NAME.to_string(),
                 CHART_REF.to_string(),
             )
             .await?;
 
         fiscal_year
-            .init_for_chart(&Subject::System, opening_date, chart.id)
+            .init_for_chart(
+                &Subject::System(SystemActor::Bootstrap),
+                opening_date,
+                chart.id,
+            )
             .await?;
     }
 
@@ -101,7 +105,7 @@ async fn seed_chart_of_accounts(
 
     let chart = if let (chart, Some(new_account_set_ids)) = chart_of_accounts
         .import_from_csv_with_base_config(
-            &Subject::System,
+            &Subject::System(SystemActor::Bootstrap),
             CHART_REF,
             data,
             accounting_integration_config,
