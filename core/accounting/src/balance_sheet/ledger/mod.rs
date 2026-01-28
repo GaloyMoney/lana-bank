@@ -299,7 +299,7 @@ impl BalanceSheetLedger {
 
     pub(crate) async fn attach_chart_of_accounts_account_sets_in_op(
         &self,
-        op: &mut es_entity::DbOpWithTime<'_>,
+        op: &mut es_entity::DbOp<'_>,
         reference: String,
         resolved: &ResolvedAccountingBaseConfig,
     ) -> Result<(), BalanceSheetLedgerError> {

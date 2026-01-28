@@ -138,7 +138,7 @@ where
     )]
     pub async fn import_from_csv_with_base_config_in_op(
         &self,
-        op: &mut es_entity::DbOpWithTime<'_>,
+        op: &mut es_entity::DbOp<'_>,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_ref: &str,
         import_data: impl AsRef<str>,

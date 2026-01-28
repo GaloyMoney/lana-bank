@@ -95,7 +95,7 @@ where
     )]
     pub(crate) async fn link_chart_account_sets_in_op(
         &self,
-        op: &mut es_entity::DbOpWithTime<'_>,
+        op: &mut es_entity::DbOp<'_>,
         reference: String,
         resolved: &ResolvedAccountingBaseConfig,
     ) -> Result<(), ledger::error::ProfitAndLossStatementLedgerError> {

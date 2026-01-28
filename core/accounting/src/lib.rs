@@ -295,8 +295,7 @@ where
         profit_and_loss_ref: &str,
         trial_balance_ref: &str,
     ) -> Result<Chart, CoreAccountingError> {
-        let op = self.chart_of_accounts.begin_op().await?;
-        let mut op = op.with_db_time().await?;
+        let mut op = self.chart_of_accounts.begin_op().await?;
 
         let (chart, new_trial_balance_account_ids) = self
             .chart_of_accounts

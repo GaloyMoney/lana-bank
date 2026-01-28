@@ -112,7 +112,7 @@ where
     #[instrument(name = "core_accounting.trial_balance.add_new_chart_accounts_to_trial_balance_in_op", skip(self, op, name), fields(statement_name = %name))]
     pub(crate) async fn add_new_chart_accounts_to_trial_balance_in_op(
         &self,
-        op: &mut es_entity::DbOpWithTime<'_>,
+        op: &mut es_entity::DbOp<'_>,
         name: &str,
         new_chart_account_set_ids: &[CalaAccountSetId],
     ) -> Result<(), TrialBalanceError> {
@@ -122,7 +122,7 @@ where
             .await?;
 
         self.trial_balance_ledger
-            .add_members_with_time(op, trial_balance_id, new_chart_account_set_ids.iter())
+            .add_members(op, trial_balance_id, new_chart_account_set_ids.iter())
             .await?;
 
         Ok(())

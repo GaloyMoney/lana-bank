@@ -130,38 +130,9 @@ impl TrialBalanceLedger {
         Ok(())
     }
 
-    pub async fn add_members_with_time(
-        &self,
-        op: &mut es_entity::DbOpWithTime<'_>,
-        node_account_set_id: impl Into<AccountSetId> + Copy,
-        members: impl Iterator<Item = &AccountSetId>,
-    ) -> Result<(), TrialBalanceLedgerError> {
-        for member in members {
-            self.add_member_in_op_with_time(op, node_account_set_id, *member)
-                .await?;
-        }
-        Ok(())
-    }
-
     async fn add_member_in_op(
         &self,
         op: &mut es_entity::DbOp<'_>,
-        node_account_set_id: impl Into<AccountSetId>,
-        member: AccountSetId,
-    ) -> Result<(), TrialBalanceLedgerError> {
-        let node_account_set_id = node_account_set_id.into();
-
-        self.cala
-            .account_sets()
-            .add_member_in_op(op, node_account_set_id, member)
-            .await?;
-
-        Ok(())
-    }
-
-    async fn add_member_in_op_with_time(
-        &self,
-        op: &mut es_entity::DbOpWithTime<'_>,
         node_account_set_id: impl Into<AccountSetId>,
         member: AccountSetId,
     ) -> Result<(), TrialBalanceLedgerError> {
