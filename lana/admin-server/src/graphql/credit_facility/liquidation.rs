@@ -30,11 +30,11 @@ pub struct CollateralLiquidationRecordCollateralSentInput {
 crate::mutation_payload! { CollateralLiquidationRecordCollateralSentPayload, collateral: Collateral }
 
 #[derive(InputObject)]
-pub struct LiquidationRecordProceedsReceivedInput {
-    pub liquidation_id: UUID,
+pub struct CollateralLiquidationRecordProceedsReceivedInput {
+    pub collateral_id: UUID,
     pub amount: UsdCents,
 }
-crate::mutation_payload! { LiquidationRecordProceedsReceivedPayload, liquidation: Liquidation }
+crate::mutation_payload! { CollateralLiquidationRecordProceedsReceivedPayload, collateral: Collateral }
 
 impl From<DomainLiquidation> for Liquidation {
     fn from(liquidation: DomainLiquidation) -> Self {
