@@ -75,9 +75,9 @@ where
             return Ok(existing.config);
         }
 
-        let accounting_base_config = chart
-            .accounting_base_config()
-            .ok_or(ChartOfAccountsIntegrationError::AccountingBaseConfigNotFound)?;
+        if chart.accounting_base_config().is_none() {
+            return Err(ChartOfAccountsIntegrationError::AccountingBaseConfigNotFound);
+        }
 
         self.authz
             .enforce_permission(
@@ -89,11 +89,8 @@ where
 
         let mut op = self.domain_configs.begin_op().await?;
 
-        let resolved_integration_config = ResolvedChartOfAccountsIntegrationConfig::try_new(
-            config,
-            chart,
-            &accounting_base_config,
-        )?;
+        let resolved_integration_config =
+            ResolvedChartOfAccountsIntegrationConfig::try_new(config, chart)?;
 
         self.domain_configs
             .update_in_op::<ResolvedChartOfAccountsIntegrationConfig>(

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use core_accounting::{AccountCode, AccountingBaseConfig, CalaAccountSetId, Chart, ChartId};
+use core_accounting::{AccountCategory, AccountCode, CalaAccountSetId, Chart, ChartId};
 use domain_config::define_internal_config;
 
 use super::error::ChartOfAccountsIntegrationError;
@@ -114,45 +114,21 @@ impl ResolvedChartOfAccountsIntegrationConfig {
     pub fn try_new(
         config: ChartOfAccountsIntegrationConfig,
         chart: &Chart,
-        accounting_base_config: &AccountingBaseConfig,
     ) -> Result<Self, ChartOfAccountsIntegrationError> {
         let off_balance_sheet_account_set_member_parent_id =
             |code: &AccountCode| -> Result<CalaAccountSetId, ChartOfAccountsIntegrationError> {
-                let id = chart.account_set_id_from_code(code)?;
-                if !accounting_base_config.is_off_balance_sheet_account_set_or_account(code) {
-                    return Err(
-                        ChartOfAccountsIntegrationError::InvalidAccountingAccountSetParent(
-                            code.to_string(),
-                        ),
-                    );
-                }
-                Ok(id)
+                Ok(chart
+                    .accounting_validated_account_set_id(code, AccountCategory::OffBalanceSheet)?)
             };
 
         let revenue_account_set_member_parent_id =
             |code: &AccountCode| -> Result<CalaAccountSetId, ChartOfAccountsIntegrationError> {
-                let id = chart.account_set_id_from_code(code)?;
-                if !accounting_base_config.is_revenue_account_set_or_account(code) {
-                    return Err(
-                        ChartOfAccountsIntegrationError::InvalidAccountingAccountSetParent(
-                            code.to_string(),
-                        ),
-                    );
-                }
-                Ok(id)
+                Ok(chart.accounting_validated_account_set_id(code, AccountCategory::Revenue)?)
             };
 
         let asset_account_set_member_parent_id =
             |code: &AccountCode| -> Result<CalaAccountSetId, ChartOfAccountsIntegrationError> {
-                let id = chart.account_set_id_from_code(code)?;
-                if !accounting_base_config.is_assets_account_set_or_account(code) {
-                    return Err(
-                        ChartOfAccountsIntegrationError::InvalidAccountingAccountSetParent(
-                            code.to_string(),
-                        ),
-                    );
-                }
-                Ok(id)
+                Ok(chart.accounting_validated_account_set_id(code, AccountCategory::Asset)?)
             };
 
         let facility_omnibus_parent_account_set_id =

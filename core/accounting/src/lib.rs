@@ -304,7 +304,7 @@ where
 
         let resolved = chart
             .resolve_accounting_base_config()
-            .ok_or(chart_of_accounts_error::ChartOfAccountsError::AccountingBaseConfigNotFound)?;
+            .ok_or(chart_of_accounts_error::ChartOfAccountsError::BaseConfigNotInitialized)?;
 
         self.trial_balances
             .add_new_chart_accounts_to_trial_balance_in_op(

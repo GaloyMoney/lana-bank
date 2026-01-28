@@ -398,7 +398,7 @@ where
         let account_codes = ClosingAccountCodes::from(
             &chart
                 .accounting_base_config()
-                .ok_or(ChartOfAccountsError::AccountingBaseConfigNotFound)?,
+                .ok_or(ChartOfAccountsError::BaseConfigNotInitialized)?,
         );
 
         if let Idempotent::Executed(closing_tx_parents_and_details) =
