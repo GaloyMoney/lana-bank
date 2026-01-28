@@ -11,8 +11,9 @@ use es_entity::clock::ClockHandle;
 
 pub use error::CollateralLedgerError;
 
-use crate::primitives::{
-    CalaAccountId, CollateralAction, CollateralUpdate, LedgerOmnibusAccountIds,
+use crate::{
+    liquidation::RecordProceedsFromLiquidationData,
+    primitives::{CalaAccountId, CollateralAction, CollateralUpdate, LedgerOmnibusAccountIds},
 };
 
 #[derive(Clone)]
@@ -36,6 +37,7 @@ impl CollateralLedger {
         templates::AddCollateral::init(cala).await?;
         templates::RemoveCollateral::init(cala).await?;
         templates::SendCollateralToLiquidation::init(cala).await?;
+        templates::ReceiveProceedsFromLiquidation::init(cala).await?;
 
         Ok(Self {
             cala: cala.clone(),
@@ -132,6 +134,43 @@ impl CollateralLedger {
                     journal_id: self.journal_id,
                     collateral_account_id,
                     collateral_in_liquidation_account_id,
+                    effective: self.clock.today(),
+                    initiated_by,
+                },
+            )
+            .await?;
+
+        Ok(())
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "core_credit.collateral.ledger.record_proceeds_from_liquidation",
+        skip(self, db)
+    )]
+    pub async fn record_proceeds_from_liquidation(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        tx_id: CalaTransactionId,
+        data: RecordProceedsFromLiquidationData,
+        initiated_by: LedgerTransactionInitiator,
+    ) -> Result<(), CollateralLedgerError> {
+        self.cala
+            .post_transaction_in_op(
+                db,
+                tx_id,
+                templates::RECEIVE_PROCEEDS_FROM_LIQUIDATION,
+                templates::ReceiveProceedsFromLiquidationParams {
+                    journal_id: self.journal_id,
+                    fiat_liquidation_proceeds_omnibus_account_id: data
+                        .liquidation_proceeds_omnibus_account_id,
+                    fiat_proceeds_from_liquidation_account_id: data
+                        .proceeds_from_liquidation_account_id,
+                    amount_received: data.amount_received,
+                    currency: Currency::USD,
+                    btc_in_liquidation_account_id: data.collateral_in_liquidation_account_id,
+                    btc_liquidated_account_id: data.liquidated_collateral_account_id,
+                    amount_liquidated: data.amount_liquidated,
                     effective: self.clock.today(),
                     initiated_by,
                 },
