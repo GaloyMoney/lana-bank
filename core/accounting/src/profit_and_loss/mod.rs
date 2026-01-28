@@ -1,4 +1,3 @@
-mod chart_of_accounts_integration;
 pub mod error;
 pub mod ledger;
 
@@ -11,12 +10,12 @@ use cala_ledger::CalaLedger;
 use tracing_macros::record_error_severity;
 
 use crate::{
-    AccountingBaseConfig, LedgerAccountId,
-    chart_of_accounts::Chart,
-    primitives::{BalanceRange, CalaAccountSetId, CoreAccountingAction, CoreAccountingObject},
+    LedgerAccountId,
+    primitives::{
+        BalanceRange, CalaAccountSetId, CoreAccountingAction, CoreAccountingObject,
+        ResolvedAccountingBaseConfig,
+    },
 };
-
-pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
 use error::*;
 use ledger::*;
 
@@ -29,23 +28,6 @@ pub struct ProfitAndLossStatementIds {
     pub revenue: CalaAccountSetId,
     pub cost_of_revenue: CalaAccountSetId,
     pub expenses: CalaAccountSetId,
-}
-
-impl ProfitAndLossStatementIds {
-    fn internal_ids(&self) -> Vec<CalaAccountSetId> {
-        let Self {
-            id: _id,
-            revenue,
-            cost_of_revenue,
-            expenses,
-        } = self;
-
-        vec![*revenue, *cost_of_revenue, *expenses]
-    }
-
-    fn account_set_id_for_config(&self) -> CalaAccountSetId {
-        self.revenue
-    }
 }
 
 #[derive(Clone)]
@@ -108,82 +90,18 @@ where
 
     #[record_error_severity]
     #[instrument(
-        name = "core_accounting.profit_and_loss.get_chart_of_accounts_integration_config",
-        skip(self)
+        name = "core_accounting.profit_and_loss.link_chart_account_sets_in_op",
+        skip(self, op, resolved)
     )]
-    pub async fn get_chart_of_accounts_integration_config(
+    pub(crate) async fn link_chart_account_sets_in_op(
         &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        op: &mut es_entity::DbOpWithTime<'_>,
         reference: String,
-    ) -> Result<Option<AccountingBaseConfig>, ProfitAndLossStatementError> {
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreAccountingObject::all_profit_and_loss_configuration(),
-                CoreAccountingAction::PROFIT_AND_LOSS_CONFIGURATION_READ,
-            )
-            .await?;
-        Ok(self
-            .pl_statement_ledger
-            .get_chart_of_accounts_integration_config(reference)
-            .await?)
-    }
-
-    #[record_error_severity]
-    #[instrument(
-        name = "core_accounting.profit_and_loss.set_chart_of_accounts_integration_config",
-        skip(self, chart)
-    )]
-    pub async fn set_chart_of_accounts_integration_config(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        reference: String,
-        chart: &Chart,
-    ) -> Result<AccountingBaseConfig, ProfitAndLossStatementError> {
-        let audit_info = self
-            .authz
-            .enforce_permission(
-                sub,
-                CoreAccountingObject::all_profit_and_loss_configuration(),
-                CoreAccountingAction::PROFIT_AND_LOSS_CONFIGURATION_UPDATE,
-            )
-            .await?;
-
-        if self
-            .pl_statement_ledger
-            .get_chart_of_accounts_integration_config(reference.to_string())
-            .await?
-            .is_some()
-        {
-            return Err(ProfitAndLossStatementError::ProfitAndLossStatementConfigAlreadyExists);
-        }
-
-        let config = match chart.accounting_base_config() {
-            Some(config) => config,
-            None => return Err(ProfitAndLossStatementError::AccountingBaseConfigNotFound),
-        };
-
-        let revenue_child_account_set_id_from_chart =
-            chart.account_set_id_from_code(&config.revenue_code)?;
-        let cost_of_revenue_child_account_set_id_from_chart =
-            chart.account_set_id_from_code(&config.cost_of_revenue_code)?;
-        let expenses_child_account_set_id_from_chart =
-            chart.account_set_id_from_code(&config.expenses_code)?;
-
-        let charts_integration_meta = ChartOfAccountsIntegrationMeta {
-            audit_info,
-            config: config.clone(),
-
-            revenue_child_account_set_id_from_chart,
-            cost_of_revenue_child_account_set_id_from_chart,
-            expenses_child_account_set_id_from_chart,
-        };
-
+        resolved: &ResolvedAccountingBaseConfig,
+    ) -> Result<(), ledger::error::ProfitAndLossStatementLedgerError> {
         self.pl_statement_ledger
-            .attach_chart_of_accounts_account_sets(reference, charts_integration_meta)
-            .await?;
-
-        Ok(config)
+            .attach_chart_of_accounts_account_sets_in_op(op, reference, resolved)
+            .await
     }
 
     #[record_error_severity]

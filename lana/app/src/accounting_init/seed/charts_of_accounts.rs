@@ -3,46 +3,23 @@ use crate::accounting_init::{constants::*, *};
 use core_accounting::AccountingBaseConfig;
 use rbac_types::Subject;
 
-use super::module_config::{
-    balance_sheet::*, chart_integration_config::*, credit::*, deposit::*, fiscal_year::*,
-    profit_and_loss::*,
-};
+use super::module_config::{chart_integration_config::*, credit::*, deposit::*};
 
 pub(crate) async fn init(
-    chart_of_accounts: &ChartOfAccounts,
-    trial_balances: &TrialBalances,
+    accounting: &Accounting,
     credit: &Credit,
     deposit: &Deposits,
-    balance_sheet: &BalanceSheets,
-    profit_and_loss: &ProfitAndLossStatements,
-    fiscal_year: &FiscalYears,
     accounting_init_config: AccountingInitConfig,
 ) -> Result<(), AccountingInitError> {
-    create_chart_of_accounts(
-        chart_of_accounts,
-        fiscal_year,
-        accounting_init_config.clone(),
-    )
-    .await?;
+    create_chart_of_accounts(accounting, accounting_init_config.clone()).await?;
 
-    seed_chart_of_accounts(
-        chart_of_accounts,
-        trial_balances,
-        credit,
-        deposit,
-        balance_sheet,
-        profit_and_loss,
-        fiscal_year,
-        accounting_init_config,
-    )
-    .await?;
+    seed_chart_of_accounts(accounting, credit, deposit, accounting_init_config).await?;
 
     Ok(())
 }
 
 async fn create_chart_of_accounts(
-    chart_of_accounts: &ChartOfAccounts,
-    fiscal_year: &FiscalYears,
+    accounting: &Accounting,
     accounting_init_config: AccountingInitConfig,
 ) -> Result<(), AccountingInitError> {
     let opening_date = accounting_init_config
@@ -50,12 +27,14 @@ async fn create_chart_of_accounts(
         .ok_or_else(|| {
             AccountingInitError::MissingConfig("chart_of_accounts_opening_date".to_string())
         })?;
-    if chart_of_accounts
+    if accounting
+        .chart_of_accounts()
         .maybe_find_by_reference(CHART_REF)
         .await?
         .is_none()
     {
-        let chart = chart_of_accounts
+        let chart = accounting
+            .chart_of_accounts()
             .create_chart(
                 &Subject::System,
                 CHART_NAME.to_string(),
@@ -63,7 +42,8 @@ async fn create_chart_of_accounts(
             )
             .await?;
 
-        fiscal_year
+        accounting
+            .fiscal_year()
             .init_for_chart(&Subject::System, opening_date, chart.id)
             .await?;
     }
@@ -72,13 +52,9 @@ async fn create_chart_of_accounts(
 }
 
 async fn seed_chart_of_accounts(
-    chart_of_accounts: &ChartOfAccounts,
-    trial_balances: &TrialBalances,
+    accounting: &Accounting,
     credit: &Credit,
     deposit: &Deposits,
-    balance_sheet: &BalanceSheets,
-    profit_and_loss: &ProfitAndLossStatements,
-    fiscal_year: &FiscalYears,
     accounting_init_config: AccountingInitConfig,
 ) -> Result<(), AccountingInitError> {
     let AccountingInitConfig {
@@ -99,29 +75,17 @@ async fn seed_chart_of_accounts(
         None => return Ok(()),
     };
 
-    let chart = if let (chart, Some(new_account_set_ids)) = chart_of_accounts
-        .import_from_csv_with_base_config(
+    let chart = accounting
+        .import_csv_with_base_config(
             &Subject::System,
             CHART_REF,
             data,
             accounting_integration_config,
+            BALANCE_SHEET_NAME,
+            PROFIT_AND_LOSS_STATEMENT_NAME,
+            TRIAL_BALANCE_STATEMENT_NAME,
         )
-        .await?
-    {
-        trial_balances
-            .add_new_chart_accounts_to_trial_balance(
-                TRIAL_BALANCE_STATEMENT_NAME,
-                &new_account_set_ids,
-            )
-            .await?;
-        chart
-    } else {
-        return Ok(());
-    };
-
-    balance_sheet_module_configure(balance_sheet, &chart).await?;
-    profit_and_loss_module_configure(profit_and_loss, &chart).await?;
-    fiscal_year_module_configure(fiscal_year, &chart).await?;
+        .await?;
 
     if let Some(config_path) = credit_config_path {
         credit_module_configure(credit, &chart, config_path)

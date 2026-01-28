@@ -21,12 +21,12 @@ core-money = { workspace = true }
 governance = { workspace = true }
 core-customer = { workspace = true }
 core-accounting = { workspace = true }
+domain-config = { workspace = true }
 public-id = { workspace = true }
 
 audit = { workspace = true }
 authz = { workspace = true }
 obix = { workspace = true }
-domain-config = { workspace = true }
 job = { workspace = true }
 cloud-storage = { workspace = true }
 

@@ -1,19 +1,17 @@
 pub mod error;
 
 use chrono::NaiveDate;
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tracing::instrument;
 
 use cala_ledger::{
     AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId,
-    account_set::{AccountSet, AccountSetMemberId, AccountSetUpdate, NewAccountSet},
+    account_set::{AccountSet, AccountSetMemberId, NewAccountSet},
 };
 
-use audit::AuditInfo;
 use tracing_macros::record_error_severity;
 
-use crate::primitives::{AccountingBaseConfig, BalanceRange, CalaBalanceRange};
+use crate::primitives::{BalanceRange, CalaBalanceRange, ResolvedAccountingBaseConfig};
 
 use super::{
     COST_OF_REVENUE_NAME, EXPENSES_NAME, ProfitAndLossStatement, ProfitAndLossStatementIds,
@@ -182,113 +180,38 @@ impl ProfitAndLossStatementLedger {
         Ok(res)
     }
 
-    #[record_error_severity]
-    #[instrument(name = "pl_ledger.attach_chart_of_accounts_account_sets", skip(self, charts_integration_meta), fields(reference = %reference))]
-    pub async fn attach_chart_of_accounts_account_sets(
-        &self,
-        reference: String,
-        charts_integration_meta: ChartOfAccountsIntegrationMeta,
-    ) -> Result<(), ProfitAndLossStatementLedgerError> {
-        let mut op = self.cala.begin_operation().await?;
-
-        let account_set_ids = self.get_ids_from_reference(reference).await?;
-        let mut account_sets = self
-            .cala
-            .account_sets()
-            .find_all_in_op::<AccountSet>(&mut op, &account_set_ids.internal_ids())
-            .await?;
-
-        let ChartOfAccountsIntegrationMeta {
-            config: _,
-            audit_info: _,
-
-            revenue_child_account_set_id_from_chart,
-            cost_of_revenue_child_account_set_id_from_chart,
-            expenses_child_account_set_id_from_chart,
-        } = &charts_integration_meta;
-
-        self.attach_charts_account_set(
-            &mut op,
-            &mut account_sets,
-            account_set_ids.revenue,
-            *revenue_child_account_set_id_from_chart,
-            &charts_integration_meta,
-            |meta| meta.revenue_child_account_set_id_from_chart,
-        )
-        .await?;
-        self.attach_charts_account_set(
-            &mut op,
-            &mut account_sets,
-            account_set_ids.cost_of_revenue,
-            *cost_of_revenue_child_account_set_id_from_chart,
-            &charts_integration_meta,
-            |meta| meta.cost_of_revenue_child_account_set_id_from_chart,
-        )
-        .await?;
-        self.attach_charts_account_set(
-            &mut op,
-            &mut account_sets,
-            account_set_ids.expenses,
-            *expenses_child_account_set_id_from_chart,
-            &charts_integration_meta,
-            |meta| meta.expenses_child_account_set_id_from_chart,
-        )
-        .await?;
-
-        op.commit().await?;
-        Ok(())
-    }
-
-    #[record_error_severity]
-    #[instrument(
-        name = "profit_and_loss.attach_charts_account_set",
-        skip(self, op, account_sets, new_meta, old_parent_id_getter)
-    )]
-    async fn attach_charts_account_set<F>(
+    pub(crate) async fn attach_chart_of_accounts_account_sets_in_op(
         &self,
         op: &mut es_entity::DbOpWithTime<'_>,
-        account_sets: &mut HashMap<AccountSetId, AccountSet>,
-        internal_account_set_id: AccountSetId,
-        child_account_set_id_from_chart: AccountSetId,
-        new_meta: &ChartOfAccountsIntegrationMeta,
-        old_parent_id_getter: F,
-    ) -> Result<(), ProfitAndLossStatementLedgerError>
-    where
-        F: FnOnce(ChartOfAccountsIntegrationMeta) -> AccountSetId,
-    {
-        let mut internal_account_set = account_sets
-            .remove(&internal_account_set_id)
-            .expect("internal account set not found");
+        reference: String,
+        resolved: &ResolvedAccountingBaseConfig,
+    ) -> Result<(), ProfitAndLossStatementLedgerError> {
+        let account_set_ids = self.get_ids_from_reference(reference).await?;
 
-        if let Some(old_meta) = internal_account_set.values().metadata.as_ref() {
-            let old_meta: ChartOfAccountsIntegrationMeta =
-                serde_json::from_value(old_meta.clone()).expect("Could not deserialize metadata");
-            let old_child_account_set_id_from_chart = old_parent_id_getter(old_meta);
-            if old_child_account_set_id_from_chart != child_account_set_id_from_chart {
+        let pairs = [
+            (account_set_ids.revenue, resolved.revenue),
+            (account_set_ids.cost_of_revenue, resolved.cost_of_revenue),
+            (account_set_ids.expenses, resolved.expenses),
+        ];
+
+        for (parent, child) in pairs {
+            let members = self
+                .cala
+                .account_sets()
+                .list_members_by_created_at(parent, Default::default())
+                .await?
+                .entities;
+
+            let already_linked = members
+                .iter()
+                .any(|m| matches!(&m.id, AccountSetMemberId::AccountSet(id) if *id == child));
+
+            if !already_linked {
                 self.cala
                     .account_sets()
-                    .remove_member_in_op(
-                        op,
-                        internal_account_set_id,
-                        old_child_account_set_id_from_chart,
-                    )
+                    .add_member_in_op(op, parent, child)
                     .await?;
             }
-        }
-
-        self.cala
-            .account_sets()
-            .add_member_in_op(op, internal_account_set_id, child_account_set_id_from_chart)
-            .await?;
-        let mut update = AccountSetUpdate::default();
-        update
-            .metadata(new_meta)
-            .expect("Could not update metadata");
-        if internal_account_set.update(update).did_execute() {
-            self.cala
-                .account_sets()
-                .persist_in_op(op, &mut internal_account_set)
-                .await?;
         }
 
         Ok(())
@@ -351,27 +274,6 @@ impl ProfitAndLossStatementLedger {
     }
 
     #[record_error_severity]
-    #[instrument(name = "pl_ledger.get_chart_of_accounts_integration_config", skip(self), fields(reference = %reference))]
-    pub async fn get_chart_of_accounts_integration_config(
-        &self,
-        reference: String,
-    ) -> Result<Option<AccountingBaseConfig>, ProfitAndLossStatementLedgerError> {
-        let account_set_id = self
-            .get_ids_from_reference(reference)
-            .await?
-            .account_set_id_for_config();
-
-        let account_set = self.cala.account_sets().find(account_set_id).await?;
-        if let Some(meta) = account_set.values().metadata.as_ref() {
-            let meta: ChartOfAccountsIntegrationMeta =
-                serde_json::from_value(meta.clone()).expect("Could not deserialize metadata");
-            Ok(Some(meta.config))
-        } else {
-            Ok(None)
-        }
-    }
-
-    #[record_error_severity]
     #[instrument(name = "profit_and_loss.get_ids_from_reference", skip(self), fields(reference = %reference))]
     pub async fn get_ids_from_reference(
         &self,
@@ -407,16 +309,6 @@ impl ProfitAndLossStatementLedger {
             expenses: *expenses_id,
         })
     }
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct ChartOfAccountsIntegrationMeta {
-    pub config: AccountingBaseConfig,
-    pub audit_info: AuditInfo,
-
-    pub revenue_child_account_set_id_from_chart: AccountSetId,
-    pub cost_of_revenue_child_account_set_id_from_chart: AccountSetId,
-    pub expenses_child_account_set_id_from_chart: AccountSetId,
 }
 
 impl

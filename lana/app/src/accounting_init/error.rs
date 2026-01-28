@@ -36,6 +36,8 @@ pub enum AccountingInitError {
     MissingConfig(String),
     #[error("AccountingInitError - AccountingBaseConfigError: {0}")]
     AccountingBaseConfigError(#[from] core_accounting::AccountingBaseConfigError),
+    #[error("AccountingInitError - CoreAccountingError: {0}")]
+    CoreAccountingError(#[from] core_accounting::error::CoreAccountingError),
 }
 
 impl ErrorSeverity for AccountingInitError {
@@ -57,6 +59,7 @@ impl ErrorSeverity for AccountingInitError {
             Self::SeedFileError(_) => Level::ERROR,
             Self::MissingConfig(_) => Level::ERROR,
             Self::AccountingBaseConfigError(e) => e.severity(),
+            Self::CoreAccountingError(e) => e.severity(),
         }
     }
 }

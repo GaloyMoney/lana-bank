@@ -334,6 +334,40 @@ impl Chart {
         self.base_config.clone()
     }
 
+    pub fn resolve_accounting_base_config(&self) -> Option<ResolvedAccountingBaseConfig> {
+        let config = self.base_config.clone()?;
+
+        // The entity invariant ensures that if base_config is Some, all codes
+        // are valid and resolvable.
+        Some(ResolvedAccountingBaseConfig {
+            assets: self
+                .maybe_account_set_id_from_code(&config.assets_code)
+                .expect("assets_code should be valid per entity invariant"),
+            liabilities: self
+                .maybe_account_set_id_from_code(&config.liabilities_code)
+                .expect("liabilities_code should be valid per entity invariant"),
+            equity: self
+                .maybe_account_set_id_from_code(&config.equity_code)
+                .expect("equity_code should be valid per entity invariant"),
+            equity_retained_earnings_gain: self
+                .maybe_account_set_id_from_code(&config.equity_retained_earnings_gain_code)
+                .expect("equity_retained_earnings_gain_code should be valid per entity invariant"),
+            equity_retained_earnings_loss: self
+                .maybe_account_set_id_from_code(&config.equity_retained_earnings_loss_code)
+                .expect("equity_retained_earnings_loss_code should be valid per entity invariant"),
+            revenue: self
+                .maybe_account_set_id_from_code(&config.revenue_code)
+                .expect("revenue_code should be valid per entity invariant"),
+            cost_of_revenue: self
+                .maybe_account_set_id_from_code(&config.cost_of_revenue_code)
+                .expect("cost_of_revenue_code should be valid per entity invariant"),
+            expenses: self
+                .maybe_account_set_id_from_code(&config.expenses_code)
+                .expect("expenses_code should be valid per entity invariant"),
+            config,
+        })
+    }
+
     fn check_base_config_codes_exists_in_chart(
         &self,
         base_config: &AccountingBaseConfig,

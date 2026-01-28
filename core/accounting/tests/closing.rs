@@ -7,7 +7,6 @@ use rust_decimal::Decimal;
 use authz::dummy::{DummyPerms, DummySubject};
 use cloud_storage::{Storage, config::StorageConfig};
 use document_storage::DocumentStorage;
-use domain_config::InternalDomainConfigs;
 use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 use job::{JobSvcConfig, Jobs};
 
@@ -17,9 +16,8 @@ use cala_ledger::{
     account::NewAccount,
 };
 use core_accounting::{
-    AccountCode, AccountIdOrCode, CalaTxId, Chart, ClosingAccountCodes, ClosingTxDetails,
-    CoreAccounting, LedgerAccountId, ManualEntryInput, ProfitAndLossStatement,
-    fiscal_year::FiscalYear, fiscal_year::FiscalYearRepo,
+    AccountIdOrCode, CalaTxId, Chart, ClosingTxDetails, CoreAccounting, LedgerAccountId,
+    ManualEntryInput, ProfitAndLossStatement, fiscal_year::FiscalYear, fiscal_year::FiscalYearRepo,
 };
 
 use helpers::{action, default_accounting_base_config, object};
@@ -64,13 +62,6 @@ async fn post_closing_tx_with_gain() -> Result<()> {
     let ledger_tx_id = CalaTxId::new();
     let effective_balances_from = test.fiscal_year.opened_as_of;
     let effective_balances_as_of = test.fiscal_year.closes_as_of();
-    let closing_account_codes = ClosingAccountCodes {
-        revenue: REVENUES.parse::<AccountCode>().unwrap(),
-        cost_of_revenue: COSTS.parse::<AccountCode>().unwrap(),
-        expenses: EXPENSES.parse::<AccountCode>().unwrap(),
-        equity_retained_earnings: RETAINED_EARNINGS_GAIN.parse::<AccountCode>().unwrap(),
-        equity_retained_losses: RETAINED_EARNINGS_LOSS.parse::<AccountCode>().unwrap(),
-    };
     let closing_tx_details = ClosingTxDetails {
         description: test.fiscal_year.reference.clone(),
         tx_id: ledger_tx_id,
@@ -82,7 +73,7 @@ async fn post_closing_tx_with_gain() -> Result<()> {
     let op = test.fiscal_year_repo.begin_op().await.unwrap();
     test.accounting
         .chart_of_accounts()
-        .post_closing_transaction(op, test.chart.id, closing_account_codes, closing_tx_details)
+        .post_closing_transaction(op, test.chart.id, closing_tx_details)
         .await?;
 
     assert!(test.children(RETAINED_EARNINGS_LOSS).await?.is_empty());
@@ -167,13 +158,6 @@ async fn post_closing_tx_with_loss() -> Result<()> {
     let ledger_tx_id = CalaTxId::new();
     let effective_balances_from = test.fiscal_year.opened_as_of;
     let effective_balances_as_of = test.fiscal_year.closes_as_of();
-    let closing_account_codes = ClosingAccountCodes {
-        revenue: REVENUES.parse::<AccountCode>().unwrap(),
-        cost_of_revenue: COSTS.parse::<AccountCode>().unwrap(),
-        expenses: EXPENSES.parse::<AccountCode>().unwrap(),
-        equity_retained_earnings: RETAINED_EARNINGS_GAIN.parse::<AccountCode>().unwrap(),
-        equity_retained_losses: RETAINED_EARNINGS_LOSS.parse::<AccountCode>().unwrap(),
-    };
     let closing_spec = ClosingTxDetails {
         description: test.fiscal_year.reference.clone(),
         tx_id: ledger_tx_id,
@@ -185,7 +169,7 @@ async fn post_closing_tx_with_loss() -> Result<()> {
     let op = test.fiscal_year_repo.begin_op().await.unwrap();
     test.accounting
         .chart_of_accounts()
-        .post_closing_transaction(op, test.chart.id, closing_account_codes, closing_spec)
+        .post_closing_transaction(op, test.chart.id, closing_spec)
         .await?;
     assert!(test.children(RETAINED_EARNINGS_GAIN).await?.is_empty());
     assert_eq!(test.balance(RETAINED_EARNINGS_GAIN).await?, Decimal::ZERO);
@@ -247,7 +231,6 @@ async fn setup_test() -> anyhow::Result<Test> {
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
-    let domain_configs = InternalDomainConfigs::new(&pool);
     let journal_id = helpers::init_journal(&cala).await?;
     let outbox = helpers::init_outbox(&pool).await?;
 
@@ -263,47 +246,34 @@ async fn setup_test() -> anyhow::Result<Test> {
         journal_id,
         document_storage,
         &mut jobs,
-        &domain_configs,
         &outbox,
     );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
-    let balance_sheet_name = format!("Test Balance Sheet #{}", rand::rng().random_range(0..10000));
-    let pl_statement_name = format!(
-        "Test Profit & Loss Statement #{}",
-        rand::rng().random_range(0..10000)
-    );
     let _ = accounting
         .chart_of_accounts()
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())
         .await?;
 
+    let (balance_sheet_name, pl_statement_name, trial_balance_name) =
+        helpers::create_test_statements(&accounting).await?;
+
     let import = format!("{}{}", helpers::BASE_ACCOUNTS_CSV, CHILD_ACCOUNT_SETS_CSV);
     let base_config = default_accounting_base_config();
-    let (chart, _) = accounting
-        .chart_of_accounts()
-        .import_from_csv_with_base_config(&DummySubject, &chart_ref, import, base_config)
+    let chart = accounting
+        .import_csv_with_base_config(
+            &DummySubject,
+            &chart_ref,
+            import,
+            base_config,
+            &balance_sheet_name,
+            &pl_statement_name,
+            &trial_balance_name,
+        )
         .await?;
+
     let opened_as_of: NaiveDate = "2021-01-01".parse::<NaiveDate>().unwrap();
     let fiscal_year = accounting
         .init_fiscal_year_for_chart(&DummySubject, &chart_ref, opened_as_of)
-        .await?;
-
-    accounting
-        .balance_sheets()
-        .create_balance_sheet(balance_sheet_name.clone())
-        .await?;
-    accounting
-        .balance_sheets()
-        .set_chart_of_accounts_integration_config(&DummySubject, balance_sheet_name, &chart)
-        .await?;
-
-    accounting
-        .profit_and_loss()
-        .create_pl_statement(pl_statement_name.clone())
-        .await?;
-    accounting
-        .profit_and_loss()
-        .set_chart_of_accounts_integration_config(&DummySubject, pl_statement_name.clone(), &chart)
         .await?;
 
     Ok(Test {

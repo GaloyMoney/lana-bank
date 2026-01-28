@@ -3,7 +3,6 @@ mod helpers;
 use authz::dummy::{DummyPerms, DummySubject};
 use cloud_storage::{Storage, config::StorageConfig};
 use document_storage::DocumentStorage;
-use domain_config::InternalDomainConfigs;
 use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 use job::{JobSvcConfig, Jobs};
 
@@ -196,7 +195,6 @@ async fn prepare_test() -> anyhow::Result<(
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
-    let domain_configs = InternalDomainConfigs::new(&pool);
     let journal_id = helpers::init_journal(&cala).await?;
     let outbox = helpers::init_outbox(&pool).await?;
 
@@ -211,22 +209,27 @@ async fn prepare_test() -> anyhow::Result<(
         journal_id,
         document_storage,
         &mut jobs,
-        &domain_configs,
         &outbox,
     );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
-    let chart = accounting
+    accounting
         .chart_of_accounts()
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())
         .await?;
+
+    let (balance_sheet_name, pl_name, tb_name) =
+        helpers::create_test_statements(&accounting).await?;
+
     let base_config = default_accounting_base_config();
-    accounting
-        .chart_of_accounts()
-        .import_from_csv_with_base_config(
+    let chart = accounting
+        .import_csv_with_base_config(
             &DummySubject,
             &chart_ref,
-            helpers::BASE_ACCOUNTS_CSV,
+            helpers::BASE_ACCOUNTS_CSV.to_string(),
             base_config,
+            &balance_sheet_name,
+            &pl_name,
+            &tb_name,
         )
         .await?;
 

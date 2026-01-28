@@ -99,16 +99,33 @@ teardown_file() {
   [[ "$omnibus_code" == "11.01.0101" ]] || exit 1
 }
 
-@test "accounting: imported balance sheet module config from seed into chart of accounts" {
-  exec_admin_graphql 'balance-sheet-config'
-  omnibus_code=$(graphql_output '.data.balanceSheetConfig.chartOfAccountsRevenueCode')
-  [[ "$omnibus_code" == "4" ]] || exit 1
-}
+@test "accounting: accounting base config is set on chart of accounts" {
+  exec_admin_graphql 'accounting-base-config'
+  config='.data.chartOfAccounts.accountingBaseConfig'
 
-@test "accounting: imported profit and loss module config from seed into chart of accounts" {
-  exec_admin_graphql 'profit-and-loss-config'
-  omnibus_code=$(graphql_output '.data.profitAndLossStatementConfig.chartOfAccountsRevenueCode')
-  [[ "$omnibus_code" == "4" ]] || exit 1
+  assets_code=$(graphql_output "${config}.assetsCode")
+  [[ "$assets_code" == "1" ]] || exit 1
+
+  liabilities_code=$(graphql_output "${config}.liabilitiesCode")
+  [[ "$liabilities_code" == "2" ]] || exit 1
+
+  equity_code=$(graphql_output "${config}.equityCode")
+  [[ "$equity_code" == "3" ]] || exit 1
+
+  revenue_code=$(graphql_output "${config}.revenueCode")
+  [[ "$revenue_code" == "4" ]] || exit 1
+
+  cost_of_revenue_code=$(graphql_output "${config}.costOfRevenueCode")
+  [[ "$cost_of_revenue_code" == "5" ]] || exit 1
+
+  expenses_code=$(graphql_output "${config}.expensesCode")
+  [[ "$expenses_code" == "6" ]] || exit 1
+
+  retained_earnings_gain_code=$(graphql_output "${config}.equityRetainedEarningsGainCode")
+  [[ "$retained_earnings_gain_code" == "32.01" ]] || exit 1
+
+  retained_earnings_loss_code=$(graphql_output "${config}.equityRetainedEarningsLossCode")
+  [[ "$retained_earnings_loss_code" == "32.02" ]] || exit 1
 }
 
 @test "accounting: can import CSV file into chart of accounts" {
@@ -116,14 +133,10 @@ teardown_file() {
   chart_id=$(graphql_output '.data.chartOfAccounts.chartId')
 
   temp_file=$(mktemp)
-  liabilities_code=$((((RANDOM % 1000)) + 1000))
+  new_root_code=$((RANDOM % 100 + 900))
   echo "
-    201,,,Manuals 1,,
-    202,,,Manuals 2,,
-    $liabilities_code,,,Alt Liabilities,,
-    ,,,,,
-    ,$((RANDOM % 100)),,Checking Accounts,,
-    ,,$((RANDOM % 1000)),Northern Office,
+    $new_root_code,,,CSV Import Test Root,,
+    ,$((RANDOM % 100)),,CSV Import Test Child,,
   " > "$temp_file"
 
   variables=$(
@@ -141,27 +154,28 @@ teardown_file() {
 
   exec_admin_graphql 'chart-of-accounts'
   res=$(graphql_output \
-      --arg liabilitiesCode "$liabilities_code" \
+      --arg code "$new_root_code" \
       '.data.chartOfAccounts.children[]
-      | select(.accountCode == $liabilitiesCode )
+      | select(.accountCode == $code)
       | .accountCode' | head -n 1)
-  [[ $res -eq "$liabilities_code" ]] || exit 1
+  [[ "$res" == "$new_root_code" ]] || exit 1
 }
 
 @test "accounting: can traverse chart of accounts" {
   exec_admin_graphql 'chart-of-accounts'
   echo $(graphql_output)
-  control_name="Manuals 1"
-  control_account_code=$(echo "$(graphql_output)" | jq -r \
-    --arg account_name "$control_name" \
-    '.data.chartOfAccounts.children[] | select(.name == $account_name) | .accountCode'
+  # Check that Assets exists with code "1" (from seed data)
+  assets_code=$(echo "$(graphql_output)" | jq -r \
+    '.data.chartOfAccounts.children[] | select(.name == "Assets") | .accountCode'
   )
-  [[ "$control_account_code" == "201" ]] || exit 1
+  [[ "$assets_code" == "1" ]] || exit 1
 }
 
 @test "accounting: can execute manual transaction" {
 
-  # expects chart of accounts from 'import CSV' step to exist
+  # Use existing accounts from seed data
+  # 11.01.0101 = Operating Cash (Asset)
+  # 61.01 = Salaries and Wages (Expense)
 
   amount=$((RANDOM % 1000))
 
@@ -175,14 +189,14 @@ teardown_file() {
         effective: $effective,
         entries: [
           {
-             "accountRef": "201",
+             "accountRef": "11.01.0101",
              "amount": $amount,
              "currency": "USD",
              "direction": "CREDIT",
              "description": "Entry 1 description"
           },
           {
-             "accountRef": "202",
+             "accountRef": "61.01",
              "amount": $amount,
              "currency": "USD",
              "direction": "DEBIT",
@@ -194,7 +208,7 @@ teardown_file() {
 
   exec_admin_graphql 'manual-transaction-execute' "$variables"
 
-  exec_admin_graphql 'ledger-account-by-code' '{"code":"201"}'
+  exec_admin_graphql 'ledger-account-by-code' '{"code":"11.01.0101"}'
   txId1=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].txId)
   amount1=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].amount.usd)
   direction1=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].direction)
@@ -202,7 +216,7 @@ teardown_file() {
   entryType1=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].entryType)
   [[ "$entryType1" != "null" ]] || exit 1
 
-  exec_admin_graphql 'ledger-account-by-code' '{"code":"202"}'
+  exec_admin_graphql 'ledger-account-by-code' '{"code":"61.01"}'
   txId2=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].txId)
   amount2=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].amount.usd)
   direction2=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].direction)
@@ -235,14 +249,14 @@ teardown_file() {
         effective: $effective,
         entries: [
           {
-             "accountRef": "201",
+             "accountRef": "11.01.0101",
              "amount": $amount,
              "currency": "USD",
              "direction": "CREDIT",
              "description": "Entry 1 description"
           },
           {
-             "accountRef": "202",
+             "accountRef": "61.01",
              "amount": $amount,
              "currency": "USD",
              "direction": "DEBIT",

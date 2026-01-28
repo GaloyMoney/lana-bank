@@ -1,7 +1,8 @@
 use cala_ledger::CalaLedger;
 use obix::out::Outbox;
+use rand::Rng;
 
-use core_accounting::AccountingBaseConfig;
+use core_accounting::{AccountingBaseConfig, CoreAccounting};
 
 pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
     let pg_con = std::env::var("PG_CON").unwrap();
@@ -53,6 +54,37 @@ pub const BASE_ACCOUNTS_CSV: &str = r#"
 5,,,Cost of Revenue,Debit,
 6,,,Expenses,Debit,
 "#;
+
+pub async fn create_test_statements<Perms, E>(
+    accounting: &CoreAccounting<Perms, E>,
+) -> anyhow::Result<(String, String, String)>
+where
+    Perms: authz::PermissionCheck,
+    <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
+        From<core_accounting::CoreAccountingAction>,
+    <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
+        From<core_accounting::CoreAccountingObject>,
+    E: obix::out::OutboxEventMarker<core_accounting::CoreAccountingEvent>,
+{
+    let bs = format!("BS-{:08}", rand::rng().random_range(0..10000));
+    let pl = format!("PL-{:08}", rand::rng().random_range(0..10000));
+    let tb = format!("TB-{:08}", rand::rng().random_range(0..10000));
+
+    accounting
+        .balance_sheets()
+        .create_balance_sheet(bs.clone())
+        .await?;
+    accounting
+        .profit_and_loss()
+        .create_pl_statement(pl.clone())
+        .await?;
+    accounting
+        .trial_balances()
+        .create_trial_balance_statement(tb.clone())
+        .await?;
+
+    Ok((bs, pl, tb))
+}
 
 pub mod action {
     use core_accounting::CoreAccountingAction;

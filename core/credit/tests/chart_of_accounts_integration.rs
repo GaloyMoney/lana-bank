@@ -6,8 +6,6 @@ use rand::Rng;
 use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
 use cloud_storage::{Storage, config::StorageConfig};
-use domain_config::InternalDomainConfigs;
-
 use core_accounting::CoreAccounting;
 use core_credit::*;
 use document_storage::DocumentStorage;
@@ -98,7 +96,6 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     .await?;
 
     let accounting_document_storage = DocumentStorage::new(&pool, &storage, clock.clone());
-    let internal_domain_configs = InternalDomainConfigs::new(&pool);
     let accounting = CoreAccounting::new(
         &pool,
         &authz,
@@ -106,7 +103,6 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         journal_id,
         accounting_document_storage,
         &mut jobs,
-        &internal_domain_configs,
         &outbox,
     );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
@@ -116,11 +112,21 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .await?
         .id;
 
+    let (balance_sheet_name, pl_name, tb_name) =
+        helpers::create_test_statements(&accounting).await?;
+
     let import = format!("{}{}", BASE_ACCOUNTS_CSV, CREDIT_ACCOUNTS_CSV);
     let base_config = default_accounting_base_config();
-    let (chart, _) = accounting
-        .chart_of_accounts()
-        .import_from_csv_with_base_config(&DummySubject, &chart_ref, import, base_config.clone())
+    let chart = accounting
+        .import_csv_with_base_config(
+            &DummySubject,
+            &chart_ref,
+            import,
+            base_config.clone(),
+            &balance_sheet_name,
+            &pl_name,
+            &tb_name,
+        )
         .await?;
 
     let off_balance_sheet_code = "8".parse::<core_accounting::AccountCode>().unwrap();
@@ -248,6 +254,9 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .await?
         .id;
 
+    let (balance_sheet_name2, pl_name2, tb_name2) =
+        helpers::create_test_statements(&accounting).await?;
+
     let import = format!(
         "{}{}",
         BASE_ACCOUNTS_CSV,
@@ -268,9 +277,16 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     89,,,Other Interest Added To Obligations Omnibus Parent,,
     "#
     );
-    let (chart, _) = accounting
-        .chart_of_accounts()
-        .import_from_csv_with_base_config(&DummySubject, &chart_ref, import, base_config)
+    let chart = accounting
+        .import_csv_with_base_config(
+            &DummySubject,
+            &chart_ref,
+            import,
+            base_config,
+            &balance_sheet_name2,
+            &pl_name2,
+            &tb_name2,
+        )
         .await?;
 
     let res = credit.chart_of_accounts_integrations()

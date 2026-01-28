@@ -22,7 +22,6 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use document_storage::DocumentStorage;
-use domain_config::InternalDomainConfigs;
 use job::Jobs;
 use manual_transaction::ManualTransactions;
 use obix::out::{Outbox, OutboxEventMarker};
@@ -35,8 +34,7 @@ pub use csv::AccountingCsvExports;
 use error::CoreAccountingError;
 pub use event::CoreAccountingEvent;
 pub use fiscal_year::{
-    FiscalYear, FiscalYearConfig, FiscalYears, FiscalYearsByCreatedAtCursor,
-    error as fiscal_year_error,
+    FiscalYear, FiscalYears, FiscalYearsByCreatedAtCursor, error as fiscal_year_error,
 };
 pub use journal::{Journal, error as journal_error};
 pub use ledger_account::{LedgerAccount, LedgerAccountChildrenCursor, LedgerAccounts};
@@ -113,18 +111,11 @@ where
         journal_id: CalaJournalId,
         document_storage: DocumentStorage,
         jobs: &mut Jobs,
-        domain_configs: &InternalDomainConfigs,
         outbox: &Outbox<E>,
     ) -> Self {
         let clock = jobs.clock().clone();
         let chart_of_accounts = ChartOfAccounts::new(pool, clock.clone(), authz, cala, journal_id);
-        let fiscal_year = FiscalYears::new(
-            pool,
-            clock.clone(),
-            authz,
-            domain_configs,
-            &chart_of_accounts,
-        );
+        let fiscal_year = FiscalYears::new(pool, clock.clone(), authz, &chart_of_accounts);
         let journal = Journal::new(authz, cala, journal_id);
         let ledger_accounts = LedgerAccounts::new(authz, cala, journal_id);
         let manual_transactions = ManualTransactions::new(
@@ -293,24 +284,47 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "core_accounting.import_csv_with_base_config", skip(self))]
+    #[instrument(name = "core_accounting.import_csv_with_base_config", skip(self, data))]
     pub async fn import_csv_with_base_config(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_ref: &str,
         data: String,
         base_config: AccountingBaseConfig,
+        balance_sheet_ref: &str,
+        profit_and_loss_ref: &str,
         trial_balance_ref: &str,
     ) -> Result<Chart, CoreAccountingError> {
-        let (chart, new_account_set_ids) = self
-            .chart_of_accounts()
-            .import_from_csv_with_base_config(sub, chart_ref, data, base_config)
+        let op = self.chart_of_accounts.begin_op().await?;
+        let mut op = op.with_db_time().await?;
+
+        let (chart, new_trial_balance_account_ids) = self
+            .chart_of_accounts
+            .import_from_csv_with_base_config_in_op(&mut op, sub, chart_ref, data, base_config)
             .await?;
-        if let Some(new_account_set_ids) = new_account_set_ids {
-            self.trial_balances()
-                .add_new_chart_accounts_to_trial_balance(trial_balance_ref, &new_account_set_ids)
-                .await?;
-        }
+
+        let resolved = chart
+            .resolve_accounting_base_config()
+            .ok_or(chart_of_accounts_error::ChartOfAccountsError::AccountingBaseConfigNotFound)?;
+
+        self.trial_balances
+            .add_new_chart_accounts_to_trial_balance_in_op(
+                &mut op,
+                trial_balance_ref,
+                &new_trial_balance_account_ids,
+            )
+            .await?;
+
+        self.balance_sheets
+            .link_chart_account_sets_in_op(&mut op, balance_sheet_ref.to_string(), &resolved)
+            .await?;
+
+        self.profit_and_loss
+            .link_chart_account_sets_in_op(&mut op, profit_and_loss_ref.to_string(), &resolved)
+            .await?;
+
+        op.commit().await?;
+
         Ok(chart)
     }
 
