@@ -177,8 +177,6 @@ lana_to_dw_el_job = definition_builder.add_job_from_assets(
 )
 definition_builder.add_job_schedule(job=lana_to_dw_el_job, cron_expression="0 0 * * *")
 
-# Create dbt model assets using official @dbt_assets decorator
-# Dependencies on EL assets are resolved automatically via get_asset_key() mapping
 lana_dbt_models = create_dbt_model_assets()
 definition_builder.assets.append(lana_dbt_models)
 
@@ -187,7 +185,6 @@ dbt_automation_sensor = build_dbt_automation_sensor(
 )
 definition_builder.add_sensor(dbt_automation_sensor)
 
-# Create dbt seed assets using official @dbt_assets decorator
 lana_dbt_seeds = create_dbt_seed_assets()
 definition_builder.assets.append(lana_dbt_seeds)
 
@@ -198,7 +195,6 @@ dbt_seeds_job = dg.define_asset_job(
 definition_builder.jobs.append(dbt_seeds_job)
 definition_builder.add_job_schedule(job=dbt_seeds_job, cron_expression="0 0 * * *")
 
-# File reports generated from reports.yml configuration
 file_report_protoassets_list = generated_file_report_protoassets()
 
 file_report_assets = [

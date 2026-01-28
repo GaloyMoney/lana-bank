@@ -217,10 +217,10 @@ def trace_dbt_batch(context, batch_name: str, selected_keys: list):
     Yields:
         The active span for additional attribute setting if needed
     """
-    attrs: Dict[str, str] = {
+    attrs = {
         "dbt.batch_name": batch_name,
-        "dbt.model_count": str(len(selected_keys)),
-        "dbt.models": ", ".join(selected_keys[:10]),  # Limit to first 10 for readability
+        "dbt.model_count": len(selected_keys),
+        "dbt.models": selected_keys,
         "run.id": context.run_id,
     }
 
@@ -241,3 +241,4 @@ def trace_dbt_batch(context, batch_name: str, selected_keys: list):
         except Exception as e:
             span.set_status(trace.Status(trace.StatusCode.ERROR, str(e)))
             raise
+
