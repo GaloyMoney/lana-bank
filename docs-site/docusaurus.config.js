@@ -65,7 +65,7 @@ const config = {
         id: "admin",
         schema: "../lana/admin-server/src/graphql/schema.graphql",
         rootPath: "./docs",
-        baseURL: "api/admin",
+        baseURL: "for-developers/admin-api",
         docOptions: {
           index: true,
           pagination: true,
@@ -84,7 +84,7 @@ const config = {
         id: "customer",
         schema: "../lana/customer-server/src/graphql/schema.graphql",
         rootPath: "./docs",
-        baseURL: "api/customer",
+        baseURL: "for-developers/customer-api",
         docOptions: {
           index: true,
           pagination: true,
@@ -107,6 +107,13 @@ const config = {
         docs: {
           sidebarPath: "./sidebars.js",
           routeBasePath: "/",
+          // Make "Next" (current) the default version. See CLAUDE.md "Versioning Structure".
+          lastVersion: "current",
+          versions: {
+            current: {
+              label: "Next",
+            },
+          },
         },
         blog: false,
         theme: {
@@ -129,7 +136,7 @@ const config = {
             label: "Documentation",
           },
           {
-            to: "/api",
+            to: "/for-developers",
             label: "API Reference",
             position: "left",
           },
@@ -152,40 +159,40 @@ const config = {
         style: "dark",
         links: [
           {
-            title: "Docs",
+            title: "Documentation",
             items: [
               {
-                label: "Introduction",
-                to: "/",
+                label: "Getting Started",
+                to: "/getting-started",
               },
               {
-                label: "Credit",
-                to: "/credit",
+                label: "For Developers",
+                to: "/for-developers",
               },
               {
-                label: "Accounting",
-                to: "/accounting",
+                label: "For Operators",
+                to: "/for-operators",
+              },
+              {
+                label: "For Architects",
+                to: "/for-architects",
               },
             ],
           },
           {
-            title: "API",
+            title: "API Reference",
             items: [
               {
-                label: "API Reference",
-                to: "/api",
-              },
-              {
                 label: "Admin API",
-                to: "/api/admin",
+                to: "/for-developers/admin-api",
               },
               {
                 label: "Customer API",
-                to: "/api/customer",
+                to: "/for-developers/customer-api",
               },
               {
                 label: "Domain Events",
-                to: "/api/events",
+                to: "/for-developers/events",
               },
             ],
           },

@@ -23,7 +23,7 @@ The **Admin API** is designed for bank operators and administrators. It provides
 
 **Endpoint**: `http://admin.localhost:4455/graphql`
 
-[View Admin API Documentation →](/api/admin)
+[View Admin API Documentation →](./admin)
 
 ## Customer API
 
@@ -37,7 +37,7 @@ The **Customer API** is designed for customer-facing applications like the Custo
 
 **Endpoint**: `http://app.localhost:4455/graphql`
 
-[View Customer API Documentation →](/api/customer)
+[View Customer API Documentation →](./customer)
 
 ## Domain Events
 
@@ -51,7 +51,7 @@ The system publishes **domain events** via the transactional outbox pattern for 
 - Price updates
 - Governance and approvals
 
-[View Domain Events Documentation →](/api/events)
+[View Domain Events Documentation →](./events)
 
 ---
 

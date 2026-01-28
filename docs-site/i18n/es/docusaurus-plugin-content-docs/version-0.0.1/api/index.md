@@ -23,7 +23,7 @@ La **API de Administración** está diseñada para operadores y administradores 
 
 **Endpoint**: `/admin/graphql`
 
-[Ver Documentación de API de Administración →](/api/admin)
+[Ver Documentación de API de Administración →](./admin)
 
 ## API de Cliente
 
@@ -37,7 +37,7 @@ La **API de Cliente** está diseñada para aplicaciones orientadas al cliente, c
 
 **Endpoint**: `/customer/graphql`
 
-[Ver Documentación de API de Cliente →](/api/customer)
+[Ver Documentación de API de Cliente →](./customer)
 
 ## Eventos de Dominio
 
@@ -51,7 +51,7 @@ El sistema publica **eventos de dominio** mediante el patrón de outbox transacc
 - Actualizaciones de precios
 - Gobernanza y aprobaciones
 
-[Ver Documentación de Eventos de Dominio →](/api/events)
+[Ver Documentación de Eventos de Dominio →](./events)
 
 ---
 
