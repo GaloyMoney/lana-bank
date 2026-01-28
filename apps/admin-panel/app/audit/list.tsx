@@ -4,12 +4,23 @@ import { useTranslations } from "next-intl"
 
 import { formatDate } from "@lana/web/utils"
 
-import { AuditEntry, useAuditLogsQuery } from "@/lib/graphql/generated"
+import { AuditEntry, AuditSubject, useAuditLogsQuery } from "@/lib/graphql/generated"
 import PaginatedTable, {
   Column,
   DEFAULT_PAGESIZE,
   PaginatedData,
 } from "@/components/paginated-table"
+
+const formatSubject = (subject: AuditSubject): string => {
+  switch (subject.__typename) {
+    case "User":
+      return subject.email
+    case "System":
+      return subject.actor
+    default:
+      return "Unknown"
+  }
+}
 
 gql`
   query AuditLogs($first: Int!, $after: String) {
@@ -30,6 +41,7 @@ gql`
             }
             ... on System {
               name
+              actor
             }
           }
           object
@@ -68,9 +80,7 @@ const AuditLogsList = () => {
       key: "subject",
       label: t("headers.subject"),
       labelClassName: "w-[20%]",
-      render: (subject) => (
-        <div>{subject.__typename === "User" ? subject.email : subject.__typename}</div>
-      ),
+      render: (subject) => <div>{formatSubject(subject)}</div>,
     },
     {
       key: "object",
