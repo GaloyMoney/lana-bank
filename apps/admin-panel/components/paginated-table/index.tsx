@@ -74,6 +74,8 @@ interface PaginatedTableProps<T> {
   style?: "compact" | "comfortable"
   noDataText?: string
   subRows?: (record: T) => T[]
+  initialPage?: number
+  onPageChange?: (page: number) => void
 }
 
 const PaginatedTable = <T,>({
@@ -91,6 +93,8 @@ const PaginatedTable = <T,>({
   style = "comfortable",
   noDataText,
   subRows,
+  initialPage = 1,
+  onPageChange,
 }: PaginatedTableProps<T>): React.ReactElement => {
   const isMobile = useBreakpointDown("md")
   const t = useTranslations("PaginatedTable")
@@ -110,8 +114,12 @@ const PaginatedTable = <T,>({
   }>({ column: null, direction: null })
 
   const [filterState, setFilterState] = useState<Partial<Record<keyof T, T[keyof T]>>>({})
-  const [currentPage, setCurrentPage] = useState(1)
+  const [currentPage, setCurrentPage] = useState(initialPage)
   const [displayData, setDisplayData] = useState<{ node: T }[]>([])
+
+  useEffect(() => {
+    setCurrentPage(initialPage)
+  }, [initialPage])
 
   useEffect(() => {
     const startIdx = (currentPage - 1) * pageSize
@@ -202,12 +210,16 @@ const PaginatedTable = <T,>({
     if (totalDataLoaded < maxDataRequired && data && data.pageInfo.hasNextPage) {
       await fetchMore(data.pageInfo.endCursor)
     }
-    setCurrentPage(currentPage + 1)
+    const newPage = currentPage + 1
+    setCurrentPage(newPage)
+    onPageChange?.(newPage)
   }
 
   const handlePreviousPage = () => {
     if (currentPage > 1) {
-      setCurrentPage(currentPage - 1)
+      const newPage = currentPage - 1
+      setCurrentPage(newPage)
+      onPageChange?.(newPage)
     }
   }
 

@@ -21,7 +21,7 @@ const AuditLogs: React.FC = () => {
           <CardDescription>{t("description")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <AuditLogsList />
+          <AuditLogsList page={1} />
         </CardContent>
       </Card>
     </>

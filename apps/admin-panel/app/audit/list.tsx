@@ -1,6 +1,8 @@
 "use client"
+import { useCallback } from "react"
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
+import { useRouter } from "next/navigation"
 
 import { formatDate } from "@lana/web/utils"
 
@@ -48,15 +50,31 @@ gql`
   }
 `
 
-const AuditLogsList = () => {
+interface AuditLogsListProps {
+  page?: number
+}
+
+const AuditLogsList = ({ page = 1 }: AuditLogsListProps) => {
   const t = useTranslations("AuditLogs.table")
+  const router = useRouter()
 
   const { data, loading, error, fetchMore } = useAuditLogsQuery({
     variables: {
-      first: DEFAULT_PAGESIZE,
+      first: DEFAULT_PAGESIZE * page,
     },
     fetchPolicy: "cache-and-network",
   })
+
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      if (newPage === 1) {
+        router.push("/audit")
+      } else {
+        router.push(`/audit/${newPage}`)
+      }
+    },
+    [router],
+  )
 
   const columns: Column<AuditEntry>[] = [
     {
@@ -99,6 +117,8 @@ const AuditLogsList = () => {
         loading={loading}
         pageSize={DEFAULT_PAGESIZE}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
+        initialPage={page}
+        onPageChange={handlePageChange}
       />
     </div>
   )
