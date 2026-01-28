@@ -23,11 +23,11 @@ pub struct Liquidation {
 }
 
 #[derive(InputObject)]
-pub struct LiquidationRecordCollateralSentInput {
+pub struct CollateralLiquidationRecordCollateralSentInput {
     pub collateral_id: UUID,
     pub amount: Satoshis,
 }
-crate::mutation_payload! { LiquidationRecordCollateralSentPayload, collateral: Collateral }
+crate::mutation_payload! { CollateralLiquidationRecordCollateralSentPayload, collateral: Collateral }
 
 #[derive(InputObject)]
 pub struct LiquidationRecordProceedsReceivedInput {
