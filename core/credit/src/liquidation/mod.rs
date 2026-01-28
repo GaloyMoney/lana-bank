@@ -12,19 +12,15 @@ use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use cala_ledger::{
-    AccountId as CalaAccountId, CalaLedger, JournalId, TransactionId as CalaTransactionId,
-};
-use core_accounting::LedgerTransactionInitiator;
+use cala_ledger::{AccountId as CalaAccountId, CalaLedger, JournalId};
 use core_custody::CoreCustodyEvent;
 use core_money::{Satoshis, UsdCents};
-use es_entity::Idempotent;
 use governance::GovernanceEvent;
 use obix::out::OutboxEventMarker;
 
 use crate::{
     CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId, LedgerOmnibusAccountIds,
-    LiquidationId, PaymentId, PaymentSourceAccountId, collateral::CollateralRepo,
+    LiquidationId, PaymentSourceAccountId, collateral::CollateralRepo,
 };
 use entity::NewLiquidationBuilder;
 pub use entity::{Liquidation, LiquidationEvent, NewLiquidation};
@@ -42,7 +38,7 @@ where
 {
     repo: Arc<LiquidationRepo<E>>,
     authz: Arc<Perms>,
-    ledger: LiquidationLedger,
+    _ledger: LiquidationLedger,
     proceeds_omnibus_account_ids: LedgerOmnibusAccountIds,
 }
 
@@ -57,7 +53,7 @@ where
         Self {
             repo: self.repo.clone(),
             authz: self.authz.clone(),
-            ledger: self.ledger.clone(),
+            _ledger: self._ledger.clone(),
             proceeds_omnibus_account_ids: self.proceeds_omnibus_account_ids.clone(),
         }
     }
@@ -133,54 +129,9 @@ where
         Ok(Self {
             repo: repo_arc,
             authz,
-            ledger: LiquidationLedger::init(cala, journal_id, clock).await?,
+            _ledger: LiquidationLedger::init(cala, journal_id, clock).await?,
             proceeds_omnibus_account_ids: proceeds_omnibus_account_ids.clone(),
         })
-    }
-
-    #[instrument(
-        name = "credit.liquidation.record_proceeds_from_liquidation",
-        skip(self, sub),
-        err
-    )]
-    pub async fn record_proceeds_from_liquidation(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        liquidation_id: LiquidationId,
-        amount_received: UsdCents,
-    ) -> Result<Liquidation, LiquidationError> {
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreCreditObject::liquidation(liquidation_id),
-                CoreCreditAction::LIQUIDATION_RECORD_PAYMENT_RECEIVED,
-            )
-            .await?;
-
-        let mut db = self.repo.begin_op().await?;
-        let mut liquidation = self.repo.find_by_id_in_op(&mut db, liquidation_id).await?;
-
-        let tx_id = CalaTransactionId::new();
-
-        if let Idempotent::Executed(data) = liquidation.record_proceeds_from_liquidation(
-            amount_received,
-            PaymentId::new(),
-            tx_id,
-        )? {
-            self.repo.update_in_op(&mut db, &mut liquidation).await?;
-            self.ledger
-                .record_proceeds_from_liquidation_in_op(
-                    &mut db,
-                    tx_id,
-                    data,
-                    LedgerTransactionInitiator::try_from_subject(sub)?,
-                )
-                .await?;
-        }
-
-        db.commit().await?;
-
-        Ok(liquidation)
     }
 
     #[instrument(name = "credit.liquidation.complete_in_op", skip(self, db), err)]
