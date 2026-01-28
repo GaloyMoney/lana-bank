@@ -31,4 +31,6 @@ workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [dev-dependencies]
 anyhow = { workspace = true }
+authz = { workspace = true, features = ["test-dummy"] }
+obix = { workspace = true, features = ["test-utils"] }
 tokio = { workspace = true }

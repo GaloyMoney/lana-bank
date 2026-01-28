@@ -10,10 +10,10 @@ use crate::{
     deposit_account_balance::*,
     deposit_account_cursor::DepositAccountsByCreatedAtCursor,
     error::*,
-    event::*,
     history::{DepositAccountHistoryCursor, DepositAccountHistoryEntry},
     ledger::*,
     primitives::*,
+    public::*,
     withdrawal::*,
 };
 

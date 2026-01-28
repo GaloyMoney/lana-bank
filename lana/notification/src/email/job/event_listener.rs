@@ -201,17 +201,18 @@ where
                     .await?;
             }
             Some(LanaEvent::Deposit(
-                deposit_event @ CoreDepositEvent::DepositAccountCreated {
-                    id,
-                    account_holder_id,
-                },
+                deposit_event @ CoreDepositEvent::DepositAccountCreated { entity },
             )) => {
                 message.inject_trace_parent();
                 Span::current().record("handled", true);
                 Span::current().record("event_type", deposit_event.as_ref());
 
                 self.email_notification
-                    .send_deposit_account_created_notification(op, id, account_holder_id)
+                    .send_deposit_account_created_notification(
+                        op,
+                        &entity.id,
+                        &entity.account_holder_id,
+                    )
                     .await?;
             }
             Some(LanaEvent::CoreAccess(access_event @ CoreAccessEvent::RoleCreated { entity })) => {

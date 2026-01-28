@@ -148,22 +148,22 @@ where
         message: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         match message.as_event() {
-            Some(
-                event @ GovernanceEvent::ApprovalProcessConcluded {
-                    id,
-                    approved,
-                    process_type,
-                    ..
-                },
-            ) if process_type == &super::APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS => {
+            Some(event @ GovernanceEvent::ApprovalProcessConcluded { entity })
+                if entity.process_type == super::APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS =>
+            {
                 message.inject_trace_parent();
                 Span::current().record("handled", true);
                 Span::current().record("event_type", event.as_ref());
-                Span::current().record("credit_facility_proposal_id", tracing::field::display(id));
-                Span::current().record("process_type", process_type.to_string());
-
+                Span::current().record(
+                    "credit_facility_proposal_id",
+                    tracing::field::display(entity.id),
+                );
+                Span::current().record("process_type", entity.process_type.to_string());
                 self.process
-                    .execute_approve_credit_facility_proposal(*id, *approved)
+                    .execute_approve_credit_facility_proposal(
+                        entity.id,
+                        entity.status.is_approved(),
+                    )
                     .await?;
             }
             _ => {}
