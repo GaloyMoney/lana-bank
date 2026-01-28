@@ -1152,6 +1152,9 @@ checksums:
     AuditLogs/table/headers/subject: de5b885eb327b2f233f3b67aab4c4c0a
     AuditLogs/table/headers/object: 317ffa9365a5c322e3021224ce2f0369
     AuditLogs/table/headers/action: c92af0bdf1698b0d10cf5b28d2ad4945
+    AuditLogs/table/headers/authorized: 6e4d13d5434134539e37db978a9c1974
+    AuditLogs/table/headers/authorizedYes: ec580fd11a45779b039466f1e35eed2a
+    AuditLogs/table/headers/authorizedNo: 8c708225830b06df2d1141c536f2a0d6
     AuditLogs/table/headers/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
     AuditLogs/table/error: 4b43332fda54e1ec3fc1651af93c239d
     AuditLogs/table/emptyMessage: b3ef7a5a76768db254c867944b84b04c

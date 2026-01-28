@@ -2007,6 +2007,9 @@
         "subject": "Subject",
         "object": "Object",
         "action": "Action",
+        "authorized": "Authorized",
+        "authorizedYes": "Yes",
+        "authorizedNo": "No",
         "recordedAt": "Recorded At"
       },
       "error": "An error occurred while fetching audit logs.",
