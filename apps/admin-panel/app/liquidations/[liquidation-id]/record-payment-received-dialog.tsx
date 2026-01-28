@@ -17,16 +17,16 @@ import { Button } from "@lana/web/ui/button"
 import { Input } from "@lana/web/ui/input"
 import { Label } from "@lana/web/ui/label"
 
-import { useLiquidationRecordProceedsReceivedMutation } from "@/lib/graphql/generated"
+import { useCollateralLiquidationRecordProceedsReceivedMutation } from "@/lib/graphql/generated"
 import { currencyConverter } from "@/lib/utils"
 
 gql`
-  mutation LiquidationRecordProceedsReceived(
-    $input: LiquidationRecordProceedsReceivedInput!
+  mutation CollateralLiquidationRecordProceedsReceived(
+    $input: CollateralLiquidationRecordProceedsReceivedInput!
   ) {
-    liquidationRecordProceedsReceived(input: $input) {
-      liquidation {
-        ...LiquidationDetails
+    collateralLiquidationRecordProceedsReceived(input: $input) {
+      collateral {
+        collateralId
       }
     }
   }
@@ -35,19 +35,19 @@ gql`
 type RecordPaymentReceivedDialogProps = {
   open: boolean
   onOpenChange: (isOpen: boolean) => void
-  liquidationId: string
+  collateralId: string
 }
 
 export const RecordPaymentReceivedDialog: React.FC<RecordPaymentReceivedDialogProps> = ({
   open,
   onOpenChange,
-  liquidationId,
+  collateralId,
 }) => {
   const t = useTranslations("Liquidations.LiquidationDetails.recordPaymentReceived")
   const commonT = useTranslations("Common")
 
   const [recordPaymentReceived, { loading, reset }] =
-    useLiquidationRecordProceedsReceivedMutation()
+    useCollateralLiquidationRecordProceedsReceivedMutation()
   const [amount, setAmount] = useState("")
   const [error, setError] = useState<string | null>(null)
 
@@ -64,7 +64,7 @@ export const RecordPaymentReceivedDialog: React.FC<RecordPaymentReceivedDialogPr
       const result = await recordPaymentReceived({
         variables: {
           input: {
-            liquidationId,
+            collateralId,
             amount: currencyConverter.usdToCents(Number(amount)),
           },
         },

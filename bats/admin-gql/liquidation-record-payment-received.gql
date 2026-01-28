@@ -1,13 +1,14 @@
-mutation LiquidationRecordProceedsReceived($input: LiquidationRecordProceedsReceivedInput!) {
-  liquidationRecordProceedsReceived(input: $input) {
-    liquidation {
-      liquidationId
-      amountReceived
-      receivedProceeds {
-        amount
+mutation CollateralLiquidationRecordProceedsReceived($input: CollateralLiquidationRecordProceedsReceivedInput!) {
+  collateralLiquidationRecordProceedsReceived(input: $input) {
+    collateral {
+      collateralId
+      liquidation {
+        liquidationId
+        amountReceived
+        receivedProceeds {
+          amount
+        }
       }
     }
   }
 }
-
-
