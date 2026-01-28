@@ -27,6 +27,7 @@ gql`
   fragment LiquidationDetails on Liquidation {
     id
     liquidationId
+    collateralId
     creditFacilityId
     expectedToReceive
     sentTotal

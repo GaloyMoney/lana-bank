@@ -2162,6 +2162,7 @@ export const mockLiquidation = (overrides?: Partial<Liquidation>, _relationships
     return {
         __typename: 'Liquidation',
         amountReceived: overrides && overrides.hasOwnProperty('amountReceived') ? overrides.amountReceived! : generateMockValue.usdCents(),
+        collateralId: overrides && overrides.hasOwnProperty('collateralId') ? overrides.collateralId! : generateMockValue.uuid(),
         completed: overrides && overrides.hasOwnProperty('completed') ? overrides.completed! : faker.datatype.boolean(),
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
         creditFacility: overrides && overrides.hasOwnProperty('creditFacility') ? overrides.creditFacility! : relationshipsToOmit.has('CreditFacility') ? {} as CreditFacility : mockCreditFacility({}, relationshipsToOmit),
@@ -2221,7 +2222,7 @@ export const mockLiquidationRecordCollateralSentInput = (overrides?: Partial<Liq
     relationshipsToOmit.add('LiquidationRecordCollateralSentInput');
     return {
         amount: overrides && overrides.hasOwnProperty('amount') ? overrides.amount! : generateMockValue.satoshis(),
-        liquidationId: overrides && overrides.hasOwnProperty('liquidationId') ? overrides.liquidationId! : generateMockValue.uuid(),
+        collateralId: overrides && overrides.hasOwnProperty('collateralId') ? overrides.collateralId! : generateMockValue.uuid(),
     };
 };
 
@@ -2230,7 +2231,7 @@ export const mockLiquidationRecordCollateralSentPayload = (overrides?: Partial<L
     relationshipsToOmit.add('LiquidationRecordCollateralSentPayload');
     return {
         __typename: 'LiquidationRecordCollateralSentPayload',
-        liquidation: overrides && overrides.hasOwnProperty('liquidation') ? overrides.liquidation! : relationshipsToOmit.has('Liquidation') ? {} as Liquidation : mockLiquidation({}, relationshipsToOmit),
+        collateral: overrides && overrides.hasOwnProperty('collateral') ? overrides.collateral! : relationshipsToOmit.has('Collateral') ? {} as Collateral : mockCollateral({}, relationshipsToOmit),
     };
 };
 

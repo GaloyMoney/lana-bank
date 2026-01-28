@@ -1,6 +1,7 @@
 use async_graphql::*;
 
 use super::super::loader::LanaDataLoader;
+use super::collateral::Collateral;
 use crate::primitives::*;
 pub use lana_app::credit::Liquidation as DomainLiquidation;
 
@@ -9,6 +10,7 @@ pub use lana_app::credit::Liquidation as DomainLiquidation;
 pub struct Liquidation {
     id: ID,
     liquidation_id: UUID,
+    collateral_id: UUID,
     credit_facility_id: UUID,
     expected_to_receive: UsdCents,
     sent_total: Satoshis,
@@ -22,10 +24,10 @@ pub struct Liquidation {
 
 #[derive(InputObject)]
 pub struct LiquidationRecordCollateralSentInput {
-    pub liquidation_id: UUID,
+    pub collateral_id: UUID,
     pub amount: Satoshis,
 }
-crate::mutation_payload! { LiquidationRecordCollateralSentPayload, liquidation: Liquidation }
+crate::mutation_payload! { LiquidationRecordCollateralSentPayload, collateral: Collateral }
 
 #[derive(InputObject)]
 pub struct LiquidationRecordProceedsReceivedInput {
@@ -39,6 +41,7 @@ impl From<DomainLiquidation> for Liquidation {
         Self {
             id: liquidation.id.to_global_id(),
             liquidation_id: UUID::from(liquidation.id),
+            collateral_id: UUID::from(liquidation.collateral_id),
             credit_facility_id: UUID::from(liquidation.credit_facility_id),
             expected_to_receive: liquidation.expected_to_receive,
             sent_total: liquidation.sent_total,
