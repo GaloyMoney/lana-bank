@@ -7,7 +7,6 @@ mod repo;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use core_accounting::LedgerTransactionInitiator;
 use es_entity::Idempotent;
 use job::ClockHandle;
 use tracing::instrument;
@@ -15,6 +14,8 @@ use tracing_macros::record_error_severity;
 
 use audit::*;
 use authz::PermissionCheck;
+use core_accounting::LedgerTransactionInitiator;
+use governance::GovernanceEvent;
 use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{
@@ -25,7 +26,7 @@ use cala_ledger::primitives::TransactionId as CalaTransactionId;
 
 pub use entity::Collateral;
 pub(super) use entity::*;
-use jobs::wallet_collateral_sync;
+use jobs::*;
 
 #[cfg(feature = "json-schema")]
 pub use entity::CollateralEvent;
@@ -61,7 +62,9 @@ where
 impl<Perms, E> Collaterals<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<core_custody::CoreCustodyEvent>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<core_custody::CoreCustodyEvent>
+        + OutboxEventMarker<GovernanceEvent>,
 {
     pub async fn init(
         pool: &sqlx::PgPool,
@@ -72,13 +75,19 @@ where
         jobs: &mut job::Jobs,
         clock: ClockHandle,
     ) -> Result<Self, CollateralError> {
-        let repo_arc = Arc::new(CollateralRepo::new(pool, publisher));
+        let collateral_repo = Arc::new(CollateralRepo::new(pool, publisher));
+
+        let payment_repo = Arc::new(crate::payment::PaymentRepo::new(pool, publisher));
+
+        let credit_facility_repo = Arc::new(crate::credit_facility::CreditFacilityRepo::new(
+            pool, publisher,
+        ));
 
         let wallet_collateral_sync_job_spawner =
             jobs.add_initializer(wallet_collateral_sync::WalletCollateralSyncInit::new(
                 outbox,
                 ledger.clone(),
-                repo_arc.clone(),
+                collateral_repo.clone(),
             ));
 
         wallet_collateral_sync_job_spawner
@@ -88,9 +97,35 @@ where
             )
             .await?;
 
+        let liquidation_payment_job_spawner =
+            jobs.add_initializer(liquidation_payment::LiquidationPaymentInit::new(
+                outbox,
+                payment_repo,
+                credit_facility_repo.clone(),
+                collateral_repo.clone(),
+                ledger.clone(),
+            ));
+
+        let collateral_liquidations_job_spawner = jobs.add_initializer(
+            collateral_liquidations::CreditFacilityLiquidationsInit::new(
+                outbox,
+                collateral_repo.clone(),
+                liquidation_payment_job_spawner,
+            ),
+        );
+
+        collateral_liquidations_job_spawner
+            .spawn_unique(
+                job::JobId::new(),
+                collateral_liquidations::CreditFacilityLiquidationsJobConfig {
+                    _phantom: std::marker::PhantomData,
+                },
+            )
+            .await?;
+
         Ok(Self {
             authz,
-            repo: repo_arc,
+            repo: collateral_repo,
             ledger,
             clock,
         })

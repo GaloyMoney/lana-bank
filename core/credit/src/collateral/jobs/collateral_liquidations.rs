@@ -40,7 +40,6 @@ where
 {
     outbox: Outbox<E>,
     collateral_repo: Arc<CollateralRepo<E>>,
-    proceeds_omnibus_account_ids: LedgerOmnibusAccountIds,
     liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,
 }
 
@@ -53,13 +52,11 @@ where
     pub fn new(
         outbox: &Outbox<E>,
         collateral_repo: Arc<CollateralRepo<E>>,
-        proceeds_omnibus_account_ids: &LedgerOmnibusAccountIds,
         liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
             collateral_repo,
-            proceeds_omnibus_account_ids: proceeds_omnibus_account_ids.clone(),
             liquidation_payment_job_spawner,
         }
     }
@@ -86,7 +83,6 @@ where
         Ok(Box::new(CreditFacilityLiquidationsJobRunner::<E> {
             outbox: self.outbox.clone(),
             collateral_repo: self.collateral_repo.clone(),
-            proceeds_omnibus_account_ids: self.proceeds_omnibus_account_ids.clone(),
             liquidation_payment_job_spawner: self.liquidation_payment_job_spawner.clone(),
         }))
     }
@@ -100,7 +96,6 @@ where
 {
     outbox: Outbox<E>,
     collateral_repo: Arc<CollateralRepo<E>>,
-    proceeds_omnibus_account_ids: LedgerOmnibusAccountIds,
     liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,
 }
 
