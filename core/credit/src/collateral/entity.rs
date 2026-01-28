@@ -8,10 +8,11 @@ use std::cmp::Ordering;
 use es_entity::*;
 
 use crate::{
-    liquidation::{Liquidation, NewLiquidation},
+    liquidation::{Liquidation, NewLiquidation, RecordProceedsFromLiquidationData},
     primitives::{
         CalaAccountId, CollateralAction, CollateralId, CreditFacilityId, CustodyWalletId,
-        LedgerTxId, LiquidationId, PendingCreditFacilityId, PriceOfOneBTC, Satoshis, UsdCents,
+        LedgerTxId, LiquidationId, PaymentId, PendingCreditFacilityId, PriceOfOneBTC, Satoshis,
+        UsdCents,
     },
 };
 
@@ -305,6 +306,25 @@ impl Collateral {
     /// Returns a mutable reference to a liquidation by ID.
     pub fn liquidation_mut(&mut self, liquidation_id: &LiquidationId) -> Option<&mut Liquidation> {
         self.liquidations.get_persisted_mut(liquidation_id)
+    }
+
+    /// Records proceeds received from liquidation through the nested Liquidation entity.
+    /// Returns the data needed for ledger posting.
+    pub fn record_liquidation_proceeds_received(
+        &mut self,
+        amount_received: UsdCents,
+        payment_id: PaymentId,
+        ledger_tx_id: LedgerTxId,
+    ) -> Result<Idempotent<RecordProceedsFromLiquidationData>, CollateralError> {
+        let liquidation = self
+            .active_liquidation_mut()
+            .ok_or(CollateralError::NoActiveLiquidation)?;
+
+        Ok(liquidation.record_proceeds_from_liquidation(
+            amount_received,
+            payment_id,
+            ledger_tx_id,
+        )?)
     }
 }
 
