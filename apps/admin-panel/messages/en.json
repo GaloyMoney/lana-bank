@@ -2024,6 +2024,10 @@
         "authorizedNo": "No",
         "recordedAt": "Recorded At"
       },
+      "filters": {
+        "allSubjects": "All Subjects",
+        "allAuthorized": "All"
+      },
       "error": "An error occurred while fetching audit logs.",
       "emptyMessage": "No audit logs found."
     }
