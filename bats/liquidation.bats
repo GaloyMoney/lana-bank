@@ -171,6 +171,7 @@ wait_for_facility_to_be_under_liquidation_threshold() {
 
 @test "liquidation: can send collateral out for liquidation" {
   collateral_id=$(read_value 'collateral_id')
+  liquidation_id=$(read_value 'liquidation_id')
 
   collateral_to_send=50000000
   variables=$(
@@ -188,6 +189,18 @@ wait_for_facility_to_be_under_liquidation_threshold() {
 
   returned_id=$(graphql_output '.data.collateralLiquidationRecordCollateralSent.collateral.collateralId')
   [[ "$returned_id" == "$collateral_id" ]] || exit 1
+
+  returned_liquidation_id=$(graphql_output '.data.collateralLiquidationRecordCollateralSent.collateral.liquidation.liquidationId')
+  [[ "$returned_liquidation_id" == "$liquidation_id" ]] || exit 1
+
+  sent_total=$(graphql_output '.data.collateralLiquidationRecordCollateralSent.collateral.liquidation.sentTotal')
+  [[ "$sent_total" -eq "$collateral_to_send" ]] || exit 1
+
+  sent_len=$(graphql_output '.data.collateralLiquidationRecordCollateralSent.collateral.liquidation.sentCollateral | length')
+  [[ "$sent_len" -eq "1" ]] || exit 1
+
+  last_sent_amount=$(graphql_output '.data.collateralLiquidationRecordCollateralSent.collateral.liquidation.sentCollateral[-1].amount')
+  [[ "$last_sent_amount" -eq "$collateral_to_send" ]] || exit 1
 }
 
 @test "liquidation: can record payment received from liquidation" { 
