@@ -88,7 +88,7 @@ const AuditLogsList = () => {
       labelClassName: "w-[10%]",
       render: (authorized) => (
         <span className={authorized ? "text-green-600" : "text-red-600 font-semibold"}>
-          {authorized ? "Yes" : "No"}
+          {authorized ? t("headers.authorizedYes") : t("headers.authorizedNo")}
         </span>
       ),
     },

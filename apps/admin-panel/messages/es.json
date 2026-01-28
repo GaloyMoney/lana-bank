@@ -2008,6 +2008,8 @@
         "object": "Objeto",
         "action": "Acción",
         "authorized": "Autorizado",
+        "authorizedYes": "Sí",
+        "authorizedNo": "No",
         "recordedAt": "Registrado El"
       },
       "error": "Ocurrió un error al obtener los registros de auditoría.",
