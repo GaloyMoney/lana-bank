@@ -223,6 +223,62 @@ where
         Ok(collateral)
     }
 
+    /// Records proceeds received from liquidation with authorization check.
+    /// Updates the nested Liquidation entity and posts to ledger.
+    /// Returns the updated Collateral entity.
+    #[record_error_severity]
+    #[instrument(
+        name = "collateral.record_liquidation_proceeds_received",
+        skip(self, sub)
+    )]
+    pub async fn record_liquidation_proceeds_received(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        collateral_id: CollateralId,
+        amount_received: UsdCents,
+    ) -> Result<Collateral, CollateralError>
+    where
+        <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+        <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    {
+        let mut collateral = self.repo.find_by_id(collateral_id).await?;
+        let active_liquidation = collateral
+            .active_liquidation()
+            .ok_or(CollateralError::NoActiveLiquidation)?;
+        let liquidation_id = active_liquidation.id;
+
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::liquidation(liquidation_id),
+                CoreCreditAction::LIQUIDATION_RECORD_PAYMENT_RECEIVED,
+            )
+            .await?;
+
+        let mut db = self.repo.begin_op().await?;
+        let initiated_by = LedgerTransactionInitiator::try_from_subject(sub)?;
+
+        let tx_id = LedgerTxId::new();
+        let payment_id = PaymentId::new();
+
+        let data = if let es_entity::Idempotent::Executed(data) =
+            collateral.record_liquidation_proceeds_received(amount_received, payment_id, tx_id)?
+        {
+            self.repo.update_in_op(&mut db, &mut collateral).await?;
+            data
+        } else {
+            return Ok(collateral);
+        };
+
+        self.ledger
+            .record_proceeds_from_liquidation(&mut db, tx_id, data, initiated_by)
+            .await?;
+
+        db.commit().await?;
+
+        Ok(collateral)
+    }
+
     /// Creates a new liquidation for the given collateral via the Collateral aggregate.
     /// This enforces invariants like "no active liquidation already in progress".
     #[record_error_severity]
