@@ -2,7 +2,6 @@ import json
 from enum import StrEnum
 from typing import Any, List, Mapping, Optional
 
-import dagster as dg
 from dagster_dbt import (
     DagsterDbtTranslator,
     DagsterDbtTranslatorSettings,
@@ -10,30 +9,27 @@ from dagster_dbt import (
     dbt_assets,
 )
 
+import dagster as dg
 from src.otel import trace_dbt_batch
 from src.resources import DBT_MANIFEST_PATH
 
 
-# dbt resource types
 class DbtResourceType(StrEnum):
     MODEL = "model"
     SEED = "seed"
     SOURCE = "source"
 
 
-# dbt manifest property keys
 class DbtPropKey(StrEnum):
     RESOURCE_TYPE = "resource_type"
     SOURCE_NAME = "source_name"
     NAME = "name"
 
 
-# Dagster tag keys and values
 TAG_KEY_ASSET_TYPE = "asset_type"
 TAG_VALUE_DBT_MODEL = "dbt_model"
 TAG_VALUE_DBT_SEED = "dbt_seed"
 
-# dbt selectors for @dbt_assets
 DBT_SELECT_MODELS = f"{DbtPropKey.RESOURCE_TYPE}:{DbtResourceType.MODEL}"
 DBT_SELECT_SEEDS = f"{DbtPropKey.RESOURCE_TYPE}:{DbtResourceType.SEED}"
 

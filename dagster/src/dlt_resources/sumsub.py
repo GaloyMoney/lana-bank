@@ -11,8 +11,8 @@ from typing import Any, Dict, Iterator, List, Optional, Tuple
 import dlt
 from dlt.sources.helpers import requests
 from google.cloud import bigquery
-from requests.exceptions import RequestException
 from google.oauth2 import service_account
+from requests.exceptions import RequestException
 
 REQUEST_TIMEOUT = 60
 SUMSUB_API_BASE = "https://api.sumsub.com"

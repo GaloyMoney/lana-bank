@@ -241,4 +241,3 @@ def trace_dbt_batch(context, batch_name: str, selected_keys: list):
         except Exception as e:
             span.set_status(trace.Status(trace.StatusCode.ERROR, str(e)))
             raise
-
