@@ -110,6 +110,8 @@ where
     async fn list(
         &self,
         _query: PaginatedQueryArgs<AuditCursor>,
+        _subject_filter: Option<String>,
+        _authorized_filter: Option<bool>,
     ) -> Result<
         PaginatedQueryRet<AuditEntry<Self::Subject, Self::Object, Self::Action>, AuditCursor>,
         AuditError,
@@ -117,6 +119,12 @@ where
         // This method should never be called on the dummy implementation
         // as it's only used for testing authorization logic, not audit querying
         unimplemented!("DummyAudit::list should not be called - this is a test-only implementation")
+    }
+
+    async fn list_subjects(&self) -> Result<Vec<String>, AuditError> {
+        unimplemented!(
+            "DummyAudit::list_subjects should not be called - this is a test-only implementation"
+        )
     }
 }
 
