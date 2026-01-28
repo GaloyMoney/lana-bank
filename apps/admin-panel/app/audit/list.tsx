@@ -15,6 +15,7 @@ import { Input } from "@lana/web/ui/input"
 
 import {
   AuditEntry,
+  AuditSubject,
   useAuditLogsQuery,
   useAuditSubjectsQuery,
 } from "@/lib/graphql/generated"
@@ -23,6 +24,17 @@ import PaginatedTable, {
   DEFAULT_PAGESIZE,
   PaginatedData,
 } from "@/components/paginated-table"
+
+const formatSubject = (subject: AuditSubject): string => {
+  switch (subject.__typename) {
+    case "User":
+      return subject.email
+    case "System":
+      return subject.actor
+    default:
+      return "Unknown"
+  }
+}
 
 gql`
   query AuditLogs($first: Int!, $after: String, $subject: AuditSubjectId, $authorized: Boolean, $object: String, $action: String) {
@@ -43,6 +55,7 @@ gql`
             }
             ... on System {
               name
+              actor
             }
           }
           object
@@ -102,15 +115,7 @@ const AuditLogsList = () => {
       key: "subject",
       label: t("headers.subject"),
       labelClassName: "w-[20%]",
-      render: (subject) => {
-        if (subject.__typename === "User") {
-          return <div>user: {subject.email}</div>
-        }
-        if (subject.__typename === "System") {
-          return <div>system</div>
-        }
-        return <div>{subject.__typename}</div>
-      },
+      render: (subject) => <div>{formatSubject(subject)}</div>,
     },
     {
       key: "object",
