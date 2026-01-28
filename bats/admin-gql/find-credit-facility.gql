@@ -53,6 +53,7 @@ query creditFacility($id: UUID!) {
     }
     liquidations {
       liquidationId
+      collateralId
     }
   }
 }
