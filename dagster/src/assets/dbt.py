@@ -24,7 +24,10 @@ class DbtPropKey(StrEnum):
     RESOURCE_TYPE = "resource_type"
     SOURCE_NAME = "source_name"
     NAME = "name"
+    FQN = "fqn"
 
+
+DBT_SEEDS_FOLDER = "seeds"
 
 TAG_KEY_ASSET_TYPE = "asset_type"
 TAG_VALUE_DBT_MODEL = "dbt_model"
@@ -43,24 +46,30 @@ def _load_dbt_manifest() -> dict:
 
 def _get_dbt_asset_key(manifest: dict, node_unique_id: str) -> List[str]:
     """
-    Generate Dagster asset key path for a dbt node (model or seed).
+    Generate Dagster asset key path for a dbt node using its fqn.
 
-    This matches the default dagster-dbt DagsterDbtTranslator.get_asset_key() behavior:
-    - For models: [schema, name] if schema configured, else [name]
-    - For seeds: [name]
+    Format:
+    - Models: fqn as-is, e.g. ["dbt_lana_dw", "staging", "rollups", "model_name"]
+    - Seeds:  fqn with seeds folder, e.g. ["dbt_lana_dw", "seeds", "seed_name"]
 
-    Used by file_report.py to find dbt model dependencies.
+    Used by file_report.py and LanaDbtTranslator to produce consistent asset keys.
     """
     node = manifest["nodes"][node_unique_id]
-    node_name = node["name"]
+    fqn: list[str] = node.get(DbtPropKey.FQN, [])
+    node_name = node[DbtPropKey.NAME]
+    project_name = manifest["metadata"]["project_name"]
+    resource_type = node.get(DbtPropKey.RESOURCE_TYPE, DbtResourceType.MODEL)
 
-    # Match default dagster-dbt behavior: use configured schema if present
-    config = node.get("config", {})
-    configured_schema = config.get("schema")
+    if resource_type == DbtResourceType.SEED:
+        if len(fqn) >= 2 and fqn[1] != DBT_SEEDS_FOLDER:
+            return [fqn[0], DBT_SEEDS_FOLDER] + fqn[1:]
+        elif len(fqn) == 1:
+            return [project_name, DBT_SEEDS_FOLDER, node_name]
+        return fqn
 
-    if configured_schema:
-        return [configured_schema, node_name]
-    return [node_name]
+    if len(fqn) > 1:
+        return fqn
+    return [project_name, node_name]
 
 
 class LanaDbtTranslator(DagsterDbtTranslator):
@@ -79,10 +88,11 @@ class LanaDbtTranslator(DagsterDbtTranslator):
         self._resource_type = resource_type
 
     def get_asset_key(self, dbt_resource_props: Mapping[str, Any]) -> dg.AssetKey:
-        """Generate asset key for dbt nodes.
+        """Generate asset key for dbt nodes using fqn-based paths.
 
-        For sources, maps to EL asset keys ([source_name, table_name]) so that
-        dagster-dbt automatically creates dependencies on our EL assets.
+        - Sources: EL asset keys ([source_name, table_name])
+        - Models: fqn as-is, e.g. ["dbt_lana_dw", "staging", "rollups", "model_name"]
+        - Seeds:  fqn with seeds folder, e.g. ["dbt_lana_dw", "seeds", "seed_name"]
         """
         resource_type = dbt_resource_props.get(DbtPropKey.RESOURCE_TYPE)
 
@@ -93,8 +103,20 @@ class LanaDbtTranslator(DagsterDbtTranslator):
             table_name = dbt_resource_props.get(DbtPropKey.NAME)
             return dg.AssetKey([source_name, table_name])
 
-        if resource_type in (DbtResourceType.MODEL, DbtResourceType.SEED):
-            return super().get_asset_key(dbt_resource_props)
+        fqn = list(dbt_resource_props.get(DbtPropKey.FQN, []))
+        node_name = dbt_resource_props.get(DbtPropKey.NAME)
+
+        if resource_type == DbtResourceType.SEED:
+            if len(fqn) >= 2 and fqn[1] != DBT_SEEDS_FOLDER:
+                return dg.AssetKey([fqn[0], DBT_SEEDS_FOLDER] + fqn[1:])
+            elif len(fqn) == 1:
+                return dg.AssetKey([fqn[0], DBT_SEEDS_FOLDER, node_name])
+            return dg.AssetKey(fqn)
+
+        if resource_type == DbtResourceType.MODEL:
+            if len(fqn) > 1:
+                return dg.AssetKey(fqn)
+            return dg.AssetKey([fqn[0], node_name] if fqn else [node_name])
 
         raise ValueError(f"Can't handle resource_type: {resource_type}")
 
