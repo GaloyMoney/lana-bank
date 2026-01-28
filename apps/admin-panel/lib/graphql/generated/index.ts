@@ -317,6 +317,7 @@ export type Collateral = {
   collateralId: Scalars['UUID']['output'];
   creditFacility: CreditFacility;
   id: Scalars['ID']['output'];
+  liquidation?: Maybe<Liquidation>;
   walletId?: Maybe<Scalars['UUID']['output']>;
 };
 
