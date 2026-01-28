@@ -106,11 +106,17 @@ impl AuditSvc for TestAudit {
     async fn list(
         &self,
         _query: PaginatedQueryArgs<AuditCursor>,
+        _subject_filter: Option<String>,
+        _authorized_filter: Option<bool>,
     ) -> Result<
         PaginatedQueryRet<AuditEntry<Self::Subject, Self::Object, Self::Action>, AuditCursor>,
         AuditError,
     > {
         unimplemented!("TestAudit::list should not be called")
+    }
+
+    async fn list_subjects(&self) -> Result<Vec<String>, AuditError> {
+        unimplemented!("TestAudit::list_subjects should not be called")
     }
 }
 

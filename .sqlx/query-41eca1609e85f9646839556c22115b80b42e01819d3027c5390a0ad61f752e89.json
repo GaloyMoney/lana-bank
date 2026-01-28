@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                SELECT id AS \"id: AuditEntryId\", subject, object, action, authorized, recorded_at\n                FROM audit_entries\n                WHERE COALESCE(id < $1, true)\n                ORDER BY id DESC\n                LIMIT $2\n                ",
+  "query": "\n                SELECT id AS \"id: AuditEntryId\", subject, object, action, authorized, recorded_at\n                FROM audit_entries\n                WHERE COALESCE(id < $1, true)\n                  AND COALESCE(subject = $2, true)\n                  AND COALESCE(authorized = $3, true)\n                ORDER BY id DESC\n                LIMIT $4\n                ",
   "describe": {
     "columns": [
       {
@@ -37,6 +37,8 @@
     "parameters": {
       "Left": [
         "Int8",
+        "Text",
+        "Bool",
         "Int8"
       ]
     },
@@ -49,5 +51,5 @@
       false
     ]
   },
-  "hash": "12c19a58f42d5ec96fd75e628a04d5354b6cdb3f1a7881c2fad4c424eebadefc"
+  "hash": "41eca1609e85f9646839556c22115b80b42e01819d3027c5390a0ad61f752e89"
 }

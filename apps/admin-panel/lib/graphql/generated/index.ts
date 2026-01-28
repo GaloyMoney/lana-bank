@@ -2436,6 +2436,7 @@ export type Query = {
   approvalProcess?: Maybe<ApprovalProcess>;
   approvalProcesses: ApprovalProcessConnection;
   audit: AuditEntryConnection;
+  auditSubjects: Array<Scalars['String']['output']>;
   balanceSheet: BalanceSheet;
   chartOfAccounts: ChartOfAccounts;
   committee?: Maybe<Committee>;
@@ -2523,7 +2524,9 @@ export type QueryApprovalProcessesArgs = {
 
 export type QueryAuditArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
+  authorized?: InputMaybe<Scalars['Boolean']['input']>;
   first: Scalars['Int']['input'];
+  subject?: InputMaybe<Scalars['String']['input']>;
 };
 
 

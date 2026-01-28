@@ -941,8 +941,12 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
+        subject: Option<String>,
+        authorized: Option<bool>,
     ) -> async_graphql::Result<Connection<AuditCursor, AuditEntry>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let subject_filter = subject;
+        let authorized_filter = authorized;
         query(
             after,
             None,
@@ -957,6 +961,8 @@ impl Query {
                             first,
                             after: after.map(lana_app::audit::AuditCursor::from),
                         },
+                        subject_filter.clone(),
+                        authorized_filter,
                     )
                     .await?;
 
@@ -972,6 +978,11 @@ impl Query {
             },
         )
         .await
+    }
+
+    async fn audit_subjects(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<String>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        Ok(app.list_audit_subjects(sub).await?)
     }
 
     async fn deposit_config(

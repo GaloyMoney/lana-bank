@@ -325,6 +325,8 @@ impl LanaApp {
         &self,
         sub: &Subject,
         query: es_entity::PaginatedQueryArgs<AuditCursor>,
+        subject_filter: Option<String>,
+        authorized_filter: Option<bool>,
     ) -> Result<es_entity::PaginatedQueryRet<AuditEntry, AuditCursor>, ApplicationError> {
         use crate::audit::AuditSvc;
 
@@ -336,7 +338,32 @@ impl LanaApp {
             )
             .await?;
 
-        self.audit.list(query).await.map_err(ApplicationError::from)
+        self.audit
+            .list(query, subject_filter, authorized_filter)
+            .await
+            .map_err(ApplicationError::from)
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "lana.audit.list_audit_subjects", skip(self))]
+    pub async fn list_audit_subjects(
+        &self,
+        sub: &Subject,
+    ) -> Result<Vec<String>, ApplicationError> {
+        use crate::audit::AuditSvc;
+
+        self.authz
+            .enforce_permission(
+                sub,
+                AuditObject::all_audits(),
+                AuditAction::from(AuditEntityAction::List),
+            )
+            .await?;
+
+        self.audit
+            .list_subjects()
+            .await
+            .map_err(ApplicationError::from)
     }
 
     pub fn accounting(&self) -> &Accounting {
