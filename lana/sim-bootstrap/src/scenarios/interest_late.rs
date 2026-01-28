@@ -102,11 +102,9 @@ pub async fn interest_late_scenario(
     let mut first_interest_amount: Option<UsdCents> = None;
     let mut first_interest_due_date: Option<chrono::NaiveDate> = None;
     let mut first_interest_paid = false;
-
     let expected_end_date = activation_date + chrono::Duration::days(200);
-    let mut facility_completed = false;
 
-    while !facility_completed {
+    loop {
         tokio::select! {
             Some(msg) = stream.next() => {
                 if let Some(LanaEvent::Credit(CoreCreditEvent::ObligationDue {
@@ -125,63 +123,54 @@ pub async fn interest_late_scenario(
                         first_interest_amount = Some(*amount);
                         first_interest_due_date = Some(current_date);
                     } else {
-                        let _ = app.record_payment_with_date(&sub, cf_id, *amount, current_date).await;
+                        app.record_payment_with_date(&sub, cf_id, *amount, current_date).await?;
                     }
-                }
-
-                if let Some(LanaEvent::Credit(CoreCreditEvent::FacilityCompleted { id, .. })) = &msg.payload
-                    && *id == cf_id
-                {
-                    msg.inject_trace_parent();
-                    facility_completed = true;
                 }
             }
             _ = tokio::time::sleep(EVENT_WAIT_TIMEOUT) => {
-                clock_ctrl.advance(ONE_DAY).await;
                 let current_date = clock.today();
 
                 if !first_interest_paid
                     && let (Some(amount), Some(due_date)) = (first_interest_amount, first_interest_due_date)
+                    && (current_date - due_date).num_days() > 90
                 {
-                    let days_late = (current_date - due_date).num_days();
-                    if days_late > 90 {
-                        let _ = app.record_payment_with_date(&sub, cf_id, amount, current_date).await;
-                        first_interest_paid = true;
-                    }
+                    app.record_payment_with_date(&sub, cf_id, amount, current_date).await?;
+                    first_interest_paid = true;
                 }
 
                 if current_date >= expected_end_date {
-
-                    let facility = app.credit().facilities().find_by_id(&sub, cf_id).await?.expect("facility exists");
-
-                    if facility.interest_accrual_cycle_in_progress().is_none() {
-                        let total_outstanding = app.credit().outstanding(&facility).await?;
-
-                        if total_outstanding > UsdCents::ZERO {
-                            let _ = app.record_payment_with_date(&sub, cf_id, total_outstanding, current_date).await;
-                        } else {
-                            let _ = app.credit().complete_facility(&sub, cf_id).await;
-                        }
-                    }
-
+                    break;
                 }
+                clock_ctrl.advance(ONE_DAY).await;
             }
         }
     }
 
-    let cf = app
-        .credit()
-        .facilities()
-        .find_by_id(&sub, cf_id)
-        .await?
-        .expect("cf exists");
-    assert_eq!(cf.status(), CreditFacilityStatus::Closed);
+    loop {
+        let facility = app
+            .credit()
+            .facilities()
+            .find_by_id(&sub, cf_id)
+            .await?
+            .expect("facility exists");
 
-    event!(
-        tracing::Level::INFO,
-        facility_id = %cf_id,
-        "Interest late scenario completed"
-    );
+        if facility.interest_accrual_cycle_in_progress().is_some() {
+            tokio::time::sleep(EVENT_WAIT_TIMEOUT).await;
+            continue;
+        }
 
+        let total_outstanding = app.credit().outstanding(&facility).await?;
+        if total_outstanding.is_zero() {
+            break;
+        }
+
+        app.record_payment_with_date(&sub, cf_id, total_outstanding, clock.today())
+            .await?;
+        tokio::time::sleep(EVENT_WAIT_TIMEOUT).await;
+    }
+
+    let _facility = app.credit().complete_facility(&sub, cf_id).await?;
+
+    event!(tracing::Level::INFO, facility_id = %cf_id, "Interest late scenario completed");
     Ok(())
 }

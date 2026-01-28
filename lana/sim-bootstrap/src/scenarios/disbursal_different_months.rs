@@ -113,11 +113,9 @@ pub async fn disbursal_different_months_scenario(
     let disbursal_3_date = activation_date + chrono::Duration::days(ONE_MONTH_DAYS * 3);
     let mut disbursal_2_done = false;
     let mut disbursal_3_done = false;
-
     let expected_end_date = activation_date + chrono::Duration::days(380);
-    let mut facility_completed = false;
 
-    while !facility_completed {
+    loop {
         tokio::select! {
             Some(msg) = stream.next() => {
                 if let Some(LanaEvent::Credit(CoreCreditEvent::ObligationDue {
@@ -129,18 +127,10 @@ pub async fn disbursal_different_months_scenario(
                     && *amount > UsdCents::ZERO
                 {
                     msg.inject_trace_parent();
-                    let _ = app.record_payment_with_date(&sub, cf_id, *amount, clock.today()).await;
-                }
-
-                if let Some(LanaEvent::Credit(CoreCreditEvent::FacilityCompleted { id, .. })) = &msg.payload
-                    && *id == cf_id
-                {
-                    msg.inject_trace_parent();
-                    facility_completed = true;
+                    app.record_payment_with_date(&sub, cf_id, *amount, clock.today()).await?;
                 }
             }
             _ = tokio::time::sleep(EVENT_WAIT_TIMEOUT) => {
-                clock_ctrl.advance(ONE_DAY).await;
                 let current_date = clock.today();
 
                 if !disbursal_2_done && current_date >= disbursal_2_date {
@@ -158,40 +148,38 @@ pub async fn disbursal_different_months_scenario(
                 }
 
                 if current_date >= expected_end_date {
-
-                    let facility = app.credit().facilities().find_by_id(&sub, cf_id).await?.expect("facility exists");
-
-                    if facility.interest_accrual_cycle_in_progress().is_none() {
-                        let has_outstanding = app.credit().facilities().has_outstanding_obligations(&sub, cf_id).await?;
-
-                        if has_outstanding {
-                            let total_outstanding = app.credit().outstanding(&facility).await?;
-                            if total_outstanding > UsdCents::ZERO {
-                                let _ = app.record_payment_with_date(&sub, cf_id, total_outstanding, current_date).await;
-                            }
-                        } else {
-                            let _ = app.credit().complete_facility(&sub, cf_id).await;
-                        }
-                    }
-
+                    break;
                 }
+                clock_ctrl.advance(ONE_DAY).await;
             }
         }
     }
 
-    let cf = app
-        .credit()
-        .facilities()
-        .find_by_id(&sub, cf_id)
-        .await?
-        .expect("cf exists");
-    assert_eq!(cf.status(), CreditFacilityStatus::Closed);
+    loop {
+        let facility = app
+            .credit()
+            .facilities()
+            .find_by_id(&sub, cf_id)
+            .await?
+            .expect("facility exists");
 
-    event!(
-        tracing::Level::INFO,
-        facility_id = %cf_id,
-        "Disbursal different months scenario completed"
-    );
+        if facility.interest_accrual_cycle_in_progress().is_some() {
+            tokio::time::sleep(EVENT_WAIT_TIMEOUT).await;
+            continue;
+        }
 
+        let total_outstanding = app.credit().outstanding(&facility).await?;
+        if total_outstanding.is_zero() {
+            break;
+        }
+
+        app.record_payment_with_date(&sub, cf_id, total_outstanding, clock.today())
+            .await?;
+        tokio::time::sleep(EVENT_WAIT_TIMEOUT).await;
+    }
+
+    let _facility = app.credit().complete_facility(&sub, cf_id).await?;
+
+    event!(tracing::Level::INFO, facility_id = %cf_id, "Disbursal different months scenario completed");
     Ok(())
 }
