@@ -215,8 +215,7 @@ where
             .domain_configs
             .get_without_audit::<RequireVerifiedCustomerForAccount>()
             .await?
-            .value()
-            .unwrap_or_default();
+            .value();
         if require_verified && !customer.kyc_verification.is_verified() {
             return Err(CoreDepositError::CustomerNotVerified);
         }

@@ -173,7 +173,7 @@ where
                     .domain_configs
                     .get::<config::FiscalYearConfig>()
                     .await?;
-                let Some(fiscal_year_conf) = config.value() else {
+                let Some(fiscal_year_conf) = config.maybe_value() else {
                     return Err(domain_config::DomainConfigError::NotConfigured.into());
                 };
 
@@ -320,7 +320,7 @@ where
         chart_id: impl Into<ChartId> + std::fmt::Debug,
     ) -> Result<FiscalYearConfig, FiscalYearError> {
         let config = self.domain_configs.get::<FiscalYearConfig>().await?;
-        if config.value().is_some() {
+        if config.maybe_value().is_some() {
             return Err(FiscalYearError::FiscalYearConfigAlreadyExists);
         }
 

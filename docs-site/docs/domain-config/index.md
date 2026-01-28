@@ -57,10 +57,24 @@ let typed_config: TypedDomainConfig<MyConfig> = internal_configs.get::<MyConfig>
 let typed_config: TypedDomainConfig<MyConfig> = exposed_configs.get::<MyConfig>(&subject).await?;
 ```
 
-The `get()` method returns a `TypedDomainConfig<C>` wrapper. Call `.value()` on it to get the resolved value as a standard `Option<T>`:
+The `get()` method returns a `TypedDomainConfig<C>` wrapper. How you access the value depends on whether the config has a default:
 
-- `Some(value)` - the resolved value (either from the database or the default)
-- `None` - no value exists and no default was defined
+**For configs WITH defaults** (defined with a `default:` clause), use `.value()`:
+
+```rust
+// Returns T directly - always succeeds because the default guarantees a value
+let value: bool = typed_config.value();
+```
+
+**For configs WITHOUT defaults**, use `.maybe_value()`:
+
+```rust
+// Returns Option<T>
+let value: Option<String> = typed_config.maybe_value();
+```
+
+- `Some(value)` - the config has been explicitly set via `update`
+- `None` - no value exists
 
 The caller doesn't need to know whether the value came from an explicit database entry or from the default defined at registration.
 

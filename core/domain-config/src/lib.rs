@@ -78,7 +78,7 @@
 //! # async fn example(pool: &sqlx::PgPool) -> Result<(), domain_config::DomainConfigError> {
 //!     // Enforce your custom authorization here before accessing the config
 //!     let configs = domain_config::InternalDomainConfigs::new(pool);
-//!     let value = configs.get::<MyInternalFlag>().await?.value();
+//!     let value = configs.get::<MyInternalFlag>().await?.maybe_value();
 //!     configs.update::<MyInternalFlag>(true).await?;
 //! #     Ok(())
 //! # }
@@ -104,7 +104,7 @@
 //! #         From<domain_config::DomainConfigObject>,
 //! # {
 //!     let configs = domain_config::ExposedDomainConfigs::new(pool, authz);
-//!     let value = configs.get::<MyExposedSetting>(subject).await?.value();
+//!     let value = configs.get::<MyExposedSetting>(subject).await?.maybe_value();
 //!     configs.update::<MyExposedSetting>(subject, "new-value".into()).await?;
 //! #     Ok(())
 //! # }
@@ -121,7 +121,7 @@
 //! # }
 //! # async fn example(pool: &sqlx::PgPool) -> Result<(), domain_config::DomainConfigError> {
 //!     let configs = domain_config::ExposedDomainConfigsReadOnly::new(pool);
-//!     let value = configs.get_without_audit::<MyExposedSetting>().await?.value();
+//!     let value = configs.get_without_audit::<MyExposedSetting>().await?.maybe_value();
 //! #     Ok(())
 //! # }
 //! ```
@@ -134,10 +134,16 @@
 //! functions manually - just use the macro and the config will be available. Because of
 //! this automatic seeding, `get` always succeeds for all configs.
 //!
-//! The `value()` method returns `Option<T>`:
+//! ## Accessing Config Values
+//!
+//! For configs **with defaults** (defined with a `default:` clause), use `value()`:
+//! - Returns `T` directly (not `Option<T>`)
+//! - Always succeeds because the default guarantees a value
+//!
+//! For configs **without defaults**, use `maybe_value()`:
+//! - Returns `Option<T>`
 //! - `Some(value)` if the config has been explicitly set via `update`
-//! - `Some(default)` if no value is set but a `default:` clause was specified
-//! - `None` if no value is set and no default exists
+//! - `None` if no value is set
 
 mod entity;
 pub mod error;
@@ -168,7 +174,9 @@ pub use primitives::{
 };
 pub use repo::domain_config_cursor::DomainConfigsByKeyCursor;
 pub use shared_config::RequireVerifiedCustomerForAccount;
-pub use spec::{Complex, ConfigSpec, ExposedConfig, InternalConfig, Simple, ValueKind};
+pub use spec::{
+    Complex, ConfigSpec, DefaultedConfig, ExposedConfig, InternalConfig, Simple, ValueKind,
+};
 pub use typed_domain_config::TypedDomainConfig;
 
 use entity::NewDomainConfig;
