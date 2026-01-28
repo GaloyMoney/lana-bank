@@ -38,6 +38,8 @@ pub enum ChartOfAccountsError {
     AccountingBaseConfigError(#[from] crate::primitives::AccountingBaseConfigError),
     #[error("ChartOfAccountsError - BaseConfigAlreadyInitializedWithDifferentValues")]
     BaseConfigAlreadyInitializedWithDifferentConfig,
+    #[error("ChartOfAccountsError - AccountingBaseConfigNotFound")]
+    AccountingBaseConfigNotFound,
 }
 
 es_entity::from_es_entity_error!(ChartOfAccountsError);
@@ -62,6 +64,7 @@ impl ErrorSeverity for ChartOfAccountsError {
             Self::AccountCodeHasInvalidParent(_) => Level::ERROR,
             Self::AccountingBaseConfigError(e) => e.severity(),
             Self::BaseConfigAlreadyInitializedWithDifferentConfig => Level::WARN,
+            Self::AccountingBaseConfigNotFound => Level::ERROR,
         }
     }
 }

@@ -9,7 +9,6 @@ use cala_ledger::{
 use cloud_storage::{Storage, config::StorageConfig};
 use core_accounting::CoreAccounting;
 use document_storage::DocumentStorage;
-use domain_config::InternalDomainConfigs;
 use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 use helpers::{action, default_accounting_base_config, object};
 use job::{JobSvcConfig, Jobs};
@@ -25,7 +24,6 @@ async fn ledger_account_ancestors() -> anyhow::Result<()> {
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
-    let domain_configs = InternalDomainConfigs::new(&pool);
     let journal_id = helpers::init_journal(&cala).await?;
     let outbox = helpers::init_outbox(&pool).await?;
 
@@ -40,7 +38,6 @@ async fn ledger_account_ancestors() -> anyhow::Result<()> {
         journal_id,
         document_storage,
         &mut jobs,
-        &domain_configs,
         &outbox,
     );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
@@ -48,11 +45,9 @@ async fn ledger_account_ancestors() -> anyhow::Result<()> {
         .chart_of_accounts()
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())
         .await?;
-    // let import_children = r#"
-    // 1,1,,Child,,
-    // ,,1,Grandchild,,
-    // "#;
-    // import_chart_of_accounts(&accounting, &chart_ref, Some(import_children)).await?;
+    let (balance_sheet_name, pl_name, tb_name) =
+        helpers::create_test_statements(&accounting).await?;
+
     let import = format!(
         "{}{}",
         helpers::BASE_ACCOUNTS_CSV,
@@ -63,8 +58,15 @@ async fn ledger_account_ancestors() -> anyhow::Result<()> {
     );
     let base_config = default_accounting_base_config();
     accounting
-        .chart_of_accounts()
-        .import_from_csv_with_base_config(&DummySubject, &chart_ref, import, base_config)
+        .import_csv_with_base_config(
+            &DummySubject,
+            &chart_ref,
+            import,
+            base_config,
+            &balance_sheet_name,
+            &pl_name,
+            &tb_name,
+        )
         .await?;
 
     let root = accounting
@@ -170,7 +172,6 @@ async fn ledger_account_children() -> anyhow::Result<()> {
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
-    let domain_configs = InternalDomainConfigs::new(&pool);
     let journal_id = helpers::init_journal(&cala).await?;
     let outbox = helpers::init_outbox(&pool).await?;
 
@@ -185,7 +186,6 @@ async fn ledger_account_children() -> anyhow::Result<()> {
         journal_id,
         document_storage,
         &mut jobs,
-        &domain_configs,
         &outbox,
     );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
@@ -193,6 +193,9 @@ async fn ledger_account_children() -> anyhow::Result<()> {
         .chart_of_accounts()
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())
         .await?;
+    let (balance_sheet_name, pl_name, tb_name) =
+        helpers::create_test_statements(&accounting).await?;
+
     let import = format!(
         "{}{}",
         helpers::BASE_ACCOUNTS_CSV,
@@ -203,8 +206,15 @@ async fn ledger_account_children() -> anyhow::Result<()> {
     );
     let base_config = default_accounting_base_config();
     accounting
-        .chart_of_accounts()
-        .import_from_csv_with_base_config(&DummySubject, &chart_ref, import, base_config)
+        .import_csv_with_base_config(
+            &DummySubject,
+            &chart_ref,
+            import,
+            base_config,
+            &balance_sheet_name,
+            &pl_name,
+            &tb_name,
+        )
         .await?;
     let root = accounting
         .find_ledger_account_by_code(&DummySubject, &chart_ref, "1".to_string())
@@ -278,7 +288,6 @@ async fn internal_account_contains_coa_account() -> anyhow::Result<()> {
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
-    let domain_configs = InternalDomainConfigs::new(&pool);
     let journal_id = helpers::init_journal(&cala).await?;
     let outbox = helpers::init_outbox(&pool).await?;
     let storage = Storage::new(&StorageConfig::default());
@@ -292,7 +301,6 @@ async fn internal_account_contains_coa_account() -> anyhow::Result<()> {
         journal_id,
         document_storage,
         &mut jobs,
-        &domain_configs,
         &outbox,
     );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
@@ -300,6 +308,8 @@ async fn internal_account_contains_coa_account() -> anyhow::Result<()> {
         .chart_of_accounts()
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())
         .await?;
+    let (balance_sheet_name, pl_name, tb_name) =
+        helpers::create_test_statements(&accounting).await?;
 
     let import = format!(
         "{}{}",
@@ -311,8 +321,15 @@ async fn internal_account_contains_coa_account() -> anyhow::Result<()> {
     );
     let base_config = default_accounting_base_config();
     accounting
-        .chart_of_accounts()
-        .import_from_csv_with_base_config(&DummySubject, &chart_ref, import, base_config)
+        .import_csv_with_base_config(
+            &DummySubject,
+            &chart_ref,
+            import,
+            base_config,
+            &balance_sheet_name,
+            &pl_name,
+            &tb_name,
+        )
         .await?;
     let root = accounting
         .find_ledger_account_by_code(&DummySubject, &chart_ref, "1".to_string())

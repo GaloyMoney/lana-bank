@@ -524,12 +524,37 @@ impl AccountingBaseConfig {
 }
 
 #[derive(Debug, Clone)]
+pub struct ResolvedAccountingBaseConfig {
+    pub config: AccountingBaseConfig,
+    pub assets: CalaAccountSetId,
+    pub liabilities: CalaAccountSetId,
+    pub equity: CalaAccountSetId,
+    pub equity_retained_earnings_gain: CalaAccountSetId,
+    pub equity_retained_earnings_loss: CalaAccountSetId,
+    pub revenue: CalaAccountSetId,
+    pub cost_of_revenue: CalaAccountSetId,
+    pub expenses: CalaAccountSetId,
+}
+
+#[derive(Debug, Clone)]
 pub struct ClosingAccountCodes {
     pub revenue: AccountCode,
     pub cost_of_revenue: AccountCode,
     pub expenses: AccountCode,
     pub equity_retained_earnings: AccountCode,
     pub equity_retained_losses: AccountCode,
+}
+
+impl From<&AccountingBaseConfig> for ClosingAccountCodes {
+    fn from(config: &AccountingBaseConfig) -> Self {
+        Self {
+            revenue: config.revenue_code.clone(),
+            cost_of_revenue: config.cost_of_revenue_code.clone(),
+            expenses: config.expenses_code.clone(),
+            equity_retained_earnings: config.equity_retained_earnings_gain_code.clone(),
+            equity_retained_losses: config.equity_retained_earnings_loss_code.clone(),
+        }
+    }
 }
 
 #[derive(Debug, Clone)]

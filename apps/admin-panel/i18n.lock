@@ -1425,23 +1425,16 @@ checksums:
     Modules/credit/chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode: 34d38f74e03aa7efa2b8154a032653a1
     Modules/credit/chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: a28ea9fed19712c5ae4699979578b7aa
     Modules/credit/chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode: 566ba8853ccc45ecdbea9ccf5dfaaaf0
-    Modules/balanceSheet/title: 0c5e5cc9dd1e661a276e1536917a8db8
-    Modules/balanceSheet/description: f323e3abc32a91a9d072d1859e9e9dcc
-    Modules/balanceSheet/setTitle: b9c45d77b313d7dc36328d38c144d41f
-    Modules/balanceSheet/chartOfAccountsId: 608a35070a1a88b6f113b5c9f4a59300
-    Modules/balanceSheet/chartOfAccountsAssetsCode: 8f986fe29b86e9325d22b83328dbffa2
-    Modules/balanceSheet/chartOfAccountsLiabilitiesCode: beb993cfc6ffa883856a248cbb95b7ab
-    Modules/balanceSheet/chartOfAccountsEquityCode: e55caa88a6401f1f7e91265f0d83fbb1
-    Modules/balanceSheet/chartOfAccountsRevenueCode: bc86928c960b6057fa6698cbfb2ea07e
-    Modules/balanceSheet/chartOfAccountsCostOfRevenueCode: 4b42343b75c55a8a7d7eac5a08641bc6
-    Modules/balanceSheet/chartOfAccountsExpensesCode: 5fbddc52c73c4614166f8daec9cda586
-    Modules/profitAndLoss/title: 3ba19a10374d5fe19675af7a4b2f7832
-    Modules/profitAndLoss/description: 63c2c25c6ef72c8f742cea3d25ea56ad
-    Modules/profitAndLoss/setTitle: c0eb87af3b74b9abbd657af0637cb9fb
-    Modules/profitAndLoss/chartOfAccountsId: 608a35070a1a88b6f113b5c9f4a59300
-    Modules/profitAndLoss/chartOfAccountsRevenueCode: bc86928c960b6057fa6698cbfb2ea07e
-    Modules/profitAndLoss/chartOfAccountsCostOfRevenueCode: 4b42343b75c55a8a7d7eac5a08641bc6
-    Modules/profitAndLoss/chartOfAccountsExpensesCode: 5fbddc52c73c4614166f8daec9cda586
+    Modules/accountingBaseConfig/title: 2dd26927fe4e9cfc0aca8b8937d3b7ee
+    Modules/accountingBaseConfig/description: 07ec9d744626fe2efd837f030c0b4990
+    Modules/accountingBaseConfig/assetsCode: 8f986fe29b86e9325d22b83328dbffa2
+    Modules/accountingBaseConfig/liabilitiesCode: beb993cfc6ffa883856a248cbb95b7ab
+    Modules/accountingBaseConfig/equityCode: e55caa88a6401f1f7e91265f0d83fbb1
+    Modules/accountingBaseConfig/equityRetainedEarningsGainCode: 89995560c923581f4bc5aecb1a77cc68
+    Modules/accountingBaseConfig/equityRetainedEarningsLossCode: c4f8e8d92def4f9106a3bca257f52654
+    Modules/accountingBaseConfig/revenueCode: bc86928c960b6057fa6698cbfb2ea07e
+    Modules/accountingBaseConfig/costOfRevenueCode: 4b42343b75c55a8a7d7eac5a08641bc6
+    Modules/accountingBaseConfig/expensesCode: 5fbddc52c73c4614166f8daec9cda586
     ChartOfAccountsLedgerAccount/title: b156c85b7cdaac35654dfa3b8bcc6cf2
     ChartOfAccountsLedgerAccount/entriesTitle: 99c901d20f504e810a773ecc8335d1ec
     ChartOfAccountsLedgerAccount/description: 1cb54558341987f3d67421ea3ea90d39

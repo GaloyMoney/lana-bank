@@ -2408,26 +2408,17 @@
       "chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode": "Código padre de desembolso vencido por cobrar a agencia extranjera o subsidiaria",
       "chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode": "Código padre de desembolso vencido por cobrar a empresa no domiciliada"
     },
-    "balanceSheet": {
-      "title": "Balance general",
-      "description": "Configuración del balance general",
-      "setTitle": "Establecer configuración del balance general",
-      "chartOfAccountsId": "ID del catálogo de cuentas",
-      "chartOfAccountsAssetsCode": "Código de activos",
-      "chartOfAccountsLiabilitiesCode": "Código de pasivos",
-      "chartOfAccountsEquityCode": "Código de patrimonio",
-      "chartOfAccountsRevenueCode": "Código de ingresos",
-      "chartOfAccountsCostOfRevenueCode": "Código de costo de ingresos",
-      "chartOfAccountsExpensesCode": "Código de gastos"
-    },
-    "profitAndLoss": {
-      "title": "Estado de resultados",
-      "description": "Configuración del estado de resultados",
-      "setTitle": "Establecer configuración del estado de resultados",
-      "chartOfAccountsId": "ID del catálogo de cuentas",
-      "chartOfAccountsRevenueCode": "Código de ingresos",
-      "chartOfAccountsCostOfRevenueCode": "Código de costo de ingresos",
-      "chartOfAccountsExpensesCode": "Código de gastos"
+    "accountingBaseConfig": {
+      "title": "Configuración Base de Contabilidad",
+      "description": "Códigos de cuenta base para balance general y estado de resultados",
+      "assetsCode": "Código de Activos",
+      "liabilitiesCode": "Código de Pasivos",
+      "equityCode": "Código de Patrimonio",
+      "equityRetainedEarningsGainCode": "Código de Ganancias Retenidas",
+      "equityRetainedEarningsLossCode": "Código de Pérdidas Retenidas",
+      "revenueCode": "Código de Ingresos",
+      "costOfRevenueCode": "Código de Costo de Ingresos",
+      "expensesCode": "Código de Gastos"
     }
   },
   "ChartOfAccountsLedgerAccount": {

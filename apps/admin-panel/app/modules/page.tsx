@@ -20,15 +20,12 @@ import { DetailsGroup } from "@lana/web/components/details"
 
 import { DepositConfigUpdateDialog } from "./deposit-config-update"
 import { CreditConfigUpdateDialog } from "./credit-config-update"
-import { BalanceSheetConfigUpdateDialog } from "./balance-sheet-config-update"
-import { ProfitAndLossConfigUpdateDialog } from "./profit-and-loss-config-update"
 
 import { DetailItem } from "@/components/details"
 import {
   useDepositConfigQuery,
   useCreditConfigQuery,
-  useBalanceSheetConfigQuery,
-  useProfitAndLossStatementConfigQuery,
+  useChartAccountingBaseConfigQuery,
 } from "@/lib/graphql/generated"
 
 gql`
@@ -102,22 +99,20 @@ gql`
     }
   }
 
-  query BalanceSheetConfig {
-    balanceSheetConfig {
-      chartOfAccountsAssetsCode
-      chartOfAccountsLiabilitiesCode
-      chartOfAccountsEquityCode
-      chartOfAccountsRevenueCode
-      chartOfAccountsCostOfRevenueCode
-      chartOfAccountsExpensesCode
-    }
-  }
-
-  query ProfitAndLossStatementConfig {
-    profitAndLossStatementConfig {
-      chartOfAccountsRevenueCode
-      chartOfAccountsCostOfRevenueCode
-      chartOfAccountsExpensesCode
+  query ChartAccountingBaseConfig {
+    chartOfAccounts {
+      id
+      name
+      accountingBaseConfig {
+        assetsCode
+        liabilitiesCode
+        equityCode
+        equityRetainedEarningsGainCode
+        equityRetainedEarningsLossCode
+        revenueCode
+        costOfRevenueCode
+        expensesCode
+      }
     }
   }
 `
@@ -128,17 +123,12 @@ const Modules: React.FC = () => {
   const [openDepositConfigUpdateDialog, setOpenDepositConfigUpdateDialog] =
     useState(false)
   const [openCreditConfigUpdateDialog, setOpenCreditConfigUpdateDialog] = useState(false)
-  const [openBalanceSheetConfigUpdateDialog, setOpenBalanceSheetConfigUpdateDialog] =
-    useState(false)
-  const [openProfitAndLossConfigUpdateDialog, setOpenProfitAndLossConfigUpdateDialog] =
-    useState(false)
 
   const { data: depositConfig, loading: depositConfigLoading } = useDepositConfigQuery()
   const { data: creditConfig, loading: creditConfigLoading } = useCreditConfigQuery()
-  const { data: balanceSheetConfig, loading: balanceSheetConfigLoading } =
-    useBalanceSheetConfigQuery()
-  const { data: profitAndLossConfig, loading: profitAndLossConfigLoading } =
-    useProfitAndLossStatementConfigQuery()
+  const { data: chartData, loading: chartLoading } = useChartAccountingBaseConfigQuery()
+
+  const accountingBaseConfig = chartData?.chartOfAccounts?.accountingBaseConfig
 
   return (
     <>
@@ -151,18 +141,6 @@ const Modules: React.FC = () => {
         open={openCreditConfigUpdateDialog}
         setOpen={setOpenCreditConfigUpdateDialog}
         creditModuleConfig={creditConfig?.creditConfig || undefined}
-      />
-      <BalanceSheetConfigUpdateDialog
-        open={openBalanceSheetConfigUpdateDialog}
-        setOpen={setOpenBalanceSheetConfigUpdateDialog}
-        balanceSheetConfig={balanceSheetConfig?.balanceSheetConfig || undefined}
-      />
-      <ProfitAndLossConfigUpdateDialog
-        open={openProfitAndLossConfigUpdateDialog}
-        setOpen={setOpenProfitAndLossConfigUpdateDialog}
-        profitAndLossConfig={
-          profitAndLossConfig?.profitAndLossStatementConfig || undefined
-        }
       />
 
       <Card>
@@ -250,21 +228,21 @@ const Modules: React.FC = () => {
       </Card>
       <Card className="mt-3">
         <CardHeader>
-          <CardTitle>{t("balanceSheet.title")}</CardTitle>
-          <CardDescription>{t("balanceSheet.description")}</CardDescription>
+          <CardTitle>{t("accountingBaseConfig.title")}</CardTitle>
+          <CardDescription>{t("accountingBaseConfig.description")}</CardDescription>
         </CardHeader>
 
         <CardContent>
-          {balanceSheetConfigLoading ? (
+          {chartLoading ? (
             <LoaderCircle className="animate-spin" />
-          ) : balanceSheetConfig?.balanceSheetConfig ? (
+          ) : accountingBaseConfig ? (
             <DetailsGroup>
-              {Object.entries(balanceSheetConfig?.balanceSheetConfig || {}).map(
+              {Object.entries(accountingBaseConfig).map(
                 ([key, value]) =>
                   key !== "__typename" && (
                     <DetailItem
                       key={key}
-                      label={t(`balanceSheet.${key}`)}
+                      label={t(`accountingBaseConfig.${key}`)}
                       value={value?.replace(/\./g, "")}
                     />
                   ),
@@ -274,63 +252,6 @@ const Modules: React.FC = () => {
             <div>{t("notYetConfigured")}</div>
           )}
         </CardContent>
-        {!balanceSheetConfig?.balanceSheetConfig && (
-          <>
-            <Separator className="mb-4" />
-            <CardFooter className="-mb-3 -mt-1 justify-end">
-              <Button
-                variant="outline"
-                onClick={() => setOpenBalanceSheetConfigUpdateDialog(true)}
-              >
-                <Pencil />
-                {t("balanceSheet.setTitle")}
-              </Button>
-            </CardFooter>
-          </>
-        )}
-      </Card>
-      <Card className="mt-3">
-        <CardHeader>
-          <CardTitle>{t("profitAndLoss.title")}</CardTitle>
-          <CardDescription>{t("profitAndLoss.description")}</CardDescription>
-        </CardHeader>
-
-        <CardContent>
-          {profitAndLossConfigLoading ? (
-            <LoaderCircle className="animate-spin" />
-          ) : profitAndLossConfig?.profitAndLossStatementConfig ? (
-            <DetailsGroup>
-              {Object.entries(
-                profitAndLossConfig?.profitAndLossStatementConfig || {},
-              ).map(
-                ([key, value]) =>
-                  key !== "__typename" && (
-                    <DetailItem
-                      key={key}
-                      label={t(`profitAndLoss.${key}`)}
-                      value={value?.replace(/\./g, "")}
-                    />
-                  ),
-              )}
-            </DetailsGroup>
-          ) : (
-            <div>{t("notYetConfigured")}</div>
-          )}
-        </CardContent>
-        {!profitAndLossConfig?.profitAndLossStatementConfig && (
-          <>
-            <Separator className="mb-4" />
-            <CardFooter className="-mb-3 -mt-1 justify-end">
-              <Button
-                variant="outline"
-                onClick={() => setOpenProfitAndLossConfigUpdateDialog(true)}
-              >
-                <Pencil />
-                {t("profitAndLoss.setTitle")}
-              </Button>
-            </CardFooter>
-          </>
-        )}
       </Card>
     </>
   )

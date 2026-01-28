@@ -11,7 +11,6 @@ json-schema = ["dep:schemars", "es-entity/json-schema", "cala-ledger/json-schema
 [dependencies]
 audit = { workspace = true }
 authz = { workspace = true }
-domain-config = { workspace = true }
 core-money = { workspace = true }
 document-storage = { workspace = true }
 job = { workspace = true }

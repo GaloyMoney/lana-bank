@@ -6,15 +6,9 @@ pub mod error;
 use tracing_macros::record_error_severity;
 
 use crate::{
-    accounting::{Accounting, ChartOfAccounts},
-    app::AccountingInitConfig,
-    balance_sheet::BalanceSheets,
-    credit::Credit,
-    deposit::Deposits,
-    fiscal_year::FiscalYears,
-    primitives::CalaJournalId,
-    profit_and_loss::ProfitAndLossStatements,
-    trial_balance::TrialBalances,
+    accounting::Accounting, app::AccountingInitConfig, balance_sheet::BalanceSheets,
+    credit::Credit, deposit::Deposits, primitives::CalaJournalId,
+    profit_and_loss::ProfitAndLossStatements, trial_balance::TrialBalances,
 };
 
 use cala_ledger::CalaLedger;
@@ -63,16 +57,6 @@ impl ChartsInit {
         deposit: &Deposits,
         accounting_init_config: AccountingInitConfig,
     ) -> Result<(), AccountingInitError> {
-        seed::charts_of_accounts::init(
-            accounting.chart_of_accounts(),
-            accounting.trial_balances(),
-            credit,
-            deposit,
-            accounting.balance_sheets(),
-            accounting.profit_and_loss(),
-            accounting.fiscal_year(),
-            accounting_init_config,
-        )
-        .await
+        seed::charts_of_accounts::init(accounting, credit, deposit, accounting_init_config).await
     }
 }

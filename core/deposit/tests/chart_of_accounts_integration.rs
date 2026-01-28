@@ -7,7 +7,6 @@ use core_accounting::CoreAccounting;
 use core_customer::Customers;
 use core_deposit::*;
 use document_storage::DocumentStorage;
-use domain_config::InternalDomainConfigs;
 use es_entity::clock::{ArtificialClockConfig, ClockHandle};
 use helpers::{BASE_ACCOUNTS_CSV, action, default_accounting_base_config, event, object};
 
@@ -33,7 +32,6 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         obix::Outbox::<event::DummyEvent>::init(&pool, obix::MailboxConfig::builder().build()?)
             .await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
-    let domain_configs = InternalDomainConfigs::new(&pool);
     let governance = governance::Governance::new(&pool, &authz, &outbox, clock.clone());
 
     let cala_config = CalaLedgerConfig::builder()
@@ -86,7 +84,6 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         journal_id,
         document_storage,
         &mut jobs,
-        &domain_configs,
         &outbox,
     );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
@@ -95,11 +92,22 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())
         .await?
         .id;
+
+    let (balance_sheet_name, pl_name, tb_name) =
+        helpers::create_test_statements(&accounting).await?;
+
     let import = format!("{}{}", BASE_ACCOUNTS_CSV, DEPOSIT_ACCOUNTS_CSV);
     let base_config = default_accounting_base_config();
-    let (chart, _) = accounting
-        .chart_of_accounts()
-        .import_from_csv_with_base_config(&DummySubject, &chart_ref, import, base_config.clone())
+    let chart = accounting
+        .import_csv_with_base_config(
+            &DummySubject,
+            &chart_ref,
+            import,
+            base_config.clone(),
+            &balance_sheet_name,
+            &pl_name,
+            &tb_name,
+        )
         .await?;
 
     let code = "1".parse::<core_accounting::AccountCode>().unwrap();
@@ -167,6 +175,10 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         )
         .await?
         .id;
+
+    let (balance_sheet_name2, pl_name2, tb_name2) =
+        helpers::create_test_statements(&accounting).await?;
+
     let import = format!(
         "{}{}",
         BASE_ACCOUNTS_CSV,
@@ -181,9 +193,16 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     27,,,Other Frozen Deposit Accounts,,
     "#
     );
-    let (chart, _) = accounting
-        .chart_of_accounts()
-        .import_from_csv_with_base_config(&DummySubject, &chart_ref, import, base_config)
+    let chart = accounting
+        .import_csv_with_base_config(
+            &DummySubject,
+            &chart_ref,
+            import,
+            base_config,
+            &balance_sheet_name2,
+            &pl_name2,
+            &tb_name2,
+        )
         .await?;
 
     let res = deposit

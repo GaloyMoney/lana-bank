@@ -89,6 +89,10 @@ where
         }
     }
 
+    pub async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, ChartOfAccountsError> {
+        Ok(self.repo.begin_op().await?)
+    }
+
     #[record_error_severity]
     #[instrument(name = "core_accounting.chart_of_accounts.create_chart", skip(self))]
     pub async fn create_chart(
@@ -129,16 +133,17 @@ where
 
     #[record_error_severity]
     #[instrument(
-        name = "core_accounting.chart_of_accounts.import_from_csv_with_base_config",
-        skip(self, import_data)
+        name = "core_accounting.chart_of_accounts.import_from_csv_with_base_config_in_op",
+        skip(self, op, import_data)
     )]
-    pub async fn import_from_csv_with_base_config(
+    pub async fn import_from_csv_with_base_config_in_op(
         &self,
+        op: &mut es_entity::DbOp<'_>,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_ref: &str,
         import_data: impl AsRef<str>,
         base_config: AccountingBaseConfig,
-    ) -> Result<(Chart, Option<Vec<CalaAccountSetId>>), ChartOfAccountsError> {
+    ) -> Result<(Chart, Vec<CalaAccountSetId>), ChartOfAccountsError> {
         self.authz
             .enforce_permission(
                 sub,
@@ -160,32 +165,30 @@ where
             self.journal_id,
         )? {
             Idempotent::Executed(res) => res,
-            _ => return Ok((chart, None)),
+            Idempotent::AlreadyApplied => {
+                return Ok((chart, Vec::new()));
+            }
         };
 
-        let mut op = self.repo.begin_op().await?;
-        self.repo.update_in_op(&mut op, &mut chart).await?;
+        self.repo.update_in_op(op, &mut chart).await?;
 
-        let mut op = op.with_db_time().await?;
         self.cala
             .account_sets()
-            .create_all_in_op(&mut op, new_account_sets)
+            .create_all_in_op(op, new_account_sets)
             .await?;
 
         for (parent, child) in new_connections {
             self.cala
                 .account_sets()
-                .add_member_in_op(&mut op, parent, child)
+                .add_member_in_op(op, parent, child)
                 .await?;
         }
 
-        op.commit().await?;
-
-        let new_account_set_ids = &chart
+        let new_trial_balance_account_ids = chart
             .trial_balance_account_ids_from_new_accounts(&new_account_set_ids)
-            .collect::<Vec<_>>();
+            .collect();
 
-        Ok((chart, Some(new_account_set_ids.clone())))
+        Ok((chart, new_trial_balance_account_ids))
     }
 
     #[record_error_severity]
@@ -389,12 +392,15 @@ where
         &self,
         mut op: es_entity::DbOp<'_>,
         chart_id: ChartId,
-        account_codes: impl Into<ClosingAccountCodes> + std::fmt::Debug,
         tx_details: ClosingTxDetails,
     ) -> Result<(), ChartOfAccountsError> {
-        let account_codes = account_codes.into();
-
         let mut chart = self.find_by_id(chart_id).await?;
+        let account_codes = ClosingAccountCodes::from(
+            &chart
+                .accounting_base_config()
+                .ok_or(ChartOfAccountsError::AccountingBaseConfigNotFound)?,
+        );
+
         if let Idempotent::Executed(closing_tx_parents_and_details) =
             chart.post_closing_tx_as_of(account_codes, tx_details)?
         {
