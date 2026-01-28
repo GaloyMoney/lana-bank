@@ -282,6 +282,7 @@ type Collateral {
 	accountId: UUID!
 	account: LedgerAccount!
 	creditFacility: CreditFacility!
+	liquidation: Liquidation
 }
 
 enum CollateralAction {

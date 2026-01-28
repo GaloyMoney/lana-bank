@@ -6,6 +6,8 @@ use crate::{
 };
 pub use lana_app::credit::Collateral as DomainCollateral;
 
+use super::Liquidation;
+
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct Collateral {
@@ -47,5 +49,15 @@ impl Collateral {
             .await?
             .expect("Credit facility not found");
         Ok(facility)
+    }
+
+    async fn liquidation(&self, ctx: &Context<'_>) -> Result<Option<Liquidation>> {
+        let liquidation_id = match self.entity.active_liquidation_id() {
+            Some(id) => id,
+            None => return Ok(None),
+        };
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let liquidation = loader.load_one(liquidation_id).await?;
+        Ok(liquidation)
     }
 }

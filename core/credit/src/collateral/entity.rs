@@ -265,7 +265,7 @@ impl Collateral {
     }
 
     /// Returns the ID of the active liquidation, if any.
-    fn active_liquidation_id(&self) -> Option<LiquidationId> {
+    pub fn active_liquidation_id(&self) -> Option<LiquidationId> {
         self.events
             .iter_all()
             .rev()
