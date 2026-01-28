@@ -1,10 +1,16 @@
 "use client"
+import { useCallback, useState } from "react"
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
+import { useRouter } from "next/navigation"
 
 import { formatDate } from "@lana/web/utils"
 
-import { AuditEntry, useAuditLogsQuery } from "@/lib/graphql/generated"
+import {
+  AuditEntry,
+  useAuditLogsQuery,
+  useAuditSubjectsQuery,
+} from "@/lib/graphql/generated"
 import PaginatedTable, {
   Column,
   DEFAULT_PAGESIZE,
@@ -12,8 +18,8 @@ import PaginatedTable, {
 } from "@/components/paginated-table"
 
 gql`
-  query AuditLogs($first: Int!, $after: String) {
-    audit(first: $first, after: $after) {
+  query AuditLogs($first: Int!, $after: String, $subject: String, $authorized: Boolean) {
+    audit(first: $first, after: $after, subject: $subject, authorized: $authorized) {
       edges {
         cursor
         node {
@@ -48,15 +54,48 @@ gql`
   }
 `
 
-const AuditLogsList = () => {
+gql`
+  query AuditSubjects {
+    auditSubjects
+  }
+`
+
+interface AuditLogsListProps {
+  page?: number
+}
+
+const AuditLogsList = ({ page = 1 }: AuditLogsListProps) => {
   const t = useTranslations("AuditLogs.table")
+  const router = useRouter()
+
+  const [subjectFilter, setSubjectFilter] = useState<string | undefined>(undefined)
+  const [authorizedFilter, setAuthorizedFilter] = useState<boolean | undefined>(
+    undefined,
+  )
 
   const { data, loading, error, fetchMore } = useAuditLogsQuery({
     variables: {
-      first: DEFAULT_PAGESIZE,
+      first: DEFAULT_PAGESIZE * page,
+      subject: subjectFilter ?? null,
+      authorized: authorizedFilter ?? null,
     },
     fetchPolicy: "cache-and-network",
   })
+
+  const { data: subjectsData } = useAuditSubjectsQuery({
+    fetchPolicy: "cache-and-network",
+  })
+
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      if (newPage === 1) {
+        router.push("/audit")
+      } else {
+        router.push(`/audit/${newPage}`)
+      }
+    },
+    [router],
+  )
 
   const columns: Column<AuditEntry>[] = [
     {
@@ -103,12 +142,40 @@ const AuditLogsList = () => {
   return (
     <div>
       {error && <p className="text-destructive text-sm">{error?.message}</p>}
+      <div className="flex gap-2 mb-4">
+        <select
+          className="border rounded px-2 py-1 text-sm"
+          value={subjectFilter ?? ""}
+          onChange={(e) => setSubjectFilter(e.target.value || undefined)}
+        >
+          <option value="">{t("filters.allSubjects")}</option>
+          {subjectsData?.auditSubjects.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
+        </select>
+        <select
+          className="border rounded px-2 py-1 text-sm"
+          value={authorizedFilter === undefined ? "" : String(authorizedFilter)}
+          onChange={(e) => {
+            const val = e.target.value
+            setAuthorizedFilter(val === "" ? undefined : val === "true")
+          }}
+        >
+          <option value="">{t("filters.allAuthorized")}</option>
+          <option value="true">{t("headers.authorizedYes")}</option>
+          <option value="false">{t("headers.authorizedNo")}</option>
+        </select>
+      </div>
       <PaginatedTable<AuditEntry>
         columns={columns}
         data={data?.audit as PaginatedData<AuditEntry>}
         loading={loading}
         pageSize={DEFAULT_PAGESIZE}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
+        initialPage={page}
+        onPageChange={handlePageChange}
       />
     </div>
   )
