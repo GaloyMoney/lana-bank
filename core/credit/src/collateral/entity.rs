@@ -136,29 +136,6 @@ impl Collateral {
         Idempotent::Executed(())
     }
 
-    /// Records that this Collateral has exited a
-    /// running liquidation.
-    ///
-    /// # Idempotency
-    ///
-    /// Returns `AlreadyApplied` if the Collateral is not in a
-    /// liquidation.
-    pub fn exit_liquidation(&mut self) -> Idempotent<()> {
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            CollateralEvent::ExitedLiquidation { .. },
-            => CollateralEvent::EnteredLiquidation { .. }
-        );
-
-        if let Some(liquidation_id) = self.current_liquidation() {
-            self.events
-                .push(CollateralEvent::ExitedLiquidation { liquidation_id });
-            Idempotent::Executed(())
-        } else {
-            Idempotent::AlreadyApplied
-        }
-    }
-
     pub fn record_proceeds_from_liquidation(
         &mut self,
         amount_received: UsdCents,

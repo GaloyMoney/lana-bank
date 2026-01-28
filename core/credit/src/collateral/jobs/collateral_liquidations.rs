@@ -17,10 +17,7 @@ use crate::{
     CalaAccountId, Collaterals, CoreCreditEvent, CreditFacilityId, LedgerOmnibusAccountIds,
     collateral::{
         CollateralRepo,
-        jobs::{
-            liquidation_payment::{LiquidationPaymentJobConfig, LiquidationPaymentJobSpawner},
-            partial_liquidation::{PartialLiquidationJobConfig, PartialLiquidationJobSpawner},
-        },
+        jobs::liquidation_payment::{LiquidationPaymentJobConfig, LiquidationPaymentJobSpawner},
     },
     credit_facility::CreditFacilityRepo,
 };
@@ -44,7 +41,6 @@ where
     outbox: Outbox<E>,
     collateral_repo: Arc<CollateralRepo<E>>,
     proceeds_omnibus_account_ids: LedgerOmnibusAccountIds,
-    partial_liquidation_job_spawner: PartialLiquidationJobSpawner<E>,
     liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,
 }
 
@@ -58,14 +54,12 @@ where
         outbox: &Outbox<E>,
         collateral_repo: Arc<CollateralRepo<E>>,
         proceeds_omnibus_account_ids: &LedgerOmnibusAccountIds,
-        partial_liquidation_job_spawner: PartialLiquidationJobSpawner<E>,
         liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
             collateral_repo,
             proceeds_omnibus_account_ids: proceeds_omnibus_account_ids.clone(),
-            partial_liquidation_job_spawner,
             liquidation_payment_job_spawner,
         }
     }
@@ -93,7 +87,6 @@ where
             outbox: self.outbox.clone(),
             collateral_repo: self.collateral_repo.clone(),
             proceeds_omnibus_account_ids: self.proceeds_omnibus_account_ids.clone(),
-            partial_liquidation_job_spawner: self.partial_liquidation_job_spawner.clone(),
             liquidation_payment_job_spawner: self.liquidation_payment_job_spawner.clone(),
         }))
     }
@@ -108,7 +101,6 @@ where
     outbox: Outbox<E>,
     collateral_repo: Arc<CollateralRepo<E>>,
     proceeds_omnibus_account_ids: LedgerOmnibusAccountIds,
-    partial_liquidation_job_spawner: PartialLiquidationJobSpawner<E>,
     liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,
 }
 
@@ -205,17 +197,6 @@ where
             {
                 self.collateral_repo
                     .update_in_op(&mut *db, &mut collateral)
-                    .await?;
-
-                self.partial_liquidation_job_spawner
-                    .spawn_in_op(
-                        &mut *db,
-                        JobId::new(),
-                        PartialLiquidationJobConfig::<E> {
-                            collateral_id: *collateral_id,
-                            _phantom: std::marker::PhantomData,
-                        },
-                    )
                     .await?;
 
                 self.liquidation_payment_job_spawner
