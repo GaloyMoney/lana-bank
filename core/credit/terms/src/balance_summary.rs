@@ -7,28 +7,6 @@ pub use super::{collateralization::CollateralizationRatio, cvl::*};
 pub use core_money::*;
 pub use core_price::*;
 
-#[cfg(not(test))]
-#[derive(Debug, Default, Copy, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub struct CreditFacilityBalanceSummary {
-    pub(crate) facility: UsdCents,
-    pub(crate) facility_remaining: UsdCents,
-    pub(crate) collateral: Satoshis,
-    pub(crate) disbursed: UsdCents,
-    pub(crate) not_yet_due_disbursed_outstanding: UsdCents,
-    pub(crate) due_disbursed_outstanding: UsdCents,
-    pub(crate) overdue_disbursed_outstanding: UsdCents,
-    pub(crate) disbursed_defaulted: UsdCents,
-    pub(crate) interest_posted: UsdCents,
-    pub(crate) not_yet_due_interest_outstanding: UsdCents,
-    pub(crate) due_interest_outstanding: UsdCents,
-    pub(crate) overdue_interest_outstanding: UsdCents,
-    pub(crate) interest_defaulted: UsdCents,
-    pub(crate) payments_unapplied: UsdCents,
-}
-
-// For testing we want to be able to construct the struct
-#[cfg(test)]
 #[derive(Debug, Default, Copy, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct CreditFacilityBalanceSummary {
