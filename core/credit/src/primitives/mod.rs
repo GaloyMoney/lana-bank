@@ -22,13 +22,24 @@ pub use core_price::PriceOfOneBTC;
 pub use governance::ApprovalProcessId;
 pub use public_id::PublicId;
 
-// Re-export from terms crate
+// Re-exports from terms crate
 pub use core_credit_terms::{
-    CVLPct, EffectiveDate,
+    AnnualRatePct, CVLPct, DisbursalPolicy, EffectiveDate, FacilityDuration, FacilityDurationType,
+    InterestInterval, InterestPeriod, ObligationDuration, OneTimeFeeRatePct, TermValues,
+    TermValuesBuilder,
     collateralization::{
         CollateralizationRatio, CollateralizationState, PendingCreditFacilityCollateralizationState,
     },
 };
+
+impl From<FacilityDurationType> for DisbursedReceivableAccountCategory {
+    fn from(duration_type: FacilityDurationType) -> Self {
+        match duration_type {
+            FacilityDurationType::LongTerm => DisbursedReceivableAccountCategory::LongTerm,
+            FacilityDurationType::ShortTerm => DisbursedReceivableAccountCategory::ShortTerm,
+        }
+    }
+}
 
 pub use liquidation_payment::LiquidationPayment;
 

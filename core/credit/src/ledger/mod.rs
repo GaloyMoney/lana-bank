@@ -37,12 +37,11 @@ use crate::{
     payment_allocation::PaymentAllocation,
     primitives::{
         COLLATERAL_ENTITY_TYPE, CREDIT_FACILITY_ENTITY_TYPE, CREDIT_FACILITY_PROPOSAL_ENTITY_TYPE,
-        CalaAccountId, CalaAccountSetId, CollateralId, CreditFacilityId, CustomerType, DisbursalId,
-        DisbursedReceivableAccountCategory, DisbursedReceivableAccountType,
-        InterestReceivableAccountType, LedgerOmnibusAccountIds, LedgerTxId,
-        PendingCreditFacilityId, Satoshis, UsdCents,
+        CalaAccountId, CalaAccountSetId, CollateralAction, CollateralId, CollateralUpdate,
+        CreditFacilityId, CustomerType, DisbursalId, DisbursedReceivableAccountCategory,
+        DisbursedReceivableAccountType, FacilityDurationType, InterestReceivableAccountType,
+        LedgerOmnibusAccountIds, LedgerTxId, PendingCreditFacilityId, Satoshis, UsdCents,
     },
-    terms::FacilityDurationType,
 };
 
 pub use balance::*;

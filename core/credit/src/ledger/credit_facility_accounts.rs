@@ -5,9 +5,8 @@ use serde::{Deserialize, Serialize};
 use cala_ledger::AccountId as CalaAccountId;
 
 use crate::{
-    FacilityProceedsFromLiquidationAccountId,
+    FacilityDurationType, FacilityProceedsFromLiquidationAccountId, InterestPeriod,
     primitives::{CreditFacilityId, CustomerType, DisbursalId, LedgerTxId, Satoshis, UsdCents},
-    terms::{FacilityDurationType, InterestPeriod},
 };
 
 use super::ObligationReceivableAccountIds;

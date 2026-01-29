@@ -14,7 +14,6 @@ use crate::{
         PendingCreditFacilityCreation,
     },
     primitives::*,
-    terms::TermValues,
 };
 
 use super::error::PendingCreditFacilityError;
@@ -363,8 +362,7 @@ mod test {
     use rust_decimal_macros::dec;
 
     use crate::{
-        ObligationDuration,
-        terms::{DisbursalPolicy, FacilityDuration, InterestInterval, OneTimeFeeRatePct},
+        DisbursalPolicy, FacilityDuration, InterestInterval, ObligationDuration, OneTimeFeeRatePct,
     };
 
     use super::*;

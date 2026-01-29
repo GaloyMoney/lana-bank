@@ -10,7 +10,6 @@ use crate::{
     ledger::*,
     obligation::{NewObligation, ObligationsAmounts},
     primitives::*,
-    terms::{InterestPeriod, TermValues},
 };
 
 use super::{error::CreditFacilityError, interest_accrual_cycle::*};
@@ -771,10 +770,7 @@ impl IntoEvents<CreditFacilityEvent> for NewCreditFacility {
 mod test {
     use rust_decimal_macros::dec;
 
-    use crate::{
-        terms::{DisbursalPolicy, FacilityDuration, InterestInterval, OneTimeFeeRatePct},
-        *,
-    };
+    use crate::*;
 
     use super::*;
 

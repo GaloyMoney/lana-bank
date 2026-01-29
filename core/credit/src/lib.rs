@@ -21,7 +21,6 @@ mod primitives;
 mod processes;
 mod publisher;
 mod repayment_plan;
-mod terms;
 mod terms_template;
 
 use std::sync::Arc;
@@ -73,7 +72,6 @@ pub use processes::{
 };
 use publisher::CreditFacilityPublisher;
 pub use repayment_plan::*;
-pub use terms::*;
 pub use terms_template::{error as terms_template_error, *};
 
 #[cfg(feature = "json-schema")]

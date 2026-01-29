@@ -12,7 +12,7 @@ use std::sync::Arc;
 use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker};
 
-use crate::{event::CoreCreditEvent, primitives::*, terms::TermValues};
+use crate::{event::CoreCreditEvent, primitives::*};
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use error::CreditFacilityRepaymentPlanError;
@@ -396,7 +396,7 @@ mod tests {
 
     use rust_decimal_macros::dec;
 
-    use crate::terms::{
+    use crate::{
         DisbursalPolicy, FacilityDuration, InterestInterval, ObligationDuration, OneTimeFeeRatePct,
     };
 
