@@ -63,6 +63,7 @@
       "profitAndLossStatement": "Genera un estado de resultados para el rango de fechas especificado",
       "realtimePrice": "Devuelve el tipo de cambio actual BTC/USD",
       "audit": "Devuelve una lista paginada de entradas del registro de auditoria",
+      "auditSubjects": "Devuelve una lista de sujetos distintos del registro de auditoria",
       "depositConfig": "Devuelve la configuracion actual del modulo de depositos",
       "domainConfigs": "Devuelve una lista paginada de todas las configuraciones de dominio",
       "creditConfig": "Devuelve la configuracion actual del modulo de credito",
