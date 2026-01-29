@@ -2332,7 +2332,7 @@ impl CreditLedger {
         Ok(())
     }
 
-    pub async fn attach_chart_of_accounts_account_sets_in_op(
+    pub(crate) async fn attach_chart_of_accounts_account_sets_in_op(
         &self,
         op: &mut es_entity::DbOpWithTime<'_>,
         new_integration_config: &ResolvedChartOfAccountsIntegrationConfig,

@@ -10,7 +10,8 @@ use domain_config::InternalDomainConfigs;
 
 use crate::{CoreCreditAction, CoreCreditObject, ledger::*};
 
-pub use config::{ChartOfAccountsIntegrationConfig, ResolvedChartOfAccountsIntegrationConfig};
+pub use config::ChartOfAccountsIntegrationConfig;
+pub(crate) use config::ResolvedChartOfAccountsIntegrationConfig;
 use error::ChartOfAccountsIntegrationError;
 
 pub struct ChartOfAccountsIntegrations<Perms>
@@ -18,7 +19,7 @@ where
     Perms: PermissionCheck,
 {
     authz: Arc<Perms>,
-    domain_configs: InternalDomainConfigs,
+    domain_configs: Arc<InternalDomainConfigs>,
     ledger: Arc<CreditLedger>,
 }
 
@@ -44,12 +45,12 @@ where
     pub fn new(
         authz: Arc<Perms>,
         ledger: Arc<CreditLedger>,
-        domain_configs: &InternalDomainConfigs,
+        domain_configs: Arc<InternalDomainConfigs>,
     ) -> Self {
         Self {
             authz,
             ledger,
-            domain_configs: domain_configs.clone(),
+            domain_configs,
         }
     }
 
@@ -59,6 +60,14 @@ where
         chart: &Chart,
         config: ChartOfAccountsIntegrationConfig,
     ) -> Result<ChartOfAccountsIntegrationConfig, ChartOfAccountsIntegrationError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::chart_of_accounts_integration(),
+                CoreCreditAction::CHART_OF_ACCOUNTS_INTEGRATION_CONFIG_UPDATE,
+            )
+            .await?;
+
         if chart.id != config.chart_of_accounts_id {
             return Err(ChartOfAccountsIntegrationError::ChartIdMismatch);
         }
@@ -78,14 +87,6 @@ where
         if chart.accounting_base_config().is_none() {
             return Err(ChartOfAccountsIntegrationError::AccountingBaseConfigNotFound);
         }
-
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreCreditObject::chart_of_accounts_integration(),
-                CoreCreditAction::CHART_OF_ACCOUNTS_INTEGRATION_CONFIG_UPDATE,
-            )
-            .await?;
 
         let mut op = self.domain_configs.begin_op().await?;
 

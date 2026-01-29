@@ -215,6 +215,7 @@ where
         let custody_arc = Arc::new(custody.clone());
         let cala_arc = Arc::new(cala.clone());
         let config_arc = Arc::new(config);
+        let internal_domain_configs_arc = Arc::new(internal_domain_configs.clone());
 
         let publisher = CreditFacilityPublisher::new(outbox);
         let ledger = CreditLedger::init(cala, journal_id, clock.clone()).await?;
@@ -380,7 +381,7 @@ where
         let chart_of_accounts_integrations = ChartOfAccountsIntegrations::new(
             authz_arc.clone(),
             ledger_arc.clone(),
-            internal_domain_configs,
+            internal_domain_configs_arc.clone(),
         );
         let chart_of_accounts_integrations_arc = Arc::new(chart_of_accounts_integrations);
 
