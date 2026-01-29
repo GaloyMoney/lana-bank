@@ -7,7 +7,7 @@ use cala_ledger::{
     *,
 };
 
-use crate::{ledger::error::*, primitives::CalaAccountId};
+use crate::{collateral::ledger::CollateralLedgerError, primitives::CalaAccountId};
 
 pub const REMOVE_COLLATERAL_CODE: &str = "REMOVE_COLLATERAL";
 
@@ -98,8 +98,11 @@ pub struct RemoveCollateral;
 
 impl RemoveCollateral {
     #[record_error_severity]
-    #[instrument(name = "ledger.remove_collateral.init", skip_all)]
-    pub async fn init(ledger: &CalaLedger) -> Result<(), CreditLedgerError> {
+    #[instrument(
+        name = "core_credit.collateral.ledger.remove_collateral.init",
+        skip_all
+    )]
+    pub async fn init(ledger: &CalaLedger) -> Result<(), CollateralLedgerError> {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")

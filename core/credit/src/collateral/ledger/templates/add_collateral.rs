@@ -7,7 +7,7 @@ use cala_ledger::{
     *,
 };
 
-use crate::{ledger::error::*, primitives::CalaAccountId};
+use crate::{collateral::ledger::CollateralLedgerError, primitives::CalaAccountId};
 
 pub const ADD_COLLATERAL_CODE: &str = "ADD_COLLATERAL";
 
@@ -98,8 +98,8 @@ pub struct AddCollateral;
 
 impl AddCollateral {
     #[record_error_severity]
-    #[instrument(name = "ledger.add_collateral.init", skip_all)]
-    pub async fn init(ledger: &CalaLedger) -> Result<(), CreditLedgerError> {
+    #[instrument(name = "core_credit.collateral.ledger.add_collateral.init", skip_all)]
+    pub async fn init(ledger: &CalaLedger) -> Result<(), CollateralLedgerError> {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")

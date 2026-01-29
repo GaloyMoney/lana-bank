@@ -1,6 +1,7 @@
 mod entity;
 pub mod error;
 mod jobs;
+pub mod ledger;
 mod repo;
 
 use std::collections::HashMap;
@@ -12,7 +13,9 @@ use tracing_macros::record_error_severity;
 use authz::PermissionCheck;
 use obix::out::{Outbox, OutboxEventMarker};
 
-use crate::{CreditFacilityPublisher, CreditLedger, event::CoreCreditEvent, primitives::*};
+use crate::{CreditFacilityPublisher, event::CoreCreditEvent, primitives::*};
+
+use ledger::CollateralLedger;
 
 pub use entity::Collateral;
 pub(super) use entity::*;
@@ -30,7 +33,7 @@ where
 {
     authz: Arc<Perms>,
     repo: Arc<CollateralRepo<E>>,
-    ledger: Arc<CreditLedger>,
+    ledger: Arc<CollateralLedger>,
 }
 
 impl<Perms, E> Clone for Collaterals<Perms, E>
@@ -56,7 +59,7 @@ where
         pool: &sqlx::PgPool,
         authz: Arc<Perms>,
         publisher: &CreditFacilityPublisher<E>,
-        ledger: Arc<CreditLedger>,
+        ledger: Arc<CollateralLedger>,
         outbox: &Outbox<E>,
         jobs: &mut job::Jobs,
     ) -> Result<Self, CollateralError> {

@@ -38,6 +38,8 @@ pub enum CoreCreditError {
     RepaymentPlanError(#[from] super::repayment_plan::error::CreditFacilityRepaymentPlanError),
     #[error("CoreCreditError - CollateralError: {0}")]
     CollateralError(#[from] super::collateral::error::CollateralError),
+    #[error("CoreCreditError - CollateralLedgerError: {0}")]
+    CollateralLedgerError(#[from] super::collateral::ledger::CollateralLedgerError),
     #[error("CoreCreditError - CoreCustodyError: {0}")]
     CustodyError(#[from] core_custody::error::CoreCustodyError),
     #[error("CoreCreditError - PaymentError: {0}")]
@@ -90,6 +92,7 @@ impl ErrorSeverity for CoreCreditError {
             Self::HistoryError(e) => e.severity(),
             Self::RepaymentPlanError(e) => e.severity(),
             Self::CollateralError(e) => e.severity(),
+            Self::CollateralLedgerError(e) => e.severity(),
             Self::CustodyError(e) => e.severity(),
             Self::PaymentError(e) => e.severity(),
             Self::PaymentAllocationError(e) => e.severity(),
