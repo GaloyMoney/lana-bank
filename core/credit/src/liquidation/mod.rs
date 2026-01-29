@@ -21,7 +21,6 @@ use crate::{
     CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId, LedgerOmnibusAccountIds,
     LiquidationId, PaymentSourceAccountId, collateral::CollateralRepo,
 };
-use entity::NewLiquidationBuilder;
 pub use entity::{Liquidation, LiquidationEvent, NewLiquidation};
 use error::LiquidationError;
 pub(crate) use repo::LiquidationRepo;
@@ -90,7 +89,7 @@ where
         let collateral_repo = Arc::new(CollateralRepo::new(pool, publisher, clock.clone()));
 
         let partial_liquidation_job_spawner = jobs.add_initializer(
-            jobs::partial_liquidation::PartialLiquidationInit::new(outbox, collateral_repo),
+            jobs::partial_liquidation::PartialLiquidationInit::new(outbox, collateral_repo.clone()),
         );
 
         let liquidation_payment_job_spawner =
@@ -104,7 +103,7 @@ where
         let credit_facility_liquidations_job_spawner = jobs.add_initializer(
             jobs::credit_facility_liquidations::CreditFacilityLiquidationsInit::new(
                 outbox,
-                repo_arc.clone(),
+                collateral_repo,
                 proceeds_omnibus_account_ids,
                 partial_liquidation_job_spawner,
                 liquidation_payment_job_spawner,
