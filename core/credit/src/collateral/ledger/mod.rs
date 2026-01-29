@@ -11,10 +11,7 @@ use es_entity::clock::ClockHandle;
 
 pub use error::CollateralLedgerError;
 
-use crate::{
-    ledger::PendingCreditFacilityAccountIds,
-    primitives::{CalaAccountId, CollateralAction, CollateralUpdate, LedgerOmnibusAccountIds},
-};
+use crate::primitives::{CalaAccountId, CollateralAction, CollateralUpdate, LedgerOmnibusAccountIds};
 
 #[derive(Clone)]
 pub struct CollateralLedger {
@@ -45,70 +42,6 @@ impl CollateralLedger {
             collateral_omnibus_account_ids,
             btc: Currency::BTC,
         })
-    }
-
-    #[record_error_severity]
-    #[instrument(
-        name = "core_credit.collateral.ledger.update_pending_credit_facility_collateral",
-        skip(self, op)
-    )]
-    pub async fn update_pending_credit_facility_collateral(
-        &self,
-        op: &mut es_entity::DbOp<'_>,
-        CollateralUpdate {
-            tx_id,
-            abs_diff,
-            action,
-            effective,
-        }: CollateralUpdate,
-        pending_credit_facility_account_ids: PendingCreditFacilityAccountIds,
-        initiated_by: LedgerTransactionInitiator,
-    ) -> Result<(), CollateralLedgerError> {
-        match action {
-            CollateralAction::Add => {
-                self.cala
-                    .post_transaction_in_op(
-                        op,
-                        tx_id,
-                        templates::ADD_COLLATERAL_CODE,
-                        templates::AddCollateralParams {
-                            journal_id: self.journal_id,
-                            currency: self.btc,
-                            amount: abs_diff.to_btc(),
-                            collateral_account_id: pending_credit_facility_account_ids
-                                .collateral_account_id,
-                            bank_collateral_account_id: self
-                                .collateral_omnibus_account_ids
-                                .account_id,
-                            effective,
-                            initiated_by,
-                        },
-                    )
-                    .await
-            }
-            CollateralAction::Remove => {
-                self.cala
-                    .post_transaction_in_op(
-                        op,
-                        tx_id,
-                        templates::REMOVE_COLLATERAL_CODE,
-                        templates::RemoveCollateralParams {
-                            journal_id: self.journal_id,
-                            currency: self.btc,
-                            amount: abs_diff.to_btc(),
-                            collateral_account_id: pending_credit_facility_account_ids
-                                .collateral_account_id,
-                            bank_collateral_account_id: self
-                                .collateral_omnibus_account_ids
-                                .account_id,
-                            effective,
-                            initiated_by,
-                        },
-                    )
-                    .await
-            }
-        }?;
-        Ok(())
     }
 
     #[record_error_severity]
