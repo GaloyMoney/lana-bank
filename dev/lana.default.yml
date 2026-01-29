@@ -1,0 +1,70 @@
+db:
+  pool_size: 20
+admin_server:
+  port: 5253
+  jwks_url: http://localhost:4456/.well-known/jwks.json
+  aud: https://admin-api/graphql
+customer_server:
+  port: 5254
+  jwks_url: http://localhost:4456/.well-known/jwks.json
+  aud: https://customer-api/graphql
+app:
+  job_poller:
+    job_lost_interval: 300
+    max_jobs_per_process: 50
+    min_jobs_per_process: 30
+    shutdown_timeout: 5
+  access:
+    superuser_email: null
+  credit:
+    price_job_interval: 30
+  storage:
+    provider: local
+    root_folder: ''
+  user_onboarding:
+    keycloak:
+      url: http://localhost:8081/
+      client_id: internal-service-account
+      realm: internal
+  customer_sync:
+    keycloak:
+      url: http://localhost:8081/
+      client_id: customer-service-account
+      realm: customer
+  accounting_init:
+    chart_of_accounts_opening_date: null
+    chart_of_accounts_seed_path: null
+    deposit_config_path: null
+    credit_config_path: null
+    chart_of_accounts_integration_config_path: null
+  custody:
+    custody_providers:
+      komainu_directory:
+        production_url: https://api.komainu.io/
+        testing_url: https://api-demo.komainu.io/
+      bitgo_directory:
+        testing_url: https://app.bitgo-test.com/
+        production_url: https://app.bitgo.com/
+  notification:
+    email:
+      relay: ''
+      port: 0
+      insecure: false
+      admin_panel_url: http://localhost:3000/
+  report:
+    dagster:
+      uri: http://localhost:3000/graphql
+      pipeline_name_for_report_generation: file_reports_generation
+      repository_location_name: Lana DW
+      repository_name: __repository__
+  gotenberg:
+    url: http://localhost:3030/
+tracing:
+  service_name: lana-dev
+time:
+  type: realtime
+bootstrap:
+  active: false
+  num_facilities: 0
+  num_customers: 0
+

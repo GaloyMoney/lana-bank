@@ -214,7 +214,6 @@ pub(in crate::accounting_init::seed) async fn credit_module_configure(
         .await
     {
         Ok(_) => (),
-        Err(core_credit::ChartOfAccountsIntegrationError::CreditConfigAlreadyExists) => (),
         Err(e) => return Err(e.into()),
     };
 

@@ -10,7 +10,7 @@ use crate::ledger::{
     ShortTermInterestIntegrationMeta,
 };
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct ChartOfAccountsIntegrationConfig {
     pub chart_of_accounts_id: ChartId,
     pub chart_of_account_facility_omnibus_parent_code: AccountCode,

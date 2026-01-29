@@ -2314,11 +2314,19 @@ impl CreditLedger {
         &self,
         op: &mut es_entity::DbOpWithTime<'_>,
         internal_account_set_id: CalaAccountSetId,
-        parent_account_set_id: CalaAccountSetId,
+        new_parent_account_set_id: CalaAccountSetId,
+        old_parent_account_set_id: Option<CalaAccountSetId>,
     ) -> Result<(), CreditLedgerError> {
+        if let Some(old_parent_account_set_id) = old_parent_account_set_id {
+            self.cala
+                .account_sets()
+                .remove_member_in_op(op, old_parent_account_set_id, internal_account_set_id)
+                .await?;
+        }
+
         self.cala
             .account_sets()
-            .add_member_in_op(op, parent_account_set_id, internal_account_set_id)
+            .add_member_in_op(op, new_parent_account_set_id, internal_account_set_id)
             .await?;
 
         Ok(())
@@ -2327,7 +2335,8 @@ impl CreditLedger {
     pub async fn attach_chart_of_accounts_account_sets_in_op(
         &self,
         op: &mut es_entity::DbOpWithTime<'_>,
-        charts_integration_config: &ResolvedChartOfAccountsIntegrationConfig,
+        new_integration_config: &ResolvedChartOfAccountsIntegrationConfig,
+        old_integration_config: Option<&ResolvedChartOfAccountsIntegrationConfig>,
     ) -> Result<(), CreditLedgerError> {
         let ResolvedChartOfAccountsIntegrationConfig {
             config: _,
@@ -2346,12 +2355,13 @@ impl CreditLedger {
             short_term_interest_integration_meta,
             long_term_interest_integration_meta,
             overdue_disbursed_integration_meta,
-        } = &charts_integration_config;
+        } = &new_integration_config;
 
         self.attach_charts_account_set(
             op,
             self.facility_omnibus_account_ids.account_set_id,
             *facility_omnibus_parent_account_set_id,
+            old_integration_config.map(|config| config.facility_omnibus_parent_account_set_id),
         )
         .await?;
 
@@ -2359,6 +2369,7 @@ impl CreditLedger {
             op,
             self.collateral_omnibus_account_ids.account_set_id,
             *collateral_omnibus_parent_account_set_id,
+            old_integration_config.map(|config| config.collateral_omnibus_parent_account_set_id),
         )
         .await?;
 
@@ -2366,6 +2377,8 @@ impl CreditLedger {
             op,
             self.liquidation_proceeds_omnibus_account_ids.account_set_id,
             *liquidation_proceeds_omnibus_parent_account_set_id,
+            old_integration_config
+                .map(|config| config.liquidation_proceeds_omnibus_parent_account_set_id),
         )
         .await?;
 
@@ -2373,12 +2386,14 @@ impl CreditLedger {
             op,
             self.internal_account_sets.facility.id,
             *facility_parent_account_set_id,
+            old_integration_config.map(|config| config.facility_parent_account_set_id),
         )
         .await?;
         self.attach_charts_account_set(
             op,
             self.internal_account_sets.collateral.id,
             *collateral_parent_account_set_id,
+            old_integration_config.map(|config| config.collateral_parent_account_set_id),
         )
         .await?;
         self.attach_charts_account_set(
@@ -2388,53 +2403,63 @@ impl CreditLedger {
                 .collateral_in_liquidation
                 .id,
             *collateral_in_liquidation_parent_account_set_id,
+            old_integration_config
+                .map(|config| config.collateral_in_liquidation_parent_account_set_id),
         )
         .await?;
         self.attach_charts_account_set(
             op,
             self.internal_account_sets.interest_income.id,
             *interest_income_parent_account_set_id,
+            old_integration_config.map(|config| config.interest_income_parent_account_set_id),
         )
         .await?;
         self.attach_charts_account_set(
             op,
             self.internal_account_sets.fee_income.id,
             *fee_income_parent_account_set_id,
+            old_integration_config.map(|config| config.fee_income_parent_account_set_id),
         )
         .await?;
         self.attach_charts_account_set(
             op,
             self.internal_account_sets.payment_holding.id,
             *payment_holding_parent_account_set_id,
+            old_integration_config.map(|config| config.payment_holding_parent_account_set_id),
         )
         .await?;
 
         self.attach_short_term_disbursed_receivable_account_sets(
             op,
             short_term_disbursed_integration_meta,
+            old_integration_config.map(|config| &config.short_term_disbursed_integration_meta),
         )
         .await?;
         self.attach_long_term_disbursed_receivable_account_sets(
             op,
             long_term_disbursed_integration_meta,
+            old_integration_config.map(|config| &config.long_term_disbursed_integration_meta),
         )
         .await?;
 
         self.attach_short_term_interest_receivable_account_sets(
             op,
             short_term_interest_integration_meta,
+            old_integration_config.map(|config| &config.short_term_interest_integration_meta),
         )
         .await?;
 
         self.attach_long_term_interest_receivable_account_sets(
             op,
             long_term_interest_integration_meta,
+            old_integration_config.map(|config| &config.long_term_interest_integration_meta),
         )
         .await?;
 
         self.attach_overdue_disbursed_receivable_account_sets(
             op,
             overdue_disbursed_integration_meta,
+            old_integration_config.map(|config| &config.overdue_disbursed_integration_meta),
         )
         .await?;
 
@@ -2444,7 +2469,8 @@ impl CreditLedger {
     pub async fn attach_short_term_disbursed_receivable_account_sets(
         &self,
         op: &mut es_entity::DbOpWithTime<'_>,
-        short_term_disbursed_integration_meta: &ShortTermDisbursedIntegrationMeta,
+        new_integration_meta: &ShortTermDisbursedIntegrationMeta,
+        old_integration_meta: Option<&ShortTermDisbursedIntegrationMeta>,
     ) -> Result<(), CreditLedgerError> {
         let short_term = &self.internal_account_sets.disbursed_receivable.short_term;
 
@@ -2456,12 +2482,14 @@ impl CreditLedger {
             short_term_financial_institution_disbursed_receivable_parent_account_set_id,
             short_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id,
             short_term_non_domiciled_company_disbursed_receivable_parent_account_set_id,
-        } = &short_term_disbursed_integration_meta;
+        } = &new_integration_meta;
 
         self.attach_charts_account_set(
             op,
             short_term.individual.id,
             *short_term_individual_disbursed_receivable_parent_account_set_id,
+            old_integration_meta
+                .map(|meta| meta.short_term_individual_disbursed_receivable_parent_account_set_id),
         )
         .await?;
 
@@ -2469,6 +2497,9 @@ impl CreditLedger {
             op,
             short_term.government_entity.id,
             *short_term_government_entity_disbursed_receivable_parent_account_set_id,
+            old_integration_meta.map(|meta| {
+                meta.short_term_government_entity_disbursed_receivable_parent_account_set_id
+            }),
         )
         .await?;
 
@@ -2476,6 +2507,9 @@ impl CreditLedger {
             op,
             short_term.private_company.id,
             *short_term_private_company_disbursed_receivable_parent_account_set_id,
+            old_integration_meta.map(|meta| {
+                meta.short_term_private_company_disbursed_receivable_parent_account_set_id
+            }),
         )
         .await?;
 
@@ -2483,6 +2517,8 @@ impl CreditLedger {
             op,
             short_term.bank.id,
             *short_term_bank_disbursed_receivable_parent_account_set_id,
+            old_integration_meta
+                .map(|meta| meta.short_term_bank_disbursed_receivable_parent_account_set_id),
         )
         .await?;
 
@@ -2490,6 +2526,9 @@ impl CreditLedger {
             op,
             short_term.financial_institution.id,
             *short_term_financial_institution_disbursed_receivable_parent_account_set_id,
+            old_integration_meta.map(|meta| {
+                meta.short_term_financial_institution_disbursed_receivable_parent_account_set_id
+            }),
         )
         .await?;
 
@@ -2497,6 +2536,7 @@ impl CreditLedger {
             op,
             short_term.foreign_agency_or_subsidiary.id,
             *short_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id,
+            old_integration_meta.map(|meta| meta.short_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id),
         )
         .await?;
 
@@ -2504,6 +2544,9 @@ impl CreditLedger {
             op,
             short_term.non_domiciled_company.id,
             *short_term_non_domiciled_company_disbursed_receivable_parent_account_set_id,
+            old_integration_meta.map(|meta| {
+                meta.short_term_non_domiciled_company_disbursed_receivable_parent_account_set_id
+            }),
         )
         .await?;
 
@@ -2513,7 +2556,8 @@ impl CreditLedger {
     pub async fn attach_long_term_disbursed_receivable_account_sets(
         &self,
         op: &mut es_entity::DbOpWithTime<'_>,
-        long_term_disbursed_integration_meta: &LongTermDisbursedIntegrationMeta,
+        new_integration_meta: &LongTermDisbursedIntegrationMeta,
+        old_integration_meta: Option<&LongTermDisbursedIntegrationMeta>,
     ) -> Result<(), CreditLedgerError> {
         let long_term = &self.internal_account_sets.disbursed_receivable.long_term;
 
@@ -2525,12 +2569,14 @@ impl CreditLedger {
             long_term_financial_institution_disbursed_receivable_parent_account_set_id,
             long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id,
             long_term_non_domiciled_company_disbursed_receivable_parent_account_set_id,
-        } = &long_term_disbursed_integration_meta;
+        } = &new_integration_meta;
 
         self.attach_charts_account_set(
             op,
             long_term.individual.id,
             *long_term_individual_disbursed_receivable_parent_account_set_id,
+            old_integration_meta
+                .map(|meta| meta.long_term_individual_disbursed_receivable_parent_account_set_id),
         )
         .await?;
 
@@ -2538,6 +2584,9 @@ impl CreditLedger {
             op,
             long_term.government_entity.id,
             *long_term_government_entity_disbursed_receivable_parent_account_set_id,
+            old_integration_meta.map(|meta| {
+                meta.long_term_government_entity_disbursed_receivable_parent_account_set_id
+            }),
         )
         .await?;
 
@@ -2545,6 +2594,9 @@ impl CreditLedger {
             op,
             long_term.private_company.id,
             *long_term_private_company_disbursed_receivable_parent_account_set_id,
+            old_integration_meta.map(|meta| {
+                meta.long_term_private_company_disbursed_receivable_parent_account_set_id
+            }),
         )
         .await?;
 
@@ -2552,6 +2604,8 @@ impl CreditLedger {
             op,
             long_term.bank.id,
             *long_term_bank_disbursed_receivable_parent_account_set_id,
+            old_integration_meta
+                .map(|meta| meta.long_term_bank_disbursed_receivable_parent_account_set_id),
         )
         .await?;
 
@@ -2559,6 +2613,9 @@ impl CreditLedger {
             op,
             long_term.financial_institution.id,
             *long_term_financial_institution_disbursed_receivable_parent_account_set_id,
+            old_integration_meta.map(|meta| {
+                meta.long_term_financial_institution_disbursed_receivable_parent_account_set_id
+            }),
         )
         .await?;
 
@@ -2566,6 +2623,7 @@ impl CreditLedger {
             op,
             long_term.foreign_agency_or_subsidiary.id,
             *long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id,
+            old_integration_meta.map(|meta| meta.long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id),
         )
         .await?;
 
@@ -2573,6 +2631,9 @@ impl CreditLedger {
             op,
             long_term.non_domiciled_company.id,
             *long_term_non_domiciled_company_disbursed_receivable_parent_account_set_id,
+            old_integration_meta.map(|meta| {
+                meta.long_term_non_domiciled_company_disbursed_receivable_parent_account_set_id
+            }),
         )
         .await?;
 
@@ -2582,7 +2643,8 @@ impl CreditLedger {
     async fn attach_short_term_interest_receivable_account_sets(
         &self,
         op: &mut es_entity::DbOpWithTime<'_>,
-        short_term_interest_integration_meta: &ShortTermInterestIntegrationMeta,
+        new_integration_meta: &ShortTermInterestIntegrationMeta,
+        old_integration_meta: Option<&ShortTermInterestIntegrationMeta>,
     ) -> Result<(), CreditLedgerError> {
         let short_term = &self.internal_account_sets.interest_receivable.short_term;
 
@@ -2594,12 +2656,14 @@ impl CreditLedger {
             short_term_financial_institution_interest_receivable_parent_account_set_id,
             short_term_foreign_agency_or_subsidiary_interest_receivable_parent_account_set_id,
             short_term_non_domiciled_company_interest_receivable_parent_account_set_id,
-        } = &short_term_interest_integration_meta;
+        } = &new_integration_meta;
 
         self.attach_charts_account_set(
             op,
             short_term.individual.id,
             *short_term_individual_interest_receivable_parent_account_set_id,
+            old_integration_meta
+                .map(|meta| meta.short_term_individual_interest_receivable_parent_account_set_id),
         )
         .await?;
 
@@ -2607,6 +2671,9 @@ impl CreditLedger {
             op,
             short_term.government_entity.id,
             *short_term_government_entity_interest_receivable_parent_account_set_id,
+            old_integration_meta.map(|meta| {
+                meta.short_term_government_entity_interest_receivable_parent_account_set_id
+            }),
         )
         .await?;
 
@@ -2614,6 +2681,9 @@ impl CreditLedger {
             op,
             short_term.private_company.id,
             *short_term_private_company_interest_receivable_parent_account_set_id,
+            old_integration_meta.map(|meta| {
+                meta.short_term_private_company_interest_receivable_parent_account_set_id
+            }),
         )
         .await?;
 
@@ -2621,6 +2691,8 @@ impl CreditLedger {
             op,
             short_term.bank.id,
             *short_term_bank_interest_receivable_parent_account_set_id,
+            old_integration_meta
+                .map(|meta| meta.short_term_bank_interest_receivable_parent_account_set_id),
         )
         .await?;
 
@@ -2628,6 +2700,9 @@ impl CreditLedger {
             op,
             short_term.financial_institution.id,
             *short_term_financial_institution_interest_receivable_parent_account_set_id,
+            old_integration_meta.map(|meta| {
+                meta.short_term_financial_institution_interest_receivable_parent_account_set_id
+            }),
         )
         .await?;
 
@@ -2635,6 +2710,7 @@ impl CreditLedger {
             op,
             short_term.foreign_agency_or_subsidiary.id,
             *short_term_foreign_agency_or_subsidiary_interest_receivable_parent_account_set_id,
+            old_integration_meta.map(|meta| meta.short_term_foreign_agency_or_subsidiary_interest_receivable_parent_account_set_id),
         )
         .await?;
 
@@ -2642,6 +2718,9 @@ impl CreditLedger {
             op,
             short_term.non_domiciled_company.id,
             *short_term_non_domiciled_company_interest_receivable_parent_account_set_id,
+            old_integration_meta.map(|meta| {
+                meta.short_term_non_domiciled_company_interest_receivable_parent_account_set_id
+            }),
         )
         .await?;
 
@@ -2651,7 +2730,8 @@ impl CreditLedger {
     async fn attach_long_term_interest_receivable_account_sets(
         &self,
         op: &mut es_entity::DbOpWithTime<'_>,
-        long_term_interest_integration_meta: &LongTermInterestIntegrationMeta,
+        new_integration_meta: &LongTermInterestIntegrationMeta,
+        old_integration_meta: Option<&LongTermInterestIntegrationMeta>,
     ) -> Result<(), CreditLedgerError> {
         let long_term = &self.internal_account_sets.interest_receivable.long_term;
 
@@ -2663,12 +2743,14 @@ impl CreditLedger {
             long_term_financial_institution_interest_receivable_parent_account_set_id,
             long_term_foreign_agency_or_subsidiary_interest_receivable_parent_account_set_id,
             long_term_non_domiciled_company_interest_receivable_parent_account_set_id,
-        } = &long_term_interest_integration_meta;
+        } = &new_integration_meta;
 
         self.attach_charts_account_set(
             op,
             long_term.individual.id,
             *long_term_individual_interest_receivable_parent_account_set_id,
+            old_integration_meta
+                .map(|meta| meta.long_term_individual_interest_receivable_parent_account_set_id),
         )
         .await?;
 
@@ -2676,6 +2758,9 @@ impl CreditLedger {
             op,
             long_term.government_entity.id,
             *long_term_government_entity_interest_receivable_parent_account_set_id,
+            old_integration_meta.map(|meta| {
+                meta.long_term_government_entity_interest_receivable_parent_account_set_id
+            }),
         )
         .await?;
 
@@ -2683,6 +2768,9 @@ impl CreditLedger {
             op,
             long_term.private_company.id,
             *long_term_private_company_interest_receivable_parent_account_set_id,
+            old_integration_meta.map(|meta| {
+                meta.long_term_private_company_interest_receivable_parent_account_set_id
+            }),
         )
         .await?;
 
@@ -2690,6 +2778,8 @@ impl CreditLedger {
             op,
             long_term.bank.id,
             *long_term_bank_interest_receivable_parent_account_set_id,
+            old_integration_meta
+                .map(|meta| meta.long_term_bank_interest_receivable_parent_account_set_id),
         )
         .await?;
 
@@ -2697,6 +2787,9 @@ impl CreditLedger {
             op,
             long_term.financial_institution.id,
             *long_term_financial_institution_interest_receivable_parent_account_set_id,
+            old_integration_meta.map(|meta| {
+                meta.long_term_financial_institution_interest_receivable_parent_account_set_id
+            }),
         )
         .await?;
 
@@ -2704,6 +2797,7 @@ impl CreditLedger {
             op,
             long_term.foreign_agency_or_subsidiary.id,
             *long_term_foreign_agency_or_subsidiary_interest_receivable_parent_account_set_id,
+            old_integration_meta.map(|meta| meta.long_term_foreign_agency_or_subsidiary_interest_receivable_parent_account_set_id),
         )
         .await?;
 
@@ -2711,6 +2805,9 @@ impl CreditLedger {
             op,
             long_term.non_domiciled_company.id,
             *long_term_non_domiciled_company_interest_receivable_parent_account_set_id,
+            old_integration_meta.map(|meta| {
+                meta.long_term_non_domiciled_company_interest_receivable_parent_account_set_id
+            }),
         )
         .await?;
 
@@ -2720,7 +2817,8 @@ impl CreditLedger {
     async fn attach_overdue_disbursed_receivable_account_sets(
         &self,
         op: &mut es_entity::DbOpWithTime<'_>,
-        overdue_disbursed_integration_meta: &OverdueDisbursedIntegrationMeta,
+        new_integration_meta: &OverdueDisbursedIntegrationMeta,
+        old_integration_meta: Option<&OverdueDisbursedIntegrationMeta>,
     ) -> Result<(), CreditLedgerError> {
         let overdue = &self.internal_account_sets.disbursed_receivable.overdue;
 
@@ -2732,12 +2830,14 @@ impl CreditLedger {
             overdue_financial_institution_disbursed_receivable_parent_account_set_id,
             overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id,
             overdue_non_domiciled_company_disbursed_receivable_parent_account_set_id,
-        } = &overdue_disbursed_integration_meta;
+        } = &new_integration_meta;
 
         self.attach_charts_account_set(
             op,
             overdue.individual.id,
             *overdue_individual_disbursed_receivable_parent_account_set_id,
+            old_integration_meta
+                .map(|meta| meta.overdue_individual_disbursed_receivable_parent_account_set_id),
         )
         .await?;
 
@@ -2745,6 +2845,9 @@ impl CreditLedger {
             op,
             overdue.government_entity.id,
             *overdue_government_entity_disbursed_receivable_parent_account_set_id,
+            old_integration_meta.map(|meta| {
+                meta.overdue_government_entity_disbursed_receivable_parent_account_set_id
+            }),
         )
         .await?;
 
@@ -2752,6 +2855,9 @@ impl CreditLedger {
             op,
             overdue.private_company.id,
             *overdue_private_company_disbursed_receivable_parent_account_set_id,
+            old_integration_meta.map(|meta| {
+                meta.overdue_private_company_disbursed_receivable_parent_account_set_id
+            }),
         )
         .await?;
 
@@ -2759,6 +2865,8 @@ impl CreditLedger {
             op,
             overdue.bank.id,
             *overdue_bank_disbursed_receivable_parent_account_set_id,
+            old_integration_meta
+                .map(|meta| meta.overdue_bank_disbursed_receivable_parent_account_set_id),
         )
         .await?;
 
@@ -2766,6 +2874,9 @@ impl CreditLedger {
             op,
             overdue.financial_institution.id,
             *overdue_financial_institution_disbursed_receivable_parent_account_set_id,
+            old_integration_meta.map(|meta| {
+                meta.overdue_financial_institution_disbursed_receivable_parent_account_set_id
+            }),
         )
         .await?;
 
@@ -2773,6 +2884,9 @@ impl CreditLedger {
             op,
             overdue.foreign_agency_or_subsidiary.id,
             *overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id,
+            old_integration_meta.map(|meta| {
+                meta.overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id
+            }),
         )
         .await?;
 
@@ -2780,6 +2894,9 @@ impl CreditLedger {
             op,
             overdue.non_domiciled_company.id,
             *overdue_non_domiciled_company_disbursed_receivable_parent_account_set_id,
+            old_integration_meta.map(|meta| {
+                meta.overdue_non_domiciled_company_disbursed_receivable_parent_account_set_id
+            }),
         )
         .await?;
 
