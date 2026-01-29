@@ -1,5 +1,3 @@
-pub mod error;
-
 // Re-export value types from the extracted terms crate
 // Note: CVLPct, EffectiveDate, CollateralizationRatio, CollateralizationState, and balance summary
 // types are re-exported from primitives
