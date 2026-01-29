@@ -788,22 +788,22 @@
             '';
           };
 
-          check-dependency-dag = craneLib.mkCargoDerivation (
+          check-custom-lints = craneLib.mkCargoDerivation (
             commonArgs
             // {
               inherit cargoArtifacts;
-              pname = "check-dependency-dag";
+              pname = "check-custom-lints";
               doInstallCargoArtifacts = false;
 
               buildPhaseCargoCommand = ''
-                echo "Checking dependency DAG..."
-                cargo run --package check-dependency-dag --offline --quiet
-                echo "Dependency DAG check passed ✓"
+                echo "Running custom lints..."
+                cargo run --package custom-lints --offline --quiet
+                echo "Custom lints check passed ✓"
               '';
 
               installPhase = ''
                 mkdir -p $out
-                echo "Dependency DAG check passed" > $out/result.txt
+                echo "Custom lints check passed" > $out/result.txt
               '';
             }
           );

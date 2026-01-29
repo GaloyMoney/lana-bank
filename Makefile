@@ -22,6 +22,9 @@ check-code-rust: generate-default-config
 	cargo deny check --hide-inclusion-graph
 	cargo machete
 
+check-custom-lints:
+	cargo run -p custom-lints
+
 
 # ── Test Targets ───────────────────────────────────────────────────────────────────
 

@@ -382,7 +382,7 @@ expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
-crate = "check-dependency-dag"
+crate = "custom-lints"
 expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
