@@ -18,9 +18,7 @@ use es_entity::clock::ClockHandle;
 use crate::primitives::{CoreCreditAction, CoreCreditObject};
 use obix::out::{Outbox, OutboxEventMarker};
 
-use crate::{
-    CreditFacilityPublisher, event::CoreCreditEvent, liquidation::NewLiquidation, primitives::*,
-};
+use crate::{CreditFacilityPublisher, event::CoreCreditEvent, primitives::*};
 
 use ledger::CollateralLedger;
 
@@ -282,32 +280,40 @@ where
 
     /// Creates a new liquidation for the given collateral via the Collateral aggregate.
     /// This enforces invariants like "no active liquidation already in progress".
+    /// Returns the generated LiquidationId along with the updated Collateral.
     #[record_error_severity]
     #[instrument(name = "collateral.initiate_liquidation_in_op", skip(db, self))]
     pub(super) async fn initiate_liquidation_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
         collateral_id: CollateralId,
-        new_liquidation: NewLiquidation,
+        liquidation_proceeds_omnibus_account_id: CalaAccountId,
         trigger_price: PriceOfOneBTC,
         initially_expected_to_receive: UsdCents,
         initially_estimated_to_liquidate: Satoshis,
-    ) -> Result<Collateral, CollateralError> {
+    ) -> Result<(Collateral, LiquidationId), CollateralError> {
         let mut collateral = self.repo.find_by_id(collateral_id).await?;
 
-        if collateral
-            .initiate_liquidation(
-                new_liquidation,
-                trigger_price,
-                initially_expected_to_receive,
-                initially_estimated_to_liquidate,
-            )?
-            .did_execute()
-        {
-            self.repo.update_in_op(db, &mut collateral).await?;
-        }
+        let liquidation_id = match collateral.initiate_liquidation(
+            liquidation_proceeds_omnibus_account_id,
+            trigger_price,
+            initially_expected_to_receive,
+            initially_estimated_to_liquidate,
+        )? {
+            es_entity::Idempotent::Executed(id) => {
+                self.repo.update_in_op(db, &mut collateral).await?;
+                id
+            }
+            es_entity::Idempotent::AlreadyApplied => {
+                // If already applied, get the active liquidation ID
+                collateral
+                    .active_liquidation()
+                    .map(|l| l.id)
+                    .ok_or(CollateralError::NoActiveLiquidation)?
+            }
+        };
 
-        Ok(collateral)
+        Ok((collateral, liquidation_id))
     }
 
     /// Completes a liquidation via the Collateral aggregate.

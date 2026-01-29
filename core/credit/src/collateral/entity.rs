@@ -213,14 +213,15 @@ impl Collateral {
     }
 
     /// Initiates a new liquidation for this collateral.
+    /// Generates the LiquidationId internally and builds the Liquidation using stored account_ids.
     /// Returns error if there's already an active liquidation or no collateral to liquidate.
     pub fn initiate_liquidation(
         &mut self,
-        new_liquidation: NewLiquidation,
+        liquidation_proceeds_omnibus_account_id: CalaAccountId,
         trigger_price: PriceOfOneBTC,
         initially_expected_to_receive: UsdCents,
         initially_estimated_to_liquidate: Satoshis,
-    ) -> Result<Idempotent<()>, CollateralError> {
+    ) -> Result<Idempotent<LiquidationId>, CollateralError> {
         if self.amount == Satoshis::ZERO {
             return Err(CollateralError::NoCollateralToLiquidate);
         }
@@ -229,7 +230,32 @@ impl Collateral {
             return Err(CollateralError::LiquidationAlreadyActive);
         }
 
-        let liquidation_id = new_liquidation.id;
+        let liquidation_id = LiquidationId::new();
+
+        let new_liquidation = NewLiquidation::builder()
+            .id(liquidation_id)
+            .credit_facility_id(self.credit_facility_id)
+            .collateral_id(self.id)
+            .liquidation_proceeds_omnibus_account_id(liquidation_proceeds_omnibus_account_id)
+            .facility_proceeds_from_liquidation_account_id(
+                self.account_ids.facility_proceeds_from_liquidation_account_id,
+            )
+            .facility_payment_holding_account_id(
+                self.account_ids.facility_payment_holding_account_id,
+            )
+            .facility_uncovered_outstanding_account_id(
+                self.account_ids.facility_uncovered_outstanding_account_id,
+            )
+            .collateral_account_id(self.account_ids.collateral_account_id)
+            .collateral_in_liquidation_account_id(
+                self.account_ids.collateral_in_liquidation_account_id,
+            )
+            .liquidated_collateral_account_id(self.account_ids.liquidated_collateral_account_id)
+            .trigger_price(trigger_price)
+            .initially_expected_to_receive(initially_expected_to_receive)
+            .initially_estimated_to_liquidate(initially_estimated_to_liquidate)
+            .build()
+            .expect("all fields for new liquidation provided");
 
         self.liquidations.add_new(new_liquidation);
 
@@ -240,7 +266,7 @@ impl Collateral {
             initially_estimated_to_liquidate,
         });
 
-        Ok(Idempotent::Executed(()))
+        Ok(Idempotent::Executed(liquidation_id))
     }
 
     /// Completes the liquidation with the given ID.
