@@ -1,0 +1,82 @@
+name: Deploy docs on release
+
+on:
+  push:
+    tags:
+      # Match semantic version tags (X.Y.Z)
+      # Note: This also matches RC tags like 0.39.0-rc.1, which we filter out in the check-tag job
+      - "[0-9]+.[0-9]+.[0-9]+*"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "lana-bank-docs"
+  cancel-in-progress: false
+
+jobs:
+  check-tag:
+    runs-on: ubuntu-latest
+    outputs:
+      is_final: ${{ steps.check.outputs.is_final }}
+      version: ${{ steps.check.outputs.version }}
+    steps:
+      - name: Check if minor release (X.Y.0, not RC)
+        id: check
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          echo "Tag: $TAG"
+
+          # Skip RC tags (e.g., 0.39.0-rc.1)
+          if [[ "$TAG" =~ -rc\. ]]; then
+            echo "is_final=false" >> $GITHUB_OUTPUT
+            echo "Skipping RC tag: $TAG"
+          # skip patch releases (X.Y.1, X.Y.2, etc.)
+          elif [[ "$TAG" =~ ^[0-9]+\.[0-9]+\.0$ ]]; then
+            echo "is_final=true" >> $GITHUB_OUTPUT
+            echo "version=$TAG" >> $GITHUB_OUTPUT
+            echo "release tag: $TAG - will deploy docs"
+          else
+            echo "is_final=false" >> $GITHUB_OUTPUT
+            echo "Skipping patch release: $TAG"
+          fi
+
+  build-and-deploy:
+    needs: check-tag
+    if: needs.check-tag.outputs.is_final == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: lana-bank-docs
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v4
+
+      - name: Run the Magic Nix Cache
+        uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - uses: actions/checkout@v4
+
+      - uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: false
+          docker-images: true
+          swap-storage: true
+
+      - name: Build docs site
+        run: nix build .#docs-site
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./result
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
