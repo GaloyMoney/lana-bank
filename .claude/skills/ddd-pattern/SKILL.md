@@ -118,11 +118,11 @@ Typically live in `primitives.rs`, but may live elsewhere if there's good reason
 // GOOD: directories by domain
 /credit/, /customer/, /deposit/
 
-// BAD: API named by implementation
-SimpleConfig vs ComplexConfig
+// BAD: API named by implementation detail
+CachedPriceService vs DirectPriceService
 
 // GOOD: API named by business meaning
-InternalConfig vs ExposedConfig
+RealtimePrice vs SettlementPrice
 ```
 
 ### 6. Emergent Design (YAGNI, KISS)
