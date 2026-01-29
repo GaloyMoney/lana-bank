@@ -13,7 +13,7 @@ use super::{entity::*, error::*};
     columns(external_id(ty = "String"), run_id(ty = "ReportRunId", list_for)),
     tbl_prefix = "core"
 )]
-pub(crate) struct ReportRepo {
+pub struct ReportRepo {
     #[allow(dead_code)]
     pool: PgPool,
 }

@@ -15,7 +15,7 @@ use super::{entity::*, error::*};
     tbl_prefix = "core",
     post_persist_hook = "publish"
 )]
-pub(crate) struct ReportRunRepo<E>
+pub struct ReportRunRepo<E>
 where
     E: OutboxEventMarker<CoreReportEvent>,
 {

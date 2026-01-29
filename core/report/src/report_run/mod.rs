@@ -9,6 +9,6 @@ pub use entity::ReportRunEvent;
 #[cfg(not(feature = "json-schema"))]
 pub(crate) use entity::ReportRunEvent;
 pub use error::ReportRunError;
-pub(super) use repo::ReportRunRepo;
+pub use repo::ReportRunRepo;
 
 pub use repo::report_run_cursor::*;

@@ -18,7 +18,7 @@ pub enum ReportRunState {
     Failed,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(rename_all = "snake_case")]
 pub enum ReportRunType {
