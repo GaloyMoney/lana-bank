@@ -111,9 +111,15 @@ const AuditLogsList = ({ page = 1 }: AuditLogsListProps) => {
       key: "subject",
       label: t("headers.subject"),
       labelClassName: "w-[20%]",
-      render: (subject) => (
-        <div>{subject.__typename === "User" ? subject.email : subject.__typename}</div>
-      ),
+      render: (subject) => {
+        if (subject.__typename === "User") {
+          return <div>user: {subject.email}</div>
+        }
+        if (subject.__typename === "System") {
+          return <div>system</div>
+        }
+        return <div>{subject.__typename}</div>
+      },
     },
     {
       key: "object",
