@@ -142,14 +142,14 @@ where
         skip(self, db),
         err
     )]
-    pub async fn record_collateral_sent(
+    pub async fn record_collateral_sent_in_op(
         &self,
-        mut db: es_entity::DbOp<'_>,
+        db: &mut es_entity::DbOp<'_>,
         liquidation_id: LiquidationId,
         amount: Satoshis,
         initiated_by: LedgerTransactionInitiator,
     ) -> Result<Liquidation, LiquidationError> {
-        let mut liquidation = self.repo.find_by_id_in_op(&mut db, liquidation_id).await?;
+        let mut liquidation = self.repo.find_by_id_in_op(&mut *db, liquidation_id).await?;
 
         let tx_id = CalaTransactionId::new();
 
@@ -157,10 +157,10 @@ where
             .record_collateral_sent_out(amount, tx_id)?
             .did_execute()
         {
-            self.repo.update_in_op(&mut db, &mut liquidation).await?;
+            self.repo.update_in_op(db, &mut liquidation).await?;
             self.ledger
                 .record_collateral_sent_in_op(
-                    &mut db,
+                    db,
                     tx_id,
                     amount,
                     liquidation.collateral_account_id,
@@ -169,8 +169,6 @@ where
                 )
                 .await?;
         }
-
-        db.commit().await?;
 
         Ok(liquidation)
     }
