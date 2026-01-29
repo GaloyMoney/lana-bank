@@ -134,7 +134,8 @@ RealtimePrice vs SettlementPrice
 
 ### 7. Error Handling
 
-- [ ] Errors are meaningful domain errors with business-relevant variants
+- [ ] Domain errors are meaningful with business-relevant variants (e.g., `InsufficientCollateral`, `FacilityNotActive`)
+- [ ] Infrastructure errors (`SqlxError`, `FileError`) can wrap lower-level errors - they don't need business meaning
 - [ ] Use `From` implementations in `error.rs` to enable `?` propagation - avoid explicit `.map_err()` everywhere
 
 ### 8. Security & Audit
