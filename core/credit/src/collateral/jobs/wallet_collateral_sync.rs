@@ -173,7 +173,7 @@ where
             self.repo.update_in_op(&mut db, &mut collateral).await?;
 
             self.ledger
-                .update_credit_facility_collateral(
+                .update_collateral_amount(
                     &mut db,
                     data,
                     collateral.account_id,
