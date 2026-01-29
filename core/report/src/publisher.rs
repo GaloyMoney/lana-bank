@@ -1,7 +1,5 @@
-use crate::report::{Report, ReportError, ReportEvent};
 use crate::report_run::{ReportRun, ReportRunError, ReportRunEvent};
-
-use super::event::CoreReportEvent;
+use crate::{CoreReportEvent, PublicReportRun};
 use obix::out::{Outbox, OutboxEventMarker};
 
 pub struct ReportPublisher<E>
@@ -33,25 +31,6 @@ where
     }
 
     #[allow(dead_code)]
-    pub async fn publish_report(
-        &self,
-        op: &mut impl es_entity::AtomicOperation,
-        entity: &Report,
-        new_events: es_entity::LastPersisted<'_, ReportEvent>,
-    ) -> Result<(), ReportError> {
-        use ReportEvent::*;
-        let publish_events = new_events
-            .map(|event| match &event.event {
-                Initialized { .. } => CoreReportEvent::ReportCreated { id: entity.id },
-            })
-            .collect::<Vec<_>>();
-        self.outbox
-            .publish_all_persisted(op, publish_events)
-            .await?;
-        Ok(())
-    }
-
-    #[allow(dead_code)]
     pub async fn publish_report_run(
         &self,
         db: &mut impl es_entity::AtomicOperation,
@@ -61,8 +40,12 @@ where
         use ReportRunEvent::*;
         let publish_events = new_events
             .map(|event| match &event.event {
-                Initialized { .. } => CoreReportEvent::ReportRunCreated { id: entity.id },
-                StateUpdated { .. } => CoreReportEvent::ReportRunStateUpdated { id: entity.id },
+                Initialized { .. } => CoreReportEvent::ReportRunCreated {
+                    entity: PublicReportRun::from(entity),
+                },
+                StateUpdated { .. } => CoreReportEvent::ReportRunStateUpdated {
+                    entity: PublicReportRun::from(entity),
+                },
             })
             .collect::<Vec<_>>();
         self.outbox
