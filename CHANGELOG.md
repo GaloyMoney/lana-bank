@@ -1,3 +1,43 @@
+## [0.39.0] - 2026-01-29
+
+### 🚀 Features
+
+- Change RequireVerifiedCustomerForAccount default to true (#3481)
+- *(docs)* Add schema snapshot script for versioning (#3540)
+- *(admin-panel)* Display authorized column in audit log table (#3547)
+
+### 🐛 Bug Fixes
+
+- Doc generation (#3501)
+- Gracefully handle unknown domain config keys at startup (#3516)
+- Add timeout to server graceful shutdown (#3499)
+
+### 🚜 Refactor
+
+- Move SumSub credentials to domain config (#3486)
+- Custody public events (#3504)
+- Deposit and governance public events (#3494)
+- Prevent infinite loop in scenarios (#3544)
+- Interest late scenario (#3554)
+- Core/report public events (#3493)
+- Separate collateral ledger from credit ledger (#3552)
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 0.38.0 [ci skip] (#3505)
+- Migrate from kaniko to oci-build-task (#3502)
+- Update_in_op for internal domain configs (#3503)
+- Remove redundant put step (#3507)
+- Restructure release job (#3509)
+- Update promote pr prefix (#3500)
+- Update Keycloak to 26.5.2 (#3523)
+- Bump es-entity + async-graphql (#3528)
+- Guaranteed default value for domain config (#3511)
+- Add rc pr file checker (#3521)
+- Use accounting base config (#3415)
+- Add PR limit enforcer workflow (#3556)
+- Add ignore pr limit label to promote PRs (#3559)
+- Record liquidation in collateral (#3548)
 ## [0.38.0] - 2026-01-27
 
 ### 🚀 Features
