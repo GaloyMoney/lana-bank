@@ -3,9 +3,9 @@ name: Deploy docs on release
 on:
   push:
     tags:
-      # Match semantic version tags (X.Y.Z)
-      # Note: This also matches RC tags like 0.39.0-rc.1, which we filter out in the check-tag job
-      - "[0-9]+.[0-9]+.[0-9]+*"
+      # Match only minor release tags (X.Y.0)
+      # This excludes RC tags (e.g., 0.39.0-rc.1) and patch releases (e.g., 0.39.1)
+      - "[0-9]+.[0-9]+.0"
 
 permissions:
   contents: read
@@ -17,35 +17,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  check-tag:
-    runs-on: ubuntu-latest
-    outputs:
-      is_final: ${{ steps.check.outputs.is_final }}
-      version: ${{ steps.check.outputs.version }}
-    steps:
-      - name: Check if minor release (X.Y.0, not RC)
-        id: check
-        run: |
-          TAG="${GITHUB_REF#refs/tags/}"
-          echo "Tag: $TAG"
-
-          # Skip RC tags (e.g., 0.39.0-rc.1)
-          if [[ "$TAG" =~ -rc\. ]]; then
-            echo "is_final=false" >> $GITHUB_OUTPUT
-            echo "Skipping RC tag: $TAG"
-          # skip patch releases (X.Y.1, X.Y.2, etc.)
-          elif [[ "$TAG" =~ ^[0-9]+\.[0-9]+\.0$ ]]; then
-            echo "is_final=true" >> $GITHUB_OUTPUT
-            echo "version=$TAG" >> $GITHUB_OUTPUT
-            echo "release tag: $TAG - will deploy docs"
-          else
-            echo "is_final=false" >> $GITHUB_OUTPUT
-            echo "Skipping patch release: $TAG"
-          fi
-
   build-and-deploy:
-    needs: check-tag
-    if: needs.check-tag.outputs.is_final == 'true'
     runs-on: ubuntu-latest
     environment:
       name: lana-bank-docs
