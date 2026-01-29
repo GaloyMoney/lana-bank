@@ -23,4 +23,5 @@ gh pr create \
   --head ${BOT_BRANCH} \
   --label promote-rc \
   --label galoybot \
+  --label ignore-pr-limit \
   --draft
