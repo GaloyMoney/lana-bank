@@ -2026,7 +2026,9 @@
       },
       "filters": {
         "allSubjects": "All Subjects",
-        "allAuthorized": "All",
+        "allAuthorized": "All Authorizations",
+        "authorizedOnly": "Authorized",
+        "unauthorizedOnly": "Unauthorized",
         "objectPlaceholder": "Filter by object",
         "actionPlaceholder": "Filter by action"
       },

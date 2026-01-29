@@ -2026,7 +2026,9 @@
       },
       "filters": {
         "allSubjects": "Todos los Sujetos",
-        "allAuthorized": "Todos",
+        "allAuthorized": "Todas las Autorizaciones",
+        "authorizedOnly": "Autorizado",
+        "unauthorizedOnly": "No Autorizado",
         "objectPlaceholder": "Filtrar por objeto",
         "actionPlaceholder": "Filtrar por acción"
       },

@@ -168,8 +168,8 @@ const AuditLogsList = ({ page = 1 }: AuditLogsListProps) => {
           }}
         >
           <option value="">{t("filters.allAuthorized")}</option>
-          <option value="true">{t("headers.authorizedYes")}</option>
-          <option value="false">{t("headers.authorizedNo")}</option>
+          <option value="true">{t("filters.authorizedOnly")}</option>
+          <option value="false">{t("filters.unauthorizedOnly")}</option>
         </select>
         <input
           type="text"
