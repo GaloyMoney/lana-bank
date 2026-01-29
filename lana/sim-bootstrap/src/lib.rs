@@ -35,9 +35,15 @@ pub async fn run(
         .update::<RequireVerifiedCustomerForAccount>(&sub, false)
         .await?;
 
-    create_term_templates(&sub, app).await?;
+    match create_term_templates(&sub, app).await {
+        Ok(_) => info!("created term templates"),
+        Err(_) => {
+            clock_ctrl.transition_to_realtime();
+            return Ok(());
+        }
+    }
 
-    scenarios::run(&sub, app, clock.clone(), clock_ctrl.clone()).await?;
+    let _ = scenarios::run(&sub, app, clock.clone(), clock_ctrl.clone()).await;
 
     let mut handles = Vec::new();
     let customers = create_customers(&sub, app, &config).await?;

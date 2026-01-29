@@ -105,44 +105,51 @@ pub async fn interest_late_scenario(
     let expected_end_date = activation_date + chrono::Duration::days(200);
 
     loop {
-        tokio::select! {
-            Some(msg) = stream.next() => {
-                if let Some(LanaEvent::Credit(CoreCreditEvent::ObligationDue {
-                    credit_facility_id,
-                    amount,
-                    obligation_type,
-                    ..
-                })) = &msg.payload
-                    && *credit_facility_id == cf_id
-                    && *amount > UsdCents::ZERO
-                {
-                    msg.inject_trace_parent();
-                    let current_date = clock.today();
+        clock_ctrl.advance(ONE_DAY).await;
+        let current_date = clock.today();
 
-                    if *obligation_type == ObligationType::Interest && first_interest_amount.is_none() {
-                        first_interest_amount = Some(*amount);
-                        first_interest_due_date = Some(current_date);
-                    } else {
-                        app.record_payment_with_date(&sub, cf_id, *amount, current_date).await?;
+        loop {
+            tokio::select! {
+                Some(msg) = stream.next() => {
+                    if let Some(LanaEvent::Credit(CoreCreditEvent::ObligationDue {
+                        credit_facility_id,
+                        amount,
+                        obligation_type,
+                        ..
+                    })) = &msg.payload
+                        && *credit_facility_id == cf_id
+                        && *amount > UsdCents::ZERO
+                    {
+                        msg.inject_trace_parent();
+
+                        if *obligation_type == ObligationType::Interest
+                            && first_interest_amount.is_none()
+                        {
+                            first_interest_amount = Some(*amount);
+                            first_interest_due_date = Some(current_date);
+                        } else {
+                            app.record_payment_with_date(&sub, cf_id, *amount, current_date)
+                                .await?;
+                        }
                     }
                 }
-            }
-            _ = tokio::time::sleep(EVENT_WAIT_TIMEOUT) => {
-                let current_date = clock.today();
-
-                if !first_interest_paid
-                    && let (Some(amount), Some(due_date)) = (first_interest_amount, first_interest_due_date)
-                    && (current_date - due_date).num_days() > 90
-                {
-                    app.record_payment_with_date(&sub, cf_id, amount, current_date).await?;
-                    first_interest_paid = true;
-                }
-
-                if current_date >= expected_end_date {
+                _ = tokio::time::sleep(EVENT_WAIT_TIMEOUT) => {
                     break;
                 }
-                clock_ctrl.advance(ONE_DAY).await;
             }
+        }
+
+        if !first_interest_paid
+            && let (Some(amount), Some(due_date)) = (first_interest_amount, first_interest_due_date)
+            && (current_date - due_date).num_days() > 90
+        {
+            app.record_payment_with_date(&sub, cf_id, amount, current_date)
+                .await?;
+            first_interest_paid = true;
+        }
+
+        if current_date >= expected_end_date {
+            break;
         }
     }
 
