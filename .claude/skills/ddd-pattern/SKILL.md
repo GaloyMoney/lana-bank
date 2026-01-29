@@ -14,7 +14,7 @@ $ARGUMENTS
 If no specific files provided, review the current branch. Run these commands to gather context:
 - `git branch --show-current` - get current branch name
 - `gh pr view --json number,title,url,baseRefName` - get PR info (if PR exists)
-- `git log --oneline main..HEAD | head -10` - get commits on this branch
+- `git log --oneline main..HEAD` - get commits on this branch
 
 To get the full diff:
 - If PR exists: `gh pr diff`
