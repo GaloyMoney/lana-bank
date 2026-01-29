@@ -1,4 +1,4 @@
-name: Deploy lana-bank-docs
+name: Check lana-bank-docs build
 
 on:
   push:
@@ -15,12 +15,10 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: "lana-bank-docs"
-  cancel-in-progress: false
+  group: "lana-bank-docs-${{ github.ref }}"
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -63,20 +61,3 @@ jobs:
       - name: Build docs site
         run: |
           nix develop -c bash -lc "cd docs-site && npx docusaurus build"
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./docs-site/build
-
-  deploy:
-    if: github.ref == 'refs/heads/main'
-    environment:
-      name: lana-bank-docs
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
