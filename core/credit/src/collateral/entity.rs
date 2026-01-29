@@ -9,7 +9,7 @@ use es_entity::*;
 
 use crate::primitives::{
     CalaAccountId, CollateralAction, CollateralId, CreditFacilityId, CustodyWalletId, LedgerTxId,
-    PendingCreditFacilityId, Satoshis,
+    LiquidationId, PendingCreditFacilityId, Satoshis,
 };
 
 use super::CollateralUpdate;
@@ -34,6 +34,12 @@ pub enum CollateralEvent {
     },
     UpdatedViaCustodianSync {
         ledger_tx_id: LedgerTxId,
+        collateral_amount: Satoshis,
+        abs_diff: Satoshis,
+        action: CollateralAction,
+    },
+    UpdatedViaLiquidation {
+        liquidation_id: LiquidationId,
         collateral_amount: Satoshis,
         abs_diff: Satoshis,
         action: CollateralAction,
@@ -123,6 +129,37 @@ impl Collateral {
             effective,
         })
     }
+
+    pub fn record_collateral_update_via_liquidation(
+        &mut self,
+        liquidation_id: LiquidationId,
+        amount_sent: Satoshis,
+        effective: chrono::NaiveDate,
+    ) -> Idempotent<CollateralUpdate> {
+        if amount_sent == Satoshis::ZERO {
+            return Idempotent::AlreadyApplied;
+        }
+
+        let new_amount = self.amount - amount_sent;
+
+        let tx_id = LedgerTxId::new();
+
+        self.events.push(CollateralEvent::UpdatedViaLiquidation {
+            liquidation_id,
+            abs_diff: amount_sent,
+            collateral_amount: new_amount,
+            action: CollateralAction::Remove,
+        });
+
+        self.amount = new_amount;
+
+        Idempotent::Executed(CollateralUpdate {
+            tx_id,
+            abs_diff: amount_sent,
+            action: CollateralAction::Remove,
+            effective,
+        })
+    }
 }
 
 #[derive(Debug, Builder)]
@@ -171,6 +208,10 @@ impl TryFromEvents<CollateralEvent> for Collateral {
                     ..
                 }
                 | CollateralEvent::UpdatedViaCustodianSync {
+                    collateral_amount: new_value,
+                    ..
+                }
+                | CollateralEvent::UpdatedViaLiquidation {
                     collateral_amount: new_value,
                     ..
                 } => {

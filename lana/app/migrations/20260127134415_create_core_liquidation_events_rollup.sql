@@ -7,6 +7,7 @@ CREATE TABLE core_liquidation_events_rollup (
   -- Flattened fields from the event JSON
   amount BIGINT,
   collateral_account_id UUID,
+  collateral_id UUID,
   collateral_in_liquidation_account_id UUID,
   credit_facility_id UUID,
   current_price JSONB,
@@ -62,6 +63,7 @@ BEGIN
   IF current_row.id IS NULL THEN
     new_row.amount := (NEW.event ->> 'amount')::BIGINT;
     new_row.collateral_account_id := (NEW.event ->> 'collateral_account_id')::UUID;
+    new_row.collateral_id := (NEW.event ->> 'collateral_id')::UUID;
     new_row.collateral_in_liquidation_account_id := (NEW.event ->> 'collateral_in_liquidation_account_id')::UUID;
     new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
     new_row.current_price := (NEW.event -> 'current_price');
@@ -83,6 +85,7 @@ BEGIN
     -- Default all fields to current values
     new_row.amount := current_row.amount;
     new_row.collateral_account_id := current_row.collateral_account_id;
+    new_row.collateral_id := current_row.collateral_id;
     new_row.collateral_in_liquidation_account_id := current_row.collateral_in_liquidation_account_id;
     new_row.credit_facility_id := current_row.credit_facility_id;
     new_row.current_price := current_row.current_price;
@@ -106,6 +109,7 @@ BEGIN
   CASE event_type
     WHEN 'initialized' THEN
       new_row.collateral_account_id := (NEW.event ->> 'collateral_account_id')::UUID;
+      new_row.collateral_id := (NEW.event ->> 'collateral_id')::UUID;
       new_row.collateral_in_liquidation_account_id := (NEW.event ->> 'collateral_in_liquidation_account_id')::UUID;
       new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
       new_row.facility_payment_holding_account_id := (NEW.event ->> 'facility_payment_holding_account_id')::UUID;
@@ -139,6 +143,7 @@ BEGIN
     modified_at,
     amount,
     collateral_account_id,
+    collateral_id,
     collateral_in_liquidation_account_id,
     credit_facility_id,
     current_price,
@@ -164,6 +169,7 @@ BEGIN
     new_row.modified_at,
     new_row.amount,
     new_row.collateral_account_id,
+    new_row.collateral_id,
     new_row.collateral_in_liquidation_account_id,
     new_row.credit_facility_id,
     new_row.current_price,

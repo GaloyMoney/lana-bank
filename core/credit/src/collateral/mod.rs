@@ -139,4 +139,31 @@ where
 
         Ok(res)
     }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "collateral.record_collateral_update_via_liquidation_in_op",
+        skip(db, self)
+    )]
+    pub(super) async fn record_collateral_update_via_liquidation_in_op(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        collateral_id: CollateralId,
+        liquidation_id: LiquidationId,
+        amount_sent: core_money::Satoshis,
+        effective: chrono::NaiveDate,
+    ) -> Result<Option<CollateralUpdate>, CollateralError> {
+        let mut collateral = self.repo.find_by_id_in_op(&mut *db, collateral_id).await?;
+
+        let res = if let es_entity::Idempotent::Executed(data) = collateral
+            .record_collateral_update_via_liquidation(liquidation_id, amount_sent, effective)
+        {
+            self.repo.update_in_op(db, &mut collateral).await?;
+            Some(data)
+        } else {
+            None
+        };
+
+        Ok(res)
+    }
 }

@@ -181,6 +181,7 @@ where
             event @ CoreCreditEvent::PartialLiquidationInitiated {
                 liquidation_id,
                 credit_facility_id,
+                collateral_id,
                 trigger_price,
                 initially_expected_to_receive,
                 initially_estimated_to_liquidate,
@@ -203,6 +204,7 @@ where
                 NewLiquidation::builder()
                     .id(*liquidation_id)
                     .credit_facility_id(*credit_facility_id)
+                    .collateral_id(*collateral_id)
                     .facility_proceeds_from_liquidation_account_id(
                         *proceeds_from_liquidation_account_id,
                     )

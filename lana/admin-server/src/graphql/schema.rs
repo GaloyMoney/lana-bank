@@ -2019,11 +2019,8 @@ impl Mutation {
             LiquidationRecordCollateralSentPayload,
             Liquidation,
             ctx,
-            app.credit().liquidations().record_collateral_sent(
-                sub,
-                input.liquidation_id.into(),
-                input.amount
-            )
+            app.credit()
+                .record_collateral_sent(sub, input.liquidation_id.into(), input.amount)
         )
     }
 

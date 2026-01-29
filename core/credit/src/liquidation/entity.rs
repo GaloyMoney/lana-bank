@@ -21,6 +21,7 @@ pub enum LiquidationEvent {
     Initialized {
         id: LiquidationId,
         credit_facility_id: CreditFacilityId,
+        collateral_id: CollateralId,
         liquidation_proceeds_omnibus_account_id: CalaAccountId,
         facility_proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccountId,
         facility_payment_holding_account_id: CalaAccountId,
@@ -55,6 +56,7 @@ pub enum LiquidationEvent {
 pub struct Liquidation {
     pub id: LiquidationId,
     pub credit_facility_id: CreditFacilityId,
+    pub collateral_id: CollateralId,
     pub expected_to_receive: UsdCents,
     pub sent_total: Satoshis,
     pub amount_received: UsdCents,
@@ -203,6 +205,7 @@ impl TryFromEvents<LiquidationEvent> for Liquidation {
                 LiquidationEvent::Initialized {
                     id,
                     credit_facility_id,
+                    collateral_id,
                     liquidation_proceeds_omnibus_account_id,
                     facility_proceeds_from_liquidation_account_id,
                     facility_payment_holding_account_id,
@@ -216,6 +219,7 @@ impl TryFromEvents<LiquidationEvent> for Liquidation {
                     builder = builder
                         .id(*id)
                         .credit_facility_id(*credit_facility_id)
+                        .collateral_id(*collateral_id)
                         .liquidation_proceeds_omnibus_account_id(
                             *liquidation_proceeds_omnibus_account_id,
                         )
@@ -260,6 +264,8 @@ pub struct NewLiquidation {
     #[builder(setter(into))]
     pub(crate) credit_facility_id: CreditFacilityId,
     #[builder(setter(into))]
+    pub(crate) collateral_id: CollateralId,
+    #[builder(setter(into))]
     pub(crate) liquidation_proceeds_omnibus_account_id: CalaAccountId,
     #[builder(setter(into))]
     pub(crate) facility_proceeds_from_liquidation_account_id:
@@ -292,6 +298,7 @@ impl IntoEvents<LiquidationEvent> for NewLiquidation {
             [LiquidationEvent::Initialized {
                 id: self.id,
                 credit_facility_id: self.credit_facility_id,
+                collateral_id: self.collateral_id,
                 liquidation_proceeds_omnibus_account_id: self
                     .liquidation_proceeds_omnibus_account_id,
                 facility_proceeds_from_liquidation_account_id: self

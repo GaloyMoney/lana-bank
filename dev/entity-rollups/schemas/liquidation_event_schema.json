@@ -22,6 +22,10 @@
           "format": "uuid",
           "type": "string"
         },
+        "collateral_id": {
+          "format": "uuid",
+          "type": "string"
+        },
         "collateral_in_liquidation_account_id": {
           "format": "uuid",
           "type": "string"
@@ -72,6 +76,7 @@
         "type",
         "id",
         "credit_facility_id",
+        "collateral_id",
         "liquidation_proceeds_omnibus_account_id",
         "facility_proceeds_from_liquidation_account_id",
         "facility_payment_holding_account_id",
