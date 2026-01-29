@@ -35,7 +35,13 @@ pub async fn run(
         .update::<RequireVerifiedCustomerForAccount>(&sub, false)
         .await?;
 
-    let _ = create_term_templates(&sub, app).await;
+    match create_term_templates(&sub, app).await {
+        Ok(_) => info!("created term templates"),
+        Err(_) => {
+            clock_ctrl.transition_to_realtime();
+            return Ok(());
+        }
+    }
 
     let _ = scenarios::run(&sub, app, clock.clone(), clock_ctrl.clone()).await;
 
