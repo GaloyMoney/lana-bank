@@ -1,7 +1,6 @@
 mod entity;
 pub mod error;
 mod jobs;
-mod ledger;
 mod repo;
 
 use std::sync::Arc;
@@ -12,7 +11,7 @@ use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use cala_ledger::{AccountId as CalaAccountId, CalaLedger, JournalId};
+use cala_ledger::AccountId as CalaAccountId;
 use core_custody::CoreCustodyEvent;
 use core_money::{Satoshis, UsdCents};
 use governance::GovernanceEvent;
@@ -25,7 +24,6 @@ use crate::{
 use entity::NewLiquidationBuilder;
 pub use entity::{Liquidation, LiquidationEvent, NewLiquidation};
 use error::LiquidationError;
-use ledger::LiquidationLedger;
 pub(crate) use repo::LiquidationRepo;
 pub use repo::liquidation_cursor;
 
@@ -38,7 +36,6 @@ where
 {
     repo: Arc<LiquidationRepo<E>>,
     authz: Arc<Perms>,
-    _ledger: LiquidationLedger,
     proceeds_omnibus_account_ids: LedgerOmnibusAccountIds,
 }
 
@@ -53,7 +50,6 @@ where
         Self {
             repo: self.repo.clone(),
             authz: self.authz.clone(),
-            _ledger: self._ledger.clone(),
             proceeds_omnibus_account_ids: self.proceeds_omnibus_account_ids.clone(),
         }
     }
@@ -70,8 +66,6 @@ where
 {
     pub async fn init(
         pool: &sqlx::PgPool,
-        journal_id: JournalId,
-        cala: &CalaLedger,
         proceeds_omnibus_account_ids: &LedgerOmnibusAccountIds,
         authz: Arc<Perms>,
         publisher: &crate::CreditFacilityPublisher<E>,
@@ -129,7 +123,6 @@ where
         Ok(Self {
             repo: repo_arc,
             authz,
-            _ledger: LiquidationLedger::init(cala, journal_id, clock).await?,
             proceeds_omnibus_account_ids: proceeds_omnibus_account_ids.clone(),
         })
     }
