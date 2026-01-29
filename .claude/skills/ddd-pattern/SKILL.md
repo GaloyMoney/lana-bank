@@ -141,8 +141,7 @@ RealtimePrice vs SettlementPrice
 ### 8. Security & Audit
 
 - [ ] No sensitive data in logs, traces or system triggered emails (credentials, PII)
-- [ ] Audit logging for sensitive operations
-- [ ] Use `*_without_audit` methods for internal/system operations - prefer this over passing "system" as a subject
+- [ ] Audit logging for sensitive operations (mutations should be logged)
 
 ## Output Format
 
