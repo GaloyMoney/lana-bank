@@ -1,5 +1,5 @@
 ---
-name: ddd-pattern
+name: lana-review
 description: Review code changes against LANA Bank's DDD patterns, event sourcing conventions, and architectural principles. Use when reviewing PRs, commits, or code changes.
 ---
 
