@@ -22,11 +22,10 @@ pub use core_price::PriceOfOneBTC;
 pub use governance::ApprovalProcessId;
 pub use public_id::PublicId;
 
-// Re-exports from terms crate
 pub use core_credit_terms::{
     AnnualRatePct, CVLPct, DisbursalPolicy, EffectiveDate, FacilityDuration, FacilityDurationType,
     InterestInterval, InterestPeriod, ObligationDuration, OneTimeFeeRatePct, TermValues,
-    TermValuesBuilder,
+    TermValuesBuilder, TermsTemplateId,
     collateralization::{
         CollateralizationRatio, CollateralizationState, PendingCreditFacilityCollateralizationState,
     },
@@ -55,7 +54,6 @@ es_entity::entity_id! {
     ObligationId,
     LiquidationId,
     InterestAccrualCycleId,
-    TermsTemplateId,
     FiscalYearId;
 
     CreditFacilityProposalId => PendingCreditFacilityId,
@@ -567,6 +565,38 @@ impl ActionPermission for TermsTemplateAction {
 impl From<TermsTemplateAction> for CoreCreditAction {
     fn from(action: TermsTemplateAction) -> Self {
         Self::TermsTemplate(action)
+    }
+}
+
+/// Marker struct for TermsTemplate permissions in the credit module.
+pub struct CreditTermsTemplatePermissions;
+
+impl core_credit_terms::TermsTemplatePermissions for CreditTermsTemplatePermissions {
+    type Action = CoreCreditAction;
+    type Object = CoreCreditObject;
+
+    fn terms_template_create_action() -> Self::Action {
+        CoreCreditAction::TERMS_TEMPLATE_CREATE
+    }
+
+    fn terms_template_read_action() -> Self::Action {
+        CoreCreditAction::TERMS_TEMPLATE_READ
+    }
+
+    fn terms_template_update_action() -> Self::Action {
+        CoreCreditAction::TERMS_TEMPLATE_UPDATE
+    }
+
+    fn terms_template_list_action() -> Self::Action {
+        CoreCreditAction::TERMS_TEMPLATE_LIST
+    }
+
+    fn all_terms_templates_object() -> Self::Object {
+        CoreCreditObject::all_terms_templates()
+    }
+
+    fn terms_template_object(id: TermsTemplateId) -> Self::Object {
+        CoreCreditObject::terms_template(id)
     }
 }
 

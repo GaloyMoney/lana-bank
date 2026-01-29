@@ -21,7 +21,6 @@ mod primitives;
 mod processes;
 mod publisher;
 mod repayment_plan;
-mod terms_template;
 
 use std::sync::Arc;
 
@@ -51,6 +50,12 @@ pub use chart_of_accounts_integration::{
 };
 pub use collateral::*;
 pub use config::*;
+#[cfg(feature = "json-schema")]
+pub use core_credit_terms::TermsTemplateEvent;
+pub use core_credit_terms::{
+    NewTermsTemplate, NewTermsTemplateBuilder, TermsTemplate, TermsTemplateBuilder,
+    TermsTemplateError, TermsTemplateRepo, terms_template::error as terms_template_error,
+};
 pub use credit_facility::error::CreditFacilityError;
 pub use credit_facility::*;
 pub use credit_facility_proposal::*;
@@ -72,7 +77,10 @@ pub use processes::{
 };
 use publisher::CreditFacilityPublisher;
 pub use repayment_plan::*;
-pub use terms_template::{error as terms_template_error, *};
+
+/// Type alias for the TermsTemplates service with credit module permissions.
+pub type TermsTemplates<Perms> =
+    core_credit_terms::TermsTemplates<Perms, CreditTermsTemplatePermissions>;
 
 #[cfg(feature = "json-schema")]
 pub mod event_schema {

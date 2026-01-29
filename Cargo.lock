@@ -1414,6 +1414,8 @@ name = "core-credit-terms"
 version = "0.0.0"
 dependencies = [
  "async-graphql",
+ "audit",
+ "authz",
  "chrono",
  "core-money",
  "core-price",
@@ -1426,6 +1428,9 @@ dependencies = [
  "sqlx",
  "strum",
  "thiserror 2.0.18",
+ "tracing",
+ "tracing-macros",
+ "tracing-utils",
 ]
 
 [[package]]
