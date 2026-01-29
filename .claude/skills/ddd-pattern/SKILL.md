@@ -34,8 +34,11 @@ Exclude files listed in "Files to Ignore" from review.
 
 ### 1. Logic Placement (Functional Core, Imperative Shell)
 
-**Core (entities):** Pure business logic and decisions
-**Shell (use cases, adapters):** I/O, persistence, orchestration - no business rules
+The pattern separates code into two layers: a functional core that contains all business logic and decisions, and an imperative shell that handles all I/O and side effects.
+
+**Core (entities in `entity.rs`):** Pure business logic and decisions. No I/O, no database calls, no external services. Given the same inputs, always produces the same outputs.
+
+**Shell (in `mod.rs` use cases, `repo.rs` repositories, GraphQL resolvers):** Orchestrates the core. Handles I/O, persistence, external calls. Contains no business rules - just loads data, calls entity methods, and persists results.
 
 Note: We don't enforce strict immutability - Rust's ownership already prevents shared mutable state issues.
 
