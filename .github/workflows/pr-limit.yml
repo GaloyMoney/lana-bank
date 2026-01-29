@@ -14,11 +14,20 @@ jobs:
           REPO: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          # Count open non-draft PRs (excluding the current one to avoid race condition)
-          count=$(gh pr list --repo "$REPO" --state open --json number,isDraft \
-            --jq "[.[] | select(.isDraft == false and .number != $PR_NUMBER)] | length")
+          # Check if PR has ignore-pr-limit label
+          has_ignore_label=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json labels \
+            --jq '.labels | map(.name) | any(. == "ignore-pr-limit")')
 
-          echo "Open non-draft PRs (excluding this one): $count"
+          if [ "$has_ignore_label" = "true" ]; then
+            echo "PR has 'ignore-pr-limit' label. Skipping limit check."
+            exit 0
+          fi
+
+          # Count open non-draft PRs (excluding the current one and those with ignore-pr-limit label)
+          count=$(gh pr list --repo "$REPO" --state open --json number,isDraft,labels \
+            --jq "[.[] | select(.isDraft == false and .number != $PR_NUMBER and ([.labels[].name] | any(. == \"ignore-pr-limit\") | not))] | length")
+
+          echo "Open non-draft PRs (excluding this one and ignored): $count"
           echo "Limit: $MAX_PRS"
 
           if [ "$count" -ge "$MAX_PRS" ]; then
@@ -27,9 +36,9 @@ jobs:
             # Convert to draft
             gh pr ready --undo "$PR_NUMBER" --repo "$REPO"
 
-            # Get list of current open PRs
-            open_prs=$(gh pr list --repo "$REPO" --state open --json number,title,author,isDraft \
-              --jq '.[] | select(.isDraft == false) | "- #\(.number) by @\(.author.login): \(.title)"')
+            # Get list of current open PRs (excluding those with ignore-pr-limit label)
+            open_prs=$(gh pr list --repo "$REPO" --state open --json number,title,author,isDraft,labels \
+              --jq '.[] | select(.isDraft == false and ([.labels[].name] | any(. == "ignore-pr-limit") | not)) | "- #\(.number) by @\(.author.login): \(.title)"')
 
             # Delete any previous PR limit comments from this bot
             gh api "repos/$REPO/issues/$PR_NUMBER/comments" --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("## PR Queue Limit Reached"))) | .id' | \
