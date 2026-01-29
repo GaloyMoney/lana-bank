@@ -28,7 +28,7 @@ Exclude files listed in "Files to Ignore" from review.
 
 ## Files to Ignore
 
-`**/schema.graphql`, `.sqlx/`, `Cargo.lock`, `pnpm-lock.yaml`, `**/generated/**`, `**/*.snap`
+`.sqlx/`, `Cargo.lock`, `pnpm-lock.yaml`, `**/generated/**`, `**/*.snap`
 
 ## Review Checklist
 
