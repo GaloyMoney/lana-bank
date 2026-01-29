@@ -18,8 +18,8 @@ import PaginatedTable, {
 } from "@/components/paginated-table"
 
 gql`
-  query AuditLogs($first: Int!, $after: String, $subject: String, $authorized: Boolean) {
-    audit(first: $first, after: $after, subject: $subject, authorized: $authorized) {
+  query AuditLogs($first: Int!, $after: String, $subject: String, $authorized: Boolean, $object: String, $action: String) {
+    audit(first: $first, after: $after, subject: $subject, authorized: $authorized, object: $object, action: $action) {
       edges {
         cursor
         node {
@@ -72,12 +72,16 @@ const AuditLogsList = ({ page = 1 }: AuditLogsListProps) => {
   const [authorizedFilter, setAuthorizedFilter] = useState<boolean | undefined>(
     undefined,
   )
+  const [objectFilter, setObjectFilter] = useState<string | undefined>(undefined)
+  const [actionFilter, setActionFilter] = useState<string | undefined>(undefined)
 
   const { data, loading, error, fetchMore } = useAuditLogsQuery({
     variables: {
       first: DEFAULT_PAGESIZE * page,
       subject: subjectFilter ?? null,
       authorized: authorizedFilter ?? null,
+      object: objectFilter ?? null,
+      action: actionFilter ?? null,
     },
     fetchPolicy: "cache-and-network",
   })
@@ -167,6 +171,20 @@ const AuditLogsList = ({ page = 1 }: AuditLogsListProps) => {
           <option value="true">{t("headers.authorizedYes")}</option>
           <option value="false">{t("headers.authorizedNo")}</option>
         </select>
+        <input
+          type="text"
+          className="border rounded px-2 py-1 text-sm"
+          placeholder={t("filters.objectPlaceholder")}
+          value={objectFilter ?? ""}
+          onChange={(e) => setObjectFilter(e.target.value || undefined)}
+        />
+        <input
+          type="text"
+          className="border rounded px-2 py-1 text-sm"
+          placeholder={t("filters.actionPlaceholder")}
+          value={actionFilter ?? ""}
+          onChange={(e) => setActionFilter(e.target.value || undefined)}
+        />
       </div>
       <PaginatedTable<AuditEntry>
         columns={columns}

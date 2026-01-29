@@ -943,10 +943,14 @@ impl Query {
         after: Option<String>,
         subject: Option<String>,
         authorized: Option<bool>,
+        object: Option<String>,
+        action: Option<String>,
     ) -> async_graphql::Result<Connection<AuditCursor, AuditEntry>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let subject_filter = subject;
         let authorized_filter = authorized;
+        let object_filter = object;
+        let action_filter = action;
         query(
             after,
             None,
@@ -963,6 +967,8 @@ impl Query {
                         },
                         subject_filter.clone(),
                         authorized_filter,
+                        object_filter.clone(),
+                        action_filter.clone(),
                     )
                     .await?;
 

@@ -2026,7 +2026,9 @@
       },
       "filters": {
         "allSubjects": "Todos los Sujetos",
-        "allAuthorized": "Todos"
+        "allAuthorized": "Todos",
+        "objectPlaceholder": "Filtrar por objeto",
+        "actionPlaceholder": "Filtrar por acción"
       },
       "error": "Ocurrió un error al obtener los registros de auditoría.",
       "emptyMessage": "No se encontraron registros de auditoría."

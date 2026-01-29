@@ -327,6 +327,8 @@ impl LanaApp {
         query: es_entity::PaginatedQueryArgs<AuditCursor>,
         subject_filter: Option<String>,
         authorized_filter: Option<bool>,
+        object_filter: Option<String>,
+        action_filter: Option<String>,
     ) -> Result<es_entity::PaginatedQueryRet<AuditEntry, AuditCursor>, ApplicationError> {
         use crate::audit::AuditSvc;
 
@@ -339,7 +341,7 @@ impl LanaApp {
             .await?;
 
         self.audit
-            .list(query, subject_filter, authorized_filter)
+            .list(query, subject_filter, authorized_filter, object_filter, action_filter)
             .await
             .map_err(ApplicationError::from)
     }
