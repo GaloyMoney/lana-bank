@@ -1225,26 +1225,22 @@ impl CreditLedger {
         } else {
             UsdCents::ZERO
         };
-        Ok(CreditFacilityBalanceSummary {
+        Ok(CreditFacilityBalanceSummary::new(
             facility,
             facility_remaining,
             collateral,
-
             disbursed,
             interest_posted,
-
             not_yet_due_disbursed_outstanding,
             due_disbursed_outstanding,
             overdue_disbursed_outstanding,
             disbursed_defaulted,
-
             not_yet_due_interest_outstanding,
             due_interest_outstanding,
             overdue_interest_outstanding,
             interest_defaulted,
-
             payments_unapplied,
-        })
+        ))
     }
 
     async fn record_obligation_repayment_in_op(

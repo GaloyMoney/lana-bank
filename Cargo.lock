@@ -1431,6 +1431,7 @@ dependencies = [
  "tracing",
  "tracing-macros",
  "tracing-utils",
+ "workspace-hack",
 ]
 
 [[package]]

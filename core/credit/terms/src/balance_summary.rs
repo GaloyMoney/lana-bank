@@ -7,6 +7,28 @@ pub use super::{collateralization::CollateralizationRatio, cvl::*};
 pub use core_money::*;
 pub use core_price::*;
 
+#[cfg(not(test))]
+#[derive(Debug, Default, Copy, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+pub struct CreditFacilityBalanceSummary {
+    pub(crate) facility: UsdCents,
+    pub(crate) facility_remaining: UsdCents,
+    pub(crate) collateral: Satoshis,
+    pub(crate) disbursed: UsdCents,
+    pub(crate) not_yet_due_disbursed_outstanding: UsdCents,
+    pub(crate) due_disbursed_outstanding: UsdCents,
+    pub(crate) overdue_disbursed_outstanding: UsdCents,
+    pub(crate) disbursed_defaulted: UsdCents,
+    pub(crate) interest_posted: UsdCents,
+    pub(crate) not_yet_due_interest_outstanding: UsdCents,
+    pub(crate) due_interest_outstanding: UsdCents,
+    pub(crate) overdue_interest_outstanding: UsdCents,
+    pub(crate) interest_defaulted: UsdCents,
+    pub(crate) payments_unapplied: UsdCents,
+}
+
+// For testing we want to be able to construct the struct
+#[cfg(test)]
 #[derive(Debug, Default, Copy, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct CreditFacilityBalanceSummary {
@@ -27,6 +49,41 @@ pub struct CreditFacilityBalanceSummary {
 }
 
 impl CreditFacilityBalanceSummary {
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        facility: UsdCents,
+        facility_remaining: UsdCents,
+        collateral: Satoshis,
+        disbursed: UsdCents,
+        interest_posted: UsdCents,
+        not_yet_due_disbursed_outstanding: UsdCents,
+        due_disbursed_outstanding: UsdCents,
+        overdue_disbursed_outstanding: UsdCents,
+        disbursed_defaulted: UsdCents,
+        not_yet_due_interest_outstanding: UsdCents,
+        due_interest_outstanding: UsdCents,
+        overdue_interest_outstanding: UsdCents,
+        interest_defaulted: UsdCents,
+        payments_unapplied: UsdCents,
+    ) -> Self {
+        Self {
+            facility,
+            facility_remaining,
+            collateral,
+            disbursed,
+            not_yet_due_disbursed_outstanding,
+            due_disbursed_outstanding,
+            overdue_disbursed_outstanding,
+            disbursed_defaulted,
+            interest_posted,
+            not_yet_due_interest_outstanding,
+            due_interest_outstanding,
+            overdue_interest_outstanding,
+            interest_defaulted,
+            payments_unapplied,
+        }
+    }
+
     pub fn any_disbursed(&self) -> bool {
         !self.disbursed.is_zero()
     }
