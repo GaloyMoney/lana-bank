@@ -119,13 +119,14 @@ where
         collateral_id: CollateralId,
         pending_credit_facility_id: PendingCreditFacilityId,
         custody_wallet_id: Option<CustodyWalletId>,
-        account_id: CalaAccountId,
+        account_ids: crate::CollateralLedgerAccountIds,
     ) -> Result<Collateral, CollateralError> {
         let new_collateral = NewCollateral::builder()
             .id(collateral_id)
             .credit_facility_id(pending_credit_facility_id)
             .pending_credit_facility_id(pending_credit_facility_id)
-            .account_id(account_id)
+            .account_id(account_ids.collateral_account_id)
+            .account_ids(account_ids)
             .custody_wallet_id(custody_wallet_id)
             .build()
             .expect("all fields for new collateral provided");

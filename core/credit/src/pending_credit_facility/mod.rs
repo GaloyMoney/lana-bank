@@ -186,13 +186,17 @@ where
                     None
                 };
 
+                let collateral_account_ids =
+                    crate::CollateralLedgerAccountIds::from_pending_credit_facility_account_ids(
+                        new_pending_facility.account_ids,
+                    );
                 self.collaterals
                     .create_in_op(
                         &mut db,
                         new_pending_facility.collateral_id,
                         new_pending_facility.id,
                         wallet_id,
-                        new_pending_facility.account_ids.collateral_account_id,
+                        collateral_account_ids,
                     )
                     .await?;
 

@@ -8,6 +8,7 @@ use core_accounting::{EntityRef, LedgerTransactionInitiator};
 use es_entity::clock::ClockHandle;
 
 mod balance;
+mod collateral_accounts;
 mod constants;
 mod credit_facility_accounts;
 mod disbursal_accounts;
@@ -49,6 +50,7 @@ use crate::{
 };
 
 pub use balance::*;
+pub use collateral_accounts::*;
 use constants::*;
 pub use credit_facility_accounts::*;
 pub use disbursal_accounts::*;
@@ -1118,6 +1120,7 @@ impl CreditLedger {
         PendingCreditFacilityAccountIds {
             facility_account_id,
             collateral_account_id,
+            ..
         }: PendingCreditFacilityAccountIds,
     ) -> Result<PendingCreditFacilityBalanceSummary, CreditLedgerError> {
         let facility_id = (self.journal_id, facility_account_id, self.usd);
@@ -2095,6 +2098,7 @@ impl CreditLedger {
         let PendingCreditFacilityAccountIds {
             facility_account_id,
             collateral_account_id,
+            ..
         } = account_ids;
 
         let entity_ref = EntityRef::new(CREDIT_FACILITY_PROPOSAL_ENTITY_TYPE, credit_facility_id);
