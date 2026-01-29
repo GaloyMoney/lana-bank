@@ -341,7 +341,13 @@ impl LanaApp {
             .await?;
 
         self.audit
-            .list(query, subject_filter, authorized_filter, object_filter, action_filter)
+            .list(
+                query,
+                subject_filter,
+                authorized_filter,
+                object_filter,
+                action_filter,
+            )
             .await
             .map_err(ApplicationError::from)
     }
