@@ -104,5 +104,7 @@ Note: GraphQL APIs must be accessed through Oathkeeper (port 4455) which handles
 - Use `#[serde(rename_all = "camelCase")]` instead of manual field renames
 - Don't add `#[allow(dead_code)]`
 
-## Github
+## Git and Github
 - When checking github action (gh pr checks), use a timeout of 30m
+- Use conventional commits
+- Open draft PR by default
