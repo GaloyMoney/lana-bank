@@ -1,0 +1,55 @@
+name: PR Limit Enforcer
+on:
+  pull_request:
+    types: [opened, ready_for_review, reopened]
+
+jobs:
+  enforce-pr-limit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check open PR count and enforce limit
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MAX_PRS: "5"
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          # Count open non-draft PRs (excluding the current one to avoid race condition)
+          count=$(gh pr list --repo "$REPO" --state open --json number,isDraft \
+            --jq "[.[] | select(.isDraft == false and .number != $PR_NUMBER)] | length")
+
+          echo "Open non-draft PRs (excluding this one): $count"
+          echo "Limit: $MAX_PRS"
+
+          if [ "$count" -ge "$MAX_PRS" ]; then
+            echo "Limit reached. Converting PR #$PR_NUMBER to draft."
+
+            # Convert to draft
+            gh pr ready --undo "$PR_NUMBER" --repo "$REPO"
+
+            # Get list of current open PRs
+            open_prs=$(gh pr list --repo "$REPO" --state open --json number,title,author,isDraft \
+              --jq '.[] | select(.isDraft == false) | "- #\(.number) by @\(.author.login): \(.title)"')
+
+            # Post explanation comment
+            gh pr comment "$PR_NUMBER" --repo "$REPO" --body "## PR Queue Limit Reached
+
+          This PR has been automatically converted to **draft** because we've reached our team limit of **$MAX_PRS open PRs**.
+
+          ### Why do we have this limit?
+          To keep our review queue manageable and encourage faster iteration, we limit concurrent open PRs. This helps ensure PRs get reviewed and merged promptly rather than sitting idle.
+
+          ### What should I do?
+          1. **Help review** an existing open PR to get it merged
+          2. Once an open PR is merged or closed, mark this PR as \"Ready for review\"
+
+          ### Current open PRs
+          $open_prs
+
+          ---
+          *This is an automated message from the PR limit enforcer.*"
+
+            exit 0
+          fi
+
+          echo "Under limit. PR can proceed."
