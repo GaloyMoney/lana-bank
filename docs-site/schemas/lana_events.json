@@ -143,6 +143,19 @@
       "required": [
         "module"
       ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "module": {
+          "type": "string",
+          "const": "Time"
+        }
+      },
+      "$ref": "#/$defs/CoreTimeEvent",
+      "required": [
+        "module"
+      ]
     }
   ],
   "$defs": {
@@ -1048,27 +1061,17 @@
         {
           "type": "object",
           "properties": {
-            "changed_at": {
-              "type": "string",
-              "format": "date-time"
-            },
-            "id": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "new_balance": {
-              "$ref": "#/$defs/Satoshis"
+            "entity": {
+              "$ref": "#/$defs/PublicWallet"
             },
             "type": {
               "type": "string",
-              "const": "WalletBalanceChanged"
+              "const": "WalletBalanceUpdated"
             }
           },
           "required": [
             "type",
-            "id",
-            "new_balance",
-            "changed_at"
+            "entity"
           ]
         }
       ]
@@ -1078,15 +1081,8 @@
         {
           "type": "object",
           "properties": {
-            "customer_type": {
-              "$ref": "#/$defs/CustomerType"
-            },
-            "email": {
-              "type": "string"
-            },
-            "id": {
-              "type": "string",
-              "format": "uuid"
+            "entity": {
+              "$ref": "#/$defs/PublicCustomer"
             },
             "type": {
               "type": "string",
@@ -1095,45 +1091,30 @@
           },
           "required": [
             "type",
-            "id",
-            "email",
-            "customer_type"
+            "entity"
           ]
         },
         {
           "type": "object",
           "properties": {
-            "customer_type": {
-              "$ref": "#/$defs/CustomerType"
-            },
-            "id": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "kyc_verification": {
-              "$ref": "#/$defs/KycVerification"
+            "entity": {
+              "$ref": "#/$defs/PublicCustomer"
             },
             "type": {
               "type": "string",
-              "const": "CustomerAccountKycVerificationUpdated"
+              "const": "CustomerKycUpdated"
             }
           },
           "required": [
             "type",
-            "id",
-            "kyc_verification",
-            "customer_type"
+            "entity"
           ]
         },
         {
           "type": "object",
           "properties": {
-            "email": {
-              "type": "string"
-            },
-            "id": {
-              "type": "string",
-              "format": "uuid"
+            "entity": {
+              "$ref": "#/$defs/PublicCustomer"
             },
             "type": {
               "type": "string",
@@ -1142,8 +1123,7 @@
           },
           "required": [
             "type",
-            "id",
-            "email"
+            "entity"
           ]
         }
       ]
@@ -1325,6 +1305,36 @@
           "required": [
             "type",
             "id"
+          ]
+        }
+      ]
+    },
+    "CoreTimeEvent": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "closing_time": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "day": {
+              "type": "string",
+              "format": "date"
+            },
+            "timezone": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "const": "EndOfDay"
+            }
+          },
+          "required": [
+            "type",
+            "day",
+            "closing_time",
+            "timezone"
           ]
         }
       ]
@@ -1541,6 +1551,30 @@
     "PriceOfOneBTC": {
       "$ref": "#/$defs/UsdCents"
     },
+    "PublicCustomer": {
+      "type": "object",
+      "properties": {
+        "customer_type": {
+          "$ref": "#/$defs/CustomerType"
+        },
+        "email": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "kyc_verification": {
+          "$ref": "#/$defs/KycVerification"
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "customer_type",
+        "kyc_verification"
+      ]
+    },
     "PublicRole": {
       "type": "object",
       "properties": {
@@ -1576,6 +1610,36 @@
         "id",
         "email",
         "role_id"
+      ]
+    },
+    "PublicWallet": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "type": "string"
+        },
+        "balance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/WalletBalance"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "network": {
+          "$ref": "#/$defs/WalletNetwork"
+        }
+      },
+      "required": [
+        "id",
+        "address",
+        "network"
       ]
     },
     "Satoshis": {
@@ -1662,6 +1726,30 @@
       "type": "integer",
       "format": "uint64",
       "minimum": 0
+    },
+    "WalletBalance": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "$ref": "#/$defs/Satoshis"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "amount",
+        "updated_at"
+      ]
+    },
+    "WalletNetwork": {
+      "type": "string",
+      "enum": [
+        "Testnet3",
+        "Testnet4",
+        "Mainnet"
+      ]
     }
   }
 }
