@@ -2497,9 +2497,11 @@ export type QueryApprovalProcessesArgs = {
 
 
 export type QueryAuditArgs = {
+  action?: InputMaybe<Scalars['String']['input']>;
   after?: InputMaybe<Scalars['String']['input']>;
   authorized?: InputMaybe<Scalars['Boolean']['input']>;
   first: Scalars['Int']['input'];
+  object?: InputMaybe<Scalars['String']['input']>;
   subject?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -3348,6 +3350,8 @@ export type AuditLogsQueryVariables = Exact<{
   after?: InputMaybe<Scalars['String']['input']>;
   subject?: InputMaybe<Scalars['String']['input']>;
   authorized?: InputMaybe<Scalars['Boolean']['input']>;
+  object?: InputMaybe<Scalars['String']['input']>;
+  action?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
@@ -6034,8 +6038,15 @@ export type AllActionsLazyQueryHookResult = ReturnType<typeof useAllActionsLazyQ
 export type AllActionsSuspenseQueryHookResult = ReturnType<typeof useAllActionsSuspenseQuery>;
 export type AllActionsQueryResult = Apollo.QueryResult<AllActionsQuery, AllActionsQueryVariables>;
 export const AuditLogsDocument = gql`
-    query AuditLogs($first: Int!, $after: String, $subject: String, $authorized: Boolean) {
-  audit(first: $first, after: $after, subject: $subject, authorized: $authorized) {
+    query AuditLogs($first: Int!, $after: String, $subject: String, $authorized: Boolean, $object: String, $action: String) {
+  audit(
+    first: $first
+    after: $after
+    subject: $subject
+    authorized: $authorized
+    object: $object
+    action: $action
+  ) {
     edges {
       cursor
       node {
@@ -6086,6 +6097,8 @@ export const AuditLogsDocument = gql`
  *      after: // value for 'after'
  *      subject: // value for 'subject'
  *      authorized: // value for 'authorized'
+ *      object: // value for 'object'
+ *      action: // value for 'action'
  *   },
  * });
  */

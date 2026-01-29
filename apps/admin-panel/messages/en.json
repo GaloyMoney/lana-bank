@@ -2014,7 +2014,9 @@
       },
       "filters": {
         "allSubjects": "All Subjects",
-        "allAuthorized": "All"
+        "allAuthorized": "All",
+        "objectPlaceholder": "Filter by object",
+        "actionPlaceholder": "Filter by action"
       },
       "error": "An error occurred while fetching audit logs.",
       "emptyMessage": "No audit logs found."

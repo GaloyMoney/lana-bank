@@ -112,6 +112,8 @@ where
         _query: PaginatedQueryArgs<AuditCursor>,
         _subject_filter: Option<String>,
         _authorized_filter: Option<bool>,
+        _object_filter: Option<String>,
+        _action_filter: Option<String>,
     ) -> Result<
         PaginatedQueryRet<AuditEntry<Self::Subject, Self::Object, Self::Action>, AuditCursor>,
         AuditError,
