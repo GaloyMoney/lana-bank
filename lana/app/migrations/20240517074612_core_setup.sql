@@ -589,6 +589,7 @@ CREATE TABLE audit_entries (
 );
 
 CREATE INDEX idx_audit_entries_subject ON audit_entries(subject);
+CREATE INDEX idx_audit_entries_authorized ON audit_entries(authorized);
 
 CREATE TABLE core_credit_facility_histories (
   id UUID PRIMARY KEY REFERENCES core_credit_facility_proposals(id),
