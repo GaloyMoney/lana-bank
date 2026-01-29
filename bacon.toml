@@ -105,6 +105,12 @@ allow_warnings = true
 # a project, for example a shortcut to launch a specific job.
 # Shortcuts to internal functions (scrolling, toggling, etc.)
 # should go in your personal global prefs.toml file instead.
+# Run custom lints (dependency DAG, etc.)
+[jobs.lints]
+command = ["cargo", "run", "-p", "custom-lints", "--color", "always"]
+need_stdout = true
+
 [keybindings]
 # alt-m = "job:my-job"
 c = "job:clippy-all" # comment this to have 'c' run clippy on only the default target
+l = "job:lints"
