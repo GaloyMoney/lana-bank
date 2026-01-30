@@ -165,6 +165,38 @@
         echo "Updated $CHANGELOG_FILE with version $VERSION"
       '';
 
+      update-docs = pkgs.writeShellScriptBin "update-docs" ''
+        set -euo pipefail
+
+        if [ -z "''${1:-}" ]; then
+          echo "Usage: update-docs <version>"
+          echo "Example: update-docs 1.2.3"
+          exit 1
+        fi
+
+        VERSION="$1"
+
+        echo "=== Updating documentation for version $VERSION ==="
+
+        # Step 1: Generate public event schemas
+        echo "Generating public event schemas..."
+        SQLX_OFFLINE=true ${pkgs.cargo}/bin/cargo run --package public-events-schema --features json-schema
+
+        # Step 2: Run docs-autogenerate (generate API docs and events docs)
+        echo "Generating API and events documentation..."
+        cd docs-site
+        ${pkgs.nodejs}/bin/npm run generate-api-docs
+        ${pkgs.nodejs}/bin/npm run generate-events-docs
+
+        # Step 3: Create versioned docs snapshot
+        echo "Creating versioned docs snapshot for $VERSION..."
+        ${pkgs.nodejs}/bin/npx docusaurus docs:version "$VERSION"
+
+        cd ..
+
+        echo "=== Documentation updated for version $VERSION ==="
+      '';
+
       wait-cachix-paths = pkgs.writeShellScriptBin "wait-cachix-paths" ''
         set +e  # Don't exit on non-zero return codes
 
@@ -546,6 +578,10 @@
       apps.rebuild-nix-cache = {
         type = "app";
         program = "${rebuild-nix-cache}/bin/rebuild-nix-cache";
+      };
+      apps.update-docs = {
+        type = "app";
+        program = "${update-docs}/bin/update-docs";
       };
       # Also expose as default app
       apps.default = self.apps.${system}.check-latest-commit;
