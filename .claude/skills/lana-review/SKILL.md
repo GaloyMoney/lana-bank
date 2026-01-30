@@ -5,7 +5,7 @@ description: Review code changes against LANA Bank's DDD patterns, event sourcin
 
 # LANA Code Review
 
-Review code for DDD principles and architectural patterns that require human judgment.
+Review code for Hexagonal principles and architectural patterns that require human judgment.
 
 ## Review Scope
 
@@ -32,13 +32,20 @@ Exclude files listed in "Files to Ignore" from review.
 
 ## Review Checklist
 
-### 1. Logic Placement (Functional Core, Imperative Shell)
+### 1. Hexagonal
 
-The pattern separates code into two layers: a functional core that contains all business logic and decisions, and an imperative shell that handles all I/O and side effects.
+The basic code flow in the backend follows the following structure:
+- Adapter layer (can be GQL resolver, or a Job implementation run() fn)
+=> Where the execution begins -> calls the application layer (heuristic is 1 use case function is called from the adapter layer - never more)
+- An application layer use case generally has the structure:
+=> authorization / audit check (can be omitted if its an internal only use case) - load entity - mutate entity - persist entity
+=> if the use case is complex and needs to execute multiple things delegating to additional internal 'domain services' is advised. They have the same fractal structure - just with the authorization check omitted.
 
-**Core (entities in `entity.rs`):** Pure business logic and decisions. No I/O, no database calls, no external services. Given the same inputs, always produces the same outputs.
+The pattern separates code within the application into two roles: a functional core that contains all business logic and decisions, and an imperative shell that handles all I/O and side effects.
 
-**Shell (in `mod.rs` use cases, `repo.rs` repositories, GraphQL resolvers):** Orchestrates the core. Handles I/O, persistence, external calls. Contains no business rules - just loads data, calls entity methods, and persists results.
+**Core (entities in `entity.rs`):** Pure business logic and decisions. No I/O, no database calls, no external services. Given the same inputs, always produces the same outputs. Almost all conditional (if / else statements) should be here and unit tested.
+
+**Shell (in `mod.rs` use cases):** Orchestrates the core. Handles I/O, persistence, external calls. Contains no business rules - just loads data, calls entity methods, and persists results. There should be almost no conditionals in this code. Only if the use case truely branches but not to facilitate entity updates.
 
 Note: We don't enforce strict immutability - Rust's ownership already prevents shared mutable state issues.
 
@@ -72,10 +79,11 @@ Train wrecks violate encapsulation or hide business logic that should be explici
 ### 2. Entities & Event Sourcing
 
 **Entity rules:**
-- [ ] Mutations are idempotent, return `Idempotent<>` wrapper
+- [ ] Mutations are idempotent, return `Idempotent<>` wrapper or use `Result<Idempotent, _>` when pre-condition violation needs to be signaled
 - [ ] Queries (`&self`) never fail - cannot return `Result`
 - [ ] State modified only through events, never directly
 - [ ] Each aggregate is its own consistency boundary - avoid modifying multiple aggregates in one transaction
+- [ ] Entity mutations should have unit tests
 
 **Private events** (in `entity.rs`):
 - [ ] Small deltas tracking what changed
@@ -84,6 +92,7 @@ Train wrecks violate encapsulation or hide business logic that should be explici
 **Public events** (in `public/` subfolder):
 - [ ] Snapshot-like: include current values, not just deltas
 - [ ] Self-contained: consumers don't need history to understand state
+- [ ] Should be integration tested to document which use-case triggers which public event
 
 ### 3. Value Objects
 
@@ -93,6 +102,8 @@ Typically live in `primitives.rs`, but may live elsewhere if there's good reason
 - [ ] Equality by value, not identity
 - [ ] Encapsulate validation (e.g., `Amount` can't be negative)
 - [ ] No business logic beyond self-validation
+- [ ] Good place for entities to delegate business logic too as they are simpler to test (no need for state setup via event history as in entities)
+- [ ] Good for wrapping underlying primitive types (like `UsdCents(Decimal)`) to give domain specific meaning
 
 ### 4. Module Boundaries
 
