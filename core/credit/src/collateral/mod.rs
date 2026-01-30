@@ -12,6 +12,8 @@ use tracing_macros::record_error_severity;
 
 use authz::PermissionCheck;
 use core_accounting::LedgerTransactionInitiator;
+use core_custody::CoreCustodyEvent;
+use governance::GovernanceEvent;
 use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{CreditFacilityPublisher, event::CoreCreditEvent, primitives::*};
@@ -20,7 +22,9 @@ use ledger::CollateralLedger;
 
 pub use entity::Collateral;
 pub(super) use entity::*;
-use jobs::wallet_collateral_sync;
+use jobs::{
+    credit_facility_liquidations, liquidation_payment, partial_liquidation, wallet_collateral_sync,
+};
 
 #[cfg(feature = "json-schema")]
 pub use entity::CollateralEvent;
@@ -30,7 +34,9 @@ use repo::CollateralRepo;
 pub struct Collaterals<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     authz: Arc<Perms>,
     repo: Arc<CollateralRepo<E>>,
@@ -40,7 +46,9 @@ where
 impl<Perms, E> Clone for Collaterals<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -54,8 +62,11 @@ where
 impl<Perms, E> Collaterals<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<core_custody::CoreCustodyEvent>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
+    #[allow(clippy::too_many_arguments)]
     pub async fn init(
         pool: &sqlx::PgPool,
         authz: Arc<Perms>,
@@ -63,8 +74,11 @@ where
         ledger: Arc<CollateralLedger>,
         outbox: &Outbox<E>,
         jobs: &mut job::Jobs,
+        proceeds_omnibus_account_ids: &crate::LedgerOmnibusAccountIds,
+        credit_ledger: Arc<crate::CreditLedger>,
     ) -> Result<Self, CollateralError> {
-        let repo_arc = Arc::new(CollateralRepo::new(pool, publisher, jobs.clock().clone()));
+        let clock = jobs.clock().clone();
+        let repo_arc = Arc::new(CollateralRepo::new(pool, publisher, clock.clone()));
 
         let wallet_collateral_sync_job_spawner =
             jobs.add_initializer(wallet_collateral_sync::WalletCollateralSyncInit::new(
@@ -77,6 +91,51 @@ where
             .spawn_unique(
                 job::JobId::new(),
                 wallet_collateral_sync::WalletCollateralSyncJobConfig::new(),
+            )
+            .await?;
+
+        let liquidation_repo = Arc::new(crate::liquidation::LiquidationRepo::new(
+            pool,
+            publisher,
+            clock.clone(),
+        ));
+        let payment_repo = Arc::new(crate::payment::PaymentRepo::new(
+            pool,
+            publisher,
+            clock.clone(),
+        ));
+        let credit_facility_repo = Arc::new(crate::credit_facility::CreditFacilityRepo::new(
+            pool, publisher, clock,
+        ));
+
+        let partial_liquidation_job_spawner = jobs.add_initializer(
+            partial_liquidation::PartialLiquidationInit::new(outbox, liquidation_repo.clone()),
+        );
+
+        let liquidation_payment_job_spawner =
+            jobs.add_initializer(liquidation_payment::LiquidationPaymentInit::new(
+                outbox,
+                payment_repo,
+                credit_facility_repo,
+                credit_ledger,
+            ));
+
+        let credit_facility_liquidations_job_spawner = jobs.add_initializer(
+            credit_facility_liquidations::CreditFacilityLiquidationsInit::new(
+                outbox,
+                liquidation_repo,
+                proceeds_omnibus_account_ids,
+                partial_liquidation_job_spawner,
+                liquidation_payment_job_spawner,
+            ),
+        );
+
+        credit_facility_liquidations_job_spawner
+            .spawn_unique(
+                job::JobId::new(),
+                credit_facility_liquidations::CreditFacilityLiquidationsJobConfig {
+                    _phantom: std::marker::PhantomData,
+                },
             )
             .await?;
 

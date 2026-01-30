@@ -243,9 +243,7 @@ where
             ledger_arc.liquidation_proceeds_omnibus_account_ids(),
             authz_arc.clone(),
             &publisher,
-            jobs,
-            outbox,
-            ledger_arc.clone(),
+            clock.clone(),
         )
         .await?;
         let liquidations_arc = Arc::new(liquidations);
@@ -267,6 +265,8 @@ where
             collateral_ledger_arc.clone(),
             outbox,
             jobs,
+            ledger_arc.liquidation_proceeds_omnibus_account_ids(),
+            ledger_arc.clone(),
         )
         .await?;
         let collaterals_arc = Arc::new(collaterals);
