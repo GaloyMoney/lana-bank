@@ -330,6 +330,16 @@ export enum CollateralDirection {
   Remove = 'REMOVE'
 }
 
+export type CollateralRecordProceedsFromLiquidationInput = {
+  amount: Scalars['UsdCents']['input'];
+  collateralId: Scalars['UUID']['input'];
+};
+
+export type CollateralRecordProceedsFromLiquidationPayload = {
+  __typename?: 'CollateralRecordProceedsFromLiquidationPayload';
+  collateral: Collateral;
+};
+
 export type CollateralRecordSentToLiquidationInput = {
   amount: Scalars['Satoshis']['input'];
   collateralId: Scalars['UUID']['input'];
@@ -1749,16 +1759,6 @@ export type LiquidationProceedsReceived = {
   ledgerTxId: Scalars['UUID']['output'];
 };
 
-export type LiquidationRecordProceedsReceivedInput = {
-  amount: Scalars['UsdCents']['input'];
-  liquidationId: Scalars['UUID']['input'];
-};
-
-export type LiquidationRecordProceedsReceivedPayload = {
-  __typename?: 'LiquidationRecordProceedsReceivedPayload';
-  liquidation: Liquidation;
-};
-
 export type Loan = {
   __typename?: 'Loan';
   collateralToMatchInitialCvl?: Maybe<Scalars['Satoshis']['output']>;
@@ -1834,6 +1834,7 @@ export type Mutation = {
   chartOfAccountsAddRootNode: ChartOfAccountsAddRootNodePayload;
   chartOfAccountsCsvImport: ChartOfAccountsCsvImportPayload;
   chartOfAccountsCsvImportWithBaseConfig: ChartOfAccountsCsvImportWithBaseConfigPayload;
+  collateralRecordProceedsFromLiquidation: CollateralRecordProceedsFromLiquidationPayload;
   collateralRecordSentToLiquidation: CollateralRecordSentToLiquidationPayload;
   committeeAddUser: CommitteeAddUserPayload;
   committeeCreate: CommitteeCreatePayload;
@@ -1868,7 +1869,6 @@ export type Mutation = {
   fiscalYearInit: FiscalYearInitPayload;
   fiscalYearOpenNext: FiscalYearOpenNextPayload;
   ledgerAccountCsvCreate: LedgerAccountCsvCreatePayload;
-  liquidationRecordProceedsReceived: LiquidationRecordProceedsReceivedPayload;
   loanAgreementDownloadLinkGenerate: LoanAgreementDownloadLinksGeneratePayload;
   loanAgreementGenerate: LoanAgreementGeneratePayload;
   manualTransactionExecute: ManualTransactionExecutePayload;
@@ -1924,6 +1924,11 @@ export type MutationChartOfAccountsCsvImportArgs = {
 
 export type MutationChartOfAccountsCsvImportWithBaseConfigArgs = {
   input: ChartOfAccountsCsvImportWithBaseConfigInput;
+};
+
+
+export type MutationCollateralRecordProceedsFromLiquidationArgs = {
+  input: CollateralRecordProceedsFromLiquidationInput;
 };
 
 
@@ -2094,11 +2099,6 @@ export type MutationFiscalYearOpenNextArgs = {
 
 export type MutationLedgerAccountCsvCreateArgs = {
   input: LedgerAccountCsvCreateInput;
-};
-
-
-export type MutationLiquidationRecordProceedsReceivedArgs = {
-  input: LiquidationRecordProceedsReceivedInput;
 };
 
 
@@ -4311,18 +4311,12 @@ export type CollateralRecordSentToLiquidationMutationVariables = Exact<{
 
 export type CollateralRecordSentToLiquidationMutation = { __typename?: 'Mutation', collateralRecordSentToLiquidation: { __typename?: 'CollateralRecordSentToLiquidationPayload', collateral: { __typename?: 'Collateral', id: string, collateralId: string } } };
 
-export type LiquidationRecordProceedsReceivedMutationVariables = Exact<{
-  input: LiquidationRecordProceedsReceivedInput;
+export type CollateralRecordProceedsFromLiquidationMutationVariables = Exact<{
+  input: CollateralRecordProceedsFromLiquidationInput;
 }>;
 
 
-export type LiquidationRecordProceedsReceivedMutation = { __typename?: 'Mutation', liquidationRecordProceedsReceived: { __typename?: 'LiquidationRecordProceedsReceivedPayload', liquidation: { __typename?: 'Liquidation', id: string, liquidationId: string, creditFacilityId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: any, completed: boolean, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralId: string, publicId: any, status: CreditFacilityStatus, collateralizationState: CollateralizationState, facilityAmount: UsdCents, activatedAt: any, maturesAt: any, currentCvl:
-          | { __typename: 'FiniteCVLPct', value: any }
-          | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
-        , creditFacilityTerms: { __typename?: 'TermValues', liquidationCvl:
-            | { __typename: 'FiniteCVLPct', value: any }
-            | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
-           }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string } }, sentCollateral: Array<{ __typename?: 'LiquidationCollateralSent', amount: Satoshis, ledgerTxId: string }>, receivedProceeds: Array<{ __typename?: 'LiquidationProceedsReceived', amount: UsdCents, ledgerTxId: string }> } } };
+export type CollateralRecordProceedsFromLiquidationMutation = { __typename?: 'Mutation', collateralRecordProceedsFromLiquidation: { __typename?: 'CollateralRecordProceedsFromLiquidationPayload', collateral: { __typename?: 'Collateral', id: string, collateralId: string } } };
 
 export type LiquidationListFieldsFragment = { __typename?: 'Liquidation', id: string, liquidationId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: any, completed: boolean, creditFacility: { __typename?: 'CreditFacility', publicId: any } };
 
@@ -9855,41 +9849,42 @@ export function useCollateralRecordSentToLiquidationMutation(baseOptions?: Apoll
 export type CollateralRecordSentToLiquidationMutationHookResult = ReturnType<typeof useCollateralRecordSentToLiquidationMutation>;
 export type CollateralRecordSentToLiquidationMutationResult = Apollo.MutationResult<CollateralRecordSentToLiquidationMutation>;
 export type CollateralRecordSentToLiquidationMutationOptions = Apollo.BaseMutationOptions<CollateralRecordSentToLiquidationMutation, CollateralRecordSentToLiquidationMutationVariables>;
-export const LiquidationRecordProceedsReceivedDocument = gql`
-    mutation LiquidationRecordProceedsReceived($input: LiquidationRecordProceedsReceivedInput!) {
-  liquidationRecordProceedsReceived(input: $input) {
-    liquidation {
-      ...LiquidationDetails
+export const CollateralRecordProceedsFromLiquidationDocument = gql`
+    mutation CollateralRecordProceedsFromLiquidation($input: CollateralRecordProceedsFromLiquidationInput!) {
+  collateralRecordProceedsFromLiquidation(input: $input) {
+    collateral {
+      id
+      collateralId
     }
   }
 }
-    ${LiquidationDetailsFragmentDoc}`;
-export type LiquidationRecordProceedsReceivedMutationFn = Apollo.MutationFunction<LiquidationRecordProceedsReceivedMutation, LiquidationRecordProceedsReceivedMutationVariables>;
+    `;
+export type CollateralRecordProceedsFromLiquidationMutationFn = Apollo.MutationFunction<CollateralRecordProceedsFromLiquidationMutation, CollateralRecordProceedsFromLiquidationMutationVariables>;
 
 /**
- * __useLiquidationRecordProceedsReceivedMutation__
+ * __useCollateralRecordProceedsFromLiquidationMutation__
  *
- * To run a mutation, you first call `useLiquidationRecordProceedsReceivedMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useLiquidationRecordProceedsReceivedMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useCollateralRecordProceedsFromLiquidationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCollateralRecordProceedsFromLiquidationMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [liquidationRecordProceedsReceivedMutation, { data, loading, error }] = useLiquidationRecordProceedsReceivedMutation({
+ * const [collateralRecordProceedsFromLiquidationMutation, { data, loading, error }] = useCollateralRecordProceedsFromLiquidationMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useLiquidationRecordProceedsReceivedMutation(baseOptions?: Apollo.MutationHookOptions<LiquidationRecordProceedsReceivedMutation, LiquidationRecordProceedsReceivedMutationVariables>) {
+export function useCollateralRecordProceedsFromLiquidationMutation(baseOptions?: Apollo.MutationHookOptions<CollateralRecordProceedsFromLiquidationMutation, CollateralRecordProceedsFromLiquidationMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<LiquidationRecordProceedsReceivedMutation, LiquidationRecordProceedsReceivedMutationVariables>(LiquidationRecordProceedsReceivedDocument, options);
+        return Apollo.useMutation<CollateralRecordProceedsFromLiquidationMutation, CollateralRecordProceedsFromLiquidationMutationVariables>(CollateralRecordProceedsFromLiquidationDocument, options);
       }
-export type LiquidationRecordProceedsReceivedMutationHookResult = ReturnType<typeof useLiquidationRecordProceedsReceivedMutation>;
-export type LiquidationRecordProceedsReceivedMutationResult = Apollo.MutationResult<LiquidationRecordProceedsReceivedMutation>;
-export type LiquidationRecordProceedsReceivedMutationOptions = Apollo.BaseMutationOptions<LiquidationRecordProceedsReceivedMutation, LiquidationRecordProceedsReceivedMutationVariables>;
+export type CollateralRecordProceedsFromLiquidationMutationHookResult = ReturnType<typeof useCollateralRecordProceedsFromLiquidationMutation>;
+export type CollateralRecordProceedsFromLiquidationMutationResult = Apollo.MutationResult<CollateralRecordProceedsFromLiquidationMutation>;
+export type CollateralRecordProceedsFromLiquidationMutationOptions = Apollo.BaseMutationOptions<CollateralRecordProceedsFromLiquidationMutation, CollateralRecordProceedsFromLiquidationMutationVariables>;
 export const LiquidationsDocument = gql`
     query Liquidations($first: Int!, $after: String) {
   liquidations(first: $first, after: $after) {
