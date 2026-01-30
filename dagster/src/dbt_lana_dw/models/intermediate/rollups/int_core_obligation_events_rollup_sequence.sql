@@ -24,8 +24,8 @@ with
             cast(defaulted_amount as numeric)
             / {{ var("cents_per_usd") }} as defaulted_amount_usd,
 
-            current_timestamp() >= cast(due_date as timestamp)
-            and current_timestamp() >= cast(overdue_date__v_text as timestamp)
+            current_timestamp() >= due_date
+            and current_timestamp() >= overdue_date
             and not is_completed
             and not is_defaulted_recorded
             and cast(amount as numeric) > 0 as overdue,
@@ -37,17 +37,14 @@ with
                 then 0
                 else 1
             end * greatest(
-                timestamp_diff(
-                    current_timestamp(), cast(overdue_date__v_text as timestamp), day
-                ),
-                0
+                timestamp_diff(current_timestamp(), overdue_date, day), 0
             ) as overdue_days,
 
-            cast(due_date as timestamp) as due_date,
-            cast(overdue_date__v_text as timestamp) as overdue_date,
-            cast(liquidation_date__v_text as timestamp) as liquidation_date,
+            due_date,
+            overdue_date,
+            liquidation_date,
             -- cast(defaulted_date as timestamp) as defaulted_date, -- TODO: fixme
-            cast(overdue_date__v_text as timestamp) as defaulted_date,
+            overdue_date as defaulted_date,
             is_due_recorded,
             is_overdue_recorded,
             is_defaulted_recorded,

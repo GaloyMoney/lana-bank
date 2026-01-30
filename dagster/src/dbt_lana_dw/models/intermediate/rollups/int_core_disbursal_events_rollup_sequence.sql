@@ -19,8 +19,8 @@ with
             is_settled,
             is_cancelled,
             cast(due_date as timestamp) as due_date,
-            cast(overdue_date__v_text as timestamp) as overdue_date,
-            cast(liquidation_date__v_text as timestamp) as liquidation_date,
+            overdue_date,
+            liquidation_date,
             created_at as disbursal_created_at,
             modified_at as disbursal_modified_at,
 

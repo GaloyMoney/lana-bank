@@ -87,11 +87,10 @@ with
             cast(collateral as numeric) as collateral_amount_sats,
             cast(collateral as numeric)
             / {{ var("sats_per_bitcoin") }} as collateral_amount_btc,
-            cast(price__v_bigint as numeric)
-            / {{ var("cents_per_usd") }} as price_usd_per_btc,
+            price / {{ var("cents_per_usd") }} as price_usd_per_btc,
             cast(collateral as numeric)
             / {{ var("sats_per_bitcoin") }}
-            * cast(price__v_bigint as numeric)
+            * price
             / {{ var("cents_per_usd") }} as collateral_amount_usd,
             -- cast(collateralization_ratio as numeric) as collateralization_ratio,
             collateralization_state,
