@@ -79,7 +79,7 @@ Train wrecks violate encapsulation or hide business logic that should be explici
 ### 2. Entities & Event Sourcing
 
 **Entity rules:**
-- [ ] Mutations are idempotent, return `Idempotent<>` wrapper. Use `Result<Idempotent, _>` when pre-condition violation needs to be signaled.
+- [ ] Mutations are idempotent, return `Idempotent<>` wrapper or use `Result<Idempotent, _>` when pre-condition violation needs to be signaled
 - [ ] Queries (`&self`) never fail - cannot return `Result`
 - [ ] State modified only through events, never directly
 - [ ] Each aggregate is its own consistency boundary - avoid modifying multiple aggregates in one transaction
