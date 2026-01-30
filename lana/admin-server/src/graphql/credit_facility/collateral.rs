@@ -13,6 +13,13 @@ pub struct CollateralLiquidationRecordCollateralSentInput {
 }
 crate::mutation_payload! { CollateralLiquidationRecordCollateralSentPayload, collateral: Collateral }
 
+#[derive(InputObject)]
+pub struct CollateralLiquidationRecordProceedsReceivedInput {
+    pub collateral_id: UUID,
+    pub amount: UsdCents,
+}
+crate::mutation_payload! { CollateralLiquidationRecordProceedsReceivedPayload, collateral: Collateral }
+
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct Collateral {

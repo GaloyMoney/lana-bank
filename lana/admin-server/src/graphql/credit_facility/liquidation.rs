@@ -20,13 +20,6 @@ pub struct Liquidation {
     pub entity: Arc<DomainLiquidation>,
 }
 
-#[derive(InputObject)]
-pub struct LiquidationRecordProceedsReceivedInput {
-    pub liquidation_id: UUID,
-    pub amount: UsdCents,
-}
-crate::mutation_payload! { LiquidationRecordProceedsReceivedPayload, liquidation: Liquidation }
-
 impl From<DomainLiquidation> for Liquidation {
     fn from(liquidation: DomainLiquidation) -> Self {
         Self {
