@@ -118,7 +118,8 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .id;
 
     deposit
-        .set_chart_of_accounts_integration_config(
+        .chart_of_accounts_integrations()
+        .set_config(
             &DummySubject,
             &chart,
             ChartOfAccountsIntegrationConfig {
@@ -206,7 +207,8 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .await?;
 
     let res = deposit
-        .set_chart_of_accounts_integration_config(
+        .chart_of_accounts_integrations()
+        .set_config(
             &DummySubject,
             &chart,
             ChartOfAccountsIntegrationConfig {
@@ -248,7 +250,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
 
     assert!(matches!(
         res,
-        Err(core_deposit::error::CoreDepositError::DepositConfigAlreadyExists)
+        Err(core_deposit::ChartOfAccountsIntegrationError::ConfigAlreadyExists)
     ));
 
     Ok(())
