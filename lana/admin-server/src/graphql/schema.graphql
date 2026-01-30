@@ -1753,7 +1753,7 @@ type LiquidationProceedsReceived {
 }
 
 input LiquidationRecordCollateralSentInput {
-	liquidationId: UUID!
+	collateralId: UUID!
 	amount: Satoshis!
 }
 
