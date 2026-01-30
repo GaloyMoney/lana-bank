@@ -7,6 +7,6 @@ pub use entity::{NewReport, Report, ReportFile};
 #[cfg(feature = "json-schema")]
 pub use entity::ReportEvent;
 pub use error::ReportError;
-pub(super) use repo::ReportRepo;
+pub use repo::ReportRepo;
 
 pub use repo::report_cursor::*;

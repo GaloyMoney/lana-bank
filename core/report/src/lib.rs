@@ -20,11 +20,12 @@ use tracing_macros::*;
 
 pub use config::*;
 pub use error::ReportError;
+pub use jobs::SyncReportsJobRunner;
 pub use primitives::*;
 pub use public::*;
+pub use publisher::ReportPublisher;
 
 use cloud_storage::Storage;
-use publisher::ReportPublisher;
 
 use jobs::{
     SyncReportsJobConfig, SyncReportsJobInit, SyncReportsJobSpawner, TriggerReportRunJobConfig,

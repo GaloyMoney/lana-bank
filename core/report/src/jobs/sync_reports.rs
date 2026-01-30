@@ -90,11 +90,11 @@ where
         _: JobSpawner<Self::Config>,
     ) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         let _config: SyncReportsJobConfig<E> = job.config()?;
-        Ok(Box::new(SyncReportsJobRunner {
-            dagster: self.dagster.clone(),
-            report_runs: self.report_runs.clone(),
-            reports: self.reports.clone(),
-        }))
+        Ok(Box::new(SyncReportsJobRunner::new(
+            self.dagster.clone(),
+            self.report_runs.clone(),
+            self.reports.clone(),
+        )))
     }
 
     fn retry_on_error_settings(&self) -> RetrySettings {
@@ -155,9 +155,21 @@ impl<E> SyncReportsJobRunner<E>
 where
     E: OutboxEventMarker<CoreReportEvent> + Send + Sync + 'static,
 {
+    pub fn new(
+        dagster: dagster::Dagster,
+        report_runs: ReportRunRepo<E>,
+        reports: ReportRepo,
+    ) -> Self {
+        Self {
+            dagster,
+            report_runs,
+            reports,
+        }
+    }
+
     /// Syncs a single Dagster run to the local database.
     /// Creates or updates the report run record and syncs associated reports if finished.
-    async fn sync_run(
+    pub async fn sync_run(
         &self,
         run_result: &dagster::graphql_client::RunResult,
     ) -> Result<(), Box<dyn std::error::Error>> {
