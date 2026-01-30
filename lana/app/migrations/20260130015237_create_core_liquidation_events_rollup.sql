@@ -10,7 +10,7 @@ CREATE TABLE core_liquidation_events_rollup (
   collateral_id UUID,
   collateral_in_liquidation_account_id UUID,
   credit_facility_id UUID,
-  current_price JSONB,
+  current_price BIGINT,
   expected_to_receive BIGINT,
   facility_payment_holding_account_id UUID,
   facility_proceeds_from_liquidation_account_id UUID,
@@ -23,7 +23,7 @@ CREATE TABLE core_liquidation_events_rollup (
   outstanding BIGINT,
   payment_id UUID,
   to_liquidate_at_current_price BIGINT,
-  trigger_price JSONB,
+  trigger_price BIGINT,
 
   -- Toggle fields
   is_completed BOOLEAN DEFAULT false
@@ -66,7 +66,7 @@ BEGIN
     new_row.collateral_id := (NEW.event ->> 'collateral_id')::UUID;
     new_row.collateral_in_liquidation_account_id := (NEW.event ->> 'collateral_in_liquidation_account_id')::UUID;
     new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
-    new_row.current_price := (NEW.event -> 'current_price');
+    new_row.current_price := (NEW.event ->> 'current_price')::BIGINT;
     new_row.expected_to_receive := (NEW.event ->> 'expected_to_receive')::BIGINT;
     new_row.facility_payment_holding_account_id := (NEW.event ->> 'facility_payment_holding_account_id')::UUID;
     new_row.facility_proceeds_from_liquidation_account_id := (NEW.event ->> 'facility_proceeds_from_liquidation_account_id')::UUID;
@@ -80,7 +80,7 @@ BEGIN
     new_row.outstanding := (NEW.event ->> 'outstanding')::BIGINT;
     new_row.payment_id := (NEW.event ->> 'payment_id')::UUID;
     new_row.to_liquidate_at_current_price := (NEW.event ->> 'to_liquidate_at_current_price')::BIGINT;
-    new_row.trigger_price := (NEW.event -> 'trigger_price');
+    new_row.trigger_price := (NEW.event ->> 'trigger_price')::BIGINT;
   ELSE
     -- Default all fields to current values
     new_row.amount := current_row.amount;
@@ -119,9 +119,9 @@ BEGIN
       new_row.initially_expected_to_receive := (NEW.event ->> 'initially_expected_to_receive')::BIGINT;
       new_row.liquidated_collateral_account_id := (NEW.event ->> 'liquidated_collateral_account_id')::UUID;
       new_row.liquidation_proceeds_omnibus_account_id := (NEW.event ->> 'liquidation_proceeds_omnibus_account_id')::UUID;
-      new_row.trigger_price := (NEW.event -> 'trigger_price');
+      new_row.trigger_price := (NEW.event ->> 'trigger_price')::BIGINT;
     WHEN 'updated' THEN
-      new_row.current_price := (NEW.event -> 'current_price');
+      new_row.current_price := (NEW.event ->> 'current_price')::BIGINT;
       new_row.expected_to_receive := (NEW.event ->> 'expected_to_receive')::BIGINT;
       new_row.outstanding := (NEW.event ->> 'outstanding')::BIGINT;
       new_row.to_liquidate_at_current_price := (NEW.event ->> 'to_liquidate_at_current_price')::BIGINT;

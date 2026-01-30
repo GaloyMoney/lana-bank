@@ -9,14 +9,14 @@ CREATE TABLE core_obligation_events_rollup (
   credit_facility_id UUID,
   defaulted_account_id UUID,
   defaulted_amount BIGINT,
-  defaulted_date JSONB,
+  defaulted_date TIMESTAMPTZ,
   due_amount BIGINT,
-  due_date VARCHAR,
+  due_date TIMESTAMPTZ,
   effective VARCHAR,
-  liquidation_date JSONB,
+  liquidation_date TIMESTAMPTZ,
   obligation_type VARCHAR,
   overdue_amount BIGINT,
-  overdue_date JSONB,
+  overdue_date TIMESTAMPTZ,
   payment_allocation_amount BIGINT,
   payment_id UUID,
   receivable_account_ids JSONB,
@@ -69,9 +69,9 @@ BEGIN
     new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
     new_row.defaulted_account_id := (NEW.event ->> 'defaulted_account_id')::UUID;
     new_row.defaulted_amount := (NEW.event ->> 'defaulted_amount')::BIGINT;
-    new_row.defaulted_date := (NEW.event -> 'defaulted_date');
+    new_row.defaulted_date := (NEW.event ->> 'defaulted_date')::TIMESTAMPTZ;
     new_row.due_amount := (NEW.event ->> 'due_amount')::BIGINT;
-    new_row.due_date := (NEW.event ->> 'due_date');
+    new_row.due_date := (NEW.event ->> 'due_date')::TIMESTAMPTZ;
     new_row.effective := (NEW.event ->> 'effective');
     new_row.is_completed := false;
     new_row.is_defaulted_recorded := false;
@@ -83,10 +83,10 @@ BEGIN
        ELSE ARRAY[]::UUID[]
      END
 ;
-    new_row.liquidation_date := (NEW.event -> 'liquidation_date');
+    new_row.liquidation_date := (NEW.event ->> 'liquidation_date')::TIMESTAMPTZ;
     new_row.obligation_type := (NEW.event ->> 'obligation_type');
     new_row.overdue_amount := (NEW.event ->> 'overdue_amount')::BIGINT;
-    new_row.overdue_date := (NEW.event -> 'overdue_date');
+    new_row.overdue_date := (NEW.event ->> 'overdue_date')::TIMESTAMPTZ;
     new_row.payment_allocation_amount := (NEW.event ->> 'payment_allocation_amount')::BIGINT;
     new_row.payment_allocation_ids := CASE
        WHEN NEW.event ? 'payment_allocation_ids' THEN
@@ -129,13 +129,13 @@ BEGIN
       new_row.amount := (NEW.event ->> 'amount')::BIGINT;
       new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
       new_row.defaulted_account_id := (NEW.event ->> 'defaulted_account_id')::UUID;
-      new_row.defaulted_date := (NEW.event -> 'defaulted_date');
-      new_row.due_date := (NEW.event ->> 'due_date');
+      new_row.defaulted_date := (NEW.event ->> 'defaulted_date')::TIMESTAMPTZ;
+      new_row.due_date := (NEW.event ->> 'due_date')::TIMESTAMPTZ;
       new_row.effective := (NEW.event ->> 'effective');
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
-      new_row.liquidation_date := (NEW.event -> 'liquidation_date');
+      new_row.liquidation_date := (NEW.event ->> 'liquidation_date')::TIMESTAMPTZ;
       new_row.obligation_type := (NEW.event ->> 'obligation_type');
-      new_row.overdue_date := (NEW.event -> 'overdue_date');
+      new_row.overdue_date := (NEW.event ->> 'overdue_date')::TIMESTAMPTZ;
       new_row.receivable_account_ids := (NEW.event -> 'receivable_account_ids');
       new_row.reference := (NEW.event ->> 'reference');
     WHEN 'due_recorded' THEN
