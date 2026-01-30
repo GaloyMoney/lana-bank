@@ -79,6 +79,10 @@ impl Role {
     pub fn permission_sets(&self) -> &HashSet<PermissionSetId> {
         &self.permission_sets
     }
+
+    pub fn is_superuser(&self) -> bool {
+        self.name == crate::primitives::ROLE_NAME_SUPERUSER
+    }
 }
 
 impl TryFromEvents<RoleEvent> for Role {

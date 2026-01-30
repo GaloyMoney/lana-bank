@@ -107,7 +107,7 @@ where
         let role_id = role_id.into();
         let role = self.roles.find_by_id(role_id).await?;
 
-        if role.name == ROLE_NAME_SUPERUSER {
+        if role.is_superuser() {
             return Err(CoreAccessError::AuthorizationError(
                 authz::error::AuthorizationError::NotAuthorized,
             ));
@@ -304,7 +304,7 @@ where
 
         let role = self.roles.find_by_id(role_id).await?;
 
-        if role.name == ROLE_NAME_SUPERUSER {
+        if role.is_superuser() {
             return Err(CoreAccessError::AuthorizationError(
                 authz::error::AuthorizationError::NotAuthorized,
             ));
