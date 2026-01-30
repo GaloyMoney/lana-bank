@@ -25,7 +25,7 @@ use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use core_accounting::LedgerTransactionInitiator;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerObject, Customers};
-use domain_config::ExposedDomainConfigsReadOnly;
+use domain_config::{ExposedDomainConfigsReadOnly, InternalDomainConfigs};
 use governance::{Governance, GovernanceEvent};
 use job::Jobs;
 use obix::out::{Outbox, OutboxEventMarker};
@@ -132,6 +132,7 @@ where
         public_ids: &PublicIds,
         customers: &Customers<Perms, E>,
         domain_configs: &ExposedDomainConfigsReadOnly,
+        internal_domain_configs: &InternalDomainConfigs,
     ) -> Result<Self, CoreDepositError> {
         let clock = jobs.clock().clone();
 
@@ -143,6 +144,7 @@ where
         let withdrawals = WithdrawalRepo::new(pool, &publisher, clock.clone());
         let ledger = DepositLedger::init(cala, journal_id, clock.clone()).await?;
         let ledger_arc = Arc::new(ledger);
+        let internal_domain_configs_arc = Arc::new(internal_domain_configs.clone());
 
         let approve_withdrawal =
             ApproveWithdrawal::new(&withdrawals, authz.audit(), governance, ledger_arc.as_ref());
@@ -159,8 +161,11 @@ where
 
         governance.init_policy(APPROVE_WITHDRAWAL_PROCESS).await?;
 
-        let chart_of_accounts_integrations =
-            ChartOfAccountsIntegrations::new(authz_arc.clone(), ledger_arc.clone());
+        let chart_of_accounts_integrations = ChartOfAccountsIntegrations::new(
+            authz_arc.clone(),
+            ledger_arc.clone(),
+            internal_domain_configs_arc.clone(),
+        );
         let chart_of_accounts_integrations_arc = Arc::new(chart_of_accounts_integrations);
 
         let res = Self {

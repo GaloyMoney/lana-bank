@@ -6,6 +6,7 @@ use std::sync::Arc;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_accounting::Chart;
+use domain_config::InternalDomainConfigs;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
@@ -21,6 +22,7 @@ where
 {
     authz: Arc<Perms>,
     ledger: Arc<DepositLedger>,
+    domain_configs: Arc<InternalDomainConfigs>,
 }
 
 impl<Perms> Clone for ChartOfAccountsIntegrations<Perms>
@@ -31,6 +33,7 @@ where
         Self {
             authz: self.authz.clone(),
             ledger: self.ledger.clone(),
+            domain_configs: self.domain_configs.clone(),
         }
     }
 }
@@ -41,8 +44,16 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreDepositAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreDepositObject>,
 {
-    pub fn new(authz: Arc<Perms>, ledger: Arc<DepositLedger>) -> Self {
-        Self { authz, ledger }
+    pub fn new(
+        authz: Arc<Perms>,
+        ledger: Arc<DepositLedger>,
+        domain_configs: Arc<InternalDomainConfigs>,
+    ) -> Self {
+        Self {
+            authz,
+            ledger,
+            domain_configs,
+        }
     }
 
     #[record_error_severity]
@@ -58,10 +69,11 @@ where
                 CoreDepositAction::CHART_OF_ACCOUNTS_INTEGRATION_CONFIG_READ,
             )
             .await?;
-        Ok(self
-            .ledger
-            .get_chart_of_accounts_integration_config()
-            .await?)
+        let config = self
+            .domain_configs
+            .get::<ResolvedChartOfAccountsIntegrationConfig>()
+            .await?;
+        Ok(config.maybe_value().map(|meta| meta.config))
     }
 
     #[record_error_severity]
@@ -75,8 +87,7 @@ where
         chart: &Chart,
         config: ChartOfAccountsIntegrationConfig,
     ) -> Result<ChartOfAccountsIntegrationConfig, ChartOfAccountsIntegrationError> {
-        let audit_info = self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 CoreDepositObject::chart_of_accounts_integration(),
@@ -88,26 +99,44 @@ where
             return Err(ChartOfAccountsIntegrationError::ChartIdMismatch);
         }
 
+        let existing_module_config = self
+            .domain_configs
+            .get::<ResolvedChartOfAccountsIntegrationConfig>()
+            .await?;
+
+        if let Some(existing) = existing_module_config
+            .maybe_value()
+            .filter(|existing| existing.config == config)
+        {
+            return Ok(existing.config);
+        }
+
         if chart.accounting_base_config().is_none() {
             return Err(ChartOfAccountsIntegrationError::AccountingBaseConfigNotFound);
         }
 
-        if self
-            .ledger
-            .get_chart_of_accounts_integration_config()
-            .await?
-            .is_some()
-        {
-            return Err(ChartOfAccountsIntegrationError::ConfigAlreadyExists);
-        }
-
         let resolved_integration_config =
-            ResolvedChartOfAccountsIntegrationConfig::try_new(config.clone(), chart, audit_info)?;
+            ResolvedChartOfAccountsIntegrationConfig::try_new(config, chart)?;
 
-        self.ledger
-            .attach_chart_of_accounts_account_sets(resolved_integration_config)
+        let mut op = self.domain_configs.begin_op().await?;
+        self.domain_configs
+            .update_in_op::<ResolvedChartOfAccountsIntegrationConfig>(
+                &mut op,
+                resolved_integration_config.clone(),
+            )
             .await?;
 
-        Ok(config)
+        let mut op = op.with_db_time().await?;
+        self.ledger
+            .attach_chart_of_accounts_account_sets_in_op(
+                &mut op,
+                &resolved_integration_config,
+                existing_module_config.maybe_value().as_ref(),
+            )
+            .await?;
+
+        op.commit().await?;
+
+        Ok(resolved_integration_config.config)
     }
 }

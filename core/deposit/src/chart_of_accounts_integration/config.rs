@@ -1,11 +1,11 @@
 use serde::{Deserialize, Serialize};
 
-use audit::AuditInfo;
 use core_accounting::{AccountCategory, AccountCode, CalaAccountSetId, Chart, ChartId};
+use domain_config::define_internal_config;
 
 use super::error::ChartOfAccountsIntegrationError;
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct ChartOfAccountsIntegrationConfig {
     pub chart_of_accounts_id: ChartId,
     pub chart_of_accounts_omnibus_parent_code: AccountCode,
@@ -23,35 +23,39 @@ pub struct ChartOfAccountsIntegrationConfig {
     pub chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code: AccountCode,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub(crate) struct ResolvedChartOfAccountsIntegrationConfig {
-    pub(crate) config: ChartOfAccountsIntegrationConfig,
-    pub(crate) audit_info: AuditInfo,
+define_internal_config! {
+    #[derive(Serialize, Deserialize, Clone, Debug)]
+    pub(crate) struct ResolvedChartOfAccountsIntegrationConfig {
+        pub(crate) config: ChartOfAccountsIntegrationConfig,
 
-    pub(crate) omnibus_parent_account_set_id: CalaAccountSetId,
+        pub(crate) omnibus_parent_account_set_id: CalaAccountSetId,
 
-    pub(crate) individual_deposit_accounts_parent_account_set_id: CalaAccountSetId,
-    pub(crate) government_entity_deposit_accounts_parent_account_set_id: CalaAccountSetId,
-    pub(crate) private_company_deposit_accounts_parent_account_set_id: CalaAccountSetId,
-    pub(crate) bank_deposit_accounts_parent_account_set_id: CalaAccountSetId,
-    pub(crate) financial_institution_deposit_accounts_parent_account_set_id: CalaAccountSetId,
-    pub(crate) non_domiciled_individual_deposit_accounts_parent_account_set_id: CalaAccountSetId,
+        pub(crate) individual_deposit_accounts_parent_account_set_id: CalaAccountSetId,
+        pub(crate) government_entity_deposit_accounts_parent_account_set_id: CalaAccountSetId,
+        pub(crate) private_company_deposit_accounts_parent_account_set_id: CalaAccountSetId,
+        pub(crate) bank_deposit_accounts_parent_account_set_id: CalaAccountSetId,
+        pub(crate) financial_institution_deposit_accounts_parent_account_set_id: CalaAccountSetId,
+        pub(crate) non_domiciled_individual_deposit_accounts_parent_account_set_id: CalaAccountSetId,
 
-    pub(crate) frozen_individual_deposit_accounts_parent_account_set_id: CalaAccountSetId,
-    pub(crate) frozen_government_entity_deposit_accounts_parent_account_set_id: CalaAccountSetId,
-    pub(crate) frozen_private_company_deposit_accounts_parent_account_set_id: CalaAccountSetId,
-    pub(crate) frozen_bank_deposit_accounts_parent_account_set_id: CalaAccountSetId,
-    pub(crate) frozen_financial_institution_deposit_accounts_parent_account_set_id:
-        CalaAccountSetId,
-    pub(crate) frozen_non_domiciled_individual_deposit_accounts_parent_account_set_id:
-        CalaAccountSetId,
+        pub(crate) frozen_individual_deposit_accounts_parent_account_set_id: CalaAccountSetId,
+        pub(crate) frozen_government_entity_deposit_accounts_parent_account_set_id: CalaAccountSetId,
+        pub(crate) frozen_private_company_deposit_accounts_parent_account_set_id: CalaAccountSetId,
+        pub(crate) frozen_bank_deposit_accounts_parent_account_set_id: CalaAccountSetId,
+        pub(crate) frozen_financial_institution_deposit_accounts_parent_account_set_id:
+            CalaAccountSetId,
+        pub(crate) frozen_non_domiciled_individual_deposit_accounts_parent_account_set_id:
+            CalaAccountSetId,
+    }
+
+    spec {
+        key: "deposit-chart-of-accounts-integration";
+    }
 }
 
 impl ResolvedChartOfAccountsIntegrationConfig {
     pub(super) fn try_new(
         config: ChartOfAccountsIntegrationConfig,
         chart: &Chart,
-        audit_info: AuditInfo,
     ) -> Result<Self, ChartOfAccountsIntegrationError> {
         let asset_account_set_member_parent_id =
             |code: &AccountCode| -> Result<CalaAccountSetId, ChartOfAccountsIntegrationError> {
@@ -126,7 +130,7 @@ impl ResolvedChartOfAccountsIntegrationConfig {
             asset_account_set_member_parent_id(&config.chart_of_accounts_omnibus_parent_code)?;
         Ok(Self {
             config,
-            audit_info,
+
             omnibus_parent_account_set_id,
             individual_deposit_accounts_parent_account_set_id,
             government_entity_deposit_accounts_parent_account_set_id,

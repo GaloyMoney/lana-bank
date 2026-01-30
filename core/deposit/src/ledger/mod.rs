@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
@@ -13,7 +12,7 @@ mod velocity;
 use cala_ledger::{
     CalaLedger, Currency, DebitOrCredit, JournalId, TransactionId,
     account::*,
-    account_set::{AccountSet, AccountSetMemberId, AccountSetUpdate, NewAccountSet},
+    account_set::{AccountSetMemberId, NewAccountSet},
     tx_template::Params,
     velocity::{NewVelocityControl, VelocityControlId},
 };
@@ -21,9 +20,7 @@ use cala_ledger::{
 use crate::{
     DepositAccount, DepositAccountBalance, DepositReversalData, LedgerOmnibusAccountIds,
     WithdrawalReversalData,
-    chart_of_accounts_integration::{
-        ChartOfAccountsIntegrationConfig, ResolvedChartOfAccountsIntegrationConfig,
-    },
+    chart_of_accounts_integration::ResolvedChartOfAccountsIntegrationConfig,
     primitives::{
         CalaAccountId, CalaAccountSetId, DEPOSIT_ACCOUNT_ENTITY_TYPE, DepositAccountType,
         DepositId, UsdCents, WithdrawalId,
@@ -94,23 +91,6 @@ pub struct DepositAccountSets {
     bank: InternalAccountSetDetails,
     financial_institution: InternalAccountSetDetails,
     non_domiciled_individual: InternalAccountSetDetails,
-}
-
-impl DepositAccountSets {
-    fn account_set_ids(&self) -> Vec<CalaAccountSetId> {
-        vec![
-            self.individual.id,
-            self.government_entity.id,
-            self.private_company.id,
-            self.bank.id,
-            self.financial_institution.id,
-            self.non_domiciled_individual.id,
-        ]
-    }
-
-    fn account_set_id_for_config(&self) -> CalaAccountSetId {
-        self.individual.id
-    }
 }
 
 #[derive(Clone)]
@@ -1068,99 +1048,43 @@ impl DepositLedger {
     }
 
     #[record_error_severity]
-    #[instrument(
-        name = "deposit_ledger.get_chart_of_accounts_integration_config",
-        skip(self)
-    )]
-    pub async fn get_chart_of_accounts_integration_config(
-        &self,
-    ) -> Result<Option<ChartOfAccountsIntegrationConfig>, DepositLedgerError> {
-        let account_set = self
-            .cala
-            .account_sets()
-            .find(self.deposit_account_sets.account_set_id_for_config())
-            .await?;
-        if let Some(meta) = account_set.values().metadata.as_ref() {
-            let meta: ResolvedChartOfAccountsIntegrationConfig =
-                serde_json::from_value(meta.clone()).expect("Could not deserialize metadata");
-            Ok(Some(meta.config))
-        } else {
-            Ok(None)
-        }
-    }
-
-    #[record_error_severity]
     #[instrument(name = "deposit_ledger.attach_charts_account_set", skip_all)]
-    async fn attach_charts_account_set<F>(
+    async fn attach_charts_account_set(
         &self,
         op: &mut es_entity::DbOpWithTime<'_>,
-        account_sets: &mut HashMap<CalaAccountSetId, AccountSet>,
         internal_account_set_id: CalaAccountSetId,
-        parent_account_set_id: CalaAccountSetId,
-        new_meta: &ResolvedChartOfAccountsIntegrationConfig,
-        old_parent_id_getter: F,
-    ) -> Result<(), DepositLedgerError>
-    where
-        F: FnOnce(ResolvedChartOfAccountsIntegrationConfig) -> CalaAccountSetId,
-    {
-        let mut internal_account_set = account_sets
-            .remove(&internal_account_set_id)
-            .expect("internal account set not found");
-
-        if let Some(old_meta) = internal_account_set.values().metadata.as_ref() {
-            let old_meta: ResolvedChartOfAccountsIntegrationConfig =
-                serde_json::from_value(old_meta.clone()).expect("Could not deserialize metadata");
-            let old_parent_account_set_id = old_parent_id_getter(old_meta);
-            if old_parent_account_set_id != parent_account_set_id {
-                self.cala
-                    .account_sets()
-                    .remove_member_in_op(op, old_parent_account_set_id, internal_account_set_id)
-                    .await?;
-            }
+        new_parent_account_set_id: CalaAccountSetId,
+        old_parent_account_set_id: Option<CalaAccountSetId>,
+    ) -> Result<(), DepositLedgerError> {
+        if let Some(old_parent_account_set_id) = old_parent_account_set_id {
+            self.cala
+                .account_sets()
+                .remove_member_in_op(op, old_parent_account_set_id, internal_account_set_id)
+                .await?;
         }
 
         self.cala
             .account_sets()
-            .add_member_in_op(op, parent_account_set_id, internal_account_set_id)
+            .add_member_in_op(op, new_parent_account_set_id, internal_account_set_id)
             .await?;
-        let mut update = AccountSetUpdate::default();
-        update
-            .metadata(new_meta)
-            .expect("Could not update metadata");
-        if internal_account_set.update(update).did_execute() {
-            self.cala
-                .account_sets()
-                .persist_in_op(op, &mut internal_account_set)
-                .await?;
-        }
 
         Ok(())
     }
 
     #[record_error_severity]
     #[instrument(
-        name = "deposit_ledger.attach_chart_of_accounts_account_sets",
+        name = "deposit_ledger.attach_chart_of_accounts_account_sets_in_op",
         skip_all
     )]
-    pub async fn attach_chart_of_accounts_account_sets(
+    pub(crate) async fn attach_chart_of_accounts_account_sets_in_op(
         &self,
-        charts_integration_meta: ResolvedChartOfAccountsIntegrationConfig,
+        op: &mut es_entity::DbOpWithTime<'_>,
+        new_integration_config: &ResolvedChartOfAccountsIntegrationConfig,
+        old_integration_config: Option<&ResolvedChartOfAccountsIntegrationConfig>,
     ) -> Result<(), DepositLedgerError> {
-        let mut op = self.cala.begin_operation().await?;
-
-        let mut account_set_ids = vec![self.deposit_omnibus_account_ids.account_set_id];
-        account_set_ids.extend(self.deposit_account_sets.account_set_ids());
-        account_set_ids.extend(self.frozen_deposit_account_sets.account_set_ids());
-
-        let mut account_sets = self
-            .cala
-            .account_sets()
-            .find_all_in_op::<AccountSet>(&mut op, &account_set_ids)
-            .await?;
-
         let ResolvedChartOfAccountsIntegrationConfig {
             config: _,
-            audit_info: _,
+
             omnibus_parent_account_set_id,
             individual_deposit_accounts_parent_account_set_id,
             government_entity_deposit_accounts_parent_account_set_id,
@@ -1174,139 +1098,126 @@ impl DepositLedger {
             frozen_bank_deposit_accounts_parent_account_set_id,
             frozen_financial_institution_deposit_accounts_parent_account_set_id,
             frozen_non_domiciled_individual_deposit_accounts_parent_account_set_id,
-        } = &charts_integration_meta;
+        } = &new_integration_config;
 
         self.attach_charts_account_set(
-            &mut op,
-            &mut account_sets,
+            op,
             self.deposit_omnibus_account_ids.account_set_id,
             *omnibus_parent_account_set_id,
-            &charts_integration_meta,
-            |meta| meta.omnibus_parent_account_set_id,
+            old_integration_config.map(|config| config.omnibus_parent_account_set_id),
         )
         .await?;
 
         self.attach_charts_account_set(
-            &mut op,
-            &mut account_sets,
+            op,
             self.deposit_account_sets.individual.id,
             *individual_deposit_accounts_parent_account_set_id,
-            &charts_integration_meta,
-            |meta| meta.individual_deposit_accounts_parent_account_set_id,
+            old_integration_config
+                .map(|config| config.individual_deposit_accounts_parent_account_set_id),
         )
         .await?;
 
         self.attach_charts_account_set(
-            &mut op,
-            &mut account_sets,
+            op,
             self.deposit_account_sets.government_entity.id,
             *government_entity_deposit_accounts_parent_account_set_id,
-            &charts_integration_meta,
-            |meta| meta.government_entity_deposit_accounts_parent_account_set_id,
+            old_integration_config
+                .map(|config| config.government_entity_deposit_accounts_parent_account_set_id),
         )
         .await?;
 
         self.attach_charts_account_set(
-            &mut op,
-            &mut account_sets,
+            op,
             self.deposit_account_sets.private_company.id,
             *private_company_deposit_accounts_parent_account_set_id,
-            &charts_integration_meta,
-            |meta| meta.private_company_deposit_accounts_parent_account_set_id,
+            old_integration_config
+                .map(|config| config.private_company_deposit_accounts_parent_account_set_id),
         )
         .await?;
 
         self.attach_charts_account_set(
-            &mut op,
-            &mut account_sets,
+            op,
             self.deposit_account_sets.bank.id,
             *bank_deposit_accounts_parent_account_set_id,
-            &charts_integration_meta,
-            |meta| meta.bank_deposit_accounts_parent_account_set_id,
+            old_integration_config.map(|config| config.bank_deposit_accounts_parent_account_set_id),
         )
         .await?;
 
         self.attach_charts_account_set(
-            &mut op,
-            &mut account_sets,
+            op,
             self.deposit_account_sets.financial_institution.id,
             *financial_institution_deposit_accounts_parent_account_set_id,
-            &charts_integration_meta,
-            |meta| meta.financial_institution_deposit_accounts_parent_account_set_id,
+            old_integration_config
+                .map(|config| config.financial_institution_deposit_accounts_parent_account_set_id),
         )
         .await?;
 
         self.attach_charts_account_set(
-            &mut op,
-            &mut account_sets,
+            op,
             self.deposit_account_sets.non_domiciled_individual.id,
             *non_domiciled_individual_deposit_accounts_parent_account_set_id,
-            &charts_integration_meta,
-            |meta| meta.non_domiciled_individual_deposit_accounts_parent_account_set_id,
+            old_integration_config.map(|config| {
+                config.non_domiciled_individual_deposit_accounts_parent_account_set_id
+            }),
         )
         .await?;
 
         self.attach_charts_account_set(
-            &mut op,
-            &mut account_sets,
+            op,
             self.frozen_deposit_account_sets.individual.id,
             *frozen_individual_deposit_accounts_parent_account_set_id,
-            &charts_integration_meta,
-            |meta| meta.frozen_individual_deposit_accounts_parent_account_set_id,
+            old_integration_config
+                .map(|config| config.frozen_individual_deposit_accounts_parent_account_set_id),
         )
         .await?;
 
         self.attach_charts_account_set(
-            &mut op,
-            &mut account_sets,
+            op,
             self.frozen_deposit_account_sets.government_entity.id,
             *frozen_government_entity_deposit_accounts_parent_account_set_id,
-            &charts_integration_meta,
-            |meta| meta.frozen_government_entity_deposit_accounts_parent_account_set_id,
+            old_integration_config.map(|config| {
+                config.frozen_government_entity_deposit_accounts_parent_account_set_id
+            }),
         )
         .await?;
 
         self.attach_charts_account_set(
-            &mut op,
-            &mut account_sets,
+            op,
             self.frozen_deposit_account_sets.private_company.id,
             *frozen_private_company_deposit_accounts_parent_account_set_id,
-            &charts_integration_meta,
-            |meta| meta.frozen_private_company_deposit_accounts_parent_account_set_id,
+            old_integration_config
+                .map(|config| config.frozen_private_company_deposit_accounts_parent_account_set_id),
         )
         .await?;
 
         self.attach_charts_account_set(
-            &mut op,
-            &mut account_sets,
+            op,
             self.frozen_deposit_account_sets.bank.id,
             *frozen_bank_deposit_accounts_parent_account_set_id,
-            &charts_integration_meta,
-            |meta| meta.frozen_bank_deposit_accounts_parent_account_set_id,
+            old_integration_config
+                .map(|config| config.frozen_bank_deposit_accounts_parent_account_set_id),
         )
         .await?;
 
         self.attach_charts_account_set(
-            &mut op,
-            &mut account_sets,
+            op,
             self.frozen_deposit_account_sets.financial_institution.id,
             *frozen_financial_institution_deposit_accounts_parent_account_set_id,
-            &charts_integration_meta,
-            |meta| meta.frozen_financial_institution_deposit_accounts_parent_account_set_id,
+            old_integration_config.map(|config| {
+                config.frozen_financial_institution_deposit_accounts_parent_account_set_id
+            }),
         )
         .await?;
 
         self.attach_charts_account_set(
-            &mut op,
-            &mut account_sets,
+            op,
             self.frozen_deposit_account_sets.non_domiciled_individual.id,
             *frozen_non_domiciled_individual_deposit_accounts_parent_account_set_id,
-            &charts_integration_meta,
-            |meta| meta.frozen_non_domiciled_individual_deposit_accounts_parent_account_set_id,
+            old_integration_config.map(|config| {
+                config.frozen_non_domiciled_individual_deposit_accounts_parent_account_set_id
+            }),
         )
         .await?;
-
-        op.commit().await?;
 
         Ok(())
     }

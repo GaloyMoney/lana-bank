@@ -12,10 +12,14 @@ pub enum ChartOfAccountsIntegrationError {
     DepositLedgerError(#[from] crate::ledger::error::DepositLedgerError),
     #[error("ChartOfAccountsIntegrationError - ChartOfAccountsError: {0}")]
     ChartOfAccountsError(#[from] core_accounting::chart_of_accounts::error::ChartOfAccountsError),
-    #[error("ChartOfAccountsIntegrationError - ConfigAlreadyExists")]
-    ConfigAlreadyExists,
     #[error("ChartOfAccountsIntegrationError - AccountingBaseConfigNotFound")]
     AccountingBaseConfigNotFound,
+    #[error("ChartOfAccountsIntegrationError - DomainConfigError: {0}")]
+    DomainConfigError(#[from] domain_config::error::DomainConfigError),
+    #[error("ChartOfAccountsIntegrationError - EsEntityError: {0}")]
+    EsEntityError(#[from] es_entity::EsEntityError),
+    #[error("ChartOfAccountsIntegrationError - Sqlx: {0}")]
+    Sqlx(#[from] sqlx::Error),
 }
 
 impl ErrorSeverity for ChartOfAccountsIntegrationError {
@@ -25,8 +29,10 @@ impl ErrorSeverity for ChartOfAccountsIntegrationError {
             Self::ChartIdMismatch => Level::ERROR,
             Self::DepositLedgerError(e) => e.severity(),
             Self::ChartOfAccountsError(e) => e.severity(),
-            Self::ConfigAlreadyExists => Level::WARN,
             Self::AccountingBaseConfigNotFound => Level::ERROR,
+            Self::DomainConfigError(e) => e.severity(),
+            Self::EsEntityError(e) => e.severity(),
+            Self::Sqlx(_) => Level::ERROR,
         }
     }
 }
