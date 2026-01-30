@@ -330,6 +330,16 @@ export enum CollateralDirection {
   Remove = 'REMOVE'
 }
 
+export type CollateralLiquidationRecordCollateralSentInput = {
+  amount: Scalars['Satoshis']['input'];
+  collateralId: Scalars['UUID']['input'];
+};
+
+export type CollateralLiquidationRecordCollateralSentPayload = {
+  __typename?: 'CollateralLiquidationRecordCollateralSentPayload';
+  collateral: Collateral;
+};
+
 export enum CollateralizationState {
   FullyCollateralized = 'FULLY_COLLATERALIZED',
   NoCollateral = 'NO_COLLATERAL',
@@ -438,6 +448,7 @@ export type CreditFacility = {
   activatedAt: Scalars['Timestamp']['output'];
   balance: CreditFacilityBalance;
   canBeCompleted: Scalars['Boolean']['output'];
+  collateralId: Scalars['UUID']['output'];
   collateralToMatchInitialCvl?: Maybe<Scalars['Satoshis']['output']>;
   collateralizationState: CollateralizationState;
   creditFacilityId: Scalars['UUID']['output'];
@@ -1738,16 +1749,6 @@ export type LiquidationProceedsReceived = {
   ledgerTxId: Scalars['UUID']['output'];
 };
 
-export type LiquidationRecordCollateralSentInput = {
-  amount: Scalars['Satoshis']['input'];
-  liquidationId: Scalars['UUID']['input'];
-};
-
-export type LiquidationRecordCollateralSentPayload = {
-  __typename?: 'LiquidationRecordCollateralSentPayload';
-  collateral: Collateral;
-};
-
 export type LiquidationRecordProceedsReceivedInput = {
   amount: Scalars['UsdCents']['input'];
   liquidationId: Scalars['UUID']['input'];
@@ -1833,7 +1834,7 @@ export type Mutation = {
   chartOfAccountsAddRootNode: ChartOfAccountsAddRootNodePayload;
   chartOfAccountsCsvImport: ChartOfAccountsCsvImportPayload;
   chartOfAccountsCsvImportWithBaseConfig: ChartOfAccountsCsvImportWithBaseConfigPayload;
-  collateralLiquidationRecordCollateralSent: LiquidationRecordCollateralSentPayload;
+  collateralLiquidationRecordCollateralSent: CollateralLiquidationRecordCollateralSentPayload;
   committeeAddUser: CommitteeAddUserPayload;
   committeeCreate: CommitteeCreatePayload;
   committeeRemoveUser: CommitteeRemoveUserPayload;
@@ -1927,7 +1928,7 @@ export type MutationChartOfAccountsCsvImportWithBaseConfigArgs = {
 
 
 export type MutationCollateralLiquidationRecordCollateralSentArgs = {
-  input: LiquidationRecordCollateralSentInput;
+  input: CollateralLiquidationRecordCollateralSentInput;
 };
 
 
@@ -4281,7 +4282,7 @@ export type LiquidationCollateralSentFragmentFragment = { __typename?: 'Liquidat
 
 export type LiquidationProceedsReceivedFragmentFragment = { __typename?: 'LiquidationProceedsReceived', amount: UsdCents, ledgerTxId: string };
 
-export type LiquidationDetailsFragment = { __typename?: 'Liquidation', id: string, liquidationId: string, creditFacilityId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: any, completed: boolean, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, publicId: any, status: CreditFacilityStatus, collateralizationState: CollateralizationState, facilityAmount: UsdCents, activatedAt: any, maturesAt: any, currentCvl:
+export type LiquidationDetailsFragment = { __typename?: 'Liquidation', id: string, liquidationId: string, creditFacilityId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: any, completed: boolean, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralId: string, publicId: any, status: CreditFacilityStatus, collateralizationState: CollateralizationState, facilityAmount: UsdCents, activatedAt: any, maturesAt: any, currentCvl:
       | { __typename: 'FiniteCVLPct', value: any }
       | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
     , creditFacilityTerms: { __typename?: 'TermValues', liquidationCvl:
@@ -4294,7 +4295,7 @@ export type GetLiquidationDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetLiquidationDetailsQuery = { __typename?: 'Query', liquidation?: { __typename?: 'Liquidation', id: string, liquidationId: string, creditFacilityId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: any, completed: boolean, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, publicId: any, status: CreditFacilityStatus, collateralizationState: CollateralizationState, facilityAmount: UsdCents, activatedAt: any, maturesAt: any, currentCvl:
+export type GetLiquidationDetailsQuery = { __typename?: 'Query', liquidation?: { __typename?: 'Liquidation', id: string, liquidationId: string, creditFacilityId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: any, completed: boolean, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralId: string, publicId: any, status: CreditFacilityStatus, collateralizationState: CollateralizationState, facilityAmount: UsdCents, activatedAt: any, maturesAt: any, currentCvl:
         | { __typename: 'FiniteCVLPct', value: any }
         | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
       , creditFacilityTerms: { __typename?: 'TermValues', liquidationCvl:
@@ -4303,18 +4304,18 @@ export type GetLiquidationDetailsQuery = { __typename?: 'Query', liquidation?: {
          }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string } }, sentCollateral: Array<{ __typename?: 'LiquidationCollateralSent', amount: Satoshis, ledgerTxId: string }>, receivedProceeds: Array<{ __typename?: 'LiquidationProceedsReceived', amount: UsdCents, ledgerTxId: string }> } | null };
 
 export type CollateralLiquidationRecordCollateralSentMutationVariables = Exact<{
-  input: LiquidationRecordCollateralSentInput;
+  input: CollateralLiquidationRecordCollateralSentInput;
 }>;
 
 
-export type CollateralLiquidationRecordCollateralSentMutation = { __typename?: 'Mutation', collateralLiquidationRecordCollateralSent: { __typename?: 'LiquidationRecordCollateralSentPayload', collateral: { __typename?: 'Collateral', id: string, collateralId: string } } };
+export type CollateralLiquidationRecordCollateralSentMutation = { __typename?: 'Mutation', collateralLiquidationRecordCollateralSent: { __typename?: 'CollateralLiquidationRecordCollateralSentPayload', collateral: { __typename?: 'Collateral', id: string, collateralId: string } } };
 
 export type LiquidationRecordProceedsReceivedMutationVariables = Exact<{
   input: LiquidationRecordProceedsReceivedInput;
 }>;
 
 
-export type LiquidationRecordProceedsReceivedMutation = { __typename?: 'Mutation', liquidationRecordProceedsReceived: { __typename?: 'LiquidationRecordProceedsReceivedPayload', liquidation: { __typename?: 'Liquidation', id: string, liquidationId: string, creditFacilityId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: any, completed: boolean, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, publicId: any, status: CreditFacilityStatus, collateralizationState: CollateralizationState, facilityAmount: UsdCents, activatedAt: any, maturesAt: any, currentCvl:
+export type LiquidationRecordProceedsReceivedMutation = { __typename?: 'Mutation', liquidationRecordProceedsReceived: { __typename?: 'LiquidationRecordProceedsReceivedPayload', liquidation: { __typename?: 'Liquidation', id: string, liquidationId: string, creditFacilityId: string, expectedToReceive: UsdCents, sentTotal: Satoshis, amountReceived: UsdCents, createdAt: any, completed: boolean, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralId: string, publicId: any, status: CreditFacilityStatus, collateralizationState: CollateralizationState, facilityAmount: UsdCents, activatedAt: any, maturesAt: any, currentCvl:
           | { __typename: 'FiniteCVLPct', value: any }
           | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
         , creditFacilityTerms: { __typename?: 'TermValues', liquidationCvl:
@@ -5551,6 +5552,7 @@ export const LiquidationDetailsFragmentDoc = gql`
   creditFacility {
     id
     creditFacilityId
+    collateralId
     publicId
     status
     collateralizationState
@@ -9817,7 +9819,7 @@ export type GetLiquidationDetailsLazyQueryHookResult = ReturnType<typeof useGetL
 export type GetLiquidationDetailsSuspenseQueryHookResult = ReturnType<typeof useGetLiquidationDetailsSuspenseQuery>;
 export type GetLiquidationDetailsQueryResult = Apollo.QueryResult<GetLiquidationDetailsQuery, GetLiquidationDetailsQueryVariables>;
 export const CollateralLiquidationRecordCollateralSentDocument = gql`
-    mutation CollateralLiquidationRecordCollateralSent($input: LiquidationRecordCollateralSentInput!) {
+    mutation CollateralLiquidationRecordCollateralSent($input: CollateralLiquidationRecordCollateralSentInput!) {
   collateralLiquidationRecordCollateralSent(input: $input) {
     collateral {
       id
