@@ -19,37 +19,40 @@ Lana es un core bancario moderno construido sobre:
 
 ## Documentación
 
-### Arquitectura Funcional
+### Arquitectura del Sistema
 
-Arquitectura técnica integral que cubre:
+- [Arquitectura del Sistema](system-architecture) - Visión general de capas y componentes
+- [Servicios de Dominio](domain-services) - Implementación de Domain-Driven Design
+- [Arquitectura Funcional](functional-architecture) - Arquitectura técnica integral
 
-- Arquitectura de aplicación y diseño de módulos
-- Patrones de comunicación (event sourcing, outbox, webhooks)
-- Integraciones externas (KYC/KYB, pasarelas de pago, sistemas regulatorios)
-- Arquitectura de seguridad (autenticación, autorización, cifrado)
-- Requisitos de infraestructura
+### Infraestructura Técnica
 
-[Ver Arquitectura Funcional](functional-architecture)
+- [Autenticación y Autorización](authentication-architecture) - Keycloak, OAuth 2.0, RBAC
+- [Sistema de Eventos](event-system) - Event sourcing y patrón outbox
+- [Trabajos en Segundo Plano](background-jobs) - Sistema de procesamiento de tareas
+- [Servicios de Infraestructura](infrastructure-services) - Auditoría, autorización, trazabilidad
+- [Trazabilidad y Observabilidad](observability) - OpenTelemetry e instrumentación
+- [Sistema de Auditoría](audit-system) - Registro y cumplimiento
+
+### Integraciones
+
+- [Integración con Cala Ledger](cala-ledger-integration) - Contabilidad de partida doble
+- [Custodia y Gestión de Carteras](custody-portfolio) - BitGo, Komainu, colateral
+- [Canalización de Datos](data-pipelines) - Meltano, dbt, BigQuery
 
 ### Modelos de Datos
-
-Diagramas de entidad-relación para las bases de datos principales:
 
 - [Resumen de ERDs](erds/) - Documentación de esquemas de base de datos
 - [Esquema del Libro Mayor Cala](erds/cala) - Base de datos del libro mayor subyacente
 - [Esquema Core de Lana](erds/lana) - Base de datos principal de la aplicación
 
-### Despliegue
+### Despliegue y Operaciones
 
-Requisitos de infraestructura y despliegue.
-
-*[Documentación de despliegue próximamente - se añadirá del manual técnico]*
-
-### Integraciones
-
-Patrones y requisitos de integración con sistemas externos.
-
-*[Documentación de integraciones próximamente - se añadirá del manual técnico]*
+- [Guía de Despliegue](deployment/) - Resumen de despliegue
+- [Sistema de Build](deployment/build-system) - Nix, compilación cruzada, Docker
+- [Entorno de Desarrollo](deployment/development-environment) - Configuración local
+- [Estrategia de Pruebas](deployment/testing-strategy) - Capas y herramientas de testing
+- [Pipeline CI/CD](deployment/ci-cd) - GitHub Actions, Concourse, releases
 
 ## Stack Tecnológico
 

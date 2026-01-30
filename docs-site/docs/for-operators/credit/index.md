@@ -6,6 +6,8 @@ sidebar_position: 1
 
 # Credit Module Lifecycle
 
+![Credit Facility Lifecycle](/img/architecture/credit-lifecycle-1.png)
+
 ```mermaid
 flowchart LR
     %% Loan = Credit Facility (n1) + Disbursal (S_D)

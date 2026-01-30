@@ -21,7 +21,22 @@ const sidebars = {
       items: [
         "for-developers/quickstart",
         "for-developers/authentication",
+        "for-developers/graphql-integration",
         "for-developers/webhooks",
+        {
+          type: "category",
+          label: "Frontend Applications",
+          link: {
+            type: "doc",
+            id: "for-developers/frontend/index",
+          },
+          items: [
+            "for-developers/frontend/admin-panel",
+            "for-developers/frontend/customer-portal",
+            "for-developers/frontend/shared-components",
+            "for-developers/frontend/credit-ui",
+          ],
+        },
         {
           type: "category",
           label: "Admin API",
@@ -99,6 +114,29 @@ const sidebars = {
       items: [
         {
           type: "category",
+          label: "Customer Management",
+          link: {
+            type: "doc",
+            id: "for-operators/customers/index",
+          },
+          items: [
+            "for-operators/customers/onboarding",
+            "for-operators/customers/documents",
+          ],
+        },
+        {
+          type: "category",
+          label: "Deposits and Withdrawals",
+          link: {
+            type: "doc",
+            id: "for-operators/deposits/index",
+          },
+          items: [
+            "for-operators/deposits/operations",
+          ],
+        },
+        {
+          type: "category",
           label: "Credit Management",
           link: {
             type: "doc",
@@ -127,6 +165,29 @@ const sidebars = {
         },
         {
           type: "category",
+          label: "Approvals and Governance",
+          link: {
+            type: "doc",
+            id: "for-operators/approvals/index",
+          },
+          items: [
+            "for-operators/approvals/committees",
+            "for-operators/approvals/policies",
+          ],
+        },
+        {
+          type: "category",
+          label: "Financial Reports",
+          link: {
+            type: "doc",
+            id: "for-operators/reporting/index",
+          },
+          items: [
+            "for-operators/reporting/financial-reports",
+          ],
+        },
+        {
+          type: "category",
           label: "Configuration",
           link: {
             type: "doc",
@@ -144,7 +205,36 @@ const sidebars = {
         id: "for-architects/index",
       },
       items: [
-        "for-architects/functional-architecture",
+        {
+          type: "category",
+          label: "System Architecture",
+          items: [
+            "for-architects/system-architecture",
+            "for-architects/domain-services",
+            "for-architects/functional-architecture",
+          ],
+        },
+        {
+          type: "category",
+          label: "Technical Infrastructure",
+          items: [
+            "for-architects/authentication-architecture",
+            "for-architects/event-system",
+            "for-architects/background-jobs",
+            "for-architects/infrastructure-services",
+            "for-architects/observability",
+            "for-architects/audit-system",
+          ],
+        },
+        {
+          type: "category",
+          label: "Integrations",
+          items: [
+            "for-architects/cala-ledger-integration",
+            "for-architects/custody-portfolio",
+            "for-architects/data-pipelines",
+          ],
+        },
         {
           type: "category",
           label: "Data Models (ERDs)",
@@ -155,6 +245,20 @@ const sidebars = {
           items: [
             "for-architects/erds/cala",
             "for-architects/erds/lana",
+          ],
+        },
+        {
+          type: "category",
+          label: "Deployment and Operations",
+          link: {
+            type: "doc",
+            id: "for-architects/deployment/index",
+          },
+          items: [
+            "for-architects/deployment/build-system",
+            "for-architects/deployment/development-environment",
+            "for-architects/deployment/testing-strategy",
+            "for-architects/deployment/ci-cd",
           ],
         },
       ],

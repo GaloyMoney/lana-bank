@@ -14,11 +14,16 @@ Welcome to the Lana operator documentation. This section covers day-to-day opera
 
 Manage customer lifecycle from onboarding through ongoing relationship management.
 
-- Customer onboarding and KYC
-- Account management
-- Document handling
+- [Customer Overview](customers/) - Customer management system
+- [Onboarding Process](customers/onboarding) - Onboarding and KYC flow
+- [Document Management](customers/documents) - Document upload and approval
 
-*[Customer management documentation coming soon]*
+### Deposits and Withdrawals
+
+Deposit account management and cash operations:
+
+- [Deposit System](deposits/) - Architecture and entities
+- [Operations](deposits/operations) - Deposits, withdrawals, and approvals
 
 ### Credit Management
 
@@ -40,11 +45,20 @@ Financial operations and period management:
 - [Fiscal Year](accounting/fiscal-year) - Fiscal year management
 - [Period Closing](accounting/closing) - Closing accounting periods
 
-### Approvals
+### Approvals and Governance
 
-Multi-level approval workflows for governance.
+Multi-level approval workflows for governance:
 
-*[Approval workflow documentation coming soon]*
+- [Governance System](approvals/) - Approval architecture
+- [Approval Committees](approvals/committees) - Committee configuration
+- [Approval Policies](approvals/policies) - Rules and thresholds
+
+### Financial Reports
+
+Report generation for management and compliance:
+
+- [Reporting System](reporting/) - Report architecture
+- [Financial Reports](reporting/financial-reports) - Balance, income, trial balance
 
 ### Configuration
 
@@ -53,3 +67,4 @@ Multi-level approval workflows for governance.
 ## Need Help?
 
 For technical details on the underlying APIs, see the [Developer Guide](../for-developers/).
+

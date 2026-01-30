@@ -6,6 +6,8 @@ sidebar_position: 1
 
 # Ciclo de Vida del Módulo de Crédito
 
+![Ciclo de Vida de Facilidades de Crédito](/img/architecture/credit-lifecycle-1.png)
+
 ```mermaid
 flowchart LR
     %% Préstamo = Facilidad de Crédito (n1) + Desembolso (S_D)

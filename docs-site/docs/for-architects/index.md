@@ -19,37 +19,40 @@ Lana is a modern banking core built on:
 
 ## Documentation
 
-### Functional Architecture
+### System Architecture
 
-Comprehensive technical architecture covering:
+- [System Architecture](system-architecture) - System layers and component overview
+- [Domain Services](domain-services) - Domain-Driven Design implementation
+- [Functional Architecture](functional-architecture) - Comprehensive technical architecture
 
-- Application architecture and module design
-- Communication patterns (event sourcing, outbox, webhooks)
-- External integrations (KYC/KYB, payment gateways, regulatory systems)
-- Security architecture (authentication, authorization, encryption)
-- Infrastructure requirements
+### Technical Infrastructure
 
-[View Functional Architecture](functional-architecture)
+- [Authentication and Authorization](authentication-architecture) - Keycloak, OAuth 2.0, RBAC
+- [Event System](event-system) - Event sourcing and outbox pattern
+- [Background Jobs](background-jobs) - Task processing system
+- [Infrastructure Services](infrastructure-services) - Audit, authorization, traceability
+- [Observability](observability) - OpenTelemetry and instrumentation
+- [Audit System](audit-system) - Logging and compliance
+
+### Integrations
+
+- [Cala Ledger Integration](cala-ledger-integration) - Double-entry accounting
+- [Custody and Portfolio Management](custody-portfolio) - BitGo, Komainu, collateral
+- [Data Pipelines](data-pipelines) - Meltano, dbt, BigQuery
 
 ### Data Models
-
-Entity relationship diagrams for the core databases:
 
 - [ERD Overview](erds/) - Database schema documentation
 - [Cala Ledger Schema](erds/cala) - Underlying ledger database
 - [Lana Core Schema](erds/lana) - Main application database
 
-### Deployment
+### Deployment and Operations
 
-Infrastructure and deployment requirements.
-
-*[Deployment documentation coming soon - will be added from technical manual]*
-
-### Integrations
-
-External system integration patterns and requirements.
-
-*[Integration documentation coming soon - will be added from technical manual]*
+- [Deployment Guide](deployment/) - Deployment overview
+- [Build System](deployment/build-system) - Nix, cross-compilation, Docker
+- [Development Environment](deployment/development-environment) - Local setup
+- [Testing Strategy](deployment/testing-strategy) - Testing layers and tools
+- [CI/CD Pipeline](deployment/ci-cd) - GitHub Actions, Concourse, releases
 
 ## Technology Stack
 
@@ -61,3 +64,4 @@ External system integration patterns and requirements.
 | Database | PostgreSQL |
 | Events | Event sourcing with outbox pattern |
 | Authentication | OAuth 2.0 / OpenID Connect |
+
