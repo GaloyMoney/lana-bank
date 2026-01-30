@@ -103,7 +103,7 @@ Typically live in `primitives.rs`, but may live elsewhere if there's good reason
 - [ ] Encapsulate validation (e.g., `Amount` can't be negative)
 - [ ] No business logic beyond self-validation
 - [ ] Good place for entities to delegate business logic too as they are simpler to test (no need for state setup via event history as in entities)
-- [ ] Good for wrapping underlying primitive types (like `UsdCents(Decimal)`) to give domain specific meaning.
+- [ ] Good for wrapping underlying primitive types (like `UsdCents(Decimal)`) to give domain specific meaning
 
 ### 4. Module Boundaries
 
