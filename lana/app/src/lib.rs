@@ -182,12 +182,21 @@ pub mod credit {
         LiquidationsByIdCursor, LiquidationsCursor, ListDirection, Payment, PaymentAllocation,
         PendingCreditFacilitiesByCreatedAtCursor, PendingCreditFacility,
         PendingCreditFacilityCollateralizationUpdated, PendingCreditFacilityId,
-        ProceedsFromLiquidationReceived, RepaymentStatus, RepaymentType, Sort, TermsTemplate,
-        error, terms_template_error,
+        ProceedsFromLiquidationReceived, RepaymentStatus, RepaymentType, Sort, error,
     };
 
     pub type Credit =
         core_credit::CoreCredit<crate::authorization::Authorization, lana_events::LanaEvent>;
+}
+
+pub mod terms_template {
+    pub use core_credit_terms::{
+        TermsTemplate, TermsTemplateError, TermsTemplateId,
+        terms_template::error as terms_template_error,
+    };
+
+    pub type TermsTemplates =
+        core_credit_terms::TermsTemplates<crate::authorization::Authorization>;
 }
 
 pub mod terms {

@@ -2255,6 +2255,7 @@ dependencies = [
  "core-access",
  "core-accounting",
  "core-credit",
+ "core-credit-terms",
  "core-custody",
  "core-customer",
  "core-deposit",

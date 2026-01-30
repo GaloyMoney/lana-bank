@@ -29,7 +29,6 @@ use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use core_accounting::LedgerTransactionInitiator;
-use core_credit_terms::{CoreCreditTermsAction, CoreCreditTermsObject};
 use core_custody::{
     CoreCustody, CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject, CustodianId,
 };
@@ -52,13 +51,6 @@ pub use chart_of_accounts_integration::{
 };
 pub use collateral::*;
 pub use config::*;
-#[cfg(feature = "json-schema")]
-pub use core_credit_terms::TermsTemplateEvent;
-pub use core_credit_terms::{
-    NewTermsTemplate, NewTermsTemplateBuilder, TermsTemplate, TermsTemplateBuilder,
-    TermsTemplateError, TermsTemplateRepo, TermsTemplates,
-    terms_template::error as terms_template_error,
-};
 pub use credit_facility::error::CreditFacilityError;
 pub use credit_facility::*;
 pub use credit_facility_proposal::*;
@@ -85,7 +77,7 @@ pub use terms::TermValuesExt;
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
     pub use crate::{
-        TermsTemplateEvent, collateral::CollateralEvent, credit_facility::CreditFacilityEvent,
+        collateral::CollateralEvent, credit_facility::CreditFacilityEvent,
         credit_facility_proposal::CreditFacilityProposalEvent, disbursal::DisbursalEvent,
         interest_accrual_cycle::InterestAccrualCycleEvent, liquidation::LiquidationEvent,
         obligation::ObligationEvent, payment::PaymentEvent,
@@ -125,7 +117,6 @@ where
     collaterals: Arc<Collaterals<Perms, E>>,
     custody: Arc<CoreCustody<Perms, E>>,
     chart_of_accounts_integrations: Arc<ChartOfAccountsIntegrations<Perms>>,
-    terms_templates: Arc<TermsTemplates<Perms>>,
     public_ids: Arc<PublicIds>,
     liquidations: Arc<Liquidations<Perms, E>>,
     histories: Arc<Histories<Perms>>,
@@ -167,7 +158,6 @@ where
             approve_proposal: self.approve_proposal.clone(),
             activate_credit_facility: self.activate_credit_facility.clone(),
             chart_of_accounts_integrations: self.chart_of_accounts_integrations.clone(),
-            terms_templates: self.terms_templates.clone(),
             public_ids: self.public_ids.clone(),
             liquidations: self.liquidations.clone(),
         }
@@ -208,11 +198,7 @@ where
         public_ids: &PublicIds,
         domain_configs: &ExposedDomainConfigsReadOnly,
         internal_domain_configs: &InternalDomainConfigs,
-    ) -> Result<Self, CoreCreditError>
-    where
-        <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditTermsAction>,
-        <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditTermsObject>,
-    {
+    ) -> Result<Self, CoreCreditError> {
         let clock = jobs.clock().clone();
 
         // Create Arc-wrapped versions of parameters once
@@ -396,9 +382,6 @@ where
         );
         let chart_of_accounts_integrations_arc = Arc::new(chart_of_accounts_integrations);
 
-        let terms_templates = TermsTemplates::new(pool, authz_arc.clone(), clock.clone());
-        let terms_templates_arc = Arc::new(terms_templates);
-
         let approve_disbursal_job_spawner = jobs.add_initializer(DisbursalApprovalInit::new(
             outbox,
             approve_disbursal_arc.as_ref(),
@@ -455,7 +438,6 @@ where
             approve_proposal: approve_proposal_arc,
             activate_credit_facility: activate_credit_facility_arc,
             chart_of_accounts_integrations: chart_of_accounts_integrations_arc,
-            terms_templates: terms_templates_arc,
             public_ids: public_ids_arc,
             liquidations: liquidations_arc,
         })
@@ -1052,29 +1034,5 @@ where
             .get_credit_facility_balance(entity.account_ids)
             .await?;
         Ok(balances.total_outstanding_payable())
-    }
-}
-
-impl<Perms, E> CoreCredit<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
-        + From<CoreCreditTermsAction>
-        + From<GovernanceAction>
-        + From<CoreCustomerAction>
-        + From<CoreCustodyAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
-        + From<CoreCreditTermsObject>
-        + From<GovernanceObject>
-        + From<CustomerObject>
-        + From<CoreCustodyObject>,
-    E: OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCustodyEvent>
-        + OutboxEventMarker<CorePriceEvent>
-        + OutboxEventMarker<CoreCustomerEvent>,
-{
-    pub fn terms_templates(&self) -> &TermsTemplates<Perms> {
-        self.terms_templates.as_ref()
     }
 }

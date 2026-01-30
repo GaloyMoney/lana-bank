@@ -330,7 +330,7 @@ impl Loader<TransactionTemplateId> for LanaLoader {
 
 impl Loader<TermsTemplateId> for LanaLoader {
     type Value = TermsTemplate;
-    type Error = Arc<lana_app::credit::terms_template_error::TermsTemplateError>;
+    type Error = Arc<lana_app::terms_template::terms_template_error::TermsTemplateError>;
 
     #[instrument(name = "loader.terms_templates", skip(self), fields(count = keys.len()), err)]
     async fn load(
@@ -338,7 +338,6 @@ impl Loader<TermsTemplateId> for LanaLoader {
         keys: &[TermsTemplateId],
     ) -> Result<HashMap<TermsTemplateId, TermsTemplate>, Self::Error> {
         self.app
-            .credit()
             .terms_templates()
             .find_all(keys)
             .await

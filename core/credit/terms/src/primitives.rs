@@ -43,7 +43,9 @@ impl FromStr for CoreCreditTermsObject {
         use CoreCreditTermsObjectDiscriminants::*;
         let res = match entity.parse().expect("invalid entity") {
             TermsTemplate => {
-                let obj_ref = id.parse().map_err(|_| "could not parse CoreCreditTermsObject")?;
+                let obj_ref = id
+                    .parse()
+                    .map_err(|_| "could not parse CoreCreditTermsObject")?;
                 CoreCreditTermsObject::TermsTemplate(obj_ref)
             }
         };
@@ -61,10 +63,12 @@ pub enum CoreCreditTermsAction {
 impl CoreCreditTermsAction {
     pub const TERMS_TEMPLATE_CREATE: Self =
         CoreCreditTermsAction::TermsTemplate(TermsTemplateAction::Create);
-    pub const TERMS_TEMPLATE_READ: Self = CoreCreditTermsAction::TermsTemplate(TermsTemplateAction::Read);
+    pub const TERMS_TEMPLATE_READ: Self =
+        CoreCreditTermsAction::TermsTemplate(TermsTemplateAction::Read);
     pub const TERMS_TEMPLATE_UPDATE: Self =
         CoreCreditTermsAction::TermsTemplate(TermsTemplateAction::Update);
-    pub const TERMS_TEMPLATE_LIST: Self = CoreCreditTermsAction::TermsTemplate(TermsTemplateAction::List);
+    pub const TERMS_TEMPLATE_LIST: Self =
+        CoreCreditTermsAction::TermsTemplate(TermsTemplateAction::List);
 
     pub fn actions() -> Vec<ActionMapping> {
         use CoreCreditTermsActionDiscriminants::*;
