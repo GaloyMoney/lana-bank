@@ -26,7 +26,7 @@ use crate::{
     CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId, LedgerOmnibusAccountIds,
     LiquidationId, PaymentId, PaymentSourceAccountId,
 };
-use entity::NewLiquidationBuilder;
+pub use entity::NewLiquidationBuilder;
 pub use entity::{Liquidation, LiquidationEvent, NewLiquidation};
 use error::LiquidationError;
 use ledger::LiquidationLedger;
