@@ -15,6 +15,8 @@ pub enum CollateralError {
     ManualUpdateError,
     #[error("CollateralError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
+    #[error("CollateralError - LiquidationError: {0}")]
+    LiquidationError(#[from] super::super::liquidation::error::LiquidationError),
 }
 
 impl ErrorSeverity for CollateralError {
@@ -26,6 +28,7 @@ impl ErrorSeverity for CollateralError {
             Self::CollateralLedgerError(e) => e.severity(),
             Self::ManualUpdateError => Level::WARN,
             Self::JobError(_) => Level::ERROR,
+            Self::LiquidationError(e) => e.severity(),
         }
     }
 }

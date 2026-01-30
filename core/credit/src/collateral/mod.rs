@@ -16,7 +16,11 @@ use core_custody::CoreCustodyEvent;
 use governance::GovernanceEvent;
 use obix::out::{Outbox, OutboxEventMarker};
 
-use crate::{CreditFacilityPublisher, event::CoreCreditEvent, primitives::*};
+use cala_ledger::TransactionId as CalaTransactionId;
+
+use crate::{
+    CreditFacilityPublisher, event::CoreCreditEvent, liquidation::LiquidationRepo, primitives::*,
+};
 
 use ledger::CollateralLedger;
 
@@ -41,6 +45,7 @@ where
     authz: Arc<Perms>,
     repo: Arc<CollateralRepo<E>>,
     ledger: Arc<CollateralLedger>,
+    liquidation_repo: Arc<LiquidationRepo<E>>,
 }
 
 impl<Perms, E> Clone for Collaterals<Perms, E>
@@ -55,6 +60,7 @@ where
             authz: self.authz.clone(),
             repo: self.repo.clone(),
             ledger: self.ledger.clone(),
+            liquidation_repo: self.liquidation_repo.clone(),
         }
     }
 }
@@ -123,7 +129,7 @@ where
         let credit_facility_liquidations_job_spawner = jobs.add_initializer(
             credit_facility_liquidations::CreditFacilityLiquidationsInit::new(
                 outbox,
-                liquidation_repo,
+                liquidation_repo.clone(),
                 proceeds_omnibus_account_ids,
                 partial_liquidation_job_spawner,
                 liquidation_payment_job_spawner,
@@ -143,6 +149,7 @@ where
             authz,
             repo: repo_arc,
             ledger,
+            liquidation_repo,
         })
     }
 
@@ -211,34 +218,48 @@ where
     pub(super) async fn record_collateral_update_via_liquidation_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
-        collateral_id: CollateralId,
         liquidation_id: LiquidationId,
         amount_sent: core_money::Satoshis,
         effective: chrono::NaiveDate,
-        collateral_in_liquidation_account_id: CalaAccountId,
         initiated_by: LedgerTransactionInitiator,
-    ) -> Result<Option<CollateralUpdate>, CollateralError> {
-        let mut collateral = self.repo.find_by_id_in_op(&mut *db, collateral_id).await?;
+    ) -> Result<Collateral, CollateralError> {
+        let mut liquidation = self
+            .liquidation_repo
+            .find_by_id_in_op(&mut *db, liquidation_id)
+            .await?;
 
-        let res = if let es_entity::Idempotent::Executed(data) = collateral
+        let tx_id = CalaTransactionId::new();
+
+        if liquidation
+            .record_collateral_sent_out(amount_sent, tx_id)?
+            .did_execute()
+        {
+            self.liquidation_repo
+                .update_in_op(&mut *db, &mut liquidation)
+                .await?;
+        }
+
+        let mut collateral = self
+            .repo
+            .find_by_id_in_op(&mut *db, liquidation.collateral_id)
+            .await?;
+
+        if let es_entity::Idempotent::Executed(data) = collateral
             .record_collateral_update_via_liquidation(liquidation_id, amount_sent, effective)
         {
-            self.repo.update_in_op(db, &mut collateral).await?;
+            self.repo.update_in_op(&mut *db, &mut collateral).await?;
             self.ledger
                 .record_collateral_sent_to_liquidation_in_op(
                     db,
                     data.tx_id,
                     amount_sent,
                     collateral.account_id,
-                    collateral_in_liquidation_account_id,
+                    liquidation.collateral_in_liquidation_account_id,
                     initiated_by,
                 )
                 .await?;
-            Some(data)
-        } else {
-            None
-        };
+        }
 
-        Ok(res)
+        Ok(collateral)
     }
 }

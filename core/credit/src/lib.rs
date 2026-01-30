@@ -1079,24 +1079,22 @@ where
 
         let mut db = self.facilities.begin_op().await?;
 
-        let liquidation = self
-            .liquidations
-            .record_collateral_sent_in_op(&mut db, liquidation_id, amount)
-            .await?;
-
         self.collaterals
             .record_collateral_update_via_liquidation_in_op(
                 &mut db,
-                liquidation.collateral_id,
                 liquidation_id,
                 amount,
                 self.clock.today(),
-                liquidation.collateral_in_liquidation_account_id,
                 LedgerTransactionInitiator::try_from_subject(sub)?,
             )
             .await?;
 
         db.commit().await?;
+
+        let liquidation = self
+            .liquidations
+            .find_by_id_without_audit(liquidation_id)
+            .await?;
 
         Ok(liquidation)
     }
