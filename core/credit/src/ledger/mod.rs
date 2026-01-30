@@ -37,10 +37,10 @@ use crate::{
     payment_allocation::PaymentAllocation,
     primitives::{
         COLLATERAL_ENTITY_TYPE, CREDIT_FACILITY_ENTITY_TYPE, CREDIT_FACILITY_PROPOSAL_ENTITY_TYPE,
-        CalaAccountId, CalaAccountSetId, CollateralAction, CollateralId, CollateralUpdate,
-        CreditFacilityId, CustomerType, DisbursalId, DisbursedReceivableAccountCategory,
-        DisbursedReceivableAccountType, FacilityDurationType, InterestReceivableAccountType,
-        LedgerOmnibusAccountIds, LedgerTxId, PendingCreditFacilityId, Satoshis, UsdCents,
+        CalaAccountId, CalaAccountSetId, CollateralId, CreditFacilityId, CustomerType,
+        DisbursalId, DisbursedReceivableAccountCategory, DisbursedReceivableAccountType,
+        FacilityDurationType, InterestReceivableAccountType, LedgerOmnibusAccountIds, LedgerTxId,
+        PendingCreditFacilityId, Satoshis, UsdCents,
     },
 };
 
@@ -1225,22 +1225,26 @@ impl CreditLedger {
         } else {
             UsdCents::ZERO
         };
-        Ok(CreditFacilityBalanceSummary::new(
+        Ok(CreditFacilityBalanceSummary {
             facility,
             facility_remaining,
             collateral,
+
             disbursed,
             interest_posted,
+
             not_yet_due_disbursed_outstanding,
             due_disbursed_outstanding,
             overdue_disbursed_outstanding,
             disbursed_defaulted,
+
             not_yet_due_interest_outstanding,
             due_interest_outstanding,
             overdue_interest_outstanding,
             interest_defaulted,
+
             payments_unapplied,
-        ))
+        })
     }
 
     async fn record_obligation_repayment_in_op(

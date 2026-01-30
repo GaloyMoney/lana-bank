@@ -7,7 +7,10 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 
-use crate::{balance_summary::*, collateralization::*, effective_date::*};
+use crate::{collateralization::*, effective_date::*, cvl::CVLPct};
+
+use core_money::{Satoshis, UsdCents};
+use core_price::PriceOfOneBTC;
 
 use super::error::TermsError;
 
@@ -255,25 +258,6 @@ impl TermValues {
 
     pub fn maturity_date(&self, start_date: DateTime<Utc>) -> EffectiveDate {
         self.duration.maturity_date(start_date)
-    }
-
-    pub fn is_disbursal_allowed(
-        &self,
-        balance: CreditFacilityBalanceSummary,
-        amount: UsdCents,
-        price: PriceOfOneBTC,
-    ) -> bool {
-        let cvl = balance.with_added_disbursal(amount).current_cvl(price);
-        cvl >= self.margin_call_cvl
-    }
-
-    pub fn is_proposal_completion_allowed(
-        &self,
-        balance: PendingCreditFacilityBalanceSummary,
-        price: PriceOfOneBTC,
-    ) -> bool {
-        let total = balance.current_cvl(price);
-        total >= self.margin_call_cvl
     }
 
     pub fn builder() -> TermValuesBuilder {
@@ -852,57 +836,4 @@ mod test {
         }
     }
 
-    fn default_balances(facility: UsdCents) -> CreditFacilityBalanceSummary {
-        CreditFacilityBalanceSummary {
-            facility,
-            facility_remaining: facility,
-            collateral: Satoshis::ZERO,
-            disbursed: UsdCents::ZERO,
-            not_yet_due_disbursed_outstanding: UsdCents::ZERO,
-            due_disbursed_outstanding: UsdCents::ZERO,
-            overdue_disbursed_outstanding: UsdCents::ZERO,
-            disbursed_defaulted: UsdCents::ZERO,
-            interest_posted: UsdCents::ZERO,
-            not_yet_due_interest_outstanding: UsdCents::ZERO,
-            due_interest_outstanding: UsdCents::ZERO,
-            overdue_interest_outstanding: UsdCents::ZERO,
-            interest_defaulted: UsdCents::ZERO,
-            payments_unapplied: UsdCents::ZERO,
-        }
-    }
-
-    #[test]
-    fn check_approval_allowed() {
-        let terms = default_terms();
-        let price = PriceOfOneBTC::new(UsdCents::try_from_usd(dec!(100_000)).unwrap());
-        let principal = UsdCents::try_from_usd(dec!(100_000)).unwrap();
-        let required_collateral =
-            price.cents_to_sats_round_up(terms.margin_call_cvl.scale(principal));
-
-        let balance = PendingCreditFacilityBalanceSummary::new(
-            principal,
-            required_collateral - Satoshis::from(1),
-        );
-
-        assert!(!terms.is_proposal_completion_allowed(balance, price));
-
-        let balance = PendingCreditFacilityBalanceSummary::new(principal, required_collateral);
-
-        assert!(terms.is_proposal_completion_allowed(balance, price));
-    }
-
-    #[test]
-    fn check_disbursal_allowed() {
-        let terms = default_terms();
-        let price = PriceOfOneBTC::new(UsdCents::try_from_usd(dec!(100_000)).unwrap());
-        let principal = UsdCents::try_from_usd(dec!(100_000)).unwrap();
-        let mut balance = default_balances(principal);
-        balance.collateral = Satoshis::try_from_btc(dec!(1)).unwrap();
-
-        let amount = UsdCents::try_from_usd(dec!(80_001)).unwrap();
-        assert!(!terms.is_disbursal_allowed(balance, amount, price));
-
-        let amount = UsdCents::try_from_usd(dec!(80_000)).unwrap();
-        assert!(terms.is_disbursal_allowed(balance, amount, price));
-    }
 }

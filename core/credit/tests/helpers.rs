@@ -197,6 +197,12 @@ pub mod action {
         }
     }
 
+    impl From<core_credit_terms::CoreTermsAction> for DummyAction {
+        fn from(_: core_credit_terms::CoreTermsAction) -> Self {
+            Self
+        }
+    }
+
     impl std::fmt::Display for DummyAction {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             write!(f, "dummy")?;
@@ -262,6 +268,12 @@ pub mod object {
 
     impl From<DomainConfigObject> for DummyObject {
         fn from(_: DomainConfigObject) -> Self {
+            Self
+        }
+    }
+
+    impl From<core_credit_terms::CoreTermsObject> for DummyObject {
+        fn from(_: core_credit_terms::CoreTermsObject) -> Self {
             Self
         }
     }

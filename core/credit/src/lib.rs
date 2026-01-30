@@ -21,6 +21,7 @@ mod primitives;
 mod processes;
 mod publisher;
 mod repayment_plan;
+mod terms;
 
 use std::sync::Arc;
 
@@ -78,6 +79,7 @@ pub use processes::{
 };
 use publisher::CreditFacilityPublisher;
 pub use repayment_plan::*;
+pub use terms::TermValuesExt;
 
 #[cfg(feature = "json-schema")]
 pub mod event_schema {

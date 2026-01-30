@@ -5,10 +5,7 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 
-use core_money::{Satoshis, UsdCents};
-use core_price::PriceOfOneBTC;
-
-use crate::collateralization::CollateralizationRatio;
+use core_money::UsdCents;
 
 use std::fmt;
 
@@ -140,38 +137,6 @@ impl std::ops::Sub for CVLPct {
 impl From<Decimal> for CVLPct {
     fn from(value: Decimal) -> Self {
         CVLPct::Finite(value)
-    }
-}
-
-#[derive(Clone, Debug)]
-pub(crate) struct CVLData {
-    amount: UsdCents,
-    collateral: Satoshis,
-}
-
-impl CVLData {
-    pub(crate) fn new(collateral: Satoshis, amount: UsdCents) -> Self {
-        Self { collateral, amount }
-    }
-
-    pub(crate) fn ratio(&self) -> CollateralizationRatio {
-        if self.amount.is_zero() {
-            return CollateralizationRatio::Infinite;
-        }
-
-        let amount = Decimal::from(self.amount.into_inner());
-        let collateral = Decimal::from(self.collateral.into_inner());
-
-        CollateralizationRatio::Finite(collateral / amount)
-    }
-
-    pub(crate) fn cvl(&self, price: PriceOfOneBTC) -> CVLPct {
-        let collateral_value = price.sats_to_cents_round_down(self.collateral);
-        if collateral_value == UsdCents::ZERO {
-            CVLPct::ZERO
-        } else {
-            CVLPct::from_loan_amounts(collateral_value, self.amount)
-        }
     }
 }
 

@@ -1,6 +1,5 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
-pub mod balance_summary;
 pub mod collateralization;
 mod cvl;
 mod effective_date;
