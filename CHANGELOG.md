@@ -1,3 +1,62 @@
+## [0.39.0] - 2026-01-30
+
+### 🚀 Features
+
+- Change RequireVerifiedCustomerForAccount default to true (#3481)
+- *(docs)* Add schema snapshot script for versioning (#3540)
+- *(admin-panel)* Display authorized column in audit log table (#3547)
+- *(dev)* Add extensible custom lints system (#3558)
+
+### 🐛 Bug Fixes
+
+- Doc generation (#3501)
+- Gracefully handle unknown domain config keys at startup (#3516)
+- Add timeout to server graceful shutdown (#3499)
+- Migration of known complex anyof type (#3568)
+- Increase PostgreSQL max_connections to 200 for CI test parallelism (#3578)
+
+### 🚜 Refactor
+
+- Move SumSub credentials to domain config (#3486)
+- Custody public events (#3504)
+- Deposit and governance public events (#3494)
+- Prevent infinite loop in scenarios (#3544)
+- Interest late scenario (#3554)
+- Core/report public events (#3493)
+- Separate collateral ledger from credit ledger (#3552)
+- Remove redundant update_pending_credit_facility_collateral (#3566)
+- *(core-access)* Encapsulate superuser check in Role entity
+- Move liquidation jobs to collateral (#3572)
+- Credit module config validation against base (#3424)
+- Use ephemeral events for reports (#3582)
+
+### 🧪 Testing
+
+- Report public events (#3561)
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 0.38.0 [ci skip] (#3505)
+- Migrate from kaniko to oci-build-task (#3502)
+- Update_in_op for internal domain configs (#3503)
+- Remove redundant put step (#3507)
+- Restructure release job (#3509)
+- Update promote pr prefix (#3500)
+- Update Keycloak to 26.5.2 (#3523)
+- Bump es-entity + async-graphql (#3528)
+- Guaranteed default value for domain config (#3511)
+- Add rc pr file checker (#3521)
+- Use accounting base config (#3415)
+- Add PR limit enforcer workflow (#3556)
+- Add ignore pr limit label to promote PRs (#3559)
+- Record liquidation in collateral (#3548)
+- Add lana-review claude skill (#3562)
+- Move liquidation ledger operations (#3563)
+- Dbt single execution (#3518)
+- Some tweaks to lana-review (#3567)
+- Bump obix (#3581)
+- Improve the lana-review claude skill (#3579)
+- Move liquidation-sent to collateral use case (#3570)
 ## [0.38.0] - 2026-01-27
 
 ### 🚀 Features
