@@ -891,8 +891,7 @@ fn json_schema_to_sql_type_with_definitions(
                                 definitions,
                             );
                         }
-                    } else if let Some(Value::String(ref_path)) = entry_obj.get("$ref") {
-                        println!("Resolving object with $ref in anyOf: {} from {}", ref_path, any_of_entry);
+                    } else if let Some(Value::String(_ref_path)) = entry_obj.get("$ref") {
                         // Recursively determine the type of the non-null entry
                         return json_schema_to_sql_type_with_definitions(any_of_entry, definitions);
                     }
