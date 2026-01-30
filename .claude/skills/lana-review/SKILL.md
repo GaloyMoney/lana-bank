@@ -22,6 +22,18 @@ To get the full diff:
 
 Exclude files listed in "Files to Ignore" from review.
 
+## Context Management
+
+**Use subagents for exploration tasks.** When answering review questions that require deep codebase exploration, delegate to a subagent (Task tool with `subagent_type=Explore`) rather than reading many files directly. This keeps the main review context focused on the actual changes.
+
+Examples of when to use subagents:
+- "Does this repo method follow existing patterns?" → subagent explores other repo implementations
+- "Is this event structure consistent with es-entity conventions?" → subagent examines es-entity usage across the codebase
+- "How do other modules handle this pattern?" → subagent surveys similar code in other modules
+- "What's the design intent of this library?" → subagent reads library docs and example usages
+
+The subagent returns a concise answer without polluting your context with dozens of file reads. Only read files directly when you need the exact content for the review itself (e.g., the files being changed).
+
 ## Review Context
 
 - **Backwards compatibility: NOT a concern.** System is not deployed yet - no existing data or clients. Breaking changes are fine.
@@ -154,14 +166,66 @@ RealtimePrice vs SettlementPrice
 - [ ] No sensitive data in logs, traces or system triggered emails (credentials, PII)
 - [ ] Audit logging for sensitive operations (mutations should be logged)
 
+## Severity Philosophy
+
+**Be conservative with severity.** Higher severity items (WARNING and above) should only be raised when there is:
+1. A clear violation of design intent (not just a stylistic preference)
+2. Real, demonstrable harm (not theoretical concerns)
+3. A fix that doesn't increase overall complexity
+
+**Pragmatic rule-breaking is often correct.** We sometimes deviate from patterns to keep things simple. If a "violation" keeps complexity low with no real downside, don't flag it as a problem. The goal is working, maintainable software - not pattern purity.
+
+### Issue Severity Levels
+
+All severity levels are for **issues/concerns only** - things that may need attention or action.
+
+| Severity | Use When | Examples |
+|----------|----------|----------|
+| **CRITICAL** | Data integrity at risk, events malformed, security vulnerability | Mutable event fields, missing audit on sensitive ops, SQL injection |
+| **ERROR** | Clear architectural violation causing real harm | Business logic in resolver with no entity method, cross-module state mutation without events |
+| **WARNING** | Design concern that should be addressed, fix is straightforward | Complex conditional in use case that belongs in entity, train wreck hiding important logic |
+| **SUGGESTION** | Minor improvement idea, optional, no real harm if ignored | "Could extract this to a value object", "Consider renaming for clarity", pattern deviation that's acceptable but worth noting |
+
+**Do NOT elevate to WARNING or above:**
+- Style preferences (naming, formatting beyond conventions)
+- "Cleaner" alternatives that add abstraction
+- Pattern suggestions for code that works fine as-is
+- Theoretical future concerns ("this might cause issues if...")
+
+### Highlights (Positive Observations)
+
+Separately from issues, note **good patterns** worth highlighting. These demonstrate you understood the code and reinforce good practices. Use these sparingly - only for genuinely notable good decisions, not routine correct code.
+
+Examples of what to highlight:
+- Good "Tell, Don't Ask" encapsulation that could easily have been done wrong
+- Clean module boundary decisions
+- Well-designed value objects or error types
+- Thoughtful test coverage for edge cases
+
 ## Output Format
 
+Structure the review with clear sections:
+
 ```
-**[SEVERITY]** file_path:line_number
-Issue and why it violates DDD/architecture principles.
-Suggested fix.
+## Summary
+Brief description of what the PR does.
+
+## Highlights
+Notable good patterns or decisions (optional - only if there are genuinely good things worth calling out).
+
+- `file_path:line_number` - Brief description of what's good and why.
+
+## Issues
+
+**[SEVERITY]** `file_path:line_number`
+Issue and why it matters (not just "violates pattern X").
+Suggested fix (only if severity is WARNING or above).
+
+## Assessment
+PASS / PASS WITH WARNINGS / NEEDS CHANGES
 ```
 
-Severities: **CRITICAL** (event sourcing, data integrity) | **ERROR** (wrong layer, DDD violation) | **WARNING** (design concerns) | **INFO** (suggestions)
-
-End with: Summary + Assessment (PASS / PASS WITH WARNINGS / NEEDS CHANGES)
+**Assessment criteria:**
+- **PASS**: No issues at WARNING or above
+- **PASS WITH WARNINGS**: Has WARNING items but no ERROR/CRITICAL
+- **NEEDS CHANGES**: Has ERROR or CRITICAL items
