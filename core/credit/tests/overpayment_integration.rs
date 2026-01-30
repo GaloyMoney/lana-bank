@@ -231,6 +231,7 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
         &deposit_public_ids,
         &customers,
         &domain_configs,
+        &internal_domain_configs,
     )
     .await?;
     jobs.start_poll().await?;

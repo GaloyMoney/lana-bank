@@ -84,7 +84,6 @@ pub(in crate::accounting_init::seed) async fn deposit_module_configure(
         .await
     {
         Ok(_) => (),
-        Err(core_deposit::ChartOfAccountsIntegrationError::ConfigAlreadyExists) => (),
         Err(e) => return Err(e.into()),
     };
 

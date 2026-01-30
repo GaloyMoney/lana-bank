@@ -61,7 +61,9 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         clock.clone(),
     );
 
-    let exposed_domain_configs = helpers::init_domain_configs(&pool, &authz).await?;
+    let exposed_domain_configs =
+        helpers::init_read_only_exposed_domain_configs(&pool, &authz).await?;
+    let internal_domain_configs = helpers::init_internal_domain_configs(&pool).await?;
 
     let deposit = CoreDeposit::init(
         &pool,
@@ -74,6 +76,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         &public_ids,
         &customers,
         &exposed_domain_configs,
+        &internal_domain_configs,
     )
     .await?;
 
@@ -205,53 +208,41 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
             &tb_name2,
         )
         .await?;
-
+    let chart_of_accounts_integration_config = ChartOfAccountsIntegrationConfig {
+        chart_of_accounts_id: chart_id,
+        chart_of_accounts_omnibus_parent_code: "11".parse().unwrap(),
+        chart_of_accounts_individual_deposit_accounts_parent_code: "21".parse().unwrap(),
+        chart_of_accounts_government_entity_deposit_accounts_parent_code: "26".parse().unwrap(),
+        chart_of_account_private_company_deposit_accounts_parent_code: "22".parse().unwrap(),
+        chart_of_account_bank_deposit_accounts_parent_code: "23".parse().unwrap(),
+        chart_of_account_financial_institution_deposit_accounts_parent_code: "24".parse().unwrap(),
+        chart_of_account_non_domiciled_individual_deposit_accounts_parent_code: "25"
+            .parse()
+            .unwrap(),
+        chart_of_accounts_frozen_individual_deposit_accounts_parent_code: "27".parse().unwrap(),
+        chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code: "27"
+            .parse()
+            .unwrap(),
+        chart_of_account_frozen_private_company_deposit_accounts_parent_code: "27".parse().unwrap(),
+        chart_of_account_frozen_bank_deposit_accounts_parent_code: "27".parse().unwrap(),
+        chart_of_account_frozen_financial_institution_deposit_accounts_parent_code: "27"
+            .parse()
+            .unwrap(),
+        chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code: "27"
+            .parse()
+            .unwrap(),
+    };
     let res = deposit
         .chart_of_accounts_integrations()
         .set_config(
             &DummySubject,
             &chart,
-            ChartOfAccountsIntegrationConfig {
-                chart_of_accounts_id: chart_id,
-                chart_of_accounts_omnibus_parent_code: "11".parse().unwrap(),
-                chart_of_accounts_individual_deposit_accounts_parent_code: "21".parse().unwrap(),
-                chart_of_accounts_government_entity_deposit_accounts_parent_code: "26"
-                    .parse()
-                    .unwrap(),
-                chart_of_account_private_company_deposit_accounts_parent_code: "22"
-                    .parse()
-                    .unwrap(),
-                chart_of_account_bank_deposit_accounts_parent_code: "23".parse().unwrap(),
-                chart_of_account_financial_institution_deposit_accounts_parent_code: "24"
-                    .parse()
-                    .unwrap(),
-                chart_of_account_non_domiciled_individual_deposit_accounts_parent_code: "25"
-                    .parse()
-                    .unwrap(),
-                chart_of_accounts_frozen_individual_deposit_accounts_parent_code: "27"
-                    .parse()
-                    .unwrap(),
-                chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code: "27"
-                    .parse()
-                    .unwrap(),
-                chart_of_account_frozen_private_company_deposit_accounts_parent_code: "27"
-                    .parse()
-                    .unwrap(),
-                chart_of_account_frozen_bank_deposit_accounts_parent_code: "27".parse().unwrap(),
-                chart_of_account_frozen_financial_institution_deposit_accounts_parent_code: "27"
-                    .parse()
-                    .unwrap(),
-                chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code: "27"
-                    .parse()
-                    .unwrap(),
-            },
+            chart_of_accounts_integration_config.clone(),
         )
-        .await;
+        .await
+        .unwrap();
 
-    assert!(matches!(
-        res,
-        Err(core_deposit::ChartOfAccountsIntegrationError::ConfigAlreadyExists)
-    ));
+    assert_eq!(res, chart_of_accounts_integration_config);
 
     Ok(())
 }

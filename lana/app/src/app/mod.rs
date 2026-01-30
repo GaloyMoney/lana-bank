@@ -173,6 +173,7 @@ impl LanaApp {
             &public_ids,
             &customers,
             &exposed_domain_configs_readonly,
+            &internal_domain_configs,
         )
         .await?;
         let customer_sync = CustomerSync::init(
