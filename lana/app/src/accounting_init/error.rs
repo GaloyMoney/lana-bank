@@ -14,6 +14,8 @@ pub enum AccountingInitError {
     ChartOfAccountsError(#[from] core_accounting::chart_of_accounts::error::ChartOfAccountsError),
     #[error("AccountingInitError - CreditChartOfAccountsIntegrationError: {0}")]
     CreditChartOfAccountsIntegrationError(#[from] core_credit::ChartOfAccountsIntegrationError),
+    #[error("AccountingInitError - DepositChartOfAccountsIntegrationError: {0}")]
+    DepositChartOfAccountsIntegrationError(#[from] core_deposit::ChartOfAccountsIntegrationError),
     #[error("AccountingInitError - CoreDepositError: {0}")]
     CoreDepositError(#[from] core_deposit::error::CoreDepositError),
     #[error("AccountingInitError - LedgerError: {0}")]
@@ -60,6 +62,7 @@ impl ErrorSeverity for AccountingInitError {
             Self::MissingConfig(_) => Level::ERROR,
             Self::AccountingBaseConfigError(e) => e.severity(),
             Self::CoreAccountingError(e) => e.severity(),
+            Self::DepositChartOfAccountsIntegrationError(e) => e.severity(),
         }
     }
 }
