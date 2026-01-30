@@ -32,8 +32,6 @@ with
             is_defaulted_recorded,
             is_due_recorded,
             is_overdue_recorded,
-            liquidation_date__v_text,
-            overdue_date__v_text,
             receivable_account_ids,
             _dlt_load_id,
             _dlt_id
@@ -65,8 +63,6 @@ select
     is_defaulted_recorded,
     is_due_recorded,
     is_overdue_recorded,
-    liquidation_date__v_text,
-    overdue_date__v_text,
     receivable_account_ids,
     timestamp_micros(
         cast(cast(_dlt_load_id as decimal) * 1e6 as int64)
