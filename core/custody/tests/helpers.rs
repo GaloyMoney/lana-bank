@@ -63,27 +63,12 @@ pub mod object {
 pub mod event {
     use super::*;
 
-    #[derive(Debug, Serialize, Deserialize)]
+    #[derive(Debug, Serialize, Deserialize, obix::OutboxEvent)]
     #[serde(tag = "module")]
     pub enum DummyEvent {
         CoreCustody(CoreCustodyEvent),
         #[serde(other)]
         Unknown,
-    }
-
-    impl obix::out::OutboxEventMarker<CoreCustodyEvent> for DummyEvent {
-        fn as_event(&self) -> Option<&CoreCustodyEvent> {
-            match self {
-                Self::CoreCustody(event) => Some(event),
-                Self::Unknown => None,
-            }
-        }
-    }
-
-    impl From<CoreCustodyEvent> for DummyEvent {
-        fn from(event: CoreCustodyEvent) -> Self {
-            Self::CoreCustody(event)
-        }
     }
 
     pub use obix::test_utils::expect_event;

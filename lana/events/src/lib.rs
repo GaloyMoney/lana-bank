@@ -18,7 +18,7 @@ pub use core_time_events::CoreTimeEvent;
 pub use governance::GovernanceEvent;
 pub use obix::out::OutboxEventMarker;
 
-#[derive(Debug, Serialize, Deserialize, strum::AsRefStr)]
+#[derive(Debug, Serialize, Deserialize, strum::AsRefStr, obix::OutboxEvent)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "module")]
 pub enum LanaEvent {
@@ -33,32 +33,3 @@ pub enum LanaEvent {
     Price(CorePriceEvent),
     Time(CoreTimeEvent),
 }
-
-macro_rules! impl_event_marker {
-    ($from_type:ty, $variant:ident) => {
-        impl OutboxEventMarker<$from_type> for LanaEvent {
-            fn as_event(&self) -> Option<&$from_type> {
-                match self {
-                    &Self::$variant(ref event) => Some(event),
-                    _ => None,
-                }
-            }
-        }
-        impl From<$from_type> for LanaEvent {
-            fn from(event: $from_type) -> Self {
-                Self::$variant(event)
-            }
-        }
-    };
-}
-
-impl_event_marker!(GovernanceEvent, Governance);
-impl_event_marker!(CoreAccessEvent, CoreAccess);
-impl_event_marker!(CoreAccountingEvent, Accounting);
-impl_event_marker!(CoreCreditEvent, Credit);
-impl_event_marker!(CoreDepositEvent, Deposit);
-impl_event_marker!(CoreCustomerEvent, Customer);
-impl_event_marker!(CoreCustodyEvent, Custody);
-impl_event_marker!(CoreReportEvent, Report);
-impl_event_marker!(CorePriceEvent, Price);
-impl_event_marker!(CoreTimeEvent, Time);

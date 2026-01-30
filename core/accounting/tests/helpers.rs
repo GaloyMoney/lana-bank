@@ -144,29 +144,13 @@ pub mod object {
 
 pub mod event {
     use core_accounting::CoreAccountingEvent;
-    use obix::out::OutboxEventMarker;
     use serde::{Deserialize, Serialize};
 
-    #[derive(Debug, Clone, Serialize, Deserialize)]
+    #[derive(Debug, Clone, Serialize, Deserialize, obix::OutboxEvent)]
     #[serde(tag = "module")]
     pub enum TestEvent {
         Accounting(CoreAccountingEvent),
         #[serde(other)]
         Unknown,
-    }
-
-    impl OutboxEventMarker<CoreAccountingEvent> for TestEvent {
-        fn as_event(&self) -> Option<&CoreAccountingEvent> {
-            match self {
-                TestEvent::Accounting(e) => Some(e),
-                TestEvent::Unknown => None,
-            }
-        }
-    }
-
-    impl From<CoreAccountingEvent> for TestEvent {
-        fn from(e: CoreAccountingEvent) -> Self {
-            TestEvent::Accounting(e)
-        }
     }
 }

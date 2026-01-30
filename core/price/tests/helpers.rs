@@ -11,27 +11,12 @@ pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
     Ok(pool)
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, obix::OutboxEvent)]
 #[serde(tag = "module")]
 pub enum DummyEvent {
     Price(CorePriceEvent),
     #[serde(other)]
     Unknown,
-}
-
-impl obix::out::OutboxEventMarker<CorePriceEvent> for DummyEvent {
-    fn as_event(&self) -> Option<&CorePriceEvent> {
-        match self {
-            DummyEvent::Price(event) => Some(event),
-            DummyEvent::Unknown => None,
-        }
-    }
-}
-
-impl From<CorePriceEvent> for DummyEvent {
-    fn from(event: CorePriceEvent) -> Self {
-        DummyEvent::Price(event)
-    }
 }
 
 pub async fn wait_for_price_to_be_updated(

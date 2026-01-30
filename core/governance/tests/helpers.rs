@@ -61,26 +61,11 @@ pub mod object {
 pub mod event {
     use super::*;
 
-    #[derive(Debug, Serialize, Deserialize)]
+    #[derive(Debug, Serialize, Deserialize, obix::OutboxEvent)]
     #[serde(tag = "module")]
     pub enum DummyEvent {
         Governance(GovernanceEvent),
         #[serde(other)]
         Unknown,
-    }
-
-    impl obix::out::OutboxEventMarker<GovernanceEvent> for DummyEvent {
-        fn as_event(&self) -> Option<&GovernanceEvent> {
-            match self {
-                Self::Governance(event) => Some(event),
-                Self::Unknown => None,
-            }
-        }
-    }
-
-    impl From<GovernanceEvent> for DummyEvent {
-        fn from(event: GovernanceEvent) -> Self {
-            Self::Governance(event)
-        }
     }
 }
