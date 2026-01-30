@@ -147,7 +147,6 @@ where
         db: &mut es_entity::DbOp<'_>,
         liquidation_id: LiquidationId,
         amount: Satoshis,
-        initiated_by: LedgerTransactionInitiator,
     ) -> Result<Liquidation, LiquidationError> {
         let mut liquidation = self.repo.find_by_id_in_op(&mut *db, liquidation_id).await?;
 
@@ -158,16 +157,6 @@ where
             .did_execute()
         {
             self.repo.update_in_op(db, &mut liquidation).await?;
-            self.ledger
-                .record_collateral_sent_in_op(
-                    db,
-                    tx_id,
-                    amount,
-                    liquidation.collateral_account_id,
-                    liquidation.collateral_in_liquidation_account_id,
-                    initiated_by,
-                )
-                .await?;
         }
 
         Ok(liquidation)

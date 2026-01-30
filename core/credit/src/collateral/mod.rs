@@ -11,6 +11,7 @@ use tracing::instrument;
 use tracing_macros::record_error_severity;
 
 use authz::PermissionCheck;
+use core_accounting::LedgerTransactionInitiator;
 use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{CreditFacilityPublisher, event::CoreCreditEvent, primitives::*};
@@ -155,6 +156,8 @@ where
         liquidation_id: LiquidationId,
         amount_sent: core_money::Satoshis,
         effective: chrono::NaiveDate,
+        collateral_in_liquidation_account_id: CalaAccountId,
+        initiated_by: LedgerTransactionInitiator,
     ) -> Result<Option<CollateralUpdate>, CollateralError> {
         let mut collateral = self.repo.find_by_id_in_op(&mut *db, collateral_id).await?;
 
@@ -162,6 +165,16 @@ where
             .record_collateral_update_via_liquidation(liquidation_id, amount_sent, effective)
         {
             self.repo.update_in_op(db, &mut collateral).await?;
+            self.ledger
+                .record_collateral_sent_to_liquidation_in_op(
+                    db,
+                    data.tx_id,
+                    amount_sent,
+                    collateral.account_id,
+                    collateral_in_liquidation_account_id,
+                    initiated_by,
+                )
+                .await?;
             Some(data)
         } else {
             None
