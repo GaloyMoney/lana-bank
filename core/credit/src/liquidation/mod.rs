@@ -90,31 +90,6 @@ where
     }
 
     #[instrument(
-        name = "credit.liquidation.record_collateral_sent",
-        skip(self, db),
-        err
-    )]
-    pub async fn record_collateral_sent_in_op(
-        &self,
-        db: &mut es_entity::DbOp<'_>,
-        liquidation_id: LiquidationId,
-        amount: Satoshis,
-    ) -> Result<Liquidation, LiquidationError> {
-        let mut liquidation = self.repo.find_by_id_in_op(&mut *db, liquidation_id).await?;
-
-        let tx_id = CalaTransactionId::new();
-
-        if liquidation
-            .record_collateral_sent_out(amount, tx_id)?
-            .did_execute()
-        {
-            self.repo.update_in_op(db, &mut liquidation).await?;
-        }
-
-        Ok(liquidation)
-    }
-
-    #[instrument(
         name = "credit.liquidation.record_proceeds_from_liquidation",
         skip(self, sub),
         err

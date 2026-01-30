@@ -39,28 +39,25 @@ pub async fn init_internal_domain_configs(
 }
 
 async fn clear_internal_domain_config(pool: &sqlx::PgPool, key: &str) -> anyhow::Result<()> {
+    // Use a CTE to perform all deletes atomically in dependency order.
+    // This prevents race conditions when tests run in parallel.
     sqlx::query(
-        "DELETE FROM core_domain_config_events_rollup WHERE id IN (
-            SELECT id FROM core_domain_configs WHERE key = $1
-        )",
+        "WITH config_ids AS (
+            SELECT id FROM core_domain_configs WHERE key = $1 FOR UPDATE
+        ),
+        deleted_rollup AS (
+            DELETE FROM core_domain_config_events_rollup
+            WHERE id IN (SELECT id FROM config_ids)
+        ),
+        deleted_events AS (
+            DELETE FROM core_domain_config_events
+            WHERE id IN (SELECT id FROM config_ids)
+        )
+        DELETE FROM core_domain_configs WHERE id IN (SELECT id FROM config_ids)",
     )
     .bind(key)
     .execute(pool)
     .await?;
-
-    sqlx::query(
-        "DELETE FROM core_domain_config_events WHERE id IN (
-            SELECT id FROM core_domain_configs WHERE key = $1
-        )",
-    )
-    .bind(key)
-    .execute(pool)
-    .await?;
-
-    sqlx::query("DELETE FROM core_domain_configs WHERE key = $1")
-        .bind(key)
-        .execute(pool)
-        .await?;
 
     Ok(())
 }
