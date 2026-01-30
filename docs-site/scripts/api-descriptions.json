@@ -108,6 +108,7 @@
       "creditFacilityPartialPaymentWithDateRecord": "Records a partial payment towards a credit facility with a specific effective date",
       "creditFacilityDisbursalInitiate": "Initiates a disbursal from a credit facility",
       "creditFacilityComplete": "Marks a credit facility as complete after full repayment",
+      "collateralLiquidationRecordCollateralSent": "Records collateral sent out during a liquidation",
       "liquidationRecordCollateralSent": "Records collateral sent out during a liquidation",
       "liquidationRecordProceedsReceived": "Records proceeds received from a liquidation",
       "custodianCreate": "Creates a new custodian integration (Komainu or BitGo)",
