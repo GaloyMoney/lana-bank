@@ -13,15 +13,14 @@ use job::*;
 use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
+use super::{
+    liquidation_payment::{LiquidationPaymentJobConfig, LiquidationPaymentJobSpawner},
+    partial_liquidation::{PartialLiquidationJobConfig, PartialLiquidationJobSpawner},
+};
 use crate::{
-    CoreCreditEvent, CreditFacilityId, LedgerOmnibusAccountIds, LiquidationRepo, NewLiquidation,
+    CoreCreditEvent, CreditFacilityId, LedgerOmnibusAccountIds,
     liquidation::{
-        NewLiquidationBuilder,
-        error::LiquidationError,
-        jobs::{
-            liquidation_payment::{LiquidationPaymentJobConfig, LiquidationPaymentJobSpawner},
-            partial_liquidation::{PartialLiquidationJobConfig, PartialLiquidationJobSpawner},
-        },
+        LiquidationRepo, NewLiquidation, NewLiquidationBuilder, error::LiquidationError,
     },
 };
 
