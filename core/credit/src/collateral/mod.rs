@@ -234,14 +234,14 @@ where
     pub async fn record_collateral_update_via_liquidation(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        liquidation_id: LiquidationId,
+        collateral_id: CollateralId,
         amount_sent: core_money::Satoshis,
     ) -> Result<Collateral, CollateralError> {
         self.authz
             .enforce_permission(
                 sub,
-                CoreCreditObject::liquidation(liquidation_id),
-                CoreCreditAction::LIQUIDATION_RECORD_COLLATERAL_SENT,
+                CoreCreditObject::collateral(collateral_id),
+                CoreCreditAction::COLLATERAL_RECORD_LIQUIDATION_UPDATE,
             )
             .await?;
 
@@ -249,6 +249,12 @@ where
         let effective = self.clock.today();
 
         let mut db = self.repo.begin_op().await?;
+
+        let mut collateral = self.repo.find_by_id_in_op(&mut db, collateral_id).await?;
+
+        let liquidation_id = collateral
+            .active_liquidation()
+            .ok_or(CollateralError::NoActiveLiquidation)?;
 
         let mut liquidation = self
             .liquidation_repo
@@ -265,11 +271,6 @@ where
                 .update_in_op(&mut db, &mut liquidation)
                 .await?;
         }
-
-        let mut collateral = self
-            .repo
-            .find_by_id_in_op(&mut db, liquidation.collateral_id)
-            .await?;
 
         if let es_entity::Idempotent::Executed(data) = collateral
             .record_collateral_update_via_liquidation(liquidation_id, amount_sent, effective)
