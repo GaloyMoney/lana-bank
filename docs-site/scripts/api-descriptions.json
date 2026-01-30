@@ -109,6 +109,7 @@
       "creditFacilityDisbursalInitiate": "Initiates a disbursal from a credit facility",
       "creditFacilityComplete": "Marks a credit facility as complete after full repayment",
       "collateralLiquidationRecordCollateralSent": "Records collateral sent out during a liquidation",
+      "collateralRecordProceedsFromLiquidation": "Records proceeds received from a liquidation",
       "liquidationRecordCollateralSent": "Records collateral sent out during a liquidation",
       "liquidationRecordProceedsReceived": "Records proceeds received from a liquidation",
       "custodianCreate": "Creates a new custodian integration (Komainu or BitGo)",
