@@ -515,7 +515,6 @@ impl From<ObligationAction> for CoreCreditAction {
     }
 }
 
-
 #[derive(
     Debug,
     Default,

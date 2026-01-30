@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 
-use crate::{collateralization::*, effective_date::*, cvl::CVLPct};
+use crate::{collateralization::*, cvl::CVLPct, effective_date::*};
 
 use core_money::{Satoshis, UsdCents};
 use core_price::PriceOfOneBTC;
@@ -835,5 +835,4 @@ mod test {
             );
         }
     }
-
 }

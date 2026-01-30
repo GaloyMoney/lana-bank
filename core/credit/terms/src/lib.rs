@@ -12,8 +12,8 @@ pub use cvl::CVLPct;
 pub use effective_date::EffectiveDate;
 pub use error::TermsError;
 pub use primitives::{
-    CoreTermsAction, CoreTermsObject, TermsPermissions, TermsTemplateAction,
-    TermsTemplateAllOrOne, PERMISSION_SET_CREDIT_TERM_TEMPLATES, PERMISSION_SET_TERMS_VIEWER,
+    CoreTermsAction, CoreTermsObject, PERMISSION_SET_CREDIT_TERM_TEMPLATES,
+    PERMISSION_SET_TERMS_VIEWER, TermsPermissions, TermsTemplateAction, TermsTemplateAllOrOne,
 };
 pub use terms_template::{
     NewTermsTemplate, NewTermsTemplateBuilder, TermsTemplate, TermsTemplateBuilder,
