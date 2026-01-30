@@ -20,9 +20,8 @@ use super::{
 };
 use crate::{
     CoreCreditEvent, CreditFacilityId, LedgerOmnibusAccountIds,
-    liquidation::{
-        LiquidationRepo, NewLiquidation, NewLiquidationBuilder, error::LiquidationError,
-    },
+    collateral::error::CollateralError,
+    liquidation::{LiquidationRepo, NewLiquidation, NewLiquidationBuilder},
 };
 
 #[derive(Default, Clone, Deserialize, Serialize)]
@@ -238,7 +237,7 @@ where
         db: &mut DbOp<'_>,
         credit_facility_id: CreditFacilityId,
         new_liquidation: &mut NewLiquidationBuilder,
-    ) -> Result<(), LiquidationError> {
+    ) -> Result<(), CollateralError> {
         let existing_liquidation = self
             .repo
             .maybe_find_active_liquidation_for_credit_facility_id_in_op(
