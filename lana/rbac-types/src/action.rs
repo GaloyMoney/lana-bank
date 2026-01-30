@@ -28,6 +28,7 @@ pub enum LanaAction {
     Dashboard(DashboardModuleAction),
     Deposit(CoreDepositAction),
     Credit(CoreCreditAction),
+    Terms(core_credit_terms::CoreTermsAction),
     Custody(CoreCustodyAction),
     Report(CoreReportAction),
     Contract(ContractModuleAction),
@@ -46,6 +47,7 @@ impl LanaAction {
             DashboardModuleAction::actions(),
             CoreDepositAction::actions(),
             CoreCreditAction::actions(),
+            core_credit_terms::CoreTermsAction::actions(),
             CoreCustodyAction::actions(),
             CoreReportAction::actions(),
             ContractModuleAction::actions(),
@@ -99,6 +101,11 @@ impl From<CoreCreditAction> for LanaAction {
         LanaAction::Credit(action)
     }
 }
+impl From<core_credit_terms::CoreTermsAction> for LanaAction {
+    fn from(action: core_credit_terms::CoreTermsAction) -> Self {
+        LanaAction::Terms(action)
+    }
+}
 impl From<CoreCustodyAction> for LanaAction {
     fn from(action: CoreCustodyAction) -> Self {
         LanaAction::Custody(action)
@@ -129,6 +136,7 @@ impl Display for LanaAction {
             Accounting(action) => action.fmt(f),
             Deposit(action) => action.fmt(f),
             Credit(action) => action.fmt(f),
+            Terms(action) => action.fmt(f),
             Custody(action) => action.fmt(f),
             Report(action) => action.fmt(f),
             Contract(action) => action.fmt(f),
@@ -152,6 +160,7 @@ impl FromStr for LanaAction {
             Accounting => LanaAction::from(action.parse::<CoreAccountingAction>()?),
             Deposit => LanaAction::from(action.parse::<CoreDepositAction>()?),
             Credit => LanaAction::from(action.parse::<CoreCreditAction>()?),
+            Terms => LanaAction::from(action.parse::<core_credit_terms::CoreTermsAction>()?),
             Custody => LanaAction::from(action.parse::<CoreCustodyAction>()?),
             Report => LanaAction::from(action.parse::<CoreReportAction>()?),
             Contract => LanaAction::from(action.parse::<ContractModuleAction>()?),

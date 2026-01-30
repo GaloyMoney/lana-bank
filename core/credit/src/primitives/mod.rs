@@ -158,12 +158,10 @@ pub type ChartOfAccountsIntegrationConfigAllOrOne = AllOrOne<ChartOfAccountsInte
 pub type DisbursalAllOrOne = AllOrOne<DisbursalId>;
 pub type LiquidationAllOrOne = AllOrOne<LiquidationId>;
 pub type ObligationAllOrOne = AllOrOne<ObligationId>;
-pub type TermsTemplateAllOrOne = AllOrOne<TermsTemplateId>;
 
 pub const PERMISSION_SET_CREDIT_WRITER: &str = "credit_writer";
 pub const PERMISSION_SET_CREDIT_VIEWER: &str = "credit_viewer";
 pub const PERMISSION_SET_CREDIT_PAYMENT_DATE: &str = "credit_payment_date";
-pub const PERMISSION_SET_CREDIT_TERM_TEMPLATES: &str = "credit_term_templates";
 
 pub const CREDIT_FACILITY_REF_TARGET: public_id::PublicIdTargetType =
     public_id::PublicIdTargetType::new("credit_facility");
@@ -179,7 +177,6 @@ pub enum CoreCreditObject {
     Disbursal(DisbursalAllOrOne),
     Liquidation(LiquidationAllOrOne),
     Obligation(ObligationAllOrOne),
-    TermsTemplate(TermsTemplateAllOrOne),
 }
 
 impl CoreCreditObject {
@@ -218,14 +215,6 @@ impl CoreCreditObject {
     pub fn all_obligations() -> Self {
         CoreCreditObject::Obligation(AllOrOne::All)
     }
-
-    pub fn terms_template(id: TermsTemplateId) -> Self {
-        CoreCreditObject::TermsTemplate(AllOrOne::ById(id))
-    }
-
-    pub fn all_terms_templates() -> Self {
-        CoreCreditObject::TermsTemplate(AllOrOne::All)
-    }
 }
 
 impl std::fmt::Display for CoreCreditObject {
@@ -238,7 +227,6 @@ impl std::fmt::Display for CoreCreditObject {
             Disbursal(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             Liquidation(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             Obligation(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
-            TermsTemplate(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
         }
     }
 }
@@ -270,10 +258,6 @@ impl FromStr for CoreCreditObject {
                 let obj_ref = id.parse().map_err(|_| "could not parse CoreCreditObject")?;
                 CoreCreditObject::Liquidation(obj_ref)
             }
-            TermsTemplate => {
-                let obj_ref = id.parse().map_err(|_| "could not parse CoreCreditObject")?;
-                CoreCreditObject::TermsTemplate(obj_ref)
-            }
         };
         Ok(res)
     }
@@ -288,7 +272,6 @@ pub enum CoreCreditAction {
     Disbursal(DisbursalAction),
     Liquidation(LiquidationAction),
     Obligation(ObligationAction),
-    TermsTemplate(TermsTemplateAction),
 }
 
 impl CoreCreditAction {
@@ -342,15 +325,6 @@ impl CoreCreditAction {
     pub const OBLIGATION_RECORD_PAYMENT_WITH_DATE: Self =
         CoreCreditAction::Obligation(ObligationAction::RecordPaymentAllocationWithDate);
 
-    pub const TERMS_TEMPLATE_CREATE: Self =
-        CoreCreditAction::TermsTemplate(TermsTemplateAction::Create);
-    pub const TERMS_TEMPLATE_READ: Self =
-        CoreCreditAction::TermsTemplate(TermsTemplateAction::Read);
-    pub const TERMS_TEMPLATE_UPDATE: Self =
-        CoreCreditAction::TermsTemplate(TermsTemplateAction::Update);
-    pub const TERMS_TEMPLATE_LIST: Self =
-        CoreCreditAction::TermsTemplate(TermsTemplateAction::List);
-
     pub fn actions() -> Vec<ActionMapping> {
         use CoreCreditActionDiscriminants::*;
         use strum::VariantArray;
@@ -367,7 +341,6 @@ impl CoreCreditAction {
                 Disbursal => map_action!(credit, Disbursal, DisbursalAction),
                 Liquidation => map_action!(credit, Liquidation, LiquidationAction),
                 Obligation => map_action!(credit, Obligation, ObligationAction),
-                TermsTemplate => map_action!(credit, TermsTemplate, TermsTemplateAction),
             })
             .collect()
     }
@@ -383,7 +356,6 @@ impl std::fmt::Display for CoreCreditAction {
             Disbursal(action) => action.fmt(f),
             Liquidation(action) => action.fmt(f),
             Obligation(action) => action.fmt(f),
-            TermsTemplate(action) => action.fmt(f),
         }
     }
 }
@@ -404,7 +376,6 @@ impl FromStr for CoreCreditAction {
             Disbursal => CoreCreditAction::from(action.parse::<DisbursalAction>()?),
             Liquidation => CoreCreditAction::from(action.parse::<LiquidationAction>()?),
             Obligation => CoreCreditAction::from(action.parse::<ObligationAction>()?),
-            TermsTemplate => CoreCreditAction::from(action.parse::<TermsTemplateAction>()?),
         };
         Ok(res)
     }
@@ -544,61 +515,6 @@ impl From<ObligationAction> for CoreCreditAction {
     }
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
-#[strum(serialize_all = "kebab-case")]
-pub enum TermsTemplateAction {
-    Create,
-    Read,
-    Update,
-    List,
-}
-
-impl ActionPermission for TermsTemplateAction {
-    fn permission_set(&self) -> &'static str {
-        match self {
-            Self::Read | Self::List => PERMISSION_SET_CREDIT_VIEWER,
-            Self::Create | Self::Update => PERMISSION_SET_CREDIT_TERM_TEMPLATES,
-        }
-    }
-}
-
-impl From<TermsTemplateAction> for CoreCreditAction {
-    fn from(action: TermsTemplateAction) -> Self {
-        Self::TermsTemplate(action)
-    }
-}
-
-/// Marker struct for TermsTemplate permissions in the credit module.
-pub struct CreditTermsTemplatePermissions;
-
-impl core_credit_terms::TermsTemplatePermissions for CreditTermsTemplatePermissions {
-    type Action = CoreCreditAction;
-    type Object = CoreCreditObject;
-
-    fn terms_template_create_action() -> Self::Action {
-        CoreCreditAction::TERMS_TEMPLATE_CREATE
-    }
-
-    fn terms_template_read_action() -> Self::Action {
-        CoreCreditAction::TERMS_TEMPLATE_READ
-    }
-
-    fn terms_template_update_action() -> Self::Action {
-        CoreCreditAction::TERMS_TEMPLATE_UPDATE
-    }
-
-    fn terms_template_list_action() -> Self::Action {
-        CoreCreditAction::TERMS_TEMPLATE_LIST
-    }
-
-    fn all_terms_templates_object() -> Self::Object {
-        CoreCreditObject::all_terms_templates()
-    }
-
-    fn terms_template_object(id: TermsTemplateId) -> Self::Object {
-        CoreCreditObject::terms_template(id)
-    }
-}
 
 #[derive(
     Debug,

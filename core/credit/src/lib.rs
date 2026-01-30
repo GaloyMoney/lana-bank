@@ -54,7 +54,8 @@ pub use config::*;
 pub use core_credit_terms::TermsTemplateEvent;
 pub use core_credit_terms::{
     NewTermsTemplate, NewTermsTemplateBuilder, TermsTemplate, TermsTemplateBuilder,
-    TermsTemplateError, TermsTemplateRepo, terms_template::error as terms_template_error,
+    TermsTemplateError, TermsTemplateRepo, TermsTemplates,
+    terms_template::error as terms_template_error,
 };
 pub use credit_facility::error::CreditFacilityError;
 pub use credit_facility::*;
@@ -77,10 +78,6 @@ pub use processes::{
 };
 use publisher::CreditFacilityPublisher;
 pub use repayment_plan::*;
-
-/// Type alias for the TermsTemplates service with credit module permissions.
-pub type TermsTemplates<Perms> =
-    core_credit_terms::TermsTemplates<Perms, CreditTermsTemplatePermissions>;
 
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
@@ -125,7 +122,7 @@ where
     collaterals: Arc<Collaterals<Perms, E>>,
     custody: Arc<CoreCustody<Perms, E>>,
     chart_of_accounts_integrations: Arc<ChartOfAccountsIntegrations<Perms>>,
-    terms_templates: Arc<TermsTemplates<Perms>>,
+    terms_templates: Arc<TermsTemplates<Perms, core_credit_terms::TermsPermissions>>,
     public_ids: Arc<PublicIds>,
     liquidations: Arc<Liquidations<Perms, E>>,
     histories: Arc<Histories<Perms>>,
@@ -208,7 +205,13 @@ where
         public_ids: &PublicIds,
         domain_configs: &ExposedDomainConfigsReadOnly,
         internal_domain_configs: &InternalDomainConfigs,
-    ) -> Result<Self, CoreCreditError> {
+    ) -> Result<Self, CoreCreditError>
+    where
+        <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+            From<core_credit_terms::CoreTermsAction>,
+        <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+            From<core_credit_terms::CoreTermsObject>,
+    {
         let clock = jobs.clock().clone();
 
         // Create Arc-wrapped versions of parameters once
@@ -491,10 +494,6 @@ where
 
     pub fn chart_of_accounts_integrations(&self) -> &ChartOfAccountsIntegrations<Perms> {
         self.chart_of_accounts_integrations.as_ref()
-    }
-
-    pub fn terms_templates(&self) -> &TermsTemplates<Perms> {
-        self.terms_templates.as_ref()
     }
 
     pub fn histories(&self) -> &Histories<Perms> {
@@ -1052,5 +1051,31 @@ where
             .get_credit_facility_balance(entity.account_ids)
             .await?;
         Ok(balances.total_outstanding_payable())
+    }
+}
+
+impl<Perms, E> CoreCredit<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
+        + From<core_credit_terms::CoreTermsAction>
+        + From<GovernanceAction>
+        + From<CoreCustomerAction>
+        + From<CoreCustodyAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
+        + From<core_credit_terms::CoreTermsObject>
+        + From<GovernanceObject>
+        + From<CustomerObject>
+        + From<CoreCustodyObject>,
+    E: OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCustodyEvent>
+        + OutboxEventMarker<CorePriceEvent>
+        + OutboxEventMarker<CoreCustomerEvent>,
+{
+    pub fn terms_templates(
+        &self,
+    ) -> &core_credit_terms::TermsTemplates<Perms, core_credit_terms::TermsPermissions> {
+        self.terms_templates.as_ref()
     }
 }
