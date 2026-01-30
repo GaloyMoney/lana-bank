@@ -14,6 +14,7 @@ use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use super::{
+    super::repo::CollateralRepo,
     liquidation_payment::{LiquidationPaymentJobConfig, LiquidationPaymentJobSpawner},
     partial_liquidation::{PartialLiquidationJobConfig, PartialLiquidationJobSpawner},
 };
@@ -42,6 +43,7 @@ where
 {
     outbox: Outbox<E>,
     repo: Arc<LiquidationRepo<E>>,
+    collateral_repo: Arc<CollateralRepo<E>>,
     proceeds_omnibus_account_ids: LedgerOmnibusAccountIds,
     partial_liquidation_job_spawner: PartialLiquidationJobSpawner<E>,
     liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,
@@ -56,6 +58,7 @@ where
     pub fn new(
         outbox: &Outbox<E>,
         liquidation_repo: Arc<LiquidationRepo<E>>,
+        collateral_repo: Arc<CollateralRepo<E>>,
         proceeds_omnibus_account_ids: &LedgerOmnibusAccountIds,
         partial_liquidation_job_spawner: PartialLiquidationJobSpawner<E>,
         liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,
@@ -63,6 +66,7 @@ where
         Self {
             outbox: outbox.clone(),
             repo: liquidation_repo,
+            collateral_repo,
             proceeds_omnibus_account_ids: proceeds_omnibus_account_ids.clone(),
             partial_liquidation_job_spawner,
             liquidation_payment_job_spawner,
@@ -91,6 +95,7 @@ where
         Ok(Box::new(CreditFacilityLiquidationsJobRunner::<E> {
             outbox: self.outbox.clone(),
             repo: self.repo.clone(),
+            collateral_repo: self.collateral_repo.clone(),
             proceeds_omnibus_account_ids: self.proceeds_omnibus_account_ids.clone(),
             partial_liquidation_job_spawner: self.partial_liquidation_job_spawner.clone(),
             liquidation_payment_job_spawner: self.liquidation_payment_job_spawner.clone(),
@@ -106,6 +111,7 @@ where
 {
     outbox: Outbox<E>,
     repo: Arc<LiquidationRepo<E>>,
+    collateral_repo: Arc<CollateralRepo<E>>,
     proceeds_omnibus_account_ids: LedgerOmnibusAccountIds,
     partial_liquidation_job_spawner: PartialLiquidationJobSpawner<E>,
     liquidation_payment_job_spawner: LiquidationPaymentJobSpawner<E>,

@@ -124,9 +124,12 @@ where
             clock.clone(),
         ));
 
-        let partial_liquidation_job_spawner = jobs.add_initializer(
-            partial_liquidation::PartialLiquidationInit::new(outbox, liquidation_repo.clone()),
-        );
+        let partial_liquidation_job_spawner =
+            jobs.add_initializer(partial_liquidation::PartialLiquidationInit::new(
+                outbox,
+                liquidation_repo.clone(),
+                repo_arc.clone(),
+            ));
 
         let liquidation_payment_job_spawner =
             jobs.add_initializer(liquidation_payment::LiquidationPaymentInit::new(
@@ -140,6 +143,7 @@ where
             credit_facility_liquidations::CreditFacilityLiquidationsInit::new(
                 outbox,
                 liquidation_repo.clone(),
+                repo_arc.clone(),
                 proceeds_omnibus_account_ids,
                 partial_liquidation_job_spawner,
                 liquidation_payment_job_spawner,
