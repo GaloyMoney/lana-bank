@@ -16,7 +16,7 @@ CREATE TABLE core_pending_credit_facility_events_rollup (
   customer_id UUID,
   customer_type VARCHAR,
   disbursal_credit_account_id UUID,
-  price JSONB,
+  price BIGINT,
   terms JSONB,
 
   -- Collection rollups
@@ -80,7 +80,7 @@ BEGIN
        ELSE ARRAY[]::UUID[]
      END
 ;
-    new_row.price := (NEW.event -> 'price');
+    new_row.price := (NEW.event ->> 'price')::BIGINT;
     new_row.terms := (NEW.event -> 'terms');
   ELSE
     -- Default all fields to current values
@@ -120,7 +120,7 @@ BEGIN
       new_row.collateral := (NEW.event ->> 'collateral')::BIGINT;
       new_row.collateralization_state := (NEW.event ->> 'collateralization_state');
       new_row.is_collateralization_state_changed := true;
-      new_row.price := (NEW.event -> 'price');
+      new_row.price := (NEW.event ->> 'price')::BIGINT;
     WHEN 'collateralization_ratio_changed' THEN
       new_row.collateralization_ratio := (NEW.event -> 'collateralization_ratio');
       new_row.is_collateralization_ratio_changed := true;

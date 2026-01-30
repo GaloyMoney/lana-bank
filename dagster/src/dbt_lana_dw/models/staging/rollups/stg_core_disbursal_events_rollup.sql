@@ -27,8 +27,6 @@ with
             is_approval_process_concluded,
             is_cancelled,
             is_settled,
-            liquidation_date__v_text,
-            overdue_date__v_text,
             _dlt_load_id,
             _dlt_id
         from {{ source("lana", "core_disbursal_events_rollup") }}
@@ -54,8 +52,6 @@ select
     is_approval_process_concluded,
     is_cancelled,
     is_settled,
-    liquidation_date__v_text,
-    overdue_date__v_text,
     timestamp_micros(
         cast(cast(_dlt_load_id as decimal) * 1e6 as int64)
     ) as loaded_to_dw_at

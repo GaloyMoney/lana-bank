@@ -10,7 +10,7 @@ CREATE TABLE core_interest_accrual_cycle_events_rollup (
   amount BIGINT,
   effective VARCHAR,
   facility_id UUID,
-  facility_maturity_date VARCHAR,
+  facility_maturity_date TIMESTAMPTZ,
   idx INTEGER,
   obligation_id UUID,
   period JSONB,
@@ -62,7 +62,7 @@ BEGIN
     new_row.amount := (NEW.event ->> 'amount')::BIGINT;
     new_row.effective := (NEW.event ->> 'effective');
     new_row.facility_id := (NEW.event ->> 'facility_id')::UUID;
-    new_row.facility_maturity_date := (NEW.event ->> 'facility_maturity_date');
+    new_row.facility_maturity_date := (NEW.event ->> 'facility_maturity_date')::TIMESTAMPTZ;
     new_row.idx := (NEW.event ->> 'idx')::INTEGER;
     new_row.is_interest_accruals_posted := false;
     new_row.ledger_tx_ids := CASE
@@ -99,7 +99,7 @@ BEGIN
     WHEN 'initialized' THEN
       new_row.account_ids := (NEW.event -> 'account_ids');
       new_row.facility_id := (NEW.event ->> 'facility_id')::UUID;
-      new_row.facility_maturity_date := (NEW.event ->> 'facility_maturity_date');
+      new_row.facility_maturity_date := (NEW.event ->> 'facility_maturity_date')::TIMESTAMPTZ;
       new_row.idx := (NEW.event ->> 'idx')::INTEGER;
       new_row.period := (NEW.event -> 'period');
       new_row.terms := (NEW.event -> 'terms');

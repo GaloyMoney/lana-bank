@@ -877,6 +877,29 @@ fn json_schema_to_sql_type_with_definitions(
     schema: &Value,
     definitions: Option<&Value>,
 ) -> anyhow::Result<String> {
+    // Handle anyOf
+    if let Some(obj) = schema.as_object() {
+        if let Some(Value::Array(any_of_array)) = obj.get("anyOf") {
+            // For simplicity, if anyOf includes null, treat as nullable of the other type
+            for any_of_entry in any_of_array {
+                if let Value::Object(entry_obj) = any_of_entry {
+                    if let Some(Value::String(type_str)) = entry_obj.get("type") {
+                        if type_str != "null" {
+                            // Recursively determine the type of the non-null entry
+                            return json_schema_to_sql_type_with_definitions(
+                                any_of_entry,
+                                definitions,
+                            );
+                        }
+                    } else if let Some(Value::String(_ref_path)) = entry_obj.get("$ref") {
+                        // Recursively determine the type of the non-null entry
+                        return json_schema_to_sql_type_with_definitions(any_of_entry, definitions);
+                    }
+                }
+            }
+        }
+    }
+
     // Handle $ref
     if let Some(Value::String(ref_path)) = schema.get("$ref") {
         // For now, handle common refs
@@ -884,6 +907,10 @@ fn json_schema_to_sql_type_with_definitions(
             return Ok("JSONB".to_string());
         } else if ref_path.contains("AuditEntryId") {
             return Ok("BIGINT".to_string());
+        } else if ref_path.contains("PriceOfOneBTC") {
+            return Ok("BIGINT".to_string());
+        } else if ref_path.contains("EffectiveDate") {
+            return Ok("TIMESTAMPTZ".to_string());
         }
 
         // Try to resolve other $refs if definitions are available

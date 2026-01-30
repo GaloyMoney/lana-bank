@@ -20,14 +20,14 @@ CREATE TABLE core_credit_facility_events_rollup (
   interest_accrual_cycle_idx INTEGER,
   interest_period JSONB,
   liquidation_id UUID,
-  maturity_date VARCHAR,
+  maturity_date TIMESTAMPTZ,
   outstanding JSONB,
   pending_credit_facility_id UUID,
-  price JSONB,
+  price BIGINT,
   public_id VARCHAR,
   structuring_fee_tx_id UUID,
   terms JSONB,
-  trigger_price JSONB,
+  trigger_price BIGINT,
 
   -- Collection rollups
   interest_accrual_ids UUID[],
@@ -100,7 +100,7 @@ BEGIN
      END
 ;
     new_row.liquidation_id := (NEW.event ->> 'liquidation_id')::UUID;
-    new_row.maturity_date := (NEW.event ->> 'maturity_date');
+    new_row.maturity_date := (NEW.event ->> 'maturity_date')::TIMESTAMPTZ;
     new_row.obligation_ids := CASE
        WHEN NEW.event ? 'obligation_ids' THEN
          ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'obligation_ids'))
@@ -109,11 +109,11 @@ BEGIN
 ;
     new_row.outstanding := (NEW.event -> 'outstanding');
     new_row.pending_credit_facility_id := (NEW.event ->> 'pending_credit_facility_id')::UUID;
-    new_row.price := (NEW.event -> 'price');
+    new_row.price := (NEW.event ->> 'price')::BIGINT;
     new_row.public_id := (NEW.event ->> 'public_id');
     new_row.structuring_fee_tx_id := (NEW.event ->> 'structuring_fee_tx_id')::UUID;
     new_row.terms := (NEW.event -> 'terms');
-    new_row.trigger_price := (NEW.event -> 'trigger_price');
+    new_row.trigger_price := (NEW.event ->> 'trigger_price')::BIGINT;
   ELSE
     -- Default all fields to current values
     new_row.account_ids := current_row.account_ids;
@@ -157,7 +157,7 @@ BEGIN
       new_row.customer_type := (NEW.event ->> 'customer_type');
       new_row.disbursal_credit_account_id := (NEW.event ->> 'disbursal_credit_account_id')::UUID;
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
-      new_row.maturity_date := (NEW.event ->> 'maturity_date');
+      new_row.maturity_date := (NEW.event ->> 'maturity_date')::TIMESTAMPTZ;
       new_row.pending_credit_facility_id := (NEW.event ->> 'pending_credit_facility_id')::UUID;
       new_row.public_id := (NEW.event ->> 'public_id');
       new_row.structuring_fee_tx_id := (NEW.event ->> 'structuring_fee_tx_id')::UUID;
@@ -174,14 +174,14 @@ BEGIN
       new_row.collateral := (NEW.event ->> 'collateral')::BIGINT;
       new_row.collateralization_state := (NEW.event ->> 'collateralization_state');
       new_row.outstanding := (NEW.event -> 'outstanding');
-      new_row.price := (NEW.event -> 'price');
+      new_row.price := (NEW.event ->> 'price')::BIGINT;
     WHEN 'collateralization_ratio_changed' THEN
       new_row.collateralization_ratio := (NEW.event -> 'collateralization_ratio');
     WHEN 'partial_liquidation_initiated' THEN
       new_row.initially_estimated_to_liquidate := (NEW.event ->> 'initially_estimated_to_liquidate')::BIGINT;
       new_row.initially_expected_to_receive := (NEW.event ->> 'initially_expected_to_receive')::BIGINT;
       new_row.liquidation_id := (NEW.event ->> 'liquidation_id')::UUID;
-      new_row.trigger_price := (NEW.event -> 'trigger_price');
+      new_row.trigger_price := (NEW.event ->> 'trigger_price')::BIGINT;
     WHEN 'proceeds_from_partial_liquidation_applied' THEN
       new_row.liquidation_id := (NEW.event ->> 'liquidation_id')::UUID;
     WHEN 'matured' THEN

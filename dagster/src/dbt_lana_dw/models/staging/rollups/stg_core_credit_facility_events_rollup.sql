@@ -35,8 +35,7 @@ with
             is_completed,
             is_matured,
             _dlt_load_id,
-            _dlt_id,
-            price__v_bigint
+            _dlt_id
         from {{ source("lana", "core_credit_facility_events_rollup") }}
     )
 select
@@ -67,7 +66,6 @@ select
     ledger_tx_ids,
     is_completed,
     is_matured,
-    price__v_bigint,
     timestamp_micros(
         cast(cast(_dlt_load_id as decimal) * 1e6 as int64)
     ) as loaded_to_dw_at

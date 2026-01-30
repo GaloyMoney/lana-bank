@@ -29,8 +29,7 @@ with
             is_collateralization_state_changed,
             is_completed,
             _dlt_load_id,
-            _dlt_id,
-            price__v_bigint
+            _dlt_id
         from {{ source("lana", "core_pending_credit_facility_events_rollup") }}
     )
 select
@@ -55,7 +54,6 @@ select
     is_collateralization_ratio_changed,
     is_collateralization_state_changed,
     is_completed,
-    price__v_bigint,
     timestamp_micros(
         cast(cast(_dlt_load_id as decimal) * 1e6 as int64)
     ) as loaded_to_dw_at
