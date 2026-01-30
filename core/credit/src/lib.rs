@@ -35,7 +35,9 @@ use core_custody::{
 };
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
 use core_price::{CorePriceEvent, Price};
-use domain_config::{ExposedDomainConfigsReadOnly, RequireVerifiedCustomerForAccount};
+use domain_config::{
+    ExposedDomainConfigsReadOnly, InternalDomainConfigs, RequireVerifiedCustomerForAccount,
+};
 use es_entity::clock::ClockHandle;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
@@ -199,6 +201,7 @@ where
         journal_id: cala_ledger::JournalId,
         public_ids: &PublicIds,
         domain_configs: &ExposedDomainConfigsReadOnly,
+        internal_domain_configs: &InternalDomainConfigs,
     ) -> Result<Self, CoreCreditError> {
         let clock = jobs.clock().clone();
 
@@ -212,6 +215,7 @@ where
         let custody_arc = Arc::new(custody.clone());
         let cala_arc = Arc::new(cala.clone());
         let config_arc = Arc::new(config);
+        let internal_domain_configs_arc = Arc::new(internal_domain_configs.clone());
 
         let publisher = CreditFacilityPublisher::new(outbox);
         let ledger = CreditLedger::init(cala, journal_id, clock.clone()).await?;
@@ -375,8 +379,11 @@ where
             )
             .await?;
 
-        let chart_of_accounts_integrations =
-            ChartOfAccountsIntegrations::new(authz_arc.clone(), ledger_arc.clone());
+        let chart_of_accounts_integrations = ChartOfAccountsIntegrations::new(
+            authz_arc.clone(),
+            ledger_arc.clone(),
+            internal_domain_configs_arc.clone(),
+        );
         let chart_of_accounts_integrations_arc = Arc::new(chart_of_accounts_integrations);
 
         let terms_templates = TermsTemplates::new(pool, authz_arc.clone(), clock.clone());

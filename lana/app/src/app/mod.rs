@@ -224,6 +224,7 @@ impl LanaApp {
             journal_init.journal_id,
             &public_ids,
             &exposed_domain_configs_readonly,
+            &internal_domain_configs,
         )
         .await?;
 

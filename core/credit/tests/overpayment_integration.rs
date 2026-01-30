@@ -199,7 +199,9 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
     let journal_id = helpers::init_journal(&cala).await?;
     let credit_public_ids = PublicIds::new(&pool);
     let price = core_price::Price::init(&mut jobs, &outbox).await?;
-    let domain_configs = helpers::init_domain_configs(&pool, &authz).await?;
+    let domain_configs = helpers::init_read_only_exposed_domain_configs(&pool, &authz).await?;
+    let internal_domain_configs = helpers::init_internal_domain_configs(&pool).await?;
+
     let credit = CoreCredit::init(
         &pool,
         CreditConfig::default(),
@@ -214,6 +216,7 @@ async fn payment_exceeding_obligations_returns_error() -> anyhow::Result<()> {
         journal_id,
         &credit_public_ids,
         &domain_configs,
+        &internal_domain_configs,
     )
     .await?;
     let deposit_public_ids = PublicIds::new(&pool);
