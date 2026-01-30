@@ -61,27 +61,12 @@ pub mod object {
 pub mod event {
     use super::*;
 
-    #[derive(Debug, Serialize, Deserialize)]
+    #[derive(Debug, Serialize, Deserialize, obix::OutboxEvent)]
     #[serde(tag = "module")]
     pub enum DummyEvent {
         CoreCustomer(CoreCustomerEvent),
         #[serde(other)]
         Unknown,
-    }
-
-    impl obix::out::OutboxEventMarker<CoreCustomerEvent> for DummyEvent {
-        fn as_event(&self) -> Option<&CoreCustomerEvent> {
-            match self {
-                Self::CoreCustomer(event) => Some(event),
-                Self::Unknown => None,
-            }
-        }
-    }
-
-    impl From<CoreCustomerEvent> for DummyEvent {
-        fn from(event: CoreCustomerEvent) -> Self {
-            Self::CoreCustomer(event)
-        }
     }
 
     pub use obix::test_utils::expect_event;

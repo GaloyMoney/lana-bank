@@ -70,7 +70,7 @@ es-entity = { version = "0.10.14", features = ["event-context", "tracing-context
 cala-ledger = "0.13.8"
 job = { version = "0.6.3", features = ["es-entity"] }
 cala-cel-interpreter = "0.13.8"
-obix = { version = "0.2.12", features = ["tracing"] }
+obix = { version = "0.2.13", features = ["tracing"] }
 
 aes = "0.8"
 anyhow = "1.0.100"

@@ -260,7 +260,7 @@ pub mod event {
     use core_price::CorePriceEvent;
     use governance::GovernanceEvent;
 
-    #[derive(Debug, Serialize, Deserialize)]
+    #[derive(Debug, Serialize, Deserialize, obix::OutboxEvent)]
     #[serde(tag = "module")]
     pub enum DummyEvent {
         CoreAccess(CoreAccessEvent),
@@ -274,31 +274,4 @@ pub mod event {
         #[serde(other)]
         Unknown,
     }
-
-    macro_rules! impl_event_marker {
-        ($from_type:ty, $variant:ident) => {
-            impl obix::out::OutboxEventMarker<$from_type> for DummyEvent {
-                fn as_event(&self) -> Option<&$from_type> {
-                    match self {
-                        &Self::$variant(ref event) => Some(event),
-                        _ => None,
-                    }
-                }
-            }
-            impl From<$from_type> for DummyEvent {
-                fn from(event: $from_type) -> Self {
-                    Self::$variant(event)
-                }
-            }
-        };
-    }
-
-    impl_event_marker!(CoreAccessEvent, CoreAccess);
-    impl_event_marker!(CoreAccountingEvent, CoreAccounting);
-    impl_event_marker!(GovernanceEvent, Governance);
-    impl_event_marker!(CoreCreditEvent, CoreCredit);
-    impl_event_marker!(CoreCustodyEvent, CoreCustody);
-    impl_event_marker!(CoreCustomerEvent, CoreCustomer);
-    impl_event_marker!(CoreDepositEvent, CoreDeposit);
-    impl_event_marker!(CorePriceEvent, Price);
 }

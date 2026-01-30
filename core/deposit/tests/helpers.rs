@@ -214,7 +214,7 @@ pub mod event {
     use core_deposit::CoreDepositEvent;
     use governance::GovernanceEvent;
 
-    #[derive(Debug, Serialize, Deserialize)]
+    #[derive(Debug, Serialize, Deserialize, obix::OutboxEvent)]
     #[serde(tag = "module")]
     pub enum DummyEvent {
         CoreDeposit(CoreDepositEvent),
@@ -224,27 +224,4 @@ pub mod event {
         #[serde(other)]
         Unknown,
     }
-
-    macro_rules! impl_event_marker {
-        ($from_type:ty, $variant:ident) => {
-            impl obix::out::OutboxEventMarker<$from_type> for DummyEvent {
-                fn as_event(&self) -> Option<&$from_type> {
-                    match self {
-                        &Self::$variant(ref event) => Some(event),
-                        _ => None,
-                    }
-                }
-            }
-            impl From<$from_type> for DummyEvent {
-                fn from(event: $from_type) -> Self {
-                    Self::$variant(event)
-                }
-            }
-        };
-    }
-
-    impl_event_marker!(GovernanceEvent, Governance);
-    impl_event_marker!(CoreDepositEvent, CoreDeposit);
-    impl_event_marker!(CoreCustomerEvent, CoreCustomer);
-    impl_event_marker!(CoreAccountingEvent, CoreAccounting);
 }
