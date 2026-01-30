@@ -14,6 +14,8 @@ pub enum ChartOfAccountsIntegrationError {
     ChartOfAccountsError(#[from] core_accounting::chart_of_accounts::error::ChartOfAccountsError),
     #[error("ChartOfAccountsIntegrationError - ConfigAlreadyExists")]
     ConfigAlreadyExists,
+    #[error("ChartOfAccountsIntegrationError - AccountingBaseConfigNotFound")]
+    AccountingBaseConfigNotFound,
 }
 
 impl ErrorSeverity for ChartOfAccountsIntegrationError {
@@ -24,6 +26,7 @@ impl ErrorSeverity for ChartOfAccountsIntegrationError {
             Self::DepositLedgerError(e) => e.severity(),
             Self::ChartOfAccountsError(e) => e.severity(),
             Self::ConfigAlreadyExists => Level::WARN,
+            Self::AccountingBaseConfigNotFound => Level::ERROR,
         }
     }
 }
