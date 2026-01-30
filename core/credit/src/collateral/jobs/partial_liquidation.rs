@@ -193,6 +193,15 @@ where
             self.liquidation_repo
                 .update_in_op(db, &mut liquidation)
                 .await?;
+
+            let mut collateral = self
+                .collateral_repo
+                .find_by_id_in_op(&mut *db, liquidation.collateral_id)
+                .await?;
+            let _ = collateral.record_liquidation_completed(liquidation.id);
+            self.collateral_repo
+                .update_in_op(db, &mut collateral)
+                .await?;
         }
 
         Ok(())
