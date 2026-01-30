@@ -1,9 +1,7 @@
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-use audit::AuditInfo;
 use core_accounting::{EntityRef, LedgerTransactionInitiator};
 use es_entity::clock::ClockHandle;
 
@@ -23,7 +21,9 @@ use cala_ledger::{
 use crate::{
     DepositAccount, DepositAccountBalance, DepositReversalData, LedgerOmnibusAccountIds,
     WithdrawalReversalData,
-    chart_of_accounts_integration::ChartOfAccountsIntegrationConfig,
+    chart_of_accounts_integration::{
+        ChartOfAccountsIntegrationConfig, ResolvedChartOfAccountsIntegrationConfig,
+    },
     primitives::{
         CalaAccountId, CalaAccountSetId, DEPOSIT_ACCOUNT_ENTITY_TYPE, DepositAccountType,
         DepositId, UsdCents, WithdrawalId,
@@ -1081,7 +1081,7 @@ impl DepositLedger {
             .find(self.deposit_account_sets.account_set_id_for_config())
             .await?;
         if let Some(meta) = account_set.values().metadata.as_ref() {
-            let meta: ChartOfAccountsIntegrationMeta =
+            let meta: ResolvedChartOfAccountsIntegrationConfig =
                 serde_json::from_value(meta.clone()).expect("Could not deserialize metadata");
             Ok(Some(meta.config))
         } else {
@@ -1097,18 +1097,18 @@ impl DepositLedger {
         account_sets: &mut HashMap<CalaAccountSetId, AccountSet>,
         internal_account_set_id: CalaAccountSetId,
         parent_account_set_id: CalaAccountSetId,
-        new_meta: &ChartOfAccountsIntegrationMeta,
+        new_meta: &ResolvedChartOfAccountsIntegrationConfig,
         old_parent_id_getter: F,
     ) -> Result<(), DepositLedgerError>
     where
-        F: FnOnce(ChartOfAccountsIntegrationMeta) -> CalaAccountSetId,
+        F: FnOnce(ResolvedChartOfAccountsIntegrationConfig) -> CalaAccountSetId,
     {
         let mut internal_account_set = account_sets
             .remove(&internal_account_set_id)
             .expect("internal account set not found");
 
         if let Some(old_meta) = internal_account_set.values().metadata.as_ref() {
-            let old_meta: ChartOfAccountsIntegrationMeta =
+            let old_meta: ResolvedChartOfAccountsIntegrationConfig =
                 serde_json::from_value(old_meta.clone()).expect("Could not deserialize metadata");
             let old_parent_account_set_id = old_parent_id_getter(old_meta);
             if old_parent_account_set_id != parent_account_set_id {
@@ -1144,7 +1144,7 @@ impl DepositLedger {
     )]
     pub async fn attach_chart_of_accounts_account_sets(
         &self,
-        charts_integration_meta: ChartOfAccountsIntegrationMeta,
+        charts_integration_meta: ResolvedChartOfAccountsIntegrationConfig,
     ) -> Result<(), DepositLedgerError> {
         let mut op = self.cala.begin_operation().await?;
 
@@ -1158,7 +1158,7 @@ impl DepositLedger {
             .find_all_in_op::<AccountSet>(&mut op, &account_set_ids)
             .await?;
 
-        let ChartOfAccountsIntegrationMeta {
+        let ResolvedChartOfAccountsIntegrationConfig {
             config: _,
             audit_info: _,
             omnibus_parent_account_set_id,
@@ -1310,26 +1310,4 @@ impl DepositLedger {
 
         Ok(())
     }
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct ChartOfAccountsIntegrationMeta {
-    pub config: ChartOfAccountsIntegrationConfig,
-    pub audit_info: AuditInfo,
-
-    pub omnibus_parent_account_set_id: CalaAccountSetId,
-
-    pub individual_deposit_accounts_parent_account_set_id: CalaAccountSetId,
-    pub government_entity_deposit_accounts_parent_account_set_id: CalaAccountSetId,
-    pub private_company_deposit_accounts_parent_account_set_id: CalaAccountSetId,
-    pub bank_deposit_accounts_parent_account_set_id: CalaAccountSetId,
-    pub financial_institution_deposit_accounts_parent_account_set_id: CalaAccountSetId,
-    pub non_domiciled_individual_deposit_accounts_parent_account_set_id: CalaAccountSetId,
-
-    pub frozen_individual_deposit_accounts_parent_account_set_id: CalaAccountSetId,
-    pub frozen_government_entity_deposit_accounts_parent_account_set_id: CalaAccountSetId,
-    pub frozen_private_company_deposit_accounts_parent_account_set_id: CalaAccountSetId,
-    pub frozen_bank_deposit_accounts_parent_account_set_id: CalaAccountSetId,
-    pub frozen_financial_institution_deposit_accounts_parent_account_set_id: CalaAccountSetId,
-    pub frozen_non_domiciled_individual_deposit_accounts_parent_account_set_id: CalaAccountSetId,
 }
