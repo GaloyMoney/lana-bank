@@ -38,7 +38,9 @@ use crate::{
     time_events::TimeEvents,
     user_onboarding::UserOnboarding,
 };
-use domain_config::{ExposedDomainConfigs, ExposedDomainConfigsReadOnly, InternalDomainConfigs};
+use domain_config::{
+    DomainConfigCache, ExposedDomainConfigs, ExposedDomainConfigsReadOnly, InternalDomainConfigs,
+};
 
 pub use config::*;
 use error::ApplicationError;
@@ -92,9 +94,14 @@ impl LanaApp {
         )
         .await?;
         let authz = Authorization::init(&pool, &audit).await?;
-        let internal_domain_configs = InternalDomainConfigs::new(&pool);
-        let exposed_domain_configs = ExposedDomainConfigs::new(&pool, &authz);
-        let exposed_domain_configs_readonly = ExposedDomainConfigsReadOnly::new(&pool);
+
+        // Create shared cache for domain configs
+        let domain_config_cache = DomainConfigCache::new();
+
+        let internal_domain_configs = InternalDomainConfigs::new(&pool, &domain_config_cache);
+        let exposed_domain_configs = ExposedDomainConfigs::new(&pool, &authz, &domain_config_cache);
+        let exposed_domain_configs_readonly =
+            ExposedDomainConfigsReadOnly::new(&pool, &domain_config_cache);
         internal_domain_configs.seed_registered().await?;
         exposed_domain_configs.seed_registered().await?;
 
@@ -118,6 +125,19 @@ impl LanaApp {
                 .expect("Couldn't build JobSvcConfig"),
         )
         .await?;
+
+        // Register domain config cache invalidation job
+        let domain_config_cache_invalidation_job_spawner =
+            jobs.add_initializer(domain_config::job::DomainConfigCacheInvalidationInit::new(
+                &outbox,
+                &domain_config_cache,
+            ));
+        domain_config_cache_invalidation_job_spawner
+            .spawn_unique(
+                job::JobId::new(),
+                domain_config::job::DomainConfigCacheInvalidationJobConfig,
+            )
+            .await?;
 
         let dashboard = Dashboard::init(&pool, &authz, &mut jobs, &outbox).await?;
         let governance = Governance::new(&pool, &authz, &outbox, clock.clone());

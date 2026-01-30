@@ -12,9 +12,14 @@ graphql = ["es-entity/graphql", "dep:async-graphql"]
 json-schema = ["dep:schemars", "es-entity/json-schema"]
 
 [dependencies]
+async-trait = { workspace = true }
 audit = { workspace = true }
 authz = { workspace = true }
 es-entity = { workspace = true }
+futures = { workspace = true }
+job = { workspace = true }
+obix = { workspace = true }
+tokio = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 derive_builder = { workspace = true }
 serde_json = { workspace = true }

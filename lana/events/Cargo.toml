@@ -8,6 +8,7 @@ edition = "2024"
 fail-on-warnings = []
 json-schema = [
     "dep:schemars",
+    "domain-config/json-schema",
     "governance/json-schema",
     "core-access/json-schema",
     "core-accounting/json-schema",
@@ -21,6 +22,7 @@ json-schema = [
 ]
 
 [dependencies]
+domain-config = { workspace = true }
 governance = { workspace = true }
 core-access = { workspace = true }
 core-accounting = { workspace = true }

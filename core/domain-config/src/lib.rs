@@ -145,10 +145,14 @@
 //! - `Some(value)` if the config has been explicitly set via `update`
 //! - `None` if no value is set
 
+mod cache;
 mod entity;
 pub mod error;
+pub mod job;
 mod macros;
 mod primitives;
+pub mod public;
+mod publisher;
 pub mod registry;
 mod repo;
 mod shared_config;
@@ -162,6 +166,7 @@ use authz::PermissionCheck;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
+pub use cache::DomainConfigCache;
 pub use entity::DomainConfig;
 pub use entity::DomainConfigEvent;
 pub use error::DomainConfigError;
@@ -172,6 +177,8 @@ pub use primitives::{
     DomainConfigObject, ExposedConfigAllOrOne, PERMISSION_SET_EXPOSED_CONFIG_VIEWER,
     PERMISSION_SET_EXPOSED_CONFIG_WRITER, Visibility,
 };
+pub use public::CoreDomainConfigEvent;
+pub use publisher::DomainConfigPublisher;
 pub use repo::domain_config_cursor::DomainConfigsByKeyCursor;
 pub use shared_config::RequireVerifiedCustomerForAccount;
 pub use spec::{
@@ -191,6 +198,7 @@ pub mod event_schema {
 #[derive(Clone)]
 pub struct InternalDomainConfigs {
     repo: DomainConfigRepo,
+    cache: DomainConfigCache,
 }
 
 #[derive(Clone)]
@@ -200,6 +208,7 @@ where
 {
     repo: DomainConfigRepo,
     authz: Perms,
+    cache: DomainConfigCache,
 }
 
 /// Read-only access to exposed domain configs without authorization.
@@ -209,12 +218,16 @@ where
 #[derive(Clone)]
 pub struct ExposedDomainConfigsReadOnly {
     repo: DomainConfigRepo,
+    cache: DomainConfigCache,
 }
 
 impl InternalDomainConfigs {
-    pub fn new(pool: &sqlx::PgPool) -> Self {
+    pub fn new(pool: &sqlx::PgPool, cache: &DomainConfigCache) -> Self {
         let repo = DomainConfigRepo::new(pool);
-        Self { repo }
+        Self {
+            repo,
+            cache: cache.clone(),
+        }
     }
 
     #[record_error_severity]
@@ -223,7 +236,17 @@ impl InternalDomainConfigs {
     where
         C: InternalConfig,
     {
+        // Check cache first
+        if let Some(config) = self.cache.get(&C::KEY).await {
+            return TypedDomainConfig::new(config);
+        }
+
+        // Cache miss - fetch from DB
         let config = self.repo.find_by_key(C::KEY).await?;
+
+        // Populate cache
+        self.cache.insert(C::KEY.clone(), config.clone()).await;
+
         TypedDomainConfig::new(config)
     }
 
@@ -275,9 +298,12 @@ impl InternalDomainConfigs {
 }
 
 impl ExposedDomainConfigsReadOnly {
-    pub fn new(pool: &sqlx::PgPool) -> Self {
+    pub fn new(pool: &sqlx::PgPool, cache: &DomainConfigCache) -> Self {
         let repo = DomainConfigRepo::new(pool);
-        Self { repo }
+        Self {
+            repo,
+            cache: cache.clone(),
+        }
     }
 
     #[record_error_severity]
@@ -286,7 +312,17 @@ impl ExposedDomainConfigsReadOnly {
     where
         C: ExposedConfig,
     {
+        // Check cache first
+        if let Some(config) = self.cache.get(&C::KEY).await {
+            return TypedDomainConfig::new(config);
+        }
+
+        // Cache miss - fetch from DB
         let config = self.repo.find_by_key(C::KEY).await?;
+
+        // Populate cache
+        self.cache.insert(C::KEY.clone(), config.clone()).await;
+
         TypedDomainConfig::new(config)
     }
 }
@@ -297,11 +333,12 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<DomainConfigAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<DomainConfigObject>,
 {
-    pub fn new(pool: &sqlx::PgPool, authz: &Perms) -> Self {
+    pub fn new(pool: &sqlx::PgPool, authz: &Perms, cache: &DomainConfigCache) -> Self {
         let repo = DomainConfigRepo::new(pool);
         Self {
             repo,
             authz: authz.clone(),
+            cache: cache.clone(),
         }
     }
 
@@ -315,7 +352,18 @@ where
         C: ExposedConfig,
     {
         self.ensure_read_permission(sub).await?;
+
+        // Check cache first
+        if let Some(config) = self.cache.get(&C::KEY).await {
+            return TypedDomainConfig::new(config);
+        }
+
+        // Cache miss - fetch from DB
         let config = self.repo.find_by_key(C::KEY).await?;
+
+        // Populate cache
+        self.cache.insert(C::KEY.clone(), config.clone()).await;
+
         TypedDomainConfig::new(config)
     }
 
