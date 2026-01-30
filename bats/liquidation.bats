@@ -163,19 +163,24 @@ wait_for_facility_to_be_under_liquidation_threshold() {
   liquidation_id=$(graphql_output '.data.creditFacility.liquidations[0].liquidationId')
   [[ "$liquidation_id" != "null" ]] || exit 1
   cache_value 'liquidation_id' "$liquidation_id"
+
+  collateral_id=$(graphql_output '.data.creditFacility.collateralId')
+  [[ "$collateral_id" != "null" ]] || exit 1
+  cache_value 'collateral_id' "$collateral_id"
 }
 
 @test "liquidation: can send collateral out for liquidation" {
   liquidation_id=$(read_value 'liquidation_id')
+  collateral_id=$(read_value 'collateral_id')
 
   collateral_to_send=50000000
   variables=$(
     jq -n \
-      --arg liquidationId "$liquidation_id" \
+      --arg collateralId "$collateral_id" \
       --argjson amount "$collateral_to_send" \
     '{
       input: {
-        liquidationId: $liquidationId,
+        collateralId: $collateralId,
         amount: $amount
       }
     }'
