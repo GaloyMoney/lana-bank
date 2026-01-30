@@ -44,6 +44,12 @@ pub enum CollateralEvent {
         abs_diff: Satoshis,
         action: CollateralAction,
     },
+    LiquidationStarted {
+        liquidation_id: LiquidationId,
+    },
+    LiquidationCompleted {
+        liquidation_id: LiquidationId,
+    },
 }
 
 #[derive(EsEntity, Builder)]
@@ -160,6 +166,55 @@ impl Collateral {
             effective,
         })
     }
+
+    pub fn active_liquidation(&self) -> Option<LiquidationId> {
+        let mut active: Option<LiquidationId> = None;
+
+        for event in self.events.iter_all() {
+            match event {
+                CollateralEvent::LiquidationStarted { liquidation_id } => {
+                    active = Some(*liquidation_id);
+                }
+                CollateralEvent::LiquidationCompleted { liquidation_id } => {
+                    if active == Some(*liquidation_id) {
+                        active = None;
+                    }
+                }
+                _ => {}
+            }
+        }
+
+        active
+    }
+
+    pub fn record_liquidation_started(&mut self, liquidation_id: LiquidationId) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            CollateralEvent::LiquidationStarted { liquidation_id: id }
+                if *id == liquidation_id
+        );
+
+        self.events
+            .push(CollateralEvent::LiquidationStarted { liquidation_id });
+
+        Idempotent::Executed(())
+    }
+
+    pub fn record_liquidation_completed(
+        &mut self,
+        liquidation_id: LiquidationId,
+    ) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            CollateralEvent::LiquidationCompleted { liquidation_id: id }
+                if *id == liquidation_id
+        );
+
+        self.events
+            .push(CollateralEvent::LiquidationCompleted { liquidation_id });
+
+        Idempotent::Executed(())
+    }
 }
 
 #[derive(Debug, Builder)]
@@ -216,6 +271,12 @@ impl TryFromEvents<CollateralEvent> for Collateral {
                     ..
                 } => {
                     builder = builder.amount(*new_value);
+                }
+                CollateralEvent::LiquidationStarted { .. } => {
+                    // No state changes needed - active_liquidation() computes from events
+                }
+                CollateralEvent::LiquidationCompleted { .. } => {
+                    // No state changes needed - active_liquidation() computes from events
                 }
             }
         }
