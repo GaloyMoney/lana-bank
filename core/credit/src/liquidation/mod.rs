@@ -1,6 +1,5 @@
 mod entity;
 pub mod error;
-mod ledger;
 mod repo;
 
 use std::sync::Arc;
@@ -11,24 +10,19 @@ use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use cala_ledger::{
-    AccountId as CalaAccountId, CalaLedger, JournalId, TransactionId as CalaTransactionId,
-};
-use core_accounting::LedgerTransactionInitiator;
+use cala_ledger::AccountId as CalaAccountId;
 use core_custody::CoreCustodyEvent;
 use core_money::{Satoshis, UsdCents};
-use es_entity::Idempotent;
 use governance::GovernanceEvent;
 use obix::out::OutboxEventMarker;
 
 use crate::{
-    CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId, LedgerOmnibusAccountIds,
-    LiquidationId, PaymentId, PaymentSourceAccountId,
+    CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId, LiquidationId,
+    PaymentSourceAccountId,
 };
 pub use entity::NewLiquidationBuilder;
 pub use entity::{Liquidation, LiquidationEvent, NewLiquidation};
 use error::LiquidationError;
-use ledger::LiquidationLedger;
 pub(crate) use repo::LiquidationRepo;
 pub use repo::liquidation_cursor;
 
@@ -41,8 +35,6 @@ where
 {
     repo: Arc<LiquidationRepo<E>>,
     authz: Arc<Perms>,
-    ledger: LiquidationLedger,
-    proceeds_omnibus_account_ids: LedgerOmnibusAccountIds,
 }
 
 impl<Perms, E> Clone for Liquidations<Perms, E>
@@ -56,8 +48,6 @@ where
         Self {
             repo: self.repo.clone(),
             authz: self.authz.clone(),
-            ledger: self.ledger.clone(),
-            proceeds_omnibus_account_ids: self.proceeds_omnibus_account_ids.clone(),
         }
     }
 }
@@ -71,67 +61,14 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
-    pub async fn init(
+    pub fn init(
         pool: &sqlx::PgPool,
-        journal_id: JournalId,
-        cala: &CalaLedger,
-        proceeds_omnibus_account_ids: &LedgerOmnibusAccountIds,
         authz: Arc<Perms>,
         publisher: &crate::CreditFacilityPublisher<E>,
         clock: es_entity::clock::ClockHandle,
-    ) -> Result<Self, LiquidationError> {
-        let repo = Arc::new(LiquidationRepo::new(pool, publisher, clock.clone()));
-        Ok(Self {
-            repo,
-            authz,
-            ledger: LiquidationLedger::init(cala, journal_id, clock).await?,
-            proceeds_omnibus_account_ids: proceeds_omnibus_account_ids.clone(),
-        })
-    }
-
-    #[instrument(
-        name = "credit.liquidation.record_proceeds_from_liquidation",
-        skip(self, sub),
-        err
-    )]
-    pub async fn record_proceeds_from_liquidation(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        liquidation_id: LiquidationId,
-        amount_received: UsdCents,
-    ) -> Result<Liquidation, LiquidationError> {
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreCreditObject::liquidation(liquidation_id),
-                CoreCreditAction::LIQUIDATION_RECORD_PAYMENT_RECEIVED,
-            )
-            .await?;
-
-        let mut db = self.repo.begin_op().await?;
-        let mut liquidation = self.repo.find_by_id_in_op(&mut db, liquidation_id).await?;
-
-        let tx_id = CalaTransactionId::new();
-
-        if let Idempotent::Executed(data) = liquidation.record_proceeds_from_liquidation(
-            amount_received,
-            PaymentId::new(),
-            tx_id,
-        )? {
-            self.repo.update_in_op(&mut db, &mut liquidation).await?;
-            self.ledger
-                .record_proceeds_from_liquidation_in_op(
-                    &mut db,
-                    tx_id,
-                    data,
-                    LedgerTransactionInitiator::try_from_subject(sub)?,
-                )
-                .await?;
-        }
-
-        db.commit().await?;
-
-        Ok(liquidation)
+    ) -> Self {
+        let repo = Arc::new(LiquidationRepo::new(pool, publisher, clock));
+        Self { repo, authz }
     }
 
     #[instrument(name = "credit.liquidation.complete_in_op", skip(self, db), err)]
