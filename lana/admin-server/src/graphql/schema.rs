@@ -2023,7 +2023,7 @@ impl Mutation {
                 .collaterals()
                 .record_collateral_update_via_liquidation(
                     sub,
-                    input.liquidation_id.into(),
+                    input.collateral_id.into(),
                     input.amount
                 )
         )
