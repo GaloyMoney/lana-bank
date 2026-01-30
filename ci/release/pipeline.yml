@@ -717,7 +717,7 @@ jobs:
           - get: pipeline-tasks
           - get: repo
             passed: [build-rc]
-      - task: update-changelog
+      - task: update-changelog-and-docs
         config:
           platform: linux
           image_resource: #@ nix_flake_cachix_image_config()
@@ -739,6 +739,7 @@ jobs:
                 cachix use $CACHIX_CACHE_NAME
                 VERSION=$(cat ../version/version)
                 nix run ci/.#update-changelog $VERSION
+                nix run ci/.#update-docs $VERSION
                 if [[ -z $(git config --global user.email) ]]; then
                   git config --global user.email "bot@galoy.io"
                 fi
