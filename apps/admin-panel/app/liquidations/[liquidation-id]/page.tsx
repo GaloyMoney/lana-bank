@@ -36,6 +36,7 @@ gql`
     creditFacility {
       id
       creditFacilityId
+      collateralId
       publicId
       status
       collateralizationState

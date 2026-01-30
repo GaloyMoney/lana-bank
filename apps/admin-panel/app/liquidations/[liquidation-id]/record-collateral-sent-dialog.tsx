@@ -17,14 +17,14 @@ import { Button } from "@lana/web/ui/button"
 import { Input } from "@lana/web/ui/input"
 import { Label } from "@lana/web/ui/label"
 
-import { useCollateralLiquidationRecordCollateralSentMutation } from "@/lib/graphql/generated"
+import { useCollateralRecordSentToLiquidationMutation } from "@/lib/graphql/generated"
 import { currencyConverter } from "@/lib/utils"
 
 gql`
-  mutation CollateralLiquidationRecordCollateralSent(
-    $input: LiquidationRecordCollateralSentInput!
+  mutation CollateralRecordSentToLiquidation(
+    $input: CollateralRecordSentToLiquidationInput!
   ) {
-    collateralLiquidationRecordCollateralSent(input: $input) {
+    collateralRecordSentToLiquidation(input: $input) {
       collateral {
         id
         collateralId
@@ -36,19 +36,19 @@ gql`
 type RecordCollateralSentDialogProps = {
   open: boolean
   onOpenChange: (isOpen: boolean) => void
-  liquidationId: string
+  collateralId: string
 }
 
 export const RecordCollateralSentDialog: React.FC<RecordCollateralSentDialogProps> = ({
   open,
   onOpenChange,
-  liquidationId,
+  collateralId,
 }) => {
   const t = useTranslations("Liquidations.LiquidationDetails.recordCollateralSent")
   const commonT = useTranslations("Common")
 
   const [recordCollateralSent, { loading, reset }] =
-    useCollateralLiquidationRecordCollateralSentMutation()
+    useCollateralRecordSentToLiquidationMutation()
   const [amount, setAmount] = useState("")
   const [error, setError] = useState<string | null>(null)
 
@@ -65,7 +65,7 @@ export const RecordCollateralSentDialog: React.FC<RecordCollateralSentDialogProp
       const result = await recordCollateralSent({
         variables: {
           input: {
-            liquidationId,
+            collateralId,
             amount: currencyConverter.btcToSatoshi(Number(amount)),
           },
         },
