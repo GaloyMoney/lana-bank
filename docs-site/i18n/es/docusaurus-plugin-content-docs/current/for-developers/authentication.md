@@ -50,4 +50,28 @@ curl -X POST \
 
 Los tokens de acceso expiran. Implementa la renovación de token para mantener las sesiones.
 
-*[Documentación detallada de autenticación próximamente - se añadirá del manual técnico]*
+### Tiempos de Vida de Tokens
+
+| Tipo de Token | Duración Predeterminada |
+|---------------|-------------------------|
+| Token de acceso | 5 minutos |
+| Token de actualización | 30 minutos |
+| Sesión | 8 horas |
+
+### Renovando Tokens
+
+```bash
+curl -X POST \
+  -d "client_id=api-client" \
+  -d "client_secret=TU_CLIENT_SECRET" \
+  -d "grant_type=refresh_token" \
+  -d "refresh_token=TU_REFRESH_TOKEN" \
+  https://tu-servidor-keycloak/realms/admin/protocol/openid-connect/token
+```
+
+## Mejores Prácticas de Seguridad
+
+- Almacena los tokens en memoria cuando sea posible (no en localStorage)
+- Usa cookies httpOnly para tokens de actualización en aplicaciones web
+- Limpia los tokens al cerrar sesión
+- Siempre usa HTTPS para solicitudes de API

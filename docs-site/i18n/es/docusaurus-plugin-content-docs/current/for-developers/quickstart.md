@@ -17,7 +17,17 @@ Comienza con las APIs de Lana en minutos.
 
 ### 1. Obtener Token de Autenticación
 
-*[Detalles de configuración de autenticación próximamente]*
+Lana usa OAuth 2.0 / OpenID Connect para autenticación. Solicita un token de tu servidor Keycloak:
+
+```bash
+curl -X POST \
+  -d "client_id=api-client" \
+  -d "client_secret=TU_CLIENT_SECRET" \
+  -d "grant_type=client_credentials" \
+  https://tu-servidor-keycloak/realms/admin/protocol/openid-connect/token
+```
+
+Extrae el `access_token` de la respuesta para usarlo en las solicitudes de API.
 
 ### 2. Consultar la API de Administración
 
@@ -40,5 +50,3 @@ Usa la introspección de GraphQL o navega la [Referencia de API de Administraci�
 - [Referencia de API de Cliente](customer-api/) - Operaciones orientadas al cliente
 - [Eventos de Dominio](events/) - Suscríbete a eventos del sistema
 - [Autenticación](authentication) - Configuración detallada de autenticación
-
-*Guía de inicio rápido completa próximamente.*

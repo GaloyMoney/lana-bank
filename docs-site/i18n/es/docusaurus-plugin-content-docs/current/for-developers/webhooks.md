@@ -50,4 +50,17 @@ Consulta la [Referencia de Eventos](events/) para el catálogo completo de event
 - Verifica las firmas antes de procesar
 - Usa solo endpoints HTTPS
 
-*[Documentación detallada de webhooks próximamente - se añadirá del manual técnico]*
+## Política de Reintentos
+
+Si tu endpoint no responde con un código de estado 2xx:
+
+1. Lana reintentará la entrega del webhook
+2. Los reintentos usan retroceso exponencial
+3. Se garantiza que los eventos se entregarán al menos una vez
+
+## Mejores Prácticas
+
+- **Idempotencia**: Diseña los handlers para procesar eventos duplicados de forma segura
+- **Confirmación rápida**: Devuelve 200 inmediatamente, procesa de forma asíncrona
+- **Verificación de firma**: Siempre verifica las firmas de webhook antes de procesar
+- **Registro**: Registra todos los eventos recibidos para depuración y auditoría

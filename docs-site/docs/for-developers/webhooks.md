@@ -50,4 +50,17 @@ See the [Events Reference](events/) for the complete catalog of domain events.
 - Verify signatures before processing
 - Use HTTPS endpoints only
 
-*[Detailed webhook documentation coming soon - will be added from technical manual]*
+## Retry Policy
+
+If your endpoint fails to respond with a 2xx status code:
+
+1. Lana will retry the webhook delivery
+2. Retries use exponential backoff
+3. Events are guaranteed to be delivered at least once
+
+## Best Practices
+
+- **Idempotency**: Design handlers to safely process duplicate events
+- **Quick acknowledgment**: Return 200 immediately, process asynchronously
+- **Signature verification**: Always verify webhook signatures before processing
+- **Logging**: Log all received events for debugging and audit trails
