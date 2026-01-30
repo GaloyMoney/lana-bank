@@ -331,8 +331,6 @@ impl CoreCreditAction {
 
     pub const LIQUIDATION_LIST: Self = CoreCreditAction::Liquidation(LiquidationAction::List);
     pub const LIQUIDATION_READ: Self = CoreCreditAction::Liquidation(LiquidationAction::Read);
-    pub const LIQUIDATION_RECORD_COLLATERAL_SENT: Self =
-        CoreCreditAction::Liquidation(LiquidationAction::RecordCollateralSent);
     pub const LIQUIDATION_RECORD_PAYMENT_RECEIVED: Self =
         CoreCreditAction::Liquidation(LiquidationAction::RecordPaymentReceived);
 
@@ -489,7 +487,6 @@ impl From<CollateralAction> for CoreCreditAction {
 pub enum LiquidationAction {
     List,
     Read,
-    RecordCollateralSent,
     RecordPaymentReceived,
 }
 
@@ -497,9 +494,7 @@ impl ActionPermission for LiquidationAction {
     fn permission_set(&self) -> &'static str {
         match self {
             Self::List | Self::Read => PERMISSION_SET_CREDIT_VIEWER,
-            Self::RecordCollateralSent | Self::RecordPaymentReceived => {
-                PERMISSION_SET_CREDIT_WRITER
-            }
+            Self::RecordPaymentReceived => PERMISSION_SET_CREDIT_WRITER,
         }
     }
 }
