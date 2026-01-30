@@ -71,21 +71,6 @@ where
         Self { repo, authz }
     }
 
-    #[instrument(name = "credit.liquidation.complete_in_op", skip(self, db), err)]
-    pub async fn complete_in_op(
-        &self,
-        db: &mut es_entity::DbOp<'_>,
-        liquidation_id: LiquidationId,
-    ) -> Result<(), LiquidationError> {
-        let mut liquidation = self.repo.find_by_id(liquidation_id).await?;
-
-        if liquidation.complete().did_execute() {
-            self.repo.update_in_op(db, &mut liquidation).await?;
-        }
-
-        Ok(())
-    }
-
     #[record_error_severity]
     #[instrument(
         name = "credit.liquidation.list_for_facility_by_created_at",
@@ -132,15 +117,6 @@ where
             .await?;
 
         self.repo.maybe_find_by_id(id).await
-    }
-
-    #[record_error_severity]
-    #[instrument(name = "credit.liquidation.find_by_id_without_audit", skip(self))]
-    pub(super) async fn find_by_id_without_audit(
-        &self,
-        liquidation_id: impl Into<LiquidationId> + std::fmt::Debug,
-    ) -> Result<Liquidation, LiquidationError> {
-        self.repo.find_by_id(liquidation_id.into()).await
     }
 
     pub async fn find_all<T: From<Liquidation>>(
