@@ -7,7 +7,7 @@ use authz::error::AuthorizationError;
 pub use core_access::{CoreAccessAction, CoreAccessObject};
 use core_accounting::{CoreAccountingAction, CoreAccountingObject};
 use core_credit::{CoreCreditAction, CoreCreditObject};
-use core_credit_terms::{CoreTermsAction, CoreTermsObject};
+use core_credit_terms::{CoreCreditTermsAction, CoreCreditTermsObject};
 use core_customer::{CoreCustomerAction, CustomerObject};
 use core_deposit::{CoreDepositAction, CoreDepositObject};
 use governance::{GovernanceAction, GovernanceObject};
@@ -24,10 +24,10 @@ pub async fn get_visible_navigation_items(
         term: authz
             .check_all_permissions(
                 sub,
-                CoreTermsObject::all_terms_templates(),
+                CoreCreditTermsObject::all_terms_templates(),
                 &[
-                    CoreTermsAction::TERMS_TEMPLATE_READ,
-                    CoreTermsAction::TERMS_TEMPLATE_LIST,
+                    CoreCreditTermsAction::TERMS_TEMPLATE_READ,
+                    CoreCreditTermsAction::TERMS_TEMPLATE_LIST,
                 ],
             )
             .await?,

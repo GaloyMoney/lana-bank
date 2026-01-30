@@ -5,7 +5,7 @@ use authz::PermissionCheck;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-use crate::TermValues;
+use crate::{CoreCreditTermsAction, CoreCreditTermsObject, TermValues};
 
 pub mod entity;
 pub mod error;
@@ -17,38 +17,20 @@ pub use entity::*;
 pub use error::TermsTemplateError;
 pub use repo::TermsTemplateRepo;
 
-/// Trait for providing TermsTemplate-related authorization objects and actions.
-/// Implement this trait in the consuming crate to provide the concrete types.
-pub trait TermsTemplatePermissions {
-    type Action: Clone + Send + Sync + std::fmt::Debug;
-    type Object: Clone + Send + Sync + std::fmt::Debug;
-
-    fn terms_template_create_action() -> Self::Action;
-    fn terms_template_read_action() -> Self::Action;
-    fn terms_template_update_action() -> Self::Action;
-    fn terms_template_list_action() -> Self::Action;
-
-    fn all_terms_templates_object() -> Self::Object;
-    fn terms_template_object(id: TermsTemplateId) -> Self::Object;
-}
-
 #[derive(Clone)]
-pub struct TermsTemplates<Perms, P>
+pub struct TermsTemplates<Perms>
 where
     Perms: PermissionCheck,
-    P: TermsTemplatePermissions,
 {
     authz: Arc<Perms>,
     repo: Arc<TermsTemplateRepo>,
-    _phantom: std::marker::PhantomData<P>,
 }
 
-impl<Perms, P> TermsTemplates<Perms, P>
+impl<Perms> TermsTemplates<Perms>
 where
     Perms: PermissionCheck,
-    P: TermsTemplatePermissions,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<P::Action>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<P::Object>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditTermsAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditTermsObject>,
 {
     pub fn new(
         pool: &sqlx::PgPool,
@@ -59,7 +41,6 @@ where
         Self {
             authz,
             repo: Arc::new(repo),
-            _phantom: std::marker::PhantomData,
         }
     }
 
@@ -72,8 +53,8 @@ where
             .authz
             .evaluate_permission(
                 sub,
-                P::all_terms_templates_object(),
-                P::terms_template_create_action(),
+                CoreCreditTermsObject::all_terms_templates(),
+                CoreCreditTermsAction::TERMS_TEMPLATE_CREATE,
                 enforce,
             )
             .await?)
@@ -108,8 +89,8 @@ where
             .authz
             .evaluate_permission(
                 sub,
-                P::all_terms_templates_object(),
-                P::terms_template_update_action(),
+                CoreCreditTermsObject::all_terms_templates(),
+                CoreCreditTermsAction::TERMS_TEMPLATE_UPDATE,
                 enforce,
             )
             .await?)
@@ -143,8 +124,8 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                P::terms_template_object(id.into()),
-                P::terms_template_read_action(),
+                CoreCreditTermsObject::terms_template(id.into()),
+                CoreCreditTermsAction::TERMS_TEMPLATE_READ,
             )
             .await?;
         match self.repo.find_by_id(id.into()).await {
@@ -161,8 +142,8 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                P::all_terms_templates_object(),
-                P::terms_template_list_action(),
+                CoreCreditTermsObject::all_terms_templates(),
+                CoreCreditTermsAction::TERMS_TEMPLATE_LIST,
             )
             .await?;
         Ok(self

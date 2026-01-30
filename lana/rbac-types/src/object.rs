@@ -25,7 +25,7 @@ pub enum LanaObject {
     Accounting(CoreAccountingObject),
     Deposit(CoreDepositObject),
     Credit(CoreCreditObject),
-    Terms(core_credit_terms::CoreTermsObject),
+    Terms(core_credit_terms::CoreCreditTermsObject),
     Custody(CoreCustodyObject),
     Dashboard(DashboardModuleObject),
     Report(ReportObject),
@@ -83,8 +83,8 @@ impl From<CoreCreditObject> for LanaObject {
     }
 }
 
-impl From<core_credit_terms::CoreTermsObject> for LanaObject {
-    fn from(object: core_credit_terms::CoreTermsObject) -> Self {
+impl From<core_credit_terms::CoreCreditTermsObject> for LanaObject {
+    fn from(object: core_credit_terms::CoreCreditTermsObject) -> Self {
         LanaObject::Terms(object)
     }
 }
@@ -138,7 +138,7 @@ impl FromStr for LanaObject {
             Accounting => LanaObject::from(object.parse::<CoreAccountingObject>()?),
             Deposit => LanaObject::from(object.parse::<CoreDepositObject>()?),
             Credit => LanaObject::from(object.parse::<CoreCreditObject>()?),
-            Terms => LanaObject::from(object.parse::<core_credit_terms::CoreTermsObject>()?),
+            Terms => LanaObject::from(object.parse::<core_credit_terms::CoreCreditTermsObject>()?),
             Custody => LanaObject::from(object.parse::<CoreCustodyObject>()?),
             Dashboard => LanaObject::from(
                 object

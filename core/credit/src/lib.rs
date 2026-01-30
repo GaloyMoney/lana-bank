@@ -29,6 +29,7 @@ use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use core_accounting::LedgerTransactionInitiator;
+use core_credit_terms::{CoreCreditTermsAction, CoreCreditTermsObject};
 use core_custody::{
     CoreCustody, CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject, CustodianId,
 };
@@ -124,7 +125,7 @@ where
     collaterals: Arc<Collaterals<Perms, E>>,
     custody: Arc<CoreCustody<Perms, E>>,
     chart_of_accounts_integrations: Arc<ChartOfAccountsIntegrations<Perms>>,
-    terms_templates: Arc<TermsTemplates<Perms, core_credit_terms::TermsPermissions>>,
+    terms_templates: Arc<TermsTemplates<Perms>>,
     public_ids: Arc<PublicIds>,
     liquidations: Arc<Liquidations<Perms, E>>,
     histories: Arc<Histories<Perms>>,
@@ -209,10 +210,8 @@ where
         internal_domain_configs: &InternalDomainConfigs,
     ) -> Result<Self, CoreCreditError>
     where
-        <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-            From<core_credit_terms::CoreTermsAction>,
-        <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-            From<core_credit_terms::CoreTermsObject>,
+        <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditTermsAction>,
+        <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditTermsObject>,
     {
         let clock = jobs.clock().clone();
 
@@ -1060,12 +1059,12 @@ impl<Perms, E> CoreCredit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
-        + From<core_credit_terms::CoreTermsAction>
+        + From<CoreCreditTermsAction>
         + From<GovernanceAction>
         + From<CoreCustomerAction>
         + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
-        + From<core_credit_terms::CoreTermsObject>
+        + From<CoreCreditTermsObject>
         + From<GovernanceObject>
         + From<CustomerObject>
         + From<CoreCustodyObject>,
@@ -1075,9 +1074,7 @@ where
         + OutboxEventMarker<CorePriceEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
 {
-    pub fn terms_templates(
-        &self,
-    ) -> &core_credit_terms::TermsTemplates<Perms, core_credit_terms::TermsPermissions> {
+    pub fn terms_templates(&self) -> &TermsTemplates<Perms> {
         self.terms_templates.as_ref()
     }
 }

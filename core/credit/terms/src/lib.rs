@@ -12,13 +12,12 @@ pub use cvl::CVLPct;
 pub use effective_date::EffectiveDate;
 pub use error::TermsError;
 pub use primitives::{
-    CoreTermsAction, CoreTermsObject, PERMISSION_SET_CREDIT_TERM_TEMPLATES,
-    PERMISSION_SET_TERMS_VIEWER, TermsPermissions, TermsTemplateAction, TermsTemplateAllOrOne,
+    CoreCreditTermsAction, CoreCreditTermsObject, PERMISSION_SET_CREDIT_TERM_TEMPLATES,
+    PERMISSION_SET_TERMS_VIEWER, TermsTemplateAction, TermsTemplateAllOrOne,
 };
 pub use terms_template::{
     NewTermsTemplate, NewTermsTemplateBuilder, TermsTemplate, TermsTemplateBuilder,
-    TermsTemplateError, TermsTemplateEvent, TermsTemplateId, TermsTemplatePermissions,
-    TermsTemplateRepo, TermsTemplates,
+    TermsTemplateError, TermsTemplateEvent, TermsTemplateId, TermsTemplateRepo, TermsTemplates,
 };
 pub use value::{
     AnnualRatePct, DisbursalPolicy, FacilityDuration, FacilityDurationType, InterestInterval,

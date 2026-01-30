@@ -28,7 +28,7 @@ pub enum LanaAction {
     Dashboard(DashboardModuleAction),
     Deposit(CoreDepositAction),
     Credit(CoreCreditAction),
-    Terms(core_credit_terms::CoreTermsAction),
+    Terms(core_credit_terms::CoreCreditTermsAction),
     Custody(CoreCustodyAction),
     Report(CoreReportAction),
     Contract(ContractModuleAction),
@@ -47,7 +47,7 @@ impl LanaAction {
             DashboardModuleAction::actions(),
             CoreDepositAction::actions(),
             CoreCreditAction::actions(),
-            core_credit_terms::CoreTermsAction::actions(),
+            core_credit_terms::CoreCreditTermsAction::actions(),
             CoreCustodyAction::actions(),
             CoreReportAction::actions(),
             ContractModuleAction::actions(),
@@ -101,8 +101,8 @@ impl From<CoreCreditAction> for LanaAction {
         LanaAction::Credit(action)
     }
 }
-impl From<core_credit_terms::CoreTermsAction> for LanaAction {
-    fn from(action: core_credit_terms::CoreTermsAction) -> Self {
+impl From<core_credit_terms::CoreCreditTermsAction> for LanaAction {
+    fn from(action: core_credit_terms::CoreCreditTermsAction) -> Self {
         LanaAction::Terms(action)
     }
 }
@@ -160,7 +160,7 @@ impl FromStr for LanaAction {
             Accounting => LanaAction::from(action.parse::<CoreAccountingAction>()?),
             Deposit => LanaAction::from(action.parse::<CoreDepositAction>()?),
             Credit => LanaAction::from(action.parse::<CoreCreditAction>()?),
-            Terms => LanaAction::from(action.parse::<core_credit_terms::CoreTermsAction>()?),
+            Terms => LanaAction::from(action.parse::<core_credit_terms::CoreCreditTermsAction>()?),
             Custody => LanaAction::from(action.parse::<CoreCustodyAction>()?),
             Report => LanaAction::from(action.parse::<CoreReportAction>()?),
             Contract => LanaAction::from(action.parse::<ContractModuleAction>()?),

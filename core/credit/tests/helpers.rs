@@ -197,8 +197,8 @@ pub mod action {
         }
     }
 
-    impl From<core_credit_terms::CoreTermsAction> for DummyAction {
-        fn from(_: core_credit_terms::CoreTermsAction) -> Self {
+    impl From<core_credit_terms::CoreCreditTermsAction> for DummyAction {
+        fn from(_: core_credit_terms::CoreCreditTermsAction) -> Self {
             Self
         }
     }
@@ -272,8 +272,8 @@ pub mod object {
         }
     }
 
-    impl From<core_credit_terms::CoreTermsObject> for DummyObject {
-        fn from(_: core_credit_terms::CoreTermsObject) -> Self {
+    impl From<core_credit_terms::CoreCreditTermsObject> for DummyObject {
+        fn from(_: core_credit_terms::CoreCreditTermsObject) -> Self {
             Self
         }
     }

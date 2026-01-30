@@ -11,40 +11,40 @@ pub const PERMISSION_SET_CREDIT_TERM_TEMPLATES: &str = "credit_term_templates";
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
-pub enum CoreTermsObject {
+pub enum CoreCreditTermsObject {
     TermsTemplate(TermsTemplateAllOrOne),
 }
 
-impl CoreTermsObject {
+impl CoreCreditTermsObject {
     pub fn terms_template(id: TermsTemplateId) -> Self {
-        CoreTermsObject::TermsTemplate(AllOrOne::ById(id))
+        CoreCreditTermsObject::TermsTemplate(AllOrOne::ById(id))
     }
 
     pub fn all_terms_templates() -> Self {
-        CoreTermsObject::TermsTemplate(AllOrOne::All)
+        CoreCreditTermsObject::TermsTemplate(AllOrOne::All)
     }
 }
 
-impl std::fmt::Display for CoreTermsObject {
+impl std::fmt::Display for CoreCreditTermsObject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let discriminant = CoreTermsObjectDiscriminants::from(self);
-        use CoreTermsObject::*;
+        let discriminant = CoreCreditTermsObjectDiscriminants::from(self);
+        use CoreCreditTermsObject::*;
         match self {
             TermsTemplate(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
         }
     }
 }
 
-impl FromStr for CoreTermsObject {
+impl FromStr for CoreCreditTermsObject {
     type Err = &'static str;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (entity, id) = s.split_once('/').expect("missing slash");
-        use CoreTermsObjectDiscriminants::*;
+        use CoreCreditTermsObjectDiscriminants::*;
         let res = match entity.parse().expect("invalid entity") {
             TermsTemplate => {
-                let obj_ref = id.parse().map_err(|_| "could not parse CoreTermsObject")?;
-                CoreTermsObject::TermsTemplate(obj_ref)
+                let obj_ref = id.parse().map_err(|_| "could not parse CoreCreditTermsObject")?;
+                CoreCreditTermsObject::TermsTemplate(obj_ref)
             }
         };
         Ok(res)
@@ -54,23 +54,23 @@ impl FromStr for CoreTermsObject {
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
-pub enum CoreTermsAction {
+pub enum CoreCreditTermsAction {
     TermsTemplate(TermsTemplateAction),
 }
 
-impl CoreTermsAction {
+impl CoreCreditTermsAction {
     pub const TERMS_TEMPLATE_CREATE: Self =
-        CoreTermsAction::TermsTemplate(TermsTemplateAction::Create);
-    pub const TERMS_TEMPLATE_READ: Self = CoreTermsAction::TermsTemplate(TermsTemplateAction::Read);
+        CoreCreditTermsAction::TermsTemplate(TermsTemplateAction::Create);
+    pub const TERMS_TEMPLATE_READ: Self = CoreCreditTermsAction::TermsTemplate(TermsTemplateAction::Read);
     pub const TERMS_TEMPLATE_UPDATE: Self =
-        CoreTermsAction::TermsTemplate(TermsTemplateAction::Update);
-    pub const TERMS_TEMPLATE_LIST: Self = CoreTermsAction::TermsTemplate(TermsTemplateAction::List);
+        CoreCreditTermsAction::TermsTemplate(TermsTemplateAction::Update);
+    pub const TERMS_TEMPLATE_LIST: Self = CoreCreditTermsAction::TermsTemplate(TermsTemplateAction::List);
 
     pub fn actions() -> Vec<ActionMapping> {
-        use CoreTermsActionDiscriminants::*;
+        use CoreCreditTermsActionDiscriminants::*;
         use strum::VariantArray;
 
-        CoreTermsActionDiscriminants::VARIANTS
+        CoreCreditTermsActionDiscriminants::VARIANTS
             .iter()
             .flat_map(|&discriminant| match discriminant {
                 TermsTemplate => map_action!(terms, TermsTemplate, TermsTemplateAction),
@@ -79,26 +79,26 @@ impl CoreTermsAction {
     }
 }
 
-impl std::fmt::Display for CoreTermsAction {
+impl std::fmt::Display for CoreCreditTermsAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}:", CoreTermsActionDiscriminants::from(self))?;
-        use CoreTermsAction::*;
+        write!(f, "{}:", CoreCreditTermsActionDiscriminants::from(self))?;
+        use CoreCreditTermsAction::*;
         match self {
             TermsTemplate(action) => action.fmt(f),
         }
     }
 }
 
-impl FromStr for CoreTermsAction {
+impl FromStr for CoreCreditTermsAction {
     type Err = strum::ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut elems = s.split(':');
         let entity = elems.next().expect("missing first element");
         let action = elems.next().expect("missing second element");
-        use CoreTermsActionDiscriminants::*;
+        use CoreCreditTermsActionDiscriminants::*;
         let res = match entity.parse()? {
-            TermsTemplate => CoreTermsAction::from(action.parse::<TermsTemplateAction>()?),
+            TermsTemplate => CoreCreditTermsAction::from(action.parse::<TermsTemplateAction>()?),
         };
         Ok(res)
     }
@@ -122,39 +122,8 @@ impl ActionPermission for TermsTemplateAction {
     }
 }
 
-impl From<TermsTemplateAction> for CoreTermsAction {
+impl From<TermsTemplateAction> for CoreCreditTermsAction {
     fn from(action: TermsTemplateAction) -> Self {
         Self::TermsTemplate(action)
-    }
-}
-
-pub struct TermsPermissions;
-
-impl crate::TermsTemplatePermissions for TermsPermissions {
-    type Action = CoreTermsAction;
-    type Object = CoreTermsObject;
-
-    fn terms_template_create_action() -> Self::Action {
-        CoreTermsAction::TERMS_TEMPLATE_CREATE
-    }
-
-    fn terms_template_read_action() -> Self::Action {
-        CoreTermsAction::TERMS_TEMPLATE_READ
-    }
-
-    fn terms_template_update_action() -> Self::Action {
-        CoreTermsAction::TERMS_TEMPLATE_UPDATE
-    }
-
-    fn terms_template_list_action() -> Self::Action {
-        CoreTermsAction::TERMS_TEMPLATE_LIST
-    }
-
-    fn all_terms_templates_object() -> Self::Object {
-        CoreTermsObject::all_terms_templates()
-    }
-
-    fn terms_template_object(id: TermsTemplateId) -> Self::Object {
-        CoreTermsObject::terms_template(id)
     }
 }
