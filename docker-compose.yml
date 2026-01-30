@@ -52,6 +52,7 @@ services:
     ports: [5433:5432]
     environment:
       [POSTGRES_USER=user, POSTGRES_PASSWORD=password, POSTGRES_DB=pg]
+    command: postgres -c max_connections=200
 
   keycloak-pg:
     image: postgres:17.5
