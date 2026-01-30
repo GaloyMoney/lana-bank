@@ -272,6 +272,11 @@ impl InternalDomainConfigs {
         }
         Ok(())
     }
+
+    #[cfg(feature = "test-support")]
+    pub async fn delete_by_key(&self, key: DomainConfigKey) -> Result<(), DomainConfigError> {
+        self.repo.delete_by_key(key).await
+    }
 }
 
 impl ExposedDomainConfigsReadOnly {

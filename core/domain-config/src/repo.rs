@@ -50,4 +50,15 @@ impl DomainConfigRepo {
             .map(|entity| (entity.id, Out::from(entity)))
             .collect())
     }
+
+    #[cfg(feature = "test-support")]
+    pub async fn delete_by_key(&self, key: DomainConfigKey) -> Result<(), DomainConfigError> {
+        sqlx::query("DELETE FROM core_domain_config_events_rollup WHERE id IN (SELECT id FROM core_domain_configs WHERE key = $1)")
+            .bind(&key).execute(&self.pool).await?;
+        sqlx::query("DELETE FROM core_domain_config_events WHERE id IN (SELECT id FROM core_domain_configs WHERE key = $1)")
+            .bind(&key).execute(&self.pool).await?;
+        sqlx::query("DELETE FROM core_domain_configs WHERE key = $1")
+            .bind(&key).execute(&self.pool).await?;
+        Ok(())
+    }
 }

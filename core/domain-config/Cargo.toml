@@ -10,6 +10,7 @@ ignored = ["async-graphql"]
 fail-on-warnings = []
 graphql = ["es-entity/graphql", "dep:async-graphql"]
 json-schema = ["dep:schemars", "es-entity/json-schema"]
+test-support = []
 
 [dependencies]
 audit = { workspace = true }
