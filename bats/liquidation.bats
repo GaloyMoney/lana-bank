@@ -197,9 +197,10 @@ wait_for_facility_to_be_under_liquidation_threshold() {
   [[ "$last_sent_amount" -eq "$collateral_to_send" ]] || exit 1
 }
 
-@test "liquidation: can record payment received from liquidation" { 
+@test "liquidation: can record payment received from liquidation" {
   liquidation_id=$(read_value 'liquidation_id')
-  
+  collateral_id=$(read_value 'collateral_id')
+
   variables=$(
     jq -n \
       --arg id "$liquidation_id" \
@@ -212,26 +213,34 @@ wait_for_facility_to_be_under_liquidation_threshold() {
   payment=10000000
   variables=$(
     jq -n \
-      --arg liquidationId "$liquidation_id" \
+      --arg collateralId "$collateral_id" \
       --argjson amount "$payment" \
     '{
       input: {
-        liquidationId: $liquidationId,
+        collateralId: $collateralId,
         amount: $amount
       }
     }'
   )
   exec_admin_graphql 'liquidation-record-payment-received' "$variables"
 
-  returned_id=$(graphql_output '.data.liquidationRecordProceedsReceived.liquidation.liquidationId')
-  [[ "$returned_id" == "$liquidation_id" ]] || exit 1
+  returned_collateral_id=$(graphql_output '.data.collateralRecordProceedsFromLiquidation.collateral.collateralId')
+  [[ "$returned_collateral_id" == "$collateral_id" ]] || exit 1
 
-  received_total=$(graphql_output '.data.liquidationRecordProceedsReceived.liquidation.amountReceived')
+  # Fetch liquidation to verify the payment was recorded
+  variables=$(
+    jq -n \
+      --arg id "$liquidation_id" \
+    '{ id: $id }'
+  )
+  exec_admin_graphql 'find-liquidation' "$variables"
+
+  received_total=$(graphql_output '.data.liquidation.amountReceived')
   [[ "$received_total" -eq "$((before_received_total + payment))" ]] || exit 1
 
-  received_len=$(graphql_output '.data.liquidationRecordProceedsReceived.liquidation.receivedProceeds | length')
+  received_len=$(graphql_output '.data.liquidation.receivedProceeds | length')
   [[ "$received_len" -eq "$((before_received_len + 1))" ]] || exit 1
 
-  last_received_amount=$(graphql_output '.data.liquidationRecordProceedsReceived.liquidation.receivedProceeds[-1].amount')
+  last_received_amount=$(graphql_output '.data.liquidation.receivedProceeds[-1].amount')
   [[ "$last_received_amount" -eq "$payment" ]] || exit 1
 }
