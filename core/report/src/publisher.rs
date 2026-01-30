@@ -1,5 +1,5 @@
 use crate::report_run::{ReportRun, ReportRunError, ReportRunEvent};
-use crate::{CoreReportEvent, PublicReportRun};
+use crate::{CoreReportEvent, PublicReportRun, REPORT_RUN_EVENT_TYPE};
 use obix::out::{Outbox, OutboxEventMarker};
 
 pub struct ReportPublisher<E>
@@ -38,19 +38,19 @@ where
         new_events: es_entity::LastPersisted<'_, ReportRunEvent>,
     ) -> Result<(), ReportRunError> {
         use ReportRunEvent::*;
-        let publish_events = new_events
-            .map(|event| match &event.event {
+        for event in new_events {
+            let publish_event = match &event.event {
                 Initialized { .. } => CoreReportEvent::ReportRunCreated {
                     entity: PublicReportRun::from(entity),
                 },
                 StateUpdated { .. } => CoreReportEvent::ReportRunStateUpdated {
                     entity: PublicReportRun::from(entity),
                 },
-            })
-            .collect::<Vec<_>>();
-        self.outbox
-            .publish_all_persisted(db, publish_events)
-            .await?;
+            };
+            self.outbox
+                .publish_ephemeral_in_op(db, REPORT_RUN_EVENT_TYPE, publish_event)
+                .await?;
+        }
         Ok(())
     }
 }
