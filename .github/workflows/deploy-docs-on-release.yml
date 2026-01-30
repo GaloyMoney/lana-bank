@@ -1,0 +1,54 @@
+name: Deploy docs on release
+
+on:
+  push:
+    tags:
+      # Match only minor release tags (X.Y.0)
+      # This excludes RC tags (e.g., 0.39.0-rc.1) and patch releases (e.g., 0.39.1)
+      - "[0-9]+.[0-9]+.0"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "lana-bank-docs"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: lana-bank-docs
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v4
+
+      - name: Run the Magic Nix Cache
+        uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - uses: actions/checkout@v4
+
+      - uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: false
+          docker-images: true
+          swap-storage: true
+
+      - name: Build docs site
+        run: nix build .#docs-site
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./result
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
