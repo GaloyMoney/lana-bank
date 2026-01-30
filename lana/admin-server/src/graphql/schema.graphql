@@ -404,6 +404,7 @@ enum CreditFacilitiesSortBy {
 type CreditFacility {
 	id: ID!
 	creditFacilityId: UUID!
+	collateralId: UUID!
 	maturesAt: Timestamp!
 	activatedAt: Timestamp!
 	collateralizationState: CollateralizationState!
