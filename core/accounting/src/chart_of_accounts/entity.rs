@@ -1256,7 +1256,7 @@ mod test {
     }
     mod import_accounts {
         use super::*;
-        
+
         #[test]
         fn import_accounts_attaches_to_existing_parent_account_set() {
             let (mut chart, journal_id) = default_configured_chart();
@@ -1286,15 +1286,23 @@ mod test {
             assert_eq!(bulk_import.new_account_sets.len(), 2);
             assert_eq!(bulk_import.new_connections.len(), 2);
 
-            let connection_to_existing_parent = bulk_import
-                .new_connections
-                .iter()
-                .find(|(parent_id, _)| *parent_id == assets_parent_account_set_id);
+            // `AccountSpec` is sorted in reversed order i.e. child before parent.
+            let third_level_account_set_id = bulk_import.new_account_set_ids[0];
+            let second_level_account_set_id = bulk_import.new_account_set_ids[1];
 
             assert!(
-                connection_to_existing_parent.is_some(),
-                "Expected a connection from existing parent '1' to new child '1.1', but none found. \
-                Connections: {:?}",
+                bulk_import
+                    .new_connections
+                    .contains(&(assets_parent_account_set_id, second_level_account_set_id)),
+                "Expected connection from '1' to '1.1', but not found. Connections: {:?}",
+                bulk_import.new_connections
+            );
+
+            assert!(
+                bulk_import
+                    .new_connections
+                    .contains(&(second_level_account_set_id, third_level_account_set_id)),
+                "Expected connection from '1.1' to '1.1.1', but not found. Connections: {:?}",
                 bulk_import.new_connections
             );
         }
