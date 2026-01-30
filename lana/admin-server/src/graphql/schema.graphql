@@ -1757,7 +1757,7 @@ input LiquidationRecordCollateralSentInput {
 }
 
 type LiquidationRecordCollateralSentPayload {
-	liquidation: Liquidation!
+	collateral: Collateral!
 }
 
 input LiquidationRecordProceedsReceivedInput {
@@ -1860,7 +1860,7 @@ type Mutation {
 	creditFacilityPartialPaymentWithDateRecord(input: CreditFacilityPartialPaymentWithDateRecordInput!): CreditFacilityPartialPaymentRecordPayload!
 	creditFacilityDisbursalInitiate(input: CreditFacilityDisbursalInitiateInput!): CreditFacilityDisbursalInitiatePayload!
 	creditFacilityComplete(input: CreditFacilityCompleteInput!): CreditFacilityCompletePayload!
-	liquidationRecordCollateralSent(input: LiquidationRecordCollateralSentInput!): LiquidationRecordCollateralSentPayload!
+	collateralLiquidationRecordCollateralSent(input: LiquidationRecordCollateralSentInput!): LiquidationRecordCollateralSentPayload!
 	liquidationRecordProceedsReceived(input: LiquidationRecordProceedsReceivedInput!): LiquidationRecordProceedsReceivedPayload!
 	custodianCreate(input: CustodianCreateInput!): CustodianCreatePayload!
 	custodianConfigUpdate(input: CustodianConfigUpdateInput!): CustodianConfigUpdatePayload!

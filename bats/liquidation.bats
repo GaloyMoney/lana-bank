@@ -182,13 +182,13 @@ wait_for_facility_to_be_under_liquidation_threshold() {
   )
   exec_admin_graphql 'liquidation-record-collateral-sent' "$variables"
 
-  returned_id=$(graphql_output '.data.liquidationRecordCollateralSent.liquidation.liquidationId')
+  returned_id=$(graphql_output '.data.collateralLiquidationRecordCollateralSent.collateral.creditFacility.liquidations[0].liquidationId')
   [[ "$returned_id" == "$liquidation_id" ]] || exit 1
 
-  sent_total=$(graphql_output '.data.liquidationRecordCollateralSent.liquidation.sentTotal')
+  sent_total=$(graphql_output '.data.collateralLiquidationRecordCollateralSent.collateral.creditFacility.liquidations[0].sentTotal')
   [[ "$sent_total" -ge "$collateral_to_send" ]] || exit 1
 
-  last_sent_amount=$(graphql_output '.data.liquidationRecordCollateralSent.liquidation.sentCollateral[-1].amount')
+  last_sent_amount=$(graphql_output '.data.collateralLiquidationRecordCollateralSent.collateral.creditFacility.liquidations[0].sentCollateral[-1].amount')
   [[ "$last_sent_amount" -eq "$collateral_to_send" ]] || exit 1
 }
 

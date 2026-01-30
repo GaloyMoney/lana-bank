@@ -2009,7 +2009,7 @@ impl Mutation {
         )
     }
 
-    async fn liquidation_record_collateral_sent(
+    async fn collateral_liquidation_record_collateral_sent(
         &self,
         ctx: &Context<'_>,
         input: LiquidationRecordCollateralSentInput,
@@ -2017,10 +2017,15 @@ impl Mutation {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         exec_mutation!(
             LiquidationRecordCollateralSentPayload,
-            Liquidation,
+            Collateral,
             ctx,
             app.credit()
-                .record_collateral_sent(sub, input.liquidation_id.into(), input.amount)
+                .collaterals()
+                .record_collateral_update_via_liquidation(
+                    sub,
+                    input.liquidation_id.into(),
+                    input.amount
+                )
         )
     }
 
