@@ -10,6 +10,7 @@ use core_credit::CoreCreditAction;
 use core_custody::CoreCustodyAction;
 use core_customer::CoreCustomerAction;
 use core_deposit::CoreDepositAction;
+use core_credit_terms::CoreCreditTermsAction;
 use core_report::CoreReportAction;
 use dashboard::DashboardModuleAction;
 use domain_config::DomainConfigAction;
@@ -28,7 +29,7 @@ pub enum LanaAction {
     Dashboard(DashboardModuleAction),
     Deposit(CoreDepositAction),
     Credit(CoreCreditAction),
-    Terms(core_credit_terms::CoreCreditTermsAction),
+    Terms(CoreCreditTermsAction),
     Custody(CoreCustodyAction),
     Report(CoreReportAction),
     Contract(ContractModuleAction),
@@ -47,7 +48,7 @@ impl LanaAction {
             DashboardModuleAction::actions(),
             CoreDepositAction::actions(),
             CoreCreditAction::actions(),
-            core_credit_terms::CoreCreditTermsAction::actions(),
+            CoreCreditTermsAction::actions(),
             CoreCustodyAction::actions(),
             CoreReportAction::actions(),
             ContractModuleAction::actions(),
@@ -101,8 +102,8 @@ impl From<CoreCreditAction> for LanaAction {
         LanaAction::Credit(action)
     }
 }
-impl From<core_credit_terms::CoreCreditTermsAction> for LanaAction {
-    fn from(action: core_credit_terms::CoreCreditTermsAction) -> Self {
+impl From<CoreCreditTermsAction> for LanaAction {
+    fn from(action: CoreCreditTermsAction) -> Self {
         LanaAction::Terms(action)
     }
 }
@@ -160,7 +161,7 @@ impl FromStr for LanaAction {
             Accounting => LanaAction::from(action.parse::<CoreAccountingAction>()?),
             Deposit => LanaAction::from(action.parse::<CoreDepositAction>()?),
             Credit => LanaAction::from(action.parse::<CoreCreditAction>()?),
-            Terms => LanaAction::from(action.parse::<core_credit_terms::CoreCreditTermsAction>()?),
+            Terms => LanaAction::from(action.parse::<CoreCreditTermsAction>()?),
             Custody => LanaAction::from(action.parse::<CoreCustodyAction>()?),
             Report => LanaAction::from(action.parse::<CoreReportAction>()?),
             Contract => LanaAction::from(action.parse::<ContractModuleAction>()?),

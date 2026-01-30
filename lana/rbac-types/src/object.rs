@@ -5,6 +5,7 @@ use contract_creation::ContractModuleObject;
 use core_access::CoreAccessObject;
 use core_accounting::CoreAccountingObject;
 use core_credit::CoreCreditObject;
+use core_credit_terms::CoreCreditTermsObject;
 use core_custody::CoreCustodyObject;
 use core_customer::CustomerObject;
 use core_deposit::CoreDepositObject;
@@ -25,7 +26,7 @@ pub enum LanaObject {
     Accounting(CoreAccountingObject),
     Deposit(CoreDepositObject),
     Credit(CoreCreditObject),
-    Terms(core_credit_terms::CoreCreditTermsObject),
+    Terms(CoreCreditTermsObject),
     Custody(CoreCustodyObject),
     Dashboard(DashboardModuleObject),
     Report(ReportObject),
@@ -83,8 +84,8 @@ impl From<CoreCreditObject> for LanaObject {
     }
 }
 
-impl From<core_credit_terms::CoreCreditTermsObject> for LanaObject {
-    fn from(object: core_credit_terms::CoreCreditTermsObject) -> Self {
+impl From<CoreCreditTermsObject> for LanaObject {
+    fn from(object: CoreCreditTermsObject) -> Self {
         LanaObject::Terms(object)
     }
 }
