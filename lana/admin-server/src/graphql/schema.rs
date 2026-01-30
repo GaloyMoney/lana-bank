@@ -2705,10 +2705,9 @@ impl Subscription {
     ) -> async_graphql::Result<impl Stream<Item = ReportRunUpdatedPayload>> {
         let app = ctx.data_unchecked::<LanaApp>();
 
-        let stream = app.outbox().listen_persisted(None);
+        let stream = app.outbox().listen_ephemeral();
         let updates = stream.filter_map(move |event| async move {
-            let payload = event.payload.as_ref()?;
-            let event: &CoreReportEvent = payload.as_event()?;
+            let event: &CoreReportEvent = event.payload.as_event()?;
             match event {
                 CoreReportEvent::ReportRunCreated { entity }
                 | CoreReportEvent::ReportRunStateUpdated { entity } => {
