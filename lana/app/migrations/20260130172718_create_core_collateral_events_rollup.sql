@@ -38,7 +38,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'updated_via_manual_input', 'updated_via_custodian_sync', 'updated_via_liquidation', 'updated') THEN
+  IF event_type NOT IN ('initialized', 'updated_via_manual_input', 'updated_via_custodian_sync', 'updated_via_liquidation', 'liquidation_started', 'liquidation_completed', 'updated') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -96,6 +96,10 @@ BEGIN
       new_row.abs_diff := (NEW.event ->> 'abs_diff')::BIGINT;
       new_row.action := (NEW.event ->> 'action');
       new_row.collateral_amount := (NEW.event ->> 'collateral_amount')::BIGINT;
+      new_row.liquidation_id := (NEW.event ->> 'liquidation_id')::UUID;
+    WHEN 'liquidation_started' THEN
+      new_row.liquidation_id := (NEW.event ->> 'liquidation_id')::UUID;
+    WHEN 'liquidation_completed' THEN
       new_row.liquidation_id := (NEW.event ->> 'liquidation_id')::UUID;
     WHEN 'updated' THEN
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);

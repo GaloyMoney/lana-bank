@@ -140,6 +140,40 @@
         "action"
       ],
       "type": "object"
+    },
+    {
+      "properties": {
+        "liquidation_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "const": "liquidation_started",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "liquidation_id"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "liquidation_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "const": "liquidation_completed",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "liquidation_id"
+      ],
+      "type": "object"
     }
   ],
   "title": "CollateralEvent"
