@@ -825,6 +825,84 @@ impl Query {
         Ok(ChartOfAccounts::from(chart))
     }
 
+    async fn asset_account_sets(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<AccountSetMemberOutput>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let members = app
+            .accounting()
+            .chart_of_accounts()
+            .asset_account_sets(sub, CHART_REF.0)
+            .await?;
+        Ok(members.into_iter().map(AccountSetMemberOutput::from).collect())
+    }
+
+    async fn liability_account_sets(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<AccountSetMemberOutput>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let members = app
+            .accounting()
+            .chart_of_accounts()
+            .liability_account_sets(sub, CHART_REF.0)
+            .await?;
+        Ok(members.into_iter().map(AccountSetMemberOutput::from).collect())
+    }
+
+    async fn equity_account_sets(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<AccountSetMemberOutput>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let members = app
+            .accounting()
+            .chart_of_accounts()
+            .equity_account_sets(sub, CHART_REF.0)
+            .await?;
+        Ok(members.into_iter().map(AccountSetMemberOutput::from).collect())
+    }
+
+    async fn revenue_account_sets(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<AccountSetMemberOutput>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let members = app
+            .accounting()
+            .chart_of_accounts()
+            .revenue_account_sets(sub, CHART_REF.0)
+            .await?;
+        Ok(members.into_iter().map(AccountSetMemberOutput::from).collect())
+    }
+
+    async fn cost_of_revenue_account_sets(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<AccountSetMemberOutput>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let members = app
+            .accounting()
+            .chart_of_accounts()
+            .cost_of_revenue_account_sets(sub, CHART_REF.0)
+            .await?;
+        Ok(members.into_iter().map(AccountSetMemberOutput::from).collect())
+    }
+
+    async fn expense_account_sets(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<AccountSetMemberOutput>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let members = app
+            .accounting()
+            .chart_of_accounts()
+            .expense_account_sets(sub, CHART_REF.0)
+            .await?;
+        Ok(members.into_iter().map(AccountSetMemberOutput::from).collect())
+    }
+
     async fn fiscal_year(
         &self,
         ctx: &Context<'_>,

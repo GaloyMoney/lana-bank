@@ -10,7 +10,7 @@ use es_entity::*;
 use super::chart_node::*;
 use crate::{
     chart_of_accounts::ledger::ClosingTxParentIdsAndDetails,
-    primitives::{AccountingBaseConfig, *},
+    primitives::{AccountSetMember, AccountingBaseConfig, *},
 };
 
 use super::{bulk_import::*, error::*, tree};
@@ -328,6 +328,39 @@ impl Chart {
 
     pub fn chart(&self) -> tree::ChartTree {
         tree::project_from_nodes(self.id, &self.name, self.chart_nodes.iter_persisted())
+    }
+
+    /// Returns all descendant account sets (non-leaf nodes) under the given category code
+    pub fn account_sets_under_code(&self, code: &AccountCode) -> Vec<AccountSetMember> {
+        let tree = self.chart();
+
+        fn find_node<'a>(
+            nodes: &'a [tree::TreeNode],
+            code: &AccountCode,
+        ) -> Option<&'a tree::TreeNode> {
+            for node in nodes {
+                if &node.code == code {
+                    return Some(node);
+                }
+                if let Some(found) = find_node(&node.children, code) {
+                    return Some(found);
+                }
+            }
+            None
+        }
+
+        find_node(&tree.children, code)
+            .map(|node| {
+                node.descendant_account_sets()
+                    .into_iter()
+                    .map(|(id, code, name)| AccountSetMember {
+                        account_set_id: id,
+                        code,
+                        name,
+                    })
+                    .collect()
+            })
+            .unwrap_or_default()
     }
 
     pub fn accounting_base_config(&self) -> Option<AccountingBaseConfig> {

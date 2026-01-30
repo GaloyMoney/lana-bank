@@ -172,3 +172,20 @@ pub struct ChartOfAccountsCsvImportInput {
 }
 
 crate::mutation_payload! { ChartOfAccountsCsvImportPayload, chart_of_accounts: ChartOfAccounts }
+
+#[derive(SimpleObject, Clone)]
+pub struct AccountSetMemberOutput {
+    pub account_set_id: UUID,
+    pub code: AccountCode,
+    pub name: String,
+}
+
+impl From<lana_app::accounting::AccountSetMember> for AccountSetMemberOutput {
+    fn from(member: lana_app::accounting::AccountSetMember) -> Self {
+        Self {
+            account_set_id: UUID::from(member.account_set_id),
+            code: AccountCode::from(&member.code),
+            name: member.name.to_string(),
+        }
+    }
+}

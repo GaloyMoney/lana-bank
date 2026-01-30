@@ -30,6 +30,7 @@ use tracing_macros::record_error_severity;
 
 pub use balance_sheet::{BalanceSheet, BalanceSheets};
 pub use chart_of_accounts::{Chart, ChartOfAccounts, error as chart_of_accounts_error, tree};
+pub use primitives::AccountSetMember;
 pub use csv::AccountingCsvExports;
 use error::CoreAccountingError;
 pub use event::CoreAccountingEvent;

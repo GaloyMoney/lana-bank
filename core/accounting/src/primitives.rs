@@ -537,6 +537,13 @@ pub struct ResolvedAccountingBaseConfig {
 }
 
 #[derive(Debug, Clone)]
+pub struct AccountSetMember {
+    pub account_set_id: CalaAccountSetId,
+    pub code: AccountCode,
+    pub name: AccountName,
+}
+
+#[derive(Debug, Clone)]
 pub struct ClosingAccountCodes {
     pub revenue: AccountCode,
     pub cost_of_revenue: AccountCode,
