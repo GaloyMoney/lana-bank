@@ -21,7 +21,6 @@ mod primitives;
 mod processes;
 mod publisher;
 mod repayment_plan;
-mod terms;
 
 use std::sync::Arc;
 
@@ -72,7 +71,6 @@ pub use processes::{
 };
 use publisher::CreditFacilityPublisher;
 pub use repayment_plan::*;
-pub use terms::TermValuesExt;
 
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
@@ -648,7 +646,8 @@ where
             .await?;
 
         let price = self.price.usd_cents_per_btc().await;
-        if !facility.terms.is_disbursal_allowed(balance, amount, price) {
+        let cvl = balance.with_added_disbursal(amount).current_cvl(price);
+        if cvl < facility.terms.margin_call_cvl {
             return Err(CreditFacilityError::BelowMarginLimit.into());
         }
 

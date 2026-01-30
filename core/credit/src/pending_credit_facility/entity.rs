@@ -7,7 +7,6 @@ use serde::{Deserialize, Serialize};
 use es_entity::*;
 
 use crate::{
-    TermValuesExt,
     credit_facility::NewCreditFacilityBuilder,
     disbursal::NewDisbursalBuilder,
     ledger::{
@@ -187,7 +186,8 @@ impl PendingCreditFacility {
             PendingCreditFacilityEvent::Completed { .. }
         );
 
-        if !self.terms.is_proposal_completion_allowed(balances, price) {
+        let cvl = balances.current_cvl(price);
+        if cvl < self.terms.margin_call_cvl {
             return Err(PendingCreditFacilityError::BelowMarginLimit);
         }
 
