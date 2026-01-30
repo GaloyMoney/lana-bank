@@ -264,6 +264,16 @@ where
                 )
                 .await?;
 
+            // Record liquidation started on collateral
+            let mut collateral = self
+                .collateral_repo
+                .find_by_id_in_op(&mut *db, liquidation.collateral_id)
+                .await?;
+            let _ = collateral.record_liquidation_started(liquidation.id);
+            self.collateral_repo
+                .update_in_op(db, &mut collateral)
+                .await?;
+
             self.partial_liquidation_job_spawner
                 .spawn_in_op(
                     db,

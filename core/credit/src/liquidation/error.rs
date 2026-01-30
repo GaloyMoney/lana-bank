@@ -22,9 +22,17 @@ pub enum LiquidationError {
     ),
     #[error("LiquidationError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
+    #[error("LiquidationError - CollateralError: {0}")]
+    CollateralError(Box<crate::collateral::error::CollateralError>),
 }
 
 es_entity::from_es_entity_error!(LiquidationError);
+
+impl From<crate::collateral::error::CollateralError> for LiquidationError {
+    fn from(err: crate::collateral::error::CollateralError) -> Self {
+        LiquidationError::CollateralError(Box::new(err))
+    }
+}
 
 impl ErrorSeverity for LiquidationError {
     fn severity(&self) -> Level {
@@ -37,6 +45,7 @@ impl ErrorSeverity for LiquidationError {
             Self::AuthorizationError(e) => e.severity(),
             Self::LedgerTransactionInitiatorParseError(e) => e.severity(),
             Self::JobError(_) => Level::ERROR,
+            Self::CollateralError(e) => e.severity(),
         }
     }
 }
