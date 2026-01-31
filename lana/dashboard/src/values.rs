@@ -44,7 +44,7 @@ impl DashboardValues {
             }
             LanaEvent::Credit(CoreCreditEvent::FacilityCollateralUpdated {
                 abs_diff,
-                action: CollateralAction::Add,
+                direction: CollateralDirection::Add,
                 ..
             }) => {
                 self.total_collateral += *abs_diff;
@@ -52,7 +52,7 @@ impl DashboardValues {
             }
             LanaEvent::Credit(CoreCreditEvent::FacilityCollateralUpdated {
                 abs_diff,
-                action: CollateralAction::Remove,
+                direction: CollateralDirection::Remove,
                 ..
             }) => {
                 self.total_collateral -= *abs_diff;

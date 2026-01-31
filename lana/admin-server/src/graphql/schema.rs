@@ -2012,18 +2012,18 @@ impl Mutation {
     async fn collateral_liquidation_record_collateral_sent(
         &self,
         ctx: &Context<'_>,
-        input: LiquidationRecordCollateralSentInput,
-    ) -> async_graphql::Result<LiquidationRecordCollateralSentPayload> {
+        input: CollateralLiquidationRecordCollateralSentInput,
+    ) -> async_graphql::Result<CollateralLiquidationRecordCollateralSentPayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         exec_mutation!(
-            LiquidationRecordCollateralSentPayload,
+            CollateralLiquidationRecordCollateralSentPayload,
             Collateral,
             ctx,
             app.credit()
                 .collaterals()
                 .record_collateral_update_via_liquidation(
                     sub,
-                    input.liquidation_id.into(),
+                    input.collateral_id.into(),
                     input.amount
                 )
         )

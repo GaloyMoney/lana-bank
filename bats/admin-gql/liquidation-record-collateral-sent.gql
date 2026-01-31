@@ -1,4 +1,4 @@
-mutation LiquidationRecordCollateralSent($input: LiquidationRecordCollateralSentInput!) {
+mutation LiquidationRecordCollateralSent($input: CollateralLiquidationRecordCollateralSentInput!) {
   collateralLiquidationRecordCollateralSent(input: $input) {
     collateral {
       collateralId

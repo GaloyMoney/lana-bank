@@ -23,7 +23,7 @@ pub struct CollateralUpdated {
     pub satoshis: Satoshis,
     pub recorded_at: DateTime<Utc>,
     pub effective: chrono::NaiveDate,
-    pub action: CollateralAction,
+    pub direction: CollateralDirection,
     pub tx_id: LedgerTxId,
 }
 

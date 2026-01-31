@@ -46,6 +46,7 @@ pub use repayment::*;
 pub struct CreditFacility {
     id: ID,
     credit_facility_id: UUID,
+    collateral_id: UUID,
     matures_at: Timestamp,
     activated_at: Timestamp,
     collateralization_state: CollateralizationState,
@@ -61,6 +62,7 @@ impl From<DomainCreditFacility> for CreditFacility {
         Self {
             id: credit_facility.id.to_global_id(),
             credit_facility_id: UUID::from(credit_facility.id),
+            collateral_id: UUID::from(credit_facility.collateral_id),
             activated_at: Timestamp::from(credit_facility.activated_at),
             matures_at: Timestamp::from(credit_facility.matures_at()),
             facility_amount: credit_facility.amount,

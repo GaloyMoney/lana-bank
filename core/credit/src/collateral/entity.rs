@@ -8,8 +8,8 @@ use std::cmp::Ordering;
 use es_entity::*;
 
 use crate::primitives::{
-    CalaAccountId, CollateralAction, CollateralId, CreditFacilityId, CustodyWalletId, LedgerTxId,
-    LiquidationId, PendingCreditFacilityId, Satoshis,
+    CalaAccountId, CollateralDirection, CollateralId, CreditFacilityId, CustodyWalletId,
+    LedgerTxId, LiquidationId, PendingCreditFacilityId, Satoshis,
 };
 
 use super::CollateralUpdate;
@@ -30,19 +30,19 @@ pub enum CollateralEvent {
         ledger_tx_id: LedgerTxId,
         collateral_amount: Satoshis,
         abs_diff: Satoshis,
-        action: CollateralAction,
+        direction: CollateralDirection,
     },
     UpdatedViaCustodianSync {
         ledger_tx_id: LedgerTxId,
         collateral_amount: Satoshis,
         abs_diff: Satoshis,
-        action: CollateralAction,
+        direction: CollateralDirection,
     },
     UpdatedViaLiquidation {
         liquidation_id: LiquidationId,
         collateral_amount: Satoshis,
         abs_diff: Satoshis,
-        action: CollateralAction,
+        direction: CollateralDirection,
     },
     LiquidationStarted {
         liquidation_id: LiquidationId,
@@ -79,9 +79,9 @@ impl Collateral {
     ) -> Idempotent<CollateralUpdate> {
         let current = self.amount;
 
-        let (abs_diff, action) = match new_amount.cmp(&current) {
-            Ordering::Less => (current - new_amount, CollateralAction::Remove),
-            Ordering::Greater => (new_amount - current, CollateralAction::Add),
+        let (abs_diff, direction) = match new_amount.cmp(&current) {
+            Ordering::Less => (current - new_amount, CollateralDirection::Remove),
+            Ordering::Greater => (new_amount - current, CollateralDirection::Add),
             Ordering::Equal => return Idempotent::AlreadyApplied,
         };
 
@@ -91,7 +91,7 @@ impl Collateral {
             ledger_tx_id: tx_id,
             abs_diff,
             collateral_amount: new_amount,
-            action,
+            direction,
         });
 
         self.amount = new_amount;
@@ -99,7 +99,7 @@ impl Collateral {
         Idempotent::Executed(CollateralUpdate {
             tx_id,
             abs_diff,
-            action,
+            direction,
             effective,
         })
     }
@@ -111,9 +111,9 @@ impl Collateral {
     ) -> Idempotent<CollateralUpdate> {
         let current = self.amount;
 
-        let (abs_diff, action) = match new_amount.cmp(&current) {
-            Ordering::Less => (current - new_amount, CollateralAction::Remove),
-            Ordering::Greater => (new_amount - current, CollateralAction::Add),
+        let (abs_diff, direction) = match new_amount.cmp(&current) {
+            Ordering::Less => (current - new_amount, CollateralDirection::Remove),
+            Ordering::Greater => (new_amount - current, CollateralDirection::Add),
             Ordering::Equal => return Idempotent::AlreadyApplied,
         };
 
@@ -123,7 +123,7 @@ impl Collateral {
             ledger_tx_id: tx_id,
             abs_diff,
             collateral_amount: new_amount,
-            action,
+            direction,
         });
 
         self.amount = new_amount;
@@ -131,7 +131,7 @@ impl Collateral {
         Idempotent::Executed(CollateralUpdate {
             tx_id,
             abs_diff,
-            action,
+            direction,
             effective,
         })
     }
@@ -154,7 +154,7 @@ impl Collateral {
             liquidation_id,
             abs_diff: amount_sent,
             collateral_amount: new_amount,
-            action: CollateralAction::Remove,
+            direction: CollateralDirection::Remove,
         });
 
         self.amount = new_amount;
@@ -162,7 +162,7 @@ impl Collateral {
         Idempotent::Executed(CollateralUpdate {
             tx_id,
             abs_diff: amount_sent,
-            action: CollateralAction::Remove,
+            direction: CollateralDirection::Remove,
             effective,
         })
     }

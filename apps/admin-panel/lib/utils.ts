@@ -4,7 +4,7 @@ import { twMerge } from "tailwind-merge"
 import {
   ApprovalProcessType,
   ApprovalRules,
-  CollateralAction,
+  CollateralDirection,
   CvlPctDataFragment,
   GetRealtimePriceUpdatesQuery,
 } from "./graphql/generated"
@@ -44,8 +44,8 @@ export const formatRole = (role: string) => {
     .join(" ")
 }
 
-export const formatCollateralAction = (collateralAction: CollateralAction) => {
-  return collateralAction === CollateralAction.Add ? "(Added)" : "(Removed)"
+export const formatCollateralDirection = (collateralDirection: CollateralDirection) => {
+  return collateralDirection === CollateralDirection.Add ? "(Added)" : "(Removed)"
 }
 
 export const formatTransactionType = (typename: string) => {

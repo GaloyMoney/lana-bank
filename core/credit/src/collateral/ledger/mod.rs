@@ -12,7 +12,7 @@ use es_entity::clock::ClockHandle;
 pub use error::CollateralLedgerError;
 
 use crate::primitives::{
-    CalaAccountId, CollateralAction, CollateralUpdate, LedgerOmnibusAccountIds,
+    CalaAccountId, CollateralDirection, CollateralUpdate, LedgerOmnibusAccountIds,
 };
 
 #[derive(Clone)]
@@ -57,14 +57,14 @@ impl CollateralLedger {
         CollateralUpdate {
             tx_id,
             abs_diff,
-            action,
+            direction,
             effective,
         }: CollateralUpdate,
         collateral_account_id: CalaAccountId,
         initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), CollateralLedgerError> {
-        match action {
-            CollateralAction::Add => {
+        match direction {
+            CollateralDirection::Add => {
                 self.cala
                     .post_transaction_in_op(
                         op,
@@ -84,7 +84,7 @@ impl CollateralLedger {
                     )
                     .await
             }
-            CollateralAction::Remove => {
+            CollateralDirection::Remove => {
                 self.cala
                     .post_transaction_in_op(
                         op,
