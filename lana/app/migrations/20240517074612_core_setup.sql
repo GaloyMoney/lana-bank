@@ -588,6 +588,11 @@ CREATE TABLE audit_entries (
   recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE INDEX idx_audit_entries_subject ON audit_entries(subject);
+CREATE INDEX idx_audit_entries_authorized ON audit_entries(authorized);
+CREATE INDEX idx_audit_entries_object ON audit_entries(object);
+CREATE INDEX idx_audit_entries_action ON audit_entries(action);
+
 CREATE TABLE core_credit_facility_histories (
   id UUID PRIMARY KEY REFERENCES core_credit_facility_proposals(id),
   history JSONB NOT NULL DEFAULT '[]',

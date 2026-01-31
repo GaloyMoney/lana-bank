@@ -124,6 +124,10 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
     async fn list(
         &self,
         query: es_entity::PaginatedQueryArgs<AuditCursor>,
+        subject_filter: Option<String>,
+        authorized_filter: Option<bool>,
+        object_filter: Option<String>,
+        action_filter: Option<String>,
     ) -> Result<
         es_entity::PaginatedQueryRet<
             AuditEntry<Self::Subject, Self::Object, Self::Action>,
@@ -139,10 +143,18 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
                 SELECT id AS "id: AuditEntryId", subject, object, action, authorized, recorded_at
                 FROM audit_entries
                 WHERE COALESCE(id < $1, true)
+                  AND COALESCE(subject = $2, true)
+                  AND COALESCE(authorized = $3, true)
+                  AND COALESCE(object = $4, true)
+                  AND COALESCE(action = $5, true)
                 ORDER BY id DESC
-                LIMIT $2
+                LIMIT $6
                 "#,
             after_id as Option<AuditEntryId>,
+            subject_filter,
+            authorized_filter,
+            object_filter,
+            action_filter,
             (limit + 1) as i64,
         )
         .fetch_all(self.pool())
@@ -229,5 +241,16 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
             .collect::<Result<HashMap<_, _>, _>>()?;
 
         Ok(audit_entries)
+    }
+
+    #[record_error_severity]
+    #[tracing::instrument(name = "audit.list_subjects", skip_all)]
+    async fn list_subjects(&self) -> Result<Vec<String>, AuditError> {
+        let rows = sqlx::query_scalar!(
+            r#"SELECT DISTINCT subject FROM audit_entries ORDER BY subject ASC"#,
+        )
+        .fetch_all(self.pool())
+        .await?;
+        Ok(rows)
     }
 }
