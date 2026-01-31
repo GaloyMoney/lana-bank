@@ -284,13 +284,13 @@ type Collateral {
 	creditFacility: CreditFacility!
 }
 
-enum CollateralAction {
-	ADD
-	REMOVE
-}
-
 type CollateralBalance {
 	btcBalance: Satoshis!
+}
+
+enum CollateralDirection {
+	ADD
+	REMOVE
 }
 
 enum CollateralizationState {
@@ -467,7 +467,7 @@ type CreditFacilityCollateralUpdated {
 	satoshis: Satoshis!
 	recordedAt: Timestamp!
 	effective: Date!
-	action: CollateralAction!
+	direction: CollateralDirection!
 	txId: UUID!
 }
 

@@ -7,7 +7,7 @@ import DataTable, { Column } from "@lana/web/components/data-table"
 import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
 import {
-  CollateralAction,
+  CollateralDirection,
   CollateralizationState,
   PendingCreditFacilityCollateralizationState,
   GetCreditFacilityQuery,
@@ -23,8 +23,8 @@ export const formatEntryType = (typename: string) => {
     .replace(/^\w/, (c) => c.toUpperCase())
 }
 
-export const formatCollateralAction = (collateralAction: CollateralAction) => {
-  return collateralAction === CollateralAction.Add ? "(Added)" : "(Removed)"
+export const formatCollateralDirection = (collateralDirection: CollateralDirection) => {
+  return collateralDirection === CollateralDirection.Add ? "(Added)" : "(Removed)"
 }
 
 const formatEntryTypeWithoutPrefix = (type: string) => {
@@ -76,7 +76,7 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
               <div className="flex flex-row gap-1">
                 <div>{formatEntryTypeWithoutPrefix(entry.__typename)}</div>
                 <div className="text-textColor-secondary text-sm">
-                  {formatCollateralAction(entry.action)}
+                  {formatCollateralDirection(entry.direction)}
                 </div>
               </div>
             )
@@ -120,12 +120,12 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
               <div
                 className={cn(
                   "flex justify-end gap-1",
-                  entry.action === CollateralAction.Add
+                  entry.direction === CollateralDirection.Add
                     ? "text-success"
                     : "text-destructive",
                 )}
               >
-                <div>{entry.action === CollateralAction.Add ? "+" : "-"}</div>
+                <div>{entry.direction === CollateralDirection.Add ? "+" : "-"}</div>
                 <Balance amount={entry.satoshis} currency="btc" align="end" />
               </div>
             )

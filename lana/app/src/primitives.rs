@@ -4,7 +4,7 @@ pub use core_accounting::{
     LedgerTransactionId, ManualTransactionId,
 };
 pub use core_credit::{
-    CollateralAction, CollateralId, CreditFacilityId, CreditFacilityProposalId,
+    CollateralDirection, CollateralId, CreditFacilityId, CreditFacilityProposalId,
     CreditFacilityProposalStatus, CreditFacilityStatus, DisbursalId, DisbursalStatus,
     LiquidationId, PaymentAllocationId, PaymentId, PendingCreditFacilityCollateralizationState,
     PendingCreditFacilityId, PendingCreditFacilityStatus, TermsTemplateId,
