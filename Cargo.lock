@@ -1375,6 +1375,7 @@ dependencies = [
  "cloud-storage",
  "core-access",
  "core-accounting",
+ "core-credit-terms",
  "core-custody",
  "core-customer",
  "core-deposit",
@@ -1405,6 +1406,31 @@ dependencies = [
  "tracing-macros",
  "tracing-utils",
  "uuid",
+ "workspace-hack",
+]
+
+[[package]]
+name = "core-credit-terms"
+version = "0.0.0"
+dependencies = [
+ "async-graphql",
+ "audit",
+ "authz",
+ "chrono",
+ "core-money",
+ "core-price",
+ "derive_builder",
+ "es-entity",
+ "rust_decimal",
+ "rust_decimal_macros",
+ "schemars 1.2.0",
+ "serde",
+ "sqlx",
+ "strum",
+ "thiserror 2.0.18",
+ "tracing",
+ "tracing-macros",
+ "tracing-utils",
  "workspace-hack",
 ]
 
@@ -2229,6 +2255,7 @@ dependencies = [
  "core-access",
  "core-accounting",
  "core-credit",
+ "core-credit-terms",
  "core-custody",
  "core-customer",
  "core-deposit",
@@ -3486,6 +3513,7 @@ dependencies = [
  "core-access",
  "core-accounting",
  "core-credit",
+ "core-credit-terms",
  "core-custody",
  "core-customer",
  "core-deposit",
@@ -4841,6 +4869,7 @@ dependencies = [
  "core-access",
  "core-accounting",
  "core-credit",
+ "core-credit-terms",
  "core-custody",
  "core-customer",
  "core-deposit",

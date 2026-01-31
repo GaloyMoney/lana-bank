@@ -2,7 +2,7 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-use crate::primitives::TermsTemplateId;
+use super::TermsTemplateId;
 
 #[derive(Error, Debug)]
 pub enum TermsTemplateError {

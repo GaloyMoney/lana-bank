@@ -10,7 +10,6 @@ use es_entity::*;
 use crate::{
     pending_credit_facility::{NewPendingCreditFacility, NewPendingCreditFacilityBuilder},
     primitives::*,
-    terms::TermValues,
 };
 
 use super::error::CreditFacilityProposalError;

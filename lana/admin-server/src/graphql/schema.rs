@@ -306,7 +306,7 @@ impl Query {
         maybe_fetch_one!(
             TermsTemplate,
             ctx,
-            app.credit().terms_templates().find_by_id(sub, id)
+            app.terms_templates().find_by_id(sub, id)
         )
     }
 
@@ -315,7 +315,7 @@ impl Query {
         ctx: &Context<'_>,
     ) -> async_graphql::Result<Vec<TermsTemplate>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let terms_templates = app.credit().terms_templates().list(sub).await?;
+        let terms_templates = app.terms_templates().list(sub).await?;
         Ok(terms_templates
             .into_iter()
             .map(TermsTemplate::from)
@@ -1586,8 +1586,7 @@ impl Mutation {
             TermsTemplateCreatePayload,
             TermsTemplate,
             ctx,
-            app.credit()
-                .terms_templates()
+            app.terms_templates()
                 .create_terms_template(sub, input.name, term_values)
         )
     }
@@ -1619,7 +1618,7 @@ impl Mutation {
             TermsTemplateUpdatePayload,
             TermsTemplate,
             ctx,
-            app.credit().terms_templates().update_term_values(
+            app.terms_templates().update_term_values(
                 sub,
                 TermsTemplateId::from(input.id),
                 term_values

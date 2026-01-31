@@ -38,11 +38,10 @@ use crate::{
     primitives::{
         COLLATERAL_ENTITY_TYPE, CREDIT_FACILITY_ENTITY_TYPE, CREDIT_FACILITY_PROPOSAL_ENTITY_TYPE,
         CalaAccountId, CalaAccountSetId, CollateralId, CreditFacilityId, CustomerType, DisbursalId,
-        DisbursedReceivableAccountCategory, DisbursedReceivableAccountType,
+        DisbursedReceivableAccountCategory, DisbursedReceivableAccountType, FacilityDurationType,
         InterestReceivableAccountType, LedgerOmnibusAccountIds, LedgerTxId,
         PendingCreditFacilityId, Satoshis, UsdCents,
     },
-    terms::FacilityDurationType,
 };
 
 pub use balance::*;

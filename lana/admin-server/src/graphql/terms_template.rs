@@ -4,7 +4,7 @@ use crate::primitives::*;
 
 use super::terms::*;
 
-use lana_app::credit::TermsTemplate as DomainTermsTemplate;
+use lana_app::terms_template::TermsTemplate as DomainTermsTemplate;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -42,7 +42,6 @@ impl TermsTemplate {
     ) -> async_graphql::Result<bool> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app
-            .credit()
             .terms_templates()
             .subject_can_update_terms_template(sub, false)
             .await

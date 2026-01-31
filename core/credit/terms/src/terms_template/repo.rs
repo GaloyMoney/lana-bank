@@ -3,9 +3,7 @@ use sqlx::PgPool;
 
 use es_entity::*;
 
-use crate::primitives::*;
-
-use super::{entity::*, error::*};
+use super::{TermsTemplateId, entity::*, error::*};
 
 #[derive(EsRepo, Clone)]
 #[es_repo(

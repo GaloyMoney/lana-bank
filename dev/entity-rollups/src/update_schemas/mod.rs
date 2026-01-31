@@ -10,8 +10,9 @@ use core_accounting::event_schema::{
 use core_credit::event_schema::{
     CollateralEvent, CreditFacilityEvent, CreditFacilityProposalEvent, DisbursalEvent,
     InterestAccrualCycleEvent, LiquidationEvent, ObligationEvent, PaymentAllocationEvent,
-    PaymentEvent, PendingCreditFacilityEvent, TermsTemplateEvent,
+    PaymentEvent, PendingCreditFacilityEvent,
 };
+use core_credit_terms::TermsTemplateEvent;
 use core_custody::event_schema::{CustodianEvent, WalletEvent};
 use core_customer::event_schema::CustomerEvent;
 use core_deposit::event_schema::{DepositAccountEvent, DepositEvent, WithdrawalEvent};

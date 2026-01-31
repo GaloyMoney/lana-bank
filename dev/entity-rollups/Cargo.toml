@@ -14,6 +14,7 @@ json-schema = [
   "document-storage/json-schema",
   "core-deposit/json-schema",
   "core-credit/json-schema",
+  "core-credit-terms/json-schema",
   "core-accounting/json-schema",
   "core-report/json-schema",
   "domain-config/json-schema"
@@ -30,6 +31,7 @@ core-custody = { path = "../../core/custody" }
 core-customer = { path = "../../core/customer" }
 core-deposit = { path = "../../core/deposit" }
 core-credit = { path = "../../core/credit" }
+core-credit-terms = { path = "../../core/credit/terms" }
 core-accounting = { path = "../../core/accounting" }
 core-report = { path = "../../core/report" }
 domain-config = { path = "../../core/domain-config" }

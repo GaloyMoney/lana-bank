@@ -57,10 +57,15 @@ export function usePermissionDisplay() {
           label: t("credit_payment_date.label"),
           description: t("credit_payment_date.description"),
         }
-      case PermissionSetName.CreditTermTemplates:
+      case PermissionSetName.CreditTermTemplatesViewer:
         return {
-          label: t("credit_term_templates.label"),
-          description: t("credit_term_templates.description"),
+          label: t("credit_term_templates_viewer.label"),
+          description: t("credit_term_templates_viewer.description"),
+        }
+      case PermissionSetName.CreditTermTemplatesWriter:
+        return {
+          label: t("credit_term_templates_writer.label"),
+          description: t("credit_term_templates_writer.description"),
         }
       case PermissionSetName.CustomerViewer:
         return {

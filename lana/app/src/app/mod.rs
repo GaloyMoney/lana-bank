@@ -35,6 +35,7 @@ use crate::{
     public_id::PublicIds,
     report::Reports,
     storage::Storage,
+    terms_template::TermsTemplates,
     time_events::TimeEvents,
     user_onboarding::UserOnboarding,
 };
@@ -64,6 +65,7 @@ pub struct LanaApp {
     public_ids: PublicIds,
     contract_creation: ContractCreation,
     reports: Reports,
+    terms_templates: TermsTemplates,
     _time_events: TimeEvents,
     _user_onboarding: UserOnboarding,
     _customer_sync: CustomerSync,
@@ -228,6 +230,9 @@ impl LanaApp {
         )
         .await?;
 
+        let terms_templates =
+            TermsTemplates::new(&pool, std::sync::Arc::new(authz.clone()), clock.clone());
+
         let contract_creation = ContractCreation::new(
             config.gotenberg,
             &customers,
@@ -273,6 +278,7 @@ impl LanaApp {
             public_ids,
             contract_creation,
             reports,
+            terms_templates,
             _time_events,
             _user_onboarding: user_onboarding,
             _customer_sync: customer_sync,
@@ -362,6 +368,10 @@ impl LanaApp {
 
     pub fn contract_creation(&self) -> &ContractCreation {
         &self.contract_creation
+    }
+
+    pub fn terms_templates(&self) -> &TermsTemplates {
+        &self.terms_templates
     }
 
     pub async fn get_visible_nav_items(

@@ -90,8 +90,7 @@ pub async fn run(
 #[instrument(name = "sim_bootstrap.create_term_templates", skip(sub, app))]
 async fn create_term_templates(sub: &Subject, app: &LanaApp) -> anyhow::Result<()> {
     let term_values = helpers::std_terms();
-    app.credit()
-        .terms_templates()
+    app.terms_templates()
         .create_terms_template(sub, String::from("Lana Bank Terms"), term_values)
         .await?;
 
