@@ -79,11 +79,11 @@ pub(in crate::accounting_init::seed) async fn deposit_module_configure(
     };
 
     match deposit
-        .set_chart_of_accounts_integration_config(&Subject::System, chart, config_values)
+        .chart_of_accounts_integrations()
+        .set_config(&Subject::System, chart, config_values)
         .await
     {
         Ok(_) => (),
-        Err(core_deposit::error::CoreDepositError::DepositConfigAlreadyExists) => (),
         Err(e) => return Err(e.into()),
     };
 

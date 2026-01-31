@@ -60,6 +60,10 @@ pub enum CoreDepositError {
     DomainConfigError(#[from] domain_config::DomainConfigError),
     #[error("CoreDepositError - CustomerNotVerified")]
     CustomerNotVerified,
+    #[error("CoreDepositError - ChartOfAccountsIntegrationError: {0}")]
+    ChartOfAccountsIntegrationError(
+        #[from] super::chart_of_accounts_integration::error::ChartOfAccountsIntegrationError,
+    ),
 }
 
 es_entity::from_es_entity_error!(CoreDepositError);
@@ -104,6 +108,7 @@ impl ErrorSeverity for CoreDepositError {
             Self::PublicIdError(e) => e.severity(),
             Self::DomainConfigError(e) => e.severity(),
             Self::CustomerNotVerified => Level::WARN,
+            Self::ChartOfAccountsIntegrationError(e) => e.severity(),
         }
     }
 }
