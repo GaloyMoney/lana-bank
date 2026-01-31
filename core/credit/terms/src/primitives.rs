@@ -5,8 +5,8 @@ use crate::TermsTemplateId;
 
 pub type TermsTemplateAllOrOne = AllOrOne<TermsTemplateId>;
 
-pub const PERMISSION_SET_TERMS_VIEWER: &str = "terms_viewer";
-pub const PERMISSION_SET_CREDIT_TERM_TEMPLATES: &str = "credit_term_templates";
+pub const PERMISSION_SET_CREDIT_TERM_TEMPLATES_VIEWER: &str = "credit_term_templates_viewer";
+pub const PERMISSION_SET_CREDIT_TERM_TEMPLATES_WRITER: &str = "credit_term_templates_writer";
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
@@ -120,8 +120,8 @@ pub enum TermsTemplateAction {
 impl ActionPermission for TermsTemplateAction {
     fn permission_set(&self) -> &'static str {
         match self {
-            Self::Read | Self::List => PERMISSION_SET_TERMS_VIEWER,
-            Self::Create | Self::Update => PERMISSION_SET_CREDIT_TERM_TEMPLATES,
+            Self::Read | Self::List => PERMISSION_SET_CREDIT_TERM_TEMPLATES_VIEWER,
+            Self::Create | Self::Update => PERMISSION_SET_CREDIT_TERM_TEMPLATES_WRITER,
         }
     }
 }
