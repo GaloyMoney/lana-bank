@@ -118,13 +118,16 @@ update-public-event-schemas:
 docs-autogenerate: update-public-event-schemas
 	cd docs-site && npm install && npm run generate-api-docs && npm run generate-events-docs
 
-# Validate docs-site API descriptions (mirrors CI workflow)
-check-docs:
+# Generate docs and add TODO placeholders for new operations
+prep-docs:
 	cd docs-site && \
 		npm run generate-api-docs && \
-		npm run generate-versioned-api-docs && \
-		npm run validate-api-descriptions; \
-		git checkout scripts/api-descriptions.json scripts/api-descriptions.es.json
+		npm run generate-versioned-api-docs
+
+# Validate docs-site API descriptions (mirrors CI workflow)
+check-docs: prep-docs
+	cd docs-site && npm run validate-api-descriptions
+	cd docs-site && git checkout scripts/api-descriptions.json scripts/api-descriptions.es.json
 
 test-cypress-in-ci:
 	@echo "--- Starting Cypress Tests ---"

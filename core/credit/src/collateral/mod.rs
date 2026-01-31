@@ -21,9 +21,11 @@ use obix::out::{Outbox, OutboxEventMarker};
 use crate::{CoreCreditAction, CoreCreditObject};
 
 use cala_ledger::TransactionId as CalaTransactionId;
+use es_entity::Idempotent;
 
 use crate::{
-    CreditFacilityPublisher, event::CoreCreditEvent, liquidation::LiquidationRepo, primitives::*,
+    CreditFacilityPublisher, PaymentId, UsdCents, event::CoreCreditEvent,
+    liquidation::LiquidationRepo, primitives::*,
 };
 
 use ledger::CollateralLedger;
@@ -284,6 +286,64 @@ where
                     collateral.account_id,
                     liquidation.collateral_in_liquidation_account_id,
                     initiated_by,
+                )
+                .await?;
+        }
+
+        db.commit().await?;
+
+        Ok(collateral)
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "collateral.record_liquidation_proceeds_received",
+        skip(self, sub),
+        err
+    )]
+    pub async fn record_liquidation_proceeds_received(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        collateral_id: CollateralId,
+        amount_received: UsdCents,
+    ) -> Result<Collateral, CollateralError> {
+        let collateral = self.repo.find_by_id(collateral_id).await?;
+
+        let liquidation_id = collateral
+            .active_liquidation()
+            .ok_or(CollateralError::NoActiveLiquidation)?;
+
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::liquidation(liquidation_id),
+                CoreCreditAction::LIQUIDATION_RECORD_PAYMENT_RECEIVED,
+            )
+            .await?;
+
+        let mut db = self.repo.begin_op().await?;
+
+        let mut liquidation = self
+            .liquidation_repo
+            .find_by_id_in_op(&mut db, liquidation_id)
+            .await?;
+
+        let tx_id = CalaTransactionId::new();
+
+        if let Idempotent::Executed(data) = liquidation.record_proceeds_from_liquidation(
+            amount_received,
+            PaymentId::new(),
+            tx_id,
+        )? {
+            self.liquidation_repo
+                .update_in_op(&mut db, &mut liquidation)
+                .await?;
+            self.ledger
+                .record_proceeds_from_liquidation_in_op(
+                    &mut db,
+                    tx_id,
+                    data,
+                    LedgerTransactionInitiator::try_from_subject(sub)?,
                 )
                 .await?;
         }
