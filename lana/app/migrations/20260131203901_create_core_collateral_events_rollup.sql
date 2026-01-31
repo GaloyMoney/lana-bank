@@ -7,10 +7,10 @@ CREATE TABLE core_collateral_events_rollup (
   -- Flattened fields from the event JSON
   abs_diff BIGINT,
   account_id UUID,
-  action VARCHAR,
   collateral_amount BIGINT,
   credit_facility_id UUID,
   custody_wallet_id UUID,
+  direction VARCHAR,
   liquidation_id UUID,
   pending_credit_facility_id UUID,
 
@@ -52,10 +52,10 @@ BEGIN
   IF current_row.id IS NULL THEN
     new_row.abs_diff := (NEW.event ->> 'abs_diff')::BIGINT;
     new_row.account_id := (NEW.event ->> 'account_id')::UUID;
-    new_row.action := (NEW.event ->> 'action');
     new_row.collateral_amount := (NEW.event ->> 'collateral_amount')::BIGINT;
     new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
     new_row.custody_wallet_id := (NEW.event ->> 'custody_wallet_id')::UUID;
+    new_row.direction := (NEW.event ->> 'direction');
     new_row.ledger_tx_ids := CASE
        WHEN NEW.event ? 'ledger_tx_ids' THEN
          ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'ledger_tx_ids'))
@@ -68,10 +68,10 @@ BEGIN
     -- Default all fields to current values
     new_row.abs_diff := current_row.abs_diff;
     new_row.account_id := current_row.account_id;
-    new_row.action := current_row.action;
     new_row.collateral_amount := current_row.collateral_amount;
     new_row.credit_facility_id := current_row.credit_facility_id;
     new_row.custody_wallet_id := current_row.custody_wallet_id;
+    new_row.direction := current_row.direction;
     new_row.ledger_tx_ids := current_row.ledger_tx_ids;
     new_row.liquidation_id := current_row.liquidation_id;
     new_row.pending_credit_facility_id := current_row.pending_credit_facility_id;
@@ -86,16 +86,16 @@ BEGIN
       new_row.pending_credit_facility_id := (NEW.event ->> 'pending_credit_facility_id')::UUID;
     WHEN 'updated_via_manual_input' THEN
       new_row.abs_diff := (NEW.event ->> 'abs_diff')::BIGINT;
-      new_row.action := (NEW.event ->> 'action');
       new_row.collateral_amount := (NEW.event ->> 'collateral_amount')::BIGINT;
+      new_row.direction := (NEW.event ->> 'direction');
     WHEN 'updated_via_custodian_sync' THEN
       new_row.abs_diff := (NEW.event ->> 'abs_diff')::BIGINT;
-      new_row.action := (NEW.event ->> 'action');
       new_row.collateral_amount := (NEW.event ->> 'collateral_amount')::BIGINT;
+      new_row.direction := (NEW.event ->> 'direction');
     WHEN 'updated_via_liquidation' THEN
       new_row.abs_diff := (NEW.event ->> 'abs_diff')::BIGINT;
-      new_row.action := (NEW.event ->> 'action');
       new_row.collateral_amount := (NEW.event ->> 'collateral_amount')::BIGINT;
+      new_row.direction := (NEW.event ->> 'direction');
       new_row.liquidation_id := (NEW.event ->> 'liquidation_id')::UUID;
     WHEN 'liquidation_started' THEN
       new_row.liquidation_id := (NEW.event ->> 'liquidation_id')::UUID;
@@ -112,10 +112,10 @@ BEGIN
     modified_at,
     abs_diff,
     account_id,
-    action,
     collateral_amount,
     credit_facility_id,
     custody_wallet_id,
+    direction,
     ledger_tx_ids,
     liquidation_id,
     pending_credit_facility_id
@@ -127,10 +127,10 @@ BEGIN
     new_row.modified_at,
     new_row.abs_diff,
     new_row.account_id,
-    new_row.action,
     new_row.collateral_amount,
     new_row.credit_facility_id,
     new_row.custody_wallet_id,
+    new_row.direction,
     new_row.ledger_tx_ids,
     new_row.liquidation_id,
     new_row.pending_credit_facility_id

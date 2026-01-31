@@ -21,7 +21,7 @@ gql`
       ... on CreditFacilityCollateralUpdated {
         satoshis
         recordedAt
-        action
+        direction
         txId
         effective
       }

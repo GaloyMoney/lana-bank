@@ -1,6 +1,6 @@
 {
   "$defs": {
-    "CollateralAction": {
+    "CollateralDirection": {
       "enum": [
         "Add",
         "Remove"
@@ -59,11 +59,11 @@
         "abs_diff": {
           "$ref": "#/$defs/Satoshis"
         },
-        "action": {
-          "$ref": "#/$defs/CollateralAction"
-        },
         "collateral_amount": {
           "$ref": "#/$defs/Satoshis"
+        },
+        "direction": {
+          "$ref": "#/$defs/CollateralDirection"
         },
         "ledger_tx_id": {
           "format": "uuid",
@@ -79,7 +79,7 @@
         "ledger_tx_id",
         "collateral_amount",
         "abs_diff",
-        "action"
+        "direction"
       ],
       "type": "object"
     },
@@ -88,11 +88,11 @@
         "abs_diff": {
           "$ref": "#/$defs/Satoshis"
         },
-        "action": {
-          "$ref": "#/$defs/CollateralAction"
-        },
         "collateral_amount": {
           "$ref": "#/$defs/Satoshis"
+        },
+        "direction": {
+          "$ref": "#/$defs/CollateralDirection"
         },
         "ledger_tx_id": {
           "format": "uuid",
@@ -108,7 +108,7 @@
         "ledger_tx_id",
         "collateral_amount",
         "abs_diff",
-        "action"
+        "direction"
       ],
       "type": "object"
     },
@@ -117,11 +117,11 @@
         "abs_diff": {
           "$ref": "#/$defs/Satoshis"
         },
-        "action": {
-          "$ref": "#/$defs/CollateralAction"
-        },
         "collateral_amount": {
           "$ref": "#/$defs/Satoshis"
+        },
+        "direction": {
+          "$ref": "#/$defs/CollateralDirection"
         },
         "liquidation_id": {
           "format": "uuid",
@@ -137,7 +137,7 @@
         "liquidation_id",
         "collateral_amount",
         "abs_diff",
-        "action"
+        "direction"
       ],
       "type": "object"
     },

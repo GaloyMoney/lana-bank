@@ -648,7 +648,7 @@ impl InterestAccrualCycleIdx {
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub enum CollateralAction {
+pub enum CollateralDirection {
     Add,
     Remove,
 }
@@ -718,7 +718,7 @@ pub enum PendingCreditFacilityCollateralizationState {
 pub struct CollateralUpdate {
     pub tx_id: LedgerTxId,
     pub abs_diff: Satoshis,
-    pub action: CollateralAction,
+    pub direction: CollateralDirection,
     pub effective: chrono::NaiveDate,
 }
 

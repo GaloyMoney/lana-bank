@@ -223,19 +223,19 @@ where
             .filter_map(|event| match &event.event {
                 UpdatedViaManualInput {
                     abs_diff,
-                    action,
+                    direction,
                     ledger_tx_id,
                     ..
                 }
                 | UpdatedViaCustodianSync {
                     abs_diff,
-                    action,
+                    direction,
                     ledger_tx_id,
                     ..
                 } => Some(CoreCreditEvent::FacilityCollateralUpdated {
                     ledger_tx_id: *ledger_tx_id,
                     abs_diff: *abs_diff,
-                    action: *action,
+                    direction: *direction,
                     recorded_at: event.recorded_at,
                     effective: event.recorded_at.date_naive(),
                     new_amount: entity.amount,
