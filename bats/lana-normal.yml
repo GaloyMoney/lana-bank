@@ -8,6 +8,7 @@ app:
   storage:
     provider: local
     root_folder: ".lana"
+    admin_panel_url: "http://admin.localhost:4455"
   notification:
     email:
       admin_panel_url: "http://admin.localhost:4455"
