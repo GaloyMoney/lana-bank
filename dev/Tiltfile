@@ -1,6 +1,8 @@
 compose_files = ["../docker-compose.yml", "../docker-compose.docker.yml"]
 if os.getenv("DAGSTER", "false") == "true":
     compose_files.append("../docker-compose.dagster.yml")
+if os.getenv("GOTENBERG", "false") == "true":
+    compose_files.append("../docker-compose.gotenberg.yml")
 
 docker_compose(compose_files, project_name = "lana-bank")
 
@@ -45,6 +47,12 @@ if os.getenv("DAGSTER", "false") == "true":
                 labels = ["dagster"]
             )
 
+if os.getenv("GOTENBERG", "false") == "true":
+    dc_resource(
+        "gotenberg",
+        labels = ["gotenberg"],
+        links = [link("http://localhost:3030", "gotenberg-api")],
+    )
 
 serve_env_core = {
     "PG_CON": "postgres://user:password@localhost:5433/pg?sslmode=disable",
