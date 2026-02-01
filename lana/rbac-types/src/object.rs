@@ -1,7 +1,6 @@
 use std::{fmt::Display, str::FromStr};
 
 use crate::audit_object::AuditObject;
-use contract_creation::ContractModuleObject;
 use core_access::CoreAccessObject;
 use core_accounting::CoreAccountingObject;
 use core_credit::CoreCreditObject;
@@ -13,6 +12,7 @@ use core_report::ReportObject;
 use dashboard::DashboardModuleObject;
 use domain_config::DomainConfigObject;
 use governance::GovernanceObject;
+use pdf_generation::PdfGenerationModuleObject;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
@@ -30,7 +30,7 @@ pub enum LanaObject {
     Custody(CoreCustodyObject),
     Dashboard(DashboardModuleObject),
     Report(ReportObject),
-    Contract(ContractModuleObject),
+    PdfGeneration(PdfGenerationModuleObject),
 }
 
 impl From<AuditObject> for LanaObject {
@@ -96,9 +96,9 @@ impl From<ReportObject> for LanaObject {
     }
 }
 
-impl From<ContractModuleObject> for LanaObject {
-    fn from(object: ContractModuleObject) -> Self {
-        LanaObject::Contract(object)
+impl From<PdfGenerationModuleObject> for LanaObject {
+    fn from(object: PdfGenerationModuleObject) -> Self {
+        LanaObject::PdfGeneration(object)
     }
 }
 
@@ -119,7 +119,7 @@ impl Display for LanaObject {
             Custody(object) => object.fmt(f),
             Dashboard(object) => object.fmt(f),
             Report(object) => object.fmt(f),
-            Contract(object) => object.fmt(f),
+            PdfGeneration(object) => object.fmt(f),
         }
     }
 }
@@ -147,10 +147,10 @@ impl FromStr for LanaObject {
                     .map_err(|_| "could not parse DashboardModuleObject")?,
             ),
             Report => LanaObject::from(object.parse::<ReportObject>()?),
-            Contract => LanaObject::from(
+            PdfGeneration => LanaObject::from(
                 object
-                    .parse::<ContractModuleObject>()
-                    .map_err(|_| "could not parse ContractModuleObject")?,
+                    .parse::<PdfGenerationModuleObject>()
+                    .map_err(|_| "could not parse PdfGenerationModuleObject")?,
             ),
         };
         Ok(res)

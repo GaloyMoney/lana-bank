@@ -88,9 +88,9 @@
       "label": "Audit Viewer",
       "description": "Can view audit logs and system activity records"
     },
-    "contract_creation": {
-      "label": "Contract Creation",
-      "description": "Can generate and manage loan agreements and contract documents"
+    "pdf_generation": {
+      "label": "PDF Generation",
+      "description": "Can generate and manage PDF documents including loan agreements and credit facility exports"
     },
     "credit_viewer": {
       "label": "Credit Viewer",
@@ -756,6 +756,11 @@
   "CreditFacilities": {
     "title": "Credit Facilities",
     "description": "Pre-approved financial arrangements allowing borrowers to access funds up to a certain limit as needed",
+    "export": {
+      "button": "Export",
+      "success": "Credit facility export generated successfully",
+      "error": "Failed to generate credit facility export"
+    },
     "table": {
       "headers": {
         "customer": "Customer",

@@ -367,7 +367,7 @@ expression = "LicenseRef-BUSL-1.1"
 license-files = []
 
 [[licenses.clarify]]
-crate = "contract-creation"
+crate = "pdf-generation"
 expression = "LicenseRef-BUSL-1.1"
 license-files = []
 

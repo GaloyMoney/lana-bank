@@ -30,7 +30,7 @@ pub enum PermissionSetName {
     AccessWriter,
     AccountingViewer,
     AccountingWriter,
-    ContractCreation,
+    PdfGeneration,
     CreditViewer,
     CreditWriter,
     CreditPaymentDate,
@@ -98,7 +98,7 @@ impl std::str::FromStr for PermissionSetName {
             core_report::PERMISSION_SET_REPORT_VIEWER => Ok(ReportViewer),
             core_report::PERMISSION_SET_REPORT_WRITER => Ok(ReportWriter),
 
-            contract_creation::PERMISSION_SET_CONTRACT_CREATION => Ok(ContractCreation),
+            pdf_generation::PERMISSION_SET_PDF_GENERATION => Ok(PdfGeneration),
 
             PERMISSION_SET_AUDIT_VIEWER => Ok(AuditViewer),
 

@@ -1,5 +1,5 @@
 [package]
-name = "contract-creation"
+name = "pdf-generation"
 license = "BUSL-1.1"
 edition = "2024"
 
@@ -12,6 +12,10 @@ json-schema = ["dep:schemars", "es-entity/json-schema", "audit/json-schema"]
 
 [dependencies]
 core-customer = { workspace = true }
+core-credit = { workspace = true }
+core-custody = { workspace = true }
+core-price = { workspace = true }
+governance = { workspace = true }
 document-storage = { workspace = true }
 job = { workspace = true }
 obix = { workspace = true }

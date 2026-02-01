@@ -11,8 +11,7 @@ use job::*;
 use obix::out::OutboxEventMarker;
 use tracing_macros::record_error_severity;
 
-use super::{LoanAgreementData, templates::ContractTemplates};
-use crate::{CustomerKyc, Customers};
+use crate::{CustomerKyc, Customers, document_types::LoanAgreementData, templates::PdfTemplates};
 
 #[derive(Serialize, Deserialize)]
 pub struct GenerateLoanAgreementConfig<Perms, E>
@@ -48,7 +47,7 @@ where
     customers: Customers<Perms, E>,
     customer_kyc: CustomerKyc<Perms, E>,
     document_storage: DocumentStorage,
-    contract_templates: ContractTemplates,
+    pdf_templates: PdfTemplates,
     renderer: rendering::Renderer,
 }
 
@@ -63,14 +62,14 @@ where
         customers: &Customers<Perms, E>,
         customer_kyc: &CustomerKyc<Perms, E>,
         document_storage: &DocumentStorage,
-        contract_templates: ContractTemplates,
+        pdf_templates: PdfTemplates,
         renderer: rendering::Renderer,
     ) -> Self {
         Self {
             customers: customers.clone(),
             customer_kyc: customer_kyc.clone(),
             document_storage: document_storage.clone(),
-            contract_templates,
+            pdf_templates,
             renderer,
         }
     }
@@ -100,7 +99,7 @@ where
             customers: self.customers.clone(),
             customer_kyc: self.customer_kyc.clone(),
             document_storage: self.document_storage.clone(),
-            contract_templates: self.contract_templates.clone(),
+            pdf_templates: self.pdf_templates.clone(),
             renderer: self.renderer.clone(),
         }))
     }
@@ -117,7 +116,7 @@ where
     customers: Customers<Perms, E>,
     customer_kyc: CustomerKyc<Perms, E>,
     document_storage: DocumentStorage,
-    contract_templates: ContractTemplates,
+    pdf_templates: PdfTemplates,
     renderer: rendering::Renderer,
 }
 
@@ -131,7 +130,7 @@ where
 {
     #[record_error_severity]
     #[tracing::instrument(
-        name = "contract_creation.generate_loan_agreement_job.run",
+        name = "pdf_generation.generate_loan_agreement_job.run",
         skip_all,
         fields(
             job_id = %current_job.id(),
@@ -179,7 +178,7 @@ where
         );
 
         let content = self
-            .contract_templates
+            .pdf_templates
             .render_template("loan_agreement", &loan_data)?;
         let pdf_bytes = self.renderer.render_template_to_pdf(&content).await?;
 

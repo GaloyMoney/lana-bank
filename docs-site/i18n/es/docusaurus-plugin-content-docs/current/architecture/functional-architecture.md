@@ -156,7 +156,7 @@ El sistema expone dos servidores GraphQL independientes. El **admin-server** sir
 
 El servicio principal **lana-app** orquesta la inicialización de todos los módulos y proporciona el punto de entrada unificado. **lana-cli** ofrece una interfaz de línea de comandos para operaciones administrativas.
 
-Existen servicios especializados para diferentes funciones: **notification** maneja el envío de emails, **contract-creation** genera contratos PDF, **customer-sync** y **deposit-sync** sincronizan datos con sistemas externos, **user-onboarding** gestiona el registro de operadores, y **dashboard** calcula métricas agregadas. Para desarrollo y pruebas, **sim-bootstrap** permite inicializar datos de simulación.
+Existen servicios especializados para diferentes funciones: **notification** maneja el envío de emails, **pdf-generation** genera contratos PDF, **customer-sync** y **deposit-sync** sincronizan datos con sistemas externos, **user-onboarding** gestiona el registro de operadores, y **dashboard** calcula métricas agregadas. Para desarrollo y pruebas, **sim-bootstrap** permite inicializar datos de simulación.
 
 #### 2.2.3 Sistema de Eventos
 

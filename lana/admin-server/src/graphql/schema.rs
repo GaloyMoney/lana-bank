@@ -22,9 +22,9 @@ use lana_app::{
 use crate::primitives::*;
 
 use super::{
-    access::*, accounting::*, approval_process::*, audit::*, committee::*, contract_creation::*,
-    credit_config::*, credit_facility::*, custody::*, customer::*, dashboard::*, deposit::*,
-    deposit_config::*, document::*, domain_config::*, loader::*, me::*, policy::*, price::*,
+    access::*, accounting::*, approval_process::*, audit::*, committee::*, credit_config::*,
+    credit_facility::*, custody::*, customer::*, dashboard::*, deposit::*, deposit_config::*,
+    document::*, domain_config::*, loader::*, me::*, pdf_generation::*, policy::*, price::*,
     public_id::*, reports::*, sumsub::*, terms_template::*, withdrawal::*,
 };
 
@@ -1050,8 +1050,24 @@ impl Query {
         id: UUID,
     ) -> async_graphql::Result<Option<LoanAgreement>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let agreement = app.contract_creation().find_by_id(sub, id).await?;
+        let agreement = app
+            .pdf_generation()
+            .find_loan_agreement_by_id(sub, id)
+            .await?;
         Ok(agreement.map(LoanAgreement::from))
+    }
+
+    async fn credit_facility_export(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<CreditFacilityExport>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let export = app
+            .pdf_generation()
+            .find_credit_facility_export_by_id(sub, id)
+            .await?;
+        Ok(export.map(CreditFacilityExport::from))
     }
 
     async fn account_entry_csv(
@@ -2401,34 +2417,51 @@ impl Mutation {
         Ok(AccountingCsvDownloadLinkGeneratePayload::from(link))
     }
 
-    pub async fn loan_agreement_generate(
+    /// Unified PDF generation mutation
+    async fn pdf_generate(
         &self,
         ctx: &Context<'_>,
-        input: LoanAgreementGenerateInput,
-    ) -> async_graphql::Result<LoanAgreementGeneratePayload> {
+        input: PdfGenerateInput,
+    ) -> async_graphql::Result<PdfGeneratePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
-        // Create async job for loan agreement generation
-        let loan_agreement = app
-            .contract_creation()
-            .initiate_loan_agreement_generation(sub, input.customer_id)
-            .await?;
+        match input {
+            PdfGenerateInput::LoanAgreement(loan_agreement_input) => {
+                // Generate loan agreement
+                let loan_agreement = app
+                    .pdf_generation()
+                    .initiate_loan_agreement_generation(sub, loan_agreement_input.customer_id)
+                    .await?;
 
-        let loan_agreement = LoanAgreement::from(loan_agreement);
-        Ok(LoanAgreementGeneratePayload::from(loan_agreement))
+                let loan_agreement = LoanAgreement::from(loan_agreement);
+                Ok(PdfGeneratePayload::from(loan_agreement))
+            }
+            PdfGenerateInput::CreditFacilityExport(_) => {
+                // Generate credit facility export
+                let credit_facility_export = app
+                    .pdf_generation()
+                    .initiate_credit_facility_export_generation(sub)
+                    .await?;
+
+                let credit_facility_export =
+                    super::pdf_generation::CreditFacilityExport::from(credit_facility_export);
+                Ok(PdfGeneratePayload::from(credit_facility_export))
+            }
+        }
     }
 
-    async fn loan_agreement_download_link_generate(
+    /// Unified PDF download link generation mutation
+    async fn pdf_download_link_generate(
         &self,
         ctx: &Context<'_>,
-        input: LoanAgreementDownloadLinksGenerateInput,
-    ) -> async_graphql::Result<LoanAgreementDownloadLinksGeneratePayload> {
+        input: PdfDownloadLinkGenerateInput,
+    ) -> async_graphql::Result<PdfDownloadLinkGeneratePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let doc = app
-            .contract_creation()
-            .generate_document_download_link(sub, input.loan_agreement_id)
+            .pdf_generation()
+            .generate_document_download_link(sub, input.pdf_id)
             .await?;
-        Ok(LoanAgreementDownloadLinksGeneratePayload::from(doc))
+        Ok(PdfDownloadLinkGeneratePayload::from(doc))
     }
 
     async fn trigger_report_run(

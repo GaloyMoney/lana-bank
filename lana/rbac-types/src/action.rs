@@ -3,7 +3,6 @@ use std::{fmt::Display, str::FromStr};
 use authz::action_description::*;
 
 use crate::audit_action::AuditAction;
-use contract_creation::ContractModuleAction;
 use core_access::CoreAccessAction;
 use core_accounting::CoreAccountingAction;
 use core_credit::CoreCreditAction;
@@ -15,6 +14,7 @@ use core_report::CoreReportAction;
 use dashboard::DashboardModuleAction;
 use domain_config::DomainConfigAction;
 use governance::GovernanceAction;
+use pdf_generation::PdfGenerationModuleAction;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]
@@ -32,7 +32,7 @@ pub enum LanaAction {
     Terms(CoreCreditTermsAction),
     Custody(CoreCustodyAction),
     Report(CoreReportAction),
-    Contract(ContractModuleAction),
+    PdfGeneration(PdfGenerationModuleAction),
 }
 
 impl LanaAction {
@@ -51,7 +51,7 @@ impl LanaAction {
             CoreCreditTermsAction::actions(),
             CoreCustodyAction::actions(),
             CoreReportAction::actions(),
-            ContractModuleAction::actions(),
+            PdfGenerationModuleAction::actions(),
         ]
         .concat()
     }
@@ -117,9 +117,9 @@ impl From<CoreReportAction> for LanaAction {
         LanaAction::Report(action)
     }
 }
-impl From<ContractModuleAction> for LanaAction {
-    fn from(action: ContractModuleAction) -> Self {
-        LanaAction::Contract(action)
+impl From<PdfGenerationModuleAction> for LanaAction {
+    fn from(action: PdfGenerationModuleAction) -> Self {
+        LanaAction::PdfGeneration(action)
     }
 }
 
@@ -140,7 +140,7 @@ impl Display for LanaAction {
             Terms(action) => action.fmt(f),
             Custody(action) => action.fmt(f),
             Report(action) => action.fmt(f),
-            Contract(action) => action.fmt(f),
+            PdfGeneration(action) => action.fmt(f),
         }
     }
 }
@@ -164,7 +164,7 @@ impl FromStr for LanaAction {
             Terms => LanaAction::from(action.parse::<CoreCreditTermsAction>()?),
             Custody => LanaAction::from(action.parse::<CoreCustodyAction>()?),
             Report => LanaAction::from(action.parse::<CoreReportAction>()?),
-            Contract => LanaAction::from(action.parse::<ContractModuleAction>()?),
+            PdfGeneration => LanaAction::from(action.parse::<PdfGenerationModuleAction>()?),
         };
         Ok(res)
     }

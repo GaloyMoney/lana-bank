@@ -16,7 +16,7 @@ sumsub-testing = ["core-customer/sumsub-testing"]
 rbac-types = { workspace = true }
 lana-events = { workspace = true }
 lana-ids = { workspace = true, features = ["graphql"] }
-contract-creation = { workspace = true }
+pdf-generation = { workspace = true }
 gotenberg = { workspace = true }
 
 dashboard = { workspace = true }

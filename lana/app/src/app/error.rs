@@ -58,8 +58,6 @@ pub enum ApplicationError {
     KycError(#[from] crate::kyc::error::KycError),
     #[error("ApplicationError - CustodyError: {0}")]
     CustodyError(#[from] crate::custody::error::CoreCustodyError),
-    #[error("ApplicationError - ContractCreationError: {0}")]
-    ContractCreationError(#[from] crate::contract_creation::ContractCreationError),
     #[error("ApplicationError - ReportError: {0}")]
     ReportError(#[from] crate::report::error::ReportError),
     #[error("ApplicationError - TracingError: {0}")]
@@ -99,7 +97,6 @@ impl ErrorSeverity for ApplicationError {
             Self::StorageError(e) => e.severity(),
             Self::KycError(e) => e.severity(),
             Self::CustodyError(e) => e.severity(),
-            Self::ContractCreationError(e) => e.severity(),
             Self::ReportError(e) => e.severity(),
             Self::TracingError(e) => e.severity(),
             Self::CanNotCreateProposalForClosedOrFrozenAccount => Level::WARN,

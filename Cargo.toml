@@ -58,7 +58,7 @@ domain-config = { path = "core/domain-config" }
 
 # Lana dependencies
 admin-server = { path = "lana/admin-server" }
-contract-creation = { path = "lana/contract-creation" }
+pdf-generation = { path = "lana/pdf-generation" }
 customer-server = { path = "lana/customer-server" }
 customer-sync = { path = "lana/customer-sync" }
 dashboard = { path = "lana/dashboard" }

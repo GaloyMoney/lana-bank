@@ -88,9 +88,9 @@
       "label": "Visor de auditoría",
       "description": "Puede ver registros de auditoría y registros de actividad del sistema"
     },
-    "contract_creation": {
-      "label": "Creación de contratos",
-      "description": "Puede generar y gestionar acuerdos de préstamo y documentos contractuales"
+    "pdf_generation": {
+      "label": "Generación de PDF",
+      "description": "Puede generar y gestionar documentos PDF, incluyendo acuerdos de préstamo y exportaciones de facilidades de crédito"
     },
     "credit_viewer": {
       "label": "Visualizador de crédito",
@@ -756,6 +756,11 @@
   "CreditFacilities": {
     "title": "Líneas de Crédito",
     "description": "Acuerdos financieros preaprobados que permiten a los prestatarios acceder a fondos hasta cierto límite según sea necesario",
+    "export": {
+      "button": "Exportar",
+      "success": "Exportación de líneas de crédito generada exitosamente",
+      "error": "Error al generar la exportación de líneas de crédito"
+    },
     "table": {
       "headers": {
         "customer": "Cliente",

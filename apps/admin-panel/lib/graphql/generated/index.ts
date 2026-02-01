@@ -611,6 +611,23 @@ export type CreditFacilityEdge = {
   node: CreditFacility;
 };
 
+export type CreditFacilityExport = {
+  __typename?: 'CreditFacilityExport';
+  createdAt: Scalars['Timestamp']['output'];
+  id: Scalars['ID']['output'];
+  status: CreditFacilityExportStatus;
+};
+
+export type CreditFacilityExportInput = {
+  generate?: Scalars['Boolean']['input'];
+};
+
+export enum CreditFacilityExportStatus {
+  Completed = 'COMPLETED',
+  Failed = 'FAILED',
+  Pending = 'PENDING'
+}
+
 export type CreditFacilityHistoryEntry = CreditFacilityApproved | CreditFacilityCollateralSentOut | CreditFacilityCollateralUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityIncrementalPayment | CreditFacilityInterestAccrued | CreditFacilityRepaymentAmountReceived | PendingCreditFacilityCollateralizationUpdated;
 
 export type CreditFacilityIncrementalPayment = {
@@ -1770,23 +1787,8 @@ export type LoanAgreement = {
   status: LoanAgreementStatus;
 };
 
-export type LoanAgreementDownloadLinksGenerateInput = {
-  loanAgreementId: Scalars['UUID']['input'];
-};
-
-export type LoanAgreementDownloadLinksGeneratePayload = {
-  __typename?: 'LoanAgreementDownloadLinksGeneratePayload';
-  link: Scalars['String']['output'];
-  loanAgreementId: Scalars['UUID']['output'];
-};
-
-export type LoanAgreementGenerateInput = {
+export type LoanAgreementInput = {
   customerId: Scalars['UUID']['input'];
-};
-
-export type LoanAgreementGeneratePayload = {
-  __typename?: 'LoanAgreementGeneratePayload';
-  loanAgreement: LoanAgreement;
 };
 
 export enum LoanAgreementStatus {
@@ -1868,9 +1870,11 @@ export type Mutation = {
   fiscalYearOpenNext: FiscalYearOpenNextPayload;
   ledgerAccountCsvCreate: LedgerAccountCsvCreatePayload;
   liquidationRecordProceedsReceived: LiquidationRecordProceedsReceivedPayload;
-  loanAgreementDownloadLinkGenerate: LoanAgreementDownloadLinksGeneratePayload;
-  loanAgreementGenerate: LoanAgreementGeneratePayload;
   manualTransactionExecute: ManualTransactionExecutePayload;
+  /** Unified PDF download link generation mutation */
+  pdfDownloadLinkGenerate: PdfDownloadLinkGeneratePayload;
+  /** Unified PDF generation mutation */
+  pdfGenerate: PdfGeneratePayload;
   pendingCreditFacilityCollateralUpdate: PendingCreditFacilityCollateralUpdatePayload;
   policyAssignCommittee: PolicyAssignCommitteePayload;
   reportFileGenerateDownloadLink: ReportFileGenerateDownloadLinkPayload;
@@ -2101,18 +2105,18 @@ export type MutationLiquidationRecordProceedsReceivedArgs = {
 };
 
 
-export type MutationLoanAgreementDownloadLinkGenerateArgs = {
-  input: LoanAgreementDownloadLinksGenerateInput;
-};
-
-
-export type MutationLoanAgreementGenerateArgs = {
-  input: LoanAgreementGenerateInput;
-};
-
-
 export type MutationManualTransactionExecuteArgs = {
   input: ManualTransactionExecuteInput;
+};
+
+
+export type MutationPdfDownloadLinkGenerateArgs = {
+  input: PdfDownloadLinkGenerateInput;
+};
+
+
+export type MutationPdfGenerateArgs = {
+  input: PdfGenerateInput;
 };
 
 
@@ -2217,6 +2221,27 @@ export type PaymentEntry = {
 export type PaymentsUnapplied = {
   __typename?: 'PaymentsUnapplied';
   usdBalance: Scalars['UsdCents']['output'];
+};
+
+export type PdfDocument = CreditFacilityExport | LoanAgreement;
+
+export type PdfDownloadLinkGenerateInput = {
+  pdfId: Scalars['UUID']['input'];
+};
+
+export type PdfDownloadLinkGeneratePayload = {
+  __typename?: 'PdfDownloadLinkGeneratePayload';
+  link: Scalars['String']['output'];
+  pdfId: Scalars['UUID']['output'];
+};
+
+export type PdfGenerateInput =
+  { creditFacilityExport: CreditFacilityExportInput; loanAgreement?: never; }
+  |  { creditFacilityExport?: never; loanAgreement: LoanAgreementInput; };
+
+export type PdfGeneratePayload = {
+  __typename?: 'PdfGeneratePayload';
+  document: PdfDocument;
 };
 
 export type PendingCreditFacility = {
@@ -2340,7 +2365,6 @@ export enum PermissionSetName {
   AccountingViewer = 'ACCOUNTING_VIEWER',
   AccountingWriter = 'ACCOUNTING_WRITER',
   AuditViewer = 'AUDIT_VIEWER',
-  ContractCreation = 'CONTRACT_CREATION',
   CreditPaymentDate = 'CREDIT_PAYMENT_DATE',
   CreditTermTemplatesViewer = 'CREDIT_TERM_TEMPLATES_VIEWER',
   CreditTermTemplatesWriter = 'CREDIT_TERM_TEMPLATES_WRITER',
@@ -2359,6 +2383,7 @@ export enum PermissionSetName {
   ExposedConfigWriter = 'EXPOSED_CONFIG_WRITER',
   GovernanceViewer = 'GOVERNANCE_VIEWER',
   GovernanceWriter = 'GOVERNANCE_WRITER',
+  PdfGeneration = 'PDF_GENERATION',
   ReportViewer = 'REPORT_VIEWER',
   ReportWriter = 'REPORT_WRITER'
 }
@@ -2424,6 +2449,7 @@ export type Query = {
   creditFacilities: CreditFacilityConnection;
   creditFacility?: Maybe<CreditFacility>;
   creditFacilityByPublicId?: Maybe<CreditFacility>;
+  creditFacilityExport?: Maybe<CreditFacilityExport>;
   creditFacilityProposal?: Maybe<CreditFacilityProposal>;
   creditFacilityProposals: CreditFacilityProposalConnection;
   custodians: CustodianConnection;
@@ -2534,6 +2560,11 @@ export type QueryCreditFacilityArgs = {
 
 export type QueryCreditFacilityByPublicIdArgs = {
   id: Scalars['PublicId']['input'];
+};
+
+
+export type QueryCreditFacilityExportArgs = {
+  id: Scalars['UUID']['input'];
 };
 
 
@@ -4805,19 +4836,22 @@ export type RealtimePriceUpdatedSubscriptionVariables = Exact<{ [key: string]: n
 
 export type RealtimePriceUpdatedSubscription = { __typename?: 'Subscription', realtimePriceUpdated: { __typename?: 'RealtimePrice', usdCentsPerBtc: UsdCents } };
 
-export type LoanAgreementGenerateMutationVariables = Exact<{
-  input: LoanAgreementGenerateInput;
+export type PdfGenerateMutationVariables = Exact<{
+  input: PdfGenerateInput;
 }>;
 
 
-export type LoanAgreementGenerateMutation = { __typename?: 'Mutation', loanAgreementGenerate: { __typename?: 'LoanAgreementGeneratePayload', loanAgreement: { __typename?: 'LoanAgreement', id: string, status: LoanAgreementStatus, createdAt: any } } };
+export type PdfGenerateMutation = { __typename?: 'Mutation', pdfGenerate: { __typename?: 'PdfGeneratePayload', document:
+      | { __typename?: 'CreditFacilityExport', id: string, createdAt: any, creditFacilityExportStatus: CreditFacilityExportStatus }
+      | { __typename?: 'LoanAgreement', id: string, createdAt: any, loanAgreementStatus: LoanAgreementStatus }
+     } };
 
-export type LoanAgreementDownloadLinkGenerateMutationVariables = Exact<{
-  input: LoanAgreementDownloadLinksGenerateInput;
+export type PdfDownloadLinkGenerateMutationVariables = Exact<{
+  input: PdfDownloadLinkGenerateInput;
 }>;
 
 
-export type LoanAgreementDownloadLinkGenerateMutation = { __typename?: 'Mutation', loanAgreementDownloadLinkGenerate: { __typename?: 'LoanAgreementDownloadLinksGeneratePayload', loanAgreementId: string, link: string } };
+export type PdfDownloadLinkGenerateMutation = { __typename?: 'Mutation', pdfDownloadLinkGenerate: { __typename?: 'PdfDownloadLinkGeneratePayload', pdfId: string, link: string } };
 
 export type LoanAgreementQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -4825,6 +4859,13 @@ export type LoanAgreementQueryVariables = Exact<{
 
 
 export type LoanAgreementQuery = { __typename?: 'Query', loanAgreement?: { __typename?: 'LoanAgreement', id: string, status: LoanAgreementStatus, createdAt: any } | null };
+
+export type CreditFacilityExportQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type CreditFacilityExportQuery = { __typename?: 'Query', creditFacilityExport?: { __typename?: 'CreditFacilityExport', id: string, status: CreditFacilityExportStatus, createdAt: any } | null };
 
 export type SearchPublicIdTargetQueryVariables = Exact<{
   publicId: Scalars['PublicId']['input'];
@@ -12035,77 +12076,84 @@ export function useRealtimePriceUpdatedSubscription(baseOptions?: Apollo.Subscri
       }
 export type RealtimePriceUpdatedSubscriptionHookResult = ReturnType<typeof useRealtimePriceUpdatedSubscription>;
 export type RealtimePriceUpdatedSubscriptionResult = Apollo.SubscriptionResult<RealtimePriceUpdatedSubscription>;
-export const LoanAgreementGenerateDocument = gql`
-    mutation LoanAgreementGenerate($input: LoanAgreementGenerateInput!) {
-  loanAgreementGenerate(input: $input) {
-    loanAgreement {
-      id
-      status
-      createdAt
+export const PdfGenerateDocument = gql`
+    mutation PdfGenerate($input: PdfGenerateInput!) {
+  pdfGenerate(input: $input) {
+    document {
+      ... on LoanAgreement {
+        id
+        loanAgreementStatus: status
+        createdAt
+      }
+      ... on CreditFacilityExport {
+        id
+        creditFacilityExportStatus: status
+        createdAt
+      }
     }
   }
 }
     `;
-export type LoanAgreementGenerateMutationFn = Apollo.MutationFunction<LoanAgreementGenerateMutation, LoanAgreementGenerateMutationVariables>;
+export type PdfGenerateMutationFn = Apollo.MutationFunction<PdfGenerateMutation, PdfGenerateMutationVariables>;
 
 /**
- * __useLoanAgreementGenerateMutation__
+ * __usePdfGenerateMutation__
  *
- * To run a mutation, you first call `useLoanAgreementGenerateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useLoanAgreementGenerateMutation` returns a tuple that includes:
+ * To run a mutation, you first call `usePdfGenerateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `usePdfGenerateMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [loanAgreementGenerateMutation, { data, loading, error }] = useLoanAgreementGenerateMutation({
+ * const [pdfGenerateMutation, { data, loading, error }] = usePdfGenerateMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useLoanAgreementGenerateMutation(baseOptions?: Apollo.MutationHookOptions<LoanAgreementGenerateMutation, LoanAgreementGenerateMutationVariables>) {
+export function usePdfGenerateMutation(baseOptions?: Apollo.MutationHookOptions<PdfGenerateMutation, PdfGenerateMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<LoanAgreementGenerateMutation, LoanAgreementGenerateMutationVariables>(LoanAgreementGenerateDocument, options);
+        return Apollo.useMutation<PdfGenerateMutation, PdfGenerateMutationVariables>(PdfGenerateDocument, options);
       }
-export type LoanAgreementGenerateMutationHookResult = ReturnType<typeof useLoanAgreementGenerateMutation>;
-export type LoanAgreementGenerateMutationResult = Apollo.MutationResult<LoanAgreementGenerateMutation>;
-export type LoanAgreementGenerateMutationOptions = Apollo.BaseMutationOptions<LoanAgreementGenerateMutation, LoanAgreementGenerateMutationVariables>;
-export const LoanAgreementDownloadLinkGenerateDocument = gql`
-    mutation LoanAgreementDownloadLinkGenerate($input: LoanAgreementDownloadLinksGenerateInput!) {
-  loanAgreementDownloadLinkGenerate(input: $input) {
-    loanAgreementId
+export type PdfGenerateMutationHookResult = ReturnType<typeof usePdfGenerateMutation>;
+export type PdfGenerateMutationResult = Apollo.MutationResult<PdfGenerateMutation>;
+export type PdfGenerateMutationOptions = Apollo.BaseMutationOptions<PdfGenerateMutation, PdfGenerateMutationVariables>;
+export const PdfDownloadLinkGenerateDocument = gql`
+    mutation PdfDownloadLinkGenerate($input: PdfDownloadLinkGenerateInput!) {
+  pdfDownloadLinkGenerate(input: $input) {
+    pdfId
     link
   }
 }
     `;
-export type LoanAgreementDownloadLinkGenerateMutationFn = Apollo.MutationFunction<LoanAgreementDownloadLinkGenerateMutation, LoanAgreementDownloadLinkGenerateMutationVariables>;
+export type PdfDownloadLinkGenerateMutationFn = Apollo.MutationFunction<PdfDownloadLinkGenerateMutation, PdfDownloadLinkGenerateMutationVariables>;
 
 /**
- * __useLoanAgreementDownloadLinkGenerateMutation__
+ * __usePdfDownloadLinkGenerateMutation__
  *
- * To run a mutation, you first call `useLoanAgreementDownloadLinkGenerateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useLoanAgreementDownloadLinkGenerateMutation` returns a tuple that includes:
+ * To run a mutation, you first call `usePdfDownloadLinkGenerateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `usePdfDownloadLinkGenerateMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [loanAgreementDownloadLinkGenerateMutation, { data, loading, error }] = useLoanAgreementDownloadLinkGenerateMutation({
+ * const [pdfDownloadLinkGenerateMutation, { data, loading, error }] = usePdfDownloadLinkGenerateMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useLoanAgreementDownloadLinkGenerateMutation(baseOptions?: Apollo.MutationHookOptions<LoanAgreementDownloadLinkGenerateMutation, LoanAgreementDownloadLinkGenerateMutationVariables>) {
+export function usePdfDownloadLinkGenerateMutation(baseOptions?: Apollo.MutationHookOptions<PdfDownloadLinkGenerateMutation, PdfDownloadLinkGenerateMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<LoanAgreementDownloadLinkGenerateMutation, LoanAgreementDownloadLinkGenerateMutationVariables>(LoanAgreementDownloadLinkGenerateDocument, options);
+        return Apollo.useMutation<PdfDownloadLinkGenerateMutation, PdfDownloadLinkGenerateMutationVariables>(PdfDownloadLinkGenerateDocument, options);
       }
-export type LoanAgreementDownloadLinkGenerateMutationHookResult = ReturnType<typeof useLoanAgreementDownloadLinkGenerateMutation>;
-export type LoanAgreementDownloadLinkGenerateMutationResult = Apollo.MutationResult<LoanAgreementDownloadLinkGenerateMutation>;
-export type LoanAgreementDownloadLinkGenerateMutationOptions = Apollo.BaseMutationOptions<LoanAgreementDownloadLinkGenerateMutation, LoanAgreementDownloadLinkGenerateMutationVariables>;
+export type PdfDownloadLinkGenerateMutationHookResult = ReturnType<typeof usePdfDownloadLinkGenerateMutation>;
+export type PdfDownloadLinkGenerateMutationResult = Apollo.MutationResult<PdfDownloadLinkGenerateMutation>;
+export type PdfDownloadLinkGenerateMutationOptions = Apollo.BaseMutationOptions<PdfDownloadLinkGenerateMutation, PdfDownloadLinkGenerateMutationVariables>;
 export const LoanAgreementDocument = gql`
     query LoanAgreement($id: UUID!) {
   loanAgreement(id: $id) {
@@ -12151,6 +12199,51 @@ export type LoanAgreementQueryHookResult = ReturnType<typeof useLoanAgreementQue
 export type LoanAgreementLazyQueryHookResult = ReturnType<typeof useLoanAgreementLazyQuery>;
 export type LoanAgreementSuspenseQueryHookResult = ReturnType<typeof useLoanAgreementSuspenseQuery>;
 export type LoanAgreementQueryResult = Apollo.QueryResult<LoanAgreementQuery, LoanAgreementQueryVariables>;
+export const CreditFacilityExportDocument = gql`
+    query CreditFacilityExport($id: UUID!) {
+  creditFacilityExport(id: $id) {
+    id
+    status
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useCreditFacilityExportQuery__
+ *
+ * To run a query within a React component, call `useCreditFacilityExportQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCreditFacilityExportQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCreditFacilityExportQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useCreditFacilityExportQuery(baseOptions: Apollo.QueryHookOptions<CreditFacilityExportQuery, CreditFacilityExportQueryVariables> & ({ variables: CreditFacilityExportQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CreditFacilityExportQuery, CreditFacilityExportQueryVariables>(CreditFacilityExportDocument, options);
+      }
+export function useCreditFacilityExportLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CreditFacilityExportQuery, CreditFacilityExportQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CreditFacilityExportQuery, CreditFacilityExportQueryVariables>(CreditFacilityExportDocument, options);
+        }
+// @ts-ignore
+export function useCreditFacilityExportSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<CreditFacilityExportQuery, CreditFacilityExportQueryVariables>): Apollo.UseSuspenseQueryResult<CreditFacilityExportQuery, CreditFacilityExportQueryVariables>;
+export function useCreditFacilityExportSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CreditFacilityExportQuery, CreditFacilityExportQueryVariables>): Apollo.UseSuspenseQueryResult<CreditFacilityExportQuery | undefined, CreditFacilityExportQueryVariables>;
+export function useCreditFacilityExportSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CreditFacilityExportQuery, CreditFacilityExportQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<CreditFacilityExportQuery, CreditFacilityExportQueryVariables>(CreditFacilityExportDocument, options);
+        }
+export type CreditFacilityExportQueryHookResult = ReturnType<typeof useCreditFacilityExportQuery>;
+export type CreditFacilityExportLazyQueryHookResult = ReturnType<typeof useCreditFacilityExportLazyQuery>;
+export type CreditFacilityExportSuspenseQueryHookResult = ReturnType<typeof useCreditFacilityExportSuspenseQuery>;
+export type CreditFacilityExportQueryResult = Apollo.QueryResult<CreditFacilityExportQuery, CreditFacilityExportQueryVariables>;
 export const SearchPublicIdTargetDocument = gql`
     query SearchPublicIdTarget($publicId: PublicId!) {
   publicIdTarget(id: $publicId) {

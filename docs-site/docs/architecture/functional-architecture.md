@@ -156,7 +156,7 @@ The system exposes two independent GraphQL servers. The **admin-server** serves 
 
 The main service **lana-app** orchestrates the initialization of all modules and provides the unified entry point. **lana-cli** offers a command-line interface for administrative operations.
 
-Specialized services exist for different functions: **notification** handles email sending, **contract-creation** generates PDF contracts, **customer-sync** and **deposit-sync** synchronize data with external systems, **user-onboarding** manages operator registration, and **dashboard** calculates aggregated metrics. For development and testing, **sim-bootstrap** allows initializing simulation data.
+Specialized services exist for different functions: **notification** handles email sending, **pdf-generation** generates PDF contracts, **customer-sync** and **deposit-sync** synchronize data with external systems, **user-onboarding** manages operator registration, and **dashboard** calculates aggregated metrics. For development and testing, **sim-bootstrap** allows initializing simulation data.
 
 #### 2.2.3 Event System
 
