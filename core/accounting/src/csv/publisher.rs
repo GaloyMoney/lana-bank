@@ -1,7 +1,7 @@
 use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{
-    event::CoreAccountingEvent,
+    event::{CSV_EXPORT_EVENT_TYPE, CoreAccountingEvent},
     primitives::{AccountingCsvId, LedgerAccountId},
 };
 
@@ -42,12 +42,13 @@ where
         ledger_account_id: LedgerAccountId,
     ) -> Result<(), AccountingCsvExportError> {
         self.outbox
-            .publish_all_persisted(
+            .publish_ephemeral_in_op(
                 op,
-                vec![CoreAccountingEvent::LedgerAccountCsvExportUploaded {
+                CSV_EXPORT_EVENT_TYPE,
+                CoreAccountingEvent::LedgerAccountCsvExportUploaded {
                     id,
                     ledger_account_id,
-                }],
+                },
             )
             .await?;
         Ok(())
