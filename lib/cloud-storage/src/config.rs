@@ -24,6 +24,7 @@ impl StorageConfig {
     pub fn new_local(root_folder: String) -> Self {
         StorageConfig::Local(LocalConfig {
             root_folder: root_folder.into(),
+            admin_panel_url: None,
         })
     }
 

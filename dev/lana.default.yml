@@ -21,6 +21,7 @@ app:
   storage:
     provider: local
     root_folder: ''
+    admin_panel_url: http://admin.localhost:4455
   user_onboarding:
     keycloak:
       url: http://localhost:8081/
