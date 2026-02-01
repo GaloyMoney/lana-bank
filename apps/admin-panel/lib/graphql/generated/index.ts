@@ -615,18 +615,12 @@ export type CreditFacilityExport = {
   __typename?: 'CreditFacilityExport';
   createdAt: Scalars['Timestamp']['output'];
   id: Scalars['ID']['output'];
-  status: CreditFacilityExportStatus;
+  status: PdfGenerationStatus;
 };
 
 export type CreditFacilityExportInput = {
   generate?: Scalars['Boolean']['input'];
 };
-
-export enum CreditFacilityExportStatus {
-  Completed = 'COMPLETED',
-  Failed = 'FAILED',
-  Pending = 'PENDING'
-}
 
 export type CreditFacilityHistoryEntry = CreditFacilityApproved | CreditFacilityCollateralSentOut | CreditFacilityCollateralUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityIncrementalPayment | CreditFacilityInterestAccrued | CreditFacilityRepaymentAmountReceived | PendingCreditFacilityCollateralizationUpdated;
 
@@ -1784,18 +1778,12 @@ export type LoanAgreement = {
   __typename?: 'LoanAgreement';
   createdAt: Scalars['Timestamp']['output'];
   id: Scalars['ID']['output'];
-  status: LoanAgreementStatus;
+  status: PdfGenerationStatus;
 };
 
 export type LoanAgreementInput = {
   customerId: Scalars['UUID']['input'];
 };
-
-export enum LoanAgreementStatus {
-  Completed = 'COMPLETED',
-  Failed = 'FAILED',
-  Pending = 'PENDING'
-}
 
 export type ManualTransactionEntryInput = {
   accountRef: Scalars['String']['input'];
@@ -1871,9 +1859,7 @@ export type Mutation = {
   ledgerAccountCsvCreate: LedgerAccountCsvCreatePayload;
   liquidationRecordProceedsReceived: LiquidationRecordProceedsReceivedPayload;
   manualTransactionExecute: ManualTransactionExecutePayload;
-  /** Unified PDF download link generation mutation */
   pdfDownloadLinkGenerate: PdfDownloadLinkGeneratePayload;
-  /** Unified PDF generation mutation */
   pdfGenerate: PdfGeneratePayload;
   pendingCreditFacilityCollateralUpdate: PendingCreditFacilityCollateralUpdatePayload;
   policyAssignCommittee: PolicyAssignCommitteePayload;
@@ -2243,6 +2229,13 @@ export type PdfGeneratePayload = {
   __typename?: 'PdfGeneratePayload';
   document: PdfDocument;
 };
+
+export enum PdfGenerationStatus {
+  Completed = 'COMPLETED',
+  Failed = 'FAILED',
+  Pending = 'PENDING',
+  Removed = 'REMOVED'
+}
 
 export type PendingCreditFacility = {
   __typename?: 'PendingCreditFacility';
@@ -4842,8 +4835,8 @@ export type PdfGenerateMutationVariables = Exact<{
 
 
 export type PdfGenerateMutation = { __typename?: 'Mutation', pdfGenerate: { __typename?: 'PdfGeneratePayload', document:
-      | { __typename?: 'CreditFacilityExport', id: string, createdAt: any, creditFacilityExportStatus: CreditFacilityExportStatus }
-      | { __typename?: 'LoanAgreement', id: string, createdAt: any, loanAgreementStatus: LoanAgreementStatus }
+      | { __typename?: 'CreditFacilityExport', id: string, status: PdfGenerationStatus, createdAt: any }
+      | { __typename?: 'LoanAgreement', id: string, status: PdfGenerationStatus, createdAt: any }
      } };
 
 export type PdfDownloadLinkGenerateMutationVariables = Exact<{
@@ -4858,14 +4851,14 @@ export type LoanAgreementQueryVariables = Exact<{
 }>;
 
 
-export type LoanAgreementQuery = { __typename?: 'Query', loanAgreement?: { __typename?: 'LoanAgreement', id: string, status: LoanAgreementStatus, createdAt: any } | null };
+export type LoanAgreementQuery = { __typename?: 'Query', loanAgreement?: { __typename?: 'LoanAgreement', id: string, status: PdfGenerationStatus, createdAt: any } | null };
 
 export type CreditFacilityExportQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type CreditFacilityExportQuery = { __typename?: 'Query', creditFacilityExport?: { __typename?: 'CreditFacilityExport', id: string, status: CreditFacilityExportStatus, createdAt: any } | null };
+export type CreditFacilityExportQuery = { __typename?: 'Query', creditFacilityExport?: { __typename?: 'CreditFacilityExport', id: string, status: PdfGenerationStatus, createdAt: any } | null };
 
 export type SearchPublicIdTargetQueryVariables = Exact<{
   publicId: Scalars['PublicId']['input'];
@@ -12082,12 +12075,12 @@ export const PdfGenerateDocument = gql`
     document {
       ... on LoanAgreement {
         id
-        loanAgreementStatus: status
+        status
         createdAt
       }
       ... on CreditFacilityExport {
         id
-        creditFacilityExportStatus: status
+        status
         createdAt
       }
     }

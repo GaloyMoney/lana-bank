@@ -15,7 +15,7 @@ pub enum PdfGenerationError {
     #[error("PdfGenerationError - CustomerKyc: {0}")]
     CustomerKyc(#[from] core_customer::kyc::error::KycError),
     #[error("PdfGenerationError - Credit: {0}")]
-    Credit(#[from] core_credit::error::CoreCreditError),
+    Credit(Box<core_credit::error::CoreCreditError>),
     #[error("PdfGenerationError - Authz: {0}")]
     Authz(#[from] authz::error::AuthorizationError),
     #[error("PdfGenerationError - Rendering: {0}")]
@@ -24,6 +24,12 @@ pub enum PdfGenerationError {
     Job(#[from] job::error::JobError),
     #[error("PdfGenerationError - UnknownDocumentType: {0}")]
     UnknownDocumentType(String),
+}
+
+impl From<core_credit::error::CoreCreditError> for PdfGenerationError {
+    fn from(e: core_credit::error::CoreCreditError) -> Self {
+        Self::Credit(Box::new(e))
+    }
 }
 
 impl ErrorSeverity for PdfGenerationError {

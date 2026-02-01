@@ -588,18 +588,12 @@ type CreditFacilityEdge {
 
 type CreditFacilityExport {
 	id: ID!
-	status: CreditFacilityExportStatus!
+	status: PdfGenerationStatus!
 	createdAt: Timestamp!
 }
 
 input CreditFacilityExportInput {
 	generate: Boolean! = true
-}
-
-enum CreditFacilityExportStatus {
-	PENDING
-	COMPLETED
-	FAILED
 }
 
 union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityApproved | PendingCreditFacilityCollateralizationUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityInterestAccrued | CreditFacilityCollateralSentOut | CreditFacilityRepaymentAmountReceived
@@ -1787,18 +1781,12 @@ type LiquidationRecordProceedsReceivedPayload {
 
 type LoanAgreement {
 	id: ID!
-	status: LoanAgreementStatus!
+	status: PdfGenerationStatus!
 	createdAt: Timestamp!
 }
 
 input LoanAgreementInput {
 	customerId: UUID!
-}
-
-enum LoanAgreementStatus {
-	PENDING
-	COMPLETED
-	FAILED
 }
 
 input ManualTransactionEntryInput {
@@ -1886,13 +1874,7 @@ type Mutation {
 	chartOfAccountsCsvImportWithBaseConfig(input: ChartOfAccountsCsvImportWithBaseConfigInput!): ChartOfAccountsCsvImportWithBaseConfigPayload!
 	ledgerAccountCsvCreate(input: LedgerAccountCsvCreateInput!): LedgerAccountCsvCreatePayload!
 	accountingCsvDownloadLinkGenerate(input: AccountingCsvDownloadLinkGenerateInput!): AccountingCsvDownloadLinkGeneratePayload!
-	"""
-	Unified PDF generation mutation
-	"""
 	pdfGenerate(input: PdfGenerateInput!): PdfGeneratePayload!
-	"""
-	Unified PDF download link generation mutation
-	"""
 	pdfDownloadLinkGenerate(input: PdfDownloadLinkGenerateInput!): PdfDownloadLinkGeneratePayload!
 	triggerReportRun: ReportRunCreatePayload!
 	reportFileGenerateDownloadLink(input: ReportFileGenerateDownloadLinkInput!): ReportFileGenerateDownloadLinkPayload!
@@ -1953,6 +1935,13 @@ input PdfGenerateInput @oneOf {
 
 type PdfGeneratePayload {
 	document: PdfDocument!
+}
+
+enum PdfGenerationStatus {
+	PENDING
+	COMPLETED
+	FAILED
+	REMOVED
 }
 
 type PendingCreditFacility {

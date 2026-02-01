@@ -298,19 +298,32 @@ where
     }
 }
 
-// Simple loan agreement types (not using the full entity system)
+// Unified status for all PDF generation document types
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub enum LoanAgreementStatus {
+pub enum PdfGenerationStatus {
     Pending,
     Completed,
     Failed,
     Removed,
 }
 
+impl From<DocumentStatus> for PdfGenerationStatus {
+    fn from(document_status: DocumentStatus) -> Self {
+        match document_status {
+            DocumentStatus::Active => PdfGenerationStatus::Completed,
+            DocumentStatus::Archived => PdfGenerationStatus::Removed,
+            DocumentStatus::Deleted => PdfGenerationStatus::Removed,
+            DocumentStatus::Failed => PdfGenerationStatus::Failed,
+            DocumentStatus::New => PdfGenerationStatus::Pending,
+        }
+    }
+}
+
+// Simple loan agreement types (not using the full entity system)
 #[derive(Clone, Debug)]
 pub struct LoanAgreement {
     pub id: Uuid,
-    pub status: LoanAgreementStatus,
+    pub status: PdfGenerationStatus,
     pub created_at: chrono::DateTime<chrono::Utc>,
 }
 
@@ -324,31 +337,11 @@ impl From<Document> for LoanAgreement {
     }
 }
 
-impl From<DocumentStatus> for LoanAgreementStatus {
-    fn from(document_status: DocumentStatus) -> LoanAgreementStatus {
-        match document_status {
-            DocumentStatus::Active => LoanAgreementStatus::Completed,
-            DocumentStatus::Archived => LoanAgreementStatus::Removed,
-            DocumentStatus::Deleted => LoanAgreementStatus::Removed,
-            DocumentStatus::Failed => LoanAgreementStatus::Failed,
-            DocumentStatus::New => LoanAgreementStatus::Pending,
-        }
-    }
-}
-
 // Credit facility export types
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub enum CreditFacilityExportStatus {
-    Pending,
-    Completed,
-    Failed,
-    Removed,
-}
-
 #[derive(Clone, Debug)]
 pub struct CreditFacilityExport {
     pub id: Uuid,
-    pub status: CreditFacilityExportStatus,
+    pub status: PdfGenerationStatus,
     pub created_at: chrono::DateTime<chrono::Utc>,
 }
 
@@ -358,18 +351,6 @@ impl From<Document> for CreditFacilityExport {
             id: document.id.into(),
             status: document.status.into(),
             created_at: document.created_at(),
-        }
-    }
-}
-
-impl From<DocumentStatus> for CreditFacilityExportStatus {
-    fn from(document_status: DocumentStatus) -> CreditFacilityExportStatus {
-        match document_status {
-            DocumentStatus::Active => CreditFacilityExportStatus::Completed,
-            DocumentStatus::Archived => CreditFacilityExportStatus::Removed,
-            DocumentStatus::Deleted => CreditFacilityExportStatus::Removed,
-            DocumentStatus::Failed => CreditFacilityExportStatus::Failed,
-            DocumentStatus::New => CreditFacilityExportStatus::Pending,
         }
     }
 }

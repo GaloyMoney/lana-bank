@@ -2417,7 +2417,6 @@ impl Mutation {
         Ok(AccountingCsvDownloadLinkGeneratePayload::from(link))
     }
 
-    /// Unified PDF generation mutation
     async fn pdf_generate(
         &self,
         ctx: &Context<'_>,
@@ -2450,7 +2449,6 @@ impl Mutation {
         }
     }
 
-    /// Unified PDF download link generation mutation
     async fn pdf_download_link_generate(
         &self,
         ctx: &Context<'_>,

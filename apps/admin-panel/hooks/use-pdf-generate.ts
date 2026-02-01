@@ -8,8 +8,7 @@ import {
   usePdfDownloadLinkGenerateMutation,
   useLoanAgreementLazyQuery,
   useCreditFacilityExportLazyQuery,
-  LoanAgreementStatus,
-  CreditFacilityExportStatus,
+  PdfGenerationStatus,
   PdfGenerateInput,
 } from "@/lib/graphql/generated"
 
@@ -19,12 +18,12 @@ gql`
       document {
         ... on LoanAgreement {
           id
-          loanAgreementStatus: status
+          status
           createdAt
         }
         ... on CreditFacilityExport {
           id
-          creditFacilityExportStatus: status
+          status
           createdAt
         }
       }
@@ -55,22 +54,9 @@ gql`
   }
 `
 
-type DocumentStatus = LoanAgreementStatus | CreditFacilityExportStatus
-
-const COMPLETED_STATUSES = [
-  LoanAgreementStatus.Completed,
-  CreditFacilityExportStatus.Completed,
-]
-
-const PENDING_STATUSES = [
-  LoanAgreementStatus.Pending,
-  CreditFacilityExportStatus.Pending,
-]
-
-const FAILED_STATUSES = [
-  LoanAgreementStatus.Failed,
-  CreditFacilityExportStatus.Failed,
-]
+const COMPLETED_STATUSES = [PdfGenerationStatus.Completed]
+const PENDING_STATUSES = [PdfGenerationStatus.Pending]
+const FAILED_STATUSES = [PdfGenerationStatus.Failed, PdfGenerationStatus.Removed]
 
 export const usePdfGenerate = () => {
   const [isGenerating, setIsGenerating] = useState(false)
@@ -131,7 +117,7 @@ export const usePdfGenerate = () => {
   )
 
   const getDocumentStatus = useCallback(
-    async (documentId: string, documentType: string): Promise<DocumentStatus | null> => {
+    async (documentId: string, documentType: string): Promise<PdfGenerationStatus | null> => {
       if (documentType === "LoanAgreement") {
         const result = await getLoanAgreement({
           variables: { id: documentId },
@@ -159,10 +145,10 @@ export const usePdfGenerate = () => {
         try {
           const status = await getDocumentStatus(documentId, documentType)
 
-          if (COMPLETED_STATUSES.includes(status as DocumentStatus)) {
+          if (status !== null && COMPLETED_STATUSES.includes(status)) {
             stopPolling()
             await handleDownload(documentId, successMessage)
-          } else if (FAILED_STATUSES.includes(status as DocumentStatus)) {
+          } else if (status !== null && FAILED_STATUSES.includes(status)) {
             stopPolling()
             handleError(undefined, errorMessage)
           }
@@ -196,17 +182,7 @@ export const usePdfGenerate = () => {
           throw new Error("Failed to generate PDF")
         }
 
-        const { __typename: documentType, id } = document
-
-        // Get status from the correct field based on document type
-        let status: DocumentStatus
-        if (documentType === "LoanAgreement" && "loanAgreementStatus" in document) {
-          status = document.loanAgreementStatus
-        } else if (documentType === "CreditFacilityExport" && "creditFacilityExportStatus" in document) {
-          status = document.creditFacilityExportStatus
-        } else {
-          throw new Error("Unknown document type")
-        }
+        const { __typename: documentType, id, status } = document
 
         if (COMPLETED_STATUSES.includes(status)) {
           await handleDownload(id, options?.successMessage)
