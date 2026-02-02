@@ -138,7 +138,8 @@
       "triggerReportRun": "Triggers a manual report run",
       "reportFileGenerateDownloadLink": "Generates a download link for a report file",
       "chartOfAccountsCsvImportWithBaseConfig": "Imports a chart of accounts from a CSV file with base configuration settings",
-      "chartOfAccountsCsvImport": "Imports a chart of accounts from a CSV file"
+      "chartOfAccountsCsvImport": "Imports a chart of accounts from a CSV file",
+      "collateralRecordSentToLiquidation": "TODO: Add description"
     }
   },
   "customer": {

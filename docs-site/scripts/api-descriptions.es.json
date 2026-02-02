@@ -138,7 +138,8 @@
       "triggerReportRun": "Dispara una ejecucion manual de reportes",
       "reportFileGenerateDownloadLink": "Genera un enlace de descarga para un archivo de reporte",
       "chartOfAccountsCsvImportWithBaseConfig": "Importa un catalogo de cuentas desde un archivo CSV con configuracion base",
-      "chartOfAccountsCsvImport": "Importa un catalogo de cuentas desde un archivo CSV"
+      "chartOfAccountsCsvImport": "Importa un catalogo de cuentas desde un archivo CSV",
+      "collateralRecordSentToLiquidation": "TODO: Agregar descripcion"
     }
   },
   "customer": {
