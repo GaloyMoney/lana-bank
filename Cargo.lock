@@ -1380,6 +1380,7 @@ dependencies = [
  "cala-ledger",
  "chrono",
  "core-accounting",
+ "core-credit-terms",
  "core-money",
  "derive_builder",
  "es-entity",

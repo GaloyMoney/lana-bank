@@ -5,17 +5,19 @@ edition = "2024"
 
 [features]
 fail-on-warnings = []
-graphql = ["dep:async-graphql", "es-entity/graphql"]
+graphql = ["dep:async-graphql", "es-entity/graphql", "cala-ledger/graphql"]
 json-schema = [
     "dep:schemars",
     "es-entity/json-schema",
     "core-money/json-schema",
     "job/json-schema",
+    "cala-ledger/json-schema",
 ]
 
 [dependencies]
 core-money = { workspace = true }
 core-accounting = { workspace = true }
+core-credit-terms = { path = "../terms" }
 
 audit = { workspace = true }
 authz = { workspace = true }

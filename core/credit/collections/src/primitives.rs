@@ -1,5 +1,11 @@
 use std::str::FromStr;
 
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
+
+#[cfg(feature = "json-schema")]
+use schemars::JsonSchema;
+
 use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
 
 pub use cala_ledger::primitives::{
@@ -7,6 +13,7 @@ pub use cala_ledger::primitives::{
     DebitOrCredit as LedgerDebitOrCredit, JournalId as LedgerJournalId,
     TransactionId as LedgerTxId, TxTemplateId as LedgerTxTemplateId,
 };
+pub use core_credit_terms::EffectiveDate;
 pub use core_money::*;
 
 es_entity::entity_id! {
@@ -18,6 +25,140 @@ es_entity::entity_id! {
     ObligationId => job::JobId,
     PaymentId => LedgerTxId,
     PaymentAllocationId => LedgerTxId,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum ObligationStatus {
+    NotYetDue,
+    Due,
+    Overdue,
+    Defaulted,
+    Paid,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+pub enum ObligationType {
+    Disbursal,
+    Interest,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct ObligationsAmounts {
+    pub disbursed: UsdCents,
+    pub interest: UsdCents,
+}
+
+impl std::ops::Add<ObligationsAmounts> for ObligationsAmounts {
+    type Output = Self;
+
+    fn add(self, other: ObligationsAmounts) -> Self {
+        Self {
+            disbursed: self.disbursed + other.disbursed,
+            interest: self.interest + other.interest,
+        }
+    }
+}
+
+impl ObligationsAmounts {
+    pub const ZERO: Self = Self {
+        disbursed: UsdCents::ZERO,
+        interest: UsdCents::ZERO,
+    };
+
+    pub fn total(&self) -> UsdCents {
+        self.interest + self.disbursed
+    }
+
+    pub fn is_zero(&self) -> bool {
+        self.disbursed.is_zero() && self.interest.is_zero()
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct PaymentDetailsForAllocation {
+    pub payment_id: PaymentId,
+    pub amount: UsdCents,
+    pub credit_facility_id: BeneficiaryId,
+    pub facility_payment_holding_account_id: CalaAccountId,
+    pub effective: chrono::NaiveDate,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct PaymentSourceAccountId(CalaAccountId);
+
+// Note: DO NOT implement `From<CalaAccountId> for PaymentSourceAccountId` since
+//       we want to avoid trivially passing any CalaAccountId into a place that
+//       expects PaymentSourceAccountId.
+
+impl From<PaymentSourceAccountId> for CalaAccountId {
+    fn from(account_id: PaymentSourceAccountId) -> Self {
+        account_id.0
+    }
+}
+
+impl PaymentSourceAccountId {
+    pub const fn new(account_id: CalaAccountId) -> Self {
+        Self(account_id)
+    }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+pub struct ObligationReceivableAccountIds {
+    pub not_yet_due: CalaAccountId,
+    pub due: CalaAccountId,
+    pub overdue: CalaAccountId,
+}
+
+impl ObligationReceivableAccountIds {
+    #[allow(clippy::new_without_default)]
+    #[cfg(test)]
+    pub fn new() -> Self {
+        Self {
+            not_yet_due: CalaAccountId::new(),
+            due: CalaAccountId::new(),
+            overdue: CalaAccountId::new(),
+        }
+    }
+
+    pub fn id_for_status(&self, status: ObligationStatus) -> Option<CalaAccountId> {
+        match status {
+            ObligationStatus::NotYetDue => Some(self.not_yet_due),
+            ObligationStatus::Due => Some(self.due),
+            ObligationStatus::Overdue | ObligationStatus::Defaulted => Some(self.overdue),
+            ObligationStatus::Paid => None,
+        }
+    }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+pub enum BalanceUpdatedSource {
+    Obligation(ObligationId),
+    PaymentAllocation(PaymentAllocationId),
+}
+
+impl From<ObligationId> for BalanceUpdatedSource {
+    fn from(obligation_id: ObligationId) -> Self {
+        Self::Obligation(obligation_id)
+    }
+}
+
+impl From<PaymentAllocationId> for BalanceUpdatedSource {
+    fn from(allocation_id: PaymentAllocationId) -> Self {
+        Self::PaymentAllocation(allocation_id)
+    }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+pub struct BalanceUpdateData {
+    pub source_id: BalanceUpdatedSource,
+    pub ledger_tx_id: LedgerTxId,
+    pub balance_type: ObligationType,
+    pub amount: UsdCents,
+    pub updated_at: DateTime<Utc>,
 }
 
 pub type ObligationAllOrOne = AllOrOne<ObligationId>;
