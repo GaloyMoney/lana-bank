@@ -41,13 +41,13 @@ Lana es una plataforma bancaria moderna construida para operaciones de préstamo
   <div className="col col--4">
     <div className="card">
       <div className="card__header">
-        <h3>Para Arquitectos</h3>
+        <h3>Para Ingenieros de Plataforma</h3>
       </div>
       <div className="card__body">
         <p>Comprende el diseño del sistema, despliegue y patrones de integración.</p>
       </div>
       <div className="card__footer">
-        <a className="button button--primary button--block" href="for-architects/">Guía de Arquitectura</a>
+        <a className="button button--primary button--block" href="for-platform-engineers/">Guía de Plataforma</a>
       </div>
     </div>
   </div>
@@ -76,8 +76,8 @@ Lana es una plataforma bancaria moderna construida para operaciones de préstamo
 - [Contabilidad](for-operators/accounting/) - Operaciones financieras
 
 ### Técnico
-- [Arquitectura del Sistema](for-architects/functional-architecture) - Diseño técnico integral
-- [Modelos de Datos](for-architects/erds/) - Diagramas de entidad-relación
+- [Arquitectura del Sistema](for-platform-engineers/functional-architecture) - Diseño técnico integral
+- [Modelos de Datos](for-platform-engineers/erds/) - Diagramas de entidad-relación
 
 ## Comenzando
 

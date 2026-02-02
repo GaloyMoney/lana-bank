@@ -1,12 +1,12 @@
 ---
 id: index
-title: Architecture Guide
+title: Platform Engineering Guide
 sidebar_position: 1
 ---
 
-# Architecture Guide
+# Platform Engineering Guide
 
-Welcome to the Lana architecture documentation. This section is for technical teams evaluating or deploying the platform.
+Welcome to the Lana platform engineering documentation. This section is for technical teams evaluating or deploying the platform.
 
 ## System Overview
 

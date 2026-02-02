@@ -199,40 +199,40 @@ const sidebars = {
     },
     {
       type: "category",
-      label: "For Architects",
+      label: "For Platform Engineers",
       link: {
         type: "doc",
-        id: "for-architects/index",
+        id: "for-platform-engineers/index",
       },
       items: [
         {
           type: "category",
           label: "System Architecture",
           items: [
-            "for-architects/system-architecture",
-            "for-architects/domain-services",
-            "for-architects/functional-architecture",
+            "for-platform-engineers/system-architecture",
+            "for-platform-engineers/domain-services",
+            "for-platform-engineers/functional-architecture",
           ],
         },
         {
           type: "category",
           label: "Technical Infrastructure",
           items: [
-            "for-architects/authentication-architecture",
-            "for-architects/event-system",
-            "for-architects/background-jobs",
-            "for-architects/infrastructure-services",
-            "for-architects/observability",
-            "for-architects/audit-system",
+            "for-platform-engineers/authentication-architecture",
+            "for-platform-engineers/event-system",
+            "for-platform-engineers/background-jobs",
+            "for-platform-engineers/infrastructure-services",
+            "for-platform-engineers/observability",
+            "for-platform-engineers/audit-system",
           ],
         },
         {
           type: "category",
           label: "Integrations",
           items: [
-            "for-architects/cala-ledger-integration",
-            "for-architects/custody-portfolio",
-            "for-architects/data-pipelines",
+            "for-platform-engineers/cala-ledger-integration",
+            "for-platform-engineers/custody-portfolio",
+            "for-platform-engineers/data-pipelines",
           ],
         },
         {
@@ -240,11 +240,11 @@ const sidebars = {
           label: "Data Models (ERDs)",
           link: {
             type: "doc",
-            id: "for-architects/erds/index",
+            id: "for-platform-engineers/erds/index",
           },
           items: [
-            "for-architects/erds/cala",
-            "for-architects/erds/lana",
+            "for-platform-engineers/erds/cala",
+            "for-platform-engineers/erds/lana",
           ],
         },
         {
@@ -252,13 +252,13 @@ const sidebars = {
           label: "Deployment and Operations",
           link: {
             type: "doc",
-            id: "for-architects/deployment/index",
+            id: "for-platform-engineers/deployment/index",
           },
           items: [
-            "for-architects/deployment/build-system",
-            "for-architects/deployment/development-environment",
-            "for-architects/deployment/testing-strategy",
-            "for-architects/deployment/ci-cd",
+            "for-platform-engineers/deployment/build-system",
+            "for-platform-engineers/deployment/development-environment",
+            "for-platform-engineers/deployment/testing-strategy",
+            "for-platform-engineers/deployment/ci-cd",
           ],
         },
       ],

@@ -15,9 +15,9 @@
     "message": "Para Operadores",
     "description": "The label for category 'For Operators' in sidebar 'docsSidebar'"
   },
-  "sidebar.docsSidebar.category.For Architects": {
-    "message": "Para Arquitectos",
-    "description": "The label for category 'For Architects' in sidebar 'docsSidebar'"
+  "sidebar.docsSidebar.category.For Platform Engineers": {
+    "message": "Para Ingenieros de Plataforma",
+    "description": "The label for category 'For Platform Engineers' in sidebar 'docsSidebar'"
   },
   "sidebar.docsSidebar.category.Credit Management": {
     "message": "Gestión de Crédito",

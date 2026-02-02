@@ -41,13 +41,13 @@ Lana is a modern banking core platform built for digital lending and custody ope
   <div className="col col--4">
     <div className="card">
       <div className="card__header">
-        <h3>For Architects</h3>
+        <h3>For Platform Engineers</h3>
       </div>
       <div className="card__body">
         <p>Understand system design, deployment, and integration patterns.</p>
       </div>
       <div className="card__footer">
-        <a className="button button--primary button--block" href="for-architects/">Architecture Guide</a>
+        <a className="button button--primary button--block" href="for-platform-engineers/">Platform Guide</a>
       </div>
     </div>
   </div>
@@ -76,8 +76,8 @@ Lana is a modern banking core platform built for digital lending and custody ope
 - [Accounting](for-operators/accounting/) - Financial operations
 
 ### Technical
-- [System Architecture](for-architects/functional-architecture) - Comprehensive technical design
-- [Data Models](for-architects/erds/) - Entity relationship diagrams
+- [System Architecture](for-platform-engineers/functional-architecture) - Comprehensive technical design
+- [Data Models](for-platform-engineers/erds/) - Entity relationship diagrams
 
 ## Getting Started
 

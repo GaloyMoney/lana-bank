@@ -174,8 +174,8 @@ const config = {
                 to: "/for-operators",
               },
               {
-                label: "For Architects",
-                to: "/for-architects",
+                label: "For Platform Engineers",
+                to: "/for-platform-engineers",
               },
             ],
           },

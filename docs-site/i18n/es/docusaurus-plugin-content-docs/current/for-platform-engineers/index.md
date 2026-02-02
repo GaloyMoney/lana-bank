@@ -1,12 +1,12 @@
 ---
 id: index
-title: Guía de Arquitectura
+title: Guía de Ingeniería de Plataforma
 sidebar_position: 1
 ---
 
-# Guía de Arquitectura
+# Guía de Ingeniería de Plataforma
 
-Bienvenido a la documentación de arquitectura de Lana. Esta sección está dirigida a equipos técnicos que evalúan o despliegan la plataforma.
+Bienvenido a la documentación de ingeniería de plataforma de Lana. Esta sección está dirigida a equipos técnicos que evalúan o despliegan la plataforma.
 
 ## Resumen del Sistema
 
