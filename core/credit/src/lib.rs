@@ -647,7 +647,7 @@ where
 
         let price = self.price.usd_cents_per_btc().await;
         let cvl = balance.with_added_disbursal(amount).current_cvl(price);
-        if cvl < facility.terms.margin_call_cvl {
+        if !facility.is_disbursal_allowed(cvl) {
             return Err(CreditFacilityError::BelowMarginLimit.into());
         }
 

@@ -187,7 +187,7 @@ impl PendingCreditFacility {
         );
 
         let cvl = balances.current_cvl(price);
-        if cvl < self.terms.margin_call_cvl {
+        if !self.is_completion_allowed(cvl) {
             return Err(PendingCreditFacilityError::BelowMarginLimit);
         }
 
@@ -257,6 +257,10 @@ impl PendingCreditFacility {
 
     fn is_single_disbursal(&self) -> bool {
         self.terms.is_single_disbursal()
+    }
+
+    fn is_completion_allowed(&self, cvl: CVLPct) -> bool {
+        cvl >= self.terms.margin_call_cvl
     }
 }
 
@@ -425,6 +429,7 @@ mod test {
         let (clock, _ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual());
         clock
     }
+
     mod complete {
         use super::*;
 
