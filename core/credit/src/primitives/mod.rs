@@ -75,6 +75,8 @@ es_entity::entity_id! {
 
     CreditFacilityId => public_id::PublicIdTargetId,
     DisbursalId => public_id::PublicIdTargetId,
+
+    CreditFacilityId => core_credit_collections::BeneficiaryId,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]

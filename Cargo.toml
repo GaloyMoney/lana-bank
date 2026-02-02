@@ -43,6 +43,7 @@ tracing-utils = { path = "lib/tracing-utils" }
 core-access = { path = "core/access" }
 core-accounting = { path = "core/accounting" }
 core-credit = { path = "core/credit" }
+core-credit-collections = { path = "core/credit/collections" }
 core-credit-terms = { path = "core/credit/terms" }
 core-custody = { path = "core/custody" }
 core-customer = { path = "core/customer" }
