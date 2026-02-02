@@ -72,7 +72,7 @@ pub enum CoreCreditEvent {
         ledger_tx_id: LedgerTxId,
         new_amount: Satoshis,
         abs_diff: Satoshis,
-        action: CollateralAction,
+        direction: CollateralDirection,
         recorded_at: DateTime<Utc>,
         effective: chrono::NaiveDate,
     },

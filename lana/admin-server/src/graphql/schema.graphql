@@ -284,13 +284,22 @@ type Collateral {
 	creditFacility: CreditFacility!
 }
 
-enum CollateralAction {
+type CollateralBalance {
+	btcBalance: Satoshis!
+}
+
+enum CollateralDirection {
 	ADD
 	REMOVE
 }
 
-type CollateralBalance {
-	btcBalance: Satoshis!
+input CollateralRecordSentToLiquidationInput {
+	collateralId: UUID!
+	amount: Satoshis!
+}
+
+type CollateralRecordSentToLiquidationPayload {
+	collateral: Collateral!
 }
 
 enum CollateralizationState {
@@ -404,6 +413,7 @@ enum CreditFacilitiesSortBy {
 type CreditFacility {
 	id: ID!
 	creditFacilityId: UUID!
+	collateralId: UUID!
 	maturesAt: Timestamp!
 	activatedAt: Timestamp!
 	collateralizationState: CollateralizationState!
@@ -467,7 +477,7 @@ type CreditFacilityCollateralUpdated {
 	satoshis: Satoshis!
 	recordedAt: Timestamp!
 	effective: Date!
-	action: CollateralAction!
+	direction: CollateralDirection!
 	txId: UUID!
 }
 
@@ -1751,15 +1761,6 @@ type LiquidationProceedsReceived {
 	ledgerTxId: UUID!
 }
 
-input LiquidationRecordCollateralSentInput {
-	liquidationId: UUID!
-	amount: Satoshis!
-}
-
-type LiquidationRecordCollateralSentPayload {
-	collateral: Collateral!
-}
-
 input LiquidationRecordProceedsReceivedInput {
 	liquidationId: UUID!
 	amount: UsdCents!
@@ -1860,7 +1861,7 @@ type Mutation {
 	creditFacilityPartialPaymentWithDateRecord(input: CreditFacilityPartialPaymentWithDateRecordInput!): CreditFacilityPartialPaymentRecordPayload!
 	creditFacilityDisbursalInitiate(input: CreditFacilityDisbursalInitiateInput!): CreditFacilityDisbursalInitiatePayload!
 	creditFacilityComplete(input: CreditFacilityCompleteInput!): CreditFacilityCompletePayload!
-	collateralLiquidationRecordCollateralSent(input: LiquidationRecordCollateralSentInput!): LiquidationRecordCollateralSentPayload!
+	collateralRecordSentToLiquidation(input: CollateralRecordSentToLiquidationInput!): CollateralRecordSentToLiquidationPayload!
 	liquidationRecordProceedsReceived(input: LiquidationRecordProceedsReceivedInput!): LiquidationRecordProceedsReceivedPayload!
 	custodianCreate(input: CustodianCreateInput!): CustodianCreatePayload!
 	custodianConfigUpdate(input: CustodianConfigUpdateInput!): CustodianConfigUpdatePayload!

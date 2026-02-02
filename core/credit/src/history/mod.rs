@@ -61,7 +61,7 @@ impl CreditFacilityHistory {
                 abs_diff,
                 recorded_at,
                 effective,
-                action,
+                direction,
                 ledger_tx_id,
                 ..
             } => {
@@ -70,7 +70,7 @@ impl CreditFacilityHistory {
                         satoshis: *abs_diff,
                         recorded_at: *recorded_at,
                         effective: *effective,
-                        action: *action,
+                        direction: *direction,
                         tx_id: *ledger_tx_id,
                     }));
             }

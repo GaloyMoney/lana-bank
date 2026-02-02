@@ -38,7 +38,7 @@ export type Collateral = {
   btcBalance: Scalars['Satoshis']['output'];
 };
 
-export enum CollateralAction {
+export enum CollateralDirection {
   Add = 'ADD',
   Remove = 'REMOVE'
 }
@@ -96,7 +96,7 @@ export type CreditFacilityCollateralSentOut = {
 
 export type CreditFacilityCollateralUpdated = {
   __typename?: 'CreditFacilityCollateralUpdated';
-  action: CollateralAction;
+  direction: CollateralDirection;
   effective: Scalars['Date']['output'];
   recordedAt: Scalars['Timestamp']['output'];
   satoshis: Scalars['Satoshis']['output'];
@@ -478,7 +478,7 @@ export type GetCreditFacilityQueryVariables = Exact<{
 export type GetCreditFacilityQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: any, facilityAmount: any, collateralizationState: CollateralizationState, status: CreditFacilityStatus, activatedAt: any, maturesAt: any, currentCvl: any, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: any, amount: any, status: DisbursalStatus, createdAt: any }>, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualCycleInterval: InterestInterval, accrualInterval: InterestInterval, oneTimeFeeRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: any }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, collateral: { __typename?: 'Collateral', btcBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: any, outstanding: any, accrualAt: any, dueAt: any }>, history: Array<
       | { __typename?: 'CreditFacilityApproved', cents: any, recordedAt: any, txId: any, effective: any }
       | { __typename?: 'CreditFacilityCollateralSentOut', amount: any, recordedAt: any, txId: any, effective: any }
-      | { __typename?: 'CreditFacilityCollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: any, effective: any }
+      | { __typename?: 'CreditFacilityCollateralUpdated', satoshis: any, recordedAt: any, direction: CollateralDirection, txId: any, effective: any }
       | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: any, outstandingInterest: any, outstandingDisbursal: any, recordedAt: any, price: any, effective: any }
       | { __typename?: 'CreditFacilityDisbursalExecuted', cents: any, recordedAt: any, txId: any, effective: any }
       | { __typename?: 'CreditFacilityIncrementalPayment', cents: any, recordedAt: any, txId: any, effective: any }
@@ -600,7 +600,7 @@ export const GetCreditFacilityDocument = gql`
       ... on CreditFacilityCollateralUpdated {
         satoshis
         recordedAt
-        action
+        direction
         txId
         effective
       }

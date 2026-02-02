@@ -84,7 +84,7 @@ export const LiquidationDetailsCard: React.FC<LiquidationDetailsProps> = ({
       <RecordCollateralSentDialog
         open={openCollateralSentDialog}
         onOpenChange={setOpenCollateralSentDialog}
-        liquidationId={liquidation.liquidationId}
+        collateralId={liquidation.creditFacility.collateralId}
       />
       <RecordPaymentReceivedDialog
         open={openPaymentReceivedDialog}

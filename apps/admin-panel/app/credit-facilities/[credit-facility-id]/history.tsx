@@ -11,8 +11,8 @@ import {
 } from "@/app/credit-facilities/label"
 import CardWrapper from "@/components/card-wrapper"
 import Balance from "@/components/balance/balance"
-import { GetCreditFacilityHistoryQuery, CollateralAction } from "@/lib/graphql/generated"
-import { formatCollateralAction, cn } from "@/lib/utils"
+import { GetCreditFacilityHistoryQuery, CollateralDirection } from "@/lib/graphql/generated"
+import { formatCollateralDirection, cn } from "@/lib/utils"
 import DataTable, { Column } from "@/components/data-table"
 
 type CreditFacilityHistoryProps = {
@@ -39,7 +39,7 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
               <div className="flex flex-row gap-1">
                 <div>{t("entryTypes.collateralUpdated")}</div>
                 <div className="text-textColor-secondary text-sm">
-                  {formatCollateralAction(entry.action)}
+                  {formatCollateralDirection(entry.direction)}
                 </div>
               </div>
             )
@@ -101,12 +101,12 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
               <div
                 className={cn(
                   "flex gap-1",
-                  entry.action === CollateralAction.Add
+                  entry.direction === CollateralDirection.Add
                     ? "text-success"
                     : "text-destructive",
                 )}
               >
-                <div>{entry.action === CollateralAction.Add ? "+" : "-"}</div>
+                <div>{entry.direction === CollateralDirection.Add ? "+" : "-"}</div>
                 <Balance amount={entry.satoshis} currency="btc" />
               </div>
             )

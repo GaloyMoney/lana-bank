@@ -155,6 +155,7 @@ pub const DISBURSAL_TRANSACTION_ENTITY_TYPE: core_accounting::EntityType =
 
 pub type CreditFacilityAllOrOne = AllOrOne<CreditFacilityId>;
 pub type ChartOfAccountsIntegrationConfigAllOrOne = AllOrOne<ChartOfAccountsIntegrationConfigId>;
+pub type CollateralAllOrOne = AllOrOne<CollateralId>;
 pub type DisbursalAllOrOne = AllOrOne<DisbursalId>;
 pub type LiquidationAllOrOne = AllOrOne<LiquidationId>;
 pub type ObligationAllOrOne = AllOrOne<ObligationId>;
@@ -174,6 +175,7 @@ pub const DISBURSAL_REF_TARGET: public_id::PublicIdTargetType =
 pub enum CoreCreditObject {
     CreditFacility(CreditFacilityAllOrOne),
     ChartOfAccountsIntegrationConfig(ChartOfAccountsIntegrationConfigAllOrOne),
+    Collateral(CollateralAllOrOne),
     Disbursal(DisbursalAllOrOne),
     Liquidation(LiquidationAllOrOne),
     Obligation(ObligationAllOrOne),
@@ -190,6 +192,14 @@ impl CoreCreditObject {
 
     pub fn chart_of_accounts_integration() -> Self {
         CoreCreditObject::ChartOfAccountsIntegrationConfig(AllOrOne::All)
+    }
+
+    pub fn collateral(id: CollateralId) -> Self {
+        CoreCreditObject::Collateral(AllOrOne::ById(id))
+    }
+
+    pub fn all_collaterals() -> Self {
+        CoreCreditObject::Collateral(AllOrOne::All)
     }
 
     pub fn disbursal(id: DisbursalId) -> Self {
@@ -224,6 +234,7 @@ impl std::fmt::Display for CoreCreditObject {
         match self {
             CreditFacility(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             ChartOfAccountsIntegrationConfig(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            Collateral(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             Disbursal(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             Liquidation(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             Obligation(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
@@ -245,6 +256,10 @@ impl FromStr for CoreCreditObject {
             ChartOfAccountsIntegrationConfig => {
                 let obj_ref = id.parse().map_err(|_| "could not parse CoreCreditObject")?;
                 CoreCreditObject::ChartOfAccountsIntegrationConfig(obj_ref)
+            }
+            Collateral => {
+                let obj_ref = id.parse().map_err(|_| "could not parse CoreCreditObject")?;
+                CoreCreditObject::Collateral(obj_ref)
             }
             Obligation => {
                 let obj_ref = id.parse().map_err(|_| "could not parse CoreCreditObject")?;
@@ -269,6 +284,7 @@ impl FromStr for CoreCreditObject {
 pub enum CoreCreditAction {
     CreditFacility(CreditFacilityAction),
     ChartOfAccountsIntegrationConfig(ChartOfAccountsIntegrationConfigAction),
+    Collateral(CollateralAction),
     Disbursal(DisbursalAction),
     Liquidation(LiquidationAction),
     Obligation(ObligationAction),
@@ -305,6 +321,9 @@ impl CoreCreditAction {
             ChartOfAccountsIntegrationConfigAction::Update,
         );
 
+    pub const COLLATERAL_RECORD_LIQUIDATION_UPDATE: Self =
+        CoreCreditAction::Collateral(CollateralAction::RecordLiquidationUpdate);
+
     pub const DISBURSAL_INITIATE: Self = CoreCreditAction::Disbursal(DisbursalAction::Initiate);
     pub const DISBURSAL_SETTLE: Self = CoreCreditAction::Disbursal(DisbursalAction::Settle);
     pub const DISBURSAL_LIST: Self = CoreCreditAction::Disbursal(DisbursalAction::List);
@@ -312,8 +331,6 @@ impl CoreCreditAction {
 
     pub const LIQUIDATION_LIST: Self = CoreCreditAction::Liquidation(LiquidationAction::List);
     pub const LIQUIDATION_READ: Self = CoreCreditAction::Liquidation(LiquidationAction::Read);
-    pub const LIQUIDATION_RECORD_COLLATERAL_SENT: Self =
-        CoreCreditAction::Liquidation(LiquidationAction::RecordCollateralSent);
     pub const LIQUIDATION_RECORD_PAYMENT_RECEIVED: Self =
         CoreCreditAction::Liquidation(LiquidationAction::RecordPaymentReceived);
 
@@ -338,6 +355,7 @@ impl CoreCreditAction {
                     ChartOfAccountsIntegrationConfig,
                     ChartOfAccountsIntegrationConfigAction
                 ),
+                Collateral => map_action!(credit, Collateral, CollateralAction),
                 Disbursal => map_action!(credit, Disbursal, DisbursalAction),
                 Liquidation => map_action!(credit, Liquidation, LiquidationAction),
                 Obligation => map_action!(credit, Obligation, ObligationAction),
@@ -353,6 +371,7 @@ impl std::fmt::Display for CoreCreditAction {
         match self {
             CreditFacility(action) => action.fmt(f),
             ChartOfAccountsIntegrationConfig(action) => action.fmt(f),
+            Collateral(action) => action.fmt(f),
             Disbursal(action) => action.fmt(f),
             Liquidation(action) => action.fmt(f),
             Obligation(action) => action.fmt(f),
@@ -373,6 +392,7 @@ impl FromStr for CoreCreditAction {
             ChartOfAccountsIntegrationConfig => {
                 CoreCreditAction::from(action.parse::<ChartOfAccountsIntegrationConfigAction>()?)
             }
+            Collateral => CoreCreditAction::from(action.parse::<CollateralAction>()?),
             Disbursal => CoreCreditAction::from(action.parse::<DisbursalAction>()?),
             Liquidation => CoreCreditAction::from(action.parse::<LiquidationAction>()?),
             Obligation => CoreCreditAction::from(action.parse::<ObligationAction>()?),
@@ -444,10 +464,29 @@ impl From<DisbursalAction> for CoreCreditAction {
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
+pub enum CollateralAction {
+    RecordLiquidationUpdate,
+}
+
+impl ActionPermission for CollateralAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::RecordLiquidationUpdate => PERMISSION_SET_CREDIT_WRITER,
+        }
+    }
+}
+
+impl From<CollateralAction> for CoreCreditAction {
+    fn from(action: CollateralAction) -> Self {
+        Self::Collateral(action)
+    }
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
+#[strum(serialize_all = "kebab-case")]
 pub enum LiquidationAction {
     List,
     Read,
-    RecordCollateralSent,
     RecordPaymentReceived,
 }
 
@@ -455,9 +494,7 @@ impl ActionPermission for LiquidationAction {
     fn permission_set(&self) -> &'static str {
         match self {
             Self::List | Self::Read => PERMISSION_SET_CREDIT_VIEWER,
-            Self::RecordCollateralSent | Self::RecordPaymentReceived => {
-                PERMISSION_SET_CREDIT_WRITER
-            }
+            Self::RecordPaymentReceived => PERMISSION_SET_CREDIT_WRITER,
         }
     }
 }
@@ -609,7 +646,7 @@ impl InterestAccrualCycleIdx {
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub enum CollateralAction {
+pub enum CollateralDirection {
     Add,
     Remove,
 }
@@ -617,7 +654,7 @@ pub enum CollateralAction {
 pub struct CollateralUpdate {
     pub tx_id: LedgerTxId,
     pub abs_diff: Satoshis,
-    pub action: CollateralAction,
+    pub direction: CollateralDirection,
     pub effective: chrono::NaiveDate,
 }
 

@@ -1,7 +1,7 @@
 use async_graphql::*;
 
 use crate::primitives::*;
-pub use lana_app::primitives::CollateralAction;
+pub use lana_app::primitives::CollateralDirection;
 
 #[derive(async_graphql::Union)]
 pub enum CreditFacilityHistoryEntry {
@@ -29,7 +29,7 @@ pub struct CreditFacilityCollateralUpdated {
     pub satoshis: Satoshis,
     pub recorded_at: Timestamp,
     pub effective: Date,
-    pub action: CollateralAction,
+    pub direction: CollateralDirection,
     pub tx_id: UUID,
 }
 
@@ -147,7 +147,7 @@ impl From<lana_app::credit::CollateralUpdated> for CreditFacilityCollateralUpdat
             satoshis: collateral.satoshis,
             recorded_at: collateral.recorded_at.into(),
             effective: collateral.effective.into(),
-            action: collateral.action,
+            direction: collateral.direction,
             tx_id: UUID::from(collateral.tx_id),
         }
     }
