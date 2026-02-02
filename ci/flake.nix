@@ -165,41 +165,51 @@
         echo "Updated $CHANGELOG_FILE with version $VERSION"
       '';
 
-      update-docs = pkgs.writeShellScriptBin "update-docs" ''
-        set -euo pipefail
+      update-docs = let
+        # Build tools needed for Rust compilation
+        # The project uses clang + lld for linking (configured in .cargo/config.toml)
+        buildTools =
+          pkgs.lib.optionals pkgs.stdenv.isLinux [pkgs.clang pkgs.lld]
+          ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [pkgs.llvmPackages.lld];
+      in
+        pkgs.writeShellScriptBin "update-docs" ''
+          set -euo pipefail
 
-        if [ -z "''${1:-}" ]; then
-          echo "Usage: update-docs <version>"
-          echo "Example: update-docs 1.2.3"
-          exit 1
-        fi
+          # Add build tools to PATH for Rust compilation
+          export PATH="${pkgs.lib.makeBinPath ([pkgs.rustc pkgs.cargo] ++ buildTools)}:$PATH"
 
-        VERSION="$1"
+          if [ -z "''${1:-}" ]; then
+            echo "Usage: update-docs <version>"
+            echo "Example: update-docs 1.2.3"
+            exit 1
+          fi
 
-        echo "=== Updating documentation for version $VERSION ==="
+          VERSION="$1"
 
-        # Step 1: Generate public event schemas
-        echo "Generating public event schemas..."
-        SQLX_OFFLINE=true ${pkgs.cargo}/bin/cargo run --package public-events-schema --features json-schema
+          echo "=== Updating documentation for version $VERSION ==="
 
-        # Step 2: Run docs-autogenerate (generate API docs and events docs)
-        echo "Generating API and events documentation..."
-        cd docs-site
-        ${pkgs.nodejs}/bin/npm run generate-api-docs
-        ${pkgs.nodejs}/bin/npm run generate-events-docs
+          # Step 1: Generate public event schemas
+          echo "Generating public event schemas..."
+          SQLX_OFFLINE=true cargo run --package public-events-schema --features json-schema
 
-        # Step 3: Create versioned docs snapshot
-        echo "Creating versioned docs snapshot for $VERSION..."
-        ${pkgs.nodejs}/bin/npx docusaurus docs:version "$VERSION"
+          # Step 2: Run docs-autogenerate (generate API docs and events docs)
+          echo "Generating API and events documentation..."
+          cd docs-site
+          ${pkgs.nodejs}/bin/npm run generate-api-docs
+          ${pkgs.nodejs}/bin/npm run generate-events-docs
 
-        # Step 4: Snapshot schemas
-        echo "Snapshotting schemas for $VERSION..."
-        ${pkgs.nodejs}/bin/npm run snapshot-schemas -- "$VERSION"
+          # Step 3: Create versioned docs snapshot
+          echo "Creating versioned docs snapshot for $VERSION..."
+          ${pkgs.nodejs}/bin/npx docusaurus docs:version "$VERSION"
 
-        cd ..
+          # Step 4: Snapshot schemas
+          echo "Snapshotting schemas for $VERSION..."
+          ${pkgs.nodejs}/bin/npm run snapshot-schemas -- "$VERSION"
 
-        echo "=== Documentation updated for version $VERSION ==="
-      '';
+          cd ..
+
+          echo "=== Documentation updated for version $VERSION ==="
+        '';
 
       wait-cachix-paths = pkgs.writeShellScriptBin "wait-cachix-paths" ''
         set +e  # Don't exit on non-zero return codes
