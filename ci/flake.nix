@@ -192,6 +192,10 @@
         echo "Creating versioned docs snapshot for $VERSION..."
         ${pkgs.nodejs}/bin/npx docusaurus docs:version "$VERSION"
 
+        # Step 4: Snapshot schemas
+        echo "Snapshotting schemas for $VERSION..."
+        ${pkgs.nodejs}/bin/npm run snapshot-schemas -- "$VERSION"
+
         cd ..
 
         echo "=== Documentation updated for version $VERSION ==="
