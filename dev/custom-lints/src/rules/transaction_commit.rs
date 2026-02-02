@@ -195,7 +195,7 @@ impl<'a> Visit<'a> for BodyChecker {
         if let syn::Expr::Path(path) = &*node.func {
             if let Some(segment) = path.path.segments.last() {
                 let fn_name = segment.ident.to_string();
-                if fn_name == "begin_op" {
+                if fn_name.starts_with("begin_op") {
                     self.has_begin_op = true;
                 } else if fn_name == "commit" {
                     self.has_commit = true;
