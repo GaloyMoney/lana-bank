@@ -14,7 +14,6 @@ use crate::{
         PendingCreditFacilityCreation,
     },
     primitives::*,
-    terms::TermValues,
 };
 
 use super::error::PendingCreditFacilityError;
@@ -187,7 +186,8 @@ impl PendingCreditFacility {
             PendingCreditFacilityEvent::Completed { .. }
         );
 
-        if !self.terms.is_proposal_completion_allowed(balances, price) {
+        let cvl = balances.current_cvl(price);
+        if !self.is_completion_allowed(cvl) {
             return Err(PendingCreditFacilityError::BelowMarginLimit);
         }
 
@@ -257,6 +257,10 @@ impl PendingCreditFacility {
 
     fn is_single_disbursal(&self) -> bool {
         self.terms.is_single_disbursal()
+    }
+
+    fn is_completion_allowed(&self, cvl: CVLPct) -> bool {
+        cvl >= self.terms.margin_call_cvl
     }
 }
 
@@ -363,8 +367,7 @@ mod test {
     use rust_decimal_macros::dec;
 
     use crate::{
-        ObligationDuration,
-        terms::{DisbursalPolicy, FacilityDuration, InterestInterval, OneTimeFeeRatePct},
+        DisbursalPolicy, FacilityDuration, InterestInterval, ObligationDuration, OneTimeFeeRatePct,
     };
 
     use super::*;
@@ -426,6 +429,7 @@ mod test {
         let (clock, _ctrl) = ClockHandle::artificial(ArtificialClockConfig::manual());
         clock
     }
+
     mod complete {
         use super::*;
 

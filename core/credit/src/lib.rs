@@ -21,8 +21,6 @@ mod primitives;
 mod processes;
 mod publisher;
 mod repayment_plan;
-mod terms;
-mod terms_template;
 
 use std::sync::Arc;
 
@@ -73,13 +71,11 @@ pub use processes::{
 };
 use publisher::CreditFacilityPublisher;
 pub use repayment_plan::*;
-pub use terms::*;
-pub use terms_template::{error as terms_template_error, *};
 
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
     pub use crate::{
-        TermsTemplateEvent, collateral::CollateralEvent, credit_facility::CreditFacilityEvent,
+        collateral::CollateralEvent, credit_facility::CreditFacilityEvent,
         credit_facility_proposal::CreditFacilityProposalEvent, disbursal::DisbursalEvent,
         interest_accrual_cycle::InterestAccrualCycleEvent, liquidation::LiquidationEvent,
         obligation::ObligationEvent, payment::PaymentEvent,
@@ -119,7 +115,6 @@ where
     collaterals: Arc<Collaterals<Perms, E>>,
     custody: Arc<CoreCustody<Perms, E>>,
     chart_of_accounts_integrations: Arc<ChartOfAccountsIntegrations<Perms>>,
-    terms_templates: Arc<TermsTemplates<Perms>>,
     public_ids: Arc<PublicIds>,
     liquidations: Arc<Liquidations<Perms, E>>,
     histories: Arc<Histories<Perms>>,
@@ -161,7 +156,6 @@ where
             approve_proposal: self.approve_proposal.clone(),
             activate_credit_facility: self.activate_credit_facility.clone(),
             chart_of_accounts_integrations: self.chart_of_accounts_integrations.clone(),
-            terms_templates: self.terms_templates.clone(),
             public_ids: self.public_ids.clone(),
             liquidations: self.liquidations.clone(),
         }
@@ -386,9 +380,6 @@ where
         );
         let chart_of_accounts_integrations_arc = Arc::new(chart_of_accounts_integrations);
 
-        let terms_templates = TermsTemplates::new(pool, authz_arc.clone(), clock.clone());
-        let terms_templates_arc = Arc::new(terms_templates);
-
         let approve_disbursal_job_spawner = jobs.add_initializer(DisbursalApprovalInit::new(
             outbox,
             approve_disbursal_arc.as_ref(),
@@ -445,7 +436,6 @@ where
             approve_proposal: approve_proposal_arc,
             activate_credit_facility: activate_credit_facility_arc,
             chart_of_accounts_integrations: chart_of_accounts_integrations_arc,
-            terms_templates: terms_templates_arc,
             public_ids: public_ids_arc,
             liquidations: liquidations_arc,
         })
@@ -485,10 +475,6 @@ where
 
     pub fn chart_of_accounts_integrations(&self) -> &ChartOfAccountsIntegrations<Perms> {
         self.chart_of_accounts_integrations.as_ref()
-    }
-
-    pub fn terms_templates(&self) -> &TermsTemplates<Perms> {
-        self.terms_templates.as_ref()
     }
 
     pub fn histories(&self) -> &Histories<Perms> {
@@ -660,7 +646,8 @@ where
             .await?;
 
         let price = self.price.usd_cents_per_btc().await;
-        if !facility.terms.is_disbursal_allowed(balance, amount, price) {
+        let cvl = balance.with_added_disbursal(amount).current_cvl(price);
+        if !facility.is_disbursal_allowed(cvl) {
             return Err(CreditFacilityError::BelowMarginLimit.into());
         }
 

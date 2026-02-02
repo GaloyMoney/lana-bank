@@ -2,12 +2,10 @@ use thiserror::Error;
 use tracing::Level;
 use tracing_utils::ErrorSeverity;
 
-use crate::primitives::CVLPct;
+use super::cvl::CVLPct;
 
 #[derive(Error, Debug)]
 pub enum TermsError {
-    #[error("LoanTermsError - ConversionError: {0}")]
-    ConversionError(#[from] crate::primitives::ConversionError),
     #[error(
         "LoanTermsError - InvalidFutureDateComparisonForAccrualDate: {1} is after accrual date {0}"
     )]
@@ -28,7 +26,6 @@ pub enum TermsError {
 impl ErrorSeverity for TermsError {
     fn severity(&self) -> Level {
         match self {
-            Self::ConversionError(e) => e.severity(),
             Self::InvalidFutureDateComparisonForAccrualDate(_, _) => Level::WARN,
             Self::MarginCallAboveInitialLimit(_, _) => Level::WARN,
             Self::MarginCallBelowLiquidationLimit(_, _) => Level::WARN,

@@ -24,7 +24,6 @@ use crate::{
     obligation::Obligations,
     pending_credit_facility::{PendingCreditFacilities, PendingCreditFacilityCompletionOutcome},
     primitives::*,
-    terms::InterestPeriod,
 };
 
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};

@@ -8,7 +8,7 @@ use core_money::{Satoshis, UsdCents};
 
 use crate::{
     CollateralizationState, CreditFacilityReceivable, FacilityProceedsFromLiquidationAccountId,
-    TermValues, terms::InterestPeriod,
+    InterestPeriod, TermValues,
 };
 
 use super::primitives::*;

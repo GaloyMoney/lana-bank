@@ -1,7 +1,3 @@
-pub mod entity;
-pub mod error;
-mod repo;
-
 use std::{collections::HashMap, sync::Arc};
 
 use audit::AuditSvc;
@@ -9,14 +5,17 @@ use authz::PermissionCheck;
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
-use crate::{CoreCreditAction, CoreCreditObject, TermValues, primitives::TermsTemplateId};
+use crate::{CoreCreditTermsAction, CoreCreditTermsObject, TermValues};
+
+pub mod entity;
+pub mod error;
+pub mod repo;
+
+es_entity::entity_id! { TermsTemplateId }
 
 pub use entity::*;
-
-#[cfg(feature = "json-schema")]
-pub use entity::TermsTemplateEvent;
-use error::TermsTemplateError;
-use repo::TermsTemplateRepo;
+pub use error::TermsTemplateError;
+pub use repo::TermsTemplateRepo;
 
 #[derive(Clone)]
 pub struct TermsTemplates<Perms>
@@ -30,8 +29,8 @@ where
 impl<Perms> TermsTemplates<Perms>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditTermsAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditTermsObject>,
 {
     pub fn new(
         pool: &sqlx::PgPool,
@@ -54,8 +53,8 @@ where
             .authz
             .evaluate_permission(
                 sub,
-                CoreCreditObject::all_terms_templates(),
-                CoreCreditAction::TERMS_TEMPLATE_CREATE,
+                CoreCreditTermsObject::all_terms_templates(),
+                CoreCreditTermsAction::TERMS_TEMPLATE_CREATE,
                 enforce,
             )
             .await?)
@@ -90,8 +89,8 @@ where
             .authz
             .evaluate_permission(
                 sub,
-                CoreCreditObject::all_terms_templates(),
-                CoreCreditAction::TERMS_TEMPLATE_UPDATE,
+                CoreCreditTermsObject::all_terms_templates(),
+                CoreCreditTermsAction::TERMS_TEMPLATE_UPDATE,
                 enforce,
             )
             .await?)
@@ -116,7 +115,7 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "core_credit.terms_template.find_by_id", skip(self))]
+    #[instrument(name = "core_credit_terms.terms_template.find_by_id", skip(self))]
     pub async fn find_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -125,8 +124,8 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                CoreCreditObject::terms_template(id.into()),
-                CoreCreditAction::TERMS_TEMPLATE_READ,
+                CoreCreditTermsObject::terms_template(id.into()),
+                CoreCreditTermsAction::TERMS_TEMPLATE_READ,
             )
             .await?;
         match self.repo.find_by_id(id.into()).await {
@@ -143,8 +142,8 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                CoreCreditObject::all_terms_templates(),
-                CoreCreditAction::TERMS_TEMPLATE_LIST,
+                CoreCreditTermsObject::all_terms_templates(),
+                CoreCreditTermsAction::TERMS_TEMPLATE_LIST,
             )
             .await?;
         Ok(self

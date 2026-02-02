@@ -5,7 +5,8 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-use crate::{TermValues, primitives::*};
+use super::TermsTemplateId;
+use crate::TermValues;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]

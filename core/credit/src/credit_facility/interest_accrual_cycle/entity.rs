@@ -7,10 +7,7 @@ use serde::{Deserialize, Serialize};
 use es_entity::*;
 
 use crate::{
-    ledger::InterestAccrualCycleLedgerAccountIds,
-    obligation::NewObligation,
-    primitives::*,
-    terms::{InterestPeriod, TermValues},
+    ledger::InterestAccrualCycleLedgerAccountIds, obligation::NewObligation, primitives::*,
 };
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -352,11 +349,8 @@ mod test {
     use rust_decimal_macros::dec;
 
     use crate::{
+        DisbursalPolicy, FacilityDuration, InterestInterval, ObligationDuration, OneTimeFeeRatePct,
         ledger::CreditFacilityLedgerAccountIds,
-        terms::{
-            DisbursalPolicy, FacilityDuration, InterestInterval, ObligationDuration,
-            OneTimeFeeRatePct,
-        },
     };
 
     use super::*;
