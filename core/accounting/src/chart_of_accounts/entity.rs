@@ -28,6 +28,7 @@ pub enum ChartEvent {
     },
     BaseConfigSet {
         base_config: AccountingBaseConfig,
+        off_balance_sheet_category_codes: Vec<AccountCode>,
     },
     ClosedAsOf {
         closed_as_of: NaiveDate,
@@ -46,6 +47,8 @@ pub struct Chart {
     pub name: String,
     #[builder(default)]
     pub base_config: Option<AccountingBaseConfig>,
+    #[builder(default)]
+    pub off_balance_sheet_category_codes: Option<Vec<AccountCode>>,
 
     events: EntityEvents<ChartEvent>,
 
@@ -136,10 +139,11 @@ impl Chart {
 
     pub(super) fn configure_with_initial_accounts(
         &mut self,
-        account_specs: Vec<AccountSpec>,
+        chart_import: impl Into<ChartImport>,
         base_config: AccountingBaseConfig,
         journal_id: CalaJournalId,
     ) -> Result<Idempotent<BulkImportResult>, ChartOfAccountsError> {
+        let chart_import = chart_import.into();
         idempotency_guard!(
             self.events.iter_all().rev(),
             ChartEvent::BaseConfigSet { base_config: existing, .. } if &base_config == existing,
@@ -147,12 +151,14 @@ impl Chart {
         if self.base_config.is_some() {
             return Err(ChartOfAccountsError::BaseConfigAlreadyInitializedWithDifferentConfig);
         }
-
-        let res = BulkAccountImport::new(self, journal_id).import(account_specs);
+        let off_balance_sheet_category_codes =
+            chart_import.off_balance_sheet_category_codes(&base_config);
+        let res = BulkAccountImport::new(self, journal_id).import(chart_import.into_inner());
 
         self.check_base_config_codes_exists_in_chart(&base_config)?;
         self.events.push(ChartEvent::BaseConfigSet {
             base_config: base_config.clone(),
+            off_balance_sheet_category_codes,
         });
         self.base_config = Some(base_config);
 
@@ -497,8 +503,15 @@ impl TryFromEvents<ChartEvent> for Chart {
                         .reference(reference.to_string())
                         .name(name.to_string());
                 }
-                ChartEvent::BaseConfigSet { base_config } => {
-                    builder = builder.base_config(Some(base_config.clone()));
+                ChartEvent::BaseConfigSet {
+                    base_config,
+                    off_balance_sheet_category_codes,
+                } => {
+                    builder = builder
+                        .base_config(Some(base_config.clone()))
+                        .off_balance_sheet_category_codes(Some(
+                            off_balance_sheet_category_codes.clone(),
+                        ));
                 }
                 ChartEvent::ClosedAsOf { .. } => {}
                 ChartEvent::ClosingTransactionPosted { .. } => {}

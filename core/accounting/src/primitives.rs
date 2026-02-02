@@ -626,6 +626,29 @@ impl ChartImport {
             .map(|spec| spec.code.clone())
             .collect()
     }
+
+    pub fn into_inner(self) -> Vec<AccountSpec> {
+        self.0
+    }
+
+    pub fn off_balance_sheet_category_codes(
+        &self,
+        accounting_config: &AccountingBaseConfig,
+    ) -> Vec<AccountCode> {
+        let statement_parent_category_codes = [
+            accounting_config.assets_code.clone(),
+            accounting_config.liabilities_code.clone(),
+            accounting_config.equity_code.clone(),
+            accounting_config.revenue_code.clone(),
+            accounting_config.cost_of_revenue_code.clone(),
+            accounting_config.expenses_code.clone(),
+        ];
+
+        self.parent_category_codes()
+            .into_iter()
+            .filter(|code| !statement_parent_category_codes.contains(code))
+            .collect()
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -1768,6 +1791,20 @@ mod tests {
             }
         }
 
+        fn default_accounting_config() -> AccountingBaseConfig {
+            AccountingBaseConfig::try_new(
+                "1".parse().unwrap(),
+                "2".parse().unwrap(),
+                "3".parse().unwrap(),
+                "3.1".parse().unwrap(),
+                "3.2".parse().unwrap(),
+                "4".parse().unwrap(),
+                "5".parse().unwrap(),
+                "6".parse().unwrap(),
+            )
+            .unwrap()
+        }
+
         #[test]
         fn parent_category_codes_returns_accounts_without_parents() {
             let specs = vec![
@@ -1804,6 +1841,33 @@ mod tests {
             assert!(!top_level.iter().any(|c| c.to_string() == "11"));
             assert!(!top_level.iter().any(|c| c.to_string() == "21"));
             assert!(!top_level.iter().any(|c| c.to_string() == "21.01"));
+        }
+
+        #[test]
+        fn off_balance_sheet_codes_exclude_accounting_configured_codes() {
+            let accounting_config = default_accounting_config();
+            let specs = vec![
+                spec_with_parent("1", None),
+                spec_with_parent("2", None),
+                spec_with_parent("3", None),
+                spec_with_parent("3.1", Some("3")),
+                spec_with_parent("3.2", Some("3")),
+                spec_with_parent("4", None),
+                spec_with_parent("5", None),
+                spec_with_parent("6", None),
+                // Not specified in `accounting_config`.
+                spec_with_parent("7", None),
+                spec_with_parent("8", None),
+                spec_with_parent("9", None),
+            ];
+            let import = ChartImport::from(specs);
+
+            let off_balance_sheet_codes =
+                import.off_balance_sheet_category_codes(&accounting_config);
+            assert_eq!(off_balance_sheet_codes.len(), 3);
+            assert!(off_balance_sheet_codes.iter().any(|c| c.to_string() == "7"));
+            assert!(off_balance_sheet_codes.iter().any(|c| c.to_string() == "8"));
+            assert!(off_balance_sheet_codes.iter().any(|c| c.to_string() == "9"));
         }
     }
 }
