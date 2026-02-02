@@ -187,7 +187,7 @@ impl PendingCreditFacility {
         );
 
         let cvl = balances.current_cvl(price);
-        if !self.is_completion_allowed(cvl) {
+        if !self.terms.is_proposal_completion_allowed(cvl) {
             return Err(PendingCreditFacilityError::BelowMarginLimit);
         }
 
@@ -257,10 +257,6 @@ impl PendingCreditFacility {
 
     fn is_single_disbursal(&self) -> bool {
         self.terms.is_single_disbursal()
-    }
-
-    fn is_completion_allowed(&self, cvl: CVLPct) -> bool {
-        cvl >= self.terms.margin_call_cvl
     }
 }
 

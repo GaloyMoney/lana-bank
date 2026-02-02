@@ -248,6 +248,14 @@ pub struct TermValues {
 }
 
 impl TermValues {
+    pub fn is_proposal_completion_allowed(&self, cvl: CVLPct) -> bool {
+        cvl >= self.margin_call_cvl
+    }
+
+    pub fn is_disbursal_allowed(&self, cvl: CVLPct) -> bool {
+        cvl >= self.margin_call_cvl
+    }
+
     pub fn is_single_disbursal(&self) -> bool {
         matches!(self.disbursal_policy, DisbursalPolicy::SingleDisbursal)
     }
@@ -650,6 +658,50 @@ mod test {
             .initial_cvl(dec!(140))
             .build()
             .expect("should build a valid term")
+    }
+
+    mod proposal_completion {
+        use super::*;
+
+        #[test]
+        fn not_allowed_when_below_margin_call() {
+            let terms = default_terms();
+            assert!(!terms.is_proposal_completion_allowed(CVLPct::Finite(dec!(124))));
+        }
+
+        #[test]
+        fn allowed_when_at_margin_call() {
+            let terms = default_terms();
+            assert!(terms.is_proposal_completion_allowed(CVLPct::Finite(dec!(125))));
+        }
+
+        #[test]
+        fn allowed_when_above_margin_call() {
+            let terms = default_terms();
+            assert!(terms.is_proposal_completion_allowed(CVLPct::Finite(dec!(140))));
+        }
+    }
+
+    mod disbursal {
+        use super::*;
+
+        #[test]
+        fn not_allowed_when_below_margin_call() {
+            let terms = default_terms();
+            assert!(!terms.is_disbursal_allowed(CVLPct::Finite(dec!(124))));
+        }
+
+        #[test]
+        fn allowed_when_at_margin_call() {
+            let terms = default_terms();
+            assert!(terms.is_disbursal_allowed(CVLPct::Finite(dec!(125))));
+        }
+
+        #[test]
+        fn allowed_when_above_margin_call() {
+            let terms = default_terms();
+            assert!(terms.is_disbursal_allowed(CVLPct::Finite(dec!(140))));
+        }
     }
 
     mod collateralization_update {

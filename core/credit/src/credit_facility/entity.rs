@@ -239,10 +239,6 @@ impl CreditFacility {
         self.account_ids.uncovered_outstanding_account_id
     }
 
-    pub fn is_disbursal_allowed(&self, cvl: CVLPct) -> bool {
-        cvl >= self.terms.margin_call_cvl
-    }
-
     fn structuring_fee_on_activation(&self) -> Option<StructuringFeeOnActivation> {
         let tx_id = self.structuring_fee_tx_id?;
 
@@ -1459,23 +1455,6 @@ mod test {
                 res_interest,
                 Err(CreditFacilityError::OutstandingAmount)
             ));
-        }
-    }
-
-    mod disbursal {
-        use super::*;
-        use rust_decimal_macros::dec;
-
-        #[test]
-        fn disbursal_not_allowed_when_below_margin_call() {
-            let credit_facility = facility_from(initial_events());
-            assert!(!credit_facility.is_disbursal_allowed(CVLPct::Finite(dec!(124))));
-        }
-
-        #[test]
-        fn disbursal_allowed_when_above_margin_call() {
-            let credit_facility = facility_from(initial_events());
-            assert!(credit_facility.is_disbursal_allowed(CVLPct::Finite(dec!(125))));
         }
     }
 }
