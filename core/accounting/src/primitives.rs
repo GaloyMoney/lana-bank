@@ -610,6 +610,25 @@ impl From<&AccountingBaseConfig> for ClosingAccountCodes {
 }
 
 #[derive(Debug, Clone)]
+pub struct ChartImport(Vec<AccountSpec>);
+
+impl From<Vec<AccountSpec>> for ChartImport {
+    fn from(account_specs: Vec<AccountSpec>) -> Self {
+        Self(account_specs)
+    }
+}
+
+impl ChartImport {
+    pub fn parent_category_codes(&self) -> Vec<AccountCode> {
+        self.0
+            .iter()
+            .filter(|spec| spec.parent.is_none())
+            .map(|spec| spec.code.clone())
+            .collect()
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct ClosingAccountSetIds {
     pub revenue: CalaAccountSetId,
     pub cost_of_revenue: CalaAccountSetId,
@@ -1733,6 +1752,58 @@ mod tests {
             // Revenue
             assert!(config.is_account_in_category(&config.revenue_code, AccountCategory::Revenue));
             assert!(!config.is_account_in_category(&config.assets_code, AccountCategory::Revenue));
+        }
+    }
+
+    #[cfg(test)]
+    mod chart_import {
+        use super::*;
+
+        fn spec_with_parent(code: &str, parent: Option<&str>) -> AccountSpec {
+            AccountSpec {
+                code: code.parse().unwrap(),
+                name: format!("Account {}", code).parse().unwrap(),
+                parent: parent.map(|p| p.parse().unwrap()),
+                normal_balance_type: DebitOrCredit::Debit,
+            }
+        }
+
+        #[test]
+        fn parent_category_codes_returns_accounts_without_parents() {
+            let specs = vec![
+                spec_with_parent("1", None),
+                spec_with_parent("2", None),
+                spec_with_parent("3", None),
+            ];
+            let import = ChartImport::from(specs);
+
+            let top_level = import.parent_category_codes();
+
+            assert_eq!(top_level.len(), 3);
+            assert!(top_level.iter().any(|c| c.to_string() == "1"));
+            assert!(top_level.iter().any(|c| c.to_string() == "2"));
+            assert!(top_level.iter().any(|c| c.to_string() == "3"));
+        }
+
+        #[test]
+        fn parent_category_codes_exclude_nested_accounts() {
+            let specs = vec![
+                spec_with_parent("1", None),
+                spec_with_parent("11", Some("1")),
+                spec_with_parent("2", None),
+                spec_with_parent("21", Some("2")),
+                spec_with_parent("21.01", Some("21")),
+            ];
+            let import = ChartImport::from(specs);
+
+            let top_level = import.parent_category_codes();
+
+            assert_eq!(top_level.len(), 2);
+            assert!(top_level.iter().any(|c| c.to_string() == "1"));
+            assert!(top_level.iter().any(|c| c.to_string() == "2"));
+            assert!(!top_level.iter().any(|c| c.to_string() == "11"));
+            assert!(!top_level.iter().any(|c| c.to_string() == "21"));
+            assert!(!top_level.iter().any(|c| c.to_string() == "21.01"));
         }
     }
 }
