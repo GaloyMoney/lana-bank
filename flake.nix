@@ -268,6 +268,7 @@
         ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
           clang
           lld
+          mold
           xvfb-run
           cypress
           python313Packages.weasyprint
