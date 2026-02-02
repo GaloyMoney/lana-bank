@@ -168,7 +168,15 @@
       update-docs = pkgs.writeShellApplication {
         name = "update-docs";
         runtimeInputs = with pkgs; [
-          cargo nodejs clang lld gnused gnugrep gnumake gawk diffutils
+          cargo
+          nodejs
+          clang
+          lld
+          gnused
+          gnugrep
+          gnumake
+          gawk
+          diffutils
         ];
 
         text = ''
