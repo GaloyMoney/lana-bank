@@ -6,6 +6,11 @@
 
 set -euo pipefail
 
+# Set compiler environment variables
+export CC="${CC:-gcc}"
+export CXX="${CXX:-g++}"
+export SQLX_OFFLINE=true
+
 WORKSPACE_ROOT="${WORKSPACE_ROOT:-$(pwd)}"
 CARGO_CONFIG="$WORKSPACE_ROOT/.cargo/config.toml"
 CARGO_CONFIG_BACKUP="$WORKSPACE_ROOT/.cargo/config.toml.backup"

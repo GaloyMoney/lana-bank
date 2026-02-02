@@ -1,0 +1,83 @@
+=============================================
+Linker Benchmark Results: lld vs mold
+=============================================
+Date: $(date)
+System: x86_64-unknown-linux-gnu
+Rust: $(rustc --version)
+
+Test target: lana-cli -p lana-cli --features mock-custodian,sumsub-testing
+
+=============================================
+FULL BUILD TIMES (from cargo clean)
+=============================================
+LLD:  255.18s (4m 15s)
+mold: 260.02s (4m 19s)
+
+Speedup: 0.98x (mold is ~2% slower for full builds)
+
+Note: Full build time is dominated by compilation, not linking.
+
+=============================================
+INCREMENTAL BUILD TIMES (touch main.rs)
+=============================================
+This measures the time to rebuild after touching main.rs,
+which forces recompilation of lana-cli and relinking of the binary.
+This is the most common development workflow.
+
+LLD runs:
+  Run 1: 2.61s
+  Run 2: 2.28s
+  Run 3: 2.34s
+  Run 4: 2.44s
+  Run 5: 2.28s
+  Average: 2.39s
+
+mold runs:
+  Run 1: 2.03s
+  Run 2: 1.88s
+  Run 3: 1.92s
+  Run 4: 1.88s
+  Run 5: 1.96s
+  Average: 1.93s
+
+Speedup: 1.24x (mold is ~24% faster for incremental builds)
+Time saved per build: ~0.46s
+
+=============================================
+CONCLUSIONS
+=============================================
+1. For full builds (from clean): Both linkers perform similarly
+   - Full build time is dominated by compilation, not linking
+   - LLD is marginally faster (~2%) but within variance
+
+2. For incremental builds (development workflow): mold is faster
+   - mold is ~24% faster for incremental link operations
+   - Saves ~0.5 seconds per build cycle
+   - Over many iterations during development, this adds up
+
+=============================================
+RECOMMENDATION
+=============================================
+For local development: Use mold linker
+  - Faster incremental builds (most common workflow)
+  - Improves developer experience with quicker feedback loops
+
+For CI/production builds: Either linker is fine
+  - Full build times are similar
+  - LLD has broader platform support (macOS, Windows)
+
+=============================================
+CONFIGURATION
+=============================================
+To use mold (Linux only), update .cargo/config.toml:
+
+[target.x86_64-unknown-linux-gnu]
+linker = "clang"
+rustflags = ["-C", "link-arg=-fuse-ld=mold"]
+
+To use lld (cross-platform):
+
+[target.x86_64-unknown-linux-gnu]
+linker = "clang"
+rustflags = ["-C", "link-arg=-fuse-ld=lld"]
+
