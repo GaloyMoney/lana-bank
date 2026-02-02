@@ -9,6 +9,9 @@ query AccountingBaseConfig {
       revenueCode
       costOfRevenueCode
       expensesCode
+      contingentObligationsCode,
+      contingentRightsCode,
+      memorandumCode,
     }
   }
 }
