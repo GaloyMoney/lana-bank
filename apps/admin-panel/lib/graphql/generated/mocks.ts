@@ -65,12 +65,15 @@ export const mockAccountingBaseConfigInput = (overrides?: Partial<AccountingBase
     relationshipsToOmit.add('AccountingBaseConfigInput');
     return {
         assetsCode: overrides && overrides.hasOwnProperty('assetsCode') ? overrides.assetsCode! : faker.lorem.word(),
+        contingentObligationsCode: overrides && overrides.hasOwnProperty('contingentObligationsCode') ? overrides.contingentObligationsCode! : faker.lorem.word(),
+        contingentRightsCode: overrides && overrides.hasOwnProperty('contingentRightsCode') ? overrides.contingentRightsCode! : faker.lorem.word(),
         costOfRevenueCode: overrides && overrides.hasOwnProperty('costOfRevenueCode') ? overrides.costOfRevenueCode! : faker.lorem.word(),
         equityCode: overrides && overrides.hasOwnProperty('equityCode') ? overrides.equityCode! : faker.lorem.word(),
         equityRetainedEarningsGainCode: overrides && overrides.hasOwnProperty('equityRetainedEarningsGainCode') ? overrides.equityRetainedEarningsGainCode! : faker.lorem.word(),
         equityRetainedEarningsLossCode: overrides && overrides.hasOwnProperty('equityRetainedEarningsLossCode') ? overrides.equityRetainedEarningsLossCode! : faker.lorem.word(),
         expensesCode: overrides && overrides.hasOwnProperty('expensesCode') ? overrides.expensesCode! : faker.lorem.word(),
         liabilitiesCode: overrides && overrides.hasOwnProperty('liabilitiesCode') ? overrides.liabilitiesCode! : faker.lorem.word(),
+        memorandumCode: overrides && overrides.hasOwnProperty('memorandumCode') ? overrides.memorandumCode! : faker.lorem.word(),
         revenueCode: overrides && overrides.hasOwnProperty('revenueCode') ? overrides.revenueCode! : faker.lorem.word(),
     };
 };
@@ -81,12 +84,15 @@ export const mockAccountingBaseConfigOutput = (overrides?: Partial<AccountingBas
     return {
         __typename: 'AccountingBaseConfigOutput',
         assetsCode: overrides && overrides.hasOwnProperty('assetsCode') ? overrides.assetsCode! : faker.lorem.word(),
+        contingentObligationsCode: overrides && overrides.hasOwnProperty('contingentObligationsCode') ? overrides.contingentObligationsCode! : faker.lorem.word(),
+        contingentRightsCode: overrides && overrides.hasOwnProperty('contingentRightsCode') ? overrides.contingentRightsCode! : faker.lorem.word(),
         costOfRevenueCode: overrides && overrides.hasOwnProperty('costOfRevenueCode') ? overrides.costOfRevenueCode! : faker.lorem.word(),
         equityCode: overrides && overrides.hasOwnProperty('equityCode') ? overrides.equityCode! : faker.lorem.word(),
         equityRetainedEarningsGainCode: overrides && overrides.hasOwnProperty('equityRetainedEarningsGainCode') ? overrides.equityRetainedEarningsGainCode! : faker.lorem.word(),
         equityRetainedEarningsLossCode: overrides && overrides.hasOwnProperty('equityRetainedEarningsLossCode') ? overrides.equityRetainedEarningsLossCode! : faker.lorem.word(),
         expensesCode: overrides && overrides.hasOwnProperty('expensesCode') ? overrides.expensesCode! : faker.lorem.word(),
         liabilitiesCode: overrides && overrides.hasOwnProperty('liabilitiesCode') ? overrides.liabilitiesCode! : faker.lorem.word(),
+        memorandumCode: overrides && overrides.hasOwnProperty('memorandumCode') ? overrides.memorandumCode! : faker.lorem.word(),
         revenueCode: overrides && overrides.hasOwnProperty('revenueCode') ? overrides.revenueCode! : faker.lorem.word(),
     };
 };

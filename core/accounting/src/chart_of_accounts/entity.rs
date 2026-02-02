@@ -375,6 +375,12 @@ impl Chart {
             equity_retained_earnings_loss: self
                 .maybe_account_set_id_from_code(&config.equity_retained_earnings_loss_code)
                 .expect("equity_retained_earnings_loss_code should be valid per entity invariant"),
+            contingent_rights: self
+                .maybe_account_set_id_from_code(&config.contingent_rights_code)
+                .expect("contingent_rights_code should be valid per entity invariant"),
+            contingent_obligations: self
+                .maybe_account_set_id_from_code(&config.contingent_obligations_code)
+                .expect("contingent_obligations_code should be valid per entity invariant"),
             revenue: self
                 .maybe_account_set_id_from_code(&config.revenue_code)
                 .expect("revenue_code should be valid per entity invariant"),
@@ -384,6 +390,9 @@ impl Chart {
             expenses: self
                 .maybe_account_set_id_from_code(&config.expenses_code)
                 .expect("expenses_code should be valid per entity invariant"),
+            memorandum: self
+                .maybe_account_set_id_from_code(&config.memorandum_code)
+                .expect("memorandum_code should be valid per entity invariant"),
             config,
         })
     }
@@ -395,9 +404,12 @@ impl Chart {
         self.check_top_level_account_code(&base_config.assets_code)?;
         self.check_top_level_account_code(&base_config.liabilities_code)?;
         self.check_top_level_account_code(&base_config.equity_code)?;
+        self.check_top_level_account_code(&base_config.contingent_rights_code)?;
+        self.check_top_level_account_code(&base_config.contingent_obligations_code)?;
         self.check_top_level_account_code(&base_config.revenue_code)?;
         self.check_top_level_account_code(&base_config.cost_of_revenue_code)?;
         self.check_top_level_account_code(&base_config.expenses_code)?;
+        self.check_top_level_account_code(&base_config.memorandum_code)?;
 
         self.find_node_details_by_code(&base_config.equity_retained_earnings_gain_code)
             .ok_or_else(|| {
@@ -728,6 +740,24 @@ mod test {
                 code: code("6"),
                 normal_balance_type: DebitOrCredit::Debit,
             },
+            AccountSpec {
+                name: "Contingent Rights".parse().unwrap(),
+                parent: None,
+                code: code("7"),
+                normal_balance_type: DebitOrCredit::Debit,
+            },
+            AccountSpec {
+                name: "Contingent Obligations".parse().unwrap(),
+                parent: None,
+                code: code("8"),
+                normal_balance_type: DebitOrCredit::Credit,
+            },
+            AccountSpec {
+                name: "Memorandum".parse().unwrap(),
+                parent: None,
+                code: code("9"),
+                normal_balance_type: DebitOrCredit::Debit,
+            },
         ]
     }
 
@@ -738,9 +768,12 @@ mod test {
             code("3"),
             code("3.1"),
             code("3.2"),
+            code("7"),
+            code("8"),
             code("4"),
             code("5"),
             code("6"),
+            code("9"),
         )
         .unwrap()
     }
@@ -1000,9 +1033,12 @@ mod test {
             code("4"),
             code("4.1"),
             code("4.2"),
+            code("7"),
+            code("8"),
             code("5"),
             code("6"),
-            code("7"),
+            code("0"),
+            code("9"),
         )
         .unwrap();
 
@@ -1029,7 +1065,7 @@ mod test {
 
             assert!(result.did_execute());
             let bulk_result = result.expect("should be executed");
-            assert_eq!(bulk_result.new_account_sets.len(), 8);
+            assert_eq!(bulk_result.new_account_sets.len(), 11);
         }
 
         #[test]
@@ -1073,9 +1109,12 @@ mod test {
                 code("3"),
                 code("3.2"),
                 code("3.1"),
+                code("7"),
+                code("8"),
                 code("4"),
                 code("5"),
                 code("6"),
+                code("9"),
             )
             .unwrap();
 
@@ -1152,7 +1191,19 @@ mod test {
                     normal_balance_type: DebitOrCredit::Debit,
                 },
                 AccountSpec {
-                    name: "Off Balance Sheet".parse().unwrap(),
+                    name: "Contingent Rights".parse().unwrap(),
+                    parent: None,
+                    code: code("7"),
+                    normal_balance_type: DebitOrCredit::Debit,
+                },
+                AccountSpec {
+                    name: "Contingent Obligations".parse().unwrap(),
+                    parent: None,
+                    code: code("8"),
+                    normal_balance_type: DebitOrCredit::Credit,
+                },
+                AccountSpec {
+                    name: "Memorandum".parse().unwrap(),
                     parent: None,
                     code: code("9"),
                     normal_balance_type: DebitOrCredit::Debit,
@@ -1165,9 +1216,12 @@ mod test {
                 code("3"),
                 code("3.1"),
                 code("3.2"),
+                code("7"),
+                code("8"),
                 code("4"),
                 code("5"),
                 code("6"),
+                code("9"),
             )
             .unwrap();
 

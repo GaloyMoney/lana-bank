@@ -455,9 +455,12 @@ pub struct AccountingBaseConfig {
     pub equity_code: AccountCode,
     pub equity_retained_earnings_gain_code: AccountCode,
     pub equity_retained_earnings_loss_code: AccountCode,
+    pub contingent_rights_code: AccountCode,
+    pub contingent_obligations_code: AccountCode,
     pub revenue_code: AccountCode,
     pub cost_of_revenue_code: AccountCode,
     pub expenses_code: AccountCode,
+    pub memorandum_code: AccountCode,
 }
 
 impl AccountingBaseConfig {
@@ -467,9 +470,12 @@ impl AccountingBaseConfig {
         equity_code: AccountCode,
         equity_retained_earnings_gain_code: AccountCode,
         equity_retained_earnings_loss_code: AccountCode,
+        contingent_rights_code: AccountCode,
+        contingent_obligations_code: AccountCode,
         revenue_code: AccountCode,
         cost_of_revenue_code: AccountCode,
         expenses_code: AccountCode,
+        memorandum_code: AccountCode,
     ) -> Result<Self, AccountingBaseConfigError> {
         let config = Self {
             assets_code,
@@ -477,9 +483,12 @@ impl AccountingBaseConfig {
             equity_code,
             equity_retained_earnings_gain_code,
             equity_retained_earnings_loss_code,
+            contingent_rights_code,
+            contingent_obligations_code,
             revenue_code,
             cost_of_revenue_code,
             expenses_code,
+            memorandum_code,
         };
         config.validate()?;
         Ok(config)
@@ -489,9 +498,12 @@ impl AccountingBaseConfig {
             &self.assets_code,
             &self.liabilities_code,
             &self.equity_code,
+            &self.contingent_rights_code,
+            &self.contingent_obligations_code,
             &self.revenue_code,
             &self.cost_of_revenue_code,
             &self.expenses_code,
+            &self.memorandum_code,
         ];
         if let Some(code) = codes.iter().copied().find(|c| !c.is_top_level_chart_code()) {
             return Err(AccountingBaseConfigError::AccountCodeNotTopLevel(
@@ -583,9 +595,12 @@ pub struct ResolvedAccountingBaseConfig {
     pub equity: CalaAccountSetId,
     pub equity_retained_earnings_gain: CalaAccountSetId,
     pub equity_retained_earnings_loss: CalaAccountSetId,
+    pub contingent_rights: CalaAccountSetId,
+    pub contingent_obligations: CalaAccountSetId,
     pub revenue: CalaAccountSetId,
     pub cost_of_revenue: CalaAccountSetId,
     pub expenses: CalaAccountSetId,
+    pub memorandum: CalaAccountSetId,
 }
 
 #[derive(Debug, Clone)]
@@ -1558,9 +1573,12 @@ mod tests {
                 "3".parse().unwrap(),
                 "32.01".parse().unwrap(),
                 "32.02".parse().unwrap(),
+                "7".parse().unwrap(),
+                "8".parse().unwrap(),
                 "4".parse().unwrap(),
                 "5".parse().unwrap(),
                 "6".parse().unwrap(),
+                "9".parse().unwrap(),
             )
             .unwrap()
         }
@@ -1585,9 +1603,12 @@ mod tests {
                 "3".parse().unwrap(),
                 "32.01".parse().unwrap(),
                 "32.02".parse().unwrap(),
+                "7".parse().unwrap(),
+                "8".parse().unwrap(),
                 "4".parse().unwrap(),
                 "5".parse().unwrap(),
                 "6".parse().unwrap(),
+                "9".parse().unwrap(),
             );
             assert!(matches!(
                 invalid_config_res,
@@ -1603,9 +1624,12 @@ mod tests {
                 "3".parse().unwrap(),
                 "32.01".parse().unwrap(),
                 "32.02".parse().unwrap(),
+                "7".parse().unwrap(),
+                "8".parse().unwrap(),
                 "4".parse().unwrap(),
                 "5".parse().unwrap(),
                 "6".parse().unwrap(),
+                "9".parse().unwrap(),
             );
             assert!(matches!(
                 invalid_config_res,
@@ -1621,9 +1645,12 @@ mod tests {
                 "3".parse().unwrap(),
                 "92.01".parse().unwrap(),
                 "92.02".parse().unwrap(),
+                "7".parse().unwrap(),
+                "8".parse().unwrap(),
                 "4".parse().unwrap(),
                 "5".parse().unwrap(),
                 "6".parse().unwrap(),
+                "9".parse().unwrap(),
             );
             assert!(matches!(
                 invalid_config_res,

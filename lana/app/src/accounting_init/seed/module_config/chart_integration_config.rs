@@ -12,9 +12,12 @@ struct AccountingBaseConfigData {
     equity_code: String,
     equity_retained_earnings_gain_code: String,
     equity_retained_earnings_loss_code: String,
+    contingent_rights_code: String,
+    contingent_obligations_code: String,
     revenue_code: String,
     cost_of_revenue_code: String,
     expenses_code: String,
+    memorandum_code: String,
 }
 
 impl TryFrom<AccountingBaseConfigData> for AccountingBaseConfig {
@@ -27,9 +30,12 @@ impl TryFrom<AccountingBaseConfigData> for AccountingBaseConfig {
             data.equity_code.parse()?,
             data.equity_retained_earnings_gain_code.parse()?,
             data.equity_retained_earnings_loss_code.parse()?,
+            data.contingent_rights_code.parse()?,
+            data.contingent_obligations_code.parse()?,
             data.revenue_code.parse()?,
             data.cost_of_revenue_code.parse()?,
             data.expenses_code.parse()?,
+            data.memorandum_code.parse()?,
         )?)
     }
 }

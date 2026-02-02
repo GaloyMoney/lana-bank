@@ -6,9 +6,12 @@ input AccountingBaseConfigInput {
 	equityCode: String!
 	equityRetainedEarningsGainCode: String!
 	equityRetainedEarningsLossCode: String!
+	contingentRightsCode: String!
+	contingentObligationsCode: String!
 	revenueCode: String!
 	costOfRevenueCode: String!
 	expensesCode: String!
+	memorandumCode: String!
 }
 
 type AccountingBaseConfigOutput {
@@ -17,9 +20,12 @@ type AccountingBaseConfigOutput {
 	equityCode: String!
 	equityRetainedEarningsGainCode: String!
 	equityRetainedEarningsLossCode: String!
+	contingentRightsCode: String!
+	contingentObligationsCode: String!
 	revenueCode: String!
 	costOfRevenueCode: String!
 	expensesCode: String!
+	memorandumCode: String!
 }
 
 type AccountingCsvDocument {

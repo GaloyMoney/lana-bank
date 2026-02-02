@@ -52,9 +52,12 @@ pub struct AccountingBaseConfigOutput {
     pub equity_code: String,
     pub equity_retained_earnings_gain_code: String,
     pub equity_retained_earnings_loss_code: String,
+    pub contingent_rights_code: String,
+    pub contingent_obligations_code: String,
     pub revenue_code: String,
     pub cost_of_revenue_code: String,
     pub expenses_code: String,
+    pub memorandum_code: String,
 }
 
 impl From<AccountingBaseConfig> for AccountingBaseConfigOutput {
@@ -69,9 +72,12 @@ impl From<AccountingBaseConfig> for AccountingBaseConfigOutput {
             equity_retained_earnings_loss_code: config
                 .equity_retained_earnings_loss_code
                 .to_string(),
+            contingent_rights_code: config.contingent_rights_code.to_string(),
+            contingent_obligations_code: config.contingent_obligations_code.to_string(),
             revenue_code: config.revenue_code.to_string(),
             cost_of_revenue_code: config.cost_of_revenue_code.to_string(),
             expenses_code: config.expenses_code.to_string(),
+            memorandum_code: config.memorandum_code.to_string(),
         }
     }
 }
@@ -136,9 +142,12 @@ pub struct AccountingBaseConfigInput {
     pub equity_code: String,
     pub equity_retained_earnings_gain_code: String,
     pub equity_retained_earnings_loss_code: String,
+    pub contingent_rights_code: String,
+    pub contingent_obligations_code: String,
     pub revenue_code: String,
     pub cost_of_revenue_code: String,
     pub expenses_code: String,
+    pub memorandum_code: String,
 }
 
 impl TryFrom<AccountingBaseConfigInput> for AccountingBaseConfig {
@@ -151,9 +160,12 @@ impl TryFrom<AccountingBaseConfigInput> for AccountingBaseConfig {
             input.equity_code.parse()?,
             input.equity_retained_earnings_gain_code.parse()?,
             input.equity_retained_earnings_loss_code.parse()?,
+            input.contingent_rights_code.parse()?,
+            input.contingent_obligations_code.parse()?,
             input.revenue_code.parse()?,
             input.cost_of_revenue_code.parse()?,
             input.expenses_code.parse()?,
+            input.memorandum_code.parse()?,
         )?)
     }
 }

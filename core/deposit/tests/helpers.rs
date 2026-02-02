@@ -47,9 +47,12 @@ pub fn default_accounting_base_config() -> AccountingBaseConfig {
         "3".parse().unwrap(),
         "32.01".parse().unwrap(),
         "32.02".parse().unwrap(),
+        "7".parse().unwrap(),
+        "8".parse().unwrap(),
         "4".parse().unwrap(),
         "5".parse().unwrap(),
         "6".parse().unwrap(),
+        "9".parse().unwrap(),
     )
     .unwrap()
 }
@@ -64,6 +67,9 @@ pub const BASE_ACCOUNTS_CSV: &str = r#"
 4,,,Revenue,Credit,
 5,,,Cost of Revenue,Debit,
 6,,,Expenses,Debit,
+7,,,Contingent Rights,Debit,
+8,,,Contingent Obligations,Credit,
+9,,,Memorandum,Debit,
 "#;
 
 pub async fn create_test_statements<Perms, E>(

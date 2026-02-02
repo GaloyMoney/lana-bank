@@ -42,24 +42,30 @@ export type Scalars = {
 
 export type AccountingBaseConfigInput = {
   assetsCode: Scalars['String']['input'];
+  contingentObligationsCode: Scalars['String']['input'];
+  contingentRightsCode: Scalars['String']['input'];
   costOfRevenueCode: Scalars['String']['input'];
   equityCode: Scalars['String']['input'];
   equityRetainedEarningsGainCode: Scalars['String']['input'];
   equityRetainedEarningsLossCode: Scalars['String']['input'];
   expensesCode: Scalars['String']['input'];
   liabilitiesCode: Scalars['String']['input'];
+  memorandumCode: Scalars['String']['input'];
   revenueCode: Scalars['String']['input'];
 };
 
 export type AccountingBaseConfigOutput = {
   __typename?: 'AccountingBaseConfigOutput';
   assetsCode: Scalars['String']['output'];
+  contingentObligationsCode: Scalars['String']['output'];
+  contingentRightsCode: Scalars['String']['output'];
   costOfRevenueCode: Scalars['String']['output'];
   equityCode: Scalars['String']['output'];
   equityRetainedEarningsGainCode: Scalars['String']['output'];
   equityRetainedEarningsLossCode: Scalars['String']['output'];
   expensesCode: Scalars['String']['output'];
   liabilitiesCode: Scalars['String']['output'];
+  memorandumCode: Scalars['String']['output'];
   revenueCode: Scalars['String']['output'];
 };
 
