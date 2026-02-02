@@ -172,15 +172,22 @@ The release workflow follows these stages:
 
 ### CI Pipeline Jobs
 
-#### 1. Test Jobs (Run on Every Commit)
+All of the jobs listed below are defined in `ci/release/pipeline.yml`.
+
+#### 1. Test Jobs
 
 - **`test-integration`**: Runs Rust integration tests using `cargo nextest`
 - **`test-bats`**: Runs end-to-end BATS tests
 - **`flake-check`**: Validates Nix flake configuration
+- **`build-admin-panel-edge-image`**: Builds Admin Panel Docker image
+- **`build-customer-portal-edge-image`**: Builds Customer Portal Docker image
+- **`build-dagster-image`**: Builds Dagster data pipeline Docker image
+
+The image building jobs ensure that the `build-rc` job only processes commits that have had images built on them  successfully.
 
 All test jobs use Cachix for Nix dependency caching to speed up builds.
 
-#### 2. Build RC Job
+#### 2. Build RC and promote RC PR
 
 **Trigger**: Automatically runs after all test jobs pass
 
@@ -196,8 +203,6 @@ The `build-rc` job:
 - Pushes images to Google Artifact Registry (GAR)
 - Creates Git tag for the RC version
 
-#### 3. Open Promote RC PR
-
 **Trigger**: Automatically runs after `build-rc` completes
 
 The `open-promote-rc-pr` job:
@@ -211,7 +216,7 @@ The `open-promote-rc-pr` job:
 
 **Important**: A GitHub workflow (`promote-rc-file-check.yml`) enforces that promote-rc PRs can **only** modify `CHANGELOG.md` and files under `docs-site/`. Any other file changes will cause the PR to fail.
 
-#### 4. Release Job
+#### 3. Release Job
 
 **Trigger**: Runs when the promote-rc PR is **merged**
 
@@ -223,7 +228,7 @@ The `release` job:
   - `lana-cli` binary as downloadable artifact
 - Updates the version resource for future releases
 
-#### 5. Chart Update Jobs
+#### 4. Chart Update Jobs
 
 After a release, automated jobs update the Helm charts:
 
