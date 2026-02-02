@@ -73,7 +73,10 @@ const ChartOfAccountsUpload = () => {
               equityRetainedEarningsLossCode: "",
               revenueCode: "",
               costOfRevenueCode: "",
-              expensesCode: ""
+              expensesCode: "",
+              contingentObligationsCode: "",
+              contingentRightsCode: "",
+              memorandumCode: "",
             }
           },
         },
