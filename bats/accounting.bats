@@ -90,7 +90,7 @@ teardown_file() {
 @test "accounting: imported credit module config from seed into chart of accounts" {
   exec_admin_graphql 'credit-config'
   omnibus_code=$(graphql_output '.data.creditConfig.chartOfAccountFacilityOmnibusParentCode')
-  [[ "$omnibus_code" == "81.01" ]] || exit 1
+  [[ "$omnibus_code" == "91.01" ]] || exit 1
 }
 
 @test "accounting: imported deposit module config from seed into chart of accounts" {
