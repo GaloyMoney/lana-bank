@@ -165,41 +165,44 @@
         echo "Updated $CHANGELOG_FILE with version $VERSION"
       '';
 
-      update-docs = pkgs.writeShellScriptBin "update-docs" ''
-        set -euo pipefail
+      update-docs = pkgs.writeShellApplication {
+        name = "update-docs";
+        runtimeInputs = with pkgs; [cargo nodejs clang lld];
+        text = ''
+          if [ -z "''${1:-}" ]; then
+            echo "Usage: update-docs <version>"
+            echo "Example: update-docs 1.2.3"
+            exit 1
+          fi
 
-        if [ -z "''${1:-}" ]; then
-          echo "Usage: update-docs <version>"
-          echo "Example: update-docs 1.2.3"
-          exit 1
-        fi
+          VERSION="$1"
 
-        VERSION="$1"
+          echo "=== Updating documentation for version $VERSION ==="
 
-        echo "=== Updating documentation for version $VERSION ==="
+          # Step 1: Generate public event schemas
+          echo "Generating public event schemas..."
+          SQLX_OFFLINE=true cargo run --package public-events-schema --features json-schema
 
-        # Step 1: Generate public event schemas
-        echo "Generating public event schemas..."
-        SQLX_OFFLINE=true ${pkgs.cargo}/bin/cargo run --package public-events-schema --features json-schema
+          # Step 2: Run docs-autogenerate (generate API docs and events docs)
+          echo "Generating API and events documentation..."
+          cd docs-site
+          npm install
+          npm run generate-api-docs
+          npm run generate-events-docs
 
-        # Step 2: Run docs-autogenerate (generate API docs and events docs)
-        echo "Generating API and events documentation..."
-        cd docs-site
-        ${pkgs.nodejs}/bin/npm run generate-api-docs
-        ${pkgs.nodejs}/bin/npm run generate-events-docs
+          # Step 3: Create versioned docs snapshot
+          echo "Creating versioned docs snapshot for $VERSION..."
+          npm run version-docs -- "$VERSION"
 
-        # Step 3: Create versioned docs snapshot
-        echo "Creating versioned docs snapshot for $VERSION..."
-        ${pkgs.nodejs}/bin/npx docusaurus docs:version "$VERSION"
+          # Step 4: Snapshot schemas
+          echo "Snapshotting schemas for $VERSION..."
+          npm run snapshot-schemas -- "$VERSION"
 
-        # Step 4: Snapshot schemas
-        echo "Snapshotting schemas for $VERSION..."
-        ${pkgs.nodejs}/bin/npm run snapshot-schemas -- "$VERSION"
+          cd ..
 
-        cd ..
-
-        echo "=== Documentation updated for version $VERSION ==="
-      '';
+          echo "=== Documentation updated for version $VERSION ==="
+        '';
+      };
 
       wait-cachix-paths = pkgs.writeShellScriptBin "wait-cachix-paths" ''
         set +e  # Don't exit on non-zero return codes

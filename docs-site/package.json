@@ -12,6 +12,7 @@
     "serve": "docusaurus serve",
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids",
+    "version-docs": "docusaurus docs:version",
     "generate-api-docs": "docusaurus graphql-to-doc:admin && docusaurus graphql-to-doc:customer && node scripts/fix-category-keys.js",
     "generate-api-docs:admin": "docusaurus graphql-to-doc:admin",
     "generate-api-docs:customer": "docusaurus graphql-to-doc:customer",
