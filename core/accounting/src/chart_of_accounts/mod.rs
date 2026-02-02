@@ -390,7 +390,7 @@ where
     )]
     pub async fn post_closing_transaction(
         &self,
-        mut op: es_entity::DbOp<'_>,
+        op: &mut es_entity::DbOp<'_>,
         chart_id: ChartId,
         tx_details: ClosingTxDetails,
     ) -> Result<(), ChartOfAccountsError> {
@@ -404,12 +404,10 @@ where
         if let Idempotent::Executed(closing_tx_parents_and_details) =
             chart.post_closing_tx_as_of(account_codes, tx_details)?
         {
-            self.repo.update_in_op(&mut op, &mut chart).await?;
+            self.repo.update_in_op(op, &mut chart).await?;
             self.chart_ledger
-                .post_closing_transaction(&mut op, closing_tx_parents_and_details)
+                .post_closing_transaction(op, closing_tx_parents_and_details)
                 .await?;
-
-            op.commit().await?;
         }
         Ok(())
     }

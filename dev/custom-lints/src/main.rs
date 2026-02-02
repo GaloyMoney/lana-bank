@@ -5,7 +5,7 @@ use anyhow::Result;
 use rayon::prelude::*;
 use walkdir::WalkDir;
 
-use custom_lints::rules::DependencyDagRule;
+use custom_lints::rules::{DependencyDagRule, TransactionCommitRule};
 use custom_lints::{LintRule, Violation, WorkspaceRule};
 
 fn main() -> ExitCode {
@@ -44,12 +44,7 @@ fn run() -> Result<Vec<Violation>> {
     }
 
     // Run file-level rules
-    let file_rules: Vec<Box<dyn LintRule>> = vec![
-        // Future rules will be added here:
-        // Box::new(TrainWreckRule::new(5)),
-        // Box::new(InOpConventionRule::new()),
-        // Box::new(TransactionScopeRule::new()),
-    ];
+    let file_rules: Vec<Box<dyn LintRule>> = vec![Box::new(TransactionCommitRule::new())];
 
     if !file_rules.is_empty() {
         let dirs_to_check = vec!["core", "lana", "lib"];
