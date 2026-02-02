@@ -112,17 +112,15 @@ impl BodyChecker {
             // Handle `Ok(...)` or other enum variant wrapping
             syn::Expr::Call(call) => {
                 // Check if any argument contains a DbOp being returned
-                if call.args.iter().any(|arg| Self::expr_returns_db_op(arg)) {
+                if call.args.iter().any(Self::expr_returns_db_op) {
                     return true;
                 }
                 // Check for Ok(begin_op result)
-                if let syn::Expr::Path(path) = &*call.func {
-                    if path.path.is_ident("Ok") {
-                        if let Some(arg) = call.args.first() {
-                            return Self::expr_returns_db_op(arg)
-                                || Self::expr_contains_db_op_var(arg);
-                        }
-                    }
+                if let syn::Expr::Path(path) = &*call.func
+                    && path.path.is_ident("Ok")
+                    && let Some(arg) = call.args.first()
+                {
+                    return Self::expr_returns_db_op(arg) || Self::expr_contains_db_op_var(arg);
                 }
                 // Check if this is an enum variant containing a DbOp variable
                 Self::expr_contains_db_op_var(expr)
@@ -150,12 +148,9 @@ impl BodyChecker {
     /// Check if expression contains a DbOp variable (for return patterns like `CompleteWithOp(op)`)
     fn expr_contains_db_op_var(expr: &syn::Expr) -> bool {
         match expr {
-            syn::Expr::Call(call) => call
-                .args
-                .iter()
-                .any(|arg| Self::expr_contains_db_op_var(arg)),
+            syn::Expr::Call(call) => call.args.iter().any(Self::expr_contains_db_op_var),
             syn::Expr::Path(path) => Self::is_db_op_variable(path),
-            syn::Expr::Tuple(t) => t.elems.iter().any(|e| Self::expr_contains_db_op_var(e)),
+            syn::Expr::Tuple(t) => t.elems.iter().any(Self::expr_contains_db_op_var),
             syn::Expr::Struct(s) => s
                 .fields
                 .iter()
@@ -192,14 +187,14 @@ impl<'a> Visit<'a> for BodyChecker {
 
     fn visit_expr_call(&mut self, node: &'a syn::ExprCall) {
         // Check for function-style calls like `begin_op()` or path calls
-        if let syn::Expr::Path(path) = &*node.func {
-            if let Some(segment) = path.path.segments.last() {
-                let fn_name = segment.ident.to_string();
-                if fn_name.starts_with("begin_op") {
-                    self.has_begin_op = true;
-                } else if fn_name == "commit" {
-                    self.has_commit = true;
-                }
+        if let syn::Expr::Path(path) = &*node.func
+            && let Some(segment) = path.path.segments.last()
+        {
+            let fn_name = segment.ident.to_string();
+            if fn_name.starts_with("begin_op") {
+                self.has_begin_op = true;
+            } else if fn_name == "commit" {
+                self.has_commit = true;
             }
         }
 
