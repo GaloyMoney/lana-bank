@@ -167,7 +167,10 @@
 
       update-docs = pkgs.writeShellApplication {
         name = "update-docs";
-        runtimeInputs = with pkgs; [cargo nodejs clang lld];
+        runtimeInputs = with pkgs; [
+          cargo nodejs clang lld gnused gnugrep gnumake gawk diffutils
+        ];
+
         text = ''
           if [ -z "''${1:-}" ]; then
             echo "Usage: update-docs <version>"
