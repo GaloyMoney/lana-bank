@@ -31,13 +31,12 @@ pub async fn init_read_only_exposed_domain_configs(
 pub async fn init_internal_domain_configs(
     pool: &sqlx::PgPool,
 ) -> anyhow::Result<InternalDomainConfigs> {
-    clear_internal_domain_config(pool, "deposit-chart-of-accounts-integration").await?;
     let internal_configs = InternalDomainConfigs::new(pool);
     internal_configs.seed_registered().await?;
     Ok(internal_configs)
 }
 
-async fn clear_internal_domain_config(pool: &sqlx::PgPool, key: &str) -> anyhow::Result<()> {
+pub async fn clear_internal_domain_config(pool: &sqlx::PgPool, key: &str) -> anyhow::Result<()> {
     // Use a CTE to perform all deletes atomically in dependency order.
     // This prevents race conditions when tests run in parallel.
     sqlx::query(
