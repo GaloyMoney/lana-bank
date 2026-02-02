@@ -172,7 +172,7 @@ The release workflow follows these stages:
 
 ### CI Pipeline Jobs
 
-All of the jobs listed below are defined in `ci/release/pipeline.yml`.
+All of the jobs listed below are defined in yaml files in the `ci/release` directory, mainly `pipeline.yml`.
 
 #### 1. Test Jobs
 
