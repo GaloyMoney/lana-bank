@@ -180,7 +180,7 @@ impl<'a> Visit<'a> for BodyChecker {
     fn visit_expr_method_call(&mut self, node: &'a syn::ExprMethodCall) {
         let method_name = node.method.to_string();
 
-        if method_name == "begin_op" {
+        if method_name.starts_with("begin_op") {
             self.has_begin_op = true;
         } else if method_name == "commit" {
             self.has_commit = true;
