@@ -1463,19 +1463,19 @@ mod test {
     }
 
     mod disbursal {
-        use rust_decimal_macros::dec;
         use super::*;
+        use rust_decimal_macros::dec;
 
-       #[test]
-       fn disbursal_not_allowed_when_below_margin_call() {
-        let credit_facility = facility_from(initial_events());
-        assert!(!credit_facility.is_disbursal_allowed(CVLPct::Finite(dec!(124))));
-       }
+        #[test]
+        fn disbursal_not_allowed_when_below_margin_call() {
+            let credit_facility = facility_from(initial_events());
+            assert!(!credit_facility.is_disbursal_allowed(CVLPct::Finite(dec!(124))));
+        }
 
-       #[test]
-       fn disbursal_allowed_when_above_margin_call() {
-        let credit_facility = facility_from(initial_events());
-        assert!(credit_facility.is_disbursal_allowed(CVLPct::Finite(dec!(125))));
-       }
+        #[test]
+        fn disbursal_allowed_when_above_margin_call() {
+            let credit_facility = facility_from(initial_events());
+            assert!(credit_facility.is_disbursal_allowed(CVLPct::Finite(dec!(125))));
+        }
     }
 }
