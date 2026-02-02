@@ -37,10 +37,10 @@ export function usePermissionDisplay() {
           label: t("audit_viewer.label"),
           description: t("audit_viewer.description"),
         }
-      case PermissionSetName.ContractCreation:
+      case PermissionSetName.PdfGeneration:
         return {
-          label: t("contract_creation.label"),
-          description: t("contract_creation.description"),
+          label: t("pdf_generation.label"),
+          description: t("pdf_generation.description"),
         }
       case PermissionSetName.CreditViewer:
         return {

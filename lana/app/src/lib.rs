@@ -221,12 +221,10 @@ pub mod report {
         core_report::CoreReports<crate::authorization::Authorization, lana_events::LanaEvent>;
 }
 
-pub mod contract_creation {
-    pub use contract_creation::*;
-    pub type ContractCreation = contract_creation::ContractCreation<
-        crate::authorization::Authorization,
-        lana_events::LanaEvent,
-    >;
+pub mod pdf_generation {
+    pub use pdf_generation::*;
+    pub type PdfGeneration =
+        pdf_generation::PdfGeneration<crate::authorization::Authorization, lana_events::LanaEvent>;
 }
 
 pub mod gotenberg {

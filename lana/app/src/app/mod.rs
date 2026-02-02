@@ -16,7 +16,6 @@ use crate::{
     accounting_init::{ChartsInit, JournalInit, StatementsInit},
     audit::{Audit, AuditCursor, AuditEntry},
     authorization::{Authorization, seed},
-    contract_creation::ContractCreation,
     credit::Credit,
     custody::Custody,
     customer::Customers,
@@ -30,6 +29,7 @@ use crate::{
     kyc::CustomerKyc,
     notification::Notification,
     outbox::Outbox,
+    pdf_generation::PdfGeneration,
     price::Price,
     primitives::Subject,
     public_id::PublicIds,
@@ -63,7 +63,7 @@ pub struct LanaApp {
     governance: Governance,
     dashboard: Dashboard,
     public_ids: PublicIds,
-    contract_creation: ContractCreation,
+    pdf_generation: PdfGeneration,
     reports: Reports,
     terms_templates: TermsTemplates,
     _time_events: TimeEvents,
@@ -233,10 +233,11 @@ impl LanaApp {
         let terms_templates =
             TermsTemplates::new(&pool, std::sync::Arc::new(authz.clone()), clock.clone());
 
-        let contract_creation = ContractCreation::new(
+        let pdf_generation = PdfGeneration::new(
             config.gotenberg,
             &customers,
             &customer_kyc,
+            credit.facilities(),
             &documents,
             &mut jobs,
             &authz,
@@ -276,7 +277,7 @@ impl LanaApp {
             governance,
             dashboard,
             public_ids,
-            contract_creation,
+            pdf_generation,
             reports,
             terms_templates,
             _time_events,
@@ -366,8 +367,8 @@ impl LanaApp {
         &self.public_ids
     }
 
-    pub fn contract_creation(&self) -> &ContractCreation {
-        &self.contract_creation
+    pub fn pdf_generation(&self) -> &PdfGeneration {
+        &self.pdf_generation
     }
 
     pub fn terms_templates(&self) -> &TermsTemplates {

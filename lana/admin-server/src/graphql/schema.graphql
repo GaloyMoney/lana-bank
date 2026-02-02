@@ -586,6 +586,16 @@ type CreditFacilityEdge {
 	cursor: String!
 }
 
+type CreditFacilityExport {
+	id: ID!
+	status: PdfGenerationStatus!
+	createdAt: Timestamp!
+}
+
+input CreditFacilityExportInput {
+	generate: Boolean! = true
+}
+
 union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityApproved | PendingCreditFacilityCollateralizationUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityInterestAccrued | CreditFacilityCollateralSentOut | CreditFacilityRepaymentAmountReceived
 
 type CreditFacilityIncrementalPayment {
@@ -1771,31 +1781,12 @@ type LiquidationRecordProceedsReceivedPayload {
 
 type LoanAgreement {
 	id: ID!
-	status: LoanAgreementStatus!
+	status: PdfGenerationStatus!
 	createdAt: Timestamp!
 }
 
-input LoanAgreementDownloadLinksGenerateInput {
-	loanAgreementId: UUID!
-}
-
-type LoanAgreementDownloadLinksGeneratePayload {
-	loanAgreementId: UUID!
-	link: String!
-}
-
-input LoanAgreementGenerateInput {
+input LoanAgreementInput {
 	customerId: UUID!
-}
-
-type LoanAgreementGeneratePayload {
-	loanAgreement: LoanAgreement!
-}
-
-enum LoanAgreementStatus {
-	PENDING
-	COMPLETED
-	FAILED
 }
 
 input ManualTransactionEntryInput {
@@ -1883,8 +1874,8 @@ type Mutation {
 	chartOfAccountsCsvImportWithBaseConfig(input: ChartOfAccountsCsvImportWithBaseConfigInput!): ChartOfAccountsCsvImportWithBaseConfigPayload!
 	ledgerAccountCsvCreate(input: LedgerAccountCsvCreateInput!): LedgerAccountCsvCreatePayload!
 	accountingCsvDownloadLinkGenerate(input: AccountingCsvDownloadLinkGenerateInput!): AccountingCsvDownloadLinkGeneratePayload!
-	loanAgreementGenerate(input: LoanAgreementGenerateInput!): LoanAgreementGeneratePayload!
-	loanAgreementDownloadLinkGenerate(input: LoanAgreementDownloadLinksGenerateInput!): LoanAgreementDownloadLinksGeneratePayload!
+	pdfGenerate(input: PdfGenerateInput!): PdfGeneratePayload!
+	pdfDownloadLinkGenerate(input: PdfDownloadLinkGenerateInput!): PdfDownloadLinkGeneratePayload!
 	triggerReportRun: ReportRunCreatePayload!
 	reportFileGenerateDownloadLink(input: ReportFileGenerateDownloadLinkInput!): ReportFileGenerateDownloadLinkPayload!
 }
@@ -1924,6 +1915,33 @@ type PaymentEntry {
 
 type PaymentsUnapplied {
 	usdBalance: UsdCents!
+}
+
+union PdfDocument = LoanAgreement | CreditFacilityExport
+
+input PdfDownloadLinkGenerateInput {
+	pdfId: UUID!
+}
+
+type PdfDownloadLinkGeneratePayload {
+	pdfId: UUID!
+	link: String!
+}
+
+input PdfGenerateInput @oneOf {
+	loanAgreement: LoanAgreementInput
+	creditFacilityExport: CreditFacilityExportInput
+}
+
+type PdfGeneratePayload {
+	document: PdfDocument!
+}
+
+enum PdfGenerationStatus {
+	PENDING
+	COMPLETED
+	FAILED
+	REMOVED
 }
 
 type PendingCreditFacility {
@@ -2059,7 +2077,7 @@ enum PermissionSetName {
 	ACCESS_WRITER
 	ACCOUNTING_VIEWER
 	ACCOUNTING_WRITER
-	CONTRACT_CREATION
+	PDF_GENERATION
 	CREDIT_VIEWER
 	CREDIT_WRITER
 	CREDIT_PAYMENT_DATE
@@ -2202,6 +2220,7 @@ type Query {
 	creditConfig: CreditModuleConfig
 	publicIdTarget(id: PublicId!): PublicIdTarget
 	loanAgreement(id: UUID!): LoanAgreement
+	creditFacilityExport(id: UUID!): CreditFacilityExport
 	accountEntryCsv(ledgerAccountId: UUID!): AccountingCsvDocument
 	reportRuns(first: Int!, after: String): ReportRunConnection!
 	reportRun(id: UUID!): ReportRun

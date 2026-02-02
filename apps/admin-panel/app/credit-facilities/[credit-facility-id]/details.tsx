@@ -28,7 +28,7 @@ import { LoanAndCreditFacilityStatusBadge } from "@/app/credit-facilities/status
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import { removeUnderscore } from "@/lib/utils"
 import Balance from "@/components/balance/balance"
-import { useLoanAgreement } from "@/hooks/use-loan-agreement"
+import { usePdfGenerate } from "@/hooks/use-pdf-generate"
 
 type CreditFacilityDetailsProps = {
   creditFacilityId: string
@@ -48,10 +48,20 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
     React.useState(false)
   const [openTermsDialog, setOpenTermsDialog] = React.useState(false)
 
-  const { generateLoanAgreementPdf, isGenerating } = useLoanAgreement()
+  const { generate, isGenerating } = usePdfGenerate()
 
   const handleGenerateLoanAgreement = () => {
-    generateLoanAgreementPdf(creditFacilityDetails.customer.customerId)
+    generate(
+      {
+        loanAgreement: {
+          customerId: creditFacilityDetails.customer.customerId,
+        },
+      },
+      {
+        successMessage: t("loanAgreement.success"),
+        errorMessage: t("loanAgreement.error"),
+      }
+    )
   }
 
   const monthlyPaymentAmount = creditFacilityDetails.repaymentPlan.find(

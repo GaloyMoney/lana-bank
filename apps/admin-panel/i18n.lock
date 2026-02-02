@@ -65,8 +65,8 @@ checksums:
     Permissions/accounting_writer/description: c1c4979bc08582bfe879bfec7bd3c2f6
     Permissions/audit_viewer/label: 75f0c18197c4d3835383742445c7c44f
     Permissions/audit_viewer/description: 436080627e6050f7217a5274ce7ec212
-    Permissions/contract_creation/label: a7d3e9159ded0a40cd824d9bbfffb253
-    Permissions/contract_creation/description: 1fefff183f79b38e64d686f1eef7f5f4
+    Permissions/pdf_generation/label: 18f6336448d5dc623a5938ee59d37981
+    Permissions/pdf_generation/description: 4adbbf5c43d97d046d73cce94c450587
     Permissions/credit_viewer/label: ddd981efff42fb3ae35dbc7512badf65
     Permissions/credit_viewer/description: 5691969095c092d6b600fcb3fbf84bde
     Permissions/credit_writer/label: 1c68d14fb5d28661dc717870fa30bee5
@@ -475,6 +475,9 @@ checksums:
     CreditFacilityProposals/ProposalDetails/CustomerApprovalDialog/errors/unknown: 78f7a44c71ebfde7c70e68ba68573709
     CreditFacilities/title: 4283868565aa25d5513636fc6e12d49c
     CreditFacilities/description: 18da4507529b9ddbd3762bce95c86b8f
+    CreditFacilities/export/button: 709afbc86c5fdca279a111ea8e49d1c9
+    CreditFacilities/export/success: f307f9af89cf399d9461bcd93e846799
+    CreditFacilities/export/error: e791bbd5dad94f90f4ef0d22b03a65d5
     CreditFacilities/table/headers/customer: 846b48bb14b3d62c75cde5031e6bbfd7
     CreditFacilities/table/headers/status: 4e1fcce15854d824919b4a582c697c90
     CreditFacilities/table/headers/outstanding: 1c88761a69affad9b482d2a76b09e8aa
