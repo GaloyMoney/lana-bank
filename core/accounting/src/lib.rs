@@ -32,7 +32,7 @@ pub use balance_sheet::{BalanceSheet, BalanceSheets};
 pub use chart_of_accounts::{Chart, ChartOfAccounts, error as chart_of_accounts_error, tree};
 pub use csv::AccountingCsvExports;
 use error::CoreAccountingError;
-pub use event::CoreAccountingEvent;
+pub use event::{CSV_EXPORT_EVENT_TYPE, CoreAccountingEvent};
 pub use fiscal_year::{
     FiscalYear, FiscalYears, FiscalYearsByCreatedAtCursor, error as fiscal_year_error,
 };

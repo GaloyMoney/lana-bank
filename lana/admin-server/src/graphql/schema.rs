@@ -2667,10 +2667,9 @@ impl Subscription {
             .await?
             .ok_or_else(|| Error::new("Ledger account not found"))?;
 
-        let stream = app.outbox().listen_persisted(None);
+        let stream = app.outbox().listen_ephemeral();
         let updates = stream.filter_map(move |event| async move {
-            let payload = event.payload.as_ref()?;
-            let event: &CoreAccountingEvent = payload.as_event()?;
+            let event: &CoreAccountingEvent = event.payload.as_event()?;
             match event {
                 CoreAccountingEvent::LedgerAccountCsvExportUploaded {
                     id,
