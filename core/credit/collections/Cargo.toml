@@ -1,0 +1,62 @@
+[package]
+name = "core-collections"
+license = "BUSL-1.1"
+edition = "2024"
+
+[features]
+fail-on-warnings = []
+graphql = ["dep:async-graphql", "cala-ledger/graphql", "es-entity/graphql"]
+json-schema = [
+    "dep:schemars",
+    "cala-ledger/json-schema",
+    "es-entity/json-schema",
+    "core-money/json-schema",
+    "job/json-schema",
+]
+
+[dependencies]
+# Core dependencies (NO dependency on core-credit)
+core-money = { workspace = true }
+core-accounting = { workspace = true }
+core-credit-terms = { workspace = true }
+
+# Infrastructure dependencies
+audit = { workspace = true }
+authz = { workspace = true }
+obix = { workspace = true }
+job = { workspace = true }
+
+# Ledger and event sourcing
+cala-ledger = { workspace = true }
+es-entity = { workspace = true }
+sqlx = { workspace = true }
+
+# Utilities
+strum = { workspace = true }
+chrono = { workspace = true }
+serde = { workspace = true }
+serde_with = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tracing-macros = { workspace = true }
+tracing-utils = { workspace = true }
+uuid = { workspace = true }
+derive_builder = { workspace = true }
+rust_decimal = { workspace = true }
+rust_decimal_macros = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
+tokio = { workspace = true }
+
+# Optional dependencies
+async-graphql = { workspace = true, optional = true }
+schemars = { workspace = true, optional = true }
+
+workspace-hack = { version = "0.1", path = "../../../workspace-hack" }
+
+[dev-dependencies]
+authz = { workspace = true, features = ["test-dummy"] }
+anyhow = { workspace = true }
+rand = { workspace = true }
+serde_yaml = { workspace = true }

@@ -1362,6 +1362,44 @@ dependencies = [
 ]
 
 [[package]]
+name = "core-collections"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "async-graphql",
+ "async-trait",
+ "audit",
+ "authz",
+ "cala-ledger",
+ "chrono",
+ "core-accounting",
+ "core-credit-terms",
+ "core-money",
+ "derive_builder",
+ "es-entity",
+ "futures",
+ "job",
+ "obix",
+ "rand 0.9.2",
+ "rust_decimal",
+ "rust_decimal_macros",
+ "schemars 1.2.0",
+ "serde",
+ "serde_json",
+ "serde_with",
+ "serde_yaml",
+ "sqlx",
+ "strum",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "tracing-macros",
+ "tracing-utils",
+ "uuid",
+ "workspace-hack",
+]
+
+[[package]]
 name = "core-credit"
 version = "0.0.0"
 dependencies = [
