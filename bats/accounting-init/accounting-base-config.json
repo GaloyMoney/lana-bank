@@ -6,5 +6,8 @@
     "cost_of_revenue_code": "5",
     "expenses_code": "6",
     "equity_retained_earnings_gain_code": "32.01",
-    "equity_retained_earnings_loss_code": "32.02"
+    "equity_retained_earnings_loss_code": "32.02",
+    "contingent_rights_code": "7",
+    "contingent_obligations_code": "8",
+    "memorandum_code": "9"
 }

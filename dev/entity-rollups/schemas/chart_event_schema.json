@@ -30,6 +30,12 @@
         "assets_code": {
           "$ref": "#/$defs/AccountCode"
         },
+        "contingent_obligations_code": {
+          "$ref": "#/$defs/AccountCode"
+        },
+        "contingent_rights_code": {
+          "$ref": "#/$defs/AccountCode"
+        },
         "cost_of_revenue_code": {
           "$ref": "#/$defs/AccountCode"
         },
@@ -48,6 +54,9 @@
         "liabilities_code": {
           "$ref": "#/$defs/AccountCode"
         },
+        "memorandum_code": {
+          "$ref": "#/$defs/AccountCode"
+        },
         "revenue_code": {
           "$ref": "#/$defs/AccountCode"
         }
@@ -58,9 +67,12 @@
         "equity_code",
         "equity_retained_earnings_gain_code",
         "equity_retained_earnings_loss_code",
+        "contingent_rights_code",
+        "contingent_obligations_code",
         "revenue_code",
         "cost_of_revenue_code",
-        "expenses_code"
+        "expenses_code",
+        "memorandum_code"
       ],
       "type": "object"
     }
