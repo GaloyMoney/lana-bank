@@ -47,6 +47,8 @@ pub enum ChartOfAccountsError {
         code: crate::primitives::AccountCode,
         category: crate::primitives::AccountCategory,
     },
+    #[error("ChartOfAccountsError - AccountCategoryNotSupported: {0:?}")]
+    AccountCategoryNotSupported(crate::primitives::AccountCategory),
 }
 
 es_entity::from_es_entity_error!(ChartOfAccountsError);
@@ -73,6 +75,7 @@ impl ErrorSeverity for ChartOfAccountsError {
             Self::BaseConfigAlreadyInitializedWithDifferentConfig => Level::WARN,
             Self::BaseConfigNotInitialized => Level::ERROR,
             Self::InvalidAccountCategory { .. } => Level::ERROR,
+            Self::AccountCategoryNotSupported(_) => Level::WARN,
         }
     }
 }

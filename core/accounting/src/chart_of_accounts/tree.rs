@@ -14,6 +14,14 @@ pub struct ChartTree {
     pub children: Vec<TreeNode>,
 }
 
+impl ChartTree {
+    pub fn find_node_by_code(&self, code: &AccountCode) -> Option<&TreeNode> {
+        self.children
+            .iter()
+            .find_map(|child| child.find_by_code(code))
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct TreeNode {
     pub id: CalaAccountSetId,
@@ -24,13 +32,38 @@ pub struct TreeNode {
 }
 
 impl TreeNode {
-    // returns the ids of all the descendants of the node
+    pub fn find_by_code(&self, code: &AccountCode) -> Option<&TreeNode> {
+        if &self.code == code {
+            return Some(self);
+        }
+        self.children
+            .iter()
+            .find_map(|child| child.find_by_code(code))
+    }
+
     pub fn descendants(&self) -> Vec<CalaAccountSetId> {
         let mut result = Vec::new();
         let mut stack: Vec<&TreeNode> = self.children.iter().rev().collect();
 
         while let Some(node) = stack.pop() {
             result.push(node.id);
+            for child in node.children.iter().rev() {
+                stack.push(child);
+            }
+        }
+        result
+    }
+
+    /// Returns all descendant account sets (non-leaf nodes) with their details
+    pub fn descendant_account_sets(&self) -> Vec<(CalaAccountSetId, AccountCode, AccountName)> {
+        let mut result = Vec::new();
+        let mut stack: Vec<&TreeNode> = self.children.iter().rev().collect();
+
+        while let Some(node) = stack.pop() {
+            // Only include nodes that have children (account sets, not leaf accounts)
+            if !node.children.is_empty() {
+                result.push((node.id, node.code.clone(), node.name.clone()));
+            }
             for child in node.children.iter().rev() {
                 stack.push(child);
             }

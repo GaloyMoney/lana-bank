@@ -18,9 +18,10 @@ use tracing_macros::record_error_severity;
 use cala_ledger::{CalaLedger, account::Account};
 
 use crate::primitives::{
-    AccountCode, AccountIdOrCode, AccountName, AccountSpec, AccountingBaseConfig, CalaAccountSetId,
-    CalaJournalId, ChartId, ClockHandle, ClosingAccountCodes, ClosingTxDetails,
-    CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
+    AccountCategory, AccountCode, AccountIdOrCode, AccountName, AccountSetMember, AccountSpec,
+    AccountingBaseConfig, CalaAccountSetId, CalaJournalId, ChartId, ClockHandle,
+    ClosingAccountCodes, ClosingTxDetails, CoreAccountingAction, CoreAccountingObject,
+    LedgerAccountId,
 };
 
 use bulk_import::BulkImportResult;
@@ -527,5 +528,29 @@ where
         };
 
         Ok(manual_transaction_account_id)
+    }
+
+    #[instrument(
+        name = "core_accounting.chart_of_accounts.account_sets_by_category",
+        skip(self)
+    )]
+    pub async fn account_sets_by_category(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_ref: &str,
+        category: AccountCategory,
+    ) -> Result<Vec<AccountSetMember>, ChartOfAccountsError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_charts(),
+                CoreAccountingAction::CHART_LIST,
+            )
+            .await?;
+        let chart = self.find_by_reference(chart_ref).await?;
+        let code = chart
+            .code_for_category(category)
+            .ok_or(ChartOfAccountsError::AccountCategoryNotSupported(category))?;
+        Ok(chart.account_sets_under_code(code))
     }
 }

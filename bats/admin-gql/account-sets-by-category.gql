@@ -1,0 +1,7 @@
+query AccountSetsByCategory($category: AccountCategory!) {
+  accountSetsByCategory(category: $category) {
+    accountSetId
+    code
+    name
+  }
+}
