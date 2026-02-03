@@ -111,6 +111,8 @@
       "creditFacilityComplete": "Marca una facilidad crediticia como completa despues del pago total",
       "collateralLiquidationRecordCollateralSent": "Registra el colateral enviado durante una liquidacion",
       "collateralRecordProceedsFromLiquidation": "Registra los ingresos recibidos de una liquidacion",
+      "liquidationRecordCollateralSent": "Registra el colateral enviado durante una liquidacion",
+      "liquidationRecordProceedsReceived": "Registra los ingresos recibidos de una liquidacion",
       "custodianCreate": "Crea una nueva integracion de custodio (Komainu o BitGo)",
       "custodianConfigUpdate": "Actualiza la configuracion de un custodio existente",
       "committeeCreate": "Crea un nuevo comite de aprobacion",
