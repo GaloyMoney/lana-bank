@@ -163,8 +163,10 @@ where
                 self.repo.update_in_op(&mut op, &mut fiscal_year).await?;
 
                 self.chart_of_accounts
-                    .post_closing_transaction(op, fiscal_year.chart_id, tx_details)
+                    .post_closing_transaction(&mut op, fiscal_year.chart_id, tx_details)
                     .await?;
+
+                op.commit().await?;
 
                 Ok(fiscal_year)
             }

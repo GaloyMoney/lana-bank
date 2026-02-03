@@ -70,11 +70,12 @@ async fn post_closing_tx_with_gain() -> Result<()> {
     };
     test.close_all_months_in_fiscal_year().await?;
 
-    let op = test.fiscal_year_repo.begin_op().await.unwrap();
+    let mut op = test.fiscal_year_repo.begin_op().await.unwrap();
     test.accounting
         .chart_of_accounts()
-        .post_closing_transaction(op, test.chart.id, closing_tx_details)
+        .post_closing_transaction(&mut op, test.chart.id, closing_tx_details)
         .await?;
+    op.commit().await?;
 
     assert!(test.children(RETAINED_EARNINGS_LOSS).await?.is_empty());
     assert_eq!(test.balance(RETAINED_EARNINGS_LOSS).await?, Decimal::ZERO);
@@ -166,11 +167,12 @@ async fn post_closing_tx_with_loss() -> Result<()> {
     };
 
     test.close_all_months_in_fiscal_year().await?;
-    let op = test.fiscal_year_repo.begin_op().await.unwrap();
+    let mut op = test.fiscal_year_repo.begin_op().await.unwrap();
     test.accounting
         .chart_of_accounts()
-        .post_closing_transaction(op, test.chart.id, closing_spec)
+        .post_closing_transaction(&mut op, test.chart.id, closing_spec)
         .await?;
+    op.commit().await?;
     assert!(test.children(RETAINED_EARNINGS_GAIN).await?.is_empty());
     assert_eq!(test.balance(RETAINED_EARNINGS_GAIN).await?, Decimal::ZERO);
 

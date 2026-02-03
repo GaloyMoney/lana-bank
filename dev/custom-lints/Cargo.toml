@@ -4,8 +4,12 @@ version = "0.1.0"
 license = "BUSL-1.1"
 edition = "2024"
 
+[package.metadata.cargo-machete]
+ignored = ["proc-macro2"] # Required for span-locations feature used by syn
+
 [dependencies]
 syn = { version = "2", features = ["full", "visit"] }
+proc-macro2 = { version = "1", features = ["span-locations"] }
 walkdir = "2"
 rayon = "1"
 cargo_metadata = "0.23"
