@@ -366,13 +366,6 @@ impl Chart {
             .unwrap_or_default()
     }
 
-    pub fn code_for_category(&self, category: AccountCategory) -> Option<&AccountCode> {
-        match &self.base_config {
-            Some(config) => config.code_for_category(category),
-            None => None,
-        }
-    }
-
     pub fn accounting_base_config(&self) -> Option<AccountingBaseConfig> {
         self.base_config.clone()
     }
