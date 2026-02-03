@@ -154,3 +154,93 @@ make honeycomb-init   # Initialize OpenTofu
 make honeycomb-plan   # Preview changes
 make honeycomb-apply  # Create dashboards
 ```
+
+---
+
+## Release Process
+
+Lana Bank uses an automated Release Candidate (RC) and release workflow managed through Concourse CI.
+
+### Overview
+
+The release workflow follows these stages:
+
+1. **Continuous Testing** → Runs on every commit to `main`
+2. **RC Build** → Creates release candidate after tests pass
+3. **RC Promotion** → Automated PR creation for promoting RC to release
+4. **Final Release** → Publishes release artifacts and updates deployment
+
+### CI Pipeline Jobs
+
+All of the jobs listed below are defined in yaml files in the `ci/release` directory, mainly `pipeline.yml`.
+
+#### 1. Test Jobs
+
+- **`test-integration`**: Runs Rust integration tests using `cargo nextest`
+- **`test-bats`**: Runs end-to-end BATS tests
+- **`flake-check`**: Validates Nix flake configuration
+- **`build-admin-panel-edge-image`**: Builds Admin Panel Docker image
+- **`build-customer-portal-edge-image`**: Builds Customer Portal Docker image
+- **`build-dagster-image`**: Builds Dagster data pipeline Docker image
+
+The image building jobs ensure that the `build-rc` job only processes commits that have had images built on them  successfully.
+
+All test jobs use Cachix for Nix dependency caching to speed up builds.
+
+#### 2. Build RC and promote RC PR
+
+**Trigger**: Automatically runs after all test jobs pass
+
+The `build-rc` job:
+- Generates next RC version (e.g., `0.39.0-rc.1`)
+- Builds Rust binaries using Nix
+- Builds Docker images for:
+  - Admin Panel
+  - Customer Portal
+  - Dagster (data pipeline)
+  - Backend services
+- Tags all images with RC version
+- Pushes images to Google Artifact Registry (GAR)
+- Creates Git tag for the RC version
+
+**Trigger**: Automatically runs after `build-rc` completes
+
+The `open-promote-rc-pr` job:
+- Generates the next final version (e.g., `0.39.0`)
+- Updates `CHANGELOG.md` using [git-cliff](https://git-cliff.org/)
+- Updates API documentation in `docs-site/`
+- Creates a **draft PR** with:
+  - Title: `ci: promote RC to {version}`
+  - Labels: `promote-rc`, `galoybot`
+  - Only allows changes to `CHANGELOG.md` and `docs-site/**`
+
+**Important**: A GitHub workflow (`promote-rc-file-check.yml`) enforces that promote-rc PRs can **only** modify `CHANGELOG.md` and files under `docs-site/`. Any other file changes will cause the PR to fail.
+
+#### 3. Release Job
+
+**Trigger**: Runs when the promote-rc PR is **merged**
+
+The `release` job:
+- Rebuilds all binaries and Docker images with the final version tag
+- Publishes Docker images to GAR with both `latest` and version tags
+- Creates a GitHub Release with:
+  - Release notes generated from commits
+  - `lana-cli` binary as downloadable artifact
+- Updates the version resource for future releases
+
+#### 4. Chart Update Jobs
+
+After a release, automated jobs update the Helm charts:
+
+- **`bump-image-in-chart`**: Updates chart with released image digests
+- **`bump-image-in-chart-rc`**: Updates chart with RC image digests
+
+These jobs create PRs in the charts repository to update image references.
+
+### Version Management
+
+Versions are managed using [Concourse Semver Resource](https://github.com/concourse/semver-resource) and cocogitto:
+
+- **RC versions**: `{major}.{minor}.{patch}-rc.{number}` (e.g., `0.39.0-rc.1`)
+- **Final versions**: `{major}.{minor}.{patch}` (e.g., `0.39.0`)
+- The `next-version` Nix app (in `ci/flake.nix`) calculates version bumps
