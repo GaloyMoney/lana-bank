@@ -8,7 +8,33 @@ sidebar_position: 1
 
 El Sistema de Depósitos y Retiros gestiona las cuentas de depósito de clientes y facilita las operaciones de depósito/retiro dentro de la plataforma.
 
-![Arquitectura del Sistema de Depósitos](/img/architecture/deposit-flow-1.png)
+```mermaid
+graph LR
+    subgraph DomainLayer["Capa de Dominio (lana-app)"]
+        DC["core_customer::Customer<br/>From trait"]
+        DCR["core_credit::CreditFacility<br/>From trait"]
+        DLA["core_accounting::LedgerAccount<br/>From trait"]
+    end
+
+    subgraph Wrapper["Patrón Wrapper"]
+        WC["Customer {<br/>entity: Arc&lt;DomainCustomer&gt;<br/>}"]
+        WCF["CreditFacility {<br/>entity: Arc&lt;DomainCreditFacility&gt;<br/>}"]
+        WLA["LedgerAccount {<br/>entity: Arc&lt;DomainLedgerAccount&gt;<br/>}"]
+    end
+
+    subgraph GQLLayer["Capa GraphQL"]
+        GC["Customer<br/>(SimpleObject)"]
+        GCF["CreditFacility<br/>(ComplexObject)"]
+        GLA["LedgerAccount<br/>(ComplexObject)"]
+    end
+
+    DC --> WC
+    DCR --> WCF
+    DLA --> WLA
+    WC -->|"expone como"| GC
+    WCF -->|"expone como"| GCF
+    WLA -->|"expone como"| GLA
+```
 
 ## Propósito
 

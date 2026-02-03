@@ -8,7 +8,40 @@ sidebar_position: 7
 
 Este documento describe el sistema de procesamiento de trabajos en segundo plano en Lana Bank, que proporciona ejecución confiable de tareas asíncronas con lógica de reintentos, control de concurrencia y compatibilidad con trazado distribuido.
 
-![Arquitectura de Trabajos en Segundo Plano](/img/architecture/background-jobs-1.png)
+```mermaid
+sequenceDiagram
+    participant SCHED as Planificador
+    participant SYNC as customer-sync<br/>CustomerSyncJob
+    participant PG as PostgreSQL<br/>tabla customers
+    participant SUMSUB as Sumsub API
+    participant CUST as Customers
+    participant OUT as Outbox
+
+    rect rgb(255, 255, 230)
+        Note over SCHED,OUT: Se ejecuta cada N minutos
+    end
+
+    SCHED->>SYNC: execute()
+    SYNC->>PG: SELECT * FROM customers<br/>WHERE applicant_id IS NOT NULL<br/>AND kyc_verification = PENDING
+    PG-->>SYNC: pending_customers[]
+
+    loop Para cada cliente pendiente
+        SYNC->>SUMSUB: GET /resources/applicants/{applicantId}/status
+        SUMSUB-->>SYNC: {reviewResult, reviewStatus}
+
+        alt Revisión Completa y Aprobada
+            SYNC->>SYNC: Mapear a VERIFIED
+        else Revisión Completa y Rechazada
+            SYNC->>SYNC: Mapear a REJECTED
+        else Revisión en Progreso
+            SYNC->>SYNC: Mantener como PENDING
+        end
+
+        SYNC->>PG: UPDATE customers SET kyc_verification = ?
+        SYNC->>CUST: update_kyc_verification(customer_id, status)
+        SYNC->>OUT: publish(CustomerKycVerificationUpdated)
+    end
+```
 
 ## Propósito
 

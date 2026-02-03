@@ -8,7 +8,58 @@ sidebar_position: 9
 
 This document describes the integration with custody providers and portfolio management systems.
 
-![Custody Integration](/img/architecture/custody-1.png)
+```mermaid
+graph TD
+    subgraph Foundation["Foundation Layer"]
+        ENTITY["es-entity"]
+        OUTBOX["outbox"]
+        AUDIT["audit"]
+        AUTHZ["authz"]
+        JOB["job"]
+        INFRA["Infrastructure Libs"]
+        CALA["cala-ledger"]
+    end
+
+    subgraph Deep["Deep Domain Layer"]
+        PUBEV["public-events"]
+        STORAGE["document-storage"]
+    end
+
+    subgraph Primary["Primary Domain Layer"]
+        CCUST["core-customer"]
+        CACCT["core-accounting"]
+        CCREDIT["core-credit"]
+        CCUS["core-custody"]
+        CDEP["core-deposit"]
+        GOV["governance"]
+    end
+
+    subgraph App["Application Layer"]
+        LA["lana-app"]
+        AS["admin-server"]
+        CS["customer-server"]
+        CLI["lana-cli"]
+    end
+
+    AS --> LA
+    CS --> LA
+    CLI --> LA
+    LA --> CCUST
+    LA --> CACCT
+    LA --> CCREDIT
+    LA --> CCUS
+    LA --> CDEP
+    LA --> GOV
+    CCUST --> ENTITY
+    CCREDIT --> ENTITY
+    CDEP --> ENTITY
+    GOV --> ENTITY
+    CCUST --> OUTBOX
+    CCREDIT --> OUTBOX
+    CCREDIT --> PUBEV
+    CDEP --> PUBEV
+    LA --> CALA
+```
 
 ## Overview
 

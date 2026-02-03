@@ -8,7 +8,58 @@ sidebar_position: 9
 
 El módulo `core-custody` gestiona operaciones de custodia de Bitcoin mediante integración con proveedores de custodia externos (BitGo y Komainu).
 
-![Integración de Custodia](/img/architecture/custody-1.png)
+```mermaid
+graph TD
+    subgraph Foundation["Capa Base"]
+        ENTITY["es-entity"]
+        OUTBOX["outbox"]
+        AUDIT["audit"]
+        AUTHZ["authz"]
+        JOB["job"]
+        INFRA["Libs de Infraestructura"]
+        CALA["cala-ledger"]
+    end
+
+    subgraph Deep["Capa de Dominio Profundo"]
+        PUBEV["public-events"]
+        STORAGE["document-storage"]
+    end
+
+    subgraph Primary["Capa de Dominio Principal"]
+        CCUST["core-customer"]
+        CACCT["core-accounting"]
+        CCREDIT["core-credit"]
+        CCUS["core-custody"]
+        CDEP["core-deposit"]
+        GOV["governance"]
+    end
+
+    subgraph App["Capa de Aplicación"]
+        LA["lana-app"]
+        AS["admin-server"]
+        CS["customer-server"]
+        CLI["lana-cli"]
+    end
+
+    AS --> LA
+    CS --> LA
+    CLI --> LA
+    LA --> CCUST
+    LA --> CACCT
+    LA --> CCREDIT
+    LA --> CCUS
+    LA --> CDEP
+    LA --> GOV
+    CCUST --> ENTITY
+    CCREDIT --> ENTITY
+    CDEP --> ENTITY
+    GOV --> ENTITY
+    CCUST --> OUTBOX
+    CCREDIT --> OUTBOX
+    CCREDIT --> PUBEV
+    CDEP --> PUBEV
+    LA --> CALA
+```
 
 ## Propósito y Alcance
 

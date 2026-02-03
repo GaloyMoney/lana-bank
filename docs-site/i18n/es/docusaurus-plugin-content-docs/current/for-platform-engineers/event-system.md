@@ -8,7 +8,37 @@ sidebar_position: 6
 
 Este documento describe la arquitectura orientada a eventos implementada en Lana Bank, centrándose en el patrón de event sourcing usado dentro de las entidades de dominio y el patrón outbox usado para la publicación confiable de eventos.
 
-![Arquitectura del Sistema de Eventos](/img/architecture/event-system-1.png)
+```mermaid
+graph TD
+    subgraph EventTypes["Tipos de Eventos"]
+        EE["Eventos de Entidad<br/>(Cambios internos)"]
+        DE["Eventos de Dominio<br/>(Entre dominios)"]
+        PE["Eventos Públicos<br/>(Consumidores externos)"]
+    end
+
+    subgraph DomainEvents["Flujo de Eventos de Dominio"]
+        OUTBOX["Outbox<br/>(Transaccional)"]
+        PROC["Procesador de Eventos"]
+        SYNC["Servicios de Sync"]
+        BGJOBS["Trabajos en Segundo Plano"]
+        DASH["Dashboard<br/>(métricas)"]
+    end
+
+    subgraph Consumers["Consumidores"]
+        PRICE["Actualización de Precios"]
+        INTEREST["Acumulación de Intereses"]
+        COLLAT["Colateralización"]
+    end
+
+    DE --> OUTBOX
+    OUTBOX --> PROC
+    PROC --> SYNC
+    PROC --> BGJOBS
+    PROC --> DASH
+    BGJOBS --> PRICE
+    BGJOBS --> INTEREST
+    BGJOBS --> COLLAT
+```
 
 ## Modelo Dual de Eventos
 

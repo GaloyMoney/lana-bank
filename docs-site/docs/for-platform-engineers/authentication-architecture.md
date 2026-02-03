@@ -8,7 +8,20 @@ sidebar_position: 4
 
 This document describes Lana's authentication and authorization system, including Keycloak integration, OAuth 2.0 flows, and RBAC implementation.
 
-![Authentication Flow](/img/architecture/authentication-flow-1.png)
+```mermaid
+graph TD
+    ROOT["localhost:4455"]
+    ROOT --> R1["admin.localhost:4455"]
+    ROOT --> R2["app.localhost:4455"]
+    ROOT --> R3["keycloak"]
+    ROOT --> R4["oathkeeper"]
+    ROOT --> R5["admin-server"]
+    ROOT --> R6["customer-server"]
+    ROOT --> R7["graphql /admin"]
+    ROOT --> R8["graphql /customer"]
+    ROOT --> R9["static assets"]
+    ROOT --> R10["health checks"]
+```
 
 ## Overview
 
@@ -100,7 +113,34 @@ Oathkeeper validates incoming requests at port 4455:
 
 ### Request Mutation
 
-![Authenticated Request Flow](/img/architecture/authenticated-request-1.png)
+```mermaid
+sequenceDiagram
+    participant Client as Admin Panel<br/>(Browser)
+    participant OAT as Oathkeeper<br/>(Port 4455)
+    participant KC as Keycloak<br/>(OIDC)
+    participant AS as admin-server<br/>(Port 5253)
+    participant LA as lana-app<br/>(Business Logic)
+    participant CASBIN as Casbin<br/>(RBAC)
+    participant PG as PostgreSQL
+    participant OUT as Outbox<br/>(Event Publishing)
+
+    Client->>OAT: POST /admin/graphql<br/>Authorization: Bearer JWT
+    OAT->>KC: Validate JWT via JWKS
+    KC-->>OAT: Token valid
+    OAT->>AS: Forward request<br/>X-User-Id, X-User-Email headers
+    AS->>LA: Extract context, execute resolver
+    LA->>CASBIN: Check permission
+    CASBIN->>PG: Query roles & permissions
+    PG-->>CASBIN: Role data
+    CASBIN-->>LA: Permission granted
+    LA->>PG: Execute business operation
+    PG-->>LA: Result
+    LA->>OUT: Publish domain events
+    OUT-->>LA: Events queued
+    LA-->>AS: GraphQL response
+    AS-->>OAT: Response
+    OAT-->>Client: JSON response
+```
 
 Validated requests include:
 - `X-Auth-Subject`: User ID

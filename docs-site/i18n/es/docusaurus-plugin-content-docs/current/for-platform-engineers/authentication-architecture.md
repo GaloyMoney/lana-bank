@@ -8,7 +8,20 @@ sidebar_position: 5
 
 Este documento describe la infraestructura de autenticación y autorización en el sistema Lana Bank. Cubre la configuración del proveedor de identidad (Keycloak), la autenticación en el gateway de API (Oathkeeper), la validación de tokens en los servicios backend y el modelo de control de acceso basado en roles (RBAC).
 
-![Flujo de Autenticación](/img/architecture/authentication-flow-1.png)
+```mermaid
+graph TD
+    ROOT["localhost:4455"]
+    ROOT --> R1["admin.localhost:4455"]
+    ROOT --> R2["app.localhost:4455"]
+    ROOT --> R3["keycloak"]
+    ROOT --> R4["oathkeeper"]
+    ROOT --> R5["admin-server"]
+    ROOT --> R6["customer-server"]
+    ROOT --> R7["graphql /admin"]
+    ROOT --> R8["graphql /customer"]
+    ROOT --> R9["static assets"]
+    ROOT --> R10["health checks"]
+```
 
 ## Arquitectura de Autenticación
 

@@ -8,7 +8,31 @@ sidebar_position: 5
 
 This document describes the continuous integration and deployment pipeline.
 
-![CI/CD Pipeline](/img/architecture/ci-cd-1.png)
+```mermaid
+graph TD
+    subgraph Config["meltano.yml Configuration"]
+        SCHED["Schedule Definitions"]
+        ENV["Environments<br/>(dev, staging, prod)"]
+        PLUGINS["Plugin Definitions"]
+        JOBDEF["Job Definitions"]
+    end
+
+    subgraph PluginTypes["Plugin Types"]
+        EXT["Extractors<br/>(tap-postgres, tap-bitfinex,<br/>tap-sumsubapi)"]
+        LOAD["Loaders<br/>(target-bigquery)"]
+        TRANS["Transformers"]
+        UTIL["Utilities<br/>(sqlfluff, airflow,<br/>generate-es-reports)"]
+    end
+
+    SCHED -->|"triggers"| JOBDEF
+    ENV -->|"references"| PLUGINS
+    PLUGINS -->|"references"| EXT
+    PLUGINS -->|"references"| LOAD
+    PLUGINS -->|"references"| TRANS
+    PLUGINS -->|"references"| UTIL
+    JOBDEF -->|"references"| EXT
+    JOBDEF -->|"references"| LOAD
+```
 
 ## Overview
 

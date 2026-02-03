@@ -8,7 +8,58 @@ sidebar_position: 2
 
 Este documento proporciona una visión arquitectónica de alto nivel del sistema de Lana Bank, describiendo la arquitectura de tres capas (cliente, gateway de API, backend), los componentes principales en cada capa y cómo interactúan.
 
-![Capas del Sistema y Relaciones](/img/architecture/system-layers-1.png)
+```mermaid
+graph TD
+    subgraph Client["Capa de Cliente"]
+        CP["Portal de Cliente<br/>(Next.js)"]
+        AP["Panel de Admin<br/>(Next.js)"]
+    end
+
+    subgraph Gateway["Capa de API Gateway"]
+        OAT["Oathkeeper<br/>(Puerto 4455)"]
+        KC["Keycloak<br/>(Puerto 8081)"]
+    end
+
+    subgraph App["Capa de Aplicación (Rust)"]
+        CS["customer-server<br/>(GraphQL API)<br/>Puerto 5254"]
+        AS["admin-server<br/>(GraphQL API)<br/>Puerto 5253"]
+        LA["lana-app<br/>(Lógica de Negocio)"]
+    end
+
+    subgraph Domain["Capa de Dominio"]
+        CC["core-credit"]
+        CD["core-deposit"]
+        CCU["core-customer"]
+        CA["core-accounting"]
+        GOV["governance"]
+        CUS["core-custody"]
+    end
+
+    subgraph Infra["Capa de Infraestructura"]
+        PG["PostgreSQL"]
+        CALA["cala-ledger"]
+        EXT["APIs Externas<br/>(BitGo, Sumsub)"]
+    end
+
+    CP --> OAT
+    AP --> OAT
+    OAT --> CS
+    OAT --> AS
+    CS --> LA
+    AS --> LA
+    LA --> CC
+    LA --> CD
+    LA --> CCU
+    LA --> CA
+    LA --> GOV
+    LA --> CUS
+    CC --> PG
+    CD --> PG
+    CCU --> PG
+    CA --> CALA
+    CUS --> EXT
+    CALA --> PG
+```
 
 ## Visión General de las Capas del Sistema
 

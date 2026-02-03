@@ -6,7 +6,82 @@ sidebar_position: 1
 
 # Credit Module Lifecycle
 
-![Credit Facility Lifecycle](/img/architecture/credit-lifecycle-1.png)
+```mermaid
+graph TD
+    subgraph Clients["Client Applications"]
+        ADMIN["admin-panel<br/>(Next.js)"]
+        CUST["customer-portal<br/>(Next.js)"]
+    end
+
+    subgraph Backend["Backend Services"]
+        LANACLI["lana-cli<br/>Main Entry Point"]
+        CS_API["customer-server<br/>GraphQL API"]
+        AS_API["admin-server<br/>GraphQL API"]
+    end
+
+    subgraph GW["API Gateway Layer"]
+        OAT["Oathkeeper<br/>JWT Gateway"]
+    end
+
+    subgraph KC_AUTH["Identity"]
+        KC["Keycloak<br/>Identity Provider"]
+    end
+
+    subgraph Core["Core Business Domains"]
+        LA["lana-app<br/>Business Logic Orchestrator"]
+        CCUS["core-custody"]
+        CDEP["core-deposit"]
+        CCRED["core-credit"]
+        CCUST["core-customer"]
+        CACCT["core-accounting"]
+        GOV["governance"]
+    end
+
+    subgraph InfraServices["Infrastructure Services"]
+        OUTBOX["outbox<br/>Event Publishing"]
+        JOBS["job<br/>Background Jobs"]
+        AUDIT_SVC["audit"]
+        AUTHZ_SVC["authz<br/>Authorization"]
+    end
+
+    subgraph Ledger
+        CALA["cala-ledger<br/>Accounting Ledger"]
+        PG[("PostgreSQL")]
+    end
+
+    subgraph External["External Integrations"]
+        BITGO["BitGo/Komainu<br/>Custody"]
+        SUMSUB["Sumsub<br/>KYC/AML"]
+    end
+
+    subgraph Analytics["ETL"]
+        BQ["BigQuery<br/>Analytics"]
+    end
+
+    ADMIN --> OAT
+    CUST --> OAT
+    OAT --> AS_API
+    OAT --> CS_API
+    OAT --> KC
+    LANACLI --> LA
+    AS_API --> LA
+    CS_API --> LA
+    LA --> CCUS
+    LA --> CDEP
+    LA --> CCRED
+    LA --> CCUST
+    LA --> CACCT
+    LA --> GOV
+    LA --> OUTBOX
+    LA --> JOBS
+    LA --> AUDIT_SVC
+    LA --> AUTHZ_SVC
+    CACCT --> CALA
+    CALA --> PG
+    CCUS --> BITGO
+    CCUST --> SUMSUB
+    PG --> BQ
+```
 
 ```mermaid
 flowchart LR

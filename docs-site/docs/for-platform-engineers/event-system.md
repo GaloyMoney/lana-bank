@@ -8,7 +8,44 @@ sidebar_position: 5
 
 This document describes Lana's event system, including event sourcing, the outbox pattern, and cross-domain communication.
 
-![Event System Architecture](/img/architecture/event-system-1.png)
+```mermaid
+graph TD
+    subgraph EventTypes["Event Types"]
+        EE["Entity Events<br/>(Internal state changes)"]
+        DE["Domain Events<br/>(Cross-domain)"]
+        PE["Public Events<br/>(External consumers)"]
+    end
+
+    subgraph EntityEvents["Entity Event Categories"]
+        CF["CreditFacility<br/>Events"]
+        CU["Customer<br/>Events"]
+        DEP["Deposit<br/>Events"]
+    end
+
+    subgraph DomainEvents["Domain Event Flow"]
+        OUTBOX["Outbox<br/>(Transactional)"]
+        PROC["Event Processor"]
+        SYNC["Sync Services<br/>(customer-sync, deposit-sync)"]
+        BGJOBS["Background Jobs<br/>(job system)"]
+        DASH["Dashboard<br/>(metrics)"]
+    end
+
+    subgraph Consumers["Event Consumers"]
+        PRICE["Price Update Jobs"]
+        INTEREST["Interest Accrual Jobs"]
+        COLLAT["Collateralization Jobs"]
+    end
+
+    EE --> EntityEvents
+    DE --> OUTBOX
+    OUTBOX --> PROC
+    PROC --> SYNC
+    PROC --> BGJOBS
+    PROC --> DASH
+    BGJOBS --> PRICE
+    BGJOBS --> INTEREST
+    BGJOBS --> COLLAT
+```
 
 ## Overview
 

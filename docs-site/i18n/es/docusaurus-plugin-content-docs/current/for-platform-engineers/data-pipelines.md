@@ -8,7 +8,62 @@ sidebar_position: 4
 
 Este documento describe la infraestructura de canalización de datos y analítica utilizada para extraer datos operativos del sistema Lana Bank, transformarlos con fines analíticos y cargarlos en BigQuery para reporting e inteligencia de negocio.
 
-![Arquitectura del Pipeline de Datos](/img/architecture/data-pipeline-1.png)
+```mermaid
+graph TD
+    subgraph Sources["Fuentes de Datos"]
+        PG["PostgreSQL<br/>(BD Operacional)"]
+        BITFINEX["Bitfinex API<br/>(Precios BTC/USD)"]
+        SUMSUB["Sumsub API<br/>(Datos KYC)"]
+    end
+
+    subgraph Orchestration["Orquestación"]
+        AIRFLOW["Airflow<br/>(Opcional)"]
+        SCHEDULES["Meltano Schedules"]
+        JOBS["Meltano Jobs"]
+        SCHEDULES --> JOBS
+        AIRFLOW -.->|"orquestación opcional"| SCHEDULES
+    end
+
+    subgraph Extract["Meltano Extracción"]
+        TAP_PG["tap-postgres"]
+        TAP_BIT["tap-bitfinex"]
+        TAP_SUM["tap-sumsubapi"]
+    end
+
+    subgraph Load["Meltano Carga"]
+        TARGET_BQ["target-bigquery"]
+    end
+
+    subgraph Transform["Transformaciones dbt"]
+        DBT_BQ["dbt-bigquery"]
+        MODELS["Modelos"]
+        TESTS["Pruebas de Calidad"]
+        DBT_BQ --> MODELS
+        DBT_BQ --> TESTS
+    end
+
+    subgraph Warehouse["BigQuery"]
+        RAW["Dataset Raw"]
+        MART["Dataset dbt"]
+    end
+
+    subgraph Reports["Reportes"]
+        GEN["generate-es-reports"]
+        FIN["Reportes Financieros"]
+    end
+
+    PG --> TAP_PG
+    BITFINEX --> TAP_BIT
+    SUMSUB --> TAP_SUM
+    TAP_PG --> TARGET_BQ
+    TAP_BIT --> TARGET_BQ
+    TAP_SUM --> TARGET_BQ
+    TARGET_BQ --> RAW
+    RAW --> DBT_BQ
+    DBT_BQ --> MART
+    MART --> GEN
+    GEN --> FIN
+```
 
 ## Arquitectura de la Canalización
 

@@ -8,7 +8,20 @@ sidebar_position: 1
 
 El sistema de gobernanza proporciona un mecanismo de aprobación estructurado para operaciones financieras críticas que requieren autorización multipartita antes de su ejecución.
 
-![Flujo de Trabajo de Aprobaciones](/img/architecture/approval-workflow-1.png)
+```mermaid
+graph LR
+    subgraph DomainService["Estructura Interna del Servicio de Dominio"]
+        CMD["Comando"] -->|"valida y ejecuta"| AGG["Aggregate Root<br/>(es-entity)"]
+        AGG -->|"emite"| EVT["Eventos de Dominio"]
+        EVT -->|"persiste en"| REPO["Repositorio"]
+        EVT -->|"publica vía"| OUTBOX["Outbox Publisher"]
+    end
+
+    subgraph Infrastructure["Infraestructura"]
+        REPO -->|"persiste"| PG[("PostgreSQL<br/>Event Store")]
+        OUTBOX -->|"escribe"| OE[("outbox_events<br/>Tabla")]
+    end
+```
 
 ## Propósito
 

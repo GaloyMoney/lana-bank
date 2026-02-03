@@ -8,7 +8,39 @@ sidebar_position: 1
 
 The Customer Management system covers the complete customer lifecycle, from initial registration and KYC verification to active account status.
 
-![Customer Onboarding Flow](/img/architecture/customer-onboarding-1.png)
+```mermaid
+graph TD
+    subgraph Frontend["Customer Portal Structure"]
+        ROOT_PAGE["app/page.tsx<br/>Root Page"]
+        LAYOUT["app/layout.tsx<br/>Main Layout"]
+    end
+
+    subgraph SharedComponents["Shared Components"]
+        STORYBOOK["@storybook<br/>UI Library"]
+        THEME["Theme Provider<br/>next/themes"]
+        CSS["Tailwind CSS<br/>(CSS Definition)"]
+    end
+
+    subgraph GQL["GraphQL Integration"]
+        GQL_COMP["components/*<br/>UI Components"]
+        GQL_API["GraphQL API<br/>customer-server"]
+    end
+
+    subgraph Auth["Authentication Flow"]
+        AUTH_CFG["Auth.ts<br/>NextAuth Config"]
+        AUTH_MIDDLEWARE["appAuthProvider.tsx<br/>Auth API Route"]
+        OIDC["OIDC Provider<br/>KeycloakProvider"]
+        JWT["JWT Session<br/>JwtLibrary"]
+    end
+
+    STORYBOOK --> CSS
+    THEME --> CSS
+    ROOT_PAGE --> GQL_COMP
+    GQL_COMP --> GQL_API
+    AUTH_CFG --> OIDC
+    AUTH_MIDDLEWARE --> AUTH_CFG
+    OIDC --> JWT
+```
 
 ## System Components
 

@@ -8,7 +8,62 @@ sidebar_position: 12
 
 This document describes the data pipeline architecture using Meltano, dbt, and BigQuery.
 
-![Data Pipeline Architecture](/img/architecture/data-pipeline-1.png)
+```mermaid
+graph TD
+    subgraph Sources["Data Sources"]
+        PG["PostgreSQL<br/>(Core Operational DB)"]
+        BITFINEX["Bitfinex API<br/>(BTC/USD Prices)"]
+        SUMSUB["Sumsub API<br/>(KYC Data)"]
+    end
+
+    subgraph Orchestration
+        AIRFLOW["Airflow<br/>(Optional)"]
+        SCHEDULES["Meltano Schedules"]
+        JOBS["Meltano Jobs"]
+        SCHEDULES --> JOBS
+        AIRFLOW -.->|"optional orchestration"| SCHEDULES
+    end
+
+    subgraph Extract["Meltano Extracting"]
+        TAP_PG["tap-postgres<br/>(MeltanoLabs variant)"]
+        TAP_BIT["tap-bitfinex<br/>(Custom implementation)"]
+        TAP_SUM["tap-sumsubapi<br/>(Custom implementation)"]
+    end
+
+    subgraph Load["Meltano Loading"]
+        TARGET_BQ["target-bigquery<br/>(Adswerve variant)"]
+    end
+
+    subgraph Transform["dbt Transformations"]
+        DBT_BQ["dbt-bigquery<br/>(dbt-labs 1.8.1)"]
+        MODELS["Transformation Models"]
+        TESTS["Data Quality Tests"]
+        DBT_BQ --> MODELS
+        DBT_BQ --> TESTS
+    end
+
+    subgraph Warehouse["BigQuery Datasets"]
+        RAW["Raw Dataset<br/>(LANA_dataset)"]
+        MART["dbt Dataset<br/>(dbt_LANA)"]
+    end
+
+    subgraph Reports
+        GEN["generate-es-reports<br/>(Custom utility)"]
+        FIN["Financial Reports"]
+    end
+
+    PG --> TAP_PG
+    BITFINEX --> TAP_BIT
+    SUMSUB --> TAP_SUM
+    TAP_PG --> TARGET_BQ
+    TAP_BIT --> TARGET_BQ
+    TAP_SUM --> TARGET_BQ
+    TARGET_BQ --> RAW
+    RAW --> DBT_BQ
+    DBT_BQ --> MART
+    MART --> GEN
+    GEN --> FIN
+```
 
 ## Overview
 

@@ -8,7 +8,58 @@ sidebar_position: 2
 
 This document describes Lana's system architecture, including layers, components, and data flow.
 
-![System Layers and Relationships](/img/architecture/system-layers-1.png)
+```mermaid
+graph TD
+    subgraph Client["Client Layer"]
+        CP["Customer Portal<br/>(Next.js)"]
+        AP["Admin Panel<br/>(Next.js)"]
+    end
+
+    subgraph Gateway["API Gateway Layer"]
+        OAT["Oathkeeper<br/>(Port 4455)"]
+        KC["Keycloak<br/>(Port 8081)"]
+    end
+
+    subgraph App["Application Layer (Rust)"]
+        CS["customer-server<br/>(GraphQL API)<br/>Port 5254"]
+        AS["admin-server<br/>(GraphQL API)<br/>Port 5253"]
+        LA["lana-app<br/>(Business Logic Layer)"]
+    end
+
+    subgraph Domain["Domain Layer"]
+        CC["core-credit"]
+        CD["core-deposit"]
+        CCU["core-customer"]
+        CA["core-accounting"]
+        GOV["governance"]
+        CUS["core-custody"]
+    end
+
+    subgraph Infra["Infrastructure Layer"]
+        PG["PostgreSQL"]
+        CALA["cala-ledger"]
+        EXT["External APIs<br/>(BitGo, Sumsub)"]
+    end
+
+    CP --> OAT
+    AP --> OAT
+    OAT --> CS
+    OAT --> AS
+    CS --> LA
+    AS --> LA
+    LA --> CC
+    LA --> CD
+    LA --> CCU
+    LA --> CA
+    LA --> GOV
+    LA --> CUS
+    CC --> PG
+    CD --> PG
+    CCU --> PG
+    CA --> CALA
+    CUS --> EXT
+    CALA --> PG
+```
 
 ## System Layer Overview
 
@@ -102,7 +153,40 @@ Identity and access management:
 
 ## Application Layer
 
-![Application Layer Process Structure](/img/architecture/application-layer-1.png)
+```mermaid
+graph TD
+    subgraph CLI["lana-cli Process"]
+        MAIN["main()<br/>lana/cli/src/lib.rs:64-105"]
+        RUNCMD["run_cmd()<br/>lana/cli/src/lib.rs:154-254"]
+        MAIN --> RUNCMD
+    end
+
+    RUNCMD -->|"tokio::spawn"| ASRUN
+    RUNCMD -->|"tokio::spawn"| CSRUN
+
+    subgraph AdminServer["admin-server (Port 5253)"]
+        ASRUN["run()<br/>lana/admin-server/src/lib.rs:28-70"]
+        ASGQL["graphql_handler()<br/>lana/admin-server/src/lib.rs:79-136"]
+        AS_SCHEMA["Schema"]
+        ASRUN --> ASGQL --> AS_SCHEMA
+    end
+
+    subgraph CustServer["customer-server (Port 5254)"]
+        CSRUN["run()<br/>lana/customer-server/src/lib.rs:26-66"]
+        CSGQL["graphql_handler()<br/>lana/customer-server/src/lib.rs:75-132"]
+        CS_SCHEMA["Schema"]
+        CSRUN --> CSGQL --> CS_SCHEMA
+    end
+
+    subgraph LanaApp["lana-app"]
+        INIT["LanaApp::init()<br/>lana/app/Cargo.toml:1-77"]
+        AGG["Aggregates domain services"]
+        INIT --> AGG
+    end
+
+    AS_SCHEMA --> INIT
+    CS_SCHEMA --> INIT
+```
 
 ### admin-server
 

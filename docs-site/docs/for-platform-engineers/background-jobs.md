@@ -8,7 +8,42 @@ sidebar_position: 6
 
 This document describes the background job processing system used for asynchronous operations.
 
-![Background Jobs Architecture](/img/architecture/background-jobs-1.png)
+```mermaid
+sequenceDiagram
+    participant SCHED as Job Scheduler
+    participant SYNC as customer-sync<br/>CustomerSyncJob
+    participant PG as PostgreSQL<br/>customers table
+    participant SUMSUB as Sumsub API
+    participant CUST as Customers
+    participant OUT as Outbox
+
+    rect rgb(255, 255, 230)
+        Note over SCHED,OUT: Runs every N minutes (configured)
+    end
+
+    SCHED->>SYNC: execute()
+    SYNC->>PG: SELECT * FROM customers<br/>WHERE applicant_id IS NOT NULL<br/>AND kyc_verification = PENDING
+    PG-->>SYNC: pending_customers[]
+
+    loop For each pending customer
+        SYNC->>SUMSUB: GET /resources/applicants/{applicantId}/status
+        SUMSUB-->>SYNC: {reviewResult, reviewStatus}
+
+        alt Review Complete and Approved
+            SYNC->>SYNC: Map to VERIFIED
+        else Review Complete and Rejected
+            SYNC->>SYNC: Map to REJECTED
+        else Review in Progress
+            SYNC->>SYNC: Keep as PENDING
+        end
+
+        SYNC->>PG: UPDATE customers SET kyc_verification = ?
+        SYNC->>CUST: update_kyc_verification(customer_id, status)
+        SYNC->>OUT: publish(CustomerKycVerificationUpdated)
+    end
+
+    Note over SCHED: Job complete
+```
 
 ## Overview
 

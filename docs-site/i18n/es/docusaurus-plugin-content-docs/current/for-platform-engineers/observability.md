@@ -8,7 +8,45 @@ sidebar_position: 8
 
 Este documento describe la infraestructura de trazabilidad distribuida y observabilidad del sistema Lana Bank. Cubre la integración con OpenTelemetry, la propagación del contexto de traza a través de límites de servicio y trabajos asíncronos, patrones de instrumentación y funcionalidades de observabilidad.
 
-![Arquitectura de Observabilidad](/img/architecture/observability-1.png)
+```mermaid
+graph TD
+    subgraph EntryPoints["Puntos de Entrada"]
+        CLI["lana-cli"]
+        AS["admin-server"]
+        CS["customer-server"]
+    end
+
+    subgraph AppLayer["Capa de Aplicación"]
+        LA["lana-app"]
+        EVENTS["lana-events<br/>Definiciones de Eventos"]
+        RBAC["Role Types<br/>Definiciones RBAC"]
+        IDS["lana-ids<br/>Tipos de ID"]
+    end
+
+    subgraph DomainLayer["Capa de Dominio"]
+        CC["core-credit"]
+        CD["core-deposit"]
+        CCU["core-customer"]
+        CA["core-accounting"]
+        CCUS["core-custody"]
+        COB["core-applicant"]
+        GOV["governance"]
+    end
+
+    CLI --> LA
+    AS --> LA
+    CS --> LA
+    LA --> EVENTS
+    LA --> RBAC
+    LA --> IDS
+    LA --> CC
+    LA --> CD
+    LA --> CCU
+    LA --> CA
+    LA --> CCUS
+    LA --> COB
+    LA --> GOV
+```
 
 ## Arquitectura de Observabilidad
 

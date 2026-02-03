@@ -8,7 +8,13 @@ sidebar_position: 10
 
 Este documento describe cómo Lana Bank se integra con Cala Ledger, un sistema externo de contabilidad por partida doble, para mantener los registros financieros.
 
-![Integración Contable con Ledger](/img/architecture/accounting-1.png)
+```mermaid
+graph LR
+    CC["core-credit<br/>Operaciones de Crédito"] --> CA["core-accounting<br/>Plan de Cuentas"]
+    CD["core-deposit<br/>Operaciones de Depósito"] --> CA
+    CA --> CALA["cala-ledger<br/>Libro de Partida Doble"]
+    CALA --> PG[("PostgreSQL<br/>Asientos Contables")]
+```
 
 ## Propósito y Alcance
 

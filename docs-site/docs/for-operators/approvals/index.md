@@ -8,7 +8,20 @@ sidebar_position: 1
 
 The governance system provides a structured approval mechanism for critical financial operations requiring multi-party authorization before execution.
 
-![Approval Workflow](/img/architecture/approval-workflow-1.png)
+```mermaid
+graph LR
+    subgraph DomainService["Domain Service Internal Structure"]
+        CMD["Command"] -->|"validates & executes"| AGG["Aggregate Root<br/>(es-entity)"]
+        AGG -->|"emits"| EVT["Domain Events"]
+        EVT -->|"persists to"| REPO["Repository"]
+        EVT -->|"publishes via"| OUTBOX["Outbox Publisher"]
+    end
+
+    subgraph Infrastructure
+        REPO -->|"persists"| PG[("PostgreSQL<br/>Event Store")]
+        OUTBOX -->|"writes"| OE[("outbox_events<br/>Table")]
+    end
+```
 
 ## Purpose
 

@@ -8,7 +8,13 @@ sidebar_position: 8
 
 This document describes the integration with Cala Ledger for double-entry accounting.
 
-![Accounting and Ledger Integration](/img/architecture/accounting-1.png)
+```mermaid
+graph LR
+    CC["core-credit<br/>Credit Operations"] --> CA["core-accounting<br/>Chart of Accounts"]
+    CD["core-deposit<br/>Deposit Operations"] --> CA
+    CA --> CALA["cala-ledger<br/>Double-Entry Ledger"]
+    CALA --> PG[("PostgreSQL<br/>Journal Entries")]
+```
 
 ## Overview
 

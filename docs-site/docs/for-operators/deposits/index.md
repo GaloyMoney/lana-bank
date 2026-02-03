@@ -8,7 +8,33 @@ sidebar_position: 1
 
 The Deposit and Withdrawal System manages customer deposit accounts and facilitates deposit/withdrawal operations within the platform.
 
-![Deposit System Architecture](/img/architecture/deposit-flow-1.png)
+```mermaid
+graph LR
+    subgraph DomainLayer["Domain Layer (lana-app)"]
+        DC["core_customer::Customer<br/>From trait"]
+        DCR["core_credit::CreditFacility<br/>From trait"]
+        DLA["core_accounting::LedgerAccount<br/>From trait"]
+    end
+
+    subgraph Wrapper["Wrapper Pattern"]
+        WC["Customer {<br/>entity: Arc&lt;DomainCustomer&gt;<br/>}"]
+        WCF["CreditFacility {<br/>entity: Arc&lt;DomainCreditFacility&gt;<br/>}"]
+        WLA["LedgerAccount {<br/>entity: Arc&lt;DomainLedgerAccount&gt;<br/>}"]
+    end
+
+    subgraph GQLLayer["GraphQL Layer"]
+        GC["Customer<br/>(SimpleObject)"]
+        GCF["CreditFacility<br/>(ComplexObject)"]
+        GLA["LedgerAccount<br/>(ComplexObject)"]
+    end
+
+    DC --> WC
+    DCR --> WCF
+    DLA --> WLA
+    WC -->|"exposes as"| GC
+    WCF -->|"exposes as"| GCF
+    WLA -->|"exposes as"| GLA
+```
 
 ## Purpose
 

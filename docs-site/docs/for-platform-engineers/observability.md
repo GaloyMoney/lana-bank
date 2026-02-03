@@ -8,7 +8,45 @@ sidebar_position: 7
 
 This document describes Lana's observability infrastructure, including distributed tracing with OpenTelemetry.
 
-![Observability Architecture](/img/architecture/observability-1.png)
+```mermaid
+graph TD
+    subgraph EntryPoints["Entry Points"]
+        CLI["lana-cli"]
+        AS["admin-server"]
+        CS["customer-server"]
+    end
+
+    subgraph AppLayer["Application Layer"]
+        LA["lana-app"]
+        EVENTS["lana-events<br/>Event Definitions"]
+        RBAC["Role Types<br/>RBAC Definitions"]
+        IDS["lana-ids<br/>Entity ID Types"]
+    end
+
+    subgraph DomainLayer["Domain Layer"]
+        CC["core-credit"]
+        CD["core-deposit"]
+        CCU["core-customer"]
+        CA["core-accounting"]
+        CCUS["core-custody"]
+        COB["core-applicant"]
+        GOV["governance"]
+    end
+
+    CLI --> LA
+    AS --> LA
+    CS --> LA
+    LA --> EVENTS
+    LA --> RBAC
+    LA --> IDS
+    LA --> CC
+    LA --> CD
+    LA --> CCU
+    LA --> CA
+    LA --> CCUS
+    LA --> COB
+    LA --> GOV
+```
 
 ## Overview
 

@@ -6,7 +6,61 @@ sidebar_position: 1
 
 # Ciclo de Vida del Módulo de Crédito
 
-![Ciclo de Vida de Facilidades de Crédito](/img/architecture/credit-lifecycle-1.png)
+```mermaid
+graph TD
+    subgraph Clients["Aplicaciones Cliente"]
+        ADMIN["admin-panel<br/>(Next.js)"]
+        CUST["customer-portal<br/>(Next.js)"]
+    end
+
+    subgraph Backend["Servicios Backend"]
+        LANACLI["lana-cli<br/>Punto de Entrada"]
+        CS_API["customer-server<br/>GraphQL API"]
+        AS_API["admin-server<br/>GraphQL API"]
+    end
+
+    subgraph GW["Capa API Gateway"]
+        OAT["Oathkeeper<br/>Gateway JWT"]
+    end
+
+    subgraph Core["Dominios de Negocio"]
+        LA["lana-app<br/>Orquestador"]
+        CCUS["core-custody"]
+        CDEP["core-deposit"]
+        CCRED["core-credit"]
+        CCUST["core-customer"]
+        CACCT["core-accounting"]
+        GOV["governance"]
+    end
+
+    subgraph Ledger
+        CALA["cala-ledger"]
+        PG[("PostgreSQL")]
+    end
+
+    subgraph External["Integraciones Externas"]
+        BITGO["BitGo/Komainu<br/>Custodia"]
+        SUMSUB["Sumsub<br/>KYC/AML"]
+    end
+
+    ADMIN --> OAT
+    CUST --> OAT
+    OAT --> AS_API
+    OAT --> CS_API
+    LANACLI --> LA
+    AS_API --> LA
+    CS_API --> LA
+    LA --> CCUS
+    LA --> CDEP
+    LA --> CCRED
+    LA --> CCUST
+    LA --> CACCT
+    LA --> GOV
+    CACCT --> CALA
+    CALA --> PG
+    CCUS --> BITGO
+    CCUST --> SUMSUB
+```
 
 ```mermaid
 flowchart LR

@@ -8,7 +8,31 @@ sidebar_position: 5
 
 Este documento describe los flujos de trabajo de integración continua y despliegue continuo de Lana Bank, incluyendo GitHub Actions, Concourse y la estrategia de releases.
 
-![Pipeline de CI/CD](/img/architecture/ci-cd-1.png)
+```mermaid
+graph TD
+    subgraph Config["Configuración meltano.yml"]
+        SCHED["Definiciones de Horario"]
+        ENV["Ambientes<br/>(dev, staging, prod)"]
+        PLUGINS["Definiciones de Plugins"]
+        JOBDEF["Definiciones de Jobs"]
+    end
+
+    subgraph PluginTypes["Tipos de Plugin"]
+        EXT["Extractors<br/>(tap-postgres, tap-bitfinex,<br/>tap-sumsubapi)"]
+        LOAD["Loaders<br/>(target-bigquery)"]
+        TRANS["Transformers"]
+        UTIL["Utilities<br/>(sqlfluff, airflow,<br/>generate-es-reports)"]
+    end
+
+    SCHED -->|"dispara"| JOBDEF
+    ENV -->|"referencia"| PLUGINS
+    PLUGINS -->|"referencia"| EXT
+    PLUGINS -->|"referencia"| LOAD
+    PLUGINS -->|"referencia"| TRANS
+    PLUGINS -->|"referencia"| UTIL
+    JOBDEF -->|"referencia"| EXT
+    JOBDEF -->|"referencia"| LOAD
+```
 
 ## Visión General de la Arquitectura de CI/CD
 
