@@ -377,7 +377,7 @@ where
         if let Idempotent::Executed(closing_date) = chart.close_as_of(closed_as_of) {
             self.repo.update_in_op(op, &mut chart).await?;
             self.chart_ledger
-                .close_by_chart_root_account_set_as_of(op, closing_date, chart.account_set_id)
+                .close_by_chart_root_account_set_as_of_in_op(op, closing_date, chart.account_set_id)
                 .await?;
         }
         Ok(())
@@ -385,10 +385,10 @@ where
 
     #[record_error_severity]
     #[instrument(
-        name = "core_accounting.chart_of_accounts.post_closing_transaction",
+        name = "core_accounting.chart_of_accounts.post_closing_transaction_in_op",
         skip(self, op)
     )]
-    pub async fn post_closing_transaction(
+    pub async fn post_closing_transaction_in_op(
         &self,
         op: &mut es_entity::DbOp<'_>,
         chart_id: ChartId,
@@ -406,7 +406,7 @@ where
         {
             self.repo.update_in_op(op, &mut chart).await?;
             self.chart_ledger
-                .post_closing_transaction(op, closing_tx_parents_and_details)
+                .post_closing_transaction_in_op(op, closing_tx_parents_and_details)
                 .await?;
         }
         Ok(())

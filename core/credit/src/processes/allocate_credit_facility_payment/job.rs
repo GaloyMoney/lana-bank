@@ -112,8 +112,8 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    #[instrument(name = "core_credit.allocate_credit_facility_payment_job.process_message", parent = None, skip(self, message, db), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty, credit_facility_id = tracing::field::Empty))]
-    async fn process_message(
+    #[instrument(name = "core_credit.allocate_credit_facility_payment_job.process_message_in_op", parent = None, skip(self, message, db), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty, credit_facility_id = tracing::field::Empty))]
+    async fn process_message_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
         message: &PersistentOutboxEvent<E>,
@@ -137,7 +137,9 @@ where
             );
 
             let initiated_by = LedgerTransactionInitiator::System;
-            self.process.execute(db, *payment_id, initiated_by).await?;
+            self.process
+                .execute_in_op(db, *payment_id, initiated_by)
+                .await?;
         }
         Ok(())
     }
@@ -178,7 +180,7 @@ where
                     match message {
                         Some(message) => {
                             let mut db = self.process.begin_op().await?;
-                            self.process_message(&mut db, &message).await?;
+                            self.process_message_in_op(&mut db, &message).await?;
 
                             state.sequence = message.sequence;
                             current_job

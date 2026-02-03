@@ -38,7 +38,7 @@ impl TrialBalanceLedger {
         }
     }
 
-    async fn create_unique_account_set(
+    async fn create_unique_account_set_in_op(
         &self,
         op: &mut es_entity::DbOp<'_>,
         reference: &str,
@@ -117,7 +117,7 @@ impl TrialBalanceLedger {
         Ok(res)
     }
 
-    pub async fn add_members(
+    pub async fn add_members_in_op(
         &self,
         op: &mut es_entity::DbOp<'_>,
         node_account_set_id: impl Into<AccountSetId> + Copy,
@@ -146,13 +146,13 @@ impl TrialBalanceLedger {
         Ok(())
     }
 
-    pub async fn create(
+    pub async fn create_in_op(
         &self,
         op: &mut es_entity::DbOp<'_>,
         reference: &str,
     ) -> Result<AccountSetId, TrialBalanceLedgerError> {
         let statement_id = self
-            .create_unique_account_set(op, reference, DebitOrCredit::Debit, vec![])
+            .create_unique_account_set_in_op(op, reference, DebitOrCredit::Debit, vec![])
             .await?;
         Ok(statement_id)
     }

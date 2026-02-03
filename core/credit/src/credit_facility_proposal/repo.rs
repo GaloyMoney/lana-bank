@@ -18,7 +18,7 @@ use super::{entity::*, error::CreditFacilityProposalError};
         approval_process_id(ty = "Option<ApprovalProcessId>", list_by, create(persist = "false")),
     ),
     tbl_prefix = "core",
-    post_persist_hook = "publish"
+    post_persist_hook = "publish_in_op"
 )]
 pub struct CreditFacilityProposalRepo<E>
 where
@@ -55,15 +55,15 @@ where
     }
 
     #[record_error_severity]
-    #[tracing::instrument(name = "credit_facility_proposal.publish", skip_all)]
-    async fn publish(
+    #[tracing::instrument(name = "credit_facility_proposal.publish_in_op", skip_all)]
+    async fn publish_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &CreditFacilityProposal,
         new_events: es_entity::LastPersisted<'_, CreditFacilityProposalEvent>,
     ) -> Result<(), CreditFacilityProposalError> {
         self.publisher
-            .publish_proposal(op, entity, new_events)
+            .publish_proposal_in_op(op, entity, new_events)
             .await
     }
 }

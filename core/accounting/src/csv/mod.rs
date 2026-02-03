@@ -102,11 +102,11 @@ where
         let document = self
             .document_storage
             .create_in_op(
+                &mut db,
                 format!("ledger-account-{ledger_account_id}.csv"),
                 "text/csv",
                 ReferenceId::from(uuid::Uuid::from(ledger_account_id)),
                 LEDGER_ACCOUNT_CSV,
-                &mut db,
             )
             .await?;
 

@@ -83,18 +83,18 @@ impl AuditSvc for TestAudit {
         Ok(dummy_audit_info())
     }
 
-    async fn record_system_entry_in_tx(
+    async fn record_system_entry_in_op(
         &self,
-        _tx: &mut impl es_entity::AtomicOperation,
+        _op: &mut impl es_entity::AtomicOperation,
         _object: impl Into<Self::Object> + Send,
         _action: impl Into<Self::Action> + Send,
     ) -> Result<AuditInfo, AuditError> {
         Ok(dummy_audit_info())
     }
 
-    async fn record_entry_in_tx(
+    async fn record_entry_in_op(
         &self,
-        _tx: &mut impl es_entity::AtomicOperation,
+        _op: &mut impl es_entity::AtomicOperation,
         _subject: &Self::Subject,
         _object: impl Into<Self::Object> + Send,
         _action: impl Into<Self::Action> + Send,

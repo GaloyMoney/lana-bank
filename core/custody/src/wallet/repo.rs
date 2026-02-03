@@ -15,7 +15,7 @@ use super::{entity::*, error::*};
     err = "WalletError",
     columns(external_wallet_id(ty = "str", find_by)),
     tbl_prefix = "core",
-    post_persist_hook = "publish"
+    post_persist_hook = "publish_in_op"
 )]
 pub struct WalletRepo<E>
 where
@@ -38,13 +38,15 @@ where
         }
     }
 
-    async fn publish(
+    async fn publish_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &Wallet,
         new_events: es_entity::LastPersisted<'_, WalletEvent>,
     ) -> Result<(), WalletError> {
-        self.publisher.publish_wallet(op, entity, new_events).await
+        self.publisher
+            .publish_wallet_in_op(op, entity, new_events)
+            .await
     }
 }
 

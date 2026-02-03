@@ -21,7 +21,7 @@ use super::{entity::*, error::PaymentAllocationError};
         obligation_id(ty = "ObligationId", update(persist = false)),
     ),
     tbl_prefix = "core",
-    post_persist_hook = "publish"
+    post_persist_hook = "publish_in_op"
 )]
 pub struct PaymentAllocationRepo<E>
 where
@@ -58,15 +58,15 @@ where
     }
 
     #[record_error_severity]
-    #[tracing::instrument(name = "payment_allocation.publish", skip_all)]
-    async fn publish(
+    #[tracing::instrument(name = "payment_allocation.publish_in_op", skip_all)]
+    async fn publish_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &PaymentAllocation,
         new_events: es_entity::LastPersisted<'_, PaymentAllocationEvent>,
     ) -> Result<(), PaymentAllocationError> {
         self.publisher
-            .publish_payment_allocation(op, entity, new_events)
+            .publish_payment_allocation_in_op(op, entity, new_events)
             .await
     }
 }

@@ -21,7 +21,7 @@ use super::{entity::*, error::*};
         public_id(ty = "PublicId", list_by)
     ),
     tbl_prefix = "core",
-    post_persist_hook = "publish"
+    post_persist_hook = "publish_in_op"
 )]
 pub struct CustomerRepo<E>
 where
@@ -57,13 +57,13 @@ where
         }
     }
 
-    async fn publish(
+    async fn publish_in_op(
         &self,
         db: &mut impl es_entity::AtomicOperation,
         entity: &Customer,
         new_events: es_entity::LastPersisted<'_, CustomerEvent>,
     ) -> Result<(), CustomerError> {
-        self.publisher.publish(db, entity, new_events).await
+        self.publisher.publish_in_op(db, entity, new_events).await
     }
 }
 

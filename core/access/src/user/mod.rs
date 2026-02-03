@@ -248,7 +248,7 @@ where
 
     /// Creates a user with `email` and belonging to `role` (superuser).
     /// Used for bootstrapping the application.
-    pub(super) async fn bootstrap_superuser_user(
+    pub(super) async fn bootstrap_superuser_user_in_op(
         &self,
         op: &mut DbOp<'_>,
         email: String,
@@ -256,7 +256,7 @@ where
     ) -> Result<User, UserError> {
         self.authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_system_entry_in_op(
                 &mut *op,
                 CoreAccessObject::all_users(),
                 CoreAccessAction::USER_CREATE,

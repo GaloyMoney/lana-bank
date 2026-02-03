@@ -57,7 +57,7 @@ async fn approval_process_concluded_publishes_event() -> anyhow::Result<()> {
         || async {
             let mut db = es_entity::DbOp::init(&pool).await?;
             let process = governance
-                .start_process(
+                .start_process_in_op(
                     &mut db,
                     process_id,
                     target_ref.clone(),

@@ -123,12 +123,12 @@ where
 
         let mut op = current_job.begin_op().await?;
         self.document_storage
-            .upload_in_op(csv_result, &mut document, &mut op)
+            .upload_in_op(&mut op, csv_result, &mut document)
             .await?;
 
         let csv_id = AccountingCsvId::from(uuid::Uuid::from(document.id));
         self.publisher
-            .publish_csv_export_uploaded(&mut op, csv_id, self.config.ledger_account_id)
+            .publish_csv_export_uploaded_in_op(&mut op, csv_id, self.config.ledger_account_id)
             .await?;
         op.commit().await?;
 

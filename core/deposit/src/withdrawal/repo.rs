@@ -24,7 +24,7 @@ use super::{entity::*, error::*};
         public_id(ty = "PublicId", list_by)
     ),
     tbl_prefix = "core",
-    post_persist_hook = "publish"
+    post_persist_hook = "publish_in_op"
 )]
 pub struct WithdrawalRepo<E>
 where
@@ -60,14 +60,14 @@ where
         }
     }
 
-    async fn publish(
+    async fn publish_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &Withdrawal,
         new_events: es_entity::LastPersisted<'_, WithdrawalEvent>,
     ) -> Result<(), WithdrawalError> {
         self.publisher
-            .publish_withdrawal(op, entity, new_events)
+            .publish_withdrawal_in_op(op, entity, new_events)
             .await
     }
 }

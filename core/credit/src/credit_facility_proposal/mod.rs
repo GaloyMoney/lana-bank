@@ -127,7 +127,7 @@ where
 
                 if approved {
                     self.governance
-                        .start_process(
+                        .start_process_in_op(
                             &mut db,
                             id,
                             id.to_string(),

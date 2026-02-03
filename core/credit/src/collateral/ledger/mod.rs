@@ -50,10 +50,10 @@ impl CollateralLedger {
 
     #[record_error_severity]
     #[instrument(
-        name = "core_credit.collateral.ledger.update_collateral_amount",
+        name = "core_credit.collateral.ledger.update_collateral_amount_in_op",
         skip(self, op)
     )]
-    pub async fn update_collateral_amount(
+    pub async fn update_collateral_amount_in_op(
         &self,
         op: &mut es_entity::DbOp<'_>,
         CollateralUpdate {

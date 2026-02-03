@@ -19,7 +19,7 @@ use super::{entity::*, error::*};
     err = "CollateralError",
     columns(custody_wallet_id(ty = "Option<CustodyWalletId>", update(persist = false))),
     tbl_prefix = "core",
-    post_persist_hook = "publish"
+    post_persist_hook = "publish_in_op"
 )]
 pub struct CollateralRepo<E>
 where
@@ -43,15 +43,15 @@ where
     }
 
     #[record_error_severity]
-    #[tracing::instrument(name = "collateral.publish", skip_all)]
-    async fn publish(
+    #[tracing::instrument(name = "collateral.publish_in_op", skip_all)]
+    async fn publish_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &Collateral,
         new_events: es_entity::LastPersisted<'_, CollateralEvent>,
     ) -> Result<(), CollateralError> {
         self.publisher
-            .publish_collateral(op, entity, new_events)
+            .publish_collateral_in_op(op, entity, new_events)
             .await
     }
 }

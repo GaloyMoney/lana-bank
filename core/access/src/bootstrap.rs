@@ -55,14 +55,14 @@ where
         let mut db = self.role_repo.begin_op().await?;
 
         let permission_sets = self
-            .bootstrap_permission_sets(&mut db, &all_actions)
+            .bootstrap_permission_sets_in_op(&mut db, &all_actions)
             .await?;
         let superuser_role = self
-            .bootstrap_roles(&mut db, &permission_sets, predefined_roles)
+            .bootstrap_roles_in_op(&mut db, &permission_sets, predefined_roles)
             .await?;
         let superuser = self
             .users
-            .bootstrap_superuser_user(&mut db, email, &superuser_role)
+            .bootstrap_superuser_user_in_op(&mut db, email, &superuser_role)
             .await?;
 
         self.authz
@@ -82,7 +82,7 @@ where
         Ok(())
     }
 
-    async fn create_role(
+    async fn create_role_in_op(
         &self,
         db: &mut DbOp<'_>,
         name: String,
@@ -110,11 +110,11 @@ where
         Ok(role)
     }
 
-    /// Creates a role with name “superuser” that will have all given permission sets.
+    /// Creates a role with name "superuser" that will have all given permission sets.
     /// Used for bootstrapping the application.
     ///
     /// Also creates roles for all predefined roles.
-    async fn bootstrap_roles(
+    async fn bootstrap_roles_in_op(
         &self,
         db: &mut DbOp<'_>,
         permission_sets: &[PermissionSet],
@@ -122,7 +122,7 @@ where
     ) -> Result<Role, RoleError> {
         self.authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_system_entry_in_op(
                 db,
                 CoreAccessObject::all_users(),
                 CoreAccessAction::ROLE_CREATE,
@@ -135,7 +135,7 @@ where
             .collect::<HashMap<_, _>>();
 
         let superuser_role = self
-            .create_role(
+            .create_role_in_op(
                 db,
                 ROLE_NAME_SUPERUSER.to_owned(),
                 all_permission_sets.values().copied().collect(),
@@ -149,7 +149,7 @@ where
                 .copied()
                 .collect::<HashSet<_>>();
 
-            let _ = self.create_role(db, name.to_string(), sets).await;
+            let _ = self.create_role_in_op(db, name.to_string(), sets).await;
         }
 
         Ok(superuser_role)
@@ -157,7 +157,7 @@ where
 
     /// Generates Permission Sets based on provided hierarchy of modules and
     /// returns all existing Permission Sets. For use during application bootstrap.
-    async fn bootstrap_permission_sets(
+    async fn bootstrap_permission_sets_in_op(
         &self,
         db: &mut DbOp<'_>,
         all_actions: &[ActionMapping],

@@ -85,7 +85,7 @@ where
         }
         let mut op = self.repo.begin_op().await?;
         self.audit
-            .record_system_entry_in_tx(
+            .record_system_entry_in_op(
                 &mut op,
                 CoreDepositObject::withdrawal(id),
                 CoreDepositAction::Withdrawal(WithdrawalAction::ConcludeApprovalProcess),
@@ -95,7 +95,7 @@ where
             es_entity::Idempotent::Executed(Some(denied_tx_id)) => {
                 self.repo.update_in_op(&mut op, &mut withdraw).await?;
                 self.ledger
-                    .deny_withdrawal(
+                    .deny_withdrawal_in_op(
                         &mut op,
                         withdraw.id,
                         denied_tx_id,
