@@ -57,10 +57,10 @@ where
     }
 
     #[instrument(
-        name = "credit.allocate_credit_facility_payment.execute_in_op",
+        name = "credit.allocate_credit_facility_payment.execute",
         skip(self, db)
     )]
-    pub async fn execute_in_op(
+    pub async fn execute(
         &self,
         db: &mut es_entity::DbOp<'_>,
         payment_id: PaymentId,

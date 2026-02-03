@@ -124,11 +124,11 @@ where
     <<Perms as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
         From<core_access::UserId>,
 {
-    #[instrument(name = "notification.email_listener_job.process_message_in_op", parent = None, skip(self, op, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
-    async fn process_message_in_op(
+    #[instrument(name = "notification.email_listener_job.process_message", parent = None, skip(self, message, op), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
+    async fn process_message(
         &self,
-        op: &mut impl es_entity::AtomicOperation,
         message: &PersistentOutboxEvent<LanaEvent>,
+        op: &mut impl es_entity::AtomicOperation,
     ) -> Result<(), Box<dyn std::error::Error>> {
         match message.as_event() {
             Some(LanaEvent::Credit(
@@ -143,7 +143,7 @@ where
                 Span::current().record("event_type", credit_event.as_ref());
 
                 self.email_notification
-                    .send_obligation_overdue_notification_in_op(op, id, credit_facility_id, amount)
+                    .send_obligation_overdue_notification(op, id, credit_facility_id, amount)
                     .await?;
             }
             Some(LanaEvent::Credit(
@@ -161,7 +161,7 @@ where
                 Span::current().record("event_type", credit_event.as_ref());
 
                 self.email_notification
-                    .send_partial_liquidation_initiated_notification_in_op(
+                    .send_partial_liquidation_initiated_notification(
                         op,
                         credit_facility_id,
                         customer_id,
@@ -188,7 +188,7 @@ where
                 Span::current().record("event_type", credit_event.as_ref());
 
                 self.email_notification
-                    .send_under_margin_call_notification_in_op(
+                    .send_under_margin_call_notification(
                         op,
                         id,
                         customer_id,
@@ -208,7 +208,7 @@ where
                 Span::current().record("event_type", deposit_event.as_ref());
 
                 self.email_notification
-                    .send_deposit_account_created_notification_in_op(
+                    .send_deposit_account_created_notification(
                         op,
                         &entity.id,
                         &entity.account_holder_id,
@@ -221,7 +221,7 @@ where
                 Span::current().record("event_type", access_event.as_ref());
 
                 self.email_notification
-                    .send_role_created_notification_in_op(op, &entity.id, &entity.name)
+                    .send_role_created_notification(op, &entity.id, &entity.name)
                     .await?;
             }
             _ => {}
@@ -275,7 +275,7 @@ where
                     match message {
                         Some(message) => {
                             let mut op = current_job.pool().begin().await?;
-                            self.process_message_in_op(&mut op, message.as_ref()).await?;
+                            self.process_message(message.as_ref(), &mut op).await?;
                             state.sequence = message.sequence;
                             current_job
                                 .update_execution_state_in_op(&mut op, &state)

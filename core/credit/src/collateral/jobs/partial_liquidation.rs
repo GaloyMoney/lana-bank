@@ -152,7 +152,7 @@ where
                                 .update_execution_state_in_op(&mut db, &state)
                                 .await?;
 
-                            let next = self.process_message_in_op(&mut db, message.as_ref()).await?;
+                            let next = self.process_message(&mut db, message.as_ref()).await?;
 
                             db.commit().await?;
 
@@ -177,10 +177,10 @@ where
         + OutboxEventMarker<CoreCustodyEvent>,
 {
     #[instrument(
-        name = "outbox.core_credit.partial_liquidation.complete_liquidation_in_op",
+        name = "outbox.core_credit.partial_liquidation.complete_liquidation",
         skip(self, db)
     )]
-    async fn complete_liquidation_in_op(
+    async fn complete_liquidation(
         &self,
         db: &mut DbOp<'_>,
     ) -> Result<(), Box<dyn std::error::Error>> {
@@ -207,8 +207,8 @@ where
         Ok(())
     }
 
-    #[instrument(name = "outbox.core_credit.partial_liquidation.process_message_in_op", parent = None, skip(self, message, db), fields(payment_id, seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
-    async fn process_message_in_op(
+    #[instrument(name = "outbox.core_credit.partial_liquidation.process_message", parent = None, skip(self, message, db), fields(payment_id, seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
+    async fn process_message(
         &self,
         db: &mut DbOp<'_>,
         message: &PersistentOutboxEvent<E>,
@@ -227,7 +227,7 @@ where
                 Span::current().record("event_type", event.as_ref());
                 Span::current().record("payment_id", tracing::field::display(payment_id));
 
-                self.complete_liquidation_in_op(db).await?;
+                self.complete_liquidation(db).await?;
 
                 Ok(ControlFlow::Break(()))
             }

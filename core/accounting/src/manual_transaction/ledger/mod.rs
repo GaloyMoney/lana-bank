@@ -19,7 +19,7 @@ impl ManualTransactionLedger {
         Self { cala: cala.clone() }
     }
 
-    pub async fn execute_in_op(
+    pub async fn execute(
         &self,
         op: &mut es_entity::DbOp<'_>,
         tx_id: CalaTxId,

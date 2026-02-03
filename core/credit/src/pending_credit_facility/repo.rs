@@ -31,7 +31,7 @@ use super::{entity::*, error::PendingCreditFacilityError};
         ),
     ),
     tbl_prefix = "core",
-    post_persist_hook = "publish_in_op"
+    post_persist_hook = "publish"
 )]
 pub struct PendingCreditFacilityRepo<E>
 where
@@ -68,15 +68,15 @@ where
     }
 
     #[record_error_severity]
-    #[tracing::instrument(name = "pending_credit_facility.publish_in_op", skip_all)]
-    async fn publish_in_op(
+    #[tracing::instrument(name = "pending_credit_facility.publish", skip_all)]
+    async fn publish(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &PendingCreditFacility,
         new_events: es_entity::LastPersisted<'_, PendingCreditFacilityEvent>,
     ) -> Result<(), PendingCreditFacilityError> {
         self.publisher
-            .publish_pending_credit_facility_in_op(op, entity, new_events)
+            .publish_pending_credit_facility(op, entity, new_events)
             .await
     }
 }

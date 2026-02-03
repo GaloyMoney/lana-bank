@@ -57,8 +57,8 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "credit.publisher.publish_facility_in_op", skip_all)]
-    pub async fn publish_facility_in_op(
+    #[instrument(name = "credit.publisher.publish_facility", skip_all)]
+    pub async fn publish_facility(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &CreditFacility,
@@ -136,8 +136,8 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "credit.publisher.publish_proposal_in_op", skip_all)]
-    pub async fn publish_proposal_in_op(
+    #[instrument(name = "credit.publisher.publish_proposal", skip_all)]
+    pub async fn publish_proposal(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &CreditFacilityProposal,
@@ -171,11 +171,8 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(
-        name = "credit.publisher.publish_pending_credit_facility_in_op",
-        skip_all
-    )]
-    pub async fn publish_pending_credit_facility_in_op(
+    #[instrument(name = "credit.publisher.publish_pending_credit_facility", skip_all)]
+    pub async fn publish_pending_credit_facility(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &PendingCreditFacility,
@@ -214,8 +211,8 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "credit.publisher.publish_collateral_in_op", skip_all)]
-    pub async fn publish_collateral_in_op(
+    #[instrument(name = "credit.publisher.publish_collateral", skip_all)]
+    pub async fn publish_collateral(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &Collateral,
@@ -255,8 +252,8 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "credit.publisher.publish_disbursal_in_op", skip_all)]
-    pub async fn publish_disbursal_in_op(
+    #[instrument(name = "credit.publisher.publish_disbursal", skip_all)]
+    pub async fn publish_disbursal(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &Disbursal,
@@ -288,11 +285,8 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(
-        name = "credit.publisher.publish_interest_accrual_cycle_in_op",
-        skip_all
-    )]
-    pub async fn publish_interest_accrual_cycle_in_op(
+    #[instrument(name = "credit.publisher.publish_interest_accrual_cycle", skip_all)]
+    pub async fn publish_interest_accrual_cycle(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &InterestAccrualCycle,
@@ -326,8 +320,8 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "credit.publisher.publish_payment_in_op", skip_all)]
-    pub async fn publish_payment_in_op(
+    #[instrument(name = "credit.publisher.publish_payment", skip_all)]
+    pub async fn publish_payment(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         _entity: &Payment,
@@ -358,8 +352,8 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "credit.publisher.publish_payment_allocation_in_op", skip_all)]
-    pub async fn publish_payment_allocation_in_op(
+    #[instrument(name = "credit.publisher.publish_payment_allocation", skip_all)]
+    pub async fn publish_payment_allocation(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &PaymentAllocation,
@@ -393,8 +387,8 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "credit.publisher.publish_obligation_in_op", skip_all)]
-    pub async fn publish_obligation_in_op(
+    #[instrument(name = "credit.publisher.publish_obligation", skip_all)]
+    pub async fn publish_obligation(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &Obligation,
@@ -455,8 +449,8 @@ where
     }
 
     #[record_error_severity]
-    #[instrument(name = "credit.publisher.publish_liquidation_in_op", skip_all)]
-    pub async fn publish_liquidation_in_op(
+    #[instrument(name = "credit.publisher.publish_liquidation", skip_all)]
+    pub async fn publish_liquidation(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &Liquidation,

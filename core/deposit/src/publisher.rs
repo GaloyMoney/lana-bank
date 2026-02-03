@@ -35,7 +35,7 @@ where
         }
     }
 
-    pub async fn publish_deposit_account_in_op(
+    pub async fn publish_deposit_account(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &DepositAccount,
@@ -56,7 +56,7 @@ where
         Ok(())
     }
 
-    pub async fn publish_withdrawal_in_op(
+    pub async fn publish_withdrawal(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &Withdrawal,
@@ -77,7 +77,7 @@ where
         Ok(())
     }
 
-    pub async fn publish_deposit_in_op(
+    pub async fn publish_deposit(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &Deposit,

@@ -206,7 +206,7 @@ where
                     .await?;
 
                 self.ledger
-                    .handle_pending_facility_creation_in_op(
+                    .handle_pending_facility_creation(
                         &mut db,
                         &pending_credit_facility,
                         core_accounting::LedgerTransactionInitiator::System,

@@ -37,7 +37,7 @@ use super::{
         public_id(ty = "PublicId", list_by)
     ),
     tbl_prefix = "core",
-    post_persist_hook = "publish_in_op"
+    post_persist_hook = "publish"
 )]
 pub struct CreditFacilityRepo<E>
 where
@@ -80,15 +80,15 @@ where
     }
 
     #[record_error_severity]
-    #[tracing::instrument(name = "credit_facility.publish_in_op", skip_all)]
-    async fn publish_in_op(
+    #[tracing::instrument(name = "credit_facility.publish", skip_all)]
+    async fn publish(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &CreditFacility,
         new_events: es_entity::LastPersisted<'_, CreditFacilityEvent>,
     ) -> Result<(), CreditFacilityError> {
         self.publisher
-            .publish_facility_in_op(op, entity, new_events)
+            .publish_facility(op, entity, new_events)
             .await
     }
 
@@ -120,7 +120,7 @@ where
         idx(ty = "InterestAccrualCycleIdx", update(persist = false), list_by),
     ),
     tbl_prefix = "core",
-    post_persist_hook = "publish_in_op"
+    post_persist_hook = "publish"
 )]
 pub(super) struct InterestAccrualRepo<E>
 where
@@ -157,15 +157,15 @@ where
     }
 
     #[record_error_severity]
-    #[tracing::instrument(name = "interest_accrual_cycle.publish_in_op", skip_all)]
-    async fn publish_in_op(
+    #[tracing::instrument(name = "interest_accrual_cycle.publish", skip_all)]
+    async fn publish(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &InterestAccrualCycle,
         new_events: es_entity::LastPersisted<'_, InterestAccrualCycleEvent>,
     ) -> Result<(), InterestAccrualCycleError> {
         self.publisher
-            .publish_interest_accrual_cycle_in_op(op, entity, new_events)
+            .publish_interest_accrual_cycle(op, entity, new_events)
             .await
     }
 }

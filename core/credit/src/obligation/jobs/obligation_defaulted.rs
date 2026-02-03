@@ -137,7 +137,7 @@ where
 
         self.authz
             .audit()
-            .record_system_entry_in_op(
+            .record_system_entry_in_tx(
                 &mut op,
                 CoreCreditObject::obligation(id),
                 CoreCreditAction::OBLIGATION_UPDATE_STATUS,
@@ -151,7 +151,7 @@ where
             self.repo.update_in_op(&mut op, &mut obligation).await?;
 
             self.ledger
-                .record_obligation_defaulted_in_op(
+                .record_obligation_defaulted(
                     &mut op,
                     defaulted,
                     core_accounting::LedgerTransactionInitiator::System,

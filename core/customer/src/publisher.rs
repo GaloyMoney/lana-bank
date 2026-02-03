@@ -30,7 +30,7 @@ where
         }
     }
 
-    pub async fn publish_in_op(
+    pub async fn publish(
         &self,
         db: &mut impl es_entity::AtomicOperation,
         entity: &Customer,

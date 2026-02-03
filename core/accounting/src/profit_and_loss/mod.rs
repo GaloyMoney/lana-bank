@@ -71,14 +71,14 @@ where
 
         self.authz
             .audit()
-            .record_system_entry_in_op(
+            .record_system_entry_in_tx(
                 &mut op,
                 CoreAccountingObject::all_profit_and_loss(),
                 CoreAccountingAction::PROFIT_AND_LOSS_CREATE,
             )
             .await?;
 
-        match self.pl_statement_ledger.create_in_op(&mut op, &name).await {
+        match self.pl_statement_ledger.create(&mut op, &name).await {
             Ok(_) => {
                 op.commit().await?;
                 Ok(())

@@ -675,7 +675,7 @@ where
         let disbursal = self.disbursals.create_in_op(&mut db, new_disbursal).await?;
 
         self.ledger
-            .initiate_disbursal_in_op(
+            .initiate_disbursal(
                 &mut db,
                 disbursal.id,
                 disbursal.initiated_tx_id,
@@ -749,7 +749,7 @@ where
         };
 
         self.collateral_ledger
-            .update_collateral_amount_in_op(
+            .update_collateral_amount(
                 &mut db,
                 collateral_update,
                 pending_facility.account_ids.collateral_account_id,
@@ -800,7 +800,7 @@ where
             return Ok(credit_facility);
         };
         self.collateral_ledger
-            .update_collateral_amount_in_op(
+            .update_collateral_amount(
                 &mut db,
                 collateral_update,
                 credit_facility.account_ids.collateral_account_id,
@@ -990,7 +990,7 @@ where
                     .await?;
 
                 self.ledger
-                    .complete_credit_facility_in_op(
+                    .complete_credit_facility(
                         &mut db,
                         completion,
                         LedgerTransactionInitiator::try_from_subject(sub)?,

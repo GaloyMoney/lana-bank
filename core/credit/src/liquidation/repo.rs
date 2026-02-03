@@ -22,7 +22,7 @@ use super::{entity::*, error::*};
         )
     ),
     tbl_prefix = "core",
-    post_persist_hook = "publish_in_op"
+    post_persist_hook = "publish"
 )]
 pub struct LiquidationRepo<E>
 where
@@ -59,15 +59,15 @@ where
     }
 
     #[record_error_severity]
-    #[tracing::instrument(name = "liquidation.publish_in_op", skip_all)]
-    async fn publish_in_op(
+    #[tracing::instrument(name = "liquidation.publish", skip_all)]
+    async fn publish(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &Liquidation,
         new_events: es_entity::LastPersisted<'_, LiquidationEvent>,
     ) -> Result<(), LiquidationError> {
         self.publisher
-            .publish_liquidation_in_op(op, entity, new_events)
+            .publish_liquidation(op, entity, new_events)
             .await
     }
 

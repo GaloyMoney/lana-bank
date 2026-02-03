@@ -114,10 +114,10 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     #[instrument(
-        name = "outbox.core_credit.partial_liquidation.acknowledge_payment_in_credit_facility_in_op",
+        name = "outbox.core_credit.partial_liquidation.acknowledge_payment_in_credit_facility",
         skip(self, db)
     )]
-    async fn acknowledge_payment_in_credit_facility_in_op(
+    async fn acknowledge_payment_in_credit_facility(
         &self,
         db: &mut es_entity::DbOp<'_>,
     ) -> Result<(), Box<dyn std::error::Error>> {
@@ -138,7 +138,7 @@ where
         Ok(())
     }
 
-    async fn record_payment_in_op(
+    async fn record_payment(
         &self,
         db: &mut es_entity::DbOp<'_>,
         payment_id: PaymentId,
@@ -168,14 +168,14 @@ where
 
         let payment = self.payment_repo.create_in_op(db, new_payment).await?;
         self.ledger
-            .record_payment_in_op(db, &payment, LedgerTransactionInitiator::System)
+            .record_payment(db, &payment, LedgerTransactionInitiator::System)
             .await?;
 
         Ok(Some(payment))
     }
 
-    #[instrument(name = "outbox.core_credit.liquidation_payment.process_message_in_op", parent = None, skip(self, message, db), fields(payment_id, seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
-    async fn process_message_in_op(
+    #[instrument(name = "outbox.core_credit.liquidation_payment.process_message", parent = None, skip(self, message, db), fields(payment_id, seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
+    async fn process_message(
         &self,
         db: &mut es_entity::DbOp<'_>,
         message: &PersistentOutboxEvent<E>,
@@ -208,7 +208,7 @@ where
                     payment_source_account_id: facility_proceeds_from_liquidation_account_id.into(),
                 };
 
-                self.record_payment_in_op(
+                self.record_payment(
                     db,
                     *payment_id,
                     *amount,
@@ -218,8 +218,7 @@ where
                 )
                 .await?;
 
-                self.acknowledge_payment_in_credit_facility_in_op(db)
-                    .await?;
+                self.acknowledge_payment_in_credit_facility(db).await?;
 
                 Ok(ControlFlow::Break(()))
             }
@@ -283,7 +282,7 @@ where
                                 .update_execution_state_in_op(&mut db, &state)
                                 .await?;
 
-                            let next = self.process_message_in_op(&mut db, message.as_ref(), current_job.clock()).await?;
+                            let next = self.process_message(&mut db, message.as_ref(), current_job.clock()).await?;
 
                             db.commit().await?;
 

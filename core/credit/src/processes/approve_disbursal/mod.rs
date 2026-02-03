@@ -113,7 +113,7 @@ where
                     .find_by_id_without_audit(disbursal.facility_id) // changed for now
                     .await?;
                 self.ledger
-                    .settle_disbursal_in_op(
+                    .settle_disbursal(
                         &mut op,
                         disbursal.id,
                         disbursal.disbursal_credit_account_id,
@@ -132,7 +132,7 @@ where
                     .find_by_id_without_audit(disbursal.facility_id) // changed for now
                     .await?;
                 self.ledger
-                    .cancel_disbursal_in_op(
+                    .cancel_disbursal(
                         &mut op,
                         disbursal.id,
                         disbursal.initiated_tx_id,

@@ -175,7 +175,7 @@ where
 
         self.authz
             .audit()
-            .record_system_entry_in_op(
+            .record_system_entry_in_tx(
                 &mut db,
                 CoreCustodyObject::wallet(wallet.id),
                 CoreCustodyAction::WALLET_UPDATE,

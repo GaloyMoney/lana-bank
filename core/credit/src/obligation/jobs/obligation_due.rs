@@ -151,7 +151,7 @@ where
 
         self.authz
             .audit()
-            .record_system_entry_in_op(
+            .record_system_entry_in_tx(
                 &mut op,
                 CoreCreditObject::obligation(id),
                 CoreCreditAction::OBLIGATION_UPDATE_STATUS,
@@ -191,7 +191,7 @@ where
             }
 
             self.ledger
-                .record_obligation_due_in_op(
+                .record_obligation_due(
                     &mut op,
                     due_data,
                     core_accounting::LedgerTransactionInitiator::System,

@@ -126,7 +126,7 @@ where
         let payment = self.repo.create_in_op(db, new_payment).await?;
 
         self.ledger
-            .record_payment_in_op(db, &payment, initiated_by)
+            .record_payment(db, &payment, initiated_by)
             .await?;
 
         Ok(Some(payment))

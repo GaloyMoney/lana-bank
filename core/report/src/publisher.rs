@@ -31,7 +31,7 @@ where
     }
 
     #[allow(dead_code)]
-    pub async fn publish_report_run_in_op(
+    pub async fn publish_report_run(
         &self,
         db: &mut impl es_entity::AtomicOperation,
         entity: &ReportRun,

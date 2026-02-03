@@ -39,8 +39,8 @@ impl BalanceSheetLedger {
     }
 
     #[record_error_severity]
-    #[instrument(name = "bs_ledger.create_unique_account_set_in_op", skip(self, op, parents), fields(reference = %reference, normal_balance_type = ?normal_balance_type, parents_count = parents.len()))]
-    async fn create_unique_account_set_in_op(
+    #[instrument(name = "bs_ledger.create_unique_account_set", skip(self, op, parents), fields(reference = %reference, normal_balance_type = ?normal_balance_type, parents_count = parents.len()))]
+    async fn create_unique_account_set(
         &self,
         op: &mut es_entity::DbOp<'_>,
         reference: &str,
@@ -73,8 +73,8 @@ impl BalanceSheetLedger {
     }
 
     #[record_error_severity]
-    #[instrument(name = "bs_ledger.create_account_set_in_op", skip(self, op, parents), fields(reference = %reference, normal_balance_type = ?normal_balance_type, parents_count = parents.len()))]
-    async fn create_account_set_in_op(
+    #[instrument(name = "bs_ledger.create_account_set", skip(self, op, parents), fields(reference = %reference, normal_balance_type = ?normal_balance_type, parents_count = parents.len()))]
+    async fn create_account_set(
         &self,
         op: &mut es_entity::DbOp<'_>,
         reference: &str,
@@ -180,21 +180,21 @@ impl BalanceSheetLedger {
     }
 
     #[record_error_severity]
-    #[instrument(name = "bs_ledger.create_in_op", skip(self, op), fields(reference = %reference))]
-    pub async fn create_in_op(
+    #[instrument(name = "bs_ledger.create", skip(self, op), fields(reference = %reference))]
+    pub async fn create(
         &self,
         op: &mut es_entity::DbOp<'_>,
         reference: &str,
     ) -> Result<BalanceSheetIds, BalanceSheetLedgerError> {
         let statement_id = self
-            .create_unique_account_set_in_op(op, reference, DebitOrCredit::Debit, vec![])
+            .create_unique_account_set(op, reference, DebitOrCredit::Debit, vec![])
             .await?;
 
         let assets_id = self
-            .create_account_set_in_op(op, ASSETS_NAME, DebitOrCredit::Debit, vec![statement_id])
+            .create_account_set(op, ASSETS_NAME, DebitOrCredit::Debit, vec![statement_id])
             .await?;
         let liabilities_id = self
-            .create_account_set_in_op(
+            .create_account_set(
                 op,
                 LIABILITIES_NAME,
                 DebitOrCredit::Credit,
@@ -202,18 +202,18 @@ impl BalanceSheetLedger {
             )
             .await?;
         let equity_id = self
-            .create_account_set_in_op(op, EQUITY_NAME, DebitOrCredit::Credit, vec![statement_id])
+            .create_account_set(op, EQUITY_NAME, DebitOrCredit::Credit, vec![statement_id])
             .await?;
 
         let net_income_id = self
-            .create_account_set_in_op(op, NET_INCOME_NAME, DebitOrCredit::Credit, vec![equity_id])
+            .create_account_set(op, NET_INCOME_NAME, DebitOrCredit::Credit, vec![equity_id])
             .await?;
 
         let revenue_id = self
-            .create_account_set_in_op(op, REVENUE_NAME, DebitOrCredit::Credit, vec![net_income_id])
+            .create_account_set(op, REVENUE_NAME, DebitOrCredit::Credit, vec![net_income_id])
             .await?;
         let cost_of_revenue_id = self
-            .create_account_set_in_op(
+            .create_account_set(
                 op,
                 COST_OF_REVENUE_NAME,
                 DebitOrCredit::Debit,
@@ -221,7 +221,7 @@ impl BalanceSheetLedger {
             )
             .await?;
         let expenses_id = self
-            .create_account_set_in_op(op, EXPENSES_NAME, DebitOrCredit::Debit, vec![net_income_id])
+            .create_account_set(op, EXPENSES_NAME, DebitOrCredit::Debit, vec![net_income_id])
             .await?;
         Ok(BalanceSheetIds {
             id: statement_id,

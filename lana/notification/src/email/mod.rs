@@ -78,7 +78,7 @@ where
         })
     }
 
-    pub async fn send_obligation_overdue_notification_in_op(
+    pub async fn send_obligation_overdue_notification(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         obligation_id: &ObligationId,
@@ -145,7 +145,7 @@ where
         Ok(())
     }
 
-    pub async fn send_partial_liquidation_initiated_notification_in_op(
+    pub async fn send_partial_liquidation_initiated_notification(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         credit_facility_id: &CreditFacilityId,
@@ -204,7 +204,7 @@ where
         Ok(())
     }
 
-    pub async fn send_under_margin_call_notification_in_op(
+    pub async fn send_under_margin_call_notification(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         credit_facility_id: &CreditFacilityId,
@@ -242,7 +242,7 @@ where
         Ok(())
     }
 
-    pub async fn send_deposit_account_created_notification_in_op(
+    pub async fn send_deposit_account_created_notification(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         account_id: &core_deposit::DepositAccountId,
@@ -268,7 +268,7 @@ where
         Ok(())
     }
 
-    pub async fn send_role_created_notification_in_op(
+    pub async fn send_role_created_notification(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         role_id: &core_access::RoleId,

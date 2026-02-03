@@ -14,7 +14,7 @@ use super::{entity::*, error::*};
     err = "RoleError",
     columns(name(ty = "String", list_by)),
     tbl_prefix = "core",
-    post_persist_hook = "publish_in_op"
+    post_persist_hook = "publish"
 )]
 pub(crate) struct RoleRepo<E>
 where
@@ -37,15 +37,13 @@ where
         }
     }
 
-    async fn publish_in_op(
+    async fn publish(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &Role,
         new_events: es_entity::LastPersisted<'_, RoleEvent>,
     ) -> Result<(), RoleError> {
-        self.publisher
-            .publish_role_in_op(op, entity, new_events)
-            .await
+        self.publisher.publish_role(op, entity, new_events).await
     }
 }
 

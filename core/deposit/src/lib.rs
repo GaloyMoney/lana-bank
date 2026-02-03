@@ -238,7 +238,7 @@ where
             .await?;
 
         self.ledger
-            .create_deposit_accounts_in_op(&mut op, &account, customer.customer_type)
+            .create_deposit_accounts(&mut op, &account, customer.customer_type)
             .await?;
 
         op.commit().await?;
@@ -408,7 +408,7 @@ where
             .build()?;
         let deposit = self.deposits.create_in_op(&mut op, new_deposit).await?;
         self.ledger
-            .record_deposit_in_op(
+            .record_deposit(
                 &mut op,
                 deposit_id,
                 amount,
@@ -455,7 +455,7 @@ where
             .build()?;
 
         self.governance
-            .start_process_in_op(
+            .start_process(
                 &mut op,
                 withdrawal_id,
                 withdrawal_id.to_string(),
@@ -468,7 +468,7 @@ where
             .await?;
 
         self.ledger
-            .initiate_withdrawal_in_op(
+            .initiate_withdrawal(
                 &mut op,
                 withdrawal_id,
                 amount,
@@ -506,7 +506,7 @@ where
             let mut op = self.deposits.begin_op().await?;
             self.deposits.update_in_op(&mut op, &mut deposit).await?;
             self.ledger
-                .revert_deposit_in_op(
+                .revert_deposit(
                     &mut op,
                     deposit_reversal_data,
                     LedgerTransactionInitiator::try_from_subject(sub)?,
@@ -545,7 +545,7 @@ where
                 .update_in_op(&mut op, &mut withdrawal)
                 .await?;
             self.ledger
-                .revert_withdrawal_in_op(
+                .revert_withdrawal(
                     &mut op,
                     withdrawal_reversal_data,
                     LedgerTransactionInitiator::try_from_subject(sub)?,
@@ -582,7 +582,7 @@ where
             .await?;
 
         self.ledger
-            .confirm_withdrawal_in_op(
+            .confirm_withdrawal(
                 &mut op,
                 id,
                 tx_id,
@@ -624,7 +624,7 @@ where
             .update_in_op(&mut op, &mut withdrawal)
             .await?;
         self.ledger
-            .cancel_withdrawal_in_op(
+            .cancel_withdrawal(
                 &mut op,
                 id,
                 tx_id,
@@ -741,9 +741,7 @@ where
             self.deposit_accounts
                 .update_in_op(&mut op, &mut account)
                 .await?;
-            self.ledger
-                .lock_account_in_op(&mut op, account_id.into())
-                .await?;
+            self.ledger.lock_account(&mut op, account_id.into()).await?;
 
             op.commit().await?;
         }

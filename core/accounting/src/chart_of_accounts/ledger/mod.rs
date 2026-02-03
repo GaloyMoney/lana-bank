@@ -80,11 +80,11 @@ impl ChartLedger {
 
     #[record_error_severity]
     #[instrument(
-        name = "chart_ledger.close_by_chart_root_account_set_as_of_in_op",
+        name = "chart_ledger.close_by_chart_root_account_set_as_of",
         skip(self, op),
         fields(chart_id = tracing::field::Empty, closed_as_of = %closed_as_of)
     )]
-    pub async fn close_by_chart_root_account_set_as_of_in_op(
+    pub async fn close_by_chart_root_account_set_as_of(
         &self,
         op: &mut es_entity::DbOp<'_>,
         closed_as_of: chrono::NaiveDate,
@@ -316,8 +316,8 @@ impl ChartLedger {
     }
 
     #[record_error_severity]
-    #[instrument(name = "chart_ledger.post_closing_transaction_in_op", skip(self, op))]
-    pub async fn post_closing_transaction_in_op(
+    #[instrument(name = "chart_ledger.post_closing_transaction", skip(self, op))]
+    pub async fn post_closing_transaction(
         &self,
         op: &mut es_entity::DbOp<'_>,
         ClosingTxParentIdsAndDetails {
@@ -361,7 +361,7 @@ impl ChartLedger {
             LedgerTransactionInitiator::System,
         );
         let template_code = self
-            .find_or_create_template_in_op(op, &closing_transaction_params)
+            .find_or_create_template(op, &closing_transaction_params)
             .await?;
 
         self.cala
@@ -479,7 +479,7 @@ impl ChartLedger {
         Ok(ledger_account)
     }
 
-    async fn find_or_create_template_in_op(
+    async fn find_or_create_template(
         &self,
         op: &mut es_entity::DbOp<'_>,
         params: &ClosingTransactionParams,

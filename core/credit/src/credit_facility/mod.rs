@@ -186,7 +186,7 @@ where
 
         self.authz
             .audit()
-            .record_system_entry_in_op(
+            .record_system_entry_in_tx(
                 &mut db,
                 CoreCreditObject::all_credit_facilities(),
                 CoreCreditAction::CREDIT_FACILITY_ACTIVATE,
@@ -285,7 +285,7 @@ where
         };
 
         self.ledger
-            .handle_activation_in_op(
+            .handle_activation(
                 &mut db,
                 activation_data,
                 core_accounting::LedgerTransactionInitiator::System,

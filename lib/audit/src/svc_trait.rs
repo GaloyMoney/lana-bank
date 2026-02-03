@@ -70,9 +70,9 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
         Ok(ret)
     }
 
-    async fn record_system_entry_in_op(
+    async fn record_system_entry_in_tx(
         &self,
-        op: &mut impl es_entity::AtomicOperation,
+        tx: &mut impl es_entity::AtomicOperation,
         object: impl Into<Self::Object> + Send,
         action: impl Into<Self::Action> + Send,
     ) -> Result<AuditInfo, AuditError> {
@@ -80,13 +80,13 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
         let object = object.into();
         let action = action.into();
 
-        self.record_entry_in_op(op, &subject, object, action, true)
+        self.record_entry_in_tx(tx, &subject, object, action, true)
             .await
     }
 
     #[record_error_severity]
-    #[tracing::instrument(name = "audit.record_entry_in_op", skip_all)]
-    async fn record_entry_in_op(
+    #[tracing::instrument(name = "audit.record_entry_in_tx", skip_all)]
+    async fn record_entry_in_tx(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         subject: &Self::Subject,

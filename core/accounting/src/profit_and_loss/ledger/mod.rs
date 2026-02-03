@@ -40,8 +40,8 @@ impl ProfitAndLossStatementLedger {
     }
 
     #[record_error_severity]
-    #[instrument(name = "pl_ledger.create_unique_account_set_in_op", skip(self, op, parents), fields(reference = %reference, normal_balance_type = ?normal_balance_type, parents_count = parents.len()))]
-    async fn create_unique_account_set_in_op(
+    #[instrument(name = "pl_ledger.create_unique_account_set", skip(self, op, parents), fields(reference = %reference, normal_balance_type = ?normal_balance_type, parents_count = parents.len()))]
+    async fn create_unique_account_set(
         &self,
         op: &mut es_entity::DbOp<'_>,
         reference: &str,
@@ -74,8 +74,8 @@ impl ProfitAndLossStatementLedger {
     }
 
     #[record_error_severity]
-    #[instrument(name = "pl_ledger.create_account_set_in_op", skip(self, op, parents), fields(reference = %reference, normal_balance_type = ?normal_balance_type, parents_count = parents.len()))]
-    async fn create_account_set_in_op(
+    #[instrument(name = "pl_ledger.create_account_set", skip(self, op, parents), fields(reference = %reference, normal_balance_type = ?normal_balance_type, parents_count = parents.len()))]
+    async fn create_account_set(
         &self,
         op: &mut es_entity::DbOp<'_>,
         reference: &str,
@@ -218,25 +218,25 @@ impl ProfitAndLossStatementLedger {
     }
 
     #[record_error_severity]
-    #[instrument(name = "pl_ledger.create_in_op", skip(self, op), fields(reference = %reference))]
-    pub async fn create_in_op(
+    #[instrument(name = "pl_ledger.create", skip(self, op), fields(reference = %reference))]
+    pub async fn create(
         &self,
         op: &mut es_entity::DbOp<'_>,
         reference: &str,
     ) -> Result<ProfitAndLossStatementIds, ProfitAndLossStatementLedgerError> {
         let statement_id = self
-            .create_unique_account_set_in_op(op, reference, DebitOrCredit::Credit, vec![])
+            .create_unique_account_set(op, reference, DebitOrCredit::Credit, vec![])
             .await?;
 
         let revenue_id = self
-            .create_account_set_in_op(op, REVENUE_NAME, DebitOrCredit::Credit, vec![statement_id])
+            .create_account_set(op, REVENUE_NAME, DebitOrCredit::Credit, vec![statement_id])
             .await?;
         let expenses_id = self
-            .create_account_set_in_op(op, EXPENSES_NAME, DebitOrCredit::Debit, vec![statement_id])
+            .create_account_set(op, EXPENSES_NAME, DebitOrCredit::Debit, vec![statement_id])
             .await?;
 
         let cost_of_revenue_id = self
-            .create_account_set_in_op(
+            .create_account_set(
                 op,
                 COST_OF_REVENUE_NAME,
                 DebitOrCredit::Debit,

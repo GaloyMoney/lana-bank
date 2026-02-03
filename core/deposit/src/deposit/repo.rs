@@ -22,7 +22,7 @@ use super::{entity::*, error::*};
         public_id(ty = "PublicId", list_by)
     ),
     tbl_prefix = "core",
-    post_persist_hook = "publish_in_op"
+    post_persist_hook = "publish"
 )]
 pub struct DepositRepo<E>
 where
@@ -58,14 +58,12 @@ where
         }
     }
 
-    async fn publish_in_op(
+    async fn publish(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &Deposit,
         new_events: es_entity::LastPersisted<'_, DepositEvent>,
     ) -> Result<(), DepositError> {
-        self.publisher
-            .publish_deposit_in_op(op, entity, new_events)
-            .await
+        self.publisher.publish_deposit(op, entity, new_events).await
     }
 }

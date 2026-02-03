@@ -154,7 +154,7 @@ where
                                 .repo
                                 .begin_op()
                                 .await?;
-                            self.process_message_in_op(&mut db, message.as_ref()).await?;
+                            self.process_message(&mut db, message.as_ref()).await?;
                             state.sequence = message.sequence;
                             current_job
                                 .update_execution_state_in_op(&mut db, &state)
@@ -175,8 +175,8 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
-    #[instrument(name = "outbox.core_credit.credit_facility_liquidations.process_message_in_op", parent = None, skip(self, message, db), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
-    async fn process_message_in_op(
+    #[instrument(name = "outbox.core_credit.credit_facility_liquidations.process_message", parent = None, skip(self, message, db), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
+    async fn process_message(
         &self,
         db: &mut DbOp<'_>,
         message: &PersistentOutboxEvent<E>,

@@ -231,7 +231,7 @@ where
 
         self.authz
             .audit()
-            .record_system_entry_in_op(
+            .record_system_entry_in_tx(
                 &mut op,
                 CoreCreditObject::all_credit_facilities(),
                 CoreCreditAction::CREDIT_FACILITY_UPDATE_COLLATERALIZATION_STATE,
@@ -290,7 +290,7 @@ where
             let mut op = self.repo.begin_op().await?;
             self.authz
                 .audit()
-                .record_system_entry_in_op(
+                .record_system_entry_in_tx(
                     &mut op,
                     CoreCreditObject::all_credit_facilities(),
                     CoreCreditAction::CREDIT_FACILITY_UPDATE_COLLATERALIZATION_STATE,

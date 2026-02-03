@@ -173,7 +173,7 @@ where
         }
 
         self.ledger
-            .execute_in_op(
+            .execute(
                 &mut db,
                 ledger_tx_id,
                 ManualTransactionParams {

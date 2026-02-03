@@ -113,11 +113,11 @@ where
         let document = self
             .document_storage
             .create_in_op(
-                &mut db,
                 filename,
                 "application/pdf",
                 ReferenceId::from(customer_id),
                 LOAN_AGREEMENT_DOCUMENT_TYPE,
+                &mut db,
             )
             .await?;
 

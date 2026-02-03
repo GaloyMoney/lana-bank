@@ -26,7 +26,7 @@ use super::{entity::*, error::DisbursalError};
         public_id(ty = "PublicId", list_by)
     ),
     tbl_prefix = "core",
-    post_persist_hook = "publish_in_op"
+    post_persist_hook = "publish"
 )]
 pub struct DisbursalRepo<E>
 where
@@ -63,15 +63,15 @@ where
     }
 
     #[record_error_severity]
-    #[tracing::instrument(name = "disbursal.publish_in_op", skip_all)]
-    async fn publish_in_op(
+    #[tracing::instrument(name = "disbursal.publish", skip_all)]
+    async fn publish(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &Disbursal,
         new_events: es_entity::LastPersisted<'_, DisbursalEvent>,
     ) -> Result<(), DisbursalError> {
         self.publisher
-            .publish_disbursal_in_op(op, entity, new_events)
+            .publish_disbursal(op, entity, new_events)
             .await
     }
 }

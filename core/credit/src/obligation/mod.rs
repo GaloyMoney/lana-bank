@@ -154,7 +154,7 @@ where
 
         self.authz
             .audit()
-            .record_system_entry_in_op(
+            .record_system_entry_in_tx(
                 op,
                 CoreCreditObject::obligation(id),
                 CoreCreditAction::OBLIGATION_UPDATE_STATUS,
@@ -184,7 +184,7 @@ where
 
         self.authz
             .audit()
-            .record_system_entry_in_op(
+            .record_system_entry_in_tx(
                 op,
                 CoreCreditObject::obligation(id),
                 CoreCreditAction::OBLIGATION_UPDATE_STATUS,
@@ -269,7 +269,7 @@ where
         );
 
         self.ledger
-            .record_payment_allocations_in_op(op, allocations, initiated_by)
+            .record_payment_allocations(op, allocations, initiated_by)
             .await?;
 
         Ok(())
