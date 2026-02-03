@@ -14,7 +14,7 @@ use obix::EventSequence;
 use obix::out::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use super::super::repo::CollateralRepo;
-use crate::{CoreCreditEvent, CreditFacilityId, LiquidationId, liquidation::OldLiquidationRepo};
+use crate::{CollateralId, CoreCreditEvent, LiquidationId};
 
 #[derive(Default, Clone, Deserialize, Serialize)]
 struct PartialLiquidationJobData {
@@ -24,7 +24,7 @@ struct PartialLiquidationJobData {
 #[derive(Serialize, Deserialize)]
 pub struct PartialLiquidationJobConfig<E> {
     pub liquidation_id: LiquidationId,
-    pub credit_facility_id: CreditFacilityId,
+    pub collateral_id: CollateralId,
     pub _phantom: std::marker::PhantomData<E>,
 }
 
@@ -32,7 +32,7 @@ impl<E> Clone for PartialLiquidationJobConfig<E> {
     fn clone(&self) -> Self {
         Self {
             liquidation_id: self.liquidation_id,
-            credit_facility_id: self.credit_facility_id,
+            collateral_id: self.collateral_id,
             _phantom: std::marker::PhantomData,
         }
     }
@@ -45,8 +45,7 @@ where
         + OutboxEventMarker<CoreCustodyEvent>,
 {
     outbox: Outbox<E>,
-    liquidation_repo: Arc<OldLiquidationRepo<E>>,
-    collateral_repo: Arc<CollateralRepo<E>>,
+    repo: Arc<CollateralRepo<E>>,
 }
 
 impl<E> PartialLiquidationInit<E>
@@ -55,15 +54,10 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
-    pub fn new(
-        outbox: &Outbox<E>,
-        liquidation_repo: Arc<OldLiquidationRepo<E>>,
-        collateral_repo: Arc<CollateralRepo<E>>,
-    ) -> Self {
+    pub fn new(outbox: &Outbox<E>, repo: Arc<CollateralRepo<E>>) -> Self {
         Self {
             outbox: outbox.clone(),
-            liquidation_repo,
-            collateral_repo,
+            repo,
         }
     }
 }
@@ -91,8 +85,7 @@ where
         Ok(Box::new(PartialLiquidationJobRunner::<E> {
             config,
             outbox: self.outbox.clone(),
-            liquidation_repo: self.liquidation_repo.clone(),
-            collateral_repo: self.collateral_repo.clone(),
+            repo: self.repo.clone(),
         }))
     }
 }
@@ -105,8 +98,7 @@ where
 {
     config: PartialLiquidationJobConfig<E>,
     outbox: Outbox<E>,
-    liquidation_repo: Arc<OldLiquidationRepo<E>>,
-    collateral_repo: Arc<CollateralRepo<E>>,
+    repo: Arc<CollateralRepo<E>>,
 }
 
 #[async_trait]
@@ -143,7 +135,7 @@ where
                     match message {
                         Some(message) => {
                             let mut db = self
-                                .liquidation_repo
+                                .repo
                                 .begin_op()
                                 .await?;
 
@@ -184,24 +176,16 @@ where
         &self,
         db: &mut DbOp<'_>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let mut liquidation = self
-            .liquidation_repo
-            .find_by_id(self.config.liquidation_id)
+        let mut collateral = self
+            .repo
+            .find_by_id_in_op(&mut *db, self.config.collateral_id)
             .await?;
 
-        if liquidation.complete().did_execute() {
-            self.liquidation_repo
-                .update_in_op(db, &mut liquidation)
-                .await?;
-
-            let mut collateral = self
-                .collateral_repo
-                .find_by_id_in_op(&mut *db, liquidation.collateral_id)
-                .await?;
-            let _ = collateral.record_liquidation_completed(liquidation.id);
-            self.collateral_repo
-                .update_in_op(db, &mut collateral)
-                .await?;
+        if collateral
+            .record_liquidation_completed(self.config.liquidation_id)?
+            .did_execute()
+        {
+            self.repo.update_in_op(db, &mut collateral).await?;
         }
 
         Ok(())
