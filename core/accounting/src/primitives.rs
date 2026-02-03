@@ -613,7 +613,7 @@ pub struct ResolvedAccountingBaseConfig {
 }
 
 #[derive(Debug, Clone)]
-pub struct AccountSetMember {
+pub struct AccountInfo {
     pub account_set_id: CalaAccountSetId,
     pub code: AccountCode,
     pub name: AccountName,

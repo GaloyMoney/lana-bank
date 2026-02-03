@@ -18,7 +18,7 @@ use tracing_macros::record_error_severity;
 use cala_ledger::{CalaLedger, account::Account};
 
 use crate::primitives::{
-    AccountCategory, AccountCode, AccountIdOrCode, AccountName, AccountSetMember, AccountSpec,
+    AccountCategory, AccountCode, AccountIdOrCode, AccountName, AccountInfo, AccountSpec,
     AccountingBaseConfig, CalaAccountSetId, CalaJournalId, ChartId, ClockHandle,
     ClosingAccountCodes, ClosingTxDetails, CoreAccountingAction, CoreAccountingObject,
     LedgerAccountId,
@@ -539,7 +539,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_ref: &str,
         category: AccountCategory,
-    ) -> Result<Vec<AccountSetMember>, ChartOfAccountsError> {
+    ) -> Result<Vec<AccountInfo>, ChartOfAccountsError> {
         self.authz
             .enforce_permission(
                 sub,

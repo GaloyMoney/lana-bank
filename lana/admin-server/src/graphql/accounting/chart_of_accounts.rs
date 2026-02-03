@@ -3,7 +3,7 @@ use async_graphql::*;
 use crate::{graphql::accounting::AccountCode, primitives::*};
 
 use lana_app::accounting::{
-    AccountCategory as DomainAccountCategory, AccountSetMember as DomainAccountSetMember,
+    AccountCategory as DomainAccountCategory, AccountInfo as DomainAccountInfo,
     Chart as DomainChart,
 };
 use lana_app::primitives::{AccountingBaseConfig, DebitOrCredit};
@@ -183,8 +183,8 @@ pub struct AccountSetMember {
     pub name: String,
 }
 
-impl From<DomainAccountSetMember> for AccountSetMember {
-    fn from(member: DomainAccountSetMember) -> Self {
+impl From<DomainAccountInfo> for AccountSetMember {
+    fn from(member: DomainAccountInfo) -> Self {
         Self {
             account_set_id: UUID::from(member.account_set_id),
             code: AccountCode::from(&member.code),
