@@ -40,6 +40,22 @@ export type Scalars = {
   UsdCents: { input: UsdCents; output: UsdCents; }
 };
 
+export enum AccountCategory {
+  Asset = 'ASSET',
+  CostOfRevenue = 'COST_OF_REVENUE',
+  Equity = 'EQUITY',
+  Expenses = 'EXPENSES',
+  Liability = 'LIABILITY',
+  Revenue = 'REVENUE'
+}
+
+export type AccountSetMember = {
+  __typename?: 'AccountSetMember';
+  accountSetId: Scalars['UUID']['output'];
+  code: Scalars['AccountCode']['output'];
+  name: Scalars['String']['output'];
+};
+
 export type AccountingBaseConfigInput = {
   assetsCode: Scalars['String']['input'];
   costOfRevenueCode: Scalars['String']['input'];
@@ -2414,6 +2430,7 @@ export type PublicIdTarget = CreditFacility | CreditFacilityDisbursal | Customer
 export type Query = {
   __typename?: 'Query';
   accountEntryCsv?: Maybe<AccountingCsvDocument>;
+  accountSetsByCategory: Array<AccountSetMember>;
   approvalProcess?: Maybe<ApprovalProcess>;
   approvalProcesses: ApprovalProcessConnection;
   audit: AuditEntryConnection;
@@ -2483,6 +2500,11 @@ export type Query = {
 
 export type QueryAccountEntryCsvArgs = {
   ledgerAccountId: Scalars['UUID']['input'];
+};
+
+
+export type QueryAccountSetsByCategoryArgs = {
+  category: AccountCategory;
 };
 
 
