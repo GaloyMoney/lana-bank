@@ -33,7 +33,7 @@ where
         }
     }
 
-    pub async fn publish_wallet(
+    pub async fn publish_wallet_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &Wallet,

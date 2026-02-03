@@ -13,7 +13,7 @@ use super::{entity::*, error::*};
     err = "ReportRunError",
     columns(external_id(ty = "String")),
     tbl_prefix = "core",
-    post_persist_hook = "publish"
+    post_persist_hook = "publish_in_op"
 )]
 pub struct ReportRunRepo<E>
 where
@@ -36,14 +36,14 @@ where
     }
 
     #[allow(dead_code)]
-    async fn publish(
+    async fn publish_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &ReportRun,
         new_events: es_entity::LastPersisted<'_, ReportRunEvent>,
     ) -> Result<(), ReportRunError> {
         self.publisher
-            .publish_report_run(op, entity, new_events)
+            .publish_report_run_in_op(op, entity, new_events)
             .await
     }
 }

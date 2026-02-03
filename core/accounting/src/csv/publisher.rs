@@ -35,7 +35,7 @@ where
         }
     }
 
-    pub async fn publish_csv_export_uploaded(
+    pub async fn publish_csv_export_uploaded_in_op(
         &self,
         op: &mut es_entity::DbOp<'_>,
         id: AccountingCsvId,

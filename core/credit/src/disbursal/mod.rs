@@ -95,7 +95,7 @@ where
         new_disbursal: NewDisbursal,
     ) -> Result<Disbursal, DisbursalError> {
         self.governance
-            .start_process(
+            .start_process_in_op(
                 db,
                 new_disbursal.approval_process_id,
                 new_disbursal.approval_process_id.to_string(),
@@ -206,7 +206,7 @@ where
     ) -> Result<ApprovalProcessOutcome, DisbursalError> {
         self.authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_system_entry_in_op(
                 op,
                 CoreCreditObject::disbursal(disbursal_id),
                 CoreCreditAction::DISBURSAL_SETTLE,

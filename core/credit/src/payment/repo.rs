@@ -17,7 +17,7 @@ use super::{entity::*, error::PaymentError};
     err = "PaymentError",
     columns(credit_facility_id(ty = "CreditFacilityId", list_for, update(persist = false)),),
     tbl_prefix = "core",
-    post_persist_hook = "publish"
+    post_persist_hook = "publish_in_op"
 )]
 pub struct PaymentRepo<E>
 where
@@ -55,13 +55,15 @@ where
     }
 
     #[record_error_severity]
-    #[tracing::instrument(name = "payment.publish", skip_all)]
-    async fn publish(
+    #[tracing::instrument(name = "payment.publish_in_op", skip_all)]
+    async fn publish_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &Payment,
         new_events: es_entity::LastPersisted<'_, PaymentEvent>,
     ) -> Result<(), PaymentError> {
-        self.publisher.publish_payment(op, entity, new_events).await
+        self.publisher
+            .publish_payment_in_op(op, entity, new_events)
+            .await
     }
 }

@@ -34,7 +34,7 @@ where
         }
     }
 
-    pub async fn publish_user(
+    pub async fn publish_user_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &User,
@@ -54,7 +54,7 @@ where
         Ok(())
     }
 
-    pub async fn publish_role(
+    pub async fn publish_role_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &Role,

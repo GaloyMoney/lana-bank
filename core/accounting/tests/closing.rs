@@ -73,7 +73,7 @@ async fn post_closing_tx_with_gain() -> Result<()> {
     let mut op = test.fiscal_year_repo.begin_op().await.unwrap();
     test.accounting
         .chart_of_accounts()
-        .post_closing_transaction(&mut op, test.chart.id, closing_tx_details)
+        .post_closing_transaction_in_op(&mut op, test.chart.id, closing_tx_details)
         .await?;
     op.commit().await?;
 
@@ -170,7 +170,7 @@ async fn post_closing_tx_with_loss() -> Result<()> {
     let mut op = test.fiscal_year_repo.begin_op().await.unwrap();
     test.accounting
         .chart_of_accounts()
-        .post_closing_transaction(&mut op, test.chart.id, closing_spec)
+        .post_closing_transaction_in_op(&mut op, test.chart.id, closing_spec)
         .await?;
     op.commit().await?;
     assert!(test.children(RETAINED_EARNINGS_GAIN).await?.is_empty());

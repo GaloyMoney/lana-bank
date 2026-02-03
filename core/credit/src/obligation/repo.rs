@@ -22,7 +22,7 @@ use super::{entity::*, error::*};
         reference(ty = "String", create(accessor = "reference()")),
     ),
     tbl_prefix = "core",
-    post_persist_hook = "publish"
+    post_persist_hook = "publish_in_op"
 )]
 pub struct ObligationRepo<E>
 where
@@ -59,15 +59,15 @@ where
     }
 
     #[record_error_severity]
-    #[tracing::instrument(name = "obligation.publish", skip_all)]
-    async fn publish(
+    #[tracing::instrument(name = "obligation.publish_in_op", skip_all)]
+    async fn publish_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
         entity: &Obligation,
         new_events: es_entity::LastPersisted<'_, ObligationEvent>,
     ) -> Result<(), ObligationError> {
         self.publisher
-            .publish_obligation(op, entity, new_events)
+            .publish_obligation_in_op(op, entity, new_events)
             .await
     }
 }
