@@ -45,7 +45,10 @@ pub use chart_of_accounts_integration::{
     ChartOfAccountsIntegrationConfig, ChartOfAccountsIntegrations,
     error::ChartOfAccountsIntegrationError,
 };
-pub use collateral::*;
+pub use collateral::{
+    Collateral, Collaterals, FacilityProceedsFromLiquidationAccountId, Liquidation,
+    LiquidationError, RecordProceedsFromLiquidationData, liquidation_cursor,
+};
 pub use config::*;
 pub use credit_facility::error::CreditFacilityError;
 pub use credit_facility::*;

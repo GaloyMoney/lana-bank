@@ -2,7 +2,7 @@ mod entity;
 pub mod error;
 mod jobs;
 pub mod ledger;
-pub(super) mod liquidation;
+pub mod liquidation;
 mod repo;
 
 use std::collections::HashMap;
@@ -23,14 +23,7 @@ use crate::{CoreCreditAction, CoreCreditCollectionEvent, CoreCreditObject};
 
 use es_entity::Idempotent;
 
-use crate::{
-    CreditFacilityPublisher, UsdCents,
-    event::CoreCreditEvent,
-    liquidation::{Liquidation, error::LiquidationError},
-    primitives::*,
-};
-
-use repo::liquidation_cursor;
+use crate::{CreditFacilityPublisher, UsdCents, event::CoreCreditEvent, primitives::*};
 
 use ledger::CollateralLedger;
 
@@ -40,7 +33,11 @@ use jobs::{
 };
 pub use {
     entity::Collateral,
-    liquidation::{FacilityProceedsFromLiquidationAccountId, RecordProceedsFromLiquidationData},
+    liquidation::{
+        FacilityProceedsFromLiquidationAccountId, Liquidation, LiquidationError,
+        RecordProceedsFromLiquidationData,
+    },
+    repo::liquidation_cursor,
 };
 
 #[cfg(feature = "json-schema")]

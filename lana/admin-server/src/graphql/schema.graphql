@@ -1751,6 +1751,35 @@ type LiquidationCollateralSent {
 	ledgerTxId: UUID!
 }
 
+type LiquidationConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [LiquidationEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [Liquidation!]!
+}
+
+"""
+An edge in a connection.
+"""
+type LiquidationEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: Liquidation!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
 type LiquidationProceedsReceived {
 	amount: UsdCents!
 	ledgerTxId: UUID!
@@ -2161,6 +2190,8 @@ type Query {
 	disbursal(id: UUID!): CreditFacilityDisbursal
 	disbursalByPublicId(id: PublicId!): CreditFacilityDisbursal
 	disbursals(first: Int!, after: String): CreditFacilityDisbursalConnection!
+	liquidation(id: UUID!): Liquidation
+	liquidations(first: Int!, after: String): LiquidationConnection!
 	custodians(first: Int!, after: String): CustodianConnection!
 	committee(id: UUID!): Committee
 	committees(first: Int!, after: String): CommitteeConnection!
