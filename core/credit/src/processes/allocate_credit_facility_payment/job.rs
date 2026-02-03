@@ -190,7 +190,7 @@ where
                 message = stream.next() => {
                     match message {
                         Some(message) => {
-                            let mut db = self.process.begin_op().await?;
+                            let mut db = current_job.begin_op().await?;
                             self.process_message_in_op(&mut db, &message).await?;
 
                             state.sequence = message.sequence;

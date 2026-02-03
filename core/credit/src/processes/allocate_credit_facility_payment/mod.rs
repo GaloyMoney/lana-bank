@@ -55,14 +55,6 @@ where
         }
     }
 
-    pub(super) async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, CoreCreditError> {
-        Ok(self
-            .obligations
-            .begin_op()
-            .await
-            .map_err(core_credit_collection::CoreCreditCollectionError::from)?)
-    }
-
     #[instrument(
         name = "credit.allocate_credit_facility_payment.execute_in_op",
         skip(self, db)

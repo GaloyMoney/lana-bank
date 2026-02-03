@@ -115,10 +115,6 @@ where
         }
     }
 
-    pub async fn begin_op(&self) -> Result<es_entity::DbOp<'static>, ObligationError> {
-        Ok(self.repo.begin_op().await?)
-    }
-
     pub async fn create_with_jobs_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
