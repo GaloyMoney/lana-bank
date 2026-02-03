@@ -23,7 +23,14 @@ use crate::{CoreCreditAction, CoreCreditCollectionEvent, CoreCreditObject};
 
 use es_entity::Idempotent;
 
-use crate::{CreditFacilityPublisher, UsdCents, event::CoreCreditEvent, primitives::*};
+use crate::{
+    CreditFacilityPublisher, UsdCents,
+    event::CoreCreditEvent,
+    liquidation::{Liquidation, error::LiquidationError},
+    primitives::*,
+};
+
+use repo::liquidation_cursor;
 
 use ledger::CollateralLedger;
 
@@ -302,5 +309,75 @@ where
         db.commit().await?;
 
         Ok(collateral)
+    }
+
+    #[record_error_severity]
+    #[instrument(
+        name = "collateral.list_liquidations_for_facility_by_created_at",
+        skip(self, sub)
+    )]
+    pub async fn list_liquidations_for_facility_by_created_at(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        credit_facility_id: CreditFacilityId,
+    ) -> Result<Vec<Liquidation>, LiquidationError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::all_liquidations(),
+                CoreCreditAction::LIQUIDATION_LIST,
+            )
+            .await?;
+
+        self.repo
+            .list_liquidations_for_credit_facility_id(credit_facility_id)
+            .await
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "collateral.find_liquidation_by_id", skip(self, sub))]
+    pub async fn find_liquidation_by_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        liquidation_id: impl Into<LiquidationId> + std::fmt::Debug,
+    ) -> Result<Option<Liquidation>, LiquidationError> {
+        let id = liquidation_id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::liquidation(id),
+                CoreCreditAction::LIQUIDATION_READ,
+            )
+            .await?;
+
+        self.repo.find_liquidation_by_id(id).await
+    }
+
+    pub async fn find_all_liquidations<T: From<Liquidation>>(
+        &self,
+        ids: &[LiquidationId],
+    ) -> Result<HashMap<LiquidationId, T>, LiquidationError> {
+        self.repo.find_all_liquidations(ids).await
+    }
+
+    #[record_error_severity]
+    #[instrument(name = "collateral.list_liquidations", skip(self, sub))]
+    pub async fn list_liquidations(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        query: es_entity::PaginatedQueryArgs<liquidation_cursor::LiquidationsByIdCursor>,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<Liquidation, liquidation_cursor::LiquidationsByIdCursor>,
+        LiquidationError,
+    > {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::all_liquidations(),
+                CoreCreditAction::LIQUIDATION_LIST,
+            )
+            .await?;
+
+        self.repo.list_liquidations(query).await
     }
 }
