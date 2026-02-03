@@ -293,6 +293,15 @@ enum CollateralDirection {
 	REMOVE
 }
 
+input CollateralRecordProceedsFromLiquidationInput {
+	collateralId: UUID!
+	amount: UsdCents!
+}
+
+type CollateralRecordProceedsFromLiquidationPayload {
+	collateral: Collateral!
+}
+
 input CollateralRecordSentToLiquidationInput {
 	collateralId: UUID!
 	amount: Satoshis!
@@ -1761,15 +1770,6 @@ type LiquidationProceedsReceived {
 	ledgerTxId: UUID!
 }
 
-input LiquidationRecordProceedsReceivedInput {
-	liquidationId: UUID!
-	amount: UsdCents!
-}
-
-type LiquidationRecordProceedsReceivedPayload {
-	liquidation: Liquidation!
-}
-
 type LoanAgreement {
 	id: ID!
 	status: LoanAgreementStatus!
@@ -1862,7 +1862,7 @@ type Mutation {
 	creditFacilityDisbursalInitiate(input: CreditFacilityDisbursalInitiateInput!): CreditFacilityDisbursalInitiatePayload!
 	creditFacilityComplete(input: CreditFacilityCompleteInput!): CreditFacilityCompletePayload!
 	collateralRecordSentToLiquidation(input: CollateralRecordSentToLiquidationInput!): CollateralRecordSentToLiquidationPayload!
-	liquidationRecordProceedsReceived(input: LiquidationRecordProceedsReceivedInput!): LiquidationRecordProceedsReceivedPayload!
+	collateralRecordProceedsFromLiquidation(input: CollateralRecordProceedsFromLiquidationInput!): CollateralRecordProceedsFromLiquidationPayload!
 	custodianCreate(input: CustodianCreateInput!): CustodianCreatePayload!
 	custodianConfigUpdate(input: CustodianConfigUpdateInput!): CustodianConfigUpdatePayload!
 	committeeCreate(input: CommitteeCreateInput!): CommitteeCreatePayload!

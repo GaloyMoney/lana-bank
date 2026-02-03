@@ -109,6 +109,7 @@
       "creditFacilityDisbursalInitiate": "Inicia un desembolso de una facilidad crediticia",
       "creditFacilityComplete": "Marca una facilidad crediticia como completa despues del pago total",
       "collateralLiquidationRecordCollateralSent": "Registra el colateral enviado durante una liquidacion",
+      "collateralRecordProceedsFromLiquidation": "Registra los ingresos recibidos de una liquidacion",
       "liquidationRecordCollateralSent": "Registra el colateral enviado durante una liquidacion",
       "liquidationRecordProceedsReceived": "Registra los ingresos recibidos de una liquidacion",
       "custodianCreate": "Crea una nueva integracion de custodio (Komainu o BitGo)",
@@ -138,7 +139,9 @@
       "triggerReportRun": "Dispara una ejecucion manual de reportes",
       "reportFileGenerateDownloadLink": "Genera un enlace de descarga para un archivo de reporte",
       "chartOfAccountsCsvImportWithBaseConfig": "Importa un catalogo de cuentas desde un archivo CSV con configuracion base",
-      "chartOfAccountsCsvImport": "Importa un catalogo de cuentas desde un archivo CSV"
+      "chartOfAccountsCsvImport": "Importa un catalogo de cuentas desde un archivo CSV",
+      "collateralLiquidationRecordProceedsReceived": "Registra los ingresos recibidos de una liquidacion de colateral",
+      "collateralRecordSentToLiquidation": "Registra el colateral enviado a liquidacion"
     }
   },
   "customer": {

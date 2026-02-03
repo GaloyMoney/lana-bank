@@ -10,16 +10,10 @@ pub enum LiquidationError {
     EsEntityError(es_entity::EsEntityError),
     #[error("LiquidationError - CursorDestructureError: {0}")]
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
-    #[error("LiquidationError - Ledger: {0}")]
-    LedgerError(#[from] super::ledger::LiquidationLedgerError),
     #[error("LiquidationError - AlreadySatifissed")]
     AlreadySatisfied,
     #[error("LiquidationError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
-    #[error("CoreCreditError - LedgerTransactionInitiatorParseError: {0}")]
-    LedgerTransactionInitiatorParseError(
-        #[from] core_accounting::LedgerTransactionInitiatorParseError,
-    ),
     #[error("LiquidationError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
 }
@@ -32,10 +26,8 @@ impl ErrorSeverity for LiquidationError {
             Self::Sqlx(_) => Level::ERROR,
             Self::EsEntityError(e) => e.severity(),
             Self::CursorDestructureError(_) => Level::ERROR,
-            Self::LedgerError(e) => e.severity(),
             Self::AlreadySatisfied => Level::WARN,
             Self::AuthorizationError(e) => e.severity(),
-            Self::LedgerTransactionInitiatorParseError(e) => e.severity(),
             Self::JobError(_) => Level::ERROR,
         }
     }
