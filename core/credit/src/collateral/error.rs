@@ -13,6 +13,8 @@ pub enum CollateralError {
     CollateralLedgerError(#[from] super::ledger::CollateralLedgerError),
     #[error("CollateralError - ManualUpdateError: Cannot update collateral with a custodian")]
     ManualUpdateError,
+    #[error("CollateralError - NoLiquidationsFound")]
+    NoLiquidationsFound,
     #[error("CollateralError - NoActiveLiquidation")]
     NoActiveLiquidation,
     #[error(
@@ -41,6 +43,7 @@ impl ErrorSeverity for CollateralError {
             Self::CursorDestructureError(_) => Level::ERROR,
             Self::CollateralLedgerError(e) => e.severity(),
             Self::ManualUpdateError => Level::WARN,
+            Self::NoLiquidationsFound => Level::WARN,
             Self::NoActiveLiquidation => Level::WARN,
             Self::ActiveLiquidationExists(_) => Level::WARN,
             Self::JobError(_) => Level::ERROR,

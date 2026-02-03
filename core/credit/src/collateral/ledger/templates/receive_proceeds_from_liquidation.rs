@@ -21,7 +21,7 @@ use cala_ledger::{
 use core_money::{Satoshis, UsdCents};
 use tracing_macros::record_error_severity;
 
-use crate::{FacilityProceedsFromLiquidationAccountId, collateral::ledger::CollateralLedgerError};
+use crate::collateral::{FacilityProceedsFromLiquidationAccountId, ledger::CollateralLedgerError};
 
 pub const RECEIVE_PROCEEDS_FROM_LIQUIDATION: &str = "RECEIVE_PROCEEDS_FROM_LIQUIDATION";
 

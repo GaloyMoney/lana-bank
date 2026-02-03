@@ -4,9 +4,10 @@ pub mod error;
 use serde::{Deserialize, Serialize};
 
 use cala_ledger::AccountId as CalaAccountId;
+use core_credit_collection::PaymentSourceAccountId;
 use core_money::{Satoshis, UsdCents};
 
-use crate::PaymentSourceAccountId;
+use crate::primitives::LedgerTxId;
 
 pub use entity::NewLiquidationBuilder;
 pub use entity::{Liquidation, LiquidationEvent, NewLiquidation};
@@ -23,6 +24,7 @@ pub struct RecordProceedsFromLiquidationData {
     pub collateral_in_liquidation_account_id: CalaAccountId,
     pub liquidated_collateral_account_id: CalaAccountId,
     pub amount_liquidated: Satoshis,
+    pub ledger_tx_id: LedgerTxId,
 }
 
 #[derive(Clone, Debug, Copy, Serialize, Deserialize)]

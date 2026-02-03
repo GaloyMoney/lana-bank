@@ -96,31 +96,22 @@ impl Liquidation {
     pub fn record_collateral_sent_out(
         &mut self,
         amount_sent: Satoshis,
-        ledger_tx_id: LedgerTxId,
-    ) -> Result<Idempotent<()>, LiquidationError> {
-        idempotency_guard!(
-            self.events.iter_all(),
-            LiquidationEvent::CollateralSentOut {
-                amount,
-                ledger_tx_id: tx_id
-            } if amount_sent == *amount && ledger_tx_id == *tx_id
-        );
-
+    ) -> Result<Idempotent<LedgerTxId>, LiquidationError> {
         self.sent_total += amount_sent;
 
+        let ledger_tx_id = LedgerTxId::new();
         self.events.push(LiquidationEvent::CollateralSentOut {
             amount: amount_sent,
             ledger_tx_id,
         });
 
-        Ok(Idempotent::Executed(()))
+        Ok(Idempotent::Executed(ledger_tx_id))
     }
 
     pub fn record_proceeds_from_liquidation(
         &mut self,
         amount_received: UsdCents,
         payment_id: PaymentId,
-        ledger_tx_id: LedgerTxId,
     ) -> Result<Idempotent<RecordProceedsFromLiquidationData>, LiquidationError> {
         idempotency_guard!(
             self.events.iter_all(),
@@ -132,6 +123,7 @@ impl Liquidation {
 
         self.amount_received = amount_received;
 
+        let ledger_tx_id = LedgerTxId::new();
         self.events
             .push(LiquidationEvent::ProceedsFromLiquidationReceived {
                 amount: amount_received,
@@ -147,6 +139,7 @@ impl Liquidation {
             collateral_in_liquidation_account_id: self.collateral_in_liquidation_account_id,
             liquidated_collateral_account_id: self.liquidated_collateral_account_id,
             amount_liquidated: self.sent_total,
+            ledger_tx_id,
         }))
     }
 

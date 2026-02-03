@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use core_money::UsdCents;
 use derive_builder::Builder;
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
@@ -9,13 +10,13 @@ use es_entity::*;
 
 use crate::primitives::{
     CalaAccountId, CollateralDirection, CollateralId, CreditFacilityId, CustodyWalletId,
-    LedgerTxId, LiquidationId, PendingCreditFacilityId, Satoshis,
+    LedgerTxId, LiquidationId, PaymentId, PendingCreditFacilityId, Satoshis,
 };
 
 use super::{
     CollateralUpdate,
     error::CollateralError,
-    liquidation::{Liquidation, NewLiquidation},
+    liquidation::{Liquidation, NewLiquidation, RecordProceedsFromLiquidationData},
 };
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -146,17 +147,30 @@ impl Collateral {
 
     pub fn record_collateral_update_via_liquidation(
         &mut self,
-        liquidation_id: LiquidationId,
         amount_sent: Satoshis,
         effective: chrono::NaiveDate,
-    ) -> Idempotent<CollateralUpdate> {
+    ) -> Result<Idempotent<CollateralUpdate>, CollateralError> {
         if amount_sent == Satoshis::ZERO {
-            return Idempotent::AlreadyApplied;
+            return Ok(Idempotent::AlreadyApplied);
         }
 
         let new_amount = self.amount - amount_sent;
 
-        let tx_id = LedgerTxId::new();
+        let (liquidation_id, tx_id) = {
+            let liquidation = self
+                .active_liquidation()
+                .ok_or(CollateralError::NoActiveLiquidation)?;
+
+            let tx_id = if let Idempotent::Executed(tx_id) =
+                liquidation.record_collateral_sent_out(amount_sent)?
+            {
+                tx_id
+            } else {
+                return Ok(Idempotent::AlreadyApplied);
+            };
+
+            (liquidation.id, tx_id)
+        };
 
         self.events.push(CollateralEvent::UpdatedViaLiquidation {
             liquidation_id,
@@ -164,18 +178,45 @@ impl Collateral {
             collateral_amount: new_amount,
             direction: CollateralDirection::Remove,
         });
-
         self.amount = new_amount;
 
-        Idempotent::Executed(CollateralUpdate {
+        Ok(Idempotent::Executed(CollateralUpdate {
             tx_id,
             abs_diff: amount_sent,
             direction: CollateralDirection::Remove,
             effective,
-        })
+        }))
     }
 
-    pub fn active_liquidation_id(&self) -> Option<LiquidationId> {
+    pub fn record_liquidation_proceeds_received(
+        &mut self,
+        amount_received: UsdCents,
+    ) -> Result<Idempotent<RecordProceedsFromLiquidationData>, CollateralError> {
+        let liquidation = self
+            .active_liquidation()
+            .ok_or(CollateralError::NoActiveLiquidation)?;
+
+        Ok(liquidation.record_proceeds_from_liquidation(amount_received, PaymentId::new())?)
+    }
+
+    pub(super) fn collateral_in_liquidation_account_id(
+        &mut self,
+    ) -> Result<CalaAccountId, CollateralError> {
+        self.events
+            .iter_all()
+            .find_map(|e| match e {
+                CollateralEvent::LiquidationStarted { liquidation_id } => Some(*liquidation_id),
+                _ => None,
+            })
+            .and_then(|liquidation_id| {
+                self.liquidations
+                    .get_persisted(&liquidation_id)
+                    .map(|l| l.collateral_in_liquidation_account_id)
+            })
+            .ok_or(CollateralError::NoLiquidationsFound)
+    }
+
+    fn active_liquidation_id(&self) -> Option<LiquidationId> {
         let mut active: Option<LiquidationId> = None;
 
         for event in self.events.iter_all() {

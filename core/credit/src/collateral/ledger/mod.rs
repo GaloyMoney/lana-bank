@@ -152,14 +152,13 @@ impl CollateralLedger {
     pub async fn record_proceeds_from_liquidation_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
-        tx_id: CalaTransactionId,
         data: RecordProceedsFromLiquidationData,
         initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), CollateralLedgerError> {
         self.cala
             .post_transaction_in_op(
                 db,
-                tx_id,
+                data.ledger_tx_id,
                 templates::RECEIVE_PROCEEDS_FROM_LIQUIDATION,
                 templates::ReceiveProceedsFromLiquidationParams {
                     journal_id: self.journal_id,
