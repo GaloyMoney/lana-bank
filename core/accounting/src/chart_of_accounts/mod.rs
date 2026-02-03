@@ -18,7 +18,7 @@ use tracing_macros::record_error_severity;
 use cala_ledger::{CalaLedger, account::Account};
 
 use crate::primitives::{
-    AccountCategory, AccountCode, AccountIdOrCode, AccountName, AccountInfo, AccountSpec,
+    AccountCategory, AccountCode, AccountIdOrCode, AccountInfo, AccountName, AccountSpec,
     AccountingBaseConfig, CalaAccountSetId, CalaJournalId, ChartId, ClockHandle,
     ClosingAccountCodes, ClosingTxDetails, CoreAccountingAction, CoreAccountingObject,
     LedgerAccountId,
