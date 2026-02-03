@@ -18,7 +18,7 @@ use super::{error::ObligationError, primitives::*};
 pub enum ObligationEvent {
     Initialized {
         id: ObligationId,
-        credit_facility_id: BeneficiaryId,
+        beneficiary_id: BeneficiaryId,
         obligation_type: ObligationType,
         amount: UsdCents,
         reference: String,
@@ -59,7 +59,7 @@ pub enum ObligationEvent {
 pub struct Obligation {
     pub id: ObligationId,
     pub tx_id: LedgerTxId,
-    pub credit_facility_id: BeneficiaryId,
+    pub beneficiary_id: BeneficiaryId,
     pub reference: String,
     pub initial_amount: UsdCents,
     pub obligation_type: ObligationType,
@@ -346,7 +346,7 @@ impl Obligation {
         let allocation = NewPaymentAllocation::builder()
             .id(allocation_id)
             .payment_id(payment_id)
-            .credit_facility_id(self.credit_facility_id)
+            .beneficiary_id(self.beneficiary_id)
             .obligation_id(self.id)
             .payment_allocation_idx(payment_allocation_idx)
             .obligation_type(self.obligation_type)
@@ -376,7 +376,7 @@ impl TryFromEvents<ObligationEvent> for Obligation {
                 ObligationEvent::Initialized {
                     id,
                     ledger_tx_id: tx_id,
-                    credit_facility_id,
+                    beneficiary_id,
                     reference,
                     amount,
                     obligation_type,
@@ -386,7 +386,7 @@ impl TryFromEvents<ObligationEvent> for Obligation {
                     builder = builder
                         .id(*id)
                         .tx_id(*tx_id)
-                        .credit_facility_id(*credit_facility_id)
+                        .beneficiary_id(*beneficiary_id)
                         .reference(reference.clone())
                         .initial_amount(*amount)
                         .obligation_type(*obligation_type)
@@ -411,7 +411,7 @@ pub struct NewObligation {
     #[builder(setter(into))]
     pub(crate) tx_id: LedgerTxId,
     #[builder(setter(into))]
-    pub(crate) credit_facility_id: BeneficiaryId,
+    pub(crate) beneficiary_id: BeneficiaryId,
     pub(crate) obligation_type: ObligationType,
     #[builder(setter(into))]
     pub(crate) amount: UsdCents,
@@ -461,7 +461,7 @@ impl IntoEvents<ObligationEvent> for NewObligation {
             self.id,
             [ObligationEvent::Initialized {
                 id: self.id,
-                credit_facility_id: self.credit_facility_id,
+                beneficiary_id: self.beneficiary_id,
                 obligation_type: self.obligation_type,
                 reference: self.reference(),
                 amount: self.amount,
@@ -538,7 +538,7 @@ mod test {
     fn initial_events() -> Vec<ObligationEvent> {
         vec![ObligationEvent::Initialized {
             id: ObligationId::new(),
-            credit_facility_id: BeneficiaryId::new(),
+            beneficiary_id: BeneficiaryId::new(),
             obligation_type: ObligationType::Disbursal,
             amount: UsdCents::from(10),
             reference: "ref-01".to_string(),
@@ -557,7 +557,7 @@ mod test {
         PaymentDetailsForAllocation {
             payment_id: PaymentId::new(),
             amount: UsdCents::ONE,
-            credit_facility_id: BeneficiaryId::new(),
+            beneficiary_id: BeneficiaryId::new(),
             facility_payment_holding_account_id: CalaAccountId::new(),
             effective: Utc::now().date_naive(),
         }

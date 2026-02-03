@@ -274,7 +274,7 @@ impl InterestAccrualCycle {
             .map(|d| d.end_date(due_date));
         let new_obligation = NewObligation::builder()
             .id(ObligationId::new())
-            .credit_facility_id(self.credit_facility_id)
+            .beneficiary_id(self.credit_facility_id)
             .obligation_type(ObligationType::Interest)
             .reference(tx_ref.to_string())
             .amount(interest)

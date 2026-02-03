@@ -18,7 +18,7 @@ use super::{entity::*, error::*};
     entity = "Obligation",
     err = "ObligationError",
     columns(
-        credit_facility_id(ty = "BeneficiaryId", list_for, update(persist = false)),
+        beneficiary_id(ty = "BeneficiaryId", list_for, update(persist = false)),
         reference(ty = "String", create(accessor = "reference()")),
     ),
     tbl_prefix = "core",

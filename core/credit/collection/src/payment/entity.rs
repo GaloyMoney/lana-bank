@@ -16,7 +16,7 @@ pub enum PaymentEvent {
     Initialized {
         id: PaymentId,
         ledger_tx_id: LedgerTxId,
-        credit_facility_id: BeneficiaryId,
+        beneficiary_id: BeneficiaryId,
         facility_payment_holding_account_id: CalaAccountId,
         facility_uncovered_outstanding_account_id: CalaAccountId,
         payment_source_account_id: CalaAccountId,
@@ -30,7 +30,7 @@ pub enum PaymentEvent {
 pub struct Payment {
     pub id: PaymentId,
     pub ledger_tx_id: LedgerTxId,
-    pub credit_facility_id: BeneficiaryId,
+    pub beneficiary_id: BeneficiaryId,
     pub facility_payment_holding_account_id: CalaAccountId,
     pub facility_uncovered_outstanding_account_id: CalaAccountId,
     pub payment_source_account_id: CalaAccountId,
@@ -48,7 +48,7 @@ impl TryFromEvents<PaymentEvent> for Payment {
                 PaymentEvent::Initialized {
                     id,
                     ledger_tx_id,
-                    credit_facility_id,
+                    beneficiary_id,
                     facility_payment_holding_account_id,
                     facility_uncovered_outstanding_account_id,
                     payment_source_account_id,
@@ -59,7 +59,7 @@ impl TryFromEvents<PaymentEvent> for Payment {
                     builder = builder
                         .id(*id)
                         .ledger_tx_id(*ledger_tx_id)
-                        .credit_facility_id(*credit_facility_id)
+                        .beneficiary_id(*beneficiary_id)
                         .facility_payment_holding_account_id(*facility_payment_holding_account_id)
                         .facility_uncovered_outstanding_account_id(
                             *facility_uncovered_outstanding_account_id,
@@ -82,10 +82,7 @@ impl Payment {
     }
 
     pub fn tx_ref(&self) -> String {
-        format!(
-            "credit-facility-{}-idx-{}",
-            self.credit_facility_id, self.id,
-        )
+        format!("beneficiary-{}-idx-{}", self.beneficiary_id, self.id,)
     }
 }
 
@@ -94,7 +91,7 @@ impl From<Payment> for PaymentDetailsForAllocation {
         Self {
             payment_id: payment.id,
             amount: payment.amount,
-            credit_facility_id: payment.credit_facility_id,
+            beneficiary_id: payment.beneficiary_id,
             facility_payment_holding_account_id: payment.facility_payment_holding_account_id,
             effective: payment.effective,
         }
@@ -108,7 +105,7 @@ pub struct NewPayment {
     #[builder(setter(into))]
     pub(super) ledger_tx_id: LedgerTxId,
     #[builder(setter(into))]
-    pub(super) credit_facility_id: BeneficiaryId,
+    pub(super) beneficiary_id: BeneficiaryId,
     pub(super) payment_ledger_account_ids: PaymentLedgerAccountIds,
     pub(super) amount: UsdCents,
     pub(crate) effective: chrono::NaiveDate,
@@ -131,7 +128,7 @@ impl IntoEvents<PaymentEvent> for NewPayment {
             [PaymentEvent::Initialized {
                 id: self.id,
                 ledger_tx_id: self.ledger_tx_id,
-                credit_facility_id: self.credit_facility_id,
+                beneficiary_id: self.beneficiary_id,
                 facility_payment_holding_account_id,
                 facility_uncovered_outstanding_account_id,
                 payment_source_account_id: payment_source_account_id.into(),

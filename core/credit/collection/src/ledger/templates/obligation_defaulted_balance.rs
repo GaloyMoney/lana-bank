@@ -92,7 +92,7 @@ pub struct RecordObligationDefaultedBalance;
 impl RecordObligationDefaultedBalance {
     #[record_error_severity]
     #[instrument(
-        name = "collection_ledger.record_obligation_defaulted_balance.init",
+        name = "collection.ledger.record_obligation_defaulted_balance.init",
         skip_all
     )]
     pub async fn init(ledger: &CalaLedger) -> Result<(), CollectionLedgerError> {

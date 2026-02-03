@@ -15,7 +15,7 @@ use super::{entity::*, error::PaymentError};
 #[es_repo(
     entity = "Payment",
     err = "PaymentError",
-    columns(credit_facility_id(ty = "BeneficiaryId", list_for, update(persist = false)),),
+    columns(beneficiary_id(ty = "BeneficiaryId", list_for, update(persist = false)),),
     tbl_prefix = "core",
     post_persist_hook = "publish_in_op"
 )]

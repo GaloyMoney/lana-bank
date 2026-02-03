@@ -20,7 +20,7 @@
         "amount": {
           "$ref": "#/$defs/UsdCents"
         },
-        "credit_facility_id": {
+        "beneficiary_id": {
           "format": "uuid",
           "type": "string"
         },
@@ -73,7 +73,7 @@
         "obligation_id",
         "payment_allocation_idx",
         "obligation_type",
-        "credit_facility_id",
+        "beneficiary_id",
         "amount",
         "receivable_account_id",
         "payment_holding_account_id",

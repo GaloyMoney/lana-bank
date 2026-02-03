@@ -356,7 +356,7 @@ CREATE TABLE core_custodian_events (
 
 CREATE TABLE core_obligations (
   id UUID PRIMARY KEY,
-  credit_facility_id UUID NOT NULL REFERENCES core_credit_facilities(id),
+  beneficiary_id UUID NOT NULL REFERENCES core_credit_facilities(id),
   reference VARCHAR NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL
 );
@@ -428,7 +428,7 @@ CREATE TABLE core_interest_accrual_cycle_events (
 
 CREATE TABLE core_payments (
   id UUID PRIMARY KEY,
-  credit_facility_id UUID NOT NULL REFERENCES core_credit_facilities(id),
+  beneficiary_id UUID NOT NULL REFERENCES core_credit_facilities(id),
   created_at TIMESTAMPTZ NOT NULL
 );
 
@@ -446,7 +446,7 @@ CREATE TABLE core_payment_allocations (
   id UUID PRIMARY KEY,
   payment_id UUID NOT NULL REFERENCES core_payments(id),
   obligation_id UUID NOT NULL REFERENCES core_obligations(id),
-  credit_facility_id UUID NOT NULL REFERENCES core_credit_facilities(id),
+  beneficiary_id UUID NOT NULL REFERENCES core_credit_facilities(id),
   created_at TIMESTAMPTZ NOT NULL
 );
 

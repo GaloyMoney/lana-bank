@@ -211,28 +211,25 @@ where
         skip(self, op),
         fields(
             n_new_allocations,
-            n_facility_obligations,
+            n_beneficiary_obligations,
             amount_allocated,
-            credit_facility_id
+            beneficiary_id
         )
     )]
     pub async fn allocate_payment_in_op(
         &self,
         op: &mut es_entity::DbOp<'_>,
         payment_details @ PaymentDetailsForAllocation {
-            credit_facility_id,
+            beneficiary_id,
             amount,
             ..
         }: PaymentDetailsForAllocation,
         initiated_by: LedgerTransactionInitiator,
     ) -> Result<(), ObligationError> {
         let span = Span::current();
-        span.record(
-            "credit_facility_id",
-            tracing::field::display(credit_facility_id),
-        );
-        let mut obligations = self.beneficiary_obligations(credit_facility_id).await?;
-        span.record("n_facility_obligations", obligations.len());
+        span.record("beneficiary_id", tracing::field::display(beneficiary_id));
+        let mut obligations = self.beneficiary_obligations(beneficiary_id).await?;
+        span.record("n_beneficiary_obligations", obligations.len());
 
         obligations.sort();
 
@@ -302,9 +299,9 @@ where
 
     pub async fn check_beneficiary_obligations_status_updated(
         &self,
-        credit_facility_id: BeneficiaryId,
+        beneficiary_id: BeneficiaryId,
     ) -> Result<bool, ObligationError> {
-        let obligations = self.beneficiary_obligations(credit_facility_id).await?;
+        let obligations = self.beneficiary_obligations(beneficiary_id).await?;
         for obligation in obligations.iter() {
             if !obligation.is_status_up_to_date(self.clock.now()) {
                 return Ok(false);
@@ -318,19 +315,19 @@ where
     #[instrument(
         name = "collections.obligation.beneficiary_obligations",
         skip(self),
-        fields(credit_facility_id = %credit_facility_id, n_obligations)
+        fields(beneficiary_id = %beneficiary_id, n_obligations)
     )]
     async fn beneficiary_obligations(
         &self,
-        credit_facility_id: BeneficiaryId,
+        beneficiary_id: BeneficiaryId,
     ) -> Result<Vec<Obligation>, ObligationError> {
         let mut obligations = Vec::new();
         let mut query = Default::default();
         loop {
             let mut res = self
                 .repo
-                .list_for_credit_facility_id_by_created_at(
-                    credit_facility_id,
+                .list_for_beneficiary_id_by_created_at(
+                    beneficiary_id,
                     query,
                     es_entity::ListDirection::Ascending,
                 )

@@ -46,7 +46,7 @@
         "amount": {
           "$ref": "#/$defs/UsdCents"
         },
-        "credit_facility_id": {
+        "beneficiary_id": {
           "format": "uuid",
           "type": "string"
         },
@@ -116,7 +116,7 @@
       "required": [
         "type",
         "id",
-        "credit_facility_id",
+        "beneficiary_id",
         "obligation_type",
         "amount",
         "reference",

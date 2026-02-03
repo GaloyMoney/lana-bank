@@ -246,7 +246,7 @@ where
 
         let credit_facility = self
             .credit_facilities
-            .find_by_id_without_audit(allocation.credit_facility_id)
+            .find_by_id_without_audit(allocation.beneficiary_id)
             .await?;
 
         self.ensure_credit_facility_access(

@@ -6,7 +6,7 @@ CREATE TABLE core_payment_events_rollup (
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
   amount BIGINT,
-  credit_facility_id UUID,
+  beneficiary_id UUID,
   effective VARCHAR,
   facility_payment_holding_account_id UUID,
   facility_uncovered_outstanding_account_id UUID,
@@ -47,7 +47,7 @@ BEGIN
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
     new_row.amount := (NEW.event ->> 'amount')::BIGINT;
-    new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
+    new_row.beneficiary_id := (NEW.event ->> 'beneficiary_id')::UUID;
     new_row.effective := (NEW.event ->> 'effective');
     new_row.facility_payment_holding_account_id := (NEW.event ->> 'facility_payment_holding_account_id')::UUID;
     new_row.facility_uncovered_outstanding_account_id := (NEW.event ->> 'facility_uncovered_outstanding_account_id')::UUID;
@@ -56,7 +56,7 @@ BEGIN
   ELSE
     -- Default all fields to current values
     new_row.amount := current_row.amount;
-    new_row.credit_facility_id := current_row.credit_facility_id;
+    new_row.beneficiary_id := current_row.beneficiary_id;
     new_row.effective := current_row.effective;
     new_row.facility_payment_holding_account_id := current_row.facility_payment_holding_account_id;
     new_row.facility_uncovered_outstanding_account_id := current_row.facility_uncovered_outstanding_account_id;
@@ -68,7 +68,7 @@ BEGIN
   CASE event_type
     WHEN 'initialized' THEN
       new_row.amount := (NEW.event ->> 'amount')::BIGINT;
-      new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
+      new_row.beneficiary_id := (NEW.event ->> 'beneficiary_id')::UUID;
       new_row.effective := (NEW.event ->> 'effective');
       new_row.facility_payment_holding_account_id := (NEW.event ->> 'facility_payment_holding_account_id')::UUID;
       new_row.facility_uncovered_outstanding_account_id := (NEW.event ->> 'facility_uncovered_outstanding_account_id')::UUID;
@@ -82,7 +82,7 @@ BEGIN
     created_at,
     modified_at,
     amount,
-    credit_facility_id,
+    beneficiary_id,
     effective,
     facility_payment_holding_account_id,
     facility_uncovered_outstanding_account_id,
@@ -95,7 +95,7 @@ BEGIN
     new_row.created_at,
     new_row.modified_at,
     new_row.amount,
-    new_row.credit_facility_id,
+    new_row.beneficiary_id,
     new_row.effective,
     new_row.facility_payment_holding_account_id,
     new_row.facility_uncovered_outstanding_account_id,

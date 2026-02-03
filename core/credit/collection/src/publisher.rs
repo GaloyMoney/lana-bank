@@ -52,13 +52,13 @@ where
             .map(|event| match &event.event {
                 Initialized {
                     id,
-                    credit_facility_id,
+                    beneficiary_id,
                     amount,
                     effective,
                     ..
                 } => CoreCreditCollectionEvent::PaymentReceived {
                     payment_id: *id,
-                    credit_facility_id: *credit_facility_id,
+                    beneficiary_id: *beneficiary_id,
                     amount: *amount,
                     recorded_at: event.recorded_at,
                     effective: *effective,
@@ -90,7 +90,7 @@ where
                     effective,
                     ..
                 } => CoreCreditCollectionEvent::PaymentAllocated {
-                    credit_facility_id: entity.credit_facility_id,
+                    beneficiary_id: entity.beneficiary_id,
                     obligation_id: *obligation_id,
                     obligation_type: *obligation_type,
                     allocation_id: *id,
@@ -123,7 +123,7 @@ where
                     Some(CoreCreditCollectionEvent::ObligationCreated {
                         id: entity.id,
                         obligation_type: entity.obligation_type,
-                        credit_facility_id: entity.credit_facility_id,
+                        beneficiary_id: entity.beneficiary_id,
                         amount: entity.initial_amount,
                         due_at: dates.due,
                         overdue_at: dates.overdue,
@@ -136,7 +136,7 @@ where
                     due_amount: amount, ..
                 } => Some(CoreCreditCollectionEvent::ObligationDue {
                     id: entity.id,
-                    credit_facility_id: entity.credit_facility_id,
+                    beneficiary_id: entity.beneficiary_id,
                     obligation_type: entity.obligation_type,
                     amount: *amount,
                 }),
@@ -145,7 +145,7 @@ where
                     ..
                 } => Some(CoreCreditCollectionEvent::ObligationOverdue {
                     id: entity.id,
-                    credit_facility_id: entity.credit_facility_id,
+                    beneficiary_id: entity.beneficiary_id,
                     amount: *amount,
                 }),
                 DefaultedRecorded {
@@ -153,12 +153,12 @@ where
                     ..
                 } => Some(CoreCreditCollectionEvent::ObligationDefaulted {
                     id: entity.id,
-                    credit_facility_id: entity.credit_facility_id,
+                    beneficiary_id: entity.beneficiary_id,
                     amount: *amount,
                 }),
                 Completed { .. } => Some(CoreCreditCollectionEvent::ObligationCompleted {
                     id: entity.id,
-                    credit_facility_id: entity.credit_facility_id,
+                    beneficiary_id: entity.beneficiary_id,
                 }),
                 _ => None,
             })

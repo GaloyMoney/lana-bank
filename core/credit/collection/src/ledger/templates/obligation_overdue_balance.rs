@@ -95,7 +95,7 @@ pub struct RecordObligationOverdueBalance;
 impl RecordObligationOverdueBalance {
     #[record_error_severity]
     #[instrument(
-        name = "collection_ledger.record_obligation_overdue_balance.init",
+        name = "collection.ledger.record_obligation_overdue_balance.init",
         skip_all
     )]
     pub async fn init(ledger: &CalaLedger) -> Result<(), CollectionLedgerError> {

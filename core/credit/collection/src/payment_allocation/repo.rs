@@ -16,7 +16,7 @@ use super::{entity::*, error::PaymentAllocationError};
     entity = "PaymentAllocation",
     err = "PaymentAllocationError",
     columns(
-        credit_facility_id(ty = "BeneficiaryId", list_for, update(persist = false)),
+        beneficiary_id(ty = "BeneficiaryId", list_for, update(persist = false)),
         payment_id(ty = "PaymentId", list_for, update(persist = false)),
         obligation_id(ty = "ObligationId", update(persist = false)),
     ),

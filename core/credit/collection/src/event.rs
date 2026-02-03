@@ -12,13 +12,13 @@ use crate::primitives::*;
 pub enum CoreCreditCollectionEvent {
     PaymentReceived {
         payment_id: PaymentId,
-        credit_facility_id: BeneficiaryId,
+        beneficiary_id: BeneficiaryId,
         amount: UsdCents,
         recorded_at: DateTime<Utc>,
         effective: chrono::NaiveDate,
     },
     PaymentAllocated {
-        credit_facility_id: BeneficiaryId,
+        beneficiary_id: BeneficiaryId,
         obligation_id: ObligationId,
         obligation_type: ObligationType,
         allocation_id: PaymentAllocationId,
@@ -29,7 +29,7 @@ pub enum CoreCreditCollectionEvent {
     ObligationCreated {
         id: ObligationId,
         obligation_type: ObligationType,
-        credit_facility_id: BeneficiaryId,
+        beneficiary_id: BeneficiaryId,
         amount: UsdCents,
         due_at: EffectiveDate,
         overdue_at: Option<EffectiveDate>,
@@ -39,22 +39,22 @@ pub enum CoreCreditCollectionEvent {
     },
     ObligationDue {
         id: ObligationId,
-        credit_facility_id: BeneficiaryId,
+        beneficiary_id: BeneficiaryId,
         obligation_type: ObligationType,
         amount: UsdCents,
     },
     ObligationOverdue {
         id: ObligationId,
-        credit_facility_id: BeneficiaryId,
+        beneficiary_id: BeneficiaryId,
         amount: UsdCents,
     },
     ObligationDefaulted {
         id: ObligationId,
-        credit_facility_id: BeneficiaryId,
+        beneficiary_id: BeneficiaryId,
         amount: UsdCents,
     },
     ObligationCompleted {
         id: ObligationId,
-        credit_facility_id: BeneficiaryId,
+        beneficiary_id: BeneficiaryId,
     },
 }

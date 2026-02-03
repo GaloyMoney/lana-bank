@@ -161,7 +161,7 @@ where
             .id(payment_id)
             .ledger_tx_id(payment_id)
             .amount(amount)
-            .credit_facility_id(credit_facility_id)
+            .beneficiary_id(credit_facility_id)
             .payment_ledger_account_ids(payment_ledger_account_ids)
             .effective(clock.today())
             .build()

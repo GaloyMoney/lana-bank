@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO core_payments (id, credit_facility_id, created_at) VALUES ($1, $2, COALESCE($3, NOW()))",
+  "query": "INSERT INTO core_payments (id, beneficiary_id, created_at) VALUES ($1, $2, COALESCE($3, NOW()))",
   "describe": {
     "columns": [],
     "parameters": {
@@ -12,5 +12,5 @@
     },
     "nullable": []
   },
-  "hash": "cbc97fbe21ea579da0602d7bdd5bf90ebaee5e8f05f24d013455112b70c9ba04"
+  "hash": "4a0bac92ed30a1d7cac603b57aadc182b0234e34fbc4ec74c0434e4e490cbebb"
 }

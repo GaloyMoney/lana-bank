@@ -79,7 +79,7 @@ impl ObligationsAmounts {
 pub struct PaymentDetailsForAllocation {
     pub payment_id: PaymentId,
     pub amount: UsdCents,
-    pub credit_facility_id: BeneficiaryId,
+    pub beneficiary_id: BeneficiaryId,
     pub facility_payment_holding_account_id: CalaAccountId,
     pub effective: chrono::NaiveDate,
 }

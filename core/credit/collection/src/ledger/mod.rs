@@ -36,7 +36,7 @@ pub struct CollectionLedger {
 
 impl CollectionLedger {
     #[record_error_severity]
-    #[instrument(name = "collection_ledger.init", skip_all)]
+    #[instrument(name = "collection.ledger.init", skip_all)]
     pub async fn init(
         cala: &CalaLedger,
         journal_id: JournalId,
@@ -57,7 +57,7 @@ impl CollectionLedger {
     }
 
     #[record_error_severity]
-    #[instrument(name = "collection_ledger.record_payment", skip(self, op, payment))]
+    #[instrument(name = "collection.ledger.record_payment", skip(self, op, payment))]
     pub async fn record_payment(
         &self,
         op: &mut es_entity::DbOp<'_>,
@@ -105,7 +105,7 @@ impl CollectionLedger {
 
     #[record_error_severity]
     #[instrument(
-        name = "collection_ledger.record_payment_allocations",
+        name = "collection.ledger.record_payment_allocations",
         skip(self, op, payments)
     )]
     pub async fn record_payment_allocations(
@@ -122,7 +122,7 @@ impl CollectionLedger {
     }
 
     #[record_error_severity]
-    #[instrument(name = "collection_ledger.record_obligation_due", skip(self, op))]
+    #[instrument(name = "collection.ledger.record_obligation_due", skip(self, op))]
     pub async fn record_obligation_due(
         &self,
         op: &mut es_entity::DbOp<'_>,
@@ -155,7 +155,7 @@ impl CollectionLedger {
     }
 
     #[record_error_severity]
-    #[instrument(name = "collection_ledger.record_obligation_overdue", skip(self, op))]
+    #[instrument(name = "collection.ledger.record_obligation_overdue", skip(self, op))]
     pub async fn record_obligation_overdue(
         &self,
         op: &mut es_entity::DbOp<'_>,
@@ -188,7 +188,7 @@ impl CollectionLedger {
     }
 
     #[record_error_severity]
-    #[instrument(name = "collection_ledger.record_obligation_defaulted", skip(self, op))]
+    #[instrument(name = "collection.ledger.record_obligation_defaulted", skip(self, op))]
     pub async fn record_obligation_defaulted(
         &self,
         op: &mut es_entity::DbOp<'_>,

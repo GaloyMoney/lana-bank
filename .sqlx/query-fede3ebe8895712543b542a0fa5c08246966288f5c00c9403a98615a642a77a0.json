@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT credit_facility_id, id FROM core_payments WHERE ((credit_facility_id = $1) AND (COALESCE(id > $3, true))) ORDER BY id ASC LIMIT $2) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $4 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_payment_events e ON i.id = e.id ORDER BY i.id asc, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT id FROM core_obligations WHERE beneficiary_id = $1) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, CASE WHEN $2 THEN e.context ELSE NULL::jsonb END as \"context: es_entity::ContextData\", e.recorded_at FROM entities i JOIN core_obligation_events e ON i.id = e.id ORDER BY i.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -32,8 +32,6 @@
     "parameters": {
       "Left": [
         "Uuid",
-        "Int8",
-        "Uuid",
         "Bool"
       ]
     },
@@ -45,5 +43,5 @@
       false
     ]
   },
-  "hash": "32297b4806992711da0a0877aaf37073db872f37eb924f1e9d1b2fdb91fdff83"
+  "hash": "fede3ebe8895712543b542a0fa5c08246966288f5c00c9403a98615a642a77a0"
 }

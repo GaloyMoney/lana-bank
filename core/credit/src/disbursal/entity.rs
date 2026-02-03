@@ -226,7 +226,7 @@ impl Disbursal {
         Idempotent::Executed(
             NewObligation::builder()
                 .id(obligation_id)
-                .credit_facility_id(self.facility_id)
+                .beneficiary_id(self.facility_id)
                 .obligation_type(ObligationType::Disbursal)
                 .reference(tx_ref.to_string())
                 .amount(self.amount)

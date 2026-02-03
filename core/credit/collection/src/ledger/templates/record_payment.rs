@@ -129,7 +129,7 @@ pub struct RecordPayment;
 
 impl RecordPayment {
     #[record_error_severity]
-    #[instrument(name = "collection_ledger.record_payment.init", skip_all)]
+    #[instrument(name = "collection.ledger.record_payment.init", skip_all)]
     pub async fn init(ledger: &CalaLedger) -> Result<(), CollectionLedgerError> {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")

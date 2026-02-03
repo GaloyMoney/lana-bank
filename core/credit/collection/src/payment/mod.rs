@@ -77,7 +77,7 @@ where
     }
 
     /// Attempts to create new Payment entity with `payment_id` linked
-    /// to `credit_facility_id`. Upon successful creation, the Payment
+    /// to `beneficiary_id`. Upon successful creation, the Payment
     /// is recorded in ledger by transferring `amount` from
     /// `payment_source_account_id` to `payment_holding_account_id`
     /// with `effective` date.
@@ -95,7 +95,7 @@ where
         &self,
         db: &mut es_entity::DbOp<'_>,
         payment_id: PaymentId,
-        credit_facility_id: BeneficiaryId,
+        beneficiary_id: BeneficiaryId,
         payment_ledger_account_ids: PaymentLedgerAccountIds,
         amount: UsdCents,
         effective: chrono::NaiveDate,
@@ -105,7 +105,7 @@ where
             .id(payment_id)
             .ledger_tx_id(payment_id)
             .amount(amount)
-            .credit_facility_id(credit_facility_id)
+            .beneficiary_id(beneficiary_id)
             .payment_ledger_account_ids(payment_ledger_account_ids)
             .effective(effective)
             .build()
@@ -132,7 +132,7 @@ where
     pub async fn record(
         &self,
         payment_id: PaymentId,
-        credit_facility_id: BeneficiaryId,
+        beneficiary_id: BeneficiaryId,
         payment_ledger_account_ids: PaymentLedgerAccountIds,
         amount: UsdCents,
         effective: chrono::NaiveDate,
@@ -143,7 +143,7 @@ where
             .record_in_op(
                 &mut db,
                 payment_id,
-                credit_facility_id,
+                beneficiary_id,
                 payment_ledger_account_ids,
                 amount,
                 effective,

@@ -13,7 +13,7 @@
         "amount": {
           "$ref": "#/$defs/UsdCents"
         },
-        "credit_facility_id": {
+        "beneficiary_id": {
           "format": "uuid",
           "type": "string"
         },
@@ -50,7 +50,7 @@
         "type",
         "id",
         "ledger_tx_id",
-        "credit_facility_id",
+        "beneficiary_id",
         "facility_payment_holding_account_id",
         "facility_uncovered_outstanding_account_id",
         "payment_source_account_id",
