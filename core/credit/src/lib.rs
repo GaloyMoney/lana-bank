@@ -12,7 +12,6 @@ mod event;
 mod for_subject;
 mod history;
 pub mod ledger;
-mod liquidation;
 mod pending_credit_facility;
 mod primitives;
 mod processes;
@@ -47,7 +46,7 @@ pub use chart_of_accounts_integration::{
 };
 pub use collateral::{
     Collateral, Collaterals, Liquidation, LiquidationError, RecordProceedsFromLiquidationData,
-    liquidation_cursor,
+    liquidation_cursor, liquidation_cursor::*,
 };
 pub use config::*;
 pub use credit_facility::error::CreditFacilityError;
@@ -59,7 +58,6 @@ pub use event::*;
 use for_subject::CreditFacilitiesForSubject;
 pub use history::*;
 pub use ledger::*;
-pub use liquidation::{liquidation_cursor::*, *};
 pub use pending_credit_facility::*;
 pub use primitives::*;
 pub use processes::{
@@ -78,9 +76,9 @@ pub use core_credit_collection::{ObligationEvent, PaymentAllocationEvent, Paymen
 pub mod event_schema {
     pub use crate::{
         ObligationEvent, PaymentAllocationEvent, PaymentEvent, collateral::CollateralEvent,
-        credit_facility::CreditFacilityEvent,
+        collateral::LiquidationEvent, credit_facility::CreditFacilityEvent,
         credit_facility_proposal::CreditFacilityProposalEvent, disbursal::DisbursalEvent,
-        interest_accrual_cycle::InterestAccrualCycleEvent, liquidation::LiquidationEvent,
+        interest_accrual_cycle::InterestAccrualCycleEvent,
         pending_credit_facility::PendingCreditFacilityEvent,
     };
 }
@@ -117,7 +115,6 @@ where
     custody: Arc<CoreCustody<Perms, E>>,
     chart_of_accounts_integrations: Arc<ChartOfAccountsIntegrations<Perms>>,
     public_ids: Arc<PublicIds>,
-    liquidations: Arc<Liquidations<Perms, E>>,
     histories: Arc<Histories<Perms>>,
     clock: ClockHandle,
 }
@@ -158,7 +155,6 @@ where
             activate_credit_facility: self.activate_credit_facility.clone(),
             chart_of_accounts_integrations: self.chart_of_accounts_integrations.clone(),
             public_ids: self.public_ids.clone(),
-            liquidations: self.liquidations.clone(),
         }
     }
 }
@@ -241,9 +237,6 @@ where
         )
         .await?;
         let collections_arc = Arc::new(collections);
-
-        let liquidations = Liquidations::new(pool, authz_arc.clone(), &publisher, clock.clone());
-        let liquidations_arc = Arc::new(liquidations);
 
         let credit_facility_proposals = CreditFacilityProposals::init(
             pool,
@@ -426,7 +419,6 @@ where
             activate_credit_facility: activate_credit_facility_arc,
             chart_of_accounts_integrations: chart_of_accounts_integrations_arc,
             public_ids: public_ids_arc,
-            liquidations: liquidations_arc,
         })
     }
 
@@ -440,10 +432,6 @@ where
 
     pub fn disbursals(&self) -> &Disbursals<Perms, E> {
         self.disbursals.as_ref()
-    }
-
-    pub fn liquidations(&self) -> &Liquidations<Perms, E> {
-        self.liquidations.as_ref()
     }
 
     pub fn proposals(&self) -> &CreditFacilityProposals<Perms, E> {

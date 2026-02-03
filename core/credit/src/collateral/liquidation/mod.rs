@@ -11,9 +11,6 @@ pub use error::LiquidationError;
 
 use crate::ledger::FacilityProceedsFromLiquidationAccountId;
 
-#[cfg(feature = "json-schema")]
-pub use entity::LiquidationEvent;
-
 #[derive(Clone, Debug)]
 pub struct RecordProceedsFromLiquidationData {
     pub liquidation_proceeds_omnibus_account_id: CalaAccountId,
