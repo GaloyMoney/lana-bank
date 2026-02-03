@@ -70,30 +70,4 @@ where
             .publish_liquidation_in_op(op, entity, new_events)
             .await
     }
-
-    #[tracing::instrument(
-        name = "liquidation.maybe_find_active_liquidation_by_credit_facility_id_in_op",
-        skip(self, db),
-        err
-    )]
-    pub async fn maybe_find_active_liquidation_for_credit_facility_id_in_op(
-        &self,
-        db: &mut DbOp<'_>,
-        credit_facility_id: CreditFacilityId,
-    ) -> Result<Option<Liquidation>, LiquidationError> {
-        let res = es_entity::es_query!(
-            entity = Liquidation,
-            r#"
-            SELECT *
-            FROM core_liquidations
-            WHERE credit_facility_id = $1
-              AND completed = false
-            "#,
-            credit_facility_id as CreditFacilityId
-        )
-        .fetch_optional(db)
-        .await?;
-
-        Ok(res)
-    }
 }

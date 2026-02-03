@@ -7,8 +7,8 @@ use schemars::JsonSchema;
 use core_money::{Satoshis, UsdCents};
 
 use crate::{
-    CollateralizationState, CreditFacilityReceivable, FacilityProceedsFromLiquidationAccountId,
-    InterestPeriod, TermValues,
+    CollateralizationState, CreditFacilityReceivable, InterestPeriod, TermValues,
+    collateral::FacilityProceedsFromLiquidationAccountId,
 };
 
 use super::primitives::*;

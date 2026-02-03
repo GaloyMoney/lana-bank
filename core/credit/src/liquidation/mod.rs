@@ -4,22 +4,16 @@ mod repo;
 
 use std::sync::Arc;
 
-use serde::{Deserialize, Serialize};
 use tracing::instrument;
 use tracing_macros::record_error_severity;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use cala_ledger::AccountId as CalaAccountId;
 use core_custody::CoreCustodyEvent;
-use core_money::{Satoshis, UsdCents};
 use governance::GovernanceEvent;
 use obix::out::OutboxEventMarker;
 
-use crate::{
-    CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId, LiquidationId,
-    PaymentSourceAccountId,
-};
+use crate::{CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId, LiquidationId};
 pub use entity::NewLiquidationBuilder;
 pub use entity::{Liquidation, LiquidationEvent, NewLiquidation};
 use error::LiquidationError;
@@ -147,48 +141,5 @@ where
         self.repo
             .list_by_id(query, es_entity::ListDirection::Descending)
             .await
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct RecordProceedsFromLiquidationData {
-    pub liquidation_proceeds_omnibus_account_id: CalaAccountId,
-    pub proceeds_from_liquidation_account_id: FacilityProceedsFromLiquidationAccountId,
-    pub amount_received: UsdCents,
-    pub collateral_in_liquidation_account_id: CalaAccountId,
-    pub liquidated_collateral_account_id: CalaAccountId,
-    pub amount_liquidated: Satoshis,
-}
-
-#[derive(Clone, Debug, Copy, Serialize, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
-#[serde(transparent)]
-pub struct FacilityProceedsFromLiquidationAccountId(CalaAccountId);
-
-impl FacilityProceedsFromLiquidationAccountId {
-    pub fn new() -> Self {
-        Self(CalaAccountId::new())
-    }
-
-    pub const fn into_inner(self) -> CalaAccountId {
-        self.0
-    }
-}
-
-impl Default for FacilityProceedsFromLiquidationAccountId {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl From<&FacilityProceedsFromLiquidationAccountId> for PaymentSourceAccountId {
-    fn from(account: &FacilityProceedsFromLiquidationAccountId) -> Self {
-        Self::new(account.0)
-    }
-}
-
-impl From<FacilityProceedsFromLiquidationAccountId> for CalaAccountId {
-    fn from(account: FacilityProceedsFromLiquidationAccountId) -> Self {
-        account.0
     }
 }
