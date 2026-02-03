@@ -4,6 +4,8 @@ pub mod error;
 use cala_ledger::AccountId as CalaAccountId;
 use core_money::{Satoshis, UsdCents};
 
+use crate::primitives::LedgerTxId;
+
 pub use entity::{Liquidation, LiquidationEvent, NewLiquidation, NewLiquidationBuilder};
 pub use error::LiquidationError;
 
@@ -20,4 +22,5 @@ pub struct RecordProceedsFromLiquidationData {
     pub collateral_in_liquidation_account_id: CalaAccountId,
     pub liquidated_collateral_account_id: CalaAccountId,
     pub amount_liquidated: Satoshis,
+    pub ledger_tx_id: LedgerTxId,
 }

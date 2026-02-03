@@ -6,12 +6,7 @@ use serde::{Deserialize, Serialize};
 use cala_ledger::AccountId as CalaAccountId;
 use es_entity::*;
 
-use crate::{
-    collateral::RecordProceedsFromLiquidationData,
-    ledger::FacilityProceedsFromLiquidationAccountId, primitives::*,
-};
-
-use super::error::LiquidationError;
+use crate::{ledger::FacilityProceedsFromLiquidationAccountId, primitives::*};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -114,37 +109,6 @@ impl Liquidation {
         });
 
         Idempotent::Executed(())
-    }
-
-    pub fn record_proceeds_from_liquidation(
-        &mut self,
-        amount_received: UsdCents,
-        payment_id: PaymentId,
-        ledger_tx_id: LedgerTxId,
-    ) -> Result<Idempotent<RecordProceedsFromLiquidationData>, LiquidationError> {
-        idempotency_guard!(
-            self.events.iter_all(),
-            LiquidationEvent::ProceedsFromLiquidationReceived { .. }
-        );
-
-        self.amount_received = amount_received;
-
-        self.events
-            .push(LiquidationEvent::ProceedsFromLiquidationReceived {
-                amount: amount_received,
-                payment_id,
-                ledger_tx_id,
-            });
-
-        Ok(Idempotent::Executed(RecordProceedsFromLiquidationData {
-            liquidation_proceeds_omnibus_account_id: self.liquidation_proceeds_omnibus_account_id,
-            proceeds_from_liquidation_account_id: self
-                .facility_proceeds_from_liquidation_account_id,
-            amount_received: self.amount_received,
-            collateral_in_liquidation_account_id: self.collateral_in_liquidation_account_id,
-            liquidated_collateral_account_id: self.liquidated_collateral_account_id,
-            amount_liquidated: self.sent_total,
-        }))
     }
 
     pub fn complete(&mut self) -> Idempotent<()> {

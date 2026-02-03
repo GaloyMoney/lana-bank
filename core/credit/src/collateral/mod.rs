@@ -21,13 +21,9 @@ use obix::out::{Outbox, OutboxEventMarker};
 
 use crate::{CoreCreditAction, CoreCreditCollectionEvent, CoreCreditObject};
 
-use cala_ledger::TransactionId as CalaTransactionId;
 use es_entity::Idempotent;
 
-use crate::{
-    CreditFacilityPublisher, PaymentId, UsdCents, event::CoreCreditEvent,
-    liquidation::OldLiquidationRepo, primitives::*,
-};
+use crate::{CreditFacilityPublisher, UsdCents, event::CoreCreditEvent, primitives::*};
 
 use ledger::CollateralLedger;
 
@@ -53,7 +49,6 @@ where
     authz: Arc<Perms>,
     repo: Arc<CollateralRepo<E>>,
     ledger: Arc<CollateralLedger>,
-    liquidation_repo: Arc<OldLiquidationRepo<E>>,
     clock: ClockHandle,
 }
 
@@ -70,7 +65,6 @@ where
             authz: self.authz.clone(),
             repo: self.repo.clone(),
             ledger: self.ledger.clone(),
-            liquidation_repo: self.liquidation_repo.clone(),
             clock: self.clock.clone(),
         }
     }
@@ -116,11 +110,6 @@ where
             )
             .await?;
 
-        let liquidation_repo = Arc::new(crate::liquidation::OldLiquidationRepo::new(
-            pool,
-            publisher,
-            clock.clone(),
-        ));
         let credit_facility_repo = Arc::new(crate::credit_facility::CreditFacilityRepo::new(
             pool,
             publisher,
@@ -161,7 +150,6 @@ where
             authz,
             repo: repo_arc,
             ledger,
-            liquidation_repo,
             clock,
         })
     }
@@ -250,37 +238,20 @@ where
 
         let mut collateral = self.repo.find_by_id_in_op(&mut db, collateral_id).await?;
 
-        let liquidation_id = collateral
-            .active_liquidation_id()
-            .ok_or(CollateralError::NoActiveLiquidation)?;
-
-        let mut liquidation = self
-            .liquidation_repo
-            .find_by_id_in_op(&mut db, liquidation_id)
-            .await?;
-
-        let tx_id = CalaTransactionId::new();
-
-        if liquidation
-            .record_collateral_sent_out(amount_sent, tx_id)
-            .did_execute()
-        {
-            self.liquidation_repo
-                .update_in_op(&mut db, &mut liquidation)
-                .await?;
-        }
-
-        if let es_entity::Idempotent::Executed(data) = collateral
-            .record_collateral_update_via_liquidation(liquidation_id, amount_sent, effective)
+        if let es_entity::Idempotent::Executed(data) =
+            collateral.record_collateral_update_via_liquidation(amount_sent, effective)?
         {
             self.repo.update_in_op(&mut db, &mut collateral).await?;
+
             self.ledger
                 .record_collateral_sent_to_liquidation_in_op(
                     &mut db,
                     data.tx_id,
                     amount_sent,
                     collateral.account_id,
-                    liquidation.collateral_in_liquidation_account_id,
+                    collateral
+                        .collateral_in_liquidation_account_id()
+                        .expect("No liquidations found"),
                     initiated_by,
                 )
                 .await?;
@@ -303,41 +274,25 @@ where
         collateral_id: CollateralId,
         amount_received: UsdCents,
     ) -> Result<Collateral, CollateralError> {
-        let collateral = self.repo.find_by_id(collateral_id).await?;
-
-        let liquidation_id = collateral
-            .active_liquidation_id()
-            .ok_or(CollateralError::NoActiveLiquidation)?;
+        let mut collateral = self.repo.find_by_id(collateral_id).await?;
 
         self.authz
             .enforce_permission(
                 sub,
-                CoreCreditObject::liquidation(liquidation_id),
-                CoreCreditAction::LIQUIDATION_RECORD_PAYMENT_RECEIVED,
+                CoreCreditObject::collateral(collateral_id),
+                CoreCreditAction::COLLATERAL_RECORD_PAYMENT_RECEIVED_FROM_LIQUIDATION,
             )
             .await?;
 
         let mut db = self.repo.begin_op().await?;
 
-        let mut liquidation = self
-            .liquidation_repo
-            .find_by_id_in_op(&mut db, liquidation_id)
-            .await?;
-
-        let tx_id = CalaTransactionId::new();
-
-        if let Idempotent::Executed(data) = liquidation.record_proceeds_from_liquidation(
-            amount_received,
-            PaymentId::new(),
-            tx_id,
-        )? {
-            self.liquidation_repo
-                .update_in_op(&mut db, &mut liquidation)
-                .await?;
+        if let Idempotent::Executed(data) =
+            collateral.record_liquidation_proceeds_received(amount_received)?
+        {
+            self.repo.update_in_op(&mut db, &mut collateral).await?;
             self.ledger
                 .record_proceeds_from_liquidation_in_op(
                     &mut db,
-                    tx_id,
                     data,
                     LedgerTransactionInitiator::try_from_subject(sub)?,
                 )

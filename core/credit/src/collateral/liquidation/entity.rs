@@ -8,7 +8,7 @@ use es_entity::*;
 
 use crate::{ledger::FacilityProceedsFromLiquidationAccountId, primitives::*};
 
-use super::{RecordProceedsFromLiquidationData, error::LiquidationError};
+use super::RecordProceedsFromLiquidationData;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -90,53 +90,38 @@ impl Liquidation {
             .expect("entity_first_persisted_at not found")
     }
 
-    pub fn record_collateral_sent_out(
-        &mut self,
-        amount_sent: Satoshis,
-        ledger_tx_id: LedgerTxId,
-    ) -> Idempotent<()> {
-        idempotency_guard!(
-            self.events.iter_all(),
-            LiquidationEvent::CollateralSentOut {
-                amount,
-                ledger_tx_id: tx_id
-            } if amount_sent == *amount && ledger_tx_id == *tx_id
-        );
-
+    pub fn record_collateral_sent_out(&mut self, amount_sent: Satoshis) -> Idempotent<LedgerTxId> {
         self.sent_total += amount_sent;
 
+        let ledger_tx_id = LedgerTxId::new();
         self.events.push(LiquidationEvent::CollateralSentOut {
             amount: amount_sent,
             ledger_tx_id,
         });
 
-        Idempotent::Executed(())
+        Idempotent::Executed(ledger_tx_id)
     }
 
     pub fn record_proceeds_from_liquidation(
         &mut self,
         amount_received: UsdCents,
-        payment_id: PaymentId,
-        ledger_tx_id: LedgerTxId,
-    ) -> Result<Idempotent<RecordProceedsFromLiquidationData>, LiquidationError> {
+    ) -> Idempotent<RecordProceedsFromLiquidationData> {
         idempotency_guard!(
             self.events.iter_all(),
-            LiquidationEvent::ProceedsFromLiquidationReceived {
-                payment_id: existing_payment_id,
-                ..
-            } if *existing_payment_id == payment_id,
+            LiquidationEvent::ProceedsFromLiquidationReceived { .. },
         );
 
         self.amount_received = amount_received;
 
+        let ledger_tx_id = LedgerTxId::new();
         self.events
             .push(LiquidationEvent::ProceedsFromLiquidationReceived {
                 amount: amount_received,
-                payment_id,
+                payment_id: PaymentId::new(),
                 ledger_tx_id,
             });
 
-        Ok(Idempotent::Executed(RecordProceedsFromLiquidationData {
+        Idempotent::Executed(RecordProceedsFromLiquidationData {
             liquidation_proceeds_omnibus_account_id: self.liquidation_proceeds_omnibus_account_id,
             proceeds_from_liquidation_account_id: self
                 .facility_proceeds_from_liquidation_account_id,
@@ -144,7 +129,8 @@ impl Liquidation {
             collateral_in_liquidation_account_id: self.collateral_in_liquidation_account_id,
             liquidated_collateral_account_id: self.liquidated_collateral_account_id,
             amount_liquidated: self.sent_total,
-        }))
+            ledger_tx_id,
+        })
     }
 
     pub fn complete(&mut self) -> Idempotent<()> {
@@ -354,8 +340,7 @@ mod tests {
 
         let amount = Satoshis::from(50000);
         let result = liquidation.record_collateral_sent_out(amount);
-        assert!(result.is_ok());
-        assert!(result.unwrap().did_execute());
+        assert!(result.did_execute());
         assert_eq!(liquidation.sent_total, amount);
 
         let amount2 = Satoshis::from(30000);
@@ -369,14 +354,8 @@ mod tests {
 
         let amount1 = Satoshis::from(50000);
         let amount2 = Satoshis::from(30000);
-        liquidation
-            .record_collateral_sent_out(amount1)
-            .unwrap()
-            .unwrap();
-        liquidation
-            .record_collateral_sent_out(amount2)
-            .unwrap()
-            .unwrap();
+        liquidation.record_collateral_sent_out(amount1).unwrap();
+        liquidation.record_collateral_sent_out(amount2).unwrap();
 
         let sent_out = liquidation.collateral_sent_out();
         assert_eq!(sent_out.len(), 2);
@@ -389,37 +368,13 @@ mod tests {
         let mut liquidation = liquidation_from(default_new_liquidation());
 
         let amount = UsdCents::from(500);
-        let payment_id = PaymentId::new();
-        let result = liquidation.record_proceeds_from_liquidation(amount, payment_id);
-        assert!(result.is_ok());
-        assert!(result.unwrap().did_execute());
+        let result = liquidation.record_proceeds_from_liquidation(amount);
+        assert!(result.did_execute());
         assert_eq!(liquidation.amount_received, amount);
 
-        let result2 = liquidation.record_proceeds_from_liquidation(amount, payment_id);
-        assert!(result2.is_ok());
-        assert!(result2.unwrap().was_already_applied());
+        let result2 = liquidation.record_proceeds_from_liquidation(amount);
+        assert!(result2.was_already_applied());
         assert_eq!(liquidation.amount_received, amount);
-    }
-
-    #[test]
-    fn proceeds_received_returns_correct_list() {
-        let mut liquidation = liquidation_from(default_new_liquidation());
-
-        let amount1 = UsdCents::from(500);
-        let amount2 = UsdCents::from(300);
-        liquidation
-            .record_proceeds_from_liquidation(amount1, PaymentId::new())
-            .unwrap()
-            .unwrap();
-        liquidation
-            .record_proceeds_from_liquidation(amount2, PaymentId::new())
-            .unwrap()
-            .unwrap();
-
-        let received = liquidation.proceeds_received();
-        assert_eq!(received.len(), 2);
-        assert_eq!(received[0].0, amount1);
-        assert_eq!(received[1].0, amount2);
     }
 
     #[test]
