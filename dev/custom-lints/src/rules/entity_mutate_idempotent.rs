@@ -202,6 +202,10 @@ impl LintRule for EntityMutateIdempotentRule {
         "entity-mutate-idempotent"
     }
 
+    fn description(&self) -> &'static str {
+        "Ensures EsEntity mutating methods (&mut self) return Idempotent<T>"
+    }
+
     fn check_file(&self, file: &syn::File, path: &Path) -> Vec<Violation> {
         // First pass: collect all EsEntity struct names
         let mut collector = EsEntityCollector::new();
